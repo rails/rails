@@ -5,7 +5,7 @@ module ActiveRecord::Associations::Builder
     end
 
     def valid_options
-      valid = super + [:order, :as]
+      valid = super + [:as]
       valid += [:through, :source, :source_type] if options[:through]
       valid
     end
@@ -16,7 +16,7 @@ module ActiveRecord::Associations::Builder
 
     private
 
-    def self.add_before_destroy_callbacks(model, reflection)
+    def self.add_destroy_callbacks(model, reflection)
       super unless reflection.options[:through]
     end
   end

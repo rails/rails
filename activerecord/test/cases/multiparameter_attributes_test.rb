@@ -240,8 +240,8 @@ class MultiParameterAttributeTest < ActiveRecord::TestCase
     Topic.skip_time_zone_conversion_for_attributes = []
   end
 
-  # Oracle, and Sybase do not have a TIME datatype.
-  unless current_adapter?(:OracleAdapter, :SybaseAdapter)
+  # Oracle does not have a TIME datatype.
+  unless current_adapter?(:OracleAdapter)
     def test_multiparameter_attributes_on_time_only_column_with_time_zone_aware_attributes_does_not_do_time_zone_conversion
       with_timezone_config default: :utc, aware_attributes: true, zone: -28800 do
         attributes = {

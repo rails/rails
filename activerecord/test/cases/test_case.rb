@@ -10,13 +10,7 @@ module ActiveRecord
     end
 
     def assert_date_from_db(expected, actual, message = nil)
-      # SybaseAdapter doesn't have a separate column type just for dates,
-      # so the time is in the string and incorrectly formatted
-      if current_adapter?(:SybaseAdapter)
-        assert_equal expected.to_s, actual.to_date.to_s, message
-      else
-        assert_equal expected.to_s, actual.to_s, message
-      end
+      assert_equal expected.to_s, actual.to_s, message
     end
 
     def capture_sql

@@ -147,6 +147,7 @@ module ActiveRecord
       private
 
         def define_non_cyclic_method(name, &block)
+          return if method_defined?(name)
           define_method(name) do |*args|
             result = true; @_already_called ||= {}
             # Loop prevention for validation of associations
@@ -179,30 +180,26 @@ module ActiveRecord
           validation_method = :"validate_associated_records_for_#{reflection.name}"
           collection = reflection.collection?
 
-          unless method_defined?(save_method)
-            if collection
-              before_save :before_save_collection_association
+          if collection
+            before_save :before_save_collection_association
 
-              define_non_cyclic_method(save_method) { save_collection_association(reflection) }
-              # Doesn't use after_save as that would save associations added in after_create/after_update twice
-              after_create save_method
-              after_update save_method
-            elsif reflection.macro == :has_one
-              define_method(save_method) { save_has_one_association(reflection) }
-              # Configures two callbacks instead of a single after_save so that
-              # the model may rely on their execution order relative to its
-              # own callbacks.
-              #
-              # For example, given that after_creates run before after_saves, if
-              # we configured instead an after_save there would be no way to fire
-              # a custom after_create callback after the child association gets
-              # created.
-              after_create save_method
-              after_update save_method
-            else
-              define_non_cyclic_method(save_method) { save_belongs_to_association(reflection) }
-              before_save save_method
-            end
+            define_non_cyclic_method(save_method) { save_collection_association(reflection) }
+            after_save save_method
+          elsif reflection.has_one?
+            define_method(save_method) { save_has_one_association(reflection) } unless method_defined?(save_method)
+            # Configures two callbacks instead of a single after_save so that
+            # the model may rely on their execution order relative to its
+            # own callbacks.
+            #
+            # For example, given that after_creates run before after_saves, if
+            # we configured instead an after_save there would be no way to fire
+            # a custom after_create callback after the child association gets
+            # created.
+            after_create save_method
+            after_update save_method
+          else
+            define_non_cyclic_method(save_method) { save_belongs_to_association(reflection) }
+            before_save save_method
           end
 
           if reflection.validate? && !method_defined?(validation_method)
@@ -273,9 +270,11 @@ module ActiveRecord
       # go through nested autosave associations that are loaded in memory (without loading
       # any new ones), and return true if is changed for autosave
       def nested_records_changed_for_autosave?
-        self.class.reflect_on_all_autosave_associations.any? do |reflection|
-          association = association_instance_get(reflection.name)
-          association && Array.wrap(association.target).any? { |a| a.changed_for_autosave? }
+        self.class._reflections.values.any? do |reflection|
+          if reflection.options[:autosave]
+            association = association_instance_get(reflection.name)
+            association && Array.wrap(association.target).any? { |a| a.changed_for_autosave? }
+          end
         end
       end
 
@@ -363,6 +362,7 @@ module ActiveRecord
 
               raise ActiveRecord::Rollback unless saved
             end
+            @new_record_before_save = false
           end
 
           # reconstruct the scope now that we know the owner's id
@@ -381,15 +381,16 @@ module ActiveRecord
       def save_has_one_association(reflection)
         association = association_instance_get(reflection.name)
         record      = association && association.load_target
+
         if record && !record.destroyed?
           autosave = reflection.options[:autosave]
 
           if autosave && record.marked_for_destruction?
             record.destroy
-          else
+          elsif autosave != false
             key = reflection.options[:primary_key] ? send(reflection.options[:primary_key]) : id
-            if autosave != false && (autosave || new_record? || record_changed?(reflection, record, key))
 
+            if (autosave && record.changed_for_autosave?) || new_record? || record_changed?(reflection, record, key)
               unless reflection.through_reflection
                 record[reflection.foreign_key] = key
               end

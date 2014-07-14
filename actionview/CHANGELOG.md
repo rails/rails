@@ -1,4 +1,52 @@
-* Take label values into account when doing I18n lookups for model attributes.
+*   Fix `html_escape_once` to properly handle hex escape sequences (e.g. &#x1a2b;)
+
+    *John F. Douthat*
+
+*   Added String support for min and max properties for date field helpers.
+
+    *Todd Bealmear*
+
+*   The `highlight` helper now accepts a block to be used instead of the `highlighter`
+    option.
+
+    *Lucas Mazza*
+
+*   The `except` and `highlight` helpers now accept regular expressions.
+
+    *Jan Szumiec*
+
+*   Flatten the array parameter in `safe_join`, so it behaves consistently with
+    `Array#join`.
+
+    *Paul Grayson*
+
+*   Honor `html_safe` on array elements in tag values, as we do for plain string
+    values.
+
+    *Paul Grayson*
+
+*   Add `ActionView::Template::Handler.unregister_template_handler`.
+
+    It performs the opposite of `ActionView::Template::Handler.register_template_handler`.
+
+    *Zuhao Wan*
+
+*   Bring `cache_digest` rake tasks up-to-date with the latest API changes
+
+    *Jiri Pospisil*
+
+*   Allow custom `:host` option to be passed to `asset_url` helper that
+    overwrites `config.action_controller.asset_host` for particular asset.
+
+    *Hubert Łępicki*
+
+*   Deprecate `AbstractController::Base.parent_prefixes`.
+    Override `AbstractController::Base.local_prefixes` when you want to change
+    where to find views.
+
+    *Nick Sutterer*
+
+*   Take label values into account when doing I18n lookups for model attributes.
 
     The following:
 
@@ -20,9 +68,11 @@
 
 *   Change `asset_path` to use File.join to create proper paths:
 
+    Before:
+
         https://some.host.com//assets/some.js
 
-    becomes
+    After:
 
         https://some.host.com/assets/some.js
 
@@ -46,7 +96,7 @@
 *   Remove wrapping div with inline styles for hidden form fields.
 
     We are dropping HTML 4.01 and XHTML strict compliance since input tags directly
-    inside a form are valid HTML5, and the absense of inline styles help in validating
+    inside a form are valid HTML5, and the absence of inline styles help in validating
     for Content Security Policy.
 
     *Joost Baaij*
@@ -86,6 +136,5 @@
     regular (required) arguments is deprecated and will be removed in Rails 5.0 or later.
 
     *Piotr Chmolowski, Łukasz Strzałkowski*
-
 
 Please check [4-1-stable](https://github.com/rails/rails/blob/4-1-stable/actionview/CHANGELOG.md) for previous changes.

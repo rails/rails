@@ -67,7 +67,7 @@ module ActionView
       def form_tag(url_for_options = {}, options = {}, &block)
         html_options = html_options_for_form(url_for_options, options)
         if block_given?
-          form_tag_in_block(html_options, &block)
+          form_tag_with_body(html_options, capture(&block))
         else
           form_tag_html(html_options)
         end
@@ -82,7 +82,7 @@ module ActionView
       # ==== Options
       # * <tt>:multiple</tt> - If set to true the selection will allow multiple choices.
       # * <tt>:disabled</tt> - If set to true, the user will not be able to use this input.
-      # * <tt>:include_blank</tt> - If set to true, an empty option will be created.
+      # * <tt>:include_blank</tt> - If set to true, an empty option will be created. If set to a string, the string will be used as the option's content and the value will be empty.
       # * <tt>:prompt</tt> - Create a prompt option with blank value and the text asking user to select something.
       # * <tt>:selected</tt> - Provide a default selected value. It should be of the exact type as the provided options.
       # * Any other key creates standard HTML attributes for the tag.
@@ -109,12 +109,15 @@ module ActionView
       #   # => <select id="locations" name="locations"><option>Home</option><option selected='selected'>Work</option>
       #   #    <option>Out</option></select>
       #
-      #   select_tag "access", "<option>Read</option><option>Write</option>".html_safe, multiple: true, class: 'form_input'
-      #   # => <select class="form_input" id="access" multiple="multiple" name="access[]"><option>Read</option>
+      #   select_tag "access", "<option>Read</option><option>Write</option>".html_safe, multiple: true, class: 'form_input', id: 'unique_id'
+      #   # => <select class="form_input" id="unique_id" multiple="multiple" name="access[]"><option>Read</option>
       #   #    <option>Write</option></select>
       #
       #   select_tag "people", options_from_collection_for_select(@people, "id", "name"), include_blank: true
       #   # => <select id="people" name="people"><option value=""></option><option value="1">David</option></select>
+      #
+      #   select_tag "people", options_from_collection_for_select(@people, "id", "name"), include_blank: "All"
+      #   # => <select id="people" name="people"><option value="">All</option><option value="1">David</option></select>
       #
       #   select_tag "people", options_from_collection_for_select(@people, "id", "name"), prompt: "Select something"
       #   # => <select id="people" name="people"><option value="">Select something</option><option value="1">David</option></select>
@@ -505,19 +508,19 @@ module ActionView
       #
       # ==== Examples
       #   image_submit_tag("login.png")
-      #   # => <input alt="Login" src="/images/login.png" type="image" />
+      #   # => <input alt="Login" src="/assets/login.png" type="image" />
       #
       #   image_submit_tag("purchase.png", disabled: true)
-      #   # => <input alt="Purchase" disabled="disabled" src="/images/purchase.png" type="image" />
+      #   # => <input alt="Purchase" disabled="disabled" src="/assets/purchase.png" type="image" />
       #
       #   image_submit_tag("search.png", class: 'search_button', alt: 'Find')
-      #   # => <input alt="Find" class="search_button" src="/images/search.png" type="image" />
+      #   # => <input alt="Find" class="search_button" src="/assets/search.png" type="image" />
       #
       #   image_submit_tag("agree.png", disabled: true, class: "agree_disagree_button")
-      #   # => <input alt="Agree" class="agree_disagree_button" disabled="disabled" src="/images/agree.png" type="image" />
+      #   # => <input alt="Agree" class="agree_disagree_button" disabled="disabled" src="/assets/agree.png" type="image" />
       #
       #   image_submit_tag("save.png", data: { confirm: "Are you sure?" })
-      #   # => <input alt="Save" src="/images/save.png" data-confirm="Are you sure?" type="image" />
+      #   # => <input alt="Save" src="/assets/save.png" data-confirm="Are you sure?" type="image" />
       def image_submit_tag(source, options = {})
         options = options.stringify_keys
         tag :input, { "alt" => image_alt(source), "type" => "image", "src" => path_to_image(source) }.update(options)
@@ -793,7 +796,10 @@ module ActionView
       # Creates the hidden UTF8 enforcer tag. Override this method in a helper
       # to customize the tag.
       def utf8_enforcer_tag
-        tag(:input, :type => "hidden", :name => "utf8", :value => "&#x2713;".html_safe)
+        # Use raw HTML to ensure the value is written as an HTML entity; it
+        # needs to be the right character regardless of which encoding the
+        # browser infers.
+        '<input name="utf8" type="hidden" value="&#x2713;" />'.html_safe
       end
 
       private
@@ -848,8 +854,7 @@ module ActionView
           tag(:form, html_options, true) + extra_tags
         end
 
-        def form_tag_in_block(html_options, &block)
-          content = capture(&block)
+        def form_tag_with_body(html_options, content)
           output = form_tag_html(html_options)
           output << content
           output.safe_concat("</form>")

@@ -109,9 +109,7 @@ After applying their branch, test it out! Here are some things to think about:
 
 Once you're happy that the pull request contains a good change, comment on the GitHub issue indicating your approval. Your comment should indicate that you like the change and what you like about it. Something like:
 
-<blockquote>
-I like the way you've restructured that code in generate_finder_sql - much nicer. The tests look good too.
-</blockquote>
+>I like the way you've restructured that code in generate_finder_sql - much nicer. The tests look good too.
 
 If your comment simply says "+1", then odds are that other reviewers aren't going to take it too seriously. Show that you took the time to review the pull request.
 
@@ -215,6 +213,36 @@ Rails follows a simple set of coding style conventions:
 
 The above are guidelines - please use your best judgment in using them.
 
+### Benchmark Your Code
+
+If your change has an impact on the performance of Rails, please use the
+[benchmark-ips](https://github.com/evanphx/benchmark-ips) gem to provide
+benchmark results for comparison.
+
+Here's an example of using benchmark-ips:
+
+```ruby
+require 'benchmark/ips'
+
+Benchmark.ips do |x|
+  x.report('addition') { 1 + 2 }
+  x.report('addition with send') { 1.send(:+, 2) }
+end
+```
+
+This will generate a report with the following information:
+
+```
+Calculating -------------------------------------
+            addition     69114 i/100ms
+  addition with send     64062 i/100ms
+-------------------------------------------------
+            addition  5307644.4 (±3.5%) i/s -   26539776 in   5.007219s
+  addition with send  3702897.9 (±3.5%) i/s -   18513918 in   5.006723s
+```
+
+Please see the benchmark/ips [README](https://github.com/evanphx/benchmark-ips/blob/master/README.md) for more information.
+
 ### Running Tests
 
 It is not customary in Rails to run the full test suite before pushing
@@ -265,15 +293,15 @@ This is how you run the Active Record test suite only for SQLite3:
 
 ```bash
 $ cd activerecord
-$ bundle exec rake test_sqlite3
+$ bundle exec rake test:sqlite3
 ```
 
 You can now run the tests as you did for `sqlite3`. The tasks are respectively
 
 ```bash
-test_mysql
-test_mysql2
-test_postgresql
+test:mysql
+test:mysql2
+test:postgresql
 ```
 
 Finally,
@@ -361,9 +389,9 @@ it should not be necessary to visit a webpage to check the history.
 Description can have multiple paragraphs and you can use code examples
 inside, just indent it with 4 spaces:
 
-    class PostsController
+    class ArticlesController
       def index
-        respond_with Post.limit(10)
+        respond_with Article.limit(10)
       end
     end
 
@@ -527,7 +555,7 @@ been updated.
 
 ### Older Versions of Ruby on Rails
 
-If you want to add a fix to older versions of Ruby on Rails, you'll need to set up and switch to your own local tracking branch. Here is an example to switch to the 3-0-stable branch:
+If you want to add a fix to older versions of Ruby on Rails, you'll need to set up and switch to your own local tracking branch. Here is an example to switch to the 4-0-stable branch:
 
 ```bash
 $ git branch --track 4-0-stable origin/4-0-stable

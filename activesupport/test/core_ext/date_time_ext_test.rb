@@ -1,6 +1,7 @@
 require 'abstract_unit'
 require 'active_support/time'
 require 'core_ext/date_and_time_behavior'
+require 'time_zone_test_helpers'
 
 class DateTimeExtCalculationsTest < ActiveSupport::TestCase
   def date_time_init(year,month,day,hour,minute,second,*args)
@@ -8,6 +9,7 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
   end
 
   include DateAndTimeBehavior
+  include TimeZoneTestHelpers
 
   def test_to_s
     datetime = DateTime.new(2005, 2, 21, 14, 30, 0, 0)
@@ -160,6 +162,12 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal DateTime.civil(2005,2,28,20,22,19),  DateTime.civil(2005,2,28,15,15,10).advance(:hours => 5, :minutes => 7, :seconds => 9)
     assert_equal DateTime.civil(2005,2,28,10,8,1),    DateTime.civil(2005,2,28,15,15,10).advance(:hours => -5, :minutes => -7, :seconds => -9)
     assert_equal DateTime.civil(2013,10,17,20,22,19), DateTime.civil(2005,2,28,15,15,10).advance(:years => 7, :months => 19, :weeks => 2, :days => 5, :hours => 5, :minutes => 7, :seconds => 9)
+  end
+
+  def test_advance_partial_days
+    assert_equal DateTime.civil(2012,9,29,13,15,10),  DateTime.civil(2012,9,28,1,15,10).advance(:days => 1.5)
+    assert_equal DateTime.civil(2012,9,28,13,15,10),  DateTime.civil(2012,9,28,1,15,10).advance(:days => 0.5)
+    assert_equal DateTime.civil(2012,10,29,13,15,10), DateTime.civil(2012,9,28,1,15,10).advance(:days => 1.5, :months => 1)
   end
 
   def test_advanced_processes_first_the_date_deltas_and_then_the_time_deltas
@@ -330,6 +338,7 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
   def test_to_f
     assert_equal 946684800.0, DateTime.civil(2000).to_f
     assert_equal 946684800.0, DateTime.civil(1999,12,31,19,0,0,Rational(-5,24)).to_f
+    assert_equal 946684800.5, DateTime.civil(1999,12,31,19,0,0.5,Rational(-5,24)).to_f
   end
 
   def test_to_i
@@ -346,12 +355,4 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal 0, DateTime.civil(2000).nsec
     assert_equal 500000000, DateTime.civil(2000, 1, 1, 0, 0, Rational(1,2)).nsec
   end
-
-  protected
-    def with_env_tz(new_tz = 'US/Eastern')
-      old_tz, ENV['TZ'] = ENV['TZ'], new_tz
-      yield
-    ensure
-      old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
-    end
 end

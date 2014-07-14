@@ -572,12 +572,12 @@ NOTE: Defined in `active_support/core_ext/module/aliasing.rb`.
 
 #### `alias_attribute`
 
-Model attributes have a reader, a writer, and a predicate. You can alias a model attribute having the corresponding three methods defined for you in one shot. As in other aliasing methods, the new name is the first argument, and the old name is the second (my mnemonic is they go in the same order as if you did an assignment):
+Model attributes have a reader, a writer, and a predicate. You can alias a model attribute having the corresponding three methods defined for you in one shot. As in other aliasing methods, the new name is the first argument, and the old name is the second (one mnemonic is that they go in the same order as if you did an assignment):
 
 ```ruby
 class User < ActiveRecord::Base
-  # let me refer to the email column as "login",
-  # possibly meaningful for authentication code
+  # You can refer to the email column as "login".
+  # This can be meaningful for authentication code.
   alias_attribute :login, :email
 end
 ```
@@ -1106,7 +1106,7 @@ end
 
 A model may find it useful to set `:instance_accessor` to `false` as a way to prevent mass-assignment from setting the attribute.
 
-NOTE: Defined in `active_support/core_ext/module/attribute_accessors.rb`. `active_support/core_ext/class/attribute_accessors.rb` is deprecated and will be removed in Ruby on Rails 4.2.
+NOTE: Defined in `active_support/core_ext/module/attribute_accessors.rb`.
 
 ### Subclasses & Descendants
 
@@ -1165,9 +1165,9 @@ Inserting data into HTML templates needs extra care. For example, you can't just
 
 #### Safe Strings
 
-Active Support has the concept of <i>(html) safe</i> strings. A safe string is one that is marked as being insertable into HTML as is. It is trusted, no matter whether it has been escaped or not.
+Active Support has the concept of _(html) safe_ strings. A safe string is one that is marked as being insertable into HTML as is. It is trusted, no matter whether it has been escaped or not.
 
-Strings are considered to be <i>unsafe</i> by default:
+Strings are considered to be _unsafe_ by default:
 
 ```ruby
 "".html_safe? # => false
@@ -3672,9 +3672,9 @@ t.advance(seconds: 1)
 
 #### `Time.current`
 
-Active Support defines `Time.current` to be today in the current time zone. That's like `Time.now`, except that it honors the user time zone, if defined. It also defines `Time.yesterday` and `Time.tomorrow`, and the instance predicates `past?`, `today?`, and `future?`, all of them relative to `Time.current`.
+Active Support defines `Time.current` to be today in the current time zone. That's like `Time.now`, except that it honors the user time zone, if defined. It also defines the instance predicates `past?`, `today?`, and `future?`, all of them relative to `Time.current`.
 
-When making Time comparisons using methods which honor the user time zone, make sure to use `Time.current` and not `Time.now`. There are cases where the user time zone might be in the future compared to the system time zone, which `Time.today` uses by default. This means `Time.now` may equal `Time.yesterday`.
+When making Time comparisons using methods which honor the user time zone, make sure to use `Time.current` instead of `Time.now`. There are cases where the user time zone might be in the future compared to the system time zone, which `Time.now` uses by default. This means `Time.now.to_date` may equal `Date.yesterday`.
 
 #### `all_day`, `all_week`, `all_month`, `all_quarter` and `all_year`
 
@@ -3838,7 +3838,7 @@ The name may be given as a symbol or string. A symbol is tested against the bare
 
 TIP: A symbol can represent a fully-qualified constant name as in `:"ActiveRecord::Base"`, so the behavior for symbols is defined for convenience, not because it has to be that way technically.
 
-For example, when an action of `PostsController` is called Rails tries optimistically to use `PostsHelper`. It is OK that the helper module does not exist, so if an exception for that constant name is raised it should be silenced. But it could be the case that `posts_helper.rb` raises a `NameError` due to an actual unknown constant. That should be reraised. The method `missing_name?` provides a way to distinguish both cases:
+For example, when an action of `ArticlesController` is called Rails tries optimistically to use `ArticlesHelper`. It is OK that the helper module does not exist, so if an exception for that constant name is raised it should be silenced. But it could be the case that `articles_helper.rb` raises a `NameError` due to an actual unknown constant. That should be reraised. The method `missing_name?` provides a way to distinguish both cases:
 
 ```ruby
 def default_helper_module!
@@ -3861,7 +3861,7 @@ Active Support adds `is_missing?` to `LoadError`, and also assigns that class to
 
 Given a path name `is_missing?` tests whether the exception was raised due to that particular file (except perhaps for the ".rb" extension).
 
-For example, when an action of `PostsController` is called Rails tries to load `posts_helper.rb`, but that file may not exist. That's fine, the helper module is not mandatory so Rails silences a load error. But it could be the case that the helper module does exist and in turn requires another library that is missing. In that case Rails must reraise the exception. The method `is_missing?` provides a way to distinguish both cases:
+For example, when an action of `ArticlesController` is called Rails tries to load `articles_helper.rb`, but that file may not exist. That's fine, the helper module is not mandatory so Rails silences a load error. But it could be the case that the helper module does exist and in turn requires another library that is missing. In that case Rails must reraise the exception. The method `is_missing?` provides a way to distinguish both cases:
 
 ```ruby
 def default_helper_module!

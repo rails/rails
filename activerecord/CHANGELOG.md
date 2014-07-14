@@ -1,3 +1,464 @@
+*   Fix the schema dump generated for tables without constraints and with
+    primary key with default value of custom PostgreSQL function result.
+
+    Fixes #16111
+
+    *Andrey Novikov*
+
+*   Fix the SQL generated when a `delete_all` is run on an association to not
+    produce an `IN` statements.
+
+    Before:
+
+      UPDATE "categorizations" SET "category_id" = NULL WHERE
+      "categorizations"."category_id" = 1 AND "categorizations"."id" IN (1, 2)
+
+    After:
+
+      UPDATE "categorizations" SET "category_id" = NULL WHERE
+      "categorizations"."category_id" = 1
+
+    *Eileen M. Uchitelle, Aaron Patterson*
+
+*   Avoid type casting boolean and ActiveSupport::Duration values to numeric
+    values for string columns. Otherwise, in some database, the string column
+    values will be coerced to a numeric allowing false or 0.seconds match any
+    string starting with a non-digit.
+
+    Example:
+
+        App.where(apikey: false) # => SELECT * FROM users WHERE apikey = '0'
+
+    *Dylan Thacker-Smith*
+
+*   Add a `:required` option to singular associations, providing a nicer
+    API for presence validations on associations.
+
+    *Sean Griffin*
+
+*   Fixed error in `reset_counters` when associations have `select` scope.
+    (Call to `count` generates invalid SQL.)
+
+    *Cade Truitt*
+
+*   After a successful `reload`, `new_record?` is always false.
+
+    Fixes #12101.
+
+    *Matthew Draper*
+
+*   PostgreSQL renaming table doesn't attempt to rename non existent sequences.
+
+    *Abdelkader Boudih*
+
+*   Move 'dependent: :destroy' handling for 'belongs_to'
+    from 'before_destroy' to 'after_destroy' callback chain
+
+    Fix #12380.
+
+    *Ivan Antropov*
+
+*   Detect in-place modifications on String attributes.
+
+    Before this change user have to mark the attribute as changed to it be persisted
+    in the database. Now it is not required anymore.
+
+    Before:
+
+        user = User.first
+        user.name << ' Griffin'
+        user.name_will_change!
+        user.save
+        user.reload.name # => "Sean Griffin"
+
+    After:
+
+        user = User.first
+        user.name << ' Griffin'
+        user.save
+        user.reload.name # => "Sean Griffin"
+
+    *Sean Griffin*
+
+*   Add `ActiveRecord::Base#validate!` that raises `RecordInvalid` if the record
+    is invalid.
+
+    *Bogdan Gusiev*, *Marc Schütz*
+
+*   Support for adding and removing foreign keys. Foreign keys are now
+    a part of `schema.rb`. This is supported by Mysql2Adapter, MysqlAdapter
+    and PostgreSQLAdapter.
+
+    Many thanks to *Matthew Higgins* for laying the foundation with his work on
+    [foreigner](https://github.com/matthuhiggins/foreigner).
+
+    Example:
+
+        # within your migrations:
+        add_foreign_key :articles, :authors
+        remove_foreign_key :articles, :authors
+
+    *Yves Senn*
+
+*   Fix subtle bugs regarding attribute assignment on models with no primary
+    key. `'id'` will no longer be part of the attributes hash.
+
+    *Sean Griffin*
+
+*   Deprecate automatic counter caches on `has_many :through`. The behavior was
+    broken and inconsistent.
+
+    *Sean Griffin*
+
+*   `preload` preserves readonly flag for associations.
+
+    See #15853.
+
+    *Yves Senn*
+
+*   Assume numeric types have changed if they were assigned to a value that
+    would fail numericality validation, regardless of the old value. Previously
+    this would only occur if the old value was 0.
+
+    Example:
+
+        model = Model.create!(number: 5)
+        model.number = '5wibble'
+        model.number_changed? # => true
+
+    Fixes #14731.
+
+    *Sean Griffin*
+
+*   `reload` no longer merges with the existing attributes.
+    The attribute hash is fully replaced. The record is put into the same state
+    as it would be with `Model.find(model.id)`.
+
+    *Sean Griffin*
+
+*   The object returned from `select_all` must respond to `column_types`.
+    If this is not the case a `NoMethodError` is raised.
+
+    *Sean Griffin*
+
+*   `has_many :through` associations will no longer save the through record
+    twice when added in an `after_create` callback defined before the
+    associations.
+
+    Fixes #3798.
+
+    *Sean Griffin*
+
+*   Detect in-place modifications of PG array types
+
+    *Sean Griffin*
+
+*   Add `bin/rake db:purge` task to empty the current database.
+
+    *Yves Senn*
+
+*   Deprecate `serialized_attributes` without replacement.
+
+    *Sean Griffin*
+
+*   Correctly extract IPv6 addresses from `DATABASE_URI`: the square brackets
+    are part of the URI structure, not the actual host.
+
+    Fixes #15705.
+
+    *Andy Bakun*, *Aaron Stone*
+
+*   Ensure both parent IDs are set on join records when both sides of a
+    through association are new.
+
+    *Sean Griffin*
+
+*   `ActiveRecord::Dirty` now detects in-place changes to mutable values.
+    Serialized attributes on ActiveRecord models will no longer save when
+    unchanged. Fixes #8328.
+
+    *Sean Griffin*
+
+*   Pluck now works when selecting columns from different tables with the same
+    name.
+
+    Fixes #15649
+
+    *Sean Griffin*
+
+*   Remove `cache_attributes` and friends. All attributes are cached.
+
+    *Sean Griffin*
+
+*   Remove deprecated method `ActiveRecord::Base.quoted_locking_column`.
+
+    *Akshay Vishnoi*
+
+*   `ActiveRecord::FinderMethods.find` with block can handle proc parameter as
+    `Enumerable#find` does.
+
+    Fixes #15382.
+
+    *James Yang*
+
+*   Make timezone aware attributes work with PostgreSQL array columns.
+
+    Fixes #13402.
+
+    *Kuldeep Aggarwal*, *Sean Griffin*
+
+*   `ActiveRecord::SchemaMigration` has no primary key regardless of the
+    `primary_key_prefix_type` configuration.
+
+    Fixes #15051.
+
+    *JoseLuis Torres*, *Yves Senn*
+
+*   `rake db:migrate:status` works with legacy migration numbers like `00018_xyz.rb`.
+
+    Fixes #15538.
+
+    *Yves Senn*
+
+*   Baseclass becomes! subclass.
+
+    Before this change, a record which changed its STI type, could not be
+    updated.
+
+    Fixes #14785.
+
+    *Matthew Draper*, *Earl St Sauver*, *Edo Balvers*
+
+*   Remove deprecated `ActiveRecord::Migrator.proper_table_name`. Use the
+    `proper_table_name` instance method on `ActiveRecord::Migration` instead.
+
+    *Akshay Vishnoi*
+
+*   Fix regression on eager loading association based on SQL query rather than
+    existing column.
+
+    Fixes #15480.
+
+    *Lauro Caetano*, *Carlos Antonio da Silva*
+
+*   Deprecate returning `nil` from `column_for_attribute` when no column exists.
+    It will return a null object in Rails 5.0
+
+    *Sean Griffin*
+
+*   Implemented ActiveRecord::Base#pretty_print to work with PP.
+
+    *Ethan*
+
+*   Preserve type when dumping PostgreSQL point, bit, bit varying and money
+    columns.
+
+    *Yves Senn*
+
+*   New records remain new after YAML serialization.
+
+    *Sean Griffin*
+
+*   PostgreSQL support default values for enum types. Fixes #7814.
+
+    *Yves Senn*
+
+*   PostgreSQL `default_sequence_name` respects schema. Fixes #7516.
+
+    *Yves Senn*
+
+*   Fixed `columns_for_distinct` of postgresql adapter to work correctly
+    with orders without sort direction modifiers.
+
+    *Nikolay Kondratyev*
+
+*   PostgreSQL `reset_pk_sequence!` respects schemas. Fixes #14719.
+
+    *Yves Senn*
+
+*   Keep PostgreSQL `hstore` and `json` attributes as `Hash` in `@attributes`.
+    Fixes duplication in combination with `store_accessor`.
+
+    Fixes #15369.
+
+    *Yves Senn*
+
+*   `rake railties:install:migrations` respects the order of railties.
+
+    *Arun Agrawal*
+
+*   Fix redefine a has_and_belongs_to_many inside inherited class
+    Fixing regression case, where redefining the same has_an_belongs_to_many
+    definition into a subclass would raise.
+
+    Fixes #14983.
+
+    *arthurnn*
+
+*   Fix has_and_belongs_to_many public reflection.
+    When defining a has_and_belongs_to_many, internally we convert that to two has_many.
+    But as `reflections` is a public API, people expect to see the right macro.
+
+    Fixes #14682.
+
+    *arthurnn*
+
+*   Fixed serialization for records with an attribute named `format`.
+
+    Fixes #15188.
+
+    *Godfrey Chan*
+
+*   When a `group` is set, `sum`, `size`, `average`, `minimum` and `maximum`
+    on a NullRelation should return a Hash.
+
+    *Kuldeep Aggarwal*
+
+*   Fixed serialized fields returning serialized data after being updated with
+    `update_column`.
+
+    *Simon Hørup Eskildsen*
+
+*   Fixed polymorphic eager loading when using a String as foreign key.
+
+    Fixes #14734.
+
+    *Lauro Caetano*
+
+*   Change belongs_to touch to be consistent with timestamp updates
+
+    If a model is set up with a belongs_to: touch relationship the parent
+    record will only be touched if the record was modified. This makes it
+    consistent with timestamp updating on the record itself.
+
+    *Brock Trappitt*
+
+*   Fixed the inferred table name of a has_and_belongs_to_many auxiliar
+    table inside a schema.
+
+    Fixes #14824
+
+    *Eric Chahin*
+
+*   Remove unused `:timestamp` type. Transparently alias it to `:datetime`
+    in all cases. Fixes inconsistencies when column types are sent outside of
+    `ActiveRecord`, such as for XML Serialization.
+
+    *Sean Griffin*
+
+*   Fix bug that added `table_name_prefix` and `table_name_suffix` to
+    extension names in PostgreSQL when migrating.
+
+    *Joao Carlos*
+
+*   The `:index` option in migrations, which previously was only available for
+    `references`, now works with any column types.
+
+    *Marc Schütz*
+
+*   Add support for counter name to be passed as parameter on `CounterCache::ClassMethods#reset_counters`.
+
+    *jnormore*
+
+*   Restrict deletion of record when using `delete_all` with `uniq`, `group`, `having`
+    or `offset`.
+
+    In these cases the generated query ignored them and that caused unintended
+    records to be deleted.
+
+    Fixes #11985.
+
+    *Leandro Facchinetti*
+
+*   Floats with limit >= 25 that get turned into doubles in MySQL no longer have
+    their limit dropped from the schema.
+
+    Fixes #14135.
+
+    *Aaron Nelson*
+
+*   Fix how to calculate associated class name when using namespaced has_and_belongs_to_many
+    association.
+
+    Fixes #14709.
+
+    *Kassio Borges*
+
+*   `ActiveRecord::Relation::Merger#filter_binds` now compares equivalent symbols and
+    strings in column names as equal.
+
+    This fixes a rare case in which more bind values are passed than there are
+    placeholders for them in the generated SQL statement, which can make PostgreSQL
+    throw a `StatementInvalid` exception.
+
+    *Nat Budin*
+
+*   Fix `stored_attributes` to correctly merge the details of stored
+    attributes defined in parent classes.
+
+    Fixes #14672.
+
+    *Brad Bennett*, *Jessica Yao*, *Lakshmi Parthasarathy*
+
+*   `change_column_default` allows `[]` as argument to `change_column_default`.
+
+    Fixes #11586.
+
+    *Yves Senn*
+
+*   Handle `name` and `"char"` column types in the PostgreSQL adapter.
+
+    `name` and `"char"` are special character types used internally by
+    PostgreSQL and are used by internal system catalogs. These field types
+    can sometimes show up in structure-sniffing queries that feature internal system
+    structures or with certain PostgreSQL extensions.
+
+    *J Smith*, *Yves Senn*
+
+*   Fix `PostgreSQLAdapter::OID::Float#type_cast` to convert Infinity and
+    NaN PostgreSQL values into a native Ruby `Float::INFINITY` and `Float::NAN`
+
+    Before:
+
+        Point.create(value: 1.0/0)
+        Point.last.value # => 0.0
+
+    After:
+
+        Point.create(value: 1.0/0)
+        Point.last.value # => Infinity
+
+    *Innokenty Mikhailov*
+
+*   Allow the PostgreSQL adapter to handle bigserial primary key types again.
+
+    Fixes #10410.
+
+    *Patrick Robertson*
+
+*   Deprecate joining, eager loading and preloading of instance dependent
+    associations without replacement. These operations happen before instances
+    are created. The current behavior is unexpected and can result in broken
+    behavior.
+
+    Fixes #15024.
+
+    *Yves Senn*
+
+*   Fixed has_and_belongs_to_many's CollectionAssociation size calculation.
+
+    has_and_belongs_to_many should fall back to using the normal CollectionAssociation's
+    size calculation if the collection is not cached or loaded.
+
+    Fixes #14913, #14914.
+
+    *Fred Wu*
+
+*   Return a non zero status when running `rake db:migrate:status` and migration table does
+    not exist.
+
+    *Paul B.*
+
 *   Add support for module-level `table_name_suffix` in models.
 
     This makes `table_name_suffix` work the same way as `table_name_prefix` when
@@ -31,10 +492,10 @@
 
     *Eric Chahin*, *Aaron Nelson*, *Kevin Casey*
 
-*   Stringify all variable keys of mysql connection configuration.
+*   Stringify all variables keys of MySQL connection configuration.
 
-    When the `sql_mode` variable for mysql adapters is set in the configuration
-    as a `String`, it was ignored and overwritten by the strict mode option.
+    When `sql_mode` variable for MySQL adapters set in configuration as `String`
+    was ignored and overwritten by strict mode option.
 
     Fixes #14895.
 
@@ -114,7 +575,7 @@
 
     *Eric Chahin*
 
-*   `sanitize_sql_like` helper method to escape a string for safe use in a SQL
+*   `sanitize_sql_like` helper method to escape a string for safe use in an SQL
     LIKE statement.
 
     Example:
@@ -150,7 +611,7 @@
     *Lauro Caetano*
 
 *   Calling `delete_all` on an unloaded `CollectionProxy` no longer
-    generates a SQL statement containing each id of the collection:
+    generates an SQL statement containing each id of the collection:
 
     Before:
 
@@ -191,7 +652,7 @@
 
 *   Auto-generate stable fixture UUIDs on PostgreSQL.
 
-    Fixes: #11524
+    Fixes #11524.
 
     *Roderick van Domburg*
 
@@ -275,10 +736,6 @@
 
     *Luke Steensen*
 
-*   Make possible to change `record_timestamps` inside Callbacks.
-
-    *Tieg Zaharia*
-
 *   Fixed error where .persisted? throws SystemStackError for an unsaved model with a
     custom primary key that didn't save due to validation error.
 
@@ -308,12 +765,6 @@
         # => CREATE TEMPORARY TABLE temp (INDEX (zip)) AS SELECT id, name, zip FROM a_really_complicated_query
 
     *Cody Cutrer*, *Steve Rice*, *Rafael Mendonça Franca*
-
-*   Save `has_one` association even if the record doesn't changed.
-
-    Fixes #14407.
-
-    *Rafael Mendonça França*
 
 *   Use singular table name in generated migrations when
     `ActiveRecord::Base.pluralize_table_names` is `false`.
@@ -374,11 +825,10 @@
 
     *arthurnn*
 
-*   Passing an Active Record object to `find` is now deprecated.  Call `.id`
-    on the object first.
-
 *   Passing an Active Record object to `find` or `exists?` is now deprecated.
     Call `.id` on the object first.
+
+    *Aaron Patterson*
 
 *   Only use BINARY for MySQL case sensitive uniqueness check when column has a case insensitive collation.
 
@@ -392,6 +842,12 @@
     values without needing to wrap in UPPER/LOWER sql functions.
 
     *Troy Kruthoff*, *Lachlan Sylvester*
+
+*   Only save has_one associations if record has changes.
+    Previously after save related callbacks, such as `#after_commit`, were triggered when the has_one
+    object did not get saved to the db.
+
+    *Alan Kennedy*
 
 *   Allow strings to specify the `#order` value.
 
@@ -422,7 +878,7 @@
     *Vilius Luneckas* *Ahmed AbouElhamayed*
 
 *   `before_add` callbacks are fired before the record is saved on
-    `has_and_belongs_to_many` assocations *and* on `has_many :through`
+    `has_and_belongs_to_many` associations *and* on `has_many :through`
     associations.  Before this change, `before_add` callbacks would be fired
     before the record was saved on `has_and_belongs_to_many` associations, but
     *not* on `has_many :through` associations.

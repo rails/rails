@@ -22,18 +22,6 @@ class NumericExtTimeAndDateTimeTest < ActiveSupport::TestCase
     end
   end
 
-  def test_deprecated_since_and_ago
-    assert_equal @now + 1, assert_deprecated { 1.since(@now) }
-    assert_equal @now - 1, assert_deprecated { 1.ago(@now) }
-  end
-
-  def test_deprecated_since_and_ago_without_argument
-    now = Time.now
-    assert assert_deprecated { 1.since } >= now + 1
-    now = Time.now
-    assert assert_deprecated { 1.ago } >= now - 1
-  end
-
   def test_irregular_durations
     assert_equal @now.advance(:days => 3000), 3000.days.since(@now)
     assert_equal @now.advance(:months => 1), 1.month.since(@now)
@@ -83,44 +71,6 @@ class NumericExtTimeAndDateTimeTest < ActiveSupport::TestCase
     assert_equal Time.utc(2005,2,28,15,15,10), Time.utc(2004,2,29,15,15,10) + 1.year
     assert_equal DateTime.civil(2005,2,28,15,15,10), DateTime.civil(2004,2,29,15,15,10) + 1.year
   end
-
-  def test_since_and_ago_anchored_to_time_now_when_time_zone_is_not_set
-    Time.zone = nil
-    with_env_tz 'US/Eastern' do
-      Time.stubs(:now).returns Time.local(2000)
-      # since
-      assert_not_instance_of ActiveSupport::TimeWithZone, assert_deprecated { 5.since }
-      assert_equal Time.local(2000,1,1,0,0,5), assert_deprecated { 5.since }
-      # ago
-      assert_not_instance_of ActiveSupport::TimeWithZone, assert_deprecated { 5.ago }
-      assert_equal Time.local(1999,12,31,23,59,55), assert_deprecated { 5.ago }
-    end
-  end
-
-  def test_since_and_ago_anchored_to_time_zone_now_when_time_zone_is_set
-    Time.zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
-    with_env_tz 'US/Eastern' do
-      Time.stubs(:now).returns Time.local(2000)
-      # since
-      assert_instance_of ActiveSupport::TimeWithZone, assert_deprecated { 5.since }
-      assert_equal Time.utc(2000,1,1,0,0,5), assert_deprecated { 5.since.time }
-      assert_equal 'Eastern Time (US & Canada)',  assert_deprecated { 5.since.time_zone.name }
-      # ago
-      assert_instance_of ActiveSupport::TimeWithZone, assert_deprecated { 5.ago }
-      assert_equal Time.utc(1999,12,31,23,59,55), assert_deprecated { 5.ago.time }
-      assert_equal 'Eastern Time (US & Canada)', assert_deprecated { 5.ago.time_zone.name }
-    end
-  ensure
-    Time.zone = nil
-  end
-
-  protected
-    def with_env_tz(new_tz = 'US/Eastern')
-      old_tz, ENV['TZ'] = ENV['TZ'], new_tz
-      yield
-    ensure
-      old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
-    end
 end
 
 class NumericExtDateTest < ActiveSupport::TestCase
@@ -435,7 +385,7 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
     assert_equal BigDecimal, BigDecimal("1000010").class
     assert_equal '1 Million', BigDecimal("1000010").to_s(:human)
   end
-  
+
   def test_in_milliseconds
     assert_equal 10_000, 10.seconds.in_milliseconds
   end

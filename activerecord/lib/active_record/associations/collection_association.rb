@@ -55,9 +55,9 @@ module ActiveRecord
 
       # Implements the ids writer method, e.g. foo.item_ids= for Foo.has_many :items
       def ids_writer(ids)
-        pk_column = reflection.primary_key_column
+        pk_type = reflection.primary_key_type
         ids = Array(ids).reject { |id| id.blank? }
-        ids.map! { |i| pk_column.type_cast(i) }
+        ids.map! { |i| pk_type.type_cast_from_user(i) }
         replace(klass.find(ids).index_by { |r| r.id }.values_at(*ids))
       end
 
@@ -194,7 +194,7 @@ module ActiveRecord
                       options[:dependent]
                     end
 
-        delete_records(:all, dependent).tap do
+        delete_or_nullify_all_records(dependent).tap do
           reset
           loaded!
         end
@@ -244,6 +244,7 @@ module ActiveRecord
       # are actually removed from the database, that depends precisely on
       # +delete_records+. They are in any case removed from the collection.
       def delete(*records)
+        return if records.empty?
         _options = records.extract_options!
         dependent = _options[:dependent] || options[:dependent]
 
@@ -257,6 +258,7 @@ module ActiveRecord
       # Note that this method removes records from the database ignoring the
       # +:dependent+ option.
       def destroy(*records)
+        return if records.empty?
         records = find(records) if records.any? { |record| record.kind_of?(Fixnum) || record.kind_of?(String) }
         delete_or_destroy(records, :destroy)
       end

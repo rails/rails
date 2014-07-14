@@ -7,7 +7,7 @@ ActiveRecord::Schema.define do
   execute "DROP TABLE fk_test_has_pk" rescue nil
   execute <<_SQL
   CREATE TABLE 'fk_test_has_pk' (
-    'id' INTEGER NOT NULL PRIMARY KEY
+    'pk_id' INTEGER NOT NULL PRIMARY KEY
   );
 _SQL
 
@@ -16,7 +16,7 @@ _SQL
     'id'    INTEGER NOT NULL PRIMARY KEY,
     'fk_id' INTEGER NOT NULL,
 
-    FOREIGN KEY ('fk_id') REFERENCES 'fk_test_has_pk'('id')
+    FOREIGN KEY ('fk_id') REFERENCES 'fk_test_has_pk'('pk_id')
   );
 _SQL
 end

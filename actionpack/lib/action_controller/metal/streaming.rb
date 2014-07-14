@@ -183,7 +183,7 @@ module ActionController #:nodoc:
   # You may also want to configure other parameters like <tt>:tcp_nodelay</tt>.
   # Please check its documentation for more information: http://unicorn.bogomips.org/Unicorn/Configurator.html#method-i-listen
   #
-  # If you are using Unicorn with Nginx, you may need to tweak Nginx.
+  # If you are using Unicorn with NGINX, you may need to tweak NGINX.
   # Streaming should work out of the box on Rainbows.
   #
   # ==== Passenger

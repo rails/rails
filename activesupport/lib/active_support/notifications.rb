@@ -141,6 +141,11 @@ module ActiveSupport
   #
   #   ActiveSupport::Notifications.unsubscribe(subscriber)
   #
+  # You can also unsubscribe by passing the name of the subscriber object. Note
+  # that this will unsubscribe all subscriptions with the given name:
+  #
+  #   ActiveSupport::Notifications.unsubscribe("render")
+  #
   # == Default Queue
   #
   # Notifications ships with a queue implementation that consumes and publishes events
@@ -173,8 +178,8 @@ module ActiveSupport
         unsubscribe(subscriber)
       end
 
-      def unsubscribe(args)
-        notifier.unsubscribe(args)
+      def unsubscribe(subscriber_or_name)
+        notifier.unsubscribe(subscriber_or_name)
       end
 
       def instrumenter

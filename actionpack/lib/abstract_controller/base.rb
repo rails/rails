@@ -8,7 +8,8 @@ module AbstractController
   class Error < StandardError #:nodoc:
   end
 
-  class ActionNotFound < StandardError #:nodoc:
+  # Raised when a non-existing controller action is triggered.
+  class ActionNotFound < StandardError
   end
 
   # <tt>AbstractController::Base</tt> is a low-level API. Nobody should be
@@ -120,7 +121,7 @@ module AbstractController
     #
     # The actual method that is called is determined by calling
     # #method_for_action. If no method can handle the action, then an
-    # ActionNotFound error is raised.
+    # AbstractController::ActionNotFound error is raised.
     #
     # ==== Returns
     # * <tt>self</tt>
@@ -215,7 +216,8 @@ module AbstractController
       #
       # ==== Returns
       # * <tt>string</tt> - The name of the method that handles the action
-      # * false           - No valid method name could be found. Raise ActionNotFound.
+      # * false           - No valid method name could be found.
+      # Raise AbstractController::ActionNotFound.
       def _find_action_name(action_name)
         _valid_action_name?(action_name) && method_for_action(action_name)
       end
@@ -235,7 +237,7 @@ module AbstractController
       # the case.
       #
       # If none of these conditions are true, and method_for_action
-      # returns nil, an ActionNotFound exception will be raised.
+      # returns nil, an AbstractController::ActionNotFound exception will be raised.
       #
       # ==== Parameters
       # * <tt>action_name</tt> - An action name to find a method name for
@@ -253,7 +255,7 @@ module AbstractController
 
       # Checks if the action name is valid and returns false otherwise.
       def _valid_action_name?(action_name)
-        action_name.to_s !~ Regexp.new(File::SEPARATOR)
+        !action_name.to_s.include? File::SEPARATOR
       end
   end
 end

@@ -14,7 +14,6 @@ module ActiveRecord
         finder_class = find_finder_class_for(record)
         table = finder_class.arel_table
         value = map_enum_attribute(finder_class, attribute, value)
-        value = deserialize_attribute(record, attribute, value)
 
         relation = build_relation(finder_class, table, attribute, value)
         relation = relation.and(table[finder_class.primary_key.to_sym].not_eq(record.id)) if record.persisted?
@@ -47,9 +46,9 @@ module ActiveRecord
       end
 
       def build_relation(klass, table, attribute, value) #:nodoc:
-        if reflection = klass.reflect_on_association(attribute)
+        if reflection = klass._reflect_on_association(attribute)
           attribute = reflection.foreign_key
-          value = value.attributes[reflection.primary_key_column.name] unless value.nil?
+          value = value.attributes[reflection.klass.primary_key] unless value.nil?
         end
 
         attribute_name = attribute.to_s
@@ -62,9 +61,11 @@ module ActiveRecord
 
         column = klass.columns_hash[attribute_name]
         value  = klass.connection.type_cast(value, column)
-        value  = value.to_s[0, column.limit] if value && column.limit && column.text?
+        if value.is_a?(String) && column.limit
+          value = value.to_s[0, column.limit]
+        end
 
-        if !options[:case_sensitive] && value && column.text?
+        if !options[:case_sensitive] && value.is_a?(String)
           # will use SQL LOWER function before comparison, unless it detects a case insensitive collation
           klass.connection.case_insensitive_comparison(table, attribute, column, value)
         else
@@ -74,7 +75,7 @@ module ActiveRecord
 
       def scope_relation(record, table, relation)
         Array(options[:scope]).each do |scope_item|
-          if reflection = record.class.reflect_on_association(scope_item)
+          if reflection = record.class._reflect_on_association(scope_item)
             scope_value = record.send(reflection.foreign_key)
             scope_item  = reflection.foreign_key
           else
@@ -84,12 +85,6 @@ module ActiveRecord
         end
 
         relation
-      end
-
-      def deserialize_attribute(record, attribute, value)
-        coder = record.class.serialized_attributes[attribute.to_s]
-        value = coder.dump value if value && coder
-        value
       end
 
       def map_enum_attribute(klass, attribute, value)

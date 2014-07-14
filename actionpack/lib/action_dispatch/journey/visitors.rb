@@ -1,14 +1,57 @@
 # encoding: utf-8
 
-require 'thread_safe'
-
 module ActionDispatch
   module Journey # :nodoc:
+    class Format
+      ESCAPE_PATH    = ->(value) { Router::Utils.escape_path(value) }
+      ESCAPE_SEGMENT = ->(value) { Router::Utils.escape_segment(value) }
+
+      class Parameter < Struct.new(:name, :escaper)
+        def escape(value); escaper.call value; end
+      end
+
+      def self.required_path(symbol)
+        Parameter.new symbol, ESCAPE_PATH
+      end
+
+      def self.required_segment(symbol)
+        Parameter.new symbol, ESCAPE_SEGMENT
+      end
+
+      def initialize(parts)
+        @parts      = parts
+        @children   = []
+        @parameters = []
+
+        parts.each_with_index do |object,i|
+          case object
+          when Journey::Format
+            @children << i
+          when Parameter
+            @parameters << i
+          end
+        end
+      end
+
+      def evaluate(hash)
+        parts = @parts.dup
+
+        @parameters.each do |index|
+          param = parts[index]
+          value = hash[param.name]
+          return ''.freeze unless value
+          parts[index] = param.escape value
+        end
+
+        @children.each { |index| parts[index] = parts[index].evaluate(hash) }
+
+        parts.join
+      end
+    end
+
     module Visitors # :nodoc:
       class Visitor # :nodoc:
-        DISPATCH_CACHE = ThreadSafe::Cache.new { |h,k|
-          h[k] = :"visit_#{k}"
-        }
+        DISPATCH_CACHE = {}
 
         def accept(node)
           visit(node)
@@ -38,9 +81,39 @@ module ActionDispatch
           def visit_STAR(n); unary(n); end
 
           def terminal(node); end
-          %w{ LITERAL SYMBOL SLASH DOT }.each do |t|
-            class_eval %{ def visit_#{t}(n); terminal(n); end }, __FILE__, __LINE__
+          def visit_LITERAL(n); terminal(n); end
+          def visit_SYMBOL(n);  terminal(n); end
+          def visit_SLASH(n);   terminal(n); end
+          def visit_DOT(n);     terminal(n); end
+
+          private_instance_methods(false).each do |pim|
+            next unless pim =~ /^visit_(.*)$/
+            DISPATCH_CACHE[$1.to_sym] = pim
           end
+      end
+
+      class FormatBuilder < Visitor # :nodoc:
+        def accept(node); Journey::Format.new(super); end
+        def terminal(node); [node.left]; end
+
+        def binary(node)
+          visit(node.left) + visit(node.right)
+        end
+
+        def visit_GROUP(n); [Journey::Format.new(unary(n))]; end
+
+        def visit_STAR(n)
+          [Journey::Format.required_path(n.left.to_sym)]
+        end
+
+        def visit_SYMBOL(n)
+          symbol = n.to_sym
+          if symbol == :controller
+            [Journey::Format.required_path(symbol)]
+          else
+            [Journey::Format.required_segment(symbol)]
+          end
+        end
       end
 
       # Loop through the requirements AST
@@ -52,8 +125,8 @@ module ActionDispatch
         end
 
         def visit(node)
-          super
           block.call(node)
+          super
         end
       end
 
@@ -75,90 +148,6 @@ module ActionDispatch
         def visit_GROUP(node)
           "(#{visit(node.left)})"
         end
-      end
-
-      class OptimizedPath < Visitor # :nodoc:
-        def accept(node)
-          Array(visit(node))
-        end
-
-        private
-
-          def visit_CAT(node)
-            [visit(node.left), visit(node.right)].flatten
-          end
-
-          def visit_SYMBOL(node)
-            node.left[1..-1].to_sym
-          end
-
-          def visit_STAR(node)
-            visit(node.left)
-          end
-
-          def visit_GROUP(node)
-            []
-          end
-
-          %w{ LITERAL SLASH DOT }.each do |t|
-            class_eval %{ def visit_#{t}(n); n.left; end }, __FILE__, __LINE__
-          end
-      end
-
-      # Used for formatting urls (url_for)
-      class Formatter < Visitor # :nodoc:
-        attr_reader :options
-
-        def initialize(options)
-          @options  = options
-        end
-
-        private
-          def escape_path(value)
-            Router::Utils.escape_path(value)
-          end
-
-          def escape_segment(value)
-            Router::Utils.escape_segment(value)
-          end
-
-          def visit(node, optional = false)
-            case node.type
-            when :LITERAL, :SLASH, :DOT
-              node.left
-            when :STAR
-              visit_STAR(node.left)
-            when :GROUP
-              visit(node.left, true)
-            when :CAT
-              visit_CAT(node, optional)
-            when :SYMBOL
-              visit_SYMBOL(node, node.to_sym)
-            end
-          end
-
-          def visit_CAT(node, optional)
-            left = visit(node.left, optional)
-            right = visit(node.right, optional)
-
-            if optional && !(right && left)
-              ""
-            else
-              [left, right].join
-            end
-          end
-
-          def visit_STAR(node)
-            if value = options[node.to_sym]
-              escape_path(value)
-            end
-          end
-
-          def visit_SYMBOL(node, name)
-            if value = options[name]
-              name == :controller ? escape_path(value) : escape_segment(value)
-            end
-          end
       end
 
       class Dot < Visitor # :nodoc:

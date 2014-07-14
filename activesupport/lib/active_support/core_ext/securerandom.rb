@@ -1,4 +1,4 @@
-module SecureRandom
+module SecureRandom #:nodoc:
   UUID_DNS_NAMESPACE  = "k\xA7\xB8\x10\x9D\xAD\x11\xD1\x80\xB4\x00\xC0O\xD40\xC8" #:nodoc:
   UUID_URL_NAMESPACE  = "k\xA7\xB8\x11\x9D\xAD\x11\xD1\x80\xB4\x00\xC0O\xD40\xC8" #:nodoc:
   UUID_OID_NAMESPACE  = "k\xA7\xB8\x12\x9D\xAD\x11\xD1\x80\xB4\x00\xC0O\xD40\xC8" #:nodoc:
@@ -10,7 +10,7 @@ module SecureRandom
   # ::uuid_from_hash always generates the same UUID for a given name and namespace combination.
   #
   # See RFC 4122 for details of UUID at: http://www.ietf.org/rfc/rfc4122.txt
-  def self.uuid_from_hash(hash_class, uuid_namespace, name)
+  def self.uuid_from_hash(hash_class, uuid_namespace, name) #:nodoc:
     if hash_class == Digest::MD5
       version = 3
     elsif hash_class == Digest::SHA1
@@ -31,12 +31,12 @@ module SecureRandom
   end
 
   # Convenience method for ::uuid_from_hash using Digest::MD5.
-  def self.uuid_v3(uuid_namespace, name)
+  def self.uuid_v3(uuid_namespace, name) #:nodoc:
     self.uuid_from_hash(Digest::MD5, uuid_namespace, name)
   end
 
   # Convenience method for ::uuid_from_hash using Digest::SHA1.
-  def self.uuid_v5(uuid_namespace, name)
+  def self.uuid_v5(uuid_namespace, name) #:nodoc:
     self.uuid_from_hash(Digest::SHA1, uuid_namespace, name)
   end
 

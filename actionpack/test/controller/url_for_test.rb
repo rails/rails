@@ -11,6 +11,26 @@ module AbstractController
         W.default_url_options.clear
       end
 
+      def test_nested_optional
+        klass = Class.new {
+          include ActionDispatch::Routing::RouteSet.new.tap { |r|
+            r.draw {
+              get "/foo/(:bar/(:baz))/:zot", :as         => 'fun',
+                                             :controller => :articles,
+                                             :action     => :index
+            }
+          }.url_helpers
+          self.default_url_options[:host] = 'example.com'
+        }
+
+        path = klass.new.fun_path({:controller => :articles,
+                                   :baz        => "baz",
+                                   :zot        => "zot",
+                                   :only_path  => true })
+        # :bar key isn't provided
+        assert_equal '/foo/zot', path
+      end
+
       def add_host!
         W.default_url_options[:host] = 'www.basecamphq.com'
       end
@@ -75,7 +95,7 @@ module AbstractController
       end
 
       def test_subdomain_may_be_object
-        model = mock(:to_param => 'api')
+        model = Class.new { def self.to_param; 'api'; end }
         add_host!
         assert_equal('http://api.basecamphq.com/c/a/i',
           W.new.url_for(:subdomain => model, :controller => 'c', :action => 'a', :id => 'i')
@@ -165,6 +185,18 @@ module AbstractController
           W.new.url_for(:controller => 'c', :action => 'a', :id => 'i', :protocol => '//')
         )
         assert_equal('//www.basecamphq.com/c/a/i',
+          W.new.url_for(:controller => 'c', :action => 'a', :id => 'i', :protocol => false)
+        )
+      end
+
+      def test_without_protocol_and_with_port
+        add_host!
+        add_port!
+
+        assert_equal('//www.basecamphq.com:3000/c/a/i',
+          W.new.url_for(:controller => 'c', :action => 'a', :id => 'i', :protocol => '//')
+        )
+        assert_equal('//www.basecamphq.com:3000/c/a/i',
           W.new.url_for(:controller => 'c', :action => 'a', :id => 'i', :protocol => false)
         )
       end

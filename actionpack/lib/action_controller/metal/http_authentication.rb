@@ -90,9 +90,13 @@ module ActionController
       end
 
       def authenticate(request, &login_procedure)
-        unless request.authorization.blank?
+        if has_basic_credentials?(request)
           login_procedure.call(*user_name_and_password(request))
         end
+      end
+
+      def has_basic_credentials?(request)
+        request.authorization.present? && (auth_scheme(request) == 'Basic')
       end
 
       def user_name_and_password(request)
@@ -100,7 +104,15 @@ module ActionController
       end
 
       def decode_credentials(request)
-        ::Base64.decode64(request.authorization.split(' ', 2).last || '')
+        ::Base64.decode64(auth_param(request) || '')
+      end
+
+      def auth_scheme(request)
+        request.authorization.split(' ', 2).first
+      end
+
+      def auth_param(request)
+        request.authorization.split(' ', 2).second
       end
 
       def encode_credentials(user_name, password)
@@ -109,8 +121,8 @@ module ActionController
 
       def authentication_request(controller, realm)
         controller.headers["WWW-Authenticate"] = %(Basic realm="#{realm.gsub(/"/, "")}")
-        controller.response_body = "HTTP Basic: Access denied.\n"
         controller.status = 401
+        controller.response_body = "HTTP Basic: Access denied.\n"
       end
     end
 
@@ -244,8 +256,8 @@ module ActionController
       def authentication_request(controller, realm, message = nil)
         message ||= "HTTP Digest: Access denied.\n"
         authentication_header(controller, realm)
-        controller.response_body = message
         controller.status = 401
+        controller.response_body = message
       end
 
       def secret_token(request)
@@ -437,7 +449,7 @@ module ActionController
         authorization_request = request.authorization.to_s
         if authorization_request[TOKEN_REGEX]
           params = token_params_from authorization_request
-          [params.shift.last, Hash[params].with_indifferent_access]
+          [params.shift[1], Hash[params].with_indifferent_access]
         end
       end
 
@@ -452,14 +464,14 @@ module ActionController
 
       # This removes the `"` characters wrapping the value.
       def rewrite_param_values(array_params)
-        array_params.each { |param| param.last.gsub! %r/^"|"$/, '' }
+        array_params.each { |param| (param[1] || "").gsub! %r/^"|"$/, '' }
       end
 
       # This method takes an authorization body and splits up the key-value
       # pairs by the standardized `:`, `;`, or `\t` delimiters defined in
       # `AUTHN_PAIR_DELIMITERS`.
       def raw_params(auth)
-        auth.sub(TOKEN_REGEX, '').split(/"\s*#{AUTHN_PAIR_DELIMITERS}\s*/)
+        auth.sub(TOKEN_REGEX, '').split(/\s*#{AUTHN_PAIR_DELIMITERS}\s*/)
       end
 
       # Encodes the given token and options into an Authorization header value.

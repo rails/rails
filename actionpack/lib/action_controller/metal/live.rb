@@ -102,16 +102,30 @@ module ActionController
             end
           end
 
-          @stream.write "data: #{json}\n\n"
+          message = json.gsub("\n", "\ndata: ")
+          @stream.write "data: #{message}\n\n"
         end
+    end
+
+    class ClientDisconnected < RuntimeError
     end
 
     class Buffer < ActionDispatch::Response::Buffer #:nodoc:
       include MonitorMixin
 
+      # Ignore that the client has disconnected.
+      #
+      # If this value is `true`, calling `write` after the client
+      # disconnects will result in the written content being silently
+      # discarded. If this value is `false` (the default), a
+      # ClientDisconnected exception will be raised.
+      attr_accessor :ignore_disconnect
+
       def initialize(response)
         @error_callback = lambda { true }
         @cv = new_cond
+        @aborted = false
+        @ignore_disconnect = false
         super(response, SizedQueue.new(10))
       end
 
@@ -122,6 +136,17 @@ module ActionController
         end
 
         super
+
+        unless connected?
+          @buf.clear
+
+          unless @ignore_disconnect
+            # Raise ClientDisconnected, which is a RuntimeError (not an
+            # IOError), because that's more appropriate for something beyond
+            # the developer's control.
+            raise ClientDisconnected, "client disconnected"
+          end
+        end
       end
 
       def each
@@ -132,12 +157,36 @@ module ActionController
         @response.sent!
       end
 
+      # Write a 'close' event to the buffer; the producer/writing thread
+      # uses this to notify us that it's finished supplying content.
+      #
+      # See also #abort.
       def close
         synchronize do
           super
           @buf.push nil
           @cv.broadcast
         end
+      end
+
+      # Inform the producer/writing thread that the client has
+      # disconnected; the reading thread is no longer interested in
+      # anything that's being written.
+      #
+      # See also #close.
+      def abort
+        synchronize do
+          @aborted = true
+          @buf.clear
+        end
+      end
+
+      # Is the client still connected and waiting for content?
+      #
+      # The result of calling `write` when this is `false` is determined
+      # by `ignore_disconnect`.
+      def connected?
+        !@aborted
       end
 
       def await_close
@@ -156,7 +205,7 @@ module ActionController
     end
 
     class Response < ActionDispatch::Response #:nodoc: all
-      class Header < DelegateClass(Hash)
+      class Header < DelegateClass(Hash) # :nodoc:
         def initialize(response, header)
           @response = response
           super(header)

@@ -1,6 +1,6 @@
 ActiveRecord::Schema.define do
 
-  %w(postgresql_tsvectors postgresql_hstores postgresql_arrays postgresql_moneys postgresql_numbers postgresql_times postgresql_network_addresses postgresql_bit_strings postgresql_uuids postgresql_ltrees
+  %w(postgresql_tsvectors postgresql_hstores postgresql_arrays postgresql_moneys postgresql_numbers postgresql_times postgresql_network_addresses postgresql_uuids postgresql_ltrees
       postgresql_oids postgresql_xml_data_type defaults geometrics postgresql_timestamp_with_zones postgresql_partitioned_table postgresql_partitioned_table_parent postgresql_json_data_type postgresql_citext).each do |table_name|
     execute "DROP TABLE IF EXISTS #{quote_table_name table_name}"
   end
@@ -118,13 +118,6 @@ _SQL
   end
 
   execute <<_SQL
-  CREATE TABLE postgresql_moneys (
-    id SERIAL PRIMARY KEY,
-    wealth MONEY
-  );
-_SQL
-
-  execute <<_SQL
   CREATE TABLE postgresql_numbers (
     id SERIAL PRIMARY KEY,
     single REAL,
@@ -146,14 +139,6 @@ _SQL
     cidr_address CIDR default '192.168.1.0/24',
     inet_address INET default '192.168.1.1',
     mac_address MACADDR default 'ff:ff:ff:ff:ff:ff'
-  );
-_SQL
-
-  execute <<_SQL
-  CREATE TABLE postgresql_bit_strings (
-    id SERIAL PRIMARY KEY,
-    bit_string BIT(8),
-    bit_string_varying BIT VARYING(8)
   );
 _SQL
 

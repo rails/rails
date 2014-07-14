@@ -3,21 +3,21 @@ Active Record and PostgreSQL
 
 This guide covers PostgreSQL specific usage of Active Record.
 
+After reading this guide, you will know:
+
+* How to use PostgreSQL's datatypes.
+* How to use UUID primary keys.
+* How to implement full text search with PostgreSQL.
+* How to back your Active Record models with database views.
+
+--------------------------------------------------------------------------------
+
 In order to use the PostgreSQL adapter you need to have at least version 8.2
 installed. Older versions are not supported.
 
 To get started with PostgreSQL have a look at the
 [configuring Rails guide](configuring.html#configuring-a-postgresql-database).
 It describes how to properly setup Active Record for PostgreSQL.
-
-After reading this guide, you will know:
-
-
-* How to use PostgreSQL's datatypes.
-* How to use UUID Primary keys.
-* How to implement Full text search with PostgreSQL.
-
---------------------------------------------------------------------------------
 
 Datatypes
 ---------
@@ -52,11 +52,13 @@ Document.create payload: data
 
 ```ruby
 # db/migrate/20140207133952_create_books.rb
-create_table :book do |t|
+create_table :books do |t|
   t.string 'title'
   t.string 'tags', array: true
   t.integer 'ratings', array: true
 end
+add_index :books, :tags, using: 'gin'
+add_index :books, :ratings, using: 'gin'
 
 # app/models/book.rb
 class Book < ActiveRecord::Base
@@ -99,7 +101,7 @@ Profile.create(settings: { "color" => "blue", "resolution" => "800x600" })
 profile = Profile.first
 profile.settings # => {"color"=>"blue", "resolution"=>"800x600"}
 
-profile.settings = {"color" => "yellow", "resulution" => "1280x1024"}
+profile.settings = {"color" => "yellow", "resolution" => "1280x1024"}
 profile.save!
 
 ## you need to call _will_change! if you are editing the store in place
@@ -172,7 +174,7 @@ event.ends_at # => Thu, 13 Feb 2014
 
 * [type definition](http://www.postgresql.org/docs/9.3/static/rowtypes.html)
 
-Currently there is no special support for composite types. They are mapped to as
+Currently there is no special support for composite types. They are mapped to
 normal text columns:
 
 ```sql
@@ -288,14 +290,43 @@ user.save!
 
 * [type definition](http://www.postgresql.org/docs/9.3/static/datatype-net-types.html)
 
-The types `inet` and `cidr` are mapped to Ruby [`IPAddr`](http://www.ruby-doc.org/stdlib-2.1.1/libdoc/ipaddr/rdoc/IPAddr.html) objects. The
-`macaddr` type is mapped to normal text.
+The types `inet` and `cidr` are mapped to Ruby
+[`IPAddr`](http://www.ruby-doc.org/stdlib-2.1.1/libdoc/ipaddr/rdoc/IPAddr.html)
+objects. The `macaddr` type is mapped to normal text.
+
+```ruby
+# db/migrate/20140508144913_create_devices.rb
+create_table(:devices, force: true) do |t|
+  t.inet 'ip'
+  t.cidr 'network'
+  t.macaddr 'address'
+end
+
+# app/models/device.rb
+class Device < ActiveRecord::Base
+end
+
+# Usage
+macbook = Device.create(ip: "192.168.1.12",
+                        network: "192.168.2.0/24",
+                        address: "32:01:16:6d:05:ef")
+
+macbook.ip
+# => #<IPAddr: IPv4:192.168.1.12/255.255.255.255>
+
+macbook.network
+# => #<IPAddr: IPv4:192.168.2.0/255.255.255.0>
+
+macbook.address
+# => "32:01:16:6d:05:ef"
+```
 
 ### Geometric Types
 
 * [type definition](http://www.postgresql.org/docs/9.3/static/datatype-geometric.html)
 
-All geometric types are mapped to normal text.
+All geometric types, with the exception of `points` are mapped to normal text.
+A point is casted to an array containing `x` and `y` coordinates.
 
 
 UUID Primary Keys
@@ -343,5 +374,64 @@ Document.where("to_tsvector('english', title || ' ' || body) @@ to_tsquery(?)",
                  "cat & dog")
 ```
 
-Views
------
+Database Views
+--------------
+
+* [view creation](http://www.postgresql.org/docs/9.3/static/sql-createview.html)
+
+Imagine you need to work with a legacy database containing the following table:
+
+```
+rails_pg_guide=# \d "TBL_ART"
+                                        Table "public.TBL_ART"
+   Column   |            Type             |                         Modifiers
+------------+-----------------------------+------------------------------------------------------------
+ INT_ID     | integer                     | not null default nextval('"TBL_ART_INT_ID_seq"'::regclass)
+ STR_TITLE  | character varying           |
+ STR_STAT   | character varying           | default 'draft'::character varying
+ DT_PUBL_AT | timestamp without time zone |
+ BL_ARCH    | boolean                     | default false
+Indexes:
+    "TBL_ART_pkey" PRIMARY KEY, btree ("INT_ID")
+```
+
+This table does not follow the Rails conventions at all.
+Because simple PostgreSQL views are updateable by default,
+we can wrap it as follows:
+
+```ruby
+# db/migrate/20131220144913_create_articles_view.rb
+execute <<-SQL
+CREATE VIEW articles AS
+  SELECT "INT_ID" AS id,
+         "STR_TITLE" AS title,
+         "STR_STAT" AS status,
+         "DT_PUBL_AT" AS published_at,
+         "BL_ARCH" AS archived
+  FROM "TBL_ART"
+  WHERE "BL_ARCH" = 'f'
+  SQL
+
+# app/models/article.rb
+class Article < ActiveRecord::Base
+  self.primary_key = "id"
+  def archive!
+    update_attribute :archived, true
+  end
+end
+
+# Usage
+first = Article.create! title: "Winter is coming",
+                        status: "published",
+                        published_at: 1.year.ago
+second = Article.create! title: "Brace yourself",
+                         status: "draft",
+                         published_at: 1.month.ago
+
+Article.count # => 1
+first.archive!
+Article.count # => 2
+```
+
+NOTE: This application only cares about non-archived `Articles`. A view also
+allows for conditions so we can exclude the archived `Articles` directly.

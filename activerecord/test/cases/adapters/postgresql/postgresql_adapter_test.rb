@@ -134,18 +134,18 @@ module ActiveRecord
       end
 
       def test_default_sequence_name
-        assert_equal 'accounts_id_seq',
+        assert_equal PostgreSQL::Name.new('public', 'accounts_id_seq'),
           @connection.default_sequence_name('accounts', 'id')
 
-        assert_equal 'accounts_id_seq',
+        assert_equal PostgreSQL::Name.new('public', 'accounts_id_seq'),
           @connection.default_sequence_name('accounts')
       end
 
       def test_default_sequence_name_bad_table
-        assert_equal 'zomg_id_seq',
+        assert_equal PostgreSQL::Name.new(nil, 'zomg_id_seq'),
           @connection.default_sequence_name('zomg', 'id')
 
-        assert_equal 'zomg_id_seq',
+        assert_equal PostgreSQL::Name.new(nil, 'zomg_id_seq'),
           @connection.default_sequence_name('zomg')
       end
 
@@ -216,7 +216,7 @@ module ActiveRecord
         )
 
         seq = @connection.pk_and_sequence_for('ex').last
-        assert_equal 'ex_id_seq', seq
+        assert_equal PostgreSQL::Name.new("public", "ex_id_seq"), seq
 
         @connection.exec_query(
           "DELETE FROM pg_depend WHERE objid = 'ex2_id_seq'::regclass AND refobjid = 'ex'::regclass AND deptype = 'a'"
@@ -353,6 +353,17 @@ module ActiveRecord
         assert_equal "posts.title, posts.updater_id AS alias_0", @connection.columns_for_distinct("posts.title", ["posts.updater_id desc nulls last"])
       end
 
+      def test_columns_for_distinct_without_order_specifiers
+        assert_equal "posts.title, posts.updater_id AS alias_0",
+          @connection.columns_for_distinct("posts.title", ["posts.updater_id"])
+
+        assert_equal "posts.title, posts.updater_id AS alias_0",
+          @connection.columns_for_distinct("posts.title", ["posts.updater_id nulls last"])
+
+        assert_equal "posts.title, posts.updater_id AS alias_0",
+          @connection.columns_for_distinct("posts.title", ["posts.updater_id nulls first"])
+      end
+
       def test_raise_error_when_cannot_translate_exception
         assert_raise TypeError do
           @connection.send(:log, nil) { @connection.execute(nil) }
@@ -394,6 +405,23 @@ module ActiveRecord
         assert_match(/\Aunknown OID \d+: failed to recognize type of 'anyelement'. It will be treated as String.\n\z/, warning)
       ensure
         reset_connection
+      end
+
+      def test_unparsed_defaults_are_at_least_set_when_saving
+        with_example_table "id SERIAL PRIMARY KEY, number INTEGER NOT NULL DEFAULT (4 + 4) * 2 / 4" do
+          number_klass = Class.new(ActiveRecord::Base) do
+            self.table_name = 'ex'
+          end
+          column = number_klass.columns_hash["number"]
+          assert_nil column.default
+          assert_nil column.default_function
+
+          first_number = number_klass.new
+          assert_nil first_number.number
+
+          first_number.save!
+          assert_equal 4, first_number.reload.number
+        end
       end
 
       private

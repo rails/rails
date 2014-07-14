@@ -1,8 +1,5 @@
 # encoding: utf-8
-
 require 'cases/helper'
-require 'active_record/base'
-require 'active_record/connection_adapters/postgresql_adapter'
 
 if ActiveRecord::Base.connection.supports_extensions?
   class PostgresqlCitextTest < ActiveRecord::TestCase
@@ -38,7 +35,6 @@ if ActiveRecord::Base.connection.supports_extensions?
       column = Citext.columns_hash['cival']
       assert_equal :citext, column.type
       assert_equal 'citext', column.sql_type
-      assert_not column.text?
       assert_not column.number?
       assert_not column.binary?
       assert_not column.array
@@ -50,7 +46,7 @@ if ActiveRecord::Base.connection.supports_extensions?
           t.citext 'username'
         end
         Citext.reset_column_information
-        column = Citext.columns.find { |c| c.name == 'username' }
+        column = Citext.columns_hash['username']
         assert_equal :citext, column.type
 
         raise ActiveRecord::Rollback # reset the schema change

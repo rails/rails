@@ -126,4 +126,14 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
     categories = author.categories.includes(:special_categorizations).references(:special_categorizations).to_a
     assert_equal 2, categories.size
   end
+
+  test "the correct records are loaded when including an aliased association" do
+    author = Author.create! name: "Jon"
+    author.categories.create! name: 'Not Special'
+    author.special_categories.create! name: 'Special'
+
+    categories = author.categories.eager_load(:special_categorizations).order(:name).to_a
+    assert_equal 0, categories.first.special_categorizations.size
+    assert_equal 1, categories.second.special_categorizations.size
+  end
 end

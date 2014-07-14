@@ -61,25 +61,7 @@ class Numeric
   end
   alias :fortnight :fortnights
 
-  # Reads best without arguments:  10.minutes.ago
-  def ago(time = ::Time.current)
-    ActiveSupport::Deprecation.warn "Calling #ago or #until on a number (e.g. 5.ago) is deprecated and will be removed in the future, use 5.seconds.ago instead"
-    time - self
-  end
-
-  # Reads best with argument:  10.minutes.until(time)
-  alias :until :ago
-
-  # Reads best with argument:  10.minutes.since(time)
-  def since(time = ::Time.current)
-    ActiveSupport::Deprecation.warn "Calling #since or #from_now on a number (e.g. 5.since) is deprecated and will be removed in the future, use 5.seconds.since instead"
-    time + self
-  end
-
-  # Reads best without arguments:  10.minutes.from_now
-  alias :from_now :since
-
-  # Used with the standard time durations, like 1.hour.in_milliseconds -- 
+  # Used with the standard time durations, like 1.hour.in_milliseconds --
   # so we can feed them to JavaScript functions like getTime().
   def in_milliseconds
     self * 1000

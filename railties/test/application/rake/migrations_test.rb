@@ -58,7 +58,7 @@ module ApplicationTests
       end
 
       test 'migration status when schema migrations table is not present' do
-        output = Dir.chdir(app_path){ `rake db:migrate:status` }
+        output = Dir.chdir(app_path){ `rake db:migrate:status 2>&1` }
         assert_equal "Schema migrations table does not exist yet.\n", output
       end
 
@@ -182,6 +182,21 @@ module ApplicationTests
 
           structure_dump = File.read("db/schema.rb")
           assert_match(/create_table "books"/, structure_dump)
+        end
+      end
+
+      test 'test migration status migrated file is deleted' do
+        Dir.chdir(app_path) do
+          `rails generate model user username:string password:string;
+           rails generate migration add_email_to_users email:string;
+           rake db:migrate
+           rm db/migrate/*email*.rb`
+
+          output = `rake db:migrate:status`
+          File.write('test.txt', output)
+
+          assert_match(/up\s+\d{14}\s+Create users/, output)
+          assert_match(/up\s+\d{14}\s+\** NO FILE \**/, output)
         end
       end
     end

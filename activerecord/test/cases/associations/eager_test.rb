@@ -534,21 +534,13 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_with_has_many_and_limit_and_conditions
-    if current_adapter?(:OpenBaseAdapter)
-      posts = Post.all.merge!(:includes => [ :author, :comments ], :limit => 2, :where => "FETCHBLOB(posts.body) = 'hello'", :order => "posts.id").to_a
-    else
-      posts = Post.all.merge!(:includes => [ :author, :comments ], :limit => 2, :where => "posts.body = 'hello'", :order => "posts.id").to_a
-    end
+    posts = Post.all.merge!(:includes => [ :author, :comments ], :limit => 2, :where => "posts.body = 'hello'", :order => "posts.id").to_a
     assert_equal 2, posts.size
     assert_equal [4,5], posts.collect { |p| p.id }
   end
 
   def test_eager_with_has_many_and_limit_and_conditions_array
-    if current_adapter?(:OpenBaseAdapter)
-      posts = Post.all.merge!(:includes => [ :author, :comments ], :limit => 2, :where => [ "FETCHBLOB(posts.body) = ?", 'hello' ], :order => "posts.id").to_a
-    else
-      posts = Post.all.merge!(:includes => [ :author, :comments ], :limit => 2, :where => [ "posts.body = ?", 'hello' ], :order => "posts.id").to_a
-    end
+    posts = Post.all.merge!(:includes => [ :author, :comments ], :limit => 2, :where => [ "posts.body = ?", 'hello' ], :order => "posts.id").to_a
     assert_equal 2, posts.size
     assert_equal [4,5], posts.collect { |p| p.id }
   end
@@ -826,11 +818,15 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_preload_with_interpolation
-    post = Post.includes(:comments_with_interpolated_conditions).find(posts(:welcome).id)
-    assert_equal [comments(:greetings)], post.comments_with_interpolated_conditions
+    assert_deprecated do
+      post = Post.includes(:comments_with_interpolated_conditions).find(posts(:welcome).id)
+      assert_equal [comments(:greetings)], post.comments_with_interpolated_conditions
+    end
 
-    post = Post.joins(:comments_with_interpolated_conditions).find(posts(:welcome).id)
-    assert_equal [comments(:greetings)], post.comments_with_interpolated_conditions
+    assert_deprecated do
+      post = Post.joins(:comments_with_interpolated_conditions).find(posts(:welcome).id)
+      assert_equal [comments(:greetings)], post.comments_with_interpolated_conditions
+    end
   end
 
   def test_polymorphic_type_condition
@@ -936,13 +932,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_count_with_include
-    if current_adapter?(:SybaseAdapter)
-      assert_equal 3, authors(:david).posts_with_comments.where("len(comments.body) > 15").references(:comments).count
-    elsif current_adapter?(:OpenBaseAdapter)
-      assert_equal 3, authors(:david).posts_with_comments.where("length(FETCHBLOB(comments.body)) > 15").references(:comments).count
-    else
-      assert_equal 3, authors(:david).posts_with_comments.where("length(comments.body) > 15").references(:comments).count
-    end
+    assert_equal 3, authors(:david).posts_with_comments.where("length(comments.body) > 15").references(:comments).count
   end
 
   def test_load_with_sti_sharing_association
@@ -1177,6 +1167,13 @@ class EagerAssociationTest < ActiveRecord::TestCase
     )
   end
 
+  test "deep preload" do
+    post = Post.preload(author: :posts, comments: :post).first
+
+    assert_predicate post.author.association(:posts), :loaded?
+    assert_predicate post.comments.first.association(:post), :loaded?
+  end
+
   test "preloading does not cache has many association subset when preloaded with a through association" do
     author = Author.includes(:comments_with_order_and_conditions, :posts).first
     assert_no_queries { assert_equal 2, author.comments_with_order_and_conditions.size }
@@ -1206,6 +1203,15 @@ class EagerAssociationTest < ActiveRecord::TestCase
     end
   end
 
+  test "preloading the same association twice works" do
+    Member.create!
+    members = Member.preload(:current_membership).includes(current_membership: :club).all.to_a
+    assert_no_queries {
+      members_with_membership = members.select(&:current_membership)
+      assert_equal 3, members_with_membership.map(&:current_membership).map(&:club).size
+    }
+  end
+
   test "preloading with a polymorphic association and using the existential predicate" do
     assert_equal authors(:david), authors(:david).essays.includes(:writer).first.writer
 
@@ -1231,5 +1237,57 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_no_queries {
       assert_equal 2, author.posts.size
     }
+  end
+
+  test "including association based on sql condition and no database column" do
+    assert_equal pets(:parrot), Owner.including_last_pet.first.last_pet
+  end
+
+  test "include instance dependent associations is deprecated" do
+    message = "association scope 'posts_with_signature' is"
+    assert_deprecated message do
+      begin
+        Author.includes(:posts_with_signature).to_a
+      rescue NoMethodError
+        # it's expected that preloading of this association fails
+      end
+    end
+
+    assert_deprecated message do
+      Author.preload(:posts_with_signature).to_a rescue NoMethodError
+    end
+
+    assert_deprecated message do
+      Author.eager_load(:posts_with_signature).to_a
+    end
+  end
+
+  test "preloading readonly association" do
+    # has-one
+    firm = Firm.where(id: "1").preload(:readonly_account).first!
+    assert firm.readonly_account.readonly?
+
+    # has_and_belongs_to_many
+    project = Project.where(id: "2").preload(:readonly_developers).first!
+    assert project.readonly_developers.first.readonly?
+
+    # has-many :through
+    david = Author.where(id: "1").preload(:readonly_comments).first!
+    assert david.readonly_comments.first.readonly?
+  end
+
+  test "eager-loading readonly association" do
+    skip "eager_load does not yet preserve readonly associations"
+    # has-one
+    firm = Firm.where(id: "1").eager_load(:readonly_account).first!
+    assert firm.readonly_account.readonly?
+
+    # has_and_belongs_to_many
+    project = Project.where(id: "2").eager_load(:readonly_developers).first!
+    assert project.readonly_developers.first.readonly?
+
+    # has-many :through
+    david = Author.where(id: "1").eager_load(:readonly_comments).first!
+    assert david.readonly_comments.first.readonly?
   end
 end

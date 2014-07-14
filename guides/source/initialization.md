@@ -98,9 +98,9 @@ configure the load path for your Gemfile's dependencies.
 
 A standard Rails application depends on several gems, specifically:
 
-* abstract
 * actionmailer
 * actionpack
+* actionview
 * activemodel
 * activerecord
 * activesupport
@@ -119,7 +119,7 @@ A standard Rails application depends on several gems, specifically:
 * rails
 * railties
 * rake
-* sqlite3-ruby
+* sqlite3
 * thor
 * treetop
 * tzinfo
@@ -301,7 +301,7 @@ def default_options
 end
 ```
 
-There is no `REQUEST_METHOD` key in `ENV` so we can skip over that line. The next line merges in the options from `opt_parser` which is defined plainly in `Rack::Server`
+There is no `REQUEST_METHOD` key in `ENV` so we can skip over that line. The next line merges in the options from `opt_parser` which is defined plainly in `Rack::Server`:
 
 ```ruby
 def opt_parser
@@ -559,7 +559,7 @@ initialized. When `config/application.rb` has finished loading Rails and defined
 the application namespace, we go back to `config/environment.rb`,
 where the application is initialized. For example, if the application was called
 `Blog`, here we would find `Rails.application.initialize!`, which is
-defined in `rails/application.rb`
+defined in `rails/application.rb`.
 
 ### `railties/lib/rails/application.rb`
 
@@ -575,7 +575,7 @@ end
 ```
 
 As you can see, you can only initialize an app once. The initializers are run through
-the `run_initializers` method which is defined in `railties/lib/rails/initializable.rb`
+the `run_initializers` method which is defined in `railties/lib/rails/initializable.rb`:
 
 ```ruby
 def run_initializers(group=:default, *args)

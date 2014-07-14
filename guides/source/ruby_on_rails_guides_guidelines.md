@@ -13,7 +13,7 @@ After reading this guide, you will know:
 Markdown
 -------
 
-Guides are written in [GitHub Flavored Markdown](http://github.github.com/github-flavored-markdown/). There is comprehensive [documentation for Markdown](http://daringfireball.net/projects/markdown/syntax), a [cheatsheet](http://daringfireball.net/projects/markdown/basics), and [additional documentation](http://github.github.com/github-flavored-markdown/) on the differences from traditional Markdown.
+Guides are written in [GitHub Flavored Markdown](https://help.github.com/articles/github-flavored-markdown). There is comprehensive [documentation for Markdown](http://daringfireball.net/projects/markdown/syntax), a [cheatsheet](http://daringfireball.net/projects/markdown/basics).
 
 Prologue
 --------

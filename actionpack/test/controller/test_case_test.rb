@@ -164,7 +164,7 @@ XML
   end
 
   class DefaultUrlOptionsCachingController < ActionController::Base
-    before_filter { @dynamic_opt = 'opt' }
+    before_action { @dynamic_opt = 'opt' }
 
     def test_url_options_reset
       render text: url_for(params)
@@ -662,7 +662,7 @@ XML
 
   def test_id_converted_to_string
     get :test_params, :id => 20, :foo => Object.new
-    assert_kind_of String, @request.path_parameters['id']
+    assert_kind_of String, @request.path_parameters[:id]
   end
 
   def test_array_path_parameter_handled_properly
@@ -673,17 +673,17 @@ XML
       end
 
       get :test_params, :path => ['hello', 'world']
-      assert_equal ['hello', 'world'], @request.path_parameters['path']
-      assert_equal 'hello/world', @request.path_parameters['path'].to_param
+      assert_equal ['hello', 'world'], @request.path_parameters[:path]
+      assert_equal 'hello/world', @request.path_parameters[:path].to_param
     end
   end
 
   def test_assert_realistic_path_parameters
     get :test_params, :id => 20, :foo => Object.new
 
-    # All elements of path_parameters should use string keys
+    # All elements of path_parameters should use Symbol keys
     @request.path_parameters.keys.each do |key|
-      assert_kind_of String, key
+      assert_kind_of Symbol, key
     end
   end
 
@@ -737,12 +737,12 @@ XML
     assert_equal "baz", @request.filtered_parameters[:foo]
   end
 
-  def test_symbolized_path_params_reset_after_request
+  def test_path_params_reset_after_request
     get :test_params, :id => "foo"
-    assert_equal "foo", @request.symbolized_path_parameters[:id]
+    assert_equal "foo", @request.path_parameters[:id]
     @request.recycle!
     get :test_params
-    assert_nil @request.symbolized_path_parameters[:id]
+    assert_nil @request.path_parameters[:id]
   end
 
   def test_request_protocol_is_reset_after_request

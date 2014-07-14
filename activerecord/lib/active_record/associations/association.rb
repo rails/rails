@@ -160,7 +160,7 @@ module ActiveRecord
       def marshal_load(data)
         reflection_name, ivars = data
         ivars.each { |name, val| instance_variable_set(name, val) }
-        @reflection = @owner.class.reflect_on_association(reflection_name)
+        @reflection = @owner.class._reflect_on_association(reflection_name)
       end
 
       def initialize_attributes(record) #:nodoc:
@@ -179,7 +179,7 @@ module ActiveRecord
         def creation_attributes
           attributes = {}
 
-          if (reflection.macro == :has_one || reflection.macro == :has_many) && !options[:through]
+          if (reflection.has_one? || reflection.collection?) && !options[:through]
             attributes[reflection.foreign_key] = owner[reflection.active_record_primary_key]
 
             if reflection.options[:as]

@@ -1,7 +1,5 @@
 # encoding: utf-8
 require "cases/helper"
-require 'active_record/base'
-require 'active_record/connection_adapters/postgresql_adapter'
 
 class PostgresqlLtreeTest < ActiveRecord::TestCase
   class Ltree < ActiveRecord::Base
@@ -33,7 +31,6 @@ class PostgresqlLtreeTest < ActiveRecord::TestCase
     assert_equal :ltree, column.type
     assert_equal "ltree", column.sql_type
     assert_not column.number?
-    assert_not column.text?
     assert_not column.binary?
     assert_not column.array
   end

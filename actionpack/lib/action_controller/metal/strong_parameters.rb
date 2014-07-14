@@ -1,5 +1,6 @@
 require 'active_support/core_ext/hash/indifferent_access'
 require 'active_support/core_ext/array/wrap'
+require 'active_support/deprecation'
 require 'active_support/rescuable'
 require 'action_dispatch/http/upload'
 require 'stringio'
@@ -39,7 +40,7 @@ module ActionController
   # == Action Controller \Parameters
   #
   # Allows to choose which attributes should be whitelisted for mass updating
-  # and thus prevent accidentally exposing that which shouldn’t be exposed.
+  # and thus prevent accidentally exposing that which shouldn't be exposed.
   # Provides two methods for this purpose: #require and #permit. The former is
   # used to mark parameters as required. The latter is used to set the parameter
   # as permitted and limit which attributes should be allowed for mass updating.
@@ -101,9 +102,23 @@ module ActionController
     cattr_accessor :permit_all_parameters, instance_accessor: false
     cattr_accessor :action_on_unpermitted_parameters, instance_accessor: false
 
-    # Never raise an UnpermittedParameters exception because of these params
-    # are present. They are added by Rails and it's of no concern.
-    NEVER_UNPERMITTED_PARAMS = %w( controller action )
+    # By default, never raise an UnpermittedParameters exception if these
+    # params are present. The default includes both 'controller' and 'action'
+    # because they are added by Rails and should be of no concern. One way
+    # to change these is to specify `always_permitted_parameters` in your
+    # config. For instance:
+    #
+    #    config.always_permitted_parameters = %w( controller action format )
+    cattr_accessor :always_permitted_parameters
+    self.always_permitted_parameters = %w( controller action )
+
+    def self.const_missing(const_name)
+      super unless const_name == :NEVER_UNPERMITTED_PARAMS
+      ActiveSupport::Deprecation.warn "`ActionController::Parameters::NEVER_UNPERMITTED_PARAMS`"\
+                                      " has been deprecated. Use "\
+                                      "`ActionController::Parameters.always_permitted_parameters` instead."
+      self.always_permitted_parameters
+    end
 
     # Returns a new instance of <tt>ActionController::Parameters</tt>.
     # Also, sets the +permitted+ attribute to the default value of
@@ -129,6 +144,10 @@ module ActionController
     # Attribute that keeps track of converted arrays, if any, to avoid double
     # looping in the common use case permit + mass-assignment. Defined in a
     # method to instantiate it only if needed.
+    #
+    # Testing membership still loops, but it's going to be faster than our own
+    # loop that converts values. Also, we are not going to build a new array
+    # object per fetch.
     def converted_arrays
       @converted_arrays ||= Set.new
     end
@@ -158,8 +177,8 @@ module ActionController
     def permit!
       each_pair do |key, value|
         value = convert_hashes_to_parameters(key, value)
-        Array.wrap(value).each do |_|
-          _.permit! if _.respond_to? :permit!
+        Array.wrap(value).each do |v|
+          v.permit! if v.respond_to? :permit!
         end
       end
 
@@ -180,7 +199,12 @@ module ActionController
     #   ActionController::Parameters.new(person: {}).require(:person)
     #   # => ActionController::ParameterMissing: param not found: person
     def require(key)
-      self[key].presence || raise(ParameterMissing.new(key))
+      value = self[key]
+      if value.present? || value == false
+        value
+      else
+        raise ParameterMissing.new(key)
+      end
     end
 
     # Alias of #require.
@@ -380,7 +404,7 @@ module ActionController
       end
 
       def unpermitted_keys(params)
-        self.keys - params.keys - NEVER_UNPERMITTED_PARAMS
+        self.keys - params.keys - self.always_permitted_parameters
       end
 
       #

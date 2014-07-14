@@ -81,10 +81,6 @@ module ActionDispatch
       end
 
       private
-        def clear!
-          @set.clear!
-        end
-
         def draw(&block)
           @set.draw(&block)
         end

@@ -64,12 +64,21 @@ module ActiveSupport
       def add_event_subscriber(event)
         return if %w{ start finish }.include?(event.to_s)
 
-        notifier.subscribe("#{event}.#{namespace}", subscriber)
+        pattern = "#{event}.#{namespace}"
+
+        # don't add multiple subscribers (eg. if methods are redefined)
+        return if subscriber.patterns.include?(pattern)
+
+        subscriber.patterns << pattern
+        notifier.subscribe(pattern, subscriber)
       end
     end
 
+    attr_reader :patterns # :nodoc:
+
     def initialize
       @queue_key = [self.class.name, object_id].join "-"
+      @patterns  = []
       super
     end
 

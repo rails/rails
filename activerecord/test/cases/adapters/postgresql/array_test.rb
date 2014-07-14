@@ -1,22 +1,33 @@
 # encoding: utf-8
 require "cases/helper"
-require 'active_record/base'
-require 'active_record/connection_adapters/postgresql_adapter'
 
 class PostgresqlArrayTest < ActiveRecord::TestCase
+  include InTimeZone
+  OID = ActiveRecord::ConnectionAdapters::PostgreSQL::OID
+
   class PgArray < ActiveRecord::Base
     self.table_name = 'pg_arrays'
   end
 
   def setup
     @connection = ActiveRecord::Base.connection
+
+    unless @connection.extension_enabled?('hstore')
+      @connection.enable_extension 'hstore'
+      @connection.commit_db_transaction
+    end
+
+    @connection.reconnect!
+
     @connection.transaction do
       @connection.create_table('pg_arrays') do |t|
         t.string 'tags', array: true
         t.integer 'ratings', array: true
+        t.datetime :datetimes, array: true
+        t.hstore :hstores, array: true
       end
     end
-    @column = PgArray.columns.find { |c| c.name == 'tags' }
+    @column = PgArray.columns_hash['tags']
   end
 
   teardown do
@@ -27,7 +38,6 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
     assert_equal :string, @column.type
     assert_equal "character varying", @column.sql_type
     assert @column.array
-    assert_not @column.text?
     assert_not @column.number?
     assert_not @column.binary?
 
@@ -40,9 +50,8 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
   def test_default
     @connection.add_column 'pg_arrays', 'score', :integer, array: true, default: [4, 4, 2]
     PgArray.reset_column_information
-    column = PgArray.columns_hash["score"]
 
-    assert_equal([4, 4, 2], column.default)
+    assert_equal([4, 4, 2], PgArray.column_defaults['score'])
     assert_equal([4, 4, 2], PgArray.new.score)
   ensure
     PgArray.reset_column_information
@@ -51,9 +60,8 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
   def test_default_strings
     @connection.add_column 'pg_arrays', 'names', :string, array: true, default: ["foo", "bar"]
     PgArray.reset_column_information
-    column = PgArray.columns_hash["names"]
 
-    assert_equal(["foo", "bar"], column.default)
+    assert_equal(["foo", "bar"], PgArray.column_defaults['names'])
     assert_equal(["foo", "bar"], PgArray.new.names)
   ensure
     PgArray.reset_column_information
@@ -61,13 +69,13 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
 
   def test_change_column_with_array
     @connection.add_column :pg_arrays, :snippets, :string, array: true, default: []
-    @connection.change_column :pg_arrays, :snippets, :text, array: true, default: "{}"
+    @connection.change_column :pg_arrays, :snippets, :text, array: true, default: []
 
     PgArray.reset_column_information
-    column = PgArray.columns.find { |c| c.name == 'snippets' }
+    column = PgArray.columns_hash['snippets']
 
     assert_equal :text, column.type
-    assert_equal [], column.default
+    assert_equal [], PgArray.column_defaults['snippets']
     assert column.array
   end
 
@@ -80,38 +88,56 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
     end
   end
 
-  def test_type_cast_array
-    data = '{1,2,3}'
-    oid_type  = @column.instance_variable_get('@oid_type').subtype
-    # we are getting the instance variable in this test, but in the
-    # normal use of string_to_array, it's called from the OID::Array
-    # class and will have the OID instance that will provide the type
-    # casting
-    array = @column.class.string_to_array data, oid_type
-    assert_equal(['1', '2', '3'], array)
-    assert_equal(['1', '2', '3'], @column.type_cast(data))
+  def test_change_column_default_with_array
+    @connection.change_column_default :pg_arrays, :tags, []
 
-    assert_equal([], @column.type_cast('{}'))
-    assert_equal([nil], @column.type_cast('{NULL}'))
+    PgArray.reset_column_information
+    assert_equal [], PgArray.column_defaults['tags']
+  end
+
+  def test_type_cast_array
+    assert_equal(['1', '2', '3'], @column.type_cast_from_database('{1,2,3}'))
+    assert_equal([], @column.type_cast_from_database('{}'))
+    assert_equal([nil], @column.type_cast_from_database('{NULL}'))
   end
 
   def test_type_cast_integers
     x = PgArray.new(ratings: ['1', '2'])
-    assert x.save!
-    assert_equal(['1', '2'], x.ratings)
+
+    assert_equal([1, 2], x.ratings)
+
+    x.save!
+    x.reload
+
+    assert_equal([1, 2], x.ratings)
   end
 
-  def test_rewrite
-    @connection.execute "insert into pg_arrays (tags) VALUES ('{1,2,3}')"
-    x = PgArray.first
-    x.tags = ['1','2','3','4']
-    assert x.save!
-  end
-
-  def test_select
+  def test_select_with_strings
     @connection.execute "insert into pg_arrays (tags) VALUES ('{1,2,3}')"
     x = PgArray.first
     assert_equal(['1','2','3'], x.tags)
+  end
+
+  def test_rewrite_with_strings
+    @connection.execute "insert into pg_arrays (tags) VALUES ('{1,2,3}')"
+    x = PgArray.first
+    x.tags = ['1','2','3','4']
+    x.save!
+    assert_equal ['1','2','3','4'], x.reload.tags
+  end
+
+  def test_select_with_integers
+    @connection.execute "insert into pg_arrays (ratings) VALUES ('{1,2,3}')"
+    x = PgArray.first
+    assert_equal([1, 2, 3], x.ratings)
+  end
+
+  def test_rewrite_with_integers
+    @connection.execute "insert into pg_arrays (ratings) VALUES ('{1,2,3}')"
+    x = PgArray.first
+    x.ratings = [2, '3', 4]
+    x.save!
+    assert_equal [2, 3, 4], x.reload.ratings
   end
 
   def test_multi_dimensional_with_strings
@@ -165,14 +191,71 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
     assert_equal("[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, ...]", record.attribute_for_inspect(:ratings))
   end
 
-  def test_update_all
-    pg_array = PgArray.create! tags: ["one", "two", "three"]
+  def test_escaping
+    unknown = 'foo\\",bar,baz,\\'
+    tags = ["hello_#{unknown}"]
+    ar = PgArray.create!(tags: tags)
+    ar.reload
+    assert_equal tags, ar.tags
+  end
 
-    PgArray.update_all tags: ["four", "five"]
-    assert_equal ["four", "five"], pg_array.reload.tags
+  def test_string_quoting_rules_match_pg_behavior
+    tags = ["", "one{", "two}", %(three"), "four\\", "five ", "six\t", "seven\n", "eight,", "nine", "ten\r", "NULL"]
+    x = PgArray.create!(tags: tags)
+    x.reload
 
-    PgArray.update_all tags: []
-    assert_equal [], pg_array.reload.tags
+    assert_equal x.tags_before_type_cast, PgArray.columns_hash['tags'].type_cast_for_database(tags)
+  end
+
+  def test_quoting_non_standard_delimiters
+    strings = ["hello,", "world;"]
+    comma_delim = OID::Array.new(ActiveRecord::Type::String.new, ',')
+    semicolon_delim = OID::Array.new(ActiveRecord::Type::String.new, ';')
+
+    assert_equal %({"hello,",world;}), comma_delim.type_cast_for_database(strings)
+    assert_equal %({hello,;"world;"}), semicolon_delim.type_cast_for_database(strings)
+  end
+
+  def test_mutate_array
+    x = PgArray.create!(tags: %w(one two))
+
+    x.tags << "three"
+    x.save!
+    x.reload
+
+    assert_equal %w(one two three), x.tags
+    assert_not x.changed?
+  end
+
+  def test_mutate_value_in_array
+    x = PgArray.create!(hstores: [{ a: 'a' }, { b: 'b' }])
+
+    x.hstores.first['a'] = 'c'
+    x.save!
+    x.reload
+
+    assert_equal [{ 'a' => 'c' }, { 'b' => 'b' }], x.hstores
+    assert_not x.changed?
+  end
+
+  def test_datetime_with_timezone_awareness
+    tz = "Pacific Time (US & Canada)"
+
+    in_time_zone tz do
+      PgArray.reset_column_information
+      time_string = Time.current.to_s
+      time = Time.zone.parse(time_string)
+
+      record = PgArray.new(datetimes: [time_string])
+      assert_equal [time], record.datetimes
+      assert_equal ActiveSupport::TimeZone[tz], record.datetimes.first.time_zone
+
+      record.save!
+      record.reload
+
+      assert_equal [time], record.datetimes
+      assert_equal ActiveSupport::TimeZone[tz], record.datetimes.first.time_zone
+    end
   end
 
   private

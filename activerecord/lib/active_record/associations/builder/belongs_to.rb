@@ -103,9 +103,14 @@ module ActiveRecord::Associations::Builder
         BelongsTo.touch_record(record, foreign_key, n, touch)
       }
 
-      model.after_save    callback
+      model.after_save    callback, if: :changed?
       model.after_touch   callback
       model.after_destroy callback
+    end
+
+    def self.add_destroy_callbacks(model, reflection)
+      name = reflection.name
+      model.after_destroy lambda { |o| o.association(name).handle_dependency }
     end
   end
 end

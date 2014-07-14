@@ -57,10 +57,11 @@ module ActiveRecord
         end
       end
 
-      # sqlite databases should be able to support any type and not
-      # just the ones mentioned in the native_database_types.
-      # Therefore test_invalid column should always return true
-      # even if the type is not valid.
+      # sqlite3 databases should be able to support any type and not just the
+      # ones mentioned in the native_database_types.
+      #
+      # Therefore test_invalid column should always return true even if the
+      # type is not valid.
       def test_invalid_column
         assert @conn.valid_type?(:foobar)
       end
@@ -339,7 +340,7 @@ module ActiveRecord
           column = @conn.columns('ex').find { |x|
             x.name == 'number'
           }
-          assert_equal 10, column.default
+          assert_equal '10', column.default
         end
       end
 

@@ -112,13 +112,14 @@ module ActiveRecord
       end
 
       def preloaders_for_hash(association, records, scope)
-        parent, child = association.to_a.first # hash should only be of length 1
+        association.flat_map { |parent, child|
+          loaders = preloaders_for_one parent, records, scope
 
-        loaders = preloaders_for_one parent, records, scope
-
-        recs = loaders.flat_map(&:preloaded_records).uniq
-        loaders.concat Array.wrap(child).flat_map { |assoc|
-          preloaders_on assoc, recs, scope
+          recs = loaders.flat_map(&:preloaded_records).uniq
+          loaders.concat Array.wrap(child).flat_map { |assoc|
+            preloaders_on assoc, recs, scope
+          }
+          loaders
         }
       end
 
@@ -142,6 +143,7 @@ module ActiveRecord
       def grouped_records(association, records)
         h = {}
         records.each do |record|
+          next unless record
           assoc = record.association(association)
           klasses = h[assoc.reflection] ||= {}
           (klasses[assoc.klass] ||= []) << record
@@ -175,6 +177,7 @@ module ActiveRecord
         if owners.first.association(reflection.name).loaded?
           return AlreadyLoaded
         end
+        reflection.check_preloadable!
 
         case reflection.macro
         when :has_many

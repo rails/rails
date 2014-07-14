@@ -15,9 +15,10 @@ module ActiveRecord
   # They are stored in YAML files, one file per model, which are placed in the directory
   # appointed by <tt>ActiveSupport::TestCase.fixture_path=(path)</tt> (this is automatically
   # configured for Rails, so you can just put your files in <tt><your-rails-app>/test/fixtures/</tt>).
-  # The fixture file ends with the <tt>.yml</tt> file extension (Rails example:
-  # <tt><your-rails-app>/test/fixtures/web_sites.yml</tt>). The format of a fixture file looks
-  # like this:
+  # The fixture file ends with the +.yml+ file extension, for example:
+  # <tt><your-rails-app>/test/fixtures/web_sites.yml</tt>).
+  #
+  # The format of a fixture file looks like this:
   #
   #   rubyonrails:
   #     id: 1
@@ -33,7 +34,7 @@ module ActiveRecord
   # is followed by an indented list of key/value pairs in the "key: value" format. Records are
   # separated by a blank line for your viewing pleasure.
   #
-  # Note that fixtures are unordered. If you want ordered fixtures, use the omap YAML type.
+  # Note: Fixtures are unordered. If you want ordered fixtures, use the omap YAML type.
   # See http://yaml.org/type/omap.html
   # for the specification. You will need ordered fixtures when you have foreign key constraints
   # on keys in the same table. This is commonly needed for tree structures. Example:
@@ -61,8 +62,8 @@ module ActiveRecord
   #     end
   #   end
   #
-  # By default, <tt>test_helper.rb</tt> will load all of your fixtures into your test database,
-  # so this test will succeed.
+  # By default, +test_helper.rb+ will load all of your fixtures into your test
+  # database, so this test will succeed.
   #
   # The testing environment will automatically load the all fixtures into the database before each
   # test. To ensure consistent data, the environment deletes the fixtures before running the load.
@@ -374,8 +375,9 @@ module ActiveRecord
   #
   # == Support for YAML defaults
   #
-  # You probably already know how to use YAML to set and reuse defaults in
-  # your <tt>database.yml</tt> file. You can use the same technique in your fixtures:
+  # You can set and reuse defaults in your fixtures YAML file.
+  # This is the same technique used in the +database.yml+ file to specify
+  # defaults:
   #
   #   DEFAULTS: &DEFAULTS
   #     created_on: <%= 3.weeks.ago.to_s(:db) %>
@@ -391,7 +393,8 @@ module ActiveRecord
   # Any fixture labeled "DEFAULTS" is safely ignored.
   class FixtureSet
     #--
-    # An instance of FixtureSet is normally stored in a single YAML file and possibly in a folder with the same name.
+    # An instance of FixtureSet is normally stored in a single YAML file and
+    # possibly in a folder with the same name.
     #++
 
     MAX_ID = 2 ** 30 - 1
@@ -461,13 +464,7 @@ module ActiveRecord
         @config      = config
 
         # Remove string values that aren't constants or subclasses of AR
-        @class_names.delete_if { |k,klass|
-          unless klass.is_a? Class
-            klass = klass.safe_constantize
-            ActiveSupport::Deprecation.warn("The ability to pass in strings as a class name to `set_fixture_class` will be removed in Rails 4.2. Use the class itself instead.")
-          end
-          !insert_class(@class_names, k, klass)
-        }
+        @class_names.delete_if { |klass_name, klass| !insert_class(@class_names, klass_name, klass) }
       end
 
       def [](fs_name)
@@ -573,10 +570,6 @@ module ActiveRecord
       @config   = config
       @model_class = nil
 
-      if class_name.is_a?(String)
-        ActiveSupport::Deprecation.warn("The ability to pass in strings as a class name to `FixtureSet.new` will be removed in Rails 4.2. Use the class itself instead.")
-      end
-
       if class_name.is_a?(Class) # TODO: Should be an AR::Base type class, or any?
         @model_class = class_name
       else
@@ -649,14 +642,14 @@ module ActiveRecord
               model_class
             end
 
-          reflection_class.reflect_on_all_associations.each do |association|
+          reflection_class._reflections.values.each do |association|
             case association.macro
             when :belongs_to
               # Do not replace association name with association foreign key if they are named the same
               fk_name = (association.options[:foreign_key] || "#{association.name}_id").to_s
 
               if association.name.to_s != fk_name && value = row.delete(association.name.to_s)
-                if association.options[:polymorphic] && value.sub!(/\s*\(([^\)]*)\)\s*$/, "")
+                if association.polymorphic? && value.sub!(/\s*\(([^\)]*)\)\s*$/, "")
                   # support polymorphic belongs_to as "label (Type)"
                   row[association.foreign_type] = $1
                 end

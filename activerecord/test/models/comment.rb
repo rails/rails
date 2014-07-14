@@ -7,6 +7,9 @@ class Comment < ActiveRecord::Base
   scope :created, -> { all }
 
   belongs_to :post, :counter_cache => true
+  belongs_to :author,   polymorphic: true
+  belongs_to :resource, polymorphic: true
+
   has_many :ratings
 
   belongs_to :first_post, :foreign_key => :post_id
@@ -39,4 +42,12 @@ class SubSpecialComment < SpecialComment
 end
 
 class VerySpecialComment < Comment
+end
+
+class CommentThatAutomaticallyAltersPostBody < Comment
+  belongs_to :post, class_name: "PostThatLoadsCommentsInAnAfterSaveHook", foreign_key: :post_id
+
+  after_save do |comment|
+    comment.post.update_attributes(body: "Automatically altered")
+  end
 end

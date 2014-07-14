@@ -17,6 +17,7 @@ module ActiveModel
   # * Call <tt>changes_applied</tt> after the changes are persisted.
   # * Call <tt>reset_changes</tt> when you want to reset the changes
   #   information.
+  # * Call <tt>undo_changes</tt> when you want to restore previous data.
   #
   # A minimal implementation could be:
   #
@@ -41,6 +42,10 @@ module ActiveModel
   #
   #     def reload!
   #       reset_changes
+  #     end
+  #
+  #     def rollback!
+  #       undo_changes
   #     end
   #   end
   #
@@ -72,6 +77,13 @@ module ActiveModel
   #   person.reload!
   #   person.previous_changes # => {}
   #
+  # Rollback the changes:
+  #
+  #   person.name = "Uncle Bob"
+  #   person.rollback!
+  #   person.name           # => "Bill"
+  #   person.name_changed?  # => false
+  #
   # Assigning the same value leaves the attribute unchanged:
   #
   #   person.name = 'Bill'
@@ -84,9 +96,11 @@ module ActiveModel
   #   person.changed        # => ["name"]
   #   person.changes        # => {"name" => ["Bill", "Bob"]}
   #
-  # If an attribute is modified in-place then make use of <tt>[attribute_name]_will_change!</tt>
-  # to mark that the attribute is changing. Otherwise ActiveModel can't track
-  # changes to in-place attributes.
+  # If an attribute is modified in-place then make use of
+  # +[attribute_name]_will_change!+ to mark that the attribute is changing.
+  # Otherwise Active Model can't track changes to in-place attributes. Note
+  # that Active Record can detect in-place modifications automatically. You do
+  # not need to call +[attribute_name]_will_change!+ on Active Record models.
   #
   #   person.name_will_change!
   #   person.name_change    # => ["Bill", "Bill"]
@@ -165,15 +179,20 @@ module ActiveModel
     private
 
       # Removes current changes and makes them accessible through +previous_changes+.
-      def changes_applied
+      def changes_applied # :doc:
         @previously_changed = changes
         @changed_attributes = ActiveSupport::HashWithIndifferentAccess.new
       end
 
-      # Removes all dirty data: current changes and previous changes
-      def reset_changes
+      # Removes all dirty data: current changes and previous changes.
+      def reset_changes # :doc:
         @previously_changed = ActiveSupport::HashWithIndifferentAccess.new
         @changed_attributes = ActiveSupport::HashWithIndifferentAccess.new
+      end
+
+      # Restore all previous data.
+      def undo_changes # :doc:
+        changed_attributes.each_key { |attr| reset_attribute! attr }
       end
 
       # Handle <tt>*_change</tt> for +method_missing+.

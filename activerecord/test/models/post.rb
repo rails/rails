@@ -88,7 +88,7 @@ class Post < ActiveRecord::Base
   has_and_belongs_to_many :categories
   has_and_belongs_to_many :special_categories, :join_table => "categories_posts", :association_foreign_key => 'category_id'
 
-  has_many :taggings, :as => :taggable
+  has_many :taggings, :as => :taggable, :counter_cache => :tags_count
   has_many :tags, :through => :taggings do
     def add_joins_and_select
       select('tags.*, authors.id as author_id')
@@ -207,4 +207,13 @@ end
 class SpecialPostWithDefaultScope < ActiveRecord::Base
   self.table_name = 'posts'
   default_scope { where(:id => [1, 5,6]) }
+end
+
+class PostThatLoadsCommentsInAnAfterSaveHook < ActiveRecord::Base
+  self.table_name = 'posts'
+  has_many :comments, class_name: "CommentThatAutomaticallyAltersPostBody", foreign_key: :post_id
+
+  after_save do |post|
+    post.comments.load
+  end
 end

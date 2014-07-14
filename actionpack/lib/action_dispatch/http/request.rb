@@ -53,6 +53,17 @@ module ActionDispatch
       @uuid              = nil
     end
 
+    def check_path_parameters!
+      # If any of the path parameters has an invalid encoding then
+      # raise since it's likely to trigger errors further on.
+      path_parameters.each do |key, value|
+        next unless value.respond_to?(:valid_encoding?)
+        unless value.valid_encoding?
+          raise ActionController::BadRequest, "Invalid parameter: #{key} => #{value}"
+        end
+      end
+    end
+
     def key?(key)
       @env.key?(key)
     end
@@ -64,6 +75,7 @@ module ActionDispatch
     # Ordered Collections Protocol (WebDAV) (http://www.ietf.org/rfc/rfc3648.txt)
     # Web Distributed Authoring and Versioning (WebDAV) Access Control Protocol (http://www.ietf.org/rfc/rfc3744.txt)
     # Web Distributed Authoring and Versioning (WebDAV) SEARCH (http://www.ietf.org/rfc/rfc5323.txt)
+    # Calendar Extensions to WebDAV (http://www.ietf.org/rfc/rfc4791.txt)
     # PATCH Method for HTTP (http://www.ietf.org/rfc/rfc5789.txt)
     RFC2616 = %w(OPTIONS GET HEAD POST PUT DELETE TRACE CONNECT)
     RFC2518 = %w(PROPFIND PROPPATCH MKCOL COPY MOVE LOCK UNLOCK)
@@ -71,9 +83,10 @@ module ActionDispatch
     RFC3648 = %w(ORDERPATCH)
     RFC3744 = %w(ACL)
     RFC5323 = %w(SEARCH)
+    RFC4791 = %w(MKCALENDAR)
     RFC5789 = %w(PATCH)
 
-    HTTP_METHODS = RFC2616 + RFC2518 + RFC3253 + RFC3648 + RFC3744 + RFC5323 + RFC5789
+    HTTP_METHODS = RFC2616 + RFC2518 + RFC3253 + RFC3648 + RFC3744 + RFC5323 + RFC4791 + RFC5789
 
     HTTP_METHOD_LOOKUP = {}
 
@@ -196,8 +209,8 @@ module ActionDispatch
     end
 
     # Returns true if the "X-Requested-With" header contains "XMLHttpRequest"
-    # (case-insensitive). All major JavaScript libraries send this header with
-    # every Ajax request.
+    # (case-insensitive), which may need to be manually added depending on the
+    # choice of JavaScript libraries and frameworks.
     def xml_http_request?
       @env['HTTP_X_REQUESTED_WITH'] =~ /XMLHttpRequest/i
     end
@@ -278,7 +291,7 @@ module ActionDispatch
 
     # Override Rack's GET method to support indifferent access
     def GET
-      @env["action_dispatch.request.query_parameters"] ||= Utils.deep_munge((normalize_encode_params(super) || {}))
+      @env["action_dispatch.request.query_parameters"] ||= Utils.deep_munge(normalize_encode_params(super || {}))
     rescue TypeError => e
       raise ActionController::BadRequest.new(:query, e)
     end
@@ -286,7 +299,7 @@ module ActionDispatch
 
     # Override Rack's POST method to support indifferent access
     def POST
-      @env["action_dispatch.request.request_parameters"] ||= Utils.deep_munge((normalize_encode_params(super) || {}))
+      @env["action_dispatch.request.request_parameters"] ||= Utils.deep_munge(normalize_encode_params(super || {}))
     rescue TypeError => e
       raise ActionController::BadRequest.new(:request, e)
     end

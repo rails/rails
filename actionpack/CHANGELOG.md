@@ -1,3 +1,131 @@
+*   Preserve original path in `ShowExceptions` middleware by stashing it as
+    `env["action_dispatch.original_path"]`
+
+    `ActionDispatch::ShowExceptions` overwrites `PATH_INFO` with the status code
+    for the exception defined in `ExceptionWrapper`, so the path
+    the user was visiting when an exception occurred was not previously
+    available to any custom exceptions_app. The original `PATH_INFO` is now
+    stashed in `env["action_dispatch.original_path"]`.
+
+    *Grey Baker*
+
+*   Use `String#bytesize` instead of `String#size` when checking for cookie
+    overflow.
+
+    *Agis Anastasopoulos*
+
+*   `render nothing: true` or rendering a `nil` body no longer add a single
+    space to the response body.
+
+    The old behavior was added as a workaround for a bug in an early version of
+    Safari, where the HTTP headers are not returned correctly if the response
+    body has a 0-length. This is been fixed since and the workaround is no
+    longer necessary.
+
+    Use `render body: ' '` if the old behavior is desired.
+
+    See #14883 for details.
+
+    *Godfrey Chan*
+
+*   Prepend a JS comment to JSONP callbacks. Addresses CVE-2014-4671
+    ("Rosetta Flash")
+
+    *Greg Campbell*
+
+*   Because URI paths may contain non US-ASCII characters we need to force
+    the encoding of any unescaped URIs to UTF-8 if they are US-ASCII.
+    This essentially replicates the functionality of the monkey patch to
+    URI.parser.unescape in active_support/core_ext/uri.rb.
+
+    Fixes #16104.
+
+    *Karl Entwistle*
+
+*   Generate shallow paths for all children of shallow resources.
+
+    Fixes #15783.
+
+    *Seb Jacobs*
+
+*   JSONP responses are now rendered with the `text/javascript` content type
+    when rendering through a `respond_to` block.
+
+    Fixes #15081.
+
+    *Lucas Mazza*
+
+*   Add `config.action_controller.always_permitted_parameters` to configure which
+    parameters are permitted globally. The default value of this configuration is
+    `['controller', 'action']`.
+
+    *Gary S. Weaver*, *Rafael Chacon*
+
+*   Fix env['PATH_INFO'] missing leading slash when a rack app mounted at '/'.
+
+    Fixes #15511.
+
+    *Larry Lv*
+
+*   ActionController::Parameters#require now accepts `false` values.
+
+    Fixes #15685.
+
+    *Sergio Romano*
+
+*   With authorization header `Authorization: Token token=`, `authenticate` now
+    recognize token as nil, instead of "token".
+
+    Fixes #14846.
+
+    *Larry Lv*
+
+*   Ensure the controller is always notified as soon as the client disconnects
+    during live streaming, even when the controller is blocked on a write.
+
+    *Nicholas Jakobsen*, *Matthew Draper*
+
+*   Routes specifying 'to:' must be a string that contains a "#" or a rack
+    application.  Use of a symbol should be replaced with `action: symbol`.
+    Use of a string without a "#" should be replaced with `controller: string`.
+
+    *Aaron Patterson*
+
+*   Fix URL generation with `:trailing_slash` such that it does not add
+    a trailing slash after `.:format`
+
+    *Dan Langevin*
+
+*   Build full URI as string when processing path in integration tests for
+    performance reasons.
+
+    *Guo Xiang Tan*
+
+*   Fix `'Stack level too deep'` when rendering `head :ok` in an action method
+    called 'status' in a controller.
+
+    Fixes #13905.
+
+    *Christiaan Van den Poel*
+
+*   Add MKCALENDAR HTTP method (RFC 4791).
+
+    *Sergey Karpesh*
+
+*   Instrument fragment cache metrics.
+
+    Adds `:controller`: and `:action` keys to the instrumentation payload
+    for the `*_fragment.action_controller` notifications. This allows tracking
+    e.g. the fragment cache hit rates for each controller action.
+
+    *Daniel Schierbeck*
+
+*   Always use the provided port if the protocol is relative.
+
+    Fixes #15043.
+
+    *Guilherme Cavalcanti*, *Andrew White*
+
 *   Moved `params[request_forgery_protection_token]` into its own method
     and improved tests.
 
@@ -41,7 +169,7 @@
     4. Use `escape_segment` rather than `escape_path` in URL generation
 
     For point 4 there are two exceptions. Firstly, when a route uses wildcard segments
-    (e.g. *foo) then we use `escape_path` as the value may contain '/' characters. This
+    (e.g. `*foo`) then we use `escape_path` as the value may contain '/' characters. This
     means that wildcard routes can't be optimized. Secondly, if a `:controller` segment
     is used in the path then this uses `escape_path` as the controller may be namespaced.
 
@@ -71,12 +199,12 @@
 
     *Andrew White*, *James Coglan*
 
-*   Append link to bad code to backtrace when exception is SyntaxError.
+*   Append link to bad code to backtrace when exception is `SyntaxError`.
 
     *Boris Kuznetsov*
 
 *   Swapped the parameters of assert_equal in `assert_select` so that the
-    proper values were printed correctly
+    proper values were printed correctly.
 
     Fixes #14422.
 

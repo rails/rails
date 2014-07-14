@@ -10,7 +10,6 @@ require 'tmpdir'
 class Downloader
   def self.download(from, to)
     unless File.exist?(to)
-      $stderr.puts "Downloading #{from} to #{to}"
       unless File.exist?(File.dirname(to))
         system "mkdir -p #{File.dirname(to)}"
       end
@@ -36,6 +35,8 @@ class MultibyteConformanceTest < ActiveSupport::TestCase
     FileUtils.mkdir_p(CACHE_DIR)
     Downloader.download(UNIDATA_URL + UNIDATA_FILE, CACHE_DIR + UNIDATA_FILE)
     @proxy = ActiveSupport::Multibyte::Chars
+  rescue
+    skip "Unable to download test data"
   end
 
   def test_normalizations_C

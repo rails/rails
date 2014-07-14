@@ -53,6 +53,16 @@ class DateTime
   # <tt>:months</tt>, <tt>:weeks</tt>, <tt>:days</tt>, <tt>:hours</tt>,
   # <tt>:minutes</tt>, <tt>:seconds</tt>.
   def advance(options)
+    unless options[:weeks].nil?
+      options[:weeks], partial_weeks = options[:weeks].divmod(1)
+      options[:days] = options.fetch(:days, 0) + 7 * partial_weeks
+    end
+
+    unless options[:days].nil?
+      options[:days], partial_days = options[:days].divmod(1)
+      options[:hours] = options.fetch(:hours, 0) + 24 * partial_days
+    end
+
     d = to_date.advance(options)
     datetime_advanced_by_date = change(:year => d.year, :month => d.month, :day => d.day)
     seconds_to_advance = \
@@ -63,7 +73,7 @@ class DateTime
     if seconds_to_advance.zero?
       datetime_advanced_by_date
     else
-      datetime_advanced_by_date.since seconds_to_advance
+      datetime_advanced_by_date.since(seconds_to_advance)
     end
   end
 

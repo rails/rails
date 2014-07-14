@@ -65,7 +65,7 @@ module ActiveRecord
     #   # returns an Array of the required fields, available since Rails 3.1.
     def find(*args)
       if block_given?
-        to_a.find { |*block_args| yield(*block_args) }
+        to_a.find(*args) { |*block_args| yield(*block_args) }
       else
         find_with_ids(*args)
       end
@@ -336,7 +336,16 @@ module ActiveRecord
     end
 
     def find_with_associations
-      join_dependency = construct_join_dependency
+      # NOTE: the JoinDependency constructed here needs to know about
+      #       any joins already present in `self`, so pass them in
+      #
+      # failing to do so means that in cases like activerecord/test/cases/associations/inner_join_association_test.rb:136
+      # incorrect SQL is generated. In that case, the join dependency for
+      # SpecialCategorizations is constructed without knowledge of the
+      # preexisting join in joins_values to categorizations (by way of
+      # the `has_many :through` for categories).
+      #
+      join_dependency = construct_join_dependency(joins_values)
 
       aliases  = join_dependency.aliases
       relation = select aliases.columns

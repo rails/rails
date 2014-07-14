@@ -1,3 +1,21 @@
+* Change Posts to Articles in Getting Started sample application in order to
+better align with the actual guides.
+
+    *John Kelly Ferguson*
+
+* Update all Rails 4.1.0 references to 4.1.1 within the guides and code.
+
+    *John Kelly Ferguson*
+
+* Split up rows in the Explain Queries table of the ActiveRecord Querying section
+in order to improve readability.
+
+    *John Kelly Ferguson*
+
+*   Change all non-HTTP method 'post' references to 'article'.
+
+    *John Kelly Ferguson*
+
 *   Updates the maintenance policy to match the latest versions of Rails
 
     *Matias Korhonen*

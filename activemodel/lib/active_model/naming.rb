@@ -204,7 +204,7 @@ module ActiveModel
   #     extend ActiveModel::Naming
   #   end
   #
-  #   BookCover.model_name        # => "BookCover"
+  #   BookCover.model_name.name   # => "BookCover"
   #   BookCover.model_name.human  # => "Book cover"
   #
   #   BookCover.model_name.i18n_key              # => :book_cover
@@ -214,14 +214,22 @@ module ActiveModel
   # is required to pass the Active Model Lint test. So either extending the
   # provided method below, or rolling your own is required.
   module Naming
+    def self.extended(base) #:nodoc:
+      base.class_eval do
+        remove_possible_method(:model_name)
+        delegate :model_name, to: :class
+      end
+    end
+
     # Returns an ActiveModel::Name object for module. It can be
     # used to retrieve all kinds of naming-related information
     # (See ActiveModel::Name for more information).
     #
-    #   class Person < ActiveModel::Model
+    #   class Person
+    #     include ActiveModel::Model
     #   end
     #
-    #   Person.model_name          # => Person
+    #   Person.model_name.name     # => "Person"
     #   Person.model_name.class    # => ActiveModel::Name
     #   Person.model_name.singular # => "person"
     #   Person.model_name.plural   # => "people"

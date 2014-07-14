@@ -21,7 +21,7 @@ module ActiveRecord
       super
       @connection = ActiveRecord::Base.connection
       @subscriber   = LogListener.new
-      @pk         = Topic.columns.find { |c| c.primary }
+      @pk         = Topic.columns_hash[Topic.primary_key]
       @subscription = ActiveSupport::Notifications.subscribe('sql.active_record', @subscriber)
     end
 
@@ -60,12 +60,10 @@ module ActiveRecord
       end
 
       def test_logs_bind_vars
-        pk = Topic.columns.find { |x| x.primary }
-
         payload = {
           :name  => 'SQL',
           :sql   => 'select * from topics where id = ?',
-          :binds => [[pk, 10]]
+          :binds => [[@pk, 10]]
         }
         event  = ActiveSupport::Notifications::Event.new(
           'foo',
@@ -87,7 +85,7 @@ module ActiveRecord
         }.new
 
         logger.sql event
-        assert_match([[pk.name, 10]].inspect, logger.debugs.first)
+        assert_match([[@pk.name, 10]].inspect, logger.debugs.first)
       end
     end
   end

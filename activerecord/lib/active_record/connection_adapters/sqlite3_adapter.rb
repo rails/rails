@@ -14,9 +14,9 @@ module ActiveRecord
         raise ArgumentError, "No database file specified. Missing argument: database"
       end
 
-      # Allow database path relative to Rails.root, but only if
-      # the database path is not the special path that tells
-      # Sqlite to build a database only in memory.
+      # Allow database path relative to Rails.root, but only if the database
+      # path is not the special path that tells sqlite to build a database only
+      # in memory.
       if ':memory:' != config[:database]
         config[:database] = File.expand_path(config[:database], Rails.root) if defined?(Rails.root)
         dirname = File.dirname(config[:database])
@@ -41,13 +41,21 @@ module ActiveRecord
   end
 
   module ConnectionAdapters #:nodoc:
-    class SQLite3Column < Column #:nodoc:
-      class <<  self
-        def binary_to_string(value)
-          if value.encoding != Encoding::ASCII_8BIT
-            value = value.force_encoding(Encoding::ASCII_8BIT)
-          end
-          value
+    class SQLite3Binary < Type::Binary # :nodoc:
+      def cast_value(value)
+        if value.encoding != Encoding::ASCII_8BIT
+          value = value.force_encoding(Encoding::ASCII_8BIT)
+        end
+        value
+      end
+    end
+
+    class SQLite3String < Type::String # :nodoc:
+      def type_cast_for_database(value)
+        if value.is_a?(::String) && value.encoding == Encoding::ASCII_8BIT
+          value.encode(Encoding::UTF_8)
+        else
+          super
         end
       end
     end
@@ -69,7 +77,6 @@ module ActiveRecord
         float:        { name: "float" },
         decimal:      { name: "decimal" },
         datetime:     { name: "datetime" },
-        timestamp:    { name: "datetime" },
         time:         { name: "time" },
         date:         { name: "date" },
         binary:       { name: "blob" },
@@ -222,10 +229,19 @@ module ActiveRecord
 
       # QUOTING ==================================================
 
-      def quote(value, column = nil)
-        if value.kind_of?(String) && column && column.type == :binary
-          s = value.unpack("H*")[0]
-          "x'#{s}'"
+      def _quote(value) # :nodoc:
+        case value
+        when Type::Binary::Data
+          "x'#{value.hex}'"
+        else
+          super
+        end
+      end
+
+      def _type_cast(value) # :nodoc:
+        case value
+        when BigDecimal
+          value.to_f
         else
           super
         end
@@ -251,19 +267,6 @@ module ActiveRecord
         else
           super
         end
-      end
-
-      def type_cast(value, column) # :nodoc:
-        return value.to_f if BigDecimal === value
-        return super unless String === value
-        return super unless column && value
-
-        value = super
-        if column.type == :string && value.encoding == Encoding::ASCII_8BIT
-          logger.error "Binary data inserted for `string` type on column `#{column.name}`" if logger
-          value = value.encode Encoding::UTF_8
-        end
-        value
       end
 
       # DATABASE STATEMENTS ======================================
@@ -394,7 +397,9 @@ module ActiveRecord
             field["dflt_value"] = $1.gsub('""', '"')
           end
 
-          SQLite3Column.new(field['name'], field['dflt_value'], field['type'], field['notnull'].to_i == 0)
+          sql_type = field['type']
+          cast_type = lookup_cast_type(sql_type)
+          new_column(field['name'], field['dflt_value'], cast_type, sql_type, field['notnull'].to_i == 0)
         end
       end
 
@@ -501,6 +506,13 @@ module ActiveRecord
       end
 
       protected
+
+        def initialize_type_map(m)
+          super
+          m.register_type(/binary/i, SQLite3Binary.new)
+          register_class_with_limit m, %r(char)i, SQLite3String
+        end
+
         def select(sql, name = nil, binds = []) #:nodoc:
           exec_query(sql, name, binds)
         end

@@ -289,8 +289,8 @@ module ActionDispatch
         end
       end
 
-      # Sets the cookie named +name+. The second argument may be the very cookie
-      # value, or a hash of options as documented above.
+      # Sets the cookie named +name+. The second argument may be the cookie's
+      # value or a hash of options as documented above.
       def []=(name, options)
         if options.is_a?(Hash)
           options.symbolize_keys!
@@ -468,7 +468,7 @@ module ActionDispatch
           options = { :value => @verifier.generate(serialize(name, options)) }
         end
 
-        raise CookieOverflow if options[:value].size > MAX_COOKIE_SIZE
+        raise CookieOverflow if options[:value].bytesize > MAX_COOKIE_SIZE
         @parent_jar[name] = options
       end
 
@@ -526,7 +526,7 @@ module ActionDispatch
 
         options[:value] = @encryptor.encrypt_and_sign(serialize(name, options[:value]))
 
-        raise CookieOverflow if options[:value].size > MAX_COOKIE_SIZE
+        raise CookieOverflow if options[:value].bytesize > MAX_COOKIE_SIZE
         @parent_jar[name] = options
       end
 

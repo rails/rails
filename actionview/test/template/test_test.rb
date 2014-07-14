@@ -39,6 +39,8 @@ class PeopleHelperTest < ActionView::TestCase
     with_test_route_set do
       person = Struct.new(:name) {
         extend ActiveModel::Naming
+        def to_model; self; end
+        def persisted?; true; end
         def self.name; 'Mocha::Mock'; end
       }.new "David"
 

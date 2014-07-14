@@ -128,6 +128,12 @@ class RespondToController < ActionController::Base
     end
   end
 
+  def json_with_callback
+    respond_to do |type|
+      type.json { render :json => 'JS', :callback => 'alert' }
+    end
+  end
+
   def iphone_with_html_response_type
     request.format = :iphone if request.env["HTTP_ACCEPT"] == "text/iphone"
 
@@ -509,6 +515,13 @@ class RespondToControllerTest < ActionController::TestCase
     @request.accept = "text/html"
     get :all_types_with_layout
     assert_equal '<html><div id="html">HTML for all_types_with_layout</div></html>', @response.body
+  end
+
+  def test_json_with_callback_sets_javascript_content_type
+    @request.accept = 'application/json'
+    get :json_with_callback
+    assert_equal '/**/alert(JS)', @response.body
+    assert_equal 'text/javascript', @response.content_type
   end
 
   def test_xhr

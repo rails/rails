@@ -70,13 +70,11 @@ Creating a New Rails Project
 
 The best way to use this guide is to follow each step as it happens, no code or
 step needed to make this example application has been left out, so you can
-literally follow along step by step. You can get the complete code
-[here](https://github.com/rails/docrails/tree/master/guides/code/getting_started).
+literally follow along step by step.
 
 By following along with this guide, you'll create a Rails project called
-`blog`, a
-(very) simple weblog. Before you can start building the application, you need to
-make sure that you have Rails itself installed.
+`blog`, a (very) simple weblog. Before you can start building the application,
+you need to make sure that you have Rails itself installed.
 
 TIP: The examples below use `$` to represent your terminal prompt in a UNIX-like OS,
 though it may have been customized to appear differently. If you are using Windows,
@@ -89,7 +87,7 @@ Open up a command line prompt. On Mac OS X open Terminal.app, on Windows choose
 dollar sign `$` should be run in the command line. Verify that you have a
 current version of Ruby installed:
 
-TIP. A number of tools exist to help you quickly install Ruby and Ruby
+TIP: A number of tools exist to help you quickly install Ruby and Ruby
 on Rails on your system. Windows users can use [Rails Installer](http://railsinstaller.org),
 while Mac OS X users can use [Tokaido](https://github.com/tokaido/tokaidoapp).
 
@@ -122,10 +120,10 @@ To verify that you have everything installed correctly, you should be able to
 run the following:
 
 ```bash
-$ rails --version
+$ bin/rails --version
 ```
 
-If it says something like "Rails 4.1.0", you are ready to continue.
+If it says something like "Rails 4.2.0", you are ready to continue.
 
 ### Creating the Blog Application
 
@@ -163,11 +161,11 @@ of the files and folders that Rails created by default:
 | File/Folder | Purpose |
 | ----------- | ------- |
 |app/|Contains the controllers, models, views, helpers, mailers and assets for your application. You'll focus on this folder for the remainder of this guide.|
-|bin/|Contains the rails script that starts your app and can contain other scripts you use to deploy or run your application.|
+|bin/|Contains the rails script that starts your app and can contain other scripts you use to setup, deploy or run your application.|
 |config/|Configure your application's routes, database, and more. This is covered in more detail in [Configuring Rails Applications](configuring.html).|
 |config.ru|Rack configuration for Rack based servers used to start the application.|
 |db/|Contains your current database schema, as well as the database migrations.|
-|Gemfile<br>Gemfile.lock|These files allow you to specify what gem dependencies are needed for your Rails application. These files are used by the Bundler gem. For more information about Bundler, see [the Bundler website](http://gembundler.com).|
+|Gemfile<br>Gemfile.lock|These files allow you to specify what gem dependencies are needed for your Rails application. These files are used by the Bundler gem. For more information about Bundler, see [the Bundler website](http://bundler.io).|
 |lib/|Extended modules for your application.|
 |log/|Application log files.|
 |public/|The only folder seen by the world as-is. Contains static files and compiled assets.|
@@ -190,7 +188,7 @@ start a web server on your development machine. You can do this by running the
 following in the `blog` directory:
 
 ```bash
-$ rails server
+$ bin/rails server
 ```
 
 TIP: Compiling CoffeeScript to JavaScript requires a JavaScript runtime and the
@@ -243,7 +241,7 @@ tell it you want a controller called "welcome" with an action called "index",
 just like this:
 
 ```bash
-$ rails generate controller welcome index
+$ bin/rails generate controller welcome index
 ```
 
 Rails will create several files and a route for you.
@@ -359,7 +357,7 @@ will be seen later, but for now notice that Rails has inferred the
 singular form `article` and makes meaningful use of the distinction.
 
 ```bash
-$ rake routes
+$ bin/rake routes
       Prefix Verb   URI Pattern                  Controller#Action
     articles GET    /articles(.:format)          articles#index
              POST   /articles(.:format)          articles#create
@@ -397,7 +395,7 @@ a controller called `ArticlesController`. You can do this by running this
 command:
 
 ```bash
-$ rails g controller articles
+$ bin/rails g controller articles
 ```
 
 If you open up the newly generated `app/controllers/articles_controller.rb`
@@ -452,9 +450,7 @@ available, Rails errors out.
 In the above image, the bottom line has been truncated. Let's see what the full
 thing looks like:
 
-<blockquote>
-Missing template articles/new, application/new with {locale:[:en], formats:[:html], handlers:[:erb, :builder, :coffee]}. Searched in: * "/path/to/blog/app/views"
-</blockquote>
+>Missing template articles/new, application/new with {locale:[:en], formats:[:html], handlers:[:erb, :builder, :coffee]}. Searched in: * "/path/to/blog/app/views"
 
 That's quite a lot of text! Let's quickly go through and understand what each
 part of it does.
@@ -500,8 +496,8 @@ harmoniously! It's time to create the form for a new article.
 
 ### The first form
 
-To create a form within this template, you will use a <em>form
-builder</em>. The primary form builder for Rails is provided by a helper
+To create a form within this template, you will use a *form
+builder*. The primary form builder for Rails is provided by a helper
 method called `form_for`. To use this method, add this code into
 `app/views/articles/new.html.erb`:
 
@@ -556,7 +552,7 @@ To see what Rails will do with this, we look back at the output of
 `rake routes`:
 
 ```bash
-$ rake routes
+$ bin/rake routes
       Prefix Verb   URI Pattern                  Controller#Action
     articles GET    /articles(.:format)          articles#index
              POST   /articles(.:format)          articles#create
@@ -623,6 +619,8 @@ method returns an `ActiveSupport::HashWithIndifferentAccess` object, which
 allows you to access the keys of the hash using either strings or symbols. In
 this situation, the only parameters that matter are the ones from the form.
 
+TIP: Ensure you have a firm grasp of the `params` method, as you'll use it fairly regularly. Let's consider an example URL: **http://www.example.com/?username=dhh&email=dhh@email.com**. In this URL, `params[:username]` would equal "dhh" and `params[:email]` would equal "dhh@email.com".
+
 If you re-submit the form one more time you'll now no longer get the missing
 template error. Instead, you'll see something that looks like the following:
 
@@ -642,7 +640,7 @@ Rails developers tend to use when creating new models. To create the new model,
 run this command in your terminal:
 
 ```bash
-$ rails generate model Article title:string text:text
+$ bin/rails generate model Article title:string text:text
 ```
 
 With that command we told Rails that we want a `Article` model, together
@@ -697,7 +695,7 @@ TIP: For more information about migrations, refer to [Rails Database Migrations]
 At this point, you can use a rake command to run the migration:
 
 ```bash
-$ rake db:migrate
+$ bin/rake db:migrate
 ```
 
 Rails will execute this migration command and tell you it created the Articles
@@ -739,6 +737,8 @@ database columns. In the first line we do just that (remember that
 `@article.save` is responsible for saving the model in the database. Finally,
 we redirect the user to the `show` action, which we'll define later.
 
+TIP: You might be wondering why the `A` in `Article.new` is capitalized above, whereas most other references to articles in this guide have used lowercase. In this context, we are referring to the class named `Article` that is defined in `\models\article.rb`. Class names in Ruby must begin with a capital letter.
+
 TIP: As we'll see later, `@article.save` returns a boolean indicating whether
 the article was saved or not.
 
@@ -749,8 +749,7 @@ to create an article. Try it! You should get an error that looks like this:
 (images/getting_started/forbidden_attributes_for_new_article.png)
 
 Rails has several security features that help you write secure applications,
-and you're running into one of them now. This one is called `[strong_parameters]
-(http://guides.rubyonrails.org/action_controller_overview.html#strong-parameters)`,
+and you're running into one of them now. This one is called [strong parameters](http://guides.rubyonrails.org/action_controller_overview.html#strong-parameters),
 which requires us to tell Rails exactly which parameters are allowed into our
 controller actions.
 
@@ -1005,7 +1004,7 @@ These changes will ensure that all articles have a title that is at least five
 characters long. Rails can validate a variety of conditions in a model,
 including the presence or uniqueness of columns, their format, and the
 existence of associated objects. Validations are covered in detail in [Active
-Record Validations](active_record_validations.html)
+Record Validations](active_record_validations.html).
 
 With the validation now in place, when you call `@article.save` on an invalid
 article, it will return `false`. If you open
@@ -1502,7 +1501,7 @@ the `Article` model. This time we'll create a `Comment` model to hold
 reference of article comments. Run this command in your terminal:
 
 ```bash
-$ rails generate model Comment commenter:string body:text article:references
+$ bin/rails generate model Comment commenter:string body:text article:references
 ```
 
 This command will generate four files:
@@ -1550,7 +1549,7 @@ the two models. An index for this association is also created on this column.
 Go ahead and run the migration:
 
 ```bash
-$ rake db:migrate
+$ bin/rake db:migrate
 ```
 
 Rails is smart enough to only execute the migrations that have not already been
@@ -1626,7 +1625,7 @@ With the model in hand, you can turn your attention to creating a matching
 controller. Again, we'll use the same generator we used before:
 
 ```bash
-$ rails generate controller Comments
+$ bin/rails generate controller Comments
 ```
 
 This creates six files and one empty directory:
@@ -1871,7 +1870,7 @@ Then you make the `app/views/articles/show.html.erb` look like the following:
 <%= render @article.comments %>
 
 <h2>Add a comment:</h2>
-<%= render "comments/form" %>
+<%= render 'comments/form' %>
 
 <%= link_to 'Edit Article', edit_article_path(@article) %> |
 <%= link_to 'Back to Articles', articles_path %>
@@ -2010,7 +2009,7 @@ class CommentsController < ApplicationController
 ```
 
 Now if you try to create a new article, you will be greeted with a basic HTTP
-Authentication challenge
+Authentication challenge:
 
 ![Basic HTTP Authentication Challenge](images/getting_started/challenge.png)
 
@@ -2025,7 +2024,7 @@ along with a number of others.
 
 Security, especially in web applications, is a broad and detailed area. Security
 in your Rails application is covered in more depth in
-The [Ruby on Rails Security Guide](security.html)
+the [Ruby on Rails Security Guide](security.html).
 
 
 What's Next?
@@ -2036,7 +2035,7 @@ update it and experiment on your own. But you don't have to do everything
 without help. As you need assistance getting up and running with Rails, feel
 free to consult these support resources:
 
-* The [Ruby on Rails guides](index.html)
+* The [Ruby on Rails Guides](index.html)
 * The [Ruby on Rails Tutorial](http://railstutorial.org/book)
 * The [Ruby on Rails mailing list](http://groups.google.com/group/rubyonrails-talk)
 * The [#rubyonrails](irc://irc.freenode.net/#rubyonrails) channel on irc.freenode.net

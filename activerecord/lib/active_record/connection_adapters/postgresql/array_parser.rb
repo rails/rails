@@ -1,7 +1,7 @@
 module ActiveRecord
   module ConnectionAdapters
-    class PostgreSQLColumn < Column
-      module ArrayParser
+    module PostgreSQL
+      module ArrayParser # :nodoc:
 
         DOUBLE_QUOTE = '"'
         BACKSLASH = "\\"
@@ -9,35 +9,23 @@ module ActiveRecord
         BRACKET_OPEN = '{'
         BRACKET_CLOSE = '}'
 
+        def parse_pg_array(string) # :nodoc:
+          local_index = 0
+          array = []
+          while(local_index < string.length)
+            case string[local_index]
+            when BRACKET_OPEN
+              local_index,array = parse_array_contents(array, string, local_index + 1)
+            when BRACKET_CLOSE
+              return array
+            end
+            local_index += 1
+          end
+
+          array
+        end
+
         private
-          # Loads pg_array_parser if available. String parsing can be
-          # performed quicker by a native extension, which will not create
-          # a large amount of Ruby objects that will need to be garbage
-          # collected. pg_array_parser has a C and Java extension
-          begin
-            require 'pg_array_parser'
-            include PgArrayParser
-          rescue LoadError
-            def parse_pg_array(string)
-              parse_data(string)
-            end
-          end
-
-          def parse_data(string)
-            local_index = 0
-            array = []
-            while(local_index < string.length)
-              case string[local_index]
-              when BRACKET_OPEN
-                local_index,array = parse_array_contents(array, string, local_index + 1)
-              when BRACKET_CLOSE
-                return array
-              end
-              local_index += 1
-            end
-
-            array
-          end
 
           def parse_array_contents(array, string, index)
             is_escaping  = false

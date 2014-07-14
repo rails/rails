@@ -273,8 +273,11 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert RichPerson.connection.select_all("SELECT * FROM peoples_treasures WHERE rich_person_id = 1").empty?
   end
 
-  def test_quoted_locking_column_is_deprecated
-    assert_deprecated { ActiveRecord::Base.quoted_locking_column }
+  def test_yaml_dumping_with_lock_column
+    t1 = LockWithoutDefault.new
+    t2 = YAML.load(YAML.dump(t1))
+
+    assert_equal t1.attributes, t2.attributes
   end
 end
 
@@ -339,8 +342,6 @@ class OptimisticLockingWithSchemaChangeTest < ActiveRecord::TestCase
     def add_counter_column_to(model, col='test_count')
       model.connection.add_column model.table_name, col, :integer, :null => false, :default => 0
       model.reset_column_information
-      # OpenBase does not set a value to existing rows when adding a not null default column
-      model.update_all(col => 0) if current_adapter?(:OpenBaseAdapter)
     end
 
     def remove_counter_column_from(model, col = :test_count)
@@ -367,7 +368,7 @@ end
 # is so cumbersome. Will deadlock Ruby threads if the underlying db.execute
 # blocks, so separate script called by Kernel#system is needed.
 # (See exec vs. async_exec in the PostgreSQL adapter.)
-unless current_adapter?(:SybaseAdapter, :OpenBaseAdapter) || in_memory_db?
+unless in_memory_db?
   class PessimisticLockingTest < ActiveRecord::TestCase
     self.use_transactional_fixtures = false
     fixtures :people, :readers

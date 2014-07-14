@@ -10,7 +10,7 @@ module ActionDispatch
     end
   end
 
-  # The flash provides a way to pass temporary objects between actions. Anything you place in the flash will be exposed
+  # The flash provides a way to pass temporary primitive-types (String, Array, Hash) between actions. Anything you place in the flash will be exposed
   # to the very next action and then cleared out. This is a great way of doing notices and alerts, such as a create
   # action that sets <tt>flash[:notice] = "Post successfully created"</tt> before redirecting to a display action that can
   # then expose the flash to its template. Actually, that exposure is automatically done.
@@ -37,8 +37,11 @@ module ActionDispatch
   #   flash.alert = "You must be logged in"
   #   flash.notice = "Post successfully created"
   #
-  # This example just places a string in the flash, but you can put any object in there. And of course, you can put as
-  # many as you like at a time too. Just remember: They'll be gone by the time the next action has been performed.
+  # This example places a string in the flash. And of course, you can put as many as you like at a time too. If you want to pass
+  # non-primitive types, you will have to handle that in your application. Example: To show messages with links, you will have to
+  # use sanitize helper.
+  #
+  # Just remember: They'll be gone by the time the next action has been performed.
   #
   # See docs on the FlashHash class for more details about the flash.
   class Flash

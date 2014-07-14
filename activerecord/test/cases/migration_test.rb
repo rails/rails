@@ -11,7 +11,13 @@ require MIGRATIONS_ROOT + "/rename/1_we_need_things"
 require MIGRATIONS_ROOT + "/rename/2_rename_things"
 require MIGRATIONS_ROOT + "/decimal/1_give_me_big_numbers"
 
-class BigNumber < ActiveRecord::Base; end
+class BigNumber < ActiveRecord::Base
+  unless current_adapter?(:PostgreSQLAdapter, :SQLite3Adapter)
+    attribute :value_of_e, Type::Integer.new
+  end
+  attribute :world_population, Type::Integer.new
+  attribute :my_house_population, Type::Integer.new
+end
 
 class Reminder < ActiveRecord::Base; end
 
@@ -327,47 +333,6 @@ class MigrationTest < ActiveRecord::TestCase
     Reminder.reset_table_name
   end
 
-  def test_proper_table_name_on_migrator
-    reminder_class = new_isolated_reminder_class
-    assert_deprecated do
-      assert_equal "table", ActiveRecord::Migrator.proper_table_name('table')
-    end
-    assert_deprecated do
-      assert_equal "table", ActiveRecord::Migrator.proper_table_name(:table)
-    end
-    assert_deprecated do
-      assert_equal "reminders", ActiveRecord::Migrator.proper_table_name(reminder_class)
-    end
-    reminder_class.reset_table_name
-    assert_deprecated do
-      assert_equal reminder_class.table_name, ActiveRecord::Migrator.proper_table_name(reminder_class)
-    end
-
-    # Use the model's own prefix/suffix if a model is given
-    ActiveRecord::Base.table_name_prefix = "ARprefix_"
-    ActiveRecord::Base.table_name_suffix = "_ARsuffix"
-    reminder_class.table_name_prefix = 'prefix_'
-    reminder_class.table_name_suffix = '_suffix'
-    reminder_class.reset_table_name
-    assert_deprecated do
-      assert_equal "prefix_reminders_suffix", ActiveRecord::Migrator.proper_table_name(reminder_class)
-    end
-    reminder_class.table_name_prefix = ''
-    reminder_class.table_name_suffix = ''
-    reminder_class.reset_table_name
-
-    # Use AR::Base's prefix/suffix if string or symbol is given
-    ActiveRecord::Base.table_name_prefix = "prefix_"
-    ActiveRecord::Base.table_name_suffix = "_suffix"
-    reminder_class.reset_table_name
-    assert_deprecated do
-      assert_equal "prefix_table_suffix", ActiveRecord::Migrator.proper_table_name('table')
-    end
-    assert_deprecated do
-      assert_equal "prefix_table_suffix", ActiveRecord::Migrator.proper_table_name(:table)
-    end
-  end
-
   def test_proper_table_name_on_migration
     reminder_class = new_isolated_reminder_class
     migration = ActiveRecord::Migration.new
@@ -602,7 +567,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
 
       assert_equal 8, columns.size
       [:name, :qualification, :experience].each {|s| assert_equal :string, column(s).type }
-      assert_equal 0, column(:age).default
+      assert_equal '0', column(:age).default
     end
 
     def test_removing_columns

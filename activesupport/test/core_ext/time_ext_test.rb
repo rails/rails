@@ -1,6 +1,7 @@
 require 'abstract_unit'
 require 'active_support/time'
 require 'core_ext/date_and_time_behavior'
+require 'time_zone_test_helpers'
 
 class TimeExtCalculationsTest < ActiveSupport::TestCase
   def date_time_init(year,month,day,hour,minute,second,usec=0)
@@ -8,6 +9,7 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
   end
 
   include DateAndTimeBehavior
+  include TimeZoneTestHelpers
 
   def test_seconds_since_midnight
     assert_equal 1,Time.local(2005,1,1,0,0,1).seconds_since_midnight
@@ -847,15 +849,6 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
   def test_all_year
     assert_equal Time.local(2011,1,1,0,0,0)..Time.local(2011,12,31,23,59,59,Rational(999999999, 1000)), Time.local(2011,6,7,10,10,10).all_year
   end
-
-  protected
-    def with_env_tz(new_tz = 'US/Eastern')
-      old_tz, ENV['TZ'] = ENV['TZ'], new_tz
-      yield
-    ensure
-      old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
-    end
-
 end
 
 class TimeExtMarshalingTest < ActiveSupport::TestCase

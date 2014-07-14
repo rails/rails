@@ -102,8 +102,8 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_columns_should_obey_set_primary_key
-    pk = Subscriber.columns.find { |x| x.name == 'nick' }
-    assert pk.primary, 'nick should be primary key'
+    pk = Subscriber.columns_hash[Subscriber.primary_key]
+    assert_equal 'nick', pk.name, 'nick should be primary key'
   end
 
   def test_primary_key_with_no_id
@@ -160,19 +160,11 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_preserving_date_objects
-    if current_adapter?(:SybaseAdapter)
-      # Sybase ctlib does not (yet?) support the date type; use datetime instead.
-      assert_kind_of(
-        Time, Topic.find(1).last_read,
-        "The last_read attribute should be of the Time class"
-      )
-    else
-      # Oracle enhanced adapter allows to define Date attributes in model class (see topic.rb)
-      assert_kind_of(
-        Date, Topic.find(1).last_read,
-        "The last_read attribute should be of the Date class"
-      )
-    end
+    # Oracle enhanced adapter allows to define Date attributes in model class (see topic.rb)
+    assert_kind_of(
+      Date, Topic.find(1).last_read,
+      "The last_read attribute should be of the Date class"
+    )
   end
 
   def test_previously_changed
@@ -480,8 +472,8 @@ class BasicsTest < ActiveRecord::TestCase
     end
   end
 
-  # Oracle, and Sybase do not have a TIME datatype.
-  unless current_adapter?(:OracleAdapter, :SybaseAdapter)
+  # Oracle does not have a TIME datatype.
+  unless current_adapter?(:OracleAdapter)
     def test_utc_as_time_zone
       with_timezone_config default: :utc do
         attributes = { "bonus_time" => "5:42:00AM" }
@@ -515,12 +507,7 @@ class BasicsTest < ActiveRecord::TestCase
     topic = Topic.find(topic.id)
     assert_nil topic.last_read
 
-    # Sybase adapter does not allow nulls in boolean columns
-    if current_adapter?(:SybaseAdapter)
-      assert topic.approved == false
-    else
-      assert_nil topic.approved
-    end
+    assert_nil topic.approved
   end
 
   def test_equality
@@ -529,6 +516,10 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_find_by_slug
     assert_equal Topic.find('1-meowmeow'), Topic.find(1)
+  end
+
+  def test_find_by_slug_with_array
+    assert_equal Topic.find(['1-meowmeow', '2-hello']), Topic.find([1, 2])
   end
 
   def test_equality_of_new_records
@@ -685,8 +676,8 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_attributes_on_dummy_time
-    # Oracle, and Sybase do not have a TIME datatype.
-    return true if current_adapter?(:OracleAdapter, :SybaseAdapter)
+    # Oracle does not have a TIME datatype.
+    return true if current_adapter?(:OracleAdapter)
 
     with_timezone_config default: :local do
       attributes = {
@@ -699,8 +690,8 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_attributes_on_dummy_time_with_invalid_time
-    # Oracle, and Sybase do not have a TIME datatype.
-    return true if current_adapter?(:OracleAdapter, :SybaseAdapter)
+    # Oracle does not have a TIME datatype.
+    return true if current_adapter?(:OracleAdapter)
 
     attributes = {
       "bonus_time" => "not a time"
@@ -787,8 +778,14 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal("c", duped_topic.title)
   end
 
+  DeveloperSalary = Struct.new(:amount)
   def test_dup_with_aggregate_of_same_name_as_attribute
-    dev = DeveloperWithAggregate.find(1)
+    developer_with_aggregate = Class.new(ActiveRecord::Base) do
+      self.table_name = 'developers'
+      composed_of :salary, :class_name => 'BasicsTest::DeveloperSalary', :mapping => [%w(salary amount)]
+    end
+
+    dev = developer_with_aggregate.find(1)
     assert_kind_of DeveloperSalary, dev.salary
 
     dup = nil
@@ -987,6 +984,10 @@ class BasicsTest < ActiveRecord::TestCase
 
   class NumericData < ActiveRecord::Base
     self.table_name = 'numeric_data'
+
+    attribute :world_population, Type::Integer.new
+    attribute :my_house_population, Type::Integer.new
+    attribute :atoms_in_universe, Type::Integer.new
   end
 
   def test_big_decimal_conditions
@@ -1487,15 +1488,14 @@ class BasicsTest < ActiveRecord::TestCase
     attrs = topic.attributes.dup
     attrs.delete 'id'
 
-    typecast = Class.new {
+    typecast = Class.new(ActiveRecord::Type::Value) {
       def type_cast value
         "t.lo"
       end
     }
 
     types = { 'author_name' => typecast.new }
-    topic = Topic.allocate.init_with 'attributes' => attrs,
-                                     'column_types' => types
+    topic = Topic.instantiate(attrs, types)
 
     assert_equal 't.lo', topic.author_name
   end
@@ -1595,5 +1595,12 @@ class BasicsTest < ActiveRecord::TestCase
 
     assert_equal after_handler, new_handler
     assert_equal orig_handler, klass.connection_handler
+  end
+
+  # Note: This is a performance optimization for Array#uniq and Hash#[] with
+  # AR::Base objects. If the future has made this irrelevant, feel free to
+  # delete this.
+  test "records without an id have unique hashes" do
+    assert_not_equal Post.new.hash, Post.new.hash
   end
 end

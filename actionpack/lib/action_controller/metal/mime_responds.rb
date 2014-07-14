@@ -322,7 +322,7 @@ module ActionController #:nodoc:
     #       end
     #     end
     #
-    # * for a javascript request - if the template isn't found, an exception is
+    # * for a JavaScript request - if the template isn't found, an exception is
     #   raised.
     # * for other requests - i.e. data formats such as xml, json, csv etc, if
     #   the resource passed to +respond_with+ responds to <code>to_<format></code>,
@@ -335,7 +335,7 @@ module ActionController #:nodoc:
     # As outlined above, the +resources+ argument passed to +respond_with+
     # can play two roles. It can be used to generate the redirect url
     # for successful html requests (e.g. for +create+ actions when
-    # no template exists), while for formats other than html and javascript
+    # no template exists), while for formats other than html and JavaScript
     # it is the object that gets rendered, by being converted directly to the
     # required format (again assuming no template exists).
     #
@@ -352,7 +352,7 @@ module ActionController #:nodoc:
     #
     # This would cause +respond_with+ to redirect to <code>project_task_url</code>
     # instead of <code>task_url</code>. For request formats other than html or
-    # javascript, if multiple resources are passed in this way, it is the last
+    # JavaScript, if multiple resources are passed in this way, it is the last
     # one specified that is rendered.
     #
     # === Customizing response behavior

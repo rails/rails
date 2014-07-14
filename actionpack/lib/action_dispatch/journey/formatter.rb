@@ -12,7 +12,7 @@ module ActionDispatch
         @cache  = nil
       end
 
-      def generate(type, name, options, recall = {}, parameterize = nil)
+      def generate(name, options, recall = {}, parameterize = nil)
         constraints = recall.merge(options)
         missing_keys = []
 
@@ -28,6 +28,12 @@ module ActionDispatch
           next unless missing_keys.empty?
           params = options.dup.delete_if do |key, _|
             parameterized_parts.key?(key) || route.defaults.key?(key)
+          end
+
+          defaults       = route.defaults
+          required_parts = route.required_parts
+          parameterized_parts.delete_if do |key, value|
+            value.to_s == defaults[key].to_s && !required_parts.include?(key)
           end
 
           return [route.format(parameterized_parts), params]
@@ -74,12 +80,12 @@ module ActionDispatch
           if named_routes.key?(name)
             yield named_routes[name]
           else
-            routes = non_recursive(cache, options.to_a)
+            routes = non_recursive(cache, options)
 
             hash = routes.group_by { |_, r| r.score(options) }
 
             hash.keys.sort.reverse_each do |score|
-              next if score < 0
+              break if score < 0
 
               hash[score].sort_by { |i, _| i }.each do |_, route|
                 yield route
@@ -90,14 +96,14 @@ module ActionDispatch
 
         def non_recursive(cache, options)
           routes = []
-          stack  = [cache]
+          queue  = [cache]
 
-          while stack.any?
-            c = stack.shift
+          while queue.any?
+            c = queue.shift
             routes.concat(c[:___routes]) if c.key?(:___routes)
 
             options.each do |pair|
-              stack << c[pair] if c.key?(pair)
+              queue << c[pair] if c.key?(pair)
             end
           end
 
@@ -124,11 +130,6 @@ module ActionDispatch
           }.flat_map { |pair|
             possibles(cache[pair], options, depth + 1)
           }
-        end
-
-        # Returns +true+ if no missing keys are present, otherwise +false+.
-        def verify_required_parts!(route, parts)
-          missing_keys(route, parts).empty?
         end
 
         def build_cache

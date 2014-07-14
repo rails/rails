@@ -46,6 +46,10 @@ class HashExtTest < ActiveSupport::TestCase
     @nested_illegal_symbols = { [] => { [] => 3} }
     @upcase_strings = { 'A' => 1, 'B' => 2 }
     @nested_upcase_strings = { 'A' => { 'B' => { 'C' => 3 } } }
+    @string_array_of_hashes = { 'a' => [ { 'b' => 2 }, { 'c' => 3 }, 4 ] }
+    @symbol_array_of_hashes = { :a => [ { :b => 2 }, { :c => 3 }, 4 ] }
+    @mixed_array_of_hashes = { :a => [ { :b => 2 }, { 'c' => 3 }, 4 ] }
+    @upcase_array_of_hashes = { 'A' => [ { 'B' => 2 }, { 'C' => 3 }, 4 ] }
   end
 
   def test_methods
@@ -66,6 +70,8 @@ class HashExtTest < ActiveSupport::TestCase
     assert_respond_to h, :to_options!
     assert_respond_to h, :compact
     assert_respond_to h, :compact!
+    assert_respond_to h, :except
+    assert_respond_to h, :except!
   end
 
   def test_transform_keys
@@ -84,6 +90,9 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal @nested_upcase_strings, @nested_symbols.deep_transform_keys{ |key| key.to_s.upcase }
     assert_equal @nested_upcase_strings, @nested_strings.deep_transform_keys{ |key| key.to_s.upcase }
     assert_equal @nested_upcase_strings, @nested_mixed.deep_transform_keys{ |key| key.to_s.upcase }
+    assert_equal @upcase_array_of_hashes, @string_array_of_hashes.deep_transform_keys{ |key| key.to_s.upcase }
+    assert_equal @upcase_array_of_hashes, @symbol_array_of_hashes.deep_transform_keys{ |key| key.to_s.upcase }
+    assert_equal @upcase_array_of_hashes, @mixed_array_of_hashes.deep_transform_keys{ |key| key.to_s.upcase }
   end
 
   def test_deep_transform_keys_not_mutates
@@ -109,6 +118,9 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal @nested_upcase_strings, @nested_symbols.deep_dup.deep_transform_keys!{ |key| key.to_s.upcase }
     assert_equal @nested_upcase_strings, @nested_strings.deep_dup.deep_transform_keys!{ |key| key.to_s.upcase }
     assert_equal @nested_upcase_strings, @nested_mixed.deep_dup.deep_transform_keys!{ |key| key.to_s.upcase }
+    assert_equal @upcase_array_of_hashes, @string_array_of_hashes.deep_dup.deep_transform_keys!{ |key| key.to_s.upcase }
+    assert_equal @upcase_array_of_hashes, @symbol_array_of_hashes.deep_dup.deep_transform_keys!{ |key| key.to_s.upcase }
+    assert_equal @upcase_array_of_hashes, @mixed_array_of_hashes.deep_dup.deep_transform_keys!{ |key| key.to_s.upcase }
   end
 
   def test_deep_transform_keys_with_bang_mutates
@@ -134,6 +146,9 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal @nested_symbols, @nested_symbols.deep_symbolize_keys
     assert_equal @nested_symbols, @nested_strings.deep_symbolize_keys
     assert_equal @nested_symbols, @nested_mixed.deep_symbolize_keys
+    assert_equal @symbol_array_of_hashes, @string_array_of_hashes.deep_symbolize_keys
+    assert_equal @symbol_array_of_hashes, @symbol_array_of_hashes.deep_symbolize_keys
+    assert_equal @symbol_array_of_hashes, @mixed_array_of_hashes.deep_symbolize_keys
   end
 
   def test_deep_symbolize_keys_not_mutates
@@ -159,6 +174,9 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal @nested_symbols, @nested_symbols.deep_dup.deep_symbolize_keys!
     assert_equal @nested_symbols, @nested_strings.deep_dup.deep_symbolize_keys!
     assert_equal @nested_symbols, @nested_mixed.deep_dup.deep_symbolize_keys!
+    assert_equal @symbol_array_of_hashes, @string_array_of_hashes.deep_dup.deep_symbolize_keys!
+    assert_equal @symbol_array_of_hashes, @symbol_array_of_hashes.deep_dup.deep_symbolize_keys!
+    assert_equal @symbol_array_of_hashes, @mixed_array_of_hashes.deep_dup.deep_symbolize_keys!
   end
 
   def test_deep_symbolize_keys_with_bang_mutates
@@ -204,6 +222,9 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal @nested_strings, @nested_symbols.deep_stringify_keys
     assert_equal @nested_strings, @nested_strings.deep_stringify_keys
     assert_equal @nested_strings, @nested_mixed.deep_stringify_keys
+    assert_equal @string_array_of_hashes, @string_array_of_hashes.deep_stringify_keys
+    assert_equal @string_array_of_hashes, @symbol_array_of_hashes.deep_stringify_keys
+    assert_equal @string_array_of_hashes, @mixed_array_of_hashes.deep_stringify_keys
   end
 
   def test_deep_stringify_keys_not_mutates
@@ -229,6 +250,9 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal @nested_strings, @nested_symbols.deep_dup.deep_stringify_keys!
     assert_equal @nested_strings, @nested_strings.deep_dup.deep_stringify_keys!
     assert_equal @nested_strings, @nested_mixed.deep_dup.deep_stringify_keys!
+    assert_equal @string_array_of_hashes, @string_array_of_hashes.deep_dup.deep_stringify_keys!
+    assert_equal @string_array_of_hashes, @symbol_array_of_hashes.deep_dup.deep_stringify_keys!
+    assert_equal @string_array_of_hashes, @mixed_array_of_hashes.deep_dup.deep_stringify_keys!
   end
 
   def test_deep_stringify_keys_with_bang_mutates
@@ -635,6 +659,14 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal 1, h['first']
   end
 
+  def test_to_options_on_indifferent_preserves_works_as_hash_with_dup
+    h = HashWithIndifferentAccess.new({ a: { b: 'b' } })
+    dup = h.dup
+
+    dup[:a][:c] = 'c'
+    assert_equal 'c', h[:a][:c]
+  end
+
   def test_indifferent_sub_hashes
     h = {'user' => {'id' => 5}}.with_indifferent_access
     ['user', :user].each {|user| [:id, 'id'].each {|id| assert_equal 5, h[user][id], "h[#{user.inspect}][#{id.inspect}] should be 5"}}
@@ -659,6 +691,11 @@ class HashExtTest < ActiveSupport::TestCase
       { :failure => "stuff", :funny => "business" }.assert_valid_keys([ :failure, :funny ])
       { :failure => "stuff", :funny => "business" }.assert_valid_keys(:failure, :funny)
     end
+    # not all valid keys are required to be present
+    assert_nothing_raised do
+      { :failure => "stuff", :funny => "business" }.assert_valid_keys([ :failure, :funny, :sunny ])
+      { :failure => "stuff", :funny => "business" }.assert_valid_keys(:failure, :funny, :sunny)
+    end
 
     exception = assert_raise ArgumentError do
       { :failore => "stuff", :funny => "business" }.assert_valid_keys([ :failure, :funny ])
@@ -669,6 +706,16 @@ class HashExtTest < ActiveSupport::TestCase
       { :failore => "stuff", :funny => "business" }.assert_valid_keys(:failure, :funny)
     end
     assert_equal "Unknown key: :failore. Valid keys are: :failure, :funny", exception.message
+    
+    exception = assert_raise ArgumentError do
+      { :failore => "stuff", :funny => "business" }.assert_valid_keys([ :failure ])
+    end
+    assert_equal "Unknown key: :failore. Valid keys are: :failure", exception.message
+
+    exception = assert_raise ArgumentError do
+      { :failore => "stuff", :funny => "business" }.assert_valid_keys(:failure)
+    end
+    assert_equal "Unknown key: :failore. Valid keys are: :failure", exception.message
   end
 
   def test_assorted_keys_not_stringified
@@ -694,6 +741,16 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal(expected, hash_1.deep_merge(hash_2) { |k,o,n| [k, o, n] })
 
     hash_1.deep_merge!(hash_2) { |k,o,n| [k, o, n] }
+    assert_equal expected, hash_1
+  end
+
+  def test_deep_merge_with_falsey_values
+    hash_1 = { e: false }
+    hash_2 = { e: 'e' }
+    expected = { e: [:e, false, 'e'] }
+    assert_equal(expected, hash_1.deep_merge(hash_2) { |k, o, n| [k, o, n] })
+
+    hash_1.deep_merge!(hash_2) { |k, o, n| [k, o, n] }
     assert_equal expected, hash_1
   end
 
@@ -887,13 +944,19 @@ class HashExtTest < ActiveSupport::TestCase
   def test_except_with_more_than_one_argument
     original = { :a => 'x', :b => 'y', :c => 10 }
     expected = { :a => 'x' }
+
     assert_equal expected, original.except(:b, :c)
+
+    assert_equal expected, original.except!(:b, :c)
+    assert_equal expected, original
   end
 
   def test_except_with_original_frozen
     original = { :a => 'x', :b => 'y' }
     original.freeze
     assert_nothing_raised { original.except(:a) }
+
+    assert_raise(RuntimeError) { original.except!(:a) }
   end
 
   def test_except_with_mocha_expectation_on_original
@@ -905,11 +968,11 @@ class HashExtTest < ActiveSupport::TestCase
   def test_compact
     hash_contain_nil_value = @symbols.merge(z: nil)
     hash_with_only_nil_values = { a: nil, b: nil }
-    
+
     h = hash_contain_nil_value.dup
     assert_equal(@symbols, h.compact)
     assert_equal(hash_contain_nil_value, h)
-    
+
     h = hash_with_only_nil_values.dup
     assert_equal({}, h.compact)
     assert_equal(hash_with_only_nil_values, h)
@@ -918,11 +981,11 @@ class HashExtTest < ActiveSupport::TestCase
   def test_compact!
     hash_contain_nil_value = @symbols.merge(z: nil)
     hash_with_only_nil_values = { a: nil, b: nil }
-    
+
     h = hash_contain_nil_value.dup
     assert_equal(@symbols, h.compact!)
     assert_equal(@symbols, h)
-    
+
     h = hash_with_only_nil_values.dup
     assert_equal({}, h.compact!)
     assert_equal({}, h)

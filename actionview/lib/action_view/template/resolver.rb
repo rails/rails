@@ -181,13 +181,7 @@ module ActionView
     def query(path, details, formats)
       query = build_query(path, details)
 
-      # deals with case-insensitive file systems.
-      sanitizer = Hash.new { |h,dir| h[dir] = Dir["#{dir}/*"] }
-
-      template_paths = Dir[query].reject { |filename|
-        File.directory?(filename) ||
-          !sanitizer[File.dirname(filename)].include?(filename)
-      }
+      template_paths = find_template_paths query
 
       template_paths.map { |template|
         handler, format, variant = extract_handler_and_format_and_variant(template, formats)
@@ -200,6 +194,26 @@ module ActionView
           :updated_at   => mtime(template)
         )
       }
+    end
+
+    if RUBY_VERSION >= '2.2.0'
+      def find_template_paths(query)
+        Dir[query].reject { |filename|
+          File.directory?(filename) ||
+            # deals with case-insensitive file systems.
+            !File.fnmatch(query, filename, File::FNM_EXTGLOB)
+        }
+      end
+    else
+      def find_template_paths(query)
+        # deals with case-insensitive file systems.
+        sanitizer = Hash.new { |h,dir| h[dir] = Dir["#{dir}/*"] }
+
+        Dir[query].reject { |filename|
+          File.directory?(filename) ||
+            !sanitizer[File.dirname(filename)].include?(filename)
+        }
+      end
     end
 
     # Helper for building query glob string based on resolver's pattern.

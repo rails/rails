@@ -33,6 +33,17 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal(topics(:first).title, Topic.find(1).title)
   end
 
+  def test_find_with_proc_parameter_and_block
+    exception = assert_raises(RuntimeError) do
+      Topic.all.find(-> { raise "should happen" }) { |e| e.title == "non-existing-title" }
+    end
+    assert_equal "should happen", exception.message
+
+    assert_nothing_raised(RuntimeError) do
+      Topic.all.find(-> { raise "should not happen" }) { |e| e.title == topics(:first).title }
+    end
+  end
+
   def test_find_passing_active_record_object_is_deprecated
     assert_deprecated do
       Topic.find(Topic.last)
@@ -133,8 +144,8 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_exists_with_distinct_association_includes_limit_and_order
     author = Author.first
-    assert_equal false, author.unique_categorized_posts.includes(:special_comments).order('comments.taggings_count DESC').limit(0).exists?
-    assert_equal true, author.unique_categorized_posts.includes(:special_comments).order('comments.taggings_count DESC').limit(1).exists?
+    assert_equal false, author.unique_categorized_posts.includes(:special_comments).order('comments.tags_count DESC').limit(0).exists?
+    assert_equal true, author.unique_categorized_posts.includes(:special_comments).order('comments.tags_count DESC').limit(1).exists?
   end
 
   def test_exists_with_empty_table_and_no_args_given

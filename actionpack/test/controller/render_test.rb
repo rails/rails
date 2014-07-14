@@ -242,6 +242,8 @@ class MetalTestController < ActionController::Metal
   include AbstractController::Rendering
   include ActionView::Rendering
   include ActionController::Rendering
+  include ActionController::RackDelegation
+
 
   def accessing_logger_in_template
     render :inline =>  "<%= logger.class %>"
@@ -386,10 +388,6 @@ end
 
 class EtagRenderTest < ActionController::TestCase
   tests TestControllerWithExtraEtags
-
-  def setup
-    super
-  end
 
   def test_multiple_etags
     @request.if_none_match = etag(["123", 'ab', :cde, [:f]])

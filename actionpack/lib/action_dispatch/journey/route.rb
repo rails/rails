@@ -16,14 +16,6 @@ module ActionDispatch
         @app         = app
         @path        = path
 
-        # Unwrap any constraints so we can see what's inside for route generation.
-        # This allows the formatter to skip over any mounted applications or redirects
-        # that shouldn't be matched when using a url_for without a route name.
-        while app.is_a?(Routing::Mapper::Constraints) do
-          app = app.app
-        end
-        @dispatcher  = app.is_a?(Routing::RouteSet::Dispatcher)
-
         @constraints = constraints
         @defaults    = defaults
         @required_defaults = nil
@@ -31,6 +23,7 @@ module ActionDispatch
         @parts             = nil
         @decorated_ast     = nil
         @precedence        = 0
+        @path_formatter    = @path.build_formatter
       end
 
       def ast
@@ -72,15 +65,7 @@ module ActionDispatch
       alias :segment_keys :parts
 
       def format(path_options)
-        path_options.delete_if do |key, value|
-          value.to_s == defaults[key].to_s && !required_parts.include?(key)
-        end
-
-        Visitors::Formatter.new(path_options).accept(path.spec)
-      end
-
-      def optimized_path
-        Visitors::OptimizedPath.new.accept(path.spec)
+        @path_formatter.evaluate path_options
       end
 
       def optional_parts
@@ -106,7 +91,7 @@ module ActionDispatch
       end
 
       def dispatcher?
-        @dispatcher
+        @app.dispatcher?
       end
 
       def matches?(request)

@@ -23,7 +23,7 @@ class PostgresqlJSONTest < ActiveRecord::TestCase
     rescue ActiveRecord::StatementInvalid
       skip "do not test on PG without json"
     end
-    @column = JsonDataType.columns.find { |c| c.name == 'payload' }
+    @column = JsonDataType.columns_hash['payload']
   end
 
   teardown do
@@ -35,7 +35,6 @@ class PostgresqlJSONTest < ActiveRecord::TestCase
     assert_equal :json, column.type
     assert_equal "json", column.sql_type
     assert_not column.number?
-    assert_not column.text?
     assert_not column.binary?
     assert_not column.array
   end
@@ -43,9 +42,8 @@ class PostgresqlJSONTest < ActiveRecord::TestCase
   def test_default
     @connection.add_column 'json_data_type', 'permissions', :json, default: '{"users": "read", "posts": ["read", "write"]}'
     JsonDataType.reset_column_information
-    column = JsonDataType.columns_hash["permissions"]
 
-    assert_equal({"users"=>"read", "posts"=>["read", "write"]}, column.default)
+    assert_equal({"users"=>"read", "posts"=>["read", "write"]}, JsonDataType.column_defaults['permissions'])
     assert_equal({"users"=>"read", "posts"=>["read", "write"]}, JsonDataType.new.permissions)
   ensure
     JsonDataType.reset_column_information
@@ -57,7 +55,7 @@ class PostgresqlJSONTest < ActiveRecord::TestCase
         t.json 'users', default: '{}'
       end
       JsonDataType.reset_column_information
-      column = JsonDataType.columns.find { |c| c.name == 'users' }
+      column = JsonDataType.columns_hash['users']
       assert_equal :json, column.type
 
       raise ActiveRecord::Rollback # reset the schema change
@@ -68,6 +66,7 @@ class PostgresqlJSONTest < ActiveRecord::TestCase
 
   def test_cast_value_on_write
     x = JsonDataType.new payload: {"string" => "foo", :symbol => :bar}
+    assert_equal({"string" => "foo", :symbol => :bar}, x.payload_before_type_cast)
     assert_equal({"string" => "foo", "symbol" => "bar"}, x.payload)
     x.save
     assert_equal({"string" => "foo", "symbol" => "bar"}, x.reload.payload)
@@ -77,13 +76,13 @@ class PostgresqlJSONTest < ActiveRecord::TestCase
     column = JsonDataType.columns_hash["payload"]
 
     data = "{\"a_key\":\"a_value\"}"
-    hash = column.class.string_to_json data
+    hash = column.type_cast_from_database(data)
     assert_equal({'a_key' => 'a_value'}, hash)
-    assert_equal({'a_key' => 'a_value'}, column.type_cast(data))
+    assert_equal({'a_key' => 'a_value'}, column.type_cast_from_database(data))
 
-    assert_equal({}, column.type_cast("{}"))
-    assert_equal({'key'=>nil}, column.type_cast('{"key": null}'))
-    assert_equal({'c'=>'}','"a"'=>'b "a b'}, column.type_cast(%q({"c":"}", "\"a\"":"b \"a b"})))
+    assert_equal({}, column.type_cast_from_database("{}"))
+    assert_equal({'key'=>nil}, column.type_cast_from_database('{"key": null}'))
+    assert_equal({'c'=>'}','"a"'=>'b "a b'}, column.type_cast_from_database(%q({"c":"}", "\"a\"":"b \"a b"})))
   end
 
   def test_rewrite
@@ -139,13 +138,40 @@ class PostgresqlJSONTest < ActiveRecord::TestCase
     assert_equal "640×1136", x.resolution
   end
 
-  def test_update_all
-    json = JsonDataType.create! payload: { "one" => "two" }
+  def test_duplication_with_store_accessors
+    x = JsonDataType.new(resolution: "320×480")
+    assert_equal "320×480", x.resolution
 
-    JsonDataType.update_all payload: { "three" => "four" }
-    assert_equal({ "three" => "four" }, json.reload.payload)
+    y = x.dup
+    assert_equal "320×480", y.resolution
+  end
 
-    JsonDataType.update_all payload: { }
-    assert_equal({ }, json.reload.payload)
+  def test_yaml_round_trip_with_store_accessors
+    x = JsonDataType.new(resolution: "320×480")
+    assert_equal "320×480", x.resolution
+
+    y = YAML.load(YAML.dump(x))
+    assert_equal "320×480", y.resolution
+  end
+
+  def test_changes_in_place
+    json = JsonDataType.new
+    assert_not json.changed?
+
+    json.payload = { 'one' => 'two' }
+    assert json.changed?
+    assert json.payload_changed?
+
+    json.save!
+    assert_not json.changed?
+
+    json.payload['three'] = 'four'
+    assert json.payload_changed?
+
+    json.save!
+    json.reload
+
+    assert_equal({ 'one' => 'two', 'three' => 'four' }, json.payload)
+    assert_not json.changed?
   end
 end

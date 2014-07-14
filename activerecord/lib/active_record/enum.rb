@@ -27,8 +27,10 @@ module ActiveRecord
   #   conversation.status      # => nil
   #
   # Scopes based on the allowed values of the enum field will be provided
-  # as well. With the above example, it will create an +active+ and +archived+
-  # scope.
+  # as well. With the above example:
+  #
+  #   Conversation.active
+  #   Conversation.archived
   #
   # You can set the default value from the database declaration, like:
   #
@@ -138,17 +140,14 @@ module ActiveRecord
         @_enum_methods_module ||= begin
           mod = Module.new do
             private
-              def save_changed_attribute(attr_name, value)
+              def save_changed_attribute(attr_name, old)
                 if (mapping = self.class.defined_enums[attr_name.to_s])
+                  value = read_attribute(attr_name)
                   if attribute_changed?(attr_name)
-                    old = changed_attributes[attr_name]
-
                     if mapping[old] == value
                       changed_attributes.delete(attr_name)
                     end
                   else
-                    old = clone_attribute_value(:read_attribute, attr_name)
-
                     if old != value
                       changed_attributes[attr_name] = mapping.key old
                     end

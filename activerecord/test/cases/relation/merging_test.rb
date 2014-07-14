@@ -17,8 +17,9 @@ class RelationMergingTest < ActiveRecord::TestCase
   end
 
   def test_relation_to_sql
-    sql = Post.first.comments.to_sql
-    assert_no_match(/\?/, sql)
+    post = Post.first
+    sql = post.comments.to_sql
+    assert_match(/.?post_id.? = #{post.id}\Z/i, sql)
   end
 
   def test_relation_merging_with_arel_equalities_keeps_last_equality
@@ -106,6 +107,11 @@ class RelationMergingTest < ActiveRecord::TestCase
 
     merged = left.merge(right)
     assert_equal post, merged.first
+  end
+
+  def test_merging_compares_symbols_and_strings_as_equal
+    post = PostThatLoadsCommentsInAnAfterSaveHook.create!(title: "First Post", body: "Blah blah blah.")
+    assert_equal "First comment!", post.comments.where(body: "First comment!").first_or_create.body
   end
 end
 

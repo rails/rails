@@ -1,8 +1,6 @@
 require 'abstract_unit'
 
 class MimeTypeTest < ActiveSupport::TestCase
-  Mime::Type.register "image/png", :png unless defined? Mime::PNG
-  Mime::Type.register "application/pdf", :pdf unless defined? Mime::PDF
 
   test "parse single" do
     Mime::LOOKUP.keys.each do |mime_type|

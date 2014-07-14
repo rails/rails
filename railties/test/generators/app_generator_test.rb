@@ -21,6 +21,7 @@ DEFAULT_APP_FILES = %w(
   bin/bundle
   bin/rails
   bin/rake
+  bin/setup
   config/environments
   config/initializers
   config/locales
@@ -119,7 +120,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     generator = Rails::Generators::AppGenerator.new ["rails"], { with_dispatchers: true },
                                                                destination_root: app_moved_root, shell: @shell
     generator.send(:app_const)
-    quietly { generator.send(:create_config_files) }
+    quietly { generator.send(:update_config_files) }
     assert_file "myapp_moved/config/environment.rb", /Rails\.application\.initialize!/
     assert_file "myapp_moved/config/initializers/session_store.rb", /_myapp_session/
   end
@@ -134,8 +135,44 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     generator = Rails::Generators::AppGenerator.new ["rails"], { with_dispatchers: true }, destination_root: app_root, shell: @shell
     generator.send(:app_const)
-    quietly { generator.send(:create_config_files) }
+    quietly { generator.send(:update_config_files) }
     assert_file "myapp/config/initializers/session_store.rb", /_myapp_session/
+  end
+
+  def test_new_application_use_json_serialzier
+    run_generator
+
+    assert_file("config/initializers/cookies_serializer.rb", /Rails\.application\.config\.action_dispatch\.cookies_serializer = :json/)
+  end
+
+  def test_rails_update_keep_the_cookie_serializer_if_it_is_already_configured
+    app_root = File.join(destination_root, 'myapp')
+    run_generator [app_root]
+
+    Rails.application.config.root = app_root
+    Rails.application.class.stubs(:name).returns("Myapp")
+    Rails.application.stubs(:is_a?).returns(Rails::Application)
+
+    generator = Rails::Generators::AppGenerator.new ["rails"], { with_dispatchers: true }, destination_root: app_root, shell: @shell
+    generator.send(:app_const)
+    quietly { generator.send(:update_config_files) }
+    assert_file("#{app_root}/config/initializers/cookies_serializer.rb", /Rails\.application\.config\.action_dispatch\.cookies_serializer = :json/)
+  end
+
+  def test_rails_update_set_the_cookie_serializer_to_marchal_if_it_is_not_already_configured
+    app_root = File.join(destination_root, 'myapp')
+    run_generator [app_root]
+
+    FileUtils.rm("#{app_root}/config/initializers/cookies_serializer.rb")
+
+    Rails.application.config.root = app_root
+    Rails.application.class.stubs(:name).returns("Myapp")
+    Rails.application.stubs(:is_a?).returns(Rails::Application)
+
+    generator = Rails::Generators::AppGenerator.new ["rails"], { with_dispatchers: true }, destination_root: app_root, shell: @shell
+    generator.send(:app_const)
+    quietly { generator.send(:update_config_files) }
+    assert_file("#{app_root}/config/initializers/cookies_serializer.rb", /Rails\.application\.config\.action_dispatch\.cookies_serializer = :marshal/)
   end
 
   def test_application_names_are_not_singularized
@@ -408,6 +445,21 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_file "Gemfile" do |content|
       assert_no_match(/spring/, content)
+    end
+  end
+
+  def test_generator_if_skip_gems_is_given
+    run_generator [destination_root, "--skip-gems", "turbolinks", "coffee-rails"]
+
+    assert_file "Gemfile" do |content|
+      assert_no_match(/turbolinks/, content)
+      assert_no_match(/coffee-rails/, content)
+    end
+    assert_file "app/views/layouts/application.html.erb" do |content|
+      assert_no_match(/data-turbolinks-track/, content)
+    end
+    assert_file "app/assets/javascripts/application.js" do |content|
+      assert_no_match(/turbolinks/, content)
     end
   end
 

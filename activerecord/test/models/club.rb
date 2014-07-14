@@ -14,3 +14,10 @@ class Club < ActiveRecord::Base
     "I'm sorry sir, this is a *private* club, not a *pirate* club"
   end
 end
+
+class SuperClub < ActiveRecord::Base
+  self.table_name = "clubs"
+
+  has_many :memberships, class_name: 'SuperMembership', foreign_key: 'club_id'
+  has_many :members, through: :memberships
+end

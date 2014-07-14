@@ -6,6 +6,11 @@ module ActionController
     Renderers.add(key, &block)
   end
 
+  # See <tt>Renderers.remove</tt>
+  def self.remove_renderer(key)
+    Renderers.remove(key)
+  end
+
   class MissingRenderer < LoadError
     def initialize(format)
       super "No renderer defined for format: #{format}"
@@ -73,7 +78,7 @@ module ActionController
     #     respond_to do |format|
     #       format.html
     #       format.csv { render csv: @csvable, filename: @csvable.name }
-    #     }
+    #     end
     #   end
     # To use renderers and their mime types in more concise ways, see
     # <tt>ActionController::MimeResponds::ClassMethods.respond_to</tt> and
@@ -81,6 +86,17 @@ module ActionController
     def self.add(key, &block)
       define_method("_render_option_#{key}", &block)
       RENDERERS << key.to_sym
+    end
+
+    # This method is the opposite of add method.
+    #
+    # Usage:
+    #
+    #   ActionController::Renderers.remove(:csv)
+    def self.remove(key)
+      RENDERERS.delete(key.to_sym)
+      method = "_render_option_#{key}"
+      remove_method(method) if method_defined?(method)
     end
 
     module All
@@ -96,8 +112,11 @@ module ActionController
       json = json.to_json(options) unless json.kind_of?(String)
 
       if options[:callback].present?
-        self.content_type ||= Mime::JS
-        "#{options[:callback]}(#{json})"
+        if self.content_type.nil? || self.content_type == Mime::JSON
+          self.content_type = Mime::JS
+        end
+
+        "/**/#{options[:callback]}(#{json})"
       else
         self.content_type ||= Mime::JSON
         json

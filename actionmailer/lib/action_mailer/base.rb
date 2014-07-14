@@ -301,12 +301,13 @@ module ActionMailer
   #       end
   #   end
   #
-  # Callbacks in ActionMailer are implemented using AbstractController::Callbacks, so you
-  # can define and configure callbacks in the same manner that you would use callbacks in
-  # classes that inherit from ActionController::Base.
+  # Callbacks in Action Mailer are implemented using
+  # <tt>AbstractController::Callbacks</tt>, so you can define and configure
+  # callbacks in the same manner that you would use callbacks in classes that
+  # inherit from <tt>ActionController::Base</tt>.
   #
   # Note that unless you have a specific reason to do so, you should prefer using before_action
-  # rather than after_action in your ActionMailer classes so that headers are parsed properly.
+  # rather than after_action in your Action Mailer classes so that headers are parsed properly.
   #
   # = Previewing emails
   #
@@ -339,7 +340,7 @@ module ActionMailer
   #     end
   #   end
   #
-  #   config.action_mailer.register_preview_interceptor :css_inline_styler
+  #   config.action_mailer.preview_interceptors :css_inline_styler
   #
   # Note that interceptors need to be registered both with <tt>register_interceptor</tt>
   # and <tt>register_preview_interceptor</tt> if they should operate on both sending and
@@ -368,8 +369,8 @@ module ActionMailer
   #     This is a symbol and one of <tt>:plain</tt> (will send the password in the clear), <tt>:login</tt> (will
   #     send password Base64 encoded) or <tt>:cram_md5</tt> (combines a Challenge/Response mechanism to exchange
   #     information and a cryptographic Message Digest 5 algorithm to hash important information)
-  #   * <tt>:enable_starttls_auto</tt> - When set to true, detects if STARTTLS is enabled in your SMTP server
-  #     and starts to use it.
+  #   * <tt>:enable_starttls_auto</tt> - Detects if STARTTLS is enabled in your SMTP server and starts
+  #     to use it. Defaults to <tt>true</tt>.
   #   * <tt>:openssl_verify_mode</tt> - When using TLS, you can set how OpenSSL checks the certificate. This is
   #     really useful if you need to validate a self-signed and/or a wildcard certificate. You can use the name
   #     of an OpenSSL verify constant (<tt>'none'</tt>, <tt>'peer'</tt>, <tt>'client_once'</tt>,
@@ -393,7 +394,7 @@ module ActionMailer
   #   implement for a custom delivery agent.
   #
   # * <tt>perform_deliveries</tt> - Determines whether emails are actually sent from Action Mailer when you
-  #   call <tt>.deliver</tt> on an mail message or on an Action Mailer method. This is on by default but can
+  #   call <tt>.deliver</tt> on an email message or on an Action Mailer method. This is on by default but can
   #   be turned off to aid in functional testing.
   #
   # * <tt>deliveries</tt> - Keeps an array of all the emails sent out through the Action Mailer with

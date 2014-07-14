@@ -25,9 +25,10 @@ module ActionDispatch
         # http://tools.ietf.org/html/rfc3986
         class UriEncoder # :nodoc:
           ENCODE   = "%%%02X".freeze
-          ENCODING = Encoding::US_ASCII
-          EMPTY    = "".force_encoding(ENCODING).freeze
-          DEC2HEX  = (0..255).to_a.map{ |i| ENCODE % i }.map{ |s| s.force_encoding(ENCODING) }
+          US_ASCII = Encoding::US_ASCII
+          UTF_8    = Encoding::UTF_8
+          EMPTY    = "".force_encoding(US_ASCII).freeze
+          DEC2HEX  = (0..255).to_a.map{ |i| ENCODE % i }.map{ |s| s.force_encoding(US_ASCII) }
 
           ALPHA = "a-zA-Z".freeze
           DIGIT = "0-9".freeze
@@ -53,12 +54,13 @@ module ActionDispatch
           end
 
           def unescape_uri(uri)
-            uri.gsub(ESCAPED) { [$&[1, 2].hex].pack('C') }.force_encoding(uri.encoding)
+            encoding = uri.encoding == US_ASCII ? UTF_8 : uri.encoding
+            uri.gsub(ESCAPED) { [$&[1, 2].hex].pack('C') }.force_encoding(encoding)
           end
 
           protected
             def escape(component, pattern)
-              component.gsub(pattern){ |unsafe| percent_encode(unsafe) }.force_encoding(ENCODING)
+              component.gsub(pattern){ |unsafe| percent_encode(unsafe) }.force_encoding(US_ASCII)
             end
 
             def percent_encode(unsafe)

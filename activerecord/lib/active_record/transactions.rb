@@ -1,5 +1,3 @@
-require 'thread'
-
 module ActiveRecord
   # See ActiveRecord::Transactions::ClassMethods for documentation.
   module Transactions
@@ -295,7 +293,7 @@ module ActiveRecord
     def committed! #:nodoc:
       run_callbacks :commit if destroyed? || persisted?
     ensure
-      @_start_transaction_state.clear
+      force_clear_transaction_record_state
     end
 
     # Call the +after_rollback+ callbacks. The +force_restore_state+ argument indicates if the record
@@ -328,7 +326,7 @@ module ActiveRecord
         begin
           status = yield
         rescue ActiveRecord::Rollback
-          @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) - 1
+          clear_transaction_record_state
           status = nil
         end
 
@@ -341,7 +339,7 @@ module ActiveRecord
 
     # Save the new record state and id of a record so it can be restored later if a transaction fails.
     def remember_transaction_record_state #:nodoc:
-      @_start_transaction_state[:id] = id if has_attribute?(self.class.primary_key)
+      @_start_transaction_state[:id] = id
       unless @_start_transaction_state.include?(:new_record)
         @_start_transaction_state[:new_record] = @new_record
       end
@@ -349,13 +347,18 @@ module ActiveRecord
         @_start_transaction_state[:destroyed] = @destroyed
       end
       @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) + 1
-      @_start_transaction_state[:frozen?] = @attributes.frozen?
+      @_start_transaction_state[:frozen?] = frozen?
     end
 
     # Clear the new record state and id of a record.
     def clear_transaction_record_state #:nodoc:
       @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) - 1
-      @_start_transaction_state.clear if @_start_transaction_state[:level] < 1
+      force_clear_transaction_record_state if @_start_transaction_state[:level] < 1
+    end
+
+    # Force to clear the transaction record state.
+    def force_clear_transaction_record_state #:nodoc:
+      @_start_transaction_state.clear
     end
 
     # Restore the new record state and id of a record that was previously saved by a call to save_record_state.
@@ -364,17 +367,10 @@ module ActiveRecord
         transaction_level = (@_start_transaction_state[:level] || 0) - 1
         if transaction_level < 1 || force
           restore_state = @_start_transaction_state
-          was_frozen = restore_state[:frozen?]
-          @attributes = @attributes.dup if @attributes.frozen?
+          thaw unless restore_state[:frozen?]
           @new_record = restore_state[:new_record]
           @destroyed  = restore_state[:destroyed]
-          if restore_state.has_key?(:id)
-            write_attribute(self.class.primary_key, restore_state[:id])
-          else
-            @attributes.delete(self.class.primary_key)
-            @attributes_cache.delete(self.class.primary_key)
-          end
-          @attributes.freeze if was_frozen
+          write_attribute(self.class.primary_key, restore_state[:id])
         end
       end
     end

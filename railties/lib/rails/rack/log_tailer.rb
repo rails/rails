@@ -1,7 +1,11 @@
+require 'active_support/deprecation'
+
 module Rails
   module Rack
     class LogTailer
       def initialize(app, log = nil)
+        ActiveSupport::Deprecation.warn "LogTailer is deprecated and will be removed on Rails 5"
+
         @app = app
 
         path = Pathname.new(log || "#{::File.expand_path(Rails.root)}/log/#{Rails.env}.log").cleanpath

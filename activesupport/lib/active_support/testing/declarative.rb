@@ -1,30 +1,6 @@
 module ActiveSupport
   module Testing
     module Declarative
-
-      def self.extended(klass) #:nodoc:
-        klass.class_eval do
-
-          unless method_defined?(:describe)
-            def self.describe(text)
-              if block_given?
-                super
-              else
-                message = "`describe` without a block is deprecated, please switch to: `def self.name; #{text.inspect}; end`\n"
-                ActiveSupport::Deprecation.warn message
-
-                class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
-                  def self.name
-                    "#{text}"
-                  end
-                RUBY_EVAL
-              end
-            end
-          end
-
-        end
-      end
-
       unless defined?(Spec)
         # Helper to define a test method using a String. Under the hood, it replaces
         # spaces with underscores and defines the test method.

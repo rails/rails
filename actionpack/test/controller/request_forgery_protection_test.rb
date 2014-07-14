@@ -127,11 +127,12 @@ module RequestForgeryProtectionTests
     @token      = "cf50faa3fe97702ca1ae"
 
     SecureRandom.stubs(:base64).returns(@token)
+    @old_request_forgery_protection_token = ActionController::Base.request_forgery_protection_token
     ActionController::Base.request_forgery_protection_token = :custom_authenticity_token
   end
 
   def teardown
-    ActionController::Base.request_forgery_protection_token = nil
+    ActionController::Base.request_forgery_protection_token = @old_request_forgery_protection_token
   end
 
   def test_should_render_form_with_token_tag
@@ -376,11 +377,12 @@ class RequestForgeryProtectionControllerUsingResetSessionTest < ActionController
   include RequestForgeryProtectionTests
 
   setup do
+    @old_request_forgery_protection_token = ActionController::Base.request_forgery_protection_token
     ActionController::Base.request_forgery_protection_token = :custom_authenticity_token
   end
 
   teardown do
-    ActionController::Base.request_forgery_protection_token = nil
+    ActionController::Base.request_forgery_protection_token = @old_request_forgery_protection_token
   end
 
   test 'should emit a csrf-param meta tag and a csrf-token meta tag' do
@@ -465,11 +467,12 @@ class CustomAuthenticityParamControllerTest < ActionController::TestCase
     @old_logger = ActionController::Base.logger
     @logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
     @token = "foobar"
+    @old_request_forgery_protection_token = ActionController::Base.request_forgery_protection_token
     ActionController::Base.request_forgery_protection_token = @token
   end
 
   def teardown
-    ActionController::Base.request_forgery_protection_token = nil
+    ActionController::Base.request_forgery_protection_token = @old_request_forgery_protection_token
     super
   end
 

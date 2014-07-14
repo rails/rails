@@ -80,6 +80,12 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal :integer, @first.column_for_attribute("id").type
   end
 
+  def test_non_existent_columns_return_nil
+    assert_deprecated do
+      assert_nil @first.column_for_attribute("attribute_that_doesnt_exist")
+    end
+  end
+
   def test_reflection_klass_for_nested_class_name
     reflection = MacroReflection.new(:company, nil, nil, { :class_name => 'MyApplication::Business::Company' }, ActiveRecord::Base)
     assert_nothing_raised do
@@ -200,7 +206,12 @@ class ReflectionTest < ActiveRecord::TestCase
   end
 
   def test_reflection_should_not_raise_error_when_compared_to_other_object
-    assert_nothing_raised { Firm.reflections['clients'] == Object.new }
+    assert_not_equal Object.new, Firm._reflections['clients']
+  end
+
+  def test_has_and_belongs_to_many_reflection
+    assert_equal :has_and_belongs_to_many, Category.reflections['posts'].macro
+    assert_equal :posts, Category.reflect_on_all_associations(:has_and_belongs_to_many).first.name
   end
 
   def test_has_many_through_reflection
@@ -399,6 +410,38 @@ class ReflectionTest < ActiveRecord::TestCase
     reflection = AssociationReflection.new(:has_and_belongs_to_many, :products, nil, { :join_table => 'product_categories' }, category)
     reflection.stubs(:klass).returns(product)
     assert_equal 'product_categories', reflection.join_table
+  end
+
+  def test_includes_accepts_symbols
+    hotel = Hotel.create!
+    department = hotel.departments.create!
+    department.chefs.create!
+
+    assert_nothing_raised do
+      assert_equal department.chefs, Hotel.includes([departments: :chefs]).first.chefs
+    end
+  end
+
+  def test_includes_accepts_strings
+    hotel = Hotel.create!
+    department = hotel.departments.create!
+    department.chefs.create!
+
+    assert_nothing_raised do
+      assert_equal department.chefs, Hotel.includes(['departments' => 'chefs']).first.chefs
+    end
+  end
+
+  def test_reflect_on_association_accepts_symbols
+    assert_nothing_raised do
+      assert_equal Hotel.reflect_on_association(:departments).name, :departments
+    end
+  end
+
+  def test_reflect_on_association_accepts_strings
+    assert_nothing_raised do
+      assert_equal Hotel.reflect_on_association("departments").name, :departments
+    end
   end
 
   private

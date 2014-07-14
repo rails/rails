@@ -1,3 +1,135 @@
+*   `DateTime#to_f` now preserves the fractional seconds instead of always
+    rounding to `.0`.
+
+    Fixes #15994.
+
+    *John Paul Ashenfelter*
+
+*   Add `Hash#transform_values` to simplify a common pattern where the values of a
+    hash must change, but the keys are left the same.
+
+    *Sean Griffin*
+
+*   Always instrument `ActiveSupport::Cache`.
+
+    Since `ActiveSupport::Notifications` only instrument items when there
+    are subscriber we don't need to disable instrumentation.
+
+    *Peter Wagenet*
+
+*   Make the `apply_inflections` method case-insensitive when checking
+    whether a word is uncountable or not.
+
+    *Robin Dupret*
+
+*   Make Dependencies pass a name to NameError error.
+
+    *arthurnn*
+
+*   Fixed `ActiveSupport::Cache::FileStore` exploding with long paths.
+
+    *Adam Panzer / Michael Grosser*
+
+*   Fixed `ActiveSupport::TimeWithZone#-` so precision is not unnecessarily lost
+    when working with objects with a nanosecond component.
+
+    `ActiveSupport::TimeWithZone#-` should return the same result as if we were
+    using `Time#-`:
+
+        Time.now.end_of_day - Time.now.beginning_of_day #=> 86399.999999999
+
+    Before:
+
+        Time.zone.now.end_of_day.nsec #=> 999999999
+        Time.zone.now.end_of_day - Time.zone.now.beginning_of_day #=> 86400.0
+
+    After:
+
+        Time.zone.now.end_of_day - Time.zone.now.beginning_of_day
+        #=> 86399.999999999
+
+    *Gordon Chan*
+
+*   Fixed precision error in NumberHelper when using Rationals.
+
+    Before:
+
+        ActiveSupport::NumberHelper.number_to_rounded Rational(1000, 3), precision: 2
+        #=> "330.00"
+
+    After:
+
+        ActiveSupport::NumberHelper.number_to_rounded Rational(1000, 3), precision: 2
+        #=> "333.33"
+
+    See #15379.
+
+    *Juanjo Bazán*
+
+*   Removed deprecated `Numeric#ago` and friends
+
+    Replacements:
+
+        5.ago   => 5.seconds.ago
+        5.until => 5.seconds.until
+        5.since => 5.seconds.since
+        5.from_now => 5.seconds.from_now
+
+    See #12389 for the history and rationale behind this.
+
+    *Godfrey Chan*
+
+*   DateTime `advance` now supports partial days.
+
+    Before:
+
+        DateTime.now.advance(days: 1, hours: 12)
+
+    After:
+
+        DateTime.now.advance(days: 1.5)
+
+    Fixes #12005.
+
+    *Shay Davidson*
+
+*   `Hash#deep_transform_keys` and `Hash#deep_transform_keys!` now transform hashes
+    in nested arrays.  This change also applies to `Hash#deep_stringify_keys`,
+    `Hash#deep_stringify_keys!`, `Hash#deep_symbolize_keys` and
+    `Hash#deep_symbolize_keys!`.
+
+    *OZAWA Sakuro*
+
+*   Fixed confusing `DelegationError` in `Module#delegate`.
+
+    See #15186.
+
+    *Vladimir Yarotsky*
+
+*   Fixed `ActiveSupport::Subscriber` so that no duplicate subscriber is created
+    when a subscriber method is redefined.
+
+    *Dennis Schön*
+
+*   Remove deprecated string based terminators for `ActiveSupport::Callbacks`.
+
+    *Eileen M. Uchitelle*
+
+*   Fixed an issue when using
+    `ActiveSupport::NumberHelper::NumberToDelimitedConverter` to
+    convert a value that is an `ActiveSupport::SafeBuffer` introduced
+    in 2da9d67.
+
+    See #15064.
+
+    *Mark J. Titorenko*
+
+*   `TimeZone#parse` defaults the day of the month to '1' if any other date
+    components are specified. This is more consistent with the behavior of
+    `Time#parse`.
+
+    *Ulysse Carion*
+
 *   `humanize` strips leading underscores, if any.
 
     Before:

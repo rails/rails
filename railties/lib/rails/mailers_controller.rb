@@ -3,8 +3,8 @@ require 'rails/application_controller'
 class Rails::MailersController < Rails::ApplicationController # :nodoc:
   prepend_view_path ActionDispatch::DebugExceptions::RESCUES_TEMPLATE_PATH
 
-  before_filter :require_local!
-  before_filter :find_preview, only: :preview
+  before_action :require_local!
+  before_action :find_preview, only: :preview
 
   def index
     @previews = ActionMailer::Preview.all

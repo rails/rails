@@ -16,8 +16,8 @@ module ActiveModel
   #   end
   #
   #   person = Person.new(name: 'bob', age: '18')
-  #   person.name # => 'bob'
-  #   person.age  # => 18
+  #   person.name # => "bob"
+  #   person.age  # => "18"
   #
   # Note that, by default, <tt>ActiveModel::Model</tt> implements <tt>persisted?</tt>
   # to return +false+, which is the most common case. You may want to override
@@ -74,7 +74,7 @@ module ActiveModel
     #
     #   person = Person.new(name: 'bob', age: '18')
     #   person.name # => "bob"
-    #   person.age  # => 18
+    #   person.age  # => "18"
     def initialize(params={})
       params.each do |attr, value|
         self.public_send("#{attr}=", value)

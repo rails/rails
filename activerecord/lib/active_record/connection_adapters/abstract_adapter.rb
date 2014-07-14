@@ -1,6 +1,7 @@
 require 'date'
 require 'bigdecimal'
 require 'bigdecimal/util'
+require 'active_record/type'
 require 'active_support/core_ext/benchmark'
 require 'active_record/connection_adapters/schema_cache'
 require 'active_record/connection_adapters/abstract/schema_dumper'
@@ -13,7 +14,10 @@ module ActiveRecord
   module ConnectionAdapters # :nodoc:
     extend ActiveSupport::Autoload
 
-    autoload :Column
+    autoload_at 'active_record/connection_adapters/column' do
+      autoload :Column
+      autoload :NullColumn
+    end
     autoload :ConnectionSpecification
 
     autoload_at 'active_record/connection_adapters/abstract/schema_definitions' do
@@ -229,6 +233,11 @@ module ActiveRecord
         false
       end
 
+      # Does this adapter support creating foreign key constraints?
+      def supports_foreign_keys?
+        false
+      end
+
       # This is meant to be implemented by the adapters that support extensions
       def disable_extension(name)
       end
@@ -324,10 +333,6 @@ module ActiveRecord
         @connection
       end
 
-      def open_transactions
-        @transaction.number
-      end
-
       def create_savepoint(name = nil)
       end
 
@@ -360,7 +365,79 @@ module ActiveRecord
         pool.checkin self
       end
 
+      def type_map # :nodoc:
+        @type_map ||= Type::TypeMap.new.tap do |mapping|
+          initialize_type_map(mapping)
+        end
+      end
+
+      def new_column(name, default, cast_type, sql_type = nil, null = true)
+        Column.new(name, default, cast_type, sql_type, null)
+      end
+
+      def lookup_cast_type(sql_type) # :nodoc:
+        type_map.lookup(sql_type)
+      end
+
       protected
+
+      def initialize_type_map(m) # :nodoc:
+        register_class_with_limit m, %r(boolean)i,   Type::Boolean
+        register_class_with_limit m, %r(char)i,      Type::String
+        register_class_with_limit m, %r(binary)i,    Type::Binary
+        register_class_with_limit m, %r(text)i,      Type::Text
+        register_class_with_limit m, %r(date)i,      Type::Date
+        register_class_with_limit m, %r(time)i,      Type::Time
+        register_class_with_limit m, %r(datetime)i,  Type::DateTime
+        register_class_with_limit m, %r(float)i,     Type::Float
+        register_class_with_limit m, %r(int)i,       Type::Integer
+
+        m.alias_type %r(blob)i,      'binary'
+        m.alias_type %r(clob)i,      'text'
+        m.alias_type %r(timestamp)i, 'datetime'
+        m.alias_type %r(numeric)i,   'decimal'
+        m.alias_type %r(number)i,    'decimal'
+        m.alias_type %r(double)i,    'float'
+
+        m.register_type(%r(decimal)i) do |sql_type|
+          scale = extract_scale(sql_type)
+          precision = extract_precision(sql_type)
+
+          if scale == 0
+            # FIXME: Remove this class as well
+            Type::DecimalWithoutScale.new(precision: precision)
+          else
+            Type::Decimal.new(precision: precision, scale: scale)
+          end
+        end
+      end
+
+      def reload_type_map # :nodoc:
+        type_map.clear
+        initialize_type_map(type_map)
+      end
+
+      def register_class_with_limit(mapping, key, klass) # :nodoc:
+        mapping.register_type(key) do |*args|
+          limit = extract_limit(args.last)
+          klass.new(limit: limit)
+        end
+      end
+
+      def extract_scale(sql_type) # :nodoc:
+        case sql_type
+          when /\((\d+)\)/ then 0
+          when /\((\d+)(,(\d+))\)/ then $3.to_i
+        end
+      end
+
+      def extract_precision(sql_type) # :nodoc:
+        $1.to_i if sql_type =~ /\((\d+)(,\d+)?\)/
+      end
+
+      def extract_limit(sql_type) # :nodoc:
+        $1.to_i if sql_type =~ /\((.*)\)/
+      end
 
       def translate_exception_class(e, sql)
         message = "#{e.class.name}: #{e.message}: #{sql}"

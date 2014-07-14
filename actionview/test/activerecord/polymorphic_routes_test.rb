@@ -75,19 +75,37 @@ class PolymorphicRoutesTest < ActionController::TestCase
   end
 
   def assert_url(url, args)
+    host = self.class.default_url_options[:host]
+
+    assert_equal url.sub(/http:\/\/#{host}/, ''), polymorphic_path(args)
     assert_equal url, polymorphic_url(args)
     assert_equal url, url_for(args)
   end
 
   def test_string
     with_test_routes do
+      # FIXME: why are these different? Symbol case passes through to
+      # `polymorphic_url`, but the String case doesn't.
       assert_equal "http://example.com/projects", polymorphic_url("projects")
+      assert_equal "projects", url_for("projects")
     end
   end
 
   def test_string_with_options
     with_test_routes do
       assert_equal "http://example.com/projects?id=10", polymorphic_url("projects", :id => 10)
+    end
+  end
+
+  def test_symbol
+    with_test_routes do
+      assert_url "http://example.com/projects", :projects
+    end
+  end
+
+  def test_symbol_with_options
+    with_test_routes do
+      assert_equal "http://example.com/projects?id=10", polymorphic_url(:projects, :id => 10)
     end
   end
 
@@ -110,6 +128,23 @@ class PolymorphicRoutesTest < ActionController::TestCase
     with_namespaced_routes(:blog) do
       @blog_blog.save
       assert_url "http://example.com/blogs/#{@blog_blog.id}", @blog_blog
+    end
+  end
+
+  def test_polymorphic_url_with_2_objects
+    with_namespaced_routes(:blog) do
+      @blog_blog.save
+      @blog_post.save
+      assert_equal "http://example.com/blogs/#{@blog_blog.id}/posts/#{@blog_post.id}", polymorphic_url([@blog_blog, @blog_post])
+    end
+  end
+
+  def test_polymorphic_url_with_3_objects
+    with_namespaced_routes(:blog) do
+      @blog_blog.save
+      @blog_post.save
+      @fax.save
+      assert_equal "http://example.com/blogs/#{@blog_blog.id}/posts/#{@blog_post.id}/faxes/#{@fax.id}", polymorphic_url([@blog_blog, @blog_post, @fax])
     end
   end
 
@@ -167,6 +202,19 @@ class PolymorphicRoutesTest < ActionController::TestCase
     end
   end
 
+  def test_with_class_list_of_one
+    with_test_routes do
+      assert_url "http://example.com/projects", [@project.class]
+    end
+  end
+
+  def test_class_with_options
+    with_test_routes do
+      assert_equal "http://example.com/projects?foo=bar", polymorphic_url(@project.class, { :foo => :bar })
+      assert_equal "/projects?foo=bar", polymorphic_path(@project.class, { :foo => :bar })
+    end
+  end
+
   def test_with_new_record
     with_test_routes do
       assert_url "http://example.com/projects", @project
@@ -175,14 +223,20 @@ class PolymorphicRoutesTest < ActionController::TestCase
 
   def test_new_record_arguments
     params = nil
-    extend Module.new {
-      define_method("projects_url") { |*args|
-        params = args
-        super(*args)
-      }
-    }
 
     with_test_routes do
+      extend Module.new {
+        define_method("projects_url") { |*args|
+          params = args
+          super(*args)
+        }
+
+        define_method("projects_path") { |*args|
+          params = args
+          super(*args)
+        }
+      }
+
       assert_url "http://example.com/projects", @project
       assert_equal [], params
     end
@@ -373,6 +427,12 @@ class PolymorphicRoutesTest < ActionController::TestCase
     end
   end
 
+  def test_with_array_containing_single_string_name
+    with_test_routes do
+      assert_url "http://example.com/projects", ["projects"]
+    end
+  end
+
   def test_with_array_containing_symbols
     with_test_routes do
       assert_url "http://example.com/series/new", [:new, :series]
@@ -527,13 +587,15 @@ class PolymorphicRoutesTest < ActionController::TestCase
       set.draw do
         scope(:module => name) do
           resources :blogs do
-            resources :posts
+            resources :posts do
+              resources :faxes
+            end
           end
           resources :posts
         end
       end
 
-      self.class.send(:include, @routes.url_helpers)
+      extend @routes.url_helpers
       yield
     end
   end
@@ -555,7 +617,7 @@ class PolymorphicRoutesTest < ActionController::TestCase
         resources :model_delegates
       end
 
-      self.class.send(:include, @routes.url_helpers)
+      extend @routes.url_helpers
       yield
     end
   end
@@ -577,7 +639,7 @@ class PolymorphicRoutesTest < ActionController::TestCase
         end
       end
 
-      self.class.send(:include, @routes.url_helpers)
+      extend @routes.url_helpers
       yield
     end
   end
@@ -596,8 +658,21 @@ class PolymorphicRoutesTest < ActionController::TestCase
         end
       end
 
-      self.class.send(:include, @routes.url_helpers)
+      extend @routes.url_helpers
       yield
     end
+  end
+end
+
+class PolymorphicPathRoutesTest < PolymorphicRoutesTest
+  include ActionView::RoutingUrlFor
+  include ActionView::Context
+
+  attr_accessor :controller
+
+  def assert_url(url, args)
+    host = self.class.default_url_options[:host]
+
+    assert_equal url.sub(/http:\/\/#{host}/, ''), url_for(args)
   end
 end

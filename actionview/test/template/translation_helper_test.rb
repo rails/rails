@@ -6,7 +6,7 @@ class TranslationHelperTest < ActiveSupport::TestCase
 
   attr_reader :request, :view
 
-  def setup
+  setup do
     I18n.backend.store_translations(:en,
       :translations => {
         :templates => {
@@ -28,6 +28,10 @@ class TranslationHelperTest < ActiveSupport::TestCase
       }
     )
     @view = ::ActionView::Base.new(ActionController::Base.view_paths, {})
+  end
+
+  teardown do
+    I18n.backend.reload!
   end
 
   def test_delegates_to_i18n_setting_the_rescue_format_option_to_html
@@ -150,5 +154,11 @@ class TranslationHelperTest < ActiveSupport::TestCase
   def test_translate_with_array_of_string_defaults
     translation = translate(:'translations.missing', default: ['A Generic String', 'Second generic string'])
     assert_equal 'A Generic String', translation
+  end
+
+  def test_translate_does_not_change_options
+    options = {}
+    translate(:'translations.missing', options)
+    assert_equal({}, options)
   end
 end

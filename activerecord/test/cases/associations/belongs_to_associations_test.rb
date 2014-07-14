@@ -369,6 +369,13 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_queries(2) { line_item.update amount: 10 }
   end
 
+  def test_belongs_to_with_touch_option_on_empty_update
+    line_item = LineItem.create!
+    Invoice.create!(line_items: [line_item])
+
+    assert_queries(0) { line_item.save }
+  end
+
   def test_belongs_to_with_touch_option_on_destroy
     line_item = LineItem.create!
     Invoice.create!(line_items: [line_item])
@@ -561,6 +568,19 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   def test_cant_save_readonly_association
     assert_raise(ActiveRecord::ReadOnlyRecord) { companies(:first_client).readonly_firm.save! }
     assert companies(:first_client).readonly_firm.readonly?
+  end
+
+  def test_test_polymorphic_assignment_foreign_key_type_string
+    comment = Comment.first
+    comment.author   = Author.first
+    comment.resource = Member.first
+    comment.save
+
+    assert_equal Comment.all.to_a,
+      Comment.includes(:author).to_a
+
+    assert_equal Comment.all.to_a,
+      Comment.includes(:resource).to_a
   end
 
   def test_polymorphic_assignment_foreign_type_field_updating
@@ -767,8 +787,8 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     post    = posts(:welcome)
     comment = comments(:greetings)
 
-    assert_difference lambda { post.reload.taggings_count }, -1 do
-      assert_difference 'comment.reload.taggings_count', +1 do
+    assert_difference lambda { post.reload.tags_count }, -1 do
+      assert_difference 'comment.reload.tags_count', +1 do
         tagging.taggable = comment
       end
     end
@@ -913,5 +933,16 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     record = Record.create!
     Column.create! record: record
     assert_equal 1, Column.count
+  end
+end
+
+class BelongsToWithForeignKeyTest < ActiveRecord::TestCase
+  fixtures :authors, :author_addresses
+
+  def test_destroy_linked_models
+    address = AuthorAddress.create!
+    author = Author.create! name: "Author", author_address_id: address.id
+
+    author.destroy!
   end
 end

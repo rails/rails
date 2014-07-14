@@ -1,11 +1,14 @@
 require 'action_dispatch/journey'
 require 'forwardable'
 require 'thread_safe'
+require 'active_support/concern'
 require 'active_support/core_ext/object/to_query'
 require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/module/remove_method'
 require 'active_support/core_ext/array/extract_options'
 require 'action_controller/metal/exceptions'
+require 'action_dispatch/http/request'
+require 'action_dispatch/routing/endpoint'
 
 module ActionDispatch
   module Routing
@@ -16,27 +19,17 @@ module ActionDispatch
       # alias inspect to to_s.
       alias inspect to_s
 
-      PARAMETERS_KEY = 'action_dispatch.request.path_parameters'
-
-      class Dispatcher #:nodoc:
-        def initialize(options={})
-          @defaults = options[:defaults]
-          @glob_param = options.delete(:glob)
+      class Dispatcher < Routing::Endpoint #:nodoc:
+        def initialize(defaults)
+          @defaults = defaults
           @controller_class_names = ThreadSafe::Cache.new
         end
 
-        def call(env)
-          params = env[PARAMETERS_KEY]
+        def dispatcher?; true; end
 
-          # If any of the path parameters has an invalid encoding then
-          # raise since it's likely to trigger errors further on.
-          params.each do |key, value|
-            next unless value.respond_to?(:valid_encoding?)
-
-            unless value.valid_encoding?
-              raise ActionController::BadRequest, "Invalid parameter: #{key} => #{value}"
-            end
-          end
+        def serve(req)
+          req.check_path_parameters!
+          params = req.path_parameters
 
           prepare_params!(params)
 
@@ -45,13 +38,12 @@ module ActionDispatch
             return [404, {'X-Cascade' => 'pass'}, []]
           end
 
-          dispatch(controller, params[:action], env)
+          dispatch(controller, params[:action], req.env)
         end
 
         def prepare_params!(params)
           normalize_controller!(params)
           merge_default_action!(params)
-          split_glob_param!(params) if @glob_param
         end
 
         # If this is a default_controller (i.e. a controller specified by the user)
@@ -86,10 +78,6 @@ module ActionDispatch
 
         def merge_default_action!(params)
           params[:action] ||= 'index'
-        end
-
-        def split_glob_param!(params)
-          params[@glob_param] = params[@glob_param].split('/').map { |v| URI.parser.unescape(v) }
         end
       end
 
@@ -155,7 +143,7 @@ module ActionDispatch
           end
 
           def self.optimize_helper?(route)
-            !route.glob? && route.requirements.except(:controller, :action).empty?
+            !route.glob? && route.path.requirements.empty?
           end
 
           class OptimizedUrlHelper < UrlHelper # :nodoc:
@@ -163,16 +151,13 @@ module ActionDispatch
 
             def initialize(route, options)
               super
-              @klass          = Journey::Router::Utils
               @required_parts = @route.required_parts
               @arg_size       = @required_parts.size
-              @optimized_path = @route.optimized_path
             end
 
             def call(t, args)
               if args.size == arg_size && !args.last.is_a?(Hash) && optimize_routes_generation?(t)
-                options = @options.dup
-                options.merge!(t.url_options) if t.respond_to?(:url_options)
+                options = t.url_options.merge @options
                 options[:path] = optimized_helper(args)
                 ActionDispatch::Http::URL.url_for(options)
               else
@@ -183,18 +168,14 @@ module ActionDispatch
             private
 
             def optimized_helper(args)
-              params = Hash[parameterize_args(args)]
+              params = parameterize_args(args)
               missing_keys = missing_keys(params)
 
               unless missing_keys.empty?
                 raise_generation_error(params, missing_keys)
               end
 
-              @optimized_path.map{ |segment| replace_segment(params, segment) }.join
-            end
-
-            def replace_segment(params, segment)
-              Symbol === segment ? @klass.escape_segment(params[segment]) : segment
+              @route.format params
             end
 
             def optimize_routes_generation?(t)
@@ -202,7 +183,9 @@ module ActionDispatch
             end
 
             def parameterize_args(args)
-              @required_parts.zip(args.map(&:to_param))
+              params = {}
+              @required_parts.zip(args.map(&:to_param)) { |k,v| params[k] = v }
+              params
             end
 
             def missing_keys(args)
@@ -225,20 +208,23 @@ module ActionDispatch
           end
 
           def call(t, args)
-            t.url_for(handle_positional_args(t, args, @options, @segment_keys))
+            controller_options = t.url_options
+            options = controller_options.merge @options
+            hash = handle_positional_args(controller_options, args, options, @segment_keys)
+            t._routes.url_for(hash)
           end
 
-          def handle_positional_args(t, args, options, keys)
+          def handle_positional_args(controller_options, args, result, path_params)
             inner_options = args.extract_options!
-            result = options.dup
 
             if args.size > 0
-              if args.size < keys.size - 1 # take format into account
-                keys -= t.url_options.keys if t.respond_to?(:url_options)
-                keys -= options.keys
+              if args.size < path_params.size - 1 # take format into account
+                path_params -= controller_options.keys
+                path_params -= result.keys
               end
-              keys -= inner_options.keys
-              result.merge!(Hash[keys.zip(args)])
+              path_params.each { |param|
+                result[param] = inner_options[param] || args.shift
+              }
             end
 
             result.merge!(inner_options)
@@ -302,9 +288,7 @@ module ActionDispatch
         @finalized                  = false
 
         @set    = Journey::Routes.new
-        @router = Journey::Router.new(@set, {
-          :parameters_key => PARAMETERS_KEY,
-          :request_class  => request_class})
+        @router = Journey::Router.new @set
         @formatter = Journey::Formatter.new @set
       end
 
@@ -393,6 +377,8 @@ module ActionDispatch
             @_routes = routes
             class << self
               delegate :url_for, :optimize_routes_generation?, :to => '@_routes'
+              attr_reader :_routes
+              def url_options; {}; end
             end
 
             # Make named_routes available in the module singleton
@@ -432,7 +418,9 @@ module ActionDispatch
             "http://guides.rubyonrails.org/routing.html#restricting-the-routes-created"
         end
 
-        path = build_path(conditions.delete(:path_info), requirements, SEPARATORS, anchor)
+        path = conditions.delete :path_info
+        ast  = conditions.delete :parsed_path_info
+        path = build_path(path, ast, requirements, anchor)
         conditions = build_conditions(conditions, path.names.map { |x| x.to_sym })
 
         route = @set.add_route(app, path, conditions, defaults, name)
@@ -440,8 +428,9 @@ module ActionDispatch
         route
       end
 
-      def build_path(path, requirements, separators, anchor)
+      def build_path(path, ast, requirements, anchor)
         strexp = Journey::Router::Strexp.new(
+            ast,
             path,
             requirements,
             SEPARATORS,
@@ -594,7 +583,7 @@ module ActionDispatch
         # Generates a path from routes, returns [path, params].
         # If no route is generated the formatter will raise ActionController::UrlGenerationError
         def generate
-          @set.formatter.generate(:path_info, named_route, options, recall, PARAMETERIZE)
+          @set.formatter.generate(named_route, options, recall, PARAMETERIZE)
         end
 
         def different_controller?
@@ -639,41 +628,52 @@ module ActionDispatch
         !mounted? && default_url_options.empty?
       end
 
-      def _generate_prefix(options = {})
-        nil
+      def find_script_name(options)
+        options.delete :script_name
       end
 
-      # The +options+ argument must be +nil+ or a hash whose keys are *symbols*.
+      # The +options+ argument must be a hash whose keys are *symbols*.
       def url_for(options)
-        options = default_url_options.merge(options || {})
+        options = default_url_options.merge options
 
-        user, password = extract_authentication(options)
-        recall  = options.delete(:_recall)
+        user = password = nil
 
-        original_script_name = options.delete(:original_script_name).presence
-        script_name = options.delete(:script_name).presence || _generate_prefix(options)
+        if options[:user] && options[:password]
+          user     = options.delete :user
+          password = options.delete :password
+        end
+
+        recall  = options.delete(:_recall) { {} }
+
+        original_script_name = options.delete(:original_script_name)
+        script_name = find_script_name options
 
         if script_name && original_script_name
           script_name = original_script_name + script_name
         end
 
-        path_options = options.except(*RESERVED_OPTIONS)
-        path_options = yield(path_options) if block_given?
+        path_options = options.dup
+        RESERVED_OPTIONS.each { |ro| path_options.delete ro }
 
-        path, params = generate(path_options, recall || {})
-        params.merge!(options[:params] || {})
+        path, params = generate(path_options, recall)
 
-        ActionDispatch::Http::URL.url_for(options.merge!({
-          :path => path,
-          :script_name => script_name,
-          :params => params,
-          :user => user,
-          :password => password
-        }))
+        if options.key? :params
+          params.merge! options[:params]
+        end
+
+        options[:path]        = path
+        options[:script_name] = script_name
+        options[:params]      = params
+        options[:user]        = user
+        options[:password]    = password
+
+        ActionDispatch::Http::URL.url_for(options)
       end
 
       def call(env)
-        @router.call(env)
+        req = request_class.new(env)
+        req.path_info = Journey::Router::Utils.normalize_path(req.path_info)
+        @router.serve(req)
       end
 
       def recognize_path(path, environment = {})
@@ -687,8 +687,8 @@ module ActionDispatch
           raise ActionController::RoutingError, e.message
         end
 
-        req = @request_class.new(env)
-        @router.recognize(req) do |route, _matches, params|
+        req = request_class.new(env)
+        @router.recognize(req) do |route, params|
           params.merge!(extras)
           params.each do |key, value|
             if value.is_a?(String)
@@ -696,14 +696,12 @@ module ActionDispatch
               params[key] = URI.parser.unescape(value)
             end
           end
-          old_params = env[::ActionDispatch::Routing::RouteSet::PARAMETERS_KEY]
-          env[::ActionDispatch::Routing::RouteSet::PARAMETERS_KEY] = (old_params || {}).merge(params)
-          dispatcher = route.app
-          while dispatcher.is_a?(Mapper::Constraints) && dispatcher.matches?(env) do
-            dispatcher = dispatcher.app
-          end
+          old_params = req.path_parameters
+          req.path_parameters = old_params.merge params
+          app = route.app
+          if app.matches?(req) && app.dispatcher?
+            dispatcher = app.app
 
-          if dispatcher.is_a?(Dispatcher)
             if dispatcher.controller(params, false)
               dispatcher.prepare_params!(params)
               return params
@@ -715,17 +713,6 @@ module ActionDispatch
 
         raise ActionController::RoutingError, "No route matches #{path.inspect}"
       end
-
-      private
-
-        def extract_authentication(options)
-          if options[:user] && options[:password]
-            [options.delete(:user), options.delete(:password)]
-          else
-            nil
-          end
-        end
-
     end
   end
 end

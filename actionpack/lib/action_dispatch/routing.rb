@@ -1,6 +1,7 @@
 # encoding: UTF-8
 require 'active_support/core_ext/object/to_param'
 require 'active_support/core_ext/regexp'
+require 'active_support/dependencies/autoload'
 
 module ActionDispatch
   # The routing module provides URL rewriting in native Ruby. It's a way to

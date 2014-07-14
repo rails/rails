@@ -153,6 +153,7 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_has_one_with_has_many_through_source_reflection_preload
+    ActiveRecord::Base.connection.table_alias_length  # preheat cache
     members = assert_queries(4) { Member.includes(:organization_member_details).to_a.sort_by(&:id) }
     groucho_details, other_details = member_details(:groucho), member_details(:some_other_guy)
 
