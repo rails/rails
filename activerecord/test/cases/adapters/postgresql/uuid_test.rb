@@ -25,10 +25,26 @@ class PostgresqlUUIDTest < ActiveRecord::TestCase
         t.uuid 'other_uuid', default: 'uuid_generate_v4()'
       end
     end
+
+    # Create custom PostgreSQL function to generate UUIDs
+    # to test dumping tables which columns have defaults with custom functions
+    @connection.execute <<-SQL
+    CREATE OR REPLACE FUNCTION my_uuid_generator() RETURNS uuid
+    AS $$ SELECT * FROM uuid_generate_v4() $$
+    LANGUAGE SQL VOLATILE;
+    SQL
+
+    # Create such a table with custom function as default value generator
+    @connection.create_table('pg_uuids_2', id: :uuid, default: 'my_uuid_generator()') do |t|
+      t.string 'name'
+      t.uuid 'other_uuid_2', default: 'my_uuid_generator()'
+    end
   end
 
   def teardown
     @connection.execute 'drop table if exists pg_uuids'
+    @connection.execute 'drop table if exists pg_uuids_2'
+    @connection.execute 'DROP FUNCTION IF EXISTS my_uuid_generator();'
   end
 
   if ActiveRecord::Base.connection.supports_extensions?
@@ -59,6 +75,13 @@ class PostgresqlUUIDTest < ActiveRecord::TestCase
       ActiveRecord::SchemaDumper.dump(@connection, schema)
       assert_match(/\bcreate_table "pg_uuids", id: :uuid, default: "uuid_generate_v1\(\)"/, schema.string)
       assert_match(/t\.uuid   "other_uuid", default: "uuid_generate_v4\(\)"/, schema.string)
+    end
+
+    def test_schema_dumper_for_uuid_primary_key_with_custom_default
+      schema = StringIO.new
+      ActiveRecord::SchemaDumper.dump(@connection, schema)
+      assert_match(/\bcreate_table "pg_uuids_2", id: :uuid, default: "my_uuid_generator\(\)"/, schema.string)
+      assert_match(/t\.uuid   "other_uuid_2", default: "my_uuid_generator\(\)"/, schema.string)
     end
 
     def test_change_column_default

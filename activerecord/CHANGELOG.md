@@ -1,3 +1,10 @@
+*   Fix the schema dump generated for tables without constraints and with
+    primary key with default value of custom PostgreSQL function result.
+
+    Fixes #16111
+
+    *Andrey Novikov*
+
 *   Restore 4.0 behavior for using serialize attributes with `JSON` as coder.
 
     With 4.1.x, `serialize` started returning a string when `JSON` was passed as
