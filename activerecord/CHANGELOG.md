@@ -1,3 +1,10 @@
+*   Fix the schema dump generated for tables without constraints and with
+    primary key with default value of custom PostgreSQL function result.
+
+    Fixes #16111
+
+    *Andrey Novikov*
+
 *   Fix the SQL generated when a `delete_all` is run on an association to not
     produce an `IN` statements.
 
