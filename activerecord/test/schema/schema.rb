@@ -781,8 +781,8 @@ ActiveRecord::Schema.define do
     t.integer :man_id
     t.integer :polymorphic_man_id
     t.string  :polymorphic_man_type
-    t.integer :polymorphic_man_without_inverse_id
-    t.string  :polymorphic_man_without_inverse_type
+    t.integer :poly_man_without_inverse_id
+    t.string  :poly_man_without_inverse_type
     t.integer :horrible_polymorphic_man_id
     t.string  :horrible_polymorphic_man_type
   end
