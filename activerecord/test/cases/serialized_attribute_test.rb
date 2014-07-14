@@ -96,7 +96,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
 
     # On 4.0, re-saving a row with a database NULL will turn that into a JSON
     # "null"
-    assert_equal 1, Topic.where('content = "null"').count
+    assert_equal 1, Topic.where("content = 'null'").count
   end
 
   def test_serialized_attribute_declared_in_subclass
