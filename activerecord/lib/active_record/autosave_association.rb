@@ -272,6 +272,8 @@ module ActiveRecord
       def nested_records_changed_for_autosave?
         self.class._reflections.values.any? do |reflection|
           if reflection.options[:autosave]
+            next if reflection.inverse_of && reflection.inverse_of.options[:autosave]
+
             association = association_instance_get(reflection.name)
             association && Array.wrap(association.target).any? { |a| a.changed_for_autosave? }
           end

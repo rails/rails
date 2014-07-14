@@ -1,3 +1,8 @@
+*   Fixed `autosave` on associations with `inverse_of:` set on both sides of
+    the relationship.
+
+    *Fred Wu*
+
 *   Fix the schema dump generated for tables without constraints and with
     primary key with default value of custom PostgreSQL function result.
 

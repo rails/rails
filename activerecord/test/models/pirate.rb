@@ -18,7 +18,7 @@ class Pirate < ActiveRecord::Base
   has_many :treasures, :as => :looter
   has_many :treasure_estimates, :through => :treasures, :source => :price_estimates
 
-  has_one :ship
+  has_one :ship, inverse_of: :pirate
   has_one :update_only_ship, :class_name => 'Ship'
   has_one :non_validated_ship, :class_name => 'Ship'
   has_many :birds, -> { order('birds.id ASC') }
