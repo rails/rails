@@ -1587,7 +1587,7 @@ module ActiveRecord
           scope   = nil
         end
 
-        habtm_reflection = ActiveRecord::Reflection::HasAndBelongsToManyReflection.new(:has_and_belongs_to_many, name, scope, options, self)
+        habtm_reflection = ActiveRecord::Reflection::HasAndBelongsToManyReflection.new(name, scope, options, self)
 
         builder = Builder::HasAndBelongsToMany.new name, self, options
 
