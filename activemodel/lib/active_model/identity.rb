@@ -108,7 +108,7 @@ module ActiveModel
       #   person = Person.create(first: 'John', last: 'Smith')
       #   person.to_key # => ['John', 'Smith']
       def key_attributes(*attrs)
-        if attrs.length == 0
+        if attrs.empty?
           self.key_attribute_names
         else
           self.key_attribute_names = attrs
