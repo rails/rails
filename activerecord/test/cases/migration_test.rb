@@ -895,4 +895,14 @@ class CopyMigrationsTest < ActiveRecord::TestCase
   ensure
     ActiveRecord::Base.logger = old
   end
+
+  private
+
+  def quietly
+    silence_stream(STDOUT) do
+      silence_stream(STDERR) do
+        yield
+      end
+    end
+  end
 end

@@ -490,7 +490,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   protected
 
   def action(*args, &block)
-    silence(:stdout) { generator.send(*args, &block) }
+    capture(:stdout) { generator.send(*args, &block) }
   end
 
   def assert_gem(gem)

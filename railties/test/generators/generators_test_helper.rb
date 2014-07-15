@@ -41,4 +41,12 @@ module GeneratorsTestHelper
     FileUtils.mkdir_p(destination)
     FileUtils.cp routes, destination
   end
+
+  def quietly
+    silence_stream(STDOUT) do
+      silence_stream(STDERR) do
+        yield
+      end
+    end
+  end
 end

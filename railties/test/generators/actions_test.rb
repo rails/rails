@@ -242,7 +242,7 @@ class ActionsTest < Rails::Generators::TestCase
   protected
 
     def action(*args, &block)
-      silence(:stdout){ generator.send(*args, &block) }
+      capture(:stdout){ generator.send(*args, &block) }
     end
 
 end
