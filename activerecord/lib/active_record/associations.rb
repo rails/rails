@@ -731,7 +731,7 @@ module ActiveRecord
     #   Post.all.each do |post|
     #     puts "Post:            " + post.title
     #     puts "Written by:      " + post.author.name
-    #     puts "Last comment on: " + post.comments.first.created_on
+    #     puts "Last comment on: " + post.comments.last.created_on
     #   end
     #
     # To iterate over these one hundred posts, we'll generate 201 database queries. Let's
