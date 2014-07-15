@@ -60,7 +60,7 @@ module ActionView
 
     def digest
       Digest::MD5.hexdigest("#{source}-#{dependency_digest}").tap do |digest|
-        logger.try :info, "  Cache digest for #{template.inspect}: #{digest}"
+        logger.try :debug, "  Cache digest for #{template.inspect}: #{digest}"
       end
     rescue ActionView::MissingTemplate
       logger.try :error, "  Couldn't find template for digesting: #{name}"
