@@ -9,6 +9,7 @@ module ActiveModel
   #     include ActiveModel::Identity
   #
   #     attr_accessor :id
+  #     key_attributes :id
   #   end
   #
   # Two objects without IDs are not equal:
