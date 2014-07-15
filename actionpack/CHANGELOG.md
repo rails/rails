@@ -1,8 +1,19 @@
+*   Preserve original path in `ShowExceptions` middleware by stashing it as
+    `env["action_dispatch.original_path"]`
+
+    `ActionDispatch::ShowExceptions` overwrites `PATH_INFO` with the status code
+    for the exception defined in `ExceptionWrapper`, so the path
+    the user was visiting when an exception occurred was not previously
+    available to any custom exceptions_app. The original `PATH_INFO` is now
+    stashed in `env["action_dispatch.original_path"]`.
+
+    *Grey Baker*
+
 *   Use `String#bytesize` instead of `String#size` when checking for cookie
     overflow.
 
     *Agis Anastasopoulos*
-   
+
 *   `render nothing: true` or rendering a `nil` body no longer add a single
     space to the response body.
 

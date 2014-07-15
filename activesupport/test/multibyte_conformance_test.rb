@@ -10,7 +10,6 @@ require 'tmpdir'
 class Downloader
   def self.download(from, to)
     unless File.exist?(to)
-      $stderr.puts "Downloading #{from} to #{to}"
       unless File.exist?(File.dirname(to))
         system "mkdir -p #{File.dirname(to)}"
       end

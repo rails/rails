@@ -17,7 +17,7 @@ module ActionView #:nodoc:
         stringish.to_s.html_safe
       end
 
-      # This method returns a html safe string similar to what <tt>Array#join</tt>
+      # This method returns an html safe string similar to what <tt>Array#join</tt>
       # would return. The array is flattened, and all items, including
       # the supplied separator, are html escaped unless they are html
       # safe, and the returned string is marked as html safe.

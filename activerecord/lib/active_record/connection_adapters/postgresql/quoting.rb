@@ -18,22 +18,10 @@ module ActiveRecord
         def quote(value, column = nil) #:nodoc:
           return super unless column
 
-          sql_type = type_to_sql(column.type, column.limit, column.precision, column.scale)
-
           case value
           when Float
             if value.infinite? || value.nan?
               "'#{value.to_s}'"
-            else
-              super
-            end
-          when String
-            case sql_type
-            when /^bit/
-              case value
-              when /\A[01]*\Z/      then "B'#{value}'" # Bit-string notation
-              when /\A[0-9A-F]*\Z/i then "X'#{value}'" # Hexadecimal notation
-              end
             else
               super
             end
@@ -100,6 +88,12 @@ module ActiveRecord
             "'#{escape_bytea(value.to_s)}'"
           when OID::Xml::Data
             "xml '#{quote_string(value.to_s)}'"
+          when OID::Bit::Data
+            if value.binary?
+              "B'#{value}'"
+            elsif value.hex?
+              "X'#{value}'"
+            end
           else
             super
           end
@@ -112,7 +106,7 @@ module ActiveRecord
             # See http://deveiate.org/code/pg/PGconn.html#method-i-exec_prepared-doc
             # for more information
             { value: value.to_s, format: 1 }
-          when OID::Xml::Data
+          when OID::Xml::Data, OID::Bit::Data
             value.to_s
           else
             super

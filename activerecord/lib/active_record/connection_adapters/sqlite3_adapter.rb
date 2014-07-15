@@ -50,6 +50,16 @@ module ActiveRecord
       end
     end
 
+    class SQLite3String < Type::String # :nodoc:
+      def type_cast_for_database(value)
+        if value.is_a?(::String) && value.encoding == Encoding::ASCII_8BIT
+          value.encode(Encoding::UTF_8)
+        else
+          super
+        end
+      end
+    end
+
     # The SQLite3 adapter works SQLite 3.6.16 or newer
     # with the sqlite3-ruby drivers (available as gem from https://rubygems.org/gems/sqlite3).
     #
@@ -220,8 +230,18 @@ module ActiveRecord
       # QUOTING ==================================================
 
       def _quote(value) # :nodoc:
-        if value.is_a?(Type::Binary::Data)
+        case value
+        when Type::Binary::Data
           "x'#{value.hex}'"
+        else
+          super
+        end
+      end
+
+      def _type_cast(value) # :nodoc:
+        case value
+        when BigDecimal
+          value.to_f
         else
           super
         end
@@ -247,19 +267,6 @@ module ActiveRecord
         else
           super
         end
-      end
-
-      def type_cast(value, column) # :nodoc:
-        return value.to_f if BigDecimal === value
-        return super unless String === value
-        return super unless column && value
-
-        value = super
-        if column.type == :string && value.encoding == Encoding::ASCII_8BIT
-          logger.error "Binary data inserted for `string` type on column `#{column.name}`" if logger
-          value = value.encode Encoding::UTF_8
-        end
-        value
       end
 
       # DATABASE STATEMENTS ======================================
@@ -503,6 +510,7 @@ module ActiveRecord
         def initialize_type_map(m)
           super
           m.register_type(/binary/i, SQLite3Binary.new)
+          register_class_with_limit m, %r(char)i, SQLite3String
         end
 
         def select(sql, name = nil, binds = []) #:nodoc:

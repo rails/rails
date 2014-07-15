@@ -328,7 +328,8 @@ module RenderTestCases
     exception = assert_raises ActionView::Template::Error do
       @controller_view.render("partial_name_local_variable")
     end
-    assert_match "undefined local variable or method `partial_name_local_variable'", exception.message
+    assert_instance_of NameError, exception.original_exception
+    assert_equal :partial_name_local_variable, exception.original_exception.name
   end
 
   # TODO: The reason for this test is unclear, improve documentation

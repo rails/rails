@@ -3,6 +3,7 @@ unless File.exist?('Gemfile')
     source 'https://rubygems.org'
     gem 'rails', github: 'rails/rails'
     gem 'arel', github: 'rails/arel'
+    gem 'rack', github: 'rack/rack'
   GEMFILE
 
   system 'bundle'

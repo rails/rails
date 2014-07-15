@@ -93,9 +93,9 @@ The primary operation of `Model.find(options)` can be summarized as:
 
 Active Record provides several different ways of retrieving a single object.
 
-#### Using a Primary Key
+#### `find`
 
-Using `Model.find(primary_key)`, you can retrieve the object corresponding to the specified _primary key_ that matches any supplied options. For example:
+Using the `find` method, you can retrieve the object corresponding to the specified _primary key_ that matches any supplied options. For example:
 
 ```ruby
 # Find the client with primary key (id) 10.
@@ -109,11 +109,27 @@ The SQL equivalent of the above is:
 SELECT * FROM clients WHERE (clients.id = 10) LIMIT 1
 ```
 
-`Model.find(primary_key)` will raise an `ActiveRecord::RecordNotFound` exception if no matching record is found.
+The `find` method will raise an `ActiveRecord::RecordNotFound` exception if no matching record is found.
+
+You can also use this method to query for multiple objects. Call the `find` method and pass in an array of primary keys. The return will be an array containing all of the matching records for the supplied _primary keys_. For example:
+
+```ruby
+# Find the clients with primary keys 1 and 10.
+client = Client.find([1, 10]) # Or even Client.find(1, 10)
+# => [#<Client id: 1, first_name: "Lifo">, #<Client id: 10, first_name: "Ryan">]
+```
+
+The SQL equivalent of the above is:
+
+```sql
+SELECT * FROM clients WHERE (clients.id IN (1,10))
+```
+
+WARNING: The `find` method will raise an `ActiveRecord::RecordNotFound` exception unless a matching record is found for **all** of the supplied primary keys.
 
 #### `take`
 
-`Model.take` retrieves a record without any implicit ordering. For example:
+The `take` method retrieves a record without any implicit ordering. For example:
 
 ```ruby
 client = Client.take
@@ -126,13 +142,31 @@ The SQL equivalent of the above is:
 SELECT * FROM clients LIMIT 1
 ```
 
-`Model.take` returns `nil` if no record is found and no exception will be raised.
+The `take` method returns `nil` if no record is found and no exception will be raised.
+
+You can pass in a numerical argument to the `take` method to return up to that number of results. For example
+
+```ruby
+client = Client.take(2)
+# => [
+  #<Client id: 1, first_name: "Lifo">,
+  #<Client id: 220, first_name: "Sara">
+]
+```
+
+The SQL equivalent of the above is:
+
+```sql
+SELECT * FROM clients LIMIT 2
+```
+
+The `take!` method behaves exactly like `take`, except that it will raise `ActiveRecord::RecordNotFound` if no matching record is found.
 
 TIP: The retrieved record may vary depending on the database engine.
 
 #### `first`
 
-`Model.first` finds the first record ordered by the primary key. For example:
+The `first` method finds the first record ordered by the primary key. For example:
 
 ```ruby
 client = Client.first
@@ -145,11 +179,30 @@ The SQL equivalent of the above is:
 SELECT * FROM clients ORDER BY clients.id ASC LIMIT 1
 ```
 
-`Model.first` returns `nil` if no matching record is found and no exception will be raised.
+The `first` method returns `nil` if no matching record is found and no exception will be raised.
+
+You can pass in a numerical argument to the `first` method to return up to that number of results. For example
+
+```ruby
+client = Client.first(3)
+# => [
+  #<Client id: 1, first_name: "Lifo">,
+  #<Client id: 2, first_name: "Fifo">,
+  #<Client id: 3, first_name: "Filo">
+]
+```
+
+The SQL equivalent of the above is:
+
+```sql
+SELECT * FROM clients ORDER BY clients.id ASC LIMIT 3
+```
+
+The `first!` method behaves exactly like `first`, except that it will raise `ActiveRecord::RecordNotFound` if no matching record is found.
 
 #### `last`
 
-`Model.last` finds the last record ordered by the primary key. For example:
+The `last` method finds the last record ordered by the primary key. For example:
 
 ```ruby
 client = Client.last
@@ -162,11 +215,30 @@ The SQL equivalent of the above is:
 SELECT * FROM clients ORDER BY clients.id DESC LIMIT 1
 ```
 
-`Model.last` returns `nil` if no matching record is found and no exception will be raised.
+The `last` method returns `nil` if no matching record is found and no exception will be raised.
+
+You can pass in a numerical argument to the `last` method to return up to that number of results. For example
+
+```ruby
+client = Client.last(3)
+# => [
+  #<Client id: 219, first_name: "James">,
+  #<Client id: 220, first_name: "Sara">,
+  #<Client id: 221, first_name: "Russel">
+]
+```
+
+The SQL equivalent of the above is:
+
+```sql
+SELECT * FROM clients ORDER BY clients.id DESC LIMIT 3
+```
+
+The `last!` method behaves exactly like `last`, except that it will raise `ActiveRecord::RecordNotFound` if no matching record is found.
 
 #### `find_by`
 
-`Model.find_by` finds the first record matching some conditions. For example:
+The `find_by` method finds the first record matching some conditions. For example:
 
 ```ruby
 Client.find_by first_name: 'Lifo'
@@ -182,39 +254,18 @@ It is equivalent to writing:
 Client.where(first_name: 'Lifo').take
 ```
 
-#### `take!`
-
-`Model.take!` retrieves a record without any implicit ordering. For example:
+The `find_by!` method behaves exactly like `find_by`, except that it will raise `ActiveRecord::RecordNotFound` if no matching record is found. For example:
 
 ```ruby
-client = Client.take!
-# => #<Client id: 1, first_name: "Lifo">
+Client.find_by! first_name: 'does not exist'
+# => ActiveRecord::RecordNotFound
 ```
 
-The SQL equivalent of the above is:
-
-```sql
-SELECT * FROM clients LIMIT 1
-```
-
-`Model.take!` raises `ActiveRecord::RecordNotFound` if no matching record is found.
-
-#### `first!`
-
-`Model.first!` finds the first record ordered by the primary key. For example:
+This is equivalent to writing:
 
 ```ruby
-client = Client.first!
-# => #<Client id: 1, first_name: "Lifo">
+Client.where(first_name: 'does not exist').take!
 ```
-
-The SQL equivalent of the above is:
-
-```sql
-SELECT * FROM clients ORDER BY clients.id ASC LIMIT 1
-```
-
-`Model.first!` raises `ActiveRecord::RecordNotFound` if no matching record is found.
 
 #### `last!`
 
@@ -232,92 +283,6 @@ SELECT * FROM clients ORDER BY clients.id DESC LIMIT 1
 ```
 
 `Model.last!` raises `ActiveRecord::RecordNotFound` if no matching record is found.
-
-#### `find_by!`
-
-`Model.find_by!` finds the first record matching some conditions. It raises `ActiveRecord::RecordNotFound` if no matching record is found. For example:
-
-```ruby
-Client.find_by! first_name: 'Lifo'
-# => #<Client id: 1, first_name: "Lifo">
-
-Client.find_by! first_name: 'Jon'
-# => ActiveRecord::RecordNotFound
-```
-
-It is equivalent to writing:
-
-```ruby
-Client.where(first_name: 'Lifo').take!
-```
-
-### Retrieving Multiple Objects
-
-#### Using Multiple Primary Keys
-
-`Model.find(array_of_primary_key)` accepts an array of _primary keys_, returning an array containing all of the matching records for the supplied _primary keys_. For example:
-
-```ruby
-# Find the clients with primary keys 1 and 10.
-client = Client.find([1, 10]) # Or even Client.find(1, 10)
-# => [#<Client id: 1, first_name: "Lifo">, #<Client id: 10, first_name: "Ryan">]
-```
-
-The SQL equivalent of the above is:
-
-```sql
-SELECT * FROM clients WHERE (clients.id IN (1,10))
-```
-
-WARNING: `Model.find(array_of_primary_key)` will raise an `ActiveRecord::RecordNotFound` exception unless a matching record is found for **all** of the supplied primary keys.
-
-#### take
-
-`Model.take(limit)` retrieves the first number of records specified by `limit` without any explicit ordering:
-
-```ruby
-Client.take(2)
-# => [#<Client id: 1, first_name: "Lifo">,
-      #<Client id: 2, first_name: "Raf">]
-```
-
-The SQL equivalent of the above is:
-
-```sql
-SELECT * FROM clients LIMIT 2
-```
-
-#### first
-
-`Model.first(limit)` finds the first number of records specified by `limit` ordered by primary key:
-
-```ruby
-Client.first(2)
-# => [#<Client id: 1, first_name: "Lifo">,
-      #<Client id: 2, first_name: "Raf">]
-```
-
-The SQL equivalent of the above is:
-
-```sql
-SELECT * FROM clients ORDER BY id ASC LIMIT 2
-```
-
-#### last
-
-`Model.last(limit)` finds the number of records specified by `limit` ordered by primary key in descending order:
-
-```ruby
-Client.last(2)
-# => [#<Client id: 10, first_name: "Ryan">,
-      #<Client id: 9, first_name: "John">]
-```
-
-The SQL equivalent of the above is:
-
-```sql
-SELECT * FROM clients ORDER BY id DESC LIMIT 2
-```
 
 ### Retrieving Multiple Objects in Batches
 
@@ -344,7 +309,15 @@ The `find_each` method retrieves a batch of records and then yields _each_ recor
 
 ```ruby
 User.find_each do |user|
-  NewsLetter.weekly_deliver(user)
+  NewsMailer.weekly(user).deliver
+end
+```
+
+To add conditions to a `find_each` operation you can chain other Active Record methods such as `where`:
+
+```ruby
+User.where(weekly_subscriber: true).find_each do |user|
+  NewsMailer.weekly(user).deliver
 end
 ```
 
@@ -707,7 +680,7 @@ Overriding Conditions
 You can specify certain conditions to be removed using the `unscope` method. For example:
 
 ```ruby
-Article.where('id > 10').limit(20).order('id asc').except(:order)
+Article.where('id > 10').limit(20).order('id asc').unscope(:order)
 ```
 
 The SQL that would be executed:
@@ -720,7 +693,7 @@ SELECT * FROM articles WHERE id > 10 ORDER BY id asc LIMIT 20
 
 ```
 
-You can additionally unscope specific where clauses. For example:
+You can also unscope specific `where` clauses. For example:
 
 ```ruby
 Article.where(id: 10, trashed: false).unscope(where: :id)
@@ -759,8 +732,6 @@ The `reorder` method overrides the default scope order. For example:
 
 ```ruby
 class Article < ActiveRecord::Base
-  ..
-  ..
   has_many :comments, -> { order('posted_at DESC') }
 end
 
@@ -1487,6 +1458,11 @@ If you'd like to use your own SQL to find records in a table you can use `find_b
 Client.find_by_sql("SELECT * FROM clients
   INNER JOIN orders ON clients.id = orders.client_id
   ORDER BY clients.created_at desc")
+# =>  [
+  #<Client id: 1, first_name: "Lucas" >,
+  #<Client id: 2, first_name: "Jan" >,
+  # ...
+]
 ```
 
 `find_by_sql` provides you with a simple way of making custom calls to the database and retrieving instantiated objects.
@@ -1496,7 +1472,11 @@ Client.find_by_sql("SELECT * FROM clients
 `find_by_sql` has a close relative called `connection#select_all`. `select_all` will retrieve objects from the database using custom SQL just like `find_by_sql` but will not instantiate them. Instead, you will get an array of hashes where each hash indicates a record.
 
 ```ruby
-Client.connection.select_all("SELECT * FROM clients WHERE id = '1'")
+Client.connection.select_all("SELECT first_name, created_at FROM clients WHERE id = '1'")
+# => [
+  {"first_name"=>"Rafael", "created_at"=>"2012-11-10 23:23:45.281189"},
+  {"first_name"=>"Eileen", "created_at"=>"2013-12-09 11:22:35.221282"}
+]
 ```
 
 ### `pluck`

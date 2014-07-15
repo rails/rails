@@ -13,14 +13,21 @@ module ActiveRecord
     end
 
     def self.create(macro, name, scope, options, ar)
-      case macro
-      when :has_many, :belongs_to, :has_one
-        klass = options[:through] ? ThroughReflection : AssociationReflection
-      when :composed_of
-        klass = AggregateReflection
-      end
+      klass = case macro
+              when :composed_of
+                AggregateReflection
+              when :has_many
+                HasManyReflection
+              when :has_one
+                HasOneReflection
+              when :belongs_to
+                BelongsToReflection
+              else
+                raise "Unsupported Macro: #{macro}"
+              end
 
-      klass.new(macro, name, scope, options, ar)
+      reflection = klass.new(name, scope, options, ar)
+      options[:through] ? ThroughReflection.new(reflection) : reflection
     end
 
     def self.add_reflection(ar, name, reflection)
@@ -110,6 +117,52 @@ module ActiveRecord
       end
     end
 
+    # Holds all the methods that are shared between MacroReflection, AssociationReflection
+    # and ThroughReflection
+    class AbstractReflection # :nodoc:
+      def table_name
+        klass.table_name
+      end
+
+      # Returns a new, unsaved instance of the associated class. +attributes+ will
+      # be passed to the class's constructor.
+      def build_association(attributes, &block)
+        klass.new(attributes, &block)
+      end
+
+      def quoted_table_name
+        klass.quoted_table_name
+      end
+
+      def primary_key_type
+        klass.type_for_attribute(klass.primary_key)
+      end
+
+      # Returns the class name for the macro.
+      #
+      # <tt>composed_of :balance, class_name: 'Money'</tt> returns <tt>'Money'</tt>
+      # <tt>has_many :clients</tt> returns <tt>'Client'</tt>
+      def class_name
+        @class_name ||= (options[:class_name] || derive_class_name).to_s
+      end
+
+      JoinKeys = Struct.new(:key, :foreign_key) # :nodoc:
+
+      def join_keys(assoc_klass)
+        if source_macro == :belongs_to
+          if polymorphic?
+            reflection_key = association_primary_key(assoc_klass)
+          else
+            reflection_key = association_primary_key
+          end
+          reflection_foreign_key = foreign_key
+        else
+          reflection_foreign_key = active_record_primary_key
+          reflection_key = foreign_key
+        end
+        JoinKeys.new(reflection_key, reflection_foreign_key)
+      end
+    end
     # Base class for AggregateReflection and AssociationReflection. Objects of
     # AggregateReflection and AssociationReflection are returned by the Reflection::ClassMethods.
     #
@@ -117,7 +170,7 @@ module ActiveRecord
     #     AggregateReflection
     #     AssociationReflection
     #       ThroughReflection
-    class MacroReflection
+    class MacroReflection < AbstractReflection
       # Returns the name of the macro.
       #
       # <tt>composed_of :balance, class_name: 'Money'</tt> returns <tt>:balance</tt>
@@ -142,8 +195,7 @@ module ActiveRecord
 
       attr_reader :plural_name # :nodoc:
 
-      def initialize(macro, name, scope, options, active_record)
-        @macro         = macro
+      def initialize(name, scope, options, active_record)
         @name          = name
         @scope         = scope
         @options       = options
@@ -167,15 +219,11 @@ module ActiveRecord
       # <tt>composed_of :balance, class_name: 'Money'</tt> returns the Money class
       # <tt>has_many :clients</tt> returns the Client class
       def klass
-        @klass ||= class_name.constantize
+        @klass ||= compute_class(class_name)
       end
 
-      # Returns the class name for the macro.
-      #
-      # <tt>composed_of :balance, class_name: 'Money'</tt> returns <tt>'Money'</tt>
-      # <tt>has_many :clients</tt> returns <tt>'Client'</tt>
-      def class_name
-        @class_name ||= (options[:class_name] || derive_class_name).to_s
+      def compute_class(name)
+        name.constantize
       end
 
       # Returns +true+ if +self+ and +other_aggregation+ have the same +name+ attribute, +active_record+ attribute,
@@ -186,23 +234,6 @@ module ActiveRecord
           name == other_aggregation.name &&
           !other_aggregation.options.nil? &&
           active_record == other_aggregation.active_record
-      end
-
-      JoinKeys = Struct.new(:key, :foreign_key) # :nodoc:
-
-      def join_keys(assoc_klass)
-        if source_macro == :belongs_to
-          if polymorphic?
-            reflection_key = association_primary_key(assoc_klass)
-          else
-            reflection_key = association_primary_key
-          end
-          reflection_foreign_key = foreign_key
-        else
-          reflection_key = foreign_key
-          reflection_foreign_key = active_record_primary_key
-        end
-        JoinKeys.new(reflection_key, reflection_foreign_key)
       end
 
       private
@@ -237,15 +268,18 @@ module ActiveRecord
       # a new association object. Use +build_association+ or +create_association+
       # instead. This allows plugins to hook into association object creation.
       def klass
-        @klass ||= active_record.send(:compute_type, class_name)
+        @klass ||= compute_class(class_name)
+      end
+
+      def compute_class(name)
+        active_record.send(:compute_type, name)
       end
 
       attr_reader :type, :foreign_type
       attr_accessor :parent_reflection # [:name, Reflection]
 
-      def initialize(macro, name, scope, options, active_record)
+      def initialize(name, scope, options, active_record)
         super
-        @collection = macro == :has_many
         @automatic_inverse_of = nil
         @type         = options[:as] && "#{options[:as]}_type"
         @foreign_type = options[:foreign_type] || "#{name}_type"
@@ -264,22 +298,8 @@ module ActiveRecord
         }
       end
 
-      # Returns a new, unsaved instance of the associated class. +attributes+ will
-      # be passed to the class's constructor.
-      def build_association(attributes, &block)
-        klass.new(attributes, &block)
-      end
-
       def constructable? # :nodoc:
         @constructable
-      end
-
-      def table_name
-        klass.table_name
-      end
-
-      def quoted_table_name
-        klass.quoted_table_name
       end
 
       def join_table
@@ -288,10 +308,6 @@ module ActiveRecord
 
       def foreign_key
         @foreign_key ||= options[:foreign_key] || derive_foreign_key
-      end
-
-      def primary_key_type
-        klass.type_for_attribute(klass.primary_key)
       end
 
       def association_foreign_key
@@ -396,7 +412,7 @@ Joining, Preloading and eager loading of these associations is deprecated and wi
       # association. Returns +true+ if the +macro+ is either +has_many+ or
       # +has_and_belongs_to_many+, +false+ otherwise.
       def collection?
-        @collection
+        false
       end
 
       # Returns whether or not the association should be validated as part of
@@ -560,22 +576,57 @@ Joining, Preloading and eager loading of these associations is deprecated and wi
         end
     end
 
+    class HasManyReflection < AssociationReflection #:nodoc:
+      def initialize(name, scope, options, active_record)
+        @macro = :has_many
+        super(name, scope, options, active_record)
+      end
+
+      def collection?
+        true
+      end
+    end
+
+    class HasOneReflection < AssociationReflection #:nodoc:
+      def initialize(name, scope, options, active_record)
+        @macro = :has_one
+        super(name, scope, options, active_record)
+      end
+    end
+
+    class BelongsToReflection < AssociationReflection #:nodoc:
+      def initialize(name, scope, options, active_record)
+        @macro = :belongs_to
+        super(name, scope, options, active_record)
+      end
+    end
+
     class HasAndBelongsToManyReflection < AssociationReflection #:nodoc:
-      def initialize(macro, name, scope, options, active_record)
+      def initialize(name, scope, options, active_record)
+        @macro = :has_and_belongs_to_many
         super
-        @collection = true
+      end
+
+      def collection?
+        true
       end
     end
 
     # Holds all the meta-data about a :through association as it was specified
     # in the Active Record class.
-    class ThroughReflection < AssociationReflection #:nodoc:
+    class ThroughReflection < AbstractReflection #:nodoc:
+      attr_reader :delegate_reflection
       delegate :foreign_key, :foreign_type, :association_foreign_key,
                :active_record_primary_key, :type, :to => :source_reflection
 
-      def initialize(macro, name, scope, options, active_record)
-        super
-        @source_reflection_name = options[:source]
+      def initialize(delegate_reflection)
+        @delegate_reflection = delegate_reflection
+        @klass         = delegate_reflection.options[:class]
+        @source_reflection_name = delegate_reflection.options[:source]
+      end
+
+      def klass
+        @klass ||= delegate_reflection.compute_class(class_name)
       end
 
       # Returns the source of the through reflection. It checks both a singularized
@@ -777,15 +828,25 @@ directive on your declaration like:
 
       protected
 
-      def actual_source_reflection # FIXME: this is a horrible name
-        source_reflection.actual_source_reflection
-      end
+        def actual_source_reflection # FIXME: this is a horrible name
+          source_reflection.send(:actual_source_reflection)
+        end
+
+        def primary_key(klass)
+          klass.primary_key || raise(UnknownPrimaryKey.new(klass))
+        end
 
       private
         def derive_class_name
           # get the class_name of the belongs_to association of the through reflection
           options[:source_type] || source_reflection.class_name
         end
+
+        delegate_methods = AssociationReflection.public_instance_methods -
+          public_instance_methods
+
+        delegate(*delegate_methods, to: :delegate_reflection)
+
     end
   end
 end

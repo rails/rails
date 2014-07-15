@@ -23,7 +23,7 @@ module ActiveModel
   #     attr_reader   :errors
   #
   #     def validate!
-  #       errors.add(:name, "cannot be nil") if name == nil
+  #       errors.add(:name, "cannot be nil") if name.nil?
   #     end
   #
   #     # The following methods are needed to be minimally implemented

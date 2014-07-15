@@ -394,7 +394,7 @@ module ActionMailer
   #   implement for a custom delivery agent.
   #
   # * <tt>perform_deliveries</tt> - Determines whether emails are actually sent from Action Mailer when you
-  #   call <tt>.deliver</tt> on an mail message or on an Action Mailer method. This is on by default but can
+  #   call <tt>.deliver</tt> on an email message or on an Action Mailer method. This is on by default but can
   #   be turned off to aid in functional testing.
   #
   # * <tt>deliveries</tt> - Keeps an array of all the emails sent out through the Action Mailer with
