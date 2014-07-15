@@ -26,8 +26,6 @@ require 'active_model'
 require 'active_record'
 require 'action_controller/caching'
 
-require 'rails-dom-testing'
-
 require 'pp' # require 'pp' early to prevent hidden_methods from not picking up the pretty-print methods until too late
 
 module Rails
@@ -107,7 +105,6 @@ end
 module ActiveSupport
   class TestCase
     include ActionDispatch::DrawOnce
-    include Rails::Dom::Testing::Assertions
   end
 end
 
