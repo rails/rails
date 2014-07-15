@@ -1,3 +1,8 @@
+*   Calling `#empty?` on a `has_many` association would use the value from the
+    counter cache if one exists.
+
+    *David Verhasselt*
+
 *   Fix the schema dump generated for tables without constraints and with
     primary key with default value of custom PostgreSQL function result.
 
