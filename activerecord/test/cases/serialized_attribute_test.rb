@@ -81,9 +81,18 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     assert_equal(my_post.title, t.content["title"])
   end
 
-  # This is to ensure that the JSON coder is behaving the same way as 4.0, but
-  # we can consider changing this in the future.
-  def test_json_db_null
+  def test_json_read_legacy_null
+    Topic.serialize :content, JSON
+
+    # Force a row to have a JSON "null" instead of a database NULL (this is how
+    # null values are saved on 4.1 and before)
+    id = Topic.connection.insert "INSERT INTO topics (content) VALUES('null')"
+    t = Topic.find(id)
+
+    assert_nil t.content
+  end
+
+  def test_json_read_db_null
     Topic.serialize :content, JSON
 
     # Force a row to have a database NULL instead of a JSON "null"
@@ -91,12 +100,6 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     t = Topic.find(id)
 
     assert_nil t.content
-
-    t.save!
-
-    # On 4.0, re-saving a row with a database NULL will turn that into a JSON
-    # "null"
-    assert_equal 1, Topic.where("content = 'null'").count
   end
 
   def test_serialized_attribute_declared_in_subclass

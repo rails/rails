@@ -52,6 +52,11 @@ Upgrading from Rails 4.1 to Rails 4.2
 
 NOTE: This section is a work in progress.
 
+### Serialized attributes
+
+When assigning `nil` to a serialized attribute, it will be saved to the database
+as `NULL` instead of passing the `nil` value through the coder (e.g. `"null"`
+when using the `JSON` coder).
 
 Upgrading from Rails 4.0 to Rails 4.1
 -------------------------------------
