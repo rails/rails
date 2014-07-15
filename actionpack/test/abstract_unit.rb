@@ -318,7 +318,7 @@ module ActionDispatch
 
     def request_path_params(path, method: 'GET')
       resp = send_request URI('http://localhost' + path), method.to_s.upcase, nil
-      status, headers, body = *resp
+      status = resp.first
       if status == 404
         raise ActionController::RoutingError, "No route matches #{path.inspect}"
       end
