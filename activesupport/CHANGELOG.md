@@ -1,3 +1,10 @@
+*   Deprecate `capture` and `quietly`.
+
+    These methods are not thread safe and may cause issues when used in threaded environments.
+    To avoid problems we are deprecating them.
+
+    *Tom Meier*
+
 *   `DateTime#to_f` now preserves the fractional seconds instead of always
     rounding to `.0`.
 
