@@ -22,6 +22,14 @@ module ActiveModel
   module Conversion
     extend ActiveSupport::Concern
 
+    included do
+      include ActiveModel::Identity
+
+      def key_attributes
+        respond_to?(:id) ? [:id] : []
+      end
+    end
+
     # If your object is already designed to implement all of the Active Model
     # you can use the default <tt>:to_model</tt> implementation, which simply
     # returns +self+.
@@ -38,21 +46,6 @@ module ActiveModel
     # your object with Active Model compliant methods.
     def to_model
       self
-    end
-
-    # Returns an Array of all key attributes if any is set, regardless if
-    # the object is persisted or not. Returns +nil+ if there are no key attributes.
-    #
-    #   class Person
-    #     include ActiveModel::Conversion
-    #     attr_accessor :id
-    #   end
-    #
-    #   person = Person.create(id: 1)
-    #   person.to_key # => [1]
-    def to_key
-      key = respond_to?(:id) && id
-      key ? [key] : nil
     end
 
     # Returns a +string+ representing the object's key suitable for use in URLs,
