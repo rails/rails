@@ -17,7 +17,7 @@ module ActiveModel
   # * Call <tt>changes_applied</tt> after the changes are persisted.
   # * Call <tt>clear_changes_information</tt> when you want to reset the changes
   #   information.
-  # * Call <tt>undo_changes</tt> when you want to restore previous data.
+  # * Call <tt>restore_attributes</tt> when you want to restore previous data.
   #
   # A minimal implementation could be:
   #
@@ -48,7 +48,7 @@ module ActiveModel
   #     end
   #
   #     def rollback!
-  #       undo_changes
+  #       restore_attributes
   #     end
   #   end
   #
@@ -116,6 +116,7 @@ module ActiveModel
     included do
       attribute_method_suffix '_changed?', '_change', '_will_change!', '_was'
       attribute_method_affix prefix: 'reset_', suffix: '!'
+      attribute_method_affix prefix: 'restore_', suffix: '!'
     end
 
     # Returns +true+ if any attribute have unsaved changes, +false+ otherwise.
@@ -199,8 +200,8 @@ module ActiveModel
       end
 
       # Restore all previous data.
-      def undo_changes # :doc:
-        changed_attributes.each_key { |attr| reset_attribute! attr }
+      def restore_attributes # :doc:
+        changed_attributes.each_key { |attr| restore_attribute! attr }
       end
 
       # Handle <tt>*_change</tt> for +method_missing+.
@@ -223,6 +224,13 @@ module ActiveModel
 
       # Handle <tt>reset_*!</tt> for +method_missing+.
       def reset_attribute!(attr)
+        ActiveSupport::Deprecation.warn "#reset_#{attr}! is deprecated and will be removed on Rails 5. Please use #restore_#{attr}! instead."
+
+        restore_attribute!(attr)
+      end
+
+      # Handle <tt>restore_*!</tt> for +method_missing+.
+      def restore_attribute!(attr)
         if attribute_changed?(attr)
           __send__("#{attr}=", changed_attributes[attr])
           changed_attributes.delete(attr)
