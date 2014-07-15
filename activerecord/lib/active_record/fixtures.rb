@@ -2,7 +2,7 @@ require 'erb'
 require 'yaml'
 require 'zlib'
 require 'active_support/dependencies'
-require 'active_support/core_ext/securerandom'
+require 'active_support/core_ext/digest/uuid'
 require 'active_record/fixture_set/file'
 require 'active_record/errors'
 
@@ -551,7 +551,7 @@ module ActiveRecord
     # Integer identifiers are values less than 2^30. UUIDs are RFC 4122 version 5 SHA-1 hashes.
     def self.identify(label, column_type = :integer)
       if column_type == :uuid
-        SecureRandom.uuid_v5(SecureRandom::UUID_OID_NAMESPACE, label.to_s)
+        Digest::UUID.uuid_v5(Digest::UUID::OID_NAMESPACE, label.to_s)
       else
         Zlib.crc32(label.to_s) % MAX_ID
       end

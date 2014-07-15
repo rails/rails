@@ -160,7 +160,7 @@
 
     *Bogdan Gusiev*
 
-*   Add `SecureRandom::uuid_v3` and `SecureRandom::uuid_v5` to support stable
+*   Add `Digest::UUID::uuid_v3` and `Digest::UUID::uuid_v5` to support stable
     UUID fixtures on PostgreSQL.
 
     *Roderick van Domburg*
