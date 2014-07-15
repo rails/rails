@@ -989,5 +989,89 @@ module ApplicationTests
 
       assert_equal Rails.application.config.action_mailer.show_previews, true
     end
+
+    test "config_for loads custom configuration from yaml files" do
+      app_file 'config/custom.yml', <<-RUBY
+      development:
+        key: 'custom key'
+      RUBY
+
+      add_to_config <<-RUBY
+        config.my_custom_config = config_for('custom')
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      assert_equal 'custom key', Rails.application.config.my_custom_config['key']
+    end
+
+    test "config_for raises an exception if the file does not exist" do
+      add_to_config <<-RUBY
+        config.my_custom_config = config_for('custom')
+      RUBY
+
+      exception = assert_raises(RuntimeError) do
+        require "#{app_path}/config/environment"
+      end
+
+      assert_equal "Could not load configuration. No such file - #{app_path}/config/custom.yml", exception.message
+    end
+
+    test "config_for without the environment configured returns an empty hash" do
+      app_file 'config/custom.yml', <<-RUBY
+      test:
+        key: 'custom key'
+      RUBY
+
+      add_to_config <<-RUBY
+        config.my_custom_config = config_for('custom')
+      RUBY
+      require "#{app_path}/config/environment"
+
+      assert_equal({}, Rails.application.config.my_custom_config)
+    end
+
+    test "config_for with empty file returns an empty hash" do
+      app_file 'config/custom.yml', <<-RUBY
+      RUBY
+
+      add_to_config <<-RUBY
+        config.my_custom_config = config_for('custom')
+      RUBY
+      require "#{app_path}/config/environment"
+
+      assert_equal({}, Rails.application.config.my_custom_config)
+    end
+
+    test "config_for containing ERB tags should evaluate" do
+      app_file 'config/custom.yml', <<-RUBY
+      development:
+        key: <%= 'custom key' %>
+      RUBY
+
+      add_to_config <<-RUBY
+        config.my_custom_config = config_for('custom')
+      RUBY
+      require "#{app_path}/config/environment"
+
+      assert_equal 'custom key', Rails.application.config.my_custom_config['key']
+    end
+
+    test "config_for with syntax error show a more descritive exception" do
+      app_file 'config/custom.yml', <<-RUBY
+      development:
+        key: foo:
+      RUBY
+
+      add_to_config <<-RUBY
+        config.my_custom_config = config_for('custom')
+      RUBY
+
+      exception = assert_raises(RuntimeError) do
+        require "#{app_path}/config/environment"
+      end
+
+      assert_match 'YAML syntax error occurred while parsing', exception.message
+    end
   end
 end
