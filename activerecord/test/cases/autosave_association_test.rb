@@ -674,8 +674,10 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
   end
 
   def test_should_rollback_destructions_if_an_exception_occurred_while_saving_a_child
+    @pirate.parrot = Parrot.new
+
     # Stub the save method of the @pirate.ship instance to destroy and then raise an exception
-    class << @pirate.ship
+    class << @pirate.parrot
       def save(*args)
         super
         destroy
@@ -683,7 +685,7 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
       end
     end
 
-    @ship.pirate.catchphrase = "Changed Catchphrase"
+    @pirate.parrot.name = 'Changed name'
 
     assert_raise(RuntimeError) { assert !@pirate.save }
     assert_not_nil @pirate.reload.ship
