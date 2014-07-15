@@ -1,3 +1,9 @@
+*   Do not use `RENAME INDEX` syntax for MariaDB 10.0.
+
+    Fixes #15931.
+
+    *Jeff Browning*
+
 *   Calling `#empty?` on a `has_many` association would use the value from the
     counter cache if one exists.
 
