@@ -558,9 +558,9 @@ module ActiveRecord
         rows
       end
 
-      # Returns the version of the connected MySQL server.
-      def version
-        @version ||= @connection.server_info.scan(/^(\d+)\.(\d+)\.(\d+)/).flatten.map { |v| v.to_i }
+      # Returns the full version of the connected MySQL server.
+      def full_version
+        @full_version ||= @connection.server_info
       end
 
       def set_field_encoding field_name

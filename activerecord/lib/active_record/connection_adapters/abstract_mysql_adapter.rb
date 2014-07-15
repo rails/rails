@@ -489,7 +489,7 @@ module ActiveRecord
       end
 
       def rename_index(table_name, old_name, new_name)
-        if (version[0] == 5 && version[1] >= 7) || version[0] >= 6
+        if supports_rename_index?
           execute "ALTER TABLE #{quote_table_name(table_name)} RENAME INDEX #{quote_table_name(old_name)} TO #{quote_table_name(new_name)}"
         else
           super
@@ -727,8 +727,20 @@ module ActiveRecord
 
       private
 
+      def version
+        @version ||= full_version.scan(/^(\d+)\.(\d+)\.(\d+)/).flatten.map { |v| v.to_i }
+      end
+
+      def mariadb?
+        full_version =~ /mariadb/i
+      end
+
       def supports_views?
         version[0] >= 5
+      end
+
+      def supports_rename_index?
+        mariadb? ? false : (version[0] == 5 && version[1] >= 7) || version[0] >= 6
       end
 
       def column_for(table_name, column_name)

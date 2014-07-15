@@ -1,3 +1,9 @@
+*   Do not use `RENAME INDEX` syntax for MariaDB 10.0.
+
+    Fixes #15931.
+
+    *Jeff Browning*
+
 *   Allow included modules to override association methods.
 
     Fixes #16684.
