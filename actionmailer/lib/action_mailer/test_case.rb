@@ -1,4 +1,5 @@
 require 'active_support/test_case'
+require 'rails-dom-testing'
 
 module ActionMailer
   class NonInferrableMailerError < ::StandardError
@@ -15,6 +16,7 @@ module ActionMailer
 
       include ActiveSupport::Testing::ConstantLookup
       include TestHelper
+      include Rails::Dom::Testing::Assertions::SelectorAssertions
 
       included do
         class_attribute :_mailer_class

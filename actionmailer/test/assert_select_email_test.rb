@@ -1,9 +1,6 @@
 require 'abstract_unit'
-require 'rails-dom-testing'
 
 class AssertSelectEmailTest < ActionMailer::TestCase
-  include Rails::Dom::Testing::Assertions::SelectorAssertions
-
   class AssertSelectMailer < ActionMailer::Base
     def test(html)
       mail body: html, content_type: "text/html",
