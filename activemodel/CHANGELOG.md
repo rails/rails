@@ -1,3 +1,10 @@
+*   Deprecate `ActiveModel::Dirty#reset_changes` in favor of `#clear_changes_information`.
+
+    This method name is causing confusion with the `reset_#{attribute}`
+    methods. While `reset_name` set the value of the name attribute for the
+    previous value `reset_changes` only discard the changes and previous
+    changes. 
+
 *   Added `undo_changes` method to `ActiveModel::Dirty` API to restore all the
     changed values to the previous data.
 

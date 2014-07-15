@@ -15,7 +15,7 @@ module ActiveModel
   # * Call <tt>attr_name_will_change!</tt> before each change to the tracked
   #   attribute.
   # * Call <tt>changes_applied</tt> after the changes are persisted.
-  # * Call <tt>reset_changes</tt> when you want to reset the changes
+  # * Call <tt>clear_changes_information</tt> when you want to reset the changes
   #   information.
   # * Call <tt>undo_changes</tt> when you want to restore previous data.
   #
@@ -37,11 +37,14 @@ module ActiveModel
   #
   #     def save
   #       # do persistence work
+  #
   #       changes_applied
   #     end
   #
   #     def reload!
-  #       reset_changes
+  #       # get the values from the persistence layer
+  #
+  #       clear_changes_information
   #     end
   #
   #     def rollback!
@@ -184,10 +187,15 @@ module ActiveModel
         @changed_attributes = ActiveSupport::HashWithIndifferentAccess.new
       end
 
-      # Removes all dirty data: current changes and previous changes.
-      def reset_changes # :doc:
+      # Clear all dirty data: current changes and previous changes.
+      def clear_changes_information # :doc:
         @previously_changed = ActiveSupport::HashWithIndifferentAccess.new
         @changed_attributes = ActiveSupport::HashWithIndifferentAccess.new
+      end
+
+      def reset_changes
+        ActiveSupport::Deprecation.warn "#reset_changes is deprecated and will be removed on Rails 5. Please use #clear_changes_information instead."
+        clear_changes_information
       end
 
       # Restore all previous data.
