@@ -190,7 +190,6 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_highlight_pending
-    skip "Pending. Nokogiri parses a blank string, sees no elements and then returns ''"
     assert_equal '   ', highlight('   ', 'blank text is returned verbatim')
   end
 

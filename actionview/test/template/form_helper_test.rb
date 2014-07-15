@@ -2921,8 +2921,6 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_fields_for_with_labelled_builder
-    skip "Pending. I think that there's an output error: 'unknown encoding ASCII-8BIT' in here, which makes Loofah return an empty string. Related: https://github.com/sparklemotion/nokogiri/issues/553"
-
     output_buffer = fields_for(:post, @post, builder: LabelledFormBuilder) do |f|
       concat f.text_field(:title)
       concat f.text_area(:body)
