@@ -144,11 +144,11 @@ module ActionView
         end
 
         def sanitized_allowed_tags
-          Rails::Html::WhiteListSanitizer.allowed_tags
+          sanitizer_vendor.white_list_sanitizer.allowed_tags
         end
 
         def sanitized_allowed_attributes
-          Rails::Html::WhiteListSanitizer.allowed_attributes
+          sanitizer_vendor.white_list_sanitizer.allowed_attributes
         end
 
         # Gets the Rails::Html::FullSanitizer instance used by +strip_tags+. Replace with
@@ -191,7 +191,7 @@ module ActionView
         #   end
         #
         def sanitized_allowed_tags=(tags)
-          Rails::Html::WhiteListSanitizer.allowed_tags = tags
+          sanitizer_vendor.white_list_sanitizer.allowed_tags = tags
         end
 
         # Replaces the allowed HTML attributes for the +sanitize+ helper.
@@ -201,7 +201,7 @@ module ActionView
         #   end
         #
         def sanitized_allowed_attributes=(attributes)
-          Rails::Html::WhiteListSanitizer.allowed_attributes = attributes
+          sanitizer_vendor.white_list_sanitizer.allowed_attributes = attributes
         end
       end
     end
