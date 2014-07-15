@@ -1,3 +1,10 @@
+*   Fix has_many :through relation merging failing when dynamic conditions are
+    passed as a lambda with an arity of one.
+
+    Fixes #16128
+
+    *Agis Anastasopoulos*
+
 *   Fixed the `Relation#exists?` to work with polymorphic associations.
 
     Fixes #15821.
