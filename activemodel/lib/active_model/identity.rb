@@ -36,21 +36,12 @@ module ActiveModel
   #
   # The only requirement is that your object responds to +id+.
   module Identity
-    # Returns an Array of Symbols, which correspond to the attribute names used
-    # for identity checking. For example, if your models are unique by first
-    # last name, this method could be overridden:
-    #
-    #   class Person
-    #     include ActiveModel::Identity
-    #     def key_attributes
-    #       [:first, :last]
-    #     end
-    #   end
-    #
-    #   person = Person.create(first: 'John', last: 'Smith')
-    #   person.to_key # => ['John', 'Smith']
-    def key_attributes
-      []
+    extend ActiveSupport::Concern
+
+    included do
+      class_attribute :key_attribute_names
+      # Defaults to no attributes.
+      self.key_attribute_names = []
     end
 
     # Returns an Array of all key attributes if any is set, regardless if
@@ -64,7 +55,13 @@ module ActiveModel
     #   person = Person.create(id: 1)
     #   person.to_key # => [1]
     def to_key
-      keys = key_attributes.map { |attribute| send(attribute) }
+      keys = self.class.key_attributes.map do |attribute|
+        if respond_to?(attribute)
+          send(attribute)
+        else
+          nil
+        end
+      end
       keys.any? ? keys : nil
     end
 
@@ -93,6 +90,28 @@ module ActiveModel
         key.hash
       else
         super
+      end
+    end
+
+    module ClassMethods
+      # Sets or returns the symbols of attribute names which should be used for
+      # identity checking. For example, if your models are unique by first and
+      # last name, this could be set to use +:first+ and +:last+:
+      #
+      #   class Person
+      #     include ActiveModel::Identity
+      #     key_attributes :first, :last
+      #   end
+      #
+      #   Person.key_attributes # => [:first, :last]
+      #   person = Person.create(first: 'John', last: 'Smith')
+      #   person.to_key # => ['John', 'Smith']
+      def key_attributes(*attrs)
+        if attrs.length == 0
+          self.key_attribute_names
+        else
+          self.key_attribute_names = attrs
+        end
       end
     end
   end

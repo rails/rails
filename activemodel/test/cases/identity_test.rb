@@ -11,9 +11,7 @@ class IdentityTest < ActiveModel::TestCase
   end
 
   class IdentityKeysModel < IdentityModel
-    def key_attributes
-      [:attr]
-    end
+    key_attributes :attr
   end
 
   test "to_key default implementation returns nil for new records" do

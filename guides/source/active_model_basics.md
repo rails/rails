@@ -182,6 +182,7 @@ class User
   include ActiveModel::Identity
 
   attr_accessor :id
+  key_attributes :id
 end
 ```
 
@@ -247,7 +248,7 @@ person.valid?                        # => raises ActiveModel::StrictValidationFa
 ### ActiveModel::Naming
 
 Naming adds a number of class methods which make the naming and routing
-easier to manage. The module defines the `model_name` class method which 
+easier to manage. The module defines the `model_name` class method which
 will define a number of accessors using some `ActiveSupport::Inflector` methods.
 
 ```ruby

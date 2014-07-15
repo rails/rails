@@ -1,4 +1,4 @@
-*   Add an `ActiveModel::Identity` mixin for comparisons of objects by ID.
+*   Add an `ActiveModel::Identity` mixin for comparisons of objects by defined key attributes.
 
     *Aidan Feldman*
 

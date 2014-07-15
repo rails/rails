@@ -25,9 +25,7 @@ module ActiveModel
     included do
       include ActiveModel::Identity
 
-      def key_attributes
-        respond_to?(:id) ? [:id] : []
-      end
+      key_attributes :id
     end
 
     # If your object is already designed to implement all of the Active Model
