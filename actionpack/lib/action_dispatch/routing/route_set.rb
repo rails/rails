@@ -391,8 +391,9 @@ module ActionDispatch
               delegate :url_for, :optimize_routes_generation?, :to => '@_routes'
               attr_reader :_routes
               def url_options; {}; end
-              NULL_CONTEXT = ActionDispatch::UrlGeneration.empty({})
-              def context; NULL_CONTEXT; end
+              def context
+                ActionDispatch::UrlGeneration.null
+              end
             end
 
             # Make named_routes available in the module singleton

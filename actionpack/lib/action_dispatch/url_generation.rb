@@ -8,8 +8,12 @@ module ActionDispatch
       Context.new({}, options)
     end
 
+    def self.null; NULL; end
+
     # :nodoc:
     Context = Struct.new :path_parameters, :url_options
+
+    NULL = empty({})
 
     class RequestContext # :nodoc:
       attr_reader :url_options
