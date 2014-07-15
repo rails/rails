@@ -119,6 +119,10 @@ module ActiveRecord
         arel.respond_to?(method, include_private)
     end
 
+    def encode_with(coder)
+      coder.represent_seq(nil, to_a)
+    end
+
     protected
 
     def array_delegable?(method)
