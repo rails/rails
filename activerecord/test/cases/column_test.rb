@@ -39,6 +39,17 @@ module ActiveRecord
         assert_nil column.type_cast(nil)
       end
 
+      def test_type_cast_decimal
+        column = Column.new("field", nil, "DECIMAL(4,2)")
+        assert_equal BigDecimal("1.2"), column.type_cast(BigDecimal("1.2"))
+        assert_equal BigDecimal("1.2"), column.type_cast("1.2")
+        assert_equal BigDecimal("1.2"), column.type_cast(1.2)
+        assert_equal BigDecimal("42"), column.type_cast(42)
+        assert_equal BigDecimal("1.2"), column.type_cast(Rational(6, 5))
+        assert_equal BigDecimal("0.3333"), column.type_cast(Rational(1, 3))
+        assert_nil column.type_cast(nil)
+      end
+
       def test_type_cast_non_integer_to_integer
         column = Column.new("field", nil, "integer")
         assert_nil column.type_cast([1,2])
