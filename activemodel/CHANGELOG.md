@@ -1,4 +1,16 @@
-*   Added `undo_changes` method to `ActiveModel::Dirty` API to restore all the
+*   Deprecate `reset_#{attribute}` in favor of `restore_#{attribute}`.
+
+    These methods may cause confusion with the `reset_changes` that behaves differently
+    of them.
+
+*   Deprecate `ActiveModel::Dirty#reset_changes` in favor of `#clear_changes_information`.
+
+    This method name is causing confusion with the `reset_#{attribute}`
+    methods. While `reset_name` set the value of the name attribute for the
+    previous value `reset_changes` only discard the changes and previous
+    changes.
+
+*   Added `restore_attributes` method to `ActiveModel::Dirty` API to restore all the
     changed values to the previous data.
 
     *Igor G.*

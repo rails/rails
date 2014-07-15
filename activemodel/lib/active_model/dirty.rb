@@ -15,9 +15,9 @@ module ActiveModel
   # * Call <tt>attr_name_will_change!</tt> before each change to the tracked
   #   attribute.
   # * Call <tt>changes_applied</tt> after the changes are persisted.
-  # * Call <tt>reset_changes</tt> when you want to reset the changes
+  # * Call <tt>clear_changes_information</tt> when you want to reset the changes
   #   information.
-  # * Call <tt>undo_changes</tt> when you want to restore previous data.
+  # * Call <tt>restore_attributes</tt> when you want to restore previous data.
   #
   # A minimal implementation could be:
   #
@@ -37,15 +37,18 @@ module ActiveModel
   #
   #     def save
   #       # do persistence work
+  #
   #       changes_applied
   #     end
   #
   #     def reload!
-  #       reset_changes
+  #       # get the values from the persistence layer
+  #
+  #       clear_changes_information
   #     end
   #
   #     def rollback!
-  #       undo_changes
+  #       restore_attributes
   #     end
   #   end
   #
@@ -113,6 +116,7 @@ module ActiveModel
     included do
       attribute_method_suffix '_changed?', '_change', '_will_change!', '_was'
       attribute_method_affix prefix: 'reset_', suffix: '!'
+      attribute_method_affix prefix: 'restore_', suffix: '!'
     end
 
     # Returns +true+ if any attribute have unsaved changes, +false+ otherwise.
@@ -184,15 +188,20 @@ module ActiveModel
         @changed_attributes = ActiveSupport::HashWithIndifferentAccess.new
       end
 
-      # Removes all dirty data: current changes and previous changes.
-      def reset_changes # :doc:
+      # Clear all dirty data: current changes and previous changes.
+      def clear_changes_information # :doc:
         @previously_changed = ActiveSupport::HashWithIndifferentAccess.new
         @changed_attributes = ActiveSupport::HashWithIndifferentAccess.new
       end
 
+      def reset_changes
+        ActiveSupport::Deprecation.warn "#reset_changes is deprecated and will be removed on Rails 5. Please use #clear_changes_information instead."
+        clear_changes_information
+      end
+
       # Restore all previous data.
-      def undo_changes # :doc:
-        changed_attributes.each_key { |attr| reset_attribute! attr }
+      def restore_attributes # :doc:
+        changed_attributes.each_key { |attr| restore_attribute! attr }
       end
 
       # Handle <tt>*_change</tt> for +method_missing+.
@@ -215,6 +224,13 @@ module ActiveModel
 
       # Handle <tt>reset_*!</tt> for +method_missing+.
       def reset_attribute!(attr)
+        ActiveSupport::Deprecation.warn "#reset_#{attr}! is deprecated and will be removed on Rails 5. Please use #restore_#{attr}! instead."
+
+        restore_attribute!(attr)
+      end
+
+      # Handle <tt>restore_*!</tt> for +method_missing+.
+      def restore_attribute!(attr)
         if attribute_changed?(attr)
           __send__("#{attr}=", changed_attributes[attr])
           changed_attributes.delete(attr)

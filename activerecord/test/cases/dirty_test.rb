@@ -169,7 +169,19 @@ class DirtyTest < ActiveRecord::TestCase
     pirate = Pirate.create!(:catchphrase => 'Yar!')
     pirate.catchphrase = 'Ahoy!'
 
-    pirate.reset_catchphrase!
+    assert_deprecated do
+      pirate.reset_catchphrase!
+    end
+    assert_equal "Yar!", pirate.catchphrase
+    assert_equal Hash.new, pirate.changes
+    assert !pirate.catchphrase_changed?
+  end
+
+  def test_restore_attribute!
+    pirate = Pirate.create!(:catchphrase => 'Yar!')
+    pirate.catchphrase = 'Ahoy!'
+
+    pirate.restore_catchphrase!
     assert_equal "Yar!", pirate.catchphrase
     assert_equal Hash.new, pirate.changes
     assert !pirate.catchphrase_changed?
@@ -398,7 +410,7 @@ class DirtyTest < ActiveRecord::TestCase
   def test_dup_objects_should_not_copy_dirty_flag_from_creator
     pirate = Pirate.create!(:catchphrase => "shiver me timbers")
     pirate_dup = pirate.dup
-    pirate_dup.reset_catchphrase!
+    pirate_dup.restore_catchphrase!
     pirate.catchphrase = "I love Rum"
     assert pirate.catchphrase_changed?
     assert !pirate_dup.catchphrase_changed?
