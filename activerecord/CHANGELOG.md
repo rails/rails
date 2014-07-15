@@ -1,3 +1,44 @@
+*   Restore 4.0 behavior for using serialize attributes with `JSON` as coder.
+
+    With 4.1.x, `serialize` started returning a string when `JSON` was passed as
+    the second attribute. It will now return a hash as per previous versions.
+
+    Example:
+
+        class Post < ActiveRecord::Base
+          serialize :comment, JSON
+        end
+
+        class Comment
+          include ActiveModel::Model
+          attr_accessor :category, :text
+        end
+
+        post = Post.create!
+        post.comment = Comment.new(category: "Animals", text: "This is a comment about squirrels.")
+        post.save!
+
+        # 4.0
+        post.comment # => {"category"=>"Animals", "text"=>"This is a comment about squirrels."}
+
+        # 4.1 before
+        post.comment # => "#<Comment:0x007f80ab48ff98>"
+
+        # 4.1 after
+        post.comment # => {"category"=>"Animals", "text"=>"This is a comment about squirrels."}
+
+    When using `JSON` as the coder in `serialize`, Active Record will use the
+    new `ActiveRecord::Coders::JSON` coder which delegates its `dump/load` to
+    `ActiveSupport::JSON.encode/decode`. This ensures special objects are dumped
+    correctly using the `#as_json` hook.
+
+    To keep the previous behaviour, supply a custom coder instead
+    ([example](https://gist.github.com/jenncoop/8c4142bbe59da77daa63)).
+
+    Fixes #15594.
+
+    *Jenn Cooper*
+
 *   Calling `#empty?` on a `has_many` association would use the value from the
     counter cache if one exists.
 

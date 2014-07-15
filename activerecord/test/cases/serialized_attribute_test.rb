@@ -3,10 +3,11 @@ require 'models/topic'
 require 'models/reply'
 require 'models/person'
 require 'models/traffic_light'
+require 'models/post'
 require 'bcrypt'
 
 class SerializedAttributeTest < ActiveRecord::TestCase
-  fixtures :topics
+  fixtures :topics, :posts
 
   MyObject = Struct.new :attribute1, :attribute2
 
@@ -65,6 +66,19 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     orig = Topic.new(content: { foo: :bar })
     clone = orig.dup
     assert_equal(orig.content, clone.content)
+  end
+
+  def test_serialized_json_attribute_returns_unserialized_value
+    Topic.serialize :content, JSON
+    my_post = posts(:welcome)
+
+    t = Topic.new(content: my_post)
+    t.save!
+    t.reload
+
+    assert_instance_of(Hash, t.content)
+    assert_equal(my_post.id, t.content["id"])
+    assert_equal(my_post.title, t.content["title"])
   end
 
   def test_serialized_attribute_declared_in_subclass
