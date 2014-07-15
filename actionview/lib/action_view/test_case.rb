@@ -3,7 +3,6 @@ require 'action_controller'
 require 'action_controller/test_case'
 require 'action_view'
 
-require 'loofah'
 require 'rails-dom-testing'
 
 module ActionView
@@ -159,7 +158,7 @@ module ActionView
 
       # Need to experiment if this priority is the best one: rendered => output_buffer
       def document_root_element
-        @html_document ||= Loofah.document(@rendered.blank? ? @output_buffer : @rendered)
+        @html_document ||= Nokogiri::HTML::Document.parse(@rendered.blank? ? @output_buffer : @rendered)
         @html_document.root
       end
 

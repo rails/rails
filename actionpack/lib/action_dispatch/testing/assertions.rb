@@ -1,4 +1,3 @@
-require 'loofah'
 require 'rails-dom-testing'
 
 module ActionDispatch
@@ -14,9 +13,9 @@ module ActionDispatch
 
     def html_document
       @html_document ||= if @response.content_type =~ /xml$/
-        Loofah.xml_document(@response.body)
+        Nokogiri::XML::Document.parse(@response.body)
       else
-        Loofah.document(@response.body)
+        Nokogiri::HTML::Document.parse(@response.body)
       end
     end
   end

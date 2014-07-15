@@ -632,6 +632,6 @@ class FormTagHelperTest < ActionView::TestCase
   private
 
   def root_elem(rendered_content)
-    Loofah.fragment(rendered_content).children.first # extract from nodeset
+    Nokogiri::HTML::DocumentFragment.parse(rendered_content).children.first # extract from nodeset
   end
 end
