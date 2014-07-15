@@ -59,24 +59,6 @@ class ActiveSchemaTest < ActiveRecord::TestCase
     assert_equal expected, add_index(:people, [:last_name, :first_name], :length => 15, :using => :btree)
   end
 
-  def test_native_rename_index
-    ActiveRecord::Base.connection.stubs :supports_rename_index? => true
-
-    syntax_pattern = /RENAME INDEX/i
-    ActiveRecord::Base.connection.expects(:add_index).never
-    ActiveRecord::Base.connection.expects(:remove_index).never
-    assert_match syntax_pattern, rename_index(:people, :old_name, :new_name)
-  end
-
-  def test_non_native_rename_index
-    ActiveRecord::Base.connection.stubs :supports_rename_index? => false
-    
-    ActiveRecord::Base.connection.stubs indexes: stub_everything
-    ActiveRecord::Base.connection.expects(:add_index).never
-    ActiveRecord::Base.connection.expects(:remove_index).never
-    rename_index(:people, :old_name, :new_name)    
-  end
-
   def test_drop_table
     assert_equal "DROP TABLE `people`", drop_table(:people)
   end
