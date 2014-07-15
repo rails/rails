@@ -1,3 +1,8 @@
+*   Return an absolute instead of relative path from an asset url in the case
+    of the `asset_host` proc returning nil
+
+    *Jolyon Pawlyn*
+
 *   Fix `html_escape_once` to properly handle hex escape sequences (e.g. &#x1a2b;)
 
     *John F. Douthat*
