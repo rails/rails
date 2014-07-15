@@ -717,9 +717,9 @@ module ActiveRecord
     # == Eager loading of associations
     #
     # Eager loading is a way to find objects of a certain class and a number of named associations.
-    # This is one of the easiest ways of to prevent the dreaded 1+N problem in which fetching 100
+    # This is one of the easiest ways of to prevent the dreaded N+1 problem in which fetching 100
     # posts that each need to display their author triggers 101 database queries. Through the
-    # use of eager loading, the 101 queries can be reduced to 2.
+    # use of eager loading, the number of queries will be reduced from 101 to 2.
     #
     #   class Post < ActiveRecord::Base
     #     belongs_to :author
