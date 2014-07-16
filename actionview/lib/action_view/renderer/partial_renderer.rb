@@ -422,16 +422,16 @@ module ActionView
         layout = find_template(layout, @template_keys)
       end
 
-      partial_interation = PartialIteration.new(@collection.size)
-      locals[iteration] = partial_interation
+      partial_iteration = PartialIteration.new(@collection.size)
+      locals[iteration] = partial_iteration
 
       @collection.map do |object|
         locals[as]        = object
-        locals[counter]   = partial_interation.index
+        locals[counter]   = partial_iteration.index
 
         content = template.render(view, locals)
         content = layout.render(view, locals) { content } if layout
-        partial_interation.iterate!
+        partial_iteration.iterate!
         content
       end
     end
@@ -441,19 +441,19 @@ module ActionView
       cache = {}
       keys  = @locals.keys
 
-      partial_interation = PartialIteration.new(@collection.size)
+      partial_iteration = PartialIteration.new(@collection.size)
 
       @collection.map do |object|
-        index = partial_interation.index
+        index = partial_iteration.index
         path, as, counter, iteration = collection_data[index]
 
         locals[as]        = object
         locals[counter]   = index
-        locals[iteration] = partial_interation
+        locals[iteration] = partial_iteration
 
         template = (cache[path] ||= find_template(path, keys + [as, counter]))
         content = template.render(view, locals)
-        partial_interation.iterate!
+        partial_iteration.iterate!
         content
       end
     end
