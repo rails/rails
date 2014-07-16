@@ -616,7 +616,7 @@ module ActionDispatch
           end
 
           def define_generate_prefix(app, name)
-            return unless app.respond_to?(:routes) && app.routes.respond_to?(:define_mounted_helper)
+            return unless app.respond_to?(:routes)
 
             _route = @set.named_routes.routes[name.to_sym]
             _routes = @set
