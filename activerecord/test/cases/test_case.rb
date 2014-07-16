@@ -1,9 +1,18 @@
 require 'active_support/test_case'
 
 module ActiveRecord
-  # The +capture+ helper was deprecated because it is not thread safe.
-  # Our own tests still depend on it.
-  module UndeprecateCapture
+  # = Active Record Test Case
+  #
+  # Defines some test assertions to test against SQL queries.
+  class TestCase < ActiveSupport::TestCase #:nodoc:
+    def teardown
+      SQLCounter.clear_log
+    end
+
+    def assert_date_from_db(expected, actual, message = nil)
+      assert_equal expected.to_s, actual.to_s, message
+    end
+
     def capture(stream)
       stream = stream.to_s
       captured_stream = Tempfile.new(stream)
@@ -19,21 +28,6 @@ module ActiveRecord
       captured_stream.close
       captured_stream.unlink
       stream_io.reopen(origin_stream)
-    end
-  end
-
-  # = Active Record Test Case
-  #
-  # Defines some test assertions to test against SQL queries.
-  class TestCase < ActiveSupport::TestCase #:nodoc:
-    include UndeprecateCapture
-
-    def teardown
-      SQLCounter.clear_log
-    end
-
-    def assert_date_from_db(expected, actual, message = nil)
-      assert_equal expected.to_s, actual.to_s, message
     end
 
     def capture_sql
