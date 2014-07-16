@@ -267,23 +267,6 @@ This is equivalent to writing:
 Client.where(first_name: 'does not exist').take!
 ```
 
-#### `last!`
-
-`Model.last!` finds the last record ordered by the primary key. For example:
-
-```ruby
-client = Client.last!
-# => #<Client id: 221, first_name: "Russel">
-```
-
-The SQL equivalent of the above is:
-
-```sql
-SELECT * FROM clients ORDER BY clients.id DESC LIMIT 1
-```
-
-`Model.last!` raises `ActiveRecord::RecordNotFound` if no matching record is found.
-
 ### Retrieving Multiple Objects in Batches
 
 We often need to iterate over a large set of records, as when we send a newsletter to a large set of users, or when we export data.
