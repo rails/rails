@@ -18,6 +18,12 @@ module ActionDispatch
       assert_equal "UTF-8", uf.original_filename.encoding.to_s
     end
 
+    def test_filename_should_always_be_in_utf_8
+      uf = Http::UploadedFile.new(:filename => 'foo'.encode(Encoding::SHIFT_JIS),
+                                  :tempfile => Object.new)
+      assert_equal "UTF-8", uf.original_filename.encoding.to_s
+    end
+
     def test_content_type
       uf = Http::UploadedFile.new(:type => 'foo', :tempfile => Object.new)
       assert_equal 'foo', uf.content_type
