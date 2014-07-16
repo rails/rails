@@ -249,8 +249,8 @@ module ActionDispatch
         #
         #   foo_url(bar, baz, bang, sort_by: 'baz')
         #
-        def define_url_helper(route, name, options)
-          helper = UrlHelper.create(route, options.dup)
+        def define_url_helper(route, name, opts)
+          helper = UrlHelper.create(route, opts)
 
           @module.remove_possible_method name
           @module.module_eval do
