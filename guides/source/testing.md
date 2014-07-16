@@ -364,8 +364,13 @@ Ideally, you would like to include a test for everything which could possibly br
 
 By now you've caught a glimpse of some of the assertions that are available. Assertions are the worker bees of testing. They are the ones that actually perform the checks to ensure that things are going as planned.
 
-There are a bunch of different types of assertions you can use.
-Here's an extract of the assertions you can use with `minitest`, the default testing library used by Rails. The `[msg]` parameter is an optional string message you can specify to make your test failure messages clearer. It's not required.
+There are a bunch of different types of assertions you can use.  Here's an
+extract of the
+[assertions](http://docs.seattlerb.org/minitest/Minitest/Assertions.html) you
+can use with [minitest](https://github.com/seattlerb/minitest), the default
+testing library used by Rails. The `[msg]` parameter is an optional string
+message you can specify to make your test failure messages clearer. It's not
+required.
 
 | Assertion                                                        | Purpose |
 | ---------------------------------------------------------------- | ------- |
