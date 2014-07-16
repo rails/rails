@@ -155,8 +155,8 @@ module ActionDispatch
               @arg_size       = @required_parts.size
             end
 
-            def call(t, args)
-              if args.size == arg_size && !args.last.is_a?(Hash) && optimize_routes_generation?(t)
+            def call(t, args, inner_options)
+              if args.size == arg_size && !inner_options && optimize_routes_generation?(t)
                 options = t.url_options.merge @options
                 options[:path] = optimized_helper(args)
                 ActionDispatch::Http::URL.url_for(options)
@@ -207,15 +207,19 @@ module ActionDispatch
             @route        = route
           end
 
-          def call(t, args)
+          def call(t, args, inner_options)
             controller_options = t.url_options
             options = controller_options.merge @options
-            hash = handle_positional_args(controller_options, args, options, @segment_keys)
+            hash = handle_positional_args(controller_options,
+                                          inner_options || {},
+                                          args,
+                                          options,
+                                          @segment_keys)
+
             t._routes.url_for(hash)
           end
 
-          def handle_positional_args(controller_options, args, result, path_params)
-            inner_options = args.extract_options!
+          def handle_positional_args(controller_options, inner_options, args, result, path_params)
 
             if args.size > 0
               if args.size < path_params.size - 1 # take format into account
@@ -251,7 +255,9 @@ module ActionDispatch
           @module.remove_possible_method name
           @module.module_eval do
             define_method(name) do |*args|
-              helper.call self, args
+              options = nil
+              options = args.pop if args.last.is_a? Hash
+              helper.call self, args, options
             end
           end
 
