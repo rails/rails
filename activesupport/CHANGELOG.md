@@ -1,3 +1,7 @@
+*   Add `String#truncate_words` to truncate a string by a number of words.
+
+    *Mohamed Osama*
+
 *   Deprecate `capture` and `quietly`.
 
     These methods are not thread safe and may cause issues when used in threaded environments.
