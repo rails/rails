@@ -23,7 +23,6 @@ module ActiveRecord
           cast_value(value.to_s)
         end
       end
-
     end
   end
 end
