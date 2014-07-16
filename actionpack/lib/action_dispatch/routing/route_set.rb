@@ -218,7 +218,7 @@ module ActionDispatch
                                           options,
                                           @segment_keys)
 
-            t._routes._url_for(t.context.path_parameters, hash)
+            t._routes._url_for(context, hash)
           end
 
           def handle_positional_args(controller_options, inner_options, args, result, path_params)
@@ -649,10 +649,12 @@ module ActionDispatch
 
       # The +options+ argument must be a hash whose keys are *symbols*.
       def url_for(options)
-        _url_for({}, options)
+        ctx = ActionDispatch::UrlGeneration.null
+        _url_for(ctx, options)
       end
 
-      def _url_for(path_params, options)
+      def _url_for(ctx, options)
+        path_params = ctx.path_parameters
         options = default_url_options.merge options
 
         user = password = nil

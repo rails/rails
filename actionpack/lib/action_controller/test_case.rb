@@ -694,7 +694,8 @@ module ActionController
             :action => action,
             :relative_url_root => nil)
 
-          url, query_string = @routes._url_for(@request.path_parameters, options).split("?", 2)
+          ctx = ActionDispatch::UrlGeneration.request @request, options
+          url, query_string = @routes._url_for(ctx, options).split("?", 2)
 
           @request.env["SCRIPT_NAME"] = @controller.config.relative_url_root
           @request.env["PATH_INFO"] = url

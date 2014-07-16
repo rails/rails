@@ -350,7 +350,8 @@ end
 
 module RoutingTestHelpers
   def url_for(set, options)
-    set._url_for({}, options.merge(:only_path => true))
+    ctx = ActionDispatch::UrlGeneration.null
+    set._url_for(ctx, options.merge(:only_path => true))
   end
 
   def make_set(strict = true)
