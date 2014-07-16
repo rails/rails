@@ -1,3 +1,13 @@
+*   Add `PartialIteration` object used when rendering collections.
+
+    The iteration object is available as the local variable
+    `#{template_name}_iteration` when rendering partials with collections.
+
+    It gives access to the `size` of the collection being iterated over,
+    the current `index` and two convenience methods `first?` and `last?`.
+
+    *Joel Junström*, *Lucas Uyezu*
+
 *   Return an absolute instead of relative path from an asset url in the case
     of the `asset_host` proc returning nil
 
