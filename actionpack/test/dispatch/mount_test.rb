@@ -1,12 +1,18 @@
 require 'abstract_unit'
+require 'rails/engine'
 
 class TestRoutingMount < ActionDispatch::IntegrationTest
   Router = ActionDispatch::Routing::RouteSet.new
 
-  class FakeEngine
+  class AppWithRoutes < Rails::Engine
     def self.routes
       @routes ||= ActionDispatch::Routing::RouteSet.new
     end
+  end
+
+  # Test for mounting apps that respond to routes, but aren't Rails-like apps.
+  class SinatraLikeApp
+    def self.routes; Object.new; end
 
     def self.call(env)
       [200, {"Content-Type" => "text/html"}, ["OK"]]
@@ -21,15 +27,15 @@ class TestRoutingMount < ActionDispatch::IntegrationTest
     mount SprocketsApp, :at => "/sprockets"
     mount SprocketsApp => "/shorthand"
 
-    mount FakeEngine, :at => "/fakeengine", :as => :fake
-    mount FakeEngine, :at => "/getfake", :via => :get
+    mount SinatraLikeApp, :at => "/fakeengine", :as => :fake
+    mount SinatraLikeApp, :at => "/getfake", :via => :get
 
     scope "/its_a" do
       mount SprocketsApp, :at => "/sprocket"
     end
 
     resources :users do
-      mount FakeEngine, :at => "/fakeengine", :as => :fake_mounted_at_resource
+      mount AppWithRoutes, :at => "/fakeengine", :as => :fake_mounted_at_resource
     end
 
     mount SprocketsApp, :at => "/", :via => :get

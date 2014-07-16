@@ -1,6 +1,7 @@
 require 'abstract_unit'
 require 'controller/fake_controllers'
 require 'action_view/vendor/html-scanner'
+require 'rails/engine'
 
 class SessionTest < ActiveSupport::TestCase
   StubApp = lambda { |env|
@@ -595,7 +596,7 @@ class ApplicationIntegrationTest < ActionDispatch::IntegrationTest
     @routes ||= ActionDispatch::Routing::RouteSet.new
   end
 
-  class MountedApp
+  class MountedApp < Rails::Engine
     def self.routes
       @routes ||= ActionDispatch::Routing::RouteSet.new
     end

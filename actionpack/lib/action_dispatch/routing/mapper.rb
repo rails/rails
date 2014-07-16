@@ -605,18 +605,13 @@ module ActionDispatch
 
         private
           def app_name(app)
-            return unless app.respond_to?(:routes)
+            return unless app.is_a?(Class) && app < Rails::Railtie
 
-            if app.respond_to?(:railtie_name)
-              app.railtie_name
-            else
-              class_name = app.name
-              ActiveSupport::Inflector.underscore(class_name).tr("/", "_")
-            end
+            app.railtie_name
           end
 
           def define_generate_prefix(app, name)
-            return unless app.respond_to?(:routes)
+            return unless app.is_a?(Class) && app < Rails::Railtie
 
             _route = @set.named_routes.routes[name.to_sym]
             _routes = @set

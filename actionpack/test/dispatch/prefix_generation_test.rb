@@ -1,5 +1,6 @@
 require 'abstract_unit'
 require 'rack/test'
+require 'rails/engine'
 
 module TestGenerationPrefix
   class Post
@@ -23,7 +24,7 @@ module TestGenerationPrefix
   class WithMountedEngine < ActionDispatch::IntegrationTest
     include Rack::Test::Methods
 
-    class BlogEngine
+    class BlogEngine < Rails::Engine
       def self.routes
         @routes ||= begin
           routes = ActionDispatch::Routing::RouteSet.new
