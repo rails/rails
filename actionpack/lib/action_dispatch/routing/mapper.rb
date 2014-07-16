@@ -577,13 +577,21 @@ module ActionDispatch
 
           raise "A rack application must be specified" unless path
 
-          options[:as]  ||= app_name(app)
+          rails_app = rails_app? app
+
+          if rails_app
+            options[:as]  ||= app.railtie_name
+          else
+            # non rails apps can't have an :as
+            options[:as]  = nil
+          end
+
           target_as       = name_for_action(options[:as], path)
           options[:via] ||= :all
 
           match(path, options.merge(:to => app, :anchor => false, :format => false))
 
-          define_generate_prefix(app, target_as)
+          define_generate_prefix(app, target_as) if rails_app
           self
         end
 
@@ -604,15 +612,11 @@ module ActionDispatch
         end
 
         private
-          def app_name(app)
-            return unless app.is_a?(Class) && app < Rails::Railtie
-
-            app.railtie_name
+          def rails_app?(app)
+            app.is_a?(Class) && app < Rails::Railtie
           end
 
           def define_generate_prefix(app, name)
-            return unless app.is_a?(Class) && app < Rails::Railtie
-
             _route = @set.named_routes.routes[name.to_sym]
             _routes = @set
             app.routes.define_mounted_helper(name)
@@ -1541,7 +1545,7 @@ module ActionDispatch
             action = nil
           end
 
-          if !options.fetch(:as, true)
+          if !options.fetch(:as, true) # if it's set to nil or false
             options.delete(:as)
           else
             options[:as] = name_for_action(options[:as], action)
