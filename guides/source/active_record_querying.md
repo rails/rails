@@ -293,7 +293,7 @@ This may appear straightforward:
 ```ruby
 # This is very inefficient when the users table has thousands of rows.
 User.all.each do |user|
-  NewsLetter.weekly_deliver(user)
+  NewsMailer.weekly(user).deliver
 end
 ```
 
@@ -333,7 +333,7 @@ The `:batch_size` option allows you to specify the number of records to be retri
 
 ```ruby
 User.find_each(batch_size: 5000) do |user|
-  NewsLetter.weekly_deliver(user)
+  NewsMailer.weekly(user).deliver
 end
 ```
 
@@ -345,7 +345,7 @@ For example, to send newsletters only to users with the primary key starting fro
 
 ```ruby
 User.find_each(start: 2000, batch_size: 5000) do |user|
-  NewsLetter.weekly_deliver(user)
+  NewsMailer.weekly(user).deliver
 end
 ```
 
