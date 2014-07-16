@@ -1,7 +1,7 @@
 require 'abstract_unit'
-require 'action_view/partial_iteration'
-class PartialIterationTest < ActiveSupport::TestCase
+require 'action_view/renderer/partial_renderer'
 
+class PartialIterationTest < ActiveSupport::TestCase
   def test_has_size_and_index
     iteration = ActionView::PartialIteration.new 3, 0
     assert_equal 0, iteration.index, "should be at the first index"
@@ -27,5 +27,4 @@ class PartialIterationTest < ActiveSupport::TestCase
     iteration = ActionView::PartialIteration.new 3, 0
     assert !iteration.last?, "not last when current is 0"
   end
-
 end

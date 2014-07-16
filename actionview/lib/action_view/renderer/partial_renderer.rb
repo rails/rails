@@ -1,7 +1,23 @@
 require 'thread_safe'
-require "action_view/partial_iteration"
 
 module ActionView
+  class PartialIteration # :nodoc:
+    attr_reader :size, :index
+
+    def initialize(size, index)
+      @size  = size
+      @index = index
+    end
+
+    def first?
+      index == 0
+    end
+
+    def last?
+      index == size - 1
+    end
+  end
+
   # = Action View Partials
   #
   # There's also a convenience method for rendering sub templates within the current controller that depends on a
