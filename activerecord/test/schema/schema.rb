@@ -860,9 +860,8 @@ ActiveRecord::Schema.define do
     create_table :fk_test_has_pk, force: true, primary_key: "pk_id" do |t|
     end
 
-    execute "ALTER TABLE fk_test_has_fk ADD CONSTRAINT fk_name FOREIGN KEY (#{quote_column_name 'fk_id'}) REFERENCES #{quote_table_name 'fk_test_has_pk'} (#{quote_column_name 'pk_id'})"
-
-    execute "ALTER TABLE lessons_students ADD CONSTRAINT student_id_fk FOREIGN KEY (#{quote_column_name 'student_id'}) REFERENCES #{quote_table_name 'students'} (#{quote_column_name 'id'})"
+    add_foreign_key :fk_test_has_fk, :fk_test_has_pk, column: "fk_id", name: "fk_name", primary_key: "pk_id"
+    add_foreign_key :lessons_students, :students
   end
 
   create_table :overloaded_types, force: true do |t|

@@ -6,12 +6,12 @@ module ActiveRecord
       class SchemaMigrationsTest < ActiveRecord::TestCase
         def test_renaming_index_on_foreign_key
           connection.add_index "engines", "car_id"
-          connection.execute "ALTER TABLE engines ADD CONSTRAINT fk_engines_cars FOREIGN KEY (car_id) REFERENCES cars(id)"
+          connection.add_foreign_key :engines, :cars, name: "fk_engines_cars"
 
           connection.rename_index("engines", "index_engines_on_car_id", "idx_renamed")
           assert_equal ["idx_renamed"], connection.indexes("engines").map(&:name)
         ensure
-          connection.execute "ALTER TABLE engines DROP FOREIGN KEY fk_engines_cars"
+          connection.remove_foreign_key :engines, name: "fk_engines_cars"
         end
 
         def test_initializes_schema_migrations_for_encoding_utf8mb4
