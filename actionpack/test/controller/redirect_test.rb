@@ -90,6 +90,10 @@ class RedirectController < ActionController::Base
     redirect_to nil
   end
 
+  def redirect_to_params
+    redirect_to ActionController::Parameters.new(status: 200, protocol: 'javascript', f: '%0Aeval(name)')
+  end
+
   def redirect_to_with_block
     redirect_to proc { "http://www.rubyonrails.org/" }
   end
@@ -278,6 +282,12 @@ class RedirectTest < ActionController::TestCase
   def test_redirect_to_nil
     assert_raise(ActionController::ActionControllerError) do
       get :redirect_to_nil
+    end
+  end
+
+  def test_redirect_to_params
+    assert_raise(ActionController::ActionControllerError) do
+      get :redirect_to_params
     end
   end
 
