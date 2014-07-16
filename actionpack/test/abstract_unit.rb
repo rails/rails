@@ -316,8 +316,8 @@ module ActionDispatch
       routes.call(params)
     end
 
-    def request_path_params(path, method:)
-      method ||= 'GET'
+    def request_path_params(path, options = {})
+      method = options[:method] || 'GET'
       resp = send_request URI('http://localhost' + path), method.to_s.upcase, nil
       status = resp.first
       if status == 404
