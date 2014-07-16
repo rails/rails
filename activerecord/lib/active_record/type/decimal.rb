@@ -14,7 +14,9 @@ module ActiveRecord
       private
 
       def cast_value(value)
-        if value.respond_to?(:to_d)
+        if value.class == Rational
+          BigDecimal.new(value, precision.to_i)
+        elsif value.respond_to?(:to_d)
           value.to_d
         else
           value.to_s.to_d

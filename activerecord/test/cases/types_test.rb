@@ -102,6 +102,16 @@ module ActiveRecord
         assert_equal BigDecimal.new("1"), type.type_cast_from_user(:"1")
       end
 
+      def test_type_cast_rational_to_decimal_with_precision
+        type = Type::Decimal.new(:precision => 2)
+        assert_equal BigDecimal("0.33"), type.type_cast_from_user(Rational(1, 3))
+      end
+
+      def test_type_cast_rational_to_decimal_without_precision_defaults_to_18_36
+        type = Type::Decimal.new
+        assert_equal BigDecimal("0.333333333333333333E0"), type.type_cast_from_user(Rational(1, 3))
+      end
+
       def test_type_cast_binary
         type = Type::Binary.new
         assert_equal nil, type.type_cast_from_user(nil)
