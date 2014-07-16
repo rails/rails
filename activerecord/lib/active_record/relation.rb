@@ -242,6 +242,11 @@ module ActiveRecord
       @records
     end
 
+    # Serializes the relation objects Array.
+    def encode_with(coder)
+      coder.represent_seq(nil, to_a)
+    end
+
     def as_json(options = nil) #:nodoc:
       to_a.as_json(options)
     end
