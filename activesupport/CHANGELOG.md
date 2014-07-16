@@ -254,4 +254,8 @@
 
     *Jeremy Kemper*
 
+*   Add `String#truncate_words` to truncate a string by a number of words.
+
+    *Mohamed Osama*
+
 Please check [4-1-stable](https://github.com/rails/rails/blob/4-1-stable/activesupport/CHANGELOG.md) for previous changes.
