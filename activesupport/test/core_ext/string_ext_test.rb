@@ -229,6 +229,27 @@ class StringInflectionsTest < ActiveSupport::TestCase
     assert_equal "Hello Big[...]", "Hello Big World!".truncate(15, :omission => "[...]", :separator => /\s/)
   end
 
+  def test_truncate_words
+    assert_equal "Hello Big World!", "Hello Big World!".truncate_words(3)
+    assert_equal "Hello Big...", "Hello Big World!".truncate_words(2)
+  end
+
+  def test_truncate_words_with_ommission
+    assert_equal "Hello Big World!", "Hello Big World!".truncate_words(3, :omission => "[...]")
+    assert_equal "Hello Big[...]", "Hello Big World!".truncate_words(2, :omission => "[...]")
+  end
+
+  def test_truncate_words_with_separator
+    assert_equal "Hello<br>Big<br>World!...", "Hello<br>Big<br>World!<br>".truncate_words(3, :separator => '<br>')
+    assert_equal "Hello<br>Big<br>World!", "Hello<br>Big<br>World!".truncate_words(3, :separator => '<br>')
+    assert_equal "Hello\n<br>Big...", "Hello\n<br>Big<br>Wide<br>World!".truncate_words(2, :separator => '<br>')
+  end
+
+  def test_truncate_words_with_separator_and_ommission
+    assert_equal "Hello<br>Big<br>World![...]", "Hello<br>Big<br>World!<br>".truncate_words(3, :omission => "[...]", :separator => '<br>')
+    assert_equal "Hello<br>Big<br>World!", "Hello<br>Big<br>World!".truncate_words(3, :omission => "[...]", :separator => '<br>')
+  end
+
   def test_truncate_multibyte
     assert_equal "\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 ...".force_encoding(Encoding::UTF_8),
       "\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 \354\225\204\353\235\274\353\246\254\354\230\244".force_encoding(Encoding::UTF_8).truncate(10)
