@@ -4,9 +4,9 @@ module ActionView
   class PartialIteration # :nodoc:
     attr_reader :size, :index
 
-    def initialize(size, index)
+    def initialize(size)
       @size  = size
-      @index = index
+      @index = 0
     end
 
     def first?
@@ -15,6 +15,10 @@ module ActionView
 
     def last?
       index == size - 1
+    end
+
+    def iterate!
+      @index += 1
     end
   end
 
@@ -412,16 +416,16 @@ module ActionView
         layout = find_template(layout, @template_keys)
       end
 
-      index = -1
-      @collection.map do |object|
-        index += 1
+      partial_interation = PartialIteration.new(@collection.size)
+      locals[iteration] = partial_interation
 
+      @collection.map do |object|
         locals[as]        = object
-        locals[counter]   = index
-        locals[iteration] = PartialIteration.new(@collection.size, index)
+        locals[counter]   = partial_interation.index
 
         content = template.render(view, locals)
         content = layout.render(view, locals) { content } if layout
+        partial_interation.iterate!
         content
       end
     end
@@ -431,17 +435,20 @@ module ActionView
       cache = {}
       keys  = @locals.keys
 
-      index = -1
+      partial_interation = PartialIteration.new(@collection.size)
+
       @collection.map do |object|
-        index += 1
+        index = partial_interation.index
         path, as, counter, iteration = collection_data[index]
 
         locals[as]        = object
         locals[counter]   = index
-        locals[iteration] = PartialIteration.new(@collection.size, index)
+        locals[iteration] = partial_interation
 
         template = (cache[path] ||= find_template(path, keys + [as, counter]))
-        template.render(view, locals)
+        content = template.render(view, locals)
+        partial_interation.iterate!
+        content
       end
     end
 
