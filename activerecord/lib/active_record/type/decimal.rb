@@ -15,7 +15,7 @@ module ActiveRecord
 
       def cast_value(value)
         case value
-        when Numeric, String, Rational
+        when ::Numeric, ::String
           BigDecimal(value, precision.to_i)
         when proc { value.respond_to?(:to_d) }
           value.to_d
