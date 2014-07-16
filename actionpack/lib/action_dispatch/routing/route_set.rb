@@ -686,7 +686,7 @@ module ActionDispatch
         options[:user]        = user
         options[:password]    = password
 
-        ActionDispatch::Http::URL.url_for(options)
+        ActionDispatch::Http::URL.context_url_for(ctx, options)
       end
 
       def call(env)

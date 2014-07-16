@@ -29,6 +29,10 @@ module ActionDispatch
         end
 
         def url_for(options)
+          context_url_for ActionDispatch::UrlGeneration.empty(options), options
+        end
+
+        def context_url_for(context, options)
           host = options[:host]
           unless host || options[:only_path]
             raise ArgumentError, 'Missing host to link to! Please provide the :host parameter, set default_url_options[:host], or set :only_path to true'
