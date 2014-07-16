@@ -64,6 +64,7 @@ module ActionController
     # behavior for this case by rescuing ActionController::RedirectBackError.
     def redirect_to(options = {}, response_status = {}) #:doc:
       raise ActionControllerError.new("Cannot redirect to nil!") unless options
+      raise ActionControllerError.new("Cannot redirect to a parameter hash!") if options.is_a?(ActionController::Parameters)
       raise AbstractController::DoubleRenderError if response_body
 
       self.status        = _extract_redirect_to_status(options, response_status)
