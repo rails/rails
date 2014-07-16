@@ -1418,8 +1418,8 @@ module ActiveRecord
       #
       #   Note that <tt>accepts_nested_attributes_for</tt> sets <tt>:autosave</tt> to <tt>true</tt>.
       # [:touch]
-      #   If true, the associated object will be touched (the updated_at/on attributes set to now)
-      #   when this record is either saved or destroyed. If you specify a symbol, that attribute
+      #   If true, the associated object will be touched (the updated_at/on attributes set to Time.now)
+      #   when this record is either saved or destroyed. If you specify a symbol, that attribute (it should be a timestamp type field)
       #   will be updated with the current time in addition to the updated_at/on attribute.
       # [:inverse_of]
       #   Specifies the name of the <tt>has_one</tt> or <tt>has_many</tt> association on the associated
