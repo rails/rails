@@ -202,7 +202,9 @@ module ActionDispatch
           url_options.reverse_merge!(controller.url_options) if controller
 
           if @app.respond_to?(:routes)
-            url_options.reverse_merge!(@app.routes.default_url_options)
+            if @app.routes.default_url_options
+              url_options.reverse_merge!(@app.routes.default_url_options)
+            end
           end
 
           url_options.reverse_merge!(:host => host, :protocol => https? ? "https" : "http")

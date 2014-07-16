@@ -287,9 +287,9 @@ module ActionDispatch
       def initialize(request_class = ActionDispatch::Request)
         self.named_routes = NamedRouteCollection.new
         self.resources_path_names = self.class.default_resources_path_names.dup
-        self.default_url_options = {}
         self.request_class = request_class
 
+        @default_url_options        = nil
         @append                     = []
         @prepend                    = []
         @disable_clear_and_finalize = false
@@ -640,7 +640,7 @@ module ActionDispatch
       end
 
       def optimize_routes_generation?
-        !mounted? && default_url_options.empty?
+        !mounted? && !default_url_options
       end
 
       def find_script_name(options)
@@ -655,7 +655,10 @@ module ActionDispatch
 
       def _url_for(ctx, options)
         path_params = ctx.path_parameters
-        options = default_url_options.merge options
+
+        if default_url_options
+          options = default_url_options.merge(options)
+        end
 
         user = password = nil
 
