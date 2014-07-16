@@ -1,3 +1,7 @@
+*   PostgreSQL invalid `uuid` are convert to nil.
+
+    *Abdelkader Boudih*
+
 *   Restore 4.0 behavior for using serialize attributes with `JSON` as coder.
 
     With 4.1.x, `serialize` started returning a string when `JSON` was passed as

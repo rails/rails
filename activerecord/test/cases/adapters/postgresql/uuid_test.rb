@@ -60,6 +60,43 @@ class PostgresqlUUIDTest < ActiveRecord::TestCase
     assert_equal(nil, UUIDType.last.guid)
   end
 
+  def test_treat_invalid_uuid_as_nil
+    uuid = UUIDType.create! guid: 'foobar'
+    assert_equal(nil, uuid.guid)
+  end
+
+  def test_invalid_uuid_dont_modify_before_type_cast
+    uuid = UUIDType.new guid: 'foobar'
+    assert_equal 'foobar', uuid.guid_before_type_cast
+  end
+
+  def test_rfc_4122_regex
+    # Valid uuids
+    ['A0EEBC99-9C0B-4EF8-BB6D-6BB9BD380A11',
+     '{a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11}',
+     'a0eebc999c0b4ef8bb6d6bb9bd380a11',
+     'a0ee-bc99-9c0b-4ef8-bb6d-6bb9-bd38-0a11',
+     '{a0eebc99-9c0b4ef8-bb6d6bb9-bd380a11}'].each do |valid_uuid|
+      uuid = UUIDType.new guid: valid_uuid
+      assert_not_nil uuid.guid
+    end
+
+    # Invalid uuids
+    [['A0EEBC99-9C0B-4EF8-BB6D-6BB9BD380A11'],
+     Hash.new,
+     0,
+     0.0,
+     true,
+     'Z0000C99-9C0B-4EF8-BB6D-6BB9BD380A11',
+     '{a0eebc99-9c0b-4ef8-fb6d-6bb9bd380a11}',
+     'a0eebc999r0b4ef8ab6d6bb9bd380a11',
+     'a0ee-bc99------4ef8-bb6d-6bb9-bd38-0a11',
+     '{a0eebc99-bb6d6bb9-bd380a11}'].each do |invalid_uuid|
+      uuid = UUIDType.new guid: invalid_uuid
+      assert_nil uuid.guid
+    end
+  end
+
   def test_uuid_formats
     ["A0EEBC99-9C0B-4EF8-BB6D-6BB9BD380A11",
      "{a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11}",
