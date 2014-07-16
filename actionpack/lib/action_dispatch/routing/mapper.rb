@@ -610,7 +610,7 @@ module ActionDispatch
             if app.respond_to?(:railtie_name)
               app.railtie_name
             else
-              class_name = app.is_a?(Class) ? app.name : app.class.name
+              class_name = app.name
               ActiveSupport::Inflector.underscore(class_name).tr("/", "_")
             end
           end
