@@ -143,7 +143,11 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
   # Syck calls respond_to? before actually calling initialize
   def test_respond_to_with_allocated_object
-    topic = Topic.allocate
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = 'topics'
+    end
+
+    topic = klass.allocate
     assert !topic.respond_to?("nothingness")
     assert !topic.respond_to?(:nothingness)
     assert_respond_to topic, "title"
