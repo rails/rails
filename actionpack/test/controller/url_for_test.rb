@@ -287,12 +287,12 @@ module AbstractController
           # We need to create a new class in order to install the new named route.
           kls = Class.new { include set.url_helpers }
           controller = kls.new
-          assert controller.respond_to?(:home_url)
+          assert_respond_to controller, :home_url
           assert_equal '/brave/new/world',
-            controller.send(:url_for, :controller => 'brave', :action => 'new', :id => 'world', :only_path => true)
+            controller.url_for(:controller => 'brave', :action => 'new', :id => 'world', :only_path => true)
 
-          assert_equal("/home/sweet/home/alabama", controller.send(:home_url, :user => 'alabama', :host => 'unused', :only_path => true))
-          assert_equal("/home/sweet/home/alabama", controller.send(:home_path, 'alabama'))
+          assert_equal("/home/sweet/home/alabama", controller.home_path(:user => 'alabama', :host => 'unused', :only_path => true))
+          assert_equal("/home/sweet/home/alabama", controller.home_path('alabama'))
         end
       end
 
