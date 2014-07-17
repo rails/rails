@@ -34,21 +34,23 @@ module ActionDispatch
             raise ArgumentError, 'Missing host to link to! Please provide the :host parameter, set default_url_options[:host], or set :only_path to true'
           end
 
+          if options[:only_path]
+            path_for options
+          else
+            protocol = options[:protocol]
+            port     = options[:port]
+            build_host_url(host, port, protocol, options, path_for(options))
+          end
+        end
+
+        def path_for(options)
           result  = options[:script_name].to_s.chomp("/")
           result << options[:path].to_s
 
           result = add_trailing_slash(result) if options[:trailing_slash]
 
           result = add_params options, result
-          result = add_anchor options, result
-
-          if options[:only_path]
-            result
-          else
-            protocol = options[:protocol]
-            port     = options[:port]
-            build_host_url(host, port, protocol, options, result)
-          end
+          add_anchor options, result
         end
 
         private
