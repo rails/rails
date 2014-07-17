@@ -447,9 +447,11 @@ module ActiveRecord
     #
     # Possible callbacks are: +before_add+, +after_add+, +before_remove+ and +after_remove+.
     #
-    # Should any of the +before_add+ callbacks throw an exception, the object does not get
-    # added to the collection. Same with the +before_remove+ callbacks; if an exception is
-    # thrown the object doesn't get removed.
+    # If any of the +before_add+ callbacks throw an exception, the object will not be
+    # added to the collection.
+    #
+    # Similarly, if any of the +before_remove+ callbacks throw an exception, the object
+    # will not be removed from the collection.
     #
     # == Association extensions
     #
@@ -647,7 +649,7 @@ module ActiveRecord
     #     belongs_to :commenter
     #   end
     #
-    # When using nested association, you will not be able to modify the association because there
+    # When using a nested association, you will not be able to modify the association because there
     # is not enough information to know what modification to make. For example, if you tried to
     # add a <tt>Commenter</tt> in the example above, there would be no way to tell how to set up the
     # intermediate <tt>Post</tt> and <tt>Comment</tt> objects.
@@ -717,7 +719,7 @@ module ActiveRecord
     # == Eager loading of associations
     #
     # Eager loading is a way to find objects of a certain class and a number of named associations.
-    # This is one of the easiest ways of to prevent the dreaded N+1 problem in which fetching 100
+    # It is one of the easiest ways to prevent the dreaded N+1 problem in which fetching 100
     # posts that each need to display their author triggers 101 database queries. Through the
     # use of eager loading, the number of queries will be reduced from 101 to 2.
     #
@@ -749,16 +751,16 @@ module ActiveRecord
     #   Post.includes(:author, :comments).each do |post|
     #
     # This will load all comments with a single query. This reduces the total number of queries
-    # to 3. More generally the number of queries will be 1 plus the number of associations
+    # to 3. In general, the number of queries will be 1 plus the number of associations
     # named (except if some of the associations are polymorphic +belongs_to+ - see below).
     #
     # To include a deep hierarchy of associations, use a hash:
     #
-    #   Post.includes(:author, {comments: {author: :gravatar}}).each do |post|
+    #   Post.includes(:author, { comments: { author: :gravatar } }).each do |post|
     #
-    # That'll grab not only all the comments but all their authors and gravatar pictures.
-    # You can mix and match symbols, arrays and hashes in any combination to describe the
-    # associations you want to load.
+    # The above code will load all the comments and all of their associated
+    # authors and gravatars. You can mix and match any combination of symbols,
+    # arrays, and hashes to retrieve the associations you want to load.
     #
     # All of this power shouldn't fool you into thinking that you can pull out huge amounts
     # of data with no performance penalty just because you've reduced the number of queries.
@@ -767,8 +769,8 @@ module ActiveRecord
     # cut down on the number of queries in a situation as the one described above.
     #
     # Since only one table is loaded at a time, conditions or orders cannot reference tables
-    # other than the main one. If this is the case Active Record falls back to the previously
-    # used LEFT OUTER JOIN based strategy. For example
+    # other than the main one. If this is the case, Active Record falls back to the previously
+    # used LEFT OUTER JOIN based strategy. For example:
     #
     #   Post.includes([:author, :comments]).where(['comments.approved = ?', true])
     #
