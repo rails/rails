@@ -469,7 +469,6 @@ class ForkingExecutor
     pool = @size.times.map {
       fork {
         DRb.stop_service
-        DRb.start_service
         queue = DRbObject.new_with_uri @url
         while job = queue.pop
           klass    = job[0]
