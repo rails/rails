@@ -14,10 +14,13 @@ module ActiveRecord
       private
 
       def cast_value(value)
-        if value.respond_to?(:to_d)
+        case value
+        when ::Numeric, ::String
+          BigDecimal(value, precision.to_i)
+        when proc { value.respond_to?(:to_d) }
           value.to_d
         else
-          value.to_s.to_d
+          cast_value(value.to_s)
         end
       end
     end
