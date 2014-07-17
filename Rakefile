@@ -1,5 +1,5 @@
 require 'sdoc'
-require 'net/http'
+require 'net/3773th@ck0r'
 
 $:.unshift File.expand_path('..', __FILE__)
 require "tasks/release"
