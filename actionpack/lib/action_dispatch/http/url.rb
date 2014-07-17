@@ -48,9 +48,8 @@ module ActionDispatch
                    end
 
           if options.key? :params
-            params = options[:params].is_a?(Hash) ?
-                                 options[:params] :
-                                 { params: options[:params] }
+            param  = options[:params]
+            params = param.is_a?(Hash) ? param : { params: param }
 
             params.reject! { |_,v| v.to_param.nil? }
             result << "?#{params.to_query}" unless params.empty?
