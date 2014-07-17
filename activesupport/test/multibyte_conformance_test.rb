@@ -21,6 +21,7 @@ class Downloader
         end
       end
     end
+    true
   end
 end
 
@@ -30,13 +31,15 @@ class MultibyteConformanceTest < ActiveSupport::TestCase
   UNIDATA_URL = "http://www.unicode.org/Public/#{ActiveSupport::Multibyte::Unicode::UNICODE_VERSION}/ucd"
   UNIDATA_FILE = '/NormalizationTest.txt'
   CACHE_DIR = File.join(Dir.tmpdir, 'cache')
+  FileUtils.mkdir_p(CACHE_DIR)
+  RUN_P = begin
+            Downloader.download(UNIDATA_URL + UNIDATA_FILE, CACHE_DIR + UNIDATA_FILE)
+          rescue
+          end
 
   def setup
-    FileUtils.mkdir_p(CACHE_DIR)
-    Downloader.download(UNIDATA_URL + UNIDATA_FILE, CACHE_DIR + UNIDATA_FILE)
     @proxy = ActiveSupport::Multibyte::Chars
-  rescue
-    skip "Unable to download test data"
+    skip "Unable to download test data" unless RUN_P
   end
 
   def test_normalizations_C
