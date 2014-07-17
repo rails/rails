@@ -1,3 +1,7 @@
+*   Add `Array#before_last` to get elements with a certain number from the end of an array.
+
+    *Mohamed Osama*
+
 *   Add `String#truncate_words` to truncate a string by a number of words.
 
     *Mohamed Osama*
