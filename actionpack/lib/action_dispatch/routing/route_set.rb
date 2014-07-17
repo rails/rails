@@ -134,11 +134,11 @@ module ActionDispatch
         end
 
         class UrlHelper # :nodoc:
-          def self.create(route, options, url_strategy)
+          def self.create(route, options, route_name, url_strategy)
             if optimize_helper?(route)
-              OptimizedUrlHelper.new(route, options, url_strategy)
+              OptimizedUrlHelper.new(route, options, route_name, url_strategy)
             else
-              new route, options, url_strategy
+              new route, options, route_name, url_strategy
             end
           end
 
@@ -146,12 +146,12 @@ module ActionDispatch
             !route.glob? && route.path.requirements.empty?
           end
 
-          attr_reader :url_strategy
+          attr_reader :url_strategy, :route_name
 
           class OptimizedUrlHelper < UrlHelper # :nodoc:
             attr_reader :arg_size
 
-            def initialize(route, options, url_strategy)
+            def initialize(route, options, route_name, url_strategy)
               super
               @required_parts = @route.required_parts
               @arg_size       = @required_parts.size
@@ -203,11 +203,12 @@ module ActionDispatch
             end
           end
 
-          def initialize(route, options, url_strategy)
+          def initialize(route, options, route_name, url_strategy)
             @options      = options
             @segment_keys = route.segment_keys.uniq
             @route        = route
             @url_strategy = url_strategy
+            @route_name   = route_name
           end
 
           def call(t, args, inner_options)
@@ -219,7 +220,7 @@ module ActionDispatch
                                           options,
                                           @segment_keys)
 
-            t._routes.url_for(hash, url_strategy)
+            t._routes.url_for(hash, route_name, url_strategy)
           end
 
           def handle_positional_args(controller_options, inner_options, args, result, path_params)
@@ -252,8 +253,8 @@ module ActionDispatch
         #
         #   foo_url(bar, baz, bang, sort_by: 'baz')
         #
-        def define_url_helper(route, name, opts, url_strategy)
-          helper = UrlHelper.create(route, opts, url_strategy)
+        def define_url_helper(route, name, opts, route_key, url_strategy)
+          helper = UrlHelper.create(route, opts, route_key, url_strategy)
 
           @module.remove_possible_method name
           @module.module_eval do
@@ -268,11 +269,8 @@ module ActionDispatch
         end
 
         def define_named_route_methods(name, route)
-          define_url_helper route, :"#{name}_path",
-            route.defaults.merge(:use_route => name), PATH
-
-          define_url_helper route, :"#{name}_url",
-            route.defaults.merge(:use_route => name), FULL
+          define_url_helper route, :"#{name}_path", route.defaults, name, PATH
+          define_url_helper route, :"#{name}_url", route.defaults, name, FULL
         end
       end
 
@@ -512,8 +510,8 @@ module ActionDispatch
 
         attr_reader :options, :recall, :set, :named_route
 
-        def initialize(options, recall, set)
-          @named_route = options.delete(:use_route)
+        def initialize(named_route, options, recall, set)
+          @named_route = named_route
           @options     = options.dup
           @recall      = recall.dup
           @set         = set
@@ -629,13 +627,15 @@ module ActionDispatch
       end
 
       def generate_extras(options, recall={})
-        path, params = generate(options, recall)
+        route_key = options.delete :use_route
+        path, params = generate(route_key, options, recall)
         return path, params.keys
       end
 
-      def generate(options, recall = {})
-        Generator.new(options, recall, self).generate
+      def generate(route_key, options, recall = {})
+        Generator.new(route_key, options, recall, self).generate
       end
+      private :generate
 
       RESERVED_OPTIONS = [:host, :protocol, :port, :subdomain, :domain, :tld_length,
                           :trailing_slash, :anchor, :params, :only_path, :script_name,
@@ -654,7 +654,7 @@ module ActionDispatch
       end
 
       # The +options+ argument must be a hash whose keys are *symbols*.
-      def url_for(options, url_strategy = UNKNOWN)
+      def url_for(options, route_name = nil, url_strategy = UNKNOWN)
         options = default_url_options.merge options
 
         user = password = nil
@@ -676,7 +676,7 @@ module ActionDispatch
         path_options = options.dup
         RESERVED_OPTIONS.each { |ro| path_options.delete ro }
 
-        path, params = generate(path_options, recall)
+        path, params = generate(route_name, path_options, recall)
 
         if options.key? :params
           params.merge! options[:params]

@@ -152,7 +152,9 @@ module ActionDispatch
         when nil
           _routes.url_for(url_options.symbolize_keys)
         when Hash
-          _routes.url_for(options.symbolize_keys.reverse_merge!(url_options))
+          route_name = options.delete :use_route
+          _routes.url_for(options.symbolize_keys.reverse_merge!(url_options),
+                         route_name)
         when String
           options
         when Symbol
