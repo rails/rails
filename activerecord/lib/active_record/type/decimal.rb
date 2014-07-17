@@ -14,10 +14,9 @@ module ActiveRecord
       private
 
       def cast_value(value)
-        case value
-        when ::Numeric, ::String
+        if value.is_a?(::Numeric) || value.is_a?(::String)
           BigDecimal(value, precision.to_i)
-        when proc { value.respond_to?(:to_d) }
+        elsif value.respond_to?(:to_d)
           value.to_d
         else
           cast_value(value.to_s)
