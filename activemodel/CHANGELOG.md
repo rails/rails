@@ -1,3 +1,9 @@
+*   Validate options passed to `ActiveModel::Validations.validate`.
+
+    Preventing, in many cases, the simple mistake of using `validate` instead of `validates`.
+
+    *Sonny Michaud*
+
 *   Deprecate `reset_#{attribute}` in favor of `restore_#{attribute}`.
 
     These methods may cause confusion with the `reset_changes` that behaves differently

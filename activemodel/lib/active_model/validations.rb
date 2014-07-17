@@ -141,6 +141,11 @@ module ActiveModel
       #   value.
       def validate(*args, &block)
         options = args.extract_options!
+
+        if args.all? { |arg| arg.is_a?(Symbol) }
+          options.assert_valid_keys(%i(on if unless))
+        end
+
         if options.key?(:on)
           options = options.dup
           options[:if] = Array(options[:if])
@@ -148,6 +153,7 @@ module ActiveModel
             Array(options[:on]).include?(o.validation_context)
           }
         end
+
         args << options
         set_callback(:validate, *args, &block)
       end
