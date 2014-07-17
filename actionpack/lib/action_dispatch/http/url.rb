@@ -29,18 +29,23 @@ module ActionDispatch
         end
 
         def url_for(options)
-          host = options[:host]
-          unless host || options[:only_path]
-            raise ArgumentError, 'Missing host to link to! Please provide the :host parameter, set default_url_options[:host], or set :only_path to true'
-          end
-
           if options[:only_path]
             path_for options
           else
-            protocol = options[:protocol]
-            port     = options[:port]
-            build_host_url(host, port, protocol, options, path_for(options))
+            full_url_for options
           end
+        end
+
+        def full_url_for(options)
+          host     = options[:host]
+          protocol = options[:protocol]
+          port     = options[:port]
+
+          unless host
+            raise ArgumentError, 'Missing host to link to! Please provide the :host parameter, set default_url_options[:host], or set :only_path to true'
+          end
+
+          build_host_url(host, port, protocol, options, path_for(options))
         end
 
         def path_for(options)

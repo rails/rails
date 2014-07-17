@@ -134,11 +134,11 @@ module ActionDispatch
         end
 
         class UrlHelper # :nodoc:
-          def self.create(route, options)
+          def self.create(route, options, url_strategy)
             if optimize_helper?(route)
-              OptimizedUrlHelper.new(route, options)
+              OptimizedUrlHelper.new(route, options, url_strategy)
             else
-              new route, options
+              new route, options, url_strategy
             end
           end
 
@@ -146,10 +146,12 @@ module ActionDispatch
             !route.glob? && route.path.requirements.empty?
           end
 
+          attr_reader :url_strategy
+
           class OptimizedUrlHelper < UrlHelper # :nodoc:
             attr_reader :arg_size
 
-            def initialize(route, options)
+            def initialize(route, options, url_strategy)
               super
               @required_parts = @route.required_parts
               @arg_size       = @required_parts.size
@@ -159,7 +161,7 @@ module ActionDispatch
               if args.size == arg_size && !inner_options && optimize_routes_generation?(t)
                 options = t.url_options.merge @options
                 options[:path] = optimized_helper(args)
-                ActionDispatch::Http::URL.url_for(options)
+                url_strategy.call options
               else
                 super
               end
@@ -201,10 +203,11 @@ module ActionDispatch
             end
           end
 
-          def initialize(route, options)
+          def initialize(route, options, url_strategy)
             @options      = options
             @segment_keys = route.segment_keys.uniq
             @route        = route
+            @url_strategy = url_strategy
           end
 
           def call(t, args, inner_options)
@@ -216,7 +219,7 @@ module ActionDispatch
                                           options,
                                           @segment_keys)
 
-            t._routes.url_for(hash)
+            t._routes.url_for(hash, url_strategy)
           end
 
           def handle_positional_args(controller_options, inner_options, args, result, path_params)
@@ -249,8 +252,8 @@ module ActionDispatch
         #
         #   foo_url(bar, baz, bang, sort_by: 'baz')
         #
-        def define_url_helper(route, name, opts)
-          helper = UrlHelper.create(route, opts)
+        def define_url_helper(route, name, opts, url_strategy)
+          helper = UrlHelper.create(route, opts, url_strategy)
 
           @module.remove_possible_method name
           @module.module_eval do
@@ -266,11 +269,19 @@ module ActionDispatch
 
         def define_named_route_methods(name, route)
           define_url_helper route, :"#{name}_path",
-            route.defaults.merge(:use_route => name, :only_path => true)
+            route.defaults.merge(:use_route => name), PATH
+
           define_url_helper route, :"#{name}_url",
-            route.defaults.merge(:use_route => name, :only_path => false)
+            route.defaults.merge(:use_route => name), FULL
         end
       end
+
+      # :stopdoc:
+      # strategy for building urls to send to the client
+      PATH    = ->(options) { ActionDispatch::Http::URL.path_for(options) }
+      FULL    = ->(options) { ActionDispatch::Http::URL.full_url_for(options) }
+      UNKNOWN = ->(options) { ActionDispatch::Http::URL.url_for(options) }
+      # :startdoc:
 
       attr_accessor :formatter, :set, :named_routes, :default_scope, :router
       attr_accessor :disable_clear_and_finalize, :resources_path_names
@@ -643,7 +654,7 @@ module ActionDispatch
       end
 
       # The +options+ argument must be a hash whose keys are *symbols*.
-      def url_for(options)
+      def url_for(options, url_strategy = UNKNOWN)
         options = default_url_options.merge options
 
         user = password = nil
@@ -677,7 +688,7 @@ module ActionDispatch
         options[:user]        = user
         options[:password]    = password
 
-        ActionDispatch::Http::URL.url_for(options)
+        url_strategy.call options
       end
 
       def call(env)
