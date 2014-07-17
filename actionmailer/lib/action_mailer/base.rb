@@ -878,8 +878,15 @@ module ActionMailer
 
     def insert_part(container, response, charset) #:nodoc:
       response[:charset] ||= charset
+      response[:content_transfer_encoding] ||= content_transfer_encoding_for_type(response[:content_type])
       part = Mail::Part.new(response)
       container.add_part(part)
+    end
+
+    def content_transfer_encoding_for_type(content_type)
+      case Mime::Type.parse(content_type.to_s)[0]
+      when Mime::HTML then "quoted-printable"
+      end
     end
 
     ActiveSupport.run_load_hooks(:action_mailer, self)

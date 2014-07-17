@@ -141,7 +141,7 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal(2, email.parts.length)
     assert_equal("multipart/mixed", email.mime_type)
     assert_equal("text/html", email.parts[0].mime_type)
-    assert_equal("Attachment with content", email.parts[0].body.encoded)
+    assert_equal("Attachment with content=\r\n", email.parts[0].body.encoded)
     assert_equal("application/pdf", email.parts[1].mime_type)
     assert_equal("VGhpcyBpcyB0ZXN0IEZpbGUgY29udGVudA==\r\n", email.parts[1].body.encoded)
   end
@@ -240,7 +240,7 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal("text/plain", email.parts[0].mime_type)
     assert_equal("TEXT Implicit Multipart", email.parts[0].body.encoded)
     assert_equal("text/html", email.parts[1].mime_type)
-    assert_equal("HTML Implicit Multipart", email.parts[1].body.encoded)
+    assert_equal("HTML Implicit Multipart=\r\n", email.parts[1].body.encoded)
   end
 
   test "implicit multipart with sort order" do
@@ -263,7 +263,7 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal("text/plain", email.parts[1].parts[0].mime_type)
     assert_equal("TEXT Implicit Multipart", email.parts[1].parts[0].body.encoded)
     assert_equal("text/html", email.parts[1].parts[1].mime_type)
-    assert_equal("HTML Implicit Multipart", email.parts[1].parts[1].body.encoded)
+    assert_equal("HTML Implicit Multipart=\r\n", email.parts[1].parts[1].body.encoded)
   end
 
   test "implicit multipart with attachments and sort order" do
@@ -284,7 +284,7 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal("text/plain", email.parts[0].mime_type)
     assert_equal("Implicit with locale TEXT", email.parts[0].body.encoded)
     assert_equal("text/html", email.parts[1].mime_type)
-    assert_equal("Implicit with locale EN HTML", email.parts[1].body.encoded)
+    assert_equal("Implicit with locale EN HTML=\r\n", email.parts[1].body.encoded)
   end
 
   test "implicit multipart with other locale" do
@@ -295,7 +295,7 @@ class BaseTest < ActiveSupport::TestCase
       assert_equal("text/plain", email.parts[0].mime_type)
       assert_equal("Implicit with locale PL TEXT", email.parts[0].body.encoded)
       assert_equal("text/html", email.parts[1].mime_type)
-      assert_equal("Implicit with locale HTML", email.parts[1].body.encoded)
+      assert_equal("Implicit with locale HTML=\r\n", email.parts[1].body.encoded)
     end
   end
 
@@ -329,7 +329,7 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal("text/plain", email.parts[0].mime_type)
     assert_equal("TEXT Explicit Multipart", email.parts[0].body.encoded)
     assert_equal("text/html", email.parts[1].mime_type)
-    assert_equal("HTML Explicit Multipart", email.parts[1].body.encoded)
+    assert_equal("HTML Explicit Multipart=\r\n", email.parts[1].body.encoded)
   end
 
   test "explicit multipart have a boundary" do
@@ -344,7 +344,7 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal("text/plain", email.parts[1].parts[0].mime_type)
     assert_equal("TEXT Explicit Multipart", email.parts[1].parts[0].body.encoded)
     assert_equal("text/html", email.parts[1].parts[1].mime_type)
-    assert_equal("HTML Explicit Multipart", email.parts[1].parts[1].body.encoded)
+    assert_equal("HTML Explicit Multipart=\r\n", email.parts[1].parts[1].body.encoded)
   end
 
   test "explicit multipart with templates" do
@@ -354,7 +354,7 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal("text/plain", email.parts[0].mime_type)
     assert_equal("TEXT Explicit Multipart Templates", email.parts[0].body.encoded)
     assert_equal("text/html", email.parts[1].mime_type)
-    assert_equal("HTML Explicit Multipart Templates", email.parts[1].body.encoded)
+    assert_equal("HTML Explicit Multipart Templates=\r\n", email.parts[1].body.encoded)
   end
 
   test "explicit multipart with format.any" do
@@ -364,7 +364,7 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal("text/plain", email.parts[0].mime_type)
     assert_equal("Format with any!", email.parts[0].body.encoded)
     assert_equal("text/html", email.parts[1].mime_type)
-    assert_equal("Format with any!", email.parts[1].body.encoded)
+    assert_equal("Format with any!=\r\n", email.parts[1].body.encoded)
   end
 
   test "explicit multipart with format(Hash)" do
@@ -375,7 +375,7 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal("text/plain", email.parts[0].mime_type)
     assert_equal("base64", email.parts[0].content_transfer_encoding)
     assert_equal("text/html", email.parts[1].mime_type)
-    assert_equal("7bit", email.parts[1].content_transfer_encoding)
+    assert_equal("quoted-printable", email.parts[1].content_transfer_encoding)
   end
 
   test "explicit multipart with one part is rendered as body and options are merged" do
@@ -392,7 +392,7 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal("text/plain", email.parts[0].mime_type)
     assert_equal("[:text]", email.parts[0].body.encoded)
     assert_equal("text/html", email.parts[1].mime_type)
-    assert_equal("[:html]", email.parts[1].body.encoded)
+    assert_equal("[:html]=\r\n", email.parts[1].body.encoded)
   end
 
   test "explicit multipart with sort order" do
