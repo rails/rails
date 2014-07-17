@@ -109,7 +109,7 @@ end
 module ActiveSupport
   class TestCase
     include ActionDispatch::DrawOnce
-    parallelize_me!
+    parallelize_me! if ActiveSupport::Testing::Isolation.forking_env?
   end
 end
 
