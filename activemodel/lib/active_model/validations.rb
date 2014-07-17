@@ -143,7 +143,7 @@ module ActiveModel
         options = args.extract_options!
 
         if args.all? { |arg| arg.is_a?(Symbol) }
-          options.assert_valid_keys(%i(on if unless))
+          options.assert_valid_keys([:on, :if, :unless])
         end
 
         if options.key?(:on)
