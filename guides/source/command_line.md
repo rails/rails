@@ -7,7 +7,6 @@ After reading this guide, you will know:
 * How to generate models, controllers, database migrations, and unit tests.
 * How to start a development server.
 * How to experiment with objects through an interactive shell.
-* How to profile and benchmark your new creation.
 
 --------------------------------------------------------------------------------
 
