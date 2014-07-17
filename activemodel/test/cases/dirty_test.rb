@@ -49,10 +49,6 @@ class DirtyTest < ActiveModel::TestCase
     def deprecated_reload
       reset_changes
     end
-
-    def rollback
-      restore_attributes
-    end
   end
 
   setup do
@@ -209,10 +205,24 @@ class DirtyTest < ActiveModel::TestCase
     @model.name = 'Bob'
     @model.color = 'White'
 
-    @model.rollback
+    @model.restore_attributes
 
     assert_not @model.changed?
     assert_equal 'Dmitry', @model.name
     assert_equal 'Red', @model.color
+  end
+
+  test "restore_attributes can restore only some attributes" do
+    @model.name = 'Dmitry'
+    @model.color = 'Red'
+    @model.save
+    @model.name = 'Bob'
+    @model.color = 'White'
+
+    @model.restore_attributes(['name'])
+
+    assert @model.changed?
+    assert_equal 'Dmitry', @model.name
+    assert_equal 'White', @model.color
   end
 end
