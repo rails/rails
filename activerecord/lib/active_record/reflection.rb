@@ -394,11 +394,8 @@ Joining, Preloading and eager loading of these associations is deprecated and wi
 
       def polymorphic_inverse_of(associated_class)
         if has_inverse?
-          if inverse_relationship = associated_class._reflect_on_association(options[:inverse_of])
-            inverse_relationship
-          else
-            raise InverseOfAssociationNotFoundError.new(self, associated_class)
-          end
+          inverse_relationship = associated_class._reflect_on_association(options[:inverse_of])
+          inverse_relationship or raise InverseOfAssociationNotFoundError.new(self, associated_class)
         end
       end
 
@@ -499,24 +496,16 @@ Joining, Preloading and eager loading of these associations is deprecated and wi
           end
         end
 
-        # returns either nil or the inverse association name that it finds.
+        # Returns either false or the inverse association name that it finds.
         def automatic_inverse_of
           if can_find_inverse_of_automatically?(self)
             inverse_name = ActiveSupport::Inflector.underscore(options[:as] || active_record.name).to_sym
-
-            begin
-              reflection = klass._reflect_on_association(inverse_name)
-            rescue NameError
-              # Give up: we couldn't compute the klass type so we won't be able
-              # to find any associations either.
-              reflection = false
-            end
-
-            if valid_inverse_reflection?(reflection)
-              return inverse_name
-            end
+            reflection = klass._reflect_on_association(inverse_name)
+            valid_inverse_reflection?(reflection) ? inverse_name : false
+          else
+            false
           end
-
+        rescue NameError
           false
         end
 
