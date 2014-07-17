@@ -22,7 +22,7 @@ class ArrayExtAccessTests < ActiveSupport::TestCase
     assert_equal %w(), %w( a b c ).to(-10)
   end
 
-  def test_second_through_tenth
+  def test_specific_position_access
     array = (1..42).to_a
 
     assert_equal array[1], array.second
@@ -30,6 +30,9 @@ class ArrayExtAccessTests < ActiveSupport::TestCase
     assert_equal array[3], array.fourth
     assert_equal array[4], array.fifth
     assert_equal array[41], array.forty_two
+    assert_equal array[40], array.before_last
+    assert_equal array[39], array.before_last(number: 2)
+    assert_equal array[39], array.before_last(number: 44)
   end
 end
 

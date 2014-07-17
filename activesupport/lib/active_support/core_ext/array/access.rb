@@ -57,4 +57,12 @@ class Array
   def forty_two
     self[41]
   end
+
+  # Equal to <tt>self[size - number]</tt>.
+  #
+  #   %w( a b c d e ).before_last(number: 2) # => "c"
+  def before_last(options = {})
+    return self[size - 2] unless options[:number]
+    self[size - options[:number] - 1]
+  end
 end
