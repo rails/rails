@@ -177,12 +177,6 @@ module ActiveRecord
       # <tt>has_many :clients</tt> returns <tt>:clients</tt>
       attr_reader :name
 
-      # Returns the macro type.
-      #
-      # <tt>composed_of :balance, class_name: 'Money'</tt> returns <tt>:composed_of</tt>
-      # <tt>has_many :clients</tt> returns <tt>:has_many</tt>
-      attr_reader :macro
-
       attr_reader :scope
 
       # Returns the hash of options used for the macro.
@@ -386,7 +380,7 @@ Joining, Preloading and eager loading of these associations is deprecated and wi
         scope ? [[scope]] : [[]]
       end
 
-      alias :source_macro :macro
+      def source_macro; macro; end
 
       def has_inverse?
         inverse_name
@@ -407,6 +401,11 @@ Joining, Preloading and eager loading of these associations is deprecated and wi
           end
         end
       end
+
+      # Returns the macro type.
+      #
+      # <tt>has_many :clients</tt> returns <tt>:has_many</tt>
+      def macro; raise NotImplementedError; end
 
       # Returns whether or not this association reflection is for a collection
       # association. Returns +true+ if the +macro+ is either +has_many+ or
@@ -578,9 +577,10 @@ Joining, Preloading and eager loading of these associations is deprecated and wi
 
     class HasManyReflection < AssociationReflection #:nodoc:
       def initialize(name, scope, options, active_record)
-        @macro = :has_many
         super(name, scope, options, active_record)
       end
+
+      def macro; :has_many; end
 
       def collection?
         true
@@ -589,23 +589,26 @@ Joining, Preloading and eager loading of these associations is deprecated and wi
 
     class HasOneReflection < AssociationReflection #:nodoc:
       def initialize(name, scope, options, active_record)
-        @macro = :has_one
         super(name, scope, options, active_record)
       end
+
+      def macro; :has_one; end
     end
 
     class BelongsToReflection < AssociationReflection #:nodoc:
       def initialize(name, scope, options, active_record)
-        @macro = :belongs_to
         super(name, scope, options, active_record)
       end
+
+      def macro; :belongs_to; end
     end
 
     class HasAndBelongsToManyReflection < AssociationReflection #:nodoc:
       def initialize(name, scope, options, active_record)
-        @macro = :has_and_belongs_to_many
         super
       end
+
+      def macro; :has_and_belongs_to_many; end
 
       def collection?
         true
