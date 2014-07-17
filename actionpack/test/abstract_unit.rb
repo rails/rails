@@ -450,7 +450,10 @@ class ForkingExecutor
       reporter.synchronize { reporter.record result }
     end
 
-    def << o; @queue << o; end
+    def << o
+      o[2] = DRbObject.new(o[2]) if o
+      @queue << o
+    end
     def pop; @queue.pop; end
   end
 
