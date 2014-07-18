@@ -34,7 +34,7 @@ module Rails
 
         instrumenter = ActiveSupport::Notifications.instrumenter
         instrumenter.start 'request.action_dispatch', request: request
-        logger.info started_request_message(request)
+        logger.info { started_request_message(request) }
         resp = @app.call(env)
         resp[2] = ::Rack::BodyProxy.new(resp[2]) { finish(request) }
         resp
