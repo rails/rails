@@ -1,3 +1,8 @@
+*   Allows ActionDispatch::Request::LOCALHOST to match any IPv4 127.0.0.0/8
+    loopback address.
+
+    *Earl St Sauver*, *Sven Riedel*
+
 *   Preserve original path in `ShowExceptions` middleware by stashing it as
     `env["action_dispatch.original_path"]`
 
