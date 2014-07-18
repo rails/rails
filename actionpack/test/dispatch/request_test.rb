@@ -531,7 +531,7 @@ end
 class LocalhostTest < BaseRequestTest
   test "IPs that match localhost" do
     request = stub_request("REMOTE_IP" => "127.1.1.1", "REMOTE_ADDR" => "127.1.1.1")
-    assert_equal !!request.local?, true 
+    assert request.local?
   end
 end
 
