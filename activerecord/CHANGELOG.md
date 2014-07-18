@@ -1,3 +1,10 @@
+*   `create_join_table` removes a common prefix when generating the join table.
+    This matches the existing behavior of HABTM associations.
+
+    Fixes #13683.
+
+    *Stefan Kanev*
+
 *   Dont swallow errors on compute_type when having a bad alias_method on
     a class.
 
