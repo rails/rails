@@ -639,12 +639,14 @@ class RequestProtocol < BaseRequestTest
 end
 
 class RequestMethod < BaseRequestTest
-  test "request methods" do
-    [:post, :get, :patch, :put, :delete].each do |method|
-      request = stub_request('REQUEST_METHOD' => method.to_s.upcase)
+  test "method returns environment's request method when it has not been
+    overriden by middleware".squish do
 
-      assert_equal method.to_s.upcase, request.method
-      assert_equal method, request.method_symbol
+    ActionDispatch::Request::HTTP_METHODS.each do |method|
+      request = stub_request('REQUEST_METHOD' => method)
+
+      assert_equal method, request.method
+      assert_equal method.underscore.to_sym, request.method_symbol
     end
   end
 
@@ -654,28 +656,18 @@ class RequestMethod < BaseRequestTest
     end
   end
 
-  test "allow method hacking on post" do
-    %w(GET OPTIONS PATCH PUT POST DELETE).each do |method|
-      request = stub_request 'REQUEST_METHOD' => method.to_s.upcase
-
-      assert_equal(method == "HEAD" ? "GET" : method, request.method)
-    end
+  test "method returns original value of environment request method on POST" do
+    request = stub_request('rack.methodoverride.original_method' => 'POST')
+    assert_equal 'POST', request.method
   end
 
-  test "invalid method hacking on post raises exception" do
+  test "method raises exception on invalid HTTP method" do
     assert_raise(ActionController::UnknownHttpMethod) do
-      stub_request('REQUEST_METHOD' => '_RANDOM_METHOD').request_method
+      stub_request('rack.methodoverride.original_method' => '_RANDOM_METHOD').method
     end
-  end
 
-  test "restrict method hacking" do
-    [:get, :patch, :put, :delete].each do |method|
-      request = stub_request(
-        'action_dispatch.request.request_parameters' => { :_method => 'put' },
-        'REQUEST_METHOD' => method.to_s.upcase
-      )
-
-      assert_equal method.to_s.upcase, request.method
+    assert_raise(ActionController::UnknownHttpMethod) do
+      stub_request('REQUEST_METHOD' => '_RANDOM_METHOD').method
     end
   end
 
