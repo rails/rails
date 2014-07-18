@@ -102,7 +102,7 @@ module ActionDispatch
       # starting from (and including) that element and all its children in
       # depth-first order.
       #
-      # If no element if specified, calling +assert_select+ selects from the
+      # If no element is specified, calling +assert_select+ selects from the
       # response HTML unless +assert_select+ is called from within an +assert_select+ block.
       #
       # When called with a block +assert_select+ passes an array of selected elements
