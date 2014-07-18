@@ -1,3 +1,8 @@
+*   Dont swallow errors on compute_type when having a bad alias_method on
+    a class.
+
+    *arthurnn*
+
 *   PostgreSQL invalid `uuid` are convert to nil.
 
     *Abdelkader Boudih*

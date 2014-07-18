@@ -151,14 +151,8 @@ module ActiveRecord
           candidates << type_name
 
           candidates.each do |candidate|
-            begin
-              constant = ActiveSupport::Dependencies.constantize(candidate)
-              return constant if candidate == constant.to_s
-            # We don't want to swallow NoMethodError < NameError errors
-            rescue NoMethodError
-              raise
-            rescue NameError
-            end
+            constant = ActiveSupport::Dependencies.safe_constantize(candidate)
+            return constant if candidate == constant.to_s
           end
 
           raise NameError.new("uninitialized constant #{candidates.first}", candidates.first)
