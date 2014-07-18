@@ -447,7 +447,7 @@ class ForkingExecutor
     end
 
     def record reporter, result
-      reporter.synchronize { reporter.record result }
+      reporter.record result
     end
 
     def << o
