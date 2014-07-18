@@ -13,12 +13,15 @@ class <%= migration_class_name %> < ActiveRecord::Migration
 <%- end -%>
   end
 <%- elsif migration_action == 'join' -%>
-  def change
+  def up
     create_join_table :<%= join_tables.first %>, :<%= join_tables.second %> do |t|
     <%- attributes.each do |attribute| -%>
       <%= '# ' unless attribute.has_index? -%>t.index <%= attribute.index_name %><%= attribute.inject_index_options %>
     <%- end -%>
     end
+  end
+  def down
+    drop_table :<%= join_tables.second %>_<%= join_tables.first %>
   end
 <%- else -%>
   def change
