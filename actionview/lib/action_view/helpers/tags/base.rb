@@ -139,9 +139,11 @@ module ActionView
           if options[:include_blank]
             option_tags = content_tag_string('option', options[:include_blank].kind_of?(String) ? options[:include_blank] : nil, :value => '') + "\n" + option_tags
           end
-          if value.blank? && options[:prompt]
+
+          if options[:prompt] && value.blank?
             option_tags = content_tag_string('option', prompt_text(options[:prompt]), :value => '') + "\n" + option_tags
           end
+
           option_tags
         end
       end
