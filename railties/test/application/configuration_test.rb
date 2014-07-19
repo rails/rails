@@ -66,13 +66,25 @@ module ApplicationTests
         config.action_dispatch.show_exceptions  = true
       RUBY
 
-      require "#{app_path}/config/environment"
-      ActiveRecord::Migrator.stubs(:needs_migration?).returns(true)
-      ActiveRecord::NullMigration.any_instance.stubs(:mtime).returns(1)
+      app_file 'db/migrate/20140708012246_create_user.rb', <<-RUBY
+        class CreateUser < ActiveRecord::Migration
+          def change
+            create_table :users
+          end
+        end
+      RUBY
 
-      get "/foo"
-      assert_equal 500, last_response.status
-      assert_match "ActiveRecord::PendingMigrationError", last_response.body
+      require "#{app_path}/config/environment"
+
+      ActiveRecord::Migrator.migrations_paths = ["#{app_path}/db/migrate"]
+
+      begin
+        get "/foo"
+        assert_equal 500, last_response.status
+        assert_match "ActiveRecord::PendingMigrationError", last_response.body
+      ensure
+        ActiveRecord::Migrator.migrations_paths = nil
+      end
     end
 
     test "Rails.groups returns available groups" do
@@ -372,6 +384,8 @@ module ApplicationTests
       end
       RUBY
 
+      token = "cf50faa3fe97702ca1ae"
+
       app_file 'app/controllers/posts_controller.rb', <<-RUBY
       class PostsController < ApplicationController
         def show
@@ -381,6 +395,10 @@ module ApplicationTests
         def update
           render text: "update"
         end
+
+        private
+
+        def form_authenticity_token; token; end # stub the authenticy token
       end
       RUBY
 
@@ -392,8 +410,6 @@ module ApplicationTests
 
       require "#{app_path}/config/environment"
 
-      token = "cf50faa3fe97702ca1ae"
-      PostsController.any_instance.stubs(:form_authenticity_token).returns(token)
       params = {authenticity_token: token}
 
       get "/posts/1"

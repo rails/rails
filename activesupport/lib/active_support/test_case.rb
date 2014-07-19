@@ -9,11 +9,6 @@ require 'active_support/testing/time_helpers'
 require 'active_support/core_ext/kernel/reporting'
 require 'active_support/deprecation'
 
-begin
-  silence_warnings { require 'mocha/setup' }
-rescue LoadError
-end
-
 module ActiveSupport
   class TestCase < ::Minitest::Test
     Assertion = Minitest::Assertion

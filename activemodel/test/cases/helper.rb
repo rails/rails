@@ -11,3 +11,5 @@ ActiveSupport::Deprecation.debug = true
 I18n.enforce_available_locales = false
 
 require 'active_support/testing/autorun'
+
+require 'mocha/setup' # FIXME: stop using mocha

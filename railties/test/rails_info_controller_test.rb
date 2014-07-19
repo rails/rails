@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'mocha/setup' # FIXME: stop using mocha
 
 module ActionController
   class Base
