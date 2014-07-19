@@ -3,7 +3,7 @@ module ActionView
     module Tags # :nodoc:
       class PasswordField < TextField # :nodoc:
         def render
-          @options = @options.reverse_merge(value: nil)
+          @options = {:value => nil}.merge!(@options)
 
           super
         end
