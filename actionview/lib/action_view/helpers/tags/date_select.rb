@@ -16,7 +16,7 @@ module ActionView
 
         class << self
           def select_type
-            @select_type ||= name.demodulize.remove("Select").downcase
+            @select_type ||= name.demodulize.sub('Select', '').downcase
           end
         end
 
