@@ -280,12 +280,19 @@ module ActiveRecord
         column(:updated_at, :datetime, options)
       end
 
+      # Adds an appropriately-named _id column as <tt>:integer</tt> (or whatever <tt>:type</tt> option specifies),
+      # plus a corresponding _type column if the <tt>:polymorphic</tt> option is supplied. If <tt>:polymorphic</tt>
+      # is a hash of options, these will be used when creating the <tt>_type</tt> column. The <tt>:index</tt> option
+      # will also create an index, similar to calling <tt>add_index</tt>.
+      #
+      #   references :tagger, polymorphic: true, index: true, type: :uuid
       def references(*args)
         options = args.extract_options!
         polymorphic = options.delete(:polymorphic)
         index_options = options.delete(:index)
+        type = options.delete(:type) || :integer
         args.each do |col|
-          column("#{col}_id", :integer, options)
+          column("#{col}_id", type, options)
           column("#{col}_type", :string, polymorphic.is_a?(Hash) ? polymorphic : options) if polymorphic
           index(polymorphic ? %w(id type).map { |t| "#{col}_#{t}" } : "#{col}_id", index_options.is_a?(Hash) ? index_options : {}) if index_options
         end

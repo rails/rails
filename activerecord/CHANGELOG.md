@@ -1,3 +1,14 @@
+*   Allow to specify a type for created foreign key column in `references` and
+    `add_reference` in migrations.
+
+    Example:
+
+        change_table :vehicle do |t|
+          t.references :station, type: :uuid
+        end
+
+    *Andrey Novikov & Łukasz Sarnacki*
+
 *   `create_join_table` removes a common prefix when generating the join table.
     This matches the existing behavior of HABTM associations.
 

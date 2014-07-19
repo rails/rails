@@ -233,7 +233,7 @@ class PostgresqlUUIDTestInverseOf < ActiveRecord::TestCase
         t.string 'title'
       end
       connection.create_table('pg_uuid_comments', id: :uuid) do |t|
-        t.uuid :uuid_post_id, default: 'uuid_generate_v4()'
+        t.references :uuid_post, type: :uuid
         t.string 'content'
       end
     end
