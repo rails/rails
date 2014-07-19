@@ -694,6 +694,13 @@ class FormHelperTest < ActionView::TestCase
     )
   end
 
+  def test_text_area_with_value_before_type_cast
+    assert_dom_equal(
+      %{<textarea id="post_id" name="post[id]">\n123</textarea>},
+      text_area("post", "id")
+    )
+  end
+
   def test_text_area_with_html_entities
     @post.body = "The HTML Entity for & is &amp;"
     assert_dom_equal(
