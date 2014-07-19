@@ -40,7 +40,7 @@ module ActionView
 
     def prepend_formats(formats)
       formats = Array(formats)
-      return if formats.empty? || @lookup_context.html_fallback_for_js
+      return if formats.empty? || @lookup_context.format_fallback
       @lookup_context.formats = formats | @lookup_context.formats
     end
   end
