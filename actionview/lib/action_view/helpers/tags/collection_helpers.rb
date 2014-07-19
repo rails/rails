@@ -19,6 +19,7 @@ module ActionView
 
           def label(label_html_options={}, &block)
             html_options = @input_html_options.slice(:index, :namespace).merge!(label_html_options)
+
             @template_object.label(@object_name, @sanitized_attribute_name, @text, html_options, &block)
           end
         end

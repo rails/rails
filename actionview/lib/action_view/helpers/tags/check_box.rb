@@ -9,6 +9,7 @@ module ActionView
         def initialize(object_name, method_name, template_object, checked_value, unchecked_value, options)
           @checked_value   = checked_value
           @unchecked_value = unchecked_value
+
           super(object_name, method_name, template_object, options)
         end
 

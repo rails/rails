@@ -10,6 +10,7 @@ module ActionView
           end
 
           @options = options
+
           super
         end
       end

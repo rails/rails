@@ -5,7 +5,9 @@ module ActionView
         def render
           options = @options.stringify_keys
           options["value"] ||= validate_color_string(value(object))
+
           @options = options
+
           super
         end
 
