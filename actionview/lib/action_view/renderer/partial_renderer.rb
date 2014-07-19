@@ -312,6 +312,8 @@ module ActionView
       end
     end
 
+    private
+
     def render_collection
       return nil if @collection.blank?
 

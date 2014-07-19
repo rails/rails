@@ -14,8 +14,10 @@ module ActionView
       render_template(template, options[:layout], options[:locals])
     end
 
+    private
+
     # Determine the template to be rendered using the given options.
-    def determine_template(options) #:nodoc:
+    def determine_template(options)
       keys = options.fetch(:locals, {}).keys
 
       if options.key?(:body)
