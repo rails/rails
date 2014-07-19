@@ -338,3 +338,5 @@ end
 def jruby_skip(message = '')
   skip message if defined?(JRUBY_VERSION)
 end
+
+require 'mocha/setup' # FIXME: stop using mocha

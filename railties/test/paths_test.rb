@@ -1,5 +1,6 @@
 require 'abstract_unit'
 require 'rails/paths'
+require 'mocha/setup' # FIXME: stop using mocha
 
 class PathsTest < ActiveSupport::TestCase
   def setup
