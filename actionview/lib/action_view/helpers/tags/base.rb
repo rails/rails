@@ -30,11 +30,13 @@ module ActionView
 
         def value_before_type_cast(object)
           unless object.nil?
-            method_before_type_cast = @method_name + "_before_type_cast"
+            method_before_type_cast = "#{@method_name}_before_type_cast"
 
-            object.respond_to?(method_before_type_cast) ?
-              object.send(method_before_type_cast) :
+            if object.respond_to?(method_before_type_cast)
+              object.send(method_before_type_cast)
+            else
               value(object)
+            end
           end
         end
 
@@ -104,11 +106,11 @@ module ActionView
         end
 
         def sanitized_object_name
-          @sanitized_object_name ||= @object_name.gsub(/\]\[|[^-a-zA-Z0-9:.]/, "_").sub(/_$/, "")
+          @sanitized_object_name ||= @object_name.gsub(/\]\[|[^-a-zA-Z0-9:.]/, "_").chomp('_')
         end
 
         def sanitized_method_name
-          @sanitized_method_name ||= @method_name.sub(/\?$/,"")
+          @sanitized_method_name ||= @method_name.chomp('?')
         end
 
         def sanitized_value(value)
@@ -137,9 +139,11 @@ module ActionView
           if options[:include_blank]
             option_tags = content_tag_string('option', options[:include_blank].kind_of?(String) ? options[:include_blank] : nil, :value => '') + "\n" + option_tags
           end
-          if value.blank? && options[:prompt]
+
+          if options[:prompt] && value.blank?
             option_tags = content_tag_string('option', prompt_text(options[:prompt]), :value => '') + "\n" + option_tags
           end
+
           option_tags
         end
       end

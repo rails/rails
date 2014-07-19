@@ -18,7 +18,8 @@ module ActionView
           end
 
           def label(label_html_options={}, &block)
-            html_options = @input_html_options.slice(:index, :namespace).merge(label_html_options)
+            html_options = @input_html_options.slice(:index, :namespace).merge!(label_html_options)
+
             @template_object.label(@object_name, @sanitized_attribute_name, @text, html_options, &block)
           end
         end
@@ -41,7 +42,7 @@ module ActionView
 
         # Generate default options for collection helpers, such as :checked and
         # :disabled.
-        def default_html_options_for_collection(item, value) #:nodoc:
+        def default_html_options_for_collection(item, value)
           html_options = @html_options.dup
 
           [:checked, :selected, :disabled, :readonly].each do |option|
@@ -65,11 +66,11 @@ module ActionView
           html_options
         end
 
-        def sanitize_attribute_name(value) #:nodoc:
+        def sanitize_attribute_name(value)
           "#{sanitized_method_name}_#{sanitized_value(value)}"
         end
 
-        def render_collection #:nodoc:
+        def render_collection
           @collection.map do |item|
             value = value_for_collection(item, @value_method)
             text  = value_for_collection(item, @text_method)
