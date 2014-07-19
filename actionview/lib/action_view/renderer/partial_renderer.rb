@@ -353,25 +353,27 @@ module ActionView
     # respond to +to_partial_path+ in order to setup the path.
     def setup(context, options, block)
       @view   = context
-      partial = options[:partial]
-
       @options = options
-      @locals  = options[:locals] || {}
       @block   = block
+
+      @locals  = options[:locals] || {}
       @details = extract_details(options)
 
       prepend_formats(options[:formats])
 
+      partial = options[:partial]
+
       if String === partial
         @object     = options[:object]
+        @collection = collection_from_options
         @path       = partial
-        @collection = collection
       else
         @object = partial
+        @collection = collection_from_object || collection_from_options
 
-        if @collection = collection_from_object || collection
+        if @collection
           paths = @collection_data = @collection.map { |o| partial_path(o) }
-          @path = paths.uniq.size == 1 ? paths.first : nil
+          @path = paths.uniq.one? ? paths.first : nil
         else
           @path = partial_path
         end
@@ -392,7 +394,7 @@ module ActionView
       self
     end
 
-    def collection
+    def collection_from_options
       if @options.key?(:collection)
         collection = @options[:collection]
         collection.respond_to?(:to_ary) ? collection.to_ary : []
@@ -404,9 +406,7 @@ module ActionView
     end
 
     def find_partial
-      if path = @path
-        find_template(path, @template_keys)
-      end
+      find_template(@path, @template_keys) if @path
     end
 
     def find_template(path, locals)
