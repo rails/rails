@@ -106,11 +106,11 @@ module ActionView
         end
 
         def sanitized_object_name
-          @sanitized_object_name ||= @object_name.gsub(/\]\[|[^-a-zA-Z0-9:.]/, "_").sub(/_$/, "")
+          @sanitized_object_name ||= @object_name.gsub(/\]\[|[^-a-zA-Z0-9:.]/, "_").chomp('_')
         end
 
         def sanitized_method_name
-          @sanitized_method_name ||= @method_name.sub(/\?$/,"")
+          @sanitized_method_name ||= @method_name.chomp('?')
         end
 
         def sanitized_value(value)
