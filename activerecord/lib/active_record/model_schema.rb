@@ -55,6 +55,17 @@ module ActiveRecord
       delegate :type_for_attribute, to: :class
     end
 
+    # Derives the join table name for +first_table+ and +second_table+. The
+    # table names appear in alphabetical order. A common prefix is removed
+    # (useful for namespaced models like Music::Artist and Music::Record):
+    #
+    #   artists, records => artists_records
+    #   records, artists => artists_records
+    #   music_artists, music_records => music_artists_records
+    def self.derive_join_table_name(first_table, second_table) # :nodoc:
+      [first_table.to_s, second_table.to_s].sort.join("\0").gsub(/^(.*_)(.+)\0\1(.+)/, '\1\2_\3').gsub("\0", "_")
+    end
+
     module ClassMethods
       # Guesses the table name (in forced lower-case) based on the name of the class in the
       # inheritance hierarchy descending directly from ActiveRecord::Base. So if the hierarchy

@@ -567,7 +567,7 @@ Joining, Preloading and eager loading of these associations is deprecated and wi
         end
 
         def derive_join_table
-          [active_record.table_name, klass.table_name].sort.join("\0").gsub(/^(.*_)(.+)\0\1(.+)/, '\1\2_\3').gsub("\0", "_")
+          ModelSchema.derive_join_table_name active_record.table_name, klass.table_name
         end
 
         def primary_key(klass)
