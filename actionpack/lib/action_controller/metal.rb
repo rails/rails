@@ -182,7 +182,10 @@ module ActionController
       body = [body] unless body.nil? || body.respond_to?(:each)
       super
     end
-
+    
+    # Tests if render or redirect already happended. Could be useful when used as a 
+    # conditional to <tt>return</tt> early out a controller action to avoid <tt>AbstractController::DoubleRenderError</tt>
+    # example in case of multiple render/redirects in single controller action
     def performed?
       response_body || (response && response.committed?)
     end
