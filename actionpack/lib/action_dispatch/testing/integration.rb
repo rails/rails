@@ -329,6 +329,7 @@ module ActionDispatch
          xml_http_request xhr get_via_redirect post_via_redirect).each do |method|
         define_method(method) do |*args|
           reset! unless integration_session
+          reset_template_assertion
           # reset the html_document variable, but only for new get/post calls
           @html_document = nil unless method == 'cookies' || method == 'assigns'
           integration_session.__send__(method, *args).tap do
