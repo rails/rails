@@ -1,7 +1,6 @@
 require 'abstract_unit'
 require 'active_support/time'
 require 'active_support/core_ext/object'
-require 'active_support/core_ext/class/subclasses'
 
 class ObjectTests < ActiveSupport::TestCase
   class DuckTime
