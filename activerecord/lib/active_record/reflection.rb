@@ -431,14 +431,10 @@ Joining, Preloading and eager loading of these associations is deprecated and wi
       end
 
       # Returns +true+ if +self+ is a +belongs_to+ reflection.
-      def belongs_to?
-        macro == :belongs_to
-      end
+      def belongs_to?; false; end
 
       # Returns +true+ if +self+ is a +has_one+ reflection.
-      def has_one?
-        macro == :has_one
-      end
+      def has_one?; false; end
 
       def association_class
         case macro
@@ -585,9 +581,7 @@ Joining, Preloading and eager loading of these associations is deprecated and wi
 
       def macro; :has_many; end
 
-      def collection?
-        true
-      end
+      def collection?; true; end
     end
 
     class HasOneReflection < AssociationReflection #:nodoc:
@@ -596,6 +590,8 @@ Joining, Preloading and eager loading of these associations is deprecated and wi
       end
 
       def macro; :has_one; end
+
+      def has_one?; true; end
     end
 
     class BelongsToReflection < AssociationReflection #:nodoc:
@@ -604,6 +600,8 @@ Joining, Preloading and eager loading of these associations is deprecated and wi
       end
 
       def macro; :belongs_to; end
+
+      def belongs_to?; true; end
     end
 
     class HasAndBelongsToManyReflection < AssociationReflection #:nodoc:

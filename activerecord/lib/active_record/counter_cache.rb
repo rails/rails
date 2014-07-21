@@ -34,7 +34,7 @@ module ActiveRecord
 
           foreign_key  = has_many_association.foreign_key.to_s
           child_class  = has_many_association.klass
-          reflection   = child_class._reflections.values.find { |e| :belongs_to == e.macro && e.foreign_key.to_s == foreign_key && e.options[:counter_cache].present? }
+          reflection   = child_class._reflections.values.find { |e| e.belongs_to? && e.foreign_key.to_s == foreign_key && e.options[:counter_cache].present? }
           counter_name = reflection.counter_cache_column
 
           stmt = unscoped.where(arel_table[primary_key].eq(object.id)).arel.compile_update({
