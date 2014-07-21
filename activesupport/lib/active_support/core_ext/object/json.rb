@@ -44,7 +44,7 @@ end
 
 class Object
   def as_json(options = nil) #:nodoc:
-    if respond_to?(:to_hash)
+    if respond_to?(:to_h)
       to_h.as_json(options)
     else
       instance_values.as_json(options)
