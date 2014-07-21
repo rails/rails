@@ -775,6 +775,14 @@ class OutputSafetyTest < ActiveSupport::TestCase
     string = "<b>hello</b>".html_safe
     assert_equal string, ERB::Util.html_escape(string)
   end
+
+  test "ERB::Util.html_escape_once only escapes once" do
+    string = '1 < 2 &amp; 3'
+    escaped_string = "1 &lt; 2 &amp; 3"
+
+    assert_equal escaped_string, ERB::Util.html_escape_once(string)
+    assert_equal escaped_string, ERB::Util.html_escape_once(escaped_string)
+  end
 end
 
 class StringExcludeTest < ActiveSupport::TestCase

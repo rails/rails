@@ -29,4 +29,34 @@ class KeyGeneratorTest < ActiveSupport::TestCase
   end
 end
 
+class CachingKeyGeneratorTest < ActiveSupport::TestCase
+  def setup
+    @secret    = SecureRandom.hex(64)
+    @generator = ActiveSupport::KeyGenerator.new(@secret, :iterations=>2)
+    @caching_generator = ActiveSupport::CachingKeyGenerator.new(@generator)
+  end
+
+  test "Generating a cached key for same salt and key size" do
+    derived_key = @caching_generator.generate_key("some_salt", 32)
+    cached_key = @caching_generator.generate_key("some_salt", 32)
+
+    assert_equal derived_key, cached_key
+    assert_equal derived_key.object_id, cached_key.object_id
+  end
+
+  test "Does not cache key for different salt" do
+    derived_key = @caching_generator.generate_key("some_salt", 32)
+    different_salt_key = @caching_generator.generate_key("other_salt", 32)
+
+    assert_not_equal derived_key, different_salt_key
+  end
+
+  test "Does not cache key for different length" do
+    derived_key = @caching_generator.generate_key("some_salt", 32)
+    different_length_key = @caching_generator.generate_key("some_salt", 64)
+
+    assert_not_equal derived_key, different_length_key
+  end
+end
+
 end

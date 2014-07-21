@@ -162,6 +162,10 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal counter, 60
   end
 
+  def test_as_json
+    assert_equal 172800, 2.days.as_json
+  end
+
   def test_to_json
     assert_equal '172800', 2.days.to_json
   end

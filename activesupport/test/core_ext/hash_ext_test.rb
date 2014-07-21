@@ -706,7 +706,7 @@ class HashExtTest < ActiveSupport::TestCase
       { :failore => "stuff", :funny => "business" }.assert_valid_keys(:failure, :funny)
     end
     assert_equal "Unknown key: :failore. Valid keys are: :failure, :funny", exception.message
-    
+
     exception = assert_raise ArgumentError do
       { :failore => "stuff", :funny => "business" }.assert_valid_keys([ :failure ])
     end
@@ -1498,6 +1498,16 @@ class HashToXmlTest < ActiveSupport::TestCase
     assert_raise ActiveSupport::XMLConverter::DisallowedType do
       Hash.from_xml '<product><name type="yaml">value</name></product>'
     end
+  end
+
+  def test_from_xml_array_one
+    expected = { 'numbers' => { 'type' => 'Array', 'value' => '1' }}
+    assert_equal expected, Hash.from_xml('<numbers type="Array"><value>1</value></numbers>')
+  end
+
+  def test_from_xml_array_many
+    expected = { 'numbers' => { 'type' => 'Array', 'value' => [ '1', '2' ] }}
+    assert_equal expected, Hash.from_xml('<numbers type="Array"><value>1</value><value>2</value></numbers>')
   end
 
   def test_from_trusted_xml_allows_symbol_and_yaml_types
