@@ -681,7 +681,7 @@ You can also constrain a route based on any method on the [Request object](actio
 You specify a request-based constraint the same way that you specify a segment constraint:
 
 ```ruby
-get 'photos', constraints: { subdomain: 'admin' }
+get 'photos', to: 'photos#index', constraints: { subdomain: 'admin' }
 ```
 
 You can also specify constraints in a block form:
