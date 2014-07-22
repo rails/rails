@@ -45,7 +45,6 @@ module ActiveRecord
 
     test "decoration does not eagerly load existing columns" do
       assert_no_queries do
-        Model.reset_column_information
         Model.decorate_attribute_type(:a_string, :test) { |t| StringDecorator.new(t) }
       end
     end
