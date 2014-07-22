@@ -208,4 +208,8 @@
 
     *Daniel Gomez de Souza*
 
+*   Allow date_select helper selected option to accept hash like the default options.
+
+    *Lecky Lao*
+
 Please check [4-2-stable](https://github.com/rails/rails/blob/4-2-stable/actionview/CHANGELOG.md) for previous changes.
