@@ -602,11 +602,17 @@ module ActiveRecord
       end
 
       # Adds a reference. Optionally adds a +type+ column, if <tt>:polymorphic</tt> option is provided.
+      # The reference column is an +integer+ by default, the <tt>:type</tt> option can be used to specify
+      # a different type.
       # <tt>add_reference</tt> and <tt>add_belongs_to</tt> are acceptable.
       #
-      # ====== Create a user_id column
+      # ====== Create a user_id integer column
       #
       #   add_reference(:products, :user)
+      #
+      # ====== Create a user_id string column
+      #
+      #   add_reference(:products, :user, type: :string)
       #
       # ====== Create a supplier_id and supplier_type columns
       #
@@ -619,7 +625,8 @@ module ActiveRecord
       def add_reference(table_name, ref_name, options = {})
         polymorphic = options.delete(:polymorphic)
         index_options = options.delete(:index)
-        add_column(table_name, "#{ref_name}_id", :integer, options)
+        type = options.delete(:type) || :integer
+        add_column(table_name, "#{ref_name}_id", type, options)
         add_column(table_name, "#{ref_name}_type", :string, polymorphic.is_a?(Hash) ? polymorphic : options) if polymorphic
         add_index(table_name, polymorphic ? %w[id type].map{ |t| "#{ref_name}_#{t}" } : "#{ref_name}_id", index_options.is_a?(Hash) ? index_options : {}) if index_options
       end

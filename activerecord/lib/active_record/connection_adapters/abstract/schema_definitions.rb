@@ -280,12 +280,22 @@ module ActiveRecord
         column(:updated_at, :datetime, options)
       end
 
+      # Adds a reference. Optionally adds a +type+ column, if <tt>:polymorphic</tt> option is provided.
+      # <tt>references</tt> and <tt>belongs_to</tt> are acceptable. The reference column will be an +integer+
+      # by default, the <tt>:type</tt> option can be used to specify a different type.
+      #
+      #  t.references(:user)
+      #  t.references(:user, type: "string")
+      #  t.belongs_to(:supplier, polymorphic: true)
+      #
+      # See SchemaStatements#add_reference
       def references(*args)
         options = args.extract_options!
         polymorphic = options.delete(:polymorphic)
         index_options = options.delete(:index)
+        type = options.delete(:type) || :integer
         args.each do |col|
-          column("#{col}_id", :integer, options)
+          column("#{col}_id", type, options)
           column("#{col}_type", :string, polymorphic.is_a?(Hash) ? polymorphic : options) if polymorphic
           index(polymorphic ? %w(id type).map { |t| "#{col}_#{t}" } : "#{col}_id", index_options.is_a?(Hash) ? index_options : {}) if index_options
         end
@@ -500,11 +510,14 @@ module ActiveRecord
       end
 
       # Adds a reference. Optionally adds a +type+ column, if <tt>:polymorphic</tt> option is provided.
-      # <tt>references</tt> and <tt>belongs_to</tt> are acceptable.
+      # <tt>references</tt> and <tt>belongs_to</tt> are acceptable. The reference column will be an +integer+
+      # by default, the <tt>:type</tt> option can be used to specify a different type.
       #
       #  t.references(:user)
+      #  t.references(:user, type: "string")
       #  t.belongs_to(:supplier, polymorphic: true)
       #
+      # See SchemaStatements#add_reference
       def references(*args)
         options = args.extract_options!
         args.each do |ref_name|
@@ -519,6 +532,7 @@ module ActiveRecord
       #  t.remove_references(:user)
       #  t.remove_belongs_to(:supplier, polymorphic: true)
       #
+      # See SchemaStatements#remove_reference
       def remove_references(*args)
         options = args.extract_options!
         args.each do |ref_name|
