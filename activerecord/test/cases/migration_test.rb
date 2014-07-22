@@ -63,7 +63,7 @@ class MigrationTest < ActiveRecord::TestCase
     end
     Person.connection.remove_column("people", "first_name") rescue nil
     Person.connection.remove_column("people", "middle_name") rescue nil
-    Person.connection.add_column("people", "first_name", :string, null: false)
+    Person.connection.add_column("people", "first_name", :string)
     Person.reset_column_information
   end
 
