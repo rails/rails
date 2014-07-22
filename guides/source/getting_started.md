@@ -120,7 +120,7 @@ To verify that you have everything installed correctly, you should be able to
 run the following:
 
 ```bash
-$ bin/rails --version
+$ rails --version
 ```
 
 If it says something like "Rails 4.2.0", you are ready to continue.
