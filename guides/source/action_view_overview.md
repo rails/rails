@@ -44,18 +44,18 @@ $ bin/rails generate scaffold article
 
 There is a naming convention for views in Rails. Typically, the views share their name with the associated controller action, as you can see above.
 For example, the index controller action of the `articles_controller.rb` will use the `index.html.erb` view file in the `app/views/articles` directory.
-The complete HTML returned to the client is composed of a combination of this ERB file, a layout template that wraps it, and all the partials that the view may reference. Later on this guide you can find a more detailed documentation of each one of these three components.
+The complete HTML returned to the client is composed of a combination of this ERB file, a layout template that wraps it, and all the partials that the view may reference. Within this guide you will find more detailed documentation about each of these three components.
 
 
 Templates, Partials and Layouts
 -------------------------------
 
-As mentioned before, the final HTML output is a composition of three Rails elements: `Templates`, `Partials` and `Layouts`.
-Below is a brief overview of each one of them.
+As mentioned, the final HTML output is a composition of three Rails elements: `Templates`, `Partials` and `Layouts`.
+Below is a brief overview of each of them.
 
 ### Templates
 
-Action View templates can be written in several ways. If the template file has a `.erb` extension then it uses a mixture of ERB (included in Ruby) and HTML. If the template file has a `.builder` extension then a fresh instance of `Builder::XmlMarkup` library is used.
+Action View templates can be written in several ways. If the template file has a `.erb` extension then it uses a mixture of ERB (Embedded Ruby) and HTML. If the template file has a `.builder` extension then the `Builder::XmlMarkup` library is used.
 
 Rails supports multiple template systems and uses a file extension to distinguish amongst them. For example, an HTML file using the ERB template system will have `.html.erb` as a file extension.
 
@@ -72,7 +72,7 @@ Consider the following loop for names:
 <% end %>
 ```
 
-The loop is set up in regular embedding tags (`<% %>`) and the name is written using the output embedding tags (`<%= %>`). Note that this is not just a usage suggestion, for regular output functions like `print` or `puts` won't work with ERB templates. So this would be wrong:
+The loop is set up using regular embedding tags (`<% %>`) and the name is inserted using the output embedding tags (`<%= %>`). Note that this is not just a usage suggestion: regular output functions such as `print` and `puts` won't be rendered to the view with ERB templates. So this would be wrong:
 
 ```html+erb
 <%# WRONG %>
@@ -231,7 +231,7 @@ The `object` and `as` options can also be used together:
 
 #### Rendering Collections
 
-It is very common that a template needs to iterate over a collection and render a sub-template for each of the elements. This pattern has been implemented as a single method that accepts an array and renders a partial for each one of the elements in the array.
+It is very common that a template will need to iterate over a collection and render a sub-template for each of the elements. This pattern has been implemented as a single method that accepts an array and renders a partial for each one of the elements in the array.
 
 So this example for rendering all the products:
 
@@ -247,7 +247,7 @@ can be rewritten in a single line:
 <%= render partial: "product", collection: @products %>
 ```
 
-When a partial is called like this (eg. with a collection), the individual instances of the partial have access to the member of the collection being rendered via a variable named after the partial. In this case, the partial is `_product`, and within it you can refer to `product` to get the instance that is being rendered.
+When a partial is called with a collection, the individual instances of the partial have access to the member of the collection being rendered via a variable named after the partial. In this case, the partial is `_product`, and within it you can refer to `product` to get the collection member that is being rendered.
 
 You can use a shorthand syntax for rendering collections. Assuming `@products` is a collection of `Product` instances, you can simply write the following to produce the same result:
 
@@ -255,7 +255,7 @@ You can use a shorthand syntax for rendering collections. Assuming `@products` i
 <%= render @products %>
 ```
 
-Rails determines the name of the partial to use by looking at the model name in the collection, `Product` in this case. In fact, you can even create a heterogeneous collection and render it this way, and Rails will choose the proper partial for each member of the collection.
+Rails determines the name of the partial to use by looking at the model name in the collection, `Product` in this case. In fact, you can even render a collection made up of instances of different models using this shorthand, and Rails will choose the proper partial for each member of the collection.
 
 #### Spacer Templates
 
@@ -269,14 +269,14 @@ Rails will render the `_product_ruler` partial (with no data passed to it) betwe
 
 ### Layouts
 
-Layouts can be used to render a common view template around the results of Rails controller actions. Typically, every Rails application has a couple of overall layouts that most pages are rendered within. For example, a site might have a layout for a logged in user, and a layout for the marketing or sales side of the site. The logged in user layout might include top-level navigation that should be present across many controller actions. The sales layout for a SaaS app might include top-level navigation for things like "Pricing" and "Contact Us." You would expect each layout to have a different look and feel. You can read more details about Layouts in the [Layouts and Rendering in Rails](layouts_and_rendering.html) guide.
+Layouts can be used to render a common view template around the results of Rails controller actions. Typically, a Rails application will have a couple of layouts that pages will be rendered within. For example, a site might have one layout for a logged in user and another for the marketing or sales side of the site. The logged in user layout might include top-level navigation that should be present across many controller actions. The sales layout for a SaaS app might include top-level navigation for things like "Pricing" and "Contact Us" pages. You would expect each layout to have a different look and feel. You can read about layouts in more detail in the [Layouts and Rendering in Rails](layouts_and_rendering.html) guide.
 
 Partial Layouts
 ---------------
 
-Partials can have their own layouts applied to them. These layouts are different than the ones that are specified globally for the entire action, but they work in a similar fashion.
+Partials can have their own layouts applied to them. These layouts are different from those applied to a controller action, but they work in a similar fashion.
 
-Let's say we're displaying an article on a page, that should be wrapped in a `div` for display purposes. First, we'll create a new `Article`:
+Let's say we're displaying an article on a page which should be wrapped in a `div` for display purposes. Firstly, we'll create a new `Article`:
 
 ```ruby
 Article.create(body: 'Partial Layouts are cool!')
