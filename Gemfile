@@ -87,6 +87,12 @@ platforms :jruby do
   end
 end
 
+platforms :rbx do
+  # The rubysl-yaml gem doesn't ship with Psych by default
+  # as it needs libyaml that isn't always available.
+  gem 'psych', '~> 2.0'
+end
+
 # gems that are necessary for ActiveRecord tests with Oracle database
 if ENV['ORACLE_ENHANCED']
   platforms :ruby do
