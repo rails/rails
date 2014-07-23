@@ -495,5 +495,5 @@ end
 
 if ActiveSupport::Testing::Isolation.forking_env? && PROCESS_COUNT > 0
   # Use N processes (N defaults to 4)
-  Minitest.parallel_executor = ForkingExecutor.new((ENV['N'] || 4).to_i)
+  Minitest.parallel_executor = ForkingExecutor.new(PROCESS_COUNT)
 end
