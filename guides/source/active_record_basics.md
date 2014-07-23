@@ -310,10 +310,10 @@ models and validate that an attribute value is not empty, is unique and not
 already in the database, follows a specific format and many more.
 
 Validation is a very important issue to consider when persisting to the database, so
-the methods `create`, `save` and `update` take it into account when
+the methods `save` and `update` take it into account when
 running: they return `false` when validation fails and they didn't actually
 perform any operation on the database. All of these have a bang counterpart (that
-is, `create!`, `save!` and `update!`), which are stricter in that
+is, `save!` and `update!`), which are stricter in that
 they raise the exception `ActiveRecord::RecordInvalid` if validation fails.
 A quick example to illustrate:
 
@@ -322,8 +322,9 @@ class User < ActiveRecord::Base
   validates :name, presence: true
 end
 
-User.create  # => false
-User.create! # => ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
+user = User.new
+user.save  # => false
+user.save! # => ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
 ```
 
 You can learn more about validations in the [Active Record Validations
