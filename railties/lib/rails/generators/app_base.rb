@@ -205,11 +205,12 @@ module Rails
         if options.dev?
           [GemfileEntry.path('rails', Rails::Generators::RAILS_DEV_PATH),
            GemfileEntry.github('arel', 'rails/arel'),
-           GemfileEntry.github('rack', 'rack/rack')]
+           GemfileEntry.github('rack', 'rack/rack'),
            GemfileEntry.github('i18n', 'svenfuchs/i18n')]
         elsif options.edge?
           [GemfileEntry.github('rails', 'rails/rails'),
            GemfileEntry.github('arel', 'rails/arel'),
+           GemfileEntry.github('rack', 'rack/rack'),
            GemfileEntry.github('i18n', 'svenfuchs/i18n')]
         else
           [GemfileEntry.version('rails',
