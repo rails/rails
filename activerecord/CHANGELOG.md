@@ -1,3 +1,8 @@
+*   `where_values_hash` returns `HashWithIndifferentAccess`
+    Fixes regression introduced in f980289
+
+    *Maryan Hratson*
+
 *   Allow to specify a type for the foreign key column in `references`
     and `add_reference`.
 

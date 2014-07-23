@@ -54,6 +54,11 @@ module ActiveRecord
       assert_equal [], relation.extensions
     end
 
+    def test_where_values_hash_is_an_indifferent_hash
+      relation = Relation.new Post, Post.arel_table
+      assert_kind_of(HashWithIndifferentAccess, relation.where_values_hash)
+    end
+
     def test_empty_where_values_hash
       relation = Relation.new FakeKlass, :b
       assert_equal({}, relation.where_values_hash)
@@ -65,7 +70,7 @@ module ActiveRecord
     def test_has_values
       relation = Relation.new Post, Post.arel_table
       relation.where! relation.table[:id].eq(10)
-      assert_equal({:id => 10}, relation.where_values_hash)
+      assert_equal({'id' => 10}, relation.where_values_hash)
     end
 
     def test_values_wrong_table
@@ -95,7 +100,7 @@ module ActiveRecord
 
     def test_create_with_value
       relation = Relation.new Post, Post.arel_table
-      hash = { :hello => 'world' }
+      hash = { 'hello' => 'world' }
       relation.create_with_value = hash
       assert_equal hash, relation.scope_for_create
     end
@@ -104,7 +109,7 @@ module ActiveRecord
       relation = Relation.new Post, Post.arel_table
       relation.where! relation.table[:id].eq(10)
       relation.create_with_value = {:hello => 'world'}
-      assert_equal({:hello => 'world', :id => 10}, relation.scope_for_create)
+      assert_equal({'hello' => 'world', 'id' => 10}, relation.scope_for_create)
     end
 
     # FIXME: is this really wanted or expected behavior?

@@ -569,7 +569,7 @@ module ActiveRecord
             where.right.val
           end
         }]
-      }]
+      }].with_indifferent_access
     end
 
     def scope_for_create
