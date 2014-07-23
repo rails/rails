@@ -11,7 +11,8 @@ rvm:
   - jruby
 env:
   - "GEM=railties"
-  - "GEM=ap,am,amo,as,av"
+  - "GEM=ap"
+  - "GEM=am,amo,as,av"
   - "GEM=ar:mysql"
   - "GEM=ar:mysql2"
   - "GEM=ar:sqlite3"
