@@ -19,6 +19,8 @@ require 'drb'
 require 'drb/unix'
 require 'tempfile'
 
+PROCESS_COUNT = (ENV['N'] || 4).to_i
+
 require 'active_support/testing/autorun'
 require 'abstract_controller'
 require 'action_controller'
@@ -109,7 +111,9 @@ end
 module ActiveSupport
   class TestCase
     include ActionDispatch::DrawOnce
-    parallelize_me! if ActiveSupport::Testing::Isolation.forking_env?
+    if ActiveSupport::Testing::Isolation.forking_env? && PROCESS_COUNT > 0
+      parallelize_me!
+    end
   end
 end
 
@@ -489,7 +493,7 @@ class ForkingExecutor
   end
 end
 
-if ActiveSupport::Testing::Isolation.forking_env?
+if ActiveSupport::Testing::Isolation.forking_env? && PROCESS_COUNT > 0
   # Use N processes (N defaults to 4)
   Minitest.parallel_executor = ForkingExecutor.new((ENV['N'] || 4).to_i)
 end
