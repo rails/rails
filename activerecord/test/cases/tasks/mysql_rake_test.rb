@@ -1,5 +1,6 @@
 require 'cases/helper'
 
+if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
 module ActiveRecord
   class MysqlDBCreateTest < ActiveRecord::TestCase
     def setup
@@ -306,4 +307,5 @@ module ActiveRecord
     end
   end
 
+end
 end
