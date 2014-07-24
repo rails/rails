@@ -16,6 +16,8 @@ class Comment < ActiveRecord::Base
 
   has_many :children, :class_name => 'Comment', :foreign_key => :parent_id
   belongs_to :parent, :class_name => 'Comment', :counter_cache => :children_count
+  has_many :siblings_and_children, :class_name => 'Comment',
+    :foreign_key => :parent_id, :primary_key => proc { |c| [c.parent_id, c.id] }
 
   def self.what_are_you
     'a comment...'
