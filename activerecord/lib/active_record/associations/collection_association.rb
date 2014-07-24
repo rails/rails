@@ -58,7 +58,7 @@ module ActiveRecord
         pk_type = reflection.primary_key_type
         ids = Array(ids).reject { |id| id.blank? }
         ids.map! { |i| pk_type.type_cast_from_user(i) }
-        replace(klass.find(ids).index_by { |r| r.id }.values_at(*ids))
+        replace(klass.find(ids))
       end
 
       def reset
