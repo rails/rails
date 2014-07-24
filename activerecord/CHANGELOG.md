@@ -1,3 +1,7 @@
+*   `db:purge` with MySQL respects `Rails.env`.
+
+    *Yves Senn*
+
 *   Fixed automatic maintaining test schema to properly handle sql structure
     schema format.
 

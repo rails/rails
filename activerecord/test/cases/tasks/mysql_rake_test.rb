@@ -197,7 +197,7 @@ module ActiveRecord
     end
 
     def test_establishes_connection_to_test_database
-      ActiveRecord::Base.expects(:establish_connection).with(:test)
+      ActiveRecord::Base.expects(:establish_connection).with(@configuration)
 
       ActiveRecord::Tasks::DatabaseTasks.purge @configuration
     end
