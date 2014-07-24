@@ -1,3 +1,7 @@
+*   `db:purge` with MySQL respects `Rails.env`.
+
+    *Yves Senn*
+
 *   `change_column_default :table, :column, nil` with PostgreSQL will issue a
     `DROP DEFAULT` instead of a `DEFAULT NULL` query.
 
