@@ -357,7 +357,9 @@ module ActiveRecord
       end
 
       def current_savepoint_name
-        "active_record_#{open_transactions}"
+        if current_transaction.is_a? SavepointTransaction
+          current_transaction.savepoint_name
+        end
       end
 
       # Check the connection back in to the connection pool
