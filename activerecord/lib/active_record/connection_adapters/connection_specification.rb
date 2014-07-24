@@ -160,7 +160,7 @@ module ActiveRecord
         #   config = { "production" => { "host" => "localhost", "database" => "foo", "adapter" => "sqlite3" } }
         #   spec = Resolver.new(config).spec(:production)
         #   spec.adapter_method
-        #   # => "sqlite3"
+        #   # => "sqlite3_connection"
         #   spec.config
         #   # => { "host" => "localhost", "database" => "foo", "adapter" => "sqlite3" }
         #
