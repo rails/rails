@@ -203,62 +203,30 @@ module ActiveRecord
           if options[:isolation]
             raise ActiveRecord::TransactionIsolationError, "cannot set isolation when joining a transaction"
           end
-
           yield
         else
-          within_new_transaction(options) { yield }
+          transaction_manager.within_new_transaction(options) { yield }
         end
       rescue ActiveRecord::Rollback
         # rollbacks are silently swallowed
       end
 
-      def within_new_transaction(options = {}) #:nodoc:
-        transaction = begin_transaction(options)
-        yield
-      rescue Exception => error
-        rollback_transaction if transaction
-        raise
-      ensure
-        begin
-          commit_transaction unless error
-        rescue Exception
-          rollback_transaction
-          raise
-        end
-      end
+      attr_reader :transaction_manager #:nodoc:
 
-      def open_transactions
-        @transaction.number
-      end
-
-      def current_transaction #:nodoc:
-        @transaction
-      end
+      delegate :within_new_transaction, :open_transactions, :current_transaction, :begin_transaction, :commit_transaction, :rollback_transaction, to: :transaction_manager
 
       def transaction_open?
-        @transaction.open?
-      end
-
-      def begin_transaction(options = {}) #:nodoc:
-        @transaction = @transaction.begin(options)
-      end
-
-      def commit_transaction #:nodoc:
-        @transaction = @transaction.commit
-      end
-
-      def rollback_transaction #:nodoc:
-        @transaction = @transaction.rollback
+        current_transaction.open?
       end
 
       def reset_transaction #:nodoc:
-        @transaction = ClosedTransaction.new(self)
+        @transaction_manager = TransactionManager.new(self)
       end
 
       # Register a record with the current transaction so that its after_commit and after_rollback callbacks
       # can be called.
       def add_transaction_record(record)
-        @transaction.add_record(record)
+        current_transaction.add_record(record)
       end
 
       # Begins the transaction (and turns off auto-committing).

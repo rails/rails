@@ -1,5 +1,63 @@
 module ActiveRecord
   module ConnectionAdapters
+    class TransactionManager #:nodoc:
+      def initialize(connection)
+        @stack = []
+        @connection = connection
+      end
+
+      def begin_transaction(options = {})
+        transaction =
+          if @stack.empty?
+            RealTransaction.new(@connection, current_transaction, options)
+          else
+            SavepointTransaction.new(@connection, current_transaction, options)
+          end
+
+        @stack.push(transaction)
+        transaction
+      end
+
+      def commit_transaction
+        @stack.pop.commit
+      end
+
+      def rollback_transaction
+        @stack.pop.rollback
+      end
+
+      def within_new_transaction(options = {})
+        transaction = begin_transaction options
+        yield
+      rescue Exception => error
+        transaction.rollback if transaction
+        raise
+      ensure
+        begin
+          transaction.commit unless error
+        rescue Exception
+          transaction.rollback
+          raise
+        ensure
+          @stack.pop if transaction
+        end
+      end
+
+      def open_transactions
+        @stack.size
+      end
+
+      def current_transaction
+        @stack.last || closed_transaction
+      end
+
+      private
+
+        def closed_transaction
+          @closed_transaction ||= ClosedTransaction.new(@connection)
+        end
+    end
+
     class Transaction #:nodoc:
       attr_reader :connection
 
