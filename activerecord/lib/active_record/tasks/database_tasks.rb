@@ -188,10 +188,12 @@ module ActiveRecord
         when :ruby
           file ||= File.join(db_dir, "schema.rb")
           check_schema_file(file)
+          purge(current_config)
           load(file)
         when :sql
           file ||= File.join(db_dir, "structure.sql")
           check_schema_file(file)
+          purge(current_config)
           structure_load(current_config, file)
         else
           raise ArgumentError, "unknown format #{format.inspect}"
