@@ -87,7 +87,7 @@
 *   Fix the schema dump generated for tables without constraints and with
     primary key with default value of custom PostgreSQL function result.
 
-    Fixes #16111
+    Fixes #16111.
 
     *Andrey Novikov*
 
@@ -140,7 +140,7 @@
 *   Move 'dependent: :destroy' handling for 'belongs_to'
     from 'before_destroy' to 'after_destroy' callback chain
 
-    Fix #12380.
+    Fixes #12380.
 
     *Ivan Antropov*
 
@@ -261,14 +261,16 @@
 
 *   `ActiveRecord::Dirty` now detects in-place changes to mutable values.
     Serialized attributes on ActiveRecord models will no longer save when
-    unchanged. Fixes #8328.
+    unchanged.
+
+    Fixes #8328.
 
     *Sean Griffin*
 
 *   Pluck now works when selecting columns from different tables with the same
     name.
 
-    Fixes #15649
+    Fixes #15649.
 
     *Sean Griffin*
 
@@ -422,7 +424,7 @@
 *   Fixed the inferred table name of a has_and_belongs_to_many auxiliar
     table inside a schema.
 
-    Fixes #14824
+    Fixes #14824.
 
     *Eric Chahin*
 
