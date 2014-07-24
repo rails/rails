@@ -1,3 +1,10 @@
+*   `change_column_default :table, :column, nil` with PostgreSQL will issue a
+    `DROP DEFAULT` instead of a `DEFAULT NULL` query.
+
+    Fixes #16261.
+
+    *Matthew Draper*, *Yves Senn*
+
 *   Allow to specify a type for the foreign key column in `references`
     and `add_reference`.
 
