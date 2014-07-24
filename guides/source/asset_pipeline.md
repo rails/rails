@@ -493,8 +493,7 @@ The directives that work in JavaScript files also work in stylesheets
 one, requiring all stylesheets from the current directory.
 
 In this example, `require_self` is used. This puts the CSS contained within the
-file (if any) at the precise location of the `require_self` call. If
-`require_self` is called more than once, only the last call is respected.
+file (if any) at the precise location of the `require_self` call.
 
 NOTE. If you want to use multiple Sass files, you should generally use the [Sass `@import` rule](http://sass-lang.com/docs/yardoc/file.SASS_REFERENCE.html#import)
 instead of these Sprockets directives. When using Sprockets directives, Sass files exist within
