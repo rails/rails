@@ -78,45 +78,28 @@ module ActiveRecord
 
         @parent    = parent
         @records   = []
-        @finishing = false
         @joinable  = options.fetch(:joinable, true)
       end
 
-      # This state is necessary so that we correctly handle stuff that might
-      # happen in a commit/rollback. But it's kinda distasteful. Maybe we can
-      # find a better way to structure it in the future.
-      def finishing?
-        @finishing
-      end
 
       def joinable?
-        @joinable && !finishing?
+        @joinable
       end
 
       def number
-        if finishing?
-          parent.number
-        else
-          parent.number + 1
-        end
+        parent.number + 1
       end
 
       def begin(options = {})
-        if finishing?
-          parent.begin
-        else
-          SavepointTransaction.new(connection, self, options)
-        end
+        SavepointTransaction.new(connection, self, options)
       end
 
       def rollback
-        @finishing = true
         perform_rollback
         parent
       end
 
       def commit
-        @finishing = true
         perform_commit
         parent
       end
@@ -183,24 +166,28 @@ module ActiveRecord
     end
 
     class SavepointTransaction < OpenTransaction #:nodoc:
+      attr_reader :savepoint_name
+
       def initialize(connection, parent, options = {})
         if options[:isolation]
           raise ActiveRecord::TransactionIsolationError, "cannot set transaction isolation in a nested transaction"
         end
 
         super
-        connection.create_savepoint
+
+        @savepoint_name = "active_record_#{number}"
+        connection.create_savepoint(@savepoint_name)
       end
 
       def perform_rollback
-        connection.rollback_to_savepoint
+        connection.rollback_to_savepoint(@savepoint_name)
         rollback_records
       end
 
       def perform_commit
         @state.set_state(:committed)
         @state.parent = parent.state
-        connection.release_savepoint
+        connection.release_savepoint(@savepoint_name)
       end
     end
   end
