@@ -1543,6 +1543,17 @@ class HashToXmlTest < ActiveSupport::TestCase
     assert_equal 3, hash_wia.default
   end
 
+  def test_should_copy_the_default_proc_when_converting_to_hash_with_indifferent_access
+    hash = Hash.new do
+      2 + 1
+    end
+    assert_equal 3, hash[:foo]
+
+    hash_wia = hash.with_indifferent_access
+    assert_equal 3, hash_wia[:foo]
+    assert_equal 3, hash_wia[:bar]
+  end
+
   # The XML builder seems to fail miserably when trying to tag something
   # with the same name as a Kernel method (throw, test, loop, select ...)
   def test_kernel_method_names_to_xml

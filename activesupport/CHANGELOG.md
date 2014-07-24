@@ -1,3 +1,7 @@
+*   Make `Hash#with_indifferent_access` copy the default proc too.
+
+    *arthurnn*, *Xanders*
+
 *   Add `String#truncate_words` to truncate a string by a number of words.
 
     *Mohamed Osama*
