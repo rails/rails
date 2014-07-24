@@ -55,4 +55,44 @@ class AssertTemplateControllerTest < ActionDispatch::IntegrationTest
     get '/assert_template/render_nothing'
     assert_template file: nil
   end
+
+  def test_template_reset_between_requests_when_opening_a_session
+    open_session do |session|
+      session.get '/assert_template/render_with_template'
+      session.assert_template 'test/hello_world'
+
+      session.get '/assert_template/render_nothing'
+      session.assert_template nil
+    end
+  end
+
+  def test_partial_reset_between_requests_when_opening_a_session
+    open_session do |session|
+      session.get '/assert_template/render_with_partial'
+      session.assert_template partial: 'test/_partial'
+
+      session.get '/assert_template/render_nothing'
+      session.assert_template partial: nil
+    end
+  end
+
+  def test_layout_reset_between_requests_when_opening_a_session
+    open_session do |session|
+      session.get '/assert_template/render_with_layout'
+      session.assert_template layout: 'layouts/standard'
+
+      session.get '/assert_template/render_nothing'
+      session.assert_template layout: nil
+    end
+  end
+
+  def test_file_reset_between_requests_when_opening_a_session
+    open_session do |session|
+      session.get '/assert_template/render_with_file'
+      session.assert_template file: 'README.rdoc'
+
+      session.get '/assert_template/render_nothing'
+      session.assert_template file: nil
+    end
+  end
 end
