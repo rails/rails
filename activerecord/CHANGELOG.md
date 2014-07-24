@@ -1,3 +1,13 @@
+*   Add support for Postgresql JSONB
+
+    Example:
+
+        create_table :posts do |t|
+          t.jsonb :meta_data
+        end
+
+    *Philippe Creux*, *Chris Teague*
+
 *   `db:purge` with MySQL respects `Rails.env`.
 
     *Yves Senn*
