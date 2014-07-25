@@ -193,7 +193,7 @@ module ActiveRecord
       #
       #   person = Person.new
       #   person.column_for_attribute(:name) # the result depends on the ConnectionAdapter
-      #   # => #<ActiveRecord::ConnectionAdapters::SQLite3Column:0x007ff4ab083980 @name="name", @sql_type="varchar(255)", @null=true, ...>
+      #   # => #<ActiveRecord::ConnectionAdapters::Column:0x007ff4ab083980 @name="name", @sql_type="varchar(255)", @null=true, ...>
       #
       #   person.column_for_attribute(:nothing)
       #   # => nil
