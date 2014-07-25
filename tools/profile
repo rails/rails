@@ -84,6 +84,32 @@ module CodeTools
     end
   end
 end
+# ruby-prof printer name causes the third arg to be sent :classify
+#   which is probably overkill if you already know the name of the ruby-prof
+#   printer you want to use, e.g. Graph
+begin
+  require 'active_support/inflector'
+  require 'active_support/core_ext/string/inflections'
+rescue LoadError
+  STDERR.puts $!.message
+  class String
+    # File activesupport/lib/active_support/inflector/methods.rb, line 150
+    def classify
+      # strip out any leading schema name
+      camelize(self.sub(/.*\./, ''))
+    end
+    # File activesupport/lib/active_support/inflector/methods.rb, line 68
+    def camelize(uppercase_first_letter = true)
+      string = self
+      if uppercase_first_letter
+        string = string.sub(/^[a-z\d]*/) { $&.capitalize }
+      else
+        string = string.sub(/^(?:(?=\b|[A-Z_])|\w)/) { $&.downcase }
+      end
+      string.gsub(/(?:_|(\/))([a-z\d]*)/) { "#{$1}#{$2.capitalize}" }.gsub('/', '::')
+    end
+  end
+end
 if $0 == __FILE__
   if (filename = ARGV.shift)
     path = File.expand_path(filename)
