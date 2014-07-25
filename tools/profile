@@ -6,9 +6,11 @@ ENV['RAILS_ENV'] ||= 'development'
 
 module CodeTools
   class Profiler
+    Error = Class.new(StandardError)
 
     attr_reader :path, :mode
     def initialize(path, mode=nil)
+      assert_ruby_file_exists(path)
       @path, @mode = path, mode
       require 'benchmark'
     end
@@ -58,6 +60,16 @@ module CodeTools
         end
       end
       puts "%8.1f ms  %d KB RSS" % [elapsed * 1000, after_rss - before_rss]
+    end
+
+    private
+
+    def assert_ruby_file_exists(path)
+      fail Error.new("No such file") unless File.exists?(path)
+      fail Error.new("#{path} is a directory") if File.directory?(path)
+      ruby_extension = File.extname(path) == '.rb'
+      ruby_executable = File.open(path, 'rb') {|f| f.readline } =~ [/\A#!.*ruby/]
+      fail Error.new("Not a ruby file") unless ruby_extension or ruby_executable
     end
 
     module RequireProfiler
