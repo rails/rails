@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 # Example:
-#   tools/profile activesupport/lib/active_support.rb
+#   ./profile ../activesupport/lib/active_support.rb [ruby-prof mode]
 ENV['NO_RELOAD'] ||= '1'
 ENV['RAILS_ENV'] ||= 'development'
 
