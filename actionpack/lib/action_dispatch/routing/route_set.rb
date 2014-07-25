@@ -278,8 +278,8 @@ module ActionDispatch
 
       # :stopdoc:
       # strategy for building urls to send to the client
-      PATH    = ->(ctx, options) { ActionDispatch::Http::URL.path_for(options) }
-      FULL    = ->(ctx, options) { ActionDispatch::Http::URL.full_url_for(options) }
+      PATH    = ->(ctx, options) { ActionDispatch::Http::URL.path_for(ctx, options) }
+      FULL    = ->(ctx, options) { ActionDispatch::Http::URL.full_url_for(ctx, options) }
       UNKNOWN = ->(ctx, options) { ActionDispatch::Http::URL.context_url_for(ctx, options) }
       # :startdoc:
 
