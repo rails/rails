@@ -13,10 +13,7 @@ module ActionController
     end
 
     def setup_subscriptions
-      @_partials = Hash.new(0)
-      @_templates = Hash.new(0)
-      @_layouts = Hash.new(0)
-      @_files = Hash.new(0)
+      reset_template_assertion
       @_subscribers = []
 
       @_subscribers << ActiveSupport::Notifications.subscribe("render_template.action_view") do |_name, _start, _finish, _id, payload|
@@ -56,10 +53,15 @@ module ActionController
     end
 
     def process(*args)
+      reset_template_assertion
+      super
+    end
+
+    def reset_template_assertion
       @_partials = Hash.new(0)
       @_templates = Hash.new(0)
       @_layouts = Hash.new(0)
-      super
+      @_files = Hash.new(0)
     end
 
     # Asserts that the request was rendered with the appropriate template file or partials.

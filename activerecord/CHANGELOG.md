@@ -1,3 +1,26 @@
+*   Allow to specify a type for the foreign key column in `references`
+    and `add_reference`.
+
+    Example:
+
+        change_table :vehicle do |t|
+          t.references :station, type: :uuid
+        end
+
+    *Andrey Novikov*, *Łukasz Sarnacki*
+
+*   `create_join_table` removes a common prefix when generating the join table.
+    This matches the existing behavior of HABTM associations.
+
+    Fixes #13683.
+
+    *Stefan Kanev*
+
+*   Dont swallow errors on compute_type when having a bad alias_method on
+    a class.
+
+    *arthurnn*
+
 *   PostgreSQL invalid `uuid` are convert to nil.
 
     *Abdelkader Boudih*

@@ -152,11 +152,9 @@ module ActionView
       # To prevent this the helper generates an auxiliary hidden field before
       # every multiple select. The hidden field has the same name as multiple select and blank value.
       #
-      # This way, the client either sends only the hidden field (representing
-      # the deselected multiple select box), or both fields. Since the HTML specification
-      # says key/value pairs have to be sent in the same order they appear in the
-      # form, and parameters extraction gets the last occurrence of any repeated
-      # key in the query string, that works for ordinary forms.
+      # <b>Note:</b> The client either sends only the hidden field (representing
+      # the deselected multiple select box), or both fields. This means that the resulting array
+      # always contains a blank string.
       #
       # In case if you don't want the helper to generate this hidden field you can specify
       # <tt>include_hidden: false</tt> option.

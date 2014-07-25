@@ -52,14 +52,15 @@ class PresenceValidationTest < ActiveRecord::TestCase
   end
 
   def test_validates_presence_doesnt_convert_to_array
-    Speedometer.validates_presence_of :dashboard
+    speedometer = Class.new(Speedometer)
+    speedometer.validates_presence_of :dashboard
 
     dash = Dashboard.new
 
     # dashboard has to_a method
     def dash.to_a; ['(/)', '(\)']; end
 
-    s = Speedometer.new
+    s = speedometer.new
     s.dashboard = dash
 
     assert_nothing_raised { s.valid? }

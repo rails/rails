@@ -33,38 +33,52 @@ module ActionDispatch
         end
 
         def context_url_for(context, options)
-          host = options[:host]
-          unless host || options[:only_path]
+          if options[:only_path]
+            path_for options
+          else
+            full_url_for options
+          end
+        end
+
+        def full_url_for(options)
+          host     = options[:host]
+          protocol = options[:protocol]
+          port     = options[:port]
+
+          unless host
             raise ArgumentError, 'Missing host to link to! Please provide the :host parameter, set default_url_options[:host], or set :only_path to true'
           end
 
-          path  = options[:script_name].to_s.chomp("/")
-          path << options[:path].to_s
+          build_host_url(host, port, protocol, options, path_for(options))
+        end
 
-          path = add_trailing_slash(path) if options[:trailing_slash]
+        def path_for(options)
+          result  = options[:script_name].to_s.chomp("/")
+          result << options[:path].to_s
 
-          result = if options[:only_path]
-                     path
-                   else
-                     protocol = options[:protocol]
-                     port     = options[:port]
-                     build_host_url(host, port, protocol, options).concat path
-                   end
+          result = add_trailing_slash(result) if options[:trailing_slash]
 
+          result = add_params options, result
+          add_anchor options, result
+        end
+
+        private
+
+        def add_params(options, result)
           if options.key? :params
-            params = options[:params].is_a?(Hash) ?
-                                 options[:params] :
-                                 { params: options[:params] }
+            param  = options[:params]
+            params = param.is_a?(Hash) ? param : { params: param }
 
             params.reject! { |_,v| v.to_param.nil? }
             result << "?#{params.to_query}" unless params.empty?
           end
-
-          result << "##{Journey::Router::Utils.escape_fragment(options[:anchor].to_param.to_s)}" if options[:anchor]
           result
         end
 
-        private
+        def add_anchor(options, result)
+          result << "##{Journey::Router::Utils.escape_fragment(options[:anchor].to_param.to_s)}" if options[:anchor]
+          result
+        end
 
         def extract_domain_from(host, tld_length)
           host.split('.').last(1 + tld_length).join('.')
@@ -87,7 +101,7 @@ module ActionDispatch
           path
         end
 
-        def build_host_url(host, port, protocol, options)
+        def build_host_url(host, port, protocol, options, path)
           if match = host.match(HOST_REGEXP)
             protocol           ||= match[1] unless protocol == false
             host                 = match[2]
@@ -108,7 +122,7 @@ module ActionDispatch
             result << ":#{normalized_port}"
           }
 
-          result
+          result.concat path
         end
 
         def named_host?(host)

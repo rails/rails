@@ -167,6 +167,13 @@ class ValidationsTest < ActiveModel::TestCase
     end
   end
 
+  def test_invalid_options_to_validate
+    assert_raises(ArgumentError) do
+      # A common mistake -- we meant to call 'validates'
+      Topic.validate :title, presence: true
+    end
+  end
+
   def test_errors_conversions
     Topic.validates_presence_of %w(title content)
     t = Topic.new

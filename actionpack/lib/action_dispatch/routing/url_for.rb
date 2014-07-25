@@ -157,10 +157,12 @@ module ActionDispatch
         case options
         when nil
           hash = url_options.symbolize_keys
-          _routes._url_for(context, hash)
+          route_name = hash.delete :use_route
+          _routes._url_for(context, hash, route_name)
         when Hash
           hash = options.symbolize_keys.reverse_merge!(url_options)
-          _routes._url_for(context, hash)
+          route_name = hash.delete :use_route
+          _routes._url_for(context, hash, route_name)
         when String
           options
         when Symbol

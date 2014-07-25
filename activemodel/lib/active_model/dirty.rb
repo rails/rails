@@ -180,6 +180,11 @@ module ActiveModel
       attribute_changed?(attr) ? changed_attributes[attr] : __send__(attr)
     end
 
+    # Restore all previous data of the provided attributes.
+    def restore_attributes(attributes = changed)
+      attributes.each { |attr| restore_attribute! attr }
+    end
+
     private
 
       # Removes current changes and makes them accessible through +previous_changes+.
@@ -197,11 +202,6 @@ module ActiveModel
       def reset_changes
         ActiveSupport::Deprecation.warn "#reset_changes is deprecated and will be removed on Rails 5. Please use #clear_changes_information instead."
         clear_changes_information
-      end
-
-      # Restore all previous data.
-      def restore_attributes # :doc:
-        changed_attributes.each_key { |attr| restore_attribute! attr }
       end
 
       # Handle <tt>*_change</tt> for +method_missing+.

@@ -135,11 +135,11 @@ module ActionDispatch
         end
 
         class UrlHelper # :nodoc:
-          def self.create(route, options)
+          def self.create(route, options, route_name, url_strategy)
             if optimize_helper?(route)
-              OptimizedUrlHelper.new(route, options)
+              OptimizedUrlHelper.new(route, options, route_name, url_strategy)
             else
-              new route, options
+              new route, options, route_name, url_strategy
             end
           end
 
@@ -147,10 +147,12 @@ module ActionDispatch
             !route.glob? && route.path.requirements.empty?
           end
 
+          attr_reader :url_strategy, :route_name
+
           class OptimizedUrlHelper < UrlHelper # :nodoc:
             attr_reader :arg_size
 
-            def initialize(route, options)
+            def initialize(route, options, route_name, url_strategy)
               super
               @required_parts = @route.required_parts
               @arg_size       = @required_parts.size
@@ -160,7 +162,7 @@ module ActionDispatch
               if args.size == arg_size && !inner_options && optimize_routes_generation?(t)
                 options = t.context.url_options.merge @options
                 options[:path] = optimized_helper(args)
-                ActionDispatch::Http::URL.url_for(options)
+                url_strategy.call t.context, options
               else
                 super
               end
@@ -202,10 +204,12 @@ module ActionDispatch
             end
           end
 
-          def initialize(route, options)
+          def initialize(route, options, route_name, url_strategy)
             @options      = options
             @segment_keys = route.segment_keys.uniq
             @route        = route
+            @url_strategy = url_strategy
+            @route_name   = route_name
           end
 
           def call(t, args, inner_options)
@@ -218,7 +222,7 @@ module ActionDispatch
                                           options,
                                           @segment_keys)
 
-            t._routes._url_for(context, hash)
+            t._routes._url_for(context, hash, route_name, url_strategy)
           end
 
           def handle_positional_args(controller_options, inner_options, args, result, path_params)
@@ -251,8 +255,8 @@ module ActionDispatch
         #
         #   foo_url(bar, baz, bang, sort_by: 'baz')
         #
-        def define_url_helper(route, name, options)
-          helper = UrlHelper.create(route, options.dup)
+        def define_url_helper(route, name, opts, route_key, url_strategy)
+          helper = UrlHelper.create(route, opts, route_key, url_strategy)
 
           @module.remove_possible_method name
           @module.module_eval do
@@ -267,12 +271,17 @@ module ActionDispatch
         end
 
         def define_named_route_methods(name, route)
-          define_url_helper route, :"#{name}_path",
-            route.defaults.merge(:use_route => name, :only_path => true)
-          define_url_helper route, :"#{name}_url",
-            route.defaults.merge(:use_route => name, :only_path => false)
+          define_url_helper route, :"#{name}_path", route.defaults, name, PATH
+          define_url_helper route, :"#{name}_url", route.defaults, name, FULL
         end
       end
+
+      # :stopdoc:
+      # strategy for building urls to send to the client
+      PATH    = ->(ctx, options) { ActionDispatch::Http::URL.path_for(options) }
+      FULL    = ->(ctx, options) { ActionDispatch::Http::URL.full_url_for(options) }
+      UNKNOWN = ->(ctx, options) { ActionDispatch::Http::URL.context_url_for(ctx, options) }
+      # :startdoc:
 
       attr_accessor :formatter, :set, :named_routes, :default_scope, :router
       attr_accessor :disable_clear_and_finalize, :resources_path_names
@@ -506,8 +515,8 @@ module ActionDispatch
 
         attr_reader :options, :recall, :set, :named_route
 
-        def initialize(options, recall, set)
-          @named_route = options.delete(:use_route)
+        def initialize(named_route, options, recall, set)
+          @named_route = named_route
           @options     = options.dup
           @recall      = recall.dup
           @set         = set
@@ -623,13 +632,15 @@ module ActionDispatch
       end
 
       def generate_extras(options, recall={})
-        path, params = generate(options, recall)
+        route_key = options.delete :use_route
+        path, params = generate(route_key, options, recall)
         return path, params.keys
       end
 
-      def generate(options, recall = {})
-        Generator.new(options, recall, self).generate
+      def generate(route_key, options, recall = {})
+        Generator.new(route_key, options, recall, self).generate
       end
+      private :generate
 
       RESERVED_OPTIONS = [:host, :protocol, :port, :subdomain, :domain, :tld_length,
                           :trailing_slash, :anchor, :params, :only_path, :script_name,
@@ -648,12 +659,12 @@ module ActionDispatch
       end
 
       # The +options+ argument must be a hash whose keys are *symbols*.
-      def url_for(options)
+      def url_for(options, route_name = nil, url_strategy = UNKNOWN)
         ctx = ActionDispatch::UrlGeneration.null
-        _url_for(ctx, options)
+        _url_for(ctx, options, route_name, url_strategy)
       end
 
-      def _url_for(ctx, options)
+      def _url_for(ctx, options, route_name = nil, url_strategy = UNKNOWN)
         path_params = ctx.path_parameters
 
         if default_url_options
@@ -677,7 +688,7 @@ module ActionDispatch
         path_options = options.dup
         RESERVED_OPTIONS.each { |ro| path_options.delete ro }
 
-        path, params = generate(path_options, path_params)
+        path, params = generate(route_name, path_options, path_params)
 
         if options.key? :params
           params.merge! options[:params]
@@ -689,7 +700,7 @@ module ActionDispatch
         options[:user]        = user
         options[:password]    = password
 
-        ActionDispatch::Http::URL.context_url_for(ctx, options)
+        url_strategy.call ctx, options
       end
 
       def call(env)

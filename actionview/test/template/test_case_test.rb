@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'rails/engine'
 
 module ActionView
 
@@ -223,7 +224,7 @@ module ActionView
 
     test "is able to use mounted routes" do
       with_routing do |set|
-        app = Class.new do
+        app = Class.new(Rails::Engine) do
           def self.routes
             @routes ||= ActionDispatch::Routing::RouteSet.new
           end

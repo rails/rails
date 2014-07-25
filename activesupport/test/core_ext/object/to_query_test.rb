@@ -46,6 +46,10 @@ class ToQueryTest < ActiveSupport::TestCase
       :person => {:id => [20, 10]}
   end
 
+  def test_empty_array
+    assert_equal "person%5B%5D=", [].to_query('person')
+  end
+
   def test_nested_empty_hash
     assert_equal '',
       {}.to_query

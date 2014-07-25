@@ -15,6 +15,12 @@ silence_warnings do
   Encoding.default_external = "UTF-8"
 end
 
+require 'drb'
+require 'drb/unix'
+require 'tempfile'
+
+PROCESS_COUNT = (ENV['N'] || 4).to_i
+
 require 'active_support/testing/autorun'
 require 'abstract_controller'
 require 'action_controller'
@@ -105,6 +111,9 @@ end
 module ActiveSupport
   class TestCase
     include ActionDispatch::DrawOnce
+    if ActiveSupport::Testing::Isolation.forking_env? && PROCESS_COUNT > 0
+      parallelize_me!
+    end
   end
 end
 
@@ -351,7 +360,8 @@ end
 module RoutingTestHelpers
   def url_for(set, options)
     ctx = ActionDispatch::UrlGeneration.null
-    set._url_for(ctx, options.merge(:only_path => true))
+    route_name = options.delete :use_route
+    set._url_for ctx, options.merge(:only_path => true), route_name
   end
 
   def make_set(strict = true)
@@ -431,4 +441,60 @@ end
 # Skips the current run on JRuby using Minitest::Assertions#skip
 def jruby_skip(message = '')
   skip message if defined?(JRUBY_VERSION)
+end
+
+require 'mocha/setup' # FIXME: stop using mocha
+
+class ForkingExecutor
+  class Server
+    include DRb::DRbUndumped
+
+    def initialize
+      @queue = Queue.new
+    end
+
+    def record reporter, result
+      reporter.record result
+    end
+
+    def << o
+      o[2] = DRbObject.new(o[2]) if o
+      @queue << o
+    end
+    def pop; @queue.pop; end
+  end
+
+  def initialize size
+    @size  = size
+    @queue = Server.new
+    file   = File.join Dir.tmpdir, Dir::Tmpname.make_tmpname('tests', 'fd')
+    @url   = "drbunix://#{file}"
+    @pool  = nil
+    DRb.start_service @url, @queue
+  end
+
+  def << work; @queue << work; end
+
+  def shutdown
+    pool = @size.times.map {
+      fork {
+        DRb.stop_service
+        queue = DRbObject.new_with_uri @url
+        while job = queue.pop
+          klass    = job[0]
+          method   = job[1]
+          reporter = job[2]
+          result = Minitest.run_one_method klass, method
+          queue.record reporter, result
+        end
+      }
+    }
+    @size.times { @queue << nil }
+    pool.each { |pid| Process.waitpid pid }
+  end
+end
+
+if ActiveSupport::Testing::Isolation.forking_env? && PROCESS_COUNT > 0
+  # Use N processes (N defaults to 4)
+  Minitest.parallel_executor = ForkingExecutor.new((ENV['N'] || 4).to_i)
 end
