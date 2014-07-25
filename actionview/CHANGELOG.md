@@ -1,3 +1,7 @@
+*   Fix that render layout: 'messages/layout' should also be added to the dependency tracker tree.
+
+    *DHH*
+
 *   Add `PartialIteration` object used when rendering collections.
 
     The iteration object is available as the local variable
