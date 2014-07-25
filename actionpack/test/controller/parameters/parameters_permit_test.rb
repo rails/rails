@@ -1,6 +1,7 @@
 require 'abstract_unit'
 require 'action_dispatch/http/upload'
 require 'action_controller/metal/strong_parameters'
+require 'active_support/core_ext/hash/transform_values'
 
 class ParametersPermitTest < ActiveSupport::TestCase
   def assert_filtered_out(params, key)
@@ -204,6 +205,9 @@ class ParametersPermitTest < ActiveSupport::TestCase
     assert !@params.fetch(:person).permitted?
 
     assert !@params.values_at(:person).first.permitted?
+
+    assert !@params.transform_keys { |k| k }.permitted?
+    assert !@params.transform_values { |v| v }.permitted?
   end
 
   test "permitted is sticky on accessors" do
@@ -217,17 +221,34 @@ class ParametersPermitTest < ActiveSupport::TestCase
     assert @params.fetch(:person).permitted?
 
     assert @params.values_at(:person).first.permitted?
+
+    assert @params.transform_keys { |k| k }.permitted?
+    assert @params.transform_values { |v| v }.permitted?
   end
 
   test "not permitted is sticky on mutators" do
     assert !@params.delete_if { |k| k == "person" }.permitted?
     assert !@params.keep_if { |k,v| k == "person" }.permitted?
+
+    assert !@params.slice!(:person).permitted?
+
+    assert !@params.extract!(:person).permitted?
+
+    assert !@params.transform_keys! { |k| k }.permitted?
+    assert !@params.transform_values! { |v| v }.permitted?
   end
 
   test "permitted is sticky on mutators" do
     @params.permit!
     assert @params.delete_if { |k| k == "person" }.permitted?
     assert @params.keep_if { |k,v| k == "person" }.permitted?
+
+    assert @params.slice!(:person).permitted?
+
+    assert @params.extract!(:person).permitted?
+
+    assert @params.transform_keys! { |k| k }.permitted?
+    assert @params.transform_values! { |v| v }.permitted?
   end
 
   test "not permitted is sticky beyond merges" do

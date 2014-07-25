@@ -355,6 +355,46 @@ module ActionController
       end
     end
 
+    # Removes and returns the key/value pairs matching the given keys.
+    #
+    #   params = ActionController::Parameters.new(a: 1, b: 2, c: 3)
+    #   params.extract!(:a, :b) # => {"a"=>1, "b"=>2}
+    #   params                  # => {"c"=>3}
+    def extract!(*keys)
+      self.class.new(super).tap do |new_instance|
+        new_instance.permitted = @permitted
+      end
+    end
+
+    # Returns a new <tt>ActionController::Parameters</tt> with the results of
+    # running +block+ once for every value. The keys are unchanged.
+    #
+    #   params = ActionController::Parameters.new(a: 1, b: 2, c: 3)
+    #   params.transform_values { |x| x * 2 }
+    #   # => {"a"=>2, "b"=>4, "c"=>6}
+    def transform_values
+      if block_given?
+        self.class.new(super).tap do |new_instance|
+          new_instance.permitted = @permitted
+        end
+      else
+        super
+      end
+    end
+
+    # This method is here only to make sure that the returned object has the
+    # correct +permitted+ status. It should not matter since the parent of
+    # this object is +HashWithIndifferentAccess+
+    def transform_keys # :nodoc:
+      if block_given?
+        self.class.new(super).tap do |new_instance|
+          new_instance.permitted = @permitted
+        end
+      else
+        super
+      end
+    end
+
     # Returns an exact copy of the <tt>ActionController::Parameters</tt>
     # instance. +permitted+ state is kept on the duped object.
     #
