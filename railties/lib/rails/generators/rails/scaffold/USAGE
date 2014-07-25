@@ -14,9 +14,10 @@ Description:
     unique index. "index" could also be given instead of "uniq" if one desires
     a non unique index.
 
-    As a special case, passing 'password:digest' will generate a password_digest
-    field and configure your generated model, controller, views, and test suite
-    for use with ActiveModel has_secure_password.
+    As a special case, specifying 'password:digest' will generate a
+    password_digest field of string type, and configure your generated model,
+    controller, views, and test suite for use with ActiveModel
+    has_secure_password (assuming they are using Rails defaults).
 
     Timestamps are added by default, so you don't have to specify them by hand
     as 'created_at:datetime updated_at:datetime'.
@@ -37,3 +38,4 @@ Examples:
     `rails generate scaffold post`
     `rails generate scaffold post title body:text published:boolean`
     `rails generate scaffold purchase amount:decimal tracking_id:integer:uniq`
+    `rails generate scaffold user email:uniq password:digest`
