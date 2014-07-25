@@ -277,4 +277,43 @@ class ParametersPermitTest < ActiveSupport::TestCase
   test "permitting parameters as an array" do
     assert_equal "32", @params[:person].permit([ :age ])[:age]
   end
+
+  test "to_h returns empty hash on unpermitted params" do
+    assert @params.to_h.is_a? Hash
+    assert_not @params.to_h.is_a? ActionController::Parameters
+    assert @params.to_h.empty?
+  end
+
+  test "to_h returns converted hash on permitted params" do
+    @params.permit!
+
+    assert @params.to_h.is_a? Hash
+    assert_not @params.to_h.is_a? ActionController::Parameters
+    assert_equal @params.to_hash, @params.to_h
+  end
+
+  test "to_h returns converted hash when .permit_all_parameters is set" do
+    begin
+      ActionController::Parameters.permit_all_parameters = true
+      params = ActionController::Parameters.new(crab: "Senjougahara Hitagi")
+
+      assert params.to_h.is_a? Hash
+      assert_not @params.to_h.is_a? ActionController::Parameters
+      assert_equal({ "crab" => "Senjougahara Hitagi" }, params.to_h)
+    ensure
+      ActionController::Parameters.permit_all_parameters = false
+    end
+  end
+
+  test "to_h returns always permitted parameter on unpermitted params" do
+    params = ActionController::Parameters.new(
+      controller: "users",
+      action: "create",
+      user: {
+        name: "Sengoku Nadeko"
+      }
+    )
+
+    assert_equal({ "controller" => "users", "action" => "create" }, params.to_h)
+  end
 end

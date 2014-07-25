@@ -141,6 +141,25 @@ module ActionController
       @permitted = self.class.permit_all_parameters
     end
 
+    # Returns a safe +Hash+ representation of this parameter with all
+    # unpermitted keys removed.
+    #
+    #   params = ActionController::Parameters.new({
+    #     name: 'Senjougahara Hitagi',
+    #     oddity: 'Heavy stone crab'
+    #   })
+    #   params.to_h # => {}
+    #
+    #   safe_params = params.permit(:name)
+    #   safe_params.to_h # => {"name"=>"Senjougahara Hitagi"}
+    def to_h
+      if permitted?
+        super
+      else
+        slice(*self.class.always_permitted_parameters).permit!.to_h
+      end
+    end
+
     # Attribute that keeps track of converted arrays, if any, to avoid double
     # looping in the common use case permit + mass-assignment. Defined in a
     # method to instantiate it only if needed.
