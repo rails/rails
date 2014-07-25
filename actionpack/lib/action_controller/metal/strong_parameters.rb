@@ -350,9 +350,7 @@ module ActionController
     #   params.slice(:a, :b) # => {"a"=>1, "b"=>2}
     #   params.slice(:d)     # => {}
     def slice(*keys)
-      self.class.new(super).tap do |new_instance|
-        new_instance.permitted = @permitted
-      end
+      new_instance_with_inherited_permitted_status(super)
     end
 
     # Removes and returns the key/value pairs matching the given keys.
@@ -361,9 +359,7 @@ module ActionController
     #   params.extract!(:a, :b) # => {"a"=>1, "b"=>2}
     #   params                  # => {"c"=>3}
     def extract!(*keys)
-      self.class.new(super).tap do |new_instance|
-        new_instance.permitted = @permitted
-      end
+      new_instance_with_inherited_permitted_status(super)
     end
 
     # Returns a new <tt>ActionController::Parameters</tt> with the results of
@@ -374,9 +370,7 @@ module ActionController
     #   # => {"a"=>2, "b"=>4, "c"=>6}
     def transform_values
       if block_given?
-        self.class.new(super).tap do |new_instance|
-          new_instance.permitted = @permitted
-        end
+        new_instance_with_inherited_permitted_status(super)
       else
         super
       end
@@ -387,9 +381,7 @@ module ActionController
     # this object is +HashWithIndifferentAccess+
     def transform_keys # :nodoc:
       if block_given?
-        self.class.new(super).tap do |new_instance|
-          new_instance.permitted = @permitted
-        end
+        new_instance_with_inherited_permitted_status(super)
       else
         super
       end
@@ -415,6 +407,12 @@ module ActionController
       end
 
     private
+      def new_instance_with_inherited_permitted_status(hash)
+        self.class.new(hash).tap do |new_instance|
+          new_instance.permitted = @permitted
+        end
+      end
+
       def convert_hashes_to_parameters(key, value, assign_if_converted=true)
         converted = convert_value_to_parameters(value)
         self[key] = converted if assign_if_converted && !converted.equal?(value)
