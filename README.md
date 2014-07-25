@@ -1,4 +1,4 @@
-## Welcome to Rails
+## Welcome to Rails (We are 10 years old!)
 
 Rails is a web-application framework that includes everything needed to
 create database-backed web applications according to the
