@@ -1,3 +1,7 @@
+*   Fix that render layout: 'messages/layout' should also be added to the dependency tracker tree.
+
+    *DHH*
+
 *   Return an absolute instead of relative path from an asset url in the case
     of the `asset_host` proc returning nil
 

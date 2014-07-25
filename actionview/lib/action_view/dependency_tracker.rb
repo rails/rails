@@ -53,6 +53,12 @@ module ActionView
         \s*                          # followed by optional spaces
       /x
 
+      # Part of any hash containing the :layout key
+      LAYOUT_HASH_KEY = /
+        (?:\blayout:|:layout\s*=>)   # layout key in either old or new style hash syntax
+        \s*                          # followed by optional spaces
+      /x
+
       # Matches:
       #   partial: "comments/comment", collection: @all_comments => "comments/comment"
       #   (object: @single_comment, partial: "comments/comment") => "comments/comment"
@@ -65,9 +71,9 @@ module ActionView
       #    topics          => "topics/topic"
       #   (message.topics) => "topics/topic"
       RENDER_ARGUMENTS = /\A
-        (?:\s*\(?\s*)                             # optional opening paren surrounded by spaces
-        (?:.*?#{PARTIAL_HASH_KEY})?               # optional hash, up to the partial key declaration
-        (?:#{STRING}|#{VARIABLE_OR_METHOD_CHAIN}) # finally, the dependency name of interest
+        (?:\s*\(?\s*)                                  # optional opening paren surrounded by spaces
+        (?:.*?#{PARTIAL_HASH_KEY}|#{LAYOUT_HASH_KEY})? # optional hash, up to the partial or layout key declaration
+        (?:#{STRING}|#{VARIABLE_OR_METHOD_CHAIN})      # finally, the dependency name of interest
       /xm
 
       def self.call(name, template)
@@ -85,8 +91,8 @@ module ActionView
       attr_reader :name, :template
       private :name, :template
 
-      private
 
+      private
         def source
           template.source
         end
