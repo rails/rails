@@ -92,16 +92,9 @@ HEADER
 
       def tables(stream)
         sorted_tables = @connection.tables.sort
-        sorted_tables.each do |tbl|
-          next if ['schema_migrations', ignore_tables].flatten.any? do |ignored|
-            case ignored
-            when String; remove_prefix_and_suffix(tbl) == ignored
-            when Regexp; remove_prefix_and_suffix(tbl) =~ ignored
-            else
-              raise StandardError, 'ActiveRecord::SchemaDumper.ignore_tables accepts an array of String and / or Regexp values.'
-            end
-          end
-          table(tbl, stream)
+
+        sorted_tables.each do |table_name|
+          table(table_name, stream) unless ignored?(table_name)
         end
 
         # dump foreign keys at the end to make sure all dependent tables exist.
@@ -253,6 +246,17 @@ HEADER
 
       def remove_prefix_and_suffix(table)
         table.gsub(/^(#{@options[:table_name_prefix]})(.+)(#{@options[:table_name_suffix]})$/,  "\\2")
+      end
+
+      def ignored?(table_name)
+        ['schema_migrations', ignore_tables].flatten.any? do |ignored|
+          case ignored
+          when String; remove_prefix_and_suffix(table_name) == ignored
+          when Regexp; remove_prefix_and_suffix(table_name) =~ ignored
+          else
+            raise StandardError, 'ActiveRecord::SchemaDumper.ignore_tables accepts an array of String and / or Regexp values.'
+          end
+        end
       end
   end
 end
