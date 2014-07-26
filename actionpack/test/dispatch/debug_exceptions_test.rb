@@ -9,7 +9,8 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
       @detailed = detailed
       @closed = false
     end
-
+    
+    #This method should not remove as the body must respond to this
     def each
     end
 
