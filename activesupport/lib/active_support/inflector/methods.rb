@@ -280,8 +280,8 @@ module ActiveSupport
     def safe_constantize(camel_cased_word)
       constantize(camel_cased_word)
     rescue NameError => e
-      raise unless e.message =~ /(uninitialized constant|wrong constant name) #{const_regexp(camel_cased_word)}$/ ||
-        e.name.to_s == camel_cased_word.to_s
+      raise if e.name && !(camel_cased_word.to_s.split("::").include?(e.name.to_s) ||
+        e.name.to_s == camel_cased_word.to_s)
     rescue ArgumentError => e
       raise unless e.message =~ /not missing constant #{const_regexp(camel_cased_word)}\!$/
     end
