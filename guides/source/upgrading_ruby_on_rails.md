@@ -54,7 +54,8 @@ NOTE: This section is a work in progress.
 
 ### Serialized attributes
 
-When assigning `nil` to a serialized attribute, it will be saved to the database
+When using a custom coder (e.g. `serialize :metadata, JSON`),
+assigning `nil` to a serialized attribute will save it to the database
 as `NULL` instead of passing the `nil` value through the coder (e.g. `"null"`
 when using the `JSON` coder).
 
