@@ -222,6 +222,17 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_delete_all_with_where_deletes_join_record
+    person = people(:david)
+    assert_equal 1, person.jobs.count
+
+    assert_difference 'Reference.count', -1 do
+      assert_no_difference 'Job.count' do
+        person.jobs.where(references: {favourite: person.references.first.favourite}).delete_all
+      end
+    end
+  end
+
   def test_concat
     person = people(:david)
     post   = posts(:thinking)
