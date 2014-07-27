@@ -1,3 +1,21 @@
+*   Bind params properly when using nested hash and collection proxy in where
+    clause.
+
+    Fixes #16238.
+
+    Example:
+
+        # Before
+        Author.includes(:posts => :comments).where(comments: { post: Author.first.posts }).to_a.size
+        # => 0 in sqlite
+        # => Raise errors in mysql & postgresql
+
+        # After
+        Author.includes(:posts => :comments).where(comments: { post: Author.first.posts }).to_a.size
+        # => 1
+
+    *Bigxiang*
+
 *   Add support for Postgresql JSONB.
 
     Example:

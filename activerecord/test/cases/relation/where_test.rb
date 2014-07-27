@@ -10,7 +10,7 @@ require 'models/binary'
 
 module ActiveRecord
   class WhereTest < ActiveRecord::TestCase
-    fixtures :posts, :edges, :authors, :binaries
+    fixtures :posts, :edges, :authors, :binaries, :comments
 
     def test_where_copies_bind_params
       author = authors(:david)
@@ -209,6 +209,13 @@ module ActiveRecord
     def test_where_with_integer_for_binary_column
       count = Binary.where(:data => 0).count
       assert_equal 0, count
+    end
+
+    def test_bind_params_with_nested_hash_and_collection_proxy
+      # should success anyway
+      assert_equal 1, Author.includes(:posts => :comments).where(comments: { post: Post.joins(:author).where(author_id: Author.first) }).to_a.size
+      # should fail before patched
+      assert_equal 1, Author.includes(:posts => :comments).where(comments: { post: Author.first.posts }).to_a.size
     end
   end
 end
