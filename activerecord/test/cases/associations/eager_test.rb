@@ -1029,6 +1029,15 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal author_addresses(:david_address), authors[0].author_address
   end
 
+  def test_eager_loading_with_select_on_custom_columns
+    author = Author.first
+    comment = author.comments.eager_load(:post).select('comments.*, 1 as the_one').first
+
+    assert comment.has_attribute?(:the_one)
+    assert_equal 1, comment.the_one
+    assert_equal comment.post_id, comment.post.id
+  end
+
   def test_preload_belongs_to_uses_exclusive_scope
     people = Person.males.merge(:includes => :primary_contact).to_a
     assert_not_equal people.length, 0
