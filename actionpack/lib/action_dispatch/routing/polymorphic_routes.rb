@@ -68,7 +68,7 @@ module ActionDispatch
       # Someone could pass a hash with GET params as last value:
       #
       #   polymorphic_url([user, :blog, post, :theme => "dark"]) # => "http://example.com/users/1/blog/posts/1?theme=dark"
-      #   polymorphic_url([user, :blog, post, :theme => "dark", :referral => "john"]) # => "http://example.com/users/1/blog/posts/1?theme=dark&referral=jphn"
+      #   polymorphic_url([user, :blog, post, :theme => "dark", :referral => "John"]) # => "http://example.com/users/1/blog/posts/1?theme=dark&referral=John"
       #   
       # ==== Options
       #
