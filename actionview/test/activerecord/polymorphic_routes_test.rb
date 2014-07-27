@@ -566,7 +566,20 @@ class PolymorphicRoutesTest < ActionController::TestCase
     end
   end
 
- # Tests for uncountable names
+  def test_with_array_containing_get_paramters
+    with_test_routes do
+      assert_url "http://example.com/taxes?state=FL&type=VAT", [:taxes, state: 'FL', type: 'VAT']
+    end
+  end
+
+  def test_with_namespace_and_action_and_get_paramters
+    with_admin_test_routes do
+      @tax.save
+      assert_url "http://example.com/admin/taxes/#{@tax.id}/edit?state=FL&type=VAT", [:edit, :admin, @tax, state: 'FL', type: 'VAT']
+    end
+  end
+
+  # Tests for uncountable names
   def test_uncountable_resource
     with_test_routes do
       @series.save
