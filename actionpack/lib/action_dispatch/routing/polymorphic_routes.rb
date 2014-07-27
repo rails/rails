@@ -65,6 +65,11 @@ module ActionDispatch
       #   polymorphic_url([user, :blog, post]) # => "http://example.com/users/1/blog/posts/1"
       #   polymorphic_url(Comment) # => "http://example.com/comments"
       #
+      # Someone could pass a hash with GET params as last value:
+      #
+      #   polymorphic_url([user, :blog, post, :theme => "dark"]) # => "http://example.com/users/1/blog/posts/1?theme=dark"
+      #   polymorphic_url([user, :blog, post, :theme => "dark", :referral => "john"]) # => "http://example.com/users/1/blog/posts/1?theme=dark&referral=jphn"
+      #   
       # ==== Options
       #
       # * <tt>:action</tt> - Specifies the action prefix for the named route:
@@ -87,8 +92,13 @@ module ActionDispatch
       #   # the class of a record will also map to the collection
       #   polymorphic_url(Comment) # same as comments_url()
       #
+      #
+      #
       def polymorphic_url(record_or_hash_or_array, options = {})
         if record_or_hash_or_array.kind_of?(Array)
+          if record_or_hash_or_array.last.kind_of?(Hash)
+            get_params = record_or_hash_or_array.pop
+          end
           record_or_hash_or_array = record_or_hash_or_array.compact
           if record_or_hash_or_array.first.is_a?(ActionDispatch::Routing::RoutesProxy)
             proxy = record_or_hash_or_array.shift
@@ -120,8 +130,10 @@ module ActionDispatch
         named_route = build_named_route_call(record_or_hash_or_array, inflection, options)
 
         url_options = options.except(:action, :routing_type)
-        unless url_options.empty?
-          args.last.kind_of?(Hash) ? args.last.merge!(url_options) : args << url_options
+        [url_options, get_params].each do |option|
+          unless option.blank?
+            args.last.kind_of?(Hash) ? args.last.merge!(option) : args << option
+          end
         end
 
         (proxy || self).send(named_route, *args)

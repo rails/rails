@@ -430,6 +430,32 @@ class PolymorphicRoutesTest < ActionController::TestCase
     end
   end
 
+  def test_with_get_params
+    with_test_routes do
+      @tax.save
+      assert_equal "http://example.com/taxes?state=FL", polymorphic_url([:taxes, state: "FL"])
+    end
+  end
+
+  def test_class_with_get_params
+    with_test_routes do
+      @tax.save
+      assert_equal "http://example.com/taxes?state=TX", polymorphic_url([Tax, state: "TX"])
+    end
+  end
+
+  def test_with_namespace
+    with_admin_test_routes do
+      assert_equal "http://example.com/admin/taxes?state=NY&type=VAT", polymorphic_url([:admin, @tax.class, state: "NY", type: "VAT"])
+    end
+  end
+
+  def with_explicit_empty_get_params
+    with_admin_test_routes do
+      assert_equal "http://example.com/taxes", polymorphic_url([@tax.class, {}])
+    end
+  end
+
  # Tests for uncountable names
   def test_uncountable_resource
     with_test_routes do
