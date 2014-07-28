@@ -952,13 +952,21 @@ WARNING
         self.bind_values += bind_values
 
         attributes = @klass.send(:expand_hash_conditions_for_aggregates, tmp_opts)
-        attributes.values.grep(ActiveRecord::Relation) do |rel|
-          self.bind_values += rel.bind_values
-        end
+        bind_values_through_nested_hashes(attributes)
 
         PredicateBuilder.build_from_hash(klass, attributes, table)
       else
         [opts]
+      end
+    end
+
+    def bind_values_through_nested_hashes(attributes)
+      attributes.values.grep(Hash) do |hash_value|
+        bind_values_through_nested_hashes(hash_value)
+      end
+
+      attributes.values.grep(ActiveRecord::Relation) do |rel|
+        self.bind_values += rel.bind_values
       end
     end
 
