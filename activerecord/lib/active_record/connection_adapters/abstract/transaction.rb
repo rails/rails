@@ -69,6 +69,10 @@ module ActiveRecord
       def state
         @state
       end
+
+      def savepoint_name
+        nil
+      end
     end
 
     class TransactionState
@@ -233,7 +237,8 @@ module ActiveRecord
 
         super
 
-        @savepoint_name = "active_record_#{number}"
+        # Savepoint name only counts the Savepoint transactions, so we need to subtract 1
+        @savepoint_name = "active_record_#{number - 1}"
         connection.create_savepoint(@savepoint_name)
       end
 
