@@ -79,7 +79,7 @@ module ActiveModel
   #     include ActiveModel::Validations
   #     attr_accessor :title
   #
-  #     validates :title, presence: true
+  #     validates :title, presence: true, title: true
   #   end
   #
   # Validator may also define a +setup+ instance method which will get called
