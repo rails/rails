@@ -1,3 +1,9 @@
+*   No verbose backtrace by db:drop when database does not exist.
+
+    Fixes #16295.
+
+    *Kenn Ejima*
+
 *   Add support for Postgresql JSONB.
 
     Example:
