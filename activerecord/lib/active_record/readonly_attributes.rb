@@ -1,4 +1,3 @@
-
 module ActiveRecord
   module ReadonlyAttributes
     extend ActiveSupport::Concern

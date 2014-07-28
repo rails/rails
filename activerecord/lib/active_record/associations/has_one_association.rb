@@ -1,4 +1,3 @@
-
 module ActiveRecord
   # = Active Record Belongs To Has One Association
   module Associations
