@@ -340,7 +340,9 @@ module ActiveModel
     #   person.errors.added? :name, :blank # => true
     def added?(attribute, message = :invalid, options = {})
       message = normalize_message(attribute, message, options)
-      self[attribute].include? message
+      has_msg = self[attribute].include? message
+      self.messages.delete(attribute) if self[attribute].empty?
+      has_msg
     end
 
     # Returns all the full error messages in an array.
