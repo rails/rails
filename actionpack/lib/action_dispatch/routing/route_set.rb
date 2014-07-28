@@ -641,12 +641,8 @@ module ActionDispatch
                           :trailing_slash, :anchor, :params, :only_path, :script_name,
                           :original_script_name]
 
-      def mounted?
-        false
-      end
-
       def optimize_routes_generation?
-        !mounted? && default_url_options.empty?
+        default_url_options.empty?
       end
 
       def find_script_name(options)

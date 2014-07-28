@@ -621,7 +621,7 @@ module ActionDispatch
             _routes = @set
             app.routes.define_mounted_helper(name)
             app.routes.extend Module.new {
-              def mounted?; true; end
+              def optimize_routes_generation?; false; end
               define_method :find_script_name do |options|
                 super(options) || begin
                 prefix_options = options.slice(*_route.segment_keys)
