@@ -189,6 +189,19 @@ class ErrorsTest < ActiveModel::TestCase
     assert !person.errors.added?(:name, "cannot be blank")
   end
 
+  test "added? doesn't mutate the error messages hash when checking a nonexisting error" do
+    person = Person.new
+    person.errors.added?(:name, "cannot be blank")
+    assert !person.errors.keys.include?(:name)
+  end
+
+  test "added? doesn't delete the message key if other errors are present for the given attribute" do
+    person = Person.new
+    person.errors.add(:name, "is invalid")
+    person.errors.added?(:name, "is blank")
+    assert person.errors.keys.include?(:name), person.errors.keys
+  end
+
   test "size calculates the number of error messages" do
     person = Person.new
     person.errors.add(:name, "cannot be blank")

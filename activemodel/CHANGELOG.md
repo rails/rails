@@ -1,3 +1,12 @@
+*   Fix `added?` method so that it doesn't mutate the error message hash when checking a
+    nonexisting error.
+
+    Previously if `added?` was called for a nonexisting error then a key was added to the
+    error message hash for the given attribute. This key is now deleted when no errors
+    exist for the given attribute.
+
+    *Matt Freer*
+
 *   Validate options passed to `ActiveModel::Validations.validate`.
 
     Preventing, in many cases, the simple mistake of using `validate` instead of `validates`.
