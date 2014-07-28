@@ -1,4 +1,3 @@
-
 module ActiveRecord
   # = Active Record Query Cache
   class QueryCache

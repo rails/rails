@@ -1,4 +1,3 @@
-
 module ActiveRecord
   module Batches
     # Looping through a collection of records from the database
