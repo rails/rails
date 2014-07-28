@@ -1,5 +1,63 @@
 module ActiveRecord
   module ConnectionAdapters
+    class TransactionManager #:nodoc:
+      def initialize(connection)
+        @stack = []
+        @connection = connection
+      end
+
+      def begin_transaction(options = {})
+        transaction =
+          if @stack.empty?
+            RealTransaction.new(@connection, current_transaction, options)
+          else
+            SavepointTransaction.new(@connection, current_transaction, options)
+          end
+
+        @stack.push(transaction)
+        transaction
+      end
+
+      def commit_transaction
+        @stack.pop.commit
+      end
+
+      def rollback_transaction
+        @stack.pop.rollback
+      end
+
+      def within_new_transaction(options = {})
+        transaction = begin_transaction options
+        yield
+      rescue Exception => error
+        transaction.rollback if transaction
+        raise
+      ensure
+        begin
+          transaction.commit unless error
+        rescue Exception
+          transaction.rollback
+          raise
+        ensure
+          @stack.pop if transaction
+        end
+      end
+
+      def open_transactions
+        @stack.size
+      end
+
+      def current_transaction
+        @stack.last || closed_transaction
+      end
+
+      private
+
+        def closed_transaction
+          @closed_transaction ||= ClosedTransaction.new(@connection)
+        end
+    end
+
     class Transaction #:nodoc:
       attr_reader :connection
 
@@ -10,6 +68,10 @@ module ActiveRecord
 
       def state
         @state
+      end
+
+      def savepoint_name
+        nil
       end
     end
 
@@ -78,45 +140,28 @@ module ActiveRecord
 
         @parent    = parent
         @records   = []
-        @finishing = false
         @joinable  = options.fetch(:joinable, true)
       end
 
-      # This state is necessary so that we correctly handle stuff that might
-      # happen in a commit/rollback. But it's kinda distasteful. Maybe we can
-      # find a better way to structure it in the future.
-      def finishing?
-        @finishing
-      end
 
       def joinable?
-        @joinable && !finishing?
+        @joinable
       end
 
       def number
-        if finishing?
-          parent.number
-        else
-          parent.number + 1
-        end
+        parent.number + 1
       end
 
       def begin(options = {})
-        if finishing?
-          parent.begin
-        else
-          SavepointTransaction.new(connection, self, options)
-        end
+        SavepointTransaction.new(connection, self, options)
       end
 
       def rollback
-        @finishing = true
         perform_rollback
         parent
       end
 
       def commit
-        @finishing = true
         perform_commit
         parent
       end
@@ -183,24 +228,29 @@ module ActiveRecord
     end
 
     class SavepointTransaction < OpenTransaction #:nodoc:
+      attr_reader :savepoint_name
+
       def initialize(connection, parent, options = {})
         if options[:isolation]
           raise ActiveRecord::TransactionIsolationError, "cannot set transaction isolation in a nested transaction"
         end
 
         super
-        connection.create_savepoint
+
+        # Savepoint name only counts the Savepoint transactions, so we need to subtract 1
+        @savepoint_name = "active_record_#{number - 1}"
+        connection.create_savepoint(@savepoint_name)
       end
 
       def perform_rollback
-        connection.rollback_to_savepoint
+        connection.rollback_to_savepoint(@savepoint_name)
         rollback_records
       end
 
       def perform_commit
         @state.set_state(:committed)
         @state.parent = parent.state
-        connection.release_savepoint
+        connection.release_savepoint(@savepoint_name)
       end
     end
   end
