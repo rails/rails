@@ -31,7 +31,7 @@ module ActiveRecord
       end
     }
 
-    BLACKLISTED_CLASS_METHODS = %w(private public protected)
+    BLACKLISTED_CLASS_METHODS = %w(private public protected system)
 
     class AttributeMethodCache
       def initialize
