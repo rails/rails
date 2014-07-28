@@ -8,7 +8,7 @@ module ActiveRecord
 
       def begin_transaction(options = {})
         transaction_class = @stack.empty? ? RealTransaction : SavepointTransaction
-        transaction = transaction_class.new(@connection, current_transaction, options)
+        transaction = transaction_class.new(@connection, current_transaction, "active_record_#{@stack.size}", options)
 
         @stack.push(transaction)
         transaction
@@ -102,14 +102,6 @@ module ActiveRecord
     end
 
     class ClosedTransaction < Transaction #:nodoc:
-      def number
-        0
-      end
-
-      def begin(options = {})
-        RealTransaction.new(connection, self, options)
-      end
-
       def closed?
         true
       end
@@ -142,14 +134,6 @@ module ActiveRecord
 
       def joinable?
         @joinable
-      end
-
-      def number
-        parent.number + 1
-      end
-
-      def begin(options = {})
-        SavepointTransaction.new(connection, self, options)
       end
 
       def rollback
@@ -202,8 +186,8 @@ module ActiveRecord
     end
 
     class RealTransaction < OpenTransaction #:nodoc:
-      def initialize(connection, parent, options = {})
-        super
+      def initialize(connection, parent, _, options = {})
+        super(connection, parent, options)
 
         if options[:isolation]
           connection.begin_isolated_db_transaction(options[:isolation])
@@ -226,26 +210,23 @@ module ActiveRecord
     class SavepointTransaction < OpenTransaction #:nodoc:
       attr_reader :savepoint_name
 
-      def initialize(connection, parent, options = {})
+      def initialize(connection, parent, savepoint_name, options = {})
         if options[:isolation]
           raise ActiveRecord::TransactionIsolationError, "cannot set transaction isolation in a nested transaction"
         end
 
-        super
-
-        # Savepoint name only counts the Savepoint transactions, so we need to subtract 1
-        @savepoint_name = "active_record_#{number - 1}"
-        connection.create_savepoint(@savepoint_name)
+        super(connection, parent, options)
+        connection.create_savepoint(@savepoint_name = savepoint_name)
       end
 
       def perform_rollback
-        connection.rollback_to_savepoint(@savepoint_name)
+        connection.rollback_to_savepoint(savepoint_name)
         rollback_records
       end
 
       def perform_commit
         @state.set_state(:committed)
-        connection.release_savepoint(@savepoint_name)
+        connection.release_savepoint(savepoint_name)
       end
     end
   end
