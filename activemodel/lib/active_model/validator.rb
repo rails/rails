@@ -79,7 +79,7 @@ module ActiveModel
   #     include ActiveModel::Validations
   #     attr_accessor :title
   #
-  #     validates :title, presence: true
+  #     validates :title, presence: true, title: true
   #   end
   #
   # It can be useful to access the class that is using that validator when there are prerequisites such
