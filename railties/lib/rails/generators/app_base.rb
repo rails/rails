@@ -114,6 +114,7 @@ module Rails
          jbuilder_gemfile_entry,
          sdoc_gemfile_entry,
          spring_gemfile_entry,
+         psych_gemfile_entry,
          @extra_entries].flatten.find_all(&@gem_filter)
       end
 
@@ -204,11 +205,13 @@ module Rails
         if options.dev?
           [GemfileEntry.path('rails', Rails::Generators::RAILS_DEV_PATH),
            GemfileEntry.github('arel', 'rails/arel'),
-           GemfileEntry.github('rack', 'rack/rack')]
+           GemfileEntry.github('rack', 'rack/rack'),
+           GemfileEntry.github('i18n', 'svenfuchs/i18n')]
         elsif options.edge?
           [GemfileEntry.github('rails', 'rails/rails'),
            GemfileEntry.github('arel', 'rails/arel'),
-           GemfileEntry.github('rack', 'rack/rack')]
+           GemfileEntry.github('rack', 'rack/rack'),
+           GemfileEntry.github('i18n', 'svenfuchs/i18n')]
         else
           [GemfileEntry.version('rails',
                             Rails::VERSION::STRING,
@@ -311,6 +314,14 @@ module Rails
         return [] unless spring_install?
         comment = 'Spring speeds up development by keeping your application running in the background. Read more: https://github.com/rails/spring'
         GemfileEntry.new('spring', nil, comment, group: :development)
+      end
+
+      def psych_gemfile_entry
+        return [] unless defined?(Rubinius)
+
+        comment = 'Use Psych as the YAML engine, instead of Syck, so serialized ' \
+                  'data can be read safely from different rubies (see http://git.io/uuLVag)'
+        GemfileEntry.new('psych', '~> 2.0', comment, platforms: :rbx)
       end
 
       def bundle_command(command)

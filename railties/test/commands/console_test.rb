@@ -58,9 +58,12 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
     end
 
     def test_start_with_debugger
-      rails_console = Rails::Console.new(app, parse_arguments(["--debugger"]))
-      rails_console.expects(:require_debugger).returns(nil)
+      stubbed_console = Class.new(Rails::Console) do
+        def require_debugger
+        end
+      end
 
+      rails_console = stubbed_console.new(app, parse_arguments(["--debugger"]))
       silence_stream(STDOUT) { rails_console.start }
     end
   end

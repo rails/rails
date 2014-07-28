@@ -110,6 +110,8 @@ module ActiveRecord
       def drop(*arguments)
         configuration = arguments.first
         class_for_adapter(configuration['adapter']).new(*arguments).drop
+      rescue ActiveRecord::NoDatabaseError
+        $stderr.puts "Database '#{configuration['database']}' does not exist"
       rescue Exception => error
         $stderr.puts error, *(error.backtrace)
         $stderr.puts "Couldn't drop #{configuration['database']}"

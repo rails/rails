@@ -75,6 +75,7 @@ module ActiveSupport
       hash = hash.to_hash
       new(hash).tap do |new_hash|
         new_hash.default = hash.default
+        new_hash.default_proc = hash.default_proc if hash.default_proc
       end
     end
 

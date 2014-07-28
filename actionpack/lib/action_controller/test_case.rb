@@ -12,8 +12,13 @@ module ActionController
       teardown :teardown_subscriptions
     end
 
+    RENDER_TEMPLATE_INSTANCE_VARIABLES = %w{partials templates layouts files}.freeze
+
     def setup_subscriptions
-      reset_template_assertion
+      RENDER_TEMPLATE_INSTANCE_VARIABLES.each do |instance_variable|
+        instance_variable_set("@_#{instance_variable}", Hash.new(0))
+      end
+
       @_subscribers = []
 
       @_subscribers << ActiveSupport::Notifications.subscribe("render_template.action_view") do |_name, _start, _finish, _id, payload|
@@ -58,10 +63,9 @@ module ActionController
     end
 
     def reset_template_assertion
-      @_partials = Hash.new(0)
-      @_templates = Hash.new(0)
-      @_layouts = Hash.new(0)
-      @_files = Hash.new(0)
+      RENDER_TEMPLATE_INSTANCE_VARIABLES.each do |instance_variable|
+        instance_variable_get("@_#{instance_variable}").clear
+      end
     end
 
     # Asserts that the request was rendered with the appropriate template file or partials.

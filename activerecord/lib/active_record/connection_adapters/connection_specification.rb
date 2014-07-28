@@ -160,7 +160,7 @@ module ActiveRecord
         #   config = { "production" => { "host" => "localhost", "database" => "foo", "adapter" => "sqlite3" } }
         #   spec = Resolver.new(config).spec(:production)
         #   spec.adapter_method
-        #   # => "sqlite3"
+        #   # => "sqlite3_connection"
         #   spec.config
         #   # => { "host" => "localhost", "database" => "foo", "adapter" => "sqlite3" }
         #
@@ -250,7 +250,7 @@ module ActiveRecord
         # Connection details inside of the "url" key win any merge conflicts
         def resolve_hash_connection(spec)
           if spec["url"] && spec["url"] !~ /^jdbc:/
-            connection_hash = resolve_string_connection(spec.delete("url"))
+            connection_hash = resolve_url_connection(spec.delete("url"))
             spec.merge!(connection_hash)
           end
           spec

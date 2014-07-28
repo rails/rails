@@ -1,3 +1,30 @@
+*   No verbose backtrace by db:drop when database does not exist.
+
+    Fixes #16295.
+
+    *Kenn Ejima*
+
+*   Add support for Postgresql JSONB.
+
+    Example:
+
+        create_table :posts do |t|
+          t.jsonb :meta_data
+        end
+
+    *Philippe Creux*, *Chris Teague*
+
+*   `db:purge` with MySQL respects `Rails.env`.
+
+    *Yves Senn*
+
+*   `change_column_default :table, :column, nil` with PostgreSQL will issue a
+    `DROP DEFAULT` instead of a `DEFAULT NULL` query.
+
+    Fixes #16261.
+
+    *Matthew Draper*, *Yves Senn*
+
 *   Allow to specify a type for the foreign key column in `references`
     and `add_reference`.
 
@@ -80,7 +107,7 @@
 *   Fix the schema dump generated for tables without constraints and with
     primary key with default value of custom PostgreSQL function result.
 
-    Fixes #16111
+    Fixes #16111.
 
     *Andrey Novikov*
 
@@ -133,7 +160,7 @@
 *   Move 'dependent: :destroy' handling for 'belongs_to'
     from 'before_destroy' to 'after_destroy' callback chain
 
-    Fix #12380.
+    Fixes #12380.
 
     *Ivan Antropov*
 
@@ -254,14 +281,16 @@
 
 *   `ActiveRecord::Dirty` now detects in-place changes to mutable values.
     Serialized attributes on ActiveRecord models will no longer save when
-    unchanged. Fixes #8328.
+    unchanged.
+
+    Fixes #8328.
 
     *Sean Griffin*
 
 *   Pluck now works when selecting columns from different tables with the same
     name.
 
-    Fixes #15649
+    Fixes #15649.
 
     *Sean Griffin*
 
@@ -415,7 +444,7 @@
 *   Fixed the inferred table name of a has_and_belongs_to_many auxiliar
     table inside a schema.
 
-    Fixes #14824
+    Fixes #14824.
 
     *Eric Chahin*
 

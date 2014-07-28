@@ -4,6 +4,7 @@ unless File.exist?('Gemfile')
     gem 'rails', github: 'rails/rails'
     gem 'arel', github: 'rails/arel'
     gem 'rack', github: 'rack/rack'
+    gem 'i18n', github: 'svenfuchs/i18n'
     gem 'sqlite3'
   GEMFILE
 

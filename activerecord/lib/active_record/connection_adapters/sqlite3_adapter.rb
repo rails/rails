@@ -385,7 +385,7 @@ module ActiveRecord
         table_name && tables(nil, table_name).any?
       end
 
-      # Returns an array of +SQLite3Column+ objects for the table specified by +table_name+.
+      # Returns an array of +Column+ objects for the table specified by +table_name+.
       def columns(table_name) #:nodoc:
         table_structure(table_name).map do |field|
           case field["dflt_value"]

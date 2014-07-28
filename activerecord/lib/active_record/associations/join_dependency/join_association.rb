@@ -95,7 +95,7 @@ module ActiveRecord
         #  end
         #
         #  If I execute `Physician.joins(:appointments).to_a` then
-        #    reflection    # => #<ActiveRecord::Reflection::AssociationReflection @macro=:has_many ...>
+        #    reflection    # => #<ActiveRecord::Reflection::HasManyReflection ...>
         #    table         # => #<Arel::Table @name="appointments" ...>
         #    key           # =>  physician_id
         #    foreign_table # => #<Arel::Table @name="physicians" ...>

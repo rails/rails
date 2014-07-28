@@ -424,6 +424,26 @@ class TransactionTest < ActiveRecord::TestCase
     end
   end
 
+  def test_savepoints_name
+    Topic.transaction do
+      assert_nil Topic.connection.current_savepoint_name
+      assert_nil Topic.connection.current_transaction.savepoint_name
+
+      Topic.transaction(requires_new: true) do
+        assert_equal "active_record_1", Topic.connection.current_savepoint_name
+        assert_equal "active_record_1", Topic.connection.current_transaction.savepoint_name
+
+        Topic.transaction(requires_new: true) do
+          assert_equal "active_record_2", Topic.connection.current_savepoint_name
+          assert_equal "active_record_2", Topic.connection.current_transaction.savepoint_name
+        end
+
+        assert_equal "active_record_1", Topic.connection.current_savepoint_name
+        assert_equal "active_record_1", Topic.connection.current_transaction.savepoint_name
+      end
+    end
+  end
+
   def test_rollback_when_commit_raises
     Topic.connection.expects(:begin_db_transaction)
     Topic.connection.expects(:commit_db_transaction).raises('OH NOES')

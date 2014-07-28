@@ -451,6 +451,7 @@ module ActiveRecord
           m.register_type 'point', OID::Point.new
           m.register_type 'hstore', OID::Hstore.new
           m.register_type 'json', OID::Json.new
+          m.register_type 'jsonb', OID::Jsonb.new
           m.register_type 'cidr', OID::Cidr.new
           m.register_type 'inet', OID::Inet.new
           m.register_type 'uuid', OID::Uuid.new
