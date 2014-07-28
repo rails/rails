@@ -8,7 +8,7 @@ module ActiveRecord
 
       def begin_transaction(options = {})
         transaction_class = @stack.empty? ? RealTransaction : SavepointTransaction
-        transaction = transaction_class.new(@connection, current_transaction, "active_record_#{@stack.size}", options)
+        transaction = transaction_class.new(@connection, "active_record_#{@stack.size}", options)
 
         @stack.push(transaction)
         transaction
@@ -55,15 +55,11 @@ module ActiveRecord
     end
 
     class Transaction #:nodoc:
-      attr_reader :connection
+      attr_reader :connection, :state
 
       def initialize(connection)
         @connection = connection
         @state = TransactionState.new
-      end
-
-      def state
-        @state
       end
 
       def savepoint_name
@@ -120,13 +116,12 @@ module ActiveRecord
     end
 
     class OpenTransaction < Transaction #:nodoc:
-      attr_reader :parent, :records
+      attr_reader :records
       attr_writer :joinable
 
-      def initialize(connection, parent, options = {})
+      def initialize(connection, options = {})
         super connection
 
-        @parent    = parent
         @records   = []
         @joinable  = options.fetch(:joinable, true)
       end
@@ -138,12 +133,10 @@ module ActiveRecord
 
       def rollback
         perform_rollback
-        parent
       end
 
       def commit
         perform_commit
-        parent
       end
 
       def add_record(record)
@@ -158,7 +151,7 @@ module ActiveRecord
         @state.set_state(:rolledback)
         records.uniq.each do |record|
           begin
-            record.rolledback!(parent.closed?)
+            record.rolledback!(self.is_a?(RealTransaction))
           rescue => e
             record.logger.error(e) if record.respond_to?(:logger) && record.logger
           end
@@ -186,8 +179,8 @@ module ActiveRecord
     end
 
     class RealTransaction < OpenTransaction #:nodoc:
-      def initialize(connection, parent, _, options = {})
-        super(connection, parent, options)
+      def initialize(connection, _, options = {})
+        super(connection,  options)
 
         if options[:isolation]
           connection.begin_isolated_db_transaction(options[:isolation])
@@ -210,12 +203,12 @@ module ActiveRecord
     class SavepointTransaction < OpenTransaction #:nodoc:
       attr_reader :savepoint_name
 
-      def initialize(connection, parent, savepoint_name, options = {})
+      def initialize(connection, savepoint_name, options = {})
         if options[:isolation]
           raise ActiveRecord::TransactionIsolationError, "cannot set transaction isolation in a nested transaction"
         end
 
-        super(connection, parent, options)
+        super(connection, options)
         connection.create_savepoint(@savepoint_name = savepoint_name)
       end
 
