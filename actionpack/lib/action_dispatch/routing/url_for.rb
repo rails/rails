@@ -171,8 +171,7 @@ module ActionDispatch
       protected
 
       def optimize_routes_generation?
-        return @_optimized_routes if defined?(@_optimized_routes)
-        @_optimized_routes = _routes.optimize_routes_generation? && default_url_options.empty?
+        _routes.optimize_routes_generation? && default_url_options.empty?
       end
 
       def _with_routes(routes)
