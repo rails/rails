@@ -192,7 +192,7 @@ module ActiveRecord
     def test_select_methods_passing_a_association_relation
       author = Author.create!(name: 'john')
       Post.create!(author: author, title: 'foo', body: 'bar')
-      query = author.posts.select(:title)
+      query = author.posts.where(title: 'foo').select(:title)
       assert_equal({"title" => "foo"}, @connection.select_one(query.arel, nil, query.bind_values))
       assert_equal({"title" => "foo"}, @connection.select_one(query))
       assert @connection.select_all(query).is_a?(ActiveRecord::Result)
