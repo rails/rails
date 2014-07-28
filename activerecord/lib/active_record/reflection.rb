@@ -167,9 +167,12 @@ module ActiveRecord
     # AggregateReflection and AssociationReflection are returned by the Reflection::ClassMethods.
     #
     #   MacroReflection
-    #     AggregateReflection
     #     AssociationReflection
-    #       ThroughReflection
+    #       AggregateReflection
+    #       HasManyReflection
+    #       HasOneReflection
+    #       BelongsToReflection
+    #         ThroughReflection
     class MacroReflection < AbstractReflection
       # Returns the name of the macro.
       #
@@ -647,7 +650,7 @@ Joining, Preloading and eager loading of these associations is deprecated and wi
       #
       #   tags_reflection = Post.reflect_on_association(:tags)
       #   tags_reflection.source_reflection
-      #   # => <ActiveRecord::Reflection::AssociationReflection: @macro=:belongs_to, @name=:tag, @active_record=Tagging, @plural_name="tags">
+      #   # => <ActiveRecord::Reflection::BelongsToReflection: @name=:tag, @active_record=Tagging, @plural_name="tags">
       #
       def source_reflection
         through_reflection.klass._reflect_on_association(source_reflection_name)
@@ -663,7 +666,7 @@ Joining, Preloading and eager loading of these associations is deprecated and wi
       #
       #   tags_reflection = Post.reflect_on_association(:tags)
       #   tags_reflection.through_reflection
-      #   # => <ActiveRecord::Reflection::AssociationReflection: @macro=:has_many, @name=:taggings, @active_record=Post, @plural_name="taggings">
+      #   # => <ActiveRecord::Reflection::HasManyReflection: @name=:taggings, @active_record=Post, @plural_name="taggings">
       #
       def through_reflection
         active_record._reflect_on_association(options[:through])
@@ -683,8 +686,8 @@ Joining, Preloading and eager loading of these associations is deprecated and wi
       #
       #   tags_reflection = Post.reflect_on_association(:tags)
       #   tags_reflection.chain
-      #   # => [<ActiveRecord::Reflection::ThroughReflection: @macro=:has_many, @name=:tags, @options={:through=>:taggings}, @active_record=Post>,
-      #         <ActiveRecord::Reflection::AssociationReflection: @macro=:has_many, @name=:taggings, @options={}, @active_record=Post>]
+      #   # => [<ActiveRecord::Reflection::ThroughReflection: @delegate_reflection=#<ActiveRecord::Reflection::HasManyReflection: @name=:tags...>,
+      #         <ActiveRecord::Reflection::HasManyReflection: @name=:taggings, @options={}, @active_record=Post>]
       #
       def chain
         @chain ||= begin
