@@ -7,12 +7,8 @@ module ActiveRecord
       end
 
       def begin_transaction(options = {})
-        transaction =
-          if @stack.empty?
-            RealTransaction.new(@connection, current_transaction, options)
-          else
-            SavepointTransaction.new(@connection, current_transaction, options)
-          end
+        transaction_class = @stack.empty? ? RealTransaction : SavepointTransaction
+        transaction = transaction_class.new(@connection, current_transaction, options)
 
         @stack.push(transaction)
         transaction
