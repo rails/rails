@@ -1,7 +1,8 @@
 class Object
   # Invokes the public method whose name goes as first argument just like
   # +public_send+ does, except that if the receiver does not respond to it the
-  # call returns +nil+ rather than raising an exception.
+  # call returns +nil+ rather than raising an exception. For boolean functions
+  # like #zero? it returns +false+ instead of nil.
   #
   # This method is defined to be able to write
   #
@@ -15,6 +16,11 @@ class Object
   # to the method:
   #
   #   nil.try(:to_i) # => nil, rather than 0
+  #
+  # When calling boolean function like #nil?, result is expected to be +true+ or +false+.
+  # +nil+ is unsuitable here.
+  #
+  #   nil.try(:zero?) # => false, rather than nil
   #
   # Arguments and blocks are forwarded to the method if invoked:
   #
@@ -48,17 +54,21 @@ class Object
 
   # Same as #try, but will raise a NoMethodError exception if the receiving is not nil and
   # does not implement the tried method.
-  def try!(*a, &b)
+  def try(*a, &b)
     if a.empty? && block_given?
       yield self
     else
-      public_send(*a, &b)
+      if respond_to?(a.first)
+        public_send(*a, &b)
+      else
+        a.first =~ /[?]$/ ? false : nil
+      end
     end
   end
 end
 
 class NilClass
-  # Calling +try+ on +nil+ always returns +nil+.
+  # Calling +try+ on +nil+ returns +nil+ or +false+ (for boolean functions).
   # It becomes specially helpful when navigating through associations that may return +nil+.
   #
   #   nil.try(:name) # => nil
@@ -68,8 +78,11 @@ class NilClass
   #
   # With +try+
   #   @person.try(:children).try(:first).try(:name)
+  #
+  # With boolean function
+  #   @person.try(:children).try(:first).try(:has_dark_hairs?)
   def try(*args)
-    nil
+    args.first =~ /[?]$/ ? false : nil
   end
 
   def try!(*args)
