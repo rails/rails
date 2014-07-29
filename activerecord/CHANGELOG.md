@@ -1,3 +1,7 @@
+*   Fix Type casting to Decimal from Float with large precision.
+
+    *Tomohiro Hashidate*
+
 *   No verbose backtrace by db:drop when database does not exist.
 
     Fixes #16295.

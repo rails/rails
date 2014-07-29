@@ -14,12 +14,25 @@ module ActiveRecord
       private
 
       def cast_value(value)
-        if value.is_a?(::Numeric) || value.is_a?(::String)
+        case value
+        when ::Float
+          BigDecimal(value, float_precision)
+        when ::Numeric, ::String
           BigDecimal(value, precision.to_i)
-        elsif value.respond_to?(:to_d)
-          value.to_d
         else
-          cast_value(value.to_s)
+          if value.respond_to?(:to_d)
+            value.to_d
+          else
+            cast_value(value.to_s)
+          end
+        end
+      end
+
+      def float_precision
+        if precision.to_i > ::Float::DIG + 1
+          ::Float::DIG + 1
+        else
+          precision.to_i
         end
       end
     end
