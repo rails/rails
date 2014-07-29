@@ -95,7 +95,7 @@ module ActionDispatch
         end
 
         def route_defined?(name)
-          @module.method_defined? name
+          @helpers.include? name.to_sym
         end
 
         def helper_names
