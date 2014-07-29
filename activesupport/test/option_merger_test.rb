@@ -79,6 +79,15 @@ class OptionMergerTest < ActiveSupport::TestCase
     assert_equal ActiveSupport::OptionMerger, ActiveSupport::OptionMerger.new('', '').class
   end
 
+  def test_option_merger_implicit_receiver
+    @options.with_options foo: "bar" do
+      merge! fizz: "buzz"
+    end
+
+    expected = { hello: "world", foo: "bar", fizz: "buzz" }
+    assert_equal expected, @options
+  end
+
   private
     def method_with_options(options = {})
       options
