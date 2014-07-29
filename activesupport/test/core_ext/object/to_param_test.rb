@@ -2,6 +2,12 @@ require 'abstract_unit'
 require 'active_support/core_ext/object/to_param'
 
 class ToParamTest < ActiveSupport::TestCase
+  class CustomString < String
+    def to_param
+      "custom-#{ self }"
+    end
+  end
+
   def test_object
     foo = Object.new
     def foo.to_s; 'foo' end
@@ -25,7 +31,7 @@ class ToParamTest < ActiveSupport::TestCase
     assert_equal "1/2/3/4", array.to_param
 
     # Array of different objects
-    array = [1, '3', { a: 1, b: 2 }, nil, true, false]
-    assert_equal "1/3/a=1&b=2//true/false", array.to_param
+    array = [1, '3', { a: 1, b: 2 }, nil, true, false, CustomString.new('object')]
+    assert_equal "1/3/a=1&b=2//true/false/custom-object", array.to_param
   end
 end
