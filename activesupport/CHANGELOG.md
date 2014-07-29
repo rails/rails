@@ -6,6 +6,7 @@
     *Godfrey Chan*
 
 *   Make Dependencies pass a name to NameError error.
+
     *arthurnn*, *Yuki Nishijima*
 
 *   Fixed precision error in NumberHelper when using Rationals.
