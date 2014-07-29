@@ -1,3 +1,8 @@
+*   `Object#with_options` executes block in merging option context when
+    explicit receiver in not passed.
+
+    *Pavel Pravosud*
+
 *   Fixed a compatibility issue with the `Oj` gem when cherry-picking the file
     `active_support/core_ext/object/json` without requiring `active_support/json`.
 
