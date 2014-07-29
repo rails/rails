@@ -149,17 +149,14 @@ module ActiveRecord
       JoinKeys = Struct.new(:key, :foreign_key) # :nodoc:
 
       def join_keys(assoc_klass)
-        if source_macro == :belongs_to
-          if polymorphic?
-            reflection_key = association_primary_key(assoc_klass)
+        reflection_key, reflection_foreign_key =
+          if source_macro == :belongs_to
+            klass = polymorphic? ? assoc_klass : nil
+            [association_primary_key(klass), foreign_key]
           else
-            reflection_key = association_primary_key
+            [foreign_key, active_record_primary_key]
           end
-          reflection_foreign_key = foreign_key
-        else
-          reflection_foreign_key = active_record_primary_key
-          reflection_key = foreign_key
-        end
+
         JoinKeys.new(reflection_key, reflection_foreign_key)
       end
     end
