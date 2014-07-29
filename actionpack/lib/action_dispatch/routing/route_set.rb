@@ -109,7 +109,7 @@ module ActionDispatch
 
         def add(name, route)
           routes[name.to_sym] = route
-          define_named_route_methods(name, route)
+          define_named_route_methods(@module, name, route)
         end
 
         def get(name)
@@ -253,11 +253,11 @@ module ActionDispatch
         #
         #   foo_url(bar, baz, bang, sort_by: 'baz')
         #
-        def define_url_helper(route, name, opts, route_key, url_strategy)
+        def define_url_helper(mod, route, name, opts, route_key, url_strategy)
           helper = UrlHelper.create(route, opts, route_key, url_strategy)
 
-          @module.remove_possible_method name
-          @module.module_eval do
+          mod.remove_possible_method name
+          mod.module_eval do
             define_method(name) do |*args|
               options = nil
               options = args.pop if args.last.is_a? Hash
@@ -268,9 +268,9 @@ module ActionDispatch
           helpers << name
         end
 
-        def define_named_route_methods(name, route)
-          define_url_helper route, :"#{name}_path", route.defaults, name, PATH
-          define_url_helper route, :"#{name}_url", route.defaults, name, FULL
+        def define_named_route_methods(mod, name, route)
+          define_url_helper mod, route, :"#{name}_path", route.defaults, name, PATH
+          define_url_helper mod, route, :"#{name}_url", route.defaults, name, FULL
         end
       end
 
