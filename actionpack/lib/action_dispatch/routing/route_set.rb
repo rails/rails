@@ -94,6 +94,10 @@ module ActionDispatch
           @module  = Module.new
         end
 
+        def route_defined?(name)
+          @module.method_defined? name
+        end
+
         def helper_names
           @helpers.map(&:to_s)
         end
