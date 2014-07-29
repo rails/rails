@@ -1,3 +1,8 @@
+*   Scaffold generator `_form` partial adds `class="field"` for password
+    confirmation fields.
+
+    *noinkling*
+
 *   Add `Rails::Application.config_for` to load a configuration for the current
     environment.
 
