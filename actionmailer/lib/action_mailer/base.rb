@@ -649,7 +649,22 @@ module ActionMailer
     #  mail.attachments[0]                # => Mail::Part (first attachment)
     #
     def attachments
-      @_message.attachments
+      if @_mail_was_called
+        LateAttachmentsProxy.new(@_message.attachments)
+      else
+        @_message.attachments
+      end
+    end
+
+    class LateAttachmentsProxy < SimpleDelegator
+      def inline; _raise_error end
+      def []=(_name, _content); _raise_error end
+
+      private
+        def _raise_error
+          raise RuntimeError, "Can't add attachments after `mail` was called.\n" \
+                              "Make sure to use `attachments[]=` before calling `mail`."
+        end
     end
 
     # The main method that creates the message and renders the email templates. There are
