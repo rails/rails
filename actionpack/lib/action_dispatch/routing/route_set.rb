@@ -401,14 +401,16 @@ module ActionDispatch
               def url_options; {}; end
             end
 
+            route_methods = routes.named_routes.module
+
             # Make named_routes available in the module singleton
             # as well, so one can do:
             # Rails.application.routes.url_helpers.posts_path
-            extend routes.named_routes.module
+            extend route_methods
 
             # Any class that includes this module will get all
             # named routes...
-            include routes.named_routes.module
+            include route_methods
 
             # plus a singleton class method called _routes ...
             included do
