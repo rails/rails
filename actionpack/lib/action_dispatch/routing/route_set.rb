@@ -90,7 +90,7 @@ module ActionDispatch
 
         def initialize
           @routes  = {}
-          @helpers = []
+          @helpers = Set.new
           @module  = Module.new
         end
 
@@ -100,7 +100,7 @@ module ActionDispatch
 
         def clear!
           @helpers.each do |helper|
-            @module.remove_possible_method helper
+            @module.send :undef_method, helper
           end
 
           @routes.clear
@@ -108,7 +108,11 @@ module ActionDispatch
         end
 
         def add(name, route)
-          routes[name.to_sym] = route
+          key = name.to_sym
+          if routes.key? key
+            undef_named_route_methods @module, name
+          end
+          routes[key] = route
           define_named_route_methods(@module, name, route)
         end
 
@@ -256,7 +260,6 @@ module ActionDispatch
         def define_url_helper(mod, route, name, opts, route_key, url_strategy)
           helper = UrlHelper.create(route, opts, route_key, url_strategy)
 
-          mod.remove_possible_method name
           mod.module_eval do
             define_method(name) do |*args|
               options = nil
@@ -271,6 +274,11 @@ module ActionDispatch
         def define_named_route_methods(mod, name, route)
           define_url_helper mod, route, :"#{name}_path", route.defaults, name, PATH
           define_url_helper mod, route, :"#{name}_url", route.defaults, name, FULL
+        end
+
+        def undef_named_route_methods(mod, name)
+          mod.send :undef_method, :"#{name}_path"
+          mod.send :undef_method, :"#{name}_url"
         end
       end
 
