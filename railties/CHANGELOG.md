@@ -1,3 +1,8 @@
+*   Scaffold generator `_form` partial adds `class="field"` for password
+    confirmation fields.
+
+    *noinkling*
+
 *   Avoid namespacing routes inside engines.
 
     Mountable engines are namespaced by default so the generated routes
