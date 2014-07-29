@@ -72,7 +72,7 @@ module ActiveRecord
     end
 
     class TransactionState
-      attr_accessor :parent
+      attr_reader :parent
 
       VALID_STATES = Set.new([:committed, :rolledback, nil])
 
@@ -245,7 +245,6 @@ module ActiveRecord
 
       def perform_commit
         @state.set_state(:committed)
-        @state.parent = parent.state
         connection.release_savepoint(@savepoint_name)
       end
     end
