@@ -222,6 +222,45 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal 'Hello lifo!', email.body.encoded
   end
 
+  test "adding attachments after mail was called raises exception" do
+    class LateAttachmentMailer < ActionMailer::Base
+      def welcome
+        mail body: "yay", from: "welcome@example.com", to: "to@example.com"
+        attachments['invoice.pdf'] = 'This is test File content'
+      end
+    end
+
+    e = assert_raises(RuntimeError) { LateAttachmentMailer.welcome }
+    assert_match(/Can't add attachments after `mail` was called./, e.message)
+  end
+
+  test "adding inline attachments after mail was called raises exception" do
+    class LateInlineAttachmentMailer < ActionMailer::Base
+      def welcome
+        mail body: "yay", from: "welcome@example.com", to: "to@example.com"
+        attachments.inline['invoice.pdf'] = 'This is test File content'
+      end
+    end
+
+    e = assert_raises(RuntimeError) { LateInlineAttachmentMailer.welcome }
+    assert_match(/Can't add attachments after `mail` was called./, e.message)
+  end
+
+  test "accessing attachments works after mail was called" do
+    class LateAttachmentAccessorMailer < ActionMailer::Base
+      def welcome
+        attachments['invoice.pdf'] = 'This is test File content'
+        mail body: "yay", from: "welcome@example.com", to: "to@example.com"
+
+        unless attachments.map(&:filename) == ["invoice.pdf"]
+          raise Minitest::Assertion, "Should allow access to attachments"
+        end
+      end
+    end
+
+    assert_nothing_raised { LateAttachmentAccessorMailer.welcome }
+  end
+
   # Implicit multipart
   test "implicit multipart" do
     email = BaseMailer.implicit_multipart

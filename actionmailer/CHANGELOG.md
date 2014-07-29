@@ -1,3 +1,10 @@
+*   Raise an exception when attachments are added after `mail` was called.
+    This is a safeguard to prevent invalid emails.
+
+    Fixes #16163.
+
+    *Yves Senn*
+
 *   Allow preview interceptors to be registered through
     `config.action_mailer.preview_interceptors`.
 
