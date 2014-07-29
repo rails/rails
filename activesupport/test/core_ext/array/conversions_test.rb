@@ -52,6 +52,14 @@ class ToSentenceTest < ActiveSupport::TestCase
   def test_with_blank_elements
     assert_equal ", one, , two, and three", [nil, 'one', '', 'two', 'three'].to_sentence
   end
+
+  def test_with_invalid_options
+    exception = assert_raise ArgumentError do
+      ['one', 'two'].to_sentence(passing: 'invalid option')
+    end
+
+    assert_equal exception.message, "Unknown key: :passing. Valid keys are: :words_connector, :two_words_connector, :last_word_connector, :locale"
+  end
 end
 
 class ToSTest < ActiveSupport::TestCase
@@ -185,27 +193,5 @@ class ToXmlTest < ActiveSupport::TestCase
     [].to_xml(options)
     # :builder, etc, shouldn't be added to options
     assert_equal({ skip_instruct: true }, options)
-  end
-end
-
-class ToParamTest < ActiveSupport::TestCase
-  class ToParam < String
-    def to_param
-      "#{self}1"
-    end
-  end
-
-  def test_string_array
-    assert_equal '', %w().to_param
-    assert_equal 'hello/world', %w(hello world).to_param
-    assert_equal 'hello/10', %w(hello 10).to_param
-  end
-
-  def test_number_array
-    assert_equal '10/20', [10, 20].to_param
-  end
-
-  def test_to_param_array
-    assert_equal 'custom1/param1', [ToParam.new('custom'), ToParam.new('param')].to_param
   end
 end
