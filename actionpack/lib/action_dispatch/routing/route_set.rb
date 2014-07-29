@@ -334,6 +334,7 @@ module ActionDispatch
           mapper.instance_exec(&block)
         end
       end
+      private :eval_block
 
       def finalize!
         return if @finalized
