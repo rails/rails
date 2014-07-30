@@ -290,7 +290,6 @@ module ActionDispatch
         #
         def define_url_helper(mod, route, name, opts, route_key, url_strategy)
           helper = UrlHelper.create(route, opts, route_key, url_strategy)
-          mod.remove_possible_method name
           mod.module_eval do
             define_method(name) do |*args|
               options = nil
