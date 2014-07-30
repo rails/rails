@@ -160,10 +160,11 @@ module ActionDispatch
         def path_helpers_module(warn = false)
           if warn
             mod = @path_helpers_module
+            helpers = @path_helpers
             Module.new do
               include mod
 
-              mod.instance_methods(false).each do |meth|
+              helpers.each do |meth|
                 define_method("#{meth}_with_warning") do |*args, &block|
                   ActiveSupport::Deprecation.warn("The method `#{meth}` cannot be used here as a full URL is required. Use `#{meth.to_s.sub(/_path$/, '_url')}` instead")
                   send("#{meth}_without_warning", *args, &block)
