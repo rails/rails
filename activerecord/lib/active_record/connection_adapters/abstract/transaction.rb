@@ -50,7 +50,7 @@ module ActiveRecord
       private
 
         def closed_transaction
-          @closed_transaction ||= ClosedTransaction.new(@connection)
+          @closed_transaction ||= ClosedTransaction.new
         end
     end
 
@@ -98,21 +98,12 @@ module ActiveRecord
     end
 
     class ClosedTransaction < Transaction #:nodoc:
-      def closed?
-        true
-      end
-
-      def open?
-        false
-      end
-
-      def joinable?
-        false
-      end
-
+      def initialize; super(nil); end
+      def closed?; true; end
+      def open?; false; end
+      def joinable?; false; end
       # This is a noop when there are no open transactions
-      def add_record(record)
-      end
+      def add_record(record); end
     end
 
     class OpenTransaction < Transaction #:nodoc:
@@ -125,7 +116,6 @@ module ActiveRecord
         @records   = []
         @joinable  = options.fetch(:joinable, true)
       end
-
 
       def joinable?
         @joinable
