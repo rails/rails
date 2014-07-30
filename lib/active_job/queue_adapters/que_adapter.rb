@@ -5,7 +5,7 @@ module ActiveJob
     class QueAdapter
       class << self
         def enqueue(job, *args)
-          JobWrapper.enqueue job.to_s, *args, queue: job.queue_name
+          JobWrapper.enqueue job.name, *args, queue: job.queue_name
         end
 
         def enqueue_at(job, timestamp, *args)
@@ -14,8 +14,8 @@ module ActiveJob
       end
 
       class JobWrapper < Que::Job
-        def run(job, *args)
-          job.constantize.new.execute *args
+        def run(job_name, *args)
+          job_name.constantize.new.execute *args
         end
       end
     end
