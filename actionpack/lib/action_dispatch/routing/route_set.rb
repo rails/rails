@@ -86,45 +86,54 @@ module ActionDispatch
       # named routes.
       class NamedRouteCollection #:nodoc:
         include Enumerable
-        attr_reader :routes, :helpers, :url_helpers_module
+        attr_reader :routes, :url_helpers_module
 
         def initialize
           @routes  = {}
-          @helpers = Set.new
+          @path_helpers = Set.new
+          @url_helpers = Set.new
           @url_helpers_module  = Module.new
           @path_helpers_module = Module.new
         end
 
         def route_defined?(name)
-          @helpers.include? name.to_sym
+          key = name.to_sym
+          @path_helpers.include?(key) || @url_helpers.include?(key)
         end
 
         def helper_names
-          @helpers.map(&:to_s)
+          @path_helpers.map(&:to_s) + @url_helpers.map(&:to_s)
         end
 
         def clear!
-          @helpers.each do |helper|
-            if helper =~ /_path$/
-              @path_helpers_module.send :undef_method, helper
-            else
-              @url_helpers_module.send  :undef_method, helper
-            end
+          @path_helpers.each do |helper|
+            @path_helpers_module.send :undef_method, helper
+          end
+
+          @url_helpers.each do |helper|
+            @url_helpers_module.send  :undef_method, helper
           end
 
           @routes.clear
-          @helpers.clear
+          @path_helpers.clear
+          @url_helpers.clear
         end
 
         def add(name, route)
-          key = name.to_sym
+          key       = name.to_sym
+          path_name = :"#{name}_path"
+          url_name  = :"#{name}_url"
+
           if routes.key? key
-            @path_helpers_module.send :undef_method, :"#{name}_path"
-            @url_helpers_module.send  :undef_method, :"#{name}_url"
+            @path_helpers_module.send :undef_method, path_name
+            @url_helpers_module.send  :undef_method, url_name
           end
           routes[key] = route
-          define_url_helper @path_helpers_module, route, :"#{name}_path", route.defaults, name, PATH
-          define_url_helper @url_helpers_module,  route, :"#{name}_url",  route.defaults, name, FULL
+          define_url_helper @path_helpers_module, route, path_name, route.defaults, name, PATH
+          define_url_helper @url_helpers_module,  route, url_name,  route.defaults, name, FULL
+
+          @path_helpers << path_name
+          @url_helpers << url_name
         end
 
         def get(name)
@@ -297,8 +306,6 @@ module ActionDispatch
               helper.call self, args, options
             end
           end
-
-          helpers << name
         end
       end
 
