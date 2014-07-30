@@ -1,8 +1,8 @@
 require 'abstract_unit'
-require 'active_support/core_ext/class'
+require 'active_support/core_ext/class/subclasses'
 require 'set'
 
-class ClassTest < ActiveSupport::TestCase
+class SubclassesTest < ActiveSupport::TestCase
   class Parent; end
   class Foo < Parent; end
   class Bar < Foo; end
