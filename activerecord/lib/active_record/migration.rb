@@ -814,22 +814,22 @@ module ActiveRecord
         migrations = migrations(migrations_paths)
         migrations.select! { |m| yield m } if block_given?
 
-        self.new(:up, migrations, target_version).migrate
+        new(:up, migrations, target_version).migrate
       end
 
       def down(migrations_paths, target_version = nil, &block)
         migrations = migrations(migrations_paths)
         migrations.select! { |m| yield m } if block_given?
 
-        self.new(:down, migrations, target_version).migrate
+        new(:down, migrations, target_version).migrate
       end
 
       def run(direction, migrations_paths, target_version)
-        self.new(direction, migrations(migrations_paths), target_version).run
+        new(direction, migrations(migrations_paths), target_version).run
       end
 
       def open(migrations_paths)
-        self.new(:up, migrations(migrations_paths), nil)
+        new(:up, migrations(migrations_paths), nil)
       end
 
       def schema_migrations_table_name
@@ -892,7 +892,7 @@ module ActiveRecord
       private
 
       def move(direction, migrations_paths, steps)
-        migrator = self.new(direction, migrations(migrations_paths))
+        migrator = new(direction, migrations(migrations_paths))
         start_index = migrator.migrations.index(migrator.current_migration)
 
         if start_index
