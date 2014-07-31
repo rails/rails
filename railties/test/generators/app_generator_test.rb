@@ -251,8 +251,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_gem "activerecord-jdbc-adapter"
   end
 
-  def test_config_jdbc_database_when_no_option_given
-    if defined?(JRUBY_VERSION)
+  if defined?(JRUBY_VERSION)
+    def test_config_jdbc_database_when_no_option_given
       run_generator
       assert_file "config/database.yml", /sqlite3/
       assert_gem "activerecord-jdbcsqlite3-adapter"
