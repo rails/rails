@@ -90,6 +90,12 @@ class GroupingTest < ActiveSupport::TestCase
     assert_equal [[1, 2, 3], [4, 5], [6, 7]],
       (1..7).to_a.in_groups(3, false)
   end
+
+  def test_in_groups_invalid_argument
+    assert_raises(ArgumentError) { [].in_groups_of(0) }
+    assert_raises(ArgumentError) { [].in_groups_of(-1) }
+    assert_raises(ArgumentError) { [].in_groups_of(nil) }
+  end
 end
 
 class SplitTest < ActiveSupport::TestCase
