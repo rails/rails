@@ -1,72 +1,5 @@
 module ActiveRecord
   module ConnectionAdapters
-    class TransactionManager #:nodoc:
-      def initialize(connection)
-        @stack = []
-        @connection = connection
-      end
-
-      def begin_transaction(options = {})
-        transaction_class = @stack.empty? ? RealTransaction : SavepointTransaction
-        transaction = transaction_class.new(@connection, "active_record_#{@stack.size}", options)
-
-        @stack.push(transaction)
-        transaction
-      end
-
-      def commit_transaction
-        @stack.pop.commit
-      end
-
-      def rollback_transaction
-        @stack.pop.rollback
-      end
-
-      def within_new_transaction(options = {})
-        transaction = begin_transaction options
-        yield
-      rescue Exception => error
-        transaction.rollback if transaction
-        raise
-      ensure
-        begin
-          transaction.commit unless error
-        rescue Exception
-          transaction.rollback
-          raise
-        ensure
-          @stack.pop if transaction
-        end
-      end
-
-      def open_transactions
-        @stack.size
-      end
-
-      def current_transaction
-        @stack.last || closed_transaction
-      end
-
-      private
-
-        def closed_transaction
-          @closed_transaction ||= ClosedTransaction.new
-        end
-    end
-
-    class Transaction #:nodoc:
-      attr_reader :connection, :state
-
-      def initialize(connection)
-        @connection = connection
-        @state = TransactionState.new
-      end
-
-      def savepoint_name
-        nil
-      end
-    end
-
     class TransactionState
       attr_reader :parent
 
@@ -94,6 +27,19 @@ module ActiveRecord
           raise ArgumentError, "Invalid transaction state: #{state}"
         end
         @state = state
+      end
+    end
+
+    class Transaction #:nodoc:
+      attr_reader :connection, :state
+
+      def initialize(connection)
+        @connection = connection
+        @state = TransactionState.new
+      end
+
+      def savepoint_name
+        nil
       end
     end
 
@@ -211,6 +157,60 @@ module ActiveRecord
         @state.set_state(:committed)
         connection.release_savepoint(savepoint_name)
       end
+    end
+
+    class TransactionManager #:nodoc:
+      def initialize(connection)
+        @stack = []
+        @connection = connection
+      end
+
+      def begin_transaction(options = {})
+        transaction_class = @stack.empty? ? RealTransaction : SavepointTransaction
+        transaction = transaction_class.new(@connection, "active_record_#{@stack.size}", options)
+
+        @stack.push(transaction)
+        transaction
+      end
+
+      def commit_transaction
+        @stack.pop.commit
+      end
+
+      def rollback_transaction
+        @stack.pop.rollback
+      end
+
+      def within_new_transaction(options = {})
+        transaction = begin_transaction options
+        yield
+      rescue Exception => error
+        transaction.rollback if transaction
+        raise
+      ensure
+        begin
+          transaction.commit unless error
+        rescue Exception
+          transaction.rollback
+          raise
+        ensure
+          @stack.pop if transaction
+        end
+      end
+
+      def open_transactions
+        @stack.size
+      end
+
+      def current_transaction
+        @stack.last || closed_transaction
+      end
+
+      private
+
+        def closed_transaction
+          @closed_transaction ||= ClosedTransaction.new
+        end
     end
   end
 end
