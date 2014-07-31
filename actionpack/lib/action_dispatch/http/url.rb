@@ -92,13 +92,13 @@ module ActionDispatch
 
         def build_host_url(host, port, protocol, options, path)
           if match = host.match(HOST_REGEXP)
-            protocol           ||= match[1] unless protocol == false
-            host                 = match[2]
-            port                 = match[3] unless options.key? :port
+            protocol ||= match[1] unless protocol == false
+            host       = match[2]
+            port       = match[3] unless options.key? :port
           end
 
-          protocol       = normalize_protocol protocol
-          host           = normalize_host(host, options)
+          protocol = normalize_protocol protocol
+          host     = normalize_host(host, options)
 
           result = protocol.dup
 
