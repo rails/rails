@@ -7,7 +7,7 @@ module Rails
   class << self
     remove_possible_method :root
     def root
-      @root ||= File.expand_path(File.join(File.dirname(__FILE__), '..', 'fixtures'))
+      @root ||= File.expand_path('../../fixtures', __FILE__)
     end
   end
 end
