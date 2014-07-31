@@ -34,14 +34,13 @@ module ActionController
          (script_name = env["ROUTES_#{_routes.object_id}_SCRIPT_NAME"]) ||
          (original_script_name = env['ORIGINAL_SCRIPT_NAME'.freeze])
 
-        @_url_options.dup.tap do |options|
-          if original_script_name
-            options[:original_script_name] = original_script_name
-          else
-            options[:script_name] = same_origin ? request.script_name.dup : script_name
-          end
-          options.freeze
+        options = @_url_options.dup
+        if original_script_name
+          options[:original_script_name] = original_script_name
+        else
+          options[:script_name] = same_origin ? request.script_name.dup : script_name
         end
+        options.freeze
       else
         @_url_options
       end
