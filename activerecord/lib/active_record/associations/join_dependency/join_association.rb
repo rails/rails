@@ -37,14 +37,9 @@ module ActiveRecord
             table = tables.shift
             klass = reflection.klass
 
-            case reflection.source_macro
-            when :belongs_to
-              key         = reflection.association_primary_key
-              foreign_key = reflection.foreign_key
-            else
-              key         = reflection.foreign_key
-              foreign_key = reflection.active_record_primary_key
-            end
+            join_keys   = reflection.join_keys(klass)
+            key         = join_keys.key
+            foreign_key = join_keys.foreign_key
 
             constraint = build_constraint(klass, table, key, foreign_table, foreign_key)
 
