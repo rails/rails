@@ -59,9 +59,8 @@ module ActionDispatch
 
         private
 
-        def add_params(result, param)
-          params = param.is_a?(Hash) ? param : { params: param }
-
+        def add_params(result, params)
+          params = { params: params } unless params.is_a?(Hash)
           params.reject! { |_,v| v.to_param.nil? }
           result << "?#{params.to_query}" unless params.empty?
 
