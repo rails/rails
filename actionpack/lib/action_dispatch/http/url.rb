@@ -51,9 +51,11 @@ module ActionDispatch
         def path_for(options)
           path  = options[:script_name].to_s.chomp("/")
           path << options[:path] if options.key?(:path)
-          path = add_trailing_slash(path) if options[:trailing_slash]
-          path = add_params(path, options[:params]) if options.key?(:params)
-          path = add_anchor(path, options[:anchor]) if options.key?(:anchor)
+
+          add_trailing_slash(path) if options[:trailing_slash]
+          add_params(path, options[:params]) if options.key?(:params)
+          add_anchor(path, options[:anchor]) if options.key?(:anchor)
+
           path
         end
 
@@ -63,13 +65,10 @@ module ActionDispatch
           params = { params: params } unless params.is_a?(Hash)
           params.reject! { |_,v| v.to_param.nil? }
           path << "?#{params.to_query}" unless params.empty?
-
-          path
         end
 
         def add_anchor(path, anchor)
           path << "##{Journey::Router::Utils.escape_fragment(anchor.to_param.to_s)}"
-          path
         end
 
         def extract_domain_from(host, tld_length)
@@ -89,8 +88,6 @@ module ActionDispatch
           elsif !path.include?(".")
             path.sub!(/[^\/]\z|\A\z/, '\&/')
           end
-
-          path
         end
 
         def build_host_url(host, port, protocol, options, path)
