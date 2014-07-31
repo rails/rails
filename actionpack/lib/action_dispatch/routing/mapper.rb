@@ -771,7 +771,7 @@ module ActionDispatch
         #   end
         def scope(*args)
           options = args.extract_options!.dup
-          recover = {}
+          scope = {}
 
           options[:path] = args.flatten.join('/') if args.any?
           options[:constraints] ||= {}
@@ -801,15 +801,15 @@ module ActionDispatch
             end
 
             if value
-              recover[option] = @scope[option]
-              @scope[option]  = send("merge_#{option}_scope", @scope[option], value)
+              scope[option] = send("merge_#{option}_scope", @scope[option], value)
             end
           end
 
+          @scope = @scope.new scope
           yield
           self
         ensure
-          @scope.merge!(recover)
+          @scope = @scope.parent
         end
 
         # Scopes routes to a specific controller
@@ -1645,27 +1645,26 @@ module ActionDispatch
 
           def with_exclusive_scope
             begin
-              old_name_prefix, old_path = @scope[:as], @scope[:path]
-              @scope[:as], @scope[:path] = nil, nil
+              @scope = @scope.new(:as => nil, :path => nil)
 
               with_scope_level(:exclusive) do
                 yield
               end
             ensure
-              @scope[:as], @scope[:path] = old_name_prefix, old_path
+              @scope = @scope.parent
             end
           end
 
           def with_scope_level(kind)
-            old, @scope[:scope_level] = @scope[:scope_level], kind
+            @scope = @scope.new(:scope_level => kind)
             yield
           ensure
-            @scope[:scope_level] = old
+            @scope = @scope.parent
           end
 
           def resource_scope(kind, resource) #:nodoc:
             resource.shallow = @scope[:shallow]
-            old_resource, @scope[:scope_level_resource] = @scope[:scope_level_resource], resource
+            @scope = @scope.new(:scope_level_resource => resource)
             @nesting.push(resource)
 
             with_scope_level(kind) do
@@ -1673,7 +1672,7 @@ module ActionDispatch
             end
           ensure
             @nesting.pop
-            @scope[:scope_level_resource] = old_resource
+            @scope = @scope.parent
           end
 
           def nested_options #:nodoc:
@@ -1706,12 +1705,13 @@ module ActionDispatch
           end
 
           def shallow_scope(path, options = {}) #:nodoc:
-            old_name_prefix, old_path = @scope[:as], @scope[:path]
-            @scope[:as], @scope[:path] = @scope[:shallow_prefix], @scope[:shallow_path]
+            scope = { :as   => @scope[:shallow_prefix],
+                      :path => @scope[:shallow_path] }
+            @scope = @scope.new scope
 
             scope(path, options) { yield }
           ensure
-            @scope[:as], @scope[:path] = old_name_prefix, old_path
+            @scope = @scope.parent
           end
 
           def path_for_action(action, path) #:nodoc:
@@ -1893,9 +1893,30 @@ module ActionDispatch
         end
       end
 
+      class Scope # :nodoc:
+        attr_reader :parent
+
+        def initialize(hash, parent = {})
+          @hash = hash
+          @parent = parent
+        end
+
+        def new(hash)
+          self.class.new hash, self
+        end
+
+        def [](key)
+          @hash.fetch(key) { @parent[key] }
+        end
+
+        def []=(k,v)
+          @hash[k] = v
+        end
+      end
+
       def initialize(set) #:nodoc:
         @set = set
-        @scope = { :path_names => @set.resources_path_names }
+        @scope = Scope.new({ :path_names => @set.resources_path_names })
         @concerns = {}
         @nesting = []
       end
