@@ -51,28 +51,25 @@ module ActionDispatch
         def path_for(options)
           result  = options[:script_name].to_s.chomp("/")
           result << options[:path].to_s
-
           result = add_trailing_slash(result) if options[:trailing_slash]
-
-          result = add_params options, result
-          add_anchor options, result
+          result = add_params(result, options[:params]) if options.key?(:params)
+          result = add_anchor(result, options[:anchor]) if options.key?(:anchor)
+          result
         end
 
         private
 
-        def add_params(options, result)
-          if options.key? :params
-            param  = options[:params]
-            params = param.is_a?(Hash) ? param : { params: param }
+        def add_params(result, param)
+          params = param.is_a?(Hash) ? param : { params: param }
 
-            params.reject! { |_,v| v.to_param.nil? }
-            result << "?#{params.to_query}" unless params.empty?
-          end
+          params.reject! { |_,v| v.to_param.nil? }
+          result << "?#{params.to_query}" unless params.empty?
+
           result
         end
 
-        def add_anchor(options, result)
-          result << "##{Journey::Router::Utils.escape_fragment(options[:anchor].to_param.to_s)}" if options[:anchor]
+        def add_anchor(result, anchor)
+          result << "##{Journey::Router::Utils.escape_fragment(anchor.to_param.to_s)}"
           result
         end
 
