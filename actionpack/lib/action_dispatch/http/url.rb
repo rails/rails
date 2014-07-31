@@ -50,7 +50,7 @@ module ActionDispatch
 
         def path_for(options)
           path  = options[:script_name].to_s.chomp("/")
-          path << options[:path].to_s
+          path << options[:path] if options.key?(:path)
           path = add_trailing_slash(path) if options[:trailing_slash]
           path = add_params(path, options[:params]) if options.key?(:params)
           path = add_anchor(path, options[:anchor]) if options.key?(:anchor)
