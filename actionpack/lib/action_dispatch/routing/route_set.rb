@@ -327,7 +327,7 @@ module ActionDispatch
 
       def initialize(request_class = ActionDispatch::Request)
         self.named_routes = NamedRouteCollection.new
-        self.resources_path_names = self.class.default_resources_path_names.dup
+        self.resources_path_names = self.class.default_resources_path_names
         self.default_url_options = {}
         self.request_class = request_class
 
