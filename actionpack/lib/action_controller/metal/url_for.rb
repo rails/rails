@@ -28,7 +28,7 @@ module ActionController
         :port => request.optional_port,
         :protocol => request.protocol,
         :_recall => request.path_parameters
-      }.merge(super).freeze
+      }.merge!(super).freeze
 
       if (same_origin = _routes.equal?(env["action_dispatch.routes".freeze])) ||
          (script_name = env["ROUTES_#{_routes.object_id}_SCRIPT_NAME"]) ||
