@@ -1765,7 +1765,7 @@ module ActionDispatch
               # and return nil in case it isn't. Otherwise, we pass the invalid name
               # forward so the underlying router engine treats it and raises an exception.
               if as.nil?
-                candidate unless @set.named_routes.key?(candidate) || candidate !~ /\A[_a-z]/i
+                candidate unless candidate !~ /\A[_a-z]/i || @set.named_routes.key?(candidate)
               else
                 candidate
               end
