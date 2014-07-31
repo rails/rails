@@ -4,30 +4,24 @@ module Arel
       Nodes::Count.new [self], distinct
     end
 
-    def sum(alias_as = "sum_id")
-      Nodes::Sum.new [self], node_alias(alias_as)
+    def sum
+      Nodes::Sum.new [self]
     end
 
-    def maximum(alias_as = "max_id")
-      Nodes::Max.new [self], node_alias(alias_as)
+    def maximum
+      Nodes::Max.new [self]
     end
 
-    def minimum(alias_as = "min_id")
-      Nodes::Min.new [self], node_alias(alias_as)
+    def minimum
+      Nodes::Min.new [self]
     end
 
-    def average(alias_as = "avg_id")
-      Nodes::Avg.new [self], node_alias(alias_as)
+    def average
+      Nodes::Avg.new [self]
     end
 
     def extract field
       Nodes::Extract.new [self], field
-    end
-
-  private
-
-    def node_alias(alias_as)
-      alias_as.nil? ? nil : Nodes::SqlLiteral.new(alias_as)
     end
 
   end
