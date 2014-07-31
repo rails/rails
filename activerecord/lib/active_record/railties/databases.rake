@@ -41,10 +41,7 @@ db_namespace = namespace :db do
 
   desc "Migrate the database (options: VERSION=x, VERBOSE=false, SCOPE=blog)."
   task :migrate => [:environment, :load_config] do
-    ActiveRecord::Migration.verbose = ENV["VERBOSE"] ? ENV["VERBOSE"] == "true" : true
-    ActiveRecord::Migrator.migrate(ActiveRecord::Migrator.migrations_paths, ENV["VERSION"] ? ENV["VERSION"].to_i : nil) do |migration|
-      ENV["SCOPE"].blank? || (ENV["SCOPE"] == migration.scope)
-    end
+    ActiveRecord::Tasks::DatabaseTasks.migrate
     db_namespace['_dump'].invoke if ActiveRecord::Base.dump_schema_after_migration
   end
 
