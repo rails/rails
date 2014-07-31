@@ -1,3 +1,11 @@
+*   Deprecate `Reflection#source_macro`
+
+    `Reflection#source_macro` is no longer needed in Active Record
+    source so it has been deprecated. Code that used `source_macro`
+    was removed in #16353.
+
+    *Eileen M. Uchtitelle*, *Aaron Patterson*
+
 *   No verbose backtrace by db:drop when database does not exist.
 
     Fixes #16295.

@@ -152,7 +152,11 @@ module ActiveRecord
         JoinKeys.new(foreign_key, active_record_primary_key)
       end
 
-      def source_macro; macro; end
+      def source_macro
+        ActiveSupport::Deprecation.warn("ActiveRecord::Base.source_macro is deprecated and " \
+          "will be removed without replacement.")
+        macro
+      end
     end
     # Base class for AggregateReflection and AssociationReflection. Objects of
     # AggregateReflection and AssociationReflection are returned by the Reflection::ClassMethods.
@@ -738,6 +742,8 @@ Joining, Preloading and eager loading of these associations is deprecated and wi
 
       # The macro used by the source association
       def source_macro
+        ActiveSupport::Deprecation.warn("ActiveRecord::Base.source_macro is deprecated and " \
+          "will be removed without replacement.")
         source_reflection.source_macro
       end
 
