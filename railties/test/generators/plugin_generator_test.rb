@@ -416,10 +416,10 @@ protected
   end
 
   def assert_match_sqlite3(contents)
-    unless defined?(JRUBY_VERSION)
-      assert_match(/group :development do\n  gem 'sqlite3'\nend/, contents)
-    else
+    if defined?(JRUBY_VERSION)
       assert_match(/group :development do\n  gem 'activerecord-jdbcsqlite3-adapter'\nend/, contents)
+    else
+      assert_match(/group :development do\n  gem 'sqlite3'\nend/, contents)
     end
   end
 end

@@ -194,20 +194,20 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_config_database_is_added_by_default
     run_generator
     assert_file "config/database.yml", /sqlite3/
-    unless defined?(JRUBY_VERSION)
-      assert_gem "sqlite3"
-    else
+    if defined?(JRUBY_VERSION)
       assert_gem "activerecord-jdbcsqlite3-adapter"
+    else
+      assert_gem "sqlite3"
     end
   end
 
   def test_config_another_database
     run_generator([destination_root, "-d", "mysql"])
     assert_file "config/database.yml", /mysql/
-    unless defined?(JRUBY_VERSION)
-      assert_gem "mysql2"
-    else
+    if defined?(JRUBY_VERSION)
       assert_gem "activerecord-jdbcmysql-adapter"
+    else
+      assert_gem "mysql2"
     end
   end
 
@@ -219,10 +219,10 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_config_postgresql_database
     run_generator([destination_root, "-d", "postgresql"])
     assert_file "config/database.yml", /postgresql/
-    unless defined?(JRUBY_VERSION)
-      assert_gem "pg"
-    else
+    if defined?(JRUBY_VERSION)
       assert_gem "activerecord-jdbcpostgresql-adapter"
+    else
+      assert_gem "pg"
     end
   end
 
