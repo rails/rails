@@ -246,11 +246,11 @@ module ActiveSupport
 
     # Convert to a regular hash with string keys.
     def to_hash
-      _new_hash = {}
+      _new_hash = Hash.new(default)
       each do |key, value|
         _new_hash[key] = convert_value(value, for: :to_hash)
       end
-      Hash.new(default).merge!(_new_hash)
+      _new_hash
     end
 
     protected
