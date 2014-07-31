@@ -1,3 +1,10 @@
+*   Add `after_bundle` callbacks in Rails templates. Useful for allowing the
+    generated binstubs to be added to version control.
+
+    Fixes #16292.
+
+    *Stefan Kanev*
+
 *   Scaffold generator `_form` partial adds `class="field"` for password
     confirmation fields.
 
