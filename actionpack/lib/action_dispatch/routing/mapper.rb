@@ -614,7 +614,7 @@ module ActionDispatch
           end
 
           def define_generate_prefix(app, name)
-            _route = @set.named_routes.routes[name.to_sym]
+            _route = @set.named_routes.get name
             _routes = @set
             app.routes.define_mounted_helper(name)
             app.routes.extend Module.new {
