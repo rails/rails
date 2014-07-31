@@ -586,6 +586,8 @@ class HashExtTest < ActiveSupport::TestCase
     roundtrip = mixed_with_default.with_indifferent_access.to_hash
     assert_equal @strings, roundtrip
     assert_equal '1234', roundtrip.default
+
+    # Ensure nested hashes are not HashWithIndiffereneAccess
     new_to_hash = @nested_mixed.with_indifferent_access.to_hash
     assert_not new_to_hash.instance_of?(HashWithIndifferentAccess)
     assert_not new_to_hash["a"].instance_of?(HashWithIndifferentAccess)
@@ -1514,6 +1516,16 @@ class HashToXmlTest < ActiveSupport::TestCase
     expected = { 'product' => { 'name' => :value }}
     assert_equal expected, Hash.from_trusted_xml('<product><name type="symbol">value</name></product>')
     assert_equal expected, Hash.from_trusted_xml('<product><name type="yaml">:value</name></product>')
+  end
+
+  def test_should_use_default_proc_for_unknown_key
+    hash_wia = HashWithIndifferentAccess.new { 1 +  2 }
+    assert_equal 3, hash_wia[:new_key]
+  end
+
+  def test_should_use_default_proc_if_no_key_is_supplied
+    hash_wia = HashWithIndifferentAccess.new { 1 +  2 }
+    assert_equal 3, hash_wia.default
   end
 
   def test_should_use_default_value_for_unknown_key
