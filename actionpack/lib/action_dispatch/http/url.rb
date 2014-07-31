@@ -49,27 +49,27 @@ module ActionDispatch
         end
 
         def path_for(options)
-          result  = options[:script_name].to_s.chomp("/")
-          result << options[:path].to_s
-          result = add_trailing_slash(result) if options[:trailing_slash]
-          result = add_params(result, options[:params]) if options.key?(:params)
-          result = add_anchor(result, options[:anchor]) if options.key?(:anchor)
-          result
+          path  = options[:script_name].to_s.chomp("/")
+          path << options[:path].to_s
+          path = add_trailing_slash(path) if options[:trailing_slash]
+          path = add_params(path, options[:params]) if options.key?(:params)
+          path = add_anchor(path, options[:anchor]) if options.key?(:anchor)
+          path
         end
 
         private
 
-        def add_params(result, params)
+        def add_params(path, params)
           params = { params: params } unless params.is_a?(Hash)
           params.reject! { |_,v| v.to_param.nil? }
-          result << "?#{params.to_query}" unless params.empty?
+          path << "?#{params.to_query}" unless params.empty?
 
-          result
+          path
         end
 
-        def add_anchor(result, anchor)
-          result << "##{Journey::Router::Utils.escape_fragment(anchor.to_param.to_s)}"
-          result
+        def add_anchor(path, anchor)
+          path << "##{Journey::Router::Utils.escape_fragment(anchor.to_param.to_s)}"
+          path
         end
 
         def extract_domain_from(host, tld_length)
