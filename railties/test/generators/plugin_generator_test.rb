@@ -95,7 +95,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_generating_adds_dummy_app_without_javascript_and_assets_deps
-    run_generator [destination_root]
+    run_generator
 
     assert_file "test/dummy/app/assets/stylesheets/application.css"
 
@@ -335,7 +335,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     Object.const_set('APP_PATH', Rails.root)
     FileUtils.touch gemfile_path
 
-    run_generator [destination_root]
+    run_generator
 
     assert_file gemfile_path, /gem 'bukkits', path: 'tmp\/bukkits'/
   ensure
@@ -376,7 +376,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     name = `git config user.name`.chomp rescue "TODO: Write your name"
     email = `git config user.email`.chomp rescue "TODO: Write your email address"
 
-    run_generator [destination_root]
+    run_generator
     assert_file "bukkits.gemspec" do |contents|
       assert_match name, contents
       assert_match email, contents
@@ -386,7 +386,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   def test_git_name_in_license_file
     name = `git config user.name`.chomp rescue "TODO: Write your name"
 
-    run_generator [destination_root]
+    run_generator
     assert_file "MIT-LICENSE" do |contents|
       assert_match name, contents
     end

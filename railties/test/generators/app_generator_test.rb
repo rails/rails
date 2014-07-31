@@ -253,7 +253,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_config_jdbc_database_when_no_option_given
     if defined?(JRUBY_VERSION)
-      run_generator([destination_root])
+      run_generator
       assert_file "config/database.yml", /sqlite3/
       assert_gem "activerecord-jdbcsqlite3-adapter"
     end
@@ -295,7 +295,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_inclusion_of_javascript_runtime
-    run_generator([destination_root])
+    run_generator
     if defined?(JRUBY_VERSION)
       assert_gem "therubyrhino"
     else
@@ -398,7 +398,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_new_hash_style
-    run_generator [destination_root]
+    run_generator
     assert_file "config/initializers/session_store.rb" do |file|
       assert_match(/config.session_store :cookie_store, key: '_.+_session'/, file)
     end
