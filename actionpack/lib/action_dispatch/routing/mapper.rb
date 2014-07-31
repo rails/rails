@@ -13,9 +13,6 @@ module ActionDispatch
   module Routing
     class Mapper
       URL_OPTIONS = [:protocol, :subdomain, :domain, :host, :port]
-      SCOPE_OPTIONS = [:path, :shallow_path, :as, :shallow_prefix, :module,
-                       :controller, :action, :path_names, :constraints,
-                       :shallow, :blocks, :defaults, :options]
 
       class Constraints < Endpoint #:nodoc:
         attr_reader :app, :constraints
@@ -791,7 +788,7 @@ module ActionDispatch
             block, options[:constraints] = options[:constraints], {}
           end
 
-          SCOPE_OPTIONS.each do |option|
+          @scope.options.each do |option|
             if option == :blocks
               value = block
             elsif option == :options
@@ -1894,11 +1891,19 @@ module ActionDispatch
       end
 
       class Scope # :nodoc:
+        OPTIONS = [:path, :shallow_path, :as, :shallow_prefix, :module,
+                   :controller, :action, :path_names, :constraints,
+                   :shallow, :blocks, :defaults, :options]
+
         attr_reader :parent
 
         def initialize(hash, parent = {})
           @hash = hash
           @parent = parent
+        end
+
+        def options
+          OPTIONS
         end
 
         def new(hash)
