@@ -1,3 +1,9 @@
+*   `HashWithIndifferentAccess.new` respects the default value or proc on objects
+    that respond to `#to_hash`. `.new_from_hash_copying_default` simply invokes `.new`.
+    All calls to `.new_from_hash_copying_default` are replaced with `.new`.
+
+    *Gordon Chan*
+
 *   `Object#with_options` executes block in merging option context when
     explicit receiver in not passed.
 

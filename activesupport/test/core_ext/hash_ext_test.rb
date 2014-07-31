@@ -996,6 +996,24 @@ class HashExtTest < ActiveSupport::TestCase
     assert hash.key?('a')
     assert_equal 1, hash[:a]
   end
+
+  def test_new_with_to_hash_conversion_copies_default
+    normal_hash = Hash.new(3)
+    normal_hash[:a] = 1
+
+    hash = HashWithIndifferentAccess.new(HashByConversion.new(normal_hash))
+    assert_equal 1, hash[:a]
+    assert_equal 3, hash[:b]
+  end
+
+  def test_new_with_to_hash_conversion_copies_default_proc
+    normal_hash = Hash.new { 1 + 2 }
+    normal_hash[:a] = 1
+
+    hash = HashWithIndifferentAccess.new(HashByConversion.new(normal_hash))
+    assert_equal 1, hash[:a]
+    assert_equal 3, hash[:b]
+  end
 end
 
 class IWriteMyOwnXML
