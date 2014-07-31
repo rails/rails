@@ -378,8 +378,8 @@ class PluginGeneratorTest < Rails::Generators::TestCase
 
     run_generator [destination_root]
     assert_file "bukkits.gemspec" do |contents|
-      assert_match(/#{Regexp.escape(name)}/, contents)
-      assert_match(/#{Regexp.escape(email)}/, contents)
+      assert_match name, contents
+      assert_match email, contents
     end
   end
 
@@ -388,7 +388,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
 
     run_generator [destination_root]
     assert_file "MIT-LICENSE" do |contents|
-      assert_match(/#{Regexp.escape(name)}/, contents)
+      assert_match name, contents
     end
   end
 
@@ -398,11 +398,11 @@ class PluginGeneratorTest < Rails::Generators::TestCase
 
     run_generator [destination_root, '--skip-git']
     assert_file "MIT-LICENSE" do |contents|
-      assert_match(/#{Regexp.escape(name)}/, contents)
+      assert_match name, contents
     end
     assert_file "bukkits.gemspec" do |contents|
-      assert_match(/#{Regexp.escape(name)}/, contents)
-      assert_match(/#{Regexp.escape(email)}/, contents)
+      assert_match name, contents
+      assert_match email, contents
     end
   end
 
