@@ -140,6 +140,10 @@ module ActionDispatch
           routes[name.to_sym]
         end
 
+        def key?(name)
+          routes.key? name.to_sym
+        end
+
         alias []=   add
         alias []    get
         alias clear clear!
