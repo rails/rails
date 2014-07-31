@@ -43,8 +43,8 @@ module ActiveRecord
       end
     end
 
-    class ClosedTransaction < Transaction #:nodoc:
-      def initialize; super(nil); end
+    class NullTransaction < Transaction #:nodoc:
+      def initialize; end
       def closed?; true; end
       def open?; false; end
       def joinable?; false; end
@@ -203,14 +203,11 @@ module ActiveRecord
       end
 
       def current_transaction
-        @stack.last || closed_transaction
+        @stack.last || NULL_TRANSACTION
       end
 
       private
-
-        def closed_transaction
-          @closed_transaction ||= ClosedTransaction.new
-        end
+        NULL_TRANSACTION = NullTransaction.new
     end
   end
 end

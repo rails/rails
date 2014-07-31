@@ -46,7 +46,7 @@ module ActiveRecord
 
     autoload_at 'active_record/connection_adapters/abstract/transaction' do
       autoload :TransactionManager
-      autoload :ClosedTransaction
+      autoload :NullTransaction
       autoload :RealTransaction
       autoload :SavepointTransaction
       autoload :TransactionState
