@@ -12,7 +12,7 @@ module ActiveRecord
       end
 
       def type_cast_from_database(value)
-        if is_default_value?(value)
+        if default_value?(value)
           value
         else
           coder.load(super)
@@ -21,7 +21,7 @@ module ActiveRecord
 
       def type_cast_for_database(value)
         return if value.nil?
-        unless is_default_value?(value)
+        unless default_value?(value)
           super coder.dump(value)
         end
       end
@@ -43,7 +43,7 @@ module ActiveRecord
 
       private
 
-      def is_default_value?(value)
+      def default_value?(value)
         value == coder.load(nil)
       end
     end
