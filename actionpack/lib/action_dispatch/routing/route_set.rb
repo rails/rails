@@ -694,7 +694,7 @@ module ActionDispatch
       end
 
       def find_script_name(options)
-        options.delete :script_name
+        options.delete(:script_name) { '' }
       end
 
       # The +options+ argument must be a hash whose keys are *symbols*.
@@ -713,7 +713,7 @@ module ActionDispatch
         original_script_name = options.delete(:original_script_name)
         script_name = find_script_name options
 
-        if script_name && original_script_name
+        if original_script_name
           script_name = original_script_name + script_name
         end
 

@@ -620,11 +620,13 @@ module ActionDispatch
             app.routes.extend Module.new {
               def optimize_routes_generation?; false; end
               define_method :find_script_name do |options|
-                super(options) || begin
-                prefix_options = options.slice(*_route.segment_keys)
-                # we must actually delete prefix segment keys to avoid passing them to next url_for
-                _route.segment_keys.each { |k| options.delete(k) }
-                _routes.url_helpers.send("#{name}_path", prefix_options)
+                if options.key? :script_name
+                  super(options)
+                else
+                  prefix_options = options.slice(*_route.segment_keys)
+                  # we must actually delete prefix segment keys to avoid passing them to next url_for
+                  _route.segment_keys.each { |k| options.delete(k) }
+                  _routes.url_helpers.send("#{name}_path", prefix_options)
                 end
               end
             }
