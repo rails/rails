@@ -77,7 +77,7 @@ module ActiveRecord
         end
 
         def ensure_mutable
-          if source_reflection.macro != :belongs_to
+          unless source_reflection.belongs_to?
             raise HasManyThroughCantAssociateThroughHasOneOrManyReflection.new(owner, reflection)
           end
         end
