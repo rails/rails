@@ -101,6 +101,10 @@ We currently have adapters for:
 * [Sucker Punch](https://github.com/brandonhilkert/sucker_punch)
 
 
+## Auxiliary gems
+
+* [activejob-stats](https://github.com/seuros/activejob-stats)
+
 ## Under development as a gem, targeted for Rails inclusion
 
 Active Job is currently being developed in a separate repository until it's
