@@ -4,9 +4,13 @@ require 'active_support/core_ext/array/access'
 
 begin
   require 'resque-scheduler'
-rescue LoadError => e
-  $stderr.puts 'The ActiveJob resque adapter requires resque-scheduler. Please add it to your Gemfile and run bundle install'
-  raise e
+rescue LoadError
+  begin
+    require 'resque_scheduler'
+  rescue LoadError
+    $stderr.puts 'The ActiveJob resque adapter requires resque-scheduler. Please add it to your Gemfile and run bundle install'
+    raise e
+  end
 end
 
 module ActiveJob
