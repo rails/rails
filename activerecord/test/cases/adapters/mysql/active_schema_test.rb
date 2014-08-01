@@ -63,6 +63,10 @@ class ActiveSchemaTest < ActiveRecord::TestCase
     assert_equal "DROP TABLE `people`", drop_table(:people)
   end
 
+  def test_drop_table_if_exists
+    assert_equal "DROP TABLE IF EXISTS `people`", drop_table(:people, if_exists: true)
+  end
+
   if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
     def test_create_mysql_database_with_encoding
       assert_equal "CREATE DATABASE `matt` DEFAULT CHARACTER SET `utf8`", create_database(:matt)
