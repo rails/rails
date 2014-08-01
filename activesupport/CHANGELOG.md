@@ -1,6 +1,6 @@
-*   Added Object#self which returns the object itself. Useful when dealing with a chaining scenario, like Active Record scopes:
+*   Added Object#itself which returns the object itself. Useful when dealing with a chaining scenario, like Active Record scopes:
 
-        Event.public_send(state.presence_in?([ :trashed, :drafted ]) ? :self).order(:created_at)
+        Event.public_send(state.presence_in?([ :trashed, :drafted ]) || :itself).order(:created_at)
     
     *DHH*
 

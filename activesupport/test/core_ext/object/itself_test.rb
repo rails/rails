@@ -4,6 +4,6 @@ require 'active_support/core_ext/object'
 class Object::SelfTest < ActiveSupport::TestCase
   test 'self returns self' do
     object = 'fun'
-    assert_equal object, object.self
+    assert_equal object, object.itself
   end
 end
