@@ -4,7 +4,7 @@ require 'minitest/mock'
 module ActiveRecord
   class AttributeTest < ActiveRecord::TestCase
     setup do
-      @type = MiniTest::Mock.new
+      @type = Minitest::Mock.new
     end
 
     teardown do
