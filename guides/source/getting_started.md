@@ -909,7 +909,7 @@ And then finally, add the view for this action, located at
 </table>
 ```
 
-Now if you go to `http://localhost:3000/articles` you will see a list of all the
+Now if you go to <http://localhost:3000/articles> you will see a list of all the
 articles that you have created.
 
 ### Adding links
@@ -1105,7 +1105,7 @@ standout.
 
 Now you'll get a nice error message when saving an article without title when
 you attempt to do just that on the new article form
-[(http://localhost:3000/articles/new)](http://localhost:3000/articles/new).
+<http://localhost:3000/articles/new>:
 
 ![Form With Errors](images/getting_started/form_with_errors.png)
 
