@@ -1,3 +1,8 @@
+*   Add an `:if_not_exists` option to `create_table`. It does not
+    raise an error if the table already exists.
+
+    *Stefan Kanev*
+
 *   Deprecate `Reflection#source_macro`
 
     `Reflection#source_macro` is no longer needed in Active Record

@@ -89,6 +89,21 @@ class MigrationTest < ActiveRecord::TestCase
     ActiveRecord::Migrator.run(:up, MIGRATIONS_ROOT + "/version_check", 20131219224947)
   end
 
+  def test_create_table_with_if_not_exists_true
+    connection.drop_table :testings rescue nil
+
+    connection.create_table :testings do |t|
+      t.integer :not_to_be_removed
+    end
+
+    connection.create_table :testings, if_not_exists: true
+
+    assert connection.columns(:testings).detect { |c| c.name.to_s == 'not_to_be_removed' },
+      "Expected not to recreate the the table"
+  ensure
+    connection.drop_table :testings rescue nil
+  end
+
   def test_create_table_with_force_true_does_not_drop_nonexisting_table
     if Person.connection.table_exists?(:testings2)
       Person.connection.drop_table :testings2

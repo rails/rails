@@ -132,6 +132,9 @@ module ActiveRecord
       # [<tt>:force</tt>]
       #   Set to true to drop the table before creating it.
       #   Defaults to false.
+      # [<tt>:if_not_exists</tt>]
+      #   Set to true to avoid raising an error when the table already exists.
+      #   Defaults to false.
       # [<tt>:as</tt>]
       #   SQL to use to generate the table. When this option is used, the block is
       #   ignored, as are the <tt>:id</tt> and <tt>:primary_key</tt> options.
@@ -185,6 +188,8 @@ module ActiveRecord
       #
       # See also TableDefinition#column for details on how to create columns.
       def create_table(table_name, options = {})
+        return if options[:if_not_exists] && table_exists?(table_name)
+
         td = create_table_definition table_name, options[:temporary], options[:options], options[:as]
 
         if options[:id] != false && !options[:as]
