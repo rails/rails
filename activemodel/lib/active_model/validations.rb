@@ -149,7 +149,7 @@ module ActiveModel
         if options.key?(:on)
           options = options.dup
           options[:if] = Array(options[:if])
-          options[:if].unshift lambda { |o|
+          options[:if].unshift -> (o) {
             Array(options[:on]).include?(o.validation_context)
           }
         end

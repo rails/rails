@@ -232,7 +232,7 @@ module ActionController
           new.dispatch(name, klass.new(env))
         end
       else
-        lambda { |env| new.dispatch(name, klass.new(env)) }
+        -> (env) { new.dispatch(name, klass.new(env)) }
       end
     end
 

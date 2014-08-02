@@ -54,7 +54,7 @@ module ActiveRecord::Associations::Builder
     def self.add_counter_cache_callbacks(model, reflection)
       cache_column = reflection.counter_cache_column
 
-      model.after_update lambda { |record|
+      model.after_update -> (record) {
         record.belongs_to_counter_cache_after_update(reflection)
       }
 
@@ -99,7 +99,7 @@ module ActiveRecord::Associations::Builder
       n           = reflection.name
       touch       = reflection.options[:touch]
 
-      callback = lambda { |record|
+      callback = -> (record) {
         BelongsTo.touch_record(record, foreign_key, n, touch)
       }
 
@@ -110,7 +110,7 @@ module ActiveRecord::Associations::Builder
 
     def self.add_destroy_callbacks(model, reflection)
       name = reflection.name
-      model.after_destroy lambda { |o| o.association(name).handle_dependency }
+      model.after_destroy -> (o) { o.association(name).handle_dependency }
     end
   end
 end

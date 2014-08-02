@@ -4,7 +4,7 @@ require 'action_view/vendor/html-scanner'
 require 'rails/engine'
 
 class SessionTest < ActiveSupport::TestCase
-  StubApp = lambda { |env|
+  StubApp = -> (env) {
     [200, {"Content-Type" => "text/html", "Content-Length" => "13"}, ["Hello, World!"]]
   }
 

@@ -9,15 +9,15 @@ class Time
     :time         => '%H:%M',
     :short        => '%d %b %H:%M',
     :long         => '%B %d, %Y %H:%M',
-    :long_ordinal => lambda { |time|
+    :long_ordinal => -> (time) {
       day_format = ActiveSupport::Inflector.ordinalize(time.day)
       time.strftime("%B #{day_format}, %Y %H:%M")
     },
-    :rfc822       => lambda { |time|
+    :rfc822       => -> (time) {
       offset_format = time.formatted_offset(false)
       time.strftime("%a, %d %b %Y %H:%M:%S #{offset_format}")
     },
-    :iso8601      => lambda { |time| time.iso8601 }
+    :iso8601      => -> (time) { time.iso8601 }
   }
 
   # Converts to a formatted string. See DATE_FORMATS for built-in formats.

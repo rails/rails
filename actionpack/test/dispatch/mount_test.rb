@@ -20,7 +20,7 @@ class TestRoutingMount < ActionDispatch::IntegrationTest
   end
 
   Router.draw do
-    SprocketsApp = lambda { |env|
+    SprocketsApp = -> (env) {
       [200, {"Content-Type" => "text/html"}, ["#{env["SCRIPT_NAME"]} -- #{env["PATH_INFO"]}"]]
     }
 

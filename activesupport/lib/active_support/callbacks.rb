@@ -133,7 +133,7 @@ module ActiveSupport
         end
 
         def self.halting_and_conditional(next_callback, user_callback, user_conditions, halted_lambda, filter)
-          lambda { |env|
+          -> (env) {
             target = env.target
             value  = env.value
             halted = env.halted
@@ -151,7 +151,7 @@ module ActiveSupport
         private_class_method :halting_and_conditional
 
         def self.halting(next_callback, user_callback, halted_lambda, filter)
-          lambda { |env|
+          -> (env) {
             target = env.target
             value  = env.value
             halted = env.halted
@@ -169,7 +169,7 @@ module ActiveSupport
         private_class_method :halting
 
         def self.conditional(next_callback, user_callback, user_conditions)
-          lambda { |env|
+          -> (env) {
             target = env.target
             value  = env.value
 
@@ -182,7 +182,7 @@ module ActiveSupport
         private_class_method :conditional
 
         def self.simple(next_callback, user_callback)
-          lambda { |env|
+          -> (env) {
             user_callback.call env.target, env.value
             next_callback.call env
           }
@@ -212,7 +212,7 @@ module ActiveSupport
         end
 
         def self.halting_and_conditional(next_callback, user_callback, user_conditions)
-          lambda { |env|
+          -> (env) {
             env = next_callback.call env
             target = env.target
             value  = env.value
@@ -227,7 +227,7 @@ module ActiveSupport
         private_class_method :halting_and_conditional
 
         def self.halting(next_callback, user_callback)
-          lambda { |env|
+          -> (env) {
             env = next_callback.call env
             unless env.halted
               user_callback.call env.target, env.value
@@ -238,7 +238,7 @@ module ActiveSupport
         private_class_method :halting
 
         def self.conditional(next_callback, user_callback, user_conditions)
-          lambda { |env|
+          -> (env) {
             env = next_callback.call env
             target = env.target
             value  = env.value
@@ -252,7 +252,7 @@ module ActiveSupport
         private_class_method :conditional
 
         def self.simple(next_callback, user_callback)
-          lambda { |env|
+          -> (env) {
             env = next_callback.call env
             user_callback.call env.target, env.value
             env
@@ -275,7 +275,7 @@ module ActiveSupport
         end
 
         def self.halting_and_conditional(next_callback, user_callback, user_conditions)
-          lambda { |env|
+          -> (env) {
             target = env.target
             value  = env.value
             halted = env.halted
@@ -294,7 +294,7 @@ module ActiveSupport
         private_class_method :halting_and_conditional
 
         def self.halting(next_callback, user_callback)
-          lambda { |env|
+          -> (env) {
             target = env.target
             value  = env.value
 
@@ -312,7 +312,7 @@ module ActiveSupport
         private_class_method :halting
 
         def self.conditional(next_callback, user_callback, user_conditions)
-          lambda { |env|
+          -> (env) {
             target = env.target
             value  = env.value
 
@@ -330,7 +330,7 @@ module ActiveSupport
         private_class_method :conditional
 
         def self.simple(next_callback, user_callback)
-          lambda { |env|
+          -> (env) {
             user_callback.call(env.target, env.value) {
               env = next_callback.call env
               env.value
@@ -406,7 +406,7 @@ module ActiveSupport
       private
 
       def invert_lambda(l)
-        lambda { |*args, &blk| !l.call(*args, &blk) }
+        -> (*args, &blk) { !l.call(*args, &blk) }
       end
 
       # Filters support:
@@ -421,29 +421,29 @@ module ActiveSupport
       def make_lambda(filter)
         case filter
         when Symbol
-          lambda { |target, _, &blk| target.send filter, &blk }
+          -> (target, _, &blk) { target.send filter, &blk }
         when String
-          l = eval "lambda { |value| #{filter} }"
-          lambda { |target, value| target.instance_exec(value, &l) }
+          l = eval "-> (value) { #{filter} }"
+          -> (target, value) { target.instance_exec(value, &l) }
         when Conditionals::Value then filter
         when ::Proc
           if filter.arity > 1
-            return lambda { |target, _, &block|
+            return -> (target, _, &block) {
               raise ArgumentError unless block
               target.instance_exec(target, block, &filter)
             }
           end
 
           if filter.arity <= 0
-            lambda { |target, _| target.instance_exec(&filter) }
+            -> (target, _) { target.instance_exec(&filter) }
           else
-            lambda { |target, _| target.instance_exec(target, &filter) }
+            -> (target, _) { target.instance_exec(target, &filter) }
           end
         else
           scopes = Array(chain_config[:scope])
           method_to_call = scopes.map{ |s| public_send(s) }.join("_")
 
-          lambda { |target, _, &blk|
+          -> (target, _, &blk) {
             filter.public_send method_to_call, target, &blk
           }
         end
@@ -575,11 +575,11 @@ module ActiveSupport
       #   set_callback :save, :before_meth
       #
       # The callback can be specified as a symbol naming an instance method; as a
-      # proc, lambda, or block; as a string to be instance evaluated; or as an
+      # proc, -> {, or block; as a string to be instance evaluated; or as an
       # object that responds to a certain method determined by the <tt>:scope</tt>
       # argument to +define_callbacks+.
       #
-      # If a proc, lambda, or block is given, its body is evaluated in the context
+      # If a proc, -> {, or block is given, its body is evaluated in the context
       # of the current object. It can also optionally accept the current object as
       # an argument.
       #
@@ -657,9 +657,9 @@ module ActiveSupport
       #
       # * <tt>:terminator</tt> - Determines when a before filter will halt the
       #   callback chain, preventing following callbacks from being called and
-      #   the event from being triggered. This should be a lambda to be executed.
+      #   the event from being triggered. This should be a -> { to be executed.
       #   The current object and the return result of the callback will be called
-      #   with the lambda.
+      #   with the -> {.
       #
       #     define_callbacks :validate, terminator: ->(target, result) { result == false }
       #

@@ -213,7 +213,7 @@ module ActionDispatch
         route_set = Routing::RouteSet.new
         mapper = Routing::Mapper.new route_set
 
-        app    = lambda { |env| [200, {}, ['success!']] }
+        app    = -> (env) { [200, {}, ['success!']] }
         mapper.get '/weblog', :to => app
 
         env  = rack_env('SCRIPT_NAME' => '', 'PATH_INFO' => '/weblog')
@@ -340,7 +340,7 @@ module ActionDispatch
           nil,
           Hash[params],
           {},
-          lambda { |k,v| parameterized << [k,v]; v })
+          -> (k,v) { parameterized << [k,v]; v })
 
         assert_equal params.map(&:to_s).sort, parameterized.map(&:to_s).sort
       end

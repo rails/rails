@@ -82,7 +82,7 @@ module Rails
       end
 
       def initialize(*args)
-        @gem_filter    = lambda { |gem| !options[:skip_gems].include?(gem.name) }
+        @gem_filter    = -> (gem) { !options[:skip_gems].include?(gem.name) }
         @extra_entries = []
         super
         convert_database_option_for_jruby
@@ -119,7 +119,7 @@ module Rails
       end
 
       def add_gem_entry_filter
-        @gem_filter = lambda { |next_filter, entry|
+        @gem_filter = -> (next_filter, entry) {
           yield(entry) && next_filter.call(entry)
         }.curry[@gem_filter]
       end

@@ -62,7 +62,7 @@ module ActionDispatch
 
     def initialize(app, condition=nil)
       @app = app
-      @condition = condition || lambda { true }
+      @condition = condition || -> { true }
       @validated = true
     end
 

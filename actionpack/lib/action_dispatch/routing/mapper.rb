@@ -1863,7 +1863,7 @@ module ActionDispatch
         # callable, they're accessible from the Mapper that's passed to
         # <tt>call</tt>.
         def concern(name, callable = nil, &block)
-          callable ||= lambda { |mapper, options| mapper.instance_exec(options, &block) }
+          callable ||= -> (mapper, options) { mapper.instance_exec(options, &block) }
           @concerns[name] = callable
         end
 

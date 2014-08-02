@@ -569,7 +569,7 @@ module ActionView
         zone_options = "".html_safe
 
         zones = model.all
-        convert_zones = lambda { |list| list.map { |z| [ z.to_s, z.name ] } }
+        convert_zones = -> (list) { list.map { |z| [ z.to_s, z.name ] } }
 
         if priority_zones
           if priority_zones.is_a?(Regexp)

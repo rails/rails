@@ -4,7 +4,7 @@ require 'abstract_unit'
 require 'controller/fake_controllers'
 
 class TestRoutingMapper < ActionDispatch::IntegrationTest
-  SprocketsApp = lambda { |env|
+  SprocketsApp = -> (env) {
     [200, {"Content-Type" => "text/html"}, ["javascripts"]]
   }
 
@@ -2855,7 +2855,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
   def test_path_parameters_is_not_stale
     draw do
-      scope '/countries/:country', :constraints => lambda { |params, req| %w(all France).include?(params[:country]) } do
+      scope '/countries/:country', :constraints => -> (params, req) { %w(all France).include?(params[:country]) } do
         get '/',       :to => 'countries#index'
         get '/cities', :to => 'countries#cities'
       end
@@ -3547,7 +3547,7 @@ end
 
 class TestAppendingRoutes < ActionDispatch::IntegrationTest
   def simple_app(resp)
-    lambda { |e| [ 200, { 'Content-Type' => 'text/plain' }, [resp] ] }
+    -> (e) { [ 200, { 'Content-Type' => 'text/plain' }, [resp] ] }
   end
 
   def setup
@@ -3718,7 +3718,7 @@ class TestHttpMethods < ActionDispatch::IntegrationTest
   RFC5789 = %w(PATCH)
 
   def simple_app(response)
-    lambda { |env| [ 200, { 'Content-Type' => 'text/plain' }, [response] ] }
+    -> (env) { [ 200, { 'Content-Type' => 'text/plain' }, [response] ] }
   end
 
   attr_reader :app
@@ -3746,12 +3746,12 @@ end
 class TestUriPathEscaping < ActionDispatch::IntegrationTest
   Routes = ActionDispatch::Routing::RouteSet.new.tap do |app|
     app.draw do
-      get '/:segment' => lambda { |env|
+      get '/:segment' => -> (env) {
         path_params = env['action_dispatch.request.path_parameters']
         [200, { 'Content-Type' => 'text/plain' }, [path_params[:segment]]]
       }, :as => :segment
 
-      get '/*splat' => lambda { |env|
+      get '/*splat' => -> (env) {
         path_params = env['action_dispatch.request.path_parameters']
         [200, { 'Content-Type' => 'text/plain' }, [path_params[:splat]]]
       }, :as => :splat
@@ -3784,7 +3784,7 @@ end
 class TestUnicodePaths < ActionDispatch::IntegrationTest
   Routes = ActionDispatch::Routing::RouteSet.new.tap do |app|
     app.draw do
-      get "/ほげ" => lambda { |env|
+      get "/ほげ" => -> (env) {
         [200, { 'Content-Type' => 'text/plain' }, []]
       }, :as => :unicode_path
     end
@@ -3835,7 +3835,7 @@ end
 class TestTildeAndMinusPaths < ActionDispatch::IntegrationTest
   Routes = ActionDispatch::Routing::RouteSet.new.tap do |app|
     app.draw do
-      ok = lambda { |env| [200, { 'Content-Type' => 'text/plain' }, []] }
+      ok = -> (env) { [200, { 'Content-Type' => 'text/plain' }, []] }
 
       get "/~user" => ok
       get "/young-and-fine" => ok
@@ -3861,7 +3861,7 @@ end
 class TestRedirectInterpolation < ActionDispatch::IntegrationTest
   Routes = ActionDispatch::Routing::RouteSet.new.tap do |app|
     app.draw do
-      ok = lambda { |env| [200, { 'Content-Type' => 'text/plain' }, []] }
+      ok = -> (env) { [200, { 'Content-Type' => 'text/plain' }, []] }
 
       get "/foo/:id" => redirect("/foo/bar/%{id}")
       get "/bar/:id" => redirect(:path => "/foo/bar/%{id}")
@@ -3907,9 +3907,9 @@ end
 class TestConstraintsAccessingParameters < ActionDispatch::IntegrationTest
   Routes = ActionDispatch::Routing::RouteSet.new.tap do |app|
     app.draw do
-      ok = lambda { |env| [200, { 'Content-Type' => 'text/plain' }, []] }
+      ok = -> (env) { [200, { 'Content-Type' => 'text/plain' }, []] }
 
-      get "/:foo" => ok, :constraints => lambda { |r| r.params[:foo] == 'foo' }
+      get "/:foo" => ok, :constraints => -> (r) { r.params[:foo] == 'foo' }
       get "/:bar" => ok
     end
   end
@@ -3927,7 +3927,7 @@ end
 class TestGlobRoutingMapper < ActionDispatch::IntegrationTest
   Routes = ActionDispatch::Routing::RouteSet.new.tap do |app|
     app.draw do
-      ok = lambda { |env| [200, { 'Content-Type' => 'text/plain' }, []] }
+      ok = -> (env) { [200, { 'Content-Type' => 'text/plain' }, []] }
 
       get "/*id" => redirect("/not_cars"), :constraints => {id: /dummy/}
       get "/cars" => ok
@@ -3957,7 +3957,7 @@ end
 class TestOptimizedNamedRoutes < ActionDispatch::IntegrationTest
   Routes = ActionDispatch::Routing::RouteSet.new.tap do |app|
     app.draw do
-      ok = lambda { |env| [200, { 'Content-Type' => 'text/plain' }, []] }
+      ok = -> (env) { [200, { 'Content-Type' => 'text/plain' }, []] }
       get '/foo' => ok, as: :foo
       get '/post(/:action(/:id))' => ok, as: :posts
       get '/:foo/:foo_type/bars/:id' => ok, as: :bar
@@ -4058,7 +4058,7 @@ end
 class TestUrlConstraints < ActionDispatch::IntegrationTest
   Routes = ActionDispatch::Routing::RouteSet.new.tap do |app|
     app.draw do
-      ok = lambda { |env| [200, { 'Content-Type' => 'text/plain' }, []] }
+      ok = -> (env) { [200, { 'Content-Type' => 'text/plain' }, []] }
 
       constraints :subdomain => 'admin' do
         get '/' => ok, :as => :admin_root
@@ -4182,7 +4182,7 @@ end
 class TestPortConstraints < ActionDispatch::IntegrationTest
   Routes = ActionDispatch::Routing::RouteSet.new.tap do |app|
     app.draw do
-      ok = lambda { |env| [200, { 'Content-Type' => 'text/plain' }, []] }
+      ok = -> (env) { [200, { 'Content-Type' => 'text/plain' }, []] }
 
       get '/integer', to: ok, constraints: { :port =>  8080  }
       get '/string',  to: ok, constraints: { :port => '8080' }
@@ -4231,7 +4231,7 @@ end
 class TestFormatConstraints < ActionDispatch::IntegrationTest
   Routes = ActionDispatch::Routing::RouteSet.new.tap do |app|
     app.draw do
-      ok = lambda { |env| [200, { 'Content-Type' => 'text/plain' }, []] }
+      ok = -> (env) { [200, { 'Content-Type' => 'text/plain' }, []] }
 
       get '/string', to: ok, constraints: { format: 'json'  }
       get '/regexp',  to: ok, constraints: { format: /json/ }
@@ -4293,7 +4293,7 @@ class TestCallableConstraintValidation < ActionDispatch::IntegrationTest
   def test_constraint_with_object_not_callable
     assert_raises(ArgumentError) do
       ActionDispatch::Routing::RouteSet.new.draw do
-        ok = lambda { |env| [200, { 'Content-Type' => 'text/plain' }, []] }
+        ok = -> (env) { [200, { 'Content-Type' => 'text/plain' }, []] }
         get '/test', to: ok, constraints: Object.new
       end
     end
@@ -4333,7 +4333,7 @@ class TestRackAppRouteGeneration < ActionDispatch::IntegrationTest
   stub_controllers do |routes|
     Routes = routes
     Routes.draw do
-      rack_app = lambda { |env| [200, { 'Content-Type' => 'text/plain' }, []] }
+      rack_app = -> (env) { [200, { 'Content-Type' => 'text/plain' }, []] }
       mount rack_app, at: '/account', as: 'account'
       mount rack_app, at: '/:locale/account', as: 'localized_account'
     end
