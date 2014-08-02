@@ -108,7 +108,7 @@ class AssociationCallbacksTest < ActiveRecord::TestCase
       def self.name; Project.name; end
       has_and_belongs_to_many :developers_with_callbacks,
                                 :class_name => "Developer",
-                                :before_add => lambda { |o,r|
+                                :before_add => -> (o,r) {
         dev     = r
         new_dev = r.new_record?
       }

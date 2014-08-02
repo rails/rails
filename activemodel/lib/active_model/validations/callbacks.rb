@@ -58,7 +58,7 @@ module ActiveModel
           if options.is_a?(Hash) && options[:on]
             options[:if] = Array(options[:if])
             options[:on] = Array(options[:on])
-            options[:if].unshift lambda { |o|
+            options[:if].unshift -> (o) {
               options[:on].include? o.validation_context
             }
           end

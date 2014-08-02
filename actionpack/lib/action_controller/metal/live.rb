@@ -122,7 +122,7 @@ module ActionController
       attr_accessor :ignore_disconnect
 
       def initialize(response)
-        @error_callback = lambda { true }
+        @error_callback = -> { true }
         @cv = new_cond
         @aborted = false
         @ignore_disconnect = false

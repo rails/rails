@@ -10,7 +10,7 @@ module ActionPack
 
     Model = Struct.new(:to_param)
 
-    Mapping = lambda {
+    Mapping = -> {
       namespace :admin do
         resources :users, :posts
       end

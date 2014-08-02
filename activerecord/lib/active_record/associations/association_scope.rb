@@ -19,7 +19,7 @@ module ActiveRecord
       end
 
       def self.create(&block)
-        block = block ? block : lambda { |val| val }
+        block = block ? block : -> (val) { val }
         new BindSubstitution.new(block)
       end
 

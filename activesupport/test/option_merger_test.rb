@@ -67,7 +67,7 @@ class OptionMergerTest < ActiveSupport::TestCase
   end
 
   def test_nested_method_with_options_using_lambda
-    local_lambda = lambda { { :lambda => true } }
+    local_lambda = -> { { :lambda => true } }
     with_options(@options) do |o|
       assert_equal @options.merge(local_lambda.call),
         o.method_with_options(local_lambda).call

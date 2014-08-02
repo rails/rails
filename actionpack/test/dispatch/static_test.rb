@@ -149,7 +149,7 @@ module StaticTests
 end
 
 class StaticTest < ActiveSupport::TestCase
-  DummyApp = lambda { |env|
+  DummyApp = -> (env) {
     [200, {"Content-Type" => "text/plain"}, ["Hello, World!"]]
   }
 

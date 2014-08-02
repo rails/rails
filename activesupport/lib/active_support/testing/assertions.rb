@@ -64,7 +64,7 @@ module ActiveSupport
         expressions = Array(expression)
 
         exps = expressions.map { |e|
-          e.respond_to?(:call) ? e : lambda { eval(e, block.binding) }
+          e.respond_to?(:call) ? e : -> { eval(e, block.binding) }
         }
         before = exps.map { |e| e.call }
 

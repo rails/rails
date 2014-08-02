@@ -143,7 +143,7 @@ module ActiveRecord::Associations::Builder
 
     def self.add_destroy_callbacks(model, reflection)
       name = reflection.name
-      model.before_destroy lambda { |o| o.association(name).handle_dependency }
+      model.before_destroy -> (o) { o.association(name).handle_dependency }
     end
   end
 end

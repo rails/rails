@@ -38,8 +38,8 @@ class I18nValidationTest < ActiveRecord::TestCase
   # [ case,                                validation_options,            generate_message_options]
     [ "given no options",                  {},                            {}],
     [ "given custom message",              {:message => "custom"},        {:message => "custom"}],
-    [ "given if condition",                {:if     => lambda { true }},  {}],
-    [ "given unless condition",            {:unless => lambda { false }}, {}],
+    [ "given if condition",                {:if     => -> { true }},  {}],
+    [ "given unless condition",            {:unless => -> { false }}, {}],
     [ "given option that is not reserved", {:format => "jpg"},            {:format => "jpg" }]
     # TODO Add :on case, but below doesn't work, because then the validation isn't run for some reason
     #      even when using .save instead .valid?

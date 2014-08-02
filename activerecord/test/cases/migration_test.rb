@@ -193,7 +193,7 @@ class MigrationTest < ActiveRecord::TestCase
     assert_no_column Person, :last_name
     assert !Reminder.table_exists?
 
-    name_filter = lambda { |migration| migration.name == "ValidPeopleHaveLastNames" }
+    name_filter = -> (migration) { migration.name == "ValidPeopleHaveLastNames" }
     ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/valid", &name_filter)
 
     assert_column Person, :last_name

@@ -89,7 +89,7 @@ class ShowExceptionsTest < ActionDispatch::IntegrationTest
   end
 
   test "calls custom exceptions app" do
-    exceptions_app = lambda do |env|
+    exceptions_app = -> (env) do 
       assert_kind_of AbstractController::ActionNotFound, env["action_dispatch.exception"]
       assert_equal "/404", env["PATH_INFO"]
       assert_equal "/not_found_original_exception", env["action_dispatch.original_path"]
@@ -103,7 +103,7 @@ class ShowExceptionsTest < ActionDispatch::IntegrationTest
   end
 
   test "returns an empty response if custom exceptions app returns X-Cascade pass" do
-    exceptions_app = lambda do |env|
+    exceptions_app = -> (env) do
       [404, { "X-Cascade" => "pass" }, []]
     end
 
