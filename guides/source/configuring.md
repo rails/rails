@@ -151,6 +151,8 @@ pipeline is enabled. It is set to true by default.
 
 * `config.assets.prefix` defines the prefix where assets are served from. Defaults to `/assets`.
 
+* `config.assets.manifest` defines the full path to be used for the asset precompiler's manifest file. Defaults to a file named `manifest-<random>.json` in the `config.assets.prefix` directory within the public folder.
+
 * `config.assets.digest` enables the use of MD5 fingerprints in asset names. Set to `true` by default in `production.rb`.
 
 * `config.assets.debug` disables the concatenation and compression of assets. Set to `true` by default in `development.rb`.
