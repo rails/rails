@@ -846,3 +846,35 @@ ACTUAL
     assert_equal " foo\n \n bar", "foo\n\nbar".indent(1, nil, true)
   end
 end
+
+
+class StringNumericTest < ActiveSupport::TestCase
+  def test_string_is_number
+    assert_equal true, "123".is_number?
+    assert_equal true, "-123".is_number?
+    assert_equal true, "0".is_number?
+    assert_equal true, "123.45".is_number?
+    assert_equal true, "-123.45".is_number?
+    assert_equal false, "123.45.45".is_number?
+    assert_equal false, "abc456".is_number?
+  end
+
+  def test_string_is_float
+    assert_equal true, "123.45".is_float?
+    assert_equal true, "-123.45".is_float?
+    assert_equal true, "0.0".is_float?
+    assert_equal false, "123.45.45".is_float?
+    assert_equal false, "abc123".is_float?
+  end
+
+  def test_string_is_integer
+    assert_equal true, "123".is_integer?
+    assert_equal true, "-123".is_integer?
+    assert_equal true, "0".is_integer?
+    assert_equal false, "123.45".is_integer?
+    assert_equal false, "-123.45".is_integer?
+    assert_equal false, "123.45.45".is_integer?
+    assert_equal false, "xyz123".is_integer?
+  end
+
+end
