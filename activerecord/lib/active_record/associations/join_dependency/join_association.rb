@@ -90,7 +90,7 @@ module ActiveRecord
         #  end
         #
         #  If I execute `Physician.joins(:appointments).to_a` then
-        #    reflection    # => #<ActiveRecord::Reflection::HasManyReflection ...>
+        #    klass         # => Physician
         #    table         # => #<Arel::Table @name="appointments" ...>
         #    key           # =>  physician_id
         #    foreign_table # => #<Arel::Table @name="physicians" ...>
