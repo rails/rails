@@ -86,7 +86,7 @@ racc_token_table = {
 
 racc_nt_base = 10
 
-racc_use_result_var = true
+racc_use_result_var = false
 
 Racc_arg = [
   racc_action_table,
@@ -133,14 +133,12 @@ Racc_debug_parser = false
 
 # reduce 0 omitted
 
-def _reduce_1(val, _values, result)
- result = Cat.new(val.first, val.last) 
-    result
+def _reduce_1(val, _values)
+ Cat.new(val.first, val.last)
 end
 
-def _reduce_2(val, _values, result)
- result = val.first 
-    result
+def _reduce_2(val, _values)
+ val.first
 end
 
 # reduce 3 omitted
@@ -151,24 +149,20 @@ end
 
 # reduce 6 omitted
 
-def _reduce_7(val, _values, result)
- result = Group.new(val[1]) 
-    result
+def _reduce_7(val, _values)
+ Group.new(val[1])
 end
 
-def _reduce_8(val, _values, result)
- result = Or.new([val.first, val.last]) 
-    result
+def _reduce_8(val, _values)
+ Or.new([val.first, val.last])
 end
 
-def _reduce_9(val, _values, result)
- result = Or.new([val.first, val.last]) 
-    result
+def _reduce_9(val, _values)
+ Or.new([val.first, val.last])
 end
 
-def _reduce_10(val, _values, result)
- result = Star.new(Symbol.new(val.last)) 
-    result
+def _reduce_10(val, _values)
+ Star.new(Symbol.new(val.last))
 end
 
 # reduce 11 omitted
@@ -179,27 +173,23 @@ end
 
 # reduce 14 omitted
 
-def _reduce_15(val, _values, result)
- result = Slash.new('/') 
-    result
+def _reduce_15(val, _values)
+ Slash.new('/')
 end
 
-def _reduce_16(val, _values, result)
- result = Symbol.new(val.first) 
-    result
+def _reduce_16(val, _values)
+ Symbol.new(val.first)
 end
 
-def _reduce_17(val, _values, result)
- result = Literal.new(val.first) 
-    result
+def _reduce_17(val, _values)
+ Literal.new(val.first)
 end
 
-def _reduce_18(val, _values, result)
- result = Dot.new(val.first) 
-    result
+def _reduce_18(val, _values)
+ Dot.new(val.first)
 end
 
-def _reduce_none(val, _values, result)
+def _reduce_none(val, _values)
   val[0]
 end
 
