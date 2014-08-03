@@ -28,13 +28,11 @@ class ControllerGeneratorTest < Rails::Generators::TestCase
   def test_invokes_helper
     run_generator
     assert_file "app/helpers/account_helper.rb"
-    assert_file "test/helpers/account_helper_test.rb"
   end
 
   def test_does_not_invoke_helper_if_required
     run_generator ["account", "--skip-helper"]
     assert_no_file "app/helpers/account_helper.rb"
-    assert_no_file "test/helpers/account_helper_test.rb"
   end
 
   def test_invokes_assets

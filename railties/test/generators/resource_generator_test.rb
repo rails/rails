@@ -36,7 +36,6 @@ class ResourceGeneratorTest < Rails::Generators::TestCase
     assert_file "test/controllers/accounts_controller_test.rb", /class AccountsControllerTest < ActionController::TestCase/
 
     assert_file "app/helpers/accounts_helper.rb", /module AccountsHelper/
-    assert_file "test/helpers/accounts_helper_test.rb", /class AccountsHelperTest < ActionView::TestCase/
   end
 
   def test_resource_controller_with_actions
