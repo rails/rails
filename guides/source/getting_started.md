@@ -191,14 +191,15 @@ following in the `blog` directory:
 $ bin/rails server
 ```
 
-TIP: Compiling CoffeeScript to JavaScript requires a JavaScript runtime and the
-absence of a runtime will give you an `execjs` error. Usually Mac OS X and
-Windows come with a JavaScript runtime installed. Rails adds the `therubyracer`
-gem to the generated `Gemfile` in a commented line for new apps and you can
-uncomment if you need it. `therubyrhino` is the recommended runtime for JRuby
-users and is added by default to the `Gemfile` in apps generated under JRuby.
-You can investigate about all the supported runtimes at
-[ExecJS](https://github.com/sstephenson/execjs#readme).
+TIP: Compiling CoffeeScript and JavaScript asset compression requires you
+have a JavaScript runtime available on your system, in the absence
+of a runtime you will see an `execjs` error during asset compilation.
+Usually Mac OS X and Windows come with a JavaScript runtime installed.
+Rails adds the `therubyracer` gem to the generated `Gemfile` in a 
+commented line for new apps and you can uncomment if you need it. 
+`therubyrhino` is the recommended runtime for JRuby users and is added by
+default to the `Gemfile` in apps generated under JRuby. You can investigate
+about all the supported runtimes at [ExecJS](https://github.com/sstephenson/execjs#readme).
 
 This will fire up WEBrick, a web server distributed with Ruby by default. To see
 your application in action, open a browser window and navigate to
