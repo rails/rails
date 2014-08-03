@@ -257,8 +257,6 @@ invoke  test_unit
 create    test/controllers/welcome_controller_test.rb
 invoke  helper
 create    app/helpers/welcome_helper.rb
-invoke    test_unit
-create      test/helpers/welcome_helper_test.rb
 invoke  assets
 invoke    coffee
 create      app/assets/javascripts/welcome.js.coffee
@@ -1637,7 +1635,6 @@ This creates six files and one empty directory:
 | app/views/comments/                          | Views of the controller are stored here  |
 | test/controllers/comments_controller_test.rb | The test for the controller              |
 | app/helpers/comments_helper.rb               | A view helper file                       |
-| test/helpers/comments_helper_test.rb         | The test for the helper                  |
 | app/assets/javascripts/comment.js.coffee     | CoffeeScript for the controller          |
 | app/assets/stylesheets/comment.css.scss      | Cascading style sheet for the controller |
 
