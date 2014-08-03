@@ -996,3 +996,24 @@ If you get the above error, you might want to increase the size of connection
 pool by incrementing the `pool` option in `database.yml`
 
 NOTE. If you are running in a multi-threaded environment, there could be a chance that several threads may be accessing multiple connections simultaneously. So depending on your current request load, you could very well have multiple threads contending for a limited amount of connections.
+
+
+Custom configuration
+--------------------
+
+You can configure your own code through the Rails configuration object with custom configuration. It works like this:
+
+  ```ruby
+  config.x.payment_processing.schedule = :daily
+  config.x.payment_processing.retries  = 3
+  config.x.super_debugger = true
+  ```
+
+These configuration points are then available through the configuration object:
+
+  ```ruby
+  Rails.configuration.x.payment_processing.schedule # => :daily
+  Rails.configuration.x.payment_processing.retries  # => 3
+  Rails.configuration.x.super_debugger              # => true
+  Rails.configuration.x.super_debugger.not_set      # => nil
+  ```

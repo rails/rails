@@ -1,3 +1,20 @@
+*   Pull in the custom configuration concept from dhh/custom_configuration, which allows you to
+    configure your own code through the Rails configuration object with custom configuration:
+
+        # config/environments/production.rb
+        config.x.payment_processing.schedule = :daily
+        config.x.payment_processing.retries  = 3
+        config.x.super_debugger = true
+
+    These configuration points are then available through the configuration object:
+
+        Rails.configuration.x.payment_processing.schedule # => :daily
+        Rails.configuration.x.payment_processing.retries  # => 3
+        Rails.configuration.x.super_debugger              # => true
+        Rails.configuration.x.super_debugger.not_set      # => nil
+
+    *DHH*
+
 *   Scaffold generator `_form` partial adds `class="field"` for password
     confirmation fields.
 
