@@ -36,6 +36,7 @@ module ActiveRecord
 
           def visit_TableDefinition(o)
             create_sql = "CREATE#{' TEMPORARY' if o.temporary} TABLE "
+            create_sql << 'IF NOT EXISTS ' if o.if_not_exists
             create_sql << "#{quote_table_name(o.name)} "
             create_sql << "(#{o.columns.map { |c| accept c }.join(', ')}) " unless o.as
             create_sql << "#{o.options}"

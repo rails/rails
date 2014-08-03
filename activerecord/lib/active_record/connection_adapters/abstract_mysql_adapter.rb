@@ -18,7 +18,9 @@ module ActiveRecord
 
         def visit_TableDefinition(o)
           name = o.name
-          create_sql = "CREATE#{' TEMPORARY' if o.temporary} TABLE #{quote_table_name(name)} "
+          create_sql = "CREATE#{' TEMPORARY' if o.temporary} TABLE "
+          create_sql << "IF NOT EXISTS " if o.if_not_exists
+          create_sql << "#{quote_table_name(name)} "
 
           statements = o.columns.map { |c| accept c }
           statements.concat(o.indexes.map { |column_name, options| index_in_create(name, column_name, options) })
@@ -713,7 +715,7 @@ module ActiveRecord
       end
 
       def add_column_sql(table_name, column_name, type, options = {})
-        td = create_table_definition table_name, options[:temporary], options[:options]
+        td = create_table_definition table_name, options[:temporary], false, options[:options]
         cd = td.new_column_definition(column_name, type, options)
         schema_creation.visit_AddColumn cd
       end

@@ -104,6 +104,21 @@ class MigrationTest < ActiveRecord::TestCase
     connection.drop_table :testings rescue nil
   end
 
+  def test_create_table_with_if_not_exists_with_an_index
+    connection.drop_table :testings rescue nil
+
+    connection.create_table :testings
+
+    connection.create_table :testings, if_not_exists: true do |t|
+      t.integer :indexed_column, index: true
+    end
+
+    assert_nil connection.columns(:testings).detect { |c| c.name.to_s == 'indexed_column' },
+      "Expected not to recreate the the table"
+  ensure
+    connection.drop_table :testings rescue nil
+  end
+
   def test_create_table_with_force_true_does_not_drop_nonexisting_table
     if Person.connection.table_exists?(:testings2)
       Person.connection.drop_table :testings2

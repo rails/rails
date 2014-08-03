@@ -188,9 +188,7 @@ module ActiveRecord
       #
       # See also TableDefinition#column for details on how to create columns.
       def create_table(table_name, options = {})
-        return if options[:if_not_exists] && table_exists?(table_name)
-
-        td = create_table_definition table_name, options[:temporary], options[:options], options[:as]
+        td = create_table_definition table_name, options[:temporary], options[:if_not_exists], options[:options], options[:as]
 
         if options[:id] != false && !options[:as]
           pk = options.fetch(:primary_key) do
@@ -207,7 +205,11 @@ module ActiveRecord
         end
 
         result = execute schema_creation.accept td
-        td.indexes.each_pair { |c, o| add_index(table_name, c, o) } unless supports_indexes_in_create?
+
+        if !supports_indexes_in_create? && !(options[:if_not_exists] && table_exists?(table_name))
+          td.indexes.each_pair { |c, o| add_index(table_name, c, o) }
+        end
+
         result
       end
 
@@ -966,12 +968,12 @@ module ActiveRecord
         end
 
       private
-      def create_table_definition(name, temporary, options, as = nil)
-        TableDefinition.new native_database_types, name, temporary, options, as
+      def create_table_definition(name, temporary, if_not_exists, options, as = nil)
+        TableDefinition.new native_database_types, name, temporary, if_not_exists, options, as
       end
 
       def create_alter_table(name)
-        AlterTable.new create_table_definition(name, false, {})
+        AlterTable.new create_table_definition(name, false, false, {})
       end
 
       def foreign_key_name(table_name, options) # :nodoc:
