@@ -2,33 +2,42 @@ module ActiveRecord
   module Associations
     # Implements the details of eager loading of Active Record associations.
     #
-    # Note that 'eager loading' and 'preloading' are actually the same thing.
-    # However, there are two different eager loading strategies.
+    # Suppose that you have the following two Active Record models:
     #
-    # The first one is by using table joins. This was only strategy available
-    # prior to Rails 2.1. Suppose that you have an Author model with columns
-    # 'name' and 'age', and a Book model with columns 'name' and 'sales'. Using
-    # this strategy, Active Record would try to retrieve all data for an author
-    # and all of its books via a single query:
+    #   class Author < ActiveRecord::Base
+    #     # columns: name, age
+    #     has_many :books
+    #   end
     #
-    #   SELECT * FROM authors
-    #   LEFT OUTER JOIN books ON authors.id = books.author_id
-    #   WHERE authors.name = 'Ken Akamatsu'
+    #   class Book < ActiveRecord::Base
+    #     # columns: title, sales
+    #   end
     #
-    # However, this could result in many rows that contain redundant data. After
-    # having received the first row, we already have enough data to instantiate
-    # the Author object. In all subsequent rows, only the data for the joined
-    # 'books' table is useful; the joined 'authors' data is just redundant, and
-    # processing this redundant data takes memory and CPU time. The problem
-    # quickly becomes worse and worse as the level of eager loading increases
-    # (i.e. if Active Record is to eager load the associations' associations as
-    # well).
+    # When you load an author with all associated books Active Record will make
+    # multiple queries like this:
     #
-    # The second strategy is to use multiple database queries, one for each
-    # level of association. Since Rails 2.1, this is the default strategy. In
-    # situations where a table join is necessary (e.g. when the +:conditions+
-    # option references an association's column), it will fallback to the table
-    # join strategy.
+    #   Author.includes(:books).where(:name => ['bell hooks', 'Homer').to_a
+    #
+    #   => SELECT `authors`.* FROM `authors` WHERE `name` IN ('bell hooks', 'Homer')
+    #   => SELECT `books`.* FROM `books` WHERE `author_id` IN (2, 5)
+    #
+    # Active Record saves the ids of the records from the first query to use in
+    # the second. Depending on the number of associations involved there can be
+    # arbitrarily many SQL queries made.
+    #
+    # However, if there is a WHERE clause that spans across tables Active
+    # Record will fall back to a slightly more resource-intensive single query:
+    #
+    #   Author.includes(:books).where(books: {title: 'Illiad'}).to_a
+    #   => SELECT `authors`.`id` AS t0_r0, `authors`.`name` AS t0_r1, `authors`.`age` AS t0_r2,
+    #             `books`.`id`   AS t1_r0, `books`.`title`  AS t1_r1, `books`.`sales` AS t1_r2
+    #      FROM `authors`
+    #      LEFT OUTER JOIN `books` ON `authors`.`id` =  `books`.`author_id`
+    #      WHERE `books`.`title` = 'Illiad'
+    #
+    # This could result in many rows that contain redundant data and it performs poorly at scale
+    # and is therefore only used when necessary.
+    #
     class Preloader #:nodoc:
       extend ActiveSupport::Autoload
 
