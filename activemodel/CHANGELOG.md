@@ -1,3 +1,7 @@
+*   Allow symbol as values for `tokenize` of `LengthValidator`
+
+    *Kensuke Naito*
+
 *   Validate options passed to `ActiveModel::Validations.validate`.
 
     Preventing, in many cases, the simple mistake of using `validate` instead of `validates`.
