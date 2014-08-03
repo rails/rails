@@ -587,7 +587,7 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal @strings, roundtrip
     assert_equal '1234', roundtrip.default
 
-    # Ensure nested hashes are not HashWithIndiffereneAccess
+    # Ensure nested hashes are not a +HashWithIndifferentAccess+
     new_to_hash = @nested_mixed.with_indifferent_access.to_hash
     assert_not new_to_hash.instance_of?(HashWithIndifferentAccess)
     assert_not new_to_hash["a"].instance_of?(HashWithIndifferentAccess)
