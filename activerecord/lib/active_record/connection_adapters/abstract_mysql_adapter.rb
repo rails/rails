@@ -469,7 +469,13 @@ module ActiveRecord
       end
 
       def drop_table(table_name, options = {})
-        execute "DROP#{' TEMPORARY' if options[:temporary]} TABLE #{quote_table_name(table_name)}"
+        statement = "DROP "
+        statement << "TEMPORARY " if options[:temporary]
+        statement << "TABLE "
+        statement << "IF EXISTS " if options[:if_exists]
+        statement << quote_table_name(table_name)
+
+        execute statement
       end
 
       def rename_index(table_name, old_name, new_name)

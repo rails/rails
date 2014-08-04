@@ -23,6 +23,14 @@ class PostgresqlActiveSchemaTest < ActiveRecord::TestCase
     assert_equal %(CREATE DATABASE "aimonetti" ENCODING = 'UTF8' LC_COLLATE = 'ja_JP.UTF8' LC_CTYPE = 'ja_JP.UTF8'), create_database(:aimonetti, :encoding => :"UTF8", :collation => :"ja_JP.UTF8", :ctype => :"ja_JP.UTF8")
   end
 
+  def test_drop_table
+    assert_equal 'DROP TABLE "people"', drop_table(:people)
+  end
+
+  def test_drop_table_if_exists
+    assert_equal 'DROP TABLE IF EXISTS "people"', drop_table(:people, if_exists: true)
+  end
+
   def test_add_index
     # add_index calls index_name_exists? which can't work since execute is stubbed
     ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.stubs(:index_name_exists?).returns(false)
