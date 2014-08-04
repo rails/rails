@@ -155,15 +155,19 @@ module Rails
       def annotations
         SourceAnnotationExtractor::Annotation
       end
-      
+
       private
         class Custom
           def initialize
             @configurations = Hash.new
           end
-    
+
           def method_missing(method, *args)
-            @configurations[method] ||= ActiveSupport::OrderedOptions.new
+            if method.to_s =~ /=$/
+              @configurations[$`.to_sym] = args.first
+            else
+              @configurations[method] ||= ActiveSupport::OrderedOptions.new
+            end
           end
         end
     end
