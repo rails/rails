@@ -1,3 +1,12 @@
+
+*   Prevent raising EOFError on multipart GET request (IE issue).
+
+    *Adam Stankiewicz*
+
+    Backports bc254cc23558f016c3697ecd5d39e58f46908018
+
+    *Octavian Neamtu*
+
 ## Rails 3.2.19 (Jul 2, 2014) ##
 
 *   Fix regression when using `ActionView::Helpers::TranslationHelper#translate` with
