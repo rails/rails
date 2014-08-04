@@ -129,29 +129,8 @@ HEADER
           # find all migration keys used in this table
           keys = [:name, :limit, :precision, :scale, :default, :null]
 
-          # figure out the lengths for each column based on above keys
-          lengths = keys.map { |key|
-            column_specs.map { |spec|
-              spec[key] ? spec[key].length + 2 : 0
-            }.max
-          }
-
-          # the string we're going to sprintf our values against, with standardized column widths
-          format_string = lengths.map{ |len| "%-#{len}s" }
-
-          # find the max length for the 'type' column, which is special
-          type_length = column_specs.map{ |column| column[:type].length }.max
-
-          # add column type definition to our format string
-          format_string.unshift "    t.%-#{type_length}s "
-
-          format_string *= ''
-
           column_specs.each do |colspec|
-            values = keys.zip(lengths).map{ |key, len| colspec.key?(key) ? colspec[key] + ", " : " " * len }
-            values.unshift colspec[:type]
-            tbl.print((format_string % values).gsub(/,\s*$/, ''))
-            tbl.puts
+            tbl.puts "    t.#{colspec[:type]} #{colspec.values_at(*keys).compact.join(', ')}"
           end
 
           tbl.puts "  end"
