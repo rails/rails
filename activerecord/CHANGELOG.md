@@ -1,3 +1,7 @@
+*   Fix type casting to Decimal from Float with large precision.
+
+    *Tomohiro Hashidate*
+
 *   Deprecate `Reflection#source_macro`
 
     `Reflection#source_macro` is no longer needed in Active Record
