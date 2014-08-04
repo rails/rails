@@ -3,7 +3,7 @@ module ActiveRecord
   module Associations
     module ThroughAssociation #:nodoc:
 
-      delegate :source_reflection, :through_reflection, :chain, :to => :reflection
+      delegate :source_reflection, :through_reflection, :to => :reflection
 
       protected
 
@@ -13,7 +13,7 @@ module ActiveRecord
         #   2. To get the type conditions for any STI models in the chain
         def target_scope
           scope = super
-          chain.drop(1).each do |reflection|
+          reflection.chain.drop(1).each do |reflection|
             relation = reflection.klass.all
             relation.merge!(reflection.scope) if reflection.scope
 
