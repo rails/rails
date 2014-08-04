@@ -600,12 +600,31 @@ class HashExtTest < ActiveSupport::TestCase
     roundtrip = mixed_with_default.with_indifferent_access.to_hash
     assert_equal @strings, roundtrip
     assert_equal '1234', roundtrip.default
+  end
+
+  def test_indifferent_deep_to_hash
+    # Should convert to a Hash with String keys.
+    assert_equal @strings, @mixed.with_indifferent_access.deep_to_hash
+
+    # Should preserve the default value.
+    mixed_with_default = @mixed.dup
+    mixed_with_default.default = '1234'
+    roundtrip = mixed_with_default.with_indifferent_access.deep_to_hash
+    assert_equal @strings, roundtrip
+    assert_equal '1234', roundtrip.default
 
     # Ensure nested hashes are not HashWithIndiffereneAccess
-    new_to_hash = @nested_mixed.with_indifferent_access.to_hash
-    assert_not new_to_hash.instance_of?(HashWithIndifferentAccess)
-    assert_not new_to_hash["a"].instance_of?(HashWithIndifferentAccess)
-    assert_not new_to_hash["a"]["b"].instance_of?(HashWithIndifferentAccess)
+    new_deep_to_hash = @nested_mixed.with_indifferent_access.deep_to_hash
+    assert_not new_deep_to_hash.instance_of?(HashWithIndifferentAccess)
+    assert_not new_deep_to_hash["a"].instance_of?(HashWithIndifferentAccess)
+    assert_not new_deep_to_hash["a"]["b"].instance_of?(HashWithIndifferentAccess)
+
+    # Ensure array of hashes are not HashWithIndiffereneAccess
+    hash = { "urls" => { "url" => [ { "address" => "1" }, { "address" => "2" } ] }}.with_indifferent_access
+    new_deep_to_hash = hash.deep_to_hash
+    assert_not new_deep_to_hash.instance_of?(HashWithIndifferentAccess)
+    assert_not new_deep_to_hash["urls"].instance_of?(HashWithIndifferentAccess)
+    assert_not new_deep_to_hash["urls"]["url"].first.instance_of?(HashWithIndifferentAccess)
   end
 
   def test_lookup_returns_the_same_object_that_is_stored_in_hash_indifferent_access
@@ -625,11 +644,6 @@ class HashExtTest < ActiveSupport::TestCase
   def test_indifferent_hash_with_array_of_hashes
     hash = { "urls" => { "url" => [ { "address" => "1" }, { "address" => "2" } ] }}.with_indifferent_access
     assert_equal "1", hash[:urls][:url].first[:address]
-
-    hash = hash.to_hash
-    assert_not hash.instance_of?(HashWithIndifferentAccess)
-    assert_not hash["urls"].instance_of?(HashWithIndifferentAccess)
-    assert_not hash["urls"]["url"].first.instance_of?(HashWithIndifferentAccess)
   end
 
   def test_should_preserve_array_subclass_when_value_is_array
@@ -666,6 +680,19 @@ class HashExtTest < ActiveSupport::TestCase
     h['first'] = 1
     h = h.deep_symbolize_keys
     assert_equal 1, h[:first]
+  end
+
+  def test_symbolize_keys_on_indifferent_preserves_nested_indifferent
+    h = HashWithIndifferentAccess.new({ a: { b: 'b' } })
+    h = h.symbolize_keys
+    assert_equal 'b', h[:a][:b]
+  end
+
+  def test_deep_symbolize_keys_on_indifferent_does_not_preserve_nested_indifferent
+    h = HashWithIndifferentAccess.new({ a: { b: 'b' } })
+    h = h.deep_symbolize_keys
+    assert_equal nil, h[:a]['b']
+    assert_equal 'b', h[:a][:b]
   end
 
   def test_to_options_on_indifferent_preserves_hash
@@ -1036,6 +1063,13 @@ class HashExtTest < ActiveSupport::TestCase
     hash.default_proc = proc { |h, k| raise "walrus" }
 
     assert_nothing_raised { hash.to_hash }
+  end
+
+  def test_deep_to_hash_with_raising_default_proc
+    hash = HashWithIndifferentAccess.new
+    hash.default_proc = proc { |h, k| raise "walrus" }
+
+    assert_nothing_raised { hash.deep_to_hash }
   end
 
   def test_new_from_hash_copying_default_should_not_raise_when_default_proc_does
