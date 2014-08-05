@@ -188,7 +188,7 @@ module ApplicationTests
         end
       end
 
-      etag = "5af83e3196bf99f440f31f2e1a6c9afe".inspect
+      etag = "W/" + ("5af83e3196bf99f440f31f2e1a6c9afe".inspect)
 
       get "/"
       assert_equal 200, last_response.status
