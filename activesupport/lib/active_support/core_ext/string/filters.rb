@@ -48,16 +48,23 @@ class String
   #
   #   'And they found that many people were sleeping better.'.truncate(25, omission: '... (continued)')
   #   # => "And they f... (continued)"
+  #
+  # Set <tt>:include_omission_length<tt> to true to include the omission length from the total length
+  # of the truncated string:
+  #
+  #   'Once upon a time in a world far far away'.truncate(4, include_omission_length: true)
+  #   # => "Once..."
   def truncate(truncate_at, options = {})
     return dup unless length > truncate_at
 
     omission = options[:omission] || '...'
-    length_with_room_for_omission = truncate_at - omission.length
+    truncation_length = options[:include_omission_length] ? truncate_at : (truncate_at - omission.length)
+
     stop = \
       if options[:separator]
-        rindex(options[:separator], length_with_room_for_omission) || length_with_room_for_omission
+        rindex(options[:separator], truncation_length) || truncation_length
       else
-        length_with_room_for_omission
+        truncation_length
       end
 
     "#{self[0, stop]}#{omission}"
