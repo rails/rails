@@ -25,65 +25,43 @@ module TestGenerationPrefix
     include Rack::Test::Methods
 
     class BlogEngine < Rails::Engine
-      @routes = ActionDispatch::Routing::RouteSet.new.tap { |routes|
-        routes.draw do
-          get "/posts/:id", :to => "inside_engine_generating#show", :as => :post
-          get "/posts", :to => "inside_engine_generating#index", :as => :posts
-          get "/url_to_application", :to => "inside_engine_generating#url_to_application"
-          get "/polymorphic_path_for_engine", :to => "inside_engine_generating#polymorphic_path_for_engine"
-          get "/conflicting_url", :to => "inside_engine_generating#conflicting"
-          get "/foo", :to => "never#invoked", :as => :named_helper_that_should_be_invoked_only_in_respond_to_test
+      routes.draw do
+        get "/posts/:id", :to => "inside_engine_generating#show", :as => :post
+        get "/posts", :to => "inside_engine_generating#index", :as => :posts
+        get "/url_to_application", :to => "inside_engine_generating#url_to_application"
+        get "/polymorphic_path_for_engine", :to => "inside_engine_generating#polymorphic_path_for_engine"
+        get "/conflicting_url", :to => "inside_engine_generating#conflicting"
+        get "/foo", :to => "never#invoked", :as => :named_helper_that_should_be_invoked_only_in_respond_to_test
 
-          get "/relative_path_root",       :to => redirect("")
-          get "/relative_path_redirect",   :to => redirect("foo")
-          get "/relative_option_root",     :to => redirect(:path => "")
-          get "/relative_option_redirect", :to => redirect(:path => "foo")
-          get "/relative_custom_root",     :to => redirect { |params, request| "" }
-          get "/relative_custom_redirect", :to => redirect { |params, request| "foo" }
+        get "/relative_path_root",       :to => redirect("")
+        get "/relative_path_redirect",   :to => redirect("foo")
+        get "/relative_option_root",     :to => redirect(:path => "")
+        get "/relative_option_redirect", :to => redirect(:path => "foo")
+        get "/relative_custom_root",     :to => redirect { |params, request| "" }
+        get "/relative_custom_redirect", :to => redirect { |params, request| "foo" }
 
-          get "/absolute_path_root",       :to => redirect("/")
-          get "/absolute_path_redirect",   :to => redirect("/foo")
-          get "/absolute_option_root",     :to => redirect(:path => "/")
-          get "/absolute_option_redirect", :to => redirect(:path => "/foo")
-          get "/absolute_custom_root",     :to => redirect { |params, request| "/" }
-          get "/absolute_custom_redirect", :to => redirect { |params, request| "/foo" }
-        end
-      }
-
-      def self.routes
-        @routes
-      end
-
-      def self.call(env)
-        env['action_dispatch.routes'] = routes
-        routes.call(env)
+        get "/absolute_path_root",       :to => redirect("/")
+        get "/absolute_path_redirect",   :to => redirect("/foo")
+        get "/absolute_option_root",     :to => redirect(:path => "/")
+        get "/absolute_option_redirect", :to => redirect(:path => "/foo")
+        get "/absolute_custom_root",     :to => redirect { |params, request| "/" }
+        get "/absolute_custom_redirect", :to => redirect { |params, request| "/foo" }
       end
     end
 
     class RailsApplication < Rails::Engine
-      @routes = ActionDispatch::Routing::RouteSet.new.tap { |routes|
-        routes.draw do
-          scope "/:omg", :omg => "awesome" do
-            mount BlogEngine => "/blog", :as => "blog_engine"
-          end
-          get "/posts/:id", :to => "outside_engine_generating#post", :as => :post
-          get "/generate", :to => "outside_engine_generating#index"
-          get "/polymorphic_path_for_app", :to => "outside_engine_generating#polymorphic_path_for_app"
-          get "/polymorphic_path_for_engine", :to => "outside_engine_generating#polymorphic_path_for_engine"
-          get "/polymorphic_with_url_for", :to => "outside_engine_generating#polymorphic_with_url_for"
-          get "/conflicting_url", :to => "outside_engine_generating#conflicting"
-          get "/ivar_usage", :to => "outside_engine_generating#ivar_usage"
-          root :to => "outside_engine_generating#index"
+      routes.draw do
+        scope "/:omg", :omg => "awesome" do
+          mount BlogEngine => "/blog", :as => "blog_engine"
         end
-      }
-
-      def self.routes
-        @routes
-      end
-
-      def self.call(env)
-        env['action_dispatch.routes'] = routes
-        routes.call(env)
+        get "/posts/:id", :to => "outside_engine_generating#post", :as => :post
+        get "/generate", :to => "outside_engine_generating#index"
+        get "/polymorphic_path_for_app", :to => "outside_engine_generating#polymorphic_path_for_app"
+        get "/polymorphic_path_for_engine", :to => "outside_engine_generating#polymorphic_path_for_engine"
+        get "/polymorphic_with_url_for", :to => "outside_engine_generating#polymorphic_with_url_for"
+        get "/conflicting_url", :to => "outside_engine_generating#conflicting"
+        get "/ivar_usage", :to => "outside_engine_generating#ivar_usage"
+        root :to => "outside_engine_generating#index"
       end
     end
 
@@ -159,7 +137,7 @@ module TestGenerationPrefix
     end
 
     def app
-      RailsApplication
+      RailsApplication.instance
     end
 
     attr_reader :engine_object, :app_object
@@ -389,26 +367,11 @@ module TestGenerationPrefix
       end
     end
 
-    class RailsApplication
-      def self.routes
-        @routes ||= begin
-          routes = ActionDispatch::Routing::RouteSet.new
-          routes.draw do
-            mount BlogEngine => "/"
-          end
-
-          routes
-        end
-      end
-
-      def self.call(env)
-        env['action_dispatch.routes'] = routes
-        routes.call(env)
+    class RailsApplication < Rails::Engine
+      routes.draw do
+        mount BlogEngine => "/"
       end
     end
-
-    # force draw
-    RailsApplication.routes
 
     class ::PostsController < ActionController::Base
       include BlogEngine.routes.url_helpers
@@ -420,7 +383,7 @@ module TestGenerationPrefix
     end
 
     def app
-      RailsApplication
+      RailsApplication.instance
     end
 
     test "generating path inside engine" do
