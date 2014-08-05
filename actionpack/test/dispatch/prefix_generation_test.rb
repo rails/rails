@@ -60,7 +60,7 @@ module TestGenerationPrefix
       end
     end
 
-    class RailsApplication
+    class RailsApplication < Rails::Engine
       @routes = ActionDispatch::Routing::RouteSet.new.tap { |routes|
         routes.draw do
           scope "/:omg", :omg => "awesome" do
