@@ -30,49 +30,24 @@ module ActiveRecord
       end
     end
 
-    class Transaction #:nodoc:
-      attr_reader :connection, :state
-
-      def initialize(connection)
-        @connection = connection
-        @state = TransactionState.new
-      end
-
-      def savepoint_name
-        nil
-      end
-    end
-
-    class NullTransaction < Transaction #:nodoc:
+    class NullTransaction #:nodoc:
       def initialize; end
       def closed?; true; end
       def open?; false; end
       def joinable?; false; end
-      # This is a noop when there are no open transactions
       def add_record(record); end
     end
 
-    class OpenTransaction < Transaction #:nodoc:
-      attr_reader :records
+    class Transaction #:nodoc:
+
+      attr_reader :connection, :state, :records, :savepoint_name
       attr_writer :joinable
 
-      def initialize(connection, options = {})
-        super connection
-
-        @records   = []
-        @joinable  = options.fetch(:joinable, true)
-      end
-
-      def joinable?
-        @joinable
-      end
-
-      def rollback
-        perform_rollback
-      end
-
-      def commit
-        perform_commit
+      def initialize(connection, options)
+        @connection = connection
+        @state = TransactionState.new
+        @records = []
+        @joinable = options.fetch(:joinable, true)
       end
 
       def add_record(record)
@@ -83,19 +58,25 @@ module ActiveRecord
         end
       end
 
-      def rollback_records
+      def rollback
         @state.set_state(:rolledback)
+      end
+
+      def rollback_records
         records.uniq.each do |record|
           begin
-            record.rolledback!(self.is_a?(RealTransaction))
+            record.rolledback! full_rollback?
           rescue => e
             record.logger.error(e) if record.respond_to?(:logger) && record.logger
           end
         end
       end
 
-      def commit_records
+      def commit
         @state.set_state(:committed)
+      end
+
+      def commit_records
         records.uniq.each do |record|
           begin
             record.committed!
@@ -105,19 +86,40 @@ module ActiveRecord
         end
       end
 
-      def closed?
-        false
-      end
-
-      def open?
-        true
-      end
+      def full_rollback?; true; end
+      def joinable?; @joinable; end
+      def closed?; false; end
+      def open?; !closed?; end
     end
 
-    class RealTransaction < OpenTransaction #:nodoc:
-      def initialize(connection, _, options = {})
-        super(connection,  options)
+    class SavepointTransaction < Transaction
 
+      def initialize(connection, savepoint_name, options)
+        super(connection, options)
+        if options[:isolation]
+          raise ActiveRecord::TransactionIsolationError, "cannot set transaction isolation in a nested transaction"
+        end
+        connection.create_savepoint(@savepoint_name = savepoint_name)
+      end
+
+      def rollback
+        super
+        connection.rollback_to_savepoint(savepoint_name)
+        rollback_records
+      end
+
+      def commit
+        super
+        connection.release_savepoint(savepoint_name)
+      end
+
+      def full_rollback?; false; end
+    end
+
+    class RealTransaction < Transaction
+
+      def initialize(connection, options)
+        super
         if options[:isolation]
           connection.begin_isolated_db_transaction(options[:isolation])
         else
@@ -125,37 +127,16 @@ module ActiveRecord
         end
       end
 
-      def perform_rollback
+      def rollback
+        super
         connection.rollback_db_transaction
         rollback_records
       end
 
-      def perform_commit
+      def commit
+        super
         connection.commit_db_transaction
         commit_records
-      end
-    end
-
-    class SavepointTransaction < OpenTransaction #:nodoc:
-      attr_reader :savepoint_name
-
-      def initialize(connection, savepoint_name, options = {})
-        if options[:isolation]
-          raise ActiveRecord::TransactionIsolationError, "cannot set transaction isolation in a nested transaction"
-        end
-
-        super(connection, options)
-        connection.create_savepoint(@savepoint_name = savepoint_name)
-      end
-
-      def perform_rollback
-        connection.rollback_to_savepoint(savepoint_name)
-        rollback_records
-      end
-
-      def perform_commit
-        @state.set_state(:committed)
-        connection.release_savepoint(savepoint_name)
       end
     end
 
@@ -166,9 +147,12 @@ module ActiveRecord
       end
 
       def begin_transaction(options = {})
-        transaction_class = @stack.empty? ? RealTransaction : SavepointTransaction
-        transaction = transaction_class.new(@connection, "active_record_#{@stack.size}", options)
-
+        transaction =
+          if @stack.empty?
+            RealTransaction.new(@connection, options)
+          else
+            SavepointTransaction.new(@connection, "active_record_#{@stack.size}", options)
+          end
         @stack.push(transaction)
         transaction
       end
