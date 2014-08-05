@@ -191,8 +191,6 @@ $ bin/rails generate scaffold User name:string
       create      test/controllers/users_controller_test.rb
       invoke    helper
       create      app/helpers/users_helper.rb
-      invoke      test_unit
-      create        test/helpers/users_helper_test.rb
       invoke    jbuilder
       create      app/views/users/index.json.jbuilder
       create      app/views/users/show.json.jbuilder
@@ -387,8 +385,6 @@ $ bin/rails generate scaffold Comment body:text
       create      test/controllers/comments_controller_test.rb
       invoke    my_helper
       create      app/helpers/comments_helper.rb
-      invoke      shoulda
-      create        test/helpers/comments_helper_test.rb
       invoke    jbuilder
       create      app/views/comments/index.json.jbuilder
       create      app/views/comments/show.json.jbuilder

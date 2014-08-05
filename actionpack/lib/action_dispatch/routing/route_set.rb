@@ -87,34 +87,62 @@ module ActionDispatch
       # named routes.
       class NamedRouteCollection #:nodoc:
         include Enumerable
-        attr_reader :routes, :helpers, :module
+        attr_reader :routes, :url_helpers_module
 
         def initialize
           @routes  = {}
-          @helpers = []
-          @module  = Module.new
+          @path_helpers = Set.new
+          @url_helpers = Set.new
+          @url_helpers_module  = Module.new
+          @path_helpers_module = Module.new
+        end
+
+        def route_defined?(name)
+          key = name.to_sym
+          @path_helpers.include?(key) || @url_helpers.include?(key)
         end
 
         def helper_names
-          @helpers.map(&:to_s)
+          @path_helpers.map(&:to_s) + @url_helpers.map(&:to_s)
         end
 
         def clear!
-          @helpers.each do |helper|
-            @module.remove_possible_method helper
+          @path_helpers.each do |helper|
+            @path_helpers_module.send :undef_method, helper
+          end
+
+          @url_helpers.each do |helper|
+            @url_helpers_module.send  :undef_method, helper
           end
 
           @routes.clear
-          @helpers.clear
+          @path_helpers.clear
+          @url_helpers.clear
         end
 
         def add(name, route)
-          routes[name.to_sym] = route
-          define_named_route_methods(name, route)
+          key       = name.to_sym
+          path_name = :"#{name}_path"
+          url_name  = :"#{name}_url"
+
+          if routes.key? key
+            @path_helpers_module.send :undef_method, path_name
+            @url_helpers_module.send  :undef_method, url_name
+          end
+          routes[key] = route
+          define_url_helper @path_helpers_module, route, path_name, route.defaults, name, PATH
+          define_url_helper @url_helpers_module,  route, url_name,  route.defaults, name, FULL
+
+          @path_helpers << path_name
+          @url_helpers << url_name
         end
 
         def get(name)
           routes[name.to_sym]
+        end
+
+        def key?(name)
+          routes.key? name.to_sym
         end
 
         alias []=   add
@@ -132,6 +160,25 @@ module ActionDispatch
 
         def length
           routes.length
+        end
+
+        def path_helpers_module(warn = false)
+          if warn
+            mod = @path_helpers_module
+            helpers = @path_helpers
+            Module.new do
+              include mod
+
+              helpers.each do |meth|
+                define_method(meth) do |*args, &block|
+                  ActiveSupport::Deprecation.warn("The method `#{meth}` cannot be used here as a full URL is required. Use `#{meth.to_s.sub(/_path$/, '_url')}` instead")
+                  super(*args, &block)
+                end
+              end
+            end
+          else
+            @path_helpers_module
+          end
         end
 
         class UrlHelper # :nodoc:
@@ -255,24 +302,15 @@ module ActionDispatch
         #
         #   foo_url(bar, baz, bang, sort_by: 'baz')
         #
-        def define_url_helper(route, name, opts, route_key, url_strategy)
+        def define_url_helper(mod, route, name, opts, route_key, url_strategy)
           helper = UrlHelper.create(route, opts, route_key, url_strategy)
-
-          @module.remove_possible_method name
-          @module.module_eval do
+          mod.module_eval do
             define_method(name) do |*args|
               options = nil
               options = args.pop if args.last.is_a? Hash
               helper.call self, args, options
             end
           end
-
-          helpers << name
-        end
-
-        def define_named_route_methods(name, route)
-          define_url_helper route, :"#{name}_path", route.defaults, name, PATH
-          define_url_helper route, :"#{name}_url", route.defaults, name, FULL
         end
       end
 
@@ -296,6 +334,7 @@ module ActionDispatch
       def initialize(request_class = ActionDispatch::Request)
         self.named_routes = NamedRouteCollection.new
         self.resources_path_names = self.class.default_resources_path_names.dup
+        self.default_url_options = {}
         self.request_class = request_class
 
         @default_url_options        = nil
@@ -336,6 +375,7 @@ module ActionDispatch
           mapper.instance_exec(&block)
         end
       end
+      private :eval_block
 
       def finalize!
         return if @finalized
@@ -385,45 +425,54 @@ module ActionDispatch
         RUBY
       end
 
-      def url_helpers
-        @url_helpers ||= begin
-          routes = self
+      def url_helpers(include_path_helpers = true)
+        routes = self
 
-          Module.new do
-            extend ActiveSupport::Concern
-            include UrlFor
+        Module.new do
+          extend ActiveSupport::Concern
+          include UrlFor
 
-            # Define url_for in the singleton level so one can do:
-            # Rails.application.routes.url_helpers.url_for(args)
-            @_routes = routes
-            class << self
-              delegate :url_for, :optimize_routes_generation?, :to => '@_routes'
-              attr_reader :_routes
-              def url_options; {}; end
-              def context
-                ActionDispatch::UrlGeneration.null
-              end
+          # Define url_for in the singleton level so one can do:
+          # Rails.application.routes.url_helpers.url_for(args)
+          @_routes = routes
+          class << self
+            delegate :url_for, :optimize_routes_generation?, to: '@_routes'
+            attr_reader :_routes
+            def url_options; {}; end
+            def context
+              ActionDispatch::UrlGeneration.null
             end
-
-            # Make named_routes available in the module singleton
-            # as well, so one can do:
-            # Rails.application.routes.url_helpers.posts_path
-            extend routes.named_routes.module
-
-            # Any class that includes this module will get all
-            # named routes...
-            include routes.named_routes.module
-
-            # plus a singleton class method called _routes ...
-            included do
-              singleton_class.send(:redefine_method, :_routes) { routes }
-            end
-
-            # And an instance method _routes. Note that
-            # UrlFor (included in this module) add extra
-            # conveniences for working with @_routes.
-            define_method(:_routes) { @_routes || routes }
           end
+
+          url_helpers = routes.named_routes.url_helpers_module
+
+          # Make named_routes available in the module singleton
+          # as well, so one can do:
+          # Rails.application.routes.url_helpers.posts_path
+          extend url_helpers
+
+          # Any class that includes this module will get all
+          # named routes...
+          include url_helpers
+
+          if include_path_helpers
+            path_helpers = routes.named_routes.path_helpers_module
+          else
+            path_helpers = routes.named_routes.path_helpers_module(true)
+          end
+
+          include path_helpers
+          extend path_helpers
+
+          # plus a singleton class method called _routes ...
+          included do
+            singleton_class.send(:redefine_method, :_routes) { routes }
+          end
+
+          # And an instance method _routes. Note that
+          # UrlFor (included in this module) add extra
+          # conveniences for working with @_routes.
+          define_method(:_routes) { @_routes || routes }
         end
       end
 
@@ -646,16 +695,16 @@ module ActionDispatch
                           :trailing_slash, :anchor, :params, :only_path, :script_name,
                           :original_script_name]
 
-      def mounted?
-        false
-      end
-
       def optimize_routes_generation?
-        !mounted? && !default_url_options
+        !default_url_options
       end
 
       def find_script_name(options)
-        options.delete :script_name
+        options.delete(:script_name) { '' }
+      end
+
+      def path_for(context, options, route_name = nil) # :nodoc:
+        _url_for(context, options, route_name, PATH)
       end
 
       # The +options+ argument must be a hash whose keys are *symbols*.
@@ -681,7 +730,7 @@ module ActionDispatch
         original_script_name = options.delete(:original_script_name)
         script_name = find_script_name options
 
-        if script_name && original_script_name
+        if original_script_name
           script_name = original_script_name + script_name
         end
 

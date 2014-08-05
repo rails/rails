@@ -546,7 +546,7 @@ class TransactionTest < ActiveRecord::TestCase
 
   def test_transactions_state_from_rollback
     connection = Topic.connection
-    transaction = ActiveRecord::ConnectionAdapters::ClosedTransaction.new(connection).begin
+    transaction = ActiveRecord::ConnectionAdapters::TransactionManager.new(connection).begin_transaction
 
     assert transaction.open?
     assert !transaction.state.rolledback?
@@ -560,7 +560,7 @@ class TransactionTest < ActiveRecord::TestCase
 
   def test_transactions_state_from_commit
     connection = Topic.connection
-    transaction = ActiveRecord::ConnectionAdapters::ClosedTransaction.new(connection).begin
+    transaction = ActiveRecord::ConnectionAdapters::TransactionManager.new(connection).begin_transaction
 
     assert transaction.open?
     assert !transaction.state.rolledback?

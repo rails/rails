@@ -158,34 +158,38 @@ class PolymorphicRoutesTest < ActionController::TestCase
 
   def test_with_nil
     with_test_routes do
-      assert_raise ArgumentError, "Nil location provided. Can't build URI." do
+      exception = assert_raise ArgumentError do
         polymorphic_url(nil)
       end
+      assert_equal "Nil location provided. Can't build URI.", exception.message
     end
   end
 
   def test_with_empty_list
     with_test_routes do
-      assert_raise ArgumentError, "Nil location provided. Can't build URI." do
+      exception = assert_raise ArgumentError do
         polymorphic_url([])
       end
+      assert_equal "Nil location provided. Can't build URI.", exception.message
     end
   end
 
   def test_with_nil_id
     with_test_routes do
-      assert_raise ArgumentError, "Nil location provided. Can't build URI." do
+      exception = assert_raise ArgumentError do
         polymorphic_url({ :id => nil })
       end
+      assert_equal "Nil location provided. Can't build URI.", exception.message
     end
   end
 
   def test_with_nil_in_list
     with_test_routes do
-      assert_raise ArgumentError, "Nil location provided. Can't build URI." do
+      exception = assert_raise ArgumentError do
         @series.save
         polymorphic_url([nil, @series])
       end
+      assert_equal "Nil location provided. Can't build URI.", exception.message
     end
   end
 

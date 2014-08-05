@@ -148,16 +148,15 @@ class CacheStoreTest < ActionDispatch::IntegrationTest
 
   def test_prevents_session_fixation
     with_test_route_set do
-      get '/get_session_value'
-      assert_response :success
-      assert_equal 'foo: nil', response.body
-      session_id = cookies['_session_id']
+      assert_equal nil, @cache.read('_session_id:0xhax')
 
-      reset!
+      cookies['_session_id'] = '0xhax'
+      get '/set_session_value'
 
-      get '/set_session_value', :_session_id => session_id
       assert_response :success
-      assert_not_equal session_id, cookies['_session_id']
+      assert_not_equal '0xhax', cookies['_session_id']
+      assert_equal nil, @cache.read('_session_id:0xhax')
+      assert_equal({'foo' => 'bar'}, @cache.read("_session_id:#{cookies['_session_id']}"))
     end
   end
 
@@ -169,8 +168,8 @@ class CacheStoreTest < ActionDispatch::IntegrationTest
         end
 
         @app = self.class.build_app(set) do |middleware|
-          cache = ActiveSupport::Cache::MemoryStore.new
-          middleware.use ActionDispatch::Session::CacheStore, :key => '_session_id', :cache => cache
+          @cache = ActiveSupport::Cache::MemoryStore.new
+          middleware.use ActionDispatch::Session::CacheStore, :key => '_session_id', :cache => @cache
           middleware.delete "ActionDispatch::ShowExceptions"
         end
 

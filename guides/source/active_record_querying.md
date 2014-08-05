@@ -267,23 +267,6 @@ This is equivalent to writing:
 Client.where(first_name: 'does not exist').take!
 ```
 
-#### `last!`
-
-`Model.last!` finds the last record ordered by the primary key. For example:
-
-```ruby
-client = Client.last!
-# => #<Client id: 221, first_name: "Russel">
-```
-
-The SQL equivalent of the above is:
-
-```sql
-SELECT * FROM clients ORDER BY clients.id DESC LIMIT 1
-```
-
-`Model.last!` raises `ActiveRecord::RecordNotFound` if no matching record is found.
-
 ### Retrieving Multiple Objects in Batches
 
 We often need to iterate over a large set of records, as when we send a newsletter to a large set of users, or when we export data.
@@ -293,7 +276,7 @@ This may appear straightforward:
 ```ruby
 # This is very inefficient when the users table has thousands of rows.
 User.all.each do |user|
-  NewsLetter.weekly_deliver(user)
+  NewsMailer.weekly(user).deliver
 end
 ```
 
@@ -333,7 +316,7 @@ The `:batch_size` option allows you to specify the number of records to be retri
 
 ```ruby
 User.find_each(batch_size: 5000) do |user|
-  NewsLetter.weekly_deliver(user)
+  NewsMailer.weekly(user).deliver
 end
 ```
 
@@ -345,7 +328,7 @@ For example, to send newsletters only to users with the primary key starting fro
 
 ```ruby
 User.find_each(start: 2000, batch_size: 5000) do |user|
-  NewsLetter.weekly_deliver(user)
+  NewsMailer.weekly(user).deliver
 end
 ```
 

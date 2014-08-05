@@ -440,7 +440,7 @@ module ApplicationTests
       end
 
       get "/"
-      assert last_response.body =~ /_xsrf_token_here/
+      assert_match "_xsrf_token_here", last_response.body
     end
 
     test "sets ActionDispatch.test_app" do
@@ -891,79 +891,79 @@ module ApplicationTests
     end
 
     test "rake_tasks block works at instance level" do
-      $ran_block = false
-
       app_file "config/environments/development.rb", <<-RUBY
         Rails.application.configure do
+          config.ran_block = false
+
           rake_tasks do
-            $ran_block = true
+            config.ran_block = true
           end
         end
       RUBY
 
       require "#{app_path}/config/environment"
+      assert_not Rails.configuration.ran_block
 
-      assert !$ran_block
       require 'rake'
       require 'rake/testtask'
       require 'rdoc/task'
 
       Rails.application.load_tasks
-      assert $ran_block
+      assert Rails.configuration.ran_block
     end
 
     test "generators block works at instance level" do
-      $ran_block = false
-
       app_file "config/environments/development.rb", <<-RUBY
         Rails.application.configure do
+          config.ran_block = false
+
           generators do
-            $ran_block = true
+            config.ran_block = true
           end
         end
       RUBY
 
       require "#{app_path}/config/environment"
+      assert_not Rails.configuration.ran_block
 
-      assert !$ran_block
       Rails.application.load_generators
-      assert $ran_block
+      assert Rails.configuration.ran_block
     end
 
     test "console block works at instance level" do
-      $ran_block = false
-
       app_file "config/environments/development.rb", <<-RUBY
         Rails.application.configure do
+          config.ran_block = false
+
           console do
-            $ran_block = true
+            config.ran_block = true
           end
         end
       RUBY
 
       require "#{app_path}/config/environment"
+      assert_not Rails.configuration.ran_block
 
-      assert !$ran_block
       Rails.application.load_console
-      assert $ran_block
+      assert Rails.configuration.ran_block
     end
 
     test "runner block works at instance level" do
-      $ran_block = false
-
       app_file "config/environments/development.rb", <<-RUBY
         Rails.application.configure do
+          config.ran_block = false
+
           runner do
-            $ran_block = true
+            config.ran_block = true
           end
         end
       RUBY
 
       require "#{app_path}/config/environment"
+      assert_not Rails.configuration.ran_block
 
-      assert !$ran_block
       Rails.application.load_runner
-      assert $ran_block
+      assert Rails.configuration.ran_block
     end
 
     test "loading the first existing database configuration available" do
@@ -977,9 +977,7 @@ module ApplicationTests
 
       require "#{app_path}/config/environment"
 
-      db_config =  Rails.application.config.database_configuration
-
-      assert db_config.is_a?(Hash)
+      assert_kind_of Hash, Rails.application.config.database_configuration
     end
 
     test 'config.action_mailer.show_previews defaults to true in development' do
@@ -993,7 +991,7 @@ module ApplicationTests
       Rails.env = "production"
       require "#{app_path}/config/environment"
 
-      assert_equal Rails.application.config.action_mailer.show_previews, false
+      assert_equal false, Rails.application.config.action_mailer.show_previews
     end
 
     test 'config.action_mailer.show_previews can be set in the configuration file' do
@@ -1003,7 +1001,7 @@ module ApplicationTests
       RUBY
       require "#{app_path}/config/environment"
 
-      assert_equal Rails.application.config.action_mailer.show_previews, true
+      assert_equal true, Rails.application.config.action_mailer.show_previews
     end
 
     test "config_for loads custom configuration from yaml files" do

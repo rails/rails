@@ -137,7 +137,7 @@ numbers. New applications filter out passwords by adding the following `config.f
 * `config.assets.enabled` a flag that controls whether the asset
 pipeline is enabled. It is set to true by default.
 
-*`config.assets.raise_runtime_errors`* Set this flag to `true` to enable additional runtime error checking. Recommended in `config/environments/development.rb` to minimize unexpected behavior when deploying to `production`.
+* `config.assets.raise_runtime_errors`* Set this flag to `true` to enable additional runtime error checking. Recommended in `config/environments/development.rb` to minimize unexpected behavior when deploying to `production`.
 
 * `config.assets.compress` a flag that enables the compression of compiled assets. It is explicitly set to true in `config/environments/production.rb`.
 
@@ -150,6 +150,8 @@ pipeline is enabled. It is set to true by default.
 * `config.assets.precompile` allows you to specify additional assets (other than `application.css` and `application.js`) which are to be precompiled when `rake assets:precompile` is run.
 
 * `config.assets.prefix` defines the prefix where assets are served from. Defaults to `/assets`.
+
+* `config.assets.manifest` defines the full path to be used for the asset precompiler's manifest file. Defaults to a file named `manifest-<random>.json` in the `config.assets.prefix` directory within the public folder.
 
 * `config.assets.digest` enables the use of MD5 fingerprints in asset names. Set to `true` by default in `production.rb`.
 
@@ -996,3 +998,24 @@ If you get the above error, you might want to increase the size of connection
 pool by incrementing the `pool` option in `database.yml`
 
 NOTE. If you are running in a multi-threaded environment, there could be a chance that several threads may be accessing multiple connections simultaneously. So depending on your current request load, you could very well have multiple threads contending for a limited amount of connections.
+
+
+Custom configuration
+--------------------
+
+You can configure your own code through the Rails configuration object with custom configuration. It works like this:
+
+  ```ruby
+  config.x.payment_processing.schedule = :daily
+  config.x.payment_processing.retries  = 3
+  config.x.super_debugger = true
+  ```
+
+These configuration points are then available through the configuration object:
+
+  ```ruby
+  Rails.configuration.x.payment_processing.schedule # => :daily
+  Rails.configuration.x.payment_processing.retries  # => 3
+  Rails.configuration.x.super_debugger              # => true
+  Rails.configuration.x.super_debugger.not_set      # => nil
+  ```

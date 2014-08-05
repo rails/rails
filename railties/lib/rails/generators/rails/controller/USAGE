@@ -16,4 +16,3 @@ Example:
         Test:       test/controllers/credit_cards_controller_test.rb
         Views:      app/views/credit_cards/debit.html.erb [...]
         Helper:     app/helpers/credit_cards_helper.rb
-        Test:       test/helpers/credit_cards_helper_test.rb

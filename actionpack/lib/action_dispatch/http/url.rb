@@ -53,31 +53,26 @@ module ActionDispatch
         end
 
         def path_for(context, options)
-          result  = options[:script_name].to_s.chomp("/")
-          result << options[:path].to_s
+          path  = options[:script_name].to_s.chomp("/")
+          path << options[:path] if options.key?(:path)
 
-          result = add_trailing_slash(result) if options[:trailing_slash]
+          add_trailing_slash(path) if options[:trailing_slash]
+          add_params(path, options[:params]) if options.key?(:params)
+          add_anchor(path, options[:anchor]) if options.key?(:anchor)
 
-          result = add_params options, result
-          add_anchor options, result
+          path
         end
 
         private
 
-        def add_params(options, result)
-          if options.key? :params
-            param  = options[:params]
-            params = param.is_a?(Hash) ? param : { params: param }
-
-            params.reject! { |_,v| v.to_param.nil? }
-            result << "?#{params.to_query}" unless params.empty?
-          end
-          result
+        def add_params(path, params)
+          params = { params: params } unless params.is_a?(Hash)
+          params.reject! { |_,v| v.to_param.nil? }
+          path << "?#{params.to_query}" unless params.empty?
         end
 
-        def add_anchor(options, result)
-          result << "##{Journey::Router::Utils.escape_fragment(options[:anchor].to_param.to_s)}" if options[:anchor]
-          result
+        def add_anchor(path, anchor)
+          path << "##{Journey::Router::Utils.escape_fragment(anchor.to_param.to_s)}"
         end
 
         def extract_domain_from(host, tld_length)
@@ -97,19 +92,17 @@ module ActionDispatch
           elsif !path.include?(".")
             path.sub!(/[^\/]\z|\A\z/, '\&/')
           end
-
-          path
         end
 
         def build_host_url(host, port, protocol, options, path)
           if match = host.match(HOST_REGEXP)
-            protocol           ||= match[1] unless protocol == false
-            host                 = match[2]
-            port                 = match[3] unless options.key? :port
+            protocol ||= match[1] unless protocol == false
+            host       = match[2]
+            port       = match[3] unless options.key? :port
           end
 
-          protocol       = normalize_protocol protocol
-          host           = normalize_host(host, options)
+          protocol = normalize_protocol protocol
+          host     = normalize_host(host, options)
 
           result = protocol.dup
 

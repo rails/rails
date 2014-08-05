@@ -149,8 +149,6 @@ $ bin/rails generate controller Greetings hello
      create    test/controllers/greetings_controller_test.rb
      invoke  helper
      create    app/helpers/greetings_helper.rb
-     invoke    test_unit
-     create      test/helpers/greetings_helper_test.rb
      invoke  assets
      invoke    coffee
      create      app/assets/javascripts/greetings.js.coffee
@@ -236,8 +234,6 @@ $ bin/rails generate scaffold HighScore game:string score:integer
     create      test/controllers/high_scores_controller_test.rb
     invoke    helper
     create      app/helpers/high_scores_helper.rb
-    invoke      test_unit
-    create        test/helpers/high_scores_helper_test.rb
     invoke    jbuilder
     create      app/views/high_scores/index.json.jbuilder
     create      app/views/high_scores/show.json.jbuilder

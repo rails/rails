@@ -5,13 +5,9 @@ Description:
     To create a helper within a module, specify the helper name as a
     path like 'parent_module/helper_name'.
 
-    This generates a helper class in app/helpers and invokes the configured
-    test framework.
-
 Example:
     `rails generate helper CreditCard`
 
     Credit card helper.
         Helper:     app/helpers/credit_card_helper.rb
-        Test:       test/helpers/credit_card_helper_test.rb
 

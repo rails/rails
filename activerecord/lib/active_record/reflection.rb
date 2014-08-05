@@ -38,7 +38,7 @@ module ActiveRecord
       ar.aggregate_reflections = ar.aggregate_reflections.merge(name.to_s => reflection)
     end
 
-    # \Reflection enables to interrogate Active Record classes and objects
+    # \Reflection enables interrogating Active Record classes and objects
     # about their associations and aggregations. This information can,
     # for example, be used in a form builder that takes an Active Record object
     # and creates input fields for all of the attributes depending on their type
@@ -149,18 +149,13 @@ module ActiveRecord
       JoinKeys = Struct.new(:key, :foreign_key) # :nodoc:
 
       def join_keys(assoc_klass)
-        if source_macro == :belongs_to
-          if polymorphic?
-            reflection_key = association_primary_key(assoc_klass)
-          else
-            reflection_key = association_primary_key
-          end
-          reflection_foreign_key = foreign_key
-        else
-          reflection_foreign_key = active_record_primary_key
-          reflection_key = foreign_key
-        end
-        JoinKeys.new(reflection_key, reflection_foreign_key)
+        JoinKeys.new(foreign_key, active_record_primary_key)
+      end
+
+      def source_macro
+        ActiveSupport::Deprecation.warn("ActiveRecord::Base.source_macro is deprecated and " \
+          "will be removed without replacement.")
+        macro
       end
     end
     # Base class for AggregateReflection and AssociationReflection. Objects of
@@ -354,9 +349,8 @@ Joining, Preloading and eager loading of these associations is deprecated and wi
       end
       alias :check_eager_loadable! :check_preloadable!
 
-      def join_id_for(owner) #:nodoc:
-        key = (source_macro == :belongs_to) ? foreign_key : active_record_primary_key
-        owner[key]
+      def join_id_for(owner) # :nodoc:
+        owner[active_record_primary_key]
       end
 
       def through_reflection
@@ -382,8 +376,6 @@ Joining, Preloading and eager loading of these associations is deprecated and wi
       def scope_chain
         scope ? [[scope]] : [[]]
       end
-
-      def source_macro; macro; end
 
       def has_inverse?
         inverse_name
@@ -431,14 +423,10 @@ Joining, Preloading and eager loading of these associations is deprecated and wi
       end
 
       # Returns +true+ if +self+ is a +belongs_to+ reflection.
-      def belongs_to?
-        macro == :belongs_to
-      end
+      def belongs_to?; false; end
 
       # Returns +true+ if +self+ is a +has_one+ reflection.
-      def has_one?
-        macro == :has_one
-      end
+      def has_one?; false; end
 
       def association_class
         case macro
@@ -578,35 +566,46 @@ Joining, Preloading and eager loading of these associations is deprecated and wi
         end
     end
 
-    class HasManyReflection < AssociationReflection #:nodoc:
+    class HasManyReflection < AssociationReflection # :nodoc:
       def initialize(name, scope, options, active_record)
         super(name, scope, options, active_record)
       end
 
       def macro; :has_many; end
 
-      def collection?
-        true
-      end
+      def collection?; true; end
     end
 
-    class HasOneReflection < AssociationReflection #:nodoc:
+    class HasOneReflection < AssociationReflection # :nodoc:
       def initialize(name, scope, options, active_record)
         super(name, scope, options, active_record)
       end
 
       def macro; :has_one; end
+
+      def has_one?; true; end
     end
 
-    class BelongsToReflection < AssociationReflection #:nodoc:
+    class BelongsToReflection < AssociationReflection # :nodoc:
       def initialize(name, scope, options, active_record)
         super(name, scope, options, active_record)
       end
 
       def macro; :belongs_to; end
+
+      def belongs_to?; true; end
+
+      def join_keys(assoc_klass)
+        key = polymorphic? ? association_primary_key(assoc_klass) : association_primary_key
+        JoinKeys.new(key, foreign_key)
+      end
+
+      def join_id_for(owner) # :nodoc:
+        owner[foreign_key]
+      end
     end
 
-    class HasAndBelongsToManyReflection < AssociationReflection #:nodoc:
+    class HasAndBelongsToManyReflection < AssociationReflection # :nodoc:
       def initialize(name, scope, options, active_record)
         super
       end
@@ -737,8 +736,14 @@ Joining, Preloading and eager loading of these associations is deprecated and wi
         end
       end
 
+      def join_keys(assoc_klass)
+        source_reflection.join_keys(assoc_klass)
+      end
+
       # The macro used by the source association
       def source_macro
+        ActiveSupport::Deprecation.warn("ActiveRecord::Base.source_macro is deprecated and " \
+          "will be removed without replacement.")
         source_reflection.source_macro
       end
 
@@ -802,6 +807,10 @@ directive on your declaration like:
 
       def through_options
         through_reflection.options
+      end
+
+      def join_id_for(owner) # :nodoc:
+        source_reflection.join_id_for(owner)
       end
 
       def check_validity!

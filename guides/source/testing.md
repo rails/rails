@@ -364,13 +364,8 @@ Ideally, you would like to include a test for everything which could possibly br
 
 By now you've caught a glimpse of some of the assertions that are available. Assertions are the worker bees of testing. They are the ones that actually perform the checks to ensure that things are going as planned.
 
-There are a bunch of different types of assertions you can use.  Here's an
-extract of the
-[assertions](http://docs.seattlerb.org/minitest/Minitest/Assertions.html) you
-can use with [minitest](https://github.com/seattlerb/minitest), the default
-testing library used by Rails. The `[msg]` parameter is an optional string
-message you can specify to make your test failure messages clearer. It's not
-required.
+There are a bunch of different types of assertions you can use.
+Here's an extract of the assertions you can use with [`Minitest`](https://github.com/seattlerb/minitest), the default testing library used by Rails. The `[msg]` parameter is an optional string message you can specify to make your test failure messages clearer. It's not required.
 
 | Assertion                                                        | Purpose |
 | ---------------------------------------------------------------- | ------- |
@@ -405,6 +400,8 @@ required.
 | `assert_not_predicate ( obj, predicate, [msg] )`                 | Ensures that `obj.predicate` is false, e.g. `assert_not_predicate str, :empty?`|
 | `assert_send( array, [msg] )`                                    | Ensures that executing the method listed in `array[1]` on the object in `array[0]` with the parameters of `array[2 and up]` is true. This one is weird eh?|
 | `flunk( [msg] )`                                                 | Ensures failure. This is useful to explicitly mark a test that isn't finished yet.|
+
+The above are subset of assertions that minitest supports. For an exhaustive & more up-to-date list, please check [Minitest API documentation](http://docs.seattlerb.org/minitest/), specifically [`Minitest::Assertions`](http://docs.seattlerb.org/minitest/Minitest/Assertions.html)
 
 Because of the modular nature of the testing framework, it is possible to create your own assertions. In fact, that's exactly what Rails does. It includes some specialized assertions to make your life easier.
 
@@ -1017,17 +1014,9 @@ Testing helpers
 
 In order to test helpers, all you need to do is check that the output of the
 helper method matches what you'd expect. Tests related to the helpers are
-located under the `test/helpers` directory. Rails provides a generator which
-generates both the helper and the test file:
+located under the `test/helpers` directory.
 
-```bash
-$ bin/rails generate helper User
-      create  app/helpers/user_helper.rb
-      invoke  test_unit
-      create    test/helpers/user_helper_test.rb
-```
-
-The generated test file contains the following code:
+A helper test looks like so:
 
 ```ruby
 require 'test_helper'
@@ -1060,7 +1049,6 @@ The built-in `minitest` based testing is not the only way to test Rails applicat
 
 * [NullDB](http://avdi.org/projects/nulldb/), a way to speed up testing by avoiding database use.
 * [Factory Girl](https://github.com/thoughtbot/factory_girl/tree/master), a replacement for fixtures.
-* [Machinist](https://github.com/notahat/machinist/tree/master), another replacement for fixtures.
 * [Fixture Builder](https://github.com/rdy/fixture_builder), a tool that compiles Ruby factories into fixtures before a test run.
 * [MiniTest::Spec Rails](https://github.com/metaskills/minitest-spec-rails), use the MiniTest::Spec DSL within your rails tests.
 * [Shoulda](http://www.thoughtbot.com/projects/shoulda), an extension to `test/unit` with additional helpers, macros, and assertions.

@@ -322,8 +322,6 @@ invoke    test_unit
 create      test/controllers/blorgh/articles_controller_test.rb
 invoke    helper
 create      app/helpers/blorgh/articles_helper.rb
-invoke      test_unit
-create        test/helpers/blorgh/articles_helper_test.rb
 invoke  assets
 invoke    js
 create      app/assets/javascripts/blorgh/articles.js
@@ -560,8 +558,6 @@ invoke  test_unit
 create    test/controllers/blorgh/comments_controller_test.rb
 invoke  helper
 create    app/helpers/blorgh/comments_helper.rb
-invoke    test_unit
-create      test/helpers/blorgh/comments_helper_test.rb
 invoke  assets
 invoke    js
 create      app/assets/javascripts/blorgh/comments.js

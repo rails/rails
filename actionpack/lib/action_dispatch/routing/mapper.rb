@@ -13,9 +13,6 @@ module ActionDispatch
   module Routing
     class Mapper
       URL_OPTIONS = [:protocol, :subdomain, :domain, :host, :port]
-      SCOPE_OPTIONS = [:path, :shallow_path, :as, :shallow_prefix, :module,
-                       :controller, :action, :path_names, :constraints,
-                       :shallow, :blocks, :defaults, :options]
 
       class Constraints < Endpoint #:nodoc:
         attr_reader :app, :constraints
@@ -617,17 +614,19 @@ module ActionDispatch
           end
 
           def define_generate_prefix(app, name)
-            _route = @set.named_routes.routes[name.to_sym]
+            _route = @set.named_routes.get name
             _routes = @set
             app.routes.define_mounted_helper(name)
             app.routes.extend Module.new {
-              def mounted?; true; end
+              def optimize_routes_generation?; false; end
               define_method :find_script_name do |options|
-                super(options) || begin
-                prefix_options = options.slice(*_route.segment_keys)
-                # we must actually delete prefix segment keys to avoid passing them to next url_for
-                _route.segment_keys.each { |k| options.delete(k) }
-                _routes.url_helpers.send("#{name}_path", prefix_options)
+                if options.key? :script_name
+                  super(options)
+                else
+                  prefix_options = options.slice(*_route.segment_keys)
+                  # we must actually delete prefix segment keys to avoid passing them to next url_for
+                  _route.segment_keys.each { |k| options.delete(k) }
+                  _routes.url_helpers.send("#{name}_path", prefix_options)
                 end
               end
             }
@@ -771,7 +770,7 @@ module ActionDispatch
         #   end
         def scope(*args)
           options = args.extract_options!.dup
-          recover = {}
+          scope = {}
 
           options[:path] = args.flatten.join('/') if args.any?
           options[:constraints] ||= {}
@@ -791,7 +790,7 @@ module ActionDispatch
             block, options[:constraints] = options[:constraints], {}
           end
 
-          SCOPE_OPTIONS.each do |option|
+          @scope.options.each do |option|
             if option == :blocks
               value = block
             elsif option == :options
@@ -801,15 +800,15 @@ module ActionDispatch
             end
 
             if value
-              recover[option] = @scope[option]
-              @scope[option]  = send("merge_#{option}_scope", @scope[option], value)
+              scope[option] = send("merge_#{option}_scope", @scope[option], value)
             end
           end
 
+          @scope = @scope.new scope
           yield
           self
         ensure
-          @scope.merge!(recover)
+          @scope = @scope.parent
         end
 
         # Scopes routes to a specific controller
@@ -1645,27 +1644,26 @@ module ActionDispatch
 
           def with_exclusive_scope
             begin
-              old_name_prefix, old_path = @scope[:as], @scope[:path]
-              @scope[:as], @scope[:path] = nil, nil
+              @scope = @scope.new(:as => nil, :path => nil)
 
               with_scope_level(:exclusive) do
                 yield
               end
             ensure
-              @scope[:as], @scope[:path] = old_name_prefix, old_path
+              @scope = @scope.parent
             end
           end
 
           def with_scope_level(kind)
-            old, @scope[:scope_level] = @scope[:scope_level], kind
+            @scope = @scope.new(:scope_level => kind)
             yield
           ensure
-            @scope[:scope_level] = old
+            @scope = @scope.parent
           end
 
           def resource_scope(kind, resource) #:nodoc:
             resource.shallow = @scope[:shallow]
-            old_resource, @scope[:scope_level_resource] = @scope[:scope_level_resource], resource
+            @scope = @scope.new(:scope_level_resource => resource)
             @nesting.push(resource)
 
             with_scope_level(kind) do
@@ -1673,7 +1671,7 @@ module ActionDispatch
             end
           ensure
             @nesting.pop
-            @scope[:scope_level_resource] = old_resource
+            @scope = @scope.parent
           end
 
           def nested_options #:nodoc:
@@ -1706,12 +1704,13 @@ module ActionDispatch
           end
 
           def shallow_scope(path, options = {}) #:nodoc:
-            old_name_prefix, old_path = @scope[:as], @scope[:path]
-            @scope[:as], @scope[:path] = @scope[:shallow_prefix], @scope[:shallow_path]
+            scope = { :as   => @scope[:shallow_prefix],
+                      :path => @scope[:shallow_path] }
+            @scope = @scope.new scope
 
             scope(path, options) { yield }
           ensure
-            @scope[:as], @scope[:path] = old_name_prefix, old_path
+            @scope = @scope.parent
           end
 
           def path_for_action(action, path) #:nodoc:
@@ -1768,7 +1767,7 @@ module ActionDispatch
               # and return nil in case it isn't. Otherwise, we pass the invalid name
               # forward so the underlying router engine treats it and raises an exception.
               if as.nil?
-                candidate unless @set.routes.find { |r| r.name == candidate } || candidate !~ /\A[_a-z]/i
+                candidate unless candidate !~ /\A[_a-z]/i || @set.named_routes.key?(candidate)
               else
                 candidate
               end
@@ -1893,9 +1892,38 @@ module ActionDispatch
         end
       end
 
+      class Scope # :nodoc:
+        OPTIONS = [:path, :shallow_path, :as, :shallow_prefix, :module,
+                   :controller, :action, :path_names, :constraints,
+                   :shallow, :blocks, :defaults, :options]
+
+        attr_reader :parent
+
+        def initialize(hash, parent = {})
+          @hash = hash
+          @parent = parent
+        end
+
+        def options
+          OPTIONS
+        end
+
+        def new(hash)
+          self.class.new hash, self
+        end
+
+        def [](key)
+          @hash.fetch(key) { @parent[key] }
+        end
+
+        def []=(k,v)
+          @hash[k] = v
+        end
+      end
+
       def initialize(set) #:nodoc:
         @set = set
-        @scope = { :path_names => @set.resources_path_names }
+        @scope = Scope.new({ :path_names => @set.resources_path_names })
         @concerns = {}
         @nesting = []
       end

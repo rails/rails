@@ -49,6 +49,6 @@ class SubscriberTest < ActiveSupport::TestCase
   def test_does_not_attach_private_methods
     ActiveSupport::Notifications.instrument("private_party.doodle")
 
-    assert_equal TestSubscriber.events, []
+    assert_equal [], TestSubscriber.events
   end
 end

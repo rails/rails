@@ -6,8 +6,8 @@ module ActiveRecord
     class PendingMigrationsTest < ActiveRecord::TestCase
       def setup
         super
-        @connection = MiniTest::Mock.new
-        @app = MiniTest::Mock.new
+        @connection = Minitest::Mock.new
+        @app = Minitest::Mock.new
         conn = @connection
         @pending = Class.new(CheckPending) {
           define_method(:connection) { conn }

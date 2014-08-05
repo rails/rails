@@ -4,6 +4,7 @@ require 'active_support/core_ext/kernel/singleton_class'
 require 'active_support/core_ext/object/try'
 require 'action_dispatch/url_generation'
 require 'rack/test'
+require 'minitest'
 
 module ActionDispatch
   module Integration #:nodoc:

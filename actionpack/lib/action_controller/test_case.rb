@@ -696,12 +696,11 @@ module ActionController
           options = @controller.respond_to?(:url_options) ? @controller.__send__(:url_options).merge(parameters) : parameters
 
           options.update(
-            :only_path => true,
             :action => action,
             :relative_url_root => nil)
 
           ctx = ActionDispatch::UrlGeneration.request @request, options
-          url, query_string = @routes._url_for(ctx, options).split("?", 2)
+          url, query_string = @routes.path_for(ctx, options).split("?", 2)
 
           @request.env["SCRIPT_NAME"] = @controller.config.relative_url_root
           @request.env["PATH_INFO"] = url

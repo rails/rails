@@ -124,7 +124,7 @@ module ActiveRecord
 
         def inverse_updates_counter_named?(counter_name, reflection = reflection())
           reflection.klass._reflections.values.any? { |inverse_reflection|
-            :belongs_to == inverse_reflection.macro &&
+            inverse_reflection.belongs_to? &&
             inverse_reflection.counter_cache_column == counter_name
           }
         end
