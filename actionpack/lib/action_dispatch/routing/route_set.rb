@@ -208,7 +208,8 @@ module ActionDispatch
               if args.size == arg_size && !inner_options && optimize_routes_generation?(t)
                 options = t.url_options.merge @options
                 options[:path] = optimized_helper(args)
-                url_strategy.call options
+                script_name = options.delete(:script_name) { '' }
+                url_strategy.call script_name, options
               else
                 super
               end
@@ -314,9 +315,16 @@ module ActionDispatch
 
       # :stopdoc:
       # strategy for building urls to send to the client
-      PATH    = ->(options) { ActionDispatch::Http::URL.path_for(options) }
-      FULL    = ->(options) { ActionDispatch::Http::URL.full_url_for(options) }
-      UNKNOWN = ->(options) { ActionDispatch::Http::URL.url_for(options) }
+      PATH    = ->(script_name, options) {
+        ActionDispatch::Http::URL.path_for(script_name, options)
+      }
+      FULL    = ->(script_name, options) {
+        ActionDispatch::Http::URL.full_url_for(script_name, options)
+      }
+      UNKNOWN = ->(script_name, options) {
+        options[:script_name] = script_name
+        ActionDispatch::Http::URL.url_for(options)
+      }
       # :startdoc:
 
       attr_accessor :formatter, :set, :named_routes, :default_scope, :router
@@ -731,12 +739,11 @@ module ActionDispatch
         end
 
         options[:path]        = path
-        options[:script_name] = script_name
         options[:params]      = params
         options[:user]        = user
         options[:password]    = password
 
-        url_strategy.call options
+        url_strategy.call script_name, options
       end
 
       def call(env)
