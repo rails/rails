@@ -2,6 +2,16 @@ require 'rack/utils'
 require 'active_support/core_ext/uri'
 
 module ActionDispatch
+  # This middleware returns a file's contents from disk in the body response.
+  # When initialized it can accept an optional 'Cache-Control' header which
+  # will be set when a response containing a file's contents is delivered.
+  #
+  # This middleware will render the file specified in `env["PATH_INFO"]`
+  # where the base path is in the +root+ directory. For example if the +root+
+  # is set to `public/` then a request with `env["PATH_INFO"]` of
+  # `assets/application.js` will return a response with contents of a file
+  # located at `public/assets/application.js` if the file exists. If the file
+  # does not exist a 404 "File not Found" response will be returned.
   class FileHandler
     def initialize(root, cache_control)
       @root          = root.chomp('/')
