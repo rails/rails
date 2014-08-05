@@ -67,8 +67,9 @@ module ActiveModel
       #
       # Options:
       # * <tt>:on</tt> - Specifies the contexts where this validation is active.
-      #   You can pass a symbol or an array of symbols.
-      #   (e.g. <tt>on: :create</tt> or <tt>on: :custom_validation_context</tt> or
+      #   Runs in all validation contexts by default (nil). You can pass a symbol
+      #   or an array of symbols. (e.g. <tt>on: :create</tt> or
+      #   <tt>on: :custom_validation_context</tt> or
       #   <tt>on: [:create, :custom_validation_context]</tt>)
       # * <tt>:allow_nil</tt> - Skip validation if attribute is +nil+.
       # * <tt>:allow_blank</tt> - Skip validation if attribute is blank.
@@ -127,8 +128,9 @@ module ActiveModel
       #
       # Options:
       # * <tt>:on</tt> - Specifies the contexts where this validation is active.
-      #   You can pass a symbol or an array of symbols.
-      #   (e.g. <tt>on: :create</tt> or <tt>on: :custom_validation_context</tt> or
+      #   Runs in all validation contexts by default (nil). You can pass a symbol
+      #   or an array of symbols. (e.g. <tt>on: :create</tt> or
+      #   <tt>on: :custom_validation_context</tt> or
       #   <tt>on: [:create, :custom_validation_context]</tt>)
       # * <tt>:if</tt> - Specifies a method, proc or string to call to determine
       #   if the validation should occur (e.g. <tt>if: :allow_validation</tt>,
