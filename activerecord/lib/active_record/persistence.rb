@@ -36,6 +36,18 @@ module ActiveRecord
         end
       end
 
+      # Creates an object just like Base.create but calls <tt>save!</tt> instead of +save+
+      # so an exception is raised if the record is invalid.
+      def create!(attributes = nil, &block)
+        if attributes.is_a?(Array)
+          attributes.collect { |attr| create!(attr, &block) }
+        else
+          object = new(attributes, &block)
+          object.save!
+          object
+        end
+      end
+
       # Given an attributes hash, +instantiate+ returns a new instance of
       # the appropriate class. Accepts only keys as strings.
       #

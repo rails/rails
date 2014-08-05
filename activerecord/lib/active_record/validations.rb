@@ -29,21 +29,6 @@ module ActiveRecord
     extend ActiveSupport::Concern
     include ActiveModel::Validations
 
-    module ClassMethods
-      # Creates an object just like Base.create but calls <tt>save!</tt> instead of +save+
-      # so an exception is raised if the record is invalid.
-      def create!(attributes = nil, &block)
-        if attributes.is_a?(Array)
-          attributes.collect { |attr| create!(attr, &block) }
-        else
-          object = new(attributes)
-          yield(object) if block_given?
-          object.save!
-          object
-        end
-      end
-    end
-
     # The validation process on save can be skipped by passing <tt>validate: false</tt>.
     # The regular Base#save method is replaced with this when the validations
     # module is mixed in, which it is by default.
