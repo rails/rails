@@ -165,16 +165,12 @@ module TestGenerationPrefix
       RailsApplication
     end
 
-    def engine_object
-      @engine_object ||= EngineObject.new
-    end
-
-    def app_object
-      @app_object ||= AppObject.new
-    end
+    attr_reader :engine_object, :app_object
 
     def setup
       RailsApplication.routes.default_url_options = {}
+      @engine_object = EngineObject.new
+      @app_object = AppObject.new
     end
 
     include BlogEngine.routes.mounted_helpers
