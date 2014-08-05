@@ -618,7 +618,6 @@ module ActionDispatch
             _routes = @set
             app.routes.define_mounted_helper(name)
             app.routes.extend Module.new {
-              def optimize_routes_generation?; false; end
               define_method :find_script_name do |options|
                 if options.key? :script_name
                   super(options)
