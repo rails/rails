@@ -208,7 +208,7 @@ module ActionDispatch
               if args.size == arg_size && !inner_options && optimize_routes_generation?(t)
                 options = t.url_options.merge @options
                 options[:path] = optimized_helper(args)
-                script_name = options.delete(:script_name) { '' }
+                script_name = t._routes.find_script_name(options)
                 url_strategy.call script_name, options
               else
                 super
@@ -702,7 +702,11 @@ module ActionDispatch
       end
 
       def find_script_name(options)
-        options.delete(:script_name) { '' }
+        if options.key? :script_name
+          options.delete(:script_name).chomp '/'
+        else
+          ''
+        end
       end
 
       def path_for(options, route_name = nil) # :nodoc:

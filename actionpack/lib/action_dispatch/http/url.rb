@@ -50,7 +50,7 @@ module ActionDispatch
         end
 
         def path_for(script_name, options)
-          path  = script_name.chomp("/")
+          path  = script_name
           path << options[:path] if options.key?(:path)
 
           add_trailing_slash(path) if options[:trailing_slash]
