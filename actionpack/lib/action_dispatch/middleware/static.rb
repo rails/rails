@@ -55,6 +55,15 @@ module ActionDispatch
     end
   end
 
+  # This middleware will attempt to return the contents of a file's body from
+  # disk in the response.  If a file is not found on disk, the request will be
+  # delegated to the application stack. This middleware is commonly initialized
+  # to serve assets from a server's `public/` directory.
+  #
+  # This middleware verifies the path to ensure that only files
+  # living in the root directory can be rendered. A request cannot
+  # produce a directory traversal using this middleware. Only 'GET' and 'HEAD'
+  # requests will result in a file being returned.
   class Static
     def initialize(app, path, cache_control=nil)
       @app = app
