@@ -38,9 +38,11 @@ generate(:scaffold, "person name:string")
 route "root to: 'people#index'"
 rake("db:migrate")
 
-git :init
-git add: "."
-git commit: %Q{ -m 'Initial commit' }
+after_bundle do
+  git :init
+  git add: "."
+  git commit: %Q{ -m 'Initial commit' }
+end
 ```
 
 The following sections outline the primary methods provided by the API:
@@ -227,6 +229,22 @@ git :init
 git add: "."
 git commit: "-a -m 'Initial commit'"
 ```
+
+### after_bundle(&block)
+
+Registers a callback to be executed after the gems are bundled and binstubs
+are generated. Useful for all generated files to version control:
+
+```ruby
+after_bundle do
+  git :init
+  git add: '.'
+  git commit: "-a -m 'Initial commit'"
+end
+```
+
+The callbacks gets executed even if `--skip-bundle` and/or `--skip-spring` has
+been passed.
 
 Advanced Usage
 --------------
