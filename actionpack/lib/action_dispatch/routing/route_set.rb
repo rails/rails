@@ -331,11 +331,21 @@ module ActionDispatch
       attr_accessor :disable_clear_and_finalize, :resources_path_names
       attr_accessor :default_url_options, :request_class
 
+      attr_accessor :script_name_finder
+
       alias :routes :set
 
       def self.default_resources_path_names
         { :new => 'new', :edit => 'edit' }
       end
+
+      SCRIPT_NAME_FINDER = ->(options) {
+        if options.key? :script_name
+          options.delete(:script_name).chomp '/'
+        else
+          ''
+        end
+      }
 
       def initialize(request_class = ActionDispatch::Request)
         self.named_routes = NamedRouteCollection.new
@@ -347,6 +357,7 @@ module ActionDispatch
         @prepend                    = []
         @disable_clear_and_finalize = false
         @finalized                  = false
+        @script_name_finder = SCRIPT_NAME_FINDER
 
         @set    = Journey::Routes.new
         @router = Journey::Router.new @set
@@ -702,11 +713,21 @@ module ActionDispatch
       end
 
       def find_script_name(options)
-        if options.key? :script_name
-          options.delete(:script_name).chomp '/'
-        else
-          ''
-        end
+        @script_name_finder.call options
+      end
+
+      def build_engine_script_extractor(routes, route, name)
+        prev = script_name_finder
+        ->(options) {
+          if options.key? :script_name
+            prev.call options
+          else
+            prefix_options = options.slice(*route.segment_keys)
+            # we must actually delete prefix segment keys to avoid passing them to next url_for
+            route.segment_keys.each { |k| options.delete(k) }
+            routes.url_helpers.send("#{name}_path", prefix_options).chomp '/'
+          end
+        }
       end
 
       def path_for(options, route_name = nil) # :nodoc:
