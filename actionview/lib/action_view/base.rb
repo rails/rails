@@ -66,15 +66,6 @@ module ActionView #:nodoc:
   #   Headline: <%= headline %>
   #   First name: <%= person.first_name %>
   #
-  # If you need to find out whether a certain local variable has been assigned a value in a particular render call,
-  # you need to use the following pattern:
-  #
-  #   <% if local_assigns.has_key? :headline %>
-  #     Headline: <%= headline %>
-  #   <% end %>
-  #
-  # Testing using <tt>defined? headline</tt> will not work. This is an implementation restriction.
-  #
   # === Template caching
   #
   # By default, Rails will compile each template to a method in order to render it. When you alter a template,
