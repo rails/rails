@@ -61,6 +61,16 @@ class ToQueryTest < ActiveSupport::TestCase
       {a: [], b: 3}
   end
 
+  def test_hash_with_namespace
+    hash = { name: 'Nakshay', nationality: 'Indian' }
+    assert_equal "user%5Bname%5D=Nakshay&user%5Bnationality%5D=Indian", hash.to_query('user')
+  end
+
+  def test_hash_sorted_lexicographically
+    hash = { type: 'human', name: 'Nakshay' }
+    assert_equal "name=Nakshay&type=human", hash.to_query
+  end
+
   private
     def assert_query_equal(expected, actual)
       assert_equal expected.split('&'), actual.to_query.split('&')
