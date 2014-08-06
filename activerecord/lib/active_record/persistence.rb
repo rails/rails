@@ -36,8 +36,11 @@ module ActiveRecord
         end
       end
 
-      # Creates an object just like Base.create but calls <tt>save!</tt> instead of +save+
-      # so an exception is raised if the record is invalid.
+      # Creates an object (or multiple objects) and saves it to the database, if validations pass.
+      # Works like Base#create except that it raises a RecordInvalid error if validations fail.
+      #
+      # The +attributes+ parameter can be either a Hash or an Array of Hashes.
+      # These Hashes describe the attributes on the objects that are to be created.
       def create!(attributes = nil, &block)
         if attributes.is_a?(Array)
           attributes.collect { |attr| create!(attr, &block) }
