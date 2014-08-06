@@ -209,7 +209,8 @@ module ActionDispatch
               if args.size == arg_size && !inner_options && optimize_routes_generation?(t)
                 options = t.context.url_options.merge @options
                 options[:path] = optimized_helper(args)
-                url_strategy.call t.context, options
+                script_name = t._routes.find_script_name(options)
+                url_strategy.call t.context, script_name, options
               else
                 super
               end
@@ -316,20 +317,36 @@ module ActionDispatch
 
       # :stopdoc:
       # strategy for building urls to send to the client
-      PATH    = ->(ctx, options) { ActionDispatch::Http::URL.path_for(ctx, options) }
-      FULL    = ->(ctx, options) { ActionDispatch::Http::URL.full_url_for(ctx, options) }
-      UNKNOWN = ->(ctx, options) { ActionDispatch::Http::URL.context_url_for(ctx, options) }
+      PATH    = ->(ctx, script_name, options) {
+        ActionDispatch::Http::URL.path_for(ctx, script_name, options)
+      }
+      FULL    = ->(ctx, script_name, options) {
+        ActionDispatch::Http::URL.full_url_for(ctx, script_name, options)
+      }
+      UNKNOWN = ->(ctx, script_name, options) {
+        ActionDispatch::Http::URL.context_url_for(ctx, script_name, options)
+      }
       # :startdoc:
 
       attr_accessor :formatter, :set, :named_routes, :default_scope, :router
       attr_accessor :disable_clear_and_finalize, :resources_path_names
       attr_accessor :default_url_options, :request_class
 
+      attr_accessor :script_name_finder
+
       alias :routes :set
 
       def self.default_resources_path_names
         { :new => 'new', :edit => 'edit' }
       end
+
+      SCRIPT_NAME_FINDER = ->(options) {
+        if options.key? :script_name
+          options.delete(:script_name).chomp '/'
+        else
+          ''
+        end
+      }
 
       def initialize(request_class = ActionDispatch::Request)
         self.named_routes = NamedRouteCollection.new
@@ -342,6 +359,7 @@ module ActionDispatch
         @prepend                    = []
         @disable_clear_and_finalize = false
         @finalized                  = false
+        @script_name_finder = SCRIPT_NAME_FINDER
 
         @set    = Journey::Routes.new
         @router = Journey::Router.new @set
@@ -700,7 +718,21 @@ module ActionDispatch
       end
 
       def find_script_name(options)
-        options.delete(:script_name) { '' }
+        @script_name_finder.call options
+      end
+
+      def build_engine_script_extractor(routes, route, name)
+        prev = script_name_finder
+        ->(options) {
+          if options.key? :script_name
+            prev.call options
+          else
+            prefix_options = options.slice(*route.segment_keys)
+            # we must actually delete prefix segment keys to avoid passing them to next url_for
+            route.segment_keys.each { |k| options.delete(k) }
+            routes.url_helpers.send("#{name}_path", prefix_options).chomp '/'
+          end
+        }
       end
 
       def path_for(context, options, route_name = nil) # :nodoc:
@@ -744,12 +776,11 @@ module ActionDispatch
         end
 
         options[:path]        = path
-        options[:script_name] = script_name
         options[:params]      = params
         options[:user]        = user
         options[:password]    = password
 
-        url_strategy.call ctx, options
+        url_strategy.call ctx, script_name, options
       end
 
       def call(env)

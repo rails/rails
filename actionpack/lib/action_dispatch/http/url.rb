@@ -29,18 +29,19 @@ module ActionDispatch
         end
 
         def url_for(options)
-          context_url_for ActionDispatch::UrlGeneration.empty(options), options
+          script_name = options.delete(:script_name) { '' }
+          context_url_for ActionDispatch::UrlGeneration.empty(options), script_name, options
         end
 
-        def context_url_for(context, options)
+        def context_url_for(context, script_name, options)
           if options[:only_path]
-            path_for context, options
+            path_for context, script_name, options
           else
-            full_url_for context, options
+            full_url_for context, script_name, options
           end
         end
 
-        def full_url_for(context, options)
+        def full_url_for(context, script_name, options)
           host     = options[:host]
           protocol = options[:protocol]
           port     = options[:port]
@@ -49,11 +50,11 @@ module ActionDispatch
             raise ArgumentError, 'Missing host to link to! Please provide the :host parameter, set default_url_options[:host], or set :only_path to true'
           end
 
-          build_host_url(host, port, protocol, options, path_for(context, options))
+          build_host_url(host, port, protocol, options, path_for(context, script_name, options))
         end
 
-        def path_for(context, options)
-          path  = options[:script_name].to_s.chomp("/")
+        def path_for(context, script_name, options)
+          path  = script_name
           path << options[:path] if options.key?(:path)
 
           add_trailing_slash(path) if options[:trailing_slash]
