@@ -21,7 +21,11 @@ module ActiveRecord
 
         FileUtils.rm(file) if File.exist?(file)
       end
-      alias :purge :drop
+
+      def purge
+        drop
+        create
+      end
 
       def charset
         connection.encoding
