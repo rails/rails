@@ -10,7 +10,7 @@ module ActiveJob
         def enqueue(job, *args)
           @monitor.synchronize do
             JobWrapper.from_queue job.queue_name
-            JobWrapper.enqueue [ job, *args ]
+            JobWrapper.enqueue ActiveSupport::JSON.encode([ job.name, *args ])
           end
         end
 
@@ -22,8 +22,10 @@ module ActiveJob
       class JobWrapper
         include Sneakers::Worker
 
-        def work(job, *args)
-          job.new.execute *args
+        def work(msg)
+          job_name, *args = ActiveSupport::JSON.decode(msg)
+          job_name.constantize.new.execute *args
+          ack!
         end
       end
     end
