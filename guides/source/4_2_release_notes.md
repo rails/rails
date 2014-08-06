@@ -85,6 +85,9 @@ Please refer to the [Changelog][railties] for detailed changes.
 *   Introduced `Rails.gem_version` as a convenience method to return `Gem::Version.new(Rails.version)`.
     ([Pull Request](https://github.com/rails/rails/pull/14101))
 
+*   Introduced an `after_bundle` callback in the Rails templates.
+    ([Pull Request](https://github.com/rails/rails/pull/16359))
+
 
 Action Pack
 -----------

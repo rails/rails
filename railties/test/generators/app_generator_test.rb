@@ -501,6 +501,21 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_after_bundle_callback
+    path = 'http://example.org/rails_template'
+    template = %{ after_bundle { run 'echo ran after_bundle' } }
+    template.instance_eval "def read; self; end" # Make the string respond to read
+
+    generator([destination_root], template: path).expects(:open).with(path, 'Accept' => 'application/x-thor-template').returns(template)
+
+    bundler_first = sequence('bundle, binstubs, after_bundle')
+    generator.expects(:bundle_command).with('install').once.in_sequence(bundler_first)
+    generator.expects(:bundle_command).with('exec spring binstub --all').in_sequence(bundler_first)
+    generator.expects(:run).with('echo ran after_bundle').in_sequence(bundler_first)
+
+    quietly { generator.invoke_all }
+  end
+
   protected
 
   def action(*args, &block)

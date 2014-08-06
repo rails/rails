@@ -1,3 +1,10 @@
+*   Add `after_bundle` callbacks in Rails templates. Useful for allowing the
+    generated binstubs to be added to version control.
+
+    Fixes #16292.
+
+    *Stefan Kanev*
+
 *   Pull in the custom configuration concept from dhh/custom_configuration, which allows you to
     configure your own code through the Rails configuration object with custom configuration:
 
