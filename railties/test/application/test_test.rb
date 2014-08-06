@@ -67,7 +67,7 @@ module ApplicationTests
       assert_match %r{/app/test/unit/failing_test\.rb}, output
     end
 
-    test "migrations" do
+    test "ruby schema migrations" do
       output  = script('generate model user name:string')
       version = output.match(/(\d+)_create_users\.rb/)[1]
 
