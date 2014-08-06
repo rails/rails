@@ -1,9 +1,10 @@
 require 'cases/helper'
 require 'models/post'
 require 'models/developer'
+require 'models/author'
 
 class DefaultScopingTest < ActiveRecord::TestCase
-  fixtures :developers, :posts
+  fixtures :developers, :posts, :authors
 
   def test_default_scope
     expected = Developer.all.merge!(:order => 'salary DESC').to_a.collect { |dev| dev.salary }
@@ -214,6 +215,12 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal expected, received
   end
 
+  def test_unscope_preload
+    expected = Developer.all.collect { |dev| dev.name }
+    received = Developer.preload(:projects).select(:id).unscope(:preload, :select).collect { |dev| dev.name }
+    assert_equal expected, received
+  end
+
   def test_unscope_having
     expected = DeveloperOrderedBySalary.all.collect { |dev| dev.name }
     received = DeveloperOrderedBySalary.having("name IN ('Jamis', 'David')").unscope(:having).collect { |dev| dev.name }
@@ -349,6 +356,16 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal 1,  DeveloperCalledJamis.poor.length
     assert_equal 10, DeveloperCalledJamis.unscoped.poor.length
     assert_equal 10, DeveloperCalledJamis.unscoped { DeveloperCalledJamis.poor }.length
+  end
+
+  def test_unscoped_with_preload_should_not_have_default_scope
+    assert_equal 5, Author.includes(:posts).find(1).posts.size
+    assert_equal 5, FirstPost.unscoped { Author.preload(:first_posts).find(1).first_posts.size }
+  end
+
+  def test_unscoped_with_includes_should_not_have_default_scope
+    assert_equal 5, Author.includes(:posts).find(1).posts.size
+    assert_equal 5, FirstPost.unscoped { Author.includes(:first_posts).find(1).first_posts.size }
   end
 
   def test_default_scope_select_ignored_by_aggregations

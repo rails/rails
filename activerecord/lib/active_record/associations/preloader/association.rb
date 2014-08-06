@@ -159,7 +159,7 @@ module ActiveRecord
             scope.where!(klass.table_name => { reflection.type => model.base_class.sti_name })
           end
 
-          klass.default_scoped.merge(scope)
+          klass.all.unscope(:preload, :includes).merge(scope)
         end
       end
     end

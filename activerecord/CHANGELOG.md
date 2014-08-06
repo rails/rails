@@ -1,3 +1,10 @@
+*   Change preload and includes not to ignore scoping.
+    Preload and includes scope is still ignored for #5667.
+
+    Fixes #11036.
+
+    *Takashi Kokubun*
+
 *   Fix type casting to Decimal from Float with large precision.
 
     *Tomohiro Hashidate*
