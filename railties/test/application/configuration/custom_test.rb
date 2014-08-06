@@ -5,11 +5,13 @@ class ApplicationTests::ConfigurationTests::CustomTest < ApplicationTests::Confi
     add_to_config <<-RUBY
       config.x.resque.inline_jobs = :always
       config.x.resque.timeout     = 60
+      config.x.super_debugger = true
     RUBY
     require_environment
 
     assert_equal :always, Rails.configuration.x.resque.inline_jobs
     assert_equal 60, Rails.configuration.x.resque.timeout
     assert_nil Rails.configuration.x.resque.nothing
+    assert_equal true, Rails.configuration.x.super_debugger
   end
 end
