@@ -105,7 +105,7 @@ module ActiveModel
       attr_reader :password
 
       # Encrypts the password into the +password_digest+ attribute, only if the
-      # new password is not blank.
+      # new password is not empty.
       #
       #   class User < ActiveRecord::Base
       #     has_secure_password validations: false
@@ -119,7 +119,7 @@ module ActiveModel
       def password=(unencrypted_password)
         if unencrypted_password.nil?
           self.password_digest = nil
-        elsif unencrypted_password.present?
+        elsif !unencrypted_password.empty?
           @password = unencrypted_password
           cost = ActiveModel::SecurePassword.min_cost ? BCrypt::Engine::MIN_COST : BCrypt::Engine.cost
           self.password_digest = BCrypt::Password.create(unencrypted_password, cost: cost)

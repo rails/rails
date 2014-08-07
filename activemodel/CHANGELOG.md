@@ -1,3 +1,9 @@
+*   Passwords with spaces only allowed in `ActiveModel::SecurePassword`.
+
+    Presence validation can be used to resore old behavior.
+
+    *Yevhene Shemet*
+
 *   Validate options passed to `ActiveModel::Validations.validate`.
 
     Preventing, in many cases, the simple mistake of using `validate` instead of `validates`.
