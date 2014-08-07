@@ -17,6 +17,7 @@ class EngineTest < ActiveSupport::TestCase
       attr_reader :hello
       def initialize
         @hello = "world"
+        super
       end
     end
     assert_equal "world", klass.instance.hello
