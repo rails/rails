@@ -90,6 +90,10 @@ module Rails
         Rails.app_class = base
       end
 
+      def instance
+        super.run_load_hooks!
+      end
+
       # Makes the +new+ method public.
       #
       # Note that Rails::Application inherits from Rails::Engine, which
@@ -116,22 +120,33 @@ module Rails
       @ordered_railties  = nil
       @railties          = nil
       @message_verifiers = {}
+      @ran_load_hooks    = false
+
+      # are these actually used?
+      @initial_variable_values = initial_variable_values
+      @block = block
 
       add_lib_to_load_path!
-      ActiveSupport.run_load_hooks(:before_configuration, self)
-
-      initial_variable_values.each do |variable_name, value|
-        if INITIAL_VARIABLES.include?(variable_name)
-          instance_variable_set("@#{variable_name}", value)
-        end
-      end
-
-      instance_eval(&block) if block_given?
     end
 
     # Returns true if the application is initialized.
     def initialized?
       @initialized
+    end
+
+    def run_load_hooks! # :nodoc:
+      return self if @ran_load_hooks
+      @ran_load_hooks = true
+      ActiveSupport.run_load_hooks(:before_configuration, self)
+
+      @initial_variable_values.each do |variable_name, value|
+        if INITIAL_VARIABLES.include?(variable_name)
+          instance_variable_set("@#{variable_name}", value)
+        end
+      end
+
+      instance_eval(&@block) if @block
+      self
     end
 
     # Implements call according to the Rack API. It simply
