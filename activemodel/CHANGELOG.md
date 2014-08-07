@@ -1,6 +1,6 @@
 *   Passwords with spaces only allowed in `ActiveModel::SecurePassword`.
 
-    Presence validation can be used to resore old behavior.
+    Presence validation can be used to restore old behavior.
 
     *Yevhene Shemet*
 
