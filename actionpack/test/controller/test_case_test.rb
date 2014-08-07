@@ -221,7 +221,7 @@ XML
     assert_equal 200, @response.status
   end
 
-  def test_head_params_as_sting
+  def test_head_params_as_string
     assert_raise(NoMethodError) { head :test_params, "document body", :id => 10 }
   end
 
