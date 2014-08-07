@@ -19,7 +19,7 @@ module ActiveRecord
 
       # A cached lookup for table existence.
       def table_exists?(name)
-        prepare_tables if @tables.blank?
+        prepare_tables if @tables.empty?
         return @tables[name] if @tables.key? name
 
         @tables[name] = connection.table_exists?(name)
