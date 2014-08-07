@@ -195,10 +195,6 @@ module Rails
         def self.path(name, path, comment = nil)
           new(name, nil, comment, path: path)
         end
-
-        def padding(max_width)
-          ' ' * (max_width - name.length + 2)
-        end
       end
 
       def rails_gemfile_entry
