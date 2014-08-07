@@ -39,6 +39,12 @@ module ActiveRecord
         read_attribute_before_type_cast(self.class.primary_key)
       end
 
+      # Returns the primary key previous value.
+      def id_was
+        sync_with_transaction_state
+        attribute_was(self.class.primary_key)
+      end
+
       protected
 
       def attribute_method?(attr_name)
@@ -54,7 +60,7 @@ module ActiveRecord
           end
         end
 
-        ID_ATTRIBUTE_METHODS = %w(id id= id? id_before_type_cast).to_set
+        ID_ATTRIBUTE_METHODS = %w(id id= id? id_before_type_cast id_was).to_set
 
         def dangerous_attribute_method?(method_name)
           super && !ID_ATTRIBUTE_METHODS.include?(method_name)
