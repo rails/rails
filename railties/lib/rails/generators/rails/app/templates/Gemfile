@@ -21,14 +21,23 @@ source 'https://rubygems.org'
 # Use Capistrano for deployment
 # gem 'capistrano-rails', group: :development
 
+group :development, :test do
 <% unless defined?(JRUBY_VERSION) -%>
-# To use a debugger
+  # Call 'debugger' anywhere in the code to stop execution and get a debugger console
   <%- if RUBY_VERSION < '2.0.0' -%>
-# gem 'debugger', group: [:development, :test]
+  gem 'debugger'
   <%- else -%>
-# gem 'byebug', group: [:development, :test]
+  gem 'byebug'
   <%- end -%>
+  
+  # Access an IRB console on exceptions page and /console in development
+  gem 'web-console'
+<%- if spring_install? %>
+  # Spring speeds up development by keeping your application running in the background. Read more: https://github.com/rails/spring
+  gem 'spring'
 <% end -%>
+<% end -%>
+end
 
 <% if RUBY_PLATFORM.match(/bccwin|cygwin|emx|mingw|mswin|wince/) -%>
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem

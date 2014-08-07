@@ -113,7 +113,6 @@ module Rails
          javascript_gemfile_entry,
          jbuilder_gemfile_entry,
          sdoc_gemfile_entry,
-         spring_gemfile_entry,
          psych_gemfile_entry,
          @extra_entries].flatten.find_all(&@gem_filter)
       end
@@ -304,12 +303,6 @@ module Rails
         else
           GemfileEntry.new 'therubyracer', nil, comment, { platforms: :ruby }, true
         end
-      end
-
-      def spring_gemfile_entry
-        return [] unless spring_install?
-        comment = 'Spring speeds up development by keeping your application running in the background. Read more: https://github.com/rails/spring'
-        GemfileEntry.new('spring', nil, comment, group: :development)
       end
 
       def psych_gemfile_entry
