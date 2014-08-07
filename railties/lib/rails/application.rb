@@ -94,6 +94,10 @@ module Rails
         super.run_load_hooks!
       end
 
+      def create(initial_variable_values = {}, &block)
+        new(initial_variable_values, &block).run_load_hooks!
+      end
+
       # Makes the +new+ method public.
       #
       # Note that Rails::Application inherits from Rails::Engine, which

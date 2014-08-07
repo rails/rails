@@ -36,23 +36,23 @@ module ApplicationTests
     end
 
     def test_initialization_of_application_with_previous_config
-      application1 = AppTemplate::Application.new(config: Rails.application.config)
-      application2 = AppTemplate::Application.new
+      application1 = AppTemplate::Application.create(config: Rails.application.config)
+      application2 = AppTemplate::Application.create
 
       assert_equal Rails.application.config, application1.config, "Creating a new application while setting an initial config should result in the same config"
       assert_not_equal Rails.application.config, application2.config, "New applications without setting an initial config should not have the same config"
     end
 
     def test_initialization_of_application_with_previous_railties
-      application1 = AppTemplate::Application.new(railties: Rails.application.railties)
-      application2 = AppTemplate::Application.new
+      application1 = AppTemplate::Application.create(railties: Rails.application.railties)
+      application2 = AppTemplate::Application.create
 
       assert_equal Rails.application.railties, application1.railties
       assert_not_equal Rails.application.railties, application2.railties
     end
 
     def test_initialize_new_application_with_all_previous_initialization_variables
-      application1 = AppTemplate::Application.new(
+      application1 = AppTemplate::Application.create(
         config:           Rails.application.config,
         railties:         Rails.application.railties,
         routes_reloader:  Rails.application.routes_reloader,
