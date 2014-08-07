@@ -5,6 +5,7 @@ require 'models/subscriber'
 require 'models/movie'
 require 'models/keyboard'
 require 'models/mixed_case_monkey'
+require 'models/dashboard'
 
 class PrimaryKeysTest < ActiveRecord::TestCase
   fixtures :topics, :subscribers, :movies, :mixed_case_monkeys
@@ -184,6 +185,15 @@ class PrimaryKeysTest < ActiveRecord::TestCase
   def test_auto_detect_primary_key_from_schema
     MixedCaseMonkey.reset_primary_key
     assert_equal "monkeyID", MixedCaseMonkey.primary_key
+  end
+
+  def test_primary_key_update_with_custom_key_name
+    dashboard = Dashboard.create!(dashboard_id: '1')
+    dashboard.id = '2'
+    dashboard.save!
+
+    dashboard = Dashboard.first
+    assert_equal '2', dashboard.id
   end
 end
 

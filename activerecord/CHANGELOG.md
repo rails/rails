@@ -1,3 +1,14 @@
+*   Define `id_was` to get the previous value of the primary key.
+
+    Currently when we call id_was and we have a custom primary key name
+    Active Record will return the current value of the primary key. This
+    make impossible to correctly do an update operation if you change the
+    id.
+
+    Fixes #16413.
+
+    *Rafael Mendonça França*
+
 *   Fixed error in `reset_counters` when associations have `select` scope.
     (Call to `count` generates invalid SQL.)
 
