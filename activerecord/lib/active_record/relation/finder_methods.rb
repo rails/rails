@@ -307,6 +307,10 @@ module ActiveRecord
       connection.select_value(relation, "#{name} Exists", relation.bind_values) ? true : false
     end
 
+    def absent?(condition = :none)
+      !exists?(condition)
+    end
+
     # This method is called whenever no records are found with either a single
     # id or multiple ids and raises a +ActiveRecord::RecordNotFound+ exception.
     #

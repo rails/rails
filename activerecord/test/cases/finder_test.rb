@@ -78,6 +78,20 @@ class FinderTest < ActiveRecord::TestCase
     assert_raise(NoMethodError) { Topic.exists?([1,2]) }
   end
 
+  def test_absent
+    assert_equal false, Topic.absent?(1)
+    assert_equal false, Topic.absent?("1")
+    assert_equal false, Topic.absent?(title: "The First Topic")
+    assert_equal false, Topic.absent?(heading: "The First Topic")
+    assert_equal false, Topic.absent?(:author_name => "Mary", :approved => true)
+    assert_equal false, Topic.absent?(["parent_id = ?", 1])
+    assert_equal false, Topic.absent?(id: [1, 9999])
+
+    assert_equal true, Topic.absent?(45)
+    assert_equal true, Topic.absent?(Topic.new.id)
+  end
+
+
   def test_exists_passing_active_record_object_is_deprecated
     assert_deprecated do
       Topic.exists?(Topic.new)
