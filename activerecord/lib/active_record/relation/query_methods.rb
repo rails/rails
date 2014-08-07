@@ -1,8 +1,11 @@
 require 'active_support/core_ext/array/wrap'
+require 'active_model/forbidden_attributes_protection'
 
 module ActiveRecord
   module QueryMethods
     extend ActiveSupport::Concern
+
+    include ActiveModel::ForbiddenAttributesProtection
 
     # WhereChain objects act as placeholder for queries in which #where does not have any parameter.
     # In this case, #where must be chained with #not to return a new relation.
@@ -540,7 +543,10 @@ module ActiveRecord
       if opts == :chain
         WhereChain.new(self)
       else
-        references!(PredicateBuilder.references(opts)) if Hash === opts
+        if Hash === opts
+          opts = sanitize_forbidden_attributes(opts)
+          references!(PredicateBuilder.references(opts))
+        end
 
         self.where_values += build_where(opts, rest)
         self
@@ -678,7 +684,13 @@ module ActiveRecord
     end
 
     def create_with!(value) # :nodoc:
-      self.create_with_value = value ? create_with_value.merge(value) : {}
+      if value
+        value = sanitize_forbidden_attributes(value)
+        self.create_with_value = create_with_value.merge(value)
+      else
+        self.create_with_value = {}
+      end
+
       self
     end
 
