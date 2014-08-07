@@ -1,7 +1,10 @@
+*   Add include_omission_length option to String truncate
+
+    *Ejay Canaria*
+
+
 *   Added Object#itself which returns the object itself. Useful when dealing with a chaining scenario, like Active Record scopes:
-
         Event.public_send(state.presence_in([ :trashed, :drafted ]) || :itself).order(:created_at)
-
     *DHH*
 
 *   `Object#with_options` executes block in merging option context when

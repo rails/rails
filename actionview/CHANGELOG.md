@@ -1,3 +1,7 @@
+*   Add include_omission_length option to String truncate
+
+    *Ejay Canaria*
+
 *   Fix that render layout: 'messages/layout' should also be added to the dependency tracker tree.
 
     *DHH*

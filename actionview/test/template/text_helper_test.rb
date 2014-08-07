@@ -104,6 +104,10 @@ class TextHelperTest < ActionView::TestCase
     assert_equal "Hello Big[...]", truncate("Hello Big World!", :omission => "[...]", :length => 15, :separator => ' ')
   end
 
+  def test_truncate_with_include_omission_length
+    assert_equal "Hello...", truncate("Hello World", length: 5, include_omission_length: true)
+  end
+
   def test_truncate_multibyte
     assert_equal "\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 ...".force_encoding(Encoding::UTF_8),
       truncate("\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 \354\225\204\353\235\274\353\246\254\354\230\244".force_encoding(Encoding::UTF_8), :length => 10)

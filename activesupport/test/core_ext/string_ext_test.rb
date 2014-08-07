@@ -229,6 +229,10 @@ class StringInflectionsTest < ActiveSupport::TestCase
     assert_equal "Hello Big[...]", "Hello Big World!".truncate(15, :omission => "[...]", :separator => /\s/)
   end
 
+  def test_truncate_with_include_omission_length
+    assert_equal "Hello...", "Hello World".truncate(5, include_omission_length: true)
+  end
+
   def test_truncate_words
     assert_equal "Hello Big World!", "Hello Big World!".truncate_words(3)
     assert_equal "Hello Big...", "Hello Big World!".truncate_words(2)
