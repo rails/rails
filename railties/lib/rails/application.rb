@@ -87,7 +87,7 @@ module Rails
     class << self
       def inherited(base)
         super
-        base.instance
+        Rails.app_class = base
       end
 
       # Makes the +new+ method public.
@@ -116,8 +116,6 @@ module Rails
       @ordered_railties  = nil
       @railties          = nil
       @message_verifiers = {}
-
-      Rails.application ||= self
 
       add_lib_to_load_path!
       ActiveSupport.run_load_hooks(:before_configuration, self)
