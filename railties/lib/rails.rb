@@ -29,7 +29,13 @@ module Rails
   autoload :WelcomeController
 
   class << self
-    attr_accessor :application, :cache, :logger
+    @application = @app_class = nil
+
+    attr_writer :application
+    attr_accessor :app_class, :cache, :logger
+    def application
+      @application ||= (app_class.instance if app_class)
+    end
 
     delegate :initialize!, :initialized?, to: :application
 

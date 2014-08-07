@@ -58,6 +58,38 @@ When assigning `nil` to a serialized attribute, it will be saved to the database
 as `NULL` instead of passing the `nil` value through the coder (e.g. `"null"`
 when using the `JSON` coder).
 
+### `after_bundle` in Rails templates
+
+If you have a Rails template that adds all the files in version control, it
+fails to add the generated binstubs because it gets executed before Bundler:
+
+```ruby
+# template.rb
+generate(:scaffold, "person name:string")
+route "root to: 'people#index'"
+rake("db:migrate")
+
+git :init
+git add: "."
+git commit: %Q{ -m 'Initial commit' }
+```
+
+You can now wrap the `git` calls in an `after_bundle` block. It will be run
+after the binstubs have been generated.
+
+```ruby
+# template.rb
+generate(:scaffold, "person name:string")
+route "root to: 'people#index'"
+rake("db:migrate")
+
+after_bundle do
+  git :init
+  git add: "."
+  git commit: %Q{ -m 'Initial commit' }
+end
+```
+
 Upgrading from Rails 4.0 to Rails 4.1
 -------------------------------------
 

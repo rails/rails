@@ -1,3 +1,7 @@
+*   Fix DateTime comparison with DateTime::Infinity object.
+
+    *Rafael Mendonça França*
+
 *   Added Object#itself which returns the object itself. Useful when dealing with a chaining scenario, like Active Record scopes:
 
         Event.public_send(state.presence_in([ :trashed, :drafted ]) || :itself).order(:created_at)
