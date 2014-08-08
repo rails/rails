@@ -1,5 +1,10 @@
 before_install:
 - travis_retry gem install bundler
+- sudo apt-get update -qq
+- sudo apt-get install beanstalkd
+- echo "START=yes" | sudo tee -a /etc/default/beanstalkd
+- sudo /etc/init.d/beanstalkd start
+
 rvm:
 - 1.9.3
 - 2.0.0
@@ -7,6 +12,8 @@ rvm:
 - ruby-head
 - rbx-2
 - jruby
+env:
+- QC_DATABASE_URL="postgres://postgres@localhost/active_jobs_qc_int_test" QUE_DATABASE_URL="postgres://postgres@localhost/active_jobs_qc_int_test"
 matrix:
   allow_failures:
   - rvm: rbx-2
@@ -27,3 +34,6 @@ notifications:
       - secure: AgZwJA+9VdnWAw7QN9Z5s6RpQIzsEB0q7V+p3pCzXY45156WocL8iNQx+KnyOQ8jbRUt4L/XIOiZl5xHf4pHjXytHWHNhetAlVQP/hPeDcCSk/h0g5gqgf6QABdp38tBNaUq866bXHgCOZYPwwP9bypcmuv2SLyfIO+b/PBgqN0=
 services:
 - redis
+- rabbitmq
+addons:
+  postgresql: "9.3"

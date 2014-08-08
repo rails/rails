@@ -18,13 +18,15 @@ end
 
 task default: :test
 
+ADAPTERS = %w(inline delayed_job qu que queue_classic resque sidekiq sneakers sucker_punch backburner)
+
 desc 'Run all adapter tests'
 task :test do
-  tasks = %w(test_inline test_delayed_job test_qu test_que test_queue_classic test_resque test_sidekiq test_sneakers test_sucker_punch test_backburner)
+  tasks = ADAPTERS.map{|a| "test_#{a}" }+["integration_test"]
   run_without_aborting(*tasks)
 end
 
-%w(inline delayed_job qu que queue_classic resque sidekiq sneakers sucker_punch backburner).each do |adapter|
+ADAPTERS.each do |adapter|
   Rake::TestTask.new("test_#{adapter}") do |t|
     t.libs << 'test'
     t.test_files = FileList['test/cases/**/*_test.rb']
@@ -37,4 +39,30 @@ end
   end
 
   task "test_#{adapter}" => "#{adapter}:env"
+end
+
+
+
+desc 'Run all adapter integration tests'
+task :integration_test do
+  tasks = (ADAPTERS-['inline']).map{|a| "integration_test_#{a}" }
+  run_without_aborting(*tasks)
+end
+
+(ADAPTERS-['inline']).each do |adapter|
+  Rake::TestTask.new("integration_test_#{adapter}") do |t|
+    t.libs << 'test'
+    t.test_files = FileList['test/integration/**/*_test.rb']
+    t.verbose = true
+  end
+
+  namespace "integration_#{adapter}" do
+    task test: "integration_test_#{adapter}"
+    task(:env) do
+      ENV['AJADAPTER'] = adapter
+      ENV['AJ_INTEGRATION_TESTS'] = "1"
+    end
+  end
+
+  task "integration_test_#{adapter}" => "integration_#{adapter}:env"
 end
