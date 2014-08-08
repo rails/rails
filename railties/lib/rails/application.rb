@@ -200,7 +200,7 @@ module Rails
     def message_verifier(verifier_name)
       @message_verifiers[verifier_name] ||= begin
         secret = key_generator.generate_key(verifier_name.to_s)
-        ActiveSupport::MessageVerifier.new(secret)
+        ActiveSupport::MessageVerifier.new(secret, digest: config.action_dispatch.cookies_digest, serializer: config.action_dispatch.cookies_serializer)
       end
     end
 
