@@ -29,7 +29,7 @@ group :development, :test do
   <%- else -%>
   gem 'byebug'
   <%- end -%>
-  
+
   # Access an IRB console on exceptions page and /console in development
   gem 'web-console'
 <%- if spring_install? %>
