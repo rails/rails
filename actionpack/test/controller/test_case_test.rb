@@ -713,6 +713,7 @@ XML
   def test_header_properly_reset_after_remote_http_request
     xhr :get, :test_params
     assert_nil @request.env['HTTP_X_REQUESTED_WITH']
+    assert_nil @request.env['HTTP_ACCEPT']
   end
 
   def test_header_properly_reset_after_get_request
@@ -721,10 +722,10 @@ XML
     assert_nil @request.instance_variable_get("@request_method")
   end
 
-  def test_params_reset_after_post_request
+  def test_params_reset_between_post_requests
     post :no_op, :foo => "bar"
     assert_equal "bar", @request.params[:foo]
-    @request.recycle!
+
     post :no_op
     assert @request.params[:foo].blank?
   end
@@ -737,10 +738,10 @@ XML
     assert_equal "baz", @request.filtered_parameters[:foo]
   end
 
-  def test_path_params_reset_after_request
+  def test_path_params_reset_between_request
     get :test_params, :id => "foo"
     assert_equal "foo", @request.path_parameters[:id]
-    @request.recycle!
+
     get :test_params
     assert_nil @request.path_parameters[:id]
   end
