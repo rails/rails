@@ -509,7 +509,7 @@ module Rails
     def call(env)
       env.merge!(env_config)
       if env['SCRIPT_NAME']
-        env.merge! "ROUTES_#{routes.object_id}_SCRIPT_NAME" => env['SCRIPT_NAME'].dup
+        env["ROUTES_#{routes.object_id}_SCRIPT_NAME"] = env['SCRIPT_NAME'].dup
       end
       app.call(env)
     end

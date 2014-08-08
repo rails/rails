@@ -299,7 +299,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     if defined?(JRUBY_VERSION)
       assert_gem "therubyrhino"
     else
-      assert_file "Gemfile", /# gem\s+["']therubyracer["']+, \s+platforms: :ruby$/
+      assert_file "Gemfile", /# gem 'therubyracer', platforms: :ruby/
     end
   end
 
@@ -340,7 +340,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_inclusion_of_jbuilder
     run_generator
-    assert_file "Gemfile", /gem 'jbuilder'/
+    assert_gem 'jbuilder'
   end
 
   def test_inclusion_of_a_debugger
@@ -351,9 +351,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
         assert_no_match(/debugger/, content)
       end
     elsif RUBY_VERSION < '2.0.0'
-      assert_file "Gemfile", /# gem 'debugger'/
+      assert_gem 'debugger'
     else
-      assert_file "Gemfile", /# gem 'byebug'/
+      assert_gem 'byebug'
     end
   end
 
@@ -419,9 +419,14 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "foo bar/config/initializers/session_store.rb", /key: '_foo_bar/
   end
 
+  def test_web_console
+    run_generator
+    assert_gem 'web-console'
+  end
+
   def test_spring
     run_generator
-    assert_file "Gemfile", /gem 'spring', \s+group: :development/
+    assert_gem 'spring'
   end
 
   def test_spring_binstubs
@@ -523,6 +528,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def assert_gem(gem)
-    assert_file "Gemfile", /^gem\s+["']#{gem}["']$/
+    assert_file "Gemfile", /^\s*gem\s+["']#{gem}["']$*/
   end
 end

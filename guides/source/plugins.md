@@ -45,7 +45,7 @@ $ bin/rails plugin new yaffle
 See usage and options by asking for help:
 
 ```bash
-$ bin/rails plugin --help
+$ bin/rails plugin new --help
 ```
 
 Testing Your Newly Generated Plugin
