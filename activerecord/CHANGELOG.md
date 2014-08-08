@@ -1,3 +1,9 @@
+*   Fix regression on after_commit that didnt fire when having nested transactions.
+
+    Fixes #16425
+
+    *arthurnn*
+
 *   Do not try to write timestamps when a table has no timestamps columns.
 
     Fixes #8813.
