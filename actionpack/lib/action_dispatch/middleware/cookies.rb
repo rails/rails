@@ -90,6 +90,7 @@ module ActionDispatch
     SECRET_TOKEN = "action_dispatch.secret_token".freeze
     SECRET_KEY_BASE = "action_dispatch.secret_key_base".freeze
     COOKIES_SERIALIZER = "action_dispatch.cookies_serializer".freeze
+    COOKIES_DIGEST = "action_dispatch.cookies_digest".freeze
 
     # Cookies can typically store 4096 bytes.
     MAX_COOKIE_SIZE = 4096
@@ -212,7 +213,8 @@ module ActionDispatch
           secret_token: env[SECRET_TOKEN],
           secret_key_base: env[SECRET_KEY_BASE],
           upgrade_legacy_signed_cookies: env[SECRET_TOKEN].present? && env[SECRET_KEY_BASE].present?,
-          serializer: env[COOKIES_SERIALIZER]
+          serializer: env[COOKIES_SERIALIZER],
+          digest: env[COOKIES_DIGEST]
         }
       end
 
@@ -441,6 +443,10 @@ module ActionDispatch
             serializer
           end
         end
+
+        def digest
+          @options[:digest] || 'SHA1'
+        end
     end
 
     class SignedCookieJar #:nodoc:
@@ -451,7 +457,7 @@ module ActionDispatch
         @parent_jar = parent_jar
         @options = options
         secret = key_generator.generate_key(@options[:signed_cookie_salt])
-        @verifier = ActiveSupport::MessageVerifier.new(secret, serializer: NullSerializer)
+        @verifier = ActiveSupport::MessageVerifier.new(secret, digest: digest, serializer: NullSerializer)
       end
 
       def [](name)
