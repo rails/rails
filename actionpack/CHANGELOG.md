@@ -1,3 +1,8 @@
+*   Add `config.action_dispatch.cookies_digest` option for setting custom
+    digest. The default remains the same - 'SHA1'.
+
+    *Łukasz Strzałkowski*
+
 *   Extract source code for the entire exception stack trace for
     better debugging and diagnosis.
 
