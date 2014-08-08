@@ -77,6 +77,27 @@ class MessageEncryptorTest < ActiveSupport::TestCase
     assert_not_verified([iv,  message] * bad_encoding_characters)
   end
 
+  def test_message_with_expiration
+    message = @encryptor.encrypt_and_sign(@data, 1.hour.from_now)
+
+    assert_nothing_raised(ActiveSupport::MessageEncryptor::ExpiredMessage) do
+      assert_equal @data, @encryptor.decrypt_and_verify(message)
+    end
+
+    travel 59.minutes
+
+    assert_nothing_raised(ActiveSupport::MessageEncryptor::ExpiredMessage) do
+      assert_equal @data, @encryptor.decrypt_and_verify(message)
+    end
+
+    travel 1.minute
+    travel 1.second
+
+    assert_raise(ActiveSupport::MessageEncryptor::ExpiredMessage) do
+      @encryptor.decrypt_and_verify(message)
+    end
+  end
+
   private
 
   def assert_not_decrypted(value)

@@ -69,6 +69,26 @@ class MessageVerifierTest < ActiveSupport::TestCase
                     "undefined class/module MessageVerifierTest::AutoloadClass"], exception.message
   end
 
+  def test_raise_error_when_the_message_is_expired
+    message = @verifier.generate(@data, 1.hour.from_now)
+    assert_nothing_raised(ActiveSupport::MessageVerifier::ExpiredMessage) do
+      assert_equal @data, @verifier.verify(message)
+    end
+
+    travel 59.minutes
+
+    assert_nothing_raised(ActiveSupport::MessageVerifier::ExpiredMessage) do
+      assert_equal @data, @verifier.verify(message)
+    end
+
+    travel 1.minute
+    travel 1.second
+
+    assert_raise(ActiveSupport::MessageVerifier::ExpiredMessage) do
+      @verifier.verify(message)
+    end
+  end
+
   def assert_not_verified(message)
     assert_raise(ActiveSupport::MessageVerifier::InvalidSignature) do
       @verifier.verify(message)
