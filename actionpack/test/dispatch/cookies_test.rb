@@ -369,23 +369,6 @@ class CookiesTest < ActionController::TestCase
     assert_equal 'Jamie', @controller.send(:cookies).permanent[:user_name]
   end
 
-  def test_signed_cookie_using_default_digest
-    get :set_signed_cookie
-    cookies = @controller.send :cookies
-    assert_not_equal 45, cookies[:user_id]
-    assert_equal 45, cookies.signed[:user_id]
-    assert_equal 'SHA1', cookies.signed.instance_variable_get(:"@verifier").instance_variable_get(:"@digest")
-  end
-
-  def test_signed_cookie_using_custom_digest
-    @request.env["action_dispatch.cookies_digest"] = 'SHA256'
-    get :set_signed_cookie
-    cookies = @controller.send :cookies
-    assert_not_equal 45, cookies[:user_id]
-    assert_equal 45, cookies.signed[:user_id]
-    assert_equal 'SHA256', cookies.signed.instance_variable_get(:"@verifier").instance_variable_get(:"@digest")
-  end
-
   def test_signed_cookie_using_default_serializer
     get :set_signed_cookie
     cookies = @controller.send :cookies

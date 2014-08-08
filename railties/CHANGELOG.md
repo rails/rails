@@ -1,9 +1,3 @@
-*   The `Rails.application.message_verifier` now returns ActiveSupport::MessageVerifier
-    preconfigured with `:digest` and `:serializer` values set to `config.action_dispatch.cookies_digest`
-    and `config.action_dispatch.cookies_serializer` accordingly.
-
-    *Łukasz Strzałkowski*
-
 *   Add `after_bundle` callbacks in Rails templates. Useful for allowing the
     generated binstubs to be added to version control.
 
