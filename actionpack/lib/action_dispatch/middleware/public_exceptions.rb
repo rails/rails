@@ -1,5 +1,5 @@
 module ActionDispatch
-  # When called, this middleware renders an error page. By default if an html
+  # When called, this middleware renders an error page. By default if an HTML
   # response is expected it will render static error pages from the `/public`
   # directory. For example when this middleware receives a 500 response it will
   # render the template found in `/public/500.html`.

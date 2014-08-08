@@ -91,7 +91,7 @@ module HTML
       sup dfn cite big small address hr br div span h1 h2 h3 h4 h5 h6 ul ol li dl dt dd abbr
       acronym a img blockquote del ins))
 
-    # Specifies the default Set of html attributes that the #sanitize helper will leave
+    # Specifies the default Set of HTML attributes that the #sanitize helper will leave
     # in the allowed tag.
     self.allowed_attributes     = Set.new(%w(href src width height alt cite datetime title class name xml:lang abbr))
 

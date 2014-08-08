@@ -9,7 +9,7 @@ module ActionController #:nodoc:
   end
 
   # Controller actions are protected from Cross-Site Request Forgery (CSRF) attacks
-  # by including a token in the rendered html for your application. This token is
+  # by including a token in the rendered HTML for your application. This token is
   # stored as a random string in the session, to which an attacker does not have
   # access. When a request reaches your application, \Rails verifies the received
   # token with the token in the session. Only HTML and JavaScript requests are checked,
@@ -44,7 +44,7 @@ module ActionController #:nodoc:
   #
   # The token parameter is named <tt>authenticity_token</tt> by default. The name and
   # value of this token must be added to every layout that renders forms by including
-  # <tt>csrf_meta_tags</tt> in the html +head+.
+  # <tt>csrf_meta_tags</tt> in the HTML +head+.
   #
   # Learn more about CSRF attacks and securing your application in the
   # {Ruby on Rails Security Guide}[http://guides.rubyonrails.org/security.html].

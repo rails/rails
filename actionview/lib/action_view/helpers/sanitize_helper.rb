@@ -8,7 +8,7 @@ module ActionView
     # These helper methods extend Action View making them callable within your template files.
     module SanitizeHelper
       extend ActiveSupport::Concern
-      # This +sanitize+ helper will html encode all tags and strip all attributes that
+      # This +sanitize+ helper will HTML encode all tags and strip all attributes that
       # aren't specifically allowed.
       #
       # It also strips href/src tags with invalid protocols, like javascript: especially.

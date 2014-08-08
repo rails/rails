@@ -314,7 +314,7 @@ module ActionView
       #   # => <option>MasterCard</option>
       #   # => <option selected="selected">Discover</option>
       #
-      # You can optionally provide html attributes as the last element of the array.
+      # You can optionally provide HTML attributes as the last element of the array.
       #
       #   options_for_select([ "Denmark", ["USA", {class: 'bold'}], "Sweden" ], ["USA", "Sweden"])
       #   # => <option value="Denmark">Denmark</option>
@@ -633,7 +633,7 @@ module ActionView
       # even use the label as wrapper, as in the example above.
       #
       # The builder methods <tt>label</tt> and <tt>radio_button</tt> also accept
-      # extra html options:
+      # extra HTML options:
       #   collection_radio_buttons(:post, :author_id, Author.all, :id, :name_with_initial) do |b|
       #     b.label(class: "radio_button") { b.radio_button(class: "radio_button") }
       #   end
@@ -696,7 +696,7 @@ module ActionView
       # use the label as wrapper, as in the example above.
       #
       # The builder methods <tt>label</tt> and <tt>check_box</tt> also accept
-      # extra html options:
+      # extra HTML options:
       #   collection_check_boxes(:post, :author_ids, Author.all, :id, :name_with_initial) do |b|
       #     b.label(class: "check_box") { b.check_box(class: "check_box") }
       #   end

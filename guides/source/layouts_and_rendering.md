@@ -263,7 +263,7 @@ TIP: This is useful when you're rendering a small snippet of HTML code.
 However, you might want to consider moving it to a template file if the markup
 is complex.
 
-NOTE: This option will escape HTML entities if the string is not html safe.
+NOTE: This option will escape HTML entities if the string is not HTML safe.
 
 #### Rendering JSON
 

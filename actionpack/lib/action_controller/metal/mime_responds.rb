@@ -285,7 +285,7 @@ module ActionController #:nodoc:
     # e.g. <tt>index.html.erb</tt>. If no template is available, the behavior
     # depends on the selected format:
     #
-    # * for an html response - if the request method is +get+, an exception
+    # * for an HTML response - if the request method is +get+, an exception
     #   is raised but for other requests such as +post+ the response
     #   depends on whether the resource has any validation errors (i.e.
     #   assuming that an attempt has been made to save the resource,
@@ -334,12 +334,12 @@ module ActionController #:nodoc:
     #
     # As outlined above, the +resources+ argument passed to +respond_with+
     # can play two roles. It can be used to generate the redirect url
-    # for successful html requests (e.g. for +create+ actions when
-    # no template exists), while for formats other than html and JavaScript
+    # for successful HTML requests (e.g. for +create+ actions when
+    # no template exists), while for formats other than HTML and JavaScript
     # it is the object that gets rendered, by being converted directly to the
     # required format (again assuming no template exists).
     #
-    # For redirecting successful html requests, +respond_with+ also supports
+    # For redirecting successful HTML requests, +respond_with+ also supports
     # the use of nested resources, which are supplied in the same way as
     # in <code>form_for</code> and <code>polymorphic_url</code>. For example -
     #
@@ -351,7 +351,7 @@ module ActionController #:nodoc:
     #   end
     #
     # This would cause +respond_with+ to redirect to <code>project_task_url</code>
-    # instead of <code>task_url</code>. For request formats other than html or
+    # instead of <code>task_url</code>. For request formats other than HTML or
     # JavaScript, if multiple resources are passed in this way, it is the last
     # one specified that is rendered.
     #
@@ -384,9 +384,9 @@ module ActionController #:nodoc:
     #
     # Two additional options are relevant specifically to +respond_with+ -
     # 1. <tt>:location</tt> - overwrites the default redirect location used after
-    #    a successful html +post+ request.
+    #    a successful HTML +post+ request.
     # 2. <tt>:action</tt> - overwrites the default render action used after an
-    #    unsuccessful html +post+ request.
+    #    unsuccessful HTML +post+ request.
     def respond_with(*resources, &block)
       if self.class.mimes_for_respond_to.empty?
         raise "In order to use respond_with, first you need to declare the " \
