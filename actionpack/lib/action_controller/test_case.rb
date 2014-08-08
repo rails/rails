@@ -204,10 +204,10 @@ module ActionController
     def recycle!
       @formats = nil
       @env.delete_if { |k, v| k =~ /^(action_dispatch|rack)\.request/ }
+      @env.delete_if { |k, v| k =~ /^rack.input/ }
       @env.delete_if { |k, v| k =~ /^action_dispatch\.rescue/ }
       @method = @request_method = nil
       @fullpath = @ip = @remote_ip = @protocol = nil
-      @env['action_dispatch.request.query_parameters'] = {}
       @set_cookies ||= {}
       @set_cookies.update(Hash[cookie_jar.instance_variable_get("@set_cookies").map{ |k,o| [k,o[:value]] }])
       deleted_cookies = cookie_jar.instance_variable_get("@delete_cookies")
@@ -578,35 +578,14 @@ module ActionController
           )
 
           url, query_string = @routes.path_for(options).split("?", 2)
-
-          if query_string && http_method != 'POST'
-            headers_or_env["QUERY_STRING"] = query_string
-          end
         end
 
-        allowed_headers = %w{
-          CONTENT_TYPE
-          HTTPS
-          HTTP_ACCEPT
-          HTTP_AUTHORIZATION
-          HTTP_HOST
-          HTTP_REFERER
-          HTTP_X_REQUESTED_WITH
-          HTTP_X_CSRF_TOKEN
-          X-HTTP_AUTHORIZATION
-          X_HTTP_AUTHORIZATION
-          REDIRECT_X_HTTP_AUTHORIZATION
-          REMOTE_ADDR
-          QUERY_STRING
-          action_dispatch.key_generator
-          action_dispatch.redirect_filter
-          action_dispatch.parameter_filter
-        }
+        if http_method != 'POST'
+          headers_or_env["QUERY_STRING"] = query_string
+        end
 
-        allowed_headers.each do |header|
-          if @request.env.include?(header)
-            headers_or_env[header] ||= @request.env[header]
-          end
+        @request.env.each do |key, value|
+          headers_or_env[key] ||= value if !value.nil?
         end
 
         headers_or_env['action_controller.functional_test.controller'] = {
@@ -616,9 +595,7 @@ module ActionController
         send("super_#{http_method.downcase}", url, parameters, headers_or_env)
 
         @assigns = @controller.respond_to?(:view_assigns) ? @controller.view_assigns : {}
-        @request.env.delete('QUERY_STRING')
-        @request.env.delete('PATH_INFO')
-        @request = build_request(@request.env)
+        @request = build_request(@request.env.except('action_controller.instance', 'QUERY_STRING', 'PATH_INFO'))
         @response
       end
 
