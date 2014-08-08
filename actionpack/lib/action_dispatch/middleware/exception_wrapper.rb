@@ -61,12 +61,15 @@ module ActionDispatch
     end
 
     def source_extract
-      if application_trace && trace = application_trace.first
-        file, line, _ = trace.split(":")
-        @file = file
-        @line_number = line.to_i
-        source_fragment(@file, @line_number)
-      end
+      exception.backtrace.map do |trace|
+        file, line = trace.split(":")
+        line_number = line.to_i
+        {
+          code: source_fragment(file, line_number),
+          file: file,
+          line_number: line_number
+        }
+      end if exception.backtrace
     end
 
     private
@@ -110,7 +113,7 @@ module ActionDispatch
     def expand_backtrace
       @exception.backtrace.unshift(
         @exception.to_s.split("\n")
-      ).flatten! 
+      ).flatten!
     end
   end
 end

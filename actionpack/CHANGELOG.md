@@ -1,3 +1,8 @@
+*   Extract source code for the entire exception stack trace for
+    better debugging and diagnosis.
+
+    *Ryan Dao*
+
 *   Allows ActionDispatch::Request::LOCALHOST to match any IPv4 127.0.0.0/8
     loopback address.
 
