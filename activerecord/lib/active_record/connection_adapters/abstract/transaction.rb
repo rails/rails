@@ -169,16 +169,14 @@ module ActiveRecord
         transaction = begin_transaction options
         yield
       rescue Exception => error
-        transaction.rollback if transaction
+        rollback_transaction if transaction
         raise
       ensure
         begin
-          transaction.commit unless error
+          commit_transaction unless error
         rescue Exception
           transaction.rollback
           raise
-        ensure
-          @stack.pop if transaction
         end
       end
 
