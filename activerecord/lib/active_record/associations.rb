@@ -1052,7 +1052,7 @@ module ActiveRecord
       # Specifies a one-to-many association. The following methods for retrieval and query of
       # collections of associated objects will be added:
       #
-      # +collection+ is a placeholder for the symbol passed as the first argument, so
+      # +collection+ is a placeholder for the symbol passed as the +name+ argument, so
       # <tt>has_many :clients</tt> would add among others <tt>clients.empty?</tt>.
       #
       # [collection(force_reload = false)]
@@ -1227,7 +1227,7 @@ module ActiveRecord
       #
       # The following methods for retrieval and query of a single associated object will be added:
       #
-      # +association+ is a placeholder for the symbol passed as the first argument, so
+      # +association+ is a placeholder for the symbol passed as the +name+ argument, so
       # <tt>has_one :manager</tt> would add among others <tt>manager.nil?</tt>.
       #
       # [association(force_reload = false)]
@@ -1338,7 +1338,7 @@ module ActiveRecord
       # Methods will be added for retrieval and query for a single associated object, for which
       # this object holds an id:
       #
-      # +association+ is a placeholder for the symbol passed as the first argument, so
+      # +association+ is a placeholder for the symbol passed as the +name+ argument, so
       # <tt>belongs_to :author</tt> would add among others <tt>author.nil?</tt>.
       #
       # [association(force_reload = false)]
@@ -1480,7 +1480,7 @@ module ActiveRecord
       #
       # Adds the following methods for retrieval and query:
       #
-      # +collection+ is a placeholder for the symbol passed as the first argument, so
+      # +collection+ is a placeholder for the symbol passed as the +name+ argument, so
       # <tt>has_and_belongs_to_many :categories</tt> would add among others <tt>categories.empty?</tt>.
       #
       # [collection(force_reload = false)]
