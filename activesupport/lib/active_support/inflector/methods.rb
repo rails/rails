@@ -348,10 +348,11 @@ module ActiveSupport
 
     private
 
-    # Mount a regular expression that will match part by part of the constant.
+    # Mounts a regular expression, returned as a string to ease interpolation,
+    # that will match part by part the given constant.
     #
-    #   const_regexp("Foo::Bar::Baz") # => /Foo(::Bar(::Baz)?)?/
-    #   const_regexp("::")            # => /::/
+    #   const_regexp("Foo::Bar::Baz") # => "Foo(::Bar(::Baz)?)?"
+    #   const_regexp("::")            # => "::"
     def const_regexp(camel_cased_word) #:nodoc:
       parts = camel_cased_word.split("::")
 
