@@ -54,7 +54,7 @@ module ActiveRecord
         command = "pg_dump -i -s -x -O -f #{Shellwords.escape(filename)} #{search_path} #{Shellwords.escape(configuration['database'])}"
         raise 'Error dumping database' unless Kernel.system(command)
 
-        File.open(filename, "a") { |f| f << "SET search_path TO #{ActiveRecord::Base.connection.schema_search_path};\n\n" }
+        File.open(filename, "a") { |f| f << "SET search_path TO #{connection.schema_search_path};\n\n" }
       end
 
       def structure_load(filename)
