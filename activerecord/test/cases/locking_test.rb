@@ -263,18 +263,6 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     end
   end
 
-  def test_polymorphic_destroy_with_dependencies_and_lock_version
-    car = Car.create!
-
-    assert_difference 'car.wheels.count'  do
-      car.wheels << Wheel.create!
-    end
-    assert_difference 'car.wheels.count', -1  do
-      car.destroy
-    end
-    assert car.destroyed?
-  end
-
   def test_removing_has_and_belongs_to_many_associations_upon_destroy
     p = RichPerson.create! first_name: 'Jon'
     p.treasures.create!

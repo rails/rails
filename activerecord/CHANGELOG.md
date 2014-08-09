@@ -1,3 +1,10 @@
+*   Fix a bug where counter_cache doesn't always work with  polymorphic
+    relations.
+
+    Fixes #16407.
+
+    *Stefan Kanev & Sean Griffin*
+
 *   Ensure that cyclic associations with autosave don't cause duplicate errors
     to be added to the parent record.
 
