@@ -1,3 +1,11 @@
+*   Fixed `touch: true` in polymorphic relationships. Prior to the change the
+    other end of `belongs_to polymorphic: true, touch: true` was not touched
+    when the record is updated.
+
+    Fixes #16446.
+
+    *Stefan Kanev*
+
 *   When calling `update_columns` on a record that is not persisted, the error
     message now reflects whether that object is a new record or has been
     destroyed.

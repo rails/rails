@@ -10,6 +10,7 @@ class Car < ActiveRecord::Base
   has_many :tyres
   has_many :engines, :dependent => :destroy
   has_many :wheels, :as => :wheelable, :dependent => :destroy
+  has_many :price_estimates, as: :estimate_of
 
   scope :incl_tyres, -> { includes(:tyres) }
   scope :incl_engines, -> { includes(:engines) }

@@ -52,6 +52,7 @@ ActiveRecord::Schema.define do
 
   create_table :aircraft, force: true do |t|
     t.string :name
+    t.references :pilot
   end
 
   create_table :articles, force: true do |t|
@@ -548,6 +549,7 @@ ActiveRecord::Schema.define do
   create_table :pets, primary_key: :pet_id, force: true do |t|
     t.string :name
     t.integer :owner_id, :integer
+    t.references :man
     t.timestamps
   end
 

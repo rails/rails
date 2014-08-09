@@ -3,6 +3,7 @@ class Pet < ActiveRecord::Base
 
   self.primary_key = :pet_id
   belongs_to :owner, :touch => true
+  belongs_to :man
   has_many :toys
 
   class << self
