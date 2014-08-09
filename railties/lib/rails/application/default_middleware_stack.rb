@@ -18,7 +18,9 @@ module Rails
           middleware.use ::Rack::Sendfile, config.action_dispatch.x_sendfile_header
 
           if config.serve_static_assets
-            middleware.use ::ActionDispatch::Static, paths["public"].first, config.static_cache_control
+            headers = {}
+            headers['Cache-Control'] = config.static_cache_control if config.static_cache_control
+            middleware.use ::ActionDispatch::Static, paths["public"].first, cache_asset_lookup: config.cache_classes, headers: headers
           end
 
           if rack_cache = load_rack_cache

@@ -4,6 +4,31 @@ require 'rbconfig'
 require 'zlib'
 
 module StaticTests
+  def test_base_of_path_exists_in_root_directory
+    app = ActionDispatch::FileHandler.new(@root, cache_asset_lookup: true)
+    assert app.base_of_path_exists_in_root_directory?("/index.html")
+    assert app.base_of_path_exists_in_root_directory?("/index")
+    assert app.base_of_path_exists_in_root_directory?("/")
+    assert app.base_of_path_exists_in_root_directory?("")
+    assert app.base_of_path_exists_in_root_directory?("/foo/anything-#{SecureRandom.hex(16)}")
+
+    assert !app.base_of_path_exists_in_root_directory?("/directory-does-not-exist/")
+    assert !app.base_of_path_exists_in_root_directory?("/directory-does-not-exist")
+    assert !app.base_of_path_exists_in_root_directory?("/directory-does-not-exist/anything-#{SecureRandom.hex(16)}")
+  end
+
+  def test_deprecated_method_signature
+    deprecated_cache_control_string = "strings-deprecated-here"
+    assert_deprecated do
+      @app = ActionDispatch::Static.new(StaticTest::DummyApp, @root, deprecated_cache_control_string)
+    end
+    file_name = "/cache-control-string-deprecation-test.html"
+    with_static_file file_name do |file|
+      assert_html file, get(file_name)
+      assert_equal deprecated_cache_control_string, get(file_name).headers["Cache-Control"]
+    end
+  end
+
   def test_serves_dynamic_content
     assert_equal "Hello, World!", get("/nofile").body
   end
@@ -201,7 +226,7 @@ class StaticTest < ActiveSupport::TestCase
 
   def setup
     @root = "#{FIXTURE_LOAD_PATH}/public"
-    @app = ActionDispatch::Static.new(DummyApp, @root, "public, max-age=60")
+    @app = ActionDispatch::Static.new(DummyApp, @root, headers: { 'Cache-Control' => "public, max-age=60" })
   end
 
   def public_path
@@ -227,10 +252,17 @@ class StaticTest < ActiveSupport::TestCase
   end
 end
 
+class CacheTest < StaticTest
+  def setup
+    @root = "#{FIXTURE_LOAD_PATH}/public"
+    @app = ActionDispatch::Static.new(DummyApp, @root, headers: { 'Cache-Control' => "public, max-age=60" }, cache_asset_lookup: true)
+  end
+end
+
 class StaticEncodingTest < StaticTest
   def setup
     @root = "#{FIXTURE_LOAD_PATH}/公共"
-    @app = ActionDispatch::Static.new(DummyApp, @root, "public, max-age=60")
+    @app = ActionDispatch::Static.new(DummyApp, @root, headers: { 'Cache-Control' => "public, max-age=60" })
   end
 
   def public_path
