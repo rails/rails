@@ -1131,7 +1131,7 @@ module ActiveRecord
       # * <tt>Firm#clients.build</tt> (similar to <tt>Client.new("firm_id" => id)</tt>)
       # * <tt>Firm#clients.create</tt> (similar to <tt>c = Client.new("firm_id" => id); c.save; c</tt>)
       # * <tt>Firm#clients.create!</tt> (similar to <tt>c = Client.new("firm_id" => id); c.save!</tt>)
-      # The declaration can also include an options hash to specialize the behavior of the association.
+      # The declaration can also include an +options+ hash to specialize the behavior of the association.
       #
       # === Options
       # [:class_name]
@@ -1259,7 +1259,7 @@ module ActiveRecord
       #
       # === Options
       #
-      # The declaration can also include an options hash to specialize the behavior of the association.
+      # The declaration can also include an +options+ hash to specialize the behavior of the association.
       #
       # Options are:
       # [:class_name]
@@ -1364,7 +1364,7 @@ module ActiveRecord
       # * <tt>Post#build_author</tt> (similar to <tt>post.author = Author.new</tt>)
       # * <tt>Post#create_author</tt> (similar to <tt>post.author = Author.new; post.author.save; post.author</tt>)
       # * <tt>Post#create_author!</tt> (similar to <tt>post.author = Author.new; post.author.save!; post.author</tt>)
-      # The declaration can also include an options hash to specialize the behavior of the association.
+      # The declaration can also include an +options+ hash to specialize the behavior of the association.
       #
       # === Options
       #
@@ -1541,7 +1541,7 @@ module ActiveRecord
       # * <tt>Developer#projects.exists?(...)</tt>
       # * <tt>Developer#projects.build</tt> (similar to <tt>Project.new("developer_id" => id)</tt>)
       # * <tt>Developer#projects.create</tt> (similar to <tt>c = Project.new("developer_id" => id); c.save; c</tt>)
-      # The declaration may include an options hash to specialize the behavior of the association.
+      # The declaration may include an +options+ hash to specialize the behavior of the association.
       #
       # === Options
       #
