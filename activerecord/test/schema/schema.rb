@@ -52,6 +52,7 @@ ActiveRecord::Schema.define do
 
   create_table :aircraft, force: true do |t|
     t.string :name
+    t.integer :wheels_count, default: 0, null: false
   end
 
   create_table :articles, force: true do |t|

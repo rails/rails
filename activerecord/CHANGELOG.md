@@ -1,3 +1,10 @@
+*   Fix a bug where counter_cache doesn't always work with  polymorphic
+    relations.
+
+    Fixes #16407.
+
+    *Stefan Kanev*
+
 *   When calling `update_columns` on a record that is not persisted, the error
     message now reflects whether that object is a new record or has been
     destroyed.
