@@ -136,7 +136,7 @@ following to the dummy application's routes file at
 `test/dummy/config/routes.rb`:
 
 ```ruby
-mount Blorgh::Engine, at: "blorgh"
+mount Blorgh::Engine => "/blorgh"
 ```
 
 ### Inside an Engine
@@ -173,7 +173,7 @@ Within `lib/blorgh/engine.rb` is the base class for the engine:
 
 ```ruby
 module Blorgh
-  class Engine < Rails::Engine
+  class Engine < ::Rails::Engine
     isolate_namespace Blorgh
   end
 end
