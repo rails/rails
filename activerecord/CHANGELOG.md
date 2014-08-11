@@ -1,3 +1,9 @@
+*   When calling `update_columns` on a record that is not persisted, the error
+    message now reflects whether that object is a new record or has been
+    destroyed.
+
+    *Lachlan Sylvester*
+
 *   Define `id_was` to get the previous value of the primary key.
 
     Currently when we call id_was and we have a custom primary key name
