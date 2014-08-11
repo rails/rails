@@ -22,6 +22,11 @@ Rails.application.configure do
   # Disable Rails's static asset server (Apache or NGINX will already do this).
   config.serve_static_assets = false
 
+  # Sets the cache control header of assets served from your application.
+  # Set to a high value when using Rails Asset pipeline with digests enabled.
+  # The units for `max-age` are in seconds.
+  config.static_cache_control = "public, max-age=#{1.hour}"
+
   <%- unless options.skip_sprockets? -%>
   # Compress JavaScripts and CSS.
   config.assets.js_compressor = :uglifier

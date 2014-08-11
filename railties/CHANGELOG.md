@@ -1,3 +1,8 @@
+*   Enable static cache control for assets served by Rails in Production
+    by default. The default value is 3600 seconds.
+
+    *Richard Schneeman*
+
 *   Add `after_bundle` callbacks in Rails templates. Useful for allowing the
     generated binstubs to be added to version control.
 
