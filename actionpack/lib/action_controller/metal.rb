@@ -182,7 +182,7 @@ module ActionController
       body = [body] unless body.nil? || body.respond_to?(:each)
       super
     end
-    
+
     # Tests if render or redirect has already happened.
     def performed?
       response_body || (response && response.committed?)
@@ -191,6 +191,18 @@ module ActionController
     def dispatch(name, request) #:nodoc:
       @_request = request
       @_env = request.env
+
+      if @_env['action_controller.functional_test.controller']
+        @_env['action_controller.functional_test.controller'].each do |key, value|
+          case value
+          when Array
+            self.send(key).send(value.first, value.last)
+          else
+            self.send("#{key}=", value)
+          end
+        end
+      end
+
       @_env['action_controller.instance'] = self
       process(name)
       to_a

@@ -195,51 +195,10 @@ module ActionController
     def initialize(env = {})
       super
 
-      self.session = TestSession.new
-      self.session_options = TestSession::DEFAULT_OPTIONS.merge(:id => SecureRandom.hex(16))
-    end
-
-    def assign_parameters(routes, controller_path, action, parameters = {})
-      parameters = parameters.symbolize_keys.merge(:controller => controller_path, :action => action)
-      extra_keys = routes.extra_keys(parameters)
-      non_path_parameters = get? ? query_parameters : request_parameters
-      parameters.each do |key, value|
-        if value.is_a?(Array) && (value.frozen? || value.any?(&:frozen?))
-          value = value.map{ |v| v.duplicable? ? v.dup : v }
-        elsif value.is_a?(Hash) && (value.frozen? || value.any?{ |k,v| v.frozen? })
-          value = Hash[value.map{ |k,v| [k, v.duplicable? ? v.dup : v] }]
-        elsif value.frozen? && value.duplicable?
-          value = value.dup
-        end
-
-        if extra_keys.include?(key)
-          non_path_parameters[key] = value
-        else
-          if value.is_a?(Array)
-            value = value.map(&:to_param)
-          else
-            value = value.to_param
-          end
-
-          path_parameters[key] = value
-        end
+      if self.session.empty?
+        self.session = TestSession.new
+        self.session_options = TestSession::DEFAULT_OPTIONS.merge(:id => SecureRandom.hex(16))
       end
-
-      # Clear the combined params hash in case it was already referenced.
-      @env.delete("action_dispatch.request.parameters")
-
-      # Clear the filter cache variables so they're not stale
-      @filtered_parameters = @filtered_env = @filtered_path = nil
-
-      params = self.request_parameters.dup
-      %w(controller action only_path).each do |k|
-        params.delete(k)
-        params.delete(k.to_sym)
-      end
-      data = params.to_query
-
-      @env['CONTENT_LENGTH'] = data.length.to_s
-      @env['rack.input'] = StringIO.new(data)
     end
 
     def recycle!
@@ -439,7 +398,7 @@ module ActionController
   # If you're using named routes, they can be easily tested using the original named routes' methods straight in the test case.
   #
   #  assert_redirected_to page_url(title: 'foo')
-  class TestCase < ActiveSupport::TestCase
+  class TestCase < ActionDispatch::IntegrationTest
     module Behavior
       extend ActiveSupport::Concern
       include ActionDispatch::TestProcess
@@ -550,7 +509,7 @@ module ActionController
           Hash[hash_or_array_or_value.map{|key, value| [key, paramify_values(value)] }]
         when Array
           hash_or_array_or_value.map {|i| paramify_values(i)}
-        when Rack::Test::UploadedFile, ActionDispatch::Http::UploadedFile
+        when Rack::Test::UploadedFile
           hash_or_array_or_value
         else
           hash_or_array_or_value.to_param
@@ -585,8 +544,10 @@ module ActionController
       def process(action, http_method = 'GET', *args)
         check_required_ivars
 
+        headers_or_env = { 'action_dispatch.show_exceptions' => false }
+
         if args.first.is_a?(String) && http_method != 'HEAD'
-          @request.env['RAW_POST_DATA'] = args.shift
+          headers_or_env['RAW_POST_DATA'] = args.shift
         end
 
         parameters, session, flash = args
@@ -596,50 +557,68 @@ module ActionController
         # proper params, as is the case when engaging rack.
         parameters = paramify_values(parameters) if html_format?(parameters)
 
-        @html_document = nil
+        @request.recycle!
 
-        unless @controller.respond_to?(:recycle!)
-          @controller.extend(Testing::Functional)
+        headers_or_env['rack.session'] = begin
+          @request.session.update(session) if session
+          @request.session
         end
 
-        @request.recycle!
-        @response.recycle!
-        @controller.recycle!
-
-        @request.env['REQUEST_METHOD'] = http_method
-
-        controller_class_name = @controller.class.anonymous? ?
-          "anonymous" :
-          @controller.class.controller_path
-
-        @request.assign_parameters(@routes, controller_class_name, action.to_s, parameters)
-
-        @request.session.update(session) if session
-        @request.flash.update(flash || {})
+        headers_or_env['action_dispatch.cookies'] = cookies
 
         @controller.request  = @request
-        @controller.response = @response
 
-        build_request_uri(action, parameters)
+        unless url = @request.env["PATH_INFO"]
+          options = @controller.respond_to?(:url_options) ? @controller.__send__(:url_options).merge(parameters) : parameters
+          options.update(
+            controller: @controller.class.controller_path,
+            action: action,
+            relative_url_root: nil,
+            _recall: @request.path_parameters
+          )
 
-        name = @request.parameters[:action]
+          url, query_string = @routes.path_for(options).split("?", 2)
 
-        @controller.recycle!
-        @controller.process(name)
-
-        if cookies = @request.env['action_dispatch.cookies']
-          unless @response.committed?
-            cookies.write(@response)
+          if query_string && http_method != 'POST'
+            headers_or_env["QUERY_STRING"] = query_string
           end
         end
-        @response.prepare!
 
-        @assigns = @controller.respond_to?(:view_assigns) ? @controller.view_assigns : {}
+        allowed_headers = %w{
+          CONTENT_TYPE
+          HTTPS
+          HTTP_ACCEPT
+          HTTP_AUTHORIZATION
+          HTTP_HOST
+          HTTP_REFERER
+          HTTP_X_REQUESTED_WITH
+          HTTP_X_CSRF_TOKEN
+          X-HTTP_AUTHORIZATION
+          X_HTTP_AUTHORIZATION
+          REDIRECT_X_HTTP_AUTHORIZATION
+          REMOTE_ADDR
+          QUERY_STRING
+          action_dispatch.key_generator
+          action_dispatch.redirect_filter
+          action_dispatch.parameter_filter
+        }
 
-        if flash_value = @request.flash.to_session_value
-          @request.session['flash'] = flash_value
+        allowed_headers.each do |header|
+          if @request.env.include?(header)
+            headers_or_env[header] ||= @request.env[header]
+          end
         end
 
+        headers_or_env['action_controller.functional_test.controller'] = {
+          flash: [:update, (flash || {})]
+        }
+
+        send("super_#{http_method.downcase}", url, parameters, headers_or_env)
+
+        @assigns = @controller.respond_to?(:view_assigns) ? @controller.view_assigns : {}
+        @request.env.delete('QUERY_STRING')
+        @request.env.delete('PATH_INFO')
+        @request = build_request(@request.env)
         @response
       end
 
@@ -671,8 +650,8 @@ module ActionController
         end
       end
 
-      def build_request
-        TestRequest.new
+      def build_request(env = {})
+        TestRequest.new(env)
       end
 
       def build_response(klass)
@@ -702,26 +681,14 @@ module ActionController
         end
       end
 
-      def build_request_uri(action, parameters)
-        unless @request.env["PATH_INFO"]
-          options = @controller.respond_to?(:url_options) ? @controller.__send__(:url_options).merge(parameters) : parameters
-          options.update(
-            :action => action,
-            :relative_url_root => nil,
-            :_recall => @request.path_parameters)
-
-          url, query_string = @routes.path_for(options).split("?", 2)
-
-          @request.env["SCRIPT_NAME"] = @controller.config.relative_url_root
-          @request.env["PATH_INFO"] = url
-          @request.env["QUERY_STRING"] = query_string || ""
-        end
-      end
-
       def html_format?(parameters)
         return true unless parameters.key?(:format)
         Mime.fetch(parameters[:format]) { Mime['html'] }.html?
       end
+    end
+
+    %w{get post patch put head delete xhr}.each do |method|
+      alias_method "super_#{method}", method
     end
 
     include Behavior

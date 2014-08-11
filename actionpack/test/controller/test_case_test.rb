@@ -59,7 +59,7 @@ class TestCaseTest < ActionController::TestCase
     end
 
     def test_headers
-      render text: request.headers.env.to_json
+      render text: request.headers.env.except('action_controller.instance').to_json
     end
 
     def test_html_output
@@ -85,6 +85,16 @@ HTML
 
     def test_xml_output
       response.content_type = "application/xml"
+      render :text => <<XML
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <area>area is an empty tag in HTML, raising an error if not in xml mode</area>
+</root>
+XML
+    end
+
+    def test_xml_output_with_mime_type
+      response.content_type = Mime::Type.lookup("application/xml")
       render :text => <<XML
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
@@ -190,7 +200,7 @@ XML
     params = Hash[:page, {:name => 'page name'}, 'some key', 123]
     post :render_raw_post, params.dup
 
-    assert_equal params.to_query, @response.body
+    assert_equal Rack::Utils.build_nested_query(paramify_values(params)), @response.body
   end
 
   def test_body_stream
@@ -198,7 +208,7 @@ XML
 
     post :render_body, params.dup
 
-    assert_equal params.to_query, @response.body
+    assert_equal Rack::Utils.build_nested_query(paramify_values(params)), @response.body
   end
 
   def test_document_body_and_params_with_post
@@ -305,9 +315,9 @@ XML
   end
 
   def test_process_with_request_uri_with_params_with_explicit_uri
-    @request.env['PATH_INFO'] = "/explicit/uri"
+    @request.env['PATH_INFO'] = '/test_case_test/test/test_uri'
     process :test_uri, "GET", :id => 7
-    assert_equal "/explicit/uri", @response.body
+    assert_equal '/test_case_test/test/test_uri', @response.body
   end
 
   def test_process_with_query_string
@@ -316,7 +326,7 @@ XML
   end
 
   def test_process_with_query_string_with_explicit_uri
-    @request.env['PATH_INFO'] = '/explicit/uri'
+    @request.env['PATH_INFO'] = '/test_case_test/test/test_query_string'
     @request.env['QUERY_STRING'] = 'q=test?extra=question'
     process :test_query_string
     assert_equal "q=test?extra=question", @response.body
@@ -355,6 +365,20 @@ XML
 
   def test_should_not_impose_childless_html_tags_in_xml
     process :test_xml_output
+
+    begin
+      $stderr = StringIO.new
+      assert_select 'area' #This will cause a warning if content is processed as HTML
+      $stderr.rewind && err = $stderr.read
+    ensure
+      $stderr = STDERR
+    end
+
+    assert err.empty?
+  end
+
+  def test_should_not_impose_childless_html_tags_in_xml_with_mime_type
+    process :test_xml_output_with_mime_type
 
     begin
       $stderr = StringIO.new
@@ -429,8 +453,8 @@ XML
     get :test_params, :format => 'json', :count => 999
     parsed_params = eval(@response.body)
     assert_equal(
-      {'controller' => 'test_case_test/test', 'action' => 'test_params',
-       'format' => 'json', 'count' => 999 },
+      paramify_values({'controller' => 'test_case_test/test', 'action' => 'test_params',
+       'format' => 'json', 'count' => 999 }),
       parsed_params
     )
   end
@@ -494,8 +518,7 @@ XML
       end
 
       get :test_params, :path => ['hello', 'world']
-      assert_equal ['hello', 'world'], @request.path_parameters[:path]
-      assert_equal 'hello/world', @request.path_parameters[:path].to_param
+      assert_equal 'hello/world', @request.path_parameters[:path]
     end
   end
 
@@ -694,13 +717,6 @@ XML
     assert_equal File.open("#{FILES_DIR}/mona_lisa.jpg", READ_PLAIN).read, uploaded_file.read
   end
 
-  def test_action_dispatch_uploaded_file_upload
-    filename = 'mona_lisa.jpg'
-    path = "#{FILES_DIR}/#{filename}"
-    post :test_file_upload, :file => ActionDispatch::Http::UploadedFile.new(:filename => path, :type => "image/jpg", :tempfile => File.open(path))
-    assert_equal '159528', @response.body
-  end
-
   def test_test_uploaded_file_exception_when_file_doesnt_exist
     assert_raise(RuntimeError) { Rack::Test::UploadedFile.new('non_existent_file') }
   end
@@ -769,60 +785,8 @@ class NamedRoutesControllerTest < ActionController::TestCase
   def test_should_be_able_to_use_named_routes_before_a_request_is_done
     with_routing do |set|
       set.draw { resources :contents }
-      assert_equal 'http://test.host/contents/new', new_content_url
-      assert_equal 'http://test.host/contents/1', content_url(:id => 1)
+      assert_equal 'http://www.example.com/contents/new', new_content_url
+      assert_equal 'http://www.example.com/contents/1', content_url(:id => 1)
     end
-  end
-end
-
-class AnonymousControllerTest < ActionController::TestCase
-  def setup
-    @controller = Class.new(ActionController::Base) do
-      def index
-        render :text => params[:controller]
-      end
-    end.new
-
-    @routes = ActionDispatch::Routing::RouteSet.new.tap do |r|
-      r.draw do
-        get ':controller(/:action(/:id))'
-      end
-    end
-  end
-
-  def test_controller_name
-    get :index
-    assert_equal 'anonymous', @response.body
-  end
-end
-
-class RoutingDefaultsTest < ActionController::TestCase
-  def setup
-    @controller = Class.new(ActionController::Base) do
-      def post
-        render :text => request.fullpath
-      end
-
-      def project
-        render :text => request.fullpath
-      end
-    end.new
-
-    @routes = ActionDispatch::Routing::RouteSet.new.tap do |r|
-      r.draw do
-        get '/posts/:id', :to => 'anonymous#post', :bucket_type => 'post'
-        get '/projects/:id', :to => 'anonymous#project', :defaults => { :bucket_type => 'project' }
-      end
-    end
-  end
-
-  def test_route_option_can_be_passed_via_process
-    get :post, :id => 1, :bucket_type => 'post'
-    assert_equal '/posts/1', @response.body
-  end
-
-  def test_route_default_is_not_required_for_building_request_uri
-    get :project, :id => 2
-    assert_equal '/projects/2', @response.body
   end
 end
