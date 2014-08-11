@@ -65,7 +65,7 @@ module ActiveRecord
   #
   # Use that class method when you need to know the ordinal value of an enum:
   #
-  #   Conversation.where("status <> ?", Conversation.statuses[:archived])
+  #   Conversation.where(status: Conversation.statuses[:archived])
   #
   # Where conditions on an enum attribute must use the ordinal value of an enum.
   module Enum
