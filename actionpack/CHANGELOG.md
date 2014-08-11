@@ -1,3 +1,9 @@
+*   Requests that hit `ActionDispatch::Static` can now take advantage
+    of gzipped assets on disk. By default a gzip asset will be served if
+    the client supports gzip and a compressed file is on disk.
+
+    *Richard Schneeman*
+
 *   `ActionController::Parameters` will stop inheriting from `Hash` and
     `HashWithIndifferentAccess` in the next major release. If you use any method
     that is not available on `ActionController::Parameters` you should consider

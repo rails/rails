@@ -1,6 +1,7 @@
 # encoding: utf-8
 require 'abstract_unit'
 require 'rbconfig'
+require 'zlib'
 
 module StaticTests
   def test_serves_dynamic_content
@@ -106,6 +107,18 @@ module StaticTests
     end
   end
 
+  def test_serves_gzip_files_when_header_set
+    file_name = "/gzip/application-a71b3024f80aea3181c09774ca17e712.js"
+    response  = get(file_name, 'HTTP_ACCEPT_ENCODING' => 'gzip')
+    assert_gzip  file_name, response
+    assert_equal 'application/javascript', response.headers['Content-Type']
+    assert_equal 'Accept-Encoding',        response.headers["Vary"]
+    assert_equal 'gzip',                   response.headers["Content-Encoding"]
+
+    response  = get(file_name, 'HTTP_ACCEPT_ENCODING' => '')
+    refute_equal 'gzip', response.headers["Content-Encoding"]
+  end
+
   # Windows doesn't allow \ / : * ? " < > | in filenames
   unless RbConfig::CONFIG['host_os'] =~ /mswin|mingw/
     def test_serves_static_file_with_colon
@@ -125,13 +138,20 @@ module StaticTests
 
   private
 
+    def assert_gzip(file_name, response)
+      expected = File.read("#{FIXTURE_LOAD_PATH}/#{public_path}" + file_name)
+      actual   = Zlib::GzipReader.new(StringIO.new(response.body)).read
+      assert_equal expected, actual
+    end
+
     def assert_html(body, response)
       assert_equal body, response.body
       assert_equal "text/html", response.headers["Content-Type"]
+      refute response.headers.key?("Vary")
     end
 
-    def get(path)
-      Rack::MockRequest.new(@app).request("GET", path)
+    def get(path, headers = {})
+      Rack::MockRequest.new(@app).request("GET", path, headers)
     end
 
     def with_static_file(file)

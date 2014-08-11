@@ -16,8 +16,9 @@ module ActionDispatch
     def initialize(root, cache_control)
       @root          = root.chomp('/')
       @compiled_root = /^#{Regexp.escape(root)}/
-      headers = cache_control && { 'Cache-Control' => cache_control }
-      @file_server   = ::Rack::File.new(@root, headers)
+      headers        = {}
+      headers['Cache-Control'] = cache_control if cache_control
+      @file_server = ::Rack::File.new(@root, headers)
     end
 
     def match?(path)
@@ -36,23 +37,48 @@ module ActionDispatch
     end
 
     def call(env)
-      @file_server.call(env)
-    end
-
-    def ext
-      @ext ||= begin
-        ext = ::ActionController::Base.default_static_extension
-        "{,#{ext},/index#{ext}}"
+      path             = env['PATH_INFO']
+      gzip_file_exists = gzip_file_exists?(path)
+      if gzip_file_exists && gzip_encoding_accepted?(env)
+        env['PATH_INFO'] = "#{path}.gz"
+        status, headers, body       = @file_server.call(env)
+        headers['Content-Encoding'] = 'gzip'
+        headers['Content-Type']     = content_type(path)
+      else
+        status, headers, body = @file_server.call(env)
       end
+
+      headers['Vary'] = 'Accept-Encoding' if gzip_file_exists
+      return [status, headers, body]
     end
 
-    def unescape_path(path)
-      URI.parser.unescape(path)
-    end
+    private
+      def ext
+        @ext ||= begin
+          ext = ::ActionController::Base.default_static_extension
+          "{,#{ext},/index#{ext}}"
+        end
+      end
 
-    def escape_glob_chars(path)
-      path.gsub(/[*?{}\[\]]/, "\\\\\\&")
-    end
+      def unescape_path(path)
+        URI.parser.unescape(path)
+      end
+
+      def escape_glob_chars(path)
+        path.gsub(/[*?{}\[\]]/, "\\\\\\&")
+      end
+
+      def content_type(path)
+        ::Rack::Mime.mime_type(::File.extname(path), 'text/plain')
+      end
+
+      def gzip_encoding_accepted?(env)
+        env['HTTP_ACCEPT_ENCODING'] =~ /\bgzip\b/
+      end
+
+      def gzip_file_exists?(path)
+        File.exist?(File.join(@root, "#{::Rack::Utils.unescape(path)}.gz"))
+      end
   end
 
   # This middleware will attempt to return the contents of a file's body from
