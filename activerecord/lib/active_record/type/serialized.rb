@@ -6,6 +6,8 @@ module ActiveRecord
       attr_reader :subtype, :coder
 
       def initialize(subtype, coder)
+        raise subtype.to_s if coder.nil?
+
         @subtype = subtype
         @coder = coder
         super(subtype)
@@ -15,14 +17,14 @@ module ActiveRecord
         if default_value?(value)
           value
         else
-          coder.load(super)
+          coder.deserialize_from_database(super)
         end
       end
 
       def type_cast_for_database(value)
         return if value.nil?
         unless default_value?(value)
-          super coder.dump(value)
+          super coder.serialize_for_database(value)
         end
       end
 
@@ -44,7 +46,7 @@ module ActiveRecord
       private
 
       def default_value?(value)
-        value == coder.load(nil)
+        value == coder.deserialize_from_database(nil)
       end
     end
   end

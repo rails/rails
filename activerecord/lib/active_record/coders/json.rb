@@ -1,12 +1,12 @@
 module ActiveRecord
   module Coders # :nodoc:
     class JSON # :nodoc:
-      def self.dump(obj)
+      def self.serialize_for_database(obj)
         ActiveSupport::JSON.encode(obj)
       end
 
-      def self.load(json)
-        ActiveSupport::JSON.decode(json) unless json.nil?
+      def self.deserialize_from_database(json)
+        ActiveSupport::JSON.decode(json)
       end
     end
   end

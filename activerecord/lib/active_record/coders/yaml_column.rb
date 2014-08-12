@@ -17,13 +17,13 @@ module ActiveRecord
           raise SerializationTypeMismatch,
             "Attribute was supposed to be a #{object_class}, but was a #{obj.class}. -- #{obj.inspect}"
         end
-        YAML.dump obj
+        ::YAML.dump obj
       end
 
       def load(yaml)
         return object_class.new if object_class != Object && yaml.nil?
         return yaml unless yaml.is_a?(String) && yaml =~ /^---/
-        obj = YAML.load(yaml)
+        obj = ::YAML.load(yaml)
 
         unless obj.is_a?(object_class) || obj.nil?
           raise SerializationTypeMismatch,

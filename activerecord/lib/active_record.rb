@@ -96,8 +96,14 @@ module ActiveRecord
   end
 
   module Coders
+    extend ActiveSupport::Autoload
+
     autoload :YAMLColumn, 'active_record/coders/yaml_column'
-    autoload :JSON, 'active_record/coders/json'
+    autoload :YAML
+    autoload :JSON
+    autoload :Restricted
+    autoload :Legacy
+    autoload :DefaultValue
   end
 
   module AttributeMethods
