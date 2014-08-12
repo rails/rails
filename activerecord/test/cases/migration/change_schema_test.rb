@@ -176,8 +176,11 @@ module ActiveRecord
       end
 
       def test_create_table_with_timestamps_should_create_datetime_columns
-        connection.create_table table_name do |t|
-          t.timestamps
+        # FIXME: Remove the silence when we change the default `null` behavior
+        ActiveSupport::Deprecation.silence do
+          connection.create_table table_name do |t|
+            t.timestamps
+          end
         end
         created_columns = connection.columns(table_name)
 

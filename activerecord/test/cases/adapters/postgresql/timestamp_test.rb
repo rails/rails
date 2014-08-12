@@ -87,7 +87,7 @@ class TimestampTest < ActiveRecord::TestCase
 
   def test_timestamps_helper_with_custom_precision
     ActiveRecord::Base.connection.create_table(:foos) do |t|
-      t.timestamps :precision => 4
+      t.timestamps :null => true, :precision => 4
     end
     assert_equal 4, activerecord_column_option('foos', 'created_at', 'precision')
     assert_equal 4, activerecord_column_option('foos', 'updated_at', 'precision')
@@ -95,7 +95,7 @@ class TimestampTest < ActiveRecord::TestCase
 
   def test_passing_precision_to_timestamp_does_not_set_limit
     ActiveRecord::Base.connection.create_table(:foos) do |t|
-      t.timestamps :precision => 4
+      t.timestamps :null => true, :precision => 4
     end
     assert_nil activerecord_column_option("foos", "created_at", "limit")
     assert_nil activerecord_column_option("foos", "updated_at", "limit")
@@ -104,14 +104,14 @@ class TimestampTest < ActiveRecord::TestCase
   def test_invalid_timestamp_precision_raises_error
     assert_raises ActiveRecord::ActiveRecordError do
       ActiveRecord::Base.connection.create_table(:foos) do |t|
-        t.timestamps :precision => 7
+        t.timestamps :null => true, :precision => 7
       end
     end
   end
 
   def test_postgres_agrees_with_activerecord_about_precision
     ActiveRecord::Base.connection.create_table(:foos) do |t|
-      t.timestamps :precision => 4
+      t.timestamps :null => true, :precision => 4
     end
     assert_equal '4', pg_datetime_precision('foos', 'created_at')
     assert_equal '4', pg_datetime_precision('foos', 'updated_at')

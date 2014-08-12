@@ -56,6 +56,19 @@ module ActiveRecord
       end
     end
 
+    module TimestampDefaultDeprecation # :nodoc:
+      def emit_warning_if_null_unspecified(options)
+        return if options.key?(:null)
+
+        ActiveSupport::Deprecation.warn(<<-MESSAGE.strip_heredoc)
+        `timestamp` was called without specifying an option for `null`. In Rails
+        5.0, this behavior will change to `null: false`. You should manually
+        specify `null: true` to prevent the behavior of your existing migrations
+        from changing.
+        MESSAGE
+      end
+    end
+
     # Represents the schema of an SQL table in an abstract way. This class
     # provides methods for manipulating the schema representation.
     #
@@ -77,6 +90,8 @@ module ActiveRecord
     # The table definitions
     # The Columns are stored as a ColumnDefinition in the +columns+ attribute.
     class TableDefinition
+      include TimestampDefaultDeprecation
+
       # An array of ColumnDefinition objects, representing the column changes
       # that have been defined.
       attr_accessor :indexes
@@ -276,6 +291,7 @@ module ActiveRecord
       # <tt>:updated_at</tt> to the table.
       def timestamps(*args)
         options = args.extract_options!
+        emit_warning_if_null_unspecified(options)
         column(:created_at, :datetime, options)
         column(:updated_at, :datetime, options)
       end
@@ -405,6 +421,8 @@ module ActiveRecord
     #   end
     #
     class Table
+      include TimestampDefaultDeprecation
+
       def initialize(table_name, base)
         @table_name = table_name
         @base = base
@@ -452,8 +470,9 @@ module ActiveRecord
       # Adds timestamps (+created_at+ and +updated_at+) columns to the table. See SchemaStatements#add_timestamps
       #
       #  t.timestamps
-      def timestamps
-        @base.add_timestamps(@table_name)
+      def timestamps(options = {})
+        emit_warning_if_null_unspecified(options)
+        @base.add_timestamps(@table_name, options)
       end
 
       # Changes the column's definition according to the new options.
@@ -559,6 +578,5 @@ module ActiveRecord
           @base.native_database_types
         end
     end
-
   end
 end

@@ -22,7 +22,7 @@ module ActiveRecord
         super
         @connection = ActiveRecord::Base.connection
         connection.create_table :test_models do |t|
-          t.timestamps
+          t.timestamps null: true
         end
 
         TestModel.reset_column_information
