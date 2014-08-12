@@ -12,6 +12,7 @@ require 'models/bulb'
 require 'models/engine'
 require 'models/wheel'
 require 'models/treasure'
+require 'models/price_estimate'
 
 class LockWithoutDefault < ActiveRecord::Base; end
 
@@ -271,6 +272,24 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     p.destroy
     assert p.treasures.empty?
     assert RichPerson.connection.select_all("SELECT * FROM peoples_treasures WHERE rich_person_id = 1").empty?
+  end
+
+  def test_belongs_to_touch
+    car = Car.create!
+    car.bulbs << Bulb.create!
+    car.name = 'Delorean'
+    car.save!
+
+    assert_equal 2, car.lock_version
+  end
+
+  def test_belongs_to_touch_polymorphic
+    car = Car.create!
+    car.price_estimates << PriceEstimate.create!
+    car.name = 'Delorean'
+    car.save!
+
+    assert_equal 2, car.lock_version
   end
 
   def test_yaml_dumping_with_lock_column

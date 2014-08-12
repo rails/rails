@@ -1,5 +1,4 @@
 require "cases/helper"
-require 'models/man'
 require 'models/face'
 require 'models/interest'
 require 'models/zine'
@@ -10,6 +9,9 @@ require 'models/comment'
 require 'models/car'
 require 'models/bulb'
 require 'models/mixed_case_monkey'
+require 'models/man'
+require 'models/pet'
+require 'models/aircraft'
 
 class AutomaticInverseFindingTests < ActiveRecord::TestCase
   fixtures :ratings, :comments, :cars
@@ -101,15 +103,37 @@ class AutomaticInverseFindingTests < ActiveRecord::TestCase
     assert !club_reflection.has_inverse?, "A has_many_through association should not find an inverse automatically"
   end
 
-  def test_polymorphic_relationships_should_still_not_have_inverses_when_non_polymorphic_relationship_has_the_same_name
-    man_reflection = Man.reflect_on_association(:polymorphic_face_without_inverse)
-    face_reflection = Face.reflect_on_association(:man)
-
-    assert_respond_to face_reflection, :has_inverse?
-    assert face_reflection.has_inverse?, "For this test, the non-polymorphic association must have an inverse"
+  def test_the_has_many_side_of_a_polymorphic_relation_can_have_an_inverse
+    man_reflection = Man.reflect_on_association(:polymorphic_faces_without_inverse)
+    face_reflection = Face.reflect_on_association(:poly_man_without_inverse)
 
     assert_respond_to man_reflection, :has_inverse?
-    assert !man_reflection.has_inverse?, "The target of a polymorphic association should not find an inverse automatically"
+    assert man_reflection.has_inverse?, "A has_many :as relation should be able to automatically find an inverse"
+
+    assert_respond_to face_reflection, :has_inverse?
+    assert !face_reflection.has_inverse?, "A polymorphic relation cannot automatically find its inverse"
+  end
+
+  def test_belongs_to_with_scope_should_not_have_inverses_in_either_direction
+    pet_reflection = Pet.reflect_on_association(:man)
+    man_reflection = Man.reflect_on_association(:pet)
+
+    assert_respond_to pet_reflection, :has_inverse?
+    assert !pet_reflection.has_inverse?, "A belongs_to association should not find automatically an inverse with a scope"
+
+    assert_respond_to man_reflection, :has_inverse?
+    assert !man_reflection.has_inverse?, "A has_one association with a scope should not find its inverse automatically"
+  end
+
+  def test_belongs_to_with_foreign_key_should_not_have_inverses_in_either_direction
+    man_reflection = Man.reflect_on_association(:aircraft)
+    aircraft_reflection = Aircraft.reflect_on_association(:man)
+
+    assert_respond_to man_reflection, :has_inverse?
+    assert !man_reflection.has_inverse?, "A belongs_to association should not find automatically an inverse with a foreign_key"
+
+    assert_respond_to aircraft_reflection, :has_inverse?
+    assert !aircraft_reflection.has_inverse?, "A has_one association with a foreign key should not find its inverse automatically"
   end
 end
 
