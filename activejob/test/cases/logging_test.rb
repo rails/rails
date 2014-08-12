@@ -1,5 +1,6 @@
 require 'helper'
 require "active_support/log_subscriber/test_helper"
+require 'jobs/hello_job'
 require 'jobs/logging_job'
 require 'jobs/nested_job'
 

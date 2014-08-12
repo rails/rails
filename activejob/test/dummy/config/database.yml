@@ -1,3 +1,0 @@
-test:
-  adapter: sqlite3
-  database: "db/test.sqlite3"
