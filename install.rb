@@ -5,7 +5,7 @@ if version.nil?
   exit(64)
 end
 
-%w( activesupport activemodel activerecord actionpack actionview actionmailer railties ).each do |framework|
+%w( activesupport activemodel activerecord actionpack actionview actionmailer railties activejob ).each do |framework|
   puts "Installing #{framework}..."
   `cd #{framework} && gem build #{framework}.gemspec && gem install #{framework}-#{version}.gem --no-ri --no-rdoc && rm #{framework}-#{version}.gem`
 end
