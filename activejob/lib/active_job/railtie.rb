@@ -1,4 +1,5 @@
-require 'active_model/railtie'
+require 'active_job'
+require 'rails'
 
 module ActiveJob
   # = Active Job Railtie

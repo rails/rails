@@ -1,11 +1,13 @@
 require 'helper'
 require 'jobs/hello_job'
+require 'jobs/logging_job'
+require 'jobs/nested_job'
 
 class QueueNamingTest < ActiveSupport::TestCase
   test 'name derived from base' do
     assert_equal "active_jobs", HelloJob.queue_name
   end
-  
+
   test 'name appended in job' do
     begin
       HelloJob.queue_as :greetings
