@@ -52,6 +52,44 @@ Upgrading from Rails 4.1 to Rails 4.2
 
 NOTE: This section is a work in progress.
 
+### Serialized attributes
+
+When using a custom coder (e.g. `serialize :metadata, JSON`),
+assigning `nil` to a serialized attribute will save it to the database
+as `NULL` instead of passing the `nil` value through the coder (e.g. `"null"`
+when using the `JSON` coder).
+
+### `after_bundle` in Rails templates
+
+If you have a Rails template that adds all the files in version control, it
+fails to add the generated binstubs because it gets executed before Bundler:
+
+```ruby
+# template.rb
+generate(:scaffold, "person name:string")
+route "root to: 'people#index'"
+rake("db:migrate")
+
+git :init
+git add: "."
+git commit: %Q{ -m 'Initial commit' }
+```
+
+You can now wrap the `git` calls in an `after_bundle` block. It will be run
+after the binstubs have been generated.
+
+```ruby
+# template.rb
+generate(:scaffold, "person name:string")
+route "root to: 'people#index'"
+rake("db:migrate")
+
+after_bundle do
+  git :init
+  git add: "."
+  git commit: %Q{ -m 'Initial commit' }
+end
+```
 
 Upgrading from Rails 4.0 to Rails 4.1
 -------------------------------------
@@ -586,6 +624,9 @@ Rails 4.0 no longer supports loading plugins from `vendor/plugins`. You must rep
 * In Rails 4.0 when a column or a table is renamed the related indexes are also renamed. If you have migrations which rename the indexes, they are no longer needed.
 
 * Rails 4.0 has changed `serialized_attributes` and `attr_readonly` to class methods only. You shouldn't use instance methods since it's now deprecated. You should change them to use class methods, e.g. `self.serialized_attributes` to `self.class.serialized_attributes`.
+
+* When using the default coder, assigning `nil` to a serialized attribute will save it
+to the database as `NULL` instead of passing the `nil` value through YAML (`"--- \n...\n"`).
 
 * Rails 4.0 has removed `attr_accessible` and `attr_protected` feature in favor of Strong Parameters. You can use the [Protected Attributes gem](https://github.com/rails/protected_attributes) for a smooth upgrade path.
 

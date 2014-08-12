@@ -110,6 +110,8 @@ module ActiveRecord
       def drop(*arguments)
         configuration = arguments.first
         class_for_adapter(configuration['adapter']).new(*arguments).drop
+      rescue ActiveRecord::NoDatabaseError
+        $stderr.puts "Database '#{configuration['database']}' does not exist"
       rescue Exception => error
         $stderr.puts error, *(error.backtrace)
         $stderr.puts "Couldn't drop #{configuration['database']}"
@@ -123,6 +125,16 @@ module ActiveRecord
         each_current_configuration(environment) { |configuration|
           drop configuration
         }
+      end
+
+      def migrate
+        verbose = ENV["VERBOSE"] ? ENV["VERBOSE"] == "true" : true
+        version = ENV["VERSION"] ? ENV["VERSION"].to_i : nil
+        scope   = ENV['SCOPE']
+        Migration.verbose = verbose
+        Migrator.migrate(Migrator.migrations_paths, version) do |migration|
+          scope.blank? || scope == migration.scope
+        end
       end
 
       def charset_current(environment = env)
@@ -172,18 +184,37 @@ module ActiveRecord
       end
 
       def load_schema(format = ActiveRecord::Base.schema_format, file = nil)
+        ActiveSupport::Deprecation.warn(<<-MESSAGE.strip_heredoc)
+          This method will act on a specific connection in the future.
+          To act on the current connection, use `load_schema_current` instead.
+        MESSAGE
+        load_schema_current(format, file)
+      end
+
+      # This method is the successor of +load_schema+. We should rename it
+      # after +load_schema+ went through a deprecation cycle. (Rails > 4.2)
+      def load_schema_for(configuration, format = ActiveRecord::Base.schema_format, file = nil) # :nodoc:
         case format
         when :ruby
           file ||= File.join(db_dir, "schema.rb")
           check_schema_file(file)
+          purge(configuration)
+          ActiveRecord::Base.establish_connection(configuration)
           load(file)
         when :sql
           file ||= File.join(db_dir, "structure.sql")
           check_schema_file(file)
-          structure_load(current_config, file)
+          purge(configuration)
+          structure_load(configuration, file)
         else
           raise ArgumentError, "unknown format #{format.inspect}"
         end
+      end
+
+      def load_schema_current(format = ActiveRecord::Base.schema_format, file = nil, environment = env)
+        each_current_configuration(environment) { |configuration|
+          load_schema_for configuration, format, file
+        }
       end
 
       def check_schema_file(filename)

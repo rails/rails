@@ -717,9 +717,9 @@ module ActiveRecord
     # == Eager loading of associations
     #
     # Eager loading is a way to find objects of a certain class and a number of named associations.
-    # This is one of the easiest ways of to prevent the dreaded 1+N problem in which fetching 100
+    # This is one of the easiest ways of to prevent the dreaded N+1 problem in which fetching 100
     # posts that each need to display their author triggers 101 database queries. Through the
-    # use of eager loading, the 101 queries can be reduced to 2.
+    # use of eager loading, the number of queries will be reduced from 101 to 2.
     #
     #   class Post < ActiveRecord::Base
     #     belongs_to :author
@@ -1052,7 +1052,7 @@ module ActiveRecord
       # Specifies a one-to-many association. The following methods for retrieval and query of
       # collections of associated objects will be added:
       #
-      # +collection+ is a placeholder for the symbol passed as the first argument, so
+      # +collection+ is a placeholder for the symbol passed as the +name+ argument, so
       # <tt>has_many :clients</tt> would add among others <tt>clients.empty?</tt>.
       #
       # [collection(force_reload = false)]
@@ -1131,7 +1131,7 @@ module ActiveRecord
       # * <tt>Firm#clients.build</tt> (similar to <tt>Client.new("firm_id" => id)</tt>)
       # * <tt>Firm#clients.create</tt> (similar to <tt>c = Client.new("firm_id" => id); c.save; c</tt>)
       # * <tt>Firm#clients.create!</tt> (similar to <tt>c = Client.new("firm_id" => id); c.save!</tt>)
-      # The declaration can also include an options hash to specialize the behavior of the association.
+      # The declaration can also include an +options+ hash to specialize the behavior of the association.
       #
       # === Options
       # [:class_name]
@@ -1227,7 +1227,7 @@ module ActiveRecord
       #
       # The following methods for retrieval and query of a single associated object will be added:
       #
-      # +association+ is a placeholder for the symbol passed as the first argument, so
+      # +association+ is a placeholder for the symbol passed as the +name+ argument, so
       # <tt>has_one :manager</tt> would add among others <tt>manager.nil?</tt>.
       #
       # [association(force_reload = false)]
@@ -1259,7 +1259,7 @@ module ActiveRecord
       #
       # === Options
       #
-      # The declaration can also include an options hash to specialize the behavior of the association.
+      # The declaration can also include an +options+ hash to specialize the behavior of the association.
       #
       # Options are:
       # [:class_name]
@@ -1338,7 +1338,7 @@ module ActiveRecord
       # Methods will be added for retrieval and query for a single associated object, for which
       # this object holds an id:
       #
-      # +association+ is a placeholder for the symbol passed as the first argument, so
+      # +association+ is a placeholder for the symbol passed as the +name+ argument, so
       # <tt>belongs_to :author</tt> would add among others <tt>author.nil?</tt>.
       #
       # [association(force_reload = false)]
@@ -1364,7 +1364,7 @@ module ActiveRecord
       # * <tt>Post#build_author</tt> (similar to <tt>post.author = Author.new</tt>)
       # * <tt>Post#create_author</tt> (similar to <tt>post.author = Author.new; post.author.save; post.author</tt>)
       # * <tt>Post#create_author!</tt> (similar to <tt>post.author = Author.new; post.author.save!; post.author</tt>)
-      # The declaration can also include an options hash to specialize the behavior of the association.
+      # The declaration can also include an +options+ hash to specialize the behavior of the association.
       #
       # === Options
       #
@@ -1418,7 +1418,7 @@ module ActiveRecord
       #
       #   Note that <tt>accepts_nested_attributes_for</tt> sets <tt>:autosave</tt> to <tt>true</tt>.
       # [:touch]
-      #   If true, the associated object will be touched (the updated_at/on attributes set to now)
+      #   If true, the associated object will be touched (the updated_at/on attributes set to current time)
       #   when this record is either saved or destroyed. If you specify a symbol, that attribute
       #   will be updated with the current time in addition to the updated_at/on attribute.
       # [:inverse_of]
@@ -1480,7 +1480,7 @@ module ActiveRecord
       #
       # Adds the following methods for retrieval and query:
       #
-      # +collection+ is a placeholder for the symbol passed as the first argument, so
+      # +collection+ is a placeholder for the symbol passed as the +name+ argument, so
       # <tt>has_and_belongs_to_many :categories</tt> would add among others <tt>categories.empty?</tt>.
       #
       # [collection(force_reload = false)]
@@ -1541,7 +1541,7 @@ module ActiveRecord
       # * <tt>Developer#projects.exists?(...)</tt>
       # * <tt>Developer#projects.build</tt> (similar to <tt>Project.new("developer_id" => id)</tt>)
       # * <tt>Developer#projects.create</tt> (similar to <tt>c = Project.new("developer_id" => id); c.save; c</tt>)
-      # The declaration may include an options hash to specialize the behavior of the association.
+      # The declaration may include an +options+ hash to specialize the behavior of the association.
       #
       # === Options
       #
@@ -1587,7 +1587,7 @@ module ActiveRecord
           scope   = nil
         end
 
-        habtm_reflection = ActiveRecord::Reflection::HasAndBelongsToManyReflection.new(:has_and_belongs_to_many, name, scope, options, self)
+        habtm_reflection = ActiveRecord::Reflection::HasAndBelongsToManyReflection.new(name, scope, options, self)
 
         builder = Builder::HasAndBelongsToMany.new name, self, options
 

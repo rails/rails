@@ -14,11 +14,13 @@ module ActionController
       teardown :teardown_subscriptions
     end
 
+    RENDER_TEMPLATE_INSTANCE_VARIABLES = %w{partials templates layouts files}.freeze
+
     def setup_subscriptions
-      @_partials = Hash.new(0)
-      @_templates = Hash.new(0)
-      @_layouts = Hash.new(0)
-      @_files = Hash.new(0)
+      RENDER_TEMPLATE_INSTANCE_VARIABLES.each do |instance_variable|
+        instance_variable_set("@_#{instance_variable}", Hash.new(0))
+      end
+
       @_subscribers = []
 
       @_subscribers << ActiveSupport::Notifications.subscribe("render_template.action_view") do |_name, _start, _finish, _id, payload|
@@ -58,10 +60,14 @@ module ActionController
     end
 
     def process(*args)
-      @_partials = Hash.new(0)
-      @_templates = Hash.new(0)
-      @_layouts = Hash.new(0)
+      reset_template_assertion
       super
+    end
+
+    def reset_template_assertion
+      RENDER_TEMPLATE_INSTANCE_VARIABLES.each do |instance_variable|
+        instance_variable_get("@_#{instance_variable}").clear
+      end
     end
 
     # Asserts that the request was rendered with the appropriate template file or partials.
@@ -453,7 +459,6 @@ module ActionController
         end
 
         def controller_class=(new_class)
-          prepare_controller_class(new_class) if new_class
           self._controller_class = new_class
         end
 
@@ -470,11 +475,6 @@ module ActionController
             Class === constant && constant < ActionController::Metal
           end
         end
-
-        def prepare_controller_class(new_class)
-          new_class.send :include, ActionController::TestCase::RaiseActionExceptions
-        end
-
       end
 
       # Simulate a GET request with the given parameters.
@@ -697,12 +697,11 @@ module ActionController
         unless @request.env["PATH_INFO"]
           options = @controller.respond_to?(:url_options) ? @controller.__send__(:url_options).merge(parameters) : parameters
           options.update(
-            :only_path => true,
             :action => action,
             :relative_url_root => nil,
             :_recall => @request.path_parameters)
 
-          url, query_string = @routes.url_for(options).split("?", 2)
+          url, query_string = @routes.path_for(options).split("?", 2)
 
           @request.env["SCRIPT_NAME"] = @controller.config.relative_url_root
           @request.env["PATH_INFO"] = url
@@ -714,34 +713,6 @@ module ActionController
         return true unless parameters.key?(:format)
         Mime.fetch(parameters[:format]) { Mime['html'] }.html?
       end
-    end
-
-    # When the request.remote_addr remains the default for testing, which is 0.0.0.0, the exception is simply raised inline
-    # (skipping the regular exception handling from rescue_action). If the request.remote_addr is anything else, the regular
-    # rescue_action process takes place. This means you can test your rescue_action code by setting remote_addr to something else
-    # than 0.0.0.0.
-    #
-    # The exception is stored in the exception accessor for further inspection.
-    module RaiseActionExceptions
-      def self.included(base) #:nodoc:
-        unless base.method_defined?(:exception) && base.method_defined?(:exception=)
-          base.class_eval do
-            attr_accessor :exception
-            protected :exception, :exception=
-          end
-        end
-      end
-
-      protected
-        def rescue_action_without_handler(e)
-          self.exception = e
-
-          if request.remote_addr == "0.0.0.0"
-            raise(e)
-          else
-            super(e)
-          end
-        end
     end
 
     include Behavior

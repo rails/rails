@@ -34,7 +34,7 @@ module ActiveRecord
       # <tt>reload</tt> the record and clears changed attributes.
       def reload(*)
         super.tap do
-          reset_changes
+          clear_changes_information
         end
       end
 
@@ -64,7 +64,7 @@ module ActiveRecord
         store_original_raw_attributes
       end
 
-      def reset_changes
+      def clear_changes_information
         super
         original_raw_attributes.clear
       end

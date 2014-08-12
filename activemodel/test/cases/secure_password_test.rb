@@ -40,6 +40,11 @@ class SecurePasswordTest < ActiveModel::TestCase
     assert @user.valid?(:create), 'user should be valid'
   end
 
+  test "create a new user with validation and a spaces only password" do
+    @user.password = ' ' * 72
+    assert @user.valid?(:create), 'user should be valid'
+  end
+
   test "create a new user with validation and a blank password" do
     @user.password = ''
     assert !@user.valid?(:create), 'user should be invalid'
@@ -103,6 +108,11 @@ class SecurePasswordTest < ActiveModel::TestCase
   test "updating an existing user with validation and a blank password" do
     @existing_user.password = ''
     assert @existing_user.valid?(:update), 'user should be valid'
+  end
+
+  test "updating an existing user with validation and a spaces only password" do
+    @user.password = ' ' * 72
+    assert @user.valid?(:update), 'user should be valid'
   end
 
   test "updating an existing user with validation and a blank password and password_confirmation" do

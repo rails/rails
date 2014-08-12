@@ -27,6 +27,25 @@
 
     *Kasper Timm Hansen*
 
+*   Fix that render layout: 'messages/layout' should also be added to the dependency tracker tree.
+
+    *DHH*
+
+*   Add `PartialIteration` object used when rendering collections.
+
+    The iteration object is available as the local variable
+    `#{template_name}_iteration` when rendering partials with collections.
+
+    It gives access to the `size` of the collection being iterated over,
+    the current `index` and two convenience methods `first?` and `last?`.
+
+    *Joel Junström*, *Lucas Uyezu*
+
+*   Return an absolute instead of relative path from an asset url in the case
+    of the `asset_host` proc returning nil
+
+    *Jolyon Pawlyn*
+
 *   Fix `html_escape_once` to properly handle hex escape sequences (e.g. &#x1a2b;)
 
     *John F. Douthat*
@@ -125,7 +144,7 @@
 *   Remove wrapping div with inline styles for hidden form fields.
 
     We are dropping HTML 4.01 and XHTML strict compliance since input tags directly
-    inside a form are valid HTML5, and the absense of inline styles help in validating
+    inside a form are valid HTML5, and the absence of inline styles help in validating
     for Content Security Policy.
 
     *Joost Baaij*

@@ -42,7 +42,7 @@ module ActiveRecord
       end
 
       def purge
-        establish_connection :test
+        establish_connection configuration
         connection.recreate_database configuration['database'], creation_options
       end
 

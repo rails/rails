@@ -27,7 +27,8 @@ module ActionDispatch
         @tempfile          = hash[:tempfile]
         raise(ArgumentError, ':tempfile is required') unless @tempfile
 
-        @original_filename = encode_filename(hash[:filename])
+        @original_filename = hash[:filename]
+        @original_filename &&= @original_filename.encode "UTF-8"
         @content_type      = hash[:type]
         @headers           = hash[:head]
       end
@@ -65,13 +66,6 @@ module ActionDispatch
       # Shortcut for +tempfile.eof?+.
       def eof?
         @tempfile.eof?
-      end
-
-      private
-
-      def encode_filename(filename)
-        # Encode the filename in the utf8 encoding, unless it is nil
-        filename.force_encoding(Encoding::UTF_8).encode! if filename
       end
     end
   end

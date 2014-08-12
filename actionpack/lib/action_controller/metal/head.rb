@@ -14,6 +14,8 @@ module ActionController
     #   return head(:method_not_allowed) unless request.post?
     #   return head(:bad_request) unless valid_request?
     #   render
+    #
+    # See Rack::Utils::SYMBOL_TO_STATUS_CODE for a full list of valid +status+ symbols.
     def head(status, options = {})
       options, status = status, nil if status.is_a?(Hash)
       status ||= options.delete(:status) || :ok

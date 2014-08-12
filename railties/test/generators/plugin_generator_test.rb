@@ -1,6 +1,7 @@
 require 'generators/generators_test_helper'
 require 'rails/generators/rails/plugin/plugin_generator'
 require 'generators/shared_generator_tests'
+require 'mocha/setup' # FIXME: stop using mocha
 
 DEFAULT_PLUGIN_FILES = %w(
   .gitignore
@@ -94,7 +95,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_generating_adds_dummy_app_without_javascript_and_assets_deps
-    run_generator [destination_root]
+    run_generator
 
     assert_file "test/dummy/app/assets/stylesheets/application.css"
 
@@ -334,7 +335,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     Object.const_set('APP_PATH', Rails.root)
     FileUtils.touch gemfile_path
 
-    run_generator [destination_root]
+    run_generator
 
     assert_file gemfile_path, /gem 'bukkits', path: 'tmp\/bukkits'/
   ensure
@@ -375,19 +376,19 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     name = `git config user.name`.chomp rescue "TODO: Write your name"
     email = `git config user.email`.chomp rescue "TODO: Write your email address"
 
-    run_generator [destination_root]
+    run_generator
     assert_file "bukkits.gemspec" do |contents|
-      assert_match(/#{Regexp.escape(name)}/, contents)
-      assert_match(/#{Regexp.escape(email)}/, contents)
+      assert_match name, contents
+      assert_match email, contents
     end
   end
 
   def test_git_name_in_license_file
     name = `git config user.name`.chomp rescue "TODO: Write your name"
 
-    run_generator [destination_root]
+    run_generator
     assert_file "MIT-LICENSE" do |contents|
-      assert_match(/#{Regexp.escape(name)}/, contents)
+      assert_match name, contents
     end
   end
 
@@ -397,11 +398,11 @@ class PluginGeneratorTest < Rails::Generators::TestCase
 
     run_generator [destination_root, '--skip-git']
     assert_file "MIT-LICENSE" do |contents|
-      assert_match(/#{Regexp.escape(name)}/, contents)
+      assert_match name, contents
     end
     assert_file "bukkits.gemspec" do |contents|
-      assert_match(/#{Regexp.escape(name)}/, contents)
-      assert_match(/#{Regexp.escape(email)}/, contents)
+      assert_match name, contents
+      assert_match email, contents
     end
   end
 
@@ -415,10 +416,10 @@ protected
   end
 
   def assert_match_sqlite3(contents)
-    unless defined?(JRUBY_VERSION)
-      assert_match(/group :development do\n  gem 'sqlite3'\nend/, contents)
-    else
+    if defined?(JRUBY_VERSION)
       assert_match(/group :development do\n  gem 'activerecord-jdbcsqlite3-adapter'\nend/, contents)
+    else
+      assert_match(/group :development do\n  gem 'sqlite3'\nend/, contents)
     end
   end
 end

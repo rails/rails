@@ -1,4 +1,51 @@
-*   Deprecate `Rails::Rack::LogTailer` with not replacement.
+*   Add `after_bundle` callbacks in Rails templates. Useful for allowing the
+    generated binstubs to be added to version control.
+
+    Fixes #16292.
+
+    *Stefan Kanev*
+
+*   Pull in the custom configuration concept from dhh/custom_configuration, which allows you to
+    configure your own code through the Rails configuration object with custom configuration:
+
+        # config/environments/production.rb
+        config.x.payment_processing.schedule = :daily
+        config.x.payment_processing.retries  = 3
+        config.x.super_debugger = true
+
+    These configuration points are then available through the configuration object:
+
+        Rails.configuration.x.payment_processing.schedule # => :daily
+        Rails.configuration.x.payment_processing.retries  # => 3
+        Rails.configuration.x.super_debugger              # => true
+        Rails.configuration.x.super_debugger.not_set      # => nil
+
+    *DHH*
+
+*   Scaffold generator `_form` partial adds `class="field"` for password
+    confirmation fields.
+
+    *noinkling*
+
+*   Add `Rails::Application.config_for` to load a configuration for the current
+    environment.
+
+        # config/exception_notification.yml:
+        production:
+          url: http://127.0.0.1:8080
+          namespace: my_app_production
+        development:
+          url: http://localhost:3001
+          namespace: my_app_development
+
+        # config/production.rb
+        MyApp::Application.configure do
+          config.middleware.use ExceptionNotifier, config_for(:exception_notification)
+        end
+
+    *Rafael Mendonça França*, *DHH*
+
+*   Deprecate `Rails::Rack::LogTailer` without replacement.
 
     *Rafael Mendonça França*
 

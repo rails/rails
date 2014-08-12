@@ -162,7 +162,7 @@ end
 
 class Time
   def as_json(options = nil) #:nodoc:
-    if ActiveSupport.use_standard_json_time_format
+    if ActiveSupport::JSON::Encoding.use_standard_json_time_format
       xmlschema(ActiveSupport::JSON::Encoding.time_precision)
     else
       %(#{strftime("%Y/%m/%d %H:%M:%S")} #{formatted_offset(false)})
@@ -172,7 +172,7 @@ end
 
 class Date
   def as_json(options = nil) #:nodoc:
-    if ActiveSupport.use_standard_json_time_format
+    if ActiveSupport::JSON::Encoding.use_standard_json_time_format
       strftime("%Y-%m-%d")
     else
       strftime("%Y/%m/%d")
@@ -182,7 +182,7 @@ end
 
 class DateTime
   def as_json(options = nil) #:nodoc:
-    if ActiveSupport.use_standard_json_time_format
+    if ActiveSupport::JSON::Encoding.use_standard_json_time_format
       xmlschema(ActiveSupport::JSON::Encoding.time_precision)
     else
       strftime('%Y/%m/%d %H:%M:%S %z')

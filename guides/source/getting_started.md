@@ -120,7 +120,7 @@ To verify that you have everything installed correctly, you should be able to
 run the following:
 
 ```bash
-$ bin/rails --version
+$ rails --version
 ```
 
 If it says something like "Rails 4.2.0", you are ready to continue.
@@ -191,14 +191,15 @@ following in the `blog` directory:
 $ bin/rails server
 ```
 
-TIP: Compiling CoffeeScript to JavaScript requires a JavaScript runtime and the
-absence of a runtime will give you an `execjs` error. Usually Mac OS X and
-Windows come with a JavaScript runtime installed. Rails adds the `therubyracer`
-gem to the generated `Gemfile` in a commented line for new apps and you can
-uncomment if you need it. `therubyrhino` is the recommended runtime for JRuby
-users and is added by default to the `Gemfile` in apps generated under JRuby.
-You can investigate about all the supported runtimes at
-[ExecJS](https://github.com/sstephenson/execjs#readme).
+TIP: Compiling CoffeeScript and JavaScript asset compression requires you
+have a JavaScript runtime available on your system, in the absence
+of a runtime you will see an `execjs` error during asset compilation.
+Usually Mac OS X and Windows come with a JavaScript runtime installed.
+Rails adds the `therubyracer` gem to the generated `Gemfile` in a 
+commented line for new apps and you can uncomment if you need it. 
+`therubyrhino` is the recommended runtime for JRuby users and is added by
+default to the `Gemfile` in apps generated under JRuby. You can investigate
+about all the supported runtimes at [ExecJS](https://github.com/sstephenson/execjs#readme).
 
 This will fire up WEBrick, a web server distributed with Ruby by default. To see
 your application in action, open a browser window and navigate to
@@ -256,8 +257,6 @@ invoke  test_unit
 create    test/controllers/welcome_controller_test.rb
 invoke  helper
 create    app/helpers/welcome_helper.rb
-invoke    test_unit
-create      test/helpers/welcome_helper_test.rb
 invoke  assets
 invoke    coffee
 create      app/assets/javascripts/welcome.js.coffee
@@ -909,7 +908,7 @@ And then finally, add the view for this action, located at
 </table>
 ```
 
-Now if you go to `http://localhost:3000/articles` you will see a list of all the
+Now if you go to <http://localhost:3000/articles> you will see a list of all the
 articles that you have created.
 
 ### Adding links
@@ -1105,7 +1104,7 @@ standout.
 
 Now you'll get a nice error message when saving an article without title when
 you attempt to do just that on the new article form
-[(http://localhost:3000/articles/new)](http://localhost:3000/articles/new).
+<http://localhost:3000/articles/new>:
 
 ![Form With Errors](images/getting_started/form_with_errors.png)
 
@@ -1636,7 +1635,6 @@ This creates six files and one empty directory:
 | app/views/comments/                          | Views of the controller are stored here  |
 | test/controllers/comments_controller_test.rb | The test for the controller              |
 | app/helpers/comments_helper.rb               | A view helper file                       |
-| test/helpers/comments_helper_test.rb         | The test for the helper                  |
 | app/assets/javascripts/comment.js.coffee     | CoffeeScript for the controller          |
 | app/assets/stylesheets/comment.css.scss      | Cascading style sheet for the controller |
 

@@ -586,6 +586,8 @@ class HashExtTest < ActiveSupport::TestCase
     roundtrip = mixed_with_default.with_indifferent_access.to_hash
     assert_equal @strings, roundtrip
     assert_equal '1234', roundtrip.default
+
+    # Ensure nested hashes are not HashWithIndiffereneAccess
     new_to_hash = @nested_mixed.with_indifferent_access.to_hash
     assert_not new_to_hash.instance_of?(HashWithIndifferentAccess)
     assert_not new_to_hash["a"].instance_of?(HashWithIndifferentAccess)
@@ -706,7 +708,7 @@ class HashExtTest < ActiveSupport::TestCase
       { :failore => "stuff", :funny => "business" }.assert_valid_keys(:failure, :funny)
     end
     assert_equal "Unknown key: :failore. Valid keys are: :failure, :funny", exception.message
-    
+
     exception = assert_raise ArgumentError do
       { :failore => "stuff", :funny => "business" }.assert_valid_keys([ :failure ])
     end
@@ -1500,10 +1502,30 @@ class HashToXmlTest < ActiveSupport::TestCase
     end
   end
 
+  def test_from_xml_array_one
+    expected = { 'numbers' => { 'type' => 'Array', 'value' => '1' }}
+    assert_equal expected, Hash.from_xml('<numbers type="Array"><value>1</value></numbers>')
+  end
+
+  def test_from_xml_array_many
+    expected = { 'numbers' => { 'type' => 'Array', 'value' => [ '1', '2' ] }}
+    assert_equal expected, Hash.from_xml('<numbers type="Array"><value>1</value><value>2</value></numbers>')
+  end
+
   def test_from_trusted_xml_allows_symbol_and_yaml_types
     expected = { 'product' => { 'name' => :value }}
     assert_equal expected, Hash.from_trusted_xml('<product><name type="symbol">value</name></product>')
     assert_equal expected, Hash.from_trusted_xml('<product><name type="yaml">:value</name></product>')
+  end
+
+  def test_should_use_default_proc_for_unknown_key
+    hash_wia = HashWithIndifferentAccess.new { 1 +  2 }
+    assert_equal 3, hash_wia[:new_key]
+  end
+
+  def test_should_use_default_proc_if_no_key_is_supplied
+    hash_wia = HashWithIndifferentAccess.new { 1 +  2 }
+    assert_equal 3, hash_wia.default
   end
 
   def test_should_use_default_value_for_unknown_key
@@ -1531,6 +1553,17 @@ class HashToXmlTest < ActiveSupport::TestCase
     hash = Hash.new(3)
     hash_wia = hash.with_indifferent_access
     assert_equal 3, hash_wia.default
+  end
+
+  def test_should_copy_the_default_proc_when_converting_to_hash_with_indifferent_access
+    hash = Hash.new do
+      2 + 1
+    end
+    assert_equal 3, hash[:foo]
+
+    hash_wia = hash.with_indifferent_access
+    assert_equal 3, hash_wia[:foo]
+    assert_equal 3, hash_wia[:bar]
   end
 
   # The XML builder seems to fail miserably when trying to tag something

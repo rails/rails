@@ -10,6 +10,8 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
       @closed = false
     end
 
+    # We're obliged to implement this (even though it doesn't actually
+    # get called here) to properly comply with the Rack SPEC
     def each
     end
 

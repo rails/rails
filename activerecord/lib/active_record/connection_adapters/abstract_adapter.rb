@@ -45,7 +45,8 @@ module ActiveRecord
     end
 
     autoload_at 'active_record/connection_adapters/abstract/transaction' do
-      autoload :ClosedTransaction
+      autoload :TransactionManager
+      autoload :NullTransaction
       autoload :RealTransaction
       autoload :SavepointTransaction
       autoload :TransactionState
@@ -357,7 +358,7 @@ module ActiveRecord
       end
 
       def current_savepoint_name
-        "active_record_#{open_transactions}"
+        current_transaction.savepoint_name
       end
 
       # Check the connection back in to the connection pool

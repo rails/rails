@@ -75,6 +75,7 @@ module ActiveSupport
       hash = hash.to_hash
       new(hash).tap do |new_hash|
         new_hash.default = hash.default
+        new_hash.default_proc = hash.default_proc if hash.default_proc
       end
     end
 
@@ -245,11 +246,11 @@ module ActiveSupport
 
     # Convert to a regular hash with string keys.
     def to_hash
-      _new_hash= {}
+      _new_hash = Hash.new(default)
       each do |key, value|
-        _new_hash[convert_key(key)] = convert_value(value, for: :to_hash)
+        _new_hash[key] = convert_value(value, for: :to_hash)
       end
-      Hash.new(default).merge!(_new_hash)
+      _new_hash
     end
 
     protected

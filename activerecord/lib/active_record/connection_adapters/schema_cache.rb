@@ -1,4 +1,3 @@
-
 module ActiveRecord
   module ConnectionAdapters
     class SchemaCache
@@ -20,6 +19,7 @@ module ActiveRecord
 
       # A cached lookup for table existence.
       def table_exists?(name)
+        prepare_tables if @tables.empty?
         return @tables[name] if @tables.key? name
 
         @tables[name] = connection.table_exists?(name)
@@ -83,6 +83,12 @@ module ActiveRecord
       def marshal_load(array)
         @version, @columns, @columns_hash, @primary_keys, @tables = array
       end
+
+      private
+
+        def prepare_tables
+          connection.tables.each { |table| @tables[table] = true }
+        end
     end
   end
 end

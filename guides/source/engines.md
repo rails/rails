@@ -136,7 +136,7 @@ following to the dummy application's routes file at
 `test/dummy/config/routes.rb`:
 
 ```ruby
-mount Blorgh::Engine, at: "blorgh"
+mount Blorgh::Engine => "/blorgh"
 ```
 
 ### Inside an Engine
@@ -173,7 +173,7 @@ Within `lib/blorgh/engine.rb` is the base class for the engine:
 
 ```ruby
 module Blorgh
-  class Engine < Rails::Engine
+  class Engine < ::Rails::Engine
     isolate_namespace Blorgh
   end
 end
@@ -322,8 +322,6 @@ invoke    test_unit
 create      test/controllers/blorgh/articles_controller_test.rb
 invoke    helper
 create      app/helpers/blorgh/articles_helper.rb
-invoke      test_unit
-create        test/helpers/blorgh/articles_helper_test.rb
 invoke  assets
 invoke    js
 create      app/assets/javascripts/blorgh/articles.js
@@ -560,8 +558,6 @@ invoke  test_unit
 create    test/controllers/blorgh/comments_controller_test.rb
 invoke  helper
 create    app/helpers/blorgh/comments_helper.rb
-invoke    test_unit
-create      test/helpers/blorgh/comments_helper_test.rb
 invoke  assets
 invoke    js
 create      app/assets/javascripts/blorgh/comments.js

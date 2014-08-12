@@ -14,6 +14,15 @@ class TestMissingSourceFile < ActiveSupport::TestCase
       assert_equal 'nor/this/one.rb', e.path
     end
   end
+
+  def test_is_missing
+    begin load 'nor_does_this_one'
+    rescue MissingSourceFile => e
+      assert e.is_missing?('nor_does_this_one')
+      assert e.is_missing?('nor_does_this_one.rb')
+      assert_not e.is_missing?('some_other_file')
+    end
+  end
 end
 
 class TestLoadError < ActiveSupport::TestCase

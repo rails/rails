@@ -1,5 +1,6 @@
 require 'generators/generators_test_helper'
 require 'rails/generators/rails/scaffold_controller/scaffold_controller_generator'
+require 'mocha/setup' # FIXME: stop using mocha
 
 # Mock out what we need from AR::Base.
 module ActiveRecord

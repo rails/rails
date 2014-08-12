@@ -1,3 +1,46 @@
+*   Fix ActiveSupport::TestCase not to order users' test cases by default.
+    If this change breaks your tests because your tests are order dependent, you need to explicitly call
+    ActiveSupport::TestCase.my_tests_are_order_dependent! at the top of your tests.
+
+    *Akira Matsuda*
+
+*   Fix DateTime comparison with DateTime::Infinity object.
+
+    *Rafael Mendonça França*
+
+*   Added Object#itself which returns the object itself. Useful when dealing with a chaining scenario, like Active Record scopes:
+
+        Event.public_send(state.presence_in([ :trashed, :drafted ]) || :itself).order(:created_at)
+
+    *DHH*
+
+*   `Object#with_options` executes block in merging option context when
+    explicit receiver in not passed.
+
+    *Pavel Pravosud*
+
+*   Fixed a compatibility issue with the `Oj` gem when cherry-picking the file
+    `active_support/core_ext/object/json` without requiring `active_support/json`.
+
+    Fixes #16131.
+
+    *Godfrey Chan*
+
+*   Make `Hash#with_indifferent_access` copy the default proc too.
+
+    *arthurnn*, *Xanders*
+
+*   Add `String#truncate_words` to truncate a string by a number of words.
+
+    *Mohamed Osama*
+
+*   Deprecate `capture` and `quietly`.
+
+    These methods are not thread safe and may cause issues when used in threaded environments.
+    To avoid problems we are deprecating them.
+
+    *Tom Meier*
+
 *   `DateTime#to_f` now preserves the fractional seconds instead of always
     rounding to `.0`.
 
@@ -153,7 +196,7 @@
 
     *Bogdan Gusiev*
 
-*   Add `SecureRandom::uuid_v3` and `SecureRandom::uuid_v5` to support stable
+*   Add `Digest::UUID::uuid_v3` and `Digest::UUID::uuid_v5` to support stable
     UUID fixtures on PostgreSQL.
 
     *Roderick van Domburg*

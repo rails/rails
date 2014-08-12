@@ -13,17 +13,17 @@ After reading this guide, you will know:
 Markdown
 -------
 
-Guides are written in [GitHub Flavored Markdown](https://help.github.com/articles/github-flavored-markdown). There is comprehensive [documentation for Markdown](http://daringfireball.net/projects/markdown/syntax), a [cheatsheet](http://daringfireball.net/projects/markdown/basics).
+Guides are written in [GitHub Flavored Markdown](https://help.github.com/articles/github-flavored-markdown). There is comprehensive [documentation for Markdown](http://daringfireball.net/projects/markdown/syntax), as well as a [cheatsheet](http://daringfireball.net/projects/markdown/basics).
 
 Prologue
 --------
 
-Each guide should start with motivational text at the top (that's the little introduction in the blue area). The prologue should tell the reader what the guide is about, and what they will learn. See for example the [Routing Guide](routing.html).
+Each guide should start with motivational text at the top (that's the little introduction in the blue area). The prologue should tell the reader what the guide is about, and what they will learn. As an example, see the [Routing Guide](routing.html).
 
-Titles
+Headings
 ------
 
-The title of every guide uses `h1`; guide sections use `h2`; subsections `h3`; etc. However, the generated HTML output will have the heading tag starting from `<h2>`.
+The title of every guide uses an `h1` heading; guide sections use `h2` headings; subsections use `h3` headings; etc. Note that the generated HTML output will use heading tags starting with `<h2>`.
 
 ```
 Guide Title
@@ -35,14 +35,14 @@ Section
 ### Sub Section
 ```
 
-Capitalize all words except for internal articles, prepositions, conjunctions, and forms of the verb to be:
+When writing headings, capitalize all words except for prepositions, conjunctions, internal articles, and forms of the verb "to be":
 
 ```
 #### Middleware Stack is an Array
 #### When are Objects Saved?
 ```
 
-Use the same typography as in regular text:
+Use the same inline formatting as regular text:
 
 ```
 ##### The `:content_type` Option
@@ -51,25 +51,23 @@ Use the same typography as in regular text:
 API Documentation Guidelines
 ----------------------------
 
-The guides and the API should be coherent and consistent where appropriate. Please have a look at these particular sections of the [API Documentation Guidelines](api_documentation_guidelines.html):
+The guides and the API should be coherent and consistent where appropriate. In particular, these sections of the [API Documentation Guidelines](api_documentation_guidelines.html) also apply to the guides:
 
 * [Wording](api_documentation_guidelines.html#wording)
 * [Example Code](api_documentation_guidelines.html#example-code)
-* [Filenames](api_documentation_guidelines.html#filenames)
+* [Filenames](api_documentation_guidelines.html#file-names)
 * [Fonts](api_documentation_guidelines.html#fonts)
-
-Those guidelines apply also to guides.
 
 HTML Guides
 -----------
 
 Before generating the guides, make sure that you have the latest version of Bundler installed on your system. As of this writing, you must install Bundler 1.3.5 on your device.
 
-To install the latest version of Bundler, simply run the `gem install bundler` command
+To install the latest version of Bundler, run `gem install bundler`.
 
 ### Generation
 
-To generate all the guides, just `cd` into the `guides` directory, run `bundle install` and execute:
+To generate all the guides, just `cd` into the `guides` directory, run `bundle install`, and execute:
 
 ```
 bundle exec rake guides:generate

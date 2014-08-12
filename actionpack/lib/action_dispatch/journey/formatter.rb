@@ -12,12 +12,12 @@ module ActionDispatch
         @cache  = nil
       end
 
-      def generate(name, options, recall = {}, parameterize = nil)
-        constraints = recall.merge(options)
+      def generate(name, options, path_parameters, parameterize = nil)
+        constraints = path_parameters.merge(options)
         missing_keys = []
 
         match_route(name, constraints) do |route|
-          parameterized_parts = extract_parameterized_parts(route, options, recall, parameterize)
+          parameterized_parts = extract_parameterized_parts(route, options, path_parameters, parameterize)
 
           # Skip this route unless a name has been provided or it is a
           # standard Rails route since we can't determine whether an options

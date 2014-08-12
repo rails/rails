@@ -256,7 +256,7 @@ module RenderTestCases
   end
 
   def test_render_partial_collection_without_as
-    assert_equal "local_inspector,local_inspector_counter",
+    assert_equal "local_inspector,local_inspector_counter,local_inspector_iteration",
       @view.render(:partial => "test/local_inspector", :collection => [ Customer.new("mary") ])
   end
 
@@ -324,11 +324,16 @@ module RenderTestCases
       @controller_view.render(customers, :greeting => "Hello")
   end
 
+  def test_render_partial_using_collection_without_path
+    assert_equal "hi good customer: david0", @controller_view.render([ GoodCustomer.new("david") ], greeting: "hi")
+  end
+
   def test_render_partial_without_object_or_collection_does_not_generate_partial_name_local_variable
     exception = assert_raises ActionView::Template::Error do
       @controller_view.render("partial_name_local_variable")
     end
-    assert_match "undefined local variable or method `partial_name_local_variable'", exception.message
+    assert_instance_of NameError, exception.original_exception
+    assert_equal :partial_name_local_variable, exception.original_exception.name
   end
 
   # TODO: The reason for this test is unclear, improve documentation
@@ -385,6 +390,14 @@ module RenderTestCases
     assert_equal 'source: "Hello, <%= name %>!"', @view.render(inline: "Hello, <%= name %>!", locals: { name: "Josh" }, type: :foo)
   ensure
     ActionView::Template.unregister_template_handler :foo
+  end
+
+  def test_render_body
+    assert_equal 'some body', @view.render(body: 'some body')
+  end
+
+  def test_render_plain
+    assert_equal 'some plaintext', @view.render(plain: 'some plaintext')
   end
 
   def test_render_knows_about_types_registered_when_extensions_are_checked_earlier_in_initialization

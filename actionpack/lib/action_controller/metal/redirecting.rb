@@ -68,14 +68,15 @@ module ActionController
     # <tt>ActionController::RedirectBackError</tt>.
     def redirect_to(options = {}, response_status = {}) #:doc:
       raise ActionControllerError.new("Cannot redirect to nil!") unless options
+      raise ActionControllerError.new("Cannot redirect to a parameter hash!") if options.is_a?(ActionController::Parameters)
       raise AbstractController::DoubleRenderError if response_body
 
       self.status        = _extract_redirect_to_status(options, response_status)
-      self.location      = _compute_redirect_to_location(options)
+      self.location      = _compute_redirect_to_location(request, options)
       self.response_body = "<html><body>You are being <a href=\"#{ERB::Util.unwrapped_html_escape(location)}\">redirected</a>.</body></html>"
     end
 
-    def _compute_redirect_to_location(options) #:nodoc:
+    def _compute_redirect_to_location(request, options) #:nodoc:
       case options
       # The scheme name consist of a letter followed by any combination of
       # letters, digits, and the plus ("+"), period ("."), or hyphen ("-")
@@ -89,11 +90,13 @@ module ActionController
       when :back
         request.headers["Referer"] or raise RedirectBackError
       when Proc
-        _compute_redirect_to_location options.call
+        _compute_redirect_to_location request, options.call
       else
         url_for(options)
       end.delete("\0\r\n")
     end
+    module_function :_compute_redirect_to_location
+    public :_compute_redirect_to_location
 
     private
       def _extract_redirect_to_status(options, response_status)

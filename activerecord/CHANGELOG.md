@@ -1,3 +1,158 @@
+*   When calling `update_columns` on a record that is not persisted, the error
+    message now reflects whether that object is a new record or has been
+    destroyed.
+
+    *Lachlan Sylvester*
+
+*   Define `id_was` to get the previous value of the primary key.
+
+    Currently when we call id_was and we have a custom primary key name
+    Active Record will return the current value of the primary key. This
+    make impossible to correctly do an update operation if you change the
+    id.
+
+    Fixes #16413.
+
+    *Rafael Mendonça França*
+
+*   Deprecate `DatabaseTasks.load_schema` to act on the current connection.
+    Use `.load_schema_current` instead. In the future `load_schema` will
+    require the `configuration` to act on as an argument.
+
+    *Yves Senn*
+
+*   Fixed automatic maintaining test schema to properly handle sql structure
+    schema format.
+
+    Fixes #15394.
+
+    *Wojciech Wnętrzak*
+
+*   Fix type casting to Decimal from Float with large precision.
+
+    *Tomohiro Hashidate*
+
+*   Deprecate `Reflection#source_macro`
+
+    `Reflection#source_macro` is no longer needed in Active Record
+    source so it has been deprecated. Code that used `source_macro`
+    was removed in #16353.
+
+    *Eileen M. Uchtitelle*, *Aaron Patterson*
+
+*   No verbose backtrace by db:drop when database does not exist.
+
+    Fixes #16295.
+
+    *Kenn Ejima*
+
+*   Add support for Postgresql JSONB.
+
+    Example:
+
+        create_table :posts do |t|
+          t.jsonb :meta_data
+        end
+
+    *Philippe Creux*, *Chris Teague*
+
+*   `db:purge` with MySQL respects `Rails.env`.
+
+    *Yves Senn*
+
+*   `change_column_default :table, :column, nil` with PostgreSQL will issue a
+    `DROP DEFAULT` instead of a `DEFAULT NULL` query.
+
+    Fixes #16261.
+
+    *Matthew Draper*, *Yves Senn*
+
+*   Allow to specify a type for the foreign key column in `references`
+    and `add_reference`.
+
+    Example:
+
+        change_table :vehicle do |t|
+          t.references :station, type: :uuid
+        end
+
+    *Andrey Novikov*, *Łukasz Sarnacki*
+
+*   `create_join_table` removes a common prefix when generating the join table.
+    This matches the existing behavior of HABTM associations.
+
+    Fixes #13683.
+
+    *Stefan Kanev*
+
+*   Dont swallow errors on compute_type when having a bad alias_method on
+    a class.
+
+    *arthurnn*
+
+*   PostgreSQL invalid `uuid` are convert to nil.
+
+    *Abdelkader Boudih*
+
+*   Restore 4.0 behavior for using serialize attributes with `JSON` as coder.
+
+    With 4.1.x, `serialize` started returning a string when `JSON` was passed as
+    the second attribute. It will now return a hash as per previous versions.
+
+    Example:
+
+        class Post < ActiveRecord::Base
+          serialize :comment, JSON
+        end
+
+        class Comment
+          include ActiveModel::Model
+          attr_accessor :category, :text
+        end
+
+        post = Post.create!
+        post.comment = Comment.new(category: "Animals", text: "This is a comment about squirrels.")
+        post.save!
+
+        # 4.0
+        post.comment # => {"category"=>"Animals", "text"=>"This is a comment about squirrels."}
+
+        # 4.1 before
+        post.comment # => "#<Comment:0x007f80ab48ff98>"
+
+        # 4.1 after
+        post.comment # => {"category"=>"Animals", "text"=>"This is a comment about squirrels."}
+
+    When using `JSON` as the coder in `serialize`, Active Record will use the
+    new `ActiveRecord::Coders::JSON` coder which delegates its `dump/load` to
+    `ActiveSupport::JSON.encode/decode`. This ensures special objects are dumped
+    correctly using the `#as_json` hook.
+
+    To keep the previous behaviour, supply a custom coder instead
+    ([example](https://gist.github.com/jenncoop/8c4142bbe59da77daa63)).
+
+    Fixes #15594.
+
+    *Jenn Cooper*
+
+*   Do not use `RENAME INDEX` syntax for MariaDB 10.0.
+
+    Fixes #15931.
+
+    *Jeff Browning*
+
+*   Calling `#empty?` on a `has_many` association would use the value from the
+    counter cache if one exists.
+
+    *David Verhasselt*
+
+*   Fix the schema dump generated for tables without constraints and with
+    primary key with default value of custom PostgreSQL function result.
+
+    Fixes #16111.
+
+    *Andrey Novikov*
+
 *   Fix the SQL generated when a `delete_all` is run on an association to not
     produce an `IN` statements.
 
@@ -47,7 +202,7 @@
 *   Move 'dependent: :destroy' handling for 'belongs_to'
     from 'before_destroy' to 'after_destroy' callback chain
 
-    Fix #12380.
+    Fixes #12380.
 
     *Ivan Antropov*
 
@@ -168,14 +323,16 @@
 
 *   `ActiveRecord::Dirty` now detects in-place changes to mutable values.
     Serialized attributes on ActiveRecord models will no longer save when
-    unchanged. Fixes #8328.
+    unchanged.
+
+    Fixes #8328.
 
     *Sean Griffin*
 
 *   Pluck now works when selecting columns from different tables with the same
     name.
 
-    Fixes #15649
+    Fixes #15649.
 
     *Sean Griffin*
 
@@ -329,7 +486,7 @@
 *   Fixed the inferred table name of a has_and_belongs_to_many auxiliar
     table inside a schema.
 
-    Fixes #14824
+    Fixes #14824.
 
     *Eric Chahin*
 
@@ -871,7 +1028,7 @@
     *Vilius Luneckas* *Ahmed AbouElhamayed*
 
 *   `before_add` callbacks are fired before the record is saved on
-    `has_and_belongs_to_many` assocations *and* on `has_many :through`
+    `has_and_belongs_to_many` associations *and* on `has_many :through`
     associations.  Before this change, `before_add` callbacks would be fired
     before the record was saved on `has_and_belongs_to_many` associations, but
     *not* on `has_many :through` associations.

@@ -88,15 +88,15 @@ module ActiveRecord
       assert_equal [:foo], attributes.keys
     end
 
-    test "uninitialized attributes return false for include?" do
+    test "uninitialized attributes return false for key?" do
       attributes = attributes_with_uninitialized_key
-      assert attributes.include?(:foo)
-      assert_not attributes.include?(:bar)
+      assert attributes.key?(:foo)
+      assert_not attributes.key?(:bar)
     end
 
-    test "unknown attributes return false for include?" do
+    test "unknown attributes return false for key?" do
       attributes = attributes_with_uninitialized_key
-      assert_not attributes.include?(:wibble)
+      assert_not attributes.key?(:wibble)
     end
 
     test "fetch_value returns the value for the given initialized attribute" do

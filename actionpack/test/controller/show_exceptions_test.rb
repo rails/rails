@@ -32,7 +32,7 @@ module ShowExceptions
 
     test 'show diagnostics from a local ip if show_detailed_exceptions? is set to request.local?' do
       @app = ShowExceptionsController.action(:boom)
-      ['127.0.0.1', '127.0.0.127', '::1', '0:0:0:0:0:0:0:1', '0:0:0:0:0:0:0:1%0'].each do |ip_address|
+      ['127.0.0.1', '127.0.0.127', '127.12.1.1', '::1', '0:0:0:0:0:0:0:1', '0:0:0:0:0:0:0:1%0'].each do |ip_address|
         self.remote_addr = ip_address
         get '/'
         assert_match(/boom/, body)

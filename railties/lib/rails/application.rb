@@ -87,7 +87,15 @@ module Rails
     class << self
       def inherited(base)
         super
-        base.instance
+        Rails.app_class = base
+      end
+
+      def instance
+        super.run_load_hooks!
+      end
+
+      def create(initial_variable_values = {}, &block)
+        new(initial_variable_values, &block).run_load_hooks!
       end
 
       # Makes the +new+ method public.
@@ -116,24 +124,33 @@ module Rails
       @ordered_railties  = nil
       @railties          = nil
       @message_verifiers = {}
+      @ran_load_hooks    = false
 
-      Rails.application ||= self
+      # are these actually used?
+      @initial_variable_values = initial_variable_values
+      @block = block
 
       add_lib_to_load_path!
-      ActiveSupport.run_load_hooks(:before_configuration, self)
-
-      initial_variable_values.each do |variable_name, value|
-        if INITIAL_VARIABLES.include?(variable_name)
-          instance_variable_set("@#{variable_name}", value)
-        end
-      end
-
-      instance_eval(&block) if block_given?
     end
 
     # Returns true if the application is initialized.
     def initialized?
       @initialized
+    end
+
+    def run_load_hooks! # :nodoc:
+      return self if @ran_load_hooks
+      @ran_load_hooks = true
+      ActiveSupport.run_load_hooks(:before_configuration, self)
+
+      @initial_variable_values.each do |variable_name, value|
+        if INITIAL_VARIABLES.include?(variable_name)
+          instance_variable_set("@#{variable_name}", value)
+        end
+      end
+
+      instance_eval(&@block) if @block
+      self
     end
 
     # Implements call according to the Rack API. It simply
@@ -185,6 +202,38 @@ module Rails
         secret = key_generator.generate_key(verifier_name.to_s)
         ActiveSupport::MessageVerifier.new(secret)
       end
+    end
+
+    # Convenience for loading config/foo.yml for the current Rails env.
+    #
+    # Example:
+    #
+    #     # config/exception_notification.yml:
+    #     production:
+    #       url: http://127.0.0.1:8080
+    #       namespace: my_app_production
+    #     development:
+    #       url: http://localhost:3001
+    #       namespace: my_app_development
+    #
+    #     # config/production.rb
+    #     MyApp::Application.configure do
+    #       config.middleware.use ExceptionNotifier, config_for(:exception_notification)
+    #     end
+    def config_for(name)
+      yaml = Pathname.new("#{paths["config"].existent.first}/#{name}.yml")
+
+      if yaml.exist?
+        require "yaml"
+        require "erb"
+        (YAML.load(ERB.new(yaml.read).result) || {})[Rails.env] || {}
+      else
+        raise "Could not load configuration. No such file - #{yaml}"
+      end
+    rescue Psych::SyntaxError => e
+      raise "YAML syntax error occurred while parsing #{yaml}. " \
+        "Please note that YAML must be consistently indented using spaces. Tabs are not allowed. " \
+        "Error: #{e.message}"
     end
 
     # Stores some of the Rails initial environment parameters which

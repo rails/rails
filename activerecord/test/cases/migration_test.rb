@@ -63,7 +63,7 @@ class MigrationTest < ActiveRecord::TestCase
     end
     Person.connection.remove_column("people", "first_name") rescue nil
     Person.connection.remove_column("people", "middle_name") rescue nil
-    Person.connection.add_column("people", "first_name", :string, :limit => 40)
+    Person.connection.add_column("people", "first_name", :string)
     Person.reset_column_information
   end
 
@@ -894,5 +894,15 @@ class CopyMigrationsTest < ActiveRecord::TestCase
     end
   ensure
     ActiveRecord::Base.logger = old
+  end
+
+  private
+
+  def quietly
+    silence_stream(STDOUT) do
+      silence_stream(STDERR) do
+        yield
+      end
+    end
   end
 end

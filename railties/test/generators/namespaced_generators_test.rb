@@ -47,7 +47,6 @@ class NamespacedControllerGeneratorTest < NamespacedGeneratorTestCase
   def test_helper_is_also_namespaced
     run_generator
     assert_file "app/helpers/test_app/account_helper.rb", /module TestApp/, /  module AccountHelper/
-    assert_file "test/helpers/test_app/account_helper_test.rb", /module TestApp/, /  class AccountHelperTest/
   end
 
   def test_invokes_default_test_framework
@@ -229,7 +228,6 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
 
     # Helpers
     assert_file "app/helpers/test_app/product_lines_helper.rb"
-    assert_file "test/helpers/test_app/product_lines_helper_test.rb"
 
     # Stylesheets
     assert_file "app/assets/stylesheets/scaffold.css"
@@ -260,7 +258,6 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
 
     # Helpers
     assert_no_file "app/helpers/test_app/product_lines_helper.rb"
-    assert_no_file "test/helpers/test_app/product_lines_helper_test.rb"
 
     # Stylesheets (should not be removed)
     assert_file "app/assets/stylesheets/scaffold.css"
@@ -297,7 +294,6 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
 
     # Helpers
     assert_file "app/helpers/test_app/admin/roles_helper.rb"
-    assert_file "test/helpers/test_app/admin/roles_helper_test.rb"
 
     # Stylesheets
     assert_file "app/assets/stylesheets/scaffold.css"
@@ -329,7 +325,6 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
 
     # Helpers
     assert_no_file "app/helpers/test_app/admin/roles_helper.rb"
-    assert_no_file "test/helpers/test_app/admin/roles_helper_test.rb"
 
     # Stylesheets (should not be removed)
     assert_file "app/assets/stylesheets/scaffold.css"
@@ -366,7 +361,6 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
 
     # Helpers
     assert_file "app/helpers/test_app/admin/user/special/roles_helper.rb"
-    assert_file "test/helpers/test_app/admin/user/special/roles_helper_test.rb"
 
     # Stylesheets
     assert_file "app/assets/stylesheets/scaffold.css"
@@ -397,7 +391,6 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
 
     # Helpers
     assert_no_file "app/helpers/test_app/admin/user/special/roles_helper.rb"
-    assert_no_file "test/helpers/test_app/admin/user/special/roles_helper_test.rb"
 
     # Stylesheets (should not be removed)
     assert_file "app/assets/stylesheets/scaffold.css"

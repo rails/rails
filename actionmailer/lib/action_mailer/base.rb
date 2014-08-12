@@ -394,7 +394,7 @@ module ActionMailer
   #   implement for a custom delivery agent.
   #
   # * <tt>perform_deliveries</tt> - Determines whether emails are actually sent from Action Mailer when you
-  #   call <tt>.deliver</tt> on an mail message or on an Action Mailer method. This is on by default but can
+  #   call <tt>.deliver</tt> on an email message or on an Action Mailer method. This is on by default but can
   #   be turned off to aid in functional testing.
   #
   # * <tt>deliveries</tt> - Keeps an array of all the emails sent out through the Action Mailer with
@@ -649,7 +649,22 @@ module ActionMailer
     #  mail.attachments[0]                # => Mail::Part (first attachment)
     #
     def attachments
-      @_message.attachments
+      if @_mail_was_called
+        LateAttachmentsProxy.new(@_message.attachments)
+      else
+        @_message.attachments
+      end
+    end
+
+    class LateAttachmentsProxy < SimpleDelegator
+      def inline; _raise_error end
+      def []=(_name, _content); _raise_error end
+
+      private
+        def _raise_error
+          raise RuntimeError, "Can't add attachments after `mail` was called.\n" \
+                              "Make sure to use `attachments[]=` before calling `mail`."
+        end
     end
 
     # The main method that creates the message and renders the email templates. There are
@@ -880,6 +895,11 @@ module ActionMailer
       response[:charset] ||= charset
       part = Mail::Part.new(response)
       container.add_part(part)
+    end
+
+    # Emails do not support relative path links.
+    def self.supports_path?
+      false
     end
 
     ActiveSupport.run_load_hooks(:action_mailer, self)

@@ -7,10 +7,6 @@ module ActiveRecord
             :xml
           end
 
-          def text?
-            false
-          end
-
           def type_cast_for_database(value)
             return unless value
             Data.new(super)

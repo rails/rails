@@ -1,5 +1,6 @@
 require 'cases/helper'
 
+if current_adapter?(:PostgreSQLAdapter)
 module ActiveRecord
   class PostgreSQLDBCreateTest < ActiveRecord::TestCase
     def setup
@@ -240,4 +241,5 @@ module ActiveRecord
     end
   end
 
+end
 end

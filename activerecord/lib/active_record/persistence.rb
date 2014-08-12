@@ -36,6 +36,23 @@ module ActiveRecord
         end
       end
 
+      # Creates an object (or multiple objects) and saves it to the database,
+      # if validations pass. Raises a RecordInvalid error if validations fail,
+      # unlike Base#create.
+      #
+      # The +attributes+ parameter can be either a Hash or an Array of Hashes.
+      # These describe which attributes to be created on the object, or
+      # multiple objects when given an Array of Hashes.
+      def create!(attributes = nil, &block)
+        if attributes.is_a?(Array)
+          attributes.collect { |attr| create!(attr, &block) }
+        else
+          object = new(attributes, &block)
+          object.save!
+          object
+        end
+      end
+
       # Given an attributes hash, +instantiate+ returns a new instance of
       # the appropriate class. Accepts only keys as strings.
       #
@@ -270,7 +287,8 @@ module ActiveRecord
     # This method raises an +ActiveRecord::ActiveRecordError+ when called on new
     # objects, or when at least one of the attributes is marked as readonly.
     def update_columns(attributes)
-      raise ActiveRecordError, "cannot update on a new record object" unless persisted?
+      raise ActiveRecordError, "cannot update a new record" if new_record?
+      raise ActiveRecordError, "cannot update a destroyed record" if destroyed?
 
       attributes.each_key do |key|
         verify_readonly_attribute(key.to_s)

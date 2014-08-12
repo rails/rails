@@ -55,6 +55,11 @@ module ActiveRecord
         assert index_exists?(table_name, :tag_id, name: 'index_taggings_on_tag_id')
       end
 
+      def test_creates_reference_id_with_specified_type
+        add_reference table_name, :user, type: :string
+        assert column_exists?(table_name, :user_id, :string)
+      end
+
       def test_deletes_reference_id_column
         remove_reference table_name, :supplier
         assert_not column_exists?(table_name, :supplier_id, :integer)

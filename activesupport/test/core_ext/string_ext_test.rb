@@ -216,17 +216,38 @@ class StringInflectionsTest < ActiveSupport::TestCase
     assert_equal "Hello Wor...", "Hello World!!".truncate(12)
   end
 
-  def test_truncate_with_omission_and_seperator
+  def test_truncate_with_omission_and_separator
     assert_equal "Hello[...]", "Hello World!".truncate(10, :omission => "[...]")
     assert_equal "Hello[...]", "Hello Big World!".truncate(13, :omission => "[...]", :separator => ' ')
     assert_equal "Hello Big[...]", "Hello Big World!".truncate(14, :omission => "[...]", :separator => ' ')
     assert_equal "Hello Big[...]", "Hello Big World!".truncate(15, :omission => "[...]", :separator => ' ')
   end
 
-  def test_truncate_with_omission_and_regexp_seperator
+  def test_truncate_with_omission_and_regexp_separator
     assert_equal "Hello[...]", "Hello Big World!".truncate(13, :omission => "[...]", :separator => /\s/)
     assert_equal "Hello Big[...]", "Hello Big World!".truncate(14, :omission => "[...]", :separator => /\s/)
     assert_equal "Hello Big[...]", "Hello Big World!".truncate(15, :omission => "[...]", :separator => /\s/)
+  end
+
+  def test_truncate_words
+    assert_equal "Hello Big World!", "Hello Big World!".truncate_words(3)
+    assert_equal "Hello Big...", "Hello Big World!".truncate_words(2)
+  end
+
+  def test_truncate_words_with_omission
+    assert_equal "Hello Big World!", "Hello Big World!".truncate_words(3, :omission => "[...]")
+    assert_equal "Hello Big[...]", "Hello Big World!".truncate_words(2, :omission => "[...]")
+  end
+
+  def test_truncate_words_with_separator
+    assert_equal "Hello<br>Big<br>World!...", "Hello<br>Big<br>World!<br>".truncate_words(3, :separator => '<br>')
+    assert_equal "Hello<br>Big<br>World!", "Hello<br>Big<br>World!".truncate_words(3, :separator => '<br>')
+    assert_equal "Hello\n<br>Big...", "Hello\n<br>Big<br>Wide<br>World!".truncate_words(2, :separator => '<br>')
+  end
+
+  def test_truncate_words_with_separator_and_omission
+    assert_equal "Hello<br>Big<br>World![...]", "Hello<br>Big<br>World!<br>".truncate_words(3, :omission => "[...]", :separator => '<br>')
+    assert_equal "Hello<br>Big<br>World!", "Hello<br>Big<br>World!".truncate_words(3, :omission => "[...]", :separator => '<br>')
   end
 
   def test_truncate_multibyte
@@ -753,6 +774,14 @@ class OutputSafetyTest < ActiveSupport::TestCase
   test "ERB::Util.html_escape should not escape safe strings" do
     string = "<b>hello</b>".html_safe
     assert_equal string, ERB::Util.html_escape(string)
+  end
+
+  test "ERB::Util.html_escape_once only escapes once" do
+    string = '1 < 2 &amp; 3'
+    escaped_string = "1 &lt; 2 &amp; 3"
+
+    assert_equal escaped_string, ERB::Util.html_escape_once(string)
+    assert_equal escaped_string, ERB::Util.html_escape_once(escaped_string)
   end
 end
 

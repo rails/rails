@@ -95,13 +95,6 @@ module ActiveRecord
         assert_not type.changed?(nil, nil, nil)
       end
 
-      def test_type_cast_decimal
-        type = Type::Decimal.new
-        assert_equal BigDecimal.new("0"), type.type_cast_from_user(BigDecimal.new("0"))
-        assert_equal BigDecimal.new("123"), type.type_cast_from_user(123.0)
-        assert_equal BigDecimal.new("1"), type.type_cast_from_user(:"1")
-      end
-
       def test_type_cast_binary
         type = Type::Binary.new
         assert_equal nil, type.type_cast_from_user(nil)

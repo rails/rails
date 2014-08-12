@@ -423,8 +423,16 @@ module ActiveRecord
         def change_column_default(table_name, column_name, default)
           clear_cache!
           column = column_for(table_name, column_name)
+          return unless column
 
-          execute "ALTER TABLE #{quote_table_name(table_name)} ALTER COLUMN #{quote_column_name(column_name)} SET DEFAULT #{quote_default_value(default, column)}" if column
+          alter_column_query = "ALTER TABLE #{quote_table_name(table_name)} ALTER COLUMN #{quote_column_name(column_name)} %s"
+          if default.nil?
+            # <tt>DEFAULT NULL</tt> results in the same behavior as <tt>DROP DEFAULT</tt>. However, PostgreSQL will
+            # cast the default to the columns type, which leaves us with a default like "default NULL::character varying".
+            execute alter_column_query % "DROP DEFAULT"
+          else
+            execute alter_column_query % "SET DEFAULT #{quote_default_value(default, column)}"
+          end
         end
 
         def change_column_null(table_name, column_name, null, default = nil)

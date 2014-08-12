@@ -4,6 +4,46 @@
 
     *Kasper Timm Hansen*
 
+*   Extract source code for the entire exception stack trace for
+    better debugging and diagnosis.
+
+    *Ryan Dao*
+
+*   Allows ActionDispatch::Request::LOCALHOST to match any IPv4 127.0.0.0/8
+    loopback address.
+
+    *Earl St Sauver*, *Sven Riedel*
+
+*   Preserve original path in `ShowExceptions` middleware by stashing it as
+    `env["action_dispatch.original_path"]`
+
+    `ActionDispatch::ShowExceptions` overwrites `PATH_INFO` with the status code
+    for the exception defined in `ExceptionWrapper`, so the path
+    the user was visiting when an exception occurred was not previously
+    available to any custom exceptions_app. The original `PATH_INFO` is now
+    stashed in `env["action_dispatch.original_path"]`.
+
+    *Grey Baker*
+
+*   Use `String#bytesize` instead of `String#size` when checking for cookie
+    overflow.
+
+    *Agis Anastasopoulos*
+
+*   `render nothing: true` or rendering a `nil` body no longer add a single
+    space to the response body.
+
+    The old behavior was added as a workaround for a bug in an early version of
+    Safari, where the HTTP headers are not returned correctly if the response
+    body has a 0-length. This is been fixed since and the workaround is no
+    longer necessary.
+
+    Use `render body: ' '` if the old behavior is desired.
+
+    See #14883 for details.
+
+    *Godfrey Chan*
+
 *   Prepend a JS comment to JSONP callbacks. Addresses CVE-2014-4671
     ("Rosetta Flash")
 
@@ -64,6 +104,8 @@
 *   Routes specifying 'to:' must be a string that contains a "#" or a rack
     application.  Use of a symbol should be replaced with `action: symbol`.
     Use of a string without a "#" should be replaced with `controller: string`.
+
+    *Aaron Patterson*
 
 *   Fix URL generation with `:trailing_slash` such that it does not add
     a trailing slash after `.:format`

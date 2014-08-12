@@ -1,6 +1,7 @@
 require 'generators/generators_test_helper'
 require 'rails/generators/rails/app/app_generator'
 require 'env_helpers'
+require 'mocha/setup' # FIXME: stop using mocha
 
 class ActionsTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
@@ -242,7 +243,7 @@ class ActionsTest < Rails::Generators::TestCase
   protected
 
     def action(*args, &block)
-      silence(:stdout){ generator.send(*args, &block) }
+      capture(:stdout){ generator.send(*args, &block) }
     end
 
 end

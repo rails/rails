@@ -303,10 +303,12 @@ module ActionController
       logger = ActionController::Base.logger
       return unless logger
 
-      message = "\n#{exception.class} (#{exception.message}):\n"
-      message << exception.annoted_source_code.to_s if exception.respond_to?(:annoted_source_code)
-      message << "  " << exception.backtrace.join("\n  ")
-      logger.fatal("#{message}\n\n")
+      logger.fatal do
+        message = "\n#{exception.class} (#{exception.message}):\n"
+        message << exception.annoted_source_code.to_s if exception.respond_to?(:annoted_source_code)
+        message << "  " << exception.backtrace.join("\n  ")
+        "#{message}\n\n"
+      end
     end
 
     def response_body=(body)

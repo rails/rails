@@ -60,6 +60,43 @@ class PostgresqlUUIDTest < ActiveRecord::TestCase
     assert_equal(nil, UUIDType.last.guid)
   end
 
+  def test_treat_invalid_uuid_as_nil
+    uuid = UUIDType.create! guid: 'foobar'
+    assert_equal(nil, uuid.guid)
+  end
+
+  def test_invalid_uuid_dont_modify_before_type_cast
+    uuid = UUIDType.new guid: 'foobar'
+    assert_equal 'foobar', uuid.guid_before_type_cast
+  end
+
+  def test_rfc_4122_regex
+    # Valid uuids
+    ['A0EEBC99-9C0B-4EF8-BB6D-6BB9BD380A11',
+     '{a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11}',
+     'a0eebc999c0b4ef8bb6d6bb9bd380a11',
+     'a0ee-bc99-9c0b-4ef8-bb6d-6bb9-bd38-0a11',
+     '{a0eebc99-9c0b4ef8-bb6d6bb9-bd380a11}'].each do |valid_uuid|
+      uuid = UUIDType.new guid: valid_uuid
+      assert_not_nil uuid.guid
+    end
+
+    # Invalid uuids
+    [['A0EEBC99-9C0B-4EF8-BB6D-6BB9BD380A11'],
+     Hash.new,
+     0,
+     0.0,
+     true,
+     'Z0000C99-9C0B-4EF8-BB6D-6BB9BD380A11',
+     '{a0eebc99-9c0b-4ef8-fb6d-6bb9bd380a11}',
+     'a0eebc999r0b4ef8ab6d6bb9bd380a11',
+     'a0ee-bc99------4ef8-bb6d-6bb9-bd38-0a11',
+     '{a0eebc99-bb6d6bb9-bd380a11}'].each do |invalid_uuid|
+      uuid = UUIDType.new guid: invalid_uuid
+      assert_nil uuid.guid
+    end
+  end
+
   def test_uuid_formats
     ["A0EEBC99-9C0B-4EF8-BB6D-6BB9BD380A11",
      "{a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11}",
@@ -87,10 +124,26 @@ class PostgresqlUUIDGenerationTest < ActiveRecord::TestCase
       t.string 'name'
       t.uuid 'other_uuid', default: 'uuid_generate_v4()'
     end
+
+    # Create custom PostgreSQL function to generate UUIDs
+    # to test dumping tables which columns have defaults with custom functions
+    connection.execute <<-SQL
+    CREATE OR REPLACE FUNCTION my_uuid_generator() RETURNS uuid
+    AS $$ SELECT * FROM uuid_generate_v4() $$
+    LANGUAGE SQL VOLATILE;
+    SQL
+
+    # Create such a table with custom function as default value generator
+    connection.create_table('pg_uuids_2', id: :uuid, default: 'my_uuid_generator()') do |t|
+      t.string 'name'
+      t.uuid 'other_uuid_2', default: 'my_uuid_generator()'
+    end
   end
 
   teardown do
     drop_table "pg_uuids"
+    drop_table 'pg_uuids_2'
+    connection.execute 'DROP FUNCTION IF EXISTS my_uuid_generator();'
   end
 
   if ActiveRecord::Base.connection.supports_extensions?
@@ -121,6 +174,13 @@ class PostgresqlUUIDGenerationTest < ActiveRecord::TestCase
       ActiveRecord::SchemaDumper.dump(connection, schema)
       assert_match(/\bcreate_table "pg_uuids", id: :uuid, default: "uuid_generate_v1\(\)"/, schema.string)
       assert_match(/t\.uuid   "other_uuid", default: "uuid_generate_v4\(\)"/, schema.string)
+    end
+
+    def test_schema_dumper_for_uuid_primary_key_with_custom_default
+      schema = StringIO.new
+      ActiveRecord::SchemaDumper.dump(connection, schema)
+      assert_match(/\bcreate_table "pg_uuids_2", id: :uuid, default: "my_uuid_generator\(\)"/, schema.string)
+      assert_match(/t\.uuid   "other_uuid_2", default: "my_uuid_generator\(\)"/, schema.string)
     end
   end
 end
@@ -173,7 +233,7 @@ class PostgresqlUUIDTestInverseOf < ActiveRecord::TestCase
         t.string 'title'
       end
       connection.create_table('pg_uuid_comments', id: :uuid) do |t|
-        t.uuid :uuid_post_id, default: 'uuid_generate_v4()'
+        t.references :uuid_post, type: :uuid
         t.string 'content'
       end
     end

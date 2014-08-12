@@ -107,6 +107,11 @@ module ActiveRecord
     end
 
     module ClassMethods
+      def allocate
+        define_attribute_methods
+        super
+      end
+
       def initialize_find_by_cache
         self.find_by_statement_cache = {}.extend(Mutex_m)
       end

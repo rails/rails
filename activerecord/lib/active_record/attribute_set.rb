@@ -21,8 +21,8 @@ module ActiveRecord
     end
     alias_method :to_h, :to_hash
 
-    def include?(name)
-      attributes.include?(name) && self[name].initialized?
+    def key?(name)
+      attributes.key?(name) && self[name].initialized?
     end
 
     def fetch_value(name, &block)
@@ -53,7 +53,7 @@ module ActiveRecord
     end
 
     def reset(key)
-      if include?(key)
+      if key?(key)
         write_from_database(key, nil)
       end
     end

@@ -1,4 +1,3 @@
-<% @source_extract = @exception.source_extract(0, :html) %>
 <header>
   <h1>
     <%= @exception.original_exception.class.to_s %> in
@@ -12,29 +11,7 @@
   </p>
   <pre><code><%= h @exception.message %></code></pre>
 
-  <div class="source">
-    <div class="info">
-      <p>Extracted source (around line <strong>#<%= @exception.line_number %></strong>):</p>
-    </div>
-    <div class="data">
-    <table cellpadding="0" cellspacing="0" class="lines">
-      <tr>
-        <td>
-          <pre class="line_numbers">
-            <% @source_extract.keys.each do |line_number| %>
-<span><%= line_number -%></span>
-            <% end %>
-          </pre>
-        </td>
-<td width="100%">
-<pre>
-<% @source_extract.each do |line, source| -%><div class="line<%= " active" if line == @exception.line_number -%>"><%= source -%></div><% end -%>
-</pre>
-</td>
-    </tr>
-  </table>
-</div>
-</div>
+  <%= render template: "rescues/_source" %>
 
   <p><%= @exception.sub_template_message %></p>
 

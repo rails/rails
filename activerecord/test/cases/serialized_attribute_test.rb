@@ -3,10 +3,11 @@ require 'models/topic'
 require 'models/reply'
 require 'models/person'
 require 'models/traffic_light'
+require 'models/post'
 require 'bcrypt'
 
 class SerializedAttributeTest < ActiveRecord::TestCase
-  fixtures :topics
+  fixtures :topics, :posts
 
   MyObject = Struct.new :attribute1, :attribute2
 
@@ -65,6 +66,40 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     orig = Topic.new(content: { foo: :bar })
     clone = orig.dup
     assert_equal(orig.content, clone.content)
+  end
+
+  def test_serialized_json_attribute_returns_unserialized_value
+    Topic.serialize :content, JSON
+    my_post = posts(:welcome)
+
+    t = Topic.new(content: my_post)
+    t.save!
+    t.reload
+
+    assert_instance_of(Hash, t.content)
+    assert_equal(my_post.id, t.content["id"])
+    assert_equal(my_post.title, t.content["title"])
+  end
+
+  def test_json_read_legacy_null
+    Topic.serialize :content, JSON
+
+    # Force a row to have a JSON "null" instead of a database NULL (this is how
+    # null values are saved on 4.1 and before)
+    id = Topic.connection.insert "INSERT INTO topics (content) VALUES('null')"
+    t = Topic.find(id)
+
+    assert_nil t.content
+  end
+
+  def test_json_read_db_null
+    Topic.serialize :content, JSON
+
+    # Force a row to have a database NULL instead of a JSON "null"
+    id = Topic.connection.insert "INSERT INTO topics (content) VALUES(NULL)"
+    t = Topic.find(id)
+
+    assert_nil t.content
   end
 
   def test_serialized_attribute_declared_in_subclass

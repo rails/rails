@@ -124,19 +124,22 @@ with a built-in helper. In the source the generated code looked like this:
 The query string strategy has several disadvantages:
 
 1. **Not all caches will reliably cache content where the filename only differs by
-query parameters**  
+query parameters**
+
     [Steve Souders recommends](http://www.stevesouders.com/blog/2008/08/23/revving-filenames-dont-use-querystring/),
  "...avoiding a querystring for cacheable resources". He found that in this
 case 5-20% of requests will not be cached. Query strings in particular do not
 work at all with some CDNs for cache invalidation.
 
-2. **The file name can change between nodes in multi-server environments.**  
+2. **The file name can change between nodes in multi-server environments.**
+
     The default query string in Rails 2.x is based on the modification time of
 the files. When assets are deployed to a cluster, there is no guarantee that the
 timestamps will be the same, resulting in different values being used depending
 on which server handles the request.
 
-3. **Too much cache invalidation**  
+3. **Too much cache invalidation**
+
     When static assets are deployed with each new release of code, the mtime
 (time of last modification) of _all_ these files changes, forcing all remote
 clients to fetch them again, even when the content of those assets has not changed.
@@ -490,8 +493,7 @@ The directives that work in JavaScript files also work in stylesheets
 one, requiring all stylesheets from the current directory.
 
 In this example, `require_self` is used. This puts the CSS contained within the
-file (if any) at the precise location of the `require_self` call. If
-`require_self` is called more than once, only the last call is respected.
+file (if any) at the precise location of the `require_self` call.
 
 NOTE. If you want to use multiple Sass files, you should generally use the [Sass `@import` rule](http://sass-lang.com/docs/yardoc/file.SASS_REFERENCE.html#import)
 instead of these Sprockets directives. When using Sprockets directives, Sass files exist within

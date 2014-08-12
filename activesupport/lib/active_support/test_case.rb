@@ -1,3 +1,5 @@
+gem 'minitest' # make sure we get the gem, not stdlib
+require 'minitest'
 require 'active_support/testing/tagged_logging'
 require 'active_support/testing/setup_and_teardown'
 require 'active_support/testing/assertions'
@@ -9,25 +11,15 @@ require 'active_support/testing/time_helpers'
 require 'active_support/core_ext/kernel/reporting'
 require 'active_support/deprecation'
 
-begin
-  silence_warnings { require 'mocha/setup' }
-rescue LoadError
-end
-
 module ActiveSupport
   class TestCase < ::Minitest::Test
     Assertion = Minitest::Assertion
 
-    alias_method :method_name, :name
-
-    $tags = {}
-    def self.for_tag(tag)
-      yield if $tags[tag]
+    class << self
+      alias :my_tests_are_order_dependent! :i_suck_and_my_tests_are_order_dependent!
     end
 
-    # FIXME: we have tests that depend on run order, we should fix that and
-    # remove this method call.
-    self.i_suck_and_my_tests_are_order_dependent!
+    alias_method :method_name, :name
 
     include ActiveSupport::Testing::TaggedLogging
     include ActiveSupport::Testing::SetupAndTeardown

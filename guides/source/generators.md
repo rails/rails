@@ -35,7 +35,7 @@ $ bin/rails generate helper --help
 Creating Your First Generator
 -----------------------------
 
-Since Rails 3.0, generators are built on top of [Thor](https://github.com/erikhuda/thor). Thor provides powerful options parsing and a great API for manipulating files. For instance, let's build a generator that creates an initializer file named `initializer.rb` inside `config/initializers`.
+Since Rails 3.0, generators are built on top of [Thor](https://github.com/erikhuda/thor). Thor provides powerful options for parsing and a great API for manipulating files. For instance, let's build a generator that creates an initializer file named `initializer.rb` inside `config/initializers`.
 
 The first step is to create a file at `lib/generators/initializer_generator.rb` with the following content:
 
@@ -191,8 +191,6 @@ $ bin/rails generate scaffold User name:string
       create      test/controllers/users_controller_test.rb
       invoke    helper
       create      app/helpers/users_helper.rb
-      invoke      test_unit
-      create        test/helpers/users_helper_test.rb
       invoke    jbuilder
       create      app/views/users/index.json.jbuilder
       create      app/views/users/show.json.jbuilder
@@ -387,8 +385,6 @@ $ bin/rails generate scaffold Comment body:text
       create      test/controllers/comments_controller_test.rb
       invoke    my_helper
       create      app/helpers/comments_helper.rb
-      invoke      shoulda
-      create        test/helpers/comments_helper_test.rb
       invoke    jbuilder
       create      app/views/comments/index.json.jbuilder
       create      app/views/comments/show.json.jbuilder

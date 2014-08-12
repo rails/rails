@@ -13,7 +13,7 @@ gem 'mocha', '~> 0.14', require: false
 gem 'rack', github: 'rack/rack'
 gem 'rack-cache', '~> 1.2'
 gem 'jquery-rails', '~> 3.1.0'
-gem 'turbolinks'
+gem 'turbolinks', github: 'rails/turbolinks', branch: 'master'
 gem 'coffee-rails', '~> 4.0.0'
 gem 'arel', github: 'rails/arel', branch: 'master'
 gem 'rails-dom-testing', github: 'rails/rails-dom-testing'
@@ -90,6 +90,12 @@ platforms :jruby do
       gem 'activerecord-jdbcpostgresql-adapter', '>= 1.3.0'
     end
   end
+end
+
+platforms :rbx do
+  # The rubysl-yaml gem doesn't ship with Psych by default
+  # as it needs libyaml that isn't always available.
+  gem 'psych', '~> 2.0'
 end
 
 # gems that are necessary for ActiveRecord tests with Oracle database
