@@ -17,4 +17,4 @@ require 'mocha/setup' # FIXME: stop using mocha
 # FIXME: we have tests that depend on run order, we should fix that and
 # remove this method call.
 require 'active_support/test_case'
-ActiveSupport::TestCase.i_suck_and_my_tests_are_order_dependent!
+ActiveSupport::TestCase.my_tests_are_order_dependent!

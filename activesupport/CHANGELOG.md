@@ -1,6 +1,6 @@
 *   Fix ActiveSupport::TestCase not to order users' test cases by default.
     If this change breaks your tests because your tests are order dependent, you need to explicitly call
-    ActiveSupport::TestCase.i_suck_and_my_tests_are_order_dependent! at the top of your tests.
+    ActiveSupport::TestCase.my_tests_are_order_dependent! at the top of your tests.
 
     *Akira Matsuda*
 
