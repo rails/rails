@@ -5,7 +5,7 @@ of queueing backends. These jobs can be everything from regularly scheduled
 clean-ups, billing charges, or mailings. Anything that can be chopped up into
 small units of work and run in parallel, really.
 
-It also serves as the backend for [ActionMailer's #deliver_later functionality](https://github.com/rails/activejob/issues/13)
+It also serves as the backend for ActionMailer's #deliver_later functionality
 that makes it easy to turn any mailing into a job for running later. That's
 one of the most common jobs in a modern web application: Sending emails outside
 of the request-response cycle, so the user doesn't have to wait on it.
@@ -105,16 +105,37 @@ We currently have adapters for:
 
 * [activejob-stats](https://github.com/seuros/activejob-stats)
 
-## Under development as a gem, targeted for Rails inclusion
+## Download and installation
 
-Active Job is currently being developed in a separate repository until it's
-ready to be merged in with Rails. The current plan is to have Active Job
-be part of the Rails 4.2 release, but plans may change depending on when
-this framework stabilizes and feels ready.
+The latest version of Active Job can be installed with RubyGems:
 
+```
+  % [sudo] gem install activejob
+```
+
+Source code can be downloaded as part of the Rails project on GitHub
+
+* https://github.com/rails/rails/tree/master/activejob
 
 ## License
 
-Active Job is released under the MIT license:
+ActiveJob is released under the MIT license:
 
 * http://www.opensource.org/licenses/MIT
+
+
+## Support
+
+API documentation is at
+
+* http://api.rubyonrails.org
+
+Bug reports can be filed for the Ruby on Rails project here:
+
+* https://github.com/rails/rails/issues
+
+Feature requests should be discussed on the rails-core mailing list here:
+
+* https://groups.google.com/forum/?fromgroups#!forum/rubyonrails-core
+
+
