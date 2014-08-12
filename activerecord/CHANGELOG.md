@@ -1,3 +1,9 @@
+*   Fix regression on after_commit that didnt fire when having nested transactions.
+
+    Fixes #16425
+
+    *arthurnn*
+
 *   Define `id_was` to get the previous value of the primary key.
 
     Currently when we call id_was and we have a custom primary key name
