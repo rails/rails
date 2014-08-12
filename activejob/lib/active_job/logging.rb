@@ -7,7 +7,7 @@ module ActiveJob
     included do
       cattr_accessor(:logger) { ActiveSupport::TaggedLogging.new(ActiveSupport::Logger.new(STDOUT)) }
 
-      around_enqueue do |job, block, _|
+      around_enqueue do |_, block, _|
         tag_logger do
           block.call
         end
@@ -17,7 +17,7 @@ module ActiveJob
         tag_logger(job.class.name, job.job_id) do
           payload = {adapter: job.class.queue_adapter, job: job.class, args: job.arguments}
           ActiveSupport::Notifications.instrument("perform_start.active_job", payload.dup)
-          ActiveSupport::Notifications.instrument("perform.active_job", payload) do |payload|
+          ActiveSupport::Notifications.instrument("perform.active_job", payload) do
             block.call
           end
         end

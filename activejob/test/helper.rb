@@ -1,7 +1,4 @@
-require 'bundler'
-Bundler.setup
-
-$LOAD_PATH << File.dirname(__FILE__) + "/../lib"
+require File.expand_path('../../../load_paths', __FILE__)
 
 require 'active_job'
 

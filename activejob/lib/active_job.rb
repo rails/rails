@@ -23,8 +23,6 @@
 
 require 'active_support'
 require 'active_support/rails'
-
-require 'active_job/railtie' if defined?(Rails)
 require 'active_job/version'
 
 module ActiveJob
