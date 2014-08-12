@@ -229,7 +229,17 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_finding_with_order_concatenated
-    topics = Topic.order('author_name').order('title')
+    assert_deprecated do
+      topics = Topic.order('author_name').order('title')
+      assert_equal 5, topics.to_a.size
+      assert_equal topics(:fourth).title, topics.first.title
+    end
+
+    topics = Topic.order('author_name').order.append('title')
+    assert_equal 5, topics.to_a.size
+    assert_equal topics(:fourth).title, topics.first.title
+
+    topics = Topic.order('title').order.prepend('author_name')
     assert_equal 5, topics.to_a.size
     assert_equal topics(:fourth).title, topics.first.title
   end
@@ -247,7 +257,13 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_finding_with_reorder
-    topics = Topic.order('author_name').order('title').reorder('id').to_a
+    assert_deprecated do
+      topics = Topic.order('author_name').order('title').reorder('id').to_a
+      topics_titles = topics.map{ |t| t.title }
+      assert_equal ['The First Topic', 'The Second Topic of the day', 'The Third Topic of the day', 'The Fourth Topic of the day', 'The Fifth Topic of the day'], topics_titles
+    end
+
+    topics = Topic.order('author_name').order.append('title').reorder('id').to_a
     topics_titles = topics.map{ |t| t.title }
     assert_equal ['The First Topic', 'The Second Topic of the day', 'The Third Topic of the day', 'The Fourth Topic of the day', 'The Fifth Topic of the day'], topics_titles
   end
@@ -1336,17 +1352,25 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_default_scope_order_with_scope_order
-    assert_equal 'zyke', CoolCar.order_using_new_style.limit(1).first.name
-    assert_equal 'zyke', FastCar.order_using_new_style.limit(1).first.name
+    assert_deprecated do
+      assert_equal 'zyke', CoolCar.order_using_new_style.limit(1).first.name
+      assert_equal 'zyke', FastCar.order_using_new_style.limit(1).first.name
+    end
+
+    assert_equal 'zyke', CoolCar.order_using_append.limit(1).first.name
+
+    assert_equal 'zyke', CoolCar.order_using_prepend.last.name
   end
 
   def test_order_using_scoping
-    car1 = CoolCar.order('id DESC').scoping do
-      CoolCar.all.merge!(order: 'id asc').first
+    assert_deprecated do
+      car1 = CoolCar.order('id DESC').scoping do
+        CoolCar.all.merge!(order: 'id asc').first
+      end
+      assert_equal 'zyke', car1.name
     end
-    assert_equal 'zyke', car1.name
 
-    car2 = FastCar.order('id DESC').scoping do
+    car2 = FastCar.order.append('id DESC').scoping do
       FastCar.all.merge!(order: 'id asc').first
     end
     assert_equal 'zyke', car2.name

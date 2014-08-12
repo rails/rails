@@ -111,6 +111,7 @@ class DeveloperOrderedBySalary < ActiveRecord::Base
   default_scope { order('salary DESC') }
 
   scope :by_name, -> { order('name DESC') }
+  scope :by_name_prepended, -> { order.prepend('name DESC') }
 end
 
 class DeveloperCalledDavid < ActiveRecord::Base

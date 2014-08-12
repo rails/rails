@@ -79,7 +79,7 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
   # Through: has_many through
   def test_has_many_through_has_many_through_with_has_many_source_reflection
     luke, david = subscribers(:first), subscribers(:second)
-    assert_equal [luke, david, david], authors(:david).subscribers.order('subscribers.nick')
+    assert_equal [luke, david, david], authors(:david).subscribers
   end
 
   def test_has_many_through_has_many_through_with_has_many_source_reflection_preload
@@ -404,7 +404,7 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
   def test_distinct_has_many_through_a_has_many_through_association_on_through_reflection
     author = authors(:david)
     assert_equal [subscribers(:first), subscribers(:second)],
-                 author.distinct_subscribers.order('subscribers.nick')
+                 author.distinct_subscribers
   end
 
   def test_nested_has_many_through_with_a_table_referenced_multiple_times

@@ -56,6 +56,44 @@ module ActiveRecord
       end
     end
 
+    # OrderChain objects act as placeholder for queries in which #order does not have any parameter.
+    # In this case, #order must be chained with #append or #prepend to return a new relation.
+    class OrderChain
+      def initialize(scope)
+        @scope = scope
+      end
+
+      # Specify an order attribute, appending the given expression(s) to
+      # any already defined order.
+      #
+      # If this is the first order specification, behaves identically to
+      # +order+.
+      #
+      #   User.order(:id).order.append(:name)
+      #   => SELECT "users".* FROM "users" ORDER BY "users"."name" ASC, "users"."id" ASC
+      #
+      #   User.order.append(:name)
+      #   => SELECT "users".* FROM "users" ORDER BY "users"."name" ASC
+      def append(*args)
+        @scope.spawn.append_order!(*args)
+      end
+
+      # Specify an order attribute, prepending the given expression(s) to
+      # any already defined order.
+      #
+      # If this is the first order specification, behaves identically to
+      # +order+.
+      #
+      #   User.order(:id).order.prepend(:name)
+      #   => SELECT "users".* FROM "users" ORDER BY "users"."id" ASC, "users"."name" ASC
+      #
+      #   User.order.prepend(:name)
+      #   => SELECT "users".* FROM "users" ORDER BY "users"."name" ASC
+      def prepend(*args)
+        @scope.spawn.prepend_order!(*args)
+      end
+    end
+
     Relation::MULTI_VALUE_METHODS.each do |name|
       class_eval <<-CODE, __FILE__, __LINE__ + 1
         def #{name}_values                   # def select_values
@@ -310,15 +348,44 @@ WARNING
     #
     #   User.order('name DESC, email')
     #   => SELECT "users".* FROM "users" ORDER BY name DESC, email
+    #
+    # When chaining another order onto a relation that already has one defined,
+    # +order.append+ or +order.prepend+ should be used, to specify how they are
+    # to be combined.
+    #
+    # See OrderChain for more details on #append and #prepend.
+    #
     def order(*args)
-      check_if_method_has_arguments!(:order, args)
-      spawn.order!(*args)
+      return OrderChain.new(self) if args.empty?
+
+      result = spawn.append_order!(*args)
+
+      unless order_values.empty? || order_values == result.order_values
+        ActiveSupport::Deprecation.warn <<-WARNING
+Calling #order on a relation that already has an order defined will behave differently in Rails 5.
+
+To maintain the Rails 4 behavior, use #order.append. For the future Rails 5 behavior, use #order.prepend.
+WARNING
+      end
+
+      result
     end
 
     def order!(*args) # :nodoc:
+      append_order!(*args)
+    end
+
+    def append_order!(*args) # :nodoc:
       preprocess_order_args(args)
 
-      self.order_values += args
+      self.order_values += args unless order_values == args
+      self
+    end
+
+    def prepend_order!(*args) # :nodoc:
+      preprocess_order_args(args)
+
+      self.order_values = args.concat(self.order_values) unless order_values == args
       self
     end
 
@@ -326,9 +393,10 @@ WARNING
     #
     #   User.order('email DESC').reorder('id ASC') # generated SQL has 'ORDER BY id ASC'
     #
-    # Subsequent calls to order on the same relation will be appended. For example:
+    # Subsequent calls to +order.append+ or +order.prepend+ on the same relation will be amended.
+    # For example:
     #
-    #   User.order('email DESC').reorder('id ASC').order('name ASC')
+    #   User.order('email DESC').reorder('id ASC').order.append('name ASC')
     #
     # generates a query with 'ORDER BY id ASC, name ASC'.
     def reorder(*args)

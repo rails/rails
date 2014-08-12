@@ -1,3 +1,10 @@
+*   Provide `order.append` and `order.prepend` relation methods, to
+    control how multiple orders are combined. Calling `order` on an
+    already-ordered relation is now deprecated, so we can eventually
+    make `order` an alias for `order.prepend`.
+
+    *Matthew Draper*
+
 *   When calling `update_columns` on a record that is not persisted, the error
     message now reflects whether that object is a new record or has been
     destroyed.
