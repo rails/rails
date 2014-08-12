@@ -201,6 +201,7 @@ module ActiveRecord
         @state.set_state(:committed)
         @state.parent = parent.state
         connection.release_savepoint
+        records.each { |r| parent.add_record(r) }
       end
     end
   end
