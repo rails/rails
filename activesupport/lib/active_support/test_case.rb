@@ -17,11 +17,6 @@ module ActiveSupport
 
     alias_method :method_name, :name
 
-    $tags = {}
-    def self.for_tag(tag)
-      yield if $tags[tag]
-    end
-
     include ActiveSupport::Testing::TaggedLogging
     include ActiveSupport::Testing::SetupAndTeardown
     include ActiveSupport::Testing::Assertions
