@@ -353,10 +353,10 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
       assert_equal ['id DESC', 'companies.id'], ordered_clients.order_values
     end
 
-    ordered_clients =  companies(:first_firm).clients_sorted_desc.append_order('companies.id')
+    ordered_clients =  companies(:first_firm).clients_sorted_desc.order.append('companies.id')
     assert_equal ['id DESC', 'companies.id'], ordered_clients.order_values
 
-    ordered_clients =  companies(:first_firm).clients_sorted_desc.prepend_order('companies.id')
+    ordered_clients =  companies(:first_firm).clients_sorted_desc.order.prepend('companies.id')
     assert_equal ['companies.id', 'id DESC'], ordered_clients.order_values
   end
 

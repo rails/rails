@@ -549,10 +549,10 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
       assert_equal ['developers.name desc, developers.id desc', 'projects.id'], ordered_developers.order_values
     end
 
-    ordered_developers = projects(:active_record).developers.append_order('projects.id')
+    ordered_developers = projects(:active_record).developers.order.append('projects.id')
     assert_equal ['developers.name desc, developers.id desc', 'projects.id'], ordered_developers.order_values
 
-    ordered_developers = projects(:active_record).developers.prepend_order('projects.id')
+    ordered_developers = projects(:active_record).developers.order.prepend('projects.id')
     assert_equal ['projects.id', 'developers.name desc, developers.id desc'], ordered_developers.order_values
   end
 

@@ -235,11 +235,11 @@ class RelationTest < ActiveRecord::TestCase
       assert_equal topics(:fourth).title, topics.first.title
     end
 
-    topics = Topic.order('author_name').append_order('title')
+    topics = Topic.order('author_name').order.append('title')
     assert_equal 5, topics.to_a.size
     assert_equal topics(:fourth).title, topics.first.title
 
-    topics = Topic.order('title').prepend_order('author_name')
+    topics = Topic.order('title').order.prepend('author_name')
     assert_equal 5, topics.to_a.size
     assert_equal topics(:fourth).title, topics.first.title
   end
@@ -263,7 +263,7 @@ class RelationTest < ActiveRecord::TestCase
       assert_equal ['The First Topic', 'The Second Topic of the day', 'The Third Topic of the day', 'The Fourth Topic of the day', 'The Fifth Topic of the day'], topics_titles
     end
 
-    topics = Topic.order('author_name').append_order('title').reorder('id').to_a
+    topics = Topic.order('author_name').order.append('title').reorder('id').to_a
     topics_titles = topics.map{ |t| t.title }
     assert_equal ['The First Topic', 'The Second Topic of the day', 'The Third Topic of the day', 'The Fourth Topic of the day', 'The Fifth Topic of the day'], topics_titles
   end
@@ -1370,7 +1370,7 @@ class RelationTest < ActiveRecord::TestCase
       assert_equal 'zyke', car1.name
     end
 
-    car2 = FastCar.append_order('id DESC').scoping do
+    car2 = FastCar.order.append('id DESC').scoping do
       FastCar.all.merge!(order: 'id asc').first
     end
     assert_equal 'zyke', car2.name

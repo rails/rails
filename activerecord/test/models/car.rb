@@ -15,8 +15,8 @@ class Car < ActiveRecord::Base
   scope :incl_engines, -> { includes(:engines) }
 
   scope :order_using_new_style,  -> { order('name asc') }
-  scope :order_using_append,  -> { append_order('name asc') }
-  scope :order_using_prepend,  -> { prepend_order('name asc') }
+  scope :order_using_append,  -> { order.append('name asc') }
+  scope :order_using_prepend,  -> { order.prepend('name asc') }
 end
 
 class CoolCar < Car

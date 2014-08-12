@@ -109,7 +109,7 @@ class DefaultScopingTest < ActiveRecord::TestCase
       assert_equal expected, received
     end
 
-    received = Developer.order('name ASC').reorder('name DESC').append_order('id DESC').collect { |dev| [dev.name, dev.id] }
+    received = Developer.order('name ASC').reorder('name DESC').order.append('id DESC').collect { |dev| [dev.name, dev.id] }
     assert_equal expected, received
   end
 
@@ -193,7 +193,7 @@ class DefaultScopingTest < ActiveRecord::TestCase
       assert !(scope.to_sql =~ /order/i)
     end
 
-    scope = DeveloperOrderedBySalary.append_order('salary DESC, name ASC').reverse_order.unscope(:order)
+    scope = DeveloperOrderedBySalary.order.append('salary DESC, name ASC').reverse_order.unscope(:order)
     assert !(scope.to_sql =~ /order/i)
   end
 

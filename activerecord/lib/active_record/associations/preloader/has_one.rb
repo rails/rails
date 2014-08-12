@@ -14,7 +14,7 @@ module ActiveRecord
         private
 
         def build_scope
-          super.append_order(preload_scope.values[:order] || reflection_scope.values[:order])
+          super.order.append(preload_scope.values[:order] || reflection_scope.values[:order])
         end
 
       end

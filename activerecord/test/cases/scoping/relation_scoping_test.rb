@@ -24,8 +24,8 @@ class RelationScopingTest < ActiveRecord::TestCase
       assert_equal Developer.order("id DESC").order("name DESC").to_a.reverse, Developer.order(Developer.arel_table[:id].desc).order(Developer.arel_table[:name].desc).reverse_order
     end
 
-    assert_equal Developer.order("id DESC").append_order("name DESC").to_a.reverse, Developer.order(Developer.arel_table[:id].desc).append_order(Developer.arel_table[:name].desc).reverse_order
-    assert_equal Developer.order("id DESC").prepend_order("name DESC").to_a.reverse, Developer.order(Developer.arel_table[:id].desc).prepend_order(Developer.arel_table[:name].desc).reverse_order
+    assert_equal Developer.order("id DESC").order.append("name DESC").to_a.reverse, Developer.order(Developer.arel_table[:id].desc).order.append(Developer.arel_table[:name].desc).reverse_order
+    assert_equal Developer.order("id DESC").order.prepend("name DESC").to_a.reverse, Developer.order(Developer.arel_table[:id].desc).order.prepend(Developer.arel_table[:name].desc).reverse_order
   end
 
   def test_reverse_order_with_arel_nodes_and_strings
@@ -33,8 +33,8 @@ class RelationScopingTest < ActiveRecord::TestCase
       assert_equal Developer.order("id DESC").order("name DESC").to_a.reverse, Developer.order("id DESC").order(Developer.arel_table[:name].desc).reverse_order
     end
 
-    assert_equal Developer.order("id DESC").append_order("name DESC").to_a.reverse, Developer.order("id DESC").append_order(Developer.arel_table[:name].desc).reverse_order
-    assert_equal Developer.order("id DESC").prepend_order("name DESC").to_a.reverse, Developer.order("id DESC").prepend_order(Developer.arel_table[:name].desc).reverse_order
+    assert_equal Developer.order("id DESC").order.append("name DESC").to_a.reverse, Developer.order("id DESC").order.append(Developer.arel_table[:name].desc).reverse_order
+    assert_equal Developer.order("id DESC").order.prepend("name DESC").to_a.reverse, Developer.order("id DESC").order.prepend(Developer.arel_table[:name].desc).reverse_order
   end
 
   def test_double_reverse_order_produces_original_order
