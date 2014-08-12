@@ -22,10 +22,6 @@ module ActiveSupport
       yield if $tags[tag]
     end
 
-    # FIXME: we have tests that depend on run order, we should fix that and
-    # remove this method call.
-    self.i_suck_and_my_tests_are_order_dependent!
-
     include ActiveSupport::Testing::TaggedLogging
     include ActiveSupport::Testing::SetupAndTeardown
     include ActiveSupport::Testing::Assertions
