@@ -990,11 +990,4 @@ class DependenciesTest < ActiveSupport::TestCase
   ensure
     ActiveSupport::Dependencies.hook!
   end
-
-private
-  def remove_constants(*constants)
-    constants.each do |constant|
-      Object.send(:remove_const, constant) if Object.const_defined?(constant)
-    end
-  end
 end
