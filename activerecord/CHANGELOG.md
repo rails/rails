@@ -1,3 +1,19 @@
+*   `index_exists?` with `:name` option does verify specified columns.
+
+    Example:
+
+        add_index :articles, :title, name: "idx_title"
+
+        # Before:
+        index_exists? :articles, :title, name: "idx_title" # => `true`
+        index_exists? :articles, :body, name: "idx_title" # => `true`
+
+        # After:
+        index_exists? :articles, :title, name: "idx_title" # => `true`
+        index_exists? :articles, :body, name: "idx_title" # => `false`
+
+    *Yves Senn*, *Matthew Draper*
+
 *   When calling `update_columns` on a record that is not persisted, the error
     message now reflects whether that object is a new record or has been
     destroyed.

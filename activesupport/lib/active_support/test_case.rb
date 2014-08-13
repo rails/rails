@@ -15,16 +15,11 @@ module ActiveSupport
   class TestCase < ::Minitest::Test
     Assertion = Minitest::Assertion
 
-    alias_method :method_name, :name
-
-    $tags = {}
-    def self.for_tag(tag)
-      yield if $tags[tag]
+    class << self
+      alias :my_tests_are_order_dependent! :i_suck_and_my_tests_are_order_dependent!
     end
 
-    # FIXME: we have tests that depend on run order, we should fix that and
-    # remove this method call.
-    self.i_suck_and_my_tests_are_order_dependent!
+    alias_method :method_name, :name
 
     include ActiveSupport::Testing::TaggedLogging
     include ActiveSupport::Testing::SetupAndTeardown

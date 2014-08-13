@@ -150,7 +150,7 @@ class MysqlConnectionTest < ActiveRecord::TestCase
     end
   end
 
-  def test_mysql_sql_mode_variable_overides_strict_mode
+  def test_mysql_sql_mode_variable_overrides_strict_mode
     run_without_connection do |orig_connection|
       ActiveRecord::Base.establish_connection(orig_connection.deep_merge(variables: { 'sql_mode' => 'ansi' }))
       result = ActiveRecord::Base.connection.exec_query 'SELECT @@SESSION.sql_mode'
