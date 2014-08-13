@@ -13,8 +13,3 @@ I18n.enforce_available_locales = false
 require 'active_support/testing/autorun'
 
 require 'mocha/setup' # FIXME: stop using mocha
-
-# FIXME: we have tests that depend on run order, we should fix that and
-# remove this method call.
-require 'active_support/test_case'
-ActiveSupport::TestCase.my_tests_are_order_dependent!
