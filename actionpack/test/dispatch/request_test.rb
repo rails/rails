@@ -640,7 +640,7 @@ end
 
 class RequestMethod < BaseRequestTest
   test "method returns environment's request method when it has not been
-    overriden by middleware".squish do
+    overridden by middleware".squish do
 
     ActionDispatch::Request::HTTP_METHODS.each do |method|
       request = stub_request('REQUEST_METHOD' => method)
