@@ -39,15 +39,25 @@ This section will provide a step-by-step guide to creating a job and enqueue it.
 
 ### Create the Job
 
+Active Job provides a Rails generator to create jobs. The following will create a
+job in app/jobs:
+
 ```bash
 $ bin/rails generate job guests_cleanup
+create  app/jobs/guests_cleanup_job.rb
+```
+
+You can also create a job that will run on a specific queue:
+
+```bash
+$ bin/rails generate job guests_cleanup --queue urgent
 create  app/jobs/guests_cleanup_job.rb
 ```
 
 As you can see, you can generate jobs just like you use other generators with
 Rails.
 
-If you didn't want to use a generator, you could create your own file inside of
+If you don't want to use a generator, you could create your own file inside of
 app/jobs, just make sure that it inherits from `ActiveJob::Base`.
 
 Here's how a job looks like:
@@ -209,8 +219,7 @@ Active Job has adapters for the following queueing backends:
 
 ### Change Backends
 
-You can easy change your adapter in your application.rb or development.rb or production.rb
-or in an initializer:
+You can easy change your adapter:
 
 ```ruby
 # be sure to have the adapter gem in your Gemfile and follow the adapter specific
