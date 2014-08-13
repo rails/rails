@@ -1422,7 +1422,7 @@ module ActiveRecord
       #   belongs_to :firm, foreign_key: "client_of"
       #   belongs_to :person, primary_key: "name", foreign_key: "person_name"
       #   belongs_to :author, class_name: "Person", foreign_key: "author_id"
-      #   belongs_to :valid_coupon, ->(o) { where "discounts > #{o.payments_count}" },
+      #   belongs_to :valid_coupon, ->(o) { where "discounts > ?", o.payments_count },
       #                             class_name: "Coupon", foreign_key: "coupon_id"
       #   belongs_to :attachable, polymorphic: true
       #   belongs_to :project, readonly: true
