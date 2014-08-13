@@ -484,12 +484,29 @@ class ForkingExecutor
           method   = job[1]
           reporter = job[2]
           result = Minitest.run_one_method klass, method
+          if result.error?
+            translate_exceptions result
+          end
           queue.record reporter, result
         end
       }
     }
     @size.times { @queue << nil }
     pool.each { |pid| Process.waitpid pid }
+  end
+
+  private
+  def translate_exceptions(result)
+    result.failures.map! { |e|
+      begin
+        Marshal.dump e
+        e
+      rescue TypeError
+        ex = Exception.new e.message
+        ex.set_backtrace e.backtrace
+        Minitest::UnexpectedError.new ex
+      end
+    }
   end
 end
 
