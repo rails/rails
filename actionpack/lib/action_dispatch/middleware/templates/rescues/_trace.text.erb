@@ -3,7 +3,7 @@ Rails.root: <%= defined?(Rails) && Rails.respond_to?(:root) ? Rails.root : "unse
 <% @traces.each do |name, trace| %>
 <% if trace.any? %>
 <%= name %>
-<%= trace.map(&:trace).join("\n") %>
+<%= trace.map { |t| t[:trace] }.join("\n") %>
 
 <% end %>
 <% end %>
