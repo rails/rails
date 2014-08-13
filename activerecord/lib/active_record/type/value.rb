@@ -70,7 +70,7 @@ module ActiveRecord
 
       # Determines whether the mutable value has been modified since it was
       # read. Returns +false+ by default. This method should not need to be
-      # overriden directly. Types which return a mutable value should include
+      # overridden directly. Types which return a mutable value should include
       # +Type::Mutable+, which will define this method.
       def changed_in_place?(*)
         false
