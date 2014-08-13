@@ -95,6 +95,12 @@ module ActiveRecord
         assert connection.index_exists?(:testings, [:foo, :bar])
       end
 
+      def test_index_exists_with_custom_name_checks_columns
+        connection.add_index :testings, [:foo, :bar], name: "my_index"
+        assert connection.index_exists?(:testings, [:foo, :bar], name: "my_index")
+        assert_not connection.index_exists?(:testings, [:foo], name: "my_index")
+      end
+
       def test_valid_index_options
         assert_raise ArgumentError do
           connection.add_index :testings, :foo, unqiue: true
