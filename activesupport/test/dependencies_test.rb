@@ -47,18 +47,22 @@ class DependenciesTest < ActiveSupport::TestCase
   end
 
   def test_tracking_loaded_files
-    require_dependency 'dependencies/service_one'
-    require_dependency 'dependencies/service_two'
-    assert_equal 2, ActiveSupport::Dependencies.loaded.size
+    with_loading do
+      require_dependency 'dependencies/service_one'
+      require_dependency 'dependencies/service_two'
+      assert_equal 2, ActiveSupport::Dependencies.loaded.size
+    end
   ensure
     Object.send(:remove_const, :ServiceOne) if Object.const_defined?(:ServiceOne)
     Object.send(:remove_const, :ServiceTwo) if Object.const_defined?(:ServiceTwo)
   end
 
   def test_tracking_identical_loaded_files
-    require_dependency 'dependencies/service_one'
-    require_dependency 'dependencies/service_one'
-    assert_equal 1, ActiveSupport::Dependencies.loaded.size
+    with_loading do
+      require_dependency 'dependencies/service_one'
+      require_dependency 'dependencies/service_one'
+      assert_equal 1, ActiveSupport::Dependencies.loaded.size
+    end
   ensure
     Object.send(:remove_const, :ServiceOne) if Object.const_defined?(:ServiceOne)
   end
