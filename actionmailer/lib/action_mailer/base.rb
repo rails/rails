@@ -548,12 +548,8 @@ module ActionMailer
       end
 
       def method_missing(method_name, *args) # :nodoc:
-        if respond_to?(method_name)
-          if defined?(::ActiveJob) && action_methods.include?(method_name.to_s)
-            DeliverLater::MailMessageWrapper.new(self, method_name, *args)
-          else
-            new(method_name, *args).message
-          end
+        if action_methods.include?(method_name.to_s)
+            MessageDelivery.new(self, method_name, *args)
         else
           super
         end

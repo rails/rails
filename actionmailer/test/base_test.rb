@@ -4,6 +4,7 @@ require 'set'
 
 require 'action_dispatch'
 require 'active_support/time'
+require 'active_support/core_ext/object/itself'
 
 require 'mailers/base_mailer'
 require 'mailers/proc_mailer'
@@ -243,7 +244,7 @@ class BaseTest < ActiveSupport::TestCase
       end
     end
 
-    e = assert_raises(RuntimeError) { LateAttachmentMailer.welcome }
+    e = assert_raises(RuntimeError) { LateAttachmentMailer.welcome.message }
     assert_match(/Can't add attachments after `mail` was called./, e.message)
   end
 
@@ -255,7 +256,7 @@ class BaseTest < ActiveSupport::TestCase
       end
     end
 
-    e = assert_raises(RuntimeError) { LateInlineAttachmentMailer.welcome }
+    e = assert_raises(RuntimeError) { LateInlineAttachmentMailer.welcome.message }
     assert_match(/Can't add attachments after `mail` was called./, e.message)
   end
 
