@@ -213,7 +213,7 @@ XML
 
   def test_document_body_and_params_with_post
     post :test_params, :id => 1
-    assert_equal("{\"id\"=>\"1\", \"controller\"=>\"test_case_test/test\", \"action\"=>\"test_params\"}", @response.body)
+    assert_equal("{\"controller\"=>\"test_case_test/test\", \"action\"=>\"test_params\", \"id\"=>\"1\"}", @response.body)
   end
 
   def test_document_body_with_post

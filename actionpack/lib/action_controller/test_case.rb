@@ -577,11 +577,9 @@ module ActionController
             _recall: @request.path_parameters
           )
 
-          url, query_string = @routes.path_for(options).split("?", 2)
-        end
-
-        if http_method != 'POST'
-          headers_or_env["QUERY_STRING"] = query_string
+          extra_keys = @routes.extra_keys(options)
+          parameters.reject! { |parameter| !extra_keys.include?(parameter) }
+          url, = @routes.path_for(options).split("?", 2)
         end
 
         @request.env.each do |key, value|
