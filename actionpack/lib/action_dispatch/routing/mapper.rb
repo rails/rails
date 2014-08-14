@@ -1726,20 +1726,21 @@ module ActionDispatch
             path || @scope[:path_names][name] || name.to_s
           end
 
-          def prefix_name_for_action(as, action) #:nodoc:
+          def prefix_name_for_action(as, action, scope_level) #:nodoc:
             if as
               prefix = as
-            elsif !canonical_action?(action, @scope[:scope_level])
+            elsif !canonical_action?(action, scope_level)
               prefix = action
             end
 
-            if prefix
+            if prefix && prefix != '/' && !prefix.empty?
               Mapper.normalize_name prefix.to_s.tr('-', '_')
             end
           end
 
           def name_for_action(as, action) #:nodoc:
-            prefix = prefix_name_for_action(as, action)
+            scope_level = @scope[:scope_level]
+            prefix = prefix_name_for_action(as, action, scope_level)
             name_prefix = @scope[:as]
 
             if parent_resource
@@ -1749,7 +1750,7 @@ module ActionDispatch
               member_name = parent_resource.member_name
             end
 
-            name = case @scope[:scope_level]
+            name = case scope_level
             when :nested
               [name_prefix, prefix]
             when :collection
@@ -1764,7 +1765,7 @@ module ActionDispatch
               [name_prefix, member_name, prefix]
             end
 
-            if candidate = name.select(&:present?).join("_").presence
+            if candidate = name.compact.join("_").presence
               # If a name was not explicitly given, we check if it is valid
               # and return nil in case it isn't. Otherwise, we pass the invalid name
               # forward so the underlying router engine treats it and raises an exception.
