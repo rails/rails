@@ -260,7 +260,7 @@ class NestedRelationScopingTest < ActiveRecord::TestCase
   end
 end
 
-class HasManyScopingTest< ActiveRecord::TestCase
+class HasManyScopingTest < ActiveRecord::TestCase
   fixtures :comments, :posts, :people, :references
 
   def setup
@@ -306,7 +306,7 @@ class HasManyScopingTest< ActiveRecord::TestCase
   end
 end
 
-class HasAndBelongsToManyScopingTest< ActiveRecord::TestCase
+class HasAndBelongsToManyScopingTest < ActiveRecord::TestCase
   fixtures :posts, :categories, :categories_posts
 
   def setup
