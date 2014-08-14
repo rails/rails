@@ -11,6 +11,10 @@ require 'models/reference'
 class RelationScopingTest < ActiveRecord::TestCase
   fixtures :authors, :developers, :projects, :comments, :posts, :developers_projects
 
+  setup do
+    developers(:david)
+  end
+
   def test_reverse_order
     assert_equal Developer.order("id DESC").to_a.reverse, Developer.order("id DESC").reverse_order
   end
