@@ -54,7 +54,7 @@ module ActiveRecord
       public_send("#{k}=", v)
     rescue NoMethodError
       if respond_to?("#{k}=")
-        raise
+        raise "Potential problem is missed id key, check for 'id: false' in joined table"
       else
         raise UnknownAttributeError.new(self, k)
       end
