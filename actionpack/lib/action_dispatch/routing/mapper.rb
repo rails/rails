@@ -1563,7 +1563,7 @@ module ActionDispatch
             raise ArgumentError, "must be called with a path and/or options"
           end
 
-          if @scope.scope_level == :resources
+          if @scope.resources?
             with_scope_level(:root) do
               scope(parent_resource.path) do
                 super(options)
@@ -1911,6 +1911,10 @@ module ActionDispatch
 
         def nested?
           scope_level == :nested
+        end
+
+        def resources?
+          scope_level == :resources
         end
 
         def resource_scope?
