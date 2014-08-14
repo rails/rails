@@ -42,6 +42,8 @@ module ActionDispatch
       METHOD
     end
 
+    alias_method :request_id, :uuid
+
     def initialize(env)
       super
       @method            = nil
