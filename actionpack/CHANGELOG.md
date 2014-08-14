@@ -4,6 +4,7 @@
 
     *David Ilizarov*
 
+
 *   Remove deprecated `AbstractController::Helpers::ClassMethods::MissingHelperError`
     in favor of `AbstractController::Helpers::MissingHelperError`.
 
