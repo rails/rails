@@ -1901,16 +1901,12 @@ module ActionDispatch
 
         RESOURCE_SCOPES = [:resource, :resources]
 
-        attr_reader :parent
+        attr_reader :parent, :scope_level
 
         def initialize(hash, parent = {}, scope_level = nil)
           @hash = hash
           @parent = parent
           @scope_level = scope_level
-        end
-
-        def scope_level
-          @scope_level
         end
 
         def nested?
