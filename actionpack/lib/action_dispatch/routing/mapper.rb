@@ -1749,20 +1749,7 @@ module ActionDispatch
               member_name = parent_resource.member_name
             end
 
-            name = case scope_level
-            when :nested
-              [name_prefix, prefix]
-            when :collection
-              [prefix, name_prefix, collection_name]
-            when :new
-              [prefix, :new, name_prefix, member_name]
-            when :member
-              [prefix, name_prefix, member_name]
-            when :root
-              [name_prefix, collection_name, prefix]
-            else
-              [name_prefix, member_name, prefix]
-            end
+            name = @scope.action_name(name_prefix, prefix, collection_name, member_name)
 
             if candidate = name.compact.join("_").presence
               # If a name was not explicitly given, we check if it is valid
@@ -1915,6 +1902,23 @@ module ActionDispatch
 
         def resources?
           scope_level == :resources
+        end
+
+        def action_name(name_prefix, prefix, collection_name, member_name)
+          case scope_level
+          when :nested
+            [name_prefix, prefix]
+          when :collection
+            [prefix, name_prefix, collection_name]
+          when :new
+            [prefix, :new, name_prefix, member_name]
+          when :member
+            [prefix, name_prefix, member_name]
+          when :root
+            [name_prefix, collection_name, prefix]
+          else
+            [name_prefix, member_name, prefix]
+          end
         end
 
         def resource_scope?
