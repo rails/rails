@@ -1,3 +1,5 @@
+require 'delegate'
+
 module ActionMailer
   class MessageDelivery < Delegator
     def initialize(mailer, mail_method, *args)
@@ -37,7 +39,7 @@ module ActionMailer
         enqueue_method = :enqueue_in
         args.unshift options[:in]
       end
-      ActionMailer::DelayedDeliveryJob.send enqueue_method, *args
+      ActionMailer::DeliveryJob.send enqueue_method, *args
     end
   end
 end

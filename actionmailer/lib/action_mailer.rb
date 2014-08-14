@@ -46,5 +46,5 @@ module ActionMailer
   autoload :TestCase
   autoload :TestHelper
   autoload :MessageDelivery
-  autoload :DelayedDeliveryJob
+  autoload :DeliveryJob
 end
