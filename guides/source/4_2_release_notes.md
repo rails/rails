@@ -98,6 +98,7 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 
 *   Removed deprecated `AbstractController::Helpers::ClassMethods::MissingHelperError`
     in favor of `AbstractController::Helpers::MissingHelperError`.
+    ([Commit](https://github.com/rails/rails/commit/a1ddde15ae0d612ff2973de9cf768ed701b594e8))
 
 ### Deprecations
 
