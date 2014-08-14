@@ -42,8 +42,6 @@ module ActionDispatch
       METHOD
     end
 
-    alias_method :request_id, :uuid
-
     def initialize(env)
       super
       @method            = nil
@@ -236,6 +234,8 @@ module ActionDispatch
     def uuid
       @uuid ||= env["action_dispatch.request_id"]
     end
+    
+    alias_method :request_id, :uuid
 
     # Returns the lowercase name of the HTTP server software.
     def server_software
