@@ -7,7 +7,7 @@ begin
 rescue LoadError
   begin
     require 'resque_scheduler'
-  rescue LoadError
+  rescue LoadError => e
     $stderr.puts 'The ActiveJob resque adapter requires resque-scheduler. Please add it to your Gemfile and run bundle install'
     raise e
   end
