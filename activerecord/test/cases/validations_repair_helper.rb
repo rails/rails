@@ -13,7 +13,7 @@ module ActiveRecord
     end
 
     def repair_validations(*model_classes)
-      yield
+      yield if block_given?
     ensure
       model_classes.each do |k|
         k.clear_validators!
