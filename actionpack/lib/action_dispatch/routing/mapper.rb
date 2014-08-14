@@ -1903,13 +1903,14 @@ module ActionDispatch
 
         attr_reader :parent
 
-        def initialize(hash, parent = {})
+        def initialize(hash, parent = {}, scope_level = nil)
           @hash = hash
           @parent = parent
+          @scope_level = scope_level
         end
 
         def scope_level
-          self[:scope_level]
+          @scope_level
         end
 
         def nested?
@@ -1925,11 +1926,15 @@ module ActionDispatch
         end
 
         def new(hash)
-          self.class.new hash, self
+          self.class.new hash, self, scope_level
         end
 
         def new_level(level)
-          new(:scope_level => level)
+          self.class.new(self, self, level)
+        end
+
+        def fetch(key, &block)
+          @hash.fetch(key, &block)
         end
 
         def [](key)
