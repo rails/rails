@@ -63,7 +63,7 @@ module ActionDispatch
         attr_reader :requirements, :conditions, :defaults
         attr_reader :to, :default_controller, :default_action, :as, :anchor
 
-        def self.build(scope, set, path, options)
+        def self.build(scope, set, path, as, options)
           options = scope[:options].merge(options) if scope[:options]
 
           options.delete :only
@@ -74,10 +74,10 @@ module ActionDispatch
 
           defaults = (scope[:defaults] || {}).merge options.delete(:defaults) || {}
 
-          new scope, set, path, defaults, options
+          new scope, set, path, defaults, as, options
         end
 
-        def initialize(scope, set, path, defaults, options)
+        def initialize(scope, set, path, defaults, as, options)
           @requirements, @conditions = {}, {}
           @defaults = defaults
           @set = set
@@ -85,7 +85,7 @@ module ActionDispatch
           @to                 = options.delete :to
           @default_controller = options.delete(:controller) || scope[:controller]
           @default_action     = options.delete(:action) || scope[:action]
-          @as                 = options.delete :as
+          @as                 = as
           @anchor             = options.delete :anchor
 
           formatted = options.delete :format
@@ -1544,13 +1544,13 @@ module ActionDispatch
             action = nil
           end
 
-          if !options.fetch(:as, true) # if it's set to nil or false
-            options.delete(:as)
-          else
-            options[:as] = name_for_action(options[:as], action)
-          end
+          as = if !options.fetch(:as, true) # if it's set to nil or false
+                 options.delete(:as)
+               else
+                 name_for_action(options.delete(:as), action)
+               end
 
-          mapping = Mapping.build(@scope, @set, URI.parser.escape(path), options)
+          mapping = Mapping.build(@scope, @set, URI.parser.escape(path), as, options)
           app, conditions, requirements, defaults, as, anchor = mapping.to_route
           @set.add_route(app, conditions, requirements, defaults, as, anchor)
         end
