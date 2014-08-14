@@ -1047,7 +1047,6 @@ module ActionDispatch
         RESOURCE_OPTIONS  = [:as, :controller, :path, :only, :except, :param, :concerns]
         CANONICAL_ACTIONS = %w(index create new show update destroy)
         RESOURCE_METHOD_SCOPES = [:collection, :member, :new]
-        RESOURCE_SCOPES = [:resource, :resources]
 
         class Resource #:nodoc:
           attr_reader :controller, :path, :options, :param
@@ -1521,7 +1520,7 @@ module ActionDispatch
           if on = options.delete(:on)
             send(on) { decomposed_match(path, options) }
           else
-            case @scope[:scope_level]
+            case @scope.scope_level
             when :resources
               nested { decomposed_match(path, options) }
             when :resource
@@ -1564,7 +1563,7 @@ module ActionDispatch
             raise ArgumentError, "must be called with a path and/or options"
           end
 
-          if @scope[:scope_level] == :resources
+          if @scope.scope_level == :resources
             with_scope_level(:root) do
               scope(parent_resource.path) do
                 super(options)
@@ -1631,7 +1630,7 @@ module ActionDispatch
           end
 
           def resource_scope? #:nodoc:
-            RESOURCE_SCOPES.include? @scope[:scope_level]
+            @scope.resource_scope?
           end
 
           def resource_method_scope?(scope_level) #:nodoc:
@@ -1639,7 +1638,7 @@ module ActionDispatch
           end
 
           def nested_scope? #:nodoc:
-            @scope[:scope_level] == :nested
+            @scope.nested?
           end
 
           def with_exclusive_scope
@@ -1714,7 +1713,7 @@ module ActionDispatch
           end
 
           def path_for_action(action, path) #:nodoc:
-            if path.blank? && canonical_action?(action, @scope[:scope_level])
+            if path.blank? && canonical_action?(action, @scope.scope_level)
               @scope[:path].to_s
             else
               "#{@scope[:path]}/#{action_path(action, path)}"
@@ -1739,7 +1738,7 @@ module ActionDispatch
           end
 
           def name_for_action(as, action) #:nodoc:
-            scope_level = @scope[:scope_level]
+            scope_level = @scope.scope_level
             prefix = prefix_name_for_action(as, action, scope_level)
             name_prefix = @scope[:as]
 
@@ -1900,11 +1899,25 @@ module ActionDispatch
                    :controller, :action, :path_names, :constraints,
                    :shallow, :blocks, :defaults, :options]
 
+        RESOURCE_SCOPES = [:resource, :resources]
+
         attr_reader :parent
 
         def initialize(hash, parent = {})
           @hash = hash
           @parent = parent
+        end
+
+        def scope_level
+          self[:scope_level]
+        end
+
+        def nested?
+          scope_level == :nested
+        end
+
+        def resource_scope?
+          RESOURCE_SCOPES.include? scope_level
         end
 
         def options
