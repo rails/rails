@@ -1,3 +1,8 @@
+*   Remove deprecated `AbstractController::Helpers::ClassMethods::MissingHelperError`
+    in favor of `AbstractController::Helpers::MissingHelperError`.
+
+    *Yves Senn*
+
 *   Fix `assert_template` not being able to assert that no files were rendered.
 
     *Guo Xiang Tan*

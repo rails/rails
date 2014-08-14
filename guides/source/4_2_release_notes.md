@@ -94,6 +94,11 @@ Action Pack
 
 Please refer to the [Changelog][action-pack] for detailed changes.
 
+### Removals
+
+*   Removed deprecated `AbstractController::Helpers::ClassMethods::MissingHelperError`
+    in favor of `AbstractController::Helpers::MissingHelperError`.
+
 ### Deprecations
 
 *   Deprecated support for setting the `:to` option of a router to a symbol or a

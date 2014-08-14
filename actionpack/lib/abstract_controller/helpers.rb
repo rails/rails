@@ -27,9 +27,6 @@ module AbstractController
     end
 
     module ClassMethods
-      MissingHelperError = ActiveSupport::Deprecation::DeprecatedConstantProxy.new('AbstractController::Helpers::ClassMethods::MissingHelperError',
-                                                                                   'AbstractController::Helpers::MissingHelperError')
-
       # When a class is inherited, wrap its helper module in a new module.
       # This ensures that the parent class's module can be changed
       # independently of the child class's.
