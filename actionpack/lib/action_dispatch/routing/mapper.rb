@@ -1732,12 +1732,14 @@ module ActionDispatch
             elsif !canonical_action?(action, @scope[:scope_level])
               prefix = action
             end
-            prefix.to_s.tr('-', '_') if prefix
+
+            if prefix
+              Mapper.normalize_name prefix.to_s.tr('-', '_')
+            end
           end
 
           def name_for_action(as, action) #:nodoc:
             prefix = prefix_name_for_action(as, action)
-            prefix = Mapper.normalize_name(prefix) if prefix
             name_prefix = @scope[:as]
 
             if parent_resource
