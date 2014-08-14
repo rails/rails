@@ -1209,7 +1209,7 @@ module ActiveRecord
       # Option examples:
       #   has_many :comments, -> { order "posted_on" }
       #   has_many :comments, -> { includes :author }
-      #   has_many :people, -> { where("deleted = 0").order("name") }, class_name: "Person"
+      #   has_many :people, -> { where(deleted: false).order(:name) }, class_name: "Person"
       #   has_many :tracks, -> { order "position" }, dependent: :destroy
       #   has_many :comments, dependent: :nullify
       #   has_many :tags, as: :taggable
