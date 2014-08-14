@@ -1046,7 +1046,6 @@ module ActionDispatch
         VALID_ON_OPTIONS  = [:new, :collection, :member]
         RESOURCE_OPTIONS  = [:as, :controller, :path, :only, :except, :param, :concerns]
         CANONICAL_ACTIONS = %w(index create new show update destroy)
-        RESOURCE_METHOD_SCOPES = [:collection, :member, :new]
 
         class Resource #:nodoc:
           attr_reader :controller, :path, :options, :param
@@ -1633,8 +1632,8 @@ module ActionDispatch
             @scope.resource_scope?
           end
 
-          def resource_method_scope?(scope_level) #:nodoc:
-            RESOURCE_METHOD_SCOPES.include? scope_level
+          def resource_method_scope? #:nodoc:
+            @scope.resource_method_scope?
           end
 
           def nested_scope? #:nodoc:
@@ -1698,8 +1697,8 @@ module ActionDispatch
             @scope[:constraints][parent_resource.param]
           end
 
-          def canonical_action?(action, scope_level) #:nodoc:
-            scope_level && resource_method_scope?(scope_level) && CANONICAL_ACTIONS.include?(action.to_s)
+          def canonical_action?(action) #:nodoc:
+            resource_method_scope? && CANONICAL_ACTIONS.include?(action.to_s)
           end
 
           def shallow_scope(path, options = {}) #:nodoc:
@@ -1713,7 +1712,7 @@ module ActionDispatch
           end
 
           def path_for_action(action, path) #:nodoc:
-            if path.blank? && canonical_action?(action, @scope.scope_level)
+            if path.blank? && canonical_action?(action)
               @scope[:path].to_s
             else
               "#{@scope[:path]}/#{action_path(action, path)}"
@@ -1725,10 +1724,10 @@ module ActionDispatch
             path || @scope[:path_names][name] || name.to_s
           end
 
-          def prefix_name_for_action(as, action, scope_level) #:nodoc:
+          def prefix_name_for_action(as, action) #:nodoc:
             if as
               prefix = as
-            elsif !canonical_action?(action, scope_level)
+            elsif !canonical_action?(action)
               prefix = action
             end
 
@@ -1738,8 +1737,7 @@ module ActionDispatch
           end
 
           def name_for_action(as, action) #:nodoc:
-            scope_level = @scope.scope_level
-            prefix = prefix_name_for_action(as, action, scope_level)
+            prefix = prefix_name_for_action(as, action)
             name_prefix = @scope[:as]
 
             if parent_resource
@@ -1887,6 +1885,7 @@ module ActionDispatch
                    :shallow, :blocks, :defaults, :options]
 
         RESOURCE_SCOPES = [:resource, :resources]
+        RESOURCE_METHOD_SCOPES = [:collection, :member, :new]
 
         attr_reader :parent, :scope_level
 
@@ -1902,6 +1901,10 @@ module ActionDispatch
 
         def resources?
           scope_level == :resources
+        end
+
+        def resource_method_scope?
+          RESOURCE_METHOD_SCOPES.include? scope_level
         end
 
         def action_name(name_prefix, prefix, collection_name, member_name)
