@@ -60,6 +60,15 @@ module ActiveRecord
       assert_equal expected.to_sql, actual.to_sql
     end
 
+    def test_belongs_to_nested_where_with_relation
+      author = authors(:david)
+
+      expected = Author.where(id: author ).joins(:posts)
+      actual   = Author.where(posts: { author_id: Author.where(id: author.id) }).joins(:posts)
+
+      assert_equal expected.to_a, actual.to_a
+    end
+
     def test_polymorphic_shallow_where
       treasure = Treasure.new
       treasure.id = 1
