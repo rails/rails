@@ -1,3 +1,9 @@
+*   Make ActionMailer::Previews methods class methods. Previously they were
+    instance methods and ActionMailer tries to render a message when they
+    are called.
+
+    *Cristian Bica*
+
 *   Raise an exception when attachments are added after `mail` was called.
     This is a safeguard to prevent invalid emails.
 

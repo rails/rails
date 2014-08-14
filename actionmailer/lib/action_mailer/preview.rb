@@ -14,7 +14,9 @@ module ActionMailer
       # :nodoc:
       mattr_accessor :preview_interceptors, instance_writer: false
       self.preview_interceptors = []
+    end
 
+    module ClassMethods
       # Register one or more Interceptors which will be called before mail is previewed.
       def register_preview_interceptors(*interceptors)
         interceptors.flatten.compact.each { |interceptor| register_preview_interceptor(interceptor) }
