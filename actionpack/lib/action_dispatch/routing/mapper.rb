@@ -1654,7 +1654,7 @@ module ActionDispatch
           end
 
           def with_scope_level(kind)
-            @scope = @scope.new(:scope_level => kind)
+            @scope = @scope.new_level(kind)
             yield
           ensure
             @scope = @scope.parent
@@ -1926,6 +1926,10 @@ module ActionDispatch
 
         def new(hash)
           self.class.new hash, self
+        end
+
+        def new_level(level)
+          new(:scope_level => level)
         end
 
         def [](key)
