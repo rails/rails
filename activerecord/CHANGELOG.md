@@ -1,3 +1,9 @@
+*   Do not try to write timestamps when a table has no timestamps columns.
+
+    Fixes #8813.
+
+    *Sergey Potapov*
+
 *   `index_exists?` with `:name` option does verify specified columns.
 
     Example:
