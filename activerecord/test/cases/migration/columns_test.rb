@@ -66,6 +66,9 @@ module ActiveRecord
         def test_mysql_rename_column_preserves_auto_increment
           rename_column "test_models", "id", "id_test"
           assert_equal "auto_increment", connection.columns("test_models").find { |c| c.name == "id_test" }.extra
+          TestModel.reset_column_information
+        ensure
+          rename_column "test_models", "id_test", "id"
         end
       end
 
