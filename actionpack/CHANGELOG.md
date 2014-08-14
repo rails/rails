@@ -1,3 +1,7 @@
+*   Fix `assert_template` not being able to assert that no files were rendered.
+
+    *Guo Xiang Tan*
+
 *   Extract source code for the entire exception stack trace for
     better debugging and diagnosis.
 
