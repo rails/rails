@@ -1634,8 +1634,8 @@ module ActionDispatch
             RESOURCE_SCOPES.include? @scope[:scope_level]
           end
 
-          def resource_method_scope? #:nodoc:
-            RESOURCE_METHOD_SCOPES.include? @scope[:scope_level]
+          def resource_method_scope?(scope_level) #:nodoc:
+            RESOURCE_METHOD_SCOPES.include? scope_level
           end
 
           def nested_scope? #:nodoc:
@@ -1699,8 +1699,8 @@ module ActionDispatch
             @scope[:constraints][parent_resource.param]
           end
 
-          def canonical_action?(action, flag) #:nodoc:
-            flag && resource_method_scope? && CANONICAL_ACTIONS.include?(action.to_s)
+          def canonical_action?(action, scope_level) #:nodoc:
+            scope_level && resource_method_scope?(scope_level) && CANONICAL_ACTIONS.include?(action.to_s)
           end
 
           def shallow_scope(path, options = {}) #:nodoc:
@@ -1714,7 +1714,7 @@ module ActionDispatch
           end
 
           def path_for_action(action, path) #:nodoc:
-            if canonical_action?(action, path.blank?)
+            if path.blank? && canonical_action?(action, @scope[:scope_level])
               @scope[:path].to_s
             else
               "#{@scope[:path]}/#{action_path(action, path)}"
