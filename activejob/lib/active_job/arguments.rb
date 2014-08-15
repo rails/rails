@@ -2,19 +2,20 @@ require 'active_model/global_locator'
 require 'active_model/global_identification'
 
 module ActiveJob
-  class Arguments
+  module Arguments
+    extend self
     TYPE_WHITELIST = [ NilClass, Fixnum, Float, String, TrueClass, FalseClass, Bignum ]
 
-    def self.serialize(arguments)
+    def serialize(arguments)
       arguments.map { |argument| serialize_argument(argument) }
     end
 
-    def self.deserialize(arguments)
+    def deserialize(arguments)
       arguments.map { |argument| deserialize_argument(argument) }
     end
 
     private
-      def self.serialize_argument(argument)
+      def serialize_argument(argument)
         case argument
         when ActiveModel::GlobalIdentification
           argument.global_id.to_s
@@ -29,7 +30,7 @@ module ActiveJob
         end
       end
 
-      def self.deserialize_argument(argument)
+      def deserialize_argument(argument)
         case argument
         when Array
           deserialize(argument)
@@ -40,7 +41,7 @@ module ActiveJob
         end
       end
 
-      def self.serialize_hash_key(key)
+      def serialize_hash_key(key)
         case key
         when String, Symbol
           key.to_s
