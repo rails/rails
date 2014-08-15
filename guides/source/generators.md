@@ -341,13 +341,17 @@ end
 
 If you generate another resource, you can see that we get exactly the same result! This is useful if you want to customize your scaffold templates and/or layout by just creating `edit.html.erb`, `index.html.erb` and so on inside `lib/templates/erb/scaffold`.
 
-Many scaffold templates in Rails are written in ERB tags which need to be escaped, so that the output is valid ERB code. For example,
+Scaffold templates in Rails frequently use ERB tags; these tags need to be
+escaped so that the generated output is valid ERB code.
+
+For example, the following escaped ERB tag would be needed in the template
+(note the extra `%`)...
 
 ```ruby
 <%%= stylesheet_include_tag :application %>
 ```
 
-when passed through the generator, would generate the following output.
+...to generate the following output:
 
 ```ruby
 <%= stylesheet_include_tag :application %>
