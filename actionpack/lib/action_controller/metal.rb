@@ -185,7 +185,7 @@ module ActionController
     
     # Tests if render or redirect has already happened.
     def performed?
-      response_body || (response && response.committed?)
+      !!(response_body || (response && response.committed?))
     end
 
     def dispatch(name, request) #:nodoc:
