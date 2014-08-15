@@ -57,7 +57,7 @@ module ActiveJob
     end
 
     def retry_now
-      self.class.enqueue *arguments
+      self.class.enqueue(*arguments)
     end
 
     def retry_in(interval)

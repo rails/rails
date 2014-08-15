@@ -14,14 +14,14 @@ module ActiveJob
       self.arguments = Arguments.deserialize(serialized_args)
 
       run_callbacks :perform do
-        perform *arguments
+        perform(*arguments)
       end
     rescue => exception
       rescue_with_handler(exception) || raise(exception)
     end
 
     def perform(*)
-      raise NotImplementedError
+      fail NotImplementedError
     end
   end
 end
