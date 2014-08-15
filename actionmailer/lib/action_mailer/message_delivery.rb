@@ -26,10 +26,6 @@ module ActionMailer
       enqueue_delivery :deliver, options
     end
 
-    def method_missing(m, *args, &block)
-      __getobj__.__send__(m, *args, &block)
-    end
-
     private
     def enqueue_delivery(delivery_method, options={})
       args = @mailer.name, @mail_method.to_s, delivery_method.to_s, *@args

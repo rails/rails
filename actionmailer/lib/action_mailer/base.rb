@@ -586,6 +586,10 @@ module ActionMailer
     class NullMail #:nodoc:
       def body; '' end
 
+      def respond_to?(string, include_all=false)
+        true
+      end
+
       def method_missing(*args)
         nil
       end
