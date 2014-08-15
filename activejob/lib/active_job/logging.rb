@@ -1,4 +1,6 @@
 require 'active_support/core_ext/string/filters'
+require 'active_support/tagged_logging'
+require 'active_support/logger'
 
 module ActiveJob
   module Logging
