@@ -80,6 +80,30 @@ class TransactionTest < ActiveRecord::TestCase
     end
   end
 
+  def test_number_of_transactions_in_commit
+    num = nil
+
+    Topic.connection.class_eval do
+      alias :real_commit_db_transaction :commit_db_transaction
+      define_method(:commit_db_transaction) do
+        num = transaction_manager.open_transactions
+        real_commit_db_transaction
+      end
+    end
+
+    Topic.transaction do
+      @first.approved  = true
+      @first.save!
+    end
+
+    assert_equal 0, num
+  ensure
+    Topic.connection.class_eval do
+      remove_method :commit_db_transaction
+      alias :commit_db_transaction :real_commit_db_transaction rescue nil
+    end
+  end
+
   def test_successful_with_instance_method
     @first.transaction do
       @first.approved  = true

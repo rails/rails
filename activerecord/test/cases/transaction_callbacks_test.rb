@@ -129,6 +129,19 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
     assert_equal [:commit_on_update], @first.history
   end
 
+  def test_only_call_after_commit_on_top_level_transactions
+    @first.after_commit_block{|r| r.history << :after_commit}
+    assert @first.history.empty?
+
+    @first.transaction do
+      @first.transaction(requires_new: true) do
+        @first.touch
+      end
+      assert @first.history.empty?
+    end
+    assert_equal [:after_commit], @first.history
+  end
+
   def test_call_after_rollback_after_transaction_rollsback
     @first.after_commit_block{|r| r.history << :after_commit}
     @first.after_rollback_block{|r| r.history << :after_rollback}
