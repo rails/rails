@@ -23,7 +23,7 @@ class AdapterTest < ActiveSupport::TestCase
 
   def setup
     super
-    $BUFFER = []
+    Thread.current[:ajbuffer] = []
     @old_logger = ActiveJob::Base.logger
     @logger = ActiveSupport::TaggedLogging.new(TestLogger.new)
     set_logger @logger

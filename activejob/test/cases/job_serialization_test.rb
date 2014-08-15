@@ -4,12 +4,12 @@ require 'models/person'
 
 class JobSerializationTest < ActiveSupport::TestCase
   setup do
-    $BUFFER = []
+    Thread.current[:ajbuffer] = []
     @person = Person.find(5)
   end
 
   test 'serialize job with gid' do
     GidJob.enqueue @person
-    assert_equal "Person with ID: 5", $BUFFER.pop
+    assert_equal "Person with ID: 5", Thread.current[:ajbuffer].pop
   end
 end

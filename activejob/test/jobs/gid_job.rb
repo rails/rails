@@ -1,6 +1,6 @@
 class GidJob < ActiveJob::Base
   def perform(person)
-    $BUFFER << "Person with ID: #{person.id}"
+    Thread.current[:ajbuffer] << "Person with ID: #{person.id}"
   end
 end
-  
+

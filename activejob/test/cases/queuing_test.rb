@@ -5,17 +5,17 @@ require 'active_support/core_ext/numeric/time'
 
 class QueuingTest < ActiveSupport::TestCase
   setup do
-    $BUFFER = []
+    Thread.current[:ajbuffer] = []
   end
 
   test 'run queued job' do
     HelloJob.enqueue
-    assert_equal "David says hello", $BUFFER.pop
+    assert_equal "David says hello", Thread.current[:ajbuffer].pop
   end
 
   test 'run queued job with arguments' do
     HelloJob.enqueue "Jamie"
-    assert_equal "Jamie says hello", $BUFFER.pop
+    assert_equal "Jamie says hello", Thread.current[:ajbuffer].pop
   end
 
   test 'run queued job later' do
@@ -26,13 +26,13 @@ class QueuingTest < ActiveSupport::TestCase
       skip
     end
   end
-  
+
   test 'job returned by enqueue has the arguments available' do
     job = HelloJob.enqueue "Jamie"
     assert_equal [ "Jamie" ], job.arguments
   end
 
-  
+
   test 'job returned by enqueue_at has the timestamp available' do
     begin
       job = HelloJob.enqueue_at Time.utc(2014, 1, 1)

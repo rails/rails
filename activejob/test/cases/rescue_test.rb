@@ -5,13 +5,13 @@ require 'active_support/core_ext/object/inclusion'
 
 class RescueTest < ActiveSupport::TestCase
   setup do
-    $BUFFER = []
+    Thread.current[:ajbuffer] = []
   end
 
   test 'rescue perform exception with retry' do
     job = RescueJob.new
     job.execute(SecureRandom.uuid, "david")
-    assert_equal [ "rescued from ArgumentError", "performed beautifully" ], $BUFFER
+    assert_equal [ "rescued from ArgumentError", "performed beautifully" ], Thread.current[:ajbuffer]
   end
 
   test 'let through unhandled perform exception' do

@@ -2,7 +2,7 @@ class RescueJob < ActiveJob::Base
   class OtherError < StandardError; end
 
   rescue_from(ArgumentError) do
-    $BUFFER << "rescued from ArgumentError"
+    Thread.current[:ajbuffer] << "rescued from ArgumentError"
     arguments[0] = "DIFFERENT!"
     retry_now
   end
@@ -14,7 +14,7 @@ class RescueJob < ActiveJob::Base
     when "other"
       raise OtherError
     else
-      $BUFFER << "performed beautifully"
+      Thread.current[:ajbuffer] << "performed beautifully"
     end
   end
 end
