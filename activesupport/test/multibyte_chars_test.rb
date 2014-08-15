@@ -103,7 +103,6 @@ class MultibyteCharsUTF8BehaviourTest < ActiveSupport::TestCase
     @chars = UNICODE_STRING.dup.mb_chars
     # Ruby 1.9 only supports basic whitespace
     @whitespace = "\n\t "
-    @byte_order_mark = [65279].pack('U')
   end
 
   def test_split_should_return_an_array_of_chars_instances
