@@ -1,6 +1,7 @@
 module ActiveRecord
   module Type
-    module Numeric # :nodoc:
+    class Numeric < Value # :nodoc:
+
       def number?
         true
       end

@@ -1,7 +1,6 @@
 module ActiveRecord
   module Type
-    class Decimal < Value # :nodoc:
-      include Numeric
+    class Decimal < Numeric # :nodoc:
 
       def type
         :decimal

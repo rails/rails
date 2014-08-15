@@ -1,7 +1,6 @@
 module ActiveRecord
   module Type
-    class Float < Value # :nodoc:
-      include Numeric
+    class Float < Numeric # :nodoc:
 
       def type
         :float
