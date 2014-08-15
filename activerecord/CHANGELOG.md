@@ -3,13 +3,13 @@
     Before this change, a record which changed its STI type, could not be found when updated.
     Setting update_record to the base class, ensures the record can be found.
 
-    Fixes #14785
+    Fixes #14785.
 
     *Matthew Draper*, *Earl St Sauver*, *Edo Balvers*
 
 *   Fix regression on after_commit that didnt fire when having nested transactions.
 
-    Fixes #16425
+    Fixes #16425.
 
     *arthurnn*
 
@@ -27,7 +27,7 @@
 *   Fix the schema dump generated for tables without constraints and with
     primary key with default value of custom PostgreSQL function result.
 
-    Fixes #16111
+    Fixes #16111.
 
     *Andrey Novikov*
 
@@ -110,7 +110,7 @@
 *   Pluck now works when selecting columns from different tables with the same
     name.
 
-    Fixes #15649
+    Fixes #15649.
 
     *Sean Griffin*
 
