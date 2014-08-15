@@ -263,7 +263,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     end
 
     assert_equal klass.column_names, klass.new.attributes.keys
-    assert_not klass.new.attributes.key?('id')
+    assert_not klass.new.has_attributes?('id')
   end
 
   def test_hashes_not_mangled
