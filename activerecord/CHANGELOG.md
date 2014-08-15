@@ -1,3 +1,12 @@
+*   Baseclass becomes! subclass.
+
+    Before this change, a record which changed its STI type, could not be found when updated.
+    Setting update_record to the base class, ensures the record can be found.
+
+    Fixes #14785
+
+    *Matthew Draper*, *Earl St Sauver*, *Edo Balvers*
+
 *   Fix regression on after_commit that didnt fire when having nested transactions.
 
     Fixes #16425
