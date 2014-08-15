@@ -931,9 +931,7 @@ module ActiveRecord
         opts = PredicateBuilder.resolve_column_aliases(klass, opts)
         attributes = @klass.send(:expand_hash_conditions_for_aggregates, opts)
 
-        attributes.values.grep(ActiveRecord::Relation) do |rel|
-          self.bind_values += rel.bind_values
-        end
+        add_relations_to_bind_values(attributes)
 
         PredicateBuilder.build_from_hash(klass, attributes, table)
       else
@@ -1084,6 +1082,20 @@ module ActiveRecord
     def check_if_method_has_arguments!(method_name, args)
       if args.blank?
         raise ArgumentError, "The method .#{method_name}() must contain arguments."
+      end
+    end
+
+    # This function is recursive just for better readablity.
+    # #where argument doesn't support more than one level nested hash in real world.
+    def add_relations_to_bind_values(attributes)
+      if attributes.is_a?(Hash)
+        attributes.each_value do |value|
+          if value.is_a?(ActiveRecord::Relation)
+            self.bind_values += value.bind_values
+          else
+            add_relations_to_bind_values(value)
+          end
+        end
       end
     end
   end
