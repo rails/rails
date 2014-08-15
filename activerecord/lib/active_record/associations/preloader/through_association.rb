@@ -63,7 +63,7 @@ module ActiveRecord
           should_reset = (through_scope != through_reflection.klass.unscoped) ||
              (reflection.options[:source_type] && through_reflection.collection?)
 
-          # Dont cache the association - we would only be caching a subset
+          # Don't cache the association - we would only be caching a subset
           if should_reset
             owners.each { |owner|
               owner.association(association_name).reset

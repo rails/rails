@@ -279,9 +279,9 @@ module ActiveRecord
     end
 
     # Returns an <tt>#inspect</tt>-like string for the value of the
-    # attribute +attr_name+. String attributes are truncated upto 50
+    # attribute +attr_name+. String attributes are truncated up to 50
     # characters, Date and Time attributes are returned in the
-    # <tt>:db</tt> format, Array attributes are truncated upto 10 values.
+    # <tt>:db</tt> format, Array attributes are truncated up to 10 values.
     # Other attributes return the value of <tt>#inspect</tt> without
     # modification.
     #
