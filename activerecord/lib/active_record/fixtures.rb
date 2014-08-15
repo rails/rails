@@ -490,7 +490,7 @@ module ActiveRecord
       end
     end
 
-    def self.create_fixtures(fixtures_directory, fixture_set_names, class_names = {}, config = ActiveRecord::Base)
+    def self.create_fixtures(fixtures_directory, fixture_set_names, class_names = {}, config = ActiveRecord::Base, reseed_db = true)
       fixture_set_names = Array(fixture_set_names).map(&:to_s)
       class_names = ClassCache.new class_names, config
 
@@ -517,26 +517,26 @@ module ActiveRecord
 
           all_loaded_fixtures.update(fixtures_map)
 
+          reset_pk_sequence = connection.respond_to?(:reset_pk_sequence!)
+
           connection.transaction(:requires_new => true) do
             fixture_sets.each do |fs|
               conn = fs.model_class.respond_to?(:connection) ? fs.model_class.connection : connection
               table_rows = fs.table_rows
 
-              table_rows.keys.each do |table|
-                conn.delete "DELETE FROM #{conn.quote_table_name(table)}", 'Fixture Delete'
-              end
-
-              table_rows.each do |fixture_set_name, rows|
-                rows.each do |row|
-                  conn.insert_fixture(row, fixture_set_name)
+              if reseed_db
+                table_rows.keys.each do |table|
+                  conn.delete "DELETE FROM #{conn.quote_table_name(table)}", 'Fixture Delete'
                 end
-              end
-            end
 
-            # Cap primary key sequences to max(pk).
-            if connection.respond_to?(:reset_pk_sequence!)
-              fixture_sets.each do |fs|
-                connection.reset_pk_sequence!(fs.table_name)
+                table_rows.each do |fixture_set_name, rows|
+                  rows.each do |row|
+                    conn.insert_fixture(row, fixture_set_name)
+                  end
+                end
+
+                # Cap primary key sequences to max(pk).
+                connection.reset_pk_sequence!(fs.table_name) if reset_pk_sequence
               end
             end
           end
@@ -828,12 +828,14 @@ module ActiveRecord
       class_attribute :use_transactional_fixtures
       class_attribute :use_instantiated_fixtures # true, false, or :no_instances
       class_attribute :pre_loaded_fixtures
+      class_attribute :reseed_db
       class_attribute :config
 
       self.fixture_table_names = []
       self.use_transactional_fixtures = true
       self.use_instantiated_fixtures = false
       self.pre_loaded_fixtures = false
+      self.reseed_db = true
       self.config = ActiveRecord::Base
 
       self.fixture_class_names = Hash.new do |h, fixture_set_name|
@@ -990,7 +992,7 @@ module ActiveRecord
 
     private
       def load_fixtures(config)
-        fixtures = ActiveRecord::FixtureSet.create_fixtures(fixture_path, fixture_table_names, fixture_class_names, config)
+        fixtures = ActiveRecord::FixtureSet.create_fixtures(fixture_path, fixture_table_names, fixture_class_names, config, reseed_db)
         Hash[fixtures.map { |f| [f.name, f] }]
       end
 
