@@ -1,5 +1,4 @@
 require 'active_record/type/mutable'
-require 'active_record/type/numeric'
 require 'active_record/type/time_value'
 require 'active_record/type/value'
 
@@ -7,6 +6,7 @@ require 'active_record/type/binary'
 require 'active_record/type/boolean'
 require 'active_record/type/date'
 require 'active_record/type/date_time'
+require 'active_record/type/numeric'
 require 'active_record/type/decimal'
 require 'active_record/type/decimal_without_scale'
 require 'active_record/type/float'

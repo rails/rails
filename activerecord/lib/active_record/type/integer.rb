@@ -1,7 +1,6 @@
 module ActiveRecord
   module Type
-    class Integer < Value # :nodoc:
-      include Numeric
+    class Integer < Numeric # :nodoc:
 
       def type
         :integer
