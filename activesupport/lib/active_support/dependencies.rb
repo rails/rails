@@ -476,7 +476,7 @@ module ActiveSupport #:nodoc:
         expanded.sub!(/\.rb\z/, '')
 
         if loaded.include?(expanded)
-          raise "Circular dependency detected while autoloading constant #{qualified_name}"
+          raise "Couldn't find #{qualified_name} declared in #{file_path}"
         else
           require_or_load(expanded, qualified_name)
           raise LoadError, "Unable to autoload constant #{qualified_name}, expected #{file_path} to define it" unless from_mod.const_defined?(const_name, false)
