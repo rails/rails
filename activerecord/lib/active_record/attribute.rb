@@ -62,6 +62,13 @@ module ActiveRecord
       true
     end
 
+    def ==(other)
+      self.class == other.class &&
+        name == other.name &&
+        value_before_type_cast == other.value_before_type_cast &&
+        type == other.type
+    end
+
     protected
 
     def initialize_dup(other)

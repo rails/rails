@@ -76,6 +76,13 @@ module ActiveRecord
         false
       end
 
+      def ==(other)
+        self.class == other.class &&
+          precision == other.precision &&
+          scale == other.scale &&
+          limit == other.limit
+      end
+
       private
 
       def type_cast(value)
