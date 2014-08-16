@@ -91,6 +91,38 @@ after_bundle do
 end
 ```
 
+### Rails Html Sanitizer
+
+There's a new choice for sanitizing HTML fragments in your applications. The
+venerable html-scanner approach is now officially being deprecated in favor of
+[`Rails Html Sanitizer`](https://github.com/rails/rails-html-sanitizer).
+
+This means the methods `sanitize`, `sanitize_css`, `strip_tags` and
+`strip_links` are backed by a new implementation.
+
+In the next major Rails version `Rails Html Sanitizer` will be the default
+sanitizer. It already is for new applications.
+
+Include this in your Gemfile to try it out today:
+
+```ruby
+gem 'rails-html-sanitizer'
+```
+
+This new sanitizer uses [Loofah](https://github.com/flavorjones/loofah) internally. Loofah in turn uses Nokogiri, which
+wraps XML parsers written in both C and Java, so sanitization should be faster
+no matter which Ruby version you run.
+
+The new version updates `sanitize`, so it can take a `Loofah::Scrubber` for
+powerful scrubbing.
+[See some examples of scrubbers here](https://github.com/flavorjones/loofah#loofahscrubber).
+
+Two new scrubbers have also been added: `PermitScrubber` and `TargetScrubber`.
+Read the [gem's readme](https://github.com/rails/rails-html-sanitizer) for more information.
+
+The documentation for `PermitScrubber` and `TargetScrubber` explains how you
+can gain complete control over when and how elements should be stripped.
+
 Upgrading from Rails 4.0 to Rails 4.1
 -------------------------------------
 

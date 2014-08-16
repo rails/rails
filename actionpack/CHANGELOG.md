@@ -1,6 +1,4 @@
-*   Deprecated TagAssertions.
-
-    Moved DomAssertions and SelectorAssertions to Action View.
+*   Deleted the deprecated TagAssertions.
 
     *Kasper Timm Hansen*
 
