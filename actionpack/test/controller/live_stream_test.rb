@@ -162,7 +162,7 @@ module ActionController
       end
 
       def with_stale
-        render :text => 'stale' if stale?(:etag => "123")
+        render text: 'stale' if stale?(etag: "123", template: false)
       end
 
       def exception_in_view

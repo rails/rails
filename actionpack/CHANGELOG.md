@@ -1,3 +1,21 @@
+*   When your templates change, browser caches bust automatically.
+
+    New default: the template digest is automatically included in your ETags.
+    When you call `fresh_when @post`, the digest for `posts/show.html.erb`
+    is mixed in so future changes to the HTML will blow HTTP caches for you.
+    This makes it easy to HTTP-cache many more of your actions.
+
+    If you render a different template, you can now pass the `:template`
+    option to include its digest instead:
+
+      fresh_when @post, template: 'widgets/show'
+
+    Pass `template: false` to skip the lookup. To turn this off entirely, set:
+
+      config.action_controller.etag_with_template_digest = false
+
+    *Jeremy Kemper*
+
 *   Remove deprecated `AbstractController::Helpers::ClassMethods::MissingHelperError`
     in favor of `AbstractController::Helpers::MissingHelperError`.
 
