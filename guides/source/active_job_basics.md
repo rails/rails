@@ -27,9 +27,9 @@ The Purpose of the Active Job
 The main point is to ensure that all Rails apps will have a job infrastructure
 in place, even if it's in the form of an "immediate runner". We can then have
 framework features and other gems build on top of that, without having to
-worry about API differences between Delayed Job and Resque. Picking your
-queuing backend becomes more of an operational concern, then. And you'll
-be able to switch between them without having to rewrite your jobs.
+worry about API differences between various job runners such as Delayed Job
+and Resque. Picking your queuing backend becomes more of an operational concern,
+then. And you'll be able to switch between them without having to rewrite your jobs.
 
 
 Creating a Job
@@ -112,110 +112,18 @@ Active Job has adapters for the following queueing backends:
 
 #### Backends Features
 
-<table cellpadding="3" cellspacing="0">
-  <tbody>
-    <tr>
-      <td>&nbsp;</td>
-      <td><strong>Async</strong></td>
-      <td><strong>Queues</strong></td>
-      <td><strong>Delayed</strong></td>
-      <td><strong>Priorities</strong></td>
-      <td><strong>Timeout</strong></td>
-      <td><strong>Retries</strong></td>
-    </tr>
-    <tr>
-      <td><strong>Backburner</strong></td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td>Job</td>
-      <td>Global</td>
-    </tr>
-    <tr>
-      <td><strong>Delayed Job</strong></td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td>Job</td>
-      <td>Global</td>
-      <td>Global</td>
-    </tr>
-    <tr>
-      <td><strong>Que</strong></td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td>Job</td>
-      <td>No</td>
-      <td>Job</td>
-    </tr>
-    <tr>
-      <td><strong>Queue Classic</strong></td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td>Gem</td>
-      <td>No</td>
-      <td>No</td>
-      <td>No</td>
-    </tr>
-    <tr>
-      <td><strong>Resque</strong></td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td>Gem</td>
-      <td>Queue</td>
-      <td>Global</td>
-      <td>?</td>
-    </tr>
-    <tr>
-      <td><strong>Sidekiq</strong></td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td>Queue</td>
-      <td>No</td>
-      <td>Job</td>
-    </tr>
-    <tr>
-      <td><strong>Sneakers</strong></td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td>No</td>
-      <td>Queue</td>
-      <td>Queue</td>
-      <td>No</td>
-    </tr>
-    <tr>
-      <td><strong>Sucker Punch</strong></td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td>No</td>
-      <td>No</td>
-      <td>No</td>
-    </tr>
-    <tr>
-      <td><strong>Active Job</strong></td>
-      <td>Yes</td>
-      <td>Yes</td>
-      <td>WIP</td>
-      <td>No</td>
-      <td>No</td>
-      <td>No</td>
-    </tr>
-    <tr>
-      <td><strong>Active Job Inline</strong></td>
-      <td>No</td>
-      <td>Yes</td>
-      <td>N/A</td>
-      <td>N/A</td>
-      <td>N/A</td>
-      <td>N/A</td>
-    </tr>
-  </tbody>
-</table>
-
+|                       | Async | Queues  | Delayed | Priorities  | Timeout | Retries |
+|-----------------------|-------|---------|---------|-------------|---------|---------|
+| **Backburner**        | Yes   | Yes     | Yes     | Yes         | Job     | Global  |
+| **Delayed Job**       | Yes   | Yes     | Yes     | Job         | Global  | Global  |
+| **Que**               | Yes   | Yes     | Yes     | Job         | No      | Job     |
+| **Queue Classic**     | Yes   | Yes     | Gem     | No          | No      | No      |
+| **Resque**            | Yes   | Yes     | Gem     | Queue       | Global  | ?       |
+| **Sidekiq**           | Yes   | Yes     | Yes     | Queue       | No      | Job     |
+| **Sneakers**          | Yes   | Yes     | No      | Queue       | Queue   | No      |
+| **Sucker Punch**      | Yes   | Yes     | Yes     | No          | No      | No      |
+| **Active Job**        | Yes   | Yes     | WIP     | No          | No      | No      |
+| **Active Job Inline** | No    | Yes     | N/A     | N/A         | N/A     | N/A     |
 
 ### Change Backends
 
@@ -235,7 +143,7 @@ to run on a specific queue:
 
 ```ruby
 class GuestsCleanupJob < ActiveJob::Base
-  queue_as :low_prio
+  queue_as :low_priority
   #....
 end
 ```
@@ -279,7 +187,20 @@ class GuestsCleanupJob < ActiveJob::Base
     # Do something later
   end
 end
+```
 
+ActionMailer
+------------
+One of the most common jobs in a modern web application is sending emails outside
+of the request-response cycle, so the user doesn't have to wait on it. Active Job
+is integrated with Action Mailer so you can easily send emails async:
+
+```ruby
+# Instead of the classic
+UserMailer.welcome(@user).deliver
+
+# use #deliver later to send the email async
+UserMailer.welcome(@user).deliver_later
 ```
 
 GlobalID
