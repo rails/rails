@@ -8,7 +8,7 @@ class MultibyteCharsTest < ActiveSupport::TestCase
 
   def setup
     @proxy_class = ActiveSupport::Multibyte::Chars
-    @chars = @proxy_class.new UNICODE_STRING
+    @chars = @proxy_class.new UNICODE_STRING.dup
   end
 
   def test_wraps_the_original_string
@@ -50,8 +50,6 @@ class MultibyteCharsTest < ActiveSupport::TestCase
   def test_methods_are_forwarded_to_wrapped_string_for_byte_strings
     original_encoding = BYTE_STRING.encoding
     assert_equal BYTE_STRING.length, BYTE_STRING.mb_chars.length
-  ensure
-    BYTE_STRING.force_encoding(original_encoding)
   end
 
   def test_forwarded_method_with_non_string_result_should_be_returned_vertabim
