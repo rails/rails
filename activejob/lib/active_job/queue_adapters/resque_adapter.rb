@@ -7,9 +7,8 @@ begin
 rescue LoadError
   begin
     require 'resque_scheduler'
-  rescue LoadError => e
-    $stderr.puts 'The ActiveJob resque adapter requires resque-scheduler. Please add it to your Gemfile and run bundle install'
-    raise e
+  rescue LoadError
+    false
   end
 end
 
@@ -22,6 +21,10 @@ module ActiveJob
         end
 
         def enqueue_at(job, timestamp, *args)
+          unless Resque.respond_to?(:enqueue_at_with_queue)
+            raise NotImplementedError, "To be able to schedule jobs with Resque you need the " \
+              "resque-scheduler gem. Please add it to your Gemfile and run bundle install"
+          end
           Resque.enqueue_at_with_queue job.queue_name, timestamp, JobWrapper, job.name, *args
         end
       end
