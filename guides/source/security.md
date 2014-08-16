@@ -118,9 +118,9 @@ It works like this:
 
 * A user receives credits, the amount is stored in a session (which is a bad idea anyway, but we'll do this for demonstration purposes).
 * The user buys something.
-* Their new, lower credit will be stored in the session.
-* The dark side of the user forces them to take the cookie from the first step (which they copied) and replace the current cookie in the browser.
-* The user has their credit back.
+* The new adjusted credit value is stored in the session.
+* The user takes the cookie from the first step (which they previously copied) and replaces the current cookie in the browser.
+* The user has their original credit back.
 
 Including a nonce (a random value) in the session solves replay attacks. A nonce is valid only once, and the server has to keep track of all the valid nonces. It gets even more complicated if you have several application servers (mongrels). Storing nonces in a database table would defeat the entire purpose of CookieStore (avoiding accessing the database).
 
