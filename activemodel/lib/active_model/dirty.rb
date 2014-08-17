@@ -219,7 +219,7 @@ module ActiveModel
         rescue TypeError, NoMethodError
         end
 
-        changed_attributes[attr] = value
+        set_attribute_was(attr, value)
       end
 
       # Handle <tt>reset_*!</tt> for +method_missing+.
@@ -233,8 +233,22 @@ module ActiveModel
       def restore_attribute!(attr)
         if attribute_changed?(attr)
           __send__("#{attr}=", changed_attributes[attr])
-          changed_attributes.delete(attr)
+          clear_attribute_changes([attr])
         end
+      end
+
+      # This is necessary because `changed_attributes` might be overridden in
+      # other implemntations (e.g. in `ActiveRecord`)
+      alias_method :attributes_changed_by_setter, :changed_attributes # :nodoc:
+
+      # Force an attribute to have a particular "before" value
+      def set_attribute_was(attr, old_value)
+        attributes_changed_by_setter[attr] = old_value
+      end
+
+      # Remove changes information for the provided attributes.
+      def clear_attribute_changes(attributes)
+        attributes_changed_by_setter.except!(*attributes)
       end
   end
 end

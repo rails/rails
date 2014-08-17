@@ -213,6 +213,7 @@ module ActionController
       Rendering,
       Renderers::All,
       ConditionalGet,
+      EtagWithTemplateDigest,
       RackDelegation,
       Caching,
       MimeResponds,

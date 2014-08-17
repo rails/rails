@@ -353,7 +353,12 @@ Instead of an options hash, you can also simply pass in a model, Rails will use 
 class ProductsController < ApplicationController
   def show
     @product = Product.find(params[:id])
-    respond_with(@product) if stale?(@product)
+
+    if stale?(@product)
+      respond_to do |wants|
+        # ... normal response processing
+      end
+    end
   end
 end
 ```
