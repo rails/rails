@@ -9,15 +9,18 @@ module ActionController #:nodoc:
       def respond_to(*)
         raise NoMethodError, "The controller-level `respond_to' feature has " \
           "been extracted to the `responders` gem. Add it to your Gemfile to " \
-          "continue using this feature. Consult the Rails upgrade guide for " \
-          "details."
+          "continue using this feature:\n" \
+          "  gem 'responders', '~> 2.0'\n" \
+          "Consult the Rails upgrade guide for details."
       end
     end
 
     def respond_with(*)
       raise NoMethodError, "The `respond_with' feature has been extracted " \
         "to the `responders` gem. Add it to your Gemfile to continue using " \
-        "this feature. Consult the Rails upgrade guide for details."
+        "this feature:\n" \
+        "  gem 'responders', '~> 2.0'\n" \
+        "Consult the Rails upgrade guide for details."
     end
 
     # Without web-service support, an action which collects the data for displaying a list of people

@@ -10,6 +10,7 @@ class ResponderTest < ActionController::TestCase
     end
 
     assert_includes e.message, '`responders` gem'
+    assert_includes e.message, '~> 2.0'
   end
 
   def test_respond_with
@@ -26,5 +27,6 @@ class ResponderTest < ActionController::TestCase
     end
 
     assert_includes e.message, '`responders` gem'
+    assert_includes e.message, '~> 2.0'
   end
 end
