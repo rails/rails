@@ -1,3 +1,8 @@
+*   Fix rounding errors with #travel_to by resetting the usec on any passed time to zero, so we only travel
+    with per-second precision, not anything deeper than that.
+    
+    *DHH*
+
 *   Fix ActiveSupport::TestCase not to order users' test cases by default.
     If this change breaks your tests because your tests are order dependent, you need to explicitly call
     ActiveSupport::TestCase.my_tests_are_order_dependent! at the top of your tests.

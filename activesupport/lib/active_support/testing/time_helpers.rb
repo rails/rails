@@ -78,6 +78,10 @@ module ActiveSupport
       # or <tt>Date.today</tt>, in order to honor the application time zone
       # please always use <tt>Time.current</tt> and <tt>Date.current</tt>.)
       #
+      # Note that the usec for the time passed will be set to 0 to prevent rounding
+      # errors with external services, like MySQL (which will round instead of floor,
+      # leading to off-by-one-second errors).
+      #
       # This method also accepts a block, which will return the current time back to its original
       # state at the end of the block:
       #
@@ -90,7 +94,7 @@ module ActiveSupport
         if date_or_time.is_a?(Date) && !date_or_time.is_a?(DateTime)
           now = date_or_time.midnight.to_time
         else
-          now = date_or_time.to_time
+          now = date_or_time.to_time.change(usec: 0)
         end
 
         simple_stubs.stub_object(Time, :now, now)

@@ -188,7 +188,7 @@ class TimeHelperTest < ActiveSupport::TestCase
     expected_time = Time.now + 1.day
     travel 1.day
 
-    assert_equal expected_time, Time.now
+    assert_equal expected_time.to_s(:db), Time.now.to_s(:db)
     assert_equal expected_time.to_date, Date.today
   end
 
@@ -196,11 +196,11 @@ class TimeHelperTest < ActiveSupport::TestCase
     expected_time = Time.now + 1.day
 
     travel 1.day do
-      assert_equal expected_time, Time.now
+      assert_equal expected_time.to_s(:db), Time.now.to_s(:db)
       assert_equal expected_time.to_date, Date.today
     end
 
-    assert_not_equal expected_time, Time.now
+    assert_not_equal expected_time.to_s(:db), Time.now.to_s(:db)
     assert_not_equal expected_time.to_date, Date.today
   end
 
@@ -234,5 +234,12 @@ class TimeHelperTest < ActiveSupport::TestCase
 
     assert_not_equal expected_time, Time.now
     assert_not_equal Date.new(2004, 11, 24), Date.today
+  end
+
+  def test_travel_to_will_reset_the_usec_to_avoid_mysql_rouding
+    travel_to Time.utc(2014, 10, 10, 10, 10, 50, 999999) do
+      assert_equal 50, Time.now.sec
+      assert_equal 0, Time.now.usec
+    end
   end
 end
