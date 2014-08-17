@@ -51,14 +51,6 @@ module ActiveRecord
         super | changed_in_place
       end
 
-      def attribute_changed?(attr_name, options = {})
-        result = super
-        # We can't change "from" something in place. Only setters can define
-        # "from" and "to"
-        result ||= changed_in_place?(attr_name) unless options.key?(:from)
-        result
-      end
-
       def changes_applied
         super
         store_original_raw_attributes
@@ -69,12 +61,16 @@ module ActiveRecord
         original_raw_attributes.clear
       end
 
+      def changed_attributes
+        super.reverse_merge(attributes_changed_in_place).freeze
+      end
+
       private
 
       def calculate_changes_from_defaults
         @changed_attributes = nil
         self.class.column_defaults.each do |attr, orig_value|
-          changed_attributes[attr] = orig_value if _field_changed?(attr, orig_value)
+          set_attribute_was(attr, orig_value) if _field_changed?(attr, orig_value)
         end
       end
 
@@ -100,9 +96,9 @@ module ActiveRecord
 
       def save_changed_attribute(attr, old_value)
         if attribute_changed?(attr)
-          changed_attributes.delete(attr) unless _field_changed?(attr, old_value)
+          clear_attribute_changes(attr) unless _field_changed?(attr, old_value)
         else
-          changed_attributes[attr] = old_value if _field_changed?(attr, old_value)
+          set_attribute_was(attr, old_value) if _field_changed?(attr, old_value)
         end
       end
 
@@ -130,6 +126,13 @@ module ActiveRecord
 
       def _field_changed?(attr, old_value)
         @attributes[attr].changed_from?(old_value)
+      end
+
+      def attributes_changed_in_place
+        changed_in_place.each_with_object({}) do |attr_name, h|
+          orig = @attributes[attr_name].original_value
+          h[attr_name] = orig
+        end
       end
 
       def changed_in_place

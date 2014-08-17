@@ -1,3 +1,8 @@
+*   `*_was` and `changes` now work correctly for in-place attribute changes as
+    well.
+
+    *Sean Griffin*
+
 *   Fix regression on after_commit that didnt fire when having nested transactions.
 
     Fixes #16425
