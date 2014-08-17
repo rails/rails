@@ -17,7 +17,7 @@ module ActiveSupport
 
       def method_missing(method_name, *arguments)
         if method_name[-1] == '?'
-          self == method_name[0..-2]
+          self.downcase.strip == method_name[0..-2]
         else
           super
         end
