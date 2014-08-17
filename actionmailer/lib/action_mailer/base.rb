@@ -548,8 +548,8 @@ module ActionMailer
       end
 
       def method_missing(method_name, *args) # :nodoc:
-        if respond_to?(method_name)
-          new(method_name, *args).message
+        if action_methods.include?(method_name.to_s)
+          MessageDelivery.new(self, method_name, *args)
         else
           super
         end
@@ -585,6 +585,10 @@ module ActionMailer
 
     class NullMail #:nodoc:
       def body; '' end
+
+      def respond_to?(string, include_all=false)
+        true
+      end
 
       def method_missing(*args)
         nil

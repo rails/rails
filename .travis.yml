@@ -12,7 +12,7 @@ rvm:
 env:
   - "GEM=railties"
   - "GEM=ap"
-  - "GEM=am,amo,as,av"
+  - "GEM=am,amo,as,av,aj"
   - "GEM=ar:mysql"
   - "GEM=ar:mysql2"
   - "GEM=ar:sqlite3"

@@ -35,6 +35,20 @@ end
 # AS
 gem 'dalli', '>= 2.2.1'
 
+# ActiveJob
+gem 'globalid', github: 'rails/globalid'
+gem 'resque', require: false
+gem 'resque-scheduler', require: false
+gem 'sidekiq', require: false
+gem 'sucker_punch', require: false
+gem 'delayed_job', require: false
+gem 'queue_classic', require: false
+gem 'sneakers', '0.1.1.pre', require: false
+gem 'que', require: false
+gem 'backburner', require: false
+gem 'qu-rails', github: "bkeepers/qu", branch: "master", require: false
+gem 'qu-redis', require: false
+
 # Add your own local bundler stuff
 local_gemfile = File.dirname(__FILE__) + "/.Gemfile"
 instance_eval File.read local_gemfile if File.exist? local_gemfile

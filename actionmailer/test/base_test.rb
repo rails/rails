@@ -243,7 +243,7 @@ class BaseTest < ActiveSupport::TestCase
       end
     end
 
-    e = assert_raises(RuntimeError) { LateAttachmentMailer.welcome }
+    e = assert_raises(RuntimeError) { LateAttachmentMailer.welcome.message }
     assert_match(/Can't add attachments after `mail` was called./, e.message)
   end
 
@@ -255,7 +255,7 @@ class BaseTest < ActiveSupport::TestCase
       end
     end
 
-    e = assert_raises(RuntimeError) { LateInlineAttachmentMailer.welcome }
+    e = assert_raises(RuntimeError) { LateInlineAttachmentMailer.welcome.message }
     assert_match(/Can't add attachments after `mail` was called./, e.message)
   end
 
