@@ -17,6 +17,7 @@ module ActionController
     autoload :ConditionalGet
     autoload :Cookies
     autoload :DataStreaming
+    autoload :EtagWithTemplateDigest
     autoload :Flash
     autoload :ForceSSL
     autoload :Head
