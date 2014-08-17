@@ -1,5 +1,5 @@
+require 'global_id/railtie'
 require 'active_job'
-require 'rails'
 
 module ActiveJob
   # = Active Job Railtie
