@@ -1,4 +1,14 @@
 module ActiveJob
+  class DeserializationError < StandardError
+    attr_reader :original_exception
+
+    def initialize(e)
+      super ("Error while trying to deserialize arguments: #{e.message}")
+      @original_exception = e
+      set_backtrace e.backtrace
+    end
+  end
+
   module Arguments
     extend self
     TYPE_WHITELIST = [ NilClass, Fixnum, Float, String, TrueClass, FalseClass, Bignum ]
@@ -36,6 +46,8 @@ module ActiveJob
         else
           GlobalID::Locator.locate(argument) || argument
         end
+      rescue => e
+        raise DeserializationError.new(e)
       end
 
       def serialize_hash_key(key)

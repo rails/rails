@@ -7,6 +7,11 @@ class RescueJob < ActiveJob::Base
     retry_now
   end
 
+  rescue_from(ActiveJob::DeserializationError) do |e|
+    JobBuffer.add('rescued from DeserializationError')
+    JobBuffer.add("DeserializationError original exception was #{e.original_exception.class.name}")
+  end
+
   def perform(person = "david")
     case person
     when "david"
