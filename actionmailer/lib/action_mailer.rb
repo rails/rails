@@ -45,4 +45,6 @@ module ActionMailer
   autoload :Previews, 'action_mailer/preview'
   autoload :TestCase
   autoload :TestHelper
+  autoload :MessageDelivery
+  autoload :DeliveryJob
 end
