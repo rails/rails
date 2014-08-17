@@ -151,6 +151,10 @@ module ActiveRecord
             end
           end
 
+          if values.key? :unscope
+            scope.unscope_values = values[:unscope]
+          end
+
           if preload_values[:readonly] || values[:readonly]
             scope.readonly!
           end
