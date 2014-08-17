@@ -1,6 +1,11 @@
+*   Add the `Duration#instance_of?` method that was previously delegated to the
+    internal `value` attribute.
+
+    *Robin Dupret*
+
 *   Fix rounding errors with #travel_to by resetting the usec on any passed time to zero, so we only travel
     with per-second precision, not anything deeper than that.
-    
+
     *DHH*
 
 *   Fix ActiveSupport::TestCase not to order users' test cases by default.

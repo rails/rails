@@ -35,9 +35,13 @@ module ActiveSupport
     end
 
     def is_a?(klass) #:nodoc:
-      Duration == klass || value.is_a?(klass)
+      instance_of?(klass) || value.is_a?(klass)
     end
     alias :kind_of? :is_a?
+
+    def instance_of?(klass) # :nodoc:
+      Duration == klass
+    end
 
     # Returns +true+ if +other+ is also a Duration instance with the
     # same +value+, or if <tt>other == value</tt>.

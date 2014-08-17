@@ -41,6 +41,11 @@ class DurationTest < ActiveSupport::TestCase
     assert !1.eql?(1.second)
   end
 
+  def test_instance_of
+    assert !1.minute.instance_of?(Fixnum)
+    assert !2.days.instance_of?(Fixnum)
+  end
+
   def test_inspect
     assert_equal '0 seconds',                       0.seconds.inspect
     assert_equal '1 month',                         1.month.inspect
