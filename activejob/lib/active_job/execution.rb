@@ -11,7 +11,7 @@ module ActiveJob
 
     def execute(job_id, *serialized_args)
       self.job_id    = job_id
-      self.arguments = Arguments.deserialize(serialized_args)
+      self.arguments = deserialize_arguments(serialized_args)
 
       run_callbacks :perform do
         perform(*arguments)
@@ -23,5 +23,11 @@ module ActiveJob
     def perform(*)
       fail NotImplementedError
     end
+
+    private
+      def deserialize_arguments(serialized_args)
+        Arguments.deserialize(serialized_args)
+      end
+
   end
 end
