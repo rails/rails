@@ -368,6 +368,7 @@ module ActiveSupport
       private
 
       def apply_mapping(string, mapping) #:nodoc:
+        database.codepoints
         string.each_codepoint.map do |codepoint|
           cp = database.codepoints[codepoint]
           if cp and (ncp = cp.send(mapping)) and ncp > 0
