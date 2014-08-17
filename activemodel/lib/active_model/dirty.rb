@@ -114,7 +114,7 @@ module ActiveModel
     include ActiveModel::AttributeMethods
 
     included do
-      attribute_method_suffix '_changed?', '_change', '_will_change!', '_was', '_was='
+      attribute_method_suffix '_changed?', '_change', '_will_change!', '_was'
       attribute_method_affix prefix: 'reset_', suffix: '!'
       attribute_method_affix prefix: 'restore_', suffix: '!'
     end
@@ -180,25 +180,12 @@ module ActiveModel
       attribute_changed?(attr) ? changed_attributes[attr] : __send__(attr)
     end
 
-    # Handle <tt>*_was=</tt> for +method_missing+
-    def attribute_was=(attr, old_value)
-      attributes_changed_by_setter[attr] = old_value
-    end
-    alias_method :set_attribute_was, :attribute_was=
-
     # Restore all previous data of the provided attributes.
     def restore_attributes(attributes = changed)
       attributes.each { |attr| restore_attribute! attr }
     end
 
-    # Remove changes information for the provided attributes.
-    def clear_attribute_changes(attributes)
-      attributes_changed_by_setter.except!(*attributes)
-    end
-
     private
-
-      alias_method :attributes_changed_by_setter, :changed_attributes # :nodoc:
 
       # Removes current changes and makes them accessible through +previous_changes+.
       def changes_applied # :doc:
@@ -248,6 +235,20 @@ module ActiveModel
           __send__("#{attr}=", changed_attributes[attr])
           clear_attribute_changes([attr])
         end
+      end
+
+      # This is necessary because `changed_attributes` might be overridden in
+      # other implemntations (e.g. in `ActiveRecord`)
+      alias_method :attributes_changed_by_setter, :changed_attributes # :nodoc:
+
+      # Force an attribute to have a particular "before" value
+      def set_attribute_was(attr, old_value)
+        attributes_changed_by_setter[attr] = old_value
+      end
+
+      # Remove changes information for the provided attributes.
+      def clear_attribute_changes(attributes)
+        attributes_changed_by_setter.except!(*attributes)
       end
   end
 end
