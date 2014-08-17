@@ -7,7 +7,7 @@ module ActiveJob
     module ClassMethods
       # Push a job onto the queue.  The arguments must be legal JSON types
       # (string, int, float, nil, true, false, hash or array) or
-      # ActiveModel::GlobalIdentication instances.  Arbitrary Ruby objects
+      # GlobalID::Identification instances.  Arbitrary Ruby objects
       # are not supported.
       #
       # Returns an instance of the job class queued with args available in

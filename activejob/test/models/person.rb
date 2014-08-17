@@ -1,7 +1,5 @@
-require 'active_model/global_identification'
-
 class Person
-  include ActiveModel::GlobalIdentification
+  include GlobalID::Identification
 
   attr_reader :id
 

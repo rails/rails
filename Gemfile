@@ -36,6 +36,7 @@ end
 gem 'dalli', '>= 2.2.1'
 
 # ActiveJob
+gem 'globalid', github: 'rails/globalid'
 gem 'resque', require: false
 gem 'resque-scheduler', require: false
 gem 'sidekiq', require: false

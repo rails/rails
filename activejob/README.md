@@ -59,7 +59,7 @@ That's it!
 
 ## GlobalID support
 
-Active Job supports [GlobalID serialization](https://github.com/rails/activemodel-globalid/) for parameters. This makes it possible
+Active Job supports [GlobalID serialization](https://github.com/rails/globalid/) for parameters. This makes it possible
 to pass live Active Record objects to your job instead of class/id pairs, which
 you then have to manually deserialize. Before, jobs would look like this:
 
@@ -82,7 +82,7 @@ class TrashableCleanupJob
 end
 ```
 
-This works with any class that mixes in ActiveModel::GlobalIdentification, which
+This works with any class that mixes in GlobalID::Identification, which
 by default has been mixed into Active Record classes.
 
 

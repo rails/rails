@@ -2,6 +2,8 @@ require File.expand_path('../../../load_paths', __FILE__)
 
 require 'active_job'
 
+GlobalID.app = 'aj'
+
 @adapter  = ENV['AJADAPTER'] || 'inline'
 
 def sidekiq?

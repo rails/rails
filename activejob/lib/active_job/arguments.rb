@@ -1,6 +1,3 @@
-require 'active_model/global_locator'
-require 'active_model/global_identification'
-
 module ActiveJob
   module Arguments
     extend self
@@ -17,7 +14,7 @@ module ActiveJob
     private
       def serialize_argument(argument)
         case argument
-        when ActiveModel::GlobalIdentification
+        when GlobalID::Identification
           argument.global_id.to_s
         when *TYPE_WHITELIST
           argument
@@ -37,7 +34,7 @@ module ActiveJob
         when Hash
           Hash[ argument.map { |key, value| [ key, deserialize_argument(value) ] } ].with_indifferent_access
         else
-          ActiveModel::GlobalLocator.locate(argument) || argument
+          GlobalID::Locator.locate(argument) || argument
         end
       end
 

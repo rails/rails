@@ -4,7 +4,6 @@ require 'set'
 
 require 'action_dispatch'
 require 'active_support/time'
-require 'active_support/core_ext/object/itself'
 
 require 'mailers/base_mailer'
 require 'mailers/proc_mailer'
