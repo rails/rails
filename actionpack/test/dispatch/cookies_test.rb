@@ -21,6 +21,16 @@ class CookiesTest < ActionController::TestCase
     end
   end
 
+  class JSONWrapper
+    def initialize(obj)
+      @obj = obj
+    end
+
+    def as_json(options = nil)
+      "wrapped: #{@obj.as_json(options)}"
+    end
+  end
+
   class TestController < ActionController::Base
     def authenticate
       cookies["user_name"] = "david"
@@ -85,6 +95,11 @@ class CookiesTest < ActionController::TestCase
       head :ok
     end
 
+    def set_wrapped_signed_cookie
+      cookies.signed[:user_id] = JSONWrapper.new(45)
+      head :ok
+    end
+
     def get_signed_cookie
       cookies.signed[:user_id]
       head :ok
@@ -92,6 +107,11 @@ class CookiesTest < ActionController::TestCase
 
     def set_encrypted_cookie
       cookies.encrypted[:foo] = 'bar'
+      head :ok
+    end
+
+    def set_wrapped_encrypted_cookie
+      cookies.encrypted[:foo] = JSONWrapper.new('bar')
       head :ok
     end
 
@@ -421,6 +441,14 @@ class CookiesTest < ActionController::TestCase
     assert_equal 45, cookies.signed[:user_id]
   end
 
+  def test_wrapped_signed_cookie_using_json_serializer
+    @request.env["action_dispatch.cookies_serializer"] = :json
+    get :set_wrapped_signed_cookie
+    cookies = @controller.send :cookies
+    assert_not_equal 'wrapped: 45', cookies[:user_id]
+    assert_equal 'wrapped: 45', cookies.signed[:user_id]
+  end
+
   def test_signed_cookie_using_custom_serializer
     @request.env["action_dispatch.cookies_serializer"] = CustomSerializer
     get :set_signed_cookie
@@ -501,6 +529,17 @@ class CookiesTest < ActionController::TestCase
       cookies.signed[:foo]
     end
     assert_equal 'bar', cookies.encrypted[:foo]
+  end
+
+  def test_wrapped_encrypted_cookie_using_json_serializer
+    @request.env["action_dispatch.cookies_serializer"] = :json
+    get :set_wrapped_encrypted_cookie
+    cookies = @controller.send :cookies
+    assert_not_equal 'wrapped: bar', cookies[:foo]
+    assert_raises ::JSON::ParserError do
+      cookies.signed[:foo]
+    end
+    assert_equal 'wrapped: bar', cookies.encrypted[:foo]
   end
 
   def test_encrypted_cookie_using_custom_serializer

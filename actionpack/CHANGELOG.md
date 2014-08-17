@@ -1,3 +1,11 @@
+*   Use the Active Support JSON encoder for cookie jars using the `:json` or
+    `:hybrid` serializer. This allows you to serialize custom Ruby objects into
+    cookies by defining the `#as_json` hook on such objects.
+
+    Fixes #16520.
+
+    *Godfrey Chan*
+
 *   Add `config.action_dispatch.cookies_digest` option for setting custom
     digest. The default remains the same - 'SHA1'.
 

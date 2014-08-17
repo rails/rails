@@ -3,6 +3,7 @@ require 'active_support/core_ext/module/attribute_accessors'
 require 'active_support/core_ext/object/blank'
 require 'active_support/key_generator'
 require 'active_support/message_verifier'
+require 'active_support/json'
 
 module ActionDispatch
   class Request < Rack::Request
@@ -391,11 +392,11 @@ module ActionDispatch
 
     class JsonSerializer
       def self.load(value)
-        JSON.parse(value, quirks_mode: true)
+        ActiveSupport::JSON.decode(value)
       end
 
       def self.dump(value)
-        JSON.generate(value, quirks_mode: true)
+        ActiveSupport::JSON.encode(value)
       end
     end
 
