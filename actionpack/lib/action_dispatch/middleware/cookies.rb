@@ -173,10 +173,14 @@ module ActionDispatch
       end
     end
 
+    # Passing the ActiveSupport::MessageEncryptor::NullSerializer downstream
+    # to the Message{Encryptor,Verifier} allows us to handle the
+    # (de)serialization step within the cookie jar, which gives us the
+    # opportunity to detect and migrate legacy cookies.
     module VerifyAndUpgradeLegacySignedMessage
       def initialize(*args)
         super
-        @legacy_verifier = ActiveSupport::MessageVerifier.new(@options[:secret_token], serializer: NullSerializer)
+        @legacy_verifier = ActiveSupport::MessageVerifier.new(@options[:secret_token], serializer: ActiveSupport::MessageEncryptor::NullSerializer)
       end
 
       def verify_and_upgrade_legacy_signed_message(name, signed_message)
@@ -393,19 +397,6 @@ module ActionDispatch
       end
     end
 
-    # Passing the NullSerializer downstream to the Message{Encryptor,Verifier}
-    # allows us to handle the (de)serialization step within the cookie jar,
-    # which gives us the opportunity to detect and migrate legacy cookies.
-    class NullSerializer
-      def self.load(value)
-        value
-      end
-
-      def self.dump(value)
-        value
-      end
-    end
-
     module SerializedCookieJars
       MARSHAL_SIGNATURE = "\x04\x08".freeze
 
@@ -451,7 +442,7 @@ module ActionDispatch
         @parent_jar = parent_jar
         @options = options
         secret = key_generator.generate_key(@options[:signed_cookie_salt])
-        @verifier = ActiveSupport::MessageVerifier.new(secret, serializer: NullSerializer)
+        @verifier = ActiveSupport::MessageVerifier.new(secret, serializer: ActiveSupport::MessageEncryptor::NullSerializer)
       end
 
       def [](name)
@@ -508,7 +499,7 @@ module ActionDispatch
         @options = options
         secret = key_generator.generate_key(@options[:encrypted_cookie_salt])
         sign_secret = key_generator.generate_key(@options[:encrypted_signed_cookie_salt])
-        @encryptor = ActiveSupport::MessageEncryptor.new(secret, sign_secret, serializer: NullSerializer)
+        @encryptor = ActiveSupport::MessageEncryptor.new(secret, sign_secret, serializer: ActiveSupport::MessageEncryptor::NullSerializer)
       end
 
       def [](name)
