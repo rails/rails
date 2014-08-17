@@ -803,6 +803,24 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal "lol", topic.author_name
   end
 
+  def test_inherited_custom_accessors_with_reserved_names
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = 'computers'
+      self.abstract_class = true
+      def system; "omg"; end
+      def system=(val); self.developer = val; end
+    end
+
+    subklass = Class.new(klass)
+    [klass, subklass].each(&:define_attribute_methods)
+
+    computer = subklass.find(1)
+    assert_equal "omg", computer.system
+
+    computer.developer = 99
+    assert_equal 99, computer.developer
+  end
+
   def test_on_the_fly_super_invokable_generated_attribute_methods_via_method_missing
     klass = new_topic_like_ar_class do
       def title
