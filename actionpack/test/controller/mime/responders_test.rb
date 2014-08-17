@@ -9,7 +9,7 @@ class ResponderTest < ActionController::TestCase
       end
     end
 
-    assert_includes e.message, '`responder` gem'
+    assert_includes e.message, '`responders` gem'
   end
 
   def test_respond_with
@@ -25,6 +25,6 @@ class ResponderTest < ActionController::TestCase
       get :index
     end
 
-    assert_includes e.message, '`responder` gem'
+    assert_includes e.message, '`responders` gem'
   end
 end

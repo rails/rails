@@ -8,7 +8,7 @@ module ActionController #:nodoc:
     module ClassMethods
       def respond_to(*)
         raise NoMethodError, "The controller-level `respond_to' feature has " \
-          "been extracted to the `responder` gem. Add it to your Gemfile to " \
+          "been extracted to the `responders` gem. Add it to your Gemfile to " \
           "continue using this feature. Consult the Rails upgrade guide for " \
           "details."
       end
@@ -16,7 +16,7 @@ module ActionController #:nodoc:
 
     def respond_with(*)
       raise NoMethodError, "The `respond_with' feature has been extracted " \
-        "to the `responder` gem. Add it to your Gemfile to continue using " \
+        "to the `responders` gem. Add it to your Gemfile to continue using " \
         "this feature. Consult the Rails upgrade guide for details."
     end
 
