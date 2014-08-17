@@ -5,6 +5,21 @@ module ActionController #:nodoc:
   module MimeResponds
     extend ActiveSupport::Concern
 
+    module ClassMethods
+      def respond_to(*)
+        raise NoMethodError, "The controller-level `respond_to' feature has " \
+          "been extracted to the `responder` gem. Add it to your Gemfile to " \
+          "continue using this feature. Consult the Rails upgrade guide for " \
+          "details."
+      end
+    end
+
+    def respond_with(*)
+      raise NoMethodError, "The `respond_with' feature has been extracted " \
+        "to the `responder` gem. Add it to your Gemfile to continue using " \
+        "this feature. Consult the Rails upgrade guide for details."
+    end
+
     # Without web-service support, an action which collects the data for displaying a list of people
     # might look something like this:
     #
@@ -165,7 +180,7 @@ module ActionController #:nodoc:
     #     format.html.phone { redirect_to progress_path }
     #     format.html.none  { render "trash" }
     #   end
-    # 
+    #
     # Variants also support common `any`/`all` block that formats have.
     #
     # It works for both inline:
