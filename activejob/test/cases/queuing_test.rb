@@ -5,17 +5,17 @@ require 'active_support/core_ext/numeric/time'
 
 class QueuingTest < ActiveSupport::TestCase
   setup do
-    Thread.current[:ajbuffer] = []
+    JobBuffer.clear
   end
 
   test 'run queued job' do
     HelloJob.enqueue
-    assert_equal "David says hello", Thread.current[:ajbuffer].pop
+    assert_equal "David says hello", JobBuffer.last_value
   end
 
   test 'run queued job with arguments' do
     HelloJob.enqueue "Jamie"
-    assert_equal "Jamie says hello", Thread.current[:ajbuffer].pop
+    assert_equal "Jamie says hello", JobBuffer.last_value
   end
 
   test 'run queued job later' do

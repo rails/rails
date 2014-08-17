@@ -28,3 +28,23 @@ require "adapters/#{@adapter}"
 require 'active_support/testing/autorun'
 
 ActiveJob::Base.logger.level = Logger::DEBUG
+
+module JobBuffer
+  class << self
+    def clear
+      @buffer = []
+    end
+
+    def add(value)
+      @buffer << value
+    end
+
+    def values
+      @buffer
+    end
+
+    def last_value
+      @buffer.last
+    end
+  end
+end
