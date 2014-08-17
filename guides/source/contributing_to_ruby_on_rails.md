@@ -397,7 +397,7 @@ inside, just indent it with 4 spaces:
 
     class ArticlesController
       def index
-        respond_with Article.limit(10)
+        render json: Article.limit(10)
       end
     end
 

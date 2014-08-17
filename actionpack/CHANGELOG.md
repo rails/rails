@@ -1,3 +1,8 @@
+*   Move `respond_with` (and the class-level `respond_to`) to
+    the `responders` gem.
+
+    *José Valim*
+
 *   When your templates change, browser caches bust automatically.
 
     New default: the template digest is automatically included in your ETags.
