@@ -519,8 +519,8 @@ class CookiesTest < ActionController::TestCase
 
     sign_secret = @request.env["action_dispatch.key_generator"].generate_key(@request.env["action_dispatch.encrypted_signed_cookie_salt"])
 
-    sha1_verifier   = ActiveSupport::MessageVerifier.new(sign_secret, serializer: ActionDispatch::Cookies::NullSerializer, digest: 'SHA1')
-    sha256_verifier = ActiveSupport::MessageVerifier.new(sign_secret, serializer: ActionDispatch::Cookies::NullSerializer, digest: 'SHA256')
+    sha1_verifier   = ActiveSupport::MessageVerifier.new(sign_secret, serializer: ActiveSupport::MessageEncryptor::NullSerializer, digest: 'SHA1')
+    sha256_verifier = ActiveSupport::MessageVerifier.new(sign_secret, serializer: ActiveSupport::MessageEncryptor::NullSerializer, digest: 'SHA256')
 
     assert_raises(ActiveSupport::MessageVerifier::InvalidSignature) do
       sha1_verifier.verify(cookies[:foo])
