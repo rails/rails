@@ -136,6 +136,11 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 
 ### Removals
 
+*   `respond_with` and the class-level `respond_to` were removed from Rails and
+    moved to the `responders` gem (version 2.0). Add it to your `Gemfile` to
+    continue using these features.
+    ([Pull Request](https://github.com/rails/rails/pull/16526))
+
 *   Removed deprecated `AbstractController::Helpers::ClassMethods::MissingHelperError`
     in favor of `AbstractController::Helpers::MissingHelperError`.
     ([Commit](https://github.com/rails/rails/commit/a1ddde15ae0d612ff2973de9cf768ed701b594e8))
@@ -155,6 +160,9 @@ Please refer to the [Changelog][action-pack] for detailed changes.
     ([Commit](https://github.com/rails/rails/commit/cc26b6b7bccf0eea2e2c1a9ebdcc9d30ca7390d9))
 
 ### Notable changes
+
+*   Rails will now automatically include the template's digest in ETags.
+    ([Pull Request](https://github.com/rails/rails/pull/16527))
 
 *   `render nothing: true` or rendering a `nil` body no longer add a single
     space padding to the response body.
