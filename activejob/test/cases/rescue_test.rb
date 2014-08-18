@@ -1,5 +1,6 @@
 require 'helper'
 require 'jobs/rescue_job'
+require 'models/person'
 
 require 'active_support/core_ext/object/inclusion'
 
