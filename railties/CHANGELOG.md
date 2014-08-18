@@ -1,3 +1,7 @@
+*   Add a `required` option to the model generator for associations
+
+    *Sean Griffin*
+
 *   Add `after_bundle` callbacks in Rails templates. Useful for allowing the
     generated binstubs to be added to version control.
 
