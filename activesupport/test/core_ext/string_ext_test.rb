@@ -196,14 +196,14 @@ class StringInflectionsTest < ActiveSupport::TestCase
       "with tabs( ), newlines( ), unicode nextlines( ) and many spaces( )."
 
     # Make sure squish returns what we expect:
-    assert_equal original.squish,  expected
+    assert_equal expected, original.squish
     # But doesn't modify the original string:
-    assert_not_equal original, expected
+    assert_not_equal expected, original
 
     # Make sure squish! returns what we expect:
-    assert_equal original.squish!, expected
+    assert_equal expected, original.squish!
     # And changes the original string:
-    assert_equal original, expected
+    assert_equal expected, original
   end
 
   def test_string_inquiry
