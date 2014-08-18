@@ -157,6 +157,11 @@
     *Arun Agrawal*
 
 
+## Rails 4.1.5 (August 18, 2014) ##
+
+*   No changes.
+
+
 ## Rails 4.1.4 (July 2, 2014) ##
 
 *   Fix regression added from the latest security fix.
