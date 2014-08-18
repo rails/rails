@@ -5,7 +5,7 @@ module ActiveRecord
     ACTIONS = [:create, :destroy, :update]
     CALLBACK_WARN_MESSAGE = <<-EOF
 Currently, Active Record will rescue any errors raised within
-after_rollback/after_create callbacks and print them to the logs. In the next
+after_rollback/after_commit callbacks and print them to the logs. In the next
 version, these errors will no longer be rescued. Instead, they will simply
 bubble just like other Active Record callbacks.
 
