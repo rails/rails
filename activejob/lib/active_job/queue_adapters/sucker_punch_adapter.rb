@@ -17,7 +17,7 @@ module ActiveJob
         include SuckerPunch::Job
 
         def perform(job, *args)
-          job.new.execute *args
+          job.new.execute(*args)
         end
       end
     end

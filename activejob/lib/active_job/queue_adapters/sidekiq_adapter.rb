@@ -27,7 +27,7 @@ module ActiveJob
         include Sidekiq::Worker
 
         def perform(job_name, *args)
-          job_name.constantize.new.execute *args
+          job_name.constantize.new.execute(*args)
         end
       end
     end

@@ -15,7 +15,7 @@ module ActiveJob
 
       class JobWrapper < Que::Job
         def run(job_name, *args)
-          job_name.constantize.new.execute *args
+          job_name.constantize.new.execute(*args)
         end
       end
     end

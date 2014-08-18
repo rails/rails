@@ -15,7 +15,7 @@ module ActiveJob
 
       class JobWrapper
         def perform(job, *args)
-          job.new.execute *args
+          job.new.execute(*args)
         end
       end
     end

@@ -3,7 +3,7 @@ module ActiveJob
     class InlineAdapter
       class << self
         def enqueue(job, *args)
-          job.new.execute *args
+          job.new.execute(*args)
         end
 
         def enqueue_at(*)

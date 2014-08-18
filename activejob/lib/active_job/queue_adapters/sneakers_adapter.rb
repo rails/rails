@@ -25,7 +25,7 @@ module ActiveJob
 
         def work(msg)
           job_name, *args = ActiveSupport::JSON.decode(msg)
-          job_name.constantize.new.execute *args
+          job_name.constantize.new.execute(*args)
           ack!
         end
       end

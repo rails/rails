@@ -22,7 +22,7 @@ module ActiveJob
         end
 
         def perform
-          @job.new.execute *@args
+          @job.new.execute(*@args)
         end
       end
     end
