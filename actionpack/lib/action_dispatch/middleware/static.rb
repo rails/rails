@@ -21,17 +21,13 @@ module ActionDispatch
     end
 
     def match?(path)
-      path = unescape_path(path)
+      path = URI.parser.unescape(path)
       return false unless path.valid_encoding?
 
-      full_path = path.empty? ? @root : File.join(@root, escape_glob_chars(path))
-      paths = "#{full_path}#{ext}"
+      paths = [path, "#{path}#{ext}", "#{path}/index#{ext}"]
 
-      matches = Dir[paths]
-      match = matches.detect { |m| File.file?(m) }
-      if match
-        match.sub!(@compiled_root, '')
-        ::Rack::Utils.escape(match)
+      if match = paths.detect {|p| File.file?(File.join(@root, p)) }
+        return ::Rack::Utils.escape(match)
       end
     end
 
@@ -57,18 +53,7 @@ module ActionDispatch
 
     private
       def ext
-        @ext ||= begin
-          ext = ::ActionController::Base.default_static_extension
-          "{,#{ext},/index#{ext}}"
-        end
-      end
-
-      def unescape_path(path)
-        URI.parser.unescape(path)
-      end
-
-      def escape_glob_chars(path)
-        path.gsub(/[*?{}\[\]]/, "\\\\\\&")
+        ::ActionController::Base.default_static_extension
       end
 
       def content_type(path)
