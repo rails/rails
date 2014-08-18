@@ -22,6 +22,10 @@ module ActiveRecord
         @state == :rolledback
       end
 
+      def completed?
+        committed? || rolledback?
+      end
+
       def set_state(state)
         if !VALID_STATES.include?(state)
           raise ArgumentError, "Invalid transaction state: #{state}"
@@ -63,12 +67,18 @@ module ActiveRecord
       end
 
       def rollback_records
-        records.uniq.each do |record|
+        ite = records.uniq
+        while record = ite.shift
           begin
             record.rolledback! full_rollback?
           rescue => e
+            raise if ActiveRecord::Base.raise_in_transactional_callbacks
             record.logger.error(e) if record.respond_to?(:logger) && record.logger
           end
+        end
+      ensure
+        ite.each do |i|
+          i.rolledback!(full_rollback?, false)
         end
       end
 
@@ -77,12 +87,18 @@ module ActiveRecord
       end
 
       def commit_records
-        records.uniq.each do |record|
+        ite = records.uniq
+        while record = ite.shift
           begin
             record.committed!
           rescue => e
+            raise if ActiveRecord::Base.raise_in_transactional_callbacks
             record.logger.error(e) if record.respond_to?(:logger) && record.logger
           end
+        end
+      ensure
+        ite.each do |i|
+          i.committed!(false)
         end
       end
 
@@ -103,14 +119,14 @@ module ActiveRecord
       end
 
       def rollback
-        super
         connection.rollback_to_savepoint(savepoint_name)
+        super
         rollback_records
       end
 
       def commit
-        super
         connection.release_savepoint(savepoint_name)
+        super
         parent = connection.transaction_manager.current_transaction
         records.each { |r| parent.add_record(r) }
       end
@@ -130,14 +146,14 @@ module ActiveRecord
       end
 
       def rollback
-        super
         connection.rollback_db_transaction
+        super
         rollback_records
       end
 
       def commit
-        super
         connection.commit_db_transaction
+        super
         commit_records
       end
     end
@@ -177,7 +193,7 @@ module ActiveRecord
         begin
           commit_transaction unless error
         rescue Exception
-          transaction.rollback
+          transaction.rollback unless transaction.state.completed?
           raise
         end
       end
