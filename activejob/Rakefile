@@ -34,6 +34,12 @@ namespace :test do
     tasks = ACTIVEJOB_ADAPTERS.map{|a| "isolated_test_#{a}" }
     run_without_aborting(*tasks)
   end
+
+  desc 'Run all adapter integration tests'
+  task :integration do
+    tasks = ACTIVEJOB_ADAPTERS.map{|a| "integration_test_#{a}" }
+    run_without_aborting(*tasks)
+  end
 end
 
 
@@ -53,6 +59,15 @@ ACTIVEJOB_ADAPTERS.each do |adapter|
         end or raise 'Failures'
       end
     end
+
+    namespace :integration do
+      Rake::TestTask.new(adapter => "#{adapter}:env") do |t|
+        t.description = ""
+        t.libs << 'test'
+        t.test_files = FileList['test/integration/**/*_test.rb']
+        t.verbose = true
+      end
+    end
   end
 
   namespace adapter do
@@ -60,6 +75,17 @@ ACTIVEJOB_ADAPTERS.each do |adapter|
     task isolated_test: "isolated_test_#{adapter}"
 
     task(:env) { ENV['AJADAPTER'] = adapter }
+
+    namespace :isolated do
+      task(:env) { ENV['AJADAPTER'] = adapter }
+    end
+
+    namespace :integration do
+      task(:env) do
+        ENV['AJADAPTER'] = adapter
+        ENV['AJ_INTEGRATION_TESTS'] = "1"
+      end
+    end
   end
 
 
@@ -67,7 +93,10 @@ ACTIVEJOB_ADAPTERS.each do |adapter|
   task "test_#{adapter}" => ["#{adapter}:env", "test:#{adapter}"]
 
   desc "Run #{adapter} tests in isolation"
-  task "isolated_test_#{adapter}" => ["#{adapter}:env", "test:isolated:#{adapter}"]
+  task "isolated_test_#{adapter}" => ["#{adapter}:isolated:env", "test:isolated:#{adapter}"]
+
+  desc "Run #{adapter} integration tests"
+  task "integration_test_#{adapter}" => ["#{adapter}:integration:env", "test:integration:#{adapter}"]
 end
 
 
