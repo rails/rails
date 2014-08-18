@@ -13,16 +13,18 @@
     configure your own code through the Rails configuration object with custom configuration:
 
         # config/environments/production.rb
-        config.x.payment_processing.schedule = :daily
-        config.x.payment_processing.retries  = 3
-        config.x.super_debugger = true
+        config.payment_processing.schedule = :daily
+        config.payment_processing.retries  = 3
+        config.resque = { timeout: 60, inline_jobs: :always }
+        config.super_debugger = true
 
     These configuration points are then available through the configuration object:
 
-        Rails.configuration.x.payment_processing.schedule # => :daily
-        Rails.configuration.x.payment_processing.retries  # => 3
-        Rails.configuration.x.super_debugger              # => true
-        Rails.configuration.x.super_debugger.not_set      # => nil
+        Rails.configuration.payment_processing.schedule # => :daily
+        Rails.configuration.payment_processing.retries  # => 3
+        Rails.configuration.resque.timeout              # => 60
+        Rails.configuration.resque.inline_jobs          # => :always
+        Rails.configuration.super_debugger              # => true
 
     *DHH*
 

@@ -5,6 +5,8 @@ require 'env_helpers'
 module ApplicationTests
   module ConfigurationTests
     class BaseTest < ActiveSupport::TestCase
+      include ActiveSupport::Testing::Isolation
+
       def setup
         build_app
         boot_rails
@@ -30,7 +32,7 @@ module ApplicationTests
         end
 
         def require_environment
-          require "#{app_path}/config/environment"  
+          require "#{app_path}/config/environment"
         end
     end
   end
