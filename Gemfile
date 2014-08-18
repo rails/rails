@@ -12,7 +12,6 @@ gem 'rack-cache', '~> 1.2'
 gem 'jquery-rails', '~> 3.1.0'
 gem 'turbolinks', github: 'rails/turbolinks', branch: 'master'
 gem 'coffee-rails', '~> 4.0.0'
-gem 'arel', github: 'rails/arel', branch: 'master'
 gem 'sprockets-rails', github: 'rails/sprockets-rails', branch: 'master'
 gem 'i18n', github: 'svenfuchs/i18n', branch: 'master'
 
