@@ -16,7 +16,6 @@ gem 'rails-html-sanitizer', github: 'rails/rails-html-sanitizer'
 #temporary gem until a new version of loofah is released
 gem 'loofah', github: 'kaspth/loofah', branch: 'single-scrub'
 gem 'sprockets-rails', github: 'rails/sprockets-rails', branch: 'master'
-gem 'i18n', github: 'svenfuchs/i18n', branch: 'master'
 
 # require: false so bcrypt is loaded only when has_secure_password is used.
 # This is to avoid ActiveModel (and by extension the entire framework)
