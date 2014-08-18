@@ -77,35 +77,41 @@ Please refer to the [Changelog][railties] for detailed changes.
 
 *   Introduced the `x` namespace for defining custom configuration options:
 
-        # config/environments/production.rb
-        config.x.payment_processing.schedule = :daily
-        config.x.payment_processing.retries  = 3
-        config.x.super_debugger = true
+    ```ruby
+    # config/environments/production.rb
+    config.x.payment_processing.schedule = :daily
+    config.x.payment_processing.retries  = 3
+    config.x.super_debugger = true
+    ```
 
     These options are then available through the configuration object:
 
-        Rails.configuration.x.payment_processing.schedule # => :daily
-        Rails.configuration.x.payment_processing.retries  # => 3
-        Rails.configuration.x.super_debugger              # => true
-        Rails.configuration.x.super_debugger.not_set      # => nil
+    ```ruby
+    Rails.configuration.x.payment_processing.schedule # => :daily
+    Rails.configuration.x.payment_processing.retries  # => 3
+    Rails.configuration.x.super_debugger              # => true
+    Rails.configuration.x.super_debugger.not_set      # => nil
+    ```
 
     ([Commit](https://github.com/rails/rails/commit/611849772dd66c2e4d005dcfe153f7ce79a8a7db))
 
 *   Introduced `Rails::Application.config_for` to load a configuration for the
     current environment.
 
-        # config/exception_notification.yml:
-        production:
-          url: http://127.0.0.1:8080
-          namespace: my_app_production
-        development:
-          url: http://localhost:3001
-          namespace: my_app_development
+    ```ruby
+    # config/exception_notification.yml:
+    production:
+      url: http://127.0.0.1:8080
+      namespace: my_app_production
+    development:
+      url: http://localhost:3001
+      namespace: my_app_development
 
-        # config/production.rb
-        MyApp::Application.configure do
-          config.middleware.use ExceptionNotifier, config_for(:exception_notification)
-        end
+    # config/production.rb
+    MyApp::Application.configure do
+      config.middleware.use ExceptionNotifier, config_for(:exception_notification)
+    end
+    ```
 
     ([Pull Request](https://github.com/rails/rails/pull/16129))
 
