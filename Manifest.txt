@@ -13,6 +13,7 @@ lib/arel/alias_predication.rb
 lib/arel/attributes.rb
 lib/arel/attributes/attribute.rb
 lib/arel/collectors/bind.rb
+lib/arel/collectors/plain_string.rb
 lib/arel/collectors/sql_string.rb
 lib/arel/compatibility/wheres.rb
 lib/arel/crud.rb
