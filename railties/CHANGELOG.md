@@ -1,3 +1,12 @@
+## Rails 4.1.5 (August 18, 2014) ##
+
+*   Check attributes passed to `create_with` and `where`.
+
+    Fixes CVE-2014-3514.
+
+    *Rafael Mendonça França*
+
+
 ## Rails 4.1.4 (July 2, 2014) ##
 
 *   No changes.
