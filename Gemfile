@@ -13,6 +13,7 @@ gem 'jquery-rails', '~> 3.1.0'
 gem 'turbolinks', github: 'rails/turbolinks', branch: 'master'
 gem 'coffee-rails', '~> 4.0.0'
 gem 'rails-html-sanitizer', github: 'rails/rails-html-sanitizer'
+gem 'rails-deprecated_sanitizer', github: 'rails/rails-deprecated_sanitizer'
 #temporary gem until a new version of loofah is released
 gem 'loofah', github: 'kaspth/loofah', branch: 'single-scrub'
 gem 'sprockets-rails', github: 'rails/sprockets-rails', branch: 'master'
