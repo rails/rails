@@ -39,6 +39,7 @@ module ActiveModel
     extend ActiveSupport::Concern
 
     included do
+      extend ActiveModel::Naming
       extend ActiveModel::Callbacks
       extend ActiveModel::Translation
 

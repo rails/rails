@@ -434,7 +434,7 @@ module ActiveModel
 
       options = {
         default: defaults,
-        model: @base.class.model_name.human,
+        model: @base.model_name.human,
         attribute: @base.class.human_attribute_name(attribute),
         value: value
       }.merge!(options)
