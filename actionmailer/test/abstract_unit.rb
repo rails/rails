@@ -26,7 +26,7 @@ I18n.enforce_available_locales = false
 FIXTURE_LOAD_PATH = File.expand_path('fixtures', File.dirname(__FILE__))
 ActionMailer::Base.view_paths = FIXTURE_LOAD_PATH
 
-class Rails
+module Rails
   def self.root
     File.expand_path('../', File.dirname(__FILE__))
   end

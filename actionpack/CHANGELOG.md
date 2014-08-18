@@ -1,3 +1,7 @@
+*   Deleted the deprecated TagAssertions.
+
+    *Kasper Timm Hansen*
+
 *   Use the Active Support JSON encoder for cookie jars using the `:json` or
     `:hybrid` serializer. This allows you to serialize custom Ruby objects into
     cookies by defining the `#as_json` hook on such objects.

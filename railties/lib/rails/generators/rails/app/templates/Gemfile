@@ -15,6 +15,11 @@ source 'https://rubygems.org'
 # Use ActiveModel has_secure_password
 # gem 'bcrypt', '~> 3.1.7'
 
+# Use Rails Html Sanitizer for HTML sanitization
+gem 'rails-html-snaitizer', github: 'rails/rails', branch: 'master'
+#temporary gem until a new version of loofah is released
+gem 'loofah', github: 'kaspth/loofah', branch: 'single-scrub'
+
 # Use Unicorn as the app server
 # gem 'unicorn'
 

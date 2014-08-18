@@ -1,5 +1,4 @@
 require 'abstract_unit'
-require 'action_view/vendor/html-scanner'
 require 'controller/fake_controllers'
 
 class ActionPackAssertionsController < ActionController::Base
@@ -146,11 +145,6 @@ module Admin
 end
 
 class ActionPackAssertionsControllerTest < ActionController::TestCase
-
-  def test_assert_tag_and_url_for
-    get :render_url
-    assert_tag :content => "/action_pack_assertions/flash_me"
-  end
 
   def test_render_file_absolute_path
     get :render_file_absolute_path

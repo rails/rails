@@ -3,6 +3,8 @@ require 'active_support/core_ext/object/to_query'
 require 'active_support/core_ext/module/anonymous'
 require 'active_support/core_ext/hash/keys'
 
+require 'rails-dom-testing'
+
 module ActionController
   module TemplateAssertions
     extend ActiveSupport::Concern
@@ -442,6 +444,7 @@ module ActionController
       extend ActiveSupport::Concern
       include ActionDispatch::TestProcess
       include ActiveSupport::Testing::ConstantLookup
+      include Rails::Dom::Testing::Assertions
 
       attr_reader :response, :request
 
@@ -684,6 +687,11 @@ module ActionController
       end
 
       private
+
+      def document_root_element
+        html_document.root
+      end
+
       def check_required_ivars
         # Sanity check for required instance variables so we can give an
         # understandable error message.

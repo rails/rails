@@ -1,4 +1,5 @@
 require 'active_support/test_case'
+require 'rails-dom-testing'
 
 module ActionMailer
   class NonInferrableMailerError < ::StandardError
@@ -15,6 +16,7 @@ module ActionMailer
 
       include ActiveSupport::Testing::ConstantLookup
       include TestHelper
+      include Rails::Dom::Testing::Assertions::SelectorAssertions
 
       included do
         class_attribute :_mailer_class
@@ -55,14 +57,13 @@ module ActionMailer
       protected
 
         def initialize_test_deliveries
-          @old_delivery_method = ActionMailer::Base.delivery_method
+          set_delivery_method :test
           @old_perform_deliveries = ActionMailer::Base.perform_deliveries
-          ActionMailer::Base.delivery_method = :test
           ActionMailer::Base.perform_deliveries = true
         end
 
         def restore_test_deliveries
-          ActionMailer::Base.delivery_method = @old_delivery_method
+          restore_delivery_method
           ActionMailer::Base.perform_deliveries = @old_perform_deliveries
           ActionMailer::Base.deliveries.clear
         end
