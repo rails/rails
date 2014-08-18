@@ -86,7 +86,7 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
       cookies[SessionKey] = SignedBar
       get '/persistent_session_id'
       assert_response :success
-      assert_equal response.body.size, 32
+      assert_equal 32, response.body.size
       session_id = response.body
 
       get '/get_session_id'
@@ -247,7 +247,7 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
       cookies[SessionKey] = SignedBar
       get '/persistent_session_id'
       assert_response :success
-      assert_equal response.body.size, 32
+      assert_equal 32, response.body.size
       session_id = response.body
       get '/persistent_session_id'
       assert_equal session_id, response.body
@@ -263,7 +263,7 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
 
       get "/get_session_id"
       sid = response.body
-      assert_equal sid.size, 36
+      assert_equal 36, sid.size
 
       get "/change_session_id"
       assert_not_equal sid, response.body

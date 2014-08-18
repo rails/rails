@@ -159,24 +159,24 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
   def test_get_request
     assert_raise(RuntimeError) { get :raise_exception_on_get }
     get :raise_exception_on_post
-    assert_equal @response.body, 'request method: GET'
+    assert_equal 'request method: GET', @response.body
   end
 
   def test_post_request
     assert_raise(RuntimeError) { post :raise_exception_on_post }
     post :raise_exception_on_get
-    assert_equal @response.body, 'request method: POST'
+    assert_equal 'request method: POST', @response.body
   end
 
   def test_get_post_request_switch
     post :raise_exception_on_get
-    assert_equal @response.body, 'request method: POST'
+    assert_equal 'request method: POST', @response.body
     get :raise_exception_on_post
-    assert_equal @response.body, 'request method: GET'
+    assert_equal 'request method: GET', @response.body
     post :raise_exception_on_get
-    assert_equal @response.body, 'request method: POST'
+    assert_equal 'request method: POST', @response.body
     get :raise_exception_on_post
-    assert_equal @response.body, 'request method: GET'
+    assert_equal 'request method: GET', @response.body
   end
 
   def test_string_constraint
@@ -296,7 +296,7 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
 
   def test_session_exist
     process :session_stuffing
-    assert_equal session['xmas'], 'turkey'
+    assert_equal 'turkey', session['xmas']
   end
 
   def session_does_not_exist

@@ -124,7 +124,7 @@ class MimeTypeTest < ActiveSupport::TestCase
       end
 
       Mime::Type.register("text/foo", :foo)
-      assert_equal registered_mimes, [Mime::FOO]
+      assert_equal [Mime::FOO], registered_mimes
     ensure
       Mime::Type.unregister(:FOO)
     end
