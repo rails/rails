@@ -138,5 +138,35 @@ module ActiveRecord
     test "uninitialized attributes have no value" do
       assert_nil Attribute.uninitialized(:foo, nil).value
     end
+
+    test "attributes equal other attributes with the same constructor arguments" do
+      first = Attribute.from_database(:foo, 1, Type::Integer.new)
+      second = Attribute.from_database(:foo, 1, Type::Integer.new)
+      assert_equal first, second
+    end
+
+    test "attributes do not equal attributes with different names" do
+      first = Attribute.from_database(:foo, 1, Type::Integer.new)
+      second = Attribute.from_database(:bar, 1, Type::Integer.new)
+      assert_not_equal first, second
+    end
+
+    test "attributes do not equal attributes with different types" do
+      first = Attribute.from_database(:foo, 1, Type::Integer.new)
+      second = Attribute.from_database(:foo, 1, Type::Float.new)
+      assert_not_equal first, second
+    end
+
+    test "attributes do not equal attributes with different values" do
+      first = Attribute.from_database(:foo, 1, Type::Integer.new)
+      second = Attribute.from_database(:foo, 2, Type::Integer.new)
+      assert_not_equal first, second
+    end
+
+    test "attributes do not equal attributes of other classes" do
+      first = Attribute.from_database(:foo, 1, Type::Integer.new)
+      second = Attribute.from_user(:foo, 1, Type::Integer.new)
+      assert_not_equal first, second
+    end
   end
 end

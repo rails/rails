@@ -30,8 +30,12 @@ module ActiveRecord
 
     def value
       # `defined?` is cheaper than `||=` when we get back falsy values
-      @value = type_cast(value_before_type_cast) unless defined?(@value)
+      @value = original_value unless defined?(@value)
       @value
+    end
+
+    def original_value
+      type_cast(value_before_type_cast)
     end
 
     def value_for_database
@@ -54,12 +58,19 @@ module ActiveRecord
       self.class.from_database(name, value, type)
     end
 
-    def type_cast
+    def type_cast(*)
       raise NotImplementedError
     end
 
     def initialized?
       true
+    end
+
+    def ==(other)
+      self.class == other.class &&
+        name == other.name &&
+        value_before_type_cast == other.value_before_type_cast &&
+        type == other.type
     end
 
     protected

@@ -6,6 +6,7 @@ class I18nValidationTest < ActiveRecord::TestCase
   repair_validations(Topic, Reply)
 
   def setup
+    repair_validations(Topic, Reply)
     Reply.validates_presence_of(:title)
     @topic = Topic.new
     @old_load_path, @old_backend = I18n.load_path.dup, I18n.backend

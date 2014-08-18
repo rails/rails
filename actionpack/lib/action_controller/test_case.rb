@@ -93,6 +93,13 @@ module ActionController
     #   # assert that no partials were rendered
     #   assert_template partial: false
     #
+    #   # assert that a file was rendered
+    #   assert_template file: "README.rdoc"
+    #
+    #   # assert that no file was rendered
+    #   assert_template file: nil
+    #   assert_template file: false
+    #
     # In a view test case, you can also assert that specific locals are passed
     # to partials:
     #
@@ -142,6 +149,8 @@ module ActionController
 
         if options[:file]
           assert_includes @_files.keys, options[:file]
+        elsif options.key?(:file)
+          assert @_files.blank?, "expected no files but #{@_files.keys} was rendered"
         end
 
         if expected_partial = options[:partial]

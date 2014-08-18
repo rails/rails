@@ -142,21 +142,26 @@ module ActionDispatch
 
       %w(edit new).each do |action|
         module_eval <<-EOT, __FILE__, __LINE__ + 1
-          def #{action}_polymorphic_url(record_or_hash, options = {})         # def edit_polymorphic_url(record_or_hash, options = {})
-            polymorphic_url(                                                  #   polymorphic_url(
-              record_or_hash,                                                 #     record_or_hash,
-              options.merge(:action => "#{action}"))                          #     options.merge(:action => "edit"))
-          end                                                                 # end
-                                                                              #
-          def #{action}_polymorphic_path(record_or_hash, options = {})        # def edit_polymorphic_path(record_or_hash, options = {})
-            polymorphic_url(                                                  #   polymorphic_url(
-              record_or_hash,                                                 #     record_or_hash,
-              options.merge(:action => "#{action}", :routing_type => :path))  #     options.merge(:action => "edit", :routing_type => :path))
-          end                                                                 # end
+          def #{action}_polymorphic_url(record_or_hash, options = {})
+            polymorphic_url_for_action("#{action}", record_or_hash, options)
+          end
+
+          def #{action}_polymorphic_path(record_or_hash, options = {})
+            polymorphic_path_for_action("#{action}", record_or_hash, options)
+          end
         EOT
       end
 
       private
+
+      def polymorphic_url_for_action(action, record_or_hash, options)
+        polymorphic_url(record_or_hash, options.merge(:action => action))
+      end
+
+      def polymorphic_path_for_action(action, record_or_hash, options)
+        options = options.merge(:action => action, :routing_type => :path)
+        polymorphic_path(record_or_hash, options)
+      end
 
       class HelperMethodBuilder # :nodoc:
         CACHE = { 'path' => {}, 'url' => {} }

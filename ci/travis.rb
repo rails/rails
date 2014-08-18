@@ -21,7 +21,8 @@ class Build
     'amo'  => 'activemodel',
     'as'   => 'activesupport',
     'ar'   => 'activerecord',
-    'av'   => 'actionview'
+    'av'   => 'actionview',
+    'aj'   => 'activejob'
   }
 
   attr_reader :component, :options

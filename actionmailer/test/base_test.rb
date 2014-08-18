@@ -11,6 +11,8 @@ require 'mailers/asset_mailer'
 
 class BaseTest < ActiveSupport::TestCase
   setup do
+    @original_delivery_method = ActionMailer::Base.delivery_method
+    ActionMailer::Base.delivery_method = :test
     @original_asset_host = ActionMailer::Base.asset_host
     @original_assets_dir = ActionMailer::Base.assets_dir
   end
@@ -19,6 +21,7 @@ class BaseTest < ActiveSupport::TestCase
     ActionMailer::Base.asset_host = @original_asset_host
     ActionMailer::Base.assets_dir = @original_assets_dir
     BaseMailer.deliveries.clear
+    ActionMailer::Base.delivery_method = @original_delivery_method
   end
 
   test "method call to mail does not raise error" do
@@ -240,7 +243,7 @@ class BaseTest < ActiveSupport::TestCase
       end
     end
 
-    e = assert_raises(RuntimeError) { LateAttachmentMailer.welcome }
+    e = assert_raises(RuntimeError) { LateAttachmentMailer.welcome.message }
     assert_match(/Can't add attachments after `mail` was called./, e.message)
   end
 
@@ -252,7 +255,7 @@ class BaseTest < ActiveSupport::TestCase
       end
     end
 
-    e = assert_raises(RuntimeError) { LateInlineAttachmentMailer.welcome }
+    e = assert_raises(RuntimeError) { LateInlineAttachmentMailer.welcome.message }
     assert_match(/Can't add attachments after `mail` was called./, e.message)
   end
 
@@ -468,7 +471,6 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   test "calling deliver on the action should increment the deliveries collection if using the test mailer" do
-    BaseMailer.delivery_method = :test
     BaseMailer.welcome.deliver
     assert_equal(1, BaseMailer.deliveries.length)
   end

@@ -88,8 +88,8 @@ module ActiveRecord
 
       def test_timestamps_creates_updated_at_and_created_at
         with_change_table do |t|
-          @connection.expect :add_timestamps, nil, [:delete_me]
-          t.timestamps
+          @connection.expect :add_timestamps, nil, [:delete_me, null: true]
+          t.timestamps null: true
         end
       end
 

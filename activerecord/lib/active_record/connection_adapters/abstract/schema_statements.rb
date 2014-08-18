@@ -43,13 +43,14 @@ module ActiveRecord
       #   index_exists?(:suppliers, :company_id, name: "idx_company_id")
       #
       def index_exists?(table_name, column_name, options = {})
-        column_names = Array(column_name)
-        index_name = options.key?(:name) ? options[:name].to_s : index_name(table_name, :column => column_names)
-        if options[:unique]
-          indexes(table_name).any?{ |i| i.unique && i.name == index_name }
-        else
-          indexes(table_name).any?{ |i| i.name == index_name }
-        end
+        column_names = Array(column_name).map(&:to_s)
+        index_name = options.key?(:name) ? options[:name].to_s : index_name(table_name, column: column_names)
+        checks = []
+        checks << lambda { |i| i.name == index_name }
+        checks << lambda { |i| i.columns == column_names }
+        checks << lambda { |i| i.unique } if options[:unique]
+
+        indexes(table_name).any? { |i| checks.all? { |check| check[i] } }
       end
 
       # Returns an array of Column objects for the table specified by +table_name+.
@@ -838,9 +839,9 @@ module ActiveRecord
       #
       #   add_timestamps(:suppliers)
       #
-      def add_timestamps(table_name)
-        add_column table_name, :created_at, :datetime
-        add_column table_name, :updated_at, :datetime
+      def add_timestamps(table_name, options = {})
+        add_column table_name, :created_at, :datetime, options
+        add_column table_name, :updated_at, :datetime, options
       end
 
       # Removes the timestamp columns (+created_at+ and +updated_at+) from the table definition.

@@ -1,3 +1,16 @@
+*   Added #deliver_later in addition to #deliver, which will enqueue a job to render and
+    deliver the mail instead of delivering it right at that moment. The job is enqueued 
+    using the new Active Job framework in Rails, and will use whatever queue is configured for Rails.
+    
+    *DHH/Abdelkader Boudih/Cristian Bica*
+    
+
+*   Make ActionMailer::Previews methods class methods. Previously they were
+    instance methods and ActionMailer tries to render a message when they
+    are called.
+
+    *Cristian Bica*
+
 *   Deprecate `*_path` helpers in email views. When used they generate
     non-working links and are not the intention of most developers. Instead
     we recommend to use `*_url` helper.

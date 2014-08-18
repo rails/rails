@@ -41,6 +41,11 @@ module ActionController
     # * <tt>:last_modified</tt>.
     # * <tt>:public</tt> By default the Cache-Control header is private, set this to
     #   +true+ if you want your application to be cachable by other devices (proxy caches).
+    # * <tt>:template</tt> By default, the template digest for the current
+    #   controller/action is included in ETags. If the action renders a
+    #   different template, you can include its digest instead. If the action
+    #   doesn't render a template at all, you can pass <tt>template: false</tt>
+    #   to skip any attempt to check for a template digest.
     #
     # === Example:
     #
@@ -66,18 +71,24 @@ module ActionController
     #     @article = Article.find(params[:id])
     #     fresh_when(@article, public: true)
     #   end
+    #
+    # When rendering a different template than the default controller/action
+    # style, you can indicate which digest to include in the ETag:
+    #
+    #   before_action { fresh_when @article, template: 'widgets/show' }
+    #
     def fresh_when(record_or_options, additional_options = {})
       if record_or_options.is_a? Hash
         options = record_or_options
-        options.assert_valid_keys(:etag, :last_modified, :public)
+        options.assert_valid_keys(:etag, :last_modified, :public, :template)
       else
         record  = record_or_options
         options = { etag: record, last_modified: record.try(:updated_at) }.merge!(additional_options)
       end
 
-      response.etag          = combine_etags(options[:etag]) if options[:etag]
-      response.last_modified = options[:last_modified]       if options[:last_modified]
-      response.cache_control[:public] = true                 if options[:public]
+      response.etag          = combine_etags(options)   if options[:etag] || options[:template]
+      response.last_modified = options[:last_modified]  if options[:last_modified]
+      response.cache_control[:public] = true            if options[:public]
 
       head :not_modified if request.fresh?(response)
     end
@@ -93,6 +104,11 @@ module ActionController
     # * <tt>:last_modified</tt>.
     # * <tt>:public</tt> By default the Cache-Control header is private, set this to
     #   +true+ if you want your application to be cachable by other devices (proxy caches).
+    # * <tt>:template</tt> By default, the template digest for the current
+    #   controller/action is included in ETags. If the action renders a
+    #   different template, you can include its digest instead. If the action
+    #   doesn't render a template at all, you can pass <tt>template: false</tt>
+    #   to skip any attempt to check for a template digest.
     #
     # === Example:
     #
@@ -133,6 +149,14 @@ module ActionController
     #       end
     #     end
     #   end
+    #
+    # When rendering a different template than the default controller/action
+    # style, you can indicate which digest to include in the ETag:
+    #
+    #   def show
+    #     super if stale? @article, template: 'widgets/show'
+    #   end
+    #
     def stale?(record_or_options, additional_options = {})
       fresh_when(record_or_options, additional_options)
       !request.fresh?(response)
@@ -168,8 +192,9 @@ module ActionController
     end
 
     private
-      def combine_etags(etag)
-        [ etag, *etaggers.map { |etagger| instance_exec(&etagger) }.compact ]
+      def combine_etags(options)
+        etags = etaggers.map { |etagger| instance_exec(options, &etagger) }.compact
+        etags.unshift options[:etag]
       end
   end
 end

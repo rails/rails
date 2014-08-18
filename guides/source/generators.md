@@ -8,6 +8,7 @@ After reading this guide, you will know:
 * How to see which generators are available in your application.
 * How to create a generator using templates.
 * How Rails searches for generators before invoking them.
+* How Rails internally generates Rails code from the templates.
 * How to customize your scaffold by creating new generators.
 * How to customize your scaffold by changing generator templates.
 * How to use fallbacks to avoid overwriting a huge set of generators.
@@ -339,6 +340,20 @@ end
 ```
 
 If you generate another resource, you can see that we get exactly the same result! This is useful if you want to customize your scaffold templates and/or layout by just creating `edit.html.erb`, `index.html.erb` and so on inside `lib/templates/erb/scaffold`.
+
+Many scaffold templates in Rails are written in ERB tags which needs to be escaped, so that the output is a valid ERB code, that can be used correctly in Rails app.
+
+The following code in one of the generator file,
+
+```ruby
+<%%= stylesheet_include_tag :application %>
+```
+
+when passed through the generator, would generate the following output.
+
+```ruby
+<%= stylesheet_include_tag :application %>
+```
 
 Adding Generators Fallbacks
 ---------------------------

@@ -14,6 +14,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       @connection.drop_table :fruits rescue nil
       @connection.drop_table :nep_fruits rescue nil
       @connection.drop_table :nep_schema_migrations rescue nil
+      @connection.drop_table :has_timestamps rescue nil
       ActiveRecord::SchemaMigration.delete_all rescue nil
     end
 
@@ -87,6 +88,62 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert_equal "002", ActiveRecord::SchemaMigration.normalize_migration_number("2")
       assert_equal "017", ActiveRecord::SchemaMigration.normalize_migration_number("0017")
       assert_equal "20131219224947", ActiveRecord::SchemaMigration.normalize_migration_number("20131219224947")
+    end
+
+    def test_timestamps_without_null_is_deprecated_on_create_table
+      assert_deprecated do
+        ActiveRecord::Schema.define do
+          create_table :has_timestamps do |t|
+            t.timestamps
+          end
+        end
+      end
+    end
+
+    def test_timestamps_without_null_is_deprecated_on_change_table
+      assert_deprecated do
+        ActiveRecord::Schema.define do
+          create_table :has_timestamps
+
+          change_table :has_timestamps do |t|
+            t.timestamps
+          end
+        end
+      end
+    end
+
+    def test_no_deprecation_warning_from_timestamps_on_create_table
+      assert_not_deprecated do
+        ActiveRecord::Schema.define do
+          create_table :has_timestamps do |t|
+            t.timestamps null: true
+          end
+
+          drop_table :has_timestamps
+
+          create_table :has_timestamps do |t|
+            t.timestamps null: false
+          end
+        end
+      end
+    end
+
+    def test_no_deprecation_warning_from_timestamps_on_change_table
+      assert_not_deprecated do
+        ActiveRecord::Schema.define do
+          create_table :has_timestamps
+          change_table :has_timestamps do |t|
+            t.timestamps null: true
+          end
+
+          drop_table :has_timestamps
+
+          create_table :has_timestamps
+          change_table :has_timestamps do |t|
+            t.timestamps null: false, default: Time.now
+          end
+        end
+      end
     end
   end
 end

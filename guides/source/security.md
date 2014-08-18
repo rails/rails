@@ -118,9 +118,9 @@ It works like this:
 
 * A user receives credits, the amount is stored in a session (which is a bad idea anyway, but we'll do this for demonstration purposes).
 * The user buys something.
-* Their new, lower credit will be stored in the session.
-* The dark side of the user forces them to take the cookie from the first step (which they copied) and replace the current cookie in the browser.
-* The user has their credit back.
+* The new adjusted credit value is stored in the session.
+* The user takes the cookie from the first step (which they previously copied) and replaces the current cookie in the browser.
+* The user has their original credit back.
 
 Including a nonce (a random value) in the session solves replay attacks. A nonce is valid only once, and the server has to keep track of all the valid nonces. It gets even more complicated if you have several application servers (mongrels). Storing nonces in a database table would defeat the entire purpose of CookieStore (avoiding accessing the database).
 
@@ -847,7 +847,7 @@ It is recommended to _use RedCloth in combination with a whitelist input filter_
 
 NOTE: _The same security precautions have to be taken for Ajax actions as for "normal" ones. There is at least one exception, however: The output has to be escaped in the controller already, if the action doesn't render a view._
 
-If you use the [in_place_editor plugin](http://dev.rubyonrails.org/browser/plugins/in_place_editing), or actions that return a string, rather than rendering a view, _you have to escape the return value in the action_. Otherwise, if the return value contains a XSS string, the malicious code will be executed upon return to the browser. Escape any input value using the h() method.
+If you use the [in_place_editor plugin](https://rubygems.org/gems/in_place_editing), or actions that return a string, rather than rendering a view, _you have to escape the return value in the action_. Otherwise, if the return value contains a XSS string, the malicious code will be executed upon return to the browser. Escape any input value using the h() method.
 
 ### Command Line Injection
 

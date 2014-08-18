@@ -1209,7 +1209,7 @@ module ActiveRecord
       # Option examples:
       #   has_many :comments, -> { order "posted_on" }
       #   has_many :comments, -> { includes :author }
-      #   has_many :people, -> { where("deleted = 0").order("name") }, class_name: "Person"
+      #   has_many :people, -> { where(deleted: false).order("name") }, class_name: "Person"
       #   has_many :tracks, -> { order "position" }, dependent: :destroy
       #   has_many :comments, dependent: :nullify
       #   has_many :tags, as: :taggable
@@ -1435,7 +1435,7 @@ module ActiveRecord
       #   belongs_to :firm, foreign_key: "client_of"
       #   belongs_to :person, primary_key: "name", foreign_key: "person_name"
       #   belongs_to :author, class_name: "Person", foreign_key: "author_id"
-      #   belongs_to :valid_coupon, ->(o) { where "discounts > #{o.payments_count}" },
+      #   belongs_to :valid_coupon, ->(o) { where "discounts > ?", o.payments_count },
       #                             class_name: "Coupon", foreign_key: "coupon_id"
       #   belongs_to :attachable, polymorphic: true
       #   belongs_to :project, readonly: true

@@ -47,8 +47,9 @@ module ActiveRecord
         current_time = current_time_from_proper_timezone
 
         all_timestamp_attributes.each do |column|
-          if respond_to?(column) && respond_to?("#{column}=") && self.send(column).nil?
-            write_attribute(column.to_s, current_time)
+          column = column.to_s
+          if has_attribute?(column) && !attribute_present?(column)
+            write_attribute(column, current_time)
           end
         end
       end
@@ -113,7 +114,7 @@ module ActiveRecord
     def clear_timestamp_attributes
       all_timestamp_attributes_in_model.each do |attribute_name|
         self[attribute_name] = nil
-        changed_attributes.delete(attribute_name)
+        clear_attribute_changes([attribute_name])
       end
     end
   end

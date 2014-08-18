@@ -482,6 +482,11 @@ class AssertTemplateTest < ActionController::TestCase
     assert_raise(ActiveSupport::TestCase::Assertion) do
       assert_template :file => 'test/hello_world'
     end
+
+    get :render_file_absolute_path
+    assert_raise(ActiveSupport::TestCase::Assertion) do
+      assert_template file: nil
+    end
   end
 
   def test_with_nil_passes_when_no_template_rendered
@@ -606,6 +611,24 @@ class AssertTemplateTest < ActionController::TestCase
 
     get :nothing
     assert_template nil
+
+    get :partial
+    assert_template partial: 'test/_partial'
+
+    get :nothing
+    assert_template partial: nil
+
+    get :render_with_layout
+    assert_template layout: 'layouts/standard'
+
+    get :nothing
+    assert_template layout: nil
+
+    get :render_file_relative_path
+    assert_template file: 'README.rdoc'
+
+    get :nothing
+    assert_template file: nil
   end
 end
 

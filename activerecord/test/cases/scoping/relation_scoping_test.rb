@@ -11,6 +11,10 @@ require 'models/reference'
 class RelationScopingTest < ActiveRecord::TestCase
   fixtures :authors, :developers, :projects, :comments, :posts, :developers_projects
 
+  setup do
+    developers(:david)
+  end
+
   def test_reverse_order
     assert_equal Developer.order("id DESC").to_a.reverse, Developer.order("id DESC").reverse_order
   end
@@ -260,7 +264,7 @@ class NestedRelationScopingTest < ActiveRecord::TestCase
   end
 end
 
-class HasManyScopingTest< ActiveRecord::TestCase
+class HasManyScopingTest < ActiveRecord::TestCase
   fixtures :comments, :posts, :people, :references
 
   def setup
@@ -306,7 +310,7 @@ class HasManyScopingTest< ActiveRecord::TestCase
   end
 end
 
-class HasAndBelongsToManyScopingTest< ActiveRecord::TestCase
+class HasAndBelongsToManyScopingTest < ActiveRecord::TestCase
   fixtures :posts, :categories, :categories_posts
 
   def setup

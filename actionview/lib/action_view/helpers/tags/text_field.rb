@@ -1,7 +1,11 @@
+require 'action_view/helpers/tags/placeholderable'
+
 module ActionView
   module Helpers
     module Tags # :nodoc:
       class TextField < Base # :nodoc:
+        include Placeholderable
+
         def render
           options = @options.stringify_keys
           options["size"] = options["maxlength"] unless options.key?("size")

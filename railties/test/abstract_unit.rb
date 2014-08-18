@@ -28,10 +28,6 @@ def jruby_skip(message = '')
 end
 
 class ActiveSupport::TestCase
-  # FIXME: we have tests that depend on run order, we should fix that and
-  # remove this method call.
-  self.my_tests_are_order_dependent!
-
   private
 
   unless defined?(:capture)

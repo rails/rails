@@ -1,4 +1,5 @@
 require 'cases/helper'
+require 'support/ddl_helper'
 require 'models/developer'
 require 'models/owner'
 require 'models/pet'
@@ -422,5 +423,23 @@ class TimestampTest < ActiveRecord::TestCase
   def test_all_timestamp_attributes_in_model
     toy = Toy.first
     assert_equal [:created_at, :updated_at], toy.send(:all_timestamp_attributes_in_model)
+  end
+end
+
+class TimestampsWithoutTransactionTest < ActiveRecord::TestCase
+  include DdlHelper
+  self.use_transactional_fixtures = false
+
+  class TimestampAttributePost < ActiveRecord::Base
+    attr_accessor :created_at, :updated_at
+  end
+
+  def test_do_not_write_timestamps_on_save_if_they_are_not_attributes
+    with_example_table ActiveRecord::Base.connection, "timestamp_attribute_posts", "id integer primary key" do
+      post = TimestampAttributePost.new(id: 1)
+      post.save! # should not try to assign and persist created_at, updated_at
+      assert_nil post.created_at
+      assert_nil post.updated_at
+    end
   end
 end

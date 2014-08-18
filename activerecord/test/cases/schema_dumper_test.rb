@@ -2,6 +2,8 @@ require "cases/helper"
 require 'support/schema_dumping_helper'
 
 class SchemaDumperTest < ActiveRecord::TestCase
+  self.use_transactional_fixtures = false
+
   setup do
     ActiveRecord::SchemaMigration.create_table
   end
@@ -21,6 +23,8 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
     schema_info = ActiveRecord::Base.connection.dump_schema_information
     assert_match(/20100201010101.*20100301010101/m, schema_info)
+  ensure
+    ActiveRecord::SchemaMigration.delete_all
   end
 
   def test_magic_comment

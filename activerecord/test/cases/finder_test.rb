@@ -51,7 +51,7 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_symbols_table_ref
-    Post.first # warm up
+    Post.where("author_id" => nil)  # warm up
     x = Symbol.all_symbols.count
     Post.where("title" => {"xxxqqqq" => "bar"})
     assert_equal x, Symbol.all_symbols.count
