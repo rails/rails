@@ -18,7 +18,7 @@ class ControllerRuntimeLogSubscriberTest < ActionController::TestCase
 
     def create
       ActiveRecord::LogSubscriber.runtime += 100
-      project = Project.last
+      Project.last
       redirect_to "/"
     end
 
