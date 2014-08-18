@@ -138,7 +138,7 @@ ActiveRecord::Schema.define do
     t.integer :engines_count
     t.integer :wheels_count
     t.column :lock_version, :integer, null: false, default: 0
-    t.timestamps
+    t.timestamps null: false
   end
 
   create_table :categories, force: true do |t|
@@ -537,7 +537,7 @@ ActiveRecord::Schema.define do
     t.references :best_friend_of
     t.integer    :insures, null: false, default: 0
     t.timestamp :born_at
-    t.timestamps
+    t.timestamps null: false
   end
 
   create_table :peoples_treasures, id: false, force: true do |t|
@@ -548,7 +548,7 @@ ActiveRecord::Schema.define do
   create_table :pets, primary_key: :pet_id, force: true do |t|
     t.string :name
     t.integer :owner_id, :integer
-    t.timestamps
+    t.timestamps null: false
   end
 
   create_table :pirates, force: true do |t|
@@ -726,13 +726,13 @@ ActiveRecord::Schema.define do
     t.string   :parent_title
     t.string   :type
     t.string   :group
-    t.timestamps
+    t.timestamps null: true
   end
 
   create_table :toys, primary_key: :toy_id, force: true do |t|
     t.string :name
     t.integer :pet_id, :integer
-    t.timestamps
+    t.timestamps null: false
   end
 
   create_table :traffic_lights, force: true do |t|

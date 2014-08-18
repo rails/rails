@@ -561,7 +561,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
           t.string :qualification, :experience
           t.integer :age, :default => 0
           t.date :birthdate
-          t.timestamps
+          t.timestamps null: true
         end
       end
 
