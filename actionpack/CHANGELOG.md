@@ -1,4 +1,4 @@
-*   Deleted the deprecated TagAssertions.
+*   Deprecated TagAssertions.
 
     *Kasper Timm Hansen*
 
