@@ -236,8 +236,8 @@ module ActiveRecord
 
         @spec = spec
 
-        @checkout_timeout = spec.config[:checkout_timeout] || 5
-        @dead_connection_timeout = spec.config[:dead_connection_timeout] || 5
+        @checkout_timeout = (spec.config[:checkout_timeout] && spec.config[:checkout_timeout].to_f) || 5
+        @dead_connection_timeout = (spec.config[:dead_connection_timeout] && spec.config[:dead_connection_timeout].to_f) || 5
         @reaper  = Reaper.new self, spec.config[:reaping_frequency]
         @reaper.run
 
