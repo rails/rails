@@ -4,6 +4,7 @@ require 'models/author'
 require 'models/categorization'
 require 'models/comment'
 require 'models/company'
+require 'models/tagging'
 require 'models/topic'
 require 'models/reply'
 require 'models/entrant'
@@ -76,6 +77,19 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal false, Topic.exists?(Topic.new.id)
 
     assert_raise(NoMethodError) { Topic.exists?([1,2]) }
+  end
+
+  def test_exists_with_polymorphic_relation
+    post = Post.create!(title: 'Post', body: 'default', taggings: [Tagging.new(comment: 'tagging comment')])
+    relation = Post.tagged_with_comment('tagging comment')
+
+    assert_equal true, relation.exists?(title: ['Post'])
+    assert_equal true, relation.exists?(['title LIKE ?', 'Post%'])
+    assert_equal true, relation.exists?
+    assert_equal true, relation.exists?(post.id)
+    assert_equal true, relation.exists?(post.id.to_s)
+
+    assert_equal false, relation.exists?(false)
   end
 
   def test_exists_passing_active_record_object_is_deprecated

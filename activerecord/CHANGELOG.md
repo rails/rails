@@ -1,3 +1,9 @@
+*   Fixed the `Relation#exists?` to work with polymorphic associations.
+
+    Fixes #15821.
+
+    *Kassio Borges*
+
 *   Currently, Active Record will rescue any errors raised within
     after_rollback/after_create callbacks and print them to the logs. Next versions of rails
     will not rescue those errors anymore, and just bubble them up, as the other callbacks.
