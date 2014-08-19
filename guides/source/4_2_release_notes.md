@@ -153,6 +153,10 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 
 ### Deprecations
 
+*   Deprecated `assert_tag`, `assert_no_tag`, `find_tag` and `find_all_tag` in
+    favor of `assert_select`.
+    ([Commit](https://github.com/rails/rails-dom-testing/commit/b12850bc5ff23ba4b599bf2770874dd4f11bf750))
+
 *   Deprecated support for setting the `:to` option of a router to a symbol or a
     string that does not contain a `#` character:
 
