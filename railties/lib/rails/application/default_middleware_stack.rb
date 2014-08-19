@@ -15,6 +15,10 @@ module Rails
             middleware.use ::ActionDispatch::SSL, config.ssl_options
           end
 
+          if config.content_security_policy_reporting
+            middleware.use ::ActionDispatch::ContentSecurityPolicyReporting
+          end
+
           middleware.use ::Rack::Sendfile, config.action_dispatch.x_sendfile_header
 
           if config.serve_static_assets

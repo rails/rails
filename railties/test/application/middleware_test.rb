@@ -86,6 +86,12 @@ module ApplicationTests
       assert_equal Rails.application.middleware.first.args, [{host: 'example.com'}]
     end
 
+    test "ActionDispatch::ContentSecurityPolicyReporting is present when config.content_security_policy_reporting is set to true" do
+      add_to_config "config.content_security_policy_reporting = true"
+      boot!
+      assert middleware.include?("ActionDispatch::ContentSecurityPolicyReporting")
+    end
+
     test "removing Active Record omits its middleware" do
       use_frameworks []
       boot!

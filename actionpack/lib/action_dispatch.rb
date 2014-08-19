@@ -58,6 +58,7 @@ module ActionDispatch
     autoload :RemoteIp
     autoload :ShowExceptions
     autoload :SSL
+    autoload :ContentSecurityPolicyReporting
     autoload :Static
   end
 
