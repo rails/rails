@@ -24,6 +24,7 @@ Gem::Specification.new do |s|
   s.add_dependency 'builder',       '~> 3.1'
   s.add_dependency 'erubis',        '~> 2.7.0'
   s.add_dependency 'rails-deprecated_sanitizer'
+  s.add_dependency 'rails-dom-testing', '~> 1.0', '>= 1.0.2'
 
   s.add_development_dependency 'actionpack',  version
   s.add_development_dependency 'activemodel', version
