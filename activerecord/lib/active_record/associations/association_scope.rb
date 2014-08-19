@@ -115,7 +115,7 @@ module ActiveRecord
 
             if reflection.type
               value    = owner.class.base_class.name
-              bind_val = bind scope, table.table_name, reflection.type.to_s, value, tracker
+              bind_val = bind scope, table.table_name, reflection.type, value, tracker
               scope    = scope.where(table[reflection.type].eq(bind_val))
             end
           else
@@ -123,7 +123,7 @@ module ActiveRecord
 
             if reflection.type
               value    = chain[i + 1].klass.base_class.name
-              bind_val = bind scope, table.table_name, reflection.type.to_s, value, tracker
+              bind_val = bind scope, table.table_name, reflection.type, value, tracker
               scope    = scope.where(table[reflection.type].eq(bind_val))
             end
 
