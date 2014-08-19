@@ -142,7 +142,7 @@ module Rails
       end
 
       def password_digest?
-        name == 'password' && type == :digest 
+        name == 'password' && type == :digest
       end
 
       def inject_options

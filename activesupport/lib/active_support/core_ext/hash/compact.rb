@@ -1,6 +1,6 @@
 class Hash
   # Returns a hash with non +nil+ values.
-  # 
+  #
   #   hash = { a: true, b: false, c: nil}
   #   hash.compact # => { a: true, b: false}
   #   hash # => { a: true, b: false, c: nil}
@@ -8,9 +8,9 @@ class Hash
   def compact
     self.select { |_, value| !value.nil? }
   end
-  
+
   # Replaces current hash with non +nil+ values.
-  # 
+  #
   #   hash = { a: true, b: false, c: nil}
   #   hash.compact! # => { a: true, b: false}
   #   hash # => { a: true, b: false}

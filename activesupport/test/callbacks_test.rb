@@ -49,7 +49,7 @@ module CallbacksTest
     def self.before(model)
       model.history << [:before_save, :class]
     end
-    
+
     def self.after(model)
       model.history << [:after_save, :class]
     end

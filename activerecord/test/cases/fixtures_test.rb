@@ -674,7 +674,7 @@ class FoxyFixturesTest < ActiveRecord::TestCase
   if ActiveRecord::Base.connection.adapter_name == 'PostgreSQL'
     require 'models/uuid_parent'
     require 'models/uuid_child'
-    fixtures :uuid_parents, :uuid_children 
+    fixtures :uuid_parents, :uuid_children
   end
 
   def test_identifies_strings
