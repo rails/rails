@@ -1,3 +1,38 @@
+*   `ActionController::Parameters` will stop inheriting from `Hash` and
+    `HashWithIndifferentAccess` in the next major release. If you use any method
+    that is not available on `ActionController::Parameters` you should consider
+    calling `#to_h` to convert it to a `Hash` first before calling that method.
+
+    *Prem Sichanugrist*
+
+*   `ActionController::Parameters#to_h` now returns a `Hash` with unpermitted
+    keys removed. This change is to reflect on a security concern where some
+    method performed on an `ActionController::Parameters` may yield a `Hash`
+    object which does not maintain `permitted?` status. If you would like to
+    get a `Hash` with all the keys intact, duplicate and mark it as permitted
+    before calling `#to_h`.
+
+        params = ActionController::Parameters.new({
+          name: 'Senjougahara Hitagi',
+          oddity: 'Heavy stone crab'
+        })
+        params.to_h
+        # => {}
+
+        unsafe_params = params.dup.permit!
+        unsafe_params.to_h
+        # => {"name"=>"Senjougahara Hitagi", "oddity"=>"Heavy stone crab"}
+
+        safe_params = params.permit(:name)
+        safe_params.to_h
+        # => {"name"=>"Senjougahara Hitagi"}
+
+    This change is consider a stopgap as we cannot change the code to stop
+    `ActionController::Parameters` to inherit from `HashWithIndifferentAccess`
+    in the next minor release.
+
+    *Prem Sichanugrist*
+
 *   Deprecated TagAssertions.
 
     *Kasper Timm Hansen*

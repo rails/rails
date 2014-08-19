@@ -141,6 +141,37 @@ module ActionController
       @permitted = self.class.permit_all_parameters
     end
 
+    # Returns a safe +Hash+ representation of this parameter with all
+    # unpermitted keys removed.
+    #
+    #   params = ActionController::Parameters.new({
+    #     name: 'Senjougahara Hitagi',
+    #     oddity: 'Heavy stone crab'
+    #   })
+    #   params.to_h # => {}
+    #
+    #   safe_params = params.permit(:name)
+    #   safe_params.to_h # => {"name"=>"Senjougahara Hitagi"}
+    def to_h
+      if permitted?
+        to_hash
+      else
+        slice(*self.class.always_permitted_parameters).permit!.to_h
+      end
+    end
+
+    # Convert all hashes in values into parameters, then yield each pair like
+    # the same way as <tt>Hash#each_pair</tt>
+    def each_pair(&block)
+      super do |key, value|
+        convert_hashes_to_parameters(key, value)
+      end
+
+      super
+    end
+
+    alias_method :each, :each_pair
+
     # Attribute that keeps track of converted arrays, if any, to avoid double
     # looping in the common use case permit + mass-assignment. Defined in a
     # method to instantiate it only if needed.
@@ -176,7 +207,6 @@ module ActionController
     #   Person.new(params) # => #<Person id: nil, name: "Francesco">
     def permit!
       each_pair do |key, value|
-        value = convert_hashes_to_parameters(key, value)
         Array.wrap(value).each do |v|
           v.permit! if v.respond_to? :permit!
         end
@@ -331,9 +361,54 @@ module ActionController
     #   params.slice(:a, :b) # => {"a"=>1, "b"=>2}
     #   params.slice(:d)     # => {}
     def slice(*keys)
-      self.class.new(super).tap do |new_instance|
-        new_instance.permitted = @permitted
+      new_instance_with_inherited_permitted_status(super)
+    end
+
+    # Removes and returns the key/value pairs matching the given keys.
+    #
+    #   params = ActionController::Parameters.new(a: 1, b: 2, c: 3)
+    #   params.extract!(:a, :b) # => {"a"=>1, "b"=>2}
+    #   params                  # => {"c"=>3}
+    def extract!(*keys)
+      new_instance_with_inherited_permitted_status(super)
+    end
+
+    # Returns a new <tt>ActionController::Parameters</tt> with the results of
+    # running +block+ once for every value. The keys are unchanged.
+    #
+    #   params = ActionController::Parameters.new(a: 1, b: 2, c: 3)
+    #   params.transform_values { |x| x * 2 }
+    #   # => {"a"=>2, "b"=>4, "c"=>6}
+    def transform_values
+      if block_given?
+        new_instance_with_inherited_permitted_status(super)
+      else
+        super
       end
+    end
+
+    # This method is here only to make sure that the returned object has the
+    # correct +permitted+ status. It should not matter since the parent of
+    # this object is +HashWithIndifferentAccess+
+    def transform_keys # :nodoc:
+      if block_given?
+        new_instance_with_inherited_permitted_status(super)
+      else
+        super
+      end
+    end
+
+    # Deletes and returns a key-value pair from +Parameters+ whose key is equal
+    # to key. If the key is not found, returns the default value. If the
+    # optional code block is given and the key is not found, pass in the key
+    # and return the result of block.
+    def delete(key, &block)
+      convert_hashes_to_parameters(key, super, false)
+    end
+
+    # Equivalent to Hash#keep_if, but returns nil if no changes were made.
+    def select!(&block)
+      convert_value_to_parameters(super)
     end
 
     # Returns an exact copy of the <tt>ActionController::Parameters</tt>
@@ -356,6 +431,12 @@ module ActionController
       end
 
     private
+      def new_instance_with_inherited_permitted_status(hash)
+        self.class.new(hash).tap do |new_instance|
+          new_instance.permitted = @permitted
+        end
+      end
+
       def convert_hashes_to_parameters(key, value, assign_if_converted=true)
         converted = convert_value_to_parameters(value)
         self[key] = converted if assign_if_converted && !converted.equal?(value)
