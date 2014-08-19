@@ -1,3 +1,5 @@
+## Rails 4.1.6 (August 19, 2014) ##
+
 *   Fix that render layout: 'messages/layout' should also be added to the dependency tracker tree.
 
     *DHH*

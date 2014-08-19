@@ -1,3 +1,8 @@
+## Rails 4.1.6 (August 19, 2014) ##
+
+*   No changes.
+
+
 ## Rails 4.1.5 (August 18, 2014) ##
 
 *   No changes.

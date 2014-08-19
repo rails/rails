@@ -1,3 +1,5 @@
+## Rails 4.1.6 (August 19, 2014) ##
+
 *   Scaffold generator `_form` partial adds `class="field"` for password
     confirmation fields.
 

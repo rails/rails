@@ -1,3 +1,5 @@
+## Rails 4.1.6 (August 19, 2014) ##
+
 *   Make ActionMailer::Previews methods class methods. Previously they were
     instance methods and ActionMailer tries to render a message when they
     are called.

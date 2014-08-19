@@ -1,3 +1,5 @@
+## Rails 4.1.6 (August 19, 2014) ##
+
 *   Prepend a JS comment to JSONP callbacks. Addresses CVE-2014-4671
     ("Rosetta Flash")
 
