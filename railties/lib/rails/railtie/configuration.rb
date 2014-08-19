@@ -104,12 +104,8 @@ module Rails
       end
 
       class ChainedConfigurationOptions < ActiveSupport::OrderedOptions # :nodoc:
-        def initialize(value = nil)
-          if value.is_a?(Hash)
-            value.each_pair { |k, v| set_value k, v }
-          else
-            super
-          end
+        def initialize(value)
+          value.each_pair { |k, v| set_value k, v }
         end
 
         def method_missing(meth, *args)
