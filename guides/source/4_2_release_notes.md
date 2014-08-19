@@ -260,7 +260,16 @@ Action Mailer
 
 Please refer to the [Changelog][action-mailer] for detailed changes.
 
+### Deprecations
+
+*   Deprecated `*_path` helpers in mailers. Always use `*_url` helpers instead.
+    ([Pull Request](https://github.com/rails/rails/pull/15840))
+
 ### Notable changes
+
+*   Introduced `deliver_later` which enqueues a job on the application's queue
+    to deliver the mailer asynchronously.
+    ([Pull Request](https://github.com/rails/rails/pull/16485))
 
 *   Added the `show_previews` configuration option for enabling mailer previews
     outside of the development environment.
