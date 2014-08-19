@@ -21,11 +21,11 @@ module ActiveSupport
     protected :_get # make it protected
 
     def []=(key, value)
-      super(key.to_s, value)
+      super(key.to_sym, value)
     end
 
     def [](key)
-      super(key.to_s)
+      super(key.to_sym)
     end
 
     def method_missing(name, *args)
@@ -56,7 +56,7 @@ module ActiveSupport
         # use the faster _get when dealing with OrderedOptions
         super() { |h,k| parent._get(k) }
       elsif parent
-        super() { |h,k| parent.stringify_keys[k.to_s] }
+        super() { |h,k| parent[k] || parent[k.to_s] }
       else
         super()
       end
