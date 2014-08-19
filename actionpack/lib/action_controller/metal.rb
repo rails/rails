@@ -182,7 +182,7 @@ module ActionController
       body = [body] unless body.nil? || body.respond_to?(:each)
       super
     end
-    
+
     # Tests if render or redirect has already happened.
     def performed?
       response_body || (response && response.committed?)

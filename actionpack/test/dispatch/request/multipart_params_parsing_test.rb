@@ -37,7 +37,7 @@ class MultipartParamsParsingTest < ActionDispatch::IntegrationTest
   end
 
   test "parse single utf8 parameter" do
-    assert_equal({ 'Iñtërnâtiônàlizætiøn_name' => 'Iñtërnâtiônàlizætiøn_value'}, 
+    assert_equal({ 'Iñtërnâtiônàlizætiøn_name' => 'Iñtërnâtiônàlizætiøn_value'},
                  parse_multipart('single_utf8_param'), "request.request_parameters")
     assert_equal(
       'Iñtërnâtiônàlizætiøn_value',
@@ -45,8 +45,8 @@ class MultipartParamsParsingTest < ActionDispatch::IntegrationTest
   end
 
   test "parse bracketed utf8 parameter" do
-    assert_equal({ 'Iñtërnâtiônàlizætiøn_name' => { 
-      'Iñtërnâtiônàlizætiøn_nested_name' => 'Iñtërnâtiônàlizætiøn_value'} }, 
+    assert_equal({ 'Iñtërnâtiônàlizætiøn_name' => {
+      'Iñtërnâtiônàlizætiøn_nested_name' => 'Iñtërnâtiônàlizætiøn_value'} },
       parse_multipart('bracketed_utf8_param'), "request.request_parameters")
     assert_equal(
       {'Iñtërnâtiônàlizætiøn_nested_name' => 'Iñtërnâtiônàlizætiøn_value'},
