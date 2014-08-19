@@ -16,7 +16,7 @@ source 'https://rubygems.org'
 # gem 'bcrypt', '~> 3.1.7'
 
 # Use Rails Html Sanitizer for HTML sanitization
-gem 'rails-html-sanitizer', github: 'rails/rails-html-sanitizer', branch: 'master'
+gem 'rails-html-sanitizer', '~> 1.0'
 
 # Use Unicorn as the app server
 # gem 'unicorn'
