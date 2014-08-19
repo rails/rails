@@ -1366,6 +1366,17 @@ module ActiveRecord
       # * <tt>Post#create_author!</tt> (similar to <tt>post.author = Author.new; post.author.save!; post.author</tt>)
       # The declaration can also include an +options+ hash to specialize the behavior of the association.
       #
+      # === Scopes
+      #
+      # You can pass a second argument +scope+ as a callable (i.e. proc or
+      # lambda) to retrieve a specific record or customize the generated query
+      # when you access the associated object.
+      #
+      # Scope examples:
+      #   belongs_to :user, -> { where(id: 2) }
+      #   belongs_to :user, -> { joins(:friends) }
+      #   belongs_to :level, ->(level) { where("game_level > ?", level.current) }
+      #
       # === Options
       #
       # [:class_name]
