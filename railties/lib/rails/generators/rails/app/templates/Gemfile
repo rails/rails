@@ -17,8 +17,6 @@ source 'https://rubygems.org'
 
 # Use Rails Html Sanitizer for HTML sanitization
 gem 'rails-html-sanitizer', github: 'rails/rails-html-sanitizer', branch: 'master'
-#temporary gem until a new version of loofah is released
-gem 'loofah', github: 'kaspth/loofah', branch: 'single-scrub'
 
 # Use Unicorn as the app server
 # gem 'unicorn'
