@@ -88,45 +88,11 @@ module Rails
 
       def method_missing(name, *args, &blk)
         if name.to_s =~ /=$/
-          key = $`.to_sym
-          value = args.first
-
-          if value.is_a?(Hash)
-            @@options[key] = ChainedConfigurationOptions.new value
-          else
-            @@options[key] = value
-          end
+          @@options[$`.to_sym] = args.first
         elsif @@options.key?(name)
           @@options[name]
         else
-          @@options[name] = ActiveSupport::OrderedOptions.new
-        end
-      end
-
-      class ChainedConfigurationOptions < ActiveSupport::OrderedOptions # :nodoc:
-        def initialize(value)
-          value.each_pair { |k, v| set_value k, v }
-        end
-
-        def method_missing(meth, *args)
-          if meth =~ /=$/
-            key = $`.to_sym
-            value = args.first
-
-            set_value key, value
-          else
-            self.fetch(meth) { super }
-          end
-        end
-
-        private
-
-        def set_value(key, value)
-          if value.is_a?(Hash)
-            value = self.class.new(value)
-          end
-
-          self[key] = value
+          super
         end
       end
     end
