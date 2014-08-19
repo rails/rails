@@ -14,8 +14,10 @@ module ActiveJob
       end
 
       class JobWrapper
-        def self.perform(job_name, *args)
-          job_name.constantize.new.execute(*args)
+        class << self
+          def perform(job_name, *args)
+            job_name.constantize.new.execute(*args)
+          end
         end
       end
     end
