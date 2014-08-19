@@ -18,5 +18,5 @@ Gem::Specification.new do |s|
   s.files        = Dir['CHANGELOG.md', 'MIT-LICENSE', 'README.md', 'lib/**/*']
   s.require_path = 'lib'
 
-  s.add_dependency 'globalid'
+  s.add_dependency 'globalid', '>= 0.2.3'
 end
