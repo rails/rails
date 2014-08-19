@@ -1,3 +1,5 @@
+## Rails 4.0.10 (August 19, 2014) ##
+
 *   Fix DateTime comparison with DateTime::Infinity object.
 
     *Rafael Mendonça França*
