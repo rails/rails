@@ -154,7 +154,7 @@ module ActionController
     #   safe_params.to_h # => {"name"=>"Senjougahara Hitagi"}
     def to_h
       if permitted?
-        super
+        to_hash
       else
         slice(*self.class.always_permitted_parameters).permit!.to_h
       end
