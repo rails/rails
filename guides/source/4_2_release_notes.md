@@ -69,6 +69,9 @@ Please refer to the [Changelog][railties] for detailed changes.
 
 ### Notable changes
 
+*   Introduced `web-console` in the default application Gemfile.
+    ([Pull Request](https://github.com/rails/rails/pull/16532))
+
 *   Added a `required` option to the model generator for associations.
     ([Pull Request](https://github.com/rails/rails/pull/16062))
 
