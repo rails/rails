@@ -20,6 +20,7 @@ end
 task default: :test
 
 ACTIVEJOB_ADAPTERS = %w(inline delayed_job qu que queue_classic resque sidekiq sneakers sucker_punch backburner)
+ACTIVEJOB_ADAPTERS -= %w(queue_classic) if defined?(JRUBY_VERSION)
 
 desc 'Run all adapter tests'
 task :test do
