@@ -840,7 +840,7 @@ YAML
 
       Rails.application.load_seed
       assert Rails.application.config.app_seeds_loaded
-      assert_raise(NoMethodError) { Bukkits::Engine.config.bukkits_seeds_loaded }
+      assert_empty Bukkits::Engine.config.bukkits_seeds_loaded
 
       Bukkits::Engine.load_seed
       assert Bukkits::Engine.config.bukkits_seeds_loaded

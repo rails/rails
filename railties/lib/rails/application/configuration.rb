@@ -13,7 +13,7 @@ module Rails
                     :railties_order, :relative_url_root, :secret_key_base, :secret_token,
                     :serve_static_assets, :ssl_options, :static_cache_control, :session_options,
                     :time_zone, :reload_classes_only_on_change,
-                    :beginning_of_week, :filter_redirect, :x
+                    :beginning_of_week, :filter_redirect
 
       attr_writer :log_level
       attr_reader :encoding
@@ -48,7 +48,6 @@ module Rails
         @eager_load                    = nil
         @secret_token                  = nil
         @secret_key_base               = nil
-        @x                             = Custom.new
 
         @assets = ActiveSupport::OrderedOptions.new
         @assets.enabled                  = true
@@ -155,17 +154,6 @@ module Rails
       def annotations
         SourceAnnotationExtractor::Annotation
       end
-      
-      private
-        class Custom
-          def initialize
-            @configurations = Hash.new
-          end
-    
-          def method_missing(method, *args)
-            @configurations[method] ||= ActiveSupport::OrderedOptions.new
-          end
-        end
     end
   end
 end
