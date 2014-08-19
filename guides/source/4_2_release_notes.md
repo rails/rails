@@ -320,7 +320,15 @@ Please refer to the [Changelog][active-model] for detailed changes.
 ### Removals
 
 *   Removed deprecated `Validator#setup` without replacement.
-    ([Pull Request](https://github.com/rails/rails/pull/15617))
+    ([Pull Request](https://github.com/rails/rails/pull/10716))
+
+### Deprecations
+
+*   Deprecated reset_#{attribute} in favor of restore_#{attribute}.
+    ([Pull Request](https://github.com/rails/rails/pull/16180))
+
+*   Deprecated ActiveModel::Dirty#reset_changes in favor of #clear_changes_information.
+    ([Pull Request](https://github.com/rails/rails/pull/16180))
 
 ### Notable changes
 
@@ -360,7 +368,18 @@ Please refer to the [Changelog][active-support] for detailed changes.
     `ActiveSupport::SafeBuffer#prepend` now performs the same function.
     ([Pull Request](https://github.com/rails/rails/pull/14529))
 
+*   Deprecated capture and quietly.
+    ([Pull Request](https://github.com/rails/rails/pull/13392))
+
 ### Notable changes
+
+*   Object#with_options executes block in merging option context when explicit
+    receiver in not passed.
+    ([Pull Request](https://github.com/rails/rails/pull/16339))
+
+*   Added Hash#transform_values to simplify a common pattern where the values of
+    a hash must change, but the keys are left the same.
+    ([Pull Request](https://github.com/rails/rails/pull/15819))
 
 *   Added `Hash#transform_values` and `Hash#transform_values!` to simplify a
     common pattern where the values of a hash must change, but the keys are left
@@ -370,7 +389,7 @@ Please refer to the [Changelog][active-support] for detailed changes.
 *   The `humanize` inflector helper now strips any leading underscores.
     ([Commit](https://github.com/rails/rails/commit/daaa21bc7d20f2e4ff451637423a25ff2d5e75c7))
 
-*   Introduce `Concern#class_methods` as an alternative to
+*   Introduced `Concern#class_methods` as an alternative to
     `module ClassMethods`, as well as `Kernel#concern` to avoid the
     `module Foo; extend ActiveSupport::Concern; end` boilerplate.
     ([Commit](https://github.com/rails/rails/commit/b16c36e688970df2f96f793a759365b248b582ad))
