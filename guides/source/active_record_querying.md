@@ -1464,7 +1464,7 @@ Client.connection.select_all("SELECT first_name, created_at FROM clients WHERE i
 
 ### `pluck`
 
-`pluck` can be used to query a single or multiple columns from the underlying table of a model. It accepts a list of column names as argument and returns an array of values of the specified columns with the corresponding data type.
+`pluck` can be used to query single or multiple columns from the underlying table of a model. It accepts a list of column names as argument and returns an array of values of the specified columns with the corresponding data type.
 
 ```ruby
 Client.where(active: true).pluck(:id)
