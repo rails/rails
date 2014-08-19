@@ -909,6 +909,31 @@ class RequestParameters < BaseRequestTest
     end
   end
 
+  test "parameters not accessible after rack parse error of invalid UTF8 character" do
+    request = stub_request("QUERY_STRING" => "foo%81E=1")
+
+    2.times do
+      assert_raises(ActionController::BadRequest) do
+        # rack will raise a Rack::Utils::InvalidParameterError when parsing this query string
+        request.parameters
+      end
+    end
+  end
+
+  test "parameters not accessible after rack parse error 1" do
+    request = stub_request(
+      'REQUEST_METHOD' => 'POST',
+      'CONTENT_LENGTH' => "a%=".length,
+      'CONTENT_TYPE' => 'application/x-www-form-urlencoded; charset=utf-8',
+      'rack.input' => StringIO.new("a%=")
+    )
+
+    assert_raises(ActionController::BadRequest) do
+      # rack will raise a TypeError when parsing this query string
+      request.parameters
+    end
+  end
+
   test "we have access to the original exception" do
     request = stub_request("QUERY_STRING" => "x[y]=1&x[y][][w]=2")
 
