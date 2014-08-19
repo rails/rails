@@ -7,7 +7,6 @@ gemspec
 # ensure correct loading order
 gem 'mocha', '~> 0.14', require: false
 
-gem 'rack', github: 'rack/rack', branch: 'master'
 gem 'rack-cache', '~> 1.2'
 gem 'jquery-rails', '~> 3.1.0'
 gem 'turbolinks', github: 'rails/turbolinks', branch: 'master'
@@ -35,7 +34,6 @@ end
 gem 'dalli', '>= 2.2.1'
 
 # ActiveJob
-gem 'globalid', github: 'rails/globalid'
 gem 'resque', require: false
 gem 'resque-scheduler', require: false
 gem 'sidekiq', require: false
