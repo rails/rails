@@ -16,7 +16,7 @@ Upgrading to Rails 4.2
 If you're upgrading an existing application, it's a great idea to have good test
 coverage before going in. You should also first upgrade to Rails 4.1 in case you
 haven't and make sure your application still runs as expected before attempting
-an update to Rails 4.2. A list of things to watch out for when upgrading is
+to upgrade to Rails 4.2. A list of things to watch out for when upgrading is
 available in the
 [Upgrading Ruby on Rails](upgrading_ruby_on_rails.html#upgrading-from-rails-4.1-to-rails-4.2)
 guide.
@@ -72,7 +72,7 @@ Please refer to the [Changelog][railties] for detailed changes.
 *   Added a `required` option to the model generator for associations.
     ([Pull Request](https://github.com/rails/rails/pull/16062))
 
-*   Introduced an `after_bundle` callbacks for use in Rails templates.
+*   Introduced an `after_bundle` callback for use in Rails templates.
     ([Pull Request](https://github.com/rails/rails/pull/16359))
 
 *   Introduced the `x` namespace for defining custom configuration options:
@@ -115,11 +115,12 @@ Please refer to the [Changelog][railties] for detailed changes.
 
     ([Pull Request](https://github.com/rails/rails/pull/16129))
 
-*   Introduced `--skip-gems` option in the app generator to skip gems such as
+*   Introduced a `--skip-gems` option in the app generator to skip gems such as
     `turbolinks` and `coffee-rails` that does not have their own specific flags.
     ([Commit](https://github.com/rails/rails/commit/10565895805887d4faf004a6f71219da177f78b7))
 
-*   Introduced `bin/setup` script to bootstrap an application.
+*   Introduced a `bin/setup` script to enable automated setup code when
+    bootstrapping an application.
     ([Pull Request](https://github.com/rails/rails/pull/15189))
 
 *   Changed default value for `config.assets.digest` to `true` in development.
@@ -143,8 +144,8 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 ### Removals
 
 *   `respond_with` and the class-level `respond_to` were removed from Rails and
-    moved to the `responders` gem (version 2.0). Add it to your `Gemfile` to
-    continue using these features.
+    moved to the `responders` gem (version 2.0). Add `gem 'responders', '~> 2.0'`
+    to your `Gemfile` to continue using these features.
     ([Pull Request](https://github.com/rails/rails/pull/16526))
 
 *   Removed deprecated `AbstractController::Helpers::ClassMethods::MissingHelperError`
@@ -183,8 +184,8 @@ Please refer to the [Changelog][action-pack] for detailed changes.
     is `['controller', 'action']`.
     ([Pull Request](https://github.com/rails/rails/pull/15933))
 
-*   The `*_filter` family methods has been removed from the documentation. Their
-    usage are discouraged in favor of the `*_action` family methods:
+*   The `*_filter` family methods have been removed from the documentation. Their
+    usage is discouraged in favor of the `*_action` family methods:
 
     ```
     after_filter          => after_action
@@ -219,10 +220,10 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 *   Segments that are passed into URL helpers are now automatically escaped.
     ([Commit](https://github.com/rails/rails/commit/5460591f0226a9d248b7b4f89186bd5553e7768f))
 
-*   Improved Routing Error page with fuzzy matching for route search.
+*   Improved the Routing Error page with fuzzy matching for route search.
     ([Pull Request](https://github.com/rails/rails/pull/14619))
 
-*   Added option to disable logging of CSRF failures.
+*   Added an option to disable logging of CSRF failures.
     ([Pull Request](https://github.com/rails/rails/pull/14280))
 
 
@@ -238,14 +239,14 @@ Please refer to the [Changelog][action-view] for detailed changes.
     where to find views.
     ([Pull Request](https://github.com/rails/rails/pull/15026))
 
-*   Deprecated `ActionView::Digestor#digest(name, format, finder, options = {})`,
-    arguments should be passed as a hash instead.
+*   Deprecated `ActionView::Digestor#digest(name, format, finder, options = {})`.
+    Arguments should be passed as a hash instead.
     ([Pull Request](https://github.com/rails/rails/pull/14243))
 
 ### Notable changes
 
 *   Introduced a `#{partial_name}_iteration` special local variable for use with
-    partials that are rendered with a collection. It provides the access to the
+    partials that are rendered with a collection. It provides access to the
     current state of the iteration via the `#index`, `#size`, `#first?` and
     `#last?` methods.
     ([Pull Request](https://github.com/rails/rails/pull/7698))
@@ -406,7 +407,7 @@ Please refer to the [Changelog][active-model] for detailed changes.
 
 ### Notable changes
 
-*   Introduced `undo_changes` method in `ActiveModel::Dirty` to restore the
+*   Introduced the `undo_changes` method in `ActiveModel::Dirty` to restore the
     changed (dirty) attributes to their previous values.
     ([Pull Request](https://github.com/rails/rails/pull/14861))
 
@@ -452,7 +453,7 @@ Please refer to the [Changelog][active-support] for detailed changes.
 *   The `humanize` inflector helper now strips any leading underscores.
     ([Commit](https://github.com/rails/rails/commit/daaa21bc7d20f2e4ff451637423a25ff2d5e75c7))
 
-*   Introduce `Concern#class_methods` as an alternative to
+*   Introduced `Concern#class_methods` as an alternative to
     `module ClassMethods`, as well as `Kernel#concern` to avoid the
     `module Foo; extend ActiveSupport::Concern; end` boilerplate.
     ([Commit](https://github.com/rails/rails/commit/b16c36e688970df2f96f793a759365b248b582ad))
