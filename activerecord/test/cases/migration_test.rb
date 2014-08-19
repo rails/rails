@@ -75,6 +75,21 @@ class MigrationTest < ActiveRecord::TestCase
     assert_equal 0, ActiveRecord::Migrator.current_version
     assert_equal 3, ActiveRecord::Migrator.last_version
     assert_equal true, ActiveRecord::Migrator.needs_migration?
+
+    ActiveRecord::SchemaMigration.create!(:version => ActiveRecord::Migrator.last_version)
+    assert_equal true, ActiveRecord::Migrator.needs_migration?
+  ensure
+    ActiveRecord::Migrator.migrations_paths = old_path
+  end
+
+  def test_migration_detection_without_schema_migration_table
+    ActiveRecord::Base.connection.drop_table :schema_migrations
+
+    migrations_path = MIGRATIONS_ROOT + "/valid"
+    old_path = ActiveRecord::Migrator.migrations_paths
+    ActiveRecord::Migrator.migrations_paths = migrations_path
+
+    assert_equal true, ActiveRecord::Migrator.needs_migration?
   ensure
     ActiveRecord::Migrator.migrations_paths = old_path
   end
