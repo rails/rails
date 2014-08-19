@@ -1,3 +1,7 @@
+require 'abstract_unit'
+require 'active_support/core_ext/date'
+require 'active_support/core_ext/numeric/time'
+
 class TimeTravelTest < ActiveSupport::TestCase
   setup do
     Time.stubs now: Time.now
