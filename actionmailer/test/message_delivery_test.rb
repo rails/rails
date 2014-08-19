@@ -45,6 +45,14 @@ class MessageDeliveryTest < ActiveSupport::TestCase
     assert_respond_to @mail, :deliver_later!
   end
 
+  test 'should respond to .deliver_now' do
+    assert_respond_to @mail, :deliver_now
+  end
+
+  test 'should respond to .deliver_now!' do
+    assert_respond_to @mail, :deliver_now!
+  end
+
   test 'should enqueue and run correctly in activejob' do
     @mail.deliver_later!
     assert_equal 1 , ActionMailer::Base.deliveries.size
@@ -77,6 +85,30 @@ class MessageDeliveryTest < ActiveSupport::TestCase
       @mail.deliver_later at: later_time
     end
     assert_equal [later_time, 'DelayedMailer', 'test_message', 'deliver', 1, 2, 3], ret
+  end
+
+  test 'should enqueue the message delivery if default_deliver_later is true' do
+    old = ActionMailer::Base.default_deliver_later
+    begin
+      ActionMailer::Base.default_deliver_later = true
+      ret = ActionMailer::DeliveryJob.stub :enqueue, :enqueued do
+        @mail.deliver!
+      end
+      assert_equal ret, :enqueued
+    ensure
+      ActionMailer::Base.default_deliver_later = old
+    end
+  end
+
+  test 'should deliver the message if default_deliver_later is false' do
+    old = ActionMailer::Base.default_deliver_later
+    begin
+      ActionMailer::Base.default_deliver_later = false
+      @mail.deliver!
+      assert_equal 1 , ActionMailer::Base.deliveries.size
+    ensure
+      ActionMailer::Base.default_deliver_later = old
+    end
   end
 
 end

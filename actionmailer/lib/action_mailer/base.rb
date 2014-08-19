@@ -433,6 +433,9 @@ module ActionMailer
       parts_order:  [ "text/plain", "text/enriched", "text/html" ]
     }.freeze
 
+    cattr_accessor :default_deliver_later
+    self.default_deliver_later = false
+
     class << self
       # Register one or more Observers which will be notified when mail is delivered.
       def register_observers(*observers)

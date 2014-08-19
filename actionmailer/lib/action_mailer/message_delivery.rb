@@ -20,6 +20,30 @@ module ActionMailer
       __getobj__
     end
 
+    def deliver!
+      if ActionMailer::Base.default_deliver_later
+        deliver_later!
+      else
+        deliver_now!
+      end
+    end
+
+    def deliver
+      if ActionMailer::Base.default_deliver_later
+        deliver_later
+      else
+        deliver_now
+      end
+    end
+
+    def deliver_now!
+      message.deliver!
+    end
+
+    def deliver_now
+      message.deliver
+    end
+
     def deliver_later!(options={})
       enqueue_delivery :deliver!, options
     end

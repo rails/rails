@@ -1,9 +1,14 @@
+*   Added config.action_mailer.default_deliver_later boolean flag and #deliver_now / #deliver_now!
+    methods. When #deliver / #deliver! is called, based on the value of default_deliver_later
+    it will call #deliver_now / #deliver_now! or #deliver_later / #deliver_later!.
+
+    *Cristian Bica*
+
 *   Added #deliver_later in addition to #deliver, which will enqueue a job to render and
-    deliver the mail instead of delivering it right at that moment. The job is enqueued 
+    deliver the mail instead of delivering it right at that moment. The job is enqueued
     using the new Active Job framework in Rails, and will use whatever queue is configured for Rails.
-    
+
     *DHH/Abdelkader Boudih/Cristian Bica*
-    
 
 *   Make ActionMailer::Previews methods class methods. Previously they were
     instance methods and ActionMailer tries to render a message when they
