@@ -160,6 +160,18 @@ module ActionController
       end
     end
 
+    # Convert all hashes in values into parameters, then yield each pair like
+    # the same way as <tt>Hash#each_pair</tt>
+    def each_pair(&block)
+      super do |key, value|
+        convert_hashes_to_parameters(key, value)
+      end
+
+      super
+    end
+
+    alias_method :each, :each_pair
+
     # Attribute that keeps track of converted arrays, if any, to avoid double
     # looping in the common use case permit + mass-assignment. Defined in a
     # method to instantiate it only if needed.
@@ -195,7 +207,6 @@ module ActionController
     #   Person.new(params) # => #<Person id: nil, name: "Francesco">
     def permit!
       each_pair do |key, value|
-        value = convert_hashes_to_parameters(key, value)
         Array.wrap(value).each do |v|
           v.permit! if v.respond_to? :permit!
         end
@@ -385,6 +396,19 @@ module ActionController
       else
         super
       end
+    end
+
+    # Deletes and returns a key-value pair from +Parameters+ whose key is equal
+    # to key. If the key is not found, returns the default value. If the
+    # optional code block is given and the key is not found, pass in the key
+    # and return the result of block.
+    def delete(key, &block)
+      convert_hashes_to_parameters(key, super, false)
+    end
+
+    # Equivalent to Hash#keep_if, but returns nil if no changes were made.
+    def select!(&block)
+      convert_value_to_parameters(super)
     end
 
     # Returns an exact copy of the <tt>ActionController::Parameters</tt>

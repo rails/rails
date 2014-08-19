@@ -63,11 +63,11 @@ class ParametersMutatorsTest < ActiveSupport::TestCase
 
   test "select! retains permitted status" do
     @params.permit!
-    assert @params.select! { |k| k == "person" }.permitted?
+    assert @params.select! { |k| k != "person" }.permitted?
   end
 
   test "select! retains unpermitted status" do
-    assert_not @params.select! { |k| k == "person" }.permitted?
+    assert_not @params.select! { |k| k != "person" }.permitted?
   end
 
   test "slice! retains permitted status" do

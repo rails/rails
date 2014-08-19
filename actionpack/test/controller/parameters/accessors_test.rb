@@ -36,6 +36,15 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
     @params.each { |key, value| assert_not(value.permitted?) if key == "person" }
   end
 
+  test "each_pair carries permitted status" do
+    @params.permit!
+    @params.each_pair { |key, value| assert(value.permitted?) if key == "person" }
+  end
+
+  test "each_pair carries unpermitted status" do
+    @params.each_pair { |key, value| assert_not(value.permitted?) if key == "person" }
+  end
+
   test "except retains permitted status" do
     @params.permit!
     assert @params.except(:person).permitted?
