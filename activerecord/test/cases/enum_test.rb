@@ -174,6 +174,7 @@ class EnumTest < ActiveRecord::TestCase
       :column,     # generates class method .columns, which conflicts with an AR method
       :logger,     # generates #logger, which conflicts with an AR method
       :attributes, # generates #attributes=, which conflicts with an AR method
+      :public, :private, :protected, :system # generates a method that conflict with ruby words
     ]
 
     conflicts.each_with_index do |name, i|
@@ -194,7 +195,7 @@ class EnumTest < ActiveRecord::TestCase
       :valid,    # generates #valid?, which conflicts with an AR method
       :save,     # generates #save!, which conflicts with an AR method
       :proposed, # same value as an existing enum
-      :public, :private, :protected, # generates a method that conflict with ruby words
+      :public, :private, :protected, :system # generates a method that conflict with ruby words
     ]
 
     conflicts.each_with_index do |value, i|

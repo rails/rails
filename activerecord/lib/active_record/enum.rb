@@ -168,7 +168,7 @@ module ActiveRecord
         "by %{source}."
 
       def detect_enum_conflict!(enum_name, method_name, klass_method = false)
-        if klass_method && dangerous_class_method?(method_name)
+        if dangerous_class_method?(enum_name) || (klass_method && dangerous_class_method?(method_name))
           raise ArgumentError, ENUM_CONFLICT_MESSAGE % {
             enum: enum_name,
             klass: self.name,
