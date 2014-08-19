@@ -244,6 +244,12 @@ Please refer to the [Changelog][action-view] for detailed changes.
 
 ### Notable changes
 
+*   Introduced a `#{partial_name}_iteration` special local variable for use with
+    partials that are rendered with a collection. It provides the access to the
+    current state of the iteration via the `#index`, `#size`, `#first?` and
+    `#last?` methods.
+    ([Pull Request](https://github.com/rails/rails/pull/7698))
+
 *   The form helpers no longer generate a `<div>` element with inline CSS around
     the hidden fields.
     ([Pull Request](https://github.com/rails/rails/pull/14738))
