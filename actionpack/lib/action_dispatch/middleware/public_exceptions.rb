@@ -1,4 +1,14 @@
 module ActionDispatch
+  # When called, this middleware renders an error page. By default if an HTML
+  # response is expected it will render static error pages from the `/public`
+  # directory. For example when this middleware receives a 500 response it will
+  # render the template found in `/public/500.html`.
+  # If an internationalized locale is set, this middleware will attempt to render
+  # the template in `/public/500.<locale>.html`. If an internationalized template
+  # is not found it will fall back on `/public/500.html`.
+  #
+  # When a request with a content type other than HTML is made, this middleware
+  # will attempt to convert error information into the appropriate response type.
   class PublicExceptions
     attr_accessor :public_path
 

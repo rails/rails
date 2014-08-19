@@ -218,7 +218,7 @@ module ActionView
         tag("img", options)
       end
 
-      # Returns a string suitable for an html image tag alt attribute.
+      # Returns a string suitable for an HTML image tag alt attribute.
       # The +src+ argument is meant to be an image file path.
       # The method removes the basename of the file path and the digest,
       # if any. It also removes hyphens and underscores from file names and
@@ -239,7 +239,7 @@ module ActionView
         File.basename(src, '.*').sub(/-[[:xdigit:]]{32}\z/, '').tr('-_', ' ').capitalize
       end
 
-      # Returns an html video tag for the +sources+. If +sources+ is a string,
+      # Returns an HTML video tag for the +sources+. If +sources+ is a string,
       # a single video tag will be returned. If +sources+ is an array, a video
       # tag with nested source tags for each source will be returned. The
       # +sources+ can be full paths or files that exists in your public videos

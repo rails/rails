@@ -21,10 +21,10 @@ application from scratch. It does not assume that you have any prior experience
 with Rails. However, to get the most out of it, you need to have some
 prerequisites installed:
 
-* The [Ruby](http://www.ruby-lang.org/en/downloads) language version 1.9.3 or newer.
-* The [RubyGems](http://rubygems.org) packaging system, which is installed with Ruby
+* The [Ruby](https://www.ruby-lang.org/en/downloads) language version 1.9.3 or newer.
+* The [RubyGems](https://rubygems.org) packaging system, which is installed with Ruby
   versions 1.9 and later. To learn more about RubyGems, please read the [RubyGems Guides](http://guides.rubygems.org).
-* A working installation of the [SQLite3 Database](http://www.sqlite.org).
+* A working installation of the [SQLite3 Database](https://www.sqlite.org).
 
 Rails is a web application framework running on the Ruby programming language.
 If you have no prior experience with Ruby, you will find a very steep learning
@@ -101,7 +101,7 @@ If you don't have Ruby installed have a look at
 install Ruby on your platform.
 
 Many popular UNIX-like OSes ship with an acceptable version of SQLite3. Windows
-users and others can find installation instructions at [the SQLite3 website](http://www.sqlite.org).
+users and others can find installation instructions at [the SQLite3 website](https://www.sqlite.org).
 Verify that it is correctly installed and in your PATH:
 
 ```bash
@@ -748,7 +748,7 @@ to create an article. Try it! You should get an error that looks like this:
 (images/getting_started/forbidden_attributes_for_new_article.png)
 
 Rails has several security features that help you write secure applications,
-and you're running into one of them now. This one is called [strong parameters](http://guides.rubyonrails.org/action_controller_overview.html#strong-parameters),
+and you're running into one of them now. This one is called [strong parameters](action_controller_overview.html#strong-parameters),
 which requires us to tell Rails exactly which parameters are allowed into our
 controller actions.
 

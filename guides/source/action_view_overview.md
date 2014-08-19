@@ -495,7 +495,7 @@ image_url("edit.png") # => http://www.example.com/assets/edit.png
 
 #### image_tag
 
-Returns an html image tag for the source. The source can be a full path or a file that exists in your `app/assets/images` directory.
+Returns an HTML image tag for the source. The source can be a full path or a file that exists in your `app/assets/images` directory.
 
 ```ruby
 image_tag("icon.png") # => <img src="/assets/icon.png" alt="Icon" />
@@ -503,7 +503,7 @@ image_tag("icon.png") # => <img src="/assets/icon.png" alt="Icon" />
 
 #### javascript_include_tag
 
-Returns an html script tag for each of the sources provided. You can pass in the filename (`.js` extension is optional) of JavaScript files that exist in your `app/assets/javascripts` directory for inclusion into the current page or you can pass the full path relative to your document root.
+Returns an HTML script tag for each of the sources provided. You can pass in the filename (`.js` extension is optional) of JavaScript files that exist in your `app/assets/javascripts` directory for inclusion into the current page or you can pass the full path relative to your document root.
 
 ```ruby
 javascript_include_tag "common" # => <script src="/assets/common.js"></script>
@@ -736,7 +736,7 @@ distance_of_time_in_words(Time.now, Time.now + 15.seconds, include_seconds: true
 
 #### select_date
 
-Returns a set of html select-tags (one for year, month, and day) pre-selected with the `date` provided.
+Returns a set of HTML select-tags (one for year, month, and day) pre-selected with the `date` provided.
 
 ```ruby
 # Generates a date select that defaults to the date provided (six days after today)
@@ -748,7 +748,7 @@ select_date()
 
 #### select_datetime
 
-Returns a set of html select-tags (one for year, month, day, hour, and minute) pre-selected with the `datetime` provided.
+Returns a set of HTML select-tags (one for year, month, day, hour, and minute) pre-selected with the `datetime` provided.
 
 ```ruby
 # Generates a datetime select that defaults to the datetime provided (four days after today)
@@ -808,7 +808,7 @@ select_second(Time.now + 16.minutes)
 
 #### select_time
 
-Returns a set of html select-tags (one for hour and minute).
+Returns a set of HTML select-tags (one for hour and minute).
 
 ```ruby
 # Generates a time select that defaults to the time provided
@@ -1526,7 +1526,7 @@ The SanitizeHelper module provides a set of methods for scrubbing text of undesi
 
 #### sanitize
 
-This sanitize helper will html encode all tags and strip all attributes that aren't specifically allowed.
+This sanitize helper will HTML encode all tags and strip all attributes that aren't specifically allowed.
 
 ```ruby
 sanitize @article.body
