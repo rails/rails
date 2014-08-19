@@ -84,7 +84,7 @@ Please refer to the [Changelog][railties] for detailed changes.
     # config/environments/production.rb
     config.x.payment_processing.schedule = :daily
     config.x.payment_processing.retries  = 3
-    config.x.super_debugger = true
+    config.x.super_debugger              = true
     ```
 
     These options are then available through the configuration object:
@@ -93,7 +93,6 @@ Please refer to the [Changelog][railties] for detailed changes.
     Rails.configuration.x.payment_processing.schedule # => :daily
     Rails.configuration.x.payment_processing.retries  # => 3
     Rails.configuration.x.super_debugger              # => true
-    Rails.configuration.x.super_debugger.not_set      # => nil
     ```
 
     ([Commit](https://github.com/rails/rails/commit/611849772dd66c2e4d005dcfe153f7ce79a8a7db))

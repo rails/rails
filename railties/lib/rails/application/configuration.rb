@@ -155,15 +155,21 @@ module Rails
       def annotations
         SourceAnnotationExtractor::Annotation
       end
-      
+
       private
-        class Custom
+        class Custom #:nodoc:
           def initialize
             @configurations = Hash.new
           end
-    
+
           def method_missing(method, *args)
-            @configurations[method] ||= ActiveSupport::OrderedOptions.new
+            if method =~ /=$/
+              @configurations[$`.to_sym] = args.first
+            else
+              @configurations.fetch(method) {
+                @configurations[method] = ActiveSupport::OrderedOptions.new
+              }
+            end
           end
         end
     end
