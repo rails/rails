@@ -21,11 +21,31 @@ module ActionMailer
     end
 
     def deliver_later!(options={})
-      enqueue_delivery :deliver!, options
+      enqueue_delivery :deliver_now!, options
     end
 
     def deliver_later(options={})
-      enqueue_delivery :deliver, options
+      enqueue_delivery :deliver_now, options
+    end
+
+    def deliver_now!
+      message.deliver!
+    end
+
+    def deliver_now
+      message.deliver
+    end
+
+    def deliver!
+      ActiveSupport::Deprecation.warn "#deliver! is deprecated and will be removed on Rails 5. " \
+        "Use #deliver_now! to deliver immediately or #deliver_later! to deliver through ActiveJob"
+      deliver_now!
+    end
+
+    def deliver
+      ActiveSupport::Deprecation.warn "#deliver is deprecated and will be removed on Rails 5. " \
+        "Use #deliver_now to deliver immediately or #deliver_later to deliver through ActiveJob"
+      deliver_now
     end
 
     private

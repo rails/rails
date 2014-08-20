@@ -22,7 +22,7 @@ class AMLogSubscriberTest < ActionMailer::TestCase
   end
 
   def test_deliver_is_notified
-    BaseMailer.welcome.deliver
+    BaseMailer.welcome.deliver_now
     wait
 
     assert_equal(1, @logger.logged(:info).size)
