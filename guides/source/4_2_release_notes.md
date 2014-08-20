@@ -16,7 +16,7 @@ Rails repository on GitHub.
 --------------------------------------------------------------------------------
 
 NOTE: This document is a work in progress, please help to improve this by sending
-a [pull request](https://github.com/rails/rails/edit/master/guides/source/upgrading_ruby_on_rails.md).
+a [pull request](https://github.com/rails/rails/edit/master/guides/source/4_2_release_notes.md).
 
 Upgrading to Rails 4.2
 ----------------------
