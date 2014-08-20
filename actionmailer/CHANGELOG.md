@@ -3,7 +3,6 @@
     using the new Active Job framework in Rails, and will use whatever queue is configured for Rails.
     
     *DHH/Abdelkader Boudih/Cristian Bica*
-    
 
 *   Make ActionMailer::Previews methods class methods. Previously they were
     instance methods and ActionMailer tries to render a message when they
