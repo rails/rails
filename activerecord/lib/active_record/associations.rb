@@ -1133,6 +1133,17 @@ module ActiveRecord
       # * <tt>Firm#clients.create!</tt> (similar to <tt>c = Client.new("firm_id" => id); c.save!</tt>)
       # The declaration can also include an +options+ hash to specialize the behavior of the association.
       #
+      # === Scopes
+      #
+      # You can pass a second argument +scope+ as a callable (i.e. proc or
+      # lambda) to retrieve a specific set of records or customize the generated
+      # query when you access the associated collection.
+      #
+      # Scope examples:
+      #   has_many :comments, -> { where(author_id: 1) }
+      #   has_many :employees, -> { joins(:address) }
+      #   has_many :posts, ->(post) { where("max_post_length > ?", post.length) }
+      #
       # === Options
       # [:class_name]
       #   Specify the class name of the association. Use it only if that name can't be inferred
