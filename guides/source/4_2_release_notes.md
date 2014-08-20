@@ -13,6 +13,9 @@ fixes and changes, please refer to the change logs or check out the
 [list of commits](https://github.com/rails/rails/commits/master) in the main
 Rails repository on GitHub.
 
+NOTE: This document is a work in progress, please help to improve this by sending
+a [pull request](https://github.com/rails/rails/edit/master/guides/source/upgrading_ruby_on_rails.md).
+
 --------------------------------------------------------------------------------
 
 Upgrading to Rails 4.2
@@ -53,7 +56,7 @@ Rails 4.2 comes with a performance improvement feature called Adequate Record
 for Active Record. A lot of common queries are now up to twice as fast in Rails
 4.2!
 
-TODO: some technical details
+TODO: add some technical details
 
 ### Web Console
 
