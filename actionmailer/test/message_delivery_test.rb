@@ -64,7 +64,7 @@ class MessageDeliveryTest < ActiveSupport::TestCase
     assert_respond_to @mail, :deliver_now!
   end
 
-  test 'should enqueue and run correctly in activejob' do
+  def test_should_enqueue_and_run_correctly_in_activejob
     @mail.deliver_later!
     assert_equal 1, ActionMailer::Base.deliveries.size
   ensure
