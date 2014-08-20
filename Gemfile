@@ -33,17 +33,19 @@ end
 gem 'dalli', '>= 2.2.1'
 
 # ActiveJob
-gem 'resque', require: false
-gem 'resque-scheduler', require: false
-gem 'sidekiq', require: false
-gem 'sucker_punch', require: false
-gem 'delayed_job', require: false
-gem 'queue_classic', require: false, platforms: :ruby
-gem 'sneakers', '0.1.1.pre', require: false
-gem 'que', require: false
-gem 'backburner', require: false
-gem 'qu-rails', github: "bkeepers/qu", branch: "master", require: false
-gem 'qu-redis', require: false
+group :job do
+  gem 'resque', require: false
+  gem 'resque-scheduler', require: false
+  gem 'sidekiq', require: false
+  gem 'sucker_punch', require: false
+  gem 'delayed_job', require: false
+  gem 'queue_classic', require: false, platforms: :ruby
+  gem 'sneakers', '0.1.1.pre', require: false
+  gem 'que', require: false
+  gem 'backburner', require: false
+  gem 'qu-rails', github: "bkeepers/qu", branch: "master", require: false
+  gem 'qu-redis', require: false
+end
 
 # Add your own local bundler stuff
 local_gemfile = File.dirname(__FILE__) + "/.Gemfile"
