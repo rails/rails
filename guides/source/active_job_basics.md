@@ -19,7 +19,7 @@ Introduction
 
 Active Job is a framework for declaring jobs and making them run on a variety
 of queueing backends. These jobs can be everything from regularly scheduled
-clean-ups, billing charges, or mailings. Anything that can be chopped up
+clean-ups, to billing charges, to mailings. Anything that can be chopped up
 into small units of work and run in parallel, really.
 
 
@@ -36,7 +36,7 @@ then. And you'll be able to switch between them without having to rewrite your j
 Creating a Job
 --------------
 
-This section will provide a step-by-step guide to creating a job and enqueue it.
+This section will provide a step-by-step guide to creating a job and enqueuing it.
 
 ### Create the Job
 
@@ -61,7 +61,7 @@ Rails.
 If you don't want to use a generator, you could create your own file inside of
 `app/jobs`, just make sure that it inherits from `ActiveJob::Base`.
 
-Here's how a job looks like:
+Here's what a job looks like:
 
 ```ruby
 class GuestsCleanupJob < ActiveJob::Base
@@ -95,7 +95,7 @@ That's it!
 Job Execution
 -------------
 
-If not adapter is set, the job is immediately executed.
+If no adapter is set, the job is immediately executed.
 
 ### Backends
 
@@ -128,7 +128,7 @@ Active Job has adapters for the following queueing backends:
 
 ### Change Backends
 
-You can easy change your adapter:
+You can easily change your adapter:
 
 ```ruby
 # be sure to have the adapter gem in your Gemfile and follow the adapter specific
@@ -140,7 +140,7 @@ YourApp::Application.config.active_job.queue_adapter = :sidekiq
 Queues
 ------
 
-Most of the adapters supports multiple queues. With Active Job you can schedule
+Most of the adapters support multiple queues. With Active Job you can schedule
 the job to run on a specific queue:
 
 ```ruby
@@ -157,7 +157,7 @@ you need to specify the queues to listen to.
 Callbacks
 ---------
 
-Active Job provides hooks during the lifecycle of a job. Callbacks allows you to
+Active Job provides hooks during the lifecycle of a job. Callbacks allow you to
 trigger logic during the lifecycle of a job.
 
 ### Available callbacks
@@ -197,7 +197,7 @@ ActionMailer
 
 One of the most common jobs in a modern web application is sending emails outside
 of the request-response cycle, so the user doesn't have to wait on it. Active Job
-is integrated with Action Mailer so you can easily send emails async:
+is integrated with Action Mailer so you can easily send emails asynchronously:
 
 ```ruby
 # If you want to send the email now use #deliver_now
