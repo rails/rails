@@ -53,6 +53,18 @@ Upgrading from Rails 4.1 to Rails 4.2
 NOTE: This section is a work in progress, please help to improve this by sending
 a [pull request](https://github.com/rails/rails/edit/master/guides/source/upgrading_ruby_on_rails.md).
 
+### Web Console
+
+TODO: setup instructions for web console on existing apps.
+
+### Responders
+
+TODO: mention https://github.com/rails/rails/pull/16526
+
+### Error handling in transaction callbacks
+
+TODO: mention https://github.com/rails/rails/pull/16537
+
 ### Serialized attributes
 
 When using a custom coder (e.g. `serialize :metadata, JSON`),
@@ -123,6 +135,10 @@ Read the [gem's readme](https://github.com/rails/rails-html-sanitizer) for more 
 
 The documentation for `PermitScrubber` and `TargetScrubber` explains how you
 can gain complete control over when and how elements should be stripped.
+
+### Rails DOM Testing
+
+TODO: Mention https://github.com/rails/rails/commit/4e97d7585a2f4788b9eed98c6cdaf4bb6f2cf5ce
 
 Upgrading from Rails 4.0 to Rails 4.1
 -------------------------------------
