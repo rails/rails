@@ -1,3 +1,11 @@
+*   Allow `config.action_dispatch.trusted_proxies` to accept an IPAddr object.
+
+    Example:
+        # config/environments/production.rb
+        config.action_dispatch.trusted_proxies = IPAddr.new('4.8.15.0/16')
+
+    *Sam Aarons*
+
 *   Avoid duplicating routes for HEAD requests.
 
     Instead of duplicating the routes, we will first match the HEAD request to

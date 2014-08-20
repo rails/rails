@@ -1,3 +1,4 @@
+require 'ipaddr'
 require 'isolation/abstract_unit'
 require 'active_support/key_generator'
 
@@ -53,12 +54,25 @@ module ApplicationTests
       end
     end
 
+    test "remote_ip works with HTTP_X_FORWARDED_FOR" do
+      make_basic_app
+      assert_equal "4.2.42.42", remote_ip("REMOTE_ADDR" => "1.1.1.1", "HTTP_X_FORWARDED_FOR" => "4.2.42.42")
+    end
+
     test "the user can set trusted proxies" do
       make_basic_app do |app|
         app.config.action_dispatch.trusted_proxies = /^4\.2\.42\.42$/
       end
 
-      assert_equal "1.1.1.1", remote_ip("REMOTE_ADDR" => "4.2.42.42,1.1.1.1")
+      assert_equal "1.1.1.1", remote_ip("REMOTE_ADDR" => "1.1.1.1", "HTTP_X_FORWARDED_FOR" => "4.2.42.42")
+    end
+
+    test "the user can set trusted proxies with an IPAddr argument" do
+      make_basic_app do |app|
+        app.config.action_dispatch.trusted_proxies = IPAddr.new('4.2.42.0/24')
+      end
+
+      assert_equal "1.1.1.1", remote_ip("REMOTE_ADDR" => "1.1.1.1", "HTTP_X_FORWARDED_FOR" => "10.0.0.0,4.2.42.42")
     end
   end
 end
