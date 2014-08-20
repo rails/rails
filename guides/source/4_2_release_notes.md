@@ -3,6 +3,11 @@ Ruby on Rails 4.2 Release Notes
 
 Highlights in Rails 4.2:
 
+* Active Job, Action Mailer #deliver_later
+* Adequate Record
+* Web Console
+* Foreign key support
+
 These release notes cover only the major changes. To know about various bug
 fixes and changes, please refer to the change logs or check out the
 [list of commits](https://github.com/rails/rails/commits/master) in the main
@@ -24,6 +29,41 @@ guide.
 
 Major Features
 --------------
+
+### Active Job, Action Mailer #deliver_later
+
+Active Job is a new framework in Rails 4.2. It is an adapter layer on top of
+queuing systems like Resque, Delayed Job, Sidekiq, and more. You can write your
+jobs to Active Job, and it'll run on all these queues with no changes. (It comes
+pre-configured with an inline runner.)
+
+Building on top of Active Job, Action Mailer now comes with a #deliver_later
+method, which adds your email to be sent as a job to a queue, so it doesn't
+bog down the controller or model.
+
+The new GlobalID library makes it easy to pass Active Record objects to jobs by
+serializing them in a generic form. This means you no longer have to manually
+pack and unpack your Active Records by passing ids. Just give the job the
+straight Active Record object, and it'll serialize it using GlobalID, and
+deserialize it at run time.
+
+### Adequate Record
+
+Rails 4.2 comes with a performance improvement feature called Adequate Record
+for Active Record. A lot of common queries are now up to twice as fast in Rails
+4.2!
+
+TODO: some technical details
+
+### Web Console
+
+New applications generated from Rails 4.2 now comes with the Web Console gem by
+default.
+
+Web Console is an IRB console available in the browser. In development mode, you
+can go to /console and do your work right there. It will also be made available
+on all exception pages and allows you to jump between the different points in
+the backtrace.
 
 ### Foreign key support
 
