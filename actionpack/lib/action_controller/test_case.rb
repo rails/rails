@@ -559,6 +559,8 @@ module ActionController
 
         @request.recycle!
 
+        headers_or_env['REQUEST_METHOD'] = http_method
+
         headers_or_env['rack.session'] = begin
           @request.session.update(session) if session
           @request.session
