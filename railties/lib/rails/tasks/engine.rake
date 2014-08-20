@@ -16,7 +16,7 @@ end
 namespace :db do
   app_task "reset"
 
-  desc "Migrate the database (options: VERSION=x, VERBOSE=false)."
+  desc "Migrate the database (options: VERSION=x, STEP=x, VERBOSE=false)."
   app_task "migrate"
   app_task "migrate:up"
   app_task "migrate:down"
