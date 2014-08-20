@@ -816,15 +816,20 @@ end
 
 class FixtureLoadingTest < ActiveRecord::TestCase
   def test_logs_message_for_failed_dependency_load
-    ActiveRecord::TestCase.expects(:require_dependency).with(:does_not_exist).raises(LoadError)
-    ActiveRecord::Base.logger.expects(:warn)
-    ActiveRecord::TestCase.try_to_load_dependency(:does_not_exist)
+    ActiveRecord::Base.logger.expects(:warn).twice
+    ActiveRecord::TestCase.try_to_load_dependency('does_not_exist')
+  end
+
+  def test_does_not_logs_message_for_dependency_that_has_been_defined_with_set_fixture_class
+    ActiveRecord::TestCase.set_fixture_class unknown_dead_parrots: DeadParrot
+    ActiveRecord::Base.logger.expects(:warn).never
+    ActiveRecord::TestCase.try_to_load_dependency('unknown_dead_parrot')
   end
 
   def test_does_not_logs_message_for_successful_dependency_load
-    ActiveRecord::TestCase.expects(:require_dependency).with(:works_out_fine)
+    ActiveRecord::TestCase.expects(:require_dependency).with('works_out_fine')
     ActiveRecord::Base.logger.expects(:warn).never
-    ActiveRecord::TestCase.try_to_load_dependency(:works_out_fine)
+    ActiveRecord::TestCase.try_to_load_dependency('works_out_fine')
   end
 end
 
