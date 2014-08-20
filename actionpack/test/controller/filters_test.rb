@@ -208,16 +208,16 @@ class FilterTest < ActionController::TestCase
     before_action(ConditionalClassFilter, :ensure_login, Proc.new {|c| c.instance_variable_set(:"@ran_proc_action1", true)}, :except => :show_without_action) { |c| c.instance_variable_set(:"@ran_proc_action2", true)}
   end
 
-  class OnlyConditionalOptionsFilter < ConditionalFilterController
+  class OnlyConditionalOptionsFilterController < ConditionalFilterController
     before_action :ensure_login, :only => :index, :if => Proc.new {|c| c.instance_variable_set(:"@ran_conditional_index_proc", true) }
   end
 
-  class ConditionalOptionsFilter < ConditionalFilterController
+  class ConditionalOptionsFilterController < ConditionalFilterController
     before_action :ensure_login, :if => Proc.new { |c| true }
     before_action :clean_up_tmp, :if => Proc.new { |c| false }
   end
 
-  class ConditionalOptionsSkipFilter < ConditionalFilterController
+  class ConditionalOptionsSkipFilterController < ConditionalFilterController
     before_action :ensure_login
     before_action :clean_up_tmp
 
@@ -548,14 +548,14 @@ class FilterTest < ActionController::TestCase
     controller = NonYieldingAroundFilterController.new
     controller.instance_variable_set "@filter_return_value", false
     test_process(controller, "index")
-    assert_equal ["filter_one", "it didn't yield"], controller.assigns['filters']
+    assert_equal ["filter_one", "it didn't yield"], assigns['filters']
   end
 
   def test_after_actions_are_not_run_if_around_action_does_not_yield
     controller = NonYieldingAroundFilterController.new
     controller.instance_variable_set "@filter_return_value", true
     test_process(controller, "index")
-    assert_equal ["filter_one", "it didn't yield"], controller.assigns['filters']
+    assert_equal ["filter_one", "it didn't yield"], assigns['filters']
   end
 
   def test_added_action_to_inheritance_graph
@@ -605,12 +605,12 @@ class FilterTest < ActionController::TestCase
   end
 
   def test_running_conditional_options
-    test_process(ConditionalOptionsFilter)
+    test_process(ConditionalOptionsFilterController)
     assert_equal %w( ensure_login ), assigns["ran_filter"]
   end
 
   def test_running_conditional_skip_options
-    test_process(ConditionalOptionsSkipFilter)
+    test_process(ConditionalOptionsSkipFilterController)
     assert_equal %w( ensure_login ), assigns["ran_filter"]
   end
 
@@ -670,7 +670,7 @@ class FilterTest < ActionController::TestCase
   end
 
   def test_running_only_condition_and_conditional_options
-    test_process(OnlyConditionalOptionsFilter, "show")
+    test_process(OnlyConditionalOptionsFilterController, "show")
     assert_not assigns["ran_conditional_index_proc"]
   end
 
@@ -860,7 +860,7 @@ class PostsController < ActionController::Base
     end
 end
 
-class ControllerWithSymbolAsFilter < PostsController
+class WithSymbolAsFilterController < PostsController
   around_action :raise_before, :only => :raises_before
   around_action :raise_after, :only => :raises_after
   around_action :without_exception, :only => :no_raise
@@ -887,7 +887,7 @@ class ControllerWithSymbolAsFilter < PostsController
     end
 end
 
-class ControllerWithFilterClass < PostsController
+class WithFilterClassController < PostsController
   class YieldingFilter < DefaultFilter
     def self.around(controller)
       yield
@@ -898,7 +898,7 @@ class ControllerWithFilterClass < PostsController
   around_action YieldingFilter, :only => :raises_after
 end
 
-class ControllerWithFilterInstance < PostsController
+class WithFilterInstanceController < PostsController
   class YieldingFilter < DefaultFilter
     def around(controller)
       yield
@@ -909,7 +909,7 @@ class ControllerWithFilterInstance < PostsController
   around_action YieldingFilter.new, :only => :raises_after
 end
 
-class ControllerWithProcFilter < PostsController
+class WithProcFilterController < PostsController
   around_action(:only => :no_raise) do |c,b|
     c.instance_variable_set(:"@before", true)
     b.call
@@ -917,11 +917,11 @@ class ControllerWithProcFilter < PostsController
   end
 end
 
-class ControllerWithNestedFilters < ControllerWithSymbolAsFilter
+class WithNestedFiltersController < WithSymbolAsFilterController
   around_action :raise_before, :raise_after, :without_exception, :only => :raises_both
 end
 
-class ControllerWithAllTypesOfFilters < PostsController
+class WithAllTypesOfFiltersController < PostsController
   before_action :before
   around_action :around
   after_action :after
@@ -950,7 +950,7 @@ class ControllerWithAllTypesOfFilters < PostsController
   end
 end
 
-class ControllerWithTwoLessFilters < ControllerWithAllTypesOfFilters
+class WithTwoLessFiltersController < WithAllTypesOfFiltersController
   skip_action_callback :around_again
   skip_action_callback :after
 end
@@ -967,7 +967,7 @@ class YieldingAroundFiltersTest < ActionController::TestCase
   end
 
   def test_with_symbol
-    controller = ControllerWithSymbolAsFilter
+    controller = WithSymbolAsFilterController
     assert_nothing_raised { test_process(controller,'no_raise') }
     assert_raise(Before) { test_process(controller,'raises_before') }
     assert_raise(After) { test_process(controller,'raises_after') }
@@ -975,25 +975,25 @@ class YieldingAroundFiltersTest < ActionController::TestCase
   end
 
   def test_with_class
-    controller = ControllerWithFilterClass
+    controller = WithFilterClassController
     assert_nothing_raised { test_process(controller,'no_raise') }
     assert_raise(After) { test_process(controller,'raises_after') }
   end
 
   def test_with_instance
-    controller = ControllerWithFilterInstance
+    controller = WithFilterInstanceController
     assert_nothing_raised { test_process(controller,'no_raise') }
     assert_raise(After) { test_process(controller,'raises_after') }
   end
 
   def test_with_proc
-    test_process(ControllerWithProcFilter,'no_raise')
+    test_process(WithProcFilterController,'no_raise')
     assert assigns['before']
     assert assigns['after']
   end
 
   def test_nested_actions
-    controller = ControllerWithNestedFilters
+    controller = WithNestedFiltersController
     assert_nothing_raised do
       begin
         test_process(controller,'raises_both')
@@ -1009,12 +1009,12 @@ class YieldingAroundFiltersTest < ActionController::TestCase
   end
 
   def test_action_order_with_all_action_types
-    test_process(ControllerWithAllTypesOfFilters,'no_raise')
+    test_process(WithAllTypesOfFiltersController,'no_raise')
     assert_equal 'before around (before yield) around_again (before yield) around_again (after yield) after around (after yield)', assigns['ran_filter'].join(' ')
   end
 
   def test_action_order_with_skip_action_method
-    test_process(ControllerWithTwoLessFilters,'no_raise')
+    test_process(WithTwoLessFiltersController,'no_raise')
     assert_equal 'before around (before yield) around (after yield)', assigns['ran_filter'].join(' ')
   end
 
@@ -1022,21 +1022,21 @@ class YieldingAroundFiltersTest < ActionController::TestCase
     controller = ::FilterTest::TestMultipleFiltersController.new
     response = test_process(controller, 'fail_1')
     assert_equal ' ', response.body
-    assert_equal 1, controller.instance_variable_get(:@try)
+    assert_equal 1, @controller.instance_variable_get(:@try)
   end
 
   def test_second_action_in_multiple_before_action_chain_halts
     controller = ::FilterTest::TestMultipleFiltersController.new
     response = test_process(controller, 'fail_2')
     assert_equal ' ', response.body
-    assert_equal 2, controller.instance_variable_get(:@try)
+    assert_equal 2, @controller.instance_variable_get(:@try)
   end
 
   def test_last_action_in_multiple_before_action_chain_halts
     controller = ::FilterTest::TestMultipleFiltersController.new
     response = test_process(controller, 'fail_3')
     assert_equal ' ', response.body
-    assert_equal 3, controller.instance_variable_get(:@try)
+    assert_equal 3, @controller.instance_variable_get(:@try)
   end
 
   protected
