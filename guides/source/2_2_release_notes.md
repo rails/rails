@@ -1,7 +1,7 @@
 Ruby on Rails 2.2 Release Notes
 ===============================
 
-Rails 2.2 delivers a number of new and improved features. This list covers the major upgrades, but doesn't include every little bug fix and change. If you want to see everything, check out the [list of commits](http://github.com/rails/rails/commits/master) in the main Rails repository on GitHub.
+Rails 2.2 delivers a number of new and improved features. This list covers the major upgrades, but doesn't include every little bug fix and change. If you want to see everything, check out the [list of commits](http://github.com/rails/rails/commits/2-2-stable) in the main Rails repository on GitHub.
 
 Along with Rails, 2.2 marks the launch of the [Ruby on Rails Guides](http://guides.rubyonrails.org/), the first results of the ongoing [Rails Guides hackfest](http://hackfest.rubyonrails.org/guide). This site will deliver high-quality documentation of the major features of Rails.
 
