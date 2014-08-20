@@ -99,7 +99,7 @@ one:
 Note: For associations to reference one another by name, you cannot specify the `id:`
  attribute on the fixtures. Rails will auto assign a primary key to be consistent between
  runs. If you manually specify an `id:` attribute, this behavior will not work. For more
-  information on this assocation behavior please read the
+  information on this association behavior please read the
   [fixture api documentation](http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html).
 
 #### ERB'in It Up
