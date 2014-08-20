@@ -8,10 +8,10 @@ Highlights in Rails 4.1:
 * Action Pack variants
 * Action Mailer previews
 
-These release notes cover only the major changes. To know about various bug
-fixes and changes, please refer to the change logs or check out the
-[list of commits](https://github.com/rails/rails/commits/master) in the main
-Rails repository on GitHub.
+These release notes cover only the major changes. To learn about various bug
+fixes and changes, please refer to the change logs or check out the [list of
+commits](https://github.com/rails/rails/commits/4-1-stable) in the main Rails
+repository on GitHub.
 
 --------------------------------------------------------------------------------
 
