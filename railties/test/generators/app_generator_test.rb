@@ -273,7 +273,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "config/application.rb", /#\s+require\s+["']action_view\/railtie["']/
   end
 
-  def test_generator_if_skip_action_view_is_given
+  def test_generator_if_skip_active_job_is_given
     run_generator [destination_root, "--skip-active-job"]
     assert_file "config/application.rb", /#\s+require\s+["']active_job\/railtie["']/
   end
