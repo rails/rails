@@ -50,6 +50,9 @@ module Rails
         class_option :skip_sprockets,     type: :boolean, aliases: '-S', default: false,
                                           desc: 'Skip Sprockets files'
 
+        class_option :skip_active_job,    type: :boolean, aliases: '-C', default: false,
+                                          desc: 'Skip Active Job files'
+
         class_option :skip_spring,        type: :boolean, default: false,
                                           desc: "Don't install Spring application preloader"
 
@@ -167,7 +170,8 @@ module Rails
       end
 
       def include_all_railties?
-        !options[:skip_active_record] && !options[:skip_action_view] && !options[:skip_test_unit] && !options[:skip_sprockets]
+        !options[:skip_active_record] && !options[:skip_action_view] && !options[:skip_test_unit] &&
+          !options[:skip_sprockets] && !options[:skip_active_job]
       end
 
       def comment_if(value)
