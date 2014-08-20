@@ -138,20 +138,20 @@ module ActionMailer
   # Once a mailer action and template are defined, you can deliver your message or create it and save it
   # for delivery later:
   #
-  #   Notifier.welcome(david).deliver_now # sends the email
-  #   mail = Notifier.welcome(david)      # => an ActionMailer::MessageDeliver object
+  #   Notifier.welcome('david').deliver_now # sends the email
+  #   mail = Notifier.welcome('david')      # => an ActionMailer::MessageDeliver object
   #   mail.deliver_now                    # sends the email
   #
   # The <tt>ActionMailer::MessageDeliver</tt> class is a wrapper around a <tt>Mail::Message</tt> object. If
   # you want direct access to the <tt>Mail::Message</tt> object you can call the <tt>message</tt> method on
   # the <tt>ActionMailer::MessageDeliver</tt> object.
   #
-  #   Notifier.welcome(david).message     # => a Mail::Message object
+  #   Notifier.welcome('david').message     # => a Mail::Message object
   #
   # ActionMailer is nicely integrated with ActiveJob so you can send emails in the background (example: outside
   # of the request-response cycle, so the user doesn't have to wait on it):
   #
-  #   Notifier.welcome(david).deliver_later # enqueue the email sending to ActiveJob
+  #   Notifier.welcome('david').deliver_later # enqueue the email sending to ActiveJob
   #
   # You never instantiate your mailer class. Rather, you just call the method you defined on the class itself.
   #
