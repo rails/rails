@@ -11,9 +11,7 @@ gem 'rack-cache', '~> 1.2'
 gem 'jquery-rails', '~> 3.1.0'
 gem 'coffee-rails', '~> 4.0.0'
 gem 'rails-html-sanitizer'
-
-# TODO: remove this before the 4.2.0.beta1 release
-gem 'turbolinks', github: 'rails/turbolinks', branch: 'master'
+gem 'turbolinks', '~> 2.2.3'
 
 # require: false so bcrypt is loaded only when has_secure_password is used.
 # This is to avoid ActiveModel (and by extension the entire framework)
