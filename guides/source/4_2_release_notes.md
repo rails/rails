@@ -457,7 +457,18 @@ Please refer to the [Changelog][active-support] for detailed changes.
     `ActiveSupport::SafeBuffer#prepend` now performs the same function.
     ([Pull Request](https://github.com/rails/rails/pull/14529))
 
+*   Deprecated capture and quietly.
+    ([Pull Request](https://github.com/rails/rails/pull/13392))
+
 ### Notable changes
+
+*   Object#with_options executes block in merging option context when explicit
+    receiver in not passed.
+    ([Pull Request](https://github.com/rails/rails/pull/16339))
+
+*   Added Hash#transform_values to simplify a common pattern where the values of
+    a hash must change, but the keys are left the same.
+    ([Pull Request](https://github.com/rails/rails/pull/15819))
 
 *   Added `Hash#transform_values` and `Hash#transform_values!` to simplify a
     common pattern where the values of a hash must change, but the keys are left
