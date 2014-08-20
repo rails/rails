@@ -176,8 +176,10 @@ module ActiveRecord
   # <tt>rake db:migrate</tt>. This will update the database by running all of the
   # pending migrations, creating the <tt>schema_migrations</tt> table
   # (see "About the schema_migrations table" section below) if missing. It will also
-  # invoke the db:schema:dump task, which will update your db/schema.rb file
-  # to match the structure of your database.
+  # invoke the <tt>db:schema:dump</tt> task, which will update your db/schema.rb file
+  # to match the structure of your database. You can avoid the generation of the 
+  # schema dump and running this task by setting,
+  # <tt>config.active_record.dump_schema_after_migration</tt> to false in the application.rb.
   #
   # To roll the database back to a previous migration version, use
   # <tt>rake db:migrate VERSION=X</tt> where <tt>X</tt> is the version to which
