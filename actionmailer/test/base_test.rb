@@ -466,12 +466,12 @@ class BaseTest < ActiveSupport::TestCase
 
   test "calling deliver on the action should deliver the mail object" do
     BaseMailer.expects(:deliver_mail).once
-    mail = BaseMailer.welcome.deliver
+    mail = BaseMailer.welcome.deliver_now
     assert_equal 'The first email on new API!', mail.subject
   end
 
   test "calling deliver on the action should increment the deliveries collection if using the test mailer" do
-    BaseMailer.welcome.deliver
+    BaseMailer.welcome.deliver_now
     assert_equal(1, BaseMailer.deliveries.length)
   end
 
@@ -484,35 +484,35 @@ class BaseTest < ActiveSupport::TestCase
 
   # Rendering
   test "you can specify a different template for implicit render" do
-    mail = BaseMailer.implicit_different_template('implicit_multipart').deliver
+    mail = BaseMailer.implicit_different_template('implicit_multipart').deliver_now
     assert_equal("HTML Implicit Multipart", mail.html_part.body.decoded)
     assert_equal("TEXT Implicit Multipart", mail.text_part.body.decoded)
   end
 
   test "should raise if missing template in implicit render" do
     assert_raises ActionView::MissingTemplate do
-      BaseMailer.implicit_different_template('missing_template').deliver
+      BaseMailer.implicit_different_template('missing_template').deliver_now
     end
     assert_equal(0, BaseMailer.deliveries.length)
   end
 
   test "you can specify a different template for explicit render" do
-    mail = BaseMailer.explicit_different_template('explicit_multipart_templates').deliver
+    mail = BaseMailer.explicit_different_template('explicit_multipart_templates').deliver_now
     assert_equal("HTML Explicit Multipart Templates", mail.html_part.body.decoded)
     assert_equal("TEXT Explicit Multipart Templates", mail.text_part.body.decoded)
   end
 
   test "you can specify a different layout" do
-    mail = BaseMailer.different_layout('different_layout').deliver
+    mail = BaseMailer.different_layout('different_layout').deliver_now
     assert_equal("HTML -- HTML", mail.html_part.body.decoded)
     assert_equal("PLAIN -- PLAIN", mail.text_part.body.decoded)
   end
 
   test "you can specify the template path for implicit lookup" do
-    mail = BaseMailer.welcome_from_another_path('another.path/base_mailer').deliver
+    mail = BaseMailer.welcome_from_another_path('another.path/base_mailer').deliver_now
     assert_equal("Welcome from another path", mail.body.encoded)
 
-    mail = BaseMailer.welcome_from_another_path(['unknown/invalid', 'another.path/base_mailer']).deliver
+    mail = BaseMailer.welcome_from_another_path(['unknown/invalid', 'another.path/base_mailer']).deliver_now
     assert_equal("Welcome from another path", mail.body.encoded)
   end
 
@@ -542,13 +542,13 @@ class BaseTest < ActiveSupport::TestCase
   test 'the view is not rendered when mail was never called' do
     mail = BaseMailer.without_mail_call
     assert_equal('', mail.body.to_s.strip)
-    mail.deliver
+    mail.deliver_now
   end
 
   test 'the return value of mailer methods is not relevant' do
     mail = BaseMailer.with_nil_as_return_value
     assert_equal('Welcome', mail.body.to_s.strip)
-    mail.deliver
+    mail.deliver_now
   end
 
   # Before and After hooks
@@ -568,7 +568,7 @@ class BaseTest < ActiveSupport::TestCase
       ActionMailer::Base.register_observer(MyObserver)
       mail = BaseMailer.welcome
       MyObserver.expects(:delivered_email).with(mail)
-      mail.deliver
+      mail.deliver_now
     end
   end
 
@@ -577,7 +577,7 @@ class BaseTest < ActiveSupport::TestCase
       ActionMailer::Base.register_observer("BaseTest::MyObserver")
       mail = BaseMailer.welcome
       MyObserver.expects(:delivered_email).with(mail)
-      mail.deliver
+      mail.deliver_now
     end
   end
 
@@ -586,7 +586,7 @@ class BaseTest < ActiveSupport::TestCase
       ActionMailer::Base.register_observer(:"base_test/my_observer")
       mail = BaseMailer.welcome
       MyObserver.expects(:delivered_email).with(mail)
-      mail.deliver
+      mail.deliver_now
     end
   end
 
@@ -596,7 +596,7 @@ class BaseTest < ActiveSupport::TestCase
       mail = BaseMailer.welcome
       MyObserver.expects(:delivered_email).with(mail)
       MySecondObserver.expects(:delivered_email).with(mail)
-      mail.deliver
+      mail.deliver_now
     end
   end
 
@@ -615,7 +615,7 @@ class BaseTest < ActiveSupport::TestCase
       ActionMailer::Base.register_interceptor(MyInterceptor)
       mail = BaseMailer.welcome
       MyInterceptor.expects(:delivering_email).with(mail)
-      mail.deliver
+      mail.deliver_now
     end
   end
 
@@ -624,7 +624,7 @@ class BaseTest < ActiveSupport::TestCase
       ActionMailer::Base.register_interceptor("BaseTest::MyInterceptor")
       mail = BaseMailer.welcome
       MyInterceptor.expects(:delivering_email).with(mail)
-      mail.deliver
+      mail.deliver_now
     end
   end
 
@@ -633,7 +633,7 @@ class BaseTest < ActiveSupport::TestCase
       ActionMailer::Base.register_interceptor(:"base_test/my_interceptor")
       mail = BaseMailer.welcome
       MyInterceptor.expects(:delivering_email).with(mail)
-      mail.deliver
+      mail.deliver_now
     end
   end
 
@@ -643,7 +643,7 @@ class BaseTest < ActiveSupport::TestCase
       mail = BaseMailer.welcome
       MyInterceptor.expects(:delivering_email).with(mail)
       MySecondInterceptor.expects(:delivering_email).with(mail)
-      mail.deliver
+      mail.deliver_now
     end
   end
 

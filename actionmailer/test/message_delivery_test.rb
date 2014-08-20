@@ -37,6 +37,17 @@ class MessageDeliveryTest < ActiveSupport::TestCase
     assert_respond_to @mail, :deliver!
   end
 
+  test '.deliver is deprecated' do
+    assert_deprecated do
+      @mail.deliver
+    end
+  end
+  test '.deliver! is deprecated' do
+    assert_deprecated do
+      @mail.deliver!
+    end
+  end
+
   test 'should respond to .deliver_later' do
     assert_respond_to @mail, :deliver_later
   end
@@ -45,7 +56,15 @@ class MessageDeliveryTest < ActiveSupport::TestCase
     assert_respond_to @mail, :deliver_later!
   end
 
-  def test_should_enqueue_and_run_correctly_in_activejob
+  test 'should respond to .deliver_now' do
+    assert_respond_to @mail, :deliver_now
+  end
+
+  test 'should respond to .deliver_now!' do
+    assert_respond_to @mail, :deliver_now!
+  end
+
+  test 'should enqueue and run correctly in activejob' do
     @mail.deliver_later!
     assert_equal 1, ActionMailer::Base.deliveries.size
   ensure
@@ -56,21 +75,21 @@ class MessageDeliveryTest < ActiveSupport::TestCase
     ret = ActionMailer::DeliveryJob.stub :enqueue, ->(*args){ args } do
       @mail.deliver_later
     end
-    assert_equal ['DelayedMailer', 'test_message', 'deliver', 1, 2, 3], ret
+    assert_equal ['DelayedMailer', 'test_message', 'deliver_now', 1, 2, 3], ret
   end
 
   test 'should enqueue the email with :deliver! delivery method' do
     ret = ActionMailer::DeliveryJob.stub :enqueue, ->(*args){ args } do
       @mail.deliver_later!
     end
-    assert_equal ['DelayedMailer', 'test_message', 'deliver!', 1, 2, 3], ret
+    assert_equal ['DelayedMailer', 'test_message', 'deliver_now!', 1, 2, 3], ret
   end
 
   test 'should enqueue a delivery with a delay' do
     ret = ActionMailer::DeliveryJob.stub :enqueue_in, ->(*args){ args } do
       @mail.deliver_later in: 600
     end
-    assert_equal [600, 'DelayedMailer', 'test_message', 'deliver', 1, 2, 3], ret
+    assert_equal [600, 'DelayedMailer', 'test_message', 'deliver_now', 1, 2, 3], ret
   end
 
   test 'should enqueue a delivery at a specific time' do
@@ -78,7 +97,7 @@ class MessageDeliveryTest < ActiveSupport::TestCase
     ret = ActionMailer::DeliveryJob.stub :enqueue_at, ->(*args){ args } do
       @mail.deliver_later at: later_time
     end
-    assert_equal [later_time, 'DelayedMailer', 'test_message', 'deliver', 1, 2, 3], ret
+    assert_equal [later_time, 'DelayedMailer', 'test_message', 'deliver_now', 1, 2, 3], ret
   end
 
 end

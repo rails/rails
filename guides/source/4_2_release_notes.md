@@ -311,6 +311,9 @@ Please refer to the [Changelog][action-mailer] for detailed changes.
 *   Deprecated `*_path` helpers in mailers. Always use `*_url` helpers instead.
     ([Pull Request](https://github.com/rails/rails/pull/15840))
 
+*   Deprecated `deliver` / `deliver!` in favour of `deliver_now` / `deliver_now!`.
+    ([Pull Request](https://github.com/rails/rails/pull/16582))
+
 ### Notable changes
 
 *   Introduced `deliver_later` which enqueues a job on the application's queue
