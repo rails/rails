@@ -135,6 +135,7 @@ module ActiveSupport
           assert_equal("111.23460000000000000000", number_helper.number_to_rounded(BigDecimal(111.2346, Float::DIG), :precision => 20))
           assert_equal("111.2346" + "0"*96, number_helper.number_to_rounded('111.2346', :precision => 100))
           assert_equal("111.2346", number_helper.number_to_rounded(Rational(1112346, 10000), :precision => 4))
+          assert_equal('0.00', number_helper.number_to_rounded(Rational(0, 1), :precision => 2))
         end
       end
 

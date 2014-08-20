@@ -59,7 +59,7 @@ module ActiveSupport
         end
 
         def digit_count(number)
-          (Math.log10(absolute_number(number)) + 1).floor
+          number.zero? ? 1 : (Math.log10(absolute_number(number)) + 1).floor
         end
 
         def strip_insignificant_zeros
