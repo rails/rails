@@ -1,5 +1,9 @@
 require 'abstract_unit'
 
+ActiveSupport::Inflector.inflections do |inflect|
+  inflect.acronym 'SSL'
+end
+
 class ForceSSLController < ActionController::Base
   def banana
     render :text => "monkey"
@@ -10,11 +14,11 @@ class ForceSSLController < ActionController::Base
   end
 end
 
-class ForceSSLControllerLevel < ForceSSLController
+class ForceSSLLevelController < ForceSSLController
   force_ssl
 end
 
-class ForceSSLCustomOptions < ForceSSLController
+class ForceSSLCustomOptionsController < ForceSSLController
   force_ssl :host => "secure.example.com", :only => :redirect_host
   force_ssl :port => 8443, :only => :redirect_port
   force_ssl :subdomain => 'secure', :only => :redirect_subdomain
@@ -52,15 +56,15 @@ class ForceSSLCustomOptions < ForceSSLController
   end
 end
 
-class ForceSSLOnlyAction < ForceSSLController
+class ForceSSLOnlyActionController< ForceSSLController
   force_ssl :only => :cheeseburger
 end
 
-class ForceSSLExceptAction < ForceSSLController
+class ForceSSLExceptActionController< ForceSSLController
   force_ssl :except => :banana
 end
 
-class ForceSSLIfCondition < ForceSSLController
+class ForceSSLIfConditionController< ForceSSLController
   force_ssl :if => :use_force_ssl?
 
   def use_force_ssl?
@@ -68,7 +72,7 @@ class ForceSSLIfCondition < ForceSSLController
   end
 end
 
-class ForceSSLFlash < ForceSSLController
+class ForceSSLFlashController< ForceSSLController
   force_ssl :except => [:banana, :set_flash, :use_flash]
 
   def set_flash
@@ -83,7 +87,7 @@ class ForceSSLFlash < ForceSSLController
   end
 end
 
-class RedirectToSSL < ForceSSLController
+class RedirectToSSLController< ForceSSLController
   def banana
     force_ssl_redirect || render(:text => 'monkey')
   end
@@ -92,27 +96,27 @@ class RedirectToSSL < ForceSSLController
   end
 end
 
-class ForceSSLControllerLevelTest < ActionController::TestCase
+class ForceSSLLevelControllerTest < ActionController::TestCase
   def test_banana_redirects_to_https
     get :banana
     assert_response 301
-    assert_equal "https://test.host/force_ssl_controller_level/banana", redirect_to_url
+    assert_equal "https://test.host/force_ssl_level/banana", redirect_to_url
   end
 
   def test_banana_redirects_to_https_with_extra_params
     get :banana, :token => "secret"
     assert_response 301
-    assert_equal "https://test.host/force_ssl_controller_level/banana?token=secret", redirect_to_url
+    assert_equal "https://test.host/force_ssl_level/banana?token=secret", redirect_to_url
   end
 
   def test_cheeseburger_redirects_to_https
     get :cheeseburger
     assert_response 301
-    assert_equal "https://test.host/force_ssl_controller_level/cheeseburger", redirect_to_url
+    assert_equal "https://test.host/force_ssl_level/cheeseburger", redirect_to_url
   end
 end
 
-class ForceSSLCustomOptionsTest < ActionController::TestCase
+class ForceSSLCustomOptionsControllerTest < ActionController::TestCase
   def setup
     @request.env['HTTP_HOST'] = 'www.example.com:80'
   end
@@ -184,7 +188,7 @@ class ForceSSLCustomOptionsTest < ActionController::TestCase
   end
 end
 
-class ForceSSLOnlyActionTest < ActionController::TestCase
+class ForceSSLOnlyActionControllerTest < ActionController::TestCase
   def test_banana_not_redirects_to_https
     get :banana
     assert_response 200
@@ -197,7 +201,7 @@ class ForceSSLOnlyActionTest < ActionController::TestCase
   end
 end
 
-class ForceSSLExceptActionTest < ActionController::TestCase
+class ForceSSLExceptActionControllerTest < ActionController::TestCase
   def test_banana_not_redirects_to_https
     get :banana
     assert_response 200
@@ -210,7 +214,7 @@ class ForceSSLExceptActionTest < ActionController::TestCase
   end
 end
 
-class ForceSSLIfConditionTest < ActionController::TestCase
+class ForceSSLIfConditionControllerTest < ActionController::TestCase
   def test_banana_not_redirects_to_https
     get :banana
     assert_response 200
@@ -223,7 +227,7 @@ class ForceSSLIfConditionTest < ActionController::TestCase
   end
 end
 
-class ForceSSLFlashTest < ActionController::TestCase
+class ForceSSLFlashControllerTest < ActionController::TestCase
   def test_cheeseburger_redirects_to_https
     get :set_flash
     assert_response 302
@@ -246,13 +250,13 @@ class ForceSSLFlashTest < ActionController::TestCase
 end
 
 class ForceSSLDuplicateRoutesTest < ActionController::TestCase
-  tests ForceSSLControllerLevel
+  tests ForceSSLLevelController
 
   def test_force_ssl_redirects_to_same_path
     with_routing do |set|
       set.draw do
-        get '/foo', :to => 'force_ssl_controller_level#banana'
-        get '/bar', :to => 'force_ssl_controller_level#banana'
+        get '/foo', :to => 'force_ssl_level#banana'
+        get '/bar', :to => 'force_ssl_level#banana'
       end
 
       @request.env['PATH_INFO'] = '/bar'
@@ -265,12 +269,12 @@ class ForceSSLDuplicateRoutesTest < ActionController::TestCase
 end
 
 class ForceSSLFormatTest < ActionController::TestCase
-  tests ForceSSLControllerLevel
+  tests ForceSSLLevelController
 
   def test_force_ssl_redirects_to_same_format
     with_routing do |set|
       set.draw do
-        get '/foo', :to => 'force_ssl_controller_level#banana'
+        get '/foo', :to => 'force_ssl_level#banana'
       end
 
       get :banana, :format => :json
@@ -281,14 +285,14 @@ class ForceSSLFormatTest < ActionController::TestCase
 end
 
 class ForceSSLOptionalSegmentsTest < ActionController::TestCase
-  tests ForceSSLControllerLevel
+  tests ForceSSLLevelController
 
   def test_force_ssl_redirects_to_same_format
     with_routing do |set|
       set.draw do
         scope '(:locale)' do
           defaults :locale => 'en' do
-            get '/foo', :to => 'force_ssl_controller_level#banana'
+            get '/foo', :to => 'force_ssl_level#banana'
           end
         end
       end
@@ -302,7 +306,7 @@ class ForceSSLOptionalSegmentsTest < ActionController::TestCase
   end
 end
 
-class RedirectToSSLTest < ActionController::TestCase
+class RedirectToSSLControllerTest < ActionController::TestCase
   def test_banana_redirects_to_https_if_not_https
     get :banana
     assert_response 301
