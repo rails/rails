@@ -8,7 +8,7 @@ module ActionPack
     MAJOR = 4
     MINOR = 2
     TINY  = 0
-    PRE   = "alpha"
+    PRE   = "beta1"
 
     STRING = [MAJOR, MINOR, TINY, PRE].compact.join(".")
   end
