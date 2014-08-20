@@ -15,7 +15,11 @@ module ActiveRecord
           scope = super
           chain.drop(1).each do |reflection|
             relation = reflection.klass.all
-            relation.merge!(reflection.scope) if reflection.scope
+
+            reflection_scope = reflection.scope
+            if reflection_scope && reflection_scope.arity.zero?
+              relation.merge!(reflection_scope)
+            end
 
             scope.merge!(
               relation.except(:select, :create_with, :includes, :preload, :joins, :eager_load)

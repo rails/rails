@@ -195,6 +195,7 @@ ActiveRecord::Schema.define do
     t.references :author, polymorphic: true
     t.string :resource_id
     t.string :resource_type
+    t.integer :developer_id
   end
 
   create_table :companies, force: true do |t|

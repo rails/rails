@@ -46,6 +46,8 @@ class Developer < ActiveRecord::Base
   has_many :audit_logs
   has_many :contracts
   has_many :firms, :through => :contracts, :source => :firm
+  has_many :comments, ->(developer) { where(body: "I'm #{developer.name}") }
+  has_many :ratings, through: :comments
 
   scope :jamises, -> { where(:name => 'Jamis') }
 
