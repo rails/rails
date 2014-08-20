@@ -7,10 +7,10 @@ module ActionMailer
   # around a lazy created Mail::Message. You can get direct access to the
   # Mail::Message, deliver the email or schedule the email to be sent through ActiveJob.
   #
-  #   Notifier.welcome('david')               # an ActionMailer::MessageDeliver object
-  #   Notifier.welcome('david').deliver_now   # sends the email
-  #   Notifier.welcome('david').deliver_later # enqueue the deliver email job to ActiveJob
-  #   Notifier.welcome('david').message       # a Mail::Message object
+  #   Notifier.welcome(User.first)               # an ActionMailer::MessageDeliver object
+  #   Notifier.welcome(User.first).deliver_now   # sends the email
+  #   Notifier.welcome(User.first).deliver_later # enqueue the deliver email job to ActiveJob
+  #   Notifier.welcome(User.first).message       # a Mail::Message object
   class MessageDelivery < Delegator
     def initialize(mailer, mail_method, *args) #:nodoc:
       @mailer = mailer
@@ -38,9 +38,9 @@ module ActionMailer
     #
     # ==== Examples
     #
-    #   Notifier.welcome('david').deliver_later
-    #   Notifier.welcome('david').deliver_later(in: 1.hour)
-    #   Notifier.welcome('david').deliver_later(at: 10.hours.from_now)
+    #   Notifier.welcome(User.first).deliver_later
+    #   Notifier.welcome(User.first).deliver_later(in: 1.hour)
+    #   Notifier.welcome(User.first).deliver_later(at: 10.hours.from_now)
     #
     # ==== Options
     # * <tt>in</tt>  - Enqueue the message to be delivered with a delay
@@ -54,9 +54,9 @@ module ActionMailer
     #
     # ==== Examples
     #
-    #   Notifier.welcome('david').deliver_later
-    #   Notifier.welcome('david').deliver_later(in: 1.hour)
-    #   Notifier.welcome('david').deliver_later(at: 10.hours.from_now)
+    #   Notifier.welcome(User.first).deliver_later
+    #   Notifier.welcome(User.first).deliver_later(in: 1.hour)
+    #   Notifier.welcome(User.first).deliver_later(at: 10.hours.from_now)
     #
     # ==== Options
     # * <tt>in</tt>  - Enqueue the message to be delivered with a delay
@@ -68,7 +68,7 @@ module ActionMailer
     # Delivers a message. The message will be sent bypassing checking perform_deliveries
     # and raise_delivery_errors, so use with caution.
     #
-    #   Notifier.welcome('david').deliver_now!
+    #   Notifier.welcome(User.first).deliver_now!
     #
     def deliver_now!
       message.deliver!
@@ -76,7 +76,7 @@ module ActionMailer
 
     # Delivers a message:
     #
-    #   Notifier.welcome('david').deliver_now
+    #   Notifier.welcome(User.first).deliver_now
     #
     def deliver_now
       message.deliver
