@@ -45,9 +45,11 @@ class MessageDeliveryTest < ActiveSupport::TestCase
     assert_respond_to @mail, :deliver_later!
   end
 
-  test 'should enqueue and run correctly in activejob' do
+  def test_should_enqueue_and_run_correctly_in_activejob
     @mail.deliver_later!
-    assert_equal 1 , ActionMailer::Base.deliveries.size
+    assert_equal 1, ActionMailer::Base.deliveries.size
+  ensure
+    ActionMailer::Base.deliveries.clear
   end
 
   test 'should enqueue the email with :deliver delivery method' do
