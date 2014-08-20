@@ -13,6 +13,7 @@ After reading this guide, you will know:
 
 --------------------------------------------------------------------------------
 
+
 Introduction
 ------------
 
@@ -40,7 +41,7 @@ This section will provide a step-by-step guide to creating a job and enqueue it.
 ### Create the Job
 
 Active Job provides a Rails generator to create jobs. The following will create a
-job in app/jobs:
+job in `app/jobs`:
 
 ```bash
 $ bin/rails generate job guests_cleanup
@@ -58,7 +59,7 @@ As you can see, you can generate jobs just like you use other generators with
 Rails.
 
 If you don't want to use a generator, you could create your own file inside of
-app/jobs, just make sure that it inherits from `ActiveJob::Base`.
+`app/jobs`, just make sure that it inherits from `ActiveJob::Base`.
 
 Here's how a job looks like:
 
@@ -135,11 +136,12 @@ You can easy change your adapter:
 YourApp::Application.config.active_job.queue_adapter = :sidekiq
 ```
 
+
 Queues
 ------
 
-Most of the adapters supports multiple queues. With Active Job you can schedule the job
-to run on a specific queue:
+Most of the adapters supports multiple queues. With Active Job you can schedule
+the job to run on a specific queue:
 
 ```ruby
 class GuestsCleanupJob < ActiveJob::Base
@@ -155,17 +157,17 @@ you need to specify the queues to listen to.
 Callbacks
 ---------
 
-Active Job provides hooks during the lifecycle of a job. Callbacks allows you to trigger
-logic during the lifecycle of a job.
+Active Job provides hooks during the lifecycle of a job. Callbacks allows you to
+trigger logic during the lifecycle of a job.
 
 ### Available callbacks
 
-* before_enqueue
-* around_enqueue
-* after_enqueue
-* before_perform
-* around_perform
-* after_perform
+* `before_enqueue`
+* `around_enqueue`
+* `after_enqueue`
+* `before_perform`
+* `around_perform`
+* `after_perform`
 
 ### Usage
 
@@ -189,8 +191,10 @@ class GuestsCleanupJob < ActiveJob::Base
 end
 ```
 
+
 ActionMailer
 ------------
+
 One of the most common jobs in a modern web application is sending emails outside
 of the request-response cycle, so the user doesn't have to wait on it. Active Job
 is integrated with Action Mailer so you can easily send emails async:
@@ -203,11 +207,12 @@ UserMailer.welcome(@user).deliver
 UserMailer.welcome(@user).deliver_later
 ```
 
+
 GlobalID
 --------
-Active Job supports GlobalID for parameters. This makes it possible
-to pass live Active Record objects to your job instead of class/id pairs, which
-you then have to manually deserialize. Before, jobs would look like this:
+Active Job supports GlobalID for parameters. This makes it possible to pass live
+Active Record objects to your job instead of class/id pairs, which you then have
+to manually deserialize. Before, jobs would look like this:
 
 ```ruby
 class TrashableCleanupJob
@@ -228,12 +233,13 @@ class TrashableCleanupJob
 end
 ```
 
-This works with any class that mixes in ActiveModel::GlobalIdentification, which
+This works with any class that mixes in `ActiveModel::GlobalIdentification`, which
 by default has been mixed into Active Model classes.
 
 
 Exceptions
 ----------
+
 Active Job provides a way to catch exceptions raised during the execution of the
 job:
 
