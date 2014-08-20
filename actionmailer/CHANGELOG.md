@@ -1,3 +1,9 @@
+*   All urls generated via `link_to` and `url_for` in the mailer views will now
+    be returned as full urls. This means that `link_to "foo", @user` should
+    provide a working url by default
+
+    *Richard Schneeman*
+
 *   Added #deliver_later, #deliver_now and deprecate #deliver in favour of
     #deliver_now. #deliver_later will enqueue a job to render and deliver
     the mail instead of delivering it right at that moment. The job is enqueued
