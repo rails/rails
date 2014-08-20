@@ -406,13 +406,25 @@ Please refer to the [Changelog][active-model] for detailed changes.
 ### Removals
 
 *   Removed deprecated `Validator#setup` without replacement.
-    ([Pull Request](https://github.com/rails/rails/pull/15617))
+    ([Pull Request](https://github.com/rails/rails/pull/10716))
+
+### Deprecations
+
+*   Deprecated reset_#{attribute} in favor of restore_#{attribute}.
+    ([Pull Request](https://github.com/rails/rails/pull/16180))
+
+*   Deprecated ActiveModel::Dirty#reset_changes in favor of #clear_changes_information.
+    ([Pull Request](https://github.com/rails/rails/pull/16180))
 
 ### Notable changes
 
-*   Introduced the `undo_changes` method in `ActiveModel::Dirty` to restore the
-    changed (dirty) attributes to their previous values.
-    ([Pull Request](https://github.com/rails/rails/pull/14861))
+*   Introduced the `restore_attributes` method in `ActiveModel::Dirty` to restore
+    the changed (dirty) attributes to their previous values.
+    (Pull Request [1](https://github.com/rails/rails/pull/14861), [2](https://github.com/rails/rails/pull/16180))
+
+*   `has_secure_password` no longer disallow blank passwords (i.e. passwords
+    that contains only spaces) by default.
+    ([Pull Request](https://github.com/rails/rails/pull/16412))
 
 *   `has_secure_password` now verifies that the given password is less than 72
     characters if validations are enabled.
