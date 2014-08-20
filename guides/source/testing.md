@@ -949,7 +949,7 @@ class UserMailerTest < ActionMailer::TestCase
   test "invite" do
     # Send the email, then test that it got queued
     email = UserMailer.create_invite('me@example.com',
-                                     'friend@example.com', Time.now).deliver
+                                     'friend@example.com', Time.now).deliver_now
     assert_not ActionMailer::Base.deliveries.empty?
 
     # Test the body of the sent email contains what we expect it to

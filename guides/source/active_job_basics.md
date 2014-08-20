@@ -196,10 +196,10 @@ of the request-response cycle, so the user doesn't have to wait on it. Active Jo
 is integrated with Action Mailer so you can easily send emails async:
 
 ```ruby
-# Instead of the classic
-UserMailer.welcome(@user).deliver
+# If you want to send the email now use #deliver_now
+UserMailer.welcome(@user).deliver_now
 
-# use #deliver later to send the email async
+# If you want to send the email through ActiveJob use #deliver_later
 UserMailer.welcome(@user).deliver_later
 ```
 
