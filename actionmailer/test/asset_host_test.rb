@@ -9,11 +9,8 @@ class AssetHostMailer < ActionMailer::Base
   end
 end
 
-class AssetHostTest < ActiveSupport::TestCase
+class AssetHostTest < ActionMailer::TestCase
   def setup
-    set_delivery_method :test
-    ActionMailer::Base.perform_deliveries = true
-    ActionMailer::Base.deliveries.clear
     AssetHostMailer.configure do |c|
       c.asset_host = "http://www.example.com"
     end
