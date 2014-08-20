@@ -290,8 +290,6 @@ All these configuration options are delegated to the `I18n` library.
 
 * `config.active_record.partial_writes` is a boolean value and controls whether or not partial writes are used (i.e. whether updates only set attributes that are dirty). Note that when using partial writes, you should also use optimistic locking `config.active_record.lock_optimistically` since concurrent updates may write attributes based on a possibly stale read state. The default value is `true`.
 
-* `config.active_record.attribute_types_cached_by_default` sets the attribute types that `ActiveRecord::AttributeMethods` will cache by default on reads. The default is `[:datetime, :timestamp, :time, :date]`.
-
 * `config.active_record.maintain_test_schema` is a boolean value which controls whether Active Record should try to keep your test database schema up-to-date with `db/schema.rb` (or `db/structure.sql`) when you run your tests. The default is true.
 
 * `config.active_record.dump_schema_after_migration` is a flag which
