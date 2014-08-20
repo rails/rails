@@ -3,7 +3,7 @@ require 'active_support/callbacks'
 module ActiveJob
   # = Active Job Callbacks
   #
-  # Active Job provides hooks during the lifecycle of a job. Callbacks allows you to trigger
+  # Active Job provides hooks during the lifecycle of a job. Callbacks allow you to trigger
   # logic during the lifecycle of a job. Available callbacks:
   #
   # * <tt>before_enqueue</tt>
