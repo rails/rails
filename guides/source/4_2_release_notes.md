@@ -305,6 +305,17 @@ for detailed changes.
 
 ### Deprecations
 
+*   Deprecated swallowing of errors inside `after_commit` and `after_rollback`.
+    ([Pull Request](https://github.com/rails/rails/pull/16537))
+
+*   Deprecated calling `DatabaseTasks.load_schema` without a connection. Use
+    `DatabaseTasks.load_schema_current` instead.
+    ([Commit](https://github.com/rails/rails/commit/f15cef67f75e4b52fd45655d7c6ab6b35623c608))
+
+*   Deprecated `Reflection#source_macro` without replacement as it is no longer
+    needed in Active Record.
+    ([Pull Request](https://github.com/rails/rails/pull/16373))
+
 *   Deprecated broken support for automatic detection of counter caches on
     `has_many :through` associations. You should instead manually specify the
     counter cache on the `has_many` and `belongs_to` associations for the
@@ -341,6 +352,13 @@ for detailed changes.
     ([Commit](https://github.com/rails/rails/commit/91949e48cf41af9f3e4ffba3e5eecf9b0a08bfc3))
 
 ### Notable changes
+
+*   The PostgreSQL adapter now supports the `JSONB` datatype in PostgreSQL 9.4+.
+    ([Pull Request](https://github.com/rails/rails/pull/16220))
+
+*   The `#references` method in migrations now supports a `type` option for
+    specifying the type of the foreign key (e.g. `:uuid`).
+    ([Pull Request](https://github.com/rails/rails/pull/16231))
 
 *   Added a `:required` option to singular associations, which defines a
     presence validation on the association.
