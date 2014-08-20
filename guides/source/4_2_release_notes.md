@@ -449,6 +449,10 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 ### Deprecations
 
+*   Deprecated `Kernel#silence_stderr`, `Kernel#capture` and `Kernel#quietly`
+    without replacement.
+    ([Pull Request](https://github.com/rails/rails/pull/13392))
+
 *   Deprecated `Class#superclass_delegating_accessor`, use
     `Class#class_attribute` instead.
     ([Pull Request](https://github.com/rails/rails/pull/14271))
@@ -458,6 +462,23 @@ Please refer to the [Changelog][active-support] for detailed changes.
     ([Pull Request](https://github.com/rails/rails/pull/14529))
 
 ### Notable changes
+
+*   The `travel_to` test helper now truncates the `usec` component to 0.
+    ([Commit](https://github.com/rails/rails/commit/9f6e82ee4783e491c20f5244a613fdeb4024beb5))
+
+*   `ActiveSupport::TestCase` now randomizes the order that test cases are ran
+    by default.
+    ([Commit](https://github.com/rails/rails/commit/6ffb29d24e05abbd9ffe3ea974140d6c70221807))
+
+*   Introduced `Object#itself` as an identity function.
+    (Commit [1](https://github.com/rails/rails/commit/702ad710b57bef45b081ebf42e6fa70820fdd810),
+    [2](https://github.com/rails/rails/commit/64d91122222c11ad3918cc8e2e3ebc4b0a03448a))
+
+*   `Object#with_options` can now be used without an explicit receiver.
+    ([Pull Request](https://github.com/rails/rails/pull/16339))
+
+*   Introduced `String#truncate_words` to truncate a string by a number of words.
+    ([Pull Request](https://github.com/rails/rails/pull/16190))
 
 *   Added `Hash#transform_values` and `Hash#transform_values!` to simplify a
     common pattern where the values of a hash must change, but the keys are left
