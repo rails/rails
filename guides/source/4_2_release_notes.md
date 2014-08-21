@@ -297,6 +297,9 @@ Please refer to the [Changelog][action-view] for detailed changes.
     the hidden fields.
     ([Pull Request](https://github.com/rails/rails/pull/14738))
 
+*   Placeholder I18n follows the same convention as `label` I18n.
+    ([Pull Request](https://github.com/rails/rails/pull/16438))
+
 
 Action Mailer
 -------------
