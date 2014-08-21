@@ -187,13 +187,13 @@ class UsersController < ApplicationController
 end
 ```
 
-NOTE: By default Active Job is configured to execute the job `:inline`. So you can
-use `deliver_later` now to send the emails and when you decide to start sending the
-email from a background job you'll just have to setup Active Job to use a queueing
+NOTE: Active Job's default behavior is to execute jobs ':inline'. So, you can use
+`deliver_later` now to send emails, and when you later decide to start sending
+them from a background job, you'll only need to set up Active Job to use a queueing
 backend (Sidekiq, Resque, etc).
 
-If you want to send the emails right away (from a cronjob for example) just
-call `deliver_now`:
+If you want to send emails right away (from a cronjob for example) just call
+`deliver_now`:
 
 ```ruby
 class SendWeeklySummary
