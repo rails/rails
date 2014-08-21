@@ -1,6 +1,7 @@
 require "cases/helper"
 require 'models/author'
 require 'models/post'
+require 'models/post_with_sti_name'
 require 'models/person'
 require 'models/reference'
 require 'models/job'
@@ -455,6 +456,11 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
     scope = Post.joins(:special_comments_ratings_taggings).where(:id => posts(:sti_comments).id)
     assert scope.where("comments.type" => "Comment").empty?
     assert !scope.where("comments.type" => "SpecialComment").empty?
+  end
+
+  def test_has_many_through_with_sti_name
+    scope = PostWithStiName.joins(:tags)
+    assert !scope.where("taggings.taggable_type" => "post_with_sti_name").empty?
   end
 
   def test_nested_has_many_through_writers_should_raise_error

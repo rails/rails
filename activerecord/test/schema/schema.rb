@@ -568,6 +568,7 @@ ActiveRecord::Schema.define do
       t.text    :body, null: false
     end
     t.string  :type
+    t.string  :sti_type
     t.integer :comments_count, default: 0
     t.integer :taggings_count, default: 0
     t.integer :taggings_with_delete_all_count, default: 0
