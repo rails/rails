@@ -66,7 +66,7 @@ module Arel
           relation[:id].gt(10).must_be_kind_of Nodes::GreaterThan
         end
 
-        it 'should generate >= in sql' do
+        it 'should generate > in sql' do
           relation = Table.new(:users)
           mgr = relation.project relation[:id]
           mgr.where relation[:id].gt(10)
