@@ -139,19 +139,19 @@ module ActionMailer
   # for delivery later:
   #
   #   Notifier.welcome(User.first).deliver_now # sends the email
-  #   mail = Notifier.welcome(User.first)      # => an ActionMailer::MessageDeliver object
+  #   mail = Notifier.welcome(User.first)      # => an ActionMailer::MessageDelivery object
   #   mail.deliver_now                    # sends the email
   #
-  # The <tt>ActionMailer::MessageDeliver</tt> class is a wrapper around a <tt>Mail::Message</tt> object. If
+  # The <tt>ActionMailer::MessageDelivery</tt> class is a wrapper around a <tt>Mail::Message</tt> object. If
   # you want direct access to the <tt>Mail::Message</tt> object you can call the <tt>message</tt> method on
-  # the <tt>ActionMailer::MessageDeliver</tt> object.
+  # the <tt>ActionMailer::MessageDelivery</tt> object.
   #
   #   Notifier.welcome(User.first).message     # => a Mail::Message object
   #
-  # ActionMailer is nicely integrated with ActiveJob so you can send emails in the background (example: outside
+  # Action Mailer is nicely integrated with Active Job so you can send emails in the background (example: outside
   # of the request-response cycle, so the user doesn't have to wait on it):
   #
-  #   Notifier.welcome(User.first).deliver_later # enqueue the email sending to ActiveJob
+  #   Notifier.welcome(User.first).deliver_later # enqueue the email sending to Active Job
   #
   # You never instantiate your mailer class. Rather, you just call the method you defined on the class itself.
   #

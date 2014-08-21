@@ -2,14 +2,16 @@ require 'delegate'
 
 module ActionMailer
 
-  # The ActionMailer::MessageDeliver class is used by ActionMailer::Base when
-  # creating a new mailer. MessageDeliver is a wrapper (Delegator subclass)
-  # around a lazy created Mail::Message. You can get direct access to the
-  # Mail::Message, deliver the email or schedule the email to be sent through ActiveJob.
+  # The <tt>ActionMailer::MessageDelivery</tt> class is used by
+  # <tt>ActionMailer::Base</tt> when creating a new mailer.
+  # <tt>MessageDelivery</tt> is a wrapper (+Delegator+ subclass) around a lazy
+  # created <tt>Mail::Message</tt>. You can get direct access to the
+  # <tt>Mail::Message</tt>, deliver the email or schedule the email to be sent
+  # through Active Job.
   #
-  #   Notifier.welcome(User.first)               # an ActionMailer::MessageDeliver object
+  #   Notifier.welcome(User.first)               # an ActionMailer::MessageDelivery object
   #   Notifier.welcome(User.first).deliver_now   # sends the email
-  #   Notifier.welcome(User.first).deliver_later # enqueue the deliver email job to ActiveJob
+  #   Notifier.welcome(User.first).deliver_later # enqueue email delivery as a job through Active Job
   #   Notifier.welcome(User.first).message       # a Mail::Message object
   class MessageDelivery < Delegator
     def initialize(mailer, mail_method, *args) #:nodoc:
@@ -31,42 +33,40 @@ module ActionMailer
       __getobj__
     end
 
-    # Enqueues the message to be delivered through ActiveJob. When the
-    # ActiveJob job runs it will send the email using #deliver_now!. That
-    # means that the message will be sent bypassing checking perform_deliveries
-    # and raise_delivery_errors, so use with caution.
-    #
-    # ==== Examples
+    # Enqueues the email to be delivered through Active Job. When the
+    # job runs it will send the email using +deliver_now!+. That means
+    # that the message will be sent bypassing checking +perform_deliveries+
+    # and +raise_delivery_errors+, so use with caution.
     #
     #   Notifier.welcome(User.first).deliver_later
     #   Notifier.welcome(User.first).deliver_later(in: 1.hour)
     #   Notifier.welcome(User.first).deliver_later(at: 10.hours.from_now)
     #
-    # ==== Options
-    # * <tt>in</tt>  - Enqueue the message to be delivered with a delay
-    # * <tt>at</tt>  - Enqueue the message to be delivered at (after) a specific date / time
+    # Options:
+    #
+    # * <tt>:in</tt> - Enqueue the email to be delivered with a delay
+    # * <tt>:at</tt> - Enqueue the email to be delivered at (after) a specific date / time
     def deliver_later!(options={})
       enqueue_delivery :deliver_now!, options
     end
 
-    # Enqueues the message to be delivered through ActiveJob. When the
-    # ActiveJob job runs it will send the email using #deliver_now.
-    #
-    # ==== Examples
+    # Enqueues the email to be delivered through Active Job. When the
+    # job runs it will send the email using +deliver_now+.
     #
     #   Notifier.welcome(User.first).deliver_later
     #   Notifier.welcome(User.first).deliver_later(in: 1.hour)
     #   Notifier.welcome(User.first).deliver_later(at: 10.hours.from_now)
     #
-    # ==== Options
-    # * <tt>in</tt>  - Enqueue the message to be delivered with a delay
-    # * <tt>at</tt>  - Enqueue the message to be delivered at (after) a specific date / time
+    # Options:
+    #
+    # * <tt>:in</tt> - Enqueue the email to be delivered with a delay
+    # * <tt>:at</tt> - Enqueue the email to be delivered at (after) a specific date / time
     def deliver_later(options={})
       enqueue_delivery :deliver_now, options
     end
 
-    # Delivers a message. The message will be sent bypassing checking perform_deliveries
-    # and raise_delivery_errors, so use with caution.
+    # Delivers an email without checking +perform_deliveries+ and +raise_delivery_errors+,
+    # so use with caution.
     #
     #   Notifier.welcome(User.first).deliver_now!
     #
@@ -74,7 +74,7 @@ module ActionMailer
       message.deliver!
     end
 
-    # Delivers a message:
+    # Delivers an email:
     #
     #   Notifier.welcome(User.first).deliver_now
     #
@@ -84,13 +84,13 @@ module ActionMailer
 
     def deliver! #:nodoc:
       ActiveSupport::Deprecation.warn "#deliver! is deprecated and will be removed in Rails 5. " \
-        "Use #deliver_now! to deliver immediately or #deliver_later! to deliver through ActiveJob."
+        "Use #deliver_now! to deliver immediately or #deliver_later! to deliver through Active Job."
       deliver_now!
     end
 
     def deliver #:nodoc:
       ActiveSupport::Deprecation.warn "#deliver is deprecated and will be removed in Rails 5. " \
-        "Use #deliver_now to deliver immediately or #deliver_later to deliver through ActiveJob."
+        "Use #deliver_now to deliver immediately or #deliver_later to deliver through Active Job."
       deliver_now
     end
 
