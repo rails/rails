@@ -199,7 +199,7 @@ secrets, you need to:
     ```
 
 2. Use your existing `secret_key_base` from the `secret_token.rb` initializer to
-   set the SECRET_KEY_BASE environment variable for whichever users that are running the
+   set the SECRET_KEY_BASE environment variable for whichever users running the
    Rails application in production mode. Alternatively, you can simply copy the existing
    `secret_key_base` from the `secret_token.rb` initializer to `secrets.yml`
    under the `production` section, replacing '<%= ENV["SECRET_KEY_BASE"] %>'.
@@ -414,8 +414,8 @@ configuration to your application:
 config.i18n.enforce_available_locales = false
 ```
 
-Note that this option was added as a security measure, to ensure user input can
-not be used as locale information unless it is previously known. Therefore,
+Note that this option was added as a security measure, to ensure user input
+cannot be used as locale information unless it is previously known. Therefore,
 it's recommended not to disable this option unless you have a strong reason for
 doing so.
 
