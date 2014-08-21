@@ -105,6 +105,12 @@ module ActionDispatch
       @request_method ||= check_method(env["REQUEST_METHOD"])
     end
 
+    def request_method=(request_method) #:nodoc:
+      if check_method(request_method)
+        @request_method = env["REQUEST_METHOD"] = request_method
+      end
+    end
+
     # Returns a symbol form of the #request_method
     def request_method_symbol
       HTTP_METHOD_LOOKUP[request_method]

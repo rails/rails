@@ -1,3 +1,11 @@
+*   Avoid duplicating routes for HEAD requests.
+
+    Instead of duplicating the routes, we will first match the HEAD request to
+    HEAD routes. If no match is found, we will then map the HEAD request to
+    GET routes.
+
+    *Guo Xiang Tan*, *Andrew White*
+
 *   Requests that hit `ActionDispatch::Static` can now take advantage
     of gzipped assets on disk. By default a gzip asset will be served if
     the client supports gzip and a compressed file is on disk.

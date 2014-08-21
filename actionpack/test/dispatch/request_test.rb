@@ -650,6 +650,18 @@ class RequestMethod < BaseRequestTest
     end
   end
 
+  test "allow request method hacking" do
+    request = stub_request('REQUEST_METHOD' => 'POST')
+
+    assert_equal 'POST', request.request_method
+    assert_equal 'POST', request.env["REQUEST_METHOD"]
+
+    request.request_method = 'GET'
+
+    assert_equal 'GET', request.request_method
+    assert_equal 'GET', request.env["REQUEST_METHOD"]
+  end
+
   test "invalid http method raises exception" do
     assert_raise(ActionController::UnknownHttpMethod) do
       stub_request('REQUEST_METHOD' => 'RANDOM_METHOD').request_method
