@@ -588,9 +588,9 @@ module ActionController
           headers_or_env[key] ||= value if !value.nil?
         end
 
-        headers_or_env['action_controller.functional_test.controller'] = {
-          flash: [:update, (flash || {})]
-        }
+        if @request.env["CONTENT_TYPE"] == 'application/json' && http_method != "GET"
+          parameters = parameters.to_json
+        end
 
         send("super_#{http_method.downcase}", url, parameters, headers_or_env)
 
