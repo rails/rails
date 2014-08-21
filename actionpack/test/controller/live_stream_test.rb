@@ -2,6 +2,10 @@ require 'abstract_unit'
 require 'active_support/concurrency/latch'
 Thread.abort_on_exception = true
 
+ActiveSupport::Inflector.inflections do |inflect|
+  inflect.acronym 'SSE'
+end
+
 module ActionController
   class SSETest < ActionController::TestCase
     class SSETestController < ActionController::Base
@@ -113,10 +117,6 @@ module ActionController
       include ActionController::Live
 
       attr_accessor :latch, :tc
-
-      def self.controller_path
-        'test'
-      end
 
       def set_cookie
         cookies[:hello] = "world"
