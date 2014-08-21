@@ -1268,6 +1268,17 @@ module ActiveRecord
       # * <tt>Account#create_beneficiary</tt> (similar to <tt>b = Beneficiary.new("account_id" => id); b.save; b</tt>)
       # * <tt>Account#create_beneficiary!</tt> (similar to <tt>b = Beneficiary.new("account_id" => id); b.save!; b</tt>)
       #
+      # === Scopes
+      #
+      # You can pass a second argument +scope+ as a callable (i.e. proc or
+      # lambda) to retrieve a specific record or customize the generated query
+      # when you access the associated object.
+      #
+      # Scope examples:
+      #   has_one :auther, -> { where(comment_id: 1) }
+      #   has_one :employer, -> { joins(:company) }
+      #   has_one :dob, ->(dob) { where("Date.new(2000, 01, 01) > ?", dob) }
+      #
       # === Options
       #
       # The declaration can also include an +options+ hash to specialize the behavior of the association.
