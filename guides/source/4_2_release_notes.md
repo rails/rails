@@ -161,7 +161,7 @@ Please refer to the [Changelog][railties] for detailed changes.
     ([Pull Request](https://github.com/rails/rails/pull/16129))
 
 *   Introduced a `--skip-gems` option in the app generator to skip gems such as
-    `turbolinks` and `coffee-rails` that does not have their own specific flags.
+    `turbolinks` and `coffee-rails` that do not have their own specific flags.
     ([Commit](https://github.com/rails/rails/commit/10565895805887d4faf004a6f71219da177f78b7))
 
 *   Introduced a `bin/setup` script to enable automated setup code when
