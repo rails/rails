@@ -13,10 +13,6 @@ class RenderXmlTest < ActionController::TestCase
   class TestController < ActionController::Base
     protect_from_forgery
 
-    def self.controller_path
-      'test'
-    end
-
     def render_with_location
       render :xml => "<hello/>", :location => "http://example.com", :status => 201
     end
