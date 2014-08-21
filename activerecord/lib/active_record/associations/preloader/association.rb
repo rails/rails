@@ -80,7 +80,7 @@ module ActiveRecord
 
           # Each record may have multiple owners, and vice-versa
           records_by_owner = owners.each_with_object({}) do |owner,h|
-            h[owner] = []
+            h[owner.object_id] = []
           end
 
           if owner_keys.any?
@@ -91,7 +91,7 @@ module ActiveRecord
             records = load_slices sliced
             records.each do |record, owner_key|
               owners_map[owner_key].each do |owner|
-                records_by_owner[owner] << record
+                records_by_owner[owner.object_id] << record
               end
             end
           end
