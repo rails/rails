@@ -9,7 +9,7 @@ module ActiveJob
         end
 
         def enqueue_at(job, timestamp, *args)
-          raise NotImplementedError
+          JobWrapper.enqueue job.name, *args, queue: job.queue_name, run_at: Time.at(timestamp)
         end
       end
 
