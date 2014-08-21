@@ -17,7 +17,7 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
 
   def test_eager_association_loading_with_cascaded_two_levels
     authors = Author.all.merge!(:includes=>{:posts=>:comments}, :order=>"authors.id").to_a
-    assert_equal 3, authors.size
+    assert_equal 4, authors.size
     assert_equal 5, authors[0].posts.size
     assert_equal 3, authors[1].posts.size
     assert_equal 10, authors[0].posts.collect{|post| post.comments.size }.inject(0){|sum,i| sum+i}
@@ -25,7 +25,7 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
 
   def test_eager_association_loading_with_cascaded_two_levels_and_one_level
     authors = Author.all.merge!(:includes=>[{:posts=>:comments}, :categorizations], :order=>"authors.id").to_a
-    assert_equal 3, authors.size
+    assert_equal 4, authors.size
     assert_equal 5, authors[0].posts.size
     assert_equal 3, authors[1].posts.size
     assert_equal 10, authors[0].posts.collect{|post| post.comments.size }.inject(0){|sum,i| sum+i}
@@ -83,7 +83,7 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
 
   def test_eager_association_loading_with_cascaded_two_levels_with_two_has_many_associations
     authors = Author.all.merge!(:includes=>{:posts=>[:comments, :categorizations]}, :order=>"authors.id").to_a
-    assert_equal 3, authors.size
+    assert_equal 4, authors.size
     assert_equal 5, authors[0].posts.size
     assert_equal 3, authors[1].posts.size
     assert_equal 10, authors[0].posts.collect{|post| post.comments.size }.inject(0){|sum,i| sum+i}
@@ -91,7 +91,7 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
 
   def test_eager_association_loading_with_cascaded_two_levels_and_self_table_reference
     authors = Author.all.merge!(:includes=>{:posts=>[:comments, :author]}, :order=>"authors.id").to_a
-    assert_equal 3, authors.size
+    assert_equal 4, authors.size
     assert_equal 5, authors[0].posts.size
     assert_equal authors(:david).name, authors[0].name
     assert_equal [authors(:david).name], authors[0].posts.collect{|post| post.author.name}.uniq
@@ -159,9 +159,9 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
 
   def test_eager_association_loading_where_first_level_returns_nil
     authors = Author.all.merge!(:includes => {:post_about_thinking => :comments}, :order => 'authors.id DESC').to_a
-    assert_equal [authors(:bob), authors(:mary), authors(:david)], authors
+    assert_equal [authors(:eddie), authors(:bob), authors(:mary), authors(:david)], authors
     assert_no_queries do
-      authors[2].post_about_thinking.comments.first
+      authors[3].post_about_thinking.comments.first
     end
   end
 
@@ -178,7 +178,7 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
   def test_eager_association_loading_with_cascaded_interdependent_one_level_and_two_levels
     authors_relation = Author.all.merge!(includes: [:comments, { posts: :categorizations }], order: "authors.id")
     authors = authors_relation.to_a
-    assert_equal 3, authors.size
+    assert_equal 4, authors.size
     assert_equal 10, authors[0].comments.size
     assert_equal 1, authors[1].comments.size
     assert_equal 5, authors[0].posts.size

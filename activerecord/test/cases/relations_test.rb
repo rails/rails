@@ -815,7 +815,7 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_last
     authors = Author.all
-    assert_equal authors(:bob), authors.last
+    assert_equal authors(:eddie), authors.last
   end
 
   def test_destroy_all
@@ -858,8 +858,8 @@ class RelationTest < ActiveRecord::TestCase
   def test_select_with_aggregates
     posts = Post.select(:title, :body)
 
-    assert_equal 11, posts.count(:all)
-    assert_equal 11, posts.size
+    assert_equal 12, posts.count(:all)
+    assert_equal 12, posts.size
     assert posts.any?
     assert posts.many?
     assert_not posts.empty?
@@ -887,12 +887,12 @@ class RelationTest < ActiveRecord::TestCase
   def test_count
     posts = Post.all
 
-    assert_equal 11, posts.count
-    assert_equal 11, posts.count(:all)
-    assert_equal 11, posts.count(:id)
+    assert_equal 12, posts.count
+    assert_equal 12, posts.count(:all)
+    assert_equal 12, posts.count(:id)
 
     assert_equal 1, posts.where('comments_count > 1').count
-    assert_equal 9, posts.where(:comments_count => 0).count
+    assert_equal 10, posts.where(:comments_count => 0).count
   end
 
   def test_count_on_association_relation
@@ -910,10 +910,10 @@ class RelationTest < ActiveRecord::TestCase
     posts = Post.all
 
     assert_equal 3, posts.distinct(true).count(:comments_count)
-    assert_equal 11, posts.distinct(false).count(:comments_count)
+    assert_equal 12, posts.distinct(false).count(:comments_count)
 
     assert_equal 3, posts.distinct(true).select(:comments_count).count
-    assert_equal 11, posts.distinct(false).select(:comments_count).count
+    assert_equal 12, posts.distinct(false).select(:comments_count).count
   end
 
   def test_count_explicit_columns
@@ -923,7 +923,7 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal [0], posts.select('comments_count').where('id is not null').group('id').order('id').count.values.uniq
     assert_equal 0, posts.where('id is not null').select('comments_count').count
 
-    assert_equal 11, posts.select('comments_count').count('id')
+    assert_equal 12, posts.select('comments_count').count('id')
     assert_equal 0, posts.select('comments_count').count
     assert_equal 0, posts.count(:comments_count)
     assert_equal 0, posts.count('comments_count')
@@ -938,12 +938,12 @@ class RelationTest < ActiveRecord::TestCase
   def test_size
     posts = Post.all
 
-    assert_queries(1) { assert_equal 11, posts.size }
+    assert_queries(1) { assert_equal 12, posts.size }
     assert ! posts.loaded?
 
     best_posts = posts.where(:comments_count => 0)
     best_posts.to_a # force load
-    assert_no_queries { assert_equal 9, best_posts.size }
+    assert_no_queries { assert_equal 10, best_posts.size }
   end
 
   def test_size_with_limit
@@ -954,7 +954,7 @@ class RelationTest < ActiveRecord::TestCase
 
     best_posts = posts.where(:comments_count => 0)
     best_posts.to_a # force load
-    assert_no_queries { assert_equal 9, best_posts.size }
+    assert_no_queries { assert_equal 10, best_posts.size }
   end
 
   def test_size_with_zero_limit
@@ -1624,7 +1624,7 @@ class RelationTest < ActiveRecord::TestCase
         [post.num_posts, post.author.try(:name)]
       end
 
-      expected = [[1, nil], [5, "David"], [3, "Mary"], [2, "Bob"]]
+      expected = [[1, nil], [5, "David"], [3, "Mary"], [2, "Bob"], [1, "Eddie"]]
       assert_equal expected, result
     end
   end

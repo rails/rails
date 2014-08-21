@@ -67,7 +67,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   def test_with_ordering
     list = Post.all.merge!(:includes => :comments, :order => "posts.id DESC").to_a
-    [:other_by_mary, :other_by_bob, :misc_by_mary, :misc_by_bob, :eager_other,
+    [:post_by_eddie, :other_by_mary, :other_by_bob, :misc_by_mary, :misc_by_bob, :eager_other,
      :sti_habtm, :sti_post_and_comments, :sti_comments, :authorless, :thinking, :welcome
     ].each_with_index do |post, index|
       assert_equal posts(post), list[index]
@@ -101,25 +101,25 @@ class EagerAssociationTest < ActiveRecord::TestCase
   def test_preloading_has_many_in_multiple_queries_with_more_ids_than_database_can_handle
     Comment.connection.expects(:in_clause_length).at_least_once.returns(5)
     posts = Post.all.merge!(:includes=>:comments).to_a
-    assert_equal 11, posts.size
+    assert_equal 12, posts.size
   end
 
   def test_preloading_has_many_in_one_queries_when_database_has_no_limit_on_ids_it_can_handle
     Comment.connection.expects(:in_clause_length).at_least_once.returns(nil)
     posts = Post.all.merge!(:includes=>:comments).to_a
-    assert_equal 11, posts.size
+    assert_equal 12, posts.size
   end
 
   def test_preloading_habtm_in_multiple_queries_with_more_ids_than_database_can_handle
     Comment.connection.expects(:in_clause_length).at_least_once.returns(5)
     posts = Post.all.merge!(:includes=>:categories).to_a
-    assert_equal 11, posts.size
+    assert_equal 12, posts.size
   end
 
   def test_preloading_habtm_in_one_queries_when_database_has_no_limit_on_ids_it_can_handle
     Comment.connection.expects(:in_clause_length).at_least_once.returns(nil)
     posts = Post.all.merge!(:includes=>:categories).to_a
-    assert_equal 11, posts.size
+    assert_equal 12, posts.size
   end
 
   def test_load_associated_records_in_one_query_when_adapter_has_no_limit
@@ -1245,7 +1245,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
     }
 
     assert_no_queries {
-      assert_equal 2, author.posts.size
+      assert_equal 1, author.posts.size
     }
   end
 

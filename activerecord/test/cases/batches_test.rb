@@ -37,9 +37,9 @@ class EachTest < ActiveRecord::TestCase
 
   if Enumerator.method_defined? :size
     def test_each_should_return_a_sized_enumerator
-      assert_equal 11, Post.find_each(:batch_size => 1).size
-      assert_equal 5, Post.find_each(:batch_size => 2, :start => 7).size
-      assert_equal 11, Post.find_each(:batch_size => 10_000).size
+      assert_equal 12, Post.find_each(:batch_size => 1).size
+      assert_equal 6, Post.find_each(:batch_size => 2, :start => 7).size
+      assert_equal 12, Post.find_each(:batch_size => 10_000).size
     end
   end
 
@@ -61,7 +61,7 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_each_should_execute_if_id_is_in_select
-    assert_queries(6) do
+    assert_queries(7) do
       Post.select("id, title, type").find_each(:batch_size => 2) do |post|
         assert_kind_of Post, post
       end
@@ -202,9 +202,9 @@ class EachTest < ActiveRecord::TestCase
 
   if Enumerator.method_defined? :size
     def test_find_in_batches_should_return_a_sized_enumerator
-      assert_equal 11, Post.find_in_batches(:batch_size => 1).size
+      assert_equal 12, Post.find_in_batches(:batch_size => 1).size
       assert_equal 6, Post.find_in_batches(:batch_size => 2).size
-      assert_equal 4, Post.find_in_batches(:batch_size => 2, :start => 4).size
+      assert_equal 5, Post.find_in_batches(:batch_size => 2, :start => 4).size
       assert_equal 4, Post.find_in_batches(:batch_size => 3).size
       assert_equal 1, Post.find_in_batches(:batch_size => 10_000).size
     end
