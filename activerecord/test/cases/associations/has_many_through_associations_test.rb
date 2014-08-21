@@ -1095,7 +1095,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   def test_has_many_through_associations_on_new_records_use_null_relations
     person = Person.new
 
-    assert_no_queries do
+    assert_no_queries(ignore_none: false) do
       assert_equal [], person.posts
       assert_equal [], person.posts.where(body: 'omg')
       assert_equal [], person.posts.pluck(:body)
