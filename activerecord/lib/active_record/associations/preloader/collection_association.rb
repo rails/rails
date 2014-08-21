@@ -10,8 +10,7 @@ module ActiveRecord
         end
 
         def preload(preloader)
-          associated_records_by_owner(preloader).each do |owner_id, records|
-            owner = ObjectSpace._id2ref(owner_id)
+          associated_records_by_owner(preloader).each do |owner, records|
             association = owner.association(reflection.name)
             association.loaded!
             association.target.concat(records)
