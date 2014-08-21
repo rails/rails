@@ -107,6 +107,8 @@ module ActionDispatch
         post ':controller/(:action)'
         post ':controller/(:action(/:id))'
         put ':controller/(:action)'
+        patch ':controller/(:action)'
+        delete ':controller/(:action)'
       end
 
       DrawOnce.drew = true
