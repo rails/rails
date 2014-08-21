@@ -3,10 +3,6 @@ require 'abstract_unit'
 module ActionController
   class StreamingResponseTest < ActionController::TestCase
     class TestController < ActionController::Base
-      def self.controller_path
-        'test'
-      end
-
       def basic_stream
         %w{ hello world }.each do |word|
           response.stream.write word
