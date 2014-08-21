@@ -203,7 +203,7 @@ is integrated with Action Mailer so you can easily send emails asynchronously:
 # If you want to send the email now use #deliver_now
 UserMailer.welcome(@user).deliver_now
 
-# If you want to send the email through ActiveJob use #deliver_later
+# If you want to send the email through Active Job use #deliver_later
 UserMailer.welcome(@user).deliver_later
 ```
 
