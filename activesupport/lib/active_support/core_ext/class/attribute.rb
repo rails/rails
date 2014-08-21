@@ -79,6 +79,7 @@ class Class
       define_singleton_method("#{name}?") { !!public_send(name) } if instance_predicate
 
       ivar = "@#{name}"
+      mutex = Mutex.new
 
       define_singleton_method("#{name}=") do |val|
         singleton_class.class_eval do
@@ -113,7 +114,11 @@ class Class
         define_method("#{name}?") { !!public_send(name) } if instance_predicate
       end
 
-      attr_writer name if instance_writer
+      if instance_writer
+        define_method("#{name}=") do |val|
+          mutex.synchronize { instance_variable_set(ivar, val) }
+        end
+      end
     end
   end
 

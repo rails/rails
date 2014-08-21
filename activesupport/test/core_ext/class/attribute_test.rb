@@ -88,4 +88,18 @@ class ClassAttributeTest < ActiveSupport::TestCase
     val = @klass.send(:setting=, 1)
     assert_equal 1, val
   end
+
+  test 'setter is synchronized' do
+    threads = []
+    thread_count = 100
+    Thread.abort_on_exception = true
+
+    @klass.setting = 0
+    thread_count.times do
+      threads << Thread.new { @klass.setting += 1 }
+    end
+
+    threads.each(&:join)
+    assert_equal thread_count, @klass.setting
+  end
 end
