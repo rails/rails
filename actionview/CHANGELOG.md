@@ -1,9 +1,3 @@
-*   Add I18n support for input/textarea placeholder text.
-
-    Placeholder I18n follows the same convention as `label` I18n.
-
-    *Alex Robbin*
-
 *   Fix that render layout: 'messages/layout' should also be added to the dependency tracker tree.
 
     *DHH*

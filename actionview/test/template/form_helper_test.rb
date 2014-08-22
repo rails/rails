@@ -59,35 +59,6 @@ class FormHelperTest < ActionView::TestCase
       }
     }
 
-    I18n.backend.store_translations 'placeholder', {
-      activemodel: {
-        attributes: {
-          post: {
-            cost: "Total cost"
-          },
-          :"post/cost" => {
-            uk: "Pounds"
-          }
-        }
-      },
-      helpers: {
-        placeholder: {
-          post: {
-            title: "What is this about?",
-            written_on: {
-              spanish: "Escrito en"
-            },
-            comments: {
-              body: "Write body here"
-            }
-          },
-          tag: {
-            value: "Tag"
-          }
-        }
-      }
-    }
-
     @post = Post.new
     @comment = Comment.new
     def @post.errors()
@@ -324,68 +295,6 @@ class FormHelperTest < ActionView::TestCase
       %{<label for="post_message">\n  Message\n  <input id="post_message" name="post[message]" type="text" />\n</label>},
       view.render("test/label_with_block")
     )
-  end
-
-  def test_text_field_placeholder_without_locales
-    with_locale :placeholder do
-      assert_dom_equal('<input id="post_body" name="post[body]" placeholder="Body" type="text" value="Back to the hill and over it again!" />', text_field(:post, :body, placeholder: true))
-    end
-  end
-
-  def test_text_field_placeholder_with_locales
-    with_locale :placeholder do
-      assert_dom_equal('<input id="post_title" name="post[title]" placeholder="What is this about?" type="text" value="Hello World" />', text_field(:post, :title, placeholder: true))
-    end
-  end
-
-  def test_text_field_placeholder_with_human_attribute_name
-    with_locale :placeholder do
-      assert_dom_equal('<input id="post_cost" name="post[cost]" placeholder="Total cost" type="text" />', text_field(:post, :cost, placeholder: true))
-    end
-  end
-
-  def test_text_field_placeholder_with_human_attribute_name_and_value
-    with_locale :placeholder do
-      assert_dom_equal('<input id="post_cost" name="post[cost]" placeholder="Pounds" type="text" />', text_field(:post, :cost, placeholder: "uk"))
-    end
-  end
-
-  def test_text_field_placeholder_with_locales_and_value
-    with_locale :placeholder do
-      assert_dom_equal('<input id="post_written_on" name="post[written_on]" placeholder="Escrito en" type="text" value="2004-06-15" />', text_field(:post, :written_on, placeholder: "spanish"))
-    end
-  end
-
-  def test_text_field_placeholder_with_locales_and_nested_attributes
-    with_locale :placeholder do
-      form_for(@post, html: { id: 'create-post' }) do |f|
-        f.fields_for(:comments) do |cf|
-          concat cf.text_field(:body, placeholder: true)
-        end
-      end
-
-      expected = whole_form("/posts/123", "create-post", "edit_post", method: "patch") do
-        '<input id="post_comments_attributes_0_body" name="post[comments_attributes][0][body]" placeholder="Write body here" type="text" />'
-      end
-
-      assert_dom_equal expected, output_buffer
-    end
-  end
-
-  def test_text_field_placeholder_with_locales_fallback_and_nested_attributes
-    with_locale :placeholder do
-      form_for(@post, html: { id: 'create-post' }) do |f|
-        f.fields_for(:tags) do |cf|
-          concat cf.text_field(:value, placeholder: true)
-        end
-      end
-
-      expected = whole_form("/posts/123", "create-post", "edit_post", method: "patch") do
-        '<input id="post_tags_attributes_0_value" name="post[tags_attributes][0][value]" placeholder="Tag" type="text" value="new tag" />'
-      end
-
-      assert_dom_equal expected, output_buffer
-    end
   end
 
   def test_text_field
@@ -754,83 +663,6 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal('<input id="post_secret_false" name="post[secret]" type="radio" value="false" />',
       radio_button("post", "secret", false)
     )
-  end
-
-  def test_text_area_placeholder_without_locales
-    with_locale :placeholder do
-      assert_dom_equal(
-        %{<textarea id="post_body" name="post[body]" placeholder="Body">\nBack to the hill and over it again!</textarea>},
-        text_area(:post, :body, placeholder: true)
-      )
-    end
-  end
-
-  def test_text_area_placeholder_with_locales
-    with_locale :placeholder do
-      assert_dom_equal(
-        %{<textarea id="post_title" name="post[title]" placeholder="What is this about?">\nHello World</textarea>},
-        text_area(:post, :title, placeholder: true)
-      )
-    end
-  end
-
-  def test_text_area_placeholder_with_human_attribute_name
-    with_locale :placeholder do
-      assert_dom_equal(
-        %{<textarea id="post_cost" name="post[cost]" placeholder="Total cost">\n</textarea>},
-        text_area(:post, :cost, placeholder: true)
-      )
-    end
-  end
-
-  def test_text_area_placeholder_with_human_attribute_name_and_value
-    with_locale :placeholder do
-      assert_dom_equal(
-        %{<textarea id="post_cost" name="post[cost]" placeholder="Pounds">\n</textarea>},
-        text_area(:post, :cost, placeholder: "uk")
-      )
-    end
-  end
-
-  def test_text_area_placeholder_with_locales_and_value
-    with_locale :placeholder do
-      assert_dom_equal(
-        %{<textarea id="post_written_on" name="post[written_on]" placeholder="Escrito en">\n2004-06-15</textarea>},
-        text_area(:post, :written_on, placeholder: "spanish")
-      )
-    end
-  end
-
-  def test_text_area_placeholder_with_locales_and_nested_attributes
-    with_locale :placeholder do
-      form_for(@post, html: { id: 'create-post' }) do |f|
-        f.fields_for(:comments) do |cf|
-          concat cf.text_area(:body, placeholder: true)
-        end
-      end
-
-      expected = whole_form("/posts/123", "create-post", "edit_post", method: "patch") do
-        %{<textarea id="post_comments_attributes_0_body" name="post[comments_attributes][0][body]" placeholder="Write body here">\n</textarea>}
-      end
-
-      assert_dom_equal expected, output_buffer
-    end
-  end
-
-  def test_text_area_placeholder_with_locales_fallback_and_nested_attributes
-    with_locale :placeholder do
-      form_for(@post, html: { id: 'create-post' }) do |f|
-        f.fields_for(:tags) do |cf|
-          concat cf.text_area(:value, placeholder: true)
-        end
-      end
-
-      expected = whole_form("/posts/123", "create-post", "edit_post", method: "patch") do
-        %{<textarea id="post_tags_attributes_0_value" name="post[tags_attributes][0][value]" placeholder="Tag">\nnew tag</textarea>}
-      end
-
-      assert_dom_equal expected, output_buffer
-    end
   end
 
   def test_text_area
