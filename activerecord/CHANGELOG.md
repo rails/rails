@@ -1,8 +1,8 @@
 *   Fix nesting merge `#joins' with String argument raises `ActiveRecord::ConfigurationError`.
 
     Example:
-	# Before
 	```ruby
+	# Before
 	User.joins(:comments).merge(
 	  Comment.joins(:article).merge(
 	    Article.joins(
