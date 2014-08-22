@@ -105,8 +105,8 @@ Active Job has adapters for the following queueing backends:
 * [Delayed Job](https://github.com/collectiveidea/delayed_job)
 * [Qu](https://github.com/bkeepers/qu)
 * [Que](https://github.com/chanks/que)
-* [QueueClassic](https://github.com/ryandotsmith/queue_classic)
-* [Resque 1.x](https://github.com/resque/resque)
+* [QueueClassic 2.x](https://github.com/ryandotsmith/queue_classic/tree/v2.2.3)
+* [Resque 1.x](https://github.com/resque/resque/tree/1-x-stable)
 * [Sidekiq](https://github.com/mperham/sidekiq)
 * [Sneakers](https://github.com/jondot/sneakers)
 * [Sucker Punch](https://github.com/brandonhilkert/sucker_punch)
@@ -119,12 +119,12 @@ Active Job has adapters for the following queueing backends:
 | **Delayed Job**       | Yes   | Yes     | Yes     | Job         | Global  | Global  |
 | **Que**               | Yes   | Yes     | Yes     | Job         | No      | Job     |
 | **Queue Classic**     | Yes   | Yes     | Gem     | No          | No      | No      |
-| **Resque**            | Yes   | Yes     | Gem     | Queue       | Global  | ?       |
+| **Resque**            | Yes   | Yes     | Gem     | Queue       | Global  | Yes     |
 | **Sidekiq**           | Yes   | Yes     | Yes     | Queue       | No      | Job     |
 | **Sneakers**          | Yes   | Yes     | No      | Queue       | Queue   | No      |
 | **Sucker Punch**      | Yes   | Yes     | Yes     | No          | No      | No      |
-| **Active Job**        | Yes   | Yes     | WIP     | No          | No      | No      |
 | **Active Job Inline** | No    | Yes     | N/A     | N/A         | N/A     | N/A     |
+| **Active Job**        | Yes   | Yes     | Yes     | No          | No      | No      |
 
 ### Change Backends
 
