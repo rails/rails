@@ -1,3 +1,10 @@
+*   Fix bug where the router would ignore any constraints added to redirect
+    routes.
+
+    Fixes #16605.
+
+    *Agis Anastasopoulos*
+
 *   Allow `config.action_dispatch.trusted_proxies` to accept an IPAddr object.
 
     Example:

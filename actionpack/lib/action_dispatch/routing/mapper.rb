@@ -241,8 +241,6 @@ module ActionDispatch
           end
 
           def app(blocks)
-            return to if Redirect === to
-
             if to.respond_to?(:call)
               Constraints.new(to, blocks, false)
             else
