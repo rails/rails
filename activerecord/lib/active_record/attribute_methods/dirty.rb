@@ -43,14 +43,6 @@ module ActiveRecord
         calculate_changes_from_defaults
       end
 
-      def changed?
-        super || changed_in_place.any?
-      end
-
-      def changed
-        super | changed_in_place
-      end
-
       def changes_applied
         super
         store_original_raw_attributes
