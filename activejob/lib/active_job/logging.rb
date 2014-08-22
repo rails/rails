@@ -52,19 +52,19 @@ module ActiveJob
 
     class LogSubscriber < ActiveSupport::LogSubscriber
       def enqueue(event)
-        info "Enqueued #{event.payload[:job].name} (Job ID: #{event.payload[:job_id]}) to #{queue_name(event)}" + args_info(event)
+        info { "Enqueued #{event.payload[:job].name} (Job ID: #{event.payload[:job_id]}) to #{queue_name(event)}" + args_info(event) }
       end
 
       def enqueue_at(event)
-        info "Enqueued #{event.payload[:job].name} (Job ID: #{event.payload[:job_id]}) to #{queue_name(event)} at #{enqueued_at(event)}" + args_info(event)
+        info { "Enqueued #{event.payload[:job].name} (Job ID: #{event.payload[:job_id]}) to #{queue_name(event)} at #{enqueued_at(event)}" + args_info(event) }
       end
 
       def perform_start(event)
-        info "Performing #{event.payload[:job].name} from #{queue_name(event)}" + args_info(event)
+        info { "Performing #{event.payload[:job].name} from #{queue_name(event)}" + args_info(event) }
       end
 
       def perform(event)
-        info "Performed #{event.payload[:job].name} from #{queue_name(event)} in #{event.duration.round(2).to_s}ms"
+        info { "Performed #{event.payload[:job].name} from #{queue_name(event)} in #{event.duration.round(2).to_s}ms" }
       end
 
       private
