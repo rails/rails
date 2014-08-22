@@ -14,6 +14,12 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
   end
 
+  class GrumpyRestrictor
+    def self.matches?(request)
+      false
+    end
+  end
+
   class YoutubeFavoritesRedirector
     def self.call(params, request)
       "http://www.youtube.com/watch?v=#{params[:youtube_id]}"
@@ -87,6 +93,24 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
     get '/private'
     verify_redirect 'http://www.example.com/private/index'
+  end
+
+  def test_redirect_with_failing_constraint
+    draw do
+      get 'hi', to: redirect("/foo"), constraints: ::TestRoutingMapper::GrumpyRestrictor
+    end
+
+    get '/hi'
+    assert_equal 404, status
+  end
+
+  def test_redirect_with_passing_constraint
+    draw do
+      get 'hi', to: redirect("/foo"), constraints: ->(req) { true }
+    end
+
+    get '/hi'
+    assert_equal 301, status
   end
 
   def test_namespace_with_controller_segment
