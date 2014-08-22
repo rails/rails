@@ -1578,6 +1578,18 @@ module ActiveRecord
       # * <tt>Developer#projects.create</tt> (similar to <tt>c = Project.new("developer_id" => id); c.save; c</tt>)
       # The declaration may include an +options+ hash to specialize the behavior of the association.
       #
+      # === Scopes
+      #
+      # You can pass a second argument +scope+ as a callable (i.e. proc or
+      # lambda) to retrieve a specific set of records or customize the generated
+      # query when you access the associated collection.
+      #
+      # Scope examples:
+      #   has_and_belongs_to_many :projects, -> { includes :milestones, :manager }
+      #   has_and_belongs_to_many :categories, ->(category) {
+      #     where("default_category = ?", category.name)
+      #   }
+      #
       # === Options
       #
       # [:class_name]
