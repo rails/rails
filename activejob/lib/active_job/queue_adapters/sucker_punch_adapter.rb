@@ -9,7 +9,7 @@ module ActiveJob
         end
 
         def enqueue_at(job, timestamp, *args)
-          raise NotImplementedError
+          JobWrapper.new.async.later((timestamp - Time.now.to_i).round, job, *args)
         end
       end
 
@@ -18,6 +18,10 @@ module ActiveJob
 
         def perform(job, *args)
           job.new.execute(*args)
+        end
+
+        def later(sec, job, *args)
+          after(sec) { perform(job, *args) }
         end
       end
     end
