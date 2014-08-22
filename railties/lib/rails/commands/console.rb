@@ -14,7 +14,7 @@ module Rails
 
         OptionParser.new do |opt|
           opt.banner = "Usage: rails console [environment] [options]"
-          opt.on('-s', '--sandbox', 'Rollbacks database modifications on exit.') { |v| options[:sandbox] = v }
+          opt.on('-s', '--sandbox', 'Rollback database modifications on exit.') { |v| options[:sandbox] = v }
           opt.on("-e", "--environment=name", String,
                   "Specifies the environment to run this console under (test/development/production).",
                   "Default: development") { |v| options[:environment] = v.strip }
