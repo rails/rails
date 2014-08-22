@@ -211,7 +211,7 @@ logger.tagged("BCX") { logger.tagged("Jason") { logger.info "Stuff" } } # Logs "
 
 ### Impact of Logs on Performance
 Logging will always have a small impact on performance of your rails app,
-        particularly when logging to disk.However, there are a few subtleties:
+        particularly when logging to disk. However, there are a few subtleties:
 
 Using the `:debug` level will have a greater performance penalty than `:fatal`,
       as a far greater number of strings are being evaluated and written to the
