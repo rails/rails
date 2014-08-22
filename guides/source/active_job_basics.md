@@ -150,8 +150,29 @@ class GuestsCleanupJob < ActiveJob::Base
 end
 ```
 
-NOTE: Make sure your queueing backend "listens" on your queue name. For some backends
-you need to specify the queues to listen to.
+Also you can prefix the queue name for all your jobs using
+`config.active_job.queue_name_prefix` in `application.rb`:
+
+```ruby
+# config/application.rb
+module YourApp
+  class Application < Rails::Application
+    config.active_job.queue_name_prefix = Rails.env
+  end
+end
+
+# app/jobs/guests_cleanup.rb
+class GuestsCleanupJob < ActiveJob::Base
+  queue_as :low_priority
+  #....
+end
+
+# Now your job will run on queue production_low_priority on your production
+# environment and on beta_low_priority on your beta environment
+```
+
+NOTE: Make sure your queueing backend "listens" on your queue name. For some
+backends you need to specify the queues to listen to.
 
 
 Callbacks
