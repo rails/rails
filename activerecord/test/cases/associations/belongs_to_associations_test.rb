@@ -465,6 +465,15 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal members(:groucho), sponsor.sponsorable
   end
 
+  def test_polymorphic_autosaving_nil_target_after_non_nil_target_loaded
+    sponsor = Sponsor.new(sponsorable_id: 1, sponsorable_type: "Member")
+    sponsor.sponsorable
+    sponsor.sponsorable_id = nil
+    sponsor.sponsorable_type = nil
+
+    sponsor.save!
+  end
+
   def test_dont_find_target_when_foreign_key_is_null
     tagging = taggings(:thinking_general)
     assert_queries(0) { tagging.super_tag }
