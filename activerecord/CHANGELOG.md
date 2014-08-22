@@ -1,3 +1,19 @@
+*   Fix nesting merge `#joins' with String argument raises `ActiveRecord::ConfigurationError`.
+
+    Example:
+	# Before
+	```ruby
+	User.joins(:comments).merge(
+	  Comment.joins(:article).merge(
+	    Article.joins(
+	      'LEFT OUTER JOIN categories ON articles.id = categories.article_id'
+	    )
+	  )
+	) # => ActiveRecord::ConfigurationError
+	```
+
+    *Takamichi Yoshikawa*
+
 *   Fix has_many :through relation merging failing when dynamic conditions are
     passed as a lambda with an arity of one.
 

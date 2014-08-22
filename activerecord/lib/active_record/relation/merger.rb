@@ -100,7 +100,7 @@ module ActiveRecord
           join_dependency = ActiveRecord::Associations::JoinDependency.new(other.klass,
                                                                            joins_dependency,
                                                                            [])
-          relation.joins! rest
+          relation.joins!(*rest)
 
           @relation = relation.joins join_dependency
         end
