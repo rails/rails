@@ -32,8 +32,8 @@ defined in +Rakefile+)
 
 == Config File
 
-If +test/config.yml+ is present, it's parameters are obeyed. Otherwise, the
-parameters in +test/config.example.yml+ are obeyed.
+If +test/config.yml+ is present, then its parameters are obeyed; otherwise, the
+parameters in +test/config.example.yml+ are.
 
 You can override the +connections:+ parameter in either file using the +ARCONN+
 (Active Record CONNection) environment variable:
