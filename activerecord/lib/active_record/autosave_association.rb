@@ -246,6 +246,14 @@ module ActiveRecord
       @destroyed_by_association
     end
 
+    def mark_as_changed_for_autosave
+      @marked_as_changed_for_autosave = true
+    end
+
+    def marked_as_changed_for_autosave?
+      @marked_as_changed_for_autosave ||= false
+    end
+
     # Returns whether or not this record has been changed in any way (including whether
     # any of its nested autosave associations are likewise changed)
     def changed_for_autosave?
@@ -267,13 +275,22 @@ module ActiveRecord
         end
       end
 
-      # go through nested autosave associations that are loaded in memory (without loading
-      # any new ones), and return true if is changed for autosave
+      # Go through nested autosave associations that are loaded in memory (without loading
+      # any new ones), and return true if is changed for autosave.
+      #
+      # In the event that an associated record is on the other end of an inversed association,
+      # the record will be marked so it won't get checked again by the other record's nested
+      # autosave. This prevents ActiveRecord from entering an infinite loop bouncing between
+      # the two records.
       def nested_records_changed_for_autosave?
+        mark_as_changed_for_autosave
+
         self.class._reflections.values.any? do |reflection|
           if reflection.options[:autosave]
             association = association_instance_get(reflection.name)
-            association && Array.wrap(association.target).any? { |a| a.changed_for_autosave? }
+            association && Array.wrap(association.target).any? do |target|
+              target.marked_as_changed_for_autosave? || target.changed_for_autosave?
+            end
           end
         end
       end

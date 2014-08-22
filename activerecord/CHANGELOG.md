@@ -1,3 +1,8 @@
+*   Fixed the stack level too deep upon saving a parent record with an associated
+    child record where in the parent the child association is an `inverse_of` the parent.
+
+    *Joni Töyrylä*, *Fred Wu*
+
 *   Fix has_many :through relation merging failing when dynamic conditions are
     passed as a lambda with an arity of one.
 
