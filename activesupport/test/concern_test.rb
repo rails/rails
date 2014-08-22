@@ -54,6 +54,10 @@ class ConcernTest < ActiveSupport::TestCase
     include Bar, Baz
   end
 
+  module IncluderTest
+    extend ActiveSupport::Concern
+  end
+
   def setup
     @klass = Class.new
   end
@@ -100,5 +104,10 @@ class ConcernTest < ActiveSupport::TestCase
         end
       end
     end
+  end
+
+  def test_includers
+    klass = Class.new.send(:include, IncluderTest)
+    assert_equal [klass], ConcernTest::IncluderTest.includers
   end
 end

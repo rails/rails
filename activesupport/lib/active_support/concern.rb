@@ -138,5 +138,11 @@ module ActiveSupport
 
       mod.module_eval(&class_methods_module_definition)
     end
+
+    def includers
+      ObjectSpace.each_object.select do |obj|
+        Module === obj && obj.included_modules.include?(self)
+      end
+    end
   end
 end
