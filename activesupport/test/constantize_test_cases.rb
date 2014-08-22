@@ -83,4 +83,13 @@ module ConstantizeTestCases
     assert_nil yield("Ace::Gas::ConstantizeTestCases")
     assert_nil yield("#<Class:0x7b8b718b>::Nested_1")
   end
+
+  def run_constantize_only_tests_on
+    assert_equal Ace, yield("Ace", "Ace")
+    assert_equal Ace, yield("Ace", Ace)
+    assert_equal Ace, yield("Ace", ["Ace", Ace::Base])
+    assert_equal Ace::Base, yield("Ace::Base", [Ace, Ace::Base])
+    assert_nil yield("ConstantizeOnly", "ConstantizeOnly")
+    assert_raises(NameError) { yield("ace", "Base") }
+  end
 end

@@ -309,6 +309,31 @@ module ActiveSupport
       raise unless e.message =~ /not missing constant #{const_regexp(camel_cased_word)}\!$/
     end
 
+    # Tries to find a constant with the name specified in the argument string.
+    #
+    # 'Module'.constantize_only('Module')         #=> Module
+    # 'Test::Unit'.constantize_only('Test::Unit') #=> Test::Unit
+    #
+    # The name is assumed to be the one of a top-level constant, no matter
+    # whether it starts with "::" or not. No lexical context is taken into
+    # account:
+    #
+    #   C = 'outside'
+    #   module M
+    #     C = 'inside'
+    #     C                         # => 'inside'
+    #     'C'.constantize_only('C') # => 'outside', same as ::C
+    #   end
+    #
+    # Internally this uses +safe_constantize+, so +nil+ is returned when the
+    # name is not in CamelCase or the constant (or part of it) is unknown.
+    #
+    # NameError is raised when the name is not whitelisted.
+    def constantize_only(string, *whitelist)
+      return string.safe_constantize if whitelist.flatten.find { |c| string == c.to_s }
+      raise NameError.new("Can't constantize '#{string}'")
+    end
+
     # Returns the suffix that should be added to a number to denote the position
     # in an ordered sequence such as 1st, 2nd, 3rd, 4th.
     #

@@ -324,6 +324,12 @@ class InflectorTest < ActiveSupport::TestCase
     end
   end
 
+  def test_constantize_only
+    run_constantize_only_tests_on do |string, whitelist|
+      ActiveSupport::Inflector.constantize_only(string, whitelist)
+    end
+  end
+
   def test_ordinal
     OrdinalNumbers.each do |number, ordinalized|
       assert_equal(ordinalized, number + ActiveSupport::Inflector.ordinal(number))
