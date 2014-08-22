@@ -117,7 +117,7 @@ end
 
 def enable_uuid_ossp!(connection)
   return false unless connection.supports_extensions?
-  return true if connection.extension_enabled?('uuid-ossp')
+  return connection.reconnect! if connection.extension_enabled?('uuid-ossp')
 
   connection.enable_extension 'uuid-ossp'
   connection.commit_db_transaction
