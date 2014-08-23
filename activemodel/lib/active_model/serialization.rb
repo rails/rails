@@ -104,8 +104,9 @@ module ActiveModel
         attribute_names -= Array(except).map(&:to_s)
       end
 
-      hash = {}
-      attribute_names.each { |n| hash[n] = read_attribute_for_serialization(n) }
+      hash = attribute_names.each_with_object({}) do |n, hash|
+        hash[n] = read_attribute_for_serialization(n)
+      end
 
       Array(options[:methods]).each { |m| hash[m.to_s] = send(m) if respond_to?(m) }
 
