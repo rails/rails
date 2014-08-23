@@ -35,10 +35,10 @@ module ActionView
       #   This is helpful when you're fragment-caching the form. Remote forms get the
       #   authenticity token from the <tt>meta</tt> tag, so embedding is unnecessary unless you
       #   support browsers without JavaScript.
-      # * A list of parameters to feed to the URL the form will be posted to.
       # * <tt>:remote</tt> - If set to true, will allow the Unobtrusive JavaScript drivers to control the
       #   submit behavior. By default this behavior is an ajax submit.
       # * <tt>:enforce_utf8</tt> - If set to false, a hidden input with name utf8 is not output.
+      # * Any other key creates standard HTML attributes for the tag.
       #
       # ==== Examples
       #   form_tag('/posts')
