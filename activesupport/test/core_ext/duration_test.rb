@@ -41,6 +41,9 @@ class DurationTest < ActiveSupport::TestCase
   end
 
   def test_eql
+    rubinius_skip "Rubinius' #eql? definition relies on #instance_of? " \
+                  "which behaves oddly for the sake of backward-compatibility."
+
     assert 1.minute.eql?(1.minute)
     assert 2.days.eql?(48.hours)
     assert !1.second.eql?(1)
