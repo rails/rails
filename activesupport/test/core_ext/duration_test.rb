@@ -20,6 +20,12 @@ class DurationTest < ActiveSupport::TestCase
     assert !d.is_a?(k)
   end
 
+  def test_instance_of
+    assert 1.minute.instance_of?(Fixnum)
+    assert 2.days.instance_of?(ActiveSupport::Duration)
+    assert !3.second.instance_of?(Numeric)
+  end
+
   def test_threequals
     assert ActiveSupport::Duration === 1.day
     assert !(ActiveSupport::Duration === 1.day.to_i)
@@ -39,11 +45,6 @@ class DurationTest < ActiveSupport::TestCase
     assert 2.days.eql?(48.hours)
     assert !1.second.eql?(1)
     assert !1.eql?(1.second)
-  end
-
-  def test_instance_of
-    assert !1.minute.instance_of?(Fixnum)
-    assert !2.days.instance_of?(Fixnum)
   end
 
   def test_inspect
