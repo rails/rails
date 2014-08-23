@@ -1310,6 +1310,39 @@ In above examples "dear" gets cut first, but then `:separator` prevents it.
 
 NOTE: Defined in `active_support/core_ext/string/filters.rb`.
 
+### `truncate_words`
+
+The method `truncate_words` returns a copy of its receiver truncated after a given number of `words`:
+
+```ruby
+"Oh dear! Oh dear! I shall be late!".truncate_words(4)
+# => "Oh dear! Oh dear!..."
+```
+Ellipsis can be customized with the `:omission` option:
+
+```ruby
+"Oh dear! Oh dear! I shall be late!".truncate_words(4, omission: '&hellip;')
+# => "Oh dear! Oh dear!&hellip;"
+```
+
+Note in particular that truncation takes into account the length of the omission string.
+
+Pass a `:separator` to truncate the string at a natural break:
+
+```ruby
+"Oh dear! Oh dear! I shall be late!".truncate_words(4, separator: ' ')
+# => "Oh dear! Oh dear!..."
+```
+
+The option `:separator` can be a regexp:
+
+```ruby
+"Oh dear! Oh dear! I shall be late!".truncate_words(4, separator: /\s/)
+# => "Oh dear! Oh dear!..."
+```
+
+NOTE: Defined in `active_support/core_ext/string/filters.rb`.
+
 ### `inquiry`
 
 The `inquiry` method converts a string into a `StringInquirer` object making equality checks prettier.
