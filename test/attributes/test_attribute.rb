@@ -180,6 +180,9 @@ module Arel
           mgr.to_sql.must_be_like %{
             SELECT "users"."id" FROM "users" WHERE "users"."id" < 10
           }
+
+          mgr.where relation[:created_at].lt(::Time.now)
+          mgr.to_sql.must_match %{"users"."created_at" <}
         end
       end
 
@@ -228,6 +231,9 @@ module Arel
           mgr.to_sql.must_be_like %{
             SELECT "users"."id" FROM "users" WHERE "users"."id" <= 10
           }
+
+          mgr.where relation[:created_at].lteq(::Time.now)
+          mgr.to_sql.must_match %{"users"."created_at" <=}
         end
       end
 

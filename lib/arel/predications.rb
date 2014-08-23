@@ -31,7 +31,7 @@ module Arel
       when Range
         if other.begin == -Float::INFINITY
           if other.end == Float::INFINITY
-            Nodes::NotIn.new self, [] 
+            Nodes::NotIn.new self, []
           elsif other.exclude_end?
             Nodes::LessThan.new(self, Nodes.build_quoted(other.end, self))
           else
@@ -67,20 +67,20 @@ module Arel
         Arel::Nodes::NotIn.new(self, other.ast)
       when Range
         if other.begin == -Float::INFINITY # The range begins with negative infinity
-          if other.end == Float::INFINITY 
+          if other.end == Float::INFINITY
             Nodes::In.new self, [] # The range is infinite, so return an empty range
           elsif other.exclude_end?
             Nodes::GreaterThanOrEqual.new(self, Nodes.build_quoted(other.end, self))
           else
             Nodes::GreaterThan.new(self, Nodes.build_quoted(other.end, self))
           end
-        elsif other.end == Float::INFINITY 
+        elsif other.end == Float::INFINITY
           Nodes::LessThan.new(self, Nodes.build_quoted(other.begin, self))
         else
           left  = Nodes::LessThan.new(self, Nodes.build_quoted(other.begin, self))
           if other.exclude_end?
             right = Nodes::GreaterThanOrEqual.new(self, Nodes.build_quoted(other.end, self))
-          else 
+          else
             right = Nodes::GreaterThan.new(self, Nodes.build_quoted(other.end, self))
           end
           Nodes::Or.new left, right
@@ -149,7 +149,7 @@ module Arel
     end
 
     def lt right
-      Nodes::LessThan.new self, right
+      Nodes::LessThan.new self, Nodes.build_quoted(right, self)
     end
 
     def lt_any others
@@ -161,7 +161,7 @@ module Arel
     end
 
     def lteq right
-      Nodes::LessThanOrEqual.new self, right
+      Nodes::LessThanOrEqual.new self, Nodes.build_quoted(right, self)
     end
 
     def lteq_any others
