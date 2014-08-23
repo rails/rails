@@ -2862,6 +2862,20 @@ Active Record does not accept unknown options when building associations, for ex
 
 NOTE: Defined in `active_support/core_ext/hash/keys.rb`.
 
+### Transform Values
+
+#### `transform_values` && `transform_values!`
+
+The method `transform_values` accepts a block and returns a hash that has applied the block operations to each of the values in the receiver
+
+```ruby
+{nil => nil, 1 => 1, a: :a}.transform_values { |value| value.to_s.upcase }
+# => {nil => "", 1 => "1",  :a=> "A"}
+```
+There's also the bang variant `transform_values!` that applies the block operations to values in the very receiver.
+
+NOTE: Defined in `active_support/core_text/hash/transform_values.rb`
+
 ### Slicing
 
 Ruby has built-in support for taking slices out of strings and arrays. Active Support extends slicing to hashes:
