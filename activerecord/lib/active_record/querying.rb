@@ -61,7 +61,7 @@ module ActiveRecord
       # Detect negation of results via 1=0 outside of any subqueries
       def impossible_where_clause?(sanitized_sql)
         negation_regex = /(WHERE|(?:AND))\s+1=0/
-        subquery_regex = /\(+SELECT.*\)/
+        subquery_regex = /\([[:space:]]*SELECT.*\)/m
         sql_to_test = sanitized_sql.respond_to?(:to_sql) ? sanitized_sql.to_sql : sanitized_sql
         sql_to_test.split(subquery_regex).any? do |fragment|
           !!fragment.match(negation_regex)

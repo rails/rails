@@ -261,6 +261,22 @@ class FinderTest < ActiveRecord::TestCase
     end
   end
 
+    def test_find_with_impossible_where_clause_in_subquery_with_formatting
+    assert_queries do
+      sql = <<-SQL
+        SELECT *
+        FROM posts
+        WHERE id IN (
+          SELECT post_id
+          FROM comments
+          WHERE 1=0
+        )
+      SQL
+      posts = Comment.find_by_sql(sql)
+      assert_equal [], posts
+    end
+  end
+
   def test_find_with_impossible_where_clause_in_nested_subquery
     assert_queries do
       posts = Author.find_by_sql("SELECT * FROM authors WHERE id IN (select author_id FROM posts WHERE id IN (SELECT post_id FROM comments WHERE 1=0) AND 1=0)")
