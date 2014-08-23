@@ -181,8 +181,8 @@ module Rails
 
         gemfile = if options.dev? || options.edge?
           <<-GEMFILE.strip_heredoc
-            # Use edge version of sprockets-rails
-            gem 'sprockets-rails', github: 'rails/sprockets-rails'
+            # Use latest 2.1 version of sprockets-rails
+            gem 'sprockets-rails', github: 'rails/sprockets-rails', branch: "2-1-stable"
 
             # Use SCSS for stylesheets
             gem 'sass-rails', github: 'rails/sass-rails'
