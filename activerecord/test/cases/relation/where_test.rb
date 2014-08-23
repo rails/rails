@@ -180,6 +180,16 @@ module ActiveRecord
       assert_equal 0, Post.where(:id => []).count
     end
 
+    def test_where_with_table_name_and_nested_array
+      titles = [
+        "Welcome to the weblog",
+        "So I was thinking"
+      ]
+      assert_sql(/WHERE ["`]posts["`].["`]title["`] IN \('Welcome to the weblog', 'So I was thinking'\)/) do
+        Post.where(:title => [titles]).to_a
+      end
+    end
+
     def test_where_with_table_name_and_nested_empty_array
       assert_equal [], Post.where(:id => [[]]).to_a
     end
