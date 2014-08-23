@@ -133,8 +133,6 @@ module ActiveRecord::Associations::Builder
       raise NotImplementedError
     end
 
-    private
-
     def self.check_dependent_options(dependent)
       unless valid_dependent_options.include? dependent
         raise ArgumentError, "The :dependent option must be one of #{valid_dependent_options}, but is :#{dependent}"

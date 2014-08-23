@@ -212,8 +212,7 @@ module ActiveRecord
         @stack.last || NULL_TRANSACTION
       end
 
-      private
-        NULL_TRANSACTION = NullTransaction.new
+      NULL_TRANSACTION = NullTransaction.new
     end
   end
 end
