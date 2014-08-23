@@ -269,7 +269,7 @@ job:
 class GuestsCleanupJob < ActiveJob::Base
   queue_as :default
 
-  rescue_from(ActiveRecord:NotFound) do |exception|
+  rescue_from(ActiveRecord::RecordNotFound) do |exception|
    # do something with the exception
   end
 
