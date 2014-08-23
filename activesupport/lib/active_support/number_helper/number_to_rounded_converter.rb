@@ -33,7 +33,7 @@ module ActiveSupport
             a, b = s.split('.', 2)
             a + '.' + b[0, precision]
           else
-            "%01.#{precision}f" % rounded_number
+            "%00.#{precision}f" % rounded_number
           end
 
         delimited_number = NumberToDelimitedConverter.convert(formatted_string, options)
