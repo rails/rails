@@ -36,7 +36,9 @@ module ActiveRecord
     #   Post.find_by_sql ["SELECT title FROM posts WHERE author = ? AND created > ?", author_id, start_date]
     #   Post.find_by_sql ["SELECT body FROM comments WHERE author = :user_id OR approved_by = :user_id", { :user_id => user_id }]
     def find_by_sql(sql, binds = [])
-      result_set = connection.select_all(sanitize_sql(sql), "#{name} Load", binds)
+      sanitized_sql = sanitize_sql(sql)
+      return [] if impossible_where_clause?(sanitized_sql)
+      result_set = connection.select_all(sanitized_sql, "#{name} Load", binds)
       column_types = result_set.column_types.except(*columns_hash.keys)
       result_set.map { |record| instantiate(record, column_types) }
     end
@@ -54,5 +56,16 @@ module ActiveRecord
       sql = sanitize_conditions(sql)
       connection.select_value(sql, "#{name} Count").to_i
     end
+
+    private
+      # Detect negation of results via 1=0 outside of any subqueries
+      def impossible_where_clause?(sanitized_sql)
+        negation_regex = /(WHERE|(?:AND))\s+1=0/
+        subquery_regex = /\([[:space:]]*SELECT.*\)/m
+        sql_to_test = sanitized_sql.respond_to?(:to_sql) ? sanitized_sql.to_sql : sanitized_sql
+        sql_to_test.split(subquery_regex).any? do |fragment|
+          !!fragment.match(negation_regex)
+        end
+      end
   end
 end

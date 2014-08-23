@@ -180,6 +180,18 @@ module ActiveRecord
       assert_equal 0, Post.where(:id => []).count
     end
 
+    def test_where_with_attribute_and_empty_array_runs_no_queries
+      assert_no_queries do
+        assert_equal [], Post.where(:id => []).to_a
+      end
+    end
+
+    def test_where_with_multiple_attributes_and_empty_array_runs_no_queries
+      assert_no_queries do
+        assert_equal [], Post.where(:title => "I don't have any comments", :id => []).to_a
+      end
+    end
+
     def test_where_with_table_name_and_nested_empty_array
       assert_equal [], Post.where(:id => [[]]).to_a
     end
