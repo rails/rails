@@ -67,7 +67,7 @@ Here's what a job looks like:
 class GuestsCleanupJob < ActiveJob::Base
   queue_as :default
 
-  def perform
+  def perform(*args)
     # Do something later
   end
 end
