@@ -261,7 +261,7 @@ class FinderTest < ActiveRecord::TestCase
     end
   end
 
-    def test_find_with_impossible_where_clause_in_subquery_with_formatting
+  def test_find_with_impossible_where_clause_in_subquery_with_formatting
     assert_queries do
       sql = <<-SQL
         SELECT *
@@ -270,6 +270,26 @@ class FinderTest < ActiveRecord::TestCase
           SELECT post_id
           FROM comments
           WHERE 1=0
+        )
+      SQL
+      posts = Comment.find_by_sql(sql)
+      assert_equal [], posts
+    end
+  end
+
+  def test_find_with_impossible_where_clause_in_formatted_nested_subquery
+    assert_queries do
+      sql = <<-SQL
+        SELECT *
+        FROM authors
+        WHERE id IN (
+          SELECT author_id
+          FROM posts
+          WHERE id IN (
+            SELECT post_id
+            FROM comments
+            WHERE 1=0
+          )
         )
       SQL
       posts = Comment.find_by_sql(sql)
