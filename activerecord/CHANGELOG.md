@@ -1,3 +1,9 @@
+*   Don't make a trip to the database if a query's where clause would return zero results.
+
+    Fixes #16506
+
+    *Dan Olson*
+
 *   Fix has_many :through relation merging failing when dynamic conditions are
     passed as a lambda with an arity of one.
 
