@@ -64,7 +64,7 @@ module ActiveModel
       # Returns a boolean that specifies whether the object has been persisted
       # yet. This is used when calculating the URL for an object. If the object
       # is not persisted, a form for that object, for instance, will route to
-      # the create action. If it is persisted, a form for the object will routes
+      # the create action. If it is persisted, a form for the object will route
       # to the update action.
       def test_persisted?
         assert model.respond_to?(:persisted?), "The model should respond to persisted?"
