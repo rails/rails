@@ -1094,6 +1094,30 @@ asset for up to a year. Since most CDNs also cache headers of the request, this
 the browser then knows that it can store this asset for a very long time before
 needing to re-request it.
 
+##### CDNs and URL based Cache Invalidation
+
+Most CDNs will cache contents of an asset based on the complete URL. This means
+that a request to
+
+```
+http://mycdnsubdomain.fictional-cdn.com/assets/smile-123.png
+```
+
+Will be a completely different cache from
+
+```
+http://mycdnsubdomain.fictional-cdn.com/assets/smile.png
+```
+
+If you want to set far future `max-age` in your `Cache-Control` (and you do).
+Then make sure when you change your assets that your cache is invalidated. For
+example when changing the smiley face in an image from yellow to blue, you want
+all visitors of your site to get the new blue face. When using a CDN with a the
+Rails asset pipeline `config.assets.digest` is set to true by default so that
+each asset will have a different file name when it is changed. This way you
+don't have to ever manually invalidate any items in your cache. By using a
+different unique asset name instead, your users get the latest asset.
+
 Customizing the Pipeline
 ------------------------
 
