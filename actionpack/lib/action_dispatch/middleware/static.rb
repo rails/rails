@@ -16,8 +16,7 @@ module ActionDispatch
     def initialize(root, cache_control)
       @root          = root.chomp('/')
       @compiled_root = /^#{Regexp.escape(root)}/
-      headers        = {}
-      headers['Cache-Control'] = cache_control if cache_control
+      headers        = cache_control && { 'Cache-Control' => cache_control }
       @file_server = ::Rack::File.new(@root, headers)
     end
 
@@ -37,10 +36,11 @@ module ActionDispatch
     end
 
     def call(env)
-      path             = env['PATH_INFO']
-      gzip_file_exists = gzip_file_exists?(path)
-      if gzip_file_exists && gzip_encoding_accepted?(env)
-        env['PATH_INFO'] = "#{path}.gz"
+      path      = env['PATH_INFO']
+      gzip_path = gzip_file_path(path)
+
+      if gzip_path && gzip_encoding_accepted?(env)
+        env['PATH_INFO']            = gzip_path
         status, headers, body       = @file_server.call(env)
         headers['Content-Encoding'] = 'gzip'
         headers['Content-Type']     = content_type(path)
@@ -48,8 +48,11 @@ module ActionDispatch
         status, headers, body = @file_server.call(env)
       end
 
-      headers['Vary'] = 'Accept-Encoding' if gzip_file_exists
+      headers['Vary'] = 'Accept-Encoding' if gzip_path
+
       return [status, headers, body]
+    ensure
+      env['PATH_INFO'] = path
     end
 
     private
@@ -73,11 +76,17 @@ module ActionDispatch
       end
 
       def gzip_encoding_accepted?(env)
-        env['HTTP_ACCEPT_ENCODING'] =~ /\bgzip\b/
+        env['HTTP_ACCEPT_ENCODING'] =~ /\bgzip\b/i
       end
 
-      def gzip_file_exists?(path)
-        File.exist?(File.join(@root, "#{::Rack::Utils.unescape(path)}.gz"))
+      def gzip_file_path(path)
+        can_gzip_mime = content_type(path) =~ /\A(?:text\/|application\/javascript)/
+        gzip_path     = "#{path}.gz"
+        if can_gzip_mime && File.exist?(File.join(@root, ::Rack::Utils.unescape(gzip_path)))
+          gzip_path
+        else
+          false
+        end
       end
   end
 

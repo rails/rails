@@ -115,8 +115,30 @@ module StaticTests
     assert_equal 'Accept-Encoding',        response.headers["Vary"]
     assert_equal 'gzip',                   response.headers["Content-Encoding"]
 
+    response  = get(file_name, 'HTTP_ACCEPT_ENCODING' => 'Gzip')
+    assert_gzip  file_name, response
+
+    response  = get(file_name, 'HTTP_ACCEPT_ENCODING' => 'GZIP')
+    assert_gzip  file_name, response
+
     response  = get(file_name, 'HTTP_ACCEPT_ENCODING' => '')
-    refute_equal 'gzip', response.headers["Content-Encoding"]
+    assert_not_equal 'gzip', response.headers["Content-Encoding"]
+  end
+
+  def test_does_not_modify_path_info
+    file_name = "/gzip/application-a71b3024f80aea3181c09774ca17e712.js"
+    env = {'PATH_INFO' => file_name, 'HTTP_ACCEPT_ENCODING' => 'gzip'}
+    @app.call(env)
+    assert_equal file_name, env['PATH_INFO']
+  end
+
+  def test_serves_gzip_with_propper_content_type_fallback
+    file_name = "/gzip/foo.zoo"
+    response  = get(file_name, 'HTTP_ACCEPT_ENCODING' => 'gzip')
+    assert_gzip  file_name, response
+
+    default_response = get(file_name) # no gzip
+    assert_equal default_response.headers['Content-Type'], response.headers['Content-Type']
   end
 
   # Windows doesn't allow \ / : * ? " < > | in filenames
@@ -147,7 +169,7 @@ module StaticTests
     def assert_html(body, response)
       assert_equal body, response.body
       assert_equal "text/html", response.headers["Content-Type"]
-      refute response.headers.key?("Vary")
+      assert_nil response.headers["Vary"]
     end
 
     def get(path, headers = {})

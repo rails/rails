@@ -278,6 +278,13 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 *   Added an option to disable logging of CSRF failures.
     ([Pull Request](https://github.com/rails/rails/pull/14280))
 
+*   When the Rails server is set to serve static assets, gzip assets will now be
+    served if the client supports it and a pre-generated gzip file (.gz) is on disk.
+    By default the asset pipeline generates `.gz` files for all compressible assets.
+    Serving gzip files minimizes data transfer and speeds up asset requests. Always
+    [use a CDN](http://guides.rubyonrails.org/asset_pipeline.html#cdns) if you are
+    serving assets from your Rails server in production.
+    ([Pull Request](https://github.com/rails/rails/pull/16466))
 
 Action View
 -------------
