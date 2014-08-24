@@ -1005,6 +1005,23 @@ option your asset helper, which overwrites value set in
 <%= asset_path 'image.png', host: 'mycdnsubdomain.fictional-cdn.com' %>
 ```
 
+#### Customize CDN Caching Behavior
+
+A CDN works by caching content. If the CDN has stale or bad content, then it is
+hurting rather than helping your application. The purpose of this section is to
+describe general caching behavior of most CDNs, your specific provider may
+behave slightly differently.
+
+##### CDN Request Caching
+
+While a CDN is described as being good for caching assets, in reality caches the
+entire request. This includes the body of the asset as well as any headers. The
+most important one being `Cache-Control` which tells the CDN (and web browsers)
+how to cache contents. This means that if someone requests an asset that does
+not exist `/assets/i-dont-exist.png` and your Rails application returns a 404,
+then your CDN will likely cache the 404 page if a valid `Cache-Control` header
+is present.
+
 Customizing the Pipeline
 ------------------------
 
