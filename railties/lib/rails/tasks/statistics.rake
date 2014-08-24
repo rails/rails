@@ -4,6 +4,7 @@
 STATS_DIRECTORIES = [
   %w(Controllers        app/controllers),
   %w(Helpers            app/helpers),
+  %w(Jobs               app/jobs),
   %w(Models             app/models),
   %w(Mailers            app/mailers),
   %w(Javascripts        app/assets/javascripts),
