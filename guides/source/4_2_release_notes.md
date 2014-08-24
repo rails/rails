@@ -67,14 +67,14 @@ Web Console is a set of debugging tools for your Rails application. It comes
 with an interactive console for every error page, a `console` view helper and
 VT100 compatible terminal.
 
-The interactive console on the error pages let you execude code where the
-exception originated. Its quite handy to introspect the state that let to that
+The interactive console on the error pages lets you execute code where the
+exception originated. It's quite handy to introspect the state that led to the
 error.
 
 The `console` view helper launches an interactive console with the context of
-the view right on the page its invoked on.
+the view right on the page it's invoked on.
 
-Finally, you can lunch a VT100 terminal that runs `rails console`. If you need
+Finally, you can launch a VT100 terminal that runs `rails console`. If you need
 to create or modify existing test data, you can do that straight from the
 browser.
 
