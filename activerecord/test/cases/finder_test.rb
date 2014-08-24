@@ -1047,6 +1047,28 @@ class FinderTest < ActiveRecord::TestCase
     assert_sql(/^((?!ORDER).)*$/) { Post.find_by(id: posts(:eager_other).id) }
   end
 
+  test "find_by! with hash conditions returns the first matching record" do
+    assert_equal posts(:eager_other), Post.find_by!(id: posts(:eager_other).id)
+  end
+
+  test "find_by! with non-hash conditions returns the first matching record" do
+    assert_equal posts(:eager_other), Post.find_by!("id = #{posts(:eager_other).id}")
+  end
+
+  test "find_by! with multi-arg conditions returns the first matching record" do
+    assert_equal posts(:eager_other), Post.find_by!('id = ?', posts(:eager_other).id)
+  end
+
+  test "find_by! doesn't have implicit ordering" do
+    assert_sql(/^((?!ORDER).)*$/) { Post.find_by!(id: posts(:eager_other).id) }
+  end
+
+  test "find_by! raises RecordNotFound if the record is missing" do
+    assert_raises(ActiveRecord::RecordNotFound) do
+      Post.find_by!("1 = 0")
+    end
+  end
+
   protected
     def bind(statement, *vars)
       if vars.first.is_a?(Hash)
