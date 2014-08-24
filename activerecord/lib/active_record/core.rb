@@ -151,7 +151,7 @@ module ActiveRecord
       end
 
       def find_by(*args)
-        return super if current_scope || args.length > 1 || reflect_on_all_aggregations.any?
+        return super if current_scope || String === args.first || reflect_on_all_aggregations.any?
 
         hash = args.first
 
