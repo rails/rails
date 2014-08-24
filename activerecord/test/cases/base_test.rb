@@ -1540,20 +1540,6 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal "", Company.new.description
   end
 
-  ["find_by", "find_by!"].each do |meth|
-    test "#{meth} delegates to scoped" do
-      record = stub
-
-      scope = mock
-      scope.expects(meth).with(:foo, :bar).returns(record)
-
-      klass = Class.new(ActiveRecord::Base)
-      klass.stubs(:all => scope)
-
-      assert_equal record, klass.public_send(meth, :foo, :bar)
-    end
-  end
-
   test "scoped can take a values hash" do
     klass = Class.new(ActiveRecord::Base)
     assert_equal ['foo'], klass.all.merge!(select: 'foo').select_values
