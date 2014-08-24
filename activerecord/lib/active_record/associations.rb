@@ -1146,6 +1146,20 @@ module ActiveRecord
       #   has_many :employees, -> { joins(:address) }
       #   has_many :posts, ->(post) { where("max_post_length > ?", post.length) }
       #
+      # === Extensions
+      #
+      # The +extension+ argument allows you to pass a block into a has_many
+      # association. This is useful for adding new finders, creators and other
+      # factory-type methods to be used as part of the association.
+      #
+      # Extension examples:
+      #   has_many :employees do
+      #     def find_or_create_by_name(name)
+      #       first_name, last_name = name.split(" ", 2)
+      #       find_or_create_by(first_name: first_name, last_name: last_name)
+      #     end
+      #   end
+      #
       # === Options
       # [:class_name]
       #   Specify the class name of the association. Use it only if that name can't be inferred
