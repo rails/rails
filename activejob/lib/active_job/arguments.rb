@@ -12,7 +12,7 @@ module ActiveJob
     end
   end
 
-  # Raised when an unsupporter argument type is being set as job argument. We
+  # Raised when an unsupported argument type is being set as job argument. We
   # currently support NilClass, Fixnum, Float, String, TrueClass, FalseClass,
   # Bignum and object that can be represented as GlobalIDs (ex: Active Record).
   # Also raised if you set the key for a Hash something else than a string or

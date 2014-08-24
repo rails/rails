@@ -1291,7 +1291,7 @@ module ActiveRecord
       # when you access the associated object.
       #
       # Scope examples:
-      #   has_one :auther, -> { where(comment_id: 1) }
+      #   has_one :author, -> { where(comment_id: 1) }
       #   has_one :employer, -> { joins(:company) }
       #   has_one :dob, ->(dob) { where("Date.new(2000, 01, 01) > ?", dob) }
       #
