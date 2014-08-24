@@ -284,6 +284,14 @@ module ActiveRecord
           @connection.columns_for_distinct("posts.id", ["posts.created_at desc", "posts.position asc"])
       end
 
+      def test_columns_for_distinct_with_case
+        assert_equal(
+          'posts.id, CASE WHEN author.is_active THEN UPPER(author.name) ELSE UPPER(author.email) END AS alias_0',
+          @connection.columns_for_distinct('posts.id',
+            ["CASE WHEN author.is_active THEN UPPER(author.name) ELSE UPPER(author.email) END"])
+        )
+      end
+
       def test_columns_for_distinct_blank_not_nil_orders
         assert_equal "posts.id, posts.created_at AS alias_0",
           @connection.columns_for_distinct("posts.id", ["posts.created_at desc", "", "   "])
