@@ -113,18 +113,23 @@ Active Job has adapters for the following queueing backends:
 
 #### Backends Features
 
-|                       | Async | Queues  | Delayed | Priorities  | Timeout | Retries |
-|-----------------------|-------|---------|---------|-------------|---------|---------|
-| **Backburner**        | Yes   | Yes     | Yes     | Yes         | Job     | Global  |
-| **Delayed Job**       | Yes   | Yes     | Yes     | Job         | Global  | Global  |
-| **Que**               | Yes   | Yes     | Yes     | Job         | No      | Job     |
-| **Queue Classic**     | Yes   | Yes     | Gem     | No          | No      | No      |
-| **Resque**            | Yes   | Yes     | Gem     | Queue       | Global  | Yes     |
-| **Sidekiq**           | Yes   | Yes     | Yes     | Queue       | No      | Job     |
-| **Sneakers**          | Yes   | Yes     | No      | Queue       | Queue   | No      |
-| **Sucker Punch**      | Yes   | Yes     | Yes     | No          | No      | No      |
-| **Active Job Inline** | No    | Yes     | N/A     | N/A         | N/A     | N/A     |
-| **Active Job**        | Yes   | Yes     | Yes     | No          | No      | No      |
+|                       | Async | Queues | Delayed   | Priorities | Timeout | Retries |
+|-----------------------|-------|--------|-----------|------------|---------|---------|
+| **Backburner**        | Yes   | Yes    | Yes       | Yes        | Job     | Global  |
+| **Delayed Job**       | Yes   | Yes    | Yes       | Job        | Global  | Global  |
+| **Que**               | Yes   | Yes    | Yes       | Job        | No      | Job     |
+| **Queue Classic**     | Yes   | Yes    | No*       | No         | No      | No      |
+| **Resque**            | Yes   | Yes    | Yes (Gem) | Queue      | Global  | Yes     |
+| **Sidekiq**           | Yes   | Yes    | Yes       | Queue      | No      | Job     |
+| **Sneakers**          | Yes   | Yes    | No        | Queue      | Queue   | No      |
+| **Sucker Punch**      | Yes   | Yes    | No        | No         | No      | No      |
+| **Active Job Inline** | No    | Yes    | N/A       | N/A        | N/A     | N/A     |
+| **Active Job**        | Yes   | Yes    | Yes       | No         | No      | No      |
+
+NOTE:
+* Queue Classic does not support Job scheduling. However you can implement this
+yourself or you can use the queue_classic-later gem. See the documentation for
+ActiveJob::QueueAdapters::QueueClassicAdapter.
 
 ### Change Backends
 
