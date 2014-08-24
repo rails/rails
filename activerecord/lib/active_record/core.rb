@@ -151,7 +151,7 @@ module ActiveRecord
       end
 
       def find_by(*args)
-        return super if current_scope || args.length > 1 || reflect_on_all_aggregations.any?
+        return super if current_scope || String === args.first || reflect_on_all_aggregations.any?
 
         hash = args.first
 
@@ -175,6 +175,10 @@ module ActiveRecord
         rescue TypeError => e
           raise ActiveRecord::StatementInvalid.new(e.message, e)
         end
+      end
+
+      def find_by!(*args)
+        find_by(*args) or raise RecordNotFound
       end
 
       def initialize_generated_modules

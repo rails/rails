@@ -1,3 +1,7 @@
+*   Fixed a regression when using `find_by` with a SQL fragment without bindings.
+
+    *Godfrey Chan*
+
 *   Fixed a regression where whitespaces were stripped from DISTINCT queries in
     PostgreSQL.
 
