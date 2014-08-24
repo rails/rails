@@ -177,6 +177,10 @@ module ActiveRecord
         end
       end
 
+      def find_by!(*args)
+        find_by(*args) or raise RecordNotFound
+      end
+
       def initialize_generated_modules
         super
 
