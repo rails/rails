@@ -1022,6 +1022,54 @@ not exist `/assets/i-dont-exist.png` and your Rails application returns a 404,
 then your CDN will likely cache the 404 page if a valid `Cache-Control` header
 is present.
 
+##### CDN Header Debugging
+
+One way to check the headers are cached properly in your CDN is by using [curl](
+http://explainshell.com/explain?cmd=curl+-I+http%3A%2F%2Fwww.example.com). You
+can request the headers from both your server and your CDN to verify they are
+the same:
+
+```
+$ curl -I http://www.example/assets/application-
+d0e099e021c95eb0de3615fd1d8c4d83.css
+HTTP/1.1 200 OK
+Server: Cowboy
+Date: Sun, 24 Aug 2014 20:27:50 GMT
+Connection: keep-alive
+Last-Modified: Thu, 08 May 2014 01:24:14 GMT
+Content-Type: text/css
+Cache-Control: public, max-age=2592000
+Content-Length: 126560
+Via: 1.1 vegur
+```
+
+Versus the CDN copy.
+
+```
+$ curl -I http://mycdnsubdomain.fictional-cdn.com/application-
+d0e099e021c95eb0de3615fd1d8c4d83.css
+HTTP/1.1 200 OK Server: Cowboy Last-
+Modified: Thu, 08 May 2014 01:24:14 GMT Content-Type: text/css
+Cache-Control:
+public, max-age=2592000
+Via: 1.1 vegur
+Content-Length: 126560
+Accept-Ranges:
+bytes
+Date: Sun, 24 Aug 2014 20:28:45 GMT
+Via: 1.1 varnish
+Age: 885814
+Connection: keep-alive
+X-Served-By: cache-dfw1828-DFW
+X-Cache: HIT
+X-Cache-Hits:
+68
+X-Timer: S1408912125.211638212,VS0,VE0
+```
+
+Check your CDN documentation for any additional information they may provide
+such as `X-Cache` or for any headers they may
+
 Customizing the Pipeline
 ------------------------
 
