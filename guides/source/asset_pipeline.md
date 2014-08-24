@@ -1070,6 +1070,30 @@ X-Timer: S1408912125.211638212,VS0,VE0
 Check your CDN documentation for any additional information they may provide
 such as `X-Cache` or for any headers they may
 
+##### CDNs and the Cache-Control Header
+
+The [cache control
+header](http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9) is a W3C
+specification that describes how a request can be cached. When no CDN is used, a
+browser will use this information to cache contents. This is very helpful for
+assets that are not modified so that a browser does not need to re-download a
+website's CSS or javascript on every request. Generally we want our Rails server
+to tell our CDN (and browser) that the asset is "public", that means any cache
+can store the request. Also we commonly want to set `max-age` which is how long
+the cache will store the object before invalidating the cache. The `max-age`
+value is set to seconds with a maximum possible value of `31536000` which is one
+year. You can do this in your rails application by setting
+
+```
+config.static_cache_control = "public, max-age=31536000"
+```
+
+Now when your application serves an asset in production, the CDN will store the
+asset for up to a year. Since most CDNs also cache headers of the request, this
+`Cache-Control` will be passed along to all future browsers seeking this asset,
+the browser then knows that it can store this asset for a very long time before
+needing to re-request it.
+
 Customizing the Pipeline
 ------------------------
 
