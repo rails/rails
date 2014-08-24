@@ -1,5 +1,12 @@
 ## Rails 4.0.10 (August 19, 2014) ##
 
+*   Fixed a regression where whitespaces were stripped from DISTINCT queries in
+    PostgreSQL.
+
+    *Agis Anastasopoulos*
+
+    Fixes #16623.
+
 *   Fix regression on after_commit that didnt fire when having nested transactions.
 
     Fixes #16425
