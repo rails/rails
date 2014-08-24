@@ -917,19 +917,27 @@ end
 
 ### CDNs
 
-If your assets are being served by a CDN, ensure they don't stick around in your
-cache forever. This can cause problems. If you use
-`config.action_controller.perform_caching = true`, Rack::Cache will use
-`Rails.cache` to store assets. This can cause your cache to fill up quickly.
+CDN stands for [Content Delivery
+Network](http://en.wikipedia.org/wiki/Content_delivery_network), they are
+primarily designed to cache assets all over the world so that when a browser
+requests the asset, a cached copy will be geographically close to that browser.
+If you are serving assets directly from your Rails server in production, the
+best practice is to use a CDN in front of your application.
 
-Every cache is different, so evaluate how your CDN handles caching and make sure
-that it plays nicely with the pipeline. You may find quirks related to your
-specific set up, you may not. The defaults NGINX uses, for example, should give
-you no problems when used as an HTTP cache.
+A common pattern for using a CDN is to set your production application as the
+"origin" server. This means when a browser requests an asset from the CDN and
+there is a cache miss, it will grab the file from your server on the fly and
+then cache it. For example if you are running a Rails application on
+`example.com` and have a CDN configured at `mycdnsubdomain.fictional-cdn.com`,
+then when a request is made to `mycdnsubdomain.fictional-
+cdn.com/assets/smile.png`, the CDN will query your server once at
+`example.com/assets/smile.png` and cache the request. The next request to the
+CDN that comes in to the same URL will hit the cached copy. When the CDN can
+serve an asset directly the request never touches your Rails server. Since the
+assets from a CDN are geographically closer to the browser, the request is
+faster, and since your server doesn't need to spend time serving assets, it can
+focus on serving application code as fast as possible.
 
-If you want to serve only some assets from your CDN, you can use custom
-`:host` option of  `asset_url` helper, which overwrites value set in
-`config.action_controller.asset_host`.
 
 ```ruby
 asset_url 'image.png', :host => 'http://cdn.example.com'
