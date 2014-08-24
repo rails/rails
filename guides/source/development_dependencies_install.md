@@ -261,7 +261,7 @@ and for OS X:
 $ createuser --superuser $USER
 ```
 
-Then you need to create create the test databases with
+Then you need to create the test databases with
 
 ```bash
 $ cd activerecord
