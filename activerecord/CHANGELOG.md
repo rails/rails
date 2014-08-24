@@ -1,3 +1,10 @@
+*   Fixed a regression where whitespaces were stripped from DISTINCT queries in
+    PostgreSQL.
+
+    *Agis Anastasopoulos*
+
+    Fixes #16623.
+
 *   Fix has_many :through relation merging failing when dynamic conditions are
     passed as a lambda with an arity of one.
 
