@@ -63,10 +63,20 @@ TODO: add some technical details
 New applications generated from Rails 4.2 now comes with the Web Console gem by
 default.
 
-Web Console is an IRB console available in the browser. In development mode, you
-can go to /console and do your work right there. It will also be made available
-on all exception pages and allows you to jump between the different points in
-the backtrace.
+Web Console is a set of debugging tools for your Rails application. It comes
+with an interactive console for every error page, a `console` view helper and
+VT100 compatible terminal.
+
+The interactive console on the error pages let you execude code where the
+exception originated. Its quite handy to introspect the state that let to that
+error.
+
+The `console` view helper launches an interactive console with the context of
+the view right on the page its invoked on.
+
+Finally, you can lunch a VT100 terminal that runs `rails console`. If you need
+to create or modify existing test data, you can do that straight from the
+browser.
 
 ### Foreign key support
 
