@@ -938,9 +938,71 @@ assets from a CDN are geographically closer to the browser, the request is
 faster, and since your server doesn't need to spend time serving assets, it can
 focus on serving application code as fast as possible.
 
+#### Set up a CDN to Serve Static Assets
+
+To set up your CDN you have to have your application running in production on
+the internet at a publically available URL, for example `example.com`. Next
+you'll need to sign up for a CDN service from a cloud hosting provider. When you
+do this you need to configure the "origin" of the CDN to point back at your
+website `example.com`, check your provider for documentation on configuring the
+origin server.
+
+The CDN you provisioned should give you a custom subdomain for your application
+such as `mycdnsubdomain.fictional-cdn.com` (note fictional-cdn.com is not a
+valid CDN provider at the time of this writing). Now that you have configured
+your CDN server, you need to tell browsers to use your CDN to grab assets
+instead of your Rails server directly. You can do this by configuring Rails to
+set your CDN as the asset host instead of using a relative path. To set your
+asset host in Rails, you need to set `config.action_controller.asset_host` in
+`config/production.rb`:
 
 ```ruby
-asset_url 'image.png', :host => 'http://cdn.example.com'
+config.action_controller.asset_host = 'mycdnsubdomain.fictional-cdn.com'
+```
+
+Note: You only need to provide the "host", this is the subdomain and root
+domain, you do not need to specify a protocol or "scheme" such as `http://` or
+`https://`. When a web page is requested, the protocol in the link to your asset
+that is generated will match how the webpage is accessed by default.
+
+You can also set this value through an [environment
+variable](http://en.wikipedia.org/wiki/Environment_variable) to make running a
+staging copy of your site easier:
+
+```
+config.action_controller.asset_host = ENV['CDN_HOST']
+```
+
+
+
+Note: You would need to set `CDN_HOST` on your server to `mycdnsubdomain
+.fictional-cdn.com` for this to work.
+
+Once you have configured your server and your CDN when you serve a webpage that
+has an asset:
+
+```erb
+<%= asset_path('smile.png') %>
+```
+
+Instead of returning a path such as `/assets/smile.png` (digests are left out
+for readability). The URL generated will have the full path to your CDN.
+
+```
+http://mycdnsubdomain.fictional-cdn.com/assets/smile.png
+```
+
+If the CDN has a copy of `smile.png` it will serve it to the browser and your
+server doesn't even know it was requested. If the CDN does not have a copy it
+will try to find it a the "origin" `example.com/assets/smile.png` and then store
+it for future use.
+
+If you want to serve only some assets from your CDN, you can use custom `:host`
+option your asset helper, which overwrites value set in
+`config.action_controller.asset_host`.
+
+```erb
+<%= asset_path 'image.png', host: 'mycdnsubdomain.fictional-cdn.com' %>
 ```
 
 Customizing the Pipeline
