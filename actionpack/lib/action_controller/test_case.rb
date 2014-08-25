@@ -592,6 +592,8 @@ module ActionController
           parameters = parameters.to_json
         end
 
+        headers_or_env['action_controller.instance'] = @controller
+
         send("super_#{http_method.downcase}", url, parameters, headers_or_env)
 
         @assigns = @controller.respond_to?(:view_assigns) ? @controller.view_assigns : {}
