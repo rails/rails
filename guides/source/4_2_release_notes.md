@@ -37,10 +37,10 @@ Major Features
 
 Active Job is a new framework in Rails 4.2. It is an adapter layer on top of
 queuing systems like Resque, Delayed Job, Sidekiq, and more. You can write your
-jobs to Active Job, and it'll run on all these queues with no changes. (It comes
-pre-configured with an inline runner.)
+jobs with the Active Job API, and it'll run on all these queues with no changes
+(it comes pre-configured with an inline runner).
 
-Building on top of Active Job, Action Mailer now comes with a #deliver_later
+Building on top of Active Job, Action Mailer now comes with a `#deliver_later`
 method, which adds your email to be sent as a job to a queue, so it doesn't
 bog down the controller or model.
 
@@ -63,16 +63,16 @@ TODO: add some technical details
 New applications generated from Rails 4.2 now comes with the Web Console gem by
 default.
 
-Web Console is a set of debugging tools for your Rails application. It comes
-with an interactive console for every error page, a `console` view helper and
-VT100 compatible terminal.
+Web Console is a set of debugging tools for your Rails application. It will add
+an interactive console on every error page, a `console` view helper and a VT100
+compatible terminal.
 
 The interactive console on the error pages lets you execute code where the
 exception originated. It's quite handy to introspect the state that led to the
 error.
 
-The `console` view helper launches an interactive console with the context of
-the view right on the page it's invoked on.
+The `console` view helper launches an interactive console within the context of
+the view where it is invoked.
 
 Finally, you can launch a VT100 terminal that runs `rails console`. If you need
 to create or modify existing test data, you can do that straight from the
@@ -184,7 +184,8 @@ Please refer to the [Changelog][railties] for detailed changes.
 *   Introduced an API to register new extensions for `rake notes`.
     ([Pull Request](https://github.com/rails/rails/pull/14379))
 
-*   Introduced `Rails.gem_version` as a convenience method to return `Gem::Version.new(Rails.version)`.
+*   Introduced `Rails.gem_version` as a convenience method to return
+    `Gem::Version.new(Rails.version)`.
     ([Pull Request](https://github.com/rails/rails/pull/14101))
 
 
@@ -265,8 +266,8 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 *   Added HTTP method `MKCALENDAR` from RFC-4791
     ([Pull Request](https://github.com/rails/rails/pull/15121))
 
-*   `*_fragment.action_controller` notifications now include the controller and action name
-    in the payload.
+*   `*_fragment.action_controller` notifications now include the controller
+    and action name in the payload.
     ([Pull Request](https://github.com/rails/rails/pull/14137))
 
 *   Segments that are passed into URL helpers are now automatically escaped.
@@ -334,7 +335,7 @@ Please refer to the [Changelog][action-mailer] for detailed changes.
 ### Notable changes
 
 *   Introduced `deliver_later` which enqueues a job on the application's queue
-    to deliver the mailer asynchronously.
+    to deliver emails asynchronously.
     ([Pull Request](https://github.com/rails/rails/pull/16485))
 
 *   Added the `show_previews` configuration option for enabling mailer previews
@@ -345,9 +346,7 @@ Please refer to the [Changelog][action-mailer] for detailed changes.
 Active Record
 -------------
 
-Please refer to the
-[Changelog](https://github.com/rails/rails/blob/4-2-stable/activerecord/CHANGELOG.md)
-for detailed changes.
+Please refer to the [Changelog][active-record] for detailed changes.
 
 ### Removals
 
@@ -363,7 +362,7 @@ for detailed changes.
 
 *   Removed unused `:timestamp` type. Transparently alias it to `:datetime`
     in all cases. Fixes inconsistencies when column types are sent outside of
-    `ActiveRecord`, such as for XML Serialization.
+    `ActiveRecord`, such as for XML serialization.
     ([Pull Request](https://github.com/rails/rails/pull/15184))
 
 ### Deprecations
@@ -458,7 +457,7 @@ for detailed changes.
 *   `sqlite3:///some/path` now resolves to the absolute system path
     `/some/path`. For relative paths, use `sqlite3:some/path` instead.
     (Previously, `sqlite3:///some/path` resolved to the relative path
-    `some/path`. This behaviour was deprecated on Rails 4.1.)
+    `some/path`. This behaviour was deprecated on Rails 4.1).
     ([Pull Request](https://github.com/rails/rails/pull/14569))
 
 *   Introduced `#validate` as an alias for `#valid?`.
@@ -490,17 +489,19 @@ Please refer to the [Changelog][active-model] for detailed changes.
 
 ### Deprecations
 
-*   Deprecated reset_#{attribute} in favor of restore_#{attribute}.
+*   Deprecated `reset_#{attribute}` in favor of `restore_#{attribute}`.
     ([Pull Request](https://github.com/rails/rails/pull/16180))
 
-*   Deprecated ActiveModel::Dirty#reset_changes in favor of #clear_changes_information.
+*   Deprecated `ActiveModel::Dirty#reset_changes` in favor of
+    `#clear_changes_information`.
     ([Pull Request](https://github.com/rails/rails/pull/16180))
 
 ### Notable changes
 
 *   Introduced the `restore_attributes` method in `ActiveModel::Dirty` to restore
     the changed (dirty) attributes to their previous values.
-    (Pull Request [1](https://github.com/rails/rails/pull/14861), [2](https://github.com/rails/rails/pull/16180))
+    (Pull Request [1](https://github.com/rails/rails/pull/14861),
+    [2](https://github.com/rails/rails/pull/16180))
 
 *   `has_secure_password` no longer disallow blank passwords (i.e. passwords
     that contains only spaces) by default.
