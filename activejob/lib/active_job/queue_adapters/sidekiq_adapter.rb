@@ -4,20 +4,20 @@ module ActiveJob
   module QueueAdapters
     class SidekiqAdapter
       class << self
-        def enqueue(job, *args)
+        def enqueue(job)
           #Sidekiq::Client does not support symbols as keys
           Sidekiq::Client.push \
             'class' => JobWrapper,
             'queue' => job.queue_name,
-            'args'  => [ job, *args ],
+            'args'  => [ job.serialize ],
             'retry' => true
         end
 
-        def enqueue_at(job, timestamp, *args)
+        def enqueue_at(job, timestamp)
           Sidekiq::Client.push \
             'class' => JobWrapper,
             'queue' => job.queue_name,
-            'args'  => [ job, *args ],
+            'args'  => [ job.serialize ],
             'retry' => true,
             'at'    => timestamp
         end
@@ -26,8 +26,8 @@ module ActiveJob
       class JobWrapper
         include Sidekiq::Worker
 
-        def perform(job_name, *args)
-          job_name.constantize.new.execute(*args)
+        def perform(job_data)
+          Base.execute job_data
         end
       end
     end
