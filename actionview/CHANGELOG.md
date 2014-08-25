@@ -1,3 +1,10 @@
+*   Provide a `builder` object when using the `label` form helper in block form.
+
+    The new `builder` object responds to `translation`, allowing I18n fallback support
+    when you want to customize how a particular label is presented.
+
+    *Alex Robbin*
+
 *   Add I18n support for input/textarea placeholder text.
 
     Placeholder I18n follows the same convention as `label` I18n.
