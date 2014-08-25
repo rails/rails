@@ -281,9 +281,9 @@ module ActiveRecord
         def default_sequence_name(table_name, pk = nil) #:nodoc:
           result = serial_sequence(table_name, pk || 'id')
           return nil unless result
-          Utils.extract_schema_qualified_name(result)
+          Utils.extract_schema_qualified_name(result).to_s
         rescue ActiveRecord::StatementInvalid
-          PostgreSQL::Name.new(nil, "#{table_name}_#{pk || 'id'}_seq")
+          PostgreSQL::Name.new(nil, "#{table_name}_#{pk || 'id'}_seq").to_s
         end
 
         def serial_sequence(table, column)

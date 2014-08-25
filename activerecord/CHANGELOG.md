@@ -1,3 +1,7 @@
+*   `default_sequence_name` from the PostgreSQL adapter returns a `String`.
+
+    *Yves Senn*
+
 *   Fixed a regression where whitespaces were stripped from DISTINCT queries in
     PostgreSQL.
 
