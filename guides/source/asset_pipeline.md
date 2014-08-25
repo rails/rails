@@ -1112,7 +1112,7 @@ http://mycdnsubdomain.fictional-cdn.com/assets/smile.png
 If you want to set far future `max-age` in your `Cache-Control` (and you do).
 Then make sure when you change your assets that your cache is invalidated. For
 example when changing the smiley face in an image from yellow to blue, you want
-all visitors of your site to get the new blue face. When using a CDN with a the
+all visitors of your site to get the new blue face. When using a CDN with the
 Rails asset pipeline `config.assets.digest` is set to true by default so that
 each asset will have a different file name when it is changed. This way you
 don't have to ever manually invalidate any items in your cache. By using a
