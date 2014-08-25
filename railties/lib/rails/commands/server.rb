@@ -68,6 +68,7 @@ module Rails
     end
 
     def set_environment
+      options = send(:parse_options, ARGV)
       ENV["RAILS_ENV"] ||= options[:environment]
     end
 
