@@ -4,11 +4,11 @@ module ActiveJob
   module QueueAdapters
     class SuckerPunchAdapter
       class << self
-        def enqueue(job, *args)
-          JobWrapper.new.async.perform job, *args
+        def enqueue(job)
+          JobWrapper.new.async.perform job.serialize
         end
 
-        def enqueue_at(job, timestamp, *args)
+        def enqueue_at(job, timestamp)
           raise NotImplementedError
         end
       end
@@ -16,8 +16,8 @@ module ActiveJob
       class JobWrapper
         include SuckerPunch::Job
 
-        def perform(job, *args)
-          job.new.execute(*args)
+        def perform(job_data)
+          Base.execute job_data
         end
       end
     end

@@ -45,21 +45,21 @@ module ActiveJob
         @performed_jobs = val
       end
 
-      def enqueue(job, *args)
+      def enqueue(job)
         if perform_enqueued_jobs?
-          performed_jobs << {job: job, args: args, queue: job.queue_name}
-          job.new.execute(*args)
+          performed_jobs << {job: job.class, args: job.arguments, queue: job.queue_name}
+          job.perform_now
         else
-          enqueued_jobs << {job: job, args: args, queue: job.queue_name}
+          enqueued_jobs << {job: job.class, args: job.arguments, queue: job.queue_name}
         end
       end
 
-      def enqueue_at(job, timestamp, *args)
+      def enqueue_at(job, timestamp)
         if perform_enqueued_at_jobs?
-          performed_jobs << {job: job, args: args, queue: job.queue_name, run_at: timestamp}
-          job.new.execute(*args)
+          performed_jobs << {job: job.class, args: job.arguments, queue: job.queue_name, at: timestamp}
+          job.perform_now
         else
-          enqueued_jobs << {job: job, args: args, queue: job.queue_name, run_at: timestamp}
+          enqueued_jobs << {job: job.class, args: job.arguments, queue: job.queue_name, at: timestamp}
         end
       end
 

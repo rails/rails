@@ -98,15 +98,10 @@ module ActionMailer
 
       def enqueue_delivery(delivery_method, options={})
         args = @mailer.name, @mail_method.to_s, delivery_method.to_s, *@args
-        enqueue_method = :enqueue
-        if options[:at]
-          enqueue_method = :enqueue_at
-          args.unshift options[:at]
-        elsif options[:in]
-          enqueue_method = :enqueue_in
-          args.unshift options[:in]
-        end
-        ActionMailer::DeliveryJob.send enqueue_method, *args
+        set_options = {}
+        set_options[:wait_until] = options[:at] if options[:at]
+        set_options[:wait] = options[:in] if options[:in]
+        ActionMailer::DeliveryJob.set(set_options).perform_later(*args)
       end
   end
 end

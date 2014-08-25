@@ -8,20 +8,38 @@ class QueueNamingTest < ActiveSupport::TestCase
     assert_equal "default", HelloJob.queue_name
   end
 
-  test 'name appended in job' do
+  test 'uses given queue name job' do
     begin
+      original_queue_name = HelloJob.queue_name
       HelloJob.queue_as :greetings
-      LoggingJob.queue_as :bookkeeping
-
-      assert_equal "default", NestedJob.queue_name
-      assert_equal "greetings", HelloJob.queue_name
-      assert_equal "bookkeeping", LoggingJob.queue_name
+      assert_equal "greetings", HelloJob.new.queue_name
     ensure
-      HelloJob.queue_name = LoggingJob.queue_name = ActiveJob::Base.default_queue_name
+      HelloJob.queue_name = original_queue_name
     end
   end
 
-  test 'should prefix the queue name' do
+  test 'evals block given to queue_as to determine queue' do
+    begin
+      original_queue_name = HelloJob.queue_name
+      HelloJob.queue_as { :another }
+      assert_equal "another", HelloJob.new.queue_name
+    ensure
+      HelloJob.queue_name = original_queue_name
+    end
+  end
+
+  test 'can use arguments to determine queue_name in queue_as block' do
+    begin
+      original_queue_name = HelloJob.queue_name
+      HelloJob.queue_as { self.arguments.first=='1' ? :one : :two }
+      assert_equal "one", HelloJob.new('1').queue_name
+      assert_equal "two", HelloJob.new('3').queue_name
+    ensure
+      HelloJob.queue_name = original_queue_name
+    end
+  end
+
+  test 'queu_name_prefix prepended to the queue name' do
     begin
       original_queue_name_prefix = ActiveJob::Base.queue_name_prefix
       original_queue_name = HelloJob.queue_name
@@ -33,6 +51,11 @@ class QueueNamingTest < ActiveSupport::TestCase
       ActiveJob::Base.queue_name_prefix = original_queue_name_prefix
       HelloJob.queue_name = original_queue_name
     end
+  end
+
+  test 'uses queue passed to #set' do
+    job = HelloJob.set(queue: :some_queue).perform_later
+    assert_equal "some_queue", job.queue_name
   end
 
 end
