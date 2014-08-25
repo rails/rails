@@ -4,15 +4,29 @@ require 'active_job/arguments'
 module ActiveJob
   module Execution
     extend ActiveSupport::Concern
+    include ActiveSupport::Rescuable
 
-    included do
-      include ActiveSupport::Rescuable
+    module ClassMethods
+      # Performs the job immediately.
+      #
+      #   MyJob.perform_now("mike")
+      #
+      def perform_now(*args)
+        job_or_instantiate(*args).perform_now
+      end
+
+      def execute(job_data) #:nodoc:
+        job = deserialize(job_data)
+        job.perform_now
+      end
     end
 
-    def execute(job_id, *serialized_args)
-      self.job_id    = job_id
-      self.arguments = deserialize_arguments(serialized_args)
-
+    # Performs the job immediately. The job is not sent to the queueing adapter
+    # and will block the execution until it's finished.
+    #
+    #   MyJob.new(*args).perform_now
+    def perform_now
+      deserialize_arguments_if_needed
       run_callbacks :perform do
         perform(*arguments)
       end
@@ -23,11 +37,5 @@ module ActiveJob
     def perform(*)
       fail NotImplementedError
     end
-
-    private
-      def deserialize_arguments(serialized_args)
-        Arguments.deserialize(serialized_args)
-      end
-
   end
 end
