@@ -56,13 +56,13 @@ module ActiveModel
   # refer to the specific modules included in <tt>ActiveModel::Model</tt>
   # (see below).
   module Model
-    def self.included(base) #:nodoc:
-      base.class_eval do
-        extend  ActiveModel::Naming
-        extend  ActiveModel::Translation
-        include ActiveModel::Validations
-        include ActiveModel::Conversion
-      end
+    extend ActiveSupport::Concern
+    include ActiveModel::Validations
+    include ActiveModel::Conversion
+
+    included do
+      extend ActiveModel::Naming
+      extend ActiveModel::Translation
     end
 
     # Initializes a new model with the given +params+.
