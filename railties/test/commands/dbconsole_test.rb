@@ -95,6 +95,7 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
     end
   ensure
     ENV['RAILS_ENV'] = "test"
+    ENV['RACK_ENV'] = nil
   end
 
   def test_rails_env_is_development_when_argument_is_dev
