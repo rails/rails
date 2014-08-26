@@ -841,7 +841,7 @@ module ActiveRecord
         @association.many?(&block)
       end
 
-      # Returns +true+ if the given object is present in the collection.
+      # Returns +true+ if the given +record+ is present in the collection.
       #
       #   class Person < ActiveRecord::Base
       #     has_many :pets
