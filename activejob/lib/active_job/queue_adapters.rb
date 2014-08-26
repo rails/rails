@@ -12,5 +12,6 @@ module ActiveJob
     autoload :SidekiqAdapter
     autoload :SneakersAdapter
     autoload :SuckerPunchAdapter
+    autoload :TestAdapter
   end
 end
