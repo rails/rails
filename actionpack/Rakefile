@@ -1,7 +1,7 @@
 require 'rake/testtask'
 require 'rubygems/package_task'
 
-test_files = Dir.glob('test/{abstract,controller,dispatch,assertions,journey,routing}/**/*_test.rb')
+test_files = Dir.glob('test/**/*_test.rb')
 
 desc "Default Task"
 task :default => :test
