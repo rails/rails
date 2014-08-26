@@ -30,4 +30,5 @@ module ActiveJob
   extend ActiveSupport::Autoload
 
   autoload :Base
+  autoload :QueueAdapters
 end
