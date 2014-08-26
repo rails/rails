@@ -36,7 +36,7 @@ Major Features
 ### Active Job, Action Mailer #deliver_later
 
 Active Job is a new framework in Rails 4.2. It is an adapter layer on top of
-queuing systems like Resque, Delayed Job, Sidekiq, and more. You can write your
+queuing systems like [Resque](https://github.com/resque/resque), [Delayed Job](https://github.com/collectiveidea/delayed_job), [Sidekiq](https://github.com/mperham/sidekiq), and more. You can write your
 jobs with the Active Job API, and it'll run on all these queues with no changes
 (it comes pre-configured with an inline runner).
 
