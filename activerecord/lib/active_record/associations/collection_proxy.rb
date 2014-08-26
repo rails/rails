@@ -817,7 +817,7 @@ module ActiveRecord
       #   person.pets.count # => 2
       #   person.pets.many? # => true
       #
-      # You can also pass a block to define criteria. The
+      # You can also pass a +block+ to define criteria. The
       # behavior is the same, it returns true if the collection
       # based on the criteria has more than one record.
       #
