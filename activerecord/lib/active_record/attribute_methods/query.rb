@@ -8,7 +8,7 @@ module ActiveRecord
       end
 
       def query_attribute(attr_name)
-        value = read_attribute(attr_name) { |n| missing_attribute(n, caller) }
+        value = self[attr_name]
 
         case value
         when true        then true
