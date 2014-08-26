@@ -9,10 +9,7 @@ task :default => :test
 # Run the unit tests
 Rake::TestTask.new do |t|
   t.libs << 'test'
-
-  # make sure we include the tests in alphabetical order as on some systems
-  # this will not happen automatically and the tests (as a whole) will error
-  t.test_files = test_files.sort
+  t.test_files = test_files
 
   t.warning = true
   t.verbose = true
