@@ -960,7 +960,7 @@ asset host in Rails, you need to set `config.action_controller.asset_host` in
 config.action_controller.asset_host = 'mycdnsubdomain.fictional-cdn.com'
 ```
 
-Note: You only need to provide the "host", this is the subdomain and root
+NOTE: You only need to provide the "host", this is the subdomain and root
 domain, you do not need to specify a protocol or "scheme" such as `http://` or
 `https://`. When a web page is requested, the protocol in the link to your asset
 that is generated will match how the webpage is accessed by default.
