@@ -60,7 +60,7 @@ TODO: add some technical details
 
 ### Web Console
 
-New applications generated from Rails 4.2 now comes with the Web Console gem by
+New applications generated from Rails 4.2 now come with the Web Console gem by
 default.
 
 Web Console is a set of debugging tools for your Rails application. It will add
@@ -256,9 +256,9 @@ Please refer to the [Changelog][action-pack] for detailed changes.
     skip_filter           => skip_action_callback
     ```
 
-    If your application is depending on these methods, you should use the
+    If your application currently depends on these methods, you should use the
     replacement `*_action` methods instead. These methods will be deprecated in
-    the future and eventually removed from Rails.
+    the future and will eventually be removed from Rails.
 
     (Commit [1](https://github.com/rails/rails/commit/6c5f43bab8206747a8591435b2aa0ff7051ad3de),
     [2](https://github.com/rails/rails/commit/489a8f2a44dc9cea09154ee1ee2557d1f037c7d4))
