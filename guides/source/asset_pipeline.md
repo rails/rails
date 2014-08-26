@@ -1068,7 +1068,7 @@ X-Timer: S1408912125.211638212,VS0,VE0
 ```
 
 Check your CDN documentation for any additional information they may provide
-such as `X-Cache` or for any headers they may
+such as `X-Cache` or for any additional headers they may add.
 
 ##### CDNs and the Cache-Control Header
 
