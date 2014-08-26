@@ -17,7 +17,6 @@ module ActiveJob
 
     private
       def load_adapter(name)
-        require "active_job/queue_adapters/#{name}_adapter"
         "ActiveJob::QueueAdapters::#{name.to_s.camelize}Adapter".constantize
       end
   end
