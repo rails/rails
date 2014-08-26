@@ -1604,6 +1604,21 @@ module ActiveRecord
       #     where("default_category = ?", category.name)
       #   }
       #
+      # === Extensions
+      #
+      # The +extension+ argument allows you to pass a block into a
+      # has_and_belongs_to_many association. This is useful for adding new
+      # finders, creators and other factory-type methods to be used as part of
+      # the association.
+      #
+      # Extension examples:
+      #   has_and_belongs_to_many :contractors do
+      #     def find_or_create_by_name(name)
+      #       first_name, last_name = name.split(" ", 2)
+      #       find_or_create_by(first_name: first_name, last_name: last_name)
+      #     end
+      #   end
+      #
       # === Options
       #
       # [:class_name]
