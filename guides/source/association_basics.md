@@ -1321,7 +1321,7 @@ When you declare a `has_many` association, the declaring class automatically gai
 * `collection<<(object, ...)`
 * `collection.delete(object, ...)`
 * `collection.destroy(object, ...)`
-* `collection=objects`
+* `collection=(objects)`
 * `collection_singular_ids`
 * `collection_singular_ids=ids`
 * `collection.clear`
@@ -1399,7 +1399,7 @@ The `collection.destroy` method removes one or more objects from the collection 
 
 WARNING: Objects will _always_ be removed from the database, ignoring the `:dependent` option.
 
-##### `collection=objects`
+##### `collection=(objects)`
 
 The `collection=` method makes the collection contain only the supplied objects, by adding and deleting as appropriate.
 
@@ -1810,7 +1810,7 @@ When you declare a `has_and_belongs_to_many` association, the declaring class au
 * `collection<<(object, ...)`
 * `collection.delete(object, ...)`
 * `collection.destroy(object, ...)`
-* `collection=objects`
+* `collection=(objects)`
 * `collection_singular_ids`
 * `collection_singular_ids=ids`
 * `collection.clear`
@@ -1895,7 +1895,7 @@ The `collection.destroy` method removes one or more objects from the collection 
 @part.assemblies.destroy(@assembly1)
 ```
 
-##### `collection=objects`
+##### `collection=(objects)`
 
 The `collection=` method makes the collection contain only the supplied objects, by adding and deleting as appropriate.
 
