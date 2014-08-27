@@ -37,6 +37,10 @@ module StaticTests
     assert_html "/foo/index.html", get("/foo")
   end
 
+  def test_serves_file_with_same_name_before_index_in_directory
+    assert_html "/bar.html", get("/bar")
+  end
+
   def test_served_static_file_with_non_english_filename
     jruby_skip "Stop skipping if following bug gets fixed: " \
       "http://jira.codehaus.org/browse/JRUBY-7192"
