@@ -569,6 +569,7 @@ module ActionController
         headers_or_env['action_dispatch.cookies'] = cookies
 
         @controller.request  = @request
+        @controller.flash.update(flash) if flash
 
         unless url = @request.env["PATH_INFO"]
           options = @controller.respond_to?(:url_options) ? @controller.__send__(:url_options).merge(parameters) : parameters
