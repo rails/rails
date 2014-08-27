@@ -10,6 +10,16 @@ class PeopleController < ActionController::Base
   end
 end
 
+class VilliansController < ActionController::Base
+
+  whitelist_parameters create: {villian: [:name]}
+
+  def create
+    render text: create_params.permitted? ? "permitted" : "forbidden"
+  end
+
+end
+
 class ActionControllerPermittedParamsTest < ActionController::TestCase
   tests PeopleController
 
@@ -22,4 +32,15 @@ class ActionControllerPermittedParamsTest < ActionController::TestCase
     post :create_with_permit, { person: { name: "Mjallo!" } }
     assert_equal "permitted", response.body
   end
+end
+
+class ActionControllerWhitelistedParamsTest < ActionController::TestCase
+
+  tests VilliansController
+
+  test "parameters are permitted using #whitelist_params" do
+    post :create, {villian: {name: "Joker"}}
+    assert_equal "permitted", response.body
+  end
+
 end

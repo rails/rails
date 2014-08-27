@@ -263,6 +263,18 @@ module ActionController
       PROTECTED_IVARS
     end
 
+    class << self
+      # DSL wrapper for strong parameters
+      def whitelist_parameters(options = {})
+        action_names = options.keys
+        action_names.each do |action_name|
+          define_method("#{action_name.to_s}_params") do
+            base = options[action_name].keys.first
+            params.require(base).permit(*options[action_name][base])
+          end
+        end
+      end
+    end
     ActiveSupport.run_load_hooks(:action_controller, self)
   end
 end

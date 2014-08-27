@@ -1,3 +1,20 @@
+*   Add `whitelist_params` to ActionController::Base to allow simpler and cleaner
+    way to whitelist strong parameters in a controller:
+
+    Example:
+      # app/controller/users_controller.rb
+
+      class UsersController < ApplicationController
+
+        whitelist_params create: {user: [:name, :age]}
+
+        def create
+          @user = User.new(create_params[:user])
+        end
+      end
+
+    *Elad Meidar*
+
 *   Allow `config.action_dispatch.trusted_proxies` to accept an IPAddr object.
 
     Example:
