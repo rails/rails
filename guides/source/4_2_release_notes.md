@@ -287,6 +287,19 @@ Please refer to the [Changelog][action-pack] for detailed changes.
     serving assets from your Rails server in production.
     ([Pull Request](https://github.com/rails/rails/pull/16466))
 
+*   The way `assert_select` works has changed; specifically a different library
+    is used to interpret css selectors, build the transient DOM that the
+    selectors are applied against, and to extract the data from that DOM.  These
+    changes should only affect edge cases.  Examples:
+    *  Values in attribute selectors may need to be quoted if they contain
+       non-alphanumeric characters
+    *  DOMs built from HTML source containing invalid HTML containing improperly
+       nested elements may differ
+    *  If the data selected contains entities, the value selected for comparison
+       used to be raw (example: `AT&amp;T`), and now is evaluated
+       (example: `AT&T`)
+
+
 Action View
 -------------
 
