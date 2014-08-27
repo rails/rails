@@ -51,7 +51,8 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
 
   AUTH_HEADERS.each do |header|
     test "successful authentication with #{header.downcase}" do
-      @request.env[header] = encode_credentials(:username => 'lifo', :password => 'world')
+      credentials = encode_credentials(:username => 'lifo', :password => 'world')
+      @request.env[header] = credentials
       get :index
 
       assert_response :success
@@ -61,7 +62,8 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
 
   AUTH_HEADERS.each do |header|
     test "unsuccessful authentication with #{header.downcase}" do
-      @request.env[header] = encode_credentials(:username => 'h4x0r', :password => 'world')
+      credentials = encode_credentials(:username => 'h4x0r', :password => 'world')
+      @request.env[header] = credentials
       get :index
 
       assert_response :unauthorized
@@ -120,7 +122,8 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
   end
 
   test "authentication request with valid credential" do
-    @request.env['HTTP_AUTHORIZATION'] = encode_credentials(:username => 'pretty', :password => 'please')
+    credentials = encode_credentials(:username => 'pretty', :password => 'please')
+    @request.env['HTTP_AUTHORIZATION'] = credentials
     get :display
 
     assert_response :success
@@ -129,7 +132,8 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
   end
 
   test "authentication request with valid credential and nil session" do
-    @request.env['HTTP_AUTHORIZATION'] = encode_credentials(:username => 'pretty', :password => 'please')
+    credentials = encode_credentials(:username => 'pretty', :password => 'please')
+    @request.env['HTTP_AUTHORIZATION'] = credentials
 
     get :display
 
@@ -161,8 +165,9 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
   end
 
   test "authentication request with absolute uri in credentials (as in IE)" do
-    @request.env['HTTP_AUTHORIZATION'] = encode_credentials(:url => "http://test.host/http_digest_authentication_test/dummy_digest",
-                                                            :username => 'pretty', :password => 'please')
+    credentials = encode_credentials(:url => "http://test.host/http_digest_authentication_test/dummy_digest",
+                                     :username => 'pretty', :password => 'please')
+    @request.env['HTTP_AUTHORIZATION'] = credentials
 
     get :display
 
@@ -185,9 +190,12 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
   end
 
   test "authentication request with password stored as ha1 digest hash" do
-    @request.env['HTTP_AUTHORIZATION'] = encode_credentials(:username => 'dhh',
-                                           :password => ::Digest::MD5::hexdigest(["dhh","SuperSecret","secret"].join(":")),
-                                           :password_is_ha1 => true)
+    credentials = encode_credentials(:username => 'dhh',
+                                     :password => ::Digest::MD5::hexdigest(["dhh","SuperSecret","secret"].join(":")),
+                                     :password_is_ha1 => true)
+
+    @request.env['HTTP_AUTHORIZATION'] = credentials
+
     get :display
 
     assert_response :success
@@ -196,7 +204,8 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
   end
 
   test "authentication request with _method" do
-    @request.env['HTTP_AUTHORIZATION'] = encode_credentials(:username => 'pretty', :password => 'please', :method => :post)
+    credentials = encode_credentials(:username => 'pretty', :password => 'please', :method => :post)
+    @request.env['HTTP_AUTHORIZATION'] = credentials
     @request.env['rack.methodoverride.original_method'] = 'POST'
     put :display
 
@@ -276,7 +285,7 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
 
     credentials = decode_credentials(@response.headers['WWW-Authenticate'])
     credentials.merge!(options)
-    path_info = @request.env['PATH_INFO'].to_s
+    path_info = @last_request.env['PATH_INFO'].to_s
     uri = options[:uri] || path_info
     credentials.merge!(:uri => uri)
     @request.env["ORIGINAL_FULLPATH"] = path_info

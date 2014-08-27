@@ -597,6 +597,7 @@ module ActionController
         send("super_#{http_method.downcase}", url, parameters, headers_or_env)
 
         @assigns = @controller.respond_to?(:view_assigns) ? @controller.view_assigns : {}
+        @last_request = build_request(@request.env)
         @request = build_request(@request.env.except('action_controller.instance', 'QUERY_STRING', 'PATH_INFO'))
         @response
       end
