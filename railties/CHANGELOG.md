@@ -1,3 +1,10 @@
+*   Fix a bug in the `gem` method for Rails templates when non-String options
+    are used.
+
+    Fixes #16709.
+
+    *Yves Senn*
+
 *   The [web-console](https://github.com/rails/web-console) gem is now
     installed by default for new applications. It can help you debug
     development exceptions by spawnig an interactive console in its cause

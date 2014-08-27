@@ -79,6 +79,16 @@ class ActionsTest < Rails::Generators::TestCase
     assert_file 'Gemfile', /gem 'rspec', github: 'dchelimsky\/rspec', tag: '1\.2\.9\.rc1'/
   end
 
+  def test_gem_with_non_string_options
+    run_generator
+
+    action :gem, 'rspec', require: false
+    action :gem, 'rspec-rails', group: [:development, :test]
+
+    assert_file 'Gemfile', /^gem 'rspec', require: false$/
+    assert_file 'Gemfile', /^gem 'rspec-rails', group: \[:development, :test\]$/
+  end
+
   def test_gem_falls_back_to_inspect_if_string_contains_single_quote
     run_generator
 
