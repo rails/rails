@@ -682,6 +682,22 @@ class DirtyTest < ActiveRecord::TestCase
     assert_not pirate.changed?
   end
 
+  test "in place mutation for binary" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = :binaries
+      serialize :data
+    end
+
+    klass.create!(data: "foo")
+    binary = klass.first
+
+    assert_not binary.changed?
+
+    binary.data << "bar"
+
+    assert binary.changed?
+  end
+
   private
     def with_partial_writes(klass, on = true)
       old = klass.partial_writes?
