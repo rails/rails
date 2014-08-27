@@ -1,3 +1,8 @@
+*   Add `Hash#filter_values` and `Hash#filter_values` which filters out each
+    key where the value in the block evaluates to true.
+
+    *Jeremy W. Rowe*
+
 *   Fix the `ActiveSupport::Duration#instance_of?` method to return the right
     value with the class itself since it was previously delegated to the
     internal value.
