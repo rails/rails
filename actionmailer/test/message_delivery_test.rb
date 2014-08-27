@@ -1,9 +1,8 @@
 # encoding: utf-8
-gem 'activejob'
-require 'active_job'
 require 'abstract_unit'
+require 'active_job'
 require 'minitest/mock'
-require_relative 'mailers/delayed_mailer'
+require 'mailers/delayed_mailer'
 
 class MessageDeliveryTest < ActiveSupport::TestCase
 
