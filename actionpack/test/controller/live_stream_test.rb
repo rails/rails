@@ -279,6 +279,7 @@ module ActionController
       @controller.latch = ActiveSupport::Concurrency::Latch.new
       parts             = ['hello', 'world']
 
+      @request = ActionController::TestRequest.new(Rack::MockRequest.env_for('/'))
       @controller.request  = @request
       @controller.response = @response
 
@@ -300,6 +301,7 @@ module ActionController
     def test_abort_with_full_buffer
       @controller.latch = ActiveSupport::Concurrency::Latch.new
 
+      @request = ActionController::TestRequest.new(Rack::MockRequest.env_for('/'))
       @request.parameters[:format] = 'plain'
       @controller.request  = @request
       @controller.response = @response
@@ -331,6 +333,7 @@ module ActionController
     def test_ignore_client_disconnect
       @controller.latch = ActiveSupport::Concurrency::Latch.new
 
+      @request = ActionController::TestRequest.new(Rack::MockRequest.env_for('/'))
       @controller.request  = @request
       @controller.response = @response
 
@@ -362,6 +365,7 @@ module ActionController
     end
 
     def test_live_stream_default_header
+      @request = ActionController::TestRequest.new(Rack::MockRequest.env_for('/'))
       @controller.request  = @request
       @controller.response = @response
       @controller.process :default_header
