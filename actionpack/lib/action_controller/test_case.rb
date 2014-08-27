@@ -592,6 +592,7 @@ module ActionController
           parameters = parameters.to_json
         end
 
+        headers_or_env['request.variant'] = @request.variant
         headers_or_env['action_controller.instance'] = @controller
 
         send("super_#{http_method.downcase}", url, parameters, headers_or_env)

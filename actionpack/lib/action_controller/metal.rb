@@ -192,15 +192,8 @@ module ActionController
       @_request = request
       @_env = request.env
 
-      if @_env['action_controller.functional_test.controller']
-        @_env['action_controller.functional_test.controller'].each do |key, value|
-          case value
-          when Array
-            self.send(key).send(value.first, value.last)
-          else
-            self.send("#{key}=", value)
-          end
-        end
+      if variant = @_env['request.variant']
+        request.variant = variant
       end
 
       @_env['action_controller.instance'] = self
