@@ -8,6 +8,7 @@
 *   Allow `config.action_dispatch.trusted_proxies` to accept an IPAddr object.
 
     Example:
+
         # config/environments/production.rb
         config.action_dispatch.trusted_proxies = IPAddr.new('4.8.15.0/16')
 
@@ -62,7 +63,7 @@
 
     *Prem Sichanugrist*
 
-*   Deprecated TagAssertions.
+*   Deprecated `TagAssertions`.
 
     *Kasper Timm Hansen*
 
@@ -94,11 +95,11 @@
     If you render a different template, you can now pass the `:template`
     option to include its digest instead:
 
-      fresh_when @post, template: 'widgets/show'
+        fresh_when @post, template: 'widgets/show'
 
     Pass `template: false` to skip the lookup. To turn this off entirely, set:
 
-      config.action_controller.etag_with_template_digest = false
+        config.action_controller.etag_with_template_digest = false
 
     *Jeremy Kemper*
 
@@ -152,7 +153,7 @@
     *Godfrey Chan*
 
 *   Prepend a JS comment to JSONP callbacks. Addresses CVE-2014-4671
-    ("Rosetta Flash")
+    ("Rosetta Flash").
 
     *Greg Campbell*
 
