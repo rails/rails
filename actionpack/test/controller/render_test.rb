@@ -2,7 +2,7 @@ require 'abstract_unit'
 require 'controller/fake_models'
 require 'pathname'
 
-class TestControllerWithExtraEtags < ActionController::Base
+class WithExtraEtagsController < ActionController::Base
   etag { nil  }
   etag { 'ab' }
   etag { :cde }
@@ -393,7 +393,7 @@ class LastModifiedRenderTest < ActionController::TestCase
 end
 
 class EtagRenderTest < ActionController::TestCase
-  tests TestControllerWithExtraEtags
+  tests WithExtraEtagsController
 
   def test_multiple_etags
     @request.if_none_match = etag(["123", 'ab', :cde, [:f]])
