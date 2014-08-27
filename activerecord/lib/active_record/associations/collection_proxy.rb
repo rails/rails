@@ -879,7 +879,7 @@ module ActiveRecord
 
       # Equivalent to <tt>Array#==</tt>. Returns +true+ if the two arrays
       # contain the same number of elements and if each element is equal
-      # to the corresponding element in the other array, otherwise returns
+      # to the corresponding element in the +other+ array, otherwise returns
       # +false+.
       #
       #   class Person < ActiveRecord::Base
