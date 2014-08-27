@@ -282,38 +282,6 @@ class NamespacedParamsWrapperTest < ActionController::TestCase
 
 end
 
-class AnonymousControllerParamsWrapperTest < ActionController::TestCase
-  include ParamsWrapperTestHelp
-
-  tests(Class.new(ActionController::Base) do
-    class << self
-      attr_accessor :last_parameters
-    end
-
-    def parse
-      self.class.last_parameters = request.params.except(:controller, :action)
-      head :ok
-    end
-  end)
-
-  def test_does_not_implicitly_wrap_params
-    with_default_wrapper_options do
-      @request.env['CONTENT_TYPE'] = 'application/json'
-      post :parse, { 'username' => 'sikachu' }
-      assert_parameters({ 'username' => 'sikachu' })
-    end
-  end
-
-  def test_does_wrap_params_if_name_provided
-    with_default_wrapper_options do
-      @controller.class.wrap_parameters(:name => "guest")
-      @request.env['CONTENT_TYPE'] = 'application/json'
-      post :parse, { 'username' => 'sikachu' }
-      assert_parameters({ 'username' => 'sikachu', 'guest' => { 'username' => 'sikachu' }})
-    end
-  end
-end
-
 class IrregularInflectionParamsWrapperTest < ActionController::TestCase
   include ParamsWrapperTestHelp
 
