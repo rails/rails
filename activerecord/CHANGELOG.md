@@ -12,7 +12,7 @@
 *   Fix has_many :through relation merging failing when dynamic conditions are
     passed as a lambda with an arity of one.
 
-    Fixes #16128
+    Fixes #16128.
 
     *Agis Anastasopoulos*
 
@@ -27,6 +27,7 @@
     will not rescue those errors anymore, and just bubble them up, as the other callbacks.
 
     This adds a opt-in flag to enable that behaviour, of not rescuing the errors.
+
     Example:
 
         # For not swallow errors in after_commit/after_rollback callbacks.
@@ -51,7 +52,7 @@
 
 *   Fix regression on after_commit that didnt fire when having nested transactions.
 
-    Fixes #16425
+    Fixes #16425.
 
     *arthurnn*
 

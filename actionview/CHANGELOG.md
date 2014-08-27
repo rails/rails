@@ -26,11 +26,11 @@
     *Joel Junström*, *Lucas Uyezu*
 
 *   Return an absolute instead of relative path from an asset url in the case
-    of the `asset_host` proc returning nil
+    of the `asset_host` proc returning nil.
 
     *Jolyon Pawlyn*
 
-*   Fix `html_escape_once` to properly handle hex escape sequences (e.g. &#x1a2b;)
+*   Fix `html_escape_once` to properly handle hex escape sequences (e.g. &#x1a2b;).
 
     *John F. Douthat*
 
@@ -63,7 +63,7 @@
 
     *Zuhao Wan*
 
-*   Bring `cache_digest` rake tasks up-to-date with the latest API changes
+*   Bring `cache_digest` rake tasks up-to-date with the latest API changes.
 
     *Jiri Pospisil*
 
