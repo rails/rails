@@ -7,7 +7,7 @@
 
 *   The [web-console](https://github.com/rails/web-console) gem is now
     installed by default for new applications. It can help you debug
-    development exceptions by spawnig an interactive console in its cause
+    development exceptions by spawning an interactive console in its cause
     binding.
 
     *Ryan Dao*, *Genadi Samokovarov*, *Guillermo Iguaran*
