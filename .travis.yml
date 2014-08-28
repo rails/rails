@@ -1,3 +1,4 @@
+language: ruby
 script: 'ci/travis.rb'
 before_install:
   - travis_retry gem install bundler
