@@ -240,8 +240,8 @@ module ActionController
     tests TestController
 
     def assert_stream_closed
-      assert response.stream.closed?, 'stream should be closed'
-      assert response.sent?, 'stream should be sent'
+      assert @controller.response.stream.closed?, 'stream should be closed'
+      assert @controller.response.sent?, 'stream should be sent'
     end
 
     def capture_log_output

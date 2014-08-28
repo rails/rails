@@ -53,8 +53,8 @@ class SendFileTest < ActionController::TestCase
     response = nil
     assert_nothing_raised { response = process('file') }
     assert_not_nil response
-    assert_respond_to response.stream, :each
-    assert_respond_to response.stream, :to_path
+    assert_respond_to @controller.response.stream, :each
+    assert_respond_to @controller.response.stream, :to_path
 
     require 'stringio'
     output = StringIO.new
