@@ -41,6 +41,13 @@ class StoreTest < ActiveRecord::TestCase
     assert_equal 'red', @john.color
   end
 
+  test "query (?) method for attribute exposed by accessors" do
+    @john.height = 'tall'
+    assert_equal true, @john.height?
+    @john.height = nil
+    assert_equal false, @john.height?
+  end
+
   test "updating the store will mark it as changed" do
     @john.color = 'red'
     assert @john.settings_changed?

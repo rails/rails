@@ -1,3 +1,7 @@
+*   add a query (?) method for attributes defined using store_accessor.
+
+    *Herman verschooten*
+
 *   `default_sequence_name` from the PostgreSQL adapter returns a `String`.
 
     *Yves Senn*
