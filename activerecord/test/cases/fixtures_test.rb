@@ -644,6 +644,7 @@ class LoadAllFixturesWithPathnameTest < ActiveRecord::TestCase
 end
 
 class FasterFixturesTest < ActiveRecord::TestCase
+  self.use_transactional_fixtures = false
   fixtures :categories, :authors
 
   def load_extra_fixture(name)
