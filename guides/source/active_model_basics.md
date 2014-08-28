@@ -3,15 +3,15 @@ Active Model Basics
 
 This guide should provide you with all you need to get started using model
 classes. Active Model allows for Action Pack helpers to interact with
-plain Ruby object. Active Model also helps building custom ORMs for use
+plain Ruby objects. Active Model also helps build custom ORMs for use
 outside of the Rails framework.
 
 After reading this guide, you will be able to add to plain Ruby objects:
 
-* The ability to behaves like an Active Record model.
-* Add callbacks and validations like Active Record.
-* Add serializers.
-* Integrate with the Rails internationalization (i18n) framework.
+* The ability to behave like an Active Record model.
+* Callbacks and validations like Active Record.
+* Serializers.
+* Integration with the Rails internationalization (i18n) framework.
 
 --------------------------------------------------------------------------------
 
@@ -22,7 +22,7 @@ Active Model is a library containing various modules used in developing
 classes that need some features present on Active Record.
 Some of these modules are explained below.
 
-### ActiveModel::AttributeMethods
+### Attribute Methods
 
 The `ActiveModel::AttributeMethods` module can add custom prefixes and suffixes
 on methods of a class. It is used by defining the prefixes and suffixes and
@@ -50,12 +50,12 @@ end
 
 person = Person.new
 person.age = 110
-person.age_highest?  # true
-person.reset_age     # 0
-person.age_highest?  # false
+person.age_highest?  # => true
+person.reset_age     # => 0
+person.age_highest?  # => false
 ```
 
-### ActiveModel::Callbacks
+### Callbacks
 
 `ActiveModel::Callbacks` gives Active Record style callbacks. This provides an
 ability to define callbacks which run at appropriate times.
@@ -82,7 +82,7 @@ class Person
 end
 ```
 
-### ActiveModel::Conversion
+### Conversion
 
 If a class defines `persisted?` and `id` methods, then you can include the
 `ActiveModel::Conversion` module in that class and call the Rails conversion
@@ -107,16 +107,15 @@ person.to_key              # => nil
 person.to_param            # => nil
 ```
 
-### ActiveModel::Dirty
+### Dirty
 
 An object becomes dirty when it has gone through one or more changes to its
-attributes and has not been saved. This gives the ability to check whether an
-object has been changed or not. It also has attribute based accessor methods.
-Let's consider a Person class with attributes `first_name` and `last_name`:
+attributes and has not been saved. `ActiveModel::Dirty` gives the ability to
+check whether an object has been changed or not. It also has attribute based
+accessor methods. Let's consider a Person class with attributes `first_name`
+and `last_name`:
 
 ```ruby
-require 'active_model'
-
 class Person
   include ActiveModel::Dirty
   define_attribute_methods :first_name, :last_name
@@ -182,7 +181,7 @@ Track what was the previous value of the attribute.
 
 ```ruby
 # attr_name_was accessor
-person.first_name_was # => "First Name"
+person.first_name_was # => nil
 ```
 
 Track both previous and current value of the changed attribute. Returns an array
@@ -194,10 +193,10 @@ person.first_name_change # => [nil, "First Name"]
 person.last_name_change # => nil
 ```
 
-### ActiveModel::Validations
+### Validations
 
-`ActiveModel::Validations` module adds the ability to class objects to validate
-them in Active Record style.
+`ActiveModel::Validations` module adds the ability to validate class objects
+like in Active Record.
 
 ```ruby
 class Person
@@ -210,7 +209,8 @@ class Person
   validates! :token, presence: true
 end
 
-person = Person.new(token: "2b1f325")
+person = Person.new
+person.token = "2b1f325"
 person.valid?                        # => false
 person.name = 'vishnu'
 person.email = 'me'
@@ -221,9 +221,9 @@ person.token = nil
 person.valid?                        # => raises ActiveModel::StrictValidationFailed
 ```
 
-### ActiveModel::Naming
+### Naming
 
-Naming adds a number of class methods which make the naming and routing
+`ActiveModel::Naming` adds a number of class methods which make the naming and routing
 easier to manage. The module defines the `model_name` class method which
 will define a number of accessors using some `ActiveSupport::Inflector` methods.
 
@@ -242,17 +242,18 @@ Person.model_name.param_key           # => "person"
 Person.model_name.i18n_key            # => :person
 Person.model_name.route_key           # => "people"
 Person.model_name.singular_route_key  # => "person"
+```
 
-### ActiveModel::Model
+### Model
 
 `ActiveModel::Model` adds the ability to a class to work with Action Pack and
-Action View out of box.
+Action View right out of the box.
 
 ```ruby
 class EmailContact
   include ActiveModel::Model
 
-  attr_acessor :name, :email, :message
+  attr_accessor :name, :email, :message
   validates :name, :email, :message, presence: true
 
   def deliver
@@ -287,7 +288,7 @@ Any class that includes `ActiveModel::Model` can be used with `form_for`,
 `render` and any other Action View helper methods, just like Active Record
 objects.
 
-### ActiveModel::Serialization
+### Serialization
 
 `ActiveModel::Serialization` provides a basic serialization for your object.
 You need to declare an attributes hash which contains the attributes you want to
@@ -367,7 +368,7 @@ class Person
 end
 ```
 
-Now it is possible to create an instance of person using the `from_json`.
+Now it is possible to create an instance of person and set the attributes using `from_json`.
 
 ```ruby
 json = { name: 'Bob' }.to_json
@@ -423,7 +424,7 @@ class Person
 end
 ```
 
-Now it is possible to create an instance of person using the `from_xml`.
+Now it is possible to create an instance of person and set the attributes using `from_xml`.
 
 ```ruby
 xml = { name: 'Bob' }.to_xml
@@ -432,10 +433,10 @@ person.from_xml(xml) # => #<Person:0x00000100c773f0 @name="Bob">
 person.name          # => "Bob"
 ```
 
-### ActiveModel::Translation
+### Translation
 
-Provides integration between your object and the Rails internationalization
-(i18n) framework.
+`ActiveModel::Translation` provides integration between your object and the Rails
+internationalization (i18n) framework.
 
 ```ruby
 class Person
@@ -460,14 +461,15 @@ human format. The human format is defined in your locale file.
 Person.human_attribute_name('name') # => "Nome"
 ```
 
-### ActiveModel::Lint::Tests
+### Lint Tests
 
-Test whether an object is compliant with the Active Model API.
+`ActiveModel::Lint::Tests` allow you to test whether an object is compliant with
+the Active Model API.
 
 * app/models/person.rb
 
     ```ruby
-    class person
+    class Person
       include ActiveModel::Model
 
     end
