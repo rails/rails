@@ -572,7 +572,7 @@ module ActionController
         @controller.flash.update(flash) if flash
 
         unless url = @request.env["PATH_INFO"]
-          options = @controller.respond_to?(:url_options) ? @controller.__send__(:url_options).merge(parameters) : parameters
+          options = @controller.respond_to?(:url_options) ? @controller.__send__(:url_options).merge(parameters) : parameters.dup
           options.update(
             controller: @controller.class.controller_path,
             action: action,
