@@ -689,7 +689,7 @@ class DirtyTest < ActiveRecord::TestCase
     end
 
     klass.create!(data: "foo")
-    binary = klass.first
+    binary = klass.last
 
     assert_not binary.changed?
 
