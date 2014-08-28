@@ -3,18 +3,6 @@ require 'models/contact'
 require 'active_support/core_ext/object/instance_variables'
 require 'ostruct'
 
-class Contact
-  include ActiveModel::Serializers::Xml
-
-  attr_accessor :address, :friends, :contact
-
-  remove_method :attributes if method_defined?(:attributes)
-
-  def attributes
-    instance_values.except("address", "friends", "contact")
-  end
-end
-
 module Admin
   class Contact < ::Contact
   end
