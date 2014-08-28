@@ -25,10 +25,10 @@ module ActiveRecord
             if !infinity?(from) && extracted[:exclude_start]
               if from.respond_to?(:succ)
                 from = from.succ
-                ActiveSupport::Deprecation.warn <<-MESSAGE
-Excluding the beginning of a Range is only partialy supported through `#succ`.
-This is not reliable and will be removed in the future.
-                MESSAGE
+                ActiveSupport::Deprecation.warn \
+                  "Excluding the beginning of a Range is only partialy supported " \
+                  "through `#succ`. This is not reliable and will be removed in " \
+                  "the future."
               else
                 raise ArgumentError, "The Ruby Range object does not support excluding the beginning of a Range. (unsupported value: '#{value}')"
               end

@@ -184,10 +184,10 @@ module ActiveRecord
       end
 
       def load_schema(format = ActiveRecord::Base.schema_format, file = nil)
-        ActiveSupport::Deprecation.warn(<<-MESSAGE.strip_heredoc)
-          This method will act on a specific connection in the future.
-          To act on the current connection, use `load_schema_current` instead.
-        MESSAGE
+        ActiveSupport::Deprecation.warn \
+          "This method will act on a specific connection in the future. " \
+          "To act on the current connection, use `load_schema_current` instead."
+
         load_schema_current(format, file)
       end
 
