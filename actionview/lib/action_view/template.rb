@@ -293,18 +293,8 @@ module ActionView
           raise WrongEncodingError.new(@source, Encoding.default_internal)
         end
 
-        begin
-          mod.module_eval(source, identifier, 0)
-          ObjectSpace.define_finalizer(self, Finalizer[method_name, mod])
-        rescue => e # errors from template code
-          if logger = (view && view.logger)
-            logger.debug "ERROR: compiling #{method_name} RAISED #{e}"
-            logger.debug "Function body: #{source}"
-            logger.debug "Backtrace: #{e.backtrace.join("\n")}"
-          end
-
-          raise ActionView::Template::Error.new(self, e)
-        end
+        mod.module_eval(source, identifier, 0)
+        ObjectSpace.define_finalizer(self, Finalizer[method_name, mod])
       end
 
       def handle_render_error(view, e) #:nodoc:
