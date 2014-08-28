@@ -11,8 +11,6 @@ require 'models/minivan'
 require 'models/speedometer'
 require 'models/ship_part'
 
-Company.has_many :accounts
-
 class NumericData < ActiveRecord::Base
   self.table_name = 'numeric_data'
 
