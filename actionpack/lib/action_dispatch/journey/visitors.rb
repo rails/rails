@@ -107,10 +107,11 @@ module ActionDispatch
 
       # Used for formatting urls (url_for)
       class Formatter < Visitor # :nodoc:
-        attr_reader :options
+        attr_reader :options, :consumed
 
         def initialize(options)
           @options  = options
+          @consumed = {}
         end
 
         private
@@ -129,7 +130,7 @@ module ActionDispatch
             when :STAR
               visit_STAR(node.left)
             when :GROUP
-              visit(node.left, true)
+              visit_GROUP(node.left)
             when :CAT
               visit_CAT(node, optional)
             when :SYMBOL
@@ -148,6 +149,13 @@ module ActionDispatch
             end
           end
 
+          def visit_GROUP(node)
+            if consumed != options
+              route = visit(node)
+              route.include?("\0") ? nil : route
+            end
+          end
+
           def visit_STAR(node)
             if value = options[node.to_sym]
               escape_path(value)
@@ -156,7 +164,10 @@ module ActionDispatch
 
           def visit_SYMBOL(node, name)
             if value = options[name]
+              consumed[name] = value
               name == :controller ? escape_path(value) : escape_segment(value)
+            else
+              "\0"
             end
           end
       end
