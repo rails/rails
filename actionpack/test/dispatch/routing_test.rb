@@ -2304,6 +2304,33 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       url_for(:controller => "groups", :action => "index", :username => nil)
   end
 
+  def test_url_generator_for_two_optional_suffix_static_and_dynamic_segments
+    draw do
+      get 'houses/:city(/:beds-bed)(/:baths-bath)' => 'properties#search', beds: /\d{1,2}/, baths: /\d{1,2}/
+    end
+
+    get '/houses/chicago'
+    assert_equal 'properties#search', @response.body
+    assert_equal 'http://www.example.com/houses/chicago',
+                 url_for(:controller => "properties", :action => "search", :beds => nil, :baths => nil, :city => "chicago")
+
+    get '/houses/chicago/3-bed'
+    assert_equal 'properties#search', @response.body
+    assert_equal 'http://www.example.com/houses/chicago/3-bed',
+                 url_for(:controller => "properties", :action => "search", :beds => 3, :baths => nil, :city => "chicago")
+
+    get '/houses/chicago/2-bath'
+    assert_equal 'properties#search', @response.body
+    assert_equal 'http://www.example.com/houses/chicago/2-bath',
+                 url_for(:controller => "properties", :action => "search", :beds => nil, :baths => 2, :city => "chicago")
+
+    get '/houses/chicago/3-bed/2-bath'
+    assert_equal 'properties#search', @response.body
+    assert_equal 'http://www.example.com/houses/chicago/3-bed/2-bath',
+                 url_for(:controller => "properties", :action => "search", :beds => 3, :baths => 2, :city => "chicago")
+
+  end
+
   def test_url_generator_for_optional_prefix_static_and_dynamic_segment
     draw do
       get "(/user/:username)/photos" => "photos#index"
