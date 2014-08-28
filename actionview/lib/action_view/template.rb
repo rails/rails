@@ -242,7 +242,7 @@ module ActionView
           end
 
           instrument("!compile_template") do
-            compile(view, mod)
+            compile(mod)
           end
 
           # Just discard the source if we have a virtual path. This
@@ -264,7 +264,7 @@ module ActionView
       # encode the source into <tt>Encoding.default_internal</tt>.
       # In general, this means that templates will be UTF-8 inside of Rails,
       # regardless of the original source encoding.
-      def compile(view, mod) #:nodoc:
+      def compile(mod) #:nodoc:
         encode!
         method_name = self.method_name
         code = @handler.call(self)
