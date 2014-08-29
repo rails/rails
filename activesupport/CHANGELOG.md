@@ -1,15 +1,10 @@
-*   Added yield to Object#presence, so you can do this:
+*   Added instance_eval version to Object#try, so you can do this:
 
-      project.account.owner.presence { name.first } || 'Nobody'
+      person.try { name.first }
     
-    instead of calling twice (which may incur double SQL calls):
+    instead of:
       
-      project.account.owner ? project.account.owner.name.first || 'Nobody'
-    
-    or assigning to local variable:
-    
-      owner = project.account.owner
-      owner ? owner.name.first || 'Nobody'
+      person.try { |person| person.name.first }
 
     *DHH*
 
