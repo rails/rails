@@ -1,3 +1,10 @@
+*   Don't rescue `IPAddr::InvalidAddressError`.
+
+    `IPAddr::InvalidAddressError` does not exist in Ruby 1.9.3
+    and fails for JRuby in 1.9 mode.
+
+    *Peter Suschlik*
+
 *   Fix bug where the router would ignore any constraints added to redirect
     routes.
 
