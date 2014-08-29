@@ -40,15 +40,16 @@ class Object
   #   region = params[:state].presence || params[:country].presence || 'US'
   #
   # You can also use this with a block that will be yielded if the object is present
-  # and the result of that block will then be returned
+  # and the result of that block will then be returned. The block itself is run against
+  # the instance you're running #presence on (using instance_eval)
   #
-  #   project.account.owner.presence { |p| p.name.first } || 'Nobody'
+  #   project.account.owner.presence { name.first } || 'Nobody'
   #
   # @return [Object]
-  def presence
+  def presence(&block)
     if present?
       if block_given?
-        yield self
+        instance_eval(&block)
       else
         self
       end

@@ -1,6 +1,6 @@
 *   Added yield to Object#presence, so you can do this:
 
-      project.account.owner.presence { |p| p.name.first } || 'Nobody'
+      project.account.owner.presence { name.first } || 'Nobody'
     
     instead of calling twice (which may incur double SQL calls):
       

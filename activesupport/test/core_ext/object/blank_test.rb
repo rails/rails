@@ -35,7 +35,7 @@ class BlankTest < ActiveSupport::TestCase
   end
   
   def test_presence_with_a_block
-    assert_equal "SALLY", "sally".presence(&:upcase) || "Nobody"
-    assert_equal "Nobody", nil.presence(&:upcase) || "Nobody"
+    assert_equal "SALLY", "sally".presence { upcase } || "Nobody"
+    assert_equal "Nobody", nil.presence { upcase } || "Nobody"
   end
 end
