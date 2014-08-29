@@ -34,7 +34,7 @@ class MigrationTest < ActiveRecord::TestCase
       Reminder.connection.drop_table(table) rescue nil
     end
     Reminder.reset_column_information
-    @verbose_was, ActiveRecord::Migration.verbose = ActiveRecord::Migration.verbose, true
+    @verbose_was, ActiveRecord::Migration.verbose = ActiveRecord::Migration.verbose, false
     ActiveRecord::Base.connection.schema_cache.clear!
   end
 
