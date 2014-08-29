@@ -7,8 +7,7 @@ require 'jobs/logging_job'
 require 'jobs/nested_job'
 
 class EnqueuedJobsTest < ActiveJob::TestCase
-  tests HelloJob
-  setup :perform_enqueued_at_jobs
+  setup { queue_adapter.perform_enqueued_at_jobs = true }
 
   def test_assert_enqueued_jobs
     assert_nothing_raised do
@@ -87,20 +86,20 @@ class EnqueuedJobsTest < ActiveJob::TestCase
   end
 
   def test_assert_enqueued_job
-    assert_enqueued_job(job: LoggingJob, queue: 'default') do
+    assert_enqueued_with(job: LoggingJob, queue: 'default') do
       NestedJob.enqueue_at(Date.tomorrow.noon)
     end
   end
 
   def test_assert_enqueued_job_failure
     assert_raise ActiveSupport::TestCase::Assertion do
-      assert_enqueued_job(job: LoggingJob, queue: 'default') do
+      assert_enqueued_with(job: LoggingJob, queue: 'default') do
         NestedJob.enqueue
       end
     end
 
     assert_raise ActiveSupport::TestCase::Assertion do
-      assert_enqueued_job(job: NestedJob, queue: 'low') do
+      assert_enqueued_with(job: NestedJob, queue: 'low') do
         NestedJob.enqueue
       end
     end
@@ -108,7 +107,7 @@ class EnqueuedJobsTest < ActiveJob::TestCase
 
   def test_assert_enqueued_job_args
     assert_raise ArgumentError do
-      assert_enqueued_job(class: LoggingJob) do
+      assert_enqueued_with(class: LoggingJob) do
         NestedJob.enqueue_at(Date.tomorrow.noon)
       end
     end
@@ -116,8 +115,7 @@ class EnqueuedJobsTest < ActiveJob::TestCase
 end
 
 class PerformedJobsTest < ActiveJob::TestCase
-  tests HelloJob
-  setup :perform_enqueued_jobs
+  setup { queue_adapter.perform_enqueued_jobs = true }
 
   def test_assert_performed_jobs
     assert_nothing_raised do
@@ -196,20 +194,20 @@ class PerformedJobsTest < ActiveJob::TestCase
   end
 
   def test_assert_performed_job
-    assert_performed_job(job: NestedJob, queue: 'default') do
+    assert_performed_with(job: NestedJob, queue: 'default') do
       NestedJob.enqueue
     end
   end
 
   def test_assert_performed_job_failure
     assert_raise ActiveSupport::TestCase::Assertion do
-      assert_performed_job(job: LoggingJob, queue: 'default') do
+      assert_performed_with(job: LoggingJob, queue: 'default') do
         NestedJob.enqueue_at(Date.tomorrow.noon)
       end
     end
 
     assert_raise ActiveSupport::TestCase::Assertion do
-      assert_performed_job(job: NestedJob, queue: 'low') do
+      assert_performed_with(job: NestedJob, queue: 'low') do
         NestedJob.enqueue_at(Date.tomorrow.noon)
       end
     end
