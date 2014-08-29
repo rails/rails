@@ -24,11 +24,23 @@ class MigratorTest < ActiveRecord::TestCase
     ActiveRecord::SchemaMigration.create_table
     ActiveRecord::SchemaMigration.delete_all rescue nil
     @verbose_was = ActiveRecord::Migration.verbose
+    ActiveRecord::Migration.class_eval do
+      undef :puts
+      def puts(*)
+        ActiveRecord::Migration.message_count += 1
+      end
+    end
   end
 
   teardown do
     ActiveRecord::SchemaMigration.delete_all rescue nil
     ActiveRecord::Migration.verbose = @verbose_was
+    ActiveRecord::Migration.class_eval do
+      undef :puts
+      def puts(*)
+        super
+      end
+    end
   end
 
   def test_migrator_with_duplicate_names
