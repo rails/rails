@@ -24,6 +24,7 @@ class MigratorTest < ActiveRecord::TestCase
     ActiveRecord::SchemaMigration.create_table
     ActiveRecord::SchemaMigration.delete_all rescue nil
     @verbose_was = ActiveRecord::Migration.verbose
+    ActiveRecord::Migration.message_count = 0
     ActiveRecord::Migration.class_eval do
       undef :puts
       def puts(*)
@@ -243,7 +244,6 @@ class MigratorTest < ActiveRecord::TestCase
 
     ActiveRecord::Migrator.new(:down, migrations, 0).migrate
     assert_not_equal 0, ActiveRecord::Migration.message_count
-    ActiveRecord::Migration.message_count = 0
   end
 
   def test_migrator_verbosity_off
