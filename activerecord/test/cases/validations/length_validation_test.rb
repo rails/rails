@@ -44,4 +44,32 @@ class LengthValidationTest < ActiveRecord::TestCase
       assert o.valid?
     end
   end
+
+  def test_validates_size_of_association_using_is
+    repair_validations Owner do
+      Owner.validates_size_of :pets, :is => 2
+      o = Owner.new
+      assert !o.save
+      assert_equal ["is the wrong length (should have length of 2)"], o.errors[:pets]
+    end
+  end
+
+  def test_validates_size_of_association_using_minimum
+    repair_validations Owner do
+      Owner.validates_size_of :pets, :minimum => 2
+      o = Owner.new
+      assert !o.save
+      assert_equal ["is too short (minimum length is 2)"], o.errors[:pets]
+    end
+  end
+
+  def test_validates_size_of_association_using_maximum
+    repair_validations Owner do
+      Owner.validates_size_of :pets, :maximum => 2
+      o = Owner.new
+      3.times { o.pets.build('name' => 'apet') }
+      assert !o.save
+      assert_equal ["is too long (maximum length is 2)"], o.errors[:pets]
+    end
+  end
 end
