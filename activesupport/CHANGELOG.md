@@ -1,3 +1,9 @@
+*   Added yield to Object#presence, so you can do this:
+
+      person.presence { |p| p.name.first } || 'Nobody'
+
+    *DHH*
+
 *   Fix the `ActiveSupport::Duration#instance_of?` method to return the right
     value with the class itself since it was previously delegated to the
     internal value.
