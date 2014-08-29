@@ -23,11 +23,12 @@ class MigratorTest < ActiveRecord::TestCase
     super
     ActiveRecord::SchemaMigration.create_table
     ActiveRecord::SchemaMigration.delete_all rescue nil
+    @verbose_was = ActiveRecord::Migration.verbose
   end
 
   teardown do
     ActiveRecord::SchemaMigration.delete_all rescue nil
-    ActiveRecord::Migration.verbose = true
+    ActiveRecord::Migration.verbose = @verbose_was
   end
 
   def test_migrator_with_duplicate_names

@@ -34,7 +34,7 @@ class MigrationTest < ActiveRecord::TestCase
       Reminder.connection.drop_table(table) rescue nil
     end
     Reminder.reset_column_information
-    ActiveRecord::Migration.verbose = true
+    @verbose_was, ActiveRecord::Migration.verbose = ActiveRecord::Migration.verbose, true
     ActiveRecord::Migration.message_count = 0
     ActiveRecord::Base.connection.schema_cache.clear!
   end
@@ -65,6 +65,8 @@ class MigrationTest < ActiveRecord::TestCase
     Person.connection.remove_column("people", "middle_name") rescue nil
     Person.connection.add_column("people", "first_name", :string)
     Person.reset_column_information
+
+    ActiveRecord::Migration.verbose = @verbose_was
   end
 
   def test_migrator_versions
