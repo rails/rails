@@ -35,7 +35,6 @@ class MigrationTest < ActiveRecord::TestCase
     end
     Reminder.reset_column_information
     @verbose_was, ActiveRecord::Migration.verbose = ActiveRecord::Migration.verbose, true
-    ActiveRecord::Migration.message_count = 0
     ActiveRecord::Base.connection.schema_cache.clear!
   end
 
