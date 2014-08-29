@@ -33,7 +33,7 @@ group :development, :test do
   gem 'byebug'
   <%- end -%>
 
-  # Access an IRB console on exceptions page and /console in development
+  # Access an IRB console on each exception page or by using <%%= console %> in any view
   gem 'web-console', '~> 2.0.0.beta2'
 <%- if spring_install? %>
   # Spring speeds up development by keeping your application running in the background. Read more: https://github.com/rails/spring
