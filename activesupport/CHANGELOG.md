@@ -1,6 +1,15 @@
 *   Added yield to Object#presence, so you can do this:
 
-      person.presence { |p| p.name.first } || 'Nobody'
+      project.account.owner.presence { |p| p.name.first } || 'Nobody'
+    
+    instead of calling twice (which may incur double SQL calls):
+      
+      project.account.owner ? project.account.owner.name.first || 'Nobody'
+    
+    or assigning to local variable:
+    
+      owner = project.account.owner
+      owner ? owner.name.first || 'Nobody'
 
     *DHH*
 
