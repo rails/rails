@@ -39,9 +39,20 @@ class Object
   #
   #   region = params[:state].presence || params[:country].presence || 'US'
   #
+  # You can also use this with a block that will be yielded if the object is present
+  # and the result of that block will then be returned
+  #
+  #   person.presence { |p| p.name.first } || 'Nobody'
+  #
   # @return [Object]
   def presence
-    self if present?
+    if present?
+      if block_given?
+        yield self
+      else
+        self
+      end
+    end
   end
 end
 
