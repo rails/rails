@@ -126,7 +126,7 @@ module ActiveRecord
   # that is included in <tt>ActiveRecord::FixtureSet.context_class</tt>.
   #
   # - define a helper method in `test_helper.rb`
-  #     class FixtureFileHelpers
+  #     module FixtureFileHelpers
   #       def file_sha(path)
   #         Digest::SHA2.hexdigest(File.read(Rails.root.join('test/fixtures', path)))
   #       end
