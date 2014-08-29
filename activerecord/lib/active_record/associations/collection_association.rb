@@ -43,13 +43,7 @@ module ActiveRecord
 
       # Implements the ids reader method, e.g. foo.item_ids for Foo.has_many :items
       def ids_reader
-        source_reflection = reflection.source_reflection
-        if source_reflection.collection?
-          pk_column_name = source_reflection.primary_key_column.name
-        else
-          pk_column_name = source_reflection.association_primary_key
-        end
-
+        pk_column_name = reflection.source_reflection_pk_column_name
         if loaded?
           load_target.map do |record|
             record.send(pk_column_name)

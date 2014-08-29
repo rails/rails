@@ -305,6 +305,14 @@ Joining, Preloading and eager loading of these associations is deprecated and wi
         self
       end
 
+      def source_reflection_pk_column_name
+        if source_reflection.collection?
+          pk_column_name = source_reflection.primary_key_column.name
+        else
+          pk_column_name = source_reflection.association_primary_key
+        end
+      end
+
       # A chain of reflections from this one back to the owner. For more see the explanation in
       # ThroughReflection.
       def chain
