@@ -42,7 +42,7 @@ class Object
   # You can also use this with a block that will be yielded if the object is present
   # and the result of that block will then be returned
   #
-  #   person.presence { |p| p.name.first } || 'Nobody'
+  #   project.account.owner.presence { |p| p.name.first } || 'Nobody'
   #
   # @return [Object]
   def presence
