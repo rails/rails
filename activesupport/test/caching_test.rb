@@ -939,8 +939,8 @@ class MemCacheStoreTest < ActiveSupport::TestCase
 
   def test_read_should_return_a_different_object_id_each_time_it_is_called
     @cache.write('foo', 'bar')
-    assert_not_equal @cache.read('foo').object_id, @cache.read('foo').object_id
     value = @cache.read('foo')
+    assert_not_equal value.object_id, @cache.read('foo').object_id
     value << 'bingo'
     assert_not_equal value, @cache.read('foo')
   end

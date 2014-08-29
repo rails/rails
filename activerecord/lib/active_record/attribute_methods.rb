@@ -203,11 +203,9 @@ module ActiveRecord
       def column_for_attribute(name)
         column = columns_hash[name.to_s]
         if column.nil?
-          ActiveSupport::Deprecation.warn(<<-MESSAGE.strip_heredoc)
-            `column_for_attribute` will return a null object for non-existent columns
-            in Rails 5.0. Use `has_attribute?` if you need to check for an
-            attribute's existence.
-          MESSAGE
+          ActiveSupport::Deprecation.warn \
+            "`column_for_attribute` will return a null object for non-existent columns " \
+            "in Rails 5.0. Use `has_attribute?` if you need to check for an attribute's existence."
         end
         column
       end

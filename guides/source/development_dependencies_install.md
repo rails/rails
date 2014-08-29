@@ -45,36 +45,14 @@ $ cd rails
 
 The test suite must pass with any submitted code. No matter whether you are writing a new patch, or evaluating someone else's, you need to be able to run the tests.
 
-Install first libxml2 and libxslt together with their development files for Nokogiri. In Ubuntu that's
+Install first SQLite3 and its development files for the `sqlite3` gem. Mac OS X
+users are done with:
 
 ```bash
-$ sudo apt-get install libxml2 libxml2-dev libxslt1-dev
+$ brew install sqlite3
 ```
 
-If you are on Fedora or CentOS, you can run
-
-```bash
-$ sudo yum install libxml2 libxml2-devel libxslt libxslt-devel
-```
-
-If you are running Arch Linux, you're done with:
-
-```bash
-$ sudo pacman -S libxml2 libxslt
-```
-
-On FreeBSD, you just have to run:
-
-```bash
-# pkg_add -r libxml2 libxslt
-```
-
-Alternatively, you can install the `textproc/libxml2` and `textproc/libxslt`
-ports.
-
-If you have any problems with these libraries, you can install them manually by compiling the source code. Just follow the instructions at the [Red Hat/CentOS section of the Nokogiri tutorials](http://nokogiri.org/tutorials/installing_nokogiri.html#red_hat__centos) .
-
-Also, SQLite3 and its development files for the `sqlite3-ruby` gem - in Ubuntu you're done with just
+In Ubuntu you're done with just:
 
 ```bash
 $ sudo apt-get install sqlite3 libsqlite3-dev
@@ -95,7 +73,7 @@ $ sudo pacman -S sqlite
 For FreeBSD users, you're done with:
 
 ```bash
-# pkg_add -r sqlite3
+# pkg install sqlite3
 ```
 
 Or compile the `databases/sqlite3` port.
@@ -117,7 +95,7 @@ This command will install all dependencies except the MySQL and PostgreSQL Ruby 
 
 NOTE: If you would like to run the tests that use memcached, you need to ensure that you have it installed and running.
 
-You can use [Homebrew](http://brew.sh/) to install memcached on OSX:
+You can use [Homebrew](http://brew.sh/) to install memcached on OS X:
 
 ```bash
 $ brew install memcached
@@ -134,6 +112,20 @@ Or use yum on Fedora or CentOS:
 ```bash
 $ sudo yum install memcached
 ```
+
+If you are running on Arch Linux:
+
+```bash
+$ sudo pacman -S memcached
+```
+
+For FreeBSD users, you're done with:
+
+```bash
+# pkg install memcached
+```
+
+Alternatively, you can compile the `databases/memcached` port.
 
 With the dependencies now installed, you can run the test suite with:
 
@@ -181,7 +173,19 @@ The Active Record test suite requires a custom config file: `activerecord/test/c
 
 #### MySQL and PostgreSQL
 
-To be able to run the suite for MySQL and PostgreSQL we need their gems. Install first the servers, their client libraries, and their development files. In Ubuntu just run
+To be able to run the suite for MySQL and PostgreSQL we need their gems. Install
+first the servers, their client libraries, and their development files.
+
+On OS X, you can run:
+
+```bash
+$ brew install mysql
+$ brew install postgresql
+```
+
+Follow the instructions given by Homebrew to start these.
+
+In Ubuntu just run:
 
 ```bash
 $ sudo apt-get install mysql-server libmysqlclient15-dev
@@ -206,17 +210,9 @@ $ sudo pacman -S postgresql postgresql-libs
 FreeBSD users will have to run the following:
 
 ```bash
-# pkg_add -r mysql56-client mysql56-server
-# pkg_add -r postgresql92-client postgresql92-server
+# pkg install mysql56-client mysql56-server
+# pkg install postgresql93-client postgresql93-server
 ```
-
-You can use [Homebrew](http://brew.sh/) to install MySQL and PostgreSQL on OSX:
-
-```bash
-$ brew install mysql
-$ brew install postgresql
-```
-Follow instructions given by [Homebrew](http://brew.sh/) to start these.
 
 Or install them through ports (they are located under the `databases` folder).
 If you run into troubles during the installation of MySQL, please see
@@ -252,18 +248,20 @@ $ cd activerecord
 $ bundle exec rake db:mysql:build
 ```
 
-PostgreSQL's authentication works differently. A simple way to set up the development environment for example is to run with your development account
-This is not needed when installed via [Homebrew](http://brew.sh).
+PostgreSQL's authentication works differently. To setup the development environment
+with your development account, on Linux or BSD, you just have to run:
 
 ```bash
 $ sudo -u postgres createuser --superuser $USER
 ```
-And for OS X (when installed via [Homebrew](http://brew.sh))
+
+and for OS X:
+
 ```bash
 $ createuser --superuser $USER
 ```
 
-and then create the test databases with
+Then you need to create the test databases with
 
 ```bash
 $ cd activerecord

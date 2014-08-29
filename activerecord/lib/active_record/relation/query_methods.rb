@@ -94,10 +94,8 @@ module ActiveRecord
     def check_cached_relation # :nodoc:
       if defined?(@arel) && @arel
         @arel = nil
-        ActiveSupport::Deprecation.warn <<-WARNING
-Modifying already cached Relation. The cache will be reset.
-Use a cloned Relation to prevent this warning.
-WARNING
+        ActiveSupport::Deprecation.warn "Modifying already cached Relation. The " \
+          "cache will be reset. Use a cloned Relation to prevent this warning."
       end
     end
 

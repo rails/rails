@@ -101,11 +101,13 @@ module ActionDispatch
             r.path.match(req.path_info)
           }
 
-          if req.env["REQUEST_METHOD"] === "HEAD"
-            routes.concat get_routes_as_head(routes)
-          end
+          routes =
+            if req.request_method == "HEAD"
+              match_head_routes(routes, req)
+            else
+              match_routes(routes, req)
+            end
 
-          routes.select! { |r| r.matches?(req) }
           routes.sort_by!(&:precedence)
 
           routes.map! { |r|
@@ -118,19 +120,23 @@ module ActionDispatch
           }
         end
 
-        def get_routes_as_head(routes)
-          precedence = (routes.map(&:precedence).max || 0) + 1
-          routes.select { |r|
-            r.verb === "GET" && !(r.verb === "HEAD")
-          }.map! { |r|
-            Route.new(r.name,
-                      r.app,
-                      r.path,
-                      r.conditions.merge(request_method: "HEAD"),
-                      r.defaults).tap do |route|
-                        route.precedence = r.precedence + precedence
-                      end
-          }
+        def match_head_routes(routes, req)
+          head_routes = match_routes(routes, req)
+
+          if head_routes.empty?
+            begin
+              req.request_method = "GET"
+              match_routes(routes, req)
+            ensure
+              req.request_method = "HEAD"
+            end
+          else
+            head_routes
+          end
+        end
+
+        def match_routes(routes, req)
+          routes.select { |r| r.matches?(req) }
         end
     end
   end

@@ -268,11 +268,13 @@ module Rails
 
         # Surround string with single quotes if there is no quotes.
         # Otherwise fall back to double quotes
-        def quote(str)
-          if str.include?("'")
-            str.inspect
+        def quote(value)
+          return value.inspect unless value.is_a? String
+
+          if value.include?("'")
+            value.inspect
           else
-            "'#{str}'"
+            "'#{value}'"
           end
         end
     end

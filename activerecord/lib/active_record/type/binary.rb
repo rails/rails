@@ -22,6 +22,11 @@ module ActiveRecord
         Data.new(super)
       end
 
+      def changed_in_place?(raw_old_value, value)
+        old_value = type_cast_from_database(raw_old_value)
+        old_value != value
+      end
+
       class Data # :nodoc:
         def initialize(value)
           @value = value.to_s
@@ -30,9 +35,14 @@ module ActiveRecord
         def to_s
           @value
         end
+        alias_method :to_str, :to_s
 
         def hex
           @value.unpack('H*')[0]
+        end
+
+        def ==(other)
+          other == to_s || super
         end
       end
     end

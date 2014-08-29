@@ -54,7 +54,7 @@ module ActiveModel
       #
       # Configuration options:
       # * <tt>:message</tt> - A custom error message (default is: "doesn't match
-      #   confirmation").
+      #   <tt>%{translated_attribute_name}</tt>").
       #
       # There is also a list of default options supported by every validator:
       # +:if+, +:unless+, +:on+, +:allow_nil+, +:allow_blank+, and +:strict+.

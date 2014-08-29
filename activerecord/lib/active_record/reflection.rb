@@ -38,7 +38,7 @@ module ActiveRecord
       ar.aggregate_reflections = ar.aggregate_reflections.merge(name.to_s => reflection)
     end
 
-    # \Reflection enables interrogating Active Record classes and objects
+    # \Reflection enables interrogating of Active Record classes and objects
     # about their associations and aggregations. This information can,
     # for example, be used in a form builder that takes an Active Record object
     # and creates input fields for all of the attributes depending on their type
@@ -339,12 +339,13 @@ module ActiveRecord
         return unless scope
 
         if scope.arity > 0
-          ActiveSupport::Deprecation.warn <<-WARNING
-The association scope '#{name}' is instance dependent (the scope block takes an argument).
-Preloading happens before the individual instances are created. This means that there is no instance
-being passed to the association scope. This will most likely result in broken or incorrect behavior.
-Joining, Preloading and eager loading of these associations is deprecated and will be removed in the future.
-          WARNING
+          ActiveSupport::Deprecation.warn \
+            "The association scope '#{name}' is instance dependent (the scope " \
+            "block takes an argument). Preloading happens before the individual " \
+            "instances are created. This means that there is no instance being " \
+            "passed to the association scope. This will most likely result in " \
+            "broken or incorrect behavior. Joining, Preloading and eager loading " \
+            "of these associations is deprecated and will be removed in the future."
         end
       end
       alias :check_eager_loadable! :check_preloadable!
@@ -787,15 +788,13 @@ Joining, Preloading and eager loading of these associations is deprecated and wi
         if names.length > 1
           example_options = options.dup
           example_options[:source] = source_reflection_names.first
-          ActiveSupport::Deprecation.warn <<-eowarn
-Ambiguous source reflection for through association.  Please specify a :source
-directive on your declaration like:
-
-  class #{active_record.name} < ActiveRecord::Base
-    #{macro} :#{name}, #{example_options}
-  end
-
-          eowarn
+          ActiveSupport::Deprecation.warn \
+            "Ambiguous source reflection for through association.  Please " \
+            "specify a :source directive on your declaration like:\n" \
+            "\n" \
+            "  class #{active_record.name} < ActiveRecord::Base\n" \
+            "    #{macro} :#{name}, #{example_options}\n" \
+            "  end"
         end
 
         @source_reflection_name = names.first

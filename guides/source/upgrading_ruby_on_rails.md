@@ -148,7 +148,7 @@ Upgrading from Rails 4.0 to Rails 4.1
 Or, "whaaat my tests are failing!!!?"
 
 Cross-site request forgery (CSRF) protection now covers GET requests with
-JavaScript responses, too. That prevents a third-party site from referencing
+JavaScript responses, too. This prevents a third-party site from referencing
 your JavaScript URL and attempting to run it to extract sensitive data.
 
 This means that your functional and integration tests that use
@@ -199,8 +199,8 @@ secrets, you need to:
     ```
 
 2. Use your existing `secret_key_base` from the `secret_token.rb` initializer to
-   set the SECRET_KEY_BASE environment variable for whichever users run the Rails
-   app in production mode. Alternately, you can simply copy the existing
+   set the SECRET_KEY_BASE environment variable for whichever users running the
+   Rails application in production mode. Alternatively, you can simply copy the existing
    `secret_key_base` from the `secret_token.rb` initializer to `secrets.yml`
    under the `production` section, replacing '<%= ENV["SECRET_KEY_BASE"] %>'.
 
@@ -393,7 +393,7 @@ included in the newly introduced `ActiveRecord::FixtureSet.context_class`, in
 `test_helper.rb`.
 
 ```ruby
-class FixtureFileHelpers
+module FixtureFileHelpers
   def file_sha(path)
     Digest::SHA2.hexdigest(File.read(Rails.root.join('test/fixtures', path)))
   end
@@ -403,8 +403,8 @@ ActiveRecord::FixtureSet.context_class.send :include, FixtureFileHelpers
 
 ### I18n enforcing available locales
 
-Rails 4.1 now defaults the I18n option `enforce_available_locales` to `true`,
-meaning that it will make sure that all locales passed to it must be declared in
+Rails 4.1 now defaults the I18n option `enforce_available_locales` to `true`. This
+means that it will make sure that all locales passed to it must be declared in
 the `available_locales` list.
 
 To disable it (and allow I18n to accept *any* locale option) add the following
@@ -414,9 +414,10 @@ configuration to your application:
 config.i18n.enforce_available_locales = false
 ```
 
-Note that this option was added as a security measure, to ensure user input could
-not be used as locale information unless previously known, so it's recommended not
-to disable this option unless you have a strong reason for doing so.
+Note that this option was added as a security measure, to ensure user input
+cannot be used as locale information unless it is previously known. Therefore,
+it's recommended not to disable this option unless you have a strong reason for
+doing so.
 
 ### Mutator methods called on Relation
 
@@ -524,7 +525,7 @@ Using `render :text` may pose a security risk, as the content is sent as
 ### PostgreSQL json and hstore datatypes
 
 Rails 4.1 will map `json` and `hstore` columns to a string-keyed Ruby `Hash`.
-In earlier versions a `HashWithIndifferentAccess` was used. This means that
+In earlier versions, a `HashWithIndifferentAccess` was used. This means that
 symbol access is no longer supported. This is also the case for
 `store_accessors` based on top of `json` or `hstore` columns. Make sure to use
 string keys consistently.

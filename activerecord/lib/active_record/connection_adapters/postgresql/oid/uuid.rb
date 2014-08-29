@@ -12,6 +12,8 @@ module ActiveRecord
                              [a-fA-F0-9]{4}-?
                              [a-fA-F0-9]{4}-?\}?\z}x
 
+          alias_method :type_cast_for_database, :type_cast_from_database
+
           def type
             :uuid
           end

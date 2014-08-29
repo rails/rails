@@ -34,8 +34,7 @@ class MigrationTest < ActiveRecord::TestCase
       Reminder.connection.drop_table(table) rescue nil
     end
     Reminder.reset_column_information
-    ActiveRecord::Migration.verbose = true
-    ActiveRecord::Migration.message_count = 0
+    @verbose_was, ActiveRecord::Migration.verbose = ActiveRecord::Migration.verbose, false
     ActiveRecord::Base.connection.schema_cache.clear!
   end
 
@@ -65,6 +64,8 @@ class MigrationTest < ActiveRecord::TestCase
     Person.connection.remove_column("people", "middle_name") rescue nil
     Person.connection.add_column("people", "first_name", :string)
     Person.reset_column_information
+
+    ActiveRecord::Migration.verbose = @verbose_was
   end
 
   def test_migrator_versions
@@ -89,7 +90,7 @@ class MigrationTest < ActiveRecord::TestCase
   end
 
   def test_migration_detection_without_schema_migration_table
-    ActiveRecord::Base.connection.drop_table :schema_migrations
+    ActiveRecord::Base.connection.drop_table('schema_migrations') if ActiveRecord::Base.connection.table_exists?('schema_migrations')
 
     migrations_path = MIGRATIONS_ROOT + "/valid"
     old_path = ActiveRecord::Migrator.migrations_paths

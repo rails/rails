@@ -1,3 +1,10 @@
+*   Provide a `builder` object when using the `label` form helper in block form.
+
+    The new `builder` object responds to `translation`, allowing I18n fallback support
+    when you want to customize how a particular label is presented.
+
+    *Alex Robbin*
+
 *   Add I18n support for input/textarea placeholder text.
 
     Placeholder I18n follows the same convention as `label` I18n.
@@ -19,11 +26,11 @@
     *Joel Junström*, *Lucas Uyezu*
 
 *   Return an absolute instead of relative path from an asset url in the case
-    of the `asset_host` proc returning nil
+    of the `asset_host` proc returning nil.
 
     *Jolyon Pawlyn*
 
-*   Fix `html_escape_once` to properly handle hex escape sequences (e.g. &#x1a2b;)
+*   Fix `html_escape_once` to properly handle hex escape sequences (e.g. &#x1a2b;).
 
     *John F. Douthat*
 
@@ -56,7 +63,7 @@
 
     *Zuhao Wan*
 
-*   Bring `cache_digest` rake tasks up-to-date with the latest API changes
+*   Bring `cache_digest` rake tasks up-to-date with the latest API changes.
 
     *Jiri Pospisil*
 

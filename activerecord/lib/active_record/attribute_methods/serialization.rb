@@ -54,10 +54,9 @@ module ActiveRecord
         end
 
         def serialized_attributes
-          ActiveSupport::Deprecation.warn(<<-WARNING.strip_heredoc)
-            `serialized_attributes` is deprecated without replacement, and will
-            be removed in Rails 5.0.
-          WARNING
+          ActiveSupport::Deprecation.warn "`serialized_attributes` is deprecated " \
+            "without replacement, and will be removed in Rails 5.0."
+
           @serialized_attributes ||= Hash[
             columns.select { |t| t.cast_type.is_a?(Type::Serialized) }.map { |c|
               [c.name, c.cast_type.coder]

@@ -783,7 +783,7 @@ module ActiveRecord
       #   person.pets.count # => 0
       #   person.pets.any?  # => true
       #
-      # You can also pass a block to define criteria. The behavior
+      # You can also pass a +block+ to define criteria. The behavior
       # is the same, it returns true if the collection based on the
       # criteria is not empty.
       #
@@ -817,7 +817,7 @@ module ActiveRecord
       #   person.pets.count # => 2
       #   person.pets.many? # => true
       #
-      # You can also pass a block to define criteria. The
+      # You can also pass a +block+ to define criteria. The
       # behavior is the same, it returns true if the collection
       # based on the criteria has more than one record.
       #
@@ -841,7 +841,7 @@ module ActiveRecord
         @association.many?(&block)
       end
 
-      # Returns +true+ if the given object is present in the collection.
+      # Returns +true+ if the given +record+ is present in the collection.
       #
       #   class Person < ActiveRecord::Base
       #     has_many :pets
@@ -879,7 +879,7 @@ module ActiveRecord
 
       # Equivalent to <tt>Array#==</tt>. Returns +true+ if the two arrays
       # contain the same number of elements and if each element is equal
-      # to the corresponding element in the other array, otherwise returns
+      # to the corresponding element in the +other+ array, otherwise returns
       # +false+.
       #
       #   class Person < ActiveRecord::Base

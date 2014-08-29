@@ -68,7 +68,7 @@ class ActionMailerUrlTest < ActionMailer::TestCase
     created.message_id = '<123@456>'
     assert_equal expected.encoded, created.encoded
 
-    assert_nothing_raised { UrlTestMailer.signed_up_with_url(@recipient).deliver }
+    assert_nothing_raised { UrlTestMailer.signed_up_with_url(@recipient).deliver_now }
     assert_not_nil ActionMailer::Base.deliveries.first
     delivered = ActionMailer::Base.deliveries.first
 

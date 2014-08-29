@@ -335,6 +335,8 @@ class OptimisticLockingWithSchemaChangeTest < ActiveRecord::TestCase
     assert_raises(ActiveRecord::RecordNotFound) { LegacyThing.find(t.id) }
   ensure
     remove_counter_column_from(Person, 'legacy_things_count')
+    LegacyThing.connection.remove_column LegacyThing.table_name, 'person_id'
+    LegacyThing.reset_column_information
   end
 
   private

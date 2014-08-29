@@ -1,3 +1,40 @@
+*   Don't rescue `IPAddr::InvalidAddressError`.
+
+    `IPAddr::InvalidAddressError` does not exist in Ruby 1.9.3
+    and fails for JRuby in 1.9 mode.
+
+    *Peter Suschlik*
+
+*   Fix bug where the router would ignore any constraints added to redirect
+    routes.
+
+    Fixes #16605.
+
+    *Agis Anastasopoulos*
+
+*   Allow `config.action_dispatch.trusted_proxies` to accept an IPAddr object.
+
+    Example:
+
+        # config/environments/production.rb
+        config.action_dispatch.trusted_proxies = IPAddr.new('4.8.15.0/16')
+
+    *Sam Aarons*
+
+*   Avoid duplicating routes for HEAD requests.
+
+    Instead of duplicating the routes, we will first match the HEAD request to
+    HEAD routes. If no match is found, we will then map the HEAD request to
+    GET routes.
+
+    *Guo Xiang Tan*, *Andrew White*
+
+*   Requests that hit `ActionDispatch::Static` can now take advantage
+    of gzipped assets on disk. By default a gzip asset will be served if
+    the client supports gzip and a compressed file is on disk.
+
+    *Richard Schneeman*
+
 *   `ActionController::Parameters` will stop inheriting from `Hash` and
     `HashWithIndifferentAccess` in the next major release. If you use any method
     that is not available on `ActionController::Parameters` you should consider
@@ -33,7 +70,7 @@
 
     *Prem Sichanugrist*
 
-*   Deprecated TagAssertions.
+*   Deprecated `TagAssertions`.
 
     *Kasper Timm Hansen*
 
@@ -65,11 +102,11 @@
     If you render a different template, you can now pass the `:template`
     option to include its digest instead:
 
-      fresh_when @post, template: 'widgets/show'
+        fresh_when @post, template: 'widgets/show'
 
     Pass `template: false` to skip the lookup. To turn this off entirely, set:
 
-      config.action_controller.etag_with_template_digest = false
+        config.action_controller.etag_with_template_digest = false
 
     *Jeremy Kemper*
 
@@ -123,7 +160,7 @@
     *Godfrey Chan*
 
 *   Prepend a JS comment to JSONP callbacks. Addresses CVE-2014-4671
-    ("Rosetta Flash")
+    ("Rosetta Flash").
 
     *Greg Campbell*
 

@@ -35,8 +35,8 @@ module ApplicationTests
       require "#{app_path}/config/environment"
 
       expanded_path = File.expand_path("app/views", app_path)
-      assert_equal ActionController::Base.view_paths[0].to_s, expanded_path
-      assert_equal ActionMailer::Base.view_paths[0].to_s, expanded_path
+      assert_equal expanded_path, ActionController::Base.view_paths[0].to_s
+      assert_equal expanded_path, ActionMailer::Base.view_paths[0].to_s
     end
 
     test "allows me to configure default url options for ActionMailer" do

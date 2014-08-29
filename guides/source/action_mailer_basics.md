@@ -159,7 +159,10 @@ $ bin/rake db:migrate
 Now that we have a user model to play with, we will just edit the
 `app/controllers/users_controller.rb` make it instruct the `UserMailer` to deliver
 an email to the newly created user by editing the create action and inserting a
-call to `UserMailer.welcome_email` right after the user is successfully saved:
+call to `UserMailer.welcome_email` right after the user is successfully saved.
+
+Action Mailer is nicely integrated with Active Job so you can send emails outside
+of the request-response cycle, so the user doesn't have to wait on it:
 
 ```ruby
 class UsersController < ApplicationController
@@ -171,7 +174,7 @@ class UsersController < ApplicationController
     respond_to do |format|
       if @user.save
         # Tell the UserMailer to send a welcome email after save
-        UserMailer.welcome_email(@user).deliver
+        UserMailer.welcome_email(@user).deliver_later
 
         format.html { redirect_to(@user, notice: 'User was successfully created.') }
         format.json { render json: @user, status: :created, location: @user }
@@ -184,8 +187,29 @@ class UsersController < ApplicationController
 end
 ```
 
-The method `welcome_email` returns a `Mail::Message` object which can then just
-be told `deliver` to send itself out.
+NOTE: Active Job's default behavior is to execute jobs ':inline'. So, you can use
+`deliver_later` now to send emails, and when you later decide to start sending
+them from a background job, you'll only need to set up Active Job to use a queueing
+backend (Sidekiq, Resque, etc).
+
+If you want to send emails right away (from a cronjob for example) just call
+`deliver_now`:
+
+```ruby
+class SendWeeklySummary
+  def run
+    User.find_each do |user|
+      UserMailer.weekly_summary(user).deliver_now
+    end
+  end
+end
+```
+
+The method `welcome_email` returns a `ActionMailer::MessageDelivery` object which
+can then just be told `deliver_now` or `deliver_later` to send itself out. The
+`ActionMailer::MessageDelivery` object is just a wrapper around a `Mail::Message`. If
+you want to inspect, alter or do anything else with the `Mail::Message` object you can
+access it with the `message` method on the `ActionMailer::MessageDelivery` object.
 
 ### Auto encoding header values
 

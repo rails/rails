@@ -319,6 +319,15 @@ class FormHelperTest < ActionView::TestCase
     )
   end
 
+  def test_label_with_block_and_builder
+    with_locale :label do
+      assert_dom_equal(
+        '<label for="post_body"><b>Write entire text here</b></label>',
+        label(:post, :body) { |b| "<b>#{b.translation}</b>".html_safe }
+      )
+    end
+  end
+
   def test_label_with_block_in_erb
     assert_equal(
       %{<label for="post_message">\n  Message\n  <input id="post_message" name="post[message]" type="text" />\n</label>},
@@ -344,15 +353,21 @@ class FormHelperTest < ActionView::TestCase
     end
   end
 
+  def test_text_field_placeholder_with_string_value
+    with_locale :placeholder do
+      assert_dom_equal('<input id="post_cost" name="post[cost]" placeholder="HOW MUCH?" type="text" />', text_field(:post, :cost, placeholder: "HOW MUCH?"))
+    end
+  end
+
   def test_text_field_placeholder_with_human_attribute_name_and_value
     with_locale :placeholder do
-      assert_dom_equal('<input id="post_cost" name="post[cost]" placeholder="Pounds" type="text" />', text_field(:post, :cost, placeholder: "uk"))
+      assert_dom_equal('<input id="post_cost" name="post[cost]" placeholder="Pounds" type="text" />', text_field(:post, :cost, placeholder: :uk))
     end
   end
 
   def test_text_field_placeholder_with_locales_and_value
     with_locale :placeholder do
-      assert_dom_equal('<input id="post_written_on" name="post[written_on]" placeholder="Escrito en" type="text" value="2004-06-15" />', text_field(:post, :written_on, placeholder: "spanish"))
+      assert_dom_equal('<input id="post_written_on" name="post[written_on]" placeholder="Escrito en" type="text" value="2004-06-15" />', text_field(:post, :written_on, placeholder: :spanish))
     end
   end
 
@@ -783,11 +798,20 @@ class FormHelperTest < ActionView::TestCase
     end
   end
 
+  def test_text_area_placeholder_with_string_value
+    with_locale :placeholder do
+      assert_dom_equal(
+        %{<textarea id="post_cost" name="post[cost]" placeholder="HOW MUCH?">\n</textarea>},
+        text_area(:post, :cost, placeholder: "HOW MUCH?")
+      )
+    end
+  end
+
   def test_text_area_placeholder_with_human_attribute_name_and_value
     with_locale :placeholder do
       assert_dom_equal(
         %{<textarea id="post_cost" name="post[cost]" placeholder="Pounds">\n</textarea>},
-        text_area(:post, :cost, placeholder: "uk")
+        text_area(:post, :cost, placeholder: :uk)
       )
     end
   end
@@ -796,7 +820,7 @@ class FormHelperTest < ActionView::TestCase
     with_locale :placeholder do
       assert_dom_equal(
         %{<textarea id="post_written_on" name="post[written_on]" placeholder="Escrito en">\n2004-06-15</textarea>},
-        text_area(:post, :written_on, placeholder: "spanish")
+        text_area(:post, :written_on, placeholder: :spanish)
       )
     end
   end

@@ -1,6 +1,12 @@
+*   Fix the `ActiveSupport::Duration#instance_of?` method to return the right
+    value with the class itself since it was previously delegated to the
+    internal value.
+
+    *Robin Dupret*
+
 *   Fix rounding errors with #travel_to by resetting the usec on any passed time to zero, so we only travel
     with per-second precision, not anything deeper than that.
-    
+
     *DHH*
 
 *   Fix ActiveSupport::TestCase not to order users' test cases by default.

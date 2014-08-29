@@ -16,43 +16,63 @@ module ActionDispatch
     def initialize(root, cache_control)
       @root          = root.chomp('/')
       @compiled_root = /^#{Regexp.escape(root)}/
-      headers = cache_control && { 'Cache-Control' => cache_control }
-      @file_server   = ::Rack::File.new(@root, headers)
+      headers        = cache_control && { 'Cache-Control' => cache_control }
+      @file_server = ::Rack::File.new(@root, headers)
     end
 
     def match?(path)
-      path = unescape_path(path)
+      path = URI.parser.unescape(path)
       return false unless path.valid_encoding?
 
-      full_path = path.empty? ? @root : File.join(@root, escape_glob_chars(path))
-      paths = "#{full_path}#{ext}"
+      paths = [path, "#{path}#{ext}", "#{path}/index#{ext}"]
 
-      matches = Dir[paths]
-      match = matches.detect { |m| File.file?(m) }
-      if match
-        match.sub!(@compiled_root, '')
-        ::Rack::Utils.escape(match)
+      if match = paths.detect {|p| File.file?(File.join(@root, p)) }
+        return ::Rack::Utils.escape(match)
       end
     end
 
     def call(env)
-      @file_server.call(env)
-    end
+      path      = env['PATH_INFO']
+      gzip_path = gzip_file_path(path)
 
-    def ext
-      @ext ||= begin
-        ext = ::ActionController::Base.default_static_extension
-        "{,#{ext},/index#{ext}}"
+      if gzip_path && gzip_encoding_accepted?(env)
+        env['PATH_INFO']            = gzip_path
+        status, headers, body       = @file_server.call(env)
+        headers['Content-Encoding'] = 'gzip'
+        headers['Content-Type']     = content_type(path)
+      else
+        status, headers, body = @file_server.call(env)
       end
+
+      headers['Vary'] = 'Accept-Encoding' if gzip_path
+
+      return [status, headers, body]
+    ensure
+      env['PATH_INFO'] = path
     end
 
-    def unescape_path(path)
-      URI.parser.unescape(path)
-    end
+    private
+      def ext
+        ::ActionController::Base.default_static_extension
+      end
 
-    def escape_glob_chars(path)
-      path.gsub(/[*?{}\[\]]/, "\\\\\\&")
-    end
+      def content_type(path)
+        ::Rack::Mime.mime_type(::File.extname(path), 'text/plain')
+      end
+
+      def gzip_encoding_accepted?(env)
+        env['HTTP_ACCEPT_ENCODING'] =~ /\bgzip\b/i
+      end
+
+      def gzip_file_path(path)
+        can_gzip_mime = content_type(path) =~ /\A(?:text\/|application\/javascript)/
+        gzip_path     = "#{path}.gz"
+        if can_gzip_mime && File.exist?(File.join(@root, ::Rack::Utils.unescape(gzip_path)))
+          gzip_path
+        else
+          false
+        end
+      end
   end
 
   # This middleware will attempt to return the contents of a file's body from

@@ -13,12 +13,13 @@ After reading this guide, you will know:
 
 --------------------------------------------------------------------------------
 
+
 Introduction
 ------------
 
 Active Job is a framework for declaring jobs and making them run on a variety
 of queueing backends. These jobs can be everything from regularly scheduled
-clean-ups, billing charges, or mailings. Anything that can be chopped up
+clean-ups, to billing charges, to mailings. Anything that can be chopped up
 into small units of work and run in parallel, really.
 
 
@@ -35,12 +36,12 @@ then. And you'll be able to switch between them without having to rewrite your j
 Creating a Job
 --------------
 
-This section will provide a step-by-step guide to creating a job and enqueue it.
+This section will provide a step-by-step guide to creating a job and enqueuing it.
 
 ### Create the Job
 
 Active Job provides a Rails generator to create jobs. The following will create a
-job in app/jobs:
+job in `app/jobs`:
 
 ```bash
 $ bin/rails generate job guests_cleanup
@@ -58,15 +59,15 @@ As you can see, you can generate jobs just like you use other generators with
 Rails.
 
 If you don't want to use a generator, you could create your own file inside of
-app/jobs, just make sure that it inherits from `ActiveJob::Base`.
+`app/jobs`, just make sure that it inherits from `ActiveJob::Base`.
 
-Here's how a job looks like:
+Here's what a job looks like:
 
 ```ruby
 class GuestsCleanupJob < ActiveJob::Base
   queue_as :default
 
-  def perform
+  def perform(*args)
     # Do something later
   end
 end
@@ -94,7 +95,7 @@ That's it!
 Job Execution
 -------------
 
-If not adapter is set, the job is immediately executed.
+If no adapter is set, the job is immediately executed.
 
 ### Backends
 
@@ -104,8 +105,8 @@ Active Job has adapters for the following queueing backends:
 * [Delayed Job](https://github.com/collectiveidea/delayed_job)
 * [Qu](https://github.com/bkeepers/qu)
 * [Que](https://github.com/chanks/que)
-* [QueueClassic](https://github.com/ryandotsmith/queue_classic)
-* [Resque 1.x](https://github.com/resque/resque)
+* [QueueClassic 2.x](https://github.com/ryandotsmith/queue_classic/tree/v2.2.3)
+* [Resque 1.x](https://github.com/resque/resque/tree/1-x-stable)
 * [Sidekiq](https://github.com/mperham/sidekiq)
 * [Sneakers](https://github.com/jondot/sneakers)
 * [Sucker Punch](https://github.com/brandonhilkert/sucker_punch)
@@ -118,16 +119,16 @@ Active Job has adapters for the following queueing backends:
 | **Delayed Job**       | Yes   | Yes     | Yes     | Job         | Global  | Global  |
 | **Que**               | Yes   | Yes     | Yes     | Job         | No      | Job     |
 | **Queue Classic**     | Yes   | Yes     | Gem     | No          | No      | No      |
-| **Resque**            | Yes   | Yes     | Gem     | Queue       | Global  | ?       |
+| **Resque**            | Yes   | Yes     | Gem     | Queue       | Global  | Yes     |
 | **Sidekiq**           | Yes   | Yes     | Yes     | Queue       | No      | Job     |
 | **Sneakers**          | Yes   | Yes     | No      | Queue       | Queue   | No      |
 | **Sucker Punch**      | Yes   | Yes     | Yes     | No          | No      | No      |
-| **Active Job**        | Yes   | Yes     | WIP     | No          | No      | No      |
 | **Active Job Inline** | No    | Yes     | N/A     | N/A         | N/A     | N/A     |
+| **Active Job**        | Yes   | Yes     | Yes     | No          | No      | No      |
 
 ### Change Backends
 
-You can easy change your adapter:
+You can easily change your adapter:
 
 ```ruby
 # be sure to have the adapter gem in your Gemfile and follow the adapter specific
@@ -135,11 +136,12 @@ You can easy change your adapter:
 YourApp::Application.config.active_job.queue_adapter = :sidekiq
 ```
 
+
 Queues
 ------
 
-Most of the adapters supports multiple queues. With Active Job you can schedule the job
-to run on a specific queue:
+Most of the adapters support multiple queues. With Active Job you can schedule
+the job to run on a specific queue:
 
 ```ruby
 class GuestsCleanupJob < ActiveJob::Base
@@ -148,24 +150,45 @@ class GuestsCleanupJob < ActiveJob::Base
 end
 ```
 
-NOTE: Make sure your queueing backend "listens" on your queue name. For some backends
-you need to specify the queues to listen to.
+Also you can prefix the queue name for all your jobs using
+`config.active_job.queue_name_prefix` in `application.rb`:
+
+```ruby
+# config/application.rb
+module YourApp
+  class Application < Rails::Application
+    config.active_job.queue_name_prefix = Rails.env
+  end
+end
+
+# app/jobs/guests_cleanup.rb
+class GuestsCleanupJob < ActiveJob::Base
+  queue_as :low_priority
+  #....
+end
+
+# Now your job will run on queue production_low_priority on your production
+# environment and on beta_low_priority on your beta environment
+```
+
+NOTE: Make sure your queueing backend "listens" on your queue name. For some
+backends you need to specify the queues to listen to.
 
 
 Callbacks
 ---------
 
-Active Job provides hooks during the lifecycle of a job. Callbacks allows you to trigger
-logic during the lifecycle of a job.
+Active Job provides hooks during the lifecycle of a job. Callbacks allow you to
+trigger logic during the lifecycle of a job.
 
 ### Available callbacks
 
-* before_enqueue
-* around_enqueue
-* after_enqueue
-* before_perform
-* around_perform
-* after_perform
+* `before_enqueue`
+* `around_enqueue`
+* `after_enqueue`
+* `before_perform`
+* `around_perform`
+* `after_perform`
 
 ### Usage
 
@@ -189,25 +212,28 @@ class GuestsCleanupJob < ActiveJob::Base
 end
 ```
 
+
 ActionMailer
 ------------
+
 One of the most common jobs in a modern web application is sending emails outside
 of the request-response cycle, so the user doesn't have to wait on it. Active Job
-is integrated with Action Mailer so you can easily send emails async:
+is integrated with Action Mailer so you can easily send emails asynchronously:
 
 ```ruby
-# Instead of the classic
-UserMailer.welcome(@user).deliver
+# If you want to send the email now use #deliver_now
+UserMailer.welcome(@user).deliver_now
 
-# use #deliver later to send the email async
+# If you want to send the email through Active Job use #deliver_later
 UserMailer.welcome(@user).deliver_later
 ```
 
+
 GlobalID
 --------
-Active Job supports GlobalID for parameters. This makes it possible
-to pass live Active Record objects to your job instead of class/id pairs, which
-you then have to manually deserialize. Before, jobs would look like this:
+Active Job supports GlobalID for parameters. This makes it possible to pass live
+Active Record objects to your job instead of class/id pairs, which you then have
+to manually deserialize. Before, jobs would look like this:
 
 ```ruby
 class TrashableCleanupJob
@@ -228,12 +254,13 @@ class TrashableCleanupJob
 end
 ```
 
-This works with any class that mixes in ActiveModel::GlobalIdentification, which
+This works with any class that mixes in `ActiveModel::GlobalIdentification`, which
 by default has been mixed into Active Model classes.
 
 
 Exceptions
 ----------
+
 Active Job provides a way to catch exceptions raised during the execution of the
 job:
 
@@ -242,7 +269,7 @@ job:
 class GuestsCleanupJob < ActiveJob::Base
   queue_as :default
 
-  rescue_from(ActiveRecord:NotFound) do |exception|
+  rescue_from(ActiveRecord::RecordNotFound) do |exception|
    # do something with the exception
   end
 

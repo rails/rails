@@ -20,20 +20,20 @@ module Rails
 
       def option_parser(options)
         OptionParser.new do |opts|
-          opts.banner = "Usage: rails server [mongrel, thin, etc] [options]"
+          opts.banner = "Usage: rails server [mongrel, thin etc] [options]"
           opts.on("-p", "--port=port", Integer,
                   "Runs Rails on the specified port.", "Default: 3000") { |v| options[:Port] = v }
-          opts.on("-b", "--binding=ip", String,
-                  "Binds Rails to the specified ip.", "Default: 0.0.0.0") { |v| options[:Host] = v }
+          opts.on("-b", "--binding=IP", String,
+                  "Binds Rails to the specified IP.", "Default: 0.0.0.0") { |v| options[:Host] = v }
           opts.on("-c", "--config=file", String,
-                  "Use custom rackup configuration file") { |v| options[:config] = v }
-          opts.on("-d", "--daemon", "Make server run as a Daemon.") { options[:daemonize] = true }
-          opts.on("-u", "--debugger", "Enable the debugger") do
+                  "Uses a custom rackup configuration.") { |v| options[:config] = v }
+          opts.on("-d", "--daemon", "Runs server as a Daemon.") { options[:daemonize] = true }
+          opts.on("-u", "--debugger", "Enables the debugger.") do
             if RUBY_VERSION < '2.0.0'
               options[:debugger] = true
             else
-              puts "=> Notice: debugger option is ignored since ruby 2.0 and " \
-                   "it will be removed in future versions"
+              puts "=> Notice: debugger option is ignored since Ruby 2.0 and " \
+                   "it will be removed in future versions."
             end
           end
           opts.on("-e", "--environment=name", String,
@@ -45,7 +45,7 @@ module Rails
 
           opts.separator ""
 
-          opts.on("-h", "--help", "Show this help message.") { puts opts; exit }
+          opts.on("-h", "--help", "Shows this help message.") { puts opts; exit }
         end
       end
     end

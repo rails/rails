@@ -131,10 +131,12 @@ module ActiveRecord
         verbose = ENV["VERBOSE"] ? ENV["VERBOSE"] == "true" : true
         version = ENV["VERSION"] ? ENV["VERSION"].to_i : nil
         scope   = ENV['SCOPE']
-        Migration.verbose = verbose
+        verbose_was = Migration.verbose
         Migrator.migrate(Migrator.migrations_paths, version) do |migration|
           scope.blank? || scope == migration.scope
         end
+      ensure
+        Migration.verbose = verbose_was
       end
 
       def charset_current(environment = env)
@@ -184,10 +186,10 @@ module ActiveRecord
       end
 
       def load_schema(format = ActiveRecord::Base.schema_format, file = nil)
-        ActiveSupport::Deprecation.warn(<<-MESSAGE.strip_heredoc)
-          This method will act on a specific connection in the future.
-          To act on the current connection, use `load_schema_current` instead.
-        MESSAGE
+        ActiveSupport::Deprecation.warn \
+          "This method will act on a specific connection in the future. " \
+          "To act on the current connection, use `load_schema_current` instead."
+
         load_schema_current(format, file)
       end
 

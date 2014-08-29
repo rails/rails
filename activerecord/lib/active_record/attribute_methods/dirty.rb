@@ -43,14 +43,6 @@ module ActiveRecord
         calculate_changes_from_defaults
       end
 
-      def changed?
-        super || changed_in_place.any?
-      end
-
-      def changed
-        super | changed_in_place
-      end
-
       def changes_applied
         super
         store_original_raw_attributes
@@ -62,7 +54,19 @@ module ActiveRecord
       end
 
       def changed_attributes
-        super.reverse_merge(attributes_changed_in_place).freeze
+        # This should only be set by methods which will call changed_attributes
+        # multiple times when it is known that the computed value cannot change.
+        if defined?(@cached_changed_attributes)
+          @cached_changed_attributes
+        else
+          super.reverse_merge(attributes_changed_in_place).freeze
+        end
+      end
+
+      def changes
+        cache_changed_attributes do
+          super
+        end
       end
 
       private
@@ -164,6 +168,13 @@ module ActiveRecord
         attribute_names.each do |attr|
           store_original_raw_attribute(attr)
         end
+      end
+
+      def cache_changed_attributes
+        @cached_changed_attributes = changed_attributes
+        yield
+      ensure
+        remove_instance_variable(:@cached_changed_attributes)
       end
     end
   end

@@ -1,4 +1,7 @@
 module ActiveJob
+  # Raised when an exception is raised during job arguments deserialization.
+  #
+  # Wraps the original exception raised as +original_exception+.
   class DeserializationError < StandardError
     attr_reader :original_exception
 
@@ -7,6 +10,14 @@ module ActiveJob
       @original_exception = e
       set_backtrace e.backtrace
     end
+  end
+
+  # Raised when an unsupported argument type is being set as job argument. We
+  # currently support NilClass, Fixnum, Float, String, TrueClass, FalseClass,
+  # Bignum and object that can be represented as GlobalIDs (ex: Active Record).
+  # Also raised if you set the key for a Hash something else than a string or
+  # a symbol.
+  class SerializationError < ArgumentError
   end
 
   module Arguments
@@ -33,7 +44,7 @@ module ActiveJob
         when Hash
           Hash[ argument.map { |key, value| [ serialize_hash_key(key), serialize_argument(value) ] } ]
         else
-          raise "Unsupported argument type: #{argument.class.name}"
+          raise SerializationError.new("Unsupported argument type: #{argument.class.name}")
         end
       end
 
@@ -55,7 +66,7 @@ module ActiveJob
         when String, Symbol
           key.to_s
         else
-          raise "Unsupported hash key type: #{key.class.name}"
+          raise SerializationError.new("Unsupported hash key type: #{key.class.name}")
         end
       end
   end

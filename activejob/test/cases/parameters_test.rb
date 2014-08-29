@@ -19,7 +19,7 @@ class ParameterSerializationTest < ActiveSupport::TestCase
     assert_equal [ [ 1 ] ], ActiveJob::Arguments.serialize([ [ 1 ] ])
     assert_equal [ 1_000_000_000_000_000_000_000 ], ActiveJob::Arguments.serialize([ 1_000_000_000_000_000_000_000 ])
 
-    err = assert_raises RuntimeError do
+    err = assert_raises ActiveJob::SerializationError do
       ActiveJob::Arguments.serialize([ 1, self ])
     end
     assert_equal "Unsupported argument type: #{self.class.name}", err.message
@@ -31,14 +31,14 @@ class ParameterSerializationTest < ActiveSupport::TestCase
   end
 
   test 'should dive deep into arrays or hashes and raise exception on complex objects' do
-    err = assert_raises RuntimeError do
+    err = assert_raises ActiveJob::SerializationError do
       ActiveJob::Arguments.serialize([ 1, [self] ])
     end
     assert_equal "Unsupported argument type: #{self.class.name}", err.message
   end
 
   test 'shoud dive deep into hashes and allow raise exception on not string/symbol keys' do
-    err = assert_raises RuntimeError do
+    err = assert_raises ActiveJob::SerializationError do
       ActiveJob::Arguments.serialize([ [ { 1 => 2 } ] ])
     end
     assert_equal "Unsupported hash key type: Fixnum", err.message

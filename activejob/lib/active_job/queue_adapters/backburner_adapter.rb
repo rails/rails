@@ -9,7 +9,8 @@ module ActiveJob
         end
 
         def enqueue_at(job, timestamp, *args)
-          raise NotImplementedError
+          delay = timestamp - Time.current.to_f
+          Backburner::Worker.enqueue JobWrapper, [ job.name, *args ], queue: job.queue_name, delay: delay
         end
       end
 
