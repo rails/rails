@@ -114,6 +114,7 @@ module Rails
         daemonize:          false,
         debugger:           false,
         pid:                File.expand_path("tmp/pids/server.pid"),
+        quiet:              true,
         config:             File.expand_path("config.ru")
       })
     end
