@@ -1,5 +1,5 @@
 module ActionPack
-  # Returns the version of the currently loaded ActionPack as a <tt>Gem::Version</tt>
+  # Returns the version of the currently loaded Action Pack as a <tt>Gem::Version</tt>
   def self.gem_version
     Gem::Version.new VERSION::STRING
   end
