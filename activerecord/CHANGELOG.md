@@ -1,3 +1,15 @@
+*   MySQL: set the connection collation along with the charset.
+
+    Sets the connection collation to the database collation configured in
+    database.yml. Otherwise, `SET NAMES utf8mb4` will use the default
+    collation for that charset (utf8mb4_general_ci) when you may have chosen
+    a different collation, like utf8mb4_unicode_ci.
+
+    This only applies to literal string comparisons, not column values, so it
+    is unlikely to affect you.
+
+    *Jeremy Kemper*
+
 *   `default_sequence_name` from the PostgreSQL adapter returns a `String`.
 
     *Yves Senn*
