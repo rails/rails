@@ -6,7 +6,6 @@ require 'active_support/testing/autorun'
 require 'stringio'
 
 require 'active_record'
-require 'cases/test_case'
 require 'active_support/dependencies'
 require 'active_support/logger'
 require 'active_support/core_ext/string/strip'
