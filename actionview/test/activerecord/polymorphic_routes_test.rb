@@ -183,13 +183,30 @@ class PolymorphicRoutesTest < ActionController::TestCase
     end
   end
 
-  def test_with_nil_in_list
+  def test_with_entirely_nil_list
     with_test_routes do
       exception = assert_raise ArgumentError do
         @series.save
-        polymorphic_url([nil, @series])
+        polymorphic_url([nil, nil])
       end
       assert_equal "Nil location provided. Can't build URI.", exception.message
+    end
+  end
+
+  def test_with_nil_in_list_for_resource_that_could_be_top_level_or_nested
+    with_top_level_and_nested_routes do
+      @blog_post.save
+      assert_equal "http://example.com/posts/#{@blog_post.id}", polymorphic_url([nil, @blog_post])
+    end
+  end
+  
+  def test_with_nil_in_list_does_not_generate_invalid_link
+    with_top_level_and_nested_routes do
+      exception = assert_raise NoMethodError do
+        @series.save
+        polymorphic_url([nil, @series])
+      end
+      assert_match /undefined method `series_url' for/, exception.message
     end
   end
 
@@ -619,6 +636,21 @@ class PolymorphicRoutesTest < ActionController::TestCase
         end
         resources :series
         resources :model_delegates
+      end
+
+      extend @routes.url_helpers
+      yield
+    end
+  end
+
+  def with_top_level_and_nested_routes(options = {})
+    with_routing do |set|
+      set.draw do
+        resources :blogs do
+          resources :posts
+          resources :series
+        end
+        resources :posts
       end
 
       extend @routes.url_helpers
