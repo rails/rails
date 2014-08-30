@@ -812,7 +812,11 @@ module ActiveRecord
         # NAMES does not have an equals sign, see
         # http://dev.mysql.com/doc/refman/5.0/en/set-statement.html#id944430
         # (trailing comma because variable_assignments will always have content)
-        encoding = "NAMES #{@config[:encoding]}, " if @config[:encoding]
+        if @config[:encoding]
+          encoding = "NAMES #{@config[:encoding]}"
+          encoding << " COLLATE #{@config[:collation]}" if @config[:collation]
+          encoding << ", "
+        end
 
         # Gather up all of the SET variables...
         variable_assignments = variables.map do |k, v|
