@@ -571,19 +571,19 @@ module ActionController
         @controller.request  = @request
         @controller.flash.update(flash) if flash
 
-        unless url = @request.env["PATH_INFO"]
-          options = @controller.respond_to?(:url_options) ? @controller.__send__(:url_options).merge(parameters) : parameters.dup
-          options.update(
-            controller: @controller.class.controller_path,
-            action: action,
-            relative_url_root: nil,
-            _recall: @request.path_parameters
-          )
+        options = @controller.respond_to?(:url_options) ? @controller.__send__(:url_options).merge(parameters) : parameters.dup
+        options.update(
+          controller: @controller.class.controller_path,
+          action: action,
+          relative_url_root: nil,
+          _recall: @request.path_parameters
+        )
 
-          extra_keys = @routes.extra_keys(options)
-          parameters.reject! { |parameter| !extra_keys.include?(parameter) }
-          url, = @routes.path_for(options).split("?", 2)
-        end
+        extra_keys = @routes.extra_keys(options)
+        parameters.reject! { |parameter| !extra_keys.include?(parameter) }
+        url, = @routes.path_for(options).split("?", 2)
+
+        url = @request.env["PATH_INFO"] || url
 
         @request.env.each do |key, value|
           headers_or_env[key] ||= value if !value.nil?
