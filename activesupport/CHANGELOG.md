@@ -1,3 +1,7 @@
+*   Time#change now supports a :nsec option
+
+    *Agis Anastasopoulos*
+
 *   Added instance_eval version to Object#try, so you can do this:
 
       person.try { name.first }

@@ -387,6 +387,7 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal Time.local(2005,1,2,11, 6, 0, 0), Time.local(2005,1,2,11,22,33,44).change(:min  => 6)
     assert_equal Time.local(2005,1,2,11,22, 7, 0), Time.local(2005,1,2,11,22,33,44).change(:sec  => 7)
     assert_equal Time.local(2005,1,2,11,22,33, 8), Time.local(2005,1,2,11,22,33,44).change(:usec => 8)
+    assert_equal Time.local(2005,1,2,11,22,33, 8), Time.local(2005,1,2,11,22,33,2).change(:nsec => 8000)
   end
 
   def test_utc_change
@@ -396,6 +397,8 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal Time.utc(2005,2,22,16),       Time.utc(2005,2,22,15,15,10).change(:hour => 16)
     assert_equal Time.utc(2005,2,22,16,45),    Time.utc(2005,2,22,15,15,10).change(:hour => 16, :min => 45)
     assert_equal Time.utc(2005,2,22,15,45),    Time.utc(2005,2,22,15,15,10).change(:min => 45)
+    assert_equal Time.utc(2005,2,22,15,15,15,45), Time.utc(2005,2,22,15,15,15,15,15).change(:usec => 45)
+    assert_equal Time.utc(2005,2,22,15,15,15,45), Time.utc(2005,2,22,15,15,15,15,15).change(:nsec => 45000)
   end
 
   def test_offset_change
@@ -475,7 +478,7 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
 
   def test_advance_with_nsec
     t = Time.at(0, Rational(108635108, 1000))
-    assert_equal t, t.advance(:months => 0)
+    assert_equal t, t.advance(:nsec => 0)
   end
 
   def test_advance_gregorian_proleptic
