@@ -85,6 +85,17 @@ module Arel
             SELECT * FROM "users" WHERE "users"."karma" > (SELECT AVG("users"."karma") AS avg_id FROM "users")
           }
         end
+
+        it 'should accept various data types.' do
+          relation = Table.new(:users)
+          mgr = relation.project relation[:id]
+          mgr.where relation[:name].gt('fake_name')
+          mgr.to_sql.must_match %{"users"."name" > 'fake_name'}
+
+          current_time = ::Time.now
+          mgr.where relation[:created_at].gt(current_time)
+          mgr.to_sql.must_match %{"users"."created_at" > '#{current_time}'}
+        end
       end
 
       describe '#gt_any' do
@@ -133,6 +144,17 @@ module Arel
             SELECT "users"."id" FROM "users" WHERE "users"."id" >= 10
           }
         end
+
+        it 'should accept various data types.' do
+          relation = Table.new(:users)
+          mgr = relation.project relation[:id]
+          mgr.where relation[:name].gteq('fake_name')
+          mgr.to_sql.must_match %{"users"."name" >= 'fake_name'}
+
+          current_time = ::Time.now
+          mgr.where relation[:created_at].gteq(current_time)
+          mgr.to_sql.must_match %{"users"."created_at" >= '#{current_time}'}
+        end
       end
 
       describe '#gteq_any' do
@@ -180,9 +202,17 @@ module Arel
           mgr.to_sql.must_be_like %{
             SELECT "users"."id" FROM "users" WHERE "users"."id" < 10
           }
+        end
 
-          mgr.where relation[:created_at].lt(::Time.now)
-          mgr.to_sql.must_match %{"users"."created_at" <}
+        it 'should accept various data types.' do
+          relation = Table.new(:users)
+          mgr = relation.project relation[:id]
+          mgr.where relation[:name].lt('fake_name')
+          mgr.to_sql.must_match %{"users"."name" < 'fake_name'}
+
+          current_time = ::Time.now
+          mgr.where relation[:created_at].lt(current_time)
+          mgr.to_sql.must_match %{"users"."created_at" < '#{current_time}'}
         end
       end
 
@@ -231,9 +261,17 @@ module Arel
           mgr.to_sql.must_be_like %{
             SELECT "users"."id" FROM "users" WHERE "users"."id" <= 10
           }
+        end
 
-          mgr.where relation[:created_at].lteq(::Time.now)
-          mgr.to_sql.must_match %{"users"."created_at" <=}
+        it 'should accept various data types.' do
+          relation = Table.new(:users)
+          mgr = relation.project relation[:id]
+          mgr.where relation[:name].lteq('fake_name')
+          mgr.to_sql.must_match %{"users"."name" <= 'fake_name'}
+
+          current_time = ::Time.now
+          mgr.where relation[:created_at].lteq(current_time)
+          mgr.to_sql.must_match %{"users"."created_at" <= '#{current_time}'}
         end
       end
 
