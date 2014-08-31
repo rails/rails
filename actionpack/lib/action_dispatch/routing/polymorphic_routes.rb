@@ -197,7 +197,8 @@ module ActionDispatch
 
           case record_or_hash_or_array
           when Array
-            if record_or_hash_or_array.empty? || record_or_hash_or_array.include?(nil)
+            record_or_hash_or_array = record_or_hash_or_array.compact
+            if record_or_hash_or_array.empty?
               raise ArgumentError, "Nil location provided. Can't build URI."
             end
             if record_or_hash_or_array.first.is_a?(ActionDispatch::Routing::RoutesProxy)
