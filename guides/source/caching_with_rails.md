@@ -363,7 +363,7 @@ class ProductsController < ApplicationController
 end
 ```
 
-If you don't have any special response processing and are using the default rendering mechanism (i.e. you're not using respond_to or calling render yourself) then you've got an easy helper in fresh_when:
+If you don't have any special response processing and are using the default rendering mechanism (i.e. you're not using `respond_to` or calling render yourself) then you've got an easy helper in `fresh_when`:
 
 ```ruby
 class ProductsController < ApplicationController
