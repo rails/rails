@@ -1,3 +1,8 @@
+*   Fix bug where Time#change would not properly handle :usec and :nsec options
+    in cases where it would call Time#new.
+
+    *Agis Anastasopoulos*
+
 *   Time#change now supports a :nsec option
 
     *Agis Anastasopoulos*
