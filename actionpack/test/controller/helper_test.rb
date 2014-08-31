@@ -60,6 +60,12 @@ class HelpersPathsController < ActionController::Base
   end
 end
 
+class TypoController < ActionController::Base
+  path = File.expand_path('../../fixtures/bad_helpers', __FILE__)
+  $:.unshift(path)
+  self.helpers_path = path
+end
+
 module LocalAbcHelper
   def a() end
   def b() end
@@ -201,11 +207,15 @@ class HelperTest < ActiveSupport::TestCase
     # fun/pdf_helper.rb
     assert methods.include?(:foobar)
   end
-  
+
   def test_helper_proxy_config
     AllHelpersController.config.my_var = 'smth'
-    
     assert_equal 'smth', AllHelpersController.helpers.config.my_var
+  end
+
+  def test_helper_typo_error_message
+    e = assert_raise(NameError) {TypoController.helper :typo }
+    assert_equal "Couldn't find TypoHelper, expected it to be defined in app/helpers/typo_helper.rb", e.message
   end
 
   private
