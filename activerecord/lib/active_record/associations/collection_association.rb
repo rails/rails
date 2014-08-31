@@ -407,7 +407,7 @@ module ActiveRecord
 
       private
       def get_records
-        return scope.to_a if reflection.scope_chain.any?(&:any?)
+        return scope.to_a if reflection.scope_chain.any?(&:any?) || scope.eager_loading?
 
         conn = klass.connection
         sc = reflection.association_scope_cache(conn, owner) do
