@@ -217,6 +217,7 @@ module ActiveRecord
         each_current_configuration(environment) { |configuration|
           load_schema_for configuration, format, file
         }
+        ActiveRecord::Base.establish_connection(environment.to_sym)
       end
 
       def check_schema_file(filename)

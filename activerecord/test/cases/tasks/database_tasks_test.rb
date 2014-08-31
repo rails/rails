@@ -108,6 +108,32 @@ module ActiveRecord
     end
   end
 
+  class DatabaseTasksLoadSchemaCurrentTest < ActiveRecord::TestCase
+    def setup
+      @configurations = {
+        'development' => {'database' => 'dev-db'},
+        'test'        => {'database' => 'test-db'},
+        'production'  => {'database' => 'prod-db'}
+      }
+
+      ActiveRecord::Base.stubs(:configurations).returns(@configurations)
+      ActiveRecord::Base.stubs(:establish_connection).returns(true)
+      ActiveRecord::Tasks::DatabaseTasks.stubs(:load_schema_for).returns(true)
+    end
+
+    def test_establishes_connection_for_the_given_environment
+      ActiveRecord::Tasks::DatabaseTasks.stubs(:create).returns true
+
+      ActiveRecord::Base.expects(:establish_connection).with(:development)
+
+      ActiveRecord::Tasks::DatabaseTasks.load_schema_current(
+        ActiveRecord::Base.schema_format,
+        nil,
+        ActiveSupport::StringInquirer.new('development')
+      )
+    end
+  end
+
   class DatabaseTasksCreateCurrentTest < ActiveRecord::TestCase
     def setup
       @configurations = {
