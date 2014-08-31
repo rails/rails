@@ -52,3 +52,8 @@ class CommentThatAutomaticallyAltersPostBody < Comment
     comment.post.update_attributes(body: "Automatically altered")
   end
 end
+
+class CommentWithDefaultScopeReferencesAssociation < Comment
+  default_scope ->{ includes(:developer).order('developers.name').references(:developer) }
+  belongs_to :developer
+end
