@@ -125,6 +125,7 @@ module ActiveRecord
         each_current_configuration(environment) { |configuration|
           drop configuration
         }
+        ActiveRecord::Base.establish_connection(environment.to_sym)
       end
 
       def migrate
@@ -171,6 +172,7 @@ module ActiveRecord
         each_current_configuration(environment) { |configuration|
           purge configuration
         }
+        ActiveRecord::Base.establish_connection(environment.to_sym)
       end
 
       def structure_dump(*arguments)
