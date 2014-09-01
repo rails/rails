@@ -1,3 +1,8 @@
+*   Make Time#change throw an exception if the :usec option is out of range and
+    the time has an offset other than UTC or local.
+
+    *Agis Anastasopoulos*
+
 *   `Method` objects now report themselves as not `duplicable?`. This allows
     hashes and arrays containing `Method` objects to be `deep_dup`ed.
 
