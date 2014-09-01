@@ -1,3 +1,8 @@
+*   Time#change can now change nanoseconds (:nsec) as a higher-precision
+    alternative to microseconds (:usec).
+
+    *Agis Anastasooulos*
+
 *   `MessageVerifier.new` raises an appropriate exception if the secret is `nil`.
     This prevents `MessageVerifier#generate` from raising a cryptic error later on.
 
