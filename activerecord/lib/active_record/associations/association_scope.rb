@@ -188,11 +188,7 @@ module ActiveRecord
       end
 
       def eval_scope(klass, scope, owner)
-        if scope.is_a?(Relation)
-          scope
-        else
-          klass.unscoped.instance_exec(owner, &scope)
-        end
+        klass.unscoped.instance_exec(owner, &scope)
       end
     end
   end
