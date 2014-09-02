@@ -1058,19 +1058,21 @@ module ActiveRecord
     end
 
     def reverse_sql_order(order_query)
-      order_query = ["#{quoted_table_name}.#{quoted_primary_key} ASC"] if order_query.empty?
+      order_query = "#{quoted_table_name}.#{quoted_primary_key} ASC" if order_query.empty?
 
-      order_query.flat_map do |o|
-        case o
-        when Arel::Nodes::Ordering
-          o.reverse
-        when String
-          o.to_s.split(',').map! do |s|
-            s.strip!
-            s.gsub!(/\sasc\Z/i, ' DESC') || s.gsub!(/\sdesc\Z/i, ' ASC') || s.concat(' DESC')
+      case order_query
+      when String
+        Array(order_query)
+      when Array
+        order_query.flat_map do |o|
+          case o
+          when Arel::Nodes::Ordering
+            o.reverse
+          when String
+            raise ArgumentError, "String arguments are not allowed for reverse_order. Use #reorder instead."
+          else
+            o
           end
-        else
-          o
         end
       end
     end

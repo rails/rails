@@ -475,10 +475,10 @@ class NamedScopingTest < ActiveRecord::TestCase
 
   def test_scopes_to_get_newest
     post = posts(:welcome)
-    old_last_comment = post.comments.newest
+    old_last_comment = post.comments.find_most_recent
     new_comment = post.comments.create(:body => "My new comment")
-    assert_equal new_comment, post.comments.newest
-    assert_not_equal old_last_comment, post.comments.newest
+    assert_equal new_comment, post.comments.find_most_recent
+    assert_not_equal old_last_comment, post.comments.find_most_recent
   end
 
   def test_scopes_are_reset_on_association_reload

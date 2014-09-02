@@ -1,3 +1,10 @@
+*   Donot allow the string values in the `reverse_order`. Use #reorder or pass in the hash
+    values.
+
+    Fixes: #8225, #7423 and #11571
+
+    *Aditya Kapoor*
+
 *   MySQL: set the connection collation along with the charset.
 
     Sets the connection collation to the database collation configured in
