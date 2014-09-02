@@ -167,7 +167,8 @@ config.log_level = :info
 ### HTML Sanitizer
 
 The HTML sanitizer has been replaced with a new, more robust, implementation
-built upon Loofah and Nokogiri. The new sanitizer is (TODO: betterer).
+built upon Loofah and Nokogiri. The new sanitizer is more secure and its
+sanitization is more powerful and flexible.
 
 With a new sanitization algorithm, the sanitized output will change for certain
 pathological inputs.
