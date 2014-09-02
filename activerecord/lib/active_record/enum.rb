@@ -133,6 +133,14 @@ module ActiveRecord
         end
         defined_enums[name.to_s] = enum_values
       end
+      # Convert the enums in read_attribute
+      define_method(:read_attribute) do |attr_name|
+        read_attribute = super(attr_name)
+        if defined_enums.include?(attr_name)
+          read_attribute = defined_enums[attr_name].key(read_attribute)
+        end
+        read_attribute
+      end
     end
 
     private
