@@ -6,10 +6,10 @@ module ActiveJob
 
       # Provides a store of all the enqueued jobs with the TestAdapter so you can check them.
       def enqueued_jobs
-        @@enqueued_jobs ||= []
+        @enqueued_jobs ||= []
       end
 
-      # Allows you to over write the default enqueued jobs store from an array to some
+      # Allows you to overwrite the default enqueued jobs store from an array to some
       # other object.  If you just want to clear the store,
       # call ActiveJob::QueueAdapters::TestAdapter.enqueued_jobs.clear.
       #
@@ -21,15 +21,15 @@ module ActiveJob
       # * size
       # * and other common Array methods
       def enqueued_jobs=(val)
-        @@enqueued_jobs = val
+        @enqueued_jobs = val
       end
 
       # Provides a store of all the performed jobs with the TestAdapter so you can check them.
       def performed_jobs
-        @@performed_jobs ||= []
+        @performed_jobs ||= []
       end
 
-      # Allows you to over write the default performed jobs store from an array to some
+      # Allows you to overwrite the default performed jobs store from an array to some
       # other object.  If you just want to clear the store,
       # call ActiveJob::QueueAdapters::TestAdapter.performed_jobs.clear.
       #
@@ -41,7 +41,7 @@ module ActiveJob
       # * size
       # * and other common Array methods
       def performed_jobs=(val)
-        @@performed_jobs = val
+        @performed_jobs = val
       end
 
       def enqueue(job, *args)
@@ -63,13 +63,13 @@ module ActiveJob
       end
 
       private
-      def perform_enqueued_jobs?
-        perform_enqueued_jobs
-      end
+        def perform_enqueued_jobs?
+          perform_enqueued_jobs
+        end
 
-      def perform_enqueued_at_jobs?
-        perform_enqueued_at_jobs
-      end
+        def perform_enqueued_at_jobs?
+          perform_enqueued_at_jobs
+        end
     end
   end
 end

@@ -1,4 +1,3 @@
-# encoding: utf-8
 require 'helper'
 require 'active_support/core_ext/time'
 require 'active_support/core_ext/date'
@@ -74,7 +73,7 @@ class EnqueuedJobsTest < ActiveJob::TestCase
 
     assert_match(/1 .* but 2/, error.message)
   end
-  #
+
   def test_assert_no_enqueued_jobs_failure
     error = assert_raise ActiveSupport::TestCase::Assertion do
       assert_no_enqueued_jobs do
@@ -182,7 +181,7 @@ class PerformedJobsTest < ActiveJob::TestCase
 
     assert_match(/1 .* but 2/, error.message)
   end
-  #
+
   def test_assert_no_performed_jobs_failure
     error = assert_raise ActiveSupport::TestCase::Assertion do
       assert_no_performed_jobs do
