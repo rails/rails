@@ -1,3 +1,10 @@
+*   `determine_constant_from_test_name` does no longer shadow `NameError`s
+    which happen during constant autoloading.
+
+    Fixes #9933.
+
+    *Guo Xiang Tan*
+
 *   Added instance_eval version to Object#try, so you can do this:
 
       person.try { name.first }
