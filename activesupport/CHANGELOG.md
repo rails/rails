@@ -1,9 +1,9 @@
 *   Added instance_eval version to Object#try, so you can do this:
 
       person.try { name.first }
-    
+
     instead of:
-      
+
       person.try { |person| person.name.first }
 
     *DHH*
