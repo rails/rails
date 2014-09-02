@@ -85,6 +85,12 @@ module ActiveRecord
     end
   end
 
+  class NonScalarPrimaryKeyError < ActiveRecordError #:nodoc:
+    def initialize(reflection)
+      super("Can not join association #{reflection.name.inspect}, because :primary_key is a callable. Use Relation#includes or specify a join column name")
+    end
+  end
+
   class ReadOnlyAssociation < ActiveRecordError #:nodoc:
     def initialize(reflection)
       super("Cannot add to a has_many :through association. Try adding to #{reflection.through_reflection.name.inspect}.")

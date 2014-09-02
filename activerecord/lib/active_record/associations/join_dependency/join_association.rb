@@ -10,6 +10,10 @@ module ActiveRecord
         attr_accessor :tables
 
         def initialize(reflection, children)
+          if reflection.options[:primary_key].respond_to?(:call)
+            raise NonScalarPrimaryKeyError.new(reflection)
+          end
+
           super(reflection.klass, children)
 
           @reflection      = reflection

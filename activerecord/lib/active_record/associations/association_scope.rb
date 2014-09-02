@@ -110,8 +110,21 @@ module ActiveRecord
           foreign_key = join_keys.foreign_key
 
           if reflection == chain.last
-            bind_val = bind scope, table.table_name, key.to_s, owner[foreign_key], tracker
-            scope    = scope.where(table[key].eq(bind_val))
+            bind_arel = if foreign_key.respond_to?(:call)
+              fk = foreign_key.call(owner)
+              if fk.respond_to?(:each)
+                bind_vals = fk.compact.map do |f|
+                  bind scope, table.table_name, key.to_s, f, tracker
+                end
+                table[key].in(bind_vals)
+              else
+                table[key].eq(fk)
+              end
+            else
+              bind_val = bind scope, table.table_name, key.to_s, owner[foreign_key], tracker
+              table[key].eq(bind_val)
+            end
+            scope = scope.where(bind_arel)
 
             if reflection.type
               value    = owner.class.base_class.name
