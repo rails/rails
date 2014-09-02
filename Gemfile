@@ -8,7 +8,7 @@ gemspec
 gem 'mocha', '~> 0.14', require: false
 
 gem 'rack-cache', '~> 1.2'
-gem 'jquery-rails', '~> 3.1.0'
+gem 'jquery-rails', github: 'rails/jquery-rails', branch: 'master'
 gem 'coffee-rails', '~> 4.0.0'
 gem 'rails-html-sanitizer'
 gem 'turbolinks', '~> 2.2.3'
