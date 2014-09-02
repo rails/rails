@@ -2,7 +2,6 @@ require 'date'
 require 'set'
 require 'bigdecimal'
 require 'bigdecimal/util'
-require 'active_support/core_ext/string/strip'
 
 module ActiveRecord
   module ConnectionAdapters #:nodoc:
