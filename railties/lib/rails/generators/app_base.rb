@@ -281,7 +281,7 @@ module Rails
           []
         else
           gems = [coffee_gemfile_entry, javascript_runtime_gemfile_entry]
-          gems << GemfileEntry.version("#{options[:javascript]}-rails", nil,
+          gems << GemfileEntry.github("#{options[:javascript]}-rails", "rails/#{options[:javascript]}-rails",
                                  "Use #{options[:javascript]} as the JavaScript library")
 
           gems << GemfileEntry.version("turbolinks", nil,
