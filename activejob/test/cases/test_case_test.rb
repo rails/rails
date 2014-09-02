@@ -1,4 +1,3 @@
-# encoding: utf-8
 require 'helper'
 require 'jobs/hello_job'
 require 'jobs/logging_job'

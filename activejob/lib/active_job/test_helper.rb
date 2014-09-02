@@ -1,13 +1,21 @@
-# encoding: utf-8
 module ActiveJob
   # Provides helper methods for testing Active Job
   module TestHelper
     extend ActiveSupport::Concern
-    include ActiveSupport::Testing::ConstantLookup
 
     included do
-      class_attribute :_job_class
-      setup :initialize_queue_test_adapter
+      def before_setup
+        @old_queue_adapter  = queue_adapter
+        ActiveJob::Base.queue_adapter = :test
+        clear_enqueued_jobs
+        clear_performed_jobs
+        super
+      end
+
+      def after_teardown
+        super
+        ActiveJob::Base.queue_adapter = @old_queue_adapter
+      end
 
       # Asserts that the number of enqueued jobs matches the given number.
       #
@@ -40,7 +48,8 @@ module ActiveJob
           assert_equal original_count + number, new_count,
                        "#{number} jobs expected, but #{new_count - original_count} were enqueued"
         else
-          assert_equal number, enqueued_jobs.size
+          enqueued_jobs_size = enqueued_jobs.size
+          assert_equal number, enqueued_jobs_size, "#{number} jobs expected, but #{enqueued_jobs_size} were enqueued"
         end
       end
 
@@ -98,7 +107,8 @@ module ActiveJob
           assert_equal original_count + number, new_count,
                        "#{number} jobs expected, but #{new_count - original_count} were performed"
         else
-          assert_equal number, performed_jobs.size
+          performed_jobs_size = performed_jobs.size
+          assert_equal number, performed_jobs_size, "#{number} jobs expected, but #{performed_jobs_size} were performed"
         end
       end
 
@@ -165,7 +175,6 @@ module ActiveJob
         queue_adapter.performed_jobs = original_performed_jobs + performed_jobs
       end
 
-
       def queue_adapter
         ActiveJob::Base.queue_adapter
       end
@@ -175,12 +184,6 @@ module ActiveJob
                to: :queue_adapter
 
       private
-        def initialize_queue_test_adapter
-         ActiveJob::Base.queue_adapter = :test
-         clear_enqueued_jobs
-         clear_performed_jobs
-        end
-
         def clear_enqueued_jobs
           enqueued_jobs.clear
         end
