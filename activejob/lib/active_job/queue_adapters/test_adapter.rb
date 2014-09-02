@@ -3,6 +3,7 @@ module ActiveJob
     class TestAdapter
       attr_accessor(:perform_enqueued_jobs) { false }
       attr_accessor(:perform_enqueued_at_jobs) { false }
+      delegate :name, to: :class
 
       # Provides a store of all the enqueued jobs with the TestAdapter so you can check them.
       def enqueued_jobs
