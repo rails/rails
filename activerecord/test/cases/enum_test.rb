@@ -287,4 +287,9 @@ class EnumTest < ActiveRecord::TestCase
     book2.status = :uploaded
     assert_equal ['drafted', 'uploaded'], book2.status_change
   end
+
+  test "read attribute returns enum label" do
+    assert_equal "proposed", @book.attributes["status"]
+    assert_equal "proposed", @book["status"]
+  end
 end
