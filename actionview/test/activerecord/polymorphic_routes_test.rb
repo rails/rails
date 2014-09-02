@@ -199,14 +199,14 @@ class PolymorphicRoutesTest < ActionController::TestCase
       assert_equal "http://example.com/posts/#{@blog_post.id}", polymorphic_url([nil, @blog_post])
     end
   end
-  
+
   def test_with_nil_in_list_does_not_generate_invalid_link
     with_top_level_and_nested_routes do
       exception = assert_raise NoMethodError do
         @series.save
         polymorphic_url([nil, @series])
       end
-      assert_match /undefined method `series_url' for/, exception.message
+      assert_match(/undefined method `series_url' for/, exception.message)
     end
   end
 
