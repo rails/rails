@@ -56,11 +56,7 @@ module ActiveSupport
     # Encrypt and sign a message. We need to sign the message in order to avoid
     # padding attacks. Reference: http://www.limited-entropy.com/padding-oracle-attacks.
     def encrypt_and_sign(value, expiration=nil)
-      if expiration.present?
-        verifier.generate(_encrypt(@serializer.dump(value, expiration)))
-      else
-        verifier.generate(_encrypt(@serializer.dump(value)))
-      end
+      verifier.generate(_encrypt(@serializer.dump(value, expiration)))
     end
 
     # Decrypt and verify a message. We need to verify the message in order to

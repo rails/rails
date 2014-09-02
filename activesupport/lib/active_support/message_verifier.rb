@@ -62,7 +62,7 @@ module ActiveSupport
     end
 
     def is_expired?(timestamp)
-      timestamp && Time.now > Time.iso8601(timestamp)
+      timestamp && Time.now.utc > Time.iso8601(timestamp)
     end
   end
 
@@ -94,11 +94,7 @@ module ActiveSupport
     end
 
     def generate(value, expiration=nil)
-      if expiration.present?
-        data = ::Base64.strict_encode64(@serializer.dump(value,expiration))
-      else
-        data = ::Base64.strict_encode64(@serializer.dump(value))
-      end
+      data = ::Base64.strict_encode64(@serializer.dump(value,expiration))
       "#{data}--#{generate_digest(data)}"
     end
 
