@@ -441,7 +441,7 @@ class SchemaDumperDefaultsTest < ActiveRecord::TestCase
 
   teardown do
     return unless @connection
-    @connection.execute 'DROP TABLE IF EXISTS defaults'
+    @connection.execute 'DROP TABLE defaults' if @connection.table_exists? 'defaults'
   end
 
   def test_schema_dump_defaults_with_universally_supported_types
