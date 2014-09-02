@@ -484,7 +484,7 @@ module ActiveRecord
     end
 
     def has_transactional_callbacks? # :nodoc:
-      !_rollback_callbacks.empty? || !_commit_callbacks.empty? || !_create_callbacks.empty?
+      !_rollback_callbacks.empty? || !_commit_callbacks.empty?
     end
 
     private
@@ -511,6 +511,8 @@ module ActiveRecord
     end
 
     def update_attributes_from_transaction_state(transaction_state, depth)
+      @reflects_state = [false] if depth == 0
+
       if transaction_state && transaction_state.finalized? && !has_transactional_callbacks?
         unless @reflects_state[depth]
           restore_transaction_record_state if transaction_state.rolledback?
@@ -547,7 +549,6 @@ module ActiveRecord
       @txn                      = nil
       @_start_transaction_state = {}
       @transaction_state        = nil
-      @reflects_state           = [false]
     end
 
     def initialize_internals_callback
