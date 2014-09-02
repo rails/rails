@@ -50,6 +50,10 @@ def mysql_56?
     ActiveRecord::Base.connection.send(:version).join(".") >= "5.6.0"
 end
 
+def mysql_enforcing_gtid_consistency?
+  current_adapter?(:MysqlAdapter, :Mysql2Adapter) && 'ON' == ActiveRecord::Base.connection.show_variable('enforce_gtid_consistency')
+end
+
 def supports_savepoints?
   ActiveRecord::Base.connection.supports_savepoints?
 end
