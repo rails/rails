@@ -10,9 +10,10 @@ require 'action_view/lookup_context'
 module ActionView #:nodoc:
   # = Action View Base
   #
-  # Action View templates can be written in several ways. If the template file has a <tt>.erb</tt> extension then it uses a mixture of ERB
-  # (not the one the Ruby stdlib, but the erubis[https://rubygems.org/gems/erubis] implementation) and HTML.
-  # If the template file has a <tt>.builder</tt> extension then Jim Weirich's Builder::XmlMarkup library is used.
+  # Action View templates can be written in several ways.
+  # If the template file has a <tt>.erb</tt> extension, then it uses the erubis[https://rubygems.org/gems/erubis]
+  # template system which can embed Ruby into an HTML document.
+  # If the template file has a <tt>.builder</tt> extension, then Jim Weirich's Builder::XmlMarkup library is used.
   #
   # == ERB
   #
