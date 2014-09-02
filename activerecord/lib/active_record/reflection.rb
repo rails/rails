@@ -609,8 +609,11 @@ module ActiveRecord
           through_scope_chain = through_reflection.scope_chain.map(&:dup)
 
           if options[:source_type]
-            through_scope_chain.first <<
-              through_reflection.klass.where(foreign_type => options[:source_type])
+            type = foreign_type
+            source_type = options[:source_type]
+            through_scope_chain.first << lambda { |object|
+              where(type => source_type)
+            }
           end
 
           # Recursively fill out the rest of the array from the through reflection
