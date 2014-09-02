@@ -1,100 +1,180 @@
-require 'active_support/core_ext/class/attribute'
-require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/module/attribute_accessors'
 
 module ActiveRecord
   module AttributeMethods
-    module Dirty
+    module Dirty # :nodoc:
       extend ActiveSupport::Concern
+
       include ActiveModel::Dirty
-      include AttributeMethods::Write
 
       included do
         if self < ::ActiveRecord::Timestamp
           raise "You cannot include Dirty after Timestamp"
         end
 
-        class_attribute :partial_updates
-        self.partial_updates = true
+        class_attribute :partial_writes, instance_writer: false
+        self.partial_writes = true
       end
 
       # Attempts to +save+ the record and clears changed attributes if successful.
-      def save(*) #:nodoc:
+      def save(*)
         if status = super
-          @previously_changed = changes
-          @changed_attributes.clear
-        elsif IdentityMap.enabled?
-          IdentityMap.remove(self)
+          changes_applied
         end
         status
       end
 
       # Attempts to <tt>save!</tt> the record and clears changed attributes if successful.
-      def save!(*) #:nodoc:
+      def save!(*)
         super.tap do
-          @previously_changed = changes
-          @changed_attributes.clear
+          changes_applied
         end
-        rescue
-          IdentityMap.remove(self) if IdentityMap.enabled?
-          raise
       end
 
       # <tt>reload</tt> the record and clears changed attributes.
-      def reload(*) #:nodoc:
+      def reload(*)
         super.tap do
-          @previously_changed.clear
-          @changed_attributes.clear
+          clear_changes_information
         end
       end
 
-    private
-      # Wrap write_attribute to remember original attribute value.
-      def write_attribute(attr, value)
-        attr = attr.to_s
-
-        # The attribute already has an unsaved change.
-        if attribute_changed?(attr)
-          old = @changed_attributes[attr]
-          @changed_attributes.delete(attr) unless field_changed?(attr, old, value)
-        else
-          old = clone_attribute_value(:read_attribute, attr)
-          # Save Time objects as TimeWithZone if time_zone_aware_attributes == true
-          old = old.in_time_zone if clone_with_time_zone_conversion_attribute?(attr, old)
-          @changed_attributes[attr] = old if field_changed?(attr, old, value)
-        end
-
-        # Carry on.
-        super(attr, value)
+      def initialize_dup(other) # :nodoc:
+        super
+        calculate_changes_from_defaults
       end
 
-      def update(*)
-        if partial_updates?
-          # Serialized attributes should always be written in case they've been
-          # changed in place.
-          super(changed | (attributes.keys & self.class.serialized_attributes.keys))
+      def changes_applied
+        super
+        store_original_raw_attributes
+      end
+
+      def clear_changes_information
+        super
+        original_raw_attributes.clear
+      end
+
+      def changed_attributes
+        # This should only be set by methods which will call changed_attributes
+        # multiple times when it is known that the computed value cannot change.
+        if defined?(@cached_changed_attributes)
+          @cached_changed_attributes
         else
+          super.reverse_merge(attributes_changed_in_place).freeze
+        end
+      end
+
+      def changes
+        cache_changed_attributes do
           super
         end
       end
 
-      def field_changed?(attr, old, value)
-        if column = column_for_attribute(attr)
-          if column.number? && column.null && (old.nil? || old == 0) && value.blank?
-            # For nullable numeric columns, NULL gets stored in database for blank (i.e. '') values.
-            # Hence we don't record it as a change if the value changes from nil to ''.
-            # If an old value of 0 is set to '' we want this to get changed to nil as otherwise it'll
-            # be typecast back to 0 (''.to_i => 0)
-            value = nil
-          else
-            value = column.type_cast(value)
-          end
-        end
+      private
 
-        old != value
+      def calculate_changes_from_defaults
+        @changed_attributes = nil
+        self.class.column_defaults.each do |attr, orig_value|
+          set_attribute_was(attr, orig_value) if _field_changed?(attr, orig_value)
+        end
       end
 
-      def clone_with_time_zone_conversion_attribute?(attr, old)
-        old.class.name == "Time" && time_zone_aware_attributes && !self.skip_time_zone_conversion_for_attributes.include?(attr.to_sym)
+      # Wrap write_attribute to remember original attribute value.
+      def write_attribute(attr, value)
+        attr = attr.to_s
+
+        old_value = old_attribute_value(attr)
+
+        result = super
+        store_original_raw_attribute(attr)
+        save_changed_attribute(attr, old_value)
+        result
+      end
+
+      def raw_write_attribute(attr, value)
+        attr = attr.to_s
+
+        result = super
+        original_raw_attributes[attr] = value
+        result
+      end
+
+      def save_changed_attribute(attr, old_value)
+        if attribute_changed?(attr)
+          clear_attribute_changes(attr) unless _field_changed?(attr, old_value)
+        else
+          set_attribute_was(attr, old_value) if _field_changed?(attr, old_value)
+        end
+      end
+
+      def old_attribute_value(attr)
+        if attribute_changed?(attr)
+          changed_attributes[attr]
+        else
+          clone_attribute_value(:read_attribute, attr)
+        end
+      end
+
+      def _update_record(*)
+        partial_writes? ? super(keys_for_partial_write) : super
+      end
+
+      def _create_record(*)
+        partial_writes? ? super(keys_for_partial_write) : super
+      end
+
+      # Serialized attributes should always be written in case they've been
+      # changed in place.
+      def keys_for_partial_write
+        changed
+      end
+
+      def _field_changed?(attr, old_value)
+        @attributes[attr].changed_from?(old_value)
+      end
+
+      def attributes_changed_in_place
+        changed_in_place.each_with_object({}) do |attr_name, h|
+          orig = @attributes[attr_name].original_value
+          h[attr_name] = orig
+        end
+      end
+
+      def changed_in_place
+        self.class.attribute_names.select do |attr_name|
+          changed_in_place?(attr_name)
+        end
+      end
+
+      def changed_in_place?(attr_name)
+        old_value = original_raw_attribute(attr_name)
+        @attributes[attr_name].changed_in_place_from?(old_value)
+      end
+
+      def original_raw_attribute(attr_name)
+        original_raw_attributes.fetch(attr_name) do
+          read_attribute_before_type_cast(attr_name)
+        end
+      end
+
+      def original_raw_attributes
+        @original_raw_attributes ||= {}
+      end
+
+      def store_original_raw_attribute(attr_name)
+        original_raw_attributes[attr_name] = @attributes[attr_name].value_for_database
+      end
+
+      def store_original_raw_attributes
+        attribute_names.each do |attr|
+          store_original_raw_attribute(attr)
+        end
+      end
+
+      def cache_changed_attributes
+        @cached_changed_attributes = changed_attributes
+        yield
+      ensure
+        remove_instance_variable(:@cached_changed_attributes)
       end
     end
   end

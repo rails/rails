@@ -1,87 +1,79 @@
-require 'set'
-
 module Rails
   module Paths
-    module PathParent #:nodoc:
-      def method_missing(id, *args)
-        match = id.to_s.match(/^(.*)=$/)
-        full  = [@current, $1 || id].compact.join("/")
-
-        ActiveSupport::Deprecation.warn 'config.paths.app.controller API is deprecated in ' <<
-          'favor of config.paths["app/controller"] API.'
-
-        if match || args.any?
-          @root[full] = Path.new(@root, full, *args)
-        elsif path = @root[full]
-          path
-        else
-          super
-        end
-      end
-    end
-
-    # This object is an extended hash that behaves as root of the Rails::Paths system.
+    # This object is an extended hash that behaves as root of the <tt>Rails::Paths</tt> system.
     # It allows you to collect information about how you want to structure your application
     # paths by a Hash like API. It requires you to give a physical path on initialization.
     #
-    #   root = Root.new
-    #   root.add "app/controllers", :eager_load => true
+    #   root = Root.new "/rails"
+    #   root.add "app/controllers", eager_load: true
     #
     # The command above creates a new root object and add "app/controllers" as a path.
-    # This means we can get a Path object back like below:
+    # This means we can get a <tt>Rails::Paths::Path</tt> object back like below:
     #
     #   path = root["app/controllers"]
     #   path.eager_load?               # => true
     #   path.is_a?(Rails::Paths::Path) # => true
     #
-    # The Path object is simply an array and allows you to easily add extra paths:
+    # The +Path+ object is simply an enumerable and allows you to easily add extra paths:
     #
-    #   path.is_a?(Array) # => true
-    #   path.inspect      # => ["app/controllers"]
+    #   path.is_a?(Enumerable) # => true
+    #   path.to_ary.inspect    # => ["app/controllers"]
     #
     #   path << "lib/controllers"
-    #   path.inspect      # => ["app/controllers", "lib/controllers"]
+    #   path.to_ary.inspect    # => ["app/controllers", "lib/controllers"]
     #
-    # Notice that when you add a path using #add, the path object created already
-    # contains the path with the same path value given to #add. In some situations,
-    # you may not want this behavior, so you can give :with as option.
+    # Notice that when you add a path using +add+, the path object created already
+    # contains the path with the same path value given to +add+. In some situations,
+    # you may not want this behavior, so you can give <tt>:with</tt> as option.
     #
-    #   root.add "config/routes", :with => "config/routes.rb"
+    #   root.add "config/routes", with: "config/routes.rb"
     #   root["config/routes"].inspect # => ["config/routes.rb"]
     #
-    # #add also accepts the following options as argument: eager_load, autoload,
-    # autoload_once and glob.
+    # The +add+ method accepts the following options as arguments:
+    # eager_load, autoload, autoload_once and glob.
     #
-    # Finally, the Path object also provides a few helpers:
+    # Finally, the +Path+ object also provides a few helpers:
     #
-    #   root = Root.new
-    #   root.path = "/rails"
+    #   root = Root.new "/rails"
     #   root.add "app/controllers"
     #
     #   root["app/controllers"].expanded # => ["/rails/app/controllers"]
     #   root["app/controllers"].existent # => ["/rails/app/controllers"]
     #
-    # Check the Path documentation for more information.
-    class Root < ::Hash
-      include PathParent
+    # Check the <tt>Rails::Paths::Path</tt> documentation for more information.
+    class Root
       attr_accessor :path
 
       def initialize(path)
-        raise if path.is_a?(Array)
         @current = nil
         @path = path
-        @root = self
-        super()
+        @root = {}
       end
 
       def []=(path, value)
-        value = Path.new(self, path, value) unless value.is_a?(Path)
-        super(path, value)
+        glob = self[path] ? self[path].glob : nil
+        add(path, with: value, glob: glob)
       end
 
-      def add(path, options={})
-        with = options[:with] || path
-        self[path] = Path.new(self, path, with, options)
+      def add(path, options = {})
+        with = Array(options.fetch(:with, path))
+        @root[path] = Path.new(self, path, with, options)
+      end
+
+      def [](path)
+        @root[path]
+      end
+
+      def values
+        @root.values
+      end
+
+      def keys
+        @root.keys
+      end
+
+      def values_at(*list)
+        @root.values_at(*list)
       end
 
       def all_paths
@@ -89,47 +81,38 @@ module Rails
       end
 
       def autoload_once
-        filter_by(:autoload_once?)
+        filter_by { |p| p.autoload_once? }
       end
 
       def eager_load
-        filter_by(:eager_load?)
+        filter_by { |p| p.eager_load? }
       end
 
       def autoload_paths
-        filter_by(:autoload?)
+        filter_by { |p| p.autoload? }
       end
 
       def load_paths
-        filter_by(:load_path?)
+        filter_by { |p| p.load_path? }
       end
 
-    protected
+    private
 
-      def filter_by(constraint)
-        all = []
-        all_paths.each do |path|
-          if path.send(constraint)
-            paths  = path.existent
-            paths -= path.children.map { |p| p.send(constraint) ? [] : p.existent }.flatten
-            all.concat(paths)
-          end
-        end
-        all.uniq!
-        all
+      def filter_by(&block)
+        all_paths.find_all(&block).flat_map { |path|
+          paths = path.existent
+          paths - path.children.flat_map { |p| yield(p) ? [] : p.existent }
+        }.uniq
       end
     end
 
-    class Path < Array
-      include PathParent
+    class Path
+      include Enumerable
 
-      attr_reader :path
       attr_accessor :glob
 
-      def initialize(root, current, *paths)
-        options = paths.last.is_a?(::Hash) ? paths.pop : {}
-        super(paths.flatten)
-
+      def initialize(root, current, paths, options = {})
+        @paths    = paths
         @current  = current
         @root     = root
         @glob     = options[:glob]
@@ -141,8 +124,9 @@ module Rails
       end
 
       def children
-        keys = @root.keys.select { |k| k.include?(@current) }
-        keys.delete(@current)
+        keys = @root.keys.find_all { |k|
+          k.start_with?(@current) && k != @current
+        }
         @root.values_at(*keys.sort)
       end
 
@@ -170,6 +154,27 @@ module Rails
         RUBY
       end
 
+      def each(&block)
+        @paths.each(&block)
+      end
+
+      def <<(path)
+        @paths << path
+      end
+      alias :push :<<
+
+      def concat(paths)
+        @paths.concat paths
+      end
+
+      def unshift(path)
+        @paths.unshift path
+      end
+
+      def to_ary
+        @paths
+      end
+
       # Expands all paths against the root and return all unique values.
       def expanded
         raise "You need to set a path root" unless @root.path
@@ -178,8 +183,10 @@ module Rails
         each do |p|
           path = File.expand_path(p, @root.path)
 
-          if @glob
-            result.concat Dir[File.join(path, @glob)]
+          if @glob && File.directory?(path)
+            Dir.chdir(path) do
+              result.concat(Dir.glob(@glob).map { |file| File.join path, file }.sort)
+            end
           else
             result << path
           end
@@ -191,12 +198,11 @@ module Rails
 
       # Returns all expanded paths but only if they exist in the filesystem.
       def existent
-        expanded.select { |f| File.exists?(f) }
+        expanded.select { |f| File.exist?(f) }
       end
 
-      def paths
-        ActiveSupport::Deprecation.warn "paths is deprecated. Please call expand instead."
-        expanded
+      def existent_directories
+        expanded.select { |d| File.directory?(d) }
       end
 
       alias to_a expanded

@@ -1,9 +1,9 @@
 require 'rails/generators/active_record'
 
 module ActiveRecord
-  module Generators
-    class ModelGenerator < Base
-      argument :attributes, :type => :array, :default => [], :banner => "field:type field:type"
+  module Generators # :nodoc:
+    class ModelGenerator < Base # :nodoc:
+      argument :attributes, :type => :array, :default => [], :banner => "field[:type][:index] field[:type][:index]"
 
       check_class_collision
 
@@ -12,9 +12,13 @@ module ActiveRecord
       class_option :parent,     :type => :string, :desc => "The parent class for the generated model"
       class_option :indexes,    :type => :boolean, :default => true, :desc => "Add indexes for references and belongs_to columns"
 
+      
+      # creates the migration file for the model.
+
       def create_migration_file
         return unless options[:migration] && options[:parent].nil?
-        migration_template "migration.rb", "db/migrate/create_#{table_name}.rb"
+        attributes.each { |a| a.attr_options.delete(:index) if a.reference? && !a.has_index? } if options[:indexes] == false
+        migration_template "../../migration/templates/create_table_migration.rb", "db/migrate/create_#{table_name}.rb"
       end
 
       def create_model_file
@@ -26,10 +30,19 @@ module ActiveRecord
         template 'module.rb', File.join('app/models', "#{class_path.join('/')}.rb") if behavior == :invoke
       end
 
+      def attributes_with_index
+        attributes.select { |a| !a.reference? && a.has_index? }
+      end
+
+      def accessible_attributes
+        attributes.reject(&:reference?)
+      end
+
       hook_for :test_framework
 
       protected
 
+        # Used by the migration template to determine the parent name of the model
         def parent_class_name
           options[:parent] || "ActiveRecord::Base"
         end

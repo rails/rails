@@ -1,3 +1,5 @@
+require 'active_support/core_ext/module/attribute_accessors'
+
 module ActionDispatch
   module Http
     module MimeNegotiation
@@ -7,6 +9,8 @@ module ActionDispatch
         mattr_accessor :ignore_accept_header
         self.ignore_accept_header = false
       end
+
+      attr_reader :variant
 
       # The MIME type of the HTTP request, such as Mime::XML.
       #
@@ -46,12 +50,18 @@ module ActionDispatch
       #   GET /posts/5       | request.format => Mime::HTML or MIME::JS, or request.accepts.first
       #
       def format(view_path = [])
-        formats.first
+        formats.first || Mime::NullType.instance
       end
 
       def formats
-        @env["action_dispatch.request.formats"] ||=
-          if parameters[:format]
+        @env["action_dispatch.request.formats"] ||= begin
+          params_readable = begin
+                              parameters[:format]
+                            rescue ActionController::BadRequest
+                              false
+                            end
+
+          if params_readable
             Array(Mime[parameters[:format]])
           elsif use_accept_header && valid_accept_header
             accepts
@@ -60,13 +70,27 @@ module ActionDispatch
           else
             [Mime::HTML]
           end
+        end
+      end
+      # Sets the \variant for template.
+      def variant=(variant)
+        if variant.is_a?(Symbol)
+          @variant = [variant]
+        elsif variant.is_a?(Array) && variant.any? && variant.all?{ |v| v.is_a?(Symbol) }
+          @variant = variant
+        else
+          raise ArgumentError, "request.variant must be set to a Symbol or an Array of Symbols, not a #{variant.class}. " \
+            "For security reasons, never directly set the variant to a user-provided value, " \
+            "like params[:variant].to_sym. Check user-provided value against a whitelist first, " \
+            "then set the variant: request.variant = :tablet if params[:variant] == 'tablet'"
+        end
       end
 
       # Sets the \format by string extension, which can be used to force custom formats
       # that are not controlled by the extension.
       #
       #   class ApplicationController < ActionController::Base
-      #     before_filter :adjust_format_for_iphone
+      #     before_action :adjust_format_for_iphone
       #
       #     private
       #       def adjust_format_for_iphone
@@ -76,6 +100,27 @@ module ActionDispatch
       def format=(extension)
         parameters[:format] = extension.to_s
         @env["action_dispatch.request.formats"] = [Mime::Type.lookup_by_extension(parameters[:format])]
+      end
+
+      # Sets the \formats by string extensions. This differs from #format= by allowing you
+      # to set multiple, ordered formats, which is useful when you want to have a fallback.
+      #
+      # In this example, the :iphone format will be used if it's available, otherwise it'll fallback
+      # to the :html format.
+      #
+      #   class ApplicationController < ActionController::Base
+      #     before_action :adjust_format_for_iphone_with_html_fallback
+      #
+      #     private
+      #       def adjust_format_for_iphone_with_html_fallback
+      #         request.formats = [ :iphone, :html ] if request.env["HTTP_USER_AGENT"][/iPhone/]
+      #       end
+      #   end
+      def formats=(extensions)
+        parameters[:format] = extensions.first.to_s
+        @env["action_dispatch.request.formats"] = extensions.collect do |extension|
+          Mime::Type.lookup_by_extension(extension)
+        end
       end
 
       # Receives an array of mimes and return the first user sent mime that
@@ -90,7 +135,7 @@ module ActionDispatch
           end
         end
 
-        order.include?(Mime::ALL) ? formats.first : nil
+        order.include?(Mime::ALL) ? format : nil
       end
 
       protected
@@ -98,7 +143,8 @@ module ActionDispatch
       BROWSER_LIKE_ACCEPTS = /,\s*\*\/\*|\*\/\*\s*,/
 
       def valid_accept_header
-        xhr? || (accept && accept !~ BROWSER_LIKE_ACCEPTS)
+        (xhr? && (accept.present? || content_mime_type)) ||
+          (accept.present? && accept !~ BROWSER_LIKE_ACCEPTS)
       end
 
       def use_accept_header

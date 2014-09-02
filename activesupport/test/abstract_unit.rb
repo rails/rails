@@ -7,58 +7,34 @@ ensure
   $VERBOSE = old
 end
 
-lib = File.expand_path("#{File.dirname(__FILE__)}/../lib")
-$:.unshift(lib) unless $:.include?('lib') || $:.include?(lib)
-
 require 'active_support/core_ext/kernel/reporting'
 
-require 'active_support/core_ext/string/encoding'
-if "ruby".encoding_aware?
-  # These are the normal settings that will be set up by Railties
-  # TODO: Have these tests support other combinations of these values
-  silence_warnings do
-    Encoding.default_internal = "UTF-8"
-    Encoding.default_external = "UTF-8"
-  end
+silence_warnings do
+  Encoding.default_internal = "UTF-8"
+  Encoding.default_external = "UTF-8"
 end
 
-require 'test/unit'
-require 'empty_bool'
-
-silence_warnings { require 'mocha' }
+require 'active_support/testing/autorun'
 
 ENV['NO_RELOAD'] = '1'
 require 'active_support'
 
-# Include shims until we get off 1.8.6
-require 'active_support/ruby/shim' if RUBY_VERSION < '1.8.7'
-
-def uses_memcached(test_name)
-  require 'memcache'
-  begin
-    MemCache.new('localhost:11211').stats
-    yield
-  rescue MemCache::MemCacheError
-    $stderr.puts "Skipping #{test_name} tests. Start memcached and try again."
-  end
-end
-
-def with_kcode(code)
-  if RUBY_VERSION < '1.9'
-    begin
-      old_kcode, $KCODE = $KCODE, code
-      yield
-    ensure
-      $KCODE = old_kcode
-    end
-  else
-    yield
-  end
-end
+Thread.abort_on_exception = true
 
 # Show backtraces for deprecated behavior for quicker cleanup.
 ActiveSupport::Deprecation.debug = true
 
-if RUBY_VERSION < '1.9'
-  $KCODE = 'UTF8'
+# Disable available locale checks to avoid warnings running the test suite.
+I18n.enforce_available_locales = false
+
+# Skips the current run on Rubinius using Minitest::Assertions#skip
+def rubinius_skip(message = '')
+  skip message if RUBY_ENGINE == 'rbx'
 end
+
+# Skips the current run on JRuby using Minitest::Assertions#skip
+def jruby_skip(message = '')
+  skip message if defined?(JRUBY_VERSION)
+end
+
+require 'mocha/setup' # FIXME: stop using mocha

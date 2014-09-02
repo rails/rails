@@ -1,12 +1,16 @@
 require "isolation/abstract_unit"
 
 module ApplicationTests
-  class NotificationsTest < Test::Unit::TestCase
+  class NotificationsTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
 
     def setup
       build_app
       boot_rails
+    end
+
+    def teardown
+      teardown_app
     end
 
     def instrument(*args, &block)
@@ -29,11 +33,24 @@ module ApplicationTests
       ActiveRecord::Base.logger = logger
 
       # Mimic Active Record notifications
-      instrument "sql.active_record", :name => "SQL", :sql => "SHOW tables"
+      instrument "sql.active_record", name: "SQL", sql: "SHOW tables"
       wait
 
       assert_equal 1, logger.logged(:debug).size
-      assert_match /SHOW tables/, logger.logged(:debug).last
+      assert_match(/SHOW tables/, logger.logged(:debug).last)
+    end
+
+    test 'rails load_config_initializer event is instrumented' do
+      app_file 'config/initializers/foo.rb', ''
+
+      events = []
+      callback = ->(*_) { events << _ }
+      ActiveSupport::Notifications.subscribed(callback, 'load_config_initializer.railties') do
+        app
+      end
+
+      assert_equal %w[load_config_initializer.railties], events.map(&:first)
+      assert_includes events.first.last[:initializer], 'config/initializers/foo.rb'
     end
   end
 end

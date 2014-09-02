@@ -1,6 +1,4 @@
 require 'abstract_unit'
-require 'test/unit'
-require 'active_support'
 
 class GrandParent
   include ActiveSupport::Callbacks
@@ -11,8 +9,8 @@ class GrandParent
   end
 
   define_callbacks :dispatch
-  set_callback :dispatch, :before, :before1, :before2, :per_key => {:if => proc {|c| c.action_name == "index" || c.action_name == "update" }}
-  set_callback :dispatch, :after, :after1, :after2, :per_key => {:if => proc {|c| c.action_name == "update" || c.action_name == "delete" }}
+  set_callback :dispatch, :before, :before1, :before2, :if => proc {|c| c.action_name == "index" || c.action_name == "update" }
+  set_callback :dispatch, :after, :after1, :after2, :if => proc {|c| c.action_name == "update" || c.action_name == "delete" }
 
   def before1
     @log << "before1"
@@ -31,7 +29,7 @@ class GrandParent
   end
 
   def dispatch
-    run_callbacks(:dispatch, action_name) do
+    run_callbacks :dispatch do
       @log << action_name
     end
     self
@@ -39,12 +37,12 @@ class GrandParent
 end
 
 class Parent < GrandParent
-  skip_callback :dispatch, :before, :before2, :per_key => {:unless => proc {|c| c.action_name == "update" }}
-  skip_callback :dispatch, :after, :after2, :per_key => {:unless => proc {|c| c.action_name == "delete" }}
+  skip_callback :dispatch, :before, :before2, :unless => proc {|c| c.action_name == "update" }
+  skip_callback :dispatch, :after, :after2, :unless => proc {|c| c.action_name == "delete" }
 end
 
 class Child < GrandParent
-  skip_callback :dispatch, :before, :before2, :per_key => {:unless => proc {|c| c.action_name == "update" }}, :if => :state_open?
+  skip_callback :dispatch, :before, :before2, :unless => proc {|c| c.action_name == "update" }, :if => :state_open?
 
   def state_open?
     @state == :open
@@ -106,33 +104,31 @@ end
 class CountingChild < CountingParent
 end
 
-class BasicCallbacksTest < Test::Unit::TestCase
+class BasicCallbacksTest < ActiveSupport::TestCase
   def setup
     @index    = GrandParent.new("index").dispatch
     @update   = GrandParent.new("update").dispatch
     @delete   = GrandParent.new("delete").dispatch
-    @unknown  = GrandParent.new("unknown").dispatch
   end
 
-  def test_basic_per_key1
+  def test_basic_conditional_callback1
     assert_equal %w(before1 before2 index), @index.log
   end
 
-  def test_basic_per_key2
+  def test_basic_conditional_callback2
     assert_equal %w(before1 before2 update after2 after1), @update.log
   end
 
-  def test_basic_per_key3
+  def test_basic_conditional_callback3
     assert_equal %w(delete after2 after1), @delete.log
   end
 end
 
-class InheritedCallbacksTest < Test::Unit::TestCase
+class InheritedCallbacksTest < ActiveSupport::TestCase
   def setup
     @index    = Parent.new("index").dispatch
     @update   = Parent.new("update").dispatch
     @delete   = Parent.new("delete").dispatch
-    @unknown  = Parent.new("unknown").dispatch
   end
 
   def test_inherited_excluded
@@ -148,7 +144,7 @@ class InheritedCallbacksTest < Test::Unit::TestCase
   end
 end
 
-class InheritedCallbacksTest2 < Test::Unit::TestCase
+class InheritedCallbacksTest2 < ActiveSupport::TestCase
   def setup
     @update1 = Child.new("update", :open).dispatch
     @update2 = Child.new("update", :closed).dispatch
@@ -163,7 +159,7 @@ class InheritedCallbacksTest2 < Test::Unit::TestCase
   end
 end
 
-class DynamicInheritedCallbacks < Test::Unit::TestCase
+class DynamicInheritedCallbacks < ActiveSupport::TestCase
   def test_callbacks_looks_to_the_superclass_before_running
     child = EmptyChild.new.dispatch
     assert !child.performed?

@@ -1,4 +1,3 @@
-require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/hash/conversions'
 
 module ActiveRecord #:nodoc:
@@ -19,8 +18,8 @@ module ActiveRecord #:nodoc:
     #     <id type="integer">1</id>
     #     <approved type="boolean">false</approved>
     #     <replies-count type="integer">0</replies-count>
-    #     <bonus-time type="datetime">2000-01-01T08:28:00+12:00</bonus-time>
-    #     <written-on type="datetime">2003-07-16T09:28:00+1200</written-on>
+    #     <bonus-time type="dateTime">2000-01-01T08:28:00+12:00</bonus-time>
+    #     <written-on type="dateTime">2003-07-16T09:28:00+1200</written-on>
     #     <content>Have a nice day</content>
     #     <author-email-address>david@loudthinking.com</author-email-address>
     #     <parent-id></parent-id>
@@ -37,7 +36,7 @@ module ActiveRecord #:nodoc:
     #
     # For instance:
     #
-    #   topic.to_xml(:skip_instruct => true, :except => [ :id, :bonus_time, :written_on, :replies_count ])
+    #   topic.to_xml(skip_instruct: true, except: [ :id, :bonus_time, :written_on, :replies_count ])
     #
     #   <topic>
     #     <title>The First Topic</title>
@@ -51,7 +50,7 @@ module ActiveRecord #:nodoc:
     #
     # To include first level associations use <tt>:include</tt>:
     #
-    #   firm.to_xml :include => [ :account, :clients ]
+    #   firm.to_xml include: [ :account, :clients ]
     #
     #   <?xml version="1.0" encoding="UTF-8"?>
     #   <firm>
@@ -75,14 +74,14 @@ module ActiveRecord #:nodoc:
     #   </firm>
     #
     # Additionally, the record being serialized will be passed to a Proc's second
-    # parameter.  This allows for ad hoc additions to the resultant document that
+    # parameter. This allows for ad hoc additions to the resultant document that
     # incorporate the context of the record being serialized. And by leveraging the
     # closure created by a Proc, to_xml can be used to add elements that normally fall
     # outside of the scope of the model -- for example, generating and appending URLs
     # associated with models.
     #
     #   proc = Proc.new { |options, record| options[:builder].tag!('name-reverse', record.name.reverse) }
-    #   firm.to_xml :procs => [ proc ]
+    #   firm.to_xml procs: [ proc ]
     #
     #   <firm>
     #     # ... normal attributes as shown above ...
@@ -91,7 +90,7 @@ module ActiveRecord #:nodoc:
     #
     # To include deeper levels of associations pass a hash like this:
     #
-    #   firm.to_xml :include => {:account => {}, :clients => {:include => :address}}
+    #   firm.to_xml include: {account: {}, clients: {include: :address}}
     #   <?xml version="1.0" encoding="UTF-8"?>
     #   <firm>
     #     <id type="integer">1</id>
@@ -121,7 +120,7 @@ module ActiveRecord #:nodoc:
     #
     # To include any methods on the model being called use <tt>:methods</tt>:
     #
-    #   firm.to_xml :methods => [ :calculated_earnings, :real_earnings ]
+    #   firm.to_xml methods: [ :calculated_earnings, :real_earnings ]
     #
     #   <firm>
     #     # ... normal attributes as shown above ...
@@ -133,7 +132,7 @@ module ActiveRecord #:nodoc:
     # modified version of the options hash that was given to +to_xml+:
     #
     #   proc = Proc.new { |options| options[:builder].tag!('abc', 'def') }
-    #   firm.to_xml :procs => [ proc ]
+    #   firm.to_xml procs: [ proc ]
     #
     #   <firm>
     #     # ... normal attributes as shown above ...
@@ -163,8 +162,9 @@ module ActiveRecord #:nodoc:
     #
     #   class IHaveMyOwnXML < ActiveRecord::Base
     #     def to_xml(options = {})
+    #       require 'builder'
     #       options[:indent] ||= 2
-    #       xml = options[:builder] ||= Builder::XmlMarkup.new(:indent => options[:indent])
+    #       xml = options[:builder] ||= ::Builder::XmlMarkup.new(indent: options[:indent])
     #       xml.instruct! unless options[:skip_instruct]
     #       xml.level_one do
     #         xml.tag!(:second_level, 'content')
@@ -177,63 +177,12 @@ module ActiveRecord #:nodoc:
   end
 
   class XmlSerializer < ActiveModel::Serializers::Xml::Serializer #:nodoc:
-    def initialize(*args)
-      super
-      options[:except] |= Array.wrap(@serializable.class.inheritance_column)
-    end
-
-    def add_extra_behavior
-      add_includes
-    end
-
-    def add_includes
-      procs = options.delete(:procs)
-      @serializable.send(:serializable_add_includes, options) do |association, records, opts|
-        add_associations(association, records, opts)
-      end
-      options[:procs] = procs
-    end
-
-    # TODO This can likely be cleaned up to simple use ActiveSupport::XmlMini.to_tag as well.
-    def add_associations(association, records, opts)
-      association_name = association.to_s.singularize
-      merged_options   = options.merge(opts).merge!(:root => association_name, :skip_instruct => true)
-
-      if records.is_a?(Enumerable)
-        tag  = ActiveSupport::XmlMini.rename_key(association.to_s, options)
-        type = options[:skip_types] ? { } : {:type => "array"}
-
-        if records.empty?
-          @builder.tag!(tag, type)
-        else
-          @builder.tag!(tag, type) do
-            records.each do |record|
-              if options[:skip_types]
-                record_type = {}
-              else
-                record_class = (record.class.to_s.underscore == association_name) ? nil : record.class.name
-                record_type = {:type => record_class}
-              end
-
-              record.to_xml merged_options.merge(record_type)
-            end
-          end
-        end
-      elsif record = @serializable.send(association)
-        record.to_xml(merged_options)
-      end
-    end
-
     class Attribute < ActiveModel::Serializers::Xml::Serializer::Attribute #:nodoc:
       def compute_type
         klass = @serializable.class
-        type = if klass.serialized_attributes.key?(name)
-                 super
-               elsif klass.columns_hash.key?(name)
-                 klass.columns_hash[name].type
-               else
-                 NilClass
-               end
+        column = klass.columns_hash[name] || Type::Value.new
+
+        type = ActiveSupport::XmlMini::TYPE_NAMES[value.class.name] || column.type
 
         { :text => :string,
           :time => :datetime }[type] || type

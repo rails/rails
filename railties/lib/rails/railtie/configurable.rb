@@ -1,10 +1,12 @@
+require 'active_support/concern'
+
 module Rails
   class Railtie
     module Configurable
       extend ActiveSupport::Concern
 
       module ClassMethods
-        delegate :config, :to => :instance
+        delegate :config, to: :instance
 
         def inherited(base)
           raise "You cannot inherit from a #{self.superclass.name} child"

@@ -1,8 +1,10 @@
+require 'action_view'
 require "action_controller/log_subscriber"
+require "action_controller/metal/params_wrapper"
 
 module ActionController
   # Action Controllers are the core of a web request in \Rails. They are made up of one or more actions that are executed
-  # on request and then either render a template or redirect to another action. An action is defined as a public method
+  # on request and then either it renders a template or redirects to another action. An action is defined as a public method
   # on the controller, which will automatically be made accessible to the web-server through \Rails Routes.
   #
   # By default, only the ApplicationController in a \Rails application inherits from <tt>ActionController::Base</tt>. All other
@@ -31,7 +33,7 @@ module ActionController
   # "302 Moved" HTTP response that takes the user to the index action.
   #
   # These two methods represent the two basic action archetypes used in Action Controllers. Get-and-show and do-and-redirect.
-  # Most actions are variations of these themes.
+  # Most actions are variations on these themes.
   #
   # == Requests
   #
@@ -43,14 +45,14 @@ module ActionController
   #
   #   def server_ip
   #     location = request.env["SERVER_ADDR"]
-  #     render :text => "This server hosted at #{location}"
+  #     render plain: "This server hosted at #{location}"
   #   end
   #
   # == Parameters
   #
   # All request parameters, whether they come from a GET or POST request, or from the URL, are available through the params method
   # which returns a hash. For example, an action that was performed through <tt>/posts?category=All&limit=5</tt> will include
-  # <tt>{ "category" => "All", "limit" => 5 }</tt> in params.
+  # <tt>{ "category" => "All", "limit" => "5" }</tt> in params.
   #
   # It's also possible to construct multi-dimensional parameter hashes by specifying keys using brackets, such as:
   #
@@ -58,12 +60,12 @@ module ActionController
   #   <input type="text" name="post[address]" value="hyacintvej">
   #
   # A request stemming from a form holding these inputs will include <tt>{ "post" => { "name" => "david", "address" => "hyacintvej" } }</tt>.
-  # If the address input had been named "post[address][street]", the params would have included
+  # If the address input had been named <tt>post[address][street]</tt>, the params would have included
   # <tt>{ "post" => { "address" => { "street" => "hyacintvej" } } }</tt>. There's no limit to the depth of the nesting.
   #
   # == Sessions
   #
-  # Sessions allows you to store objects in between requests. This is useful for objects that are not yet ready to be persisted,
+  # Sessions allow you to store objects in between requests. This is useful for objects that are not yet ready to be persisted,
   # such as a Signup object constructed in a multi-paged process, or objects that don't change much and are needed all the time, such
   # as a User object for a system that requires login. The session should not be used, however, as a cache for objects where it's likely
   # they could be changed unknowingly. It's usually too much work to keep it all synchronized -- something databases already excel at.
@@ -84,18 +86,9 @@ module ActionController
   # or you can remove the entire session with +reset_session+.
   #
   # Sessions are stored by default in a browser cookie that's cryptographically signed, but unencrypted.
-  # This prevents the user from tampering with the session but also allows him to see its contents.
+  # This prevents the user from tampering with the session but also allows them to see its contents.
   #
   # Do not put secret information in cookie-based sessions!
-  #
-  # Other options for session storage:
-  #
-  # * ActiveRecord::SessionStore - Sessions are stored in your database, which works better than PStore with multiple app servers and,
-  #   unlike CookieStore, hides your session contents from the user. To use ActiveRecord::SessionStore, set
-  #
-  #     MyApplication::Application.config.session_store :active_record_store
-  #
-  #   in your <tt>config/initializers/session_store.rb</tt> and run <tt>script/rails g session_migration</tt>.
   #
   # == Responses
   #
@@ -116,15 +109,15 @@ module ActionController
   #
   #   Title: <%= @post.title %>
   #
-  # You don't have to rely on the automated rendering. Especially actions that could result in the rendering of different templates will use
-  # the manual rendering methods:
+  # You don't have to rely on the automated rendering. For example, actions that could result in the rendering of different templates
+  # will use the manual rendering methods:
   #
   #   def search
   #     @results = Search.find(params[:query])
-  #     case @results
-  #       when 0 then render :action => "no_results"
-  #       when 1 then render :action => "show"
-  #       when 2..10 then render :action => "show_many"
+  #     case @results.count
+  #       when 0 then render action: "no_results"
+  #       when 1 then render action: "show"
+  #       when 2..10 then render action: "show_many"
   #     end
   #   end
   #
@@ -132,21 +125,23 @@ module ActionController
   #
   # == Redirects
   #
-  # Redirects are used to move from one action to another. For example, after a <tt>create</tt> action, which stores a blog entry to a database,
-  # we might like to show the user the new entry. Because we're following good DRY principles (Don't Repeat Yourself), we're going to reuse (and redirect to)
-  # a <tt>show</tt> action that we'll assume has already been created. The code might look like this:
+  # Redirects are used to move from one action to another. For example, after a <tt>create</tt> action, which stores a blog entry to the
+  # database, we might like to show the user the new entry. Because we're following good DRY principles (Don't Repeat Yourself), we're
+  # going to reuse (and redirect to) a <tt>show</tt> action that we'll assume has already been created. The code might look like this:
   #
   #   def create
   #     @entry = Entry.new(params[:entry])
   #     if @entry.save
   #       # The entry was saved correctly, redirect to show
-  #       redirect_to :action => 'show', :id => @entry.id
+  #       redirect_to action: 'show', id: @entry.id
   #     else
   #       # things didn't go so well, do something else
   #     end
   #   end
   #
-  # In this case, after saving our new entry to the database, the user is redirected to the <tt>show</tt> method which is then executed.
+  # In this case, after saving our new entry to the database, the user is redirected to the <tt>show</tt> method, which is then executed.
+  # Note that this is an external HTTP-level redirection which will cause the browser to make a second request (a GET to the show action),
+  # and not some internal re-routing which calls both "create" and then "show" within one request.
   #
   # Learn more about <tt>redirect_to</tt> and what options you have in ActionController::Redirecting.
   #
@@ -155,20 +150,48 @@ module ActionController
   # An action may contain only a single render or a single redirect. Attempting to try to do either again will result in a DoubleRenderError:
   #
   #   def do_something
-  #     redirect_to :action => "elsewhere"
-  #     render :action => "overthere" # raises DoubleRenderError
+  #     redirect_to action: "elsewhere"
+  #     render action: "overthere" # raises DoubleRenderError
   #   end
   #
   # If you need to redirect on the condition of something, then be sure to add "and return" to halt execution.
   #
   #   def do_something
-  #     redirect_to(:action => "elsewhere") and return if monkeys.nil?
-  #     render :action => "overthere" # won't be called if monkeys is nil
+  #     redirect_to(action: "elsewhere") and return if monkeys.nil?
+  #     render action: "overthere" # won't be called if monkeys is nil
   #   end
   #
   class Base < Metal
     abstract!
 
+    # We document the request and response methods here because albeit they are
+    # implemented in ActionController::Metal, the type of the returned objects
+    # is unknown at that level.
+
+    ##
+    # :method: request
+    #
+    # Returns an ActionDispatch::Request instance that represents the
+    # current request.
+
+    ##
+    # :method: response
+    #
+    # Returns an ActionDispatch::Response that represents the current
+    # response.
+
+    # Shortcut helper that returns all the modules included in
+    # ActionController::Base except the ones passed as arguments:
+    #
+    #   class MetalController
+    #     ActionController::Base.without_modules(:ParamsWrapper, :Streaming).each do |left|
+    #       include left
+    #     end
+    #   end
+    #
+    # This gives better control over what you want to exclude and makes it
+    # easier to create a bare controller class, instead of listing the modules
+    # required manually.
     def self.without_modules(*modules)
       modules = modules.map do |m|
         m.is_a?(Symbol) ? ActionController.const_get(m) : m
@@ -178,7 +201,7 @@ module ActionController
     end
 
     MODULES = [
-      AbstractController::Layouts,
+      AbstractController::Rendering,
       AbstractController::Translation,
       AbstractController::AssetPaths,
 
@@ -186,14 +209,16 @@ module ActionController
       HideActions,
       UrlFor,
       Redirecting,
+      ActionView::Layouts,
       Rendering,
       Renderers::All,
       ConditionalGet,
+      EtagWithTemplateDigest,
       RackDelegation,
-      SessionManagement,
       Caching,
       MimeResponds,
       ImplicitRender,
+      StrongParameters,
 
       Cookies,
       Flash,
@@ -201,7 +226,6 @@ module ActionController
       ForceSSL,
       Streaming,
       DataStreaming,
-      RecordIdentifier,
       HttpAuthentication::Basic::ControllerMethods,
       HttpAuthentication::Digest::ControllerMethods,
       HttpAuthentication::Token::ControllerMethods,
@@ -210,24 +234,34 @@ module ActionController
       # also include them at the bottom.
       AbstractController::Callbacks,
 
+      # Append rescue at the bottom to wrap as much as possible.
+      Rescue,
+
       # Add instrumentations hooks at the bottom, to ensure they instrument
       # all the methods properly.
       Instrumentation,
 
       # Params wrapper should come before instrumentation so they are
       # properly showed in logs
-      ParamsWrapper,
-
-      # The same with rescue, append it at the end to wrap as much as possible.
-      Rescue
+      ParamsWrapper
     ]
 
     MODULES.each do |mod|
       include mod
     end
 
-    # Rails 2.x compatibility
-    include ActionController::Compatibility
+    # Define some internal variables that should not be propagated to the view.
+    PROTECTED_IVARS = AbstractController::Rendering::DEFAULT_PROTECTED_INSTANCE_VARIABLES + [
+      :@_status, :@_headers, :@_params, :@_env, :@_response, :@_request,
+      :@_view_runtime, :@_stream, :@_url_options, :@_action_has_layout ]
+
+    def _protected_ivars # :nodoc:
+      PROTECTED_IVARS
+    end
+
+    def self.protected_instance_variables
+      PROTECTED_IVARS
+    end
 
     ActiveSupport.run_load_hooks(:action_controller, self)
   end

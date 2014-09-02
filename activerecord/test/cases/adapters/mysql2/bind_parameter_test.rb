@@ -9,7 +9,7 @@ module ActiveRecord
 
         def test_update_question_marks
           str       = "foo?bar"
-          x         = Topic.find :first
+          x         = Topic.first
           x.title   = str
           x.content = str
           x.save!
@@ -28,7 +28,7 @@ module ActiveRecord
 
         def test_update_null_bytes
           str       = "foo\0bar"
-          x         = Topic.find :first
+          x         = Topic.first
           x.title   = str
           x.content = str
           x.save!

@@ -1,8 +1,7 @@
 class Pet < ActiveRecord::Base
-
   attr_accessor :current_user
 
-  set_primary_key :pet_id
+  self.primary_key = :pet_id
   belongs_to :owner, :touch => true
   has_many :toys
 
@@ -13,5 +12,4 @@ class Pet < ActiveRecord::Base
   after_destroy do |record|
     Pet.after_destroy_output = record.current_user
   end
-
 end

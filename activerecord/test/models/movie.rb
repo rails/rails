@@ -1,5 +1,5 @@
 class Movie < ActiveRecord::Base
-  def self.primary_key
-    "movieid"
-  end
+  self.primary_key = "movieid"
+
+  validates_presence_of :name
 end

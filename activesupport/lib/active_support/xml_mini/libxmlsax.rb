@@ -2,9 +2,8 @@ require 'libxml'
 require 'active_support/core_ext/object/blank'
 require 'stringio'
 
-# = XmlMini LibXML implementation using a SAX-based parser
 module ActiveSupport
-  module XmlMini_LibXMLSAX
+  module XmlMini_LibXMLSAX #:nodoc:
     extend self
 
     # Class that will build the hash while the XML document
@@ -33,7 +32,7 @@ module ActiveSupport
       end
 
       def on_start_element(name, attrs = {})
-        new_hash = { CONTENT_KEY => '' }.merge(attrs)
+        new_hash = { CONTENT_KEY => '' }.merge!(attrs)
         new_hash[HASH_SIZE_KEY] = new_hash.size + 1
 
         case current_hash[name]

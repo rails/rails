@@ -1,45 +1,38 @@
+# This class is inherited by the has_one and belongs_to association classes
+
 module ActiveRecord::Associations::Builder
   class SingularAssociation < Association #:nodoc:
-    self.valid_options += [:remote, :dependent, :counter_cache, :primary_key, :inverse_of]
-
-    def constructable?
-      true
+    def valid_options
+      super + [:dependent, :primary_key, :inverse_of, :required]
     end
 
-    def define_accessors
+    def self.define_accessors(model, reflection)
       super
-      define_constructors if constructable?
+      define_constructors(model.generated_association_methods, reflection.name) if reflection.constructable?
     end
 
-    private
-
-      def define_readers
-        super
-        name = self.name
-
-        model.redefine_method("#{name}_loaded?") do
-          ActiveSupport::Deprecation.warn(
-            "Calling obj.#{name}_loaded? is deprecated. Please use " \
-            "obj.association(:#{name}).loaded? instead."
-          )
-          association(name).loaded?
+    # Defines the (build|create)_association methods for belongs_to or has_one association
+    def self.define_constructors(mixin, name)
+      mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
+        def build_#{name}(*args, &block)
+          association(:#{name}).build(*args, &block)
         end
+
+        def create_#{name}(*args, &block)
+          association(:#{name}).create(*args, &block)
+        end
+
+        def create_#{name}!(*args, &block)
+          association(:#{name}).create!(*args, &block)
+        end
+      CODE
+    end
+
+    def self.define_validations(model, reflection)
+      super
+      if reflection.options[:required]
+        model.validates_presence_of reflection.name
       end
-
-      def define_constructors
-        name = self.name
-
-        model.redefine_method("build_#{name}") do |*params, &block|
-          association(name).build(*params, &block)
-        end
-
-        model.redefine_method("create_#{name}") do |*params, &block|
-          association(name).create(*params, &block)
-        end
-
-        model.redefine_method("create_#{name}!") do |*params, &block|
-          association(name).create!(*params, &block)
-        end
-      end
+    end
   end
 end

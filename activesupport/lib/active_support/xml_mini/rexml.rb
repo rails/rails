@@ -2,14 +2,13 @@ require 'active_support/core_ext/kernel/reporting'
 require 'active_support/core_ext/object/blank'
 require 'stringio'
 
-# = XmlMini ReXML implementation
 module ActiveSupport
   module XmlMini_REXML #:nodoc:
     extend self
 
     CONTENT_KEY = '__content__'.freeze
 
-    # Parse an XML Document string or IO into a simple hash
+    # Parse an XML Document string or IO into a simple hash.
     #
     # Same as XmlSimple::xml_in but doesn't shoot itself in the foot,
     # and uses the defaults from Active Support.

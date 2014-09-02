@@ -1,14 +1,13 @@
-require 'active_support/basic_object'
+require 'active_support/proxy_object'
 require 'active_support/core_ext/array/conversions'
 require 'active_support/core_ext/object/acts_like'
 
 module ActiveSupport
   # Provides accurate date and time measurements using Date#advance and
   # Time#advance, respectively. It mainly supports the methods on Numeric.
-  # Example:
   #
-  #   1.month.ago       # equivalent to Time.now.advance(:months => -1)
-  class Duration < BasicObject
+  #   1.month.ago       # equivalent to Time.now.advance(months: -1)
+  class Duration < ProxyObject
     attr_accessor :value, :parts
 
     def initialize(value, parts) #:nodoc:
@@ -40,14 +39,22 @@ module ActiveSupport
     end
     alias :kind_of? :is_a?
 
-    # Returns true if <tt>other</tt> is also a Duration instance with the
-    # same <tt>value</tt>, or if <tt>other == value</tt>.
+    def instance_of?(klass) # :nodoc:
+      Duration == klass || value.instance_of?(klass)
+    end
+
+    # Returns +true+ if +other+ is also a Duration instance with the
+    # same +value+, or if <tt>other == value</tt>.
     def ==(other)
       if Duration === other
         other.value == value
       else
         other == value
       end
+    end
+
+    def eql?(other)
+      other.is_a?(Duration) && self == other
     end
 
     def self.===(other) #:nodoc:
@@ -71,13 +78,11 @@ module ActiveSupport
     alias :until :ago
 
     def inspect #:nodoc:
-      consolidated = parts.inject(::Hash.new(0)) { |h,part| h[part.first] += part.last; h }
-      parts = [:years, :months, :days, :minutes, :seconds].map do |length|
-        n = consolidated[length]
-        "#{n} #{n == 1 ? length.to_s.singularize : length.to_s}" if n.nonzero?
-      end.compact
-      parts = ["0 seconds"] if parts.empty?
-      parts.to_sentence(:locale => :en)
+      parts.
+        reduce(::Hash.new(0)) { |h,(l,r)| h[l] += r; h }.
+        sort_by {|unit,  _ | [:years, :months, :days, :minutes, :seconds].index(unit)}.
+        map     {|unit, val| "#{val} #{val == 1 ? unit.to_s.chop : unit.to_s}"}.
+        to_sentence(:locale => :en)
     end
 
     def as_json(options = nil) #:nodoc:
@@ -101,6 +106,13 @@ module ActiveSupport
       end
 
     private
+
+      # We define it as a workaround to Ruby 2.0.0-p353 bug.
+      # For more information, check rails/rails#13055.
+      # Remove it when we drop support for 2.0.0-p353.
+      def ===(other) #:nodoc:
+        value === other
+      end
 
       def method_missing(method, *args, &block) #:nodoc:
         value.send(method, *args, &block)

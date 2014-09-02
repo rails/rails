@@ -2,45 +2,31 @@
 # so fixtures aren't loaded into that environment
 abort("Abort testing: Your Rails environment is running in production mode!") if Rails.env.production?
 
-require 'test/unit'
-require 'active_support/core_ext/kernel/requires'
+require 'active_support/testing/autorun'
 require 'active_support/test_case'
+require 'action_controller'
 require 'action_controller/test_case'
 require 'action_dispatch/testing/integration'
+require 'rails/generators/test_case'
 
-if defined?(Test::Unit::Util::BacktraceFilter) && ENV['BACKTRACE'].nil?
-  require 'rails/backtrace_cleaner'
-  Test::Unit::Util::BacktraceFilter.module_eval { include Rails::BacktraceFilterForTestUnit }
+# Config Rails backtrace in tests.
+require 'rails/backtrace_cleaner'
+if ENV["BACKTRACE"].nil?
+  Minitest.backtrace_filter = Rails.backtrace_cleaner
 end
 
-if defined?(MiniTest)
-  # Enable turn if it is available
-  begin
-    require 'turn'
-
-    if MiniTest::Unit.respond_to?(:use_natural_language_case_names=)
-      MiniTest::Unit.use_natural_language_case_names = true
-    end
-  rescue LoadError
-  end
-end
-
-if defined?(ActiveRecord)
-  require 'active_record/test_case'
+if defined?(ActiveRecord::Base)
+  ActiveRecord::Migration.maintain_test_schema!
 
   class ActiveSupport::TestCase
     include ActiveRecord::TestFixtures
     self.fixture_path = "#{Rails.root}/test/fixtures/"
-
-    setup do
-      ActiveRecord::IdentityMap.clear
-    end
   end
 
   ActionDispatch::IntegrationTest.fixture_path = ActiveSupport::TestCase.fixture_path
 
-  def create_fixtures(*table_names, &block)
-    Fixtures.create_fixtures(ActiveSupport::TestCase.fixture_path, table_names, {}, &block)
+  def create_fixtures(*fixture_set_names, &block)
+    FixtureSet.create_fixtures(ActiveSupport::TestCase.fixture_path, fixture_set_names, {}, &block)
   end
 end
 

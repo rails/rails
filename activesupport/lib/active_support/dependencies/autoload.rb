@@ -1,50 +1,77 @@
 require "active_support/inflector/methods"
-require "active_support/lazy_load_hooks"
 
 module ActiveSupport
+  # Autoload and eager load conveniences for your library.
+  #
+  # This module allows you to define autoloads based on
+  # Rails conventions (i.e. no need to define the path
+  # it is automatically guessed based on the filename)
+  # and also define a set of constants that needs to be
+  # eager loaded:
+  #
+  #   module MyLib
+  #     extend ActiveSupport::Autoload
+  #
+  #     autoload :Model
+  #
+  #     eager_autoload do
+  #       autoload :Cache
+  #     end
+  #   end
+  #
+  # Then your library can be eager loaded by simply calling:
+  #
+  #   MyLib.eager_load!
   module Autoload
-    @@autoloads = {}
-    @@under_path = nil
-    @@at_path = nil
-    @@eager_autoload = false
-
-    def autoload(const_name, path = @@at_path)
-      full = [self.name, @@under_path, const_name.to_s, path].compact.join("::")
-      location = path || Inflector.underscore(full)
-
-      if @@eager_autoload
-        @@autoloads[const_name] = location
+    def self.extended(base) # :nodoc:
+      base.class_eval do
+        @_autoloads = {}
+        @_under_path = nil
+        @_at_path = nil
+        @_eager_autoload = false
       end
-      super const_name, location
+    end
+
+    def autoload(const_name, path = @_at_path)
+      unless path
+        full = [name, @_under_path, const_name.to_s].compact.join("::")
+        path = Inflector.underscore(full)
+      end
+
+      if @_eager_autoload
+        @_autoloads[const_name] = path
+      end
+
+      super const_name, path
     end
 
     def autoload_under(path)
-      @@under_path, old_path = path, @@under_path
+      @_under_path, old_path = path, @_under_path
       yield
     ensure
-      @@under_path = old_path
+      @_under_path = old_path
     end
 
     def autoload_at(path)
-      @@at_path, old_path = path, @@at_path
+      @_at_path, old_path = path, @_at_path
       yield
     ensure
-      @@at_path = old_path
+      @_at_path = old_path
     end
 
     def eager_autoload
-      old_eager, @@eager_autoload = @@eager_autoload, true
+      old_eager, @_eager_autoload = @_eager_autoload, true
       yield
     ensure
-      @@eager_autoload = old_eager
+      @_eager_autoload = old_eager
     end
 
-    def self.eager_autoload!
-      @@autoloads.values.each { |file| require file }
+    def eager_load!
+      @_autoloads.values.each { |file| require file }
     end
 
     def autoloads
-      @@autoloads
+      @_autoloads
     end
   end
 end

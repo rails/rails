@@ -1,7 +1,17 @@
-def helper
-  @helper ||= ApplicationController.helpers
-end
+module Rails
+  module ConsoleMethods
+    # Gets the helper methods available to the controller.
+    #
+    # This method assumes an +ApplicationController+ exists, and it extends +ActionController::Base+
+    def helper
+      @helper ||= ApplicationController.helpers
+    end
 
-def controller
-  @controller ||= ApplicationController.new
+    # Gets a new instance of a controller object.
+    #
+    # This method assumes an +ApplicationController+ exists, and it extends +ActionController::Base+
+    def controller
+      @controller ||= ApplicationController.new
+    end
+  end
 end

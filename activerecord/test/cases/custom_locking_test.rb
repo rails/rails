@@ -9,7 +9,7 @@ module ActiveRecord
       if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
         assert_match 'SHARE MODE', Person.lock('LOCK IN SHARE MODE').to_sql
         assert_sql(/LOCK IN SHARE MODE/) do
-          Person.find(1, :lock => 'LOCK IN SHARE MODE')
+          Person.all.merge!(:lock => 'LOCK IN SHARE MODE').find(1)
         end
       end
     end

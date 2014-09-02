@@ -1,38 +1,60 @@
-require 'active_support/core_ext/module/deprecation'
-
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
     module DatabaseStatements
-      # Returns an array of record hashes with the column names as keys and
-      # column values as values.
-      def select_all(sql, name = nil, binds = [])
-        select(sql, name, binds)
+      def initialize
+        super
+        reset_transaction
+      end
+
+      # Converts an arel AST to SQL
+      def to_sql(arel, binds = [])
+        if arel.respond_to?(:ast)
+          collected = visitor.accept(arel.ast, collector)
+          collected.compile(binds.dup, self)
+        else
+          arel
+        end
+      end
+
+      # This is used in the StatementCache object. It returns an object that
+      # can be used to query the database repeatedly.
+      def cacheable_query(arel) # :nodoc:
+        if prepared_statements
+          ActiveRecord::StatementCache.query visitor, arel.ast
+        else
+          ActiveRecord::StatementCache.partial_query visitor, arel.ast, collector
+        end
+      end
+
+      # Returns an ActiveRecord::Result instance.
+      def select_all(arel, name = nil, binds = [])
+        arel, binds = binds_from_relation arel, binds
+        select(to_sql(arel, binds), name, binds)
       end
 
       # Returns a record hash with the column names as keys and column values
       # as values.
-      def select_one(sql, name = nil)
-        result = select_all(sql, name)
-        result.first if result
+      def select_one(arel, name = nil, binds = [])
+        select_all(arel, name, binds).first
       end
 
       # Returns a single value from a record
-      def select_value(sql, name = nil)
-        if result = select_one(sql, name)
+      def select_value(arel, name = nil, binds = [])
+        if result = select_one(arel, name, binds)
           result.values.first
         end
       end
 
       # Returns an array of the values of the first column in a select:
       #   select_values("SELECT id FROM companies LIMIT 3") => [1,2,3]
-      def select_values(sql, name = nil)
-        result = select_rows(sql, name)
-        result.map { |v| v[0] }
+      def select_values(arel, name = nil)
+        arel, binds = binds_from_relation arel, []
+        select_rows(to_sql(arel, binds), name, binds).map(&:first)
       end
 
       # Returns an array of arrays containing the field values.
       # Order is the same as that returned by +columns+.
-      def select_rows(sql, name = nil)
+      def select_rows(sql, name = nil, binds = [])
       end
       undef_method :select_rows
 
@@ -42,27 +64,27 @@ module ActiveRecord
       undef_method :execute
 
       # Executes +sql+ statement in the context of this connection using
-      # +binds+ as the bind substitutes.  +name+ is logged along with
+      # +binds+ as the bind substitutes. +name+ is logged along with
       # the executed +sql+ statement.
       def exec_query(sql, name = 'SQL', binds = [])
       end
 
       # Executes insert +sql+ statement in the context of this connection using
-      # +binds+ as the bind substitutes. +name+ is the logged along with
+      # +binds+ as the bind substitutes. +name+ is logged along with
       # the executed +sql+ statement.
-      def exec_insert(sql, name, binds)
+      def exec_insert(sql, name, binds, pk = nil, sequence_name = nil)
         exec_query(sql, name, binds)
       end
 
       # Executes delete +sql+ statement in the context of this connection using
-      # +binds+ as the bind substitutes. +name+ is the logged along with
+      # +binds+ as the bind substitutes. +name+ is logged along with
       # the executed +sql+ statement.
       def exec_delete(sql, name, binds)
         exec_query(sql, name, binds)
       end
 
       # Executes update +sql+ statement in the context of this connection using
-      # +binds+ as the bind substitutes. +name+ is the logged along with
+      # +binds+ as the bind substitutes. +name+ is logged along with
       # the executed +sql+ statement.
       def exec_update(sql, name, binds)
         exec_query(sql, name, binds)
@@ -76,34 +98,20 @@ module ActiveRecord
       #
       # If the next id was calculated in advance (as in Oracle), it should be
       # passed in as +id_value+.
-      def insert(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil, binds = [])
-        sql, binds = sql_for_insert(sql, pk, id_value, sequence_name, binds)
-        value      = exec_insert(sql, name, binds)
+      def insert(arel, name = nil, pk = nil, id_value = nil, sequence_name = nil, binds = [])
+        sql, binds = sql_for_insert(to_sql(arel, binds), pk, id_value, sequence_name, binds)
+        value      = exec_insert(sql, name, binds, pk, sequence_name)
         id_value || last_inserted_id(value)
       end
 
       # Executes the update statement and returns the number of rows affected.
-      def update(sql, name = nil, binds = [])
-        exec_update(sql, name, binds)
+      def update(arel, name = nil, binds = [])
+        exec_update(to_sql(arel, binds), name, binds)
       end
 
       # Executes the delete statement and returns the number of rows affected.
-      def delete(sql, name = nil, binds = [])
-        exec_delete(sql, name, binds)
-      end
-
-      # Checks whether there is currently no transaction active. This is done
-      # by querying the database driver, and does not use the transaction
-      # house-keeping information recorded by #increment_open_transactions and
-      # friends.
-      #
-      # Returns true if there is no transaction active, false if there is a
-      # transaction active, and nil if this information is unknown.
-      #
-      # Not all adapters supports transaction state introspection. Currently,
-      # only the PostgreSQL adapter supports this.
-      def outside_transaction?
-        nil
+      def delete(arel, name = nil, binds = [])
+        exec_delete(to_sql(arel, binds), name, binds)
       end
 
       # Returns +true+ when the connection adapter supports prepared statement
@@ -123,8 +131,9 @@ module ActiveRecord
       #
       # In order to get around this problem, #transaction will emulate the effect
       # of nested transactions, by using savepoints:
-      # http://dev.mysql.com/doc/refman/5.0/en/savepoints.html
-      # Savepoints are supported by MySQL and PostgreSQL, but not SQLite3.
+      # http://dev.mysql.com/doc/refman/5.0/en/savepoint.html
+      # Savepoints are supported by MySQL and PostgreSQL. SQLite3 version >= '3.6.8'
+      # supports savepoints.
       #
       # It is safe to call this method if a database transaction is already open,
       # i.e. if #transaction is called within another #transaction block. In case
@@ -149,94 +158,95 @@ module ActiveRecord
       # already-automatically-released savepoints:
       #
       #   Model.connection.transaction do  # BEGIN
-      #     Model.connection.transaction(:requires_new => true) do  # CREATE SAVEPOINT active_record_1
+      #     Model.connection.transaction(requires_new: true) do  # CREATE SAVEPOINT active_record_1
       #       Model.connection.create_table(...)
       #       # active_record_1 now automatically released
       #     end  # RELEASE SAVEPOINT active_record_1  <--- BOOM! database error!
       #   end
+      #
+      # == Transaction isolation
+      #
+      # If your database supports setting the isolation level for a transaction, you can set
+      # it like so:
+      #
+      #   Post.transaction(isolation: :serializable) do
+      #     # ...
+      #   end
+      #
+      # Valid isolation levels are:
+      #
+      # * <tt>:read_uncommitted</tt>
+      # * <tt>:read_committed</tt>
+      # * <tt>:repeatable_read</tt>
+      # * <tt>:serializable</tt>
+      #
+      # You should consult the documentation for your database to understand the
+      # semantics of these different levels:
+      #
+      # * http://www.postgresql.org/docs/9.1/static/transaction-iso.html
+      # * https://dev.mysql.com/doc/refman/5.0/en/set-transaction.html
+      #
+      # An <tt>ActiveRecord::TransactionIsolationError</tt> will be raised if:
+      #
+      # * The adapter does not support setting the isolation level
+      # * You are joining an existing open transaction
+      # * You are creating a nested (savepoint) transaction
+      #
+      # The mysql, mysql2 and postgresql adapters support setting the transaction
+      # isolation level. However, support is disabled for MySQL versions below 5,
+      # because they are affected by a bug[http://bugs.mysql.com/bug.php?id=39170]
+      # which means the isolation level gets persisted outside the transaction.
       def transaction(options = {})
-        options.assert_valid_keys :requires_new, :joinable
+        options.assert_valid_keys :requires_new, :joinable, :isolation
 
-        last_transaction_joinable = defined?(@transaction_joinable) ? @transaction_joinable : nil
-        if options.has_key?(:joinable)
-          @transaction_joinable = options[:joinable]
+        if !options[:requires_new] && current_transaction.joinable?
+          if options[:isolation]
+            raise ActiveRecord::TransactionIsolationError, "cannot set isolation when joining a transaction"
+          end
+          yield
         else
-          @transaction_joinable = true
+          transaction_manager.within_new_transaction(options) { yield }
         end
-        requires_new = options[:requires_new] || !last_transaction_joinable
+      rescue ActiveRecord::Rollback
+        # rollbacks are silently swallowed
+      end
 
-        transaction_open = false
-        @_current_transaction_records ||= []
+      attr_reader :transaction_manager #:nodoc:
 
-        begin
-          if block_given?
-            if requires_new || open_transactions == 0
-              if open_transactions == 0
-                begin_db_transaction
-              elsif requires_new
-                create_savepoint
-              end
-              increment_open_transactions
-              transaction_open = true
-              @_current_transaction_records.push([])
-            end
-            yield
-          end
-        rescue Exception => database_transaction_rollback
-          if transaction_open && !outside_transaction?
-            transaction_open = false
-            decrement_open_transactions
-            if open_transactions == 0
-              rollback_db_transaction
-              rollback_transaction_records(true)
-            else
-              rollback_to_savepoint
-              rollback_transaction_records(false)
-            end
-          end
-          raise unless database_transaction_rollback.is_a?(ActiveRecord::Rollback)
-        end
-      ensure
-        @transaction_joinable = last_transaction_joinable
+      delegate :within_new_transaction, :open_transactions, :current_transaction, :begin_transaction, :commit_transaction, :rollback_transaction, to: :transaction_manager
 
-        if outside_transaction?
-          @open_transactions = 0
-        elsif transaction_open
-          decrement_open_transactions
-          begin
-            if open_transactions == 0
-              commit_db_transaction
-              commit_transaction_records
-            else
-              release_savepoint
-              save_point_records = @_current_transaction_records.pop
-              unless save_point_records.blank?
-                @_current_transaction_records.push([]) if @_current_transaction_records.empty?
-                @_current_transaction_records.last.concat(save_point_records)
-              end
-            end
-          rescue Exception => database_transaction_rollback
-            if open_transactions == 0
-              rollback_db_transaction
-              rollback_transaction_records(true)
-            else
-              rollback_to_savepoint
-              rollback_transaction_records(false)
-            end
-            raise
-          end
-        end
+      def transaction_open?
+        current_transaction.open?
+      end
+
+      def reset_transaction #:nodoc:
+        @transaction_manager = TransactionManager.new(self)
       end
 
       # Register a record with the current transaction so that its after_commit and after_rollback callbacks
       # can be called.
       def add_transaction_record(record)
-        last_batch = @_current_transaction_records.last
-        last_batch << record if last_batch
+        current_transaction.add_record(record)
       end
 
       # Begins the transaction (and turns off auto-committing).
       def begin_db_transaction()    end
+
+      def transaction_isolation_levels
+        {
+          read_uncommitted: "READ UNCOMMITTED",
+          read_committed:   "READ COMMITTED",
+          repeatable_read:  "REPEATABLE READ",
+          serializable:     "SERIALIZABLE"
+        }
+      end
+
+      # Begins the transaction with the isolation level set. Raises an error by
+      # default; adapters that support setting the isolation level should implement
+      # this method.
+      def begin_isolated_db_transaction(isolation)
+        raise ActiveRecord::TransactionIsolationError, "adapter does not support setting transaction isolation"
+      end
 
       # Commits the transaction (and turns on auto-committing).
       def commit_db_transaction()   end
@@ -245,44 +255,19 @@ module ActiveRecord
       # done if the transaction block raises an exception or returns false.
       def rollback_db_transaction() end
 
-      # Appends +LIMIT+ and +OFFSET+ options to an SQL statement, or some SQL
-      # fragment that has the same semantics as LIMIT and OFFSET.
-      #
-      # +options+ must be a Hash which contains a +:limit+ option
-      # and an +:offset+ option.
-      #
-      # This method *modifies* the +sql+ parameter.
-      #
-      # This method is deprecated!! Stop using it!
-      #
-      # ===== Examples
-      #  add_limit_offset!('SELECT * FROM suppliers', {:limit => 10, :offset => 50})
-      # generates
-      #  SELECT * FROM suppliers LIMIT 10 OFFSET 50
-      def add_limit_offset!(sql, options)
-        if limit = options[:limit]
-          sql << " LIMIT #{sanitize_limit(limit)}"
-        end
-        if offset = options[:offset]
-          sql << " OFFSET #{offset.to_i}"
-        end
-        sql
-      end
-      deprecate :add_limit_offset!
-
       def default_sequence_name(table, column)
         nil
       end
 
       # Set the sequence to the max value of the table's column.
       def reset_sequence!(table, column, sequence = nil)
-        # Do nothing by default.  Implement for PostgreSQL, Oracle, ...
+        # Do nothing by default. Implement for PostgreSQL, Oracle, ...
       end
 
       # Inserts the given fixture into the table. Overridden in adapters that require
       # something beyond a simple insert (eg. Oracle).
       def insert_fixture(fixture, table_name)
-        columns = Hash[columns(table_name).map { |c| [c.name, c] }]
+        columns = schema_cache.columns_hash(table_name)
 
         key_list   = []
         value_list = fixture.map do |name, value|
@@ -294,11 +279,7 @@ module ActiveRecord
       end
 
       def empty_insert_statement_value
-        "VALUES(DEFAULT)"
-      end
-
-      def case_sensitive_equality_operator
-        "="
+        "DEFAULT VALUES"
       end
 
       def limited_update_conditions(where_sql, quoted_table_name, quoted_primary_key)
@@ -308,25 +289,48 @@ module ActiveRecord
       # Sanitizes the given LIMIT parameter in order to prevent SQL injection.
       #
       # The +limit+ may be anything that can evaluate to a string via #to_s. It
-      # should look like an integer, or a comma-delimited list of integers, or 
+      # should look like an integer, or a comma-delimited list of integers, or
       # an Arel SQL literal.
       #
-      # Returns Integer and Arel::Nodes::SqlLiteral limits as is. 
+      # Returns Integer and Arel::Nodes::SqlLiteral limits as is.
       # Returns the sanitized limit parameter, either as an integer, or as a
       # string which contains a comma-delimited list of integers.
       def sanitize_limit(limit)
         if limit.is_a?(Integer) || limit.is_a?(Arel::Nodes::SqlLiteral)
           limit
-        elsif limit.to_s =~ /,/
+        elsif limit.to_s.include?(',')
           Arel.sql limit.to_s.split(',').map{ |i| Integer(i) }.join(',')
         else
           Integer(limit)
         end
       end
 
+      # The default strategy for an UPDATE with joins is to use a subquery. This doesn't work
+      # on MySQL (even when aliasing the tables), but MySQL allows using JOIN directly in
+      # an UPDATE statement, so in the MySQL adapters we redefine this to do that.
+      def join_to_update(update, select) #:nodoc:
+        key = update.key
+        subselect = subquery_for(key, select)
+
+        update.where key.in(subselect)
+      end
+
+      def join_to_delete(delete, select, key) #:nodoc:
+        subselect = subquery_for(key, select)
+
+        delete.where key.in(subselect)
+      end
+
       protected
-        # Returns an array of record hashes with the column names as keys and
-        # column values as values.
+
+        # Returns a subquery for the given key using the join information.
+        def subquery_for(key, select)
+          subselect = select.clone
+          subselect.projections = [key]
+          subselect
+        end
+
+        # Returns an ActiveRecord::Result instance.
         def select(sql, name = nil, binds = [])
         end
         undef_method :select
@@ -347,50 +351,21 @@ module ActiveRecord
           update_sql(sql, name)
         end
 
-        # Send a rollback message to all records after they have been rolled back. If rollback
-        # is false, only rollback records since the last save point.
-        def rollback_transaction_records(rollback) #:nodoc
-          if rollback
-            records = @_current_transaction_records.flatten
-            @_current_transaction_records.clear
-          else
-            records = @_current_transaction_records.pop
-          end
-
-          unless records.blank?
-            records.uniq.each do |record|
-              begin
-                record.rolledback!(rollback)
-              rescue Exception => e
-                record.logger.error(e) if record.respond_to?(:logger) && record.logger
-              end
-            end
-          end
+        def sql_for_insert(sql, pk, id_value, sequence_name, binds)
+          [sql, binds]
         end
 
-        # Send a commit message to all records after they have been committed.
-        def commit_transaction_records #:nodoc
-          records = @_current_transaction_records.flatten
-          @_current_transaction_records.clear
-          unless records.blank?
-            records.uniq.each do |record|
-              begin
-                record.committed!
-              rescue Exception => e
-                record.logger.error(e) if record.respond_to?(:logger) && record.logger
-              end
-            end
-          end
+        def last_inserted_id(result)
+          row = result.rows.first
+          row && row.first
         end
 
-      def sql_for_insert(sql, pk, id_value, sequence_name, binds)
-        [sql, binds]
-      end
-
-      def last_inserted_id(result)
-        row = result.rows.first
-        row && row.first
-      end
+        def binds_from_relation(relation, binds)
+          if relation.is_a?(Relation) && binds.empty?
+            relation, binds = relation.arel, relation.bind_values
+          end
+          [relation, binds]
+        end
     end
   end
 end

@@ -15,9 +15,9 @@ class CallbacksTest < ActiveModel::TestCase
     extend ActiveModel::Callbacks
 
     define_model_callbacks :create
-    define_model_callbacks :initialize, :only => :after
-    define_model_callbacks :multiple,   :only => [:before, :around]
-    define_model_callbacks :empty,      :only => []
+    define_model_callbacks :initialize, only: :after
+    define_model_callbacks :multiple,   only: [:before, :around]
+    define_model_callbacks :empty,      only: []
 
     before_create :before_create
     around_create CallbackValidator.new
@@ -107,7 +107,7 @@ class CallbacksTest < ActiveModel::TestCase
   test "after_create callbacks with both callbacks declared in one line" do
     assert_equal ["callback1", "callback2"], Violin1.new.create.history
   end
-  test "after_create callbacks with both callbacks declared in differnt lines" do
+  test "after_create callbacks with both callbacks declared in different lines" do
     assert_equal ["callback1", "callback2"], Violin2.new.create.history
   end
 

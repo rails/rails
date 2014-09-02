@@ -39,29 +39,43 @@ class AssociationsExtensionsTest < ActiveRecord::TestCase
     david = developers(:david)
     assert_equal projects(:action_controller), david.projects.find_most_recent
 
-    david = Marshal.load(Marshal.dump(david))
-    assert_equal projects(:action_controller), david.projects.find_most_recent
+    marshalled = Marshal.dump(david)
+
+    # Marshaling an association shouldn't make it unusable by wiping its reflection.
+    assert_not_nil david.association(:projects).reflection
+
+    david_too  = Marshal.load(marshalled)
+    assert_equal projects(:action_controller), david_too.projects.find_most_recent
   end
 
   def test_marshalling_named_extensions
     david = developers(:david)
     assert_equal projects(:action_controller), david.projects_extended_by_name.find_most_recent
 
-    david = Marshal.load(Marshal.dump(david))
+    marshalled = Marshal.dump(david)
+    david      = Marshal.load(marshalled)
+
     assert_equal projects(:action_controller), david.projects_extended_by_name.find_most_recent
   end
 
   def test_extension_name
-    assert_equal 'DeveloperAssociationNameAssociationExtension', extension_name(Developer)
-    assert_equal 'MyApplication::Business::DeveloperAssociationNameAssociationExtension', extension_name(MyApplication::Business::Developer)
-    assert_equal 'MyApplication::Business::DeveloperAssociationNameAssociationExtension', extension_name(MyApplication::Business::Developer)
+    extend!(Developer)
+    extend!(MyApplication::Business::Developer)
+
+    assert Object.const_get 'DeveloperAssociationNameAssociationExtension'
+    assert MyApplication::Business.const_get 'DeveloperAssociationNameAssociationExtension'
+  end
+
+  def test_proxy_association_after_scoped
+    post = posts(:welcome)
+    assert_equal post.association(:comments), post.comments.the_association
+    assert_equal post.association(:comments), post.comments.where('1=1').the_association
   end
 
   private
 
-    def extension_name(model)
-      builder = ActiveRecord::Associations::Builder::HasMany.new(model, :association_name, {}) { }
-      builder.send(:wrap_block_extension)
-      builder.options[:extend].first.name
+    def extend!(model)
+      builder = ActiveRecord::Associations::Builder::HasMany.new(model, :association_name, nil, {}) { }
+      builder.define_extensions(model)
     end
 end

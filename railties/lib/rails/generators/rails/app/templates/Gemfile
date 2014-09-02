@@ -1,25 +1,48 @@
-source 'http://rubygems.org'
+source 'https://rubygems.org'
 
-<%= rails_gemfile_entry -%>
+<% gemfile_entries.each do |gem| -%>
+<% if gem.comment -%>
 
-<%= database_gemfile_entry -%>
+# <%= gem.comment %>
+<% end -%>
+<%= gem.commented_out ? '# ' : '' %>gem '<%= gem.name %>'<%= %(, '#{gem.version}') if gem.version -%>
+<% if gem.options.any? -%>
+, <%= gem.options.map { |k,v|
+  "#{k}: #{v.inspect}" }.join(', ') %>
+<% end -%>
+<% end -%>
 
-<%= "gem 'jruby-openssl'\n" if defined?(JRUBY_VERSION) && JRUBY_VERSION < "1.6" -%>
-# Asset template engines
-<%= "gem 'json'\n" if RUBY_VERSION < "1.9.2" -%>
-gem 'sass'
-gem 'coffee-script'
-# gem 'uglifier'
+# Use ActiveModel has_secure_password
+# gem 'bcrypt', '~> 3.1.7'
 
-<%= gem_for_javascript %>
+# Use Rails Html Sanitizer for HTML sanitization
+gem 'rails-html-sanitizer', '~> 1.0'
 
-# Use unicorn as the web server
+# Use Unicorn as the app server
 # gem 'unicorn'
 
-# Deploy with Capistrano
-# gem 'capistrano'
+# Use Capistrano for deployment
+# gem 'capistrano-rails', group: :development
 
-# To use debugger
-# <%= gem_for_ruby_debugger %>
+group :development, :test do
+<% unless defined?(JRUBY_VERSION) -%>
+  # Call 'debugger' anywhere in the code to stop execution and get a debugger console
+  <%- if RUBY_VERSION < '2.0.0' -%>
+  gem 'debugger'
+  <%- else -%>
+  gem 'byebug'
+  <%- end -%>
 
-<%= gem_for_turn -%>
+  # Access an IRB console on exception pages or by using <%%= console %> in views
+  gem 'web-console', github: 'rails/web-console', branch: 'master'
+<%- if spring_install? %>
+  # Spring speeds up development by keeping your application running in the background. Read more: https://github.com/rails/spring
+  gem 'spring'
+<% end -%>
+<% end -%>
+end
+
+<% if RUBY_PLATFORM.match(/bccwin|cygwin|emx|mingw|mswin|wince/) -%>
+# Windows does not include zoneinfo files, so bundle the tzinfo-data gem
+gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw]
+<% end -%>

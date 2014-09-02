@@ -1,6 +1,36 @@
 require 'abstract_unit'
 
+begin
+  require 'openssl'
+  OpenSSL::PKCS5
+rescue LoadError, NameError
+  $stderr.puts "Skipping KeyGenerator test: broken OpenSSL install"
+else
+
+require 'active_support/key_generator'
+require 'active_support/message_verifier'
+
 class CookiesTest < ActionController::TestCase
+  class CustomSerializer
+    def self.load(value)
+      value.to_s + " and loaded"
+    end
+
+    def self.dump(value)
+      value.to_s + " was dumped"
+    end
+  end
+
+  class JSONWrapper
+    def initialize(obj)
+      @obj = obj
+    end
+
+    def as_json(options = nil)
+      "wrapped: #{@obj.as_json(options)}"
+    end
+  end
+
   class TestController < ActionController::Base
     def authenticate
       cookies["user_name"] = "david"
@@ -38,6 +68,8 @@ class CookiesTest < ActionController::TestCase
       head :ok
     end
 
+    alias delete_cookie logout
+
     def delete_cookie_with_path
       cookies.delete("user_name", :path => '/beaten')
       head :ok
@@ -60,6 +92,36 @@ class CookiesTest < ActionController::TestCase
 
     def set_signed_cookie
       cookies.signed[:user_id] = 45
+      head :ok
+    end
+
+    def set_wrapped_signed_cookie
+      cookies.signed[:user_id] = JSONWrapper.new(45)
+      head :ok
+    end
+
+    def get_signed_cookie
+      cookies.signed[:user_id]
+      head :ok
+    end
+
+    def set_encrypted_cookie
+      cookies.encrypted[:foo] = 'bar'
+      head :ok
+    end
+
+    def set_wrapped_encrypted_cookie
+      cookies.encrypted[:foo] = JSONWrapper.new('bar')
+      head :ok
+    end
+
+    def get_encrypted_cookie
+      cookies.encrypted[:foo]
+      head :ok
+    end
+
+    def set_invalid_encrypted_cookie
+      cookies[:invalid_cookie] = 'invalid--9170e00a57cfc27083363b5c75b835e477bd90cf'
       head :ok
     end
 
@@ -144,14 +206,84 @@ class CookiesTest < ActionController::TestCase
 
   def setup
     super
-    @request.env["action_dispatch.secret_token"] = "b3c631c314c0bbca50c1b2843150fe33"
+    @request.env["action_dispatch.key_generator"] = ActiveSupport::KeyGenerator.new("b3c631c314c0bbca50c1b2843150fe33", iterations: 2)
+    @request.env["action_dispatch.signed_cookie_salt"] = "b3c631c314c0bbca50c1b2843150fe33"
+    @request.env["action_dispatch.encrypted_cookie_salt"] = "b3c631c314c0bbca50c1b2843150fe33"
+    @request.env["action_dispatch.encrypted_signed_cookie_salt"] = "b3c631c314c0bbca50c1b2843150fe33"
     @request.host = "www.nextangle.com"
+  end
+
+  def test_fetch
+    x = Object.new
+    assert_not request.cookie_jar.key?('zzzzzz')
+    assert_equal x, request.cookie_jar.fetch('zzzzzz', x)
+    assert_not request.cookie_jar.key?('zzzzzz')
+  end
+
+  def test_fetch_exists
+    x = Object.new
+    request.cookie_jar['foo'] = 'bar'
+    assert_equal 'bar', request.cookie_jar.fetch('foo', x)
+  end
+
+  def test_fetch_block
+    x = Object.new
+    assert_not request.cookie_jar.key?('zzzzzz')
+    assert_equal x, request.cookie_jar.fetch('zzzzzz') { x }
+  end
+
+  def test_key_is_to_s
+    request.cookie_jar['foo'] = 'bar'
+    assert_equal 'bar', request.cookie_jar.fetch(:foo)
+  end
+
+  def test_fetch_type_error
+    assert_raises(KeyError) do
+      request.cookie_jar.fetch(:omglolwut)
+    end
+  end
+
+  def test_each
+    request.cookie_jar['foo'] = :bar
+    list = []
+    request.cookie_jar.each do |k,v|
+      list << [k, v]
+    end
+
+    assert_equal [['foo', :bar]], list
+  end
+
+  def test_enumerable
+    request.cookie_jar['foo'] = :bar
+    actual = request.cookie_jar.map { |k,v| [k.to_s, v.to_s] }
+    assert_equal [['foo', 'bar']], actual
+  end
+
+  def test_key_methods
+    assert !request.cookie_jar.key?(:foo)
+    assert !request.cookie_jar.has_key?("foo")
+
+    request.cookie_jar[:foo] = :bar
+    assert request.cookie_jar.key?(:foo)
+    assert request.cookie_jar.has_key?("foo")
   end
 
   def test_setting_cookie
     get :authenticate
     assert_cookie_header "user_name=david; path=/"
     assert_equal({"user_name" => "david"}, @response.cookies)
+  end
+
+  def test_setting_the_same_value_to_cookie
+    request.cookies[:user_name] = 'david'
+    get :authenticate
+    assert response.cookies.empty?
+  end
+
+  def test_setting_the_same_value_to_permanent_cookie
+    request.cookies[:user_name] = 'Jamie'
+    get :set_permanent_cookie
+    assert_equal({'user_name' => 'Jamie'}, response.cookies)
   end
 
   def test_setting_with_escapable_characters
@@ -162,13 +294,13 @@ class CookiesTest < ActionController::TestCase
 
   def test_setting_cookie_for_fourteen_days
     get :authenticate_for_fourteen_days
-    assert_cookie_header "user_name=david; path=/; expires=Mon, 10-Oct-2005 05:00:00 GMT"
+    assert_cookie_header "user_name=david; path=/; expires=Mon, 10 Oct 2005 05:00:00 -0000"
     assert_equal({"user_name" => "david"}, @response.cookies)
   end
 
   def test_setting_cookie_for_fourteen_days_with_symbols
     get :authenticate_for_fourteen_days_with_symbols
-    assert_cookie_header "user_name=david; path=/; expires=Mon, 10-Oct-2005 05:00:00 GMT"
+    assert_cookie_header "user_name=david; path=/; expires=Mon, 10 Oct 2005 05:00:00 -0000"
     assert_equal({"user_name" => "david"}, @response.cookies)
   end
 
@@ -185,8 +317,8 @@ class CookiesTest < ActionController::TestCase
     assert_equal({"user_name" => "david"}, @response.cookies)
   end
 
-  def test_setting_cookie_with_secure_in_development
-    Rails.env.stubs(:development?).returns(true)
+  def test_setting_cookie_with_secure_when_always_write_cookie_is_true
+    ActionDispatch::Cookies::CookieJar.any_instance.stubs(:always_write_cookie).returns(true)
     get :authenticate_with_secure
     assert_cookie_header "user_name=david; path=/; secure"
     assert_equal({"user_name" => "david"}, @response.cookies)
@@ -201,7 +333,7 @@ class CookiesTest < ActionController::TestCase
   def test_multiple_cookies
     get :set_multiple_cookies
     assert_equal 2, @response.cookies.size
-    assert_cookie_header "user_name=david; path=/; expires=Mon, 10-Oct-2005 05:00:00 GMT\nlogin=XJ-122; path=/"
+    assert_cookie_header "user_name=david; path=/; expires=Mon, 10 Oct 2005 05:00:00 -0000\nlogin=XJ-122; path=/"
     assert_equal({"login" => "XJ-122", "user_name" => "david"}, @response.cookies)
   end
 
@@ -210,14 +342,35 @@ class CookiesTest < ActionController::TestCase
   end
 
   def test_expiring_cookie
+    request.cookies[:user_name] = 'Joe'
     get :logout
-    assert_cookie_header "user_name=; path=/; expires=Thu, 01-Jan-1970 00:00:00 GMT"
+    assert_cookie_header "user_name=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 -0000"
     assert_equal({"user_name" => nil}, @response.cookies)
   end
 
   def test_delete_cookie_with_path
+    request.cookies[:user_name] = 'Joe'
     get :delete_cookie_with_path
-    assert_cookie_header "user_name=; path=/beaten; expires=Thu, 01-Jan-1970 00:00:00 GMT"
+    assert_cookie_header "user_name=; path=/beaten; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 -0000"
+  end
+
+  def test_delete_unexisting_cookie
+    request.cookies.clear
+    get :delete_cookie
+    assert @response.cookies.empty?
+  end
+
+  def test_deleted_cookie_predicate
+    cookies[:user_name] = 'Joe'
+    cookies.delete("user_name")
+    assert cookies.deleted?("user_name")
+    assert_equal false, cookies.deleted?("another")
+  end
+
+  def test_deleted_cookie_predicate_with_mismatching_options
+    cookies[:user_name] = 'Joe'
+    cookies.delete("user_name", :path => "/path")
+    assert_equal false, cookies.deleted?("user_name", :path => "/different")
   end
 
   def test_cookies_persist_throughout_request
@@ -225,20 +378,248 @@ class CookiesTest < ActionController::TestCase
     assert response.headers["Set-Cookie"] =~ /user_name=david/
   end
 
-  def test_permanent_cookie
+  def test_set_permanent_cookie
     get :set_permanent_cookie
     assert_match(/Jamie/, @response.headers["Set-Cookie"])
     assert_match(%r(#{20.years.from_now.utc.year}), @response.headers["Set-Cookie"])
   end
 
-  def test_signed_cookie
+  def test_read_permanent_cookie
+    get :set_permanent_cookie
+    assert_equal 'Jamie', @controller.send(:cookies).permanent[:user_name]
+  end
+
+  def test_signed_cookie_using_default_digest
     get :set_signed_cookie
-    assert_equal 45, @controller.send(:cookies).signed[:user_id]
+    cookies = @controller.send :cookies
+    assert_not_equal 45, cookies[:user_id]
+    assert_equal 45, cookies.signed[:user_id]
+
+    key_generator = @request.env["action_dispatch.key_generator"]
+    signed_cookie_salt = @request.env["action_dispatch.signed_cookie_salt"]
+    secret = key_generator.generate_key(signed_cookie_salt)
+
+    verifier = ActiveSupport::MessageVerifier.new(secret, serializer: Marshal, digest: 'SHA1')
+    assert_equal verifier.generate(45), cookies[:user_id]
+  end
+
+  def test_signed_cookie_using_custom_digest
+    @request.env["action_dispatch.cookies_digest"] = 'SHA256'
+    get :set_signed_cookie
+    cookies = @controller.send :cookies
+    assert_not_equal 45, cookies[:user_id]
+    assert_equal 45, cookies.signed[:user_id]
+
+    key_generator = @request.env["action_dispatch.key_generator"]
+    signed_cookie_salt = @request.env["action_dispatch.signed_cookie_salt"]
+    secret = key_generator.generate_key(signed_cookie_salt)
+
+    verifier = ActiveSupport::MessageVerifier.new(secret, serializer: Marshal, digest: 'SHA256')
+    assert_equal verifier.generate(45), cookies[:user_id]
+  end
+
+  def test_signed_cookie_using_default_serializer
+    get :set_signed_cookie
+    cookies = @controller.send :cookies
+    assert_not_equal 45, cookies[:user_id]
+    assert_equal 45, cookies.signed[:user_id]
+  end
+
+  def test_signed_cookie_using_marshal_serializer
+    @request.env["action_dispatch.cookies_serializer"] = :marshal
+    get :set_signed_cookie
+    cookies = @controller.send :cookies
+    assert_not_equal 45, cookies[:user_id]
+    assert_equal 45, cookies.signed[:user_id]
+  end
+
+  def test_signed_cookie_using_json_serializer
+    @request.env["action_dispatch.cookies_serializer"] = :json
+    get :set_signed_cookie
+    cookies = @controller.send :cookies
+    assert_not_equal 45, cookies[:user_id]
+    assert_equal 45, cookies.signed[:user_id]
+  end
+
+  def test_wrapped_signed_cookie_using_json_serializer
+    @request.env["action_dispatch.cookies_serializer"] = :json
+    get :set_wrapped_signed_cookie
+    cookies = @controller.send :cookies
+    assert_not_equal 'wrapped: 45', cookies[:user_id]
+    assert_equal 'wrapped: 45', cookies.signed[:user_id]
+  end
+
+  def test_signed_cookie_using_custom_serializer
+    @request.env["action_dispatch.cookies_serializer"] = CustomSerializer
+    get :set_signed_cookie
+    assert_not_equal 45, cookies[:user_id]
+    assert_equal '45 was dumped and loaded', cookies.signed[:user_id]
+  end
+
+  def test_signed_cookie_using_hybrid_serializer_can_migrate_marshal_dumped_value_to_json
+    @request.env["action_dispatch.cookies_serializer"] = :hybrid
+
+    key_generator = @request.env["action_dispatch.key_generator"]
+    signed_cookie_salt = @request.env["action_dispatch.signed_cookie_salt"]
+    secret = key_generator.generate_key(signed_cookie_salt)
+
+    marshal_value = ActiveSupport::MessageVerifier.new(secret, serializer: Marshal).generate(45)
+    @request.headers["Cookie"] = "user_id=#{marshal_value}"
+
+    get :get_signed_cookie
+
+    cookies = @controller.send :cookies
+    assert_not_equal 45, cookies[:user_id]
+    assert_equal 45, cookies.signed[:user_id]
+
+    verifier = ActiveSupport::MessageVerifier.new(secret, serializer: JSON)
+    assert_equal 45, verifier.verify(@response.cookies['user_id'])
+  end
+
+  def test_signed_cookie_using_hybrid_serializer_can_read_from_json_dumped_value
+    @request.env["action_dispatch.cookies_serializer"] = :hybrid
+
+    key_generator = @request.env["action_dispatch.key_generator"]
+    signed_cookie_salt = @request.env["action_dispatch.signed_cookie_salt"]
+    secret = key_generator.generate_key(signed_cookie_salt)
+    json_value = ActiveSupport::MessageVerifier.new(secret, serializer: JSON).generate(45)
+    @request.headers["Cookie"] = "user_id=#{json_value}"
+
+    get :get_signed_cookie
+
+    cookies = @controller.send :cookies
+    assert_not_equal 45, cookies[:user_id]
+    assert_equal 45, cookies.signed[:user_id]
+
+    assert_nil @response.cookies["user_id"]
   end
 
   def test_accessing_nonexistant_signed_cookie_should_not_raise_an_invalid_signature
     get :set_signed_cookie
     assert_nil @controller.send(:cookies).signed[:non_existant_attribute]
+  end
+
+  def test_encrypted_cookie_using_default_serializer
+    get :set_encrypted_cookie
+    cookies = @controller.send :cookies
+    assert_not_equal 'bar', cookies[:foo]
+    assert_raise TypeError do
+      cookies.signed[:foo]
+    end
+    assert_equal 'bar', cookies.encrypted[:foo]
+  end
+
+  def test_encrypted_cookie_using_marshal_serializer
+    @request.env["action_dispatch.cookies_serializer"] = :marshal
+    get :set_encrypted_cookie
+    cookies = @controller.send :cookies
+    assert_not_equal 'bar', cookies[:foo]
+    assert_raises TypeError do
+      cookies.signed[:foo]
+    end
+    assert_equal 'bar', cookies.encrypted[:foo]
+  end
+
+  def test_encrypted_cookie_using_json_serializer
+    @request.env["action_dispatch.cookies_serializer"] = :json
+    get :set_encrypted_cookie
+    cookies = @controller.send :cookies
+    assert_not_equal 'bar', cookies[:foo]
+    assert_raises ::JSON::ParserError do
+      cookies.signed[:foo]
+    end
+    assert_equal 'bar', cookies.encrypted[:foo]
+  end
+
+  def test_wrapped_encrypted_cookie_using_json_serializer
+    @request.env["action_dispatch.cookies_serializer"] = :json
+    get :set_wrapped_encrypted_cookie
+    cookies = @controller.send :cookies
+    assert_not_equal 'wrapped: bar', cookies[:foo]
+    assert_raises ::JSON::ParserError do
+      cookies.signed[:foo]
+    end
+    assert_equal 'wrapped: bar', cookies.encrypted[:foo]
+  end
+
+  def test_encrypted_cookie_using_custom_serializer
+    @request.env["action_dispatch.cookies_serializer"] = CustomSerializer
+    get :set_encrypted_cookie
+    assert_not_equal 'bar', cookies.encrypted[:foo]
+    assert_equal 'bar was dumped and loaded', cookies.encrypted[:foo]
+  end
+
+  def test_encrypted_cookie_using_custom_digest
+    @request.env["action_dispatch.cookies_digest"] = 'SHA256'
+    get :set_encrypted_cookie
+    cookies = @controller.send :cookies
+    assert_not_equal 'bar', cookies[:foo]
+    assert_equal 'bar', cookies.encrypted[:foo]
+
+    sign_secret = @request.env["action_dispatch.key_generator"].generate_key(@request.env["action_dispatch.encrypted_signed_cookie_salt"])
+
+    sha1_verifier   = ActiveSupport::MessageVerifier.new(sign_secret, serializer: ActiveSupport::MessageEncryptor::NullSerializer, digest: 'SHA1')
+    sha256_verifier = ActiveSupport::MessageVerifier.new(sign_secret, serializer: ActiveSupport::MessageEncryptor::NullSerializer, digest: 'SHA256')
+
+    assert_raises(ActiveSupport::MessageVerifier::InvalidSignature) do
+      sha1_verifier.verify(cookies[:foo])
+    end
+
+    assert_nothing_raised do
+      sha256_verifier.verify(cookies[:foo])
+    end
+  end
+
+  def test_encrypted_cookie_using_hybrid_serializer_can_migrate_marshal_dumped_value_to_json
+    @request.env["action_dispatch.cookies_serializer"] = :hybrid
+
+    key_generator = @request.env["action_dispatch.key_generator"]
+    encrypted_cookie_salt = @request.env["action_dispatch.encrypted_cookie_salt"]
+    encrypted_signed_cookie_salt = @request.env["action_dispatch.encrypted_signed_cookie_salt"]
+    secret = key_generator.generate_key(encrypted_cookie_salt)
+    sign_secret = key_generator.generate_key(encrypted_signed_cookie_salt)
+
+    marshal_value = ActiveSupport::MessageEncryptor.new(secret, sign_secret, serializer: Marshal).encrypt_and_sign("bar")
+    @request.headers["Cookie"] = "foo=#{marshal_value}"
+
+    get :get_encrypted_cookie
+
+    cookies = @controller.send :cookies
+    assert_not_equal "bar", cookies[:foo]
+    assert_equal "bar", cookies.encrypted[:foo]
+
+    encryptor = ActiveSupport::MessageEncryptor.new(secret, sign_secret, serializer: JSON)
+    assert_equal "bar", encryptor.decrypt_and_verify(@response.cookies["foo"])
+  end
+
+  def test_encrypted_cookie_using_hybrid_serializer_can_read_from_json_dumped_value
+    @request.env["action_dispatch.cookies_serializer"] = :hybrid
+
+    key_generator = @request.env["action_dispatch.key_generator"]
+    encrypted_cookie_salt = @request.env["action_dispatch.encrypted_cookie_salt"]
+    encrypted_signed_cookie_salt = @request.env["action_dispatch.encrypted_signed_cookie_salt"]
+    secret = key_generator.generate_key(encrypted_cookie_salt)
+    sign_secret = key_generator.generate_key(encrypted_signed_cookie_salt)
+    json_value = ActiveSupport::MessageEncryptor.new(secret, sign_secret, serializer: JSON).encrypt_and_sign("bar")
+    @request.headers["Cookie"] = "foo=#{json_value}"
+
+    get :get_encrypted_cookie
+
+    cookies = @controller.send :cookies
+    assert_not_equal "bar", cookies[:foo]
+    assert_equal "bar", cookies.encrypted[:foo]
+
+    assert_nil @response.cookies["foo"]
+  end
+
+  def test_accessing_nonexistant_encrypted_cookie_should_not_raise_invalid_message
+    get :set_encrypted_cookie
+    assert_nil @controller.send(:cookies).encrypted[:non_existant_attribute]
+  end
+
+  def test_setting_invalid_encrypted_cookie_should_return_nil_when_accessing_it
+    get :set_invalid_encrypted_cookie
+    assert_nil @controller.send(:cookies).encrypted[:invalid_cookie]
   end
 
   def test_permanent_signed_cookie
@@ -248,8 +629,9 @@ class CookiesTest < ActionController::TestCase
   end
 
   def test_delete_and_set_cookie
+    request.cookies[:user_name] = 'Joe'
     get :delete_and_set_cookie
-    assert_cookie_header "user_name=david; path=/; expires=Mon, 10-Oct-2005 05:00:00 GMT"
+    assert_cookie_header "user_name=david; path=/; expires=Mon, 10 Oct 2005 05:00:00 -0000"
     assert_equal({"user_name" => "david"}, @response.cookies)
   end
 
@@ -268,31 +650,263 @@ class CookiesTest < ActionController::TestCase
 
   def test_raises_argument_error_if_missing_secret
     assert_raise(ArgumentError, nil.inspect) {
-      @request.env["action_dispatch.secret_token"] = nil
+      @request.env["action_dispatch.key_generator"] = ActiveSupport::LegacyKeyGenerator.new(nil)
       get :set_signed_cookie
     }
 
     assert_raise(ArgumentError, ''.inspect) {
-      @request.env["action_dispatch.secret_token"] = ""
+      @request.env["action_dispatch.key_generator"] = ActiveSupport::LegacyKeyGenerator.new("")
       get :set_signed_cookie
     }
   end
 
   def test_raises_argument_error_if_secret_is_probably_insecure
     assert_raise(ArgumentError, "password".inspect) {
-      @request.env["action_dispatch.secret_token"] = "password"
+      @request.env["action_dispatch.key_generator"] = ActiveSupport::LegacyKeyGenerator.new("password")
       get :set_signed_cookie
     }
 
     assert_raise(ArgumentError, "secret".inspect) {
-      @request.env["action_dispatch.secret_token"] = "secret"
+      @request.env["action_dispatch.key_generator"] = ActiveSupport::LegacyKeyGenerator.new("secret")
       get :set_signed_cookie
     }
 
     assert_raise(ArgumentError, "12345678901234567890123456789".inspect) {
-      @request.env["action_dispatch.secret_token"] = "12345678901234567890123456789"
+      @request.env["action_dispatch.key_generator"] = ActiveSupport::LegacyKeyGenerator.new("12345678901234567890123456789")
       get :set_signed_cookie
     }
+  end
+
+  def test_signed_uses_signed_cookie_jar_if_only_secret_token_is_set
+    @request.env["action_dispatch.secret_token"] = "b3c631c314c0bbca50c1b2843150fe33"
+    @request.env["action_dispatch.secret_key_base"] = nil
+    get :set_signed_cookie
+    assert_kind_of ActionDispatch::Cookies::SignedCookieJar, cookies.signed
+  end
+
+  def test_signed_uses_signed_cookie_jar_if_only_secret_key_base_is_set
+    @request.env["action_dispatch.secret_token"] = nil
+    @request.env["action_dispatch.secret_key_base"] = "c3b95688f35581fad38df788add315ff"
+    get :set_signed_cookie
+    assert_kind_of ActionDispatch::Cookies::SignedCookieJar, cookies.signed
+  end
+
+  def test_signed_uses_upgrade_legacy_signed_cookie_jar_if_both_secret_token_and_secret_key_base_are_set
+    @request.env["action_dispatch.secret_token"] = "b3c631c314c0bbca50c1b2843150fe33"
+    @request.env["action_dispatch.secret_key_base"] = "c3b95688f35581fad38df788add315ff"
+    get :set_signed_cookie
+    assert_kind_of ActionDispatch::Cookies::UpgradeLegacySignedCookieJar, cookies.signed
+  end
+
+  def test_signed_or_encrypted_uses_signed_cookie_jar_if_only_secret_token_is_set
+    @request.env["action_dispatch.secret_token"] = "b3c631c314c0bbca50c1b2843150fe33"
+    @request.env["action_dispatch.secret_key_base"] = nil
+    get :get_encrypted_cookie
+    assert_kind_of ActionDispatch::Cookies::SignedCookieJar, cookies.signed_or_encrypted
+  end
+
+  def test_signed_or_encrypted_uses_encrypted_cookie_jar_if_only_secret_key_base_is_set
+    @request.env["action_dispatch.secret_token"] = nil
+    @request.env["action_dispatch.secret_key_base"] = "c3b95688f35581fad38df788add315ff"
+    get :get_encrypted_cookie
+    assert_kind_of ActionDispatch::Cookies::EncryptedCookieJar, cookies.signed_or_encrypted
+  end
+
+  def test_signed_or_encrypted_uses_upgrade_legacy_encrypted_cookie_jar_if_both_secret_token_and_secret_key_base_are_set
+    @request.env["action_dispatch.secret_token"] = "b3c631c314c0bbca50c1b2843150fe33"
+    @request.env["action_dispatch.secret_key_base"] = "c3b95688f35581fad38df788add315ff"
+    get :get_encrypted_cookie
+    assert_kind_of ActionDispatch::Cookies::UpgradeLegacyEncryptedCookieJar, cookies.signed_or_encrypted
+  end
+
+  def test_encrypted_uses_encrypted_cookie_jar_if_only_secret_key_base_is_set
+    @request.env["action_dispatch.secret_token"] = nil
+    @request.env["action_dispatch.secret_key_base"] = "c3b95688f35581fad38df788add315ff"
+    get :get_encrypted_cookie
+    assert_kind_of ActionDispatch::Cookies::EncryptedCookieJar, cookies.encrypted
+  end
+
+  def test_encrypted_uses_upgrade_legacy_encrypted_cookie_jar_if_both_secret_token_and_secret_key_base_are_set
+    @request.env["action_dispatch.secret_token"] = "b3c631c314c0bbca50c1b2843150fe33"
+    @request.env["action_dispatch.secret_key_base"] = "c3b95688f35581fad38df788add315ff"
+    get :get_encrypted_cookie
+    assert_kind_of ActionDispatch::Cookies::UpgradeLegacyEncryptedCookieJar, cookies.encrypted
+  end
+
+  def test_legacy_signed_cookie_is_read_and_transparently_upgraded_by_signed_cookie_jar_if_both_secret_token_and_secret_key_base_are_set
+    @request.env["action_dispatch.secret_token"] = "b3c631c314c0bbca50c1b2843150fe33"
+    @request.env["action_dispatch.secret_key_base"] = "c3b95688f35581fad38df788add315ff"
+
+    legacy_value = ActiveSupport::MessageVerifier.new("b3c631c314c0bbca50c1b2843150fe33").generate(45)
+
+    @request.headers["Cookie"] = "user_id=#{legacy_value}"
+    get :get_signed_cookie
+
+    assert_equal 45, @controller.send(:cookies).signed[:user_id]
+
+    key_generator = @request.env["action_dispatch.key_generator"]
+    secret = key_generator.generate_key(@request.env["action_dispatch.signed_cookie_salt"])
+    verifier = ActiveSupport::MessageVerifier.new(secret)
+    assert_equal 45, verifier.verify(@response.cookies["user_id"])
+  end
+
+  def test_legacy_signed_cookie_is_read_and_transparently_encrypted_by_encrypted_cookie_jar_if_both_secret_token_and_secret_key_base_are_set
+    @request.env["action_dispatch.secret_token"] = "b3c631c314c0bbca50c1b2843150fe33"
+    @request.env["action_dispatch.secret_key_base"] = "c3b95688f35581fad38df788add315ff"
+    @request.env["action_dispatch.encrypted_cookie_salt"] = "4433796b79d99a7735553e316522acee"
+    @request.env["action_dispatch.encrypted_signed_cookie_salt"] = "00646eb40062e1b1deff205a27cd30f9"
+
+    legacy_value = ActiveSupport::MessageVerifier.new("b3c631c314c0bbca50c1b2843150fe33").generate('bar')
+
+    @request.headers["Cookie"] = "foo=#{legacy_value}"
+    get :get_encrypted_cookie
+
+    assert_equal 'bar', @controller.send(:cookies).encrypted[:foo]
+
+    key_generator = @request.env["action_dispatch.key_generator"]
+    secret = key_generator.generate_key(@request.env["action_dispatch.encrypted_cookie_salt"])
+    sign_secret = key_generator.generate_key(@request.env["action_dispatch.encrypted_signed_cookie_salt"])
+    encryptor = ActiveSupport::MessageEncryptor.new(secret, sign_secret)
+    assert_equal 'bar', encryptor.decrypt_and_verify(@response.cookies["foo"])
+  end
+
+  def test_legacy_json_signed_cookie_is_read_and_transparently_upgraded_by_signed_json_cookie_jar_if_both_secret_token_and_secret_key_base_are_set
+    @request.env["action_dispatch.cookies_serializer"] = :json
+    @request.env["action_dispatch.secret_token"] = "b3c631c314c0bbca50c1b2843150fe33"
+    @request.env["action_dispatch.secret_key_base"] = "c3b95688f35581fad38df788add315ff"
+
+    legacy_value = ActiveSupport::MessageVerifier.new("b3c631c314c0bbca50c1b2843150fe33", serializer: JSON).generate(45)
+
+    @request.headers["Cookie"] = "user_id=#{legacy_value}"
+    get :get_signed_cookie
+
+    assert_equal 45, @controller.send(:cookies).signed[:user_id]
+
+    key_generator = @request.env["action_dispatch.key_generator"]
+    secret = key_generator.generate_key(@request.env["action_dispatch.signed_cookie_salt"])
+    verifier = ActiveSupport::MessageVerifier.new(secret, serializer: JSON)
+    assert_equal 45, verifier.verify(@response.cookies["user_id"])
+  end
+
+  def test_legacy_json_signed_cookie_is_read_and_transparently_encrypted_by_encrypted_json_cookie_jar_if_both_secret_token_and_secret_key_base_are_set
+    @request.env["action_dispatch.cookies_serializer"] = :json
+    @request.env["action_dispatch.secret_token"] = "b3c631c314c0bbca50c1b2843150fe33"
+    @request.env["action_dispatch.secret_key_base"] = "c3b95688f35581fad38df788add315ff"
+    @request.env["action_dispatch.encrypted_cookie_salt"] = "4433796b79d99a7735553e316522acee"
+    @request.env["action_dispatch.encrypted_signed_cookie_salt"] = "00646eb40062e1b1deff205a27cd30f9"
+
+    legacy_value = ActiveSupport::MessageVerifier.new("b3c631c314c0bbca50c1b2843150fe33", serializer: JSON).generate('bar')
+
+    @request.headers["Cookie"] = "foo=#{legacy_value}"
+    get :get_encrypted_cookie
+
+    assert_equal 'bar', @controller.send(:cookies).encrypted[:foo]
+
+    key_generator = @request.env["action_dispatch.key_generator"]
+    secret = key_generator.generate_key(@request.env["action_dispatch.encrypted_cookie_salt"])
+    sign_secret = key_generator.generate_key(@request.env["action_dispatch.encrypted_signed_cookie_salt"])
+    encryptor = ActiveSupport::MessageEncryptor.new(secret, sign_secret, serializer: JSON)
+    assert_equal 'bar', encryptor.decrypt_and_verify(@response.cookies["foo"])
+  end
+
+  def test_legacy_json_signed_cookie_is_read_and_transparently_upgraded_by_signed_json_hybrid_jar_if_both_secret_token_and_secret_key_base_are_set
+    @request.env["action_dispatch.cookies_serializer"] = :hybrid
+    @request.env["action_dispatch.secret_token"] = "b3c631c314c0bbca50c1b2843150fe33"
+    @request.env["action_dispatch.secret_key_base"] = "c3b95688f35581fad38df788add315ff"
+
+    legacy_value = ActiveSupport::MessageVerifier.new("b3c631c314c0bbca50c1b2843150fe33", serializer: JSON).generate(45)
+
+    @request.headers["Cookie"] = "user_id=#{legacy_value}"
+    get :get_signed_cookie
+
+    assert_equal 45, @controller.send(:cookies).signed[:user_id]
+
+    key_generator = @request.env["action_dispatch.key_generator"]
+    secret = key_generator.generate_key(@request.env["action_dispatch.signed_cookie_salt"])
+    verifier = ActiveSupport::MessageVerifier.new(secret, serializer: JSON)
+    assert_equal 45, verifier.verify(@response.cookies["user_id"])
+  end
+
+  def test_legacy_json_signed_cookie_is_read_and_transparently_encrypted_by_encrypted_hybrid_cookie_jar_if_both_secret_token_and_secret_key_base_are_set
+    @request.env["action_dispatch.cookies_serializer"] = :hybrid
+    @request.env["action_dispatch.secret_token"] = "b3c631c314c0bbca50c1b2843150fe33"
+    @request.env["action_dispatch.secret_key_base"] = "c3b95688f35581fad38df788add315ff"
+    @request.env["action_dispatch.encrypted_cookie_salt"] = "4433796b79d99a7735553e316522acee"
+    @request.env["action_dispatch.encrypted_signed_cookie_salt"] = "00646eb40062e1b1deff205a27cd30f9"
+
+    legacy_value = ActiveSupport::MessageVerifier.new("b3c631c314c0bbca50c1b2843150fe33", serializer: JSON).generate('bar')
+
+    @request.headers["Cookie"] = "foo=#{legacy_value}"
+    get :get_encrypted_cookie
+
+    assert_equal 'bar', @controller.send(:cookies).encrypted[:foo]
+
+    key_generator = @request.env["action_dispatch.key_generator"]
+    secret = key_generator.generate_key(@request.env["action_dispatch.encrypted_cookie_salt"])
+    sign_secret = key_generator.generate_key(@request.env["action_dispatch.encrypted_signed_cookie_salt"])
+    encryptor = ActiveSupport::MessageEncryptor.new(secret, sign_secret, serializer: JSON)
+    assert_equal 'bar', encryptor.decrypt_and_verify(@response.cookies["foo"])
+  end
+
+  def test_legacy_marshal_signed_cookie_is_read_and_transparently_upgraded_by_signed_json_hybrid_jar_if_both_secret_token_and_secret_key_base_are_set
+    @request.env["action_dispatch.cookies_serializer"] = :hybrid
+    @request.env["action_dispatch.secret_token"] = "b3c631c314c0bbca50c1b2843150fe33"
+    @request.env["action_dispatch.secret_key_base"] = "c3b95688f35581fad38df788add315ff"
+
+    legacy_value = ActiveSupport::MessageVerifier.new("b3c631c314c0bbca50c1b2843150fe33").generate(45)
+
+    @request.headers["Cookie"] = "user_id=#{legacy_value}"
+    get :get_signed_cookie
+
+    assert_equal 45, @controller.send(:cookies).signed[:user_id]
+
+    key_generator = @request.env["action_dispatch.key_generator"]
+    secret = key_generator.generate_key(@request.env["action_dispatch.signed_cookie_salt"])
+    verifier = ActiveSupport::MessageVerifier.new(secret, serializer: JSON)
+    assert_equal 45, verifier.verify(@response.cookies["user_id"])
+  end
+
+  def test_legacy_marshal_signed_cookie_is_read_and_transparently_encrypted_by_encrypted_hybrid_cookie_jar_if_both_secret_token_and_secret_key_base_are_set
+    @request.env["action_dispatch.cookies_serializer"] = :hybrid
+    @request.env["action_dispatch.secret_token"] = "b3c631c314c0bbca50c1b2843150fe33"
+    @request.env["action_dispatch.secret_key_base"] = "c3b95688f35581fad38df788add315ff"
+    @request.env["action_dispatch.encrypted_cookie_salt"] = "4433796b79d99a7735553e316522acee"
+    @request.env["action_dispatch.encrypted_signed_cookie_salt"] = "00646eb40062e1b1deff205a27cd30f9"
+
+    legacy_value = ActiveSupport::MessageVerifier.new("b3c631c314c0bbca50c1b2843150fe33").generate('bar')
+
+    @request.headers["Cookie"] = "foo=#{legacy_value}"
+    get :get_encrypted_cookie
+
+    assert_equal 'bar', @controller.send(:cookies).encrypted[:foo]
+
+    key_generator = @request.env["action_dispatch.key_generator"]
+    secret = key_generator.generate_key(@request.env["action_dispatch.encrypted_cookie_salt"])
+    sign_secret = key_generator.generate_key(@request.env["action_dispatch.encrypted_signed_cookie_salt"])
+    encryptor = ActiveSupport::MessageEncryptor.new(secret, sign_secret, serializer: JSON)
+    assert_equal 'bar', encryptor.decrypt_and_verify(@response.cookies["foo"])
+  end
+
+  def test_legacy_signed_cookie_is_treated_as_nil_by_signed_cookie_jar_if_tampered
+    @request.env["action_dispatch.secret_token"] = "b3c631c314c0bbca50c1b2843150fe33"
+    @request.env["action_dispatch.secret_key_base"] = "c3b95688f35581fad38df788add315ff"
+
+    @request.headers["Cookie"] = "user_id=45"
+    get :get_signed_cookie
+
+    assert_equal nil, @controller.send(:cookies).signed[:user_id]
+    assert_equal nil, @response.cookies["user_id"]
+  end
+
+  def test_legacy_signed_cookie_is_treated_as_nil_by_encrypted_cookie_jar_if_tampered
+    @request.env["action_dispatch.secret_token"] = "b3c631c314c0bbca50c1b2843150fe33"
+    @request.env["action_dispatch.secret_key_base"] = "c3b95688f35581fad38df788add315ff"
+
+    @request.headers["Cookie"] = "foo=baz"
+    get :get_encrypted_cookie
+
+    assert_equal nil, @controller.send(:cookies).encrypted[:foo]
+    assert_equal nil, @response.cookies["foo"]
   end
 
   def test_cookie_with_all_domain_option
@@ -351,9 +965,10 @@ class CookiesTest < ActionController::TestCase
   end
 
   def test_deleting_cookie_with_all_domain_option
+    request.cookies[:user_name] = 'Joe'
     get :delete_cookie_with_domain
     assert_response :success
-    assert_cookie_header "user_name=; domain=.nextangle.com; path=/; expires=Thu, 01-Jan-1970 00:00:00 GMT"
+    assert_cookie_header "user_name=; domain=.nextangle.com; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 -0000"
   end
 
   def test_cookie_with_all_domain_option_and_tld_length
@@ -377,9 +992,10 @@ class CookiesTest < ActionController::TestCase
   end
 
   def test_deleting_cookie_with_all_domain_option_and_tld_length
+    request.cookies[:user_name] = 'Joe'
     get :delete_cookie_with_domain_and_tld
     assert_response :success
-    assert_cookie_header "user_name=; domain=.nextangle.com; path=/; expires=Thu, 01-Jan-1970 00:00:00 GMT"
+    assert_cookie_header "user_name=; domain=.nextangle.com; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 -0000"
   end
 
   def test_cookie_with_several_preset_domains_using_one_of_these_domains
@@ -405,79 +1021,119 @@ class CookiesTest < ActionController::TestCase
 
   def test_deletings_cookie_with_several_preset_domains_using_one_of_these_domains
     @request.host = "example2.com"
+    request.cookies[:user_name] = 'Joe'
     get :delete_cookie_with_domains
     assert_response :success
-    assert_cookie_header "user_name=; domain=example2.com; path=/; expires=Thu, 01-Jan-1970 00:00:00 GMT"
+    assert_cookie_header "user_name=; domain=example2.com; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 -0000"
   end
 
   def test_deletings_cookie_with_several_preset_domains_using_other_domain
     @request.host = "other-domain.com"
+    request.cookies[:user_name] = 'Joe'
     get :delete_cookie_with_domains
     assert_response :success
-    assert_cookie_header "user_name=; path=/; expires=Thu, 01-Jan-1970 00:00:00 GMT"
+    assert_cookie_header "user_name=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 -0000"
   end
 
-  
   def test_cookies_hash_is_indifferent_access
-      get :symbol_key
-      assert_equal "david", cookies[:user_name]
-      assert_equal "david", cookies['user_name']
-      get :string_key
-      assert_equal "dhh", cookies[:user_name]
-      assert_equal "dhh", cookies['user_name']
+    get :symbol_key
+    assert_equal "david", cookies[:user_name]
+    assert_equal "david", cookies['user_name']
+    get :string_key
+    assert_equal "dhh", cookies[:user_name]
+    assert_equal "dhh", cookies['user_name']
   end
-
-
 
   def test_setting_request_cookies_is_indifferent_access
-    @request.cookies.clear
-    @request.cookies[:user_name] = "andrew"
+    cookies.clear
+    cookies[:user_name] = "andrew"
     get :string_key_mock
-    assert_equal "david", cookies[:user_name]
-
-    @request.cookies.clear
-    @request.cookies['user_name'] = "andrew"
-    get :symbol_key_mock
     assert_equal "david", cookies['user_name']
+
+    cookies.clear
+    cookies['user_name'] = "andrew"
+    get :symbol_key_mock
+    assert_equal "david", cookies[:user_name]
   end
 
   def test_cookies_retained_across_requests
     get :symbol_key
-    assert_equal "user_name=david; path=/", @response.headers["Set-Cookie"]
+    assert_cookie_header "user_name=david; path=/"
     assert_equal "david", cookies[:user_name]
 
     get :noop
     assert_nil @response.headers["Set-Cookie"]
-    assert_equal "user_name=david", @request.env['HTTP_COOKIE']
     assert_equal "david", cookies[:user_name]
 
     get :noop
     assert_nil @response.headers["Set-Cookie"]
-    assert_equal "user_name=david", @request.env['HTTP_COOKIE']
     assert_equal "david", cookies[:user_name]
   end
 
   def test_cookies_can_be_cleared
     get :symbol_key
-    assert_equal "user_name=david; path=/", @response.headers["Set-Cookie"]
     assert_equal "david", cookies[:user_name]
 
-    @request.cookies.clear
+    cookies.clear
     get :noop
-    assert_nil @response.headers["Set-Cookie"]
-    assert_nil @request.env['HTTP_COOKIE']
     assert_nil cookies[:user_name]
 
     get :symbol_key
-    assert_equal "user_name=david; path=/", @response.headers["Set-Cookie"]
     assert_equal "david", cookies[:user_name]
   end
 
-  def test_cookies_are_escaped
-    @request.cookies[:user_ids] = '1;2'
+  def test_can_set_http_cookie_header
+    @request.env['HTTP_COOKIE'] = 'user_name=david'
     get :noop
-    assert_equal "user_ids=1%3B2", @request.env['HTTP_COOKIE']
-    assert_equal "1;2", cookies[:user_ids]
+    assert_equal 'david', cookies['user_name']
+    assert_equal 'david', cookies[:user_name]
+
+    get :noop
+    assert_equal 'david', cookies['user_name']
+    assert_equal 'david', cookies[:user_name]
+
+    @request.env['HTTP_COOKIE'] = 'user_name=andrew'
+    get :noop
+    assert_equal 'andrew', cookies['user_name']
+    assert_equal 'andrew', cookies[:user_name]
+  end
+
+  def test_can_set_request_cookies
+    @request.cookies['user_name'] = 'david'
+    get :noop
+    assert_equal 'david', cookies['user_name']
+    assert_equal 'david', cookies[:user_name]
+
+    get :noop
+    assert_equal 'david', cookies['user_name']
+    assert_equal 'david', cookies[:user_name]
+
+    @request.cookies[:user_name] = 'andrew'
+    get :noop
+    assert_equal 'andrew', cookies['user_name']
+    assert_equal 'andrew', cookies[:user_name]
+  end
+
+  def test_cookies_precedence_over_http_cookie
+    @request.env['HTTP_COOKIE'] = 'user_name=andrew'
+    get :authenticate
+    assert_equal 'david', cookies['user_name']
+    assert_equal 'david', cookies[:user_name]
+
+    get :noop
+    assert_equal 'david', cookies['user_name']
+    assert_equal 'david', cookies[:user_name]
+  end
+
+  def test_cookies_precedence_over_request_cookies
+    @request.cookies['user_name'] = 'andrew'
+    get :authenticate
+    assert_equal 'david', cookies['user_name']
+    assert_equal 'david', cookies[:user_name]
+
+    get :noop
+    assert_equal 'david', cookies['user_name']
+    assert_equal 'david', cookies[:user_name]
   end
 
   private
@@ -500,98 +1156,4 @@ class CookiesTest < ActionController::TestCase
     end
 end
 
-class CookiesIntegrationTest < ActionDispatch::IntegrationTest
-  SessionKey = '_myapp_session'
-  SessionSecret = 'b3c631c314c0bbca50c1b2843150fe33'
-
-  class TestController < ActionController::Base
-    def dont_set_cookies
-      head :ok
-    end
-
-    def set_cookies
-      cookies["that"] = "hello"
-      head :ok
-    end
-  end
-
-  def test_setting_cookies_raises_after_stream_back_to_client
-    with_test_route_set do
-      get '/set_cookies'
-      assert_raise(ActionDispatch::ClosedError) {
-        request.cookie_jar['alert'] = 'alert'
-        cookies['alert'] = 'alert'
-      }
-    end
-  end
-
-  def test_setting_cookies_raises_after_stream_back_to_client_even_without_cookies
-    with_test_route_set do
-      get '/dont_set_cookies'
-      assert_raise(ActionDispatch::ClosedError) {
-        request.cookie_jar['alert'] = 'alert'
-      }
-    end
-  end
-
-  def test_setting_permanent_cookies_raises_after_stream_back_to_client
-    with_test_route_set do
-      get '/set_cookies'
-      assert_raise(ActionDispatch::ClosedError) {
-        request.cookie_jar.permanent['alert'] = 'alert'
-        cookies['alert'] = 'alert'
-      }
-    end
-  end
-
-  def test_setting_permanent_cookies_raises_after_stream_back_to_client_even_without_cookies
-    with_test_route_set do
-      get '/dont_set_cookies'
-      assert_raise(ActionDispatch::ClosedError) {
-        request.cookie_jar.permanent['alert'] = 'alert'
-      }
-    end
-  end
-
-  def test_setting_signed_cookies_raises_after_stream_back_to_client
-    with_test_route_set do
-      get '/set_cookies'
-      assert_raise(ActionDispatch::ClosedError) {
-        request.cookie_jar.signed['alert'] = 'alert'
-        cookies['alert'] = 'alert'
-      }
-    end
-  end
-
-  def test_setting_signed_cookies_raises_after_stream_back_to_client_even_without_cookies
-    with_test_route_set do
-      get '/dont_set_cookies'
-      assert_raise(ActionDispatch::ClosedError) {
-        request.cookie_jar.signed['alert'] = 'alert'
-      }
-    end
-  end
-
-  private
-
-  # Overwrite get to send SessionSecret in env hash
-  def get(path, parameters = nil, env = {})
-    env["action_dispatch.secret_token"] ||= SessionSecret
-    super
-  end
-
-  def with_test_route_set
-    with_routing do |set|
-      set.draw do
-        match ':action', :to => CookiesIntegrationTest::TestController
-      end
-
-      @app = self.class.build_app(set) do |middleware|
-        middleware.use ActionDispatch::Cookies
-        middleware.delete "ActionDispatch::ShowExceptions"
-      end
-
-      yield
-    end
-  end
 end

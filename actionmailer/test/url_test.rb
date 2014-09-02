@@ -19,9 +19,9 @@ class UrlTestMailer < ActionMailer::Base
 
   def signed_up_with_url(recipient)
     @recipient   = recipient
-    @welcome_url = url_for :host => "example.com", :controller => "welcome", :action => "greeting"
-    mail(:to => recipient, :subject => "[Signed up] Welcome #{recipient}",
-      :from => "system@loudthinking.com", :date => Time.local(2004, 12, 12))
+    @welcome_url = url_for host: "example.com", controller: "welcome", action: "greeting"
+    mail(to: recipient, subject: "[Signed up] Welcome #{recipient}",
+      from: "system@loudthinking.com", date: Time.local(2004, 12, 12))
   end
 end
 
@@ -41,24 +41,15 @@ class ActionMailerUrlTest < ActionMailer::TestCase
   end
 
   def setup
-    set_delivery_method :test
-    ActionMailer::Base.perform_deliveries = true
-    ActionMailer::Base.deliveries.clear
-    ActiveSupport::Deprecation.silenced = false
-
     @recipient = 'test@localhost'
-  end
-
-  def teardown
-    restore_delivery_method
   end
 
   def test_signed_up_with_url
     UrlTestMailer.delivery_method = :test
 
     AppRoutes.draw do
-      match ':controller(/:action(/:id))'
-      match '/welcome' => "foo#bar", :as => "welcome"
+      get ':controller(/:action(/:id))'
+      get '/welcome' => "foo#bar", as: "welcome"
     end
 
     expected = new_mail
@@ -77,7 +68,7 @@ class ActionMailerUrlTest < ActionMailer::TestCase
     created.message_id = '<123@456>'
     assert_equal expected.encoded, created.encoded
 
-    assert_nothing_raised { UrlTestMailer.signed_up_with_url(@recipient).deliver }
+    assert_nothing_raised { UrlTestMailer.signed_up_with_url(@recipient).deliver_now }
     assert_not_nil ActionMailer::Base.deliveries.first
     delivered = ActionMailer::Base.deliveries.first
 

@@ -48,8 +48,6 @@ class OldContentTypeController < ActionController::Base
       format.rss  { render :text   => "hello world!", :content_type => Mime::XML }
     end
   end
-
-  def rescue_action(e) raise end
 end
 
 class ContentTypeTest < ActionController::TestCase
@@ -59,7 +57,7 @@ class ContentTypeTest < ActionController::TestCase
     super
     # enable a logger so that (e.g.) the benchmarking stuff runs, so we can get
     # a more accurate simulation of what happens in "real life".
-    @controller.logger = Logger.new(nil)
+    @controller.logger = ActiveSupport::Logger.new(nil)
   end
 
   # :ported:
@@ -70,11 +68,11 @@ class ContentTypeTest < ActionController::TestCase
   end
 
   def test_render_changed_charset_default
-    OldContentTypeController.default_charset = "utf-16"
-    get :render_defaults
-    assert_equal "utf-16", @response.charset
-    assert_equal Mime::HTML, @response.content_type
-    OldContentTypeController.default_charset = "utf-8"
+    with_default_charset "utf-16" do
+      get :render_defaults
+      assert_equal "utf-16", @response.charset
+      assert_equal Mime::HTML, @response.content_type
+    end
   end
 
   # :ported:
@@ -106,12 +104,11 @@ class ContentTypeTest < ActionController::TestCase
   end
 
   def test_nil_default_for_erb
-    OldContentTypeController.default_charset = nil
-    get :render_default_for_erb
-    assert_equal Mime::HTML, @response.content_type
-    assert_nil @response.charset, @response.headers.inspect
-  ensure
-    OldContentTypeController.default_charset = "utf-8"
+    with_default_charset nil do
+      get :render_default_for_erb
+      assert_equal Mime::HTML, @response.content_type
+      assert_nil @response.charset, @response.headers.inspect
+    end
   end
 
   def test_default_for_erb
@@ -130,6 +127,16 @@ class ContentTypeTest < ActionController::TestCase
     get :render_change_for_builder
     assert_equal Mime::HTML, @response.content_type
     assert_equal "utf-8", @response.charset
+  end
+
+  private
+
+  def with_default_charset(charset)
+    old_default_charset = ActionDispatch::Response.default_charset
+    ActionDispatch::Response.default_charset = charset
+    yield
+  ensure
+    ActionDispatch::Response.default_charset = old_default_charset
   end
 end
 

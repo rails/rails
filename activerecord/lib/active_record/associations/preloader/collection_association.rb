@@ -6,11 +6,11 @@ module ActiveRecord
         private
 
         def build_scope
-          super.order(preload_options[:order] || options[:order])
+          super.order(preload_scope.values[:order] || reflection_scope.values[:order])
         end
 
-        def preload
-          associated_records_by_owner.each do |owner, records|
+        def preload(preloader)
+          associated_records_by_owner(preloader).each do |owner, records|
             association = owner.association(reflection.name)
             association.loaded!
             association.target.concat(records)

@@ -3,6 +3,7 @@ require 'controller/fake_controllers'
 
 class SecureArticlesController < ArticlesController; end
 class BlockArticlesController < ArticlesController; end
+class QueryArticlesController < ArticlesController; end
 
 class RoutingAssertionsTest < ActionController::TestCase
 
@@ -17,6 +18,10 @@ class RoutingAssertionsTest < ActionController::TestCase
 
       scope 'block', :constraints => lambda { |r| r.ssl? } do
         resources :articles, :controller => 'block_articles'
+      end
+
+      scope 'query', :constraints => lambda { |r| r.params[:use_query] == 'true' } do
+        resources :articles, :controller => 'query_articles'
       end
     end
   end
@@ -42,24 +47,31 @@ class RoutingAssertionsTest < ActionController::TestCase
   def test_assert_recognizes_with_extras
     assert_recognizes({ :controller => 'articles', :action => 'index', :page => '1' }, '/articles', { :page => '1' })
   end
- 
+
   def test_assert_recognizes_with_method
     assert_recognizes({ :controller => 'articles', :action => 'create' }, { :path => '/articles', :method => :post })
     assert_recognizes({ :controller => 'articles', :action => 'update', :id => '1' }, { :path => '/articles/1', :method => :put })
   end
 
   def test_assert_recognizes_with_hash_constraint
-    assert_raise(ActionController::RoutingError) do
+    assert_raise(Assertion) do
       assert_recognizes({ :controller => 'secure_articles', :action => 'index' }, 'http://test.host/secure/articles')
     end
-    assert_recognizes({ :controller => 'secure_articles', :action => 'index' }, 'https://test.host/secure/articles')
+    assert_recognizes({ :controller => 'secure_articles', :action => 'index', :protocol => 'https://' }, 'https://test.host/secure/articles')
   end
 
   def test_assert_recognizes_with_block_constraint
-    assert_raise(ActionController::RoutingError) do
+    assert_raise(Assertion) do
       assert_recognizes({ :controller => 'block_articles', :action => 'index' }, 'http://test.host/block/articles')
     end
     assert_recognizes({ :controller => 'block_articles', :action => 'index' }, 'https://test.host/block/articles')
+  end
+
+  def test_assert_recognizes_with_query_constraint
+    assert_raise(Assertion) do
+      assert_recognizes({ :controller => 'query_articles', :action => 'index', :use_query => 'false' }, '/query/articles', { :use_query => 'false' })
+    end
+    assert_recognizes({ :controller => 'query_articles', :action => 'index', :use_query => 'true' }, '/query/articles', { :use_query => 'true' })
   end
 
   def test_assert_routing
@@ -75,14 +87,14 @@ class RoutingAssertionsTest < ActionController::TestCase
   end
 
   def test_assert_routing_with_hash_constraint
-    assert_raise(ActionController::RoutingError) do
+    assert_raise(Assertion) do
       assert_routing('http://test.host/secure/articles', { :controller => 'secure_articles', :action => 'index' })
     end
-    assert_routing('https://test.host/secure/articles', { :controller => 'secure_articles', :action => 'index' })
+    assert_routing('https://test.host/secure/articles', { :controller => 'secure_articles', :action => 'index', :protocol => 'https://' })
   end
 
   def test_assert_routing_with_block_constraint
-    assert_raise(ActionController::RoutingError) do
+    assert_raise(Assertion) do
       assert_routing('http://test.host/block/articles', { :controller => 'block_articles', :action => 'index' })
     end
     assert_routing('https://test.host/block/articles', { :controller => 'block_articles', :action => 'index' })
@@ -95,7 +107,7 @@ class RoutingAssertionsTest < ActionController::TestCase
       end
 
       assert_routing('/artikel', :controller => 'articles', :action => 'index')
-      assert_raise(ActionController::RoutingError) do
+      assert_raise(Assertion) do
         assert_routing('/articles', { :controller => 'articles', :action => 'index' })
       end
     end

@@ -3,18 +3,18 @@ module ActiveRecord
     # Locking::Pessimistic provides support for row-level locking using
     # SELECT ... FOR UPDATE and other lock types.
     #
-    # Pass <tt>:lock => true</tt> to <tt>ActiveRecord::Base.find</tt> to obtain an exclusive
+    # Chain <tt>ActiveRecord::Base#find</tt> to <tt>ActiveRecord::QueryMethods#lock</tt> to obtain an exclusive
     # lock on the selected rows:
     #   # select * from accounts where id=1 for update
-    #   Account.find(1, :lock => true)
+    #   Account.lock.find(1)
     #
-    # Pass <tt>:lock => 'some locking clause'</tt> to give a database-specific locking clause
+    # Call <tt>lock('some locking clause')</tt> to use a database-specific locking clause
     # of your own such as 'LOCK IN SHARE MODE' or 'FOR UPDATE NOWAIT'. Example:
     #
     #   Account.transaction do
     #     # select * from accounts where name = 'shugo' limit 1 for update
     #     shugo = Account.where("name = 'shugo'").lock(true).first
-    #     yuko = Account.where("name = 'shugo'").lock(true).first
+    #     yuko = Account.where("name = 'yuko'").lock(true).first
     #     shugo.balance -= 100
     #     shugo.save!
     #     yuko.balance += 100
@@ -26,7 +26,7 @@ module ActiveRecord
     #
     #   Account.transaction do
     #     # select * from accounts where ...
-    #     accounts = Account.where(...).all
+    #     accounts = Account.where(...)
     #     account1 = accounts.detect { |account| ... }
     #     account2 = accounts.detect { |account| ... }
     #     # select * from accounts where id=? for update
@@ -36,6 +36,18 @@ module ActiveRecord
     #     account1.save!
     #     account2.balance += 100
     #     account2.save!
+    #   end
+    #
+    # You can start a transaction and acquire the lock in one go by calling
+    # <tt>with_lock</tt> with a block. The block is called from within
+    # a transaction, the object is already locked. Example:
+    #
+    #   account = Account.first
+    #   account.with_lock do
+    #     # This block is called within a transaction,
+    #     # account is already locked.
+    #     account.balance -= 100
+    #     account.save!
     #   end
     #
     # Database-specific information on row locking:
@@ -49,6 +61,16 @@ module ActiveRecord
       def lock!(lock = true)
         reload(:lock => lock) if persisted?
         self
+      end
+
+      # Wraps the passed block in a transaction, locking the object
+      # before yielding. You can pass the SQL locking clause
+      # as argument (see <tt>lock!</tt>).
+      def with_lock(lock = true)
+        transaction do
+          lock!(lock)
+          yield
+        end
       end
     end
   end

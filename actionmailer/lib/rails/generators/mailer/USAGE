@@ -1,6 +1,6 @@
 Description:
 ============
-    Stubs out a new mailer and its views. Pass the mailer name, either
+    Stubs out a new mailer and its views. Passes the mailer name, either
     CamelCased or under_scored, and an optional list of emails as arguments.
 
     This generates a mailer class in app/mailers and invokes your template
@@ -10,9 +10,8 @@ Example:
 ========
     rails generate mailer Notifications signup forgot_password invoice
 
-    creates a Notifications mailer class, views, test, and fixtures:
+    creates a Notifications mailer class, views, and test:
         Mailer:     app/mailers/notifications.rb
-        Views:      app/views/notifications/signup.erb [...]
-        Test:       test/functional/notifications_test.rb
-        Fixtures:   test/fixtures/notifications/signup [...]
+        Views:      app/views/notifications/signup.text.erb [...]
+        Test:       test/mailers/notifications_test.rb
 

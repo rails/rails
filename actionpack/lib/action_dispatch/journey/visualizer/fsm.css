@@ -1,0 +1,34 @@
+body {
+  font-family: "Helvetica Neue", Helvetica, Arial, Sans-Serif;
+  margin: 0;
+}
+
+h1 {
+  font-size: 2.0em; font-weight: bold; text-align: center;
+  color: white; background-color: black;
+  padding: 5px 0;
+  margin: 0 0 20px;
+}
+
+h2 {
+  text-align: center;
+  display: none;
+  font-size: 0.5em;
+}
+
+div#chart-2 {
+  height: 350px;
+}
+
+.clearfix {display: inline-block; }
+.input { overflow: show;}
+.instruction { color: #666; padding: 0 30px 20px; font-size: 0.9em}
+.instruction p { padding: 0 0 5px; }
+.instruction li { padding: 0 10px 5px; }
+
+.form { background: #EEE; padding: 20px 30px; border-radius: 5px; margin-left: auto; margin-right: auto; width: 500px; margin-bottom: 20px}
+.form p, .form form { text-align: center }
+.form form {padding: 0 10px 5px; }
+.form .fun_routes { font-size: 0.9em;}
+.form .fun_routes a { margin: 0 5px 0 0; }
+

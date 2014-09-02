@@ -1,5 +1,3 @@
-require 'active_support/core_ext/class/attribute'
-
 module ActiveRecord
   # = Active Record Timestamp
   #
@@ -11,9 +9,9 @@ module ActiveRecord
   #
   #   config.active_record.record_timestamps = false
   #
-  # Timestamps are in the local timezone by default but you can use UTC by setting:
+  # Timestamps are in UTC by default but you can use the local timezone by setting:
   #
-  #   config.active_record.default_timezone = :utc
+  #   config.active_record.default_timezone = :local
   #
   # == Time Zone aware attributes
   #
@@ -33,25 +31,33 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     included do
-      class_attribute :record_timestamps, :instance_writer => false
+      class_attribute :record_timestamps
       self.record_timestamps = true
+    end
+
+    def initialize_dup(other) # :nodoc:
+      super
+      clear_timestamp_attributes
     end
 
   private
 
-    def create #:nodoc:
+    def _create_record
       if self.record_timestamps
         current_time = current_time_from_proper_timezone
 
         all_timestamp_attributes.each do |column|
-          write_attribute(column.to_s, current_time) if respond_to?(column) && self.send(column).nil?
+          column = column.to_s
+          if has_attribute?(column) && !attribute_present?(column)
+            write_attribute(column, current_time)
+          end
         end
       end
 
       super
     end
 
-    def update(*args) #:nodoc:
+    def _update_record(*args)
       if should_record_timestamps?
         current_time = current_time_from_proper_timezone
 
@@ -65,7 +71,7 @@ module ActiveRecord
     end
 
     def should_record_timestamps?
-      self.record_timestamps && (!partial_updates? || changed? || (attributes.keys & self.class.serialized_attributes.keys).present?)
+      self.record_timestamps && (!partial_writes? || changed?)
     end
 
     def timestamp_attributes_for_create_in_model
@@ -80,21 +86,36 @@ module ActiveRecord
       timestamp_attributes_for_create_in_model + timestamp_attributes_for_update_in_model
     end
 
-    def timestamp_attributes_for_update #:nodoc:
+    def timestamp_attributes_for_update
       [:updated_at, :updated_on]
     end
 
-    def timestamp_attributes_for_create #:nodoc:
+    def timestamp_attributes_for_create
       [:created_at, :created_on]
     end
 
-    def all_timestamp_attributes #:nodoc:
+    def all_timestamp_attributes
       timestamp_attributes_for_create + timestamp_attributes_for_update
     end
 
-    def current_time_from_proper_timezone #:nodoc:
+    def max_updated_column_timestamp(timestamp_names = timestamp_attributes_for_update)
+      timestamp_names
+        .map { |attr| self[attr] }
+        .compact
+        .map(&:to_time)
+        .max
+    end
+
+    def current_time_from_proper_timezone
       self.class.default_timezone == :utc ? Time.now.utc : Time.now
+    end
+
+    # Clear attributes and changed_attributes
+    def clear_timestamp_attributes
+      all_timestamp_attributes_in_model.each do |attribute_name|
+        self[attribute_name] = nil
+        clear_attribute_changes([attribute_name])
+      end
     end
   end
 end
-

@@ -1,7 +1,7 @@
 require 'abstract_unit'
 require 'active_support/core_ext/kernel'
 
-class KernelTest < Test::Unit::TestCase
+class KernelTest < ActiveSupport::TestCase
   def test_silence_warnings
     silence_warnings { assert_nil $VERBOSE }
     assert_equal 1234, silence_warnings { 1234 }
@@ -30,21 +30,34 @@ class KernelTest < Test::Unit::TestCase
   end
 
 
-  def test_silence_stderr
-    old_stderr_position = STDERR.tell
-    silence_stderr { STDERR.puts 'hello world' }
+  def test_silence_stream
+    old_stream_position = STDOUT.tell
+    silence_stream(STDOUT) { STDOUT.puts 'hello world' }
+    assert_equal old_stream_position, STDOUT.tell
+  rescue Errno::ESPIPE
+    # Skip if we can't stream.tell
+  end
+
+  def test_silence_stream_closes_file_descriptors
+    stream     = StringIO.new
+    dup_stream = StringIO.new
+    stream.stubs(:dup).returns(dup_stream)
+    dup_stream.expects(:close)
+    silence_stream(stream) { stream.puts 'hello world' }
+  end
+
+  def test_quietly
+    old_stdout_position, old_stderr_position = STDOUT.tell, STDERR.tell
+    assert_deprecated do
+      quietly do
+        puts 'see me, feel me'
+        STDERR.puts 'touch me, heal me'
+      end
+    end
+    assert_equal old_stdout_position, STDOUT.tell
     assert_equal old_stderr_position, STDERR.tell
   rescue Errno::ESPIPE
     # Skip if we can't STDERR.tell
-  end
-
-  def test_silence_stderr_with_return_value
-    assert_equal 1, silence_stderr { 1 }
-  end
-
-  def test_singleton_class
-    o = Object.new
-    assert_equal class << o; self end, o.singleton_class
   end
 
   def test_class_eval
@@ -52,14 +65,24 @@ class KernelTest < Test::Unit::TestCase
     class << o; @x = 1; end
     assert_equal 1, o.class_eval { @x }
   end
-  
+
   def test_capture
-    assert_equal 'STDERR', capture(:stderr) {$stderr.print 'STDERR'}
-    assert_equal 'STDOUT', capture(:stdout) {print 'STDOUT'}
+    assert_deprecated do
+      assert_equal 'STDERR', capture(:stderr) { $stderr.print 'STDERR' }
+    end
+    assert_deprecated do
+      assert_equal 'STDOUT', capture(:stdout) { print 'STDOUT' }
+    end
+    assert_deprecated do
+      assert_equal "STDERR\n", capture(:stderr) { system('echo STDERR 1>&2') }
+    end
+    assert_deprecated do
+      assert_equal "STDOUT\n", capture(:stdout) { system('echo STDOUT') }
+    end
   end
 end
 
-class KernelSuppressTest < Test::Unit::TestCase
+class KernelSuppressTest < ActiveSupport::TestCase
   def test_reraise
     assert_raise(LoadError) do
       suppress(ArgumentError) { raise LoadError }
@@ -73,3 +96,43 @@ class KernelSuppressTest < Test::Unit::TestCase
     suppress(LoadError, ArgumentError) { raise ArgumentError }
   end
 end
+
+class MockStdErr
+  attr_reader :output
+  def puts(message)
+    @output ||= []
+    @output << message
+  end
+
+  def info(message)
+    puts(message)
+  end
+
+  def write(message)
+    puts(message)
+  end
+end
+
+class KernelDebuggerTest < ActiveSupport::TestCase
+  def test_debugger_not_available_message_to_stderr
+    old_stderr = $stderr
+    $stderr = MockStdErr.new
+    debugger
+    assert_match(/Debugger requested/, $stderr.output.first)
+  ensure
+    $stderr = old_stderr
+  end
+
+  def test_debugger_not_available_message_to_rails_logger
+    rails = Class.new do
+      def self.logger
+        @logger ||= MockStdErr.new
+      end
+    end
+    Object.const_set(:Rails, rails)
+    debugger
+    assert_match(/Debugger requested/, rails.logger.output.first)
+  ensure
+    Object.send(:remove_const, :Rails)
+  end
+end if RUBY_VERSION < '2.0.0'

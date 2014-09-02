@@ -1,29 +1,21 @@
-require 'active_support/core_ext/object/blank'
-require 'active_support/core_ext/hash/reverse_merge'
+require 'active_support/core_ext/hash/indifferent_access'
 require 'rack/utils'
 
 module ActionDispatch
   class TestRequest < Request
-    DEFAULT_ENV = Rack::MockRequest.env_for('/')
+    DEFAULT_ENV = Rack::MockRequest.env_for('/',
+      'HTTP_HOST'       => 'test.host',
+      'REMOTE_ADDR'     => '0.0.0.0',
+      'HTTP_USER_AGENT' => 'Rails Testing'
+    )
 
     def self.new(env = {})
       super
     end
 
     def initialize(env = {})
-      env = Rails.application.env_config.merge(env) if defined?(Rails.application)
-      super(DEFAULT_ENV.merge(env))
-
-      @cookies = nil
-      self.host        = 'test.host'
-      self.remote_addr = '0.0.0.0'
-      self.user_agent  = 'Rails Testing'
-    end
-
-    def env
-      write_cookies!
-      delete_nil_values!
-      super
+      env = Rails.application.env_config.merge(env) if defined?(Rails.application) && Rails.application
+      super(default_env.merge(env))
     end
 
     def request_method=(method)
@@ -47,7 +39,7 @@ module ActionDispatch
     end
 
     def action=(action_name)
-      path_parameters["action"] = action_name.to_s
+      path_parameters[:action] = action_name.to_s
     end
 
     def if_modified_since=(last_modified)
@@ -71,23 +63,16 @@ module ActionDispatch
       @env['HTTP_ACCEPT'] = Array(mime_types).collect { |mime_type| mime_type.to_s }.join(",")
     end
 
+    alias :rack_cookies :cookies
+
     def cookies
-      @cookies ||= super
+      @cookies ||= {}.with_indifferent_access
     end
 
     private
-      def write_cookies!
-        unless @cookies.blank?
-          @env['HTTP_COOKIE'] = @cookies.map { |name, value| escape_cookie(name, value) }.join('; ')
-        end
-      end
 
-      def escape_cookie(name, value)
-        "#{Rack::Utils.escape(name)}=#{Rack::Utils.escape(value)}"
-      end
-
-      def delete_nil_values!
-        @env.delete_if { |k, v| v.nil? }
-      end
+    def default_env
+      DEFAULT_ENV
+    end
   end
 end

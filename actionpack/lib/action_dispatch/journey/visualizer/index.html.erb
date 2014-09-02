@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.css" type="text/css">
+    <style>
+      <% stylesheets.each do |style| %>
+        <%= style %>
+      <% end %>
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.4.8/d3.min.js" type="text/javascript"></script>
+  </head>
+  <body>
+    <div id="wrapper">
+      <h1>Routes FSM with NFA simulation</h1>
+      <div class="instruction form">
+        <p>
+        Type a route in to the box and click "simulate".
+        </p>
+        <form onsubmit="return match(this.route.value);">
+          <input type="text" size="30" name="route" value="/articles/new" />
+          <button>simulate</button>
+          <input type="reset" value="reset" onclick="return reset_graph();"/>
+        </form>
+        <p class="fun_routes">
+          Some fun routes to try:
+          <% fun_routes.each do |path| %>
+             <a href="#" onclick="document.forms[0].elements[0].value=this.text.replace(/^\s+|\s+$/g,''); return match(this.text.replace(/^\s+|\s+$/g,''));">
+               <%= path %>
+             </a>
+          <% end %>
+        </p>
+      </div>
+      <div class='chart' id='chart-2'>
+        <%= svg %>
+      </div>
+      <div class="instruction">
+        <p>
+        This is a FSM for a system that has the following routes:
+        </p>
+        <ul>
+          <% paths.each do |route| %>
+            <li><%= route %></li>
+          <% end %>
+        </ul>
+      </div>
+    </div>
+    <% javascripts.each do |js| %>
+      <script><%= js %></script>
+    <% end %>
+  </body>
+</html>

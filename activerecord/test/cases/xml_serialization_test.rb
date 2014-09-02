@@ -1,10 +1,14 @@
 require "cases/helper"
+require "rexml/document"
 require 'models/contact'
 require 'models/post'
 require 'models/author'
 require 'models/comment'
 require 'models/company_in_module'
 require 'models/toy'
+require 'models/topic'
+require 'models/reply'
+require 'models/company'
 
 class XmlSerializationTest < ActiveRecord::TestCase
   def test_should_serialize_default_root
@@ -50,57 +54,125 @@ class XmlSerializationTest < ActiveRecord::TestCase
     end
     assert_match %r{<creator>David</creator>}, @xml
   end
+
+  def test_to_xml_with_block
+    value = "Rockin' the block"
+    xml = Contact.new.to_xml(:skip_instruct => true) do |_xml|
+      _xml.tag! "arbitrary-element", value
+    end
+    assert_equal "<contact>", xml.first(9)
+    assert xml.include?(%(<arbitrary-element>#{value}</arbitrary-element>))
+  end
+
+  def test_should_skip_instruct_for_included_records
+    @contact = Contact.new
+    @contact.alternative = Contact.new(:name => 'Copa Cabana')
+    @xml = @contact.to_xml(:include => [ :alternative ])
+    assert_equal @xml.index('<?xml '), 0
+    assert_nil @xml.index('<?xml ', 1)
+  end
 end
 
 class DefaultXmlSerializationTest < ActiveRecord::TestCase
   def setup
-    @xml = Contact.new(:name => 'aaron stack', :age => 25, :avatar => 'binarydata', :created_at => Time.utc(2006, 8, 1), :awesome => false, :preferences => { :gem => 'ruby' }).to_xml
+    @contact = Contact.new(
+      :name        => 'aaron stack',
+      :age         => 25,
+      :avatar      => 'binarydata',
+      :created_at  => Time.utc(2006, 8, 1),
+      :awesome     => false,
+      :preferences => { :gem => 'ruby' }
+    )
   end
 
   def test_should_serialize_string
-    assert_match %r{<name>aaron stack</name>},     @xml
+    assert_match %r{<name>aaron stack</name>}, @contact.to_xml
   end
 
   def test_should_serialize_integer
-    assert_match %r{<age type="integer">25</age>}, @xml
+    assert_match %r{<age type="integer">25</age>}, @contact.to_xml
   end
 
   def test_should_serialize_binary
-    assert_match %r{YmluYXJ5ZGF0YQ==\n</avatar>},    @xml
-    assert_match %r{<avatar(.*)(type="binary")},     @xml
-    assert_match %r{<avatar(.*)(encoding="base64")}, @xml
+    xml = @contact.to_xml
+    assert_match %r{YmluYXJ5ZGF0YQ==\n</avatar>},    xml
+    assert_match %r{<avatar(.*)(type="binary")},     xml
+    assert_match %r{<avatar(.*)(encoding="base64")}, xml
   end
 
   def test_should_serialize_datetime
-    assert_match %r{<created-at type=\"datetime\">2006-08-01T00:00:00Z</created-at>}, @xml
+    assert_match %r{<created-at type=\"dateTime\">2006-08-01T00:00:00Z</created-at>}, @contact.to_xml
   end
 
   def test_should_serialize_boolean
-    assert_match %r{<awesome type=\"boolean\">false</awesome>}, @xml
+    assert_match %r{<awesome type=\"boolean\">false</awesome>}, @contact.to_xml
   end
 
   def test_should_serialize_hash
-    assert_match %r{<preferences>\s*<gem>ruby</gem>\s*</preferences>}m, @xml
+    assert_match %r{<preferences>\s*<gem>ruby</gem>\s*</preferences>}m, @contact.to_xml
+  end
+
+  def test_uses_serializable_hash_with_only_option
+    def @contact.serializable_hash(options=nil)
+      super(only: %w(name))
+    end
+
+    xml = @contact.to_xml
+    assert_match %r{<name>aaron stack</name>}, xml
+    assert_no_match %r{age}, xml
+    assert_no_match %r{awesome}, xml
+  end
+
+  def test_uses_serializable_hash_with_except_option
+    def @contact.serializable_hash(options=nil)
+      super(except: %w(age))
+    end
+
+    xml = @contact.to_xml
+    assert_match %r{<name>aaron stack</name>}, xml
+    assert_match %r{<awesome type=\"boolean\">false</awesome>}, xml
+    assert_no_match %r{age}, xml
+  end
+
+  def test_does_not_include_inheritance_column_from_sti
+    @contact = ContactSti.new(@contact.attributes)
+    assert_equal 'ContactSti', @contact.type
+
+    xml = @contact.to_xml
+    assert_match %r{<name>aaron stack</name>}, xml
+    assert_no_match %r{<type}, xml
+    assert_no_match %r{ContactSti}, xml
+  end
+
+  def test_serializable_hash_with_default_except_option_and_excluding_inheritance_column_from_sti
+    @contact = ContactSti.new(@contact.attributes)
+    assert_equal 'ContactSti', @contact.type
+
+    def @contact.serializable_hash(options={})
+      super({ except: %w(age) }.merge!(options))
+    end
+
+    xml = @contact.to_xml
+    assert_match %r{<name>aaron stack</name>}, xml
+    assert_no_match %r{age}, xml
+    assert_no_match %r{<type}, xml
+    assert_no_match %r{ContactSti}, xml
   end
 end
 
 class DefaultXmlSerializationTimezoneTest < ActiveRecord::TestCase
   def test_should_serialize_datetime_with_timezone
-    timezone, Time.zone = Time.zone, "Pacific Time (US & Canada)"
-
-    toy = Toy.create(:name => 'Mickey', :updated_at => Time.utc(2006, 8, 1))
-    assert_match %r{<updated-at type=\"datetime\">2006-07-31T17:00:00-07:00</updated-at>}, toy.to_xml
-  ensure
-    Time.zone = timezone
+    with_timezone_config zone: "Pacific Time (US & Canada)" do
+      toy = Toy.create(:name => 'Mickey', :updated_at => Time.utc(2006, 8, 1))
+      assert_match %r{<updated-at type=\"dateTime\">2006-07-31T17:00:00-07:00</updated-at>}, toy.to_xml
+    end
   end
 
   def test_should_serialize_datetime_with_timezone_reloaded
-    timezone, Time.zone = Time.zone, "Pacific Time (US & Canada)"
-
-    toy = Toy.create(:name => 'Minnie', :updated_at => Time.utc(2006, 8, 1)).reload
-    assert_match %r{<updated-at type=\"datetime\">2006-07-31T17:00:00-07:00</updated-at>}, toy.to_xml
-  ensure
-    Time.zone = timezone
+    with_timezone_config zone: "Pacific Time (US & Canada)" do
+      toy = Toy.create(:name => 'Minnie', :updated_at => Time.utc(2006, 8, 1)).reload
+      assert_match %r{<updated-at type=\"dateTime\">2006-07-31T17:00:00-07:00</updated-at>}, toy.to_xml
+    end
   end
 end
 
@@ -110,18 +182,18 @@ class NilXmlSerializationTest < ActiveRecord::TestCase
   end
 
   def test_should_serialize_string
-    assert_match %r{<name nil="true"></name>},     @xml
+    assert_match %r{<name nil="true"/>}, @xml
   end
 
   def test_should_serialize_integer
-    assert %r{<age (.*)></age>}.match(@xml)
+    assert %r{<age (.*)/>}.match(@xml)
     attributes = $1
     assert_match %r{nil="true"}, attributes
     assert_match %r{type="integer"}, attributes
   end
 
   def test_should_serialize_binary
-    assert %r{<avatar (.*)></avatar>}.match(@xml)
+    assert %r{<avatar (.*)/>}.match(@xml)
     attributes = $1
     assert_match %r{type="binary"}, attributes
     assert_match %r{encoding="base64"}, attributes
@@ -129,26 +201,76 @@ class NilXmlSerializationTest < ActiveRecord::TestCase
   end
 
   def test_should_serialize_datetime
-    assert %r{<created-at (.*)></created-at>}.match(@xml)
+    assert %r{<created-at (.*)/>}.match(@xml)
     attributes = $1
     assert_match %r{nil="true"}, attributes
-    assert_match %r{type="datetime"}, attributes
+    assert_match %r{type="dateTime"}, attributes
   end
 
   def test_should_serialize_boolean
-    assert %r{<awesome (.*)></awesome>}.match(@xml)
+    assert %r{<awesome (.*)/>}.match(@xml)
     attributes = $1
     assert_match %r{type="boolean"}, attributes
     assert_match %r{nil="true"}, attributes
   end
 
   def test_should_serialize_yaml
-    assert_match %r{<preferences nil=\"true\"></preferences>}, @xml
+    assert_match %r{<preferences nil=\"true\"/>}, @xml
   end
 end
 
 class DatabaseConnectedXmlSerializationTest < ActiveRecord::TestCase
-  fixtures :authors, :posts, :projects
+  fixtures :topics, :companies, :accounts, :authors, :posts, :projects
+
+  def test_to_xml
+    xml = REXML::Document.new(topics(:first).to_xml(:indent => 0))
+    bonus_time_in_current_timezone = topics(:first).bonus_time.xmlschema
+    written_on_in_current_timezone = topics(:first).written_on.xmlschema
+
+    assert_equal "topic", xml.root.name
+    assert_equal "The First Topic" , xml.elements["//title"].text
+    assert_equal "David" , xml.elements["//author-name"].text
+    assert_match "Have a nice day", xml.elements["//content"].text
+
+    assert_equal "1", xml.elements["//id"].text
+    assert_equal "integer" , xml.elements["//id"].attributes['type']
+
+    assert_equal "1", xml.elements["//replies-count"].text
+    assert_equal "integer" , xml.elements["//replies-count"].attributes['type']
+
+    assert_equal written_on_in_current_timezone, xml.elements["//written-on"].text
+    assert_equal "dateTime" , xml.elements["//written-on"].attributes['type']
+
+    assert_equal "david@loudthinking.com", xml.elements["//author-email-address"].text
+
+    assert_equal nil, xml.elements["//parent-id"].text
+    assert_equal "integer", xml.elements["//parent-id"].attributes['type']
+    assert_equal "true", xml.elements["//parent-id"].attributes['nil']
+
+    # Oracle enhanced adapter allows to define Date attributes in model class (see topic.rb)
+    assert_equal "2004-04-15", xml.elements["//last-read"].text
+    assert_equal "date" , xml.elements["//last-read"].attributes['type']
+
+    # Oracle and DB2 don't have true boolean or time-only fields
+    unless current_adapter?(:OracleAdapter, :DB2Adapter)
+      assert_equal "false", xml.elements["//approved"].text
+      assert_equal "boolean" , xml.elements["//approved"].attributes['type']
+
+      assert_equal bonus_time_in_current_timezone, xml.elements["//bonus-time"].text
+      assert_equal "dateTime" , xml.elements["//bonus-time"].attributes['type']
+    end
+  end
+
+  def test_except_option
+    xml = topics(:first).to_xml(:indent => 0, :skip_instruct => true, :except => [:title, :replies_count])
+    assert_equal "<topic>", xml.first(7)
+    assert !xml.include?(%(<title>The First Topic</title>))
+    assert xml.include?(%(<author-name>David</author-name>))
+
+    xml = topics(:first).to_xml(:indent => 0, :skip_instruct => true, :except => [:title, :author_name, :replies_count])
+    assert !xml.include?(%(<title>The First Topic</title>))
+    assert !xml.include?(%(<author-name>David</author-name>))
+  end
 
   # to_xml used to mess with the hash the user provided which
   # caused the builder to be reused.  This meant the document kept
@@ -182,6 +304,39 @@ class DatabaseConnectedXmlSerializationTest < ActiveRecord::TestCase
     assert_match %r{<hello-posts>}, xml
     assert_match %r{<hello-post>}, xml
     assert_match %r{<hello-post>}, xml
+  end
+
+  def test_including_has_many_association
+    xml = topics(:first).to_xml(:indent => 0, :skip_instruct => true, :include => :replies, :except => :replies_count)
+    assert_equal "<topic>", xml.first(7)
+    assert xml.include?(%(<replies type="array"><reply>))
+    assert xml.include?(%(<title>The Second Topic of the day</title>))
+  end
+
+  def test_including_belongs_to_association
+    xml = companies(:first_client).to_xml(:indent => 0, :skip_instruct => true, :include => :firm)
+    assert !xml.include?("<firm>")
+
+    xml = companies(:second_client).to_xml(:indent => 0, :skip_instruct => true, :include => :firm)
+    assert xml.include?("<firm>")
+  end
+
+  def test_including_multiple_associations
+    xml = companies(:first_firm).to_xml(:indent => 0, :skip_instruct => true, :include => [ :clients, :account ])
+    assert_equal "<firm>", xml.first(6)
+    assert xml.include?(%(<account>))
+    assert xml.include?(%(<clients type="array"><client>))
+  end
+
+  def test_including_association_with_options
+    xml = companies(:first_firm).to_xml(
+      :indent  => 0, :skip_instruct => true,
+      :include => { :clients => { :only => :name } }
+    )
+
+    assert_equal "<firm>", xml.first(6)
+    assert xml.include?(%(<client><name>Summit</name></client>))
+    assert xml.include?(%(<clients type="array"><client>))
   end
 
   def test_methods_are_called_on_object
@@ -261,8 +416,32 @@ class DatabaseConnectedXmlSerializationTest < ActiveRecord::TestCase
 
   def test_should_support_aliased_attributes
     xml = Author.select("name as firstname").to_xml
-    array = Hash.from_xml(xml)['authors']
-    assert_equal array.size, array.select { |author| author.has_key? 'firstname' }.size
+    Author.all.each do |author|
+      assert xml.include?(%(<firstname>#{author.name}</firstname>)), xml
+    end
   end
 
+  def test_array_to_xml_including_has_many_association
+    xml = [ topics(:first), topics(:second) ].to_xml(:indent => 0, :skip_instruct => true, :include => :replies)
+    assert xml.include?(%(<replies type="array"><reply>))
+  end
+
+  def test_array_to_xml_including_methods
+    xml = [ topics(:first), topics(:second) ].to_xml(:indent => 0, :skip_instruct => true, :methods => [ :topic_id ])
+    assert xml.include?(%(<topic-id type="integer">#{topics(:first).topic_id}</topic-id>)), xml
+    assert xml.include?(%(<topic-id type="integer">#{topics(:second).topic_id}</topic-id>)), xml
+  end
+
+  def test_array_to_xml_including_has_one_association
+    xml = [ companies(:first_firm), companies(:rails_core) ].to_xml(:indent => 0, :skip_instruct => true, :include => :account)
+    assert xml.include?(companies(:first_firm).account.to_xml(:indent => 0, :skip_instruct => true))
+    assert xml.include?(companies(:rails_core).account.to_xml(:indent => 0, :skip_instruct => true))
+  end
+
+  def test_array_to_xml_including_belongs_to_association
+    xml = [ companies(:first_client), companies(:second_client), companies(:another_client) ].to_xml(:indent => 0, :skip_instruct => true, :include => :firm)
+    assert xml.include?(companies(:first_client).to_xml(:indent => 0, :skip_instruct => true))
+    assert xml.include?(companies(:second_client).firm.to_xml(:indent => 0, :skip_instruct => true))
+    assert xml.include?(companies(:another_client).firm.to_xml(:indent => 0, :skip_instruct => true))
+  end
 end

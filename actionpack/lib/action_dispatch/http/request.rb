@@ -1,12 +1,16 @@
-require 'tempfile'
 require 'stringio'
-require 'strscan'
 
-require 'active_support/core_ext/module/deprecation'
-require 'active_support/core_ext/hash/indifferent_access'
-require 'active_support/core_ext/string/access'
 require 'active_support/inflector'
 require 'action_dispatch/http/headers'
+require 'action_controller/metal/exceptions'
+require 'rack/request'
+require 'action_dispatch/http/cache'
+require 'action_dispatch/http/mime_negotiation'
+require 'action_dispatch/http/parameters'
+require 'action_dispatch/http/filter_parameters'
+require 'action_dispatch/http/upload'
+require 'action_dispatch/http/url'
+require 'active_support/core_ext/array/conversions'
 
 module ActionDispatch
   class Request < Rack::Request
@@ -14,10 +18,13 @@ module ActionDispatch
     include ActionDispatch::Http::MimeNegotiation
     include ActionDispatch::Http::Parameters
     include ActionDispatch::Http::FilterParameters
-    include ActionDispatch::Http::Upload
     include ActionDispatch::Http::URL
 
-    LOCALHOST   = [/^127\.0\.0\.\d{1,3}$/, "::1", /^0:0:0:0:0:0:0:1(%.*)?$/].freeze
+    autoload :Session, 'action_dispatch/request/session'
+    autoload :Utils,   'action_dispatch/request/utils'
+
+    LOCALHOST   = Regexp.union [/^127\.\d{1,3}\.\d{1,3}\.\d{1,3}$/, /^::1$/, /^0:0:0:0:0:0:0:1(%.*)?$/]
+
     ENV_METHODS = %w[ AUTH_TYPE GATEWAY_INTERFACE
         PATH_TRANSLATED REMOTE_HOST
         REMOTE_IDENT REMOTE_USER REMOTE_ADDR
@@ -26,21 +33,35 @@ module ActionDispatch
         HTTP_ACCEPT HTTP_ACCEPT_CHARSET HTTP_ACCEPT_ENCODING
         HTTP_ACCEPT_LANGUAGE HTTP_CACHE_CONTROL HTTP_FROM
         HTTP_NEGOTIATE HTTP_PRAGMA ].freeze
-      
+
     ENV_METHODS.each do |env|
       class_eval <<-METHOD, __FILE__, __LINE__ + 1
-        def #{env.sub(/^HTTP_/n, '').downcase}
-          @env["#{env}"]
-        end
+        def #{env.sub(/^HTTP_/n, '').downcase}  # def accept_charset
+          @env["#{env}"]                        #   @env["HTTP_ACCEPT_CHARSET"]
+        end                                     # end
       METHOD
     end
 
-    def self.new(env)
-      if request = env["action_dispatch.request"] && request.instance_of?(self)
-        return request
-      end
-
+    def initialize(env)
       super
+      @method            = nil
+      @request_method    = nil
+      @remote_ip         = nil
+      @original_fullpath = nil
+      @fullpath          = nil
+      @ip                = nil
+      @uuid              = nil
+    end
+
+    def check_path_parameters!
+      # If any of the path parameters has an invalid encoding then
+      # raise since it's likely to trigger errors further on.
+      path_parameters.each do |key, value|
+        next unless value.respond_to?(:valid_encoding?)
+        unless value.valid_encoding?
+          raise ActionController::BadRequest, "Invalid parameter: #{key} => #{value}"
+        end
+      end
     end
 
     def key?(key)
@@ -54,6 +75,7 @@ module ActionDispatch
     # Ordered Collections Protocol (WebDAV) (http://www.ietf.org/rfc/rfc3648.txt)
     # Web Distributed Authoring and Versioning (WebDAV) Access Control Protocol (http://www.ietf.org/rfc/rfc3744.txt)
     # Web Distributed Authoring and Versioning (WebDAV) SEARCH (http://www.ietf.org/rfc/rfc5323.txt)
+    # Calendar Extensions to WebDAV (http://www.ietf.org/rfc/rfc4791.txt)
     # PATCH Method for HTTP (http://www.ietf.org/rfc/rfc5789.txt)
     RFC2616 = %w(OPTIONS GET HEAD POST PUT DELETE TRACE CONNECT)
     RFC2518 = %w(PROPFIND PROPPATCH MKCOL COPY MOVE LOCK UNLOCK)
@@ -61,10 +83,17 @@ module ActionDispatch
     RFC3648 = %w(ORDERPATCH)
     RFC3744 = %w(ACL)
     RFC5323 = %w(SEARCH)
+    RFC4791 = %w(MKCALENDAR)
     RFC5789 = %w(PATCH)
 
-    HTTP_METHODS = RFC2616 + RFC2518 + RFC3253 + RFC3648 + RFC3744 + RFC5323 + RFC5789
-    HTTP_METHOD_LOOKUP = Hash.new { |h, m| h[m] = m.underscore.to_sym if HTTP_METHODS.include?(m) }
+    HTTP_METHODS = RFC2616 + RFC2518 + RFC3253 + RFC3648 + RFC3744 + RFC5323 + RFC4791 + RFC5789
+
+    HTTP_METHOD_LOOKUP = {}
+
+    # Populate the HTTP method lookup cache
+    HTTP_METHODS.each { |method|
+      HTTP_METHOD_LOOKUP[method] = method.underscore.to_sym
+    }
 
     # Returns the HTTP \method that the application should see.
     # In the case where the \method was overridden by a middleware
@@ -74,6 +103,12 @@ module ActionDispatch
     # value, not the original.
     def request_method
       @request_method ||= check_method(env["REQUEST_METHOD"])
+    end
+
+    def request_method=(request_method) #:nodoc:
+      if check_method(request_method)
+        @request_method = env["REQUEST_METHOD"] = request_method
+      end
     end
 
     # Returns a symbol form of the #request_method
@@ -94,33 +129,39 @@ module ActionDispatch
     end
 
     # Is this a GET (or HEAD) request?
-    # Equivalent to <tt>request.request_method == :get</tt>.
+    # Equivalent to <tt>request.request_method_symbol == :get</tt>.
     def get?
       HTTP_METHOD_LOOKUP[request_method] == :get
     end
 
     # Is this a POST request?
-    # Equivalent to <tt>request.request_method == :post</tt>.
+    # Equivalent to <tt>request.request_method_symbol == :post</tt>.
     def post?
       HTTP_METHOD_LOOKUP[request_method] == :post
     end
 
+    # Is this a PATCH request?
+    # Equivalent to <tt>request.request_method == :patch</tt>.
+    def patch?
+      HTTP_METHOD_LOOKUP[request_method] == :patch
+    end
+
     # Is this a PUT request?
-    # Equivalent to <tt>request.request_method == :put</tt>.
+    # Equivalent to <tt>request.request_method_symbol == :put</tt>.
     def put?
       HTTP_METHOD_LOOKUP[request_method] == :put
     end
 
     # Is this a DELETE request?
-    # Equivalent to <tt>request.request_method == :delete</tt>.
+    # Equivalent to <tt>request.request_method_symbol == :delete</tt>.
     def delete?
       HTTP_METHOD_LOOKUP[request_method] == :delete
     end
 
     # Is this a HEAD request?
-    # Equivalent to <tt>request.method == :head</tt>.
+    # Equivalent to <tt>request.request_method_symbol == :head</tt>.
     def head?
-      HTTP_METHOD_LOOKUP[method] == :head
+      HTTP_METHOD_LOOKUP[request_method] == :head
     end
 
     # Provides access to the request's HTTP headers, for example:
@@ -130,15 +171,40 @@ module ActionDispatch
       Http::Headers.new(@env)
     end
 
+    # Returns a +String+ with the last requested path including their params.
+    #
+    #    # get '/foo'
+    #    request.original_fullpath # => '/foo'
+    #
+    #    # get '/foo?bar'
+    #    request.original_fullpath # => '/foo?bar'
+    def original_fullpath
+      @original_fullpath ||= (env["ORIGINAL_FULLPATH"] || fullpath)
+    end
+
+    # Returns the +String+ full path including params of the last URL requested.
+    #
+    #    # get "/articles"
+    #    request.fullpath # => "/articles"
+    #
+    #    # get "/articles?page=2"
+    #    request.fullpath # => "/articles?page=2"
     def fullpath
       @fullpath ||= super
     end
 
-    def forgery_whitelisted?
-      get?
+    # Returns the original request URL as a +String+.
+    #
+    #    # get "/articles?page=2"
+    #    request.original_url # => "http://www.example.com/articles?page=2"
+    def original_url
+      base_url + original_fullpath
     end
-    deprecate :forgery_whitelisted? => "it is just an alias for 'get?' now, update your code"
 
+    # The +String+ MIME type of the request.
+    #
+    #    # get "/articles"
+    #    request.media_type # => "application/x-www-form-urlencoded"
     def media_type
       content_mime_type.to_s
     end
@@ -149,8 +215,8 @@ module ActionDispatch
     end
 
     # Returns true if the "X-Requested-With" header contains "XMLHttpRequest"
-    # (case-insensitive). All major JavaScript libraries send this header with
-    # every Ajax request.
+    # (case-insensitive), which may need to be manually added depending on the
+    # choice of JavaScript libraries and frameworks.
     def xml_http_request?
       @env['HTTP_X_REQUESTED_WITH'] =~ /XMLHttpRequest/i
     end
@@ -160,26 +226,19 @@ module ActionDispatch
       @ip ||= super
     end
 
-    # Which IP addresses are "trusted proxies" that can be stripped from
-    # the right-hand-side of X-Forwarded-For.
-    #
-    # http://en.wikipedia.org/wiki/Private_network#Private_IPv4_address_spaces.
-    TRUSTED_PROXIES = %r{
-      ^127\.0\.0\.1$                | # localhost
-      ^(10                          | # private IP 10.x.x.x
-        172\.(1[6-9]|2[0-9]|3[0-1]) | # private IP in the range 172.16.0.0 .. 172.31.255.255
-        192\.168                      # private IP 192.168.x.x
-       )\.
-    }x
-
-    # Determines originating IP address.  REMOTE_ADDR is the standard
-    # but will fail if the user is behind a proxy.  HTTP_CLIENT_IP and/or
-    # HTTP_X_FORWARDED_FOR are set by proxies so check for these if
-    # REMOTE_ADDR is a proxy.  HTTP_X_FORWARDED_FOR may be a comma-
-    # delimited list in the case of multiple chained proxies; the last
-    # address which is not trusted is the originating IP.
+    # Originating IP address, usually set by the RemoteIp middleware.
     def remote_ip
       @remote_ip ||= (@env["action_dispatch.remote_ip"] || ip).to_s
+    end
+
+    # Returns the unique request id, which is based on either the X-Request-Id header that can
+    # be generated by a firewall, load balancer, or web server or by the RequestId middleware
+    # (which sets the action_dispatch.request_id environment variable).
+    #
+    # This unique ID is useful for tracing a request from end-to-end as part of logging or debugging.
+    # This relies on the rack variable set by the ActionDispatch::RequestId middleware.
+    def uuid
+      @uuid ||= env["action_dispatch.request_id"]
     end
 
     # Returns the lowercase name of the HTTP server software.
@@ -191,8 +250,9 @@ module ActionDispatch
     # work with raw requests directly.
     def raw_post
       unless @env.include? 'RAW_POST_DATA'
-        @env['RAW_POST_DATA'] = body.read(@env['CONTENT_LENGTH'].to_i)
-        body.rewind if body.respond_to?(:rewind)
+        raw_post_body = body
+        @env['RAW_POST_DATA'] = raw_post_body.read(content_length)
+        raw_post_body.rewind if raw_post_body.respond_to?(:rewind)
       end
       @env['RAW_POST_DATA']
     end
@@ -201,7 +261,7 @@ module ActionDispatch
     # variable is already set, wrap it in a StringIO.
     def body
       if raw_post = @env['RAW_POST_DATA']
-        raw_post.force_encoding(Encoding::BINARY) if raw_post.respond_to?(:force_encoding)
+        raw_post.force_encoding(Encoding::BINARY)
         StringIO.new(raw_post)
       else
         @env['rack.input']
@@ -219,31 +279,37 @@ module ActionDispatch
     # TODO This should be broken apart into AD::Request::Session and probably
     # be included by the session middleware.
     def reset_session
-      session.destroy if session && session.respond_to?(:destroy)
-      self.session = {}
+      if session && session.respond_to?(:destroy)
+        session.destroy
+      else
+        self.session = {}
+      end
       @env['action_dispatch.request.flash_hash'] = nil
     end
 
     def session=(session) #:nodoc:
-      @env['rack.session'] = session
+      Session.set @env, session
     end
 
     def session_options=(options)
-      @env['rack.session.options'] = options
+      Session::Options.set @env, options
     end
 
     # Override Rack's GET method to support indifferent access
     def GET
-      @env["action_dispatch.request.query_parameters"] ||= (normalize_parameters(super) || {})
+      @env["action_dispatch.request.query_parameters"] ||= Utils.deep_munge(normalize_encode_params(super || {}))
+    rescue TypeError, Rack::Utils::InvalidParameterError => e
+      raise ActionController::BadRequest.new(:query, e)
     end
     alias :query_parameters :GET
 
     # Override Rack's POST method to support indifferent access
     def POST
-      @env["action_dispatch.request.request_parameters"] ||= (normalize_parameters(super) || {})
+      @env["action_dispatch.request.request_parameters"] ||= Utils.deep_munge(normalize_encode_params(super || {}))
+    rescue TypeError, Rack::Utils::InvalidParameterError => e
+      raise ActionController::BadRequest.new(:request, e)
     end
     alias :request_parameters :POST
-
 
     # Returns the authorization header regardless of whether it was specified directly or through one of the
     # proxy alternatives.
@@ -256,14 +322,27 @@ module ActionDispatch
 
     # True if the request came from localhost, 127.0.0.1.
     def local?
-      LOCALHOST.any? { |local_ip| local_ip === remote_addr && local_ip === remote_ip }
+      LOCALHOST =~ remote_addr && LOCALHOST =~ remote_ip
     end
+
+    # Extracted into ActionDispatch::Request::Utils.deep_munge, but kept here for backwards compatibility.
+    def deep_munge(hash)
+      ActiveSupport::Deprecation.warn(
+        "This method has been extracted into ActionDispatch::Request::Utils.deep_munge. Please start using that instead."
+      )
+
+      Utils.deep_munge(hash)
+    end
+
+    protected
+      def parse_query(qs)
+        Utils.deep_munge(super)
+      end
 
     private
-
-    def check_method(name)
-      HTTP_METHOD_LOOKUP[name] || raise(ActionController::UnknownHttpMethod, "#{name}, accepted HTTP methods are #{HTTP_METHODS.to_sentence(:locale => :en)}")
-      name
-    end
+      def check_method(name)
+        HTTP_METHOD_LOOKUP[name] || raise(ActionController::UnknownHttpMethod, "#{name}, accepted HTTP methods are #{HTTP_METHODS.to_sentence(:locale => :en)}")
+        name
+      end
   end
 end

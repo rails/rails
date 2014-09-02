@@ -1,7 +1,7 @@
 require "cases/helper"
 
 class CopyTableTest < ActiveRecord::TestCase
-  fixtures :customers, :companies, :comments
+  fixtures :customers
 
   def setup
     @connection = ActiveRecord::Base.connection
@@ -32,6 +32,11 @@ class CopyTableTest < ActiveRecord::TestCase
     end
   end
 
+  def test_copy_table_allows_to_pass_options_to_create_table
+    @connection.create_table('blocker_table')
+    test_copy_table('customers', 'blocker_table', force: true)
+  end
+
   def test_copy_table_with_index
     test_copy_table('comments', 'comments_with_index') do
       @connection.add_index('comments_with_index', ['post_id', 'type'])
@@ -43,18 +48,31 @@ class CopyTableTest < ActiveRecord::TestCase
   end
 
   def test_copy_table_without_primary_key
-    test_copy_table('developers_projects', 'programmers_projects')
+    test_copy_table('developers_projects', 'programmers_projects') do
+      assert_nil @connection.primary_key('programmers_projects')
+    end
   end
 
   def test_copy_table_with_id_col_that_is_not_primary_key
-    test_copy_table('goofy_string_id', 'goofy_string_id2') do |from, to, options|
+    test_copy_table('goofy_string_id', 'goofy_string_id2') do
       original_id = @connection.columns('goofy_string_id').detect{|col| col.name == 'id' }
       copied_id = @connection.columns('goofy_string_id2').detect{|col| col.name == 'id' }
       assert_equal original_id.type, copied_id.type
       assert_equal original_id.sql_type, copied_id.sql_type
       assert_equal original_id.limit, copied_id.limit
-      assert_equal original_id.primary, copied_id.primary
     end
+  end
+
+  def test_copy_table_with_unconventional_primary_key
+    test_copy_table('owners', 'owners_unconventional') do
+      original_pk = @connection.primary_key('owners')
+      copied_pk = @connection.primary_key('owners_unconventional')
+      assert_equal original_pk, copied_pk
+    end
+  end
+
+  def test_copy_table_with_binary_column
+    test_copy_table 'binaries', 'binaries2'
   end
 
 protected
@@ -71,7 +89,7 @@ protected
   end
 
   def table_indexes_without_name(table)
-    @connection.indexes('comments_with_index').delete(:name)
+    @connection.indexes(table).delete(:name)
   end
 
   def row_count(table)

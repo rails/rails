@@ -2,7 +2,7 @@ require 'tsort'
 
 module Rails
   module Initializable
-    def self.included(base)
+    def self.included(base) #:nodoc:
       base.extend ClassMethods
     end
 
@@ -10,6 +10,7 @@ module Rails
       attr_reader :name, :block
 
       def initialize(name, context, options, &block)
+        options[:group] ||= :default
         @name, @context, @options, @block = name, context, options, block
       end
 
@@ -19,6 +20,10 @@ module Rails
 
       def after
         @options[:after]
+      end
+
+      def belongs_to?(group)
+        @options[:group] == group || @options[:group] == :all
       end
 
       def run(*args)
@@ -44,10 +49,10 @@ module Rails
       end
     end
 
-    def run_initializers(*args)
+    def run_initializers(group=:default, *args)
       return if instance_variable_defined?(:@ran)
-      initializers.tsort.each do |initializer|
-        initializer.run(*args)
+      initializers.tsort_each do |initializer|
+        initializer.run(*args) if initializer.belongs_to?(group)
       end
       @ran = true
     end

@@ -18,7 +18,7 @@ class ResourceGeneratorTest < Rails::Generators::TestCase
 
     %w(
       app/models/account.rb
-      test/unit/account_test.rb
+      test/models/account_test.rb
       test/fixtures/accounts.yml
     ).each { |path| assert_file path }
 
@@ -33,10 +33,9 @@ class ResourceGeneratorTest < Rails::Generators::TestCase
   def test_resource_controller_with_pluralized_class_name
     run_generator
     assert_file "app/controllers/accounts_controller.rb", /class AccountsController < ApplicationController/
-    assert_file "test/functional/accounts_controller_test.rb", /class AccountsControllerTest < ActionController::TestCase/
+    assert_file "test/controllers/accounts_controller_test.rb", /class AccountsControllerTest < ActionController::TestCase/
 
     assert_file "app/helpers/accounts_helper.rb", /module AccountsHelper/
-    assert_file "test/unit/helpers/accounts_helper_test.rb", /class AccountsHelperTest < ActionView::TestCase/
   end
 
   def test_resource_controller_with_actions
@@ -62,25 +61,25 @@ class ResourceGeneratorTest < Rails::Generators::TestCase
   def test_plural_names_are_singularized
     content = run_generator ["accounts".freeze]
     assert_file "app/models/account.rb", /class Account < ActiveRecord::Base/
-    assert_file "test/unit/account_test.rb", /class AccountTest/
-    assert_match(/Plural version of the model detected, using singularized version. Override with --force-plural./, content)
+    assert_file "test/models/account_test.rb", /class AccountTest/
+    assert_match(/\[WARNING\] The model name 'accounts' was recognized as a plural, using the singular 'account' instead\. Override with --force-plural or setup custom inflection rules for this noun before running the generator\./, content)
   end
 
   def test_plural_names_can_be_forced
     content = run_generator ["accounts", "--force-plural"]
     assert_file "app/models/accounts.rb", /class Accounts < ActiveRecord::Base/
-    assert_file "test/unit/accounts_test.rb", /class AccountsTest/
-    assert_no_match(/Plural version of the model detected/, content)
+    assert_file "test/models/accounts_test.rb", /class AccountsTest/
+    assert_no_match(/\[WARNING\]/, content)
   end
 
   def test_mass_nouns_do_not_throw_warnings
     content = run_generator ["sheep".freeze]
-    assert_no_match(/Plural version of the model detected/, content)
+    assert_no_match(/\[WARNING\]/, content)
   end
 
   def test_route_is_removed_on_revoke
     run_generator
-    run_generator ["account"], :behavior => :revoke
+    run_generator ["account"], behavior: :revoke
 
     assert_file "config/routes.rb" do |route|
       assert_no_match(/resources :accounts$/, route)

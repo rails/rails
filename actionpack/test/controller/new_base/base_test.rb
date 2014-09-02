@@ -3,7 +3,7 @@ require 'abstract_unit'
 # Tests the controller dispatching happy path
 module Dispatching
   class SimpleController < ActionController::Base
-    before_filter :authenticate
+    before_action :authenticate
 
     def index
       render :text => "success"
@@ -40,7 +40,7 @@ module Dispatching
     class ContainedEmptyController < ActionController::Base ; end
     class ContainedSubEmptyController < ContainedEmptyController ; end
     class ContainedNonDefaultPathController < ActionController::Base
-      def self.controller_path; "i_am_extremly_not_default"; end
+      def self.controller_path; "i_am_extremely_not_default"; end
     end
   end
 
@@ -89,7 +89,7 @@ module Dispatching
     end
 
     test "namespaced non-default controller path" do
-      assert_equal 'i_am_extremly_not_default', Submodule::ContainedNonDefaultPathController.controller_path
+      assert_equal 'i_am_extremely_not_default', Submodule::ContainedNonDefaultPathController.controller_path
       assert_equal Submodule::ContainedNonDefaultPathController.controller_path, Submodule::ContainedNonDefaultPathController.new.controller_path
     end
 

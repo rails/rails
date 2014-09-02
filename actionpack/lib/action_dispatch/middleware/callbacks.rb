@@ -1,33 +1,37 @@
-require 'active_support/core_ext/module/delegation'
 
 module ActionDispatch
   # Provide callbacks to be executed before and after the request dispatch.
   class Callbacks
     include ActiveSupport::Callbacks
 
-    define_callbacks :call, :rescuable => true
+    define_callbacks :call
 
     class << self
       delegate :to_prepare, :to_cleanup, :to => "ActionDispatch::Reloader"
+
+      def before(*args, &block)
+        set_callback(:call, :before, *args, &block)
+      end
+
+      def after(*args, &block)
+        set_callback(:call, :after, *args, &block)
+      end
     end
 
-    def self.before(*args, &block)
-      set_callback(:call, :before, *args, &block)
-    end
-
-    def self.after(*args, &block)
-      set_callback(:call, :after, *args, &block)
-    end
-
-    def initialize(app, unused = nil)
-      ActiveSupport::Deprecation.warn "Passing a second argument to ActionDispatch::Callbacks.new is deprecated." unless unused.nil?
+    def initialize(app)
       @app = app
     end
 
     def call(env)
-      run_callbacks :call do
-        @app.call(env)
+      error = nil
+      result = run_callbacks :call do
+        begin
+          @app.call(env)
+        rescue => error
+        end
       end
+      raise error if error
+      result
     end
   end
 end

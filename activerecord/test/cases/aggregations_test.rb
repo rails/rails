@@ -1,6 +1,5 @@
 require "cases/helper"
 require 'models/customer'
-require 'active_support/core_ext/exception'
 
 class AggregationsTest < ActiveRecord::TestCase
   fixtures :customers
@@ -26,7 +25,7 @@ class AggregationsTest < ActiveRecord::TestCase
 
   def test_immutable_value_objects
     customers(:david).balance = Money.new(100)
-    assert_raise(ActiveSupport::FrozenObjectError) { customers(:david).balance.instance_eval { @amount = 20 } }
+    assert_raise(RuntimeError) { customers(:david).balance.instance_eval { @amount = 20 } }
   end
 
   def test_inferred_mapping
@@ -109,6 +108,26 @@ class AggregationsTest < ActiveRecord::TestCase
     assert_nil customers(:david).gps_location
   end
 
+  def test_nil_return_from_converter_is_respected_when_allow_nil_is_true
+    customers(:david).non_blank_gps_location = ""
+    customers(:david).save
+    customers(:david).reload
+    assert_nil customers(:david).non_blank_gps_location
+  ensure
+    Customer.gps_conversion_was_run = nil
+  end
+
+  def test_nil_return_from_converter_results_in_failure_when_allow_nil_is_false
+    assert_raises(NoMethodError) do
+      customers(:barney).gps_location = ""
+    end
+  end
+
+  def test_do_not_run_the_converter_when_nil_was_set
+    customers(:david).non_blank_gps_location = nil
+    assert_nil Customer.gps_conversion_was_run
+  end
+
   def test_custom_constructor
     assert_equal 'Barney GUMBLE', customers(:barney).fullname.to_s
     assert_kind_of Fullname, customers(:barney).fullname
@@ -122,7 +141,6 @@ class AggregationsTest < ActiveRecord::TestCase
 end
 
 class OverridingAggregationsTest < ActiveRecord::TestCase
-  class Name; end
   class DifferentName; end
 
   class Person < ActiveRecord::Base

@@ -4,15 +4,15 @@ module RenderStreaming
   class BasicController < ActionController::Base
     self.view_paths = [ActionView::FixtureResolver.new(
       "render_streaming/basic/hello_world.html.erb" => "Hello world",
-      "render_streaming/basic/boom.html.erb" => "<%= nil.invalid! %>",
+      "render_streaming/basic/boom.html.erb" => "<%= raise 'Ruby was here!' %>",
       "layouts/application.html.erb" => "<%= yield %>, I'm here!",
       "layouts/boom.html.erb" => "<body class=\"<%= nil.invalid! %>\"<%= yield %></body>"
     )]
 
     layout "application"
-    stream :only => [:hello_world, :skip]
 
     def hello_world
+      render :stream => true
     end
 
     def layout_exception
@@ -73,26 +73,26 @@ module RenderStreaming
 
     test "rendering with layout exception" do
       get "/render_streaming/basic/layout_exception"
-      assert_body "d\r\n<body class=\"\r\n4e\r\n\"><script type=\"text/javascript\">window.location = \"/500.html\"</script></html>\r\n0\r\n\r\n"
+      assert_body "d\r\n<body class=\"\r\n37\r\n\"><script>window.location = \"/500.html\"</script></html>\r\n0\r\n\r\n"
       assert_streaming!
     end
 
     test "rendering with template exception" do
       get "/render_streaming/basic/template_exception"
-      assert_body "4e\r\n\"><script type=\"text/javascript\">window.location = \"/500.html\"</script></html>\r\n0\r\n\r\n"
+      assert_body "37\r\n\"><script>window.location = \"/500.html\"</script></html>\r\n0\r\n\r\n"
       assert_streaming!
     end
 
     test "rendering with template exception logs the exception" do
       io = StringIO.new
-      _old, ActionController::Base.logger = ActionController::Base.logger, Logger.new(io)
+      _old, ActionView::Base.logger = ActionView::Base.logger, ActiveSupport::Logger.new(io)
 
       begin
         get "/render_streaming/basic/template_exception"
         io.rewind
-        assert_match "(undefined method `invalid!' for nil:NilClass)", io.read
+        assert_match "Ruby was here!", io.read
       ensure
-        ActionController::Base.logger = _old
+        ActionView::Base.logger = _old
       end
     end
 
@@ -111,4 +111,4 @@ module RenderStreaming
       assert_equal cache, headers["Cache-Control"]
     end
   end
-end if defined?(Fiber)
+end

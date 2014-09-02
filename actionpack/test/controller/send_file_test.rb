@@ -9,6 +9,7 @@ end
 
 class SendFileController < ActionController::Base
   include TestFileUtils
+  include ActionController::Testing
   layout "layouts/standard" # to make sure layouts don't interfere
 
   attr_writer :options
@@ -23,17 +24,14 @@ class SendFileController < ActionController::Base
   def data
     send_data(file_data, options)
   end
+end
 
-  def multibyte_text_data
-    send_data("Кирилица\n祝您好運.", options)
-  end
+class SendFileWithActionControllerLive < SendFileController
+  include ActionController::Live
 end
 
 class SendFileTest < ActionController::TestCase
-  tests SendFileController
   include TestFileUtils
-
-  Mime::Type.register "image/png", :png unless defined? Mime::PNG
 
   def setup
     @controller = SendFileController.new
@@ -55,14 +53,14 @@ class SendFileTest < ActionController::TestCase
     response = nil
     assert_nothing_raised { response = process('file') }
     assert_not_nil response
-    assert_respond_to response.body_parts, :each
-    assert_respond_to response.body_parts, :to_path
+    assert_respond_to response.stream, :each
+    assert_respond_to response.stream, :to_path
 
     require 'stringio'
     output = StringIO.new
     output.binmode
-    output.string.force_encoding(file_data.encoding) if output.string.respond_to?(:force_encoding)
-    assert_nothing_raised { response.body_parts.each { |part| output << part.to_s } }
+    output.string.force_encoding(file_data.encoding)
+    response.body_parts.each { |part| output << part.to_s }
     assert_equal file_data, output.string
   end
 
@@ -118,6 +116,18 @@ class SendFileTest < ActionController::TestCase
     assert_equal 'private', h['Cache-Control']
   end
 
+  def test_send_file_headers_with_disposition_as_a_symbol
+    options = {
+      :type => Mime::PNG,
+      :disposition => :disposition,
+      :filename => 'filename'
+    }
+
+    @controller.headers = {}
+    @controller.send(:send_file_headers!, options)
+    assert_equal 'disposition; filename="filename"', @controller.headers['Content-Disposition']
+  end
+
   def test_send_file_headers_with_mime_lookup_with_symbol
     options = {
       :type => :png
@@ -136,7 +146,37 @@ class SendFileTest < ActionController::TestCase
     }
 
     @controller.headers = {}
-    assert_raise(ArgumentError){ @controller.send(:send_file_headers!, options) }
+    assert_raise(ArgumentError) { @controller.send(:send_file_headers!, options) }
+  end
+
+  def test_send_file_headers_guess_type_from_extension
+    {
+      'image.png' => 'image/png',
+      'image.jpeg' => 'image/jpeg',
+      'image.jpg' => 'image/jpeg',
+      'image.tif' => 'image/tiff',
+      'image.gif' => 'image/gif',
+      'movie.mpg' => 'video/mpeg',
+      'file.zip' => 'application/zip',
+      'file.unk' => 'application/octet-stream',
+      'zip' => 'application/octet-stream'
+    }.each do |filename,expected_type|
+      options = { :filename => filename }
+      @controller.headers = {}
+      @controller.send(:send_file_headers!, options)
+      assert_equal expected_type, @controller.content_type
+    end
+  end
+
+  def test_send_file_with_default_content_disposition_header
+    process('data')
+    assert_equal 'attachment', @controller.headers['Content-Disposition']
+  end
+
+  def test_send_file_without_content_disposition_header
+    @controller.options = {:disposition => nil}
+    process('data')
+    assert_nil @controller.headers['Content-Disposition']
   end
 
   %w(file data).each do |method|
@@ -157,5 +197,13 @@ class SendFileTest < ActionController::TestCase
       assert_nothing_raised { assert_not_nil process(method) }
       assert_equal 200, @response.status
     end
+  end
+
+  def test_send_file_with_action_controller_live
+    @controller = SendFileWithActionControllerLive.new
+    @controller.options = { :content_type => "application/x-ruby" }
+
+    response = process('file')
+    assert_equal 200, response.status
   end
 end

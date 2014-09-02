@@ -5,14 +5,13 @@ include Java
 
 require 'active_support/core_ext/object/blank'
 
-import javax.xml.parsers.DocumentBuilder unless defined? DocumentBuilder
-import javax.xml.parsers.DocumentBuilderFactory unless defined? DocumentBuilderFactory
-import java.io.StringReader unless defined? StringReader
-import org.xml.sax.InputSource unless defined? InputSource
-import org.xml.sax.Attributes unless defined? Attributes
-import org.w3c.dom.Node unless defined? Node
+java_import javax.xml.parsers.DocumentBuilder unless defined? DocumentBuilder
+java_import javax.xml.parsers.DocumentBuilderFactory unless defined? DocumentBuilderFactory
+java_import java.io.StringReader unless defined? StringReader
+java_import org.xml.sax.InputSource unless defined? InputSource
+java_import org.xml.sax.Attributes unless defined? Attributes
+java_import org.w3c.dom.Node unless defined? Node
 
-# = XmlMini JRuby JDOM implementation
 module ActiveSupport
   module XmlMini_JDOM #:nodoc:
     extend self
@@ -38,10 +37,16 @@ module ActiveSupport
         {}
       else
         @dbf = DocumentBuilderFactory.new_instance
+        # secure processing of java xml
+        # http://www.ibm.com/developerworks/xml/library/x-tipcfsx/index.html
+        @dbf.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false)
+        @dbf.setFeature("http://xml.org/sax/features/external-general-entities", false)
+        @dbf.setFeature("http://xml.org/sax/features/external-parameter-entities", false)
+        @dbf.setFeature(javax.xml.XMLConstants::FEATURE_SECURE_PROCESSING, true)
         xml_string_reader = StringReader.new(data)
         xml_input_source = InputSource.new(xml_string_reader)
         doc = @dbf.new_document_builder.parse(xml_input_source)
-        merge_element!({}, doc.document_element)
+        merge_element!({CONTENT_KEY => ''}, doc.document_element)
       end
     end
 
@@ -54,7 +59,12 @@ module ActiveSupport
     # element::
     #   XML element to merge into hash
     def merge_element!(hash, element)
+      delete_empty(hash)
       merge!(hash, element.tag_name, collapse(element))
+    end
+
+    def delete_empty(hash)
+      hash.delete(CONTENT_KEY) if hash[CONTENT_KEY] == ''
     end
 
     # Actually converts an XML document element into a data structure.
@@ -66,7 +76,7 @@ module ActiveSupport
 
       child_nodes = element.child_nodes
       if child_nodes.length > 0
-        for i in 0...child_nodes.length
+        (0...child_nodes.length).each do |i|
           child = child_nodes.item(i)
           merge_element!(hash, child) unless child.node_type == Node.TEXT_NODE
         end
@@ -84,6 +94,7 @@ module ActiveSupport
     # element::
     #   XML element whose texts are to me merged into the hash
     def merge_texts!(hash, element)
+      delete_empty(hash)
       text_children = texts(element)
       if text_children.join.empty?
         hash
@@ -127,7 +138,8 @@ module ActiveSupport
     def get_attributes(element)
       attribute_hash = {}
       attributes = element.attributes
-      for i in 0...attributes.length
+      (0...attributes.length).each do |i|
+         attribute_hash[CONTENT_KEY] ||= ''
          attribute_hash[attributes.item(i).name] =  attributes.item(i).value
        end
       attribute_hash
@@ -140,7 +152,7 @@ module ActiveSupport
     def texts(element)
       texts = []
       child_nodes = element.child_nodes
-      for i in 0...child_nodes.length
+      (0...child_nodes.length).each do |i|
         item = child_nodes.item(i)
         if item.node_type == Node.TEXT_NODE
           texts << item.get_data
@@ -156,7 +168,7 @@ module ActiveSupport
     def empty_content?(element)
       text = ''
       child_nodes = element.child_nodes
-      for i in 0...child_nodes.length
+      (0...child_nodes.length).each do |i|
         item = child_nodes.item(i)
         if item.node_type == Node.TEXT_NODE
           text << item.get_data.strip

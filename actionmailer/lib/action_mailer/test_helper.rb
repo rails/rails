@@ -1,27 +1,28 @@
 module ActionMailer
+  # Provides helper methods for testing Action Mailer, including #assert_emails
+  # and #assert_no_emails
   module TestHelper
-    extend ActiveSupport::Concern
-
     # Asserts that the number of emails sent matches the given number.
     #
     #   def test_emails
     #     assert_emails 0
-    #     ContactMailer.deliver_contact
+    #     ContactMailer.welcome.deliver_now
     #     assert_emails 1
-    #     ContactMailer.deliver_contact
+    #     ContactMailer.welcome.deliver_now
     #     assert_emails 2
     #   end
     #
-    # If a block is passed, that block should cause the specified number of emails to be sent.
+    # If a block is passed, that block should cause the specified number of
+    # emails to be sent.
     #
     #   def test_emails_again
     #     assert_emails 1 do
-    #       ContactMailer.deliver_contact
+    #       ContactMailer.welcome.deliver_now
     #     end
     #
     #     assert_emails 2 do
-    #       ContactMailer.deliver_contact
-    #       ContactMailer.deliver_contact
+    #       ContactMailer.welcome.deliver_now
+    #       ContactMailer.welcome.deliver_now
     #     end
     #   end
     def assert_emails(number)
@@ -39,7 +40,7 @@ module ActionMailer
     #
     #   def test_emails
     #     assert_no_emails
-    #     ContactMailer.deliver_contact
+    #     ContactMailer.welcome.deliver_now
     #     assert_emails 1
     #   end
     #

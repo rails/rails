@@ -1,104 +1,49 @@
 require 'rbconfig'
+
 module ActiveSupport
   module Testing
-    class RemoteError < StandardError
+    module Isolation
+      require 'thread'
 
-      attr_reader :message, :backtrace
-
-      def initialize(exception)
-        @message = "caught #{exception.class.name}: #{exception.message}"
-        @backtrace = exception.backtrace
-      end
-    end
-
-    class ProxyTestResult
-      def initialize
-        @calls = []
-      end
-
-      def add_error(e)
-        e = Test::Unit::Error.new(e.test_name, RemoteError.new(e.exception))
-        @calls << [:add_error, e]
-      end
-
-      def __replay__(result)
-        @calls.each do |name, args|
-          result.send(name, *args)
+      def self.included(klass) #:nodoc:
+        klass.class_eval do
+          parallelize_me!
         end
       end
 
-      def method_missing(name, *args)
-        @calls << [name, args]
-      end
-    end
-
-    module Isolation
       def self.forking_env?
         !ENV["NO_FORK"] && ((RbConfig::CONFIG['host_os'] !~ /mswin|mingw/) && (RUBY_PLATFORM !~ /java/))
       end
 
-      def self.included(base)
-        if defined?(::MiniTest) && base < ::MiniTest::Unit::TestCase
-          base.send :include, MiniTest
-        elsif defined?(Test::Unit)
-          base.send :include, TestUnit
-        end
-      end
+      @@class_setup_mutex = Mutex.new
 
       def _run_class_setup      # class setup method should only happen in parent
-        unless defined?(@@ran_class_setup) || ENV['ISOLATION_TEST']
-          self.class.setup if self.class.respond_to?(:setup)
-          @@ran_class_setup = true
+        @@class_setup_mutex.synchronize do
+          unless defined?(@@ran_class_setup) || ENV['ISOLATION_TEST']
+            self.class.setup if self.class.respond_to?(:setup)
+            @@ran_class_setup = true
+          end
         end
       end
 
-      module TestUnit
-        def run(result)
-          _run_class_setup
-
-          yield(Test::Unit::TestCase::STARTED, name)
-
-          @_result = result
-
-          serialized = run_in_isolation do |proxy|
-            begin
-              super(proxy) { }
-            rescue Exception => e
-              proxy.add_error(Test::Unit::Error.new(name, e))
-            end
-          end
-
-          retval, proxy = Marshal.load(serialized)
-          proxy.__replay__(@_result)
-
-          yield(Test::Unit::TestCase::FINISHED, name)
-          retval
+      def run
+        serialized = run_in_isolation do
+          super
         end
-      end
 
-      module MiniTest
-        def run(runner)
-          _run_class_setup
-
-          serialized = run_in_isolation do |isolated_runner|
-            super(isolated_runner)
-          end
-
-          retval, proxy = Marshal.load(serialized)
-          proxy.__replay__(runner)
-          retval
-        end
+        Marshal.load(serialized)
       end
 
       module Forking
         def run_in_isolation(&blk)
           read, write = IO.pipe
+          read.binmode
+          write.binmode
 
           pid = fork do
             read.close
-            proxy = ProxyTestResult.new
-            retval = yield proxy
-            write.puts [Marshal.dump([retval, proxy])].pack("m")
+            yield
+            write.puts [Marshal.dump(self.dup)].pack("m")
             exit!
           end
 
@@ -118,22 +63,31 @@ module ActiveSupport
           require "tempfile"
 
           if ENV["ISOLATION_TEST"]
-            proxy = ProxyTestResult.new
-            retval = yield proxy
+            yield
             File.open(ENV["ISOLATION_OUTPUT"], "w") do |file|
-              file.puts [Marshal.dump([retval, proxy])].pack("m")
+              file.puts [Marshal.dump(self.dup)].pack("m")
             end
             exit!
           else
             Tempfile.open("isolation") do |tmpfile|
-              ENV["ISOLATION_TEST"]   = @method_name
-              ENV["ISOLATION_OUTPUT"] = tmpfile.path
+              env = {
+                ISOLATION_TEST: self.class.name,
+                ISOLATION_OUTPUT: tmpfile.path
+              }
 
               load_paths = $-I.map {|p| "-I\"#{File.expand_path(p)}\"" }.join(" ")
-              `#{Gem.ruby} #{load_paths} #{$0} #{ORIG_ARGV.join(" ")} -t\"#{self.class}\"`
+              orig_args = ORIG_ARGV.join(" ")
+              test_opts = "-n#{self.class.name}##{self.name}"
+              command = "#{Gem.ruby} #{load_paths} #{$0} #{orig_args} #{test_opts}"
 
-              ENV.delete("ISOLATION_TEST")
-              ENV.delete("ISOLATION_OUTPUT")
+              # IO.popen lets us pass env in a cross-platform way
+              child = IO.popen([env, command])
+
+              begin
+                Process.wait(child.pid)
+              rescue Errno::ECHILD # The child process may exit before we wait
+                nil
+              end
 
               return tmpfile.read.unpack("m")[0]
             end
@@ -142,16 +96,6 @@ module ActiveSupport
       end
 
       include forking_env? ? Forking : Subprocess
-    end
-  end
-end
-
-# Only in subprocess for windows / jruby.
-if ENV['ISOLATION_TEST']
-  require "test/unit/collector/objectspace"
-  class Test::Unit::Collector::ObjectSpace
-    def include?(test)
-      super && test.method_name == ENV['ISOLATION_TEST']
     end
   end
 end

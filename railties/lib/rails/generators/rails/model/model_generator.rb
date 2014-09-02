@@ -1,8 +1,12 @@
+require 'rails/generators/model_helpers'
+
 module Rails
   module Generators
-    class ModelGenerator < NamedBase #metagenerator
-      argument :attributes, :type => :array, :default => [], :banner => "field:type field:type"
-      hook_for :orm, :required => true
+    class ModelGenerator < NamedBase # :nodoc:
+      include Rails::Generators::ModelHelpers
+
+      argument :attributes, type: :array, default: [], banner: "field[:type][:index] field[:type][:index]"
+      hook_for :orm, required: true
     end
   end
 end

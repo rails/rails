@@ -1,0 +1,16 @@
+<header>
+  <h1>
+    <%= @exception.class.to_s %>
+    <% if @request.parameters['controller'] %>
+      in <%= @request.parameters['controller'].camelize %>Controller<% if @request.parameters['action'] %>#<%= @request.parameters['action'] %><% end %>
+    <% end %>
+  </h1>
+</header>
+
+<div id="container">
+  <h2><%= h @exception.message %></h2>
+
+  <%= render template: "rescues/_source" %>
+  <%= render template: "rescues/_trace" %>
+  <%= render template: "rescues/_request_and_response" %>
+</div>

@@ -37,13 +37,18 @@ class InfoTest < ActiveSupport::TestCase
     assert_property 'Goodbye', 'World'
   end
 
+  def test_rails_version
+    assert_property 'Rails version', 
+      File.read(File.realpath('../../../RAILS_VERSION', __FILE__)).chomp
+  end
+
   def test_framework_version
-    assert_property 'Active Support version', ActiveSupport::VERSION::STRING
+    assert_property 'Active Support version', ActiveSupport.version.to_s
   end
 
   def test_frameworks_exist
     Rails::Info.frameworks.each do |framework|
-      dir = File.dirname(__FILE__) + "/../../" + framework.gsub('_', '')
+      dir = File.dirname(__FILE__) + "/../../" + framework.delete('_')
       assert File.directory?(dir), "#{framework.classify} does not exist"
     end
   end
@@ -61,16 +66,6 @@ class InfoTest < ActiveSupport::TestCase
   end
 
   protected
-    def svn_info=(info)
-      Rails::Info.module_eval do
-        class << self
-          def svn_info
-            info
-          end
-        end
-      end
-    end
-
     def properties
       Rails::Info.properties
     end

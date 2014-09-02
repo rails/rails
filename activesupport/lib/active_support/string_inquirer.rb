@@ -3,19 +3,24 @@ module ActiveSupport
   # for equality. The value returned by <tt>Rails.env</tt> is wrapped
   # in a StringInquirer object so instead of calling this:
   #
-  #   Rails.env == "production"
+  #   Rails.env == 'production'
   #
   # you can call this:
   #
   #   Rails.env.production?
-  #
   class StringInquirer < String
-    def method_missing(method_name, *arguments)
-      if method_name.to_s[-1,1] == "?"
-        self == method_name.to_s[0..-2]
-      else
-        super
+    private
+
+      def respond_to_missing?(method_name, include_private = false)
+        method_name[-1] == '?'
       end
-    end
+
+      def method_missing(method_name, *arguments)
+        if method_name[-1] == '?'
+          self == method_name[0..-2]
+        else
+          super
+        end
+      end
   end
 end

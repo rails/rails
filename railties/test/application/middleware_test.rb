@@ -1,8 +1,7 @@
 require 'isolation/abstract_unit'
-require 'stringio'
 
 module ApplicationTests
-  class MiddlewareTest < Test::Unit::TestCase
+  class MiddlewareTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
 
     def setup
@@ -11,51 +10,80 @@ module ApplicationTests
       FileUtils.rm_rf "#{app_path}/config/environments"
     end
 
+    def teardown
+      teardown_app
+    end
+
     def app
       @app ||= Rails.application
     end
 
     test "default middleware stack" do
+      add_to_config "config.active_record.migration_error = :page_load"
+
       boot!
 
       assert_equal [
-        "Rails::Rack::ContentLength",
+        "Rack::Sendfile",
         "ActionDispatch::Static",
         "Rack::Lock",
         "ActiveSupport::Cache::Strategy::LocalCache",
         "Rack::Runtime",
         "Rack::MethodOverride",
+        "ActionDispatch::RequestId",
         "Rails::Rack::Logger", # must come after Rack::MethodOverride to properly log overridden methods
         "ActionDispatch::ShowExceptions",
+        "ActionDispatch::DebugExceptions",
         "ActionDispatch::RemoteIp",
-        "Rack::Sendfile",
         "ActionDispatch::Reloader",
         "ActionDispatch::Callbacks",
+        "ActiveRecord::Migration::CheckPending",
         "ActiveRecord::ConnectionAdapters::ConnectionManagement",
         "ActiveRecord::QueryCache",
         "ActionDispatch::Cookies",
         "ActionDispatch::Session::CookieStore",
         "ActionDispatch::Flash",
         "ActionDispatch::ParamsParser",
-        "ActionDispatch::Head",
+        "Rack::Head",
         "Rack::ConditionalGet",
-        "Rack::ETag",
-        "ActionDispatch::BestStandardsSupport"
+        "Rack::ETag"
       ], middleware
     end
 
-    test "Rack::Cache is present when action_controller.perform_caching is set" do
-      add_to_config "config.action_controller.perform_caching = true"
-
+    test "Rack::Cache is not included by default" do
       boot!
 
-      assert_equal "Rack::Cache", middleware.second
+      assert !middleware.include?("Rack::Cache"), "Rack::Cache is not included in the default stack unless you set config.action_dispatch.rack_cache"
     end
 
-    test "Rack::SSL is present when force_ssl is set" do
+    test "Rack::Cache is present when action_dispatch.rack_cache is set" do
+      add_to_config "config.action_dispatch.rack_cache = true"
+
+      boot!
+
+      assert middleware.include?("Rack::Cache")
+    end
+
+    test "ActiveRecord::Migration::CheckPending is present when active_record.migration_error is set to :page_load" do
+      add_to_config "config.active_record.migration_error = :page_load"
+
+      boot!
+
+      assert middleware.include?("ActiveRecord::Migration::CheckPending")
+    end
+
+    test "ActionDispatch::SSL is present when force_ssl is set" do
       add_to_config "config.force_ssl = true"
       boot!
-      assert middleware.include?("Rack::SSL")
+      assert middleware.include?("ActionDispatch::SSL")
+    end
+
+    test "ActionDispatch::SSL is configured with options when given" do
+      add_to_config "config.force_ssl = true"
+      add_to_config "config.ssl_options = { host: 'example.com' }"
+      boot!
+
+      assert_equal [{host: 'example.com'}], Rails.application.middleware.first.args
     end
 
     test "removing Active Record omits its middleware" do
@@ -63,7 +91,13 @@ module ApplicationTests
       boot!
       assert !middleware.include?("ActiveRecord::ConnectionAdapters::ConnectionManagement")
       assert !middleware.include?("ActiveRecord::QueryCache")
-      assert !middleware.include?("ActiveRecord::IdentityMap::Middleware")
+      assert !middleware.include?("ActiveRecord::Migration::CheckPending")
+    end
+
+    test "removes lock if cache classes is set" do
+      add_to_config "config.cache_classes = true"
+      boot!
+      assert !middleware.include?("Rack::Lock")
     end
 
     test "removes lock if allow concurrency is set" do
@@ -84,10 +118,11 @@ module ApplicationTests
       assert !middleware.include?("ActionDispatch::Static")
     end
 
-    test "includes show exceptions even action_dispatch.show_exceptions is disabled" do
+    test "includes exceptions middlewares even if action_dispatch.show_exceptions is disabled" do
       add_to_config "config.action_dispatch.show_exceptions = false"
       boot!
       assert middleware.include?("ActionDispatch::ShowExceptions")
+      assert middleware.include?("ActionDispatch::DebugExceptions")
     end
 
     test "removes ActionDispatch::Reloader if cache_classes is true" do
@@ -104,32 +139,39 @@ module ApplicationTests
     end
 
     test "insert middleware after" do
-      add_to_config "config.middleware.insert_after Rails::Rack::ContentLength, Rack::Config"
+      add_to_config "config.middleware.insert_after Rack::Sendfile, Rack::Config"
       boot!
       assert_equal "Rack::Config", middleware.second
     end
 
-    test "RAILS_CACHE does not respond to middleware" do
+    test 'unshift middleware' do
+      add_to_config 'config.middleware.unshift Rack::Config'
+      boot!
+      assert_equal 'Rack::Config', middleware.first
+    end
+
+    test "Rails.cache does not respond to middleware" do
       add_to_config "config.cache_store = :memory_store"
       boot!
       assert_equal "Rack::Runtime", middleware.fourth
     end
 
-    test "RAILS_CACHE does respond to middleware" do
+    test "Rails.cache does respond to middleware" do
       boot!
       assert_equal "Rack::Runtime", middleware.fifth
     end
 
-    test "identity map is inserted" do
-      add_to_config "config.active_record.identity_map = true"
-      boot!
-      assert middleware.include?("ActiveRecord::IdentityMap::Middleware")
-    end
-
     test "insert middleware before" do
-      add_to_config "config.middleware.insert_before Rails::Rack::ContentLength, Rack::Config"
+      add_to_config "config.middleware.insert_before Rack::Sendfile, Rack::Config"
       boot!
       assert_equal "Rack::Config", middleware.first
+    end
+
+    test "can't change middleware after it's built" do
+      boot!
+      assert_raise RuntimeError do
+        app.config.middleware.use Rack::Config
+      end
     end
 
     # ConditionalGet + Etag
@@ -139,14 +181,14 @@ module ApplicationTests
       class ::OmgController < ActionController::Base
         def index
           if params[:nothing]
-            render :text => ""
+            render text: ""
           else
-            render :text => "OMG"
+            render text: "OMG"
           end
         end
       end
 
-      etag = "5af83e3196bf99f440f31f2e1a6c9afe".inspect
+      etag = "W/" + "5af83e3196bf99f440f31f2e1a6c9afe".inspect
 
       get "/"
       assert_equal 200, last_response.status
@@ -163,7 +205,6 @@ module ApplicationTests
       assert_equal etag, last_response.headers["Etag"]
 
       get "/?nothing=true"
-      puts last_response.body
       assert_equal 200, last_response.status
       assert_equal "", last_response.body
       assert_equal "text/html; charset=utf-8", last_response.headers["Content-Type"]
@@ -171,24 +212,12 @@ module ApplicationTests
       assert_equal nil, last_response.headers["Etag"]
     end
 
-    # Show exceptions middleware
-    test "show exceptions middleware filter backtrace before logging" do
-      my_middleware = Struct.new(:app) do
-        def call(env)
-          raise "Failure"
-        end
-      end
-
-      make_basic_app do |app|
-        app.config.middleware.use my_middleware
-      end
-
-      stringio = StringIO.new
-      Rails.logger = Logger.new(stringio)
-
-      env = Rack::MockRequest.env_for("/")
+    test "ORIGINAL_FULLPATH is passed to env" do
+      boot!
+      env = ::Rack::MockRequest.env_for("/foo/?something")
       Rails.application.call(env)
-      assert_no_match(/action_dispatch/, stringio.string)
+
+      assert_equal "/foo/?something", env["ORIGINAL_FULLPATH"]
     end
 
     private
@@ -198,7 +227,7 @@ module ApplicationTests
       end
 
       def middleware
-        AppTemplate::Application.middleware.map(&:klass).map(&:name)
+        Rails.application.middleware.map(&:klass).map(&:name)
       end
   end
 end

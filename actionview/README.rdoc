@@ -1,0 +1,39 @@
+= Action View
+
+Action View is a framework for handling view template lookup and rendering, and provides
+view helpers that assist when building HTML forms, Atom feeds and more.
+Template formats that Action View handles are ERB (embedded Ruby, typically
+used to inline short Ruby snippets inside HTML), and XML Builder.
+
+== Download and installation
+
+The latest version of Action View can be installed with RubyGems:
+
+  % [sudo] gem install actionview
+
+Source code can be downloaded as part of the Rails project on GitHub
+
+* https://github.com/rails/rails/tree/master/actionview
+
+
+== License
+
+Action View is released under the MIT license:
+
+* http://www.opensource.org/licenses/MIT
+
+
+== Support
+
+API documentation is at
+
+* http://api.rubyonrails.org
+
+Bug reports can be filed for the Ruby on Rails project here:
+
+* https://github.com/rails/rails/issues
+
+Feature requests should be discussed on the rails-core mailing list here:
+
+* https://groups.google.com/forum/?fromgroups#!forum/rubyonrails-core
+

@@ -1,10 +1,18 @@
 require "isolation/abstract_unit"
+require 'rack/test'
+require 'env_helpers'
 
 class ::MyMailInterceptor
   def self.delivering_email(email); email; end
 end
 
 class ::MyOtherMailInterceptor < ::MyMailInterceptor; end
+
+class ::MyPreviewMailInterceptor
+  def self.previewing_email(email); email; end
+end
+
+class ::MyOtherPreviewMailInterceptor < ::MyPreviewMailInterceptor; end
 
 class ::MyMailObserver
   def self.delivered_email(email); email; end
@@ -13,8 +21,10 @@ end
 class ::MyOtherMailObserver < ::MyMailObserver; end
 
 module ApplicationTests
-  class ConfigurationTest < Test::Unit::TestCase
+  class ConfigurationTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
+    include Rack::Test::Methods
+    include EnvHelpers
 
     def new_app
       File.expand_path("#{app_path}/../new_app")
@@ -35,7 +45,61 @@ module ApplicationTests
     end
 
     def teardown
+      teardown_app
       FileUtils.rm_rf(new_app) if File.directory?(new_app)
+    end
+
+    test "Rails.env does not set the RAILS_ENV environment variable which would leak out into rake tasks" do
+      require "rails"
+
+      switch_env "RAILS_ENV", nil do
+        Rails.env = "development"
+        assert_equal "development", Rails.env
+        assert_nil ENV['RAILS_ENV']
+      end
+    end
+
+    test "a renders exception on pending migration" do
+      add_to_config <<-RUBY
+        config.active_record.migration_error    = :page_load
+        config.consider_all_requests_local      = true
+        config.action_dispatch.show_exceptions  = true
+      RUBY
+
+      app_file 'db/migrate/20140708012246_create_user.rb', <<-RUBY
+        class CreateUser < ActiveRecord::Migration
+          def change
+            create_table :users
+          end
+        end
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      ActiveRecord::Migrator.migrations_paths = ["#{app_path}/db/migrate"]
+
+      begin
+        get "/foo"
+        assert_equal 500, last_response.status
+        assert_match "ActiveRecord::PendingMigrationError", last_response.body
+      ensure
+        ActiveRecord::Migrator.migrations_paths = nil
+      end
+    end
+
+    test "Rails.groups returns available groups" do
+      require "rails"
+
+      Rails.env = "development"
+      assert_equal [:default, "development"], Rails.groups
+      assert_equal [:default, "development", :assets], Rails.groups(assets: [:development])
+      assert_equal [:default, "development", :another, :assets], Rails.groups(:another, assets: %w(development))
+
+      Rails.env = "test"
+      assert_equal [:default, "test"], Rails.groups(assets: [:development])
+
+      ENV["RAILS_GROUPS"] = "javascripts,stylesheets"
+      assert_equal [:default, "test", "javascripts", "stylesheets"], Rails.groups
     end
 
     test "Rails.application is nil until app is initialized" do
@@ -54,7 +118,7 @@ module ApplicationTests
     test "Rails::Application responds to paths" do
       require "#{app_path}/config/environment"
       assert_respond_to AppTemplate::Application, :paths
-      assert_equal AppTemplate::Application.paths["app/views"].expanded, ["#{app_path}/app/views"]
+      assert_equal ["#{app_path}/app/views"], AppTemplate::Application.paths["app/views"].expanded
     end
 
     test "the application root is set correctly" do
@@ -98,24 +162,34 @@ module ApplicationTests
       assert_instance_of Pathname, Rails.root
     end
 
-    test "marking the application as threadsafe sets the correct config variables" do
+    test "Rails.public_path should be a Pathname" do
       add_to_config <<-RUBY
-        config.threadsafe!
+        config.paths["public"] = "somewhere"
+      RUBY
+      require "#{app_path}/config/environment"
+      assert_instance_of Pathname, Rails.public_path
+    end
+
+    test "initialize an eager loaded, cache classes app" do
+      add_to_config <<-RUBY
+        config.eager_load = true
+        config.cache_classes = true
       RUBY
 
       require "#{app_path}/config/application"
-      assert AppTemplate::Application.config.allow_concurrency
+      assert Rails.application.initialize!
     end
 
-    test "asset_path defaults to nil for application" do
-      require "#{app_path}/config/environment"
-      assert_equal nil, AppTemplate::Application.config.asset_path
+    test "application is always added to eager_load namespaces" do
+      require "#{app_path}/config/application"
+      assert Rails.application, Rails.application.config.eager_load_namespaces
     end
 
-    test "the application can be marked as threadsafe when there are no frameworks" do
+    test "the application can be eager loaded even when there are no frameworks" do
       FileUtils.rm_rf("#{app_path}/config/environments")
       add_to_config <<-RUBY
-        config.threadsafe!
+        config.eager_load = true
+        config.cache_classes = true
       RUBY
 
       use_frameworks []
@@ -123,22 +197,6 @@ module ApplicationTests
       assert_nothing_raised do
         require "#{app_path}/config/application"
       end
-    end
-
-    test "frameworks are not preloaded by default" do
-      require "#{app_path}/config/environment"
-
-      assert ActionController.autoload?(:RecordIdentifier)
-    end
-
-    test "frameworks are preloaded with config.preload_frameworks is set" do
-      add_to_config <<-RUBY
-        config.preload_frameworks = true
-      RUBY
-
-      require "#{app_path}/config/environment"
-
-      assert !ActionController.autoload?(:RecordIdentifier)
     end
 
     test "filter_parameters should be able to set via config.filter_parameters" do
@@ -153,6 +211,16 @@ module ApplicationTests
       end
     end
 
+    test "filter_parameters should be able to set via config.filter_parameters in an initializer" do
+      app_file 'config/initializers/filter_parameters_logging.rb', <<-RUBY
+        Rails.application.config.filter_parameters += [ :password, :foo, 'bar' ]
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      assert_equal [:password, :foo, 'bar'], Rails.application.env_config['action_dispatch.parameter_filter']
+    end
+
     test "config.to_prepare is forwarded to ActionDispatch" do
       $prepared = false
 
@@ -165,20 +233,14 @@ module ApplicationTests
       assert !$prepared
 
       require "#{app_path}/config/environment"
-      require 'rack/test'
-      extend Rack::Test::Methods
 
       get "/"
       assert $prepared
     end
 
     def assert_utf8
-      if RUBY_VERSION < '1.9'
-        assert_equal "UTF8", $KCODE
-      else
-        assert_equal Encoding::UTF_8, Encoding.default_external
-        assert_equal Encoding::UTF_8, Encoding.default_internal
-      end
+      assert_equal Encoding::UTF_8, Encoding.default_external
+      assert_equal Encoding::UTF_8, Encoding.default_internal
     end
 
     test "skipping config.encoding still results in 'utf-8' as the default" do
@@ -201,24 +263,103 @@ module ApplicationTests
       RUBY
 
       require "#{app_path}/config/application"
-      assert_equal File.join(app_path, "somewhere"), Rails.public_path
+      assert_equal Pathname.new(app_path).join("somewhere"), Rails.public_path
     end
 
-    test "config.secret_token is sent in env" do
+    test "Use key_generator when secret_key_base is set" do
       make_basic_app do |app|
-        app.config.secret_token = 'b3c631c314c0bbca50c1b2843150fe33'
+        app.secrets.secret_key_base = 'b3c631c314c0bbca50c1b2843150fe33'
         app.config.session_store :disabled
       end
 
       class ::OmgController < ActionController::Base
         def index
           cookies.signed[:some_key] = "some_value"
-          render :text => env["action_dispatch.secret_token"]
+          render text: cookies[:some_key]
         end
       end
 
       get "/"
-      assert_equal 'b3c631c314c0bbca50c1b2843150fe33', last_response.body
+
+      secret = app.key_generator.generate_key('signed cookie')
+      verifier = ActiveSupport::MessageVerifier.new(secret)
+      assert_equal 'some_value', verifier.verify(last_response.body)
+    end
+
+    test "application verifier can be used in the entire application" do
+      make_basic_app do |app|
+        app.secrets.secret_key_base = 'b3c631c314c0bbca50c1b2843150fe33'
+        app.config.session_store :disabled
+      end
+
+      message = app.message_verifier(:sensitive_value).generate("some_value")
+
+      assert_equal 'some_value', Rails.application.message_verifier(:sensitive_value).verify(message)
+
+      secret = app.key_generator.generate_key('sensitive_value')
+      verifier = ActiveSupport::MessageVerifier.new(secret)
+      assert_equal 'some_value', verifier.verify(message)
+    end
+
+    test "application verifier can build different verifiers" do
+      make_basic_app do |app|
+        app.secrets.secret_key_base = 'b3c631c314c0bbca50c1b2843150fe33'
+        app.config.session_store :disabled
+      end
+
+      default_verifier = app.message_verifier(:sensitive_value)
+      text_verifier = app.message_verifier(:text)
+
+      message = text_verifier.generate('some_value')
+
+      assert_equal 'some_value', text_verifier.verify(message)
+      assert_raises ActiveSupport::MessageVerifier::InvalidSignature do
+        default_verifier.verify(message)
+      end
+
+      assert_equal default_verifier.object_id, app.message_verifier(:sensitive_value).object_id
+      assert_not_equal default_verifier.object_id, text_verifier.object_id
+    end
+
+    test "secrets.secret_key_base is used when config/secrets.yml is present" do
+      app_file 'config/secrets.yml', <<-YAML
+        development:
+          secret_key_base: 3b7cd727ee24e8444053437c36cc66c3
+      YAML
+
+      require "#{app_path}/config/environment"
+      assert_equal '3b7cd727ee24e8444053437c36cc66c3', app.secrets.secret_key_base
+    end
+
+    test "secret_key_base is copied from config to secrets when not set" do
+      remove_file "config/secrets.yml"
+      app_file 'config/initializers/secret_token.rb', <<-RUBY
+        Rails.application.config.secret_key_base = "3b7cd727ee24e8444053437c36cc66c3"
+      RUBY
+
+      require "#{app_path}/config/environment"
+      assert_equal '3b7cd727ee24e8444053437c36cc66c3', app.secrets.secret_key_base
+    end
+
+    test "custom secrets saved in config/secrets.yml are loaded in app secrets" do
+      app_file 'config/secrets.yml', <<-YAML
+        development:
+          secret_key_base: 3b7cd727ee24e8444053437c36cc66c3
+          aws_access_key_id: myamazonaccesskeyid
+          aws_secret_access_key: myamazonsecretaccesskey
+      YAML
+
+      require "#{app_path}/config/environment"
+      assert_equal 'myamazonaccesskeyid', app.secrets.aws_access_key_id
+      assert_equal 'myamazonsecretaccesskey', app.secrets.aws_secret_access_key
+    end
+
+    test "blank config/secrets.yml does not crash the loading process" do
+      app_file 'config/secrets.yml', <<-YAML
+      YAML
+      require "#{app_path}/config/environment"
+
+      assert_nil app.secrets.not_defined
     end
 
     test "protect from forgery is the default in a new app" do
@@ -226,12 +367,65 @@ module ApplicationTests
 
       class ::OmgController < ActionController::Base
         def index
-          render :inline => "<%= csrf_meta_tags %>"
+          render inline: "<%= csrf_meta_tags %>"
         end
       end
 
       get "/"
       assert last_response.body =~ /csrf\-param/
+    end
+
+    test "default method for update can be changed" do
+      app_file 'app/models/post.rb', <<-RUBY
+      class Post
+        include ActiveModel::Model
+        def to_key; [1]; end
+        def persisted?; true; end
+      end
+      RUBY
+
+      token = "cf50faa3fe97702ca1ae"
+
+      app_file 'app/controllers/posts_controller.rb', <<-RUBY
+      class PostsController < ApplicationController
+        def show
+          render inline: "<%= begin; form_for(Post.new) {}; rescue => e; e.to_s; end %>"
+        end
+
+        def update
+          render text: "update"
+        end
+
+        private
+
+        def form_authenticity_token; token; end # stub the authenticy token
+      end
+      RUBY
+
+      add_to_config <<-RUBY
+        routes.prepend do
+          resources :posts
+        end
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      params = {authenticity_token: token}
+
+      get "/posts/1"
+      assert_match(/patch/, last_response.body)
+
+      patch "/posts/1", params
+      assert_match(/update/, last_response.body)
+
+      patch "/posts/1", params
+      assert_equal 200, last_response.status
+
+      put "/posts/1", params
+      assert_match(/update/, last_response.body)
+
+      put "/posts/1", params
+      assert_equal 200, last_response.status
     end
 
     test "request forgery token param can be changed" do
@@ -241,45 +435,25 @@ module ApplicationTests
 
       class ::OmgController < ActionController::Base
         def index
-          render :inline => "<%= csrf_meta_tags %>"
+          render inline: "<%= csrf_meta_tags %>"
         end
       end
 
       get "/"
-      assert last_response.body =~ /_xsrf_token_here/
+      assert_match "_xsrf_token_here", last_response.body
     end
 
-    test "config.action_controller.perform_caching = true" do
+    test "sets ActionDispatch.test_app" do
+      make_basic_app
+      assert_equal Rails.application, ActionDispatch.test_app
+    end
+
+    test "sets ActionDispatch::Response.default_charset" do
       make_basic_app do |app|
-        app.config.action_controller.perform_caching = true
+        app.config.action_dispatch.default_charset = "utf-16"
       end
 
-      class ::OmgController < ActionController::Base
-        @@count = 0
-
-        caches_action :index
-        def index
-          @@count += 1
-          render :text => @@count
-        end
-      end
-
-      get "/"
-      res = last_response.body
-      get "/"
-      assert_equal res, last_response.body # value should be unchanged
-    end
-
-    test "sets all Active Record models to whitelist all attributes by default" do
-      add_to_config <<-RUBY
-        config.active_record.whitelist_attributes = true
-      RUBY
-
-      require "#{app_path}/config/environment"
-
-      assert_equal ActiveModel::MassAssignmentSecurity::WhiteList,
-                   ActiveRecord::Base.active_authorizers[:default].class
-      assert_equal [""], ActiveRecord::Base.active_authorizers[:default].to_a
+      assert_equal "utf-16", ActionDispatch::Response.default_charset
     end
 
     test "registers interceptors with ActionMailer" do
@@ -290,7 +464,7 @@ module ApplicationTests
       require "#{app_path}/config/environment"
       require "mail"
 
-      ActionMailer::Base
+      _ = ActionMailer::Base
 
       assert_equal [::MyMailInterceptor], ::Mail.send(:class_variable_get, "@@delivery_interceptors")
     end
@@ -303,9 +477,35 @@ module ApplicationTests
       require "#{app_path}/config/environment"
       require "mail"
 
-      ActionMailer::Base
+      _ = ActionMailer::Base
 
       assert_equal [::MyMailInterceptor, ::MyOtherMailInterceptor], ::Mail.send(:class_variable_get, "@@delivery_interceptors")
+    end
+
+    test "registers preview interceptors with ActionMailer" do
+      add_to_config <<-RUBY
+        config.action_mailer.preview_interceptors = MyPreviewMailInterceptor
+      RUBY
+
+      require "#{app_path}/config/environment"
+      require "mail"
+
+      _ = ActionMailer::Base
+
+      assert_equal [::MyPreviewMailInterceptor], ActionMailer::Base.preview_interceptors
+    end
+
+    test "registers multiple preview interceptors with ActionMailer" do
+      add_to_config <<-RUBY
+        config.action_mailer.preview_interceptors = [MyPreviewMailInterceptor, "MyOtherPreviewMailInterceptor"]
+      RUBY
+
+      require "#{app_path}/config/environment"
+      require "mail"
+
+      _ = ActionMailer::Base
+
+      assert_equal [MyPreviewMailInterceptor, MyOtherPreviewMailInterceptor], ActionMailer::Base.preview_interceptors
     end
 
     test "registers observers with ActionMailer" do
@@ -316,7 +516,7 @@ module ApplicationTests
       require "#{app_path}/config/environment"
       require "mail"
 
-      ActionMailer::Base
+      _ = ActionMailer::Base
 
       assert_equal [::MyMailObserver], ::Mail.send(:class_variable_get, "@@delivery_notification_observers")
     end
@@ -329,7 +529,7 @@ module ApplicationTests
       require "#{app_path}/config/environment"
       require "mail"
 
-      ActionMailer::Base
+      _ = ActionMailer::Base
 
       assert_equal [::MyMailObserver, ::MyOtherMailObserver], ::Mail.send(:class_variable_get, "@@delivery_notification_observers")
     end
@@ -337,7 +537,7 @@ module ApplicationTests
     test "valid timezone is setup correctly" do
       add_to_config <<-RUBY
         config.root = "#{app_path}"
-          config.time_zone = "Wellington"
+        config.time_zone = "Wellington"
       RUBY
 
       require "#{app_path}/config/environment"
@@ -348,7 +548,7 @@ module ApplicationTests
     test "raises when an invalid timezone is defined in the config" do
       add_to_config <<-RUBY
         config.root = "#{app_path}"
-          config.time_zone = "That big hill over yonder hill"
+        config.time_zone = "That big hill over yonder hill"
       RUBY
 
       assert_raise(ArgumentError) do
@@ -356,40 +556,26 @@ module ApplicationTests
       end
     end
 
-    test "config.action_controller.perform_caching = false" do
-      make_basic_app do |app|
-        app.config.action_controller.perform_caching = false
-      end
+    test "valid beginning of week is setup correctly" do
+      add_to_config <<-RUBY
+        config.root = "#{app_path}"
+        config.beginning_of_week = :wednesday
+      RUBY
 
-      class ::OmgController < ActionController::Base
-        @@count = 0
+      require "#{app_path}/config/environment"
 
-        caches_action :index
-        def index
-          @@count += 1
-          render :text => @@count
-        end
-      end
-
-      get "/"
-      res = last_response.body
-      get "/"
-      assert_not_equal res, last_response.body
+      assert_equal :wednesday, Rails.application.config.beginning_of_week
     end
 
-    test "config.asset_path is not passed through env" do
-      make_basic_app do |app|
-        app.config.asset_path = "/omg%s"
-      end
+    test "raises when an invalid beginning of week is defined in the config" do
+      add_to_config <<-RUBY
+        config.root = "#{app_path}"
+        config.beginning_of_week = :invalid
+      RUBY
 
-      class ::OmgController < ActionController::Base
-        def index
-          render :inline => "<%= image_path('foo.jpg') %>"
-        end
+      assert_raise(ArgumentError) do
+        require "#{app_path}/config/environment"
       end
-
-      get "/"
-      assert_equal "/omg/images/foo.jpg", last_response.body
     end
 
     test "config.action_view.cache_template_loading with cache_classes default" do
@@ -397,7 +583,7 @@ module ApplicationTests
       require "#{app_path}/config/environment"
       require 'action_view/base'
 
-      assert ActionView::Resolver.caching?
+      assert_equal true, ActionView::Resolver.caching?
     end
 
     test "config.action_view.cache_template_loading without cache_classes default" do
@@ -405,7 +591,7 @@ module ApplicationTests
       require "#{app_path}/config/environment"
       require 'action_view/base'
 
-      assert !ActionView::Resolver.caching?
+      assert_equal false, ActionView::Resolver.caching?
     end
 
     test "config.action_view.cache_template_loading = false" do
@@ -416,7 +602,7 @@ module ApplicationTests
       require "#{app_path}/config/environment"
       require 'action_view/base'
 
-      assert !ActionView::Resolver.caching?
+      assert_equal false, ActionView::Resolver.caching?
     end
 
     test "config.action_view.cache_template_loading = true" do
@@ -427,7 +613,21 @@ module ApplicationTests
       require "#{app_path}/config/environment"
       require 'action_view/base'
 
-      assert ActionView::Resolver.caching?
+      assert_equal true, ActionView::Resolver.caching?
+    end
+
+    test "config.action_view.cache_template_loading with cache_classes in an environment" do
+      build_app(initializers: true)
+      add_to_env_config "development", "config.cache_classes = false"
+
+      # These requires are to emulate an engine loading Action View before the application
+      require 'action_view'
+      require 'action_view/railtie'
+      require 'action_view/base'
+
+      require "#{app_path}/config/environment"
+
+      assert_equal false, ActionView::Resolver.caching?
     end
 
     test "config.action_dispatch.show_exceptions is sent in env" do
@@ -437,7 +637,7 @@ module ApplicationTests
 
       class ::OmgController < ActionController::Base
         def index
-          render :text => env["action_dispatch.show_exceptions"]
+          render text: env["action_dispatch.show_exceptions"]
         end
       end
 
@@ -447,7 +647,7 @@ module ApplicationTests
 
     test "config.action_controller.wrap_parameters is set in ActionController::Base" do
       app_file 'config/initializers/wrap_parameters.rb', <<-RUBY
-        ActionController::Base.wrap_parameters :format => [:json]
+        ActionController::Base.wrap_parameters format: [:json]
       RUBY
 
       app_file 'app/models/post.rb', <<-RUBY
@@ -458,26 +658,138 @@ module ApplicationTests
       end
       RUBY
 
+      app_file 'app/controllers/application_controller.rb', <<-RUBY
+      class ApplicationController < ActionController::Base
+        protect_from_forgery with: :reset_session # as we are testing API here
+      end
+      RUBY
+
       app_file 'app/controllers/posts_controller.rb', <<-RUBY
       class PostsController < ApplicationController
-        def index
-          render :text => params[:post].inspect
+        def create
+          render text: params[:post].inspect
         end
       end
       RUBY
 
       add_to_config <<-RUBY
-        routes.append do
+        routes.prepend do
           resources :posts
         end
       RUBY
 
       require "#{app_path}/config/environment"
-      require "rack/test"
-      extend Rack::Test::Methods
 
       post "/posts.json", '{ "title": "foo", "name": "bar" }', "CONTENT_TYPE" => "application/json"
       assert_equal '{"title"=>"foo"}', last_response.body
+    end
+
+    test "config.action_controller.permit_all_parameters = true" do
+      app_file 'app/controllers/posts_controller.rb', <<-RUBY
+      class PostsController < ActionController::Base
+        def create
+          render text: params[:post].permitted? ? "permitted" : "forbidden"
+        end
+      end
+      RUBY
+
+      add_to_config <<-RUBY
+        routes.prepend do
+          resources :posts
+        end
+        config.action_controller.permit_all_parameters = true
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      post "/posts", {post: {"title" =>"zomg"}}
+      assert_equal 'permitted', last_response.body
+    end
+
+    test "config.action_controller.action_on_unpermitted_parameters = :raise" do
+      app_file 'app/controllers/posts_controller.rb', <<-RUBY
+      class PostsController < ActionController::Base
+        def create
+          render text: params.require(:post).permit(:name)
+        end
+      end
+      RUBY
+
+      add_to_config <<-RUBY
+        routes.prepend do
+          resources :posts
+        end
+        config.action_controller.action_on_unpermitted_parameters = :raise
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      assert_equal :raise, ActionController::Parameters.action_on_unpermitted_parameters
+
+      post "/posts", {post: {"title" =>"zomg"}}
+      assert_match "We're sorry, but something went wrong", last_response.body
+    end
+
+    test "config.action_controller.always_permitted_parameters are: controller, action by default" do
+      require "#{app_path}/config/environment"
+      assert_equal %w(controller action), ActionController::Parameters.always_permitted_parameters
+    end
+
+    test "config.action_controller.always_permitted_parameters = ['controller', 'action', 'format']" do
+      add_to_config <<-RUBY
+        config.action_controller.always_permitted_parameters = %w( controller action format )
+      RUBY
+      require "#{app_path}/config/environment"
+      assert_equal %w( controller action format ), ActionController::Parameters.always_permitted_parameters
+    end
+
+    test "config.action_controller.always_permitted_parameters = ['controller','action','format'] does not raise exeception" do
+      app_file 'app/controllers/posts_controller.rb', <<-RUBY
+      class PostsController < ActionController::Base
+        def create
+          render text: params.permit(post: [:title])
+        end
+      end
+      RUBY
+
+      add_to_config <<-RUBY
+        routes.prepend do
+          resources :posts
+        end
+        config.action_controller.always_permitted_parameters = %w( controller action format )
+        config.action_controller.action_on_unpermitted_parameters = :raise
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      assert_equal :raise, ActionController::Parameters.action_on_unpermitted_parameters
+
+      post "/posts", {post: {"title" =>"zomg"}, format: "json"}
+      assert_equal 200, last_response.status
+    end
+
+    test "config.action_controller.action_on_unpermitted_parameters is :log by default on development" do
+      ENV["RAILS_ENV"] = "development"
+
+      require "#{app_path}/config/environment"
+
+      assert_equal :log, ActionController::Parameters.action_on_unpermitted_parameters
+    end
+
+    test "config.action_controller.action_on_unpermitted_parameters is :log by default on test" do
+      ENV["RAILS_ENV"] = "test"
+
+      require "#{app_path}/config/environment"
+
+      assert_equal :log, ActionController::Parameters.action_on_unpermitted_parameters
+    end
+
+    test "config.action_controller.action_on_unpermitted_parameters is false by default on production" do
+      ENV["RAILS_ENV"] = "production"
+
+      require "#{app_path}/config/environment"
+
+      assert_equal false, ActionController::Parameters.action_on_unpermitted_parameters
     end
 
     test "config.action_dispatch.ignore_accept_header" do
@@ -488,8 +800,8 @@ module ApplicationTests
       class ::OmgController < ActionController::Base
         def index
           respond_to do |format|
-            format.html { render :text => "HTML" }
-            format.xml { render :text => "XML" }
+            format.html { render text: "HTML" }
+            format.xml { render text: "XML" }
           end
         end
       end
@@ -497,8 +809,283 @@ module ApplicationTests
       get "/", {}, "HTTP_ACCEPT" => "application/xml"
       assert_equal 'HTML', last_response.body
 
-      get "/", { :format => :xml }, "HTTP_ACCEPT" => "application/xml"
+      get "/", { format: :xml }, "HTTP_ACCEPT" => "application/xml"
       assert_equal 'XML', last_response.body
+    end
+
+    test "Rails.application#env_config exists and include some existing parameters" do
+      make_basic_app
+
+      assert_respond_to app, :env_config
+      assert_equal      app.env_config['action_dispatch.parameter_filter'],  app.config.filter_parameters
+      assert_equal      app.env_config['action_dispatch.show_exceptions'],   app.config.action_dispatch.show_exceptions
+      assert_equal      app.env_config['action_dispatch.logger'],            Rails.logger
+      assert_equal      app.env_config['action_dispatch.backtrace_cleaner'], Rails.backtrace_cleaner
+      assert_equal      app.env_config['action_dispatch.key_generator'],     Rails.application.key_generator
+    end
+
+    test "config.colorize_logging default is true" do
+      make_basic_app
+      assert app.config.colorize_logging
+    end
+
+    test "config.session_store with :active_record_store with activerecord-session_store gem" do
+      begin
+        make_basic_app do |app|
+          ActionDispatch::Session::ActiveRecordStore = Class.new(ActionDispatch::Session::CookieStore)
+          app.config.session_store :active_record_store
+        end
+      ensure
+        ActionDispatch::Session.send :remove_const, :ActiveRecordStore
+      end
+    end
+
+    test "config.session_store with :active_record_store without activerecord-session_store gem" do
+      assert_raise RuntimeError, /activerecord-session_store/ do
+        make_basic_app do |app|
+          app.config.session_store :active_record_store
+        end
+      end
+    end
+
+    test "config.log_level with custom logger" do
+      make_basic_app do |app|
+        app.config.logger = Logger.new(STDOUT)
+        app.config.log_level = :info
+      end
+      assert_equal Logger::INFO, Rails.logger.level
+    end
+
+    test "respond_to? accepts include_private" do
+      make_basic_app
+
+      assert_not Rails.configuration.respond_to?(:method_missing)
+      assert Rails.configuration.respond_to?(:method_missing, true)
+    end
+
+    test "config.active_record.dump_schema_after_migration is false on production" do
+      build_app
+      ENV["RAILS_ENV"] = "production"
+
+      require "#{app_path}/config/environment"
+
+      assert_not ActiveRecord::Base.dump_schema_after_migration
+    end
+
+    test "config.active_record.dump_schema_after_migration is true by default on development" do
+      ENV["RAILS_ENV"] = "development"
+
+      require "#{app_path}/config/environment"
+
+      assert ActiveRecord::Base.dump_schema_after_migration
+    end
+
+    test "config.annotations wrapping SourceAnnotationExtractor::Annotation class" do
+      make_basic_app do |app|
+        app.config.annotations.register_extensions("coffee") do |tag|
+          /#\s*(#{tag}):?\s*(.*)$/
+        end
+      end
+
+      assert_not_nil SourceAnnotationExtractor::Annotation.extensions[/\.(coffee)$/]
+    end
+
+    test "rake_tasks block works at instance level" do
+      app_file "config/environments/development.rb", <<-RUBY
+        Rails.application.configure do
+          config.ran_block = false
+
+          rake_tasks do
+            config.ran_block = true
+          end
+        end
+      RUBY
+
+      require "#{app_path}/config/environment"
+      assert_not Rails.configuration.ran_block
+
+      require 'rake'
+      require 'rake/testtask'
+      require 'rdoc/task'
+
+      Rails.application.load_tasks
+      assert Rails.configuration.ran_block
+    end
+
+    test "generators block works at instance level" do
+      app_file "config/environments/development.rb", <<-RUBY
+        Rails.application.configure do
+          config.ran_block = false
+
+          generators do
+            config.ran_block = true
+          end
+        end
+      RUBY
+
+      require "#{app_path}/config/environment"
+      assert_not Rails.configuration.ran_block
+
+      Rails.application.load_generators
+      assert Rails.configuration.ran_block
+    end
+
+    test "console block works at instance level" do
+      app_file "config/environments/development.rb", <<-RUBY
+        Rails.application.configure do
+          config.ran_block = false
+
+          console do
+            config.ran_block = true
+          end
+        end
+      RUBY
+
+      require "#{app_path}/config/environment"
+      assert_not Rails.configuration.ran_block
+
+      Rails.application.load_console
+      assert Rails.configuration.ran_block
+    end
+
+    test "runner block works at instance level" do
+      app_file "config/environments/development.rb", <<-RUBY
+        Rails.application.configure do
+          config.ran_block = false
+
+          runner do
+            config.ran_block = true
+          end
+        end
+      RUBY
+
+      require "#{app_path}/config/environment"
+      assert_not Rails.configuration.ran_block
+
+      Rails.application.load_runner
+      assert Rails.configuration.ran_block
+    end
+
+    test "loading the first existing database configuration available" do
+      app_file 'config/environments/development.rb', <<-RUBY
+
+      Rails.application.configure do
+        config.paths.add 'config/database', with: 'config/nonexistant.yml'
+        config.paths['config/database'] << 'config/database.yml'
+        end
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      assert_kind_of Hash, Rails.application.config.database_configuration
+    end
+
+    test 'config.action_mailer.show_previews defaults to true in development' do
+      Rails.env = "development"
+      require "#{app_path}/config/environment"
+
+      assert Rails.application.config.action_mailer.show_previews
+    end
+
+    test 'config.action_mailer.show_previews defaults to false in production' do
+      Rails.env = "production"
+      require "#{app_path}/config/environment"
+
+      assert_equal false, Rails.application.config.action_mailer.show_previews
+    end
+
+    test 'config.action_mailer.show_previews can be set in the configuration file' do
+      Rails.env = "production"
+      add_to_config <<-RUBY
+        config.action_mailer.show_previews = true
+      RUBY
+      require "#{app_path}/config/environment"
+
+      assert_equal true, Rails.application.config.action_mailer.show_previews
+    end
+
+    test "config_for loads custom configuration from yaml files" do
+      app_file 'config/custom.yml', <<-RUBY
+      development:
+        key: 'custom key'
+      RUBY
+
+      add_to_config <<-RUBY
+        config.my_custom_config = config_for('custom')
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      assert_equal 'custom key', Rails.application.config.my_custom_config['key']
+    end
+
+    test "config_for raises an exception if the file does not exist" do
+      add_to_config <<-RUBY
+        config.my_custom_config = config_for('custom')
+      RUBY
+
+      exception = assert_raises(RuntimeError) do
+        require "#{app_path}/config/environment"
+      end
+
+      assert_equal "Could not load configuration. No such file - #{app_path}/config/custom.yml", exception.message
+    end
+
+    test "config_for without the environment configured returns an empty hash" do
+      app_file 'config/custom.yml', <<-RUBY
+      test:
+        key: 'custom key'
+      RUBY
+
+      add_to_config <<-RUBY
+        config.my_custom_config = config_for('custom')
+      RUBY
+      require "#{app_path}/config/environment"
+
+      assert_equal({}, Rails.application.config.my_custom_config)
+    end
+
+    test "config_for with empty file returns an empty hash" do
+      app_file 'config/custom.yml', <<-RUBY
+      RUBY
+
+      add_to_config <<-RUBY
+        config.my_custom_config = config_for('custom')
+      RUBY
+      require "#{app_path}/config/environment"
+
+      assert_equal({}, Rails.application.config.my_custom_config)
+    end
+
+    test "config_for containing ERB tags should evaluate" do
+      app_file 'config/custom.yml', <<-RUBY
+      development:
+        key: <%= 'custom key' %>
+      RUBY
+
+      add_to_config <<-RUBY
+        config.my_custom_config = config_for('custom')
+      RUBY
+      require "#{app_path}/config/environment"
+
+      assert_equal 'custom key', Rails.application.config.my_custom_config['key']
+    end
+
+    test "config_for with syntax error show a more descritive exception" do
+      app_file 'config/custom.yml', <<-RUBY
+      development:
+        key: foo:
+      RUBY
+
+      add_to_config <<-RUBY
+        config.my_custom_config = config_for('custom')
+      RUBY
+
+      exception = assert_raises(RuntimeError) do
+        require "#{app_path}/config/environment"
+      end
+
+      assert_match 'YAML syntax error occurred while parsing', exception.message
     end
   end
 end

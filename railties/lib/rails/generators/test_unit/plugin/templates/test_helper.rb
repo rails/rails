@@ -1,3 +1,2 @@
-require 'rubygems'
-require 'test/unit'
+require 'active_support/testing/autorun'
 require 'active_support'

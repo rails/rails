@@ -1,5 +1,3 @@
-require 'active_support/core_ext/kernel/requires'
-
 module Rails
   module Rack
     class Debugger
@@ -8,13 +6,14 @@ module Rails
 
         ARGV.clear # clear ARGV so that rails server options aren't passed to IRB
 
-        require_library_or_gem 'ruby-debug'
+        require 'debugger'
+
         ::Debugger.start
         ::Debugger.settings[:autoeval] = true if ::Debugger.respond_to?(:settings)
         puts "=> Debugger enabled"
-      rescue Exception
-        puts "You need to install ruby-debug to run the server in debugging mode. With gems, use 'gem install ruby-debug'"
-        exit
+      rescue LoadError
+        puts "You're missing the 'debugger' gem. Add it to your Gemfile, bundle it and try again."
+        exit(1)
       end
 
       def call(env)

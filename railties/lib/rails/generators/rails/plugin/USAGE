@@ -1,13 +1,10 @@
 Description:
-    Stubs out a new plugin at vendor/plugins. Pass the plugin name, either
-    CamelCased or under_scored, as an argument.
+    The 'rails plugin new' command creates a skeleton for developing any
+    kind of Rails extension with ability to run tests using dummy Rails
+    application.
 
 Example:
-    `rails generate plugin BrowserFilters`
+    rails plugin new ~/Code/Ruby/blog
 
-    creates a standard browser_filters plugin:
-        vendor/plugins/browser_filters/README
-        vendor/plugins/browser_filters/init.rb
-        vendor/plugins/browser_filters/install.rb
-        vendor/plugins/browser_filters/lib/browser_filters.rb
-        vendor/plugins/browser_filters/test/browser_filters_test.rb
+    This generates a skeletal Rails plugin in ~/Code/Ruby/blog.
+    See the README in the newly created plugin to get going.

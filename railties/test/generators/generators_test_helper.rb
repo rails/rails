@@ -1,10 +1,14 @@
 require 'abstract_unit'
+require 'active_support/core_ext/module/remove_method'
 require 'rails/generators'
 require 'rails/generators/test_case'
 
 module Rails
-  def self.root
-    @root ||= File.expand_path(File.join(File.dirname(__FILE__), '..', 'fixtures'))
+  class << self
+    remove_possible_method :root
+    def root
+      @root ||= Pathname.new(File.expand_path('../../fixtures', __FILE__))
+    end
   end
 end
 Rails.application.config.root = Rails.root
@@ -12,10 +16,11 @@ Rails.application.config.generators.templates = [File.join(Rails.root, "lib", "t
 
 # Call configure to load the settings from
 # Rails.application.config.generators to Rails::Generators
-Rails::Generators.configure!
+Rails.application.load_generators
 
 require 'active_record'
 require 'action_dispatch'
+require 'action_view'
 
 module GeneratorsTestHelper
   def self.included(base)
@@ -35,5 +40,13 @@ module GeneratorsTestHelper
     destination = File.join(destination_root, "config")
     FileUtils.mkdir_p(destination)
     FileUtils.cp routes, destination
+  end
+
+  def quietly
+    silence_stream(STDOUT) do
+      silence_stream(STDERR) do
+        yield
+      end
+    end
   end
 end

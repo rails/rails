@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'active_support/core_ext/module/delegation'
 
 module Notifications
   class TestCase < ActiveSupport::TestCase
@@ -20,6 +21,26 @@ module Notifications
 
     def event(*args)
       ActiveSupport::Notifications::Event.new(*args)
+    end
+  end
+
+  class SubscribedTest < TestCase
+    def test_subscribed
+      name     = "foo"
+      name2    = name * 2
+      expected = [name, name]
+
+      events   = []
+      callback = lambda {|*_| events << _.first}
+      ActiveSupport::Notifications.subscribed(callback, name) do
+        ActiveSupport::Notifications.instrument(name)
+        ActiveSupport::Notifications.instrument(name2)
+        ActiveSupport::Notifications.instrument(name)
+      end
+      assert_equal expected, events
+
+      ActiveSupport::Notifications.instrument(name)
+      assert_equal expected, events
     end
   end
 
@@ -60,6 +81,20 @@ module Notifications
     end
   end
 
+  class TestSubscriber
+    attr_reader :starts, :finishes, :publishes
+
+    def initialize
+      @starts    = []
+      @finishes  = []
+      @publishes = []
+    end
+
+    def start(*args);  @starts << args; end
+    def finish(*args); @finishes << args; end
+    def publish(*args); @publishes << args; end
+  end
+
   class SyncPubSubTest < TestCase
     def test_events_are_published_to_a_listener
       @notifier.publish :foo
@@ -78,7 +113,7 @@ module Notifications
       @notifier.publish :foo
       @notifier.publish :foo
 
-      @notifier.subscribe("not_existant") do |*args|
+      @notifier.subscribe("not_existent") do |*args|
         @events << ActiveSupport::Notifications::Event.new(*args)
       end
 
@@ -123,6 +158,14 @@ module Notifications
       assert_equal [[:foo]], @another
     end
 
+    def test_publish_with_subscriber
+      subscriber = TestSubscriber.new
+      @notifier.subscribe nil, subscriber
+      @notifier.publish :foo
+
+      assert_equal [[:foo]], subscriber.publishes
+    end
+
     private
       def event(*args)
         args
@@ -136,7 +179,7 @@ module Notifications
       assert_equal 2, instrument(:awesome) { 1 + 1 }
     end
 
-    def test_instrument_yields_the_paylod_for_further_modification
+    def test_instrument_yields_the_payload_for_further_modification
       assert_equal 2, instrument(:awesome) { |p| p[:result] = 1 + 1 }
       assert_equal 1, @events.size
       assert_equal :awesome, @events.first.name
@@ -200,12 +243,14 @@ module Notifications
       assert_equal Hash[:payload => :bar], event.payload
     end
 
-    def test_event_is_parent_based_on_time_frame
+    def test_event_is_parent_based_on_children
       time = Time.utc(2009, 01, 01, 0, 0, 1)
 
       parent    = event(:foo, Time.utc(2009), Time.utc(2009) + 100, random_id, {})
       child     = event(:foo, time, time + 10, random_id, {})
       not_child = event(:foo, time, time + 100, random_id, {})
+
+      parent.children << child
 
       assert parent.parent_of?(child)
       assert !child.parent_of?(parent)
@@ -215,7 +260,7 @@ module Notifications
 
     protected
       def random_id
-        @random_id ||= ActiveSupport::SecureRandom.hex(10)
+        @random_id ||= SecureRandom.hex(10)
       end
   end
 end

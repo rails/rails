@@ -1,17 +1,26 @@
-require 'active_support/core_ext/object/blank'
 
 module ActionDispatch
   module Http
     module Cache
       module Request
+
+        HTTP_IF_MODIFIED_SINCE = 'HTTP_IF_MODIFIED_SINCE'.freeze
+        HTTP_IF_NONE_MATCH     = 'HTTP_IF_NONE_MATCH'.freeze
+
         def if_modified_since
-          if since = env['HTTP_IF_MODIFIED_SINCE']
+          if since = env[HTTP_IF_MODIFIED_SINCE]
             Time.rfc2822(since) rescue nil
           end
         end
 
         def if_none_match
-          env['HTTP_IF_NONE_MATCH']
+          env[HTTP_IF_NONE_MATCH]
+        end
+
+        def if_none_match_etags
+          (if_none_match ? if_none_match.split(/\s*,\s*/) : []).collect do |etag|
+            etag.gsub(/^\"|\"$/, "")
+          end
         end
 
         def not_modified?(modified_at)
@@ -19,7 +28,10 @@ module ActionDispatch
         end
 
         def etag_matches?(etag)
-          if_none_match && if_none_match == etag
+          if etag
+            etag = etag.gsub(/^\"|\"$/, "")
+            if_none_match_etags.include?(etag)
+          end
         end
 
         # Check response freshness (Last-Modified and ETag) against request
@@ -43,36 +55,74 @@ module ActionDispatch
         alias :etag? :etag
 
         def last_modified
-          if last = headers['Last-Modified']
+          if last = headers[LAST_MODIFIED]
             Time.httpdate(last)
           end
         end
 
         def last_modified?
-          headers.include?('Last-Modified')
+          headers.include?(LAST_MODIFIED)
         end
 
         def last_modified=(utc_time)
-          headers['Last-Modified'] = utc_time.httpdate
+          headers[LAST_MODIFIED] = utc_time.httpdate
+        end
+
+        def date
+          if date_header = headers['Date']
+            Time.httpdate(date_header)
+          end
+        end
+
+        def date?
+          headers.include?('Date')
+        end
+
+        def date=(utc_time)
+          headers['Date'] = utc_time.httpdate
         end
 
         def etag=(etag)
           key = ActiveSupport::Cache.expand_cache_key(etag)
-          @etag = self["ETag"] = %("#{Digest::MD5.hexdigest(key)}")
+          @etag = self[ETAG] = %("#{Digest::MD5.hexdigest(key)}")
         end
 
       private
 
-        def prepare_cache_control!
-          @cache_control = {}
-          @etag = self["ETag"]
+        LAST_MODIFIED = "Last-Modified".freeze
+        ETAG          = "ETag".freeze
+        CACHE_CONTROL = "Cache-Control".freeze
+        SPECIAL_KEYS  = Set.new(%w[extras no-cache max-age public must-revalidate])
 
-          if cache_control = self["Cache-Control"]
-            cache_control.split(/,\s*/).each do |segment|
-              first, last = segment.split("=")
-              @cache_control[first.to_sym] = last || true
+        def cache_control_segments
+          if cache_control = self[CACHE_CONTROL]
+            cache_control.delete(' ').split(',')
+          else
+            []
+          end
+        end
+
+        def cache_control_headers
+          cache_control = {}
+
+          cache_control_segments.each do |segment|
+            directive, argument = segment.split('=', 2)
+
+            if SPECIAL_KEYS.include? directive
+              key = directive.tr('-', '_')
+              cache_control[key.to_sym] = argument || true
+            else
+              cache_control[:extras] ||= []
+              cache_control[:extras] << segment
             end
           end
+
+          cache_control
+        end
+
+        def prepare_cache_control!
+          @cache_control = cache_control_headers
+          @etag = self[ETAG]
         end
 
         def handle_conditional_get!
@@ -81,28 +131,42 @@ module ActionDispatch
           end
         end
 
-        DEFAULT_CACHE_CONTROL = "max-age=0, private, must-revalidate"
+        DEFAULT_CACHE_CONTROL = "max-age=0, private, must-revalidate".freeze
+        NO_CACHE              = "no-cache".freeze
+        PUBLIC                = "public".freeze
+        PRIVATE               = "private".freeze
+        MUST_REVALIDATE       = "must-revalidate".freeze
 
         def set_conditional_cache_control!
-          return if self["Cache-Control"].present?
+          control = {}
+          cc_headers = cache_control_headers
+          if extras = cc_headers.delete(:extras)
+            @cache_control[:extras] ||= []
+            @cache_control[:extras] += extras
+            @cache_control[:extras].uniq!
+          end
 
-          control = @cache_control
+          control.merge! cc_headers
+          control.merge! @cache_control
 
           if control.empty?
-            headers["Cache-Control"] = DEFAULT_CACHE_CONTROL
+            headers[CACHE_CONTROL] = DEFAULT_CACHE_CONTROL
           elsif control[:no_cache]
-            headers["Cache-Control"] = "no-cache"
+            headers[CACHE_CONTROL] = NO_CACHE
+            if control[:extras]
+              headers[CACHE_CONTROL] += ", #{control[:extras].join(', ')}"
+            end
           else
             extras  = control[:extras]
             max_age = control[:max_age]
 
             options = []
             options << "max-age=#{max_age.to_i}" if max_age
-            options << (control[:public] ? "public" : "private")
-            options << "must-revalidate" if control[:must_revalidate]
+            options << (control[:public] ? PUBLIC : PRIVATE)
+            options << MUST_REVALIDATE if control[:must_revalidate]
             options.concat(extras) if extras
 
-            headers["Cache-Control"] = options.join(", ")
+            headers[CACHE_CONTROL] = options.join(", ")
           end
         end
       end

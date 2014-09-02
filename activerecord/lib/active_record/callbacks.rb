@@ -1,5 +1,3 @@
-require 'active_support/core_ext/array/wrap'
-
 module ActiveRecord
   # = Active Record Callbacks
   #
@@ -25,19 +23,22 @@ module ActiveRecord
   # Check out <tt>ActiveRecord::Transactions</tt> for more details about <tt>after_commit</tt> and
   # <tt>after_rollback</tt>.
   #
-  # Lastly an <tt>after_find</tt> and <tt>after_initialize</tt> callback is triggered for each object that 
+  # Additionally, an <tt>after_touch</tt> callback is triggered whenever an
+  # object is touched.
+  #
+  # Lastly an <tt>after_find</tt> and <tt>after_initialize</tt> callback is triggered for each object that
   # is found and instantiated by a finder, with <tt>after_initialize</tt> being triggered after new objects
   # are instantiated as well.
   #
-  # That's a total of twelve callbacks, which gives you immense power to react and prepare for each state in the
+  # There are nineteen callbacks in total, which give you immense power to react and prepare for each state in the
   # Active Record life cycle. The sequence for calling <tt>Base#save</tt> for an existing record is similar,
   # except that each <tt>_create</tt> callback is replaced by the corresponding <tt>_update</tt> callback.
   #
   # Examples:
   #   class CreditCard < ActiveRecord::Base
   #     # Strip everything but digits, so the user can specify "555 234 34" or
-  #     # "5552-3434" or both will mean "55523434"
-  #     before_validation(:on => :create) do
+  #     # "5552-3434" and both will mean "55523434"
+  #     before_validation(on: :create) do
   #       self.number = number.gsub(/[^0-9]/, "") if attribute_present?("number")
   #     end
   #   end
@@ -85,7 +86,7 @@ module ActiveRecord
   #
   # In that case, <tt>Reply#destroy</tt> would only run +destroy_readers+ and _not_ +destroy_author+.
   # So, use the callback macros when you want to ensure that a certain callback is called for the entire
-  # hierarchy, and use the regular overwriteable methods when you want to leave it up to each descendant
+  # hierarchy, and use the regular overwritable methods when you want to leave it up to each descendant
   # to decide whether they want to call +super+ and trigger the inherited callbacks.
   #
   # *IMPORTANT:* In order for inheritance to work for the callback queues, you must specify the
@@ -127,7 +128,7 @@ module ActiveRecord
   #       record.credit_card_number = decrypt(record.credit_card_number)
   #     end
   #
-  #     alias_method :after_find, :after_save
+  #     alias_method :after_initialize, :after_save
   #
   #     private
   #       def encrypt(value)
@@ -162,7 +163,7 @@ module ActiveRecord
   #       record.send("#{@attribute}=", decrypt(record.send("#{@attribute}")))
   #     end
   #
-  #     alias_method :after_find, :after_save
+  #     alias_method :after_initialize, :after_save
   #
   #     private
   #       def encrypt(value)
@@ -202,6 +203,40 @@ module ActiveRecord
   # Callbacks are generally run in the order they are defined, with the exception of callbacks defined as
   # methods on the model, which are called last.
   #
+  # == Ordering callbacks
+  #
+  # Sometimes the code needs that the callbacks execute in a specific order. For example, a +before_destroy+
+  # callback (+log_children+ in this case) should be executed before the children get destroyed by the +dependent: destroy+ option.
+  #
+  # Let's look at the code below:
+  #
+  #   class Topic < ActiveRecord::Base
+  #     has_many :children, dependent: destroy
+  #
+  #     before_destroy :log_children
+  #
+  #     private
+  #       def log_children
+  #         # Child processing
+  #       end
+  #   end
+  #
+  # In this case, the problem is that when the +before_destroy+ callback is executed, the children are not available
+  # because the +destroy+ callback gets executed first. You can use the +prepend+ option on the +before_destroy+ callback to avoid this.
+  #
+  #   class Topic < ActiveRecord::Base
+  #     has_many :children, dependent: destroy
+  #
+  #     before_destroy :log_children, prepend: true
+  #
+  #     private
+  #       def log_children
+  #         # Child processing
+  #       end
+  #   end
+  #
+  # This way, the +before_destroy+ gets executed before the <tt>dependent: destroy</tt> is called, and the data is still available.
+  #
   # == Transactions
   #
   # The entire callback chain of a +save+, <tt>save!</tt>, or +destroy+ call runs
@@ -215,23 +250,23 @@ module ActiveRecord
   # instead of quietly returning +false+.
   #
   # == Debugging callbacks
-  # 
-  # The callback chain is accessible via the <tt>_*_callbacks</tt> method on an object. ActiveModel Callbacks support 
+  #
+  # The callback chain is accessible via the <tt>_*_callbacks</tt> method on an object. ActiveModel Callbacks support
   # <tt>:before</tt>, <tt>:after</tt> and <tt>:around</tt> as values for the <tt>kind</tt> property. The <tt>kind</tt> property
   # defines what part of the chain the callback runs in.
-  # 
-  # To find all callbacks in the before_save callback chain: 
-  # 
+  #
+  # To find all callbacks in the before_save callback chain:
+  #
   #   Topic._save_callbacks.select { |cb| cb.kind.eql?(:before) }
-  # 
+  #
   # Returns an array of callback objects that form the before_save chain.
-  # 
+  #
   # To further check if the before_save chain contains a proc defined as <tt>rest_when_dead</tt> use the <tt>filter</tt> property of the callback object:
-  # 
+  #
   #   Topic._save_callbacks.select { |cb| cb.kind.eql?(:before) }.collect(&:filter).include?(:rest_when_dead)
-  # 
+  #
   # Returns true or false depending on whether the proc is contained in the before_save callback chain on a Topic model.
-  # 
+  #
   module Callbacks
     extend ActiveSupport::Concern
 
@@ -242,8 +277,11 @@ module ActiveRecord
       :before_destroy, :around_destroy, :after_destroy, :after_commit, :after_rollback
     ]
 
+    module ClassMethods
+      include ActiveModel::Callbacks
+    end
+
     included do
-      extend ActiveModel::Callbacks
       include ActiveModel::Validations::Callbacks
 
       define_model_callbacks :initialize, :find, :touch, :only => :after
@@ -264,11 +302,11 @@ module ActiveRecord
       run_callbacks(:save) { super }
     end
 
-    def create #:nodoc:
+    def _create_record #:nodoc:
       run_callbacks(:create) { super }
     end
 
-    def update(*) #:nodoc:
+    def _update_record(*) #:nodoc:
       run_callbacks(:update) { super }
     end
   end

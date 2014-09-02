@@ -1,3 +1,4 @@
+require 'action_dispatch/middleware/cookies'
 require 'action_dispatch/middleware/flash'
 require 'active_support/core_ext/hash/indifferent_access'
 
@@ -5,11 +6,7 @@ module ActionDispatch
   module TestProcess
     def assigns(key = nil)
       assigns = {}.with_indifferent_access
-      @controller.instance_variable_names.each do |ivar|
-        next if ActionController::Base.protected_instance_variables.include?(ivar)
-        assigns[ivar[1..-1]] = @controller.instance_variable_get(ivar)
-      end
-
+      @controller.view_assigns.each { |k, v| assigns.regular_writer(k, v) }
       key.nil? ? assigns : assigns[key]
     end
 
@@ -22,24 +19,26 @@ module ActionDispatch
     end
 
     def cookies
-      @request.cookies.merge(@response.cookies).with_indifferent_access
+      @request.cookie_jar
     end
 
     def redirect_to_url
       @response.redirect_url
     end
 
-    # Shortcut for <tt>Rack::Test::UploadedFile.new(ActionController::TestCase.fixture_path + path, type)</tt>:
+    # Shortcut for <tt>Rack::Test::UploadedFile.new(File.join(ActionController::TestCase.fixture_path, path), type)</tt>:
     #
-    #   post :change_avatar, :avatar => fixture_file_upload('/files/spongebob.png', 'image/png')
+    #   post :change_avatar, avatar: fixture_file_upload('files/spongebob.png', 'image/png')
     #
     # To upload binary files on Windows, pass <tt>:binary</tt> as the last parameter.
     # This will not affect other platforms:
     #
-    #   post :change_avatar, :avatar => fixture_file_upload('/files/spongebob.png', 'image/png', :binary)
+    #   post :change_avatar, avatar: fixture_file_upload('files/spongebob.png', 'image/png', :binary)
     def fixture_file_upload(path, mime_type = nil, binary = false)
-      fixture_path = ActionController::TestCase.send(:fixture_path) if ActionController::TestCase.respond_to?(:fixture_path)
-      Rack::Test::UploadedFile.new("#{fixture_path}#{path}", mime_type, binary)
+      if self.class.respond_to?(:fixture_path) && self.class.fixture_path
+        path = File.join(self.class.fixture_path, path)
+      end
+      Rack::Test::UploadedFile.new(path, mime_type, binary)
     end
   end
 end

@@ -1,26 +1,29 @@
 class Bulb < ActiveRecord::Base
-  default_scope where(:name => 'defaulty')
-  belongs_to :car
+  default_scope { where(:name => 'defaulty') }
+  belongs_to :car, :touch => true
 
-  attr_protected :car_id, :frickinawesome
-
-  attr_reader :scope_after_initialize
+  attr_reader :scope_after_initialize, :attributes_after_initialize
 
   after_initialize :record_scope_after_initialize
   def record_scope_after_initialize
-    @scope_after_initialize = self.class.scoped
+    @scope_after_initialize = self.class.all
+  end
+
+  after_initialize :record_attributes_after_initialize
+  def record_attributes_after_initialize
+    @attributes_after_initialize = attributes.dup
   end
 
   def color=(color)
     self[:color] = color.upcase + "!"
   end
 
-  def self.new(attributes = {}, options = {}, &block)
+  def self.new(attributes = {}, &block)
     bulb_type = (attributes || {}).delete(:bulb_type)
 
-    if options && options[:as] == :admin && bulb_type.present?
+    if bulb_type.present?
       bulb_class = "#{bulb_type.to_s.camelize}Bulb".constantize
-      bulb_class.new(attributes, options, &block)
+      bulb_class.new(attributes, &block)
     else
       super
     end
@@ -28,4 +31,21 @@ class Bulb < ActiveRecord::Base
 end
 
 class CustomBulb < Bulb
+  after_initialize :set_awesomeness
+
+  def set_awesomeness
+    self.frickinawesome = true if name == 'Dude'
+  end
+end
+
+class FunkyBulb < Bulb
+  before_destroy do
+    raise "before_destroy was called"
+  end
+end
+
+class FailedBulb < Bulb
+  before_destroy do
+    false
+  end
 end

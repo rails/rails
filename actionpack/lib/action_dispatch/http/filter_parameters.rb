@@ -1,16 +1,14 @@
-require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/hash/keys'
 require 'active_support/core_ext/object/duplicable'
+require 'action_dispatch/http/parameter_filter'
 
 module ActionDispatch
   module Http
     # Allows you to specify sensitive parameters which will be replaced from
     # the request log by looking in the query string of the request and all
-    # subhashes of the params hash to filter. If a block is given, each key and
-    # value of the params hash and all subhashes is passed to it, the value
+    # sub-hashes of the params hash to filter. If a block is given, each key and
+    # value of the params hash and all sub-hashes is passed to it, the value
     # or key can be replaced using String#replace or similar method.
-    #
-    # Examples:
     #
     #   env["action_dispatch.parameter_filter"] = [:password]
     #   => replaces the value to all keys matching /password/i with "[FILTERED]"
@@ -22,11 +20,17 @@ module ActionDispatch
     #     v.reverse! if k =~ /secret/i
     #   end
     #   => reverses the value to all keys matching /secret/i
-    #
     module FilterParameters
-      extend ActiveSupport::Concern
+      ENV_MATCH = [/RAW_POST_DATA/, "rack.request.form_vars"] # :nodoc:
+      NULL_PARAM_FILTER = ParameterFilter.new # :nodoc:
+      NULL_ENV_FILTER   = ParameterFilter.new ENV_MATCH # :nodoc:
 
-      @@parameter_filter_for  = {}
+      def initialize(env)
+        super
+        @filtered_parameters = nil
+        @filtered_env        = nil
+        @filtered_path       = nil
+      end
 
       # Return a hash of parameters with all sensitive data replaced.
       def filtered_parameters
@@ -46,15 +50,20 @@ module ActionDispatch
     protected
 
       def parameter_filter
-        parameter_filter_for(@env["action_dispatch.parameter_filter"])
+        parameter_filter_for @env.fetch("action_dispatch.parameter_filter") {
+          return NULL_PARAM_FILTER
+        }
       end
 
       def env_filter
-        parameter_filter_for(Array.wrap(@env["action_dispatch.parameter_filter"]) << /RAW_POST_DATA/)
+        user_key = @env.fetch("action_dispatch.parameter_filter") {
+          return NULL_ENV_FILTER
+        }
+        parameter_filter_for(Array(user_key) + ENV_MATCH)
       end
 
       def parameter_filter_for(filters)
-        @@parameter_filter_for[filters] ||= ParameterFilter.new(filters)
+        ParameterFilter.new(filters)
       end
 
       KV_RE   = '[^&;=]+'
@@ -64,7 +73,6 @@ module ActionDispatch
           parameter_filter.filter([[$1, $2]]).first.join("=")
         end
       end
-
     end
   end
 end

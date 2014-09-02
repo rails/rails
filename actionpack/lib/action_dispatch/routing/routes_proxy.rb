@@ -1,3 +1,5 @@
+require 'active_support/core_ext/array/extract_options'
+
 module ActionDispatch
   module Routing
     class RoutesProxy #:nodoc:
@@ -14,6 +16,10 @@ module ActionDispatch
         scope.send(:_with_routes, routes) do
           scope.url_options
         end
+      end
+
+      def respond_to?(method, include_private = false)
+        super || routes.url_helpers.respond_to?(method)
       end
 
       def method_missing(method, *args)

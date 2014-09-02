@@ -26,9 +26,15 @@ module SharedGeneratorTests
     default_files.each { |path| assert_file path }
   end
 
-  def test_generation_runs_bundle_install
-    generator([destination_root]).expects(:bundle_command).with('install').once
+  def assert_generates_with_bundler(options = {})
+    generator([destination_root], options)
+    generator.expects(:bundle_command).with('install').once
+    generator.stubs(:bundle_command).with('exec spring binstub --all')
     quietly { generator.invoke_all }
+  end
+
+  def test_generation_runs_bundle_install
+    assert_generates_with_bundler
   end
 
   def test_plugin_new_generate_pretend
@@ -44,11 +50,6 @@ module SharedGeneratorTests
   def test_test_unit_is_skipped_if_required
     run_generator [destination_root, "--skip-test-unit"]
     assert_no_file "test"
-  end
-
-  def test_options_before_application_name_raises_an_error
-    content = capture(:stderr){ run_generator(["--pretend", destination_root]) }
-    assert_match(/Options should be given after the \w+ name. For details run: rails( plugin)? --help\n/, content)
   end
 
   def test_name_collision_raises_an_error
@@ -67,137 +68,77 @@ module SharedGeneratorTests
   end
 
   def test_shebang_is_added_to_rails_file
-    run_generator [destination_root, "--ruby", "foo/bar/baz"]
-    assert_file "script/rails", /#!foo\/bar\/baz/
+    run_generator [destination_root, "--ruby", "foo/bar/baz", "--full"]
+    assert_file "bin/rails", /#!foo\/bar\/baz/
   end
 
   def test_shebang_when_is_the_same_as_default_use_env
-    run_generator [destination_root, "--ruby", Thor::Util.ruby_command]
-    assert_file "script/rails", /#!\/usr\/bin\/env/
+    run_generator [destination_root, "--ruby", Thor::Util.ruby_command, "--full"]
+    assert_file "bin/rails", /#!\/usr\/bin\/env/
   end
 
   def test_template_raises_an_error_with_invalid_path
-    content = capture(:stderr){ run_generator([destination_root, "-m", "non/existant/path"]) }
-    assert_match(/The template \[.*\] could not be loaded/, content)
-    assert_match(/non\/existant\/path/, content)
+    quietly do
+      content = capture(:stderr){ run_generator([destination_root, "-m", "non/existent/path"]) }
+
+      assert_match(/The template \[.*\] could not be loaded/, content)
+      assert_match(/non\/existent\/path/, content)
+    end
   end
 
   def test_template_is_executed_when_supplied
-    path = "http://gist.github.com/103208.txt"
+    path = "https://gist.github.com/josevalim/103208/raw/"
     template = %{ say "It works!" }
     template.instance_eval "def read; self; end" # Make the string respond to read
 
-    generator([destination_root], :template => path).expects(:open).with(path, 'Accept' => 'application/x-thor-template').returns(template)
-    assert_match(/It works!/, capture(:stdout) { generator.invoke_all })
-  end
-
-  def test_template_raises_an_error_with_invalid_path
-    content = capture(:stderr){ run_generator([destination_root, "-m", "non/existant/path"]) }
-    assert_match(/The template \[.*\] could not be loaded/, content)
-    assert_match(/non\/existant\/path/, content)
-  end
-
-  def test_template_is_executed_when_supplied
-    path = "http://gist.github.com/103208.txt"
-    template = %{ say "It works!" }
-    template.instance_eval "def read; self; end" # Make the string respond to read
-
-    generator([destination_root], :template => path).expects(:open).with(path, 'Accept' => 'application/x-thor-template').returns(template)
-    assert_match(/It works!/, capture(:stdout) { generator.invoke_all })
+    generator([destination_root], template: path).expects(:open).with(path, 'Accept' => 'application/x-thor-template').returns(template)
+    quietly { assert_match(/It works!/, capture(:stdout) { generator.invoke_all }) }
   end
 
   def test_template_is_executed_when_supplied_an_https_path
-    path = "https://gist.github.com/103208.txt"
+    path = "https://gist.github.com/josevalim/103208/raw/"
     template = %{ say "It works!" }
     template.instance_eval "def read; self; end" # Make the string respond to read
 
-    generator([destination_root], :template => path).expects(:open).with(path, 'Accept' => 'application/x-thor-template').returns(template)
-    assert_match(/It works!/, capture(:stdout) { generator.invoke_all })
+    generator([destination_root], template: path).expects(:open).with(path, 'Accept' => 'application/x-thor-template').returns(template)
+    quietly { assert_match(/It works!/, capture(:stdout) { generator.invoke_all }) }
   end
 
   def test_dev_option
-    generator([destination_root], :dev => true).expects(:bundle_command).with('install').once
-    quietly { generator.invoke_all }
+    assert_generates_with_bundler dev: true
     rails_path = File.expand_path('../../..', Rails.root)
-    assert_file 'Gemfile', /^gem\s+["']rails["'],\s+:path\s+=>\s+["']#{Regexp.escape(rails_path)}["']$/
+    assert_file 'Gemfile', /^gem\s+["']rails["'],\s+path:\s+["']#{Regexp.escape(rails_path)}["']$/
   end
 
   def test_edge_option
-    generator([destination_root], :edge => true).expects(:bundle_command).with('install').once
-    quietly { generator.invoke_all }
-    assert_file 'Gemfile', %r{^gem\s+["']rails["'],\s+:git\s+=>\s+["']#{Regexp.escape("git://github.com/rails/rails.git")}["']$}
+    assert_generates_with_bundler edge: true
+    assert_file 'Gemfile', %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["']$}
   end
 
   def test_skip_gemfile
-    generator([destination_root], :skip_gemfile => true).expects(:bundle_command).never
+    generator([destination_root], skip_gemfile: true).expects(:bundle_command).never
     quietly { generator.invoke_all }
     assert_no_file 'Gemfile'
   end
 
   def test_skip_bundle
-    generator([destination_root], :skip_bundle => true).expects(:bundle_command).never
+    generator([destination_root], skip_bundle: true).expects(:bundle_command).never
     quietly { generator.invoke_all }
 
     # skip_bundle is only about running bundle install, ensure the Gemfile is still
     # generated.
     assert_file 'Gemfile'
   end
-end
 
-module SharedCustomGeneratorTests
-  def setup
-    Rails.application = TestApp::Application
-    super
-    Rails::Generators::AppGenerator.instance_variable_set('@desc', nil)
+  def test_skip_git
+    run_generator [destination_root, '--skip-git', '--full']
+    assert_no_file('.gitignore')
+    assert_file('app/mailers/.keep')
   end
 
-  def teardown
-    super
-    Rails::Generators::AppGenerator.instance_variable_set('@desc', nil)
-    Object.class_eval do
-      remove_const :AppBuilder if const_defined?(:AppBuilder)
-      remove_const :PluginBuilder if const_defined?(:PluginBuilder)
-    end
-    Rails.application = TestApp::Application.instance
-  end
-
-  def test_builder_option_with_empty_app_builder
-    FileUtils.cd(destination_root)
-    run_generator([destination_root, "-b", "#{Rails.root}/lib/#{builders_dir}/empty_builder.rb"])
-    default_files.each{ |path| assert_no_file path }
-  end
-
-  def test_builder_option_with_simple_plugin_builder
-    FileUtils.cd(destination_root)
-    run_generator([destination_root, "-b", "#{Rails.root}/lib/#{builders_dir}/simple_builder.rb"])
-    (default_files - ['.gitignore']).each{ |path| assert_no_file path }
-    assert_file ".gitignore", "foobar"
-  end
-
-  def test_builder_option_with_relative_path
-    here = File.expand_path(File.dirname(__FILE__))
-    FileUtils.cd(here)
-    run_generator([destination_root, "-b", "../fixtures/lib/#{builders_dir}/simple_builder.rb"])
-    FileUtils.cd(destination_root)
-    (default_files - ['.gitignore']).each{ |path| assert_no_file path }
-    assert_file ".gitignore", "foobar"
-  end
-
-  def test_builder_option_with_tweak_plugin_builder
-    FileUtils.cd(destination_root)
-    run_generator([destination_root, "-b", "#{Rails.root}/lib/#{builders_dir}/tweak_builder.rb"])
-    default_files.each{ |path| assert_file path }
-    assert_file ".gitignore", "foobar"
-  end
-
-  def test_builder_option_with_http
-    path = "http://gist.github.com/103208.txt"
-    template = "class #{builder_class}; end"
-    template.instance_eval "def read; self; end" # Make the string respond to read
-
-    generator([destination_root], :builder => path).expects(:open).with(path, 'Accept' => 'application/x-thor-template').returns(template)
-    quietly { generator.invoke_all }
-
-    default_files.each{ |path| assert_no_file(path) }
+  def test_skip_keeps
+    run_generator [destination_root, '--skip-keeps', '--full']
+    assert_file('.gitignore')
+    assert_no_file('app/mailers/.keep')
   end
 end

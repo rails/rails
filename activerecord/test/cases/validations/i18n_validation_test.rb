@@ -6,6 +6,7 @@ class I18nValidationTest < ActiveRecord::TestCase
   repair_validations(Topic, Reply)
 
   def setup
+    repair_validations(Topic, Reply)
     Reply.validates_presence_of(:title)
     @topic = Topic.new
     @old_load_path, @old_backend = I18n.load_path.dup, I18n.backend
@@ -14,7 +15,7 @@ class I18nValidationTest < ActiveRecord::TestCase
     I18n.backend.store_translations('en', :errors => {:messages => {:custom => nil}})
   end
 
-  def teardown
+  teardown do
     I18n.load_path.replace @old_load_path
     I18n.backend = @old_backend
   end
@@ -43,7 +44,7 @@ class I18nValidationTest < ActiveRecord::TestCase
     [ "given option that is not reserved", {:format => "jpg"},            {:format => "jpg" }]
     # TODO Add :on case, but below doesn't work, because then the validation isn't run for some reason
     #      even when using .save instead .valid?
-    # [ "given on condition",     {:on => :save},                {}]
+    # [ "given on condition",     {on: :save},                {}]
   ]
 
   # validates_uniqueness_of w/ mocha

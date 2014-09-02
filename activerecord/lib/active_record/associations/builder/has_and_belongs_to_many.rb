@@ -1,63 +1,124 @@
 module ActiveRecord::Associations::Builder
-  class HasAndBelongsToMany < CollectionAssociation #:nodoc:
-    self.macro = :has_and_belongs_to_many
+  class HasAndBelongsToMany # :nodoc:
+    class JoinTableResolver
+      KnownTable = Struct.new :join_table
 
-    self.valid_options += [:join_table, :association_foreign_key, :delete_sql, :insert_sql]
+      class KnownClass
+        def initialize(lhs_class, rhs_class_name)
+          @lhs_class      = lhs_class
+          @rhs_class_name = rhs_class_name
+          @join_table     = nil
+        end
 
-    def build
-      reflection = super
-      check_validity(reflection)
-      define_after_destroy_method
-      reflection
+        def join_table
+          @join_table ||= [@lhs_class.table_name, klass.table_name].sort.join("\0").gsub(/^(.*[._])(.+)\0\1(.+)/, '\1\2_\3').gsub("\0", "_")
+        end
+
+        private
+
+        def klass
+          @lhs_class.send(:compute_type, @rhs_class_name)
+        end
+      end
+
+      def self.build(lhs_class, name, options)
+        if options[:join_table]
+          KnownTable.new options[:join_table].to_s
+        else
+          class_name = options.fetch(:class_name) {
+            name.to_s.camelize.singularize
+          }
+          KnownClass.new lhs_class, class_name
+        end
+      end
+    end
+
+    attr_reader :lhs_model, :association_name, :options
+
+    def initialize(association_name, lhs_model, options)
+      @association_name = association_name
+      @lhs_model = lhs_model
+      @options = options
+    end
+
+    def through_model
+      habtm = JoinTableResolver.build lhs_model, association_name, options
+
+      join_model = Class.new(ActiveRecord::Base) {
+        class << self;
+          attr_accessor :class_resolver
+          attr_accessor :name
+          attr_accessor :table_name_resolver
+          attr_accessor :left_reflection
+          attr_accessor :right_reflection
+        end
+
+        def self.table_name
+          table_name_resolver.join_table
+        end
+
+        def self.compute_type(class_name)
+          class_resolver.compute_type class_name
+        end
+
+        def self.add_left_association(name, options)
+          belongs_to name, options
+          self.left_reflection = _reflect_on_association(name)
+        end
+
+        def self.add_right_association(name, options)
+          rhs_name = name.to_s.singularize.to_sym
+          belongs_to rhs_name, options
+          self.right_reflection = _reflect_on_association(rhs_name)
+        end
+
+      }
+
+      join_model.name                = "HABTM_#{association_name.to_s.camelize}"
+      join_model.table_name_resolver = habtm
+      join_model.class_resolver      = lhs_model
+
+      join_model.add_left_association :left_side, class: lhs_model
+      join_model.add_right_association association_name, belongs_to_options(options)
+      join_model
+    end
+
+    def middle_reflection(join_model)
+      middle_name = [lhs_model.name.downcase.pluralize,
+                     association_name].join('_').gsub(/::/, '_').to_sym
+      middle_options = middle_options join_model
+      hm_builder = HasMany.create_builder(lhs_model,
+                                          middle_name,
+                                          nil,
+                                          middle_options)
+      hm_builder.build lhs_model
     end
 
     private
 
-      def define_after_destroy_method
-        name = self.name
-        model.send(:class_eval, <<-eoruby, __FILE__, __LINE__ + 1)
-          def #{after_destroy_method_name}
-            association(#{name.to_sym.inspect}).delete_all
-          end
-        eoruby
-        model.after_destroy after_destroy_method_name
+    def middle_options(join_model)
+      middle_options = {}
+      middle_options[:class] = join_model
+      middle_options[:source] = join_model.left_reflection.name
+      if options.key? :foreign_key
+        middle_options[:foreign_key] = options[:foreign_key]
+      end
+      middle_options
+    end
+
+    def belongs_to_options(options)
+      rhs_options = {}
+
+      if options.key? :class_name
+        rhs_options[:foreign_key] = options[:class_name].foreign_key
+        rhs_options[:class_name] = options[:class_name]
       end
 
-      def after_destroy_method_name
-        "has_and_belongs_to_many_after_destroy_for_#{name}"
+      if options.key? :association_foreign_key
+        rhs_options[:foreign_key] = options[:association_foreign_key]
       end
 
-      # TODO: These checks should probably be moved into the Reflection, and we should not be
-      #       redefining the options[:join_table] value - instead we should define a
-      #       reflection.join_table method.
-      def check_validity(reflection)
-        if reflection.association_foreign_key == reflection.foreign_key
-          raise ActiveRecord::HasAndBelongsToManyAssociationForeignKeyNeeded.new(reflection)
-        end
-
-        reflection.options[:join_table] ||= join_table_name(
-          model.send(:undecorated_table_name, model.to_s),
-          model.send(:undecorated_table_name, reflection.class_name)
-        )
-
-        if model.connection.supports_primary_key? && (model.connection.primary_key(reflection.options[:join_table]) rescue false)
-          raise ActiveRecord::HasAndBelongsToManyAssociationWithPrimaryKeyError.new(reflection)
-        end
-      end
-
-      # Generates a join table name from two provided table names.
-      # The names in the join table names end up in lexicographic order.
-      #
-      #   join_table_name("members", "clubs")         # => "clubs_members"
-      #   join_table_name("members", "special_clubs") # => "members_special_clubs"
-      def join_table_name(first_table_name, second_table_name)
-        if first_table_name < second_table_name
-          join_table = "#{first_table_name}_#{second_table_name}"
-        else
-          join_table = "#{second_table_name}_#{first_table_name}"
-        end
-
-        model.table_name_prefix + join_table + model.table_name_suffix
-      end
+      rhs_options
+    end
   end
 end

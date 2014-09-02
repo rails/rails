@@ -1,20 +1,11 @@
-task :default => :test
-
-task :rails_env do
-  # TODO Do we really need this?
-  unless defined? RAILS_ENV
-    RAILS_ENV = ENV['RAILS_ENV'] ||= 'development'
-  end
-end
-
 desc 'Generate a cryptographically secure secret key (this is typically used to generate a secret for cookie sessions).'
 task :secret do
-  require 'active_support/secure_random'
-  puts ActiveSupport::SecureRandom.hex(64)
+  require 'securerandom'
+  puts SecureRandom.hex(64)
 end
 
 desc 'List versions of all Rails frameworks and the environment'
-task :about do
+task about: :environment do
   puts Rails::Info
 end
 
@@ -35,7 +26,7 @@ namespace :time do
       require 'active_support'
       require 'active_support/time'
       jan_offset = Time.now.beginning_of_year.utc_offset
-      jul_offset = Time.now.beginning_of_year.change(:month => 7).utc_offset
+      jul_offset = Time.now.beginning_of_year.change(month: 7).utc_offset
       offset = jan_offset < jul_offset ? jan_offset : jul_offset
       build_time_zone_list(:all, offset)
     end

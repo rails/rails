@@ -1,0 +1,52 @@
+<% names = @traces.keys %>
+
+<p><code>Rails.root: <%= defined?(Rails) && Rails.respond_to?(:root) ? Rails.root : "unset" %></code></p>
+
+<div id="traces">
+  <% names.each do |name| %>
+    <%
+      show = "show('#{name.gsub(/\s/, '-')}');"
+      hide = (names - [name]).collect {|hide_name| "hide('#{hide_name.gsub(/\s/, '-')}');"}
+    %>
+    <a href="#" onclick="<%= hide.join %><%= show %>; return false;"><%= name %></a> <%= '|' unless names.last == name %>
+  <% end %>
+
+  <% @traces.each do |name, trace| %>
+    <div id="<%= name.gsub(/\s/, '-') %>" style="display: <%= (name == "Application Trace") ? 'block' : 'none' %>;">
+      <pre><code><% trace.each do |frame| %><a class="trace-frames" data-frame-id="<%= frame[:id] %>" href="#"><%= frame[:trace] %></a><br><% end %></code></pre>
+    </div>
+  <% end %>
+
+  <script type="text/javascript">
+    var traceFrames = document.getElementsByClassName('trace-frames');
+    var selectedFrame, currentSource = document.getElementById('frame-source-0');
+
+    // Add click listeners for all stack frames
+    for (var i = 0; i < traceFrames.length; i++) {
+      traceFrames[i].addEventListener('click', function(e) {
+        e.preventDefault();
+        var target = e.target;
+        var frame_id = target.dataset.frameId;
+
+        if (selectedFrame) {
+          selectedFrame.className = selectedFrame.className.replace("selected", "");
+        }
+
+        target.className += " selected";
+        selectedFrame = target;
+
+        // Change the extracted source code
+        changeSourceExtract(frame_id);
+      });
+
+      function changeSourceExtract(frame_id) {
+        var el = document.getElementById('frame-source-' + frame_id);
+        if (currentSource && el) {
+          currentSource.className += " hidden";
+          el.className = el.className.replace(" hidden", "");
+          currentSource = el;
+        }
+      }
+    }
+  </script>
+</div>

@@ -1,35 +1,67 @@
 class Object
-  # Invokes the method identified by the symbol +method+, passing it any arguments
-  # and/or the block specified, just like the regular Ruby <tt>Object#send</tt> does.
+  # Invokes the public method whose name goes as first argument just like
+  # +public_send+ does, except that if the receiver does not respond to it the
+  # call returns +nil+ rather than raising an exception.
   #
-  # *Unlike* that method however, a +NoMethodError+ exception will *not* be raised
-  # and +nil+ will be returned instead, if the receiving object is a +nil+ object or NilClass.
+  # This method is defined to be able to write
   #
-  # If try is called without a method to call, it will yield any given block with the object.
-  #
-  # ==== Examples
-  #
-  # Without +try+
-  #   @person && @person.name
-  # or
-  #   @person ? @person.name : nil
-  #
-  # With +try+
   #   @person.try(:name)
   #
-  # +try+ also accepts arguments and/or a block, for the method it is trying
-  #   Person.try(:find, 1)
-  #   @people.try(:collect) {|p| p.name}
+  # instead of
   #
-  # Without a method argument try will yield to the block unless the receiver is nil.
-  #   @person.try { |p| "#{p.first_name} #{p.last_name}" }
-  #--
-  # +try+ behaves like +Object#send+, unless called on +NilClass+.
+  #   @person ? @person.name : nil
+  #
+  # +try+ returns +nil+ when called on +nil+ regardless of whether it responds
+  # to the method:
+  #
+  #   nil.try(:to_i) # => nil, rather than 0
+  #
+  # Arguments and blocks are forwarded to the method if invoked:
+  #
+  #   @posts.try(:each_slice, 2) do |a, b|
+  #     ...
+  #   end
+  #
+  # The number of arguments in the signature must match. If the object responds
+  # to the method the call is attempted and +ArgumentError+ is still raised
+  # otherwise.
+  #
+  # If +try+ is called without arguments it yields the receiver to a given
+  # block unless it is +nil+:
+  #
+  #   @person.try do |p|
+  #     ...
+  #   end
+  #
+  # You can also call try with a block without accepting an argument, and the block
+  # will be instance_eval'ed instead:
+  #
+  #   @person.try { upcase.truncate(50) }
+  #
+  # Please also note that +try+ is defined on +Object+, therefore it won't work
+  # with instances of classes that do not have +Object+ among their ancestors,
+  # like direct subclasses of +BasicObject+. For example, using +try+ with
+  # +SimpleDelegator+ will delegate +try+ to the target instead of calling it on
+  # delegator itself.
   def try(*a, &b)
+    if a.empty? && block_given?
+      if b.arity.zero?
+        instance_eval(&b)
+      else
+        yield self
+      end
+    else
+      public_send(*a, &b) if respond_to?(a.first)
+    end
+  end
+
+  # Same as #try, but will raise a NoMethodError exception if the receiving is not nil and
+  # does not implement the tried method.
+  def try!(*a, &b)
     if a.empty? && block_given?
       yield self
     else
-      __send__(*a, &b)
+      public_send(*a, &b)
     end
   end
 end
@@ -37,8 +69,6 @@ end
 class NilClass
   # Calling +try+ on +nil+ always returns +nil+.
   # It becomes specially helpful when navigating through associations that may return +nil+.
-  #
-  # === Examples
   #
   #   nil.try(:name) # => nil
   #
@@ -48,6 +78,10 @@ class NilClass
   # With +try+
   #   @person.try(:children).try(:first).try(:name)
   def try(*args)
+    nil
+  end
+
+  def try!(*args)
     nil
   end
 end

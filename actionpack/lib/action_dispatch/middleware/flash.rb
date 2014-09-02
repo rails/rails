@@ -1,23 +1,25 @@
+require 'active_support/core_ext/hash/keys'
+
 module ActionDispatch
-  class Request
+  class Request < Rack::Request
     # Access the contents of the flash. Use <tt>flash["notice"]</tt> to
     # read a notice you put there or <tt>flash["notice"] = "hello"</tt>
     # to put a new one.
     def flash
-      @env[Flash::KEY] ||= (session["flash"] || Flash::FlashHash.new)
+      @env[Flash::KEY] ||= Flash::FlashHash.from_session_value(session["flash"])
     end
   end
 
-  # The flash provides a way to pass temporary objects between actions. Anything you place in the flash will be exposed
+  # The flash provides a way to pass temporary primitive-types (String, Array, Hash) between actions. Anything you place in the flash will be exposed
   # to the very next action and then cleared out. This is a great way of doing notices and alerts, such as a create
   # action that sets <tt>flash[:notice] = "Post successfully created"</tt> before redirecting to a display action that can
-  # then expose the flash to its template. Actually, that exposure is automatically done. Example:
+  # then expose the flash to its template. Actually, that exposure is automatically done.
   #
   #   class PostsController < ActionController::Base
   #     def create
   #       # save post
   #       flash[:notice] = "Post successfully created"
-  #       redirect_to posts_path(@post)
+  #       redirect_to @post
   #     end
   #
   #     def show
@@ -35,8 +37,11 @@ module ActionDispatch
   #   flash.alert = "You must be logged in"
   #   flash.notice = "Post successfully created"
   #
-  # This example just places a string in the flash, but you can put any object in there. And of course, you can put as
-  # many as you like at a time too. Just remember: They'll be gone by the time the next action has been performed.
+  # This example places a string in the flash. And of course, you can put as many as you like at a time too. If you want to pass
+  # non-primitive types, you will have to handle that in your application. Example: To show messages with links, you will have to
+  # use sanitize helper.
+  #
+  # Just remember: They'll be gone by the time the next action has been performed.
   #
   # See docs on the FlashHash class for more details about the flash.
   class Flash
@@ -50,21 +55,22 @@ module ActionDispatch
       end
 
       def []=(k, v)
+        k = k.to_s
         @flash[k] = v
         @flash.discard(k)
         v
       end
 
       def [](k)
-        @flash[k]
+        @flash[k.to_s]
       end
 
-      # Convenience accessor for flash.now[:alert]=
+      # Convenience accessor for <tt>flash.now[:alert]=</tt>.
       def alert=(message)
         self[:alert] = message
       end
 
-      # Convenience accessor for flash.now[:notice]=
+      # Convenience accessor for <tt>flash.now[:notice]=</tt>.
       def notice=(message)
         self[:notice] = message
       end
@@ -73,10 +79,27 @@ module ActionDispatch
     class FlashHash
       include Enumerable
 
-      def initialize #:nodoc:
-        @used    = Set.new
-        @closed  = false
-        @flashes = {}
+      def self.from_session_value(value)
+        flash = case value
+                when FlashHash # Rails 3.1, 3.2
+                  new(value.instance_variable_get(:@flashes), value.instance_variable_get(:@used))
+                when Hash # Rails 4.0
+                  new(value['flashes'], value['discard'])
+                else
+                  new
+                end
+
+        flash.tap(&:sweep)
+      end
+
+      def to_session_value
+        return nil if empty?
+        {'discard' => @discard.to_a, 'flashes' => @flashes}
+      end
+
+      def initialize(flashes = {}, discard = []) #:nodoc:
+        @discard = Set.new(stringify_array(discard))
+        @flashes = flashes.stringify_keys
         @now     = nil
       end
 
@@ -88,19 +111,19 @@ module ActionDispatch
         super
       end
 
-      def []=(k, v) #:nodoc:
-        raise ClosedError, :flash if closed?
-        keep(k)
+      def []=(k, v)
+        k = k.to_s
+        @discard.delete k
         @flashes[k] = v
       end
 
       def [](k)
-        @flashes[k]
+        @flashes[k.to_s]
       end
 
       def update(h) #:nodoc:
-        h.keys.each { |k| keep(k) }
-        @flashes.update h
+        @discard.subtract stringify_array(h.keys)
+        @flashes.update h.stringify_keys
         self
       end
 
@@ -113,6 +136,8 @@ module ActionDispatch
       end
 
       def delete(key)
+        key = key.to_s
+        @discard.delete key
         @flashes.delete key
         self
       end
@@ -126,6 +151,7 @@ module ActionDispatch
       end
 
       def clear
+        @discard.clear
         @flashes.clear
       end
 
@@ -136,8 +162,8 @@ module ActionDispatch
       alias :merge! :update
 
       def replace(h) #:nodoc:
-        @used = Set.new
-        @flashes.replace h
+        @discard.clear
+        @flashes.replace h.stringify_keys
         self
       end
 
@@ -151,20 +177,26 @@ module ActionDispatch
       # vanish when the current action is done.
       #
       # Entries set via <tt>now</tt> are accessed the same way as standard entries: <tt>flash['my-key']</tt>.
+      #
+      # Also, brings two convenience accessors:
+      #
+      #   flash.now.alert = "Beware now!"
+      #   # Equivalent to flash.now[:alert] = "Beware now!"
+      #
+      #   flash.now.notice = "Good luck now!"
+      #   # Equivalent to flash.now[:notice] = "Good luck now!"
       def now
         @now ||= FlashNow.new(self)
       end
-
-      attr_reader :closed
-      alias :closed? :closed
-      def close!; @closed = true; end
 
       # Keeps either the entire current flash or a specific flash entry available for the next action:
       #
       #    flash.keep            # keeps the entire flash
       #    flash.keep(:notice)   # keeps only the "notice" entry, the rest of the flash is discarded
       def keep(k = nil)
-        use(k, false)
+        k = k.to_s if k
+        @discard.subtract Array(k || keys)
+        k ? self[k] : self
       end
 
       # Marks the entire flash or a single flash entry to be discarded by the end of the current action:
@@ -172,63 +204,49 @@ module ActionDispatch
       #     flash.discard              # discard the entire flash at the end of the current action
       #     flash.discard(:warning)    # discard only the "warning" entry at the end of the current action
       def discard(k = nil)
-        use(k)
+        k = k.to_s if k
+        @discard.merge Array(k || keys)
+        k ? self[k] : self
       end
 
       # Mark for removal entries that were kept, and delete unkept ones.
       #
       # This method is called automatically by filters, so you generally don't need to care about it.
       def sweep #:nodoc:
-        keys.each do |k|
-          unless @used.include?(k)
-            @used << k
-          else
-            delete(k)
-            @used.delete(k)
-          end
-        end
-
-        # clean up after keys that could have been left over by calling reject! or shift on the flash
-        (@used - keys).each{ |k| @used.delete(k) }
+        @discard.each { |k| @flashes.delete k }
+        @discard.replace @flashes.keys
       end
 
-      # Convenience accessor for flash[:alert]
+      # Convenience accessor for <tt>flash[:alert]</tt>.
       def alert
         self[:alert]
       end
 
-      # Convenience accessor for flash[:alert]=
+      # Convenience accessor for <tt>flash[:alert]=</tt>.
       def alert=(message)
         self[:alert] = message
       end
 
-      # Convenience accessor for flash[:notice]
+      # Convenience accessor for <tt>flash[:notice]</tt>.
       def notice
         self[:notice]
       end
 
-      # Convenience accessor for flash[:notice]=
+      # Convenience accessor for <tt>flash[:notice]=</tt>.
       def notice=(message)
         self[:notice] = message
       end
 
       protected
+      def now_is_loaded?
+        @now
+      end
 
-        def now_is_loaded?
-          !!@now
+      def stringify_array(array)
+        array.map do |item|
+          item.kind_of?(Symbol) ? item.to_s : item
         end
-
-        # Used internally by the <tt>keep</tt> and <tt>discard</tt> methods
-        #     use()               # marks the entire flash as used
-        #     use('msg')          # marks the "msg" entry as used
-        #     use(nil, false)     # marks the entire flash as unused (keeps it around for one more action)
-        #     use('msg', false)   # marks the "msg" entry as unused (keeps it around for one more action)
-        # Returns the single value for the key you asked to be marked (un)used or the FlashHash itself
-        # if no key is passed.
-        def use(key = nil, used = true)
-          Array(key || keys).each { |k| used ? @used << k : @used.delete(k) }
-          return key ? self[key] : self
-        end
+      end
     end
 
     def initialize(app)
@@ -236,28 +254,18 @@ module ActionDispatch
     end
 
     def call(env)
-      if (session = env['rack.session']) && (flash = session['flash'])
-        flash.sweep
-      end
-
       @app.call(env)
     ensure
-      session    = env['rack.session'] || {}
+      session    = Request::Session.find(env) || {}
       flash_hash = env[KEY]
 
-      if flash_hash
-        if !flash_hash.empty? || session.key?('flash')
-          session["flash"] = flash_hash
-          new_hash = flash_hash.dup
-        else
-          new_hash = flash_hash
-        end
-
-        env[KEY] = new_hash
-        new_hash.close!
+      if flash_hash && (flash_hash.present? || session.key?('flash'))
+        session["flash"] = flash_hash.to_session_value
+        env[KEY] = flash_hash.dup
       end
 
-      if session.key?('flash') && session['flash'].empty?
+      if (!session.respond_to?(:loaded?) || session.loaded?) && # (reset_session uses {}, which doesn't implement #loaded?)
+        session.key?('flash') && session['flash'].nil?
         session.delete('flash')
       end
     end

@@ -1,4 +1,4 @@
-version = File.read(File.expand_path("../../RAILS_VERSION", __FILE__)).strip
+version = File.read(File.expand_path('../../RAILS_VERSION', __FILE__)).strip
 
 Gem::Specification.new do |s|
   s.platform    = Gem::Platform::RUBY
@@ -6,26 +6,26 @@ Gem::Specification.new do |s|
   s.version     = version
   s.summary     = 'Web-flow and rendering framework putting the VC in MVC (part of Rails).'
   s.description = 'Web apps on Rails. Simple, battle-tested conventions for building and testing MVC web applications. Works with any Rack-compatible server.'
-  s.required_ruby_version = '>= 1.8.7'
 
-  s.author            = 'David Heinemeier Hansson'
-  s.email             = 'david@loudthinking.com'
-  s.homepage          = 'http://www.rubyonrails.org'
-  s.rubyforge_project = 'actionpack'
+  s.required_ruby_version = '>= 1.9.3'
 
-  s.files        = Dir['CHANGELOG', 'README.rdoc', 'MIT-LICENSE', 'lib/**/*']
+  s.license = 'MIT'
+
+  s.author   = 'David Heinemeier Hansson'
+  s.email    = 'david@loudthinking.com'
+  s.homepage = 'http://www.rubyonrails.org'
+
+  s.files        = Dir['CHANGELOG.md', 'README.rdoc', 'MIT-LICENSE', 'lib/**/*']
   s.require_path = 'lib'
   s.requirements << 'none'
 
-  s.add_dependency('activesupport',    version)
-  s.add_dependency('activemodel',      version)
-  s.add_dependency('rack-cache',       '~> 1.0.1')
-  s.add_dependency('builder',          '~> 3.0.0')
-  s.add_dependency('i18n',             '~> 0.6.0beta1')
-  s.add_dependency('rack',             '~> 1.3.0.beta2')
-  s.add_dependency('rack-test',        '~> 0.6.0')
-  s.add_dependency('rack-mount',       '~> 0.8.1')
-  s.add_dependency('sprockets',        '~> 2.0.0.beta.5')
-  s.add_dependency('tzinfo',           '~> 0.3.27')
-  s.add_dependency('erubis',           '~> 2.7.0')
+  s.add_dependency 'activesupport', version
+
+  s.add_dependency 'rack',      '~> 1.6.0.beta'
+  s.add_dependency 'rack-test', '~> 0.6.2'
+  s.add_dependency 'rails-deprecated_sanitizer', '~> 1.0', '>= 1.0.2'
+  s.add_dependency 'rails-dom-testing', '~> 1.0', '>= 1.0.2'
+  s.add_dependency 'actionview', version
+
+  s.add_development_dependency 'activemodel', version
 end

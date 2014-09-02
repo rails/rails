@@ -11,6 +11,17 @@ class QueryStringParsingTest < ActionDispatch::IntegrationTest
       head :ok
     end
   end
+  class EarlyParse
+    def initialize(app)
+      @app = app
+    end
+
+    def call(env)
+      # Trigger a Rack parse so that env caches the query params
+      Rack::Request.new(env).params
+      @app.call(env)
+    end
+  end
 
   def teardown
     TestController.last_query_parameters = nil
@@ -81,7 +92,32 @@ class QueryStringParsingTest < ActionDispatch::IntegrationTest
   end
 
   test "query string without equal" do
-    assert_parses({ "action" => nil }, "action")
+    assert_parses({"action" => nil}, "action")
+    assert_parses({"action" => {"foo" => nil}}, "action[foo]")
+    assert_parses({"action" => {"foo" => { "bar" => nil }}}, "action[foo][bar]")
+    assert_parses({"action" => {"foo" => { "bar" => nil }}}, "action[foo][bar][]")
+    assert_parses({"action" => {"foo" => nil }}, "action[foo][]")
+    assert_parses({"action"=>{"foo"=>[{"bar"=>nil}]}}, "action[foo][][bar]")
+  end
+
+  def test_array_parses_without_nil
+    assert_parses({"action" => ['1']}, "action[]=1&action[]")
+  end
+
+  test "perform_deep_munge" do
+    old_perform_deep_munge = ActionDispatch::Request::Utils.perform_deep_munge
+    ActionDispatch::Request::Utils.perform_deep_munge = false
+    begin
+      assert_parses({"action" => nil}, "action")
+      assert_parses({"action" => {"foo" => nil}}, "action[foo]")
+      assert_parses({"action" => {"foo" => {"bar" => nil}}}, "action[foo][bar]")
+      assert_parses({"action" => {"foo" => {"bar" => [nil]}}}, "action[foo][bar][]")
+      assert_parses({"action" => {"foo" => [nil]}}, "action[foo][]")
+      assert_parses({"action" => {"foo" => [{"bar" => nil}]}}, "action[foo][][bar]")
+      assert_parses({"action" => ['1',nil]}, "action[]=1&action[]")
+    ensure
+      ActionDispatch::Request::Utils.perform_deep_munge = old_perform_deep_munge
+    end
   end
 
   test "query string with empty key" do
@@ -105,12 +141,27 @@ class QueryStringParsingTest < ActionDispatch::IntegrationTest
     )
   end
 
+  test "ambiguous query string returns a bad request" do
+    with_routing do |set|
+      set.draw do
+        get ':action', :to => ::QueryStringParsingTest::TestController
+      end
+
+      get "/parse", nil, "QUERY_STRING" => "foo[]=bar&foo[4]=bar"
+      assert_response :bad_request
+    end
+  end
+
   private
     def assert_parses(expected, actual)
       with_routing do |set|
         set.draw do
-          match ':action', :to => ::QueryStringParsingTest::TestController
+          get ':action', :to => ::QueryStringParsingTest::TestController
         end
+        @app = self.class.build_app(set) do |middleware|
+          middleware.use(EarlyParse)
+        end
+
 
         get "/parse", actual
         assert_response :ok

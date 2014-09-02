@@ -7,12 +7,6 @@ require 'models/developer'
 require 'models/parrot'
 require 'models/company'
 
-class ProtectedPerson < ActiveRecord::Base
-  set_table_name 'people'
-  attr_accessor :addon
-  attr_protected :first_name
-end
-
 class ValidationsTest < ActiveRecord::TestCase
   fixtures :topics, :developers
 
@@ -20,28 +14,28 @@ class ValidationsTest < ActiveRecord::TestCase
   # Other classes we mess with will be dealt with in the specific tests
   repair_validations(Topic)
 
-  def test_error_on_create
+  def test_valid_uses_create_context_when_new
     r = WrongReply.new
     r.title = "Wrong Create"
-    assert !r.save
+    assert_not r.valid?
     assert r.errors[:title].any?, "A reply with a bad title should mark that attribute as invalid"
     assert_equal ["is Wrong Create"], r.errors[:title], "A reply with a bad content should contain an error"
   end
 
-  def test_error_on_update
+  def test_valid_uses_update_context_when_persisted
     r = WrongReply.new
     r.title = "Bad"
     r.content = "Good"
-    assert r.save, "First save should be successful"
+    assert r.save, "First validation should be successful"
 
     r.title = "Wrong Update"
-    assert !r.save, "Second save should fail"
+    assert_not r.valid?, "Second validation should fail"
 
     assert r.errors[:title].any?, "A reply with a bad title should mark that attribute as invalid"
     assert_equal ["is Wrong Update"], r.errors[:title], "A reply with a bad content should contain an error"
   end
 
-  def test_error_on_given_context
+  def test_valid_using_special_context
     r = WrongReply.new(:title => "Valid title")
     assert !r.valid?(:special_case)
     assert_equal "Invalid", r.errors[:author_name].join
@@ -51,24 +45,51 @@ class ValidationsTest < ActiveRecord::TestCase
     assert r.valid?(:special_case)
 
     r.author_name = nil
-    assert !r.save(:context => :special_case)
+    assert_not r.valid?(:special_case)
     assert_equal "Invalid", r.errors[:author_name].join
 
     r.author_name = "secret"
-    assert r.save(:context => :special_case)
+    assert r.valid?(:special_case)
+  end
+
+  def test_validate
+    r = WrongReply.new
+
+    r.validate
+    assert_empty r.errors[:author_name]
+
+    r.validate(:special_case)
+    assert_not_empty r.errors[:author_name]
+
+    r.author_name = "secret"
+
+    r.validate(:special_case)
+    assert_empty r.errors[:author_name]
   end
 
   def test_invalid_record_exception
     assert_raise(ActiveRecord::RecordInvalid) { WrongReply.create! }
     assert_raise(ActiveRecord::RecordInvalid) { WrongReply.new.save! }
 
-    begin
-      r = WrongReply.new
+    r = WrongReply.new
+    invalid = assert_raise ActiveRecord::RecordInvalid do
       r.save!
-      flunk
-    rescue ActiveRecord::RecordInvalid => invalid
-      assert_equal r, invalid.record
     end
+    assert_equal r, invalid.record
+  end
+
+  def test_validate_with_bang
+    assert_raise(ActiveRecord::RecordInvalid) do
+      WrongReply.new.validate!
+    end
+  end
+
+  def test_validate_with_bang_and_context
+    assert_raise(ActiveRecord::RecordInvalid) do
+      WrongReply.new.validate!(:special_case)
+    end
+    r = WrongReply.new(:title => "Valid title", :author_name => "secret", :content => "Good")
+    assert r.validate!(:special_case)
   end
 
   def test_exception_on_create_bang_many
@@ -93,37 +114,13 @@ class ValidationsTest < ActiveRecord::TestCase
     end
   end
 
-  def test_scoped_create_without_attributes
-    WrongReply.send(:with_scope, :create => {}) do
-      assert_raise(ActiveRecord::RecordInvalid) { WrongReply.create! }
-    end
-  end
-
-  def test_create_with_exceptions_using_scope_for_protected_attributes
-    assert_nothing_raised do
-      ProtectedPerson.send(:with_scope,  :create => { :first_name => "Mary" } ) do
-        person = ProtectedPerson.create! :addon => "Addon"
-        assert_equal person.first_name, "Mary", "scope should ignore attr_protected"
-      end
-    end
-  end
-
-  def test_create_with_exceptions_using_scope_and_empty_attributes
-    assert_nothing_raised do
-      ProtectedPerson.send(:with_scope,  :create => { :first_name => "Mary" } ) do
-        person = ProtectedPerson.create!
-        assert_equal person.first_name, "Mary", "should be ok when no attributes are passed to create!"
-      end
-    end
-  end
-
-  def test_create_without_validation
+  def test_save_without_validation
     reply = WrongReply.new
     assert !reply.save
     assert reply.save(:validate => false)
   end
 
-  def test_validates_acceptance_of_with_non_existant_table
+  def test_validates_acceptance_of_with_non_existent_table
     Object.const_set :IncorporealModel, Class.new(ActiveRecord::Base)
 
     assert_nothing_raised ActiveRecord::StatementInvalid do

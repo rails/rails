@@ -1,23 +1,11 @@
 module Rails
   module Generators
-    class AssetsGenerator < NamedBase
-      class_option :javascripts, :type => :boolean, :desc => "Generate JavaScripts"
-      class_option :stylesheets, :type => :boolean, :desc => "Generate Stylesheets"
+    class AssetsGenerator < NamedBase # :nodoc:
+      class_option :javascripts, type: :boolean, desc: "Generate JavaScripts"
+      class_option :stylesheets, type: :boolean, desc: "Generate Stylesheets"
 
-      class_option :javascript_engine, :desc => "Engine for JavaScripts"
-      class_option :stylesheet_engine, :desc => "Engine for Stylesheets"
-
-      def create_javascript_files
-        return unless options.javascripts?
-        copy_file "javascript.#{javascript_extension}",
-          File.join('app/assets/javascripts', class_path, "#{asset_name}.#{javascript_extension}")
-      end
-
-      def create_stylesheet_files
-        return unless options.stylesheets?
-        copy_file "stylesheet.#{stylesheet_extension}",
-          File.join('app/assets/stylesheets', class_path, "#{asset_name}.#{stylesheet_extension}")
-      end
+      class_option :javascript_engine, desc: "Engine for JavaScripts"
+      class_option :stylesheet_engine, desc: "Engine for Stylesheets"
 
       protected
 
@@ -25,14 +13,12 @@ module Rails
         file_name
       end
 
-      def javascript_extension
-        options.javascript_engine.present? ?
-          "js.#{options.javascript_engine}" : "js"
+      hook_for :javascript_engine do |javascript_engine|
+        invoke javascript_engine, [name] if options[:javascripts]
       end
 
-      def stylesheet_extension
-        options.stylesheet_engine.present? ?
-          "css.#{options.stylesheet_engine}" : "css"
+      hook_for :stylesheet_engine do |stylesheet_engine|
+        invoke stylesheet_engine, [name] if options[:stylesheets]
       end
     end
   end

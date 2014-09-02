@@ -1,7 +1,7 @@
 class Pirate < ActiveRecord::Base
   belongs_to :parrot, :validate => true
   belongs_to :non_validated_parrot, :class_name => 'Parrot'
-  has_and_belongs_to_many :parrots, :validate => true, :order => 'parrots.id ASC'
+  has_and_belongs_to_many :parrots, -> { order('parrots.id ASC') }, :validate => true
   has_and_belongs_to_many :non_validated_parrots, :class_name => 'Parrot'
   has_and_belongs_to_many :parrots_with_method_callbacks, :class_name => "Parrot",
     :before_add    => :log_before_add,
@@ -13,15 +13,15 @@ class Pirate < ActiveRecord::Base
     :after_add     => proc {|p,pa| p.ship_log << "after_adding_proc_parrot_#{pa.id || '<new>'}"},
     :before_remove => proc {|p,pa| p.ship_log << "before_removing_proc_parrot_#{pa.id}"},
     :after_remove  => proc {|p,pa| p.ship_log << "after_removing_proc_parrot_#{pa.id}"}
+  has_and_belongs_to_many :autosaved_parrots, class_name: "Parrot", autosave: true
 
   has_many :treasures, :as => :looter
   has_many :treasure_estimates, :through => :treasures, :source => :price_estimates
 
-  # These both have :autosave enabled because accepts_nested_attributes_for is used on them.
   has_one :ship
   has_one :update_only_ship, :class_name => 'Ship'
   has_one :non_validated_ship, :class_name => 'Ship'
-  has_many :birds, :order => 'birds.id ASC'
+  has_many :birds, -> { order('birds.id ASC') }
   has_many :birds_with_method_callbacks, :class_name => "Bird",
     :before_add    => :log_before_add,
     :after_add     => :log_after_add,
@@ -34,7 +34,7 @@ class Pirate < ActiveRecord::Base
     :after_remove   => proc {|p,b| p.ship_log << "after_removing_proc_bird_#{b.id}"}
   has_many :birds_with_reject_all_blank, :class_name => "Bird"
 
-  has_one :foo_bulb, :foreign_key => :car_id, :class_name => "Bulb", :conditions => { :name => 'foo' }
+  has_one :foo_bulb, -> { where :name => 'foo' }, :foreign_key => :car_id, :class_name => "Bulb"
 
   accepts_nested_attributes_for :parrots, :birds, :allow_destroy => true, :reject_if => proc { |attributes| attributes.empty? }
   accepts_nested_attributes_for :ship, :allow_destroy => true, :reject_if => proc { |attributes| attributes.empty? }
@@ -53,7 +53,7 @@ class Pirate < ActiveRecord::Base
     attributes.delete('_reject_me_if_new').present? && !persisted?
   end
 
-  attr_accessor :cancel_save_from_callback
+  attr_accessor :cancel_save_from_callback, :parrots_limit
   before_save :cancel_save_callback_method, :if => :cancel_save_from_callback
   def cancel_save_callback_method
     false
@@ -83,4 +83,10 @@ end
 
 class DestructivePirate < Pirate
   has_one :dependent_ship, :class_name => 'Ship', :foreign_key => :pirate_id, :dependent => :destroy
+end
+
+class FamousPirate < ActiveRecord::Base
+  self.table_name = 'pirates'
+  has_many :famous_ships
+  validates_presence_of :catchphrase, on: :conference
 end

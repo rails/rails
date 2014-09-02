@@ -1,5 +1,6 @@
 require 'generators/generators_test_helper'
 require 'rails/generators/rails/scaffold_controller/scaffold_controller_generator'
+require 'mocha/setup' # FIXME: stop using mocha
 
 # Mock out what we need from AR::Base.
 module ActiveRecord
@@ -106,6 +107,34 @@ class NamedBaseTest < Rails::Generators::TestCase
   def test_index_helper_with_uncountable
     g = generator ['Sheep']
     assert_name g, 'sheep_index', :index_helper
+  end
+
+  def test_hide_namespace
+    g = generator ['Hidden']
+    g.class.stubs(:namespace).returns('hidden')
+
+    assert !Rails::Generators.hidden_namespaces.include?('hidden')
+    g.class.hide!
+    assert Rails::Generators.hidden_namespaces.include?('hidden')
+  end
+
+  def test_scaffold_plural_names_with_model_name_option
+    g = generator ['Admin::Foo'], model_name: 'User'
+    assert_name g, 'user',        :singular_name
+    assert_name g, 'User',        :name
+    assert_name g, 'user',        :file_path
+    assert_name g, 'User',        :class_name
+    assert_name g, 'user',        :file_name
+    assert_name g, 'User',        :human_name
+    assert_name g, 'users',       :plural_name
+    assert_name g, 'user',        :i18n_scope
+    assert_name g, 'users',       :table_name
+    assert_name g, 'Admin::Foos', :controller_name
+    assert_name g, %w(admin),     :controller_class_path
+    assert_name g, 'Admin::Foos', :controller_class_name
+    assert_name g, 'admin/foos',  :controller_file_path
+    assert_name g, 'foos',        :controller_file_name
+    assert_name g, 'admin.foos',  :controller_i18n_scope
   end
 
   protected

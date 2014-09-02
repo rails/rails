@@ -1,9 +1,9 @@
 require 'abstract_unit'
 
 class AutoLayoutMailer < ActionMailer::Base
-  default :to => 'test@localhost',
-    :subject => "You have a mail",
-    :from => "tester@example.com"
+  default to: 'test@localhost',
+    subject: "You have a mail",
+    from: "tester@example.com"
 
   def hello
     mail()
@@ -11,16 +11,16 @@ class AutoLayoutMailer < ActionMailer::Base
 
   def spam
     @world = "Earth"
-    mail(:body => render(:inline => "Hello, <%= @world %>", :layout => 'spam'))
+    mail(body: render(inline: "Hello, <%= @world %>", layout: 'spam'))
   end
 
   def nolayout
     @world = "Earth"
-    mail(:body => render(:inline => "Hello, <%= @world %>", :layout => false))
+    mail(body: render(inline: "Hello, <%= @world %>", layout: false))
   end
 
   def multipart(type = nil)
-    mail(:content_type => type) do |format|
+    mail(content_type: type) do |format|
       format.text { render }
       format.html { render }
     end
@@ -28,11 +28,11 @@ class AutoLayoutMailer < ActionMailer::Base
 end
 
 class ExplicitLayoutMailer < ActionMailer::Base
-  layout 'spam', :except => [:logout]
+  layout 'spam', except: [:logout]
 
-  default :to => 'test@localhost',
-    :subject => "You have a mail",
-    :from => "tester@example.com"
+  default to: 'test@localhost',
+    subject: "You have a mail",
+    from: "tester@example.com"
 
   def signup
     mail()
@@ -43,17 +43,7 @@ class ExplicitLayoutMailer < ActionMailer::Base
   end
 end
 
-class LayoutMailerTest < Test::Unit::TestCase
-  def setup
-    set_delivery_method :test
-    ActionMailer::Base.perform_deliveries = true
-    ActionMailer::Base.deliveries.clear
-  end
-
-  def teardown
-    restore_delivery_method
-  end
-
+class LayoutMailerTest < ActiveSupport::TestCase
   def test_should_pickup_default_layout
     mail = AutoLayoutMailer.hello
     assert_equal "Hello from layout Inside", mail.body.to_s.strip

@@ -9,7 +9,7 @@ class Deprecatee
   def old_request; @request end
 
   def partially(foo = nil)
-    ActiveSupport::Deprecation.warn('calling with foo=nil is out', caller) if foo.nil?
+    ActiveSupport::Deprecation.warn('calling with foo=nil is out') if foo.nil?
   end
 
   def not() 2 end
@@ -62,7 +62,7 @@ class DeprecationTest < ActiveSupport::TestCase
   end
 
   def test_deprecate_class_method
-    assert_deprecated(/none is deprecated.*test_deprecate_class_method/) do
+    assert_deprecated(/none is deprecated/) do
       assert_equal 1, @dtc.none
     end
 
@@ -73,6 +73,11 @@ class DeprecationTest < ActiveSupport::TestCase
     assert_deprecated(/multi is deprecated/) do
       assert_equal [1,2,3], @dtc.multi(1,2,3)
     end
+  end
+
+  def test_deprecate_object
+    deprecated_object = ActiveSupport::Deprecation::DeprecatedObjectProxy.new(Object.new, ':bomb:')
+    assert_deprecated(/:bomb:/) { deprecated_object.to_s }
   end
 
   def test_nil_behavior_is_ignored
@@ -93,6 +98,51 @@ class DeprecationTest < ActiveSupport::TestCase
     assert_match(/foo=nil/, @b)
   end
 
+  def test_raise_behaviour
+    ActiveSupport::Deprecation.behavior = :raise
+
+    message   = 'Revise this deprecated stuff now!'
+    callstack = %w(foo bar baz)
+
+    e = assert_raise ActiveSupport::DeprecationException do
+      ActiveSupport::Deprecation.behavior.first.call(message, callstack)
+    end
+    assert_equal message, e.message
+    assert_equal callstack, e.backtrace
+  end
+
+  def test_default_stderr_behavior
+    ActiveSupport::Deprecation.behavior = :stderr
+    behavior = ActiveSupport::Deprecation.behavior.first
+
+    content = capture(:stderr) {
+      assert_nil behavior.call('Some error!', ['call stack!'])
+    }
+    assert_match(/Some error!/, content)
+    assert_match(/call stack!/, content)
+  end
+
+  def test_default_stderr_behavior_with_warn_method
+    ActiveSupport::Deprecation.behavior = :stderr
+
+    content = capture(:stderr) {
+      ActiveSupport::Deprecation.warn('Instance error!', ['instance call stack!'])
+    }
+
+    assert_match(/Instance error!/, content)
+    assert_match(/instance call stack!/, content)
+  end
+
+  def test_default_silence_behavior
+    ActiveSupport::Deprecation.behavior = :silence
+    behavior = ActiveSupport::Deprecation.behavior.first
+
+    stderr_output = capture(:stderr) {
+      assert_nil behavior.call('Some error!', ['call stack!'])
+    }
+    assert stderr_output.blank?
+  end
+
   def test_deprecated_instance_variable_proxy
     assert_not_deprecated { @dtc.request.size }
 
@@ -107,6 +157,7 @@ class DeprecationTest < ActiveSupport::TestCase
   def test_deprecated_constant_proxy
     assert_not_deprecated { Deprecatee::B::C }
     assert_deprecated('Deprecatee::A') { assert_equal Deprecatee::B::C, Deprecatee::A }
+    assert_not_deprecated { assert_equal Deprecatee::B::C.class, Deprecatee::A.class }
   end
 
   def test_assert_deprecation_without_match
@@ -120,7 +171,7 @@ class DeprecationTest < ActiveSupport::TestCase
       ActiveSupport::Deprecation.warn 'abc'
       ActiveSupport::Deprecation.warn 'def'
     end
-  rescue Test::Unit::AssertionFailedError
+  rescue Minitest::Assertion
     flunk 'assert_deprecated should match any warning in block, not just the last one'
   end
 
@@ -167,21 +218,158 @@ class DeprecationTest < ActiveSupport::TestCase
     assert_deprecated(/you now need to do something extra for this one/) { @dtc.d }
   end
 
-  unless defined?(::MiniTest)
-    def test_assertion_failed_error_doesnt_spout_deprecation_warnings
-      error_class = Class.new(StandardError) do
-        def message
-          ActiveSupport::Deprecation.warn 'warning in error message'
-          super
-        end
-      end
+  def test_deprecation_in_other_object
+    messages = []
 
-      raise error_class.new('hmm')
+    klass = Class.new do
+      delegate :warn, :behavior=, to: ActiveSupport::Deprecation
+    end
 
-    rescue => e
-      error = Test::Unit::Error.new('testing ur doodz', e)
-      assert_not_deprecated { error.message }
-      assert_nil @last_message
+    o = klass.new
+    o.behavior = Proc.new { |message, callstack| messages << message }
+    assert_difference("messages.size") do
+      o.warn("warning")
     end
   end
+
+  def test_deprecated_method_with_custom_method_warning
+    deprecator = deprecator_with_messages
+
+    class << deprecator
+      private
+        def deprecated_method_warning(method, message)
+          "deprecator.deprecated_method_warning.#{method}"
+        end
+    end
+
+    deprecatee = Class.new do
+      def method
+      end
+      deprecate :method, deprecator: deprecator
+    end
+
+    deprecatee.new.method
+    assert deprecator.messages.first.match("DEPRECATION WARNING: deprecator.deprecated_method_warning.method")
+  end
+
+  def test_deprecate_with_custom_deprecator
+    custom_deprecator = mock('Deprecator') do
+      expects(:deprecation_warning)
+    end
+
+    klass = Class.new do
+      def method
+      end
+      deprecate :method, deprecator: custom_deprecator
+    end
+
+    klass.new.method
+  end
+
+  def test_deprecated_constant_with_deprecator_given
+    deprecator = deprecator_with_messages
+    klass = Class.new
+    klass.const_set(:OLD, ActiveSupport::Deprecation::DeprecatedConstantProxy.new('klass::OLD', 'Object', deprecator) )
+    assert_difference("deprecator.messages.size") do
+      klass::OLD.to_s
+    end
+  end
+
+  def test_deprecated_instance_variable_with_instance_deprecator
+    deprecator = deprecator_with_messages
+
+    klass = Class.new() do
+      def initialize(deprecator)
+        @request = ActiveSupport::Deprecation::DeprecatedInstanceVariableProxy.new(self, :request, :@request, deprecator)
+        @_request = :a_request
+      end
+      def request; @_request end
+      def old_request; @request end
+    end
+
+    assert_difference("deprecator.messages.size") { klass.new(deprecator).old_request.to_s }
+  end
+
+  def test_deprecated_instance_variable_with_given_deprecator
+    deprecator = deprecator_with_messages
+
+    klass = Class.new do
+      define_method(:initialize) do
+        @request = ActiveSupport::Deprecation::DeprecatedInstanceVariableProxy.new(self, :request, :@request, deprecator)
+        @_request = :a_request
+      end
+      def request; @_request end
+      def old_request; @request end
+    end
+
+    assert_difference("deprecator.messages.size") { klass.new.old_request.to_s }
+  end
+
+  def test_delegate_deprecator_instance
+    klass = Class.new do
+      attr_reader :last_message
+      delegate :warn, :behavior=, to: ActiveSupport::Deprecation
+
+      def initialize
+        self.behavior = [Proc.new { |message| @last_message = message }]
+      end
+
+      def deprecated_method
+        warn(deprecated_method_warning(:deprecated_method, "You are calling deprecated method"))
+      end
+
+      private
+        def deprecated_method_warning(method_name, message = nil)
+          message || "#{method_name} is deprecated and will be removed from This Library"
+        end
+    end
+
+    object = klass.new
+    object.deprecated_method
+    assert_match(/You are calling deprecated method/, object.last_message)
+  end
+
+  def test_default_gem_name
+    deprecator = ActiveSupport::Deprecation.new
+
+    deprecator.send(:deprecated_method_warning, :deprecated_method, "You are calling deprecated method").tap do |message|
+      assert_match(/is deprecated and will be removed from Rails/, message)
+    end
+  end
+
+  def test_custom_gem_name
+    deprecator = ActiveSupport::Deprecation.new('2.0', 'Custom')
+
+    deprecator.send(:deprecated_method_warning, :deprecated_method, "You are calling deprecated method").tap do |message|
+      assert_match(/is deprecated and will be removed from Custom/, message)
+    end
+  end
+
+  private
+    def deprecator_with_messages
+      klass = Class.new(ActiveSupport::Deprecation)
+      deprecator = klass.new
+      deprecator.behavior = Proc.new{|message, callstack| deprecator.messages << message}
+      def deprecator.messages
+        @messages ||= []
+      end
+      deprecator
+    end
+
+    def capture(stream)
+      stream = stream.to_s
+      captured_stream = Tempfile.new(stream)
+      stream_io = eval("$#{stream}")
+      origin_stream = stream_io.dup
+      stream_io.reopen(captured_stream)
+
+      yield
+
+      stream_io.rewind
+      return captured_stream.read
+    ensure
+      captured_stream.close
+      captured_stream.unlink
+      stream_io.reopen(origin_stream)
+    end
 end

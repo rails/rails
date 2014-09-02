@@ -1,3 +1,5 @@
+require 'action_controller/model_naming'
+
 module ActionDispatch
   module Routing
     # Polymorphic URL helpers are methods for smart resolution to a named route call when
@@ -32,7 +34,7 @@ module ActionDispatch
     # == Prefixed polymorphic helpers
     #
     # In addition to <tt>polymorphic_url</tt> and <tt>polymorphic_path</tt> methods, a
-    # number of prefixed helpers are available as a shorthand to <tt>:action => "..."</tt>
+    # number of prefixed helpers are available as a shorthand to <tt>action: "..."</tt>
     # in options. Those are:
     #
     # * <tt>edit_polymorphic_url</tt>, <tt>edit_polymorphic_path</tt>
@@ -41,20 +43,20 @@ module ActionDispatch
     # Example usage:
     #
     #   edit_polymorphic_path(@post)              # => "/posts/1/edit"
-    #   polymorphic_path(@post, :format => :pdf)  # => "/posts/1.pdf"
+    #   polymorphic_path(@post, format: :pdf)  # => "/posts/1.pdf"
     #
-    # == Using with mounted engines
+    # == Usage with mounted engines
     #
-    # If you use mounted engine, there is a possibility that you will need to use
-    # polymorphic_url pointing at engine's routes. To do that, just pass proxy used
-    # to reach engine's routes as a first argument:
+    # If you are using a mounted engine and you need to use a polymorphic_url
+    # pointing at the engine's routes, pass in the engine's route proxy as the first
+    # argument to the method. For example:
     #
-    # For example:
-    #
-    # polymorphic_url([blog, @post])  # it will call blog.post_path(@post)
-    # form_for([blog, @post])         # => "/blog/posts/1
+    #   polymorphic_url([blog, @post])  # calls blog.post_path(@post)
+    #   form_for([blog, @post])         # => "/blog/posts/1"
     #
     module PolymorphicRoutes
+      include ActionController::ModelNaming
+
       # Constructs a call to a named RESTful route for the given record and returns the
       # resulting URL string. For example:
       #
@@ -72,7 +74,18 @@ module ActionDispatch
       # * <tt>:routing_type</tt> - Allowed values are <tt>:path</tt> or <tt>:url</tt>.
       #   Default is <tt>:url</tt>.
       #
-      # ==== Examples
+      # Also includes all the options from <tt>url_for</tt>. These include such
+      # things as <tt>:anchor</tt> or <tt>:trailing_slash</tt>. Example usage
+      # is given below:
+      #
+      #   polymorphic_url([blog, post], anchor: 'my_anchor')
+      #     # => "http://example.com/blogs/1/posts/1#my_anchor"
+      #   polymorphic_url([blog, post], anchor: 'my_anchor', script_name: "/my_app")
+      #     # => "http://example.com/my_app/blogs/1/posts/1#my_anchor"
+      #
+      # For all of these options, see the documentation for <tt>url_for</tt>.
+      #
+      # ==== Functionality
       #
       #   # an Article record
       #   polymorphic_url(record)  # same as article_url(record)
@@ -88,119 +101,231 @@ module ActionDispatch
       #   polymorphic_url(Comment) # same as comments_url()
       #
       def polymorphic_url(record_or_hash_or_array, options = {})
-        if record_or_hash_or_array.kind_of?(Array)
-          record_or_hash_or_array = record_or_hash_or_array.compact
-          if record_or_hash_or_array.first.is_a?(ActionDispatch::Routing::RoutesProxy)
-            proxy = record_or_hash_or_array.shift
-          end
-          record_or_hash_or_array = record_or_hash_or_array[0] if record_or_hash_or_array.size == 1
+        if Hash === record_or_hash_or_array
+          options = record_or_hash_or_array.merge(options)
+          record  = options.delete :id
+          return polymorphic_url record, options
         end
 
-        record = extract_record(record_or_hash_or_array)
-        record = record.to_model if record.respond_to?(:to_model)
+        opts   = options.dup
+        action = opts.delete :action
+        type   = opts.delete(:routing_type) || :url
 
-        args = Array === record_or_hash_or_array ?
-          record_or_hash_or_array.dup :
-          [ record_or_hash_or_array ]
+        HelperMethodBuilder.polymorphic_method self,
+                                               record_or_hash_or_array,
+                                               action,
+                                               type,
+                                               opts
 
-        inflection = if options[:action] && options[:action].to_s == "new"
-          args.pop
-          :singular
-        elsif (record.respond_to?(:persisted?) && !record.persisted?)
-          args.pop
-          :plural
-        elsif record.is_a?(Class)
-          args.pop
-          :plural
-        else
-          :singular
-        end
-
-        args.delete_if {|arg| arg.is_a?(Symbol) || arg.is_a?(String)}
-        named_route = build_named_route_call(record_or_hash_or_array, inflection, options)
-
-        url_options = options.except(:action, :routing_type)
-        unless url_options.empty?
-          args.last.kind_of?(Hash) ? args.last.merge!(url_options) : args << url_options
-        end
-
-        if proxy
-          proxy.send(named_route, *args)
-        else
-          # we need to use url_for, because polymorphic_url can be used in context of other than
-          # current routes (e.g. engine's routes). As named routes from engine are not included
-          # calling engine's named route directly would fail.
-          url_for _routes.url_helpers.__send__("hash_for_#{named_route}", *args)
-        end
       end
 
       # Returns the path component of a URL for the given record. It uses
-      # <tt>polymorphic_url</tt> with <tt>:routing_type => :path</tt>.
+      # <tt>polymorphic_url</tt> with <tt>routing_type: :path</tt>.
       def polymorphic_path(record_or_hash_or_array, options = {})
-        polymorphic_url(record_or_hash_or_array, options.merge(:routing_type => :path))
+        if Hash === record_or_hash_or_array
+          options = record_or_hash_or_array.merge(options)
+          record  = options.delete :id
+          return polymorphic_path record, options
+        end
+
+        opts   = options.dup
+        action = opts.delete :action
+        type   = :path
+
+        HelperMethodBuilder.polymorphic_method self,
+                                               record_or_hash_or_array,
+                                               action,
+                                               type,
+                                               opts
       end
+
 
       %w(edit new).each do |action|
         module_eval <<-EOT, __FILE__, __LINE__ + 1
-          def #{action}_polymorphic_url(record_or_hash, options = {})         # def edit_polymorphic_url(record_or_hash, options = {})
-            polymorphic_url(                                                  #   polymorphic_url(
-              record_or_hash,                                                 #     record_or_hash,
-              options.merge(:action => "#{action}"))                          #     options.merge(:action => "edit"))
-          end                                                                 # end
-                                                                              #
-          def #{action}_polymorphic_path(record_or_hash, options = {})        # def edit_polymorphic_path(record_or_hash, options = {})
-            polymorphic_url(                                                  #   polymorphic_url(
-              record_or_hash,                                                 #     record_or_hash,
-              options.merge(:action => "#{action}", :routing_type => :path))  #     options.merge(:action => "edit", :routing_type => :path))
-          end                                                                 # end
+          def #{action}_polymorphic_url(record_or_hash, options = {})
+            polymorphic_url_for_action("#{action}", record_or_hash, options)
+          end
+
+          def #{action}_polymorphic_path(record_or_hash, options = {})
+            polymorphic_path_for_action("#{action}", record_or_hash, options)
+          end
         EOT
       end
 
       private
-        def action_prefix(options)
-          options[:action] ? "#{options[:action]}_" : ''
+
+      def polymorphic_url_for_action(action, record_or_hash, options)
+        polymorphic_url(record_or_hash, options.merge(:action => action))
+      end
+
+      def polymorphic_path_for_action(action, record_or_hash, options)
+        options = options.merge(:action => action, :routing_type => :path)
+        polymorphic_path(record_or_hash, options)
+      end
+
+      class HelperMethodBuilder # :nodoc:
+        CACHE = { 'path' => {}, 'url' => {} }
+
+        def self.get(action, type)
+          type   = type.to_s
+          CACHE[type].fetch(action) { build action, type }
         end
 
-        def routing_type(options)
-          options[:routing_type] || :url
-        end
+        def self.url;  CACHE['url'.freeze][nil]; end
+        def self.path; CACHE['path'.freeze][nil]; end
 
-        def build_named_route_call(records, inflection, options = {})
-          if records.is_a?(Array)
-            record = records.pop
-            route = records.map do |parent|
-              if parent.is_a?(Symbol) || parent.is_a?(String)
-                parent
-              else
-                ActiveModel::Naming.route_key(parent).singularize
-              end
-            end
+        def self.build(action, type)
+          prefix = action ? "#{action}_" : ""
+          suffix = type
+          if action.to_s == 'new'
+            HelperMethodBuilder.singular prefix, suffix
           else
-            record = extract_record(records)
-            route  = []
+            HelperMethodBuilder.plural prefix, suffix
           end
-
-          if record.is_a?(Symbol) || record.is_a?(String)
-            route << record
-          else
-            route << ActiveModel::Naming.route_key(record)
-            route = [route.join("_").singularize] if inflection == :singular
-            route << "index" if ActiveModel::Naming.uncountable?(record) && inflection == :plural
-          end
-
-          route << routing_type(options)
-
-          action_prefix(options) + route.join("_")
         end
 
-        def extract_record(record_or_hash_or_array)
+        def self.singular(prefix, suffix)
+          new(->(name) { name.singular_route_key }, prefix, suffix)
+        end
+
+        def self.plural(prefix, suffix)
+          new(->(name) { name.route_key }, prefix, suffix)
+        end
+
+        def self.polymorphic_method(recipient, record_or_hash_or_array, action, type, options)
+          builder = get action, type
+
           case record_or_hash_or_array
-            when Array; record_or_hash_or_array.last
-            when Hash;  record_or_hash_or_array[:id]
-            else        record_or_hash_or_array
+          when Array
+            record_or_hash_or_array = record_or_hash_or_array.compact
+            if record_or_hash_or_array.empty?
+              raise ArgumentError, "Nil location provided. Can't build URI."
+            end
+            if record_or_hash_or_array.first.is_a?(ActionDispatch::Routing::RoutesProxy)
+              recipient = record_or_hash_or_array.shift
+            end
+
+            method, args = builder.handle_list record_or_hash_or_array
+          when String, Symbol
+            method, args = builder.handle_string record_or_hash_or_array
+          when Class
+            method, args = builder.handle_class record_or_hash_or_array
+
+          when nil
+            raise ArgumentError, "Nil location provided. Can't build URI."
+          else
+            method, args = builder.handle_model record_or_hash_or_array
+          end
+
+
+          if options.empty?
+            recipient.send(method, *args)
+          else
+            recipient.send(method, *args, options)
           end
         end
+
+        attr_reader :suffix, :prefix
+
+        def initialize(key_strategy, prefix, suffix)
+          @key_strategy = key_strategy
+          @prefix       = prefix
+          @suffix       = suffix
+        end
+
+        def handle_string(record)
+          [get_method_for_string(record), []]
+        end
+
+        def handle_string_call(target, str)
+          target.send get_method_for_string str
+        end
+
+        def handle_class(klass)
+          [get_method_for_class(klass), []]
+        end
+
+        def handle_class_call(target, klass)
+          target.send get_method_for_class klass
+        end
+
+        def handle_model(record)
+          args  = []
+
+          model = record.to_model
+          name = if record.persisted?
+                   args << model
+                   model.model_name.singular_route_key
+                 else
+                   @key_strategy.call model.model_name
+                 end
+
+          named_route = prefix + "#{name}_#{suffix}"
+
+          [named_route, args]
+        end
+
+        def handle_model_call(target, model)
+          method, args = handle_model model
+          target.send(method, *args)
+        end
+
+        def handle_list(list)
+          record_list = list.dup
+          record      = record_list.pop
+
+          args = []
+
+          route  = record_list.map { |parent|
+            case parent
+            when Symbol, String
+              parent.to_s
+            when Class
+              args << parent
+              parent.model_name.singular_route_key
+            else
+              args << parent.to_model
+              parent.to_model.model_name.singular_route_key
+            end
+          }
+
+          route <<
+          case record
+          when Symbol, String
+            record.to_s
+          when Class
+            @key_strategy.call record.model_name
+          else
+            if record.persisted?
+              args << record.to_model
+              record.to_model.model_name.singular_route_key
+            else
+              @key_strategy.call record.to_model.model_name
+            end
+          end
+
+          route << suffix
+
+          named_route = prefix + route.join("_")
+          [named_route, args]
+        end
+
+        private
+
+        def get_method_for_class(klass)
+          name   = @key_strategy.call klass.model_name
+          prefix + "#{name}_#{suffix}"
+        end
+
+        def get_method_for_string(str)
+          prefix + "#{str}_#{suffix}"
+        end
+
+        [nil, 'new', 'edit'].each do |action|
+          CACHE['url'][action]  = build action, 'url'
+          CACHE['path'][action] = build action, 'path'
+        end
+      end
     end
   end
 end
-

@@ -1,3 +1,3 @@
 class MixedCaseMonkey < ActiveRecord::Base
-  set_primary_key 'monkeyID'
+  belongs_to :man
 end

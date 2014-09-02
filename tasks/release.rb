@@ -1,24 +1,28 @@
-FRAMEWORKS = %w( activesupport activemodel activerecord activeresource actionpack actionmailer railties )
+FRAMEWORKS = %w( activesupport activemodel activerecord actionview actionpack actionmailer railties activejob )
 
 root    = File.expand_path('../../', __FILE__)
 version = File.read("#{root}/RAILS_VERSION").strip
 tag     = "v#{version}"
 
-directory "dist"
+directory "pkg"
 
 (FRAMEWORKS + ['rails']).each do |framework|
   namespace framework do
-    gem     = "dist/#{framework}-#{version}.gem"
+    gem     = "pkg/#{framework}-#{version}.gem"
     gemspec = "#{framework}.gemspec"
 
     task :clean do
       rm_f gem
     end
 
-    task :update_version_rb do
+    task :update_versions do
       glob = root.dup
-      glob << "/#{framework}/lib/*" unless framework == "rails"
-      glob << "/version.rb"
+      if framework == "rails"
+        glob << "/version.rb"
+      else
+        glob << "/#{framework}/lib/*"
+        glob << "/gem_version.rb"
+      end
 
       file = Dir[glob].first
       ruby = File.read(file)
@@ -26,25 +30,25 @@ directory "dist"
       major, minor, tiny, pre = version.split('.')
       pre = pre ? pre.inspect : "nil"
 
-      ruby.gsub! /^(\s*)MAJOR = .*?$/, "\\1MAJOR = #{major}"
+      ruby.gsub!(/^(\s*)MAJOR(\s*)= .*?$/, "\\1MAJOR = #{major}")
       raise "Could not insert MAJOR in #{file}" unless $1
 
-      ruby.gsub! /^(\s*)MINOR = .*?$/, "\\1MINOR = #{minor}"
+      ruby.gsub!(/^(\s*)MINOR(\s*)= .*?$/, "\\1MINOR = #{minor}")
       raise "Could not insert MINOR in #{file}" unless $1
 
-      ruby.gsub! /^(\s*)TINY  = .*?$/, "\\1TINY  = #{tiny}"
+      ruby.gsub!(/^(\s*)TINY(\s*)= .*?$/, "\\1TINY  = #{tiny}")
       raise "Could not insert TINY in #{file}" unless $1
 
-      ruby.gsub! /^(\s*)PRE   = .*?$/, "\\1PRE   = #{pre}"
+      ruby.gsub!(/^(\s*)PRE(\s*)= .*?$/, "\\1PRE   = #{pre}")
       raise "Could not insert PRE in #{file}" unless $1
 
       File.open(file, 'w') { |f| f.write ruby }
     end
 
-    task gem => %w(update_version_rb dist) do
+    task gem => %w(update_versions pkg) do
       cmd = ""
       cmd << "cd #{framework} && " unless framework == "rails"
-      cmd << "gem build #{gemspec} && mv #{framework}-#{version}.gem #{root}/dist/"
+      cmd << "gem build #{gemspec} && mv #{framework}-#{version}.gem #{root}/pkg/"
       sh cmd
     end
 
@@ -63,10 +67,10 @@ end
 
 namespace :changelog do
   task :release_date do
-    FRAMEWORKS.each do |fw|
+    (FRAMEWORKS + ['guides']).each do |fw|
       require 'date'
       replace = '\1(' + Date.today.strftime('%B %d, %Y') + ')'
-      fname = File.join fw, 'CHANGELOG'
+      fname = File.join fw, 'CHANGELOG.md'
 
       contents = File.read(fname).sub(/^([^(]*)\(unreleased\)/, replace)
       File.open(fname, 'wb') { |f| f.write contents }
@@ -74,9 +78,9 @@ namespace :changelog do
   end
 
   task :release_summary do
-    FRAMEWORKS.each do |fw|
+    (FRAMEWORKS + ['guides']).each do |fw|
       puts "## #{fw}"
-      fname    = File.join fw, 'CHANGELOG'
+      fname    = File.join fw, 'CHANGELOG.md'
       contents = File.readlines fname
       contents.shift
       changes = []
@@ -88,34 +92,36 @@ namespace :changelog do
 end
 
 namespace :all do
-  task :build   => FRAMEWORKS.map { |f| "#{f}:build"   } + ['rails:build']
-  task :install => FRAMEWORKS.map { |f| "#{f}:install" } + ['rails:install']
-  task :push    => FRAMEWORKS.map { |f| "#{f}:push"    } + ['rails:push']
+  task :build           => FRAMEWORKS.map { |f| "#{f}:build"           } + ['rails:build']
+  task :update_versions => FRAMEWORKS.map { |f| "#{f}:update_versions" } + ['rails:update_versions']
+  task :install         => FRAMEWORKS.map { |f| "#{f}:install"         } + ['rails:install']
+  task :push            => FRAMEWORKS.map { |f| "#{f}:push"            } + ['rails:push']
 
   task :ensure_clean_state do
     unless `git status -s | grep -v RAILS_VERSION`.strip.empty?
       abort "[ABORTING] `git status` reports a dirty tree. Make sure all changes are committed"
     end
 
-    unless ENV['SKIP_TAG'] || `git tag | grep #{tag}`.strip.empty?
+    unless ENV['SKIP_TAG'] || `git tag | grep '^#{tag}$`.strip.empty?
       abort "[ABORTING] `git tag` shows that #{tag} already exists. Has this version already\n"\
             "           been released? Git tagging can be skipped by setting SKIP_TAG=1"
     end
   end
 
   task :commit do
-    File.open('dist/commit_message.txt', 'w') do |f|
+    File.open('pkg/commit_message.txt', 'w') do |f|
       f.puts "# Preparing for #{version} release\n"
       f.puts
       f.puts "# UNCOMMENT THE LINE ABOVE TO APPROVE THIS COMMIT"
     end
 
-    sh "git add . && git commit --verbose --template=dist/commit_message.txt"
-    rm_f "dist/commit_message.txt"
+    sh "git add . && git commit --verbose --template=pkg/commit_message.txt"
+    rm_f "pkg/commit_message.txt"
   end
 
   task :tag do
-    sh "git tag #{tag}"
+    sh "git tag -m '#{tag} release' #{tag}"
+    sh "git push --tags"
   end
 
   task :release => %w(ensure_clean_state build commit tag push)

@@ -1,7 +1,7 @@
 require "cases/helper"
 
 class CallbackDeveloper < ActiveRecord::Base
-  set_table_name 'developers'
+  self.table_name = 'developers'
 
   class << self
     def callback_string(callback_method)
@@ -43,12 +43,12 @@ class CallbackDeveloper < ActiveRecord::Base
 end
 
 class CallbackDeveloperWithFalseValidation < CallbackDeveloper
-  before_validation proc { |model| model.history << [:before_validation, :returning_false]; return false }
+  before_validation proc { |model| model.history << [:before_validation, :returning_false]; false }
   before_validation proc { |model| model.history << [:before_validation, :should_never_get_here] }
 end
 
 class ParentDeveloper < ActiveRecord::Base
-  set_table_name 'developers'
+  self.table_name = 'developers'
   attr_accessor :after_save_called
   before_validation {|record| record.after_save_called = true}
 end
@@ -58,7 +58,7 @@ class ChildDeveloper < ParentDeveloper
 end
 
 class RecursiveCallbackDeveloper < ActiveRecord::Base
-  set_table_name 'developers'
+  self.table_name = 'developers'
 
   before_save :on_before_save
   after_save :on_after_save
@@ -79,7 +79,7 @@ class RecursiveCallbackDeveloper < ActiveRecord::Base
 end
 
 class ImmutableDeveloper < ActiveRecord::Base
-  set_table_name 'developers'
+  self.table_name = 'developers'
 
   validates_inclusion_of :salary, :in => 50000..200000
 
@@ -98,7 +98,7 @@ class ImmutableDeveloper < ActiveRecord::Base
 end
 
 class ImmutableMethodDeveloper < ActiveRecord::Base
-  set_table_name 'developers'
+  self.table_name = 'developers'
 
   validates_inclusion_of :salary, :in => 50000..200000
 
@@ -118,7 +118,7 @@ class ImmutableMethodDeveloper < ActiveRecord::Base
 end
 
 class OnCallbacksDeveloper < ActiveRecord::Base
-  set_table_name 'developers'
+  self.table_name = 'developers'
 
   before_validation { history << :before_validation }
   before_validation(:on => :create){ history << :before_validation_on_create }
@@ -137,8 +137,34 @@ class OnCallbacksDeveloper < ActiveRecord::Base
   end
 end
 
+class ContextualCallbacksDeveloper < ActiveRecord::Base
+  self.table_name = 'developers'
+
+  before_validation { history << :before_validation }
+  before_validation :before_validation_on_create_and_update, :on => [ :create, :update ]
+
+  validate do
+    history << :validate
+  end
+
+  after_validation { history << :after_validation }
+  after_validation :after_validation_on_create_and_update, :on => [ :create, :update ]
+
+  def before_validation_on_create_and_update
+    history << "before_validation_on_#{self.validation_context}".to_sym
+  end
+
+  def after_validation_on_create_and_update
+    history << "after_validation_on_#{self.validation_context}".to_sym
+  end
+
+  def history
+    @history ||= []
+  end
+end
+
 class CallbackCancellationDeveloper < ActiveRecord::Base
-  set_table_name 'developers'
+  self.table_name = 'developers'
 
   attr_reader   :after_save_called, :after_create_called, :after_update_called, :after_destroy_called
   attr_accessor :cancel_before_save, :cancel_before_create, :cancel_before_update, :cancel_before_destroy
@@ -285,6 +311,17 @@ class CallbacksTest < ActiveRecord::TestCase
     ], david.history
   end
 
+  def test_validate_on_contextual_create
+    david = ContextualCallbacksDeveloper.create('name' => 'David', 'salary' => 1000000)
+    assert_equal [
+      :before_validation,
+      :before_validation_on_create,
+      :validate,
+      :after_validation,
+      :after_validation_on_create
+    ], david.history
+  end
+
   def test_update
     david = CallbackDeveloper.find(1)
     david.save
@@ -334,6 +371,18 @@ class CallbacksTest < ActiveRecord::TestCase
 
   def test_validate_on_update
     david = OnCallbacksDeveloper.find(1)
+    david.save
+    assert_equal [
+      :before_validation,
+      :before_validation_on_update,
+      :validate,
+      :after_validation,
+      :after_validation_on_update
+    ], david.history
+  end
+
+  def test_validate_on_contextual_update
+    david = ContextualCallbacksDeveloper.find(1)
     david.save
     assert_equal [
       :before_validation,
@@ -426,11 +475,13 @@ class CallbacksTest < ActiveRecord::TestCase
   def test_before_destroy_returning_false
     david = ImmutableDeveloper.find(1)
     assert !david.destroy
+    assert_raise(ActiveRecord::RecordNotDestroyed) { david.destroy! }
     assert_not_nil ImmutableDeveloper.find_by_id(1)
 
     someone = CallbackCancellationDeveloper.find(1)
     someone.cancel_before_destroy = true
     assert !someone.destroy
+    assert_raise(ActiveRecord::RecordNotDestroyed) { someone.destroy! }
     assert !someone.after_destroy_called
   end
 
@@ -469,7 +520,7 @@ class CallbacksTest < ActiveRecord::TestCase
     ], david.history
   end
 
-  def test_inheritence_of_callbacks
+  def test_inheritance_of_callbacks
     parent = ParentDeveloper.new
     assert !parent.after_save_called
     parent.save

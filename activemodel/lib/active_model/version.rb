@@ -1,10 +1,8 @@
-module ActiveModel
-  module VERSION #:nodoc:
-    MAJOR = 3
-    MINOR = 1
-    TINY  = 0
-    PRE   = "beta1"
+require_relative 'gem_version'
 
-    STRING = [MAJOR, MINOR, TINY, PRE].compact.join('.')
+module ActiveModel
+  # Returns the version of the currently loaded ActiveModel as a <tt>Gem::Version</tt>
+  def self.version
+    gem_version
   end
 end

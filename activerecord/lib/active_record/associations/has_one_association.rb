@@ -1,26 +1,47 @@
-require 'active_support/core_ext/object/inclusion'
-
 module ActiveRecord
   # = Active Record Belongs To Has One Association
   module Associations
     class HasOneAssociation < SingularAssociation #:nodoc:
-      def replace(record, save = true)
-        raise_on_type_mismatch(record) if record
-        load_target
 
-        reflection.klass.transaction do
-          if target && target != record
-            remove_target!(options[:dependent]) unless target.destroyed?
+      def handle_dependency
+        case options[:dependent]
+        when :restrict_with_exception
+          raise ActiveRecord::DeleteRestrictionError.new(reflection.name) if load_target
+
+        when :restrict_with_error
+          if load_target
+            record = klass.human_attribute_name(reflection.name).downcase
+            owner.errors.add(:base, :"restrict_dependent_destroy.one", record: record)
+            false
           end
 
-          if record
-            set_inverse_instance(record)
-            set_owner_attributes(record)
+        else
+          delete
+        end
+      end
 
-            if owner.persisted? && save && !record.save
-              nullify_owner_attributes(record)
-              set_owner_attributes(target)
-              raise RecordNotSaved, "Failed to save the new associated #{reflection.name}."
+      def replace(record, save = true)
+        raise_on_type_mismatch!(record) if record
+        load_target
+
+        return self.target if !(target || record)
+
+        assigning_another_record = target != record
+        if assigning_another_record || record.changed?
+          save &&= owner.persisted?
+
+          transaction_if(save) do
+            remove_target!(options[:dependent]) if target && !target.destroyed? && assigning_another_record
+
+            if record
+              set_owner_attributes(record)
+              set_inverse_instance(record)
+
+              if save && !record.save
+                nullify_owner_attributes(record)
+                set_owner_attributes(target) if target
+                raise RecordNotSaved, "Failed to save the new associated #{reflection.name}."
+              end
             end
           end
         end
@@ -36,7 +57,7 @@ module ActiveRecord
             when :destroy
               target.destroy
             when :nullify
-              target.update_attribute(reflection.foreign_key, nil)
+              target.update_columns(reflection.foreign_key => nil)
           end
         end
       end
@@ -52,21 +73,32 @@ module ActiveRecord
         end
 
         def remove_target!(method)
-          if method.in?([:delete, :destroy])
-            target.send(method)
-          else
-            nullify_owner_attributes(target)
+          case method
+            when :delete
+              target.delete
+            when :destroy
+              target.destroy
+            else
+              nullify_owner_attributes(target)
 
-            if target.persisted? && owner.persisted? && !target.save
-              set_owner_attributes(target)
-              raise RecordNotSaved, "Failed to remove the existing associated #{reflection.name}. " +
-                                    "The record failed to save when after its foreign key was set to nil."
-            end
+              if target.persisted? && owner.persisted? && !target.save
+                set_owner_attributes(target)
+                raise RecordNotSaved, "Failed to remove the existing associated #{reflection.name}. " +
+                                      "The record failed to save after its foreign key was set to nil."
+              end
           end
         end
 
         def nullify_owner_attributes(record)
           record[reflection.foreign_key] = nil
+        end
+
+        def transaction_if(value)
+          if value
+            reflection.klass.transaction { yield }
+          else
+            yield
+          end
         end
     end
   end

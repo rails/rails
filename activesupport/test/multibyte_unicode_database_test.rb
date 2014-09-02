@@ -2,7 +2,7 @@
 require 'abstract_unit'
 
 
-class MultibyteUnicodeDatabaseTest < Test::Unit::TestCase
+class MultibyteUnicodeDatabaseTest < ActiveSupport::TestCase
 
   include ActiveSupport::Multibyte::Unicode
 

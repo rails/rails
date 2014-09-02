@@ -1,39 +1,10 @@
 require 'abstract_unit'
 require 'active_support/core_ext/object/try'
 require 'active_support/core_ext/object/with_options'
-require 'active_support/core_ext/object/inclusion'
-
-class ResourcesController < ActionController::Base
-  def index() render :nothing => true end
-  alias_method :show, :index
-  def rescue_action(e) raise e end
-end
-
-class ThreadsController  < ResourcesController; end
-class MessagesController < ResourcesController; end
-class CommentsController < ResourcesController; end
-class AuthorsController < ResourcesController; end
-class LogosController < ResourcesController; end
-
-class AccountsController <  ResourcesController; end
-class AdminController   <  ResourcesController; end
-class ProductsController < ResourcesController; end
-class ImagesController < ResourcesController; end
-class PreferencesController < ResourcesController; end
-
-module Backoffice
-  class ProductsController < ResourcesController; end
-  class TagsController < ResourcesController; end
-  class ManufacturersController < ResourcesController; end
-  class ImagesController < ResourcesController; end
-
-  module Admin
-    class ProductsController < ResourcesController; end
-    class ImagesController < ResourcesController; end
-  end
-end
+require 'active_support/core_ext/array/extract_options'
 
 class ResourcesTest < ActionController::TestCase
+
   def test_default_restful_routes
     with_restful_routing :messages do
       assert_simply_restful_for :messages
@@ -91,6 +62,15 @@ class ResourcesTest < ActionController::TestCase
     end
   end
 
+  def test_multiple_resources_with_options
+    expected_options = {:controller => 'threads', :action => 'index'}
+
+    with_restful_routing :messages, :comments, expected_options.slice(:controller) do
+      assert_recognizes(expected_options, :path => 'comments')
+      assert_recognizes(expected_options, :path => 'messages')
+    end
+  end
+
   def test_with_custom_conditions
     with_restful_routing :messages, :conditions => { :subdomain => 'app' } do
       assert @routes.recognize_path("/messages", :method => :get, :subdomain => 'app')
@@ -101,7 +81,7 @@ class ResourcesTest < ActionController::TestCase
     expected_options = {:controller => 'messages', :action => 'show', :id => '1.1.1'}
 
     with_restful_routing :messages do
-      assert_raise(ActionController::RoutingError) do
+      assert_raise(Assertion) do
         assert_recognizes(expected_options, :path => 'messages/1.1.1', :method => :get)
       end
     end
@@ -150,7 +130,7 @@ class ResourcesTest < ActionController::TestCase
   end
 
   def test_with_collection_actions
-    actions = { 'a' => :get, 'b' => :put, 'c' => :post, 'd' => :delete }
+    actions = { 'a' => :get, 'b' => :put, 'c' => :post, 'd' => :delete, 'e' => :patch }
 
     with_routing do |set|
       set.draw do
@@ -159,6 +139,7 @@ class ResourcesTest < ActionController::TestCase
           put    :b, :on => :collection
           post   :c, :on => :collection
           delete :d, :on => :collection
+          patch  :e, :on => :collection
         end
       end
 
@@ -177,7 +158,7 @@ class ResourcesTest < ActionController::TestCase
   end
 
   def test_with_collection_actions_and_name_prefix
-    actions = { 'a' => :get, 'b' => :put, 'c' => :post, 'd' => :delete }
+    actions = { 'a' => :get, 'b' => :put, 'c' => :post, 'd' => :delete, 'e' => :patch }
 
     with_routing do |set|
       set.draw do
@@ -187,6 +168,7 @@ class ResourcesTest < ActionController::TestCase
             put    :b, :on => :collection
             post   :c, :on => :collection
             delete :d, :on => :collection
+            patch  :e, :on => :collection
           end
         end
       end
@@ -233,7 +215,7 @@ class ResourcesTest < ActionController::TestCase
   end
 
   def test_with_collection_action_and_name_prefix_and_formatted
-    actions = { 'a' => :get, 'b' => :put, 'c' => :post, 'd' => :delete }
+    actions = { 'a' => :get, 'b' => :put, 'c' => :post, 'd' => :delete, 'e' => :patch }
 
     with_routing do |set|
       set.draw do
@@ -243,6 +225,7 @@ class ResourcesTest < ActionController::TestCase
             put    :b, :on => :collection
             post   :c, :on => :collection
             delete :d, :on => :collection
+            patch  :e, :on => :collection
           end
         end
       end
@@ -262,7 +245,7 @@ class ResourcesTest < ActionController::TestCase
   end
 
   def test_with_member_action
-    [:put, :post].each do |method|
+    [:patch, :put, :post].each do |method|
       with_restful_routing :messages, :member => { :mark => method } do
         mark_options = {:action => 'mark', :id => '1'}
         mark_path    = "/messages/1/mark"
@@ -286,7 +269,7 @@ class ResourcesTest < ActionController::TestCase
   end
 
   def test_member_when_override_paths_for_default_restful_actions_with
-    [:put, :post].each do |method|
+    [:patch, :put, :post].each do |method|
       with_restful_routing :messages, :member => { :mark => method }, :path_names => {:new => 'nuevo'} do
         mark_options = {:action => 'mark', :id => '1', :controller => "messages"}
         mark_path    = "/messages/1/mark"
@@ -303,7 +286,7 @@ class ResourcesTest < ActionController::TestCase
   end
 
   def test_with_two_member_actions_with_same_method
-    [:put, :post].each do |method|
+    [:patch, :put, :post].each do |method|
       with_routing do |set|
         set.draw do
           resources :messages do
@@ -523,7 +506,7 @@ class ResourcesTest < ActionController::TestCase
       routes.each do |route|
         routes.each do |r|
           next if route === r # skip the comparison instance
-          assert distinct_routes?(route, r), "Duplicate Route: #{route}"
+          assert_not_equal [route.conditions, route.path.spec.to_s], [r.conditions, r.path.spec.to_s]
         end
       end
     end
@@ -556,7 +539,7 @@ class ResourcesTest < ActionController::TestCase
   end
 
   def test_singleton_resource_with_member_action
-    [:put, :post].each do |method|
+    [:patch, :put, :post].each do |method|
       with_routing do |set|
         set.draw do
           resource :account do
@@ -578,7 +561,7 @@ class ResourcesTest < ActionController::TestCase
   end
 
   def test_singleton_resource_with_two_member_actions_with_same_method
-    [:put, :post].each do |method|
+    [:patch, :put, :post].each do |method|
       with_routing do |set|
         set.draw do
           resource :account do
@@ -643,17 +626,21 @@ class ResourcesTest < ActionController::TestCase
     end
   end
 
-  def test_should_not_allow_delete_or_put_on_collection_path
+  def test_should_not_allow_delete_or_patch_or_put_on_collection_path
     controller_name = :messages
     with_restful_routing controller_name do
       options = { :controller => controller_name.to_s }
       collection_path = "/#{controller_name}"
 
-      assert_raise(ActionController::RoutingError) do
+      assert_raise(Assertion) do
+        assert_recognizes(options.merge(:action => 'update'), :path => collection_path, :method => :patch)
+      end
+
+      assert_raise(Assertion) do
         assert_recognizes(options.merge(:action => 'update'), :path => collection_path, :method => :put)
       end
 
-      assert_raise(ActionController::RoutingError) do
+      assert_raise(Assertion) do
         assert_recognizes(options.merge(:action => 'destroy'), :path => collection_path, :method => :delete)
       end
     end
@@ -665,7 +652,7 @@ class ResourcesTest < ActionController::TestCase
         scope '/threads/:thread_id' do
           resources :messages, :as => 'thread_messages' do
             get :search, :on => :collection
-            match :preview, :on => :new
+            get :preview, :on => :new
           end
         end
       end
@@ -683,7 +670,7 @@ class ResourcesTest < ActionController::TestCase
         scope '/admin' do
           resource :account, :as => :admin_account do
             get :login, :on => :member
-            match :preview, :on => :new
+            get :preview, :on => :new
           end
         end
       end
@@ -1018,7 +1005,7 @@ class ResourcesTest < ActionController::TestCase
         end
       end
 
-      assert_resource_allowed_routes('images', { :product_id => '1' },                    { :id => '2' }, [:index, :new, :create, :show, :edit, :update, :destory], [], 'products/1/images')
+      assert_resource_allowed_routes('images', { :product_id => '1' },                    { :id => '2' }, [:index, :new, :create, :show, :edit, :update, :destroy], [], 'products/1/images')
       assert_resource_allowed_routes('images', { :product_id => '1', :format => 'xml' },  { :id => '2' }, [:index, :new, :create, :show, :edit, :update, :destroy], [], 'products/1/images')
     end
   end
@@ -1293,7 +1280,7 @@ class ResourcesTest < ActionController::TestCase
     def assert_resource_methods(expected, resource, action_method, method)
       assert_equal expected.length, resource.send("#{action_method}_methods")[method].size, "#{resource.send("#{action_method}_methods")[method].inspect}"
       expected.each do |action|
-        assert action.in?(resource.send("#{action_method}_methods")[method])
+        assert resource.send("#{action_method}_methods")[method].include?(action)
           "#{method} not in #{action_method} methods: #{resource.send("#{action_method}_methods")[method].inspect}"
       end
     end
@@ -1330,25 +1317,18 @@ class ResourcesTest < ActionController::TestCase
       options = options.merge(:action => action.to_s)
       path_options = { :path => path, :method => method }
 
-      if action.in?(Array(allowed))
+      if Array(allowed).include?(action)
         assert_recognizes options, path_options
-      elsif action.in?(Array(not_allowed))
+      elsif Array(not_allowed).include?(action)
         assert_not_recognizes options, path_options
+      else
+        raise Assertion, 'Invalid Action has passed'
       end
     end
 
     def assert_not_recognizes(expected_options, path)
-      assert_raise ActionController::RoutingError, Assertion do
+      assert_raise Assertion do
         assert_recognizes(expected_options, path)
       end
-    end
-
-    def distinct_routes? (r1, r2)
-      if r1.conditions == r2.conditions and r1.constraints == r2.constraints then
-        if r1.segments.collect(&:to_s) == r2.segments.collect(&:to_s) then
-          return false
-        end
-      end
-      true
     end
 end

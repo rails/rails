@@ -68,6 +68,11 @@ class GeneratedAttributeTest < Rails::Generators::TestCase
     assert_field_default_value :string, 'MyString'
   end
 
+  def test_default_value_for_type
+    att = Rails::Generators::GeneratedAttribute.parse("type:string")
+    assert_equal("", att.default)
+  end
+
   def test_default_value_is_text
     assert_field_default_value :text, 'MyText'
   end
@@ -97,31 +102,43 @@ class GeneratedAttributeTest < Rails::Generators::TestCase
 
   def test_reference_is_true
     %w(references belongs_to).each do |attribute_type|
-      assert_equal(
-        true,
-        create_generated_attribute(attribute_type).reference?
-      )
+      assert create_generated_attribute(attribute_type).reference?
     end
   end
 
   def test_reference_is_false
     %w(foo bar baz).each do |attribute_type|
-      assert_equal(
-        false,
-        create_generated_attribute(attribute_type).reference?
-      )
+      assert !create_generated_attribute(attribute_type).reference?
     end
   end
 
-  def test_nil_type_raises_exception
-    assert_raise Thor::Error do
-      create_generated_attribute(nil, 'title')
+  def test_polymorphic_reference_is_true
+    %w(references belongs_to).each do |attribute_type|
+      assert create_generated_attribute("#{attribute_type}{polymorphic}").polymorphic?
     end
   end
 
-  def test_missing_type_raises_exception
-    assert_raise Thor::Error do
-      create_generated_attribute('', 'title')
+  def test_polymorphic_reference_is_false
+    %w(foo bar baz).each do |attribute_type|
+      assert !create_generated_attribute("#{attribute_type}{polymorphic}").polymorphic?
     end
+  end
+
+  def test_blank_type_defaults_to_string_raises_exception
+    assert_equal :string, create_generated_attribute(nil, 'title').type
+    assert_equal :string, create_generated_attribute("", 'title').type
+  end
+
+  def test_handles_index_names_for_references
+    assert_equal "post", create_generated_attribute('string', 'post').index_name
+    assert_equal "post_id", create_generated_attribute('references', 'post').index_name
+    assert_equal "post_id", create_generated_attribute('belongs_to', 'post').index_name
+    assert_equal ["post_id", "post_type"], create_generated_attribute('references{polymorphic}', 'post').index_name
+  end
+
+  def test_handles_column_names_for_references
+    assert_equal "post", create_generated_attribute('string', 'post').column_name
+    assert_equal "post_id", create_generated_attribute('references', 'post').column_name
+    assert_equal "post_id", create_generated_attribute('belongs_to', 'post').column_name
   end
 end

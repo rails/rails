@@ -1,65 +1,26 @@
+require 'active_support/core_ext/array/extract_options'
 require 'abstract_controller/collector'
-require 'active_support/core_ext/class/attribute'
-require 'active_support/core_ext/object/inclusion'
 
 module ActionController #:nodoc:
   module MimeResponds
     extend ActiveSupport::Concern
 
-    include ActionController::ImplicitRender
-
-    included do
-      class_attribute :responder, :mimes_for_respond_to
-      self.responder = ActionController::Responder
-      clear_respond_to
+    module ClassMethods
+      def respond_to(*)
+        raise NoMethodError, "The controller-level `respond_to' feature has " \
+          "been extracted to the `responders` gem. Add it to your Gemfile to " \
+          "continue using this feature:\n" \
+          "  gem 'responders', '~> 2.0'\n" \
+          "Consult the Rails upgrade guide for details."
+      end
     end
 
-    module ClassMethods
-      # Defines mime types that are rendered by default when invoking
-      # <tt>respond_with</tt>.
-      #
-      # Examples:
-      #
-      #   respond_to :html, :xml, :json
-      #
-      # Specifies that all actions in the controller respond to requests
-      # for <tt>:html</tt>, <tt>:xml</tt> and <tt>:json</tt>.
-      #
-      # To specify on per-action basis, use <tt>:only</tt> and
-      # <tt>:except</tt> with an array of actions or a single action:
-      #
-      #   respond_to :html
-      #   respond_to :xml, :json, :except => [ :edit ]
-      #
-      # This specifies that all actions respond to <tt>:html</tt>
-      # and all actions except <tt>:edit</tt> respond to <tt>:xml</tt> and
-      # <tt>:json</tt>.
-      #
-      #   respond_to :json, :only => :create
-      #
-      # This specifies that the <tt>:create</tt> action and no other responds
-      # to <tt>:json</tt>.
-      def respond_to(*mimes)
-        options = mimes.extract_options!
-
-        only_actions   = Array(options.delete(:only))
-        except_actions = Array(options.delete(:except))
-
-        new = mimes_for_respond_to.dup
-        mimes.each do |mime|
-          mime = mime.to_sym
-          new[mime]          = {}
-          new[mime][:only]   = only_actions   unless only_actions.empty?
-          new[mime][:except] = except_actions unless except_actions.empty?
-        end
-        self.mimes_for_respond_to = new.freeze
-      end
-
-      # Clear all mime types in <tt>respond_to</tt>.
-      #
-      def clear_respond_to
-        self.mimes_for_respond_to = ActiveSupport::OrderedHash.new.freeze
-      end
+    def respond_with(*)
+      raise NoMethodError, "The `respond_with' feature has been extracted " \
+        "to the `responders` gem. Add it to your Gemfile to continue using " \
+        "this feature:\n" \
+        "  gem 'responders', '~> 2.0'\n" \
+        "Consult the Rails upgrade guide for details."
     end
 
     # Without web-service support, an action which collects the data for displaying a list of people
@@ -76,7 +37,7 @@ module ActionController #:nodoc:
     #
     #     respond_to do |format|
     #       format.html
-    #       format.xml { render :xml => @people.to_xml }
+    #       format.xml { render xml: @people }
     #     end
     #   end
     #
@@ -88,7 +49,7 @@ module ActionController #:nodoc:
     # (by name) if it does not already exist, without web-services, it might look like this:
     #
     #   def create
-    #     @company = Company.find_or_create_by_name(params[:company][:name])
+    #     @company = Company.find_or_create_by(name: params[:company][:name])
     #     @person  = @company.people.create(params[:person])
     #
     #     redirect_to(person_list_url)
@@ -98,13 +59,13 @@ module ActionController #:nodoc:
     #
     #   def create
     #     company  = params[:person].delete(:company)
-    #     @company = Company.find_or_create_by_name(company[:name])
+    #     @company = Company.find_or_create_by(name: company[:name])
     #     @person  = @company.people.create(params[:person])
     #
     #     respond_to do |format|
     #       format.html { redirect_to(person_list_url) }
     #       format.js
-    #       format.xml  { render :xml => @person.to_xml(:include => @company) }
+    #       format.xml  { render xml: @person.to_xml(include: @company) }
     #     end
     #   end
     #
@@ -126,7 +87,7 @@ module ActionController #:nodoc:
     # Note, however, the extra bit at the top of that action:
     #
     #   company  = params[:person].delete(:company)
-    #   @company = Company.find_or_create_by_name(company[:name])
+    #   @company = Company.find_or_create_by(name: company[:name])
     #
     # This is because the incoming XML document (if a web-service request is in process) can only contain a
     # single root-node. So, we have to rearrange things so that the request looks like this (url-encoded):
@@ -168,11 +129,11 @@ module ActionController #:nodoc:
     #
     # In the example above, if the format is xml, it will render:
     #
-    #   render :xml => @people
+    #   render xml: @people
     #
     # Or if the format is json:
     #
-    #   render :json => @people
+    #   render json: @people
     #
     # Since this is a common pattern, you can use the class method respond_to
     # with the respond_with method to have the same results:
@@ -182,109 +143,125 @@ module ActionController #:nodoc:
     #
     #     def index
     #       @people = Person.all
-    #       respond_with(@person)
+    #       respond_with(@people)
     #     end
     #   end
     #
-    # Be sure to check respond_with and respond_to documentation for more examples.
+    # Formats can have different variants.
     #
+    # The request variant is a specialization of the request format, like <tt>:tablet</tt>,
+    # <tt>:phone</tt>, or <tt>:desktop</tt>.
+    #
+    # We often want to render different html/json/xml templates for phones,
+    # tablets, and desktop browsers. Variants make it easy.
+    #
+    # You can set the variant in a +before_action+:
+    #
+    #   request.variant = :tablet if request.user_agent =~ /iPad/
+    #
+    # Respond to variants in the action just like you respond to formats:
+    #
+    #   respond_to do |format|
+    #     format.html do |variant|
+    #       variant.tablet # renders app/views/projects/show.html+tablet.erb
+    #       variant.phone { extra_setup; render ... }
+    #       variant.none  { special_setup } # executed only if there is no variant set
+    #     end
+    #   end
+    #
+    # Provide separate templates for each format and variant:
+    #
+    #   app/views/projects/show.html.erb
+    #   app/views/projects/show.html+tablet.erb
+    #   app/views/projects/show.html+phone.erb
+    #
+    # When you're not sharing any code within the format, you can simplify defining variants
+    # using the inline syntax:
+    #
+    #   respond_to do |format|
+    #     format.js         { render "trash" }
+    #     format.html.phone { redirect_to progress_path }
+    #     format.html.none  { render "trash" }
+    #   end
+    #
+    # Variants also support common `any`/`all` block that formats have.
+    #
+    # It works for both inline:
+    #
+    #   respond_to do |format|
+    #     format.html.any   { render text: "any"   }
+    #     format.html.phone { render text: "phone" }
+    #   end
+    #
+    # and block syntax:
+    #
+    #   respond_to do |format|
+    #     format.html do |variant|
+    #       variant.any(:tablet, :phablet){ render text: "any" }
+    #       variant.phone { render text: "phone" }
+    #     end
+    #   end
+    #
+    # You can also set an array of variants:
+    #
+    #   request.variant = [:tablet, :phone]
+    #
+    # which will work similarly to formats and MIME types negotiation. If there will be no
+    # :tablet variant declared, :phone variant will be picked:
+    #
+    #   respond_to do |format|
+    #     format.html.none
+    #     format.html.phone # this gets rendered
+    #   end
+    #
+    # Be sure to check the documentation of +respond_with+ and
+    # <tt>ActionController::MimeResponds.respond_to</tt> for more examples.
     def respond_to(*mimes, &block)
       raise ArgumentError, "respond_to takes either types or a block, never both" if mimes.any? && block_given?
 
-      if response = retrieve_response_from_mimes(mimes, &block)
-        response.call(nil)
-      end
-    end
-
-    # respond_with wraps a resource around a responder for default representation.
-    # First it invokes respond_to, if a response cannot be found (ie. no block
-    # for the request was given and template was not available), it instantiates
-    # an ActionController::Responder with the controller and resource.
-    #
-    # ==== Example
-    #
-    #   def index
-    #     @users = User.all
-    #     respond_with(@users)
-    #   end
-    #
-    # It also accepts a block to be given. It's used to overwrite a default
-    # response:
-    #
-    #   def create
-    #     @user = User.new(params[:user])
-    #     flash[:notice] = "User was successfully created." if @user.save
-    #
-    #     respond_with(@user) do |format|
-    #       format.html { render }
-    #     end
-    #   end
-    #
-    # All options given to respond_with are sent to the underlying responder,
-    # except for the option :responder itself. Since the responder interface
-    # is quite simple (it just needs to respond to call), you can even give
-    # a proc to it.
-    #
-    # In order to use respond_with, first you need to declare the formats your
-    # controller responds to in the class level with a call to <tt>respond_to</tt>.
-    #
-    def respond_with(*resources, &block)
-      raise "In order to use respond_with, first you need to declare the formats your " <<
-            "controller responds to in the class level" if self.class.mimes_for_respond_to.empty?
-
-      if response = retrieve_response_from_mimes(&block)
-        options = resources.size == 1 ? {} : resources.extract_options!
-        options.merge!(:default_response => response)
-        (options.delete(:responder) || self.class.responder).call(self, resources, options)
-      end
-    end
-
-  protected
-
-    # Collect mimes declared in the class method respond_to valid for the
-    # current action.
-    #
-    def collect_mimes_from_class_level #:nodoc:
-      action = action_name.to_sym
-
-      self.class.mimes_for_respond_to.keys.select do |mime|
-        config = self.class.mimes_for_respond_to[mime]
-
-        if config[:except]
-          !action.in?(config[:except])
-        elsif config[:only]
-          action.in?(config[:only])
-        else
-          true
-        end
-      end
-    end
-
-    # Collects mimes and return the response for the negotiated format. Returns
-    # nil if :not_acceptable was sent to the client.
-    #
-    def retrieve_response_from_mimes(mimes=nil, &block) #:nodoc:
-      mimes ||= collect_mimes_from_class_level
-      collector = Collector.new(mimes) { |options| default_render(options || {}) }
+      collector = Collector.new(mimes, request.variant)
       block.call(collector) if block_given?
 
-      if format = request.negotiate_mime(collector.order)
-        self.content_type ||= format.to_s
-        lookup_context.freeze_formats([format.to_sym])
-        collector.response_for(format)
+      if format = collector.negotiate_format(request)
+        _process_format(format)
+        response = collector.response
+        response ? response.call : render({})
       else
-        head :not_acceptable
-        nil
+        raise ActionController::UnknownFormat
       end
     end
 
-    class Collector #:nodoc:
+    # A container for responses available from the current controller for
+    # requests for different mime-types sent to a particular action.
+    #
+    # The public controller methods +respond_with+ and +respond_to+ may be called
+    # with a block that is used to define responses to different mime-types, e.g.
+    # for +respond_to+ :
+    #
+    #   respond_to do |format|
+    #     format.html
+    #     format.xml { render xml: @people }
+    #   end
+    #
+    # In this usage, the argument passed to the block (+format+ above) is an
+    # instance of the ActionController::MimeResponds::Collector class. This
+    # object serves as a container in which available responses can be stored by
+    # calling any of the dynamically generated, mime-type-specific methods such
+    # as +html+, +xml+ etc on the Collector. Each response is represented by a
+    # corresponding block if present.
+    #
+    # A subsequent call to #negotiate_format(request) will enable the Collector
+    # to determine which specific mime-type it should respond with for the current
+    # request, with this response then being accessible by calling #response.
+    class Collector
       include AbstractController::Collector
-      attr_accessor :order
+      attr_accessor :format
 
-      def initialize(mimes, &block)
-        @order, @responses, @default_response = [], {}, block
-        mimes.each { |mime| send(mime) }
+      def initialize(mimes, variant = nil)
+        @responses = {}
+        @variant = variant
+
+        mimes.each { |mime| @responses["Mime::#{mime.upcase}".constantize] = nil }
       end
 
       def any(*args, &block)
@@ -298,12 +275,62 @@ module ActionController #:nodoc:
 
       def custom(mime_type, &block)
         mime_type = Mime::Type.lookup(mime_type.to_s) unless mime_type.is_a?(Mime::Type)
-        @order << mime_type
-        @responses[mime_type] ||= block
+        @responses[mime_type] ||= if block_given?
+          block
+        else
+          VariantCollector.new(@variant)
+        end
       end
 
-      def response_for(mime)
-        @responses[mime] || @responses[Mime::ALL] || @default_response
+      def response
+        response = @responses.fetch(format, @responses[Mime::ALL])
+        if response.is_a?(VariantCollector) # `format.html.phone` - variant inline syntax
+          response.variant
+        elsif response.nil? || response.arity == 0 # `format.html` - just a format, call its block
+          response
+        else # `format.html{ |variant| variant.phone }` - variant block syntax
+          variant_collector = VariantCollector.new(@variant)
+          response.call(variant_collector) # call format block with variants collector
+          variant_collector.variant
+        end
+      end
+
+      def negotiate_format(request)
+        @format = request.negotiate_mime(@responses.keys)
+      end
+
+      class VariantCollector #:nodoc:
+        def initialize(variant = nil)
+          @variant = variant
+          @variants = {}
+        end
+
+        def any(*args, &block)
+          if block_given?
+            if args.any? && args.none?{ |a| a == @variant }
+              args.each{ |v| @variants[v] = block }
+            else
+              @variants[:any] = block
+            end
+          end
+        end
+        alias :all :any
+
+        def method_missing(name, *args, &block)
+          @variants[name] = block if block_given?
+        end
+
+        def variant
+          if @variant.nil?
+            @variants[:none] || @variants[:any]
+          elsif (@variants.keys & @variant).any?
+            @variant.each do |v|
+              return @variants[v] if @variants.key?(v)
+            end
+          else
+            @variants[:any]
+          end
+        end
       end
     end
   end

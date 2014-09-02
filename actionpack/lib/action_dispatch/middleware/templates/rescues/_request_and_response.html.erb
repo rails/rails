@@ -1,0 +1,34 @@
+<% unless @exception.blamed_files.blank? %>
+  <% if (hide = @exception.blamed_files.length > 8) %>
+    <a href="#" onclick="return toggleTrace()">Toggle blamed files</a>
+  <% end %>
+  <pre id="blame_trace" <%='style="display:none"' if hide %>><code><%= @exception.describe_blame %></code></pre>
+<% end %>
+
+<%
+  clean_params = @request.filtered_parameters.clone
+  clean_params.delete("action")
+  clean_params.delete("controller")
+
+  request_dump = clean_params.empty? ? 'None' : clean_params.inspect.gsub(',', ",\n")
+
+  def debug_hash(object)
+    object.to_hash.sort_by { |k, _| k.to_s }.map { |k, v| "#{k}: #{v.inspect rescue $!.message}" }.join("\n")
+  end unless self.class.method_defined?(:debug_hash)
+%>
+
+<h2 style="margin-top: 30px">Request</h2>
+<p><b>Parameters</b>:</p> <pre><%= request_dump %></pre>
+
+<div class="details">
+  <div class="summary"><a href="#" onclick="return toggleSessionDump()">Toggle session dump</a></div>
+  <div id="session_dump" style="display:none"><pre><%= debug_hash @request.session %></pre></div>
+</div>
+
+<div class="details">
+  <div class="summary"><a href="#" onclick="return toggleEnvDump()">Toggle env dump</a></div>
+  <div id="env_dump" style="display:none"><pre><%= debug_hash @request.env.slice(*@request.class::ENV_METHODS) %></pre></div>
+</div>
+
+<h2 style="margin-top: 30px">Response</h2>
+<p><b>Headers</b>:</p> <pre><%= defined?(@response) ? @response.headers.inspect.gsub(',', ",\n") : 'None' %></pre>

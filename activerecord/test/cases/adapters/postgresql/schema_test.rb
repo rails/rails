@@ -10,31 +10,54 @@ class SchemaTest < ActiveRecord::TestCase
   INDEX_A_NAME = 'a_index_things_on_name'
   INDEX_B_NAME = 'b_index_things_on_different_columns_in_each_schema'
   INDEX_C_NAME = 'c_index_full_text_search'
+  INDEX_D_NAME = 'd_index_things_on_description_desc'
+  INDEX_E_NAME = 'e_index_things_on_name_vector'
   INDEX_A_COLUMN = 'name'
   INDEX_B_COLUMN_S1 = 'email'
   INDEX_B_COLUMN_S2 = 'moment'
   INDEX_C_COLUMN = %q{(to_tsvector('english', coalesce(things.name, '')))}
+  INDEX_D_COLUMN = 'description'
+  INDEX_E_COLUMN = 'name_vector'
   COLUMNS = [
     'id integer',
     'name character varying(50)',
     'email character varying(50)',
+    'description character varying(100)',
+    'name_vector tsvector',
     'moment timestamp without time zone default now()'
   ]
+  PK_TABLE_NAME = 'table_with_pk'
+  UNMATCHED_SEQUENCE_NAME = 'unmatched_primary_key_default_value_seq'
+  UNMATCHED_PK_TABLE_NAME = 'table_with_unmatched_sequence_for_pk'
 
   class Thing1 < ActiveRecord::Base
-    set_table_name "test_schema.things"
+    self.table_name = "test_schema.things"
   end
 
   class Thing2 < ActiveRecord::Base
-    set_table_name "test_schema2.things"
+    self.table_name = "test_schema2.things"
   end
 
   class Thing3 < ActiveRecord::Base
-    set_table_name 'test_schema."things.table"'
+    self.table_name = 'test_schema."things.table"'
   end
 
   class Thing4 < ActiveRecord::Base
-    set_table_name 'test_schema."Things"'
+    self.table_name = 'test_schema."Things"'
+  end
+
+  class Thing5 < ActiveRecord::Base
+    self.table_name = 'things'
+  end
+
+  class Song < ActiveRecord::Base
+    self.table_name = "music.songs"
+    has_and_belongs_to_many :albums
+  end
+
+  class Album < ActiveRecord::Base
+    self.table_name = "music.albums"
+    has_and_belongs_to_many :songs
   end
 
   def setup
@@ -49,11 +72,91 @@ class SchemaTest < ActiveRecord::TestCase
     @connection.execute "CREATE INDEX #{INDEX_B_NAME} ON #{SCHEMA2_NAME}.#{TABLE_NAME}  USING btree (#{INDEX_B_COLUMN_S2});"
     @connection.execute "CREATE INDEX #{INDEX_C_NAME} ON #{SCHEMA_NAME}.#{TABLE_NAME}  USING gin (#{INDEX_C_COLUMN});"
     @connection.execute "CREATE INDEX #{INDEX_C_NAME} ON #{SCHEMA2_NAME}.#{TABLE_NAME}  USING gin (#{INDEX_C_COLUMN});"
+    @connection.execute "CREATE INDEX #{INDEX_D_NAME} ON #{SCHEMA_NAME}.#{TABLE_NAME}  USING btree (#{INDEX_D_COLUMN} DESC);"
+    @connection.execute "CREATE INDEX #{INDEX_D_NAME} ON #{SCHEMA2_NAME}.#{TABLE_NAME}  USING btree (#{INDEX_D_COLUMN} DESC);"
+    @connection.execute "CREATE INDEX #{INDEX_E_NAME} ON #{SCHEMA_NAME}.#{TABLE_NAME}  USING gin (#{INDEX_E_COLUMN});"
+    @connection.execute "CREATE INDEX #{INDEX_E_NAME} ON #{SCHEMA2_NAME}.#{TABLE_NAME}  USING gin (#{INDEX_E_COLUMN});"
+    @connection.execute "CREATE TABLE #{SCHEMA_NAME}.#{PK_TABLE_NAME} (id serial primary key)"
+    @connection.execute "CREATE SEQUENCE #{SCHEMA_NAME}.#{UNMATCHED_SEQUENCE_NAME}"
+    @connection.execute "CREATE TABLE #{SCHEMA_NAME}.#{UNMATCHED_PK_TABLE_NAME} (id integer NOT NULL DEFAULT nextval('#{SCHEMA_NAME}.#{UNMATCHED_SEQUENCE_NAME}'::regclass), CONSTRAINT unmatched_pkey PRIMARY KEY (id))"
   end
 
-  def teardown
+  teardown do
     @connection.execute "DROP SCHEMA #{SCHEMA2_NAME} CASCADE"
     @connection.execute "DROP SCHEMA #{SCHEMA_NAME} CASCADE"
+  end
+
+  def test_schema_names
+    assert_equal ["public", "schema_1", "test_schema", "test_schema2"], @connection.schema_names
+  end
+
+  def test_create_schema
+    begin
+      @connection.create_schema "test_schema3"
+      assert @connection.schema_names.include? "test_schema3"
+    ensure
+      @connection.drop_schema "test_schema3"
+    end
+  end
+
+  def test_raise_create_schema_with_existing_schema
+    begin
+      @connection.create_schema "test_schema3"
+      assert_raises(ActiveRecord::StatementInvalid) do
+        @connection.create_schema "test_schema3"
+      end
+    ensure
+      @connection.drop_schema "test_schema3"
+    end
+  end
+
+  def test_drop_schema
+    begin
+      @connection.create_schema "test_schema3"
+    ensure
+      @connection.drop_schema "test_schema3"
+    end
+    assert !@connection.schema_names.include?("test_schema3")
+  end
+
+  def test_habtm_table_name_with_schema
+    ActiveRecord::Base.connection.execute <<-SQL
+      DROP SCHEMA IF EXISTS music CASCADE;
+      CREATE SCHEMA music;
+      CREATE TABLE music.albums (id serial primary key);
+      CREATE TABLE music.songs (id serial primary key);
+      CREATE TABLE music.albums_songs (album_id integer, song_id integer);
+    SQL
+
+    song = Song.create
+    Album.create
+    assert_equal song, Song.includes(:albums).references(:albums).first
+  ensure
+    ActiveRecord::Base.connection.execute "DROP SCHEMA music CASCADE;"
+  end
+
+  def test_raise_drop_schema_with_nonexisting_schema
+    assert_raises(ActiveRecord::StatementInvalid) do
+      @connection.drop_schema "test_schema3"
+    end
+  end
+
+  def test_raise_wraped_exception_on_bad_prepare
+    assert_raises(ActiveRecord::StatementInvalid) do
+      @connection.exec_query "select * from developers where id = ?", 'sql', [[nil, 1]]
+    end
+  end
+
+  def test_schema_change_with_prepared_stmt
+    altered = false
+    @connection.exec_query "select * from developers where id = $1", 'sql', [[nil, 1]]
+    @connection.exec_query "alter table developers add column zomg int", 'sql', []
+    altered = true
+    @connection.exec_query "select * from developers where id = $1", 'sql', [[nil, 1]]
+  ensure
+    # We are not using DROP COLUMN IF EXISTS because that syntax is only
+    # supported by pg 9.X
+    @connection.exec_query("alter table developers drop column zomg", 'sql', []) if altered
   end
 
   def test_table_exists?
@@ -63,12 +166,36 @@ class SchemaTest < ActiveRecord::TestCase
     end
   end
 
+  def test_table_exists_when_on_schema_search_path
+    with_schema_search_path(SCHEMA_NAME) do
+      assert(@connection.table_exists?(TABLE_NAME), "table should exist and be found")
+    end
+  end
+
+  def test_table_exists_when_not_on_schema_search_path
+    with_schema_search_path('PUBLIC') do
+      assert(!@connection.table_exists?(TABLE_NAME), "table exists but should not be found")
+    end
+  end
+
   def test_table_exists_wrong_schema
     assert(!@connection.table_exists?("foo.things"), "table should not exist")
   end
 
+  def test_table_exists_quoted_names
+    [ %("#{SCHEMA_NAME}"."#{TABLE_NAME}"), %(#{SCHEMA_NAME}."#{TABLE_NAME}"), %(#{SCHEMA_NAME}."#{TABLE_NAME}")].each do |given|
+      assert(@connection.table_exists?(given), "table should exist when specified as #{given}")
+    end
+    with_schema_search_path(SCHEMA_NAME) do
+      given = %("#{TABLE_NAME}")
+      assert(@connection.table_exists?(given), "table should exist when specified as #{given}")
+    end
+  end
+
   def test_table_exists_quoted_table
-    assert(@connection.table_exists?('"things.table"'), "table should exist")
+    with_schema_search_path(SCHEMA_NAME) do
+        assert(@connection.table_exists?('"things.table"'), "table should exist")
+    end
   end
 
   def test_with_schema_prefixed_table_name
@@ -90,7 +217,6 @@ class SchemaTest < ActiveRecord::TestCase
       end
     end
   end
-
 
   def test_proper_encoding_of_table_name
     assert_equal '"table_name"', @connection.quote_table_name('table_name')
@@ -133,35 +259,132 @@ class SchemaTest < ActiveRecord::TestCase
   end
 
   def test_raise_on_unquoted_schema_name
-    assert_raise(ActiveRecord::StatementInvalid) do
+    assert_raises(ActiveRecord::StatementInvalid) do
       with_schema_search_path '$user,public'
     end
   end
 
   def test_without_schema_search_path
-    assert_raise(ActiveRecord::StatementInvalid) { columns(TABLE_NAME) }
+    assert_raises(ActiveRecord::StatementInvalid) { columns(TABLE_NAME) }
   end
 
   def test_ignore_nil_schema_search_path
     assert_nothing_raised { with_schema_search_path nil }
   end
 
+  def test_index_name_exists
+    with_schema_search_path(SCHEMA_NAME) do
+      assert @connection.index_name_exists?(TABLE_NAME, INDEX_A_NAME, true)
+      assert @connection.index_name_exists?(TABLE_NAME, INDEX_B_NAME, true)
+      assert @connection.index_name_exists?(TABLE_NAME, INDEX_C_NAME, true)
+      assert @connection.index_name_exists?(TABLE_NAME, INDEX_D_NAME, true)
+      assert @connection.index_name_exists?(TABLE_NAME, INDEX_E_NAME, true)
+      assert @connection.index_name_exists?(TABLE_NAME, INDEX_E_NAME, true)
+      assert_not @connection.index_name_exists?(TABLE_NAME, 'missing_index', true)
+    end
+  end
+
   def test_dump_indexes_for_schema_one
-    do_dump_index_tests_for_schema(SCHEMA_NAME, INDEX_A_COLUMN, INDEX_B_COLUMN_S1)
+    do_dump_index_tests_for_schema(SCHEMA_NAME, INDEX_A_COLUMN, INDEX_B_COLUMN_S1, INDEX_D_COLUMN, INDEX_E_COLUMN)
   end
 
   def test_dump_indexes_for_schema_two
-    do_dump_index_tests_for_schema(SCHEMA2_NAME, INDEX_A_COLUMN, INDEX_B_COLUMN_S2)
+    do_dump_index_tests_for_schema(SCHEMA2_NAME, INDEX_A_COLUMN, INDEX_B_COLUMN_S2, INDEX_D_COLUMN, INDEX_E_COLUMN)
+  end
+
+  def test_dump_indexes_for_schema_multiple_schemas_in_search_path
+    do_dump_index_tests_for_schema("public, #{SCHEMA_NAME}", INDEX_A_COLUMN, INDEX_B_COLUMN_S1, INDEX_D_COLUMN, INDEX_E_COLUMN)
   end
 
   def test_with_uppercase_index_name
-    ActiveRecord::Base.connection.execute "CREATE INDEX \"things_Index\" ON #{SCHEMA_NAME}.things (name)"
-    assert_nothing_raised { ActiveRecord::Base.connection.remove_index! "things", "#{SCHEMA_NAME}.things_Index"}
+    @connection.execute "CREATE INDEX \"things_Index\" ON #{SCHEMA_NAME}.things (name)"
+    assert_nothing_raised { @connection.remove_index! "things", "#{SCHEMA_NAME}.things_Index"}
+    @connection.execute "CREATE INDEX \"things_Index\" ON #{SCHEMA_NAME}.things (name)"
 
-    ActiveRecord::Base.connection.execute "CREATE INDEX \"things_Index\" ON #{SCHEMA_NAME}.things (name)"
-    ActiveRecord::Base.connection.schema_search_path = SCHEMA_NAME
-    assert_nothing_raised { ActiveRecord::Base.connection.remove_index! "things", "things_Index"}
-    ActiveRecord::Base.connection.schema_search_path = "public"
+    with_schema_search_path SCHEMA_NAME do
+      assert_nothing_raised { @connection.remove_index! "things", "things_Index"}
+    end
+  end
+
+  def test_primary_key_with_schema_specified
+    [
+      %("#{SCHEMA_NAME}"."#{PK_TABLE_NAME}"),
+      %(#{SCHEMA_NAME}."#{PK_TABLE_NAME}"),
+      %(#{SCHEMA_NAME}.#{PK_TABLE_NAME})
+    ].each do |given|
+      assert_equal 'id', @connection.primary_key(given), "primary key should be found when table referenced as #{given}"
+    end
+  end
+
+  def test_primary_key_assuming_schema_search_path
+    with_schema_search_path(SCHEMA_NAME) do
+      assert_equal 'id', @connection.primary_key(PK_TABLE_NAME), "primary key should be found"
+    end
+  end
+
+  def test_primary_key_raises_error_if_table_not_found_on_schema_search_path
+    with_schema_search_path(SCHEMA2_NAME) do
+      assert_raises(ActiveRecord::StatementInvalid) do
+        @connection.primary_key(PK_TABLE_NAME)
+      end
+    end
+  end
+
+  def test_pk_and_sequence_for_with_schema_specified
+    pg_name = ActiveRecord::ConnectionAdapters::PostgreSQL::Name
+    [
+      %("#{SCHEMA_NAME}"."#{PK_TABLE_NAME}"),
+      %("#{SCHEMA_NAME}"."#{UNMATCHED_PK_TABLE_NAME}")
+    ].each do |given|
+      pk, seq = @connection.pk_and_sequence_for(given)
+      assert_equal 'id', pk, "primary key should be found when table referenced as #{given}"
+      assert_equal pg_name.new(SCHEMA_NAME, "#{PK_TABLE_NAME}_id_seq"), seq, "sequence name should be found when table referenced as #{given}" if given == %("#{SCHEMA_NAME}"."#{PK_TABLE_NAME}")
+      assert_equal pg_name.new(SCHEMA_NAME, UNMATCHED_SEQUENCE_NAME), seq, "sequence name should be found when table referenced as #{given}" if given ==  %("#{SCHEMA_NAME}"."#{UNMATCHED_PK_TABLE_NAME}")
+    end
+  end
+
+  def test_current_schema
+    {
+      %('$user',public)                        => 'public',
+      SCHEMA_NAME                              => SCHEMA_NAME,
+      %(#{SCHEMA2_NAME},#{SCHEMA_NAME},public) => SCHEMA2_NAME,
+      %(public,#{SCHEMA2_NAME},#{SCHEMA_NAME}) => 'public'
+    }.each do |given,expect|
+      with_schema_search_path(given) { assert_equal expect, @connection.current_schema }
+    end
+  end
+
+  def test_prepared_statements_with_multiple_schemas
+    [SCHEMA_NAME, SCHEMA2_NAME].each do |schema_name|
+      with_schema_search_path schema_name do
+        Thing5.create(:id => 1, :name => "thing inside #{SCHEMA_NAME}", :email => "thing1@localhost", :moment => Time.now)
+      end
+    end
+
+    [SCHEMA_NAME, SCHEMA2_NAME].each do |schema_name|
+      with_schema_search_path schema_name do
+        assert_equal 1, Thing5.count
+      end
+    end
+  end
+
+  def test_schema_exists?
+    {
+      'public'     => true,
+      SCHEMA_NAME  => true,
+      SCHEMA2_NAME => true,
+      'darkside'   => false
+    }.each do |given,expect|
+      assert_equal expect, @connection.schema_exists?(given)
+    end
+  end
+
+  def test_reset_pk_sequence
+    sequence_name = "#{SCHEMA_NAME}.#{UNMATCHED_SEQUENCE_NAME}"
+    @connection.execute "SELECT setval('#{sequence_name}', 123)"
+    assert_equal "124", @connection.select_value("SELECT nextval('#{sequence_name}')")
+    @connection.reset_pk_sequence!("#{SCHEMA_NAME}.#{UNMATCHED_PK_TABLE_NAME}")
+    assert_equal "1", @connection.select_value("SELECT nextval('#{sequence_name}')")
   end
 
   private
@@ -178,13 +401,21 @@ class SchemaTest < ActiveRecord::TestCase
       @connection.schema_search_path = "'$user', public"
     end
 
-    def do_dump_index_tests_for_schema(this_schema_name, first_index_column_name, second_index_column_name)
+    def do_dump_index_tests_for_schema(this_schema_name, first_index_column_name, second_index_column_name, third_index_column_name, fourth_index_column_name)
       with_schema_search_path(this_schema_name) do
         indexes = @connection.indexes(TABLE_NAME).sort_by {|i| i.name}
-        assert_equal 2,indexes.size
+        assert_equal 4,indexes.size
 
         do_dump_index_assertions_for_one_index(indexes[0], INDEX_A_NAME, first_index_column_name)
         do_dump_index_assertions_for_one_index(indexes[1], INDEX_B_NAME, second_index_column_name)
+        do_dump_index_assertions_for_one_index(indexes[2], INDEX_D_NAME, third_index_column_name)
+        do_dump_index_assertions_for_one_index(indexes[3], INDEX_E_NAME, fourth_index_column_name)
+
+        indexes.select{|i| i.name != INDEX_E_NAME}.each do |index|
+           assert_equal :btree, index.using
+        end
+        assert_equal :gin, indexes.select{|i| i.name == INDEX_E_NAME}[0].using
+        assert_equal :desc, indexes.select{|i| i.name == INDEX_D_NAME}[0].orders[INDEX_D_COLUMN]
       end
     end
 

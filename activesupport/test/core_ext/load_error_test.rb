@@ -1,7 +1,7 @@
 require 'abstract_unit'
 require 'active_support/core_ext/load_error'
 
-class TestMissingSourceFile < Test::Unit::TestCase
+class TestMissingSourceFile < ActiveSupport::TestCase
   def test_with_require
     assert_raise(MissingSourceFile) { require 'no_this_file_don\'t_exist' }
   end
@@ -14,9 +14,18 @@ class TestMissingSourceFile < Test::Unit::TestCase
       assert_equal 'nor/this/one.rb', e.path
     end
   end
+
+  def test_is_missing
+    begin load 'nor_does_this_one'
+    rescue MissingSourceFile => e
+      assert e.is_missing?('nor_does_this_one')
+      assert e.is_missing?('nor_does_this_one.rb')
+      assert_not e.is_missing?('some_other_file')
+    end
+  end
 end
 
-class TestLoadError < Test::Unit::TestCase
+class TestLoadError < ActiveSupport::TestCase
   def test_with_require
     assert_raise(LoadError) { require 'no_this_file_don\'t_exist' }
   end

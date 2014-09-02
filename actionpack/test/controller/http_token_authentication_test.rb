@@ -2,9 +2,9 @@ require 'abstract_unit'
 
 class HttpTokenAuthenticationTest < ActionController::TestCase
   class DummyController < ActionController::Base
-    before_filter :authenticate, :only => :index
-    before_filter :authenticate_with_request, :only => :display
-    before_filter :authenticate_long_credentials, :only => :show
+    before_action :authenticate, only: :index
+    before_action :authenticate_with_request, only: :display
+    before_action :authenticate_long_credentials, only: :show
 
     def index
       render :text => "Hello Secret"
@@ -21,7 +21,7 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
     private
 
     def authenticate
-      authenticate_or_request_with_http_token do |token, options|
+      authenticate_or_request_with_http_token do |token, _|
         token == 'lifo'
       end
     end
@@ -79,6 +79,14 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
     end
   end
 
+  test "authentication request with badly formatted header" do
+    @request.env['HTTP_AUTHORIZATION'] = "Token foobar"
+    get :index
+
+    assert_response :unauthorized
+    assert_equal "HTTP Token: Access denied.\n", @response.body, "Authentication header was not properly parsed"
+  end
+
   test "authentication request without credential" do
     get :display
 
@@ -96,18 +104,78 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
     assert_equal 'Token realm="SuperSecret"', @response.headers['WWW-Authenticate']
   end
 
-  test "authentication request with valid credential" do
-    @request.env['HTTP_AUTHORIZATION'] = encode_credentials('"quote" pretty', :algorithm => 'test')
-    get :display
+  test "token_and_options returns correct token" do
+    token = "rcHu+HzSFw89Ypyhn/896A=="
+    actual = ActionController::HttpAuthentication::Token.token_and_options(sample_request(token)).first
+    expected = token
+    assert_equal(expected, actual)
+  end
 
-    assert_response :success
-    assert assigns(:logged_in)
-    assert_equal 'Definitely Maybe', @response.body
+  test "token_and_options returns correct token with value after the equal sign" do
+    token = 'rcHu+=HzSFw89Ypyhn/896A==f34'
+    actual = ActionController::HttpAuthentication::Token.token_and_options(sample_request(token)).first
+    expected = token
+    assert_equal(expected, actual)
+  end
+
+  test "token_and_options returns correct token with slashes" do
+    token = 'rcHu+\\\\"/896A'
+    actual = ActionController::HttpAuthentication::Token.token_and_options(sample_request(token)).first
+    expected = token
+    assert_equal(expected, actual)
+  end
+
+  test "token_and_options returns correct token with quotes" do
+    token = '\"quote\" pretty'
+    actual = ActionController::HttpAuthentication::Token.token_and_options(sample_request(token)).first
+    expected = token
+    assert_equal(expected, actual)
+  end
+
+  test "token_and_options returns empty string with empty token" do
+    token = ''
+    actual = ActionController::HttpAuthentication::Token.token_and_options(sample_request(token)).first
+    expected = token
+    assert_equal(expected, actual)
+  end
+
+  test "token_and_options returns correct token with nounce option" do
+    token = "rcHu+HzSFw89Ypyhn/896A="
+    nonce_hash = {nonce: "123abc"}
+    actual = ActionController::HttpAuthentication::Token.token_and_options(sample_request(token, nonce_hash))
+    expected_token = token
+    expected_nonce = {"nonce" => nonce_hash[:nonce]}
+    assert_equal(expected_token, actual.first)
+    assert_equal(expected_nonce, actual.last)
+  end
+
+  test "token_and_options returns nil with no value after the equal sign" do
+    actual = ActionController::HttpAuthentication::Token.token_and_options(malformed_request).first
+    expected = nil
+    assert_equal(expected, actual)
+  end
+
+  test "raw_params returns a tuple of two key value pair strings" do
+    auth = sample_request("rcHu+HzSFw89Ypyhn/896A=").authorization.to_s
+    actual = ActionController::HttpAuthentication::Token.raw_params(auth)
+    expected = ["token=\"rcHu+HzSFw89Ypyhn/896A=\"", "nonce=\"def\""]
+    assert_equal(expected, actual)
   end
 
   private
 
-  def encode_credentials(token, options = {})
-    ActionController::HttpAuthentication::Token.encode_credentials(token, options)
-  end
+    def sample_request(token, options = {nonce: "def"})
+      authorization = options.inject([%{Token token="#{token}"}]) do |arr, (k, v)|
+        arr << "#{k}=\"#{v}\""
+      end.join(", ")
+      @sample_request ||= OpenStruct.new authorization: authorization
+    end
+
+    def malformed_request
+      @malformed_request ||= OpenStruct.new authorization: %{Token token=}
+    end
+
+    def encode_credentials(token, options = {})
+      ActionController::HttpAuthentication::Token.encode_credentials(token, options)
+    end
 end

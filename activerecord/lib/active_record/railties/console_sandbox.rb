@@ -1,6 +1,5 @@
-ActiveRecord::Base.connection.increment_open_transactions
-ActiveRecord::Base.connection.begin_db_transaction
+ActiveRecord::Base.connection.begin_transaction(joinable: false)
+
 at_exit do
-  ActiveRecord::Base.connection.rollback_db_transaction
-  ActiveRecord::Base.connection.decrement_open_transactions
+  ActiveRecord::Base.connection.rollback_transaction
 end

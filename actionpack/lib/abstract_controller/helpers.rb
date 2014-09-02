@@ -12,6 +12,20 @@ module AbstractController
       self._helper_methods = Array.new
     end
 
+    class MissingHelperError < LoadError
+      def initialize(error, path)
+        @error = error
+        @path  = "helpers/#{path}.rb"
+        set_backtrace error.backtrace
+
+        if error.path =~ /^#{path}(\.rb)?$/
+          super("Missing helper file helpers/%s.rb" % path)
+        else
+          raise error
+        end
+      end
+    end
+
     module ClassMethods
       # When a class is inherited, wrap its helper module in a new module.
       # This ensures that the parent class's module can be changed
@@ -19,7 +33,7 @@ module AbstractController
       def inherited(klass)
         helpers = _helpers
         klass._helpers = Module.new { include helpers }
-        klass.class_eval { default_helper_module! unless anonymous? }
+        klass.class_eval { default_helper_module! } unless klass.anonymous?
         super
       end
 
@@ -29,12 +43,12 @@ module AbstractController
       #     helper_method :current_user, :logged_in?
       #
       #     def current_user
-      #       @current_user ||= User.find_by_id(session[:user])
+      #       @current_user ||= User.find_by(id: session[:user])
       #     end
       #
-      #      def logged_in?
-      #        current_user != nil
-      #      end
+      #     def logged_in?
+      #       current_user != nil
+      #     end
       #   end
       #
       # In a view:
@@ -49,25 +63,24 @@ module AbstractController
 
         meths.each do |meth|
           _helpers.class_eval <<-ruby_eval, __FILE__, __LINE__ + 1
-            def #{meth}(*args, &blk)
-              controller.send(%(#{meth}), *args, &blk)
-            end
+            def #{meth}(*args, &blk)                               # def current_user(*args, &blk)
+              controller.send(%(#{meth}), *args, &blk)             #   controller.send(:current_user, *args, &blk)
+            end                                                    # end
           ruby_eval
         end
       end
 
       # The +helper+ class method can take a series of helper module names, a block, or both.
       #
-      # ==== Parameters
-      # * <tt>*args</tt> - Module, Symbol, String, :all
+      # ==== Options
+      # * <tt>*args</tt> - Module, Symbol, String
       # * <tt>block</tt> - A block defining helper methods
       #
-      # ==== Examples
       # When the argument is a module it will be included directly in the template class.
       #   helper FooHelper # => includes FooHelper
       #
       # When the argument is a string or symbol, the method will provide the "_helper" suffix, require the file
-      # and include the module in the template class.  The second form illustrates how to include custom helpers
+      # and include the module in the template class. The second form illustrates how to include custom helpers
       # when working with namespaced controllers, or other cases where the file containing the helper definition is not
       # in one of Rails' standard load paths:
       #   helper :foo             # => requires 'foo_helper' and includes FooHelper
@@ -114,7 +127,7 @@ module AbstractController
       # helpers with the following behavior:
       #
       # String or Symbol:: :FooBar or "FooBar" becomes "foo_bar_helper",
-      #   and "foo_bar_helper.rb" is loaded using require_dependency.
+      # and "foo_bar_helper.rb" is loaded using require_dependency.
       #
       # Module:: No further processing
       #
@@ -132,7 +145,11 @@ module AbstractController
           case arg
           when String, Symbol
             file_name = "#{arg.to_s.underscore}_helper"
-            require_dependency(file_name, "Missing helper file helpers/%s.rb")
+            begin
+              require_dependency(file_name)
+            rescue LoadError => e
+              raise AbstractController::Helpers::MissingHelperError.new(e, file_name)
+            end
             file_name.camelize.constantize
           when Module
             arg

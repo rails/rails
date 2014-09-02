@@ -1,7 +1,24 @@
 require 'abstract_unit'
 require 'active_support/time'
+require 'core_ext/date_and_time_behavior'
+require 'time_zone_test_helpers'
 
 class DateExtCalculationsTest < ActiveSupport::TestCase
+  def date_time_init(year,month,day,*args)
+    Date.new(year,month,day)
+  end
+
+  include DateAndTimeBehavior
+  include TimeZoneTestHelpers
+
+  def test_yesterday_in_calendar_reform
+    assert_equal Date.new(1582,10,4), Date.new(1582,10,15).yesterday
+  end
+
+  def test_tomorrow_in_calendar_reform
+    assert_equal Date.new(1582,10,15), Date.new(1582,10,4).tomorrow
+  end
+
   def test_to_s
     date = Date.new(2005, 2, 21)
     assert_equal "2005-02-21",          date.to_s
@@ -10,6 +27,7 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     assert_equal "February 21st, 2005", date.to_s(:long_ordinal)
     assert_equal "2005-02-21",          date.to_s(:db)
     assert_equal "21 Feb 2005",         date.to_s(:rfc822)
+    assert_equal "2005-02-21",          date.to_s(:iso8601)
   end
 
   def test_readable_inspect
@@ -18,8 +36,12 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_to_time
-    assert_equal Time.local(2005, 2, 21), Date.new(2005, 2, 21).to_time
-    assert_equal Time.local_time(2039, 2, 21), Date.new(2039, 2, 21).to_time
+    with_env_tz 'US/Eastern' do
+      assert_equal Time, Date.new(2005, 2, 21).to_time.class
+      assert_equal Time.local(2005, 2, 21), Date.new(2005, 2, 21).to_time
+      assert_equal Time.local(2005, 2, 21).utc_offset, Date.new(2005, 2, 21).to_time.utc_offset
+    end
+
     silence_warnings do
       0.upto(138) do |year|
         [:utc, :local].each do |format|
@@ -27,6 +49,10 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
         end
       end
     end
+  end
+
+  def test_compare_to_time
+    assert Date.yesterday < Time.now
   end
 
   def test_to_datetime
@@ -46,54 +72,17 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     assert_equal Date.new(2005,6,22), Date.new(2005,2,22).change(:month => 6)
   end
 
-  def test_beginning_of_week
-    assert_equal Date.new(2005,1,31),  Date.new(2005,2,4).beginning_of_week
-    assert_equal Date.new(2005,11,28), Date.new(2005,11,28).beginning_of_week #monday
-    assert_equal Date.new(2005,11,28), Date.new(2005,11,29).beginning_of_week #tuesday
-    assert_equal Date.new(2005,11,28), Date.new(2005,11,30).beginning_of_week #wednesday
-    assert_equal Date.new(2005,11,28), Date.new(2005,12,01).beginning_of_week #thursday
-    assert_equal Date.new(2005,11,28), Date.new(2005,12,02).beginning_of_week #friday
-    assert_equal Date.new(2005,11,28), Date.new(2005,12,03).beginning_of_week #saturday
-    assert_equal Date.new(2005,11,28), Date.new(2005,12,04).beginning_of_week #sunday
+  def test_sunday
+    assert_equal Date.new(2008,3,2), Date.new(2008,3,02).sunday
+    assert_equal Date.new(2008,3,2), Date.new(2008,2,29).sunday
   end
 
   def test_beginning_of_week_in_calendar_reform
     assert_equal Date.new(1582,10,1), Date.new(1582,10,15).beginning_of_week #friday
   end
 
-  def test_beginning_of_month
-    assert_equal Date.new(2005,2,1), Date.new(2005,2,22).beginning_of_month
-  end
-
-  def test_beginning_of_quarter
-    assert_equal Date.new(2005,1,1),  Date.new(2005,2,15).beginning_of_quarter
-    assert_equal Date.new(2005,1,1),  Date.new(2005,1,1).beginning_of_quarter
-    assert_equal Date.new(2005,10,1), Date.new(2005,12,31).beginning_of_quarter
-    assert_equal Date.new(2005,4,1),  Date.new(2005,6,30).beginning_of_quarter
-  end
-
-  def test_end_of_week
-    assert_equal Date.new(2008,2,24), Date.new(2008,2,22).end_of_week
-    assert_equal Date.new(2008,3,2), Date.new(2008,2,25).end_of_week #monday
-    assert_equal Date.new(2008,3,2), Date.new(2008,2,26).end_of_week #tuesday
-    assert_equal Date.new(2008,3,2), Date.new(2008,2,27).end_of_week #wednesday
-    assert_equal Date.new(2008,3,2), Date.new(2008,2,28).end_of_week #thursday
-    assert_equal Date.new(2008,3,2), Date.new(2008,2,29).end_of_week #friday
-    assert_equal Date.new(2008,3,2), Date.new(2008,3,01).end_of_week #saturday
-    assert_equal Date.new(2008,3,2), Date.new(2008,3,02).end_of_week #sunday
-  end
-
   def test_end_of_week_in_calendar_reform
     assert_equal Date.new(1582,10,17), Date.new(1582,10,4).end_of_week #thursday
-  end
-
-  def test_end_of_quarter
-    assert_equal Date.new(2008,3,31),  Date.new(2008,2,15).end_of_quarter
-    assert_equal Date.new(2008,3,31),  Date.new(2008,3,31).end_of_quarter
-    assert_equal Date.new(2008,12,31), Date.new(2008,10,8).end_of_quarter
-    assert_equal Date.new(2008,6,30),  Date.new(2008,4,14).end_of_quarter
-    assert_equal Date.new(2008,6,30),  Date.new(2008,5,31).end_of_quarter
-    assert_equal Date.new(2008,9,30),  Date.new(2008,8,21).end_of_quarter
   end
 
   def test_end_of_year
@@ -106,57 +95,6 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     assert_equal Date.new(2005,4,30), Date.new(2005,4,20).end_of_month
   end
 
-  def test_beginning_of_year
-    assert_equal Date.new(2005,1,1).to_s, Date.new(2005,2,22).beginning_of_year.to_s
-  end
-
-  def test_weeks_ago
-    assert_equal Date.new(2005,5,10), Date.new(2005,5,17).weeks_ago(1)
-    assert_equal Date.new(2005,5,10), Date.new(2005,5,24).weeks_ago(2)
-    assert_equal Date.new(2005,5,10), Date.new(2005,5,31).weeks_ago(3)
-    assert_equal Date.new(2005,5,10), Date.new(2005,6,7).weeks_ago(4)
-    assert_equal Date.new(2006,12,31), Date.new(2007,2,4).weeks_ago(5)
-  end
-
-  def test_months_ago
-    assert_equal Date.new(2005,5,5),  Date.new(2005,6,5).months_ago(1)
-    assert_equal Date.new(2004,11,5), Date.new(2005,6,5).months_ago(7)
-    assert_equal Date.new(2004,12,5), Date.new(2005,6,5).months_ago(6)
-    assert_equal Date.new(2004,6,5),  Date.new(2005,6,5).months_ago(12)
-    assert_equal Date.new(2003,6,5),  Date.new(2005,6,5).months_ago(24)
-  end
-
-  def test_months_since
-    assert_equal Date.new(2005,7,5),  Date.new(2005,6,5).months_since(1)
-    assert_equal Date.new(2006,1,5),  Date.new(2005,12,5).months_since(1)
-    assert_equal Date.new(2005,12,5), Date.new(2005,6,5).months_since(6)
-    assert_equal Date.new(2006,6,5),  Date.new(2005,12,5).months_since(6)
-    assert_equal Date.new(2006,1,5),  Date.new(2005,6,5).months_since(7)
-    assert_equal Date.new(2006,6,5),  Date.new(2005,6,5).months_since(12)
-    assert_equal Date.new(2007,6,5),  Date.new(2005,6,5).months_since(24)
-    assert_equal Date.new(2005,4,30),  Date.new(2005,3,31).months_since(1)
-    assert_equal Date.new(2005,2,28),  Date.new(2005,1,29).months_since(1)
-    assert_equal Date.new(2005,2,28),  Date.new(2005,1,30).months_since(1)
-    assert_equal Date.new(2005,2,28),  Date.new(2005,1,31).months_since(1)
-  end
-
-  def test_years_ago
-    assert_equal Date.new(2004,6,5),  Date.new(2005,6,5).years_ago(1)
-    assert_equal Date.new(1998,6,5), Date.new(2005,6,5).years_ago(7)
-    assert_equal Date.new(2003,2,28), Date.new(2004,2,29).years_ago(1) # 1 year ago from leap day
-  end
-
-  def test_years_since
-    assert_equal Date.new(2006,6,5),  Date.new(2005,6,5).years_since(1)
-    assert_equal Date.new(2012,6,5),  Date.new(2005,6,5).years_since(7)
-    assert_equal Date.new(2182,6,5),  Date.new(2005,6,5).years_since(177)
-    assert_equal Date.new(2005,2,28), Date.new(2004,2,29).years_since(1) # 1 year since leap day
-  end
-
-  def test_prev_year
-    assert_equal Date.new(2004,6,5),  Date.new(2005,6,5).prev_year
-  end
-
   def test_prev_year_in_leap_years
     assert_equal Date.new(1999,2,28), Date.new(2000,2,29).prev_year
   end
@@ -165,8 +103,16 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     assert_equal Date.new(1582,10,4), Date.new(1583,10,14).prev_year
   end
 
-  def test_next_year
-    assert_equal Date.new(2006,6,5), Date.new(2005,6,5).next_year
+  def test_last_year
+    assert_equal Date.new(2004,6,5),  Date.new(2005,6,5).last_year
+  end
+
+  def test_last_year_in_leap_years
+    assert_equal Date.new(1999,2,28), Date.new(2000,2,29).last_year
+  end
+
+  def test_last_year_in_calendar_reform
+    assert_equal Date.new(1582,10,4), Date.new(1583,10,14).last_year
   end
 
   def test_next_year_in_leap_years
@@ -175,24 +121,6 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
 
   def test_next_year_in_calendar_reform
     assert_equal Date.new(1582,10,4), Date.new(1581,10,10).next_year
-  end
-
-  def test_yesterday
-    assert_equal Date.new(2005,2,21), Date.new(2005,2,22).yesterday
-    assert_equal Date.new(2005,2,28), Date.new(2005,3,2).yesterday.yesterday
-  end
-
-  def test_yesterday_in_calendar_reform
-    assert_equal Date.new(1582,10,4), Date.new(1582,10,15).yesterday
-  end
-
-  def test_tomorrow
-    assert_equal Date.new(2005,2,23), Date.new(2005,2,22).tomorrow
-    assert_equal Date.new(2005,3,2),  Date.new(2005,2,28).tomorrow.tomorrow
-  end
-
-  def test_tomorrow_in_calendar_reform
-    assert_equal Date.new(1582,10,15), Date.new(1582,10,4).tomorrow
   end
 
   def test_advance
@@ -227,19 +155,12 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     end
   end
 
-  def test_prev_week
-    assert_equal Date.new(2005,5,9), Date.new(2005,5,17).prev_week
-    assert_equal Date.new(2006,12,25), Date.new(2007,1,7).prev_week
-    assert_equal Date.new(2010,2,12), Date.new(2010,2,19).prev_week(:friday)
-    assert_equal Date.new(2010,2,13), Date.new(2010,2,19).prev_week(:saturday)
-    assert_equal Date.new(2010,2,27), Date.new(2010,3,4).prev_week(:saturday)
-  end
-
-  def test_next_week
-    assert_equal Date.new(2005,2,28), Date.new(2005,2,22).next_week
-    assert_equal Date.new(2005,3,4), Date.new(2005,2,22).next_week(:friday)
-    assert_equal Date.new(2006,10,30), Date.new(2006,10,23).next_week
-    assert_equal Date.new(2006,11,1), Date.new(2006,10,23).next_week(:wednesday)
+  def test_last_week
+    assert_equal Date.new(2005,5,9), Date.new(2005,5,17).last_week
+    assert_equal Date.new(2006,12,25), Date.new(2007,1,7).last_week
+    assert_equal Date.new(2010,2,12), Date.new(2010,2,19).last_week(:friday)
+    assert_equal Date.new(2010,2,13), Date.new(2010,2,19).last_week(:saturday)
+    assert_equal Date.new(2010,2,27), Date.new(2010,3,4).last_week(:saturday)
   end
 
   def test_next_week_in_calendar_reform
@@ -247,12 +168,12 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     assert_equal Date.new(1582,10,18), Date.new(1582,10,4).next_week
   end
 
-  def test_next_month_on_31st
-    assert_equal Date.new(2005, 9, 30), Date.new(2005, 8, 31).next_month
+  def test_last_month_on_31st
+    assert_equal Date.new(2004, 2, 29), Date.new(2004, 3, 31).last_month
   end
 
-  def test_prev_month_on_31st
-    assert_equal Date.new(2004, 2, 29), Date.new(2004, 3, 31).prev_month
+  def test_last_quarter_on_31st
+    assert_equal Date.new(2004, 2, 29), Date.new(2004, 5, 31).last_quarter
   end
 
   def test_yesterday_constructor
@@ -329,6 +250,10 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     assert_equal Time.local(2005,2,21,0,0,0), Date.new(2005,2,21).beginning_of_day
   end
 
+  def test_middle_of_day
+    assert_equal Time.local(2005,2,21,12,0,0), Date.new(2005,2,21).middle_of_day
+  end
+
   def test_beginning_of_day_when_zone_is_set
     zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
     with_env_tz 'UTC' do
@@ -340,17 +265,34 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_end_of_day
-    assert_equal Time.local(2005,2,21,23,59,59,999999.999), Date.new(2005,2,21).end_of_day
+    assert_equal Time.local(2005,2,21,23,59,59,Rational(999999999, 1000)), Date.new(2005,2,21).end_of_day
   end
 
   def test_end_of_day_when_zone_is_set
     zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
     with_env_tz 'UTC' do
       with_tz_default zone do
-        assert_equal zone.local(2005,2,21,23,59,59,999999.999), Date.new(2005,2,21).end_of_day
+        assert_equal zone.local(2005,2,21,23,59,59,Rational(999999999, 1000)), Date.new(2005,2,21).end_of_day
         assert_equal zone, Date.new(2005,2,21).end_of_day.time_zone
       end
     end
+  end
+
+  def test_all_week
+    assert_equal Date.new(2011,6,6)..Date.new(2011,6,12), Date.new(2011,6,7).all_week
+    assert_equal Date.new(2011,6,5)..Date.new(2011,6,11), Date.new(2011,6,7).all_week(:sunday)
+  end
+
+  def test_all_month
+    assert_equal Date.new(2011,6,1)..Date.new(2011,6,30), Date.new(2011,6,7).all_month
+  end
+
+  def test_all_quarter
+    assert_equal Date.new(2011,4,1)..Date.new(2011,6,30), Date.new(2011,6,7).all_quarter
+  end
+
+  def test_all_year
+    assert_equal Date.new(2011,1,1)..Date.new(2011,12,31), Date.new(2011,6,7).all_year
   end
 
   def test_xmlschema
@@ -372,23 +314,6 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
         assert_match(/^1980-06-28T00:00:00-04:?00$/, Date.new(1980, 6, 28).xmlschema)
       end
     end
-  end
-
-  if RUBY_VERSION < '1.9'
-    def test_rfc3339
-      assert_equal('1980-02-28', Date.new(1980, 2, 28).rfc3339)
-    end
-
-    def test_iso8601
-      assert_equal('1980-02-28', Date.new(1980, 2, 28).iso8601)
-    end
-  end
-
-  def test_today
-    Date.stubs(:current).returns(Date.new(2000, 1, 1))
-    assert_equal false, Date.new(1999, 12, 31).today?
-    assert_equal true, Date.new(2000,1,1).today?
-    assert_equal false, Date.new(2000,1,2).today?
   end
 
   def test_past
@@ -426,25 +351,9 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     Date.new(2005,2,28).advance(options)
     assert_equal({ :years => 3, :months => 11, :days => 2 }, options)
   end
-
-  protected
-    def with_env_tz(new_tz = 'US/Eastern')
-      old_tz, ENV['TZ'] = ENV['TZ'], new_tz
-      yield
-    ensure
-      old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
-    end
-
-    def with_tz_default(tz = nil)
-      old_tz = Time.zone
-      Time.zone = tz
-      yield
-    ensure
-      Time.zone = old_tz
-    end
 end
 
-class DateExtBehaviorTest < Test::Unit::TestCase
+class DateExtBehaviorTest < ActiveSupport::TestCase
   def test_date_acts_like_date
     assert Date.new.acts_like_date?
   end
@@ -454,4 +363,11 @@ class DateExtBehaviorTest < Test::Unit::TestCase
       Date.today.freeze.inspect
     end
   end
+
+  def test_can_freeze_twice
+    assert_nothing_raised do
+      Date.today.freeze.freeze
+    end
+  end
 end
+

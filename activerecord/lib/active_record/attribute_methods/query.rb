@@ -1,5 +1,3 @@
-require 'active_support/core_ext/object/blank'
-
 module ActiveRecord
   module AttributeMethods
     module Query
@@ -10,8 +8,11 @@ module ActiveRecord
       end
 
       def query_attribute(attr_name)
-        unless value = read_attribute(attr_name)
-          false
+        value = self[attr_name]
+
+        case value
+        when true        then true
+        when false, nil  then false
         else
           column = self.class.columns_hash[attr_name]
           if column.nil?

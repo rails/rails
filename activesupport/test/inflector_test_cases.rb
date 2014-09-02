@@ -14,6 +14,7 @@ module InflectorTestCases
     "fish"        => "fish",
     "jeans"       => "jeans",
     "funky jeans" => "funky jeans",
+    "my money"    => "my money",
 
     "category"    => "categories",
     "query"       => "queries",
@@ -46,6 +47,7 @@ module InflectorTestCases
     "medium"      => "media",
     "stadium"     => "stadia",
     "analysis"    => "analyses",
+    "my_analysis" => "my_analyses",
 
     "node_child"  => "node_children",
     "child"       => "children",
@@ -61,6 +63,7 @@ module InflectorTestCases
     "news"        => "news",
 
     "series"      => "series",
+    "miniseries"  => "miniseries",
     "species"     => "species",
 
     "quiz"        => "quizzes",
@@ -92,6 +95,7 @@ module InflectorTestCases
     "matrix_fu"   => "matrix_fus",
 
     "axis"        => "axes",
+    "taxi"        => "taxis", # prevents regression
     "testis"      => "testes",
     "crisis"      => "crises",
 
@@ -102,8 +106,13 @@ module InflectorTestCases
     "prize"       => "prizes",
     "edge"        => "edges",
 
-    "cow"         => "kine",
-    "database"    => "databases"
+    "database"    => "databases",
+
+    # regression tests against improper inflection regexes
+    "|ice"        => "|ices",
+    "|ouse"       => "|ouses",
+    "slice"       => "slices",
+    "police"      => "police"
   }
 
   CamelToUnderscore = {
@@ -168,6 +177,7 @@ module InflectorTestCases
 
   StringToParameterizeWithNoSeparator = {
     "Donald E. Knuth"                     => "donaldeknuth",
+    "With-some-dashes"                    => "with-some-dashes",
     "Random text with *(bad)* characters" => "randomtextwithbadcharacters",
     "Trailing bad characters!@#"          => "trailingbadcharacters",
     "!@#Leading bad characters"           => "leadingbadcharacters",
@@ -179,6 +189,8 @@ module InflectorTestCases
   StringToParameterizeWithUnderscore = {
     "Donald E. Knuth"                     => "donald_e_knuth",
     "Random text with *(bad)* characters" => "random_text_with_bad_characters",
+    "With-some-dashes"                    => "with-some-dashes",
+    "Retain_underscore"                   => "retain_underscore",
     "Trailing bad characters!@#"          => "trailing_bad_characters",
     "!@#Leading bad characters"           => "leading_bad_characters",
     "Squeeze   separators"                => "squeeze_separators",
@@ -196,22 +208,36 @@ module InflectorTestCases
   }
 
   UnderscoreToHuman = {
-    "employee_salary" => "Employee salary",
-    "employee_id"     => "Employee",
-    "underground"     => "Underground"
+    'employee_salary' => 'Employee salary',
+    'employee_id'     => 'Employee',
+    'underground'     => 'Underground',
+    '_id'             => 'Id',
+    '_external_id'    => 'External'
+  }
+
+  UnderscoreToHumanWithoutCapitalize = {
+    "employee_salary" => "employee salary",
+    "employee_id"     => "employee",
+    "underground"     => "underground"
   }
 
   MixtureToTitleCase = {
-    'active_record'       => 'Active Record',
-    'ActiveRecord'        => 'Active Record',
-    'action web service'  => 'Action Web Service',
-    'Action Web Service'  => 'Action Web Service',
-    'Action web service'  => 'Action Web Service',
-    'actionwebservice'    => 'Actionwebservice',
-    'Actionwebservice'    => 'Actionwebservice',
-    "david's code"        => "David's Code",
-    "David's code"        => "David's Code",
-    "david's Code"        => "David's Code"
+    'active_record'         => 'Active Record',
+    'ActiveRecord'          => 'Active Record',
+    'action web service'    => 'Action Web Service',
+    'Action Web Service'    => 'Action Web Service',
+    'Action web service'    => 'Action Web Service',
+    'actionwebservice'      => 'Actionwebservice',
+    'Actionwebservice'      => 'Actionwebservice',
+    "david's code"          => "David's Code",
+    "David's code"          => "David's Code",
+    "david's Code"          => "David's Code",
+    "sgt. pepper's"         => "Sgt. Pepper's",
+    "i've just seen a face" => "I've Just Seen A Face",
+    "maybe you'll be there" => "Maybe You'll Be There",
+    "¿por qué?"             => '¿Por Qué?',
+    "Fred’s"                => "Fred’s",
+    "Fred`s"                => "Fred`s"
   }
 
   OrdinalNumbers = {
@@ -290,5 +316,8 @@ module InflectorTestCases
     'child'  => 'children',
     'sex'    => 'sexes',
     'move'   => 'moves',
+    'cow'    => 'kine', # Test inflections with different starting letters
+    'zombie' => 'zombies',
+    'genus'  => 'genera'
   }
 end

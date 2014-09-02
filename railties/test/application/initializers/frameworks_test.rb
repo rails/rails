@@ -1,13 +1,18 @@
 require "isolation/abstract_unit"
+require 'set'
 
 module ApplicationTests
-  class FrameworksTest < Test::Unit::TestCase
+  class FrameworksTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
 
     def setup
       build_app
       boot_rails
       FileUtils.rm_rf "#{app_path}/config/environments"
+    end
+
+    def teardown
+      teardown_app
     end
 
     # AC & AM
@@ -30,13 +35,13 @@ module ApplicationTests
       require "#{app_path}/config/environment"
 
       expanded_path = File.expand_path("app/views", app_path)
-      assert_equal ActionController::Base.view_paths[0].to_s, expanded_path
-      assert_equal ActionMailer::Base.view_paths[0].to_s, expanded_path
+      assert_equal expanded_path, ActionController::Base.view_paths[0].to_s
+      assert_equal expanded_path, ActionMailer::Base.view_paths[0].to_s
     end
 
     test "allows me to configure default url options for ActionMailer" do
       app_file "config/environments/development.rb", <<-RUBY
-        AppTemplate::Application.configure do
+        Rails.application.configure do
           config.action_mailer.default_url_options = { :host => "test.rails" }
         end
       RUBY
@@ -45,9 +50,9 @@ module ApplicationTests
       assert_equal "test.rails", ActionMailer::Base.default_url_options[:host]
     end
 
-    test "does not include url helpers as action methods" do
+    test "includes url helpers as action methods" do
       app_file "config/routes.rb", <<-RUBY
-        AppTemplate::Application.routes.draw do
+        Rails.application.routes.draw do
           get "/foo", :to => lambda { |env| [200, {}, []] }, :as => :foo
         end
       RUBY
@@ -61,8 +66,8 @@ module ApplicationTests
 
       require "#{app_path}/config/environment"
       assert Foo.method_defined?(:foo_path)
+      assert Foo.method_defined?(:foo_url)
       assert Foo.method_defined?(:main_app)
-      assert_equal ["notify"], Foo.action_methods
     end
 
     test "allows to not load all helpers for controllers" do
@@ -110,8 +115,8 @@ module ApplicationTests
       RUBY
 
       app_file "config/routes.rb", <<-RUBY
-        AppTemplate::Application.routes.draw do
-          match "/:controller(/:action)"
+        Rails.application.routes.draw do
+          get "/:controller(/:action)"
         end
       RUBY
 
@@ -132,6 +137,13 @@ module ApplicationTests
       assert_equal 2, ActionDispatch::Http::URL.tld_length
     end
 
+    test "assignment config.encoding to default_charset" do
+      charset = 'Shift_JIS'
+      add_to_config "config.encoding = '#{charset}'"
+      require "#{app_path}/config/environment"
+      assert_equal charset, ActionDispatch::Response.default_charset
+    end
+
     # AS
     test "if there's no config.active_support.bare, all of ActiveSupport is required" do
       use_frameworks []
@@ -146,31 +158,11 @@ module ApplicationTests
 
       Dir.chdir("#{app_path}/app") do
         require "#{app_path}/config/environment"
-        assert_raises(NoMethodError) { [1,2,3].forty_two }
+        assert_raises(NoMethodError) { "hello".exclude? "lo" }
       end
     end
 
     # AR
-    test "database middleware doesn't initialize when session store is not active_record" do
-      add_to_config <<-RUBY
-        config.root = "#{app_path}"
-        config.session_store :cookie_store, { :key => "blahblahblah" }
-      RUBY
-      require "#{app_path}/config/environment"
-
-      assert !Rails.application.config.middleware.include?(ActiveRecord::SessionStore)
-    end
-
-    test "database middleware initializes when session store is active record" do
-      add_to_config "config.session_store :active_record_store"
-
-      require "#{app_path}/config/environment"
-
-      expects = [ActiveRecord::ConnectionAdapters::ConnectionManagement, ActiveRecord::QueryCache, ActiveRecord::SessionStore]
-      middleware = Rails.application.config.middleware.map { |m| m.klass }
-      assert_equal expects, middleware & expects
-    end
-
     test "active_record extensions are applied to ActiveRecord" do
       add_to_config "config.active_record.table_name_prefix = 'tbl_'"
       require "#{app_path}/config/environment"
@@ -181,6 +173,59 @@ module ApplicationTests
       use_frameworks []
       require "#{app_path}/config/environment"
       assert_nil defined?(ActiveRecord::Base)
+    end
+
+    test "use schema cache dump" do
+      Dir.chdir(app_path) do
+        `rails generate model post title:string;
+         bundle exec rake db:migrate db:schema:cache:dump`
+      end
+      require "#{app_path}/config/environment"
+      ActiveRecord::Base.connection.drop_table("posts") # force drop posts table for test.
+      assert ActiveRecord::Base.connection.schema_cache.tables("posts")
+    end
+
+    test "expire schema cache dump" do
+      Dir.chdir(app_path) do
+        `rails generate model post title:string;
+         bundle exec rake db:migrate db:schema:cache:dump db:rollback`
+      end
+      silence_warnings {
+        require "#{app_path}/config/environment"
+        assert !ActiveRecord::Base.connection.schema_cache.tables("posts")
+      }
+    end
+
+    test "active record establish_connection uses Rails.env if DATABASE_URL is not set" do
+      begin
+        require "#{app_path}/config/environment"
+        orig_database_url = ENV.delete("DATABASE_URL")
+        orig_rails_env, Rails.env = Rails.env, 'development'
+        ActiveRecord::Base.establish_connection
+        assert ActiveRecord::Base.connection
+        assert_match(/#{ActiveRecord::Base.configurations[Rails.env]['database']}/, ActiveRecord::Base.connection_config[:database])
+      ensure
+        ActiveRecord::Base.remove_connection
+        ENV["DATABASE_URL"] = orig_database_url if orig_database_url
+        Rails.env = orig_rails_env if orig_rails_env
+      end
+    end
+
+    test "active record establish_connection uses DATABASE_URL even if Rails.env is set" do
+      begin
+        require "#{app_path}/config/environment"
+        orig_database_url = ENV.delete("DATABASE_URL")
+        orig_rails_env, Rails.env = Rails.env, 'development'
+        database_url_db_name = "db/database_url_db.sqlite3"
+        ENV["DATABASE_URL"] = "sqlite3:#{database_url_db_name}"
+        ActiveRecord::Base.establish_connection
+        assert ActiveRecord::Base.connection
+        assert_match(/#{database_url_db_name}/, ActiveRecord::Base.connection_config[:database])
+      ensure
+        ActiveRecord::Base.remove_connection
+        ENV["DATABASE_URL"] = orig_database_url if orig_database_url
+        Rails.env = orig_rails_env if orig_rails_env
+      end
     end
   end
 end

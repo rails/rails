@@ -1,6 +1,6 @@
 = Action Mailer -- Easy email delivery and testing
 
-Action Mailer is a framework for designing email-service layers. These layers
+Action Mailer is a framework for designing email service layers. These layers
 are used to consolidate code for sending out forgotten passwords, welcome
 wishes on signup, invoices for billing, and any other use case that requires
 a written notification to either a person or another system.
@@ -10,7 +10,7 @@ Mail gem.  It provides a way to make emails using templates in the same
 way that Action Controller renders views using templates.
 
 Additionally, an Action Mailer class can be used to process incoming email,
-such as allowing a weblog to accept new posts from an email (which could even
+such as allowing a blog to accept new posts from an email (which could even
 have been sent from a phone).
 
 == Sending emails
@@ -22,12 +22,12 @@ the email.
 This can be as simple as:
 
   class Notifier < ActionMailer::Base
-    delivers_from 'system@loudthinking.com'
+    default from: 'system@loudthinking.com'
 
     def welcome(recipient)
       @recipient = recipient
-      mail(:to => recipient,
-           :subject => "[Signed up] Welcome #{recipient}")
+      mail(to: recipient,
+           subject: "[Signed up] Welcome #{recipient}")
     end
   end
 
@@ -42,7 +42,7 @@ So the corresponding body template for the method above could look like this:
 
   Thank you for signing up!
 
-And if the recipient was given as "david@loudthinking.com", the email
+If the recipient was given as "david@loudthinking.com", the email
 generated would look like this:
 
   Date: Mon, 25 Jan 2010 22:48:09 +1100
@@ -59,29 +59,29 @@ generated would look like this:
 
   Mr. david@loudthinking.com
 
-In previous version of Rails you would call <tt>create_method_name</tt> and
-<tt>deliver_method_name</tt>.  Rails 3.0 has a much simpler interface, you
-simply call the method and optionally call +deliver+ on the return value.
+  Thank you for signing up!
+
+In order to send mails, you simply call the method and then call +deliver+ on the return value.
 
 Calling the method returns a Mail Message object:
 
-  message = Notifier.welcome  # => Returns a Mail::Message object
-  message.deliver             # => delivers the email
+  message = Notifier.welcome("david@loudthinking.com")   # => Returns a Mail::Message object
+  message.deliver_now                                    # => delivers the email
 
 Or you can just chain the methods together like:
 
-  Notifier.welcome.deliver    # Creates the email and sends it immediately
+  Notifier.welcome("david@loudthinking.com").deliver_now # Creates the email and sends it immediately
 
 == Setting defaults
 
-It is possible to set default values that will be used in every method in your Action Mailer class. To implement this functionality, you just call the public class method <tt>default</tt> which you get for free from ActionMailer::Base. This method accepts a Hash as the parameter. You can use any of the headers e-mail messages has, like <tt>:from</tt> as the key. You can also pass in a string as the key, like "Content-Type", but Action Mailer does this out of the box for you, so you wont need to worry about that. Finally it is also possible to pass in a Proc that will get evaluated when it is needed.
+It is possible to set default values that will be used in every method in your Action Mailer class. To implement this functionality, you just call the public class method <tt>default</tt> which you get for free from <tt>ActionMailer::Base</tt>. This method accepts a Hash as the parameter. You can use any of the headers email messages have, like <tt>:from</tt> as the key. You can also pass in a string as the key, like "Content-Type", but Action Mailer does this out of the box for you, so you won't need to worry about that. Finally, it is also possible to pass in a Proc that will get evaluated when it is needed.
 
-Note that every value you set with this method will get over written if you use the same key in your mailer method.
+Note that every value you set with this method will get overwritten if you use the same key in your mailer method.
 
 Example:
 
-  class Authenticationmailer < ActionMailer::Base
-    default :from => "awesome@application.com", :subject => Proc.new { "E-mail was generated at #{Time.now}" }
+  class AuthenticationMailer < ActionMailer::Base
+    default from: "awesome@application.com", subject: Proc.new { "E-mail was generated at #{Time.now}" }
     .....
   end
 
@@ -96,15 +96,15 @@ Example:
 
   class Mailman < ActionMailer::Base
     def receive(email)
-      page = Page.find_by_address(email.to.first)
+      page = Page.find_by(address: email.to.first)
       page.emails.create(
-        :subject => email.subject, :body => email.body
+        subject: email.subject, body: email.body
       )
 
       if email.has_attachments?
-        email.attachments.each do |attachment| 
+        email.attachments.each do |attachment|
           page.attachments.create({
-            :file => attachment, :description => email.subject
+            file: attachment, description: email.subject
           })
         end
       end
@@ -117,45 +117,50 @@ trivial case like this:
   rails runner 'Mailman.receive(STDIN.read)'
 
 However, invoking Rails in the runner for each mail to be received is very resource intensive.  A single
-instance of Rails should be run within a daemon, if it is going to be utilized to process more than just
-a limited number of email.
+instance of Rails should be run within a daemon, if it is going to process more than just a limited amount of email.
 
 == Configuration
 
 The Base class has the full list of configuration options. Here's an example:
 
   ActionMailer::Base.smtp_settings = {
-    :address        => 'smtp.yourserver.com', # default: localhost
-    :port           => '25',                  # default: 25
-    :user_name      => 'user',
-    :password       => 'pass',
-    :authentication => :plain                 # :plain, :login or :cram_md5
+    address:        'smtp.yourserver.com', # default: localhost
+    port:           '25',                  # default: 25
+    user_name:      'user',
+    password:       'pass',
+    authentication: :plain                 # :plain, :login or :cram_md5
   }
 
 
 == Download and installation
 
-The latest version of Action Mailer can be installed with Rubygems:
+The latest version of Action Mailer can be installed with RubyGems:
 
   % [sudo] gem install actionmailer
 
 Source code can be downloaded as part of the Rails project on GitHub
 
-* https://github.com/rails/rails/tree/master/actionmailer/
+* https://github.com/rails/rails/tree/master/actionmailer
 
 
 == License
 
-Action Mailer is released under the MIT license.
+Action Mailer is released under the MIT license:
+
+* http://www.opensource.org/licenses/MIT
 
 
 == Support
 
 API documentation is at
 
-* http://api.rubyonrails.com
+* http://api.rubyonrails.org
 
-Bug reports and feature requests can be filed with the rest for the Ruby on Rails project here:
+Bug reports can be filed for the Ruby on Rails project here:
 
 * https://github.com/rails/rails/issues
+
+Feature requests should be discussed on the rails-core mailing list here:
+
+* https://groups.google.com/forum/?fromgroups#!forum/rubyonrails-core
 

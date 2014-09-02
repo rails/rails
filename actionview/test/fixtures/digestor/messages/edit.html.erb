@@ -1,0 +1,5 @@
+<%= render              "header" %>
+<%= render    partial:  "form" %>
+<%= render              @message %>
+<%= render ( @message.events ) %>
+<%= render    :partial =>    "comments/comment", :collection => @message.comments %>

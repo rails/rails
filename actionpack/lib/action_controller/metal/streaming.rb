@@ -1,4 +1,3 @@
-require 'active_support/core_ext/file/path'
 require 'rack/chunked'
 
 module ActionController #:nodoc:
@@ -22,27 +21,13 @@ module ActionController #:nodoc:
   # supports fibers (fibers are supported since version 1.9.2 of the main
   # Ruby implementation).
   #
-  # == Examples
-  #
-  # Streaming can be added to a controller easily, all you need to do is
-  # call +stream+ in the controller class:
-  #
-  #   class PostsController
-  #     stream
-  #   end
-  #
-  # The +stream+ method accepts the same options as +before_filter+ and friends:
-  #
-  #   class PostsController
-  #     stream :only => :index
-  #   end
-  #
-  # You can also selectively turn on streaming for specific actions:
+  # Streaming can be added to a given template easily, all you need to do is
+  # to pass the :stream option.
   #
   #   class PostsController
   #     def index
-  #       @posts = Post.scoped
-  #       render :stream => true
+  #       @posts = Post.all
+  #       render stream: true
   #     end
   #   end
   #
@@ -66,11 +51,14 @@ module ActionController #:nodoc:
   #
   #   def dashboard
   #     # Allow lazy execution of the queries
-  #     @posts = Post.scoped
-  #     @pages = Page.scoped
-  #     @articles = Article.scoped
-  #     render :stream => true
+  #     @posts = Post.all
+  #     @pages = Page.all
+  #     @articles = Article.all
+  #     render stream: true
   #   end
+  #
+  # Notice that :stream only works with templates. Rendering :json
+  # or :xml with :stream won't work.
   #
   # == Communication between layout and template
   #
@@ -149,17 +137,14 @@ module ActionController #:nodoc:
   # session or flash after the template starts rendering will not propagate
   # to the client.
   #
-  # If you try to modify cookies, session or flash, an +ActionDispatch::ClosedError+
-  # will be raised, showing those objects are closed for modification.
-  #
   # == Middlewares
   #
   # Middlewares that need to manipulate the body won't work with streaming.
   # You should disable those middlewares whenever streaming in development
-  # or production. For instance, +Rack::Bug+ won't work when streaming as it
+  # or production. For instance, <tt>Rack::Bug</tt> won't work when streaming as it
   # needs to inject contents in the HTML body.
   #
-  # Also +Rack::Cache+ won't work with streaming as it does not support
+  # Also <tt>Rack::Cache</tt> won't work with streaming as it does not support
   # streaming bodies yet. Whenever streaming Cache-Control is automatically
   # set to "no-cache".
   #
@@ -172,7 +157,7 @@ module ActionController #:nodoc:
   # Currently, when an exception happens in development or production, Rails
   # will automatically stream to the client:
   #
-  #   "><script type="text/javascript">window.location = "/500.html"</script></html>
+  #   "><script>window.location = "/500.html"</script></html>
   #
   # The first two characters (">) are required in case the exception happens
   # while rendering attributes for a given tag. You can check the real cause
@@ -189,7 +174,7 @@ module ActionController #:nodoc:
   # need to create a config file as follow:
   #
   #   # unicorn.config.rb
-  #   listen 3000, :tcp_nopush => false
+  #   listen 3000, tcp_nopush: false
   #
   # And use it on initialization:
   #
@@ -198,66 +183,39 @@ module ActionController #:nodoc:
   # You may also want to configure other parameters like <tt>:tcp_nodelay</tt>.
   # Please check its documentation for more information: http://unicorn.bogomips.org/Unicorn/Configurator.html#method-i-listen
   #
-  # If you are using Unicorn with Nginx, you may need to tweak Nginx.
+  # If you are using Unicorn with NGINX, you may need to tweak NGINX.
   # Streaming should work out of the box on Rainbows.
   #
   # ==== Passenger
   #
   # To be described.
-  # 
+  #
   module Streaming
     extend ActiveSupport::Concern
 
-    include AbstractController::Rendering
-    attr_internal :stream
-
-    module ClassMethods
-      # Render streaming templates. It accepts :only, :except, :if and :unless as options
-      # to specify when to stream, as in ActionController filters.
-      def stream(options={})
-        if defined?(Fiber)
-          before_filter :_stream_filter, options
-        else
-          raise "You cannot use streaming if Fiber is not available."
-        end
-      end
-    end
-
     protected
 
-    # Mark following render calls as streaming.
-    def _stream_filter #:nodoc:
-      self.stream = true
-    end
-
-    # Consider the stream option when normalazing options.
-    def _normalize_options(options) #:nodoc:
-      super
-      options[:stream] = self.stream unless options.key?(:stream)
-    end
-
-    # Set proper cache control and transfer encoding when streaming
-    def _process_options(options) #:nodoc:
-      super
-      if options[:stream]
-        if env["HTTP_VERSION"] == "HTTP/1.0"
-          options.delete(:stream)
-        else
-          headers["Cache-Control"] ||= "no-cache"
-          headers["Transfer-Encoding"] = "chunked"
-          headers.delete("Content-Length")
+      # Set proper cache control and transfer encoding when streaming
+      def _process_options(options) #:nodoc:
+        super
+        if options[:stream]
+          if env["HTTP_VERSION"] == "HTTP/1.0"
+            options.delete(:stream)
+          else
+            headers["Cache-Control"] ||= "no-cache"
+            headers["Transfer-Encoding"] = "chunked"
+            headers.delete("Content-Length")
+          end
         end
       end
-    end
 
-    # Call render_to_body if we are streaming instead of usual +render+.
-    def _render_template(options) #:nodoc:
-      if options.delete(:stream)
-        Rack::Chunked::Body.new view_renderer.render_body(view_context, options)
-      else
-        super
+      # Call render_body if we are streaming instead of usual +render+.
+      def _render_template(options) #:nodoc:
+        if options.delete(:stream)
+          Rack::Chunked::Body.new view_renderer.render_body(view_context, options)
+        else
+          super
+        end
       end
-    end
   end
 end
-      

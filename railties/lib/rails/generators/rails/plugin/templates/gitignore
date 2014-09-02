@@ -1,0 +1,10 @@
+.bundle/
+log/*.log
+pkg/
+<% unless options[:skip_test_unit] && options[:dummy_path] == 'test/dummy' -%>
+<%= dummy_path %>/db/*.sqlite3
+<%= dummy_path %>/db/*.sqlite3-journal
+<%= dummy_path %>/log/*.log
+<%= dummy_path %>/tmp/
+<%= dummy_path %>/.sass-cache
+<% end -%>

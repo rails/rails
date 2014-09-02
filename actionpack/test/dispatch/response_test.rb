@@ -5,6 +5,41 @@ class ResponseTest < ActiveSupport::TestCase
     @response = ActionDispatch::Response.new
   end
 
+  def test_can_wait_until_commit
+    t = Thread.new {
+      @response.await_commit
+    }
+    @response.commit!
+    assert @response.committed?
+    assert t.join(0.5)
+  end
+
+  def test_stream_close
+    @response.stream.close
+    assert @response.stream.closed?
+  end
+
+  def test_stream_write
+    @response.stream.write "foo"
+    @response.stream.close
+    assert_equal "foo", @response.body
+  end
+
+  def test_write_after_close
+    @response.stream.close
+
+    e = assert_raises(IOError) do
+      @response.stream.write "omg"
+    end
+    assert_equal "closed stream", e.message
+  end
+
+  def test_response_body_encoding
+    body = ["hello".encode(Encoding::UTF_8)]
+    response = ActionDispatch::Response.new 200, {}, body
+    assert_equal Encoding::UTF_8, response.body.encoding
+  end
+
   test "simple output" do
     @response.body = "Hello, World!"
 
@@ -94,7 +129,7 @@ class ResponseTest < ActiveSupport::TestCase
 
     @response.set_cookie("login", :value => "foo&bar", :path => "/", :expires => Time.utc(2005, 10, 10,5))
     status, headers, body = @response.to_a
-    assert_equal "user_name=david; path=/\nlogin=foo%26bar; path=/; expires=Mon, 10-Oct-2005 05:00:00 GMT", headers["Set-Cookie"]
+    assert_equal "user_name=david; path=/\nlogin=foo%26bar; path=/; expires=Mon, 10 Oct 2005 05:00:00 -0000", headers["Set-Cookie"]
     assert_equal({"login" => "foo&bar", "user_name" => "david"}, @response.cookies)
 
     @response.delete_cookie("login")
@@ -129,6 +164,78 @@ class ResponseTest < ActiveSupport::TestCase
     assert_equal(Mime::XML, resp.content_type)
 
     assert_equal('application/xml; charset=utf-16', resp.headers['Content-Type'])
+  end
+
+  test "read content type without charset" do
+    original = ActionDispatch::Response.default_charset
+    begin
+      ActionDispatch::Response.default_charset = 'utf-16'
+      resp = ActionDispatch::Response.new(200, { "Content-Type" => "text/xml" })
+      assert_equal('utf-16', resp.charset)
+    ensure
+      ActionDispatch::Response.default_charset = original
+    end
+  end
+
+  test "read x_frame_options, x_content_type_options and x_xss_protection" do
+    original_default_headers = ActionDispatch::Response.default_headers
+    begin
+      ActionDispatch::Response.default_headers = {
+        'X-Frame-Options' => 'DENY',
+        'X-Content-Type-Options' => 'nosniff',
+        'X-XSS-Protection' => '1;'
+      }
+      resp = ActionDispatch::Response.new.tap { |response|
+        response.body = 'Hello'
+      }
+      resp.to_a
+
+      assert_equal('DENY', resp.headers['X-Frame-Options'])
+      assert_equal('nosniff', resp.headers['X-Content-Type-Options'])
+      assert_equal('1;', resp.headers['X-XSS-Protection'])
+    ensure
+      ActionDispatch::Response.default_headers = original_default_headers
+    end
+  end
+
+  test "read custom default_header" do
+    original_default_headers = ActionDispatch::Response.default_headers
+    begin
+      ActionDispatch::Response.default_headers = {
+        'X-XX-XXXX' => 'Here is my phone number'
+      }
+      resp = ActionDispatch::Response.new.tap { |response|
+        response.body = 'Hello'
+      }
+      resp.to_a
+
+      assert_equal('Here is my phone number', resp.headers['X-XX-XXXX'])
+    ensure
+      ActionDispatch::Response.default_headers = original_default_headers
+    end
+  end
+
+  test "respond_to? accepts include_private" do
+    assert_not @response.respond_to?(:method_missing)
+    assert @response.respond_to?(:method_missing, true)
+  end
+
+  test "can be destructured into status, headers and an enumerable body" do
+    response = ActionDispatch::Response.new(404, { 'Content-Type' => 'text/plain' }, ['Not Found'])
+    status, headers, body = response
+
+    assert_equal 404, status
+    assert_equal({ 'Content-Type' => 'text/plain' }, headers)
+    assert_equal ['Not Found'], body.each.to_a
+  end
+
+  test "[response].flatten does not recurse infinitely" do
+    Timeout.timeout(1) do # use a timeout to prevent it stalling indefinitely
+      status, headers, body = [@response].flatten
+      assert_equal @response.status, status
+      assert_equal @response.headers, headers
+      assert_equal @response.body, body.each.to_a.join
+    end
   end
 end
 

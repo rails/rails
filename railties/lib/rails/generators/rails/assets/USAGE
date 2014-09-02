@@ -7,7 +7,7 @@ Description:
 
     This generates a JavaScript stub in app/assets/javascripts and a stylesheet
     stub in app/assets/stylesheets.
-    
+
     If CoffeeScript is available, JavaScripts will be generated with the .coffee extension.
     If Sass 3 is available, stylesheets will be generated with the .scss extension.
 

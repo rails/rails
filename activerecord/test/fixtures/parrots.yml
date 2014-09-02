@@ -24,4 +24,4 @@ DEFAULTS: &DEFAULTS
   parrot_sti_class: LiveParrot
 
 davey:
-  <<: *DEFAULTS
+  *DEFAULTS

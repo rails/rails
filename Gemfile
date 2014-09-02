@@ -1,85 +1,118 @@
-source 'http://rubygems.org'
+source 'https://rubygems.org'
 
 gemspec
 
-if ENV['AREL']
-  gem "arel", :path => ENV['AREL']
-else
-  gem "arel", '~> 2.1.0'
-end
+# This needs to be with require false as it is
+# loaded after loading the test library to
+# ensure correct loading order
+gem 'mocha', '~> 0.14', require: false
 
-gem "coffee-script"
-gem "sass"
-gem "uglifier", :git => "git://github.com/lautis/uglifier.git"
+gem 'rack-cache', '~> 1.2'
+gem 'jquery-rails', github: 'rails/jquery-rails', branch: 'master'
+gem 'coffee-rails', '~> 4.0.0'
+gem 'rails-html-sanitizer', github: 'rails/rails-html-sanitizer'
+gem 'rails-deprecated_sanitizer', github: 'rails/rails-deprecated_sanitizer'
+gem 'turbolinks', '~> 2.2.3'
 
-gem "rake",  ">= 0.8.7"
-gem "mocha", ">= 0.9.8"
+# require: false so bcrypt is loaded only when has_secure_password is used.
+# This is to avoid ActiveModel (and by extension the entire framework)
+# being dependent on a binary library.
+gem 'bcrypt', '~> 3.1.7', require: false
+
+# This needs to be with require false to avoid
+# it being automatically loaded by sprockets
+gem 'uglifier', '>= 1.3.0', require: false
 
 group :doc do
-  gem "rdoc",  "~> 3.4"
-  gem "horo",  "= 1.0.3"
-  gem "RedCloth", "~> 4.2" if RUBY_VERSION < "1.9.3"
+  gem 'sdoc', '~> 0.4.0'
+  gem 'redcarpet', '~> 3.1.2', platforms: :ruby
+  gem 'w3c_validators'
+  gem 'kindlerb'
 end
 
 # AS
-gem "memcache-client", ">= 1.8.5"
+gem 'dalli', '>= 2.2.1'
 
-platforms :mri_18 do
-  gem "system_timer"
-  gem "ruby-debug", ">= 0.10.3"
-  gem "json"
+# ActiveJob
+group :job do
+  gem 'resque', require: false
+  gem 'resque-scheduler', require: false
+  gem 'sidekiq', require: false
+  gem 'sucker_punch', require: false
+  gem 'delayed_job', require: false
+  gem 'queue_classic', require: false, platforms: :ruby
+  gem 'sneakers', '0.1.1.pre', require: false
+  gem 'que', require: false
+  gem 'backburner', require: false
+  gem 'qu-rails', github: "bkeepers/qu", branch: "master", require: false
+  gem 'qu-redis', require: false
 end
 
-platforms :mri_19 do
-  # TODO: Remove the conditional when ruby-debug19 supports Ruby >= 1.9.3
-  gem "ruby-debug19", :require => 'ruby-debug' if RUBY_VERSION < "1.9.3"
+# Add your own local bundler stuff
+local_gemfile = File.dirname(__FILE__) + "/.Gemfile"
+instance_eval File.read local_gemfile if File.exist? local_gemfile
+
+group :test do
+  # FIX: Our test suite isn't ready to run in random order yet
+  gem 'minitest', '< 5.3.4'
+
+  platforms :mri_19 do
+    gem 'ruby-prof', '~> 0.11.2'
+  end
+
+  # platforms :mri_19, :mri_20 do
+  #   gem 'debugger'
+  # end
+
+  gem 'benchmark-ips'
 end
 
 platforms :ruby do
-  if ENV["RB_FSEVENT"]
-    gem 'rb-fsevent'
-  end
-  gem 'json'
-  gem 'yajl-ruby'
-  gem "nokogiri", ">= 1.4.4"
+  gem 'nokogiri', '>= 1.4.5'
 
-  group :test do
-    gem 'ruby-prof'
-  end
+  # Needed for compiling the ActionDispatch::Journey parser
+  gem 'racc', '>=1.4.6', require: false
+
   # AR
-  gem "sqlite3", "~> 1.3.3"
+  gem 'sqlite3', '~> 1.3.6'
 
   group :db do
-    gem "pg", ">= 0.11.0"
-    gem "mysql", ">= 2.8.1"
-    gem "mysql2", ">= 0.3.0"
+    gem 'pg', '>= 0.11.0'
+    gem 'mysql', '>= 2.9.0'
+    gem 'mysql2', '>= 0.3.13'
   end
 end
 
 platforms :jruby do
-  gem "ruby-debug", ">= 0.10.3"
-  gem "json"
-  gem "activerecord-jdbcsqlite3-adapter"
-
-  # This is needed by now to let tests work on JRuby
-  # TODO: When the JRuby guys merge jruby-openssl in
-  # jruby this will be removed
-  gem "jruby-openssl"
-
-  group :db do
-    gem "activerecord-jdbcmysql-adapter"
-    gem "activerecord-jdbcpostgresql-adapter"
+  gem 'json'
+  if ENV['AR_JDBC']
+    gem 'activerecord-jdbcsqlite3-adapter', github: 'jruby/activerecord-jdbc-adapter', branch: 'master'
+    group :db do
+      gem 'activerecord-jdbcmysql-adapter', github: 'jruby/activerecord-jdbc-adapter', branch: 'master'
+      gem 'activerecord-jdbcpostgresql-adapter', github: 'jruby/activerecord-jdbc-adapter', branch: 'master'
+    end
+  else
+    gem 'activerecord-jdbcsqlite3-adapter', '>= 1.3.0'
+    group :db do
+      gem 'activerecord-jdbcmysql-adapter', '>= 1.3.0'
+      gem 'activerecord-jdbcpostgresql-adapter', '>= 1.3.0'
+    end
   end
+end
+
+platforms :rbx do
+  # The rubysl-yaml gem doesn't ship with Psych by default
+  # as it needs libyaml that isn't always available.
+  gem 'psych', '~> 2.0'
 end
 
 # gems that are necessary for ActiveRecord tests with Oracle database
-if ENV['ORACLE_ENHANCED_PATH'] || ENV['ORACLE_ENHANCED']
+if ENV['ORACLE_ENHANCED']
   platforms :ruby do
-    gem 'ruby-oci8', ">= 2.0.4"
+    gem 'ruby-oci8', '~> 2.1'
   end
-  if ENV['ORACLE_ENHANCED_PATH']
-    gem 'activerecord-oracle_enhanced-adapter', :path => ENV['ORACLE_ENHANCED_PATH']
-  else
-    gem "activerecord-oracle_enhanced-adapter", :git => "git://github.com/rsim/oracle-enhanced.git"
-  end
+  gem 'activerecord-oracle_enhanced-adapter', github: 'rsim/oracle-enhanced', branch: 'master'
 end
+
+# A gem necessary for ActiveRecord tests with IBM DB
+gem 'ibm_db' if ENV['IBM_DB']

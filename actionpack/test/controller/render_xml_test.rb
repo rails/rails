@@ -48,7 +48,7 @@ class RenderXmlTest < ActionController::TestCase
     # enable a logger so that (e.g.) the benchmarking stuff runs, so we can get
     # a more accurate simulation of what happens in "real life".
     super
-    @controller.logger = Logger.new(nil)
+    @controller.logger = ActiveSupport::Logger.new(nil)
 
     @request.host = "www.nextangle.com"
   end
@@ -72,7 +72,7 @@ class RenderXmlTest < ActionController::TestCase
     with_routing do |set|
       set.draw do
         resources :customers
-        match ':controller/:action'
+        get ':controller/:action'
       end
 
       get :render_with_object_location

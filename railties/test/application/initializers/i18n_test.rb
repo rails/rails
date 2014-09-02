@@ -1,7 +1,7 @@
 require "isolation/abstract_unit"
 
 module ApplicationTests
-  class I18nTest < Test::Unit::TestCase
+  class I18nTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
 
     def setup
@@ -9,6 +9,10 @@ module ApplicationTests
       boot_rails
       FileUtils.rm_rf "#{app_path}/config/environments"
       require "rails/all"
+    end
+
+    def teardown
+      teardown_app
     end
 
     def load_app
@@ -41,14 +45,14 @@ module ApplicationTests
     end
 
     # Load paths
-    test "no config locales dir present should return empty load path" do
+    test "no config locales directory present should return empty load path" do
       FileUtils.rm_rf "#{app_path}/config/locales"
       load_app
       assert_equal [], Rails.application.config.i18n.load_path
     end
 
     test "locale files should be added to the load path" do
-      app_file "config/another_locale.yml", ""
+      app_file "config/another_locale.yml", "en:\nfoo: ~"
 
       add_to_config <<-RUBY
         config.i18n.load_path << config.root.join("config/another_locale.yml").to_s
@@ -80,8 +84,8 @@ en:
       RUBY
 
       app_file 'config/routes.rb', <<-RUBY
-        AppTemplate::Application.routes.draw do
-          match '/i18n',   :to => lambda { |env| [200, {}, [Foo.instance_variable_get('@foo')]] }
+        Rails.application.routes.draw do
+          get '/i18n',   :to => lambda { |env| [200, {}, [Foo.instance_variable_get('@foo')]] }
         end
       RUBY
 
@@ -104,8 +108,8 @@ en:
       YAML
 
       app_file 'config/routes.rb', <<-RUBY
-        AppTemplate::Application.routes.draw do
-          match '/i18n',   :to => lambda { |env| [200, {}, [I18n.t(:foo)]] }
+        Rails.application.routes.draw do
+          get '/i18n',   :to => lambda { |env| [200, {}, [I18n.t(:foo)]] }
         end
       RUBY
 
@@ -115,6 +119,9 @@ en:
 
       get "/i18n"
       assert_equal "1", last_response.body
+
+      # Wait a full second so we have time for changes to propagate
+      sleep(1)
 
       app_file "config/locales/en.yml", <<-YAML
 en:
@@ -127,7 +134,7 @@ en:
 
     # Fallbacks
     test "not using config.i18n.fallbacks does not initialize I18n.fallbacks" do
-      I18n.backend = Class.new { include I18n::Backend::Base }.new
+      I18n.backend = Class.new(I18n::Backend::Simple).new
       load_app
       assert_no_fallbacks
     end
@@ -136,45 +143,74 @@ en:
       I18n::Railtie.config.i18n.fallbacks = true
       load_app
       assert I18n.backend.class.included_modules.include?(I18n::Backend::Fallbacks)
-      assert_fallbacks :de => [:de, :en]
+      assert_fallbacks de: [:de, :en]
     end
 
     test "config.i18n.fallbacks = true initializes I18n.fallbacks with default settings even when backend changes" do
       I18n::Railtie.config.i18n.fallbacks = true
-      I18n::Railtie.config.i18n.backend = Class.new { include I18n::Backend::Base }.new
+      I18n::Railtie.config.i18n.backend = Class.new(I18n::Backend::Simple).new
       load_app
       assert I18n.backend.class.included_modules.include?(I18n::Backend::Fallbacks)
-      assert_fallbacks :de => [:de, :en]
+      assert_fallbacks de: [:de, :en]
     end
 
     test "config.i18n.fallbacks.defaults = [:'en-US'] initializes fallbacks with en-US as a fallback default" do
       I18n::Railtie.config.i18n.fallbacks.defaults = [:'en-US']
       load_app
-      assert_fallbacks :de => [:de, :'en-US', :en]
+      assert_fallbacks de: [:de, :'en-US', :en]
     end
 
     test "config.i18n.fallbacks.map = { :ca => :'es-ES' } initializes fallbacks with a mapping ca => es-ES" do
       I18n::Railtie.config.i18n.fallbacks.map = { :ca => :'es-ES' }
       load_app
-      assert_fallbacks :ca => [:ca, :"es-ES", :es, :en]
+      assert_fallbacks ca: [:ca, :"es-ES", :es, :en]
     end
 
     test "[shortcut] config.i18n.fallbacks = [:'en-US'] initializes fallbacks with en-US as a fallback default" do
       I18n::Railtie.config.i18n.fallbacks = [:'en-US']
       load_app
-      assert_fallbacks :de => [:de, :'en-US', :en]
+      assert_fallbacks de: [:de, :'en-US', :en]
     end
 
     test "[shortcut] config.i18n.fallbacks = [{ :ca => :'es-ES' }] initializes fallbacks with a mapping de-AT => de-DE" do
       I18n::Railtie.config.i18n.fallbacks.map = { :ca => :'es-ES' }
       load_app
-      assert_fallbacks :ca => [:ca, :"es-ES", :es, :en]
+      assert_fallbacks ca: [:ca, :"es-ES", :es, :en]
     end
 
     test "[shortcut] config.i18n.fallbacks = [:'en-US', { :ca => :'es-ES' }] initializes fallbacks with the given arguments" do
       I18n::Railtie.config.i18n.fallbacks = [:'en-US', { :ca => :'es-ES' }]
       load_app
-      assert_fallbacks :ca => [:ca, :"es-ES", :es, :'en-US', :en]
+      assert_fallbacks ca: [:ca, :"es-ES", :es, :'en-US', :en]
+    end
+
+    test "disable config.i18n.enforce_available_locales" do
+      add_to_config <<-RUBY
+        config.i18n.enforce_available_locales = false
+        config.i18n.default_locale = :fr
+      RUBY
+
+      load_app
+      assert_equal false, I18n.enforce_available_locales
+
+      assert_nothing_raised do
+        I18n.locale = :es
+      end
+    end
+
+    test "default config.i18n.enforce_available_locales does not override I18n.enforce_available_locales" do
+      I18n.enforce_available_locales = false
+
+      add_to_config <<-RUBY
+        config.i18n.default_locale = :fr
+      RUBY
+
+      load_app
+      assert_equal false, I18n.enforce_available_locales
+
+      assert_nothing_raised do
+        I18n.locale = :es
+      end
     end
   end
 end

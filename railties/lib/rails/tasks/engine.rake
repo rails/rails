@@ -2,6 +2,7 @@ task "load_app" do
   namespace :app do
     load APP_RAKEFILE
   end
+  task :environment => "app:environment"
 
   if !defined?(ENGINE_PATH) || !ENGINE_PATH
     ENGINE_PATH = find_engine_path(APP_RAKEFILE)
@@ -25,7 +26,7 @@ namespace :db do
   desc "Display status of migrations"
   app_task "migrate:status"
 
-  desc 'Create the database from config/database.yml for the current Rails.env (use db:create:all to create all dbs in the config)'
+  desc 'Create the database from config/database.yml for the current Rails.env (use db:create:all to create all databases in the config)'
   app_task "create"
   app_task "create:all"
 
@@ -59,7 +60,7 @@ namespace :db do
 end
 
 def find_engine_path(path)
-  return if path == "/"
+  return File.expand_path(Dir.pwd) if path == "/"
 
   if Rails::Engine.find(path)
     path
@@ -67,3 +68,5 @@ def find_engine_path(path)
     find_engine_path(File.expand_path('..', path))
   end
 end
+
+Rake.application.invoke_task(:load_app)

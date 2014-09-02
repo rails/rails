@@ -1,35 +1,51 @@
-require 'active_support/core_ext/hash/keys'
-require 'active_support/core_ext/class/attribute'
+require 'thread_safe'
+require 'mutex_m'
 
 module ActiveModel
+  # Raised when an attribute is not defined.
+  #
+  #   class User < ActiveRecord::Base
+  #     has_many :pets
+  #   end
+  #
+  #   user = User.first
+  #   user.pets.select(:id).first.user_id
+  #   # => ActiveModel::MissingAttributeError: missing attribute: user_id
   class MissingAttributeError < NoMethodError
   end
-  # == Active Model Attribute Methods
+
+  # == Active \Model \Attribute \Methods
   #
-  # <tt>ActiveModel::AttributeMethods</tt> provides a way to add prefixes and suffixes
-  # to your methods as well as handling the creation of Active Record like class methods
-  # such as +table_name+.
+  # Provides a way to add prefixes and suffixes to your methods as
+  # well as handling the creation of <tt>ActiveRecord::Base</tt>-like
+  # class methods such as +table_name+.
   #
-  # The requirements to implement ActiveModel::AttributeMethods are to:
+  # The requirements to implement <tt>ActiveModel::AttributeMethods</tt> are to:
   #
-  # * <tt>include ActiveModel::AttributeMethods</tt> in your object
-  # * Call each Attribute Method module method you want to add, such as
-  #   attribute_method_suffix or attribute_method_prefix
-  # * Call <tt>define_attribute_methods</tt> after the other methods are
-  #   called.
-  # * Define the various generic +_attribute+ methods that you have declared
+  # * <tt>include ActiveModel::AttributeMethods</tt> in your class.
+  # * Call each of its method you want to add, such as +attribute_method_suffix+
+  #   or +attribute_method_prefix+.
+  # * Call +define_attribute_methods+ after the other methods are called.
+  # * Define the various generic +_attribute+ methods that you have declared.
+  # * Define an +attributes+ method which returns a hash with each
+  #   attribute name in your model as hash key and the attribute value as hash value.
+  #   Hash keys must be strings.
   #
   # A minimal implementation could be:
   #
   #   class Person
   #     include ActiveModel::AttributeMethods
   #
-  #     attribute_method_affix  :prefix => 'reset_', :suffix => '_to_default!'
+  #     attribute_method_affix  prefix: 'reset_', suffix: '_to_default!'
   #     attribute_method_suffix '_contrived?'
   #     attribute_method_prefix 'clear_'
-  #     define_attribute_methods ['name']
+  #     define_attribute_methods :name
   #
   #     attr_accessor :name
+  #
+  #     def attributes
+  #       { 'name' => @name }
+  #     end
   #
   #     private
   #
@@ -42,86 +58,22 @@ module ActiveModel
   #     end
   #
   #     def reset_attribute_to_default!(attr)
-  #       send("#{attr}=", "Default Name")
+  #       send("#{attr}=", 'Default Name')
   #     end
   #   end
-  #
-  # Note that whenever you include ActiveModel::AttributeMethods in your class,
-  # it requires you to implement an <tt>attributes</tt> method which returns a hash
-  # with each attribute name in your model as hash key and the attribute value as
-  # hash value.
-  #
-  # Hash keys must be strings.
-  #
   module AttributeMethods
     extend ActiveSupport::Concern
 
-    COMPILABLE_REGEXP = /\A[a-zA-Z_]\w*[!?=]?\z/
+    NAME_COMPILABLE_REGEXP = /\A[a-zA-Z_]\w*[!?=]?\z/
+    CALL_COMPILABLE_REGEXP = /\A[a-zA-Z_]\w*[!?]?\z/
 
     included do
-      class_attribute :attribute_method_matchers, :instance_writer => false
-      self.attribute_method_matchers = []
+      class_attribute :attribute_aliases, :attribute_method_matchers, instance_writer: false
+      self.attribute_aliases = {}
+      self.attribute_method_matchers = [ClassMethods::AttributeMethodMatcher.new]
     end
 
     module ClassMethods
-      # Defines an "attribute" method (like +inheritance_column+ or +table_name+).
-      # A new (class) method will be created with the given name. If a value is
-      # specified, the new method will return that value (as a string).
-      # Otherwise, the given block will be used to compute the value of the
-      # method.
-      #
-      # The original method will be aliased, with the new name being prefixed
-      # with "original_". This allows the new method to access the original
-      # value.
-      #
-      # Example:
-      #
-      #   class Person
-      #
-      #     include ActiveModel::AttributeMethods
-      #
-      #     cattr_accessor :primary_key
-      #     cattr_accessor :inheritance_column
-      #
-      #     define_attr_method :primary_key, "sysid"
-      #     define_attr_method( :inheritance_column ) do
-      #       original_inheritance_column + "_id"
-      #     end
-      #
-      #   end
-      #
-      # Provides you with:
-      #
-      #   AttributePerson.primary_key
-      #   # => "sysid"
-      #   AttributePerson.inheritance_column = 'address'
-      #   AttributePerson.inheritance_column
-      #   # => 'address_id'
-      def define_attr_method(name, value=nil, &block)
-        sing = singleton_class
-        sing.class_eval <<-eorb, __FILE__, __LINE__ + 1
-          if method_defined?('original_#{name}')
-            undef :'original_#{name}'
-          end
-          alias_method :'original_#{name}', :'#{name}'
-        eorb
-        if block_given?
-          sing.send :define_method, name, &block
-        else
-          # If we can compile the method name, do it. Otherwise use define_method.
-          # This is an important *optimization*, please don't change it. define_method
-          # has slower dispatch and consumes more memory.
-          if name =~ COMPILABLE_REGEXP
-            sing.class_eval <<-RUBY, __FILE__, __LINE__ + 1
-              def #{name}; #{value.nil? ? 'nil' : value.to_s.inspect}; end
-            RUBY
-          else
-            value = value.to_s if value
-            sing.send(:define_method, name) { value }
-          end
-        end
-      end
-
       # Declares a method available for all attributes with the given prefix.
       # Uses +method_missing+ and <tt>respond_to?</tt> to rewrite the method.
       #
@@ -134,14 +86,12 @@ module ActiveModel
       # An instance method <tt>#{prefix}attribute</tt> must exist and accept
       # at least the +attr+ argument.
       #
-      # For example:
-      #
       #   class Person
-      #
       #     include ActiveModel::AttributeMethods
+      #
       #     attr_accessor :name
       #     attribute_method_prefix 'clear_'
-      #     define_attribute_methods [:name]
+      #     define_attribute_methods :name
       #
       #     private
       #
@@ -151,12 +101,12 @@ module ActiveModel
       #   end
       #
       #   person = Person.new
-      #   person.name = "Bob"
+      #   person.name = 'Bob'
       #   person.name          # => "Bob"
       #   person.clear_name
       #   person.name          # => nil
       def attribute_method_prefix(*prefixes)
-        self.attribute_method_matchers += prefixes.map { |prefix| AttributeMethodMatcher.new :prefix => prefix }
+        self.attribute_method_matchers += prefixes.map! { |prefix| AttributeMethodMatcher.new prefix: prefix }
         undefine_attribute_methods
       end
 
@@ -169,17 +119,15 @@ module ActiveModel
       #
       #   attribute#{suffix}(#{attr}, *args, &block)
       #
-      # An <tt>attribute#{suffix}</tt> instance method must exist and accept at least
-      # the +attr+ argument.
-      #
-      # For example:
+      # An <tt>attribute#{suffix}</tt> instance method must exist and accept at
+      # least the +attr+ argument.
       #
       #   class Person
-      #
       #     include ActiveModel::AttributeMethods
+      #
       #     attr_accessor :name
       #     attribute_method_suffix '_short?'
-      #     define_attribute_methods [:name]
+      #     define_attribute_methods :name
       #
       #     private
       #
@@ -189,11 +137,11 @@ module ActiveModel
       #   end
       #
       #   person = Person.new
-      #   person.name = "Bob"
+      #   person.name = 'Bob'
       #   person.name          # => "Bob"
       #   person.name_short?   # => true
       def attribute_method_suffix(*suffixes)
-        self.attribute_method_matchers += suffixes.map { |suffix| AttributeMethodMatcher.new :suffix => suffix }
+        self.attribute_method_matchers += suffixes.map! { |suffix| AttributeMethodMatcher.new suffix: suffix }
         undefine_attribute_methods
       end
 
@@ -210,220 +158,319 @@ module ActiveModel
       # An <tt>#{prefix}attribute#{suffix}</tt> instance method must exist and
       # accept at least the +attr+ argument.
       #
-      # For example:
-      #
       #   class Person
-      #
       #     include ActiveModel::AttributeMethods
+      #
       #     attr_accessor :name
-      #     attribute_method_affix :prefix => 'reset_', :suffix => '_to_default!'
-      #     define_attribute_methods [:name]
+      #     attribute_method_affix prefix: 'reset_', suffix: '_to_default!'
+      #     define_attribute_methods :name
       #
       #     private
       #
       #     def reset_attribute_to_default!(attr)
-      #       ...
+      #       send("#{attr}=", 'Default Name')
       #     end
       #   end
       #
       #   person = Person.new
       #   person.name                         # => 'Gem'
       #   person.reset_name_to_default!
-      #   person.name                         # => 'Gemma'
+      #   person.name                         # => 'Default Name'
       def attribute_method_affix(*affixes)
-        self.attribute_method_matchers += affixes.map { |affix| AttributeMethodMatcher.new :prefix => affix[:prefix], :suffix => affix[:suffix] }
+        self.attribute_method_matchers += affixes.map! { |affix| AttributeMethodMatcher.new prefix: affix[:prefix], suffix: affix[:suffix] }
         undefine_attribute_methods
       end
 
+      # Allows you to make aliases for attributes.
+      #
+      #   class Person
+      #     include ActiveModel::AttributeMethods
+      #
+      #     attr_accessor :name
+      #     attribute_method_suffix '_short?'
+      #     define_attribute_methods :name
+      #
+      #     alias_attribute :nickname, :name
+      #
+      #     private
+      #
+      #     def attribute_short?(attr)
+      #       send(attr).length < 5
+      #     end
+      #   end
+      #
+      #   person = Person.new
+      #   person.name = 'Bob'
+      #   person.name            # => "Bob"
+      #   person.nickname        # => "Bob"
+      #   person.name_short?     # => true
+      #   person.nickname_short? # => true
       def alias_attribute(new_name, old_name)
+        self.attribute_aliases = attribute_aliases.merge(new_name.to_s => old_name.to_s)
         attribute_method_matchers.each do |matcher|
           matcher_new = matcher.method_name(new_name).to_s
           matcher_old = matcher.method_name(old_name).to_s
-
-          if matcher_new =~ COMPILABLE_REGEXP && matcher_old =~ COMPILABLE_REGEXP
-            module_eval <<-RUBY, __FILE__, __LINE__ + 1
-              def #{matcher_new}(*args)
-                send(:#{matcher_old}, *args)
-              end
-            RUBY
-          else
-            define_method(matcher_new) do |*args|
-              send(matcher_old, *args)
-            end
-          end
+          define_proxy_call false, self, matcher_new, matcher_old
         end
+      end
+
+      # Is +new_name+ an alias?
+      def attribute_alias?(new_name)
+        attribute_aliases.key? new_name.to_s
+      end
+
+      # Returns the original name for the alias +name+
+      def attribute_alias(name)
+        attribute_aliases[name.to_s]
       end
 
       # Declares the attributes that should be prefixed and suffixed by
       # ActiveModel::AttributeMethods.
       #
-      # To use, pass in an array of attribute names (as strings or symbols),
-      # be sure to declare +define_attribute_methods+ after you define any
-      # prefix, suffix or affix methods, or they will not hook in.
+      # To use, pass attribute names (as strings or symbols), be sure to declare
+      # +define_attribute_methods+ after you define any prefix, suffix or affix
+      # methods, or they will not hook in.
       #
       #   class Person
-      #
       #     include ActiveModel::AttributeMethods
+      #
       #     attr_accessor :name, :age, :address
       #     attribute_method_prefix 'clear_'
       #
       #     # Call to define_attribute_methods must appear after the
       #     # attribute_method_prefix, attribute_method_suffix or
       #     # attribute_method_affix declares.
-      #     define_attribute_methods [:name, :age, :address]
+      #     define_attribute_methods :name, :age, :address
       #
       #     private
       #
       #     def clear_attribute(attr)
-      #       ...
+      #       send("#{attr}=", nil)
       #     end
       #   end
-      def define_attribute_methods(attr_names)
-        attr_names.each { |attr_name| define_attribute_method(attr_name) }
+      def define_attribute_methods(*attr_names)
+        attr_names.flatten.each { |attr_name| define_attribute_method(attr_name) }
       end
 
+      # Declares an attribute that should be prefixed and suffixed by
+      # ActiveModel::AttributeMethods.
+      #
+      # To use, pass an attribute name (as string or symbol), be sure to declare
+      # +define_attribute_method+ after you define any prefix, suffix or affix
+      # method, or they will not hook in.
+      #
+      #   class Person
+      #     include ActiveModel::AttributeMethods
+      #
+      #     attr_accessor :name
+      #     attribute_method_suffix '_short?'
+      #
+      #     # Call to define_attribute_method must appear after the
+      #     # attribute_method_prefix, attribute_method_suffix or
+      #     # attribute_method_affix declares.
+      #     define_attribute_method :name
+      #
+      #     private
+      #
+      #     def attribute_short?(attr)
+      #       send(attr).length < 5
+      #     end
+      #   end
+      #
+      #   person = Person.new
+      #   person.name = 'Bob'
+      #   person.name        # => "Bob"
+      #   person.name_short? # => true
       def define_attribute_method(attr_name)
         attribute_method_matchers.each do |matcher|
-          unless instance_method_already_implemented?(matcher.method_name(attr_name))
-            generate_method = "define_method_#{matcher.prefix}attribute#{matcher.suffix}"
+          method_name = matcher.method_name(attr_name)
 
-            if respond_to?(generate_method)
+          unless instance_method_already_implemented?(method_name)
+            generate_method = "define_method_#{matcher.method_missing_target}"
+
+            if respond_to?(generate_method, true)
               send(generate_method, attr_name)
             else
-              method_name = matcher.method_name(attr_name)
-
-              generated_attribute_methods.module_eval <<-RUBY, __FILE__, __LINE__ + 1
-                if method_defined?('#{method_name}')
-                  undef :'#{method_name}'
-                end
-              RUBY
-
-              if method_name.to_s =~ COMPILABLE_REGEXP
-                generated_attribute_methods.module_eval <<-RUBY, __FILE__, __LINE__ + 1
-                  def #{method_name}(*args)
-                    send(:#{matcher.method_missing_target}, '#{attr_name}', *args)
-                  end
-                RUBY
-              else
-                generated_attribute_methods.module_eval <<-RUBY, __FILE__, __LINE__ + 1
-                  define_method('#{method_name}') do |*args|
-                    send('#{matcher.method_missing_target}', '#{attr_name}', *args)
-                  end
-                RUBY
-              end
+              define_proxy_call true, generated_attribute_methods, method_name, matcher.method_missing_target, attr_name.to_s
             end
           end
         end
+        attribute_method_matchers_cache.clear
       end
 
-      # Removes all the previously dynamically defined methods from the class
+      # Removes all the previously dynamically defined methods from the class.
+      #
+      #   class Person
+      #     include ActiveModel::AttributeMethods
+      #
+      #     attr_accessor :name
+      #     attribute_method_suffix '_short?'
+      #     define_attribute_method :name
+      #
+      #     private
+      #
+      #     def attribute_short?(attr)
+      #       send(attr).length < 5
+      #     end
+      #   end
+      #
+      #   person = Person.new
+      #   person.name = 'Bob'
+      #   person.name_short? # => true
+      #
+      #   Person.undefine_attribute_methods
+      #
+      #   person.name_short? # => NoMethodError
       def undefine_attribute_methods
         generated_attribute_methods.module_eval do
           instance_methods.each { |m| undef_method(m) }
         end
+        attribute_method_matchers_cache.clear
       end
 
-      # Returns true if the attribute methods defined have been generated.
       def generated_attribute_methods #:nodoc:
-        @generated_attribute_methods ||= begin
-          mod = Module.new
-          include mod
-          mod
-        end
+        @generated_attribute_methods ||= Module.new {
+          extend Mutex_m
+        }.tap { |mod| include mod }
       end
 
       protected
-        def instance_method_already_implemented?(method_name)
-          method_defined?(method_name)
+        def instance_method_already_implemented?(method_name) #:nodoc:
+          generated_attribute_methods.method_defined?(method_name)
         end
 
       private
-        class AttributeMethodMatcher
+        # The methods +method_missing+ and +respond_to?+ of this module are
+        # invoked often in a typical rails, both of which invoke the method
+        # +match_attribute_method?+. The latter method iterates through an
+        # array doing regular expression matches, which results in a lot of
+        # object creations. Most of the time it returns a +nil+ match. As the
+        # match result is always the same given a +method_name+, this cache is
+        # used to alleviate the GC, which ultimately also speeds up the app
+        # significantly (in our case our test suite finishes 10% faster with
+        # this cache).
+        def attribute_method_matchers_cache #:nodoc:
+          @attribute_method_matchers_cache ||= ThreadSafe::Cache.new(initial_capacity: 4)
+        end
+
+        def attribute_method_matcher(method_name) #:nodoc:
+          attribute_method_matchers_cache.compute_if_absent(method_name) do
+            # Must try to match prefixes/suffixes first, or else the matcher with no prefix/suffix
+            # will match every time.
+            matchers = attribute_method_matchers.partition(&:plain?).reverse.flatten(1)
+            match = nil
+            matchers.detect { |method| match = method.match(method_name) }
+            match
+          end
+        end
+
+        # Define a method `name` in `mod` that dispatches to `send`
+        # using the given `extra` args. This fallbacks `define_method`
+        # and `send` if the given names cannot be compiled.
+        def define_proxy_call(include_private, mod, name, send, *extra) #:nodoc:
+          defn = if name =~ NAME_COMPILABLE_REGEXP
+            "def #{name}(*args)"
+          else
+            "define_method(:'#{name}') do |*args|"
+          end
+
+          extra = (extra.map!(&:inspect) << "*args").join(", ")
+
+          target = if send =~ CALL_COMPILABLE_REGEXP
+            "#{"self." unless include_private}#{send}(#{extra})"
+          else
+            "send(:'#{send}', #{extra})"
+          end
+
+          mod.module_eval <<-RUBY, __FILE__, __LINE__ + 1
+            #{defn}
+              #{target}
+            end
+          RUBY
+        end
+
+        class AttributeMethodMatcher #:nodoc:
           attr_reader :prefix, :suffix, :method_missing_target
 
-          AttributeMethodMatch = Struct.new(:target, :attr_name)
+          AttributeMethodMatch = Struct.new(:target, :attr_name, :method_name)
 
           def initialize(options = {})
-            options.symbolize_keys!
-            @prefix, @suffix = options[:prefix] || '', options[:suffix] || ''
-            @regex = /^(#{Regexp.escape(@prefix)})(.+?)(#{Regexp.escape(@suffix)})$/
+            @prefix, @suffix = options.fetch(:prefix, ''), options.fetch(:suffix, '')
+            @regex = /^(?:#{Regexp.escape(@prefix)})(.*)(?:#{Regexp.escape(@suffix)})$/
             @method_missing_target = "#{@prefix}attribute#{@suffix}"
             @method_name = "#{prefix}%s#{suffix}"
           end
 
           def match(method_name)
             if @regex =~ method_name
-              AttributeMethodMatch.new(method_missing_target, $2)
-            else
-              nil
+              AttributeMethodMatch.new(method_missing_target, $1, method_name)
             end
           end
 
           def method_name(attr_name)
             @method_name % attr_name
           end
+
+          def plain?
+            prefix.empty? && suffix.empty?
+          end
         end
     end
 
-    # Allows access to the object attributes, which are held in the
-    # <tt>@attributes</tt> hash, as though they were first-class methods. So a
-    # Person class with a name attribute can use Person#name and Person#name=
-    # and never directly use the attributes hash -- except for multiple assigns
-    # with ActiveRecord#attributes=. A Milestone class can also ask
-    # Milestone#completed? to test that the completed attribute is not +nil+
-    # or 0.
+    # Allows access to the object attributes, which are held in the hash
+    # returned by <tt>attributes</tt>, as though they were first-class
+    # methods. So a +Person+ class with a +name+ attribute can for example use
+    # <tt>Person#name</tt> and <tt>Person#name=</tt> and never directly use
+    # the attributes hash -- except for multiple assigns with
+    # <tt>ActiveRecord::Base#attributes=</tt>.
     #
-    # It's also possible to instantiate related objects, so a Client class
-    # belonging to the clients table with a +master_id+ foreign key can
-    # instantiate master through Client#master.
-    def method_missing(method_id, *args, &block)
-      method_name = method_id.to_s
-      if match = match_attribute_method?(method_name)
-        guard_private_attribute_method!(method_name, args)
-        return __send__(match.target, match.attr_name, *args, &block)
+    # It's also possible to instantiate related objects, so a <tt>Client</tt>
+    # class belonging to the +clients+ table with a +master_id+ foreign key
+    # can instantiate master through <tt>Client#master</tt>.
+    def method_missing(method, *args, &block)
+      if respond_to_without_attributes?(method, true)
+        super
+      else
+        match = match_attribute_method?(method.to_s)
+        match ? attribute_missing(match, *args, &block) : super
       end
-      super
     end
 
-    # A Person object with a name attribute can ask <tt>person.respond_to?(:name)</tt>,
-    # <tt>person.respond_to?(:name=)</tt>, and <tt>person.respond_to?(:name?)</tt>
-    # which will all return +true+.
+    # +attribute_missing+ is like +method_missing+, but for attributes. When
+    # +method_missing+ is called we check to see if there is a matching
+    # attribute method. If so, we tell +attribute_missing+ to dispatch the
+    # attribute. This method can be overloaded to customize the behavior.
+    def attribute_missing(match, *args, &block)
+      __send__(match.target, match.attr_name, *args, &block)
+    end
+
+    # A +Person+ instance with a +name+ attribute can ask
+    # <tt>person.respond_to?(:name)</tt>, <tt>person.respond_to?(:name=)</tt>,
+    # and <tt>person.respond_to?(:name?)</tt> which will all return +true+.
     alias :respond_to_without_attributes? :respond_to?
     def respond_to?(method, include_private_methods = false)
       if super
-        return true
+        true
       elsif !include_private_methods && super(method, true)
         # If we're here then we haven't found among non-private methods
         # but found among all methods. Which means that the given method is private.
-        return false
-      elsif match_attribute_method?(method.to_s)
-        return true
+        false
+      else
+        !match_attribute_method?(method.to_s).nil?
       end
-      super
     end
 
     protected
-      def attribute_method?(attr_name)
-        attributes.include?(attr_name)
+      def attribute_method?(attr_name) #:nodoc:
+        respond_to_without_attributes?(:attributes) && attributes.include?(attr_name)
       end
 
     private
       # Returns a struct representing the matching attribute method.
       # The struct's attributes are prefix, base and suffix.
       def match_attribute_method?(method_name)
-        self.class.attribute_method_matchers.each do |method|
-          if (match = method.match(method_name)) && attribute_method?(match.attr_name)
-            return match
-          end
-        end
-        nil
-      end
-
-      # prevent method_missing from calling private methods with #send
-      def guard_private_attribute_method!(method_name, args)
-        if self.class.private_method_defined?(method_name)
-          raise NoMethodError.new("Attempt to call private method `#{method_name}'", method_name, args)
-        end
+        match = self.class.send(:attribute_method_matcher, method_name)
+        match if match && attribute_method?(match.attr_name)
       end
 
       def missing_attribute(attr_name, stack)

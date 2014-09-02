@@ -1,7 +1,7 @@
 require 'abstract_unit'
 require 'active_support/core_ext/object/with_options'
 
-class OptionMergerTest < Test::Unit::TestCase
+class OptionMergerTest < ActiveSupport::TestCase
   def setup
     @options = {:hello => 'world'}
   end
@@ -77,6 +77,15 @@ class OptionMergerTest < Test::Unit::TestCase
   # Needed when counting objects with the ObjectSpace
   def test_option_merger_class_method
     assert_equal ActiveSupport::OptionMerger, ActiveSupport::OptionMerger.new('', '').class
+  end
+
+  def test_option_merger_implicit_receiver
+    @options.with_options foo: "bar" do
+      merge! fizz: "buzz"
+    end
+
+    expected = { hello: "world", foo: "bar", fizz: "buzz" }
+    assert_equal expected, @options
   end
 
   private

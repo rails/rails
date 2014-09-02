@@ -8,12 +8,41 @@ class LazyLoadHooksTest < ActiveSupport::TestCase
     assert_equal 1, i
   end
 
+  def test_basic_hook_with_two_registrations
+    i = 0
+    ActiveSupport.on_load(:basic_hook_with_two) { i += incr }
+    assert_equal 0, i
+    ActiveSupport.run_load_hooks(:basic_hook_with_two, FakeContext.new(2))
+    assert_equal 2, i
+    ActiveSupport.run_load_hooks(:basic_hook_with_two, FakeContext.new(5))
+    assert_equal 7, i
+  end
+
   def test_hook_registered_after_run
     i = 0
     ActiveSupport.run_load_hooks(:registered_after)
     assert_equal 0, i
     ActiveSupport.on_load(:registered_after) { i += 1 }
     assert_equal 1, i
+  end
+
+  def test_hook_registered_after_run_with_two_registrations
+    i = 0
+    ActiveSupport.run_load_hooks(:registered_after_with_two, FakeContext.new(2))
+    ActiveSupport.run_load_hooks(:registered_after_with_two, FakeContext.new(5))
+    assert_equal 0, i
+    ActiveSupport.on_load(:registered_after_with_two) { i += incr }
+    assert_equal 7, i
+  end
+
+  def test_hook_registered_interleaved_run_with_two_registrations
+    i = 0
+    ActiveSupport.run_load_hooks(:registered_interleaved_with_two, FakeContext.new(2))
+    assert_equal 0, i
+    ActiveSupport.on_load(:registered_interleaved_with_two) { i += incr }
+    assert_equal 2, i
+    ActiveSupport.run_load_hooks(:registered_interleaved_with_two, FakeContext.new(5))
+    assert_equal 7, i
   end
 
   def test_hook_receives_a_context

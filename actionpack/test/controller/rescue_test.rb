@@ -60,11 +60,6 @@ class RescueController < ActionController::Base
     render :text => exception.message
   end
 
-  # This is a Dispatcher exception and should be in ApplicationController.
-  rescue_from ActionController::RoutingError do
-    render :text => 'no way'
-  end
-
   rescue_from ActionView::TemplateError do
     render :text => 'action_view templater error'
   end
@@ -73,9 +68,9 @@ class RescueController < ActionController::Base
     render :text => 'io error'
   end
 
-  before_filter(:only => :before_filter_raises) { raise 'umm nice' }
+  before_action(only: :before_action_raises) { raise 'umm nice' }
 
-  def before_filter_raises
+  def before_action_raises
   end
 
   def raises
@@ -137,11 +132,11 @@ class RescueController < ActionController::Base
   end
 
   def io_error_in_view
-    raise ActionView::TemplateError.new(nil, {}, IOError.new('this is io error'))
+    raise ActionView::TemplateError.new(nil, IOError.new('this is io error'))
   end
 
   def zero_division_error_in_view
-    raise ActionView::TemplateError.new(nil, {}, ZeroDivisionError.new('this is zero division error'))
+    raise ActionView::TemplateError.new(nil, ZeroDivisionError.new('this is zero division error'))
   end
 
   protected
@@ -338,29 +333,14 @@ class RescueTest < ActionDispatch::IntegrationTest
     end
   end
 
-  test 'rescue routing exceptions' do
-    raiser = proc { |env| raise ActionController::RoutingError, "Did not handle the request" }
-    @app = ActionDispatch::Rescue.new(raiser) do
-      rescue_from ActionController::RoutingError, lambda { |env| [200, {"Content-Type" => "text/html"}, ["Gotcha!"]] }
-    end
-
-    get '/b00m'
-    assert_equal "Gotcha!", response.body
-  end
-
-  test 'unrescued exception' do
-    raiser = proc { |env| raise ActionController::RoutingError, "Did not handle the request" }
-    @app = ActionDispatch::Rescue.new(raiser)
-    assert_raise(ActionController::RoutingError) { get '/b00m' }
-  end
-
   private
+
     def with_test_routing
       with_routing do |set|
         set.draw do
-          match 'foo', :to => ::RescueTest::TestController.action(:foo)
-          match 'invalid', :to => ::RescueTest::TestController.action(:invalid)
-          match 'b00m', :to => ::RescueTest::TestController.action(:b00m)
+          get 'foo', :to => ::RescueTest::TestController.action(:foo)
+          get 'invalid', :to => ::RescueTest::TestController.action(:invalid)
+          get 'b00m', :to => ::RescueTest::TestController.action(:b00m)
         end
         yield
       end

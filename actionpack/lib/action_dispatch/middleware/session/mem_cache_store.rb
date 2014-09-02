@@ -1,14 +1,19 @@
 require 'action_dispatch/middleware/session/abstract_store'
-require 'rack/session/memcache'
+begin
+  require 'rack/session/dalli'
+rescue LoadError => e
+  $stderr.puts "You don't have dalli installed in your application. Please add it to your Gemfile and run bundle install"
+  raise e
+end
 
 module ActionDispatch
   module Session
-    class MemCacheStore < Rack::Session::Memcache
+    class MemCacheStore < Rack::Session::Dalli
       include Compatibility
       include StaleSessionCheck
+      include SessionObject
 
       def initialize(app, options = {})
-        require 'memcache'
         options[:expire_after] ||= options[:expires]
         super
       end

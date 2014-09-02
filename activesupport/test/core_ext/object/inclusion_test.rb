@@ -1,7 +1,7 @@
 require 'abstract_unit'
 require 'active_support/core_ext/object/inclusion'
 
-class InTest < Test::Unit::TestCase
+class InTest < ActiveSupport::TestCase
   def test_in_array
     assert 1.in?([1,2])
     assert !3.in?([1,2])
@@ -37,14 +37,23 @@ class InTest < Test::Unit::TestCase
   end
   class C < B
   end
+  class D
+  end
 
   def test_in_module
     assert A.in?(B)
     assert A.in?(C)
     assert !A.in?(A)
+    assert !A.in?(D)
   end
   
   def test_no_method_catching
     assert_raise(ArgumentError) { 1.in?(1) }
+  end
+  
+  def test_presence_in
+    assert_equal "stuff", "stuff".presence_in(%w( lots of stuff ))
+    assert_nil "stuff".presence_in(%w( lots of crap ))
+    assert_raise(ArgumentError) { 1.presence_in(1) }
   end
 end

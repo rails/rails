@@ -5,6 +5,7 @@ require 'models/subscriber'
 require 'models/movie'
 require 'models/keyboard'
 require 'models/mixed_case_monkey'
+require 'models/dashboard'
 
 class PrimaryKeysTest < ActiveRecord::TestCase
   fixtures :topics, :subscribers, :movies, :mixed_case_monkeys
@@ -21,6 +22,11 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     assert_nil keyboard.to_key
     keyboard.save
     assert_equal keyboard.to_key, [keyboard.id]
+  end
+
+  def test_read_attribute_with_custom_primary_key
+    keyboard = Keyboard.create!
+    assert_equal keyboard.key_number, keyboard.read_attribute(:id)
   end
 
   def test_to_key_with_primary_key_after_destroy
@@ -87,6 +93,7 @@ class PrimaryKeysTest < ActiveRecord::TestCase
   end
 
   def test_primary_key_prefix
+    old_primary_key_prefix_type = ActiveRecord::Base.primary_key_prefix_type
     ActiveRecord::Base.primary_key_prefix_type = :table_name
     Topic.reset_primary_key
     assert_equal "topicid", Topic.primary_key
@@ -98,6 +105,8 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     ActiveRecord::Base.primary_key_prefix_type = nil
     Topic.reset_primary_key
     assert_equal "id", Topic.primary_key
+  ensure
+    ActiveRecord::Base.primary_key_prefix_type = old_primary_key_prefix_type
   end
 
   def test_delete_should_quote_pkey
@@ -126,14 +135,22 @@ class PrimaryKeysTest < ActiveRecord::TestCase
   end
 
   def test_primary_key_returns_value_if_it_exists
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = 'developers'
+    end
+
     if ActiveRecord::Base.connection.supports_primary_key?
-      assert_equal 'id', ActiveRecord::Base.connection.primary_key('developers')
+      assert_equal 'id', klass.primary_key
     end
   end
 
   def test_primary_key_returns_nil_if_it_does_not_exist
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = 'developers_projects'
+    end
+
     if ActiveRecord::Base.connection.supports_primary_key?
-      assert_nil ActiveRecord::Base.connection.primary_key('developers_projects')
+      assert_nil klass.primary_key
     end
   end
 
@@ -142,7 +159,78 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     assert_equal k.connection.quote_column_name("id"), k.quoted_primary_key
     k.primary_key = "foo"
     assert_equal k.connection.quote_column_name("foo"), k.quoted_primary_key
-    k.set_primary_key "bar"
-    assert_equal k.connection.quote_column_name("bar"), k.quoted_primary_key
+  end
+
+  def test_auto_detect_primary_key_from_schema
+    MixedCaseMonkey.reset_primary_key
+    assert_equal "monkeyID", MixedCaseMonkey.primary_key
+  end
+
+  def test_primary_key_update_with_custom_key_name
+    dashboard = Dashboard.create!(dashboard_id: '1')
+    dashboard.id = '2'
+    dashboard.save!
+
+    dashboard = Dashboard.first
+    assert_equal '2', dashboard.id
+  end
+end
+
+class PrimaryKeyWithNoConnectionTest < ActiveRecord::TestCase
+  self.use_transactional_fixtures = false
+
+  unless in_memory_db?
+    def test_set_primary_key_with_no_connection
+      connection = ActiveRecord::Base.remove_connection
+
+      model = Class.new(ActiveRecord::Base)
+      model.primary_key = 'foo'
+
+      assert_equal 'foo', model.primary_key
+
+      ActiveRecord::Base.establish_connection(connection)
+
+      assert_equal 'foo', model.primary_key
+    end
+  end
+end
+
+if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
+  class PrimaryKeyWithAnsiQuotesTest < ActiveRecord::TestCase
+    self.use_transactional_fixtures = false
+
+    def test_primary_key_method_with_ansi_quotes
+      con = ActiveRecord::Base.connection
+      con.execute("SET SESSION sql_mode='ANSI_QUOTES'")
+      assert_equal "id", con.primary_key("topics")
+    ensure
+      con.reconnect!
+    end
+  end
+end
+
+if current_adapter?(:PostgreSQLAdapter)
+  class PrimaryKeyBigSerialTest < ActiveRecord::TestCase
+    self.use_transactional_fixtures = false
+
+    class Widget < ActiveRecord::Base
+    end
+
+    setup do
+      @connection = ActiveRecord::Base.connection
+      @connection.create_table(:widgets, id: :bigserial) { |t| }
+    end
+
+    teardown do
+      @connection.drop_table :widgets
+    end
+
+    def test_bigserial_primary_key
+      assert_equal "id", Widget.primary_key
+      assert_equal :integer, Widget.columns_hash[Widget.primary_key].type
+
+      widget = Widget.create!
+      assert_not_nil widget.id
+    end
   end
 end

@@ -1,8 +1,6 @@
 require 'abstract_unit'
 
 class MimeTypeTest < ActiveSupport::TestCase
-  Mime::Type.register "image/png", :png unless defined? Mime::PNG
-  Mime::Type.register "application/pdf", :pdf unless defined? Mime::PDF
 
   test "parse single" do
     Mime::LOOKUP.keys.each do |mime_type|
@@ -31,28 +29,28 @@ class MimeTypeTest < ActiveSupport::TestCase
 
   test "parse text with trailing star at the beginning" do
     accept = "text/*, text/html, application/json, multipart/form-data"
-    expect = [Mime::HTML, Mime::TEXT, Mime::JS, Mime::CSS, Mime::ICS, Mime::CSV, Mime::XML, Mime::YAML, Mime::JSON, Mime::MULTIPART_FORM]
+    expect = [Mime::HTML, Mime::TEXT, Mime::JS, Mime::CSS, Mime::ICS, Mime::CSV, Mime::VCF, Mime::XML, Mime::YAML, Mime::JSON, Mime::MULTIPART_FORM]
     parsed = Mime::Type.parse(accept)
     assert_equal expect, parsed
   end
 
   test "parse text with trailing star in the end" do
     accept = "text/html, application/json, multipart/form-data, text/*"
-    expect = [Mime::HTML, Mime::JSON, Mime::MULTIPART_FORM, Mime::TEXT, Mime::JS, Mime::CSS, Mime::ICS, Mime::CSV, Mime::XML, Mime::YAML]
+    expect = [Mime::HTML, Mime::JSON, Mime::MULTIPART_FORM, Mime::TEXT, Mime::JS, Mime::CSS, Mime::ICS, Mime::CSV, Mime::VCF, Mime::XML, Mime::YAML]
     parsed = Mime::Type.parse(accept)
     assert_equal expect, parsed
   end
 
   test "parse text with trailing star" do
     accept = "text/*"
-    expect = [Mime::HTML, Mime::TEXT, Mime::JS, Mime::CSS, Mime::ICS, Mime::CSV, Mime::XML, Mime::YAML, Mime::JSON]
+    expect = [Mime::HTML, Mime::TEXT, Mime::JS, Mime::CSS, Mime::ICS, Mime::CSV, Mime::VCF, Mime::XML, Mime::YAML, Mime::JSON]
     parsed = Mime::Type.parse(accept)
     assert_equal expect, parsed
   end
 
   test "parse application with trailing star" do
     accept = "application/*"
-    expect = [Mime::HTML, Mime::JS, Mime::XML, Mime::RSS, Mime::ATOM, Mime::YAML, Mime::URL_ENCODED_FORM, Mime::JSON, Mime::PDF]
+    expect = [Mime::HTML, Mime::JS, Mime::XML, Mime::RSS, Mime::ATOM, Mime::YAML, Mime::URL_ENCODED_FORM, Mime::JSON, Mime::PDF, Mime::ZIP]
     parsed = Mime::Type.parse(accept)
     assert_equal expect, parsed
   end
@@ -69,6 +67,18 @@ class MimeTypeTest < ActiveSupport::TestCase
     assert_equal expect, Mime::Type.parse(accept)
   end
 
+  test "parse single media range with q" do
+    accept = "text/html;q=0.9"
+    expect = [Mime::HTML]
+    assert_equal expect, Mime::Type.parse(accept)
+  end
+
+  test "parse arbitrary media type parameters" do
+    accept = 'multipart/form-data; boundary="simple boundary"'
+    expect = [Mime::MULTIPART_FORM]
+    assert_equal expect, Mime::Type.parse(accept)
+  end
+
   # Accept header send with user HTTP_USER_AGENT: Sunrise/0.42j (Windows XP)
   test "parse broken acceptlines" do
     accept = "text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/*,,*/*;q=0.5"
@@ -80,18 +90,63 @@ class MimeTypeTest < ActiveSupport::TestCase
   #  (compatible; MSIE 6.0; Windows NT 5.1; SV1; .NET CLR 1.1.4322; InfoPath.1)
   test "parse other broken acceptlines" do
     accept = "image/gif, image/x-xbitmap, image/jpeg, image/pjpeg, application/x-shockwave-flash, application/vnd.ms-excel, application/vnd.ms-powerpoint, application/msword,  , pronto/1.00.00, sslvpn/1.00.00.00, */*"
-    expect = ['image/gif', 'image/x-xbitmap', 'image/jpeg','image/pjpeg', 'application/x-shockwave-flash', 'application/vnd.ms-excel', 'application/vnd.ms-powerpoint', 'application/msword', 'pronto/1.00.00', 'sslvpn/1.00.00.00', Mime::ALL  ]
+    expect = ['image/gif', 'image/x-xbitmap', 'image/jpeg','image/pjpeg', 'application/x-shockwave-flash', 'application/vnd.ms-excel', 'application/vnd.ms-powerpoint', 'application/msword', 'pronto/1.00.00', 'sslvpn/1.00.00.00', Mime::ALL]
     assert_equal expect, Mime::Type.parse(accept).collect { |c| c.to_s }
   end
 
   test "custom type" do
     begin
-      Mime::Type.register("image/gif", :gif)
+      Mime::Type.register("image/foo", :foo)
       assert_nothing_raised do
-        assert_equal Mime::GIF, Mime::SET.last
+        assert_equal Mime::FOO, Mime::SET.last
       end
     ensure
-      Mime::Type.unregister(:gif)
+      Mime::Type.unregister(:FOO)
+    end
+  end
+
+  test "custom type with type aliases" do
+    begin
+      Mime::Type.register "text/foobar", :foobar, ["text/foo", "text/bar"]
+      %w[text/foobar text/foo text/bar].each do |type|
+        assert_equal Mime::FOOBAR, type
+      end
+    ensure
+      Mime::Type.unregister(:FOOBAR)
+    end
+  end
+
+  test "register callbacks" do
+    begin
+      registered_mimes = []
+      Mime::Type.register_callback do |mime|
+        registered_mimes << mime
+      end
+
+      Mime::Type.register("text/foo", :foo)
+      assert_equal [Mime::FOO], registered_mimes
+    ensure
+      Mime::Type.unregister(:FOO)
+    end
+  end
+
+  test "custom type with extension aliases" do
+    begin
+      Mime::Type.register "text/foobar", :foobar, [], [:foo, "bar"]
+      %w[foobar foo bar].each do |extension|
+        assert_equal Mime::FOOBAR, Mime::EXTENSION_LOOKUP[extension]
+      end
+    ensure
+      Mime::Type.unregister(:FOOBAR)
+    end
+  end
+
+  test "register alias" do
+    begin
+      Mime::Type.register_alias "application/xhtml+xml", :foobar
+      assert_equal Mime::HTML, Mime::EXTENSION_LOOKUP['foobar']
+    ensure
+      Mime::Type.unregister(:FOOBAR)
     end
   end
 
@@ -105,10 +160,12 @@ class MimeTypeTest < ActiveSupport::TestCase
     types = Mime::SET.symbols.uniq - [:all, :iphone]
 
     # Remove custom Mime::Type instances set in other tests, like Mime::GIF and Mime::IPHONE
-    types.delete_if { |type| !Mime.const_defined?(type.to_s.upcase) }
+    types.delete_if { |type| !Mime.const_defined?(type.upcase) }
+
 
     types.each do |type|
-      mime = Mime.const_get(type.to_s.upcase)
+      mime = Mime.const_get(type.upcase)
+      assert mime.respond_to?("#{type}?"), "#{mime.inspect} does not respond to #{type}?"
       assert mime.send("#{type}?"), "#{mime.inspect} is not #{type}?"
       invalid_types = types - [type]
       invalid_types.delete(:html) if Mime::Type.html_types.include?(type)
@@ -125,10 +182,7 @@ class MimeTypeTest < ActiveSupport::TestCase
     all_types = Mime::SET.symbols
     all_types.uniq!
     # Remove custom Mime::Type instances set in other tests, like Mime::GIF and Mime::IPHONE
-    all_types.delete_if { |type| !Mime.const_defined?(type.to_s.upcase) }
-    verified, unverified = all_types.partition { |type| Mime::Type.browser_generated_types.include? type }
-    assert verified.each   { |type| assert  Mime.const_get(type.to_s.upcase).verify_request?, "Verifiable Mime Type is not verified: #{type.inspect}" }
-    assert unverified.each { |type| assert !Mime.const_get(type.to_s.upcase).verify_request?, "Nonverifiable Mime Type is verified: #{type.inspect}" }
+    all_types.delete_if { |type| !Mime.const_defined?(type.upcase) }
   end
 
   test "references gives preference to symbols before strings" do

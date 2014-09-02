@@ -1,0 +1,20 @@
+<header>
+  <h1>
+    <%= @exception.original_exception.class.to_s %> in
+    <%= @request.parameters["controller"].camelize if @request.parameters["controller"] %>#<%= @request.parameters["action"] %>
+  </h1>
+</header>
+
+<div id="container">
+  <p>
+    Showing <i><%= @exception.file_name %></i> where line <b>#<%= @exception.line_number %></b> raised:
+  </p>
+  <pre><code><%= h @exception.message %></code></pre>
+
+  <%= render template: "rescues/_source" %>
+
+  <p><%= @exception.sub_template_message %></p>
+
+  <%= render template: "rescues/_trace" %>
+  <%= render template: "rescues/_request_and_response" %>
+</div>

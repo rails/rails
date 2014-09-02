@@ -1,5 +1,6 @@
 require 'active_support/core_ext/kernel/singleton_class'
 require 'active_support/core_ext/module/remove_method'
+require 'active_support/core_ext/array/extract_options'
 
 class Class
   # Declare a class-level attribute whose value is inheritable by subclasses.
@@ -43,7 +44,8 @@ class Class
   #   Base.setting               # => []
   #   Subclass.setting           # => [:foo]
   #
-  # For convenience, a query method is defined as well:
+  # For convenience, an instance predicate method is defined as well.
+  # To skip it, pass <tt>instance_predicate: false</tt>.
   #
   #   Subclass.setting?       # => false
   #
@@ -56,56 +58,70 @@ class Class
   #   object.setting          # => false
   #   Base.setting            # => true
   #
-  # To opt out of the instance writer method, pass :instance_writer => false.
+  # To opt out of the instance reader method, pass <tt>instance_reader: false</tt>.
+  #
+  #   object.setting          # => NoMethodError
+  #   object.setting?         # => NoMethodError
+  #
+  # To opt out of the instance writer method, pass <tt>instance_writer: false</tt>.
   #
   #   object.setting = false  # => NoMethodError
+  #
+  # To opt out of both instance methods, pass <tt>instance_accessor: false</tt>.
   def class_attribute(*attrs)
-    instance_writer = !attrs.last.is_a?(Hash) || attrs.pop[:instance_writer]
+    options = attrs.extract_options!
+    instance_reader = options.fetch(:instance_accessor, true) && options.fetch(:instance_reader, true)
+    instance_writer = options.fetch(:instance_accessor, true) && options.fetch(:instance_writer, true)
+    instance_predicate = options.fetch(:instance_predicate, true)
 
     attrs.each do |name|
-      class_eval <<-RUBY, __FILE__, __LINE__ + 1
-        def self.#{name}() nil end
-        def self.#{name}?() !!#{name} end
+      define_singleton_method(name) { nil }
+      define_singleton_method("#{name}?") { !!public_send(name) } if instance_predicate
 
-        def self.#{name}=(val)
-          singleton_class.class_eval do
-            remove_possible_method(:#{name})
-            define_method(:#{name}) { val }
-          end
+      ivar = "@#{name}"
 
-          if singleton_class?
-            class_eval do
-              remove_possible_method(:#{name})
-              def #{name}
-                defined?(@#{name}) ? @#{name} : singleton_class.#{name}
+      define_singleton_method("#{name}=") do |val|
+        singleton_class.class_eval do
+          remove_possible_method(name)
+          define_method(name) { val }
+        end
+
+        if singleton_class?
+          class_eval do
+            remove_possible_method(name)
+            define_method(name) do
+              if instance_variable_defined? ivar
+                instance_variable_get ivar
+              else
+                singleton_class.send name
               end
             end
           end
-          val
         end
+        val
+      end
 
-        remove_possible_method :#{name}
-        def #{name}
-          defined?(@#{name}) ? @#{name} : self.class.#{name}
+      if instance_reader
+        remove_possible_method name
+        define_method(name) do
+          if instance_variable_defined?(ivar)
+            instance_variable_get ivar
+          else
+            self.class.public_send name
+          end
         end
-
-        def #{name}?
-          !!#{name}
-        end
-      RUBY
+        define_method("#{name}?") { !!public_send(name) } if instance_predicate
+      end
 
       attr_writer name if instance_writer
     end
   end
 
   private
-  def singleton_class?
-    # in case somebody is crazy enough to overwrite allocate
-    allocate = Class.instance_method(:allocate)
-    # object.class always points to a real (non-singleton) class
-    allocate.bind(self).call.class != self
-  rescue TypeError
-    # MRI/YARV/JRuby all disallow creating new instances of a singleton class
-    true
-  end
+
+    unless respond_to?(:singleton_class?)
+      def singleton_class?
+        ancestors.first != self
+      end
+    end
 end

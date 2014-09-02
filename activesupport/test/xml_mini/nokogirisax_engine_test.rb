@@ -1,14 +1,13 @@
-require 'abstract_unit'
-require 'active_support/xml_mini'
-require 'active_support/core_ext/hash/conversions'
-
 begin
   require 'nokogiri'
 rescue LoadError
   # Skip nokogiri tests
 else
+require 'abstract_unit'
+require 'active_support/xml_mini'
+require 'active_support/core_ext/hash/conversions'
 
-class NokogiriSAXEngineTest < Test::Unit::TestCase
+class NokogiriSAXEngineTest < ActiveSupport::TestCase
   include ActiveSupport
 
   def setup
@@ -57,9 +56,9 @@ class NokogiriSAXEngineTest < Test::Unit::TestCase
     end
   end
 
-  def test_setting_nokogiri_as_backend
-    XmlMini.backend = 'Nokogiri'
-    assert_equal XmlMini_Nokogiri, XmlMini.backend
+  def test_setting_nokogirisax_as_backend
+    XmlMini.backend = 'NokogiriSAX'
+    assert_equal XmlMini_NokogiriSAX, XmlMini.backend
   end
 
   def test_blank_returns_empty_hash
@@ -157,7 +156,7 @@ class NokogiriSAXEngineTest < Test::Unit::TestCase
       morning
     </root>
     eoxml
-    XmlMini.parse(io)
+    assert_equal_rexml(io)
   end
 
   def test_children_with_simple_cdata
@@ -208,10 +207,12 @@ class NokogiriSAXEngineTest < Test::Unit::TestCase
   end
 
   private
-  def assert_equal_rexml(xml)
-    hash = XmlMini.with_backend('REXML') { XmlMini.parse(xml) }
-    assert_equal(hash, XmlMini.parse(xml))
-  end
+    def assert_equal_rexml(xml)
+      parsed_xml = XmlMini.parse(xml)
+      xml.rewind if xml.respond_to?(:rewind)
+      hash = XmlMini.with_backend('REXML') { XmlMini.parse(xml) }
+      assert_equal(hash, parsed_xml)
+    end
 end
 
 end
