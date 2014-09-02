@@ -38,9 +38,9 @@ module ActionMailer
     # that the message will be sent bypassing checking +perform_deliveries+
     # and +raise_delivery_errors+, so use with caution.
     #
-    #   Notifier.welcome(User.first).deliver_later
-    #   Notifier.welcome(User.first).deliver_later(in: 1.hour)
-    #   Notifier.welcome(User.first).deliver_later(at: 10.hours.from_now)
+    #   Notifier.welcome(User.first).deliver_later!
+    #   Notifier.welcome(User.first).deliver_later!(in: 1.hour)
+    #   Notifier.welcome(User.first).deliver_later!(at: 10.hours.from_now)
     #
     # Options:
     #
