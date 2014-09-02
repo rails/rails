@@ -132,7 +132,8 @@ event = Event.first
 event.payload # => {"kind"=>"user_renamed", "change"=>["jack", "john"]}
 
 ## Query based on JSON document
-Event.where("payload->'kind' = ?", "user_renamed")
+# The -> operator returns the original JSON type (which might be an object), whereas ->> returns text
+Event.where("payload->>'kind' = ?", "user_renamed")
 ```
 
 ### Range Types
