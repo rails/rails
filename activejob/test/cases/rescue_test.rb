@@ -28,4 +28,9 @@ class RescueTest < ActiveSupport::TestCase
     assert_includes JobBuffer.values, 'DeserializationError original exception was Person::RecordNotFound'
     assert_not_includes JobBuffer.values, 'performed beautifully'
   end
+
+  test "should not wrap DeserializationError in DeserializationError" do
+    RescueJob.enqueue [Person.new(404)]
+    assert_includes JobBuffer.values, 'DeserializationError original exception was Person::RecordNotFound'
+  end
 end
