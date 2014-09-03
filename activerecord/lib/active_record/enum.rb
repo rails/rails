@@ -108,11 +108,11 @@ module ActiveRecord
 
           # def status() statuses.key self[:status] end
           klass.send(:detect_enum_conflict!, name, name)
-          define_method(name) { enum_values.key self[name] }
+          define_method(name) { self[name] }
 
           # def status_before_type_cast() statuses.key self[:status] end
           klass.send(:detect_enum_conflict!, name, "#{name}_before_type_cast")
-          define_method("#{name}_before_type_cast") { enum_values.key self[name] }
+          define_method("#{name}_before_type_cast") { self[name] }
 
           pairs = values.respond_to?(:each_pair) ? values.each_pair : values.each_with_index
           pairs.each do |value, i|
@@ -135,8 +135,9 @@ module ActiveRecord
       end
       # Convert the enums in read_attribute
       define_method(:read_attribute) do |attr_name|
+        attr_name = attr_name.to_s
         read_attribute = super(attr_name)
-        if defined_enums.include?(attr_name)
+        if defined_enums.keys.include?(attr_name)
           read_attribute = defined_enums[attr_name].key(read_attribute)
         end
         read_attribute
@@ -149,19 +150,15 @@ module ActiveRecord
           mod = Module.new do
             private
               def save_changed_attribute(attr_name, old)
-                if (mapping = self.class.defined_enums[attr_name.to_s])
-                  value = read_attribute(attr_name)
-                  if attribute_changed?(attr_name)
-                    if mapping[old] == value
-                      clear_attribute_changes([attr_name])
-                    end
-                  else
-                    if old != value
-                      set_attribute_was(attr_name, mapping.key(old))
-                    end
+                value = read_attribute(attr_name)
+                if attribute_changed?(attr_name)
+                  if old == value
+                    clear_attribute_changes([attr_name])
                   end
                 else
-                  super
+                  if old != value
+                    set_attribute_was(attr_name, old)
+                  end
                 end
               end
           end
