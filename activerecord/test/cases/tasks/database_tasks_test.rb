@@ -309,6 +309,7 @@ module ActiveRecord
 
       ActiveRecord::Tasks::DatabaseTasks.expects(:purge).
         with('database' => 'prod-db')
+      ActiveRecord::Base.expects(:establish_connection).with(:production)
 
       ActiveRecord::Tasks::DatabaseTasks.purge_current('production')
     end

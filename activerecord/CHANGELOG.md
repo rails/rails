@@ -1,3 +1,10 @@
+*   Schema loading rake tasks (like `db:schema:load` and `db:setup`) maintain
+    the database connection to the current environment.
+
+    Fixes #16757.
+
+    *Joshua Cody*, *Yves Senn*
+
 *   MySQL: set the connection collation along with the charset.
 
     Sets the connection collation to the database collation configured in
