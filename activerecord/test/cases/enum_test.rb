@@ -291,5 +291,6 @@ class EnumTest < ActiveRecord::TestCase
   test "read attribute returns enum label" do
     assert_equal "proposed", @book.attributes["status"]
     assert_equal "proposed", @book["status"]
+    assert_equal "proposed", @book.status
   end
 end
