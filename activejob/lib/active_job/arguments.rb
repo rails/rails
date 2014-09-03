@@ -56,8 +56,10 @@ module ActiveJob
           argument.map { |arg| deserialize_argument(arg) }
         when Hash
           Hash[ argument.map { |key, value| [ key, deserialize_argument(value) ] } ].with_indifferent_access
-        else
+        when String, GlobalID
           GlobalID::Locator.locate(argument) || argument
+        else
+          argument
         end
       end
 
