@@ -148,9 +148,9 @@ module ActionView
           return if options.blank?
           attrs = []
           options.each_pair do |key, value|
-            if key.to_s == 'data' && value.is_a?(Hash)
+            if (key.to_s == 'data' || key.to_s == 'aria') && value.is_a?(Hash)
               value.each_pair do |k, v|
-                attrs << data_tag_option(k, v, escape)
+                attrs << prefix_tag_option(key, k, v, escape)
               end
             elsif BOOLEAN_ATTRIBUTES.include?(key)
               attrs << boolean_tag_option(key) if value
@@ -161,8 +161,8 @@ module ActionView
           " #{attrs.sort! * ' '}" unless attrs.empty?
         end
 
-        def data_tag_option(key, value, escape)
-          key   = "data-#{key.to_s.dasherize}"
+        def prefix_tag_option(prefix, key, value, escape)
+          key = "#{prefix}-#{key.to_s.dasherize}"
           unless value.is_a?(String) || value.is_a?(Symbol) || value.is_a?(BigDecimal)
             value = value.to_json
           end
