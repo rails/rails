@@ -515,7 +515,7 @@ module ActiveRecord
               ::File.join(fixtures_directory, fs_name))
           end
 
-          all_loaded_fixtures.update(fixtures_map)
+          update_all_loaded_fixtures fixtures_map
 
           connection.transaction(:requires_new => true) do
             fixture_sets.each do |fs|
@@ -560,6 +560,10 @@ module ActiveRecord
     # Superclass for the evaluation contexts used by ERB fixtures.
     def self.context_class
       @context_class ||= Class.new
+    end
+
+    def self.update_all_loaded_fixtures(fixtures_map) # :nodoc:
+      all_loaded_fixtures.update(fixtures_map)
     end
 
     attr_reader :table_name, :name, :fixtures, :model_class, :config
