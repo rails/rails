@@ -88,3 +88,13 @@ class BigDecimal
     # can't dup, so use superclass implementation
   end
 end
+
+class Method
+  # Methods are not duplicable:
+  #
+  #  method(:puts).duplicable? # => false
+  #  method(:puts).dup         # => TypeError: allocator undefined for Method
+  def duplicable?
+    false
+  end
+end
