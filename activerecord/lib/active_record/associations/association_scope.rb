@@ -135,9 +135,9 @@ module ActiveRecord
 
         tables = construct_tables(chain, assoc_klass, refl, tracker)
 
-        reflection = chain.last
+        a_reflection = chain.last
         table = tables.last
-        scope = last_chain_scope(scope, table, reflection, owner, tracker, assoc_klass)
+        scope = last_chain_scope(scope, table, a_reflection, owner, tracker, assoc_klass)
 
         chain.each_with_index do |reflection, i|
           table, foreign_table = tables.shift, tables.first
