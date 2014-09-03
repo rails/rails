@@ -202,7 +202,7 @@ class GuestsCleanupJob < ActiveJob::Base
   queue_as :default
 
   before_enqueue do |job|
-    # do somthing with the job instance
+    # do something with the job instance
   end
 
   around_perform do |job, block|
