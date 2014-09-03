@@ -176,19 +176,19 @@ class DefaultScopingTest < ActiveRecord::TestCase
   end
 
   def test_order_to_unscope_reordering
-    scope = DeveloperOrderedBySalary.order('salary DESC, name ASC').reverse_order.unscope(:order)
+    scope = DeveloperOrderedBySalary.order(salary: :desc, name: :asc).reverse_order.unscope(:order)
     assert !(scope.to_sql =~ /order/i)
   end
 
   def test_unscope_reverse_order
     expected = Developer.all.collect { |dev| dev.name }
-    received = Developer.order('salary DESC').reverse_order.unscope(:order).collect { |dev| dev.name }
+    received = Developer.order(salary: :desc).reverse_order.unscope(:order).collect { |dev| dev.name }
     assert_equal expected, received
   end
 
   def test_unscope_select
     expected = Developer.order('salary ASC').collect { |dev| dev.name }
-    received = Developer.order('salary DESC').reverse_order.select(:name).unscope(:select).collect { |dev| dev.name }
+    received = Developer.order(salary: :desc).reverse_order.select(:name).unscope(:select).collect { |dev| dev.name }
     assert_equal expected, received
 
     expected_2 = Developer.all.collect { |dev| dev.id }
@@ -240,7 +240,7 @@ class DefaultScopingTest < ActiveRecord::TestCase
     end
 
     assert_raises(ArgumentError) do
-      Developer.order('name DESC').reverse_order.unscope(:reverse_order)
+      Developer.order(name: :desc).reverse_order.unscope(:reverse_order)
     end
 
     assert_raises(ArgumentError) do

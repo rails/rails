@@ -15,24 +15,36 @@ class RelationScopingTest < ActiveRecord::TestCase
     developers(:david)
   end
 
+  def test_reverse_order_with_string
+    assert_raise ArgumentError do
+      Developer.order("id DESC").reverse_order
+    end
+  end
+
+  def test_reverse_order_with_hash
+    assert_nothing_raised do
+      Developer.order(id: :desc).reverse_order
+    end
+  end
+
   def test_reverse_order
-    assert_equal Developer.order("id DESC").to_a.reverse, Developer.order("id DESC").reverse_order
+    assert_equal Developer.order(id: :desc).to_a.reverse, Developer.order(id: :desc).reverse_order
   end
 
   def test_reverse_order_with_arel_node
-    assert_equal Developer.order("id DESC").to_a.reverse, Developer.order(Developer.arel_table[:id].desc).reverse_order
+    assert_equal Developer.order(id: :desc).to_a.reverse, Developer.order(Developer.arel_table[:id].desc).reverse_order
   end
 
   def test_reverse_order_with_multiple_arel_nodes
-    assert_equal Developer.order("id DESC").order("name DESC").to_a.reverse, Developer.order(Developer.arel_table[:id].desc).order(Developer.arel_table[:name].desc).reverse_order
+    assert_equal Developer.order(id: :desc).order(name: :desc).to_a.reverse, Developer.order(Developer.arel_table[:id].desc).order(Developer.arel_table[:name].desc).reverse_order
   end
 
   def test_reverse_order_with_arel_nodes_and_strings
-    assert_equal Developer.order("id DESC").order("name DESC").to_a.reverse, Developer.order("id DESC").order(Developer.arel_table[:name].desc).reverse_order
+    assert_equal Developer.order(id: :desc).order(name: :desc).to_a.reverse, Developer.order(id: :desc).order(Developer.arel_table[:name].desc).reverse_order
   end
 
   def test_double_reverse_order_produces_original_order
-    assert_equal Developer.order("name DESC"), Developer.order("name DESC").reverse_order.reverse_order
+    assert_equal Developer.order(name: :desc), Developer.order(name: :desc).reverse_order.reverse_order
   end
 
   def test_scoped_find
@@ -44,14 +56,14 @@ class RelationScopingTest < ActiveRecord::TestCase
   def test_scoped_find_first
     developer = Developer.find(10)
     Developer.where("salary = 100000").scoping do
-      assert_equal developer, Developer.order("name").first
+      assert_equal developer, Developer.order(:name).first
     end
   end
 
   def test_scoped_find_last
-    highest_salary = Developer.order("salary DESC").first
+    highest_salary = Developer.order(salary: :desc).first
 
-    Developer.order("salary").scoping do
+    Developer.order(:salary).scoping do
       assert_equal highest_salary, Developer.last
     end
   end
@@ -60,7 +72,7 @@ class RelationScopingTest < ActiveRecord::TestCase
     lowest_salary  = Developer.order("salary ASC").first
     highest_salary = Developer.order("salary DESC").first
 
-    Developer.order("salary").scoping do
+    Developer.order(:salary).scoping do
       assert_equal highest_salary, Developer.last
       assert_equal lowest_salary, Developer.first
     end

@@ -185,13 +185,13 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_finding_with_reverted_assoc_order
-    topics = Topic.order(:id => :asc).reverse_order
+    topics = Topic.order(id: :asc).reverse_order
     assert_equal 5, topics.to_a.size
     assert_equal topics(:fifth).title, topics.first.title
   end
 
   def test_order_with_hash_and_symbol_generates_the_same_sql
-    assert_equal Topic.order(:id).to_sql, Topic.order(:id => :asc).to_sql
+    assert_equal Topic.order(:id).to_sql, Topic.order(id: :asc).to_sql
   end
 
   def test_finding_with_desc_order_with_string
