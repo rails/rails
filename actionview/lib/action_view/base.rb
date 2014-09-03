@@ -33,7 +33,9 @@ module ActionView #:nodoc:
   #
   # If you absolutely must write from within a function use +concat+.
   #
-  # <%- and -%> suppress leading and trailing whitespace, including the trailing newline, and can be used interchangeably with <% and %>.
+  # When on a line that only contains whitespaces except for the tag, <% %> suppress leading and trailing whitespace,
+  # including the trailing newline. <% %> and <%- -%> are the same.
+  # Note however that <%= %> and <%= -%> are different: only the latter removes trailing whitespaces.
   #
   # === Using sub templates
   #
