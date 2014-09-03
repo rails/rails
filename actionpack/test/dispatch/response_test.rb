@@ -1,4 +1,6 @@
 require 'abstract_unit'
+require 'timeout'
+require 'rack/content_length'
 
 class ResponseTest < ActiveSupport::TestCase
   def setup
@@ -236,6 +238,18 @@ class ResponseTest < ActiveSupport::TestCase
       assert_equal @response.headers, headers
       assert_equal @response.body, body.each.to_a.join
     end
+  end
+
+  test "compatibility with Rack::ContentLength" do
+    @response.body = 'Hello'
+    app = lambda { |env| @response.to_a }
+    env = Rack::MockRequest.env_for("/")
+
+    status, headers, body = app.call(env)
+    assert_nil headers['Content-Length']
+
+    status, headers, body = Rack::ContentLength.new(app).call(env)
+    assert_equal '5', headers['Content-Length']
   end
 
   test "implicit destructuring and Array conversion is deprecated" do
