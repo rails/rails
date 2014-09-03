@@ -20,6 +20,8 @@ module ActionView
 
       BOOLEAN_ATTRIBUTES.merge(BOOLEAN_ATTRIBUTES.map {|attribute| attribute.to_sym })
 
+      TAG_PREFIXES = ['aria', 'data', :aria, :data].to_set
+
       PRE_CONTENT_STRINGS = {
         :textarea => "\n"
       }
@@ -148,7 +150,7 @@ module ActionView
           return if options.blank?
           attrs = []
           options.each_pair do |key, value|
-            if (key.to_s == 'data' || key.to_s == 'aria') && value.is_a?(Hash)
+            if TAG_PREFIXES.include?(key) && value.is_a?(Hash)
               value.each_pair do |k, v|
                 attrs << prefix_tag_option(key, k, v, escape)
               end
