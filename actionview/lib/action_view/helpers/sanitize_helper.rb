@@ -1,6 +1,6 @@
 require 'active_support/core_ext/object/try'
 require 'active_support/deprecation'
-require 'rails-deprecated_sanitizer'
+require 'rails-html-sanitizer'
 
 module ActionView
   # = Action View Sanitize Helpers
@@ -122,14 +122,9 @@ module ActionView
         attr_writer :full_sanitizer, :link_sanitizer, :white_list_sanitizer
 
         # Vendors the full, link and white list sanitizers.
-        # This uses html-scanner for the HTML sanitization.
-        # In the next Rails version this will use Rails::Html::Sanitizer instead.
-        # To get this new behavior now, in your Gemfile, add:
-        #
-        #  gem 'rails-html-sanitizer'
-        #
+        # Provided strictly for compabitility and can be removed in Rails 5.
         def sanitizer_vendor
-          Rails::DeprecatedSanitizer
+          Rails::Html::Sanitizer
         end
 
         def sanitized_allowed_tags
