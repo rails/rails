@@ -1,3 +1,15 @@
+*   Add support for ARIA attributes in tags.
+
+    Example:
+
+        <%= f.text_field :name, aria: { required: "true", hidden: "false" } %>
+
+    now generates:
+
+         <input aria-hidden="false" aria-required="true" id="user_name" name="user[name]" type="text">
+
+    *Paola Garcia Casadiego*
+
 *   Provide a `builder` object when using the `label` form helper in block form.
 
     The new `builder` object responds to `translation`, allowing I18n fallback support
