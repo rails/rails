@@ -1312,12 +1312,13 @@ NOTE: Defined in `active_support/core_ext/string/filters.rb`.
 
 ### `truncate_words`
 
-The method `truncate_words` returns a copy of its receiver truncated after a given number of `words`:
+The method `truncate_words` returns a copy of its receiver truncated after a given number of words:
 
 ```ruby
 "Oh dear! Oh dear! I shall be late!".truncate_words(4)
 # => "Oh dear! Oh dear!..."
 ```
+
 Ellipsis can be customized with the `:omission` option:
 
 ```ruby
@@ -1325,13 +1326,11 @@ Ellipsis can be customized with the `:omission` option:
 # => "Oh dear! Oh dear!&hellip;"
 ```
 
-Note in particular that truncation takes into account the length of the omission string.
-
 Pass a `:separator` to truncate the string at a natural break:
 
 ```ruby
-"Oh dear! Oh dear! I shall be late!".truncate_words(4, separator: ' ')
-# => "Oh dear! Oh dear!..."
+"Oh dear! Oh dear! I shall be late!".truncate_words(3, separator: '!')
+# => "Oh dear! Oh dear! I shall be late..."
 ```
 
 The option `:separator` can be a regexp:
@@ -2895,19 +2894,19 @@ Active Record does not accept unknown options when building associations, for ex
 
 NOTE: Defined in `active_support/core_ext/hash/keys.rb`.
 
-### Transform Values
+### Working with Values
 
 #### `transform_values` && `transform_values!`
 
-The method `transform_values` accepts a block and returns a hash that has applied the block operations to each of the values in the receiver
+The method `transform_values` accepts a block and returns a hash that has applied the block operations to each of the values in the receiver.
 
 ```ruby
-{nil => nil, 1 => 1, a: :a}.transform_values { |value| value.to_s.upcase }
-# => {nil => "", 1 => "1",  :a=> "A"}
+{ nil => nil, 1 => 1, :x => :a }.transform_values { |value| value.to_s.upcase }
+# => {nil=>"", 1=>"1", :x=>"A"}
 ```
 There's also the bang variant `transform_values!` that applies the block operations to values in the very receiver.
 
-NOTE: Defined in `active_support/core_text/hash/transform_values.rb`
+NOTE: Defined in `active_support/core_text/hash/transform_values.rb`.
 
 ### Slicing
 
