@@ -5,7 +5,7 @@ module ActiveJob
   class DeserializationError < StandardError
     attr_reader :original_exception
 
-    def initialize(e)
+    def initialize(e) #:nodoc:
       super ("Error while trying to deserialize arguments: #{e.message}")
       @original_exception = e
       set_backtrace e.backtrace
@@ -30,6 +30,8 @@ module ActiveJob
 
     def deserialize(arguments)
       arguments.map { |argument| deserialize_argument(argument) }
+    rescue => e
+      raise DeserializationError.new(e)
     end
 
     private
@@ -40,7 +42,7 @@ module ActiveJob
         when *TYPE_WHITELIST
           argument
         when Array
-          serialize(argument)
+          argument.map { |arg| serialize_argument(arg) }
         when Hash
           Hash[ argument.map { |key, value| [ serialize_hash_key(key), serialize_argument(value) ] } ]
         else
@@ -51,14 +53,12 @@ module ActiveJob
       def deserialize_argument(argument)
         case argument
         when Array
-          deserialize(argument)
+          argument.map { |arg| deserialize_argument(arg) }
         when Hash
           Hash[ argument.map { |key, value| [ key, deserialize_argument(value) ] } ].with_indifferent_access
         else
           GlobalID::Locator.locate(argument) || argument
         end
-      rescue => e
-        raise DeserializationError.new(e)
       end
 
       def serialize_hash_key(key)
