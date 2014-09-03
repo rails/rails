@@ -173,6 +173,32 @@ module ApplicationTests
                        "your test schema automatically, see the release notes for details.\n", output
         end
       end
+
+      test 'db:setup loads schema and seeds database' do
+        begin
+          @old_env = ENV["RAILS_ENV"]
+          ENV.delete "RAILS_ENV"
+
+          app_file 'db/schema.rb', <<-RUBY
+            ActiveRecord::Schema.define(version: "1") do
+              create_table :users do |t|
+                t.string :name
+              end
+            end
+          RUBY
+
+          app_file 'db/seeds.rb', <<-RUBY
+            puts ActiveRecord::Base.connection_config[:database]
+          RUBY
+
+          Dir.chdir(app_path) do
+            database_path = `bundle exec rake db:setup`
+            assert_equal "development.sqlite3", File.basename(database_path.strip)
+          end
+        ensure
+          ENV["RAILS_ENV"] = @old_env
+        end
+      end
     end
   end
 end
