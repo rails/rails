@@ -113,7 +113,7 @@ module ActiveRecord
         end
       end
 
-      def next_chain_scope(scope, table, reflection, chain, tracker, assoc_klass, foreign_table, next_reflection)
+      def next_chain_scope(scope, table, reflection, tracker, assoc_klass, foreign_table, next_reflection)
         join_keys = reflection.join_keys(assoc_klass)
         key = join_keys.key
         foreign_key = join_keys.foreign_key
@@ -135,16 +135,16 @@ module ActiveRecord
 
         tables = construct_tables(chain, assoc_klass, refl, tracker)
 
-        a_reflection = chain.last
+        owner_reflection = chain.last
         table = tables.last
-        scope = last_chain_scope(scope, table, a_reflection, owner, tracker, assoc_klass)
+        scope = last_chain_scope(scope, table, owner_reflection, owner, tracker, assoc_klass)
 
         chain.each_with_index do |reflection, i|
           table, foreign_table = tables.shift, tables.first
 
           unless reflection == chain.last
             next_reflection = chain[i + 1]
-            scope = next_chain_scope(scope, table, reflection, chain, tracker, assoc_klass, foreign_table, next_reflection)
+            scope = next_chain_scope(scope, table, reflection, tracker, assoc_klass, foreign_table, next_reflection)
           end
 
           is_first_chain = i == 0
