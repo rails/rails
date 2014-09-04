@@ -27,8 +27,8 @@ module ActiveJob
     # you can ask Active Job to retry performing your job.
     #
     # ==== Options
-    # * <tt>:in</tt> - Enqueues the job with the specified delay
-    # * <tt>:at</tt> - Enqueues the job at the time specified
+    # * <tt>:wait</tt> - Enqueues the job with the specified delay
+    # * <tt>:wait_until</tt> - Enqueues the job at the time specified
     # * <tt>:queue</tt> - Enqueues the job on the specified queue
     #
     # ==== Examples
@@ -48,19 +48,19 @@ module ActiveJob
     # Equeue the job to be performed by the queue adapter.
     #
     # ==== Options
-    # * <tt>:in</tt> - Enqueues the job with the specified delay
-    # * <tt>:at</tt> - Enqueues the job at the time specified
+    # * <tt>:wait</tt> - Enqueues the job with the specified delay
+    # * <tt>:wait_until</tt> - Enqueues the job at the time specified
     # * <tt>:queue</tt> - Enqueues the job on the specified queue
     #
     # ==== Examples
     #
     #    my_job_instance.enqueue
-    #    my_job_instance.enqueue in: 5.minutes
+    #    my_job_instance.enqueue wait: 5.minutes
     #    my_job_instance.enqueue queue: :important
-    #    my_job_instance.enqueue at: Date.tomorrow.midnight
+    #    my_job_instance.enqueue wait_until: Date.tomorrow.midnight
     def enqueue(options={})
-      self.scheduled_at = options[:in].seconds.from_now.to_f if options[:in]
-      self.scheduled_at = options[:at].to_f if options[:at]
+      self.scheduled_at = options[:wait].seconds.from_now.to_f if options[:wait]
+      self.scheduled_at = options[:wait_until].to_f if options[:wait_until]
       self.queue_name   = self.class.queue_name_from_part(options[:queue]) if options[:queue]
       run_callbacks :enqueue do
         if self.scheduled_at
