@@ -1,7 +1,15 @@
 require 'abstract_unit'
 require 'controller/fake_models'
 
+class ResponderController < ActionController::Base
+  def index
+    respond_with Customer.new("david", 13)
+  end
+end
+
 class ResponderTest < ActionController::TestCase
+  tests ResponderController
+
   def test_class_level_respond_to
     e = assert_raises(NoMethodError) do
       Class.new(ActionController::Base) do
@@ -14,14 +22,6 @@ class ResponderTest < ActionController::TestCase
   end
 
   def test_respond_with
-    klass = Class.new(ActionController::Base) do
-      def index
-        respond_with Customer.new("david", 13)
-      end
-    end
-
-    @controller = klass.new
-
     e = assert_raises(NoMethodError) do
       get :index
     end

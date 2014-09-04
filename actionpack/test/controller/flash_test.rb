@@ -97,6 +97,10 @@ class FlashTest < ActionController::TestCase
     end
   end
 
+  class AddingFlashController < TestController
+    add_flash_types :foo
+  end
+
   tests TestController
 
   def test_flash
@@ -210,15 +214,9 @@ class FlashTest < ActionController::TestCase
   end
 
   def test_redirect_to_with_adding_flash_types
-    original_controller = @controller
-    test_controller_with_flash_type_foo = Class.new(TestController) do
-      add_flash_types :foo
-    end
-    @controller = test_controller_with_flash_type_foo.new
+    @controller = AddingFlashController.new
     get :redirect_with_foo_flash
     assert_equal "for great justice", @controller.send(:flash)[:foo]
-  ensure
-    @controller = original_controller
   end
 
   def test_add_flash_type_to_subclasses

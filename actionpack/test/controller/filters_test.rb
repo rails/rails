@@ -528,6 +528,10 @@ class FilterTest < ActionController::TestCase
     end
   end
 
+  class SkippingClassController < ClassController
+    skip_before_action ConditionalClassFilter
+  end
+
   def test_non_yielding_around_actions_not_returning_false_do_not_raise
     controller = NonYieldingAroundFilterController.new
     controller.instance_variable_set "@filter_return_value", true
@@ -618,11 +622,7 @@ class FilterTest < ActionController::TestCase
     test_process(ClassController)
     assert_equal true, assigns["ran_class_action"]
 
-    skipping_class_controller = Class.new(ClassController) do
-      skip_before_action ConditionalClassFilter
-    end
-
-    test_process(skipping_class_controller)
+    test_process(SkippingClassController)
     assert_nil assigns['ran_class_action']
   end
 
