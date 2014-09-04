@@ -6,7 +6,7 @@ module ActiveJob
     attr_reader :original_exception
 
     def initialize(e) #:nodoc:
-      super ("Error while trying to deserialize arguments: #{e.message}")
+      super("Error while trying to deserialize arguments: #{e.message}")
       @original_exception = e
       set_backtrace e.backtrace
     end
