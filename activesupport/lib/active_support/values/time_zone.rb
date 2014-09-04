@@ -254,6 +254,12 @@ module ActiveSupport
       def us_zones
         @us_zones ||= all.find_all { |z| z.name =~ /US|Arizona|Indiana|Hawaii|Alaska/ }
       end
+
+      # A convenience method for returning a collection of TimeZone objects
+      # for time zones in Europe.
+      def europe_zones
+        @europe_zones ||= all.find_all { |z| z.name =~ /London|Berlin|Athens|Minsk|Moscow/ }
+      end
     end
 
     include Comparable

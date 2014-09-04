@@ -11,7 +11,7 @@ end
 
 namespace :time do
   namespace :zones do
-    desc 'Displays all time zones, also available: time:zones:us, time:zones:local -- filter with OFFSET parameter, e.g., OFFSET=-6'
+    desc 'Displays all time zones, also available: time:zones:us, time:zones:europe, time:zones:local -- filter with OFFSET parameter, e.g., OFFSET=-6'
     task :all do
       build_time_zone_list(:all)
     end
@@ -19,6 +19,11 @@ namespace :time do
     # desc 'Displays names of US time zones recognized by the Rails TimeZone class, grouped by offset. Results can be filtered with optional OFFSET parameter, e.g., OFFSET=-6'
     task :us do
       build_time_zone_list(:us_zones)
+    end
+
+    # desc 'Displays names of European time zones recognized by the Rails TimeZone class, grouped by offset. Results can be filtered with optional OFFSET parameter, e.g., OFFSET=-6'
+    task :europe do
+      build_time_zone_list(:europe_zones)
     end
 
     # desc 'Displays names of time zones recognized by the Rails TimeZone class with the same offset as the system local time'
