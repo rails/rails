@@ -2,8 +2,6 @@ module ActiveJob
   class ConfiguredJob #:nodoc:
     def initialize(job_class, options={})
       @options = options
-      @options[:in] = @options.delete(:wait) if @options[:wait]
-      @options[:at] = @options.delete(:wait_until) if @options[:wait_until]
       @job_class = job_class
     end
 
