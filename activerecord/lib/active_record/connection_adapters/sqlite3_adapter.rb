@@ -67,6 +67,7 @@ module ActiveRecord
     #
     # * <tt>:database</tt> - Path to the database file.
     class SQLite3Adapter < AbstractAdapter
+      ADAPTER_NAME = 'SQLite'.freeze
       include Savepoints
 
       NATIVE_DATABASE_TYPES = {
@@ -145,10 +146,6 @@ module ActiveRecord
         else
           @prepared_statements = false
         end
-      end
-
-      def adapter_name #:nodoc:
-        'SQLite'
       end
 
       def supports_ddl_transactions?

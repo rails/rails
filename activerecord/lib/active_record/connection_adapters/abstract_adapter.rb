@@ -66,6 +66,7 @@ module ActiveRecord
     # Most of the methods in the adapter are useful during migrations. Most
     # notably, the instance methods provided by SchemaStatement are very useful.
     class AbstractAdapter
+      ADAPTER_NAME = 'Abstract'.freeze
       include Quoting, DatabaseStatements, SchemaStatements
       include DatabaseLimits
       include QueryCache
@@ -167,7 +168,7 @@ module ActiveRecord
       # Returns the human-readable name of the adapter. Use mixed case - one
       # can always use downcase if needed.
       def adapter_name
-        'Abstract'
+        self.class::ADAPTER_NAME
       end
 
       # Does this adapter support migrations?
