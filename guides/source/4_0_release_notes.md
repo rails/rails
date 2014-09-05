@@ -233,7 +233,7 @@ Please refer to the [Changelog](https://github.com/rails/rails/blob/4-0-stable/a
 
     * New method `revert` will revert a whole migration or the given block.
       If migrating down, the given migration / block is run normally.
-      See the [Guide on Migration](https://github.com/rails/rails/blob/master/guides/source/migrations.md#reverting-previous-migrations)
+      See the [Guide on Migration](https://github.com/rails/rails/blob/master/guides/source/active_record_migrations.md#reverting-previous-migrations)
 
 * Adds PostgreSQL array type support. Any datatype can be used to create an array column, with full migration and schema dumper support.
 
