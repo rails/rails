@@ -1,3 +1,10 @@
+*   Fixed a bug in Inflector#underscore where acroynms in nested constant names
+    are incorrectly parsed as camelCase.
+
+    Fixes #8015.
+
+    *Fred Wu*, *Matthew Draper*
+
 *   Make Time#change throw an exception if the :usec option is out of range and
     the time has an offset other than UTC or local.
 

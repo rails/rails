@@ -120,6 +120,7 @@ class InflectorTest < ActiveSupport::TestCase
       ["SSLError",          "ssl_error",          "SSL error",          "SSL Error"],
       ["RESTful",           "restful",            "RESTful",            "RESTful"],
       ["RESTfulController", "restful_controller", "RESTful controller", "RESTful Controller"],
+      ["Nested::RESTful",   "nested/restful",     "Nested/RESTful",     "Nested/RESTful"],
       ["IHeartW3C",         "i_heart_w3c",        "I heart W3C",        "I Heart W3C"],
       ["PhDRequired",       "phd_required",       "PhD required",       "PhD Required"],
       ["IRoRU",             "i_ror_u",            "I RoR u",            "I RoR U"],
