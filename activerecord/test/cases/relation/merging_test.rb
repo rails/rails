@@ -117,7 +117,7 @@ class RelationMergingTest < ActiveRecord::TestCase
 end
 
 class MergingDifferentRelationsTest < ActiveRecord::TestCase
-  fixtures :posts, :authors
+  fixtures :posts, :authors, :developers
 
   test "merging where relations" do
     hello_by_bob = Post.where(body: "hello").joins(:author).
