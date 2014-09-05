@@ -162,10 +162,6 @@ module ActiveRecord
         end
       end
 
-      def adapter_name #:nodoc:
-        self.class::ADAPTER_NAME
-      end
-
       # Returns true, since this connection adapter supports migrations.
       def supports_migrations?
         true
