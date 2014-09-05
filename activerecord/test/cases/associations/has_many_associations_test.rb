@@ -26,6 +26,7 @@ require 'models/college'
 require 'models/student'
 require 'models/reference'
 require 'models/job'
+require 'models/tyre'
 
 
 class HasManyAssociationsTestForCountWithFinderSql < ActiveRecord::TestCase
@@ -1883,5 +1884,18 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_difference "topic.reload.replies_count", 1 do
       topic.approved_replies.create!
     end
+  end
+
+  test 'associations autosaves when object is already persited' do
+    bulb = Bulb.create!
+    tyre = Tyre.create!
+
+    car = Car.create! do |c|
+      c.bulbs << bulb
+      c.tyres << tyre
+    end
+
+    assert_equal 1, car.bulbs.count
+    assert_equal 1, car.tyres.count
   end
 end
