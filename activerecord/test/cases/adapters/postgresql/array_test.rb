@@ -227,6 +227,11 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
     assert_not x.changed?
   end
 
+  def test_find_on_hash
+    x = PgArray.create!(tags: %w(one two))
+    assert_equal x, PgArray.find_by(tags: [%w(one two)])
+  end
+
   def test_mutate_value_in_array
     x = PgArray.create!(hstores: [{ a: 'a' }, { b: 'b' }])
 

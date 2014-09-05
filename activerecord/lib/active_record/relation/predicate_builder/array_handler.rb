@@ -2,6 +2,16 @@ module ActiveRecord
   class PredicateBuilder
     class ArrayHandler # :nodoc:
       def call(attribute, value)
+        if value.any? { |member| member.is_a?(Array) }
+          column = attribute.relation.engine.columns_hash[attribute.name]
+          unless column.respond_to?(:array) and column.array == true
+            ActiveSupport::Deprecation.warn "Passing a nested array to Active Record " \
+              "finder methods is deprecated and will be removed. Flatten your array " \
+              "before using it for 'IN' conditions."
+            value = value.flatten
+          end
+        end
+
         return attribute.in([]) if value.empty?
 
         values = value.map { |x| x.is_a?(Base) ? x.id : x }
