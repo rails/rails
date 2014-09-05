@@ -208,10 +208,10 @@ module ActionDispatch
           request
         end
 
-        def fail_on(exception_class, msg=nil)
+        def fail_on(exception_class, message)
           yield
         rescue exception_class => e
-          raise Minitest::Assertion, msg || e.message
+          raise Minitest::Assertion, message || e.message
         end
     end
   end
