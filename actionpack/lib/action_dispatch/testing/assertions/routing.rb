@@ -69,7 +69,7 @@ module ActionDispatch
       #
       #   # Asserts that the generated route gives us our custom route
       #   assert_generates "changesets/12", { controller: 'scm', action: 'show_diff', revision: "12" }
-      def assert_generates(expected_path, options, defaults={}, extras = {}, message=nil)
+      def assert_generates(expected_path, options, defaults={}, extras={}, message=nil)
         if expected_path =~ %r{://}
           fail_on(URI::InvalidURIError, message) do
             uri = URI.parse(expected_path)
