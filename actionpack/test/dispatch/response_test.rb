@@ -220,9 +220,9 @@ class ResponseTest < ActiveSupport::TestCase
     assert @response.respond_to?(:method_missing, true)
   end
 
-  test "can be destructured into status, headers and an enumerable body" do
+  test "can be explicitly destructured into status, headers and an enumerable body" do
     response = ActionDispatch::Response.new(404, { 'Content-Type' => 'text/plain' }, ['Not Found'])
-    status, headers, body = response
+    status, headers, body = *response
 
     assert_equal 404, status
     assert_equal({ 'Content-Type' => 'text/plain' }, headers)
@@ -231,11 +231,25 @@ class ResponseTest < ActiveSupport::TestCase
 
   test "[response].flatten does not recurse infinitely" do
     Timeout.timeout(1) do # use a timeout to prevent it stalling indefinitely
-      status, headers, body = [@response].flatten
+      status, headers, body = assert_deprecated { [@response].flatten }
       assert_equal @response.status, status
       assert_equal @response.headers, headers
       assert_equal @response.body, body.each.to_a.join
     end
+  end
+
+  test "implicit destructuring and Array conversion is deprecated" do
+    response = ActionDispatch::Response.new(404, { 'Content-Type' => 'text/plain' }, ['Not Found'])
+
+    assert_deprecated do
+      status, headers, body = response
+
+      assert_equal 404, status
+      assert_equal({ 'Content-Type' => 'text/plain' }, headers)
+      assert_equal ['Not Found'], body.each.to_a
+    end
+
+    assert_deprecated { response.to_ary }
   end
 end
 
