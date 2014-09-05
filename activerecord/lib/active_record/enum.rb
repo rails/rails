@@ -120,7 +120,7 @@ module ActiveRecord
 
             # def active?() status == 0 end
             klass.send(:detect_enum_conflict!, name, "#{value}?")
-            define_method("#{value}?") { self[name] == i }
+            define_method("#{value}?") { self[name] == value.to_s }
 
             # def active!() update! status: :active end
             klass.send(:detect_enum_conflict!, name, "#{value}!")
@@ -133,21 +133,33 @@ module ActiveRecord
         end
         defined_enums[name.to_s] = enum_values
       end
-      # Convert the enums in read_attribute
-      define_method(:read_attribute) do |attr_name|
-        attr_name = attr_name.to_s
-        read_attribute = super(attr_name)
-        if defined_enums.keys.include?(attr_name)
-          read_attribute = defined_enums[attr_name].key(read_attribute)
-        end
-        read_attribute
-      end
     end
 
     private
       def _enum_methods_module
         @_enum_methods_module ||= begin
           mod = Module.new do
+            def read_attribute(attr_name)
+              attr_name = attr_name.to_s
+              read_attribute = super(attr_name)
+              if defined_enums.keys.include?(attr_name)
+                if defined_enums[attr_name].has_value?(read_attribute)
+                  read_attribute = defined_enums[attr_name].key(read_attribute)
+                end
+              end
+              read_attribute
+            end
+
+            def attributes
+              attributes = super()
+              defined_enums.each do |name, values|
+                if attributes.has_key? name
+                  attributes[name] = values.key(attributes[name])
+                end
+              end
+              attributes
+            end
+
             private
               def save_changed_attribute(attr_name, old)
                 if (mapping = self.class.defined_enums[attr_name.to_s])
