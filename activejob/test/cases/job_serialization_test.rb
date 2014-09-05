@@ -9,7 +9,7 @@ class JobSerializationTest < ActiveSupport::TestCase
   end
 
   test 'serialize job with gid' do
-    GidJob.enqueue @person
+    GidJob.perform_later @person
     assert_equal "Person with ID: 5", JobBuffer.last_value
   end
 end

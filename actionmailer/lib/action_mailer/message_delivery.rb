@@ -39,13 +39,13 @@ module ActionMailer
     # and +raise_delivery_errors+, so use with caution.
     #
     #   Notifier.welcome(User.first).deliver_later!
-    #   Notifier.welcome(User.first).deliver_later!(in: 1.hour)
-    #   Notifier.welcome(User.first).deliver_later!(at: 10.hours.from_now)
+    #   Notifier.welcome(User.first).deliver_later!(wait: 1.hour)
+    #   Notifier.welcome(User.first).deliver_later!(wait_until: 10.hours.from_now)
     #
     # Options:
     #
-    # * <tt>:in</tt> - Enqueue the email to be delivered with a delay
-    # * <tt>:at</tt> - Enqueue the email to be delivered at (after) a specific date / time
+    # * <tt>:wait</tt> - Enqueue the email to be delivered with a delay
+    # * <tt>:wait_until</tt> - Enqueue the email to be delivered at (after) a specific date / time
     def deliver_later!(options={})
       enqueue_delivery :deliver_now!, options
     end
@@ -54,13 +54,13 @@ module ActionMailer
     # job runs it will send the email using +deliver_now+.
     #
     #   Notifier.welcome(User.first).deliver_later
-    #   Notifier.welcome(User.first).deliver_later(in: 1.hour)
-    #   Notifier.welcome(User.first).deliver_later(at: 10.hours.from_now)
+    #   Notifier.welcome(User.first).deliver_later(wait: 1.hour)
+    #   Notifier.welcome(User.first).deliver_later(wait_until: 10.hours.from_now)
     #
     # Options:
     #
-    # * <tt>:in</tt> - Enqueue the email to be delivered with a delay
-    # * <tt>:at</tt> - Enqueue the email to be delivered at (after) a specific date / time
+    # * <tt>:wait</tt> - Enqueue the email to be delivered with a delay
+    # * <tt>:wait_until</tt> - Enqueue the email to be delivered at (after) a specific date / time
     def deliver_later(options={})
       enqueue_delivery :deliver_now, options
     end
@@ -98,15 +98,7 @@ module ActionMailer
 
       def enqueue_delivery(delivery_method, options={})
         args = @mailer.name, @mail_method.to_s, delivery_method.to_s, *@args
-        enqueue_method = :enqueue
-        if options[:at]
-          enqueue_method = :enqueue_at
-          args.unshift options[:at]
-        elsif options[:in]
-          enqueue_method = :enqueue_in
-          args.unshift options[:in]
-        end
-        ActionMailer::DeliveryJob.send enqueue_method, *args
+        ActionMailer::DeliveryJob.set(options).perform_later(*args)
       end
   end
 end

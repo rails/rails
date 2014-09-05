@@ -2,8 +2,8 @@ module ActiveJob
   module QueueAdapters
     class InlineAdapter
       class << self
-        def enqueue(job, *args)
-          job.new.execute(*args)
+        def enqueue(job)
+          Base.execute(job.serialize)
         end
 
         def enqueue_at(*)
