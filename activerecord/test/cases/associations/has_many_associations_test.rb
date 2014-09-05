@@ -28,6 +28,7 @@ require 'models/college'
 require 'models/student'
 require 'models/pirate'
 require 'models/ship'
+require 'models/tyre'
 
 class HasManyAssociationsTestForReorderWithJoinDependency < ActiveRecord::TestCase
   fixtures :authors, :posts, :comments
@@ -1940,5 +1941,18 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
                   "signed post by bob"], bob.posts_with_signature.map(&:title).sort
 
     assert_equal [], authors(:david).posts_with_signature.map(&:title)
+  end
+
+  test 'associations autosaves when object is already persited' do
+    bulb = Bulb.create!
+    tyre = Tyre.create!
+
+    car = Car.create! do |c|
+      c.bulbs << bulb
+      c.tyres << tyre
+    end
+
+    assert_equal 1, car.bulbs.count
+    assert_equal 1, car.tyres.count
   end
 end
