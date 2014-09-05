@@ -521,6 +521,16 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal [1,2,3,5,6,7,8,9], Comment.where(id: [1..2, 3, 5, 6..8, 9]).to_a.map(&:id).sort
   end
 
+  def test_find_on_hash_conditions_with_array_of_integers_and_arrays
+    assert_equal [1,2,3,5,6,7,8,9], Comment.where(id: [[1, 2], 3, 5, [6, [7], 8], 9]).to_a.map(&:id).sort
+  end
+
+  def test_find_on_hash_conditions_with_array_of_integers_and_arrays_is_deprecated
+    assert_deprecated do
+      Comment.where(id: [[1, 2], 3])
+    end
+  end
+
   def test_find_on_multiple_hash_conditions
     assert Topic.where(author_name: "David", title: "The First Topic", replies_count: 1, approved: false).find(1)
     assert_raise(ActiveRecord::RecordNotFound) { Topic.where(author_name: "David", title: "The First Topic", replies_count: 1, approved: true).find(1) }

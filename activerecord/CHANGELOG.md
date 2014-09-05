@@ -1,3 +1,10 @@
+*   Fix PredicateBuilder::ArrayHandler's handling of nested arrays. Allow
+    quering for array type fields (supporter by PostgreSQL).
+
+    Fixes #16580.
+
+    *Dan Olson*, *Cristian Bica*
+
 *   Schema loading rake tasks (like `db:schema:load` and `db:setup`) maintain
     the database connection to the current environment.
 
