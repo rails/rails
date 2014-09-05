@@ -98,12 +98,6 @@
 
     *Matthew Draper*
 
-*   `has_many :through` associations will no longer save the through record
-    twice when added in an `after_create` callback defined before the
-    associations.
-
-    *Sean Griffin*
-
 *   Correctly extract IPv6 addresses from `DATABASE_URI`: the square brackets
     are part of the URI structure, not the actual host.
 
