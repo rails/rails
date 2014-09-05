@@ -65,7 +65,7 @@ module ActiveRecord
 
             if reflection.type
               value = foreign_klass.base_class.name
-              column = klass.columns_hash[column.to_s]
+              column = klass.columns_hash[reflection.type.to_s]
 
               substitute = klass.connection.substitute_at(column, bind_values.length)
               bind_values.push [column, value]
