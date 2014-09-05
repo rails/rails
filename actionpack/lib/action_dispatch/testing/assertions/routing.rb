@@ -166,6 +166,7 @@ module ActionDispatch
         end
 
         self.class.app = old_app
+        self.remove!
         @routes = old_routes
       end
 
