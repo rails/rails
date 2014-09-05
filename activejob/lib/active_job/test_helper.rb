@@ -21,9 +21,9 @@ module ActiveJob
       #
       #   def test_jobs
       #     assert_enqueued_jobs 0
-      #     HelloJob.enqueue('david')
+      #     HelloJob.perform_later('david')
       #     assert_enqueued_jobs 1
-      #     HelloJob.enqueue('abdelkader')
+      #     HelloJob.perform_later('abdelkader')
       #     assert_enqueued_jobs 2
       #   end
       #
@@ -32,12 +32,12 @@ module ActiveJob
       #
       #   def test_jobs_again
       #     assert_enqueued_jobs 1 do
-      #       HelloJob.enqueue('cristian')
+      #       HelloJob.perform_later('cristian')
       #     end
       #
       #     assert_enqueued_jobs 2 do
-      #       HelloJob.enqueue('aaron')
-      #       HelloJob.enqueue('rafael')
+      #       HelloJob.perform_later('aaron')
+      #       HelloJob.perform_later('rafael')
       #     end
       #   end
       def assert_enqueued_jobs(number)
@@ -57,7 +57,7 @@ module ActiveJob
       #
       #   def test_jobs
       #     assert_no_enqueued_jobs
-      #     HelloJob.enqueue('jeremy')
+      #     HelloJob.perform_later('jeremy')
       #     assert_enqueued_jobs 1
       #   end
       #
@@ -80,9 +80,9 @@ module ActiveJob
       #
       #   def test_jobs
       #     assert_performed_jobs 0
-      #     HelloJob.enqueue('xavier')
+      #     HelloJob.perform_later('xavier')
       #     assert_performed_jobs 1
-      #     HelloJob.enqueue('yves')
+      #     HelloJob.perform_later('yves')
       #     assert_performed_jobs 2
       #   end
       #
@@ -91,12 +91,12 @@ module ActiveJob
       #
       #   def test_jobs_again
       #     assert_performed_jobs 1 do
-      #       HelloJob.enqueue('robin')
+      #       HelloJob.perform_later('robin')
       #     end
       #
       #     assert_performed_jobs 2 do
-      #       HelloJob.enqueue('carlos')
-      #       HelloJob.enqueue('sean')
+      #       HelloJob.perform_later('carlos')
+      #       HelloJob.perform_later('sean')
       #     end
       #   end
       def assert_performed_jobs(number)
@@ -116,7 +116,7 @@ module ActiveJob
       #
       #   def test_jobs
       #     assert_no_performed_jobs
-      #     HelloJob.enqueue('matthew')
+      #     HelloJob.perform_later('matthew')
       #     assert_performed_jobs 1
       #   end
       #
@@ -139,7 +139,7 @@ module ActiveJob
       #
       #   def assert_enqueued_job
       #     assert_enqueued_with(job: MyJob, args: [1,2,3], queue: 'low') do
-      #       MyJob.enqueue(1,2,3)
+      #       MyJob.perform_later(1,2,3)
       #     end
       #   end
       def assert_enqueued_with(args = {}, &_block)
@@ -159,7 +159,7 @@ module ActiveJob
       #
       #   def test_assert_performed_with
       #     assert_performed_with(job: MyJob, args: [1,2,3], queue: 'high') do
-      #       MyJob.enqueue(1,2,3)
+      #       MyJob.perform_later(1,2,3)
       #     end
       #   end
       def assert_performed_with(args = {}, &_block)
