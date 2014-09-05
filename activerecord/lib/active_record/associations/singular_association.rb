@@ -39,7 +39,7 @@ module ActiveRecord
         end
 
         def get_records
-          return scope.limit(1).to_a if reflection.scope_chain.any?(&:any?)
+          return scope.limit(1).to_a if reflection.scope_chain.any?(&:any?) || scope.eager_loading?
 
           conn = klass.connection
           sc = reflection.association_scope_cache(conn, owner) do
