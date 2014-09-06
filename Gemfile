@@ -9,7 +9,7 @@ gem 'mocha', '~> 0.14', require: false
 
 gem 'rack-cache', '~> 1.2'
 # TODO: Release this gem
-gem 'jquery-rails', github: 'rails/jquery-rails', branch: 'master'
+gem 'jquery-rails', '~> 4.0.0.beta1'
 gem 'coffee-rails', '~> 4.0.0'
 # TODO: Release this gem
 gem 'rails-html-sanitizer', github: 'rails/rails-html-sanitizer'
