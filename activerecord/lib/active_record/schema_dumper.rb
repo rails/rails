@@ -195,15 +195,12 @@ HEADER
             statement_parts << 'unique: true' if index.unique
 
             index_lengths = (index.lengths || []).compact
-            statement_parts << "length: #{Hash[index.columns.zip(index.lengths)].inspect}" unless index_lengths.empty?
+            statement_parts << "length: #{Hash[index.columns.zip(index.lengths)].inspect}" if index_lengths.any?
 
-            index_orders = (index.orders || {})
-            statement_parts << "order: #{index.orders.inspect}" unless index_orders.empty?
-
+            index_orders = index.orders || {}
+            statement_parts << "order: #{index.orders.inspect}" if index_orders.any?
             statement_parts << "where: #{index.where.inspect}" if index.where
-
             statement_parts << "using: #{index.using.inspect}" if index.using
-
             statement_parts << "type: #{index.type.inspect}" if index.type
 
             "  #{statement_parts.join(', ')}"
@@ -218,9 +215,9 @@ HEADER
         if (foreign_keys = @connection.foreign_keys(table)).any?
           add_foreign_key_statements = foreign_keys.map do |foreign_key|
             parts = [
-                     "add_foreign_key #{remove_prefix_and_suffix(foreign_key.from_table).inspect}",
-                     remove_prefix_and_suffix(foreign_key.to_table).inspect,
-                    ]
+              "add_foreign_key #{remove_prefix_and_suffix(foreign_key.from_table).inspect}",
+              remove_prefix_and_suffix(foreign_key.to_table).inspect,
+            ]
 
             if foreign_key.column != @connection.foreign_key_column_for(foreign_key.to_table)
               parts << "column: #{foreign_key.column.inspect}"
