@@ -1,3 +1,16 @@
+*   Deprecate implicit Array conversion for Response objects. It was added
+    (using `#to_ary`) so we could conveniently use implicit splatting:
+
+        status, headers, body = response
+
+    But it also means `response + response` works and `[response].flatten`
+    cascades down to the Rack body. Nonsense behavior. Instead, rely on
+    explicit conversion and splatting with `#to_a`:
+
+        status, header, body = *response
+
+    *Jeremy Kemper*
+
 *   Don't rescue `IPAddr::InvalidAddressError`.
 
     `IPAddr::InvalidAddressError` does not exist in Ruby 1.9.3
