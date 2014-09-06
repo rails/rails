@@ -283,7 +283,7 @@ module Rails
           gems = [coffee_gemfile_entry, javascript_runtime_gemfile_entry]
 
           if options[:javascript] == 'jquery'
-            gems << GemfileEntry.version('jquery-rails', '~> 4.0.0.beta1',
+            gems << GemfileEntry.version('jquery-rails', '~> 4.0.0.beta2',
                                          'Use jQuery as the JavaScript library')
           else
             gems << GemfileEntry.version("#{options[:javascript]}-rails", nil,
