@@ -240,6 +240,11 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     assert_equal [], light.long_state
   end
 
+  def test_serialized_array_can_be_used_in_query
+    lights = TrafficLight.create([{state:[1,2],long_state:[1]},{state:[2,3],long_state:[1]}])
+    assert_equal(lights.first.id, TrafficLight.find_by(id:lights.map(&:id), state:[[1,2]]).id)
+  end
+
   def test_serialized_column_should_unserialize_after_update_column
     t = Topic.create(content: "first")
     assert_equal("first", t.content)
