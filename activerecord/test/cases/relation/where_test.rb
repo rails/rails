@@ -181,7 +181,9 @@ module ActiveRecord
     end
 
     def test_where_with_table_name_and_nested_empty_array
-      assert_equal [], Post.where(:id => [[]]).to_a
+      assert_deprecated do
+        assert_equal [], Post.where(:id => [[]]).to_a
+      end
     end
 
     def test_where_with_empty_hash_and_no_foreign_key
