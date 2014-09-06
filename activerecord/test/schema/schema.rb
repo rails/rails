@@ -546,6 +546,12 @@ ActiveRecord::Schema.define do
     t.column :treasure_id, :integer
   end
 
+  create_table :personal_legacy_things, force: true do |t|
+    t.integer :tps_report_number
+    t.integer :person_id
+    t.integer :version, null: false, default: 0
+  end
+
   create_table :pets, primary_key: :pet_id, force: true do |t|
     t.string :name
     t.integer :owner_id, :integer
