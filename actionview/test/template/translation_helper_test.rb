@@ -1,7 +1,6 @@
 require 'abstract_unit'
 
 class TranslationHelperTest < ActiveSupport::TestCase
-  include ActionView::Helpers::TagHelper
   include ActionView::Helpers::TranslationHelper
 
   attr_reader :request, :view
