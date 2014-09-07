@@ -22,7 +22,7 @@ module ActionMailer
       options.show_previews = Rails.env.development? if options.show_previews.nil?
 
       if options.show_previews
-        options.preview_paths  ||= defined?(Rails.root) ? "#{Rails.root}/test/mailers/previews" : nil
+        options.preview_paths ||= paths["test/mailers/previews"]
       end
 
       # make sure readers methods get compiled
@@ -52,12 +52,6 @@ module ActionMailer
     initializer "action_mailer.compile_config_methods" do
       ActiveSupport.on_load(:action_mailer) do
         config.compile_methods! if config.respond_to?(:compile_methods!)
-      end
-    end
-
-    config.after_initialize do
-      if ActionMailer::Base.preview_paths
-        ActiveSupport::Dependencies.autoload_paths << ActionMailer::Base.preview_paths
       end
     end
   end
