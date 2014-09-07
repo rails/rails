@@ -380,6 +380,10 @@ module ActionDispatch # :nodoc:
       def to_path
         @response.stream.to_path
       end
+
+      def to_ary
+        nil
+      end
     end
 
     def rack_response(status, header)
