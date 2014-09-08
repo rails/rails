@@ -387,7 +387,7 @@ module ActionController
       capture_log_output do |output|
         get :exception_in_view_after_commit
         assert_match %r((window\.location = "/500\.html"</script></html>)$), response.body
-        assert_match 'Missing template test/doesntexist', output.rewind && output.read
+        assert_match 'Missing template action_controller/live_stream_test/test/doesntexist', output.rewind && output.read
         assert_stream_closed
       end
       assert response.body
@@ -402,7 +402,7 @@ module ActionController
       capture_log_output do |output|
         get :exception_in_view_after_commit, format: :json
         assert_equal '', response.body
-        assert_match 'Missing template test/doesntexist', output.rewind && output.read
+        assert_match 'Missing template action_controller/live_stream_test/test/doesntexist', output.rewind && output.read
         assert_stream_closed
       end
     end
