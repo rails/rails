@@ -158,8 +158,7 @@ module ActionView
 
       # Need to experiment if this priority is the best one: rendered => output_buffer
       def document_root_element
-        @html_document ||= Nokogiri::HTML::Document.parse(@rendered.blank? ? @output_buffer : @rendered)
-        @html_document.root
+        Nokogiri::HTML::Document.parse(@rendered.blank? ? @output_buffer : @rendered).root
       end
 
       def say_no_to_protect_against_forgery!
