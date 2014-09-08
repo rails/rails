@@ -1,3 +1,9 @@
+*   Introduced new configuration option `active_support.test_order` for
+    specifying the order test cases are executed. This option currently defaults
+    to `:sorted` but will be changed to `:random` in Rails 5.0.
+
+    *Akira Matsuda*, *Godfrey Chan*
+
 *   Fixed a bug in Inflector#underscore where acroynms in nested constant names
     are incorrectly parsed as camelCase.
 
@@ -42,12 +48,6 @@
     with per-second precision, not anything deeper than that.
 
     *DHH*
-
-*   Fix ActiveSupport::TestCase not to order users' test cases by default.
-    If this change breaks your tests because your tests are order dependent, you need to explicitly call
-    ActiveSupport::TestCase.my_tests_are_order_dependent! at the top of your tests.
-
-    *Akira Matsuda*
 
 *   Fix DateTime comparison with DateTime::Infinity object.
 
