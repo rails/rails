@@ -1870,6 +1870,10 @@ class RackMountIntegrationTests < ActiveSupport::TestCase
     get 'projects/:project_id' => "project#index", :as => "project"
     get 'clients' => "projects#index"
 
+    get 'constrained_news', to: "news#index", constraints: ->(request) {
+      request.headers['X-Custom-Header'].present?
+    }
+
     get 'ignorecase/geocode/:postalcode' => 'geocode#show', :postalcode => /hx\d\d-\d[a-z]{2}/i
     get 'extended/geocode/:postalcode' => 'geocode#show',:constraints => {
                   :postalcode => /# Postcode format
@@ -1969,6 +1973,9 @@ class RackMountIntegrationTests < ActiveSupport::TestCase
 
     assert_equal({:controller => 'news', :action => 'index' }, @routes.recognize_path('/', :method => :get))
     assert_equal({:controller => 'news', :action => 'index', :format => 'rss'}, @routes.recognize_path('/news.rss', :method => :get))
+
+    assert_equal({:controller => 'news', :action => 'index'}, @routes.recognize_path('constrained_news', :method => :get, 'HTTP_X_CUSTOM_HEADER' => '1'))
+    assert_raise(ActionController::RoutingError) { @routes.recognize_path('constrained_news') }
 
     assert_raise(ActionController::RoutingError) { @routes.recognize_path('/none', :method => :get) }
   end
