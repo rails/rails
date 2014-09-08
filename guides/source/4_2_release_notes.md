@@ -56,7 +56,59 @@ Rails 4.2 comes with a performance improvement feature called Adequate Record
 for Active Record. A lot of common queries are now up to twice as fast in Rails
 4.2!
 
-TODO: add some technical details
+This feature caches SQL query patterns while executing some activerecord query methods. Activerecord queries are transformed into SQL before being executed, and this cache helps skip some computation involved in the transformation. More details in [Aaron Patterson's post](http://tenderlovemaking.com/2014/02/19/adequaterecord-pro-like-activerecord.html).  
+
+It affects the `find` and `find_by` query methods and association queries.
+
+The following call will cache the resultant query pattern, such that the next time there is a similar call, the pattern is re-used
+
+```ruby
+Post.find 1
+
+# Cached query pattern: 
+# SELECT  posts.* FROM posts WHERE posts.id = ? LIMIT 1
+
+Post.find 2  # uses the Cached pattern
+```
+
+Similarly for `find_by`:
+
+```ruby
+Post.find_by_title 'first post'
+# OR
+Post.find_by title: 'first post'
+
+# Cached query pattern:
+# SELECT  posts.* FROM posts WHERE posts.title = ? LIMIT 1
+
+Post.find_by_title 'second post'  # uses the Cached pattern
+```
+
+This cache is sometimes called the AST-cache (where AST is abstract syntax tree)
+
+Here are some scenarios where the cache is not used -
+
+  - `find` with a list of ids. eg- `Post.find(1,2,3)` or `Post.find([1,2])`.
+  - `find_by` with a non hash argument. eg- `Post.find_by "published_at < ?", 2.weeks.ago`.
+  - The model has a default scope.
+  - The model uses single table inheritence to inherit from another model.
+
+Association queries too use a similar AST-cache. This cache is different from the [association caching](http://guides.rubyonrails.org/association_basics.html#controlling-caching) that already existed in Rails. For example
+
+```ruby
+post = Post.find 1
+post.comments  # Comment objects cached, query pattern cached
+```
+
+So the next time we invoke the `comments` method, we get the objects from the association cache. But if we force the query to get a refresh the comments, the AST-cache will be used:
+
+```ruby
+post.comments       # SQL not fired, association cache used
+# => #<ActiveRecord::Associations::CollectionProxy ... >
+post.comments(true)  # SQL forced, AST-cache used
+```
+
+
 
 ### Web Console
 
