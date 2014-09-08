@@ -688,12 +688,13 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 ### Notable changes
 
+*   Introduced new configuration option `active_support.test_order` for
+    specifying the order test cases are executed. This option currently defaults
+    to `:sorted` but will be changed to `:random` in Rails 5.0.
+    ([Commit](TODO: fill me in))
+
 *   The `travel_to` test helper now truncates the `usec` component to 0.
     ([Commit](https://github.com/rails/rails/commit/9f6e82ee4783e491c20f5244a613fdeb4024beb5))
-
-*   `ActiveSupport::TestCase` now randomizes the order that test cases are ran
-    by default.
-    ([Commit](https://github.com/rails/rails/commit/6ffb29d24e05abbd9ffe3ea974140d6c70221807))
 
 *   Introduced `Object#itself` as an identity function.
     (Commit [1](https://github.com/rails/rails/commit/702ad710b57bef45b081ebf42e6fa70820fdd810),
