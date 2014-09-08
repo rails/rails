@@ -810,6 +810,15 @@ class FoxyFixturesTest < ActiveRecord::TestCase
     assert admin_accounts(:signals37).users.include?(admin_users(:david))
     assert_equal 2, admin_accounts(:signals37).users.size
   end
+
+  class Nemesis < ActiveRecord::Base
+    self.table_name = "mateys"
+    belongs_to :mortal_enemy, :class_name => 'Pirate', :foreign_key => :target_id
+  end
+
+  def test_symbol_foreign_key_id
+    ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, "nemeses", "nemeses" => Nemesis)
+  end
 end
 
 class ActiveSupportSubclassWithFixturesTest < ActiveRecord::TestCase
