@@ -28,6 +28,12 @@
 
     Fixes #16623.
 
+*   Fix PredicateBuilder::ArrayHandler's handling of nested arrays to leverage the correct Arel predicate node.
+
+    Fixes #16580
+
+    *Dan Olson*
+
 *   Fix has_many :through relation merging failing when dynamic conditions are
     passed as a lambda with an arity of one.
 

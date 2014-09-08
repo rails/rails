@@ -2,6 +2,7 @@ module ActiveRecord
   class PredicateBuilder
     class ArrayHandler # :nodoc:
       def call(attribute, value)
+        value = value.flatten
         return attribute.in([]) if value.empty?
 
         values = value.map { |x| x.is_a?(Base) ? x.id : x }
