@@ -105,22 +105,13 @@ HEADER
         end
       end
 
-      def primary_key_for(table)
-        if @connection.respond_to?(:pk_and_sequence_for)
-          pk, _ = @connection.pk_and_sequence_for(table)
-          return pk if pk
-        end
-        return @connection.primary_key(table) if @connection.respond_to?(:primary_key)
-        nil
-      end
-
       def table(table, stream)
         columns = @connection.columns(table)
         begin
           tbl = StringIO.new
 
           # first dump primary key column
-          pk = primary_key_for(table)
+          pk = @connection.primary_key(table)
 
           tbl.print "  create_table #{remove_prefix_and_suffix(table).inspect}"
           pkcol = columns.detect { |c| c.name == pk }
