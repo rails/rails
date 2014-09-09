@@ -40,7 +40,7 @@ module ApplicationTests
       assert_equal 404, last_response.status
     end
 
-    test "mailer previews are loaded from the default preview_path" do
+    test "mailer previews are loaded from the default preview_paths" do
       mailer 'notifier', <<-RUBY
         class Notifier < ActionMailer::Base
           default from: "from@example.com"
@@ -70,8 +70,8 @@ module ApplicationTests
       assert_match '<li><a href="/rails/mailers/notifier/foo">foo</a></li>', last_response.body
     end
 
-    test "mailer previews are loaded from a custom preview_path" do
-      add_to_config "config.action_mailer.preview_path = '#{app_path}/lib/mailer_previews'"
+    test "mailer previews are loaded from a custom preview_paths" do
+      add_to_config "config.action_mailer.preview_paths = '#{app_path}/lib/mailer_previews'"
 
       mailer 'notifier', <<-RUBY
         class Notifier < ActionMailer::Base
@@ -239,8 +239,8 @@ module ApplicationTests
       assert_no_match '<li><a href="/rails/mailers/notifier/bar">bar</a></li>', last_response.body
     end
 
-    test "mailer previews are reloaded from a custom preview_path" do
-      add_to_config "config.action_mailer.preview_path = '#{app_path}/lib/mailer_previews'"
+    test "mailer previews are reloaded from a custom preview_paths" do
+      add_to_config "config.action_mailer.preview_paths = '#{app_path}/lib/mailer_previews'"
 
       app('development')
 

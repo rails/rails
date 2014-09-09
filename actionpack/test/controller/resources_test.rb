@@ -346,13 +346,13 @@ class ResourcesTest < ActionController::TestCase
       end
 
       preview_options = {:action => 'preview'}
-      preview_path    = "/messages/new/preview"
+      preview_paths   = "/messages/new/preview"
       assert_restful_routes_for :messages do |options|
-        assert_recognizes(options.merge(preview_options), :path => preview_path, :method => :post)
+        assert_recognizes(options.merge(preview_options), :path => preview_paths, :method => :post)
       end
 
       assert_restful_named_routes_for :messages do |options|
-        assert_named_route preview_path, :preview_new_message_path, preview_options
+        assert_named_route preview_paths, :preview_new_message_path, preview_options
       end
     end
   end
@@ -368,13 +368,13 @@ class ResourcesTest < ActionController::TestCase
       end
 
       preview_options = {:action => 'preview', :thread_id => '1'}
-      preview_path    = "/threads/1/messages/new/preview"
+      preview_paths   = "/threads/1/messages/new/preview"
       assert_restful_routes_for :messages, :path_prefix => 'threads/1/', :name_prefix => 'thread_', :options => { :thread_id => '1' } do |options|
-        assert_recognizes(options.merge(preview_options), :path => preview_path, :method => :post)
+        assert_recognizes(options.merge(preview_options), :path => preview_paths, :method => :post)
       end
 
       assert_restful_named_routes_for :messages, :path_prefix => 'threads/1/', :name_prefix => 'thread_', :options => { :thread_id => '1' } do |options|
-        assert_named_route preview_path, :preview_new_thread_message_path, preview_options
+        assert_named_route preview_paths, :preview_new_thread_message_path, preview_options
       end
     end
   end
@@ -390,13 +390,13 @@ class ResourcesTest < ActionController::TestCase
       end
 
       preview_options = {:action => 'preview', :thread_id => '1', :format => 'xml'}
-      preview_path    = "/threads/1/messages/new/preview.xml"
+      preview_paths   = "/threads/1/messages/new/preview.xml"
       assert_restful_routes_for :messages, :path_prefix => 'threads/1/', :name_prefix => 'thread_', :options => { :thread_id => '1' } do |options|
-        assert_recognizes(options.merge(preview_options), :path => preview_path, :method => :post)
+        assert_recognizes(options.merge(preview_options), :path => preview_paths, :method => :post)
       end
 
       assert_restful_named_routes_for :messages, :path_prefix => 'threads/1/', :name_prefix => 'thread_', :options => { :thread_id => '1' } do |options|
-        assert_named_route preview_path, :preview_new_thread_message_path, preview_options
+        assert_named_route preview_paths, :preview_new_thread_message_path, preview_options
       end
     end
   end
