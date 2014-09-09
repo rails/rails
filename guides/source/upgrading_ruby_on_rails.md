@@ -8,7 +8,7 @@ This guide provides steps to be followed when you upgrade your applications to a
 General Advice
 --------------
 
-Before attempting to upgrade an existing application, you should be sure you have a good reason to upgrade. You need to balance out several factors: the need for new features, the increasing difficulty of finding support for old code, and your available time and skills, to name a few.
+Before attempting to upgrade an existing application, you should be sure you have a good reason to upgrade. You need to balance several factors: the need for new features, the increasing difficulty of finding support for old code, and your available time and skills, to name a few.
 
 ### Test Coverage
 
@@ -55,7 +55,11 @@ a [pull request](https://github.com/rails/rails/edit/master/guides/source/upgrad
 
 ### Web Console
 
-TODO: setup instructions for web console on existing apps.
+First, add `gem 'web-console', '~> 2.0.0.beta3'` to the `:development` group in your Gemfile and run `bundle install` (it won't have been included when you upgraded Rails). Once it's been installed, you can simply drop a reference to the console helper (i.e., `<%= console %>`) into any view you want to enable it for. A console will also be provided on any error page you view in your development environment.
+
+Additionally, you can tell Rails to automatically mount a VT100-compatible console on a predetermined path by setting `config.web_console.automount = true` in your application.rb. You can specify the path by setting `config.web_console.default_mount_path` (note that this defaults to `/console`).
+
+TODO: Update `web-console` version to release version.
 
 ### Responders
 
