@@ -350,4 +350,18 @@ class GeneratedMethodsTest < ActiveRecord::TestCase
   def test_model_method_overrides_association_method
     assert_equal(comments(:greetings).body, posts(:welcome).first_comment)
   end
+
+  module MyModule
+    def comments; :none end
+  end
+
+  class MyArticle < ActiveRecord::Base
+    self.table_name = "articles"
+    include MyModule
+    has_many :comments, inverse_of: false
+  end
+
+  def test_included_module_overwrites_association_methods
+    assert_equal :none, MyArticle.new.comments
+  end
 end
