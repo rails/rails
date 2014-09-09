@@ -1,3 +1,9 @@
+*   Allow included modules to override association methods.
+
+    Fixes #16684.
+
+    *Yves Senn*
+
 *   Schema loading rake tasks (like `db:schema:load` and `db:setup`) maintain
     the database connection to the current environment.
 
