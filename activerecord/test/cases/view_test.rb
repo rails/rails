@@ -42,6 +42,13 @@ class ViewWithPrimaryKeyTest < ActiveRecord::TestCase
     assert_equal({"id" => 2, "name" => "Ruby for Rails", "status" => 0},
                  Ebook.first.attributes)
   end
+
+  def test_does_not_assume_id_column_as_primary_key
+    model = Class.new(ActiveRecord::Base) do
+      self.table_name = "ebooks"
+    end
+    assert_nil model.primary_key
+  end
 end
 
 class ViewWithoutPrimaryKeyTest < ActiveRecord::TestCase
@@ -79,6 +86,10 @@ class ViewWithoutPrimaryKeyTest < ActiveRecord::TestCase
   def test_attributes
     assert_equal({"name" => "Agile Web Development with Rails", "status" => 0},
                  Paperback.first.attributes)
+  end
+
+  def test_does_not_have_a_primary_key
+    assert_nil Paperback.primary_key
   end
 end
 end
