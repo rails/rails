@@ -197,6 +197,10 @@ module ActiveRecord
         true
       end
 
+      def supports_views?
+        version[0] >= 5
+      end
+
       def native_database_types
         NATIVE_DATABASE_TYPES
       end
@@ -777,10 +781,6 @@ module ActiveRecord
 
       def mariadb?
         full_version =~ /mariadb/i
-      end
-
-      def supports_views?
-        version[0] >= 5
       end
 
       def supports_rename_index?
