@@ -2,42 +2,45 @@ require 'abstract_unit'
 require 'controller/fake_models'
 require 'pathname'
 
+class TestController < ActionController::Base
+  protect_from_forgery
+
+  def render_with_location
+    render :xml => "<hello/>", :location => "http://example.com", :status => 201
+  end
+
+  def render_with_object_location
+    customer = Customer.new("Some guy", 1)
+    render :xml => "<customer/>", :location => customer, :status => :created
+  end
+
+  def render_with_to_xml
+    render :xml => XmlRenderable.new
+  end
+
+  def formatted_xml_erb
+  end
+
+  def implicit_content_type
+  end
+
+  def render_xml_with_custom_content_type
+    render :xml => "<blah/>", :content_type => "application/atomsvc+xml"
+  end
+
+  def render_xml_with_custom_options
+    render :xml => XmlRenderable.new, :root => "i-am-THE-xml"
+  end
+end
+
+class XmlRenderable
+  def to_xml(options)
+    options[:root] ||= "i-am-xml"
+    "<#{options[:root]}/>"
+  end
+end
+
 class RenderXmlTest < ActionController::TestCase
-  class XmlRenderable
-    def to_xml(options)
-      options[:root] ||= "i-am-xml"
-      "<#{options[:root]}/>"
-    end
-  end
-
-  class TestController < ActionController::Base
-    protect_from_forgery
-
-    def render_with_location
-      render :xml => "<hello/>", :location => "http://example.com", :status => 201
-    end
-
-    def render_with_object_location
-      customer = Customer.new("Some guy", 1)
-      render :xml => "<customer/>", :location => customer, :status => :created
-    end
-
-    def render_with_to_xml
-      render :xml => XmlRenderable.new
-    end
-
-    def formatted_xml_erb
-    end
-
-    def render_xml_with_custom_content_type
-      render :xml => "<blah/>", :content_type => "application/atomsvc+xml"
-    end
-
-    def render_xml_with_custom_options
-      render :xml => XmlRenderable.new, :root => "i-am-THE-xml"
-    end
-  end
-
   tests TestController
 
   def setup
