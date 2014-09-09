@@ -28,7 +28,6 @@ class ViewWithPrimaryKeyTest < ActiveRecord::TestCase
   end
 
   def test_table_exists
-    skip "SQLite does not currently treat views as tables" if current_adapter?(:SQLite3Adapter)
     view_name = Ebook.table_name
     assert @connection.table_exists?(view_name), "'#{view_name}' table should exist"
   end
