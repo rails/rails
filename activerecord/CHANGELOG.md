@@ -1,3 +1,10 @@
+*   A `NullRelation` should represent nothing. This fixes a bug where
+    `Comment.where(post_id: Post.none)` returned a non-empty result.
+
+    Closes #15176.
+
+    *Matthew Draper*, *Yves Senn*
+
 *   Include default column limits in schema.rb. Allows defaults to be changed
     in the future without affecting old migrations that assumed old defaults.
 
