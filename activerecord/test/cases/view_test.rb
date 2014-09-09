@@ -18,7 +18,7 @@ class ViewWithPrimaryKeyTest < ActiveRecord::TestCase
   end
 
   teardown do
-    @connection.execute "DROP VIEW IF EXISTS ebooks"
+    @connection.execute "DROP VIEW ebooks" if @connection.table_exists? "ebooks"
   end
 
   def test_reading
@@ -65,7 +65,7 @@ class ViewWithoutPrimaryKeyTest < ActiveRecord::TestCase
   end
 
   teardown do
-    @connection.execute "DROP VIEW IF EXISTS paperbacks"
+    @connection.execute "DROP VIEW paperbacks" if @connection.table_exists? "paperbacks"
   end
 
   def test_reading
