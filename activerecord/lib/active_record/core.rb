@@ -183,8 +183,6 @@ module ActiveRecord
       end
 
       def initialize_generated_modules
-        super
-
         generated_association_methods
       end
 
