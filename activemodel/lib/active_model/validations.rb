@@ -142,9 +142,14 @@ module ActiveModel
       #   value.
       def validate(*args, &block)
         options = args.extract_options!
+        valid_keys = [:on, :if, :unless]
 
         if args.all? { |arg| arg.is_a?(Symbol) }
-          options.assert_valid_keys([:on, :if, :unless])
+          options.each_key do |k|
+            unless valid_keys.include?(k)
+              raise ArgumentError.new("Unknown key: #{k.inspect}. Valid keys are: #{valid_keys.map(&:inspect).join(', ')}. Perhaps you meant to call validates instead of validate.")
+            end
+          end
         end
 
         if options.key?(:on)
