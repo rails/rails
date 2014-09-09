@@ -63,7 +63,22 @@ TODO: mention https://github.com/rails/rails/pull/16526
 
 ### Error handling in transaction callbacks
 
-TODO: mention https://github.com/rails/rails/pull/16537
+Currently, Active Record suppresses errors raised
+within `after_rollback` or `after_commit` callbacks and only prints them to
+the logs. In the next version, these errors will no longer be suppressed.
+Instead, the errors will propagate normally just like in other Active
+Record callbacks.
+
+When you define a `after_rollback` or `after_commit` callback now, you
+will receive a deprecation warning about this upcoming change. When
+you are ready, you can opt into the new behvaior and remove the
+deprecation warning by adding following configuration to your
+`config/application.rb`:
+
+    config.active_record.raise_in_transactional_callbacks = true
+
+See [#14488](https://github.com/rails/rails/pull/14488) and
+[#16537](https://github.com/rails/rails/pull/16537) for more details.
 
 ### Serialized attributes
 
