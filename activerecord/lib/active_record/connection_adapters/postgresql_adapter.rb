@@ -158,6 +158,10 @@ module ActiveRecord
         true
       end
 
+      def supports_views?
+        true
+      end
+
       def index_algorithms
         { concurrently: 'CONCURRENTLY' }
       end

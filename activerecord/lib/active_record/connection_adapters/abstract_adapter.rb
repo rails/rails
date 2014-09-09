@@ -240,6 +240,11 @@ module ActiveRecord
         false
       end
 
+      # Does this adapter support views?
+      def supports_views?
+        false
+      end
+
       # This is meant to be implemented by the adapters that support extensions
       def disable_extension(name)
       end

@@ -1,3 +1,8 @@
+*   Introduce `connection.supports_views?` to check wether the current adapter
+    has support for SQL views. Connection adapters should define this method.
+
+    *Yves Senn*
+
 *   Allow included modules to override association methods.
 
     Fixes #16684.
