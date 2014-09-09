@@ -1,3 +1,10 @@
+*   A `NullRelation` should represent nothing. This fixes a bug where
+    `Comment.where(post_id: Post.none)` returned a non-empty result.
+
+    Closes #15176.
+
+    *Matthew Draper*, *Yves Senn*
+
 *   Respect custom primary keys for associations when calling `Relation#where`
 
     Fixes #18813.

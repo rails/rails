@@ -397,6 +397,11 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal        nil, ac.engines.maximum(:id)
   end
 
+  def test_null_relation_in_where_condition
+    assert_operator 0, :<, Comment.count # precondition, make sure there are comments.
+    assert_equal 0, Comment.where(post_id: Post.none).to_a.size
+  end
+
   def test_joins_with_nil_argument
     assert_nothing_raised { DependentFirm.joins(nil).first }
   end

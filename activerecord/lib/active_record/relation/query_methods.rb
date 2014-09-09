@@ -677,11 +677,11 @@ module ActiveRecord
     #   end
     #
     def none
-      extending(NullRelation)
+      where("1=0").extending!(NullRelation)
     end
 
     def none! # :nodoc:
-      extending!(NullRelation)
+      where!("1=0").extending!(NullRelation)
     end
 
     # Sets readonly attributes for the returned relation. If value is

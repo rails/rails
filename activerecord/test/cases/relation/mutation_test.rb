@@ -18,6 +18,10 @@ module ActiveRecord
       def attribute_alias?(name)
         false
       end
+
+      def sanitize_sql(sql)
+        sql
+      end
     end
 
     def relation
