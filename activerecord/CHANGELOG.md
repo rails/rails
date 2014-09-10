@@ -1,3 +1,7 @@
+*   MySQL: schema.rb now includes TEXT and BLOB column limits.
+
+    *Jeremy Kemper*
+
 *   MySQL: correct LONGTEXT and LONGBLOB limits from 2GB to their true 4GB.
 
     *Jeremy Kemper*

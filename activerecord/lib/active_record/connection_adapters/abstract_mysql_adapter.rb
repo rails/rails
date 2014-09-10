@@ -640,16 +640,19 @@ module ActiveRecord
 
       def initialize_type_map(m) # :nodoc:
         super
+
         m.register_type(%r(enum)i) do |sql_type|
           limit = sql_type[/^enum\((.+)\)/i, 1]
             .split(',').map{|enum| enum.strip.length - 2}.max
           Type::String.new(limit: limit)
         end
 
-        m.register_type %r(tinytext)i,   Type::Text.new(limit: 255)
-        m.register_type %r(tinyblob)i,   Type::Binary.new(limit: 255)
-        m.register_type %r(mediumtext)i, Type::Text.new(limit: 16777215)
-        m.register_type %r(mediumblob)i, Type::Binary.new(limit: 16777215)
+        m.register_type %r(tinytext)i,   Type::Text.new(limit: 2**8 - 1)
+        m.register_type %r(tinyblob)i,   Type::Binary.new(limit: 2**8 - 1)
+        m.register_type %r(text)i,       Type::Text.new(limit: 2**16 - 1)
+        m.register_type %r(blob)i,       Type::Binary.new(limit: 2**16 - 1)
+        m.register_type %r(mediumtext)i, Type::Text.new(limit: 2**24 - 1)
+        m.register_type %r(mediumblob)i, Type::Binary.new(limit: 2**24 - 1)
         m.register_type %r(longtext)i,   Type::Text.new(limit: 2**32 - 1)
         m.register_type %r(longblob)i,   Type::Binary.new(limit: 2**32 - 1)
         m.register_type %r(^bigint)i,    Type::Integer.new(limit: 8)
