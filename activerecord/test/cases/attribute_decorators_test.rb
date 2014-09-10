@@ -28,7 +28,7 @@ module ActiveRecord
 
     teardown do
       return unless @connection
-      @connection.execute 'DROP TABLE attribute_decorators_model' if @connection.table_exists? 'attribute_decorators_model'
+      @connection.drop_table 'attribute_decorators_model' if @connection.table_exists? 'attribute_decorators_model'
       Model.attribute_type_decorations.clear
       Model.reset_column_information
     end
