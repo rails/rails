@@ -980,6 +980,15 @@ module ApplicationTests
       assert_kind_of Hash, Rails.application.config.database_configuration
     end
 
+    test 'raises with proper error message if no database configuration found' do
+      FileUtils.rm("#{app_path}/config/database.yml")
+      require "#{app_path}/config/environment"
+      err = assert_raises RuntimeError do
+        Rails.application.config.database_configuration
+      end
+      assert_match 'config/database', err.message
+    end
+
     test 'config.action_mailer.show_previews defaults to true in development' do
       Rails.env = "development"
       require "#{app_path}/config/environment"
