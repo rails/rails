@@ -10,12 +10,11 @@ class SchemaDumperTest < ActiveRecord::TestCase
   end
 
   def standard_dump
-    @stream = StringIO.new
-    old_ignore_tables, ActiveRecord::SchemaDumper.ignore_tables = ActiveRecord::SchemaDumper.ignore_tables, []
-    ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, @stream)
-    @stream.string
-  ensure
-    ActiveRecord::SchemaDumper.ignore_tables = old_ignore_tables
+    @@standard_dump ||= perform_schema_dump
+  end
+
+  def perform_schema_dump
+    dump_all_table_schema []
   end
 
   def test_dump_schema_information_outputs_lexically_ordered_versions
@@ -31,8 +30,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
   end
 
   def test_magic_comment
-    output = standard_dump
-    assert_match "# encoding: #{@stream.external_encoding.name}", output
+    assert_match "# encoding: #{Encoding.default_external.name}", standard_dump
   end
 
   def test_schema_dump
@@ -255,12 +253,12 @@ class SchemaDumperTest < ActiveRecord::TestCase
         connection = ActiveRecord::Base.connection
 
         connection.stubs(:extensions).returns(['hstore'])
-        output = standard_dump
+        output = perform_schema_dump
         assert_match "# These are extensions that must be enabled", output
         assert_match %r{enable_extension "hstore"}, output
 
         connection.stubs(:extensions).returns([])
-        output = standard_dump
+        output = perform_schema_dump
         assert_no_match "# These are extensions that must be enabled", output
         assert_no_match %r{enable_extension}, output
       end
@@ -401,7 +399,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
     migration = CreateDogMigration.new
     migration.migrate(:up)
 
-    output = standard_dump
+    output = perform_schema_dump
     assert_no_match %r{create_table "foo_.+_bar"}, output
     assert_no_match %r{add_index "foo_.+_bar"}, output
     assert_no_match %r{create_table "schema_migrations"}, output
