@@ -100,7 +100,11 @@ class SchemaDumperTest < ActiveRecord::TestCase
   def test_schema_dump_includes_limit_constraint_for_integer_columns
     output = dump_all_table_schema([/^(?!integer_limits)/])
 
+    assert_match %r{c_int_without_limit}, output
+
     if current_adapter?(:PostgreSQLAdapter)
+      assert_no_match %r{c_int_without_limit.*limit:}, output
+
       assert_match %r{c_int_1.*limit: 2}, output
       assert_match %r{c_int_2.*limit: 2}, output
 
@@ -111,6 +115,8 @@ class SchemaDumperTest < ActiveRecord::TestCase
       assert_match %r{c_int_4.*}, output
       assert_no_match %r{c_int_4.*limit:}, output
     elsif current_adapter?(:MysqlAdapter, :Mysql2Adapter)
+      assert_match %r{c_int_without_limit.*limit: 4}, output
+
       assert_match %r{c_int_1.*limit: 1}, output
       assert_match %r{c_int_2.*limit: 2}, output
       assert_match %r{c_int_3.*limit: 3}, output
@@ -118,13 +124,13 @@ class SchemaDumperTest < ActiveRecord::TestCase
       assert_match %r{c_int_4.*}, output
       assert_no_match %r{c_int_4.*:limit}, output
     elsif current_adapter?(:SQLite3Adapter)
+      assert_no_match %r{c_int_without_limit.*limit:}, output
+
       assert_match %r{c_int_1.*limit: 1}, output
       assert_match %r{c_int_2.*limit: 2}, output
       assert_match %r{c_int_3.*limit: 3}, output
       assert_match %r{c_int_4.*limit: 4}, output
     end
-    assert_match %r{c_int_without_limit.*}, output
-    assert_no_match %r{c_int_without_limit.*limit:}, output
 
     if current_adapter?(:SQLite3Adapter)
       assert_match %r{c_int_5.*limit: 5}, output
@@ -354,7 +360,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
     match = output.match(%r{create_table "goofy_string_id"(.*)do.*\n(.*)\n})
     assert_not_nil(match, "goofy_string_id table not found")
     assert_match %r(id: false), match[1], "no table id not preserved"
-    assert_match %r{t.string[[:space:]]+"id",[[:space:]]+null: false$}, match[2], "non-primary key id column not preserved"
+    assert_match %r{t.string\s+"id",.*?null: false$}, match[2], "non-primary key id column not preserved"
   end
 
   def test_schema_dump_keeps_id_false_when_id_is_false_and_unique_not_null_column_added
@@ -433,7 +439,7 @@ class SchemaDumperDefaultsTest < ActiveRecord::TestCase
   def test_schema_dump_defaults_with_universally_supported_types
     output = dump_table_schema('defaults')
 
-    assert_match %r{t\.string\s+"string_with_default",\s+default: "Hello!"}, output
+    assert_match %r{t\.string\s+"string_with_default",.*?default: "Hello!"}, output
     assert_match %r{t\.date\s+"date_with_default",\s+default: '2014-06-05'}, output
     assert_match %r{t\.datetime\s+"datetime_with_default",\s+default: '2014-06-05 07:17:04'}, output
     assert_match %r{t\.time\s+"time_with_default",\s+default: '2000-01-01 07:17:04'}, output
