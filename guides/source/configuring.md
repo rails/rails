@@ -453,10 +453,10 @@ There are a number of settings available on `config.action_mailer`:
     config.action_mailer.interceptors = ["MailInterceptor"]
     ```
 
-* `config.action_mailer.preview_path` specifies the location of mailer previews.
+* `config.action_mailer.preview_paths` adds the location of mailer previews.
 
     ```ruby
-    config.action_mailer.preview_path = "#{Rails.root}/lib/mailer_previews"
+    config.action_mailer.preview_paths << "#{Rails.root}/lib/mailer_previews"
     ```
 
 * `config.action_mailer.show_previews` enable or disable mailer previews. By default this is `true` in development.
