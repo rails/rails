@@ -19,12 +19,16 @@ module ActiveRecord
         spec = {}
         spec[:name]      = column.name.inspect
         spec[:type]      = column.type.to_s
-        spec[:limit]     = column.limit.inspect if column.limit != types[column.type][:limit]
+        spec[:null]      = 'false' unless column.null
+
+        limit = column.limit || types[column.type][:limit]
+        spec[:limit]     = limit.inspect if limit
         spec[:precision] = column.precision.inspect if column.precision
         spec[:scale]     = column.scale.inspect if column.scale
-        spec[:null]      = 'false' unless column.null
-        spec[:default]   = schema_default(column) if column.has_default?
-        spec.delete(:default) if spec[:default].nil?
+
+        default = schema_default(column) if column.has_default?
+        spec[:default]   = default unless default.nil?
+
         spec
       end
 

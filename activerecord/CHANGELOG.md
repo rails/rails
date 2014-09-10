@@ -1,3 +1,8 @@
+*   Include default column limits in schema.rb. Allows defaults to be changed
+    in the future without affecting old migrations that assumed old defaults.
+
+    *Jeremy Kemper*
+
 *   MySQL: schema.rb now includes TEXT and BLOB column limits.
 
     *Jeremy Kemper*
