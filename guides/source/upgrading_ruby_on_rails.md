@@ -57,7 +57,7 @@ a [pull request](https://github.com/rails/rails/edit/master/guides/source/upgrad
 
 First, add `gem 'web-console', '~> 2.0.0.beta3'` to the `:development` group in your Gemfile and run `bundle install` (it won't have been included when you upgraded Rails). Once it's been installed, you can simply drop a reference to the console helper (i.e., `<%= console %>`) into any view you want to enable it for. A console will also be provided on any error page you view in your development environment.
 
-Additionally, you can tell Rails to automatically mount a VT100-compatible console on a predetermined path by setting `config.web_console.automount = true` in your application.rb. You can specify the path by setting `config.web_console.default_mount_path` (note that this defaults to `/console`).
+Additionally, you can tell Rails to automatically mount a VT100-compatible console on a predetermined path by setting `config.web_console.automount = true` in your `config/environments/development.rb`. You can specify the path by setting `config.web_console.default_mount_path` (note that this defaults to `/console`).
 
 TODO: Update `web-console` version to release version.
 
