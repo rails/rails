@@ -219,11 +219,11 @@ class SchemaDumperTest < ActiveRecord::TestCase
       assert_match %r{t.binary\s+"tiny_blob",\s+limit: 255$}, output
       assert_match %r{t.binary\s+"normal_blob"$}, output
       assert_match %r{t.binary\s+"medium_blob",\s+limit: 16777215$}, output
-      assert_match %r{t.binary\s+"long_blob",\s+limit: 2147483647$}, output
+      assert_match %r{t.binary\s+"long_blob",\s+limit: 4294967295$}, output
       assert_match %r{t.text\s+"tiny_text",\s+limit: 255$}, output
       assert_match %r{t.text\s+"normal_text"$}, output
       assert_match %r{t.text\s+"medium_text",\s+limit: 16777215$}, output
-      assert_match %r{t.text\s+"long_text",\s+limit: 2147483647$}, output
+      assert_match %r{t.text\s+"long_text",\s+limit: 4294967295$}, output
     end
 
     def test_schema_dumps_index_type
