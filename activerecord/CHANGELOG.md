@@ -1,3 +1,11 @@
+*   MySQL: correct LONGTEXT and LONGBLOB limits from 2GB to their true 4GB.
+
+    *Jeremy Kemper*
+
+*   SQLite3Adapter now checks for views in `table_exists?`. Fixes #14041.
+
+    *Girish Sonawane*
+
 *   Introduce `connection.supports_views?` to check wether the current adapter
     has support for SQL views. Connection adapters should define this method.
 
