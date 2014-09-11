@@ -1,4 +1,4 @@
-## Rails 4.0.10 (September 8, 2014) ##
+## Rails 4.0.10 (September 11, 2014) ##
 
 *No changes*
 
