@@ -9,6 +9,7 @@
 require 'fileutils'
 
 require 'bundler/setup' unless defined?(Bundler)
+require 'active_support'
 require 'active_support/testing/autorun'
 require 'active_support/test_case'
 

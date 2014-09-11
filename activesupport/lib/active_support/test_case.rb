@@ -12,22 +12,18 @@ require 'active_support/core_ext/kernel/reporting'
 require 'active_support/deprecation'
 
 module ActiveSupport
-  class << self
-    delegate :test_order, :test_order=, to: :'ActiveSupport::TestCase'
-  end
-
   class TestCase < ::Minitest::Test
     Assertion = Minitest::Assertion
 
-    @@test_order = nil
-
     class << self
       def test_order=(new_order)
-        @@test_order = new_order
+        ActiveSupport.test_order = new_order
       end
 
       def test_order
-        if @@test_order.nil?
+        test_order = ActiveSupport.test_order
+
+        if test_order.nil?
           ActiveSupport::Deprecation.warn "You did not specify a value for the " \
             "configuration option 'active_support.test_order'. In Rails 5.0, " \
             "the default value of this option will change from `:sorted` to " \
@@ -42,10 +38,11 @@ module ActiveSupport
             "Alternatively, you can opt into the future behavior by setting this " \
             "option to `:random`."
 
-          @@test_order = :sorted
+          test_order = :sorted
+          self.test_order = test_order
         end
 
-        @@test_order
+        test_order
       end
 
       alias :my_tests_are_order_dependent! :i_suck_and_my_tests_are_order_dependent!
