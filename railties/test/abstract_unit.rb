@@ -30,7 +30,7 @@ end
 class ActiveSupport::TestCase
   # FIXME: we have tests that depend on run order, we should fix that and
   # remove this method call.
-  self.my_tests_are_order_dependent!
+  self.test_order = :sorted
 
   private
 
