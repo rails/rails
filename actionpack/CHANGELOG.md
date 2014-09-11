@@ -1,5 +1,11 @@
 ## Rails 4.1.6 (September 11, 2014) ##
 
+*   Fix a bug where malformed query strings lead to 500.
+
+    fixes #11502.
+
+    *Yuki Nishijima*
+
 *   Prepend a JS comment to JSONP callbacks. Addresses CVE-2014-4671
     ("Rosetta Flash")
 
