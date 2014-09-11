@@ -421,7 +421,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_null_relation_in_where_condition
-    assert_operator 0, :<, Comment.count # precondition, make sure there are comments.
+    assert_operator Comment.count, :>, 0 # precondition, make sure there are comments.
     assert_equal 0, Comment.where(post_id: Post.none).to_a.size
   end
 
