@@ -1,24 +1,28 @@
 require "cases/helper"
 require "models/book"
 
-if ActiveRecord::Base.connection.supports_views?
-class ViewWithPrimaryKeyTest < ActiveRecord::TestCase
-  fixtures :books
+module ViewBehavior
+  extend ActiveSupport::Concern
+
+  included do
+    fixtures :books
+  end
 
   class Ebook < ActiveRecord::Base
     self.primary_key = "id"
   end
 
-  setup do
+  def setup
+    super
     @connection = ActiveRecord::Base.connection
-    @connection.execute <<-SQL
-      CREATE VIEW ebooks
-        AS SELECT id, name, status FROM books WHERE format = 'ebook'
+    create_view "ebooks", <<-SQL
+      SELECT id, name, status FROM books WHERE format = 'ebook'
     SQL
   end
 
-  teardown do
-    @connection.execute "DROP VIEW ebooks" if @connection.table_exists? "ebooks"
+  def teardown
+    super
+    drop_view "ebooks"
   end
 
   def test_reading
@@ -48,6 +52,20 @@ class ViewWithPrimaryKeyTest < ActiveRecord::TestCase
       self.table_name = "ebooks"
     end
     assert_nil model.primary_key
+  end
+end
+
+if ActiveRecord::Base.connection.supports_views?
+class ViewWithPrimaryKeyTest < ActiveRecord::TestCase
+  include ViewBehavior
+
+  private
+  def create_view(name, query)
+    @connection.execute "CREATE VIEW #{name} AS #{query}"
+  end
+
+  def drop_view(name)
+    @connection.execute "DROP VIEW #{name}" if @connection.table_exists? name
   end
 end
 
