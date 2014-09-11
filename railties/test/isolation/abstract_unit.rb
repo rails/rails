@@ -297,6 +297,8 @@ class ActiveSupport::TestCase
   include TestHelpers::Rack
   include TestHelpers::Generation
 
+  self.test_order = :sorted
+
   private
 
   def capture(stream)
