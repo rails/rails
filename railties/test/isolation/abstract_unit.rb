@@ -140,6 +140,7 @@ module TestHelpers
         config.eager_load = false
         config.session_store :cookie_store, key: "_myapp_session"
         config.active_support.deprecation = :log
+        config.active_support.test_order = :random
         config.action_controller.allow_forgery_protection = false
       RUBY
     end
