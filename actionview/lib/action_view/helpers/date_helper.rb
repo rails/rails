@@ -145,16 +145,16 @@ module ActionView
       #   time_ago_in_words(Time.now)                           # => less than a minute
       #   time_ago_in_words(Time.now, include_seconds: true) # => less than 5 seconds
       #
-      #   from_time = Time.now - 3.days - 14.minutes - 25.seconds
-      #   time_ago_in_words(from_time)      # => 3 days
+      #   to_time = Time.now - 3.days - 14.minutes - 25.seconds
+      #   time_ago_in_words(to_time)      # => 3 days
       #
-      #   from_time = (3.days + 14.minutes + 25.seconds).ago
-      #   time_ago_in_words(from_time)      # => 3 days
+      #   to_time = (3.days + 14.minutes + 25.seconds).ago
+      #   time_ago_in_words(to_time)      # => 3 days
       #
       # Note that you cannot pass a <tt>Numeric</tt> value to <tt>time_ago_in_words</tt>.
       #
-      def time_ago_in_words(from_time, options = {})
-        distance_of_time_in_words(from_time, Time.now, options)
+      def time_ago_in_words(to_time, options = {})
+        distance_of_time_in_words(to_time, Time.now, options)
       end
 
       alias_method :distance_of_time_in_words_to_now, :time_ago_in_words
