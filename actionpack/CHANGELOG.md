@@ -1,3 +1,5 @@
+## Rails 4.0.10 (September 11, 2014) ##
+
 *   Return an absolute instead of relative path from an asset url in the case
     of the `asset_host` proc returning nil
 
