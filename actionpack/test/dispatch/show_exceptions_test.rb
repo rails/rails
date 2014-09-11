@@ -8,7 +8,7 @@ class ShowExceptionsTest < ActionDispatch::IntegrationTest
       case req.path
       when "/not_found"
         raise AbstractController::ActionNotFound
-      when "/bad_params"
+      when "/bad_params", "/bad_params?x[y]=1&x[y][][w]=2"
         raise ActionDispatch::ParamsParser::ParseError.new("", StandardError.new)
       when "/method_not_allowed"
         raise ActionController::MethodNotAllowed
@@ -39,6 +39,10 @@ class ShowExceptionsTest < ActionDispatch::IntegrationTest
     assert_equal "500 error fixture\n", body
     
     get "/bad_params", {}, {'action_dispatch.show_exceptions' => true}
+    assert_response 400
+    assert_equal "400 error fixture\n", body
+
+    get "/bad_params?x[y]=1&x[y][][w]=2", {}, {'action_dispatch.show_exceptions' => true}
     assert_response 400
     assert_equal "400 error fixture\n", body
 
