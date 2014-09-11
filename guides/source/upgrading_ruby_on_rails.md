@@ -89,7 +89,7 @@ See [#14488](https://github.com/rails/rails/pull/14488) and
 In Rails 5.0, test cases will be executed in random order by default. In
 anticipation of this change, Rails 4.2 introduced a new configuration option
 `active_support.test_order` for explicitly specifying the test ordering. This
-allows you to either locking down the current behavior by setting the option to
+allows you to either lock down the current behavior by setting the option to
 `:sorted`, or opt into the future behavior by setting the option to `:random`.
 
 If you do not specify a value for this option, a deprecation warning will be
