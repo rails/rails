@@ -1,4 +1,4 @@
-## Rails 4.1.6 (September 8, 2014) ##
+## Rails 4.1.6 (September 11, 2014) ##
 
 *   Fixed a regression where whitespaces were stripped from DISTINCT queries in
     PostgreSQL.
