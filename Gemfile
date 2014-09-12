@@ -16,8 +16,6 @@ gem 'rails-html-sanitizer', github: 'rails/rails-html-sanitizer'
 gem 'rails-deprecated_sanitizer', github: 'rails/rails-deprecated_sanitizer'
 # TODO: Release this gem
 gem 'rails-dom-testing', github: 'rails/rails-dom-testing'
-# TODO: Release this gem
-gem 'globalid', github: 'rails/globalid'
 gem 'turbolinks', '~> 2.2.3'
 
 # require: false so bcrypt is loaded only when has_secure_password is used.
