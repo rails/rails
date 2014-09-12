@@ -5,9 +5,8 @@ end
 
 class RedirectController < ActionController::Base
   # empty method not used anywhere to ensure methods like
-  # `status` and `location` aren't called on `redirect_to` calls
+  # `status` aren't called on `redirect_to` calls
   def status; render :text => 'called status'; end
-  def location; render :text => 'called location'; end
 
   def simple_redirect
     redirect_to :action => "hello_world"
@@ -64,6 +63,10 @@ class RedirectController < ActionController::Base
 
   def redirect_to_url_with_unescaped_query_string
     redirect_to "http://dev.rubyonrails.org/query?status=new"
+  end
+
+  def redirect_to_with_multiple_unescaped_query_strings
+    redirect_to "http://dev.rubyonrails.org/query?status=new&foo=bar"
   end
 
   def redirect_to_url_with_complex_scheme
@@ -234,6 +237,13 @@ class RedirectTest < ActionController::TestCase
     get :redirect_to_url_with_unescaped_query_string
     assert_response :redirect
     assert_redirected_to "http://dev.rubyonrails.org/query?status=new"
+  end
+
+  def test_redirect_to_url_with_multiple_unescaped_query_strings
+    get :redirect_to_with_multiple_unescaped_query_strings
+    assert_response :redirect
+    assert_redirected_to "http://dev.rubyonrails.org/query?status=new&foo=bar"
+    assert_includes @response.body, redirect_to_url
   end
 
   def test_redirect_to_url_with_complex_scheme
