@@ -131,6 +131,13 @@ module Arel
         end
       end
 
+      describe 'Nodes::Grouping' do
+        it 'wraps nested groupings in brackets only once' do
+          sql = compile Nodes::Grouping.new(Nodes::Grouping.new(Nodes.build_quoted('foo')))
+          sql.must_equal "('foo')"
+        end
+      end
+
       describe 'Nodes::NotEqual' do
         it 'should handle false' do
           val = Nodes.build_quoted(false, @table[:active])
