@@ -38,7 +38,7 @@ module ActiveJob
       def serialize_argument(argument)
         case argument
         when GlobalID::Identification
-          argument.global_id.to_s
+          argument.to_global_id.to_s
         when *TYPE_WHITELIST
           argument
         when Array
