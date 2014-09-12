@@ -3,6 +3,7 @@ require 'models/post'
 require 'models/comment'
 require 'models/author'
 require 'models/rating'
+require 'models/tagging'
 
 module ActiveRecord
   class RelationTest < ActiveRecord::TestCase
@@ -234,6 +235,27 @@ module ActiveRecord
       special_comments_with_ratings = SpecialComment.joins join_string
       posts_with_special_comments_with_ratings = Post.group("posts.id").joins(:special_comments).merge(special_comments_with_ratings)
       assert_equal 3, authors(:david).posts.merge(posts_with_special_comments_with_ratings).count.length
+    end
+
+    def test_relation_merging_with_nested_joins_as_strings
+      post = Post.create!(title: "haha", body: "huhu")
+      comment = post.comments.create!(body: "hu")
+      comment.ratings.create!
+
+      join_string = <<-JOIN
+        LEFT OUTER JOIN
+          #{Tagging.quoted_table_name}
+        ON
+          #{Tagging.quoted_table_name}.taggable_id = #{Rating.quoted_table_name}.id AND #{Tagging.quoted_table_name}.taggable_type = 'Rating'
+      JOIN
+
+      relation = Post.where(id: post.id).joins(:comments).merge(
+        Comment.joins(:ratings).merge(
+          Rating.joins(join_string)
+        )
+      )
+
+      assert_equal 1, relation.count
     end
 
     class EnsureRoundTripTypeCasting < ActiveRecord::Type::Value
