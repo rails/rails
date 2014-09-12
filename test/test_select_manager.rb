@@ -1158,5 +1158,26 @@ module Arel
         manager.distinct(false).must_equal manager
       end
     end
+
+    describe 'distinct_on' do
+      it 'sets the quantifier' do
+        manager = Arel::SelectManager.new Table.engine
+        table = Table.new :users
+
+        manager.distinct_on(table['id'])
+        manager.ast.cores.last.set_quantifier.must_equal Arel::Nodes::DistinctOn.new(table['id'])
+
+        manager.distinct_on(false)
+        manager.ast.cores.last.set_quantifier.must_equal nil
+      end
+
+      it "chains" do
+        manager = Arel::SelectManager.new Table.engine
+        table = Table.new :users
+
+        manager.distinct_on(table['id']).must_equal manager
+        manager.distinct_on(false).must_equal manager
+      end
+    end
   end
 end
