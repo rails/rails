@@ -39,7 +39,10 @@ Only the latest release series will receive bug fixes. When enough bugs are
 fixed and its deemed worthy to release a new gem, this is the branch it happens
 from.
 
-**Currently included series:** `4.2.Z`, `4.1.Z`.
+In special situations, where someone from the Core Team agrees to support more series,
+they are included in the list of supported series.
+
+**Currently included series:** `4.2.Z`, `4.1.Z` (Supported by Rafael França).
 
 Security Issues
 ---------------
