@@ -1,3 +1,6 @@
+require 'logger'
+require 'thread'
+require 'active_support/core_ext/class/attribute_accessors'
 require 'active_support/core_ext/module/aliasing'
 require 'active_support/concern'
 
