@@ -26,8 +26,8 @@ class ParameterSerializationTest < ActiveSupport::TestCase
   end
 
   test 'should dive deep into arrays or hashes' do
-    assert_equal [ { "a" => Person.find(5).gid.to_s }.with_indifferent_access ], ActiveJob::Arguments.serialize([ { a: Person.find(5) } ])
-    assert_equal [ [ Person.find(5).gid.to_s ] ], ActiveJob::Arguments.serialize([ [ Person.find(5) ] ])
+    assert_equal [ { "a" => Person.find(5).to_gid.to_s }.with_indifferent_access ], ActiveJob::Arguments.serialize([ { a: Person.find(5) } ])
+    assert_equal [ [ Person.find(5).to_gid.to_s ] ], ActiveJob::Arguments.serialize([ [ Person.find(5) ] ])
   end
 
   test 'should dive deep into arrays or hashes and raise exception on complex objects' do
@@ -45,11 +45,11 @@ class ParameterSerializationTest < ActiveSupport::TestCase
   end
 
   test 'should serialize records with global id' do
-    assert_equal [ Person.find(5).gid.to_s ], ActiveJob::Arguments.serialize([ Person.find(5) ])
+    assert_equal [ Person.find(5).to_gid.to_s ], ActiveJob::Arguments.serialize([ Person.find(5) ])
   end
 
   test 'should serialize values and records together' do
-    assert_equal [ 3, Person.find(5).gid.to_s ], ActiveJob::Arguments.serialize([ 3, Person.find(5) ])
+    assert_equal [ 3, Person.find(5).to_gid.to_s ], ActiveJob::Arguments.serialize([ 3, Person.find(5) ])
   end
 end
 
@@ -59,19 +59,19 @@ class ParameterDeserializationTest < ActiveSupport::TestCase
   end
 
   test 'should deserialize records with global id' do
-    assert_equal [ Person.find(5) ], ActiveJob::Arguments.deserialize([ Person.find(5).gid ])
+    assert_equal [ Person.find(5) ], ActiveJob::Arguments.deserialize([ Person.find(5).to_gid ])
   end
 
   test 'should serialize values and records together' do
-    assert_equal [ 3, Person.find(5) ], ActiveJob::Arguments.deserialize([ 3, Person.find(5).gid ])
+    assert_equal [ 3, Person.find(5) ], ActiveJob::Arguments.deserialize([ 3, Person.find(5).to_gid ])
   end
 
   test 'should dive deep when deserialising arrays' do
-    assert_equal [ [ 3, Person.find(5) ] ], ActiveJob::Arguments.deserialize([ [ 3, Person.find(5).gid ] ])
+    assert_equal [ [ 3, Person.find(5) ] ], ActiveJob::Arguments.deserialize([ [ 3, Person.find(5).to_gid ] ])
   end
 
   test 'should dive deep when deserialising hashes' do
-    assert_equal [ { "5" => Person.find(5) } ], ActiveJob::Arguments.deserialize([ { "5" => Person.find(5).gid } ])
+    assert_equal [ { "5" => Person.find(5) } ], ActiveJob::Arguments.deserialize([ { "5" => Person.find(5).to_gid } ])
   end
 
 end
