@@ -1,3 +1,8 @@
+*   `MessageVerifier.new` raises an appropriate exception if the secret is `nil`.
+    This prevents `MessageVerifier#generate` from raising a cryptic error later on.
+
+    *Kostiantyn Kahanskyi*
+
 *   Introduced new configuration option `active_support.test_order` for
     specifying the order test cases are executed. This option currently defaults
     to `:sorted` but will be changed to `:random` in Rails 5.0.
