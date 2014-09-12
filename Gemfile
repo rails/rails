@@ -8,7 +8,6 @@ gemspec
 gem 'mocha', '~> 0.14', require: false
 
 gem 'rack-cache', '~> 1.2'
-# TODO: Release this gem
 gem 'jquery-rails', '~> 4.0.0.beta2'
 gem 'coffee-rails', '~> 4.0.0'
 # TODO: Release this gem
@@ -17,6 +16,8 @@ gem 'rails-html-sanitizer', github: 'rails/rails-html-sanitizer'
 gem 'rails-deprecated_sanitizer', github: 'rails/rails-deprecated_sanitizer'
 # TODO: Release this gem
 gem 'rails-dom-testing', github: 'rails/rails-dom-testing'
+# TODO: Release this gem
+gem 'globalid', github: 'rails/globalid'
 gem 'turbolinks', '~> 2.2.3'
 
 # require: false so bcrypt is loaded only when has_secure_password is used.
