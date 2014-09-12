@@ -340,16 +340,14 @@ The `find_in_batches` method is similar to `find_each`, since both retrieve batc
 
 ```ruby
 # Give add_invoices an array of 1000 invoices at a time
-Invoice.find_in_batches(include: :invoice_lines) do |invoices|
+Invoice.find_in_batches do |invoices|
   export.add_invoices(invoices)
 end
 ```
 
-NOTE: The `:include` option allows you to name associations that should be loaded alongside with the models.
-
 ##### Options for `find_in_batches`
 
-The `find_in_batches` method accepts the same `:batch_size` and `:start` options as `find_each`, as well as most of the options allowed by the regular `find` method, except for `:order` and `:limit`, which are reserved for internal use by `find_in_batches`.
+The `find_in_batches` method accepts the same `:batch_size` and `:start` options as `find_each`.
 
 Conditions
 ----------
