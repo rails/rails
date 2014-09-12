@@ -105,7 +105,7 @@ module ActiveRecord
       #   # => false
       def instance_method_already_implemented?(method_name)
         if dangerous_attribute_method?(method_name)
-          raise DangerousAttributeError, "#{method_name} is defined by Active Record"
+          raise DangerousAttributeError, "#{method_name} is defined by Active Record. Check to make sure that you don't have an attribute or method with the same name."
         end
 
         if superclass == Base
