@@ -11,11 +11,11 @@ module LoggerSilence
   end
 
   def thread_level
-    Thread.current[:logger_level]
+    Thread.current[thread_hash_level_key]
   end
 
   def thread_level=(l)
-    Thread.current[:logger_level] = l
+    Thread.current[thread_hash_level_key] = l
   end
 
   def level_with_threadsafety
@@ -39,5 +39,19 @@ module LoggerSilence
     else
       yield self
     end
+  end
+  
+  for severity in Logger::Severity.constants
+    class_eval <<-EOT, __FILE__, __LINE__ + 1
+      def #{severity.downcase}?                # def debug?
+        Logger::#{severity} >= level           #   DEBUG >= level
+      end                                      # end
+    EOT
+  end
+
+  private
+
+  def thread_hash_level_key
+    @thread_hash_level_key ||= :"ThreadSafeLogger##{object_id}@level"
   end
 end
