@@ -23,13 +23,58 @@ module ActiveSupport
   # hash upon initialization:
   #
   #   @verifier = ActiveSupport::MessageVerifier.new('s3Krit', serializer: YAML)
+
+  # PerishableEnvelope is used to envelop a serializer(like:Marshal, YAML or JSON) to provide the serializer ability to serialize Time(-like) Object and check the expiration when load it.
+  class PerishableEnvelope # :nodoc:
+    class ExpiredMessage < StandardError; end
+    SIGNATURE = "\0"
+
+    def initialize(serializer)
+      @serializer = serializer
+    end
+
+    def dump(value, expiration=nil)
+      if expiration.present?
+        "#{SIGNATURE}--#{encode_expiration(expiration)}--#{@serializer.dump(value)}"
+      else
+        @serializer.dump(value)
+      end
+    end
+
+    def load(value)
+      if value.start_with?(SIGNATURE)
+        values = value.split("--")
+        values.shift
+        expiration = values.shift
+        raise ExpiredMessage if is_expired?(expiration)
+        value = values.join("--")
+      end
+      @serializer.load(value)
+    end
+
+    private
+    def encode_expiration(time)
+      if time.respond_to?(:to_time)
+        time.to_time.utc.iso8601
+      else
+        raise ArgumentError
+      end
+    end
+
+    def is_expired?(timestamp)
+      timestamp && Time.now.utc > Time.iso8601(timestamp)
+    end
+  end
+
+
   class MessageVerifier
     class InvalidSignature < StandardError; end
+    ExpiredMessage = ActiveSupport::PerishableEnvelope::ExpiredMessage
 
     def initialize(secret, options = {})
       @secret = secret
       @digest = options[:digest] || 'SHA1'
-      @serializer = options[:serializer] || Marshal
+      @serializer = PerishableEnvelope.new(options[:serializer] || Marshal)
     end
 
     def verify(signed_message)
@@ -48,8 +93,8 @@ module ActiveSupport
       end
     end
 
-    def generate(value)
-      data = ::Base64.strict_encode64(@serializer.dump(value))
+    def generate(value, expiration=nil)
+      data = ::Base64.strict_encode64(@serializer.dump(value,expiration))
       "#{data}--#{generate_digest(data)}"
     end
 

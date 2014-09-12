@@ -29,6 +29,7 @@ module ActiveSupport
     end
 
     class InvalidMessage < StandardError; end
+    ExpiredMessage = ActiveSupport::PerishableEnvelope::ExpiredMessage
     OpenSSLCipherError = OpenSSL::Cipher::CipherError
 
     # Initialize a new MessageEncryptor. +secret+ must be at least as long as
@@ -49,13 +50,13 @@ module ActiveSupport
       @sign_secret = sign_secret
       @cipher = options[:cipher] || 'aes-256-cbc'
       @verifier = MessageVerifier.new(@sign_secret || @secret, digest: options[:digest] || 'SHA1', serializer: NullSerializer)
-      @serializer = options[:serializer] || Marshal
+      @serializer = PerishableEnvelope.new(options[:serializer] || Marshal)
     end
 
     # Encrypt and sign a message. We need to sign the message in order to avoid
     # padding attacks. Reference: http://www.limited-entropy.com/padding-oracle-attacks.
-    def encrypt_and_sign(value)
-      verifier.generate(_encrypt(value))
+    def encrypt_and_sign(value, expiration=nil)
+      verifier.generate(_encrypt(@serializer.dump(value, expiration)))
     end
 
     # Decrypt and verify a message. We need to verify the message in order to
@@ -74,7 +75,7 @@ module ActiveSupport
       # Rely on OpenSSL for the initialization vector
       iv = cipher.random_iv
 
-      encrypted_data = cipher.update(@serializer.dump(value))
+      encrypted_data = cipher.update(value)
       encrypted_data << cipher.final
 
       "#{::Base64.strict_encode64 encrypted_data}--#{::Base64.strict_encode64 iv}"
