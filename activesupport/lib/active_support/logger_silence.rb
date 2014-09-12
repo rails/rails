@@ -1,3 +1,4 @@
+require 'active_support/core_ext/module/aliasing'
 require 'active_support/concern'
 
 module LoggerSilence
