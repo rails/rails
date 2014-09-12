@@ -458,8 +458,9 @@ module ActionView
         html_options = (html_options || {}).stringify_keys
 
         extras = %w{ cc bcc body subject }.map! { |item|
-          option = html_options.delete(item) || next
-          "#{item}=#{Rack::Utils.escape_path(option)}"
+          if option = html_options.delete(item).presence
+            "#{item}=#{Rack::Utils.escape_path(option)}"
+          end
         }.compact
         extras = extras.empty? ? '' : '?' + extras.join('&')
 
