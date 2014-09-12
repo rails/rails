@@ -2,6 +2,7 @@ require "cases/helper"
 require 'models/post'
 require 'models/comment'
 require 'models/author'
+require 'models/book'
 require 'models/essay'
 require 'models/category'
 require 'models/categorization'
@@ -135,5 +136,36 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
     categories = author.categories.eager_load(:special_categorizations).order(:name).to_a
     assert_equal 0, categories.first.special_categorizations.size
     assert_equal 1, categories.second.special_categorizations.size
+  end
+
+  test "join clauses are emitted in user specified order" do
+    # test permutes all possible ways to do a join in AR and tests that user provided JOIN clause order is preserved in the emitted SQL
+    [:posts, :categorizations, :essays].map do |association_sym|
+      author_table = Author.arel_table
+      reflection   = Author.reflect_on_association(association_sym)
+      other_table  = reflection.klass.arel_table
+      arel_join    = author_table.create_join(other_table, author_table.create_on(other_table[reflection.foreign_key].eq(author_table[reflection.association_primary_key])))
+      [association_sym, arel_join, arel_join.to_sql]
+    end.permutation do |join_a, join_b, join_c|
+      join_a.each do |join_a_version|
+        join_b.each do |join_b_version|
+          join_c.each do |join_c_version|
+            join_a_token = join_a_version.respond_to?(:to_sql) ? join_a_version.to_sql : join_a_version.to_s
+            join_b_token = join_b_version.respond_to?(:to_sql) ? join_b_version.to_sql : join_b_version.to_s
+            join_c_token = join_c_version.respond_to?(:to_sql) ? join_c_version.to_sql : join_c_version.to_s
+
+            # this tests sql generation in AR::Relation::QueryMethods#build_joins
+            sql = Author.joins(join_a_version, join_b_version, join_c_version).to_sql
+            assert(sql.index(join_a_token) < sql.index(join_b_token), "#{join_a_token.inspect} must precede #{join_b_token.inspect} in #{sql.inspect}")
+            assert(sql.index(join_b_token) < sql.index(join_c_token), "#{join_b_token.inspect} must precede #{join_c_token.inspect} in #{sql.inspect}")
+
+            # this tests relation join merging in AR::Relation::Merger#merge_joins
+            sql = Book.all.merge(Author.joins(join_a_version, join_b_version, join_c_version)).to_sql
+            assert(sql.index(join_a_token) < sql.index(join_b_token), "#{join_a_token.inspect} must precede #{join_b_token.inspect} in #{sql.inspect}")
+            assert(sql.index(join_b_token) < sql.index(join_c_token), "#{join_b_token.inspect} must precede #{join_c_token.inspect} in #{sql.inspect}")
+          end
+        end
+      end
+    end
   end
 end
