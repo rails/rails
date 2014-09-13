@@ -915,7 +915,7 @@ class RequestParameters < BaseRequestTest
 
     2.times do
       assert_raises(ActionController::BadRequest) do
-        # rack will raise a TypeError when parsing this query string
+        # rack will raise a Rack::Utils::ParameterTypeError when parsing this query string
         request.parameters
       end
     end
@@ -941,7 +941,7 @@ class RequestParameters < BaseRequestTest
     )
 
     assert_raises(ActionController::BadRequest) do
-      # rack will raise a TypeError when parsing this query string
+      # rack will raise a Rack::Utils::ParameterTypeError when parsing this query string
       request.parameters
     end
   end
@@ -950,7 +950,7 @@ class RequestParameters < BaseRequestTest
     request = stub_request("QUERY_STRING" => "x[y]=1&x[y][][w]=2")
 
     e = assert_raises(ActionController::BadRequest) do
-      # rack will raise a TypeError when parsing this query string
+      # rack will raise a Rack::Utils::ParameterTypeError when parsing this query string
       request.parameters
     end
 
