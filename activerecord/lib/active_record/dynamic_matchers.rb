@@ -60,11 +60,13 @@ module ActiveRecord
       end
 
       def define
-        model.class_eval <<-CODE, __FILE__, __LINE__ + 1
-          def self.#{name}(#{signature})
+        anonymous_module_with_method = Module.new
+        anonymous_module_with_method.class_eval <<-CODE, __FILE__, __LINE__ + 1
+          def #{name}(#{signature})
             #{body}
           end
         CODE
+        model.extend(anonymous_module_with_method)
       end
 
       private
