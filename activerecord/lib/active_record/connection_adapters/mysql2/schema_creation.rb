@@ -1,7 +1,7 @@
 module ActiveRecord
   module ConnectionAdapters
-    module Mysql2
-      class SchemaCreation < AbstractAdapter::SchemaCreation
+    module Mysql2 # :nodoc:
+      class SchemaCreation < AbstractAdapter::SchemaCreation # :nodoc:
         def visit_AddColumn(o)
           add_column_position!(super, column_options(o))
         end
@@ -19,7 +19,7 @@ module ActiveRecord
             statements.concat(o.indexes.map { |column_name, options| index_in_create(name, column_name, options) })
 
             create_sql << "(#{statements.join(', ')}) " if statements.present?
-            create_sql << "#{o.options}"
+            create_sql << o.options
             create_sql << " AS #{@conn.to_sql(o.as)}" if o.as
             create_sql
           end
@@ -35,7 +35,7 @@ module ActiveRecord
 
           def add_column_position!(sql, options)
             if options[:first]
-              sql << " FIRST"
+              sql << ' FIRST'
             elsif options[:after]
               sql << " AFTER #{quote_column_name(options[:after])}"
             end
