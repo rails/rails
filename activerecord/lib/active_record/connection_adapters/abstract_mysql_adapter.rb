@@ -1,114 +1,16 @@
 require 'arel/visitors/bind_visitor'
 require 'active_support/core_ext/string/strip'
 
+require 'active_record/connection_adapters/mysql2/column'
+require 'active_record/connection_adapters/mysql2/schema_creation'
+
 module ActiveRecord
   module ConnectionAdapters
     class AbstractMysqlAdapter < AbstractAdapter
       include Savepoints
 
-      class SchemaCreation < AbstractAdapter::SchemaCreation
-        def visit_AddColumn(o)
-          add_column_position!(super, column_options(o))
-        end
-
-        private
-
-        def visit_DropForeignKey(name)
-          "DROP FOREIGN KEY #{name}"
-        end
-
-        def visit_TableDefinition(o)
-          name = o.name
-          create_sql = "CREATE#{' TEMPORARY' if o.temporary} TABLE #{quote_table_name(name)} "
-
-          statements = o.columns.map { |c| accept c }
-          statements.concat(o.indexes.map { |column_name, options| index_in_create(name, column_name, options) })
-
-          create_sql << "(#{statements.join(', ')}) " if statements.present?
-          create_sql << "#{o.options}"
-          create_sql << " AS #{@conn.to_sql(o.as)}" if o.as
-          create_sql
-        end
-
-        def visit_ChangeColumnDefinition(o)
-          column = o.column
-          options = o.options
-          sql_type = type_to_sql(o.type, options[:limit], options[:precision], options[:scale])
-          change_column_sql = "CHANGE #{quote_column_name(column.name)} #{quote_column_name(options[:name])} #{sql_type}"
-          add_column_options!(change_column_sql, options.merge(column: column))
-          add_column_position!(change_column_sql, options)
-        end
-
-        def add_column_position!(sql, options)
-          if options[:first]
-            sql << " FIRST"
-          elsif options[:after]
-            sql << " AFTER #{quote_column_name(options[:after])}"
-          end
-          sql
-        end
-
-        def index_in_create(table_name, column_name, options)
-          index_name, index_type, index_columns, index_options, index_algorithm, index_using = @conn.add_index_options(table_name, column_name, options)
-          "#{index_type} INDEX #{quote_column_name(index_name)} #{index_using} (#{index_columns})#{index_options} #{index_algorithm}"
-        end
-      end
-
       def schema_creation
-        SchemaCreation.new self
-      end
-
-      class Column < ConnectionAdapters::Column # :nodoc:
-        attr_reader :collation, :strict, :extra
-
-        def initialize(name, default, cast_type, sql_type = nil, null = true, collation = nil, strict = false, extra = "")
-          @strict    = strict
-          @collation = collation
-          @extra     = extra
-          super(name, default, cast_type, sql_type, null)
-          assert_valid_default(default)
-          extract_default
-        end
-
-        def extract_default
-          if blob_or_text_column?
-            @default = null || strict ? nil : ''
-          elsif missing_default_forged_as_empty_string?(@default)
-            @default = nil
-          end
-        end
-
-        def has_default?
-          return false if blob_or_text_column? # MySQL forbids defaults on blob and text columns
-          super
-        end
-
-        def blob_or_text_column?
-          sql_type =~ /blob/i || type == :text
-        end
-
-        def case_sensitive?
-          collation && !collation.match(/_ci$/)
-        end
-
-        private
-
-        # MySQL misreports NOT NULL column default when none is given.
-        # We can't detect this for columns which may have a legitimate ''
-        # default (string) but we can for others (integer, datetime, boolean,
-        # and the rest).
-        #
-        # Test whether the column has default '', is not null, and is not
-        # a type allowing default ''.
-        def missing_default_forged_as_empty_string?(default)
-          type != :string && !null && default == ''
-        end
-
-        def assert_valid_default(default)
-          if blob_or_text_column? && default.present?
-            raise ArgumentError, "#{type} columns cannot have a default value: #{default.inspect}"
-          end
-        end
+        Mysql2::SchemaCreation.new self
       end
 
       ##
@@ -218,7 +120,7 @@ module ActiveRecord
       end
 
       def new_column(field, default, cast_type, sql_type = nil, null = true, collation = "", extra = "") # :nodoc:
-        Column.new(field, default, cast_type, sql_type, null, collation, strict_mode?, extra)
+        Mysql2AdapterColumn.new(field, default, cast_type, sql_type, null, collation, strict_mode?, extra)
       end
 
       # Must return the MySQL error number from the exception, if the exception has an

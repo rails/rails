@@ -11,14 +11,14 @@ module ActiveRecord
 
       config[:username] = 'root' if config[:username].nil?
 
-      if Mysql2::Client.const_defined? :FOUND_ROWS
+      if ::Mysql2::Client.const_defined? :FOUND_ROWS
         config[:flags] = Mysql2::Client::FOUND_ROWS
       end
 
-      client = Mysql2::Client.new(config)
+      client = ::Mysql2::Client.new(config)
       options = [config[:host], config[:username], config[:password], config[:database], config[:port], config[:socket], 0]
       ConnectionAdapters::Mysql2Adapter.new(client, logger, options, config)
-    rescue Mysql2::Error => error
+    rescue ::Mysql2::Error => error
       if error.message.include?("Unknown database")
         raise ActiveRecord::NoDatabaseError.new(error.message, error)
       else
@@ -260,7 +260,7 @@ module ActiveRecord
       private
 
       def connect
-        @connection = Mysql2::Client.new(@config)
+        @connection = ::Mysql2::Client.new(@config)
         configure_connection
       end
 
