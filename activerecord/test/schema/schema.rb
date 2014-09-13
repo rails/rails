@@ -909,6 +909,10 @@ ActiveRecord::Schema.define do
     t.string :token
     t.string :auth_token
   end
+
+  create_table :devices, force: true do |t|
+    t.string :mac_address
+  end
 end
 
 Course.connection.create_table :courses, force: true do |t|

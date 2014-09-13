@@ -1,0 +1,7 @@
+macbook:
+  id: 1
+  mac_address: abcdef
+
+phone:
+  id: 2
+  mac_address: 123456
