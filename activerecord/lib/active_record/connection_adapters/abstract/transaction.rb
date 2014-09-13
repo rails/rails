@@ -190,11 +190,17 @@ module ActiveRecord
         rollback_transaction if transaction
         raise
       ensure
-        begin
-          commit_transaction unless error
-        rescue Exception
-          transaction.rollback unless transaction.state.completed?
-          raise
+        unless error
+          if Thread.current.status == 'aborting'
+            rollback_transaction
+          else
+            begin
+              commit_transaction
+            rescue Exception
+              transaction.rollback unless transaction.state.completed?
+              raise
+            end
+          end
         end
       end
 

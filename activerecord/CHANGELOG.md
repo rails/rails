@@ -1,3 +1,11 @@
+*   When a thread is killed, rollback the active transaction, instead of
+    committing it during the stack unwind. Previously, we could commit half-
+    completed work. This fix only works for Ruby 2.0+; on 1.9, we can't
+    distinguish a thread kill from an ordinary non-local (block) return, so must
+    default to committing.
+
+    *Chris Hanks*
+
 *   A `NullRelation` should represent nothing. This fixes a bug where
     `Comment.where(post_id: Post.none)` returned a non-empty result.
 
