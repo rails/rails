@@ -166,11 +166,10 @@ module ActiveRecord
         s = find_by_statement_cache[key] || find_by_statement_cache.synchronize {
           find_by_statement_cache[key] ||= StatementCache.create(connection) { |params|
             wheres = key.each_with_object({}) { |param,o|
-              if klass.columns_hash.has_key?(param.to_s)
-                o[param] = params.bind
-              else
-                o[param] = hash[param]
+              if !klass.columns_hash.has_key?(param.to_s)
+                param = klass._reflect_on_association(param).foreign_key.to_sym
               end
+              o[param] = params.bind
             }
             klass.where(wheres).limit(1)
           }
