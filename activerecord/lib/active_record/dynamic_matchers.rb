@@ -24,6 +24,7 @@ module ActiveRecord
 
     class Method
       @matchers = []
+      @@anonymous_modules_for_methods = {}
 
       class << self
         attr_reader :matchers
@@ -60,16 +61,20 @@ module ActiveRecord
       end
 
       def define
-        anonymous_module_with_method = Module.new
-        anonymous_module_with_method.class_eval <<-CODE, __FILE__, __LINE__ + 1
+        anonymous_module = anonymous_module_for_(model)
+        anonymous_module.class_eval <<-CODE, __FILE__, __LINE__ + 1
           def #{name}(#{signature})
             #{body}
           end
         CODE
-        model.extend(anonymous_module_with_method)
+        model.extend(anonymous_module) if !model.is_a?(anonymous_module)
       end
 
       private
+
+      def anonymous_module_for_(model)
+        @@anonymous_modules_for_methods[model] ||= Module.new
+      end
 
       def body
         "#{finder}(#{attributes_hash})"

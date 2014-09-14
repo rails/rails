@@ -821,6 +821,22 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal devices(:macbook), Device.find_by_mac_address('ABCDEF')
   end
 
+  def test_find_by_attribute_method_container
+    Topic.find_by_title!("The First Topic")
+    Topic.find_by_title("The First Topic")
+    module_with_find_by_methods = Topic.singleton_class.ancestors.first
+    assert_equal true, module_with_find_by_methods.instance_methods.include?(:find_by_title)
+    assert_equal true, module_with_find_by_methods.instance_methods.include?(:find_by_title!)
+  end
+
+  def test_find_by_attribute_method_container_for_two_model
+    Topic.find_by_title("The First Topic")
+    Device.find_by_mac_address('ABCDEF')
+    module_with_find_by_methods = Topic.singleton_class.ancestors.first
+    assert_equal true, module_with_find_by_methods.instance_methods.include?(:find_by_title)
+    assert_equal false, module_with_find_by_methods.instance_methods.include?(:find_by_mac_address)
+  end
+
   def test_find_by_one_attribute_that_is_an_alias
     assert_equal topics(:first), Topic.find_by_heading("The First Topic")
     assert_nil Topic.find_by_heading("The First Topic!")
