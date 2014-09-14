@@ -167,7 +167,9 @@ module ActiveRecord
           find_by_statement_cache[key] ||= StatementCache.create(connection) { |params|
             wheres = key.each_with_object({}) { |param,o|
               if !klass.columns_hash.has_key?(param.to_s)
-                param = klass._reflect_on_association(param).foreign_key.to_sym
+                if reflection = klass._reflect_on_association(param)
+                  param = reflection.foreign_key.to_sym
+                end
               end
               o[param] = params.bind
             }
