@@ -1,9 +1,63 @@
 require 'rake/testtask'
 require 'rubygems/package_task'
 
-dir = File.dirname(__FILE__)
+ACTIVEJOB_ADAPTERS = %w(inline delayed_job qu que queue_classic resque sidekiq sneakers sucker_punch backburner)
+ACTIVEJOB_ADAPTERS -= %w(queue_classic) if defined?(JRUBY_VERSION)
 
-def run_without_aborting(*tasks)
+task default: :test
+task test: 'test:default'
+
+namespace :test do
+  desc 'Run all adapter tests'
+  task :default do
+    run_without_aborting ACTIVEJOB_ADAPTERS.map { |a| "test:#{a}" }
+  end
+
+  desc 'Run all adapter tests in isolation'
+  task :isolated do
+    run_without_aborting ACTIVEJOB_ADAPTERS.map { |a| "test:isolated:#{a}" }
+  end
+
+  desc 'Run integration tests for all adapters'
+  task :integration do
+    run_without_aborting ACTIVEJOB_ADAPTERS.map { |a| "test:integration:#{a}" }
+  end
+
+  task 'env:integration' do
+    ENV['AJ_INTEGRATION_TESTS'] = "1"
+  end
+
+  ACTIVEJOB_ADAPTERS.each do |adapter|
+    task("env:#{adapter}") { ENV['AJADAPTER'] = adapter }
+
+    Rake::TestTask.new(adapter => "test:env:#{adapter}") do |t|
+      t.description = "Run adapter tests for #{adapter}"
+      t.libs << 'test'
+      t.test_files = FileList['test/cases/**/*_test.rb']
+      t.verbose = true
+    end
+
+    namespace :isolated do
+      task adapter => "test:env:#{adapter}" do
+        dir = File.dirname(__FILE__)
+        Dir.glob("#{dir}/test/cases/**/*_test.rb").all? do |file|
+          sh(Gem.ruby, '-w', "-I#{dir}/lib", "-I#{dir}/test", file)
+        end or raise 'Failures'
+      end
+    end
+
+    namespace :integration do
+      Rake::TestTask.new(adapter => ["test:env:#{adapter}", 'test:env:integration']) do |t|
+        t.description = "Run integration tests for #{adapter}"
+        t.libs << 'test'
+        t.test_files = FileList['test/integration/**/*_test.rb']
+        t.verbose = true
+      end
+    end
+  end
+end
+
+def run_without_aborting(tasks)
   errors = []
 
   tasks.each do |task|
@@ -15,88 +69,6 @@ def run_without_aborting(*tasks)
   end
 
   abort "Errors running #{errors.join(', ')}" if errors.any?
-end
-
-task default: :test
-
-ACTIVEJOB_ADAPTERS = %w(inline delayed_job qu que queue_classic resque sidekiq sneakers sucker_punch backburner)
-ACTIVEJOB_ADAPTERS -= %w(queue_classic) if defined?(JRUBY_VERSION)
-
-desc 'Run all adapter tests'
-task :test do
-  tasks = ACTIVEJOB_ADAPTERS.map{|a| "test_#{a}" }
-  run_without_aborting(*tasks)
-end
-
-namespace :test do
-  desc 'Run all adapter tests in isolation'
-  task :isolated do
-    tasks = ACTIVEJOB_ADAPTERS.map{|a| "isolated_test_#{a}" }
-    run_without_aborting(*tasks)
-  end
-
-  desc 'Run all adapter integration tests'
-  task :integration do
-    tasks = ACTIVEJOB_ADAPTERS.map{|a| "integration_test_#{a}" }
-    run_without_aborting(*tasks)
-  end
-end
-
-
-ACTIVEJOB_ADAPTERS.each do |adapter|
-  namespace :test do
-    Rake::TestTask.new(adapter => "#{adapter}:env") do |t|
-      t.description = ""
-      t.libs << 'test'
-      t.test_files = FileList['test/cases/**/*_test.rb']
-      t.verbose = true
-    end
-
-    namespace :isolated do
-      task adapter => "#{adapter}:env" do
-        Dir.glob("#{dir}/test/cases/**/*_test.rb").all? do |file|
-          sh(Gem.ruby, '-w', "-I#{dir}/lib", "-I#{dir}/test", file)
-        end or raise 'Failures'
-      end
-    end
-
-    namespace :integration do
-      Rake::TestTask.new(adapter => "#{adapter}:env") do |t|
-        t.description = ""
-        t.libs << 'test'
-        t.test_files = FileList['test/integration/**/*_test.rb']
-        t.verbose = true
-      end
-    end
-  end
-
-  namespace adapter do
-    task test: "test_#{adapter}"
-    task isolated_test: "isolated_test_#{adapter}"
-
-    task(:env) { ENV['AJADAPTER'] = adapter }
-
-    namespace :isolated do
-      task(:env) { ENV['AJADAPTER'] = adapter }
-    end
-
-    namespace :integration do
-      task(:env) do
-        ENV['AJADAPTER'] = adapter
-        ENV['AJ_INTEGRATION_TESTS'] = "1"
-      end
-    end
-  end
-
-
-  desc "Run #{adapter} tests"
-  task "test_#{adapter}" => ["#{adapter}:env", "test:#{adapter}"]
-
-  desc "Run #{adapter} tests in isolation"
-  task "isolated_test_#{adapter}" => ["#{adapter}:isolated:env", "test:isolated:#{adapter}"]
-
-  desc "Run #{adapter} integration tests"
-  task "integration_test_#{adapter}" => ["#{adapter}:integration:env", "test:integration:#{adapter}"]
 end
 
 
