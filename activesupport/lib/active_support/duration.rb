@@ -9,6 +9,9 @@ module ActiveSupport
   class Duration
     attr_accessor :value, :parts
 
+    autoload :ISO8601Parser,     'active_support/duration/iso8601_parser'
+    autoload :ISO8601Serializer, 'active_support/duration/iso8601_serializer'
+
     def initialize(value, parts) #:nodoc:
       @value, @parts = value, parts
     end
@@ -128,6 +131,23 @@ module ActiveSupport
 
     def respond_to_missing?(method, include_private=false) #:nodoc:
       @value.respond_to?(method, include_private)
+    end
+
+    # Creates a new Duration from string formatted according to ISO 8601 Duration.
+    #
+    # See {ISO 8601}[http://en.wikipedia.org/wiki/ISO_8601#Durations] for more information.
+    # This method allows negative parts to be present in pattern.
+    # If invalid string is provided, it will raise +ActiveSupport::Duration::ISO8601Parser::ParsingError+.
+    def self.parse(iso8601duration)
+      parts = ISO8601Parser.new(iso8601duration).parse!
+      time  = ::Time.current
+      new(time.advance(parts) - time, parts)
+    end
+
+    # Build ISO 8601 Duration string for this duration.
+    # The +precision+ parameter can be used to limit seconds' precision of duration.
+    def iso8601(precision: nil)
+      ISO8601Serializer.new(self, precision: precision).serialize
     end
 
     delegate :<=>, to: :value

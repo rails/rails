@@ -1,3 +1,19 @@
+*   `ActiveSupport::Duration` supports ISO8601 formatting and parsing.
+
+        ActiveSupport::Duration.parse('P3Y6M4DT12H30M5S')
+        # => 3 years, 6 months, 4 days, 12 hours, 30 minutes, and 5 seconds
+
+        (3.years + 3.days).iso8601
+        # => "P3Y3D"
+
+    Inspired by Arnau Siches' [ISO8601 gem](https://github.com/arnau/ISO8601/)
+    and rewritten by Andrey Novikov with suggestions from Andrew White. Test
+    data from the ISO8601 gem redistributed under MIT license.
+
+    (Will be used to support the PostgreSQL interval data type.)
+
+    *Andrey Novikov*, *Arnau Siches*, *Andrew White*
+
 *   `Cache#fetch(key, force: true)` forces a cache miss, so it must be called
     with a block to provide a new value to cache. Fetching with `force: true`
     but without a block now raises ArgumentError.
