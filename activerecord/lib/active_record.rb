@@ -66,6 +66,7 @@ module ActiveRecord
   autoload :Transactions
   autoload :Translation
   autoload :Validations
+  autoload :SecureKey
 
   eager_autoload do
     autoload :ActiveRecordError, 'active_record/errors'

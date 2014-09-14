@@ -877,6 +877,12 @@ ActiveRecord::Schema.define do
     t.string :overloaded_string_with_limit, limit: 255
     t.string :string_with_default, default: 'the original default'
   end
+
+  create_table :users, force: true do |t|
+    t.string :name
+    t.string :secure_key
+    t.string :another_secure_key
+  end
 end
 
 Course.connection.create_table :courses, force: true do |t|
