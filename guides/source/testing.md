@@ -1042,6 +1042,63 @@ end
 Moreover, since the test class extends from `ActionView::TestCase`, you have
 access to Rails' helper methods such as `link_to` or `pluralize`.
 
+Active Job Testing
+--------------------
+Testing Active Job means testing that the specified job is correctly placed in a queuing backend and then ensuring that the job is performed at the correct time. 
+
+#### A Basic Test Case
+
+Here we test an Active Job named MyJob whose duty is to store jobs on a queue and execute the jobs at a later time.
+
+```ruby
+require 'helper'
+require 'my_job'
+
+class MyJobTest < ActiveJob::TestCase
+  test 'run queued job' do
+    MyJob.queue_adapter.perform_enqueued_jobs = true
+    MyJob.perform_later "Send Some Data"
+    assert_perfomed_jobs 1
+  end
+end
+```
+In this test we first set the perform_enqueued_jobs = `true`. We add a job to the queue via the perform_later call. Since we are preforming enqueued jobs we can test that the job was performed with a call to assert_performed_jobs.
+
+We can also add another test to set jobs which will be executed at a specific time.
+
+```ruby
+  test 'run queued job later' do
+      MyJob.set(wait_until: Date.tomorrow.noon).perform_later "Send Some Data"
+      assert_enqueued_jobs 1
+  end
+```
+In this test we set a new job with the wait_until attribute as Date.tomorrow.noon. We then use the custom assertion `assert_enqueued_jobs` to ensure that there is only 1 item currently in the queue.
+
+#### Testing Active Job outside of ActiveJob::TestCase
+
+Jobs can be tested by including ActiveJob::TestHelper in other TestCases. For instance we can include ActiveJob::TestHelper in a controller test as follow.
+
+```ruby
+require 'test_helper'
+class ArticlesControllerTest < ActionController::TestCase
+  include ActiveJob::TestHelper
+  # Now you can use Active Job assertions as shown below.
+end
+```
+
+#### Custom Assertions
+Active Job also includes some custom assertions of its own to the 'minitest' framework. These custom assertions can be used to lessen the verbosity of Active Job tests.
+
+| Assertion                                                                         | Purpose |
+| --------------------------------------------------------------------------------- | ------- |
+| `assert_enqueued_jobs(number)`                                                    | Asserts that the number of enqueued jobs matches the given number. |
+| `assert_no_enqueued_jobs(block)`                                                  | Assert that no job have been enqueued. within the block. |
+| `assert_performed_jobs(number)`                                                   | Asserts that the number of performed jobs matches the given number. |
+| `assert_no_performed_jobs(block)`                                                 | Asserts that no jobs have been performed. |
+| `assert_enqueued_with(args={}, block)`                                            | Asserts that the job passed in the block has been enqueued with the given arguments. |
+| `assert_performed_with(args={}, block)`                                           | Asserts that the job passed in the block has been performed with the given arguments. |
+
+
 Other Testing Approaches
 ------------------------
 
