@@ -942,7 +942,7 @@ unless params[:token].nil?
 end
 ```
 
-When `params[:token]` is one of: `[]`, `[nil]`, `[nil, nil, ...]` or
+When `params[:token]` is one of: `[nil]`, `[nil, nil, ...]` or
 `['foo', nil]` it will bypass the test for `nil`, but `IS NULL` or
 `IN ('foo', NULL)` where clauses still will be added to the SQL query.
 
@@ -953,9 +953,9 @@ request:
 | JSON                              | Parameters               |
 |-----------------------------------|--------------------------|
 | `{ "person": null }`              | `{ :person => nil }`     |
-| `{ "person": [] }`                | `{ :person => nil }`     |
-| `{ "person": [null] }`            | `{ :person => nil }`     |
-| `{ "person": [null, null, ...] }` | `{ :person => nil }`     |
+| `{ "person": [] }`                | `{ :person => [] }`     |
+| `{ "person": [null] }`            | `{ :person => [] }`     |
+| `{ "person": [null, null, ...] }` | `{ :person => [] }`     |
 | `{ "person": ["foo", null] }`     | `{ :person => ["foo"] }` |
 
 It is possible to return to old behaviour and disable `deep_munge` configuring
