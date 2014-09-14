@@ -7,10 +7,7 @@ module ActiveModel
     # Hence need to put a restriction on password length.
     MAX_PASSWORD_LENGTH_ALLOWED = 72
 
-    class << self
-      attr_accessor :min_cost # :nodoc:
-    end
-    self.min_cost = false
+    cattr_accessor(:min_cost) { false } # :nodoc:
 
     module ClassMethods
       # Adds methods to set and authenticate against a BCrypt password.
