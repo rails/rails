@@ -113,7 +113,7 @@ module ActiveSupport
     def inspect #:nodoc:
       parts.
         reduce(::Hash.new(0)) { |h,(l,r)| h[l] += r; h }.
-        sort_by {|unit,  _ | [:years, :months, :days, :minutes, :seconds].index(unit)}.
+        sort_by {|unit,  _ | [:years, :months, :weeks, :days, :hours, :minutes, :seconds].index(unit)}.
         map     {|unit, val| "#{val} #{val == 1 ? unit.to_s.chop : unit.to_s}"}.
         to_sentence(locale: ::I18n.default_locale)
     end
@@ -126,7 +126,65 @@ module ActiveSupport
       @value.respond_to?(method, include_private)
     end
 
+    # Creates a new Duration from string formatted according to ISO 8601 Duration.
+    #
+    # See http://en.wikipedia.org/wiki/ISO_8601#Durations
+    # This method allows negative parts to be present in pattern.
+    # If invalid string is provided, it will raise +ActiveSupport::Duration::ISO8601DurationParser::ParsingError+.
+    def self.parse!(iso8601duration)
+      parts = ISO8601DurationParser.new(iso8601duration).parts
+      time  = ::Time.now
+      new(time.advance(parts) - time, parts)
+    end
+
+    # Creates a new Duration from string formatted according to ISO 8601 Duration.
+    #
+    # See http://en.wikipedia.org/wiki/ISO_8601#Durations
+    # This method allows negative parts to be present in pattern.
+    # If invalid string is provided, nil will be returned.
+    def self.parse(iso8601duration)
+      parse!(iso8601duration)
+    rescue ISO8601DurationParser::ParsingError
+      nil
+    end
+
+    # Build ISO 8601 Duration string for this duration.
+    # The +precision+ parameter can be used to limit seconds' precision of duration.
+    def iso8601(precision=nil)
+      output, sign = 'P', ''
+      parts = normalized_parts
+      # If all parts are negative - let's output negative duration
+      if parts.values.compact.all?{|v| v < 0 }
+        sign = '-'
+        parts = parts.inject({}) {|p,(k,v)| p[k] = -v; p }
+      end
+      # Building output string
+      output << "#{parts[:years]}Y"   if parts[:years]
+      output << "#{parts[:months]}M"  if parts[:months]
+      output << "#{parts[:weeks]}W"   if parts[:weeks]
+      output << "#{parts[:days]}D"    if parts[:days]
+      time = ''
+      time << "#{parts[:hours]}H"     if parts[:hours]
+      time << "#{parts[:minutes]}M"   if parts[:minutes]
+      if parts[:seconds]
+        time << "#{sprintf(precision ? "%0.0#{precision}f" : '%g', parts[:seconds])}S"
+      end
+      output << "T#{time}"  if time.present?
+      "#{sign}#{output}"
+    end
+
     delegate :<=>, to: :value
+
+    # Return duration's parts summarized (as they can become repetitive due to addition, etc)
+    # Also removes zero parts as not significant
+    def normalized_parts
+      parts = self.parts.inject(::Hash.new(0)) do |p,(k,v)|
+        p[k] += v  unless v.zero?
+        p
+      end
+      parts.default = nil
+      parts
+    end
 
     protected
 
@@ -148,6 +206,68 @@ module ActiveSupport
 
       def method_missing(method, *args, &block) #:nodoc:
         value.send(method, *args, &block)
+      end
+
+      # Parses a string formatted according to ISO 8601 Duration into the hash .
+      #
+      # See http://en.wikipedia.org/wiki/ISO_8601#Durations
+      # Parts of code are taken from ISO8601 gem by Arnau Siches (@arnau).
+      # This parser isn't so strict and allows negative parts to be present in pattern.
+      class ISO8601DurationParser
+        attr_reader :parts
+
+        class ParsingError < ::StandardError; end
+
+        def initialize(iso8601duration)
+          @raw = iso8601duration
+          parse_iso_duration!
+          construct_parts
+          validate_parts!
+        end
+
+        private
+
+          def parse_iso_duration!
+            @match = @raw.match(/^
+                (?<sign>\+|-)?
+                P(?:
+                  (?:
+                    (?:(?<years>-?\d+(?:[,.]\d+)?)Y)?
+                    (?:(?<months>-?\d+(?:[.,]\d+)?)M)?
+                    (?:(?<days>-?\d+(?:[.,]\d+)?)D)?
+                    (?<time>T
+                      (?:(?<hours>-?\d+(?:[.,]\d+)?)H)?
+                      (?:(?<minutes>-?\d+(?:[.,]\d+)?)M)?
+                      (?:(?<seconds>-?\d+(?:[.,]\d+)?)S)?
+                    )?
+                  ) |
+                  (?<weeks>-?\d+(?:[.,]\d+)?W)
+                ) # Duration
+              $/x) || raise(ParsingError.new("Invalid ISO 8601 duration: #{@raw}"))
+          end
+
+          # Constructs parts compatible with +ActiveSupport::Duration+ ones.
+          def construct_parts
+            sign = @match[:sign] == '-' ? -1 : 1
+            @parts = @match.names.zip(@match.captures).reject { |_k,v| v.nil? }.map do |k, v|
+              value = /\d+[\.,]\d+/ =~ v ? v.sub(',', '.').to_f : v.to_i
+              [ k.to_sym, sign * value ]
+            end
+            @parts = ::Hash[@parts].slice(:years, :months, :weeks, :days, :hours, :minutes, :seconds)
+          end
+
+          # Checks for various semantic errors as stated in ISO 8601 standard
+          def validate_parts!
+            # Validate that is not empty duration or time part is not empty if 'T' marker present
+            if @parts.empty? || (@match[:time].present? && @match[:time][1..-1].empty?)
+              raise ParsingError.new("Invalid ISO 8601 duration: #{@raw} (empty duration or empty time part)")
+            end
+            # Validate fractions (standard allows only last part to be fractional)
+            fractions = @parts.values.reject(&:zero?).select { |a| (a % 1) != 0 }
+            unless fractions.empty? || (fractions.size == 1 && fractions.last == @parts.values.reject(&:zero?).last)
+              raise ParsingError.new("Invalid ISO 8601 duration: #{@raw} (only last part can be fractional)")
+            end
+          end
       end
   end
 end

@@ -220,4 +220,67 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal(1, (1.minute <=> 1.second))
     assert_equal(1, (61 <=> 1.minute))
   end
+
+  def test_iso8601_parsing_wrong_patterns_with_raise
+    invalid_patterns = ['', 'P', 'PT', 'P1YT', 'T', 'PW', 'P1Y1W', '~P1Y', '.P1Y', 'P1.5Y0.5M', 'P1.5Y1M', 'P1.5MT10.5S']
+    invalid_patterns.each do |pattern|
+      assert_raise ActiveSupport::Duration::ISO8601DurationParser::ParsingError do
+        ActiveSupport::Duration.parse!(pattern)
+      end
+    end
+  end
+  
+  def test_iso8601_parsing_wrong_patterns_with_nil
+    invalid_patterns = ['', 'P', 'PT', 'P1YT', 'T', 'PW', 'P1Y1W', '~P1Y', '.P1Y', 'P1.5Y0.5M', 'P1.5Y1M', 'P1.5MT10.5S']
+    invalid_patterns.each do |pattern|
+      assert_nil ActiveSupport::Duration.parse(pattern)
+    end
+  end
+
+  def test_iso8601_output
+    # As (1.year + 1.month + 1.day + 1.hour).iso8601 will output P1Y1M1DT3600S (weird), test for these not included
+    expectations = [
+      ['P1Y',      1.year                    ],
+      #['P1W',      1.week                    ], # Actually 1.week returns 7 days
+      ['P1Y1M',    1.year + 1.month          ],
+      ['P1Y1M1D',  1.year + 1.month + 1.day  ],
+      ['-P1Y1D',   -1.year - 1.day           ],
+      ['PT1S',     1.second                  ],
+      ['PT1.4S',   (1.4).seconds             ],
+    ]
+    expectations.each do |expected_output, duration|
+      assert_equal expected_output, duration.iso8601
+    end
+  end
+
+  def test_iso8601_output_precision
+    expectations = [
+        [nil, 'P1Y1MT5.55S',  1.year + 1.month + (5.55).seconds ],
+        [0,   'P1Y1MT6S',     1.year + 1.month + (5.55).seconds ],
+        [1,   'P1Y1MT5.5S',   1.year + 1.month + (5.55).seconds ],
+        [2,   'P1Y1MT5.55S',  1.year + 1.month + (5.55).seconds ],
+        [3,   'P1Y1MT5.550S', 1.year + 1.month + (5.55).seconds ],
+        [nil, 'PT1S',         1.second                          ],
+        [2,   'PT1.00S',      1.second                          ],
+        [nil, 'PT1.4S',       (1.4).seconds                     ],
+        [0,   'PT1S',         (1.4).seconds                     ],
+        [1,   'PT1.4S',       (1.4).seconds                     ],
+        [5,   'PT1.40000S',   (1.4).seconds                     ],
+    ]
+    expectations.each do |precision, expected_output, duration|
+      assert_equal expected_output, duration.iso8601(precision)
+    end
+  end
+
+  def test_iso8601_output_and_reparsing
+    patterns = %w[P1Y P0.5Y P0,5Y P1Y1M P1Y0.5M P1Y0,5M P1Y1M1D P1Y1M0.5D P1Y1M0,5D P1Y1M1DT1H P1Y1M1DT0.5H P1Y1M1DT0,5H P1Y1M1DT1H1M P1Y1M1DT1H0.5M P1Y1M1DT1H0,5M P1Y1M1DT1H1M1S P1Y1M1DT1H1M1.0S P1Y1M1DT1H1M1,0S P1W +P1Y -P1Y]
+    # That could be weird, but if we parse P1Y1M0.5D and output it to ISO 8601, we'll get P1Y1MT12.0H
+    # So we check that initially parsed and reparsed duration added to time will result in the same time
+    time = Time.now
+    patterns.each do |pattern|
+      duration = ActiveSupport::Duration.parse(pattern)
+      assert_equal time+duration, time+ActiveSupport::Duration.parse(duration.iso8601)
+    end
+  end
+
 end

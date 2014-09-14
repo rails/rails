@@ -1,3 +1,18 @@
+*   ActiveSupport::Duration can be parsed from and outputted to ISO 8601 duration format.
+
+    Parts of code and tests are taken from ISO8601 gem by Arnau Siches (@arnau) that is published
+    under the conditions of MIT license: https://github.com/arnau/ISO8601/blob/b93d466840/LICENSE
+
+    Examples:
+
+        ActiveSupport::Duration.parse('P3Y6M4DT12H30M5S')
+        # => 3 years, 6 months, 4 days, 12 hours, 30 minutes, and 5 seconds
+
+        (3.years + 3.days).iso8601
+        # => "P3Y3D"
+
+    *Andrey Novikov*, *Arnau Siches*
+
 *   Add `Integer#positive?` and `Integer#negative?` query methods
     in the vein of `Fixnum#zero?`.
 
