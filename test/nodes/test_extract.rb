@@ -15,6 +15,14 @@ describe Arel::Nodes::Extract do
         EXTRACT(DATE FROM "users"."timestamp") AS foo
       }
     end
+
+    it 'should not mutate the extract' do
+      table = Arel::Table.new :users
+      extract = table[:timestamp].extract('date')
+      before = extract.dup
+      extract.as('foo')
+      assert_equal extract, before
+    end
   end
 
   describe 'equality' do
