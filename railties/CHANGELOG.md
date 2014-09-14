@@ -1,3 +1,8 @@
+*   Change the path of dummy app location in plugin's test_helper.rb for cases
+    you specify dummy_path option.
+
+    *Yukio Mizuta*
+
 *   Fix a bug in the `gem` method for Rails templates when non-String options
     are used.
 
