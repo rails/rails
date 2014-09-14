@@ -37,14 +37,16 @@ module ActiveJob
     private
       def serialize_argument(argument)
         case argument
-        when GlobalID::Identification
-          argument.to_global_id.to_s
         when *TYPE_WHITELIST
           argument
+        when GlobalID::Identification
+          argument.to_global_id.to_s
         when Array
           argument.map { |arg| serialize_argument(arg) }
         when Hash
-          Hash[ argument.map { |key, value| [ serialize_hash_key(key), serialize_argument(value) ] } ]
+          argument.each_with_object({}) do |(key, value), hash|
+            hash[serialize_hash_key(key)] = serialize_argument(value)
+          end
         else
           raise SerializationError.new("Unsupported argument type: #{argument.class.name}")
         end
@@ -52,14 +54,18 @@ module ActiveJob
 
       def deserialize_argument(argument)
         case argument
+        when String
+          GlobalID::Locator.locate(argument) || argument
+        when *TYPE_WHITELIST
+          argument
         when Array
           argument.map { |arg| deserialize_argument(arg) }
         when Hash
-          Hash[ argument.map { |key, value| [ key, deserialize_argument(value) ] } ].with_indifferent_access
-        when String, GlobalID
-          GlobalID::Locator.locate(argument) || argument
+          argument.each_with_object({}.with_indifferent_access) do |(key, value), hash|
+            hash[key] = deserialize_argument(value)
+          end
         else
-          argument
+          raise ArgumentError, "Can only deserialize primitive arguments: #{argument.inspect}"
         end
       end
 
@@ -68,7 +74,7 @@ module ActiveJob
         when String, Symbol
           key.to_s
         else
-          raise SerializationError.new("Unsupported hash key type: #{key.class.name}")
+          raise SerializationError.new("Only string and symbol hash keys may be serialized as job arguments, but #{key.inspect} is a #{key.class}")
         end
       end
   end
