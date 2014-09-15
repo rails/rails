@@ -40,6 +40,10 @@ class DurationTest < ActiveSupport::TestCase
     assert !(1.day == 'foo')
   end
 
+  def test_to_s
+    assert_equal "1", 1.second.to_s
+  end
+
   def test_eql
     rubinius_skip "Rubinius' #eql? definition relies on #instance_of? " \
                   "which behaves oddly for the sake of backward-compatibility."
@@ -182,5 +186,10 @@ class DurationTest < ActiveSupport::TestCase
   def test_case_when
     cased = case 1.day when 1.day then "ok" end
     assert_equal cased, "ok"
+  end
+
+  def test_respond_to
+    assert_respond_to 1.day, :since
+    assert_respond_to 1.day, :zero?
   end
 end
