@@ -31,12 +31,12 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
   end
 
   test 'should convert records to Global IDs' do
-    assert_arguments_roundtrip [@person], [@person.to_gid.to_s]
+    assert_arguments_roundtrip [@person], ['_aj_globalid' => @person.to_gid.to_s]
   end
 
   test 'should dive deep into arrays and hashes' do
-    assert_arguments_roundtrip [3, [@person]], [3, [@person.to_gid.to_s]]
-    assert_arguments_roundtrip [{ 'a' => @person }], [{ 'a' => @person.to_gid.to_s }.with_indifferent_access]
+    assert_arguments_roundtrip [3, [@person]], [3, ['_aj_globalid' => @person.to_gid.to_s]]
+    assert_arguments_roundtrip [{ 'a' => @person }], [{ 'a' => { '_aj_globalid' => @person.to_gid.to_s }}.with_indifferent_access]
   end
 
   test 'should stringify symbol hash keys' do
@@ -50,6 +50,14 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
 
     assert_raises ActiveJob::SerializationError do
       ActiveJob::Arguments.serialize [ { :a => [{ 2 => 3 }] } ]
+    end
+
+    assert_raises ActiveJob::SerializationError do
+      ActiveJob::Arguments.serialize [ '_aj_globalid' => 1 ]
+    end
+
+    assert_raises ActiveJob::SerializationError do
+      ActiveJob::Arguments.serialize [ :_aj_globalid => 1 ]
     end
   end
 

@@ -35,12 +35,15 @@ module ActiveJob
     end
 
     private
+      GLOBALID_KEY = '_aj_globalid'.freeze
+      private_constant :GLOBALID_KEY
+
       def serialize_argument(argument)
         case argument
         when *TYPE_WHITELIST
           argument
         when GlobalID::Identification
-          argument.to_global_id.to_s
+          { GLOBALID_KEY => argument.to_global_id.to_s }
         when Array
           argument.map { |arg| serialize_argument(arg) }
         when Hash
@@ -61,16 +64,37 @@ module ActiveJob
         when Array
           argument.map { |arg| deserialize_argument(arg) }
         when Hash
-          argument.each_with_object({}.with_indifferent_access) do |(key, value), hash|
-            hash[key] = deserialize_argument(value)
+          if serialized_global_id?(argument)
+            deserialize_global_id argument
+          else
+            deserialize_hash argument
           end
         else
           raise ArgumentError, "Can only deserialize primitive arguments: #{argument.inspect}"
         end
       end
 
+      def serialized_global_id?(hash)
+        hash.size == 1 and hash.include?(GLOBALID_KEY)
+      end
+
+      def deserialize_global_id(hash)
+        GlobalID::Locator.locate hash[GLOBALID_KEY]
+      end
+
+      def deserialize_hash(serialized_hash)
+        serialized_hash.each_with_object({}.with_indifferent_access) do |(key, value), hash|
+          hash[key] = deserialize_argument(value)
+        end
+      end
+
+      RESERVED_KEYS = [GLOBALID_KEY, GLOBALID_KEY.to_sym]
+      private_constant :RESERVED_KEYS
+
       def serialize_hash_key(key)
         case key
+        when *RESERVED_KEYS
+          raise SerializationError.new("Can't serialize a Hash with reserved key #{key.inspect}")
         when String, Symbol
           key.to_s
         else
