@@ -1,3 +1,7 @@
+*   Don't autosave unchanged has_one through records
+
+    *Alan Kennedy*, *Steve Parrington*
+
 *   When a thread is killed, rollback the active transaction, instead of
     committing it during the stack unwind. Previously, we could commit half-
     completed work. This fix only works for Ruby 2.0+; on 1.9, we can't
