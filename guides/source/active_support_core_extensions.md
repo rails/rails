@@ -1258,7 +1258,7 @@ The method `squish` strips leading and trailing whitespace, and substitutes runs
 
 There's also the destructive version `String#squish!`.
 
-Note that it handles both ASCII and Unicode whitespace like mongolian vowel separator (U+180E).
+Note that it handles both ASCII and Unicode whitespace.
 
 NOTE: Defined in `active_support/core_ext/string/filters.rb`.
 
