@@ -1,3 +1,10 @@
+*   Fix a bug where malformed query strings lead to 500.
+
+    fixes #11502.
+
+    *Yuki Nishijima*
+
+
 ## Rails 4.0.10 (September 11, 2014) ##
 
 *   Return an absolute instead of relative path from an asset url in the case
