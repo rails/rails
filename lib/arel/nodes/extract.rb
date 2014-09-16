@@ -1,20 +1,14 @@
 module Arel
   module Nodes
     class Extract < Arel::Nodes::Unary
+      include Arel::AliasPredication
       include Arel::Predications
 
       attr_accessor :field
-      attr_accessor :alias
 
-      def initialize expr, field, aliaz = nil
+      def initialize expr, field
         super(expr)
         @field = field
-        @alias = aliaz && SqlLiteral.new(aliaz)
-      end
-
-      def as aliaz
-        self.alias = SqlLiteral.new(aliaz)
-        self
       end
 
       def hash
@@ -23,8 +17,7 @@ module Arel
 
       def eql? other
         super &&
-          self.field == other.field &&
-          self.alias == other.alias
+          self.field == other.field
       end
       alias :== :eql?
     end

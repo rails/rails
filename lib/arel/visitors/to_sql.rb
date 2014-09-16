@@ -475,14 +475,7 @@ module Arel
 
       def visit_Arel_Nodes_Extract o, collector
         collector << "EXTRACT(#{o.field.to_s.upcase} FROM "
-        collector = visit o.expr, collector
-        collector << ")"
-        if o.alias
-          collector << " AS "
-          visit o.alias, collector
-        else
-          collector
-        end
+        visit(o.expr, collector) << ")"
       end
 
       def visit_Arel_Nodes_Count o, collector
