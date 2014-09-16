@@ -12,7 +12,7 @@ module Arel
       end
 
       def hash
-        super ^ [@field, @alias].hash
+        super ^ @field.hash
       end
 
       def eql? other
