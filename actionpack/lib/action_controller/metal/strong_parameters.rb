@@ -527,6 +527,21 @@ module ActionController
   #       end
   #   end
   #
+  # When the <tt>accepts_nested_attributes_for</tt> association is of polymorphic type, to accept
+  # varying attributes use procs.
+  #
+  # private
+  # def company_params
+  #   params.require(:company).permit(clients_attributes: ->(attributes) {
+  #     case attributes[:type]
+  #       when "Company"
+  #         [:type, :name, :year_founded]
+  #       when "Person"
+  #         [:type, :first_name, :last_name]
+  #     end
+  #   })
+  # end
+  #
   # See ActionController::Parameters.require and ActionController::Parameters.permit
   # for more information.
   module StrongParameters

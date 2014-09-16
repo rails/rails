@@ -318,6 +318,27 @@ with a `has_many` association:
 params.require(:book).permit(:title, chapters_attributes: [:title])
 ```
 
+If that `has_many` association is polymorphic, to accept different parameters
+depending on the object received, use procs:
+
+```ruby
+# To whitelist the following data:
+# {"company" => { "name" => "First Company",
+#    "clients_attributes" => {
+#      "1" => { "type" => "Company", "name" => "Second Company", "year_founded" => "2000" },
+#      "2" => { "type" => "Person", "first_name" => "John", "last_name" => "Doe" }}}}
+
+params.require(:company).permit(clients_attributes: ->(attributes) {
+    case attributes[:type]
+      when "Company"
+        [:type, :name, :year_founded]
+      when "Person"
+        [:type, :first_name, :last_name]
+    end
+  }
+)
+```
+
 #### Outside the Scope of Strong Parameters
 
 The strong parameter API was designed with the most common use cases
