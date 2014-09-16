@@ -52,11 +52,40 @@ deserialize it at run time.
 
 ### Adequate Record
 
-Rails 4.2 comes with a performance improvement feature called Adequate Record
-for Active Record. A lot of common queries are now up to twice as fast in Rails
-4.2!
+Adequate Record is a set of refactorings that make Active Record `find` and `find_by` methods and some association queries upto 2x faster.
 
-TODO: add some technical details
+It works by caching SQL query patterns while executing the Active Record calls. The cache helps skip parts of the computation involved in the transformation of the calls into SQL queries. More details in [Aaron Patterson's post](http://tenderlovemaking.com/2014/02/19/adequaterecord-pro-like-activerecord.html).
+
+Nothing special has to be done to activate this feature. Most `find` and `find_by` calls and association queries will use it automatically. Examples:
+
+```ruby
+Post.find 1  # caches query pattern
+Post.find 2  # uses the cached pattern
+
+Post.find_by_title 'first post'  # caches query pattern
+Post.find_by_title 'second post' # uses the cached pattern
+
+post.comments        # caches query pattern
+post.comments(true)  # uses cached pattern
+```
+
+The caching is not used in the following scenarios:
+
+- The model has a default scope
+- The model uses single table inheritence to inherit from another model
+- `find` with a list of ids. eg:
+
+  ```ruby
+  Post.find(1,2,3)
+  OR
+  Post.find [1,2]
+  ```
+
+- `find_by` with sql fragments:
+
+  ```ruby
+  Post.find_by "published_at < ?", 2.weeks.ago
+  ```
 
 ### Web Console
 
