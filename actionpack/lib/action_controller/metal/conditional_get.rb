@@ -32,7 +32,7 @@ module ActionController
       end
     end
 
-    # Sets the etag, +last_modified+, or both on the response and renders a
+    # Sets the +etag+, +last_modified+, or both on the response and renders a
     # <tt>304 Not Modified</tt> response if the request is already fresh.
     #
     # === Parameters:
@@ -58,7 +58,7 @@ module ActionController
     # If-Modified-Since header and just a <tt>304 Not Modified</tt> response if there's a match.
     #
     # You can also just pass a record where +last_modified+ will be set by calling
-    # +updated_at+ and the etag by passing the object itself.
+    # +updated_at+ and the +etag+ by passing the object itself.
     #
     #   def show
     #     @article = Article.find(params[:id])
@@ -124,7 +124,7 @@ module ActionController
     #   end
     #
     # You can also just pass a record where +last_modified+ will be set by calling
-    # updated_at and the etag by passing the object itself.
+    # +updated_at+ and the +etag+ by passing the object itself.
     #
     #   def show
     #     @article = Article.find(params[:id])
