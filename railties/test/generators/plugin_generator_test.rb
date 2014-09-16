@@ -53,7 +53,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     run_generator
     assert_file "README.rdoc", /Bukkits/
     assert_no_file "config/routes.rb"
-    assert_file "test/test_helper.rb"
+    assert_file "test/test_helper.rb", /require.+test\/dummy\/config\/environment/
     assert_file "test/bukkits_test.rb", /assert_kind_of Module, Bukkits/
   end
 
@@ -266,6 +266,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "spec/dummy"
     assert_file "spec/dummy/config/application.rb"
     assert_no_file "test/dummy"
+    assert_file "test/test_helper.rb", /require.+spec\/dummy\/config\/environment/
   end
 
   def test_creating_dummy_application_with_different_name
@@ -273,6 +274,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "spec/fake"
     assert_file "spec/fake/config/application.rb"
     assert_no_file "test/dummy"
+    assert_file "test/test_helper.rb", /require.+spec\/fake\/config\/environment/
   end
 
   def test_creating_dummy_without_tests_but_with_dummy_path
@@ -280,6 +282,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "spec/dummy"
     assert_file "spec/dummy/config/application.rb"
     assert_no_file "test"
+    assert_no_file "test/test_helper.rb"
     assert_file '.gitignore' do |contents|
       assert_match(/spec\/dummy/, contents)
     end

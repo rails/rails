@@ -1,3 +1,9 @@
+*   Change the path of dummy app location in plugin's test_helper.rb for cases
+    you specify dummy_path option.
+
+    *Yukio Mizuta*
+
+
 ## Rails 4.1.6 (September 11, 2014) ##
 
 *   Scaffold generator `_form` partial adds `class="field"` for password
