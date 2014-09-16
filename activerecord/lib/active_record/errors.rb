@@ -228,4 +228,8 @@ module ActiveRecord
   # The mysql, mysql2 and postgresql adapters support setting the transaction isolation level.
   class TransactionIsolationError < ActiveRecordError
   end
+
+  # Raised when unable to find a unique value for an attribute in a model after maximum retries.
+  class RetriesLimitReached < ActiveRecordError
+  end
 end

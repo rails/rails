@@ -1,3 +1,8 @@
+*   Added ActiveRecord::SecureKey to encapsulate generation of unique value for
+    an attribute of a model with SecureRandom.
+
+    *Kuldeep Aggarwal*
+
 *   When a thread is killed, rollback the active transaction, instead of
     committing it during the stack unwind. Previously, we could commit half-
     completed work. This fix only works for Ruby 2.0+; on 1.9, we can't
