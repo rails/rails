@@ -49,9 +49,13 @@ class DurationTest < ActiveSupport::TestCase
                   "which behaves oddly for the sake of backward-compatibility."
 
     assert 1.minute.eql?(1.minute)
+    assert 1.minute.eql?(60.seconds)
     assert 2.days.eql?(48.hours)
     assert !1.second.eql?(1)
     assert !1.eql?(1.second)
+    assert 1.minute.eql?(180.seconds - 2.minutes)
+    assert !1.minute.eql?(60)
+    assert !1.minute.eql?('foo')
   end
 
   def test_inspect
