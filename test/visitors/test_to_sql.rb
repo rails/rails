@@ -230,7 +230,7 @@ module Arel
       end
 
       it "should visit_Set" do
-        @visitor.accept Set.new([1, 2])
+        compile Nodes.build_quoted(Set.new([1, 2]))
       end
 
       it "should visit_BigDecimal" do
