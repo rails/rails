@@ -127,12 +127,12 @@
 
     Before:
 
-        #=> favicon_link_tag 'myicon.ico'
+        # => favicon_link_tag 'myicon.ico'
         <link href="/assets/myicon.ico" rel="shortcut icon" type="image/vnd.microsoft.icon" />
 
     After:
 
-        #=> favicon_link_tag 'myicon.ico'
+        # => favicon_link_tag 'myicon.ico'
         <link href="/assets/myicon.ico" rel="shortcut icon" type="image/x-icon" />
 
     *Geoffroy Lorieux*
@@ -145,7 +145,7 @@
 
     *Joost Baaij*
 
-*   `collection_check_boxes` respects `:index` option for the hidden filed name.
+*   `collection_check_boxes` respects `:index` option for the hidden field name.
 
     Fixes #14147.
 
@@ -166,7 +166,7 @@
 
     *Vasiliy Ermolovich*
 
-*   Fixed a problem where the default options for the `button_tag` helper is not
+*   Fixed a problem where the default options for the `button_tag` helper are not
     applied correctly.
 
     Fixes #14254.
