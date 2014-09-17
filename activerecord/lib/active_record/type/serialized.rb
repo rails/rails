@@ -2,6 +2,7 @@ module ActiveRecord
   module Type
     class Serialized < SimpleDelegator # :nodoc:
       include Mutable
+      include Decorator
 
       attr_reader :subtype, :coder
 
@@ -36,14 +37,13 @@ module ActiveRecord
       end
 
       def init_with(coder)
-        @subtype = coder['subtype']
         @coder = coder['coder']
-        __setobj__(@subtype)
+        super
       end
 
       def encode_with(coder)
-        coder['subtype'] = @subtype
         coder['coder'] = @coder
+        super
       end
 
       private

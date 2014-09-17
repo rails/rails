@@ -2,6 +2,8 @@ module ActiveRecord
   module AttributeMethods
     module TimeZoneConversion
       class TimeZoneConverter < SimpleDelegator # :nodoc:
+        include Type::Decorator
+
         def type_cast_from_database(value)
           convert_time_to_time_zone(super)
         end
