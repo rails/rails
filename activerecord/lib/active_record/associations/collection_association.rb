@@ -123,6 +123,16 @@ module ActiveRecord
         first_nth_or_last(:last, *args)
       end
 
+      def take
+        if loaded?
+          target.first
+        else
+          scope.take.tap do |record|
+            set_inverse_instance record if record.is_a? ActiveRecord::Base
+          end
+        end
+      end
+
       def build(attributes = {}, &block)
         if attributes.is_a?(Array)
           attributes.collect { |attr| build(attr, &block) }

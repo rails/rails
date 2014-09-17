@@ -226,6 +226,14 @@ module ActiveRecord
         @association.last(*args)
       end
 
+      def take
+        @association.take
+      end
+
+      def take!
+        take or raise RecordNotFound
+      end
+
       # Returns a new object of the collection type that has been instantiated
       # with +attributes+ and linked to this object, but have not yet been saved.
       # You can pass an array of attributes hashes, this will return an array

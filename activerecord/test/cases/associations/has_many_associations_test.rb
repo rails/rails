@@ -337,6 +337,22 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal companies(:another_first_firm_client), companies(:first_firm).clients_sorted_desc.find_by_type('Client')
   end
 
+  def test_taking
+    posts(:other_by_bob).destroy
+    assert_equal posts(:misc_by_bob), authors(:bob).posts.take
+    assert_equal posts(:misc_by_bob), authors(:bob).posts.take!
+    authors(:bob).posts.to_a
+    assert_equal posts(:misc_by_bob), authors(:bob).posts.take
+    assert_equal posts(:misc_by_bob), authors(:bob).posts.take!
+  end
+
+  def test_taking_not_found
+    authors(:bob).posts.delete_all
+    assert_raise(ActiveRecord::RecordNotFound) { authors(:bob).posts.take! }
+    authors(:bob).posts.to_a
+    assert_raise(ActiveRecord::RecordNotFound) { authors(:bob).posts.take! }
+  end
+
   def test_cant_save_has_many_readonly_association
     authors(:david).readonly_comments.each { |c| assert_raise(ActiveRecord::ReadOnlyRecord) { c.save! } }
     authors(:david).readonly_comments.each { |c| assert c.readonly? }
