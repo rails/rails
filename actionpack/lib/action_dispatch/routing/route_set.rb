@@ -427,7 +427,7 @@ module ActionDispatch
         RUBY
       end
 
-      def url_helpers(include_path_helpers = true)
+      def url_helpers(allow_path = true)
         routes = self
 
         Module.new do
@@ -454,10 +454,16 @@ module ActionDispatch
           # named routes...
           include url_helpers
 
-          if include_path_helpers
+          if allow_path
             path_helpers = routes.named_routes.path_helpers_module
           else
             path_helpers = routes.named_routes.path_helpers_module(true)
+
+            # Delegate mailer url_for to the controller
+            # this should always return a full URL.
+            def url_for(options)
+              self.controller.url_for(options)
+            end
           end
 
           include path_helpers
