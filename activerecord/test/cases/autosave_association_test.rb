@@ -19,6 +19,9 @@ require 'models/treasure'
 require 'models/eye'
 require 'models/electron'
 require 'models/molecule'
+require 'models/member'
+require 'models/member_detail'
+require 'models/organization'
 
 class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
   def test_autosave_validation
@@ -1113,6 +1116,27 @@ class TestAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCase
 
   def test_should_not_load_the_associated_model
     assert_queries(1) { @pirate.catchphrase = 'Arr'; @pirate.save! }
+  end
+end
+
+class TestAutosaveAssociationOnAHasOneThroughAssociation < ActiveRecord::TestCase
+  self.use_transactional_fixtures = false unless supports_savepoints?
+
+  def setup
+    super
+    organization = Organization.create
+    @member = Member.create
+    MemberDetail.create(organization: organization, member: @member)
+  end
+
+  def test_should_not_has_one_through_model
+    class << @member.organization
+      def save(*args)
+        super
+        raise 'Oh noes!'
+      end
+    end
+    assert_nothing_raised { @member.save }
   end
 end
 
