@@ -13,7 +13,7 @@ module ActiveJob
         end
       end
 
-      class JobWrapper
+      class JobWrapper #:nodoc:
         include SuckerPunch::Job
 
         def perform(job_data)

@@ -15,7 +15,7 @@ module ActiveJob
         end
       end
 
-      class JobWrapper < Qu::Job
+      class JobWrapper < Qu::Job #:nodoc:
         def initialize(job_data)
           @job_data  = job_data
         end

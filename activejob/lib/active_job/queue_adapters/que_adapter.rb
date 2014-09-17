@@ -13,7 +13,7 @@ module ActiveJob
         end
       end
 
-      class JobWrapper < Que::Job
+      class JobWrapper < Que::Job #:nodoc:
         def run(job_data)
           Base.execute job_data
         end

@@ -5,9 +5,9 @@ module ActiveJob
     extend ActiveSupport::Concern
 
     module ClassMethods
-      # Push a job onto the queue.  The arguments must be legal JSON types
+      # Push a job onto the queue. The arguments must be legal JSON types
       # (string, int, float, nil, true, false, hash or array) or
-      # GlobalID::Identification instances.  Arbitrary Ruby objects
+      # GlobalID::Identification instances. Arbitrary Ruby objects
       # are not supported.
       #
       # Returns an instance of the job class queued with args available in
@@ -22,7 +22,7 @@ module ActiveJob
         end
     end
 
-    # Reschedule the job to be re-executed. This is usefull in combination
+    # Reschedule the job to be re-executed. This is useful in combination
     # with the +rescue_from+ option. When you rescue an exception from your job
     # you can ask Active Job to retry performing your job.
     #
@@ -45,7 +45,7 @@ module ActiveJob
       enqueue options
     end
 
-    # Equeue the job to be performed by the queue adapter.
+    # Enqueues the job to be performed by the queue adapter.
     #
     # ==== Options
     # * <tt>:wait</tt> - Enqueues the job with the specified delay
