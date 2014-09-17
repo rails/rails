@@ -110,8 +110,8 @@
 
 *   Always instrument `ActiveSupport::Cache`.
 
-    Since `ActiveSupport::Notifications` only instrument items when there
-    are subscriber we don't need to disable instrumentation.
+    Since `ActiveSupport::Notifications` only instruments items when there
+    are attached subscribers, we don't need to disable instrumentation.
 
     *Peter Wagenet*
 
@@ -296,8 +296,8 @@
 
     *Pavel Pravosud*
 
-*   `HashWithIndifferentAccess` better respects `#to_hash` on objects it's
-    given. In particular, `.new`, `#update`, `#merge`, `#replace` all accept
+*   `HashWithIndifferentAccess` better respects `#to_hash` on objects it
+    recieves. In particular, `.new`, `#update`, `#merge`, `#replace` all accept
     objects which respond to `#to_hash`, even if those objects are not Hashes
     directly.
 
