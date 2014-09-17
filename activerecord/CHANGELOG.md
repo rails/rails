@@ -1,3 +1,5 @@
+*   Do not dump foreign keys for ignored tables. *Yves Senn*
+
 *   PostgreSQL adapter correctly dumps foreign keys targeting tables
     outside the schema search path.
 
