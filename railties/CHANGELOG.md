@@ -1,3 +1,9 @@
+*   Specify dummy app's db migrate path in plugin's test_helper.rb.
+
+    Fixes #16877.
+
+    *Yukio Mizuta*
+
 *   Change the path of dummy app location in plugin's test_helper.rb for cases
     you specify dummy_path option.
 
