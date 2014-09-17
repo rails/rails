@@ -1,3 +1,10 @@
+*   PostgreSQL adapter correctly dumps foreign keys targeting tables
+    outside the schema search path.
+
+    Fixes #16907.
+
+    *Matthew Draper*, *Yves Senn*
+
 *   When a thread is killed, rollback the active transaction, instead of
     committing it during the stack unwind. Previously, we could commit half-
     completed work. This fix only works for Ruby 2.0+; on 1.9, we can't
