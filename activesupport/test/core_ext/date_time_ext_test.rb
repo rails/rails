@@ -114,6 +114,16 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal DateTime.civil(2005,4,30,23,59,59), DateTime.civil(2005,4,20,10,10,10).end_of_month
   end
 
+  # As Time#end_of_month adds a big Rationale as miliseconds, while
+  # DateTime#end_of_month has precision only up to the seconds, the result is
+  # that Time#end_of_month > DateTime#end_of_month
+  #
+  # Goes the same for all DateTime#end_of_*
+  def test_end_of_month_is_consisted_with_time
+    assert_equal Time.parse('2005-04-30 13:30').end_of_month.to_datetime,
+      DateTime.parse('2005-04-30 13:30').end_of_month
+  end
+
   def test_last_year
     assert_equal DateTime.civil(2004,6,5,10),  DateTime.civil(2005,6,5,10,0,0).last_year
   end
