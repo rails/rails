@@ -174,18 +174,6 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal category_attrs , category.attributes_before_type_cast
   end
 
-  if current_adapter?(:MysqlAdapter)
-    def test_read_attributes_before_type_cast_on_boolean
-      bool = Boolean.create({ "value" => false })
-      if RUBY_PLATFORM =~ /java/
-        # JRuby will return the value before typecast as string
-        assert_equal "0", bool.reload.attributes_before_type_cast["value"]
-      else
-        assert_equal 0, bool.reload.attributes_before_type_cast["value"]
-      end
-    end
-  end
-
   def test_read_attributes_before_type_cast_on_datetime
     in_time_zone "Pacific Time (US & Canada)" do
       record = @target.new

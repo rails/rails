@@ -112,7 +112,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
       assert_match %r{c_int_4.*}, output
       assert_no_match %r{c_int_4.*limit:}, output
-    elsif current_adapter?(:MysqlAdapter, :Mysql2Adapter)
+    elsif current_adapter?(:Mysql2Adapter)
       assert_match %r{c_int_without_limit.*limit: 4}, output
 
       assert_match %r{c_int_1.*limit: 1}, output
@@ -174,7 +174,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
   def test_schema_dumps_index_columns_in_right_order
     index_definition = standard_dump.split(/\n/).grep(/add_index.*companies/).first.strip
-    if current_adapter?(:MysqlAdapter, :Mysql2Adapter, :PostgreSQLAdapter)
+    if current_adapter?(:Mysql2Adapter, :PostgreSQLAdapter)
       assert_equal 'add_index "companies", ["firm_id", "type", "rating"], name: "company_index", using: :btree', index_definition
     else
       assert_equal 'add_index "companies", ["firm_id", "type", "rating"], name: "company_index"', index_definition
@@ -185,7 +185,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
     index_definition = standard_dump.split(/\n/).grep(/add_index.*company_partial_index/).first.strip
     if current_adapter?(:PostgreSQLAdapter)
       assert_equal 'add_index "companies", ["firm_id", "type"], name: "company_partial_index", where: "(rating > 10)", using: :btree', index_definition
-    elsif current_adapter?(:MysqlAdapter, :Mysql2Adapter)
+    elsif current_adapter?(:Mysql2Adapter)
       assert_equal 'add_index "companies", ["firm_id", "type"], name: "company_partial_index", using: :btree', index_definition
     elsif current_adapter?(:SQLite3Adapter) && ActiveRecord::Base.connection.supports_partial_index?
       assert_equal 'add_index "companies", ["firm_id", "type"], name: "company_partial_index", where: "rating > 10"', index_definition
@@ -206,7 +206,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
     assert_match %r{t\.boolean\s+"has_fun",.+default: false}, output
   end
 
-  if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
+  if current_adapter?(:Mysql2Adapter)
     def test_schema_dump_should_add_default_value_for_mysql_text_field
       output = standard_dump
       assert_match %r{t.text\s+"body",\s+limit: 65535,\s+null: false$}, output

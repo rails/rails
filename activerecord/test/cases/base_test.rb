@@ -83,7 +83,6 @@ class BasicsTest < ActiveRecord::TestCase
     classname = conn.class.name[/[^:]*$/]
     badchar   = {
       'SQLite3Adapter'    => '"',
-      'MysqlAdapter'      => '`',
       'Mysql2Adapter'     => '`',
       'PostgreSQLAdapter' => '"',
       'OracleAdapter'     => '"',
@@ -143,7 +142,7 @@ class BasicsTest < ActiveRecord::TestCase
     end
   end
 
-  unless current_adapter?(:MysqlAdapter, :Mysql2Adapter)
+  unless current_adapter?(:Mysql2Adapter)
     def test_limit_should_allow_sql_literal
       assert_equal 1, Topic.limit(Arel.sql('2-1')).to_a.length
     end
@@ -438,7 +437,7 @@ class BasicsTest < ActiveRecord::TestCase
     Post.reset_table_name
   end
 
-  if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
+  if current_adapter?(:Mysql2Adapter)
     def test_update_all_with_order_and_limit
       assert_equal 1, Topic.limit(1).order('id DESC').update_all(:content => 'bulk updated!')
     end

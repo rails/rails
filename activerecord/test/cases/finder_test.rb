@@ -99,7 +99,7 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_exists_fails_when_parameter_has_invalid_type
-    if current_adapter?(:PostgreSQLAdapter, :MysqlAdapter)
+    if current_adapter?(:PostgreSQLAdapter)
       assert_raises ActiveRecord::StatementInvalid do
         Topic.exists?(("9"*53).to_i) # number that's bigger than int
       end
