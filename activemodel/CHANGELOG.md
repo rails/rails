@@ -12,18 +12,21 @@
 
 *   Deprecate `reset_#{attribute}` in favor of `restore_#{attribute}`.
 
-    These methods may cause confusion with the `reset_changes` that behaves differently
-    of them.
+    These methods may cause confusion with the `reset_changes`, which has
+    different behaviour.
+
+    *Rafael Mendonça França*
 
 *   Deprecate `ActiveModel::Dirty#reset_changes` in favor of `#clear_changes_information`.
 
-    This method name is causing confusion with the `reset_#{attribute}`
-    methods. While `reset_name` set the value of the name attribute for the
-    previous value `reset_changes` only discard the changes and previous
-    changes.
+    Method's name is causing confusion with the `reset_#{attribute}` methods.
+    While `reset_name` sets the value of the name attribute to previous value
+    `reset_changes` only discards the changes.
 
-*   Added `restore_attributes` method to `ActiveModel::Dirty` API to restore all the
-    changed values to the previous data.
+    *Rafael Mendonça França*
+
+*   Added `restore_attributes` method to `ActiveModel::Dirty` API which restores
+    the value of changed attributes to previous value.
 
     *Igor G.*
 
