@@ -14,7 +14,7 @@ module ActiveJob
         end
       end
 
-      class JobWrapper
+      class JobWrapper #:nodoc:
         class << self
           def perform(job_data)
             Base.execute job_data
