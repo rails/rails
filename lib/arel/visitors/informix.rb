@@ -41,7 +41,7 @@ module Arel
         visit o.expr, collector
       end
       def visit_Arel_Nodes_Limit o, collector
-        collector << "LIMIT "
+        collector << "FIRST "
         visit o.expr, collector
         collector << " "
       end
