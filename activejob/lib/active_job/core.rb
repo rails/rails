@@ -13,7 +13,7 @@ module ActiveJob
       # Job Identifier
       attr_accessor :job_id
 
-      # Queue on which the job should be run on.
+      # Queue in which the job will reside.
       attr_writer :queue_name
     end
 

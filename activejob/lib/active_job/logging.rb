@@ -50,7 +50,7 @@ module ActiveJob
         logger.formatter.current_tags.include?("ActiveJob")
       end
 
-    class LogSubscriber < ActiveSupport::LogSubscriber
+    class LogSubscriber < ActiveSupport::LogSubscriber #:nodoc:
       def enqueue(event)
         info do
           job = event.payload[:job]

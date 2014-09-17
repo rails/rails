@@ -23,7 +23,7 @@ module ActiveJob
         end
       end
 
-      class JobWrapper
+      class JobWrapper #:nodoc:
         include Sidekiq::Worker
 
         def perform(job_data)

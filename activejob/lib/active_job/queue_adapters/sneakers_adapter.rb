@@ -19,7 +19,7 @@ module ActiveJob
         end
       end
 
-      class JobWrapper
+      class JobWrapper #:nodoc:
         include Sneakers::Worker
         from_queue 'default'
 
