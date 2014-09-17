@@ -30,7 +30,6 @@ matrix:
       env: "GEM=ar:mysql"
     - rvm: rbx-2
     - rvm: jruby
-    - rvm: ruby-head
   fast_finish: true
 notifications:
   email: false
