@@ -681,6 +681,14 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_yaml_dumping_record_with_time_zone_aware_attribute
+    in_time_zone "Pacific Time (US & Canada)" do
+      record = Topic.new(id: 1)
+      record.written_on = "Jan 01 00:00:00 2014"
+      assert_equal record, YAML.load(YAML.dump(record))
+    end
+  end
+
   def test_setting_time_zone_conversion_for_attributes_should_write_value_on_class_variable
     Topic.skip_time_zone_conversion_for_attributes = [:field_a]
     Minimalistic.skip_time_zone_conversion_for_attributes = [:field_b]
