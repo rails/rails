@@ -752,6 +752,7 @@ module Arel
       def visit_Array o, collector
         inject_join o, collector, ", "
       end
+      alias :visit_Set :visit_Array
 
       def quote value, column = nil
         return value if Arel::Nodes::SqlLiteral === value

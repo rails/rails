@@ -1,4 +1,5 @@
 require 'helper'
+require 'set'
 
 module Arel
   module Visitors
@@ -226,6 +227,10 @@ module Arel
 
       it "should visit_Hash" do
         compile(Nodes.build_quoted({:a => 1}))
+      end
+
+      it "should visit_Set" do
+        @visitor.accept Set.new([1, 2])
       end
 
       it "should visit_BigDecimal" do

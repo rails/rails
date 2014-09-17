@@ -164,6 +164,7 @@ module Arel
       def visit_Array o
         o.each { |i| visit i }
       end
+      alias :visit_Set :visit_Array
 
       def visit_Hash o
         o.each { |k,v| visit(k); visit(v) }

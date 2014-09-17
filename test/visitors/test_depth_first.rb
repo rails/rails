@@ -1,4 +1,5 @@
 require 'helper'
+require 'set'
 
 module Arel
   module Visitors
@@ -169,6 +170,13 @@ module Arel
         list = [node]
         @visitor.accept list
         assert_equal [:a, :b, node, list], @collector.calls
+      end
+
+      def test_set
+        node = Nodes::Or.new(:a, :b)
+        set  = Set.new([node])
+        @visitor.accept set
+        assert_equal [:a, :b, node, set], @collector.calls
       end
 
       def test_hash

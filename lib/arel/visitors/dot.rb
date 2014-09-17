@@ -216,6 +216,7 @@ module Arel
           edge(i) { visit x }
         end
       end
+      alias :visit_Set :visit_Array
 
       def visit_edge o, method
         edge(method) { visit o.send(method) }
