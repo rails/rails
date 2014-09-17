@@ -1,6 +1,9 @@
-*   Don't autosave unchanged has_one through records
+*   PostgreSQL adapter correctly dumps foreign keys targeting tables
+    outside the schema search path.
 
-    *Alan Kennedy*, *Steve Parrington*
+    Fixes #16907.
+
+    *Matthew Draper*, *Yves Senn*
 
 *   When a thread is killed, rollback the active transaction, instead of
     committing it during the stack unwind. Previously, we could commit half-
