@@ -583,7 +583,7 @@ module ActionController
         parameters.reject! { |parameter| !extra_keys.include?(parameter) }
         url, = @routes.path_for(options).split("?", 2)
 
-        url = @request.env["PATH_INFO"] || url
+        url = @request.env.delete('PATH_INFO') || url
 
         @request.env.each do |key, value|
           headers_or_env[key] ||= value if !value.nil?

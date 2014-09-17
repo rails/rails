@@ -143,8 +143,14 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
   end
 
   test "authentication request with request-uri that doesn't match credentials digest-uri" do
-    @request.env['HTTP_AUTHORIZATION'] = encode_credentials(:username => 'pretty', :password => 'please')
-    @request.env['PATH_INFO'] = "/proxied/uri"
+    credentials = encode_credentials(
+      url: "http://test.host/http_digest_authentication_test/dummy_digest/index",
+      username: 'pretty',
+      password: 'please'
+    )
+
+    @request.env['HTTP_AUTHORIZATION'] = credentials
+
     get :display
 
     assert_response :success
@@ -153,9 +159,9 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
   end
 
   test "authentication request with absolute request uri (as in webrick)" do
-    @request.env['HTTP_AUTHORIZATION'] = encode_credentials(:username => 'pretty', :password => 'please')
+    credentials = encode_credentials(:username => 'pretty', :password => 'please')
+    @request.env['HTTP_AUTHORIZATION'] = credentials
     @request.env["SERVER_NAME"] = "test.host"
-    @request.env['PATH_INFO'] = "/http_digest_authentication_test/dummy_digest"
 
     get :display
 
@@ -177,16 +183,19 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
   end
 
   test "authentication request with absolute uri in both request and credentials (as in Webrick with IE)" do
-    @request.env['HTTP_AUTHORIZATION'] = encode_credentials(:url => "http://test.host/http_digest_authentication_test/dummy_digest",
-                                                            :username => 'pretty', :password => 'please')
-    @request.env['SERVER_NAME'] = "test.host"
-    @request.env['PATH_INFO'] = "/http_digest_authentication_test/dummy_digest"
+    credentials = encode_credentials(
+      url: "http://test.host/http_digest_authentication_test/dummy_digest/index",
+      username: 'pretty',
+      password: 'please'
+    )
 
-    get :display
+    @request.env['HTTP_AUTHORIZATION'] =  credentials
+    @request.env['SERVER_NAME'] = "test.host"
+
+    get :index
 
     assert_response :success
-    assert assigns(:logged_in)
-    assert_equal 'Definitely Maybe', @response.body
+    assert_equal 'Hello Secret', @response.body
   end
 
   test "authentication request with password stored as ha1 digest hash" do
@@ -220,11 +229,10 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
   end
 
   test "authentication request with request-uri ending in '/'" do
-    @request.env['PATH_INFO'] = "/http_digest_authentication_test/dummy_digest/"
-    @request.env['HTTP_AUTHORIZATION'] = encode_credentials(:username => 'pretty', :password => 'please')
+    @request.env['PATH_INFO'] = "/http_digest_authentication_test/dummy_digest/index/"
+    credentials = encode_credentials(:username => 'pretty', :password => 'please')
+    @request.env['HTTP_AUTHORIZATION'] = credentials
 
-    # simulate normalizing PATH_INFO
-    @request.env['PATH_INFO'] = "/http_digest_authentication_test/dummy_digest"
     get :display
 
     assert_response :success
@@ -232,11 +240,10 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
   end
 
   test "authentication request with request-uri ending in '?'" do
-    @request.env['PATH_INFO'] = "/http_digest_authentication_test/dummy_digest/?"
-    @request.env['HTTP_AUTHORIZATION'] = encode_credentials(:username => 'pretty', :password => 'please')
+    @request.env['PATH_INFO'] = "/http_digest_authentication_test/dummy_digest/index/?"
+    credentials = encode_credentials(:username => 'pretty', :password => 'please')
+    @request.env['HTTP_AUTHORIZATION'] = credentials
 
-    # simulate normalizing PATH_INFO
-    @request.env['PATH_INFO'] = "/http_digest_authentication_test/dummy_digest"
     get :display
 
     assert_response :success
@@ -244,17 +251,20 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
   end
 
   test "authentication request with absolute uri in credentials (as in IE) ending with /" do
-    @request.env['PATH_INFO'] = "/http_digest_authentication_test/dummy_digest/"
-    @request.env['HTTP_AUTHORIZATION'] = encode_credentials(:uri => "http://test.host/http_digest_authentication_test/dummy_digest/",
-                                                            :username => 'pretty', :password => 'please')
+    @request.env['PATH_INFO'] = "/http_digest_authentication_test/dummy_digest/index/"
 
-    # simulate normalizing PATH_INFO
-    @request.env['PATH_INFO'] = "/http_digest_authentication_test/dummy_digest"
-    get :display
+    credentials = encode_credentials(
+      uri: "http://test.host/http_digest_authentication_test/dummy_digest/",
+      username: 'pretty',
+      password: 'please'
+    )
+
+    @request.env['HTTP_AUTHORIZATION'] = credentials
+
+    get :index
 
     assert_response :success
-    assert assigns(:logged_in)
-    assert_equal 'Definitely Maybe', @response.body
+    assert_equal 'Hello Secret', @response.body
   end
 
   test "when sent a basic auth header, returns Unauthorized" do
