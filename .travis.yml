@@ -28,6 +28,8 @@ matrix:
       env: "GEM=ar:mysql"
     - rvm: 2.0.0
       env: "GEM=ar:mysql"
+    - rvm: ruby-head
+      env: "GEM=ar:mysql"
     - rvm: rbx-2
     - rvm: jruby
   fast_finish: true
