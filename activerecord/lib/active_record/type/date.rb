@@ -37,7 +37,8 @@ module ActiveRecord
       end
 
       def new_date(year, mon, mday)
-        if year && year != 0
+        year ||= ::Date.current.year
+        if year != 0
           ::Date.new(year, mon, mday) rescue nil
         end
       end
