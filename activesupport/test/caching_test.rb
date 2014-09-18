@@ -257,13 +257,14 @@ module CacheStoreBehavior
   end
 
   def test_fetch_without_storing_nil
-    @cache.expects(:write).never
+    @cache.expects(:write).once.with('foo', 'baz', anything())
     assert_nil @cache.fetch('foo', {unless_nil: true}) { nil }
+    assert_equal 'baz', @cache.fetch('foo', {unless_nil: true}) { 'baz' }
   end
 
   def test_fetch_with_storing_nil_by_default
-    @cache.expects(:write).once
     assert_nil @cache.fetch('foo') { nil }
+    assert_nil @cache.fetch('foo') { 'baz' } #still nil even though the block yielded baz
   end
 
   def test_should_read_and_write_hash
