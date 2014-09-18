@@ -129,11 +129,23 @@ class Numeric
 end
 
 module ActiveSupport #:nodoc:
+  # HTML safe +String+. Some methods that accept blocks don't work in
+  # +ActiveSupport::SafeBuffer+ the same way they do in +Strings+. The reason
+  # is the way Ruby magic variables such as <tt>$1</tt> work. For example:
+  #
+  #   'abc'.gsub(/(a)/) { "<#$1>" }
+  #    # => "<a>bc"
+  #   'abc'.html_safe.gsub(/(a)/) { "<#$1>" }
+  #    # => "<>bc"
+  #
+  # Methods with this behavior have their block forms deprecated and are going
+  # to removed in future verions.
   class SafeBuffer < String
     UNSAFE_STRING_METHODS = %w(
       capitalize chomp chop delete downcase gsub lstrip next reverse rstrip
       slice squeeze strip sub succ swapcase tr tr_s upcase
     )
+    UNSAFE_WITH_BLOCK_STRING_METHODS = %w(gsub sub)
 
     alias_method :original_concat, :concat
     private :original_concat
@@ -222,17 +234,22 @@ module ActiveSupport #:nodoc:
       coder.represent_scalar nil, to_str
     end
 
+    def titleize
+      to_str.titleize
+    end
+
     UNSAFE_STRING_METHODS.each do |unsafe_method|
       if unsafe_method.respond_to?(unsafe_method)
         class_eval <<-EOT, __FILE__, __LINE__ + 1
-          def #{unsafe_method}(*args, &block)       # def capitalize(*args, &block)
-            to_str.#{unsafe_method}(*args, &block)  #   to_str.capitalize(*args, &block)
-          end                                       # end
+          def #{unsafe_method}(*args, &block)                   # def capitalize(*args, &block)
+            check_unsafe_with_block('#{unsafe_method}', &block) #   check_unsafe_with_block('capitalize', &block)
+            to_str.#{unsafe_method}(*args, &block)              #   to_str.capitalize(*args, &block)
+          end                                                   # end
 
-          def #{unsafe_method}!(*args)              # def capitalize!(*args)
-            @html_safe = false                      #   @html_safe = false
-            super                                   #   super
-          end                                       # end
+          def #{unsafe_method}!(*args)                          # def capitalize!(*args)
+            @html_safe = false                                  #   @html_safe = false
+            super                                               #   super
+          end                                                   # end
         EOT
       end
     end
@@ -242,6 +259,12 @@ module ActiveSupport #:nodoc:
     def html_escape_interpolated_argument(arg)
       (!html_safe? || arg.html_safe?) ? arg :
         arg.to_s.gsub(ERB::Util::HTML_ESCAPE_REGEXP, ERB::Util::HTML_ESCAPE)
+    end
+
+    def check_unsafe_with_block(unsafe_method, &block)
+      if UNSAFE_WITH_BLOCK_STRING_METHODS.include?(unsafe_method) && ! block.nil?
+        ActiveSupport::Deprecation.deprecation_warning "ActiveSupport::SafeBuffer##{unsafe_method} with block is deprecated and will be removed in the future. Use ActiveSupport::SafeBuffer#to_str and call ##{unsafe_method} on the result, instead."
+      end
     end
   end
 end

@@ -1,3 +1,8 @@
+*   Deprecated `SafeBuffer#gsub` and `SafeBuffer#sub` with block parameters,
+    because magic variables such as `$1` wouldn't work with them.
+
+    * Leandro Facchinetti *
+
 *   Added method `#eql?` to `ActiveSupport::Duration`, in addition to `#==`.
 
     Currently, the following returns `false`, contrary to expectation:
