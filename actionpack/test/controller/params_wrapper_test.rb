@@ -106,7 +106,9 @@ class ParamsWrapperTest < ActionController::TestCase
   def test_not_enabled_format
     with_default_wrapper_options do
       @request.env['CONTENT_TYPE'] = 'application/xml'
-      post :parse, { 'username' => 'sikachu', 'title' => 'Developer' }
+      # Simulate parsing of XML
+      @request.env['action_dispatch.request.request_parameters'] = { 'username' => 'sikachu', 'title' => 'Developer' }
+      post :parse
       assert_parameters({ 'username' => 'sikachu', 'title' => 'Developer' })
     end
   end
@@ -125,7 +127,9 @@ class ParamsWrapperTest < ActionController::TestCase
       UsersController.wrap_parameters :format => :xml
 
       @request.env['CONTENT_TYPE'] = 'application/xml'
-      post :parse, { 'username' => 'sikachu', 'title' => 'Developer' }
+      # Simulate parsing of XML
+      @request.env['action_dispatch.request.request_parameters'] = { 'username' => 'sikachu', 'title' => 'Developer' }
+      post :parse
       assert_parameters({ 'username' => 'sikachu', 'title' => 'Developer', 'user' => { 'username' => 'sikachu', 'title' => 'Developer' }})
     end
   end

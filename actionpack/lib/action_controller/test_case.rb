@@ -203,7 +203,11 @@ module ActionController
 
     def recycle!
       @formats = nil
-      @env.delete_if { |k, v| k =~ /^(action_dispatch|rack)\.request/ }
+
+      if self.content_mime_type.try(:ref) != :xml
+        @env.delete_if { |k, v| k =~ /^(action_dispatch|rack)\.request/ }
+      end
+
       @env.delete_if { |k, v| k =~ /^rack.input/ }
       @env.delete_if { |k, v| k =~ /^action_dispatch\.rescue/ }
       @method = @request_method = nil
