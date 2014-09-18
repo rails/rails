@@ -3,10 +3,11 @@ require 'active_support/core_ext/string/inflections'
 
 module ActiveJob
   module QueueAdapter
-    mattr_reader(:queue_adapter) { ActiveJob::QueueAdapters::InlineAdapter }
+    attr_accessor(:queue_adapter) { ActiveJob::QueueAdapters::InlineAdapter }
 
+    alias_method :old_queue_adapter=, :queue_adapter=
     def queue_adapter=(name_or_adapter)
-      @@queue_adapter = \
+      self.old_queue_adapter= \
         case name_or_adapter
         when Symbol, String
           load_adapter(name_or_adapter)
