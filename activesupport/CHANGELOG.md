@@ -1,3 +1,9 @@
+*   Delegation now works with ruby reserved words passed to `:to` option.
+
+    Fixes #16956.
+
+    *Agis Anastasopoulos*
+
 *   Added method `#eql?` to `ActiveSupport::Duration`, in addition to `#==`.
 
     Currently, the following returns `false`, contrary to expectation:
