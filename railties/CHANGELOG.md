@@ -1,3 +1,9 @@
+*   Inject `Rack::Lock` if `config.eager_load` is false.
+
+    Fixes #15089.
+
+    *Xavier Noria*
+
 *   Change the path of dummy app location in plugin's test_helper.rb for cases
     you specify dummy_path option.
 
