@@ -8,6 +8,7 @@ module ActiveRecord
         current_date = ::Date.current.strftime('%m/%d')
         assert_equal ::Date.current, type.type_cast_from_user(current_date)
         assert_equal ::Date.parse('7/15'), type.type_cast_from_user('7/15')
+        assert_equal ::Date.parse('0000/7/15'), type.type_cast_from_user('0000/7/15')
       end
     end
   end
