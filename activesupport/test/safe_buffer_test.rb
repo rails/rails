@@ -141,6 +141,18 @@ class SafeBufferTest < ActiveSupport::TestCase
     assert !y.html_safe?, "should not be safe"
   end
 
+  test "Should deprecate gsub with block" do
+    assert_deprecated do
+      @buffer.gsub('') { '' }
+    end
+  end
+
+  test "Should deprecate sub with block" do
+    assert_deprecated do
+      @buffer.sub('') { '' }
+    end
+  end
+
   test 'Should work with interpolation (array argument)' do
     x = 'foo %s bar'.html_safe % ['qux']
     assert_equal 'foo qux bar', x
