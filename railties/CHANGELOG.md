@@ -1,3 +1,9 @@
+*   Inject `Rack::Lock` if `config.eager_load` is false.
+
+    Fixes #15089.
+
+    *Xavier Noria*
+
 *   Specify dummy app's db migrate path in plugin's test_helper.rb.
 
     Fixes #16877.
