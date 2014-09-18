@@ -11,16 +11,17 @@ class AdapterTest < ActiveSupport::TestCase
     base_queue_adapter = ActiveJob::Base.queue_adapter
 
     class ChildJobOne < ActiveJob::Base
-      self.queue_adapter = :sucker_punch
+      self.queue_adapter = 'test'
     end
-    assert_equal ActiveJob::QueueAdapters::SuckerPunchAdapter, ChildJobOne.queue_adapter
+    assert_not_equal ActiveJob::Base.queue_adapter, ChildJobOne.queue_adapter
+    assert_equal ActiveJob::QueueAdapters::TestAdapter, ChildJobOne.queue_adapter
 
     class ChildJobTwo < ActiveJob::Base
-      self.queue_adapter = :sneakers
+      self.queue_adapter = 'inline'
     end
-    assert_equal ActiveJob::QueueAdapters::SneakersAdapter, ChildJobTwo.queue_adapter
+    assert_equal ActiveJob::QueueAdapters::InlineAdapter, ChildJobTwo.queue_adapter
 
-    assert_equal ActiveJob::QueueAdapters::SuckerPunchAdapter, ChildJobOne.queue_adapter, "ChildJobOne's queue adapter should remain unchanged"
+    assert_equal ActiveJob::QueueAdapters::TestAdapter, ChildJobOne.queue_adapter, "ChildJobOne's queue adapter should remain unchanged"
     assert_equal base_queue_adapter, ActiveJob::Base.queue_adapter, "ActiveJob::Base's queue adapter should remain unchanged"
 
   end
