@@ -256,6 +256,16 @@ module CacheStoreBehavior
     assert_nil @cache.fetch('foo') { 'baz' }
   end
 
+  def test_fetch_without_storing_nil
+    @cache.expects(:write).never
+    assert_nil @cache.fetch('foo', {unless_nil: true}) { nil }
+  end
+
+  def test_fetch_with_storing_nil_by_default
+    @cache.expects(:write).once
+    assert_nil @cache.fetch('foo') { nil }
+  end
+
   def test_should_read_and_write_hash
     assert @cache.write('foo', {:a => "b"})
     assert_equal({:a => "b"}, @cache.read('foo'))
