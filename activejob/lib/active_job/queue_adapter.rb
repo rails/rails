@@ -5,11 +5,18 @@ module ActiveJob
   module QueueAdapter
     extend ActiveSupport::Concern
 
+    included do
+      class_attribute :_queue_adapter
+      self._queue_adapter = ActiveJob::QueueAdapters::InlineAdapter unless self._queue_adapter?
+    end
+
     module ClassMethods
-      mattr_reader(:queue_adapter) { ActiveJob::QueueAdapters::InlineAdapter }
+      def queue_adapter
+        self._queue_adapter
+      end
 
       def queue_adapter=(name_or_adapter)
-        @@queue_adapter = \
+        self._queue_adapter= \
           case name_or_adapter
           when :test
             ActiveJob::QueueAdapters::TestAdapter.new
