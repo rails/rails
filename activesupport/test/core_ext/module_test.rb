@@ -56,8 +56,14 @@ Developer = Struct.new(:client) do
   delegate :name, :to => :client, :prefix => nil
 end
 
+Event = Struct.new(:case) do
+  delegate :foo, :to => :case
+end
+
 Tester = Struct.new(:client) do
   delegate :name, :to => :client, :prefix => false
+
+  def foo; 1; end
 end
 
 Product = Struct.new(:name) do
@@ -494,5 +500,10 @@ class MethodAliasingTest < ActiveSupport::TestCase
 
     assert_equal 'duck_with_orange', @instance.duck
     assert FooClassWithBarMethod.public_method_defined?(:duck)
+  end
+
+  def test_delegate_with_case
+    event = Event.new(Tester.new)
+    assert_equal 1, event.foo
   end
 end
