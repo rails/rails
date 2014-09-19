@@ -217,7 +217,7 @@ module Rails
     #       namespace: my_app_development
     #
     #     # config/production.rb
-    #     MyApp::Application.configure do
+    #     Rails.application.configure do
     #       config.middleware.use ExceptionNotifier, config_for(:exception_notification)
     #     end
     def config_for(name)
