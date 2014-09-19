@@ -24,6 +24,10 @@ class AdapterTest < ActiveSupport::TestCase
     assert_equal ActiveJob::QueueAdapters::TestAdapter, ChildJobOne.queue_adapter, "ChildJobOne's queue adapter should remain unchanged"
     assert_equal base_queue_adapter, ActiveJob::Base.queue_adapter, "ActiveJob::Base's queue adapter should remain unchanged"
 
+    class ChildJobThree < ActiveJob::Base
+
+    end
+    assert ChildJobThree.new.class.queue_adapter
   end
 end
 
