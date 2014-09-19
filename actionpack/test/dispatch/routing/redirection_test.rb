@@ -177,6 +177,16 @@ module ActionDispatch
         self.host = previous_host
       end
 
+      def test_redirect_with_opaque_target
+        draw do
+          get 'account/google' => redirect('localhost:3000')
+        end
+
+        assert_raises(ArgumentError) do
+          get '/account/google'
+        end
+      end
+
       def test_redirect_https
         draw do
           get 'secure', :to => redirect("/secure/login")

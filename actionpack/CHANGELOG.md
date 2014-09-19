@@ -1,3 +1,7 @@
+*   Fail informatively when `redirect` is called with an opaque url, e.g. 'localhost:3000'
+
+    *Ben Woosley*
+
 *   Deprecate implicit Array conversion for Response objects. It was added
     (using `#to_ary`) so we could conveniently use implicit splatting:
 
