@@ -95,7 +95,7 @@ module ActiveSupport
   #   end
   #
   #   class Host
-  #     include Bar # works, Bar takes care now of its dependencies
+  #     include Bar # It works, now Bar takes care of its dependencies
   #   end
   module Concern
     class MultipleIncludedBlocks < StandardError #:nodoc:
