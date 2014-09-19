@@ -66,11 +66,7 @@ module Rails
         end
 
         def allow_concurrency?
-          if config.allow_concurrency.nil?
-            config.cache_classes && config.eager_load
-          else
-            config.allow_concurrency
-          end
+          config.allow_concurrency.nil? ? config.cache_classes : config.allow_concurrency
         end
 
         def load_rack_cache

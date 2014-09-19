@@ -94,20 +94,13 @@ module ApplicationTests
       assert !middleware.include?("ActiveRecord::Migration::CheckPending")
     end
 
-    test "includes lock if cache_classes is set but eager_load is not" do
+    test "removes lock if cache classes is set" do
       add_to_config "config.cache_classes = true"
-      boot!
-      assert middleware.include?("Rack::Lock")
-    end
-
-    test "does not include lock if cache_classes is set and so is eager_load" do
-      add_to_config "config.cache_classes = true"
-      add_to_config "config.eager_load = true"
       boot!
       assert !middleware.include?("Rack::Lock")
     end
 
-    test "does not include lock if allow_concurrency is set" do
+    test "removes lock if allow concurrency is set" do
       add_to_config "config.allow_concurrency = true"
       boot!
       assert !middleware.include?("Rack::Lock")
