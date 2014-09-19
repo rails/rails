@@ -125,7 +125,7 @@
 
     *Sean Griffin*
 
-*   Fix regression on after_commit that didnt fire when having nested transactions.
+*   Fix regression on `after_commit` that didnt fire when having nested transactions.
 
     Fixes #16425.
 
@@ -240,7 +240,7 @@
 
     *Stefan Kanev*
 
-*   Dont swallow errors on compute_type when having a bad alias_method on
+*   Dont swallow errors on `compute_type` when having a bad `alias_method` on
     a class.
 
     *arthurnn*
@@ -323,7 +323,7 @@
 
     *Eileen M. Uchitelle, Aaron Patterson*
 
-*   Avoid type casting boolean and ActiveSupport::Duration values to numeric
+*   Avoid type casting boolean and `ActiveSupport::Duration` values to numeric
     values for string columns. Otherwise, in some database, the string column
     values will be coerced to a numeric allowing false or 0.seconds match any
     string starting with a non-digit.
@@ -354,8 +354,8 @@
 
     *Abdelkader Boudih*
 
-*   Move 'dependent: :destroy' handling for 'belongs_to'
-    from 'before_destroy' to 'after_destroy' callback chain
+*   Move 'dependent: :destroy' handling for `belongs_to`
+    from `before_destroy` to `after_destroy` callback chain
 
     Fixes #12380.
 
@@ -476,7 +476,7 @@
 
     *Sean Griffin*
 
-*   Pluck now works when selecting columns from different tables with the same
+*   `Pluck` now works when selecting columns from different tables with the same
     name.
 
     Fixes #15649.
@@ -543,7 +543,7 @@
 
     *Sean Griffin*
 
-*   Implemented ActiveRecord::Base#pretty_print to work with PP.
+*   Implemented `ActiveRecord::Base#pretty_print` to work with PP.
 
     *Ethan*
 
@@ -584,16 +584,16 @@
 
     *Arun Agrawal*
 
-*   Fix redefine a has_and_belongs_to_many inside inherited class
-    Fixing regression case, where redefining the same has_an_belongs_to_many
+*   Fix redefine a `has_and_belongs_to_many` inside inherited class
+    Fixing regression case, where redefining the same `has_and_belongs_to_many`
     definition into a subclass would raise.
 
     Fixes #14983.
 
     *arthurnn*
 
-*   Fix has_and_belongs_to_many public reflection.
-    When defining a has_and_belongs_to_many, internally we convert that to two has_many.
+*   Fix `has_and_belongs_to_many` public reflection.
+    When defining a `has_and_belongs_to_many`, internally we convert that to two has_many.
     But as `reflections` is a public API, people expect to see the right macro.
 
     Fixes #14682.
@@ -630,7 +630,7 @@
 
     *Brock Trappitt*
 
-*   Fixed the inferred table name of a has_and_belongs_to_many auxiliar
+*   Fixed the inferred table name of a `has_and_belongs_to_many` auxiliar
     table inside a schema.
 
     Fixes #14824.
@@ -674,7 +674,7 @@
 
     *Aaron Nelson*
 
-*   Fix how to calculate associated class name when using namespaced has_and_belongs_to_many
+*   Fix how to calculate associated class name when using namespaced `has_and_belongs_to_many`
     association.
 
     Fixes #14709.
@@ -744,7 +744,7 @@
 
 *   Fixed has_and_belongs_to_many's CollectionAssociation size calculation.
 
-    has_and_belongs_to_many should fall back to using the normal CollectionAssociation's
+    `has_and_belongs_to_many` should fall back to using the normal CollectionAssociation's
     size calculation if the collection is not cached or loaded.
 
     Fixes #14913, #14914.
@@ -804,7 +804,7 @@
 
     *Timur Alperovich*
 
-*   Give ActiveRecord::PredicateBuilder private methods the privacy they deserve.
+*   Give `ActiveRecord::PredicateBuilder` private methods the privacy they deserve.
 
     *Hector Satre*
 
@@ -860,7 +860,7 @@
 
     *Kuldeep Aggarwal*
 
-*   Fixed has_many association to make it support irregular inflections.
+*   Fixed `has_many` association to make it support irregular inflections.
 
     Fixes #8928.
 
@@ -974,7 +974,7 @@
 
 *   `to_sql` on an association now matches the query that is actually executed, where it
     could previously have incorrectly accrued additional conditions (e.g. as a result of
-    a previous query). CollectionProxy now always defers to the association scope's
+    a previous query). `CollectionProxy` now always defers to the association scope's
     `arel` method so the (incorrect) inherited one should be entirely concealed.
 
     Fixes #14003.
@@ -1205,7 +1205,7 @@
 
     The current solution of incrementing the beginning is not correct and is now
     deprecated. For subtypes where we don't know how to increment (e.g. `#succ`
-    is not defined) it will raise an ArgumentException for ranges with excluding
+    is not defined) it will raise an `ArgumentException` for ranges with excluding
     beginnings.
 
     *Yves Senn*
