@@ -6,10 +6,10 @@ module ActiveJob
     extend ActiveSupport::Concern
 
     module ClassMethods
-      mattr_reader(:queue_adapter) { ActiveJob::QueueAdapters::InlineAdapter }
+      class_attribute :queue_adapter
 
-      def queue_adapter=(name_or_adapter)
-        @@queue_adapter = \
+      def queue_adapter_with_interpretation=(name_or_adapter)
+        self.queue_adapter_without_interpretation = \
           case name_or_adapter
           when :test
             ActiveJob::QueueAdapters::TestAdapter.new
@@ -19,6 +19,7 @@ module ActiveJob
             name_or_adapter
           end
       end
+      alias_method_chain :queue_adapter, :interpretation
 
       private
         def load_adapter(name)

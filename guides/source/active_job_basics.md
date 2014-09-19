@@ -138,7 +138,9 @@ You can easily change your adapter:
 ```ruby
 # be sure to have the adapter gem in your Gemfile and follow the adapter specific
 # installation and deployment instructions
-Rails.application.config.active_job.queue_adapter = :sidekiq
+ApplicationJob
+  self.queue_adapter = :sidekiq
+end
 ```
 
 
@@ -265,6 +267,12 @@ UserMailer.welcome(@user).deliver_now
 UserMailer.welcome(@user).deliver_later
 ```
 
+You can also configure ActionMailer::DeliveryJob to use a specific queue
+adapter, distinct from the one specified in `ApplicationJob`:
+
+```ruby
+Rails.application.config.action_mailer.delivery_job.queue_adapter = :sneakers
+```
 
 GlobalID
 --------
