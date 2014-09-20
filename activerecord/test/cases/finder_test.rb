@@ -1073,6 +1073,11 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal nil, Post.find_by("1 = 0")
   end
 
+  test "find_by with associations" do
+    assert_equal authors(:david), Post.find_by(author: authors(:david)).author
+    assert_equal authors(:mary) , Post.find_by(author: authors(:mary) ).author
+  end
+
   test "find_by doesn't have implicit ordering" do
     assert_sql(/^((?!ORDER).)*$/) { Post.find_by(id: posts(:eager_other).id) }
   end

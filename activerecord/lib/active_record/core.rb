@@ -162,6 +162,9 @@ module ActiveRecord
           v.nil? || Array === v || Hash === v
         }
 
+        # We can't cache Post.find_by(author: david) ...yet
+        return super unless hash.keys.all? { |k| columns_hash.has_key?(k.to_s) }
+
         key  = hash.keys
 
         klass = self
