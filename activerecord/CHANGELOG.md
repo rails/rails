@@ -1,3 +1,12 @@
+*   Isolate access to @associations_cache and @aggregations cache to the
+    Associations and Aggregations modules, respectively.
+
+    This includes replacing the `association_cache` accessor with an
+    `association_cached?` accessor and making `clear_association_cache`
+    and `clear_aggregation_cache` private.
+
+    *Ben Woosley*
+
 *   Honor overridden `rack.test` in Rack environment for the connection
     management middleware.
 

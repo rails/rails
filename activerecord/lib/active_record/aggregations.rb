@@ -3,9 +3,26 @@ module ActiveRecord
   module Aggregations # :nodoc:
     extend ActiveSupport::Concern
 
-    def clear_aggregation_cache #:nodoc:
-      @aggregation_cache.clear if persisted?
+    def initialize_dup(*) # :nodoc:
+      @aggregation_cache = {}
+      super
     end
+
+    def reload(*) # :nodoc:
+      clear_aggregation_cache
+      super
+    end
+
+    private
+
+      def clear_aggregation_cache # :nodoc:
+        @aggregation_cache.clear if persisted?
+      end
+
+      def init_internals # :nodoc:
+        @aggregation_cache = {}
+        super
+      end
 
     # Active Record implements aggregation through a macro-like class method called +composed_of+
     # for representing attributes  as value objects. It expresses relationships like "Account [is]
@@ -89,7 +106,7 @@ module ActiveRecord
     #
     #   customer.address_street = "Vesterbrogade"
     #   customer.address        # => Address.new("Hyancintvej", "Copenhagen")
-    #   customer.clear_aggregation_cache
+    #   customer.send(:clear_aggregation_cache)
     #   customer.address        # => Address.new("Vesterbrogade", "Copenhagen")
     #
     #   customer.address = Address.new("May Street", "Chicago")

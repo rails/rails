@@ -333,9 +333,6 @@ module ActiveRecord
 
       run_callbacks(:initialize) unless _initialize_callbacks.empty?
 
-      @aggregation_cache = {}
-      @association_cache = {}
-
       @new_record  = true
       @destroyed   = false
 
@@ -529,8 +526,6 @@ module ActiveRecord
     def init_internals
       @attributes.ensure_initialized(self.class.primary_key)
 
-      @aggregation_cache        = {}
-      @association_cache        = {}
       @readonly                 = false
       @destroyed                = false
       @marked_for_destruction   = false
