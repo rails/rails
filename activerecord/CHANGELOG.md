@@ -43,7 +43,7 @@
 
     *Girish Sonawane*
 
-*   Introduce `connection.supports_views?` to check wether the current adapter
+*   Introduce `connection.supports_views?` to check whether the current adapter
     has support for SQL views. Connection adapters should define this method.
 
     *Yves Senn*
@@ -91,17 +91,18 @@
 
     *Agis Anastasopoulos*
 
-*   Fixed the `Relation#exists?` to work with polymorphic associations.
+*   Fixed `Relation#exists?` to work with polymorphic associations.
 
     Fixes #15821.
 
     *Kassio Borges*
 
-*   Currently, Active Record will rescue any errors raised within
-    after_rollback/after_create callbacks and print them to the logs. Next versions of rails
-    will not rescue those errors anymore, and just bubble them up, as the other callbacks.
+*   Currently, Active Record rescues any errors raised within
+    `after_rollback`/`after_create` callbacks and prints them to the logs.
+    Future versions of Rails will not rescue these errors anymore and
+    just bubble them up like the other callbacks.
 
-    This adds a opt-in flag to enable that behaviour, of not rescuing the errors.
+    This commit adds an opt-in flag to enable not rescuing the errors.
 
     Example:
 
@@ -125,7 +126,7 @@
 
     *Sean Griffin*
 
-*   Fix regression on `after_commit` that didnt fire when having nested transactions.
+*   Fix regression on `after_commit` that did not fire with nested transactions.
 
     Fixes #16425.
 
@@ -161,9 +162,9 @@
 
 *   Define `id_was` to get the previous value of the primary key.
 
-    Currently when we call id_was and we have a custom primary key name
+    Currently when we call `id_was` and we have a custom primary key name,
     Active Record will return the current value of the primary key. This
-    make impossible to correctly do an update operation if you change the
+    makes it impossible to correctly do an update operation if you change the
     id.
 
     Fixes #16413.
@@ -195,7 +196,7 @@
 
     *Eileen M. Uchtitelle*, *Aaron Patterson*
 
-*   No verbose backtrace by db:drop when database does not exist.
+*   No verbose backtrace by `db:drop` when database does not exist.
 
     Fixes #16295.
 
@@ -240,7 +241,7 @@
 
     *Stefan Kanev*
 
-*   Dont swallow errors on `compute_type` when having a bad `alias_method` on
+*   Do not swallow errors on `compute_type` when having a bad `alias_method` on
     a class.
 
     *arthurnn*
@@ -363,8 +364,9 @@
 
 *   Detect in-place modifications on String attributes.
 
-    Before this change user have to mark the attribute as changed to it be persisted
-    in the database. Now it is not required anymore.
+    Before this change, an attribute modified in-place had to be marked as
+    changed in order for it to be persisted in the database. Now it is no longer
+    required.
 
     Before:
 
