@@ -181,7 +181,7 @@ module ActiveRecord
       end
 
       def find_by!(*args)
-        find_by(*args) or raise RecordNotFound
+        find_by(*args) or raise RecordNotFound.new("Couldn't find #{name}")
       end
 
       def initialize_generated_modules
