@@ -26,7 +26,7 @@ module ActiveRecord
             queries << '1=0'
           else
             table       = Arel::Table.new(column, default_table.engine)
-            association = klass._reflect_on_association(column.to_sym)
+            association = klass._reflect_on_association(column)
 
             value.each do |k, v|
               queries.concat expand(association && association.klass, table, k, v)
@@ -55,7 +55,7 @@ module ActiveRecord
       #
       # For polymorphic relationships, find the foreign key and type:
       # PriceEstimate.where(estimate_of: treasure)
-      if klass && reflection = klass._reflect_on_association(column.to_sym)
+      if klass && reflection = klass._reflect_on_association(column)
         if reflection.polymorphic? && base_class = polymorphic_base_class_from_value(value)
           queries << build(table[reflection.foreign_type], base_class)
         end
