@@ -810,8 +810,8 @@ Rails 4.0 extracted Active Resource to its own gem. If you still need the featur
 
 ```ruby
   # config/initializers/secret_token.rb
-  Myapp::Application.config.secret_token = 'existing secret token'
-  Myapp::Application.config.secret_key_base = 'new secret key base'
+  Rails.application.config.secret_token = 'existing secret token'
+  Rails.application.config.secret_key_base = 'new secret key base'
 ```
 
 Please note that you should wait to set `secret_key_base` until you have 100% of your userbase on Rails 4.x and are reasonably sure you will not need to rollback to Rails 3.x. This is because cookies signed based on the new `secret_key_base` in Rails 4.x are not backwards compatible with Rails 3.x. You are free to leave your existing `secret_token` in place, not set the new `secret_key_base`, and ignore the deprecation warnings until you are reasonably sure that your upgrade is otherwise complete.
@@ -1105,7 +1105,7 @@ You need to change your session key to something new, or remove all sessions:
 
 ```ruby
 # in config/initializers/session_store.rb
-AppName::Application.config.session_store :cookie_store, key: 'SOMETHINGNEW'
+Rails.application.config.session_store :cookie_store, key: 'SOMETHINGNEW'
 ```
 
 or
