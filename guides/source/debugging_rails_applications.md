@@ -138,7 +138,7 @@ Rails.logger.level = 0 # at any time
 
 This is useful when you want to log under development or staging, but you don't want to flood your production log with unnecessary information.
 
-TIP: The default Rails log level is `info` in production mode and `debug` in development and test mode.
+TIP: The default Rails log level is `debug` in all environments.
 
 ### Sending Messages
 
