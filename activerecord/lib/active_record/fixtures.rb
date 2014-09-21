@@ -812,6 +812,9 @@ module ActiveRecord
       teardown_fixtures
     end
 
+    mattr_reader :required_fixture_set_names
+    @@required_fixture_set_names = []
+
     included do
       class_attribute :fixture_path, :instance_writer => false
       class_attribute :fixture_table_names
@@ -876,7 +879,10 @@ module ActiveRecord
           fixture_set_names = fixture_table_names
         end
 
+        fixture_set_names -= ActiveRecord::TestFixtures::required_fixture_set_names
+
         fixture_set_names.each do |file_name|
+          ActiveRecord::TestFixtures::required_fixture_set_names << file_name
           file_name = file_name.singularize if config.pluralize_table_names
           try_to_load_dependency(file_name)
         end
