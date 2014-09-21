@@ -93,7 +93,6 @@ module ActiveRecord
       end
 
       class_attribute :default_connection_handler, instance_writer: false
-      class_attribute :find_by_statement_cache
 
       def self.connection_handler
         ActiveRecord::RuntimeRegistry.connection_handler || default_connection_handler
@@ -112,11 +111,12 @@ module ActiveRecord
         super
       end
 
-      def initialize_find_by_cache
-        self.find_by_statement_cache = {}.extend(Mutex_m)
+      def initialize_find_by_cache # :nodoc:
+        @find_by_statement_cache = {}.extend(Mutex_m)
       end
 
       def inherited(child_class)
+        # initialize cache at class definition for thread safety
         child_class.initialize_find_by_cache
         super
       end
@@ -138,14 +138,11 @@ module ActiveRecord
           ActiveSupport::Deprecation.warn "You are passing an instance of ActiveRecord::Base to `find`." \
             "Please pass the id of the object by calling `.id`"
         end
-        key = primary_key
 
-        s = find_by_statement_cache[key] || find_by_statement_cache.synchronize {
-          find_by_statement_cache[key] ||= StatementCache.create(connection) { |params|
-            where(key => params.bind).limit(1)
-          }
+        statement = cached_find_by_statement(primary_key) { |params|
+          where(primary_key => params.bind).limit(1)
         }
-        record = s.execute([id], self, connection).first
+        record = statement.execute([id], self, connection).first
         unless record
           raise RecordNotFound, "Couldn't find #{name} with '#{primary_key}'=#{id}"
         end
@@ -165,19 +162,14 @@ module ActiveRecord
         # We can't cache Post.find_by(author: david) ...yet
         return super unless hash.keys.all? { |k| columns_hash.has_key?(k.to_s) }
 
-        key  = hash.keys
-
-        klass = self
-        s = find_by_statement_cache[key] || find_by_statement_cache.synchronize {
-          find_by_statement_cache[key] ||= StatementCache.create(connection) { |params|
-            wheres = key.each_with_object({}) { |param,o|
-              o[param] = params.bind
-            }
-            klass.where(wheres).limit(1)
+        statement = cached_find_by_statement(hash.keys) { |params|
+          wheres = hash.keys.each_with_object({}) { |param,o|
+            o[param] = params.bind
           }
+          where(wheres).limit(1)
         }
         begin
-          s.execute(hash.values, self, connection).first
+          statement.execute(hash.values, self, connection).first
         rescue TypeError => e
           raise ActiveRecord::StatementInvalid.new(e.message, e)
         end
@@ -241,7 +233,13 @@ module ActiveRecord
 
       private
 
-      def relation #:nodoc:
+      def cached_find_by_statement(key, &block) # :nodoc:
+        @find_by_statement_cache[key] || @find_by_statement_cache.synchronize {
+          @find_by_statement_cache[key] ||= StatementCache.create(connection, &block)
+        }
+      end
+
+      def relation # :nodoc:
         relation = Relation.create(self, arel_table)
 
         if finder_needs_type_condition?
