@@ -177,6 +177,21 @@ class UsersController < ApplicationController
 end
 ```
 
+### Default host for `rails server`
+
+Due to a [change in Rack](https://github.com/rack/rack/commit/28b014484a8ac0bbb388e7eaeeef159598ec64fc),
+`rails server` now listens on `localhost` instead of `0.0.0.0` by default. This
+should have minimal impact on the standard development workflow as both http://127.0.0.1:3000
+and http://localhost:3000 would continue to work as before on your own machine.
+
+However, with this change you would no longer be able to access the Rails server
+from a different machine (e.g. your development environment is in a virtual
+machine and you would like to access it from the host machine), you would need
+to start the server with `rails server -b 0.0.0.0` to restore the old behavior.
+
+If you do this, be sure to configure your firewall properly such that only
+trusted machines on your network can access your development server.
+
 ### Production logging
 
 The default log level in the `production` environment is now `:debug`. This
