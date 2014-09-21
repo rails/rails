@@ -98,8 +98,8 @@ class DurationTest < ActiveSupport::TestCase
 
   def test_since_and_ago
     t = Time.local(2000)
-    assert t + 1, 1.second.since(t)
-    assert t - 1, 1.second.ago(t)
+    assert_equal t + 1, 1.second.since(t)
+    assert_equal t - 1, 1.second.ago(t)
   end
 
   def test_since_and_ago_without_argument

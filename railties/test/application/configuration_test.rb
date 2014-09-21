@@ -182,7 +182,7 @@ module ApplicationTests
 
     test "application is always added to eager_load namespaces" do
       require "#{app_path}/config/application"
-      assert Rails.application, Rails.application.config.eager_load_namespaces
+      assert_includes Rails.application.config.eager_load_namespaces, AppTemplate::Application
     end
 
     test "the application can be eager loaded even when there are no frameworks" do
