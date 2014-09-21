@@ -138,7 +138,7 @@ You can easily change your adapter:
 ```ruby
 # be sure to have the adapter gem in your Gemfile and follow the adapter specific
 # installation and deployment instructions
-YourApp::Application.config.active_job.queue_adapter = :sidekiq
+Rails.application.config.active_job.queue_adapter = :sidekiq
 ```
 
 
