@@ -738,9 +738,9 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     error = assert_raises(ActiveRecord::UnknownAttributeError) {
       @target.new(:hello => "world")
     }
-    assert @target, error.record
-    assert "hello", error.attribute
-    assert "unknown attribute: hello", error.message
+    assert_instance_of @target, error.record
+    assert_equal "hello", error.attribute
+    assert_equal "unknown attribute: hello", error.message
   end
 
   def test_methods_override_in_multi_level_subclass
