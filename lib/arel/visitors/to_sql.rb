@@ -61,8 +61,6 @@ module Arel
       def initialize connection
         @connection     = connection
         @schema_cache   = connection.schema_cache
-        @quoted_tables  = {}
-        @quoted_columns = {}
       end
 
       def compile node, &block
@@ -761,11 +759,12 @@ module Arel
 
       def quote_table_name name
         return name if Arel::Nodes::SqlLiteral === name
-        @quoted_tables[name] ||= @connection.quote_table_name(name)
+        @connection.quote_table_name(name)
       end
 
       def quote_column_name name
-        @quoted_columns[name] ||= Arel::Nodes::SqlLiteral === name ? name : @connection.quote_column_name(name)
+        return name if Arel::Nodes::SqlLiteral === name
+        @connection.quote_column_name(name)
       end
 
       def maybe_visit thing, collector
