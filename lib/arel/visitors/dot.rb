@@ -15,6 +15,7 @@ module Arel
       end
 
       def initialize
+        super()
         @nodes      = []
         @edges      = []
         @node_stack = []

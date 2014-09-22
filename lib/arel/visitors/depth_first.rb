@@ -3,6 +3,7 @@ module Arel
     class DepthFirst < Arel::Visitors::Visitor
       def initialize block = nil
         @block = block || Proc.new
+        super()
       end
 
       private
@@ -86,6 +87,7 @@ module Arel
       alias :visit_Arel_Nodes_RightOuterJoin     :binary
       alias :visit_Arel_Nodes_TableAlias         :binary
       alias :visit_Arel_Nodes_Values             :binary
+      alias :visit_Arel_Nodes_Union              :binary
 
       def visit_Arel_Nodes_StringJoin o
         visit o.left
@@ -116,6 +118,8 @@ module Arel
       alias :visit_Arel_Nodes_SqlLiteral         :terminal
       alias :visit_Arel_Nodes_BindParam          :terminal
       alias :visit_Arel_Nodes_Window             :terminal
+      alias :visit_Arel_Nodes_True               :terminal
+      alias :visit_Arel_Nodes_False              :terminal
       alias :visit_BigDecimal                    :terminal
       alias :visit_Bignum                        :terminal
       alias :visit_Class                         :terminal

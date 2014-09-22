@@ -35,9 +35,6 @@ module Arel
 
       def test_visitor_yields_on_binds
         visitor = Class.new(Arel::Visitors::ToSql) {
-          def initialize omg
-          end
-
           include Arel::Visitors::BindVisitor
         }.new nil
 
@@ -49,9 +46,6 @@ module Arel
 
       def test_visitor_only_yields_on_binds
         visitor = Class.new(Arel::Visitors::ToSql) {
-          def initialize omg
-          end
-
           include Arel::Visitors::BindVisitor
         }.new(nil)
 

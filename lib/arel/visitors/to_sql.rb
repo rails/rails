@@ -59,8 +59,8 @@ module Arel
       DISTINCT = 'DISTINCT'   # :nodoc:
 
       def initialize connection
+        super()
         @connection     = connection
-        @schema_cache   = connection.schema_cache
       end
 
       def compile node, &block
@@ -68,6 +68,10 @@ module Arel
       end
 
       private
+
+      def schema_cache
+        @connection.schema_cache
+      end
 
       def visit_Arel_Nodes_DeleteStatement o, collector
         collector << "DELETE FROM "
@@ -160,7 +164,7 @@ module Arel
       end
 
       def table_exists? name
-        @schema_cache.table_exists? name
+        schema_cache.table_exists? name
       end
 
       def column_for attr
@@ -174,7 +178,7 @@ module Arel
       end
 
       def column_cache(table)
-        @schema_cache.columns_hash(table)
+        schema_cache.columns_hash(table)
       end
 
       def visit_Arel_Nodes_Values o, collector
