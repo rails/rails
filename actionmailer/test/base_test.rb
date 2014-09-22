@@ -246,6 +246,19 @@ class BaseTest < ActiveSupport::TestCase
     assert_match(/Can't add attachments after `mail` was called./, e.message)
   end
 
+  test "adding inline attachments while rendering mail works" do
+    class LateInlineAttachmentMailer < ActionMailer::Base
+      def on_render
+        mail from: "welcome@example.com", to: "to@example.com"
+      end
+    end
+
+    mail = LateInlineAttachmentMailer.on_render
+
+    assert_equal ["image/jpeg; filename=controller_attachments.jpg",
+                  "image/jpeg; filename=attachments.jpg"], mail.attachments.inline.map {|a| a['Content-Type'].to_s }
+  end
+
   test "accessing attachments works after mail was called" do
     class LateAttachmentAccessorMailer < ActionMailer::Base
       def welcome

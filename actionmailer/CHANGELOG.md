@@ -1,3 +1,9 @@
+*   Attachments can be added while rendering the mail template.
+
+    Fixes #16974.
+
+    *Christian Felder*
+
 ## Rails 4.1.6 (September 11, 2014) ##
 
 *   Make ActionMailer::Previews methods class methods. Previously they were

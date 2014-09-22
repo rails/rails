@@ -759,7 +759,6 @@ module ActionMailer
     def mail(headers = {}, &block)
       return @_message if @_mail_was_called && headers.blank? && !block
 
-      @_mail_was_called = true
       m = @_message
 
       # At the beginning, do not consider class default for content_type
@@ -787,6 +786,8 @@ module ActionMailer
 
       # Render the templates and blocks
       responses = collect_responses(headers, &block)
+      @_mail_was_called = true
+
       create_parts_from_responses(m, responses)
 
       # Setup content type, reapply charset and handle parts order
