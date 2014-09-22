@@ -19,7 +19,7 @@ class LiveParrot < Parrot
 end
 
 class DeadParrot < Parrot
-  belongs_to :killer, :class_name => 'Pirate'
+  belongs_to :killer, :class_name => 'Pirate', foreign_key: :killer_id
 end
 
 class FunkyParrot < Parrot

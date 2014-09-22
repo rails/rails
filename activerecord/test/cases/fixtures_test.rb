@@ -675,7 +675,7 @@ class FoxyFixturesTest < ActiveRecord::TestCase
   if ActiveRecord::Base.connection.adapter_name == 'PostgreSQL'
     require 'models/uuid_parent'
     require 'models/uuid_child'
-    fixtures :uuid_parents, :uuid_children 
+    fixtures :uuid_parents, :uuid_children
   end
 
   def test_identifies_strings
@@ -809,15 +809,6 @@ class FoxyFixturesTest < ActiveRecord::TestCase
   def test_namespaced_models
     assert admin_accounts(:signals37).users.include?(admin_users(:david))
     assert_equal 2, admin_accounts(:signals37).users.size
-  end
-
-  class Nemesis < ActiveRecord::Base
-    self.table_name = "mateys"
-    belongs_to :mortal_enemy, :class_name => 'Pirate', :foreign_key => :target_id
-  end
-
-  def test_symbol_foreign_key_id
-    ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, "nemeses", "nemeses" => Nemesis)
   end
 end
 
