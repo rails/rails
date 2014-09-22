@@ -1,6 +1,12 @@
 class Comment < ActiveRecord::Base
   scope :limit_by, lambda {|l| limit(l) }
+
   scope :containing_the_letter_e, -> { where("comments.body LIKE '%e%'") }
+  reverse_scope :without_the_letter_e, :containing_the_letter_e
+
+  scope :with_word, ->(word) { where("comments.body LIKE '%#{word}%'")}
+  reverse_scope :without_word, :with_word
+
   scope :not_again, -> { where("comments.body NOT LIKE '%again%'") }
   scope :for_first_post, -> { where(:post_id => 1) }
   scope :for_first_author, -> { joins(:post).where("posts.author_id" => 1) }
