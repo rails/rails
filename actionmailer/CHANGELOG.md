@@ -1,3 +1,9 @@
+*   Attachments can be added while rendering the mail template.
+
+    Fixes #16974.
+
+    *Christian Felder*
+
 *   Added `#deliver_later`, `#deliver_now` and deprecate `#deliver` in favour of
     `#deliver_now`. `#deliver_later` will enqueue a job to render and deliver
     the mail instead of delivering it right at that moment. The job is enqueued
