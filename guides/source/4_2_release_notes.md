@@ -25,9 +25,8 @@ If you're upgrading an existing application, it's a great idea to have good test
 coverage before going in. You should also first upgrade to Rails 4.1 in case you
 haven't and make sure your application still runs as expected before attempting
 to upgrade to Rails 4.2. A list of things to watch out for when upgrading is
-available in the
-[Upgrading Ruby on Rails](upgrading_ruby_on_rails.html#upgrading-from-rails-4-1-to-rails-4-2)
-guide.
+available in the guide: [Upgrading Ruby on
+Rails](upgrading_ruby_on_rails.html#upgrading-from-rails-4-1-to-rails-4-2)
 
 
 Major Features
