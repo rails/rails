@@ -108,7 +108,7 @@ module ActionView
       end
 
       # Normalize args by converting render "foo" to render :action => "foo" and
-      # render "foo/bar" to render :template => "foo/bar".
+      # render "foo/bar" to render :file => "foo/bar".
       # :api: private
       def _normalize_args(action=nil, options={})
         options = super(action, options)
@@ -118,7 +118,7 @@ module ActionView
           options = action
         when String, Symbol
           action = action.to_s
-          key = action.include?(?/) ? :template : :action
+          key = action.include?(?/) ? :file : :action
           options[key] = action
         else
           options[:partial] = action
