@@ -136,19 +136,6 @@ def disable_extension!(extension, connection)
   connection.reconnect!
 end
 
-unless ENV['FIXTURE_DEBUG']
-  module ActiveRecord::TestFixtures::ClassMethods
-    def try_to_load_dependency_with_silence(*args)
-      old = ActiveRecord::Base.logger.level
-      ActiveRecord::Base.logger.level = ActiveSupport::Logger::ERROR
-      try_to_load_dependency_without_silence(*args)
-      ActiveRecord::Base.logger.level = old
-    end
-
-    alias_method_chain :try_to_load_dependency, :silence
-  end
-end
-
 require "cases/validations_repair_helper"
 class ActiveSupport::TestCase
   include ActiveRecord::TestFixtures

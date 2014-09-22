@@ -870,32 +870,7 @@ module ActiveRecord
         end
 
         self.fixture_table_names |= fixture_set_names
-        require_fixture_classes(fixture_set_names, self.config)
         setup_fixture_accessors(fixture_set_names)
-      end
-
-      def try_to_load_dependency(file_name)
-        require_dependency file_name
-      rescue LoadError => e
-        unless fixture_class_names.key?(file_name.pluralize)
-          if ActiveRecord::Base.logger
-            ActiveRecord::Base.logger.warn("Unable to load #{file_name}, make sure you added it to ActiveSupport::TestCase.set_fixture_class")
-            ActiveRecord::Base.logger.warn("underlying cause #{e.message} \n\n #{e.backtrace.join("\n")}")
-          end
-        end
-      end
-
-      def require_fixture_classes(fixture_set_names = nil, config = ActiveRecord::Base)
-        if fixture_set_names
-          fixture_set_names = fixture_set_names.map { |n| n.to_s }
-        else
-          fixture_set_names = fixture_table_names
-        end
-
-        fixture_set_names.each do |file_name|
-          file_name = file_name.singularize if config.pluralize_table_names
-          try_to_load_dependency(file_name)
-        end
       end
 
       def setup_fixture_accessors(fixture_set_names = nil)
@@ -974,7 +949,7 @@ module ActiveRecord
       end
 
       # Instantiate fixtures for every test if requested.
-      instantiate_fixtures(config) if use_instantiated_fixtures
+      instantiate_fixtures if use_instantiated_fixtures
     end
 
     def teardown_fixtures
@@ -1001,16 +976,9 @@ module ActiveRecord
         Hash[fixtures.map { |f| [f.name, f] }]
       end
 
-      # for pre_loaded_fixtures, only require the classes once. huge speed improvement
-      @@required_fixture_classes = false
-
-      def instantiate_fixtures(config)
+      def instantiate_fixtures
         if pre_loaded_fixtures
           raise RuntimeError, 'Load fixtures before instantiating them.' if ActiveRecord::FixtureSet.all_loaded_fixtures.empty?
-          unless @@required_fixture_classes
-            self.class.require_fixture_classes ActiveRecord::FixtureSet.all_loaded_fixtures.keys, config
-            @@required_fixture_classes = true
-          end
           ActiveRecord::FixtureSet.instantiate_all_loaded_fixtures(self, load_instances?)
         else
           raise RuntimeError, 'Load fixtures before instantiating them.' if @loaded_fixtures.nil?
