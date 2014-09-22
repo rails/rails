@@ -1,4 +1,5 @@
 require 'rails/generators/active_record'
+require 'rails/generators/active_record/migration/migration_generator'
 
 module ActiveRecord
   module Generators # :nodoc:
@@ -12,13 +13,18 @@ module ActiveRecord
       class_option :parent,     :type => :string, :desc => "The parent class for the generated model"
       class_option :indexes,    :type => :boolean, :default => true, :desc => "Add indexes for references and belongs_to columns"
 
-      
+
       # creates the migration file for the model.
+
+      def self.source_paths
+        # re-purpose create_table_migration.rb template from migration generator
+        super + ActiveRecord::Generators::MigrationGenerator.source_paths
+      end
 
       def create_migration_file
         return unless options[:migration] && options[:parent].nil?
         attributes.each { |a| a.attr_options.delete(:index) if a.reference? && !a.has_index? } if options[:indexes] == false
-        migration_template "../../migration/templates/create_table_migration.rb", "db/migrate/create_#{table_name}.rb"
+        migration_template "create_table_migration.rb", "db/migrate/create_#{table_name}.rb"
       end
 
       def create_model_file
