@@ -4,6 +4,8 @@ require 'support/connection_helper'
 class MysqlConnectionTest < ActiveRecord::TestCase
   include ConnectionHelper
 
+  fixtures :comments
+
   def setup
     super
     @subscriber = SQLSubscriber.new
@@ -22,6 +24,17 @@ class MysqlConnectionTest < ActiveRecord::TestCase
       connection = ActiveRecord::Base.mysql2_connection(configuration)
       connection.exec_query('drop table if exists ex')
     end
+  end
+
+  def test_truncate
+    rows = ActiveRecord::Base.connection.exec_query("select count(*) from comments")
+    count = rows.first.values.first
+    assert_operator count, :>, 0
+
+    ActiveRecord::Base.connection.truncate("comments")
+    rows = ActiveRecord::Base.connection.exec_query("select count(*) from comments")
+    count = rows.first.values.first
+    assert_equal 0, count
   end
 
   def test_no_automatic_reconnection_after_timeout

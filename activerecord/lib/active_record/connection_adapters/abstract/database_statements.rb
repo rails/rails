@@ -83,6 +83,11 @@ module ActiveRecord
         exec_query(sql, name, binds)
       end
 
+      # Executes the truncate statement.
+      def truncate(table_name, name = nil)
+        raise NotImplementedError
+      end
+
       # Executes update +sql+ statement in the context of this connection using
       # +binds+ as the bind substitutes. +name+ is logged along with
       # the executed +sql+ statement.

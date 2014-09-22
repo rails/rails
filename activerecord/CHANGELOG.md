@@ -1,3 +1,5 @@
+*   Add a truncate method to the connection.
+
 *   Don't autosave unchanged has_one through records.
 
     *Alan Kennedy*, *Steve Parrington*

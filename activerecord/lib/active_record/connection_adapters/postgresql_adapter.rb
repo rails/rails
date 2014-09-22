@@ -255,6 +255,10 @@ module ActiveRecord
         @statements.clear
       end
 
+      def truncate(table_name, name = nil)
+        exec_query "TRUNCATE TABLE #{quote_table_name(table_name)}", name, []
+      end
+
       # Is this connection alive and ready for queries?
       def active?
         @connection.query 'SELECT 1'
