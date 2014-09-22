@@ -1,8 +1,9 @@
 require 'optparse'
 require 'rbconfig'
+require 'open-uri'
 
 options = { environment: (ENV['RAILS_ENV'] || ENV['RACK_ENV'] || "development").dup }
-code_or_file = nil
+code_or_path = nil
 
 if ARGV.first.nil?
   ARGV.push "-h"
@@ -30,6 +31,9 @@ ARGV.clone.options do |opts|
     opts.separator ""
     opts.separator "    rails runner path/to/filename.rb"
     opts.separator "        This runs the Ruby file located at `path/to/filename.rb` after loading the app"
+    opts.separator ""
+    opts.separator "    rails runner URL"
+    opts.separator "        This runs the contents of the URL after loading the app"
 
   if RbConfig::CONFIG['host_os'] !~ /mswin|mingw/
     opts.separator ""
@@ -41,10 +45,10 @@ ARGV.clone.options do |opts|
     opts.separator "    -------------------------------------------------------------"
   end
 
-  opts.order! { |o| code_or_file ||= o } rescue retry
+  opts.order! { |o| code_or_path ||= o } rescue retry
 end
 
-ARGV.delete(code_or_file)
+ARGV.delete(code_or_path)
 
 ENV["RAILS_ENV"] = options[:environment]
 
@@ -52,12 +56,16 @@ require APP_PATH
 Rails.application.require_environment!
 Rails.application.load_runner
 
-if code_or_file.nil?
+if code_or_path.nil?
   $stderr.puts "Run '#{$0} -h' for help."
   exit 1
-elsif File.exist?(code_or_file)
-  $0 = code_or_file
-  Kernel.load code_or_file
+elsif code_or_path =~ %r{^https?\://}
+  open(code_or_path) do |io|
+    eval(io.read, binding, __FILE__, __LINE__)
+  end
+elsif File.exist?(code_or_path)
+  $0 = code_or_path
+  Kernel.load code_or_path
 else
-  eval(code_or_file, binding, __FILE__, __LINE__)
+  eval(code_or_path, binding, __FILE__, __LINE__)
 end
