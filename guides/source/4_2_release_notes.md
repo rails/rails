@@ -36,9 +36,12 @@ Major Features
 ### Active Job, Action Mailer #deliver_later
 
 Active Job is a new framework in Rails 4.2. It is an adapter layer on top of
-queuing systems like [Resque](https://github.com/resque/resque), [Delayed Job](https://github.com/collectiveidea/delayed_job), [Sidekiq](https://github.com/mperham/sidekiq), and more. You can write your
-jobs with the Active Job API, and it'll run on all these queues with no changes
-(it comes pre-configured with an inline runner).
+queuing systems like [Resque](https://github.com/resque/resque), [Delayed
+Job](https://github.com/collectiveidea/delayed_job),
+[Sidekiq](https://github.com/mperham/sidekiq), and more.
+
+You can write your jobs with the Active Job API, and it'll run on all these
+queues with no changes (it comes pre-configured with an inline runner).
 
 Building on top of Active Job, Action Mailer now comes with a `#deliver_later`
 method, which adds your email to be sent as a job to a queue, so it doesn't
@@ -52,11 +55,16 @@ deserialize it at run time.
 
 ### Adequate Record
 
-Adequate Record is a set of refactorings that make Active Record `find` and `find_by` methods and some association queries upto 2x faster.
+Adequate Record is a set of refactorings that make Active Record `find` and
+`find_by` methods and some association queries upto 2x faster.
 
-It works by caching SQL query patterns while executing the Active Record calls. The cache helps skip parts of the computation involved in the transformation of the calls into SQL queries. More details in [Aaron Patterson's post](http://tenderlovemaking.com/2014/02/19/adequaterecord-pro-like-activerecord.html).
+It works by caching SQL query patterns while executing the Active Record calls.
+The cache helps skip parts of the computation involved in the transformation of
+the calls into SQL queries. More details in [Aaron Patterson's
+post](http://tenderlovemaking.com/2014/02/19/adequaterecord-pro-like-activerecord.html).
 
-Nothing special has to be done to activate this feature. Most `find` and `find_by` calls and association queries will use it automatically. Examples:
+Nothing special has to be done to activate this feature. Most `find` and
+`find_by` calls and association queries will use it automatically. Examples:
 
 ```ruby
 Post.find 1  # caches query pattern
