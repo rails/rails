@@ -64,7 +64,7 @@ class QueueNamingTest < ActiveSupport::TestCase
     end
   end
 
-  test 'queu_name_prefix prepended to the queue name' do
+  test 'queue_name_prefix prepended to the queue name with default delimiter' do
     original_queue_name_prefix = ActiveJob::Base.queue_name_prefix
     original_queue_name = HelloJob.queue_name
 
@@ -74,6 +74,23 @@ class QueueNamingTest < ActiveSupport::TestCase
       assert_equal 'aj_low', HelloJob.queue_name
     ensure
       ActiveJob::Base.queue_name_prefix = original_queue_name_prefix
+      HelloJob.queue_name = original_queue_name
+    end
+  end
+
+  test 'queue_name_prefix prepended to the queue name with custom delimiter' do
+    original_queue_name_prefix = ActiveJob::Base.queue_name_prefix
+    original_queue_name_delimiter = ActiveJob::Base.queue_name_delimiter
+    original_queue_name = HelloJob.queue_name
+
+    begin
+      ActiveJob::Base.queue_name_delimiter = '.'
+      ActiveJob::Base.queue_name_prefix = 'aj'
+      HelloJob.queue_as :low
+      assert_equal 'aj.low', HelloJob.queue_name
+    ensure
+      ActiveJob::Base.queue_name_prefix = original_queue_name_prefix
+      ActiveJob::Base.queue_name_delimiter = original_queue_name_delimiter
       HelloJob.queue_name = original_queue_name
     end
   end

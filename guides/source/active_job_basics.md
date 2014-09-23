@@ -149,6 +149,29 @@ end
 # environment
 ```
 
+The default queue name prefix delimiter is '_'.  This can be changed by setting
+`config.active_job.queue_name_delimiter` in `application.rb`:
+
+```ruby
+# config/application.rb
+module YourApp
+  class Application < Rails::Application
+    config.active_job.queue_name_prefix = Rails.env
+    config.active_job.queue_name_delimiter = '.'
+  end
+end
+
+# app/jobs/guests_cleanup.rb
+class GuestsCleanupJob < ActiveJob::Base
+  queue_as :low_priority
+  #....
+end
+
+# Now your job will run on queue production.low_priority on your
+# production environment and on staging.low_priority on your staging
+# environment
+```
+
 If you want more control on what queue a job will be run you can pass a :queue
 option to #set:
 
