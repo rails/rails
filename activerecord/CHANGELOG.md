@@ -1,3 +1,8 @@
+*   Honor overridden `rack.test` in Rack environment for the connection
+    management middlware.
+
+    *Simon Eskildsen*
+
 *   Add a truncate method to the connection.
 
     *Aaron Patterson*
