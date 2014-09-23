@@ -5,7 +5,12 @@ require 'mysql2'
 
 module ActiveRecord
   module ConnectionHandling # :nodoc:
-    ER_BAD_DB_ERROR    = 1049
+    # Can't connect to local MySQL server through socket '%s'
+    CR_CONNECTION_ERROR = 2002
+    # Can't connect to MySQL server on '%s'
+    CR_CONN_HOST_ERROR  = 2003
+    # Unknown database '%s'
+    ER_BAD_DB_ERROR     = 1049
 
     # Establishes a connection to the database that's used by all Active Record objects.
     def mysql2_connection(config)
@@ -21,8 +26,11 @@ module ActiveRecord
       options = [config[:host], config[:username], config[:password], config[:database], config[:port], config[:socket], 0]
       ConnectionAdapters::Mysql2Adapter.new(client, logger, options, config)
     rescue Mysql2::Error => error
-      if error.error_number == ER_BAD_DB_ERROR
+      case error.error_number
+      when ER_BAD_DB_ERROR
         raise ActiveRecord::NoDatabaseError.new(error.message, error)
+      when CR_CONNECTION_ERROR..CR_CONN_HOST_ERROR
+        raise ActiveRecord::CannotConnect.new(error.message, error)
       else
         raise
       end
