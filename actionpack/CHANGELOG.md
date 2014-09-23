@@ -1,3 +1,10 @@
+*   Fix a bug where in certain scenarios request.path and request.fullpath lose
+    the leading slash.
+
+    Fixes #16926
+
+    *Scott Moak*
+
 *   Fix a bug where malformed query strings lead to 500.
 
     fixes #11502.
