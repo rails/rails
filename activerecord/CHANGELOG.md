@@ -1,10 +1,14 @@
 *   Add a truncate method to the connection.
 
+    *Aaron Patterson*
+
 *   Don't autosave unchanged has_one through records.
 
     *Alan Kennedy*, *Steve Parrington*
 
-*   Do not dump foreign keys for ignored tables. *Yves Senn*
+*   Do not dump foreign keys for ignored tables.
+
+    *Yves Senn*
 
 *   PostgreSQL adapter correctly dumps foreign keys targeting tables
     outside the schema search path.
