@@ -559,6 +559,23 @@ $ git push origin my_pull_request -f
 You should be able to refresh the pull request on GitHub and see that it has
 been updated.
 
+#### Updating pull request
+
+Sometimes you will be asked to make some changes to the code you have
+already committed. This can include amending existing commits. In this
+case git will not allow you to push the changes as the pushed version
+and local version does not match. Instead of opening new pull request,
+you can force push to your branch on Github like described earlier in
+squashing commits section:
+
+```bash
+$ git push origin my_pull_request -f
+```
+
+This will update the branch on Github with your new code and
+Github will take care of updating the pull request with new code.
+
+
 ### Older Versions of Ruby on Rails
 
 If you want to add a fix to older versions of Ruby on Rails, you'll need to set up and switch to your own local tracking branch. Here is an example to switch to the 4-0-stable branch:
