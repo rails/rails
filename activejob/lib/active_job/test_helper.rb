@@ -150,7 +150,7 @@ module ActiveJob
         matching_job = enqueued_jobs.any? do |job|
           args.all? { |key, value| value == job[key] }
         end
-        assert matching_job
+        assert matching_job, "No enqueued job found with #{args}"
       ensure
         queue_adapter.enqueued_jobs = original_enqueued_jobs + enqueued_jobs
       end
