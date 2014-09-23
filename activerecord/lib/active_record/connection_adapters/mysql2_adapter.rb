@@ -5,6 +5,8 @@ require 'mysql2'
 
 module ActiveRecord
   module ConnectionHandling # :nodoc:
+    ER_BAD_DB_ERROR    = 1049
+
     # Establishes a connection to the database that's used by all Active Record objects.
     def mysql2_connection(config)
       config = config.symbolize_keys
@@ -19,7 +21,7 @@ module ActiveRecord
       options = [config[:host], config[:username], config[:password], config[:database], config[:port], config[:socket], 0]
       ConnectionAdapters::Mysql2Adapter.new(client, logger, options, config)
     rescue Mysql2::Error => error
-      if error.message.include?("Unknown database")
+      if error.error_number == ER_BAD_DB_ERROR
         raise ActiveRecord::NoDatabaseError.new(error.message, error)
       else
         raise
