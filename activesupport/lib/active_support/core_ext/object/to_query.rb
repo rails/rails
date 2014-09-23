@@ -73,11 +73,15 @@ class Hash
   #
   # This method is also aliased as +to_param+.
   def to_query(namespace = nil)
-    collect do |key, value|
-      unless (value.is_a?(Hash) || value.is_a?(Array)) && value.empty?
+    sort do |e1, e2| 
+      e1.first.to_param.to_s <=> e2.first.to_param.to_s
+    end.map do |key, value|
+      if (value.is_a?(Hash) || value.is_a?(Array)) && value.empty?
+        nil
+      else
         value.to_query(namespace ? "#{namespace}[#{key}]" : key)
       end
-    end.compact.sort! * '&'
+    end.compact * '&'
   end
 
   alias_method :to_param, :to_query

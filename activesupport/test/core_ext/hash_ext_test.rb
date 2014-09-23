@@ -1023,6 +1023,7 @@ class HashExtToParamTests < ActiveSupport::TestCase
     assert_equal 'hello=world', { :hello => "world" }.to_param
     assert_equal 'hello=10', { "hello" => 10 }.to_param
     assert_equal 'hello=world&say_bye=true', {:hello => "world", "say_bye" => true}.to_param
+    assert_equal 'hello=world&hello.world=true', {:hello => "world", "hello.world" => true}.to_param
   end
 
   def test_number_hash
