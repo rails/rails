@@ -76,7 +76,8 @@ module ActiveSupport
     # Returns a <tt>Time.local()</tt> instance of the simultaneous time in your
     # system's <tt>ENV['TZ']</tt> zone.
     def localtime(*args)
-      utc.respond_to?(:getlocal) ? utc.getlocal(*args) : utc.to_time.getlocal(*args)
+      utc = utc.to_time unless utc.respond_to?(:getlocal)
+      utc.getlocal(*args)
     end
     alias_method :getlocal, :localtime
 
