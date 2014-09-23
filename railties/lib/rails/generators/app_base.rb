@@ -44,9 +44,6 @@ module Rails
         class_option :skip_gems,          type: :array, default: [],
                                           desc: 'Skip the provided gems files'
 
-        class_option :skip_action_view,   type: :boolean, aliases: '-V', default: false,
-                                          desc: 'Skip Action View files'
-
         class_option :skip_sprockets,     type: :boolean, aliases: '-S', default: false,
                                           desc: 'Skip Sprockets files'
 
@@ -167,7 +164,7 @@ module Rails
       end
 
       def include_all_railties?
-        !options[:skip_active_record] && !options[:skip_action_view] && !options[:skip_test_unit] && !options[:skip_sprockets]
+        !options[:skip_active_record] && !options[:skip_test_unit] && !options[:skip_sprockets]
       end
 
       def comment_if(value)

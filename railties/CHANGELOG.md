@@ -1,3 +1,9 @@
+*   Remove --skip-action-view option from Rails::Generators::AppBase
+
+    Fixes #17023.
+
+    *Dan Olson*
+
 *   Specify dummy app's db migrate path in plugin's test_helper.rb.
 
     Fixes #16877.
