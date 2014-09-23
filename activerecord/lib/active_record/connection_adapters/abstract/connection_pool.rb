@@ -640,7 +640,7 @@ module ActiveRecord
       end
 
       def call(env)
-        testing = env.key?('rack.test')
+        testing = env['rack.test']
 
         response = @app.call(env)
         response[2] = ::Rack::BodyProxy.new(response[2]) do
