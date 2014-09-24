@@ -61,7 +61,7 @@ module ActiveRecord
 
     Relation::MULTI_VALUE_METHODS.each do |name|
       define_method "#{name}_values" do
-        @values[name] || []
+        @values[name] ||= []
       end
 
       define_method "#{name}_values=" do |values|

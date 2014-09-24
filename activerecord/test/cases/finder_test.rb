@@ -55,7 +55,7 @@ class FinderTest < ActiveRecord::TestCase
     Post.where("author_id" => nil)  # warm up
     x = Symbol.all_symbols.count
     Post.where("title" => {"xxxqqqq" => "bar"})
-    assert_equal x, Symbol.all_symbols.count
+    assert_operator(Symbol.all_symbols.count, :<=, x)
   end
 
   # find should handle strings that come from URLs
