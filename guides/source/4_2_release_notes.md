@@ -697,7 +697,7 @@ Please refer to the [Changelog][active-model] for detailed changes.
     (Pull Request [1](https://github.com/rails/rails/pull/14861),
     [2](https://github.com/rails/rails/pull/16180))
 
-*   `has_secure_password` no longer disallow blank passwords (i.e. passwords
+*   `has_secure_password` no longer disallows blank passwords (i.e. passwords
     that contains only spaces) by default.
     ([Pull Request](https://github.com/rails/rails/pull/16412))
 
