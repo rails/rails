@@ -22,17 +22,6 @@ module Rails
       rescue Exception
       end
 
-      def frameworks
-        %w( active_record action_pack action_view action_mailer active_support active_model )
-      end
-
-      def framework_version(framework)
-        if Object.const_defined?(framework.classify)
-          require "#{framework}/version"
-          framework.classify.constantize.version.to_s
-        end
-      end
-
       def to_s
         column_width = properties.names.map {|name| name.length}.max
         info = properties.map do |name, value|
