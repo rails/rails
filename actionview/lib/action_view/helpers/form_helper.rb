@@ -442,13 +442,22 @@ module ActionView
           method: method
         )
 
-        options[:url] ||= if options.key?(:format)
-                            polymorphic_path(record, format: options.delete(:format))
-                          else
-                            polymorphic_path(record, {})
-                          end
+        options[:url] ||= form_for_default_url(action, record, options[:format])
       end
       private :apply_form_for_options!
+
+      def form_for_default_url(action, record, format) #:nodoc:
+        # polymorphic_path can't generate paths for singular resources.
+        # Instead use (edit|new)_polymorphic_path to derive the path.
+        path = if :edit == action
+                 edit_polymorphic_path(record, format: format)
+               else
+                 new_polymorphic_path(record, format: format)
+               end
+        # path might be translated; we can't just extract 'edit' or 'new'
+        path.gsub(%r|/[^/.]+(\..+)?$|, '\1')
+      end
+      private :form_for_default_url
 
       # Creates a scope around a specific model object like form_for, but
       # doesn't create the form tags themselves. This makes fields_for suitable

@@ -130,6 +130,8 @@ class FormHelperTest < ActionView::TestCase
       end
     end
 
+    resource :comment
+
     get "/foo", to: "controller#action"
     root to: "main#index"
   end
@@ -3297,6 +3299,31 @@ class FormHelperTest < ActionView::TestCase
     form_for(@post, builder: builder_class) { }
     assert_equal 1, initialization_count, 'form builder instantiated more than once'
   end
+
+  def test_form_for_with_new_singular_resource
+    form_for(Comment.new) {}
+    expected = whole_form('/comment', 'new_comment', 'new_comment')
+    assert_equal expected, output_buffer
+  end
+
+  def test_form_for_with_new_singular_resource_and_format
+    form_for(Comment.new, format: :json) {}
+    expected = whole_form('/comment.json', 'new_comment', 'new_comment')
+    assert_equal expected, output_buffer
+  end
+
+  def test_form_for_with_persisted_singular_resource
+    form_for(Comment.new(123)) {}
+    expected = whole_form('/comment', 'edit_comment_123', 'edit_comment', method: :patch)
+    assert_equal expected, output_buffer
+  end
+
+  def test_form_for_with_persisted_singular_resource_and_format
+    form_for(Comment.new(123), format: :json) {}
+    expected = whole_form('/comment.json', 'edit_comment_123', 'edit_comment', method: :patch)
+    assert_equal expected, output_buffer
+  end
+
 
   protected
 

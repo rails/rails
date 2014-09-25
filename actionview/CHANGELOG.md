@@ -1,3 +1,7 @@
+*   Fix `form_for` to properly handle singular resources.
+
+    *Gert Goet*
+
 *   Changed the meaning of `render "foo/bar"`.
 
     Previously, calling `render "foo/bar"` in a controller action is equivalent
