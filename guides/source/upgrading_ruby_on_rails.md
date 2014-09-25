@@ -186,15 +186,6 @@ venerable html-scanner approach is now officially being deprecated in favor of
 This means the methods `sanitize`, `sanitize_css`, `strip_tags` and
 `strip_links` are backed by a new implementation.
 
-In the next major Rails version `Rails Html Sanitizer` will be the default
-sanitizer. It already is for new applications.
-
-Include this in your Gemfile to try it out today:
-
-```ruby
-gem 'rails-html-sanitizer'
-```
-
 This new sanitizer uses [Loofah](https://github.com/flavorjones/loofah) internally. Loofah in turn uses Nokogiri, which
 wraps XML parsers written in both C and Java, so sanitization should be faster
 no matter which Ruby version you run.
@@ -208,6 +199,12 @@ Read the [gem's readme](https://github.com/rails/rails-html-sanitizer) for more 
 
 The documentation for `PermitScrubber` and `TargetScrubber` explains how you
 can gain complete control over when and how elements should be stripped.
+
+If your application needs to old behaviour include `rails-deprecated_sanitizer` in your Gemfile:
+
+```ruby
+gem 'rails-deprecated_sanitizer'
+```
 
 ### Rails DOM Testing
 
