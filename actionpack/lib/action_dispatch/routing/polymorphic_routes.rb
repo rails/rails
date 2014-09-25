@@ -121,8 +121,21 @@ module ActionDispatch
       # Returns the path component of a URL for the given record. It uses
       # <tt>polymorphic_url</tt> with <tt>routing_type: :path</tt>.
       def polymorphic_path(record_or_hash_or_array, options = {})
-        opts = options.reverse_merge(:routing_type => :path)
-        polymorphic_url(record_or_hash_or_array, opts)
+        if Hash === record_or_hash_or_array
+          options = record_or_hash_or_array.merge(options)
+          record  = options.delete :id
+          return polymorphic_path record, options
+        end
+
+        opts   = options.dup
+        action = opts.delete :action
+        type   = :path
+
+        HelperMethodBuilder.polymorphic_method self,
+                                               record_or_hash_or_array,
+                                               action,
+                                               type,
+                                               opts
       end
 
 
