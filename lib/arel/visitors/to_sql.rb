@@ -539,13 +539,25 @@ module Arel
       def visit_Arel_Nodes_Matches o, collector
         collector = visit o.left, collector
         collector << " LIKE "
-        visit o.right, collector
+        collector = visit o.right, collector
+        if o.escape
+          collector << ' ESCAPE '
+          visit o.escape, collector
+        else
+          collector
+        end
       end
 
       def visit_Arel_Nodes_DoesNotMatch o, collector
         collector = visit o.left, collector
         collector << " NOT LIKE "
-        visit o.right, collector
+        collector = visit o.right, collector
+        if o.escape
+          collector << ' ESCAPE '
+          visit o.escape, collector
+        else
+          collector
+        end
       end
 
       def visit_Arel_Nodes_JoinSource o, collector

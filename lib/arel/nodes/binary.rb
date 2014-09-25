@@ -31,13 +31,11 @@ module Arel
       As
       Assignment
       Between
-      DoesNotMatch
       GreaterThan
       GreaterThanOrEqual
       Join
       LessThan
       LessThanOrEqual
-      Matches
       NotEqual
       NotIn
       NotRegexp

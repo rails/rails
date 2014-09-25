@@ -28,6 +28,7 @@ require 'arel/nodes/delete_statement'
 require 'arel/nodes/table_alias'
 require 'arel/nodes/infix_operation'
 require 'arel/nodes/over'
+require 'arel/nodes/matches'
 
 # nary
 require 'arel/nodes/and'
