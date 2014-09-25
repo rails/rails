@@ -91,17 +91,17 @@ class TestController < ApplicationController
 
   # :ported:
   def render_hello_world
-    render :template => "test/hello_world"
+    render "test/hello_world"
   end
 
   def render_hello_world_with_last_modified_set
     response.last_modified = Date.new(2008, 10, 10).to_time
-    render :template => "test/hello_world"
+    render "test/hello_world"
   end
 
   # :ported: compatibility
   def render_hello_world_with_forward_slash
-    render :template => "/test/hello_world"
+    render "/test/hello_world"
   end
 
   # :ported:
@@ -111,7 +111,7 @@ class TestController < ApplicationController
 
   # :deprecated:
   def render_template_in_top_directory_with_slash
-    render :template => '/shared'
+    render '/shared'
   end
 
   # :ported:
@@ -160,13 +160,6 @@ class TestController < ApplicationController
   end
 
   # :ported:
-  def render_file_as_string_with_instance_variables
-    @secret = 'in the sauce'
-    path = File.expand_path(File.join(File.dirname(__FILE__), '../../fixtures/test/render_file_with_ivar'))
-    render path
-  end
-
-  # :ported:
   def render_file_not_using_full_path
     @secret = 'in the sauce'
     render :file => 'test/render_file_with_ivar'
@@ -194,7 +187,7 @@ class TestController < ApplicationController
 
   def render_file_as_string_with_locals
     path = File.expand_path(File.join(File.dirname(__FILE__), '../../fixtures/test/render_file_with_locals'))
-    render path, :locals => {:secret => 'in the sauce'}
+    render file: path, :locals => {:secret => 'in the sauce'}
   end
 
   def accessing_request_in_template
@@ -778,12 +771,6 @@ class RenderTest < ActionController::TestCase
   def test_render_file
     get :hello_world_file
     assert_equal "Hello world!", @response.body
-  end
-
-  # :ported:
-  def test_render_file_as_string_with_instance_variables
-    get :render_file_as_string_with_instance_variables
-    assert_equal "The secret is in the sauce\n", @response.body
   end
 
   # :ported:

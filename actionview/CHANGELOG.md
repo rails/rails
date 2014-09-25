@@ -1,3 +1,14 @@
+*   Changed the meaning of `render "foo/bar"`.
+
+    Previously, calling `render "foo/bar"` in a controller action is equivalent
+    to `render file: "foo/bar"`. In Rails 4.2, this has been changed to mean
+    `render template: "foo/bar"` instead. If you need to render a file, please
+    change your code to use the explicit form (`render file: "foo/bar"`) instead.
+
+    *Jeremy Jackson*
+
+*   Add support for ARIA attributes in tags.
+
 *   Fix stripping the digest from the automatically generated img tag alt
     attribute when assets are handled by Sprockets >=3.0.
 
