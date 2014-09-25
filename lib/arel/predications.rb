@@ -100,28 +100,28 @@ module Arel
       grouping_all :not_in, others
     end
 
-    def matches other
-      Nodes::Matches.new self, Nodes.build_quoted(other, self)
+    def matches other, escape = nil
+      Nodes::Matches.new self, Nodes.build_quoted(other, self), escape
     end
 
-    def matches_any others
-      grouping_any :matches, others
+    def matches_any others, escape = nil
+      grouping_any :matches, others, escape
     end
 
-    def matches_all others
-      grouping_all :matches, others
+    def matches_all others, escape = nil
+      grouping_all :matches, others, escape
     end
 
-    def does_not_match other
-      Nodes::DoesNotMatch.new self, Nodes.build_quoted(other, self)
+    def does_not_match other, escape = nil
+      Nodes::DoesNotMatch.new self, Nodes.build_quoted(other, self), escape
     end
 
-    def does_not_match_any others
-      grouping_any :does_not_match, others
+    def does_not_match_any others, escape = nil
+      grouping_any :does_not_match, others, escape
     end
 
-    def does_not_match_all others
-      grouping_all :does_not_match, others
+    def does_not_match_all others, escape = nil
+      grouping_all :does_not_match, others, escape
     end
 
     def gteq right
@@ -174,15 +174,16 @@ module Arel
 
     private
 
-    def grouping_any method_id, others
-      nodes = others.map {|expr| send(method_id, expr)}
+    def grouping_any method_id, others, *extras
+      nodes = others.map {|expr| send(method_id, expr, *extras)}
       Nodes::Grouping.new nodes.inject { |memo,node|
         Nodes::Or.new(memo, node)
       }
     end
 
-    def grouping_all method_id, others
-      Nodes::Grouping.new Nodes::And.new(others.map {|expr| send(method_id, expr)})
+    def grouping_all method_id, others, *extras
+      nodes = others.map {|expr| send(method_id, expr, *extras)}
+      Nodes::Grouping.new Nodes::And.new(nodes)
     end
   end
 end
