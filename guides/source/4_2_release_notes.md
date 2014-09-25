@@ -149,6 +149,13 @@ individual components for new deprecations in this release.
 
 The following changes may require immediate action upon upgrade.
 
+### `render` with a String argument
+
+Previously, calling `render "foo/bar"` in a controller action is equivalent to
+`render file: "foo/bar"`. In Rails 4.2, this has been changed to mean `render template: "foo/bar"`
+instead. If you need to render a file, please change your code to use the
+explicit form (`render file: "foo/bar"`) instead.
+
 ### `respond_with` / class-level `respond_to`
 
 `respond_with` and the corresponding class-level `respond_to` have been moved to
@@ -498,6 +505,10 @@ Please refer to the [Changelog][action-view] for detailed changes.
     ([Pull Request](https://github.com/rails/rails/pull/14243))
 
 ### Notable changes
+
+*   `render "foo/bar"` now expands to `render template: "foo/bar"` instead of
+    `render file: "foo/bar"`.
+    ([Pull Request](https://github.com/rails/rails/pull/16888))
 
 *   Introduced a `#{partial_name}_iteration` special local variable for use with
     partials that are rendered with a collection. It provides access to the
