@@ -5,10 +5,6 @@ require 'mysql2'
 
 module ActiveRecord
   module ConnectionHandling # :nodoc:
-    # Can't connect to local MySQL server through socket '%s'
-    CR_CONNECTION_ERROR = 2002
-    # Can't connect to MySQL server on '%s'
-    CR_CONN_HOST_ERROR  = 2003
     # Unknown database '%s'
     ER_BAD_DB_ERROR     = 1049
 
@@ -29,10 +25,8 @@ module ActiveRecord
       case error.error_number
       when ER_BAD_DB_ERROR
         raise ActiveRecord::NoDatabaseError.new(error.message, error)
-      when CR_CONNECTION_ERROR..CR_CONN_HOST_ERROR
-        raise ActiveRecord::CannotConnect.new(error.message, error)
       else
-        raise
+        raise ActiveRecord::CannotConnect.new(error.message, error)
       end
     end
   end
