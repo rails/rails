@@ -62,7 +62,7 @@ These configuration methods are to be called on a `Rails::Railtie` object, such 
 
 * `config.autoload_paths` accepts an array of paths from which Rails will autoload constants. Default is all directories under `app`.
 
-* `config.cache_classes` controls whether or not application classes and modules should be reloaded on each request. Defaults to false in development mode, and true in test and production modes. Can also be enabled with `threadsafe!`.
+* `config.cache_classes` controls whether or not application classes and modules should be reloaded on each request. Defaults to false in development mode, and true in test and production modes.
 
 * `config.action_view.cache_template_loading` controls whether or not templates should be reloaded on each request. Defaults to whatever is set for `config.cache_classes`.
 
@@ -86,7 +86,7 @@ application. Accepts a valid week day symbol (e.g. `:monday`).
     end
     ```
 
-* `config.dependency_loading` is a flag that allows you to disable constant autoloading setting it to false. It only has effect if `config.cache_classes` is true, which it is by default in production mode. This flag is set to false by `config.threadsafe!`.
+* `config.dependency_loading` is a flag that allows you to disable constant autoloading setting it to false. It only has effect if `config.cache_classes` is true, which it is by default in production mode.
 
 * `config.eager_load` when true, eager loads all registered `config.eager_load_namespaces`. This includes your application, engines, Rails frameworks and any other registered namespace.
 
