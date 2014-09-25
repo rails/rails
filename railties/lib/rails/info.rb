@@ -61,6 +61,11 @@ module Rails
       end
     end
 
+    # The Rails version.
+    property 'Rails version' do
+      Rails.version.to_s
+    end
+
     # The Ruby version and platform, e.g. "2.0.0-p247 (x86_64-darwin12.4.0)".
     property 'Ruby version' do
       "#{RUBY_VERSION}-p#{RUBY_PATCHLEVEL} (#{RUBY_PLATFORM})"
@@ -75,21 +80,8 @@ module Rails
       ::Rack.release
     end
 
-    # The Rails version.
-    property 'Rails version' do
-      Rails.version.to_s
-    end
-
     property 'JavaScript Runtime' do
       ExecJS.runtime.name
-    end
-
-    # Versions of each Rails framework (Active Record, Action Pack,
-    # Action Mailer, and Active Support).
-    frameworks.each do |framework|
-      property "#{framework.titlecase} version" do
-        framework_version(framework)
-      end
     end
 
     property 'Middleware' do
