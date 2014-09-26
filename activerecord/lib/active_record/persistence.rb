@@ -303,40 +303,6 @@ module ActiveRecord
       updated_count == 1
     end
 
-    # Initializes +attribute+ to zero if +nil+ and adds the value passed as +by+ (default is 1).
-    # The increment is performed directly on the underlying attribute, no setter is invoked.
-    # Only makes sense for number-based attributes. Returns +self+.
-    def increment(attribute, by = 1)
-      self[attribute] ||= 0
-      self[attribute] += by
-      self
-    end
-
-    # Wrapper around +increment+ that saves the record. This method differs from
-    # its non-bang version in that it passes through the attribute setter.
-    # Saving is not subjected to validation checks. Returns +true+ if the
-    # record could be saved.
-    def increment!(attribute, by = 1)
-      increment(attribute, by).update_attribute(attribute, self[attribute])
-    end
-
-    # Initializes +attribute+ to zero if +nil+ and subtracts the value passed as +by+ (default is 1).
-    # The decrement is performed directly on the underlying attribute, no setter is invoked.
-    # Only makes sense for number-based attributes. Returns +self+.
-    def decrement(attribute, by = 1)
-      self[attribute] ||= 0
-      self[attribute] -= by
-      self
-    end
-
-    # Wrapper around +decrement+ that saves the record. This method differs from
-    # its non-bang version in that it passes through the attribute setter.
-    # Saving is not subjected to validation checks. Returns +true+ if the
-    # record could be saved.
-    def decrement!(attribute, by = 1)
-      decrement(attribute, by).update_attribute(attribute, self[attribute])
-    end
-
     # Assigns to +attribute+ the boolean opposite of <tt>attribute?</tt>. So
     # if the predicate returns +true+ the attribute will become +false+. This
     # method toggles directly the underlying value without calling any setter.

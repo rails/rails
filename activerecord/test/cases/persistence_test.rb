@@ -94,30 +94,6 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_equal count, Pet.joins(:toys).where(where_args).delete_all
   end
 
-  def test_increment_attribute
-    assert_equal 50, accounts(:signals37).credit_limit
-    accounts(:signals37).increment! :credit_limit
-    assert_equal 51, accounts(:signals37, :reload).credit_limit
-
-    accounts(:signals37).increment(:credit_limit).increment!(:credit_limit)
-    assert_equal 53, accounts(:signals37, :reload).credit_limit
-  end
-
-  def test_increment_nil_attribute
-    assert_nil topics(:first).parent_id
-    topics(:first).increment! :parent_id
-    assert_equal 1, topics(:first).parent_id
-  end
-
-  def test_increment_attribute_by
-    assert_equal 50, accounts(:signals37).credit_limit
-    accounts(:signals37).increment! :credit_limit, 5
-    assert_equal 55, accounts(:signals37, :reload).credit_limit
-
-    accounts(:signals37).increment(:credit_limit, 1).increment!(:credit_limit, 3)
-    assert_equal 59, accounts(:signals37, :reload).credit_limit
-  end
-
   def test_destroy_all
     conditions = "author_name = 'Mary'"
     topics_by_mary = Topic.all.merge!(:where => conditions, :order => 'id').to_a
@@ -171,25 +147,6 @@ class PersistenceTest < ActiveRecord::TestCase
     original_count = Topic.count
     Topic.delete(deleting = [1, 2])
     assert_equal original_count - deleting.size, Topic.count
-  end
-
-  def test_decrement_attribute
-    assert_equal 50, accounts(:signals37).credit_limit
-
-    accounts(:signals37).decrement!(:credit_limit)
-    assert_equal 49, accounts(:signals37, :reload).credit_limit
-
-    accounts(:signals37).decrement(:credit_limit).decrement!(:credit_limit)
-    assert_equal 47, accounts(:signals37, :reload).credit_limit
-  end
-
-  def test_decrement_attribute_by
-    assert_equal 50, accounts(:signals37).credit_limit
-    accounts(:signals37).decrement! :credit_limit, 5
-    assert_equal 45, accounts(:signals37, :reload).credit_limit
-
-    accounts(:signals37).decrement(:credit_limit, 1).decrement!(:credit_limit, 3)
-    assert_equal 41, accounts(:signals37, :reload).credit_limit
   end
 
   def test_create
