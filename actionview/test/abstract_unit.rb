@@ -16,11 +16,9 @@ silence_warnings do
 end
 
 require 'active_support/testing/autorun'
-require 'abstract_controller'
 require 'action_controller'
 require 'action_view'
 require 'action_view/testing/resolvers'
-require 'action_dispatch'
 require 'active_support/dependencies'
 require 'active_model'
 require 'active_record'
