@@ -307,6 +307,8 @@ module ActiveRecord
     # The increment is performed directly on the underlying attribute, no setter is invoked.
     # Only makes sense for number-based attributes. Returns +self+.
     def increment(attribute, by = 1)
+      ActiveSupport::Deprecation.warn "`##{__method__}` is deprecated and will be removed in Rails 5. " \
+        "use `#update_counters` to atomically update counters in your database."
       self[attribute] ||= 0
       self[attribute] += by
       self
@@ -317,6 +319,8 @@ module ActiveRecord
     # Saving is not subjected to validation checks. Returns +true+ if the
     # record could be saved.
     def increment!(attribute, by = 1)
+      ActiveSupport::Deprecation.warn "`##{__method__}` is deprecated and will be removed in Rails 5. " \
+        "use `#update_counters` to atomically update counters in your database."
       increment(attribute, by).update_attribute(attribute, self[attribute])
     end
 
@@ -324,6 +328,8 @@ module ActiveRecord
     # The decrement is performed directly on the underlying attribute, no setter is invoked.
     # Only makes sense for number-based attributes. Returns +self+.
     def decrement(attribute, by = 1)
+      ActiveSupport::Deprecation.warn "`##{__method__}` is deprecated and will be removed in Rails 5. " \
+        "use `#update_counters` to atomically update counters in your database."
       self[attribute] ||= 0
       self[attribute] -= by
       self
@@ -334,6 +340,8 @@ module ActiveRecord
     # Saving is not subjected to validation checks. Returns +true+ if the
     # record could be saved.
     def decrement!(attribute, by = 1)
+      ActiveSupport::Deprecation.warn "`##{__method__}` is deprecated and will be removed in Rails 5. " \
+        "use `#update_counters` to atomically update counters in your database."
       decrement(attribute, by).update_attribute(attribute, self[attribute])
     end
 

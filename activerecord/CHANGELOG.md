@@ -1,3 +1,7 @@
+*   Deprecate the unsafe and misleading `#(?:in|de)crement!?`.
+
+    *Tamir Duberstein*
+
 *   Honor overridden `rack.test` in Rack environment for the connection
     management middlware.
 
