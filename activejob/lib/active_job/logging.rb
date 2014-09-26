@@ -3,7 +3,7 @@ require 'active_support/tagged_logging'
 require 'active_support/logger'
 
 module ActiveJob
-  module Logging
+  module Logging #:nodoc:
     extend ActiveSupport::Concern
 
     included do
