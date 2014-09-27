@@ -1,5 +1,5 @@
 *   Honor overridden `rack.test` in Rack environment for the connection
-    management middlware.
+    management middleware.
 
     *Simon Eskildsen*
 
