@@ -525,7 +525,7 @@ module ActiveRecord
               conn = fs.model_class.respond_to?(:connection) ? fs.model_class.connection : connection
               table_rows = fs.table_rows
 
-              table_rows.keys.each do |table|
+              table_rows.each_key do |table|
                 conn.delete "DELETE FROM #{conn.quote_table_name(table)}", 'Fixture Delete'
               end
 
