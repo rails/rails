@@ -95,20 +95,28 @@ module ActionDispatch
 
       SharedTestRoutes.draw do
         get ':controller(/:action)'
-        get ':controller(/:action(/:id))'
-        post ':controller/(:action)'
-        post ':controller/(:action(/:id))'
-        put ':controller/(:action)'
+        get ':controller(/:action(/:id))', controller: /[^\/]+\/[^\/]+/
+        post ':controller(/:action)'
+        post ':controller(/:action(/:id))', controller: /[^\/]+\/[^\/]+/
+        put ':controller(/:action)'
+        put ':controller/(:action(/:id))', controller: /[^\/]+\/[^\/]+/
+        patch ':controller(/:action)'
+        patch ':controller/(:action(/:id))', controller: /[^\/]+\/[^\/]+/
+        delete ':controller(/:action)'
+        delete ':controller/(:action(/:id))', controller: /[^\/]+\/[^\/]+/
       end
 
       ActionDispatch::IntegrationTest.app.routes.draw do
         get ':controller(/:action)'
-        get ':controller(/:action(/:id))'
-        post ':controller/(:action)'
-        post ':controller/(:action(/:id))'
-        put ':controller/(:action)'
-        patch ':controller/(:action)'
-        delete ':controller/(:action)'
+        get ':controller(/:action(/:id))', controller: /[^\/]+\/[^\/]+/
+        post ':controller(/:action)'
+        post ':controller(/:action(/:id))', controller: /[^\/]+\/[^\/]+/
+        put ':controller(/:action)'
+        put ':controller/(:action(/:id))', controller: /[^\/]+\/[^\/]+/
+        patch ':controller(/:action)'
+        patch ':controller/(:action(/:id))', controller: /[^\/]+\/[^\/]+/
+        delete ':controller(/:action)'
+        delete ':controller/(:action(/:id))', controller: /[^\/]+\/[^\/]+/
       end
 
       DrawOnce.drew = true
