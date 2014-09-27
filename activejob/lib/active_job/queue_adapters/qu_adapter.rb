@@ -6,7 +6,7 @@ module ActiveJob
     #
     # Qu is a Ruby library for queuing and processing background jobs. It is
     # heavily inspired by delayed_job and Resque. Qu was created to overcome
-    # some shortcomings in the existing queuing libraries that we experienced.
+    # some shortcomings in the existing queuing libraries.
     # The advantages of Qu are: Multiple backends (redis, mongo), jobs are
     # requeued when worker is killed, resque-like API.
     #
