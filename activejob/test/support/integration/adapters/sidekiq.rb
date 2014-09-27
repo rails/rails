@@ -29,7 +29,6 @@ module SidekiqJobsManager
                       "--concurrency", "1",
                       "--timeout", "1",
                       "--daemon",
-                      "--verbose"
                       ])
       require 'celluloid'
       require 'sidekiq/scheduled'

@@ -1,5 +1,5 @@
 if ENV['AJADAPTER'] == 'delayed_job'
-  generate "delayed_job:active_record"
+  generate "delayed_job:active_record", "--quiet"
   rake("db:migrate")
 end
 

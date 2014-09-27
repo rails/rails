@@ -2,12 +2,12 @@ module QueJobsManager
   def setup
     require 'sequel'
     ActiveJob::Base.queue_adapter = :que
-    que_url = ENV['QUE_DATABASE_URL'] || 'postgres://localhost/active_jobs_que_int_test'
+    que_url = ENV['QUE_DATABASE_URL'] || 'postgres:///active_jobs_que_int_test'
     uri = URI.parse(que_url)
     user = uri.user||ENV['USER']
     pass = uri.password
     db   = uri.path[1..-1]
-    %x{#{"PGPASSWORD=\"#{pass}\"" if pass} psql -c 'drop database "#{db}"' -U #{user} -t template1}
+    %x{#{"PGPASSWORD=\"#{pass}\"" if pass} psql -c 'drop database if exists "#{db}"' -U #{user} -t template1}
     %x{#{"PGPASSWORD=\"#{pass}\"" if pass} psql -c 'create database "#{db}"' -U #{user} -t template1}
     Que.connection = Sequel.connect(que_url)
     Que.migrate!
