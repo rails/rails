@@ -111,7 +111,7 @@ Record callbacks.
 
 When you define a `after_rollback` or `after_commit` callback, you
 will receive a deprecation warning about this upcoming change. When
-you are ready, you can opt into the new behvaior and remove the
+you are ready, you can opt into the new behavior and remove the
 deprecation warning by adding following configuration to your
 `config/application.rb`:
 
