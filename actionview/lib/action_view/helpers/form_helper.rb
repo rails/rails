@@ -420,6 +420,7 @@ module ActionView
         html_options[:data]   = options.delete(:data)   if options.has_key?(:data)
         html_options[:remote] = options.delete(:remote) if options.has_key?(:remote)
         html_options[:method] = options.delete(:method) if options.has_key?(:method)
+        html_options[:enforce_utf8] = options.delete(:enforce_utf8) if options.has_key?(:enforce_utf8)
         html_options[:authenticity_token] = options.delete(:authenticity_token)
 
         builder = instantiate_builder(object_name, object, options)
