@@ -1,3 +1,10 @@
+*   Add support for `:enforce_utf8` option in `form_for`.
+
+    This is the same option that was added in 06388b0 to `form_tag` and allows
+    users to skip the insertion of the UTF8 enforcer tag in a form.
+
+    * claudiob *
+
 *   Fix a bug that <%= foo(){ %> and <%= foo()do %> in view templates were not regarded
     as Ruby block calls.
 
