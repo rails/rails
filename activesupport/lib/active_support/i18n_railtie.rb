@@ -88,5 +88,7 @@ module I18n
         raise "Unexpected fallback type #{fallbacks.inspect}"
       end
     end
+
+    private_class_method :initialize_i18n, :include_fallbacks_module, :init_fallbacks, :validate_fallbacks #:nodoc:
   end
 end

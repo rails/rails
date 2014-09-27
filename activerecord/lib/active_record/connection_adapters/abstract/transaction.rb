@@ -213,6 +213,8 @@ module ActiveRecord
       end
 
       NULL_TRANSACTION = NullTransaction.new
+
+      private_constant :NULL_TRANSACTION #:nodoc:
     end
   end
 end

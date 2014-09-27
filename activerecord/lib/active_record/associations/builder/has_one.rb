@@ -17,5 +17,7 @@ module ActiveRecord::Associations::Builder
     def self.add_destroy_callbacks(model, reflection)
       super unless reflection.options[:through]
     end
+
+    private_class_method :add_destroy_callbacks #:nodoc:
   end
 end
