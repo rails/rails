@@ -10,7 +10,7 @@ module ActiveJob
     # The advantages of Qu are: Multiple backends (redis, mongo), jobs are
     # requeued when worker is killed, resque-like API.
     #
-    # Read more about Que {here}[https://github.com/bkeepers/qu].
+    # Read more about Qu {here}[https://github.com/bkeepers/qu].
     #
     # To use Qu set the queue_adapter config to +:qu+.
     #

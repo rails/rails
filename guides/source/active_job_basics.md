@@ -99,7 +99,7 @@ If no adapter is set, the job is immediately executed.
 
 ### Backends
 
-Active Job has  built-in adapters for multiple queueing backends (Sidekiq,
+Active Job has built-in adapters for multiple queueing backends (Sidekiq,
 Resque, Delayed Job and others). To get an up-to-date list of the adapters
 see the API Documentation for [ActiveJob::QueueAdapters](http://api.rubyonrails.org/classes/ActiveJob/QueueAdapters.html).
 
