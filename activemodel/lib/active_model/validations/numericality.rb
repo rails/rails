@@ -61,7 +61,11 @@ module ActiveModel
     protected
 
       def parse_raw_value_as_a_number(raw_value)
-        Kernel.Float(raw_value) if raw_value !~ /\A0[xX]/
+        if raw_value.is_a?(Numeric)
+          raw_value
+        elsif raw_value !~ /\A0[xX]/
+          Kernel.Float(raw_value)
+        end
       rescue ArgumentError, TypeError
         nil
       end

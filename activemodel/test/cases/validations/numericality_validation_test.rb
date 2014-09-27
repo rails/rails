@@ -22,6 +22,7 @@ class NumericalityValidationTest < ActiveModel::TestCase
   BIGDECIMAL = BIGDECIMAL_STRINGS.collect! { |bd| BigDecimal.new(bd) }
   JUNK = ["not a number", "42 not a number", "0xdeadbeef", "0xinvalidhex", "0Xdeadbeef", "00-1", "--3", "+-3", "+3-1", "-+019.0", "12.12.13.12", "123\nnot a number"]
   INFINITY = [1.0/0.0]
+  LARGE_NUMBER = 1_000_000_000_000_000_000
 
   def test_default_validates_numericality_of
     Topic.validates_numericality_of :approved
@@ -91,6 +92,13 @@ class NumericalityValidationTest < ActiveModel::TestCase
 
     invalid!([10], 'must be less than 10')
     valid!([-9, 9])
+  end
+
+  def test_validates_numericality_with_less_than_large_numbers
+    Topic.validates_numericality_of :approved, less_than: LARGE_NUMBER
+
+    invalid!([LARGE_NUMBER], "must be less than #{LARGE_NUMBER}")
+    valid!([LARGE_NUMBER-1])
   end
 
   def test_validates_numericality_with_less_than_or_equal_to
