@@ -197,18 +197,6 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
     ActionDispatch::Routing::RouteSet.module_eval { const_set :Dispatcher, old_dispatcher }
   end
 
-  def with_routing(&block)
-    temporary_routes = ActionDispatch::Routing::RouteSet.new
-    old_app, self.class.app = self.class.app, self.class.build_app(temporary_routes)
-    old_routes = SharedTestRoutes
-    silence_warnings { Object.const_set(:SharedTestRoutes, temporary_routes) }
-
-    yield temporary_routes
-  ensure
-    self.class.app = old_app
-    silence_warnings { Object.const_set(:SharedTestRoutes, old_routes) }
-  end
-
   def with_autoload_path(path)
     path = File.join(File.dirname(__FILE__), "fixtures", path)
     if ActiveSupport::Dependencies.autoload_paths.include?(path)
