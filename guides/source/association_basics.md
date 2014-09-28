@@ -756,7 +756,7 @@ class Order < ActiveRecord::Base
 end
 ```
 
-Each instance of the order model will have these methods:
+Each instance of the `Order` model will have these methods:
 
 ```ruby
 customer
@@ -1342,16 +1342,16 @@ class Customer < ActiveRecord::Base
 end
 ```
 
-Each instance of the customer model will have these methods:
+Each instance of the `Customer` model will have these methods:
 
 ```ruby
 orders(force_reload = false)
 orders<<(object, ...)
 orders.delete(object, ...)
 orders.destroy(object, ...)
-orders=objects
+orders=(objects)
 order_ids
-order_ids=ids
+order_ids=(ids)
 orders.clear
 orders.empty?
 orders.size
@@ -1831,16 +1831,16 @@ class Part < ActiveRecord::Base
 end
 ```
 
-Each instance of the part model will have these methods:
+Each instance of the `Part` model will have these methods:
 
 ```ruby
 assemblies(force_reload = false)
 assemblies<<(object, ...)
 assemblies.delete(object, ...)
 assemblies.destroy(object, ...)
-assemblies=objects
+assemblies=(objects)
 assembly_ids
-assembly_ids=ids
+assembly_ids=(ids)
 assemblies.clear
 assemblies.empty?
 assemblies.size

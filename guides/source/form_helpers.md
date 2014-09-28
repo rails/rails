@@ -506,6 +506,12 @@ As the name implies, this only generates option tags. To generate a working sele
 <%= collection_select(:person, :city_id, City.all, :id, :name) %>
 ```
 
+As with other helpers, if you were to use the collection_select helper on a form builder scoped to the @person object, the syntax would be:
+
+```erb
+<%= f.collection_select(:city_id, City.all, :id, :name) %>
+```
+
 To recap, `options_from_collection_for_select` is to `collection_select` what `options_for_select` is to `select`.
 
 NOTE: Pairs passed to `options_for_select` should have the name first and the id second, however with `options_from_collection_for_select` the first argument is the value method and the second the text method.
