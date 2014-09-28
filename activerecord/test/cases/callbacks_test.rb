@@ -28,8 +28,14 @@ class CallbackDeveloper < ActiveRecord::Base
     end
   end
 
-  ActiveRecord::Callbacks::CALLBACKS.each do |callback_method|
-    next if callback_method.to_s =~ /^around_/
+  [
+    :before_create, :after_create,
+    :before_destroy, :after_destroy,
+    :before_save, :after_save,
+    :before_update, :after_update,
+    :before_validation, :after_validation,
+    :after_commit, :after_rollback, :after_initialize, :after_find, :after_touch,
+  ].each do |callback_method|
     define_callback_method(callback_method)
     send(callback_method, callback_string(callback_method))
     send(callback_method, callback_proc(callback_method))
