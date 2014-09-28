@@ -866,7 +866,7 @@ module ActiveRecord
           fixture_set_names = Dir["#{fixture_path}/{**,*}/*.{yml}"]
           fixture_set_names.map! { |f| f[(fixture_path.to_s.size + 1)..-5] }
         else
-          fixture_set_names = fixture_set_names.flatten.map { |n| n.to_s }
+          fixture_set_names = fixture_set_names.flatten.map(&:to_s)
         end
 
         self.fixture_table_names |= fixture_set_names
@@ -887,7 +887,7 @@ module ActiveRecord
 
       def require_fixture_classes(fixture_set_names = nil, config = ActiveRecord::Base)
         if fixture_set_names
-          fixture_set_names = fixture_set_names.map { |n| n.to_s }
+          fixture_set_names = fixture_set_names.map(&:to_s)
         else
           fixture_set_names = fixture_table_names
         end
@@ -931,7 +931,7 @@ module ActiveRecord
 
       def uses_transaction(*methods)
         @uses_transaction = [] unless defined?(@uses_transaction)
-        @uses_transaction.concat methods.map { |m| m.to_s }
+        @uses_transaction.concat(methods.map(&:to_s))
       end
 
       def uses_transaction?(method)

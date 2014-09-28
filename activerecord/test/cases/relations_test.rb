@@ -248,7 +248,7 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_finding_with_reorder
     topics = Topic.order('author_name').order('title').reorder('id').to_a
-    topics_titles = topics.map{ |t| t.title }
+    topics_titles = topics.map(&:title)
     assert_equal ['The First Topic', 'The Second Topic of the day', 'The Third Topic of the day', 'The Fourth Topic of the day', 'The Fifth Topic of the day'], topics_titles
   end
 
@@ -440,7 +440,7 @@ class RelationTest < ActiveRecord::TestCase
       where('project_id=1').to_a
 
     assert_equal 3, developers_on_project_one.length
-    developer_names = developers_on_project_one.map { |d| d.name }
+    developer_names = developers_on_project_one.map(&:name)
     assert developer_names.include?('David')
     assert developer_names.include?('Jamis')
   end
