@@ -39,13 +39,13 @@ to run integration tests using a dummy Rails application. Create your
 plugin with the command:
 
 ```bash
-$ bin/rails plugin new yaffle
+$ rails plugin new yaffle
 ```
 
 See usage and options by asking for help:
 
 ```bash
-$ bin/rails plugin new --help
+$ rails plugin new --help
 ```
 
 Testing Your Newly Generated Plugin
