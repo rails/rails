@@ -59,7 +59,6 @@ end
 
 class PolymorphicRoutesTest < ActionController::TestCase
   include SharedTestRoutes.url_helpers
-  self.default_url_options[:host] = 'example.com'
 
   def setup
     @project = Project.new
@@ -72,11 +71,10 @@ class PolymorphicRoutesTest < ActionController::TestCase
     @series = Series.new
     @blog_post = Blog::Post.new
     @blog_blog = Blog::Blog.new
+    host! 'example.com'
   end
 
   def assert_url(url, args)
-    host = self.class.default_url_options[:host]
-
     assert_equal url.sub(/http:\/\/#{host}/, ''), polymorphic_path(args)
     assert_equal url, polymorphic_url(args)
     assert_equal url, url_for(args)
@@ -716,8 +714,6 @@ class PolymorphicPathRoutesTest < PolymorphicRoutesTest
   attr_accessor :controller
 
   def assert_url(url, args)
-    host = self.class.default_url_options[:host]
-
     assert_equal url.sub(/http:\/\/#{host}/, ''), url_for(args)
   end
 end
