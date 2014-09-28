@@ -581,7 +581,7 @@ module ActiveRecord
         # specified, then #find scans the entire collection.
         def find_by_scan(*args)
           expects_array = args.first.kind_of?(Array)
-          ids           = args.flatten.compact.map{ |arg| arg.to_s }.uniq
+          ids           = args.flatten.compact.map(&:to_s).uniq
 
           if ids.size == 1
             id = ids.first

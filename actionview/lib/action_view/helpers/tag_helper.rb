@@ -18,7 +18,7 @@ module ActionView
                            itemscope allowfullscreen default inert sortable
                            truespeed typemustmatch).to_set
 
-      BOOLEAN_ATTRIBUTES.merge(BOOLEAN_ATTRIBUTES.map {|attribute| attribute.to_sym })
+      BOOLEAN_ATTRIBUTES.merge(BOOLEAN_ATTRIBUTES.map(&:to_sym))
 
       TAG_PREFIXES = ['aria', 'data', :aria, :data].to_set
 

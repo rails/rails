@@ -25,7 +25,7 @@ class Array
   #   array[1][2] # => nil
   #   dup[1][2]   # => 4
   def deep_dup
-    map { |it| it.deep_dup }
+    map(&:deep_dup)
   end
 end
 

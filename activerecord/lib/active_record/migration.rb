@@ -184,8 +184,8 @@ module ActiveRecord
   # you wish to downgrade. Alternatively, you can also use the STEP option if you
   # wish to rollback last few migrations. <tt>rake db:migrate STEP=2</tt> will rollback
   # the latest two migrations.
-  # 
-  # If any of the migrations throw an <tt>ActiveRecord::IrreversibleMigration</tt> exception, 
+  #
+  # If any of the migrations throw an <tt>ActiveRecord::IrreversibleMigration</tt> exception,
   # that step will fail and you'll have some manual work to do.
   #
   # == Database support
@@ -640,7 +640,7 @@ module ActiveRecord
     end
 
     def method_missing(method, *arguments, &block)
-      arg_list = arguments.map{ |a| a.inspect } * ', '
+      arg_list = arguments.map(&:inspect) * ', '
 
       say_with_time "#{method}(#{arg_list})" do
         unless @connection.respond_to? :revert
