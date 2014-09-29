@@ -26,7 +26,35 @@ module Rails
             middleware.use ::Rack::Cache, rack_cache
           end
 
-          middleware.use ::Rack::Lock unless allow_concurrency?
+          if config.allow_concurrency == false
+            # User has explicitly opted out of concurrent request
+            # handling: presumably their code is not threadsafe
+
+            middleware.use ::Rack::Lock
+
+          elsif config.allow_concurrency
+            # Do nothing, even if we know this is dangerous
+
+          else
+            # Default concurrency setting
+
+            if config.cache_classes && config.eager_load
+              # No lock required
+
+            elsif config.cache_classes
+              # The load interlock is required, but not a full request
+              # lock
+
+              middleware.use ::ActionDispatch::LoadInterlock
+
+            else
+              # If we're reloading on each request, they all need to be
+              # run in isolation
+
+              middleware.use ::Rack::Lock
+            end
+          end
+
           middleware.use ::Rack::Runtime
           middleware.use ::Rack::MethodOverride unless config.api_only
           middleware.use ::ActionDispatch::RequestId
@@ -63,14 +91,6 @@ module Rails
 
         def reload_dependencies?
           config.reload_classes_only_on_change != true || app.reloaders.map(&:updated?).any?
-        end
-
-        def allow_concurrency?
-          if config.allow_concurrency.nil?
-            config.cache_classes && config.eager_load
-          else
-            config.allow_concurrency
-          end
         end
 
         def load_rack_cache
