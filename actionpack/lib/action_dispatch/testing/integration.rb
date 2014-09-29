@@ -497,7 +497,7 @@ module ActionDispatch
     end
 
     def document_root_element
-      html_document.root
+      html_document
     end
   end
 end
