@@ -3,7 +3,7 @@ require 'abstract_unit'
 class MimeTypeTest < ActiveSupport::TestCase
 
   test "parse single" do
-    Mime::LOOKUP.keys.each do |mime_type|
+    Mime::LOOKUP.each_key do |mime_type|
       unless mime_type == 'image/*'
         assert_equal [Mime::Type.lookup(mime_type)], Mime::Type.parse(mime_type)
       end
