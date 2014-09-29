@@ -1,3 +1,9 @@
+*   Fix `ActiveModel::Validations::NumericalityValidator` so that it works with large numbers
+
+    nearing `1_000_000_000_000_000_000`
+
+    *John Duff*
+
 *   Passwords with spaces only allowed in `ActiveModel::SecurePassword`.
 
     Presence validation can be used to restore old behavior.
