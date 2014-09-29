@@ -390,7 +390,7 @@ module ActiveModel
   protected
 
     def run_validations! #:nodoc:
-      run_callbacks :validate
+      run_validate_callbacks
       errors.empty?
     end
   end
