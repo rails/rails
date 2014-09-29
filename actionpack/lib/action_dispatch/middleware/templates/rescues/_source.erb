@@ -7,20 +7,16 @@
         </div>
         <div class="data">
           <table cellpadding="0" cellspacing="0" class="lines">
-            <tr>
-              <td>
-                <pre class="line_numbers">
-                  <% extract_source[:code].keys.each do |line_number| %>
-<span><%= line_number -%></span>
-                  <% end %>
-                </pre>
-              </td>
-<td width="100%">
-<pre>
-<% extract_source[:code].each do |line, source| -%><div class="line<%= " active" if line == extract_source[:line_number] -%>"><%= source -%></div><% end -%>
-</pre>
-</td>
-            </tr>
+            <% extract_source[:code].each do |key, value| %>
+              <tr>
+                <td class="line_numbers">
+                   <code><span><%= key -%></span></code>
+                </td>
+                <td width= "100%">
+                  <code><div class="line<%= " active" if key == extract_source[:line_number] -%>"><%= value -%></div></code>
+                </td>
+              </tr>
+            <% end -%>
           </table>
         </div>
       </div>
