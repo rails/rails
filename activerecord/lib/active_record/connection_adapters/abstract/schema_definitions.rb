@@ -46,6 +46,10 @@ module ActiveRecord
         options[:on_update]
       end
 
+      def sql_options
+        options[:sql_options]
+      end
+
       def custom_primary_key?
         options[:primary_key] != default_primary_key
       end

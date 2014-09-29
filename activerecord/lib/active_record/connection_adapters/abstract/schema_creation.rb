@@ -53,6 +53,7 @@ module ActiveRecord
             SQL
             sql << " #{action_sql('DELETE', o.on_delete)}" if o.on_delete
             sql << " #{action_sql('UPDATE', o.on_update)}" if o.on_update
+            sql << " #{o.sql_options}" if o.sql_options
             sql
           end
 

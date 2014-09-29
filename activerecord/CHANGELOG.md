@@ -1,3 +1,7 @@
+*   Support for db-specific options to add_foreign_key
+
+    *Jon Jensen*
+
 *   Honor overridden `rack.test` in Rack environment for the connection
     management middleware.
 

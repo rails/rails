@@ -228,6 +228,7 @@ HEADER
 
             parts << "on_update: #{foreign_key.on_update.inspect}" if foreign_key.on_update
             parts << "on_delete: #{foreign_key.on_delete.inspect}" if foreign_key.on_delete
+            parts << "sql_options: #{foreign_key.sql_options.inspect}" if foreign_key.sql_options
 
             "  #{parts.join(', ')}"
           end

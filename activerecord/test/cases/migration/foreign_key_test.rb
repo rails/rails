@@ -194,6 +194,18 @@ module ActiveRecord
         assert_match %r{\s+add_foreign_key "astronauts",.+on_update: :cascade,.+on_delete: :nullify$}, output
       end
 
+      # MySQL doesn't support options beyond the `ON <event> <action>` clauses
+      if current_adapter?(:PostgreSQLAdapter)
+        def test_schema_dumping_sql_options
+          sql_options = "DEFERRABLE INITIALLY DEFERRED"
+          sql_options << " NOT VALID" if @connection.send(:postgresql_version) >= 90100
+          @connection.add_foreign_key :astronauts, :rockets, sql_options: sql_options
+
+          output = dump_table_schema "astronauts"
+          assert_match %r{\s+add_foreign_key "astronauts", "rockets", sql_options: "#{sql_options}"$}, output
+        end
+      end
+
       class CreateCitiesAndHousesMigration < ActiveRecord::Migration
         def change
           create_table("cities") { |t| }

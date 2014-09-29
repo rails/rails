@@ -698,6 +698,8 @@ module ActiveRecord
       #   Action that happens <tt>ON DELETE</tt>. Valid values are +:nullify+, +:cascade:+ and +:restrict+
       # [<tt>:on_update</tt>]
       #   Action that happens <tt>ON UPDATE</tt>. Valid values are +:nullify+, +:cascade:+ and +:restrict+
+      # [<tt>:sql_options</tt>]
+      #   A string of db-specific options to be appended to the end of the statement, e.g. <tt>"DEFERRABLE INITIALLY DEFERRED"</tt> or <tt>"NOT VALID"</tt>
       def add_foreign_key(from_table, to_table, options = {})
         return unless supports_foreign_keys?
 
@@ -708,7 +710,8 @@ module ActiveRecord
           primary_key: options[:primary_key],
           name: foreign_key_name(from_table, options),
           on_delete: options[:on_delete],
-          on_update: options[:on_update]
+          on_update: options[:on_update],
+          sql_options: options[:sql_options]
         }
         at = create_alter_table from_table
         at.add_foreign_key to_table, options

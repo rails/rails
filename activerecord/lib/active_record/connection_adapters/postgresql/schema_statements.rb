@@ -466,7 +466,15 @@ module ActiveRecord
 
         def foreign_keys(table_name)
           fk_info = select_all <<-SQL.strip_heredoc
-            SELECT t2.oid::regclass::text AS to_table, a1.attname AS column, a2.attname AS primary_key, c.conname AS name, c.confupdtype AS on_update, c.confdeltype AS on_delete
+            SELECT t2.oid::regclass::text AS to_table,
+                   a1.attname AS column,
+                   a2.attname AS primary_key,
+                   c.conname AS name,
+                   c.confupdtype AS on_update,
+                   c.confdeltype AS on_delete,
+                   c.condeferrable AS deferrable,
+                   c.condeferred AS deferred
+               #{",c.convalidated AS valid" if postgresql_version >= 90100}
             FROM pg_constraint c
             JOIN pg_class t1 ON c.conrelid = t1.oid
             JOIN pg_class t2 ON c.confrelid = t2.oid
@@ -488,6 +496,7 @@ module ActiveRecord
 
             options[:on_delete] = extract_foreign_key_action(row['on_delete'])
             options[:on_update] = extract_foreign_key_action(row['on_update'])
+            options[:sql_options] = extract_foreign_key_options(row)
 
             ForeignKeyDefinition.new(table_name, row['to_table'], options)
           end
@@ -499,6 +508,14 @@ module ActiveRecord
           when 'n'; :nullify
           when 'r'; :restrict
           end
+        end
+
+        def extract_foreign_key_options(row) # :nodoc:
+          parts = []
+          parts << "DEFERRABLE"         if row["deferrable"] == "t"
+          parts << "INITIALLY DEFERRED" if row["deferred"] == "t"
+          parts << "NOT VALID"          if row["valid"] == "f"
+          parts.join(" ") if parts.present?
         end
 
         def index_name_length
