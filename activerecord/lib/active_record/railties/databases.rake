@@ -215,7 +215,7 @@ db_namespace = namespace :db do
 
       Dir["#{base_dir}/**/*.yml"].each do |file|
         if data = YAML::load(ERB.new(IO.read(file)).result)
-          data.keys.each do |key|
+          data.each_key do |key|
             key_id = ActiveRecord::FixtureSet.identify(key)
 
             if key == label || key_id == id.to_i

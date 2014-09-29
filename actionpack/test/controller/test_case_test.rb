@@ -503,7 +503,7 @@ XML
     get :test_params, :id => 20, :foo => Object.new
 
     # All elements of path_parameters should use Symbol keys
-    @request.path_parameters.keys.each do |key|
+    @request.path_parameters.each_key do |key|
       assert_kind_of Symbol, key
     end
   end
