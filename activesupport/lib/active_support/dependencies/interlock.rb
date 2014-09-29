@@ -13,6 +13,16 @@ module ActiveSupport
         end
       end
 
+      # Attempt to obtain a "loading" (exclusive) lock. If possible,
+      # execute the supplied block while holding the lock. If there is
+      # concurrent activity, return immediately (without executing the
+      # block) instead of waiting.
+      def attempt_loading
+        @lock.exclusive(true) do
+          yield
+        end
+      end
+
       def start_running
         @lock.start_sharing
       end

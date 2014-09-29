@@ -26,7 +26,7 @@ module ApplicationTests
       assert_equal [
         "Rack::Sendfile",
         "ActionDispatch::Static",
-        "Rack::Lock",
+        "ActionDispatch::LoadInterlock",
         "ActiveSupport::Cache::Strategy::LocalCache",
         "Rack::Runtime",
         "Rack::MethodOverride",
@@ -58,7 +58,7 @@ module ApplicationTests
       assert_equal [
         "Rack::Sendfile",
         "ActionDispatch::Static",
-        "Rack::Lock",
+        "ActionDispatch::LoadInterlock",
         "ActiveSupport::Cache::Strategy::LocalCache",
         "Rack::Runtime",
         "ActionDispatch::RequestId",
@@ -128,11 +128,11 @@ module ApplicationTests
       assert_includes middleware, "ActionDispatch::LoadInterlock"
     end
 
-    test "includes lock if cache_classes is off" do
+    test "includes interlock if cache_classes is off" do
       add_to_config "config.cache_classes = false"
       boot!
-      assert_includes middleware, "Rack::Lock"
-      assert_not_includes middleware, "ActionDispatch::LoadInterlock"
+      assert_not_includes middleware, "Rack::Lock"
+      assert_includes middleware, "ActionDispatch::LoadInterlock"
     end
 
     test "does not include lock if cache_classes is set and so is eager_load" do
@@ -143,8 +143,8 @@ module ApplicationTests
       assert_not_includes middleware, "ActionDispatch::LoadInterlock"
     end
 
-    test "does not include lock if allow_concurrency is set" do
-      add_to_config "config.allow_concurrency = true"
+    test "does not include lock if allow_concurrency is set to :unsafe" do
+      add_to_config "config.allow_concurrency = :unsafe"
       boot!
       assert_not_includes middleware, "Rack::Lock"
       assert_not_includes middleware, "ActionDispatch::LoadInterlock"

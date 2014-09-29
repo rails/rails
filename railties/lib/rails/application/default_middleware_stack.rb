@@ -32,26 +32,18 @@ module Rails
 
             middleware.use ::Rack::Lock
 
-          elsif config.allow_concurrency
-            # Do nothing, even if we know this is dangerous
+          elsif config.allow_concurrency == :unsafe
+            # Do nothing, even if we know this is dangerous. This is the
+            # historical behaviour for true.
 
           else
-            # Default concurrency setting
+            # Default concurrency setting: enabled, but safe
 
-            if config.cache_classes && config.eager_load
-              # No lock required
-
-            elsif config.cache_classes
-              # The load interlock is required, but not a full request
-              # lock
+            unless config.cache_classes && config.eager_load
+              # Without cache_classes + eager_load, the load interlock
+              # is required for proper operation
 
               middleware.use ::ActionDispatch::LoadInterlock
-
-            else
-              # If we're reloading on each request, they all need to be
-              # run in isolation
-
-              middleware.use ::Rack::Lock
             end
           end
 
