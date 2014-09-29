@@ -318,8 +318,8 @@
     *Pavel Pravosud*
 
 *   `HashWithIndifferentAccess` better respects `#to_hash` on objects it
-    recieves. In particular, `.new`, `#update`, `#merge`, `#replace` all accept
-    objects which respond to `#to_hash`, even if those objects are not Hashes
+    receives. In particular, `.new`, `#update`, `#merge`, and `#replace` accept
+    objects which respond to `#to_hash`, even if those objects are not hashes
     directly.
 
     *Peter Jaros*
