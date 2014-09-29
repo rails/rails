@@ -19,7 +19,6 @@ module ActiveRecord
 
         def initialize(base_klass, children)
           @base_klass = base_klass
-          @column_names_with_alias = nil
           @children = children
         end
 
