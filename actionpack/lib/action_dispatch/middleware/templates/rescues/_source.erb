@@ -10,7 +10,7 @@
             <tr>
               <td>
                 <pre class="line_numbers">
-                  <% extract_source[:code].keys.each do |line_number| %>
+                  <% extract_source[:code].each_key do |line_number| %>
 <span><%= line_number -%></span>
                   <% end %>
                 </pre>
