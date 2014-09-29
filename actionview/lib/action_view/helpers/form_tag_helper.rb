@@ -224,7 +224,7 @@ module ActionView
       #   # => <input id="collected_input" name="collected_input" onchange="alert('Input collected!')"
       #   #    type="hidden" value="" />
       def hidden_field_tag(name, value = nil, options = {})
-        text_field_tag(name, value, options.stringify_keys.update("type" => "hidden"))
+        text_field_tag(name, value, options.merge(type: :hidden))
       end
 
       # Creates a file upload field. If you are using file uploads then you will also need
@@ -571,7 +571,7 @@ module ActionView
       #   color_field_tag 'color', '#DEF726', class: 'special_input', disabled: true
       #   # => <input disabled="disabled" class="special_input" id="color" name="color" type="color" value="#DEF726" />
       def color_field_tag(name, value = nil, options = {})
-        text_field_tag(name, value, options.stringify_keys.update("type" => "color"))
+        text_field_tag(name, value, options.merge(type: :color))
       end
 
       # Creates a text field of type "search".
@@ -592,7 +592,7 @@ module ActionView
       #   search_field_tag 'search', 'Enter your search query here', class: 'special_input', disabled: true
       #   # => <input disabled="disabled" class="special_input" id="search" name="search" type="search" value="Enter your search query here" />
       def search_field_tag(name, value = nil, options = {})
-        text_field_tag(name, value, options.stringify_keys.update("type" => "search"))
+        text_field_tag(name, value, options.merge(type: :search))
       end
 
       # Creates a text field of type "tel".
@@ -613,7 +613,7 @@ module ActionView
       #   telephone_field_tag 'tel', '0123456789', class: 'special_input', disabled: true
       #   # => <input disabled="disabled" class="special_input" id="tel" name="tel" type="tel" value="0123456789" />
       def telephone_field_tag(name, value = nil, options = {})
-        text_field_tag(name, value, options.stringify_keys.update("type" => "tel"))
+        text_field_tag(name, value, options.merge(type: :tel))
       end
       alias phone_field_tag telephone_field_tag
 
@@ -635,7 +635,7 @@ module ActionView
       #   date_field_tag 'date', '01/01/2014', class: 'special_input', disabled: true
       #   # => <input disabled="disabled" class="special_input" id="date" name="date" type="date" value="01/01/2014" />
       def date_field_tag(name, value = nil, options = {})
-        text_field_tag(name, value, options.stringify_keys.update("type" => "date"))
+        text_field_tag(name, value, options.merge(type: :date))
       end
 
       # Creates a text field of type "time".
@@ -646,7 +646,7 @@ module ActionView
       # * <tt>:step</tt> - The acceptable value granularity.
       # * Otherwise accepts the same options as text_field_tag.
       def time_field_tag(name, value = nil, options = {})
-        text_field_tag(name, value, options.stringify_keys.update("type" => "time"))
+        text_field_tag(name, value, options.merge(type: :time))
       end
 
       # Creates a text field of type "datetime".
@@ -657,7 +657,7 @@ module ActionView
       # * <tt>:step</tt> - The acceptable value granularity.
       # * Otherwise accepts the same options as text_field_tag.
       def datetime_field_tag(name, value = nil, options = {})
-        text_field_tag(name, value, options.stringify_keys.update("type" => "datetime"))
+        text_field_tag(name, value, options.merge(type: :datetime))
       end
 
       # Creates a text field of type "datetime-local".
@@ -668,7 +668,7 @@ module ActionView
       # * <tt>:step</tt> - The acceptable value granularity.
       # * Otherwise accepts the same options as text_field_tag.
       def datetime_local_field_tag(name, value = nil, options = {})
-        text_field_tag(name, value, options.stringify_keys.update("type" => "datetime-local"))
+        text_field_tag(name, value, options.merge(type: 'datetime-local'))
       end
 
       # Creates a text field of type "month".
@@ -679,7 +679,7 @@ module ActionView
       # * <tt>:step</tt> - The acceptable value granularity.
       # * Otherwise accepts the same options as text_field_tag.
       def month_field_tag(name, value = nil, options = {})
-        text_field_tag(name, value, options.stringify_keys.update("type" => "month"))
+        text_field_tag(name, value, options.merge(type: :month))
       end
 
       # Creates a text field of type "week".
@@ -690,7 +690,7 @@ module ActionView
       # * <tt>:step</tt> - The acceptable value granularity.
       # * Otherwise accepts the same options as text_field_tag.
       def week_field_tag(name, value = nil, options = {})
-        text_field_tag(name, value, options.stringify_keys.update("type" => "week"))
+        text_field_tag(name, value, options.merge(type: :week))
       end
 
       # Creates a text field of type "url".
@@ -711,7 +711,7 @@ module ActionView
       #   url_field_tag 'url', 'http://rubyonrails.org', class: 'special_input', disabled: true
       #   # => <input disabled="disabled" class="special_input" id="url" name="url" type="url" value="http://rubyonrails.org" />
       def url_field_tag(name, value = nil, options = {})
-        text_field_tag(name, value, options.stringify_keys.update("type" => "url"))
+        text_field_tag(name, value, options.merge(type: :url))
       end
 
       # Creates a text field of type "email".
@@ -732,7 +732,7 @@ module ActionView
       #   email_field_tag 'email', 'email@example.com', class: 'special_input', disabled: true
       #   # => <input disabled="disabled" class="special_input" id="email" name="email" type="email" value="email@example.com" />
       def email_field_tag(name, value = nil, options = {})
-        text_field_tag(name, value, options.stringify_keys.update("type" => "email"))
+        text_field_tag(name, value, options.merge(type: :email))
       end
 
       # Creates a number field.
@@ -790,7 +790,7 @@ module ActionView
       # ==== Options
       # * Accepts the same options as number_field_tag.
       def range_field_tag(name, value = nil, options = {})
-        number_field_tag(name, value, options.stringify_keys.update("type" => "range"))
+        number_field_tag(name, value, options.merge(type: :range))
       end
 
       # Creates the hidden UTF8 enforcer tag. Override this method in a helper
