@@ -263,7 +263,7 @@ module ActionView
       #   file_field_tag 'file', accept: 'text/html', class: 'upload', value: 'index.html'
       #   # => <input accept="text/html" class="upload" id="file" name="file" type="file" value="index.html" />
       def file_field_tag(name, options = {})
-        text_field_tag(name, nil, options.update("type" => "file"))
+        text_field_tag(name, nil, options.merge(type: :file))
       end
 
       # Creates a password field, a masked text field that will hide the users input behind a mask character.
@@ -296,7 +296,7 @@ module ActionView
       #   password_field_tag 'pin', '1234', maxlength: 4, size: 6, class: "pin_input"
       #   # => <input class="pin_input" id="pin" maxlength="4" name="pin" size="6" type="password" value="1234" />
       def password_field_tag(name = "password", value = nil, options = {})
-        text_field_tag(name, value, options.update("type" => "password"))
+        text_field_tag(name, value, options.merge(type: :password))
       end
 
       # Creates a text input area; use a textarea for longer text inputs such as blog posts or descriptions.
