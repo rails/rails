@@ -651,6 +651,7 @@ XML
 
     uploaded_file = fixture_file_upload('/mona_lisa.jpg', 'image/png')
     assert_equal File.open("#{FILES_DIR}/mona_lisa.jpg", READ_PLAIN).read, uploaded_file.read
+    assert uploaded_file.tempfile
   end
 
   def test_test_uploaded_file_with_binary

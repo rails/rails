@@ -38,7 +38,9 @@ module ActionDispatch
       if self.class.respond_to?(:fixture_path) && self.class.fixture_path
         path = File.join(self.class.fixture_path, path)
       end
-      Rack::Test::UploadedFile.new(path, mime_type, binary)
+      file = File.open(path, "r:BINARY")
+      file.binmode if binary
+      ActionDispatch::Http::UploadedFile.new(filename: path, tempfile: file, type: mime_type)
     end
   end
 end
