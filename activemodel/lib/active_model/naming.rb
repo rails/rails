@@ -5,11 +5,7 @@ module ActiveModel
   class Name
     include Comparable
 
-    attr_reader :singular, :plural, :element, :collection,
-      :singular_route_key, :route_key, :param_key, :i18n_key,
-      :name
-
-    alias_method :cache_key, :collection
+    attr_reader :name
 
     ##
     # :method: ==
@@ -147,19 +143,22 @@ module ActiveModel
 
       raise ArgumentError, "Class name cannot be blank. You need to supply a name argument when anonymous class given" if @name.blank?
 
+      @namespace    = namespace
       @unnamespaced = @name.sub(/^#{namespace.name}::/, '') if namespace
       @klass        = klass
-      @singular     = _singularize(@name)
-      @plural       = ActiveSupport::Inflector.pluralize(@singular)
-      @element      = ActiveSupport::Inflector.underscore(ActiveSupport::Inflector.demodulize(@name))
-      @human        = ActiveSupport::Inflector.humanize(@element)
-      @collection   = ActiveSupport::Inflector.tableize(@name)
-      @param_key    = (namespace ? _singularize(@unnamespaced) : @singular)
-      @i18n_key     = @name.underscore.to_sym
+      @singular_route_key = nil
+    end
 
-      @route_key          = (namespace ? ActiveSupport::Inflector.pluralize(@param_key) : @plural.dup)
-      @singular_route_key = ActiveSupport::Inflector.singularize(@route_key)
-      @route_key << "_index" if @plural == @singular
+    def singular
+      @singular ||= _singularize(@name)
+    end
+
+    def plural
+      @plural ||= ActiveSupport::Inflector.pluralize(singular)
+    end
+
+    def element
+      @element ||= ActiveSupport::Inflector.underscore(ActiveSupport::Inflector.demodulize(@name))
     end
 
     # Transform the model name into a more humane format, using I18n. By default,
@@ -173,7 +172,7 @@ module ActiveModel
     #
     # Specify +options+ with additional translating options.
     def human(options={})
-      return @human unless @klass.respond_to?(:lookup_ancestors) &&
+      return human_class_name unless @klass.respond_to?(:lookup_ancestors) &&
                            @klass.respond_to?(:i18n_scope)
 
       defaults = @klass.lookup_ancestors.map do |klass|
@@ -181,16 +180,47 @@ module ActiveModel
       end
 
       defaults << options[:default] if options[:default]
-      defaults << @human
+      defaults << human_class_name
 
       options = { scope: [@klass.i18n_scope, :models], count: 1, default: defaults }.merge!(options.except(:default))
       I18n.translate(defaults.shift, options)
+    end
+
+    def collection
+      @collection ||= ActiveSupport::Inflector.tableize(@name)
+    end
+    alias_method :cache_key, :collection
+
+    def param_key
+      @param_key ||= (@namespace ? _singularize(@unnamespaced) : singular)
+    end
+
+    def route_key
+      @route_key ||= begin
+        route_key = (@namespace ? ActiveSupport::Inflector.pluralize(param_key) : plural.dup)
+        @singular_route_key = ActiveSupport::Inflector.singularize(route_key)
+        route_key << "_index" if plural == singular
+        route_key
+      end
+    end
+
+    def singular_route_key
+      @singular_route_key || route_key
+      @singular_route_key
+    end
+
+    def i18n_key
+      @i18n_key ||= @name.underscore.to_sym
     end
 
     private
 
     def _singularize(string, replacement='_')
       ActiveSupport::Inflector.underscore(string).tr('/', replacement)
+    end
+
+    def human_class_name
+      @human_class_name ||= ActiveSupport::Inflector.humanize(element)
     end
   end
 
