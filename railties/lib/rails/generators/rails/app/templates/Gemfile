@@ -12,6 +12,8 @@ source 'https://rubygems.org'
 <% end -%>
 <% end -%>
 
+gem 'rails-dom-testing', github: 'rails/rails-dom-testing'
+
 # Use ActiveModel has_secure_password
 # gem 'bcrypt', '~> 3.1.7'
 
