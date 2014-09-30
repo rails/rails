@@ -58,7 +58,7 @@ module ActiveModel
           if options.is_a?(Hash) && options[:on]
             options[:if] = Array(options[:if])
             options[:on] = Array(options[:on])
-            options[:if].unshift lambda { |o|
+            options[:if].unshift ->(o) {
               options[:on].include? o.validation_context
             }
           end
@@ -98,7 +98,9 @@ module ActiveModel
           options[:if] = Array(options[:if])
           if options[:on]
             options[:on] = Array(options[:on])
-            options[:if].unshift("#{options[:on]}.include? self.validation_context")
+            options[:if].unshift ->(o) {
+              options[:on].include? o.validation_context
+            }
           end
           set_callback(:validation, :after, *(args << options), &block)
         end
