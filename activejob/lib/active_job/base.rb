@@ -6,7 +6,48 @@ require 'active_job/execution'
 require 'active_job/callbacks'
 require 'active_job/logging'
 
-module ActiveJob
+module ActiveJob #:nodoc:
+  # = Active Job
+  #
+  # Active job objects can be configured to work with different backend
+  # queuing frameworks. To specify a queue adapter to use:
+  #
+  #   ActiveJob::Base.queue_adapter = :inline
+  #
+  # A list of supported adapters can be found in QueueAdapters.
+  #
+  # Active job objects can be defined by creating a class that inherits
+  # from the ActiveJob::Base class. The only necessary method to
+  # implement is the "perform" method.
+  #
+  # To define an Active Job object:
+  #
+  #   class ProcessPhotoJob < ActiveJob::Base
+  #     def perform(photo)
+  #       photo.watermark!('Rails')
+  #       photo.rotate!(90.degrees)
+  #       photo.resize_to_fit!(300, 300)
+  #       photo.upload!
+  #     end
+  #   end
+  #
+  # Records that are passed in are serialized/deserialized using Global
+  # Id. More information can be found in Arguments.
+  #
+  # To queue a job to be processed asynchronously immediately:
+  #
+  #   ProcessPhotoJob.perform_later(photo)
+  #
+  # To queue a job to be processed at some point in the future:
+  #
+  #   ProcessPhotoJob.set(wait_until: Date.tomorrow.noon).perform_later(photo)
+  #
+  # More information can be found in ActiveJob::Core::ClassMethods#set
+  #
+  # == Exceptions
+  #
+  # * DeserializationError - Error class for deserialization errors.
+  # * SerializationError - Error class for serialization errors.
   class Base
     include Core
     include QueueAdapter

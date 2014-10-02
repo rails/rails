@@ -24,10 +24,16 @@ module ActiveJob
     extend self
     TYPE_WHITELIST = [ NilClass, Fixnum, Float, String, TrueClass, FalseClass, Bignum ]
 
+    # Serializes a set of arguments. Whitelisted types are returned
+    # as-is. Arrays/Hashes are serialized element by element.
+    # All other types are serialized using GlobalID.
     def serialize(arguments)
       arguments.map { |argument| serialize_argument(argument) }
     end
 
+    # Deserializes a set of arguments. Whitelisted types are returned
+    # as-is. Arrays/Hashes are deserialized element by element.
+    # All other types are deserialized using GlobalID.
     def deserialize(arguments)
       arguments.map { |argument| deserialize_argument(argument) }
     rescue => e

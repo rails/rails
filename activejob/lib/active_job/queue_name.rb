@@ -6,6 +6,15 @@ module ActiveJob
       mattr_accessor(:queue_name_prefix)
       mattr_accessor(:default_queue_name) { "default" }
 
+      # Specifies the name of the queue to process the job on.
+      #
+      #   class PublishToFeedJob < ActiveJob::Base
+      #     queue_as :feeds
+      #
+      #     def perform(post)
+      #       post.to_feed!
+      #     end
+      #   end
       def queue_as(part_name=nil, &block)
         if block_given?
           self.queue_name = block

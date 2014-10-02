@@ -753,7 +753,7 @@ Please refer to the [Changelog][active-support] for detailed changes.
 *   Introduced new configuration option `active_support.test_order` for
     specifying the order test cases are executed. This option currently defaults
     to `:sorted` but will be changed to `:random` in Rails 5.0.
-    ([Commit](TODO: fill me in))
+    ([Commit](https://github.com/rails/rails/commit/53e877f7d9291b2bf0b8c425f9e32ef35829f35b))
 
 *   The `travel_to` test helper now truncates the `usec` component to 0.
     ([Commit](https://github.com/rails/rails/commit/9f6e82ee4783e491c20f5244a613fdeb4024beb5))
