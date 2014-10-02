@@ -1128,7 +1128,6 @@ module ActionDispatch
         class SingletonResource < Resource #:nodoc:
           def initialize(entities, options)
             super
-            @as         = nil
             @controller = (options[:controller] || plural).to_s
             @as         = options[:as]
           end
