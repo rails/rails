@@ -1,3 +1,9 @@
+*   Fixed ActiveRecord::Relation#becomes! and changed_attributes issues for type column
+
+    Fixes #17139.
+
+    *Miklos Fazekas*
+
 *   Fixed several edge cases which could result in a counter cache updating
     twice or not updating at all for `has_many` and `has_many :through`.
 
