@@ -321,7 +321,7 @@ module ActionView
       end
 
       def identifier_method_name #:nodoc:
-        inspect.gsub(/[^a-z_]/, '_')
+        inspect.tr('^a-z_', '_')
       end
 
       def instrument(action, &block)
