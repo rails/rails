@@ -12,11 +12,10 @@ source 'https://rubygems.org'
 <% end -%>
 <% end -%>
 
+gem 'rails-dom-testing', github: 'rails/rails-dom-testing'
+
 # Use ActiveModel has_secure_password
 # gem 'bcrypt', '~> 3.1.7'
-
-# Use Rails Html Sanitizer for HTML sanitization
-gem 'rails-html-sanitizer', '~> 1.0'
 
 # Use Unicorn as the app server
 # gem 'unicorn'
@@ -34,7 +33,7 @@ group :development, :test do
   <%- end -%>
 
   # Access an IRB console on exception pages or by using <%%= console %> in views
-  gem 'web-console', github: 'rails/web-console', branch: 'master'
+  gem 'web-console', '~> 2.0.0.beta4'
 <%- if spring_install? %>
   # Spring speeds up development by keeping your application running in the background. Read more: https://github.com/rails/spring
   gem 'spring'

@@ -2,6 +2,11 @@ source 'https://rubygems.org'
 
 gemspec
 
+gem 'rails-dom-testing', github: 'rails/rails-dom-testing'
+
+# We need a newish Rake since Active Job sets its test tasks' descriptions.
+gem 'rake', '>= 10.3'
+
 # This needs to be with require false as it is
 # loaded after loading the test library to
 # ensure correct loading order
@@ -10,12 +15,6 @@ gem 'mocha', '~> 0.14', require: false
 gem 'rack-cache', '~> 1.2'
 gem 'jquery-rails', '~> 4.0.0.beta2'
 gem 'coffee-rails', '~> 4.0.0'
-# TODO: Release this gem
-gem 'rails-html-sanitizer', github: 'rails/rails-html-sanitizer'
-# TODO: Release this gem
-gem 'rails-deprecated_sanitizer', github: 'rails/rails-deprecated_sanitizer'
-# TODO: Release this gem
-gem 'rails-dom-testing', github: 'rails/rails-dom-testing'
 gem 'turbolinks', '~> 2.2.3'
 
 # require: false so bcrypt is loaded only when has_secure_password is used.

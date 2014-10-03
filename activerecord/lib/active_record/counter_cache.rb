@@ -20,7 +20,7 @@ module ActiveRecord
       def reset_counters(id, *counters)
         object = find(id)
         counters.each do |counter_association|
-          has_many_association = _reflect_on_association(counter_association.to_sym)
+          has_many_association = _reflect_on_association(counter_association)
           unless has_many_association
             has_many = reflect_on_all_associations(:has_many)
             has_many_association = has_many.find { |association| association.counter_cache_column && association.counter_cache_column.to_sym == counter_association.to_sym }

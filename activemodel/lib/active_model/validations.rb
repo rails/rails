@@ -86,6 +86,8 @@ module ActiveModel
         validates_with BlockValidator, _merge_attributes(attr_names), &block
       end
 
+      VALID_OPTIONS_FOR_VALIDATE = [:on, :if, :unless].freeze
+
       # Adds a validation method or block to the class. This is useful when
       # overriding the +validate+ instance method becomes too unwieldy and
       # you're looking for more descriptive declaration of your validations.
@@ -144,13 +146,17 @@ module ActiveModel
         options = args.extract_options!
 
         if args.all? { |arg| arg.is_a?(Symbol) }
-          options.assert_valid_keys([:on, :if, :unless])
+          options.each_key do |k|
+            unless VALID_OPTIONS_FOR_VALIDATE.include?(k)
+              raise ArgumentError.new("Unknown key: #{k.inspect}. Valid keys are: #{VALID_OPTIONS_FOR_VALIDATE.map(&:inspect).join(', ')}. Perhaps you meant to call `validates` instead of `validate`?")
+            end
+          end
         end
 
         if options.key?(:on)
           options = options.dup
           options[:if] = Array(options[:if])
-          options[:if].unshift lambda { |o|
+          options[:if].unshift ->(o) {
             Array(options[:on]).include?(o.validation_context)
           }
         end
@@ -384,7 +390,7 @@ module ActiveModel
   protected
 
     def run_validations! #:nodoc:
-      run_callbacks :validate
+      run_validate_callbacks
       errors.empty?
     end
   end

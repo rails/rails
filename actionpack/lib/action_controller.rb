@@ -34,7 +34,6 @@ module ActionController
     autoload :Rendering
     autoload :RequestForgeryProtection
     autoload :Rescue
-    autoload :Responder
     autoload :Streaming
     autoload :StrongParameters
     autoload :Testing

@@ -116,7 +116,6 @@ module ActionDispatch
                                                action,
                                                type,
                                                opts
-
       end
 
       # Returns the path component of a URL for the given record. It uses
@@ -159,8 +158,7 @@ module ActionDispatch
       end
 
       def polymorphic_path_for_action(action, record_or_hash, options)
-        options = options.merge(:action => action, :routing_type => :path)
-        polymorphic_path(record_or_hash, options)
+        polymorphic_path(record_or_hash, options.merge(:action => action))
       end
 
       class HelperMethodBuilder # :nodoc:

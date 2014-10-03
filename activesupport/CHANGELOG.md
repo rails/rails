@@ -1,3 +1,24 @@
+*   Delegation now works with ruby reserved words passed to `:to` option.
+
+    Fixes #16956.
+
+    *Agis Anastasopoulos*
+
+*   Added method `#eql?` to `ActiveSupport::Duration`, in addition to `#==`.
+
+    Currently, the following returns `false`, contrary to expectation:
+
+        1.minute.eql?(1.minute)
+
+    Adding method `#eql?` will make this behave like expected. Method `#eql?` is
+    just a bit stricter than `#==`, as it checks whether the argument is also a duration. Their
+    parts may be different though.
+
+        1.minute.eql?(60.seconds)  # => true
+        1.minute.eql?(60)          # => false
+
+    *Joost Lubach*
+
 *   Time#change can now change nanoseconds (:nsec) as a higher-precision
     alternative to microseconds (:usec).
 
@@ -9,7 +30,7 @@
     *Kostiantyn Kahanskyi*
 
 *   Introduced new configuration option `active_support.test_order` for
-    specifying the order test cases are executed. This option currently defaults
+    specifying the order in which test cases are executed. This option currently defaults
     to `:sorted` but will be changed to `:random` in Rails 5.0.
 
     *Akira Matsuda*, *Godfrey Chan*
@@ -32,7 +53,7 @@
     *Peter Jaros*
 
 *   `determine_constant_from_test_name` does no longer shadow `NameError`s
-    which happen during constant autoloading.
+    which happens during constant autoloading.
 
     Fixes #9933.
 
@@ -110,8 +131,8 @@
 
 *   Always instrument `ActiveSupport::Cache`.
 
-    Since `ActiveSupport::Notifications` only instrument items when there
-    are subscriber we don't need to disable instrumentation.
+    Since `ActiveSupport::Notifications` only instruments items when there
+    are attached subscribers, we don't need to disable instrumentation.
 
     *Peter Wagenet*
 
@@ -134,17 +155,17 @@
     `ActiveSupport::TimeWithZone#-` should return the same result as if we were
     using `Time#-`:
 
-        Time.now.end_of_day - Time.now.beginning_of_day #=> 86399.999999999
+        Time.now.end_of_day - Time.now.beginning_of_day # => 86399.999999999
 
     Before:
 
-        Time.zone.now.end_of_day.nsec #=> 999999999
-        Time.zone.now.end_of_day - Time.zone.now.beginning_of_day #=> 86400.0
+        Time.zone.now.end_of_day.nsec # => 999999999
+        Time.zone.now.end_of_day - Time.zone.now.beginning_of_day # => 86400.0
 
     After:
 
         Time.zone.now.end_of_day - Time.zone.now.beginning_of_day
-        #=> 86399.999999999
+        # => 86399.999999999
 
     *Gordon Chan*
 
@@ -153,12 +174,12 @@
     Before:
 
         ActiveSupport::NumberHelper.number_to_rounded Rational(1000, 3), precision: 2
-        #=> "330.00"
+        # => "330.00"
 
     After:
 
         ActiveSupport::NumberHelper.number_to_rounded Rational(1000, 3), precision: 2
-        #=> "333.33"
+        # => "333.33"
 
     See #15379.
 
@@ -240,9 +261,9 @@
 
     *Xavier Noria*
 
-*   Fixed backward compatibility isues introduced in 326e652.
+*   Fixed backward compatibility issues introduced in 326e652.
 
-    Empty Hash or Array should not present in serialization result.
+    Empty Hash or Array should not be present in serialization result.
 
         {a: []}.to_query # => ""
         {a: {}}.to_query # => ""
@@ -261,20 +282,20 @@
 
     This fixes the current situation of:
 
-        1.second.eql?(1.second) #=> false
+        1.second.eql?(1.second) # => false
 
     `eql?` also requires that the other object is an `ActiveSupport::Duration`.
     This requirement makes `ActiveSupport::Duration`'s behavior consistent with
     the behavior of Ruby's numeric types:
 
-        1.eql?(1.0) #=> false
-        1.0.eql?(1) #=> false
+        1.eql?(1.0) # => false
+        1.0.eql?(1) # => false
 
-        1.second.eql?(1) #=> false (was true)
-        1.eql?(1.second) #=> false
+        1.second.eql?(1) # => false (was true)
+        1.eql?(1.second) # => false
 
         { 1 => "foo", 1.0 => "bar" }
-        #=> { 1 => "foo", 1.0 => "bar" }
+        # => { 1 => "foo", 1.0 => "bar" }
 
         { 1 => "foo", 1.second => "bar" }
         # now => { 1 => "foo", 1.second => "bar" }
@@ -282,11 +303,11 @@
 
     And though the behavior of these hasn't changed, for reference:
 
-        1 == 1.0 #=> true
-        1.0 == 1 #=> true
+        1 == 1.0 # => true
+        1.0 == 1 # => true
 
-        1 == 1.second #=> true
-        1.second == 1 #=> true
+        1 == 1.second # => true
+        1.second == 1 # => true
 
     *Emily Dobervich*
 
@@ -296,9 +317,9 @@
 
     *Pavel Pravosud*
 
-*   `HashWithIndifferentAccess` better respects `#to_hash` on objects it's
-    given. In particular, `.new`, `#update`, `#merge`, `#replace` all accept
-    objects which respond to `#to_hash`, even if those objects are not Hashes
+*   `HashWithIndifferentAccess` better respects `#to_hash` on objects it
+    receives. In particular, `.new`, `#update`, `#merge`, and `#replace` accept
+    objects which respond to `#to_hash`, even if those objects are not hashes
     directly.
 
     *Peter Jaros*

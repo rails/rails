@@ -1,4 +1,5 @@
 require "cases/helper"
+require 'support/schema_dumping_helper'
 
 class SchemaTest < ActiveRecord::TestCase
   self.use_transactional_fixtures = false
@@ -425,4 +426,29 @@ class SchemaTest < ActiveRecord::TestCase
       assert_equal this_index_column, this_index.columns[0]
       assert_equal this_index_name, this_index.name
     end
+end
+
+class SchemaForeignKeyTest < ActiveRecord::TestCase
+  include SchemaDumpingHelper
+
+  setup do
+    @connection = ActiveRecord::Base.connection
+  end
+
+  def test_dump_foreign_key_targeting_different_schema
+    @connection.create_schema "my_schema"
+    @connection.create_table "my_schema.trains" do |t|
+      t.string :name
+    end
+    @connection.create_table "wagons" do |t|
+      t.integer :train_id
+    end
+    @connection.add_foreign_key "wagons", "my_schema.trains", column: "train_id"
+    output = dump_table_schema "wagons"
+    assert_match %r{\s+add_foreign_key "wagons", "my_schema.trains", column: "train_id"$}, output
+  ensure
+    @connection.execute "DROP TABLE IF EXISTS wagons"
+    @connection.execute "DROP TABLE IF EXISTS my_schema.trains"
+    @connection.execute "DROP SCHEMA IF EXISTS my_schema"
+  end
 end

@@ -25,9 +25,8 @@ If you're upgrading an existing application, it's a great idea to have good test
 coverage before going in. You should also first upgrade to Rails 4.1 in case you
 haven't and make sure your application still runs as expected before attempting
 to upgrade to Rails 4.2. A list of things to watch out for when upgrading is
-available in the
-[Upgrading Ruby on Rails](upgrading_ruby_on_rails.html#upgrading-from-rails-4-1-to-rails-4-2)
-guide.
+available in the guide: [Upgrading Ruby on
+Rails](upgrading_ruby_on_rails.html#upgrading-from-rails-4-1-to-rails-4-2)
 
 
 Major Features
@@ -36,9 +35,12 @@ Major Features
 ### Active Job, Action Mailer #deliver_later
 
 Active Job is a new framework in Rails 4.2. It is an adapter layer on top of
-queuing systems like [Resque](https://github.com/resque/resque), [Delayed Job](https://github.com/collectiveidea/delayed_job), [Sidekiq](https://github.com/mperham/sidekiq), and more. You can write your
-jobs with the Active Job API, and it'll run on all these queues with no changes
-(it comes pre-configured with an inline runner).
+queuing systems like [Resque](https://github.com/resque/resque), [Delayed
+Job](https://github.com/collectiveidea/delayed_job),
+[Sidekiq](https://github.com/mperham/sidekiq), and more.
+
+You can write your jobs with the Active Job API, and it'll run on all these
+queues with no changes (it comes pre-configured with an inline runner).
 
 Building on top of Active Job, Action Mailer now comes with a `#deliver_later`
 method, which adds your email to be sent as a job to a queue, so it doesn't
@@ -52,11 +54,45 @@ deserialize it at run time.
 
 ### Adequate Record
 
-Rails 4.2 comes with a performance improvement feature called Adequate Record
-for Active Record. A lot of common queries are now up to twice as fast in Rails
-4.2!
+Adequate Record is a set of refactorings that make Active Record `find` and
+`find_by` methods and some association queries upto 2x faster.
 
-TODO: add some technical details
+It works by caching SQL query patterns while executing the Active Record calls.
+The cache helps skip parts of the computation involved in the transformation of
+the calls into SQL queries. More details in [Aaron Patterson's
+post](http://tenderlovemaking.com/2014/02/19/adequaterecord-pro-like-activerecord.html).
+
+Nothing special has to be done to activate this feature. Most `find` and
+`find_by` calls and association queries will use it automatically. Examples:
+
+```ruby
+Post.find 1  # caches query pattern
+Post.find 2  # uses the cached pattern
+
+Post.find_by_title 'first post'  # caches query pattern
+Post.find_by_title 'second post' # uses the cached pattern
+
+post.comments        # caches query pattern
+post.comments(true)  # uses cached pattern
+```
+
+The caching is not used in the following scenarios:
+
+- The model has a default scope
+- The model uses single table inheritance to inherit from another model
+- `find` with a list of ids. eg:
+
+  ```ruby
+  Post.find(1,2,3)
+  OR
+  Post.find [1,2]
+  ```
+
+- `find_by` with sql fragments:
+
+  ```ruby
+  Post.find_by "published_at < ?", 2.weeks.ago
+  ```
 
 ### Web Console
 
@@ -113,6 +149,13 @@ individual components for new deprecations in this release.
 
 The following changes may require immediate action upon upgrade.
 
+### `render` with a String argument
+
+Previously, calling `render "foo/bar"` in a controller action is equivalent to
+`render file: "foo/bar"`. In Rails 4.2, this has been changed to mean `render template: "foo/bar"`
+instead. If you need to render a file, please change your code to use the
+explicit form (`render file: "foo/bar"`) instead.
+
 ### `respond_with` / class-level `respond_to`
 
 `respond_with` and the corresponding class-level `respond_to` have been moved to
@@ -147,6 +190,21 @@ class UsersController < ApplicationController
   end
 end
 ```
+
+### Default host for `rails server`
+
+Due to a [change in Rack](https://github.com/rack/rack/commit/28b014484a8ac0bbb388e7eaeeef159598ec64fc),
+`rails server` now listens on `localhost` instead of `0.0.0.0` by default. This
+should have minimal impact on the standard development workflow as both http://127.0.0.1:3000
+and http://localhost:3000 would continue to work as before on your own machine.
+
+However, with this change you would no longer be able to access the Rails server
+from a different machine (e.g. your development environment is in a virtual
+machine and you would like to access it from the host machine), you would need
+to start the server with `rails server -b 0.0.0.0` to restore the old behavior.
+
+If you do this, be sure to configure your firewall properly such that only
+trusted machines on your network can access your development server.
 
 ### Production logging
 
@@ -293,7 +351,7 @@ Please refer to the [Changelog][railties] for detailed changes.
       namespace: my_app_development
 
     # config/production.rb
-    MyApp::Application.configure do
+    Rails.application.configure do
       config.middleware.use ExceptionNotifier, config_for(:exception_notification)
     end
     ```
@@ -447,6 +505,10 @@ Please refer to the [Changelog][action-view] for detailed changes.
     ([Pull Request](https://github.com/rails/rails/pull/14243))
 
 ### Notable changes
+
+*   `render "foo/bar"` now expands to `render template: "foo/bar"` instead of
+    `render file: "foo/bar"`.
+    ([Pull Request](https://github.com/rails/rails/pull/16888))
 
 *   Introduced a `#{partial_name}_iteration` special local variable for use with
     partials that are rendered with a collection. It provides access to the
@@ -646,7 +708,7 @@ Please refer to the [Changelog][active-model] for detailed changes.
     (Pull Request [1](https://github.com/rails/rails/pull/14861),
     [2](https://github.com/rails/rails/pull/16180))
 
-*   `has_secure_password` no longer disallow blank passwords (i.e. passwords
+*   `has_secure_password` no longer disallows blank passwords (i.e. passwords
     that contains only spaces) by default.
     ([Pull Request](https://github.com/rails/rails/pull/16412))
 
@@ -691,7 +753,7 @@ Please refer to the [Changelog][active-support] for detailed changes.
 *   Introduced new configuration option `active_support.test_order` for
     specifying the order test cases are executed. This option currently defaults
     to `:sorted` but will be changed to `:random` in Rails 5.0.
-    ([Commit](TODO: fill me in))
+    ([Commit](https://github.com/rails/rails/commit/53e877f7d9291b2bf0b8c425f9e32ef35829f35b))
 
 *   The `travel_to` test helper now truncates the `usec` component to 0.
     ([Commit](https://github.com/rails/rails/commit/9f6e82ee4783e491c20f5244a613fdeb4024beb5))

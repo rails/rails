@@ -24,9 +24,9 @@ Set the queue adapter for Active Job:
 
 ``` ruby
 ActiveJob::Base.queue_adapter = :inline # default queue adapter
-# Adapters currently supported: :backburner, :delayed_job, :qu, :que, :queue_classic,
-#                               :resque, :sidekiq, :sneakers, :sucker_punch
 ```
+Note: To learn how to use your preferred queueing backend see its adapter
+documentation at ActiveJob::QueueAdapters.
 
 Declare a job like so:
 
@@ -88,18 +88,9 @@ by default has been mixed into Active Record classes.
 
 ## Supported queueing systems
 
-We currently have adapters for:
-
-* [Backburner](https://github.com/nesquena/backburner)
-* [Delayed Job](https://github.com/collectiveidea/delayed_job)
-* [Qu](https://github.com/bkeepers/qu)
-* [Que](https://github.com/chanks/que)
-* [QueueClassic](https://github.com/ryandotsmith/queue_classic)
-* [Resque 1.x](https://github.com/resque/resque)
-* [Sidekiq](https://github.com/mperham/sidekiq)
-* [Sneakers](https://github.com/jondot/sneakers)
-* [Sucker Punch](https://github.com/brandonhilkert/sucker_punch)
-
+Active Job has built-in adapters for multiple queueing backends (Sidekiq,
+Resque, Delayed Job and others). To get an up-to-date list of the adapters
+see the API Documentation for [ActiveJob::QueueAdapters](http://api.rubyonrails.org/classes/ActiveJob/QueueAdapters.html).
 
 ## Auxiliary gems
 

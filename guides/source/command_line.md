@@ -130,7 +130,7 @@ Example:
     `rails generate controller CreditCards open debit credit close`
 
     Credit card controller with URLs like /credit_cards/debit.
-        Controller: app/controllers/credit_card_controller.rb
+        Controller: app/controllers/credit_cards_controller.rb
         Test:       test/controllers/credit_cards_controller_test.rb
         Views:      app/views/credit_cards/debit.html.erb [...]
         Helper:     app/helpers/credit_cards_helper.rb

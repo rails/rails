@@ -97,11 +97,13 @@ class EnqueuedJobsTest < ActiveJob::TestCase
       end
     end
 
-    assert_raise ActiveSupport::TestCase::Assertion do
+    error = assert_raise ActiveSupport::TestCase::Assertion do
       assert_enqueued_with(job: NestedJob, queue: 'low') do
         NestedJob.perform_later
       end
     end
+
+    assert_equal 'No enqueued job found with {:job=>NestedJob, :queue=>"low"}', error.message
   end
 
   def test_assert_enqueued_job_args

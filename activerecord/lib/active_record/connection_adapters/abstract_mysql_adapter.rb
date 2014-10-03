@@ -389,6 +389,10 @@ module ActiveRecord
         end
       end
 
+      def truncate(table_name, name = nil)
+        execute "TRUNCATE TABLE #{quote_table_name(table_name)}", name
+      end
+
       def table_exists?(name)
         return false unless name.present?
         return true if tables(nil, nil, name).any?

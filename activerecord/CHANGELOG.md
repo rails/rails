@@ -1,3 +1,27 @@
+*   Honor overridden `rack.test` in Rack environment for the connection
+    management middleware.
+
+    *Simon Eskildsen*
+
+*   Add a truncate method to the connection.
+
+    *Aaron Patterson*
+
+*   Don't autosave unchanged has_one through records.
+
+    *Alan Kennedy*, *Steve Parrington*
+
+*   Do not dump foreign keys for ignored tables.
+
+    *Yves Senn*
+
+*   PostgreSQL adapter correctly dumps foreign keys targeting tables
+    outside the schema search path.
+
+    Fixes #16907.
+
+    *Matthew Draper*, *Yves Senn*
+
 *   When a thread is killed, rollback the active transaction, instead of
     committing it during the stack unwind. Previously, we could commit half-
     completed work. This fix only works for Ruby 2.0+; on 1.9, we can't
@@ -9,7 +33,7 @@
 *   A `NullRelation` should represent nothing. This fixes a bug where
     `Comment.where(post_id: Post.none)` returned a non-empty result.
 
-    Closes #15176.
+    Fixes #15176.
 
     *Matthew Draper*, *Yves Senn*
 
@@ -30,7 +54,7 @@
 
     *Girish Sonawane*
 
-*   Introduce `connection.supports_views?` to check wether the current adapter
+*   Introduce `connection.supports_views?` to check whether the current adapter
     has support for SQL views. Connection adapters should define this method.
 
     *Yves Senn*
@@ -78,17 +102,18 @@
 
     *Agis Anastasopoulos*
 
-*   Fixed the `Relation#exists?` to work with polymorphic associations.
+*   Fixed `Relation#exists?` to work with polymorphic associations.
 
     Fixes #15821.
 
     *Kassio Borges*
 
-*   Currently, Active Record will rescue any errors raised within
-    after_rollback/after_create callbacks and print them to the logs. Next versions of rails
-    will not rescue those errors anymore, and just bubble them up, as the other callbacks.
+*   Currently, Active Record rescues any errors raised within
+    `after_rollback`/`after_create` callbacks and prints them to the logs.
+    Future versions of Rails will not rescue these errors anymore and
+    just bubble them up like the other callbacks.
 
-    This adds a opt-in flag to enable that behaviour, of not rescuing the errors.
+    This commit adds an opt-in flag to enable not rescuing the errors.
 
     Example:
 
@@ -112,7 +137,7 @@
 
     *Sean Griffin*
 
-*   Fix regression on after_commit that didnt fire when having nested transactions.
+*   Fix regression on `after_commit` that did not fire with nested transactions.
 
     Fixes #16425.
 
@@ -148,9 +173,9 @@
 
 *   Define `id_was` to get the previous value of the primary key.
 
-    Currently when we call id_was and we have a custom primary key name
+    Currently when we call `id_was` and we have a custom primary key name,
     Active Record will return the current value of the primary key. This
-    make impossible to correctly do an update operation if you change the
+    makes it impossible to correctly do an update operation if you change the
     id.
 
     Fixes #16413.
@@ -182,7 +207,7 @@
 
     *Eileen M. Uchtitelle*, *Aaron Patterson*
 
-*   No verbose backtrace by db:drop when database does not exist.
+*   No verbose backtrace by `db:drop` when database does not exist.
 
     Fixes #16295.
 
@@ -227,7 +252,7 @@
 
     *Stefan Kanev*
 
-*   Dont swallow errors on compute_type when having a bad alias_method on
+*   Do not swallow errors on `compute_type` when having a bad `alias_method` on
     a class.
 
     *arthurnn*
@@ -310,7 +335,7 @@
 
     *Eileen M. Uchitelle, Aaron Patterson*
 
-*   Avoid type casting boolean and ActiveSupport::Duration values to numeric
+*   Avoid type casting boolean and `ActiveSupport::Duration` values to numeric
     values for string columns. Otherwise, in some database, the string column
     values will be coerced to a numeric allowing false or 0.seconds match any
     string starting with a non-digit.
@@ -341,8 +366,8 @@
 
     *Abdelkader Boudih*
 
-*   Move 'dependent: :destroy' handling for 'belongs_to'
-    from 'before_destroy' to 'after_destroy' callback chain
+*   Move 'dependent: :destroy' handling for `belongs_to`
+    from `before_destroy` to `after_destroy` callback chain
 
     Fixes #12380.
 
@@ -350,8 +375,9 @@
 
 *   Detect in-place modifications on String attributes.
 
-    Before this change user have to mark the attribute as changed to it be persisted
-    in the database. Now it is not required anymore.
+    Before this change, an attribute modified in-place had to be marked as
+    changed in order for it to be persisted in the database. Now it is no longer
+    required.
 
     Before:
 
@@ -463,7 +489,7 @@
 
     *Sean Griffin*
 
-*   Pluck now works when selecting columns from different tables with the same
+*   `Pluck` now works when selecting columns from different tables with the same
     name.
 
     Fixes #15649.
@@ -530,7 +556,7 @@
 
     *Sean Griffin*
 
-*   Implemented ActiveRecord::Base#pretty_print to work with PP.
+*   Implemented `ActiveRecord::Base#pretty_print` to work with PP.
 
     *Ethan*
 
@@ -571,16 +597,16 @@
 
     *Arun Agrawal*
 
-*   Fix redefine a has_and_belongs_to_many inside inherited class
-    Fixing regression case, where redefining the same has_an_belongs_to_many
+*   Fix redefine a `has_and_belongs_to_many` inside inherited class
+    Fixing regression case, where redefining the same `has_and_belongs_to_many`
     definition into a subclass would raise.
 
     Fixes #14983.
 
     *arthurnn*
 
-*   Fix has_and_belongs_to_many public reflection.
-    When defining a has_and_belongs_to_many, internally we convert that to two has_many.
+*   Fix `has_and_belongs_to_many` public reflection.
+    When defining a `has_and_belongs_to_many`, internally we convert that to two has_many.
     But as `reflections` is a public API, people expect to see the right macro.
 
     Fixes #14682.
@@ -617,7 +643,7 @@
 
     *Brock Trappitt*
 
-*   Fixed the inferred table name of a has_and_belongs_to_many auxiliar
+*   Fixed the inferred table name of a `has_and_belongs_to_many` auxiliar
     table inside a schema.
 
     Fixes #14824.
@@ -661,7 +687,7 @@
 
     *Aaron Nelson*
 
-*   Fix how to calculate associated class name when using namespaced has_and_belongs_to_many
+*   Fix how to calculate associated class name when using namespaced `has_and_belongs_to_many`
     association.
 
     Fixes #14709.
@@ -731,7 +757,7 @@
 
 *   Fixed has_and_belongs_to_many's CollectionAssociation size calculation.
 
-    has_and_belongs_to_many should fall back to using the normal CollectionAssociation's
+    `has_and_belongs_to_many` should fall back to using the normal CollectionAssociation's
     size calculation if the collection is not cached or loaded.
 
     Fixes #14913, #14914.
@@ -791,7 +817,7 @@
 
     *Timur Alperovich*
 
-*   Give ActiveRecord::PredicateBuilder private methods the privacy they deserve.
+*   Give `ActiveRecord::PredicateBuilder` private methods the privacy they deserve.
 
     *Hector Satre*
 
@@ -847,7 +873,7 @@
 
     *Kuldeep Aggarwal*
 
-*   Fixed has_many association to make it support irregular inflections.
+*   Fixed `has_many` association to make it support irregular inflections.
 
     Fixes #8928.
 
@@ -961,7 +987,7 @@
 
 *   `to_sql` on an association now matches the query that is actually executed, where it
     could previously have incorrectly accrued additional conditions (e.g. as a result of
-    a previous query). CollectionProxy now always defers to the association scope's
+    a previous query). `CollectionProxy` now always defers to the association scope's
     `arel` method so the (incorrect) inherited one should be entirely concealed.
 
     Fixes #14003.
@@ -1192,7 +1218,7 @@
 
     The current solution of incrementing the beginning is not correct and is now
     deprecated. For subtypes where we don't know how to increment (e.g. `#succ`
-    is not defined) it will raise an ArgumentException for ranges with excluding
+    is not defined) it will raise an `ArgumentException` for ranges with excluding
     beginnings.
 
     *Yves Senn*

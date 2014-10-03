@@ -1171,7 +1171,7 @@ module ActiveRecord
       #   of this class in lower-case and "_id" suffixed. So a Person class that makes a +has_many+
       #   association will use "person_id" as the default <tt>:foreign_key</tt>.
       # [:primary_key]
-      #   Specify the method that returns the primary key used for the association. By default this is +id+.
+      #   Specify the name of the column to use as the primary key for the association. By default this is +id+.
       # [:dependent]
       #   Controls what happens to the associated objects when
       #   their owner is destroyed. Note that these are implemented as

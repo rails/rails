@@ -360,7 +360,7 @@ module ActiveRecord
         synchronize do
           owner = conn.owner
 
-          conn.run_callbacks :checkin do
+          conn.run_checkin_callbacks do
             conn.expire
           end
 
@@ -449,7 +449,7 @@ module ActiveRecord
       end
 
       def checkout_and_verify(c)
-        c.run_callbacks :checkout do
+        c.run_checkout_callbacks do
           c.verify!
         end
         c
@@ -640,7 +640,7 @@ module ActiveRecord
       end
 
       def call(env)
-        testing = env.key?('rack.test')
+        testing = env['rack.test']
 
         response = @app.call(env)
         response[2] = ::Rack::BodyProxy.new(response[2]) do

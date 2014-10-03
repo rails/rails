@@ -1,3 +1,26 @@
+*   Remove --skip-action-view option from Rails::Generators::AppBase
+
+    Fixes #17023.
+
+    *Dan Olson*
+
+*   Specify dummy app's db migrate path in plugin's test_helper.rb.
+
+    Fixes #16877.
+
+    *Yukio Mizuta*
+
+*   Inject `Rack::Lock` if `config.eager_load` is false.
+
+    Fixes #15089.
+
+    *Xavier Noria*
+
+*   Change the path of dummy app location in plugin's test_helper.rb for cases
+    you specify dummy_path option.
+
+    *Yukio Mizuta*
+
 *   Fix a bug in the `gem` method for Rails templates when non-String options
     are used.
 
@@ -56,7 +79,7 @@
           namespace: my_app_development
 
         # config/production.rb
-        MyApp::Application.configure do
+        Rails.application.configure do
           config.middleware.use ExceptionNotifier, config_for(:exception_notification)
         end
 

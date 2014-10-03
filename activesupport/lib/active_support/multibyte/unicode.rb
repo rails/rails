@@ -42,7 +42,6 @@ module ActiveSupport
         0x0085,                # White_Space # Cc       <control-0085>
         0x00A0,                # White_Space # Zs       NO-BREAK SPACE
         0x1680,                # White_Space # Zs       OGHAM SPACE MARK
-        0x180E,                # White_Space # Zs       MONGOLIAN VOWEL SEPARATOR
         (0x2000..0x200A).to_a, # White_Space # Zs  [11] EN QUAD..HAIR SPACE
         0x2028,                # White_Space # Zl       LINE SEPARATOR
         0x2029,                # White_Space # Zp       PARAGRAPH SEPARATOR

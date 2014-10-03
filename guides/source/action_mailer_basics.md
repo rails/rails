@@ -298,8 +298,7 @@ Action Mailer 3.0 makes inline attachments, which involved a lot of hacking in p
     ```html+erb
     <p>Hello there, this is our image</p>
 
-    <%= image_tag attachments['image.jpg'].url, alt: 'My Photo',
-                                                class: 'photos' %>
+    <%= image_tag attachments['image.jpg'].url, alt: 'My Photo', class: 'photos' %>
     ```
 
 #### Sending Email To Multiple Recipients

@@ -167,10 +167,12 @@ class ValidationsTest < ActiveModel::TestCase
   end
 
   def test_invalid_options_to_validate
-    assert_raises(ArgumentError) do
+    error = assert_raises(ArgumentError) do
       # A common mistake -- we meant to call 'validates'
       Topic.validate :title, presence: true
     end
+    message = 'Unknown key: :presence. Valid keys are: :on, :if, :unless. Perhaps you meant to call `validates` instead of `validate`?'
+    assert_equal message, error.message
   end
 
   def test_errors_conversions

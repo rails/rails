@@ -55,15 +55,51 @@ a [pull request](https://github.com/rails/rails/edit/master/guides/source/upgrad
 
 ### Web Console
 
-First, add `gem 'web-console', '~> 2.0.0.beta3'` to the `:development` group in your Gemfile and run `bundle install` (it won't have been included when you upgraded Rails). Once it's been installed, you can simply drop a reference to the console helper (i.e., `<%= console %>`) into any view you want to enable it for. A console will also be provided on any error page you view in your development environment.
+First, add `gem 'web-console', '~> 2.0'` to the `:development` group in your Gemfile and run `bundle install` (it won't have been included when you upgraded Rails). Once it's been installed, you can simply drop a reference to the console helper (i.e., `<%= console %>`) into any view you want to enable it for. A console will also be provided on any error page you view in your development environment.
 
-Additionally, you can tell Rails to automatically mount a VT100-compatible console on a predetermined path by setting `config.web_console.automount = true` in your `config/environments/development.rb`. You can specify the path by setting `config.web_console.default_mount_path` (note that this defaults to `/console`).
+Additionally, you can tell Rails to automatically mount a VT100-compatible console on a predetermined path by setting the appropriate configuration flags in your development config:
 
-TODO: Update `web-console` version to release version.
+```ruby
+# config/environments/development.rb
+
+config.web_console.automount = true
+config.web_console.default_mount_path = '/terminal' # Optional, defaults to /console
+```
 
 ### Responders
 
-TODO: mention https://github.com/rails/rails/pull/16526
+`respond_with` and the class-level `respond_to` methods have been extracted to the `responders` gem. To use them, simply add `gem 'responders', '~> 2.0'` to your Gemfile. Calls to `respond_with` and `respond_to` (again, at the class level) will no longer work without having included the `responders` gem in your dependencies:
+
+```ruby
+# app/controllers/users_controller.rb
+
+class UsersController < ApplicationController
+  respond_to :html, :json
+
+  def show
+    @user = User.find(params[:id])
+    respond_with @user
+  end
+end
+```
+
+Instance-level `respond_to` is unaffected and does not require the additional gem:
+
+```ruby
+# app/controllers/users_controller.rb
+
+class UsersController < ApplicationController
+  def show
+    @user = User.find(params[:id])
+    respond_to do |format|
+      format.html
+      format.json { render json: @user }
+    end
+  end
+end
+```
+
+See [#16526](https://github.com/rails/rails/pull/16526) for more details.
 
 ### Error handling in transaction callbacks
 
@@ -75,7 +111,7 @@ Record callbacks.
 
 When you define a `after_rollback` or `after_commit` callback, you
 will receive a deprecation warning about this upcoming change. When
-you are ready, you can opt into the new behvaior and remove the
+you are ready, you can opt into the new behavior and remove the
 deprecation warning by adding following configuration to your
 `config/application.rb`:
 
@@ -150,15 +186,6 @@ venerable html-scanner approach is now officially being deprecated in favor of
 This means the methods `sanitize`, `sanitize_css`, `strip_tags` and
 `strip_links` are backed by a new implementation.
 
-In the next major Rails version `Rails Html Sanitizer` will be the default
-sanitizer. It already is for new applications.
-
-Include this in your Gemfile to try it out today:
-
-```ruby
-gem 'rails-html-sanitizer'
-```
-
 This new sanitizer uses [Loofah](https://github.com/flavorjones/loofah) internally. Loofah in turn uses Nokogiri, which
 wraps XML parsers written in both C and Java, so sanitization should be faster
 no matter which Ruby version you run.
@@ -172,6 +199,12 @@ Read the [gem's readme](https://github.com/rails/rails-html-sanitizer) for more 
 
 The documentation for `PermitScrubber` and `TargetScrubber` explains how you
 can gain complete control over when and how elements should be stripped.
+
+If your application needs to old behaviour include `rails-deprecated_sanitizer` in your Gemfile:
+
+```ruby
+gem 'rails-deprecated_sanitizer'
+```
 
 ### Rails DOM Testing
 

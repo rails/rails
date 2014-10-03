@@ -55,6 +55,7 @@ end
 
       t.warning = true
       t.verbose = true
+      t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
     }
 
     namespace :isolated do

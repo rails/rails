@@ -1,28 +1,22 @@
 module ActiveJob
   module QueueAdapters
+    # == Test adapter for Active Job
+    #
+    # The test adapter should be used only in testing. Along with
+    # <tt>ActiveJob::TestCase</tt> and <tt>ActiveJob::TestHelper</tt>
+    # it makes a great tool to test your Rails application.
+    #
+    # To use the test adapter set queue_adapter config to +:test+.
+    #
+    #   Rails.application.config.active_job.queue_adapter = :test
     class TestAdapter
-      attr_accessor(:perform_enqueued_jobs) { false }
-      attr_accessor(:perform_enqueued_at_jobs) { false }
       delegate :name, to: :class
+      attr_accessor(:perform_enqueued_jobs, :perform_enqueued_at_jobs)
+      attr_writer(:enqueued_jobs, :performed_jobs)
 
       # Provides a store of all the enqueued jobs with the TestAdapter so you can check them.
       def enqueued_jobs
         @enqueued_jobs ||= []
-      end
-
-      # Allows you to overwrite the default enqueued jobs store from an array to some
-      # other object.  If you just want to clear the store,
-      # call ActiveJob::QueueAdapters::TestAdapter.enqueued_jobs.clear.
-      #
-      # If you place another object here, please make sure it responds to:
-      #
-      # * << (message)
-      # * clear
-      # * length
-      # * size
-      # * and other common Array methods
-      def enqueued_jobs=(val)
-        @enqueued_jobs = val
       end
 
       # Provides a store of all the performed jobs with the TestAdapter so you can check them.
@@ -30,23 +24,8 @@ module ActiveJob
         @performed_jobs ||= []
       end
 
-      # Allows you to overwrite the default performed jobs store from an array to some
-      # other object.  If you just want to clear the store,
-      # call ActiveJob::QueueAdapters::TestAdapter.performed_jobs.clear.
-      #
-      # If you place another object here, please make sure it responds to:
-      #
-      # * << (message)
-      # * clear
-      # * length
-      # * size
-      # * and other common Array methods
-      def performed_jobs=(val)
-        @performed_jobs = val
-      end
-
-      def enqueue(job)
-        if perform_enqueued_jobs?
+      def enqueue(job) #:nodoc:
+        if perform_enqueued_jobs
           performed_jobs << {job: job.class, args: job.arguments, queue: job.queue_name}
           job.perform_now
         else
@@ -54,23 +33,14 @@ module ActiveJob
         end
       end
 
-      def enqueue_at(job, timestamp)
-        if perform_enqueued_at_jobs?
+      def enqueue_at(job, timestamp) #:nodoc:
+        if perform_enqueued_at_jobs
           performed_jobs << {job: job.class, args: job.arguments, queue: job.queue_name, at: timestamp}
           job.perform_now
         else
           enqueued_jobs << {job: job.class, args: job.arguments, queue: job.queue_name, at: timestamp}
         end
       end
-
-      private
-        def perform_enqueued_jobs?
-          perform_enqueued_jobs
-        end
-
-        def perform_enqueued_at_jobs?
-          perform_enqueued_at_jobs
-        end
     end
   end
 end

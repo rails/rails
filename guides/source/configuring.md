@@ -62,7 +62,7 @@ These configuration methods are to be called on a `Rails::Railtie` object, such 
 
 * `config.autoload_paths` accepts an array of paths from which Rails will autoload constants. Default is all directories under `app`.
 
-* `config.cache_classes` controls whether or not application classes and modules should be reloaded on each request. Defaults to false in development mode, and true in test and production modes. Can also be enabled with `threadsafe!`.
+* `config.cache_classes` controls whether or not application classes and modules should be reloaded on each request. Defaults to false in development mode, and true in test and production modes.
 
 * `config.action_view.cache_template_loading` controls whether or not templates should be reloaded on each request. Defaults to whatever is set for `config.cache_classes`.
 
@@ -86,7 +86,7 @@ application. Accepts a valid week day symbol (e.g. `:monday`).
     end
     ```
 
-* `config.dependency_loading` is a flag that allows you to disable constant autoloading setting it to false. It only has effect if `config.cache_classes` is true, which it is by default in production mode. This flag is set to false by `config.threadsafe!`.
+* `config.dependency_loading` is a flag that allows you to disable constant autoloading setting it to false. It only has effect if `config.cache_classes` is true, which it is by default in production mode.
 
 * `config.eager_load` when true, eager loads all registered `config.eager_load_namespaces`. This includes your application, engines, Rails frameworks and any other registered namespace.
 
@@ -108,7 +108,7 @@ numbers. New applications filter out passwords by adding the following `config.f
 
 * `config.log_formatter` defines the formatter of the Rails logger. This option defaults to an instance of `ActiveSupport::Logger::SimpleFormatter` for all modes except production, where it defaults to `Logger::Formatter`.
 
-* `config.log_level` defines the verbosity of the Rails logger. This option defaults to `:debug` for all modes except production, where it defaults to `:info`.
+* `config.log_level` defines the verbosity of the Rails logger. This option defaults to `:debug` for all environments.
 
 * `config.log_tags` accepts a list of methods that the `request` object responds to. This makes it easy to tag log lines with debug information like subdomain and request id - both very helpful in debugging multi-user production applications.
 
@@ -363,6 +363,29 @@ encrypted cookies salt value. Defaults to `'signed encrypted cookie'`.
 * `config.action_dispatch.perform_deep_munge` configures whether `deep_munge`
   method should be performed on the parameters. See [Security Guide](security.html#unsafe-query-generation)
   for more information. It defaults to true.
+
+* `config.action_dispatch.rescue_responses` configures what exceptions are assigned to an HTTP status. It accepts a hash and you can specify pairs of exception/status. By default, this is defined as:
+
+  ```ruby
+  config.action_dispatch.rescue_responses = {
+    'ActionController::RoutingError'             => :not_found,
+    'AbstractController::ActionNotFound'         => :not_found,
+    'ActionController::MethodNotAllowed'         => :method_not_allowed,
+    'ActionController::UnknownHttpMethod'        => :method_not_allowed,
+    'ActionController::NotImplemented'           => :not_implemented,
+    'ActionController::UnknownFormat'            => :not_acceptable,
+    'ActionController::InvalidAuthenticityToken' => :unprocessable_entity,
+    'ActionDispatch::ParamsParser::ParseError'   => :bad_request,
+    'ActionController::BadRequest'               => :bad_request,
+    'ActionController::ParameterMissing'         => :bad_request,
+    'ActiveRecord::RecordNotFound'               => :not_found,
+    'ActiveRecord::StaleObjectError'             => :conflict,
+    'ActiveRecord::RecordInvalid'                => :unprocessable_entity,
+    'ActiveRecord::RecordNotSaved'               => :unprocessable_entity
+  }
+  ```
+
+  Any exceptions that are not configured will be mapped to 500 Internal Server Error.
 
 * `ActionDispatch::Callbacks.before` takes a block of code to run before the request.
 

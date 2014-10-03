@@ -99,46 +99,18 @@ If no adapter is set, the job is immediately executed.
 
 ### Backends
 
-Active Job has adapters for the following queueing backends:
+Active Job has built-in adapters for multiple queueing backends (Sidekiq,
+Resque, Delayed Job and others). To get an up-to-date list of the adapters
+see the API Documentation for [ActiveJob::QueueAdapters](http://api.rubyonrails.org/classes/ActiveJob/QueueAdapters.html).
 
-* [Backburner](https://github.com/nesquena/backburner)
-* [Delayed Job](https://github.com/collectiveidea/delayed_job)
-* [Qu](https://github.com/bkeepers/qu)
-* [Que](https://github.com/chanks/que)
-* [QueueClassic 2.x](https://github.com/ryandotsmith/queue_classic/tree/v2.2.3)
-* [Resque 1.x](https://github.com/resque/resque/tree/1-x-stable)
-* [Sidekiq](https://github.com/mperham/sidekiq)
-* [Sneakers](https://github.com/jondot/sneakers)
-* [Sucker Punch](https://github.com/brandonhilkert/sucker_punch)
+### Changing the Backend
 
-#### Backends Features
-
-|                       | Async | Queues | Delayed   | Priorities | Timeout | Retries |
-|-----------------------|-------|--------|-----------|------------|---------|---------|
-| **Backburner**        | Yes   | Yes    | Yes       | Yes        | Job     | Global  |
-| **Delayed Job**       | Yes   | Yes    | Yes       | Job        | Global  | Global  |
-| **Que**               | Yes   | Yes    | Yes       | Job        | No      | Job     |
-| **Queue Classic**     | Yes   | Yes    | No*       | No         | No      | No      |
-| **Resque**            | Yes   | Yes    | Yes (Gem) | Queue      | Global  | Yes     |
-| **Sidekiq**           | Yes   | Yes    | Yes       | Queue      | No      | Job     |
-| **Sneakers**          | Yes   | Yes    | No        | Queue      | Queue   | No      |
-| **Sucker Punch**      | Yes   | Yes    | No        | No         | No      | No      |
-| **Active Job Inline** | No    | Yes    | N/A       | N/A        | N/A     | N/A     |
-| **Active Job**        | Yes   | Yes    | Yes       | No         | No      | No      |
-
-NOTE:
-* Queue Classic does not support Job scheduling. However you can implement this
-yourself or you can use the queue_classic-later gem. See the documentation for
-ActiveJob::QueueAdapters::QueueClassicAdapter.
-
-### Change Backends
-
-You can easily change your adapter:
+You can easily change your queueing backend:
 
 ```ruby
 # be sure to have the adapter gem in your Gemfile and follow the adapter specific
 # installation and deployment instructions
-YourApp::Application.config.active_job.queue_adapter = :sidekiq
+Rails.application.config.active_job.queue_adapter = :sidekiq
 ```
 
 

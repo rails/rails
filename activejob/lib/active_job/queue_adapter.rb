@@ -2,12 +2,15 @@ require 'active_job/queue_adapters/inline_adapter'
 require 'active_support/core_ext/string/inflections'
 
 module ActiveJob
-  module QueueAdapter
+  module QueueAdapter #:nodoc:
     extend ActiveSupport::Concern
 
     module ClassMethods
       mattr_reader(:queue_adapter) { ActiveJob::QueueAdapters::InlineAdapter }
 
+      # Specify the backend queue provider. The default queue adapter
+      # is the :inline queue. See QueueAdapters for more
+      # information.
       def queue_adapter=(name_or_adapter)
         @@queue_adapter = \
           case name_or_adapter

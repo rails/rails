@@ -24,7 +24,7 @@ module Rails
           opts.on("-p", "--port=port", Integer,
                   "Runs Rails on the specified port.", "Default: 3000") { |v| options[:Port] = v }
           opts.on("-b", "--binding=IP", String,
-                  "Binds Rails to the specified IP.", "Default: 0.0.0.0") { |v| options[:Host] = v }
+                  "Binds Rails to the specified IP.", "Default: localhost") { |v| options[:Host] = v }
           opts.on("-c", "--config=file", String,
                   "Uses a custom rackup configuration.") { |v| options[:config] = v }
           opts.on("-d", "--daemon", "Runs server as a Daemon.") { options[:daemonize] = true }
@@ -125,10 +125,6 @@ module Rails
         puts "=> Booting #{ActiveSupport::Inflector.demodulize(server)}"
         puts "=> Rails #{Rails.version} application starting in #{Rails.env} on #{url}"
         puts "=> Run `rails server -h` for more startup options"
-
-        if options[:Host].to_s.match(/0\.0\.0\.0/)
-          puts "=> Notice: server is listening on all interfaces (#{options[:Host]}). Consider using 127.0.0.1 (--binding option)"
-        end
 
         puts "=> Ctrl-C to shutdown server" unless options[:daemonize]
       end

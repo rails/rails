@@ -17,13 +17,15 @@ module ResqueJobsManager
 
   def start_workers
     @resque_thread = Thread.new do
-      Resque::Worker.new("integration_tests").work(0.5)
+      w = Resque::Worker.new("integration_tests")
+      w.term_child = true
+      w.work(0.5)
     end
     @scheduler_thread = Thread.new do
       Resque::Scheduler.configure do |c|
         c.poll_sleep_amount = 0.5
         c.dynamic = true
-        c.verbose = true
+        c.quiet = true
         c.logfile = nil
       end
       Resque::Scheduler.master_lock.release!

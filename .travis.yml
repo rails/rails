@@ -12,7 +12,7 @@ rvm:
   - jruby
 env:
   global:
-    - JRUBY_OPTS='-J-XX:+TieredCompilation -J-XX:TieredStopAtLevel=1 -J-Djruby.compile.mode=OFF -J-Djruby.compile.invokedynamic=false -J-Xmx1024M'
+    - JRUBY_OPTS='-J-Xmx1024M'
   matrix:
     - "GEM=railties"
     - "GEM=ap"
@@ -28,9 +28,10 @@ matrix:
       env: "GEM=ar:mysql"
     - rvm: 2.0.0
       env: "GEM=ar:mysql"
+    - rvm: ruby-head
+      env: "GEM=ar:mysql"
     - rvm: rbx-2
     - rvm: jruby
-    - rvm: ruby-head
   fast_finish: true
 notifications:
   email: false

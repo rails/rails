@@ -3,7 +3,7 @@ require 'active_support/tagged_logging'
 require 'active_support/logger'
 
 module ActiveJob
-  module Logging
+  module Logging #:nodoc:
     extend ActiveSupport::Concern
 
     included do
@@ -50,7 +50,7 @@ module ActiveJob
         logger.formatter.current_tags.include?("ActiveJob")
       end
 
-    class LogSubscriber < ActiveSupport::LogSubscriber
+    class LogSubscriber < ActiveSupport::LogSubscriber #:nodoc:
       def enqueue(event)
         info do
           job = event.payload[:job]

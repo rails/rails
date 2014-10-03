@@ -37,7 +37,8 @@ module ActiveRecord
     #   Post.find_by_sql ["SELECT body FROM comments WHERE author = :user_id OR approved_by = :user_id", { :user_id => user_id }]
     def find_by_sql(sql, binds = [])
       result_set = connection.select_all(sanitize_sql(sql), "#{name} Load", binds)
-      column_types = result_set.column_types.except(*columns_hash.keys)
+      column_types = result_set.column_types.dup
+      columns_hash.each_key { |k| column_types.delete k }
       result_set.map { |record| instantiate(record, column_types) }
     end
 

@@ -545,7 +545,7 @@ These are the main changes in Active Support:
 * `String#to_time` and `String#to_datetime` handle fractional seconds.
 * Added support to new callbacks for around filter object that respond to `:before` and `:after` used in before and after callbacks.
 * The `ActiveSupport::OrderedHash#to_a` method returns an ordered set of arrays. Matches Ruby 1.9's `Hash#to_a`.
-* `MissingSourceFile` exists as a constant but it is now just equals to `LoadError`.
+* `MissingSourceFile` exists as a constant but it is now just equal to `LoadError`.
 * Added `Class#class_attribute`, to be able to declare a class-level attribute whose value is inheritable and overwritable by subclasses.
 * Finally removed `DeprecatedCallbacks` in `ActiveRecord::Associations`.
 * `Object#metaclass` is now `Kernel#singleton_class` to match Ruby.

@@ -67,7 +67,7 @@ module ActiveModel
       end
 
       def parse_raw_value_as_an_integer(raw_value)
-        raw_value.to_i if raw_value.to_s =~ /\A[+-]?\d+\Z/
+        raw_value.to_i if raw_value.to_s =~ /\A[+-]?\d+\z/
       end
 
       def filtered_options(value)

@@ -282,6 +282,15 @@ class PolymorphicRoutesTest < ActionController::TestCase
     end
   end
 
+  def test_regression_path_helper_prefixed_with_new_and_edit
+    with_test_routes do
+      assert_equal "/projects/new", new_polymorphic_path(@project)
+
+      @project.save
+      assert_equal "/projects/#{@project.id}/edit", edit_polymorphic_path(@project)
+    end
+  end
+
   def test_url_helper_prefixed_with_edit
     with_test_routes do
       @project.save

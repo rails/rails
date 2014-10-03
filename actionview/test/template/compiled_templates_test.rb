@@ -5,6 +5,10 @@ class CompiledTemplatesTest < ActiveSupport::TestCase
     ActionView::LookupContext::DetailsKey.clear
   end
 
+  def test_template_with_nil_erb_return
+    assert_equal "This is nil: \n", render(:template => "test/nil_return")
+  end
+
   def test_template_gets_recompiled_when_using_different_keys_in_local_assigns
     assert_equal "one", render(:file => "test/render_file_with_locals_and_default")
     assert_equal "two", render(:file => "test/render_file_with_locals_and_default", :locals => { :secret => "two" })

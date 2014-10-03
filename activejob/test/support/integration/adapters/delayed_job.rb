@@ -10,7 +10,7 @@ module DelayedJobJobsManager
   end
 
   def start_workers
-    @worker = Delayed::Worker.new(quiet: false, sleep_delay: 0.5, queues: %w(integration_tests))
+    @worker = Delayed::Worker.new(quiet: true, sleep_delay: 0.5, queues: %w(integration_tests))
     @thread = Thread.new { @worker.start }
   end
 

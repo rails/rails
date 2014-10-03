@@ -13,7 +13,7 @@ module ActiveJob
       # Job Identifier
       attr_accessor :job_id
 
-      # Queue on which the job should be run on.
+      # Queue in which the job will reside.
       attr_writer :queue_name
     end
 
@@ -40,9 +40,9 @@ module ActiveJob
       #
       #    VideoJob.set(queue: :some_queue).perform_later(Video.last)
       #    VideoJob.set(wait: 5.minutes).perform_later(Video.last)
-      #    VideoJob.set(wait_until: Time.tomorroe).perform_later(Video.last)
+      #    VideoJob.set(wait_until: Time.now.tomorrow).perform_later(Video.last)
       #    VideoJob.set(queue: :some_queue, wait: 5.minutes).perform_later(Video.last)
-      #    VideoJob.set(queue: :some_queue, wait_until: Time.tomorroe).perform_later(Video.last)
+      #    VideoJob.set(queue: :some_queue, wait_until: Time.now.tomorrow).perform_later(Video.last)
       def set(options={})
         ConfiguredJob.new(self, options)
       end
