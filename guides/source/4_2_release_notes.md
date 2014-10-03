@@ -79,7 +79,7 @@ post.comments(true)  # uses cached pattern
 The caching is not used in the following scenarios:
 
 - The model has a default scope
-- The model uses single table inheritence to inherit from another model
+- The model uses single table inheritance to inherit from another model
 - `find` with a list of ids. eg:
 
   ```ruby
