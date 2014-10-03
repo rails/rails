@@ -368,24 +368,24 @@ encrypted cookies salt value. Defaults to `'signed encrypted cookie'`.
 
   ```ruby
   config.action_dispatch.rescue_responses = {
-     'ActionController::RoutingError'             => :not_found,
-     'AbstractController::ActionNotFound'         => :not_found,
-     'ActionController::MethodNotAllowed'         => :method_not_allowed,
-     'ActionController::UnknownHttpMethod'        => :method_not_allowed,
-     'ActionController::NotImplemented'           => :not_implemented,
-     'ActionController::UnknownFormat'            => :not_acceptable,
-     'ActionController::InvalidAuthenticityToken' => :unprocessable_entity,
-     'ActionDispatch::ParamsParser::ParseError'   => :bad_request,
-     'ActionController::BadRequest'               => :bad_request,
-     'ActionController::ParameterMissing'         => :bad_request,
-     'ActiveRecord::RecordNotFound'               => :not_found,
-     'ActiveRecord::StaleObjectError'             => :conflict,
-     'ActiveRecord::RecordInvalid'                => :unprocessable_entity,
-     'ActiveRecord::RecordNotSaved'               => :unprocessable_entity
+    'ActionController::RoutingError'             => :not_found,
+    'AbstractController::ActionNotFound'         => :not_found,
+    'ActionController::MethodNotAllowed'         => :method_not_allowed,
+    'ActionController::UnknownHttpMethod'        => :method_not_allowed,
+    'ActionController::NotImplemented'           => :not_implemented,
+    'ActionController::UnknownFormat'            => :not_acceptable,
+    'ActionController::InvalidAuthenticityToken' => :unprocessable_entity,
+    'ActionDispatch::ParamsParser::ParseError'   => :bad_request,
+    'ActionController::BadRequest'               => :bad_request,
+    'ActionController::ParameterMissing'         => :bad_request,
+    'ActiveRecord::RecordNotFound'               => :not_found,
+    'ActiveRecord::StaleObjectError'             => :conflict,
+    'ActiveRecord::RecordInvalid'                => :unprocessable_entity,
+    'ActiveRecord::RecordNotSaved'               => :unprocessable_entity
   }
   ```
 
-  Any execptions that are not configured will be assigned to 500 Internal server error.
+  Any exceptions that are not configured will be mapped to 500 Internal Server Error.
 
 * `ActionDispatch::Callbacks.before` takes a block of code to run before the request.
 
