@@ -721,7 +721,7 @@ module ActiveSupport
       #   would call <tt>Audit#save</tt>.
       #
       # NOTE: +method_name+ passed to `define_model_callbacks` must not end with
-      # `!`, `?` and `=`.
+      # `!`, `?` or `=`.
       def define_callbacks(*names)
         options = names.extract_options!
 
