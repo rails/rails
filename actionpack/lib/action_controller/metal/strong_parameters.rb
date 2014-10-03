@@ -216,9 +216,10 @@ module ActionController
       self
     end
 
-    # Ensures that a parameter is present. If it's present, returns
-    # the parameter at the given +key+, otherwise raises an
-    # <tt>ActionController::ParameterMissing</tt> error.
+    # Ensures that a parameter or list of parameters are present.
+    # If all are present, returns the parameter at the last +key+,
+    # otherwise raises an <tt>ActionController::ParameterMissing</tt>
+    # error on the first parameter to not be present.
     #
     #   ActionController::Parameters.new(person: { name: 'Francesco' }).require(:person)
     #   # => {"name"=>"Francesco"}
@@ -228,13 +229,22 @@ module ActionController
     #
     #   ActionController::Parameters.new(person: {}).require(:person)
     #   # => ActionController::ParameterMissing: param not found: person
-    def require(key)
-      value = self[key]
-      if value.present? || value == false
-        value
-      else
-        raise ParameterMissing.new(key)
-      end
+    #
+    #   ActionController::Parameters.new.require(:id, :person)
+    #   # => ActionController::ParameterMissing: param not found: id
+    #
+    #   ActionController::Parameters.new(id: 1, person: { name: 'Francesco' }).require(:id, :person)
+    #   # => {"name"=>"Francesco"}
+    def require(*keys)
+      keys.map do |key|
+        value = self[key]
+
+        if value.present? || value == false
+          value
+        else
+          raise ParameterMissing.new(key)
+        end
+      end.last
     end
 
     # Alias of #require.
