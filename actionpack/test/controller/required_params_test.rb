@@ -5,6 +5,11 @@ class BooksController < ActionController::Base
     params.require(:book).require(:name)
     head :ok
   end
+
+  def update
+    params.require(:id, :book).require(:name)
+    head :ok
+  end
 end
 
 class ActionControllerRequiredParamsTest < ActionController::TestCase
@@ -18,6 +23,10 @@ class ActionControllerRequiredParamsTest < ActionController::TestCase
     assert_raise ActionController::ParameterMissing do
       post :create, { book: { title: "Mjallo!" } }
     end
+
+    assert_raise ActionController::ParameterMissing, "param not found: id" do
+      patch :update, { magazine: { name: "Mjallo!" } }
+    end
   end
 
   test "required parameters that are present will not raise" do
@@ -29,6 +38,7 @@ class ActionControllerRequiredParamsTest < ActionController::TestCase
     post :create, { book: { name: false } }
     assert_response :ok
   end
+
 end
 
 class ParametersRequireTest < ActiveSupport::TestCase
@@ -47,5 +57,9 @@ class ParametersRequireTest < ActiveSupport::TestCase
     assert_raises(ActionController::ParameterMissing) do
       ActionController::Parameters.new(person: {}).require(:person)
     end
+  end
+
+  test "required parameters should return the value of the last key passed" do
+    assert_equal(false, ActionController::Parameters.new(person: false, id: 1).require(:id, :person))
   end
 end
