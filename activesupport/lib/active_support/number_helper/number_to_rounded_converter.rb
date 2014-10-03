@@ -4,50 +4,66 @@ module ActiveSupport
       self.namespace      = :precision
       self.validate_float = true
 
+      attr_reader :rounded_number
+      attr_accessor :significant
+      attr_reader :number_precision
+
       def convert
-        precision = options.delete :precision
-        significant = options.delete :significant
-
-        case number
-        when Float, String
-          @number = BigDecimal(number.to_s)
-        when Rational
-          @number = BigDecimal(number, digit_count(number.to_i) + precision)
-        else
-          @number = number.to_d
-        end
-
-        if significant && precision > 0
-          digits, rounded_number = digits_and_rounded_number(precision)
-          precision -= digits
-          precision = 0 if precision < 0 # don't let it be negative
-        else
-          rounded_number = number.round(precision)
-          rounded_number = rounded_number.to_i if precision == 0
-          rounded_number = rounded_number.abs if rounded_number.zero? # prevent showing negative zeros
-        end
-
-        formatted_string =
-          if BigDecimal === rounded_number && rounded_number.finite?
-            s = rounded_number.to_s('F') + '0'*precision
-            a, b = s.split('.', 2)
-            a + '.' + b[0, precision]
-          else
-            "%00.#{precision}f" % rounded_number
-          end
-
-        delimited_number = NumberToDelimitedConverter.convert(formatted_string, options)
-        format_number(delimited_number)
+        @number = build_number(number)
+        @rounded_number = get_rounded_number        
+        format_number(NumberToDelimitedConverter.convert(formatted_string, options))
       end
 
-      private
+      def number_precision
+        @number_precision ||= options.delete :precision
+      end
 
-        def digits_and_rounded_number(precision)
+      private        
+
+        def significant
+          @significant ||= options.delete :significant
+        end
+   
+        def build_number(number)
+          case number
+          when Float, String
+            BigDecimal(number.to_s)
+          when Rational
+            BigDecimal(number, digit_count(number.to_i) + number_precision)
+          else
+            number.to_d
+          end
+        end
+        
+        def get_rounded_number
+          if significant && number_precision > 0
+            digits, rounded_number = digits_and_rounded_number(number_precision)
+            @number_precision= number_precision - digits
+            @number_precision= 0 if number_precision < 0 # don't let it be negative
+          else
+            rounded_number = number.round(number_precision)
+            rounded_number = rounded_number.to_i if number_precision == 0
+            rounded_number = rounded_number.abs if rounded_number.zero? # prevent showing negative zeros
+          end
+          return rounded_number
+        end
+
+        def formatted_string
+          if BigDecimal === rounded_number && rounded_number.finite?
+            s = rounded_number.to_s('F') + '0'*number_precision
+            a, b = s.split('.', 2)
+            a + '.' + b[0, number_precision]
+          else
+            "%00.#{number_precision}f" % rounded_number
+          end
+        end
+
+        def digits_and_rounded_number(number_precision)
           if zero?
             [1, 0]
           else
             digits = digit_count(number)
-            multiplier = 10 ** (digits - precision)
+            multiplier = 10 ** (digits - number_precision)
             rounded_number = calculate_rounded_number(multiplier)
             digits = digit_count(rounded_number) # After rounding, the number of digits may have changed
             [digits, rounded_number]
