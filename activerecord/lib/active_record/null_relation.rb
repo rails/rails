@@ -62,15 +62,11 @@ module ActiveRecord
       calculate :maximum, nil
     end
 
-    def calculate(operation, _column_name, _options = {})
-      # TODO: Remove _options argument as soon we remove support to
-      # activerecord-deprecated_finders.
+    def calculate(operation, _column_name)
       if [:count, :sum, :size].include? operation
         group_values.any? ? Hash.new : 0
       elsif [:average, :minimum, :maximum].include?(operation) && group_values.any?
         Hash.new
-      else
-        nil
       end
     end
 
