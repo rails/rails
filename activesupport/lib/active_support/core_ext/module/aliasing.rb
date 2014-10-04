@@ -19,9 +19,9 @@ class Module
   #   alias_method :foo_without_feature?, :foo?
   #   alias_method :foo?, :foo_with_feature?
   #
-  # so you can safely chain foo, foo?, and foo! with the same feature.
+  # so you can safely chain foo, foo?, foo! and/or foo= with the same feature.
   def alias_method_chain(target, feature)
-    # Strip out punctuation on predicates or bang methods since
+    # Strip out punctuation on predicates, bang or writer methods since
     # e.g. target?_without_feature is not a valid method name.
     aliased_target, punctuation = target.to_s.sub(/([?!=])$/, ''), $1
     yield(aliased_target, punctuation) if block_given?
