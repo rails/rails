@@ -99,8 +99,9 @@ module ActiveSupport
     end
 
     def to_tag(key, value, options)
-      type_name = options.delete(:type)
-      merged_options = options.merge(:root => key, :skip_instruct => true)
+      merged_options = options
+      merged_options[:root] = key
+      merged_options[:skip_instruct] = true
 
       if value.is_a?(::Method) || value.is_a?(::Proc)
         if value.arity == 1
@@ -111,6 +112,7 @@ module ActiveSupport
       elsif value.respond_to?(:to_xml)
         value.to_xml(merged_options)
       else
+        type_name = options[:type]
         type_name ||= TYPE_NAMES[value.class.name]
         type_name ||= value.class.name if value && !value.respond_to?(:to_str)
         type_name   = type_name.to_s   if type_name
