@@ -47,6 +47,9 @@ Rails.application.configure do
   # when problems arise.
   config.log_level = :debug
 
+  # Enforces that all of the following environment variables are defined before server start
+  # config.required_env_vars = ['API_KEY', 'OTHER_API_KEY']
+
   # Prepend all log lines with the following tags.
   # config.log_tags = [ :subdomain, :uuid ]
 

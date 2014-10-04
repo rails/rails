@@ -1,3 +1,14 @@
+*   Added the config option required_env_vars. This option allows the developer
+    to specify a series of environment variables that must be defined at
+    started (otherwise an exception is thrown).
+
+    See #17175.
+
+        # e.g.
+        config.required_env_vars = ['api_key', 'other_third_party_api_key']
+
+    *Jim Jones*, *Abdelkader Boudih*
+
 *   Add the `method_source` gem to the default Gemfile for apps
 
     *Sean Griffin*

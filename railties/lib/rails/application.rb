@@ -351,6 +351,7 @@ module Rails
       raise "Application has been already initialized." if @initialized
       run_initializers(group, self)
       @initialized = true
+      validate_environment_vars!
       self
     end
 
@@ -524,6 +525,21 @@ module Rails
         if secrets.secret_token.blank?
           raise "Missing `secret_token` and `secret_key_base` for '#{Rails.env}' environment, set these values in `config/secrets.yml`"
         end
+      end
+    end
+
+    def validate_environment_vars!
+      required_vars = Array(config.required_env_vars)
+
+      if required_vars.any?
+        missing_env_vars = Set.new
+
+        required_vars.each do |key|
+          key = key.to_s
+          missing_env_vars << key if ENV[key].blank?
+        end
+
+        raise "Must define the environment variable(s) #{missing_env_vars.to_a.join(', ')}" if missing_env_vars.any?
       end
     end
   end

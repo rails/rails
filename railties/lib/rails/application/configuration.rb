@@ -10,7 +10,7 @@ module Rails
                     :cache_classes, :cache_store, :consider_all_requests_local, :console,
                     :eager_load, :exceptions_app, :file_watcher, :filter_parameters,
                     :force_ssl, :helpers_paths, :logger, :log_formatter, :log_tags,
-                    :railties_order, :relative_url_root, :secret_key_base, :secret_token,
+                    :railties_order, :relative_url_root, :required_env_vars, :secret_key_base, :secret_token,
                     :serve_static_files, :ssl_options, :static_cache_control, :session_options,
                     :time_zone, :reload_classes_only_on_change,
                     :beginning_of_week, :filter_redirect, :x
@@ -41,6 +41,7 @@ module Rails
         @railties_order                = [:all]
         @relative_url_root             = ENV["RAILS_RELATIVE_URL_ROOT"]
         @reload_classes_only_on_change = true
+        @required_env_vars             = Set.new
         @file_watcher                  = ActiveSupport::FileUpdateChecker
         @exceptions_app                = nil
         @autoflush_log                 = true
