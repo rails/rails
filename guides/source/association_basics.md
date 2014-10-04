@@ -105,7 +105,7 @@ class CreateOrders < ActiveRecord::Migration
     end
 
     create_table :orders do |t|
-      t.belongs_to :customer
+      t.belongs_to :customer, index: true
       t.datetime :order_date
       t.timestamps
     end
@@ -136,7 +136,7 @@ class CreateSuppliers < ActiveRecord::Migration
     end
 
     create_table :accounts do |t|
-      t.belongs_to :supplier
+      t.belongs_to :supplier, index: true
       t.string :account_number
       t.timestamps
     end
@@ -169,7 +169,7 @@ class CreateCustomers < ActiveRecord::Migration
     end
 
     create_table :orders do |t|
-      t.belongs_to :customer
+      t.belongs_to :customer, index:true
       t.datetime :order_date
       t.timestamps
     end
@@ -216,8 +216,8 @@ class CreateAppointments < ActiveRecord::Migration
     end
 
     create_table :appointments do |t|
-      t.belongs_to :physician
-      t.belongs_to :patient
+      t.belongs_to :physician, index: true
+      t.belongs_to :patient, index: true
       t.datetime :appointment_date
       t.timestamps
     end
@@ -295,13 +295,13 @@ class CreateAccountHistories < ActiveRecord::Migration
     end
 
     create_table :accounts do |t|
-      t.belongs_to :supplier
+      t.belongs_to :supplier, index: true
       t.string :account_number
       t.timestamps
     end
 
     create_table :account_histories do |t|
-      t.belongs_to :account
+      t.belongs_to :account, index: true
       t.integer :credit_rating
       t.timestamps
     end
@@ -341,8 +341,8 @@ class CreateAssembliesAndParts < ActiveRecord::Migration
     end
 
     create_table :assemblies_parts, id: false do |t|
-      t.belongs_to :assembly
-      t.belongs_to :part
+      t.belongs_to :assembly, index: true
+      t.belongs_to :part, index: true
     end
   end
 end
@@ -379,6 +379,8 @@ class CreateSuppliers < ActiveRecord::Migration
       t.string  :account_number
       t.timestamps
     end
+
+    add_index :accounts, :supplier_id
   end
 end
 ```
@@ -455,6 +457,8 @@ class CreatePictures < ActiveRecord::Migration
       t.string  :imageable_type
       t.timestamps
     end
+
+    add_index :pictures, :imageable_id
   end
 end
 ```
@@ -466,7 +470,7 @@ class CreatePictures < ActiveRecord::Migration
   def change
     create_table :pictures do |t|
       t.string :name
-      t.references :imageable, polymorphic: true
+      t.references :imageable, polymorphic: true, index: true
       t.timestamps
     end
   end
@@ -496,7 +500,7 @@ In your migrations/schema, you will add a references column to the model itself.
 class CreateEmployees < ActiveRecord::Migration
   def change
     create_table :employees do |t|
-      t.references :manager
+      t.references :manager, index: true
       t.timestamps
     end
   end
@@ -561,6 +565,8 @@ class CreateOrders < ActiveRecord::Migration
       t.string   :order_number
       t.integer  :customer_id
     end
+
+    add_index :orders, :customer_id
   end
 end
 ```
@@ -571,7 +577,7 @@ If you create an association some time after you build the underlying model, you
 
 If you create a `has_and_belongs_to_many` association, you need to explicitly create the joining table. Unless the name of the join table is explicitly specified by using the `:join_table` option, Active Record creates the name by using the lexical order of the class names. So a join between customer and order models will give the default join table name of "customers_orders" because "c" outranks "o" in lexical ordering.
 
-WARNING: The precedence between model names is calculated using the `<` operator for `String`. This means that if the strings are of different lengths, and the strings are equal when compared up to the shortest length, then the longer string is considered of higher lexical precedence than the shorter one. For example, one would expect the tables "paper\_boxes" and "papers" to generate a join table name of "papers\_paper\_boxes" because of the length of the name "paper\_boxes", but it in fact generates a join table name of "paper\_boxes\_papers" (because the underscore '\_' is lexicographically _less_ than 's' in common encodings).
+WARNING: The precedence between model names is calculated using the `<` operator for `String`. This means that if the strings are of different lengths, and the strings are equal when compared up to the shortest length, then the longer string is considered of higher lexical precedence than the shorter one. For example, one would expect the tables "paper_boxes" and "papers" to generate a join table name of "papers_paper_boxes" because of the length of the name "paper_boxes", but it in fact generates a join table name of "paper_boxes_papers" (because the underscore '_' is lexicographically _less_ than 's' in common encodings).
 
 Whatever the name, you must manually generate the join table with an appropriate migration. For example, consider these associations:
 
@@ -594,6 +600,9 @@ class CreateAssembliesPartsJoinTable < ActiveRecord::Migration
       t.integer :assembly_id
       t.integer :part_id
     end
+
+    add_index :assemblies_parts, :assembly_id
+    add_index :assemblies_parts, :part_id
   end
 end
 ```
@@ -747,7 +756,7 @@ class Order < ActiveRecord::Base
 end
 ```
 
-Each instance of the order model will have these methods:
+Each instance of the `Order` model will have these methods:
 
 ```ruby
 customer
@@ -1131,7 +1140,7 @@ The `has_one` association supports these options:
 
 ##### `:as`
 
-Setting the `:as` option indicates that this is a polymorphic association. Polymorphic associations were discussed in detail <a href="#polymorphic-associations">earlier in this guide</a>.
+Setting the `:as` option indicates that this is a polymorphic association. Polymorphic associations were discussed in detail [earlier in this guide](#polymorphic-associations).
 
 ##### `:autosave`
 
@@ -1203,7 +1212,7 @@ The `:source_type` option specifies the source association type for a `has_one :
 
 ##### `:through`
 
-The `:through` option specifies a join model through which to perform the query. `has_one :through` associations were discussed in detail <a href="#the-has-one-through-association">earlier in this guide</a>.
+The `:through` option specifies a join model through which to perform the query. `has_one :through` associations were discussed in detail [earlier in this guide](#the-has-one-through-association).
 
 ##### `:validate`
 
@@ -1312,9 +1321,9 @@ When you declare a `has_many` association, the declaring class automatically gai
 * `collection<<(object, ...)`
 * `collection.delete(object, ...)`
 * `collection.destroy(object, ...)`
-* `collection=objects`
+* `collection=(objects)`
 * `collection_singular_ids`
-* `collection_singular_ids=ids`
+* `collection_singular_ids=(ids)`
 * `collection.clear`
 * `collection.empty?`
 * `collection.size`
@@ -1333,16 +1342,16 @@ class Customer < ActiveRecord::Base
 end
 ```
 
-Each instance of the customer model will have these methods:
+Each instance of the `Customer` model will have these methods:
 
 ```ruby
 orders(force_reload = false)
 orders<<(object, ...)
 orders.delete(object, ...)
 orders.destroy(object, ...)
-orders=objects
+orders=(objects)
 order_ids
-order_ids=ids
+order_ids=(ids)
 orders.clear
 orders.empty?
 orders.size
@@ -1390,7 +1399,7 @@ The `collection.destroy` method removes one or more objects from the collection 
 
 WARNING: Objects will _always_ be removed from the database, ignoring the `:dependent` option.
 
-##### `collection=objects`
+##### `collection=(objects)`
 
 The `collection=` method makes the collection contain only the supplied objects, by adding and deleting as appropriate.
 
@@ -1402,7 +1411,7 @@ The `collection_singular_ids` method returns an array of the ids of the objects 
 @order_ids = @customer.order_ids
 ```
 
-##### `collection_singular_ids=ids`
+##### `collection_singular_ids=(ids)`
 
 The `collection_singular_ids=` method makes the collection contain only the objects identified by the supplied primary key values, by adding and deleting as appropriate.
 
@@ -1497,7 +1506,7 @@ The `has_many` association supports these options:
 
 ##### `:as`
 
-Setting the `:as` option indicates that this is a polymorphic association, as discussed <a href="#polymorphic-associations">earlier in this guide</a>.
+Setting the `:as` option indicates that this is a polymorphic association, as discussed [earlier in this guide](#polymorphic-associations).
 
 ##### `:autosave`
 
@@ -1579,7 +1588,7 @@ The `:source_type` option specifies the source association type for a `has_many 
 
 ##### `:through`
 
-The `:through` option specifies a join model through which to perform the query. `has_many :through` associations provide a way to implement many-to-many relationships, as discussed <a href="#the-has-many-through-association">earlier in this guide</a>.
+The `:through` option specifies a join model through which to perform the query. `has_many :through` associations provide a way to implement many-to-many relationships, as discussed [earlier in this guide](#the-has-many-through-association).
 
 ##### `:validate`
 
@@ -1632,7 +1641,7 @@ If you use a hash-style `where` option, then record creation via this associatio
 
 ##### `extending`
 
-The `extending` method specifies a named module to extend the association proxy. Association extensions are discussed in detail <a href="#association-extensions">later in this guide</a>.
+The `extending` method specifies a named module to extend the association proxy. Association extensions are discussed in detail [later in this guide](#association-extensions).
 
 ##### `group`
 
@@ -1725,58 +1734,58 @@ mostly useful together with the `:through` option.
 ```ruby
 class Person < ActiveRecord::Base
   has_many :readings
-  has_many :posts, through: :readings
+  has_many :articles, through: :readings
 end
 
 person = Person.create(name: 'John')
-post   = Post.create(name: 'a1')
-person.posts << post
-person.posts << post
-person.posts.inspect # => [#<Post id: 5, name: "a1">, #<Post id: 5, name: "a1">]
-Reading.all.inspect  # => [#<Reading id: 12, person_id: 5, post_id: 5>, #<Reading id: 13, person_id: 5, post_id: 5>]
+article   = Article.create(name: 'a1')
+person.articles << article
+person.articles << article
+person.articles.inspect # => [#<Article id: 5, name: "a1">, #<Article id: 5, name: "a1">]
+Reading.all.inspect  # => [#<Reading id: 12, person_id: 5, article_id: 5>, #<Reading id: 13, person_id: 5, article_id: 5>]
 ```
 
-In the above case there are two readings and `person.posts` brings out both of
-them even though these records are pointing to the same post.
+In the above case there are two readings and `person.articles` brings out both of
+them even though these records are pointing to the same article.
 
 Now let's set `distinct`:
 
 ```ruby
 class Person
   has_many :readings
-  has_many :posts, -> { distinct }, through: :readings
+  has_many :articles, -> { distinct }, through: :readings
 end
 
 person = Person.create(name: 'Honda')
-post   = Post.create(name: 'a1')
-person.posts << post
-person.posts << post
-person.posts.inspect # => [#<Post id: 7, name: "a1">]
-Reading.all.inspect  # => [#<Reading id: 16, person_id: 7, post_id: 7>, #<Reading id: 17, person_id: 7, post_id: 7>]
+article   = Article.create(name: 'a1')
+person.articles << article
+person.articles << article
+person.articles.inspect # => [#<Article id: 7, name: "a1">]
+Reading.all.inspect  # => [#<Reading id: 16, person_id: 7, article_id: 7>, #<Reading id: 17, person_id: 7, article_id: 7>]
 ```
 
-In the above case there are still two readings. However `person.posts` shows
-only one post because the collection loads only unique records.
+In the above case there are still two readings. However `person.articles` shows
+only one article because the collection loads only unique records.
 
 If you want to make sure that, upon insertion, all of the records in the
 persisted association are distinct (so that you can be sure that when you
 inspect the association that you will never find duplicate records), you should
 add a unique index on the table itself. For example, if you have a table named
-`person_posts` and you want to make sure all the posts are unique, you could
+`person_articles` and you want to make sure all the articles are unique, you could
 add the following in a migration:
 
 ```ruby
-add_index :person_posts, :post, unique: true
+add_index :person_articles, :article, unique: true
 ```
 
 Note that checking for uniqueness using something like `include?` is subject
 to race conditions. Do not attempt to use `include?` to enforce distinctness
-in an association. For instance, using the post example from above, the
+in an association. For instance, using the article example from above, the
 following code would be racy because multiple users could be attempting this
 at the same time:
 
 ```ruby
-person.posts << post unless person.posts.include?(post)
+person.articles << article unless person.articles.include?(article)
 ```
 
 #### When are Objects Saved?
@@ -1801,9 +1810,9 @@ When you declare a `has_and_belongs_to_many` association, the declaring class au
 * `collection<<(object, ...)`
 * `collection.delete(object, ...)`
 * `collection.destroy(object, ...)`
-* `collection=objects`
+* `collection=(objects)`
 * `collection_singular_ids`
-* `collection_singular_ids=ids`
+* `collection_singular_ids=(ids)`
 * `collection.clear`
 * `collection.empty?`
 * `collection.size`
@@ -1822,16 +1831,16 @@ class Part < ActiveRecord::Base
 end
 ```
 
-Each instance of the part model will have these methods:
+Each instance of the `Part` model will have these methods:
 
 ```ruby
 assemblies(force_reload = false)
 assemblies<<(object, ...)
 assemblies.delete(object, ...)
 assemblies.destroy(object, ...)
-assemblies=objects
+assemblies=(objects)
 assembly_ids
-assembly_ids=ids
+assembly_ids=(ids)
 assemblies.clear
 assemblies.empty?
 assemblies.size
@@ -1886,7 +1895,7 @@ The `collection.destroy` method removes one or more objects from the collection 
 @part.assemblies.destroy(@assembly1)
 ```
 
-##### `collection=objects`
+##### `collection=(objects)`
 
 The `collection=` method makes the collection contain only the supplied objects, by adding and deleting as appropriate.
 
@@ -1898,7 +1907,7 @@ The `collection_singular_ids` method returns an array of the ids of the objects 
 @assembly_ids = @part.assembly_ids
 ```
 
-##### `collection_singular_ids=ids`
+##### `collection_singular_ids=(ids)`
 
 The `collection_singular_ids=` method makes the collection contain only the objects identified by the supplied primary key values, by adding and deleting as appropriate.
 
@@ -2082,7 +2091,7 @@ If you use a hash-style `where`, then record creation via this association will 
 
 ##### `extending`
 
-The `extending` method specifies a named module to extend the association proxy. Association extensions are discussed in detail <a href="#association-extensions">later in this guide</a>.
+The `extending` method specifies a named module to extend the association proxy. Association extensions are discussed in detail [later in this guide](#association-extensions).
 
 ##### `group`
 

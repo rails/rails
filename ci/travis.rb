@@ -21,7 +21,8 @@ class Build
     'amo'  => 'activemodel',
     'as'   => 'activesupport',
     'ar'   => 'activerecord',
-    'av'   => 'actionview'
+    'av'   => 'actionview',
+    'aj'   => 'activejob'
   }
 
   attr_reader :component, :options
@@ -47,14 +48,15 @@ class Build
     heading = [gem]
     heading << "with #{adapter}" if activerecord?
     heading << "in isolation" if isolated?
+    heading << "integration" if integration?
     heading.join(' ')
   end
 
   def tasks
     if activerecord?
-      ['mysql:rebuild_databases', "#{adapter}:#{'isolated_' if isolated?}test"]
+      ['db:mysql:rebuild', "#{adapter}:#{'isolated_' if isolated?}test"]
     else
-      ["test#{':isolated' if isolated?}"]
+      ["test", ('isolated' if isolated?), ('integration' if integration?)].compact.join(":")
     end
   end
 
@@ -71,6 +73,10 @@ class Build
 
   def isolated?
     options[:isolated]
+  end
+
+  def integration?
+    component.split(':').last == 'integration'
   end
 
   def gem
@@ -92,11 +98,18 @@ class Build
   end
 end
 
+if ENV['GEM']=='aj:integration'
+   ENV['QC_DATABASE_URL']  = 'postgres://postgres@localhost/active_jobs_qc_int_test'
+   ENV['QUE_DATABASE_URL'] = 'postgres://postgres@localhost/active_jobs_que_int_test'
+end
+
 results = {}
 
 ENV['GEM'].split(',').each do |gem|
   [false, true].each do |isolated|
+    next if ENV['TRAVIS_PULL_REQUEST'] && ENV['TRAVIS_PULL_REQUEST'] != 'false' && isolated
     next if gem == 'railties' && isolated
+    next if gem == 'aj:integration' && isolated
 
     build = Build.new(gem, :isolated => isolated)
     results[build.key] = build.run!

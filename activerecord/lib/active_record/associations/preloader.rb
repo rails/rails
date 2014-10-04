@@ -2,33 +2,42 @@ module ActiveRecord
   module Associations
     # Implements the details of eager loading of Active Record associations.
     #
-    # Note that 'eager loading' and 'preloading' are actually the same thing.
-    # However, there are two different eager loading strategies.
+    # Suppose that you have the following two Active Record models:
     #
-    # The first one is by using table joins. This was only strategy available
-    # prior to Rails 2.1. Suppose that you have an Author model with columns
-    # 'name' and 'age', and a Book model with columns 'name' and 'sales'. Using
-    # this strategy, Active Record would try to retrieve all data for an author
-    # and all of its books via a single query:
+    #   class Author < ActiveRecord::Base
+    #     # columns: name, age
+    #     has_many :books
+    #   end
     #
-    #   SELECT * FROM authors
-    #   LEFT OUTER JOIN books ON authors.id = books.author_id
-    #   WHERE authors.name = 'Ken Akamatsu'
+    #   class Book < ActiveRecord::Base
+    #     # columns: title, sales
+    #   end
     #
-    # However, this could result in many rows that contain redundant data. After
-    # having received the first row, we already have enough data to instantiate
-    # the Author object. In all subsequent rows, only the data for the joined
-    # 'books' table is useful; the joined 'authors' data is just redundant, and
-    # processing this redundant data takes memory and CPU time. The problem
-    # quickly becomes worse and worse as the level of eager loading increases
-    # (i.e. if Active Record is to eager load the associations' associations as
-    # well).
+    # When you load an author with all associated books Active Record will make
+    # multiple queries like this:
     #
-    # The second strategy is to use multiple database queries, one for each
-    # level of association. Since Rails 2.1, this is the default strategy. In
-    # situations where a table join is necessary (e.g. when the +:conditions+
-    # option references an association's column), it will fallback to the table
-    # join strategy.
+    #   Author.includes(:books).where(:name => ['bell hooks', 'Homer').to_a
+    #
+    #   => SELECT `authors`.* FROM `authors` WHERE `name` IN ('bell hooks', 'Homer')
+    #   => SELECT `books`.* FROM `books` WHERE `author_id` IN (2, 5)
+    #
+    # Active Record saves the ids of the records from the first query to use in
+    # the second. Depending on the number of associations involved there can be
+    # arbitrarily many SQL queries made.
+    #
+    # However, if there is a WHERE clause that spans across tables Active
+    # Record will fall back to a slightly more resource-intensive single query:
+    #
+    #   Author.includes(:books).where(books: {title: 'Illiad'}).to_a
+    #   => SELECT `authors`.`id` AS t0_r0, `authors`.`name` AS t0_r1, `authors`.`age` AS t0_r2,
+    #             `books`.`id`   AS t1_r0, `books`.`title`  AS t1_r1, `books`.`sales` AS t1_r2
+    #      FROM `authors`
+    #      LEFT OUTER JOIN `books` ON `authors`.`id` =  `books`.`author_id`
+    #      WHERE `books`.`title` = 'Illiad'
+    #
+    # This could result in many rows that contain redundant data and it performs poorly at scale
+    # and is therefore only used when necessary.
+    #
     class Preloader #:nodoc:
       extend ActiveSupport::Autoload
 
@@ -80,7 +89,7 @@ module ActiveRecord
       #   { author: :avatar }
       #   [ :books, { author: :avatar } ]
 
-      NULL_RELATION = Struct.new(:values).new({})
+      NULL_RELATION = Struct.new(:values, :bind_values).new({}, [])
 
       def preload(records, associations, preload_scope = nil)
         records       = Array.wrap(records).compact.uniq
@@ -112,13 +121,14 @@ module ActiveRecord
       end
 
       def preloaders_for_hash(association, records, scope)
-        parent, child = association.to_a.first # hash should only be of length 1
+        association.flat_map { |parent, child|
+          loaders = preloaders_for_one parent, records, scope
 
-        loaders = preloaders_for_one parent, records, scope
-
-        recs = loaders.flat_map(&:preloaded_records).uniq
-        loaders.concat Array.wrap(child).flat_map { |assoc|
-          preloaders_on assoc, recs, scope
+          recs = loaders.flat_map(&:preloaded_records).uniq
+          loaders.concat Array.wrap(child).flat_map { |assoc|
+            preloaders_on assoc, recs, scope
+          }
+          loaders
         }
       end
 
@@ -140,36 +150,14 @@ module ActiveRecord
       end
 
       def grouped_records(association, records)
-        reflection_records = records_by_reflection(association, records)
-
-        reflection_records.each_with_object({}) do |(reflection, r_records),h|
-          h[reflection] = r_records.group_by { |record|
-            association_klass(reflection, record)
-          }
+        h = {}
+        records.each do |record|
+          next unless record
+          assoc = record.association(association)
+          klasses = h[assoc.reflection] ||= {}
+          (klasses[assoc.klass] ||= []) << record
         end
-      end
-
-      def records_by_reflection(association, records)
-        records.group_by do |record|
-          reflection = record.class.reflect_on_association(association)
-
-          reflection || raise_config_error(record, association)
-        end
-      end
-
-      def raise_config_error(record, association)
-        raise ActiveRecord::ConfigurationError,
-              "Association named '#{association}' was not found on #{record.class.name}; " \
-              "perhaps you misspelled it?"
-      end
-
-      def association_klass(reflection, record)
-        if reflection.macro == :belongs_to && reflection.options[:polymorphic]
-          klass = record.read_attribute(reflection.foreign_type.to_s)
-          klass && klass.constantize
-        else
-          reflection.klass
-        end
+        h
       end
 
       class AlreadyLoaded
@@ -198,6 +186,7 @@ module ActiveRecord
         if owners.first.association(reflection.name).loaded?
           return AlreadyLoaded
         end
+        reflection.check_preloadable!
 
         case reflection.macro
         when :has_many

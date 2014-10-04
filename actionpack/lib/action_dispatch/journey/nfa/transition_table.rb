@@ -42,7 +42,7 @@ module ActionDispatch
         end
 
         def states
-          (@table.keys + @table.values.map(&:keys).flatten).uniq
+          (@table.keys + @table.values.flat_map(&:keys)).uniq
         end
 
         # Returns a generalized transition graph with reduced states. The states
@@ -93,7 +93,7 @@ module ActionDispatch
         # Returns set of NFA states to which there is a transition on ast symbol
         # +a+ from some state +s+ in +t+.
         def following_states(t, a)
-          Array(t).map { |s| inverted[s][a] }.flatten.uniq
+          Array(t).flat_map { |s| inverted[s][a] }.uniq
         end
 
         # Returns set of NFA states to which there is a transition on ast symbol
@@ -107,7 +107,7 @@ module ActionDispatch
         end
 
         def alphabet
-          inverted.values.map(&:keys).flatten.compact.uniq.sort_by { |x| x.to_s }
+          inverted.values.flat_map(&:keys).compact.uniq.sort_by { |x| x.to_s }
         end
 
         # Returns a set of NFA states reachable from some NFA state +s+ in set
@@ -131,9 +131,9 @@ module ActionDispatch
         end
 
         def transitions
-          @table.map { |to, hash|
+          @table.flat_map { |to, hash|
             hash.map { |from, sym| [from, sym, to] }
-          }.flatten(1)
+          }
         end
 
         private

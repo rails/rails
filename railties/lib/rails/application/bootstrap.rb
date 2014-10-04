@@ -47,17 +47,14 @@ INFO
           logger = ActiveSupport::TaggedLogging.new(ActiveSupport::Logger.new(STDERR))
           logger.level = ActiveSupport::Logger::WARN
           logger.warn(
-            "Rails Error: Unable to access log file. Please ensure that #{path} exists and is chmod 0666. " +
+            "Rails Error: Unable to access log file. Please ensure that #{path} exists and is writable " +
+            "(ie, make it writable for user and group: chmod 0664 #{path}). " +
             "The log level has been raised to WARN and the output directed to STDERR until the problem is fixed."
           )
           logger
         end
 
-        if ::Logger === Rails.logger
-          Rails.logger.level = ActiveSupport::Logger.const_get(config.log_level.to_s.upcase)
-        else
-          Rails.logger.level = config.log_level
-        end
+        Rails.logger.level = ActiveSupport::Logger.const_get(config.log_level.to_s.upcase)
       end
 
       # Initialize cache early in the stack so railties can make use of it.

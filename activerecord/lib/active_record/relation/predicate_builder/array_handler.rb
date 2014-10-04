@@ -3,26 +3,39 @@ module ActiveRecord
     class ArrayHandler # :nodoc:
       def call(attribute, value)
         values = value.map { |x| x.is_a?(Base) ? x.id : x }
+        nils, values = values.partition(&:nil?)
+
+        if values.any? { |val| val.is_a?(Array) }
+          ActiveSupport::Deprecation.warn "Passing a nested array to Active Record " \
+            "finder methods is deprecated and will be removed. Flatten your array " \
+            "before using it for 'IN' conditions."
+          values = values.flatten
+        end
+
+        return attribute.in([]) if values.empty? && nils.empty?
+
         ranges, values = values.partition { |v| v.is_a?(Range) }
 
-        values_predicate = if values.include?(nil)
-          values = values.compact
-
+        values_predicate =
           case values.length
-          when 0
-            attribute.eq(nil)
-          when 1
-            attribute.eq(values.first).or(attribute.eq(nil))
-          else
-            attribute.in(values).or(attribute.eq(nil))
+          when 0 then NullPredicate
+          when 1 then attribute.eq(values.first)
+          else attribute.in(values)
           end
-        else
-          attribute.in(values)
+
+        unless nils.empty?
+          values_predicate = values_predicate.or(attribute.eq(nil))
         end
 
         array_predicates = ranges.map { |range| attribute.in(range) }
-        array_predicates << values_predicate
+        array_predicates.unshift(values_predicate)
         array_predicates.inject { |composite, predicate| composite.or(predicate) }
+      end
+
+      module NullPredicate
+        def self.or(other)
+          other
+        end
       end
     end
   end

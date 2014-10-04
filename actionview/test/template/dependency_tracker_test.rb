@@ -31,6 +31,7 @@ class DependencyTrackerTest < ActionView::TestCase
   end
 
   def teardown
+    ActionView::Template.unregister_template_handler :neckbeard
     tracker.remove_tracker(:neckbeard)
   end
 
@@ -57,6 +58,21 @@ class ERBTrackerTest < Minitest::Test
     tracker = make_tracker("messages/_message123", template)
 
     assert_equal ["messages/message123"], tracker.dependencies
+  end
+
+  def test_dependency_of_template_partial_with_layout
+    skip # FIXME: Needs to be fixed properly, right now we can only match one dependency per line. Need multiple!
+    template = FakeTemplate.new("<%# render partial: 'messages/show', layout: 'messages/layout' %>", :erb)
+    tracker = make_tracker("multiple/_dependencies", template)
+
+    assert_equal ["messages/layout", "messages/show"], tracker.dependencies
+  end
+
+  def test_dependency_of_template_layout_standalone
+    template = FakeTemplate.new("<%# render layout: 'messages/layout' do %>", :erb)
+    tracker = make_tracker("messages/layout", template)
+
+    assert_equal ["messages/layout"], tracker.dependencies
   end
 
   def test_finds_dependency_in_correct_directory

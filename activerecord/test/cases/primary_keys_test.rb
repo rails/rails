@@ -5,6 +5,7 @@ require 'models/subscriber'
 require 'models/movie'
 require 'models/keyboard'
 require 'models/mixed_case_monkey'
+require 'models/dashboard'
 
 class PrimaryKeysTest < ActiveRecord::TestCase
   fixtures :topics, :subscribers, :movies, :mixed_case_monkeys
@@ -92,6 +93,7 @@ class PrimaryKeysTest < ActiveRecord::TestCase
   end
 
   def test_primary_key_prefix
+    old_primary_key_prefix_type = ActiveRecord::Base.primary_key_prefix_type
     ActiveRecord::Base.primary_key_prefix_type = :table_name
     Topic.reset_primary_key
     assert_equal "topicid", Topic.primary_key
@@ -103,6 +105,8 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     ActiveRecord::Base.primary_key_prefix_type = nil
     Topic.reset_primary_key
     assert_equal "id", Topic.primary_key
+  ensure
+    ActiveRecord::Base.primary_key_prefix_type = old_primary_key_prefix_type
   end
 
   def test_delete_should_quote_pkey
@@ -131,14 +135,22 @@ class PrimaryKeysTest < ActiveRecord::TestCase
   end
 
   def test_primary_key_returns_value_if_it_exists
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = 'developers'
+    end
+
     if ActiveRecord::Base.connection.supports_primary_key?
-      assert_equal 'id', ActiveRecord::Base.connection.primary_key('developers')
+      assert_equal 'id', klass.primary_key
     end
   end
 
   def test_primary_key_returns_nil_if_it_does_not_exist
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = 'developers_projects'
+    end
+
     if ActiveRecord::Base.connection.supports_primary_key?
-      assert_nil ActiveRecord::Base.connection.primary_key('developers_projects')
+      assert_nil klass.primary_key
     end
   end
 
@@ -149,41 +161,18 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     assert_equal k.connection.quote_column_name("foo"), k.quoted_primary_key
   end
 
-  def test_two_models_with_same_table_but_different_primary_key
-    k1 = Class.new(ActiveRecord::Base)
-    k1.table_name = 'posts'
-    k1.primary_key = 'id'
-
-    k2 = Class.new(ActiveRecord::Base)
-    k2.table_name = 'posts'
-    k2.primary_key = 'title'
-
-    assert k1.columns.find { |c| c.name == 'id' }.primary
-    assert !k1.columns.find { |c| c.name == 'title' }.primary
-    assert k1.columns_hash['id'].primary
-    assert !k1.columns_hash['title'].primary
-
-    assert !k2.columns.find { |c| c.name == 'id' }.primary
-    assert k2.columns.find { |c| c.name == 'title' }.primary
-    assert !k2.columns_hash['id'].primary
-    assert k2.columns_hash['title'].primary
-  end
-
-  def test_models_with_same_table_have_different_columns
-    k1 = Class.new(ActiveRecord::Base)
-    k1.table_name = 'posts'
-
-    k2 = Class.new(ActiveRecord::Base)
-    k2.table_name = 'posts'
-
-    k1.columns.zip(k2.columns).each do |col1, col2|
-      assert !col1.equal?(col2)
-    end
-  end
-
   def test_auto_detect_primary_key_from_schema
     MixedCaseMonkey.reset_primary_key
     assert_equal "monkeyID", MixedCaseMonkey.primary_key
+  end
+
+  def test_primary_key_update_with_custom_key_name
+    dashboard = Dashboard.create!(dashboard_id: '1')
+    dashboard.id = '2'
+    dashboard.save!
+
+    dashboard = Dashboard.first
+    assert_equal '2', dashboard.id
   end
 end
 
@@ -216,6 +205,32 @@ if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
       assert_equal "id", con.primary_key("topics")
     ensure
       con.reconnect!
+    end
+  end
+end
+
+if current_adapter?(:PostgreSQLAdapter)
+  class PrimaryKeyBigSerialTest < ActiveRecord::TestCase
+    self.use_transactional_fixtures = false
+
+    class Widget < ActiveRecord::Base
+    end
+
+    setup do
+      @connection = ActiveRecord::Base.connection
+      @connection.create_table(:widgets, id: :bigserial) { |t| }
+    end
+
+    teardown do
+      @connection.drop_table :widgets
+    end
+
+    def test_bigserial_primary_key
+      assert_equal "id", Widget.primary_key
+      assert_equal :integer, Widget.columns_hash[Widget.primary_key].type
+
+      widget = Widget.create!
+      assert_not_nil widget.id
     end
   end
 end

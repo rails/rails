@@ -8,7 +8,10 @@ Highlights in Rails 4.0:
 * Turbolinks
 * Russian Doll Caching
 
-These release notes cover only the major changes. To know about various bug fixes and changes, please refer to the change logs or check out the [list of commits](https://github.com/rails/rails/commits/master) in the main Rails repository on GitHub.
+These release notes cover only the major changes. To learn about various bug
+fixes and changes, please refer to the change logs or check out the [list of
+commits](https://github.com/rails/rails/commits/4-0-stable) in the main Rails
+repository on GitHub.
 
 --------------------------------------------------------------------------------
 
@@ -226,11 +229,11 @@ Please refer to the [Changelog](https://github.com/rails/rails/blob/4-0-stable/a
       The method `change_table` is also reversible, as long as its block doesn't call `remove`, `change` or `change_default`
 
     * New method `reversible` makes it possible to specify code to be run when migrating up or down.
-      See the [Guide on Migration](https://github.com/rails/rails/blob/master/guides/source/migrations.md#using-the-reversible-method)
+      See the [Guide on Migration](https://github.com/rails/rails/blob/master/guides/source/active_record_migrations.md#using-reversible)
 
     * New method `revert` will revert a whole migration or the given block.
       If migrating down, the given migration / block is run normally.
-      See the [Guide on Migration](https://github.com/rails/rails/blob/master/guides/source/migrations.md#reverting-previous-migrations)
+      See the [Guide on Migration](https://github.com/rails/rails/blob/master/guides/source/active_record_migrations.md#reverting-previous-migrations)
 
 * Adds PostgreSQL array type support. Any datatype can be used to create an array column, with full migration and schema dumper support.
 

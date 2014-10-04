@@ -91,16 +91,17 @@ HEADER
       end
 
       def tables(stream)
-        @connection.tables.sort.each do |tbl|
-          next if ['schema_migrations', ignore_tables].flatten.any? do |ignored|
-            case ignored
-            when String; remove_prefix_and_suffix(tbl) == ignored
-            when Regexp; remove_prefix_and_suffix(tbl) =~ ignored
-            else
-              raise StandardError, 'ActiveRecord::SchemaDumper.ignore_tables accepts an array of String and / or Regexp values.'
-            end
+        sorted_tables = @connection.tables.sort
+
+        sorted_tables.each do |table_name|
+          table(table_name, stream) unless ignored?(table_name)
+        end
+
+        # dump foreign keys at the end to make sure all dependent tables exist.
+        if @connection.supports_foreign_keys?
+          sorted_tables.each do |tbl|
+            foreign_keys(tbl, stream) unless ignored?(tbl)
           end
-          table(tbl, stream)
         end
       end
 
@@ -110,11 +111,7 @@ HEADER
           tbl = StringIO.new
 
           # first dump primary key column
-          if @connection.respond_to?(:pk_and_sequence_for)
-            pk, _ = @connection.pk_and_sequence_for(table)
-          elsif @connection.respond_to?(:primary_key)
-            pk = @connection.primary_key(table)
-          end
+          pk = @connection.primary_key(table)
 
           tbl.print "  create_table #{remove_prefix_and_suffix(table).inspect}"
           pkcol = columns.detect { |c| c.name == pk }
@@ -186,25 +183,22 @@ HEADER
         if (indexes = @connection.indexes(table)).any?
           add_index_statements = indexes.map do |index|
             statement_parts = [
-              ('add_index ' + remove_prefix_and_suffix(index.table).inspect),
+              "add_index #{remove_prefix_and_suffix(index.table).inspect}",
               index.columns.inspect,
-              ('name: ' + index.name.inspect),
+              "name: #{index.name.inspect}",
             ]
             statement_parts << 'unique: true' if index.unique
 
             index_lengths = (index.lengths || []).compact
-            statement_parts << ('length: ' + Hash[index.columns.zip(index.lengths)].inspect) unless index_lengths.empty?
+            statement_parts << "length: #{Hash[index.columns.zip(index.lengths)].inspect}" if index_lengths.any?
 
-            index_orders = (index.orders || {})
-            statement_parts << ('order: ' + index.orders.inspect) unless index_orders.empty?
+            index_orders = index.orders || {}
+            statement_parts << "order: #{index.orders.inspect}" if index_orders.any?
+            statement_parts << "where: #{index.where.inspect}" if index.where
+            statement_parts << "using: #{index.using.inspect}" if index.using
+            statement_parts << "type: #{index.type.inspect}" if index.type
 
-            statement_parts << ('where: ' + index.where.inspect) if index.where
-
-            statement_parts << ('using: ' + index.using.inspect) if index.using
-
-            statement_parts << ('type: ' + index.type.inspect) if index.type
-
-            '  ' + statement_parts.join(', ')
+            "  #{statement_parts.join(', ')}"
           end
 
           stream.puts add_index_statements.sort.join("\n")
@@ -212,8 +206,49 @@ HEADER
         end
       end
 
+      def foreign_keys(table, stream)
+        if (foreign_keys = @connection.foreign_keys(table)).any?
+          add_foreign_key_statements = foreign_keys.map do |foreign_key|
+            parts = [
+              "add_foreign_key #{remove_prefix_and_suffix(foreign_key.from_table).inspect}",
+              remove_prefix_and_suffix(foreign_key.to_table).inspect,
+            ]
+
+            if foreign_key.column != @connection.foreign_key_column_for(foreign_key.to_table)
+              parts << "column: #{foreign_key.column.inspect}"
+            end
+
+            if foreign_key.custom_primary_key?
+              parts << "primary_key: #{foreign_key.primary_key.inspect}"
+            end
+
+            if foreign_key.name !~ /^fk_rails_[0-9a-f]{10}$/
+              parts << "name: #{foreign_key.name.inspect}"
+            end
+
+            parts << "on_update: #{foreign_key.on_update.inspect}" if foreign_key.on_update
+            parts << "on_delete: #{foreign_key.on_delete.inspect}" if foreign_key.on_delete
+
+            "  #{parts.join(', ')}"
+          end
+
+          stream.puts add_foreign_key_statements.sort.join("\n")
+        end
+      end
+
       def remove_prefix_and_suffix(table)
         table.gsub(/^(#{@options[:table_name_prefix]})(.+)(#{@options[:table_name_suffix]})$/,  "\\2")
+      end
+
+      def ignored?(table_name)
+        ['schema_migrations', ignore_tables].flatten.any? do |ignored|
+          case ignored
+          when String; remove_prefix_and_suffix(table_name) == ignored
+          when Regexp; remove_prefix_and_suffix(table_name) =~ ignored
+          else
+            raise StandardError, 'ActiveRecord::SchemaDumper.ignore_tables accepts an array of String and / or Regexp values.'
+          end
+        end
       end
   end
 end

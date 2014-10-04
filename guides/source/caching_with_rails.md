@@ -28,15 +28,15 @@ config.action_controller.perform_caching = true
 
 ### Page Caching
 
-Page caching is a Rails mechanism which allows the request for a generated page to be fulfilled by the webserver (i.e. Apache or nginx), without ever having to go through the Rails stack at all. Obviously, this is super-fast. Unfortunately, it can't be applied to every situation (such as pages that need authentication) and since the webserver is literally just serving a file from the filesystem, cache expiration is an issue that needs to be dealt with.
+Page caching is a Rails mechanism which allows the request for a generated page to be fulfilled by the webserver (i.e. Apache or NGINX), without ever having to go through the Rails stack at all. Obviously, this is super-fast. Unfortunately, it can't be applied to every situation (such as pages that need authentication) and since the webserver is literally just serving a file from the filesystem, cache expiration is an issue that needs to be dealt with.
 
-INFO: Page Caching has been removed from Rails 4. See the [actionpack-page_caching gem](https://github.com/rails/actionpack-page_caching). See [DHH's key-based cache expiration overview](http://37signals.com/svn/posts/3113-how-key-based-cache-expiration-works) for the newly-preferred method.
+INFO: Page Caching has been removed from Rails 4. See the [actionpack-page_caching gem](https://github.com/rails/actionpack-page_caching). See [DHH's key-based cache expiration overview](http://signalvnoise.com/posts/3113-how-key-based-cache-expiration-works) for the newly-preferred method.
 
 ### Action Caching
 
 Page Caching cannot be used for actions that have before filters - for example, pages that require authentication. This is where Action Caching comes in. Action Caching works like Page Caching except the incoming web request hits the Rails stack so that before filters can be run on it before the cache is served. This allows authentication and other restrictions to be run while still serving the result of the output from a cached copy.
 
-INFO: Action Caching has been removed from Rails 4. See the [actionpack-action_caching gem](https://github.com/rails/actionpack-action_caching). See [DHH's key-based cache expiration overview](http://37signals.com/svn/posts/3113-how-key-based-cache-expiration-works) for the newly-preferred method.
+INFO: Action Caching has been removed from Rails 4. See the [actionpack-action_caching gem](https://github.com/rails/actionpack-action_caching). See [DHH's key-based cache expiration overview](http://signalvnoise.com/posts/3113-how-key-based-cache-expiration-works) for the newly-preferred method.
 
 ### Fragment Caching
 
@@ -105,7 +105,7 @@ This method generates a cache key that depends on all products and can be used i
 <% end %>
 ```
 
-If you want to cache a fragment under certain condition you can use `cache_if` or `cache_unless` 
+If you want to cache a fragment under certain condition you can use `cache_if` or `cache_unless`
 
 ```erb
 <% cache_if (condition, cache_key_for_products) do %>
@@ -140,6 +140,26 @@ You can also combine the two schemes which is called "Russian Doll Caching":
 
 It's called "Russian Doll Caching" because it nests multiple fragments. The advantage is that if a single product is updated, all the other inner fragments can be reused when regenerating the outer fragment.
 
+### Low-Level Caching
+
+Sometimes you need to cache a particular value or query result, instead of caching view fragments. Rails caching mechanism works great for storing __any__ kind of information.
+
+The most efficient way to implement low-level caching is using the `Rails.cache.fetch` method. This method does both reading and writing to the cache. When passed only a single argument, the key is fetched and value from the cache is returned. If a block is passed, the result of the block will be cached to the given key and the result is returned.
+
+Consider the following example. An application has a `Product` model with an instance method that looks up the product’s price on a competing website. The data returned by this method would be perfect for low-level caching:
+
+```ruby
+class Product < ActiveRecord::Base
+  def competing_price
+    Rails.cache.fetch("#{cache_key}/competing_price", expires_in: 12.hours) do
+      Competitor::API.find_price(id)
+    end
+  end
+end
+```
+
+NOTE: Notice that in this example we used `cache_key` method, so the resulting cache-key will be something like `products/233-20140225082222765838000/competing_price`. `cache_key` generates a string based on the model’s `id` and `updated_at` attributes. This is a common convention and has the benefit of invalidating the cache whenever the product is updated. In general, when you use low-level caching for instance level information, you need to generate a cache key.
+
 ### SQL Caching
 
 Query caching is a Rails feature that caches the result set returned by each query so that if Rails encounters the same query again for that request, it will use the cached result set as opposed to running the query against the database again.
@@ -165,7 +185,7 @@ end
 Cache Stores
 ------------
 
-Rails provides different stores for the cached data created by <b>action</b> and <b>fragment</b> caches.
+Rails provides different stores for the cached data created by **action** and **fragment** caches.
 
 TIP: Page caches are always stored on disk.
 
@@ -333,12 +353,17 @@ Instead of an options hash, you can also simply pass in a model, Rails will use 
 class ProductsController < ApplicationController
   def show
     @product = Product.find(params[:id])
-    respond_with(@product) if stale?(@product)
+
+    if stale?(@product)
+      respond_to do |wants|
+        # ... normal response processing
+      end
+    end
   end
 end
 ```
 
-If you don't have any special response processing and are using the default rendering mechanism (i.e. you're not using respond_to or calling render yourself) then you've got an easy helper in fresh_when:
+If you don't have any special response processing and are using the default rendering mechanism (i.e. you're not using `respond_to` or calling render yourself) then you've got an easy helper in `fresh_when`:
 
 ```ruby
 class ProductsController < ApplicationController

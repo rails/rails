@@ -47,18 +47,22 @@ class DependenciesTest < ActiveSupport::TestCase
   end
 
   def test_tracking_loaded_files
-    require_dependency 'dependencies/service_one'
-    require_dependency 'dependencies/service_two'
-    assert_equal 2, ActiveSupport::Dependencies.loaded.size
+    with_loading do
+      require_dependency 'dependencies/service_one'
+      require_dependency 'dependencies/service_two'
+      assert_equal 2, ActiveSupport::Dependencies.loaded.size
+    end
   ensure
     Object.send(:remove_const, :ServiceOne) if Object.const_defined?(:ServiceOne)
     Object.send(:remove_const, :ServiceTwo) if Object.const_defined?(:ServiceTwo)
   end
 
   def test_tracking_identical_loaded_files
-    require_dependency 'dependencies/service_one'
-    require_dependency 'dependencies/service_one'
-    assert_equal 1, ActiveSupport::Dependencies.loaded.size
+    with_loading do
+      require_dependency 'dependencies/service_one'
+      require_dependency 'dependencies/service_one'
+      assert_equal 1, ActiveSupport::Dependencies.loaded.size
+    end
   ensure
     Object.send(:remove_const, :ServiceOne) if Object.const_defined?(:ServiceOne)
   end
@@ -367,9 +371,11 @@ class DependenciesTest < ActiveSupport::TestCase
     with_autoloading_fixtures do
       e = assert_raise(NameError) { A::DoesNotExist.nil? }
       assert_equal "uninitialized constant A::DoesNotExist", e.message
+      assert_equal :DoesNotExist, e.name
 
       e = assert_raise(NameError) { A::B::DoesNotExist.nil? }
       assert_equal "uninitialized constant A::B::DoesNotExist", e.message
+      assert_equal :DoesNotExist, e.name
     end
   end
 
@@ -537,6 +543,7 @@ class DependenciesTest < ActiveSupport::TestCase
       mod = Module.new
       e = assert_raise(NameError) { mod::E }
       assert_equal 'E cannot be autoloaded from an anonymous class or module', e.message
+      assert_equal :E, e.name
     end
   end
 
@@ -881,6 +888,8 @@ class DependenciesTest < ActiveSupport::TestCase
         assert_raise(NameError) { assert_equal 123, ::RaisesNameError::FooBarBaz }
       end
     end
+  ensure
+    remove_constants(:RaisesNameError)
   end
 
   def test_autoload_doesnt_shadow_name_error
@@ -954,7 +963,7 @@ class DependenciesTest < ActiveSupport::TestCase
       assert_kind_of Class, A::B # Necessary to load A::B for the test
       ActiveSupport::Dependencies.mark_for_unload(A::B)
       ActiveSupport::Dependencies.remove_unloadable_constants!
-       
+
       A::B # Make sure no circular dependency error
     end
   end
@@ -986,12 +995,5 @@ class DependenciesTest < ActiveSupport::TestCase
     assert !Module.new.respond_to?(:load_without_new_constant_marking)
   ensure
     ActiveSupport::Dependencies.hook!
-  end
-
-private
-  def remove_constants(*constants)
-    constants.each do |constant|
-      Object.send(:remove_const, constant) if Object.const_defined?(constant)
-    end
   end
 end

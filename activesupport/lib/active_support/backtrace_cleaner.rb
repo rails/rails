@@ -13,7 +13,7 @@ module ActiveSupport
   # can focus on the rest.
   #
   #   bc = BacktraceCleaner.new
-  #   bc.add_filter   { |line| line.gsub(Rails.root, '') } # strip the Rails.root prefix
+  #   bc.add_filter   { |line| line.gsub(Rails.root.to_s, '') } # strip the Rails.root prefix
   #   bc.add_silencer { |line| line =~ /mongrel|rubygems/ } # skip any lines from mongrel or rubygems
   #   bc.clean(exception.backtrace) # perform the cleanup
   #
@@ -65,14 +65,14 @@ module ActiveSupport
       @silencers << block
     end
 
-    # Will remove all silencers, but leave in the filters. This is useful if
-    # your context of debugging suddenly expands as you suspect a bug in one of
+    # Removes all silencers, but leaves in the filters. Useful if your
+    # context of debugging suddenly expands as you suspect a bug in one of
     # the libraries you use.
     def remove_silencers!
       @silencers = []
     end
 
-    # Removes all filters, but leaves in silencers. Useful if you suddenly
+    # Removes all filters, but leaves in the silencers. Useful if you suddenly
     # need to see entire filepaths in the backtrace that you had already
     # filtered out.
     def remove_filters!

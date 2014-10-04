@@ -10,7 +10,7 @@ class PooledConnectionsTest < ActiveRecord::TestCase
     @connection = ActiveRecord::Base.remove_connection
   end
 
-  def teardown
+  teardown do
     ActiveRecord::Base.clear_all_connections!
     ActiveRecord::Base.establish_connection(@connection)
     @per_test_teardown.each {|td| td.call }
@@ -48,4 +48,4 @@ class PooledConnectionsTest < ActiveRecord::TestCase
   def add_record(name)
     ActiveRecord::Base.connection_pool.with_connection { Project.create! :name => name }
   end
-end unless current_adapter?(:FrontBase) || in_memory_db?
+end unless in_memory_db?

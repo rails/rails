@@ -26,7 +26,7 @@ require 'active_support/core_ext/module/aliasing'
 # bypassed completely. This means that as_json won't be invoked and the JSON gem will simply
 # ignore any options it does not natively understand. This also means that ::JSON.{generate,dump}
 # should give exactly the same results with or without active support.
-[Object, Array, FalseClass, Float, Hash, Integer, NilClass, String, TrueClass].each do |klass|
+[Object, Array, FalseClass, Float, Hash, Integer, NilClass, String, TrueClass, Enumerable].each do |klass|
   klass.class_eval do
     def to_json_with_active_support_encoder(options = nil)
       if options.is_a?(::JSON::State)
@@ -162,7 +162,7 @@ end
 
 class Time
   def as_json(options = nil) #:nodoc:
-    if ActiveSupport.use_standard_json_time_format
+    if ActiveSupport::JSON::Encoding.use_standard_json_time_format
       xmlschema(ActiveSupport::JSON::Encoding.time_precision)
     else
       %(#{strftime("%Y/%m/%d %H:%M:%S")} #{formatted_offset(false)})
@@ -172,7 +172,7 @@ end
 
 class Date
   def as_json(options = nil) #:nodoc:
-    if ActiveSupport.use_standard_json_time_format
+    if ActiveSupport::JSON::Encoding.use_standard_json_time_format
       strftime("%Y-%m-%d")
     else
       strftime("%Y/%m/%d")
@@ -182,7 +182,7 @@ end
 
 class DateTime
   def as_json(options = nil) #:nodoc:
-    if ActiveSupport.use_standard_json_time_format
+    if ActiveSupport::JSON::Encoding.use_standard_json_time_format
       xmlschema(ActiveSupport::JSON::Encoding.time_precision)
     else
       strftime('%Y/%m/%d %H:%M:%S %z')

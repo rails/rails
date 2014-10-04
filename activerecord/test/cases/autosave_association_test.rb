@@ -19,8 +19,36 @@ require 'models/treasure'
 require 'models/eye'
 require 'models/electron'
 require 'models/molecule'
+require 'models/member'
+require 'models/member_detail'
+require 'models/organization'
 
 class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
+  def test_autosave_validation
+    person = Class.new(ActiveRecord::Base) {
+      self.table_name = 'people'
+      validate :should_be_cool, :on => :create
+      def self.name; 'Person'; end
+
+      private
+
+      def should_be_cool
+        unless self.first_name == 'cool'
+          errors.add :first_name, "not cool"
+        end
+      end
+    }
+    reference = Class.new(ActiveRecord::Base) {
+      self.table_name = "references"
+      def self.name; 'Reference'; end
+      belongs_to :person, autosave: true, class: person
+    }
+
+    u = person.create!(first_name: 'cool')
+    u.update_attributes!(first_name: 'nah') # still valid because validation only applies on 'create'
+    assert reference.create!(person: u).persisted?
+  end
+
   def test_should_not_add_the_same_callbacks_multiple_times_for_has_one
     assert_no_difference_when_adding_callbacks_twice_for Pirate, :ship
   end
@@ -39,10 +67,6 @@ class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
 
   private
 
-  def base
-    ActiveRecord::Base
-  end
-
   def assert_no_difference_when_adding_callbacks_twice_for(model, association_name)
     reflection = model.reflect_on_association(association_name)
     assert_no_difference "callbacks_for_model(#{model.name}).length" do
@@ -51,9 +75,9 @@ class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
   end
 
   def callbacks_for_model(model)
-    model.instance_variables.grep(/_callbacks$/).map do |ivar|
+    model.instance_variables.grep(/_callbacks$/).flat_map do |ivar|
       model.instance_variable_get(ivar)
-    end.flatten
+    end
   end
 end
 
@@ -478,7 +502,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
 
   def test_build_before_save
     company = companies(:first_firm)
-    new_client = assert_no_queries { company.clients_of_firm.build("name" => "Another Client") }
+    new_client = assert_no_queries(ignore_none: false) { company.clients_of_firm.build("name" => "Another Client") }
     assert !company.clients_of_firm.loaded?
 
     company.name += '-changed'
@@ -489,7 +513,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
 
   def test_build_many_before_save
     company = companies(:first_firm)
-    assert_no_queries { company.clients_of_firm.build([{"name" => "Another Client"}, {"name" => "Another Client II"}]) }
+    assert_no_queries(ignore_none: false) { company.clients_of_firm.build([{"name" => "Another Client"}, {"name" => "Another Client II"}]) }
 
     company.name += '-changed'
     assert_queries(3) { assert company.save }
@@ -498,7 +522,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
 
   def test_build_via_block_before_save
     company = companies(:first_firm)
-    new_client = assert_no_queries { company.clients_of_firm.build {|client| client.name = "Another Client" } }
+    new_client = assert_no_queries(ignore_none: false) { company.clients_of_firm.build {|client| client.name = "Another Client" } }
     assert !company.clients_of_firm.loaded?
 
     company.name += '-changed'
@@ -509,7 +533,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
 
   def test_build_many_via_block_before_save
     company = companies(:first_firm)
-    assert_no_queries do
+    assert_no_queries(ignore_none: false) do
       company.clients_of_firm.build([{"name" => "Another Client"}, {"name" => "Another Client II"}]) do |client|
         client.name = "changed"
       end
@@ -597,15 +621,15 @@ end
 class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
   self.use_transactional_fixtures = false
 
-  def setup
-    super
+  setup do
     @pirate = Pirate.create(:catchphrase => "Don' botharrr talkin' like one, savvy?")
     @ship = @pirate.create_ship(:name => 'Nights Dirty Lightning')
   end
 
-  def teardown
+  teardown do
     # We are running without transactional fixtures and need to cleanup.
     Bird.delete_all
+    Parrot.delete_all
     @ship.delete
     @pirate.delete
   end
@@ -662,8 +686,21 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
       end
     end
 
+    @ship.pirate.catchphrase = "Changed Catchphrase"
+
     assert_raise(RuntimeError) { assert !@pirate.save }
     assert_not_nil @pirate.reload.ship
+  end
+
+  def test_should_save_changed_has_one_changed_object_if_child_is_saved
+    @pirate.ship.name = "NewName"
+    assert @pirate.save
+    assert_equal "NewName", @pirate.ship.reload.name
+  end
+
+  def test_should_not_save_changed_has_one_unchanged_object_if_child_is_saved
+    @pirate.ship.expects(:save).never
+    assert @pirate.save
   end
 
   # belongs_to
@@ -1084,6 +1121,27 @@ class TestAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCase
     # UPDATE "pirates" SET "catchphrase" = ?, "updated_on" = ? WHERE "pirates"."id" = 1
     # UPDATE "pirates" SET "catchphrase" = ?, "updated_on" = ? WHERE "pirates"."id" = 1.
     assert_queries(2) { @pirate.catchphrase = 'Arr'; @pirate.save! }
+  end
+end
+
+class TestAutosaveAssociationOnAHasOneThroughAssociation < ActiveRecord::TestCase
+  self.use_transactional_fixtures = false unless supports_savepoints?
+
+  def setup
+    super
+    organization = Organization.create
+    @member = Member.create
+    MemberDetail.create(organization: organization, member: @member)
+  end
+
+  def test_should_not_has_one_through_model
+    class << @member.organization
+      def save(*args)
+        super
+        raise 'Oh noes!'
+      end
+    end
+    assert_nothing_raised { @member.save }
   end
 end
 

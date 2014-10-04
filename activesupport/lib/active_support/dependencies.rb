@@ -180,13 +180,14 @@ module ActiveSupport #:nodoc:
         Dependencies.load_missing_constant(from_mod, const_name)
       end
 
-      # Dependencies assumes the name of the module reflects the nesting (unless
-      # it can be proven that is not the case), and the path to the file that
-      # defines the constant. Anonymous modules cannot follow these conventions
-      # and we assume therefore the user wants to refer to a top-level constant.
+      # We assume that the name of the module reflects the nesting
+      # (unless it can be proven that is not the case) and the path to the file
+      # that defines the constant. Anonymous modules cannot follow these
+      # conventions and therefore we assume that the user wants to refer to a
+      # top-level constant.
       def guess_for_anonymous(const_name)
         if Object.const_defined?(const_name)
-          raise NameError, "#{const_name} cannot be autoloaded from an anonymous class or module"
+          raise NameError.new "#{const_name} cannot be autoloaded from an anonymous class or module", const_name
         else
           Object
         end
@@ -515,9 +516,9 @@ module ActiveSupport #:nodoc:
         end
       end
 
-      raise NameError,
-            "uninitialized constant #{qualified_name}",
-            caller.reject { |l| l.starts_with? __FILE__ }
+      name_error = NameError.new("uninitialized constant #{qualified_name}", const_name)
+      name_error.set_backtrace(caller.reject {|l| l.starts_with? __FILE__ })
+      raise name_error
     end
 
     # Remove the constants that have been autoloaded, and those that have been

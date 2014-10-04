@@ -58,13 +58,11 @@ module ActiveRecord
     # * +checkout_timeout+: number of seconds to block and wait for a connection
     #   before giving up and raising a timeout error (default 5 seconds).
     # * +reaping_frequency+: frequency in seconds to periodically run the
-    #   Reaper, which attempts to find and close dead connections, which can
-    #   occur if a programmer forgets to close a connection at the end of a
-    #   thread or a thread dies unexpectedly. (Default nil, which means don't
-    #   run the Reaper).
-    # * +dead_connection_timeout+: number of seconds from last checkout
-    #   after which the Reaper will consider a connection reapable. (default
-    #   5 seconds).
+    #   Reaper, which attempts to find and recover connections from dead
+    #   threads, which can occur if a programmer forgets to close a
+    #   connection at the end of a thread or a thread dies unexpectedly.
+    #   Regardless of this setting, the Reaper will be invoked before every
+    #   blocking wait. (Default nil, which means don't schedule the Reaper).
     class ConnectionPool
       # Threadsafe, fair, FIFO queue.  Meant to be used by ConnectionPool
       # with which it shares a Monitor.  But could be a generic Queue.
@@ -222,7 +220,7 @@ module ActiveRecord
 
       include MonitorMixin
 
-      attr_accessor :automatic_reconnect, :checkout_timeout, :dead_connection_timeout
+      attr_accessor :automatic_reconnect, :checkout_timeout
       attr_reader :spec, :connections, :size, :reaper
 
       # Creates a new ConnectionPool object. +spec+ is a ConnectionSpecification
@@ -236,8 +234,7 @@ module ActiveRecord
 
         @spec = spec
 
-        @checkout_timeout = spec.config[:checkout_timeout] || 5
-        @dead_connection_timeout = spec.config[:dead_connection_timeout] || 5
+        @checkout_timeout = (spec.config[:checkout_timeout] && spec.config[:checkout_timeout].to_f) || 5
         @reaper  = Reaper.new self, spec.config[:reaping_frequency]
         @reaper.run
 
@@ -361,11 +358,13 @@ module ActiveRecord
       # calling +checkout+ on this pool.
       def checkin(conn)
         synchronize do
-          conn.run_callbacks :checkin do
+          owner = conn.owner
+
+          conn.run_checkin_callbacks do
             conn.expire
           end
 
-          release conn
+          release owner
 
           @available.add conn
         end
@@ -378,22 +377,28 @@ module ActiveRecord
           @connections.delete conn
           @available.delete conn
 
-          # FIXME: we might want to store the key on the connection so that removing
-          # from the reserved hash will be a little easier.
-          release conn
+          release conn.owner
 
           @available.add checkout_new_connection if @available.any_waiting?
         end
       end
 
-      # Removes dead connections from the pool.  A dead connection can occur
-      # if a programmer forgets to close a connection at the end of a thread
+      # Recover lost connections for the pool.  A lost connection can occur if
+      # a programmer forgets to checkin a connection at the end of a thread
       # or a thread dies unexpectedly.
       def reap
-        synchronize do
-          stale = Time.now - @dead_connection_timeout
-          connections.dup.each do |conn|
-            if conn.in_use? && stale > conn.last_use && !conn.active_threadsafe?
+        stale_connections = synchronize do
+          @connections.select do |conn|
+            conn.in_use? && !conn.owner.alive?
+          end
+        end
+
+        stale_connections.each do |conn|
+          synchronize do
+            if conn.active?
+              conn.reset!
+              checkin conn
+            else
               remove conn
             end
           end
@@ -415,20 +420,15 @@ module ActiveRecord
         elsif @connections.size < @size
           checkout_new_connection
         else
+          reap
           @available.poll(@checkout_timeout)
         end
       end
 
-      def release(conn)
-        thread_id = if @reserved_connections[current_connection_id] == conn
-          current_connection_id
-        else
-          @reserved_connections.keys.find { |k|
-            @reserved_connections[k] == conn
-          }
-        end
+      def release(owner)
+        thread_id = owner.object_id
 
-        @reserved_connections.delete thread_id if thread_id
+        @reserved_connections.delete thread_id
       end
 
       def new_connection
@@ -449,7 +449,7 @@ module ActiveRecord
       end
 
       def checkout_and_verify(c)
-        c.run_callbacks :checkout do
+        c.run_checkout_callbacks do
           c.verify!
         end
         c
@@ -462,23 +462,44 @@ module ActiveRecord
     #
     # For example, suppose that you have 5 models, with the following hierarchy:
     #
-    #  |
-    #  +-- Book
-    #  |    |
-    #  |    +-- ScaryBook
-    #  |    +-- GoodBook
-    #  +-- Author
-    #  +-- BankAccount
+    #   class Author < ActiveRecord::Base
+    #   end
     #
-    # Suppose that Book is to connect to a separate database (i.e. one other
-    # than the default database). Then Book, ScaryBook and GoodBook will all use
-    # the same connection pool. Likewise, Author and BankAccount will use the
-    # same connection pool. However, the connection pool used by Author/BankAccount
-    # is not the same as the one used by Book/ScaryBook/GoodBook.
+    #   class BankAccount < ActiveRecord::Base
+    #   end
     #
-    # Normally there is only a single ConnectionHandler instance, accessible via
-    # ActiveRecord::Base.connection_handler. Active Record models use this to
-    # determine the connection pool that they should use.
+    #   class Book < ActiveRecord::Base
+    #     establish_connection "library_db"
+    #   end
+    #
+    #   class ScaryBook < Book
+    #   end
+    #
+    #   class GoodBook < Book
+    #   end
+    #
+    # And a database.yml that looked like this:
+    #
+    #   development:
+    #     database: my_application
+    #     host: localhost
+    #
+    #   library_db:
+    #     database: library
+    #     host: some.library.org
+    #
+    # Your primary database in the development environment is "my_application"
+    # but the Book model connects to a separate database called "library_db"
+    # (this can even be a database on a different machine).
+    #
+    # Book, ScaryBook and GoodBook will all use the same connection pool to
+    # "library_db" while Author, BankAccount, and any other models you create
+    # will use the default connection pool to "my_application".
+    #
+    # The various connection pools are managed by a single instance of
+    # ConnectionHandler accessible via ActiveRecord::Base.connection_handler.
+    # All Active Record models use this handler to determine the connection pool that they
+    # should use.
     class ConnectionHandler
       def initialize
         # These caches are keyed by klass.name, NOT klass. Keying them by klass
@@ -538,7 +559,10 @@ module ActiveRecord
       # for (not necessarily the current class).
       def retrieve_connection(klass) #:nodoc:
         pool = retrieve_connection_pool(klass)
-        (pool && pool.connection) or raise ConnectionNotEstablished
+        raise ConnectionNotEstablished, "No connection pool for #{klass}" unless pool
+        conn = pool.connection
+        raise ConnectionNotEstablished, "No connection for #{klass} in connection pool" unless conn
+        conn
       end
 
       # Returns true if a connection that's accessible to this class has
@@ -616,7 +640,7 @@ module ActiveRecord
       end
 
       def call(env)
-        testing = env.key?('rack.test')
+        testing = env['rack.test']
 
         response = @app.call(env)
         response[2] = ::Rack::BodyProxy.new(response[2]) do

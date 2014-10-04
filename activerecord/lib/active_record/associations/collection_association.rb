@@ -55,9 +55,9 @@ module ActiveRecord
 
       # Implements the ids writer method, e.g. foo.item_ids= for Foo.has_many :items
       def ids_writer(ids)
-        pk_column = reflection.primary_key_column
+        pk_type = reflection.primary_key_type
         ids = Array(ids).reject { |id| id.blank? }
-        ids.map! { |i| pk_column.type_cast(i) }
+        ids.map! { |i| pk_type.type_cast_from_user(i) }
         replace(klass.find(ids).index_by { |r| r.id }.values_at(*ids))
       end
 
@@ -134,20 +134,19 @@ module ActiveRecord
       end
 
       def create(attributes = {}, &block)
-        create_record(attributes, &block)
+        _create_record(attributes, &block)
       end
 
       def create!(attributes = {}, &block)
-        create_record(attributes, true, &block)
+        _create_record(attributes, true, &block)
       end
 
       # Add +records+ to this association. Returns +self+ so method calls may
       # be chained. Since << flattens its argument list and inserts each record,
       # +push+ and +concat+ behave identically.
       def concat(*records)
-        load_target if owner.new_record?
-
         if owner.new_record?
+          load_target
           concat_records(records)
         else
           transaction { concat_records(records) }
@@ -183,11 +182,11 @@ module ActiveRecord
       #
       # See delete for more info.
       def delete_all(dependent = nil)
-        if dependent.present? && ![:nullify, :delete_all].include?(dependent)
+        if dependent && ![:nullify, :delete_all].include?(dependent)
           raise ArgumentError, "Valid values are :nullify or :delete_all"
         end
 
-        dependent = if dependent.present?
+        dependent = if dependent
                       dependent
                     elsif options[:dependent] == :destroy
                       :delete_all
@@ -195,7 +194,7 @@ module ActiveRecord
                       options[:dependent]
                     end
 
-        delete(:all, dependent: dependent).tap do
+        delete_or_nullify_all_records(dependent).tap do
           reset
           loaded!
         end
@@ -245,19 +244,12 @@ module ActiveRecord
       # are actually removed from the database, that depends precisely on
       # +delete_records+. They are in any case removed from the collection.
       def delete(*records)
+        return if records.empty?
         _options = records.extract_options!
         dependent = _options[:dependent] || options[:dependent]
 
-        if records.first == :all
-          if loaded? || dependent == :destroy
-            delete_or_destroy(load_target, dependent)
-          else
-            delete_records(:all, dependent)
-          end
-        else
-          records = find(records) if records.any? { |record| record.kind_of?(Fixnum) || record.kind_of?(String) }
-          delete_or_destroy(records, dependent)
-        end
+        records = find(records) if records.any? { |record| record.kind_of?(Fixnum) || record.kind_of?(String) }
+        delete_or_destroy(records, dependent)
       end
 
       # Deletes the +records+ and removes them from this association calling
@@ -266,6 +258,7 @@ module ActiveRecord
       # Note that this method removes records from the database ignoring the
       # +:dependent+ option.
       def destroy(*records)
+        return if records.empty?
         records = find(records) if records.any? { |record| record.kind_of?(Fixnum) || record.kind_of?(String) }
         delete_or_destroy(records, :destroy)
       end
@@ -359,7 +352,9 @@ module ActiveRecord
         if owner.new_record?
           replace_records(other_array, original_target)
         else
-          transaction { replace_records(other_array, original_target) }
+          if other_array != original_target
+            transaction { replace_records(other_array, original_target) }
+          end
         end
       end
 
@@ -368,7 +363,7 @@ module ActiveRecord
           if record.new_record?
             include_in_memory?(record)
           else
-            loaded? ? target.include?(record) : scope.exists?(record)
+            loaded? ? target.include?(record) : scope.exists?(record.id)
           end
         else
           false
@@ -411,9 +406,23 @@ module ActiveRecord
       end
 
       private
+      def get_records
+        return scope.to_a if reflection.scope_chain.any?(&:any?) || scope.eager_loading?
+
+        conn = klass.connection
+        sc = reflection.association_scope_cache(conn, owner) do
+          StatementCache.create(conn) { |params|
+            as = AssociationScope.create { params.bind }
+            target_scope.merge as.scope(self, conn)
+          }
+        end
+
+        binds = AssociationScope.get_bind_values(owner, reflection.chain)
+        sc.execute binds, klass, klass.connection
+      end
 
         def find_target
-          records = scope.to_a
+          records = get_records
           records.each { |record| set_inverse_instance(record) }
           records
         end
@@ -448,13 +457,13 @@ module ActiveRecord
           persisted + memory
         end
 
-        def create_record(attributes, raise = false, &block)
+        def _create_record(attributes, raise = false, &block)
           unless owner.persisted?
             raise ActiveRecord::RecordNotSaved, "You cannot call create unless the parent is saved"
           end
 
           if attributes.is_a?(Array)
-            attributes.collect { |attr| create_record(attr, raise, &block) }
+            attributes.collect { |attr| _create_record(attr, raise, &block) }
           else
             transaction do
               add_to_target(build_record(attributes)) do |record|
@@ -513,13 +522,13 @@ module ActiveRecord
           target
         end
 
-        def concat_records(records)
+        def concat_records(records, should_raise = false)
           result = true
 
           records.flatten.each do |record|
             raise_on_type_mismatch!(record)
             add_to_target(record) do |rec|
-              result &&= insert_record(rec) unless owner.new_record?
+              result &&= insert_record(rec, true, should_raise) unless owner.new_record?
             end
           end
 

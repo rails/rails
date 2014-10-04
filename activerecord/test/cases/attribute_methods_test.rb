@@ -22,7 +22,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     @target.table_name = 'topics'
   end
 
-  def teardown
+  teardown do
     ActiveRecord::Base.send(:attribute_method_matchers).clear
     ActiveRecord::Base.send(:attribute_method_matchers).concat(@old_matchers)
   end
@@ -143,7 +143,11 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
   # Syck calls respond_to? before actually calling initialize
   def test_respond_to_with_allocated_object
-    topic = Topic.allocate
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = 'topics'
+    end
+
+    topic = klass.allocate
     assert !topic.respond_to?("nothingness")
     assert !topic.respond_to?(:nothingness)
     assert_respond_to topic, "title"
@@ -253,6 +257,15 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal @loaded_fixtures['computers']['workstation'].to_hash, Computer.first.attributes
   end
 
+  def test_attributes_without_primary_key
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = 'developers_projects'
+    end
+
+    assert_equal klass.column_names, klass.new.attributes.keys
+    assert_not klass.new.has_attribute?('id')
+  end
+
   def test_hashes_not_mangled
     new_topic = { :title => "New Topic" }
     new_topic_values = { :title => "AnotherTopic" }
@@ -288,10 +301,10 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   def test_read_attribute
     topic = Topic.new
     topic.title = "Don't change the topic"
-    assert_equal "Don't change the topic", topic.send(:read_attribute, "title")
+    assert_equal "Don't change the topic", topic.read_attribute("title")
     assert_equal "Don't change the topic", topic["title"]
 
-    assert_equal "Don't change the topic", topic.send(:read_attribute, :title)
+    assert_equal "Don't change the topic", topic.read_attribute(:title)
     assert_equal "Don't change the topic", topic[:title]
   end
 
@@ -299,6 +312,8 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     computer = Computer.select('id').first
     assert_raises(ActiveModel::MissingAttributeError) { computer[:developer] }
     assert_raises(ActiveModel::MissingAttributeError) { computer[:extendedWarranty] }
+    assert_raises(ActiveModel::MissingAttributeError) { computer[:no_column_exists] = 'Hello!' }
+    assert_nothing_raised { computer[:developer] = 'Hello!' }
   end
 
   def test_read_attribute_when_false
@@ -358,10 +373,10 @@ class AttributeMethodsTest < ActiveRecord::TestCase
       super(attr_name).upcase
     end
 
-    assert_equal "STOP CHANGING THE TOPIC", topic.send(:read_attribute, "title")
+    assert_equal "STOP CHANGING THE TOPIC", topic.read_attribute("title")
     assert_equal "STOP CHANGING THE TOPIC", topic["title"]
 
-    assert_equal "STOP CHANGING THE TOPIC", topic.send(:read_attribute, :title)
+    assert_equal "STOP CHANGING THE TOPIC", topic.read_attribute(:title)
     assert_equal "STOP CHANGING THE TOPIC", topic[:title]
   end
 
@@ -449,10 +464,10 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   def test_declared_suffixed_attribute_method_affects_respond_to_and_method_missing
-    topic = @target.new(:title => 'Budget')
     %w(_default _title_default _it! _candidate= able?).each do |suffix|
       @target.class_eval "def attribute#{suffix}(*args) args end"
       @target.attribute_method_suffix suffix
+      topic = @target.new(:title => 'Budget')
 
       meth = "title#{suffix}"
       assert topic.respond_to?(meth)
@@ -463,10 +478,10 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   def test_declared_affixed_attribute_method_affects_respond_to_and_method_missing
-    topic = @target.new(:title => 'Budget')
     [['mark_', '_for_update'], ['reset_', '!'], ['default_', '_value?']].each do |prefix, suffix|
       @target.class_eval "def #{prefix}attribute#{suffix}(*args) args end"
       @target.attribute_method_affix({ :prefix => prefix, :suffix => suffix })
+      topic = @target.new(:title => 'Budget')
 
       meth = "#{prefix}title#{suffix}"
       assert topic.respond_to?(meth)
@@ -515,44 +530,36 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     end
   end
 
-  def test_only_time_related_columns_are_meant_to_be_cached_by_default
-    expected = %w(datetime timestamp time date).sort
-    assert_equal expected, ActiveRecord::Base.attribute_types_cached_by_default.map(&:to_s).sort
-  end
-
-  def test_declaring_attributes_as_cached_adds_them_to_the_attributes_cached_by_default
-    default_attributes = Topic.cached_attributes
-    Topic.cache_attributes :replies_count
-    expected = default_attributes + ["replies_count"]
-    assert_equal expected.sort, Topic.cached_attributes.sort
-    Topic.instance_variable_set "@cached_attributes", nil
-  end
-
-  def test_cacheable_columns_are_actually_cached
-    assert_equal cached_columns.sort, Topic.cached_attributes.sort
-  end
-
-  def test_accessing_cached_attributes_caches_the_converted_values_and_nothing_else
-    t = topics(:first)
-    cache = t.instance_variable_get "@attributes_cache"
-
-    assert_not_nil cache
-    assert cache.empty?
-
-    all_columns = Topic.columns.map(&:name)
-    uncached_columns = all_columns - cached_columns
-
-    all_columns.each do |attr_name|
-      attribute_gets_cached = Topic.cache_attribute?(attr_name)
-      val = t.send attr_name unless attr_name == "type"
-      if attribute_gets_cached
-        assert cached_columns.include?(attr_name)
-        assert_equal val, cache[attr_name]
-      else
-        assert uncached_columns.include?(attr_name)
-        assert !cache.include?(attr_name)
-      end
+  def test_deprecated_cache_attributes
+    assert_deprecated do
+      Topic.cache_attributes :replies_count
     end
+
+    assert_deprecated do
+      Topic.cached_attributes
+    end
+
+    assert_deprecated do
+      Topic.cache_attribute? :replies_count
+    end
+  end
+
+  def test_converted_values_are_returned_after_assignment
+    developer = Developer.new(name: 1337, salary: "50000")
+
+    assert_equal "50000", developer.salary_before_type_cast
+    assert_equal 1337, developer.name_before_type_cast
+
+    assert_equal 50000, developer.salary
+    assert_equal "1337", developer.name
+
+    developer.save!
+
+    assert_equal "50000", developer.salary_before_type_cast
+    assert_equal 1337, developer.name_before_type_cast
+
+    assert_equal 50000, developer.salary
+    assert_equal "1337", developer.name
   end
 
   def test_write_nil_to_time_attributes
@@ -674,6 +681,14 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_yaml_dumping_record_with_time_zone_aware_attribute
+    in_time_zone "Pacific Time (US & Canada)" do
+      record = Topic.new(id: 1)
+      record.written_on = "Jan 01 00:00:00 2014"
+      assert_equal record, YAML.load(YAML.dump(record))
+    end
+  end
+
   def test_setting_time_zone_conversion_for_attributes_should_write_value_on_class_variable
     Topic.skip_time_zone_conversion_for_attributes = [:field_a]
     Minimalistic.skip_time_zone_conversion_for_attributes = [:field_b]
@@ -719,28 +734,49 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::UnknownAttributeError) { @target.new.attributes = { :title => "Ants in pants" } }
   end
 
-  def test_bulk_update_raise_unknown_attribute_errro
+  def test_bulk_update_raise_unknown_attribute_error
     error = assert_raises(ActiveRecord::UnknownAttributeError) {
       @target.new(:hello => "world")
     }
-    assert @target, error.record
-    assert "hello", error.attribute
-    assert "unknown attribute: hello", error.message
+    assert_instance_of @target, error.record
+    assert_equal "hello", error.attribute
+    assert_equal "unknown attribute: hello", error.message
   end
 
-  def test_read_attribute_overwrites_private_method_not_considered_implemented
-    # simulate a model with a db column that shares its name an inherited
-    # private method (e.g. Object#system)
-    #
-    Object.class_eval do
-      private
-      def title; "private!"; end
+  def test_methods_override_in_multi_level_subclass
+    klass = Class.new(Developer) do
+      def name
+        "dev:#{read_attribute(:name)}"
+      end
     end
-    assert !@target.instance_method_already_implemented?(:title)
-    topic = @target.new
-    assert_nil topic.title
 
-    Object.send(:undef_method, :title) # remove test method from object
+    2.times { klass = Class.new klass }
+    dev = klass.new(name: 'arthurnn')
+    dev.save!
+    assert_equal 'dev:arthurnn', dev.reload.name
+  end
+
+  def test_global_methods_are_overwritten
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = 'computers'
+    end
+
+    assert !klass.instance_method_already_implemented?(:system)
+    computer = klass.new
+    assert_nil computer.system
+  end
+
+  def test_global_methods_are_overwritte_when_subclassing
+    klass = Class.new(ActiveRecord::Base) { self.abstract_class = true }
+
+    subklass = Class.new(klass) do
+      self.table_name = 'computers'
+    end
+
+    assert !klass.instance_method_already_implemented?(:system)
+    assert !subklass.instance_method_already_implemented?(:system)
+    computer = subklass.new
+    assert_nil computer.system
   end
 
   def test_instance_method_should_be_defined_on_the_base_class
@@ -782,6 +818,24 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal "lol", topic.author_name
   end
 
+  def test_inherited_custom_accessors_with_reserved_names
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = 'computers'
+      self.abstract_class = true
+      def system; "omg"; end
+      def system=(val); self.developer = val; end
+    end
+
+    subklass = Class.new(klass)
+    [klass, subklass].each(&:define_attribute_methods)
+
+    computer = subklass.find(1)
+    assert_equal "omg", computer.system
+
+    computer.developer = 99
+    assert_equal 99, computer.developer
+  end
+
   def test_on_the_fly_super_invokable_generated_attribute_methods_via_method_missing
     klass = new_topic_like_ar_class do
       def title
@@ -804,6 +858,49 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal !real_topic.title?, klass.find(real_topic.id).title?
   end
 
+  def test_calling_super_when_parent_does_not_define_method_raises_error
+    klass = new_topic_like_ar_class do
+      def some_method_that_is_not_on_super
+        super
+      end
+    end
+
+    assert_raise(NoMethodError) do
+      klass.new.some_method_that_is_not_on_super
+    end
+  end
+
+  def test_attribute_method?
+    assert @target.attribute_method?(:title)
+    assert @target.attribute_method?(:title=)
+    assert_not @target.attribute_method?(:wibble)
+  end
+
+  def test_attribute_method_returns_false_if_table_does_not_exist
+    @target.table_name = 'wibble'
+    assert_not @target.attribute_method?(:title)
+  end
+
+  def test_attribute_names_on_new_record
+    model = @target.new
+
+    assert_equal @target.column_names, model.attribute_names
+  end
+
+  def test_attribute_names_on_queried_record
+    model = @target.last!
+
+    assert_equal @target.column_names, model.attribute_names
+  end
+
+  def test_attribute_names_with_custom_select
+    model = @target.select('id').last!
+
+    assert_equal ['id'], model.attribute_names
+    # Sanity check, make sure other columns exist
+    assert_not_equal ['id'], @target.column_names
+  end
+
   private
 
   def new_topic_like_ar_class(&block)
@@ -817,7 +914,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   def cached_columns
-    Topic.columns.map(&:name) - Topic.serialized_attributes.keys
+    Topic.columns.map(&:name)
   end
 
   def time_related_columns_on_topic

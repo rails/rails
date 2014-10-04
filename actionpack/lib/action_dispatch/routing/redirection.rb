@@ -3,10 +3,11 @@ require 'active_support/core_ext/uri'
 require 'active_support/core_ext/array/extract_options'
 require 'rack/utils'
 require 'action_controller/metal/exceptions'
+require 'action_dispatch/routing/endpoint'
 
 module ActionDispatch
   module Routing
-    class Redirect # :nodoc:
+    class Redirect < Endpoint # :nodoc:
       attr_reader :status, :block
 
       def initialize(status, block)
@@ -14,18 +15,15 @@ module ActionDispatch
         @block  = block
       end
 
+      def redirect?; true; end
+
       def call(env)
-        req = Request.new(env)
+        serve Request.new env
+      end
 
-        # If any of the path parameters has an invalid encoding then
-        # raise since it's likely to trigger errors further on.
-        req.symbolized_path_parameters.each do |key, value|
-          unless value.valid_encoding?
-            raise ActionController::BadRequest, "Invalid parameter: #{key} => #{value}"
-          end
-        end
-
-        uri = URI.parse(path(req.symbolized_path_parameters, req))
+      def serve(req)
+        req.check_path_parameters!
+        uri = URI.parse(path(req.path_parameters, req))
         
         unless uri.host
           if relative_path?(uri.path)
@@ -39,7 +37,7 @@ module ActionDispatch
         uri.host   ||= req.host
         uri.port   ||= req.port unless req.standard_port?
 
-        body = %(<html><body>You are being <a href="#{ERB::Util.h(uri.to_s)}">redirected</a>.</body></html>)
+        body = %(<html><body>You are being <a href="#{ERB::Util.unwrapped_html_escape(uri.to_s)}">redirected</a>.</body></html>)
 
         headers = {
           'Location' => uri.to_s,

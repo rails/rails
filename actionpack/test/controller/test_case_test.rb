@@ -163,6 +163,29 @@ XML
     end
   end
 
+  class DefaultUrlOptionsCachingController < ActionController::Base
+    before_action { @dynamic_opt = 'opt' }
+
+    def test_url_options_reset
+      render text: url_for(params)
+    end
+
+    def default_url_options
+      if defined?(@dynamic_opt)
+        super.merge dynamic_opt: @dynamic_opt
+      else
+        super
+      end
+    end
+  end
+
+  def test_url_options_reset
+    @controller = DefaultUrlOptionsCachingController.new
+    get :test_url_options_reset
+    assert_nil @request.params['dynamic_opt']
+    assert_match(/dynamic_opt=opt/, @response.body)
+  end
+
   def test_raw_post_handling
     params = Hash[:page, {:name => 'page name'}, 'some key', 123]
     post :render_raw_post, params.dup
@@ -198,7 +221,7 @@ XML
     assert_equal 200, @response.status
   end
 
-  def test_head_params_as_sting
+  def test_head_params_as_string
     assert_raise(NoMethodError) { head :test_params, "document body", :id => 10 }
   end
 
@@ -330,168 +353,6 @@ XML
     assert_equal "bar", assigns[:bar]
   end
 
-  def test_assert_tag_tag
-    process :test_html_output
-
-    # there is a 'form' tag
-    assert_tag :tag => 'form'
-    # there is not an 'hr' tag
-    assert_no_tag :tag => 'hr'
-  end
-
-  def test_assert_tag_attributes
-    process :test_html_output
-
-    # there is a tag with an 'id' of 'bar'
-    assert_tag :attributes => { :id => "bar" }
-    # there is no tag with a 'name' of 'baz'
-    assert_no_tag :attributes => { :name => "baz" }
-  end
-
-  def test_assert_tag_parent
-    process :test_html_output
-
-    # there is a tag with a parent 'form' tag
-    assert_tag :parent => { :tag => "form" }
-    # there is no tag with a parent of 'input'
-    assert_no_tag :parent => { :tag => "input" }
-  end
-
-  def test_assert_tag_child
-    process :test_html_output
-
-    # there is a tag with a child 'input' tag
-    assert_tag :child => { :tag => "input" }
-    # there is no tag with a child 'strong' tag
-    assert_no_tag :child => { :tag => "strong" }
-  end
-
-  def test_assert_tag_ancestor
-    process :test_html_output
-
-    # there is a 'li' tag with an ancestor having an id of 'foo'
-    assert_tag :ancestor => { :attributes => { :id => "foo" } }, :tag => "li"
-    # there is no tag of any kind with an ancestor having an href matching 'foo'
-    assert_no_tag :ancestor => { :attributes => { :href => /foo/ } }
-  end
-
-  def test_assert_tag_descendant
-    process :test_html_output
-
-    # there is a tag with a descendant 'li' tag
-    assert_tag :descendant => { :tag => "li" }
-    # there is no tag with a descendant 'html' tag
-    assert_no_tag :descendant => { :tag => "html" }
-  end
-
-  def test_assert_tag_sibling
-    process :test_html_output
-
-    # there is a tag with a sibling of class 'item'
-    assert_tag :sibling => { :attributes => { :class => "item" } }
-    # there is no tag with a sibling 'ul' tag
-    assert_no_tag :sibling => { :tag => "ul" }
-  end
-
-  def test_assert_tag_after
-    process :test_html_output
-
-    # there is a tag following a sibling 'div' tag
-    assert_tag :after => { :tag => "div" }
-    # there is no tag following a sibling tag with id 'bar'
-    assert_no_tag :after => { :attributes => { :id => "bar" } }
-  end
-
-  def test_assert_tag_before
-    process :test_html_output
-
-    # there is a tag preceding a tag with id 'bar'
-    assert_tag :before => { :attributes => { :id => "bar" } }
-    # there is no tag preceding a 'form' tag
-    assert_no_tag :before => { :tag => "form" }
-  end
-
-  def test_assert_tag_children_count
-    process :test_html_output
-
-    # there is a tag with 2 children
-    assert_tag :children => { :count => 2 }
-    # in particular, there is a <ul> tag with two children (a nameless pair of <li>s)
-    assert_tag :tag => 'ul', :children => { :count => 2 }
-    # there is no tag with 4 children
-    assert_no_tag :children => { :count => 4 }
-  end
-
-  def test_assert_tag_children_less_than
-    process :test_html_output
-
-    # there is a tag with less than 5 children
-    assert_tag :children => { :less_than => 5 }
-    # there is no 'ul' tag with less than 2 children
-    assert_no_tag :children => { :less_than => 2 }, :tag => "ul"
-  end
-
-  def test_assert_tag_children_greater_than
-    process :test_html_output
-
-    # there is a 'body' tag with more than 1 children
-    assert_tag :children => { :greater_than => 1 }, :tag => "body"
-    # there is no tag with more than 10 children
-    assert_no_tag :children => { :greater_than => 10 }
-  end
-
-  def test_assert_tag_children_only
-    process :test_html_output
-
-    # there is a tag containing only one child with an id of 'foo'
-    assert_tag :children => { :count => 1,
-                              :only => { :attributes => { :id => "foo" } } }
-    # there is no tag containing only one 'li' child
-    assert_no_tag :children => { :count => 1, :only => { :tag => "li" } }
-  end
-
-  def test_assert_tag_content
-    process :test_html_output
-
-    # the output contains the string "Name"
-    assert_tag :content => /Name/
-    # the output does not contain the string "test"
-    assert_no_tag :content => /test/
-  end
-
-  def test_assert_tag_multiple
-    process :test_html_output
-
-    # there is a 'div', id='bar', with an immediate child whose 'action'
-    # attribute matches the regexp /somewhere/.
-    assert_tag :tag => "div", :attributes => { :id => "bar" },
-               :child => { :attributes => { :action => /somewhere/ } }
-
-    # there is no 'div', id='foo', with a 'ul' child with more than
-    # 2 "li" children.
-    assert_no_tag :tag => "div", :attributes => { :id => "foo" },
-                  :child => {
-                    :tag => "ul",
-                    :children => { :greater_than => 2,
-                                   :only => { :tag => "li" } } }
-  end
-
-  def test_assert_tag_children_without_content
-    process :test_html_output
-
-    # there is a form tag with an 'input' child which is a self closing tag
-    assert_tag :tag => "form",
-      :children => { :count => 1,
-        :only => { :tag => "input" } }
-
-    # the body tag has an 'a' child which in turn has an 'img' child
-    assert_tag :tag => "body",
-      :children => { :count => 1,
-        :only => { :tag => "a",
-          :children => { :count => 1,
-            :only => { :tag => "img" } } } }
-  end
-
   def test_should_not_impose_childless_html_tags_in_xml
     process :test_xml_output
 
@@ -504,23 +365,6 @@ XML
     end
 
     assert err.empty?
-  end
-
-  def test_assert_tag_attribute_matching
-    @response.body = '<input type="text" name="my_name">'
-    assert_tag :tag => 'input',
-                 :attributes => { :name => /my/, :type => 'text' }
-    assert_no_tag :tag => 'input',
-                 :attributes => { :name => 'my', :type => 'text' }
-    assert_no_tag :tag => 'input',
-                 :attributes => { :name => /^my$/, :type => 'text' }
-  end
-
-  def test_assert_tag_content_matching
-    @response.body = "<p>hello world</p>"
-    assert_tag :tag => "p", :content => "hello world"
-    assert_tag :tag => "p", :content => /hello/
-    assert_no_tag :tag => "p", :content => "hello"
   end
 
   def test_assert_generates
@@ -639,7 +483,7 @@ XML
 
   def test_id_converted_to_string
     get :test_params, :id => 20, :foo => Object.new
-    assert_kind_of String, @request.path_parameters['id']
+    assert_kind_of String, @request.path_parameters[:id]
   end
 
   def test_array_path_parameter_handled_properly
@@ -650,17 +494,17 @@ XML
       end
 
       get :test_params, :path => ['hello', 'world']
-      assert_equal ['hello', 'world'], @request.path_parameters['path']
-      assert_equal 'hello/world', @request.path_parameters['path'].to_param
+      assert_equal ['hello', 'world'], @request.path_parameters[:path]
+      assert_equal 'hello/world', @request.path_parameters[:path].to_param
     end
   end
 
   def test_assert_realistic_path_parameters
     get :test_params, :id => 20, :foo => Object.new
 
-    # All elements of path_parameters should use string keys
-    @request.path_parameters.keys.each do |key|
-      assert_kind_of String, key
+    # All elements of path_parameters should use Symbol keys
+    @request.path_parameters.each_key do |key|
+      assert_kind_of Symbol, key
     end
   end
 
@@ -690,6 +534,7 @@ XML
   def test_header_properly_reset_after_remote_http_request
     xhr :get, :test_params
     assert_nil @request.env['HTTP_X_REQUESTED_WITH']
+    assert_nil @request.env['HTTP_ACCEPT']
   end
 
   def test_header_properly_reset_after_get_request
@@ -698,10 +543,10 @@ XML
     assert_nil @request.instance_variable_get("@request_method")
   end
 
-  def test_params_reset_after_post_request
+  def test_params_reset_between_post_requests
     post :no_op, :foo => "bar"
     assert_equal "bar", @request.params[:foo]
-    @request.recycle!
+
     post :no_op
     assert @request.params[:foo].blank?
   end
@@ -714,12 +559,12 @@ XML
     assert_equal "baz", @request.filtered_parameters[:foo]
   end
 
-  def test_symbolized_path_params_reset_after_request
+  def test_path_params_reset_between_request
     get :test_params, :id => "foo"
-    assert_equal "foo", @request.symbolized_path_parameters[:id]
-    @request.recycle!
+    assert_equal "foo", @request.path_parameters[:id]
+
     get :test_params
-    assert_nil @request.symbolized_path_parameters[:id]
+    assert_nil @request.path_parameters[:id]
   end
 
   def test_request_protocol_is_reset_after_request

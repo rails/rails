@@ -72,8 +72,12 @@ class I18nGenerateMessageValidationTest < ActiveModel::TestCase
   end
 
   # validates_length_of: generate_message(attr, :too_long, message: custom_message, count: option_value.end)
-  def test_generate_message_too_long_with_default_message
+  def test_generate_message_too_long_with_default_message_plural
     assert_equal "is too long (maximum is 10 characters)", @person.errors.generate_message(:title, :too_long, count: 10)
+  end
+
+  def test_generate_message_too_long_with_default_message_singular
+    assert_equal "is too long (maximum is 1 character)", @person.errors.generate_message(:title, :too_long, count: 1)
   end
 
   def test_generate_message_too_long_with_custom_message
@@ -81,8 +85,12 @@ class I18nGenerateMessageValidationTest < ActiveModel::TestCase
   end
 
   # validates_length_of: generate_message(attr, :too_short, default: custom_message, count: option_value.begin)
-  def test_generate_message_too_short_with_default_message
+  def test_generate_message_too_short_with_default_message_plural
     assert_equal "is too short (minimum is 10 characters)", @person.errors.generate_message(:title, :too_short, count: 10)
+  end
+
+  def test_generate_message_too_short_with_default_message_singular
+    assert_equal "is too short (minimum is 1 character)", @person.errors.generate_message(:title, :too_short, count: 1)
   end
 
   def test_generate_message_too_short_with_custom_message
@@ -90,8 +98,12 @@ class I18nGenerateMessageValidationTest < ActiveModel::TestCase
   end
 
   # validates_length_of: generate_message(attr, :wrong_length, message: custom_message, count: option_value)
-  def test_generate_message_wrong_length_with_default_message
+  def test_generate_message_wrong_length_with_default_message_plural
     assert_equal "is the wrong length (should be 10 characters)", @person.errors.generate_message(:title, :wrong_length, count: 10)
+  end
+
+  def test_generate_message_wrong_length_with_default_message_singular
+    assert_equal "is the wrong length (should be 1 character)", @person.errors.generate_message(:title, :wrong_length, count: 1)
   end
 
   def test_generate_message_wrong_length_with_custom_message

@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'minitest/mock'
 require 'rails/commands/dbconsole'
 
 class Rails::DBConsoleTest < ActiveSupport::TestCase
@@ -26,20 +27,21 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
         "timeout"=> "3000"
       }
     }
-    app_db_config(config_sample)
-    assert_equal Rails::DBConsole.new.config, config_sample["test"]
+    app_db_config(config_sample) do
+      assert_equal config_sample["test"], Rails::DBConsole.new.config
+    end
   end
 
   def test_config_with_no_db_config
-    app_db_config(nil)
-    assert_raise(ActiveRecord::AdapterNotSpecified) {
-      Rails::DBConsole.new.config
-    }
+    app_db_config(nil) do
+      assert_raise(ActiveRecord::AdapterNotSpecified) {
+        Rails::DBConsole.new.config
+      }
+    end
   end
 
   def test_config_with_database_url_only
     ENV['DATABASE_URL'] = 'postgresql://foo:bar@localhost:9000/foo_test?pool=5&timeout=3000'
-    app_db_config(nil)
     expected = {
       "adapter"  => "postgresql",
       "host"     => "localhost",
@@ -50,7 +52,10 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
       "pool"     => "5",
       "timeout"  => "3000"
     }.sort
-    assert_equal expected, Rails::DBConsole.new.config.sort
+
+    app_db_config(nil) do
+      assert_equal expected, Rails::DBConsole.new.config.sort
+    end
   end
 
   def test_config_choose_database_url_if_exists
@@ -68,68 +73,77 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
         "timeout"  => "3000"
       }
     }
-    app_db_config(sample_config)
-    assert_equal host, Rails::DBConsole.new.config["host"]
+    app_db_config(sample_config) do
+      assert_equal host, Rails::DBConsole.new.config["host"]
+    end
   end
 
   def test_env
-    assert_equal Rails::DBConsole.new.environment, "test"
+    assert_equal "test", Rails::DBConsole.new.environment
 
     ENV['RAILS_ENV'] = nil
     ENV['RACK_ENV'] = nil
 
-    Rails.stubs(:respond_to?).with(:env).returns(false)
-    assert_equal Rails::DBConsole.new.environment, "development"
+    Rails.stub(:respond_to?, false) do
+      assert_equal "development", Rails::DBConsole.new.environment
 
-    ENV['RACK_ENV'] = "rack_env"
-    assert_equal Rails::DBConsole.new.environment, "rack_env"
+      ENV['RACK_ENV'] = "rack_env"
+      assert_equal "rack_env", Rails::DBConsole.new.environment
 
-    ENV['RAILS_ENV'] = "rails_env"
-    assert_equal Rails::DBConsole.new.environment, "rails_env"
+      ENV['RAILS_ENV'] = "rails_env"
+      assert_equal "rails_env", Rails::DBConsole.new.environment
+    end
   ensure
     ENV['RAILS_ENV'] = "test"
+    ENV['RACK_ENV'] = nil
   end
 
   def test_rails_env_is_development_when_argument_is_dev
-    Rails::DBConsole.stubs(:available_environments).returns(['development', 'test'])
-    options = Rails::DBConsole.new.send(:parse_arguments, ['dev'])
-    assert_match('development', options[:environment])
+    dbconsole = Rails::DBConsole.new
+
+    dbconsole.stub(:available_environments, ['development', 'test']) do
+      options = dbconsole.send(:parse_arguments, ['dev'])
+      assert_match('development', options[:environment])
+    end
   end
 
   def test_rails_env_is_dev_when_argument_is_dev_and_dev_env_is_present
-    Rails::DBConsole.stubs(:available_environments).returns(['dev'])
-    options = Rails::DBConsole.new.send(:parse_arguments, ['dev'])
-    assert_match('dev', options[:environment])
+    dbconsole = Rails::DBConsole.new
+
+    dbconsole.stub(:available_environments, ['dev']) do
+      options = dbconsole.send(:parse_arguments, ['dev'])
+      assert_match('dev', options[:environment])
+    end
   end
 
   def test_mysql
-    dbconsole.expects(:find_cmd_and_exec).with(%w[mysql mysql5], 'db')
     start(adapter: 'mysql', database: 'db')
     assert !aborted
+    assert_equal [%w[mysql mysql5], 'db'], dbconsole.find_cmd_and_exec_args
   end
 
   def test_mysql_full
-    dbconsole.expects(:find_cmd_and_exec).with(%w[mysql mysql5], '--host=locahost', '--port=1234', '--socket=socket', '--user=user', '--default-character-set=UTF-8', '-p', 'db')
     start(adapter: 'mysql', database: 'db', host: 'locahost', port: 1234, socket: 'socket', username: 'user', password: 'qwerty', encoding: 'UTF-8')
     assert !aborted
+    assert_equal [%w[mysql mysql5], '--host=locahost', '--port=1234', '--socket=socket', '--user=user', '--default-character-set=UTF-8', '-p', 'db'], dbconsole.find_cmd_and_exec_args
   end
 
   def test_mysql_include_password
-    dbconsole.expects(:find_cmd_and_exec).with(%w[mysql mysql5], '--user=user', '--password=qwerty', 'db')
     start({adapter: 'mysql', database: 'db', username: 'user', password: 'qwerty'}, ['-p'])
     assert !aborted
+    assert_equal [%w[mysql mysql5], '--user=user', '--password=qwerty', 'db'], dbconsole.find_cmd_and_exec_args
   end
 
   def test_postgresql
-    dbconsole.expects(:find_cmd_and_exec).with('psql', 'db')
     start(adapter: 'postgresql', database: 'db')
     assert !aborted
+    assert_equal ['psql', 'db'], dbconsole.find_cmd_and_exec_args
   end
 
   def test_postgresql_full
-    dbconsole.expects(:find_cmd_and_exec).with('psql', 'db')
     start(adapter: 'postgresql', database: 'db', username: 'user', password: 'q1w2e3', host: 'host', port: 5432)
     assert !aborted
+    assert_equal ['psql', 'db'], dbconsole.find_cmd_and_exec_args
     assert_equal 'user', ENV['PGUSER']
     assert_equal 'host', ENV['PGHOST']
     assert_equal '5432', ENV['PGPORT']
@@ -137,60 +151,60 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
   end
 
   def test_postgresql_include_password
-    dbconsole.expects(:find_cmd_and_exec).with('psql', 'db')
     start({adapter: 'postgresql', database: 'db', username: 'user', password: 'q1w2e3'}, ['-p'])
     assert !aborted
+    assert_equal ['psql', 'db'], dbconsole.find_cmd_and_exec_args
     assert_equal 'user', ENV['PGUSER']
     assert_equal 'q1w2e3', ENV['PGPASSWORD']
   end
 
   def test_sqlite
-    dbconsole.expects(:find_cmd_and_exec).with('sqlite', 'db')
     start(adapter: 'sqlite', database: 'db')
     assert !aborted
+    assert_equal ['sqlite', 'db'], dbconsole.find_cmd_and_exec_args
   end
 
   def test_sqlite3
-    dbconsole.expects(:find_cmd_and_exec).with('sqlite3', Rails.root.join('db.sqlite3').to_s)
     start(adapter: 'sqlite3', database: 'db.sqlite3')
     assert !aborted
+    assert_equal ['sqlite3', Rails.root.join('db.sqlite3').to_s], dbconsole.find_cmd_and_exec_args
   end
 
   def test_sqlite3_mode
-    dbconsole.expects(:find_cmd_and_exec).with('sqlite3', '-html', Rails.root.join('db.sqlite3').to_s)
     start({adapter: 'sqlite3', database: 'db.sqlite3'}, ['--mode', 'html'])
     assert !aborted
+    assert_equal ['sqlite3', '-html', Rails.root.join('db.sqlite3').to_s], dbconsole.find_cmd_and_exec_args
   end
 
   def test_sqlite3_header
-    dbconsole.expects(:find_cmd_and_exec).with('sqlite3', '-header', Rails.root.join('db.sqlite3').to_s)
     start({adapter: 'sqlite3', database: 'db.sqlite3'}, ['--header'])
+    assert_equal ['sqlite3', '-header', Rails.root.join('db.sqlite3').to_s], dbconsole.find_cmd_and_exec_args
   end
 
   def test_sqlite3_db_absolute_path
-    dbconsole.expects(:find_cmd_and_exec).with('sqlite3', '/tmp/db.sqlite3')
     start(adapter: 'sqlite3', database: '/tmp/db.sqlite3')
     assert !aborted
+    assert_equal ['sqlite3', '/tmp/db.sqlite3'], dbconsole.find_cmd_and_exec_args
   end
 
   def test_sqlite3_db_without_defined_rails_root
-    Rails.stubs(:respond_to?)
-    Rails.expects(:respond_to?).with(:root).once.returns(false)
-    dbconsole.expects(:find_cmd_and_exec).with('sqlite3', Rails.root.join('../config/db.sqlite3').to_s)
-    start(adapter: 'sqlite3', database: 'config/db.sqlite3')
-    assert !aborted
+    Rails.stub(:respond_to?, false) do
+      start(adapter: 'sqlite3', database: 'config/db.sqlite3')
+      assert !aborted
+      assert_equal ['sqlite3', Rails.root.join('../config/db.sqlite3').to_s], dbconsole.find_cmd_and_exec_args
+    end
   end
 
   def test_oracle
-    dbconsole.expects(:find_cmd_and_exec).with('sqlplus', 'user@db')
     start(adapter: 'oracle', database: 'db', username: 'user', password: 'secret')
     assert !aborted
+    assert_equal ['sqlplus', 'user@db'], dbconsole.find_cmd_and_exec_args
   end
 
   def test_oracle_include_password
-    dbconsole.expects(:find_cmd_and_exec).with('sqlplus', 'user/secret@db')
     start({adapter: 'oracle', database: 'db', username: 'user', password: 'secret'}, ['-p'])
     assert !aborted
+    assert_equal ['sqlplus', 'user/secret@db'], dbconsole.find_cmd_and_exec_args
   end
 
   def test_unknown_command_line_client
@@ -223,16 +237,27 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
   private
 
   def app_db_config(results)
-    Rails.application.config.stubs(:database_configuration).returns(results || {})
+    Rails.application.config.stub(:database_configuration, results || {}) do
+      yield
+    end
   end
 
   def dbconsole
-    @dbconsole ||= Rails::DBConsole.new(nil)
+    @dbconsole ||= Class.new(Rails::DBConsole) do
+      attr_reader :find_cmd_and_exec_args
+
+      def find_cmd_and_exec(*args)
+        @find_cmd_and_exec_args = args
+      end
+    end.new(nil)
   end
 
   def start(config = {}, argv = [])
-    dbconsole.stubs(config: config.stringify_keys, arguments: argv)
-    capture_abort { dbconsole.start }
+    dbconsole.stub(:config, config.stringify_keys) do
+      dbconsole.stub(:arguments, argv) do
+        capture_abort { dbconsole.start }
+      end
+    end
   end
 
   def capture_abort

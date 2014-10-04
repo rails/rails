@@ -10,7 +10,7 @@ class TestDisconnectedAdapter < ActiveRecord::TestCase
     @connection = ActiveRecord::Base.connection
   end
 
-  def teardown
+  teardown do
     return if in_memory_db?
     spec = ActiveRecord::Base.connection_config
     ActiveRecord::Base.establish_connection(spec)

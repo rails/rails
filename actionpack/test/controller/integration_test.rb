@@ -1,6 +1,6 @@
 require 'abstract_unit'
 require 'controller/fake_controllers'
-require 'action_view/vendor/html-scanner'
+require 'rails/engine'
 
 class SessionTest < ActiveSupport::TestCase
   StubApp = lambda { |env|
@@ -292,7 +292,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       assert_equal({}, cookies.to_hash)
       assert_equal "OK", body
       assert_equal "OK", response.body
-      assert_kind_of HTML::Document, html_document
+      assert_kind_of Nokogiri::HTML::DocumentFragment, html_document
       assert_equal 1, request_count
     end
   end
@@ -308,7 +308,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       assert_equal({}, cookies.to_hash)
       assert_equal "Created", body
       assert_equal "Created", response.body
-      assert_kind_of HTML::Document, html_document
+      assert_kind_of Nokogiri::HTML::DocumentFragment, html_document
       assert_equal 1, request_count
     end
   end
@@ -368,12 +368,16 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       assert_response :redirect
       assert_response :found
       assert_equal "<html><body>You are being <a href=\"http://www.example.com/get\">redirected</a>.</body></html>", response.body
-      assert_kind_of HTML::Document, html_document
+      assert_kind_of Nokogiri::HTML::DocumentFragment, html_document
       assert_equal 1, request_count
 
       follow_redirect!
       assert_response :success
       assert_equal "/get", path
+
+      get '/moved'
+      assert_response :redirect
+      assert_redirected_to '/method'
     end
   end
 
@@ -511,6 +515,8 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
         end
 
         set.draw do
+          get 'moved' => redirect('/method')
+
           match ':action', :to => controller, :via => [:get, :post], :as => :action
           get 'get/:action', :to => controller, :as => :get_action
         end
@@ -589,7 +595,7 @@ class ApplicationIntegrationTest < ActionDispatch::IntegrationTest
     @routes ||= ActionDispatch::Routing::RouteSet.new
   end
 
-  class MountedApp
+  class MountedApp < Rails::Engine
     def self.routes
       @routes ||= ActionDispatch::Routing::RouteSet.new
     end
@@ -767,5 +773,36 @@ class UrlOptionsIntegrationTest < ActionDispatch::IntegrationTest
     get "/foo/1"
     assert_response :success
     assert_equal "/foo/1/edit", url_for(:action => 'edit', :only_path => true)
+  end
+end
+
+class HeadWithStatusActionIntegrationTest < ActionDispatch::IntegrationTest
+  class FooController < ActionController::Base
+    def status
+      head :ok
+    end
+  end
+
+  def self.routes
+    @routes ||= ActionDispatch::Routing::RouteSet.new
+  end
+
+  def self.call(env)
+    routes.call(env)
+  end
+
+  def app
+    self.class
+  end
+
+  routes.draw do
+    get "/foo/status" => 'head_with_status_action_integration_test/foo#status'
+  end
+
+  test "get /foo/status with head result does not cause stack overflow error" do
+    assert_nothing_raised do
+      get '/foo/status'
+    end
+    assert_response :ok
   end
 end

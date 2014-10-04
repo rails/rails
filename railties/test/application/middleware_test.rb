@@ -83,7 +83,7 @@ module ApplicationTests
       add_to_config "config.ssl_options = { host: 'example.com' }"
       boot!
 
-      assert_equal Rails.application.middleware.first.args, [{host: 'example.com'}]
+      assert_equal [{host: 'example.com'}], Rails.application.middleware.first.args
     end
 
     test "removing Active Record omits its middleware" do
@@ -94,13 +94,20 @@ module ApplicationTests
       assert !middleware.include?("ActiveRecord::Migration::CheckPending")
     end
 
-    test "removes lock if cache classes is set" do
+    test "includes lock if cache_classes is set but eager_load is not" do
       add_to_config "config.cache_classes = true"
+      boot!
+      assert middleware.include?("Rack::Lock")
+    end
+
+    test "does not include lock if cache_classes is set and so is eager_load" do
+      add_to_config "config.cache_classes = true"
+      add_to_config "config.eager_load = true"
       boot!
       assert !middleware.include?("Rack::Lock")
     end
 
-    test "removes lock if allow concurrency is set" do
+    test "does not include lock if allow_concurrency is set" do
       add_to_config "config.allow_concurrency = true"
       boot!
       assert !middleware.include?("Rack::Lock")
@@ -188,7 +195,7 @@ module ApplicationTests
         end
       end
 
-      etag = "5af83e3196bf99f440f31f2e1a6c9afe".inspect
+      etag = "W/" + "5af83e3196bf99f440f31f2e1a6c9afe".inspect
 
       get "/"
       assert_equal 200, last_response.status

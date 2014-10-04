@@ -20,27 +20,20 @@ module ActiveRecord
       ConnectionAdapters::Mysql2Adapter.new(client, logger, options, config)
     rescue Mysql2::Error => error
       if error.message.include?("Unknown database")
-        raise ActiveRecord::NoDatabaseError.new(error.message)
+        raise ActiveRecord::NoDatabaseError.new(error.message, error)
       else
-        raise error
+        raise
       end
     end
   end
 
   module ConnectionAdapters
     class Mysql2Adapter < AbstractMysqlAdapter
-
-      class Column < AbstractMysqlAdapter::Column # :nodoc:
-        def adapter
-          Mysql2Adapter
-        end
-      end
-
-      ADAPTER_NAME = 'Mysql2'
+      ADAPTER_NAME = 'Mysql2'.freeze
 
       def initialize(connection, logger, connection_options, config)
         super
-        @visitor = BindSubstitution.new self
+        @prepared_statements = false
         configure_connection
       end
 
@@ -69,10 +62,6 @@ module ActiveRecord
         end
       end
 
-      def new_column(field, default, type, null, collation, extra = "") # :nodoc:
-        Column.new(field, default, type, null, collation, strict_mode?, extra)
-      end
-
       def error_number(exception)
         exception.error_number if exception.respond_to?(:error_number)
       end
@@ -81,6 +70,14 @@ module ActiveRecord
 
       def quote_string(string)
         @connection.escape(string)
+      end
+
+      def quoted_date(value)
+        if value.acts_like?(:time) && value.respond_to?(:usec)
+          "#{super}.#{sprintf("%06d", value.usec)}"
+        else
+          super
+        end
       end
 
       # CONNECTION MANAGEMENT ====================================
@@ -272,8 +269,8 @@ module ActiveRecord
         super
       end
 
-      def version
-        @version ||= @connection.info[:version].scan(/^(\d+)\.(\d+)\.(\d+)/).flatten.map { |v| v.to_i }
+      def full_version
+        @full_version ||= @connection.info[:version]
       end
 
       def set_field_encoding field_name

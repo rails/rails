@@ -3,19 +3,12 @@ require 'abstract_unit'
 require 'multibyte_test_helpers'
 require 'active_support/core_ext/string/multibyte'
 
-class String
-  def __method_for_multibyte_testing_with_integer_result; 1; end
-  def __method_for_multibyte_testing; 'result'; end
-  def __method_for_multibyte_testing!; 'result'; end
-  def __method_for_multibyte_testing_that_returns_nil!; end
-end
-
 class MultibyteCharsTest < ActiveSupport::TestCase
   include MultibyteTestHelpers
 
   def setup
     @proxy_class = ActiveSupport::Multibyte::Chars
-    @chars = @proxy_class.new UNICODE_STRING
+    @chars = @proxy_class.new UNICODE_STRING.dup
   end
 
   def test_wraps_the_original_string
@@ -24,6 +17,8 @@ class MultibyteCharsTest < ActiveSupport::TestCase
   end
 
   def test_should_allow_method_calls_to_string
+    @chars.wrapped_string.singleton_class.class_eval { def __method_for_multibyte_testing; 'result'; end }
+
     assert_nothing_raised do
       @chars.__method_for_multibyte_testing
     end
@@ -33,28 +28,35 @@ class MultibyteCharsTest < ActiveSupport::TestCase
   end
 
   def test_forwarded_method_calls_should_return_new_chars_instance
+    @chars.wrapped_string.singleton_class.class_eval { def __method_for_multibyte_testing; 'result'; end }
+
     assert_kind_of @proxy_class, @chars.__method_for_multibyte_testing
     assert_not_equal @chars.object_id, @chars.__method_for_multibyte_testing.object_id
   end
 
   def test_forwarded_bang_method_calls_should_return_the_original_chars_instance_when_result_is_not_nil
+    @chars.wrapped_string.singleton_class.class_eval { def __method_for_multibyte_testing!; 'result'; end }
+
     assert_kind_of @proxy_class, @chars.__method_for_multibyte_testing!
     assert_equal @chars.object_id, @chars.__method_for_multibyte_testing!.object_id
   end
 
   def test_forwarded_bang_method_calls_should_return_nil_when_result_is_nil
+    @chars.wrapped_string.singleton_class.class_eval { def __method_for_multibyte_testing_that_returns_nil!; end }
+
     assert_nil @chars.__method_for_multibyte_testing_that_returns_nil!
   end
 
   def test_methods_are_forwarded_to_wrapped_string_for_byte_strings
-    original_encoding = BYTE_STRING.encoding
     assert_equal BYTE_STRING.length, BYTE_STRING.mb_chars.length
-  ensure
-    BYTE_STRING.force_encoding(original_encoding)
   end
 
   def test_forwarded_method_with_non_string_result_should_be_returned_vertabim
-    assert_equal ''.__method_for_multibyte_testing_with_integer_result, @chars.__method_for_multibyte_testing_with_integer_result
+    str = ''
+    str.singleton_class.class_eval { def __method_for_multibyte_testing_with_integer_result; 1; end }
+    @chars.wrapped_string.singleton_class.class_eval { def __method_for_multibyte_testing_with_integer_result; 1; end }
+
+    assert_equal str.__method_for_multibyte_testing_with_integer_result, @chars.__method_for_multibyte_testing_with_integer_result
   end
 
   def test_should_concatenate
@@ -103,7 +105,6 @@ class MultibyteCharsUTF8BehaviourTest < ActiveSupport::TestCase
     @chars = UNICODE_STRING.dup.mb_chars
     # Ruby 1.9 only supports basic whitespace
     @whitespace = "\n\t "
-    @byte_order_mark = [65279].pack('U')
   end
 
   def test_split_should_return_an_array_of_chars_instances

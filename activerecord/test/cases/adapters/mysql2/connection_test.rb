@@ -1,15 +1,20 @@
 require "cases/helper"
+require 'support/connection_helper'
 
 class MysqlConnectionTest < ActiveRecord::TestCase
+  include ConnectionHelper
+
+  fixtures :comments
+
   def setup
     super
     @subscriber = SQLSubscriber.new
-    ActiveSupport::Notifications.subscribe('sql.active_record', @subscriber)
+    @subscription = ActiveSupport::Notifications.subscribe('sql.active_record', @subscriber)
     @connection = ActiveRecord::Base.connection
   end
 
   def teardown
-    ActiveSupport::Notifications.unsubscribe(@subscriber)
+    ActiveSupport::Notifications.unsubscribe(@subscription)
     super
   end
 
@@ -19,6 +24,17 @@ class MysqlConnectionTest < ActiveRecord::TestCase
       connection = ActiveRecord::Base.mysql2_connection(configuration)
       connection.exec_query('drop table if exists ex')
     end
+  end
+
+  def test_truncate
+    rows = ActiveRecord::Base.connection.exec_query("select count(*) from comments")
+    count = rows.first.values.first
+    assert_operator count, :>, 0
+
+    ActiveRecord::Base.connection.truncate("comments")
+    rows = ActiveRecord::Base.connection.exec_query("select count(*) from comments")
+    count = rows.first.values.first
+    assert_equal 0, count
   end
 
   def test_no_automatic_reconnection_after_timeout
@@ -49,6 +65,11 @@ class MysqlConnectionTest < ActiveRecord::TestCase
     assert @connection.active?
   end
 
+  def test_mysql_connection_collation_is_configured
+    assert_equal 'utf8_unicode_ci', @connection.show_variable('collation_connection')
+    assert_equal 'utf8_general_ci', ARUnit2Model.connection.show_variable('collation_connection')
+  end
+
   # TODO: Below is a straight up copy/paste from mysql/connection_test.rb
   # I'm not sure what the correct way is to share these tests between
   # adapters in minitest.
@@ -57,12 +78,11 @@ class MysqlConnectionTest < ActiveRecord::TestCase
     assert_equal [["STRICT_ALL_TABLES"]], result.rows
   end
 
-  def test_mysql_strict_mode_disabled_dont_override_global_sql_mode
+  def test_mysql_strict_mode_disabled
     run_without_connection do |orig_connection|
       ActiveRecord::Base.establish_connection(orig_connection.merge({:strict => false}))
-      global_sql_mode = ActiveRecord::Base.connection.exec_query "SELECT @@GLOBAL.sql_mode"
-      session_sql_mode = ActiveRecord::Base.connection.exec_query "SELECT @@SESSION.sql_mode"
-      assert_equal global_sql_mode.rows, session_sql_mode.rows
+      result = ActiveRecord::Base.connection.exec_query "SELECT @@SESSION.sql_mode"
+      assert_equal [['']], result.rows
     end
   end
 
@@ -71,6 +91,14 @@ class MysqlConnectionTest < ActiveRecord::TestCase
       ActiveRecord::Base.establish_connection(orig_connection.deep_merge({:variables => {:default_week_format => 3}}))
       session_mode = ActiveRecord::Base.connection.exec_query "SELECT @@SESSION.DEFAULT_WEEK_FORMAT"
       assert_equal 3, session_mode.rows.first.first.to_i
+    end
+  end
+
+  def test_mysql_sql_mode_variable_overrides_strict_mode
+    run_without_connection do |orig_connection|
+      ActiveRecord::Base.establish_connection(orig_connection.deep_merge(variables: { 'sql_mode' => 'ansi' }))
+      result = ActiveRecord::Base.connection.exec_query 'SELECT @@SESSION.sql_mode'
+      assert_not_equal [['STRICT_ALL_TABLES']], result.rows
     end
   end
 
@@ -97,14 +125,10 @@ class MysqlConnectionTest < ActiveRecord::TestCase
     @connection.execute "DROP TABLE `bar_baz`"
   end
 
-  private
-
-  def run_without_connection
-    original_connection = ActiveRecord::Base.remove_connection
-    begin
-      yield original_connection
-    ensure
-      ActiveRecord::Base.establish_connection(original_connection)
+  if mysql_56?
+    def test_quote_time_usec
+      assert_equal "'1970-01-01 00:00:00.000000'", @connection.quote(Time.at(0))
+      assert_equal "'1970-01-01 00:00:00.000000'", @connection.quote(Time.at(0).to_datetime)
     end
   end
 end

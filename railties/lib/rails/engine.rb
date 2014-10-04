@@ -371,7 +371,7 @@ module Rails
       end
 
       def isolate_namespace(mod)
-        engine_name(generate_railtie_name(mod))
+        engine_name(generate_railtie_name(mod.name))
 
         self.routes.default_scope = { module: ActiveSupport::Inflector.underscore(mod.name) }
         self.isolated = true
@@ -395,7 +395,7 @@ module Rails
             end
 
             unless mod.respond_to?(:railtie_routes_url_helpers)
-              define_method(:railtie_routes_url_helpers) { railtie.routes.url_helpers }
+              define_method(:railtie_routes_url_helpers) {|include_path_helpers = true| railtie.routes.url_helpers(include_path_helpers) }
             end
           end
         end
@@ -429,7 +429,6 @@ module Rails
     # Load console and invoke the registered hooks.
     # Check <tt>Rails::Railtie.console</tt> for more info.
     def load_console(app=self)
-      require "pp"
       require "rails/console/app"
       require "rails/console/helpers"
       run_console_blocks(app)
@@ -510,7 +509,7 @@ module Rails
     def call(env)
       env.merge!(env_config)
       if env['SCRIPT_NAME']
-        env.merge! "ROUTES_#{routes.object_id}_SCRIPT_NAME" => env['SCRIPT_NAME'].dup
+        env["ROUTES_#{routes.object_id}_SCRIPT_NAME"] = env['SCRIPT_NAME'].dup
       end
       app.call(env)
     end

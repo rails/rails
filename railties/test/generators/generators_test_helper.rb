@@ -7,7 +7,7 @@ module Rails
   class << self
     remove_possible_method :root
     def root
-      @root ||= File.expand_path(File.join(File.dirname(__FILE__), '..', 'fixtures'))
+      @root ||= Pathname.new(File.expand_path('../../fixtures', __FILE__))
     end
   end
 end
@@ -40,5 +40,13 @@ module GeneratorsTestHelper
     destination = File.join(destination_root, "config")
     FileUtils.mkdir_p(destination)
     FileUtils.cp routes, destination
+  end
+
+  def quietly
+    silence_stream(STDOUT) do
+      silence_stream(STDERR) do
+        yield
+      end
+    end
   end
 end

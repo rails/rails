@@ -1,3 +1,5 @@
+require 'active_support/core_ext/object/deep_dup'
+
 module ActiveRecord
   # Declare an enum attribute where the values map to integers in the database,
   # but can be queried by name. Example:
@@ -25,8 +27,10 @@ module ActiveRecord
   #   conversation.status      # => nil
   #
   # Scopes based on the allowed values of the enum field will be provided
-  # as well. With the above example, it will create an +active+ and +archived+
-  # scope.
+  # as well. With the above example:
+  #
+  #   Conversation.active
+  #   Conversation.archived
   #
   # You can set the default value from the database declaration, like:
   #
@@ -65,10 +69,14 @@ module ActiveRecord
   #
   # Where conditions on an enum attribute must use the ordinal value of an enum.
   module Enum
-    DEFINED_ENUMS = {} # :nodoc:
+    def self.extended(base) # :nodoc:
+      base.class_attribute(:defined_enums)
+      base.defined_enums = {}
+    end
 
-    def enum_mapping_for(attr_name) # :nodoc:
-      DEFINED_ENUMS[attr_name.to_s]
+    def inherited(base) # :nodoc:
+      base.defined_enums = defined_enums.deep_dup
+      super
     end
 
     def enum(definitions)
@@ -122,9 +130,8 @@ module ActiveRecord
             klass.send(:detect_enum_conflict!, name, value, true)
             klass.scope value, -> { klass.where name => i }
           end
-
-          DEFINED_ENUMS[name.to_s] = enum_values
         end
+        defined_enums[name.to_s] = enum_values
       end
     end
 
@@ -133,19 +140,16 @@ module ActiveRecord
         @_enum_methods_module ||= begin
           mod = Module.new do
             private
-              def save_changed_attribute(attr_name, value)
-                if (mapping = self.class.enum_mapping_for(attr_name))
+              def save_changed_attribute(attr_name, old)
+                if (mapping = self.class.defined_enums[attr_name.to_s])
+                  value = read_attribute(attr_name)
                   if attribute_changed?(attr_name)
-                    old = changed_attributes[attr_name]
-
                     if mapping[old] == value
-                      changed_attributes.delete(attr_name)
+                      clear_attribute_changes([attr_name])
                     end
                   else
-                    old = clone_attribute_value(:read_attribute, attr_name)
-
                     if old != value
-                      changed_attributes[attr_name] = mapping.key old
+                      set_attribute_was(attr_name, mapping.key(old))
                     end
                   end
                 else

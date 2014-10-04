@@ -45,6 +45,20 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal clubs(:moustache_club), new_member.club
   end
 
+  def test_creating_association_sets_both_parent_ids_for_new
+    member = Member.new(name: 'Sean Griffin')
+    club = Club.new(name: 'Da Club')
+
+    member.club = club
+
+    member.save!
+
+    assert member.id
+    assert club.id
+    assert_equal member.id, member.current_membership.member_id
+    assert_equal club.id, member.current_membership.club_id
+  end
+
   def test_replace_target_record
     new_club = Club.create(:name => "Marx Bros")
     @member.club = new_club

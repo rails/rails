@@ -1,72 +1,61 @@
-*   `#to_param` returns `nil` if `#to_key` returns `nil`. Fixes #11399.
+*   Passwords with spaces only allowed in `ActiveModel::SecurePassword`.
 
-    *Yves Senn*
+    Presence validation can be used to restore old behavior.
 
-*   Ability to specify multiple contexts when defining a validation.
+    *Yevhene Shemet*
 
-    Example:
+*   Validate options passed to `ActiveModel::Validations.validate`.
 
-        class Person
-          include ActiveModel::Validations
+    Preventing, in many cases, the simple mistake of using `validate` instead of `validates`.
 
-          attr_reader :name
-          validates_presence_of :name, on: [:verify, :approve]
-        end
+    *Sonny Michaud*
 
-        person = Person.new
-        person.valid?                           # => true
-        person.valid?(:verify)                  # => false
-        person.errors.full_messages_for(:name)  # => ["Name can't be blank"]
-        person.valid?(:approve)                 # => false
-        person.errors.full_messages_for(:name)  # => ["Name can't be blank"]
+*   Deprecate `reset_#{attribute}` in favor of `restore_#{attribute}`.
 
-    *Vince Puzzella*
+    These methods may cause confusion with the `reset_changes`, which has
+    different behaviour.
 
-*   `attribute_changed?` now accepts a hash to check if the attribute was
-    changed `:from` and/or `:to` a given value.
+    *Rafael Mendonça França*
 
-    Example:
+*   Deprecate `ActiveModel::Dirty#reset_changes` in favor of `#clear_changes_information`.
 
-        model.name_changed?(from: "Pete", to: "Ringo")
+    Method's name is causing confusion with the `reset_#{attribute}` methods.
+    While `reset_name` sets the value of the name attribute to previous value
+    `reset_changes` only discards the changes.
 
-    *Tejas Dinkar*
+    *Rafael Mendonça França*
 
-*   Fix `has_secure_password` to honor bcrypt-ruby's cost attribute.
+*   Added `restore_attributes` method to `ActiveModel::Dirty` API which restores
+    the value of changed attributes to previous value.
 
-    *T.J. Schuck*
+    *Igor G.*
 
-*   Updated the `ActiveModel::Dirty#changed_attributes` method to be indifferent between using
-    symbols and strings as keys.
+*   Allow proc and symbol as values for `only_integer` of `NumericalityValidator`
 
-    *William Myers*
+    *Robin Mehner*
 
-*   Added new API methods `reset_changes` and `changes_applied` to `ActiveModel::Dirty`
-    that control changes state. Previsously you needed to update internal
-    instance variables, but now API methods are available.
+*   `has_secure_password` now verifies that the given password is less than 72
+    characters if validations are enabled.
 
-    *Bogdan Gusiev*
+    Fixes #14591.
 
-*   Fix `has_secure_password` not to trigger `password_confirmation` validations
-    if no `password_confirmation` is set.
+    *Akshay Vishnoi*
 
-    *Vladimir Kiselev*
+*   Remove deprecated `Validator#setup` without replacement.
 
-*   `inclusion` / `exclusion` validations with ranges will only use the faster
-    `Range#cover` for numerical ranges, and the more accurate `Range#include?`
-    for non-numerical ones.
+    See #10716.
 
-    Fixes range validations like `:a..:f` that used to pass with values like `:be`.
-    Fixes #10593.
+    *Kuldeep Aggarwal*
 
-    *Charles Bergeron*
+*   Add plural and singular form for length validator's default messages.
 
-*   Fix regression in `has_secure_password`. When a password is set, but a
-    confirmation is an empty string, it would incorrectly save.
+    *Abd ar-Rahman Hamid*
 
-    *Steve Klabnik* and *Phillip Calvin*
+*   Introduce `validate` as an alias for `valid?`.
 
-*   Deprecate `Validator#setup`. This should be done manually now in the validator's constructor.
+    This is more intuitive when you want to run validations but don't care about
+    the return value.
 
-    *Nick Sutterer*
+    *Henrik Nyh*
 
-Please check [4-0-stable](https://github.com/rails/rails/blob/4-0-stable/activemodel/CHANGELOG.md) for previous changes.
+Please check [4-1-stable](https://github.com/rails/rails/blob/4-1-stable/activemodel/CHANGELOG.md) for previous changes.

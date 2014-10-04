@@ -3,18 +3,6 @@ require 'models/contact'
 require 'active_support/core_ext/object/instance_variables'
 require 'ostruct'
 
-class Contact
-  include ActiveModel::Serializers::Xml
-
-  attr_accessor :address, :friends, :contact
-
-  remove_method :attributes if method_defined?(:attributes)
-
-  def attributes
-    instance_values.except("address", "friends", "contact")
-  end
-end
-
 module Admin
   class Contact < ::Contact
   end
@@ -57,48 +45,48 @@ class XmlSerializationTest < ActiveModel::TestCase
   end
 
   test "should serialize default root" do
-    @xml = @contact.to_xml
-    assert_match %r{^<contact>},  @xml
-    assert_match %r{</contact>$}, @xml
+    xml = @contact.to_xml
+    assert_match %r{^<contact>},  xml
+    assert_match %r{</contact>$}, xml
   end
 
   test "should serialize namespaced root" do
-    @xml = Admin::Contact.new(@contact.attributes).to_xml
-    assert_match %r{^<contact>},  @xml
-    assert_match %r{</contact>$}, @xml
+    xml = Admin::Contact.new(@contact.attributes).to_xml
+    assert_match %r{^<contact>},  xml
+    assert_match %r{</contact>$}, xml
   end
 
   test "should serialize default root with namespace" do
-    @xml = @contact.to_xml namespace: "http://xml.rubyonrails.org/contact"
-    assert_match %r{^<contact xmlns="http://xml.rubyonrails.org/contact">}, @xml
-    assert_match %r{</contact>$}, @xml
+    xml = @contact.to_xml namespace: "http://xml.rubyonrails.org/contact"
+    assert_match %r{^<contact xmlns="http://xml.rubyonrails.org/contact">}, xml
+    assert_match %r{</contact>$}, xml
   end
 
   test "should serialize custom root" do
-    @xml = @contact.to_xml root: 'xml_contact'
-    assert_match %r{^<xml-contact>},  @xml
-    assert_match %r{</xml-contact>$}, @xml
+    xml = @contact.to_xml root: 'xml_contact'
+    assert_match %r{^<xml-contact>},  xml
+    assert_match %r{</xml-contact>$}, xml
   end
 
   test "should allow undasherized tags" do
-    @xml = @contact.to_xml root: 'xml_contact', dasherize: false
-    assert_match %r{^<xml_contact>},  @xml
-    assert_match %r{</xml_contact>$}, @xml
-    assert_match %r{<created_at},     @xml
+    xml = @contact.to_xml root: 'xml_contact', dasherize: false
+    assert_match %r{^<xml_contact>},  xml
+    assert_match %r{</xml_contact>$}, xml
+    assert_match %r{<created_at},     xml
   end
 
   test "should allow camelized tags" do
-    @xml = @contact.to_xml root: 'xml_contact', camelize: true
-    assert_match %r{^<XmlContact>},  @xml
-    assert_match %r{</XmlContact>$}, @xml
-    assert_match %r{<CreatedAt},     @xml
+    xml = @contact.to_xml root: 'xml_contact', camelize: true
+    assert_match %r{^<XmlContact>},  xml
+    assert_match %r{</XmlContact>$}, xml
+    assert_match %r{<CreatedAt},     xml
   end
 
   test "should allow lower-camelized tags" do
-    @xml = @contact.to_xml root: 'xml_contact', camelize: :lower
-    assert_match %r{^<xmlContact>},  @xml
-    assert_match %r{</xmlContact>$}, @xml
-    assert_match %r{<createdAt},     @xml
+    xml = @contact.to_xml root: 'xml_contact', camelize: :lower
+    assert_match %r{^<xmlContact>},  xml
+    assert_match %r{</xmlContact>$}, xml
+    assert_match %r{<createdAt},     xml
   end
 
   test "should use serializable hash" do
@@ -106,22 +94,22 @@ class XmlSerializationTest < ActiveModel::TestCase
     @contact.name = 'aaron stack'
     @contact.age = 25
 
-    @xml = @contact.to_xml
-    assert_match %r{<name>aaron stack</name>}, @xml
-    assert_match %r{<age type="integer">25</age>}, @xml
-    assert_no_match %r{<awesome>}, @xml
+    xml = @contact.to_xml
+    assert_match %r{<name>aaron stack</name>}, xml
+    assert_match %r{<age type="integer">25</age>}, xml
+    assert_no_match %r{<awesome>}, xml
   end
 
   test "should allow skipped types" do
-    @xml = @contact.to_xml skip_types: true
-    assert_match %r{<age>25</age>}, @xml
+    xml = @contact.to_xml skip_types: true
+    assert_match %r{<age>25</age>}, xml
   end
 
   test "should include yielded additions" do
-    @xml = @contact.to_xml do |xml|
+    xml_output = @contact.to_xml do |xml|
       xml.creator "David"
     end
-    assert_match %r{<creator>David</creator>}, @xml
+    assert_match %r{<creator>David</creator>}, xml_output
   end
 
   test "should serialize string" do
@@ -162,7 +150,7 @@ class XmlSerializationTest < ActiveModel::TestCase
     assert_match %r{<nationality>unknown</nationality>}, xml
   end
 
-  test 'should supply serializable to second proc argument' do
+  test "should supply serializable to second proc argument" do
     proc = Proc.new { |options, record| options[:builder].tag!('name-reverse', record.name.reverse) }
     xml = @contact.to_xml(procs: [ proc ])
     assert_match %r{<name-reverse>kcats noraa</name-reverse>}, xml

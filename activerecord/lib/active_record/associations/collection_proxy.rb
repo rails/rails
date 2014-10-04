@@ -357,7 +357,7 @@ module ActiveRecord
 
       # Deletes all the records from the collection. For +has_many+ associations,
       # the deletion is done according to the strategy specified by the <tt>:dependent</tt>
-      # option. Returns an array with the deleted records.
+      # option.
       #
       # If no <tt>:dependent</tt> option is given, then it will follow the
       # default strategy. The default strategy is <tt>:nullify</tt>. This
@@ -435,11 +435,6 @@ module ActiveRecord
       #   #    ]
       #
       #   person.pets.delete_all
-      #   # => [
-      #   #       #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>,
-      #   #       #<Pet id: 2, name: "Spook", person_id: 1>,
-      #   #       #<Pet id: 3, name: "Choo-Choo", person_id: 1>
-      #   #    ]
       #
       #   Pet.find(1, 2, 3)
       #   # => ActiveRecord::RecordNotFound
@@ -788,7 +783,7 @@ module ActiveRecord
       #   person.pets.count # => 0
       #   person.pets.any?  # => true
       #
-      # You can also pass a block to define criteria. The behavior
+      # You can also pass a +block+ to define criteria. The behavior
       # is the same, it returns true if the collection based on the
       # criteria is not empty.
       #
@@ -822,7 +817,7 @@ module ActiveRecord
       #   person.pets.count # => 2
       #   person.pets.many? # => true
       #
-      # You can also pass a block to define criteria. The
+      # You can also pass a +block+ to define criteria. The
       # behavior is the same, it returns true if the collection
       # based on the criteria has more than one record.
       #
@@ -846,7 +841,7 @@ module ActiveRecord
         @association.many?(&block)
       end
 
-      # Returns +true+ if the given object is present in the collection.
+      # Returns +true+ if the given +record+ is present in the collection.
       #
       #   class Person < ActiveRecord::Base
       #     has_many :pets
@@ -858,6 +853,10 @@ module ActiveRecord
       #   person.pets.include?(Pet.find(21)) # => false
       def include?(record)
         !!@association.include?(record)
+      end
+
+      def arel
+        scope.arel
       end
 
       def proxy_association
@@ -880,7 +879,7 @@ module ActiveRecord
 
       # Equivalent to <tt>Array#==</tt>. Returns +true+ if the two arrays
       # contain the same number of elements and if each element is equal
-      # to the corresponding element in the other array, otherwise returns
+      # to the corresponding element in the +other+ array, otherwise returns
       # +false+.
       #
       #   class Person < ActiveRecord::Base

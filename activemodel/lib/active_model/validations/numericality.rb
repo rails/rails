@@ -30,7 +30,7 @@ module ActiveModel
           return
         end
 
-        if options[:only_integer]
+        if allow_only_integer?(record)
           unless value = parse_raw_value_as_an_integer(raw_value)
             record.errors.add(attr_name, :not_an_integer, filtered_options(raw_value))
             return
@@ -67,13 +67,24 @@ module ActiveModel
       end
 
       def parse_raw_value_as_an_integer(raw_value)
-        raw_value.to_i if raw_value.to_s =~ /\A[+-]?\d+\Z/
+        raw_value.to_i if raw_value.to_s =~ /\A[+-]?\d+\z/
       end
 
       def filtered_options(value)
         filtered = options.except(*RESERVED_OPTIONS)
         filtered[:value] = value
         filtered
+      end
+
+      def allow_only_integer?(record)
+        case options[:only_integer]
+        when Symbol
+          record.send(options[:only_integer])
+        when Proc
+          options[:only_integer].call(record)
+        else
+          options[:only_integer]
+        end
       end
     end
 
@@ -121,6 +132,7 @@ module ActiveModel
       # * <tt>:equal_to</tt>
       # * <tt>:less_than</tt>
       # * <tt>:less_than_or_equal_to</tt>
+      # * <tt>:only_integer</tt>
       #
       # For example:
       #

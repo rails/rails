@@ -205,7 +205,7 @@ module ActiveRecord
       ActiveRecord::Tasks::DatabaseTasks.drop_all
     end
 
-    def test_creates_configurations_with_local_ip
+    def test_drops_configurations_with_local_ip
       @configurations[:development].merge!('host' => '127.0.0.1')
 
       ActiveRecord::Tasks::DatabaseTasks.expects(:drop)
@@ -213,7 +213,7 @@ module ActiveRecord
       ActiveRecord::Tasks::DatabaseTasks.drop_all
     end
 
-    def test_creates_configurations_with_local_host
+    def test_drops_configurations_with_local_host
       @configurations[:development].merge!('host' => 'localhost')
 
       ActiveRecord::Tasks::DatabaseTasks.expects(:drop)
@@ -221,7 +221,7 @@ module ActiveRecord
       ActiveRecord::Tasks::DatabaseTasks.drop_all
     end
 
-    def test_creates_configurations_with_blank_hosts
+    def test_drops_configurations_with_blank_hosts
       @configurations[:development].merge!('host' => nil)
 
       ActiveRecord::Tasks::DatabaseTasks.expects(:drop)
@@ -241,7 +241,7 @@ module ActiveRecord
       ActiveRecord::Base.stubs(:configurations).returns(@configurations)
     end
 
-    def test_creates_current_environment_database
+    def test_drops_current_environment_database
       ActiveRecord::Tasks::DatabaseTasks.expects(:drop).
         with('database' => 'prod-db')
 
@@ -273,6 +273,19 @@ module ActiveRecord
     end
   end
 
+  class DatabaseTasksMigrateTest < ActiveRecord::TestCase
+    def test_migrate_receives_correct_env_vars
+      verbose, version = ENV['VERBOSE'], ENV['VERSION']
+
+      ENV['VERBOSE'] = 'false'
+      ENV['VERSION'] = '4'
+
+      ActiveRecord::Migrator.expects(:migrate).with(ActiveRecord::Migrator.migrations_paths, 4)
+      ActiveRecord::Tasks::DatabaseTasks.migrate
+    ensure
+      ENV['VERBOSE'], ENV['VERSION'] = verbose, version
+    end
+  end
 
   class DatabaseTasksPurgeTest < ActiveRecord::TestCase
     include DatabaseTasksSetupper
@@ -282,6 +295,35 @@ module ActiveRecord
         eval("@#{v}").expects(:purge)
         ActiveRecord::Tasks::DatabaseTasks.purge 'adapter' => k
       end
+    end
+  end
+
+  class DatabaseTasksPurgeCurrentTest < ActiveRecord::TestCase
+    def test_purges_current_environment_database
+      configurations = {
+        'development' => {'database' => 'dev-db'},
+        'test'        => {'database' => 'test-db'},
+        'production'  => {'database' => 'prod-db'}
+      }
+      ActiveRecord::Base.stubs(:configurations).returns(configurations)
+
+      ActiveRecord::Tasks::DatabaseTasks.expects(:purge).
+        with('database' => 'prod-db')
+      ActiveRecord::Base.expects(:establish_connection).with(:production)
+
+      ActiveRecord::Tasks::DatabaseTasks.purge_current('production')
+    end
+  end
+
+  class DatabaseTasksPurgeAllTest < ActiveRecord::TestCase
+    def test_purge_all_local_configurations
+      configurations = {:development => {'database' => 'my-db'}}
+      ActiveRecord::Base.stubs(:configurations).returns(configurations)
+
+      ActiveRecord::Tasks::DatabaseTasks.expects(:purge).
+        with('database' => 'my-db')
+
+      ActiveRecord::Tasks::DatabaseTasks.purge_all
     end
   end
 

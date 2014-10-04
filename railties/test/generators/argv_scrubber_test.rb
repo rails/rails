@@ -16,7 +16,7 @@ module Rails
           output    = nil
           exit_code = nil
           scrubber.extend(Module.new {
-            define_method(:puts) { |str| output = str }
+            define_method(:puts) { |string| output = string }
             define_method(:exit) { |code| exit_code = code }
           })
           scrubber.prepare!

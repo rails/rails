@@ -5,6 +5,7 @@ require 'models/developer'
 require 'models/book'
 require 'models/author'
 require 'models/post'
+require 'models/movie'
 
 class TransactionTest < ActiveRecord::TestCase
   self.use_transactional_fixtures = false
@@ -12,6 +13,11 @@ class TransactionTest < ActiveRecord::TestCase
 
   def setup
     @first, @second = Topic.find(1, 2).sort_by { |t| t.id }
+  end
+
+  def test_persisted_in_a_model_with_custom_primary_key_after_failed_save
+    movie = Movie.create
+    assert !movie.persisted?
   end
 
   def test_raise_after_destroy
@@ -74,6 +80,30 @@ class TransactionTest < ActiveRecord::TestCase
     end
   end
 
+  def test_number_of_transactions_in_commit
+    num = nil
+
+    Topic.connection.class_eval do
+      alias :real_commit_db_transaction :commit_db_transaction
+      define_method(:commit_db_transaction) do
+        num = transaction_manager.open_transactions
+        real_commit_db_transaction
+      end
+    end
+
+    Topic.transaction do
+      @first.approved  = true
+      @first.save!
+    end
+
+    assert_equal 0, num
+  ensure
+    Topic.connection.class_eval do
+      remove_method :commit_db_transaction
+      alias :commit_db_transaction :real_commit_db_transaction rescue nil
+    end
+  end
+
   def test_successful_with_instance_method
     @first.transaction do
       @first.approved  = true
@@ -115,6 +145,19 @@ class TransactionTest < ActiveRecord::TestCase
     e = assert_raises(RuntimeError) { @first.save }
     assert_equal "Make the transaction rollback", e.message
     assert !Topic.find(1).approved?
+  end
+
+  def test_rolling_back_in_a_callback_rollbacks_before_save
+    def @first.before_save_for_transaction
+      raise ActiveRecord::Rollback
+    end
+    assert !@first.approved
+
+    Topic.transaction do
+      @first.approved  = true
+      @first.save!
+    end
+    assert !Topic.find(@first.id).approved?, "Should not commit the approved flag"
   end
 
   def test_raising_exception_in_nested_transaction_restore_state_in_save
@@ -405,6 +448,26 @@ class TransactionTest < ActiveRecord::TestCase
     end
   end
 
+  def test_savepoints_name
+    Topic.transaction do
+      assert_nil Topic.connection.current_savepoint_name
+      assert_nil Topic.connection.current_transaction.savepoint_name
+
+      Topic.transaction(requires_new: true) do
+        assert_equal "active_record_1", Topic.connection.current_savepoint_name
+        assert_equal "active_record_1", Topic.connection.current_transaction.savepoint_name
+
+        Topic.transaction(requires_new: true) do
+          assert_equal "active_record_2", Topic.connection.current_savepoint_name
+          assert_equal "active_record_2", Topic.connection.current_transaction.savepoint_name
+        end
+
+        assert_equal "active_record_1", Topic.connection.current_savepoint_name
+        assert_equal "active_record_1", Topic.connection.current_transaction.savepoint_name
+      end
+    end
+  end
+
   def test_rollback_when_commit_raises
     Topic.connection.expects(:begin_db_transaction)
     Topic.connection.expects(:commit_db_transaction).raises('OH NOES')
@@ -427,6 +490,37 @@ class TransactionTest < ActiveRecord::TestCase
     assert !topic.persisted?, 'not persisted'
     assert_nil topic.id
     assert topic.frozen?, 'not frozen'
+  end
+
+  # The behavior of killed threads having a status of "aborting" was changed
+  # in Ruby 2.0, so Thread#kill on 1.9 will prematurely commit the transaction
+  # and there's nothing we can do about it.
+  unless RUBY_VERSION.start_with? '1.9'
+    def test_rollback_when_thread_killed
+      queue = Queue.new
+      thread = Thread.new do
+        Topic.transaction do
+          @first.approved  = true
+          @second.approved = false
+          @first.save
+
+          queue.push nil
+          sleep
+
+          @second.save
+        end
+      end
+
+      queue.pop
+      thread.kill
+      thread.join
+
+      assert @first.approved?, "First should still be changed in the objects"
+      assert !@second.approved?, "Second should still be changed in the objects"
+
+      assert !Topic.find(1).approved?, "First shouldn't have been approved"
+      assert Topic.find(2).approved?, "Second should still be approved"
+    end
   end
 
   def test_restore_active_record_state_for_all_records_in_a_transaction
@@ -507,13 +601,13 @@ class TransactionTest < ActiveRecord::TestCase
 
   def test_transactions_state_from_rollback
     connection = Topic.connection
-    transaction = ActiveRecord::ConnectionAdapters::ClosedTransaction.new(connection).begin
+    transaction = ActiveRecord::ConnectionAdapters::TransactionManager.new(connection).begin_transaction
 
     assert transaction.open?
     assert !transaction.state.rolledback?
     assert !transaction.state.committed?
 
-    transaction.perform_rollback
+    transaction.rollback
 
     assert transaction.state.rolledback?
     assert !transaction.state.committed?
@@ -521,13 +615,13 @@ class TransactionTest < ActiveRecord::TestCase
 
   def test_transactions_state_from_commit
     connection = Topic.connection
-    transaction = ActiveRecord::ConnectionAdapters::ClosedTransaction.new(connection).begin
+    transaction = ActiveRecord::ConnectionAdapters::TransactionManager.new(connection).begin_transaction
 
     assert transaction.open?
     assert !transaction.state.rolledback?
     assert !transaction.state.committed?
 
-    transaction.perform_commit
+    transaction.commit
 
     assert !transaction.state.rolledback?
     assert transaction.state.committed?

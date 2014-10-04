@@ -183,61 +183,61 @@ You may wish to organize groups of controllers under a namespace. Most commonly,
 
 ```ruby
 namespace :admin do
-  resources :posts, :comments
+  resources :articles, :comments
 end
 ```
 
-This will create a number of routes for each of the `posts` and `comments` controller. For `Admin::PostsController`, Rails will create:
+This will create a number of routes for each of the `articles` and `comments` controller. For `Admin::ArticlesController`, Rails will create:
 
-| HTTP Verb | Path                  | Controller#Action   | Named Helper              |
-| --------- | --------------------- | ------------------- | ------------------------- |
-| GET       | /admin/posts          | admin/posts#index   | admin_posts_path          |
-| GET       | /admin/posts/new      | admin/posts#new     | new_admin_post_path       |
-| POST      | /admin/posts          | admin/posts#create  | admin_posts_path          |
-| GET       | /admin/posts/:id      | admin/posts#show    | admin_post_path(:id)      |
-| GET       | /admin/posts/:id/edit | admin/posts#edit    | edit_admin_post_path(:id) |
-| PATCH/PUT | /admin/posts/:id      | admin/posts#update  | admin_post_path(:id)      |
-| DELETE    | /admin/posts/:id      | admin/posts#destroy | admin_post_path(:id)      |
+| HTTP Verb | Path                     | Controller#Action      | Named Helper              |
+| --------- | ------------------------ | ---------------------- | ---------------------------- |
+| GET       | /admin/articles          | admin/articles#index   | admin_articles_path          |
+| GET       | /admin/articles/new      | admin/articles#new     | new_admin_article_path       |
+| POST      | /admin/articles          | admin/articles#create  | admin_articles_path          |
+| GET       | /admin/articles/:id      | admin/articles#show    | admin_article_path(:id)      |
+| GET       | /admin/articles/:id/edit | admin/articles#edit    | edit_admin_article_path(:id) |
+| PATCH/PUT | /admin/articles/:id      | admin/articles#update  | admin_article_path(:id)      |
+| DELETE    | /admin/articles/:id      | admin/articles#destroy | admin_article_path(:id)      |
 
-If you want to route `/posts` (without the prefix `/admin`) to `Admin::PostsController`, you could use:
+If you want to route `/articles` (without the prefix `/admin`) to `Admin::ArticlesController`, you could use:
 
 ```ruby
 scope module: 'admin' do
-  resources :posts, :comments
+  resources :articles, :comments
 end
 ```
 
 or, for a single case:
 
 ```ruby
-resources :posts, module: 'admin'
+resources :articles, module: 'admin'
 ```
 
-If you want to route `/admin/posts` to `PostsController` (without the `Admin::` module prefix), you could use:
+If you want to route `/admin/articles` to `ArticlesController` (without the `Admin::` module prefix), you could use:
 
 ```ruby
 scope '/admin' do
-  resources :posts, :comments
+  resources :articles, :comments
 end
 ```
 
 or, for a single case:
 
 ```ruby
-resources :posts, path: '/admin/posts'
+resources :articles, path: '/admin/articles'
 ```
 
 In each of these cases, the named routes remain the same as if you did not use `scope`. In the last case, the following paths map to `PostsController`:
 
-| HTTP Verb | Path                  | Controller#Action | Named Helper        |
-| --------- | --------------------- | ----------------- | ------------------- |
-| GET       | /admin/posts          | posts#index       | posts_path          |
-| GET       | /admin/posts/new      | posts#new         | new_post_path       |
-| POST      | /admin/posts          | posts#create      | posts_path          |
-| GET       | /admin/posts/:id      | posts#show        | post_path(:id)      |
-| GET       | /admin/posts/:id/edit | posts#edit        | edit_post_path(:id) |
-| PATCH/PUT | /admin/posts/:id      | posts#update      | post_path(:id)      |
-| DELETE    | /admin/posts/:id      | posts#destroy     | post_path(:id)      |
+| HTTP Verb | Path                     | Controller#Action    | Named Helper           |
+| --------- | ------------------------ | -------------------- | ---------------------- |
+| GET       | /admin/articles          | articles#index       | articles_path          |
+| GET       | /admin/articles/new      | articles#new         | new_article_path       |
+| POST      | /admin/articles          | articles#create      | articles_path          |
+| GET       | /admin/articles/:id      | articles#show        | article_path(:id)      |
+| GET       | /admin/articles/:id/edit | articles#edit        | edit_article_path(:id) |
+| PATCH/PUT | /admin/articles/:id      | articles#update      | article_path(:id)      |
+| DELETE    | /admin/articles/:id      | articles#destroy     | article_path(:id)      |
 
 TIP: _If you need to use a different controller namespace inside a `namespace` block you can specify an absolute controller path, e.g: `get '/foo' => '/foo#index'`._
 
@@ -304,7 +304,7 @@ TIP: _Resources should never be nested more than 1 level deep._
 One way to avoid deep nesting (as recommended above) is to generate the collection actions scoped under the parent, so as to get a sense of the hierarchy, but to not nest the member actions. In other words, to only build routes with the minimal amount of information to uniquely identify the resource, like this:
 
 ```ruby
-resources :posts do
+resources :articles do
   resources :comments, only: [:index, :new, :create]
 end
 resources :comments, only: [:show, :edit, :update, :destroy]
@@ -313,7 +313,7 @@ resources :comments, only: [:show, :edit, :update, :destroy]
 This idea strikes a balance between descriptive routes and deep nesting. There exists shorthand syntax to achieve just that, via the `:shallow` option:
 
 ```ruby
-resources :posts do
+resources :articles do
   resources :comments, shallow: true
 end
 ```
@@ -321,7 +321,7 @@ end
 This will generate the exact same routes as the first example. You can also specify the `:shallow` option in the parent resource, in which case all of the nested resources will be shallow:
 
 ```ruby
-resources :posts, shallow: true do
+resources :articles, shallow: true do
   resources :comments
   resources :quotes
   resources :drafts
@@ -332,7 +332,7 @@ The `shallow` method of the DSL creates a scope inside of which every nesting is
 
 ```ruby
 shallow do
-  resources :posts do
+  resources :articles do
     resources :comments
     resources :quotes
     resources :drafts
@@ -344,7 +344,7 @@ There exist two options for `scope` to customize shallow routes. `:shallow_path`
 
 ```ruby
 scope shallow_path: "sekret" do
-  resources :posts do
+  resources :articles do
     resources :comments, shallow: true
   end
 end
@@ -352,21 +352,21 @@ end
 
 The comments resource here will have the following routes generated for it:
 
-| HTTP Verb | Path                                   | Controller#Action | Named Helper        |
-| --------- | -------------------------------------- | ----------------- | ------------------- |
-| GET       | /posts/:post_id/comments(.:format)     | comments#index    | post_comments       |
-| POST      | /posts/:post_id/comments(.:format)     | comments#create   | post_comments       |
-| GET       | /posts/:post_id/comments/new(.:format) | comments#new      | new_post_comment    |
-| GET       | /sekret/comments/:id/edit(.:format)    | comments#edit     | edit_comment        |
-| GET       | /sekret/comments/:id(.:format)         | comments#show     | comment             |
-| PATCH/PUT | /sekret/comments/:id(.:format)         | comments#update   | comment             |
-| DELETE    | /sekret/comments/:id(.:format)         | comments#destroy  | comment             |
+| HTTP Verb | Path                                         | Controller#Action | Named Helper             |
+| --------- | -------------------------------------------- | ----------------- | ------------------------ |
+| GET       | /articles/:article_id/comments(.:format)     | comments#index    | article_comments_path    |
+| POST      | /articles/:article_id/comments(.:format)     | comments#create   | article_comments_path    |
+| GET       | /articles/:article_id/comments/new(.:format) | comments#new      | new_article_comment_path |
+| GET       | /sekret/comments/:id/edit(.:format)          | comments#edit     | edit_comment_path        |
+| GET       | /sekret/comments/:id(.:format)               | comments#show     | comment_path             |
+| PATCH/PUT | /sekret/comments/:id(.:format)               | comments#update   | comment_path             |
+| DELETE    | /sekret/comments/:id(.:format)               | comments#destroy  | comment_path             |
 
 The `:shallow_prefix` option adds the specified parameter to the named helpers:
 
 ```ruby
 scope shallow_prefix: "sekret" do
-  resources :posts do
+  resources :articles do
     resources :comments, shallow: true
   end
 end
@@ -374,15 +374,15 @@ end
 
 The comments resource here will have the following routes generated for it:
 
-| HTTP Verb | Path                                   | Controller#Action | Named Helper        |
-| --------- | -------------------------------------- | ----------------- | ------------------- |
-| GET       | /posts/:post_id/comments(.:format)     | comments#index    | post_comments       |
-| POST      | /posts/:post_id/comments(.:format)     | comments#create   | post_comments       |
-| GET       | /posts/:post_id/comments/new(.:format) | comments#new      | new_post_comment    |
-| GET       | /comments/:id/edit(.:format)           | comments#edit     | edit_sekret_comment |
-| GET       | /comments/:id(.:format)                | comments#show     | sekret_comment      |
-| PATCH/PUT | /comments/:id(.:format)                | comments#update   | sekret_comment      |
-| DELETE    | /comments/:id(.:format)                | comments#destroy  | sekret_comment      |
+| HTTP Verb | Path                                         | Controller#Action | Named Helper                |
+| --------- | -------------------------------------------- | ----------------- | --------------------------- |
+| GET       | /articles/:article_id/comments(.:format)     | comments#index    | article_comments_path       |
+| POST      | /articles/:article_id/comments(.:format)     | comments#create   | article_comments_path       |
+| GET       | /articles/:article_id/comments/new(.:format) | comments#new      | new_article_comment_path    |
+| GET       | /comments/:id/edit(.:format)                 | comments#edit     | edit_sekret_comment_path    |
+| GET       | /comments/:id(.:format)                      | comments#show     | sekret_comment_path         |
+| PATCH/PUT | /comments/:id(.:format)                      | comments#update   | sekret_comment_path         |
+| DELETE    | /comments/:id(.:format)                      | comments#destroy  | sekret_comment_path         |
 
 ### Routing concerns
 
@@ -403,7 +403,7 @@ These concerns can be used in resources to avoid code duplication and share beha
 ```ruby
 resources :messages, concerns: :commentable
 
-resources :posts, concerns: [:commentable, :image_attachable]
+resources :articles, concerns: [:commentable, :image_attachable]
 ```
 
 The above is equivalent to:
@@ -413,7 +413,7 @@ resources :messages do
   resources :comments
 end
 
-resources :posts do
+resources :articles do
   resources :comments
   resources :images, only: :index
 end
@@ -422,7 +422,7 @@ end
 Also you can use them in any place that you want inside the routes, for example in a scope or namespace call:
 
 ```ruby
-namespace :posts do
+namespace :articles do
   concerns :commentable
 end
 ```
@@ -645,6 +645,8 @@ match 'photos', to: 'photos#show', via: :all
 
 NOTE: Routing both `GET` and `POST` requests to a single action has security implications. In general, you should avoid routing all verbs to an action unless you have a good reason to.
 
+NOTE: 'GET' in Rails won't check for CSRF token. You should never write to the database from 'GET' requests, for more information see the [security guide](security.html#csrf-countermeasures) on CSRF countermeasures.
+
 ### Segment Constraints
 
 You can use the `:constraints` option to enforce a format for a dynamic segment:
@@ -662,26 +664,26 @@ get 'photos/:id', to: 'photos#show', id: /[A-Z]\d{5}/
 `:constraints` takes regular expressions with the restriction that regexp anchors can't be used. For example, the following route will not work:
 
 ```ruby
-get '/:id', to: 'posts#show', constraints: {id: /^\d/}
+get '/:id', to: 'articles#show', constraints: { id: /^\d/ }
 ```
 
 However, note that you don't need to use anchors because all routes are anchored at the start.
 
-For example, the following routes would allow for `posts` with `to_param` values like `1-hello-world` that always begin with a number and `users` with `to_param` values like `david` that never begin with a number to share the root namespace:
+For example, the following routes would allow for `articles` with `to_param` values like `1-hello-world` that always begin with a number and `users` with `to_param` values like `david` that never begin with a number to share the root namespace:
 
 ```ruby
-get '/:id', to: 'posts#show', constraints: { id: /\d.+/ }
+get '/:id', to: 'articles#show', constraints: { id: /\d.+/ }
 get '/:username', to: 'users#show'
 ```
 
 ### Request-Based Constraints
 
-You can also constrain a route based on any method on the <a href="action_controller_overview.html#the-request-object">Request</a> object that returns a `String`.
+You can also constrain a route based on any method on the [Request object](action_controller_overview.html#the-request-object) that returns a `String`.
 
 You specify a request-based constraint the same way that you specify a segment constraint:
 
 ```ruby
-get 'photos', constraints: {subdomain: 'admin'}
+get 'photos', to: 'photos#index', constraints: { subdomain: 'admin' }
 ```
 
 You can also specify constraints in a block form:
@@ -693,6 +695,8 @@ namespace :admin do
   end
 end
 ```
+
+NOTE: Request constraints work by calling a method on the [Request object](action_controller_overview.html#the-request-object) with the same name as the hash key and then compare the return value with the hash value. Therefore, constraint values should match the corresponding Request object method return type. For example: `constraints: { subdomain: 'api' }` will match an `api` subdomain as expected, however using a symbol `constraints: { subdomain: :api }` will not, because `request.subdomain` returns `'api'` as a String.
 
 ### Advanced Constraints
 
@@ -709,7 +713,7 @@ class BlacklistConstraint
   end
 end
 
-TwitterClone::Application.routes.draw do
+Rails.application.routes.draw do
   get '*path', to: 'blacklist#index',
     constraints: BlacklistConstraint.new
 end
@@ -718,7 +722,7 @@ end
 You can also specify constraints as a lambda:
 
 ```ruby
-TwitterClone::Application.routes.draw do
+Rails.application.routes.draw do
   get '*path', to: 'blacklist#index',
     constraints: lambda { |request| Blacklist.retrieve_ips.include?(request.remote_ip) }
 end
@@ -752,7 +756,7 @@ get '*a/foo/*b', to: 'test#index'
 
 would match `zoo/woo/foo/bar/baz` with `params[:a]` equals `'zoo/woo'`, and `params[:b]` equals `'bar/baz'`.
 
-NOTE: By requesting `'/foo/bar.json'`, your `params[:pages]` will be equals to `'foo/bar'` with the request format of JSON. If you want the old 3.0.x behavior back, you could supply `format: false` like this:
+NOTE: By requesting `'/foo/bar.json'`, your `params[:pages]` will be equal to `'foo/bar'` with the request format of JSON. If you want the old 3.0.x behavior back, you could supply `format: false` like this:
 
 ```ruby
 get '*pages', to: 'pages#show', format: false
@@ -769,20 +773,20 @@ get '*pages', to: 'pages#show', format: true
 You can redirect any path to another path using the `redirect` helper in your router:
 
 ```ruby
-get '/stories', to: redirect('/posts')
+get '/stories', to: redirect('/articles')
 ```
 
 You can also reuse dynamic segments from the match in the path to redirect to:
 
 ```ruby
-get '/stories/:name', to: redirect('/posts/%{name}')
+get '/stories/:name', to: redirect('/articles/%{name}')
 ```
 
 You can also provide a block to redirect, which receives the symbolized path parameters and the request object:
 
 ```ruby
-get '/stories/:name', to: redirect {|path_params, req| "/posts/#{path_params[:name].pluralize}" }
-get '/stories', to: redirect {|path_params, req| "/posts/#{req.subdomain}" }
+get '/stories/:name', to: redirect { |path_params, req| "/articles/#{path_params[:name].pluralize}" }
+get '/stories', to: redirect { |path_params, req| "/articles/#{req.subdomain}" }
 ```
 
 Please note that this redirection is a 301 "Moved Permanently" redirect. Keep in mind that some web browsers or proxy servers will cache this type of redirect, making the old page inaccessible.
@@ -791,7 +795,7 @@ In all of these cases, if you don't provide the leading host (`http://www.exampl
 
 ### Routing to Rack Applications
 
-Instead of a String like `'posts#index'`, which corresponds to the `index` action in the `PostsController`, you can specify any <a href="rails_on_rack.html">Rack application</a> as the endpoint for a matcher:
+Instead of a String like `'articles#index'`, which corresponds to the `index` action in the `ArticlesController`, you can specify any [Rack application](rails_on_rack.html) as the endpoint for a matcher:
 
 ```ruby
 match '/application.js', to: Sprockets, via: :all
@@ -799,7 +803,7 @@ match '/application.js', to: Sprockets, via: :all
 
 As long as `Sprockets` responds to `call` and returns a `[status, headers, body]`, the router won't know the difference between the Rack application and an action. This is an appropriate use of `via: :all`, as you will want to allow your Rack application to handle all verbs as it considers appropriate.
 
-NOTE: For the curious, `'posts#index'` actually expands out to `PostsController.action(:index)`, which returns a valid Rack application.
+NOTE: For the curious, `'articles#index'` actually expands out to `ArticlesController.action(:index)`, which returns a valid Rack application.
 
 ### Using `root`
 
@@ -835,7 +839,7 @@ get 'こんにちは', to: 'welcome#index'
 Customizing Resourceful Routes
 ------------------------------
 
-While the default routes and helpers generated by `resources :posts` will usually serve you well, you may want to customize them in some way. Rails allows you to customize virtually any generic part of the resourceful helpers.
+While the default routes and helpers generated by `resources :articles` will usually serve you well, you may want to customize them in some way. Rails allows you to customize virtually any generic part of the resourceful helpers.
 
 ### Specifying a Controller to Use
 
@@ -877,7 +881,7 @@ a warning.
 You can use the `:constraints` option to specify a required format on the implicit `id`. For example:
 
 ```ruby
-resources :photos, constraints: {id: /[A-Z][A-Z][0-9]+/}
+resources :photos, constraints: { id: /[A-Z][A-Z][0-9]+/ }
 ```
 
 This declaration constrains the `:id` parameter to match the supplied regular expression. So, in this case, the router would no longer match `/photos/1` to this route. Instead, `/photos/RR27` would match.
@@ -917,7 +921,7 @@ will recognize incoming paths beginning with `/photos` and route the requests to
 
 ### Overriding the `new` and `edit` Segments
 
-The `:path_names` option lets you override the automatically-generated "new" and "edit" segments in paths:
+The `:path_names` option lets you override the automatically-generated `new` and `edit` segments in paths:
 
 ```ruby
 resources :photos, path_names: { new: 'make', edit: 'change' }
@@ -952,7 +956,7 @@ end
 resources :photos
 ```
 
-This will provide route helpers such as `admin_photos_path`, `new_admin_photo_path` etc.
+This will provide route helpers such as `admin_photos_path`, `new_admin_photo_path`, etc.
 
 To prefix a group of route helpers, use `:as` with `scope`:
 
@@ -972,15 +976,15 @@ You can prefix routes with a named parameter also:
 
 ```ruby
 scope ':username' do
-  resources :posts
+  resources :articles
 end
 ```
 
-This will provide you with URLs such as `/bob/posts/1` and will allow you to reference the `username` part of the path as `params[:username]` in controllers, helpers and views.
+This will provide you with URLs such as `/bob/articles/1` and will allow you to reference the `username` part of the path as `params[:username]` in controllers, helpers and views.
 
 ### Restricting the Routes Created
 
-By default, Rails creates routes for the seven default actions (index, show, new, create, edit, update, and destroy) for every RESTful route in your application. You can use the `:only` and `:except` options to fine-tune this behavior. The `:only` option tells Rails to create only the specified routes:
+By default, Rails creates routes for the seven default actions (`index`, `show`, `new`, `create`, `edit`, `update`, and `destroy`) for every RESTful route in your application. You can use the `:only` and `:except` options to fine-tune this behavior. The `:only` option tells Rails to create only the specified routes:
 
 ```ruby
 resources :photos, only: [:index, :show]
@@ -1042,6 +1046,28 @@ end
 
 This will create routing helpers such as `magazine_periodical_ads_url` and `edit_magazine_periodical_ad_path`.
 
+### Overriding Named Route Parameters
+
+The `:param` option overrides the default resource identifier `:id` (name of
+the [dynamic segment](routing.html#dynamic-segments) used to generate the
+routes). You can access that segment from your controller using
+`params[<:param>]`.
+
+```ruby
+resources :videos, param: :identifier
+```
+
+```
+     videos GET  /videos(.:format)                  videos#index
+            POST /videos(.:format)                  videos#create
+ new_videos GET  /videos/new(.:format)              videos#new
+edit_videos GET  /videos/:identifier/edit(.:format) videos#edit
+```
+
+```ruby
+Video.find_by(identifier: params[:identifier])
+```
+
 Inspecting and Testing Routes
 -----------------------------
 
@@ -1070,7 +1096,7 @@ edit_user GET    /users/:id/edit(.:format) users#edit
 You may restrict the listing to the routes that map to a particular controller setting the `CONTROLLER` environment variable:
 
 ```bash
-$ CONTROLLER=users rake routes
+$ CONTROLLER=users bin/rake routes
 ```
 
 TIP: You'll find that the output from `rake routes` is much more readable if you widen your terminal window until the output lines don't wrap.

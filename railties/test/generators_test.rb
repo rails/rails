@@ -1,6 +1,7 @@
 require 'generators/generators_test_helper'
 require 'rails/generators/rails/model/model_generator'
 require 'rails/generators/test_unit/model/model_generator'
+require 'mocha/setup' # FIXME: stop using mocha
 
 class GeneratorsTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
@@ -21,8 +22,16 @@ class GeneratorsTest < Rails::Generators::TestCase
   end
 
   def test_invoke_when_generator_is_not_found
-    output = capture(:stdout){ Rails::Generators.invoke :unknown }
-    assert_equal "Could not find generator unknown.\n", output
+    name = :unknown
+    output = capture(:stdout){ Rails::Generators.invoke name }
+    assert_match "Could not find generator '#{name}'", output
+    assert_match "`rails generate --help`", output
+  end
+
+  def test_generator_suggestions
+    name = :migrationz
+    output = capture(:stdout){ Rails::Generators.invoke name }
+    assert_match "Maybe you meant 'migration'", output
   end
 
   def test_help_when_a_generator_with_required_arguments_is_invoked_without_arguments
@@ -143,6 +152,8 @@ class GeneratorsTest < Rails::Generators::TestCase
     klass = Rails::Generators.find_by_namespace(:plugin, :remarkable)
     assert klass
     assert_equal "test_unit:plugin", klass.namespace
+  ensure
+    Rails::Generators.fallbacks.delete(:remarkable)
   end
 
   def test_fallbacks_for_generators_on_find_by_namespace_with_context
@@ -150,18 +161,26 @@ class GeneratorsTest < Rails::Generators::TestCase
     klass = Rails::Generators.find_by_namespace(:remarkable, :rails, :plugin)
     assert klass
     assert_equal "test_unit:plugin", klass.namespace
+  ensure
+    Rails::Generators.fallbacks.delete(:remarkable)
   end
 
   def test_fallbacks_for_generators_on_invoke
     Rails::Generators.fallbacks[:shoulda] = :test_unit
     TestUnit::Generators::ModelGenerator.expects(:start).with(["Account"], {})
     Rails::Generators.invoke "shoulda:model", ["Account"]
+  ensure
+    Rails::Generators.fallbacks.delete(:shoulda)
   end
 
   def test_nested_fallbacks_for_generators
+    Rails::Generators.fallbacks[:shoulda] = :test_unit
     Rails::Generators.fallbacks[:super_shoulda] = :shoulda
     TestUnit::Generators::ModelGenerator.expects(:start).with(["Account"], {})
     Rails::Generators.invoke "super_shoulda:model", ["Account"]
+  ensure
+    Rails::Generators.fallbacks.delete(:shoulda)
+    Rails::Generators.fallbacks.delete(:super_shoulda)
   end
 
   def test_developer_options_are_overwritten_by_user_options

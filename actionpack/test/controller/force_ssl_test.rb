@@ -93,8 +93,6 @@ class RedirectToSSL < ForceSSLController
 end
 
 class ForceSSLControllerLevelTest < ActionController::TestCase
-  tests ForceSSLControllerLevel
-
   def test_banana_redirects_to_https
     get :banana
     assert_response 301
@@ -115,8 +113,6 @@ class ForceSSLControllerLevelTest < ActionController::TestCase
 end
 
 class ForceSSLCustomOptionsTest < ActionController::TestCase
-  tests ForceSSLCustomOptions
-
   def setup
     @request.env['HTTP_HOST'] = 'www.example.com:80'
   end
@@ -189,8 +185,6 @@ class ForceSSLCustomOptionsTest < ActionController::TestCase
 end
 
 class ForceSSLOnlyActionTest < ActionController::TestCase
-  tests ForceSSLOnlyAction
-
   def test_banana_not_redirects_to_https
     get :banana
     assert_response 200
@@ -204,8 +198,6 @@ class ForceSSLOnlyActionTest < ActionController::TestCase
 end
 
 class ForceSSLExceptActionTest < ActionController::TestCase
-  tests ForceSSLExceptAction
-
   def test_banana_not_redirects_to_https
     get :banana
     assert_response 200
@@ -219,8 +211,6 @@ class ForceSSLExceptActionTest < ActionController::TestCase
 end
 
 class ForceSSLIfConditionTest < ActionController::TestCase
-  tests ForceSSLIfCondition
-
   def test_banana_not_redirects_to_https
     get :banana
     assert_response 200
@@ -234,8 +224,6 @@ class ForceSSLIfConditionTest < ActionController::TestCase
 end
 
 class ForceSSLFlashTest < ActionController::TestCase
-  tests ForceSSLFlash
-
   def test_cheeseburger_redirects_to_https
     get :set_flash
     assert_response 302
@@ -315,7 +303,6 @@ class ForceSSLOptionalSegmentsTest < ActionController::TestCase
 end
 
 class RedirectToSSLTest < ActionController::TestCase
-  tests RedirectToSSL
   def test_banana_redirects_to_https_if_not_https
     get :banana
     assert_response 301

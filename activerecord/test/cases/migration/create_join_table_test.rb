@@ -10,8 +10,7 @@ module ActiveRecord
         @connection = ActiveRecord::Base.connection
       end
 
-      def teardown
-        super
+      teardown do
         %w(artists_musics musics_videos catalog).each do |table_name|
           connection.drop_table table_name if connection.tables.include?(table_name)
         end
@@ -120,6 +119,30 @@ module ActiveRecord
 
         assert !connection.tables.include?('artists_musics')
       end
+
+      def test_create_and_drop_join_table_with_common_prefix
+        with_table_cleanup do
+          connection.create_join_table 'audio_artists', 'audio_musics'
+          assert_includes connection.tables, 'audio_artists_musics'
+
+          connection.drop_join_table 'audio_artists', 'audio_musics'
+          assert !connection.tables.include?('audio_artists_musics'), "Should have dropped join table, but didn't"
+        end
+      end
+
+      private
+
+        def with_table_cleanup
+          tables_before = connection.tables
+
+          yield
+        ensure
+          tables_after = connection.tables - tables_before
+
+          tables_after.each do |table|
+            connection.execute "DROP TABLE #{table}"
+          end
+        end
     end
   end
 end

@@ -1,12 +1,14 @@
 module ActionMailer
+  # Provides helper methods for testing Action Mailer, including #assert_emails
+  # and #assert_no_emails
   module TestHelper
     # Asserts that the number of emails sent matches the given number.
     #
     #   def test_emails
     #     assert_emails 0
-    #     ContactMailer.welcome.deliver
+    #     ContactMailer.welcome.deliver_now
     #     assert_emails 1
-    #     ContactMailer.welcome.deliver
+    #     ContactMailer.welcome.deliver_now
     #     assert_emails 2
     #   end
     #
@@ -15,12 +17,12 @@ module ActionMailer
     #
     #   def test_emails_again
     #     assert_emails 1 do
-    #       ContactMailer.welcome.deliver
+    #       ContactMailer.welcome.deliver_now
     #     end
     #
     #     assert_emails 2 do
-    #       ContactMailer.welcome.deliver
-    #       ContactMailer.welcome.deliver
+    #       ContactMailer.welcome.deliver_now
+    #       ContactMailer.welcome.deliver_now
     #     end
     #   end
     def assert_emails(number)
@@ -38,7 +40,7 @@ module ActionMailer
     #
     #   def test_emails
     #     assert_no_emails
-    #     ContactMailer.welcome.deliver
+    #     ContactMailer.welcome.deliver_now
     #     assert_emails 1
     #   end
     #

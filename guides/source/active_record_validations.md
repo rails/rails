@@ -85,7 +85,7 @@ end
 We can see how it works by looking at some `rails console` output:
 
 ```ruby
-$ rails console
+$ bin/rails console
 >> p = Person.new(name: "John Doe")
 => #<Person id: nil, name: "John Doe", created_at: nil, updated_at: nil>
 >> p.new_record?
@@ -524,9 +524,15 @@ If you validate the presence of an object associated via a `has_one` or
 `marked_for_destruction?`.
 
 Since `false.blank?` is true, if you want to validate the presence of a boolean
-field you should use `validates :field_name, inclusion: { in: [true, false] }`.
+field you should use one of the following validations:
 
-The default error message is _"can't be blank"_.
+```ruby
+validates :boolean_field_name, presence: true
+validates :boolean_field_name, inclusion: { in: [true, false] }
+validates :boolean_field_name, exclusion: { in: [nil] }
+```
+By using one of these validations, you will ensure the value will NOT be `nil`
+which would result in a `NULL` value in most cases.
 
 ### `absence`
 
@@ -871,7 +877,7 @@ should happen, an `Array` can be used. Moreover, you can apply both `:if` and
 ```ruby
 class Computer < ActiveRecord::Base
   validates :mouse, presence: true,
-                    if: ["market.retail?", :desktop?]
+                    if: ["market.retail?", :desktop?],
                     unless: Proc.new { |c| c.trackpad.present? }
 end
 ```
@@ -910,8 +916,8 @@ end
 The easiest way to add custom validators for validating individual attributes
 is with the convenient `ActiveModel::EachValidator`. In this case, the custom
 validator class must implement a `validate_each` method which takes three
-arguments: record, attribute and value which correspond to the instance, the
-attribute to be validated and the value of the attribute in the passed
+arguments: record, attribute, and value. These correspond to the instance, the
+attribute to be validated, and the value of the attribute in the passed
 instance.
 
 ```ruby
@@ -1129,15 +1135,15 @@ generating a scaffold, Rails will put some ERB into the `_form.html.erb` that
 it generates that displays the full list of errors on that model.
 
 Assuming we have a model that's been saved in an instance variable named
-`@post`, it looks like this:
+`@article`, it looks like this:
 
 ```ruby
-<% if @post.errors.any? %>
+<% if @article.errors.any? %>
   <div id="error_explanation">
-    <h2><%= pluralize(@post.errors.count, "error") %> prohibited this post from being saved:</h2>
+    <h2><%= pluralize(@article.errors.count, "error") %> prohibited this article from being saved:</h2>
 
     <ul>
-    <% @post.errors.full_messages.each do |msg| %>
+    <% @article.errors.full_messages.each do |msg| %>
       <li><%= msg %></li>
     <% end %>
     </ul>
@@ -1151,7 +1157,7 @@ the entry.
 
 ```
 <div class="field_with_errors">
- <input id="post_title" name="post[title]" size="30" type="text" value="">
+ <input id="article_title" name="article[title]" size="30" type="text" value="">
 </div>
 ```
 

@@ -1,61 +1,50 @@
-*   Support the use of underscored symbols when registering interceptors and
-    observers like we do elsewhere within Rails.
+*   Attachments can be added while rendering the mail template.
 
-    *Andrew White*
+    Fixes #16974.
 
-*   Add the ability to intercept emails before previewing in a similar fashion
-    to how emails can be intercepted before delivery.
+    *Christian Felder*
 
-    Fixes #13622.
+*   Added `#deliver_later`, `#deliver_now` and deprecate `#deliver` in favour of
+    `#deliver_now`. `#deliver_later` will enqueue a job to render and deliver
+    the mail instead of delivering it right at that moment. The job is enqueued
+    using the new Active Job framework in Rails, and will use whatever queue is
+    configured for Rails.
 
-    Example:
+    *DHH/Abdelkader Boudih/Cristian Bica*
 
-        class CSSInlineStyler
-          def self.previewing_email(message)
-            # inline CSS styles
-          end
-        end
+*   Make `ActionMailer::Previews` methods class methods. Previously they were
+    instance methods and `ActionMailer` tries to render a message when they
+    are called.
 
-        ActionMailer::Base.register_preview_interceptor CSSInlineStyler
+    *Cristian Bica*
 
-    *Andrew White*
+*   Deprecate `*_path` helpers in email views. When used they generate
+    non-working links and are not the intention of most developers. Instead
+    we recommend to use `*_url` helper.
 
-*   Add mailer previews feature based on 37 Signals mail_view gem.
+    *Richard Schneeman*
 
-    *Andrew White*
+*   Raise an exception when attachments are added after `mail` was called.
+    This is a safeguard to prevent invalid emails.
 
-*   Calling `mail()` without arguments serves as getter for the current mail
-    message and keeps previously set headers.
-
-    Fixes #13090.
-
-    Example:
-
-        class MailerWithCallback < ActionMailer::Base
-          after_action :a_callback
-
-          def welcome
-            mail subject: "subject", to: ["joe@example.com"]
-          end
-
-          def a_callback
-            mail # => returns the current mail message
-          end
-        end
+    Fixes #16163.
 
     *Yves Senn*
 
-*   Instrument the generation of Action Mailer messages. The time it takes to
-    generate a message is written to the log.
+*   Add `config.action_mailer.show_previews` configuration option.
 
-    *Daniel Schierbeck*
+    This config option can be used to enable the mail preview in environments
+    other than development (such as staging).
 
-*   Invoke mailer defaults as procs only if they are procs, do not convert with
-    `to_proc`. That an object is convertible to a proc does not mean it's meant
-    to be always used as a proc.
+    Defaults to `true` in development and false elsewhere.
 
-    Fixes #11533.
+    *Leonard Garvey*
 
-    *Alex Tsukernik*
+*   Allow preview interceptors to be registered through
+    `config.action_mailer.preview_interceptors`.
 
-Please check [4-0-stable](https://github.com/rails/rails/blob/4-0-stable/actionmailer/CHANGELOG.md) for previous changes.
+    See #15739.
+
+    *Yves Senn*
+
+Please check [4-1-stable](https://github.com/rails/rails/blob/4-1-stable/actionmailer/CHANGELOG.md) for previous changes.

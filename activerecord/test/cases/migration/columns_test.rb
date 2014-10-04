@@ -53,19 +53,22 @@ module ActiveRecord
         add_column 'test_models', 'salary', :integer, :default => 70000
 
         default_before = connection.columns("test_models").find { |c| c.name == "salary" }.default
-        assert_equal 70000, default_before
+        assert_equal '70000', default_before
 
         rename_column "test_models", "salary", "annual_salary"
 
         assert TestModel.column_names.include?("annual_salary")
         default_after = connection.columns("test_models").find { |c| c.name == "annual_salary" }.default
-        assert_equal 70000, default_after
+        assert_equal '70000', default_after
       end
 
       if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
         def test_mysql_rename_column_preserves_auto_increment
           rename_column "test_models", "id", "id_test"
           assert_equal "auto_increment", connection.columns("test_models").find { |c| c.name == "id_test" }.extra
+          TestModel.reset_column_information
+        ensure
+          rename_column "test_models", "id_test", "id"
         end
       end
 
@@ -193,14 +196,21 @@ module ActiveRecord
 
         old_columns = connection.columns(TestModel.table_name)
         assert old_columns.find { |c|
-          c.name == 'approved' && c.type == :boolean && c.default == true
+          default = c.type_cast_from_database(c.default)
+          c.name == 'approved' && c.type == :boolean && default == true
         }
 
         change_column :test_models, :approved, :boolean, :default => false
         new_columns = connection.columns(TestModel.table_name)
 
-        assert_not new_columns.find { |c| c.name == 'approved' and c.type == :boolean and c.default == true }
-        assert new_columns.find { |c| c.name == 'approved' and c.type == :boolean and c.default == false }
+        assert_not new_columns.find { |c|
+          default = c.type_cast_from_database(c.default)
+          c.name == 'approved' and c.type == :boolean and default == true
+        }
+        assert new_columns.find { |c|
+          default = c.type_cast_from_database(c.default)
+          c.name == 'approved' and c.type == :boolean and default == false
+        }
         change_column :test_models, :approved, :boolean, :default => true
       end
 
@@ -271,6 +281,16 @@ module ActiveRecord
         rename_column("my_table", "col_one", "col_three")
 
         assert_equal 'my_table_id', connection.primary_key('my_table')
+      ensure
+        connection.drop_table(:my_table) rescue nil
+      end
+
+      def test_column_with_index
+        connection.create_table "my_table", force: true do |t|
+          t.string :item_number, index: true
+        end
+
+        assert connection.index_exists?("my_table", :item_number, name: :index_my_table_on_item_number)
       ensure
         connection.drop_table(:my_table) rescue nil
       end

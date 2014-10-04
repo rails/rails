@@ -37,7 +37,7 @@ class ShowExceptionsTest < ActionDispatch::IntegrationTest
     get "/", {}, {'action_dispatch.show_exceptions' => true}
     assert_response 500
     assert_equal "500 error fixture\n", body
-    
+
     get "/bad_params", {}, {'action_dispatch.show_exceptions' => true}
     assert_response 400
     assert_equal "400 error fixture\n", body
@@ -92,6 +92,7 @@ class ShowExceptionsTest < ActionDispatch::IntegrationTest
     exceptions_app = lambda do |env|
       assert_kind_of AbstractController::ActionNotFound, env["action_dispatch.exception"]
       assert_equal "/404", env["PATH_INFO"]
+      assert_equal "/not_found_original_exception", env["action_dispatch.original_path"]
       [404, { "Content-Type" => "text/plain" }, ["YOU FAILED BRO"]]
     end
 

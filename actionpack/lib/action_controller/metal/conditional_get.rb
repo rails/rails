@@ -13,9 +13,9 @@ module ActionController
     end
 
     module ClassMethods
-      # Allows you to consider additional controller-wide information when generating an etag.
+      # Allows you to consider additional controller-wide information when generating an ETag.
       # For example, if you serve pages tailored depending on who's logged in at the moment, you
-      # may want to add the current user id to be part of the etag to prevent authorized displaying
+      # may want to add the current user id to be part of the ETag to prevent authorized displaying
       # of cached pages.
       #
       #   class InvoicesController < ApplicationController
@@ -32,7 +32,7 @@ module ActionController
       end
     end
 
-    # Sets the etag, +last_modified+, or both on the response and renders a
+    # Sets the +etag+, +last_modified+, or both on the response and renders a
     # <tt>304 Not Modified</tt> response if the request is already fresh.
     #
     # === Parameters:
@@ -41,6 +41,11 @@ module ActionController
     # * <tt>:last_modified</tt>.
     # * <tt>:public</tt> By default the Cache-Control header is private, set this to
     #   +true+ if you want your application to be cachable by other devices (proxy caches).
+    # * <tt>:template</tt> By default, the template digest for the current
+    #   controller/action is included in ETags. If the action renders a
+    #   different template, you can include its digest instead. If the action
+    #   doesn't render a template at all, you can pass <tt>template: false</tt>
+    #   to skip any attempt to check for a template digest.
     #
     # === Example:
     #
@@ -49,11 +54,11 @@ module ActionController
     #     fresh_when(etag: @article, last_modified: @article.created_at, public: true)
     #   end
     #
-    # This will render the show template if the request isn't sending a matching etag or
+    # This will render the show template if the request isn't sending a matching ETag or
     # If-Modified-Since header and just a <tt>304 Not Modified</tt> response if there's a match.
     #
     # You can also just pass a record where +last_modified+ will be set by calling
-    # +updated_at+ and the etag by passing the object itself.
+    # +updated_at+ and the +etag+ by passing the object itself.
     #
     #   def show
     #     @article = Article.find(params[:id])
@@ -66,18 +71,24 @@ module ActionController
     #     @article = Article.find(params[:id])
     #     fresh_when(@article, public: true)
     #   end
+    #
+    # When rendering a different template than the default controller/action
+    # style, you can indicate which digest to include in the ETag:
+    #
+    #   before_action { fresh_when @article, template: 'widgets/show' }
+    #
     def fresh_when(record_or_options, additional_options = {})
       if record_or_options.is_a? Hash
         options = record_or_options
-        options.assert_valid_keys(:etag, :last_modified, :public)
+        options.assert_valid_keys(:etag, :last_modified, :public, :template)
       else
         record  = record_or_options
         options = { etag: record, last_modified: record.try(:updated_at) }.merge!(additional_options)
       end
 
-      response.etag          = combine_etags(options[:etag]) if options[:etag]
-      response.last_modified = options[:last_modified]       if options[:last_modified]
-      response.cache_control[:public] = true                 if options[:public]
+      response.etag          = combine_etags(options)   if options[:etag] || options[:template]
+      response.last_modified = options[:last_modified]  if options[:last_modified]
+      response.cache_control[:public] = true            if options[:public]
 
       head :not_modified if request.fresh?(response)
     end
@@ -93,6 +104,11 @@ module ActionController
     # * <tt>:last_modified</tt>.
     # * <tt>:public</tt> By default the Cache-Control header is private, set this to
     #   +true+ if you want your application to be cachable by other devices (proxy caches).
+    # * <tt>:template</tt> By default, the template digest for the current
+    #   controller/action is included in ETags. If the action renders a
+    #   different template, you can include its digest instead. If the action
+    #   doesn't render a template at all, you can pass <tt>template: false</tt>
+    #   to skip any attempt to check for a template digest.
     #
     # === Example:
     #
@@ -108,7 +124,7 @@ module ActionController
     #   end
     #
     # You can also just pass a record where +last_modified+ will be set by calling
-    # updated_at and the etag by passing the object itself.
+    # +updated_at+ and the +etag+ by passing the object itself.
     #
     #   def show
     #     @article = Article.find(params[:id])
@@ -133,6 +149,14 @@ module ActionController
     #       end
     #     end
     #   end
+    #
+    # When rendering a different template than the default controller/action
+    # style, you can indicate which digest to include in the ETag:
+    #
+    #   def show
+    #     super if stale? @article, template: 'widgets/show'
+    #   end
+    #
     def stale?(record_or_options, additional_options = {})
       fresh_when(record_or_options, additional_options)
       !request.fresh?(response)
@@ -168,8 +192,9 @@ module ActionController
     end
 
     private
-      def combine_etags(etag)
-        [ etag, *etaggers.map { |etagger| instance_exec(&etagger) }.compact ]
+      def combine_etags(options)
+        etags = etaggers.map { |etagger| instance_exec(options, &etagger) }.compact
+        etags.unshift options[:etag]
       end
   end
 end

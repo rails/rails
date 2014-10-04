@@ -1,6 +1,7 @@
 require 'cases/helper'
 require 'pathname'
 
+if current_adapter?(:SQLite3Adapter)
 module ActiveRecord
   class SqliteDBCreateTest < ActiveRecord::TestCase
     def setup
@@ -188,4 +189,5 @@ module ActiveRecord
       FileUtils.rm_f(dbfile)
     end
   end
+end
 end

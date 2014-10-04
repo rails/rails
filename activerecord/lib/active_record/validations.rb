@@ -29,21 +29,6 @@ module ActiveRecord
     extend ActiveSupport::Concern
     include ActiveModel::Validations
 
-    module ClassMethods
-      # Creates an object just like Base.create but calls <tt>save!</tt> instead of +save+
-      # so an exception is raised if the record is invalid.
-      def create!(attributes = nil, &block)
-        if attributes.is_a?(Array)
-          attributes.collect { |attr| create!(attr, &block) }
-        else
-          object = new(attributes)
-          yield(object) if block_given?
-          object.save!
-          object
-        end
-      end
-    end
-
     # The validation process on save can be skipped by passing <tt>validate: false</tt>.
     # The regular Base#save method is replaced with this when the validations
     # module is mixed in, which it is by default.
@@ -54,11 +39,13 @@ module ActiveRecord
     # Attempts to save the record just like Base#save but will raise a +RecordInvalid+
     # exception instead of returning +false+ if the record is not valid.
     def save!(options={})
-      perform_validations(options) ? super : raise(RecordInvalid.new(self))
+      perform_validations(options) ? super : raise_record_invalid
     end
 
     # Runs all the validations within the specified context. Returns +true+ if
     # no errors are found, +false+ otherwise.
+    #
+    # Aliased as validate.
     #
     # If the argument is +false+ (default is +nil+), the context is set to <tt>:create</tt> if
     # <tt>new_record?</tt> is +true+, and to <tt>:update</tt> if it is not.
@@ -71,7 +58,25 @@ module ActiveRecord
       errors.empty? && output
     end
 
+    alias_method :validate, :valid?
+
+    # Runs all the validations within the specified context. Returns +true+ if
+    # no errors are found, raises +RecordInvalid+ otherwise.
+    #
+    # If the argument is +false+ (default is +nil+), the context is set to <tt>:create</tt> if
+    # <tt>new_record?</tt> is +true+, and to <tt>:update</tt> if it is not.
+    #
+    # Validations with no <tt>:on</tt> option will run no matter the context. Validations with
+    # some <tt>:on</tt> option will only run in the specified context.
+    def validate!(context = nil)
+      valid?(context) || raise_record_invalid
+    end
+
   protected
+
+    def raise_record_invalid
+      raise(RecordInvalid.new(self))
+    end
 
     def perform_validations(options={}) # :nodoc:
       options[:validate] == false || valid?(options[:context])

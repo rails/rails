@@ -15,7 +15,7 @@ module ActiveRecord
     # are typically created by methods in TableDefinition, and added to the
     # +columns+ attribute of said TableDefinition object, in order to be used
     # for generating a number of table creation or table changing SQL statements.
-    class ColumnDefinition < Struct.new(:name, :type, :limit, :precision, :scale, :default, :null, :first, :after, :primary_key) #:nodoc:
+    class ColumnDefinition < Struct.new(:name, :type, :limit, :precision, :scale, :default, :null, :first, :after, :primary_key, :sql_type, :cast_type) #:nodoc:
 
       def primary_key?
         primary_key || type.to_sym == :primary_key
@@ -23,6 +23,49 @@ module ActiveRecord
     end
 
     class ChangeColumnDefinition < Struct.new(:column, :type, :options) #:nodoc:
+    end
+
+    class ForeignKeyDefinition < Struct.new(:from_table, :to_table, :options) #:nodoc:
+      def name
+        options[:name]
+      end
+
+      def column
+        options[:column]
+      end
+
+      def primary_key
+        options[:primary_key] || default_primary_key
+      end
+
+      def on_delete
+        options[:on_delete]
+      end
+
+      def on_update
+        options[:on_update]
+      end
+
+      def custom_primary_key?
+        options[:primary_key] != default_primary_key
+      end
+
+      private
+      def default_primary_key
+        "id"
+      end
+    end
+
+    module TimestampDefaultDeprecation # :nodoc:
+      def emit_warning_if_null_unspecified(options)
+        return if options.key?(:null)
+
+        ActiveSupport::Deprecation.warn \
+          "`timestamp` was called without specifying an option for `null`. In Rails " \
+          "5.0, this behavior will change to `null: false`. You should manually " \
+          "specify `null: true` to prevent the behavior of your existing migrations " \
+          "from changing."
+      end
     end
 
     # Represents the schema of an SQL table in an abstract way. This class
@@ -46,6 +89,8 @@ module ActiveRecord
     # The table definitions
     # The Columns are stored as a ColumnDefinition in the +columns+ attribute.
     class TableDefinition
+      include TimestampDefaultDeprecation
+
       # An array of ColumnDefinition objects, representing the column changes
       # that have been defined.
       attr_accessor :indexes
@@ -99,9 +144,11 @@ module ActiveRecord
       #   Specifies the precision for a <tt>:decimal</tt> column.
       # * <tt>:scale</tt> -
       #   Specifies the scale for a <tt>:decimal</tt> column.
+      # * <tt>:index</tt> -
+      #   Create an index for the column. Can be either <tt>true</tt> or an options hash.
       #
-      # For clarity's sake: the precision is the number of significant digits,
-      # while the scale is the number of digits that can be stored following
+      # Note: The precision is the total number of significant digits
+      # and the scale is the number of digits that can be stored following
       # the decimal point. For example, the number 123.45 has a precision of 5
       # and a scale of 2. A decimal with a precision of 5 and a scale of 2 can
       # range from -999.99 to 999.99.
@@ -123,17 +170,8 @@ module ActiveRecord
       #   Default is (38,0).
       # * DB2: <tt>:precision</tt> [1..63], <tt>:scale</tt> [0..62].
       #   Default unknown.
-      # * Firebird: <tt>:precision</tt> [1..18], <tt>:scale</tt> [0..18].
-      #   Default (9,0). Internal types NUMERIC and DECIMAL have different
-      #   storage rules, decimal being better.
-      # * FrontBase?: <tt>:precision</tt> [1..38], <tt>:scale</tt> [0..38].
-      #   Default (38,0). WARNING Max <tt>:precision</tt>/<tt>:scale</tt> for
-      #   NUMERIC is 19, and DECIMAL is 38.
       # * SqlServer?: <tt>:precision</tt> [1..38], <tt>:scale</tt> [0..38].
       #   Default (38,0).
-      # * Sybase: <tt>:precision</tt> [1..38], <tt>:scale</tt> [0..38].
-      #   Default (38,0).
-      # * OpenBase?: Documentation unclear. Claims storage in <tt>double</tt>.
       #
       # This method returns <tt>self</tt>.
       #
@@ -172,18 +210,21 @@ module ActiveRecord
       # What can be written like this with the regular calls to column:
       #
       #   create_table :products do |t|
-      #     t.column :shop_id,    :integer
-      #     t.column :creator_id, :integer
-      #     t.column :name,       :string, default: "Untitled"
-      #     t.column :value,      :string, default: "Untitled"
-      #     t.column :created_at, :datetime
-      #     t.column :updated_at, :datetime
+      #     t.column :shop_id,     :integer
+      #     t.column :creator_id,  :integer
+      #     t.column :item_number, :string
+      #     t.column :name,        :string, default: "Untitled"
+      #     t.column :value,       :string, default: "Untitled"
+      #     t.column :created_at,  :datetime
+      #     t.column :updated_at,  :datetime
       #   end
+      #   add_index :products, :item_number
       #
       # can also be written as follows using the short-hand:
       #
       #   create_table :products do |t|
       #     t.integer :shop_id, :creator_id
+      #     t.string  :item_number, index: true
       #     t.string  :name, :value, default: "Untitled"
       #     t.timestamps
       #   end
@@ -219,6 +260,8 @@ module ActiveRecord
           raise ArgumentError, "you can't redefine the primary key column '#{name}'. To define a custom primary key, pass { id: false } to create_table."
         end
 
+        index_options = options.delete(:index)
+        index(name, index_options.is_a?(Hash) ? index_options : {}) if index_options
         @columns_hash[name] = new_column_definition(name, type, options)
         self
       end
@@ -247,16 +290,27 @@ module ActiveRecord
       # <tt>:updated_at</tt> to the table.
       def timestamps(*args)
         options = args.extract_options!
+        emit_warning_if_null_unspecified(options)
         column(:created_at, :datetime, options)
         column(:updated_at, :datetime, options)
       end
 
+      # Adds a reference. Optionally adds a +type+ column, if <tt>:polymorphic</tt> option is provided.
+      # <tt>references</tt> and <tt>belongs_to</tt> are acceptable. The reference column will be an +integer+
+      # by default, the <tt>:type</tt> option can be used to specify a different type.
+      #
+      #  t.references(:user)
+      #  t.references(:user, type: "string")
+      #  t.belongs_to(:supplier, polymorphic: true)
+      #
+      # See SchemaStatements#add_reference
       def references(*args)
         options = args.extract_options!
         polymorphic = options.delete(:polymorphic)
         index_options = options.delete(:index)
+        type = options.delete(:type) || :integer
         args.each do |col|
-          column("#{col}_id", :integer, options)
+          column("#{col}_id", type, options)
           column("#{col}_type", :string, polymorphic.is_a?(Hash) ? polymorphic : options) if polymorphic
           index(polymorphic ? %w(id type).map { |t| "#{col}_#{t}" } : "#{col}_id", index_options.is_a?(Hash) ? index_options : {}) if index_options
         end
@@ -264,13 +318,13 @@ module ActiveRecord
       alias :belongs_to :references
 
       def new_column_definition(name, type, options) # :nodoc:
+        type = aliased_types[type] || type
         column = create_column_definition name, type
         limit = options.fetch(:limit) do
           native[type][:limit] if native[type].is_a?(Hash)
         end
 
         column.limit       = limit
-        column.array       = options[:array] if column.respond_to?(:array)
         column.precision   = options[:precision]
         column.scale       = options[:scale]
         column.default     = options[:default]
@@ -294,17 +348,35 @@ module ActiveRecord
       def native
         @native
       end
+
+      def aliased_types
+        HashWithIndifferentAccess.new(
+          timestamp: :datetime,
+        )
+      end
     end
 
     class AlterTable # :nodoc:
       attr_reader :adds
+      attr_reader :foreign_key_adds
+      attr_reader :foreign_key_drops
 
       def initialize(td)
         @td   = td
         @adds = []
+        @foreign_key_adds = []
+        @foreign_key_drops = []
       end
 
       def name; @td.name; end
+
+      def add_foreign_key(to_table, options)
+        @foreign_key_adds << ForeignKeyDefinition.new(name, to_table, options)
+      end
+
+      def drop_foreign_key(name)
+        @foreign_key_drops << name
+      end
 
       def add_column(name, type, options)
         name = name.to_s
@@ -347,6 +419,8 @@ module ActiveRecord
     #   end
     #
     class Table
+      include TimestampDefaultDeprecation
+
       def initialize(table_name, base)
         @table_name = table_name
         @base = base
@@ -394,8 +468,9 @@ module ActiveRecord
       # Adds timestamps (+created_at+ and +updated_at+) columns to the table. See SchemaStatements#add_timestamps
       #
       #  t.timestamps
-      def timestamps
-        @base.add_timestamps(@table_name)
+      def timestamps(options = {})
+        emit_warning_if_null_unspecified(options)
+        @base.add_timestamps(@table_name, options)
       end
 
       # Changes the column's definition according to the new options.
@@ -452,11 +527,14 @@ module ActiveRecord
       end
 
       # Adds a reference. Optionally adds a +type+ column, if <tt>:polymorphic</tt> option is provided.
-      # <tt>references</tt> and <tt>belongs_to</tt> are acceptable.
+      # <tt>references</tt> and <tt>belongs_to</tt> are acceptable. The reference column will be an +integer+
+      # by default, the <tt>:type</tt> option can be used to specify a different type.
       #
       #  t.references(:user)
+      #  t.references(:user, type: "string")
       #  t.belongs_to(:supplier, polymorphic: true)
       #
+      # See SchemaStatements#add_reference
       def references(*args)
         options = args.extract_options!
         args.each do |ref_name|
@@ -471,6 +549,7 @@ module ActiveRecord
       #  t.remove_references(:user)
       #  t.remove_belongs_to(:supplier, polymorphic: true)
       #
+      # See SchemaStatements#remove_reference
       def remove_references(*args)
         options = args.extract_options!
         args.each do |ref_name|
@@ -497,6 +576,5 @@ module ActiveRecord
           @base.native_database_types
         end
     end
-
   end
 end

@@ -35,12 +35,13 @@ module ActionView
     module ClassMethods
       def view_context_class
         @view_context_class ||= begin
-          routes = respond_to?(:_routes) && _routes
+          include_path_helpers = supports_path?
+          routes  = respond_to?(:_routes)  && _routes
           helpers = respond_to?(:_helpers) && _helpers
 
           Class.new(ActionView::Base) do
             if routes
-              include routes.url_helpers
+              include routes.url_helpers(include_path_helpers)
               include routes.mounted_helpers
             end
 
@@ -62,8 +63,8 @@ module ActionView
     #
     # The view class must have the following methods:
     # View.new[lookup_context, assigns, controller]
-    #   Create a new ActionView instance for a controller
-    # View#render[options]
+    #   Create a new ActionView instance for a controller and we can also pass the arguments.
+    # View#render(option)
     #   Returns String with the rendered template
     #
     # Override this method in a module to change the default behavior.
@@ -94,20 +95,20 @@ module ActionView
         variant = options[:variant]
 
         lookup_context.rendered_format = nil if options[:formats]
-        lookup_context.variants = [variant] if variant
+        lookup_context.variants = variant if variant
 
         view_renderer.render(view_context, options)
       end
 
       # Assign the rendered format to lookup context.
-      def _process_format(format) #:nodoc:
+      def _process_format(format, options = {}) #:nodoc:
         super
         lookup_context.formats = [format.to_sym]
         lookup_context.rendered_format = lookup_context.formats.first
       end
 
       # Normalize args by converting render "foo" to render :action => "foo" and
-      # render "foo/bar" to render :file => "foo/bar".
+      # render "foo/bar" to render :template => "foo/bar".
       # :api: private
       def _normalize_args(action=nil, options={})
         options = super(action, options)
@@ -117,7 +118,7 @@ module ActionView
           options = action
         when String, Symbol
           action = action.to_s
-          key = action.include?(?/) ? :file : :action
+          key = action.include?(?/) ? :template : :action
           options[key] = action
         else
           options[:partial] = action

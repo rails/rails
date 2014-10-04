@@ -2,7 +2,7 @@
 
 Rails is a web-application framework that includes everything needed to
 create database-backed web applications according to the
-[Model-View-Controller (MVC)](http://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller)
+[Model-View-Controller (MVC)](http://en.wikipedia.org/wiki/Model-view-controller)
 pattern.
 
 Understanding the MVC pattern is key to understanding Rails. MVC divides your
@@ -67,7 +67,7 @@ independently outside Rails.
     * [Getting Started with Rails](http://guides.rubyonrails.org/getting_started.html)
     * [Ruby on Rails Guides](http://guides.rubyonrails.org)
     * [The API Documentation](http://api.rubyonrails.org)
-    * [Ruby on Rails Tutorial](http://ruby.railstutorial.org/ruby-on-rails-tutorial-book)
+    * [Ruby on Rails Tutorial](http://www.railstutorial.org/book)
 
 ## Contributing
 
@@ -76,7 +76,7 @@ We encourage you to contribute to Ruby on Rails! Please check out the
 
 ## Code Status
 
-* [![Build Status](https://api.travis-ci.org/rails/rails.png)](https://travis-ci.org/rails/rails)
+* [![Build Status](https://travis-ci.org/rails/rails.svg?branch=master)](https://travis-ci.org/rails/rails)
 
 ## License
 

@@ -1,7 +1,5 @@
 # encoding: utf-8
 require "cases/helper"
-require 'active_record/base'
-require 'active_record/connection_adapters/postgresql_adapter'
 
 class PostgresqlLtreeTest < ActiveRecord::TestCase
   class Ltree < ActiveRecord::Base
@@ -10,6 +8,9 @@ class PostgresqlLtreeTest < ActiveRecord::TestCase
 
   def setup
     @connection = ActiveRecord::Base.connection
+
+    enable_extension!('ltree', @connection)
+
     @connection.transaction do
       @connection.create_table('ltrees') do |t|
         t.ltree 'path'
@@ -19,13 +20,17 @@ class PostgresqlLtreeTest < ActiveRecord::TestCase
     skip "do not test on PG without ltree"
   end
 
-  def teardown
+  teardown do
     @connection.execute 'drop table if exists ltrees'
   end
 
   def test_column
     column = Ltree.columns_hash['path']
     assert_equal :ltree, column.type
+    assert_equal "ltree", column.sql_type
+    assert_not column.number?
+    assert_not column.binary?
+    assert_not column.array
   end
 
   def test_write

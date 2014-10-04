@@ -88,9 +88,12 @@ module ActionView
     # still sending assets for plain HTTP requests from asset hosts. If you don't
     # have SSL certificates for each of the asset hosts this technique allows you
     # to avoid warnings in the client about mixed media.
+    # Note that the request parameter might not be supplied, e.g. when the assets
+    # are precompiled via a Rake task. Make sure to use a Proc instead of a lambda,
+    # since a Proc allows missing parameters and sets them to nil.
     #
     #   config.action_controller.asset_host = Proc.new { |source, request|
-    #     if request.ssl?
+    #     if request && request.ssl?
     #       "#{request.protocol}#{request.host_with_port}"
     #     else
     #       "#{request.protocol}assets.example.com"
@@ -113,9 +116,9 @@ module ActionView
       #
       # All other asset *_path helpers delegate through this method.
       #
-      #   asset_path "application.js"                     # => /application.js
-      #   asset_path "application", type: :javascript     # => /javascripts/application.js
-      #   asset_path "application", type: :stylesheet     # => /stylesheets/application.css
+      #   asset_path "application.js"                     # => /assets/application.js
+      #   asset_path "application", type: :javascript     # => /assets/application.js
+      #   asset_path "application", type: :stylesheet     # => /assets/application.css
       #   asset_path "http://www.example.com/js/xmlhr.js" # => http://www.example.com/js/xmlhr.js
       def asset_path(source, options = {})
         source = source.to_s
@@ -134,11 +137,11 @@ module ActionView
 
         relative_url_root = defined?(config.relative_url_root) && config.relative_url_root
         if relative_url_root
-          source = "#{relative_url_root}#{source}" unless source.starts_with?("#{relative_url_root}/")
+          source = File.join(relative_url_root, source) unless source.starts_with?("#{relative_url_root}/")
         end
 
         if host = compute_asset_host(source, options)
-          source = "#{host}#{source}"
+          source = File.join(host, source)
         end
 
         "#{source}#{tail}"
@@ -147,7 +150,14 @@ module ActionView
 
       # Computes the full URL to an asset in the public directory. This
       # will use +asset_path+ internally, so most of their behaviors
-      # will be the same.
+      # will be the same. If :host options is set, it overwrites global
+      # +config.action_controller.asset_host+ setting.
+      #
+      # All other options provided are forwarded to +asset_path+ call.
+      #
+      #   asset_url "application.js"                                 # => http://example.com/assets/application.js
+      #   asset_url "application.js", host: "http://cdn.example.com" # => http://cdn.example.com/assets/application.js
+      #
       def asset_url(source, options = {})
         path_to_asset(source, options.merge(:protocol => :request))
       end
@@ -191,8 +201,8 @@ module ActionView
       # (proc or otherwise).
       def compute_asset_host(source = "", options = {})
         request = self.request if respond_to?(:request)
-        host = config.asset_host if defined? config.asset_host
-        host ||= request.base_url if request && options[:protocol] == :request
+        host = options[:host]
+        host ||= config.asset_host if defined? config.asset_host
 
         if host.respond_to?(:call)
           arity = host.respond_to?(:arity) ? host.arity : host.method(:call).arity
@@ -203,6 +213,7 @@ module ActionView
           host = host % (Zlib.crc32(source) % 4)
         end
 
+        host ||= request.base_url if request && options[:protocol] == :request
         return unless host
 
         if host =~ URI_REGEXP
@@ -220,13 +231,13 @@ module ActionView
         end
       end
 
-      # Computes the path to a javascript asset in the public javascripts directory.
+      # Computes the path to a JavaScript asset in the public javascripts directory.
       # If the +source+ filename has no extension, .js will be appended (except for explicit URIs)
       # Full paths from the document root will be passed through.
-      # Used internally by javascript_include_tag to build the script path.
+      # Used internally by +javascript_include_tag+ to build the script path.
       #
-      #   javascript_path "xmlhr"                              # => /javascripts/xmlhr.js
-      #   javascript_path "dir/xmlhr.js"                       # => /javascripts/dir/xmlhr.js
+      #   javascript_path "xmlhr"                              # => /assets/xmlhr.js
+      #   javascript_path "dir/xmlhr.js"                       # => /assets/dir/xmlhr.js
       #   javascript_path "/dir/xmlhr"                         # => /dir/xmlhr.js
       #   javascript_path "http://www.example.com/js/xmlhr"    # => http://www.example.com/js/xmlhr
       #   javascript_path "http://www.example.com/js/xmlhr.js" # => http://www.example.com/js/xmlhr.js
@@ -235,7 +246,7 @@ module ActionView
       end
       alias_method :path_to_javascript, :javascript_path # aliased to avoid conflicts with a javascript_path named route
 
-      # Computes the full URL to a javascript asset in the public javascripts directory.
+      # Computes the full URL to a JavaScript asset in the public javascripts directory.
       # This will use +javascript_path+ internally, so most of their behaviors will be the same.
       def javascript_url(source, options = {})
         url_to_asset(source, {type: :javascript}.merge!(options))
@@ -243,12 +254,12 @@ module ActionView
       alias_method :url_to_javascript, :javascript_url # aliased to avoid conflicts with a javascript_url named route
 
       # Computes the path to a stylesheet asset in the public stylesheets directory.
-      # If the +source+ filename has no extension, <tt>.css</tt> will be appended (except for explicit URIs).
+      # If the +source+ filename has no extension, .css will be appended (except for explicit URIs).
       # Full paths from the document root will be passed through.
       # Used internally by +stylesheet_link_tag+ to build the stylesheet path.
       #
-      #   stylesheet_path "style"                                  # => /stylesheets/style.css
-      #   stylesheet_path "dir/style.css"                          # => /stylesheets/dir/style.css
+      #   stylesheet_path "style"                                  # => /assets/style.css
+      #   stylesheet_path "dir/style.css"                          # => /assets/dir/style.css
       #   stylesheet_path "/dir/style.css"                         # => /dir/style.css
       #   stylesheet_path "http://www.example.com/css/style"       # => http://www.example.com/css/style
       #   stylesheet_path "http://www.example.com/css/style.css"   # => http://www.example.com/css/style.css
@@ -334,9 +345,9 @@ module ActionView
       # Computes the path to a font asset.
       # Full paths from the document root will be passed through.
       #
-      #   font_path("font")                                           # => /assets/font
-      #   font_path("font.ttf")                                       # => /assets/font.ttf
-      #   font_path("dir/font.ttf")                                   # => /assets/dir/font.ttf
+      #   font_path("font")                                           # => /fonts/font
+      #   font_path("font.ttf")                                       # => /fonts/font.ttf
+      #   font_path("dir/font.ttf")                                   # => /fonts/dir/font.ttf
       #   font_path("/dir/font.ttf")                                  # => /dir/font.ttf
       #   font_path("http://www.example.com/dir/font.ttf")            # => http://www.example.com/dir/font.ttf
       def font_path(source, options = {})

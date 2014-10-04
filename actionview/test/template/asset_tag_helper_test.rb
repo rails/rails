@@ -195,9 +195,9 @@ class AssetTagHelperTest < ActionView::TestCase
   }
 
   FaviconLinkToTag = {
-    %(favicon_link_tag) => %(<link href="/images/favicon.ico" rel="shortcut icon" type="image/vnd.microsoft.icon" />),
-    %(favicon_link_tag 'favicon.ico') => %(<link href="/images/favicon.ico" rel="shortcut icon" type="image/vnd.microsoft.icon" />),
-    %(favicon_link_tag 'favicon.ico', :rel => 'foo') => %(<link href="/images/favicon.ico" rel="foo" type="image/vnd.microsoft.icon" />),
+    %(favicon_link_tag) => %(<link href="/images/favicon.ico" rel="shortcut icon" type="image/x-icon" />),
+    %(favicon_link_tag 'favicon.ico') => %(<link href="/images/favicon.ico" rel="shortcut icon" type="image/x-icon" />),
+    %(favicon_link_tag 'favicon.ico', :rel => 'foo') => %(<link href="/images/favicon.ico" rel="foo" type="image/x-icon" />),
     %(favicon_link_tag 'favicon.ico', :rel => 'foo', :type => 'bar') => %(<link href="/images/favicon.ico" rel="foo" type="bar" />),
     %(favicon_link_tag 'mb-icon.png', :rel => 'apple-touch-icon', :type => 'image/png') => %(<link href="/images/mb-icon.png" rel="apple-touch-icon" type="image/png" />)
   }
@@ -307,6 +307,14 @@ class AssetTagHelperTest < ActionView::TestCase
 
   def test_asset_path_tag
     AssetPathToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
+  end
+
+  def test_asset_path_tag_to_not_create_duplicate_slashes
+    @controller.config.asset_host = "host/"
+    assert_dom_equal('http://host/foo', asset_path("foo"))
+
+    @controller.config.relative_url_root = '/some/root/'
+    assert_dom_equal('http://host/some/root/foo', asset_path("foo"))
   end
 
   def test_compute_asset_public_path
@@ -527,6 +535,17 @@ class AssetTagHelperTest < ActionView::TestCase
     assert_equal copy, source
   end
 
+  class PlaceholderImage
+    def blank?; true; end
+    def to_s; 'no-image-yet.png'; end
+  end
+  def test_image_tag_with_blank_placeholder
+    assert_equal '<img alt="" src="/images/no-image-yet.png" />', image_tag(PlaceholderImage.new, alt: "")
+  end
+  def test_image_path_with_blank_placeholder
+    assert_equal '/images/no-image-yet.png', image_path(PlaceholderImage.new)
+  end
+
   def test_image_path_with_asset_host_proc_returning_nil
     @controller.config.asset_host = Proc.new do |source|
       unless source.end_with?("tiff")
@@ -536,6 +555,14 @@ class AssetTagHelperTest < ActionView::TestCase
 
     assert_equal "/images/file.tiff", image_path("file.tiff")
     assert_equal "http://cdn.example.com/images/file.png", image_path("file.png")
+  end
+
+  def test_image_url_with_asset_host_proc_returning_nil
+    @controller.config.asset_host = Proc.new { nil }
+    @controller.request = Struct.new(:base_url, :script_name).new("http://www.example.com", nil)
+
+    assert_equal "/images/rails.png", image_path("rails.png")
+    assert_equal "http://www.example.com/images/rails.png", image_url("rails.png")
   end
 
   def test_caching_image_path_with_caching_and_proc_asset_host_using_request
@@ -586,6 +613,10 @@ class AssetTagHelperNonVhostTest < ActionView::TestCase
 
   def test_should_current_request_host_is_always_returned_for_request
     assert_equal "gopher://www.example.com", compute_asset_host("foo", :protocol => :request)
+  end
+
+  def test_should_return_custom_host_if_passed_in_options
+    assert_equal "http://custom.example.com", compute_asset_host("foo", :host => "http://custom.example.com")
   end
 
   def test_should_ignore_relative_root_path_on_complete_url
@@ -750,5 +781,16 @@ class AssetUrlHelperEmptyModuleTest < ActionView::TestCase
 
     assert @module.config.asset_host
     assert_equal "http://www.example.com/foo", @module.asset_url("foo")
+  end
+
+  def test_asset_url_with_custom_asset_host
+    @module.instance_eval do
+      def config
+        Struct.new(:asset_host).new("http://www.example.com")
+      end
+    end
+
+    assert @module.config.asset_host
+    assert_equal "http://custom.example.com/foo", @module.asset_url("foo", :host => "http://custom.example.com")
   end
 end

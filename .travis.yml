@@ -1,3 +1,4 @@
+language: ruby
 script: 'ci/travis.rb'
 before_install:
   - travis_retry gem install bundler
@@ -5,18 +6,30 @@ before_install:
 rvm:
   - 1.9.3
   - 2.0.0
-  - 2.1.0
+  - 2.1
+  - ruby-head
   - rbx-2
   - jruby
 env:
-  - "GEM=railties"
-  - "GEM=ap,am,amo,as,av"
-  - "GEM=ar:mysql"
-  - "GEM=ar:mysql2"
-  - "GEM=ar:sqlite3"
-  - "GEM=ar:postgresql"
+  global:
+    - JRUBY_OPTS='-J-Xmx1024M'
+  matrix:
+    - "GEM=railties"
+    - "GEM=ap"
+    - "GEM=am,amo,as,av,aj"
+    - "GEM=ar:mysql"
+    - "GEM=ar:mysql2"
+    - "GEM=ar:sqlite3"
+    - "GEM=ar:postgresql"
+    - "GEM=aj:integration"
 matrix:
   allow_failures:
+    - rvm: 1.9.3
+      env: "GEM=ar:mysql"
+    - rvm: 2.0.0
+      env: "GEM=ar:mysql"
+    - rvm: ruby-head
+      env: "GEM=ar:mysql"
     - rvm: rbx-2
     - rvm: jruby
   fast_finish: true
@@ -35,4 +48,8 @@ notifications:
 bundler_args: --path vendor/bundle --without test
 services:
   - memcached
+  - redis
+  - rabbitmq
+addons:
+  postgresql: "9.3"
 

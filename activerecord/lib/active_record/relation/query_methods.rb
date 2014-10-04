@@ -1,8 +1,11 @@
 require 'active_support/core_ext/array/wrap'
+require 'active_model/forbidden_attributes_protection'
 
 module ActiveRecord
   module QueryMethods
     extend ActiveSupport::Concern
+
+    include ActiveModel::ForbiddenAttributesProtection
 
     # WhereChain objects act as placeholder for queries in which #where does not have any parameter.
     # In this case, #where must be chained with #not to return a new relation.
@@ -49,6 +52,8 @@ module ActiveRecord
             Arel::Nodes::Not.new(rel)
           end
         end
+
+        @scope.references!(PredicateBuilder.references(opts)) if Hash === opts
         @scope.where_values += where_value
         @scope
       end
@@ -62,6 +67,7 @@ module ActiveRecord
                                              #
         def #{name}_values=(values)          # def select_values=(values)
           raise ImmutableRelation if @loaded #   raise ImmutableRelation if @loaded
+          check_cached_relation
           @values[:#{name}] = values         #   @values[:select] = values
         end                                  # end
       CODE
@@ -79,9 +85,18 @@ module ActiveRecord
       class_eval <<-CODE, __FILE__, __LINE__ + 1
         def #{name}_value=(value)            # def readonly_value=(value)
           raise ImmutableRelation if @loaded #   raise ImmutableRelation if @loaded
+          check_cached_relation
           @values[:#{name}] = value          #   @values[:readonly] = value
         end                                  # end
       CODE
+    end
+
+    def check_cached_relation # :nodoc:
+      if defined?(@arel) && @arel
+        @arel = nil
+        ActiveSupport::Deprecation.warn "Modifying already cached Relation. The " \
+          "cache will be reset. Use a cloned Relation to prevent this warning."
+      end
     end
 
     def create_with_value # :nodoc:
@@ -168,7 +183,7 @@ module ActiveRecord
 
     # Use to indicate that the given +table_names+ are referenced by an SQL string,
     # and should therefore be JOINed in any query rather than loaded separately.
-    # This method only works in conjuction with +includes+.
+    # This method only works in conjunction with +includes+.
     # See #includes for more details.
     #
     #   User.includes(:posts).where("posts.name = 'foo'")
@@ -202,7 +217,7 @@ module ActiveRecord
     # fields are retrieved:
     #
     #   Model.select(:field)
-    #   # => [#<Model field:value>]
+    #   # => [#<Model id: nil, field: "value">]
     #
     # Although in the above example it looks as though this method returns an
     # array, it actually returns a relation object and can have other query
@@ -211,12 +226,12 @@ module ActiveRecord
     # The argument to the method can also be an array of fields.
     #
     #   Model.select(:field, :other_field, :and_one_more)
-    #   # => [#<Model field: "value", other_field: "value", and_one_more: "value">]
+    #   # => [#<Model id: nil, field: "value", other_field: "value", and_one_more: "value">]
     #
     # You can also use one or more strings, which will be used unchanged as SELECT fields.
     #
     #   Model.select('field AS field_one', 'other_field AS field_two')
-    #   # => [#<Model field: "value", other_field: "value">]
+    #   # => [#<Model id: nil, field: "value", other_field: "value">]
     #
     # If an alias was specified, it will be accessible from the resulting objects:
     #
@@ -224,7 +239,7 @@ module ActiveRecord
     #   # => "value"
     #
     # Accessing attributes of an object that do not have fields retrieved by a select
-    # will throw <tt>ActiveModel::MissingAttributeError</tt>:
+    # except +id+ will throw <tt>ActiveModel::MissingAttributeError</tt>:
     #
     #   Model.select(:field).first.other_field
     #   # => ActiveModel::MissingAttributeError: missing attribute: other_field
@@ -233,14 +248,14 @@ module ActiveRecord
         to_a.select { |*block_args| yield(*block_args) }
       else
         raise ArgumentError, 'Call this with at least one field' if fields.empty?
-        spawn.select!(*fields)
+        spawn._select!(*fields)
       end
     end
 
-    def select!(*fields) # :nodoc:
+    def _select!(*fields) # :nodoc:
       fields.flatten!
       fields.map! do |field|
-        klass.attribute_alias?(field) ? klass.attribute_alias(field).to_sym : field
+        klass.attribute_alias?(field) ? klass.attribute_alias(field) : field
       end
       self.select_values += fields
       self
@@ -261,6 +276,10 @@ module ActiveRecord
     #
     #   User.group('name AS grouped_name, age')
     #   => [#<User id: 3, name: "Foo", age: 21, ...>, #<User id: 2, name: "Oscar", age: 21, ...>, #<User id: 5, name: "Foo", age: 23, ...>]
+    #
+    # Passing in an array of attributes to group by is also supported.
+    #   User.select([:id, :first_name]).group(:id, :first_name).first(3)
+    #   => [#<User id: 1, first_name: "Bill">, #<User id: 2, first_name: "Earl">, #<User id: 3, first_name: "Beto">]
     def group(*args)
       check_if_method_has_arguments!(:group, args)
       spawn.group!(*args)
@@ -275,15 +294,6 @@ module ActiveRecord
 
     # Allows to specify an order attribute:
     #
-    #   User.order('name')
-    #   => SELECT "users".* FROM "users" ORDER BY name
-    #
-    #   User.order('name DESC')
-    #   => SELECT "users".* FROM "users" ORDER BY name DESC
-    #
-    #   User.order('name DESC, email')
-    #   => SELECT "users".* FROM "users" ORDER BY name DESC, email
-    #
     #   User.order(:name)
     #   => SELECT "users".* FROM "users" ORDER BY "users"."name" ASC
     #
@@ -292,6 +302,15 @@ module ActiveRecord
     #
     #   User.order(:name, email: :desc)
     #   => SELECT "users".* FROM "users" ORDER BY "users"."name" ASC, "users"."email" DESC
+    #
+    #   User.order('name')
+    #   => SELECT "users".* FROM "users" ORDER BY name
+    #
+    #   User.order('name DESC')
+    #   => SELECT "users".* FROM "users" ORDER BY name DESC
+    #
+    #   User.order('name DESC, email')
+    #   => SELECT "users".* FROM "users" ORDER BY name DESC, email
     def order(*args)
       check_if_method_has_arguments!(:order, args)
       spawn.order!(*args)
@@ -555,15 +574,14 @@ module ActiveRecord
       end
     end
 
-    def where!(opts = :chain, *rest) # :nodoc:
-      if opts == :chain
-        WhereChain.new(self)
-      else
-        references!(PredicateBuilder.references(opts)) if Hash === opts
-
-        self.where_values += build_where(opts, rest)
-        self
+    def where!(opts, *rest) # :nodoc:
+      if Hash === opts
+        opts = sanitize_forbidden_attributes(opts)
+        references!(PredicateBuilder.references(opts))
       end
+
+      self.where_values += build_where(opts, rest)
+      self
     end
 
     # Allows you to change a previously set where condition for a given attribute, instead of appending to that condition.
@@ -669,11 +687,11 @@ module ActiveRecord
     #   end
     #
     def none
-      extending(NullRelation)
+      where("1=0").extending!(NullRelation)
     end
 
     def none! # :nodoc:
-      extending!(NullRelation)
+      where!("1=0").extending!(NullRelation)
     end
 
     # Sets readonly attributes for the returned relation. If value is
@@ -709,7 +727,13 @@ module ActiveRecord
     end
 
     def create_with!(value) # :nodoc:
-      self.create_with_value = value ? create_with_value.merge(value) : {}
+      if value
+        value = sanitize_forbidden_attributes(value)
+        self.create_with_value = create_with_value.merge(value)
+      else
+        self.create_with_value = {}
+      end
+
       self
     end
 
@@ -819,7 +843,9 @@ module ActiveRecord
     end
 
     def reverse_order! # :nodoc:
-      self.reverse_order_value = !reverse_order_value
+      orders = order_values.uniq
+      orders.reject!(&:blank?)
+      self.order_values = reverse_sql_order(orders)
       self
     end
 
@@ -835,7 +861,7 @@ module ActiveRecord
 
       build_joins(arel, joins_values.flatten) unless joins_values.empty?
 
-      collapse_wheres(arel, (where_values - ['']).uniq)
+      collapse_wheres(arel, (where_values - [''])) #TODO: Add uniq with real value comparison / ignore uniqs that have binds
 
       arel.having(*having_values.uniq.reject(&:blank?)) unless having_values.empty?
 
@@ -852,6 +878,13 @@ module ActiveRecord
       arel.from(build_from) if from_value
       arel.lock(lock_value) if lock_value
 
+      # Reorder bind indexes if joins produced bind values
+      bvs = arel.bind_values + bind_values
+      arel.ast.grep(Arel::Nodes::BindParam).each_with_index do |bp, i|
+        column = bvs[i].first
+        bp.replace connection.substitute_at(column, i)
+      end
+
       arel
     end
 
@@ -865,8 +898,9 @@ module ActiveRecord
 
       case scope
       when :order
-        self.reverse_order_value = false
         result = []
+      when :where
+        self.bind_values = []
       else
         result = [] unless single_val_method
       end
@@ -917,26 +951,44 @@ module ActiveRecord
     def build_where(opts, other = [])
       case opts
       when String, Array
-        #TODO: Remove duplication with: /activerecord/lib/active_record/sanitization.rb:113
-        values = Hash === other.first ? other.first.values : other
-
-        values.grep(ActiveRecord::Relation) do |rel|
-          self.bind_values += rel.bind_values
-        end
-
         [@klass.send(:sanitize_sql, other.empty? ? opts : ([opts] + other))]
       when Hash
         opts = PredicateBuilder.resolve_column_aliases(klass, opts)
-        attributes = @klass.send(:expand_hash_conditions_for_aggregates, opts)
 
-        attributes.values.grep(ActiveRecord::Relation) do |rel|
-          self.bind_values += rel.bind_values
-        end
+        bv_len = bind_values.length
+        tmp_opts, bind_values = create_binds(opts, bv_len)
+        self.bind_values += bind_values
+
+        attributes = @klass.send(:expand_hash_conditions_for_aggregates, tmp_opts)
+        add_relations_to_bind_values(attributes)
 
         PredicateBuilder.build_from_hash(klass, attributes, table)
       else
         [opts]
       end
+    end
+
+    def create_binds(opts, idx)
+      bindable, non_binds = opts.partition do |column, value|
+        case value
+        when String, Integer, ActiveRecord::StatementCache::Substitute
+          @klass.columns_hash.include? column.to_s
+        else
+          false
+        end
+      end
+
+      new_opts = {}
+      binds = []
+
+      bindable.each_with_index do |(column,value), index|
+        binds.push [@klass.columns_hash[column.to_s], value]
+        new_opts[column] = connection.substitute_at(column, index + idx)
+      end
+
+      non_binds.each { |column,value| new_opts[column] = value }
+
+      [new_opts, binds]
     end
 
     def build_from
@@ -980,9 +1032,12 @@ module ActiveRecord
         join_list
       )
 
-      joins = join_dependency.join_constraints stashed_association_joins
+      join_infos = join_dependency.join_constraints stashed_association_joins
 
-      joins.each { |join| manager.from(join) }
+      join_infos.each do |info|
+        info.joins.each { |join| manager.from(join) }
+        manager.bind_values.concat info.binds
+      end
 
       manager.join_sources.concat(join_list)
 
@@ -995,8 +1050,6 @@ module ActiveRecord
           columns_hash.key?(field.to_s) ? arel_table[field] : field
         end
         arel.project(*expanded_select)
-      elsif from_value
-        arel.project(Arel.star)
       else
         arel.project(@klass.arel_table[Arel.star])
       end
@@ -1027,15 +1080,19 @@ module ActiveRecord
     def build_order(arel)
       orders = order_values.uniq
       orders.reject!(&:blank?)
-      orders = reverse_sql_order(orders) if reverse_order_value
 
       arel.order(*orders) unless orders.empty?
     end
 
+    VALID_DIRECTIONS = [:asc, :desc, :ASC, :DESC,
+                        'asc', 'desc', 'ASC', 'DESC'] # :nodoc:
+
     def validate_order_args(args)
-      args.grep(Hash) do |h|
-        unless (h.values - [:asc, :desc]).empty?
-          raise ArgumentError, 'Direction should be :asc or :desc'
+      args.each do |arg|
+        next unless arg.is_a?(Hash)
+        arg.each do |_key, value|
+          raise ArgumentError, "Direction \"#{value}\" is invalid. Valid " \
+                               "directions are: #{VALID_DIRECTIONS.inspect}" unless VALID_DIRECTIONS.include?(value)
         end
       end
     end
@@ -1052,12 +1109,12 @@ module ActiveRecord
       order_args.map! do |arg|
         case arg
         when Symbol
-          arg = klass.attribute_alias(arg).to_sym if klass.attribute_alias?(arg)
+          arg = klass.attribute_alias(arg) if klass.attribute_alias?(arg)
           table[arg].asc
         when Hash
           arg.map { |field, dir|
-            field = klass.attribute_alias(field).to_sym if klass.attribute_alias?(field)
-            table[field].send(dir)
+            field = klass.attribute_alias(field) if klass.attribute_alias?(field)
+            table[field].send(dir.downcase)
           }
         else
           arg
@@ -1084,6 +1141,20 @@ module ActiveRecord
     def check_if_method_has_arguments!(method_name, args)
       if args.blank?
         raise ArgumentError, "The method .#{method_name}() must contain arguments."
+      end
+    end
+
+    # This function is recursive just for better readablity.
+    # #where argument doesn't support more than one level nested hash in real world.
+    def add_relations_to_bind_values(attributes)
+      if attributes.is_a?(Hash)
+        attributes.each_value do |value|
+          if value.is_a?(ActiveRecord::Relation)
+            self.bind_values += value.bind_values
+          else
+            add_relations_to_bind_values(value)
+          end
+        end
       end
     end
   end

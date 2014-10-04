@@ -58,6 +58,9 @@ module ActiveRecord
     #   Post.order('id asc').only(:where)         # discards the order condition
     #   Post.order('id asc').only(:where, :order) # uses the specified order
     def only(*onlies)
+      if onlies.any? { |o| o == :where }
+        onlies << :bind
+      end
       relation_with values.slice(*onlies)
     end
 

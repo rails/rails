@@ -28,13 +28,11 @@ class ControllerGeneratorTest < Rails::Generators::TestCase
   def test_invokes_helper
     run_generator
     assert_file "app/helpers/account_helper.rb"
-    assert_file "test/helpers/account_helper_test.rb"
   end
 
   def test_does_not_invoke_helper_if_required
     run_generator ["account", "--skip-helper"]
     assert_no_file "app/helpers/account_helper.rb"
-    assert_no_file "test/helpers/account_helper_test.rb"
   end
 
   def test_invokes_assets
@@ -68,6 +66,13 @@ class ControllerGeneratorTest < Rails::Generators::TestCase
   def test_add_routes
     run_generator
     assert_file "config/routes.rb", /get 'account\/foo'/, /get 'account\/bar'/
+  end
+
+  def test_skip_routes
+    run_generator ["account", "foo", "--skip-routes"]
+    assert_file "config/routes.rb" do |routes|
+      assert_no_match(/get 'account\/foo'/, routes)
+    end
   end
 
   def test_invokes_default_template_engine_even_with_no_action

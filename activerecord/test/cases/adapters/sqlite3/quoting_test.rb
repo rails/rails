@@ -15,7 +15,7 @@ module ActiveRecord
 
         def test_type_cast_binary_encoding_without_logger
           @conn.extend(Module.new { def logger; end })
-          column = Struct.new(:type, :name).new(:string, "foo")
+          column = Column.new(nil, nil, Type::String.new)
           binary = SecureRandom.hex
           expected = binary.dup.encode!(Encoding::UTF_8)
           assert_equal expected, @conn.type_cast(binary, column)
@@ -47,13 +47,13 @@ module ActiveRecord
         end
 
         def test_type_cast_true
-          c = Column.new(nil, 1, 'int')
+          c = Column.new(nil, 1, Type::Integer.new)
           assert_equal 't', @conn.type_cast(true, nil)
           assert_equal 1, @conn.type_cast(true, c)
         end
 
         def test_type_cast_false
-          c = Column.new(nil, 1, 'int')
+          c = Column.new(nil, 1, Type::Integer.new)
           assert_equal 'f', @conn.type_cast(false, nil)
           assert_equal 0, @conn.type_cast(false, c)
         end
@@ -61,16 +61,16 @@ module ActiveRecord
         def test_type_cast_string
           assert_equal '10', @conn.type_cast('10', nil)
 
-          c = Column.new(nil, 1, 'int')
+          c = Column.new(nil, 1, Type::Integer.new)
           assert_equal 10, @conn.type_cast('10', c)
 
-          c = Column.new(nil, 1, 'float')
+          c = Column.new(nil, 1, Type::Float.new)
           assert_equal 10.1, @conn.type_cast('10.1', c)
 
-          c = Column.new(nil, 1, 'binary')
+          c = Column.new(nil, 1, Type::Binary.new)
           assert_equal '10.1', @conn.type_cast('10.1', c)
 
-          c = Column.new(nil, 1, 'date')
+          c = Column.new(nil, 1, Type::Date.new)
           assert_equal '10.1', @conn.type_cast('10.1', c)
         end
 
@@ -84,7 +84,7 @@ module ActiveRecord
           assert_raise(TypeError) { @conn.type_cast(obj, nil) }
         end
 
-        def test_quoted_id
+        def test_type_cast_object_which_responds_to_quoted_id
           quoted_id_obj = Class.new {
             def quoted_id
               "'zomg'"
@@ -100,8 +100,15 @@ module ActiveRecord
             def quoted_id
               "'zomg'"
             end
-          }
+          }.new
           assert_raise(TypeError) { @conn.type_cast(quoted_id_obj, nil) }
+        end
+
+        def test_quoting_binary_strings
+          value = "hello".encode('ascii-8bit')
+          column = Column.new(nil, 1, SQLite3String.new)
+
+          assert_equal "'hello'", @conn.quote(value, column)
         end
       end
     end

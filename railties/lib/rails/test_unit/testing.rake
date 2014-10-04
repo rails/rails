@@ -3,7 +3,7 @@ require 'rails/test_unit/sub_test_task'
 
 task default: :test
 
-desc 'Runs test:units, test:functionals, test:generators, test:integration together'
+desc 'Runs test:units, test:functionals, test:generators, test:integration, test:jobs together'
 task :test do
   Rails::TestTask.test_creator(Rake.application.top_level_tasks).invoke_rake_task
 end
@@ -13,7 +13,7 @@ namespace :test do
     # Placeholder task for other Railtie and plugins to enhance. See Active Record for an example.
   end
 
-  task :run => ['test:units', 'test:functionals', 'test:generators', 'test:integration']
+  task :run => ['test:units', 'test:functionals', 'test:generators', 'test:integration', 'test:jobs']
 
   # Inspired by: http://ngauthier.com/2012/02/quick-tests-with-bash.html
   desc "Run tests quickly by merging all types and not resetting db"
@@ -28,7 +28,7 @@ namespace :test do
 
   Rails::TestTask.new(single: "test:prepare")
 
-  ["models", "helpers", "controllers", "mailers", "integration"].each do |name|
+  ["models", "helpers", "controllers", "mailers", "integration", "jobs"].each do |name|
     Rails::TestTask.new(name => "test:prepare") do |t|
       t.pattern = "test/#{name}/**/*_test.rb"
     end

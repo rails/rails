@@ -103,10 +103,13 @@ module ActionView
       # Highlights one or more +phrases+ everywhere in +text+ by inserting it into
       # a <tt>:highlighter</tt> string. The highlighter can be specialized by passing <tt>:highlighter</tt>
       # as a single-quoted string with <tt>\1</tt> where the phrase is to be inserted (defaults to
-      # '<mark>\1</mark>')
+      # '<mark>\1</mark>') or passing a block that receives each matched term.
       #
       #   highlight('You searched for: rails', 'rails')
       #   # => You searched for: <mark>rails</mark>
+      #
+      #   highlight('You searched for: rails', /for|rails/)
+      #   # => You searched <mark>for</mark>: <mark>rails</mark>
       #
       #   highlight('You searched for: ruby, rails, dhh', 'actionpack')
       #   # => You searched for: ruby, rails, dhh
@@ -116,15 +119,25 @@ module ActionView
       #
       #   highlight('You searched for: rails', 'rails', highlighter: '<a href="search?q=\1">\1</a>')
       #   # => You searched for: <a href="search?q=rails">rails</a>
+      #
+      #   highlight('You searched for: rails', 'rails') { |match| link_to(search_path(q: match, match)) }
+      #   # => You searched for: <a href="search?q=rails">rails</a>
       def highlight(text, phrases, options = {})
         text = sanitize(text) if options.fetch(:sanitize, true)
 
         if text.blank? || phrases.blank?
-          text
+          text || ""
         else
-          highlighter = options.fetch(:highlighter, '<mark>\1</mark>')
-          match = Array(phrases).map { |p| Regexp.escape(p) }.join('|')
-          text.gsub(/(#{match})(?![^<]*?>)/i, highlighter)
+          match = Array(phrases).map do |p|
+            Regexp === p ? p.to_s : Regexp.escape(p)
+          end.join('|')
+
+          if block_given?
+            text.gsub(/(#{match})(?![^<]*?>)/i) { |found| yield found }
+          else
+            highlighter = options.fetch(:highlighter, '<mark>\1</mark>')
+            text.gsub(/(#{match})(?![^<]*?>)/i, highlighter)
+          end
         end.html_safe
       end
 
@@ -155,9 +168,13 @@ module ActionView
       def excerpt(text, phrase, options = {})
         return unless text && phrase
 
-        separator = options[:separator] || ''
-        phrase    = Regexp.escape(phrase)
-        regex     = /#{phrase}/i
+        separator = options.fetch(:separator, nil) || ""
+        case phrase
+        when Regexp
+          regex = phrase
+        else
+          regex = /#{Regexp.escape(phrase)}/i
+        end
 
         return unless matches = text.match(regex)
         phrase = matches[0]
@@ -171,7 +188,7 @@ module ActionView
           end
         end
 
-        first_part, second_part = text.split(regex, 2)
+        first_part, second_part = text.split(phrase, 2)
 
         prefix, first_part   = cut_excerpt_part(:first, first_part, separator, options)
         postfix, second_part = cut_excerpt_part(:second, second_part, separator, options)

@@ -11,14 +11,16 @@ require 'models/minivan'
 require 'models/speedometer'
 require 'models/ship_part'
 
-Company.has_many :accounts
-
 class NumericData < ActiveRecord::Base
   self.table_name = 'numeric_data'
+
+  attribute :world_population, Type::Integer.new
+  attribute :my_house_population, Type::Integer.new
+  attribute :atoms_in_universe, Type::Integer.new
 end
 
 class CalculationsTest < ActiveRecord::TestCase
-  fixtures :companies, :accounts, :topics
+  fixtures :companies, :accounts, :topics, :speedometers, :minivans
 
   def test_should_sum_field
     assert_equal 318, Account.sum(:credit_limit)
@@ -47,11 +49,6 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_should_return_nil_as_average
     assert_nil NumericData.average(:bank_balance)
-  end
-
-  def test_type_cast_calculated_value_should_convert_db_averages_of_fixnum_class_to_decimal
-    assert_equal 0, NumericData.all.send(:type_cast_calculated_value, 0, nil, 'avg')
-    assert_equal 53.0, NumericData.all.send(:type_cast_calculated_value, 53, nil, 'avg')
   end
 
   def test_should_get_maximum_of_field
@@ -387,6 +384,20 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_raise(ArgumentError) { Account.count(1, 2, 3) }
   end
 
+  def test_count_with_order
+    assert_equal 6, Account.order(:credit_limit).count
+  end
+
+  def test_count_with_reverse_order
+    assert_equal 6, Account.order(:credit_limit).reverse_order.count
+  end
+
+  def test_count_with_where_and_order
+    assert_equal 1, Account.where(firm_name: '37signals').count
+    assert_equal 1, Account.where(firm_name: '37signals').order(:firm_name).count
+    assert_equal 1, Account.where(firm_name: '37signals').order(:firm_name).reverse_order.count
+  end
+
   def test_should_sum_expression
     # Oracle adapter returns floating point value 636.0 after SUM
     if current_adapter?(:OracleAdapter)
@@ -591,5 +602,12 @@ class CalculationsTest < ActiveRecord::TestCase
     taks_relation = Topic.select(:approved, :id).order(:id)
     assert_equal [1,2,3,4,5], taks_relation.pluck(:id)
     assert_equal [false, true, true, true, true], taks_relation.pluck(:approved)
+  end
+
+  def test_pluck_columns_with_same_name
+    expected = [["The First Topic", "The Second Topic of the day"], ["The Third Topic of the day", "The Fourth Topic of the day"]]
+    actual = Topic.joins(:replies)
+      .pluck('topics.title', 'replies_topics.title')
+    assert_equal expected, actual
   end
 end

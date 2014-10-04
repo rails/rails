@@ -100,6 +100,17 @@ class AutomaticInverseFindingTests < ActiveRecord::TestCase
     assert_respond_to club_reflection, :has_inverse?
     assert !club_reflection.has_inverse?, "A has_many_through association should not find an inverse automatically"
   end
+
+  def test_polymorphic_relationships_should_still_not_have_inverses_when_non_polymorphic_relationship_has_the_same_name
+    man_reflection = Man.reflect_on_association(:polymorphic_face_without_inverse)
+    face_reflection = Face.reflect_on_association(:man)
+
+    assert_respond_to face_reflection, :has_inverse?
+    assert face_reflection.has_inverse?, "For this test, the non-polymorphic association must have an inverse"
+
+    assert_respond_to man_reflection, :has_inverse?
+    assert !man_reflection.has_inverse?, "The target of a polymorphic association should not find an inverse automatically"
+  end
 end
 
 class InverseAssociationTests < ActiveRecord::TestCase
@@ -333,7 +344,7 @@ class InverseHasManyTests < ActiveRecord::TestCase
 
   def test_parent_instance_should_be_shared_within_create_block_of_new_child
     man = Man.first
-    interest = man.interests.build do |i|
+    interest = man.interests.create do |i|
       assert i.man.equal?(man), "Man of child should be the same instance as a parent"
     end
     assert interest.man.equal?(man), "Man of the child should still be the same instance as a parent"

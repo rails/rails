@@ -18,17 +18,26 @@ module ActiveRecord
       def attribute_alias?(name)
         false
       end
+
+      def sanitize_sql(sql)
+        sql
+      end
     end
 
     def relation
       @relation ||= Relation.new FakeKlass.new('posts'), Post.arel_table
     end
 
-    (Relation::MULTI_VALUE_METHODS - [:references, :extending, :order, :unscope]).each do |method|
+    (Relation::MULTI_VALUE_METHODS - [:references, :extending, :order, :unscope, :select]).each do |method|
       test "##{method}!" do
         assert relation.public_send("#{method}!", :foo).equal?(relation)
         assert_equal [:foo], relation.public_send("#{method}_values")
       end
+    end
+
+    test "#_select!" do
+      assert relation.public_send("_select!", :foo).equal?(relation)
+      assert_equal [:foo], relation.public_send("select_values")
     end
 
     test '#order!' do
@@ -107,10 +116,18 @@ module ActiveRecord
     end
 
     test 'reverse_order!' do
-      assert relation.reverse_order!.equal?(relation)
-      assert relation.reverse_order_value
+      relation = Post.order('title ASC, comments_count DESC')
+
       relation.reverse_order!
-      assert !relation.reverse_order_value
+
+      assert_equal 'title DESC', relation.order_values.first
+      assert_equal 'comments_count ASC', relation.order_values.last
+
+
+      relation.reverse_order!
+
+      assert_equal 'title ASC', relation.order_values.first
+      assert_equal 'comments_count DESC', relation.order_values.last
     end
 
     test 'create_with!' do

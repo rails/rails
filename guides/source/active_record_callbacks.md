@@ -15,7 +15,7 @@ After reading this guide, you will know:
 The Object Life Cycle
 ---------------------
 
-During the normal operation of a Rails application, objects may be created, updated, and destroyed. Active Record provides hooks into this <em>object life cycle</em> so that you can control your application and its data.
+During the normal operation of a Rails application, objects may be created, updated, and destroyed. Active Record provides hooks into this *object life cycle* so that you can control your application and its data.
 
 Callbacks allow you to trigger logic before or after an alteration of an object's state.
 
@@ -92,6 +92,7 @@ Here is a list with all the available Active Record callbacks, listed in the sam
 * `around_create`
 * `after_create`
 * `after_save`
+* `after_commit/after_rollback`
 
 ### Updating an Object
 
@@ -103,12 +104,14 @@ Here is a list with all the available Active Record callbacks, listed in the sam
 * `around_update`
 * `after_update`
 * `after_save`
+* `after_commit/after_rollback`
 
 ### Destroying an Object
 
 * `before_destroy`
 * `around_destroy`
 * `after_destroy`
+* `after_commit/after_rollback`
 
 WARNING. `after_save` runs both on create and update, but always _after_ the more specific callbacks `after_create` and `after_update`, no matter the order in which the macro calls were executed.
 
@@ -258,27 +261,27 @@ WARNING. Any exception that is not `ActiveRecord::Rollback` will be re-raised by
 Relational Callbacks
 --------------------
 
-Callbacks work through model relationships, and can even be defined by them. Suppose an example where a user has many posts. A user's posts should be destroyed if the user is destroyed. Let's add an `after_destroy` callback to the `User` model by way of its relationship to the `Post` model:
+Callbacks work through model relationships, and can even be defined by them. Suppose an example where a user has many articles. A user's articles should be destroyed if the user is destroyed. Let's add an `after_destroy` callback to the `User` model by way of its relationship to the `Article` model:
 
 ```ruby
 class User < ActiveRecord::Base
-  has_many :posts, dependent: :destroy
+  has_many :articles, dependent: :destroy
 end
 
-class Post < ActiveRecord::Base
+class Article < ActiveRecord::Base
   after_destroy :log_destroy_action
 
   def log_destroy_action
-    puts 'Post destroyed'
+    puts 'Article destroyed'
   end
 end
 
 >> user = User.first
 => #<User id: 1>
->> user.posts.create!
-=> #<Post id: 1, user_id: 1>
+>> user.articles.create!
+=> #<Article id: 1, user_id: 1>
 >> user.destroy
-Post destroyed
+Article destroyed
 => #<User id: 1>
 ```
 
@@ -325,7 +328,7 @@ When writing conditional callbacks, it is possible to mix both `:if` and `:unles
 ```ruby
 class Comment < ActiveRecord::Base
   after_create :send_email_to_author, if: :author_wants_emails?,
-    unless: Proc.new { |comment| comment.post.ignore_comments? }
+    unless: Proc.new { |comment| comment.article.ignore_comments? }
 end
 ```
 

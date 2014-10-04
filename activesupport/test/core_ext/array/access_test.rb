@@ -1,0 +1,30 @@
+require 'abstract_unit'
+require 'active_support/core_ext/array'
+
+class AccessTest < ActiveSupport::TestCase
+  def test_from
+    assert_equal %w( a b c d ), %w( a b c d ).from(0)
+    assert_equal %w( c d ), %w( a b c d ).from(2)
+    assert_equal %w(), %w( a b c d ).from(10)
+    assert_equal %w( d e ), %w( a b c d e ).from(-2)
+    assert_equal %w(), %w( a b c d e ).from(-10)
+  end
+
+  def test_to
+    assert_equal %w( a ), %w( a b c d ).to(0)
+    assert_equal %w( a b c ), %w( a b c d ).to(2)
+    assert_equal %w( a b c d ), %w( a b c d ).to(10)
+    assert_equal %w( a b c ), %w( a b c d ).to(-2)
+    assert_equal %w(), %w( a b c ).to(-10)
+  end
+
+  def test_specific_accessor
+    array = (1..42).to_a
+
+    assert_equal array[1], array.second
+    assert_equal array[2], array.third
+    assert_equal array[3], array.fourth
+    assert_equal array[4], array.fifth
+    assert_equal array[41], array.forty_two
+  end
+end

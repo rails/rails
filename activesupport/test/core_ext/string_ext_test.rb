@@ -10,10 +10,12 @@ require 'active_support/time'
 require 'active_support/core_ext/string/strip'
 require 'active_support/core_ext/string/output_safety'
 require 'active_support/core_ext/string/indent'
+require 'time_zone_test_helpers'
 
 class StringInflectionsTest < ActiveSupport::TestCase
   include InflectorTestCases
   include ConstantizeTestCases
+  include TimeZoneTestHelpers
 
   def test_strip_heredoc_on_an_empty_string
     assert_equal '', ''.strip_heredoc
@@ -56,6 +58,11 @@ class StringInflectionsTest < ActiveSupport::TestCase
     assert_equal("blargles", "blargle".pluralize(0))
     assert_equal("blargle", "blargle".pluralize(1))
     assert_equal("blargles", "blargle".pluralize(2))
+  end
+
+  test 'pluralize with count = 1 still returns new string' do
+    name = "Kuldeep"
+    assert_not_same name.pluralize(1), name
   end
 
   def test_singularize
@@ -182,21 +189,21 @@ class StringInflectionsTest < ActiveSupport::TestCase
   end
 
   def test_string_squish
-    original = %{\u180E\u180E A string surrounded by unicode mongolian vowel separators,
-      with tabs(\t\t), newlines(\n\n), unicode nextlines(\u0085\u0085) and many spaces(  ). \u180E\u180E}
+    original = %{\u205f\u3000 A string surrounded by various unicode spaces,
+      with tabs(\t\t), newlines(\n\n), unicode nextlines(\u0085\u0085) and many spaces(  ). \u00a0\u2007}
 
-    expected = "A string surrounded by unicode mongolian vowel separators, " +
+    expected = "A string surrounded by various unicode spaces, " +
       "with tabs( ), newlines( ), unicode nextlines( ) and many spaces( )."
 
     # Make sure squish returns what we expect:
-    assert_equal original.squish,  expected
+    assert_equal expected, original.squish
     # But doesn't modify the original string:
-    assert_not_equal original, expected
+    assert_not_equal expected, original
 
     # Make sure squish! returns what we expect:
-    assert_equal original.squish!, expected
+    assert_equal expected, original.squish!
     # And changes the original string:
-    assert_equal original, expected
+    assert_equal expected, original
   end
 
   def test_string_inquiry
@@ -209,17 +216,38 @@ class StringInflectionsTest < ActiveSupport::TestCase
     assert_equal "Hello Wor...", "Hello World!!".truncate(12)
   end
 
-  def test_truncate_with_omission_and_seperator
+  def test_truncate_with_omission_and_separator
     assert_equal "Hello[...]", "Hello World!".truncate(10, :omission => "[...]")
     assert_equal "Hello[...]", "Hello Big World!".truncate(13, :omission => "[...]", :separator => ' ')
     assert_equal "Hello Big[...]", "Hello Big World!".truncate(14, :omission => "[...]", :separator => ' ')
     assert_equal "Hello Big[...]", "Hello Big World!".truncate(15, :omission => "[...]", :separator => ' ')
   end
 
-  def test_truncate_with_omission_and_regexp_seperator
+  def test_truncate_with_omission_and_regexp_separator
     assert_equal "Hello[...]", "Hello Big World!".truncate(13, :omission => "[...]", :separator => /\s/)
     assert_equal "Hello Big[...]", "Hello Big World!".truncate(14, :omission => "[...]", :separator => /\s/)
     assert_equal "Hello Big[...]", "Hello Big World!".truncate(15, :omission => "[...]", :separator => /\s/)
+  end
+
+  def test_truncate_words
+    assert_equal "Hello Big World!", "Hello Big World!".truncate_words(3)
+    assert_equal "Hello Big...", "Hello Big World!".truncate_words(2)
+  end
+
+  def test_truncate_words_with_omission
+    assert_equal "Hello Big World!", "Hello Big World!".truncate_words(3, :omission => "[...]")
+    assert_equal "Hello Big[...]", "Hello Big World!".truncate_words(2, :omission => "[...]")
+  end
+
+  def test_truncate_words_with_separator
+    assert_equal "Hello<br>Big<br>World!...", "Hello<br>Big<br>World!<br>".truncate_words(3, :separator => '<br>')
+    assert_equal "Hello<br>Big<br>World!", "Hello<br>Big<br>World!".truncate_words(3, :separator => '<br>')
+    assert_equal "Hello\n<br>Big...", "Hello\n<br>Big<br>Wide<br>World!".truncate_words(2, :separator => '<br>')
+  end
+
+  def test_truncate_words_with_separator_and_omission
+    assert_equal "Hello<br>Big<br>World![...]", "Hello<br>Big<br>World!<br>".truncate_words(3, :omission => "[...]", :separator => '<br>')
+    assert_equal "Hello<br>Big<br>World!", "Hello<br>Big<br>World!".truncate_words(3, :omission => "[...]", :separator => '<br>')
   end
 
   def test_truncate_multibyte
@@ -296,6 +324,12 @@ class StringAccessTest < ActiveSupport::TestCase
     assert_equal 'x', 'x'.first(4)
   end
 
+  test "#first with Fixnum >= string length still returns a new string" do
+    string = "hello"
+    different_string = string.first(5)
+    assert_not_same different_string, string
+  end
+
   test "#last returns the last character" do
     assert_equal "o", "hello".last
     assert_equal 'x', 'x'.last
@@ -306,6 +340,12 @@ class StringAccessTest < ActiveSupport::TestCase
     assert_equal "hello", "hello".last(10)
     assert_equal "", "hello".last(0)
     assert_equal 'x', 'x'.last(4)
+  end
+
+  test "#last with Fixnum >= string length still returns a new string" do
+    string = "hello"
+    different_string = string.last(5)
+    assert_not_same different_string, string
   end
 
   test "access returns a real string" do
@@ -337,6 +377,8 @@ class StringAccessTest < ActiveSupport::TestCase
 end
 
 class StringConversionsTest < ActiveSupport::TestCase
+  include TimeZoneTestHelpers
+
   def test_string_to_time
     with_env_tz "Europe/Moscow" do
       assert_equal Time.utc(2005, 2, 27, 23, 50), "2005-02-27 23:50".to_time(:utc)
@@ -506,14 +548,6 @@ class StringConversionsTest < ActiveSupport::TestCase
     assert_nil "".to_date
     assert_equal Date.new(Date.today.year, 2, 3), "Feb 3rd".to_date
   end
-
-  protected
-    def with_env_tz(new_tz = 'US/Eastern')
-      old_tz, ENV['TZ'] = ENV['TZ'], new_tz
-      yield
-    ensure
-      old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
-    end
 end
 
 class StringBehaviourTest < ActiveSupport::TestCase
@@ -606,6 +640,29 @@ class OutputSafetyTest < ActiveSupport::TestCase
 
     assert @combination.html_safe?
     assert !@other_combination.html_safe?
+  end
+
+  test "Prepending safe onto unsafe yields unsafe" do
+    @string.prepend "other".html_safe
+    assert !@string.html_safe?
+    assert_equal @string, "otherhello"
+  end
+
+  test "Prepending unsafe onto safe yields escaped safe" do
+    other = "other".html_safe
+    other.prepend "<foo>"
+    assert other.html_safe?
+    assert_equal other, "&lt;foo&gt;other"
+  end
+
+  test "Deprecated #prepend! method is still present" do
+    other = "other".html_safe
+
+    assert_deprecated do
+      other.prepend! "<foo>"
+    end
+
+    assert_equal other, "&lt;foo&gt;other"
   end
 
   test "Concatting safe onto unsafe yields unsafe" do
@@ -717,6 +774,14 @@ class OutputSafetyTest < ActiveSupport::TestCase
   test "ERB::Util.html_escape should not escape safe strings" do
     string = "<b>hello</b>".html_safe
     assert_equal string, ERB::Util.html_escape(string)
+  end
+
+  test "ERB::Util.html_escape_once only escapes once" do
+    string = '1 < 2 &amp; 3'
+    escaped_string = "1 &lt; 2 &amp; 3"
+
+    assert_equal escaped_string, ERB::Util.html_escape_once(string)
+    assert_equal escaped_string, ERB::Util.html_escape_once(escaped_string)
   end
 end
 

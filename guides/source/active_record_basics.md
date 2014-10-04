@@ -82,13 +82,13 @@ by underscores. Examples:
 * Model Class - Singular with the first letter of each word capitalized (e.g.,
 `BookClub`).
 
-| Model / Class | Table / Schema |
-| ------------- | -------------- |
-| `Post`        | `posts`        |
-| `LineItem`    | `line_items`   |
-| `Deer`        | `deers`        |
-| `Mouse`       | `mice`         |
-| `Person`      | `people`       |
+| Model / Class    | Table / Schema |
+| ---------------- | -------------- |
+| `Article`        | `articles`     |
+| `LineItem`       | `line_items`   |
+| `Deer`           | `deers`        |
+| `Mouse`          | `mice`         |
+| `Person`         | `people`       |
 
 
 ### Schema Conventions
@@ -116,13 +116,13 @@ to Active Record instances:
   locking](http://api.rubyonrails.org/classes/ActiveRecord/Locking.html) to
   a model.
 * `type` - Specifies that the model uses [Single Table
-  Inheritance](http://api.rubyonrails.org/classes/ActiveRecord/Base.html#label-Single+table+inheritance).
+  Inheritance](http://api.rubyonrails.org/classes/ActiveRecord/Base.html#class-ActiveRecord::Base-label-Single+table+inheritance).
 * `(association_name)_type` - Stores the type for
   [polymorphic associations](association_basics.html#polymorphic-associations).
 * `(table_name)_count` - Used to cache the number of belonging objects on
-  associations. For example, a `comments_count` column in a `Post` class that
+  associations. For example, a `comments_count` column in a `Articles` class that
   has many instances of `Comment` will cache the number of existent comments
-  for each post.
+  for each article.
 
 NOTE: While these column names are optional, they are in fact reserved by Active Record. Steer clear of reserved keywords unless you want the extra functionality. For example, `type` is a reserved keyword used to designate a table using Single Table Inheritance (STI). If you are not using STI, try an analogous keyword like "context", that may still accurately describe the data you are modeling.
 
@@ -309,11 +309,11 @@ into the database. There are several methods that you can use to check your
 models and validate that an attribute value is not empty, is unique and not
 already in the database, follows a specific format and many more.
 
-Validation is a very important issue to consider when persisting to database, so
-the methods `create`, `save` and `update` take it into account when
+Validation is a very important issue to consider when persisting to the database, so
+the methods `save` and `update` take it into account when
 running: they return `false` when validation fails and they didn't actually
-perform any operation on database. All of these have a bang counterpart (that
-is, `create!`, `save!` and `update!`), which are stricter in that
+perform any operation on the database. All of these have a bang counterpart (that
+is, `save!` and `update!`), which are stricter in that
 they raise the exception `ActiveRecord::RecordInvalid` if validation fails.
 A quick example to illustrate:
 
@@ -322,8 +322,9 @@ class User < ActiveRecord::Base
   validates :name, presence: true
 end
 
-User.create  # => false
-User.create! # => ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
+user = User.new
+user.save  # => false
+user.save! # => ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
 ```
 
 You can learn more about validations in the [Active Record Validations

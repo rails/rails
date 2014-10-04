@@ -152,21 +152,26 @@ module ActionDispatch
         when nil
           _routes.url_for(url_options.symbolize_keys)
         when Hash
-          _routes.url_for(options.symbolize_keys.reverse_merge!(url_options))
+          route_name = options.delete :use_route
+          _routes.url_for(options.symbolize_keys.reverse_merge!(url_options),
+                         route_name)
         when String
           options
+        when Symbol
+          HelperMethodBuilder.url.handle_string_call self, options
         when Array
           polymorphic_url(options, options.extract_options!)
+        when Class
+          HelperMethodBuilder.url.handle_class_call self, options
         else
-          polymorphic_url(options)
+          HelperMethodBuilder.url.handle_model_call self, options
         end
       end
 
       protected
 
       def optimize_routes_generation?
-        return @_optimized_routes if defined?(@_optimized_routes)
-        @_optimized_routes = _routes.optimize_routes_generation? && default_url_options.empty?
+        _routes.optimize_routes_generation? && default_url_options.empty?
       end
 
       def _with_routes(routes)

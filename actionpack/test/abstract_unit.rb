@@ -4,8 +4,6 @@ $:.unshift(File.dirname(__FILE__) + '/lib')
 $:.unshift(File.dirname(__FILE__) + '/fixtures/helpers')
 $:.unshift(File.dirname(__FILE__) + '/fixtures/alternate_helpers')
 
-ENV['TMPDIR'] = File.join(File.dirname(__FILE__), 'tmp')
-
 require 'active_support/core_ext/kernel/reporting'
 
 # These are the normal settings that will be set up by Railties
@@ -14,6 +12,12 @@ silence_warnings do
   Encoding.default_internal = "UTF-8"
   Encoding.default_external = "UTF-8"
 end
+
+require 'drb'
+require 'drb/unix'
+require 'tempfile'
+
+PROCESS_COUNT = (ENV['N'] || 4).to_i
 
 require 'active_support/testing/autorun'
 require 'abstract_controller'
@@ -105,6 +109,9 @@ end
 module ActiveSupport
   class TestCase
     include ActionDispatch::DrawOnce
+    if ActiveSupport::Testing::Isolation.forking_env? && PROCESS_COUNT > 0
+      parallelize_me!
+    end
   end
 end
 
@@ -251,7 +258,6 @@ end
 
 module ActionController
   class Base
-    include ActionController::Testing
     # This stub emulates the Railtie including the URL helpers from a Rails application
     include SharedTestRoutes.url_helpers
     include SharedTestRoutes.mounted_helpers
@@ -306,22 +312,95 @@ end
 
 module ActionDispatch
   module RoutingVerbs
-    def get(uri_or_host, path = nil)
+    def send_request(uri_or_host, method, path)
       host = uri_or_host.host unless path
       path ||= uri_or_host.path
 
       params = {'PATH_INFO'      => path,
-                'REQUEST_METHOD' => 'GET',
+                'REQUEST_METHOD' => method,
                 'HTTP_HOST'      => host}
 
-      routes.call(params)[2].join
+      routes.call(params)
+    end
+
+    def request_path_params(path, options = {})
+      method = options[:method] || 'GET'
+      resp = send_request URI('http://localhost' + path), method.to_s.upcase, nil
+      status = resp.first
+      if status == 404
+        raise ActionController::RoutingError, "No route matches #{path.inspect}"
+      end
+      controller.request.path_parameters
+    end
+
+    def get(uri_or_host, path = nil)
+      send_request(uri_or_host, 'GET', path)[2].join
+    end
+
+    def post(uri_or_host, path = nil)
+      send_request(uri_or_host, 'POST', path)[2].join
+    end
+
+    def put(uri_or_host, path = nil)
+      send_request(uri_or_host, 'PUT', path)[2].join
+    end
+
+    def delete(uri_or_host, path = nil)
+      send_request(uri_or_host, 'DELETE', path)[2].join
+    end
+
+    def patch(uri_or_host, path = nil)
+      send_request(uri_or_host, 'PATCH', path)[2].join
     end
   end
 end
 
 module RoutingTestHelpers
-  def url_for(set, options, recall = nil)
-    set.send(:url_for, options.merge(:only_path => true, :_recall => recall))
+  def url_for(set, options)
+    route_name = options.delete :use_route
+    set.url_for options.merge(:only_path => true), route_name
+  end
+
+  def make_set(strict = true)
+    tc = self
+    TestSet.new ->(c) { tc.controller = c }, strict
+  end
+
+  class TestSet < ActionDispatch::Routing::RouteSet
+    attr_reader :strict
+
+    def initialize(block, strict = false)
+      @block = block
+      @strict = strict
+      super()
+    end
+
+    class Dispatcher < ActionDispatch::Routing::RouteSet::Dispatcher
+      def initialize(defaults, set, block)
+        super(defaults)
+        @block = block
+        @set = set
+      end
+
+      def controller(params, default_controller=true)
+        super(params, @set.strict)
+      end
+
+      def controller_reference(controller_param)
+        block = @block
+        set = @set
+        super if @set.strict
+        Class.new(ActionController::Base) {
+          include set.url_helpers
+          define_method(:process) { |name| block.call(self) }
+          def to_a; [200, {}, []]; end
+        }
+      end
+    end
+
+    def dispatcher defaults
+      TestSet::Dispatcher.new defaults, self, @block
+    end
   end
 end
 
@@ -360,3 +439,81 @@ end
 def jruby_skip(message = '')
   skip message if defined?(JRUBY_VERSION)
 end
+
+require 'mocha/setup' # FIXME: stop using mocha
+
+class ForkingExecutor
+  class Server
+    include DRb::DRbUndumped
+
+    def initialize
+      @queue = Queue.new
+    end
+
+    def record reporter, result
+      reporter.record result
+    end
+
+    def << o
+      o[2] = DRbObject.new(o[2]) if o
+      @queue << o
+    end
+    def pop; @queue.pop; end
+  end
+
+  def initialize size
+    @size  = size
+    @queue = Server.new
+    file   = File.join Dir.tmpdir, Dir::Tmpname.make_tmpname('rails-tests', 'fd')
+    @url   = "drbunix://#{file}"
+    @pool  = nil
+    DRb.start_service @url, @queue
+  end
+
+  def << work; @queue << work; end
+
+  def shutdown
+    pool = @size.times.map {
+      fork {
+        DRb.stop_service
+        queue = DRbObject.new_with_uri @url
+        while job = queue.pop
+          klass    = job[0]
+          method   = job[1]
+          reporter = job[2]
+          result = Minitest.run_one_method klass, method
+          if result.error?
+            translate_exceptions result
+          end
+          queue.record reporter, result
+        end
+      }
+    }
+    @size.times { @queue << nil }
+    pool.each { |pid| Process.waitpid pid }
+  end
+
+  private
+  def translate_exceptions(result)
+    result.failures.map! { |e|
+      begin
+        Marshal.dump e
+        e
+      rescue TypeError
+        ex = Exception.new e.message
+        ex.set_backtrace e.backtrace
+        Minitest::UnexpectedError.new ex
+      end
+    }
+  end
+end
+
+if ActiveSupport::Testing::Isolation.forking_env? && PROCESS_COUNT > 0
+  # Use N processes (N defaults to 4)
+  Minitest.parallel_executor = ForkingExecutor.new(PROCESS_COUNT)
+end
+
+# FIXME: we have tests that depend on run order, we should fix that and
+# remove this method call.
+require 'active_support/test_case'
+ActiveSupport::TestCase.test_order = :sorted

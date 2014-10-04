@@ -1,49 +1,63 @@
 require "cases/helper"
+require "cases/view_test"
 
-class ViewTest < ActiveRecord::TestCase
-  self.use_transactional_fixtures = false
+class UpdateableViewTest < ActiveRecord::TestCase
+  fixtures :books
 
-  SCHEMA_NAME = 'test_schema'
-  TABLE_NAME = 'things'
-  VIEW_NAME = 'view_things'
-  COLUMNS = [
-    'id integer',
-    'name character varying(50)',
-    'email character varying(50)',
-    'moment timestamp without time zone'
-  ]
-
-  class ThingView < ActiveRecord::Base
-    self.table_name = 'test_schema.view_things'
+  class PrintedBook < ActiveRecord::Base
+    self.primary_key = "id"
   end
 
-  def setup
+  setup do
     @connection = ActiveRecord::Base.connection
-    @connection.execute "CREATE SCHEMA #{SCHEMA_NAME} CREATE TABLE #{TABLE_NAME} (#{COLUMNS.join(',')})"
-    @connection.execute "CREATE TABLE #{SCHEMA_NAME}.\"#{TABLE_NAME}.table\" (#{COLUMNS.join(',')})"
-    @connection.execute "CREATE VIEW #{SCHEMA_NAME}.#{VIEW_NAME} AS SELECT id,name,email,moment FROM #{SCHEMA_NAME}.#{TABLE_NAME}"
+    @connection.execute <<-SQL
+      CREATE VIEW printed_books
+        AS SELECT id, name, status, format FROM books WHERE format = 'paperback'
+    SQL
   end
 
-  def teardown
-    @connection.execute "DROP SCHEMA #{SCHEMA_NAME} CASCADE"
+  teardown do
+    @connection.execute "DROP VIEW printed_books" if @connection.table_exists? "printed_books"
   end
 
-  def test_table_exists
-    name = ThingView.table_name
-    assert @connection.table_exists?(name), "'#{name}' table should exist"
+  def test_update_record
+    book = PrintedBook.first
+    book.name = "AWDwR"
+    book.save!
+    book.reload
+    assert_equal "AWDwR", book.name
   end
 
-  def test_column_definitions
-    assert_nothing_raised do
-      assert_equal COLUMNS, columns("#{SCHEMA_NAME}.#{VIEW_NAME}")
+  def test_insert_record
+    PrintedBook.create! name: "Rails in Action", status: 0, format: "paperback"
+
+    new_book = PrintedBook.last
+    assert_equal "Rails in Action", new_book.name
+  end
+
+  def test_update_record_to_fail_view_conditions
+    book = PrintedBook.first
+    book.format = "ebook"
+    book.save!
+
+    assert_raises ActiveRecord::RecordNotFound do
+      book.reload
     end
   end
+end
+
+if ActiveRecord::Base.connection.supports_materialized_views?
+class MaterializedViewTest < ActiveRecord::TestCase
+  include ViewBehavior
 
   private
-    def columns(table_name)
-      @connection.send(:column_definitions, table_name).map do |name, type, default|
-        "#{name} #{type}" + (default ? " default #{default}" : '')
-      end
-    end
+  def create_view(name, query)
+    @connection.execute "CREATE MATERIALIZED VIEW #{name} AS #{query}"
+  end
 
+  def drop_view(name)
+    @connection.execute "DROP MATERIALIZED VIEW #{name}" if @connection.table_exists? name
+
+  end
+end
 end

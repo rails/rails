@@ -27,10 +27,12 @@ require 'active_model'
 require 'arel'
 
 require 'active_record/version'
+require 'active_record/attribute_set'
 
 module ActiveRecord
   extend ActiveSupport::Autoload
 
+  autoload :Attribute
   autoload :Base
   autoload :Callbacks
   autoload :Core
@@ -95,6 +97,7 @@ module ActiveRecord
 
   module Coders
     autoload :YAMLColumn, 'active_record/coders/yaml_column'
+    autoload :JSON, 'active_record/coders/json'
   end
 
   module AttributeMethods

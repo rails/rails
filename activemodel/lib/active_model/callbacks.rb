@@ -97,6 +97,9 @@ module ActiveModel
     #       # obj is the MyModel instance that the callback is being called on
     #     end
     #   end
+    #
+    # NOTE: +method_name+ passed to `define_model_callbacks` must not end with
+    # `!`, `?` or `=`.
     def define_model_callbacks(*callbacks)
       options = callbacks.extract_options!
       options = {

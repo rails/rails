@@ -13,8 +13,8 @@
       url: active_record_basics.html
       description: This guide will get you started with models, persistence to database and the Active Record pattern and library.
     -
-      name: Rails Database Migrations
-      url: migrations.html
+      name: Active Record Migrations
+      url: active_record_migrations.html
       description: This guide covers how you can use Active Record migrations to alter your database in a structured and organized manner.
     -
       name: Active Record Validations
@@ -75,6 +75,10 @@
       url: action_mailer_basics.html
       description: This guide describes how to use Action Mailer to send and receive emails.
     -
+      name: Active Job Basics
+      url: active_job_basics.html
+      description: This guide provides you with all you need to get started in creating, enqueueing and executing background jobs.
+    -
       name: Testing Rails Applications
       url: testing.html
       work_in_progress: true
@@ -95,11 +99,6 @@
       name: Rails Command Line Tools and Rake Tasks
       url: command_line.html
       description: This guide covers the command line tools and rake tasks provided by Rails.
-    -
-      name: Caching with Rails
-      work_in_progress: true
-      url: caching_with_rails.html
-      description: Various caching techniques provided by Rails.
     -
       name: Asset Pipeline
       url: asset_pipeline.html
@@ -162,12 +161,15 @@
     -
       name: Upgrading Ruby on Rails
       url: upgrading_ruby_on_rails.html
-      work_in_progress: true
       description: This guide helps in upgrading applications to latest Ruby on Rails versions.
+    -
+      name: Ruby on Rails 4.2 Release Notes
+      url: 4_2_release_notes.html
+      description: Release notes for Rails 4.2.
+      work_in_progress: true
     -
       name: Ruby on Rails 4.1 Release Notes
       url: 4_1_release_notes.html
-      work_in_progress: true
       description: Release notes for Rails 4.1.
     -
       name: Ruby on Rails 4.0 Release Notes

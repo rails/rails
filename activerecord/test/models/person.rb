@@ -30,6 +30,8 @@ class Person < ActiveRecord::Base
   has_many :agents_of_agents, :through => :agents, :source => :agents
   belongs_to :number1_fan, :class_name => 'Person'
 
+  has_many :personal_legacy_things, :dependent => :destroy
+
   has_many :agents_posts,         :through => :agents,       :source => :posts
   has_many :agents_posts_authors, :through => :agents_posts, :source => :author
   has_many :essays, primary_key: "first_name", foreign_key: "writer_id"
@@ -89,6 +91,19 @@ class RichPerson < ActiveRecord::Base
   self.table_name = 'people'
 
   has_and_belongs_to_many :treasures, :join_table => 'peoples_treasures'
+
+  before_validation :run_before_create, on: :create
+  before_validation :run_before_validation
+
+  private
+
+  def run_before_create
+    self.first_name = first_name.to_s + 'run_before_create'
+  end
+
+  def run_before_validation
+    self.first_name = first_name.to_s + 'run_before_validation'
+  end
 end
 
 class NestedPerson < ActiveRecord::Base

@@ -10,15 +10,20 @@ class FormHelperTest < ActionView::TestCase
     @output_buffer = super
   end
 
-  def setup
-    super
+  teardown do
+    I18n.backend.reload!
+  end
 
+  setup do
     # Create "label" locale for testing I18n label helpers
     I18n.backend.store_translations 'label', {
       activemodel: {
         attributes: {
           post: {
             cost: "Total cost"
+          },
+          :"post/language" => {
+            spanish: "Espanol"
           }
         }
       },
@@ -49,6 +54,35 @@ class FormHelperTest < ActionView::TestCase
           submit: 'Save changes',
           another_post: {
             update: 'Update your %{model}'
+          }
+        }
+      }
+    }
+
+    I18n.backend.store_translations 'placeholder', {
+      activemodel: {
+        attributes: {
+          post: {
+            cost: "Total cost"
+          },
+          :"post/cost" => {
+            uk: "Pounds"
+          }
+        }
+      },
+      helpers: {
+        placeholder: {
+          post: {
+            title: "What is this about?",
+            written_on: {
+              spanish: "Escrito en"
+            },
+            comments: {
+              body: "Write body here"
+            }
+          },
+          tag: {
+            value: "Tag"
           }
         }
       }
@@ -143,75 +177,74 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_label_with_locales_strings
-    old_locale, I18n.locale = I18n.locale, :label
-    assert_dom_equal('<label for="post_body">Write entire text here</label>', label("post", "body"))
-  ensure
-    I18n.locale = old_locale
+    with_locale :label do
+      assert_dom_equal('<label for="post_body">Write entire text here</label>', label("post", "body"))
+    end
   end
 
   def test_label_with_human_attribute_name
-    old_locale, I18n.locale = I18n.locale, :label
-    assert_dom_equal('<label for="post_cost">Total cost</label>', label(:post, :cost))
-  ensure
-    I18n.locale = old_locale
+    with_locale :label do
+      assert_dom_equal('<label for="post_cost">Total cost</label>', label(:post, :cost))
+    end
+  end
+
+  def test_label_with_human_attribute_name_and_options
+    with_locale :label do
+      assert_dom_equal('<label for="post_language_spanish">Espanol</label>', label(:post, :language, value: "spanish"))
+    end
   end
 
   def test_label_with_locales_symbols
-    old_locale, I18n.locale = I18n.locale, :label
-    assert_dom_equal('<label for="post_body">Write entire text here</label>', label(:post, :body))
-  ensure
-    I18n.locale = old_locale
+    with_locale :label do
+      assert_dom_equal('<label for="post_body">Write entire text here</label>', label(:post, :body))
+    end
   end
 
   def test_label_with_locales_and_options
-    old_locale, I18n.locale = I18n.locale, :label
-    assert_dom_equal(
-      '<label for="post_body" class="post_body">Write entire text here</label>',
-      label(:post, :body, class: "post_body")
-    )
-  ensure
-    I18n.locale = old_locale
+    with_locale :label do
+      assert_dom_equal(
+        '<label for="post_body" class="post_body">Write entire text here</label>',
+        label(:post, :body, class: "post_body")
+      )
+    end
   end
 
   def test_label_with_locales_and_value
-    old_locale, I18n.locale = I18n.locale, :label
-    assert_dom_equal('<label for="post_color_red">Rojo</label>', label(:post, :color, value: "red"))
-  ensure
-    I18n.locale = old_locale
+    with_locale :label do
+      assert_dom_equal('<label for="post_color_red">Rojo</label>', label(:post, :color, value: "red"))
+    end
   end
 
   def test_label_with_locales_and_nested_attributes
-    old_locale, I18n.locale = I18n.locale, :label
-    form_for(@post, html: { id: 'create-post' }) do |f|
-      f.fields_for(:comments) do |cf|
-        concat cf.label(:body)
+    with_locale :label do
+      form_for(@post, html: { id: 'create-post' }) do |f|
+        f.fields_for(:comments) do |cf|
+          concat cf.label(:body)
+        end
       end
-    end
 
-    expected = whole_form("/posts/123", "create-post", "edit_post", method: "patch") do
-      '<label for="post_comments_attributes_0_body">Write body here</label>'
-    end
+      expected = whole_form("/posts/123", "create-post", "edit_post", method: "patch") do
+        '<label for="post_comments_attributes_0_body">Write body here</label>'
+      end
 
-    assert_dom_equal expected, output_buffer
-  ensure
-    I18n.locale = old_locale
+      assert_dom_equal expected, output_buffer
+    end
   end
 
   def test_label_with_locales_fallback_and_nested_attributes
-    old_locale, I18n.locale = I18n.locale, :label
-    form_for(@post, html: { id: 'create-post' }) do |f|
-      f.fields_for(:tags) do |cf|
-        concat cf.label(:value)
+    with_locale :label do
+      form_for(@post, html: { id: 'create-post' }) do |f|
+        f.fields_for(:tags) do |cf|
+          concat cf.label(:value)
+        end
       end
-    end
 
-    expected = whole_form("/posts/123", "create-post", "edit_post", method: "patch") do
-      '<label for="post_tags_attributes_0_value">Tag</label>'
-    end
+      expected = whole_form("/posts/123", "create-post", "edit_post", method: "patch") do
+        '<label for="post_tags_attributes_0_value">Tag</label>'
+      end
 
-    assert_dom_equal expected, output_buffer
-  ensure
-    I18n.locale = old_locale
+      assert_dom_equal expected, output_buffer
+    end
   end
 
   def test_label_with_for_attribute_as_symbol
@@ -272,6 +305,13 @@ class FormHelperTest < ActionView::TestCase
     )
   end
 
+  def test_label_with_block_and_html
+    assert_dom_equal(
+      '<label for="post_terms">Accept <a href="/terms">Terms</a>.</label>',
+      label(:post, :terms) { 'Accept <a href="/terms">Terms</a>.'.html_safe }
+    )
+  end
+
   def test_label_with_block_and_options
     assert_dom_equal(
       '<label for="my_for">The title, please:</label>',
@@ -279,11 +319,88 @@ class FormHelperTest < ActionView::TestCase
     )
   end
 
+  def test_label_with_block_and_builder
+    with_locale :label do
+      assert_dom_equal(
+        '<label for="post_body"><b>Write entire text here</b></label>',
+        label(:post, :body) { |b| "<b>#{b.translation}</b>".html_safe }
+      )
+    end
+  end
+
   def test_label_with_block_in_erb
     assert_equal(
       %{<label for="post_message">\n  Message\n  <input id="post_message" name="post[message]" type="text" />\n</label>},
       view.render("test/label_with_block")
     )
+  end
+
+  def test_text_field_placeholder_without_locales
+    with_locale :placeholder do
+      assert_dom_equal('<input id="post_body" name="post[body]" placeholder="Body" type="text" value="Back to the hill and over it again!" />', text_field(:post, :body, placeholder: true))
+    end
+  end
+
+  def test_text_field_placeholder_with_locales
+    with_locale :placeholder do
+      assert_dom_equal('<input id="post_title" name="post[title]" placeholder="What is this about?" type="text" value="Hello World" />', text_field(:post, :title, placeholder: true))
+    end
+  end
+
+  def test_text_field_placeholder_with_human_attribute_name
+    with_locale :placeholder do
+      assert_dom_equal('<input id="post_cost" name="post[cost]" placeholder="Total cost" type="text" />', text_field(:post, :cost, placeholder: true))
+    end
+  end
+
+  def test_text_field_placeholder_with_string_value
+    with_locale :placeholder do
+      assert_dom_equal('<input id="post_cost" name="post[cost]" placeholder="HOW MUCH?" type="text" />', text_field(:post, :cost, placeholder: "HOW MUCH?"))
+    end
+  end
+
+  def test_text_field_placeholder_with_human_attribute_name_and_value
+    with_locale :placeholder do
+      assert_dom_equal('<input id="post_cost" name="post[cost]" placeholder="Pounds" type="text" />', text_field(:post, :cost, placeholder: :uk))
+    end
+  end
+
+  def test_text_field_placeholder_with_locales_and_value
+    with_locale :placeholder do
+      assert_dom_equal('<input id="post_written_on" name="post[written_on]" placeholder="Escrito en" type="text" value="2004-06-15" />', text_field(:post, :written_on, placeholder: :spanish))
+    end
+  end
+
+  def test_text_field_placeholder_with_locales_and_nested_attributes
+    with_locale :placeholder do
+      form_for(@post, html: { id: 'create-post' }) do |f|
+        f.fields_for(:comments) do |cf|
+          concat cf.text_field(:body, placeholder: true)
+        end
+      end
+
+      expected = whole_form("/posts/123", "create-post", "edit_post", method: "patch") do
+        '<input id="post_comments_attributes_0_body" name="post[comments_attributes][0][body]" placeholder="Write body here" type="text" />'
+      end
+
+      assert_dom_equal expected, output_buffer
+    end
+  end
+
+  def test_text_field_placeholder_with_locales_fallback_and_nested_attributes
+    with_locale :placeholder do
+      form_for(@post, html: { id: 'create-post' }) do |f|
+        f.fields_for(:tags) do |cf|
+          concat cf.text_field(:value, placeholder: true)
+        end
+      end
+
+      expected = whole_form("/posts/123", "create-post", "edit_post", method: "patch") do
+        '<input id="post_tags_attributes_0_value" name="post[tags_attributes][0][value]" placeholder="Tag" type="text" value="new tag" />'
+      end
+
+      assert_dom_equal expected, output_buffer
+    end
   end
 
   def test_text_field
@@ -654,6 +771,92 @@ class FormHelperTest < ActionView::TestCase
     )
   end
 
+  def test_text_area_placeholder_without_locales
+    with_locale :placeholder do
+      assert_dom_equal(
+        %{<textarea id="post_body" name="post[body]" placeholder="Body">\nBack to the hill and over it again!</textarea>},
+        text_area(:post, :body, placeholder: true)
+      )
+    end
+  end
+
+  def test_text_area_placeholder_with_locales
+    with_locale :placeholder do
+      assert_dom_equal(
+        %{<textarea id="post_title" name="post[title]" placeholder="What is this about?">\nHello World</textarea>},
+        text_area(:post, :title, placeholder: true)
+      )
+    end
+  end
+
+  def test_text_area_placeholder_with_human_attribute_name
+    with_locale :placeholder do
+      assert_dom_equal(
+        %{<textarea id="post_cost" name="post[cost]" placeholder="Total cost">\n</textarea>},
+        text_area(:post, :cost, placeholder: true)
+      )
+    end
+  end
+
+  def test_text_area_placeholder_with_string_value
+    with_locale :placeholder do
+      assert_dom_equal(
+        %{<textarea id="post_cost" name="post[cost]" placeholder="HOW MUCH?">\n</textarea>},
+        text_area(:post, :cost, placeholder: "HOW MUCH?")
+      )
+    end
+  end
+
+  def test_text_area_placeholder_with_human_attribute_name_and_value
+    with_locale :placeholder do
+      assert_dom_equal(
+        %{<textarea id="post_cost" name="post[cost]" placeholder="Pounds">\n</textarea>},
+        text_area(:post, :cost, placeholder: :uk)
+      )
+    end
+  end
+
+  def test_text_area_placeholder_with_locales_and_value
+    with_locale :placeholder do
+      assert_dom_equal(
+        %{<textarea id="post_written_on" name="post[written_on]" placeholder="Escrito en">\n2004-06-15</textarea>},
+        text_area(:post, :written_on, placeholder: :spanish)
+      )
+    end
+  end
+
+  def test_text_area_placeholder_with_locales_and_nested_attributes
+    with_locale :placeholder do
+      form_for(@post, html: { id: 'create-post' }) do |f|
+        f.fields_for(:comments) do |cf|
+          concat cf.text_area(:body, placeholder: true)
+        end
+      end
+
+      expected = whole_form("/posts/123", "create-post", "edit_post", method: "patch") do
+        %{<textarea id="post_comments_attributes_0_body" name="post[comments_attributes][0][body]" placeholder="Write body here">\n</textarea>}
+      end
+
+      assert_dom_equal expected, output_buffer
+    end
+  end
+
+  def test_text_area_placeholder_with_locales_fallback_and_nested_attributes
+    with_locale :placeholder do
+      form_for(@post, html: { id: 'create-post' }) do |f|
+        f.fields_for(:tags) do |cf|
+          concat cf.text_area(:value, placeholder: true)
+        end
+      end
+
+      expected = whole_form("/posts/123", "create-post", "edit_post", method: "patch") do
+        %{<textarea id="post_tags_attributes_0_value" name="post[tags_attributes][0][value]" placeholder="Tag">\nnew tag</textarea>}
+      end
+
+      assert_dom_equal expected, output_buffer
+    end
+  end
+
   def test_text_area
     assert_dom_equal(
       %{<textarea id="post_body" name="post[body]">\nBack to the hill and over it again!</textarea>},
@@ -680,6 +883,13 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal(
       %{<textarea id="post_body" name="post[body]">\n</textarea>},
       text_area("post", "body", value: nil)
+    )
+  end
+
+  def test_text_area_with_value_before_type_cast
+    assert_dom_equal(
+      %{<textarea id="post_id" name="post[id]">\n123</textarea>},
+      text_area("post", "id")
     )
   end
 
@@ -765,6 +975,22 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal(expected, date_field("post", "written_on"))
   end
 
+  def test_date_field_with_string_values_for_min_and_max
+    expected = %{<input id="post_written_on" max="2010-08-15" min="2000-06-15" name="post[written_on]" type="date" value="2004-06-15" />}
+    @post.written_on = DateTime.new(2004, 6, 15)
+    min_value = "2000-06-15"
+    max_value = "2010-08-15"
+    assert_dom_equal(expected, date_field("post", "written_on", min: min_value, max: max_value))
+  end
+
+  def test_date_field_with_invalid_string_values_for_min_and_max
+    expected = %{<input id="post_written_on" name="post[written_on]" type="date" value="2004-06-15" />}
+    @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
+    min_value = "foo"
+    max_value = "bar"
+    assert_dom_equal(expected, date_field("post", "written_on", min: min_value, max: max_value))
+  end
+
   def test_time_field
     expected = %{<input id="post_written_on" name="post[written_on]" type="time" value="00:00:00.000" />}
     assert_dom_equal(expected, time_field("post", "written_on"))
@@ -798,6 +1024,22 @@ class FormHelperTest < ActionView::TestCase
     expected = %{<input id="post_written_on" name="post[written_on]" type="time" />}
     @post.written_on = nil
     assert_dom_equal(expected, time_field("post", "written_on"))
+  end
+
+  def test_time_field_with_string_values_for_min_and_max
+    expected = %{<input id="post_written_on" max="10:25:00.000" min="20:45:30.000" name="post[written_on]" type="time" value="01:02:03.000" />}
+    @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
+    min_value = "20:45:30.000"
+    max_value = "10:25:00.000"
+    assert_dom_equal(expected, time_field("post", "written_on", min: min_value, max: max_value))
+  end
+
+  def test_time_field_with_invalid_string_values_for_min_and_max
+    expected = %{<input id="post_written_on" name="post[written_on]" type="time" value="01:02:03.000" />}
+    @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
+    min_value = "foo"
+    max_value = "bar"
+    assert_dom_equal(expected, time_field("post", "written_on", min: min_value, max: max_value))
   end
 
   def test_datetime_field
@@ -841,6 +1083,22 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal(expected, datetime_field("post", "written_on"))
   end
 
+  def test_datetime_field_with_string_values_for_min_and_max
+    expected = %{<input id="post_written_on" max="2010-08-15T10:25:00.000+0000" min="2000-06-15T20:45:30.000+0000" name="post[written_on]" type="datetime" value="2004-06-15T01:02:03.000+0000" />}
+    @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
+    min_value = "2000-06-15T20:45:30.000+0000"
+    max_value = "2010-08-15T10:25:00.000+0000"
+    assert_dom_equal(expected, datetime_field("post", "written_on", min: min_value, max: max_value))
+  end
+
+  def test_datetime_field_with_invalid_string_values_for_min_and_max
+    expected = %{<input id="post_written_on" name="post[written_on]" type="datetime" value="2004-06-15T01:02:03.000+0000" />}
+    @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
+    min_value = "foo"
+    max_value = "bar"
+    assert_dom_equal(expected, datetime_field("post", "written_on", min: min_value, max: max_value))
+  end
+
   def test_datetime_local_field
     expected = %{<input id="post_written_on" name="post[written_on]" type="datetime-local" value="2004-06-15T00:00:00" />}
     assert_dom_equal(expected, datetime_local_field("post", "written_on"))
@@ -874,6 +1132,22 @@ class FormHelperTest < ActionView::TestCase
     expected = %{<input id="post_written_on" name="post[written_on]" type="datetime-local" />}
     @post.written_on = nil
     assert_dom_equal(expected, datetime_local_field("post", "written_on"))
+  end
+
+  def test_datetime_local_field_with_string_values_for_min_and_max
+    expected = %{<input id="post_written_on" max="2010-08-15T10:25:00" min="2000-06-15T20:45:30" name="post[written_on]" type="datetime-local" value="2004-06-15T01:02:03" />}
+    @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
+    min_value = "2000-06-15T20:45:30"
+    max_value = "2010-08-15T10:25:00"
+    assert_dom_equal(expected, datetime_local_field("post", "written_on", min: min_value, max: max_value))
+  end
+
+  def test_datetime_local_field_with_invalid_string_values_for_min_and_max
+    expected = %{<input id="post_written_on" name="post[written_on]" type="datetime-local" value="2004-06-15T01:02:03" />}
+    @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
+    min_value = "foo"
+    max_value = "bar"
+    assert_dom_equal(expected, datetime_local_field("post", "written_on", min: min_value, max: max_value))
   end
 
   def test_month_field
@@ -1427,7 +1701,7 @@ class FormHelperTest < ActionView::TestCase
     expected = whole_form("/posts", "new_post", "new_post") do
       "<input checked='checked' id='post_1_tag_ids_1' name='post[1][tag_ids][]' type='checkbox' value='1' />" +
       "<label for='post_1_tag_ids_1'>Tag 1</label>" +
-      "<input name='post[tag_ids][]' type='hidden' value='' />"
+      "<input name='post[1][tag_ids][]' type='hidden' value='' />"
     end
 
     assert_dom_equal expected, output_buffer
@@ -1811,69 +2085,61 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_submit_with_object_as_new_record_and_locale_strings
-    old_locale, I18n.locale = I18n.locale, :submit
+    with_locale :submit do
+      @post.persisted = false
+      @post.stubs(:to_key).returns(nil)
+      form_for(@post) do |f|
+        concat f.submit
+      end
 
-    @post.persisted = false
-    @post.stubs(:to_key).returns(nil)
-    form_for(@post) do |f|
-      concat f.submit
+      expected = whole_form('/posts', 'new_post', 'new_post') do
+        "<input name='commit' type='submit' value='Create Post' />"
+      end
+
+      assert_dom_equal expected, output_buffer
     end
-
-    expected = whole_form('/posts', 'new_post', 'new_post') do
-      "<input name='commit' type='submit' value='Create Post' />"
-    end
-
-    assert_dom_equal expected, output_buffer
-  ensure
-    I18n.locale = old_locale
   end
 
   def test_submit_with_object_as_existing_record_and_locale_strings
-    old_locale, I18n.locale = I18n.locale, :submit
+    with_locale :submit do
+      form_for(@post) do |f|
+        concat f.submit
+      end
 
-    form_for(@post) do |f|
-      concat f.submit
+      expected = whole_form('/posts/123', 'edit_post_123', 'edit_post', method: 'patch') do
+        "<input name='commit' type='submit' value='Confirm Post changes' />"
+      end
+
+      assert_dom_equal expected, output_buffer
     end
-
-    expected = whole_form('/posts/123', 'edit_post_123', 'edit_post', method: 'patch') do
-      "<input name='commit' type='submit' value='Confirm Post changes' />"
-    end
-
-    assert_dom_equal expected, output_buffer
-  ensure
-    I18n.locale = old_locale
   end
 
   def test_submit_without_object_and_locale_strings
-    old_locale, I18n.locale = I18n.locale, :submit
+    with_locale :submit do
+      form_for(:post) do |f|
+        concat f.submit class: "extra"
+      end
 
-    form_for(:post) do |f|
-      concat f.submit class: "extra"
+      expected = whole_form do
+        "<input name='commit' class='extra' type='submit' value='Save changes' />"
+      end
+
+      assert_dom_equal expected, output_buffer
     end
-
-    expected = whole_form do
-      "<input name='commit' class='extra' type='submit' value='Save changes' />"
-    end
-
-    assert_dom_equal expected, output_buffer
-  ensure
-    I18n.locale = old_locale
   end
 
   def test_submit_with_object_and_nested_lookup
-    old_locale, I18n.locale = I18n.locale, :submit
+    with_locale :submit do
+      form_for(@post, as: :another_post) do |f|
+        concat f.submit
+      end
 
-    form_for(@post, as: :another_post) do |f|
-      concat f.submit
+      expected = whole_form('/posts/123', 'edit_another_post', 'edit_another_post', method: 'patch') do
+        "<input name='commit' type='submit' value='Update your Post' />"
+      end
+
+      assert_dom_equal expected, output_buffer
     end
-
-    expected = whole_form('/posts/123', 'edit_another_post', 'edit_another_post', method: 'patch') do
-      "<input name='commit' type='submit' value='Update your Post' />"
-    end
-
-    assert_dom_equal expected, output_buffer
-  ensure
-    I18n.locale = old_locale
   end
 
   def test_nested_fields_for
@@ -2403,6 +2669,18 @@ class FormHelperTest < ActionView::TestCase
     end
 
     assert_dom_equal expected, output_buffer
+  end
+
+  def test_nested_fields_label_translation_with_more_than_10_records
+    @post.comments = Array.new(11) { |id| Comment.new(id + 1) }
+
+    I18n.expects(:t).with('post.comments.body', default: [:"comment.body", ''], scope: "helpers.label").times(11).returns "Write body here"
+
+    form_for(@post) do |f|
+      f.fields_for(:comments) do |cf|
+        concat cf.label(:body)
+      end
+    end
   end
 
   def test_nested_fields_for_with_existing_records_on_a_supplied_nested_attributes_collection_different_from_record_one
@@ -3023,12 +3301,13 @@ class FormHelperTest < ActionView::TestCase
   protected
 
   def hidden_fields(method = nil)
-    txt =  %{<div style="display:none">}
-    txt << %{<input name="utf8" type="hidden" value="&#x2713;" />}
+    txt = %{<input name="utf8" type="hidden" value="&#x2713;" />}
+
     if method && !%w(get post).include?(method.to_s)
       txt << %{<input name="_method" type="hidden" value="#{method}" />}
     end
-    txt << %{</div>}
+
+    txt
   end
 
   def form_text(action = "/", id = nil, html_class = nil, remote = nil, multipart = nil, method = nil)
@@ -3051,5 +3330,12 @@ class FormHelperTest < ActionView::TestCase
 
   def protect_against_forgery?
     false
+  end
+
+  def with_locale(testing_locale = :label)
+    old_locale, I18n.locale = I18n.locale, testing_locale
+    yield
+  ensure
+    I18n.locale = old_locale
   end
 end

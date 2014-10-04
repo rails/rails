@@ -84,12 +84,6 @@ class FixturesTest < ActiveRecord::TestCase
     assert fixtures.detect { |f| f.name == 'collections' }, "no fixtures named 'collections' in #{fixtures.map(&:name).inspect}"
   end
 
-  def test_create_symbol_fixtures_is_deprecated
-    assert_deprecated do
-      ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, :collections, :collections => 'Course') { Course.connection }
-    end
-  end
-
   def test_attributes
     topics = create_fixtures("topics").first
     assert_equal("The First Topic", topics["first"]["title"])
@@ -254,7 +248,7 @@ class FixturesTest < ActiveRecord::TestCase
 
   def test_fixtures_are_set_up_with_database_env_variable
     db_url_tmp = ENV['DATABASE_URL']
-    ENV['DATABASE_URL'] = "sqlite3:///:memory:"
+    ENV['DATABASE_URL'] = "sqlite3::memory:"
     ActiveRecord::Base.stubs(:configurations).returns({})
     test_case = Class.new(ActiveRecord::TestCase) do
       fixtures :accounts
@@ -650,6 +644,7 @@ class LoadAllFixturesWithPathnameTest < ActiveRecord::TestCase
 end
 
 class FasterFixturesTest < ActiveRecord::TestCase
+  self.use_transactional_fixtures = false
   fixtures :categories, :authors
 
   def load_extra_fixture(name)
@@ -677,6 +672,12 @@ end
 class FoxyFixturesTest < ActiveRecord::TestCase
   fixtures :parrots, :parrots_pirates, :pirates, :treasures, :mateys, :ships, :computers, :developers, :"admin/accounts", :"admin/users"
 
+  if ActiveRecord::Base.connection.adapter_name == 'PostgreSQL'
+    require 'models/uuid_parent'
+    require 'models/uuid_child'
+    fixtures :uuid_parents, :uuid_children
+  end
+
   def test_identifies_strings
     assert_equal(ActiveRecord::FixtureSet.identify("foo"), ActiveRecord::FixtureSet.identify("foo"))
     assert_not_equal(ActiveRecord::FixtureSet.identify("foo"), ActiveRecord::FixtureSet.identify("FOO"))
@@ -689,6 +690,9 @@ class FoxyFixturesTest < ActiveRecord::TestCase
   def test_identifies_consistently
     assert_equal 207281424, ActiveRecord::FixtureSet.identify(:ruby)
     assert_equal 1066363776, ActiveRecord::FixtureSet.identify(:sapphire_2)
+
+    assert_equal 'f92b6bda-0d0d-5fe1-9124-502b18badded', ActiveRecord::FixtureSet.identify(:daddy, :uuid)
+    assert_equal 'b4b10018-ad47-595d-b42f-d8bdaa6d01bf', ActiveRecord::FixtureSet.identify(:sonny, :uuid)
   end
 
   TIMESTAMP_COLUMNS = %w(created_at created_on updated_at updated_on)
@@ -782,6 +786,10 @@ class FoxyFixturesTest < ActiveRecord::TestCase
     assert_equal("frederick", parrots(:frederick).name)
   end
 
+  def test_supports_label_string_interpolation
+    assert_equal("X marks the spot!", pirates(:mark).catchphrase)
+  end
+
   def test_supports_polymorphic_belongs_to
     assert_equal(pirates(:redbeard), treasures(:sapphire).looter)
     assert_equal(parrots(:louis), treasures(:ruby).looter)
@@ -816,15 +824,20 @@ end
 
 class FixtureLoadingTest < ActiveRecord::TestCase
   def test_logs_message_for_failed_dependency_load
-    ActiveRecord::TestCase.expects(:require_dependency).with(:does_not_exist).raises(LoadError)
-    ActiveRecord::Base.logger.expects(:warn)
-    ActiveRecord::TestCase.try_to_load_dependency(:does_not_exist)
+    ActiveRecord::Base.logger.expects(:warn).twice
+    ActiveRecord::TestCase.try_to_load_dependency('does_not_exist')
+  end
+
+  def test_does_not_logs_message_for_dependency_that_has_been_defined_with_set_fixture_class
+    ActiveRecord::TestCase.set_fixture_class unknown_dead_parrots: DeadParrot
+    ActiveRecord::Base.logger.expects(:warn).never
+    ActiveRecord::TestCase.try_to_load_dependency('unknown_dead_parrot')
   end
 
   def test_does_not_logs_message_for_successful_dependency_load
-    ActiveRecord::TestCase.expects(:require_dependency).with(:works_out_fine)
+    ActiveRecord::TestCase.expects(:require_dependency).with('works_out_fine')
     ActiveRecord::Base.logger.expects(:warn).never
-    ActiveRecord::TestCase.try_to_load_dependency(:works_out_fine)
+    ActiveRecord::TestCase.try_to_load_dependency('works_out_fine')
   end
 end
 

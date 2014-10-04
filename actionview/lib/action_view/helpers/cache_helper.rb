@@ -11,7 +11,7 @@ module ActionView
       # The best way to use this is by doing key-based cache expiration
       # on top of a cache store like Memcached that'll automatically
       # kick out old entries. For more on key-based expiration, see:
-      # http://37signals.com/svn/posts/3113-how-key-based-cache-expiration-works
+      # http://signalvnoise.com/posts/3113-how-key-based-cache-expiration-works
       #
       # When using this method, you list the cache dependency as the name of the cache, like so:
       #
@@ -165,10 +165,10 @@ module ActionView
 
       def fragment_name_with_digest(name) #:nodoc:
         if @virtual_path
-          [
-            *Array(name.is_a?(Hash) ? controller.url_for(name).split("://").last : name),
-            Digestor.digest(@virtual_path, formats.last.to_sym, lookup_context, dependencies: view_cache_dependencies)
-          ]
+          names  = Array(name.is_a?(Hash) ? controller.url_for(name).split("://").last : name)
+          digest = Digestor.digest name: @virtual_path, finder: lookup_context, dependencies: view_cache_dependencies
+
+          [ *names, digest ]
         else
           name
         end

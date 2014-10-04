@@ -60,42 +60,42 @@ module AbstractController
       end
 
       def test_render_template
-        @controller.process(:template)
+        assert_equal "With Template", @controller.process(:template)
         assert_equal "With Template", @controller.response_body
       end
 
       def test_render_file
-        @controller.process(:file)
+        assert_equal "With File", @controller.process(:file)
         assert_equal "With File", @controller.response_body
       end
 
       def test_render_inline
-        @controller.process(:inline)
+        assert_equal "With Inline", @controller.process(:inline)
         assert_equal "With Inline", @controller.response_body
       end
 
       def test_render_text
-        @controller.process(:text)
+        assert_equal "With Text", @controller.process(:text)
         assert_equal "With Text", @controller.response_body
       end
 
       def test_render_default
-        @controller.process(:default)
+        assert_equal "With Default", @controller.process(:default)
         assert_equal "With Default", @controller.response_body
       end
 
       def test_render_string
-        @controller.process(:string)
+        assert_equal "With String", @controller.process(:string)
         assert_equal "With String", @controller.response_body
       end
 
       def test_render_symbol
-        @controller.process(:symbol)
+        assert_equal "With Symbol", @controller.process(:symbol)
         assert_equal "With Symbol", @controller.response_body
       end
 
       def test_render_string_with_path
-        @controller.process(:string_with_path)
+        assert_equal "With String With Path", @controller.process(:string_with_path)
         assert_equal "With String With Path", @controller.response_body
       end
     end

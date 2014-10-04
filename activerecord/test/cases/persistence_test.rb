@@ -1,4 +1,5 @@
 require "cases/helper"
+require 'models/aircraft'
 require 'models/post'
 require 'models/comment'
 require 'models/author'
@@ -19,7 +20,7 @@ require 'models/toy'
 require 'rexml/document'
 
 class PersistenceTest < ActiveRecord::TestCase
-  fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics, 'warehouse-things', :authors, :categorizations, :categories, :posts, :minivans, :pets, :toys
+  fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics, 'warehouse-things', :authors, :author_addresses, :categorizations, :categories, :posts, :minivans, :pets, :toys
 
   # Oracle UPDATE does not support ORDER BY
   unless current_adapter?(:OracleAdapter)
@@ -233,6 +234,15 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_nothing_raised { Minimalistic.create!(:id => 2) }
   end
 
+  def test_save_with_duping_of_destroyed_object
+    developer = Developer.first
+    developer.destroy
+    new_developer = developer.dup
+    new_developer.save
+    assert new_developer.persisted?
+    assert_not new_developer.destroyed?
+  end
+
   def test_create_many
     topics = Topic.create([ { "title" => "first" }, { "title" => "second" }])
     assert_equal 2, topics.size
@@ -240,11 +250,9 @@ class PersistenceTest < ActiveRecord::TestCase
   end
 
   def test_create_columns_not_equal_attributes
-    topic = Topic.allocate.init_with(
-      'attributes' => {
-        'title'          => 'Another New Topic',
-        'does_not_exist' => 'test'
-      }
+    topic = Topic.instantiate(
+      'title'          => 'Another New Topic',
+      'does_not_exist' => 'test'
     )
     assert_nothing_raised { topic.save }
   end
@@ -290,10 +298,7 @@ class PersistenceTest < ActiveRecord::TestCase
     topic.title = "Still another topic"
     topic.save
 
-    topic_reloaded = Topic.allocate
-    topic_reloaded.init_with(
-      'attributes' => topic.attributes.merge('does_not_exist' => 'test')
-    )
+    topic_reloaded = Topic.instantiate(topic.attributes.merge('does_not_exist' => 'test'))
     topic_reloaded.title = 'A New Topic'
     assert_nothing_raised { topic_reloaded.save }
   end
@@ -321,6 +326,15 @@ class PersistenceTest < ActiveRecord::TestCase
 
     assert_instance_of Topic, topic
     assert_equal "Reply", topic.type
+  end
+
+  def test_update_sti_subclass_type
+    assert_instance_of Topic, topics(:first)
+
+    reply = topics(:first).becomes!(Reply)
+    assert_instance_of Reply, reply
+    reply.save!
+    assert_instance_of Reply, Reply.find(reply.id)
   end
 
   def test_update_after_create
@@ -452,7 +466,7 @@ class PersistenceTest < ActiveRecord::TestCase
 
   def test_update_attribute_for_updated_at_on
     developer = Developer.find(1)
-    prev_month = Time.now.prev_month
+    prev_month = Time.now.prev_month.change(usec: 0)
 
     developer.update_attribute(:updated_at, prev_month)
     assert_equal prev_month, developer.updated_at
@@ -495,14 +509,14 @@ class PersistenceTest < ActiveRecord::TestCase
 
   def test_update_column_should_not_leave_the_object_dirty
     topic = Topic.find(1)
-    topic.update_column("content", "Have a nice day")
+    topic.update_column("content", "--- Have a nice day\n...\n")
 
     topic.reload
-    topic.update_column(:content, "You too")
+    topic.update_column(:content, "--- You too\n...\n")
     assert_equal [], topic.changed
 
     topic.reload
-    topic.update_column("content", "Have a nice day")
+    topic.update_column("content", "--- Have a nice day\n...\n")
     assert_equal [], topic.changed
   end
 
@@ -523,7 +537,7 @@ class PersistenceTest < ActiveRecord::TestCase
 
   def test_update_column_should_not_modify_updated_at
     developer = Developer.find(1)
-    prev_month = Time.now.prev_month
+    prev_month = Time.now.prev_month.change(usec: 0)
 
     developer.update_column(:updated_at, prev_month)
     assert_equal prev_month, developer.updated_at
@@ -586,14 +600,14 @@ class PersistenceTest < ActiveRecord::TestCase
 
   def test_update_columns_should_not_leave_the_object_dirty
     topic = Topic.find(1)
-    topic.update({ "content" => "Have a nice day", :author_name => "Jose" })
+    topic.update({ "content" => "--- Have a nice day\n...\n", :author_name => "Jose" })
 
     topic.reload
-    topic.update_columns({ content: "You too", "author_name" => "Sebastian" })
+    topic.update_columns({ content: "--- You too\n...\n", "author_name" => "Sebastian" })
     assert_equal [], topic.changed
 
     topic.reload
-    topic.update_columns({ content: "Have a nice day", author_name: "Jose" })
+    topic.update_columns({ content: "--- Have a nice day\n...\n", author_name: "Jose" })
     assert_equal [], topic.changed
   end
 
@@ -620,7 +634,7 @@ class PersistenceTest < ActiveRecord::TestCase
 
   def test_update_columns_should_not_modify_updated_at
     developer = Developer.find(1)
-    prev_month = Time.now.prev_month
+    prev_month = Time.now.prev_month.change(usec: 0)
 
     developer.update_columns(updated_at: prev_month)
     assert_equal prev_month, developer.updated_at
@@ -820,4 +834,47 @@ class PersistenceTest < ActiveRecord::TestCase
     end
   end
 
+  def test_persist_inherited_class_with_different_table_name
+    minimalistic_aircrafts = Class.new(Minimalistic) do
+      self.table_name = "aircraft"
+    end
+
+    assert_difference "Aircraft.count", 1 do
+      aircraft = minimalistic_aircrafts.create(name: "Wright Flyer")
+      aircraft.name = "Wright Glider"
+      aircraft.save
+    end
+
+    assert_equal "Wright Glider", Aircraft.last.name
+  end
+
+  def test_instantiate_creates_a_new_instance
+    post = Post.instantiate("title" => "appropriate documentation", "type" => "SpecialPost")
+    assert_equal "appropriate documentation", post.title
+    assert_instance_of SpecialPost, post
+
+    # body was not initialized
+    assert_raises ActiveModel::MissingAttributeError do
+      post.body
+    end
+  end
+
+  def test_reload_removes_custom_selects
+    post = Post.select('posts.*, 1 as wibble').last!
+
+    assert_equal 1, post[:wibble]
+    assert_nil post.reload[:wibble]
+  end
+
+  def test_find_via_reload
+    post = Post.new
+
+    assert post.new_record?
+
+    post.id = 1
+    post.reload
+
+    assert_equal "Welcome to the weblog", post.title
+    assert_not post.new_record?
+  end
 end

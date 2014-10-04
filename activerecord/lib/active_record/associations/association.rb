@@ -94,7 +94,7 @@ module ActiveRecord
       # actually gets built.
       def association_scope
         if klass
-          @association_scope ||= AssociationScope.new(self).scope
+          @association_scope ||= AssociationScope.scope(self, klass.connection)
         end
       end
 
@@ -160,7 +160,7 @@ module ActiveRecord
       def marshal_load(data)
         reflection_name, ivars = data
         ivars.each { |name, val| instance_variable_set(name, val) }
-        @reflection = @owner.class.reflect_on_association(reflection_name)
+        @reflection = @owner.class._reflect_on_association(reflection_name)
       end
 
       def initialize_attributes(record) #:nodoc:
@@ -179,7 +179,7 @@ module ActiveRecord
         def creation_attributes
           attributes = {}
 
-          if (reflection.macro == :has_one || reflection.macro == :has_many) && !options[:through]
+          if (reflection.has_one? || reflection.collection?) && !options[:through]
             attributes[reflection.foreign_key] = owner[reflection.active_record_primary_key]
 
             if reflection.options[:as]
@@ -232,7 +232,7 @@ module ActiveRecord
 
         # Returns true if record contains the foreign_key
         def foreign_key_for?(record)
-          record.attributes.has_key? reflection.foreign_key
+          record.has_attribute?(reflection.foreign_key)
         end
 
         # This should be implemented to return the values of the relevant key(s) on the owner,

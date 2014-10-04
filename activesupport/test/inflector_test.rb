@@ -120,10 +120,14 @@ class InflectorTest < ActiveSupport::TestCase
       ["SSLError",          "ssl_error",          "SSL error",          "SSL Error"],
       ["RESTful",           "restful",            "RESTful",            "RESTful"],
       ["RESTfulController", "restful_controller", "RESTful controller", "RESTful Controller"],
+      ["Nested::RESTful",   "nested/restful",     "Nested/RESTful",     "Nested/RESTful"],
       ["IHeartW3C",         "i_heart_w3c",        "I heart W3C",        "I Heart W3C"],
       ["PhDRequired",       "phd_required",       "PhD required",       "PhD Required"],
       ["IRoRU",             "i_ror_u",            "I RoR u",            "I RoR U"],
       ["RESTfulHTTPAPI",    "restful_http_api",   "RESTful HTTP API",   "RESTful HTTP API"],
+      ["HTTP::RESTful",     "http/restful",       "HTTP/RESTful",       "HTTP/RESTful"],
+      ["HTTP::RESTfulAPI",  "http/restful_api",   "HTTP/RESTful API",   "HTTP/RESTful API"],
+      ["APIRESTful",        "api_restful",        "API RESTful",        "API RESTful"],
 
       # misdirection
       ["Capistrano",        "capistrano",         "Capistrano",       "Capistrano"],
@@ -200,6 +204,7 @@ class InflectorTest < ActiveSupport::TestCase
   def test_demodulize
     assert_equal "Account", ActiveSupport::Inflector.demodulize("MyApplication::Billing::Account")
     assert_equal "Account", ActiveSupport::Inflector.demodulize("Account")
+    assert_equal "Account", ActiveSupport::Inflector.demodulize("::Account")
     assert_equal "", ActiveSupport::Inflector.demodulize("")
   end
 
@@ -497,15 +502,23 @@ class InflectorTest < ActiveSupport::TestCase
   end
 
   %w(plurals singulars uncountables humans acronyms).each do |scope|
-    ActiveSupport::Inflector.inflections do |inflect|
-      define_method("test_clear_inflections_with_#{scope}") do
-        with_dup do
-          # clear the inflections
+    define_method("test_clear_inflections_with_#{scope}") do
+      with_dup do
+        # clear the inflections
+        ActiveSupport::Inflector.inflections do |inflect|
           inflect.clear(scope)
           assert_equal [], inflect.send(scope)
         end
       end
     end
+  end
+
+  def test_inflections_with_uncountable_words
+    ActiveSupport::Inflector.inflections do |inflect|
+      inflect.uncountable "HTTP"
+    end
+
+    assert_equal "HTTP", ActiveSupport::Inflector.pluralize("HTTP")
   end
 
   # Dups the singleton and yields, restoring the original inflections later.
@@ -515,9 +528,10 @@ class InflectorTest < ActiveSupport::TestCase
   # there are module functions that access ActiveSupport::Inflector.inflections,
   # so we need to replace the singleton itself.
   def with_dup
-    original = ActiveSupport::Inflector::Inflections.instance_variable_get(:@__instance__)
-    ActiveSupport::Inflector::Inflections.instance_variable_set(:@__instance__, original.dup)
+    original = ActiveSupport::Inflector::Inflections.instance_variable_get(:@__instance__)[:en]
+    ActiveSupport::Inflector::Inflections.instance_variable_set(:@__instance__, en: original.dup)
+    yield
   ensure
-    ActiveSupport::Inflector::Inflections.instance_variable_set(:@__instance__, original)
+    ActiveSupport::Inflector::Inflections.instance_variable_set(:@__instance__, en: original)
   end
 end

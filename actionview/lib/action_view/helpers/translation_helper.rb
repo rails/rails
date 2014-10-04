@@ -1,13 +1,15 @@
 require 'action_view/helpers/tag_helper'
+require 'active_support/core_ext/string/access'
 require 'i18n/exceptions'
 
 module ActionView
   # = Action View Translation Helpers
   module Helpers
     module TranslationHelper
+      include TagHelper
       # Delegates to <tt>I18n#translate</tt> but also performs three additional functions.
       #
-      # First, it will ensure that any thrown +MissingTranslation+ messages will be turned 
+      # First, it will ensure that any thrown +MissingTranslation+ messages will be turned
       # into inline spans that:
       #
       #   * have a "translation-missing" class set,
@@ -34,6 +36,7 @@ module ActionView
       # naming convention helps to identify translations that include HTML tags so that
       # you know what kind of output to expect when you call translate in a template.
       def translate(key, options = {})
+        options = options.dup
         options[:default] = wrap_translate_defaults(options[:default]) if options[:default]
 
         # If the user has specified rescue_format then pass it all through, otherwise use

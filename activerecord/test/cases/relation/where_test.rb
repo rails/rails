@@ -6,10 +6,11 @@ require 'models/post'
 require 'models/comment'
 require 'models/edge'
 require 'models/topic'
+require 'models/binary'
 
 module ActiveRecord
   class WhereTest < ActiveRecord::TestCase
-    fixtures :posts, :edges, :authors
+    fixtures :posts, :edges, :authors, :binaries
 
     def test_where_copies_bind_params
       author = authors(:david)
@@ -58,6 +59,15 @@ module ActiveRecord
       actual   = Post.where(comments: { parent: parent }).joins(:comments)
 
       assert_equal expected.to_sql, actual.to_sql
+    end
+
+    def test_belongs_to_nested_where_with_relation
+      author = authors(:david)
+
+      expected = Author.where(id: author ).joins(:posts)
+      actual   = Author.where(posts: { author_id: Author.where(id: author.id) }).joins(:posts)
+
+      assert_equal expected.to_a, actual.to_a
     end
 
     def test_polymorphic_shallow_where
@@ -170,6 +180,12 @@ module ActiveRecord
       assert_equal 0, Post.where(:id => []).count
     end
 
+    def test_where_with_table_name_and_nested_empty_array
+      assert_deprecated do
+        assert_equal [], Post.where(:id => [[]]).to_a
+      end
+    end
+
     def test_where_with_empty_hash_and_no_foreign_key
       assert_equal 0, Edge.where(:sink => {}).count
     end
@@ -178,6 +194,36 @@ module ActiveRecord
       [[], {}, nil, ""].each do |blank|
         assert_equal 4, Edge.where(blank).order("sink_id").to_a.size
       end
+    end
+
+    def test_where_with_integer_for_string_column
+      count = Post.where(:title => 0).count
+      assert_equal 0, count
+    end
+
+    def test_where_with_float_for_string_column
+      count = Post.where(:title => 0.0).count
+      assert_equal 0, count
+    end
+
+    def test_where_with_boolean_for_string_column
+      count = Post.where(:title => false).count
+      assert_equal 0, count
+    end
+
+    def test_where_with_decimal_for_string_column
+      count = Post.where(:title => BigDecimal.new(0)).count
+      assert_equal 0, count
+    end
+
+    def test_where_with_duration_for_string_column
+      count = Post.where(:title => 0.seconds).count
+      assert_equal 0, count
+    end
+
+    def test_where_with_integer_for_binary_column
+      count = Binary.where(:data => 0).count
+      assert_equal 0, count
     end
   end
 end

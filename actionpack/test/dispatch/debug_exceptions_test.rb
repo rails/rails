@@ -10,6 +10,8 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
       @closed = false
     end
 
+    # We're obliged to implement this (even though it doesn't actually
+    # get called here) to properly comply with the Rack SPEC
     def each
     end
 
@@ -43,6 +45,19 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
         raise ActionController::UrlGenerationError, "No route matches"
       when "/parameter_missing"
         raise ActionController::ParameterMissing, :missing_param_key
+      when "/original_syntax_error"
+        eval 'broke_syntax =' # `eval` need for raise native SyntaxError at runtime
+      when "/syntax_error_into_view"
+        begin
+          eval 'broke_syntax ='
+        rescue Exception => e
+          template = ActionView::Template.new(File.read(__FILE__),
+                                              __FILE__,
+                                              ActionView::Template::Handlers::Raw.new,
+                                              {})
+          raise ActionView::Template::Error.new(template, e)
+        end
+
       else
         raise "puke!"
       end
@@ -134,38 +149,39 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
 
     get "/", {}, xhr_request_env
     assert_response 500
+    assert_no_match(/<header>/, body)
     assert_no_match(/<body>/, body)
-    assert_equal response.content_type, "text/plain"
-    assert_match(/puke/, body)
+    assert_equal "text/plain", response.content_type
+    assert_match(/RuntimeError\npuke/, body)
 
     get "/not_found", {}, xhr_request_env
     assert_response 404
     assert_no_match(/<body>/, body)
-    assert_equal response.content_type, "text/plain"
+    assert_equal "text/plain", response.content_type
     assert_match(/#{AbstractController::ActionNotFound.name}/, body)
 
     get "/method_not_allowed", {}, xhr_request_env
     assert_response 405
     assert_no_match(/<body>/, body)
-    assert_equal response.content_type, "text/plain"
+    assert_equal "text/plain", response.content_type
     assert_match(/ActionController::MethodNotAllowed/, body)
 
     get "/unknown_http_method", {}, xhr_request_env
     assert_response 405
     assert_no_match(/<body>/, body)
-    assert_equal response.content_type, "text/plain"
+    assert_equal "text/plain", response.content_type
     assert_match(/ActionController::UnknownHttpMethod/, body)
 
     get "/bad_request", {}, xhr_request_env
     assert_response 400
     assert_no_match(/<body>/, body)
-    assert_equal response.content_type, "text/plain"
+    assert_equal "text/plain", response.content_type
     assert_match(/ActionController::BadRequest/, body)
 
     get "/parameter_missing", {}, xhr_request_env
     assert_response 400
     assert_no_match(/<body>/, body)
-    assert_equal response.content_type, "text/plain"
+    assert_equal "text/plain", response.content_type
     assert_match(/ActionController::ParameterMissing/, body)
   end
 
@@ -241,5 +257,27 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
 
     get "/", {}, env
     assert_operator((output.rewind && output.read).lines.count, :>, 10)
+  end
+
+  test 'display backtrace when error type is SyntaxError' do
+    @app = DevelopmentApp
+
+    get '/original_syntax_error', {}, {'action_dispatch.backtrace_cleaner' => ActiveSupport::BacktraceCleaner.new}
+
+    assert_response 500
+    assert_select '#Application-Trace' do
+      assert_select 'pre code', /\(eval\):1: syntax error, unexpected/
+    end
+  end
+
+  test 'display backtrace when error type is SyntaxError wrapped by ActionView::Template::Error' do
+    @app = DevelopmentApp
+
+    get '/syntax_error_into_view', {}, {'action_dispatch.backtrace_cleaner' => ActiveSupport::BacktraceCleaner.new}
+
+    assert_response 500
+    assert_select '#Application-Trace' do
+      assert_select 'pre code', /\(eval\):1: syntax error, unexpected/
+    end
   end
 end

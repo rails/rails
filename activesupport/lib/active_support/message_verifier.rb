@@ -27,6 +27,7 @@ module ActiveSupport
     class InvalidSignature < StandardError; end
 
     def initialize(secret, options = {})
+      raise ArgumentError, 'Secret should not be nil.' unless secret
       @secret = secret
       @digest = options[:digest] || 'SHA1'
       @serializer = options[:serializer] || Marshal

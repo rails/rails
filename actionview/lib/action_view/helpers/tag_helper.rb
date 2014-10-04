@@ -9,6 +9,7 @@ module ActionView
     module TagHelper
       extend ActiveSupport::Concern
       include CaptureHelper
+      include OutputSafetyHelper
 
       BOOLEAN_ATTRIBUTES = %w(disabled readonly multiple checked autobuffer
                            autoplay controls loop selected hidden scoped async
@@ -18,6 +19,8 @@ module ActionView
                            truespeed typemustmatch).to_set
 
       BOOLEAN_ATTRIBUTES.merge(BOOLEAN_ATTRIBUTES.map {|attribute| attribute.to_sym })
+
+      TAG_PREFIXES = ['aria', 'data', :aria, :data].to_set
 
       PRE_CONTENT_STRINGS = {
         :textarea => "\n"
@@ -42,7 +45,8 @@ module ActionView
       # For example, a key +user_id+ would render as <tt>data-user-id</tt> and
       # thus accessed as <tt>dataset.userId</tt>.
       #
-      # Values are encoded to JSON, with the exception of strings and symbols.
+      # Values are encoded to JSON, with the exception of strings, symbols and
+      # BigDecimals.
       # This may come in handy when using jQuery's HTML5-aware <tt>.data()</tt>
       # from 1.4.3.
       #
@@ -55,6 +59,9 @@ module ActionView
       #
       #   tag("input", type: 'text', disabled: true)
       #   # => <input type="text" disabled="disabled" />
+      #
+      #   tag("input", type: 'text', class: ["strong", "highlight"])
+      #   # => <input class="strong highlight" type="text" />
       #
       #   tag("img", src: "open & shut.png")
       #   # => <img src="open &amp; shut.png" />
@@ -75,7 +82,7 @@ module ActionView
       # Set escape to false to disable attribute value escaping.
       #
       # ==== Options
-      # The +options+ hash is used with attributes with no value like (<tt>disabled</tt> and
+      # The +options+ hash can be used with attributes with no value like (<tt>disabled</tt> and
       # <tt>readonly</tt>), which you can give a value of true in the +options+ hash. You can use
       # symbols or strings for the attribute names.
       #
@@ -84,6 +91,8 @@ module ActionView
       #    # => <p>Hello world!</p>
       #   content_tag(:div, content_tag(:p, "Hello world!"), class: "strong")
       #    # => <div class="strong"><p>Hello world!</p></div>
+      #   content_tag(:div, "Hello world!", class: ["strong", "highlight"])
+      #    # => <div class="strong highlight">Hello world!</div>
       #   content_tag("select", options, multiple: true)
       #    # => <select multiple="multiple">...options...</select>
       #
@@ -133,7 +142,7 @@ module ActionView
 
         def content_tag_string(name, content, options, escape = true)
           tag_options = tag_options(options, escape) if options
-          content     = ERB::Util.h(content) if escape
+          content     = ERB::Util.unwrapped_html_escape(content) if escape
           "<#{name}#{tag_options}>#{PRE_CONTENT_STRINGS[name.to_sym]}#{content}</#{name}>".html_safe
         end
 
@@ -141,9 +150,9 @@ module ActionView
           return if options.blank?
           attrs = []
           options.each_pair do |key, value|
-            if key.to_s == 'data' && value.is_a?(Hash)
+            if TAG_PREFIXES.include?(key) && value.is_a?(Hash)
               value.each_pair do |k, v|
-                attrs << data_tag_option(k, v, escape)
+                attrs << prefix_tag_option(key, k, v, escape)
               end
             elsif BOOLEAN_ATTRIBUTES.include?(key)
               attrs << boolean_tag_option(key) if value
@@ -154,8 +163,8 @@ module ActionView
           " #{attrs.sort! * ' '}" unless attrs.empty?
         end
 
-        def data_tag_option(key, value, escape)
-          key   = "data-#{key.to_s.dasherize}"
+        def prefix_tag_option(prefix, key, value, escape)
+          key = "#{prefix}-#{key.to_s.dasherize}"
           unless value.is_a?(String) || value.is_a?(Symbol) || value.is_a?(BigDecimal)
             value = value.to_json
           end
@@ -167,8 +176,11 @@ module ActionView
         end
 
         def tag_option(key, value, escape)
-          value = value.join(" ") if value.is_a?(Array)
-          value = ERB::Util.h(value) if escape
+          if value.is_a?(Array)
+            value = escape ? safe_join(value, " ") : value.join(" ")
+          else
+            value = escape ? ERB::Util.unwrapped_html_escape(value) : value
+          end
           %(#{key}="#{value}")
         end
     end

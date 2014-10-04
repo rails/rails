@@ -1,8 +1,13 @@
 class Contact
   extend ActiveModel::Naming
   include ActiveModel::Conversion
+  include ActiveModel::Validations
+
+  include ActiveModel::Serializers::JSON
+  include ActiveModel::Serializers::Xml
 
   attr_accessor :id, :name, :age, :created_at, :awesome, :preferences
+  attr_accessor :address, :friends, :contact
 
   def social
     %w(twitter github)
@@ -22,5 +27,15 @@ class Contact
 
   def persisted?
     id
+  end
+
+  def attributes=(hash)
+    hash.each do |k, v|
+      instance_variable_set("@#{k}", v)
+    end
+  end
+
+  def attributes
+    instance_values.except("address", "friends", "contact")
   end
 end

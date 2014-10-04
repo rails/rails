@@ -47,12 +47,12 @@ class DefaultsDeliveryMethodsTest < ActiveSupport::TestCase
 end
 
 class CustomDeliveryMethodsTest < ActiveSupport::TestCase
-  def setup
+  setup do
     @old_delivery_method = ActionMailer::Base.delivery_method
     ActionMailer::Base.add_delivery_method :custom, MyCustomDelivery
   end
 
-  def teardown
+  teardown do
     ActionMailer::Base.delivery_method = @old_delivery_method
     new = ActionMailer::Base.delivery_methods.dup
     new.delete(:custom)
@@ -93,34 +93,32 @@ class MailDeliveryTest < ActiveSupport::TestCase
     end
   end
 
-  def setup
-    ActionMailer::Base.delivery_method = :smtp
+  setup do
+    @old_delivery_method = DeliveryMailer.delivery_method
   end
 
-  def teardown
-    DeliveryMailer.delivery_method = :smtp
-    DeliveryMailer.perform_deliveries = true
-    DeliveryMailer.raise_delivery_errors = true
+  teardown do
+    DeliveryMailer.delivery_method = @old_delivery_method
+    DeliveryMailer.deliveries.clear
   end
 
   test "ActionMailer should be told when Mail gets delivered" do
-    DeliveryMailer.deliveries.clear
     DeliveryMailer.expects(:deliver_mail).once
-    DeliveryMailer.welcome.deliver
+    DeliveryMailer.welcome.deliver_now
   end
 
   test "delivery method can be customized per instance" do
-    email = DeliveryMailer.welcome.deliver
+    Mail::SMTP.any_instance.expects(:deliver!)
+    email = DeliveryMailer.welcome.deliver_now
     assert_instance_of Mail::SMTP, email.delivery_method
-    email = DeliveryMailer.welcome(delivery_method: :test).deliver
+    email = DeliveryMailer.welcome(delivery_method: :test).deliver_now
     assert_instance_of Mail::TestMailer, email.delivery_method
   end
 
   test "delivery method can be customized in subclasses not changing the parent" do
     DeliveryMailer.delivery_method = :test
     assert_equal :smtp, ActionMailer::Base.delivery_method
-    $BREAK = true
-    email = DeliveryMailer.welcome.deliver
+    email = DeliveryMailer.welcome.deliver_now
     assert_instance_of Mail::TestMailer, email.delivery_method
   end
 
@@ -164,62 +162,76 @@ class MailDeliveryTest < ActiveSupport::TestCase
   test "non registered delivery methods raises errors" do
     DeliveryMailer.delivery_method = :unknown
     assert_raise RuntimeError do
-      DeliveryMailer.welcome.deliver
+      DeliveryMailer.welcome.deliver_now
     end
   end
 
   test "undefined delivery methods raises errors" do
     DeliveryMailer.delivery_method = nil
     assert_raise RuntimeError do
-      DeliveryMailer.welcome.deliver
+      DeliveryMailer.welcome.deliver_now
     end
   end
 
   test "does not perform deliveries if requested" do
-    DeliveryMailer.perform_deliveries = false
-    DeliveryMailer.deliveries.clear
-    Mail::Message.any_instance.expects(:deliver!).never
-    DeliveryMailer.welcome.deliver
+    old_perform_deliveries = DeliveryMailer.perform_deliveries
+    begin
+      DeliveryMailer.perform_deliveries = false
+      Mail::Message.any_instance.expects(:deliver!).never
+      DeliveryMailer.welcome.deliver_now
+    ensure
+      DeliveryMailer.perform_deliveries = old_perform_deliveries
+    end
   end
 
   test "does not append the deliveries collection if told not to perform the delivery" do
-    DeliveryMailer.perform_deliveries = false
-    DeliveryMailer.deliveries.clear
-    DeliveryMailer.welcome.deliver
-    assert_equal(0, DeliveryMailer.deliveries.length)
+    old_perform_deliveries = DeliveryMailer.perform_deliveries
+    begin
+      DeliveryMailer.perform_deliveries = false
+      DeliveryMailer.welcome.deliver_now
+      assert_equal [], DeliveryMailer.deliveries
+    ensure
+      DeliveryMailer.perform_deliveries = old_perform_deliveries
+    end
   end
 
   test "raise errors on bogus deliveries" do
     DeliveryMailer.delivery_method = BogusDelivery
-    DeliveryMailer.deliveries.clear
     assert_raise RuntimeError do
-      DeliveryMailer.welcome.deliver
+      DeliveryMailer.welcome.deliver_now
     end
   end
 
   test "does not increment the deliveries collection on error" do
     DeliveryMailer.delivery_method = BogusDelivery
-    DeliveryMailer.deliveries.clear
     assert_raise RuntimeError do
-      DeliveryMailer.welcome.deliver
+      DeliveryMailer.welcome.deliver_now
     end
-    assert_equal(0, DeliveryMailer.deliveries.length)
+    assert_equal [], DeliveryMailer.deliveries
   end
 
   test "does not raise errors on bogus deliveries if set" do
-    DeliveryMailer.delivery_method = BogusDelivery
-    DeliveryMailer.raise_delivery_errors = false
-    assert_nothing_raised do
-      DeliveryMailer.welcome.deliver
+    old_raise_delivery_errors = DeliveryMailer.raise_delivery_errors
+    begin
+      DeliveryMailer.delivery_method = BogusDelivery
+      DeliveryMailer.raise_delivery_errors = false
+      assert_nothing_raised do
+        DeliveryMailer.welcome.deliver_now
+      end
+    ensure
+      DeliveryMailer.raise_delivery_errors = old_raise_delivery_errors
     end
   end
 
   test "does not increment the deliveries collection on bogus deliveries" do
-    DeliveryMailer.delivery_method = BogusDelivery
-    DeliveryMailer.raise_delivery_errors = false
-    DeliveryMailer.deliveries.clear
-    DeliveryMailer.welcome.deliver
-    assert_equal(0, DeliveryMailer.deliveries.length)
+    old_raise_delivery_errors = DeliveryMailer.raise_delivery_errors
+    begin
+      DeliveryMailer.delivery_method = BogusDelivery
+      DeliveryMailer.raise_delivery_errors = false
+      DeliveryMailer.welcome.deliver_now
+      assert_equal [], DeliveryMailer.deliveries
+    ensure
+      DeliveryMailer.raise_delivery_errors = old_raise_delivery_errors
+    end
   end
-
 end

@@ -10,11 +10,17 @@ class TestControllerWithExtraEtags < ActionController::Base
   etag { nil  }
 
   def fresh
-    render text: "stale" if stale?(etag: '123')
+    render text: "stale" if stale?(etag: '123', template: false)
   end
 
   def array
-    render text: "stale" if stale?(etag: %w(1 2 3))
+    render text: "stale" if stale?(etag: %w(1 2 3), template: false)
+  end
+
+  def with_template
+    if stale? template: 'test/hello_world'
+      render text: 'stale'
+    end
   end
 end
 
@@ -242,6 +248,8 @@ class MetalTestController < ActionController::Metal
   include AbstractController::Rendering
   include ActionView::Rendering
   include ActionController::Rendering
+  include ActionController::RackDelegation
+
 
   def accessing_logger_in_template
     render :inline =>  "<%= logger.class %>"
@@ -387,10 +395,6 @@ end
 class EtagRenderTest < ActionController::TestCase
   tests TestControllerWithExtraEtags
 
-  def setup
-    super
-  end
-
   def test_multiple_etags
     @request.if_none_match = etag(["123", 'ab', :cde, [:f]])
     get :fresh
@@ -409,6 +413,32 @@ class EtagRenderTest < ActionController::TestCase
     @request.if_none_match = %("nomatch")
     get :array
     assert_response :success
+  end
+
+  def test_etag_reflects_template_digest
+    get :with_template
+    assert_response :ok
+    assert_not_nil etag = @response.etag
+
+    request.if_none_match = etag
+    get :with_template
+    assert_response :not_modified
+
+    # Modify the template digest
+    path = File.expand_path('../../fixtures/test/hello_world.erb', __FILE__)
+    old = File.read(path)
+
+    begin
+      File.write path, 'foo'
+      ActionView::Digestor.cache.clear
+
+      request.if_none_match = etag
+      get :with_template
+      assert_response :ok
+      assert_not_equal etag, @response.etag
+    ensure
+      File.write path, old
+    end
   end
 
   def etag(record)

@@ -43,6 +43,10 @@ class DirtyTest < ActiveModel::TestCase
     end
 
     def reload
+      clear_changes_information
+    end
+
+    def deprecated_reload
       reset_changes
     end
   end
@@ -107,7 +111,7 @@ class DirtyTest < ActiveModel::TestCase
 
   test "resetting attribute" do
     @model.name = "Bob"
-    @model.reset_name!
+    @model.restore_name!
     assert_nil @model.name
     assert !@model.name_changed?
   end
@@ -175,5 +179,50 @@ class DirtyTest < ActiveModel::TestCase
 
     assert_equal ActiveSupport::HashWithIndifferentAccess.new, @model.previous_changes
     assert_equal ActiveSupport::HashWithIndifferentAccess.new, @model.changed_attributes
+  end
+
+  test "reset_changes is deprecated" do
+    @model.name = 'Dmitry'
+    @model.name_changed?
+    @model.save
+    @model.name = 'Bob'
+
+    assert_equal [nil, 'Dmitry'], @model.previous_changes['name']
+    assert_equal 'Dmitry', @model.changed_attributes['name']
+
+    assert_deprecated do
+      @model.deprecated_reload
+    end
+
+    assert_equal ActiveSupport::HashWithIndifferentAccess.new, @model.previous_changes
+    assert_equal ActiveSupport::HashWithIndifferentAccess.new, @model.changed_attributes
+  end
+
+  test "restore_attributes should restore all previous data" do
+    @model.name = 'Dmitry'
+    @model.color = 'Red'
+    @model.save
+    @model.name = 'Bob'
+    @model.color = 'White'
+
+    @model.restore_attributes
+
+    assert_not @model.changed?
+    assert_equal 'Dmitry', @model.name
+    assert_equal 'Red', @model.color
+  end
+
+  test "restore_attributes can restore only some attributes" do
+    @model.name = 'Dmitry'
+    @model.color = 'Red'
+    @model.save
+    @model.name = 'Bob'
+    @model.color = 'White'
+
+    @model.restore_attributes(['name'])
+
+    assert @model.changed?
+    assert_equal 'Dmitry', @model.name
+    assert_equal 'White', @model.color
   end
 end

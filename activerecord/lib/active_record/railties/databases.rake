@@ -28,12 +28,20 @@ db_namespace = namespace :db do
     ActiveRecord::Tasks::DatabaseTasks.drop_current
   end
 
+  namespace :purge do
+    task :all => :load_config do
+      ActiveRecord::Tasks::DatabaseTasks.purge_all
+    end
+  end
+
+  # desc "Empty the database from DATABASE_URL or config/database.yml for the current RAILS_ENV (use db:drop:all to drop all databases in the config). Without RAILS_ENV it defaults to purging the development and test databases."
+  task :purge => [:load_config] do
+    ActiveRecord::Tasks::DatabaseTasks.purge_current
+  end
+
   desc "Migrate the database (options: VERSION=x, VERBOSE=false, SCOPE=blog)."
   task :migrate => [:environment, :load_config] do
-    ActiveRecord::Migration.verbose = ENV["VERBOSE"] ? ENV["VERBOSE"] == "true" : true
-    ActiveRecord::Migrator.migrate(ActiveRecord::Migrator.migrations_paths, ENV["VERSION"] ? ENV["VERSION"].to_i : nil) do |migration|
-      ENV["SCOPE"].blank? || (ENV["SCOPE"] == migration.scope)
-    end
+    ActiveRecord::Tasks::DatabaseTasks.migrate
     db_namespace['_dump'].invoke if ActiveRecord::Base.dump_schema_after_migration
   end
 
@@ -75,29 +83,28 @@ db_namespace = namespace :db do
     # desc 'Runs the "down" for a given migration VERSION.'
     task :down => [:environment, :load_config] do
       version = ENV['VERSION'] ? ENV['VERSION'].to_i : nil
-      raise 'VERSION is required' unless version
+      raise 'VERSION is required - To go down one migration, run db:rollback' unless version
       ActiveRecord::Migrator.run(:down, ActiveRecord::Migrator.migrations_paths, version)
       db_namespace['_dump'].invoke
     end
 
     desc 'Display status of migrations'
     task :status => [:environment, :load_config] do
-      unless ActiveRecord::Base.connection.table_exists?(ActiveRecord::Migrator.schema_migrations_table_name)
-        puts 'Schema migrations table does not exist yet.'
-        next  # means "return" for rake task
+      unless ActiveRecord::SchemaMigration.table_exists?
+        abort 'Schema migrations table does not exist yet.'
       end
-      db_list = ActiveRecord::Base.connection.select_values("SELECT version FROM #{ActiveRecord::Migrator.schema_migrations_table_name}")
-      db_list.map! { |version| "%.3d" % version }
-      file_list = []
-      ActiveRecord::Migrator.migrations_paths.each do |path|
-        Dir.foreach(path) do |file|
-          # match "20091231235959_some_name.rb" and "001_some_name.rb" pattern
-          if match_data = /^(\d{3,})_(.+)\.rb$/.match(file)
-            status = db_list.delete(match_data[1]) ? 'up' : 'down'
-            file_list << [status, match_data[1], match_data[2].humanize]
+      db_list = ActiveRecord::SchemaMigration.normalized_versions
+
+      file_list =
+          ActiveRecord::Migrator.migrations_paths.flat_map do |path|
+            # match "20091231235959_some_name.rb" and "001_some_name.rb" pattern
+            Dir.foreach(path).grep(/^(\d{3,})_(.+)\.rb$/) do
+              version = ActiveRecord::SchemaMigration.normalize_migration_number($1)
+              status = db_list.delete(version) ? 'up' : 'down'
+              [status, version, $2.humanize]
+            end
           end
-        end
-      end
+
       db_list.map! do |version|
         ['up', version, '********** NO FILE **********']
       end
@@ -105,8 +112,8 @@ db_namespace = namespace :db do
       puts "\ndatabase: #{ActiveRecord::Base.connection_config[:database]}\n\n"
       puts "#{'Status'.center(8)}  #{'Migration ID'.ljust(14)}  Migration Name"
       puts "-" * 50
-      (db_list + file_list).sort_by {|migration| migration[1]}.each do |migration|
-        puts "#{migration[0].center(8)}  #{migration[1].ljust(14)}  #{migration[2]}"
+      (db_list + file_list).sort_by { |_, version, _| version }.each do |status, version, name|
+        puts "#{status.center(8)}  #{version.ljust(14)}  #{name}"
       end
       puts
     end
@@ -178,17 +185,21 @@ db_namespace = namespace :db do
     task :load => [:environment, :load_config] do
       require 'active_record/fixtures'
 
-      base_dir = if ENV['FIXTURES_PATH']
-        File.join [Rails.root, ENV['FIXTURES_PATH'] || %w{test fixtures}].flatten
-      else
-        ActiveRecord::Tasks::DatabaseTasks.fixtures_path
-      end
+      base_dir = ActiveRecord::Tasks::DatabaseTasks.fixtures_path
 
-      fixtures_dir = File.join [base_dir, ENV['FIXTURES_DIR']].compact
+      fixtures_dir = if ENV['FIXTURES_DIR']
+                       File.join base_dir, ENV['FIXTURES_DIR']
+                     else
+                       base_dir
+                     end
 
-      (ENV['FIXTURES'] ? ENV['FIXTURES'].split(/,/) : Dir["#{fixtures_dir}/**/*.yml"].map {|f| f[(fixtures_dir.size + 1)..-5] }).each do |fixture_file|
-        ActiveRecord::FixtureSet.create_fixtures(fixtures_dir, fixture_file)
-      end
+      fixture_files = if ENV['FIXTURES']
+                        ENV['FIXTURES'].split(',')
+                      else
+                        Pathname.glob("#{fixtures_dir}/**/*.yml").map {|f| f.basename.sub_ext('').to_s }
+                      end
+
+      ActiveRecord::FixtureSet.create_fixtures(fixtures_dir, fixture_files)
     end
 
     # desc "Search for a fixture given a LABEL or ID. Specify an alternative path (eg. spec/fixtures) using FIXTURES_PATH=spec/fixtures."
@@ -200,16 +211,11 @@ db_namespace = namespace :db do
 
       puts %Q(The fixture ID for "#{label}" is #{ActiveRecord::FixtureSet.identify(label)}.) if label
 
-      base_dir = if ENV['FIXTURES_PATH']
-        File.join [Rails.root, ENV['FIXTURES_PATH'] || %w{test fixtures}].flatten
-      else
-        ActiveRecord::Tasks::DatabaseTasks.fixtures_path
-      end
-
+      base_dir = ActiveRecord::Tasks::DatabaseTasks.fixtures_path
 
       Dir["#{base_dir}/**/*.yml"].each do |file|
         if data = YAML::load(ERB.new(IO.read(file)).result)
-          data.keys.each do |key|
+          data.each_key do |key|
             key_id = ActiveRecord::FixtureSet.identify(key)
 
             if key == label || key_id == id.to_i
@@ -234,7 +240,7 @@ db_namespace = namespace :db do
 
     desc 'Load a schema.rb file into the database'
     task :load => [:environment, :load_config] do
-      ActiveRecord::Tasks::DatabaseTasks.load_schema(:ruby, ENV['SCHEMA'])
+      ActiveRecord::Tasks::DatabaseTasks.load_schema_current(:ruby, ENV['SCHEMA'])
     end
 
     task :load_if_ruby => ['db:create', :environment] do
@@ -268,7 +274,8 @@ db_namespace = namespace :db do
       current_config = ActiveRecord::Tasks::DatabaseTasks.current_config
       ActiveRecord::Tasks::DatabaseTasks.structure_dump(current_config, filename)
 
-      if ActiveRecord::Base.connection.supports_migrations?
+      if ActiveRecord::Base.connection.supports_migrations? &&
+          ActiveRecord::SchemaMigration.table_exists?
         File.open(filename, "a") do |f|
           f.puts ActiveRecord::Base.connection.dump_schema_information
           f.print "\n"
@@ -277,9 +284,9 @@ db_namespace = namespace :db do
       db_namespace['structure:dump'].reenable
     end
 
-    # desc "Recreate the databases from the structure.sql file"
+    desc "Recreate the databases from the structure.sql file"
     task :load => [:environment, :load_config] do
-      ActiveRecord::Tasks::DatabaseTasks.load_schema(:sql, ENV['DB_STRUCTURE'])
+      ActiveRecord::Tasks::DatabaseTasks.load_schema_current(:sql, ENV['DB_STRUCTURE'])
     end
 
     task :load_if_sql => ['db:create', :environment] do
@@ -310,9 +317,8 @@ db_namespace = namespace :db do
     task :load_schema => %w(db:test:deprecated db:test:purge) do
       begin
         should_reconnect = ActiveRecord::Base.connection_pool.active_connection?
-        ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations['test'])
         ActiveRecord::Schema.verbose = false
-        db_namespace["schema:load"].invoke
+        ActiveRecord::Tasks::DatabaseTasks.load_schema_for ActiveRecord::Base.configurations['test'], :ruby, ENV['SCHEMA']
       ensure
         if should_reconnect
           ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations[ActiveRecord::Tasks::DatabaseTasks.env])
@@ -322,12 +328,7 @@ db_namespace = namespace :db do
 
     # desc "Recreate the test database from an existent structure.sql file"
     task :load_structure => %w(db:test:deprecated db:test:purge) do
-      begin
-        ActiveRecord::Tasks::DatabaseTasks.current_config(:config => ActiveRecord::Base.configurations['test'])
-        db_namespace["structure:load"].invoke
-      ensure
-        ActiveRecord::Tasks::DatabaseTasks.current_config(:config => nil)
-      end
+      ActiveRecord::Tasks::DatabaseTasks.load_schema_for ActiveRecord::Base.configurations['test'], :sql, ENV['SCHEMA']
     end
 
     # desc "Recreate the test database from a fresh schema"
@@ -366,7 +367,7 @@ namespace :railties do
     task :migrations => :'db:load_config' do
       to_load = ENV['FROM'].blank? ? :all : ENV['FROM'].split(",").map {|n| n.strip }
       railties = {}
-      Rails.application.railties.each do |railtie|
+      Rails.application.migration_railties.each do |railtie|
         next unless to_load == :all || to_load.include?(railtie.railtie_name)
 
         if railtie.respond_to?(:paths) && (path = railtie.paths['db/migrate'].first)

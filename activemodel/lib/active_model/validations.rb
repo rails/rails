@@ -39,6 +39,7 @@ module ActiveModel
     extend ActiveSupport::Concern
 
     included do
+      extend ActiveModel::Naming
       extend ActiveModel::Callbacks
       extend ActiveModel::Translation
 
@@ -67,8 +68,9 @@ module ActiveModel
       #
       # Options:
       # * <tt>:on</tt> - Specifies the contexts where this validation is active.
-      #   You can pass a symbol or an array of symbols.
-      #   (e.g. <tt>on: :create</tt> or <tt>on: :custom_validation_context</tt> or
+      #   Runs in all validation contexts by default (nil). You can pass a symbol
+      #   or an array of symbols. (e.g. <tt>on: :create</tt> or
+      #   <tt>on: :custom_validation_context</tt> or
       #   <tt>on: [:create, :custom_validation_context]</tt>)
       # * <tt>:allow_nil</tt> - Skip validation if attribute is +nil+.
       # * <tt>:allow_blank</tt> - Skip validation if attribute is blank.
@@ -84,6 +86,8 @@ module ActiveModel
       def validates_each(*attr_names, &block)
         validates_with BlockValidator, _merge_attributes(attr_names), &block
       end
+
+      VALID_OPTIONS_FOR_VALIDATE = [:on, :if, :unless].freeze
 
       # Adds a validation method or block to the class. This is useful when
       # overriding the +validate+ instance method becomes too unwieldy and
@@ -127,8 +131,9 @@ module ActiveModel
       #
       # Options:
       # * <tt>:on</tt> - Specifies the contexts where this validation is active.
-      #   You can pass a symbol or an array of symbols.
-      #   (e.g. <tt>on: :create</tt> or <tt>on: :custom_validation_context</tt> or
+      #   Runs in all validation contexts by default (nil). You can pass a symbol
+      #   or an array of symbols. (e.g. <tt>on: :create</tt> or
+      #   <tt>on: :custom_validation_context</tt> or
       #   <tt>on: [:create, :custom_validation_context]</tt>)
       # * <tt>:if</tt> - Specifies a method, proc or string to call to determine
       #   if the validation should occur (e.g. <tt>if: :allow_validation</tt>,
@@ -141,13 +146,23 @@ module ActiveModel
       #   value.
       def validate(*args, &block)
         options = args.extract_options!
+
+        if args.all? { |arg| arg.is_a?(Symbol) }
+          options.each_key do |k|
+            unless VALID_OPTIONS_FOR_VALIDATE.include?(k)
+              raise ArgumentError.new("Unknown key: #{k.inspect}. Valid keys are: #{VALID_OPTIONS_FOR_VALIDATE.map(&:inspect).join(', ')}. Perhaps you meant to call `validates` instead of `validate`?")
+            end
+          end
+        end
+
         if options.key?(:on)
           options = options.dup
           options[:if] = Array(options[:if])
-          options[:if].unshift lambda { |o|
+          options[:if].unshift ->(o) {
             Array(options[:on]).include?(o.validation_context)
           }
         end
+
         args << options
         set_callback(:validate, *args, &block)
       end
@@ -285,6 +300,8 @@ module ActiveModel
     # Runs all the specified validations and returns +true+ if no errors were
     # added otherwise +false+.
     #
+    # Aliased as validate.
+    #
     #   class Person
     #     include ActiveModel::Validations
     #
@@ -318,6 +335,8 @@ module ActiveModel
     ensure
       self.validation_context = current_context
     end
+
+    alias_method :validate, :valid?
 
     # Performs the opposite of <tt>valid?</tt>. Returns +true+ if errors were
     # added, +false+ otherwise.
@@ -373,7 +392,7 @@ module ActiveModel
   protected
 
     def run_validations! #:nodoc:
-      run_callbacks :validate
+      run_validate_callbacks
       errors.empty?
     end
   end

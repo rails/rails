@@ -12,5 +12,6 @@ Ruby on Rails is a volunteer effort. We encourage you to pitch in. [Join the tea
 
 * If you have a change or new feature in mind, please [suggest it on the rubyonrails-core mailing list](https://groups.google.com/forum/?fromgroups#!forum/rubyonrails-core) and start writing code.
 
-Thanks! :heart: :heart: :heart: <br />
+Thanks! :heart: :heart: :heart:
+
 Rails Team

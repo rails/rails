@@ -40,7 +40,19 @@ module ActionDispatch
         end
 
         def move(t, a)
-          move_string(t, a).concat(move_regexp(t, a))
+          return [] if t.empty?
+
+          regexps = []
+
+          t.map { |s|
+            if states = @regexp_states[s]
+              regexps.concat states.map { |re, v| re === a ? v : nil }
+            end
+
+            if states = @string_states[s]
+              states[a]
+            end
+          }.compact.concat regexps
         end
 
         def as_json(options = nil)
@@ -114,17 +126,17 @@ module ActionDispatch
         end
 
         def states
-          ss = @string_states.keys + @string_states.values.map(&:values).flatten
-          rs = @regexp_states.keys + @regexp_states.values.map(&:values).flatten
+          ss = @string_states.keys + @string_states.values.flat_map(&:values)
+          rs = @regexp_states.keys + @regexp_states.values.flat_map(&:values)
           (ss + rs).uniq
         end
 
         def transitions
-          @string_states.map { |from, hash|
+          @string_states.flat_map { |from, hash|
             hash.map { |s, to| [from, s, to] }
-          }.flatten(1) + @regexp_states.map { |from, hash|
+          } + @regexp_states.flat_map { |from, hash|
             hash.map { |s, to| [from, s, to] }
-          }.flatten(1)
+          }
         end
 
         private
@@ -138,26 +150,6 @@ module ActionDispatch
             else
               raise ArgumentError, 'unknown symbol: %s' % sym.class
             end
-          end
-
-          def move_regexp(t, a)
-            return [] if t.empty?
-
-            t.map { |s|
-              if states = @regexp_states[s]
-                states.map { |re, v| re === a ? v : nil }
-              end
-            }.flatten.compact.uniq
-          end
-
-          def move_string(t, a)
-            return [] if t.empty?
-
-            t.map do |s|
-              if states = @string_states[s]
-                states[a]
-              end
-            end.compact
           end
       end
     end

@@ -1,5 +1,4 @@
 require 'abstract_unit'
-require 'action_view/vendor/html-scanner'
 require 'controller/fake_controllers'
 
 class ActionPackAssertionsController < ActionController::Base
@@ -147,11 +146,6 @@ end
 
 class ActionPackAssertionsControllerTest < ActionController::TestCase
 
-  def test_assert_tag_and_url_for
-    get :render_url
-    assert_tag :content => "/action_pack_assertions/flash_me"
-  end
-
   def test_render_file_absolute_path
     get :render_file_absolute_path
     assert_match(/\A= Action Pack/, @response.body)
@@ -165,24 +159,24 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
   def test_get_request
     assert_raise(RuntimeError) { get :raise_exception_on_get }
     get :raise_exception_on_post
-    assert_equal @response.body, 'request method: GET'
+    assert_equal 'request method: GET', @response.body
   end
 
   def test_post_request
     assert_raise(RuntimeError) { post :raise_exception_on_post }
     post :raise_exception_on_get
-    assert_equal @response.body, 'request method: POST'
+    assert_equal 'request method: POST', @response.body
   end
 
   def test_get_post_request_switch
     post :raise_exception_on_get
-    assert_equal @response.body, 'request method: POST'
+    assert_equal 'request method: POST', @response.body
     get :raise_exception_on_post
-    assert_equal @response.body, 'request method: GET'
+    assert_equal 'request method: GET', @response.body
     post :raise_exception_on_get
-    assert_equal @response.body, 'request method: POST'
+    assert_equal 'request method: POST', @response.body
     get :raise_exception_on_post
-    assert_equal @response.body, 'request method: GET'
+    assert_equal 'request method: GET', @response.body
   end
 
   def test_string_constraint
@@ -302,7 +296,7 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
 
   def test_session_exist
     process :session_stuffing
-    assert_equal session['xmas'], 'turkey'
+    assert_equal 'turkey', session['xmas']
   end
 
   def session_does_not_exist
@@ -488,6 +482,11 @@ class AssertTemplateTest < ActionController::TestCase
     assert_raise(ActiveSupport::TestCase::Assertion) do
       assert_template :file => 'test/hello_world'
     end
+
+    get :render_file_absolute_path
+    assert_raise(ActiveSupport::TestCase::Assertion) do
+      assert_template file: nil
+    end
   end
 
   def test_with_nil_passes_when_no_template_rendered
@@ -612,6 +611,24 @@ class AssertTemplateTest < ActionController::TestCase
 
     get :nothing
     assert_template nil
+
+    get :partial
+    assert_template partial: 'test/_partial'
+
+    get :nothing
+    assert_template partial: nil
+
+    get :render_with_layout
+    assert_template layout: 'layouts/standard'
+
+    get :nothing
+    assert_template layout: nil
+
+    get :render_file_relative_path
+    assert_template file: 'README.rdoc'
+
+    get :nothing
+    assert_template file: nil
   end
 end
 

@@ -50,6 +50,21 @@ class NumericalityValidationTest < ActiveModel::TestCase
     valid!(NIL + INTEGERS)
   end
 
+  def test_validates_numericality_of_with_integer_only_and_symbol_as_value
+    Topic.validates_numericality_of :approved, only_integer: :condition_is_true_but_its_not
+
+    invalid!(NIL + BLANK + JUNK)
+    valid!(FLOATS + INTEGERS + BIGDECIMAL + INFINITY)
+  end
+
+  def test_validates_numericality_of_with_integer_only_and_proc_as_value
+    Topic.send(:define_method, :allow_only_integers?, lambda { false })
+    Topic.validates_numericality_of :approved, only_integer: Proc.new {|topic| topic.allow_only_integers? }
+
+    invalid!(NIL + BLANK + JUNK)
+    valid!(FLOATS + INTEGERS + BIGDECIMAL + INFINITY)
+  end
+
   def test_validates_numericality_with_greater_than
     Topic.validates_numericality_of :approved, greater_than: 10
 
@@ -119,6 +134,7 @@ class NumericalityValidationTest < ActiveModel::TestCase
 
     invalid!([3, 4])
     valid!([5, 6])
+  ensure
     Topic.send(:remove_method, :min_approved)
   end
 
@@ -128,6 +144,7 @@ class NumericalityValidationTest < ActiveModel::TestCase
 
     invalid!([6])
     valid!([4, 5])
+  ensure
     Topic.send(:remove_method, :max_approved)
   end
 

@@ -19,6 +19,10 @@ APP_RAKEFILE = File.expand_path("../<%= dummy_path -%>/Rakefile", __FILE__)
 load 'rails/tasks/engine.rake'
 <% end %>
 
+<% if engine? -%>
+load 'rails/tasks/statistics.rake'
+<% end %>
+
 <% unless options[:skip_gemspec] -%>
 
 Bundler::GemHelper.install_tasks

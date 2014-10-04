@@ -73,7 +73,8 @@ module ActionDispatch
           if Regexp === fragment
             fragment
           else
-            @controller._compute_redirect_to_location(fragment)
+            handle = @controller || ActionController::Redirecting
+            handle._compute_redirect_to_location(@request, fragment)
           end
         end
     end

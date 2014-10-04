@@ -12,11 +12,7 @@ module ActiveSupport
         when Float, String
           @number = BigDecimal(number.to_s)
         when Rational
-          if significant
-            @number = BigDecimal(number, digit_count(number.to_i) + precision)
-          else
-            @number = BigDecimal(number, precision)
-          end
+          @number = BigDecimal(number, digit_count(number.to_i) + precision)
         else
           @number = number.to_d
         end
@@ -32,13 +28,12 @@ module ActiveSupport
         end
 
         formatted_string =
-          case rounded_number
-          when BigDecimal
+          if BigDecimal === rounded_number && rounded_number.finite?
             s = rounded_number.to_s('F') + '0'*precision
             a, b = s.split('.', 2)
             a + '.' + b[0, precision]
           else
-            "%01.#{precision}f" % rounded_number
+            "%00.#{precision}f" % rounded_number
           end
 
         delimited_number = NumberToDelimitedConverter.convert(formatted_string, options)
@@ -64,7 +59,7 @@ module ActiveSupport
         end
 
         def digit_count(number)
-          (Math.log10(absolute_number(number)) + 1).floor
+          number.zero? ? 1 : (Math.log10(absolute_number(number)) + 1).floor
         end
 
         def strip_insignificant_zeros

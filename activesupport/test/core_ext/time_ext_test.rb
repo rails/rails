@@ -1,6 +1,7 @@
 require 'abstract_unit'
 require 'active_support/time'
 require 'core_ext/date_and_time_behavior'
+require 'time_zone_test_helpers'
 
 class TimeExtCalculationsTest < ActiveSupport::TestCase
   def date_time_init(year,month,day,hour,minute,second,usec=0)
@@ -8,6 +9,7 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
   end
 
   include DateAndTimeBehavior
+  include TimeZoneTestHelpers
 
   def test_seconds_since_midnight
     assert_equal 1,Time.local(2005,1,1,0,0,1).seconds_since_midnight
@@ -385,6 +387,8 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal Time.local(2005,1,2,11, 6, 0, 0), Time.local(2005,1,2,11,22,33,44).change(:min  => 6)
     assert_equal Time.local(2005,1,2,11,22, 7, 0), Time.local(2005,1,2,11,22,33,44).change(:sec  => 7)
     assert_equal Time.local(2005,1,2,11,22,33, 8), Time.local(2005,1,2,11,22,33,44).change(:usec => 8)
+    assert_equal Time.local(2005,1,2,11,22,33, 8), Time.local(2005,1,2,11,22,33,2).change(:nsec => 8000)
+    assert_raise(ArgumentError) { Time.local(2005,1,2,11,22,33, 8).change(:usec => 1, :nsec => 1) }
   end
 
   def test_utc_change
@@ -394,6 +398,7 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal Time.utc(2005,2,22,16),       Time.utc(2005,2,22,15,15,10).change(:hour => 16)
     assert_equal Time.utc(2005,2,22,16,45),    Time.utc(2005,2,22,15,15,10).change(:hour => 16, :min => 45)
     assert_equal Time.utc(2005,2,22,15,45),    Time.utc(2005,2,22,15,15,10).change(:min => 45)
+    assert_equal Time.utc(2005,1,2,11,22,33,8), Time.utc(2005,1,2,11,22,33,2).change(:nsec => 8000)
   end
 
   def test_offset_change
@@ -403,6 +408,11 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal Time.new(2005,2,22,16,0,0,"-08:00"),   Time.new(2005,2,22,15,15,10,"-08:00").change(:hour => 16)
     assert_equal Time.new(2005,2,22,16,45,0,"-08:00"),  Time.new(2005,2,22,15,15,10,"-08:00").change(:hour => 16, :min => 45)
     assert_equal Time.new(2005,2,22,15,45,0,"-08:00"),  Time.new(2005,2,22,15,15,10,"-08:00").change(:min => 45)
+    assert_equal Time.new(2005,2,22,15,15,10,"-08:00"),  Time.new(2005,2,22,15,15,0,"-08:00").change(:sec => 10)
+    assert_equal 10, Time.new(2005,2,22,15,15,0,"-08:00").change(:usec => 10).usec
+    assert_equal 10, Time.new(2005,2,22,15,15,0,"-08:00").change(:nsec => 10).nsec
+    assert_raise(ArgumentError) { Time.new(2005, 2, 22, 15, 15, 45, "-08:00").change(:usec => 1000000) }
+    assert_raise(ArgumentError) { Time.new(2005, 2, 22, 15, 15, 45, "-08:00").change(:nsec => 1000000000) }
   end
 
   def test_advance
@@ -847,15 +857,6 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
   def test_all_year
     assert_equal Time.local(2011,1,1,0,0,0)..Time.local(2011,12,31,23,59,59,Rational(999999999, 1000)), Time.local(2011,6,7,10,10,10).all_year
   end
-
-  protected
-    def with_env_tz(new_tz = 'US/Eastern')
-      old_tz, ENV['TZ'] = ENV['TZ'], new_tz
-      yield
-    ensure
-      old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
-    end
-
 end
 
 class TimeExtMarshalingTest < ActiveSupport::TestCase

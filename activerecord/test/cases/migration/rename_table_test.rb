@@ -42,12 +42,7 @@ module ActiveRecord
       def test_rename_table
         rename_table :test_models, :octopi
 
-        # Using explicit id in insert for compatibility across all databases
-        connection.enable_identity_insert("octopi", true) if current_adapter?(:SybaseAdapter)
-
         connection.execute "INSERT INTO octopi (#{connection.quote_column_name('id')}, #{connection.quote_column_name('url')}) VALUES (1, 'http://www.foreverflying.com/octopus-black7.jpg')"
-
-        connection.enable_identity_insert("octopi", false) if current_adapter?(:SybaseAdapter)
 
         assert_equal 'http://www.foreverflying.com/octopus-black7.jpg', connection.select_value("SELECT url FROM octopi WHERE id=1")
       end
@@ -57,10 +52,7 @@ module ActiveRecord
 
         rename_table :test_models, :octopi
 
-        # Using explicit id in insert for compatibility across all databases
-        connection.enable_identity_insert("octopi", true) if current_adapter?(:SybaseAdapter)
         connection.execute "INSERT INTO octopi (#{connection.quote_column_name('id')}, #{connection.quote_column_name('url')}) VALUES (1, 'http://www.foreverflying.com/octopus-black7.jpg')"
-        connection.enable_identity_insert("octopi", false) if current_adapter?(:SybaseAdapter)
 
         assert_equal 'http://www.foreverflying.com/octopus-black7.jpg', connection.select_value("SELECT url FROM octopi WHERE id=1")
         index = connection.indexes(:octopi).first
@@ -82,7 +74,18 @@ module ActiveRecord
 
           pk, seq = connection.pk_and_sequence_for('octopi')
 
-          assert_equal "octopi_#{pk}_seq", seq
+          assert_equal ConnectionAdapters::PostgreSQL::Name.new("public", "octopi_#{pk}_seq"), seq
+        end
+
+        def test_renaming_table_doesnt_attempt_to_rename_non_existent_sequences
+          enable_extension!('uuid-ossp', connection)
+          connection.create_table :cats, id: :uuid
+          assert_nothing_raised { rename_table :cats, :felines }
+          assert connection.table_exists? :felines
+        ensure
+          disable_extension!('uuid-ossp', connection)
+          connection.drop_table :cats if connection.table_exists? :cats
+          connection.drop_table :felines if connection.table_exists? :felines
         end
       end
     end

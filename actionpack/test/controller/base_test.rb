@@ -158,7 +158,7 @@ class PerformActionTest < ActionController::TestCase
     exception = assert_raise AbstractController::ActionNotFound do
       get :non_existent
     end
-    assert_equal exception.message, "The action 'non_existent' could not be found for EmptyController"
+    assert_equal "The action 'non_existent' could not be found for EmptyController", exception.message
   end
 
   def test_get_on_hidden_should_fail

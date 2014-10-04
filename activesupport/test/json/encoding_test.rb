@@ -4,8 +4,11 @@ require 'abstract_unit'
 require 'active_support/core_ext/string/inflections'
 require 'active_support/json'
 require 'active_support/time'
+require 'time_zone_test_helpers'
 
 class TestJSONEncoding < ActiveSupport::TestCase
+  include TimeZoneTestHelpers
+
   class Foo
     def initialize(a, b)
       @a, @b = a, b
@@ -327,12 +330,39 @@ class TestJSONEncoding < ActiveSupport::TestCase
     assert_equal(%([{"address":{"city":"London"}},{"address":{"city":"Paris"}}]), json)
   end
 
-  def test_enumerable_should_pass_encoding_options_to_children_in_as_json
-    people = [
-      { :name => 'John', :address => { :city => 'London', :country => 'UK' }},
-      { :name => 'Jean', :address => { :city => 'Paris' , :country => 'France' }}
+  People = Class.new(BasicObject) do
+    include Enumerable
+    def initialize()
+      @people = [
+        { :name => 'John', :address => { :city => 'London', :country => 'UK' }},
+        { :name => 'Jean', :address => { :city => 'Paris' , :country => 'France' }}
+      ]
+    end
+    def each(*, &blk)
+      @people.each do |p|
+        yield p if blk
+        p
+      end.each
+    end
+  end
+
+  def test_enumerable_should_generate_json_with_as_json
+    json = People.new.as_json :only => [:address, :city]
+    expected = [
+      { 'address' => { 'city' => 'London' }},
+      { 'address' => { 'city' => 'Paris' }}
     ]
-    json = people.each.as_json :only => [:address, :city]
+
+    assert_equal(expected, json)
+  end
+
+  def test_enumerable_should_generate_json_with_to_json
+    json = People.new.to_json :only => [:address, :city]
+    assert_equal(%([{"address":{"city":"London"}},{"address":{"city":"Paris"}}]), json)
+  end
+
+  def test_enumerable_should_pass_encoding_options_to_children_in_as_json
+    json = People.new.each.as_json :only => [:address, :city]
     expected = [
       { 'address' => { 'city' => 'London' }},
       { 'address' => { 'city' => 'Paris' }}
@@ -342,11 +372,7 @@ class TestJSONEncoding < ActiveSupport::TestCase
   end
 
   def test_enumerable_should_pass_encoding_options_to_children_in_to_json
-    people = [
-      { :name => 'John', :address => { :city => 'London', :country => 'UK' }},
-      { :name => 'Jean', :address => { :city => 'Paris' , :country => 'France' }}
-    ]
-    json = people.each.to_json :only => [:address, :city]
+    json = People.new.each.to_json :only => [:address, :city]
 
     assert_equal(%([{"address":{"city":"London"}},{"address":{"city":"Paris"}}]), json)
   end
@@ -468,31 +494,28 @@ EXPECTED
 
   def test_twz_to_json_with_custom_time_precision
     with_standard_json_time_format(true) do
-      ActiveSupport::JSON::Encoding.time_precision = 0
-      zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
-      time = ActiveSupport::TimeWithZone.new(Time.utc(2000), zone)
-      assert_equal "\"1999-12-31T19:00:00-05:00\"", ActiveSupport::JSON.encode(time)
+      with_time_precision(0) do
+        zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
+        time = ActiveSupport::TimeWithZone.new(Time.utc(2000), zone)
+        assert_equal "\"1999-12-31T19:00:00-05:00\"", ActiveSupport::JSON.encode(time)
+      end
     end
-  ensure
-    ActiveSupport::JSON::Encoding.time_precision = 3
   end
 
   def test_time_to_json_with_custom_time_precision
     with_standard_json_time_format(true) do
-      ActiveSupport::JSON::Encoding.time_precision = 0
-      assert_equal "\"2000-01-01T00:00:00Z\"", ActiveSupport::JSON.encode(Time.utc(2000))
+      with_time_precision(0) do
+        assert_equal "\"2000-01-01T00:00:00Z\"", ActiveSupport::JSON.encode(Time.utc(2000))
+      end
     end
-  ensure
-    ActiveSupport::JSON::Encoding.time_precision = 3
   end
 
   def test_datetime_to_json_with_custom_time_precision
     with_standard_json_time_format(true) do
-      ActiveSupport::JSON::Encoding.time_precision = 0
-      assert_equal "\"2000-01-01T00:00:00+00:00\"", ActiveSupport::JSON.encode(DateTime.new(2000))
+      with_time_precision(0) do
+        assert_equal "\"2000-01-01T00:00:00+00:00\"", ActiveSupport::JSON.encode(DateTime.new(2000))
+      end
     end
-  ensure
-    ActiveSupport::JSON::Encoding.time_precision = 3
   end
 
   def test_twz_to_json_when_wrapping_a_date_time
@@ -507,17 +530,18 @@ EXPECTED
       json_object[1..-2].scan(/([^{}:,\s]+):/).flatten.sort
     end
 
-    def with_env_tz(new_tz = 'US/Eastern')
-      old_tz, ENV['TZ'] = ENV['TZ'], new_tz
-      yield
-    ensure
-      old_tz ? ENV['TZ'] = old_tz : ENV.delete('TZ')
-    end
-
     def with_standard_json_time_format(boolean = true)
       old, ActiveSupport.use_standard_json_time_format = ActiveSupport.use_standard_json_time_format, boolean
       yield
     ensure
       ActiveSupport.use_standard_json_time_format = old
+    end
+
+    def with_time_precision(value)
+      old_value = ActiveSupport::JSON::Encoding.time_precision
+      ActiveSupport::JSON::Encoding.time_precision = value
+      yield
+    ensure
+      ActiveSupport::JSON::Encoding.time_precision = old_value
     end
 end

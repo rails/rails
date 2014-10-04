@@ -4,7 +4,7 @@ module ActiveRecord
       def validate(record)
         super
         attributes.each do |attribute|
-          next unless record.class.reflect_on_association(attribute)
+          next unless record.class._reflect_on_association(attribute)
           associated_records = Array.wrap(record.send(attribute))
 
           # Superclass validates presence. Ensure present records aren't about to be destroyed.
@@ -44,9 +44,11 @@ module ActiveRecord
       #
       # Configuration options:
       # * <tt>:message</tt> - A custom error message (default is: "can't be blank").
-      # * <tt>:on</tt> - Specifies when this validation is active. Runs in all
-      #   validation contexts by default (+nil+), other options are <tt>:create</tt>
-      #   and <tt>:update</tt>.
+      # * <tt>:on</tt> - Specifies the contexts where this validation is active.
+      #   Runs in all validation contexts by default (nil). You can pass a symbol
+      #   or an array of symbols. (e.g. <tt>on: :create</tt> or
+      #   <tt>on: :custom_validation_context</tt> or
+      #   <tt>on: [:create, :custom_validation_context]</tt>)
       # * <tt>:if</tt> - Specifies a method, proc or string to call to determine if
       #   the validation should occur (e.g. <tt>if: :allow_validation</tt>, or
       #   <tt>if: Proc.new { |user| user.signup_step > 2 }</tt>). The method, proc

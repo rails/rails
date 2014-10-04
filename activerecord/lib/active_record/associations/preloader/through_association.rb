@@ -23,7 +23,7 @@ module ActiveRecord
 
           reset_association owners, through_reflection.name
 
-          middle_records = through_records.map { |(_,rec)| rec }.flatten
+          middle_records = through_records.flat_map { |(_,rec)| rec }
 
           preloaders = preloader.preload(middle_records,
                                          source_reflection.name,
@@ -63,7 +63,7 @@ module ActiveRecord
           should_reset = (through_scope != through_reflection.klass.unscoped) ||
              (reflection.options[:source_type] && through_reflection.collection?)
 
-          # Dont cache the association - we would only be caching a subset
+          # Don't cache the association - we would only be caching a subset
           if should_reset
             owners.each { |owner|
               owner.association(association_name).reset
@@ -84,7 +84,7 @@ module ActiveRecord
             end
 
             scope.references! reflection_scope.values[:references]
-            scope.order! reflection_scope.values[:order] if scope.eager_loading?
+            scope = scope.order reflection_scope.values[:order] if scope.eager_loading?
           end
 
           scope

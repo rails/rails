@@ -1,3 +1,4 @@
+# encoding: utf-8
 require 'abstract_unit'
 
 class TestHelperMailer < ActionMailer::Base
@@ -36,10 +37,18 @@ class TestHelperMailerTest < ActionMailer::TestCase
     assert_equal "UTF-8", charset
   end
 
+  def test_encode
+    assert_equal '=?UTF-8?Q?This_is_=E3=81=82_string?=', encode('This is あ string')
+  end
+
+  def test_read_fixture
+    assert_equal ['Welcome!'], read_fixture('welcome')
+  end
+
   def test_assert_emails
     assert_nothing_raised do
       assert_emails 1 do
-        TestHelperMailer.test.deliver
+        TestHelperMailer.test.deliver_now
       end
     end
   end
@@ -47,27 +56,27 @@ class TestHelperMailerTest < ActionMailer::TestCase
   def test_repeated_assert_emails_calls
     assert_nothing_raised do
       assert_emails 1 do
-        TestHelperMailer.test.deliver
+        TestHelperMailer.test.deliver_now
       end
     end
 
     assert_nothing_raised do
       assert_emails 2 do
-        TestHelperMailer.test.deliver
-        TestHelperMailer.test.deliver
+        TestHelperMailer.test.deliver_now
+        TestHelperMailer.test.deliver_now
       end
     end
   end
 
   def test_assert_emails_with_no_block
     assert_nothing_raised do
-      TestHelperMailer.test.deliver
+      TestHelperMailer.test.deliver_now
       assert_emails 1
     end
 
     assert_nothing_raised do
-      TestHelperMailer.test.deliver
-      TestHelperMailer.test.deliver
+      TestHelperMailer.test.deliver_now
+      TestHelperMailer.test.deliver_now
       assert_emails 3
     end
   end
@@ -83,7 +92,7 @@ class TestHelperMailerTest < ActionMailer::TestCase
   def test_assert_emails_too_few_sent
     error = assert_raise ActiveSupport::TestCase::Assertion do
       assert_emails 2 do
-        TestHelperMailer.test.deliver
+        TestHelperMailer.test.deliver_now
       end
     end
 
@@ -93,8 +102,8 @@ class TestHelperMailerTest < ActionMailer::TestCase
   def test_assert_emails_too_many_sent
     error = assert_raise ActiveSupport::TestCase::Assertion do
       assert_emails 1 do
-        TestHelperMailer.test.deliver
-        TestHelperMailer.test.deliver
+        TestHelperMailer.test.deliver_now
+        TestHelperMailer.test.deliver_now
       end
     end
 
@@ -104,7 +113,7 @@ class TestHelperMailerTest < ActionMailer::TestCase
   def test_assert_no_emails_failure
     error = assert_raise ActiveSupport::TestCase::Assertion do
       assert_no_emails do
-        TestHelperMailer.test.deliver
+        TestHelperMailer.test.deliver_now
       end
     end
 

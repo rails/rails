@@ -42,7 +42,6 @@ module ActiveSupport
         0x0085,                # White_Space # Cc       <control-0085>
         0x00A0,                # White_Space # Zs       NO-BREAK SPACE
         0x1680,                # White_Space # Zs       OGHAM SPACE MARK
-        0x180E,                # White_Space # Zs       MONGOLIAN VOWEL SEPARATOR
         (0x2000..0x200A).to_a, # White_Space # Zs  [11] EN QUAD..HAIR SPACE
         0x2028,                # White_Space # Zl       LINE SEPARATOR
         0x2029,                # White_Space # Zp       PARAGRAPH SEPARATOR
@@ -213,7 +212,8 @@ module ActiveSupport
       end
 
       # Ruby >= 2.1 has String#scrub, which is faster than the workaround used for < 2.1.
-      if '<3'.respond_to?(:scrub)
+      # Rubinius' String#scrub, however, doesn't support ASCII-incompatible chars.
+      if '<3'.respond_to?(:scrub) && !defined?(Rubinius)
         # Replaces all ISO-8859-1 or CP1252 characters by their UTF-8 equivalent
         # resulting in a valid UTF-8 string.
         #
@@ -335,7 +335,7 @@ module ActiveSupport
           begin
             @codepoints, @composition_exclusion, @composition_map, @boundary, @cp1252 = File.open(self.class.filename, 'rb') { |f| Marshal.load f.read }
           rescue => e
-              raise IOError.new("Couldn't load the Unicode tables for UTF8Handler (#{e.message}), ActiveSupport::Multibyte is unusable")
+            raise IOError.new("Couldn't load the Unicode tables for UTF8Handler (#{e.message}), ActiveSupport::Multibyte is unusable")
           end
 
           # Redefine the === method so we can write shorter rules for grapheme cluster breaks
@@ -367,6 +367,7 @@ module ActiveSupport
       private
 
       def apply_mapping(string, mapping) #:nodoc:
+        database.codepoints
         string.each_codepoint.map do |codepoint|
           cp = database.codepoints[codepoint]
           if cp and (ncp = cp.send(mapping)) and ncp > 0
@@ -384,7 +385,6 @@ module ActiveSupport
       def database
         @database ||= UnicodeDatabase.new
       end
-
     end
   end
 end

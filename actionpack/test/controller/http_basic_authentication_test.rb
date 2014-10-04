@@ -129,6 +129,13 @@ class HttpBasicAuthenticationTest < ActionController::TestCase
     assert_response :unauthorized
   end
 
+  test "authentication request with wrong scheme" do
+    header = 'Bearer ' + encode_credentials('David', 'Goliath').split(' ', 2)[1]
+    @request.env['HTTP_AUTHORIZATION'] = header
+    get :search
+    assert_response :unauthorized
+  end
+
   private
 
   def encode_credentials(username, password)

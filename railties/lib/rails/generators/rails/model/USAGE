@@ -6,6 +6,11 @@ Description:
     model's attributes. Timestamps are added by default, so you don't have to
     specify them by hand as 'created_at:datetime updated_at:datetime'.
 
+    As a special case, specifying 'password:digest' will generate a
+    password_digest field of string type, and configure your generated model and
+    tests for use with ActiveModel has_secure_password (assuming the default ORM
+    and test framework are being used).
+
     You don't have to think up every attribute up front, but it helps to
     sketch out a few so you can start working with the model immediately.
 
@@ -27,7 +32,8 @@ Available field types:
         `rails generate model post title:string body:text`
 
     will generate a title column with a varchar type and a body column with a text
-    type. You can use the following types:
+    type. If no type is specified the string type will be used by default.
+    You can use the following types:
 
         integer
         primary_key
@@ -40,7 +46,6 @@ Available field types:
         date
         time
         datetime
-        timestamp
 
     You can also consider `references` as a kind of type. For instance, if you run:
 
@@ -73,6 +78,10 @@ Available field types:
         `rails generate model user username:string{30}:uniq`
         `rails generate model product supplier:references{polymorphic}:index`
 
+    If you require a `password_digest` string column for use with
+    has_secure_password, you should specify `password:digest`:
+
+        `rails generate model user password:digest`
 
 Examples:
     `rails generate model account`

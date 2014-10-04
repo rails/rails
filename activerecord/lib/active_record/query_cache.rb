@@ -1,4 +1,3 @@
-
 module ActiveRecord
   # = Active Record Query Cache
   class QueryCache
@@ -29,9 +28,10 @@ module ActiveRecord
     end
 
     def call(env)
-      enabled       = ActiveRecord::Base.connection.query_cache_enabled
+      connection    = ActiveRecord::Base.connection
+      enabled       = connection.query_cache_enabled
       connection_id = ActiveRecord::Base.connection_id
-      ActiveRecord::Base.connection.enable_query_cache!
+      connection.enable_query_cache!
 
       response = @app.call(env)
       response[2] = Rack::BodyProxy.new(response[2]) do

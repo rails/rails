@@ -34,28 +34,47 @@ module ActiveRecord
       # <tt>reload</tt> the record and clears changed attributes.
       def reload(*)
         super.tap do
-          reset_changes
+          clear_changes_information
         end
       end
 
-    def initialize_dup(other) # :nodoc:
-      super
-      init_changed_attributes
-    end
-
-    private
-      def initialize_internals_callback
+      def initialize_dup(other) # :nodoc:
         super
-        init_changed_attributes
+        calculate_changes_from_defaults
       end
 
-      def init_changed_attributes
+      def changes_applied
+        super
+        store_original_raw_attributes
+      end
+
+      def clear_changes_information
+        super
+        original_raw_attributes.clear
+      end
+
+      def changed_attributes
+        # This should only be set by methods which will call changed_attributes
+        # multiple times when it is known that the computed value cannot change.
+        if defined?(@cached_changed_attributes)
+          @cached_changed_attributes
+        else
+          super.reverse_merge(attributes_changed_in_place).freeze
+        end
+      end
+
+      def changes
+        cache_changed_attributes do
+          super
+        end
+      end
+
+      private
+
+      def calculate_changes_from_defaults
         @changed_attributes = nil
-        # Intentionally avoid using #column_defaults since overridden defaults (as is done in
-        # optimistic locking) won't get written unless they get marked as changed
-        self.class.columns.each do |c|
-          attr, orig_value = c.name, c.default
-          changed_attributes[attr] = orig_value if _field_changed?(attr, orig_value, @attributes[attr])
+        self.class.column_defaults.each do |attr, orig_value|
+          set_attribute_was(attr, orig_value) if _field_changed?(attr, orig_value)
         end
       end
 
@@ -63,27 +82,43 @@ module ActiveRecord
       def write_attribute(attr, value)
         attr = attr.to_s
 
-        save_changed_attribute(attr, value)
+        old_value = old_attribute_value(attr)
 
-        super(attr, value)
+        result = super
+        store_original_raw_attribute(attr)
+        save_changed_attribute(attr, old_value)
+        result
       end
 
-      def save_changed_attribute(attr, value)
-        # The attribute already has an unsaved change.
+      def raw_write_attribute(attr, value)
+        attr = attr.to_s
+
+        result = super
+        original_raw_attributes[attr] = value
+        result
+      end
+
+      def save_changed_attribute(attr, old_value)
         if attribute_changed?(attr)
-          old = changed_attributes[attr]
-          changed_attributes.delete(attr) unless _field_changed?(attr, old, value)
+          clear_attribute_changes(attr) unless _field_changed?(attr, old_value)
         else
-          old = clone_attribute_value(:read_attribute, attr)
-          changed_attributes[attr] = old if _field_changed?(attr, old, value)
+          set_attribute_was(attr, old_value) if _field_changed?(attr, old_value)
         end
       end
 
-      def update_record(*)
+      def old_attribute_value(attr)
+        if attribute_changed?(attr)
+          changed_attributes[attr]
+        else
+          clone_attribute_value(:read_attribute, attr)
+        end
+      end
+
+      def _update_record(*)
         partial_writes? ? super(keys_for_partial_write) : super
       end
 
-      def create_record(*)
+      def _create_record(*)
         partial_writes? ? super(keys_for_partial_write) : super
       end
 
@@ -93,34 +128,53 @@ module ActiveRecord
         changed
       end
 
-      def _field_changed?(attr, old, value)
-        if column = column_for_attribute(attr)
-          if column.number? && (changes_from_nil_to_empty_string?(column, old, value) ||
-                                changes_from_zero_to_string?(old, value))
-            value = nil
-          else
-            value = column.type_cast(value)
-          end
+      def _field_changed?(attr, old_value)
+        @attributes[attr].changed_from?(old_value)
+      end
+
+      def attributes_changed_in_place
+        changed_in_place.each_with_object({}) do |attr_name, h|
+          orig = @attributes[attr_name].original_value
+          h[attr_name] = orig
         end
-
-        old != value
       end
 
-      def changes_from_nil_to_empty_string?(column, old, value)
-        # For nullable numeric columns, NULL gets stored in database for blank (i.e. '') values.
-        # Hence we don't record it as a change if the value changes from nil to ''.
-        # If an old value of 0 is set to '' we want this to get changed to nil as otherwise it'll
-        # be typecast back to 0 (''.to_i => 0)
-        column.null && (old.nil? || old == 0) && value.blank?
+      def changed_in_place
+        self.class.attribute_names.select do |attr_name|
+          changed_in_place?(attr_name)
+        end
       end
 
-      def changes_from_zero_to_string?(old, value)
-        # For columns with old 0 and value non-empty string
-        old == 0 && value.is_a?(String) && value.present? && non_zero?(value)
+      def changed_in_place?(attr_name)
+        old_value = original_raw_attribute(attr_name)
+        @attributes[attr_name].changed_in_place_from?(old_value)
       end
 
-      def non_zero?(value)
-        value !~ /\A0+(\.0+)?\z/
+      def original_raw_attribute(attr_name)
+        original_raw_attributes.fetch(attr_name) do
+          read_attribute_before_type_cast(attr_name)
+        end
+      end
+
+      def original_raw_attributes
+        @original_raw_attributes ||= {}
+      end
+
+      def store_original_raw_attribute(attr_name)
+        original_raw_attributes[attr_name] = @attributes[attr_name].value_for_database
+      end
+
+      def store_original_raw_attributes
+        attribute_names.each do |attr|
+          store_original_raw_attribute(attr)
+        end
+      end
+
+      def cache_changed_attributes
+        @cached_changed_attributes = changed_attributes
+        yield
+      ensure
+        remove_instance_variable(:@cached_changed_attributes)
       end
     end
   end

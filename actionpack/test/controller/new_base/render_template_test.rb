@@ -9,7 +9,7 @@ module RenderTemplate
       "locals.html.erb"            => "The secret is <%= secret %>",
       "xml_template.xml.builder"   => "xml.html do\n  xml.p 'Hello'\nend",
       "with_raw.html.erb"          => "Hello <%=raw '<strong>this is raw</strong>' %>",
-      "with_implicit_raw.html.erb" => "Hello <%== '<strong>this is also raw</strong>' %> in a html template",
+      "with_implicit_raw.html.erb" => "Hello <%== '<strong>this is also raw</strong>' %> in an html template",
       "with_implicit_raw.text.erb" => "Hello <%== '<strong>this is also raw</strong>' %> in a text template",
       "test/with_json.html.erb"    => "<%= render :template => 'test/with_json', :formats => [:json] %>",
       "test/with_json.json.erb"    => "<%= render :template => 'test/final', :formats => [:json]  %>",
@@ -43,6 +43,10 @@ module RenderTemplate
 
     def with_locals
       render :template => "locals", :locals => { :secret => 'area51' }
+    end
+
+    def with_locals_without_key
+      render "locals", :locals => { :secret => 'area51' }
     end
 
     def builder_template
@@ -101,6 +105,11 @@ module RenderTemplate
       assert_response "The secret is area51"
     end
 
+    test "rendering a template with local variables without key" do
+      get :with_locals
+      assert_response "The secret is area51"
+    end
+
     test "rendering a builder template" do
       get :builder_template, "format" => "xml"
       assert_response "<html>\n  <p>Hello</p>\n</html>\n"
@@ -114,7 +123,7 @@ module RenderTemplate
 
       get :with_implicit_raw
 
-      assert_body "Hello <strong>this is also raw</strong> in a html template"
+      assert_body "Hello <strong>this is also raw</strong> in an html template"
       assert_status 200
 
       get :with_implicit_raw, format: 'text'

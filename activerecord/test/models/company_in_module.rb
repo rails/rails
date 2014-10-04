@@ -46,6 +46,24 @@ module MyApplication
         end
       end
     end
+
+    module Suffixed
+      def self.table_name_suffix
+        '_suffixed'
+      end
+
+      class Company < ActiveRecord::Base
+      end
+
+      class Firm < Company
+        self.table_name = 'companies'
+      end
+
+      module Nested
+        class Company < ActiveRecord::Base
+        end
+      end
+    end
   end
 
   module Billing

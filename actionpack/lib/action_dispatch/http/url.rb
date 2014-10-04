@@ -5,99 +5,121 @@ module ActionDispatch
   module Http
     module URL
       IP_HOST_REGEXP  = /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/
-      HOST_REGEXP     = /(^.*:\/\/)?([^:]+)(?::(\d+$))?/
+      HOST_REGEXP     = /(^[^:]+:\/\/)?([^:]+)(?::(\d+$))?/
       PROTOCOL_REGEXP = /^([^:]+)(:)?(\/\/)?$/
 
       mattr_accessor :tld_length
       self.tld_length = 1
 
       class << self
-        def extract_domain(host, tld_length = @@tld_length)
-          host.split('.').last(1 + tld_length).join('.') if named_host?(host)
+        def extract_domain(host, tld_length)
+          extract_domain_from(host, tld_length) if named_host?(host)
         end
 
-        def extract_subdomains(host, tld_length = @@tld_length)
+        def extract_subdomains(host, tld_length)
           if named_host?(host)
-            parts = host.split('.')
-            parts[0..-(tld_length + 2)]
+            extract_subdomains_from(host, tld_length)
           else
             []
           end
         end
 
-        def extract_subdomain(host, tld_length = @@tld_length)
+        def extract_subdomain(host, tld_length)
           extract_subdomains(host, tld_length).join('.')
         end
 
-        def url_for(options = {})
-          options = options.dup
-          path  = options.delete(:script_name).to_s.chomp("/")
-          path << options.delete(:path).to_s
-
-          params = options[:params].is_a?(Hash) ? options[:params] : options.slice(:params)
-          params.reject! { |_,v| v.to_param.nil? }
-
-          result = build_host_url(options)
-          if options[:trailing_slash]
-            if path.include?('?')
-              result << path.sub(/\?/, '/\&')
-            else
-              result << path.sub(/[^\/]\z|\A\z/, '\&/')
-            end
+        def url_for(options)
+          if options[:only_path]
+            path_for options
           else
-            result << path
+            full_url_for options
           end
-          result << "?#{params.to_query}" unless params.empty?
-          result << "##{Journey::Router::Utils.escape_fragment(options[:anchor].to_param.to_s)}" if options[:anchor]
-          result
+        end
+
+        def full_url_for(options)
+          host     = options[:host]
+          protocol = options[:protocol]
+          port     = options[:port]
+
+          unless host
+            raise ArgumentError, 'Missing host to link to! Please provide the :host parameter, set default_url_options[:host], or set :only_path to true'
+          end
+
+          build_host_url(host, port, protocol, options, path_for(options))
+        end
+
+        def path_for(options)
+          path  = options[:script_name].to_s.chomp("/")
+          path << options[:path] if options.key?(:path)
+
+          add_trailing_slash(path) if options[:trailing_slash]
+          add_params(path, options[:params]) if options.key?(:params)
+          add_anchor(path, options[:anchor]) if options.key?(:anchor)
+
+          path
         end
 
         private
 
-        def build_host_url(options)
-          if options[:host].blank? && options[:only_path].blank?
-            raise ArgumentError, 'Missing host to link to! Please provide the :host parameter, set default_url_options[:host], or set :only_path to true'
+        def add_params(path, params)
+          params = { params: params } unless params.is_a?(Hash)
+          params.reject! { |_,v| v.to_param.nil? }
+          path << "?#{params.to_query}" unless params.empty?
+        end
+
+        def add_anchor(path, anchor)
+          path << "##{Journey::Router::Utils.escape_fragment(anchor.to_param.to_s)}"
+        end
+
+        def extract_domain_from(host, tld_length)
+          host.split('.').last(1 + tld_length).join('.')
+        end
+
+        def extract_subdomains_from(host, tld_length)
+          parts = host.split('.')
+          parts[0..-(tld_length + 2)]
+        end
+
+        def add_trailing_slash(path)
+          # includes querysting
+          if path.include?('?')
+            path.sub!(/\?/, '/\&')
+          # does not have a .format
+          elsif !path.include?(".")
+            path.sub!(/[^\/]\z|\A\z/, '\&/')
+          end
+        end
+
+        def build_host_url(host, port, protocol, options, path)
+          if match = host.match(HOST_REGEXP)
+            protocol ||= match[1] unless protocol == false
+            host       = match[2]
+            port       = match[3] unless options.key? :port
           end
 
-          result = ""
+          protocol = normalize_protocol protocol
+          host     = normalize_host(host, options)
 
-          unless options[:only_path]
-            if match = options[:host].match(HOST_REGEXP)
-              options[:protocol] ||= match[1] unless options[:protocol] == false
-              options[:host]       = match[2]
-              options[:port]       = match[3] unless options.key?(:port)
-            end
+          result = protocol.dup
 
-            options[:protocol] = normalize_protocol(options)
-            options[:host]     = normalize_host(options)
-            options[:port]     = normalize_port(options)
-
-            result << options[:protocol]
-            result << rewrite_authentication(options)
-            result << options[:host]
-            result << ":#{options[:port]}" if options[:port]
+          if options[:user] && options[:password]
+            result << "#{Rack::Utils.escape(options[:user])}:#{Rack::Utils.escape(options[:password])}@"
           end
-          result
+
+          result << host
+          normalize_port(port, protocol) { |normalized_port|
+            result << ":#{normalized_port}"
+          }
+
+          result.concat path
         end
 
         def named_host?(host)
-          host && IP_HOST_REGEXP !~ host
+          IP_HOST_REGEXP !~ host
         end
 
-        def same_host?(options)
-          (options[:subdomain] == true || !options.key?(:subdomain)) && options[:domain].nil?
-        end
-
-        def rewrite_authentication(options)
-          if options[:user] && options[:password]
-            "#{Rack::Utils.escape(options[:user])}:#{Rack::Utils.escape(options[:password])}@"
-          else
-            ""
-          end
-        end
-
-        def normalize_protocol(options)
-          case options[:protocol]
+        def normalize_protocol(protocol)
+          case protocol
           when nil
             "http://"
           when false, "//"
@@ -105,36 +127,39 @@ module ActionDispatch
           when PROTOCOL_REGEXP
             "#{$1}://"
           else
-            raise ArgumentError, "Invalid :protocol option: #{options[:protocol].inspect}"
+            raise ArgumentError, "Invalid :protocol option: #{protocol.inspect}"
           end
         end
 
-        def normalize_host(options)
-          return options[:host] if !named_host?(options[:host]) || same_host?(options)
+        def normalize_host(_host, options)
+          return _host unless named_host?(_host)
 
           tld_length = options[:tld_length] || @@tld_length
+          subdomain  = options.fetch :subdomain, true
+          domain     = options[:domain]
 
           host = ""
-          if options[:subdomain] == true || !options.key?(:subdomain)
-            host << extract_subdomain(options[:host], tld_length).to_param
-          elsif options[:subdomain].present?
-            host << options[:subdomain].to_param
+          if subdomain == true
+            return _host if domain.nil?
+
+            host << extract_subdomains_from(_host, tld_length).join('.')
+          elsif subdomain
+            host << subdomain.to_param
           end
           host << "." unless host.empty?
-          host << (options[:domain] || extract_domain(options[:host], tld_length))
+          host << (domain || extract_domain_from(_host, tld_length))
           host
         end
 
-        def normalize_port(options)
-          return nil if options[:port].nil? || options[:port] == false
+        def normalize_port(port, protocol)
+          return unless port
 
-          case options[:protocol]
-          when "//"
-            nil
+          case protocol
+          when "//" then yield port
           when "https://"
-            options[:port].to_i == 443 ? nil : options[:port]
+            yield port unless port.to_i == 443
           else
-            options[:port].to_i == 80 ? nil : options[:port]
+            yield port unless port.to_i == 80
           end
         end
       end

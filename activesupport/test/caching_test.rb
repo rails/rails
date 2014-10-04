@@ -60,36 +60,25 @@ class CacheKeyTest < ActiveSupport::TestCase
   end
 
   def test_expand_cache_key_with_rails_cache_id
-    begin
-      ENV['RAILS_CACHE_ID'] = 'c99'
+    with_env('RAILS_CACHE_ID' => 'c99') do
       assert_equal 'c99/foo', ActiveSupport::Cache.expand_cache_key(:foo)
       assert_equal 'c99/foo', ActiveSupport::Cache.expand_cache_key([:foo])
       assert_equal 'c99/foo/bar', ActiveSupport::Cache.expand_cache_key([:foo, :bar])
       assert_equal 'nm/c99/foo', ActiveSupport::Cache.expand_cache_key(:foo, :nm)
       assert_equal 'nm/c99/foo', ActiveSupport::Cache.expand_cache_key([:foo], :nm)
       assert_equal 'nm/c99/foo/bar', ActiveSupport::Cache.expand_cache_key([:foo, :bar], :nm)
-    ensure
-      ENV['RAILS_CACHE_ID'] = nil
     end
   end
 
   def test_expand_cache_key_with_rails_app_version
-    begin
-      ENV['RAILS_APP_VERSION'] = 'rails3'
+    with_env('RAILS_APP_VERSION' => 'rails3') do
       assert_equal 'rails3/foo', ActiveSupport::Cache.expand_cache_key(:foo)
-    ensure
-      ENV['RAILS_APP_VERSION'] = nil
     end
   end
 
   def test_expand_cache_key_rails_cache_id_should_win_over_rails_app_version
-    begin
-      ENV['RAILS_CACHE_ID'] = 'c99'
-      ENV['RAILS_APP_VERSION'] = 'rails3'
+    with_env('RAILS_CACHE_ID' => 'c99', 'RAILS_APP_VERSION' => 'rails3') do
       assert_equal 'c99/foo', ActiveSupport::Cache.expand_cache_key(:foo)
-    ensure
-      ENV['RAILS_CACHE_ID'] = nil
-      ENV['RAILS_APP_VERSION'] = nil
     end
   end
 
@@ -123,6 +112,16 @@ class CacheKeyTest < ActiveSupport::TestCase
 
   def test_expand_cache_key_of_array_like_object
     assert_equal 'foo/bar/baz', ActiveSupport::Cache.expand_cache_key(%w{foo bar baz}.to_enum)
+  end
+
+  private
+
+  def with_env(kv)
+    old_values = {}
+    kv.each { |key, value| old_values[key], ENV[key] = ENV[key], value }
+    yield
+  ensure
+    old_values.each { |key, value| ENV[key] = value}
   end
 end
 
@@ -297,20 +296,21 @@ module CacheStoreBehavior
     @cache.write('foo', 'bar')
     @cache.write('fud', 'biz')
 
-    values = @cache.fetch_multi('foo', 'fu', 'fud') {|value| value * 2 }
+    values = @cache.fetch_multi('foo', 'fu', 'fud') { |value| value * 2 }
 
-    assert_equal(["bar", "fufu", "biz"], values)
-    assert_equal("fufu", @cache.read('fu'))
+    assert_equal({ 'foo' => 'bar', 'fu' => 'fufu', 'fud' => 'biz' }, values)
+    assert_equal('fufu', @cache.read('fu'))
   end
 
   def test_multi_with_objects
-    foo = stub(:title => "FOO!", :cache_key => "foo")
-    bar = stub(:cache_key => "bar")
+    foo = stub(:title => 'FOO!', :cache_key => 'foo')
+    bar = stub(:cache_key => 'bar')
 
-    @cache.write('bar', "BAM!")
+    @cache.write('bar', 'BAM!')
 
-    values = @cache.fetch_multi(foo, bar) {|object| object.title }
-    assert_equal(["FOO!", "BAM!"], values)
+    values = @cache.fetch_multi(foo, bar) { |object| object.title }
+
+    assert_equal({ foo => 'FOO!', bar => 'BAM!' }, values)
   end
 
   def test_read_and_write_compressed_small_data
@@ -691,6 +691,11 @@ class FileStoreTest < ActiveSupport::TestCase
     assert File.exist?(filepath)
   end
 
+  def test_long_keys
+    @cache.write("a"*10000, 1)
+    assert_equal 1, @cache.read("a"*10000)
+  end
+
   def test_key_transformation
     key = @cache.send(:key_file_path, "views/index?id=1")
     assert_equal "views/index?id=1", @cache.send(:file_path_key, key)
@@ -934,8 +939,8 @@ class MemCacheStoreTest < ActiveSupport::TestCase
 
   def test_read_should_return_a_different_object_id_each_time_it_is_called
     @cache.write('foo', 'bar')
-    assert_not_equal @cache.read('foo').object_id, @cache.read('foo').object_id
     value = @cache.read('foo')
+    assert_not_equal value.object_id, @cache.read('foo').object_id
     value << 'bingo'
     assert_not_equal value, @cache.read('foo')
   end

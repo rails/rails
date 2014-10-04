@@ -81,7 +81,6 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
   def test_helper_are_invoked_with_a_pluralized_name
     run_generator
     assert_file "app/helpers/users_helper.rb", /module UsersHelper/
-    assert_file "test/helpers/users_helper_test.rb", /class UsersHelperTest < ActionView::TestCase/
   end
 
   def test_views_are_generated
@@ -91,6 +90,14 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
       assert_file "app/views/users/#{view}.html.erb"
     end
     assert_no_file "app/views/layouts/users.html.erb"
+  end
+
+  def test_index_page_have_notice
+    run_generator
+
+    %w(index show).each do |view|
+      assert_file "app/views/users/#{view}.html.erb", /notice/
+    end
   end
 
   def test_functional_tests
@@ -118,7 +125,6 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
   def test_skip_helper_if_required
     run_generator ["User", "name:string", "age:integer", "--no-helper"]
     assert_no_file "app/helpers/users_helper.rb"
-    assert_no_file "test/helpers/users_helper_test.rb"
   end
 
   def test_skip_layout_if_required
@@ -158,13 +164,6 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
     end
   ensure
     Unknown::Generators.send :remove_const, :ActiveModel
-  end
-
-  def test_new_hash_style
-    run_generator
-    assert_file "app/controllers/users_controller.rb" do |content|
-      assert_match(/render action: 'new'/, content)
-    end
   end
 
   def test_model_name_option

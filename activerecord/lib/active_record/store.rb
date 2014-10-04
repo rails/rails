@@ -66,8 +66,9 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     included do
-      class_attribute :stored_attributes, instance_accessor: false
-      self.stored_attributes = {}
+      class << self
+        attr_accessor :local_stored_attributes
+      end
     end
 
     module ClassMethods
@@ -93,17 +94,25 @@ module ActiveRecord
 
         # assign new store attribute and create new hash to ensure that each class in the hierarchy
         # has its own hash of stored attributes.
-        self.stored_attributes = {} if self.stored_attributes.blank?
-        self.stored_attributes[store_attribute] ||= []
-        self.stored_attributes[store_attribute] |= keys
+        self.local_stored_attributes ||= {}
+        self.local_stored_attributes[store_attribute] ||= []
+        self.local_stored_attributes[store_attribute] |= keys
       end
 
-      def _store_accessors_module
+      def _store_accessors_module # :nodoc:
         @_store_accessors_module ||= begin
           mod = Module.new
           include mod
           mod
         end
+      end
+
+      def stored_attributes
+        parent = superclass.respond_to?(:stored_attributes) ? superclass.stored_attributes : {}
+        if self.local_stored_attributes
+          parent.merge!(self.local_stored_attributes) { |k, a, b| a | b }
+        end
+        parent
       end
     end
 
@@ -120,10 +129,10 @@ module ActiveRecord
 
     private
       def store_accessor_for(store_attribute)
-        @column_types[store_attribute.to_s].accessor
+        type_for_attribute(store_attribute.to_s).accessor
       end
 
-      class HashAccessor
+      class HashAccessor # :nodoc:
         def self.read(object, attribute, key)
           prepare(object, attribute)
           object.public_send(attribute)[key]
@@ -142,7 +151,7 @@ module ActiveRecord
         end
       end
 
-      class StringKeyedHashAccessor < HashAccessor
+      class StringKeyedHashAccessor < HashAccessor # :nodoc:
         def self.read(object, attribute, key)
           super object, attribute, key.to_s
         end
@@ -152,7 +161,7 @@ module ActiveRecord
         end
       end
 
-      class IndifferentHashAccessor < ActiveRecord::Store::HashAccessor
+      class IndifferentHashAccessor < ActiveRecord::Store::HashAccessor # :nodoc:
         def self.prepare(object, store_attribute)
           attribute = object.send(store_attribute)
           unless attribute.is_a?(ActiveSupport::HashWithIndifferentAccess)

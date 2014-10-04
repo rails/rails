@@ -40,6 +40,9 @@ class Post < ActiveRecord::Base
   scope :with_comments, -> { preload(:comments) }
   scope :with_tags, -> { preload(:taggings) }
 
+  scope :tagged_with, ->(id) { joins(:taggings).where(taggings: { tag_id: id }) }
+  scope :tagged_with_comment, ->(comment) { joins(:taggings).where(taggings: { comment: comment }) }
+
   has_many   :comments do
     def find_most_recent
       order("id DESC").first
@@ -86,7 +89,7 @@ class Post < ActiveRecord::Base
   has_and_belongs_to_many :categories
   has_and_belongs_to_many :special_categories, :join_table => "categories_posts", :association_foreign_key => 'category_id'
 
-  has_many :taggings, :as => :taggable
+  has_many :taggings, :as => :taggable, :counter_cache => :tags_count
   has_many :tags, :through => :taggings do
     def add_joins_and_select
       select('tags.*, authors.id as author_id')
@@ -145,8 +148,16 @@ class Post < ActiveRecord::Base
   has_many :lazy_readers
   has_many :lazy_readers_skimmers_or_not, -> { where(skimmer: [ true, false ]) }, :class_name => 'LazyReader'
 
+  has_many :lazy_people, :through => :lazy_readers, :source => :person
+  has_many :lazy_readers_unscope_skimmers, -> { skimmers_or_not }, :class_name => 'LazyReader'
+  has_many :lazy_people_unscope_skimmers, :through => :lazy_readers_unscope_skimmers, :source => :person
+
   def self.top(limit)
     ranked_by_comments.limit_by(limit)
+  end
+
+  def self.written_by(author)
+    where(id: author.posts.pluck(:id))
   end
 
   def self.reset_log
@@ -156,10 +167,6 @@ class Post < ActiveRecord::Base
   def self.log(message=nil, side=nil, new_record=nil)
     return @log if message.nil?
     @log << [message, side, new_record]
-  end
-
-  def self.what_are_you
-    'a post...'
   end
 end
 
@@ -201,4 +208,19 @@ end
 class SpecialPostWithDefaultScope < ActiveRecord::Base
   self.table_name = 'posts'
   default_scope { where(:id => [1, 5,6]) }
+end
+
+class PostThatLoadsCommentsInAnAfterSaveHook < ActiveRecord::Base
+  self.table_name = 'posts'
+  has_many :comments, class_name: "CommentThatAutomaticallyAltersPostBody", foreign_key: :post_id
+
+  after_save do |post|
+    post.comments.load
+  end
+end
+
+class PostWithCommentWithDefaultScopeReferencesAssociation < ActiveRecord::Base
+  self.table_name = 'posts'
+  has_many :comment_with_default_scope_references_associations, foreign_key: :post_id
+  has_one :first_comment, class_name: "CommentWithDefaultScopeReferencesAssociation", foreign_key: :post_id
 end

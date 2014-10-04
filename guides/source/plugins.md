@@ -45,7 +45,7 @@ $ rails plugin new yaffle
 See usage and options by asking for help:
 
 ```bash
-$ rails plugin --help
+$ rails plugin new --help
 ```
 
 Testing Your Newly Generated Plugin
@@ -57,7 +57,7 @@ You can navigate to the directory that contains the plugin, run the `bundle inst
 You should see:
 
 ```bash
-  2 tests, 2 assertions, 0 failures, 0 errors, 0 skips
+  1 runs, 1 assertions, 0 failures, 0 errors, 0 skips
 ```
 
 This will tell you that everything got generated properly and you are ready to start adding functionality.
@@ -85,19 +85,19 @@ Run `rake` to run the test. This test should fail because we haven't implemented
 
 ```bash
     1) Error:
-  test_to_squawk_prepends_the_word_squawk(CoreExtTest):
-  NoMethodError: undefined method `to_squawk' for [Hello World](String)
-      test/core_ext_test.rb:5:in `test_to_squawk_prepends_the_word_squawk'
+  CoreExtTest#test_to_squawk_prepends_the_word_squawk:
+  NoMethodError: undefined method `to_squawk' for "Hello World":String
+    /path/to/yaffle/test/core_ext_test.rb:5:in `test_to_squawk_prepends_the_word_squawk'
 ```
 
 Great - now you are ready to start development.
 
-In `lib/yaffle.rb`, add `require "yaffle/core_ext"`:
+In `lib/yaffle.rb`, add `require 'yaffle/core_ext'`:
 
 ```ruby
 # yaffle/lib/yaffle.rb
 
-require "yaffle/core_ext"
+require 'yaffle/core_ext'
 
 module Yaffle
 end
@@ -118,13 +118,13 @@ end
 To test that your method does what it says it does, run the unit tests with `rake` from your plugin directory.
 
 ```bash
-  3 tests, 3 assertions, 0 failures, 0 errors, 0 skips
+  2 runs, 2 assertions, 0 failures, 0 errors, 0 skips
 ```
 
 To see this in action, change to the test/dummy directory, fire up a console and start squawking:
 
 ```bash
-$ rails console
+$ bin/rails console
 >> "Hello World".to_squawk
 => "squawk! Hello World"
 ```
@@ -149,7 +149,7 @@ end
 ```ruby
 # yaffle/lib/yaffle.rb
 
-require "yaffle/core_ext"
+require 'yaffle/core_ext'
 require 'yaffle/acts_as_yaffle'
 
 module Yaffle
@@ -196,16 +196,16 @@ When you run `rake`, you should see the following:
 
 ```
     1) Error:
-  test_a_hickwalls_yaffle_text_field_should_be_last_squawk(ActsAsYaffleTest):
+  ActsAsYaffleTest#test_a_hickwalls_yaffle_text_field_should_be_last_squawk:
   NameError: uninitialized constant ActsAsYaffleTest::Hickwall
-      test/acts_as_yaffle_test.rb:6:in `test_a_hickwalls_yaffle_text_field_should_be_last_squawk'
+    /path/to/yaffle/test/acts_as_yaffle_test.rb:6:in `test_a_hickwalls_yaffle_text_field_should_be_last_squawk'
 
     2) Error:
-  test_a_wickwalls_yaffle_text_field_should_be_last_tweet(ActsAsYaffleTest):
+  ActsAsYaffleTest#test_a_wickwalls_yaffle_text_field_should_be_last_tweet:
   NameError: uninitialized constant ActsAsYaffleTest::Wickwall
-      test/acts_as_yaffle_test.rb:10:in `test_a_wickwalls_yaffle_text_field_should_be_last_tweet'
+    /path/to/yaffle/test/acts_as_yaffle_test.rb:10:in `test_a_wickwalls_yaffle_text_field_should_be_last_tweet'
 
-  5 tests, 3 assertions, 0 failures, 2 errors, 0 skips
+  4 runs, 2 assertions, 0 failures, 2 errors, 0 skips
 ```
 
 This tells us that we don't have the necessary models (Hickwall and Wickwall) that we are trying to test.
@@ -214,8 +214,8 @@ test/dummy directory:
 
 ```bash
 $ cd test/dummy
-$ rails generate model Hickwall last_squawk:string
-$ rails generate model Wickwall last_squawk:string last_tweet:string
+$ bin/rails generate model Hickwall last_squawk:string
+$ bin/rails generate model Wickwall last_squawk:string last_tweet:string
 ```
 
 Now you can create the necessary database tables in your testing database by navigating to your dummy app
@@ -223,7 +223,7 @@ and migrating the database. First, run:
 
 ```bash
 $ cd test/dummy
-$ rake db:migrate
+$ bin/rake db:migrate
 ```
 
 While you are here, change the Hickwall and Wickwall models so that they know that they are supposed to act
@@ -270,18 +270,18 @@ You can then return to the root directory (`cd ../..`) of your plugin and rerun 
 
 ```
     1) Error:
-  test_a_hickwalls_yaffle_text_field_should_be_last_squawk(ActsAsYaffleTest):
-  NoMethodError: undefined method `yaffle_text_field' for #<Class:0x000001016661b8>
-      /Users/xxx/.rvm/gems/ruby-1.9.2-p136@xxx/gems/activerecord-3.0.3/lib/active_record/base.rb:1008:in `method_missing'
-      test/acts_as_yaffle_test.rb:5:in `test_a_hickwalls_yaffle_text_field_should_be_last_squawk'
+  ActsAsYaffleTest#test_a_hickwalls_yaffle_text_field_should_be_last_squawk:
+  NoMethodError: undefined method `yaffle_text_field' for #<Class:0x007fd105e3b218>
+    activerecord (4.1.5) lib/active_record/dynamic_matchers.rb:26:in `method_missing'
+    /path/to/yaffle/test/acts_as_yaffle_test.rb:6:in `test_a_hickwalls_yaffle_text_field_should_be_last_squawk'
 
     2) Error:
-  test_a_wickwalls_yaffle_text_field_should_be_last_tweet(ActsAsYaffleTest):
-  NoMethodError: undefined method `yaffle_text_field' for #<Class:0x00000101653748>
-      Users/xxx/.rvm/gems/ruby-1.9.2-p136@xxx/gems/activerecord-3.0.3/lib/active_record/base.rb:1008:in `method_missing'
-      test/acts_as_yaffle_test.rb:9:in `test_a_wickwalls_yaffle_text_field_should_be_last_tweet'
+  ActsAsYaffleTest#test_a_wickwalls_yaffle_text_field_should_be_last_tweet:
+  NoMethodError: undefined method `yaffle_text_field' for #<Class:0x007fd105e409c0>
+    activerecord (4.1.5) lib/active_record/dynamic_matchers.rb:26:in `method_missing'
+    /path/to/yaffle/test/acts_as_yaffle_test.rb:10:in `test_a_wickwalls_yaffle_text_field_should_be_last_tweet'  
 
-  5 tests, 3 assertions, 0 failures, 2 errors, 0 skips
+  4 runs, 2 assertions, 0 failures, 2 errors, 0 skips
 
 ```
 
@@ -312,7 +312,7 @@ ActiveRecord::Base.send :include, Yaffle::ActsAsYaffle
 When you run `rake`, you should see the tests all pass:
 
 ```bash
-  5 tests, 5 assertions, 0 failures, 0 errors, 0 skips
+  4 runs, 4 assertions, 0 failures, 0 errors, 0 skips
 ```
 
 ### Add an Instance Method
@@ -386,7 +386,7 @@ ActiveRecord::Base.send :include, Yaffle::ActsAsYaffle
 Run `rake` one final time and you should see:
 
 ```
-  7 tests, 7 assertions, 0 failures, 0 errors, 0 skips
+  6 runs, 6 assertions, 0 failures, 0 errors, 0 skips
 ```
 
 NOTE: The use of `write_attribute` to write to the field in model is just one example of how a plugin can interact with the model, and will not always be the right method to use. For example, you could also use:
@@ -433,12 +433,12 @@ Once your README is solid, go through and add rdoc comments to all of the method
 Once your comments are good to go, navigate to your plugin directory and run:
 
 ```bash
-$ rake rdoc
+$ bin/rake rdoc
 ```
 
 ### References
 
 * [Developing a RubyGem using Bundler](https://github.com/radar/guides/blob/master/gem-development.md)
 * [Using .gemspecs as Intended](http://yehudakatz.com/2010/04/02/using-gemspecs-as-intended/)
-* [Gemspec Reference](http://docs.rubygems.org/read/chapter/20)
+* [Gemspec Reference](http://guides.rubygems.org/specification-reference/)
 * [GemPlugins: A Brief Introduction to the Future of Rails Plugins](http://www.intridea.com/blog/2008/6/11/gemplugins-a-brief-introduction-to-the-future-of-rails-plugins)

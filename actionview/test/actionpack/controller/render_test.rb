@@ -91,17 +91,17 @@ class TestController < ApplicationController
 
   # :ported:
   def render_hello_world
-    render :template => "test/hello_world"
+    render "test/hello_world"
   end
 
   def render_hello_world_with_last_modified_set
     response.last_modified = Date.new(2008, 10, 10).to_time
-    render :template => "test/hello_world"
+    render "test/hello_world"
   end
 
   # :ported: compatibility
   def render_hello_world_with_forward_slash
-    render :template => "/test/hello_world"
+    render "/test/hello_world"
   end
 
   # :ported:
@@ -111,7 +111,7 @@ class TestController < ApplicationController
 
   # :deprecated:
   def render_template_in_top_directory_with_slash
-    render :template => '/shared'
+    render '/shared'
   end
 
   # :ported:
@@ -160,13 +160,6 @@ class TestController < ApplicationController
   end
 
   # :ported:
-  def render_file_as_string_with_instance_variables
-    @secret = 'in the sauce'
-    path = File.expand_path(File.join(File.dirname(__FILE__), '../../fixtures/test/render_file_with_ivar'))
-    render path
-  end
-
-  # :ported:
   def render_file_not_using_full_path
     @secret = 'in the sauce'
     render :file => 'test/render_file_with_ivar'
@@ -194,7 +187,7 @@ class TestController < ApplicationController
 
   def render_file_as_string_with_locals
     path = File.expand_path(File.join(File.dirname(__FILE__), '../../fixtures/test/render_file_with_locals'))
-    render path, :locals => {:secret => 'in the sauce'}
+    render file: path, :locals => {:secret => 'in the sauce'}
   end
 
   def accessing_request_in_template
@@ -536,6 +529,14 @@ class TestController < ApplicationController
     render :partial => "customer_with_var", :collection => [ Customer.new("david"), Customer.new("mary") ], :as => :customer
   end
 
+  def partial_collection_with_iteration
+    render partial: "customer_iteration", collection: [ Customer.new("david"), Customer.new("mary"), Customer.new('christine') ]
+  end
+
+  def partial_collection_with_as_and_iteration
+    render partial: "customer_iteration_with_as", collection: [ Customer.new("david"), Customer.new("mary"), Customer.new('christine') ], as: :client
+  end
+
   def partial_collection_with_counter
     render :partial => "customer_counter", :collection => [ Customer.new("david"), Customer.new("mary") ]
   end
@@ -720,6 +721,11 @@ class RenderTest < ActionController::TestCase
     assert_equal "Elastica", @response.body
   end
 
+  def test_render_process
+    get :render_action_hello_world_as_string
+    assert_equal ["Hello world!"], @controller.process(:render_action_hello_world_as_string)
+  end
+
   # :ported:
   def test_render_from_variable
     get :render_hello_world_from_variable
@@ -781,12 +787,6 @@ class RenderTest < ActionController::TestCase
   end
 
   # :ported:
-  def test_render_file_as_string_with_instance_variables
-    get :render_file_as_string_with_instance_variables
-    assert_equal "The secret is in the sauce\n", @response.body
-  end
-
-  # :ported:
   def test_render_file_not_using_full_path
     get :render_file_not_using_full_path
     assert_equal "The secret is in the sauce\n", @response.body
@@ -834,7 +834,7 @@ class RenderTest < ActionController::TestCase
   def test_render_text_with_nil
     get :render_text_with_nil
     assert_response 200
-    assert_equal ' ', @response.body
+    assert_equal '', @response.body
   end
 
   # :ported:
@@ -1022,7 +1022,7 @@ class RenderTest < ActionController::TestCase
 
   def test_rendering_nothing_on_layout
     get :rendering_nothing_on_layout
-    assert_equal " ", @response.body
+    assert_equal '', @response.body
   end
 
   def test_render_to_string_doesnt_break_assigns
@@ -1232,6 +1232,16 @@ class RenderTest < ActionController::TestCase
     assert_equal "david david davidmary mary mary", @response.body
   end
 
+  def test_partial_collection_with_iteration
+    get :partial_collection_with_iteration
+    assert_equal "3-0: david-first3-1: mary3-2: christine-last", @response.body
+  end
+
+  def test_partial_collection_with_as_and_iteration
+    get :partial_collection_with_as_and_iteration
+    assert_equal "3-0: david-first3-1: mary3-2: christine-last", @response.body
+  end
+
   def test_partial_collection_with_counter
     get :partial_collection_with_counter
     assert_equal "david0mary1", @response.body
@@ -1332,4 +1342,3 @@ class RenderTest < ActionController::TestCase
     assert_equal "Before (Anthony)\nInside from partial (Anthony)\nAfter\nBefore (David)\nInside from partial (David)\nAfter\nBefore (Ramm)\nInside from partial (Ramm)\nAfter", @response.body
   end
 end
-

@@ -40,13 +40,15 @@ module ActiveModel
       self
     end
 
-    # Returns an Enumerable of all key attributes if any is set, regardless if
+    # Returns an Array of all key attributes if any is set, regardless if
     # the object is persisted or not. Returns +nil+ if there are no key attributes.
     #
-    #   class Person < ActiveRecord::Base
+    #   class Person
+    #     include ActiveModel::Conversion
+    #     attr_accessor :id
     #   end
     #
-    #   person = Person.create
+    #   person = Person.create(id: 1)
     #   person.to_key # => [1]
     def to_key
       key = respond_to?(:id) && id
@@ -56,10 +58,15 @@ module ActiveModel
     # Returns a +string+ representing the object's key suitable for use in URLs,
     # or +nil+ if <tt>persisted?</tt> is +false+.
     #
-    #   class Person < ActiveRecord::Base
+    #   class Person
+    #     include ActiveModel::Conversion
+    #     attr_accessor :id
+    #     def persisted?
+    #       true
+    #     end
     #   end
     #
-    #   person = Person.create
+    #   person = Person.create(id: 1)
     #   person.to_param # => "1"
     def to_param
       (persisted? && key = to_key) ? key.join('-') : nil
@@ -83,8 +90,8 @@ module ActiveModel
       # internal method and should not be accessed directly.
       def _to_partial_path #:nodoc:
         @_to_partial_path ||= begin
-          element = ActiveSupport::Inflector.underscore(ActiveSupport::Inflector.demodulize(self))
-          collection = ActiveSupport::Inflector.tableize(self)
+          element = ActiveSupport::Inflector.underscore(ActiveSupport::Inflector.demodulize(name))
+          collection = ActiveSupport::Inflector.tableize(name)
           "#{collection}/#{element}".freeze
         end
       end

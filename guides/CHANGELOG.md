@@ -1,13 +1,27 @@
-*   Fixed missing line and shadow on service pages(404, 422, 500).
+* Change Posts to Articles in Getting Started sample application in order to
+better align with the actual guides.
 
-    *Dmitry Korotkov*
+    *John Kelly Ferguson*
 
-*   Removed repetitive th tags. Instead of them added one th tag with a colspan attribute.
+* Update all Rails 4.1.0 references to 4.1.1 within the guides and code.
 
-    *Sıtkı Bağdat*
+    *John Kelly Ferguson*
 
-*   Added the Rails maintenance policy to the guides.
+* Split up rows in the Explain Queries table of the ActiveRecord Querying section
+in order to improve readability.
+
+    *John Kelly Ferguson*
+
+*   Change all non-HTTP method 'post' references to 'article'.
+
+    *John Kelly Ferguson*
+
+*   Updates the maintenance policy to match the latest versions of Rails
 
     *Matias Korhonen*
 
-Please check [4-0-stable](https://github.com/rails/rails/blob/4-0-stable/guides/CHANGELOG.md) for previous changes.
+*   Switched the order of `Applying a default scope` and `Merging of scopes` subsections so default scopes are introduced first.
+
+    *Alex Riabov*
+
+Please check [4-1-stable](https://github.com/rails/rails/blob/4-1-stable/guides/CHANGELOG.md) for previous changes.

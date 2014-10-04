@@ -1,5 +1,6 @@
 require 'active_support/core_ext/hash/indifferent_access'
 require 'active_support/core_ext/array/wrap'
+require 'active_support/deprecation'
 require 'active_support/rescuable'
 require 'action_dispatch/http/upload'
 require 'stringio'
@@ -32,14 +33,14 @@ module ActionController
 
     def initialize(params) # :nodoc:
       @params = params
-      super("found unpermitted parameters: #{params.join(", ")}")
+      super("found unpermitted parameter#{'s' if params.size > 1 }: #{params.join(", ")}")
     end
   end
 
   # == Action Controller \Parameters
   #
   # Allows to choose which attributes should be whitelisted for mass updating
-  # and thus prevent accidentally exposing that which shouldn’t be exposed.
+  # and thus prevent accidentally exposing that which shouldn't be exposed.
   # Provides two methods for this purpose: #require and #permit. The former is
   # used to mark parameters as required. The latter is used to set the parameter
   # as permitted and limit which attributes should be allowed for mass updating.
@@ -101,9 +102,23 @@ module ActionController
     cattr_accessor :permit_all_parameters, instance_accessor: false
     cattr_accessor :action_on_unpermitted_parameters, instance_accessor: false
 
-    # Never raise an UnpermittedParameters exception because of these params
-    # are present. They are added by Rails and it's of no concern.
-    NEVER_UNPERMITTED_PARAMS = %w( controller action )
+    # By default, never raise an UnpermittedParameters exception if these
+    # params are present. The default includes both 'controller' and 'action'
+    # because they are added by Rails and should be of no concern. One way
+    # to change these is to specify `always_permitted_parameters` in your
+    # config. For instance:
+    #
+    #    config.always_permitted_parameters = %w( controller action format )
+    cattr_accessor :always_permitted_parameters
+    self.always_permitted_parameters = %w( controller action )
+
+    def self.const_missing(const_name)
+      super unless const_name == :NEVER_UNPERMITTED_PARAMS
+      ActiveSupport::Deprecation.warn "`ActionController::Parameters::NEVER_UNPERMITTED_PARAMS`"\
+                                      " has been deprecated. Use "\
+                                      "`ActionController::Parameters.always_permitted_parameters` instead."
+      self.always_permitted_parameters
+    end
 
     # Returns a new instance of <tt>ActionController::Parameters</tt>.
     # Also, sets the +permitted+ attribute to the default value of
@@ -126,9 +141,44 @@ module ActionController
       @permitted = self.class.permit_all_parameters
     end
 
+    # Returns a safe +Hash+ representation of this parameter with all
+    # unpermitted keys removed.
+    #
+    #   params = ActionController::Parameters.new({
+    #     name: 'Senjougahara Hitagi',
+    #     oddity: 'Heavy stone crab'
+    #   })
+    #   params.to_h # => {}
+    #
+    #   safe_params = params.permit(:name)
+    #   safe_params.to_h # => {"name"=>"Senjougahara Hitagi"}
+    def to_h
+      if permitted?
+        to_hash
+      else
+        slice(*self.class.always_permitted_parameters).permit!.to_h
+      end
+    end
+
+    # Convert all hashes in values into parameters, then yield each pair like
+    # the same way as <tt>Hash#each_pair</tt>
+    def each_pair(&block)
+      super do |key, value|
+        convert_hashes_to_parameters(key, value)
+      end
+
+      super
+    end
+
+    alias_method :each, :each_pair
+
     # Attribute that keeps track of converted arrays, if any, to avoid double
     # looping in the common use case permit + mass-assignment. Defined in a
     # method to instantiate it only if needed.
+    #
+    # Testing membership still loops, but it's going to be faster than our own
+    # loop that converts values. Also, we are not going to build a new array
+    # object per fetch.
     def converted_arrays
       @converted_arrays ||= Set.new
     end
@@ -157,9 +207,8 @@ module ActionController
     #   Person.new(params) # => #<Person id: nil, name: "Francesco">
     def permit!
       each_pair do |key, value|
-        value = convert_hashes_to_parameters(key, value)
-        Array.wrap(value).each do |_|
-          _.permit! if _.respond_to? :permit!
+        Array.wrap(value).each do |v|
+          v.permit! if v.respond_to? :permit!
         end
       end
 
@@ -180,7 +229,12 @@ module ActionController
     #   ActionController::Parameters.new(person: {}).require(:person)
     #   # => ActionController::ParameterMissing: param not found: person
     def require(key)
-      self[key].presence || raise(ParameterMissing.new(key))
+      value = self[key]
+      if value.present? || value == false
+        value
+      else
+        raise ParameterMissing.new(key)
+      end
     end
 
     # Alias of #require.
@@ -307,9 +361,54 @@ module ActionController
     #   params.slice(:a, :b) # => {"a"=>1, "b"=>2}
     #   params.slice(:d)     # => {}
     def slice(*keys)
-      self.class.new(super).tap do |new_instance|
-        new_instance.permitted = @permitted
+      new_instance_with_inherited_permitted_status(super)
+    end
+
+    # Removes and returns the key/value pairs matching the given keys.
+    #
+    #   params = ActionController::Parameters.new(a: 1, b: 2, c: 3)
+    #   params.extract!(:a, :b) # => {"a"=>1, "b"=>2}
+    #   params                  # => {"c"=>3}
+    def extract!(*keys)
+      new_instance_with_inherited_permitted_status(super)
+    end
+
+    # Returns a new <tt>ActionController::Parameters</tt> with the results of
+    # running +block+ once for every value. The keys are unchanged.
+    #
+    #   params = ActionController::Parameters.new(a: 1, b: 2, c: 3)
+    #   params.transform_values { |x| x * 2 }
+    #   # => {"a"=>2, "b"=>4, "c"=>6}
+    def transform_values
+      if block_given?
+        new_instance_with_inherited_permitted_status(super)
+      else
+        super
       end
+    end
+
+    # This method is here only to make sure that the returned object has the
+    # correct +permitted+ status. It should not matter since the parent of
+    # this object is +HashWithIndifferentAccess+
+    def transform_keys # :nodoc:
+      if block_given?
+        new_instance_with_inherited_permitted_status(super)
+      else
+        super
+      end
+    end
+
+    # Deletes and returns a key-value pair from +Parameters+ whose key is equal
+    # to key. If the key is not found, returns the default value. If the
+    # optional code block is given and the key is not found, pass in the key
+    # and return the result of block.
+    def delete(key, &block)
+      convert_hashes_to_parameters(key, super, false)
+    end
+
+    # Equivalent to Hash#keep_if, but returns nil if no changes were made.
+    def select!(&block)
+      convert_value_to_parameters(super)
     end
 
     # Returns an exact copy of the <tt>ActionController::Parameters</tt>
@@ -332,6 +431,12 @@ module ActionController
       end
 
     private
+      def new_instance_with_inherited_permitted_status(hash)
+        self.class.new(hash).tap do |new_instance|
+          new_instance.permitted = @permitted
+        end
+      end
+
       def convert_hashes_to_parameters(key, value, assign_if_converted=true)
         converted = convert_value_to_parameters(value)
         self[key] = converted if assign_if_converted && !converted.equal?(value)
@@ -380,7 +485,7 @@ module ActionController
       end
 
       def unpermitted_keys(params)
-        self.keys - params.keys - NEVER_UNPERMITTED_PARAMS
+        self.keys - params.keys - self.always_permitted_parameters
       end
 
       #
@@ -502,7 +607,7 @@ module ActionController
   #       end
   #   end
   #
-  # In order to use <tt>accepts_nested_attribute_for</tt> with Strong \Parameters, you
+  # In order to use <tt>accepts_nested_attributes_for</tt> with Strong \Parameters, you
   # will need to specify which nested attributes should be whitelisted.
   #
   #   class Person

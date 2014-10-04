@@ -1,3 +1,4 @@
+require 'active_job/railtie'
 require "action_mailer"
 require "rails"
 require "abstract_controller/railties/routes_helpers"
@@ -18,8 +19,9 @@ module ActionMailer
       options.assets_dir      ||= paths["public"].first
       options.javascripts_dir ||= paths["public/javascripts"].first
       options.stylesheets_dir ||= paths["public/stylesheets"].first
+      options.show_previews = Rails.env.development? if options.show_previews.nil?
 
-      if Rails.env.development?
+      if options.show_previews
         options.preview_path  ||= defined?(Rails.root) ? "#{Rails.root}/test/mailers/previews" : nil
       end
 
@@ -29,13 +31,21 @@ module ActionMailer
 
       ActiveSupport.on_load(:action_mailer) do
         include AbstractController::UrlFor
-        extend ::AbstractController::Railties::RoutesHelpers.with(app.routes)
+        extend ::AbstractController::Railties::RoutesHelpers.with(app.routes, false)
         include app.routes.mounted_helpers
 
         register_interceptors(options.delete(:interceptors))
+        register_preview_interceptors(options.delete(:preview_interceptors))
         register_observers(options.delete(:observers))
 
         options.each { |k,v| send("#{k}=", v) }
+
+        if options.show_previews
+          app.routes.append do
+            get '/rails/mailers'         => "rails/mailers#index"
+            get '/rails/mailers/*path'   => "rails/mailers#preview"
+          end
+        end
       end
     end
 

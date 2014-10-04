@@ -23,7 +23,7 @@ module ActiveModel
   #     attr_reader   :errors
   #
   #     def validate!
-  #       errors.add(:name, "cannot be nil") if name == nil
+  #       errors.add(:name, "cannot be nil") if name.nil?
   #     end
   #
   #     # The following methods are needed to be minimally implemented
@@ -251,11 +251,9 @@ module ActiveModel
     #   person.errors.to_hash(true) # => {:name=>["name cannot be nil"]}
     def to_hash(full_messages = false)
       if full_messages
-        messages = {}
-        self.messages.each do |attribute, array|
+        self.messages.each_with_object({}) do |(attribute, array), messages|
           messages[attribute] = array.map { |message| full_message(attribute, message) }
         end
-        messages
       else
         self.messages.dup
       end
@@ -289,6 +287,13 @@ module ActiveModel
     #   # => NameIsInvalid: name is invalid
     #
     #   person.errors.messages # => {}
+    #
+    # +attribute+ should be set to <tt>:base</tt> if the error is not
+    # directly associated with a single attribute.
+    #
+    #   person.errors.add(:base, "either name or email must be present")
+    #   person.errors.messages
+    #   # => {:base=>["either name or email must be present"]}
     def add(attribute, message = :invalid, options = {})
       message = normalize_message(attribute, message, options)
       if exception = options[:strict]
@@ -427,7 +432,7 @@ module ActiveModel
 
       options = {
         default: defaults,
-        model: @base.class.model_name.human,
+        model: @base.model_name.human,
         attribute: @base.class.human_attribute_name(attribute),
         value: value
       }.merge!(options)

@@ -32,6 +32,8 @@ module ActionDispatch
     def initialize(env, exception)
       @env = env
       @exception = original_exception(exception)
+
+      expand_backtrace if exception.is_a?(SyntaxError) || exception.try(:original_exception).try(:is_a?, SyntaxError)
     end
 
     def rescue_template
@@ -59,12 +61,15 @@ module ActionDispatch
     end
 
     def source_extract
-      if application_trace && trace = application_trace.first
-        file, line, _ = trace.split(":")
-        @file = file
-        @line_number = line.to_i
-        source_fragment(@file, @line_number)
-      end
+      exception.backtrace.map do |trace|
+        file, line = trace.split(":")
+        line_number = line.to_i
+        {
+          code: source_fragment(file, line_number),
+          file: file,
+          line_number: line_number
+        }
+      end if exception.backtrace
     end
 
     private
@@ -103,6 +108,12 @@ module ActionDispatch
           Hash[*(start+1..(lines.count+start)).zip(lines).flatten]
         end
       end
+    end
+
+    def expand_backtrace
+      @exception.backtrace.unshift(
+        @exception.to_s.split("\n")
+      ).flatten!
     end
   end
 end

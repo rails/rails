@@ -38,9 +38,7 @@ module ActionDispatch
         template = ActionView::Base.new([RESCUES_TEMPLATE_PATH],
           request: request,
           exception: wrapper.exception,
-          application_trace: wrapper.application_trace,
-          framework_trace: wrapper.framework_trace,
-          full_trace: wrapper.full_trace,
+          traces: traces_from_wrapper(wrapper),
           routes_inspector: routes_inspector(exception),
           source_extract: wrapper.source_extract,
           line_number: wrapper.line_number,
@@ -94,6 +92,37 @@ module ActionDispatch
       if @routes_app.respond_to?(:routes) && (exception.is_a?(ActionController::RoutingError) || exception.is_a?(ActionView::Template::Error))
         ActionDispatch::Routing::RoutesInspector.new(@routes_app.routes.routes)
       end
+    end
+
+    # Augment the exception traces by providing ids for all unique stack frame
+    def traces_from_wrapper(wrapper)
+      application_trace = wrapper.application_trace
+      framework_trace = wrapper.framework_trace
+      full_trace = wrapper.full_trace
+
+      if application_trace && framework_trace
+        id_counter = 0
+
+        application_trace = application_trace.map do |trace|
+          prev = id_counter
+          id_counter += 1
+          { id: prev, trace: trace }
+        end
+
+        framework_trace = framework_trace.map do |trace|
+          prev = id_counter
+          id_counter += 1
+          { id: prev, trace: trace }
+        end
+
+        full_trace = application_trace + framework_trace
+      end
+
+      {
+        "Application Trace" => application_trace,
+        "Framework Trace" => framework_trace,
+        "Full Trace" => full_trace
+      }
     end
   end
 end

@@ -189,8 +189,8 @@ module ActionDispatch
         # This makes app.url_for and app.foo_path available in the console
         if app.respond_to?(:routes)
           singleton_class.class_eval do
-            include app.routes.url_helpers if app.routes.respond_to?(:url_helpers)
-            include app.routes.mounted_helpers if app.routes.respond_to?(:mounted_helpers)
+            include app.routes.url_helpers
+            include app.routes.mounted_helpers
           end
         end
 
@@ -201,7 +201,7 @@ module ActionDispatch
         @url_options ||= default_url_options.dup.tap do |url_options|
           url_options.reverse_merge!(controller.url_options) if controller
 
-          if @app.respond_to?(:routes) && @app.routes.respond_to?(:default_url_options)
+          if @app.respond_to?(:routes)
             url_options.reverse_merge!(@app.routes.default_url_options)
           end
 
@@ -270,12 +270,6 @@ module ActionDispatch
             path = location.query ? "#{location.path}?#{location.query}" : location.path
           end
 
-          unless ActionController::Base < ActionController::Testing
-            ActionController::Base.class_eval do
-              include ActionController::Testing
-            end
-          end
-
           hostname, port = host.split(':')
 
           env = {
@@ -300,13 +294,7 @@ module ActionDispatch
 
           # NOTE: rack-test v0.5 doesn't build a default uri correctly
           # Make sure requested path is always a full uri
-          uri = URI.parse('/')
-          uri.scheme ||= env['rack.url_scheme']
-          uri.host   ||= env['SERVER_NAME']
-          uri.port   ||= env['SERVER_PORT'].try(:to_i)
-          uri += path
-
-          session.request(uri.to_s, env)
+          session.request(build_full_uri(path, env), env)
 
           @request_count += 1
           @request  = ActionDispatch::Request.new(session.last_request.env)
@@ -318,6 +306,10 @@ module ActionDispatch
           @controller = session.last_request.env['action_controller.instance']
 
           return response.status
+        end
+
+        def build_full_uri(path, env)
+          "#{env['rack.url_scheme']}://#{env['SERVER_NAME']}:#{env['SERVER_PORT']}#{path}"
         end
     end
 
@@ -338,6 +330,7 @@ module ActionDispatch
          xml_http_request xhr get_via_redirect post_via_redirect).each do |method|
         define_method(method) do |*args|
           reset! unless integration_session
+          reset_template_assertion
           # reset the html_document variable, but only for new get/post calls
           @html_document = nil unless method == 'cookies' || method == 'assigns'
           integration_session.__send__(method, *args).tap do
@@ -356,7 +349,7 @@ module ActionDispatch
       # By default, a single session is automatically created for you, but you
       # can use this method to open multiple sessions that ought to be tested
       # simultaneously.
-      def open_session(app = nil)
+      def open_session
         dup.tap do |session|
           yield session if block_given?
         end
@@ -501,6 +494,10 @@ module ActionDispatch
     def url_options
       reset! unless integration_session
       integration_session.url_options
+    end
+
+    def document_root_element
+      html_document
     end
   end
 end

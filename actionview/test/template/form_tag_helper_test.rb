@@ -14,12 +14,15 @@ class FormTagHelperTest < ActionView::TestCase
     method = options[:method]
     enforce_utf8 = options.fetch(:enforce_utf8, true)
 
-    txt =  %{<div style="display:none">}
-    txt << %{<input name="utf8" type="hidden" value="&#x2713;" />} if enforce_utf8
-    if method && !%w(get post).include?(method.to_s)
-      txt << %{<input name="_method" type="hidden" value="#{method}" />}
+    ''.tap do |txt|
+      if enforce_utf8
+        txt << %{<input name="utf8" type="hidden" value="&#x2713;" />}
+      end
+
+      if method && !%w(get post).include?(method.to_s)
+        txt << %{<input name="_method" type="hidden" value="#{method}" />}
+      end
     end
-    txt << %{</div>}
   end
 
   def form_text(action = "http://www.example.com", options = {})
@@ -476,6 +479,11 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal('<button name="temptation" type="button"><strong>Do not press me</strong></button>', output)
   end
 
+  def test_button_tag_defaults_with_block_and_options
+    output = button_tag(:name => 'temptation', :value => 'within') { content_tag(:strong, 'Do not press me') }
+    assert_dom_equal('<button name="temptation" value="within" type="submit" ><strong>Do not press me</strong></button>', output)
+  end
+
   def test_button_tag_with_confirmation
     assert_dom_equal(
       %(<button name="button" type="submit" data-confirm="Are you sure?">Save</button>),
@@ -624,6 +632,6 @@ class FormTagHelperTest < ActionView::TestCase
   private
 
   def root_elem(rendered_content)
-    HTML::Document.new(rendered_content).root.children[0]
+    Nokogiri::HTML::DocumentFragment.parse(rendered_content).children.first # extract from nodeset
   end
 end

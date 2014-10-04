@@ -4,6 +4,7 @@ require 'models/author'
 require 'models/categorization'
 require 'models/comment'
 require 'models/company'
+require 'models/tagging'
 require 'models/topic'
 require 'models/reply'
 require 'models/entrant'
@@ -33,8 +34,25 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal(topics(:first).title, Topic.find(1).title)
   end
 
+  def test_find_with_proc_parameter_and_block
+    exception = assert_raises(RuntimeError) do
+      Topic.all.find(-> { raise "should happen" }) { |e| e.title == "non-existing-title" }
+    end
+    assert_equal "should happen", exception.message
+
+    assert_nothing_raised(RuntimeError) do
+      Topic.all.find(-> { raise "should not happen" }) { |e| e.title == topics(:first).title }
+    end
+  end
+
+  def test_find_passing_active_record_object_is_deprecated
+    assert_deprecated do
+      Topic.find(Topic.last)
+    end
+  end
+
   def test_symbols_table_ref
-    Post.first # warm up
+    Post.where("author_id" => nil)  # warm up
     x = Symbol.all_symbols.count
     Post.where("title" => {"xxxqqqq" => "bar"})
     assert_equal x, Symbol.all_symbols.count
@@ -56,17 +74,46 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal true, Topic.exists?(id: [1, 9999])
 
     assert_equal false, Topic.exists?(45)
-    assert_equal false, Topic.exists?(Topic.new)
-
-    begin
-      assert_equal false, Topic.exists?("foo")
-    rescue ActiveRecord::StatementInvalid
-      # PostgreSQL complains about string comparison with integer field
-    rescue Exception
-      flunk
-    end
+    assert_equal false, Topic.exists?(Topic.new.id)
 
     assert_raise(NoMethodError) { Topic.exists?([1,2]) }
+  end
+
+  def test_exists_with_polymorphic_relation
+    post = Post.create!(title: 'Post', body: 'default', taggings: [Tagging.new(comment: 'tagging comment')])
+    relation = Post.tagged_with_comment('tagging comment')
+
+    assert_equal true, relation.exists?(title: ['Post'])
+    assert_equal true, relation.exists?(['title LIKE ?', 'Post%'])
+    assert_equal true, relation.exists?
+    assert_equal true, relation.exists?(post.id)
+    assert_equal true, relation.exists?(post.id.to_s)
+
+    assert_equal false, relation.exists?(false)
+  end
+
+  def test_exists_passing_active_record_object_is_deprecated
+    assert_deprecated do
+      Topic.exists?(Topic.new)
+    end
+  end
+
+  def test_exists_fails_when_parameter_has_invalid_type
+    if current_adapter?(:PostgreSQLAdapter, :MysqlAdapter)
+      assert_raises ActiveRecord::StatementInvalid do
+        Topic.exists?(("9"*53).to_i) # number that's bigger than int
+      end
+    else
+      assert_equal false, Topic.exists?(("9"*53).to_i) # number that's bigger than int
+    end
+
+    if current_adapter?(:PostgreSQLAdapter)
+      assert_raises ActiveRecord::StatementInvalid do
+        Topic.exists?("foo")
+      end
+    else
+      assert_equal false, Topic.exists?("foo")
+    end
   end
 
   def test_exists_does_not_select_columns_without_alias
@@ -111,8 +158,8 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_exists_with_distinct_association_includes_limit_and_order
     author = Author.first
-    assert_equal false, author.unique_categorized_posts.includes(:special_comments).order('comments.taggings_count DESC').limit(0).exists?
-    assert_equal true, author.unique_categorized_posts.includes(:special_comments).order('comments.taggings_count DESC').limit(1).exists?
+    assert_equal false, author.unique_categorized_posts.includes(:special_comments).order('comments.tags_count DESC').limit(0).exists?
+    assert_equal true, author.unique_categorized_posts.includes(:special_comments).order('comments.tags_count DESC').limit(1).exists?
   end
 
   def test_exists_with_empty_table_and_no_args_given
@@ -215,7 +262,7 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_take_bang_missing
-    assert_raises ActiveRecord::RecordNotFound do
+    assert_raises_with_message ActiveRecord::RecordNotFound, "Couldn't find Topic" do
       Topic.where("title = 'This title does not exist'").take!
     end
   end
@@ -235,7 +282,7 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_first_bang_missing
-    assert_raises ActiveRecord::RecordNotFound do
+    assert_raises_with_message ActiveRecord::RecordNotFound, "Couldn't find Topic" do
       Topic.where("title = 'This title does not exist'").first!
     end
   end
@@ -249,7 +296,7 @@ class FinderTest < ActiveRecord::TestCase
   def test_model_class_responds_to_first_bang
     assert Topic.first!
     Topic.delete_all
-    assert_raises ActiveRecord::RecordNotFound do
+    assert_raises_with_message ActiveRecord::RecordNotFound, "Couldn't find Topic" do
       Topic.first!
     end
   end
@@ -271,7 +318,7 @@ class FinderTest < ActiveRecord::TestCase
   def test_model_class_responds_to_second_bang
     assert Topic.second!
     Topic.delete_all
-    assert_raises ActiveRecord::RecordNotFound do
+    assert_raises_with_message ActiveRecord::RecordNotFound, "Couldn't find Topic" do
       Topic.second!
     end
   end
@@ -293,7 +340,7 @@ class FinderTest < ActiveRecord::TestCase
   def test_model_class_responds_to_third_bang
     assert Topic.third!
     Topic.delete_all
-    assert_raises ActiveRecord::RecordNotFound do
+    assert_raises_with_message ActiveRecord::RecordNotFound, "Couldn't find Topic" do
       Topic.third!
     end
   end
@@ -315,7 +362,7 @@ class FinderTest < ActiveRecord::TestCase
   def test_model_class_responds_to_fourth_bang
     assert Topic.fourth!
     Topic.delete_all
-    assert_raises ActiveRecord::RecordNotFound do
+    assert_raises_with_message ActiveRecord::RecordNotFound, "Couldn't find Topic" do
       Topic.fourth!
     end
   end
@@ -337,7 +384,7 @@ class FinderTest < ActiveRecord::TestCase
   def test_model_class_responds_to_fifth_bang
     assert Topic.fifth!
     Topic.delete_all
-    assert_raises ActiveRecord::RecordNotFound do
+    assert_raises_with_message ActiveRecord::RecordNotFound, "Couldn't find Topic" do
       Topic.fifth!
     end
   end
@@ -349,14 +396,14 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_last_bang_missing
-    assert_raises ActiveRecord::RecordNotFound do
+    assert_raises_with_message ActiveRecord::RecordNotFound, "Couldn't find Topic" do
       Topic.where("title = 'This title does not exist'").last!
     end
   end
 
   def test_model_class_responds_to_last_bang
     assert_equal topics(:fifth), Topic.last!
-    assert_raises ActiveRecord::RecordNotFound do
+    assert_raises_with_message ActiveRecord::RecordNotFound, "Couldn't find Topic" do
       Topic.delete_all
       Topic.last!
     end
@@ -472,6 +519,34 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_find_on_hash_conditions_with_array_of_integers_and_ranges
     assert_equal [1,2,3,5,6,7,8,9], Comment.where(id: [1..2, 3, 5, 6..8, 9]).to_a.map(&:id).sort
+  end
+
+  def test_find_on_hash_conditions_with_array_of_ranges
+    assert_equal [1,2,6,7,8], Comment.where(id: [1..2, 6..8]).to_a.map(&:id).sort
+  end
+
+  def test_find_on_hash_conditions_with_nested_array_of_integers_and_ranges
+    assert_deprecated do
+      assert_equal [1,2,3,5,6,7,8,9], Comment.where(id: [[1..2], 3, [5], 6..8, 9]).to_a.map(&:id).sort
+    end
+  end
+
+  def test_find_on_hash_conditions_with_array_of_integers_and_arrays
+    assert_deprecated do
+      assert_equal [1,2,3,5,6,7,8,9], Comment.where(id: [[1, 2], 3, 5, [6, [7], 8], 9]).to_a.map(&:id).sort
+    end
+  end
+
+  def test_find_on_hash_conditions_with_nested_array_of_integers_and_ranges_and_nils
+    assert_deprecated do
+      assert_equal [1,3,4,5], Topic.where(parent_id: [[2..6], nil]).to_a.map(&:id).sort
+    end
+  end
+
+  def test_find_on_hash_conditions_with_nested_array_of_integers_and_ranges_and_more_nils
+    assert_deprecated do
+      assert_equal [], Topic.where(parent_id: [[7..10, nil, [nil]], [nil]]).to_a.map(&:id).sort
+    end
   end
 
   def test_find_on_multiple_hash_conditions
@@ -727,7 +802,9 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_find_by_one_attribute_bang
     assert_equal topics(:first), Topic.find_by_title!("The First Topic")
-    assert_raise(ActiveRecord::RecordNotFound) { Topic.find_by_title!("The First Topic!") }
+    assert_raises_with_message(ActiveRecord::RecordNotFound, "Couldn't find Topic") do
+      Topic.find_by_title!("The First Topic!")
+    end
   end
 
   def test_find_by_on_attribute_that_is_a_reserved_word
@@ -980,6 +1057,53 @@ class FinderTest < ActiveRecord::TestCase
     assert_nothing_raised(ActiveRecord::StatementInvalid) { Topic.offset("3").to_a }
   end
 
+  test "find_by with hash conditions returns the first matching record" do
+    assert_equal posts(:eager_other), Post.find_by(id: posts(:eager_other).id)
+  end
+
+  test "find_by with non-hash conditions returns the first matching record" do
+    assert_equal posts(:eager_other), Post.find_by("id = #{posts(:eager_other).id}")
+  end
+
+  test "find_by with multi-arg conditions returns the first matching record" do
+    assert_equal posts(:eager_other), Post.find_by('id = ?', posts(:eager_other).id)
+  end
+
+  test "find_by returns nil if the record is missing" do
+    assert_equal nil, Post.find_by("1 = 0")
+  end
+
+  test "find_by with associations" do
+    assert_equal authors(:david), Post.find_by(author: authors(:david)).author
+    assert_equal authors(:mary) , Post.find_by(author: authors(:mary) ).author
+  end
+
+  test "find_by doesn't have implicit ordering" do
+    assert_sql(/^((?!ORDER).)*$/) { Post.find_by(id: posts(:eager_other).id) }
+  end
+
+  test "find_by! with hash conditions returns the first matching record" do
+    assert_equal posts(:eager_other), Post.find_by!(id: posts(:eager_other).id)
+  end
+
+  test "find_by! with non-hash conditions returns the first matching record" do
+    assert_equal posts(:eager_other), Post.find_by!("id = #{posts(:eager_other).id}")
+  end
+
+  test "find_by! with multi-arg conditions returns the first matching record" do
+    assert_equal posts(:eager_other), Post.find_by!('id = ?', posts(:eager_other).id)
+  end
+
+  test "find_by! doesn't have implicit ordering" do
+    assert_sql(/^((?!ORDER).)*$/) { Post.find_by!(id: posts(:eager_other).id) }
+  end
+
+  test "find_by! raises RecordNotFound if the record is missing" do
+    assert_raises(ActiveRecord::RecordNotFound) do
+      Post.find_by!("1 = 0")
+    end
+  end
+
   protected
     def bind(statement, *vars)
       if vars.first.is_a?(Hash)
@@ -996,4 +1120,10 @@ class FinderTest < ActiveRecord::TestCase
         end
       end)
     end
+
+    def assert_raises_with_message(exception_class, message, &block)
+      err = assert_raises(exception_class) { block.call }
+      assert_match message, err.message
+    end
+
 end

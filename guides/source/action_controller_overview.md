@@ -34,7 +34,7 @@ The naming convention of controllers in Rails favors pluralization of the last w
 
 Following this convention will allow you to use the default route generators (e.g. `resources`, etc) without needing to qualify each `:path` or `:controller`, and keeps URL and path helpers' usage consistent throughout your application. See [Layouts & Rendering Guide](layouts_and_rendering.html) for more details.
 
-NOTE: The controller naming convention differs from the naming convention of models, which expected to be named in singular form.
+NOTE: The controller naming convention differs from the naming convention of models, which are expected to be named in singular form.
 
 
 Methods and Actions
@@ -260,7 +260,7 @@ used:
 params.require(:log_entry).permit!
 ```
 
-This will mark the `:log_entry` parameters hash and any subhash of it
+This will mark the `:log_entry` parameters hash and any sub-hash of it
 permitted. Extreme care should be taken when using `permit!` as it
 will allow all current and future model attributes to be
 mass-assigned.
@@ -364,49 +364,48 @@ If you need a different session storage mechanism, you can change it in the `con
 # Use the database for sessions instead of the cookie-based default,
 # which shouldn't be used to store highly confidential information
 # (create the session table with "rails g active_record:session_migration")
-# YourApp::Application.config.session_store :active_record_store
+# Rails.application.config.session_store :active_record_store
 ```
 
 Rails sets up a session key (the name of the cookie) when signing the session data. These can also be changed in `config/initializers/session_store.rb`:
 
 ```ruby
 # Be sure to restart your server when you modify this file.
-YourApp::Application.config.session_store :cookie_store, key: '_your_app_session'
+Rails.application.config.session_store :cookie_store, key: '_your_app_session'
 ```
 
 You can also pass a `:domain` key and specify the domain name for the cookie:
 
 ```ruby
 # Be sure to restart your server when you modify this file.
-YourApp::Application.config.session_store :cookie_store, key: '_your_app_session', domain: ".example.com"
+Rails.application.config.session_store :cookie_store, key: '_your_app_session', domain: ".example.com"
 ```
 
-You can pass `:serializer` key to specify serializer for serializing session:
-
-```ruby
-YourApp::Application.config.session_store :cookie_store, key: '_your_app_session', serializer: :json
-```
-
-The default serializer for new application is `:json`. For compatibility with
-old applications `:marshal` is used when `serializer` option is not specified.
-
-It is also possible to pass a custom serializer class with `load` and `dump`
-public methods defined:
-
-```ruby
-YourApp::Application.config.session_store :cookie_store, key: '_your_app_session', serializer: MyCustomSerializer
-```
-
-Rails sets up (for the CookieStore) a secret key used for signing the session data. This can be changed in `config/initializers/secret_token.rb`
+Rails sets up (for the CookieStore) a secret key used for signing the session data. This can be changed in `config/secrets.yml`
 
 ```ruby
 # Be sure to restart your server when you modify this file.
 
-# Your secret key for verifying the integrity of signed cookies.
+# Your secret key is used for verifying the integrity of signed cookies.
 # If you change this key, all old signed cookies will become invalid!
+
 # Make sure the secret is at least 30 characters and all random,
 # no regular words or you'll be exposed to dictionary attacks.
-YourApp::Application.config.secret_key_base = '49d3f3de9ed86c74b94ad6bd0...'
+# You can use `rake secret` to generate a secure secret key.
+
+# Make sure the secrets in this file are kept private
+# if you're sharing your code publicly.
+
+development:
+  secret_key_base: a75d...
+
+test:
+  secret_key_base: 492f...
+
+# Do not keep production secrets in the repository,
+# instead read values from the environment.
+production:
+  secret_key_base: <%= ENV["SECRET_KEY_BASE"] %>
 ```
 
 NOTE: Changing the secret when using the `CookieStore` will invalidate all existing sessions.
@@ -587,6 +586,62 @@ end
 ```
 
 Note that while for session values you set the key to `nil`, to delete a cookie value you should use `cookies.delete(:key)`.
+
+Rails also provides a signed cookie jar and an encrypted cookie jar for storing
+sensitive data. The signed cookie jar appends a cryptographic signature on the
+cookie values to protect their integrity. The encrypted cookie jar encrypts the
+values in addition to signing them, so that they cannot be read by the end user.
+Refer to the [API documentation](http://api.rubyonrails.org/classes/ActionDispatch/Cookies.html)
+for more details.
+
+These special cookie jars use a serializer to serialize the assigned values into
+strings and deserializes them into Ruby objects on read.
+
+You can specify what serializer to use:
+
+```ruby
+Rails.application.config.action_dispatch.cookies_serializer = :json
+```
+
+The default serializer for new applications is `:json`. For compatibility with
+old applications with existing cookies, `:marshal` is used when `serializer`
+option is not specified.
+
+You may also set this option to `:hybrid`, in which case Rails would transparently
+deserialize existing (`Marshal`-serialized) cookies on read and re-write them in
+the `JSON` format. This is useful for migrating existing applications to the
+`:json` serializer.
+
+It is also possible to pass a custom serializer that responds to `load` and
+`dump`:
+
+```ruby
+Rails.application.config.action_dispatch.cookies_serializer = MyCustomSerializer
+```
+
+When using the `:json` or `:hybrid` serializer, you should beware that not all
+Ruby objects can be serialized as JSON. For example, `Date` and `Time` objects
+will be serialized as strings, and `Hash`es will have their keys stringified.
+
+```ruby
+class CookiesController < ApplicationController
+  def set_cookie
+    cookies.encrypted[:expiration_date] = Date.tomorrow # => Thu, 20 Mar 2014
+    redirect_to action: 'read_cookie'
+  end
+
+  def read_cookie
+    cookies.encrypted[:expiration_date] # => "2014-03-20"
+  end
+end
+```
+
+It's advisable that you only store simple data (strings and numbers) in cookies.
+If you have to store complex objects, you would need to handle the conversion
+manually when reading the values on subsequent requests.
+
+If you use the cookie session store, this would apply to the `session` and
+`flash` hash as well.
 
 Rendering XML and JSON data
 ---------------------------
@@ -1023,7 +1078,7 @@ Rails keeps a log file for each environment in the `log` folder. These are extre
 
 ### Parameters Filtering
 
-You can filter certain request parameters from your log files by appending them to `config.filter_parameters` in the application configuration. These parameters will be marked [FILTERED] in the log.
+You can filter out sensitive request parameters from your log files by appending them to `config.filter_parameters` in the application configuration. These parameters will be marked [FILTERED] in the log.
 
 ```ruby
 config.filter_parameters << :password
@@ -1031,7 +1086,7 @@ config.filter_parameters << :password
 
 ### Redirects Filtering
 
-Sometimes it's desirable to filter out from log files some sensible locations your application is redirecting to.
+Sometimes it's desirable to filter out from log files some sensitive locations your application is redirecting to.
 You can do that by using the `config.filter_redirect` configuration option:
 
 ```ruby
@@ -1072,7 +1127,7 @@ class ApplicationController < ActionController::Base
   private
 
     def record_not_found
-      render text: "404 Not Found", status: 404
+      render plain: "404 Not Found", status: 404
     end
 end
 ```
@@ -1109,7 +1164,64 @@ class ClientsController < ApplicationController
 end
 ```
 
+WARNING: You shouldn't do `rescue_from Exception` or `rescue_from StandardError` unless you have a particular reason as it will cause serious side-effects (e.g. you won't be able to see exception details and tracebacks during development). If you would like to dynamically generate error pages, see [Custom errors page](#custom-errors-page).
+
 NOTE: Certain exceptions are only rescuable from the `ApplicationController` class, as they are raised before the controller gets initialized and the action gets executed. See Pratik Naik's [article](http://m.onkey.org/2008/7/20/rescue-from-dispatching) on the subject for more information.
+
+
+### Custom errors page
+
+You can customize the layout of your error handling using controllers and views.
+First define your app own routes to display the errors page.
+
+* `config/application.rb`
+
+  ```ruby
+  config.exceptions_app = self.routes
+  ```
+
+* `config/routes.rb`
+
+  ```ruby
+  match '/404', via: :all, to: 'errors#not_found'
+  match '/422', via: :all, to: 'errors#unprocessable_entity'
+  match '/500', via: :all, to: 'errors#server_error'
+  ```
+
+Create the controller and views.
+
+* `app/controllers/errors_controller.rb`
+
+  ```ruby
+  class ErrorsController < ActionController::Base
+    layout 'error'
+
+    def not_found
+      render status: :not_found
+    end
+
+    def unprocessable_entity
+      render status: :unprocessable_entity
+    end
+
+    def server_error
+      render status: :server_error
+    end
+  end
+  ```
+
+* `app/views`
+
+  ```
+    errors/
+      not_found.html.erb
+      unprocessable_entity.html.erb
+      server_error.html.erb
+    layouts/
+      error.html.erb
+  ```
+
+Do not forget to set the correct status code on the controller as shown before. You should avoid using the database or any complex operations because the user is already on the error page. Generating another error while on an error page could cause issues.
 
 Force HTTPS protocol
 --------------------

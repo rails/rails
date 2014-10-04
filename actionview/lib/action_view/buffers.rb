@@ -13,10 +13,11 @@ module ActionView
     end
     alias :append= :<<
 
-    def safe_concat(value)
-      return self if value.nil?
-      super(value.to_s)
+    def safe_expr_append=(val)
+      return self if val.nil?
+      safe_concat val.to_s
     end
+
     alias :safe_append= :safe_concat
   end
 

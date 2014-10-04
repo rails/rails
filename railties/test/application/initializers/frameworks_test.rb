@@ -35,8 +35,8 @@ module ApplicationTests
       require "#{app_path}/config/environment"
 
       expanded_path = File.expand_path("app/views", app_path)
-      assert_equal ActionController::Base.view_paths[0].to_s, expanded_path
-      assert_equal ActionMailer::Base.view_paths[0].to_s, expanded_path
+      assert_equal expanded_path, ActionController::Base.view_paths[0].to_s
+      assert_equal expanded_path, ActionMailer::Base.view_paths[0].to_s
     end
 
     test "allows me to configure default url options for ActionMailer" do
@@ -50,7 +50,7 @@ module ApplicationTests
       assert_equal "test.rails", ActionMailer::Base.default_url_options[:host]
     end
 
-    test "does not include url helpers as action methods" do
+    test "includes url helpers as action methods" do
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
           get "/foo", :to => lambda { |env| [200, {}, []] }, :as => :foo
@@ -66,8 +66,8 @@ module ApplicationTests
 
       require "#{app_path}/config/environment"
       assert Foo.method_defined?(:foo_path)
+      assert Foo.method_defined?(:foo_url)
       assert Foo.method_defined?(:main_app)
-      assert_equal Set.new(["notify"]), Foo.action_methods
     end
 
     test "allows to not load all helpers for controllers" do
@@ -216,8 +216,8 @@ module ApplicationTests
         require "#{app_path}/config/environment"
         orig_database_url = ENV.delete("DATABASE_URL")
         orig_rails_env, Rails.env = Rails.env, 'development'
-        database_url_db_name = File.join(app_path, "db/database_url_db.sqlite3")
-        ENV["DATABASE_URL"] = "sqlite3://:@localhost/#{database_url_db_name}"
+        database_url_db_name = "db/database_url_db.sqlite3"
+        ENV["DATABASE_URL"] = "sqlite3:#{database_url_db_name}"
         ActiveRecord::Base.establish_connection
         assert ActiveRecord::Base.connection
         assert_match(/#{database_url_db_name}/, ActiveRecord::Base.connection_config[:database])

@@ -23,7 +23,27 @@ test:
   <<: *default
   database: <%= app_name %>_test
 
-# Do not keep production credentials in the repository,
-# instead read the configuration from the environment.
+# As with config/secrets.yml, you never want to store sensitive information,
+# like your database password, in your source code. If your source code is
+# ever seen by anyone, they now have access to your database.
+#
+# Instead, provide the password as a unix environment variable when you boot
+# the app. Read http://guides.rubyonrails.org/configuring.html#configuring-a-database
+# for a full rundown on how to provide these environment variables in a
+# production deployment.
+#
+# On Heroku and other platform providers, you may have a full connection URL
+# available as an environment variable. For example:
+#
+#   DATABASE_URL="frontbase://myuser:mypass@localhost/somedatabase"
+#
+# You can use this database configuration with:
+#
+#   production:
+#     url: <%%= ENV['DATABASE_URL'] %>
+#
 production:
-  url: <%%= ENV["DATABASE_URL"] %>
+  <<: *default
+  database: <%= app_name %>_production
+  username: <%= app_name %>
+  password: <%%= ENV['<%= app_name.upcase %>_DATABASE_PASSWORD'] %>

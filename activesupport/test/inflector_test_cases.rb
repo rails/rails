@@ -141,6 +141,7 @@ module InflectorTestCases
     "HTMLTidyGenerator"     => "html_tidy_generator",
     "FreeBSD"               => "free_bsd",
     "HTML"                  => "html",
+    "ForceXMLController"    => "force_xml_controller",
   }
 
   CamelWithModuleToUnderscoreWithSlash = {
@@ -208,9 +209,11 @@ module InflectorTestCases
   }
 
   UnderscoreToHuman = {
-    "employee_salary" => "Employee salary",
-    "employee_id"     => "Employee",
-    "underground"     => "Underground"
+    'employee_salary' => 'Employee salary',
+    'employee_id'     => 'Employee',
+    'underground'     => 'Underground',
+    '_id'             => 'Id',
+    '_external_id'    => 'External'
   }
 
   UnderscoreToHumanWithoutCapitalize = {
@@ -314,7 +317,7 @@ module InflectorTestCases
     'child'  => 'children',
     'sex'    => 'sexes',
     'move'   => 'moves',
-    'cow'    => 'kine',
+    'cow'    => 'kine', # Test inflections with different starting letters
     'zombie' => 'zombies',
     'genus'  => 'genera'
   }

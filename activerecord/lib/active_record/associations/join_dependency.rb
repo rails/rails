@@ -93,8 +93,8 @@ module ActiveRecord
       #    joins # =>  []
       #
       def initialize(base, associations, joins)
-        @alias_tracker = AliasTracker.new(base.connection, joins)
-        @alias_tracker.aliased_name_for(base.table_name) # Updates the count for base.table_name to 1
+        @alias_tracker = AliasTracker.create(base.connection, joins)
+        @alias_tracker.aliased_name_for(base.table_name, base.table_name) # Updates the count for base.table_name to 1
         tree = self.class.make_tree associations
         @join_root = JoinBase.new base, build(tree, base)
         @join_root.children.each { |child| construct_tables! @join_root, child }
@@ -131,7 +131,6 @@ module ActiveRecord
 
       def instantiate(result_set, aliases)
         primary_key = aliases.column_alias(join_root, join_root.primary_key)
-        type_caster = result_set.column_type primary_key
 
         seen = Hash.new { |h,parent_klass|
           h[parent_klass] = Hash.new { |i,parent_id|
@@ -144,8 +143,7 @@ module ActiveRecord
         column_aliases = aliases.column_aliases join_root
 
         result_set.each { |row_hash|
-          primary_id = type_caster.type_cast row_hash[primary_key]
-          parent = parents[primary_id] ||= join_root.instantiate(row_hash, column_aliases)
+          parent = parents[row_hash[primary_key]] ||= join_root.instantiate(row_hash, column_aliases)
           construct(parent, join_root, row_hash, result_set, seen, model_cache, aliases)
         }
 
@@ -164,17 +162,17 @@ module ActiveRecord
       def make_outer_joins(parent, child)
         tables    = table_aliases_for(parent, child)
         join_type = Arel::Nodes::OuterJoin
-        joins     = make_constraints parent, child, tables, join_type
+        info      = make_constraints parent, child, tables, join_type
 
-        joins.concat child.children.flat_map { |c| make_outer_joins(child, c) }
+        [info] + child.children.flat_map { |c| make_outer_joins(child, c) }
       end
 
       def make_inner_joins(parent, child)
         tables    = child.tables
         join_type = Arel::Nodes::InnerJoin
-        joins     = make_constraints parent, child, tables, join_type
+        info      = make_constraints parent, child, tables, join_type
 
-        joins.concat child.children.flat_map { |c| make_inner_joins(child, c) }
+        [info] + child.children.flat_map { |c| make_inner_joins(child, c) }
       end
 
       def table_aliases_for(parent, node)
@@ -207,7 +205,7 @@ module ActiveRecord
       end
 
       def find_reflection(klass, name)
-        klass.reflect_on_association(name) or
+        klass._reflect_on_association(name) or
           raise ConfigurationError, "Association named '#{ name }' was not found on #{ klass.name }; perhaps you misspelled it?"
       end
 
@@ -215,8 +213,9 @@ module ActiveRecord
         associations.map do |name, right|
           reflection = find_reflection base_klass, name
           reflection.check_validity!
+          reflection.check_eager_loadable!
 
-          if reflection.options[:polymorphic]
+          if reflection.polymorphic?
             raise EagerLoadPolymorphicError.new(reflection)
           end
 

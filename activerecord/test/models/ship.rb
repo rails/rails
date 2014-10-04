@@ -20,8 +20,6 @@ end
 
 class FamousShip < ActiveRecord::Base
   self.table_name = 'ships'
-
   belongs_to :famous_pirate
-
   validates_presence_of :name, on: :conference
 end

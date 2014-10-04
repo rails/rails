@@ -70,14 +70,24 @@ module ActiveSupport
             exit!
           else
             Tempfile.open("isolation") do |tmpfile|
-              ENV["ISOLATION_TEST"]   = self.class.name
-              ENV["ISOLATION_OUTPUT"] = tmpfile.path
+              env = {
+                ISOLATION_TEST: self.class.name,
+                ISOLATION_OUTPUT: tmpfile.path
+              }
 
               load_paths = $-I.map {|p| "-I\"#{File.expand_path(p)}\"" }.join(" ")
-              `#{Gem.ruby} #{load_paths} #{$0} #{ORIG_ARGV.join(" ")}`
+              orig_args = ORIG_ARGV.join(" ")
+              test_opts = "-n#{self.class.name}##{self.name}"
+              command = "#{Gem.ruby} #{load_paths} #{$0} #{orig_args} #{test_opts}"
 
-              ENV.delete("ISOLATION_TEST")
-              ENV.delete("ISOLATION_OUTPUT")
+              # IO.popen lets us pass env in a cross-platform way
+              child = IO.popen([env, command])
+
+              begin
+                Process.wait(child.pid)
+              rescue Errno::ECHILD # The child process may exit before we wait
+                nil
+              end
 
               return tmpfile.read.unpack("m")[0]
             end

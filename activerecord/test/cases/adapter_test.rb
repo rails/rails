@@ -46,9 +46,7 @@ module ActiveRecord
         @connection.add_index :accounts, :firm_id, :name => idx_name
         indexes = @connection.indexes("accounts")
         assert_equal "accounts", indexes.first.table
-        # OpenBase does not have the concept of a named index
-        # Indexes are merely properties of columns.
-        assert_equal idx_name, indexes.first.name unless current_adapter?(:OpenBaseAdapter)
+        assert_equal idx_name, indexes.first.name
         assert !indexes.first.unique
         assert_equal ["firm_id"], indexes.first.columns
       else
@@ -127,14 +125,12 @@ module ActiveRecord
         assert_equal 1, Movie.create(:name => 'fight club').id
       end
 
-      if ActiveRecord::Base.connection.adapter_name != "FrontBase"
-        def test_reset_table_with_non_integer_pk
-          Subscriber.delete_all
-          Subscriber.connection.reset_pk_sequence! 'subscribers'
-          sub = Subscriber.new(:name => 'robert drake')
-          sub.id = 'bob drake'
-          assert_nothing_raised { sub.save! }
-        end
+      def test_reset_table_with_non_integer_pk
+        Subscriber.delete_all
+        Subscriber.connection.reset_pk_sequence! 'subscribers'
+        sub = Subscriber.new(:name => 'robert drake')
+        sub.id = 'bob drake'
+        assert_nothing_raised { sub.save! }
       end
     end
 
@@ -145,8 +141,8 @@ module ActiveRecord
       end
     end
 
-    def test_foreign_key_violations_are_translated_to_specific_exception
-      unless @connection.adapter_name == 'SQLite'
+    unless current_adapter?(:SQLite3Adapter)
+      def test_foreign_key_violations_are_translated_to_specific_exception
         assert_raises(ActiveRecord::InvalidForeignKey) do
           # Oracle adapter uses prefetched primary key values from sequence and passes them to connection adapter insert method
           if @connection.prefetch_primary_key?
@@ -155,6 +151,18 @@ module ActiveRecord
           else
             @connection.execute "INSERT INTO fk_test_has_fk (fk_id) VALUES (0)"
           end
+        end
+      end
+
+      def test_foreign_key_violations_are_translated_to_specific_exception_with_validate_false
+        klass_has_fk = Class.new(ActiveRecord::Base) do
+          self.table_name = 'fk_test_has_fk'
+        end
+
+        assert_raises(ActiveRecord::InvalidForeignKey) do
+          has_fk = klass_has_fk.new
+          has_fk.fk_id = 1231231231
+          has_fk.save(validate: false)
         end
       end
     end
@@ -184,7 +192,7 @@ module ActiveRecord
     def test_select_methods_passing_a_association_relation
       author = Author.create!(name: 'john')
       Post.create!(author: author, title: 'foo', body: 'bar')
-      query = author.posts.select(:title)
+      query = author.posts.where(title: 'foo').select(:title)
       assert_equal({"title" => "foo"}, @connection.select_one(query.arel, nil, query.bind_values))
       assert_equal({"title" => "foo"}, @connection.select_one(query))
       assert @connection.select_all(query).is_a?(ActiveRecord::Result)
@@ -218,7 +226,7 @@ module ActiveRecord
       @connection = Klass.connection
     end
 
-    def teardown
+    teardown do
       Klass.remove_connection
     end
 

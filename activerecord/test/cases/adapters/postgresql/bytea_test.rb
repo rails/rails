@@ -1,8 +1,5 @@
 # encoding: utf-8
-
 require "cases/helper"
-require 'active_record/base'
-require 'active_record/connection_adapters/postgresql_adapter'
 
 class PostgresqlByteaTest < ActiveRecord::TestCase
   class ByteaDataType < ActiveRecord::Base
@@ -19,11 +16,11 @@ class PostgresqlByteaTest < ActiveRecord::TestCase
         end
       end
     end
-    @column = ByteaDataType.columns.find { |c| c.name == 'payload' }
+    @column = ByteaDataType.columns_hash['payload']
     assert(@column.is_a?(ActiveRecord::ConnectionAdapters::PostgreSQLColumn))
   end
 
-  def teardown
+  teardown do
     @connection.execute 'drop table if exists bytea_data_type'
   end
 
@@ -36,16 +33,16 @@ class PostgresqlByteaTest < ActiveRecord::TestCase
 
     data = "\u001F\x8B"
     assert_equal('UTF-8', data.encoding.name)
-    assert_equal('ASCII-8BIT', @column.type_cast(data).encoding.name)
+    assert_equal('ASCII-8BIT', @column.type_cast_from_database(data).encoding.name)
   end
 
   def test_type_cast_binary_value
     data = "\u001F\x8B".force_encoding("BINARY")
-    assert_equal(data, @column.type_cast(data))
+    assert_equal(data, @column.type_cast_from_database(data))
   end
 
   def test_type_case_nil
-    assert_equal(nil, @column.type_cast(nil))
+    assert_equal(nil, @column.type_cast_from_database(nil))
   end
 
   def test_read_value
@@ -68,6 +65,23 @@ class PostgresqlByteaTest < ActiveRecord::TestCase
     record = ByteaDataType.create(payload: data)
     assert_not record.new_record?
     assert_equal(data, record.payload)
+  end
+
+  def test_via_to_sql
+    data = "'\u001F\\"
+    ByteaDataType.create(payload: data)
+    sql = ByteaDataType.where(payload: data).select(:payload).to_sql
+    result = @connection.query(sql)
+    assert_equal([[data]], result)
+  end
+
+  def test_via_to_sql_with_complicating_connection
+    Thread.new do
+      other_conn = ActiveRecord::Base.connection
+      other_conn.execute('SET standard_conforming_strings = off')
+    end.join
+
+    test_via_to_sql
   end
 
   def test_write_binary

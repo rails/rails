@@ -11,16 +11,26 @@ module ActionMailer
       #
       mattr_accessor :preview_path, instance_writer: false
 
+      # Enable or disable mailer previews through app configuration:
+      #
+      #     config.action_mailer.show_previews = true
+      #
+      # Defaults to true for development environment
+      #
+      mattr_accessor :show_previews, instance_writer: false
+
       # :nodoc:
       mattr_accessor :preview_interceptors, instance_writer: false
       self.preview_interceptors = []
+    end
 
+    module ClassMethods
       # Register one or more Interceptors which will be called before mail is previewed.
       def register_preview_interceptors(*interceptors)
         interceptors.flatten.compact.each { |interceptor| register_preview_interceptor(interceptor) }
       end
 
-      # Register am Interceptor which will be called before mail is previewed.
+      # Register an Interceptor which will be called before mail is previewed.
       # Either a class or a string can be passed in as the Interceptor. If a
       # string is passed in it will be <tt>constantize</tt>d.
       def register_preview_interceptor(interceptor)
@@ -92,6 +102,10 @@ module ActionMailer
 
         def preview_path #:nodoc:
           Base.preview_path
+        end
+
+        def show_previews #:nodoc:
+          Base.show_previews
         end
 
         def inform_preview_interceptors(message) #:nodoc:

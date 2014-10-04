@@ -14,7 +14,6 @@ module Rails
       DATABASES.concat(JDBC_DATABASES)
 
       attr_accessor :rails_template
-      attr_accessor :app_template
       add_shebang_option!
 
       argument :app_path, type: :string
@@ -25,9 +24,6 @@ module Rails
 
       def self.add_shared_options_for(name)
         class_option :template,           type: :string, aliases: '-m',
-                                          desc: "Path to some #{name} template (can be a filesystem path or URL)"
-
-        class_option :app_template,       type: :string, aliases: '-n',
                                           desc: "Path to some #{name} template (can be a filesystem path or URL)"
 
         class_option :skip_gemfile,       type: :boolean, default: false,
@@ -45,8 +41,8 @@ module Rails
         class_option :skip_active_record, type: :boolean, aliases: '-O', default: false,
                                           desc: 'Skip Active Record files'
 
-        class_option :skip_action_view,   type: :boolean, aliases: '-V', default: false,
-                                          desc: 'Skip Action View files'
+        class_option :skip_gems,          type: :array, default: [],
+                                          desc: 'Skip the provided gems files'
 
         class_option :skip_sprockets,     type: :boolean, aliases: '-S', default: false,
                                           desc: 'Skip Sprockets files'
@@ -83,8 +79,7 @@ module Rails
       end
 
       def initialize(*args)
-        @original_wd   = Dir.pwd
-        @gem_filter    = lambda { |gem| true }
+        @gem_filter    = lambda { |gem| !options[:skip_gems].include?(gem.name) }
         @extra_entries = []
         super
         convert_database_option_for_jruby
@@ -109,25 +104,20 @@ module Rails
       end
 
       def gemfile_entries
-        [ rails_gemfile_entry,
-          database_gemfile_entry,
-          assets_gemfile_entry,
-          javascript_gemfile_entry,
-          jbuilder_gemfile_entry,
-          sdoc_gemfile_entry,
-          platform_dependent_gemfile_entry,
-          spring_gemfile_entry,
-          @extra_entries].flatten.find_all(&@gem_filter)
+        [rails_gemfile_entry,
+         database_gemfile_entry,
+         assets_gemfile_entry,
+         javascript_gemfile_entry,
+         jbuilder_gemfile_entry,
+         sdoc_gemfile_entry,
+         psych_gemfile_entry,
+         @extra_entries].flatten.find_all(&@gem_filter)
       end
 
       def add_gem_entry_filter
         @gem_filter = lambda { |next_filter, entry|
           yield(entry) && next_filter.call(entry)
         }.curry[@gem_filter]
-      end
-
-      def remove_gem(name)
-        add_gem_entry_filter { |gem| gem.name != name }
       end
 
       def builder
@@ -149,92 +139,21 @@ module Rails
         FileUtils.cd(destination_root) unless options[:pretend]
       end
 
-      class TemplateRecorder < ::BasicObject # :nodoc:
-        attr_reader :gems
-
-        def initialize(target)
-          @target         = target
-          # unfortunately, instance eval has access to these ivars
-          @app_const      = target.send :app_const if target.respond_to?(:app_const, true)
-          @app_const_base = target.send :app_const_base if target.respond_to?(:app_const_base, true)
-          @app_name       = target.send :app_name if target.respond_to?(:app_name, true)
-          @commands       = []
-          @gems           = []
-        end
-
-        def gemfile_entry(*args)
-          @target.send :gemfile_entry, *args
-        end
-
-        def add_gem_entry_filter(*args, &block)
-          @target.send :add_gem_entry_filter, *args, &block
-        end
-
-        def remove_gem(*args, &block)
-          @target.send :remove_gem, *args, &block
-        end
-
-        def method_missing(name, *args, &block)
-          @commands << [name, args, block]
-        end
-
-        def respond_to_missing?(method, priv = false)
-          super || @target.respond_to?(method, priv)
-        end
-
-        def replay!
-          @commands.each do |name, args, block|
-            @target.send name, *args, &block
-          end
-        end
-      end
-
       def apply_rails_template
-        @recorder = TemplateRecorder.new self
-
-        apply(rails_template, target: self) if rails_template
-        apply(app_template, target: @recorder) if app_template
+        apply rails_template if rails_template
       rescue Thor::Error, LoadError, Errno::ENOENT => e
         raise Error, "The template [#{rails_template}] could not be loaded. Error: #{e}"
       end
 
-      def replay_template
-        @recorder.replay! if @recorder
-      end
-
-      def apply(path, config={})
-        verbose = config.fetch(:verbose, true)
-        target  = config.fetch(:target, self)
-        is_uri  = path =~ /^https?\:\/\//
-        path    = find_in_source_paths(path) unless is_uri
-
-        say_status :apply, path, verbose
-        shell.padding += 1 if verbose
-
-        if is_uri
-          contents = open(path, "Accept" => "application/x-thor-template") {|io| io.read }
-        else
-          contents = open(path) {|io| io.read }
-        end
-
-        target.instance_eval(contents, path)
-        shell.padding -= 1 if verbose
-      end
-
       def set_default_accessors!
         self.destination_root = File.expand_path(app_path, destination_root)
-        self.rails_template = expand_template options[:template]
-        self.app_template = expand_template options[:app_template]
-      end
-
-      def expand_template(name)
-        case name
-        when /^https?:\/\//
-          name
-        when String
-          File.expand_path(name, Dir.pwd)
-        else
-          name
+        self.rails_template = case options[:template]
+          when /^https?:\/\//
+            options[:template]
+          when String
+            File.expand_path(options[:template], Dir.pwd)
+          else
+            options[:template]
         end
       end
 
@@ -245,11 +164,15 @@ module Rails
       end
 
       def include_all_railties?
-        !options[:skip_active_record] && !options[:skip_action_view] && !options[:skip_test_unit] && !options[:skip_sprockets]
+        !options[:skip_active_record] && !options[:skip_test_unit] && !options[:skip_sprockets]
       end
 
       def comment_if(value)
         options[value] ? '# ' : ''
+      end
+
+      def sqlite3?
+        !options[:skip_active_record] && options[:database] == 'sqlite3'
       end
 
       class GemfileEntry < Struct.new(:name, :version, :comment, :options, :commented_out)
@@ -268,19 +191,13 @@ module Rails
         def self.path(name, path, comment = nil)
           new(name, nil, comment, path: path)
         end
-
-        def padding(max_width)
-          ' ' * (max_width - name.length + 2)
-        end
       end
 
       def rails_gemfile_entry
         if options.dev?
-          [GemfileEntry.path('rails', Rails::Generators::RAILS_DEV_PATH),
-           GemfileEntry.github('arel', 'rails/arel')]
+          [GemfileEntry.path('rails', Rails::Generators::RAILS_DEV_PATH)]
         elsif options.edge?
-          [GemfileEntry.github('rails', 'rails/rails'),
-           GemfileEntry.github('arel', 'rails/arel')]
+          [GemfileEntry.github('rails', 'rails/rails')]
         else
           [GemfileEntry.version('rails',
                             Rails::VERSION::STRING,
@@ -326,7 +243,7 @@ module Rails
                                     'Use SCSS for stylesheets')
         else
           gems << GemfileEntry.version('sass-rails',
-                                     '~> 4.0.1',
+                                     '~> 5.0.0.beta1',
                                      'Use SCSS for stylesheets')
         end
 
@@ -334,14 +251,6 @@ module Rails
                                    '>= 1.3.0',
                                    'Use Uglifier as compressor for JavaScript assets')
 
-        gems
-      end
-
-      def platform_dependent_gemfile_entry
-        gems = []
-        if RUBY_ENGINE == 'rbx'
-          gems << GemfileEntry.version('rubysl', nil)
-        end
         gems
       end
 
@@ -369,8 +278,14 @@ module Rails
           []
         else
           gems = [coffee_gemfile_entry, javascript_runtime_gemfile_entry]
-          gems << GemfileEntry.version("#{options[:javascript]}-rails", nil,
-                                 "Use #{options[:javascript]} as the JavaScript library")
+
+          if options[:javascript] == 'jquery'
+            gems << GemfileEntry.version('jquery-rails', '~> 4.0.0.beta2',
+                                         'Use jQuery as the JavaScript library')
+          else
+            gems << GemfileEntry.version("#{options[:javascript]}-rails", nil,
+                                         "Use #{options[:javascript]} as the JavaScript library")
+          end
 
           gems << GemfileEntry.version("turbolinks", nil,
             "Turbolinks makes following links in your web application faster. Read more: https://github.com/rails/turbolinks")
@@ -387,10 +302,12 @@ module Rails
         end
       end
 
-      def spring_gemfile_entry
-        return [] unless spring_install?
-        comment = 'Spring speeds up development by keeping your application running in the background. Read more: https://github.com/rails/spring'
-        GemfileEntry.new('spring', nil, comment, group: :development)
+      def psych_gemfile_entry
+        return [] unless defined?(Rubinius)
+
+        comment = 'Use Psych as the YAML engine, instead of Syck, so serialized ' \
+                  'data can be read safely from different rubies (see http://git.io/uuLVag)'
+        GemfileEntry.new('psych', '~> 2.0', comment, platforms: :rbx)
       end
 
       def bundle_command(command)

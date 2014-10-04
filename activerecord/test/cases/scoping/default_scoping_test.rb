@@ -1,9 +1,10 @@
 require 'cases/helper'
 require 'models/post'
+require 'models/comment'
 require 'models/developer'
 
 class DefaultScopingTest < ActiveRecord::TestCase
-  fixtures :developers, :posts
+  fixtures :developers, :posts, :comments
 
   def test_default_scope
     expected = Developer.all.merge!(:order => 'salary DESC').to_a.collect { |dev| dev.salary }
@@ -378,6 +379,24 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal 1, DeveloperWithIncludes.where(:audit_logs => { :message => 'foo' }).count
   end
 
+  def test_default_scope_with_references_works_through_collection_association
+    post = PostWithCommentWithDefaultScopeReferencesAssociation.create!(title: "Hello World", body: "Here we go.")
+    comment = post.comment_with_default_scope_references_associations.create!(body: "Great post.", developer_id: Developer.first.id)
+    assert_equal comment, post.comment_with_default_scope_references_associations.to_a.first
+  end
+
+  def test_default_scope_with_references_works_through_association
+    post = PostWithCommentWithDefaultScopeReferencesAssociation.create!(title: "Hello World", body: "Here we go.")
+    comment = post.comment_with_default_scope_references_associations.create!(body: "Great post.", developer_id: Developer.first.id)
+    assert_equal comment, post.first_comment
+  end
+
+  def test_default_scope_with_references_works_with_find_by
+    post = PostWithCommentWithDefaultScopeReferencesAssociation.create!(title: "Hello World", body: "Here we go.")
+    comment = post.comment_with_default_scope_references_associations.create!(body: "Great post.", developer_id: Developer.first.id)
+    assert_equal comment, CommentWithDefaultScopeReferencesAssociation.find_by(id: comment.id)
+  end
+
   unless in_memory_db?
     def test_default_scope_is_threadsafe
       threads = []
@@ -394,5 +413,23 @@ class DefaultScopingTest < ActiveRecord::TestCase
       end
       threads.each(&:join)
     end
+  end
+
+  test "additional conditions are ANDed with the default scope" do
+    scope = DeveloperCalledJamis.where(name: "David")
+    assert_equal 2, scope.where_values.length
+    assert_equal [], scope.to_a
+  end
+
+  test "additional conditions in a scope are ANDed with the default scope" do
+    scope = DeveloperCalledJamis.david
+    assert_equal 2, scope.where_values.length
+    assert_equal [], scope.to_a
+  end
+
+  test "a scope can remove the condition from the default scope" do
+    scope = DeveloperCalledJamis.david2
+    assert_equal 1, scope.where_values.length
+    assert_equal Developer.where(name: "David").map(&:id), scope.map(&:id)
   end
 end

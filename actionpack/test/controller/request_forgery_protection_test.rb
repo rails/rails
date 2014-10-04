@@ -125,27 +125,29 @@ end
 module RequestForgeryProtectionTests
   def setup
     @token      = "cf50faa3fe97702ca1ae"
-
-    SecureRandom.stubs(:base64).returns(@token)
+    @controller.stubs(:form_authenticity_token).returns(@token)
+    @controller.stubs(:valid_authenticity_token?).with{ |_, t| t == @token }.returns(true)
+    @controller.stubs(:valid_authenticity_token?).with{ |_, t| t != @token }.returns(false)
+    @old_request_forgery_protection_token = ActionController::Base.request_forgery_protection_token
     ActionController::Base.request_forgery_protection_token = :custom_authenticity_token
   end
 
   def teardown
-    ActionController::Base.request_forgery_protection_token = nil
+    ActionController::Base.request_forgery_protection_token = @old_request_forgery_protection_token
   end
 
   def test_should_render_form_with_token_tag
     assert_not_blocked do
       get :index
     end
-    assert_select 'form>div>input[name=?][value=?]', 'custom_authenticity_token', @token
+    assert_select 'form>input[name=?][value=?]', 'custom_authenticity_token', @token
   end
 
   def test_should_render_button_to_with_token_tag
     assert_not_blocked do
       get :show_button
     end
-    assert_select 'form>div>input[name=?][value=?]', 'custom_authenticity_token', @token
+    assert_select 'form>input[name=?][value=?]', 'custom_authenticity_token', @token
   end
 
   def test_should_render_form_without_token_tag_if_remote
@@ -175,7 +177,7 @@ module RequestForgeryProtectionTests
       assert_not_blocked do
         get :form_for_remote_with_external_token
       end
-      assert_select 'form>div>input[name=?][value=?]', 'custom_authenticity_token', 'external_token'
+      assert_select 'form>input[name=?][value=?]', 'custom_authenticity_token', 'external_token'
     ensure
       ActionView::Helpers::FormTagHelper.embed_authenticity_token_in_remote_forms = original
     end
@@ -185,21 +187,21 @@ module RequestForgeryProtectionTests
     assert_not_blocked do
       get :form_for_remote_with_external_token
     end
-    assert_select 'form>div>input[name=?][value=?]', 'custom_authenticity_token', 'external_token'
+    assert_select 'form>input[name=?][value=?]', 'custom_authenticity_token', 'external_token'
   end
 
   def test_should_render_form_with_token_tag_if_remote_and_authenticity_token_requested
     assert_not_blocked do
       get :form_for_remote_with_token
     end
-    assert_select 'form>div>input[name=?][value=?]', 'custom_authenticity_token', @token
+    assert_select 'form>input[name=?][value=?]', 'custom_authenticity_token', @token
   end
 
   def test_should_render_form_with_token_tag_with_authenticity_token_requested
     assert_not_blocked do
       get :form_for_with_token
     end
-    assert_select 'form>div>input[name=?][value=?]', 'custom_authenticity_token', @token
+    assert_select 'form>input[name=?][value=?]', 'custom_authenticity_token', @token
   end
 
   def test_should_allow_get
@@ -289,6 +291,22 @@ module RequestForgeryProtectionTests
     end
   end
 
+  def test_should_not_warn_if_csrf_logging_disabled
+    old_logger = ActionController::Base.logger
+    logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
+    ActionController::Base.logger = logger
+    ActionController::Base.log_warning_on_csrf_failure = false
+
+    begin
+      assert_blocked { post :index }
+
+      assert_equal 0, logger.logged(:warn).size
+    ensure
+      ActionController::Base.logger = old_logger
+      ActionController::Base.log_warning_on_csrf_failure = true
+    end
+  end
+
   def test_should_only_allow_same_origin_js_get_with_xhr_header
     assert_cross_origin_blocked { get :same_origin_js }
     assert_cross_origin_blocked { get :same_origin_js, format: 'js' }
@@ -360,18 +378,20 @@ class RequestForgeryProtectionControllerUsingResetSessionTest < ActionController
   include RequestForgeryProtectionTests
 
   setup do
+    @old_request_forgery_protection_token = ActionController::Base.request_forgery_protection_token
     ActionController::Base.request_forgery_protection_token = :custom_authenticity_token
   end
 
   teardown do
-    ActionController::Base.request_forgery_protection_token = nil
+    ActionController::Base.request_forgery_protection_token = @old_request_forgery_protection_token
   end
 
   test 'should emit a csrf-param meta tag and a csrf-token meta tag' do
-    SecureRandom.stubs(:base64).returns(@token + '<=?')
+    @controller.stubs(:form_authenticity_token).returns(@token + '<=?')
     get :meta
     assert_select 'meta[name=?][content=?]', 'csrf-param', 'custom_authenticity_token'
-    assert_select 'meta[name=?][content=?]', 'csrf-token', 'cf50faa3fe97702ca1ae&lt;=?'
+    assert_select 'meta[name=?]', 'csrf-token'
+    assert_match(/cf50faa3fe97702ca1ae&lt;=\?/, @response.body)
   end
 end
 
@@ -446,16 +466,38 @@ end
 class CustomAuthenticityParamControllerTest < ActionController::TestCase
   def setup
     super
-    ActionController::Base.request_forgery_protection_token = :custom_token_name
+    @old_logger = ActionController::Base.logger
+    @logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
+    @token = Base64.strict_encode64(SecureRandom.random_bytes(32))
+    @old_request_forgery_protection_token = ActionController::Base.request_forgery_protection_token
+    ActionController::Base.request_forgery_protection_token = @token
   end
 
   def teardown
-    ActionController::Base.request_forgery_protection_token = :authenticity_token
+    ActionController::Base.request_forgery_protection_token = @old_request_forgery_protection_token
     super
   end
 
-  def test_should_allow_custom_token
-    post :index, :custom_token_name => 'foobar'
-    assert_response :ok
+  def test_should_not_warn_if_form_authenticity_param_matches_form_authenticity_token
+    ActionController::Base.logger = @logger
+    @controller.stubs(:valid_authenticity_token?).returns(:true)
+
+    begin
+      post :index, :custom_token_name => 'foobar'
+      assert_equal 0, @logger.logged(:warn).size
+    ensure
+      ActionController::Base.logger = @old_logger
+    end
+  end
+
+  def test_should_warn_if_form_authenticity_param_does_not_match_form_authenticity_token
+    ActionController::Base.logger = @logger
+
+    begin
+      post :index, :custom_token_name => 'bazqux'
+      assert_equal 1, @logger.logged(:warn).size
+    ensure
+      ActionController::Base.logger = @old_logger
+    end
   end
 end

@@ -36,3 +36,10 @@ end
 def jruby_skip(message = '')
   skip message if defined?(JRUBY_VERSION)
 end
+
+require 'mocha/setup' # FIXME: stop using mocha
+
+# FIXME: we have tests that depend on run order, we should fix that and
+# remove this method call.
+require 'active_support/test_case'
+ActiveSupport::TestCase.test_order = :sorted

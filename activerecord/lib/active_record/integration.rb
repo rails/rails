@@ -55,16 +55,16 @@ module ActiveRecord
     def cache_key(*timestamp_names)
       case
       when new_record?
-        "#{self.class.model_name.cache_key}/new"
+        "#{model_name.cache_key}/new"
       when timestamp_names.any?
         timestamp = max_updated_column_timestamp(timestamp_names)
         timestamp = timestamp.utc.to_s(cache_timestamp_format)
-        "#{self.class.model_name.cache_key}/#{id}-#{timestamp}"
+        "#{model_name.cache_key}/#{id}-#{timestamp}"
       when timestamp = max_updated_column_timestamp
         timestamp = timestamp.utc.to_s(cache_timestamp_format)
-        "#{self.class.model_name.cache_key}/#{id}-#{timestamp}"
+        "#{model_name.cache_key}/#{id}-#{timestamp}"
       else
-        "#{self.class.model_name.cache_key}/#{id}"
+        "#{model_name.cache_key}/#{id}"
       end
     end
 
