@@ -318,17 +318,17 @@ module ActiveSupport
     #   ordinal(1003)  # => "rd"
     #   ordinal(-11)   # => "th"
     #   ordinal(-1021) # => "st"
-    def ordinal(number)
+    def ordinal(number, locale = :en)
       abs_number = number.to_i.abs
 
       if (11..13).include?(abs_number % 100)
-        "th"
+        I18n.translate(:'number.ordinals.th', locale: locale)
       else
         case abs_number % 10
-          when 1; "st"
-          when 2; "nd"
-          when 3; "rd"
-          else    "th"
+          when 1; I18n.translate(:'number.ordinals.st', locale: locale)
+          when 2; I18n.translate(:'number.ordinals.nd', locale: locale)
+          when 3; I18n.translate(:'number.ordinals.rd', locale: locale)
+          else    I18n.translate(:'number.ordinals.th', locale: locale)
         end
       end
     end
@@ -342,8 +342,8 @@ module ActiveSupport
     #   ordinalize(1003)  # => "1003rd"
     #   ordinalize(-11)   # => "-11th"
     #   ordinalize(-1021) # => "-1021st"
-    def ordinalize(number)
-      "#{number}#{ordinal(number)}"
+    def ordinalize(number, locale = :en)
+      "#{number}#{ordinal(number, locale)}"
     end
 
     private

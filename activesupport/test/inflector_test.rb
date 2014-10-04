@@ -8,6 +8,22 @@ class InflectorTest < ActiveSupport::TestCase
   include InflectorTestCases
   include ConstantizeTestCases
 
+  def setup
+    I18n.backend.store_translations 'du',
+      number: {
+        ordinals: {
+          st: 'est',
+          nd: 'end',
+          rd: 'erd',
+          th: 'eth'
+        }
+      }
+  end
+
+  def teardown
+    I18n.backend.reload!
+  end
+
   def test_pluralize_plurals
     assert_equal "plurals", ActiveSupport::Inflector.pluralize("plurals")
     assert_equal "Plurals", ActiveSupport::Inflector.pluralize("Plurals")
@@ -328,15 +344,43 @@ class InflectorTest < ActiveSupport::TestCase
     end
   end
 
-  def test_ordinal
+  def test_ordinal_with_default_locale
     OrdinalNumbers.each do |number, ordinalized|
       assert_equal(ordinalized, number + ActiveSupport::Inflector.ordinal(number))
     end
   end
 
-  def test_ordinalize
+  def test_ordinal_with_locale
+    { '0' => '0eth',
+      '1' => '1est',
+      '2' => '2end',
+      '3' => '3erd',
+      '4' => '4eth',
+      '11' => '11eth',
+      '12' => '12eth',
+      '13' => '13eth'
+    }.each do |number, ordinalized|
+      assert_equal(ordinalized, number + ActiveSupport::Inflector.ordinal(number, :du))
+    end
+  end
+
+  def test_ordinalize_with_default_locale
     OrdinalNumbers.each do |number, ordinalized|
       assert_equal(ordinalized, ActiveSupport::Inflector.ordinalize(number))
+    end
+  end
+
+  def test_ordinalize_with_locale
+    { '0' => '0eth',
+      '1' => '1est',
+      '2' => '2end',
+      '3' => '3erd',
+      '4' => '4eth',
+      '11' => '11eth',
+      '12' => '12eth',
+      '13' => '13eth'
+    }.each do |number, ordinalized|
+      assert_equal(ordinalized, ActiveSupport::Inflector.ordinalize(number, :du))
     end
   end
 

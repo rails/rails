@@ -10,8 +10,8 @@ class Integer
   #  1003.ordinalize  # => "1003rd"
   #  -11.ordinalize   # => "-11th"
   #  -1001.ordinalize # => "-1001st"
-  def ordinalize
-    ActiveSupport::Inflector.ordinalize(self)
+  def ordinalize(locale = :en)
+    ActiveSupport::Inflector.ordinalize(self, locale)
   end
 
   # Ordinal returns the suffix used to denote the position
@@ -23,7 +23,7 @@ class Integer
   #  1003.ordinal  # => "rd"
   #  -11.ordinal   # => "th"
   #  -1001.ordinal # => "st"
-  def ordinal
-    ActiveSupport::Inflector.ordinal(self)
+  def ordinal(locale = :en)
+    ActiveSupport::Inflector.ordinal(self, locale)
   end
 end

@@ -131,3 +131,9 @@ en:
           billion: Billion
           trillion: Trillion
           quadrillion: Quadrillion
+
+    ordinals:
+      st: 'st'
+      nd: 'nd'
+      rd: 'rd'
+      th: 'th'
