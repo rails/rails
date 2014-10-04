@@ -112,7 +112,7 @@ module ActionDispatch
       end
 
       # Generate a url based on the options provided, default_url_options and the
-      # routes defined in routes.rb. The following options are supported:
+      # routes defined in routes.rb. If +options+ is a +Hash+, the following keys are supported:
       #
       # * <tt>:only_path</tt> - If true, the relative url is returned. Defaults to +false+.
       # * <tt>:protocol</tt> - The protocol to connect to. Defaults to 'http'.
@@ -147,6 +147,9 @@ module ActionDispatch
       #    # => 'http://somehost.org/myapp/tasks/testing'
       #    url_for controller: 'tasks', action: 'testing', host: 'somehost.org', script_name: "/myapp", only_path: true
       #    # => '/myapp/tasks/testing'
+      #
+      # +options+ can also be a member of other classes other than +Hash+.
+      # See the source to determine how other types of objects are treated.
       def url_for(options = nil)
         case options
         when nil
