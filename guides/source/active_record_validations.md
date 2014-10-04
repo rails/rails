@@ -523,9 +523,6 @@ If you validate the presence of an object associated via a `has_one` or
 `has_many` relationship, it will check that the object is neither `blank?` nor
 `marked_for_destruction?`.
 
-Since `false.blank?` is true, if you want to validate the presence of a boolean
-field you should use `validates :field_name, inclusion: { in: [true, false] }`.
-
 The default error message is _"can't be blank"_.
 
 ### `absence`
