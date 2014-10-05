@@ -266,7 +266,7 @@ end
 
 When including `ActiveModel::Model` you get some features like:
 
-- model name instrospection
+- model name introspection
 - conversions
 - translations
 - validations
@@ -511,7 +511,7 @@ features out of the box.
 
 `ActiveModel::SecurePassword` provides a way to securely store any
 password in an encrypted form. On including this module, a
-`has_secure_password` class method is provided which defines 
+`has_secure_password` class method is provided which defines
 an accessor named `password` with certain validations on it.
 
 #### Requirements
