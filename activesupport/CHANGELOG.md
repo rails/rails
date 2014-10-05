@@ -1,3 +1,7 @@
+*   Corrected Inflector#underscore handling of multiple successive acroynms.
+
+    *James Le Cuirot*
+
 *   Delegation now works with ruby reserved words passed to `:to` option.
 
     Fixes #16956.

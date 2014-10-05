@@ -196,4 +196,8 @@ class DurationTest < ActiveSupport::TestCase
     assert_respond_to 1.day, :since
     assert_respond_to 1.day, :zero?
   end
+
+  def test_hash
+    assert_equal 1.minute.hash, 60.seconds.hash
+  end
 end
