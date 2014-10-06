@@ -162,17 +162,36 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
     assert_equal(expected, actual)
   end
 
+  test "token_and_options returns right token when token key is not specified in header" do
+    token = "rcHu+HzSFw89Ypyhn/896A="
+
+    actual = ActionController::HttpAuthentication::Token.token_and_options(
+      sample_request_without_token_key(token)
+    ).first
+
+    expected = token
+    assert_equal(expected, actual)
+  end
+
   private
 
     def sample_request(token, options = {nonce: "def"})
       authorization = options.inject([%{Token token="#{token}"}]) do |arr, (k, v)|
         arr << "#{k}=\"#{v}\""
       end.join(", ")
-      @sample_request ||= OpenStruct.new authorization: authorization
+      mock_authorization_request(authorization)
     end
 
     def malformed_request
-      @malformed_request ||= OpenStruct.new authorization: %{Token token=}
+      mock_authorization_request(%{Token token=})
+    end
+
+    def sample_request_without_token_key(token)
+      mock_authorization_request(%{Token #{token}})
+    end
+
+    def mock_authorization_request(authorization)
+      OpenStruct.new(authorization: authorization)
     end
 
     def encode_credentials(token, options = {})
