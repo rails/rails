@@ -292,6 +292,9 @@ module ActionDispatch
 
           session = Rack::Test::Session.new(_mock_session)
 
+          # See https://github.com/brynary/rack-test/pull/116 for more details.
+          session.instance_variable_set(:@digest_username, nil)
+
           # NOTE: rack-test v0.5 doesn't build a default uri correctly
           # Make sure requested path is always a full uri
           session.request(build_full_uri(path, env), env)
