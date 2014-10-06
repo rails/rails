@@ -10,11 +10,11 @@ module ActiveSupport
         format_number(NumberToDelimitedConverter.convert(formatted_string, options))
       end
 
+      private        
+
       def number_precision
         @number_precision ||= options.delete :precision
       end
-
-      private        
 
       def significant
         @significant ||= options.delete :significant
