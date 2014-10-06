@@ -2,7 +2,7 @@ require 'queue_classic'
 
 module ActiveJob
   module QueueAdapters
-    # == Queue Classic adapter for Active Job
+    # == queue_classic adapter for Active Job
     #
     # queue_classic provides a simple interface to a PostgreSQL-backed message
     # queue. queue_classic specializes in concurrent locking and minimizing
@@ -11,9 +11,9 @@ module ActiveJob
     # production environment and that adding another dependency (e.g. redis,
     # beanstalkd, 0mq) is undesirable.
     #
-    # Read more about Queue Classic {here}[https://github.com/ryandotsmith/queue_classic].
+    # Read more about queue_classic {here}[https://github.com/QueueClassic/queue_classic].
     #
-    # To use Queue Classic set the queue_adapter config to +:queue_classic+.
+    # To use queue_classic set the queue_adapter config to +:queue_classic+.
     #
     #   Rails.application.config.active_job.queue_adapter = :queue_classic
     class QueueClassicAdapter
@@ -25,7 +25,7 @@ module ActiveJob
         def enqueue_at(job, timestamp) #:nodoc:
           queue = build_queue(job.queue_name)
           unless queue.respond_to?(:enqueue_at)
-            raise NotImplementedError, 'To be able to schedule jobs with Queue Classic ' \
+            raise NotImplementedError, 'To be able to schedule jobs with queue_classic ' \
               'the QC::Queue needs to respond to `enqueue_at(timestamp, method, *args)`. '
               'You can implement this yourself or you can use the queue_classic-later gem.'
           end
