@@ -99,6 +99,10 @@ To find out more about different `rackup` options:
 $ rackup --help
 ```
 
+### Development and auto-reloading
+
+Middlewares are loaded once and are not monitored for changes. You will have to restart the server for changes to be reflected in the running application.
+
 Action Dispatcher Middleware Stack
 ----------------------------------
 
