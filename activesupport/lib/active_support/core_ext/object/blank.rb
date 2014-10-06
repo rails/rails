@@ -100,6 +100,7 @@ end
 
 class String
   BLANK_RE = /\A[[:space:]]*\z/
+  RSTRING_EMBED_LEN_MAX = 1.size * 3
 
   # A string is blank if it's empty or contains whitespaces only:
   #
@@ -114,7 +115,8 @@ class String
   #
   # @return [true, false]
   def blank?
-    return empty? || strip.empty? if ascii_only?
+    return true if empty?
+    return strip.empty? if length < RSTRING_EMBED_LEN_MAX && ascii_only?
     BLANK_RE === self
   end
 end
