@@ -114,7 +114,6 @@ class String
   #
   # @return [true, false]
   def blank?
-    return empty? || strip.empty? if ascii_only?
     BLANK_RE === self
   end
 end
