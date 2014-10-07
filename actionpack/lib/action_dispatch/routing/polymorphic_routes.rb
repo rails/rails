@@ -1,4 +1,5 @@
 require 'action_controller/model_naming'
+require 'action_dispatch/internal/constants'
 
 module ActionDispatch
   module Routing
@@ -304,7 +305,7 @@ module ActionDispatch
 
           route << suffix
 
-          named_route = prefix + route.join("_")
+          named_route = prefix + route.join(Strings::UNDERSCORE)
           [named_route, args]
         end
 

@@ -1,6 +1,7 @@
 require 'active_support/core_ext/module/attribute_accessors'
 require 'active_support/deprecation'
 require 'action_dispatch/http/filter_redirect'
+require 'action_dispatch/internal/constants'
 require 'monitor'
 
 module ActionDispatch # :nodoc:
@@ -69,7 +70,7 @@ module ActionDispatch # :nodoc:
     LOCATION     = "Location".freeze
     NO_CONTENT_CODES = [204, 304]
 
-    cattr_accessor(:default_charset) { "utf-8" }
+    cattr_accessor(:default_charset) { 'utf-8' }
     cattr_accessor(:default_headers)
 
     include Rack::Response::Helpers
@@ -219,11 +220,9 @@ module ActionDispatch # :nodoc:
       strings.join
     end
 
-    EMPTY = " "
-
     # Allows you to manually set or override the response body.
     def body=(body)
-      @blank = true if body == EMPTY
+      @blank = true if body == Strings::SPACE
 
       if body.respond_to?(:to_path)
         @stream = body
@@ -298,10 +297,10 @@ module ActionDispatch # :nodoc:
     def cookies
       cookies = {}
       if header = self[SET_COOKIE]
-        header = header.split("\n") if header.respond_to?(:to_str)
+        header = header.split(Strings::NEWLINE) if header.respond_to?(:to_str)
         header.each do |cookie|
-          if pair = cookie.split(';').first
-            key, value = pair.split("=").map { |v| Rack::Utils.unescape(v) }
+          if pair = cookie.split(Strings::SEMICOLON).first
+            key, value = pair.split(Strings::EQUALS).map { |v| Rack::Utils.unescape(v) }
             cookies[key] = value
           end
         end
@@ -390,7 +389,7 @@ module ActionDispatch # :nodoc:
       assign_default_content_type_and_charset!(header)
       handle_conditional_get!
 
-      header[SET_COOKIE] = header[SET_COOKIE].join("\n") if header[SET_COOKIE].respond_to?(:join)
+      header[SET_COOKIE] = header[SET_COOKIE].join(Strings::NEWLINE) if header[SET_COOKIE].respond_to?(:join)
 
       if NO_CONTENT_CODES.include?(@status)
         header.delete CONTENT_TYPE

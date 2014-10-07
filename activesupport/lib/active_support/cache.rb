@@ -398,7 +398,7 @@ module ActiveSupport
       def delete(name, options = nil)
         options = merged_options(options)
 
-        instrument(:delete, name) do
+        instrument(:delete, name, options) do
           delete_entry(namespaced_key(name, options), options)
         end
       end
@@ -409,7 +409,7 @@ module ActiveSupport
       def exist?(name, options = nil)
         options = merged_options(options)
 
-        instrument(:exist?, name) do
+        instrument(:exist?, name, options) do
           entry = read_entry(namespaced_key(name, options), options)
           (entry && !entry.expired?) || false
         end
@@ -539,17 +539,21 @@ module ActiveSupport
           key
         end
 
+        NOTIFICATION_NAMES = Hash.new { |h, operation| h[operation] = "cache_#{operation}.active_support".freeze }
+        private_constant :NOTIFICATION_NAMES
+
         def instrument(operation, key, options = nil)
           log(operation, key, options)
 
           payload = { :key => key }
           payload.merge!(options) if options.is_a?(Hash)
-          ActiveSupport::Notifications.instrument("cache_#{operation}.active_support", payload){ yield(payload) }
+          ActiveSupport::Notifications.instrument(NOTIFICATION_NAMES[operation], payload) { yield payload }
         end
 
         def log(operation, key, options = nil)
-          return unless logger && logger.debug? && !silence?
-          logger.debug("Cache #{operation}: #{key}#{options.blank? ? "" : " (#{options.inspect})"}")
+          if logger && logger.debug? && !silence?
+            logger.debug "Cache #{operation}: #{key} (#{options.inspect})"
+          end
         end
 
         def find_cached_entry(key, name, options)

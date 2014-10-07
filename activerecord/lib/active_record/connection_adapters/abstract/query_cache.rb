@@ -71,13 +71,18 @@ module ActiveRecord
         end
       end
 
-      private
+      module Strings #:nodoc:
+        CACHE = 'CACHE'.freeze
+        SQL_ACTIVE_RECORD = 'sql.active_record'.freeze
+      end
+      private_constant :Strings
 
+      private
       def cache_sql(sql, binds)
         result =
           if @query_cache[sql].key?(binds)
-            ActiveSupport::Notifications.instrument("sql.active_record",
-              :sql => sql, :binds => binds, :name => "CACHE", :connection_id => object_id)
+            ActiveSupport::Notifications.instrument(Strings::SQL_ACTIVE_RECORD,
+              :sql => sql, :binds => binds, :name => Strings::CACHE, :connection_id => object_id)
             @query_cache[sql][binds]
           else
             @query_cache[sql][binds] = yield
@@ -87,6 +92,7 @@ module ActiveRecord
 
       # If arel is locked this is a SELECT ... FOR UPDATE or somesuch. Such
       # queries should not be cached.
+      private
       def locked?(arel)
         arel.respond_to?(:locked) && arel.locked
       end

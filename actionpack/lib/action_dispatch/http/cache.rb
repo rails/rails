@@ -1,11 +1,14 @@
+require 'action_dispatch/internal/constants'
 
 module ActionDispatch
   module Http
     module Cache
       module Request
-
         HTTP_IF_MODIFIED_SINCE = 'HTTP_IF_MODIFIED_SINCE'.freeze
-        HTTP_IF_NONE_MATCH     = 'HTTP_IF_NONE_MATCH'.freeze
+        private_constant :HTTP_IF_MODIFIED_SINCE
+
+        HTTP_IF_NONE_MATCH = 'HTTP_IF_NONE_MATCH'.freeze
+        private_constant :HTTP_IF_NONE_MATCH
 
         def if_modified_since
           if since = env[HTTP_IF_MODIFIED_SINCE]
@@ -19,7 +22,7 @@ module ActionDispatch
 
         def if_none_match_etags
           (if_none_match ? if_none_match.split(/\s*,\s*/) : []).collect do |etag|
-            etag.gsub(/^\"|\"$/, "")
+            etag.gsub(/^\"|\"$/, Strings::EMPTY)
           end
         end
 
@@ -29,7 +32,7 @@ module ActionDispatch
 
         def etag_matches?(etag)
           if etag
-            etag = etag.gsub(/^\"|\"$/, "")
+            etag = etag.gsub(/^\"|\"$/, Strings::EMPTY)
             if_none_match_etags.include?(etag)
           end
         end
@@ -96,7 +99,7 @@ module ActionDispatch
 
         def cache_control_segments
           if cache_control = self[CACHE_CONTROL]
-            cache_control.delete(' ').split(',')
+            cache_control.delete(Strings::SPACE).split(Strings::COMMA)
           else
             []
           end
@@ -106,10 +109,10 @@ module ActionDispatch
           cache_control = {}
 
           cache_control_segments.each do |segment|
-            directive, argument = segment.split('=', 2)
+            directive, argument = segment.split(Strings::EQUALS, 2)
 
             if SPECIAL_KEYS.include? directive
-              key = directive.tr('-', '_')
+              key = directive.tr(Strings::HYPHEN, Strings::UNDERSCORE)
               cache_control[key.to_sym] = argument || true
             else
               cache_control[:extras] ||= []
@@ -136,6 +139,8 @@ module ActionDispatch
         PUBLIC                = "public".freeze
         PRIVATE               = "private".freeze
         MUST_REVALIDATE       = "must-revalidate".freeze
+        COMMASPACE            = ', '.freeze
+        private_constant :COMMASPACE
 
         def set_conditional_cache_control!
           control = {}
@@ -154,7 +159,7 @@ module ActionDispatch
           elsif control[:no_cache]
             headers[CACHE_CONTROL] = NO_CACHE
             if control[:extras]
-              headers[CACHE_CONTROL] += ", #{control[:extras].join(', ')}"
+              headers[CACHE_CONTROL] += COMMASPACE + control[:extras].join(COMMASPACE)
             end
           else
             extras  = control[:extras]
@@ -166,7 +171,7 @@ module ActionDispatch
             options << MUST_REVALIDATE if control[:must_revalidate]
             options.concat(extras) if extras
 
-            headers[CACHE_CONTROL] = options.join(", ")
+            headers[CACHE_CONTROL] = options.join(COMMASPACE)
           end
         end
       end

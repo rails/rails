@@ -25,6 +25,11 @@ module Mime
   EXTENSION_LOOKUP = {}
   LOOKUP           = Hash.new { |h, k| h[k] = Type.new(k) unless k.blank? }
 
+  module Strings #:nodoc:
+    QUESTION_MARK = '?'.freeze
+  end
+  private_constant :Strings
+
   class << self
     def [](type)
       return type if type.is_a?(Type)
@@ -280,7 +285,7 @@ module Mime
     def to_a; end
 
     def method_missing(method, *args)
-      if method.to_s.ends_with? '?'
+      if method.to_s.ends_with? Strings::QUESTION_MARK
         method[0..-2].downcase.to_sym == to_sym
       else
         super
@@ -288,7 +293,7 @@ module Mime
     end
 
     def respond_to_missing?(method, include_private = false) #:nodoc:
-      method.to_s.ends_with? '?'
+      method.to_s.ends_with? Strings::QUESTION_MARK
     end
   end
 
@@ -302,12 +307,12 @@ module Mime
     def ref; end
 
     def respond_to_missing?(method, include_private = false)
-      method.to_s.ends_with? '?'
+      method.to_s.ends_with? Strings::QUESTION_MARK
     end
 
     private
     def method_missing(method, *args)
-      false if method.to_s.ends_with? '?'
+      false if method.to_s.ends_with? Strings::QUESTION_MARK
     end
   end
 end

@@ -1,4 +1,10 @@
 class String
+  module Strings #:nodoc:
+    EMPTY = ''.freeze
+    SPACE = ' '.freeze
+  end
+  private_constant :Strings
+
   # Returns the string, first removing all whitespace on both ends of
   # the string, and then changing remaining consecutive whitespace
   # groups into one space each.
@@ -14,20 +20,20 @@ class String
 
   # Performs a destructive squish. See String#squish.
   def squish!
-    gsub!(/\A[[:space:]]+/, '')
-    gsub!(/[[:space:]]+\z/, '')
-    gsub!(/[[:space:]]+/, ' ')
+    gsub!(/\A[[:space:]]+/, Strings::EMPTY)
+    gsub!(/[[:space:]]+\z/, Strings::EMPTY)
+    gsub!(/[[:space:]]+/, Strings::SPACE)
     self
   end
 
   # Returns a new string with all occurrences of the pattern removed. Short-hand for String#gsub(pattern, '').
   def remove(pattern)
-    gsub pattern, ''
+    gsub pattern, Strings::EMPTY
   end
 
   # Alters the string by removing all occurrences of the pattern. Short-hand for String#gsub!(pattern, '').
   def remove!(pattern)
-    gsub! pattern, ''
+    gsub! pattern, Strings::EMPTY
   end
 
   # Truncates a given +text+ after a given <tt>length</tt> if +text+ is longer than <tt>length</tt>:
@@ -51,7 +57,7 @@ class String
   def truncate(truncate_at, options = {})
     return dup unless length > truncate_at
 
-    omission = options[:omission] || '...'
+    omission = options[:omission] || :'...'
     length_with_room_for_omission = truncate_at - omission.length
     stop = \
       if options[:separator]

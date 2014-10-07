@@ -5,6 +5,11 @@ module ActiveRecord
     autoload :RelationHandler, 'active_record/relation/predicate_builder/relation_handler'
     autoload :ArrayHandler, 'active_record/relation/predicate_builder/array_handler'
 
+    module Strings #:nodoc:
+      PERIOD = '.'.freeze
+    end
+    private_constant :Strings
+
     def self.resolve_column_aliases(klass, hash)
       hash = hash.dup
       hash.keys.grep(Symbol) do |key|
@@ -34,12 +39,11 @@ module ActiveRecord
           end
         else
           column = column.to_s
-
-          if column.include?('.')
-            table_name, column = column.split('.', 2)
-            table = Arel::Table.new(table_name, default_table.engine)
+          split_table, split_column = column.split(Strings::PERIOD, 2)
+          if split_column
+            table = Arel::Table.new(split_table, default_table.engine)
+            column = split_column
           end
-
           queries.concat expand(klass, table, column, value)
         end
       end
@@ -85,7 +89,7 @@ module ActiveRecord
           key
         else
           key = key.to_s
-          key.split('.').first if key.include?('.')
+          key.split(Strings::PERIOD, 2).first if key.include?('.')
         end
       end.compact
     end

@@ -5,6 +5,10 @@ class Object
   # <tt>x.acts_like?(:date)</tt> to do duck-type-safe comparisons, since classes that
   # we want to act like Time simply need to define an <tt>acts_like_time?</tt> method.
   def acts_like?(duck)
-    respond_to? :"acts_like_#{duck}?"
+    case duck
+    when :time then respond_to? :acts_like_time?
+    when :date then respond_to? :acts_like_date?
+    else respond_to? :"acts_like_#{duck}?"
+    end
   end
 end

@@ -12,13 +12,22 @@ module ActionDispatch
 
       attr_reader :variant
 
+      module Strings #:nodoc:
+        ACTION_DISPATCH_REQUEST_ACCEPTS = 'action_dispatch.request.accepts'.freeze
+        ACTION_DISPATCH_REQUEST_CONTENT_TYPE = 'action_dispatch.request.content_type'.freeze
+        ACTION_DISPATCH_REQUEST_FORMATS = 'action_dispatch.request.formats'.freeze
+        CONTENT_TYPE = 'CONTENT_TYPE'.freeze
+        HTTP_ACCEPT = 'HTTP_ACCEPT'.freeze
+      end
+      private_constant :Strings
+
       # The MIME type of the HTTP request, such as Mime::XML.
       #
       # For backward compatibility, the post \format is extracted from the
       # X-Post-Data-Format HTTP header if present.
       def content_mime_type
-        @env["action_dispatch.request.content_type"] ||= begin
-          if @env['CONTENT_TYPE'] =~ /^([^,\;]*)/
+        @env[Strings::ACTION_DISPATCH_REQUEST_CONTENT_TYPE] ||= begin
+          if @env[Strings::CONTENT_TYPE] =~ /^([^,\;]*)/
             Mime::Type.lookup($1.strip.downcase)
           else
             nil
@@ -32,8 +41,8 @@ module ActionDispatch
 
       # Returns the accepted MIME type for the request.
       def accepts
-        @env["action_dispatch.request.accepts"] ||= begin
-          header = @env['HTTP_ACCEPT'].to_s.strip
+        @env[Strings::ACTION_DISPATCH_REQUEST_ACCEPTS] ||= begin
+          header = @env[Strings::HTTP_ACCEPT].to_s.strip
 
           if header.empty?
             [content_mime_type]
@@ -54,7 +63,7 @@ module ActionDispatch
       end
 
       def formats
-        @env["action_dispatch.request.formats"] ||= begin
+        @env[Strings::ACTION_DISPATCH_REQUEST_FORMATS] ||= begin
           params_readable = begin
                               parameters[:format]
                             rescue ActionController::BadRequest
@@ -72,6 +81,7 @@ module ActionDispatch
           end
         end
       end
+
       # Sets the \variant for template.
       def variant=(variant)
         if variant.is_a?(Symbol)
@@ -99,7 +109,7 @@ module ActionDispatch
       #   end
       def format=(extension)
         parameters[:format] = extension.to_s
-        @env["action_dispatch.request.formats"] = [Mime::Type.lookup_by_extension(parameters[:format])]
+        @env[Strings::ACTION_DISPATCH_REQUEST_FORMATS] = [Mime::Type.lookup_by_extension(parameters[:format])]
       end
 
       # Sets the \formats by string extensions. This differs from #format= by allowing you
@@ -118,7 +128,7 @@ module ActionDispatch
       #   end
       def formats=(extensions)
         parameters[:format] = extensions.first.to_s
-        @env["action_dispatch.request.formats"] = extensions.collect do |extension|
+        @env[Strings::ACTION_DISPATCH_REQUEST_FORMATS] = extensions.collect do |extension|
           Mime::Type.lookup_by_extension(extension)
         end
       end
@@ -140,7 +150,8 @@ module ActionDispatch
 
       protected
 
-      BROWSER_LIKE_ACCEPTS = /,\s*\*\/\*|\*\/\*\s*,/
+      BROWSER_LIKE_ACCEPTS = /,\s*\*\/\*|\*\/\*\s*,/ #:nodoc:
+      private_constant :BROWSER_LIKE_ACCEPTS
 
       def valid_accept_header
         (xhr? && (accept.present? || content_mime_type)) ||

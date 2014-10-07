@@ -1,8 +1,11 @@
 module ActionDispatch
   module Http
     module FilterRedirect
-
       FILTERED = '[FILTERED]'.freeze # :nodoc:
+      private_constant :FILTERED
+
+      REDIRECT_FILTER = 'action_dispatch.redirect_filter'.freeze #:nodoc:
+      private_constant :REDIRECT_FILTER
 
       def filtered_location
         filters = location_filter
@@ -13,16 +16,16 @@ module ActionDispatch
         end
       end
 
-    private
-
+      private
       def location_filter
         if request
-          request.env['action_dispatch.redirect_filter'] || []
+          request.env[REDIRECT_FILTER] || []
         else
           []
         end
       end
 
+      private
       def location_filter_match?(filters)
         filters.any? do |filter|
           if String === filter
@@ -32,7 +35,6 @@ module ActionDispatch
           end
         end
       end
-
     end
   end
 end

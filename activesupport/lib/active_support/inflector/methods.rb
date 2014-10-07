@@ -16,6 +16,16 @@ module ActiveSupport
   module Inflector
     extend self
 
+    module Strings #:nodoc:
+      EMPTY = ''.freeze
+      UNDERSCORE = '_'.freeze
+      HYPHEN = '-'.freeze
+      DOUBLE_COLON = '::'.freeze
+      ID = 'id'.freeze
+      UNDERSCORE_ID = '_id'.freeze
+    end
+    private_constant :Strings
+
     # Returns the plural form of the word in the string.
     #
     # If passed an optional +locale+ parameter, the word will be
@@ -178,14 +188,14 @@ module ActiveSupport
     #   'calculus'.classify     # => "Calculu"
     def classify(table_name)
       # strip out any leading schema name
-      camelize(singularize(table_name.to_s.sub(/.*\./, '')))
+      camelize(singularize(table_name.to_s.sub(/.*\./, Strings::EMPTY)))
     end
 
     # Replaces underscores with dashes in the string.
     #
     #   'puni_puni'.dasherize # => "puni-puni"
     def dasherize(underscored_word)
-      underscored_word.tr('_', '-')
+      underscored_word.tr(Strings::UNDERSCORE, Strings::HYPHEN)
     end
 
     # Removes the module part from the expression in the string.
@@ -198,7 +208,7 @@ module ActiveSupport
     # See also +deconstantize+.
     def demodulize(path)
       path = path.to_s
-      if i = path.rindex('::')
+      if i = path.rindex(Strings::DOUBLE_COLON)
         path[(i+2)..-1]
       else
         path
@@ -215,7 +225,7 @@ module ActiveSupport
     #
     # See also +demodulize+.
     def deconstantize(path)
-      path.to_s[0, path.rindex('::') || 0] # implementation based on the one in facets' Module#spacename
+      path.to_s[0, path.rindex(Strings::DOUBLE_COLON) || 0] # implementation based on the one in facets' Module#spacename
     end
 
     # Creates a foreign key name from a class name.
@@ -226,7 +236,7 @@ module ActiveSupport
     #   'Message'.foreign_key(false) # => "messageid"
     #   'Admin::Post'.foreign_key    # => "post_id"
     def foreign_key(class_name, separate_class_name_and_id_with_underscore = true)
-      underscore(demodulize(class_name)) + (separate_class_name_and_id_with_underscore ? "_id" : "id")
+      underscore(demodulize(class_name)) + (separate_class_name_and_id_with_underscore ? Strings::UNDERSCORE_ID : Strings::ID)
     end
 
     # Tries to find a constant with the name specified in the argument string.
@@ -248,7 +258,7 @@ module ActiveSupport
     # NameError is raised when the name is not in CamelCase or the constant is
     # unknown.
     def constantize(camel_cased_word)
-      names = camel_cased_word.split('::')
+      names = camel_cased_word.split(Strings::DOUBLE_COLON)
 
       # Trigger a built-in NameError exception including the ill-formed constant in the message.
       Object.const_get(camel_cased_word) if names.empty?
@@ -354,7 +364,7 @@ module ActiveSupport
     #   const_regexp("Foo::Bar::Baz") # => "Foo(::Bar(::Baz)?)?"
     #   const_regexp("::")            # => "::"
     def const_regexp(camel_cased_word) #:nodoc:
-      parts = camel_cased_word.split("::")
+      parts = camel_cased_word.split(Strings::DOUBLE_COLON)
 
       return Regexp.escape(camel_cased_word) if parts.blank?
 

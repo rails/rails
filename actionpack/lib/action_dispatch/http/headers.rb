@@ -1,3 +1,5 @@
+require 'action_dispatch/internal/constants'
+
 module ActionDispatch
   module Http
     # Provides access to the request's HTTP headers from the environment.
@@ -27,7 +29,8 @@ module ActionDispatch
         SERVER_SOFTWARE
       ]).freeze
 
-      HTTP_HEADER = /\A[A-Za-z0-9-]+\z/
+      HTTP_HEADER = /\A[A-Za-z0-9-]+\z/ #:nodoc:
+      HTTP_UNDERSCORE = 'HTTP_'.freeze #:nodoc:
 
       include Enumerable
       attr_reader :env
@@ -89,8 +92,8 @@ module ActionDispatch
       def env_name(key)
         key = key.to_s
         if key =~ HTTP_HEADER
-          key = key.upcase.tr('-', '_')
-          key = "HTTP_" + key unless CGI_VARIABLES.include?(key)
+          key = key.upcase.tr(Strings::HYPHEN, Strings::UNDERSCORE)
+          key = HTTP_UNDERSCORE + key unless CGI_VARIABLES.include?(key)
         end
         key
       end

@@ -1,4 +1,5 @@
 require 'action_dispatch/journey/visitors'
+require 'action_dispatch/internal/constants'
 
 module ActionDispatch
   module Journey # :nodoc:
@@ -6,11 +7,17 @@ module ActionDispatch
       class Node # :nodoc:
         include Enumerable
 
-        attr_accessor :left, :memo
+        attr_reader :left
+        attr_accessor :memo
 
         def initialize(left)
           @left = left
           @memo = nil
+        end
+
+        def left=(left)
+          @name = nil
+          @left = left
         end
 
         def each(&block)
@@ -29,8 +36,11 @@ module ActionDispatch
           name.to_sym
         end
 
+        OMIT_FROM_NAME = '*:'.freeze
+        private_constant :OMIT_FROM_NAME
+
         def name
-          left.tr '*:', ''
+          @name ||= left.tr(OMIT_FROM_NAME, Strings::EMPTY)
         end
 
         def type
@@ -58,12 +68,12 @@ module ActionDispatch
         def literal?; false; end
       end
 
-      %w{ Symbol Slash Dot }.each do |t|
-        class_eval <<-eoruby, __FILE__, __LINE__ + 1
-          class #{t} < Terminal;
-            def type; :#{t.upcase}; end
-          end
-        eoruby
+      class Slash < Terminal
+        def type; :SLASH; end
+      end
+
+      class Dot < Terminal
+        def type; :DOT; end
       end
 
       class Symbol < Terminal # :nodoc:
@@ -79,6 +89,8 @@ module ActionDispatch
         def default_regexp?
           regexp == DEFAULT_EXP
         end
+
+        def type; :SYMBOL; end
 
         def symbol?; true; end
       end

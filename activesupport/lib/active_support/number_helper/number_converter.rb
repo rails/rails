@@ -168,8 +168,13 @@ module ActiveSupport
           translate_number_value_with_default(key, { locale: options[:locale] }.merge(i18n_options))
         end
 
+        module Strings #:nodoc:
+          PERIOD = '.'.freeze
+        end
+        private_constant :Strings
+
         def default_value(key)
-          key.split('.').reduce(DEFAULTS) { |defaults, k| defaults[k.to_sym] }
+          key.split(Strings::PERIOD).reduce(DEFAULTS) { |defaults, k| defaults[k.to_sym] }
         end
 
         def valid_float? #:nodoc:

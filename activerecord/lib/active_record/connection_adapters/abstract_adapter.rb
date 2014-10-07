@@ -265,10 +265,15 @@ module ActiveRecord
 
       # QUOTING ==================================================
 
+      module Strings #:nodoc:
+        QUESTION_MARK = '?'.freeze
+      end
+      private_constant :Strings
+
       # Returns a bind substitution value given a bind +index+ and +column+
       # NOTE: The column param is currently being used by the sqlserver-adapter
       def substitute_at(column, index)
-        Arel::Nodes::BindParam.new '?'
+        Arel::Nodes::BindParam.new Strings::QUESTION_MARK
       end
 
       # REFERENTIAL INTEGRITY ====================================
