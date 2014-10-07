@@ -184,7 +184,7 @@ module ActiveSupport
     }
 
     UTC_OFFSET_WITH_COLON = '%s%02d:%02d'
-    UTC_OFFSET_WITHOUT_COLON = UTC_OFFSET_WITH_COLON.sub(':', '')
+    UTC_OFFSET_WITHOUT_COLON = UTC_OFFSET_WITH_COLON.tr(':', '')
 
     @lazy_zones_map = ThreadSafe::Cache.new
 
