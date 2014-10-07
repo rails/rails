@@ -6,6 +6,7 @@ class Comment < ActiveRecord::Base
   scope :for_first_author, -> { joins(:post).where("posts.author_id" => 1) }
   scope :created, -> { all }
   scope :leaves, -> { where.not(id: select(:parent_id)) }
+  # NOTE: Deliberately NOT unscoped subselect
 
   belongs_to :post, :counter_cache => true
   belongs_to :author,   polymorphic: true

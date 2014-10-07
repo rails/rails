@@ -888,7 +888,10 @@ module ActiveRecord
         bp.replace connection.substitute_at(column, remapped_bind_values.count)
         remapped_bind_values[bp] = bind_value
       end
-      self.bind_values = remapped_bind_values.values
+      self.bind_values = remapped_bind_values.values.select do |bv|
+        bind_values.include? bv
+      end
+      # TODO: Inherent reliance of order of hash, is this fine?
 
       arel
     end
