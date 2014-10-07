@@ -879,19 +879,16 @@ module ActiveRecord
       arel.lock(lock_value) if lock_value
 
       # Reordoring all bind parameters and values
-      remapped_bind_values = Hash.new
+      bind_values_seen = Array.new
       bvs = arel.bind_values + bind_values
       arel.ast.grep(Arel::Nodes::BindParam).each_with_index do |bp, i|
-        next if remapped_bind_values[bp]
         bind_value = bvs[i]
-        column = bind_value.first
-        bp.replace connection.substitute_at(column, remapped_bind_values.count)
-        remapped_bind_values[bp] = bind_value
+        next unless bind_value
+        next if bind_values_seen.include?(bind_value)
+        bp.replace connection.substitute_at(bind_vlaue.first, bind_values_seen.count)
+        bind_values_seen << bind_value
       end
-      self.bind_values = remapped_bind_values.values.select do |bv|
-        bind_values.include? bv
-      end
-      # TODO: Inherent reliance of order of hash, is this fine?
+      self.bind_values = bind_values.uniq - arel.bind_values
 
       arel
     end
