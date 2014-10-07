@@ -244,7 +244,7 @@ module ActionController
         request.parameters.merge! wrapped_hash
         request.request_parameters.merge! wrapped_hash
 
-        # This will make the wrapped hash displayed in the log file
+        # This will display the wrapped hash in the log file
         request.filtered_parameters.merge! wrapped_filtered_hash
       end
       super
@@ -252,7 +252,7 @@ module ActionController
 
     private
 
-      # Returns the wrapper key which will use to stored wrapped parameters.
+      # Returns the wrapper key which will be used to stored wrapped parameters.
       def _wrapper_key
         _wrapper_options.name
       end
