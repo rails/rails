@@ -31,7 +31,7 @@ module ActiveRecord
       end
     }
 
-    BLACKLISTED_CLASS_METHODS = %w(private public protected)
+    BLACKLISTED_CLASS_METHODS = %w(private public protected allocate new name parent superclass)
 
     class AttributeMethodCache
       def initialize
@@ -69,6 +69,8 @@ module ActiveRecord
         @generated_attribute_methods = GeneratedAttributeMethods.new { extend Mutex_m }
         @attribute_methods_generated = false
         include @generated_attribute_methods
+
+        super
       end
 
       # Generates all the attribute related methods for columns in the database
@@ -109,7 +111,7 @@ module ActiveRecord
       #   # => false
       def instance_method_already_implemented?(method_name)
         if dangerous_attribute_method?(method_name)
-          raise DangerousAttributeError, "#{method_name} is defined by Active Record"
+          raise DangerousAttributeError, "#{method_name} is defined by Active Record. Check to make sure that you don't have an attribute or method with the same name."
         end
 
         if superclass == Base

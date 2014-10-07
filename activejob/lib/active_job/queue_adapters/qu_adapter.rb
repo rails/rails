@@ -5,7 +5,7 @@ module ActiveJob
     class QuAdapter
       class << self
         def enqueue(job, *args)
-          Qu::Payload.new(klass: JobWrapper, args: [job.name, *args]).tap do |payload|
+          Qu::Payload.new(klass: JobWrapper, args: [job.serialize]).tap do |payload|
             payload.instance_variable_set(:@queue, job.queue_name)
           end.push
         end
@@ -16,13 +16,12 @@ module ActiveJob
       end
 
       class JobWrapper < Qu::Job
-        def initialize(job_name, *args)
-          @job  = job_name.constantize
-          @args = args
+        def initialize(job_data)
+          @job_data  = job_data
         end
 
         def perform
-          @job.new.execute(*@args)
+          Base.execute @job_data
         end
       end
     end

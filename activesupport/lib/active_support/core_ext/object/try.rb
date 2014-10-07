@@ -33,6 +33,11 @@ class Object
   #     ...
   #   end
   #
+  # You can also call try with a block without accepting an argument, and the block
+  # will be instance_eval'ed instead:
+  #
+  #   @person.try { upcase.truncate(50) }
+  #
   # Please also note that +try+ is defined on +Object+, therefore it won't work
   # with instances of classes that do not have +Object+ among their ancestors,
   # like direct subclasses of +BasicObject+. For example, using +try+ with
@@ -40,7 +45,11 @@ class Object
   # delegator itself.
   def try(*a, &b)
     if a.empty? && block_given?
-      yield self
+      if b.arity.zero?
+        instance_eval(&b)
+      else
+        yield self
+      end
     else
       public_send(*a, &b) if respond_to?(a.first)
     end

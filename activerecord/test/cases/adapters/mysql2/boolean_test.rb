@@ -9,6 +9,7 @@ class Mysql2BooleanTest < ActiveRecord::TestCase
 
   setup do
     @connection = ActiveRecord::Base.connection
+    @connection.clear_cache!
     @connection.create_table("mysql_booleans") do |t|
       t.boolean "archived"
       t.string "published", limit: 1

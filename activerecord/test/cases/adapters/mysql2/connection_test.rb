@@ -52,6 +52,11 @@ class MysqlConnectionTest < ActiveRecord::TestCase
     assert @connection.active?
   end
 
+  def test_mysql_connection_collation_is_configured
+    assert_equal 'utf8_unicode_ci', @connection.show_variable('collation_connection')
+    assert_equal 'utf8_general_ci', ARUnit2Model.connection.show_variable('collation_connection')
+  end
+
   # TODO: Below is a straight up copy/paste from mysql/connection_test.rb
   # I'm not sure what the correct way is to share these tests between
   # adapters in minitest.

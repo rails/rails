@@ -16,6 +16,35 @@ module ActiveSupport
     Assertion = Minitest::Assertion
 
     class << self
+      def test_order=(new_order)
+        ActiveSupport.test_order = new_order
+      end
+
+      def test_order
+        test_order = ActiveSupport.test_order
+
+        if test_order.nil?
+          ActiveSupport::Deprecation.warn "You did not specify a value for the " \
+            "configuration option 'active_support.test_order'. In Rails 5.0, " \
+            "the default value of this option will change from `:sorted` to " \
+            "`:random`.\n" \
+            "To disable this warning and keep the current behavior, you can add " \
+            "the following line to your `config/environments/test.rb`:\n" \
+            "\n" \
+            "  Rails.application.configure do\n" \
+            "    config.active_support.test_order = :sorted\n" \
+            "  end\n" \
+            "\n" \
+            "Alternatively, you can opt into the future behavior by setting this " \
+            "option to `:random`."
+
+          test_order = :sorted
+          self.test_order = test_order
+        end
+
+        test_order
+      end
+
       alias :my_tests_are_order_dependent! :i_suck_and_my_tests_are_order_dependent!
     end
 

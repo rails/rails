@@ -78,15 +78,15 @@ end
 Enqueue a job like so:
 
 ```ruby
-MyJob.enqueue record  # Enqueue a job to be performed as soon the queueing system is free.
+MyJob.perform_later record  # Enqueue a job to be performed as soon the queueing system is free.
 ```
 
 ```ruby
-MyJob.enqueue_at Date.tomorrow.noon, record  # Enqueue a job to be performed tomorrow at noon.
+MyJob.set(wait_until: Date.tomorrow.noon).perform_later(record)  # Enqueue a job to be performed tomorrow at noon.
 ```
 
 ```ruby
-MyJob.enqueue_in 1.week, record # Enqueue a job to be performed 1 week from now.
+MyJob.set(wait: 1.week).perform_later(record) # Enqueue a job to be performed 1 week from now.
 ```
 
 That's it!
@@ -113,18 +113,23 @@ Active Job has adapters for the following queueing backends:
 
 #### Backends Features
 
-|                       | Async | Queues  | Delayed | Priorities  | Timeout | Retries |
-|-----------------------|-------|---------|---------|-------------|---------|---------|
-| **Backburner**        | Yes   | Yes     | Yes     | Yes         | Job     | Global  |
-| **Delayed Job**       | Yes   | Yes     | Yes     | Job         | Global  | Global  |
-| **Que**               | Yes   | Yes     | Yes     | Job         | No      | Job     |
-| **Queue Classic**     | Yes   | Yes     | Gem     | No          | No      | No      |
-| **Resque**            | Yes   | Yes     | Gem     | Queue       | Global  | Yes     |
-| **Sidekiq**           | Yes   | Yes     | Yes     | Queue       | No      | Job     |
-| **Sneakers**          | Yes   | Yes     | No      | Queue       | Queue   | No      |
-| **Sucker Punch**      | Yes   | Yes     | Yes     | No          | No      | No      |
-| **Active Job Inline** | No    | Yes     | N/A     | N/A         | N/A     | N/A     |
-| **Active Job**        | Yes   | Yes     | Yes     | No          | No      | No      |
+|                       | Async | Queues | Delayed   | Priorities | Timeout | Retries |
+|-----------------------|-------|--------|-----------|------------|---------|---------|
+| **Backburner**        | Yes   | Yes    | Yes       | Yes        | Job     | Global  |
+| **Delayed Job**       | Yes   | Yes    | Yes       | Job        | Global  | Global  |
+| **Que**               | Yes   | Yes    | Yes       | Job        | No      | Job     |
+| **Queue Classic**     | Yes   | Yes    | No*       | No         | No      | No      |
+| **Resque**            | Yes   | Yes    | Yes (Gem) | Queue      | Global  | Yes     |
+| **Sidekiq**           | Yes   | Yes    | Yes       | Queue      | No      | Job     |
+| **Sneakers**          | Yes   | Yes    | No        | Queue      | Queue   | No      |
+| **Sucker Punch**      | Yes   | Yes    | No        | No         | No      | No      |
+| **Active Job Inline** | No    | Yes    | N/A       | N/A        | N/A     | N/A     |
+| **Active Job**        | Yes   | Yes    | Yes       | No         | No      | No      |
+
+NOTE:
+* Queue Classic does not support Job scheduling. However you can implement this
+yourself or you can use the queue_classic-later gem. See the documentation for
+ActiveJob::QueueAdapters::QueueClassicAdapter.
 
 ### Change Backends
 
@@ -150,7 +155,7 @@ class GuestsCleanupJob < ActiveJob::Base
 end
 ```
 
-Also you can prefix the queue name for all your jobs using
+You can prefix the queue name for all your jobs using
 `config.active_job.queue_name_prefix` in `application.rb`:
 
 ```ruby
@@ -167,9 +172,41 @@ class GuestsCleanupJob < ActiveJob::Base
   #....
 end
 
-# Now your job will run on queue production_low_priority on your production
-# environment and on beta_low_priority on your beta environment
+# Now your job will run on queue production_low_priority on your
+# production environment and on beta_low_priority on your beta
+# environment
 ```
+
+If you want more control on what queue a job will be run you can pass a :queue
+option to #set:
+
+```ruby
+MyJob.set(queue: :another_queue).perform_later(record)
+```
+
+To control the queue from the job level you can pass a block to queue_as. The
+block will be executed in the job context (so you can access self.arguments)
+and you must return the queue name:
+
+```ruby
+class ProcessVideoJob < ActiveJob::Base
+  queue_as do
+    video = self.arguments.first
+    if video.owner.premium?
+      :premium_videojobs
+    else
+      :videojobs
+    end
+  end
+
+  def perform(video)
+    # do process video
+  end
+end
+
+ProcessVideoJob.perform_later(Video.last)
+```
+
 
 NOTE: Make sure your queueing backend "listens" on your queue name. For some
 backends you need to specify the queues to listen to.
@@ -197,7 +234,7 @@ class GuestsCleanupJob < ActiveJob::Base
   queue_as :default
 
   before_enqueue do |job|
-    # do somthing with the job instance
+    # do something with the job instance
   end
 
   around_perform do |job, block|

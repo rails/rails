@@ -8,7 +8,7 @@ This guide provides steps to be followed when you upgrade your applications to a
 General Advice
 --------------
 
-Before attempting to upgrade an existing application, you should be sure you have a good reason to upgrade. You need to balance out several factors: the need for new features, the increasing difficulty of finding support for old code, and your available time and skills, to name a few.
+Before attempting to upgrade an existing application, you should be sure you have a good reason to upgrade. You need to balance several factors: the need for new features, the increasing difficulty of finding support for old code, and your available time and skills, to name a few.
 
 ### Test Coverage
 
@@ -55,7 +55,11 @@ a [pull request](https://github.com/rails/rails/edit/master/guides/source/upgrad
 
 ### Web Console
 
-TODO: setup instructions for web console on existing apps.
+First, add `gem 'web-console', '~> 2.0.0.beta3'` to the `:development` group in your Gemfile and run `bundle install` (it won't have been included when you upgraded Rails). Once it's been installed, you can simply drop a reference to the console helper (i.e., `<%= console %>`) into any view you want to enable it for. A console will also be provided on any error page you view in your development environment.
+
+Additionally, you can tell Rails to automatically mount a VT100-compatible console on a predetermined path by setting `config.web_console.automount = true` in your `config/environments/development.rb`. You can specify the path by setting `config.web_console.default_mount_path` (note that this defaults to `/console`).
+
+TODO: Update `web-console` version to release version.
 
 ### Responders
 
@@ -63,7 +67,40 @@ TODO: mention https://github.com/rails/rails/pull/16526
 
 ### Error handling in transaction callbacks
 
-TODO: mention https://github.com/rails/rails/pull/16537
+Currently, Active Record suppresses errors raised
+within `after_rollback` or `after_commit` callbacks and only prints them to
+the logs. In the next version, these errors will no longer be suppressed.
+Instead, the errors will propagate normally just like in other Active
+Record callbacks.
+
+When you define a `after_rollback` or `after_commit` callback, you
+will receive a deprecation warning about this upcoming change. When
+you are ready, you can opt into the new behvaior and remove the
+deprecation warning by adding following configuration to your
+`config/application.rb`:
+
+    config.active_record.raise_in_transactional_callbacks = true
+
+See [#14488](https://github.com/rails/rails/pull/14488) and
+[#16537](https://github.com/rails/rails/pull/16537) for more details.
+
+### Ordering of test cases
+
+In Rails 5.0, test cases will be executed in random order by default. In
+anticipation of this change, Rails 4.2 introduced a new configuration option
+`active_support.test_order` for explicitly specifying the test ordering. This
+allows you to either lock down the current behavior by setting the option to
+`:sorted`, or opt into the future behavior by setting the option to `:random`.
+
+If you do not specify a value for this option, a deprecation warning will be
+emitted. To avoid this, add the following line to your test environment:
+
+```ruby
+# config/environments/test.rb
+Rails.application.configure do
+  config.active_support.test_order = :sorted # or `:random` if you prefer
+end
+```
 
 ### Serialized attributes
 
@@ -393,7 +430,7 @@ included in the newly introduced `ActiveRecord::FixtureSet.context_class`, in
 `test_helper.rb`.
 
 ```ruby
-class FixtureFileHelpers
+module FixtureFileHelpers
   def file_sha(path)
     Digest::SHA2.hexdigest(File.read(Rails.root.join('test/fixtures', path)))
   end

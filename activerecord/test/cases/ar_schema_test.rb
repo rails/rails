@@ -5,7 +5,9 @@ if ActiveRecord::Base.connection.supports_migrations?
   class ActiveRecordSchemaTest < ActiveRecord::TestCase
     self.use_transactional_fixtures = false
 
-    def setup
+    setup do
+      @original_verbose = ActiveRecord::Migration.verbose
+      ActiveRecord::Migration.verbose = false
       @connection = ActiveRecord::Base.connection
       ActiveRecord::SchemaMigration.drop_table
     end
@@ -16,6 +18,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       @connection.drop_table :nep_schema_migrations rescue nil
       @connection.drop_table :has_timestamps rescue nil
       ActiveRecord::SchemaMigration.delete_all rescue nil
+      ActiveRecord::Migration.verbose = @original_verbose
     end
 
     def test_has_no_primary_key

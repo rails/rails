@@ -29,7 +29,7 @@ module ActiveRecord
 
   module ConnectionAdapters
     class Mysql2Adapter < AbstractMysqlAdapter
-      ADAPTER_NAME = 'Mysql2'
+      ADAPTER_NAME = 'Mysql2'.freeze
 
       def initialize(connection, logger, connection_options, config)
         super

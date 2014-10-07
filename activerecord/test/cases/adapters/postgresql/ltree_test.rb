@@ -9,9 +9,7 @@ class PostgresqlLtreeTest < ActiveRecord::TestCase
   def setup
     @connection = ActiveRecord::Base.connection
 
-    unless @connection.extension_enabled?('ltree')
-      @connection.enable_extension 'ltree'
-    end
+    enable_extension!('ltree', @connection)
 
     @connection.transaction do
       @connection.create_table('ltrees') do |t|

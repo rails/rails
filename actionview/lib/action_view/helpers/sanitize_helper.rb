@@ -1,6 +1,6 @@
 require 'active_support/core_ext/object/try'
 require 'active_support/deprecation'
-require 'rails-deprecated_sanitizer'
+require 'rails-html-sanitizer'
 
 module ActionView
   # = Action View Sanitize Helpers
@@ -121,31 +121,10 @@ module ActionView
       module ClassMethods #:nodoc:
         attr_writer :full_sanitizer, :link_sanitizer, :white_list_sanitizer
 
-        [:protocol_separator,
-         :uri_attributes,
-         :bad_tags,
-         :allowed_css_properties,
-         :allowed_css_keywords,
-         :shorthand_css_properties,
-         :allowed_protocols].each do |meth|
-          meth_name = "sanitized_#{meth}"
-          imp = lambda do |name|
-            ActiveSupport::Deprecation.warn("#{name} is deprecated and has no effect.")
-          end
-
-          define_method(meth_name) { imp.(meth_name) }
-          define_method("#{meth_name}=") { |value| imp.("#{meth_name}=") }
-        end
-
         # Vendors the full, link and white list sanitizers.
-        # This uses html-scanner for the HTML sanitization.
-        # In the next Rails version this will use Rails::Html::Sanitizer instead.
-        # To get this new behavior now, in your Gemfile, add:
-        #
-        #  gem 'rails-html-sanitizer'
-        #
+        # Provided strictly for compabitility and can be removed in Rails 5.
         def sanitizer_vendor
-          Rails::DeprecatedSanitizer
+          Rails::Html::Sanitizer
         end
 
         def sanitized_allowed_tags
@@ -189,25 +168,29 @@ module ActionView
           @white_list_sanitizer ||= sanitizer_vendor.white_list_sanitizer.new
         end
 
+        ##
+        # :method: sanitized_allowed_tags=
+        #
+        # :call-seq: sanitized_allowed_tags=(tags)
+        #
         # Replaces the allowed tags for the +sanitize+ helper.
         #
         #   class Application < Rails::Application
         #     config.action_view.sanitized_allowed_tags = 'table', 'tr', 'td'
         #   end
         #
-        def sanitized_allowed_tags=(tags)
-          sanitizer_vendor.white_list_sanitizer.allowed_tags = tags
-        end
 
+        ##
+        # :method: sanitized_allowed_attributes=
+        #
+        # :call-seq: sanitized_allowed_attributes=(attributes)
+        #
         # Replaces the allowed HTML attributes for the +sanitize+ helper.
         #
         #   class Application < Rails::Application
         #     config.action_view.sanitized_allowed_attributes = ['onclick', 'longdesc']
         #   end
         #
-        def sanitized_allowed_attributes=(attributes)
-          sanitizer_vendor.white_list_sanitizer.allowed_attributes = attributes
-        end
       end
     end
   end

@@ -67,6 +67,7 @@ module ActiveRecord
     #
     # * <tt>:database</tt> - Path to the database file.
     class SQLite3Adapter < AbstractAdapter
+      ADAPTER_NAME = 'SQLite'.freeze
       include Savepoints
 
       NATIVE_DATABASE_TYPES = {
@@ -147,10 +148,6 @@ module ActiveRecord
         end
       end
 
-      def adapter_name #:nodoc:
-        'SQLite'
-      end
-
       def supports_ddl_transactions?
         true
       end
@@ -183,6 +180,10 @@ module ActiveRecord
       end
 
       def supports_add_column?
+        true
+      end
+
+      def supports_views?
         true
       end
 
@@ -372,7 +373,7 @@ module ActiveRecord
         sql = <<-SQL
           SELECT name
           FROM sqlite_master
-          WHERE type = 'table' AND NOT name = 'sqlite_sequence'
+          WHERE (type = 'table' OR type = 'view') AND NOT name = 'sqlite_sequence'
         SQL
         sql << " AND name = #{quote_table_name(table_name)}" if table_name
 

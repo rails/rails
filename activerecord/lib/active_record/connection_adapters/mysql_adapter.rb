@@ -66,7 +66,7 @@ module ActiveRecord
     # * <tt>:sslcipher</tt> - Necessary to use MySQL with an SSL connection.
     #
     class MysqlAdapter < AbstractMysqlAdapter
-      ADAPTER_NAME = 'MySQL'
+      ADAPTER_NAME = 'MySQL'.freeze
 
       class StatementPool < ConnectionAdapters::StatementPool
         def initialize(connection, max = 1000)

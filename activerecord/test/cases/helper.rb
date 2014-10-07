@@ -50,6 +50,10 @@ def mysql_56?
     ActiveRecord::Base.connection.send(:version).join(".") >= "5.6.0"
 end
 
+def mysql_enforcing_gtid_consistency?
+  current_adapter?(:MysqlAdapter, :Mysql2Adapter) && 'ON' == ActiveRecord::Base.connection.show_variable('enforce_gtid_consistency')
+end
+
 def supports_savepoints?
   ActiveRecord::Base.connection.supports_savepoints?
 end
@@ -115,12 +119,20 @@ def verify_default_timezone_config
   end
 end
 
-def enable_uuid_ossp!(connection)
+def enable_extension!(extension, connection)
   return false unless connection.supports_extensions?
-  return connection.reconnect! if connection.extension_enabled?('uuid-ossp')
+  return connection.reconnect! if connection.extension_enabled?(extension)
 
-  connection.enable_extension 'uuid-ossp'
+  connection.enable_extension extension
   connection.commit_db_transaction
+  connection.reconnect!
+end
+
+def disable_extension!(extension, connection)
+  return false unless connection.supports_extensions?
+  return true unless connection.extension_enabled?(extension)
+
+  connection.disable_extension extension
   connection.reconnect!
 end
 
@@ -204,3 +216,8 @@ module InTimeZone
 end
 
 require 'mocha/setup' # FIXME: stop using mocha
+
+# FIXME: we have tests that depend on run order, we should fix that and
+# remove this method call.
+require 'active_support/test_case'
+ActiveSupport::TestCase.test_order = :sorted

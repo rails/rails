@@ -4,8 +4,6 @@ $:.unshift(File.dirname(__FILE__) + '/lib')
 $:.unshift(File.dirname(__FILE__) + '/fixtures/helpers')
 $:.unshift(File.dirname(__FILE__) + '/fixtures/alternate_helpers')
 
-ENV['TMPDIR'] = File.join(File.dirname(__FILE__), 'tmp')
-
 require 'active_support/core_ext/kernel/reporting'
 
 # These are the normal settings that will be set up by Railties
@@ -466,7 +464,7 @@ class ForkingExecutor
   def initialize size
     @size  = size
     @queue = Server.new
-    file   = File.join Dir.tmpdir, Dir::Tmpname.make_tmpname('tests', 'fd')
+    file   = File.join Dir.tmpdir, Dir::Tmpname.make_tmpname('rails-tests', 'fd')
     @url   = "drbunix://#{file}"
     @pool  = nil
     DRb.start_service @url, @queue
@@ -514,3 +512,8 @@ if ActiveSupport::Testing::Isolation.forking_env? && PROCESS_COUNT > 0
   # Use N processes (N defaults to 4)
   Minitest.parallel_executor = ForkingExecutor.new(PROCESS_COUNT)
 end
+
+# FIXME: we have tests that depend on run order, we should fix that and
+# remove this method call.
+require 'active_support/test_case'
+ActiveSupport::TestCase.test_order = :sorted

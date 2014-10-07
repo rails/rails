@@ -1,3 +1,57 @@
+*   A `NullRelation` should represent nothing. This fixes a bug where
+    `Comment.where(post_id: Post.none)` returned a non-empty result.
+
+    Closes #15176.
+
+    *Matthew Draper*, *Yves Senn*
+
+*   Include default column limits in schema.rb. Allows defaults to be changed
+    in the future without affecting old migrations that assumed old defaults.
+
+    *Jeremy Kemper*
+
+*   MySQL: schema.rb now includes TEXT and BLOB column limits.
+
+    *Jeremy Kemper*
+
+*   MySQL: correct LONGTEXT and LONGBLOB limits from 2GB to their true 4GB.
+
+    *Jeremy Kemper*
+
+*   SQLite3Adapter now checks for views in `table_exists?`. Fixes #14041.
+
+    *Girish Sonawane*
+
+*   Introduce `connection.supports_views?` to check wether the current adapter
+    has support for SQL views. Connection adapters should define this method.
+
+    *Yves Senn*
+
+*   Allow included modules to override association methods.
+
+    Fixes #16684.
+
+    *Yves Senn*
+
+*   Schema loading rake tasks (like `db:schema:load` and `db:setup`) maintain
+    the database connection to the current environment.
+
+    Fixes #16757.
+
+    *Joshua Cody*, *Yves Senn*
+
+*   MySQL: set the connection collation along with the charset.
+
+    Sets the connection collation to the database collation configured in
+    database.yml. Otherwise, `SET NAMES utf8mb4` will use the default
+    collation for that charset (utf8mb4_general_ci) when you may have chosen
+    a different collation, like utf8mb4_unicode_ci.
+
+    This only applies to literal string comparisons, not column values, so it
+    is unlikely to affect you.
+
+    *Jeremy Kemper*
+
 *   `default_sequence_name` from the PostgreSQL adapter returns a `String`.
 
     *Yves Senn*
@@ -30,7 +84,7 @@
 
     Example:
 
-        # For not swallow errors in after_commit/after_rollback callbacks.
+        # Do not swallow errors in after_commit/after_rollback callbacks.
         config.active_record.raise_in_transactional_callbacks = true
 
     Fixes #13460.
@@ -366,14 +420,6 @@
 
 *   The object returned from `select_all` must respond to `column_types`.
     If this is not the case a `NoMethodError` is raised.
-
-    *Sean Griffin*
-
-*   `has_many :through` associations will no longer save the through record
-    twice when added in an `after_create` callback defined before the
-    associations.
-
-    Fixes #3798.
 
     *Sean Griffin*
 

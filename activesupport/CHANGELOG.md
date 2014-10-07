@@ -1,3 +1,48 @@
+*   `MessageVerifier.new` raises an appropriate exception if the secret is `nil`.
+    This prevents `MessageVerifier#generate` from raising a cryptic error later on.
+
+    *Kostiantyn Kahanskyi*
+
+*   Introduced new configuration option `active_support.test_order` for
+    specifying the order test cases are executed. This option currently defaults
+    to `:sorted` but will be changed to `:random` in Rails 5.0.
+
+    *Akira Matsuda*, *Godfrey Chan*
+
+*   Fixed a bug in Inflector#underscore where acroynms in nested constant names
+    are incorrectly parsed as camelCase.
+
+    Fixes #8015.
+
+    *Fred Wu*, *Matthew Draper*
+
+*   Make Time#change throw an exception if the :usec option is out of range and
+    the time has an offset other than UTC or local.
+
+    *Agis Anastasopoulos*
+
+*   `Method` objects now report themselves as not `duplicable?`. This allows
+    hashes and arrays containing `Method` objects to be `deep_dup`ed.
+
+    *Peter Jaros*
+
+*   `determine_constant_from_test_name` does no longer shadow `NameError`s
+    which happen during constant autoloading.
+
+    Fixes #9933.
+
+    *Guo Xiang Tan*
+
+*   Added instance_eval version to Object#try, so you can do this:
+
+      person.try { name.first }
+
+    instead of:
+
+      person.try { |person| person.name.first }
+
+    *DHH*
+
 *   Fix the `ActiveSupport::Duration#instance_of?` method to return the right
     value with the class itself since it was previously delegated to the
     internal value.
@@ -8,12 +53,6 @@
     with per-second precision, not anything deeper than that.
 
     *DHH*
-
-*   Fix ActiveSupport::TestCase not to order users' test cases by default.
-    If this change breaks your tests because your tests are order dependent, you need to explicitly call
-    ActiveSupport::TestCase.my_tests_are_order_dependent! at the top of your tests.
-
-    *Akira Matsuda*
 
 *   Fix DateTime comparison with DateTime::Infinity object.
 

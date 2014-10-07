@@ -1290,4 +1290,14 @@ class EagerAssociationTest < ActiveRecord::TestCase
     david = Author.where(id: "1").eager_load(:readonly_comments).first!
     assert david.readonly_comments.first.readonly?
   end
+
+  test "preloading a polymorphic association with references to the associated table" do
+    post = Post.includes(:tags).references(:tags).where('tags.name = ?', 'General').first
+    assert_equal posts(:welcome), post
+  end
+
+  test "eager-loading a polymorphic association with references to the associated table" do
+    post = Post.eager_load(:tags).where('tags.name = ?', 'General').first
+    assert_equal posts(:welcome), post
+  end
 end

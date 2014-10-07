@@ -281,8 +281,14 @@ module Rails
           []
         else
           gems = [coffee_gemfile_entry, javascript_runtime_gemfile_entry]
-          gems << GemfileEntry.version("#{options[:javascript]}-rails", nil,
-                                 "Use #{options[:javascript]} as the JavaScript library")
+
+          if options[:javascript] == 'jquery'
+            gems << GemfileEntry.version('jquery-rails', '~> 4.0.0.beta2',
+                                         'Use jQuery as the JavaScript library')
+          else
+            gems << GemfileEntry.version("#{options[:javascript]}-rails", nil,
+                                         "Use #{options[:javascript]} as the JavaScript library")
+          end
 
           gems << GemfileEntry.version("turbolinks", nil,
             "Turbolinks makes following links in your web application faster. Read more: https://github.com/rails/turbolinks")

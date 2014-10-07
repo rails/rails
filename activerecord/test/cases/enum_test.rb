@@ -194,7 +194,8 @@ class EnumTest < ActiveRecord::TestCase
       :valid,    # generates #valid?, which conflicts with an AR method
       :save,     # generates #save!, which conflicts with an AR method
       :proposed, # same value as an existing enum
-      :public, :private, :protected, # generates a method that conflict with ruby words
+      :public, :private, :protected, # some important methods on Module and Class
+      :name, :parent, :superclass
     ]
 
     conflicts.each_with_index do |value, i|

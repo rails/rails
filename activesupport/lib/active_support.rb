@@ -70,6 +70,16 @@ module ActiveSupport
 
     NumberHelper.eager_load!
   end
+
+  @@test_order = nil
+
+  def self.test_order=(new_order)
+    @@test_order = new_order
+  end
+
+  def self.test_order
+    @@test_order
+  end
 end
 
 autoload :I18n, "active_support/i18n"

@@ -93,9 +93,10 @@ module Rails
       # Loads and returns the entire raw configuration of database from
       # values stored in `config/database.yml`.
       def database_configuration
-        yaml = Pathname.new(paths["config/database"].existent.first || "")
+        path = paths["config/database"].existent.first
+        yaml = Pathname.new(path) if path
 
-        config = if yaml.exist?
+        config = if yaml && yaml.exist?
           require "yaml"
           require "erb"
           YAML.load(ERB.new(yaml.read).result) || {}
@@ -104,7 +105,7 @@ module Rails
           # by Active Record.
           {}
         else
-          raise "Could not load database configuration. No such file - #{yaml}"
+          raise "Could not load database configuration. No such file - #{paths["config/database"].instance_variable_get(:@paths)}"
         end
 
         config

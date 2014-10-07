@@ -10,7 +10,7 @@ ActiveRecord::Schema.define do
   #put adapter specific setup here
   case adapter_name
   when "PostgreSQL"
-    enable_uuid_ossp!(ActiveRecord::Base.connection)
+    enable_extension!('uuid-ossp', ActiveRecord::Base.connection)
     create_table :uuid_parents, id: :uuid, force: true do |t|
       t.string :name
     end
@@ -544,6 +544,12 @@ ActiveRecord::Schema.define do
   create_table :peoples_treasures, id: false, force: true do |t|
     t.column :rich_person_id, :integer
     t.column :treasure_id, :integer
+  end
+
+  create_table :personal_legacy_things, force: true do |t|
+    t.integer :tps_report_number
+    t.integer :person_id
+    t.integer :version, null: false, default: 0
   end
 
   create_table :pets, primary_key: :pet_id, force: true do |t|

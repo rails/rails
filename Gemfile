@@ -8,9 +8,14 @@ gemspec
 gem 'mocha', '~> 0.14', require: false
 
 gem 'rack-cache', '~> 1.2'
-gem 'jquery-rails', '~> 3.1.0'
+gem 'jquery-rails', '~> 4.0.0.beta2'
 gem 'coffee-rails', '~> 4.0.0'
-gem 'rails-html-sanitizer'
+# TODO: Release this gem
+gem 'rails-html-sanitizer', github: 'rails/rails-html-sanitizer'
+# TODO: Release this gem
+gem 'rails-deprecated_sanitizer', github: 'rails/rails-deprecated_sanitizer'
+# TODO: Release this gem
+gem 'rails-dom-testing', github: 'rails/rails-dom-testing'
 gem 'turbolinks', '~> 2.2.3'
 
 # require: false so bcrypt is loaded only when has_secure_password is used.
@@ -39,12 +44,14 @@ group :job do
   gem 'sidekiq', require: false
   gem 'sucker_punch', require: false
   gem 'delayed_job', require: false
-  gem 'queue_classic', require: false, platforms: :ruby
+  gem 'queue_classic', "< 3.0.0", require: false, platforms: :ruby
   gem 'sneakers', '0.1.1.pre', require: false
   gem 'que', require: false
   gem 'backburner', require: false
   gem 'qu-rails', github: "bkeepers/qu", branch: "master", require: false
   gem 'qu-redis', require: false
+  gem 'delayed_job_active_record', require: false
+  gem 'sequel', require: false
 end
 
 # Add your own local bundler stuff

@@ -687,11 +687,11 @@ module ActiveRecord
     #   end
     #
     def none
-      extending(NullRelation)
+      where("1=0").extending!(NullRelation)
     end
 
     def none! # :nodoc:
-      extending!(NullRelation)
+      where!("1=0").extending!(NullRelation)
     end
 
     # Sets readonly attributes for the returned relation. If value is
@@ -879,12 +879,10 @@ module ActiveRecord
       arel.lock(lock_value) if lock_value
 
       # Reorder bind indexes if joins produced bind values
-      if arel.bind_values.any?
-        bvs = arel.bind_values + bind_values
-        arel.ast.grep(Arel::Nodes::BindParam).each_with_index do |bp, i|
-          column = bvs[i].first
-          bp.replace connection.substitute_at(column, i)
-        end
+      bvs = arel.bind_values + bind_values
+      arel.ast.grep(Arel::Nodes::BindParam).each_with_index do |bp, i|
+        column = bvs[i].first
+        bp.replace connection.substitute_at(column, i)
       end
 
       arel

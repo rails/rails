@@ -888,6 +888,8 @@ class DependenciesTest < ActiveSupport::TestCase
         assert_raise(NameError) { assert_equal 123, ::RaisesNameError::FooBarBaz }
       end
     end
+  ensure
+    remove_constants(:RaisesNameError)
   end
 
   def test_autoload_doesnt_shadow_name_error

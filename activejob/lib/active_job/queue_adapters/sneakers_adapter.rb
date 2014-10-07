@@ -7,25 +7,25 @@ module ActiveJob
       @monitor = Monitor.new
 
       class << self
-        def enqueue(job, *args)
+        def enqueue(job)
           @monitor.synchronize do
             JobWrapper.from_queue job.queue_name
-            JobWrapper.enqueue ActiveSupport::JSON.encode([ job.name, *args ])
+            JobWrapper.enqueue ActiveSupport::JSON.encode(job.serialize)
           end
         end
 
-        def enqueue_at(job, timestamp, *args)
+        def enqueue_at(job, timestamp)
           raise NotImplementedError
         end
       end
 
       class JobWrapper
         include Sneakers::Worker
-        from_queue 'active_jobs_default'
+        from_queue 'default'
 
         def work(msg)
-          job_name, *args = ActiveSupport::JSON.decode(msg)
-          job_name.constantize.new.execute(*args)
+          job_data = ActiveSupport::JSON.decode(msg)
+          Base.execute job_data
           ack!
         end
       end

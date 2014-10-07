@@ -1,11 +1,12 @@
 # encoding: utf-8
-gem 'activejob'
-require 'active_job'
 require 'abstract_unit'
+require 'active_job'
 require 'minitest/mock'
-require_relative 'mailers/delayed_mailer'
+require 'mailers/delayed_mailer'
+require 'active_support/core_ext/numeric/time'
 
 class MessageDeliveryTest < ActiveSupport::TestCase
+  include ActiveJob::TestHelper
 
   setup do
     @previous_logger = ActiveJob::Base.logger
@@ -14,6 +15,8 @@ class MessageDeliveryTest < ActiveSupport::TestCase
     ActiveJob::Base.logger = Logger.new(nil)
     @mail = DelayedMailer.test_message(1, 2, 3)
     ActionMailer::Base.deliveries.clear
+    ActiveJob::Base.queue_adapter.perform_enqueued_at_jobs = true
+    ActiveJob::Base.queue_adapter.perform_enqueued_jobs = true
   end
 
   teardown do
@@ -71,33 +74,31 @@ class MessageDeliveryTest < ActiveSupport::TestCase
     ActionMailer::Base.deliveries.clear
   end
 
-  test 'should enqueue the email with :deliver delivery method' do
-    ret = ActionMailer::DeliveryJob.stub :enqueue, ->(*args){ args } do
+  test 'should enqueue the email with :deliver_now delivery method' do
+    assert_performed_with(job: ActionMailer::DeliveryJob, args: ['DelayedMailer', 'test_message', 'deliver_now', 1, 2, 3]) do
       @mail.deliver_later
     end
-    assert_equal ['DelayedMailer', 'test_message', 'deliver_now', 1, 2, 3], ret
   end
 
-  test 'should enqueue the email with :deliver! delivery method' do
-    ret = ActionMailer::DeliveryJob.stub :enqueue, ->(*args){ args } do
+  test 'should enqueue the email with :deliver_now! delivery method' do
+    assert_performed_with(job: ActionMailer::DeliveryJob, args: ['DelayedMailer', 'test_message', 'deliver_now!', 1, 2, 3]) do
       @mail.deliver_later!
     end
-    assert_equal ['DelayedMailer', 'test_message', 'deliver_now!', 1, 2, 3], ret
   end
 
   test 'should enqueue a delivery with a delay' do
-    ret = ActionMailer::DeliveryJob.stub :enqueue_in, ->(*args){ args } do
-      @mail.deliver_later in: 600
+    travel_to Time.new(2004, 11, 24, 01, 04, 44) do
+      assert_performed_with(job: ActionMailer::DeliveryJob, at: Time.current.to_f+600.seconds, args: ['DelayedMailer', 'test_message', 'deliver_now', 1, 2, 3]) do
+        @mail.deliver_later wait: 600.seconds
+      end
     end
-    assert_equal [600, 'DelayedMailer', 'test_message', 'deliver_now', 1, 2, 3], ret
   end
 
   test 'should enqueue a delivery at a specific time' do
-    later_time = Time.now.to_i + 3600
-    ret = ActionMailer::DeliveryJob.stub :enqueue_at, ->(*args){ args } do
-      @mail.deliver_later at: later_time
+    later_time = Time.now.to_f + 3600
+    assert_performed_with(job: ActionMailer::DeliveryJob, at: later_time, args: ['DelayedMailer', 'test_message', 'deliver_now', 1, 2, 3]) do
+      @mail.deliver_later wait_until: later_time
     end
-    assert_equal [later_time, 'DelayedMailer', 'test_message', 'deliver_now', 1, 2, 3], ret
   end
 
 end

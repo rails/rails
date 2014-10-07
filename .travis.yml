@@ -21,9 +21,12 @@ env:
     - "GEM=ar:mysql2"
     - "GEM=ar:sqlite3"
     - "GEM=ar:postgresql"
+    - "GEM=aj:integration"
 matrix:
   allow_failures:
     - rvm: 1.9.3
+      env: "GEM=ar:mysql"
+    - rvm: 2.0.0
       env: "GEM=ar:mysql"
     - rvm: rbx-2
     - rvm: jruby
@@ -44,3 +47,8 @@ notifications:
 bundler_args: --path vendor/bundle --without test
 services:
   - memcached
+  - redis
+  - rabbitmq
+addons:
+  postgresql: "9.3"
+

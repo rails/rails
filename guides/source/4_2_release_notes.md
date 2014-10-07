@@ -105,6 +105,136 @@ and
 for a full description.
 
 
+Incompatibilities
+-----------------
+
+Previously deprecated functionality has been removed. Please refer to the
+individual components for new deprecations in this release.
+
+The following changes may require immediate action upon upgrade.
+
+### `respond_with` / class-level `respond_to`
+
+`respond_with` and the corresponding class-level `respond_to` have been moved to
+the `responders` gem. To use the following, add `gem 'responders', '~> 2.0'` to
+your Gemfile:
+
+```ruby
+# app/controllers/users_controller.rb
+
+class UsersController < ApplicationController
+  respond_to :html, :json
+
+  def show
+    @user = User.find(params[:id])
+    respond_with @user
+  end
+end
+```
+
+Instance-level `respond_to` is unaffected:
+
+```ruby
+# app/controllers/users_controller.rb
+
+class UsersController < ApplicationController
+  def show
+    @user = User.find(params[:id])
+    respond_to do |format|
+      format.html
+      format.json { render json: @user }
+    end
+  end
+end
+```
+
+### Production logging
+
+The default log level in the `production` environment is now `:debug`. This
+makes it consistent with the other environments, and ensures plenty of
+information is available to diagnose problems.
+
+It can be returned to the previous level, `:info`, in the environment
+configuration:
+
+```ruby
+# config/environments/production.rb
+
+# Decrease the log volume.
+config.log_level = :info
+```
+
+### HTML Sanitizer
+
+The HTML sanitizer has been replaced with a new, more robust, implementation
+built upon Loofah and Nokogiri. The new sanitizer is more secure and its
+sanitization is more powerful and flexible.
+
+With a new sanitization algorithm, the sanitized output will change for certain
+pathological inputs.
+
+If you have particular need for the exact output of the old sanitizer, you can
+add `rails-deprecated_sanitizer` to your Gemfile, and it will automatically
+replace the new implementation. Because it is opt-in, the legacy gem will not
+give deprecation warnings.
+
+`rails-deprecated_sanitizer` will be supported for Rails 4.2 only; it will not
+be maintained for Rails 5.0.
+
+See [the blog post](http://blog.plataformatec.com.br/2014/07/the-new-html-sanitizer-in-rails-4-2/)
+for more detail on the changes in the new sanitizer.
+
+### `assert_select`
+
+`assert_select` is now based on Nokogiri, making it (TODO: betterer).
+
+As a result, some previously-valid selectors are now unsupported. If your
+application is using any of these spellings, you will need to update them:
+
+*   Values in attribute selectors may need to be quoted if they contain
+    non-alphanumeric characters.
+
+    ```
+    a[href=/]      =>     a[href="/"]
+    a[href$=/]     =>     a[href$="/"]
+    ```
+
+*   DOMs built from HTML source containing invalid HTML with improperly
+    nested elements may differ.
+
+    For example:
+
+    ``` ruby
+    # content: <div><i><p></i></div>
+
+    # before:
+    assert_select('div > i')  # => true
+    assert_select('div > p')  # => false
+    assert_select('i > p')    # => true
+
+    # now:
+    assert_select('div > i')  # => true
+    assert_select('div > p')  # => true
+    assert_select('i > p')    # => false
+    ```
+
+*   If the data selected contains entities, the value selected for comparison
+    used to be raw (e.g. `AT&amp;T`), and now is evaluated
+    (e.g. `AT&T`).
+
+    ``` ruby
+    # content: <p>AT&amp;T</p>
+
+    # before:
+    assert_select('p', 'AT&amp;T')  # => true
+    assert_select('p', 'AT&T')      # => false
+
+    # now:
+    assert_select('p', 'AT&T')      # => true
+    assert_select('p', 'AT&amp;T')  # => false
+    ```
+
+
 Railties
 --------
 
@@ -289,15 +419,15 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 
 *   The way `assert_select` works has changed; specifically a different library
     is used to interpret css selectors, build the transient DOM that the
-    selectors are applied against, and to extract the data from that DOM.  These
-    changes should only affect edge cases.  Examples:
+    selectors are applied against, and to extract the data from that DOM. These
+    changes should only affect edge cases. Examples:
     *  Values in attribute selectors may need to be quoted if they contain
-       non-alphanumeric characters
-    *  DOMs built from HTML source containing invalid HTML containing improperly
-       nested elements may differ
+       non-alphanumeric characters.
+    *  DOMs built from HTML source containing invalid HTML with improperly
+       nested elements may differ.
     *  If the data selected contains entities, the value selected for comparison
-       used to be raw (example: `AT&amp;T`), and now is evaluated
-       (example: `AT&T`)
+       used to be raw (e.g. `AT&amp;T`), and now is evaluated
+       (e.g. `AT&T`).
 
 
 Action View
@@ -558,12 +688,13 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 ### Notable changes
 
+*   Introduced new configuration option `active_support.test_order` for
+    specifying the order test cases are executed. This option currently defaults
+    to `:sorted` but will be changed to `:random` in Rails 5.0.
+    ([Commit](TODO: fill me in))
+
 *   The `travel_to` test helper now truncates the `usec` component to 0.
     ([Commit](https://github.com/rails/rails/commit/9f6e82ee4783e491c20f5244a613fdeb4024beb5))
-
-*   `ActiveSupport::TestCase` now randomizes the order that test cases are ran
-    by default.
-    ([Commit](https://github.com/rails/rails/commit/6ffb29d24e05abbd9ffe3ea974140d6c70221807))
 
 *   Introduced `Object#itself` as an identity function.
     (Commit [1](https://github.com/rails/rails/commit/702ad710b57bef45b081ebf42e6fa70820fdd810),

@@ -12,6 +12,7 @@ class MysqlConsistencyTest < ActiveRecord::TestCase
     ActiveRecord::ConnectionAdapters::MysqlAdapter.emulate_booleans = false
 
     @connection = ActiveRecord::Base.connection
+    @connection.clear_cache!
     @connection.create_table("mysql_consistency") do |t|
       t.boolean "a_bool"
       t.string "a_string"

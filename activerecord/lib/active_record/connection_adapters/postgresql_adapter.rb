@@ -74,7 +74,7 @@ module ActiveRecord
     # In addition, default connection parameters of libpq can be set per environment variables.
     # See http://www.postgresql.org/docs/9.1/static/libpq-envars.html .
     class PostgreSQLAdapter < AbstractAdapter
-      ADAPTER_NAME = 'PostgreSQL'
+      ADAPTER_NAME = 'PostgreSQL'.freeze
 
       NATIVE_DATABASE_TYPES = {
         primary_key: "serial primary key",
@@ -118,11 +118,6 @@ module ActiveRecord
       include PostgreSQL::DatabaseStatements
       include Savepoints
 
-      # Returns 'PostgreSQL' as adapter name for identification purposes.
-      def adapter_name
-        ADAPTER_NAME
-      end
-
       def schema_creation # :nodoc:
         PostgreSQL::SchemaCreation.new self
       end
@@ -160,6 +155,10 @@ module ActiveRecord
       end
 
       def supports_foreign_keys?
+        true
+      end
+
+      def supports_views?
         true
       end
 
