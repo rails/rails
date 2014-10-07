@@ -210,6 +210,10 @@ module ActiveSupport #:nodoc:
       defined?(@html_safe) && @html_safe
     end
 
+    def html_safe
+      html_safe? ? self : super
+    end
+
     def to_s
       self
     end
