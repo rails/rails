@@ -160,7 +160,7 @@ module ActionView
               attrs << tag_option(key, value, escape)
             end
           end
-          " #{attrs.sort! * ' '}" unless attrs.empty?
+          " #{attrs * ' '}" unless attrs.empty?
         end
 
         def prefix_tag_option(prefix, key, value, escape)

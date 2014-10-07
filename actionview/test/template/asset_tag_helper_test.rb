@@ -302,7 +302,7 @@ class AssetTagHelperTest < ActionView::TestCase
   def test_autodiscovery_link_tag_with_unknown_type
     result = auto_discovery_link_tag(:xml, '/feed.xml', :type => 'application/xml')
     expected = %(<link href="/feed.xml" rel="alternate" title="XML" type="application/xml" />)
-    assert_equal expected, result
+    assert_dom_equal expected, result
   end
 
   def test_asset_path_tag
