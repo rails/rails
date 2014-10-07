@@ -90,7 +90,7 @@ by default has been mixed into Active Record classes.
 
 Active Job has built-in adapters for multiple queueing backends (Sidekiq,
 Resque, Delayed Job and others). To get an up-to-date list of the adapters
-see the API Documentation for [ActiveJob::QueueAdapters](http://api.rubyonrails.org/classes/ActiveJob/QueueAdapters.html).
+see the API Documentation for [ActiveJob::QueueAdapters](http://edgeapi.rubyonrails.org/classes/ActiveJob/QueueAdapters.html).
 
 ## Auxiliary gems
 
