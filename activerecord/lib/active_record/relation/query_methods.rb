@@ -879,7 +879,7 @@ module ActiveRecord
       arel.lock(lock_value) if lock_value
 
       # Reordoring all bind parameters and values
-      bind_values_seen = Array.new
+      bind_values_seen = Set.new
       bvs = arel.bind_values + bind_values
       arel.ast.grep(Arel::Nodes::BindParam).each_with_index do |bp, i|
         bind_value = bvs[i]
