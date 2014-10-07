@@ -317,7 +317,11 @@ module ActionView
       end
 
       def method_name #:nodoc:
-        @method_name ||= "_#{identifier_method_name}__#{@identifier.hash}_#{__id__}".tr('-', "_")
+        @method_name ||= begin
+          m = "_#{identifier_method_name}__#{@identifier.hash}_#{__id__}"
+          m.tr!('-', '_')
+          m
+        end
       end
 
       def identifier_method_name #:nodoc:
