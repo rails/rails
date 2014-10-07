@@ -10,6 +10,8 @@ require 'mailers/proc_mailer'
 require 'mailers/asset_mailer'
 
 class BaseTest < ActiveSupport::TestCase
+  include Rails::Dom::Testing::Assertions
+
   setup do
     @original_delivery_method = ActionMailer::Base.delivery_method
     ActionMailer::Base.delivery_method = :test
@@ -536,7 +538,7 @@ class BaseTest < ActiveSupport::TestCase
 
     mail = AssetMailer.welcome
 
-    assert_equal(%{<img alt="Dummy" src="http://global.com/images/dummy.png" />}, mail.body.to_s.strip)
+    assert_dom_equal(%{<img alt="Dummy" src="http://global.com/images/dummy.png" />}, mail.body.to_s.strip)
   end
 
   test "assets tags should use a Mailer's asset_host settings when available" do
@@ -550,7 +552,7 @@ class BaseTest < ActiveSupport::TestCase
 
     mail = TempAssetMailer.welcome
 
-    assert_equal(%{<img alt="Dummy" src="http://local.com/images/dummy.png" />}, mail.body.to_s.strip)
+    assert_dom_equal(%{<img alt="Dummy" src="http://local.com/images/dummy.png" />}, mail.body.to_s.strip)
   end
 
   test 'the view is not rendered when mail was never called' do
