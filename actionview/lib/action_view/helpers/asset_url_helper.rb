@@ -109,7 +109,6 @@ module ActionView
     #
     module AssetUrlHelper
       URI_REGEXP = %r{^[-a-z]+://|^(?:cid|data):|^//}i
-      URI_SUFFIX_REGEXP = /([\?#].+)$/
 
       # Computes the path to asset in public directory. If :type
       # options is set, a file extension will be appended and scoped
@@ -126,7 +125,7 @@ module ActionView
         return "" unless source.present?
         return source if source =~ URI_REGEXP
 
-        tail = source[URI_SUFFIX_REGEXP] || ''
+        tail = source[/([\?#].+)$/] || ''
         source.chomp!(tail)
 
         if extname = compute_asset_extname(source, options)
