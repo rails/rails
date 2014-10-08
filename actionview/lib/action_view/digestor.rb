@@ -18,7 +18,11 @@ module ActionView
       def digest(options)
         options.assert_valid_keys(:name, :finder, :dependencies, :partial)
 
-        cache_key = ([ options[:name], options[:finder].details_key.hash ].compact + Array.wrap(options[:dependencies])).join('.')
+        hash_values = [options[:name], options[:finder].details_key.hash]
+        hash_values.concat(Array.wrap(options[:dependencies]))
+        hash_values.compact!
+
+        cache_key = hash_values.join('.'.freeze)
 
         # this is a correctly done double-checked locking idiom
         # (ThreadSafe::Cache's lookups have volatile semantics)
@@ -31,7 +35,7 @@ module ActionView
 
       private
         def compute_and_store_digest(cache_key, options) # called under @@digest_monitor lock
-          klass = if options[:partial] || options[:name].include?("/_")
+          klass = if options[:partial] || options[:name].include?("/_".freeze)
             # Prevent re-entry or else recursive templates will blow the stack.
             # There is no need to worry about other threads seeing the +false+ value,
             # as they will then have to wait for this thread to let go of the @@digest_monitor lock.
