@@ -407,6 +407,16 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+   def test_required_with_index_adds_null_false_to_column
+    run_generator ["account", "supplier:references:index{required}"]
+
+    assert_migration "db/migrate/create_accounts.rb" do |m|
+      assert_method :change, m do |up|
+        assert_match(/t\.references :supplier,.*\snull: false/, up)
+      end
+    end
+  end
+
   private
     def assert_generated_fixture(path, parsed_contents)
       fixture_file = File.new File.expand_path(path, destination_root)
