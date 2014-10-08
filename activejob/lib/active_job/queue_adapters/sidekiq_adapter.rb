@@ -21,8 +21,7 @@ module ActiveJob
           Sidekiq::Client.push \
             'class' => JobWrapper,
             'queue' => job.queue_name,
-            'args'  => [ job.serialize ],
-            'retry' => true
+            'args'  => [ job.serialize ]
         end
 
         def enqueue_at(job, timestamp) #:nodoc:
@@ -30,7 +29,6 @@ module ActiveJob
             'class' => JobWrapper,
             'queue' => job.queue_name,
             'args'  => [ job.serialize ],
-            'retry' => true,
             'at'    => timestamp
         end
       end
