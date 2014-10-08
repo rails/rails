@@ -125,26 +125,27 @@ module ActionView
         return "" unless source.present?
         return source if source =~ URI_REGEXP
 
-        tail, source = source[/([\?#].+)$/], source.sub(/([\?#].+)$/, '')
+        tail = source[/([\?#].+)$/] || ''
+        source.chomp!(tail)
 
         if extname = compute_asset_extname(source, options)
-          source = "#{source}#{extname}"
+          source.concat(extname)
         end
 
-        if source[0] != ?/
+        unless source.start_with?('/'.freeze)
           source = compute_asset_path(source, options)
         end
 
         relative_url_root = defined?(config.relative_url_root) && config.relative_url_root
         if relative_url_root
-          source = File.join(relative_url_root, source) unless source.starts_with?("#{relative_url_root}/")
+          source = File.join(relative_url_root, source) unless source.starts_with?(relative_url_root)
         end
 
         if host = compute_asset_host(source, options)
           source = File.join(host, source)
         end
 
-        "#{source}#{tail}"
+        source.concat(tail)
       end
       alias_method :path_to_asset, :asset_path # aliased to avoid conflicts with an asset_path named route
 
