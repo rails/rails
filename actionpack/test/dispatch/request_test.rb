@@ -459,6 +459,22 @@ class RequestTest < ActiveSupport::TestCase
     end
   end
 
+  test "exception on invalid HTTP method unaffected by I18n settings" do
+    old_locales = I18n.available_locales
+    old_enforce = I18n.config.enforce_available_locales
+
+    begin
+      I18n.available_locales = [:nl]
+      I18n.config.enforce_available_locales = true
+      assert_raise(ActionController::UnknownHttpMethod) do
+        stub_request('REQUEST_METHOD' => '_RANDOM_METHOD').method
+      end
+    ensure
+      I18n.available_locales = old_locales
+      I18n.config.enforce_available_locales = old_enforce
+    end
+  end
+
   test "post masquerading as patch" do
     request = stub_request 'REQUEST_METHOD' => 'PATCH', "rack.methodoverride.original_method" => "POST"
     assert_equal "POST", request.method
