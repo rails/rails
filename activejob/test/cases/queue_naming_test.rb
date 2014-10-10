@@ -18,6 +18,26 @@ class QueueNamingTest < ActiveSupport::TestCase
     end
   end
 
+  test 'allows a blank queue name' do
+    begin
+      original_queue_name = HelloJob.queue_name
+      HelloJob.queue_as ""
+      assert_equal "", HelloJob.new.queue_name
+    ensure
+      HelloJob.queue_name = original_queue_name
+    end
+  end
+
+  test 'does not use a nil queue name' do
+    begin
+      original_queue_name = HelloJob.queue_name
+      HelloJob.queue_as nil
+      assert_equal "default", HelloJob.new.queue_name
+    ensure
+      HelloJob.queue_name = original_queue_name
+    end
+  end
+
   test 'evals block given to queue_as to determine queue' do
     begin
       original_queue_name = HelloJob.queue_name
