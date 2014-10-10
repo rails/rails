@@ -136,10 +136,28 @@ class StaticTest < ActiveSupport::TestCase
     [200, {"Content-Type" => "text/plain"}, ["Hello, World!"]]
   }
   App = ActionDispatch::Static.new(DummyApp, "#{FIXTURE_LOAD_PATH}/public", "public, max-age=60")
+  Root = "#{FIXTURE_LOAD_PATH}/public"
 
   def setup
     @app = App
+    @root = Root
   end
 
   include StaticTests
+
+  def test_custom_handler_called_when_file_is_outside_root
+    filename = 'shared.html.erb'
+    assert File.exist?(File.join(@root, '..', filename))
+    env = {
+      "REQUEST_METHOD"=>"GET",
+      "REQUEST_PATH"=>"/..%2F#{filename}",
+      "PATH_INFO"=>"/..%2F#{filename}",
+      "REQUEST_URI"=>"/..%2F#{filename}",
+      "HTTP_VERSION"=>"HTTP/1.1",
+      "SERVER_NAME"=>"localhost",
+      "SERVER_PORT"=>"8080",
+      "QUERY_STRING"=>""
+    }
+    assert_equal(DummyApp.call(nil), @app.call(env))
+  end
 end

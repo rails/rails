@@ -11,7 +11,7 @@ module ActionDispatch
     def match?(path)
       path = path.dup
 
-      full_path = path.empty? ? @root : File.join(@root, escape_glob_chars(unescape_path(path)))
+      full_path = path.empty? ? @root : File.join(@root, escape_glob_chars(clean_path_info(unescape_path(path))))
       paths = "#{full_path}#{ext}"
 
       matches = Dir[paths]
@@ -39,6 +39,25 @@ module ActionDispatch
 
     def escape_glob_chars(path)
       path.gsub(/[*?{}\[\]]/, "\\\\\\&")
+    end
+
+    private
+
+    PATH_SEPS = Regexp.union(*[::File::SEPARATOR, ::File::ALT_SEPARATOR].compact)
+
+    def clean_path_info(path_info)
+      parts = path_info.split PATH_SEPS
+
+      clean = []
+
+      parts.each do |part|
+        next if part.empty? || part == '.'
+        part == '..' ? clean.pop : clean << part
+      end
+
+      clean.unshift '/' if parts.empty? || parts.first.empty?
+
+      ::File.join(*clean)
     end
   end
 
