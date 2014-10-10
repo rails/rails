@@ -49,6 +49,21 @@ class PostgresqlActiveSchemaTest < ActiveRecord::TestCase
 
     expected = %(CREATE UNIQUE INDEX  "index_people_on_last_name" ON "people" USING gist ("last_name") WHERE state = 'active')
     assert_equal expected, add_index(:people, :last_name, :unique => true, :where => "state = 'active'", :using => :gist)
+
+    expected = %(CREATE  INDEX  "index_people_on_last_name" ON "people"  ("last_name" ASC))
+    assert_equal expected, add_index(:people, :last_name, :order => "ASC")
+
+    expected = %(CREATE  INDEX  "index_people_on_first_name_and_last_name" ON "people"  ("first_name", "last_name" DESC))
+    assert_equal expected, add_index(:people, [:first_name, :last_name], :order => {:last_name => "DESC"})
+
+    expected = %(CREATE  INDEX  "index_people_on_last_name" ON "people" USING gin ("last_name" gin_trgm_ops))
+    assert_equal expected, add_index(:people, :last_name, using: "gin", :opclass => "gin_trgm_ops")
+
+    expected = %(CREATE  INDEX  "index_people_on_first_name_and_last_name" ON "people" USING gin ("first_name", "last_name" gin_trgm_ops))
+    assert_equal expected, add_index(:people, [:first_name, :last_name], using: "gin", :opclass => {:last_name => "gin_trgm_ops"})
+
+    expected = %(CREATE  INDEX  "index_people_on_last_name" ON "people" USING gin ("last_name" gin_trgm_ops ASC))
+    assert_equal expected, add_index(:people, :last_name, using: "gin", :order => "ASC", :opclass => "gin_trgm_ops")
   end
 
   private

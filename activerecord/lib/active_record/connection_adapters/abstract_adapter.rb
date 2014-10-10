@@ -214,6 +214,11 @@ module ActiveRecord
         false
       end
 
+      # Does this adapter support index opclass?
+      def supports_index_opclass?
+        false
+      end
+
       # Does this adapter support explain?
       def supports_explain?
         false
