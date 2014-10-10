@@ -1,3 +1,39 @@
+*   Fix nested `has many :through` associations on unpersisted parent instances.
+
+    For example, if you have
+
+        class Post < ActiveRecord::Base
+          has_many :books, through: :author
+          has_many :subscriptions, through: :books
+        end
+
+        class Author < ActiveRecord::Base
+          has_one :post
+          has_many :books
+          has_many :subscriptions, through: :books
+        end
+
+        class Book < ActiveRecord::Base
+          belongs_to :author
+          has_many :subscriptions
+        end
+
+        class Subscription < ActiveRecord::Base
+          belongs_to :book
+        end
+
+    Before:
+        If `post` is not persisted, e.g `post = Post.new`, then `post.subscriptions`
+        will be empty no matter what.
+
+    After:
+        If `post` is not persisted, then `post.subscriptions` can be set and used
+        just like it would if `post` were persisted.
+
+    Fixes #16313.
+
+    *Zoltan Kiss*
+
 *   Add `assert_enqueued_emails` and `assert_no_enqueued_emails`.
 
     Example:

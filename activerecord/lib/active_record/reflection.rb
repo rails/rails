@@ -139,6 +139,10 @@ module ActiveRecord
         klass.type_for_attribute(klass.primary_key)
       end
 
+      def belongs_to_or_through?
+        belongs_to? || (through_reflection && through_reflection.belongs_to_or_through?)
+      end
+
       # Returns the class name for the macro.
       #
       # <tt>composed_of :balance, class_name: 'Money'</tt> returns <tt>'Money'</tt>
