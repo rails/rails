@@ -329,7 +329,7 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_label_with_block_in_erb
-    assert_equal(
+    assert_dom_equal(
       %{<label for="post_message">\n  Message\n  <input id="post_message" name="post[message]" type="text" />\n</label>},
       view.render("test/label_with_block")
     )
@@ -469,8 +469,7 @@ class FormHelperTest < ActionView::TestCase
   def test_text_field_doesnt_change_param_values
     object_name = 'post[]'
     expected = '<input id="post_123_title" name="post[123][title]" type="text" value="Hello World" />'
-    assert_equal expected, text_field(object_name, "title")
-    assert_equal object_name, "post[]"
+    assert_dom_equal expected, text_field(object_name, "title")
   end
 
   def test_file_field_has_no_size
@@ -3196,7 +3195,7 @@ class FormHelperTest < ActionView::TestCase
   def test_form_for_with_string_url_option
     form_for(@post, url: 'http://www.otherdomain.com') do |f| end
 
-    assert_equal whole_form("http://www.otherdomain.com", "edit_post_123", "edit_post", method: "patch"), output_buffer
+    assert_dom_equal whole_form("http://www.otherdomain.com", "edit_post_123", "edit_post", method: "patch"), output_buffer
   end
 
   def test_form_for_with_hash_url_option
@@ -3210,14 +3209,14 @@ class FormHelperTest < ActionView::TestCase
     form_for(@post, url: @post) do |f| end
 
     expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "patch")
-    assert_equal expected, output_buffer
+    assert_dom_equal expected, output_buffer
   end
 
   def test_form_for_with_existing_object
     form_for(@post) do |f| end
 
     expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "patch")
-    assert_equal expected, output_buffer
+    assert_dom_equal expected, output_buffer
   end
 
   def test_form_for_with_new_object
@@ -3228,7 +3227,7 @@ class FormHelperTest < ActionView::TestCase
     form_for(post) do |f| end
 
     expected = whole_form("/posts", "new_post", "new_post")
-    assert_equal expected, output_buffer
+    assert_dom_equal expected, output_buffer
   end
 
   def test_form_for_with_existing_object_in_list
@@ -3265,7 +3264,7 @@ class FormHelperTest < ActionView::TestCase
     form_for(@post, url: "/super_posts") do |f| end
 
     expected = whole_form("/super_posts", "edit_post_123", "edit_post", method: "patch")
-    assert_equal expected, output_buffer
+    assert_dom_equal expected, output_buffer
   end
 
   def test_form_for_with_default_method_as_patch

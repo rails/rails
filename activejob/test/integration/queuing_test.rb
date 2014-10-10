@@ -10,9 +10,10 @@ class QueuingTest < ActiveSupport::TestCase
   end
 
   test 'should not run jobs queued on a non-listenting queue' do
+    skip if adapter_is?(:inline) || adapter_is?(:sucker_punch)
+    old_queue = TestJob.queue_name
+
     begin
-      skip if adapter_is?(:inline) || adapter_is?(:sucker_punch)
-      old_queue = TestJob.queue_name
       TestJob.queue_as :some_other_queue
       TestJob.perform_later @id
       wait_for_jobs_to_finish_for(2.seconds)

@@ -213,7 +213,7 @@
 
     *Kenn Ejima*
 
-*   Add support for Postgresql JSONB.
+*   Add support for PostgreSQL JSONB.
 
     Example:
 

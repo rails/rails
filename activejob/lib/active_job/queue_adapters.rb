@@ -7,7 +7,7 @@ module ActiveJob
   # * {Delayed Job}[https://github.com/collectiveidea/delayed_job]
   # * {Qu}[https://github.com/bkeepers/qu]
   # * {Que}[https://github.com/chanks/que]
-  # * {QueueClassic 2.x}[https://github.com/ryandotsmith/queue_classic/tree/v2.2.3]
+  # * {queue_classic}[https://github.com/QueueClassic/queue_classic]
   # * {Resque 1.x}[https://github.com/resque/resque/tree/1-x-stable]
   # * {Sidekiq}[http://sidekiq.org]
   # * {Sneakers}[https://github.com/jondot/sneakers]
@@ -20,7 +20,7 @@ module ActiveJob
   #   | Backburner        | Yes   | Yes    | Yes       | Yes        | Job     | Global  |
   #   | Delayed Job       | Yes   | Yes    | Yes       | Job        | Global  | Global  |
   #   | Que               | Yes   | Yes    | Yes       | Job        | No      | Job     |
-  #   | Queue Classic     | Yes   | Yes    | No*       | No         | No      | No      |
+  #   | queue_classic     | Yes   | Yes    | No*       | No         | No      | No      |
   #   | Resque            | Yes   | Yes    | Yes (Gem) | Queue      | Global  | Yes     |
   #   | Sidekiq           | Yes   | Yes    | Yes       | Queue      | No      | Job     |
   #   | Sneakers          | Yes   | Yes    | No        | Queue      | Queue   | No      |
@@ -29,7 +29,7 @@ module ActiveJob
   #   | Active Job        | Yes   | Yes    | Yes       | No         | No      | No      |
   #
   # NOTE:
-  # Queue Classic does not support Job scheduling. However you can implement this
+  # queue_classic does not support Job scheduling. However you can implement this
   # yourself or you can use the queue_classic-later gem. See the documentation for
   # ActiveJob::QueueAdapters::QueueClassicAdapter.
   #

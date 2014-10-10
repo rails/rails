@@ -17,6 +17,7 @@ module ActionMailer
       include ActiveSupport::Testing::ConstantLookup
       include TestHelper
       include Rails::Dom::Testing::Assertions::SelectorAssertions
+      include Rails::Dom::Testing::Assertions::DomAssertions
 
       included do
         class_attribute :_mailer_class
