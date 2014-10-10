@@ -34,8 +34,8 @@ module ActiveSupport
       def make_rounded
         if significant && number_precision > 0
           digits, @rounded_number = digits_and_rounded_number(number_precision)
-          @number_precision= number_precision - digits
-          @number_precision= 0 if number_precision < 0 # don't let it be negative
+          @number_precision = number_precision - digits
+          @number_precision = 0 if number_precision < 0 # don't let it be negative
         else
           @rounded_number = number.round(number_precision)
           @rounded_number = @rounded_number.to_i if number_precision == 0
@@ -45,7 +45,7 @@ module ActiveSupport
 
       def formatted_string
         if @rounded_number.is_a?(BigDecimal) && @rounded_number.finite?
-          s = @rounded_number.to_s('F') + '0'*number_precision
+          s = @rounded_number.to_s('F') + '0' * number_precision
           integer_part, fractional_part = s.split('.', 2)
           integer_part + '.' + fractional_part[0, number_precision]
         else
