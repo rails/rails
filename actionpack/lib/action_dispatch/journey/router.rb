@@ -63,9 +63,9 @@ module ActionDispatch
 
           unless route.path.anchored
             env['SCRIPT_NAME'] = (script_name.to_s + match.to_s).chomp('/')
-            path_info = match.post_match
-            env['PATH_INFO']   = path_info
-            env['PATH_INFO']   = "/" + path_info unless path_info.start_with? "/"
+            matched_path = match.post_match
+            env['PATH_INFO']   = matched_path
+            env['PATH_INFO']   = "/" + matched_path unless matched_path.start_with? "/"
           end
 
           env[@params_key] = (set_params || {}).merge parameters

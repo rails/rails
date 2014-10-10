@@ -1,3 +1,9 @@
+*   Fix regression where path was getting overwritten when route anchor was false, and X-Cascade pass
+
+    fixes #17035.
+
+    *arthurnn*
+
 *   Fix a bug where malformed query strings lead to 500.
 
     fixes #11502.

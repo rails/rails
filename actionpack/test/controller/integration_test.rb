@@ -615,6 +615,8 @@ class ApplicationIntegrationTest < ActionDispatch::IntegrationTest
     get 'bar', :to => 'application_integration_test/test#index', :as => :bar
 
     mount MountedApp => '/mounted', :as => "mounted"
+    get 'fooz' => proc { |env| [ 200, {'X-Cascade' => 'pass'}, [ "omg" ] ] }, anchor: false
+    get 'fooz', :to => 'application_integration_test/test#index'
   end
 
   def app
@@ -629,6 +631,12 @@ class ApplicationIntegrationTest < ActionDispatch::IntegrationTest
 
   test "includes mounted helpers" do
     assert_equal '/mounted/baz', mounted.baz_path
+  end
+
+  test "path after cascade pass" do
+    get '/fooz'
+    assert_equal 'index', response.body
+    assert_equal '/fooz', path
   end
 
   test "route helpers after controller access" do
