@@ -289,7 +289,7 @@ module Rails
         # Rails::Generators::ModelGenerator will return "model" as generator name.
         def self.generator_name
           @generator_name ||= begin
-            if generator = name.to_s.split('::').last
+            if generator = name.to_s.demodulize
               generator.sub!(/Generator$/, '')
               generator.underscore
             end

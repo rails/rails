@@ -9,7 +9,7 @@ class NameError
   # Was this exception raised because the given name was missing?
   def missing_name?(name)
     if name.is_a? Symbol
-      last_name = (missing_name || '').split('::').last
+      last_name = (missing_name || '').demodulize
       last_name == name.to_s
     else
       missing_name == name.to_s

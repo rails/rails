@@ -10,7 +10,7 @@ module ActiveRecord
         end
 
         def accept(o)
-          m = @cache[o.class] ||= "visit_#{o.class.name.split('::').last}"
+          m = @cache[o.class] ||= "visit_#{o.class.name.demodulize}"
           send m, o
         end
 
