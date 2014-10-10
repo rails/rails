@@ -89,8 +89,11 @@ by default has been mixed into Active Record classes.
 ## Supported queueing systems
 
 Active Job has built-in adapters for multiple queueing backends (Sidekiq,
-Resque, Delayed Job and others). To get an up-to-date list of the adapters
-see the API Documentation for [ActiveJob::QueueAdapters](http://api.rubyonrails.org/classes/ActiveJob/QueueAdapters.html).
+Resque, Delayed Job and others). To get an up-to-date list of the adapters,
+see the `queue_adapters` directory [here](https://github.com/rails/rails/tree/master/activejob/lib/active_job/queue_adapters).
+In addition, the current version of Edge Rails has API Documentation for
+[ActiveJob::QueueAdapters](http://edgeapi.rubyonrails.org/classes/ActiveJob/QueueAdapters.html)
+that may be of use.
 
 ## Auxiliary gems
 
