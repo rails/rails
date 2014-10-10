@@ -5,7 +5,7 @@ module ActiveSupport
       self.validate_float = true
 
       def convert
-        @number = build_number(number)
+        build_number(number)
         make_rounded
         format_number(NumberToDelimitedConverter.convert(formatted_string, options))
       end
@@ -21,7 +21,7 @@ module ActiveSupport
       end
  
       def build_number(number)
-        case number
+        @number = case number
         when Float, String
           BigDecimal(number.to_s)
         when Rational
