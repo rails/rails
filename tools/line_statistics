@@ -1,4 +1,5 @@
-#!/usr/bin/env ruby
+# Class used to calculates LOC for a provided file list.
+#
 # Example:
 #   files = FileList["lib/active_record/**/*.rb"]
 #   CodeTools::LineStatistics.new(files).print_loc
