@@ -47,6 +47,11 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     assert_equal @twz.localtime, @twz.utc.getlocal
   end
 
+  def test_localtime_with_utc_offset_provided
+    assert_equal @twz.localtime(14400), @twz.utc.getlocal(14400)
+    assert_equal @twz.localtime(12345).utc_offset, 12345
+  end
+
   def test_utc?
     assert_equal false, @twz.utc?
     assert_equal true, ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone['UTC']).utc?
@@ -879,6 +884,12 @@ class TimeWithZoneMethodsForTimeAndDateTimeTest < ActiveSupport::TestCase
   def test_localtime
     Time.zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
     assert_equal @dt.in_time_zone.localtime, @dt.in_time_zone.utc.to_time.getlocal
+  end
+
+  def test_localtime_with_utc_offset_provided
+    Time.zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
+    assert_equal @dt.in_time_zone.localtime(14400), @dt.in_time_zone.to_time.getlocal(14400)
+    assert_equal @dt.in_time_zone.localtime(12345).utc_offset, 12345
   end
 
   def test_use_zone

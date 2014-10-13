@@ -74,9 +74,17 @@ module ActiveSupport
     end
 
     # Returns a <tt>Time.local()</tt> instance of the simultaneous time in your
-    # system's <tt>ENV['TZ']</tt> zone.
-    def localtime
-      utc.respond_to?(:getlocal) ? utc.getlocal : utc.to_time.getlocal
+    # system's <tt>ENV['TZ']</tt>. Utc offset value can be passed as an additional argument to get time object in custom time zone:
+    #   Time.current.localtime         # => 2014-10-13 12:20:20 +0000
+    #   Time.current.getlocal          # => 2014-10-13 12:20:57 +0000
+    #   Time.current.localtime(14400)  # => 2014-10-13 16:22:04 +0400
+    #   Time.current.getlocal(-14400)  # => 2014-10-13 08:24:59 -0400
+    #   Time.zone.now.localtime        # => 2014-10-13 12:39:57 +0000
+    #   Time.zone.now.getlocal         # => 2014-10-13 12:40:01 +0000
+    #   Time.zone.now.localtime(-14400)# => 2014-10-13 08:40:55 -0400
+    #   Time.zone.now.getlocal(14400)  # => 2014-10-13 16:41:06 +0400
+    def localtime(*args)
+      utc.respond_to?(:getlocal) ? utc.getlocal(*args) : utc.to_time.getlocal(*args)
     end
     alias_method :getlocal, :localtime
 
