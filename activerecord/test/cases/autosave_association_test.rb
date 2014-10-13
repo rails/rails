@@ -1,5 +1,6 @@
 require 'cases/helper'
 require 'models/bird'
+require 'models/comment'
 require 'models/company'
 require 'models/customer'
 require 'models/developer'
@@ -615,6 +616,14 @@ class TestDefaultAutosaveAssociationOnNewRecord < ActiveRecord::TestCase
 
     firm.save!
     assert !account.persisted?
+  end
+
+  def test_autosave_new_record_with_after_create_callback
+    post = PostWithAfterCreateCallback.new(title: 'Captain Murphy', body: 'is back')
+    post.comments.build(body: 'foo')
+    post.save!
+
+    assert_not_nil post.author_id
   end
 end
 

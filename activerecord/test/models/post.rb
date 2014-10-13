@@ -219,6 +219,15 @@ class PostThatLoadsCommentsInAnAfterSaveHook < ActiveRecord::Base
   end
 end
 
+class PostWithAfterCreateCallback < ActiveRecord::Base
+  self.table_name = 'posts'
+  has_many :comments, foreign_key: :post_id
+
+  after_create do |post|
+    update_attribute(:author_id, comments.first.id)
+  end
+end
+
 class PostWithCommentWithDefaultScopeReferencesAssociation < ActiveRecord::Base
   self.table_name = 'posts'
   has_many :comment_with_default_scope_references_associations, foreign_key: :post_id
