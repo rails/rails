@@ -1,3 +1,7 @@
+*   PostgreSQL migrations support for index operator class.
+
+    *Cristian Bica*
+
 *   Honor overridden `rack.test` in Rack environment for the connection
     management middleware.
 

@@ -182,6 +182,14 @@ module ActiveRecord
           connection.remove_index("testings", "last_name")
           assert !connection.index_exists?("testings", "last_name")
         end
+
+        def test_add_index_with_operator_class
+          connection.add_index("testings", "last_name", :opclass => "varchar_pattern_ops")
+          assert connection.index_exists?("testings", "last_name")
+
+          connection.remove_index("testings", "last_name")
+          assert !connection.index_exists?("testings", "last_name")
+        end
       end
 
       private

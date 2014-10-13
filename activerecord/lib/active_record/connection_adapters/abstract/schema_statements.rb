@@ -505,6 +505,22 @@ module ActiveRecord
       #
       # Note: MySQL doesn't yet support index order (it accepts the syntax but ignores it).
       #
+      # ====== Creating an index with a operator class
+      #
+      #   add_index(:users, [:firstname, :lastname], opclass: "varchar_pattern_ops")
+      #
+      # generates:
+      #
+      #   CREATE INDEX index_users_on_firstname_and_lastname ON users(firstname varchar_pattern_ops, lastname varchar_pattern_ops)
+      #
+      #   add_index(:users, [:name, :bio], opclass: {name: "varchar_pattern_ops", bio: "gin_trgm_ops"})
+      #
+      # generates:
+      #
+      #   CREATE INDEX index_users_on_name_and_bio ON users(name varchar_pattern_ops, bio gin_trgm_ops)
+      #
+      # Note: Only PostgreSQL supports index operator class.
+      #
       # ====== Creating a partial index
       #
       #   add_index(:accounts, [:branch_id, :party_id], unique: true, where: "active")
@@ -861,7 +877,7 @@ module ActiveRecord
         column_names = Array(column_name)
         index_name   = index_name(table_name, column: column_names)
 
-        options.assert_valid_keys(:unique, :order, :name, :where, :length, :internal, :using, :algorithm, :type)
+        options.assert_valid_keys(:unique, :order, :name, :where, :length, :internal, :using, :algorithm, :type, :opclass)
 
         index_type = options[:unique] ? "UNIQUE" : ""
         index_type = options[:type].to_s if options.key?(:type)
@@ -902,12 +918,30 @@ module ActiveRecord
             end
           end
 
-          return option_strings
+          option_strings
+        end
+
+        def add_index_opclass(option_strings, column_names, options = {})
+          if options.is_a?(Hash) && opclass = options[:opclass]
+            case opclass
+            when Hash
+              column_names.each {|name| option_strings[name] += " #{opclass[name]}" if opclass.has_key?(name)}
+            when String
+              column_names.each {|name| option_strings[name] += " #{opclass}"}
+            end
+          end
+
+          option_strings
         end
 
         # Overridden by the MySQL adapter for supporting index lengths
         def quoted_columns_for_index(column_names, options = {})
           option_strings = Hash[column_names.map {|name| [name, '']}]
+
+          # add index opclass if supporterd
+          if supports_index_opclass?
+            option_strings = add_index_opclass(option_strings, column_names, options)
+          end
 
           # add index sort order if supported
           if supports_index_sort_order?

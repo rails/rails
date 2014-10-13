@@ -150,6 +150,10 @@ module ActiveRecord
         true
       end
 
+      def supports_index_opclass?
+        true
+      end
+
       def supports_transaction_isolation?
         true
       end
