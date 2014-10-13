@@ -1,3 +1,10 @@
+*   Fix regression causing `after_create` callbacks to run before associated
+    records are autosaved.
+
+    Fixes #17209.
+
+    *Agis Anastasopoulos*
+
 *   Honor overridden `rack.test` in Rack environment for the connection
     management middleware.
 
