@@ -138,7 +138,7 @@ module ActiveRecord
     # Same as +first+ but raises <tt>ActiveRecord::RecordNotFound</tt> if no record
     # is found. Note that <tt>first!</tt> accepts no arguments.
     def first!
-      first or raise RecordNotFound.new("Couldn't find #{@klass.name} with [#{arel.where_sql}]")
+      find_nth! 0
     end
 
     # Find the last record (or last N records if a parameter is supplied).
@@ -187,7 +187,7 @@ module ActiveRecord
     # Same as +second+ but raises <tt>ActiveRecord::RecordNotFound</tt> if no record
     # is found.
     def second!
-      second or raise RecordNotFound.new("Couldn't find #{@klass.name} with [#{arel.where_sql}]")
+      find_nth! 1
     end
 
     # Find the third record.
@@ -203,7 +203,7 @@ module ActiveRecord
     # Same as +third+ but raises <tt>ActiveRecord::RecordNotFound</tt> if no record
     # is found.
     def third!
-      third or raise RecordNotFound.new("Couldn't find #{@klass.name} with [#{arel.where_sql}]")
+      find_nth! 2
     end
 
     # Find the fourth record.
@@ -219,7 +219,7 @@ module ActiveRecord
     # Same as +fourth+ but raises <tt>ActiveRecord::RecordNotFound</tt> if no record
     # is found.
     def fourth!
-      fourth or raise RecordNotFound.new("Couldn't find #{@klass.name} with [#{arel.where_sql}]")
+      find_nth! 3
     end
 
     # Find the fifth record.
@@ -235,7 +235,7 @@ module ActiveRecord
     # Same as +fifth+ but raises <tt>ActiveRecord::RecordNotFound</tt> if no record
     # is found.
     def fifth!
-      fifth or raise RecordNotFound.new("Couldn't find #{@klass.name} with [#{arel.where_sql}]")
+      find_nth! 4
     end
 
     # Find the forty-second record. Also known as accessing "the reddit".
@@ -251,7 +251,7 @@ module ActiveRecord
     # Same as +forty_two+ but raises <tt>ActiveRecord::RecordNotFound</tt> if no record
     # is found.
     def forty_two!
-      forty_two or raise RecordNotFound.new("Couldn't find #{@klass.name} with [#{arel.where_sql}]")
+      find_nth! 41
     end
 
     # Returns +true+ if a record exists in the table that matches the +id+ or
@@ -487,6 +487,10 @@ module ActiveRecord
         offset += index
         @offsets[offset] ||= find_nth_with_limit(offset, 1).first
       end
+    end
+
+    def find_nth!(index)
+      find_nth(index, offset_index) or raise RecordNotFound.new("Couldn't find #{@klass.name} with [#{arel.where_sql}]")
     end
 
     def find_nth_with_limit(offset, limit)
