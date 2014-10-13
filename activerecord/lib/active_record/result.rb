@@ -42,6 +42,10 @@ module ActiveRecord
       @column_types = column_types
     end
 
+    def length
+      @rows.length
+    end
+
     def each
       if block_given?
         hash_rows.each { |row| yield row }

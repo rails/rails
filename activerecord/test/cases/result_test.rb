@@ -10,6 +10,10 @@ module ActiveRecord
       ])
     end
 
+    test "length" do
+      assert_equal 3, result.length
+    end
+
     test "to_hash returns row_hashes" do
       assert_equal [
         {'col_1' => 'row 1 col 1', 'col_2' => 'row 1 col 2'},
