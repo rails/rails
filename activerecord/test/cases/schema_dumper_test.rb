@@ -19,7 +19,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
   def test_dump_schema_information_outputs_lexically_ordered_versions
     versions = %w{ 20100101010101 20100201010101 20100301010101 }
-    versions.reverse.each do |v|
+    versions.reverse_each do |v|
       ActiveRecord::SchemaMigration.create!(:version => v)
     end
 

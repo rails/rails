@@ -12,7 +12,7 @@ module Rails
 
       def add_routes
         unless options[:skip_routes]
-          actions.reverse.each do |action|
+          actions.reverse_each do |action|
             route generate_routing_code(action)
           end
         end
