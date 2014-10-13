@@ -1,7 +1,14 @@
+*   Fix `render layout: @collection` with provided block
+
+    According to the documentation `render layout:` should
+    be able to render provided collection. Previously, render
+    failed with 'Missing partial'.
+
+    *Theo Delaune*
+
 *   Fix `collection_radio_buttons` hidden_field name and make it appear
     before the actual input radio tags to make the real value override
     the hidden when passed.
-
     Fixes #22773
 
     *Santiago Pastorino*

@@ -421,10 +421,11 @@ module ActionView
     end
 
     def collection_with_template
-      view, locals, template = @view, @locals, @template
+      # Using local variable instead of instance optimize variable lookup and rendering
+      view, locals, template, block = @view, @locals, @template, @block
       as, counter, iteration = @variable, @variable_counter, @variable_iteration
 
-      if layout = @options[:layout]
+      if !block && (layout = @options[:layout])
         layout = find_template(layout, @template_keys)
       end
 
@@ -435,7 +436,10 @@ module ActionView
         locals[as]        = object
         locals[counter]   = partial_iteration.index
 
-        content = template.render(view, locals)
+        content = template.render(view, locals) do |*name|
+          view._layout_for(*name, &block)
+        end
+
         content = layout.render(view, locals) { content } if layout
         partial_iteration.iterate!
         content
