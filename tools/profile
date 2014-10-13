@@ -1,4 +1,7 @@
 #!/usr/bin/env ruby
+# Profile require calls giving information about the time and the files that are called
+# when loading the provided file.
+#
 # Example:
 #   tools/profile activesupport/lib/active_support.rb [ruby-prof mode] [ruby-prof printer]
 ENV['NO_RELOAD'] ||= '1'
