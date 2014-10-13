@@ -490,8 +490,8 @@ class InflectorTest < ActiveSupport::TestCase
         assert_equal [], inflect.uncountables
 
         # restore all the inflections
-        singulars.reverse.each { |singular| inflect.singular(*singular) }
-        plurals.reverse.each   { |plural|   inflect.plural(*plural) }
+        singulars.reverse_each { |singular| inflect.singular(*singular) }
+        plurals.reverse_each   { |plural|   inflect.plural(*plural) }
         inflect.uncountable(uncountables)
 
         assert_equal singulars, inflect.singulars

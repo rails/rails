@@ -1035,7 +1035,7 @@ module ActionView
         def build_selects_from_types(order)
           select = ''
           first_visible = order.find { |type| !@options[:"discard_#{type}"] }
-          order.reverse.each do |type|
+          order.reverse_each do |type|
             separator = separator(type) unless type == first_visible # don't add before first visible field
             select.insert(0, separator.to_s + send("select_#{type}").to_s)
           end
