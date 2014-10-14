@@ -15,6 +15,16 @@ class RelationScopingTest < ActiveRecord::TestCase
     developers(:david)
   end
 
+  def test_unscoped_breaks_caching
+    author = authors :mary
+    assert_nil author.first_post
+    post = FirstPost.unscoped do
+      author = authors :mary
+      author.reload.first_post
+    end
+    assert post
+  end
+
   def test_reverse_order
     assert_equal Developer.order("id DESC").to_a.reverse, Developer.order("id DESC").reverse_order
   end
