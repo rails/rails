@@ -7,6 +7,7 @@ require 'models/comment'
 require 'models/category'
 require 'models/person'
 require 'models/reference'
+require 'models/reference'
 
 class RelationScopingTest < ActiveRecord::TestCase
   fixtures :authors, :developers, :projects, :comments, :posts, :developers_projects
@@ -19,10 +20,20 @@ class RelationScopingTest < ActiveRecord::TestCase
     author = authors :mary
     assert_nil author.first_post
     post = FirstPost.unscoped do
-      author = authors :mary
       author.reload.first_post
     end
     assert post
+  end
+
+  def test_scope_breaks_caching_on_collections
+    author = authors :david
+    ids = author.reload.special_posts_with_default_scope.map(&:id)
+    assert_equal [1,5,6], ids.sort
+    scoped_posts = SpecialPostWithDefaultScope.unscoped do
+      author = authors :david
+      author.reload.special_posts_with_default_scope.to_a
+    end
+    assert_equal author.posts.map(&:id).sort, scoped_posts.map(&:id).sort
   end
 
   def test_reverse_order
