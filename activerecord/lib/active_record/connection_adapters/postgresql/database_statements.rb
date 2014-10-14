@@ -197,9 +197,15 @@ module ActiveRecord
           execute "BEGIN"
         end
 
-        def begin_isolated_db_transaction(isolation)
+        def begin_isolated_db_transaction(opts)
           begin_db_transaction
-          execute "SET TRANSACTION ISOLATION LEVEL #{transaction_isolation_levels.fetch(isolation)}"
+
+          opts = { level: opts } unless opts.is_a? Hash
+          level = transaction_isolation_levels.fetch(opts[:level])
+          read_mode = 'READ ONLY' if opts[:read_only]
+          deferrable = 'DEFERRABLE' if opts[:deferrable]
+
+          execute "SET TRANSACTION ISOLATION LEVEL #{level} #{read_mode} #{deferrable}"
         end
 
         # Commits a transaction.
