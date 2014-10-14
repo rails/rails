@@ -1,3 +1,8 @@
+*   Replace `ActiveRecord::StatementInvalid#original_exception` 
+    with standard `Exception#cause` to provide access to base exception.
+
+    *Nikolay Kondratyev*
+
 *   Fix regression causing `after_create` callbacks to run before associated
     records are autosaved.
 

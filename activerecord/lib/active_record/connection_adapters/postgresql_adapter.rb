@@ -407,9 +407,9 @@ module ActiveRecord
 
           case exception.result.try(:error_field, PGresult::PG_DIAG_SQLSTATE)
           when UNIQUE_VIOLATION
-            RecordNotUnique.new(message, exception)
+            RecordNotUnique.new(message)
           when FOREIGN_KEY_VIOLATION
-            InvalidForeignKey.new(message, exception)
+            InvalidForeignKey.new(message)
           else
             super
           end
@@ -588,7 +588,7 @@ module ActiveRecord
             @connection.get_last_result
           end
         rescue ActiveRecord::StatementInvalid => e
-          pgerror = e.original_exception
+          pgerror = e.cause
 
           # Get the PG code for the failure.  Annoyingly, the code for
           # prepared statements whose return value may have changed is
@@ -642,9 +642,9 @@ module ActiveRecord
           OID::Money.precision = (postgresql_version >= 80300) ? 19 : 10
 
           configure_connection
-        rescue ::PG::Error => error
-          if error.message.include?("does not exist")
-            raise ActiveRecord::NoDatabaseError.new(error.message, error)
+        rescue ::PG::Error => e
+          if e.message.include?("does not exist")
+            raise ActiveRecord::NoDatabaseError.new(e.message)
           else
             raise
           end

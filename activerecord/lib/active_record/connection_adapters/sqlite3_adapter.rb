@@ -31,9 +31,9 @@ module ActiveRecord
       db.busy_timeout(ConnectionAdapters::SQLite3Adapter.type_cast_config_to_integer(config[:timeout])) if config[:timeout]
 
       ConnectionAdapters::SQLite3Adapter.new(db, logger, nil, config)
-    rescue Errno::ENOENT => error
-      if error.message.include?("No such file or directory")
-        raise ActiveRecord::NoDatabaseError.new(error.message, error)
+    rescue Errno::ENOENT => e
+      if e.message.include?("No such file or directory")
+        raise ActiveRecord::NoDatabaseError.new(e.message)
       else
         raise
       end
@@ -624,7 +624,7 @@ module ActiveRecord
           # Older versions of SQLite return:
           #   column *column_name* is not unique
           when /column(s)? .* (is|are) not unique/, /UNIQUE constraint failed: .*/
-            RecordNotUnique.new(message, exception)
+            RecordNotUnique.new(message)
           else
             super
           end
