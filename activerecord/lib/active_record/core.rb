@@ -179,7 +179,7 @@ module ActiveRecord
         begin
           s.execute(hash.values, self, connection).first
         rescue TypeError => e
-          raise ActiveRecord::StatementInvalid.new(e.message, e)
+          raise ActiveRecord::StatementInvalid.new(e.message)
         end
       end
 

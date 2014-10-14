@@ -59,19 +59,10 @@ module ActiveRecord
   end
 
   # Superclass for all database execution errors.
-  #
-  # Wraps the underlying database error as +original_exception+.
   class StatementInvalid < ActiveRecordError
-    attr_reader :original_exception
-
-    def initialize(message, original_exception = nil)
-      super(message)
-      @original_exception = original_exception
-    end
   end
 
   # Defunct wrapper class kept for compatibility.
-  # +StatementInvalid+ wraps the original exception now.
   class WrappedDatabaseException < StatementInvalid
   end
 
