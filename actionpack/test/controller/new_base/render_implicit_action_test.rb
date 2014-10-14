@@ -6,7 +6,7 @@ module RenderImplicitAction
       "render_implicit_action/simple/hello_world.html.erb"     => "Hello world!",
       "render_implicit_action/simple/hyphen-ated.html.erb"     => "Hello hyphen-ated!",
       "render_implicit_action/simple/not_implemented.html.erb" => "Not Implemented"
-    )]
+    ), ActionView::FileSystemResolver.new(File.expand_path('../../../controller',__FILE__))]
 
     def hello_world() end
   end
@@ -31,6 +31,13 @@ module RenderImplicitAction
 
       assert_body   "Not Implemented"
       assert_status 200
+    end
+
+    test "render does not traverse the file system" do
+      assert_raises(AbstractController::ActionNotFound) do
+        action_name = %w(.. .. controller_fixtures shared).join(File::SEPARATOR)
+        SimpleController.action(action_name).call(Rack::MockRequest.env_for("/"))
+      end
     end
 
     test "available_action? returns true for implicit actions" do
