@@ -6,16 +6,17 @@ module ActionDispatch
     cattr_accessor :rescue_responses
     @@rescue_responses = Hash.new(:internal_server_error)
     @@rescue_responses.merge!(
-      'ActionController::RoutingError'             => :not_found,
-      'AbstractController::ActionNotFound'         => :not_found,
-      'ActionController::MethodNotAllowed'         => :method_not_allowed,
-      'ActionController::UnknownHttpMethod'        => :method_not_allowed,
-      'ActionController::NotImplemented'           => :not_implemented,
-      'ActionController::UnknownFormat'            => :not_acceptable,
-      'ActionController::InvalidAuthenticityToken' => :unprocessable_entity,
-      'ActionDispatch::ParamsParser::ParseError'   => :bad_request,
-      'ActionController::BadRequest'               => :bad_request,
-      'ActionController::ParameterMissing'         => :bad_request
+      'ActionController::RoutingError'                => :not_found,
+      'AbstractController::ActionNotFound'            => :not_found,
+      'ActionController::MethodNotAllowed'            => :method_not_allowed,
+      'ActionController::UnknownHttpMethod'           => :method_not_allowed,
+      'ActionController::NotImplemented'              => :not_implemented,
+      'ActionController::UnknownFormat'               => :not_acceptable,
+      'ActionController::InvalidAuthenticityToken'    => :unprocessable_entity,
+      'ActionController::InvalidCrossOriginRequest'   => :unprocessable_entity,
+      'ActionDispatch::ParamsParser::ParseError'      => :bad_request,
+      'ActionController::BadRequest'                  => :bad_request,
+      'ActionController::ParameterMissing'            => :bad_request
     )
 
     cattr_accessor :rescue_templates
