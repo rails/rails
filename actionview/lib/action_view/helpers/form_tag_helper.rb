@@ -790,7 +790,7 @@ module ActionView
       # ==== Options
       # * Accepts the same options as number_field_tag.
       def range_field_tag(name, value = nil, options = {})
-        number_field_tag(name, value, options.stringify_keys.update("type" => "range"))
+        number_field_tag(name, value, options.merge(type: :range))
       end
 
       # Creates the hidden UTF8 enforcer tag. Override this method in a helper
