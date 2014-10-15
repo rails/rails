@@ -1,0 +1,4 @@
+permission_denied:
+  id: 1
+  name: Permission Denied
+  type: ErrorLog

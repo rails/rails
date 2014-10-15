@@ -422,6 +422,16 @@ ActiveRecord::Schema.define do
     t.integer :friend_id
   end
 
+  create_table :member_logs, force: true do |t|
+    t.integer :member_id
+    t.integer :error_log_id
+  end
+
+  create_table :logs, force: true do |t|
+    t.string :name
+    t.string :type
+  end
+
   create_table :memberships, force: true do |t|
     t.datetime :joined_on
     t.integer :club_id, :member_id
