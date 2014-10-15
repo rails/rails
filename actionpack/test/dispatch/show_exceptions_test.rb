@@ -39,8 +39,8 @@ class ShowExceptionsTest < ActionDispatch::IntegrationTest
     assert_equal "500 error fixture\n", body
 
     get "/bad_params", {}, {'action_dispatch.show_exceptions' => true}
-    assert_response 400
-    assert_equal "400 error fixture\n", body
+    assert_response 422
+    assert_equal "422 error fixture\n", body
 
     get "/not_found", {}, {'action_dispatch.show_exceptions' => true}
     assert_response 404

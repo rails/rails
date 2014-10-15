@@ -25,6 +25,16 @@ module ActionDispatch
       end
 
       @app.call(env)
+    rescue ActionDispatch::ParamsParser::ParseError => error
+      if env['HTTP_ACCEPT'] =~ /application\/json/
+        error_output = "There was a problem in the JSON you submitted: #{error}"
+        return [
+          422, { "Content-Type" => "application/json" },
+          [ { status: 422, error: error_output }.to_json ]
+        ]
+      else
+        raise error
+      end
     end
 
     private

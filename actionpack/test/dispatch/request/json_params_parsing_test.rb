@@ -57,7 +57,7 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
       output = StringIO.new
       json = "[\"person]\": {\"name\": \"David\"}}"
       post "/parse", json, {'CONTENT_TYPE' => 'application/json', 'action_dispatch.show_exceptions' => true, 'action_dispatch.logger' => ActiveSupport::Logger.new(output)}
-      assert_response :bad_request
+      assert_response :unprocessable_entity
       output.rewind && err = output.read
       assert err =~ /Error occurred while parsing request parameters/
     end
@@ -71,6 +71,21 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
         exception = assert_raise(ActionDispatch::ParamsParser::ParseError) { post "/parse", json, {'CONTENT_TYPE' => 'application/json', 'action_dispatch.show_exceptions' => false} }
         assert_equal JSON::ParserError, exception.original_exception.class
         assert_equal exception.original_exception.message, exception.message
+      ensure
+        $stderr = STDERR
+      end
+    end
+  end
+
+  test "returns a 422:unprocessable_entity status code if json is requested and invalid json is posted" do
+    with_test_routing do
+      begin
+        $stderr = StringIO.new # suppress the log
+        json = "[\"person]\": {\"name\": \"David\"}}"
+        post "/parse", json, {'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json'}
+        assert_response :unprocessable_entity
+        content_type = response.headers['Content-Type']
+        assert_equal 'application/json', content_type
       ensure
         $stderr = STDERR
       end
