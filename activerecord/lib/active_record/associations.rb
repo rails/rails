@@ -46,6 +46,12 @@ module ActiveRecord
     end
   end
 
+  class HasOneAssociationPolymorphicThroughError < ActiveRecordError #:nodoc:
+    def initialize(owner_class_name, reflection)
+      super("Cannot have a has_one :through association '#{owner_class_name}##{reflection.name}' which goes through the polymorphic association '#{owner_class_name}##{reflection.through_reflection.name}'.")
+    end
+  end
+
   class HasManyThroughSourceAssociationNotFoundError < ActiveRecordError #:nodoc:
     def initialize(reflection)
       through_reflection      = reflection.through_reflection
