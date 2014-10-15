@@ -434,7 +434,7 @@ module ActionDispatch
         #
         # Because requesting various HTTP verbs with a single action has security
         # implications, you must either specify the actions in
-        # the via options or use one of the HtttpHelpers[rdoc-ref:HttpHelpers]
+        # the via options or use one of the HttpHelpers[rdoc-ref:HttpHelpers]
         # instead +match+
         #
         # === Options
