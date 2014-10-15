@@ -12,7 +12,7 @@ module ActiveSupport
     
     class << self
       # Parses a JSON string (JavaScript Object Notation) into a hash.
-      # See www.json.org for more info.
+      # See http://www.json.org for more info.
       #
       #   ActiveSupport::JSON.decode("{\"team\":\"rails\",\"players\":\"36\"}")
       #   => {"team" => "rails", "players" => "36"}
