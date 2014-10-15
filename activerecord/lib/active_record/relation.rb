@@ -4,8 +4,6 @@ require 'arel/collectors/bind'
 module ActiveRecord
   # = Active Record Relation
   class Relation
-    JoinOperation = Struct.new(:relation, :join_class, :on)
-
     MULTI_VALUE_METHODS  = [:includes, :eager_load, :preload, :select, :group,
                             :order, :joins, :where, :having, :bind, :references,
                             :extending, :unscope]
