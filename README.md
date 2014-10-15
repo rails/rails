@@ -13,10 +13,10 @@ Person, Post, etc.) and encapsulates the business logic that is specific to
 your application. In Rails, database-backed model classes are derived from
 `ActiveRecord::Base`. Active Record allows you to present the data from
 database rows as objects and embellish these data objects with business logic
-methods. Although most Rails models are backed by a database, models can also
-be ordinary Ruby classes, or Ruby classes that implement a set of interfaces
-as provided by the Active Model module. You can read more about Active Record
-in its [README](activerecord/README.rdoc).
+methods. You can read more about Active Record in its [README](activerecord/README.rdoc).
+Although most Rails models are backed by a database, models can also be ordinary
+Ruby classes, or Ruby classes that implement a set of interfaces as provided by
+the Active Model module. You can read more about Active Model in its [README](activemodel/README.rdoc).
 
 The _Controller layer_ is responsible for handling incoming HTTP requests and
 providing a suitable response. Usually this means returning HTML, but Rails controllers
