@@ -821,8 +821,11 @@ module ActiveRecord
         end
 
         if through_reflection.polymorphic?
-          raise HasOneAssociationPolymorphicThroughError.new(active_record.name, self) if has_one?
-          raise HasManyThroughAssociationPolymorphicThroughError.new(active_record.name, self)
+          if has_one?
+            raise HasOneAssociationPolymorphicThroughError.new(active_record.name, self)
+          else
+            raise HasManyThroughAssociationPolymorphicThroughError.new(active_record.name, self)
+          end
         end
 
         if source_reflection.nil?
