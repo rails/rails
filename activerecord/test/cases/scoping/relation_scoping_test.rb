@@ -7,7 +7,6 @@ require 'models/comment'
 require 'models/category'
 require 'models/person'
 require 'models/reference'
-require 'models/reference'
 
 class RelationScopingTest < ActiveRecord::TestCase
   fixtures :authors, :developers, :projects, :comments, :posts, :developers_projects
