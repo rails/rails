@@ -77,6 +77,21 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "returns a 422:unprocessable_entity status code if json is requested and invalid json is posted" do
+    with_test_routing do
+      begin
+        $stderr = StringIO.new # suppress the log
+        json = "[\"person]\": {\"name\": \"David\"}}"
+        post "/parse", json, {'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json'}
+        assert_response :unprocessable_entity
+        content_type = response.headers['Content-Type']
+        assert_equal 'application/json', content_type
+      ensure
+        $stderr = STDERR
+      end
+    end
+  end
+
   test 'raw_post is not empty for JSON request' do
     with_test_routing do
       post '/parse', '{"posts": [{"title": "Post Title"}]}', 'CONTENT_TYPE' => 'application/json'
