@@ -13,7 +13,7 @@ module ActiveSupport
 
   module JSON
     # Dumps objects in JSON (JavaScript Object Notation).
-    # See www.json.org for more info.
+    # See http://www.json.org for more info.
     #
     #   ActiveSupport::JSON.encode({ team: 'rails', players: '36' })
     #   # => "{\"team\":\"rails\",\"players\":\"36\"}"
