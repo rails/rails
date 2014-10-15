@@ -36,9 +36,11 @@ You can read more about Action View in its [README](actionview/README.rdoc).
 
 Active Record, Action Pack, and Action View can each be used independently outside Rails.
 In addition to them, Rails also comes with Action Mailer ([README](actionmailer/README.rdoc)), a library
-to generate and send emails; and Active Support ([README](activesupport/README.rdoc)), a collection of
-utility classes and standard library extensions that are useful for Rails, and may also be used
-independently outside Rails.
+to generate and send emails; Active Job ([README](activejob/README.md)), a
+framework for declaring jobs and making them run on a variety of queueing
+backends; and Active Support ([README](activesupport/README.rdoc)), a collection
+of utility classes and standard library extensions that are useful for Rails,
+and may also be used independently outside Rails.
 
 ## Getting Started
 
