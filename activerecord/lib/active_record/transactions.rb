@@ -11,7 +11,7 @@ module ActiveRecord
       "\n" \
       "You can opt into the new behavior and remove this warning by setting:\n" \
       "\n" \
-      "  config.active_record.raise_in_transactional_callbacks = true"
+      "  config.active_record.raise_in_transactional_callbacks = true\n\n"
 
     included do
       define_callbacks :commit, :rollback,
