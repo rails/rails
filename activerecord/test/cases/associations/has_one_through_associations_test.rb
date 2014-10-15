@@ -289,6 +289,12 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_has_one_through_polymorphic_association
+    assert_raise(ActiveRecord::HasOneAssociationPolymorphicThroughError) do
+      @member.premium_club
+    end
+  end
+
   def test_has_one_through_belongs_to_should_update_when_the_through_foreign_key_changes
     minivan = minivans(:cool_first)
 
