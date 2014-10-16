@@ -200,7 +200,7 @@ Read the [gem's readme](https://github.com/rails/rails-html-sanitizer) for more 
 The documentation for `PermitScrubber` and `TargetScrubber` explains how you
 can gain complete control over when and how elements should be stripped.
 
-If your application needs to old behaviour include `rails-deprecated_sanitizer` in your Gemfile:
+If your application needs to use the old behaviour, include `rails-deprecated_sanitizer` in your Gemfile:
 
 ```ruby
 gem 'rails-deprecated_sanitizer'
