@@ -23,7 +23,7 @@ module ActiveModel
       included do
         include ActiveSupport::Callbacks
         define_callbacks :validation,
-                         terminator: ->(_,result) { result == false },
+                         terminator: ->(_,result_lambda) { result_lambda.call == false },
                          skip_after_callbacks_if_terminated: true,
                          scope: [:kind, :name]
       end

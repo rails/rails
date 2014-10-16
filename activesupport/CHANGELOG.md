@@ -1,3 +1,15 @@
+*   Changes arguments and default value of CallbackChain's :terminator option
+
+    Chains of callbacks defined without an explicit `:terminator` option will
+    now be halted as soon as a `before_` callback throws `:abort`.
+
+    Chains of callbacks defined with a `:terminator` option will maintain their
+    existing behavior of halting as soon as a `before_` callback matches the
+    terminator's expectation. For instance, ActiveModel's callbacks will still
+    halt the chain when a `before_` callback returns `false`.
+
+    *claudiob*
+
 *   Deprecate `MissingSourceFile` in favor of `LoadError`.
 
     `MissingSourceFile` was just an alias to `LoadError` and was not being

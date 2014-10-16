@@ -142,8 +142,8 @@ module ActiveSupport
             halted = env.halted
 
             if !halted && user_conditions.all? { |c| c.call(target, value) }
-              result = user_callback.call target, value
-              env.halted = halted_lambda.call(target, result)
+              result_lambda = -> { user_callback.call target, value }
+              env.halted = halted_lambda.call(target, result_lambda)
               if env.halted
                 target.send :halted_callback_hook, filter
               end
@@ -161,8 +161,9 @@ module ActiveSupport
             halted = env.halted
 
             unless halted
-              result = user_callback.call target, value
-              env.halted = halted_lambda.call(target, result)
+              result_lambda = -> { user_callback.call target, value }
+              env.halted = halted_lambda.call(target, result_lambda)
+
               if env.halted
                 target.send :halted_callback_hook, filter
               end
@@ -517,7 +518,8 @@ module ActiveSupport
       def initialize(name, config)
         @name = name
         @config = {
-          :scope => [ :kind ]
+          scope: [:kind],
+          terminator: default_terminator
         }.merge!(config)
         @chain = []
         @callbacks = nil
@@ -587,6 +589,17 @@ module ActiveSupport
       def remove_duplicates(callback)
         @callbacks = nil
         @chain.delete_if { |c| callback.duplicates?(c) }
+      end
+
+      def default_terminator
+        Proc.new do |target, result_lambda|
+          terminate = true
+          catch(:abort) do
+            result_lambda.call if result_lambda.is_a?(Proc)
+            terminate = false
+          end
+          terminate
+        end
       end
     end
 
