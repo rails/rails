@@ -97,6 +97,25 @@ module ActiveRecord
         end
       end
 
+      def test_create_table_with_bigint
+        connection.create_table :testings do |t|
+          t.bigint :eight_int
+        end
+        columns = connection.columns(:testings)
+        eight   = columns.detect { |c| c.name == "eight_int"   }
+
+        if current_adapter?(:OracleAdapter)
+          assert_equal 'NUMBER(8)', eight.sql_type
+        elsif current_adapter?(:SQLite3Adapter)
+          assert_equal 'bigint', eight.sql_type
+        else
+          assert_equal :integer, eight.type
+          assert_equal 8, eight.limit
+        end
+      ensure
+        connection.drop_table :testings
+      end
+
       def test_create_table_with_limits
         connection.create_table :testings do |t|
           t.column :foo, :string, :limit => 255
