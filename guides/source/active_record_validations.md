@@ -361,6 +361,8 @@ class Product < ActiveRecord::Base
 end
 ```
 
+Alternatively, you can require that the specified attribute does _not_ match the regular expression by using the `:without` option.
+
 The default error message is _"is invalid"_.
 
 ### `inclusion`
