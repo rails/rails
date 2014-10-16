@@ -25,10 +25,11 @@ gem 'rails-dom-testing', github: 'rails/rails-dom-testing'
 
 group :development, :test do
 <% unless defined?(JRUBY_VERSION) -%>
-  # Call 'debugger' anywhere in the code to stop execution and get a debugger console
   <%- if RUBY_VERSION < '2.0.0' -%>
+  # Call 'debugger' anywhere in the code to stop execution and get a debugger console
   gem 'debugger'
   <%- else -%>
+  # Call 'byebug' anywhere in the code to stop execution and get a debugger console
   gem 'byebug'
   <%- end -%>
 
