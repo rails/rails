@@ -39,11 +39,8 @@ module ActionMailer
   #   in the same manner as <tt>attachments[]=</tt>
   #
   # * <tt>headers[]=</tt> - Allows you to specify any header field in your email such
-  #   as <tt>headers['X-No-Spam'] = 'True'</tt>. Note, while most fields like <tt>To:</tt>
-  #   <tt>From:</tt> can only appear once in an email header, other fields like <tt>X-Anything</tt>
-  #   can appear multiple times. If you want to change a field that can appear multiple times,
-  #   you need to set it to nil first so that Mail knows you are replacing it and not adding
-  #   another field of the same name.
+  #   as <tt>headers['X-No-Spam'] = 'True'</tt>. Note that declaring a header multiple times
+  #   will add many fields of the same name. Read #headers doc for more information.
   #
   # * <tt>headers(hash)</tt> - Allows you to specify multiple headers in your email such
   #   as <tt>headers({'X-No-Spam' => 'True', 'In-Reply-To' => '1234@message.id'})</tt>
@@ -625,6 +622,25 @@ module ActionMailer
     # The resulting <tt>Mail::Message</tt> will have the following in its header:
     #
     #   X-Special-Domain-Specific-Header: SecretValue
+    #
+    # Note about replacing already defined headers:
+    #
+    # * +subject+
+    # * +sender+
+    # * +from+
+    # * +to+
+    # * +cc+
+    # * +bcc+
+    # * +reply-to+
+    # * +orig-date+
+    # * +message-id+
+    # * +references+
+    #
+    # fields can only appear once in email headers while other fields such as <tt>X-Anything</tt>
+    # can appear multiple times. If you want to replace any header which already exists,
+    # first set it to nil in order to reset the value otherwise another field will be added
+    # for the same header.
+    #
     def headers(args = nil)
       if args
         @_message.headers(args)
