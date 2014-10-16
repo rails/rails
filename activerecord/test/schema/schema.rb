@@ -12,7 +12,10 @@ ActiveRecord::Schema.define do
   when "Fb"
     def create_table(*args, &block)
       ActiveRecord::Base.connection.create_table(*args, &block)
-      ActiveRecord::Base.connection.execute "SET GENERATOR #{args.first}_seq TO 10000"
+      if !args.last.respond_to?(:keys) || args.last[:id] != false
+        seq_name = ActiveRecord::Base.connection.default_sequence_name(args.first)
+        ActiveRecord::Base.connection.execute "SET GENERATOR #{seq_name} TO 10000"
+      end
     end
   when "PostgreSQL"
     enable_extension!('uuid-ossp', ActiveRecord::Base.connection)
