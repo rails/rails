@@ -23,8 +23,8 @@
 
     *Joost Lubach*
 
-*   Time#change can now change nanoseconds (:nsec) as a higher-precision
-    alternative to microseconds (:usec).
+*   `Time#change` can now change nanoseconds (`:nsec`) as a higher-precision
+    alternative to microseconds (`:usec`).
 
     *Agis Anastasooulos*
 
@@ -39,14 +39,14 @@
 
     *Akira Matsuda*, *Godfrey Chan*
 
-*   Fixed a bug in Inflector#underscore where acroynms in nested constant names
+*   Fixed a bug in `Inflector#underscore` where acroynms in nested constant names
     are incorrectly parsed as camelCase.
 
     Fixes #8015.
 
     *Fred Wu*, *Matthew Draper*
 
-*   Make Time#change throw an exception if the :usec option is out of range and
+*   Make `Time#change` throw an exception if the `:usec` option is out of range and
     the time has an offset other than UTC or local.
 
     *Agis Anastasopoulos*
@@ -65,11 +65,11 @@
 
 *   Added instance_eval version to Object#try, so you can do this:
 
-      person.try { name.first }
+        person.try { name.first }
 
     instead of:
 
-      person.try { |person| person.name.first }
+        person.try { |person| person.name.first }
 
     *DHH*
 
@@ -79,12 +79,12 @@
 
     *Robin Dupret*
 
-*   Fix rounding errors with #travel_to by resetting the usec on any passed time to zero, so we only travel
+*   Fix rounding errors with `#travel_to` by resetting the usec on any passed time to zero, so we only travel
     with per-second precision, not anything deeper than that.
 
     *DHH*
 
-*   Fix DateTime comparison with DateTime::Infinity object.
+*   Fix DateTime comparison with `DateTime::Infinity` object.
 
     *Rafael Mendonça França*
 

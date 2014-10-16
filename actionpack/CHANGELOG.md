@@ -1,10 +1,10 @@
-*   Improve Journey compliance to RFC 3986
+*   Improve Journey compliance to RFC 3986.
 
     The scanner in Journey failed to recognize routes that use literals
     from the sub-delims section of RFC 3986. It's now able to parse those
     authorized delimiters and route as expected.
 
-    Fixes #17212
+    Fixes #17212.
 
     *Nicolas Cavigneaux*
 
