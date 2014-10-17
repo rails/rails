@@ -90,7 +90,7 @@ module ActiveSupport
       #     Time.current # => Wed, 24 Nov 2004 01:04:44 EST -05:00
       #   end
       #   Time.current # => Sat, 09 Nov 2013 15:34:49 EST -05:00
-      def travel_to(date_or_time, &block)
+      def travel_to(date_or_time)
         if date_or_time.is_a?(Date) && !date_or_time.is_a?(DateTime)
           now = date_or_time.midnight.to_time
         else
@@ -102,7 +102,7 @@ module ActiveSupport
 
         if block_given?
           begin
-            block.call
+            yield
           ensure
             travel_back
           end
