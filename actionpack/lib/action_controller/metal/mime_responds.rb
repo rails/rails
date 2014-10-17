@@ -216,11 +216,11 @@ module ActionController #:nodoc:
     #
     # Be sure to check the documentation of +respond_with+ and
     # <tt>ActionController::MimeResponds.respond_to</tt> for more examples.
-    def respond_to(*mimes, &block)
+    def respond_to(*mimes)
       raise ArgumentError, "respond_to takes either types or a block, never both" if mimes.any? && block_given?
 
       collector = Collector.new(mimes, request.variant)
-      block.call(collector) if block_given?
+      yield collector if block_given?
 
       if format = collector.negotiate_format(request)
         _process_format(format)
