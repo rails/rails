@@ -50,6 +50,6 @@ class Object
   # Each nesting level will merge inherited defaults in addition to their own.
   def with_options(options, &block)
     option_merger = ActiveSupport::OptionMerger.new(self, options)
-    block.arity.zero? ? option_merger.instance_eval(&block) : block.call(option_merger)
+    block.arity.zero? ? option_merger.instance_eval(&block) : yield(option_merger)
   end
 end

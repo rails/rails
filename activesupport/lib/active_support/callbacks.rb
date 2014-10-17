@@ -85,7 +85,7 @@ module ActiveSupport
 
     def _run_callbacks(callbacks, &block)
       if callbacks.empty?
-        block.call if block
+        yield if block
       else
         runner = callbacks.compile
         e = Filters::Environment.new(self, false, nil, block)
