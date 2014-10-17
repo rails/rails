@@ -29,10 +29,12 @@ module ActiveRecord
         assert_equal false, type.type_cast_from_user('FALSE')
         assert_equal false, type.type_cast_from_user('off')
         assert_equal false, type.type_cast_from_user('OFF')
-        assert_equal false, type.type_cast_from_user(' ')
-        assert_equal false, type.type_cast_from_user("\u3000\r\n")
-        assert_equal false, type.type_cast_from_user("\u0000")
-        assert_equal false, type.type_cast_from_user('SOMETHING RANDOM')
+        assert_deprecated do
+          assert_equal false, type.type_cast_from_user(' ')
+          assert_equal false, type.type_cast_from_user("\u3000\r\n")
+          assert_equal false, type.type_cast_from_user("\u0000")
+          assert_equal false, type.type_cast_from_user('SOMETHING RANDOM')
+        end
       end
 
       def test_type_cast_integer
