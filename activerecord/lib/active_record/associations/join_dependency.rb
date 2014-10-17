@@ -142,10 +142,19 @@ module ActiveRecord
         parents = model_cache[join_root]
         column_aliases = aliases.column_aliases join_root
 
-        result_set.each { |row_hash|
-          parent = parents[row_hash[primary_key]] ||= join_root.instantiate(row_hash, column_aliases)
-          construct(parent, join_root, row_hash, result_set, seen, model_cache, aliases)
+        message_bus = ActiveSupport::Notifications.instrumenter
+
+        payload = {
+          record_count: result_set.length,
+          class_name: join_root.base_klass.name
         }
+
+        message_bus.instrument('instantiation.active_record', payload) do
+          result_set.each { |row_hash|
+            parent = parents[row_hash[primary_key]] ||= join_root.instantiate(row_hash, column_aliases)
+            construct(parent, join_root, row_hash, result_set, seen, model_cache, aliases)
+          }
+        end
 
         parents.values
       end

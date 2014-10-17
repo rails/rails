@@ -134,18 +134,18 @@ module ActiveRecord
       end
 
       def test_default_sequence_name
-        assert_equal PostgreSQL::Name.new('public', 'accounts_id_seq'),
+        assert_equal 'public.accounts_id_seq',
           @connection.default_sequence_name('accounts', 'id')
 
-        assert_equal PostgreSQL::Name.new('public', 'accounts_id_seq'),
+        assert_equal 'public.accounts_id_seq',
           @connection.default_sequence_name('accounts')
       end
 
       def test_default_sequence_name_bad_table
-        assert_equal PostgreSQL::Name.new(nil, 'zomg_id_seq'),
+        assert_equal 'zomg_id_seq',
           @connection.default_sequence_name('zomg', 'id')
 
-        assert_equal PostgreSQL::Name.new(nil, 'zomg_id_seq'),
+        assert_equal 'zomg_id_seq',
           @connection.default_sequence_name('zomg')
       end
 
@@ -153,7 +153,7 @@ module ActiveRecord
         with_example_table do
           pk, seq = @connection.pk_and_sequence_for('ex')
           assert_equal 'id', pk
-          assert_equal @connection.default_sequence_name('ex', 'id'), seq
+          assert_equal @connection.default_sequence_name('ex', 'id'), seq.to_s
         end
       end
 
@@ -161,7 +161,7 @@ module ActiveRecord
         with_example_table 'code serial primary key' do
           pk, seq = @connection.pk_and_sequence_for('ex')
           assert_equal 'code', pk
-          assert_equal @connection.default_sequence_name('ex', 'code'), seq
+          assert_equal @connection.default_sequence_name('ex', 'code'), seq.to_s
         end
       end
 
@@ -332,6 +332,14 @@ module ActiveRecord
       def test_columns_for_distinct_few_orders
         assert_equal "posts.id, posts.created_at AS alias_0, posts.position AS alias_1",
           @connection.columns_for_distinct("posts.id", ["posts.created_at desc", "posts.position asc"])
+      end
+
+      def test_columns_for_distinct_with_case
+        assert_equal(
+          'posts.id, CASE WHEN author.is_active THEN UPPER(author.name) ELSE UPPER(author.email) END AS alias_0',
+          @connection.columns_for_distinct('posts.id',
+            ["CASE WHEN author.is_active THEN UPPER(author.name) ELSE UPPER(author.email) END"])
+        )
       end
 
       def test_columns_for_distinct_blank_not_nil_orders

@@ -21,6 +21,7 @@ namespace :test do
     t.test_files = Dir.glob('test/template/**/*_test.rb').sort
     t.warning = true
     t.verbose = true
+    t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
   end
 
   namespace :integration do
@@ -30,6 +31,7 @@ namespace :test do
       t.test_files = Dir.glob("test/activerecord/*_test.rb")
       t.warning = true
       t.verbose = true
+      t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
     end
 
     desc 'ActionPack Integration Tests'
@@ -38,6 +40,7 @@ namespace :test do
       t.test_files = Dir.glob("test/actionpack/**/*_test.rb")
       t.warning = true
       t.verbose = true
+      t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
     end
   end
 end

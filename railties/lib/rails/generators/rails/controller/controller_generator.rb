@@ -2,7 +2,7 @@ module Rails
   module Generators
     class ControllerGenerator < NamedBase # :nodoc:
       argument :actions, type: :array, default: [], banner: "action action"
-      class_option :skip_routes, type: :boolean, desc: "Dont' add routes to config/routes.rb."
+      class_option :skip_routes, type: :boolean, desc: "Don't add routes to config/routes.rb."
 
       check_class_collision suffix: "Controller"
 
@@ -12,7 +12,7 @@ module Rails
 
       def add_routes
         unless options[:skip_routes]
-          actions.reverse.each do |action|
+          actions.reverse_each do |action|
             route generate_routing_code(action)
           end
         end

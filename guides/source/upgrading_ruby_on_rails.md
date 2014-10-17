@@ -8,7 +8,7 @@ This guide provides steps to be followed when you upgrade your applications to a
 General Advice
 --------------
 
-Before attempting to upgrade an existing application, you should be sure you have a good reason to upgrade. You need to balance out several factors: the need for new features, the increasing difficulty of finding support for old code, and your available time and skills, to name a few.
+Before attempting to upgrade an existing application, you should be sure you have a good reason to upgrade. You need to balance several factors: the need for new features, the increasing difficulty of finding support for old code, and your available time and skills, to name a few.
 
 ### Test Coverage
 
@@ -28,7 +28,7 @@ TIP: Ruby 1.8.7 p248 and p249 have marshaling bugs that crash Rails. Ruby Enterp
 
 Rails provides the `rails:update` rake task. After updating the Rails version
 in the Gemfile, run this rake task.
-This will help you with the creation of new files and changes of old files in a
+This will help you with the creation of new files and changes of old files in an
 interactive session.
 
 ```bash
@@ -50,11 +50,98 @@ Don't forget to review the difference, to see if there were any unexpected chang
 Upgrading from Rails 4.1 to Rails 4.2
 -------------------------------------
 
-NOTE: This section is a work in progress.
+NOTE: This section is a work in progress, please help to improve this by sending
+a [pull request](https://github.com/rails/rails/edit/master/guides/source/upgrading_ruby_on_rails.md).
+
+### Web Console
+
+First, add `gem 'web-console', '~> 2.0'` to the `:development` group in your Gemfile and run `bundle install` (it won't have been included when you upgraded Rails). Once it's been installed, you can simply drop a reference to the console helper (i.e., `<%= console %>`) into any view you want to enable it for. A console will also be provided on any error page you view in your development environment.
+
+Additionally, you can tell Rails to automatically mount a VT100-compatible console on a predetermined path by setting the appropriate configuration flags in your development config:
+
+```ruby
+# config/environments/development.rb
+
+config.web_console.automount = true
+config.web_console.default_mount_path = '/terminal' # Optional, defaults to /console
+```
+
+### Responders
+
+`respond_with` and the class-level `respond_to` methods have been extracted to the `responders` gem. To use them, simply add `gem 'responders', '~> 2.0'` to your Gemfile. Calls to `respond_with` and `respond_to` (again, at the class level) will no longer work without having included the `responders` gem in your dependencies:
+
+```ruby
+# app/controllers/users_controller.rb
+
+class UsersController < ApplicationController
+  respond_to :html, :json
+
+  def show
+    @user = User.find(params[:id])
+    respond_with @user
+  end
+end
+```
+
+Instance-level `respond_to` is unaffected and does not require the additional gem:
+
+```ruby
+# app/controllers/users_controller.rb
+
+class UsersController < ApplicationController
+  def show
+    @user = User.find(params[:id])
+    respond_to do |format|
+      format.html
+      format.json { render json: @user }
+    end
+  end
+end
+```
+
+See [#16526](https://github.com/rails/rails/pull/16526) for more details.
+
+### Error handling in transaction callbacks
+
+Currently, Active Record suppresses errors raised
+within `after_rollback` or `after_commit` callbacks and only prints them to
+the logs. In the next version, these errors will no longer be suppressed.
+Instead, the errors will propagate normally just like in other Active
+Record callbacks.
+
+When you define a `after_rollback` or `after_commit` callback, you
+will receive a deprecation warning about this upcoming change. When
+you are ready, you can opt into the new behavior and remove the
+deprecation warning by adding following configuration to your
+`config/application.rb`:
+
+    config.active_record.raise_in_transactional_callbacks = true
+
+See [#14488](https://github.com/rails/rails/pull/14488) and
+[#16537](https://github.com/rails/rails/pull/16537) for more details.
+
+### Ordering of test cases
+
+In Rails 5.0, test cases will be executed in random order by default. In
+anticipation of this change, Rails 4.2 introduced a new configuration option
+`active_support.test_order` for explicitly specifying the test ordering. This
+allows you to either lock down the current behavior by setting the option to
+`:sorted`, or opt into the future behavior by setting the option to `:random`.
+
+If you do not specify a value for this option, a deprecation warning will be
+emitted. To avoid this, add the following line to your test environment:
+
+```ruby
+# config/environments/test.rb
+Rails.application.configure do
+  config.active_support.test_order = :sorted # or `:random` if you prefer
+end
+```
 
 ### Serialized attributes
 
-When assigning `nil` to a serialized attribute, it will be saved to the database
+When using a custom coder (e.g. `serialize :metadata, JSON`),
+assigning `nil` to a serialized attribute will save it to the database
 as `NULL` instead of passing the `nil` value through the coder (e.g. `"null"`
 when using the `JSON` coder).
 
@@ -90,6 +177,39 @@ after_bundle do
 end
 ```
 
+### Rails Html Sanitizer
+
+There's a new choice for sanitizing HTML fragments in your applications. The
+venerable html-scanner approach is now officially being deprecated in favor of
+[`Rails Html Sanitizer`](https://github.com/rails/rails-html-sanitizer).
+
+This means the methods `sanitize`, `sanitize_css`, `strip_tags` and
+`strip_links` are backed by a new implementation.
+
+This new sanitizer uses [Loofah](https://github.com/flavorjones/loofah) internally. Loofah in turn uses Nokogiri, which
+wraps XML parsers written in both C and Java, so sanitization should be faster
+no matter which Ruby version you run.
+
+The new version updates `sanitize`, so it can take a `Loofah::Scrubber` for
+powerful scrubbing.
+[See some examples of scrubbers here](https://github.com/flavorjones/loofah#loofahscrubber).
+
+Two new scrubbers have also been added: `PermitScrubber` and `TargetScrubber`.
+Read the [gem's readme](https://github.com/rails/rails-html-sanitizer) for more information.
+
+The documentation for `PermitScrubber` and `TargetScrubber` explains how you
+can gain complete control over when and how elements should be stripped.
+
+If your application needs to old behaviour include `rails-deprecated_sanitizer` in your Gemfile:
+
+```ruby
+gem 'rails-deprecated_sanitizer'
+```
+
+### Rails DOM Testing
+
+TODO: Mention https://github.com/rails/rails/commit/4e97d7585a2f4788b9eed98c6cdaf4bb6f2cf5ce
+
 Upgrading from Rails 4.0 to Rails 4.1
 -------------------------------------
 
@@ -98,7 +218,7 @@ Upgrading from Rails 4.0 to Rails 4.1
 Or, "whaaat my tests are failing!!!?"
 
 Cross-site request forgery (CSRF) protection now covers GET requests with
-JavaScript responses, too. That prevents a third-party site from referencing
+JavaScript responses, too. This prevents a third-party site from referencing
 your JavaScript URL and attempting to run it to extract sensitive data.
 
 This means that your functional and integration tests that use
@@ -149,8 +269,8 @@ secrets, you need to:
     ```
 
 2. Use your existing `secret_key_base` from the `secret_token.rb` initializer to
-   set the SECRET_KEY_BASE environment variable for whichever users run the Rails
-   app in production mode. Alternately, you can simply copy the existing
+   set the SECRET_KEY_BASE environment variable for whichever users running the
+   Rails application in production mode. Alternatively, you can simply copy the existing
    `secret_key_base` from the `secret_token.rb` initializer to `secrets.yml`
    under the `production` section, replacing '<%= ENV["SECRET_KEY_BASE"] %>'.
 
@@ -164,7 +284,7 @@ secrets, you need to:
 
 If your test helper contains a call to
 `ActiveRecord::Migration.check_pending!` this can be removed. The check
-is now done automatically when you `require 'test_help'`, although
+is now done automatically when you `require 'rails/test_help'`, although
 leaving this line in your helper is not harmful in any way.
 
 ### Cookies serializer
@@ -343,7 +463,7 @@ included in the newly introduced `ActiveRecord::FixtureSet.context_class`, in
 `test_helper.rb`.
 
 ```ruby
-class FixtureFileHelpers
+module FixtureFileHelpers
   def file_sha(path)
     Digest::SHA2.hexdigest(File.read(Rails.root.join('test/fixtures', path)))
   end
@@ -353,8 +473,8 @@ ActiveRecord::FixtureSet.context_class.send :include, FixtureFileHelpers
 
 ### I18n enforcing available locales
 
-Rails 4.1 now defaults the I18n option `enforce_available_locales` to `true`,
-meaning that it will make sure that all locales passed to it must be declared in
+Rails 4.1 now defaults the I18n option `enforce_available_locales` to `true`. This
+means that it will make sure that all locales passed to it must be declared in
 the `available_locales` list.
 
 To disable it (and allow I18n to accept *any* locale option) add the following
@@ -364,9 +484,10 @@ configuration to your application:
 config.i18n.enforce_available_locales = false
 ```
 
-Note that this option was added as a security measure, to ensure user input could
-not be used as locale information unless previously known, so it's recommended not
-to disable this option unless you have a strong reason for doing so.
+Note that this option was added as a security measure, to ensure user input
+cannot be used as locale information unless it is previously known. Therefore,
+it's recommended not to disable this option unless you have a strong reason for
+doing so.
 
 ### Mutator methods called on Relation
 
@@ -474,7 +595,7 @@ Using `render :text` may pose a security risk, as the content is sent as
 ### PostgreSQL json and hstore datatypes
 
 Rails 4.1 will map `json` and `hstore` columns to a string-keyed Ruby `Hash`.
-In earlier versions a `HashWithIndifferentAccess` was used. This means that
+In earlier versions, a `HashWithIndifferentAccess` was used. This means that
 symbol access is no longer supported. This is also the case for
 `store_accessors` based on top of `json` or `hstore` columns. Make sure to use
 string keys consistently.
@@ -564,7 +685,7 @@ being used, you can update your form to use the `PUT` method instead:
 <%= form_for [ :update_name, @user ], method: :put do |f| %>
 ```
 
-For more on PATCH and why this change was made, see [this post](http://weblog.rubyonrails.org/2012/2/25/edge-rails-patch-is-the-new-primary-http-method-for-updates/)
+For more on PATCH and why this change was made, see [this post](http://weblog.rubyonrails.org/2012/2/26/edge-rails-patch-is-the-new-primary-http-method-for-updates/)
 on the Rails blog.
 
 #### A note about media types
@@ -623,6 +744,9 @@ Rails 4.0 no longer supports loading plugins from `vendor/plugins`. You must rep
 * In Rails 4.0 when a column or a table is renamed the related indexes are also renamed. If you have migrations which rename the indexes, they are no longer needed.
 
 * Rails 4.0 has changed `serialized_attributes` and `attr_readonly` to class methods only. You shouldn't use instance methods since it's now deprecated. You should change them to use class methods, e.g. `self.serialized_attributes` to `self.class.serialized_attributes`.
+
+* When using the default coder, assigning `nil` to a serialized attribute will save it
+to the database as `NULL` instead of passing the `nil` value through YAML (`"--- \n...\n"`).
 
 * Rails 4.0 has removed `attr_accessible` and `attr_protected` feature in favor of Strong Parameters. You can use the [Protected Attributes gem](https://github.com/rails/protected_attributes) for a smooth upgrade path.
 

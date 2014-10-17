@@ -1,10 +1,12 @@
 require 'action_view/helpers/tag_helper'
+require 'active_support/core_ext/string/access'
 require 'i18n/exceptions'
 
 module ActionView
   # = Action View Translation Helpers
   module Helpers
     module TranslationHelper
+      include TagHelper
       # Delegates to <tt>I18n#translate</tt> but also performs three additional functions.
       #
       # First, it will ensure that any thrown +MissingTranslation+ messages will be turned

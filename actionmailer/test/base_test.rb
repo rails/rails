@@ -10,7 +10,11 @@ require 'mailers/proc_mailer'
 require 'mailers/asset_mailer'
 
 class BaseTest < ActiveSupport::TestCase
+  include Rails::Dom::Testing::Assertions::DomAssertions
+
   setup do
+    @original_delivery_method = ActionMailer::Base.delivery_method
+    ActionMailer::Base.delivery_method = :test
     @original_asset_host = ActionMailer::Base.asset_host
     @original_assets_dir = ActionMailer::Base.assets_dir
   end
@@ -19,6 +23,7 @@ class BaseTest < ActiveSupport::TestCase
     ActionMailer::Base.asset_host = @original_asset_host
     ActionMailer::Base.assets_dir = @original_assets_dir
     BaseMailer.deliveries.clear
+    ActionMailer::Base.delivery_method = @original_delivery_method
   end
 
   test "method call to mail does not raise error" do
@@ -240,7 +245,7 @@ class BaseTest < ActiveSupport::TestCase
       end
     end
 
-    e = assert_raises(RuntimeError) { LateAttachmentMailer.welcome }
+    e = assert_raises(RuntimeError) { LateAttachmentMailer.welcome.message }
     assert_match(/Can't add attachments after `mail` was called./, e.message)
   end
 
@@ -252,8 +257,22 @@ class BaseTest < ActiveSupport::TestCase
       end
     end
 
-    e = assert_raises(RuntimeError) { LateInlineAttachmentMailer.welcome }
+    e = assert_raises(RuntimeError) { LateInlineAttachmentMailer.welcome.message }
     assert_match(/Can't add attachments after `mail` was called./, e.message)
+  end
+
+  test "adding inline attachments while rendering mail works" do
+    class LateInlineAttachmentMailer < ActionMailer::Base
+      def on_render
+        mail from: "welcome@example.com", to: "to@example.com"
+      end
+    end
+
+    mail = LateInlineAttachmentMailer.on_render
+    assert_nothing_raised { mail.message }
+
+    assert_equal ["image/jpeg; filename=controller_attachments.jpg",
+                  "image/jpeg; filename=attachments.jpg"], mail.attachments.inline.map {|a| a['Content-Type'].to_s }
   end
 
   test "accessing attachments works after mail was called" do
@@ -463,13 +482,12 @@ class BaseTest < ActiveSupport::TestCase
 
   test "calling deliver on the action should deliver the mail object" do
     BaseMailer.expects(:deliver_mail).once
-    mail = BaseMailer.welcome.deliver
+    mail = BaseMailer.welcome.deliver_now
     assert_equal 'The first email on new API!', mail.subject
   end
 
   test "calling deliver on the action should increment the deliveries collection if using the test mailer" do
-    BaseMailer.delivery_method = :test
-    BaseMailer.welcome.deliver
+    BaseMailer.welcome.deliver_now
     assert_equal(1, BaseMailer.deliveries.length)
   end
 
@@ -482,35 +500,35 @@ class BaseTest < ActiveSupport::TestCase
 
   # Rendering
   test "you can specify a different template for implicit render" do
-    mail = BaseMailer.implicit_different_template('implicit_multipart').deliver
+    mail = BaseMailer.implicit_different_template('implicit_multipart').deliver_now
     assert_equal("HTML Implicit Multipart", mail.html_part.body.decoded)
     assert_equal("TEXT Implicit Multipart", mail.text_part.body.decoded)
   end
 
   test "should raise if missing template in implicit render" do
     assert_raises ActionView::MissingTemplate do
-      BaseMailer.implicit_different_template('missing_template').deliver
+      BaseMailer.implicit_different_template('missing_template').deliver_now
     end
     assert_equal(0, BaseMailer.deliveries.length)
   end
 
   test "you can specify a different template for explicit render" do
-    mail = BaseMailer.explicit_different_template('explicit_multipart_templates').deliver
+    mail = BaseMailer.explicit_different_template('explicit_multipart_templates').deliver_now
     assert_equal("HTML Explicit Multipart Templates", mail.html_part.body.decoded)
     assert_equal("TEXT Explicit Multipart Templates", mail.text_part.body.decoded)
   end
 
   test "you can specify a different layout" do
-    mail = BaseMailer.different_layout('different_layout').deliver
+    mail = BaseMailer.different_layout('different_layout').deliver_now
     assert_equal("HTML -- HTML", mail.html_part.body.decoded)
     assert_equal("PLAIN -- PLAIN", mail.text_part.body.decoded)
   end
 
   test "you can specify the template path for implicit lookup" do
-    mail = BaseMailer.welcome_from_another_path('another.path/base_mailer').deliver
+    mail = BaseMailer.welcome_from_another_path('another.path/base_mailer').deliver_now
     assert_equal("Welcome from another path", mail.body.encoded)
 
-    mail = BaseMailer.welcome_from_another_path(['unknown/invalid', 'another.path/base_mailer']).deliver
+    mail = BaseMailer.welcome_from_another_path(['unknown/invalid', 'another.path/base_mailer']).deliver_now
     assert_equal("Welcome from another path", mail.body.encoded)
   end
 
@@ -520,7 +538,7 @@ class BaseTest < ActiveSupport::TestCase
 
     mail = AssetMailer.welcome
 
-    assert_equal(%{<img alt="Dummy" src="http://global.com/images/dummy.png" />}, mail.body.to_s.strip)
+    assert_dom_equal(%{<img alt="Dummy" src="http://global.com/images/dummy.png" />}, mail.body.to_s.strip)
   end
 
   test "assets tags should use a Mailer's asset_host settings when available" do
@@ -534,19 +552,19 @@ class BaseTest < ActiveSupport::TestCase
 
     mail = TempAssetMailer.welcome
 
-    assert_equal(%{<img alt="Dummy" src="http://local.com/images/dummy.png" />}, mail.body.to_s.strip)
+    assert_dom_equal(%{<img alt="Dummy" src="http://local.com/images/dummy.png" />}, mail.body.to_s.strip)
   end
 
   test 'the view is not rendered when mail was never called' do
     mail = BaseMailer.without_mail_call
     assert_equal('', mail.body.to_s.strip)
-    mail.deliver
+    mail.deliver_now
   end
 
   test 'the return value of mailer methods is not relevant' do
     mail = BaseMailer.with_nil_as_return_value
     assert_equal('Welcome', mail.body.to_s.strip)
-    mail.deliver
+    mail.deliver_now
   end
 
   # Before and After hooks
@@ -566,7 +584,7 @@ class BaseTest < ActiveSupport::TestCase
       ActionMailer::Base.register_observer(MyObserver)
       mail = BaseMailer.welcome
       MyObserver.expects(:delivered_email).with(mail)
-      mail.deliver
+      mail.deliver_now
     end
   end
 
@@ -575,7 +593,7 @@ class BaseTest < ActiveSupport::TestCase
       ActionMailer::Base.register_observer("BaseTest::MyObserver")
       mail = BaseMailer.welcome
       MyObserver.expects(:delivered_email).with(mail)
-      mail.deliver
+      mail.deliver_now
     end
   end
 
@@ -584,7 +602,7 @@ class BaseTest < ActiveSupport::TestCase
       ActionMailer::Base.register_observer(:"base_test/my_observer")
       mail = BaseMailer.welcome
       MyObserver.expects(:delivered_email).with(mail)
-      mail.deliver
+      mail.deliver_now
     end
   end
 
@@ -594,7 +612,7 @@ class BaseTest < ActiveSupport::TestCase
       mail = BaseMailer.welcome
       MyObserver.expects(:delivered_email).with(mail)
       MySecondObserver.expects(:delivered_email).with(mail)
-      mail.deliver
+      mail.deliver_now
     end
   end
 
@@ -613,7 +631,7 @@ class BaseTest < ActiveSupport::TestCase
       ActionMailer::Base.register_interceptor(MyInterceptor)
       mail = BaseMailer.welcome
       MyInterceptor.expects(:delivering_email).with(mail)
-      mail.deliver
+      mail.deliver_now
     end
   end
 
@@ -622,7 +640,7 @@ class BaseTest < ActiveSupport::TestCase
       ActionMailer::Base.register_interceptor("BaseTest::MyInterceptor")
       mail = BaseMailer.welcome
       MyInterceptor.expects(:delivering_email).with(mail)
-      mail.deliver
+      mail.deliver_now
     end
   end
 
@@ -631,7 +649,7 @@ class BaseTest < ActiveSupport::TestCase
       ActionMailer::Base.register_interceptor(:"base_test/my_interceptor")
       mail = BaseMailer.welcome
       MyInterceptor.expects(:delivering_email).with(mail)
-      mail.deliver
+      mail.deliver_now
     end
   end
 
@@ -641,7 +659,7 @@ class BaseTest < ActiveSupport::TestCase
       mail = BaseMailer.welcome
       MyInterceptor.expects(:delivering_email).with(mail)
       MySecondInterceptor.expects(:delivering_email).with(mail)
-      mail.deliver
+      mail.deliver_now
     end
   end
 

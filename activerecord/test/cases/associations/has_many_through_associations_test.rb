@@ -1095,7 +1095,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   def test_has_many_through_associations_on_new_records_use_null_relations
     person = Person.new
 
-    assert_no_queries do
+    assert_no_queries(ignore_none: false) do
       assert_equal [], person.posts
       assert_equal [], person.posts.where(body: 'omg')
       assert_equal [], person.posts.pluck(:body)
@@ -1146,24 +1146,5 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
     club.members << member
     assert_equal 1, SuperMembership.where(member_id: member.id, club_id: club.id).count
-  end
-
-  class ClubWithCallbacks < ActiveRecord::Base
-    self.table_name = 'clubs'
-    after_create :add_a_member
-
-    has_many :memberships, inverse_of: :club, foreign_key: :club_id
-    has_many :members, through: :memberships
-
-    def add_a_member
-      members << Member.last
-    end
-  end
-
-  def test_has_many_with_callback_before_association
-    Member.create!
-    club = ClubWithCallbacks.create!
-
-    assert_equal 1, club.reload.memberships.count
   end
 end

@@ -55,7 +55,7 @@ module ActiveRecord
         def attributes_with_index
           attributes.select { |a| !a.reference? && a.has_index? }
         end
-        
+
         def validate_file_name!
           unless file_name =~ /^[_a-z0-9]+$/
             raise IllegalMigrationNameError.new(file_name)

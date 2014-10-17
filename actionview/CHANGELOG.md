@@ -1,3 +1,37 @@
+*   Changed the meaning of `render "foo/bar"`.
+
+    Previously, calling `render "foo/bar"` in a controller action is equivalent
+    to `render file: "foo/bar"`. In Rails 4.2, this has been changed to mean
+    `render template: "foo/bar"` instead. If you need to render a file, please
+    change your code to use the explicit form (`render file: "foo/bar"`) instead.
+
+    *Jeremy Jackson*
+
+*   Add support for ARIA attributes in tags.
+
+    Example:
+
+        <%= f.text_field :name, aria: { required: "true", hidden: "false" } %>
+
+    now generates:
+
+         <input aria-hidden="false" aria-required="true" id="user_name" name="user[name]" type="text">
+
+    *Paola Garcia Casadiego*
+
+*   Provide a `builder` object when using the `label` form helper in block form.
+
+    The new `builder` object responds to `translation`, allowing I18n fallback support
+    when you want to customize how a particular label is presented.
+
+    *Alex Robbin*
+
+*   Add I18n support for input/textarea placeholder text.
+
+    Placeholder I18n follows the same convention as `label` I18n.
+
+    *Alex Robbin*
+
 *   Fix that render layout: 'messages/layout' should also be added to the dependency tracker tree.
 
     *DHH*
@@ -13,11 +47,11 @@
     *Joel Junström*, *Lucas Uyezu*
 
 *   Return an absolute instead of relative path from an asset url in the case
-    of the `asset_host` proc returning nil
+    of the `asset_host` proc returning nil.
 
     *Jolyon Pawlyn*
 
-*   Fix `html_escape_once` to properly handle hex escape sequences (e.g. &#x1a2b;)
+*   Fix `html_escape_once` to properly handle hex escape sequences (e.g. &#x1a2b;).
 
     *John F. Douthat*
 
@@ -50,7 +84,7 @@
 
     *Zuhao Wan*
 
-*   Bring `cache_digest` rake tasks up-to-date with the latest API changes
+*   Bring `cache_digest` rake tasks up-to-date with the latest API changes.
 
     *Jiri Pospisil*
 
@@ -102,12 +136,12 @@
 
     Before:
 
-        #=> favicon_link_tag 'myicon.ico'
+        # => favicon_link_tag 'myicon.ico'
         <link href="/assets/myicon.ico" rel="shortcut icon" type="image/vnd.microsoft.icon" />
 
     After:
 
-        #=> favicon_link_tag 'myicon.ico'
+        # => favicon_link_tag 'myicon.ico'
         <link href="/assets/myicon.ico" rel="shortcut icon" type="image/x-icon" />
 
     *Geoffroy Lorieux*
@@ -120,7 +154,7 @@
 
     *Joost Baaij*
 
-*   `collection_check_boxes` respects `:index` option for the hidden filed name.
+*   `collection_check_boxes` respects `:index` option for the hidden field name.
 
     Fixes #14147.
 
@@ -141,7 +175,7 @@
 
     *Vasiliy Ermolovich*
 
-*   Fixed a problem where the default options for the `button_tag` helper is not
+*   Fixed a problem where the default options for the `button_tag` helper are not
     applied correctly.
 
     Fixes #14254.

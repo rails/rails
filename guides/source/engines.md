@@ -74,13 +74,13 @@ options as appropriate to the need. For the "blorgh" example, you will need to
 create a "mountable" engine, running this command in a terminal:
 
 ```bash
-$ bin/rails plugin new blorgh --mountable
+$ rails plugin new blorgh --mountable
 ```
 
 The full list of options for the plugin generator may be seen by typing:
 
 ```bash
-$ bin/rails plugin --help
+$ rails plugin --help
 ```
 
 The `--mountable` option tells the generator that you want to create a
@@ -136,7 +136,7 @@ following to the dummy application's routes file at
 `test/dummy/config/routes.rb`:
 
 ```ruby
-mount Blorgh::Engine, at: "blorgh"
+mount Blorgh::Engine => "/blorgh"
 ```
 
 ### Inside an Engine
@@ -173,7 +173,7 @@ Within `lib/blorgh/engine.rb` is the base class for the engine:
 
 ```ruby
 module Blorgh
-  class Engine < Rails::Engine
+  class Engine < ::Rails::Engine
     isolate_namespace Blorgh
   end
 end

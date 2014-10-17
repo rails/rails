@@ -170,6 +170,13 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal expected, actual
   end
 
+  def test_multiple_field_tags_with_same_options
+    options = {class: 'important'}
+    assert_dom_equal %(<input name="title" type="file" id="title" class="important"/>), file_field_tag("title", options)
+    assert_dom_equal %(<input type="password" name="title" id="title" value="Hello!" class="important" />), password_field_tag("title", "Hello!", options)
+    assert_dom_equal %(<input type="text" name="title" id="title" value="Hello!" class="important" />), text_field_tag("title", "Hello!", options)
+  end
+
   def test_radio_button_tag
     actual = radio_button_tag "people", "david"
     expected = %(<input id="people_david" name="people" type="radio" value="david" />)
@@ -632,6 +639,6 @@ class FormTagHelperTest < ActionView::TestCase
   private
 
   def root_elem(rendered_content)
-    HTML::Document.new(rendered_content).root.children[0]
+    Nokogiri::HTML::DocumentFragment.parse(rendered_content).children.first # extract from nodeset
   end
 end

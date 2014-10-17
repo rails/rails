@@ -159,6 +159,18 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_add_migration_with_required_references
+    migration = "add_references_to_books"
+    run_generator [migration, "author:belongs_to{required}", "distributor:references{polymorphic,required}"]
+
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_method :change, content do |change|
+        assert_match(/add_reference :books, :author, index: true, null: false/, change)
+        assert_match(/add_reference :books, :distributor, polymorphic: true, index: true, null: false/, change)
+      end
+    end
+  end
+
   def test_create_join_table_migration
     migration = "add_media_join_table"
     run_generator [migration, "artist_id", "musics:uniq"]

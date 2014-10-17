@@ -120,10 +120,14 @@ class InflectorTest < ActiveSupport::TestCase
       ["SSLError",          "ssl_error",          "SSL error",          "SSL Error"],
       ["RESTful",           "restful",            "RESTful",            "RESTful"],
       ["RESTfulController", "restful_controller", "RESTful controller", "RESTful Controller"],
+      ["Nested::RESTful",   "nested/restful",     "Nested/RESTful",     "Nested/RESTful"],
       ["IHeartW3C",         "i_heart_w3c",        "I heart W3C",        "I Heart W3C"],
       ["PhDRequired",       "phd_required",       "PhD required",       "PhD Required"],
       ["IRoRU",             "i_ror_u",            "I RoR u",            "I RoR U"],
       ["RESTfulHTTPAPI",    "restful_http_api",   "RESTful HTTP API",   "RESTful HTTP API"],
+      ["HTTP::RESTful",     "http/restful",       "HTTP/RESTful",       "HTTP/RESTful"],
+      ["HTTP::RESTfulAPI",  "http/restful_api",   "HTTP/RESTful API",   "HTTP/RESTful API"],
+      ["APIRESTful",        "api_restful",        "API RESTful",        "API RESTful"],
 
       # misdirection
       ["Capistrano",        "capistrano",         "Capistrano",       "Capistrano"],
@@ -486,8 +490,8 @@ class InflectorTest < ActiveSupport::TestCase
         assert_equal [], inflect.uncountables
 
         # restore all the inflections
-        singulars.reverse.each { |singular| inflect.singular(*singular) }
-        plurals.reverse.each   { |plural|   inflect.plural(*plural) }
+        singulars.reverse_each { |singular| inflect.singular(*singular) }
+        plurals.reverse_each   { |plural|   inflect.plural(*plural) }
         inflect.uncountable(uncountables)
 
         assert_equal singulars, inflect.singulars

@@ -75,7 +75,7 @@ module ActiveModel
           end
 
           validates_length_of :password, maximum: ActiveModel::SecurePassword::MAX_PASSWORD_LENGTH_ALLOWED
-          validates_confirmation_of :password, if: ->{ password.present? }
+          validates_confirmation_of :password, allow_blank: true
         end
 
         # This code is necessary as long as the protected_attributes gem is supported.

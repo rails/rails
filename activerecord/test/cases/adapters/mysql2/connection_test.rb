@@ -4,6 +4,8 @@ require 'support/connection_helper'
 class MysqlConnectionTest < ActiveRecord::TestCase
   include ConnectionHelper
 
+  fixtures :comments
+
   def setup
     super
     @subscriber = SQLSubscriber.new
@@ -22,6 +24,17 @@ class MysqlConnectionTest < ActiveRecord::TestCase
       connection = ActiveRecord::Base.mysql2_connection(configuration)
       connection.exec_query('drop table if exists ex')
     end
+  end
+
+  def test_truncate
+    rows = ActiveRecord::Base.connection.exec_query("select count(*) from comments")
+    count = rows.first.values.first
+    assert_operator count, :>, 0
+
+    ActiveRecord::Base.connection.truncate("comments")
+    rows = ActiveRecord::Base.connection.exec_query("select count(*) from comments")
+    count = rows.first.values.first
+    assert_equal 0, count
   end
 
   def test_no_automatic_reconnection_after_timeout
@@ -52,6 +65,11 @@ class MysqlConnectionTest < ActiveRecord::TestCase
     assert @connection.active?
   end
 
+  def test_mysql_connection_collation_is_configured
+    assert_equal 'utf8_unicode_ci', @connection.show_variable('collation_connection')
+    assert_equal 'utf8_general_ci', ARUnit2Model.connection.show_variable('collation_connection')
+  end
+
   # TODO: Below is a straight up copy/paste from mysql/connection_test.rb
   # I'm not sure what the correct way is to share these tests between
   # adapters in minitest.
@@ -76,7 +94,7 @@ class MysqlConnectionTest < ActiveRecord::TestCase
     end
   end
 
-  def test_mysql_sql_mode_variable_overides_strict_mode
+  def test_mysql_sql_mode_variable_overrides_strict_mode
     run_without_connection do |orig_connection|
       ActiveRecord::Base.establish_connection(orig_connection.deep_merge(variables: { 'sql_mode' => 'ansi' }))
       result = ActiveRecord::Base.connection.exec_query 'SELECT @@SESSION.sql_mode'

@@ -51,9 +51,7 @@ module ActionView
     # The HTML generated for this would be (modulus formatting):
     #
     #   <form action="/people" class="new_person" id="new_person" method="post">
-    #     <div style="display:none">
-    #       <input name="authenticity_token" type="hidden" value="NrOp5bsjoLRuK8IW5+dQEYjKGUJDe7TQoZVvq95Wteg=" />
-    #     </div>
+    #     <input name="authenticity_token" type="hidden" value="NrOp5bsjoLRuK8IW5+dQEYjKGUJDe7TQoZVvq95Wteg=" />
     #     <label for="person_first_name">First name</label>:
     #     <input id="person_first_name" name="person[first_name]" type="text" /><br />
     #
@@ -81,10 +79,8 @@ module ActionView
     # the code above as is would yield instead:
     #
     #   <form action="/people/256" class="edit_person" id="edit_person_256" method="post">
-    #     <div style="display:none">
-    #       <input name="_method" type="hidden" value="patch" />
-    #       <input name="authenticity_token" type="hidden" value="NrOp5bsjoLRuK8IW5+dQEYjKGUJDe7TQoZVvq95Wteg=" />
-    #     </div>
+    #     <input name="_method" type="hidden" value="patch" />
+    #     <input name="authenticity_token" type="hidden" value="NrOp5bsjoLRuK8IW5+dQEYjKGUJDe7TQoZVvq95Wteg=" />
     #     <label for="person_first_name">First name</label>:
     #     <input id="person_first_name" name="person[first_name]" type="text" value="John" /><br />
     #
@@ -142,7 +138,7 @@ module ActionView
       # will get expanded to
       #
       #   <%= text_field :person, :first_name %>
-      # which results in an html <tt><input></tt> tag whose +name+ attribute is
+      # which results in an HTML <tt><input></tt> tag whose +name+ attribute is
       # <tt>person[first_name]</tt>. This means that when the form is submitted,
       # the value entered by the user will be available in the controller as
       # <tt>params[:person][:first_name]</tt>.
@@ -315,9 +311,7 @@ module ActionView
       # The HTML generated for this would be:
       #
       #   <form action='http://www.example.com' method='post' data-remote='true'>
-      #     <div style='display:none'>
-      #       <input name='_method' type='hidden' value='patch' />
-      #     </div>
+      #     <input name='_method' type='hidden' value='patch' />
       #     ...
       #   </form>
       #
@@ -333,9 +327,7 @@ module ActionView
       # The HTML generated for this would be:
       #
       #   <form action='http://www.example.com' method='post' data-behavior='autosave' name='go'>
-      #     <div style='display:none'>
-      #       <input name='_method' type='hidden' value='patch' />
-      #     </div>
+      #     <input name='_method' type='hidden' value='patch' />
       #     ...
       #   </form>
       #
@@ -1863,8 +1855,8 @@ module ActionView
           object = convert_to_model(@object)
           key    = object ? (object.persisted? ? :update : :create) : :submit
 
-          model = if object.class.respond_to?(:model_name)
-            object.class.model_name.human
+          model = if object.respond_to?(:model_name)
+            object.model_name.human
           else
             @object_name.to_s.humanize
           end

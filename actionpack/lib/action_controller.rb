@@ -17,6 +17,7 @@ module ActionController
     autoload :ConditionalGet
     autoload :Cookies
     autoload :DataStreaming
+    autoload :EtagWithTemplateDigest
     autoload :Flash
     autoload :ForceSSL
     autoload :Head
@@ -33,7 +34,6 @@ module ActionController
     autoload :Rendering
     autoload :RequestForgeryProtection
     autoload :Rescue
-    autoload :Responder
     autoload :Streaming
     autoload :StrongParameters
     autoload :Testing

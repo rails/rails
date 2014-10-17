@@ -1,8 +1,11 @@
 require 'active_support/core_ext/array/wrap'
+require 'active_model/forbidden_attributes_protection'
 
 module ActiveRecord
   module QueryMethods
     extend ActiveSupport::Concern
+
+    include ActiveModel::ForbiddenAttributesProtection
 
     # WhereChain objects act as placeholder for queries in which #where does not have any parameter.
     # In this case, #where must be chained with #not to return a new relation.
@@ -91,10 +94,8 @@ module ActiveRecord
     def check_cached_relation # :nodoc:
       if defined?(@arel) && @arel
         @arel = nil
-        ActiveSupport::Deprecation.warn <<-WARNING
-Modifying already cached Relation. The cache will be reset.
-Use a cloned Relation to prevent this warning.
-WARNING
+        ActiveSupport::Deprecation.warn "Modifying already cached Relation. The " \
+          "cache will be reset. Use a cloned Relation to prevent this warning."
       end
     end
 
@@ -574,7 +575,10 @@ WARNING
     end
 
     def where!(opts, *rest) # :nodoc:
-      references!(PredicateBuilder.references(opts)) if Hash === opts
+      if Hash === opts
+        opts = sanitize_forbidden_attributes(opts)
+        references!(PredicateBuilder.references(opts))
+      end
 
       self.where_values += build_where(opts, rest)
       self
@@ -683,11 +687,11 @@ WARNING
     #   end
     #
     def none
-      extending(NullRelation)
+      where("1=0").extending!(NullRelation)
     end
 
     def none! # :nodoc:
-      extending!(NullRelation)
+      where!("1=0").extending!(NullRelation)
     end
 
     # Sets readonly attributes for the returned relation. If value is
@@ -723,7 +727,13 @@ WARNING
     end
 
     def create_with!(value) # :nodoc:
-      self.create_with_value = value ? create_with_value.merge(value) : {}
+      if value
+        value = sanitize_forbidden_attributes(value)
+        self.create_with_value = create_with_value.merge(value)
+      else
+        self.create_with_value = {}
+      end
+
       self
     end
 
@@ -869,12 +879,10 @@ WARNING
       arel.lock(lock_value) if lock_value
 
       # Reorder bind indexes if joins produced bind values
-      if arel.bind_values.any?
-        bvs = arel.bind_values + bind_values
-        arel.ast.grep(Arel::Nodes::BindParam).each_with_index do |bp, i|
-          column = bvs[i].first
-          bp.replace connection.substitute_at(column, i)
-        end
+      bvs = arel.bind_values + bind_values
+      arel.ast.grep(Arel::Nodes::BindParam).each_with_index do |bp, i|
+        column = bvs[i].first
+        bp.replace connection.substitute_at(column, i)
       end
 
       arel
@@ -952,9 +960,7 @@ WARNING
         self.bind_values += bind_values
 
         attributes = @klass.send(:expand_hash_conditions_for_aggregates, tmp_opts)
-        attributes.values.grep(ActiveRecord::Relation) do |rel|
-          self.bind_values += rel.bind_values
-        end
+        add_relations_to_bind_values(attributes)
 
         PredicateBuilder.build_from_hash(klass, attributes, table)
       else
@@ -1135,6 +1141,20 @@ WARNING
     def check_if_method_has_arguments!(method_name, args)
       if args.blank?
         raise ArgumentError, "The method .#{method_name}() must contain arguments."
+      end
+    end
+
+    # This function is recursive just for better readablity.
+    # #where argument doesn't support more than one level nested hash in real world.
+    def add_relations_to_bind_values(attributes)
+      if attributes.is_a?(Hash)
+        attributes.each_value do |value|
+          if value.is_a?(ActiveRecord::Relation)
+            self.bind_values += value.bind_values
+          else
+            add_relations_to_bind_values(value)
+          end
+        end
       end
     end
   end

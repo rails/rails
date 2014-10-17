@@ -50,7 +50,7 @@ HTML
             when 'erb'
               'ruby; html-script: true'
             when 'html'
-              'xml' # html is understood, but there are .xml rules in the CSS
+              'xml' # HTML is understood, but there are .xml rules in the CSS
             else
               'plain'
           end

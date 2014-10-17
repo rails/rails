@@ -61,6 +61,15 @@ module ActiveRecord
       assert_equal expected.to_sql, actual.to_sql
     end
 
+    def test_belongs_to_nested_where_with_relation
+      author = authors(:david)
+
+      expected = Author.where(id: author ).joins(:posts)
+      actual   = Author.where(posts: { author_id: Author.where(id: author.id) }).joins(:posts)
+
+      assert_equal expected.to_a, actual.to_a
+    end
+
     def test_polymorphic_shallow_where
       treasure = Treasure.new
       treasure.id = 1
@@ -169,6 +178,12 @@ module ActiveRecord
 
     def test_where_with_table_name_and_empty_array
       assert_equal 0, Post.where(:id => []).count
+    end
+
+    def test_where_with_table_name_and_nested_empty_array
+      assert_deprecated do
+        assert_equal [], Post.where(:id => [[]]).to_a
+      end
     end
 
     def test_where_with_empty_hash_and_no_foreign_key

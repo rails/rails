@@ -149,6 +149,12 @@ module ActiveRecord
         end
       end
 
+      def test_type_equality
+        assert_equal Type::Value.new, Type::Value.new
+        assert_not_equal Type::Value.new, Type::Integer.new
+        assert_not_equal Type::Value.new(precision: 1), Type::Value.new(precision: 2)
+      end
+
       if current_adapter?(:SQLite3Adapter)
         def test_binary_encoding
           type = SQLite3Binary.new

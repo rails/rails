@@ -111,7 +111,6 @@ A standard Rails application depends on several gems, specifically:
 * i18n
 * mail
 * mime-types
-* polyglot
 * rack
 * rack-cache
 * rack-mount
@@ -121,7 +120,6 @@ A standard Rails application depends on several gems, specifically:
 * rake
 * sqlite3
 * thor
-* treetop
 * tzinfo
 
 ### `rails/commands.rb`

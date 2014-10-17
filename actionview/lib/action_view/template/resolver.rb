@@ -272,13 +272,13 @@ module ActionView
   # Default pattern, loads views the same way as previous versions of rails, eg. when you're
   # looking for `users/new` it will produce query glob: `users/new{.{en},}{.{html,js},}{.{erb,haml},}`
   #
-  #   FileSystemResolver.new("/path/to/views", ":prefix/:action{.:locale,}{.:formats,}{.:handlers,}")
+  #   FileSystemResolver.new("/path/to/views", ":prefix/:action{.:locale,}{.:formats,}{+:variants,}{.:handlers,}")
   #
   # This one allows you to keep files with different formats in separate subdirectories,
   # eg. `users/new.html` will be loaded from `users/html/new.erb` or `users/new.html.erb`,
   # `users/new.js` from `users/js/new.erb` or `users/new.js.erb`, etc.
   #
-  #   FileSystemResolver.new("/path/to/views", ":prefix/{:formats/,}:action{.:locale,}{.:formats,}{.:handlers,}")
+  #   FileSystemResolver.new("/path/to/views", ":prefix/{:formats/,}:action{.:locale,}{.:formats,}{+:variants,}{.:handlers,}")
   #
   # If you don't specify a pattern then the default will be used.
   #
@@ -287,7 +287,7 @@ module ActionView
   #
   #   ActionController::Base.view_paths = FileSystemResolver.new(
   #     Rails.root.join("app/views"),
-  #     ":prefix{/:locale}/:action{.:formats,}{.:handlers,}"
+  #     ":prefix{/:locale}/:action{.:formats,}{+:variants,}{.:handlers,}"
   #   )
   #
   # ==== Pattern format and variables
@@ -299,6 +299,7 @@ module ActionView
   # * <tt>:action</tt> - name of the action
   # * <tt>:locale</tt> - possible locale versions
   # * <tt>:formats</tt> - possible request formats (for example html, json, xml...)
+  # * <tt>:variants</tt> - possible request variants (for example phone, tablet...)
   # * <tt>:handlers</tt> - possible handlers (for example erb, haml, builder...)
   #
   class FileSystemResolver < PathResolver

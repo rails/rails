@@ -1,3 +1,5 @@
+require 'ipaddr'
+
 module ActionDispatch
   # This middleware calculates the IP address of the remote client that is
   # making the request. It does this by checking various headers that could
@@ -28,14 +30,14 @@ module ActionDispatch
     # guaranteed by the IP specification to be private addresses. Those will
     # not be the ultimate client IP in production, and so are discarded. See
     # http://en.wikipedia.org/wiki/Private_network for details.
-    TRUSTED_PROXIES = %r{
-      ^127\.0\.0\.1$                | # localhost IPv4
-      ^::1$                         | # localhost IPv6
-      ^[fF][cCdD]                   | # private IPv6 range fc00::/7
-      ^10\.                         | # private IPv4 range 10.x.x.x
-      ^172\.(1[6-9]|2[0-9]|3[0-1])\.| # private IPv4 range 172.16.0.0 .. 172.31.255.255
-      ^192\.168\.                     # private IPv4 range 192.168.x.x
-    }x
+    TRUSTED_PROXIES = [
+      "127.0.0.1",      # localhost IPv4
+      "::1",            # localhost IPv6
+      "fc00::/7",       # private IPv6 range fc00::/7
+      "10.0.0.0/8",     # private IPv4 range 10.x.x.x
+      "172.16.0.0/12",  # private IPv4 range 172.16.0.0 .. 172.31.255.255
+      "192.168.0.0/16", # private IPv4 range 192.168.x.x
+    ].map { |proxy| IPAddr.new(proxy) }
 
     attr_reader :check_ip, :proxies
 
@@ -47,24 +49,24 @@ module ActionDispatch
     # clients (like WAP devices), or behind proxies that set headers in an
     # incorrect or confusing way (like AWS ELB).
     #
-    # The +custom_proxies+ argument can take a regex, which will be used
-    # instead of +TRUSTED_PROXIES+, or a string, which will be used in addition
-    # to +TRUSTED_PROXIES+. Any proxy setup will put the value you want in the
-    # middle (or at the beginning) of the X-Forwarded-For list, with your proxy
-    # servers after it. If your proxies aren't removed, pass them in via the
-    # +custom_proxies+ parameter. That way, the middleware will ignore those
-    # IP addresses, and return the one that you want.
+    # The +custom_proxies+ argument can take an Array of string, IPAddr, or
+    # Regexp objects which will be used instead of +TRUSTED_PROXIES+. If a
+    # single string, IPAddr, or Regexp object is provided, it will be used in
+    # addition to +TRUSTED_PROXIES+. Any proxy setup will put the value you
+    # want in the middle (or at the beginning) of the X-Forwarded-For list,
+    # with your proxy servers after it. If your proxies aren't removed, pass
+    # them in via the +custom_proxies+ parameter. That way, the middleware will
+    # ignore those IP addresses, and return the one that you want.
     def initialize(app, check_ip_spoofing = true, custom_proxies = nil)
       @app = app
       @check_ip = check_ip_spoofing
-      @proxies = case custom_proxies
-        when Regexp
-          custom_proxies
-        when nil
-          TRUSTED_PROXIES
-        else
-          Regexp.union(TRUSTED_PROXIES, custom_proxies)
-        end
+      @proxies = if custom_proxies.blank?
+        TRUSTED_PROXIES
+      elsif custom_proxies.respond_to?(:any?)
+        custom_proxies
+      else
+        Array(custom_proxies) + TRUSTED_PROXIES
+      end
     end
 
     # Since the IP address may not be needed, we store the object here
@@ -80,32 +82,6 @@ module ActionDispatch
     # into an actual IP address. If the ActionDispatch::Request#remote_ip method
     # is called, this class will calculate the value and then memoize it.
     class GetIp
-
-      # This constant contains a regular expression that validates every known
-      # form of IP v4 and v6 address, with or without abbreviations, adapted
-      # from {this gist}[https://gist.github.com/gazay/1289635].
-      VALID_IP = %r{
-        (^(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[0-9]{1,2})(\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[0-9]{1,2})){3}$)                                                        | # ip v4
-        (^(
-        (([0-9A-Fa-f]{1,4}:){7}[0-9A-Fa-f]{1,4})                                                                                                                   | # ip v6 not abbreviated
-        (([0-9A-Fa-f]{1,4}:){6}:[0-9A-Fa-f]{1,4})                                                                                                                  | # ip v6 with double colon in the end
-        (([0-9A-Fa-f]{1,4}:){5}:([0-9A-Fa-f]{1,4}:)?[0-9A-Fa-f]{1,4})                                                                                              | # - ip addresses v6
-        (([0-9A-Fa-f]{1,4}:){4}:([0-9A-Fa-f]{1,4}:){0,2}[0-9A-Fa-f]{1,4})                                                                                          | # - with
-        (([0-9A-Fa-f]{1,4}:){3}:([0-9A-Fa-f]{1,4}:){0,3}[0-9A-Fa-f]{1,4})                                                                                          | # - double colon
-        (([0-9A-Fa-f]{1,4}:){2}:([0-9A-Fa-f]{1,4}:){0,4}[0-9A-Fa-f]{1,4})                                                                                          | # - in the middle
-        (([0-9A-Fa-f]{1,4}:){6} ((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3} (\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))                            | # ip v6 with compatible to v4
-        (([0-9A-Fa-f]{1,4}:){1,5}:((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))                           | # ip v6 with compatible to v4
-        (([0-9A-Fa-f]{1,4}:){1}:([0-9A-Fa-f]{1,4}:){0,4}((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))     | # ip v6 with compatible to v4
-        (([0-9A-Fa-f]{1,4}:){0,2}:([0-9A-Fa-f]{1,4}:){0,3}((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))   | # ip v6 with compatible to v4
-        (([0-9A-Fa-f]{1,4}:){0,3}:([0-9A-Fa-f]{1,4}:){0,2}((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))   | # ip v6 with compatible to v4
-        (([0-9A-Fa-f]{1,4}:){0,4}:([0-9A-Fa-f]{1,4}:){1}((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))     | # ip v6 with compatible to v4
-        (::([0-9A-Fa-f]{1,4}:){0,5}((\b((25[0-5])|(1\d{2})|(2[0-4]\d) |(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))                         | # ip v6 with compatible to v4
-        ([0-9A-Fa-f]{1,4}::([0-9A-Fa-f]{1,4}:){0,5}[0-9A-Fa-f]{1,4})                                                                                               | # ip v6 with compatible to v4
-        (::([0-9A-Fa-f]{1,4}:){0,6}[0-9A-Fa-f]{1,4})                                                                                                               | # ip v6 with double colon at the beginning
-        (([0-9A-Fa-f]{1,4}:){1,7}:)                                                                                                                                  # ip v6 without ending
-        )$)
-      }x
-
       def initialize(env, middleware)
         @env      = env
         @check_ip = middleware.check_ip
@@ -173,12 +149,22 @@ module ActionDispatch
       def ips_from(header)
         # Split the comma-separated list into an array of strings
         ips = @env[header] ? @env[header].strip.split(/[,\s]+/) : []
-        # Only return IPs that are valid according to the regex
-        ips.select{ |ip| ip =~ VALID_IP }
+        ips.select do |ip|
+          begin
+            # Only return IPs that are valid according to the IPAddr#new method
+            range = IPAddr.new(ip).to_range
+            # we want to make sure nobody is sneaking a netmask in
+            range.begin == range.end
+          rescue ArgumentError
+            nil
+          end
+        end
       end
 
       def filter_proxies(ips)
-        ips.reject { |ip| ip =~ @proxies }
+        ips.reject do |ip|
+          @proxies.any? { |proxy| proxy === ip }
+        end
       end
 
     end

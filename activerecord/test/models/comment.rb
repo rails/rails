@@ -9,6 +9,7 @@ class Comment < ActiveRecord::Base
   belongs_to :post, :counter_cache => true
   belongs_to :author,   polymorphic: true
   belongs_to :resource, polymorphic: true
+  belongs_to :developer
 
   has_many :ratings
 
@@ -50,4 +51,9 @@ class CommentThatAutomaticallyAltersPostBody < Comment
   after_save do |comment|
     comment.post.update_attributes(body: "Automatically altered")
   end
+end
+
+class CommentWithDefaultScopeReferencesAssociation < Comment
+  default_scope ->{ includes(:developer).order('developers.name').references(:developer) }
+  belongs_to :developer
 end

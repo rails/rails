@@ -1,5 +1,6 @@
 require 'cases/helper'
 require 'models/bird'
+require 'models/comment'
 require 'models/company'
 require 'models/customer'
 require 'models/developer'
@@ -19,6 +20,9 @@ require 'models/treasure'
 require 'models/eye'
 require 'models/electron'
 require 'models/molecule'
+require 'models/member'
+require 'models/member_detail'
+require 'models/organization'
 
 class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
   def test_autosave_validation
@@ -499,7 +503,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
 
   def test_build_before_save
     company = companies(:first_firm)
-    new_client = assert_no_queries { company.clients_of_firm.build("name" => "Another Client") }
+    new_client = assert_no_queries(ignore_none: false) { company.clients_of_firm.build("name" => "Another Client") }
     assert !company.clients_of_firm.loaded?
 
     company.name += '-changed'
@@ -510,7 +514,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
 
   def test_build_many_before_save
     company = companies(:first_firm)
-    assert_no_queries { company.clients_of_firm.build([{"name" => "Another Client"}, {"name" => "Another Client II"}]) }
+    assert_no_queries(ignore_none: false) { company.clients_of_firm.build([{"name" => "Another Client"}, {"name" => "Another Client II"}]) }
 
     company.name += '-changed'
     assert_queries(3) { assert company.save }
@@ -519,7 +523,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
 
   def test_build_via_block_before_save
     company = companies(:first_firm)
-    new_client = assert_no_queries { company.clients_of_firm.build {|client| client.name = "Another Client" } }
+    new_client = assert_no_queries(ignore_none: false) { company.clients_of_firm.build {|client| client.name = "Another Client" } }
     assert !company.clients_of_firm.loaded?
 
     company.name += '-changed'
@@ -530,7 +534,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
 
   def test_build_many_via_block_before_save
     company = companies(:first_firm)
-    assert_no_queries do
+    assert_no_queries(ignore_none: false) do
       company.clients_of_firm.build([{"name" => "Another Client"}, {"name" => "Another Client II"}]) do |client|
         client.name = "changed"
       end
@@ -612,6 +616,14 @@ class TestDefaultAutosaveAssociationOnNewRecord < ActiveRecord::TestCase
 
     firm.save!
     assert !account.persisted?
+  end
+
+  def test_autosave_new_record_with_after_create_callback
+    post = PostWithAfterCreateCallback.new(title: 'Captain Murphy', body: 'is back')
+    post.comments.build(body: 'foo')
+    post.save!
+
+    assert_not_nil post.author_id
   end
 end
 
@@ -1113,6 +1125,27 @@ class TestAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCase
 
   def test_should_not_load_the_associated_model
     assert_queries(1) { @pirate.catchphrase = 'Arr'; @pirate.save! }
+  end
+end
+
+class TestAutosaveAssociationOnAHasOneThroughAssociation < ActiveRecord::TestCase
+  self.use_transactional_fixtures = false unless supports_savepoints?
+
+  def setup
+    super
+    organization = Organization.create
+    @member = Member.create
+    MemberDetail.create(organization: organization, member: @member)
+  end
+
+  def test_should_not_has_one_through_model
+    class << @member.organization
+      def save(*args)
+        super
+        raise 'Oh noes!'
+      end
+    end
+    assert_nothing_raised { @member.save }
   end
 end
 

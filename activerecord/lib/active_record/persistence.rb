@@ -287,7 +287,8 @@ module ActiveRecord
     # This method raises an +ActiveRecord::ActiveRecordError+ when called on new
     # objects, or when at least one of the attributes is marked as readonly.
     def update_columns(attributes)
-      raise ActiveRecordError, "cannot update on a new record object" unless persisted?
+      raise ActiveRecordError, "cannot update a new record" if new_record?
+      raise ActiveRecordError, "cannot update a destroyed record" if destroyed?
 
       attributes.each_key do |key|
         verify_readonly_attribute(key.to_s)
@@ -465,7 +466,7 @@ module ActiveRecord
 
         changes[self.class.locking_column] = increment_lock if locking_enabled?
 
-        changed_attributes.except!(*changes.keys)
+        clear_attribute_changes(changes.keys)
         primary_key = self.class.primary_key
         self.class.unscoped.where(primary_key => self[primary_key]).update_all(changes) == 1
       else

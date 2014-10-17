@@ -1,6 +1,5 @@
 require 'abstract_unit'
 require 'controller/fake_controllers'
-require 'action_view/vendor/html-scanner'
 require 'rails/engine'
 
 class SessionTest < ActiveSupport::TestCase
@@ -293,7 +292,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       assert_equal({}, cookies.to_hash)
       assert_equal "OK", body
       assert_equal "OK", response.body
-      assert_kind_of HTML::Document, html_document
+      assert_kind_of Nokogiri::HTML::DocumentFragment, html_document
       assert_equal 1, request_count
     end
   end
@@ -309,7 +308,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       assert_equal({}, cookies.to_hash)
       assert_equal "Created", body
       assert_equal "Created", response.body
-      assert_kind_of HTML::Document, html_document
+      assert_kind_of Nokogiri::HTML::DocumentFragment, html_document
       assert_equal 1, request_count
     end
   end
@@ -369,7 +368,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       assert_response :redirect
       assert_response :found
       assert_equal "<html><body>You are being <a href=\"http://www.example.com/get\">redirected</a>.</body></html>", response.body
-      assert_kind_of HTML::Document, html_document
+      assert_kind_of Nokogiri::HTML::DocumentFragment, html_document
       assert_equal 1, request_count
 
       follow_redirect!
@@ -616,6 +615,8 @@ class ApplicationIntegrationTest < ActionDispatch::IntegrationTest
     get 'bar', :to => 'application_integration_test/test#index', :as => :bar
 
     mount MountedApp => '/mounted', :as => "mounted"
+    get 'fooz' => proc { |env| [ 200, {'X-Cascade' => 'pass'}, [ "omg" ] ] }, :anchor => false
+    get 'fooz', :to => 'application_integration_test/test#index'
   end
 
   def app
@@ -630,6 +631,12 @@ class ApplicationIntegrationTest < ActionDispatch::IntegrationTest
 
   test "includes mounted helpers" do
     assert_equal '/mounted/baz', mounted.baz_path
+  end
+
+  test "path after cascade pass" do
+    get '/fooz'
+    assert_equal 'index', response.body
+    assert_equal '/fooz', path
   end
 
   test "route helpers after controller access" do

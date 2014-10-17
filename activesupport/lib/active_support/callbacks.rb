@@ -78,17 +78,20 @@ module ActiveSupport
     #     save
     #   end
     def run_callbacks(kind, &block)
-      cbs = send("_#{kind}_callbacks")
-      if cbs.empty?
-        yield if block_given?
+      send "run_#{kind}_callbacks", &block
+    end
+
+    private
+
+    def _run_callbacks(callbacks, &block)
+      if callbacks.empty?
+        block.call if block
       else
-        runner = cbs.compile
+        runner = callbacks.compile
         e = Filters::Environment.new(self, false, nil, block)
         runner.call(e).value
       end
     end
-
-    private
 
     # A hook invoked every time a before callback is halted.
     # This can be overridden in AS::Callback implementors in order
@@ -556,7 +559,7 @@ module ActiveSupport
       # This is used internally to append, prepend and skip callbacks to the
       # CallbackChain.
       def __update_callbacks(name) #:nodoc:
-        ([self] + ActiveSupport::DescendantsTracker.descendants(self)).reverse.each do |target|
+        ([self] + ActiveSupport::DescendantsTracker.descendants(self)).reverse_each do |target|
           chain = target.get_callbacks name
           yield target, chain.dup
         end
@@ -716,12 +719,21 @@ module ActiveSupport
       #     define_callbacks :save, scope: [:name]
       #
       #   would call <tt>Audit#save</tt>.
+      #
+      # NOTE: +method_name+ passed to `define_model_callbacks` must not end with
+      # `!`, `?` or `=`.
       def define_callbacks(*names)
         options = names.extract_options!
 
         names.each do |name|
           class_attribute "_#{name}_callbacks"
           set_callbacks name, CallbackChain.new(name, options)
+
+          module_eval <<-RUBY, __FILE__, __LINE__ + 1
+            def run_#{name}_callbacks(&block)
+              _run_callbacks(_#{name}_callbacks, &block)
+            end
+          RUBY
         end
       end
 

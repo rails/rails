@@ -88,13 +88,13 @@ module ActionDispatch
           erb       = File.read File.join(viz_dir, 'index.html.erb')
           states    = "function tt() { return #{to_json}; }"
 
-          fun_routes = paths.shuffle.first(3).map do |ast|
+          fun_routes = paths.sample(3).map do |ast|
             ast.map { |n|
               case n
               when Nodes::Symbol
                 case n.left
                 when ':id' then rand(100).to_s
-                when ':format' then %w{ xml json }.shuffle.first
+                when ':format' then %w{ xml json }.sample
                 else
                   'omg'
                 end

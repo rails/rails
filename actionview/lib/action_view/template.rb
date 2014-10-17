@@ -242,7 +242,7 @@ module ActionView
           end
 
           instrument("!compile_template") do
-            compile(view, mod)
+            compile(mod)
           end
 
           # Just discard the source if we have a virtual path. This
@@ -264,7 +264,7 @@ module ActionView
       # encode the source into <tt>Encoding.default_internal</tt>.
       # In general, this means that templates will be UTF-8 inside of Rails,
       # regardless of the original source encoding.
-      def compile(view, mod) #:nodoc:
+      def compile(mod) #:nodoc:
         encode!
         method_name = self.method_name
         code = @handler.call(self)
@@ -293,18 +293,8 @@ module ActionView
           raise WrongEncodingError.new(@source, Encoding.default_internal)
         end
 
-        begin
-          mod.module_eval(source, identifier, 0)
-          ObjectSpace.define_finalizer(self, Finalizer[method_name, mod])
-        rescue => e # errors from template code
-          if logger = (view && view.logger)
-            logger.debug "ERROR: compiling #{method_name} RAISED #{e}"
-            logger.debug "Function body: #{source}"
-            logger.debug "Backtrace: #{e.backtrace.join("\n")}"
-          end
-
-          raise ActionView::Template::Error.new(self, e)
-        end
+        mod.module_eval(source, identifier, 0)
+        ObjectSpace.define_finalizer(self, Finalizer[method_name, mod])
       end
 
       def handle_render_error(view, e) #:nodoc:
@@ -327,11 +317,11 @@ module ActionView
       end
 
       def method_name #:nodoc:
-        @method_name ||= "_#{identifier_method_name}__#{@identifier.hash}_#{__id__}".gsub('-', "_")
+        @method_name ||= "_#{identifier_method_name}__#{@identifier.hash}_#{__id__}".tr('-', "_")
       end
 
       def identifier_method_name #:nodoc:
-        inspect.gsub(/[^a-z_]/, '_')
+        inspect.tr('^a-z_', '_')
       end
 
       def instrument(action, &block)

@@ -8,6 +8,8 @@ module ActiveRecord
     class NonExistentTable < ActiveRecord::Base
     end
 
+    fixtures :comments
+
     def setup
       super
       @subscriber = SQLSubscriber.new
@@ -18,6 +20,14 @@ module ActiveRecord
     def teardown
       ActiveSupport::Notifications.unsubscribe(@subscription)
       super
+    end
+
+    def test_truncate
+      count = ActiveRecord::Base.connection.execute("select count(*) from comments").first['count'].to_i
+      assert_operator count, :>, 0
+      ActiveRecord::Base.connection.truncate("comments")
+      count = ActiveRecord::Base.connection.execute("select count(*) from comments").first['count'].to_i
+      assert_equal 0, count
     end
 
     def test_encoding

@@ -18,11 +18,11 @@ class ValidationsTest < ActiveModel::TestCase
   def test_single_field_validation
     r = Reply.new
     r.title = "There's no content!"
-    assert r.invalid?, "A reply without content shouldn't be savable"
+    assert r.invalid?, "A reply without content should be invalid"
     assert r.after_validation_performed, "after_validation callback should be called"
 
     r.content = "Messa content!"
-    assert r.valid?, "A reply with content should be savable"
+    assert r.valid?, "A reply with content should be valid"
     assert r.after_validation_performed, "after_validation callback should be called"
   end
 
@@ -167,10 +167,12 @@ class ValidationsTest < ActiveModel::TestCase
   end
 
   def test_invalid_options_to_validate
-    assert_raises(ArgumentError) do
+    error = assert_raises(ArgumentError) do
       # A common mistake -- we meant to call 'validates'
       Topic.validate :title, presence: true
     end
+    message = 'Unknown key: :presence. Valid keys are: :on, :if, :unless. Perhaps you meant to call `validates` instead of `validate`?'
+    assert_equal message, error.message
   end
 
   def test_errors_conversions

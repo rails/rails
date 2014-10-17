@@ -80,6 +80,30 @@ class TransactionTest < ActiveRecord::TestCase
     end
   end
 
+  def test_number_of_transactions_in_commit
+    num = nil
+
+    Topic.connection.class_eval do
+      alias :real_commit_db_transaction :commit_db_transaction
+      define_method(:commit_db_transaction) do
+        num = transaction_manager.open_transactions
+        real_commit_db_transaction
+      end
+    end
+
+    Topic.transaction do
+      @first.approved  = true
+      @first.save!
+    end
+
+    assert_equal 0, num
+  ensure
+    Topic.connection.class_eval do
+      remove_method :commit_db_transaction
+      alias :commit_db_transaction :real_commit_db_transaction rescue nil
+    end
+  end
+
   def test_successful_with_instance_method
     @first.transaction do
       @first.approved  = true
@@ -466,6 +490,37 @@ class TransactionTest < ActiveRecord::TestCase
     assert !topic.persisted?, 'not persisted'
     assert_nil topic.id
     assert topic.frozen?, 'not frozen'
+  end
+
+  # The behavior of killed threads having a status of "aborting" was changed
+  # in Ruby 2.0, so Thread#kill on 1.9 will prematurely commit the transaction
+  # and there's nothing we can do about it.
+  unless RUBY_VERSION.start_with? '1.9'
+    def test_rollback_when_thread_killed
+      queue = Queue.new
+      thread = Thread.new do
+        Topic.transaction do
+          @first.approved  = true
+          @second.approved = false
+          @first.save
+
+          queue.push nil
+          sleep
+
+          @second.save
+        end
+      end
+
+      queue.pop
+      thread.kill
+      thread.join
+
+      assert @first.approved?, "First should still be changed in the objects"
+      assert !@second.approved?, "Second should still be changed in the objects"
+
+      assert !Topic.find(1).approved?, "First shouldn't have been approved"
+      assert Topic.find(2).approved?, "Second should still be approved"
+    end
   end
 
   def test_restore_active_record_state_for_all_records_in_a_transaction

@@ -3,6 +3,8 @@ require 'active_support/core_ext/object/to_query'
 require 'active_support/core_ext/module/anonymous'
 require 'active_support/core_ext/hash/keys'
 
+require 'rails-dom-testing'
+
 module ActionController
   module TemplateAssertions
     extend ActiveSupport::Concern
@@ -91,6 +93,13 @@ module ActionController
     #   # assert that no partials were rendered
     #   assert_template partial: false
     #
+    #   # assert that a file was rendered
+    #   assert_template file: "README.rdoc"
+    #
+    #   # assert that no file was rendered
+    #   assert_template file: nil
+    #   assert_template file: false
+    #
     # In a view test case, you can also assert that specific locals are passed
     # to partials:
     #
@@ -140,6 +149,8 @@ module ActionController
 
         if options[:file]
           assert_includes @_files.keys, options[:file]
+        elsif options.key?(:file)
+          assert @_files.blank?, "expected no files but #{@_files.keys} was rendered"
         end
 
         if expected_partial = options[:partial]
@@ -433,6 +444,7 @@ module ActionController
       extend ActiveSupport::Concern
       include ActionDispatch::TestProcess
       include ActiveSupport::Testing::ConstantLookup
+      include Rails::Dom::Testing::Assertions
 
       attr_reader :response, :request
 
@@ -675,6 +687,11 @@ module ActionController
       end
 
       private
+
+      def document_root_element
+        html_document
+      end
+
       def check_required_ivars
         # Sanity check for required instance variables so we can give an
         # understandable error message.

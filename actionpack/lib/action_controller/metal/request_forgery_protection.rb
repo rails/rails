@@ -9,7 +9,7 @@ module ActionController #:nodoc:
   end
 
   # Controller actions are protected from Cross-Site Request Forgery (CSRF) attacks
-  # by including a token in the rendered html for your application. This token is
+  # by including a token in the rendered HTML for your application. This token is
   # stored as a random string in the session, to which an attacker does not have
   # access. When a request reaches your application, \Rails verifies the received
   # token with the token in the session. Only HTML and JavaScript requests are checked,
@@ -44,7 +44,7 @@ module ActionController #:nodoc:
   #
   # The token parameter is named <tt>authenticity_token</tt> by default. The name and
   # value of this token must be added to every layout that renders forms by including
-  # <tt>csrf_meta_tags</tt> in the html +head+.
+  # <tt>csrf_meta_tags</tt> in the HTML +head+.
   #
   # Learn more about CSRF attacks and securing your application in the
   # {Ruby on Rails Security Guide}[http://guides.rubyonrails.org/security.html].
@@ -240,6 +240,8 @@ module ActionController #:nodoc:
         content_type =~ %r(\Atext/javascript) && !request.xhr?
       end
 
+      AUTHENTICITY_TOKEN_LENGTH = 32
+
       # Returns true or false if a request is verified. Checks:
       #
       # * is it a GET or HEAD request?  Gets should be safe and idempotent
@@ -247,13 +249,73 @@ module ActionController #:nodoc:
       # * Does the X-CSRF-Token header match the form_authenticity_token
       def verified_request?
         !protect_against_forgery? || request.get? || request.head? ||
-          form_authenticity_token == form_authenticity_param ||
-          form_authenticity_token == request.headers['X-CSRF-Token']
+          valid_authenticity_token?(session, form_authenticity_param) ||
+          valid_authenticity_token?(session, request.headers['X-CSRF-Token'])
       end
 
       # Sets the token value for the current session.
       def form_authenticity_token
-        session[:_csrf_token] ||= SecureRandom.base64(32)
+        masked_authenticity_token(session)
+      end
+
+      # Creates a masked version of the authenticity token that varies
+      # on each request. The masking is used to mitigate SSL attacks
+      # like BREACH.
+      def masked_authenticity_token(session)
+        one_time_pad = SecureRandom.random_bytes(AUTHENTICITY_TOKEN_LENGTH)
+        encrypted_csrf_token = xor_byte_strings(one_time_pad, real_csrf_token(session))
+        masked_token = one_time_pad + encrypted_csrf_token
+        Base64.strict_encode64(masked_token)
+      end
+
+      # Checks the client's masked token to see if it matches the
+      # session token. Essentially the inverse of
+      # +masked_authenticity_token+.
+      def valid_authenticity_token?(session, encoded_masked_token)
+        return false if encoded_masked_token.nil? || encoded_masked_token.empty?
+
+        begin
+          masked_token = Base64.strict_decode64(encoded_masked_token)
+        rescue ArgumentError # encoded_masked_token is invalid Base64
+          return false
+        end
+
+        # See if it's actually a masked token or not. In order to
+        # deploy this code, we should be able to handle any unmasked
+        # tokens that we've issued without error.
+
+        if masked_token.length == AUTHENTICITY_TOKEN_LENGTH
+          # This is actually an unmasked token. This is expected if
+          # you have just upgraded to masked tokens, but should stop
+          # happening shortly after installing this gem
+          compare_with_real_token masked_token, session
+
+        elsif masked_token.length == AUTHENTICITY_TOKEN_LENGTH * 2
+          # Split the token into the one-time pad and the encrypted
+          # value and decrypt it
+          one_time_pad = masked_token[0...AUTHENTICITY_TOKEN_LENGTH]
+          encrypted_csrf_token = masked_token[AUTHENTICITY_TOKEN_LENGTH..-1]
+          csrf_token = xor_byte_strings(one_time_pad, encrypted_csrf_token)
+
+          compare_with_real_token csrf_token, session
+
+        else
+          false # Token is malformed
+        end
+      end
+
+      def compare_with_real_token(token, session)
+        # Borrow a constant-time comparison from Rack
+        Rack::Utils.secure_compare(token, real_csrf_token(session))
+      end
+
+      def real_csrf_token(session)
+        session[:_csrf_token] ||= SecureRandom.base64(AUTHENTICITY_TOKEN_LENGTH)
+        Base64.strict_decode64(session[:_csrf_token])
+      end
+
+      def xor_byte_strings(s1, s2)
+        s1.bytes.zip(s2.bytes).map { |(c1,c2)| c1 ^ c2 }.pack('c*')
       end
 
       # The form's authenticity parameter. Override to provide your own.

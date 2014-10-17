@@ -11,6 +11,30 @@ require 'models/reference'
 class RelationScopingTest < ActiveRecord::TestCase
   fixtures :authors, :developers, :projects, :comments, :posts, :developers_projects
 
+  setup do
+    developers(:david)
+  end
+
+  def test_unscoped_breaks_caching
+    author = authors :mary
+    assert_nil author.first_post
+    post = FirstPost.unscoped do
+      author.reload.first_post
+    end
+    assert post
+  end
+
+  def test_scope_breaks_caching_on_collections
+    author = authors :david
+    ids = author.reload.special_posts_with_default_scope.map(&:id)
+    assert_equal [1,5,6], ids.sort
+    scoped_posts = SpecialPostWithDefaultScope.unscoped do
+      author = authors :david
+      author.reload.special_posts_with_default_scope.to_a
+    end
+    assert_equal author.posts.map(&:id).sort, scoped_posts.map(&:id).sort
+  end
+
   def test_reverse_order
     assert_equal Developer.order("id DESC").to_a.reverse, Developer.order("id DESC").reverse_order
   end
@@ -260,7 +284,7 @@ class NestedRelationScopingTest < ActiveRecord::TestCase
   end
 end
 
-class HasManyScopingTest< ActiveRecord::TestCase
+class HasManyScopingTest < ActiveRecord::TestCase
   fixtures :comments, :posts, :people, :references
 
   def setup
@@ -306,7 +330,7 @@ class HasManyScopingTest< ActiveRecord::TestCase
   end
 end
 
-class HasAndBelongsToManyScopingTest< ActiveRecord::TestCase
+class HasAndBelongsToManyScopingTest < ActiveRecord::TestCase
   fixtures :posts, :categories, :categories_posts
 
   def setup

@@ -45,6 +45,10 @@ module RenderTemplate
       render :template => "locals", :locals => { :secret => 'area51' }
     end
 
+    def with_locals_without_key
+      render "locals", :locals => { :secret => 'area51' }
+    end
+
     def builder_template
       render :template => "xml_template"
     end
@@ -97,6 +101,11 @@ module RenderTemplate
     end
 
     test "rendering a template with local variables" do
+      get :with_locals
+      assert_response "The secret is area51"
+    end
+
+    test "rendering a template with local variables without key" do
       get :with_locals
       assert_response "The secret is area51"
     end

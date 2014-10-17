@@ -91,7 +91,7 @@ module ActiveSupport
     def underscore(camel_cased_word)
       return camel_cased_word unless camel_cased_word =~ /[A-Z-]|::/
       word = camel_cased_word.to_s.gsub('::', '/')
-      word.gsub!(/(?:([A-Za-z\d])|^)(#{inflections.acronym_regex})(?=\b|[^a-z])/) { "#{$1}#{$1 && '_'}#{$2.downcase}" }
+      word.gsub!(/(?:(?<=([A-Za-z\d]))|\b)(#{inflections.acronym_regex})(?=\b|[^a-z])/) { "#{$1 && '_'}#{$2.downcase}" }
       word.gsub!(/([A-Z\d]+)([A-Z][a-z])/,'\1_\2')
       word.gsub!(/([a-z\d])([A-Z])/,'\1_\2')
       word.tr!("-", "_")
@@ -303,8 +303,8 @@ module ActiveSupport
     def safe_constantize(camel_cased_word)
       constantize(camel_cased_word)
     rescue NameError => e
-      raise unless e.message =~ /(uninitialized constant|wrong constant name) #{const_regexp(camel_cased_word)}$/ ||
-        e.name.to_s == camel_cased_word.to_s
+      raise if e.name && !(camel_cased_word.to_s.split("::").include?(e.name.to_s) ||
+        e.name.to_s == camel_cased_word.to_s)
     rescue ArgumentError => e
       raise unless e.message =~ /not missing constant #{const_regexp(camel_cased_word)}\!$/
     end

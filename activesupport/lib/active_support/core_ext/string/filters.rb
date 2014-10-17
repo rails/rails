@@ -3,7 +3,7 @@ class String
   # the string, and then changing remaining consecutive whitespace
   # groups into one space each.
   #
-  # Note that it handles both ASCII and Unicode whitespace like mongolian vowel separator (U+180E).
+  # Note that it handles both ASCII and Unicode whitespace.
   #
   #   %{ Multi-line
   #      string }.squish                   # => "Multi-line string"

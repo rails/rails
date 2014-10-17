@@ -1,5 +1,6 @@
 require 'generators/generators_test_helper'
 require 'rails/generators/rails/model/model_generator'
+require 'active_support/core_ext/string/strip'
 
 class ModelGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
@@ -222,7 +223,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
 
   def test_migration_with_timestamps
     run_generator
-    assert_migration "db/migrate/create_accounts.rb", /t.timestamps/
+    assert_migration "db/migrate/create_accounts.rb", /t.timestamps null: false/
   end
 
   def test_migration_timestamps_are_skipped
@@ -359,6 +360,49 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     assert_migration "db/migrate/create_accounts.rb" do |m|
       assert_method :change, m do |up|
         assert_no_match(/index: true/, up)
+      end
+    end
+  end
+
+  def test_required_belongs_to_adds_required_association
+    run_generator ["account", "supplier:references{required}"]
+
+    expected_file = <<-FILE.strip_heredoc
+    class Account < ActiveRecord::Base
+      belongs_to :supplier, required: true
+    end
+    FILE
+    assert_file "app/models/account.rb", expected_file
+  end
+
+  def test_required_polymorphic_belongs_to_generages_correct_model
+    run_generator ["account", "supplier:references{required,polymorphic}"]
+
+    expected_file = <<-FILE.strip_heredoc
+    class Account < ActiveRecord::Base
+      belongs_to :supplier, polymorphic: true, required: true
+    end
+    FILE
+    assert_file "app/models/account.rb", expected_file
+  end
+
+  def test_required_and_polymorphic_are_order_independent
+    run_generator ["account", "supplier:references{polymorphic.required}"]
+
+    expected_file = <<-FILE.strip_heredoc
+    class Account < ActiveRecord::Base
+      belongs_to :supplier, polymorphic: true, required: true
+    end
+    FILE
+    assert_file "app/models/account.rb", expected_file
+  end
+
+  def test_required_adds_null_false_to_column
+    run_generator ["account", "supplier:references{required}"]
+
+    assert_migration "db/migrate/create_accounts.rb" do |m|
+      assert_method :change, m do |up|
+        assert_match(/t\.references :supplier,.*\snull: false/, up)
       end
     end
   end

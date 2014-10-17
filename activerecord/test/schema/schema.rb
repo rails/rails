@@ -10,7 +10,7 @@ ActiveRecord::Schema.define do
   #put adapter specific setup here
   case adapter_name
   when "PostgreSQL"
-    enable_uuid_ossp!(ActiveRecord::Base.connection)
+    enable_extension!('uuid-ossp', ActiveRecord::Base.connection)
     create_table :uuid_parents, id: :uuid, force: true do |t|
       t.string :name
     end
@@ -138,7 +138,7 @@ ActiveRecord::Schema.define do
     t.integer :engines_count
     t.integer :wheels_count
     t.column :lock_version, :integer, null: false, default: 0
-    t.timestamps
+    t.timestamps null: false
   end
 
   create_table :categories, force: true do |t|
@@ -198,6 +198,7 @@ ActiveRecord::Schema.define do
     t.references :author, polymorphic: true
     t.string :resource_id
     t.string :resource_type
+    t.integer :developer_id
   end
 
   create_table :companies, force: true do |t|
@@ -537,7 +538,7 @@ ActiveRecord::Schema.define do
     t.references :best_friend_of
     t.integer    :insures, null: false, default: 0
     t.timestamp :born_at
-    t.timestamps
+    t.timestamps null: false
   end
 
   create_table :peoples_treasures, id: false, force: true do |t|
@@ -545,10 +546,16 @@ ActiveRecord::Schema.define do
     t.column :treasure_id, :integer
   end
 
+  create_table :personal_legacy_things, force: true do |t|
+    t.integer :tps_report_number
+    t.integer :person_id
+    t.integer :version, null: false, default: 0
+  end
+
   create_table :pets, primary_key: :pet_id, force: true do |t|
     t.string :name
     t.integer :owner_id, :integer
-    t.timestamps
+    t.timestamps null: false
   end
 
   create_table :pirates, force: true do |t|
@@ -726,13 +733,13 @@ ActiveRecord::Schema.define do
     t.string   :parent_title
     t.string   :type
     t.string   :group
-    t.timestamps
+    t.timestamps null: true
   end
 
   create_table :toys, primary_key: :toy_id, force: true do |t|
     t.string :name
     t.integer :pet_id, :integer
-    t.timestamps
+    t.timestamps null: false
   end
 
   create_table :traffic_lights, force: true do |t|

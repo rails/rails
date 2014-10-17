@@ -1,4 +1,6 @@
 require 'rack/body_proxy'
+require 'rack/utils'
+
 module ActiveSupport
   module Cache
     module Strategy
@@ -28,6 +30,9 @@ module ActiveSupport
               LocalCacheRegistry.set_cache_for(local_cache_key, nil)
             end
             response
+          rescue Rack::Utils::InvalidParameterError
+            LocalCacheRegistry.set_cache_for(local_cache_key, nil)
+            [400, {}, []]
           rescue Exception
             LocalCacheRegistry.set_cache_for(local_cache_key, nil)
             raise

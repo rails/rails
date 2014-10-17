@@ -330,7 +330,7 @@ module ActionView
         Tags::DatetimeSelect.new(object_name, method, self, options, html_options).render
       end
 
-      # Returns a set of html select-tags (one for year, month, day, hour, minute, and second) pre-selected with the
+      # Returns a set of HTML select-tags (one for year, month, day, hour, minute, and second) pre-selected with the
       # +datetime+. It's also possible to explicitly set the order of the tags using the <tt>:order</tt> option with
       # an array of symbols <tt>:year</tt>, <tt>:month</tt> and <tt>:day</tt> in the desired order. If you do not
       # supply a Symbol, it will be appended onto the <tt>:order</tt> passed in. You can also add
@@ -379,7 +379,7 @@ module ActionView
         DateTimeSelector.new(datetime, options, html_options).select_datetime
       end
 
-      # Returns a set of html select-tags (one for year, month, and day) pre-selected with the +date+.
+      # Returns a set of HTML select-tags (one for year, month, and day) pre-selected with the +date+.
       # It's possible to explicitly set the order of the tags using the <tt>:order</tt> option with an array of
       # symbols <tt>:year</tt>, <tt>:month</tt> and <tt>:day</tt> in the desired order.
       # If the array passed to the <tt>:order</tt> option does not contain all the three symbols, all tags will be hidden.
@@ -418,7 +418,7 @@ module ActionView
         DateTimeSelector.new(date, options, html_options).select_date
       end
 
-      # Returns a set of html select-tags (one for hour and minute).
+      # Returns a set of HTML select-tags (one for hour and minute).
       # You can set <tt>:time_separator</tt> key to format the output, and
       # the <tt>:include_seconds</tt> option to include an input for seconds.
       #
@@ -635,7 +635,7 @@ module ActionView
         DateTimeSelector.new(date, options, html_options).select_year
       end
 
-      # Returns an html time tag for the given date or time.
+      # Returns an HTML time tag for the given date or time.
       #
       #   time_tag Date.today  # =>
       #     <time datetime="2010-11-04">November 04, 2010</time>
@@ -914,7 +914,7 @@ module ActionView
           build_select(type, build_options(selected, options))
         end
 
-        # Build select option html from date value and options.
+        # Build select option HTML from date value and options.
         #  build_options(15, start: 1, end: 31)
         #  => "<option value="1">1</option>
         #      <option value="2">2</option>
@@ -954,7 +954,7 @@ module ActionView
           (select_options.join("\n") + "\n").html_safe
         end
 
-        # Builds select tag from date type and html select options.
+        # Builds select tag from date type and HTML select options.
         #  build_select(:month, "<option value="1">January</option>...")
         #  => "<select id="post_written_on_2i" name="post[written_on(2i)]">
         #        <option value="1">January</option>...
@@ -1035,7 +1035,7 @@ module ActionView
         def build_selects_from_types(order)
           select = ''
           first_visible = order.find { |type| !@options[:"discard_#{type}"] }
-          order.reverse.each do |type|
+          order.reverse_each do |type|
             separator = separator(type) unless type == first_visible # don't add before first visible field
             select.insert(0, separator.to_s + send("select_#{type}").to_s)
           end

@@ -63,12 +63,12 @@ module ActiveRecord
 
         save_through_record(record)
         if has_cached_counter? && !through_reflection_updates_counter_cache?
-          ActiveSupport::Deprecation.warn(<<-MESSAGE.strip_heredoc)
-            Automatic updating of counter caches on through associations has been
-            deprecated, and will be removed in Rails 5.0. Instead, please set the
-            appropriate counter_cache options on the has_many and belongs_to for
-            your associations to #{through_reflection.name}.
-          MESSAGE
+          ActiveSupport::Deprecation.warn \
+            "Automatic updating of counter caches on through associations has been " \
+            "deprecated, and will be removed in Rails 5.0. Instead, please set the " \
+            "appropriate counter_cache options on the has_many and belongs_to for " \
+            "your associations to #{through_reflection.name}."
+
           update_counter_in_database(1)
         end
         record
@@ -159,7 +159,7 @@ module ActiveRecord
               count = scope.destroy_all.length
             else
               scope.to_a.each do |record|
-                record.run_callbacks :destroy
+                record.run_destroy_callbacks
               end
 
               arel = scope.arel

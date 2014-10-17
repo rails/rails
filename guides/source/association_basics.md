@@ -756,7 +756,7 @@ class Order < ActiveRecord::Base
 end
 ```
 
-Each instance of the order model will have these methods:
+Each instance of the `Order` model will have these methods:
 
 ```ruby
 customer
@@ -1321,9 +1321,9 @@ When you declare a `has_many` association, the declaring class automatically gai
 * `collection<<(object, ...)`
 * `collection.delete(object, ...)`
 * `collection.destroy(object, ...)`
-* `collection=objects`
+* `collection=(objects)`
 * `collection_singular_ids`
-* `collection_singular_ids=ids`
+* `collection_singular_ids=(ids)`
 * `collection.clear`
 * `collection.empty?`
 * `collection.size`
@@ -1342,16 +1342,16 @@ class Customer < ActiveRecord::Base
 end
 ```
 
-Each instance of the customer model will have these methods:
+Each instance of the `Customer` model will have these methods:
 
 ```ruby
 orders(force_reload = false)
 orders<<(object, ...)
 orders.delete(object, ...)
 orders.destroy(object, ...)
-orders=objects
+orders=(objects)
 order_ids
-order_ids=ids
+order_ids=(ids)
 orders.clear
 orders.empty?
 orders.size
@@ -1399,7 +1399,7 @@ The `collection.destroy` method removes one or more objects from the collection 
 
 WARNING: Objects will _always_ be removed from the database, ignoring the `:dependent` option.
 
-##### `collection=objects`
+##### `collection=(objects)`
 
 The `collection=` method makes the collection contain only the supplied objects, by adding and deleting as appropriate.
 
@@ -1411,7 +1411,7 @@ The `collection_singular_ids` method returns an array of the ids of the objects 
 @order_ids = @customer.order_ids
 ```
 
-##### `collection_singular_ids=ids`
+##### `collection_singular_ids=(ids)`
 
 The `collection_singular_ids=` method makes the collection contain only the objects identified by the supplied primary key values, by adding and deleting as appropriate.
 
@@ -1810,9 +1810,9 @@ When you declare a `has_and_belongs_to_many` association, the declaring class au
 * `collection<<(object, ...)`
 * `collection.delete(object, ...)`
 * `collection.destroy(object, ...)`
-* `collection=objects`
+* `collection=(objects)`
 * `collection_singular_ids`
-* `collection_singular_ids=ids`
+* `collection_singular_ids=(ids)`
 * `collection.clear`
 * `collection.empty?`
 * `collection.size`
@@ -1831,16 +1831,16 @@ class Part < ActiveRecord::Base
 end
 ```
 
-Each instance of the part model will have these methods:
+Each instance of the `Part` model will have these methods:
 
 ```ruby
 assemblies(force_reload = false)
 assemblies<<(object, ...)
 assemblies.delete(object, ...)
 assemblies.destroy(object, ...)
-assemblies=objects
+assemblies=(objects)
 assembly_ids
-assembly_ids=ids
+assembly_ids=(ids)
 assemblies.clear
 assemblies.empty?
 assemblies.size
@@ -1895,7 +1895,7 @@ The `collection.destroy` method removes one or more objects from the collection 
 @part.assemblies.destroy(@assembly1)
 ```
 
-##### `collection=objects`
+##### `collection=(objects)`
 
 The `collection=` method makes the collection contain only the supplied objects, by adding and deleting as appropriate.
 
@@ -1907,7 +1907,7 @@ The `collection_singular_ids` method returns an array of the ids of the objects 
 @assembly_ids = @part.assembly_ids
 ```
 
-##### `collection_singular_ids=ids`
+##### `collection_singular_ids=(ids)`
 
 The `collection_singular_ids=` method makes the collection contain only the objects identified by the supplied primary key values, by adding and deleting as appropriate.
 

@@ -19,15 +19,15 @@ module ActiveRecord
     #
     #   Person.group(:city).count
     #   # => { 'Rome' => 5, 'Paris' => 3 }
-    # 
-    # If +count+ is used with +group+ for multiple columns, it returns a Hash whose 
-    # keys are an array containing the individual values of each column and the value 
+    #
+    # If +count+ is used with +group+ for multiple columns, it returns a Hash whose
+    # keys are an array containing the individual values of each column and the value
     # of each key would be the +count+.
-    # 
+    #
     #   Article.group(:status, :category).count
-    #   # =>  {["draft", "business"]=>10, ["draft", "technology"]=>4, 
+    #   # =>  {["draft", "business"]=>10, ["draft", "technology"]=>4,
     #          ["published", "business"]=>0, ["published", "technology"]=>2}
-    # 
+    #
     # If +count+ is used with +select+, it will count the selected columns:
     #
     #   Person.select(:age).count
@@ -274,7 +274,7 @@ module ActiveRecord
       group_attrs = group_values
 
       if group_attrs.first.respond_to?(:to_sym)
-        association  = @klass._reflect_on_association(group_attrs.first.to_sym)
+        association  = @klass._reflect_on_association(group_attrs.first)
         associated   = group_attrs.size == 1 && association && association.belongs_to? # only count belongs_to associations
         group_fields = Array(associated ? association.foreign_key : group_attrs)
       else

@@ -20,6 +20,12 @@ class DurationTest < ActiveSupport::TestCase
     assert !d.is_a?(k)
   end
 
+  def test_instance_of
+    assert 1.minute.instance_of?(Fixnum)
+    assert 2.days.instance_of?(ActiveSupport::Duration)
+    assert !3.second.instance_of?(Numeric)
+  end
+
   def test_threequals
     assert ActiveSupport::Duration === 1.day
     assert !(ActiveSupport::Duration === 1.day.to_i)
@@ -34,11 +40,22 @@ class DurationTest < ActiveSupport::TestCase
     assert !(1.day == 'foo')
   end
 
+  def test_to_s
+    assert_equal "1", 1.second.to_s
+  end
+
   def test_eql
+    rubinius_skip "Rubinius' #eql? definition relies on #instance_of? " \
+                  "which behaves oddly for the sake of backward-compatibility."
+
     assert 1.minute.eql?(1.minute)
+    assert 1.minute.eql?(60.seconds)
     assert 2.days.eql?(48.hours)
     assert !1.second.eql?(1)
     assert !1.eql?(1.second)
+    assert 1.minute.eql?(180.seconds - 2.minutes)
+    assert !1.minute.eql?(60)
+    assert !1.minute.eql?('foo')
   end
 
   def test_inspect
@@ -81,8 +98,8 @@ class DurationTest < ActiveSupport::TestCase
 
   def test_since_and_ago
     t = Time.local(2000)
-    assert t + 1, 1.second.since(t)
-    assert t - 1, 1.second.ago(t)
+    assert_equal t + 1, 1.second.since(t)
+    assert_equal t - 1, 1.second.ago(t)
   end
 
   def test_since_and_ago_without_argument
@@ -173,5 +190,14 @@ class DurationTest < ActiveSupport::TestCase
   def test_case_when
     cased = case 1.day when 1.day then "ok" end
     assert_equal cased, "ok"
+  end
+
+  def test_respond_to
+    assert_respond_to 1.day, :since
+    assert_respond_to 1.day, :zero?
+  end
+
+  def test_hash
+    assert_equal 1.minute.hash, 60.seconds.hash
   end
 end

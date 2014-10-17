@@ -82,7 +82,9 @@ module ActionView
       when nil
         super({:only_path => true})
       when Hash
-        super({ :only_path => options[:host].nil? }.merge!(options.symbolize_keys))
+        options = options.symbolize_keys
+        options[:only_path] = options[:host].nil? unless options.key?(:only_path)
+        super(options)
       when :back
         _back_url
       when Symbol

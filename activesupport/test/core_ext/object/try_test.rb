@@ -65,6 +65,10 @@ class ObjectTryTest < ActiveSupport::TestCase
     assert_equal false, ran
   end
 
+  def test_try_with_instance_eval_block
+    assert_equal @string.reverse, @string.try { reverse }
+  end
+
   def test_try_with_private_method_bang
     klass = Class.new do
       private

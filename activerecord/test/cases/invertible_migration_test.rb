@@ -122,12 +122,17 @@ module ActiveRecord
       end
     end
 
+    setup do
+      @verbose_was, ActiveRecord::Migration.verbose = ActiveRecord::Migration.verbose, false
+    end
+
     teardown do
       %w[horses new_horses].each do |table|
         if ActiveRecord::Base.connection.table_exists?(table)
           ActiveRecord::Base.connection.drop_table(table)
         end
       end
+      ActiveRecord::Migration.verbose = @verbose_was
     end
 
     def test_no_reverse

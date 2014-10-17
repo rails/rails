@@ -125,8 +125,9 @@ end
 module RequestForgeryProtectionTests
   def setup
     @token      = "cf50faa3fe97702ca1ae"
-
-    SecureRandom.stubs(:base64).returns(@token)
+    @controller.stubs(:form_authenticity_token).returns(@token)
+    @controller.stubs(:valid_authenticity_token?).with{ |_, t| t == @token }.returns(true)
+    @controller.stubs(:valid_authenticity_token?).with{ |_, t| t != @token }.returns(false)
     @old_request_forgery_protection_token = ActionController::Base.request_forgery_protection_token
     ActionController::Base.request_forgery_protection_token = :custom_authenticity_token
   end
@@ -386,10 +387,11 @@ class RequestForgeryProtectionControllerUsingResetSessionTest < ActionController
   end
 
   test 'should emit a csrf-param meta tag and a csrf-token meta tag' do
-    SecureRandom.stubs(:base64).returns(@token + '<=?')
+    @controller.stubs(:form_authenticity_token).returns(@token + '<=?')
     get :meta
     assert_select 'meta[name=?][content=?]', 'csrf-param', 'custom_authenticity_token'
-    assert_select 'meta[name=?][content=?]', 'csrf-token', 'cf50faa3fe97702ca1ae&lt;=?'
+    assert_select 'meta[name=?]', 'csrf-token'
+    assert_match(/cf50faa3fe97702ca1ae&lt;=\?/, @response.body)
   end
 end
 
@@ -466,7 +468,7 @@ class CustomAuthenticityParamControllerTest < ActionController::TestCase
     super
     @old_logger = ActionController::Base.logger
     @logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
-    @token = "foobar"
+    @token = Base64.strict_encode64(SecureRandom.random_bytes(32))
     @old_request_forgery_protection_token = ActionController::Base.request_forgery_protection_token
     ActionController::Base.request_forgery_protection_token = @token
   end
@@ -478,7 +480,7 @@ class CustomAuthenticityParamControllerTest < ActionController::TestCase
 
   def test_should_not_warn_if_form_authenticity_param_matches_form_authenticity_token
     ActionController::Base.logger = @logger
-    SecureRandom.stubs(:base64).returns(@token)
+    @controller.stubs(:valid_authenticity_token?).returns(:true)
 
     begin
       post :index, :custom_token_name => 'foobar'

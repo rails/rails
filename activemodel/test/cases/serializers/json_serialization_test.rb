@@ -2,23 +2,6 @@ require 'cases/helper'
 require 'models/contact'
 require 'active_support/core_ext/object/instance_variables'
 
-class Contact
-  include ActiveModel::Serializers::JSON
-  include ActiveModel::Validations
-
-  def attributes=(hash)
-    hash.each do |k, v|
-      instance_variable_set("@#{k}", v)
-    end
-  end
-
-  remove_method :attributes if method_defined?(:attributes)
-
-  def attributes
-    instance_values
-  end
-end
-
 class JsonSerializationTest < ActiveModel::TestCase
   def setup
     @contact = Contact.new

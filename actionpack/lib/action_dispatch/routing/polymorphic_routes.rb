@@ -116,7 +116,6 @@ module ActionDispatch
                                                action,
                                                type,
                                                opts
-
       end
 
       # Returns the path component of a URL for the given record. It uses
@@ -142,21 +141,25 @@ module ActionDispatch
 
       %w(edit new).each do |action|
         module_eval <<-EOT, __FILE__, __LINE__ + 1
-          def #{action}_polymorphic_url(record_or_hash, options = {})         # def edit_polymorphic_url(record_or_hash, options = {})
-            polymorphic_url(                                                  #   polymorphic_url(
-              record_or_hash,                                                 #     record_or_hash,
-              options.merge(:action => "#{action}"))                          #     options.merge(:action => "edit"))
-          end                                                                 # end
-                                                                              #
-          def #{action}_polymorphic_path(record_or_hash, options = {})        # def edit_polymorphic_path(record_or_hash, options = {})
-            polymorphic_url(                                                  #   polymorphic_url(
-              record_or_hash,                                                 #     record_or_hash,
-              options.merge(:action => "#{action}", :routing_type => :path))  #     options.merge(:action => "edit", :routing_type => :path))
-          end                                                                 # end
+          def #{action}_polymorphic_url(record_or_hash, options = {})
+            polymorphic_url_for_action("#{action}", record_or_hash, options)
+          end
+
+          def #{action}_polymorphic_path(record_or_hash, options = {})
+            polymorphic_path_for_action("#{action}", record_or_hash, options)
+          end
         EOT
       end
 
       private
+
+      def polymorphic_url_for_action(action, record_or_hash, options)
+        polymorphic_url(record_or_hash, options.merge(:action => action))
+      end
+
+      def polymorphic_path_for_action(action, record_or_hash, options)
+        polymorphic_path(record_or_hash, options.merge(:action => action))
+      end
 
       class HelperMethodBuilder # :nodoc:
         CACHE = { 'path' => {}, 'url' => {} }
@@ -192,7 +195,8 @@ module ActionDispatch
 
           case record_or_hash_or_array
           when Array
-            if record_or_hash_or_array.empty? || record_or_hash_or_array.include?(nil)
+            record_or_hash_or_array = record_or_hash_or_array.compact
+            if record_or_hash_or_array.empty?
               raise ArgumentError, "Nil location provided. Can't build URI."
             end
             if record_or_hash_or_array.first.is_a?(ActionDispatch::Routing::RoutesProxy)
@@ -249,9 +253,9 @@ module ActionDispatch
           model = record.to_model
           name = if record.persisted?
                    args << model
-                   model.class.model_name.singular_route_key
+                   model.model_name.singular_route_key
                  else
-                   @key_strategy.call model.class.model_name
+                   @key_strategy.call model.model_name
                  end
 
           named_route = prefix + "#{name}_#{suffix}"
@@ -279,7 +283,7 @@ module ActionDispatch
               parent.model_name.singular_route_key
             else
               args << parent.to_model
-              parent.to_model.class.model_name.singular_route_key
+              parent.to_model.model_name.singular_route_key
             end
           }
 
@@ -292,9 +296,9 @@ module ActionDispatch
           else
             if record.persisted?
               args << record.to_model
-              record.to_model.class.model_name.singular_route_key
+              record.to_model.model_name.singular_route_key
             else
-              @key_strategy.call record.to_model.class.model_name
+              @key_strategy.call record.to_model.model_name
             end
           end
 

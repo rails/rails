@@ -302,7 +302,7 @@ class AssetTagHelperTest < ActionView::TestCase
   def test_autodiscovery_link_tag_with_unknown_type
     result = auto_discovery_link_tag(:xml, '/feed.xml', :type => 'application/xml')
     expected = %(<link href="/feed.xml" rel="alternate" title="XML" type="application/xml" />)
-    assert_equal expected, result
+    assert_dom_equal expected, result
   end
 
   def test_asset_path_tag
@@ -533,6 +533,17 @@ class AssetTagHelperTest < ActionView::TestCase
     copy = source.dup
     image_tag(source)
     assert_equal copy, source
+  end
+
+  class PlaceholderImage
+    def blank?; true; end
+    def to_s; 'no-image-yet.png'; end
+  end
+  def test_image_tag_with_blank_placeholder
+    assert_equal '<img alt="" src="/images/no-image-yet.png" />', image_tag(PlaceholderImage.new, alt: "")
+  end
+  def test_image_path_with_blank_placeholder
+    assert_equal '/images/no-image-yet.png', image_path(PlaceholderImage.new)
   end
 
   def test_image_path_with_asset_host_proc_returning_nil

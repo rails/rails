@@ -15,7 +15,7 @@ Even if you don't give a hoot about any of our internal cleanups, Rails 3.0 is g
 
 On top of all that, we've tried our best to deprecate the old APIs with nice warnings. That means that you can move your existing application to Rails 3 without immediately rewriting all your old code to the latest best practices.
 
-These release notes cover the major upgrades, but don't include every little bug fix and change. Rails 3.0 consists of almost 4,000 commits by more than 250 authors! If you want to see everything, check out the [list of commits](http://github.com/rails/rails/commits/master) in the main Rails repository on GitHub.
+These release notes cover the major upgrades, but don't include every little bug fix and change. Rails 3.0 consists of almost 4,000 commits by more than 250 authors! If you want to see everything, check out the [list of commits](http://github.com/rails/rails/commits/3-0-stable) in the main Rails repository on GitHub.
 
 --------------------------------------------------------------------------------
 
@@ -545,7 +545,7 @@ These are the main changes in Active Support:
 * `String#to_time` and `String#to_datetime` handle fractional seconds.
 * Added support to new callbacks for around filter object that respond to `:before` and `:after` used in before and after callbacks.
 * The `ActiveSupport::OrderedHash#to_a` method returns an ordered set of arrays. Matches Ruby 1.9's `Hash#to_a`.
-* `MissingSourceFile` exists as a constant but it is now just equals to `LoadError`.
+* `MissingSourceFile` exists as a constant but it is now just equal to `LoadError`.
 * Added `Class#class_attribute`, to be able to declare a class-level attribute whose value is inheritable and overwritable by subclasses.
 * Finally removed `DeprecatedCallbacks` in `ActiveRecord::Associations`.
 * `Object#metaclass` is now `Kernel#singleton_class` to match Ruby.

@@ -46,7 +46,6 @@ Available field types:
         date
         time
         datetime
-        timestamp
 
     You can also consider `references` as a kind of type. For instance, if you run:
 

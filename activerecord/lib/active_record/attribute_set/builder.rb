@@ -23,8 +23,11 @@ module ActiveRecord
       end
 
       def add_uninitialized_attributes(attributes)
-        types.except(*attributes.keys).each do |name, type|
-          attributes[name] = Attribute.uninitialized(name, type)
+        types.each_key do |name|
+          next if attributes.key? name
+          type = types[name]
+          attributes[name] =
+            Attribute.uninitialized(name, type)
         end
       end
     end

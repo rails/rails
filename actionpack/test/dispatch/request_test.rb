@@ -640,7 +640,7 @@ end
 
 class RequestMethod < BaseRequestTest
   test "method returns environment's request method when it has not been
-    overriden by middleware".squish do
+    overridden by middleware".squish do
 
     ActionDispatch::Request::HTTP_METHODS.each do |method|
       request = stub_request('REQUEST_METHOD' => method)
@@ -648,6 +648,18 @@ class RequestMethod < BaseRequestTest
       assert_equal method, request.method
       assert_equal method.underscore.to_sym, request.method_symbol
     end
+  end
+
+  test "allow request method hacking" do
+    request = stub_request('REQUEST_METHOD' => 'POST')
+
+    assert_equal 'POST', request.request_method
+    assert_equal 'POST', request.env["REQUEST_METHOD"]
+
+    request.request_method = 'GET'
+
+    assert_equal 'GET', request.request_method
+    assert_equal 'GET', request.env["REQUEST_METHOD"]
   end
 
   test "invalid http method raises exception" do
@@ -668,6 +680,22 @@ class RequestMethod < BaseRequestTest
 
     assert_raise(ActionController::UnknownHttpMethod) do
       stub_request('REQUEST_METHOD' => '_RANDOM_METHOD').method
+    end
+  end
+
+  test "exception on invalid HTTP method unaffected by I18n settings" do
+    old_locales = I18n.available_locales
+    old_enforce = I18n.config.enforce_available_locales
+
+    begin
+      I18n.available_locales = [:nl]
+      I18n.config.enforce_available_locales = true
+      assert_raise(ActionController::UnknownHttpMethod) do
+        stub_request('REQUEST_METHOD' => '_RANDOM_METHOD').method
+      end
+    ensure
+      I18n.available_locales = old_locales
+      I18n.config.enforce_available_locales = old_enforce
     end
   end
 
@@ -903,9 +931,34 @@ class RequestParameters < BaseRequestTest
 
     2.times do
       assert_raises(ActionController::BadRequest) do
-        # rack will raise a TypeError when parsing this query string
+        # rack will raise a Rack::Utils::ParameterTypeError when parsing this query string
         request.parameters
       end
+    end
+  end
+
+  test "parameters not accessible after rack parse error of invalid UTF8 character" do
+    request = stub_request("QUERY_STRING" => "foo%81E=1")
+
+    2.times do
+      assert_raises(ActionController::BadRequest) do
+        # rack will raise a Rack::Utils::InvalidParameterError when parsing this query string
+        request.parameters
+      end
+    end
+  end
+
+  test "parameters not accessible after rack parse error 1" do
+    request = stub_request(
+      'REQUEST_METHOD' => 'POST',
+      'CONTENT_LENGTH' => "a%=".length,
+      'CONTENT_TYPE' => 'application/x-www-form-urlencoded; charset=utf-8',
+      'rack.input' => StringIO.new("a%=")
+    )
+
+    assert_raises(ActionController::BadRequest) do
+      # rack will raise a Rack::Utils::ParameterTypeError when parsing this query string
+      request.parameters
     end
   end
 
@@ -913,7 +966,7 @@ class RequestParameters < BaseRequestTest
     request = stub_request("QUERY_STRING" => "x[y]=1&x[y][][w]=2")
 
     e = assert_raises(ActionController::BadRequest) do
-      # rack will raise a TypeError when parsing this query string
+      # rack will raise a Rack::Utils::ParameterTypeError when parsing this query string
       request.parameters
     end
 

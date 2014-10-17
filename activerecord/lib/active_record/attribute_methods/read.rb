@@ -46,9 +46,7 @@ module ActiveRecord
         protected
 
         def cached_attributes_deprecation_warning(method_name)
-          ActiveSupport::Deprecation.warn(<<-MESSAGE.strip_heredoc)
-            Calling `#{method_name}` is no longer necessary. All attributes are cached.
-          MESSAGE
+          ActiveSupport::Deprecation.warn "Calling `#{method_name}` is no longer necessary. All attributes are cached."
         end
 
         if Module.methods_transplantable?

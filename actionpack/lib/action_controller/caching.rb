@@ -16,7 +16,7 @@ module ActionController
   # All the caching stores from ActiveSupport::Cache are available to be used as backends
   # for Action Controller caching.
   #
-  # Configuration examples (MemoryStore is the default):
+  # Configuration examples (FileStore is the default):
   #
   #   config.action_controller.cache_store = :memory_store
   #   config.action_controller.cache_store = :file_store, '/path/to/cache/directory'

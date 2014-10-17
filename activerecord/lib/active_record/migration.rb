@@ -161,21 +161,14 @@ module ActiveRecord
   # in the <tt>db/migrate/</tt> directory where <tt>timestamp</tt> is the
   # UTC formatted date and time that the migration was generated.
   #
-  # You may then edit the <tt>up</tt> and <tt>down</tt> methods of
-  # MyNewMigration.
-  #
   # There is a special syntactic shortcut to generate migrations that add fields to a table.
   #
   #   rails generate migration add_fieldname_to_tablename fieldname:string
   #
   # This will generate the file <tt>timestamp_add_fieldname_to_tablename</tt>, which will look like this:
   #   class AddFieldnameToTablename < ActiveRecord::Migration
-  #     def up
-  #       add_column :tablenames, :fieldname, :string
-  #     end
-  #
-  #     def down
-  #       remove_column :tablenames, :fieldname
+  #     def change
+  #       add_column :tablenames, :field, :string
   #     end
   #   end
   #
@@ -188,9 +181,12 @@ module ActiveRecord
   #
   # To roll the database back to a previous migration version, use
   # <tt>rake db:migrate VERSION=X</tt> where <tt>X</tt> is the version to which
-  # you wish to downgrade. If any of the migrations throw an
-  # <tt>ActiveRecord::IrreversibleMigration</tt> exception, that step will fail and you'll
-  # have some manual work to do.
+  # you wish to downgrade. Alternatively, you can also use the STEP option if you
+  # wish to rollback last few migrations. <tt>rake db:migrate STEP=2</tt> will rollback
+  # the latest two migrations.
+  # 
+  # If any of the migrations throw an <tt>ActiveRecord::IrreversibleMigration</tt> exception, 
+  # that step will fail and you'll have some manual work to do.
   #
   # == Database support
   #
@@ -836,21 +832,20 @@ module ActiveRecord
         SchemaMigration.table_name
       end
 
-      def get_all_versions
-        SchemaMigration.all.map { |x| x.version.to_i }.sort
-      end
-
-      def current_version(connection = Base.connection)
-        sm_table = schema_migrations_table_name
-        if connection.table_exists?(sm_table)
-          get_all_versions.max || 0
+      def get_all_versions(connection = Base.connection)
+        if connection.table_exists?(schema_migrations_table_name)
+          SchemaMigration.all.map { |x| x.version.to_i }.sort
         else
-          0
+          []
         end
       end
 
+      def current_version(connection = Base.connection)
+        get_all_versions(connection).max || 0
+      end
+
       def needs_migration?(connection = Base.connection)
-        current_version(connection) < last_version
+        (migrations(migrations_paths).collect(&:version) - get_all_versions(connection)).size > 0
       end
 
       def last_version

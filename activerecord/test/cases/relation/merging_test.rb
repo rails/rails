@@ -4,6 +4,7 @@ require 'models/comment'
 require 'models/developer'
 require 'models/post'
 require 'models/project'
+require 'models/rating'
 
 class RelationMergingTest < ActiveRecord::TestCase
   fixtures :developers, :comments, :authors, :posts
@@ -116,7 +117,7 @@ class RelationMergingTest < ActiveRecord::TestCase
 end
 
 class MergingDifferentRelationsTest < ActiveRecord::TestCase
-  fixtures :posts, :authors
+  fixtures :posts, :authors, :developers
 
   test "merging where relations" do
     hello_by_bob = Post.where(body: "hello").joins(:author).
@@ -143,5 +144,17 @@ class MergingDifferentRelationsTest < ActiveRecord::TestCase
       merge(Author.order(name: :desc)).pluck("authors.name")
 
     assert_equal ["Mary", "Mary", "Mary", "David"], posts_by_author_name
+  end
+
+  test "relation merging (using a proc  argument)" do
+    dev = Developer.where(name: "Jamis").first
+
+    comment_1 = dev.comments.create!(body: "I'm Jamis", post: Post.first)
+    rating_1 = comment_1.ratings.create!
+
+    comment_2 = dev.comments.create!(body: "I'm John", post: Post.first)
+    comment_2.ratings.create!
+
+    assert_equal dev.ratings, [rating_1]
   end
 end

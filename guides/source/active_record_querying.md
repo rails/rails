@@ -276,7 +276,7 @@ This may appear straightforward:
 ```ruby
 # This is very inefficient when the users table has thousands of rows.
 User.all.each do |user|
-  NewsMailer.weekly(user).deliver
+  NewsMailer.weekly(user).deliver_now
 end
 ```
 
@@ -292,7 +292,7 @@ The `find_each` method retrieves a batch of records and then yields _each_ recor
 
 ```ruby
 User.find_each do |user|
-  NewsMailer.weekly(user).deliver
+  NewsMailer.weekly(user).deliver_now
 end
 ```
 
@@ -300,7 +300,7 @@ To add conditions to a `find_each` operation you can chain other Active Record m
 
 ```ruby
 User.where(weekly_subscriber: true).find_each do |user|
-  NewsMailer.weekly(user).deliver
+  NewsMailer.weekly(user).deliver_now
 end
 ```
 
@@ -316,7 +316,7 @@ The `:batch_size` option allows you to specify the number of records to be retri
 
 ```ruby
 User.find_each(batch_size: 5000) do |user|
-  NewsMailer.weekly(user).deliver
+  NewsMailer.weekly(user).deliver_now
 end
 ```
 
@@ -328,7 +328,7 @@ For example, to send newsletters only to users with the primary key starting fro
 
 ```ruby
 User.find_each(start: 2000, batch_size: 5000) do |user|
-  NewsMailer.weekly(user).deliver
+  NewsMailer.weekly(user).deliver_now
 end
 ```
 
@@ -340,16 +340,14 @@ The `find_in_batches` method is similar to `find_each`, since both retrieve batc
 
 ```ruby
 # Give add_invoices an array of 1000 invoices at a time
-Invoice.find_in_batches(include: :invoice_lines) do |invoices|
+Invoice.find_in_batches do |invoices|
   export.add_invoices(invoices)
 end
 ```
 
-NOTE: The `:include` option allows you to name associations that should be loaded alongside with the models.
-
 ##### Options for `find_in_batches`
 
-The `find_in_batches` method accepts the same `:batch_size` and `:start` options as `find_each`, as well as most of the options allowed by the regular `find` method, except for `:order` and `:limit`, which are reserved for internal use by `find_in_batches`.
+The `find_in_batches` method accepts the same `:batch_size` and `:start` options as `find_each`.
 
 Conditions
 ----------
@@ -1464,7 +1462,7 @@ Client.connection.select_all("SELECT first_name, created_at FROM clients WHERE i
 
 ### `pluck`
 
-`pluck` can be used to query a single or multiple columns from the underlying table of a model. It accepts a list of column names as argument and returns an array of values of the specified columns with the corresponding data type.
+`pluck` can be used to query single or multiple columns from the underlying table of a model. It accepts a list of column names as argument and returns an array of values of the specified columns with the corresponding data type.
 
 ```ruby
 Client.where(active: true).pluck(:id)

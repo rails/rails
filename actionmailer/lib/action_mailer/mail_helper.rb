@@ -29,7 +29,7 @@ module ActionMailer
 
     # Access the message attachments list.
     def attachments
-      @_message.attachments
+      mailer.attachments
     end
 
     # Returns +text+ wrapped at +len+ columns and indented +indent+ spaces.

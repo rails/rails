@@ -187,8 +187,14 @@ class TextHelperTest < ActionView::TestCase
       "This text is not changed because we supplied an empty phrase",
       highlight("This text is not changed because we supplied an empty phrase", nil)
     )
+  end
 
+  def test_highlight_pending
     assert_equal '   ', highlight('   ', 'blank text is returned verbatim')
+  end
+
+  def test_highlight_should_return_blank_string_for_nil
+    assert_equal '', highlight(nil, 'blank string is returned for nil')
   end
 
   def test_highlight_should_sanitize_input

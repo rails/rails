@@ -18,8 +18,8 @@ class RequiredAssociationsTest < ActiveRecord::TestCase
   end
 
   teardown do
-    @connection.execute("DROP TABLE IF EXISTS parents")
-    @connection.execute("DROP TABLE IF EXISTS children")
+    @connection.drop_table 'parents' if @connection.table_exists? 'parents'
+    @connection.drop_table 'children' if @connection.table_exists? 'children'
   end
 
   test "belongs_to associations are not required by default" do

@@ -1,3 +1,44 @@
+*   Remove --skip-action-view option from Rails::Generators::AppBase
+
+    Fixes #17023.
+
+    *Dan Olson*
+
+*   Specify dummy app's db migrate path in plugin's test_helper.rb.
+
+    Fixes #16877.
+
+    *Yukio Mizuta*
+
+*   Inject `Rack::Lock` if `config.eager_load` is false.
+
+    Fixes #15089.
+
+    *Xavier Noria*
+
+*   Change the path of dummy app location in plugin's test_helper.rb for cases
+    you specify dummy_path option.
+
+    *Yukio Mizuta*
+
+*   Fix a bug in the `gem` method for Rails templates when non-String options
+    are used.
+
+    Fixes #16709.
+
+    *Yves Senn*
+
+*   The [web-console](https://github.com/rails/web-console) gem is now
+    installed by default for new applications. It can help you debug
+    development exceptions by spawning an interactive console in its cause
+    binding.
+
+    *Ryan Dao*, *Genadi Samokovarov*, *Guillermo Iguaran*
+
+*   Add a `required` option to the model generator for associations
+
+    *Sean Griffin*
+
 *   Add `after_bundle` callbacks in Rails templates. Useful for allowing the
     generated binstubs to be added to version control.
 
@@ -11,14 +52,13 @@
         # config/environments/production.rb
         config.x.payment_processing.schedule = :daily
         config.x.payment_processing.retries  = 3
-        config.x.super_debugger = true
+        config.x.super_debugger              = true
 
     These configuration points are then available through the configuration object:
 
         Rails.configuration.x.payment_processing.schedule # => :daily
         Rails.configuration.x.payment_processing.retries  # => 3
         Rails.configuration.x.super_debugger              # => true
-        Rails.configuration.x.super_debugger.not_set      # => nil
 
     *DHH*
 
@@ -39,7 +79,7 @@
           namespace: my_app_development
 
         # config/production.rb
-        MyApp::Application.configure do
+        Rails.application.configure do
           config.middleware.use ExceptionNotifier, config_for(:exception_notification)
         end
 

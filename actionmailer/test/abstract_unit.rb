@@ -26,19 +26,10 @@ I18n.enforce_available_locales = false
 FIXTURE_LOAD_PATH = File.expand_path('fixtures', File.dirname(__FILE__))
 ActionMailer::Base.view_paths = FIXTURE_LOAD_PATH
 
-class Rails
+module Rails
   def self.root
     File.expand_path('../', File.dirname(__FILE__))
   end
-end
-
-def set_delivery_method(method)
-  @old_delivery_method = ActionMailer::Base.delivery_method
-  ActionMailer::Base.delivery_method = method
-end
-
-def restore_delivery_method
-  ActionMailer::Base.delivery_method = @old_delivery_method
 end
 
 # Skips the current run on Rubinius using Minitest::Assertions#skip
@@ -51,3 +42,8 @@ def jruby_skip(message = '')
 end
 
 require 'mocha/setup' # FIXME: stop using mocha
+
+# FIXME: we have tests that depend on run order, we should fix that and
+# remove this method call.
+require 'active_support/test_case'
+ActiveSupport::TestCase.test_order = :sorted

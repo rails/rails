@@ -311,26 +311,26 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_none
-    assert_no_queries do
+    assert_no_queries(ignore_none: false) do
       assert_equal [], Developer.none
       assert_equal [], Developer.all.none
     end
   end
 
   def test_none_chainable
-    assert_no_queries do
+    assert_no_queries(ignore_none: false) do
       assert_equal [], Developer.none.where(:name => 'David')
     end
   end
 
   def test_none_chainable_to_existing_scope_extension_method
-    assert_no_queries do
+    assert_no_queries(ignore_none: false) do
       assert_equal 1, Topic.anonymous_extension.none.one
     end
   end
 
   def test_none_chained_to_methods_firing_queries_straight_to_db
-    assert_no_queries do
+    assert_no_queries(ignore_none: false) do
       assert_equal [],    Developer.none.pluck(:id, :name)
       assert_equal 0,     Developer.none.delete_all
       assert_equal 0,     Developer.none.update_all(:name => 'David')
@@ -340,7 +340,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_null_relation_content_size_methods
-    assert_no_queries do
+    assert_no_queries(ignore_none: false) do
       assert_equal 0,     Developer.none.size
       assert_equal 0,     Developer.none.count
       assert_equal true,  Developer.none.empty?
@@ -350,7 +350,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_null_relation_calculations_methods
-    assert_no_queries do
+    assert_no_queries(ignore_none: false) do
       assert_equal 0, Developer.none.count
       assert_equal 0, Developer.none.calculate(:count, nil, {})
       assert_equal nil, Developer.none.calculate(:average, 'salary')
@@ -418,6 +418,11 @@ class RelationTest < ActiveRecord::TestCase
     ac.save
     assert_equal Hash.new, ac.engines.group(:car_id).maximum(:id)
     assert_equal        nil, ac.engines.maximum(:id)
+  end
+
+  def test_null_relation_in_where_condition
+    assert_operator Comment.count, :>, 0 # precondition, make sure there are comments.
+    assert_equal 0, Comment.where(post_id: Post.none).to_a.size
   end
 
   def test_joins_with_nil_argument
@@ -1570,7 +1575,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   test "find_by doesn't have implicit ordering" do
-    assert_sql(/^((?!ORDER).)*$/) { Post.find_by(author_id: 2) }
+    assert_sql(/^((?!ORDER).)*$/) { Post.all.find_by(author_id: 2) }
   end
 
   test "find_by! with hash conditions returns the first matching record" do
@@ -1586,7 +1591,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   test "find_by! doesn't have implicit ordering" do
-    assert_sql(/^((?!ORDER).)*$/) { Post.find_by!(author_id: 2) }
+    assert_sql(/^((?!ORDER).)*$/) { Post.all.find_by!(author_id: 2) }
   end
 
   test "find_by! raises RecordNotFound if the record is missing" do

@@ -44,9 +44,6 @@ module Rails
         class_option :skip_gems,          type: :array, default: [],
                                           desc: 'Skip the provided gems files'
 
-        class_option :skip_action_view,   type: :boolean, aliases: '-V', default: false,
-                                          desc: 'Skip Action View files'
-
         class_option :skip_sprockets,     type: :boolean, aliases: '-S', default: false,
                                           desc: 'Skip Sprockets files'
 
@@ -167,7 +164,7 @@ module Rails
       end
 
       def include_all_railties?
-        !options[:skip_active_record] && !options[:skip_action_view] && !options[:skip_test_unit] && !options[:skip_sprockets]
+        !options[:skip_active_record] && !options[:skip_test_unit] && !options[:skip_sprockets]
       end
 
       def comment_if(value)
@@ -198,15 +195,9 @@ module Rails
 
       def rails_gemfile_entry
         if options.dev?
-          [GemfileEntry.path('rails', Rails::Generators::RAILS_DEV_PATH),
-           GemfileEntry.github('arel', 'rails/arel'),
-           GemfileEntry.github('rack', 'rack/rack'),
-           GemfileEntry.github('i18n', 'svenfuchs/i18n')]
+          [GemfileEntry.path('rails', Rails::Generators::RAILS_DEV_PATH)]
         elsif options.edge?
-          [GemfileEntry.github('rails', 'rails/rails'),
-           GemfileEntry.github('arel', 'rails/arel'),
-           GemfileEntry.github('rack', 'rack/rack'),
-           GemfileEntry.github('i18n', 'svenfuchs/i18n')]
+          [GemfileEntry.github('rails', 'rails/rails')]
         else
           [GemfileEntry.version('rails',
                             Rails::VERSION::STRING,
@@ -252,7 +243,7 @@ module Rails
                                     'Use SCSS for stylesheets')
         else
           gems << GemfileEntry.version('sass-rails',
-                                     '~> 4.0.3',
+                                     '~> 5.0.0.beta1',
                                      'Use SCSS for stylesheets')
         end
 
@@ -274,11 +265,11 @@ module Rails
       end
 
       def coffee_gemfile_entry
-        comment = 'Use CoffeeScript for .js.coffee assets and views'
+        comment = 'Use CoffeeScript for .coffee assets and views'
         if options.dev? || options.edge?
           GemfileEntry.github 'coffee-rails', 'rails/coffee-rails', comment
         else
-          GemfileEntry.version 'coffee-rails', '~> 4.0.0', comment
+          GemfileEntry.version 'coffee-rails', '~> 4.1.0', comment
         end
       end
 
@@ -287,8 +278,14 @@ module Rails
           []
         else
           gems = [coffee_gemfile_entry, javascript_runtime_gemfile_entry]
-          gems << GemfileEntry.version("#{options[:javascript]}-rails", nil,
-                                 "Use #{options[:javascript]} as the JavaScript library")
+
+          if options[:javascript] == 'jquery'
+            gems << GemfileEntry.version('jquery-rails', '~> 4.0.0.beta2',
+                                         'Use jQuery as the JavaScript library')
+          else
+            gems << GemfileEntry.version("#{options[:javascript]}-rails", nil,
+                                         "Use #{options[:javascript]} as the JavaScript library")
+          end
 
           gems << GemfileEntry.version("turbolinks", nil,
             "Turbolinks makes following links in your web application faster. Read more: https://github.com/rails/turbolinks")

@@ -69,6 +69,13 @@ class MessageVerifierTest < ActiveSupport::TestCase
                     "undefined class/module MessageVerifierTest::AutoloadClass"], exception.message
   end
 
+  def test_raise_error_when_secret_is_nil
+    exception = assert_raise(ArgumentError) do
+      ActiveSupport::MessageVerifier.new(nil)
+    end
+    assert_equal exception.message, 'Secret should not be nil.'
+  end
+
   def assert_not_verified(message)
     assert_raise(ActiveSupport::MessageVerifier::InvalidSignature) do
       @verifier.verify(message)

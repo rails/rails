@@ -98,6 +98,8 @@ module ActiveModel
     end
     # aliases include?
     alias :has_key? :include?
+    # aliases include?
+    alias :key? :include?
 
     # Get messages for +key+.
     #
@@ -251,11 +253,9 @@ module ActiveModel
     #   person.errors.to_hash(true) # => {:name=>["name cannot be nil"]}
     def to_hash(full_messages = false)
       if full_messages
-        messages = {}
-        self.messages.each do |attribute, array|
+        self.messages.each_with_object({}) do |(attribute, array), messages|
           messages[attribute] = array.map { |message| full_message(attribute, message) }
         end
-        messages
       else
         self.messages.dup
       end
@@ -434,7 +434,7 @@ module ActiveModel
 
       options = {
         default: defaults,
-        model: @base.class.model_name.human,
+        model: @base.model_name.human,
         attribute: @base.class.human_attribute_name(attribute),
         value: value
       }.merge!(options)

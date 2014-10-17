@@ -184,7 +184,7 @@ module ActiveSupport
     }
 
     UTC_OFFSET_WITH_COLON = '%s%02d:%02d'
-    UTC_OFFSET_WITHOUT_COLON = UTC_OFFSET_WITH_COLON.sub(':', '')
+    UTC_OFFSET_WITHOUT_COLON = UTC_OFFSET_WITH_COLON.tr(':', '')
 
     @lazy_zones_map = ThreadSafe::Cache.new
 
@@ -276,8 +276,8 @@ module ActiveSupport
       if @utc_offset
         @utc_offset
       else
-        @current_period ||= tzinfo.try(:current_period)
-        @current_period.try(:utc_offset)
+        @current_period ||= tzinfo.current_period if tzinfo
+        @current_period.utc_offset if @current_period
       end
     end
 

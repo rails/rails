@@ -7,7 +7,7 @@ module ActiveSupport
   # Time#advance, respectively. It mainly supports the methods on Numeric.
   #
   #   1.month.ago       # equivalent to Time.now.advance(months: -1)
-  class Duration < ProxyObject
+  class Duration
     attr_accessor :value, :parts
 
     def initialize(value, parts) #:nodoc:
@@ -39,6 +39,10 @@ module ActiveSupport
     end
     alias :kind_of? :is_a?
 
+    def instance_of?(klass) # :nodoc:
+      Duration == klass || value.instance_of?(klass)
+    end
+
     # Returns +true+ if +other+ is also a Duration instance with the
     # same +value+, or if <tt>other == value</tt>.
     def ==(other)
@@ -49,8 +53,18 @@ module ActiveSupport
       end
     end
 
+    def to_s
+      @value.to_s
+    end
+
+    # Returns +true+ if +other+ is also a Duration instance, which has the
+    # same parts as this one.
     def eql?(other)
-      other.is_a?(Duration) && self == other
+      Duration === other && other.value.eql?(value)
+    end
+
+    def hash
+      @value.hash
     end
 
     def self.===(other) #:nodoc:
@@ -83,6 +97,10 @@ module ActiveSupport
 
     def as_json(options = nil) #:nodoc:
       to_i
+    end
+
+    def respond_to_missing?(method, include_private=false) #:nodoc
+      @value.respond_to?(method, include_private)
     end
 
     protected

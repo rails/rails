@@ -63,7 +63,7 @@ module ActiveRecord
     #   records, artists => artists_records
     #   music_artists, music_records => music_artists_records
     def self.derive_join_table_name(first_table, second_table) # :nodoc:
-      [first_table.to_s, second_table.to_s].sort.join("\0").gsub(/^(.*_)(.+)\0\1(.+)/, '\1\2_\3').gsub("\0", "_")
+      [first_table.to_s, second_table.to_s].sort.join("\0").gsub(/^(.*_)(.+)\0\1(.+)/, '\1\2_\3').tr("\0", "_")
     end
 
     module ClassMethods
@@ -297,16 +297,13 @@ module ActiveRecord
         undefine_attribute_methods
         connection.schema_cache.clear_table_cache!(table_name) if table_exists?
 
-        @arel_engine             = nil
-        @column_names            = nil
-        @column_types            = nil
-        @content_columns         = nil
-        @default_attributes      = nil
-        @dynamic_methods_hash    = nil
-        @inheritance_column      = nil unless defined?(@explicit_inheritance_column) && @explicit_inheritance_column
-        @relation                = nil
-        @time_zone_column_names  = nil
-        @cached_time_zone        = nil
+        @arel_engine        = nil
+        @column_names       = nil
+        @column_types       = nil
+        @content_columns    = nil
+        @default_attributes = nil
+        @inheritance_column = nil unless defined?(@explicit_inheritance_column) && @explicit_inheritance_column
+        @relation           = nil
       end
 
       private

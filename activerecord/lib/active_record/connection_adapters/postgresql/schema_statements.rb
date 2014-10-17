@@ -60,8 +60,8 @@ module ActiveRecord
         def create_database(name, options = {})
           options = { encoding: 'utf8' }.merge!(options.symbolize_keys)
 
-          option_string = options.sum do |key, value|
-            case key
+          option_string = options.inject("") do |memo, (key, value)|
+            memo += case key
             when :owner
               " OWNER = \"#{value}\""
             when :template
@@ -281,9 +281,9 @@ module ActiveRecord
         def default_sequence_name(table_name, pk = nil) #:nodoc:
           result = serial_sequence(table_name, pk || 'id')
           return nil unless result
-          Utils.extract_schema_qualified_name(result)
+          Utils.extract_schema_qualified_name(result).to_s
         rescue ActiveRecord::StatementInvalid
-          PostgreSQL::Name.new(nil, "#{table_name}_#{pk || 'id'}_seq")
+          PostgreSQL::Name.new(nil, "#{table_name}_#{pk || 'id'}_seq").to_s
         end
 
         def serial_sequence(table, column)
@@ -466,7 +466,7 @@ module ActiveRecord
 
         def foreign_keys(table_name)
           fk_info = select_all <<-SQL.strip_heredoc
-            SELECT t2.relname AS to_table, a1.attname AS column, a2.attname AS primary_key, c.conname AS name, c.confupdtype AS on_update, c.confdeltype AS on_delete
+            SELECT t2.oid::regclass::text AS to_table, a1.attname AS column, a2.attname AS primary_key, c.conname AS name, c.confupdtype AS on_update, c.confdeltype AS on_delete
             FROM pg_constraint c
             JOIN pg_class t1 ON c.conrelid = t1.oid
             JOIN pg_class t2 ON c.confrelid = t2.oid
@@ -488,6 +488,7 @@ module ActiveRecord
 
             options[:on_delete] = extract_foreign_key_action(row['on_delete'])
             options[:on_update] = extract_foreign_key_action(row['on_update'])
+
             ForeignKeyDefinition.new(table_name, row['to_table'], options)
           end
         end
@@ -549,7 +550,8 @@ module ActiveRecord
               # Convert Arel node to string
               s = s.to_sql unless s.is_a?(String)
               # Remove any ASC/DESC modifiers
-              s.gsub(/\s+(?:ASC|DESC)?\s*(?:NULLS\s+(?:FIRST|LAST)\s*)?/i, '')
+              s.gsub(/\s+(?:ASC|DESC)\b/i, '')
+               .gsub(/\s+NULLS\s+(?:FIRST|LAST)\b/i, '')
             }.reject(&:blank?).map.with_index { |column, i| "#{column} AS alias_#{i}" }
 
           [super, *order_columns].join(', ')

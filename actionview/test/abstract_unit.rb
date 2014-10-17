@@ -16,11 +16,9 @@ silence_warnings do
 end
 
 require 'active_support/testing/autorun'
-require 'abstract_controller'
 require 'action_controller'
 require 'action_view'
 require 'action_view/testing/resolvers'
-require 'action_dispatch'
 require 'active_support/dependencies'
 require 'active_model'
 require 'active_record'
@@ -340,3 +338,8 @@ def jruby_skip(message = '')
 end
 
 require 'mocha/setup' # FIXME: stop using mocha
+
+# FIXME: we have tests that depend on run order, we should fix that and
+# remove this method call.
+require 'active_support/test_case'
+ActiveSupport::TestCase.test_order = :sorted

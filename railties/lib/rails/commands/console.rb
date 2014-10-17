@@ -18,12 +18,12 @@ module Rails
           opt.on("-e", "--environment=name", String,
                   "Specifies the environment to run this console under (test/development/production).",
                   "Default: development") { |v| options[:environment] = v.strip }
-          opt.on("--debugger", 'Enable the debugger.') do |v|
+          opt.on("--debugger", 'Enables the debugger.') do |v|
             if RUBY_VERSION < '2.0.0'
               options[:debugger] = v
             else
-              puts "=> Notice: debugger option is ignored since ruby 2.0 and " \
-                   "it will be removed in future versions"
+              puts "=> Notice: debugger option is ignored since Ruby 2.0 and " \
+                   "it will be removed in future versions."
             end
           end
           opt.parse!(arguments)

@@ -31,7 +31,7 @@ module ActiveRecord
       end
     }
 
-    BLACKLISTED_CLASS_METHODS = %w(private public protected)
+    BLACKLISTED_CLASS_METHODS = %w(private public protected allocate new name parent superclass)
 
     class AttributeMethodCache
       def initialize
@@ -57,6 +57,8 @@ module ActiveRecord
       end
     end
 
+    class GeneratedAttributeMethods < Module; end # :nodoc:
+
     module ClassMethods
       def inherited(child_class) #:nodoc:
         child_class.initialize_generated_modules
@@ -64,9 +66,11 @@ module ActiveRecord
       end
 
       def initialize_generated_modules # :nodoc:
-        @generated_attribute_methods = Module.new { extend Mutex_m }
+        @generated_attribute_methods = GeneratedAttributeMethods.new { extend Mutex_m }
         @attribute_methods_generated = false
         include @generated_attribute_methods
+
+        super
       end
 
       # Generates all the attribute related methods for columns in the database
@@ -107,16 +111,17 @@ module ActiveRecord
       #   # => false
       def instance_method_already_implemented?(method_name)
         if dangerous_attribute_method?(method_name)
-          raise DangerousAttributeError, "#{method_name} is defined by Active Record"
+          raise DangerousAttributeError, "#{method_name} is defined by Active Record. Check to make sure that you don't have an attribute or method with the same name."
         end
 
         if superclass == Base
           super
         else
-          # If B < A and A defines its own attribute method, then we don't want to overwrite that.
-          defined = method_defined_within?(method_name, superclass, superclass.generated_attribute_methods)
-          base_defined = Base.method_defined?(method_name) || Base.private_method_defined?(method_name)
-          defined && !base_defined || super
+          # If ThisClass < ... < SomeSuperClass < ... < Base and SomeSuperClass
+          # defines its own attribute method, then we don't want to overwrite that.
+          defined = method_defined_within?(method_name, superclass, Base) &&
+            ! superclass.instance_method(method_name).owner.is_a?(GeneratedAttributeMethods)
+          defined || super
         end
       end
 
@@ -200,11 +205,9 @@ module ActiveRecord
       def column_for_attribute(name)
         column = columns_hash[name.to_s]
         if column.nil?
-          ActiveSupport::Deprecation.warn(<<-MESSAGE.strip_heredoc)
-            `column_for_attribute` will return a null object for non-existent columns
-            in Rails 5.0. Use `has_attribute?` if you need to check for an
-            attribute's existence.
-          MESSAGE
+          ActiveSupport::Deprecation.warn \
+            "`column_for_attribute` will return a null object for non-existent columns " \
+            "in Rails 5.0. Use `has_attribute?` if you need to check for an attribute's existence."
         end
         column
       end
@@ -279,9 +282,9 @@ module ActiveRecord
     end
 
     # Returns an <tt>#inspect</tt>-like string for the value of the
-    # attribute +attr_name+. String attributes are truncated upto 50
+    # attribute +attr_name+. String attributes are truncated up to 50
     # characters, Date and Time attributes are returned in the
-    # <tt>:db</tt> format, Array attributes are truncated upto 10 values.
+    # <tt>:db</tt> format, Array attributes are truncated up to 10 values.
     # Other attributes return the value of <tt>#inspect</tt> without
     # modification.
     #

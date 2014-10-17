@@ -50,6 +50,13 @@ module Rails
           )
         },
 
+        'activejob' => {
+          :include => %w(
+            README.md
+            lib/active_job/**/*.rb
+          )
+        },
+
         'railties' => {
           :include => %w(
             README.rdoc

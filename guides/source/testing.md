@@ -99,7 +99,7 @@ one:
 Note: For associations to reference one another by name, you cannot specify the `id:`
  attribute on the fixtures. Rails will auto assign a primary key to be consistent between
  runs. If you manually specify an `id:` attribute, this behavior will not work. For more
-  information on this assocation behavior please read the
+  information on this association behavior please read the
   [fixture api documentation](http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html).
 
 #### ERB'in It Up
@@ -605,13 +605,13 @@ end
 
 Testing the response to your request by asserting the presence of key HTML elements and their content is a useful way to test the views of your application. The `assert_select` assertion allows you to do this by using a simple yet powerful syntax.
 
-NOTE: You may find references to `assert_tag` in other documentation, but this is now deprecated in favor of `assert_select`.
+NOTE: You may find references to `assert_tag` in other documentation. This has been removed in 4.2. Use `assert_select` instead.
 
 There are two forms of `assert_select`:
 
-`assert_select(selector, [equality], [message])` ensures that the equality condition is met on the selected elements through the selector. The selector may be a CSS selector expression (String), an expression with substitution values, or an `HTML::Selector` object.
+`assert_select(selector, [equality], [message])` ensures that the equality condition is met on the selected elements through the selector. The selector may be a CSS selector expression (String) or an expression with substitution values.
 
-`assert_select(element, selector, [equality], [message])` ensures that the equality condition is met on all the selected elements through the selector starting from the _element_ (instance of `HTML::Node`) and its descendants.
+`assert_select(element, selector, [equality], [message])` ensures that the equality condition is met on all the selected elements through the selector starting from the _element_ (instance of `Nokogiri::XML::Node` or `Nokogiri::XML::NodeSet`) and its descendants.
 
 For example, you could verify the contents on the title element in your response with:
 
@@ -641,7 +641,7 @@ assert_select "ol" do
 end
 ```
 
-The `assert_select` assertion is quite powerful. For more advanced usage, refer to its [documentation](http://api.rubyonrails.org/classes/ActionDispatch/Assertions/SelectorAssertions.html).
+The `assert_select` assertion is quite powerful. For more advanced usage, refer to its [documentation](https://github.com/rails/rails-dom-testing/blob/master/lib/rails/dom/testing/assertions/selector_assertions.rb).
 
 #### Additional View-Based Assertions
 
@@ -797,6 +797,7 @@ when you initiate a Rails project.
 | `rake test:functionals` | Runs all the functional tests from `test/controllers`, `test/mailers`, and `test/functional` |
 | `rake test:helpers`     | Runs all the helper tests from `test/helpers` |
 | `rake test:integration` | Runs all the integration tests from `test/integration` |
+| `rake test:jobs`        | Runs all the job tests from `test/jobs` |
 | `rake test:mailers`     | Runs all the mailer tests from `test/mailers` |
 | `rake test:models`      | Runs all the model tests from `test/models` |
 | `rake test:units`       | Runs all the unit tests from `test/models`, `test/helpers`, and `test/unit` |
@@ -949,7 +950,7 @@ class UserMailerTest < ActionMailer::TestCase
   test "invite" do
     # Send the email, then test that it got queued
     email = UserMailer.create_invite('me@example.com',
-                                     'friend@example.com', Time.now).deliver
+                                     'friend@example.com', Time.now).deliver_now
     assert_not ActionMailer::Base.deliveries.empty?
 
     # Test the body of the sent email contains what we expect it to

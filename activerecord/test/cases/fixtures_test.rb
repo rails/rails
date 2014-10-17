@@ -644,6 +644,7 @@ class LoadAllFixturesWithPathnameTest < ActiveRecord::TestCase
 end
 
 class FasterFixturesTest < ActiveRecord::TestCase
+  self.use_transactional_fixtures = false
   fixtures :categories, :authors
 
   def load_extra_fixture(name)
@@ -674,7 +675,7 @@ class FoxyFixturesTest < ActiveRecord::TestCase
   if ActiveRecord::Base.connection.adapter_name == 'PostgreSQL'
     require 'models/uuid_parent'
     require 'models/uuid_child'
-    fixtures :uuid_parents, :uuid_children 
+    fixtures :uuid_parents, :uuid_children
   end
 
   def test_identifies_strings
@@ -818,20 +819,6 @@ class ActiveSupportSubclassWithFixturesTest < ActiveRecord::TestCase
   # setup code call nil[]
   def test_foo
     assert_equal parrots(:louis), Parrot.find_by_name("King Louis")
-  end
-end
-
-class FixtureLoadingTest < ActiveRecord::TestCase
-  def test_logs_message_for_failed_dependency_load
-    ActiveRecord::TestCase.expects(:require_dependency).with(:does_not_exist).raises(LoadError)
-    ActiveRecord::Base.logger.expects(:warn)
-    ActiveRecord::TestCase.try_to_load_dependency(:does_not_exist)
-  end
-
-  def test_does_not_logs_message_for_successful_dependency_load
-    ActiveRecord::TestCase.expects(:require_dependency).with(:works_out_fine)
-    ActiveRecord::Base.logger.expects(:warn).never
-    ActiveRecord::TestCase.try_to_load_dependency(:works_out_fine)
   end
 end
 

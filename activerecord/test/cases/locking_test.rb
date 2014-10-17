@@ -5,6 +5,7 @@ require 'models/job'
 require 'models/reader'
 require 'models/ship'
 require 'models/legacy_thing'
+require 'models/personal_legacy_thing'
 require 'models/reference'
 require 'models/string_key_object'
 require 'models/car'
@@ -311,30 +312,24 @@ class OptimisticLockingWithSchemaChangeTest < ActiveRecord::TestCase
 
   # See Lighthouse ticket #1966
   def test_destroy_dependents
-    # Establish dependent relationship between People and LegacyThing
-    add_counter_column_to(Person, 'legacy_things_count')
-    LegacyThing.connection.add_column LegacyThing.table_name, 'person_id', :integer
-    LegacyThing.reset_column_information
-    LegacyThing.class_eval do
-      belongs_to :person, :counter_cache => true
-    end
-    Person.class_eval do
-      has_many :legacy_things, :dependent => :destroy
-    end
+    # Establish dependent relationship between Person and PersonalLegacyThing
+    add_counter_column_to(Person, 'personal_legacy_things_count')
+    PersonalLegacyThing.reset_column_information
 
     # Make sure that counter incrementing doesn't cause problems
     p1 = Person.new(:first_name => 'fjord')
     p1.save!
-    t = LegacyThing.new(:person => p1)
+    t = PersonalLegacyThing.new(:person => p1)
     t.save!
     p1.reload
-    assert_equal 1, p1.legacy_things_count
+    assert_equal 1, p1.personal_legacy_things_count
     assert p1.destroy
     assert_equal true, p1.frozen?
     assert_raises(ActiveRecord::RecordNotFound) { Person.find(p1.id) }
-    assert_raises(ActiveRecord::RecordNotFound) { LegacyThing.find(t.id) }
+    assert_raises(ActiveRecord::RecordNotFound) { PersonalLegacyThing.find(t.id) }
   ensure
-    remove_counter_column_from(Person, 'legacy_things_count')
+    remove_counter_column_from(Person, 'personal_legacy_things_count')
+    PersonalLegacyThing.reset_column_information
   end
 
   private

@@ -11,6 +11,11 @@ class TestAutoloadModule < ActiveSupport::TestCase
     end
   end
 
+  def setup
+    @some_class_path = File.expand_path("test/fixtures/autoload/some_class.rb")
+    @another_class_path = File.expand_path("test/fixtures/autoload/another_class.rb")
+  end
+
   test "the autoload module works like normal autoload" do
     module ::Fixtures::Autoload
       autoload :SomeClass, "fixtures/autoload/some_class"
@@ -21,10 +26,12 @@ class TestAutoloadModule < ActiveSupport::TestCase
 
   test "when specifying an :eager constant it still works like normal autoload by default" do
     module ::Fixtures::Autoload
-      autoload :SomeClass, "fixtures/autoload/some_class"
+      eager_autoload do
+        autoload :SomeClass, "fixtures/autoload/some_class"
+      end
     end
 
-    assert !$LOADED_FEATURES.include?("fixtures/autoload/some_class.rb")
+    assert !$LOADED_FEATURES.include?(@some_class_path)
     assert_nothing_raised { ::Fixtures::Autoload::SomeClass }
   end
 
@@ -33,16 +40,20 @@ class TestAutoloadModule < ActiveSupport::TestCase
       autoload :SomeClass
     end
 
-    assert !$LOADED_FEATURES.include?("fixtures/autoload/some_class.rb")
+    assert !$LOADED_FEATURES.include?(@some_class_path)
     assert_nothing_raised { ::Fixtures::Autoload::SomeClass }
   end
 
   test "the location of :eager autoloaded constants defaults to :name.underscore" do
     module ::Fixtures::Autoload
-      autoload :SomeClass
+      eager_autoload do
+        autoload :SomeClass
+      end
     end
 
+    assert !$LOADED_FEATURES.include?(@some_class_path)
     ::Fixtures::Autoload.eager_load!
+    assert $LOADED_FEATURES.include?(@some_class_path)
     assert_nothing_raised { ::Fixtures::Autoload::SomeClass }
   end
 
@@ -53,7 +64,7 @@ class TestAutoloadModule < ActiveSupport::TestCase
       end
     end
 
-    assert !$LOADED_FEATURES.include?("fixtures/autoload/another_class.rb")
+    assert !$LOADED_FEATURES.include?(@another_class_path)
     assert_nothing_raised { ::Fixtures::AnotherClass }
   end
 
@@ -64,7 +75,7 @@ class TestAutoloadModule < ActiveSupport::TestCase
       end
     end
 
-    assert !$LOADED_FEATURES.include?("fixtures/autoload/another_class.rb")
+    assert !$LOADED_FEATURES.include?(@another_class_path)
     assert_nothing_raised { ::Fixtures::AnotherClass }
   end
 end

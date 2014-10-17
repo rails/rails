@@ -118,7 +118,7 @@ class PostgresqlUUIDGenerationTest < ActiveRecord::TestCase
   end
 
   setup do
-    enable_uuid_ossp!(connection)
+    enable_extension!('uuid-ossp', connection)
 
     connection.create_table('pg_uuids', id: :uuid, default: 'uuid_generate_v1()') do |t|
       t.string 'name'
@@ -144,6 +144,7 @@ class PostgresqlUUIDGenerationTest < ActiveRecord::TestCase
     drop_table "pg_uuids"
     drop_table 'pg_uuids_2'
     connection.execute 'DROP FUNCTION IF EXISTS my_uuid_generator();'
+    disable_extension!('uuid-ossp', connection)
   end
 
   if ActiveRecord::Base.connection.supports_extensions?
@@ -189,7 +190,7 @@ class PostgresqlUUIDTestNilDefault < ActiveRecord::TestCase
   include PostgresqlUUIDHelper
 
   setup do
-    enable_uuid_ossp!(connection)
+    enable_extension!('uuid-ossp', connection)
 
     connection.create_table('pg_uuids', id: false) do |t|
       t.primary_key :id, :uuid, default: nil
@@ -199,6 +200,7 @@ class PostgresqlUUIDTestNilDefault < ActiveRecord::TestCase
 
   teardown do
     drop_table "pg_uuids"
+    disable_extension!('uuid-ossp', connection)
   end
 
   if ActiveRecord::Base.connection.supports_extensions?
@@ -226,7 +228,7 @@ class PostgresqlUUIDTestInverseOf < ActiveRecord::TestCase
   end
 
   setup do
-    enable_uuid_ossp!(connection)
+    enable_extension!('uuid-ossp', connection)
 
     connection.transaction do
       connection.create_table('pg_uuid_posts', id: :uuid) do |t|
@@ -240,10 +242,9 @@ class PostgresqlUUIDTestInverseOf < ActiveRecord::TestCase
   end
 
   teardown do
-    connection.transaction do
       drop_table "pg_uuid_comments"
       drop_table "pg_uuid_posts"
-    end
+      disable_extension!('uuid-ossp', connection)
   end
 
   if ActiveRecord::Base.connection.supports_extensions?
@@ -252,5 +253,19 @@ class PostgresqlUUIDTestInverseOf < ActiveRecord::TestCase
       comment = post.uuid_comments.create!
       assert post.uuid_comments.find(comment.id)
     end
+
+    def test_find_with_uuid
+      UuidPost.create!
+      assert_raise ActiveRecord::RecordNotFound do
+        UuidPost.find(123456)
+      end
+
+    end
+
+    def test_find_by_with_uuid
+      UuidPost.create!
+      assert_nil UuidPost.find_by(id: 789)
+    end
   end
+
 end

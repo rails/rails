@@ -28,24 +28,26 @@ def jruby_skip(message = '')
 end
 
 class ActiveSupport::TestCase
+  # FIXME: we have tests that depend on run order, we should fix that and
+  # remove this method call.
+  self.test_order = :sorted
+
   private
 
-  unless defined?(:capture)
-    def capture(stream)
-      stream = stream.to_s
-      captured_stream = Tempfile.new(stream)
-      stream_io = eval("$#{stream}")
-      origin_stream = stream_io.dup
-      stream_io.reopen(captured_stream)
+  def capture(stream)
+    stream = stream.to_s
+    captured_stream = Tempfile.new(stream)
+    stream_io = eval("$#{stream}")
+    origin_stream = stream_io.dup
+    stream_io.reopen(captured_stream)
 
-      yield
+    yield
 
-      stream_io.rewind
-      return captured_stream.read
-    ensure
-      captured_stream.close
-      captured_stream.unlink
-      stream_io.reopen(origin_stream)
-    end
+    stream_io.rewind
+    return captured_stream.read
+  ensure
+    captured_stream.close
+    captured_stream.unlink
+    stream_io.reopen(origin_stream)
   end
 end

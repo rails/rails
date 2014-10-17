@@ -2,6 +2,7 @@ module ActiveRecord
   module Type
     class Serialized < SimpleDelegator # :nodoc:
       include Mutable
+      include Decorator
 
       attr_reader :subtype, :coder
 
@@ -26,19 +27,23 @@ module ActiveRecord
         end
       end
 
+      def changed_in_place?(raw_old_value, value)
+        return false if value.nil?
+        subtype.changed_in_place?(raw_old_value, coder.dump(value))
+      end
+
       def accessor
         ActiveRecord::Store::IndifferentHashAccessor
       end
 
       def init_with(coder)
-        @subtype = coder['subtype']
         @coder = coder['coder']
-        __setobj__(@subtype)
+        super
       end
 
       def encode_with(coder)
-        coder['subtype'] = @subtype
         coder['coder'] = @coder
+        super
       end
 
       private

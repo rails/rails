@@ -27,6 +27,9 @@ class Member < ActiveRecord::Base
   has_many :clubs, :through => :current_memberships
 
   has_one :club_through_many, :through => :current_memberships, :source => :club
+
+  belongs_to :admittable, polymorphic: true
+  has_one :premium_club, through: :admittable
 end
 
 class SelfMember < ActiveRecord::Base

@@ -514,5 +514,9 @@ module ActionDispatch
       reset! unless integration_session
       integration_session.url_options
     end
+
+    def document_root_element
+      html_document
+    end
   end
 end

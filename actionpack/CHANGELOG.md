@@ -1,3 +1,147 @@
+*   Improve Journey compliance to RFC 3986
+
+    The scanner in Journey failed to recognize routes that use literals
+    from the sub-delims section of RFC 3986. It's now able to parse those
+    authorized delimiters and route as expected.
+
+    Fixes #17212
+
+    *Nicolas Cavigneaux*
+
+*   Deprecate implicit Array conversion for Response objects. It was added
+    (using `#to_ary`) so we could conveniently use implicit splatting:
+
+        status, headers, body = response
+
+    But it also means `response + response` works and `[response].flatten`
+    cascades down to the Rack body. Nonsense behavior. Instead, rely on
+    explicit conversion and splatting with `#to_a`:
+
+        status, header, body = *response
+
+    *Jeremy Kemper*
+
+*   Don't rescue `IPAddr::InvalidAddressError`.
+
+    `IPAddr::InvalidAddressError` does not exist in Ruby 1.9.3
+    and fails for JRuby in 1.9 mode.
+
+    *Peter Suschlik*
+
+*   Fix bug where the router would ignore any constraints added to redirect
+    routes.
+
+    Fixes #16605.
+
+    *Agis Anastasopoulos*
+
+*   Allow `config.action_dispatch.trusted_proxies` to accept an IPAddr object.
+
+    Example:
+
+        # config/environments/production.rb
+        config.action_dispatch.trusted_proxies = IPAddr.new('4.8.15.0/16')
+
+    *Sam Aarons*
+
+*   Avoid duplicating routes for HEAD requests.
+
+    Instead of duplicating the routes, we will first match the HEAD request to
+    HEAD routes. If no match is found, we will then map the HEAD request to
+    GET routes.
+
+    *Guo Xiang Tan*, *Andrew White*
+
+*   Requests that hit `ActionDispatch::Static` can now take advantage
+    of gzipped assets on disk. By default a gzip asset will be served if
+    the client supports gzip and a compressed file is on disk.
+
+    *Richard Schneeman*
+
+*   `ActionController::Parameters` will stop inheriting from `Hash` and
+    `HashWithIndifferentAccess` in the next major release. If you use any method
+    that is not available on `ActionController::Parameters` you should consider
+    calling `#to_h` to convert it to a `Hash` first before calling that method.
+
+    *Prem Sichanugrist*
+
+*   `ActionController::Parameters#to_h` now returns a `Hash` with unpermitted
+    keys removed. This change is to reflect on a security concern where some
+    method performed on an `ActionController::Parameters` may yield a `Hash`
+    object which does not maintain `permitted?` status. If you would like to
+    get a `Hash` with all the keys intact, duplicate and mark it as permitted
+    before calling `#to_h`.
+
+        params = ActionController::Parameters.new({
+          name: 'Senjougahara Hitagi',
+          oddity: 'Heavy stone crab'
+        })
+        params.to_h
+        # => {}
+
+        unsafe_params = params.dup.permit!
+        unsafe_params.to_h
+        # => {"name"=>"Senjougahara Hitagi", "oddity"=>"Heavy stone crab"}
+
+        safe_params = params.permit(:name)
+        safe_params.to_h
+        # => {"name"=>"Senjougahara Hitagi"}
+
+    This change is consider a stopgap as we cannot change the code to stop
+    `ActionController::Parameters` to inherit from `HashWithIndifferentAccess`
+    in the next minor release.
+
+    *Prem Sichanugrist*
+
+*   Deprecated `TagAssertions`.
+
+    *Kasper Timm Hansen*
+
+*   Use the Active Support JSON encoder for cookie jars using the `:json` or
+    `:hybrid` serializer. This allows you to serialize custom Ruby objects into
+    cookies by defining the `#as_json` hook on such objects.
+
+    Fixes #16520.
+
+    *Godfrey Chan*
+
+*   Add `config.action_dispatch.cookies_digest` option for setting custom
+    digest. The default remains the same - 'SHA1'.
+
+    *Łukasz Strzałkowski*
+
+*   Move `respond_with` (and the class-level `respond_to`) to
+    the `responders` gem.
+
+    *José Valim*
+
+*   When your templates change, browser caches bust automatically.
+
+    New default: the template digest is automatically included in your ETags.
+    When you call `fresh_when @post`, the digest for `posts/show.html.erb`
+    is mixed in so future changes to the HTML will blow HTTP caches for you.
+    This makes it easy to HTTP-cache many more of your actions.
+
+    If you render a different template, you can now pass the `:template`
+    option to include its digest instead:
+
+        fresh_when @post, template: 'widgets/show'
+
+    Pass `template: false` to skip the lookup. To turn this off entirely, set:
+
+        config.action_controller.etag_with_template_digest = false
+
+    *Jeremy Kemper*
+
+*   Remove deprecated `AbstractController::Helpers::ClassMethods::MissingHelperError`
+    in favor of `AbstractController::Helpers::MissingHelperError`.
+
+    *Yves Senn*
+
+*   Fix `assert_template` not being able to assert that no files were rendered.
+
+    *Guo Xiang Tan*
+
 *   Extract source code for the entire exception stack trace for
     better debugging and diagnosis.
 
@@ -39,7 +183,7 @@
     *Godfrey Chan*
 
 *   Prepend a JS comment to JSONP callbacks. Addresses CVE-2014-4671
-    ("Rosetta Flash")
+    ("Rosetta Flash").
 
     *Greg Campbell*
 

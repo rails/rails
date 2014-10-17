@@ -23,7 +23,7 @@ require 'models/interest'
 
 class AssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :developers_projects,
-           :computers, :people, :readers
+           :computers, :people, :readers, :authors, :author_favorites
 
   def test_eager_loading_should_not_change_count_of_children
     liquid = Liquid.create(:name => 'salty')
@@ -33,6 +33,13 @@ class AssociationsTest < ActiveRecord::TestCase
 
     liquids = Liquid.includes(:molecules => :electrons).references(:molecules).where('molecules.id is not null')
     assert_equal 1, liquids[0].molecules.length
+  end
+
+  def test_subselect
+    author = authors :david
+    favs = author.author_favorites
+    fav2 = author.author_favorites.where(:author => Author.where(id: author.id)).to_a
+    assert_equal favs, fav2
   end
 
   def test_clear_association_cache_stored
@@ -349,5 +356,19 @@ class GeneratedMethodsTest < ActiveRecord::TestCase
 
   def test_model_method_overrides_association_method
     assert_equal(comments(:greetings).body, posts(:welcome).first_comment)
+  end
+
+  module MyModule
+    def comments; :none end
+  end
+
+  class MyArticle < ActiveRecord::Base
+    self.table_name = "articles"
+    include MyModule
+    has_many :comments, inverse_of: false
+  end
+
+  def test_included_module_overwrites_association_methods
+    assert_equal :none, MyArticle.new.comments
   end
 end

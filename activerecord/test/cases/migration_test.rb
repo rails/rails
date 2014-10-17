@@ -34,8 +34,7 @@ class MigrationTest < ActiveRecord::TestCase
       Reminder.connection.drop_table(table) rescue nil
     end
     Reminder.reset_column_information
-    ActiveRecord::Migration.verbose = true
-    ActiveRecord::Migration.message_count = 0
+    @verbose_was, ActiveRecord::Migration.verbose = ActiveRecord::Migration.verbose, false
     ActiveRecord::Base.connection.schema_cache.clear!
   end
 
@@ -65,6 +64,8 @@ class MigrationTest < ActiveRecord::TestCase
     Person.connection.remove_column("people", "middle_name") rescue nil
     Person.connection.add_column("people", "first_name", :string)
     Person.reset_column_information
+
+    ActiveRecord::Migration.verbose = @verbose_was
   end
 
   def test_migrator_versions
@@ -80,6 +81,21 @@ class MigrationTest < ActiveRecord::TestCase
     ActiveRecord::Migrator.down(MIGRATIONS_ROOT + "/valid")
     assert_equal 0, ActiveRecord::Migrator.current_version
     assert_equal 3, ActiveRecord::Migrator.last_version
+    assert_equal true, ActiveRecord::Migrator.needs_migration?
+
+    ActiveRecord::SchemaMigration.create!(:version => ActiveRecord::Migrator.last_version)
+    assert_equal true, ActiveRecord::Migrator.needs_migration?
+  ensure
+    ActiveRecord::Migrator.migrations_paths = old_path
+  end
+
+  def test_migration_detection_without_schema_migration_table
+    ActiveRecord::Base.connection.drop_table('schema_migrations') if ActiveRecord::Base.connection.table_exists?('schema_migrations')
+
+    migrations_path = MIGRATIONS_ROOT + "/valid"
+    old_path = ActiveRecord::Migrator.migrations_paths
+    ActiveRecord::Migrator.migrations_paths = migrations_path
+
     assert_equal true, ActiveRecord::Migrator.needs_migration?
   ensure
     ActiveRecord::Migrator.migrations_paths = old_path
@@ -414,30 +430,32 @@ class MigrationTest < ActiveRecord::TestCase
     Person.connection.drop_table :binary_testings rescue nil
   end
 
-  def test_create_table_with_query
-    Person.connection.drop_table :table_from_query_testings rescue nil
-    Person.connection.create_table(:person, force: true)
+  unless mysql_enforcing_gtid_consistency?
+    def test_create_table_with_query
+      Person.connection.drop_table :table_from_query_testings rescue nil
+      Person.connection.create_table(:person, force: true)
 
-    Person.connection.create_table :table_from_query_testings, as: "SELECT id FROM person"
+      Person.connection.create_table :table_from_query_testings, as: "SELECT id FROM person"
 
-    columns = Person.connection.columns(:table_from_query_testings)
-    assert_equal 1, columns.length
-    assert_equal "id", columns.first.name
+      columns = Person.connection.columns(:table_from_query_testings)
+      assert_equal 1, columns.length
+      assert_equal "id", columns.first.name
 
-    Person.connection.drop_table :table_from_query_testings rescue nil
-  end
+      Person.connection.drop_table :table_from_query_testings rescue nil
+    end
 
-  def test_create_table_with_query_from_relation
-    Person.connection.drop_table :table_from_query_testings rescue nil
-    Person.connection.create_table(:person, force: true)
+    def test_create_table_with_query_from_relation
+      Person.connection.drop_table :table_from_query_testings rescue nil
+      Person.connection.create_table(:person, force: true)
 
-    Person.connection.create_table :table_from_query_testings, as: Person.select(:id)
+      Person.connection.create_table :table_from_query_testings, as: Person.select(:id)
 
-    columns = Person.connection.columns(:table_from_query_testings)
-    assert_equal 1, columns.length
-    assert_equal "id", columns.first.name
+      columns = Person.connection.columns(:table_from_query_testings)
+      assert_equal 1, columns.length
+      assert_equal "id", columns.first.name
 
-    Person.connection.drop_table :table_from_query_testings rescue nil
+      Person.connection.drop_table :table_from_query_testings rescue nil
+    end
   end
 
   if current_adapter? :OracleAdapter
@@ -561,7 +579,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
           t.string :qualification, :experience
           t.integer :age, :default => 0
           t.date :birthdate
-          t.timestamps
+          t.timestamps null: true
         end
       end
 

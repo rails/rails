@@ -199,6 +199,7 @@ class String
   #   'employee_salary'.humanize              # => "Employee salary"
   #   'author_id'.humanize                    # => "Author"
   #   'author_id'.humanize(capitalize: false) # => "author"
+  #   '_id'.humanize                          # => "Id"
   def humanize(options = {})
     ActiveSupport::Inflector.humanize(self, options)
   end

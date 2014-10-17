@@ -353,12 +353,17 @@ Instead of an options hash, you can also simply pass in a model, Rails will use 
 class ProductsController < ApplicationController
   def show
     @product = Product.find(params[:id])
-    respond_with(@product) if stale?(@product)
+
+    if stale?(@product)
+      respond_to do |wants|
+        # ... normal response processing
+      end
+    end
   end
 end
 ```
 
-If you don't have any special response processing and are using the default rendering mechanism (i.e. you're not using respond_to or calling render yourself) then you've got an easy helper in fresh_when:
+If you don't have any special response processing and are using the default rendering mechanism (i.e. you're not using `respond_to` or calling render yourself) then you've got an easy helper in `fresh_when`:
 
 ```ruby
 class ProductsController < ApplicationController

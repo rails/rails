@@ -935,6 +935,42 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal 3, authors(:david).posts_with_comments.where("length(comments.body) > 15").references(:comments).count
   end
 
+  def test_association_loading_notification
+    notifications = messages_for('instantiation.active_record') do
+      Developer.all.merge!(:includes => 'projects', :where => { 'developers_projects.access_level' => 1 }, :limit => 5).to_a.size
+    end
+
+    message = notifications.first
+    payload = message.last
+    count = Developer.all.merge!(:includes => 'projects', :where => { 'developers_projects.access_level' => 1 }, :limit => 5).to_a.size
+
+    # eagerloaded row count should be greater than just developer count
+    assert_operator payload[:record_count], :>, count
+    assert_equal Developer.name, payload[:class_name]
+  end
+
+  def test_base_messages
+    notifications = messages_for('instantiation.active_record') do
+      Developer.all.to_a
+    end
+    message = notifications.first
+    payload = message.last
+
+    assert_equal Developer.all.to_a.count, payload[:record_count]
+    assert_equal Developer.name, payload[:class_name]
+  end
+
+  def messages_for(name)
+    notifications = []
+    ActiveSupport::Notifications.subscribe(name) do |*args|
+      notifications << args
+    end
+    yield
+    notifications
+  ensure
+    ActiveSupport::Notifications.unsubscribe(name)
+  end
+
   def test_load_with_sti_sharing_association
     assert_queries(2) do #should not do 1 query per subclass
       Comment.includes(:post).to_a
@@ -1289,5 +1325,15 @@ class EagerAssociationTest < ActiveRecord::TestCase
     # has-many :through
     david = Author.where(id: "1").eager_load(:readonly_comments).first!
     assert david.readonly_comments.first.readonly?
+  end
+
+  test "preloading a polymorphic association with references to the associated table" do
+    post = Post.includes(:tags).references(:tags).where('tags.name = ?', 'General').first
+    assert_equal posts(:welcome), post
+  end
+
+  test "eager-loading a polymorphic association with references to the associated table" do
+    post = Post.eager_load(:tags).where('tags.name = ?', 'General').first
+    assert_equal posts(:welcome), post
   end
 end

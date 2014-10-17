@@ -1,4 +1,5 @@
 require 'arel/visitors/bind_visitor'
+require 'active_support/core_ext/string/strip'
 
 module ActiveRecord
   module ConnectionAdapters
@@ -161,10 +162,6 @@ module ActiveRecord
         end
       end
 
-      def adapter_name #:nodoc:
-        self.class::ADAPTER_NAME
-      end
-
       # Returns true, since this connection adapter supports migrations.
       def supports_migrations?
         true
@@ -198,6 +195,10 @@ module ActiveRecord
 
       def supports_foreign_keys?
         true
+      end
+
+      def supports_views?
+        version[0] >= 5
       end
 
       def native_database_types
@@ -386,6 +387,10 @@ module ActiveRecord
         execute_and_free(sql, 'SCHEMA') do |result|
           result.collect { |field| field.first }
         end
+      end
+
+      def truncate(table_name, name = nil)
+        execute "TRUNCATE TABLE #{quote_table_name(table_name)}", name
       end
 
       def table_exists?(name)
@@ -639,18 +644,21 @@ module ActiveRecord
 
       def initialize_type_map(m) # :nodoc:
         super
+
         m.register_type(%r(enum)i) do |sql_type|
           limit = sql_type[/^enum\((.+)\)/i, 1]
             .split(',').map{|enum| enum.strip.length - 2}.max
           Type::String.new(limit: limit)
         end
 
-        m.register_type %r(tinytext)i,   Type::Text.new(limit: 255)
-        m.register_type %r(tinyblob)i,   Type::Binary.new(limit: 255)
-        m.register_type %r(mediumtext)i, Type::Text.new(limit: 16777215)
-        m.register_type %r(mediumblob)i, Type::Binary.new(limit: 16777215)
-        m.register_type %r(longtext)i,   Type::Text.new(limit: 2147483647)
-        m.register_type %r(longblob)i,   Type::Binary.new(limit: 2147483647)
+        m.register_type %r(tinytext)i,   Type::Text.new(limit: 2**8 - 1)
+        m.register_type %r(tinyblob)i,   Type::Binary.new(limit: 2**8 - 1)
+        m.register_type %r(text)i,       Type::Text.new(limit: 2**16 - 1)
+        m.register_type %r(blob)i,       Type::Binary.new(limit: 2**16 - 1)
+        m.register_type %r(mediumtext)i, Type::Text.new(limit: 2**24 - 1)
+        m.register_type %r(mediumblob)i, Type::Binary.new(limit: 2**24 - 1)
+        m.register_type %r(longtext)i,   Type::Text.new(limit: 2**32 - 1)
+        m.register_type %r(longblob)i,   Type::Binary.new(limit: 2**32 - 1)
         m.register_type %r(^bigint)i,    Type::Integer.new(limit: 8)
         m.register_type %r(^int)i,       Type::Integer.new(limit: 4)
         m.register_type %r(^mediumint)i, Type::Integer.new(limit: 3)
@@ -764,8 +772,8 @@ module ActiveRecord
         "DROP INDEX #{index_name}"
       end
 
-      def add_timestamps_sql(table_name)
-        [add_column_sql(table_name, :created_at, :datetime), add_column_sql(table_name, :updated_at, :datetime)]
+      def add_timestamps_sql(table_name, options = {})
+        [add_column_sql(table_name, :created_at, :datetime, options), add_column_sql(table_name, :updated_at, :datetime, options)]
       end
 
       def remove_timestamps_sql(table_name)
@@ -780,10 +788,6 @@ module ActiveRecord
 
       def mariadb?
         full_version =~ /mariadb/i
-      end
-
-      def supports_views?
-        version[0] >= 5
       end
 
       def supports_rename_index?
@@ -812,7 +816,11 @@ module ActiveRecord
         # NAMES does not have an equals sign, see
         # http://dev.mysql.com/doc/refman/5.0/en/set-statement.html#id944430
         # (trailing comma because variable_assignments will always have content)
-        encoding = "NAMES #{@config[:encoding]}, " if @config[:encoding]
+        if @config[:encoding]
+          encoding = "NAMES #{@config[:encoding]}"
+          encoding << " COLLATE #{@config[:collation]}" if @config[:collation]
+          encoding << ", "
+        end
 
         # Gather up all of the SET variables...
         variable_assignments = variables.map do |k, v|

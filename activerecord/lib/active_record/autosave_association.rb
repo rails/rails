@@ -184,7 +184,9 @@ module ActiveRecord
             before_save :before_save_collection_association
 
             define_non_cyclic_method(save_method) { save_collection_association(reflection) }
-            after_save save_method
+            # Doesn't use after_save as that would save associations added in after_create/after_update twice
+            after_create save_method
+            after_update save_method
           elsif reflection.has_one?
             define_method(save_method) { save_has_one_association(reflection) } unless method_defined?(save_method)
             # Configures two callbacks instead of a single after_save so that
@@ -338,7 +340,6 @@ module ActiveRecord
           autosave = reflection.options[:autosave]
 
           if records = associated_records_to_validate_or_save(association, @new_record_before_save, autosave)
-
             if autosave
               records_to_destroy = records.select(&:marked_for_destruction?)
               records_to_destroy.each { |record| association.destroy(record) }
@@ -362,7 +363,6 @@ module ActiveRecord
 
               raise ActiveRecord::Rollback unless saved
             end
-            @new_record_before_save = false
           end
 
           # reconstruct the scope now that we know the owner's id
@@ -405,7 +405,9 @@ module ActiveRecord
 
       # If the record is new or it has changed, returns true.
       def record_changed?(reflection, record, key)
-        record.new_record? || record[reflection.foreign_key] != key || record.attribute_changed?(reflection.foreign_key)
+        record.new_record? ||
+          (record.has_attribute?(reflection.foreign_key) && record[reflection.foreign_key] != key) ||
+          record.attribute_changed?(reflection.foreign_key)
       end
 
       # Saves the associated record if it's new or <tt>:autosave</tt> is enabled.

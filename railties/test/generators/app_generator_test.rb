@@ -268,11 +268,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_generator_if_skip_action_view_is_given
-    run_generator [destination_root, "--skip-action-view"]
-    assert_file "config/application.rb", /#\s+require\s+["']action_view\/railtie["']/
-  end
-
   def test_generator_if_skip_sprockets_is_given
     run_generator [destination_root, "--skip-sprockets"]
     assert_no_file "config/initializers/assets.rb"
@@ -395,6 +390,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "--skip-test-unit", "--skip-active-record"]
     assert_file "config/application.rb", /#\s+require\s+["']rails\/test_unit\/railtie["']/
     assert_file "config/application.rb", /#\s+require\s+["']active_record\/railtie["']/
+    assert_file "config/application.rb", /\s+require\s+["']active_job\/railtie["']/
   end
 
   def test_new_hash_style

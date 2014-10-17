@@ -355,14 +355,15 @@ module ActiveRecord
         @association.replace(other_array)
       end
 
-      # Deletes all the records from the collection. For +has_many+ associations,
-      # the deletion is done according to the strategy specified by the <tt>:dependent</tt>
-      # option.
+      # Deletes all the records from the collection according to the strategy
+      # specified by the +:dependent+ option. If no +:dependent+ option is given,
+      # then it will follow the default strategy.
       #
-      # If no <tt>:dependent</tt> option is given, then it will follow the
-      # default strategy. The default strategy is <tt>:nullify</tt>. This
-      # sets the foreign keys to <tt>NULL</tt>. For, +has_many+ <tt>:through</tt>,
-      # the default strategy is +delete_all+.
+      # For +has_many :through+ associations, the default deletion strategy is
+      # +:delete_all+.
+      #
+      # For +has_many+ associations, the default deletion strategy is +:nullify+.
+      # This sets the foreign keys to +NULL+.
       #
       #   class Person < ActiveRecord::Base
       #     has_many :pets # dependent: :nullify option by default
@@ -393,9 +394,9 @@ module ActiveRecord
       #   #       #<Pet id: 3, name: "Choo-Choo", person_id: nil>
       #   #    ]
       #
-      # If it is set to <tt>:destroy</tt> all the objects from the collection
-      # are removed by calling their +destroy+ method. See +destroy+ for more
-      # information.
+      # Both +has_many+ and +has_many :through+ dependencies default to the
+      # +:delete_all+ strategy if the +:dependent+ option is set to +:destroy+.
+      # Records are not instantiated and callbacks will not be fired.
       #
       #   class Person < ActiveRecord::Base
       #     has_many :pets, dependent: :destroy
@@ -410,11 +411,6 @@ module ActiveRecord
       #   #    ]
       #
       #   person.pets.delete_all
-      #   # => [
-      #   #       #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>,
-      #   #       #<Pet id: 2, name: "Spook", person_id: 1>,
-      #   #       #<Pet id: 3, name: "Choo-Choo", person_id: 1>
-      #   #    ]
       #
       #   Pet.find(1, 2, 3)
       #   # => ActiveRecord::RecordNotFound
@@ -443,8 +439,9 @@ module ActiveRecord
       end
 
       # Deletes the records of the collection directly from the database
-      # ignoring the +:dependent+ option. It invokes +before_remove+,
-      # +after_remove+ , +before_destroy+ and +after_destroy+ callbacks.
+      # ignoring the +:dependent+ option. Records are instantiated and it
+      # invokes +before_remove+, +after_remove+ , +before_destroy+ and
+      # +after_destroy+ callbacks.
       #
       #   class Person < ActiveRecord::Base
       #     has_many :pets
@@ -783,7 +780,7 @@ module ActiveRecord
       #   person.pets.count # => 0
       #   person.pets.any?  # => true
       #
-      # You can also pass a block to define criteria. The behavior
+      # You can also pass a +block+ to define criteria. The behavior
       # is the same, it returns true if the collection based on the
       # criteria is not empty.
       #
@@ -817,7 +814,7 @@ module ActiveRecord
       #   person.pets.count # => 2
       #   person.pets.many? # => true
       #
-      # You can also pass a block to define criteria. The
+      # You can also pass a +block+ to define criteria. The
       # behavior is the same, it returns true if the collection
       # based on the criteria has more than one record.
       #
@@ -841,7 +838,7 @@ module ActiveRecord
         @association.many?(&block)
       end
 
-      # Returns +true+ if the given object is present in the collection.
+      # Returns +true+ if the given +record+ is present in the collection.
       #
       #   class Person < ActiveRecord::Base
       #     has_many :pets
@@ -879,7 +876,7 @@ module ActiveRecord
 
       # Equivalent to <tt>Array#==</tt>. Returns +true+ if the two arrays
       # contain the same number of elements and if each element is equal
-      # to the corresponding element in the other array, otherwise returns
+      # to the corresponding element in the +other+ array, otherwise returns
       # +false+.
       #
       #   class Person < ActiveRecord::Base

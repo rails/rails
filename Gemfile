@@ -2,19 +2,20 @@ source 'https://rubygems.org'
 
 gemspec
 
+gem 'rails-dom-testing', github: 'rails/rails-dom-testing'
+
+# We need a newish Rake since Active Job sets its test tasks' descriptions.
+gem 'rake', '>= 10.3'
+
 # This needs to be with require false as it is
 # loaded after loading the test library to
 # ensure correct loading order
 gem 'mocha', '~> 0.14', require: false
 
-gem 'rack', github: 'rack/rack'
 gem 'rack-cache', '~> 1.2'
-gem 'jquery-rails', '~> 3.1.0'
-gem 'turbolinks', github: 'rails/turbolinks', branch: 'master'
-gem 'coffee-rails', '~> 4.0.0'
-gem 'arel', github: 'rails/arel', branch: 'master'
-gem 'sprockets-rails', github: 'rails/sprockets-rails', branch: 'master'
-gem 'i18n', github: 'svenfuchs/i18n', branch: 'master'
+gem 'jquery-rails', '~> 4.0.0.beta2'
+gem 'coffee-rails', '~> 4.1.0'
+gem 'turbolinks'
 
 # require: false so bcrypt is loaded only when has_secure_password is used.
 # This is to avoid ActiveModel (and by extension the entire framework)
@@ -34,6 +35,23 @@ end
 
 # AS
 gem 'dalli', '>= 2.2.1'
+
+# ActiveJob
+group :job do
+  gem 'resque', require: false
+  gem 'resque-scheduler', require: false
+  gem 'sidekiq', require: false
+  gem 'sucker_punch', require: false
+  gem 'delayed_job', require: false
+  gem 'queue_classic', "< 3.0.0", require: false, platforms: :ruby
+  gem 'sneakers', '0.1.1.pre', require: false
+  gem 'que', require: false
+  gem 'backburner', require: false
+  gem 'qu-rails', github: "bkeepers/qu", branch: "master", require: false
+  gem 'qu-redis', require: false
+  gem 'delayed_job_active_record', require: false
+  gem 'sequel', require: false
+end
 
 # Add your own local bundler stuff
 local_gemfile = File.dirname(__FILE__) + "/.Gemfile"

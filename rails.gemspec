@@ -24,8 +24,9 @@ Gem::Specification.new do |s|
   s.add_dependency 'activemodel',   version
   s.add_dependency 'activerecord',  version
   s.add_dependency 'actionmailer',  version
+  s.add_dependency 'activejob',     version
   s.add_dependency 'railties',      version
 
   s.add_dependency 'bundler',         '>= 1.3.0', '< 2.0'
-  s.add_dependency 'sprockets-rails', '~> 2.1'
+  s.add_dependency 'sprockets-rails', '~> 3.0.0.beta1'
 end

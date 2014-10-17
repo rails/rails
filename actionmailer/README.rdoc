@@ -65,12 +65,12 @@ In order to send mails, you simply call the method and then call +deliver+ on th
 
 Calling the method returns a Mail Message object:
 
-  message = Notifier.welcome("david@loudthinking.com")  # => Returns a Mail::Message object
-  message.deliver                                       # => delivers the email
+  message = Notifier.welcome("david@loudthinking.com")   # => Returns a Mail::Message object
+  message.deliver_now                                    # => delivers the email
 
 Or you can just chain the methods together like:
 
-  Notifier.welcome("david@loudthinking.com").deliver    # Creates the email and sends it immediately
+  Notifier.welcome("david@loudthinking.com").deliver_now # Creates the email and sends it immediately
 
 == Setting defaults
 

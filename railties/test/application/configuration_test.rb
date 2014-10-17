@@ -118,7 +118,7 @@ module ApplicationTests
     test "Rails::Application responds to paths" do
       require "#{app_path}/config/environment"
       assert_respond_to AppTemplate::Application, :paths
-      assert_equal AppTemplate::Application.paths["app/views"].expanded, ["#{app_path}/app/views"]
+      assert_equal ["#{app_path}/app/views"], AppTemplate::Application.paths["app/views"].expanded
     end
 
     test "the application root is set correctly" do
@@ -182,7 +182,7 @@ module ApplicationTests
 
     test "application is always added to eager_load namespaces" do
       require "#{app_path}/config/application"
-      assert Rails.application, Rails.application.config.eager_load_namespaces
+      assert_includes Rails.application.config.eager_load_namespaces, AppTemplate::Application
     end
 
     test "the application can be eager loaded even when there are no frameworks" do
@@ -978,6 +978,15 @@ module ApplicationTests
       require "#{app_path}/config/environment"
 
       assert_kind_of Hash, Rails.application.config.database_configuration
+    end
+
+    test 'raises with proper error message if no database configuration found' do
+      FileUtils.rm("#{app_path}/config/database.yml")
+      require "#{app_path}/config/environment"
+      err = assert_raises RuntimeError do
+        Rails.application.config.database_configuration
+      end
+      assert_match 'config/database', err.message
     end
 
     test 'config.action_mailer.show_previews defaults to true in development' do

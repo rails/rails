@@ -56,6 +56,18 @@ module ActiveRecord
       end
     end
 
+    module TimestampDefaultDeprecation # :nodoc:
+      def emit_warning_if_null_unspecified(options)
+        return if options.key?(:null)
+
+        ActiveSupport::Deprecation.warn \
+          "`timestamp` was called without specifying an option for `null`. In Rails " \
+          "5.0, this behavior will change to `null: false`. You should manually " \
+          "specify `null: true` to prevent the behavior of your existing migrations " \
+          "from changing."
+      end
+    end
+
     # Represents the schema of an SQL table in an abstract way. This class
     # provides methods for manipulating the schema representation.
     #
@@ -77,6 +89,8 @@ module ActiveRecord
     # The table definitions
     # The Columns are stored as a ColumnDefinition in the +columns+ attribute.
     class TableDefinition
+      include TimestampDefaultDeprecation
+
       # An array of ColumnDefinition objects, representing the column changes
       # that have been defined.
       attr_accessor :indexes
@@ -242,7 +256,7 @@ module ActiveRecord
         name = name.to_s
         type = type.to_sym
 
-        if primary_key_column_name == name
+        if @columns_hash[name] && @columns_hash[name].primary_key?
           raise ArgumentError, "you can't redefine the primary key column '#{name}'. To define a custom primary key, pass { id: false } to create_table."
         end
 
@@ -256,7 +270,7 @@ module ActiveRecord
         @columns_hash.delete name.to_s
       end
 
-      [:string, :text, :integer, :float, :decimal, :datetime, :timestamp, :time, :date, :binary, :boolean].each do |column_type|
+      [:string, :text, :integer, :bigint, :float, :decimal, :datetime, :timestamp, :time, :date, :binary, :boolean].each do |column_type|
         define_method column_type do |*args|
           options = args.extract_options!
           column_names = args
@@ -276,6 +290,7 @@ module ActiveRecord
       # <tt>:updated_at</tt> to the table.
       def timestamps(*args)
         options = args.extract_options!
+        emit_warning_if_null_unspecified(options)
         column(:created_at, :datetime, options)
         column(:updated_at, :datetime, options)
       end
@@ -303,14 +318,13 @@ module ActiveRecord
       alias :belongs_to :references
 
       def new_column_definition(name, type, options) # :nodoc:
-        type = aliased_types[type] || type
+        type = aliased_types(type.to_s, type)
         column = create_column_definition name, type
         limit = options.fetch(:limit) do
           native[type][:limit] if native[type].is_a?(Hash)
         end
 
         column.limit       = limit
-        column.array       = options[:array] if column.respond_to?(:array)
         column.precision   = options[:precision]
         column.scale       = options[:scale]
         column.default     = options[:default]
@@ -326,19 +340,12 @@ module ActiveRecord
         ColumnDefinition.new name, type
       end
 
-      def primary_key_column_name
-        primary_key_column = columns.detect { |c| c.primary_key? }
-        primary_key_column && primary_key_column.name
-      end
-
       def native
         @native
       end
 
-      def aliased_types
-        HashWithIndifferentAccess.new(
-          timestamp: :datetime,
-        )
+      def aliased_types(name, fallback)
+        'timestamp' == name ? :datetime : fallback
       end
     end
 
@@ -405,6 +412,8 @@ module ActiveRecord
     #   end
     #
     class Table
+      include TimestampDefaultDeprecation
+
       def initialize(table_name, base)
         @table_name = table_name
         @base = base
@@ -452,8 +461,9 @@ module ActiveRecord
       # Adds timestamps (+created_at+ and +updated_at+) columns to the table. See SchemaStatements#add_timestamps
       #
       #  t.timestamps
-      def timestamps
-        @base.add_timestamps(@table_name)
+      def timestamps(options = {})
+        emit_warning_if_null_unspecified(options)
+        @base.add_timestamps(@table_name, options)
       end
 
       # Changes the column's definition according to the new options.
@@ -559,6 +569,5 @@ module ActiveRecord
           @base.native_database_types
         end
     end
-
   end
 end

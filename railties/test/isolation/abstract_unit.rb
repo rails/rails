@@ -9,6 +9,7 @@
 require 'fileutils'
 
 require 'bundler/setup' unless defined?(Bundler)
+require 'active_support'
 require 'active_support/testing/autorun'
 require 'active_support/test_case'
 
@@ -140,6 +141,7 @@ module TestHelpers
         config.eager_load = false
         config.session_store :cookie_store, key: "_myapp_session"
         config.active_support.deprecation = :log
+        config.active_support.test_order = :random
         config.action_controller.allow_forgery_protection = false
       RUBY
     end
@@ -276,8 +278,12 @@ module TestHelpers
     end
 
     def use_frameworks(arr)
-      to_remove =  [:actionmailer,
-                    :activerecord] - arr
+      to_remove = [:actionmailer, :activerecord] - arr
+
+      if to_remove.include?(:activerecord)
+        remove_from_config 'config.active_record.*'
+      end
+
       $:.reject! {|path| path =~ %r'/(#{to_remove.join('|')})/' }
     end
 
@@ -291,6 +297,8 @@ class ActiveSupport::TestCase
   include TestHelpers::Paths
   include TestHelpers::Rack
   include TestHelpers::Generation
+
+  self.test_order = :sorted
 
   private
 

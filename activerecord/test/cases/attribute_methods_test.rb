@@ -263,7 +263,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     end
 
     assert_equal klass.column_names, klass.new.attributes.keys
-    assert_not klass.new.attributes.key?('id')
+    assert_not klass.new.has_attribute?('id')
   end
 
   def test_hashes_not_mangled
@@ -681,6 +681,14 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_yaml_dumping_record_with_time_zone_aware_attribute
+    in_time_zone "Pacific Time (US & Canada)" do
+      record = Topic.new(id: 1)
+      record.written_on = "Jan 01 00:00:00 2014"
+      assert_equal record, YAML.load(YAML.dump(record))
+    end
+  end
+
   def test_setting_time_zone_conversion_for_attributes_should_write_value_on_class_variable
     Topic.skip_time_zone_conversion_for_attributes = [:field_a]
     Minimalistic.skip_time_zone_conversion_for_attributes = [:field_b]
@@ -726,13 +734,13 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::UnknownAttributeError) { @target.new.attributes = { :title => "Ants in pants" } }
   end
 
-  def test_bulk_update_raise_unknown_attribute_errro
+  def test_bulk_update_raise_unknown_attribute_error
     error = assert_raises(ActiveRecord::UnknownAttributeError) {
       @target.new(:hello => "world")
     }
-    assert @target, error.record
-    assert "hello", error.attribute
-    assert "unknown attribute: hello", error.message
+    assert_instance_of @target, error.record
+    assert_equal "hello", error.attribute
+    assert_equal "unknown attribute: hello", error.message
   end
 
   def test_methods_override_in_multi_level_subclass
@@ -808,6 +816,24 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
     topic.title = "lol"
     assert_equal "lol", topic.author_name
+  end
+
+  def test_inherited_custom_accessors_with_reserved_names
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = 'computers'
+      self.abstract_class = true
+      def system; "omg"; end
+      def system=(val); self.developer = val; end
+    end
+
+    subklass = Class.new(klass)
+    [klass, subklass].each(&:define_attribute_methods)
+
+    computer = subklass.find(1)
+    assert_equal "omg", computer.system
+
+    computer.developer = 99
+    assert_equal 99, computer.developer
   end
 
   def test_on_the_fly_super_invokable_generated_attribute_methods_via_method_missing

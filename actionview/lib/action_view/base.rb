@@ -10,8 +10,10 @@ require 'action_view/lookup_context'
 module ActionView #:nodoc:
   # = Action View Base
   #
-  # Action View templates can be written in several ways. If the template file has a <tt>.erb</tt> extension then it uses a mixture of ERB
-  # (included in Ruby) and HTML. If the template file has a <tt>.builder</tt> extension then Jim Weirich's Builder::XmlMarkup library is used.
+  # Action View templates can be written in several ways.
+  # If the template file has a <tt>.erb</tt> extension, then it uses the erubis[https://rubygems.org/gems/erubis]
+  # template system which can embed Ruby into an HTML document.
+  # If the template file has a <tt>.builder</tt> extension, then Jim Weirich's Builder::XmlMarkup library is used.
   #
   # == ERB
   #
@@ -31,7 +33,9 @@ module ActionView #:nodoc:
   #
   # If you absolutely must write from within a function use +concat+.
   #
-  # <%- and -%> suppress leading and trailing whitespace, including the trailing newline, and can be used interchangeably with <% and %>.
+  # When on a line that only contains whitespaces except for the tag, <% %> suppress leading and trailing whitespace,
+  # including the trailing newline. <% %> and <%- -%> are the same.
+  # Note however that <%= %> and <%= -%> are different: only the latter removes trailing whitespaces.
   #
   # === Using sub templates
   #
