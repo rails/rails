@@ -20,7 +20,7 @@ module ActionView
           @start.call(block)
         rescue Exception => exception
           log_error(exception)
-          block.call ActionView::Base.streaming_completion_on_exception
+          yield ActionView::Base.streaming_completion_on_exception
         end
         self
       end
