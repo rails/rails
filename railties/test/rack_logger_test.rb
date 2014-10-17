@@ -12,8 +12,8 @@ module Rails
 
         attr_reader :logger
 
-        def initialize(logger = NULL, taggers = nil, &block)
-          super(->(_) { block.call; [200, {}, []] }, taggers)
+        def initialize(logger = NULL, taggers = nil)
+          super(->(_) { yield; [200, {}, []] }, taggers)
           @logger = logger
         end
 
