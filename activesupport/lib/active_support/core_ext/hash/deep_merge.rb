@@ -26,7 +26,7 @@ class Hash
         this_value.deep_merge(other_value, &block)
       else
         if block_given? && key?(current_key)
-          block.call(current_key, this_value, other_value)
+          yield(current_key, this_value, other_value)
         else
           other_value
         end
