@@ -1,3 +1,12 @@
+*   Deprecate only_path: false option on *_path route helper.
+
+    Passing only_path: false to *_path route helper methods will
+    output a deprecation warning.
+
+    Fixes #17294.
+
+    *Dan Olson*
+
 *   Improve Journey compliance to RFC 3986.
 
     The scanner in Journey failed to recognize routes that use literals

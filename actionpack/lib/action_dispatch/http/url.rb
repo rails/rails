@@ -41,14 +41,25 @@ module ActionDispatch
           protocol = options[:protocol]
           port     = options[:port]
 
-          unless host
+          if !host && !options[:only_path]
             raise ArgumentError, 'Missing host to link to! Please provide the :host parameter, set default_url_options[:host], or set :only_path to true'
           end
 
-          build_host_url(host, port, protocol, options, path_for(options))
+          build_host_url(host, port, protocol, options, build_path_from(options))
         end
 
         def path_for(options)
+          if options[:only_path] == false
+            ActiveSupport::Deprecation.warn "*_path(..., only_path: false) is deprecated and" \
+            " will be removed in Rails 5. Use *_url instead"
+            return full_url_for(options)
+          end
+          build_path_from(options)
+        end
+
+        private
+
+        def build_path_from(options)
           path  = options[:script_name].to_s.chomp("/")
           path << options[:path] if options.key?(:path)
 
@@ -58,8 +69,6 @@ module ActionDispatch
 
           path
         end
-
-        private
 
         def add_params(path, params)
           params = { params: params } unless params.is_a?(Hash)
@@ -91,6 +100,7 @@ module ActionDispatch
         end
 
         def build_host_url(host, port, protocol, options, path)
+          return path unless host
           if match = host.match(HOST_REGEXP)
             protocol ||= match[1] unless protocol == false
             host       = match[2]
