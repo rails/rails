@@ -39,7 +39,7 @@ module Rails
 
         protected
 
-        def on_conflict_behavior
+        def on_conflict_behavior(&block)
           options = base.options.merge(config)
           if identical?
             say_status :identical, :blue, relative_existing_migration
@@ -48,7 +48,7 @@ module Rails
             say_status :create, :green
             unless pretend?
               ::FileUtils.rm_rf(existing_migration)
-              yield
+              block.call
             end
           elsif options[:skip]
             say_status :skip, :yellow
