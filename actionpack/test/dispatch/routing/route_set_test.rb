@@ -69,6 +69,16 @@ module ActionDispatch
         end
       end
 
+      test ":only_path option with *_url" do
+        draw do
+          get 'foo', to: SimpleApp.new('foo#index')
+        end
+
+        assert_deprecated do
+          assert_equal '/foo', url_helpers.foo_url(:only_path => true)
+        end
+      end
+
       test "explicit keys win over implicit keys" do
         draw do
           resources :foo do
