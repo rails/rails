@@ -20,7 +20,7 @@ A short rundown of some of the major features:
    class Product < ActiveRecord::Base
    end
 
-  {Learn more}[link:classes/ActiveRecord/Base.html]
+  {Learn more}[link:http://api.rubyonrails.org/classes/ActiveRecord/Base.html]
 
 The Product class is automatically mapped to the table named "products",
 which might look like this:
