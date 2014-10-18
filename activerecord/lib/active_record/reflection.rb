@@ -161,7 +161,12 @@ module ActiveRecord
 
         macro
       end
+
+      def constraints
+        scope ? [scope] : []
+      end
     end
+
     # Base class for AggregateReflection and AssociationReflection. Objects of
     # AggregateReflection and AssociationReflection are returned by the Reflection::ClassMethods.
     #
@@ -697,10 +702,56 @@ module ActiveRecord
       def chain
         @chain ||= begin
           a = source_reflection.chain
-          b = through_reflection.chain
+          b = through_reflection.chain.map(&:dup)
+
+          if options[:source_type]
+            b[0] = PolymorphicReflection.new(b[0], self)
+          end
+
           chain = a + b
           chain[0] = self # Use self so we don't lose the information from :source_type
           chain
+        end
+      end
+
+      class PolymorphicReflection
+        def initialize(reflection, prev_reflection)
+          @reflection = reflection
+          @prev_reflection = prev_reflection
+        end
+
+        def klass
+          @reflection.klass
+        end
+
+        def scope
+          @reflection.scope
+        end
+
+        def table_name
+          @reflection.table_name
+        end
+
+        def plural_name
+          @reflection.plural_name
+        end
+
+        def join_keys(assoc_klass)
+          @reflection.join_keys(assoc_klass)
+        end
+
+        def type
+          @reflection.type
+        end
+
+        def constraints
+          [source_type_info]
+        end
+
+        def source_type_info
+          type = @prev_reflection.foreign_type
+          source_type = @prev_reflection.options[:source_type]
+          lambda { |object| where(type => source_type) }
         end
       end
 
@@ -853,6 +904,12 @@ module ActiveRecord
         end
 
         check_validity_of_inverse!
+      end
+
+      def constraints
+        scope_chain = source_reflection.constraints
+        scope_chain << scope if scope
+        scope_chain
       end
 
       protected

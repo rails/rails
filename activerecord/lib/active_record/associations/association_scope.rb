@@ -131,8 +131,6 @@ module ActiveRecord
 
       def add_constraints(scope, owner, assoc_klass, refl, tracker)
         chain = refl.chain
-        scope_chain = refl.scope_chain
-        connection = tracker.connection
 
         tables = construct_tables(chain, assoc_klass, refl, tracker)
 
@@ -140,6 +138,7 @@ module ActiveRecord
         table = tables.last
         scope = last_chain_scope(scope, table, owner_reflection, owner, connection, assoc_klass)
 
+        # chain.first always == refl
         chain.each_with_index do |reflection, i|
           table, foreign_table = tables.shift, tables.first
 
@@ -151,9 +150,11 @@ module ActiveRecord
           is_first_chain = i == 0
           klass = is_first_chain ? assoc_klass : reflection.klass
 
+          items = reflection.constraints
+
           # Exclude the scope of the association itself, because that
           # was already merged in the #scope method.
-          scope_chain[i].each do |scope_chain_item|
+          items.each do |scope_chain_item|
             item  = eval_scope(klass, scope_chain_item, owner)
 
             if scope_chain_item == refl.scope
