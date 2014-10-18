@@ -523,7 +523,7 @@ YAML
       end
     end
 
-    test "engine is a rack app and can have his own middleware stack" do
+    test "engine is a rack app and can have it's own middleware stack" do
       add_to_config("config.action_dispatch.show_exceptions = false")
 
       @plugin.write "lib/bukkits.rb", <<-RUBY
