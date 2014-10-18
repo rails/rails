@@ -47,7 +47,21 @@ class Object
   #   end
   #
   # <tt>with_options</tt> can also be nested since the call is forwarded to its receiver.
-  # Each nesting level will merge inherited defaults in addition to their own.
+  #
+  # NOTE: Each nesting level will merge inherited defaults in addition to their own.
+  #
+  #   class Post < ActiveRecord::Base
+  #     with_options if: :persisted?, length: { minimum: 50 } do
+  #       validates :content, if: -> { content.present? }
+  #     end
+  #   end
+  #
+  # The code is equivalent to:
+  #
+  #   validates :content, length: { minimum: 50 }, if: -> { content.present? }
+  #
+  # Hence the inherited default for `if` key is ignored.
+  #
   def with_options(options, &block)
     option_merger = ActiveSupport::OptionMerger.new(self, options)
     block.arity.zero? ? option_merger.instance_eval(&block) : block.call(option_merger)
