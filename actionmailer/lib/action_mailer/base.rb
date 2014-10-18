@@ -636,11 +636,12 @@ module ActionMailer
     # * +message-id+
     # * +references+
     #
-    # fields can only appear once in email headers while other fields such as <tt>X-Anything</tt>
-    # can appear multiple times. If you want to replace any header which already exists,
-    # first set it to nil in order to reset the value otherwise another field will be added
-    # for the same header.
+    # Fields can only appear once in email headers while other fields such as
+    # <tt>X-Anything</tt> can appear multiple times.
     #
+    # If you want to replace any header which already exists, first set it to
+    # +nil+ in order to reset the value otherwise another field will be added
+    # for the same header.
     def headers(args = nil)
       if args
         @_message.headers(args)
