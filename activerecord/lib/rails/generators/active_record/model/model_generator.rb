@@ -12,7 +12,7 @@ module ActiveRecord
       class_option :parent,     :type => :string, :desc => "The parent class for the generated model"
       class_option :indexes,    :type => :boolean, :default => true, :desc => "Add indexes for references and belongs_to columns"
 
-      
+
       # creates the migration file for the model.
 
       def create_migration_file
