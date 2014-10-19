@@ -30,7 +30,7 @@ module QuJobsManager
   def can_run?
     begin
       Qu.backend.connection.client.connect
-    rescue => e
+    rescue
       return false
     end
     true

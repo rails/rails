@@ -41,7 +41,7 @@ module ResqueJobsManager
   def can_run?
     begin
       Resque.redis.client.connect
-    rescue => e
+    rescue
       return false
     end
     true
