@@ -13,6 +13,13 @@ module ActiveRecord
         @hash     = hash
       end
 
+      # It allows to do a join, and filter by a scope on the joined model:
+      # class Account < ActiveRecord::Base
+      #   # Returns all the accounts that have unread messages.
+      #   def self.with_unread_messages
+      #     joins(:messages).merge( Message.unread )
+      #   end
+      # end
       def merge
         Merger.new(relation, other).merge
       end
