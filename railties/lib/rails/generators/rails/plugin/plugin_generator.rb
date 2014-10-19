@@ -329,7 +329,7 @@ task default: :test
       def valid_const?
         if original_name =~ /[^0-9a-zA-Z_]+/
           raise Error, "Invalid plugin name #{original_name}. Please give a name which use only alphabetic or numeric or \"_\" characters."
-        elsif camelized =~ /^\d/
+        elsif camelized.start_with?("0", "1", "2", "3", "4", "5", "6", "7", "8", "9")
           raise Error, "Invalid plugin name #{original_name}. Please give a name which does not start with numbers."
         elsif RESERVED_NAMES.include?(name)
           raise Error, "Invalid plugin name #{original_name}. Please give a name which does not match one of the reserved rails words."
@@ -381,7 +381,7 @@ end
       end
 
       def inside_application?
-        rails_app_path && app_path =~ /^#{rails_app_path}/
+        rails_app_path && app_path.start_with?(rails_app_path.to_s)
       end
 
       def relative_path

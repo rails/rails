@@ -118,7 +118,7 @@ module Rails
       end
 
       def foreign_key?
-        !!(name =~ /_id$/)
+        name.end_with?('_id')
       end
 
       def reference?
@@ -142,7 +142,7 @@ module Rails
       end
 
       def password_digest?
-        name == 'password' && type == :digest 
+        name == 'password' && type == :digest
       end
 
       def inject_options

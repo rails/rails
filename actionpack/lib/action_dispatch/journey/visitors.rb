@@ -87,8 +87,8 @@ module ActionDispatch
           def visit_DOT(n);     terminal(n); end
 
           private_instance_methods(false).each do |pim|
-            next unless pim =~ /^visit_(.*)$/
-            DISPATCH_CACHE[$1.to_sym] = pim
+            next unless pim.to_s.start_with?('visit_')
+            DISPATCH_CACHE[pim[/^visit_(.*)$/, 1].to_sym] = pim
           end
       end
 

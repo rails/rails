@@ -533,7 +533,7 @@ class MetalIntegrationTest < ActionDispatch::IntegrationTest
 
   class Poller
     def self.call(env)
-      if env["PATH_INFO"] =~ /^\/success/
+      if env["PATH_INFO"].start_with?("/success")
         [200, {"Content-Type" => "text/plain", "Content-Length" => "12"}, ["Hello World!"]]
       else
         [404, {"Content-Type" => "text/plain", "Content-Length" => "0"}, []]

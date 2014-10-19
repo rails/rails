@@ -112,7 +112,7 @@ class MultibyteConformanceTest < ActiveSupport::TestCase
         until f.eof? || (max_test_lines > 38 and lines > max_test_lines)
           lines += 1
           line = f.gets.chomp!
-          next if (line.empty? || line =~ /^\#/)
+          next if (line.empty? || line.start_with?('#'))
 
           cols, comment = line.split("#")
           cols = cols.split(";").map{|e| e.strip}.reject{|e| e.empty? }

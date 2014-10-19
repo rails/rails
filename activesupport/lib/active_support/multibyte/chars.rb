@@ -57,7 +57,7 @@ module ActiveSupport #:nodoc:
       # Forward all undefined methods to the wrapped string.
       def method_missing(method, *args, &block)
         result = @wrapped_string.__send__(method, *args, &block)
-        if method.to_s =~ /!$/
+        if method.to_s.end_with?('!')
           self if result
         else
           result.kind_of?(String) ? chars(result) : result

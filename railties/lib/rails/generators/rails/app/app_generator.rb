@@ -301,7 +301,7 @@ module Rails
       end
 
       def valid_const?
-        if app_const =~ /^\d/
+        if app_const.start_with?("0", "1", "2", "3", "4", "5", "6", "7", "8", "9")
           raise Error, "Invalid application name #{app_name}. Please give a name which does not start with numbers."
         elsif RESERVED_NAMES.include?(app_name)
           raise Error, "Invalid application name #{app_name}. Please give a name which does not match one of the reserved rails words."

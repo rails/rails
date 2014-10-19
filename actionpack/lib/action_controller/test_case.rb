@@ -244,8 +244,10 @@ module ActionController
 
     def recycle!
       @formats = nil
-      @env.delete_if { |k, v| k =~ /^(action_dispatch|rack)\.request/ }
-      @env.delete_if { |k, v| k =~ /^action_dispatch\.rescue/ }
+      @env.delete_if do |k, _|
+        k.start_with?('action_dispatch.request', 'rack.request')
+      end
+      @env.delete_if { |k, _| k.start_with?('action_dispatch.rescue') }
       @method = @request_method = nil
       @fullpath = @ip = @remote_ip = @protocol = nil
       @env['action_dispatch.request.query_parameters'] = {}

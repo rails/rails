@@ -81,7 +81,7 @@ module Rails
       end
 
       def test_file?(file)
-        file =~ /^test/ && File.file?(file) && !File.directory?(file)
+        file.start_with?('test') && File.file?(file) && !File.directory?(file)
       end
 
       def opt_names

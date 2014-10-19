@@ -142,7 +142,7 @@ module Rails
         if available_environments.include? env
           options[:environment] = env
         else
-          options[:environment] = %w(production development test).detect {|e| e =~ /^#{env}/} || env
+          options[:environment] = %w(production development test).detect {|e| e.start_with?(env)} || env
         end
       end
 
