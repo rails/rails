@@ -3478,7 +3478,7 @@ private
   end
 
   def method_missing(method, *args, &block)
-    if method.to_s =~ /_(path|url)$/
+    if method.to_s.end_with?('_path', '_url')
       @app.routes.url_helpers.send(method, *args, &block)
     else
       super

@@ -118,8 +118,8 @@ class TestJSONEncoding < ActiveSupport::TestCase
       begin
         prev = ActiveSupport.use_standard_json_time_format
 
-        ActiveSupport.escape_html_entities_in_json  = class_tests !~ /^Standard/
-        ActiveSupport.use_standard_json_time_format = class_tests =~ /^Standard/
+        ActiveSupport.escape_html_entities_in_json  = !class_tests.to_s.start_with?('Standard')
+        ActiveSupport.use_standard_json_time_format = class_tests.to_s.start_with?('Standard')
         self.class.const_get(class_tests).each do |pair|
           assert_equal pair.last, sorted_json(ActiveSupport::JSON.encode(pair.first))
         end

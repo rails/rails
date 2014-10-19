@@ -10,7 +10,7 @@ module ActiveSupport
         super
       end
 
-      instance_methods.each { |m| undef_method m unless m =~ /^__|^object_id$/ }
+      instance_methods.each { |m| undef_method m unless m.to_s.start_with?('__', 'object_id') }
 
       # Don't give a deprecation warning on inspect since test/unit and error
       # logs rely on it for diagnostics.

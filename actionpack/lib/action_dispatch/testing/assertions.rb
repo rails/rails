@@ -12,7 +12,7 @@ module ActionDispatch
     include Rails::Dom::Testing::Assertions
 
     def html_document
-      @html_document ||= if @response.content_type =~ /xml$/
+      @html_document ||= if @response.content_type.end_with?('xml')
         Nokogiri::XML::Document.parse(@response.body)
       else
         Nokogiri::HTML::DocumentFragment.parse(@response.body)

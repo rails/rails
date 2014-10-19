@@ -80,7 +80,7 @@ module ActionView
       case layout
       when String
         begin
-          if layout =~ /^\//
+          if layout.start_with?('/')
             with_fallbacks { find_template(layout, nil, false, keys, @details) }
           else
             find_template(layout, nil, false, keys, @details)
