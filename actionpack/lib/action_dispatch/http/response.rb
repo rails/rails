@@ -309,7 +309,7 @@ module ActionDispatch # :nodoc:
       cookies
     end
 
-    def _status_code
+    def _status_code #:nodoc:
       @status
     end
   private
