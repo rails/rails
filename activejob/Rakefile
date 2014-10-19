@@ -35,6 +35,7 @@ namespace :test do
       t.libs << 'test'
       t.test_files = FileList['test/cases/**/*_test.rb']
       t.verbose = true
+      t.warning = true
       t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
     end
 
@@ -53,6 +54,7 @@ namespace :test do
         t.libs << 'test'
         t.test_files = FileList['test/integration/**/*_test.rb']
         t.verbose = true
+        t.warning = true
         t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
       end
     end
