@@ -129,7 +129,7 @@ class Date
       options.fetch(:day, day)
     )
   end
-  
+
   # Allow Date to be compared with Time by converting to DateTime and relying on the <=> from there.
   def compare_with_coercion(other)
     if other.is_a?(Time)
