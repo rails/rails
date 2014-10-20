@@ -529,7 +529,8 @@ module ActionMailer
       # If a string or symbol is passed in it will be camelized and
       # constantized.
       def register_observer(observer)
-        delivery_observer = case observer
+        delivery_observer =
+          case observer
           when String, Symbol
             observer.to_s.camelize.constantize
           else
@@ -544,7 +545,8 @@ module ActionMailer
       # If a string or symbol is passed in it will be camelized and
       # constantized.
       def register_interceptor(interceptor)
-        delivery_interceptor = case interceptor
+        delivery_interceptor =
+          case interceptor
           when String, Symbol
             interceptor.to_s.camelize.constantize
           else
