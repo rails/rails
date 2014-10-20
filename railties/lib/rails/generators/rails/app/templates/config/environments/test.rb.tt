@@ -39,4 +39,8 @@ Rails.application.configure do
 
   # Raises error for missing translations
   # config.action_view.raise_on_missing_translations = true
+
+  # Rotates the log automatically. Keeps 5 files, each sized 10MB
+  config.logger_shift_age  = 5
+  config.logger_shift_size = 10 * 1024 * 1024 # 10 megabytes
 end

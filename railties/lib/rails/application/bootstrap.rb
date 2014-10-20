@@ -39,7 +39,11 @@ INFO
           f.binmode
           f.sync = config.autoflush_log # if true make sure every write flushes
 
-          logger = ActiveSupport::Logger.new f
+          logger_args = [f]
+          logger_args << config.logger_shift_age
+          logger_args << config.logger_shift_size if config.logger_shift_age.to_i > 0
+
+          logger = ActiveSupport::Logger.new(*logger_args.compact)
           logger.formatter = config.log_formatter
           logger = ActiveSupport::TaggedLogging.new(logger)
           logger
