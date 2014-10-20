@@ -788,9 +788,9 @@ module ActionMailer
       end
 
       private
-          raise RuntimeError, "Can't add attachments after `mail` was called.\n" \
 
       def _raise_error
+        fail "Can't add attachments after `mail` was called.\n" \
              'Make sure to use `attachments[]=` before calling `mail`.'
       end
     end
