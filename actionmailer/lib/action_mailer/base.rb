@@ -28,7 +28,7 @@ module ActionMailer
   #     def welcome(recipient)
   #       @account = recipient
   #       mail(to: recipient.email_address_with_name,
-  #            bcc: ["bcc@example.com", "Order Watcher <watcher@example.com>"])
+  #            bcc: ['bcc@example.com', 'Order Watcher <watcher@example.com>'])
   #     end
   #   end
   #
@@ -74,7 +74,7 @@ module ActionMailer
   # The block syntax is also useful in providing information specific to a part:
   #
   #   mail(to: user.email) do |format|
-  #     format.text(content_transfer_encoding: "base64")
+  #     format.text(content_transfer_encoding: 'base64')
   #     format.html
   #   end
   #
@@ -82,7 +82,7 @@ module ActionMailer
   #
   #   mail(to: user.email) do |format|
   #     format.text
-  #     format.html { render "some_other_template" }
+  #     format.html { render 'some_other_template' }
   #   end
   #
   # = Mailer views
@@ -127,11 +127,11 @@ module ActionMailer
   # When using <tt>url_for</tt> you'll need to provide the <tt>:host</tt>,
   # <tt>:controller</tt>, and <tt>:action</tt>:
   #
-  #   <%= url_for(host: "example.com", controller: "welcome", action: "greeting") %>
+  #   <%= url_for(host: 'example.com', controller: 'welcome', action: 'greeting') %>
   #
   # When using named routes you only need to supply the <tt>:host</tt>:
   #
-  #   <%= users_url(host: "example.com") %>
+  #   <%= users_url(host: 'example.com') %>
   #
   # You should use the <tt>named_route_url</tt> style (which generates absolute
   # URLs) and avoid using the <tt>named_route_path</tt> style (which generates
@@ -142,7 +142,7 @@ module ActionMailer
   # by setting the <tt>:host</tt> option as a configuration option in
   # <tt>config/application.rb</tt>:
   #
-  #   config.action_mailer.default_url_options = { host: "example.com" }
+  #   config.action_mailer.default_url_options = { host: 'example.com' }
   #
   # When you decide to set a default <tt>:host</tt> for your mailers, then you
   # need to make sure to use the <tt>only_path: false</tt> option when using
@@ -208,7 +208,7 @@ module ActionMailer
   #   class ApplicationMailer < ActionMailer::Base
   #     def welcome(recipient)
   #       attachments['free_book.pdf'] = File.read('path/to/file.pdf')
-  #       mail(to: recipient, subject: "New account information")
+  #       mail(to: recipient, subject: 'New account information')
   #     end
   #   end
   #
@@ -225,7 +225,7 @@ module ActionMailer
   #     class ApplicationMailer < ActionMailer::Base
   #       def welcome(recipient)
   #         attachments['free_book.pdf'] = File.read('path/to/file.pdf')
-  #         mail(to: recipient, subject: "New account information", body: "")
+  #         mail(to: recipient, subject: 'New account information', body: '')
   #       end
   #     end
   #
@@ -237,7 +237,7 @@ module ActionMailer
   #   class ApplicationMailer < ActionMailer::Base
   #     def welcome(recipient)
   #       attachments.inline['photo.png'] = File.read('path/to/photo.png')
-  #       mail(to: recipient, subject: "Here is what we look like")
+  #       mail(to: recipient, subject: 'Here is what we look like')
   #     end
   #   end
   #
@@ -325,7 +325,7 @@ module ActionMailer
   # mailers through the <tt>default_options=</tt> configuration in
   # <tt>config/application.rb</tt>:
   #
-  #    config.action_mailer.default_options = { from: "no-reply@example.org" }
+  #    config.action_mailer.default_options = { from: 'no-reply@example.org' }
   #
   # = Callbacks
   #
@@ -344,7 +344,7 @@ module ActionMailer
   #     private
   #
   #       def add_inline_attachment!
-  #         attachments.inline["footer.jpg"] = File.read('/path/to/filename.jpg')
+  #         attachments.inline['footer.jpg'] = File.read('/path/to/filename.jpg')
   #       end
   #   end
   #
@@ -376,7 +376,7 @@ module ActionMailer
   # previews directory can be configured using the <tt>preview_path</tt> option
   # which has a default of <tt>test/mailers/previews</tt>:
   #
-  #   config.action_mailer.preview_path = "#{Rails.root}/lib/mailer_previews"
+  #   config.action_mailer.preview_path = '#{Rails.root}/lib/mailer_previews'
   #
   # An overview of all previews is accessible at
   # <tt>http://localhost:3000/rails/mailers</tt> on a running development server
@@ -501,10 +501,10 @@ module ActionMailer
 
     class_attribute :default_params
     self.default_params = {
-      mime_version: "1.0",
-      charset:      "UTF-8",
-      content_type: "text/plain",
-      parts_order:  [ "text/plain", "text/enriched", "text/html" ]
+      mime_version: '1.0',
+      charset:      'UTF-8',
+      content_type: 'text/plain',
+      parts_order:  ['text/plain', 'text/enriched', 'text/html']
     }.freeze
 
     class << self
@@ -558,7 +558,7 @@ module ActionMailer
       # path for a view lookup. If this is an anonymous mailer, this method will
       # return +anonymous+ instead.
       def mailer_name
-        @mailer_name ||= anonymous? ? "anonymous" : name.underscore
+        @mailer_name ||= anonymous? ? 'anonymous' : name.underscore
       end
       # Allows to set the name of current mailer.
       attr_writer :mailer_name
@@ -566,7 +566,7 @@ module ActionMailer
 
       # Sets the defaults through app configuration:
       #
-      #     config.action_mailer.default { from: "no-reply@example.org" }
+      #     config.action_mailer.default { from: 'no-reply@example.org' }
       #
       # Aliased by ::default_options=
       def default(value = nil)
@@ -575,8 +575,8 @@ module ActionMailer
       end
       # Allows to set defaults through app configuration:
       #
-      #    config.action_mailer.default_options = { from: "no-reply@example.org" }
       alias :default_options= :default
+      #  config.action_mailer.default_options = { from: 'no-reply@example.org' }
 
       # Receives a raw email, parses it into an email object, decodes it,
       # instantiates a new mailer, and passes the email object to the mailer
@@ -647,7 +647,7 @@ module ActionMailer
 
     # Instantiate a new mailer object. If +method_name+ is not +nil+, the mailer
     # will be initialized according to the named method. If not, the mailer will
-    # remain uninitialized (useful when you only need to invoke the "receive"
+    # remain uninitialized (useful when you only need to invoke the 'receive'
     # method, for instance).
     def initialize(method_name = nil, *args)
       super()
@@ -691,12 +691,12 @@ module ActionMailer
     # Allows you to pass random and unusual headers to the new
     # <tt>Mail::Message</tt> object which will add them to itself.
     #
-    #   headers['X-Special-Domain-Specific-Header'] = "SecretValue"
+    #   headers['X-Special-Domain-Specific-Header'] = 'SecretValue'
     #
     # You can also pass a hash into headers of header field names and values,
     # which will then be set on the <tt>Mail::Message</tt> object:
     #
-    #   headers 'X-Special-Domain-Specific-Header' => "SecretValue",
+    #   headers 'X-Special-Domain-Specific-Header' => 'SecretValue',
     #           'In-Reply-To' => incoming.message_id
     #
     # The resulting <tt>Mail::Message</tt> will have the following in its
@@ -779,10 +779,11 @@ module ActionMailer
       def []=(_name, _content); _raise_error end
 
       private
-        def _raise_error
           raise RuntimeError, "Can't add attachments after `mail` was called.\n" \
-                              "Make sure to use `attachments[]=` before calling `mail`."
-        end
+
+      def _raise_error
+             'Make sure to use `attachments[]=` before calling `mail`.'
+      end
     end
 
     # The main method that creates the message and renders the email templates.
@@ -842,14 +843,16 @@ module ActionMailer
     #     end
     #   end
     #
-    # Will look for all templates at "app/views/notifier" with name "welcome".
-    # If no welcome template exists, it will raise an ActionView::MissingTemplate error.
+    # Will look for all templates at 'app/views/notifier' with name 'welcome'.
+    # If no welcome template exists, it will raise an
+    # ActionView::MissingTemplate error.
     #
     # However, those can be customized:
     #
     #   mail(template_path: 'notifications', template_name: 'another')
     #
-    # And now it will look for all templates at "app/views/notifications" with name "another".
+    # And now it will look for all templates at 'app/views/notifications' with
+    # name 'another'.
     #
     # If you do pass a block, you can render specific templates of your choice:
     #
@@ -861,8 +864,8 @@ module ActionMailer
     # You can even render plain text directly without using a template:
     #
     #   mail(to: 'mikel@test.lindsaar.net') do |format|
-    #     format.text { render plain: "Hello Mikel!" }
-    #     format.html { render html: "<h1>Hello Mikel!</h1>".html_safe }
+    #     format.text { render plain: 'Hello Mikel!' }
+    #     format.html { render html: '<h1>Hello Mikel!</h1>'.html_safe }
     #   end
     #
     # Which will render a +multipart/alternative+ email with +text/plain+ and
@@ -871,7 +874,7 @@ module ActionMailer
     # The block syntax also allows you to customize the part headers if desired:
     #
     #   mail(to: 'mikel@test.lindsaar.net') do |format|
-    #     format.text(content_transfer_encoding: "base64")
+    #     format.text(content_transfer_encoding: 'base64')
     #     format.html
     #   end
     #
@@ -937,7 +940,7 @@ module ActionMailer
     #
     # It will use the given +user_content_type+, or multipart if the mail
     # message has any attachments. If the attachments are inline, the content
-    # type will be "multipart/related", otherwise "multipart/mixed".
+    # type will be 'multipart/related', otherwise 'multipart/mixed'.
     #
     # If there is no content type passed in via headers, and there are no
     # attachments, or the message is multipart, then the default content type is
@@ -949,12 +952,12 @@ module ActionMailer
         user_content_type
       when m.has_attachments?
         if m.attachments.detect { |a| a.inline? }
-          ["multipart", "related", params]
+          ['multipart', 'related', params]
         else
-          ["multipart", "mixed", params]
+          ['multipart', 'mixed', params]
         end
       when m.multipart?
-        ["multipart", "alternative", params]
+        ['multipart', 'alternative', params]
       else
         m.content_type || class_default
       end
@@ -988,7 +991,7 @@ module ActionMailer
       elsif headers[:body]
         responses << {
           body: headers.delete(:body),
-          content_type: self.class.default[:content_type] || "text/plain"
+          content_type: self.class.default[:content_type] || 'text/plain'
         }
       else
         templates_path =
@@ -1028,7 +1031,7 @@ module ActionMailer
         responses[0].each { |k, v| m[k] = v }
       elsif responses.size > 1 && m.has_attachments?
         container = Mail::Part.new
-        container.content_type = "multipart/alternative"
+        container.content_type = 'multipart/alternative'
         responses.each { |r| insert_part(container, r, m.charset) }
         m.add_part(container)
       else
