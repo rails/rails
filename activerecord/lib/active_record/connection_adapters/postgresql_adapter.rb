@@ -698,12 +698,6 @@ module ActiveRecord
           exec_query("SELECT currval('#{sequence_name}')", 'SQL')
         end
 
-        # Executes a SELECT query and returns the results, performing any data type
-        # conversions that are required to be performed here instead of in PostgreSQLColumn.
-        def select(sql, name = nil, binds = [])
-          exec_query(sql, name, binds)
-        end
-
         # Returns the list of a table's column names, data types, and default values.
         #
         # The underlying query is roughly:
