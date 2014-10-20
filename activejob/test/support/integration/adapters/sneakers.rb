@@ -68,7 +68,7 @@ module SneakersJobsManager
   def can_run?
     begin
       bunny_publisher
-    rescue => e
+    rescue
       return false
     end
     true
