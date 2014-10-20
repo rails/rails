@@ -960,7 +960,7 @@ module ActionMailer
       when user_content_type.present?
         user_content_type
       when m.has_attachments?
-        if m.attachments.detect { |a| a.inline? }
+        if m.attachments.find { |a| a.inline? }
           ['multipart', 'related', params]
         else
           ['multipart', 'mixed', params]
