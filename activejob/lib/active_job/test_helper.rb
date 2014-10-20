@@ -71,7 +71,7 @@ module ActiveJob
       #
       # Note: This assertion is simply a shortcut for:
       #
-      #   assert_enqueued_jobs 0
+      #   assert_enqueued_jobs 0, &block
       def assert_no_enqueued_jobs(&block)
         assert_enqueued_jobs 0, &block
       end
@@ -130,7 +130,7 @@ module ActiveJob
       #
       # Note: This assertion is simply a shortcut for:
       #
-      #   assert_performed_jobs 0
+      #   assert_performed_jobs 0, &block
       def assert_no_performed_jobs(&block)
         assert_performed_jobs 0, &block
       end

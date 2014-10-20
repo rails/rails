@@ -10,7 +10,7 @@ module ActiveJob
       # GlobalID::Identification instances. Arbitrary Ruby objects
       # are not supported.
       #
-      # Returns an instance of the job class queued with args available in
+      # Returns an instance of the job class queued with arguments available in
       # Job#arguments.
       def perform_later(*args)
         job_or_instantiate(*args).enqueue
