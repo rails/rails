@@ -13,7 +13,7 @@ module ActiveRecord
         @hash     = hash
       end
 
-      def merge
+      def merge #:nodoc:
         Merger.new(relation, other).merge
       end
 
