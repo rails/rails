@@ -44,6 +44,10 @@ module ActiveJob #:nodoc:
   #
   # More information can be found in ActiveJob::Core::ClassMethods#set
   #
+  # A job can also be processed synchronously:
+  #
+  #  ProcessPhotoJob.perform_now(photo)
+  #
   # == Exceptions
   #
   # * DeserializationError - Error class for deserialization errors.
