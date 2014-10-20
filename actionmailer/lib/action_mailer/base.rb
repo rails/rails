@@ -564,7 +564,7 @@ module ActionMailer
       end
       # Allows to set the name of current mailer.
       attr_writer :mailer_name
-      alias :controller_path :mailer_name
+      alias_method :controller_path, :mailer_name
 
       # Sets the defaults through app configuration:
       #
@@ -577,8 +577,8 @@ module ActionMailer
       end
       # Allows to set defaults through app configuration:
       #
-      alias :default_options= :default
       #  config.action_mailer.default_options = { from: 'no-reply@example.org' }
+      alias_method :default_options=, :default
 
       # Receives a raw email, parses it into an email object, decodes it,
       # instantiates a new mailer, and passes the email object to the mailer
