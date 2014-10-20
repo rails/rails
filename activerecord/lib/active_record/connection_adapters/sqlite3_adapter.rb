@@ -514,10 +514,6 @@ module ActiveRecord
           register_class_with_limit m, %r(char)i, SQLite3String
         end
 
-        def select(sql, name = nil, binds = []) #:nodoc:
-          exec_query(sql, name, binds)
-        end
-
         def table_structure(table_name)
           structure = exec_query("PRAGMA table_info(#{quote_table_name(table_name)})", 'SCHEMA').to_hash
           raise(ActiveRecord::StatementInvalid, "Could not find table '#{table_name}'") if structure.empty?
