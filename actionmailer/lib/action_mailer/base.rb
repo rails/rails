@@ -649,7 +649,7 @@ module ActionMailer
     # will be initialized according to the named method. If not, the mailer will
     # remain uninitialized (useful when you only need to invoke the "receive"
     # method, for instance).
-    def initialize(method_name=nil, *args)
+    def initialize(method_name = nil, *args)
       super()
       @_mail_was_called = false
       @_message = Mail.new
@@ -674,7 +674,7 @@ module ActionMailer
     class NullMail #:nodoc:
       def body; '' end
 
-      def respond_to?(string, include_all=false)
+      def respond_to?(_string, _include_all=false)
         true
       end
 
@@ -885,7 +885,7 @@ module ActionMailer
 
       # Call all the procs (if any)
       default_values = {}
-      self.class.default.each do |k,v|
+      self.class.default.each do |k, v|
         default_values[k] = v.is_a?(Proc) ? instance_eval(&v) : v
       end
 
@@ -1025,7 +1025,7 @@ module ActionMailer
 
     def create_parts_from_responses(m, responses) #:nodoc:
       if responses.size == 1 && !m.has_attachments?
-        responses[0].each { |k,v| m[k] = v }
+        responses[0].each { |k, v| m[k] = v }
       elsif responses.size > 1 && m.has_attachments?
         container = Mail::Part.new
         container.content_type = "multipart/alternative"
