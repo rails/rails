@@ -674,7 +674,9 @@ module ActionMailer
     end
 
     class NullMail #:nodoc:
-      def body; '' end
+      def body
+        ''
+      end
 
       def respond_to?(_string, _include_all=false)
         true
@@ -777,8 +779,13 @@ module ActionMailer
     end
 
     class LateAttachmentsProxy < SimpleDelegator
-      def inline; _raise_error end
-      def []=(_name, _content); _raise_error end
+      def inline
+        _raise_error
+      end
+
+      def []=(_name, _content)
+        _raise_error
+      end
 
       private
           raise RuntimeError, "Can't add attachments after `mail` was called.\n" \
