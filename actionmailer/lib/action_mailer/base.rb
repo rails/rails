@@ -620,7 +620,7 @@ module ActionMailer
         super || action_methods.include?(method.to_s)
       end
 
-    protected
+      protected
 
       def set_payload_for_mail(payload, mail) #:nodoc:
         payload[:mailer]     = name
@@ -931,7 +931,7 @@ module ActionMailer
       m
     end
 
-  protected
+    protected
 
     # Used by #mail to set the content type of the message.
     #
