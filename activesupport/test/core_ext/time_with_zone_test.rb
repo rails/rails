@@ -1,6 +1,7 @@
 require 'abstract_unit'
 require 'active_support/time'
 require 'time_zone_test_helpers'
+require 'active_support/core_ext/string/strip'
 
 class TimeWithZoneTest < ActiveSupport::TestCase
   include TimeZoneTestHelpers
@@ -123,11 +124,53 @@ class TimeWithZoneTest < ActiveSupport::TestCase
   end
 
   def test_to_yaml
-    assert_match(/^--- 2000-01-01 00:00:00(\.0+)?\s*Z\n/, @twz.to_yaml)
+    yaml = <<-EOF.strip_heredoc
+      --- !ruby/object:ActiveSupport::TimeWithZone
+      utc: 2000-01-01 00:00:00.000000000 Z
+      zone: !ruby/object:ActiveSupport::TimeZone
+        name: America/New_York
+      time: 1999-12-31 19:00:00.000000000 Z
+    EOF
+
+    assert_equal(yaml, @twz.to_yaml)
   end
 
   def test_ruby_to_yaml
-    assert_match(/---\s*\n:twz: 2000-01-01 00:00:00(\.0+)?\s*Z\n/, {:twz => @twz}.to_yaml)
+    yaml = <<-EOF.strip_heredoc
+      ---
+      twz: !ruby/object:ActiveSupport::TimeWithZone
+        utc: 2000-01-01 00:00:00.000000000 Z
+        zone: !ruby/object:ActiveSupport::TimeZone
+          name: America/New_York
+        time: 1999-12-31 19:00:00.000000000 Z
+    EOF
+
+    assert_equal(yaml, { 'twz' => @twz }.to_yaml)
+  end
+
+  def test_yaml_load
+    yaml = <<-EOF.strip_heredoc
+      --- !ruby/object:ActiveSupport::TimeWithZone
+      utc: 2000-01-01 00:00:00.000000000 Z
+      zone: !ruby/object:ActiveSupport::TimeZone
+        name: America/New_York
+      time: 1999-12-31 19:00:00.000000000 Z
+    EOF
+
+    assert_equal(@twz, YAML.load(yaml))
+  end
+
+  def test_ruby_yaml_load
+    yaml = <<-EOF.strip_heredoc
+      ---
+      twz: !ruby/object:ActiveSupport::TimeWithZone
+        utc: 2000-01-01 00:00:00.000000000 Z
+        zone: !ruby/object:ActiveSupport::TimeZone
+          name: America/New_York
+        time: 1999-12-31 19:00:00.000000000 Z
+    EOF
+
+    assert_equal({ 'twz' => @twz }, YAML.load(yaml))
   end
 
   def test_httpdate
