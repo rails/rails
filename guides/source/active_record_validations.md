@@ -361,6 +361,8 @@ class Product < ActiveRecord::Base
 end
 ```
 
+Alternatively, you can require that the specified attribute does _not_ match the regular expression by using the `:without` option.
+
 The default error message is _"is invalid"_.
 
 ### `inclusion`
@@ -704,7 +706,7 @@ we don't want names and surnames to begin with lower case.
 ```ruby
 class Person < ActiveRecord::Base
   validates_each :name, :surname do |record, attr, value|
-    record.errors.add(attr, 'must start with upper case') if value =~ /\A[a-z]/
+    record.errors.add(attr, 'must start with upper case') if value =~ /\A[[:lower:]]/
   end
 end
 ```

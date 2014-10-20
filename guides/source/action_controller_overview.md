@@ -1221,7 +1221,9 @@ Create the controller and views.
       error.html.erb
   ```
 
-Do not forget to set the correct status code on the controller as shown before. You should avoid using the database or any complex operations because the user is already on the error page. Generating another error while on an error page could cause issues.
+Do not forget to set the correct status code on the controller as shown before.
+
+WARNING: You should avoid using the database or any complex operations because the user is already on the error page. Generating another error while on an error page could cause issues like presenting an empty page for the users.
 
 Force HTTPS protocol
 --------------------

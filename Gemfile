@@ -2,8 +2,6 @@ source 'https://rubygems.org'
 
 gemspec
 
-gem 'rails-dom-testing', github: 'rails/rails-dom-testing'
-
 # We need a newish Rake since Active Job sets its test tasks' descriptions.
 gem 'rake', '>= 10.3'
 

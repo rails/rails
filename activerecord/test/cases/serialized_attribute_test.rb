@@ -140,11 +140,10 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     assert_equal 1, Topic.where(:content => nil).count
   end
 
-  def test_serialized_attribute_should_raise_exception_on_save_with_wrong_type
+  def test_serialized_attribute_should_raise_exception_on_assignment_with_wrong_type
     Topic.serialize(:content, Hash)
     assert_raise(ActiveRecord::SerializationTypeMismatch) do
-      topic = Topic.new(content: 'string')
-      topic.save
+      Topic.new(content: 'string')
     end
   end
 

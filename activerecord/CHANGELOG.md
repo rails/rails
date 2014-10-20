@@ -1,3 +1,10 @@
+*   `AR::UnknownAttributeError` now includes the class name of a record.
+
+        User.new(name: "Yuki Nishijima", project_attributes: {name: "kaminari"})
+        # => ActiveRecord::UnknownAttributeError: unknown attribute 'name' for User.
+
+    *Yuki Nishijima*
+
 *   Fix regression causing `after_create` callbacks to run before associated
     records are autosaved.
 

@@ -1,4 +1,4 @@
-*   Remove --skip-action-view option from Rails::Generators::AppBase
+*   Remove `--skip-action-view` option from `Rails::Generators::AppBase`.
 
     Fixes #17023.
 

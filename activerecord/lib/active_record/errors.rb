@@ -167,7 +167,7 @@ module ActiveRecord
     def initialize(record, attribute)
       @record = record
       @attribute = attribute.to_s
-      super("unknown attribute: #{attribute}")
+      super("unknown attribute '#{attribute}' for #{@record.class}.")
     end
 
   end
