@@ -97,6 +97,14 @@ class NumericExtDateTest < ActiveSupport::TestCase
 end
 
 class NumericExtSizeTest < ActiveSupport::TestCase
+  def test_unit_prefix
+    assert_equal 1000.kilobytes(:binary), 1000.kilobytes(:prefix => :binary)
+    assert_equal 1000.kilobytes(:binary), 1000.kilobytes("prefix" => :binary)
+
+    assert_equal 1000.kilobytes(:si), 1000.kilobytes(:prefix => :si)
+    assert_equal 1000.kilobytes(:si), 1000.kilobytes("prefix" => :si)
+  end
+
   def test_unit_in_terms_of_another
     assert_equal 1024.bytes, 1.kilobyte
     assert_equal 1024.kilobytes, 1.megabyte
@@ -108,6 +116,17 @@ class NumericExtSizeTest < ActiveSupport::TestCase
     assert_equal 256.megabytes * 20 + 5.gigabytes, 10.gigabytes
     assert_equal 1.kilobyte ** 5, 1.petabyte
     assert_equal 1.kilobyte ** 6, 1.exabyte
+
+    assert_equal 1000.bytes(:si), 1.kilobyte(:si)
+    assert_equal 1000.kilobytes(:si), 1.megabyte(:si)
+    assert_equal 3500.0.kilobytes(:si), 3.5.megabytes(:si)
+    assert_equal 3500.0.megabytes(:si), 3.5.gigabytes(:si)
+    assert_equal 1.kilobyte(:si) ** 4, 1.terabyte(:si)
+    assert_equal 1000.kilobytes(:si) + 2.megabytes(:si), 3.megabytes(:si)
+    assert_equal 2.gigabytes(:si) / 4, 500.megabytes(:si)
+    assert_equal 250.megabytes(:si) * 20 + 5.gigabytes(:si), 10.gigabytes(:si)
+    assert_equal 1.kilobyte(:si) ** 5, 1.petabyte(:si)
+    assert_equal 1.kilobyte(:si) ** 6, 1.exabyte(:si)
   end
 
   def test_units_as_bytes_independently
@@ -123,6 +142,19 @@ class NumericExtSizeTest < ActiveSupport::TestCase
     assert_equal 3377699720527872, 3.petabyte
     assert_equal 3458764513820540928, 3.exabytes
     assert_equal 3458764513820540928, 3.exabyte
+
+    assert_equal 3000000, 3.megabytes(:si)
+    assert_equal 3000000, 3.megabyte(:si)
+    assert_equal 3000, 3.kilobytes(:si)
+    assert_equal 3000, 3.kilobyte(:si)
+    assert_equal 3000000000, 3.gigabytes(:si)
+    assert_equal 3000000000, 3.gigabyte(:si)
+    assert_equal 3000000000000, 3.terabytes(:si)
+    assert_equal 3000000000000, 3.terabyte(:si)
+    assert_equal 3000000000000000, 3.petabytes(:si)
+    assert_equal 3000000000000000, 3.petabyte(:si)
+    assert_equal 3000000000000000000, 3.exabytes(:si)
+    assert_equal 3000000000000000000, 3.exabyte(:si)
   end
 end
 
