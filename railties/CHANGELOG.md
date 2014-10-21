@@ -1,3 +1,10 @@
+*   The value of `config.serve_static_asset` in `production.rb` will
+    default to `ENV["SERVE_STATIC_ASSETS"]` in new apps. The values
+    `"false"`, `false`, or `nil` will disable the service of static assets.
+    Any other values will enable the feature.
+
+    *Richard Schneeman*
+
 *   Remove `--skip-action-view` option from `Rails::Generators::AppBase`.
 
     Fixes #17023.
