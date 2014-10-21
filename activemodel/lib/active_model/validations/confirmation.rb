@@ -3,14 +3,21 @@ module ActiveModel
   module Validations
     class ConfirmationValidator < EachValidator # :nodoc:
       def initialize(options)
-        super
+        super({ case_sensitive: true }.merge!(options))
         setup!(options[:class])
       end
 
       def validate_each(record, attribute, value)
-        if (confirmed = record.send("#{attribute}_confirmation")) && (value != confirmed)
-          human_attribute_name = record.class.human_attribute_name(attribute)
-          record.errors.add(:"#{attribute}_confirmation", :confirmation, options.merge(attribute: human_attribute_name))
+        if (confirmed = record.send("#{attribute}_confirmation"))
+          confirmation_unequal = if options[:case_sensitive]
+                                   value != confirmed
+                                 else
+                                   value.casecmp(confirmed) != 0
+                                 end
+          if confirmation_unequal
+            human_attribute_name = record.class.human_attribute_name(attribute)
+            record.errors.add(:"#{attribute}_confirmation", :confirmation, options.merge(attribute: human_attribute_name))
+          end
         end
       end
 
