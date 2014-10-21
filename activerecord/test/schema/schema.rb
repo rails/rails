@@ -655,6 +655,14 @@ ActiveRecord::Schema.define do
     t.string :sponsorable_type
   end
 
+  create_table :sti_comments, force: true do |t|
+    t.integer :item_id
+    t.string :item_type
+  end
+
+  create_table :sti_posts, force: true do |t|
+  end
+
   create_table :string_key_objects, id: false, primary_key: :id, force: true do |t|
     t.string     :id
     t.string     :name
