@@ -135,6 +135,7 @@ module ActiveRecord
         super(connection, logger)
 
         @active     = nil
+        @table_structures = {}
         @statements = StatementPool.new(@connection,
                                         self.class.type_cast_config_to_integer(config.fetch(:statement_limit) { 1000 }))
         @config = config
@@ -515,9 +516,9 @@ module ActiveRecord
         end
 
         def table_structure(table_name)
-          structure = exec_query("PRAGMA table_info(#{quote_table_name(table_name)})", 'SCHEMA').to_hash
-          raise(ActiveRecord::StatementInvalid, "Could not find table '#{table_name}'") if structure.empty?
-          structure
+          @table_structures[table_name] ||= exec_query("PRAGMA table_info(#{quote_table_name(table_name)})", 'SCHEMA').to_hash
+          raise(ActiveRecord::StatementInvalid, "Could not find table '#{table_name}'") if @table_structures[table_name].empty?
+          @table_structures[table_name]
         end
 
         def alter_table(table_name, options = {}) #:nodoc:
