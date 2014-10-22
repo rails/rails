@@ -59,7 +59,7 @@ class Object
   # does not implement the tried method.
   def try!(*a, &b)
     if a.empty? && block_given?
-      yield self
+      try(*a, &b)
     else
       public_send(*a, &b)
     end
