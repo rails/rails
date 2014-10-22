@@ -234,7 +234,7 @@ module ActionDispatch
                     "If you want to expose your action to GET, use `get` in the router:\n" \
                     "  Instead of: match \"controller#action\"\n" \
                     "  Do: get \"controller#action\"\n" \
-                    "  Used options: #{options.inspect}"
+                    "  Used conditions: #{conditions.inspect}"
               raise ArgumentError, msg
             end
 
