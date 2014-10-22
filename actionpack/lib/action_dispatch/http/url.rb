@@ -37,11 +37,16 @@ module ActionDispatch
         end
 
         def full_url_for(options)
+          if options[:only_path]
+            ActiveSupport::Deprecation.warn "Passing an :only_path option to a *_url helper is " \
+              "deprecated and will be removed in a future version. The *_url " \
+              "helper is for generating a full url, not just a path."
+          end
           host     = options[:host]
           protocol = options[:protocol]
           port     = options[:port]
 
-          unless host
+          unless host || options[:only_path]
             raise ArgumentError, 'Missing host to link to! Please provide the :host parameter, set default_url_options[:host], or set :only_path to true'
           end
 
@@ -91,6 +96,7 @@ module ActionDispatch
         end
 
         def build_host_url(host, port, protocol, options, path)
+          return path unless host
           if match = host.match(HOST_REGEXP)
             protocol ||= match[1] unless protocol == false
             host       = match[2]

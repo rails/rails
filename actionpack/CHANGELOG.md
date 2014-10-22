@@ -1,3 +1,12 @@
+*   Deprecate ignored :only_path option on *_url helper.
+
+    The :only_path option is no longer valid on *_url helper methods.
+    Use the *_path helper instead.
+
+    Fixes #17294.
+
+    *Dan Olson*
+
 *   Improve Journey compliance to RFC 3986.
 
     The scanner in Journey failed to recognize routes that use literals
