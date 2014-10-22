@@ -1026,6 +1026,7 @@ module ApplicationTests
       require "#{app_path}/config/environment"
 
       assert_equal 'custom key', Rails.application.config.my_custom_config['key']
+      assert_equal 'custom key', Rails.application.config.my_custom_config[:key]
     end
 
     test "config_for raises an exception if the file does not exist" do
