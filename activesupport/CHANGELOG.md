@@ -63,7 +63,7 @@
 
     *Guo Xiang Tan*
 
-*   Added instance_eval version to Object#try, so you can do this:
+*   Added instance_eval version to Object#try and Object#try!, so you can do this:
 
         person.try { name.first }
 
@@ -71,7 +71,7 @@
 
         person.try { |person| person.name.first }
 
-    *DHH*
+    *DHH*, *Ari Pollak*
 
 *   Fix the `ActiveSupport::Duration#instance_of?` method to return the right
     value with the class itself since it was previously delegated to the

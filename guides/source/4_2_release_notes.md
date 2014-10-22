@@ -750,6 +750,10 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 ### Notable changes
 
+*   `Object#try` and `Object#try!` can now be used without an explicit receiver.
+    ([Commit](https://github.com/rails/rails/commit/5e51bdda59c9ba8e5faf86294e3e431bd45f1830),
+    [Pull Request](https://github.com/rails/rails/pull/17361))
+
 *   Introduced new configuration option `active_support.test_order` for
     specifying the order test cases are executed. This option currently defaults
     to `:sorted` but will be changed to `:random` in Rails 5.0.
