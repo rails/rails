@@ -1,5 +1,6 @@
 require 'rack/session/abstract/id'
 require 'action_controller/metal/exceptions'
+require 'active_support/security_utils'
 
 module ActionController #:nodoc:
   class InvalidAuthenticityToken < ActionControllerError #:nodoc:
@@ -305,8 +306,7 @@ module ActionController #:nodoc:
       end
 
       def compare_with_real_token(token, session)
-        # Borrow a constant-time comparison from Rack
-        Rack::Utils.secure_compare(token, real_csrf_token(session))
+        ActiveSupport::SecurityUtils.secure_compare(token, real_csrf_token(session))
       end
 
       def real_csrf_token(session)
