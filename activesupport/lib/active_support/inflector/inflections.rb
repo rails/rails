@@ -154,7 +154,7 @@ module ActiveSupport
         end
       end
 
-      # Add uncountable words that shouldn't be attempted inflected.
+      # Specifies words that are uncountable and should not be inflected.
       #
       #   uncountable 'money'
       #   uncountable 'money', 'information'
