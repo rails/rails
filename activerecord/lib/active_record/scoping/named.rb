@@ -139,6 +139,9 @@ module ActiveRecord
         #   Article.published.featured.latest_article
         #   Article.featured.titles
         def scope(name, body, &block)
+          raise ArgumentError, 'You need to suply a callable as scope body' unless
+            body.respond_to?(:call)
+
           if dangerous_class_method?(name)
             raise ArgumentError, "You tried to define a scope named \"#{name}\" " \
               "on the model \"#{self.name}\", but Active Record already defined " \
