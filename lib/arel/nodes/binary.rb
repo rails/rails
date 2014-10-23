@@ -16,7 +16,7 @@ module Arel
       end
 
       def hash
-        [@left, @right].hash
+        [self.class, @left, @right].hash
       end
 
       def eql? other
