@@ -184,7 +184,7 @@ comments_with_replies = \
 
 This will return the reply for the first comment.
 
-[Common Table Expresssions(CTE)](https://en.wikipedia.org/wiki/Common_table_expressions#Common_table_expression) support via:
+[Common Table Expressions(CTE)](https://en.wikipedia.org/wiki/Common_table_expressions#Common_table_expression) support via:
 
 Create a `CTE`
 
