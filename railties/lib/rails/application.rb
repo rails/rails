@@ -226,7 +226,7 @@ module Rails
       if yaml.exist?
         require "yaml"
         require "erb"
-        (YAML.load(ERB.new(yaml.read).result) || {})[Rails.env] || {}
+        ((YAML.load(ERB.new(yaml.read).result) || {})[Rails.env] || {}).with_indifferent_access
       else
         raise "Could not load configuration. No such file - #{yaml}"
       end
