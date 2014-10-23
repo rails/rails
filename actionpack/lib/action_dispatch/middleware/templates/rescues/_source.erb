@@ -1,7 +1,7 @@
 <% if @source_extract %>
   <% @source_extract.each_with_index do |extract_source, index| %>
     <% if extract_source[:code] %>
-      <div class="source <%="hidden" if index != 0%>" id="frame-source-<%=index%>">
+      <div class="source <%="hidden" if @show_source_idx != index%>" id="frame-source-<%=index%>">
         <div class="info">
           Extracted source (around line <strong>#<%= extract_source[:line_number] %></strong>):
         </div>
