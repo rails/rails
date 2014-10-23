@@ -549,14 +549,108 @@ module Arel
       end
 
       describe '#in' do
-        it 'can be constructed with a list' do
+        it 'can be constructed with a subquery' do
+          relation = Table.new(:users)
+          mgr = relation.project relation[:id]
+          mgr.where relation[:name].does_not_match_all(['%chunky%','%bacon%'])
+          attribute = Attribute.new nil, nil
+
+          node = attribute.in(mgr)
+
+          node.must_equal Nodes::In.new(attribute, mgr.ast)
         end
 
-        it 'should return an in node' do
+        describe 'with a range' do
+          it 'can be constructed with a standard range' do
+            attribute = Attribute.new nil, nil
+            node = attribute.in(1..3)
+
+            node.must_equal Nodes::Between.new(
+              attribute,
+              Nodes::And.new([
+                Nodes::Casted.new(1, attribute),
+                Nodes::Casted.new(3, attribute)
+              ])
+            )
+          end
+
+          it 'can be constructed with a range starting from -Infinity' do
+            attribute = Attribute.new nil, nil
+            node = attribute.in(-::Float::INFINITY..3)
+
+            node.must_equal Nodes::LessThanOrEqual.new(
+              attribute,
+              Nodes::Casted.new(3, attribute)
+            )
+          end
+
+          it 'can be constructed with an exclusive range starting from -Infinity' do
+            attribute = Attribute.new nil, nil
+            node = attribute.in(-::Float::INFINITY...3)
+
+            node.must_equal Nodes::LessThan.new(
+              attribute,
+              Nodes::Casted.new(3, attribute)
+            )
+          end
+
+          it 'can be constructed with an infinite range' do
+            attribute = Attribute.new nil, nil
+            node = attribute.in(-::Float::INFINITY..::Float::INFINITY)
+
+            node.must_equal Nodes::NotIn.new(attribute, [])
+          end
+
+          it 'can be constructed with a range ending at Infinity' do
+            attribute = Attribute.new nil, nil
+            node = attribute.in(0..::Float::INFINITY)
+
+            node.must_equal Nodes::GreaterThanOrEqual.new(
+              attribute,
+              Nodes::Casted.new(0, attribute)
+            )
+          end
+
+          it 'can be constructed with an exclusive range' do
+            attribute = Attribute.new nil, nil
+            node = attribute.in(0...3)
+
+            node.must_equal Nodes::And.new([
+              Nodes::GreaterThanOrEqual.new(
+                attribute,
+                Nodes::Casted.new(0, attribute)
+              ),
+              Nodes::LessThan.new(
+                attribute,
+                Nodes::Casted.new(3, attribute)
+              )
+            ])
+          end
+        end
+
+        it 'can be constructed with a list' do
           attribute = Attribute.new nil, nil
-          node = Nodes::In.new attribute, [1,2,3]
-          node.left.must_equal attribute
-          node.right.must_equal [1, 2, 3]
+          node = attribute.in([1, 2, 3])
+
+          node.must_equal Nodes::In.new(
+            attribute,
+            [
+              Nodes::Casted.new(1, attribute),
+              Nodes::Casted.new(2, attribute),
+              Nodes::Casted.new(3, attribute),
+            ]
+          )
+        end
+
+        it 'can be constructed with a random object' do
+          attribute = Attribute.new nil, nil
+          random_object = Object.new
+          node = attribute.in(random_object)
+
+          node.must_equal Nodes::In.new(
+            attribute,
+            Nodes::Casted.new(random_object, attribute)
+          )
         end
 
         it 'should generate IN in sql' do
@@ -602,12 +696,111 @@ module Arel
       end
 
       describe '#not_in' do
-
-        it 'should return a NotIn node' do
+        it 'can be constructed with a subquery' do
+          relation = Table.new(:users)
+          mgr = relation.project relation[:id]
+          mgr.where relation[:name].does_not_match_all(['%chunky%','%bacon%'])
           attribute = Attribute.new nil, nil
-          node = Nodes::NotIn.new attribute, [1,2,3]
-          node.left.must_equal attribute
-          node.right.must_equal [1, 2, 3]
+
+          node = attribute.not_in(mgr)
+
+          node.must_equal Nodes::NotIn.new(attribute, mgr.ast)
+        end
+
+        describe 'with a range' do
+          it 'can be constructed with a standard range' do
+            attribute = Attribute.new nil, nil
+            node = attribute.not_in(1..3)
+
+            node.must_equal Nodes::Or.new(
+              Nodes::LessThan.new(
+                attribute,
+                Nodes::Casted.new(1, attribute)
+              ),
+              Nodes::GreaterThan.new(
+                attribute,
+                Nodes::Casted.new(3, attribute)
+              )
+            )
+          end
+
+          it 'can be constructed with a range starting from -Infinity' do
+            attribute = Attribute.new nil, nil
+            node = attribute.not_in(-::Float::INFINITY..3)
+
+            node.must_equal Nodes::GreaterThan.new(
+              attribute,
+              Nodes::Casted.new(3, attribute)
+            )
+          end
+
+          it 'can be constructed with an exclusive range starting from -Infinity' do
+            attribute = Attribute.new nil, nil
+            node = attribute.not_in(-::Float::INFINITY...3)
+
+            node.must_equal Nodes::GreaterThanOrEqual.new(
+              attribute,
+              Nodes::Casted.new(3, attribute)
+            )
+          end
+
+          it 'can be constructed with an infinite range' do
+            attribute = Attribute.new nil, nil
+            node = attribute.not_in(-::Float::INFINITY..::Float::INFINITY)
+
+            node.must_equal Nodes::In.new(attribute, [])
+          end
+
+          it 'can be constructed with a range ending at Infinity' do
+            attribute = Attribute.new nil, nil
+            node = attribute.not_in(0..::Float::INFINITY)
+
+            node.must_equal Nodes::LessThan.new(
+              attribute,
+              Nodes::Casted.new(0, attribute)
+            )
+          end
+
+          it 'can be constructed with an exclusive range' do
+            attribute = Attribute.new nil, nil
+            node = attribute.not_in(0...3)
+
+            node.must_equal Nodes::Or.new(
+              Nodes::LessThan.new(
+                attribute,
+                Nodes::Casted.new(0, attribute)
+              ),
+              Nodes::GreaterThanOrEqual.new(
+                attribute,
+                Nodes::Casted.new(3, attribute)
+              )
+            )
+          end
+        end
+
+        it 'can be constructed with a list' do
+          attribute = Attribute.new nil, nil
+          node = attribute.not_in([1, 2, 3])
+
+          node.must_equal Nodes::NotIn.new(
+            attribute,
+            [
+              Nodes::Casted.new(1, attribute),
+              Nodes::Casted.new(2, attribute),
+              Nodes::Casted.new(3, attribute),
+            ]
+          )
+        end
+
+        it 'can be constructed with a random object' do
+          attribute = Attribute.new nil, nil
+          random_object = Object.new
+          node = attribute.not_in(random_object)
+
+          node.must_equal Nodes::NotIn.new(
+            attribute,
+            Nodes::Casted.new(random_object, attribute)
+          )
         end
 
         it 'should generate NOT IN in sql' do
