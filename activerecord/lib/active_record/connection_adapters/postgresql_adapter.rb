@@ -480,7 +480,7 @@ module ActiveRecord
           register_class_with_limit m, 'bit', OID::Bit
           register_class_with_limit m, 'varbit', OID::BitVarying
           m.alias_type 'timestamptz', 'timestamp'
-          m.register_type 'date', Type::Date.new
+          m.register_type 'date', OID::Date.new
 
           m.register_type 'money', OID::Money.new
           m.register_type 'bytea', OID::Bytea.new
