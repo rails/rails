@@ -29,9 +29,9 @@ module ActiveModel
       # For further customizability, it is possible to supress the default
       # validations by passing <tt>validations: false</tt> as an argument.
       #
-      # Add bcrypt (~> 3.1.7) to Gemfile to use #has_secure_password:
+      # Add bcrypt (~> 3.1.9) to Gemfile to use #has_secure_password:
       #
-      #   gem 'bcrypt', '~> 3.1.7'
+      #   gem 'bcrypt', '~> 3.1.9'
       #
       # Example using Active Record (which automatically includes ActiveModel::SecurePassword):
       #
