@@ -480,16 +480,16 @@ module Arel
 
         it 'can handle two dot ranges' do
           node = @attr.not_in 1..3
-          compile(node).must_be_like %{
-            "users"."id" < 1 OR "users"."id" > 3
-          }
+          compile(node).must_equal(
+            %{("users"."id" < 1 OR "users"."id" > 3)}
+          )
         end
 
         it 'can handle three dot ranges' do
           node = @attr.not_in 1...3
-          compile(node).must_be_like %{
-            "users"."id" < 1 OR "users"."id" >= 3
-          }
+          compile(node).must_equal(
+            %{("users"."id" < 1 OR "users"."id" >= 3)}
+          )
         end
 
         it 'can handle ranges bounded by infinity' do
