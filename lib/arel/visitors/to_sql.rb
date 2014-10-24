@@ -229,15 +229,9 @@ module Arel
       def visit_Arel_Nodes_SelectCore o, collector
         collector << "SELECT"
 
-        if o.top
-          collector << " "
-          collector = visit o.top, collector
-        end
+        maybe_visit o.top, collector
 
-        if o.set_quantifier
-          collector << " "
-          collector = visit o.set_quantifier, collector
-        end
+        maybe_visit o.set_quantifier, collector
 
         unless o.projections.empty?
           collector << SPACE
@@ -271,10 +265,7 @@ module Arel
           end
         end
 
-        if o.having
-          collector << " "
-          collector = visit(o.having, collector)
-        end
+        maybe_visit o.having, collector
 
         unless o.windows.empty?
           collector << WINDOW
