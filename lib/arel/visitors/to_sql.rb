@@ -243,53 +243,33 @@ module Arel
 
         collector = maybe_visit o.set_quantifier, collector
 
-        unless o.projections.empty?
-          collector << SPACE
-          len = o.projections.length - 1
-          o.projections.each_with_index do |x, i|
-            collector = visit(x, collector)
-            collector << COMMA unless len == i
-          end
-        end
+        collect_nodes_for o.projections, collector, SPACE
 
         if o.source && !o.source.empty?
           collector << " FROM "
           collector = visit o.source, collector
         end
 
-        unless o.wheres.empty?
-          collector << WHERE
-          len = o.wheres.length - 1
-          o.wheres.each_with_index do |x, i|
-            collector = visit(x, collector)
-            collector << AND unless len == i
-          end
-        end
-
-        unless o.groups.empty?
-          collector << GROUP_BY
-          len = o.groups.length - 1
-          o.groups.each_with_index do |x, i|
-            collector = visit(x, collector)
-            collector << COMMA unless len == i
-          end
-        end
-
+        collect_nodes_for o.wheres, collector, WHERE, AND
+        collect_nodes_for o.groups, collector, GROUP_BY
         unless o.havings.empty?
           collector << " HAVING "
           inject_join o.havings, collector, AND
         end
-
-        unless o.windows.empty?
-          collector << WINDOW
-          len = o.windows.length - 1
-          o.windows.each_with_index do |x, i|
-            collector = visit(x, collector)
-            collector << COMMA unless len == i
-          end
-        end
+        collect_nodes_for o.windows, collector, WINDOW
 
         collector
+      end
+
+      def collect_nodes_for nodes, collector, spacer, connector = COMMA
+        unless nodes.empty?
+          collector << spacer
+          len = nodes.length - 1
+          nodes.each_with_index do |x, i|
+            collector = visit(x, collector)
+            collector << connector unless len == i
+          end
+        end
       end
 
       def visit_Arel_Nodes_Bin o, collector
