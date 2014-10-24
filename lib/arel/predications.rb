@@ -83,7 +83,7 @@ module Arel
           else
             right = Nodes::GreaterThan.new(self, Nodes.build_quoted(other.end, self))
           end
-          Nodes::Or.new left, right
+          left.or(right)
         end
       when Array
         Nodes::NotIn.new self, other.map { |x| Nodes.build_quoted(x, self) }
