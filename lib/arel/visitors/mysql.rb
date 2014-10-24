@@ -69,12 +69,7 @@ module Arel
           collector = inject_join o.orders, collector, ', '
         end
 
-        if o.limit
-          collector << " "
-          visit(o.limit, collector)
-        else
-          collector
-        end
+        maybe_visit o.limit, collector
       end
 
     end
