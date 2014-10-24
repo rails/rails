@@ -44,22 +44,18 @@ class Object
   # +SimpleDelegator+ will delegate +try+ to the target instead of calling it on
   # delegator itself.
   def try(*a, &b)
-    if a.empty? && block_given?
-      if b.arity.zero?
-        instance_eval(&b)
-      else
-        yield self
-      end
-    else
-      public_send(*a, &b) if respond_to?(a.first)
-    end
+    try!(*a, &b) if a.empty? || respond_to?(a.first)
   end
 
   # Same as #try, but will raise a NoMethodError exception if the receiving is not nil and
   # does not implement the tried method.
   def try!(*a, &b)
     if a.empty? && block_given?
-      try(*a, &b)
+      if b.arity.zero?
+        instance_eval(&b)
+      else
+        yield self
+      end
     else
       public_send(*a, &b)
     end
