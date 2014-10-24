@@ -1,3 +1,7 @@
+*   `String#remove` and `String#remove!` accept multiple arguments.
+
+    *Pavel Pravosud*
+
 *   Corrected Inflector#underscore handling of multiple successive acroynms.
 
     *James Le Cuirot*

@@ -260,8 +260,18 @@ class StringInflectionsTest < ActiveSupport::TestCase
   end
 
   def test_remove
-    assert_equal "Summer", "Fast Summer".remove(/Fast /)
-    assert_equal "Summer", "Fast Summer".remove!(/Fast /)
+    original = "This is a good day to die"
+    assert_equal "This is a good day", original.remove(" to die")
+    assert_equal "This is a good day", original.remove(" to ", /die/)
+    assert_equal "This is a good day to die", original
+  end
+
+  def test_remove!
+    original = "This is a very good day to die"
+    assert_equal "This is a good day to die", original.remove!(" very")
+    assert_equal "This is a good day to die", original
+    assert_equal "This is a good day", original.remove!(" to ", /die/)
+    assert_equal "This is a good day", original
   end
 
   def test_constantize
