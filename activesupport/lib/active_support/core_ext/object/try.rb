@@ -89,7 +89,7 @@ class NilClass
   #   @person && @person.children.any? && @person.children.first.name
   #
   # With +try+
-  #   @person.try(:children).first.try(:name)
+  #   @person.try(:children).try(:first).try(:name)
   def try(*args)
     nil
   end
