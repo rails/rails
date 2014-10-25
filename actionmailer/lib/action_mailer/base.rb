@@ -132,6 +132,8 @@ module ActionMailer
   #
   #   config.action_mailer.default_url_options = { host: "example.com" }
   #
+  # By default when <tt>config.force_ssl</tt> is true, URLs generated for hosts will use the HTTPS protocol.
+  #
   # = Sending mail
   #
   # Once a mailer action and template are defined, you can deliver your message or defer its creation and
