@@ -133,13 +133,12 @@ module ActionView
         option_tags ||= ""
         html_name = (options[:multiple] == true && !name.to_s.ends_with?("[]")) ? "#{name}[]" : name
 
-        
         if options.include?(:include_blank)
           include_blank = options.delete(:include_blank)
           if include_blank == true
             include_blank = ''
           end
-          
+
           option_tags = content_tag(:option, include_blank, :value => '').safe_concat(option_tags)
         end
 
