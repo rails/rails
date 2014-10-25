@@ -1,9 +1,6 @@
-require 'active_support/core_ext/module/aliasing'
-
-module Marshal
-  class << self
-    def load_with_autoloading(source)
-      load_without_autoloading(source)
+module MarshalWithAutoloading
+    def load(source)
+      super(source)
     rescue ArgumentError, NameError => exc
       if exc.message.match(%r|undefined class/module (.+)|)
         # try loading the class/module
@@ -15,7 +12,10 @@ module Marshal
         raise exc
       end
     end
+end
 
-    alias_method_chain :load, :autoloading
+Marshal.module_eval do
+  class << self
+    prepend(MarshalWithAutoloading)
   end
 end
