@@ -25,9 +25,23 @@ module Arel
     end
 
     def between other
-      left = Nodes.build_quoted(other.begin, self)
-      right = Nodes.build_quoted(other.end, self)
-      Nodes::Between.new(self, left.and(right))
+      if other.begin == -Float::INFINITY
+        if other.end == Float::INFINITY
+          not_in([])
+        elsif other.exclude_end?
+          lt(other.end)
+        else
+          lteq(other.end)
+        end
+      elsif other.end == Float::INFINITY
+        gteq(other.begin)
+      elsif other.exclude_end?
+        gteq(other.begin).and(lt(other.end))
+      else
+        left = Nodes.build_quoted(other.begin, self)
+        right = Nodes.build_quoted(other.end, self)
+        Nodes::Between.new(self, left.and(right))
+      end
     end
 
     def in other
@@ -35,21 +49,12 @@ module Arel
       when Arel::SelectManager
         Arel::Nodes::In.new(self, other.ast)
       when Range
-        if other.begin == -Float::INFINITY
-          if other.end == Float::INFINITY
-            not_in([])
-          elsif other.exclude_end?
-            lt(other.end)
-          else
-            lteq(other.end)
-          end
-        elsif other.end == Float::INFINITY
-          gteq(other.begin)
-        elsif other.exclude_end?
-          gteq(other.begin).and(lt(other.end))
-        else
-          between(other)
+        if $VERBOSE
+          warn <<-eowarn
+Passing a range to `#in` is deprecated. Call `#between`, instead.
+          eowarn
         end
+        between(other)
       when Array
         Nodes::In.new self, other.map { |x| Nodes.build_quoted(x, self) }
       else
@@ -65,30 +70,39 @@ module Arel
       grouping_all :in, others
     end
 
+    def not_between other
+      if other.begin == -Float::INFINITY # The range begins with negative infinity
+        if other.end == Float::INFINITY
+          self.in([])
+        elsif other.exclude_end?
+          gteq(other.end)
+        else
+          gt(other.end)
+        end
+      elsif other.end == Float::INFINITY
+        lt(other.begin)
+      else
+        left = lt(other.begin)
+        right = if other.exclude_end?
+          gteq(other.end)
+        else
+          gt(other.end)
+        end
+        left.or(right)
+      end
+    end
+
     def not_in other
       case other
       when Arel::SelectManager
         Arel::Nodes::NotIn.new(self, other.ast)
       when Range
-        if other.begin == -Float::INFINITY # The range begins with negative infinity
-          if other.end == Float::INFINITY
-            self.in([])
-          elsif other.exclude_end?
-            gteq(other.end)
-          else
-            gt(other.end)
-          end
-        elsif other.end == Float::INFINITY
-          lt(other.begin)
-        else
-          left = lt(other.begin)
-          right = if other.exclude_end?
-            gteq(other.end)
-          else
-            gt(other.end)
-          end
-          left.or(right)
+        if $VERBOSE
+          warn <<-eowarn
+Passing a range to `#not_in` is deprecated. Call `#not_between`, instead.
+          eowarn
         end
+        not_between(other)
       when Array
         Nodes::NotIn.new self, other.map { |x| Nodes.build_quoted(x, self) }
       else

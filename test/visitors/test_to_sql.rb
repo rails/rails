@@ -375,33 +375,33 @@ module Arel
         end
 
         it 'can handle two dot ranges' do
-          node = @attr.in 1..3
+          node = @attr.between 1..3
           compile(node).must_be_like %{
             "users"."id" BETWEEN 1 AND 3
           }
         end
 
         it 'can handle three dot ranges' do
-          node = @attr.in 1...3
+          node = @attr.between 1...3
           compile(node).must_be_like %{
             "users"."id" >= 1 AND "users"."id" < 3
           }
         end
 
         it 'can handle ranges bounded by infinity' do
-          node = @attr.in 1..Float::INFINITY
+          node = @attr.between 1..Float::INFINITY
           compile(node).must_be_like %{
             "users"."id" >= 1
           }
-          node = @attr.in(-Float::INFINITY..3)
+          node = @attr.between(-Float::INFINITY..3)
           compile(node).must_be_like %{
             "users"."id" <= 3
           }
-          node = @attr.in(-Float::INFINITY...3)
+          node = @attr.between(-Float::INFINITY...3)
           compile(node).must_be_like %{
             "users"."id" < 3
           }
-          node = @attr.in(-Float::INFINITY..Float::INFINITY)
+          node = @attr.between(-Float::INFINITY..Float::INFINITY)
           compile(node).must_be_like %{1=1}
         end
 
@@ -479,33 +479,33 @@ module Arel
         end
 
         it 'can handle two dot ranges' do
-          node = @attr.not_in 1..3
+          node = @attr.not_between 1..3
           compile(node).must_equal(
             %{("users"."id" < 1 OR "users"."id" > 3)}
           )
         end
 
         it 'can handle three dot ranges' do
-          node = @attr.not_in 1...3
+          node = @attr.not_between 1...3
           compile(node).must_equal(
             %{("users"."id" < 1 OR "users"."id" >= 3)}
           )
         end
 
         it 'can handle ranges bounded by infinity' do
-          node = @attr.not_in 1..Float::INFINITY
+          node = @attr.not_between 1..Float::INFINITY
           compile(node).must_be_like %{
             "users"."id" < 1
           }
-          node = @attr.not_in(-Float::INFINITY..3)
+          node = @attr.not_between(-Float::INFINITY..3)
           compile(node).must_be_like %{
             "users"."id" > 3
           }
-          node = @attr.not_in(-Float::INFINITY...3)
+          node = @attr.not_between(-Float::INFINITY...3)
           compile(node).must_be_like %{
             "users"."id" >= 3
           }
-          node = @attr.not_in(-Float::INFINITY..Float::INFINITY)
+          node = @attr.not_between(-Float::INFINITY..Float::INFINITY)
           compile(node).must_be_like %{1=0}
         end
 

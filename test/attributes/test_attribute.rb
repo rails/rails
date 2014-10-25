@@ -548,6 +548,74 @@ module Arel
         end
       end
 
+      describe 'with a range' do
+        it 'can be constructed with a standard range' do
+          attribute = Attribute.new nil, nil
+          node = attribute.between(1..3)
+
+          node.must_equal Nodes::Between.new(
+            attribute,
+            Nodes::And.new([
+              Nodes::Casted.new(1, attribute),
+              Nodes::Casted.new(3, attribute)
+            ])
+          )
+        end
+
+        it 'can be constructed with a range starting from -Infinity' do
+          attribute = Attribute.new nil, nil
+          node = attribute.between(-::Float::INFINITY..3)
+
+          node.must_equal Nodes::LessThanOrEqual.new(
+            attribute,
+            Nodes::Casted.new(3, attribute)
+          )
+        end
+
+        it 'can be constructed with an exclusive range starting from -Infinity' do
+          attribute = Attribute.new nil, nil
+          node = attribute.between(-::Float::INFINITY...3)
+
+          node.must_equal Nodes::LessThan.new(
+            attribute,
+            Nodes::Casted.new(3, attribute)
+          )
+        end
+
+        it 'can be constructed with an infinite range' do
+          attribute = Attribute.new nil, nil
+          node = attribute.between(-::Float::INFINITY..::Float::INFINITY)
+
+          node.must_equal Nodes::NotIn.new(attribute, [])
+        end
+
+        it 'can be constructed with a range ending at Infinity' do
+          attribute = Attribute.new nil, nil
+          node = attribute.between(0..::Float::INFINITY)
+
+          node.must_equal Nodes::GreaterThanOrEqual.new(
+            attribute,
+            Nodes::Casted.new(0, attribute)
+          )
+        end
+
+        it 'can be constructed with an exclusive range' do
+          attribute = Attribute.new nil, nil
+          node = attribute.between(0...3)
+
+          node.must_equal Nodes::And.new([
+            Nodes::GreaterThanOrEqual.new(
+              attribute,
+              Nodes::Casted.new(0, attribute)
+            ),
+            Nodes::LessThan.new(
+              attribute,
+              Nodes::Casted.new(3, attribute)
+            )
+          ])
+        end
+      end
+
       describe '#in' do
         it 'can be constructed with a subquery' do
           relation = Table.new(:users)
@@ -558,74 +626,6 @@ module Arel
           node = attribute.in(mgr)
 
           node.must_equal Nodes::In.new(attribute, mgr.ast)
-        end
-
-        describe 'with a range' do
-          it 'can be constructed with a standard range' do
-            attribute = Attribute.new nil, nil
-            node = attribute.in(1..3)
-
-            node.must_equal Nodes::Between.new(
-              attribute,
-              Nodes::And.new([
-                Nodes::Casted.new(1, attribute),
-                Nodes::Casted.new(3, attribute)
-              ])
-            )
-          end
-
-          it 'can be constructed with a range starting from -Infinity' do
-            attribute = Attribute.new nil, nil
-            node = attribute.in(-::Float::INFINITY..3)
-
-            node.must_equal Nodes::LessThanOrEqual.new(
-              attribute,
-              Nodes::Casted.new(3, attribute)
-            )
-          end
-
-          it 'can be constructed with an exclusive range starting from -Infinity' do
-            attribute = Attribute.new nil, nil
-            node = attribute.in(-::Float::INFINITY...3)
-
-            node.must_equal Nodes::LessThan.new(
-              attribute,
-              Nodes::Casted.new(3, attribute)
-            )
-          end
-
-          it 'can be constructed with an infinite range' do
-            attribute = Attribute.new nil, nil
-            node = attribute.in(-::Float::INFINITY..::Float::INFINITY)
-
-            node.must_equal Nodes::NotIn.new(attribute, [])
-          end
-
-          it 'can be constructed with a range ending at Infinity' do
-            attribute = Attribute.new nil, nil
-            node = attribute.in(0..::Float::INFINITY)
-
-            node.must_equal Nodes::GreaterThanOrEqual.new(
-              attribute,
-              Nodes::Casted.new(0, attribute)
-            )
-          end
-
-          it 'can be constructed with an exclusive range' do
-            attribute = Attribute.new nil, nil
-            node = attribute.in(0...3)
-
-            node.must_equal Nodes::And.new([
-              Nodes::GreaterThanOrEqual.new(
-                attribute,
-                Nodes::Casted.new(0, attribute)
-              ),
-              Nodes::LessThan.new(
-                attribute,
-                Nodes::Casted.new(3, attribute)
-              )
-            ])
-          end
         end
 
         it 'can be constructed with a list' do
@@ -695,6 +695,77 @@ module Arel
         end
       end
 
+      describe 'with a range' do
+        it 'can be constructed with a standard range' do
+          attribute = Attribute.new nil, nil
+          node = attribute.not_between(1..3)
+
+          node.must_equal Nodes::Grouping.new(Nodes::Or.new(
+            Nodes::LessThan.new(
+              attribute,
+              Nodes::Casted.new(1, attribute)
+            ),
+            Nodes::GreaterThan.new(
+              attribute,
+              Nodes::Casted.new(3, attribute)
+            )
+          ))
+        end
+
+        it 'can be constructed with a range starting from -Infinity' do
+          attribute = Attribute.new nil, nil
+          node = attribute.not_between(-::Float::INFINITY..3)
+
+          node.must_equal Nodes::GreaterThan.new(
+            attribute,
+            Nodes::Casted.new(3, attribute)
+          )
+        end
+
+        it 'can be constructed with an exclusive range starting from -Infinity' do
+          attribute = Attribute.new nil, nil
+          node = attribute.not_between(-::Float::INFINITY...3)
+
+          node.must_equal Nodes::GreaterThanOrEqual.new(
+            attribute,
+            Nodes::Casted.new(3, attribute)
+          )
+        end
+
+        it 'can be constructed with an infinite range' do
+          attribute = Attribute.new nil, nil
+          node = attribute.not_between(-::Float::INFINITY..::Float::INFINITY)
+
+          node.must_equal Nodes::In.new(attribute, [])
+        end
+
+        it 'can be constructed with a range ending at Infinity' do
+          attribute = Attribute.new nil, nil
+          node = attribute.not_between(0..::Float::INFINITY)
+
+          node.must_equal Nodes::LessThan.new(
+            attribute,
+            Nodes::Casted.new(0, attribute)
+          )
+        end
+
+        it 'can be constructed with an exclusive range' do
+          attribute = Attribute.new nil, nil
+          node = attribute.not_between(0...3)
+
+          node.must_equal Nodes::Grouping.new(Nodes::Or.new(
+            Nodes::LessThan.new(
+              attribute,
+              Nodes::Casted.new(0, attribute)
+            ),
+            Nodes::GreaterThanOrEqual.new(
+              attribute,
+              Nodes::Casted.new(3, attribute)
+            )
+          ))
+        end
+      end
+
       describe '#not_in' do
         it 'can be constructed with a subquery' do
           relation = Table.new(:users)
@@ -705,77 +776,6 @@ module Arel
           node = attribute.not_in(mgr)
 
           node.must_equal Nodes::NotIn.new(attribute, mgr.ast)
-        end
-
-        describe 'with a range' do
-          it 'can be constructed with a standard range' do
-            attribute = Attribute.new nil, nil
-            node = attribute.not_in(1..3)
-
-            node.must_equal Nodes::Grouping.new(Nodes::Or.new(
-              Nodes::LessThan.new(
-                attribute,
-                Nodes::Casted.new(1, attribute)
-              ),
-              Nodes::GreaterThan.new(
-                attribute,
-                Nodes::Casted.new(3, attribute)
-              )
-            ))
-          end
-
-          it 'can be constructed with a range starting from -Infinity' do
-            attribute = Attribute.new nil, nil
-            node = attribute.not_in(-::Float::INFINITY..3)
-
-            node.must_equal Nodes::GreaterThan.new(
-              attribute,
-              Nodes::Casted.new(3, attribute)
-            )
-          end
-
-          it 'can be constructed with an exclusive range starting from -Infinity' do
-            attribute = Attribute.new nil, nil
-            node = attribute.not_in(-::Float::INFINITY...3)
-
-            node.must_equal Nodes::GreaterThanOrEqual.new(
-              attribute,
-              Nodes::Casted.new(3, attribute)
-            )
-          end
-
-          it 'can be constructed with an infinite range' do
-            attribute = Attribute.new nil, nil
-            node = attribute.not_in(-::Float::INFINITY..::Float::INFINITY)
-
-            node.must_equal Nodes::In.new(attribute, [])
-          end
-
-          it 'can be constructed with a range ending at Infinity' do
-            attribute = Attribute.new nil, nil
-            node = attribute.not_in(0..::Float::INFINITY)
-
-            node.must_equal Nodes::LessThan.new(
-              attribute,
-              Nodes::Casted.new(0, attribute)
-            )
-          end
-
-          it 'can be constructed with an exclusive range' do
-            attribute = Attribute.new nil, nil
-            node = attribute.not_in(0...3)
-
-            node.must_equal Nodes::Grouping.new(Nodes::Or.new(
-              Nodes::LessThan.new(
-                attribute,
-                Nodes::Casted.new(0, attribute)
-              ),
-              Nodes::GreaterThanOrEqual.new(
-                attribute,
-                Nodes::Casted.new(3, attribute)
-              )
-            ))
-          end
         end
 
         it 'can be constructed with a list' do
