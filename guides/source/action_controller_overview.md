@@ -1213,12 +1213,12 @@ Create the controller and views.
 * `app/views`
 
   ```
-    errors/
-      not_found.html.erb
-      unprocessable_entity.html.erb
-      server_error.html.erb
-    layouts/
-      error.html.erb
+  errors/
+    not_found.html.erb
+    unprocessable_entity.html.erb
+    server_error.html.erb
+  layouts/
+    error.html.erb
   ```
 
 Do not forget to set the correct status code on the controller as shown before.
