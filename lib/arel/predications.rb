@@ -24,6 +24,12 @@ module Arel
       grouping_all :eq, others.map { |x| Nodes.build_quoted(x, self) }
     end
 
+    def between other
+      left = Nodes.build_quoted(other.begin, self)
+      right = Nodes.build_quoted(other.end, self)
+      Nodes::Between.new(self, left.and(right))
+    end
+
     def in other
       case other
       when Arel::SelectManager
@@ -31,20 +37,18 @@ module Arel
       when Range
         if other.begin == -Float::INFINITY
           if other.end == Float::INFINITY
-            Nodes::NotIn.new self, []
+            not_in([])
           elsif other.exclude_end?
-            Nodes::LessThan.new(self, Nodes.build_quoted(other.end, self))
+            lt(other.end)
           else
-            Nodes::LessThanOrEqual.new(self, Nodes.build_quoted(other.end, self))
+            lteq(other.end)
           end
         elsif other.end == Float::INFINITY
-          Nodes::GreaterThanOrEqual.new(self, Nodes.build_quoted(other.begin, self))
+          gteq(other.begin)
         elsif other.exclude_end?
-          left  = Nodes::GreaterThanOrEqual.new(self, Nodes.build_quoted(other.begin, self))
-          right = Nodes::LessThan.new(self, Nodes.build_quoted(other.end, self))
-          Nodes::And.new [left, right]
+          gteq(other.begin).and(lt(other.end))
         else
-          Nodes::Between.new(self, Nodes::And.new([Nodes.build_quoted(other.begin, self), Nodes.build_quoted(other.end, self)]))
+          between(other)
         end
       when Array
         Nodes::In.new self, other.map { |x| Nodes.build_quoted(x, self) }
@@ -68,20 +72,20 @@ module Arel
       when Range
         if other.begin == -Float::INFINITY # The range begins with negative infinity
           if other.end == Float::INFINITY
-            Nodes::In.new self, [] # The range is infinite, so return an empty range
+            self.in([])
           elsif other.exclude_end?
-            Nodes::GreaterThanOrEqual.new(self, Nodes.build_quoted(other.end, self))
+            gteq(other.end)
           else
-            Nodes::GreaterThan.new(self, Nodes.build_quoted(other.end, self))
+            gt(other.end)
           end
         elsif other.end == Float::INFINITY
-          Nodes::LessThan.new(self, Nodes.build_quoted(other.begin, self))
+          lt(other.begin)
         else
-          left  = Nodes::LessThan.new(self, Nodes.build_quoted(other.begin, self))
-          if other.exclude_end?
-            right = Nodes::GreaterThanOrEqual.new(self, Nodes.build_quoted(other.end, self))
+          left = lt(other.begin)
+          right = if other.exclude_end?
+            gteq(other.end)
           else
-            right = Nodes::GreaterThan.new(self, Nodes.build_quoted(other.end, self))
+            gt(other.end)
           end
           left.or(right)
         end
