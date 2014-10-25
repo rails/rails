@@ -150,7 +150,17 @@ module AbstractController
             rescue LoadError => e
               raise AbstractController::Helpers::MissingHelperError.new(e, file_name)
             end
-            file_name.camelize.constantize
+
+            mod_name = file_name.camelize
+            begin
+              mod_name.constantize
+            rescue LoadError
+              # dependencies.rb gives a similar error message but its wording is
+              # not as clear because it mentions autoloading. To the user all it
+              # matters is that a helper module couldn't be loaded, autoloading
+              # is an internal mechanism that should not leak.
+              raise NameError, "Couldn't find #{mod_name}, expected it to be defined in helpers/#{file_name}.rb"
+            end
           when Module
             arg
           else
