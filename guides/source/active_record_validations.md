@@ -533,6 +533,7 @@ validates :boolean_field_name, presence: true
 validates :boolean_field_name, inclusion: { in: [true, false] }
 validates :boolean_field_name, exclusion: { in: [nil] }
 ```
+
 By using one of these validations, you will ensure the value will NOT be `nil`
 which would result in a `NULL` value in most cases.
 
