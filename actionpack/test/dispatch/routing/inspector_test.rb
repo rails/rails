@@ -133,7 +133,7 @@ module ActionDispatch
 
         assert_equal [
           "Prefix Verb URI Pattern            Controller#Action",
-          "       GET  /api/:action(.:format) api#:action"
+          "   api GET  /api/:action(.:format) api#:action"
         ], output
       end
 
@@ -166,7 +166,7 @@ module ActionDispatch
 
         assert_equal [
           "Prefix Verb URI Pattern           Controller#Action",
-          %Q[       GET  /photos/:id(.:format) photos#show {:format=>"jpg"}]
+          %Q[photos GET  /photos/:id(.:format) photos#show {:format=>"jpg"}]
         ], output
       end
 
@@ -177,7 +177,7 @@ module ActionDispatch
 
         assert_equal [
           "Prefix Verb URI Pattern           Controller#Action",
-          "       GET  /photos/:id(.:format) photos#show {:id=>/[A-Z]\\d{5}/}"
+          "photos GET  /photos/:id(.:format) photos#show {:id=>/[A-Z]\\d{5}/}"
         ], output
       end
 
@@ -216,7 +216,7 @@ module ActionDispatch
 
         assert_equal [
           "Prefix Verb URI Pattern        Controller#Action",
-          "       GET  /foo/:id(.:format) #{RackApp.name} {:id=>/[A-Z]\\d{5}/}"
+          "   foo GET  /foo/:id(.:format) #{RackApp.name} {:id=>/[A-Z]\\d{5}/}"
         ], output
       end
 
