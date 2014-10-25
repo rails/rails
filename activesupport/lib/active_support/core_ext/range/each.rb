@@ -1,18 +1,14 @@
-require 'active_support/core_ext/module/aliasing'
+module RangeSupportingTimeWithZone #:nodoc:
 
-class Range #:nodoc:
-
-  def each_with_time_with_zone(&block)
+  def each(&block)
     ensure_iteration_allowed
-    each_without_time_with_zone(&block)
+    super(&block)
   end
-  alias_method_chain :each, :time_with_zone
 
-  def step_with_time_with_zone(n = 1, &block)
+  def step(n = 1, &block)
     ensure_iteration_allowed
-    step_without_time_with_zone(n, &block)
+    super(n, &block)
   end
-  alias_method_chain :step, :time_with_zone
 
   private
   def ensure_iteration_allowed
@@ -21,3 +17,5 @@ class Range #:nodoc:
     end
   end
 end
+
+Range.prepend(RangeSupportingTimeWithZone)
