@@ -233,7 +233,7 @@ class FormTagHelperTest < ActionView::TestCase
   end
 
   def test_select_tag_with_include_blank_string
-    actual = select_tag "places", "<option>Home</option><option>Work</option><option>Pub</option>".html_safe, :include_blank => 'Choose'
+    actual = select_tag "places", "<option>Home</option><option>Work</option><option>Pub</option>".html_safe, include_blank: 'Choose'
     expected = %(<select id="places" name="places"><option value="">Choose</option><option>Home</option><option>Work</option><option>Pub</option></select>)
     assert_dom_equal expected, actual
   end
