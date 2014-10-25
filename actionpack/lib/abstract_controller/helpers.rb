@@ -150,7 +150,11 @@ module AbstractController
             rescue LoadError => e
               raise AbstractController::Helpers::MissingHelperError.new(e, file_name)
             end
-            file_name.camelize.constantize
+            file_name.camelize.tap do |helper_name|
+              unless Object.const_defined?(helper_name)
+                raise NameError, "Couldn't find #{helper_name}, expected it to be defined in app/helpers/#{file_name}.rb"
+              end
+            end.constantize
           when Module
             arg
           else

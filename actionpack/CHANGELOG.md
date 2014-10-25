@@ -1,3 +1,11 @@
+*   When a typo in helper's name is made, controller raises
+    NameError with proper message instead of showing message about circular
+    dependency.
+
+    Fixes #16468.
+
+    *Marcin Nieborak*
+
 *   Improve Journey compliance to RFC 3986.
 
     The scanner in Journey failed to recognize routes that use literals
