@@ -299,6 +299,44 @@ module ActionDispatch
         assert_equal ["Prefix Verb URI Pattern            Controller#Action",
                       "       GET  /:controller(/:action) (?-mix:api\\/[^\\/]+)#:action"], output
       end
+
+      def test_rake_routes_with_namespace
+        output = draw do
+          namespace :foo do
+            match '/a',       to: 'a#index',  via: 'get'
+            match '/a/:id',   to: 'a#show',   via: 'get'
+            match '/a/:id',   to: 'a#update', via: 'patch'
+            match '/b',       to: 'b#index',  via: 'get'
+            match '/b/:id',   to: 'b#show',   via: 'get'
+            match '/b/:id',   to: 'b#update', via: 'patch'
+          end
+        end
+
+        assert_equal [
+          "Prefix Verb  URI Pattern          Controller#Action",
+          " foo_a GET   /foo/a(.:format)     foo/a#index",
+          "       GET   /foo/a/:id(.:format) foo/a#show",
+          "       PATCH /foo/a/:id(.:format) foo/a#update",
+          " foo_b GET   /foo/b(.:format)     foo/b#index",
+          "       GET   /foo/b/:id(.:format) foo/b#show",
+          "       PATCH /foo/b/:id(.:format) foo/b#update",
+        ], output
+      end
+
+      def test_rake_routes_with_namespace_only_show_action
+        output = draw do
+          namespace :foo do
+            match '/a/:id',  to: 'a#show',  via: 'get'
+            match '/b/:id',  to: 'b#show',  via: 'get'
+          end
+        end
+
+        assert_equal [
+          "Prefix Verb URI Pattern          Controller#Action",
+          " foo_a GET  /foo/a/:id(.:format) foo/a#show",
+          " foo_b GET  /foo/b/:id(.:format) foo/b#show",
+        ], output
+      end
     end
   end
 end
