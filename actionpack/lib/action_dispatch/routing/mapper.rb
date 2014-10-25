@@ -1534,8 +1534,9 @@ module ActionDispatch
 
           action = action.to_s.dup
 
-          if action =~ /^[\w\-\/]+$/
+          if action =~ /^[\w\-\/\:]+$/
             options[:action] ||= action.tr('-', '_') unless action.include?("/")
+            action = action.split('/:').first
           else
             action = nil
           end
