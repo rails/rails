@@ -34,7 +34,7 @@ module ActionView
       # Add table tags to the default allowed tags
       #
       #   class Application < Rails::Application
-      #     config.action_view.sanitized_allowed_tags = 'table', 'tr', 'td'
+      #     config.action_view.sanitized_allowed_tags = ['table', 'tr', 'td']
       #   end
       #
       # Remove tags to the default allowed tags
@@ -174,7 +174,7 @@ module ActionView
         # Adds valid HTML attributes that the +sanitize+ helper checks for URIs.
         #
         #   class Application < Rails::Application
-        #     config.action_view.sanitized_uri_attributes = 'lowsrc', 'target'
+        #     config.action_view.sanitized_uri_attributes = ['lowsrc', 'target']
         #   end
         #
         def sanitized_uri_attributes=(attributes)
@@ -184,7 +184,7 @@ module ActionView
         # Adds to the Set of 'bad' tags for the +sanitize+ helper.
         #
         #   class Application < Rails::Application
-        #     config.action_view.sanitized_bad_tags = 'embed', 'object'
+        #     config.action_view.sanitized_bad_tags = ['embed', 'object']
         #   end
         #
         def sanitized_bad_tags=(attributes)
@@ -194,7 +194,7 @@ module ActionView
         # Adds to the Set of allowed tags for the +sanitize+ helper.
         #
         #   class Application < Rails::Application
-        #     config.action_view.sanitized_allowed_tags = 'table', 'tr', 'td'
+        #     config.action_view.sanitized_allowed_tags = ['table', 'tr', 'td']
         #   end
         #
         def sanitized_allowed_tags=(attributes)
@@ -214,7 +214,7 @@ module ActionView
         # Adds to the Set of allowed CSS properties for the #sanitize and +sanitize_css+ helpers.
         #
         #   class Application < Rails::Application
-        #     config.action_view.sanitized_allowed_css_properties = 'expression'
+        #     config.action_view.sanitized_allowed_css_properties = ['expression']
         #   end
         #
         def sanitized_allowed_css_properties=(attributes)
@@ -224,7 +224,7 @@ module ActionView
         # Adds to the Set of allowed CSS keywords for the +sanitize+ and +sanitize_css+ helpers.
         #
         #   class Application < Rails::Application
-        #     config.action_view.sanitized_allowed_css_keywords = 'expression'
+        #     config.action_view.sanitized_allowed_css_keywords = ['expression']
         #   end
         #
         def sanitized_allowed_css_keywords=(attributes)
@@ -234,7 +234,7 @@ module ActionView
         # Adds to the Set of allowed shorthand CSS properties for the +sanitize+ and +sanitize_css+ helpers.
         #
         #   class Application < Rails::Application
-        #     config.action_view.sanitized_shorthand_css_properties = 'expression'
+        #     config.action_view.sanitized_shorthand_css_properties = ['expression']
         #   end
         #
         def sanitized_shorthand_css_properties=(attributes)
@@ -244,7 +244,7 @@ module ActionView
         # Adds to the Set of allowed protocols for the +sanitize+ helper.
         #
         #   class Application < Rails::Application
-        #     config.action_view.sanitized_allowed_protocols = 'ssh', 'feed'
+        #     config.action_view.sanitized_allowed_protocols = ['ssh', 'feed']
         #   end
         #
         def sanitized_allowed_protocols=(attributes)
