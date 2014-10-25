@@ -1,3 +1,7 @@
+*   Show correct routes prefix with namespace.
+
+    *Yuichi Takada*
+
 *   Improve Journey compliance to RFC 3986.
 
     The scanner in Journey failed to recognize routes that use literals
