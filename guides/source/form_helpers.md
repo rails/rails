@@ -506,7 +506,7 @@ As the name implies, this only generates option tags. To generate a working sele
 <%= collection_select(:person, :city_id, City.all, :id, :name) %>
 ```
 
-As with other helpers, if you were to use the collection_select helper on a form builder scoped to the @person object, the syntax would be:
+As with other helpers, if you were to use the `collection_select` helper on a form builder scoped to the `@person` object, the syntax would be:
 
 ```erb
 <%= f.collection_select(:city_id, City.all, :id, :name) %>
