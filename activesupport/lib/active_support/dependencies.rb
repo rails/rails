@@ -30,6 +30,10 @@ module ActiveSupport #:nodoc:
     mattr_accessor :loaded
     self.loaded = Set.new
 
+    # Stack of files being loaded.
+    mattr_accessor :loading
+    self.loading = []
+
     # Should we load files or require them?
     mattr_accessor :mechanism
     self.mechanism = ENV['NO_RELOAD'] ? :require : :load
@@ -317,6 +321,7 @@ module ActiveSupport #:nodoc:
     def clear
       log_call
       loaded.clear
+      loading.clear
       remove_unloadable_constants!
     end
 
@@ -329,6 +334,7 @@ module ActiveSupport #:nodoc:
       # Record that we've seen this file *before* loading it to avoid an
       # infinite loop with mutual dependencies.
       loaded << expanded
+      loading << expanded
 
       begin
         if load?
@@ -351,6 +357,8 @@ module ActiveSupport #:nodoc:
       rescue Exception
         loaded.delete expanded
         raise
+      ensure
+        loading.pop
       end
 
       # Record history *after* loading so first load gets warnings.
@@ -475,7 +483,7 @@ module ActiveSupport #:nodoc:
         expanded = File.expand_path(file_path)
         expanded.sub!(/\.rb\z/, '')
 
-        if loaded.include?(expanded)
+        if loading.include?(expanded)
           raise "Circular dependency detected while autoloading constant #{qualified_name}"
         else
           require_or_load(expanded, qualified_name)

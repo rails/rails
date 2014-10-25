@@ -157,6 +157,31 @@ class DependenciesTest < ActiveSupport::TestCase
     end
   end
 
+  def test_ensures_the_expected_constant_is_defined
+    with_autoloading_fixtures do
+      e = assert_raise(LoadError) { Typo }
+      assert_match %r{Unable to autoload constant Typo, expected .*activesupport/test/autoloading_fixtures/typo.rb to define it}, e.message
+    end
+  end
+
+  def test_require_dependency_does_not_assume_any_particular_constant_is_defined
+    with_autoloading_fixtures do
+      require_dependency 'typo'
+      assert_equal 1, TypO
+    end
+  end
+
+  # Regression, see https://github.com/rails/rails/issues/16468.
+  def test_require_dependency_interaction_with_autoloading
+    with_autoloading_fixtures do
+      require_dependency 'typo'
+      assert_equal 1, TypO
+
+      e = assert_raise(LoadError) { Typo }
+      assert_match %r{Unable to autoload constant Typo, expected .*activesupport/test/autoloading_fixtures/typo.rb to define it}, e.message
+    end
+  end
+
   def test_module_loading
     with_autoloading_fixtures do
       assert_kind_of Module, A
