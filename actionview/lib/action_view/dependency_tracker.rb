@@ -123,11 +123,7 @@ module ActionView
 
         def add_static_dependency(dependencies, dependency)
           if dependency
-            if dependency.include?('/')
-              dependencies << dependency
-            else
-              dependencies << "#{directory}/#{dependency}"
-            end
+            dependencies << (dependency.include?('/')) ? dependency : "#{directory}/#{dependency}"
           end
         end
 
