@@ -703,7 +703,7 @@ module ActionMailer
     # The main method that creates the message and renders the email templates. There are
     # two ways to call this method, with a block, or without a block.
     #
-    # In both the ways to call this method, it accepts a headers hash. This hash allows you to specify 
+    # It accepts a headers hash. This hash allows you to specify 
     # the most used headers in an email message, these are:
     #
     # * +:subject+ - The subject of the message, if this is omitted, Action Mailer will
