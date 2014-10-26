@@ -360,7 +360,7 @@ module ActiveRecord
         synchronize do
           owner = conn.owner
 
-          conn.run_checkin_callbacks do
+          conn._run_checkin_callbacks do
             conn.expire
           end
 
@@ -449,7 +449,7 @@ module ActiveRecord
       end
 
       def checkout_and_verify(c)
-        c.run_checkout_callbacks do
+        c._run_checkout_callbacks do
           c.verify!
         end
         c

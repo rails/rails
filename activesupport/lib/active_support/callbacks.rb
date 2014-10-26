@@ -78,7 +78,7 @@ module ActiveSupport
     #     save
     #   end
     def run_callbacks(kind, &block)
-      send "run_#{kind}_callbacks", &block
+      send "_run_#{kind}_callbacks", &block
     end
 
     private
@@ -730,7 +730,7 @@ module ActiveSupport
           set_callbacks name, CallbackChain.new(name, options)
 
           module_eval <<-RUBY, __FILE__, __LINE__ + 1
-            def run_#{name}_callbacks(&block)
+            def _run_#{name}_callbacks(&block)
               _run_callbacks(_#{name}_callbacks, &block)
             end
           RUBY
