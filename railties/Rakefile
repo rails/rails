@@ -8,13 +8,22 @@ task :test => 'test:isolated'
 
 namespace :test do
   task :isolated do
-    dirs = (ENV["TEST_DIR"] || ENV["TEST_DIRS"] || "**").split(",")
-    if ENV["GEM"] == "railties:test/application"
-      dirs = %w(application)
-    elsif ENV["GEM"] == "railties:test/others"
-      dirs = %w(commands configuration generators railties)
+    # Splitting test folders between these builds:
+    #   GEM=railties:test/application
+    #   GEM=railties:test/others
+    dirs = case ENV["GEM"]
+    when "railties:test/application"
+      dirs = ["application"]
+    when "railties:test/others"
+      dirs = Dir.glob("*").select { |f| File.directory?(f) } - ["application"]
+    else
+      (ENV["TEST_DIR"] || ENV["TEST_DIRS"] || "**").split(",")
     end
+
     test_files = dirs.map { |dir| "test/#{dir}/*_test.rb" }
+    # Add files in `/test` folder when splitting subfolders
+    test_files << "test/*_test.rb" if ENV["GEM"] == "railties:test/others"
+
     Dir[*test_files].each do |file|
       next true if file.include?("fixtures")
       dash_i = [

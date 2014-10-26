@@ -107,15 +107,18 @@ results = {}
 
 ENV['GEM'].split(',').each do |gem|
   [false, true].each do |isolated|
-    if gem.include?('test/application') || gem.include?('test/others')
-      gem = gem.split(':').first
-    end
+    # Sanitize gem input for these builds:
+    #   GEM=railties:test/application
+    #   GEM=railties:test/others
+    gem = gem.split(':').first if gem =~ /test/
+
     next if ENV['TRAVIS_PULL_REQUEST'] && ENV['TRAVIS_PULL_REQUEST'] != 'false' && isolated
     next if gem == 'railties' && isolated
     next if gem == 'aj:integration' && isolated
 
     build = Build.new(gem, :isolated => isolated)
     results[build.key] = build.run!
+
   end
 end
 
