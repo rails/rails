@@ -9,9 +9,9 @@ task :test => 'test:isolated'
 namespace :test do
   task :isolated do
     dirs = (ENV["TEST_DIR"] || ENV["TEST_DIRS"] || "**").split(",")
-    if ENV["GEM"] == "railties:ruby193"
+    if ENV["GEM"] == "railties:test/application"
       dirs = %w(application)
-    else
+    elsif ENV["GEM"] == "railties:test/others"
       dirs = %w(commands configuration generators railties)
     end
     test_files = dirs.map { |dir| "test/#{dir}/*_test.rb" }
