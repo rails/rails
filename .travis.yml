@@ -1,7 +1,6 @@
 language: ruby
 script: 'ci/travis.rb'
 before_install:
-  - 'echo ''gem: --no-ri --no-rdoc'' > ~/.gemrc'
   - travis_retry gem install bundler
   - "rvm current | grep 'jruby' && export AR_JDBC=true || echo"
 env:
