@@ -8,8 +8,7 @@ env:
   global:
     - JRUBY_OPTS='-J-Xmx1024M'
   matrix:
-    - "GEM=railties:test/application"
-    - "GEM=railties:test/others"
+    - "GEM=railties"
     - "GEM=ap"
     - "GEM=am,amo,as,av,aj"
     - "GEM=ar:mysql"
@@ -25,6 +24,14 @@ rvm:
   - rbx-2
   - jruby
 matrix:
+  exclude:
+    - rvm: 1.9.3
+      env: "GEM=railties"
+  include:
+    - rvm: 1.9.3
+      env: "GEM=railties:test/application"
+    - rvm: 1.9.3
+      env: "GEM=railties:test/others"
   allow_failures:
     - rvm: 1.9.3
       env: "GEM=ar:mysql"
