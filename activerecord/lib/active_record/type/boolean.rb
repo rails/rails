@@ -15,7 +15,7 @@ module ActiveRecord
         else
           if !ConnectionAdapters::Column::FALSE_VALUES.include?(value)
             ActiveSupport::Deprecation.warn(<<-EOM)
-              You attempted to assign a value which is not explicitly true or false to a boolean column. Currently this value casts to false. This will change to match Ruby's sematics, and will cast to true in Rails 5.0. If you would like to maintain the current behavior, you should explicitly handle the values you would like cast to false.
+              You attempted to assign a value which is not explicitly true or false to a boolean column. Currently this value casts to false. This will change to match Ruby's semantics, and will cast to true in Rails 5.0. If you would like to maintain the current behavior, you should explicitly handle the values you would like cast to false.
             EOM
           end
           false
