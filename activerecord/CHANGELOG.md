@@ -1,3 +1,7 @@
+*   Fix `Relation.rewhere` to work with Range values.
+
+    *Dan Olson*
+
 *   `AR::UnknownAttributeError` now includes the class name of a record.
 
         User.new(name: "Yuki Nishijima", project_attributes: {name: "kaminari"})
