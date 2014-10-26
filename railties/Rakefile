@@ -9,6 +9,11 @@ task :test => 'test:isolated'
 namespace :test do
   task :isolated do
     dirs = (ENV["TEST_DIR"] || ENV["TEST_DIRS"] || "**").split(",")
+    if ENV["GEM"] == "railties:first"
+      dirs = %w(application)
+    else
+      dirs = %w(commands configuration generators railties)
+    end
     test_files = dirs.map { |dir| "test/#{dir}/*_test.rb" }
     Dir[*test_files].each do |file|
       next true if file.include?("fixtures")
