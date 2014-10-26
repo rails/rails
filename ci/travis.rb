@@ -114,6 +114,8 @@ ENV['GEM'].split(',').each do |gem|
     next if gem == 'railties' && isolated
     next if gem == 'aj:integration' && isolated
 
+    ruby = system("rvm current")
+    next if ruby != "1.9.3" && gem == "railties"
     build = Build.new(gem, :isolated => isolated)
     results[build.key] = build.run!
 
