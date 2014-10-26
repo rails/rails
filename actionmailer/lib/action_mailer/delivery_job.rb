@@ -1,6 +1,8 @@
 require 'active_job'
 
 module ActionMailer
+  # The <tt>ActionMailer::DeliveryJob</tt> class is used when you
+  # want sending emails outside of the request-response cycle.
   class DeliveryJob < ActiveJob::Base #:nodoc:
     queue_as :mailers
 
