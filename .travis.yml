@@ -7,8 +7,8 @@ env:
   global:
     - JRUBY_OPTS='-J-Xmx1024M'
   matrix:
-    - "GEM=railties:first"
-    - "GEM=railties:second"
+    - "GEM=railties:ruby193"
+    - "GEM=railties:others"
     - "GEM=ap"
     - "GEM=am,amo,as,av,aj"
     - "GEM=ar:mysql"

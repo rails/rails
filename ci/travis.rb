@@ -107,15 +107,14 @@ results = {}
 
 ENV['GEM'].split(',').each do |gem|
   [false, true].each do |isolated|
-    if gem.include?('first') || gem.include?('second')
+    if gem.include?('ruby193') || gem.include?('others')
       gem = gem.split(':').first
     end
     next if ENV['TRAVIS_PULL_REQUEST'] && ENV['TRAVIS_PULL_REQUEST'] != 'false' && isolated
     next if gem == 'railties' && isolated
     next if gem == 'aj:integration' && isolated
 
-    ruby = system("rvm current")
-    next if ruby != "1.9.3" && gem == "railties"
+    next if gem == "railties"
     build = Build.new(gem, :isolated => isolated)
     results[build.key] = build.run!
 

@@ -9,7 +9,7 @@ task :test => 'test:isolated'
 namespace :test do
   task :isolated do
     dirs = (ENV["TEST_DIR"] || ENV["TEST_DIRS"] || "**").split(",")
-    if ENV["GEM"] == "railties:first"
+    if ENV["GEM"] == "railties:ruby193"
       dirs = %w(application)
     else
       dirs = %w(commands configuration generators railties)
