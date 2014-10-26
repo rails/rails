@@ -1,6 +1,7 @@
 language: ruby
 script: 'ci/travis.rb'
 before_install:
+  - 'echo ''gem: --no-ri --no-rdoc'' > ~/.gemrc'
   - travis_retry gem install bundler
   - "rvm current | grep 'jruby' && export AR_JDBC=true || echo"
 env:
@@ -23,6 +24,14 @@ rvm:
   - rbx-2
   - jruby
 matrix:
+  exclude:
+    - rvm: 1.9.3
+      env: "GEM=railties"
+  include:
+    - rvm: 1.9.3
+      env: "GEM=railties:test/application"
+    - rvm: 1.9.3
+      env: "GEM=railties:test/others"
   allow_failures:
     - rvm: 1.9.3
       env: "GEM=ar:mysql"
