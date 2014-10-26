@@ -36,8 +36,7 @@ class Build
     self.options.update(options)
     Dir.chdir(dir) do
       announce(heading)
-      system('pwd')
-      # rake(*tasks)
+      rake(*tasks)
     end
   end
 
