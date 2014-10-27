@@ -1,7 +1,7 @@
 module Arel
   module Predications
     def not_eq other
-      Nodes::NotEqual.new self, Nodes.build_quoted(other, self)
+      Nodes::NotEqual.new self, quoted_node(other)
     end
 
     def not_eq_any others
@@ -13,7 +13,7 @@ module Arel
     end
 
     def eq other
-      Nodes::Equality.new self, Nodes.build_quoted(other, self)
+      Nodes::Equality.new self, quoted_node(other)
     end
 
     def eq_any others
@@ -21,7 +21,7 @@ module Arel
     end
 
     def eq_all others
-      grouping_all :eq, others.map { |x| Nodes.build_quoted(x, self) }
+      grouping_all :eq, quoted_array(others)
     end
 
     def between other
@@ -38,8 +38,8 @@ module Arel
       elsif other.exclude_end?
         gteq(other.begin).and(lt(other.end))
       else
-        left = Nodes.build_quoted(other.begin, self)
-        right = Nodes.build_quoted(other.end, self)
+        left = quoted_node(other.begin)
+        right = quoted_node(other.end)
         Nodes::Between.new(self, left.and(right))
       end
     end
@@ -56,9 +56,9 @@ Passing a range to `#in` is deprecated. Call `#between`, instead.
         end
         between(other)
       when Array
-        Nodes::In.new self, other.map { |x| Nodes.build_quoted(x, self) }
+        Nodes::In.new self, quoted_array(other)
       else
-        Nodes::In.new self, Nodes.build_quoted(other, self)
+        Nodes::In.new self, quoted_node(other)
       end
     end
 
@@ -104,9 +104,9 @@ Passing a range to `#not_in` is deprecated. Call `#not_between`, instead.
         end
         not_between(other)
       when Array
-        Nodes::NotIn.new self, other.map { |x| Nodes.build_quoted(x, self) }
+        Nodes::NotIn.new self, quoted_array(other)
       else
-        Nodes::NotIn.new self, Nodes.build_quoted(other, self)
+        Nodes::NotIn.new self, quoted_node(other)
       end
     end
 
@@ -119,7 +119,7 @@ Passing a range to `#not_in` is deprecated. Call `#not_between`, instead.
     end
 
     def matches other, escape = nil
-      Nodes::Matches.new self, Nodes.build_quoted(other, self), escape
+      Nodes::Matches.new self, quoted_node(other), escape
     end
 
     def matches_any others, escape = nil
@@ -131,7 +131,7 @@ Passing a range to `#not_in` is deprecated. Call `#not_between`, instead.
     end
 
     def does_not_match other, escape = nil
-      Nodes::DoesNotMatch.new self, Nodes.build_quoted(other, self), escape
+      Nodes::DoesNotMatch.new self, quoted_node(other), escape
     end
 
     def does_not_match_any others, escape = nil
@@ -143,7 +143,7 @@ Passing a range to `#not_in` is deprecated. Call `#not_between`, instead.
     end
 
     def gteq right
-      Nodes::GreaterThanOrEqual.new self, Nodes.build_quoted(right, self)
+      Nodes::GreaterThanOrEqual.new self, quoted_node(right)
     end
 
     def gteq_any others
@@ -155,7 +155,7 @@ Passing a range to `#not_in` is deprecated. Call `#not_between`, instead.
     end
 
     def gt right
-      Nodes::GreaterThan.new self, Nodes.build_quoted(right, self)
+      Nodes::GreaterThan.new self, quoted_node(right)
     end
 
     def gt_any others
@@ -167,7 +167,7 @@ Passing a range to `#not_in` is deprecated. Call `#not_between`, instead.
     end
 
     def lt right
-      Nodes::LessThan.new self, Nodes.build_quoted(right, self)
+      Nodes::LessThan.new self, quoted_node(right)
     end
 
     def lt_any others
@@ -179,7 +179,7 @@ Passing a range to `#not_in` is deprecated. Call `#not_between`, instead.
     end
 
     def lteq right
-      Nodes::LessThanOrEqual.new self, Nodes.build_quoted(right, self)
+      Nodes::LessThanOrEqual.new self, quoted_node(right)
     end
 
     def lteq_any others
@@ -202,6 +202,14 @@ Passing a range to `#not_in` is deprecated. Call `#not_between`, instead.
     def grouping_all method_id, others, *extras
       nodes = others.map {|expr| send(method_id, expr, *extras)}
       Nodes::Grouping.new Nodes::And.new(nodes)
+    end
+
+    def quoted_node(other)
+      Nodes.build_quoted(other, self)
+    end
+
+    def quoted_array(others)
+      others.map { |v| quoted_node(v) }
     end
   end
 end
