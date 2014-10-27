@@ -41,9 +41,6 @@ module Rails
         class_option :skip_active_record, type: :boolean, aliases: '-O', default: false,
                                           desc: 'Skip Active Record files'
 
-        class_option :skip_gems,          type: :array, default: [],
-                                          desc: 'Skip the provided gems files'
-
         class_option :skip_sprockets,     type: :boolean, aliases: '-S', default: false,
                                           desc: 'Skip Sprockets files'
 
@@ -65,6 +62,9 @@ module Rails
         class_option :edge,               type: :boolean, default: false,
                                           desc: "Setup the #{name} with Gemfile pointing to Rails repository"
 
+        class_option :skip_turbolinks,    type: :boolean, default: false,
+                                          desc: 'Skip turbolinks gem'
+
         class_option :skip_test_unit,     type: :boolean, aliases: '-T', default: false,
                                           desc: 'Skip Test::Unit files'
 
@@ -79,7 +79,7 @@ module Rails
       end
 
       def initialize(*args)
-        @gem_filter    = lambda { |gem| !options[:skip_gems].include?(gem.name) }
+        @gem_filter    = lambda { |gem| true }
         @extra_entries = []
         super
         convert_database_option_for_jruby
@@ -287,8 +287,11 @@ module Rails
                                          "Use #{options[:javascript]} as the JavaScript library")
           end
 
-          gems << GemfileEntry.version("turbolinks", nil,
-            "Turbolinks makes following links in your web application faster. Read more: https://github.com/rails/turbolinks")
+          unless options[:skip_turbolinks]
+            gems << GemfileEntry.version("turbolinks", nil,
+             "Turbolinks makes following links in your web application faster. Read more: https://github.com/rails/turbolinks")
+          end
+
           gems
         end
       end
