@@ -194,6 +194,8 @@ module CallbacksTest
     before_save Proc.new { |r| r.history << "b00m" }, :if => :no
     before_save Proc.new { |r| r.history << [:before_save, :symbol] }, :unless => :no
     before_save Proc.new { |r| r.history << "b00m" }, :unless => :yes
+    # symbol to proc
+    before_save Proc.new { |r| r.history << [:before_save, :sym_to_proc] }, :if => :yes.to_proc
     # string
     before_save Proc.new { |r| r.history << [:before_save, :string] }, :if => 'yes'
     before_save Proc.new { |r| r.history << "b00m" }, :if => 'no'
