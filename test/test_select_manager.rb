@@ -307,13 +307,11 @@ module Arel
         table = Table.new :users
         @m1 = Arel::SelectManager.new Table.engine, table
         @m1.project Arel.star
-        @m1.where(table[:age].in(18..60))
+        @m1.where(table[:age].between(18..60))
 
         @m2 = Arel::SelectManager.new Table.engine, table
         @m2.project Arel.star
-        @m2.where(table[:age].in(40..99))
-
-
+        @m2.where(table[:age].between(40..99))
       end
 
       it 'should except two managers' do
