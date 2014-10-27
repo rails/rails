@@ -1,3 +1,7 @@
+*   Raise `ArgumentError` when the body of a scope is not callable.
+
+    *Mauro George*
+
 *   Use type column first in multi-column indexes created with `add-reference`.
 
     *Derek Prior*

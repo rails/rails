@@ -132,6 +132,13 @@ class NamedScopingTest < ActiveRecord::TestCase
     assert_equal Post.ranked_by_comments.limit_by(5), Post.top(5)
   end
 
+  def test_scopes_body_is_a_callable
+    e = assert_raises ArgumentError do
+      Class.new(Post).class_eval { scope :containing_the_letter_z, where("body LIKE '%z%'") }
+    end
+    assert_equal "The scope body needs to be callable.", e.message
+  end
+
   def test_active_records_have_scope_named__all__
     assert !Topic.all.empty?
 
