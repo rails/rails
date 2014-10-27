@@ -99,11 +99,11 @@ module ActionDispatch
         # Returns set of NFA states to which there is a transition on ast symbol
         # +a+ from some state +s+ in +t+.
         def move(t, a)
-          Array(t).map { |s|
+          Array(t).flat_map { |s|
             inverted[s].keys.compact.find_all { |sym|
               sym === a
             }.map { |sym| inverted[s][sym] }
-          }.flatten.uniq
+          }.uniq
         end
 
         def alphabet
