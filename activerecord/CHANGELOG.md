@@ -1,3 +1,7 @@
+*   Use type column first in multi-column indexes created with `add-reference`.
+
+    *Derek Prior*
+
 *   Fix `Relation.rewhere` to work with Range values.
 
     *Dan Olson*
