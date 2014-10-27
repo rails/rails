@@ -1,3 +1,18 @@
+*   Ability to pass additional arguments to localtime and getlocal.
+    http://www.ruby-doc.org/core-2.1.3/Time.html#method-i-getlocal accepts additional arguments to get Time object in particular time zone you want like this:
+    Time.now.getlocal(14400) # => 2014-10-13 16:21:02 +0400
+    This commit allows this for ActiveSupport::TimeWithZone objects so from now on you can do this:
+    Time.current.localtime         # => 2014-10-13 12:20:20 +0000
+    Time.current.getlocal          # => 2014-10-13 12:20:57 +0000
+    Time.current.localtime(14400)  # => 2014-10-13 16:22:04 +0400
+    Time.current.getlocal(-14400)  # => 2014-10-13 08:24:59 -0400
+    Time.zone.now.localtime        # => 2014-10-13 12:39:57 +0000
+    Time.zone.now.getlocal         # => 2014-10-13 12:40:01 +0000
+    Time.zone.now.localtime(-14400)# => 2014-10-13 08:40:55 -0400
+    Time.zone.now.getlocal(14400)  # => 2014-10-13 16:41:06 +0400
+
+    *Andrey Voronkov*
+
 *   Corrected Inflector#underscore handling of multiple successive acroynms.
 
     *James Le Cuirot*
