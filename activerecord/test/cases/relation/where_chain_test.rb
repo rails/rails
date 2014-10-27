@@ -156,5 +156,26 @@ module ActiveRecord
       assert_equal 1, relation.where_values.size
       assert_equal Post.where(comments_count: 3..5), relation
     end
+
+    def test_rewhere_with_infinite_upper_bound_range
+      relation = Post.where(comments_count: 1..Float::INFINITY).rewhere(comments_count: 3..5)
+
+      assert_equal 1, relation.where_values.size
+      assert_equal Post.where(comments_count: 3..5), relation
+    end
+
+    def test_rewhere_with_infinite_lower_bound_range
+      relation = Post.where(comments_count: -Float::INFINITY..1).rewhere(comments_count: 3..5)
+
+      assert_equal 1, relation.where_values.size
+      assert_equal Post.where(comments_count: 3..5), relation
+    end
+
+    def test_rewhere_with_infinite_range
+      relation = Post.where(comments_count: -Float::INFINITY..Float::INFINITY).rewhere(comments_count: 3..5)
+
+      assert_equal 1, relation.where_values.size
+      assert_equal Post.where(comments_count: 3..5), relation
+    end
   end
 end
