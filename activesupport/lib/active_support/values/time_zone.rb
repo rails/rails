@@ -406,8 +406,8 @@ module ActiveSupport
 
     # Adjust the given time to the simultaneous time in UTC. Returns a
     # Time.utc() instance.
-    def local_to_utc(time, dst=true)
-      tzinfo.local_to_utc(time, dst)
+    def local_to_utc(time, dst=true, &block)
+      tzinfo.local_to_utc(time, dst, &block)
     end
 
     # Available so that TimeZone instances respond like TZInfo::Timezone
@@ -418,8 +418,8 @@ module ActiveSupport
 
     # Available so that TimeZone instances respond like TZInfo::Timezone
     # instances.
-    def period_for_local(time, dst=true)
-      tzinfo.period_for_local(time, dst)
+    def period_for_local(time, dst=true, &block)
+      tzinfo.period_for_local(time, dst, &block)
     end
 
     def periods_for_local(time) #:nodoc:
