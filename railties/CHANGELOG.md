@@ -1,3 +1,9 @@
+*   `secret_token` is now saved in `Rails.application.secrets.secret_token`
+    and it falls back to the value of `config.secret_token` when it is not
+    present in `config/secrets.yml`.
+
+    *Benjamin Fleischer*
+
 *   Remove `--skip-action-view` option from `Rails::Generators::AppBase`.
 
     Fixes #17023.
