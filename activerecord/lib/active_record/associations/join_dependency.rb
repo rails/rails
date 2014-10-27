@@ -20,7 +20,7 @@ module ActiveRecord
         end
 
         def columns
-          @tables.flat_map { |t| t.column_aliases }
+          @tables.flat_map(&:column_aliases)
         end
 
         # An array of [column_name, alias] pairs for the table

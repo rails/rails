@@ -415,7 +415,7 @@ module ActiveRecord
     end
 
     def using_limitable_reflections?(reflections)
-      reflections.none? { |r| r.collection? }
+      reflections.none?(&:collection?)
     end
 
     protected

@@ -42,7 +42,7 @@ module ActionDispatch
         end
 
         def names
-          @names ||= spec.grep(Nodes::Symbol).map { |n| n.name }
+          @names ||= spec.grep(Nodes::Symbol).map(&:name)
         end
 
         def required_names
@@ -52,7 +52,7 @@ module ActionDispatch
         def optional_names
           @optional_names ||= spec.grep(Nodes::Group).flat_map { |group|
             group.grep(Nodes::Symbol)
-          }.map { |n| n.name }.uniq
+          }.map(&:name).uniq
         end
 
         class RegexpOffsets < Journey::Visitors::Visitor # :nodoc:

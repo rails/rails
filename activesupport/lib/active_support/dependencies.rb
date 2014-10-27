@@ -742,7 +742,7 @@ module ActiveSupport #:nodoc:
     protected
       def log_call(*args)
         if log_activity?
-          arg_str = args.collect { |arg| arg.inspect } * ', '
+          arg_str = args.collect(&:inspect) * ', '
           /in `([a-z_\?\!]+)'/ =~ caller(1).first
           selector = $1 || '<unknown>'
           log "called #{selector}(#{arg_str})"

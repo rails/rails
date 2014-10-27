@@ -859,7 +859,7 @@ module ActionMailer
       when user_content_type.present?
         user_content_type
       when m.has_attachments?
-        if m.attachments.detect { |a| a.inline? }
+        if m.attachments.detect(&:inline?)
           ["multipart", "related", params]
         else
           ["multipart", "mixed", params]
@@ -914,7 +914,7 @@ module ActionMailer
       if templates.empty?
         raise ActionView::MissingTemplate.new(paths, name, paths, false, 'mailer')
       else
-        templates.uniq { |t| t.formats }.each(&block)
+        templates.uniq(&:formats).each(&block)
       end
     end
 

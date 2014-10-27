@@ -43,9 +43,7 @@ module Delayed
         end
 
         def self.create(attrs = {})
-          new(attrs).tap do |o|
-            o.save
-          end
+          new(attrs).tap(&:save)
         end
 
         def self.create!(*args); create(*args); end

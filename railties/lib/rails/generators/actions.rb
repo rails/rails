@@ -189,7 +189,7 @@ module Rails
       #   generate(:authenticated, "user session")
       def generate(what, *args)
         log :generate, what
-        argument = args.flat_map {|arg| arg.to_s }.join(" ")
+        argument = args.flat_map(&:to_s).join(" ")
 
         in_root { run_ruby_script("bin/rails generate #{what} #{argument}", verbose: false) }
       end

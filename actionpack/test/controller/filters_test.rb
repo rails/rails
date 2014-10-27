@@ -10,7 +10,7 @@ class ActionController::Base
 
     def before_actions
       filters = _process_action_callbacks.select { |c| c.kind == :before }
-      filters.map! { |c| c.raw_filter }
+      filters.map!(&:raw_filter)
     end
   end
 

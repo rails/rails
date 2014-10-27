@@ -791,7 +791,7 @@ module ActiveRecord
       def source_reflection_name # :nodoc:
         return @source_reflection_name if @source_reflection_name
 
-        names = [name.to_s.singularize, name].collect { |n| n.to_sym }.uniq
+        names = [name.to_s.singularize, name].collect(&:to_sym).uniq
         names = names.find_all { |n|
           through_reflection.klass._reflect_on_association(n)
         }

@@ -127,7 +127,7 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_difference('Topic.count', -topics_by_mary.size) do
       destroyed = Topic.destroy_all(conditions).sort_by(&:id)
       assert_equal topics_by_mary, destroyed
-      assert destroyed.all? { |topic| topic.frozen? }, "destroyed topics should be frozen"
+      assert destroyed.all?(&:frozen?), "destroyed topics should be frozen"
     end
   end
 
@@ -137,7 +137,7 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_difference('Client.count', -2) do
       destroyed = Client.destroy([2, 3]).sort_by(&:id)
       assert_equal clients, destroyed
-      assert destroyed.all? { |client| client.frozen? }, "destroyed clients should be frozen"
+      assert destroyed.all?(&:frozen?), "destroyed clients should be frozen"
     end
   end
 
