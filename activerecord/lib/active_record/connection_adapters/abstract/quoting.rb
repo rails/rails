@@ -30,7 +30,12 @@ module ActiveRecord
           # BigDecimals need to be put in a non-normalized form and quoted.
         when nil        then "NULL"
         when BigDecimal then value.to_s('F')
-        when Numeric, ActiveSupport::Duration then value.to_s
+        when Numeric, ActiveSupport::Duration
+          if column.try(:type) == :string
+            quote(value.to_s, column)
+          else
+            value.to_s
+          end
         when Date, Time then "'#{quoted_date(value)}'"
         when Symbol     then "'#{quote_string(value.to_s)}'"
         when Class      then "'#{value.to_s}'"

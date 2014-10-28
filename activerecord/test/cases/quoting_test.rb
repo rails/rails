@@ -195,6 +195,10 @@ module ActiveRecord
       def test_quote_duration_int_column
         assert_equal "7200", @quoter.quote(2.hours, FakeColumn.new(:integer))
       end
+
+      def test_quote_integer_string_column
+        assert_equal "'1'", @quoter.quote(1, FakeColumn.new(:string))
+      end
     end
   end
 end
