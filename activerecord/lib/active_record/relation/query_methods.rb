@@ -1,4 +1,5 @@
 require 'active_support/core_ext/array/wrap'
+require 'active_support/core_ext/string/filters'
 require 'active_model/forbidden_attributes_protection'
 
 module ActiveRecord
@@ -94,8 +95,10 @@ module ActiveRecord
     def check_cached_relation # :nodoc:
       if defined?(@arel) && @arel
         @arel = nil
-        ActiveSupport::Deprecation.warn "Modifying already cached Relation. The " \
-          "cache will be reset. Use a cloned Relation to prevent this warning."
+        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          Modifying already cached Relation. The cache will be reset. Use a
+          cloned Relation to prevent this warning.
+        MSG
       end
     end
 

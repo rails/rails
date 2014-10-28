@@ -1,4 +1,5 @@
 require 'thread'
+require 'active_support/core_ext/string/filters'
 
 module ActiveRecord
   # = Active Record Reflection
@@ -153,8 +154,11 @@ module ActiveRecord
       end
 
       def source_macro
-        ActiveSupport::Deprecation.warn("ActiveRecord::Base.source_macro is deprecated and " \
-          "will be removed without replacement.")
+        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          ActiveRecord::Base.source_macro is deprecated and will be removed
+          without replacement.
+        MSG
+
         macro
       end
     end
@@ -339,13 +343,14 @@ module ActiveRecord
         return unless scope
 
         if scope.arity > 0
-          ActiveSupport::Deprecation.warn \
-            "The association scope '#{name}' is instance dependent (the scope " \
-            "block takes an argument). Preloading happens before the individual " \
-            "instances are created. This means that there is no instance being " \
-            "passed to the association scope. This will most likely result in " \
-            "broken or incorrect behavior. Joining, Preloading and eager loading " \
-            "of these associations is deprecated and will be removed in the future."
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            The association scope '#{name}' is instance dependent (the scope
+            block takes an argument). Preloading happens before the individual
+            instances are created. This means that there is no instance being
+            passed to the association scope. This will most likely result in
+            broken or incorrect behavior. Joining, Preloading and eager loading
+            of these associations is deprecated and will be removed in the future.
+          MSG
         end
       end
       alias :check_eager_loadable! :check_preloadable!
@@ -746,8 +751,11 @@ module ActiveRecord
 
       # The macro used by the source association
       def source_macro
-        ActiveSupport::Deprecation.warn("ActiveRecord::Base.source_macro is deprecated and " \
-          "will be removed without replacement.")
+        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          ActiveRecord::Base.source_macro is deprecated and will be removed
+          without replacement.
+        MSG
+
         source_reflection.source_macro
       end
 

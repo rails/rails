@@ -1,3 +1,5 @@
+require 'active_support/core_ext/string/filters'
+
 module ActiveRecord
   module Tasks # :nodoc:
     class DatabaseAlreadyExists < StandardError; end # :nodoc:
@@ -187,9 +189,10 @@ module ActiveRecord
       end
 
       def load_schema(format = ActiveRecord::Base.schema_format, file = nil)
-        ActiveSupport::Deprecation.warn \
-          "This method will act on a specific connection in the future. " \
-          "To act on the current connection, use `load_schema_current` instead."
+        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          This method will act on a specific connection in the future.
+          To act on the current connection, use `load_schema_current` instead.
+        MSG
 
         load_schema_current(format, file)
       end
