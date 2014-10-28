@@ -56,6 +56,14 @@ module ActiveRecord
           clone.instance_variable_set('@cast_type', type)
         end
       end
+
+      def ==(other)
+        other.name == name &&
+          other.default == default &&
+          other.cast_type == cast_type &&
+          other.sql_type == sql_type &&
+          other.null == null
+      end
     end
   end
   # :startdoc:
