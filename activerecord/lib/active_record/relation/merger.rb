@@ -83,26 +83,46 @@ module ActiveRecord
       private
 
       def merge_joins
-        return if values[:joins].blank?
+        return if (joins = values[:joins]).blank?
 
         if other.klass == relation.klass
-          relation.joins!(*values[:joins])
+          relation.joins!(*joins)
         else
-          joins_dependency, rest = values[:joins].partition do |join|
-            case join
-            when Hash, Symbol, Array
-              true
-            else
-              false
+          # 1) build an association join tree (AR guarantees not to double join
+          # associations even if they've been accidentally specified twice,
+          # ie: `Author.joins(:books).joins(:books)`)
+          assoc_joins_tree = ActiveRecord::Associations::JoinDependency::JoinsTree.new
+          joins.each {|join| assoc_joins_tree.add_associations(join)}
+
+          # try to coalesce/pool JoinDependency allocation, since association joins usually come in batches,
+          # ie: joins # => [:posts, :comments, :categorizations], while non association joins are usually
+          # really rare
+          join_dependency_params = nil
+          join_values            = []
+
+          # 2) build join_values iteratively to preserve user supplied JOIN clauses order
+          joins.each do |join|
+            # if AR "association" param, ie: :books, or {:author => :book}
+            if join_dependency_param = assoc_joins_tree.drain_associations_as_join_dependency_param(join)
+              join_dependency_params ||= []
+              if join_dependency_param.kind_of?(Array)
+                join_dependency_params.concat(join_dependency_param)
+              else
+                join_dependency_params << join_dependency_param
+              end
+            elsif assoc_joins_tree.association_join_param?(join)
+              # elsif `join` is an already "drained" association join
+            else # else `join` is not an association join (but a string or an arel join obj)
+              if join_dependency_params # can't delay instantiating JoinDependency anymore
+                join_values << ActiveRecord::Associations::JoinDependency.new(other.klass, join_dependency_params)
+                join_dependency_params = nil
+              end
+              join_values << join
             end
           end
+          join_values << ActiveRecord::Associations::JoinDependency.new(other.klass, join_dependency_params) if join_dependency_params
 
-          join_dependency = ActiveRecord::Associations::JoinDependency.new(other.klass,
-                                                                           joins_dependency,
-                                                                           [])
-          relation.joins! rest
-
-          @relation = relation.joins join_dependency
+          @relation = relation.joins(*join_values)
         end
       end
 

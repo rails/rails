@@ -922,22 +922,6 @@ module ActiveRecord
       bind_values.reject! { |col,_| col.name == target_value }
     end
 
-    def custom_join_ast(table, joins)
-      joins = joins.reject(&:blank?)
-
-      return [] if joins.empty?
-
-      joins.map! do |join|
-        case join
-        when Array
-          join = Arel.sql(join.join(' ')) if array_of_strings?(join)
-        when String
-          join = Arel.sql(join)
-        end
-        table.create_string_join(join)
-      end
-    end
-
     def collapse_wheres(arel, wheres)
       predicates = wheres.map do |where|
         next where if ::Arel::Nodes::Equality === where
@@ -1004,44 +988,58 @@ module ActiveRecord
     end
 
     def build_joins(manager, joins)
-      buckets = joins.group_by do |join|
-        case join
-        when String
-          :string_join
-        when Hash, Symbol, Array
-          :association_join
-        when ActiveRecord::Associations::JoinDependency
-          :stashed_join
-        when Arel::Nodes::Join
-          :join_node
-        else
-          raise 'unknown class: %s' % join.class.name
+      assoc_joins_tree = ActiveRecord::Associations::JoinDependency::JoinsTree.new
+      other_joins_hash = {}
+      joins_to_process = []
+
+      # Joins need to be iterated over twice:
+      # 1) first loop over supplied joins to do some pre-processing, uniquification and
+      # preparation of params for JoinDependency (it needs to be aware of all joins, so it
+      # can perform non-conflicting table aliasing)
+      joins.each do |join|
+        unless assoc_joins_tree.add_associations(join)
+          case join
+          when ActiveRecord::Associations::JoinDependency
+          when String
+            next if (join = join.strip).blank? || other_joins_hash[join]
+            join = other_joins_hash[join] = manager.create_string_join(Arel.sql(join))
+          when Arel::Nodes::Join
+            # note: Arel::Nodes::Join subclasses can reliably be used as hash keys
+            next if other_joins_hash[join]
+            other_joins_hash[join] = join
+          else
+            raise 'unknown class: %s' % join.class.name
+          end
         end
+        joins_to_process << join
       end
-
-      association_joins         = buckets[:association_join] || []
-      stashed_association_joins = buckets[:stashed_join] || []
-      join_nodes                = (buckets[:join_node] || []).uniq
-      string_joins              = (buckets[:string_join] || []).map(&:strip).uniq
-
-      join_list = join_nodes + custom_join_ast(manager, string_joins)
 
       join_dependency = ActiveRecord::Associations::JoinDependency.new(
         @klass,
-        association_joins,
-        join_list
+        assoc_joins_tree,
+        other_joins_hash.values
       )
 
-      join_infos = join_dependency.join_constraints stashed_association_joins
+      # 2) loop over joins again (so that user supplied order of joins is maintained)
+      # and send them to the manager
+      joins_to_process.each do |join|
+        if join_infos = assoc_joins_tree.drain_associations_as_join_infos(join_dependency, join)
+          append_join_infos(manager, join_infos)
+        elsif join.kind_of?(ActiveRecord::Associations::JoinDependency)
+          append_join_infos(manager, join_dependency.join_constraints_for_join_dependency(join))
+        elsif join.kind_of?(Arel::Nodes::Join)
+          manager.join_sources << join
+        end
+      end
 
+      manager
+    end
+
+    def append_join_infos(manager, join_infos)
       join_infos.each do |info|
         info.joins.each { |join| manager.from(join) }
         manager.bind_values.concat info.binds
       end
-
-      manager.join_sources.concat(join_list)
-
-      manager
     end
 
     def build_select(arel, selects)
@@ -1071,10 +1069,6 @@ module ActiveRecord
           o
         end
       end
-    end
-
-    def array_of_strings?(o)
-      o.is_a?(Array) && o.all? { |obj| obj.is_a?(String) }
     end
 
     def build_order(arel)
