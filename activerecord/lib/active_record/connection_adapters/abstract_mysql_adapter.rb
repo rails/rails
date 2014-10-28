@@ -91,6 +91,13 @@ module ActiveRecord
           collation && !collation.match(/_ci$/)
         end
 
+        def ==(other)
+          super &&
+            collation == other.collation &&
+            strict == other.strict &&
+            extra == other.extra
+        end
+
         private
 
         # MySQL misreports NOT NULL column default when none is given.
@@ -108,6 +115,10 @@ module ActiveRecord
           if blob_or_text_column? && default.present?
             raise ArgumentError, "#{type} columns cannot have a default value: #{default.inspect}"
           end
+        end
+
+        def attributes_for_hash
+          super + [collation, strict, extra]
         end
       end
 
