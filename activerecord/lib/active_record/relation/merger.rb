@@ -108,10 +108,10 @@ module ActiveRecord
 
       def merge_multi_values
         lhs_wheres = relation.where_values
-        rhs_wheres = other.where_values || []
+        rhs_wheres = other.where_values
 
         lhs_binds  = relation.bind_values
-        rhs_binds  = other.bind_values || []
+        rhs_binds  = other.bind_values
 
         removed, kept = partition_overwrites(lhs_wheres, rhs_wheres)
 
