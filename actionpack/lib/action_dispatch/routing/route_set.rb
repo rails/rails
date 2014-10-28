@@ -327,7 +327,7 @@ module ActionDispatch
           if options[:only_path]
             ActiveSupport::Deprecation.warn \
               "You are calling a `*_path` helper with the `only_path` option " \
-              "expicitly set to `true`. This option will stop working on " \
+              "explicitly set to `true`. This option will stop working on " \
               "path helpers in Rails 5. Simply remove the `only_path: true` " \
               "argument from your call as it is redundant when applied to a " \
               "path helper."
@@ -336,7 +336,7 @@ module ActionDispatch
           else
             ActiveSupport::Deprecation.warn \
               "You are calling a `*_path` helper with the `only_path` option " \
-              "expicitly set to `false`. This option will stop working on " \
+              "explicitly set to `false`. This option will stop working on " \
               "path helpers in Rails 5. Use the corresponding `*_url` helper " \
               "instead."
 
