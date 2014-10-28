@@ -311,7 +311,7 @@ ActiveRecord::Schema.define do
   end
 
   create_table :cold_jokes, force: true do |t|
-    t.string :name
+    t.string :cold_name
   end
 
   create_table :friendships, force: true do |t|

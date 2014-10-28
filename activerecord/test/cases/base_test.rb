@@ -1383,7 +1383,10 @@ class BasicsTest < ActiveRecord::TestCase
     c1 = Post.connection.schema_cache.columns('posts')
     ActiveRecord::Base.clear_cache!
     c2 = Post.connection.schema_cache.columns('posts')
-    assert_not_equal c1, c2
+    c1.each_with_index do |v, i|
+      assert_not_same v, c2[i]
+    end
+    assert_equal c1, c2
   end
 
   def test_current_scope_is_reset
