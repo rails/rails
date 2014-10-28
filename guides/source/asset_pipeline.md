@@ -1295,7 +1295,7 @@ Now that you have a `Template` class, it's time to associate it with an
 extension for template files:
 
 ```ruby
-Sprockets.register_engine '.bang', BangBang::Template
+Rails.application.assets.register_engine '.bang', BangBang::Template
 ```
 
 Upgrading from Old Versions of Rails
