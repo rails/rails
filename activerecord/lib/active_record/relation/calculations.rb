@@ -196,7 +196,7 @@ module ActiveRecord
       eager_loading? || (includes_values.present? && ((column_name && column_name != :all) || references_eager_loaded_tables?))
     end
 
-    def perform_calculation(operation, column_name, options = {})
+    def perform_calculation(operation, column_name, _options = {})
       # TODO: Remove options argument as soon we remove support to
       # activerecord-deprecated_finders.
       operation = operation.to_s.downcase
