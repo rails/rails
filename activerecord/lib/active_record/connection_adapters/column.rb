@@ -64,6 +64,11 @@ module ActiveRecord
           other.sql_type == sql_type &&
           other.null == null
       end
+      alias :eql? :==
+
+      def hash
+        [self.class, name, default, cast_type, sql_type, null].hash
+      end
     end
   end
   # :startdoc:
