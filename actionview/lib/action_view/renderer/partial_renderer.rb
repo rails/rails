@@ -366,7 +366,7 @@ module ActionView
       partial = options[:partial]
 
       if String === partial
-        @object     = options[:object]
+        @object     = options[:object] if options.has_key?(:object)
         @collection = collection_from_options
         @path       = partial
       else
@@ -506,7 +506,7 @@ module ActionView
 
     def retrieve_template_keys
       keys = @locals.keys
-      keys << @variable if @object || @collection
+      keys << @variable if defined?(@object) || @collection
       if @collection
         keys << @variable_counter
         keys << @variable_iteration
