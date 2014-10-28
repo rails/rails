@@ -5,10 +5,10 @@ module Rails
   module ConsoleMethods
     # reference the global "app" instance, created on demand. To recreate the
     # instance, pass a non-false value as the parameter.
-    def app(create=false)
+    def app(create = false)
       @app_integration_instance = nil if create
       @app_integration_instance ||= new_session do |sess|
-        sess.host! "www.example.com"
+        sess.host! 'www.example.com'
       end
     end
 
@@ -22,8 +22,8 @@ module Rails
     end
 
     # reloads the environment
-    def reload!(print=true)
-      puts "Reloading..." if print
+    def reload!(print = true)
+      puts 'Reloading...' if print
       ActionDispatch::Reloader.cleanup!
       ActionDispatch::Reloader.prepare!
       true

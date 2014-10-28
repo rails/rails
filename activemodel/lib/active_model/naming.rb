@@ -172,7 +172,7 @@ module ActiveModel
     #   BlogPost.model_name.human # => "Blog post"
     #
     # Specify +options+ with additional translating options.
-    def human(options={})
+    def human(options = {})
       return @human unless @klass.respond_to?(:lookup_ancestors) &&
                            @klass.respond_to?(:i18n_scope)
 
@@ -189,7 +189,7 @@ module ActiveModel
 
     private
 
-    def _singularize(string, replacement='_')
+    def _singularize(string, replacement = '_')
       ActiveSupport::Inflector.underscore(string).tr('/', replacement)
     end
   end

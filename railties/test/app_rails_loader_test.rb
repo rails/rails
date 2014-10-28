@@ -17,7 +17,7 @@ class AppRailsLoaderTest < ActiveSupport::TestCase
     end
   end
 
-  def write(filename, contents=nil)
+  def write(filename, contents = nil)
     FileUtils.mkdir_p(File.dirname(filename))
     File.write(filename, contents)
   end

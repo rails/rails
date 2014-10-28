@@ -259,7 +259,7 @@ module ActiveSupport
       # * <tt>form</tt> - The form you want to normalize in. Should be one of
       #   the following: <tt>:c</tt>, <tt>:kc</tt>, <tt>:d</tt>, or <tt>:kd</tt>.
       #   Default is ActiveSupport::Multibyte.default_normalization_form.
-      def normalize(string, form=nil)
+      def normalize(string, form = nil)
         form ||= @default_normalization_form
         # See http://www.unicode.org/reports/tr15, Table 1
         codepoints = string.codepoints.to_a

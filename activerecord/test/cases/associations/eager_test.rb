@@ -768,7 +768,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
     end
   end
 
-  def find_all_ordered(className, include=nil)
+  def find_all_ordered(className, include = nil)
     className.all.merge!(:order=>"#{className.table_name}.#{className.primary_key}", :includes=>include).to_a
   end
 

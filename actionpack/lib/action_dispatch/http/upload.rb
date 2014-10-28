@@ -34,7 +34,7 @@ module ActionDispatch
       end
 
       # Shortcut for +tempfile.read+.
-      def read(length=nil, buffer=nil)
+      def read(length = nil, buffer = nil)
         @tempfile.read(length, buffer)
       end
 
@@ -44,7 +44,7 @@ module ActionDispatch
       end
 
       # Shortcut for +tempfile.close+.
-      def close(unlink_now=false)
+      def close(unlink_now = false)
         @tempfile.close(unlink_now)
       end
 

@@ -67,7 +67,7 @@ module RailsGuides
 
     GUIDES_RE = /\.(?:erb|md)\z/
 
-    def initialize(output=nil)
+    def initialize(output = nil)
       set_flags_from_environment
 
       if kindle?

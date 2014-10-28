@@ -382,7 +382,7 @@ module RoutingTestHelpers
         @set = set
       end
 
-      def controller(params, default_controller=true)
+      def controller(params, default_controller = true)
         super(params, @set.strict)
       end
 

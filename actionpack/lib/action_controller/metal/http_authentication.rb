@@ -220,7 +220,7 @@ module ActionController
       # Returns the expected response for a request of +http_method+ to +uri+ with the decoded +credentials+ and the expected +password+
       # Optional parameter +password_is_ha1+ is set to +true+ by default, since best practice is to store ha1 digest instead
       # of a plain-text password.
-      def expected_response(http_method, uri, credentials, password, password_is_ha1=true)
+      def expected_response(http_method, uri, credentials, password, password_is_ha1 = true)
         ha1 = password_is_ha1 ? password : ha1(credentials, password)
         ha2 = ::Digest::MD5.hexdigest([http_method.to_s.upcase, uri].join(':'))
         ::Digest::MD5.hexdigest([ha1, credentials[:nonce], credentials[:nc], credentials[:cnonce], credentials[:qop], ha2].join(':'))
@@ -310,7 +310,7 @@ module ActionController
       # Can be much shorter if the Stale directive is implemented. This would
       # allow a user to use new nonce without prompting user again for their
       # username and password.
-      def validate_nonce(secret_key, request, value, seconds_to_timeout=5*60)
+      def validate_nonce(secret_key, request, value, seconds_to_timeout = 5 * 60)
         return false if value.nil?
         t = ::Base64.decode64(value).split(":").first.to_i
         nonce(secret_key, t) == value && (t - Time.now.to_i).abs <= seconds_to_timeout

@@ -22,7 +22,7 @@ class Address
 end
 
 class SerializableContact < Contact
-  def serializable_hash(options={})
+  def serializable_hash(options = {})
     super(options.merge(only: [:name, :age]))
   end
 end

@@ -87,7 +87,7 @@ module ActiveModel
   # To setup your validator override the constructor.
   #
   #   class MyValidator < ActiveModel::Validator
-  #     def initialize(options={})
+  #     def initialize(options = {})
   #       super
   #       options[:class].send :attr_accessor, :custom_attribute
   #     end

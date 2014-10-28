@@ -106,12 +106,12 @@ class DelegatingAttributesTest < ActiveSupport::TestCase
 
   def test_delegation_stops_for_nil
     Mokopuna.some_attribute = nil
-    Child.some_attribute="1"
+    Child.some_attribute = "1"
 
     assert_equal "1", Child.some_attribute
     assert_nil Mokopuna.some_attribute
   ensure
-    Child.some_attribute=nil
+    Child.some_attribute = nil
   end
 
   def test_deprecation_warning

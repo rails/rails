@@ -23,7 +23,7 @@ end
 # Object.const_get('::String') raises NameError and so does qualified_const_get.
 #++
 class Module
-  def qualified_const_defined?(path, search_parents=true)
+  def qualified_const_defined?(path, search_parents = true)
     QualifiedConstUtils.raise_if_absolute(path)
 
     QualifiedConstUtils.names(path).inject(self) do |mod, name|

@@ -60,7 +60,7 @@ module Rails
         #
         # You can provide a configuration hash as second argument. This method returns the output
         # printed by the generator.
-        def run_generator(args=self.default_arguments, config={})
+        def run_generator(args = self.default_arguments, config = {})
           capture(:stdout) do
             args += ['--skip-bundle'] unless args.include? '--dev'
             self.generator_class.start(args, config.reverse_merge(destination_root: destination_root))
@@ -68,7 +68,7 @@ module Rails
         end
 
         # Instantiate the generator.
-        def generator(args=self.default_arguments, options={}, config={})
+        def generator(args = self.default_arguments, options = {}, config = {})
           @generator ||= self.generator_class.new(args, options, config.reverse_merge(destination_root: destination_root))
         end
 

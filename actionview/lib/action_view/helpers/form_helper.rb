@@ -1792,7 +1792,7 @@ module ActionView
       #         post:
       #           create: "Add %{model}"
       #
-      def submit(value=nil, options={})
+      def submit(value = nil, options = {})
         value, options = nil, value if value.is_a?(Hash)
         value ||= submit_default_value
         @template.submit_tag(value, options)

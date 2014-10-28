@@ -571,7 +571,7 @@ module ActionMailer
     # will be initialized according to the named method. If not, the mailer will
     # remain uninitialized (useful when you only need to invoke the "receive"
     # method, for instance).
-    def initialize(method_name=nil, *args)
+    def initialize(method_name = nil, *args)
       super()
       @_mail_was_called = false
       @_message = Mail.new
@@ -595,7 +595,7 @@ module ActionMailer
     class NullMail #:nodoc:
       def body; '' end
 
-      def respond_to?(string, include_all=false)
+      def respond_to?(string, include_all = false)
         true
       end
 

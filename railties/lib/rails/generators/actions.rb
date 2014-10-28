@@ -65,7 +65,7 @@ module Rails
       # Add the given source to +Gemfile+
       #
       #   add_source "http://gems.github.com/"
-      def add_source(source, options={})
+      def add_source(source, options = {})
         log :source, source
 
         in_root do
@@ -85,7 +85,7 @@ module Rails
       #   environment(nil, env: "development") do
       #     "config.autoload_paths += %W(#{config.root}/extras)"
       #   end
-      def environment(data=nil, options={})
+      def environment(data = nil, options = {})
         sentinel = /class [a-z_:]+ < Rails::Application/i
         env_file_sentinel = /Rails\.application\.configure do/
         data = yield if !data && block_given?
@@ -107,7 +107,7 @@ module Rails
       #   git :init
       #   git add: "this.file that.rb"
       #   git add: "onefile.rb", rm: "badfile.cxx"
-      def git(commands={})
+      def git(commands = {})
         if commands.is_a?(Symbol)
           run "git #{commands}"
         else
@@ -126,7 +126,7 @@ module Rails
       #   end
       #
       #   vendor("foreign.rb", "# Foreign code is fun")
-      def vendor(filename, data=nil, &block)
+      def vendor(filename, data = nil, &block)
         log :vendor, filename
         create_file("vendor/#{filename}", data, verbose: false, &block)
       end
@@ -139,7 +139,7 @@ module Rails
       #   end
       #
       #   lib("foreign.rb", "# Foreign code is fun")
-      def lib(filename, data=nil, &block)
+      def lib(filename, data = nil, &block)
         log :lib, filename
         create_file("lib/#{filename}", data, verbose: false, &block)
       end
@@ -159,7 +159,7 @@ module Rails
       #   end
       #
       #   rakefile('seed.rake', 'puts "Planting seeds"')
-      def rakefile(filename, data=nil, &block)
+      def rakefile(filename, data = nil, &block)
         log :rakefile, filename
         create_file("lib/tasks/#{filename}", data, verbose: false, &block)
       end
@@ -177,7 +177,7 @@ module Rails
       #   end
       #
       #   initializer("api.rb", "API_KEY = '123456'")
-      def initializer(filename, data=nil, &block)
+      def initializer(filename, data = nil, &block)
         log :initializer, filename
         create_file("config/initializers/#{filename}", data, verbose: false, &block)
       end
@@ -199,7 +199,7 @@ module Rails
       #   rake("db:migrate")
       #   rake("db:migrate", env: "production")
       #   rake("gems:install", sudo: true)
-      def rake(command, options={})
+      def rake(command, options = {})
         log :rake, command
         env  = options[:env] || ENV["RAILS_ENV"] || 'development'
         sudo = options[:sudo] && RbConfig::CONFIG['host_os'] !~ /mswin|mingw/ ? 'sudo ' : ''

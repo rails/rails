@@ -52,7 +52,7 @@ module ActionDispatch
       #
       #   # asserts that the redirection matches the regular expression
       #   assert_redirected_to %r(\Ahttp://example.org)
-      def assert_redirected_to(options = {}, message=nil)
+      def assert_redirected_to(options = {}, message = nil)
         assert_response(:redirect, message)
         return true if options === @response.location
 

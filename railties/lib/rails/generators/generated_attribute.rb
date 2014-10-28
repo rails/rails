@@ -55,7 +55,7 @@ module Rails
         end
       end
 
-      def initialize(name, type=nil, index_type=false, attr_options={})
+      def initialize(name, type = nil, index_type = false, attr_options = {})
         @name           = name
         @type           = type || :string
         @has_index      = INDEX_OPTIONS.include?(index_type)
