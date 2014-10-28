@@ -490,7 +490,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_psych_gem
     run_generator
-    gem_regex = /gem 'psych',\s+'~> 2.0', \s+platforms: :rbx/
+    gem_regex = /gem 'psych',\s+'~> 2.0',\s+platforms: :rbx/
 
     assert_file "Gemfile" do |content|
       if defined?(Rubinius)
