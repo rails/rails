@@ -1,3 +1,5 @@
+require 'active_support/core_ext/string/filters'
+
 module ActiveRecord
   module AttributeMethods
     module Serialization
@@ -51,8 +53,10 @@ module ActiveRecord
         end
 
         def serialized_attributes
-          ActiveSupport::Deprecation.warn "`serialized_attributes` is deprecated " \
-            "without replacement, and will be removed in Rails 5.0."
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            `serialized_attributes` is deprecated without replacement, and will
+            be removed in Rails 5.0.
+          MSG
 
           @serialized_attributes ||= Hash[
             columns.select { |t| t.cast_type.is_a?(Type::Serialized) }.map { |c|

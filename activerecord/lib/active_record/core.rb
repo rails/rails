@@ -1,6 +1,7 @@
+require 'thread'
 require 'active_support/core_ext/hash/indifferent_access'
 require 'active_support/core_ext/object/duplicable'
-require 'thread'
+require 'active_support/core_ext/string/filters'
 
 module ActiveRecord
   module Core
@@ -88,8 +89,10 @@ module ActiveRecord
       mattr_accessor :maintain_test_schema, instance_accessor: false
 
       def self.disable_implicit_join_references=(value)
-        ActiveSupport::Deprecation.warn("Implicit join references were removed with Rails 4.1." \
-                                        "Make sure to remove this configuration because it does nothing.")
+        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          Implicit join references were removed with Rails 4.1.
+          Make sure to remove this configuration because it does nothing.
+        MSG
       end
 
       class_attribute :default_connection_handler, instance_writer: false
@@ -135,8 +138,10 @@ module ActiveRecord
         id  = ids.first
         if ActiveRecord::Base === id
           id = id.id
-          ActiveSupport::Deprecation.warn "You are passing an instance of ActiveRecord::Base to `find`." \
-            "Please pass the id of the object by calling `.id`"
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            You are passing an instance of ActiveRecord::Base to `find`.
+            Please pass the id of the object by calling `.id`
+          MSG
         end
         key = primary_key
 

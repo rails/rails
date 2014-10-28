@@ -6,6 +6,7 @@ require 'active_support/core_ext/object/to_query'
 require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/module/remove_method'
 require 'active_support/core_ext/array/extract_options'
+require 'active_support/core_ext/string/filters'
 require 'action_controller/metal/exceptions'
 require 'action_dispatch/http/request'
 require 'action_dispatch/routing/endpoint'
@@ -325,20 +326,22 @@ module ActionDispatch
       LEGACY  = ->(options) {
         if options.key?(:only_path)
           if options[:only_path]
-            ActiveSupport::Deprecation.warn \
-              "You are calling a `*_path` helper with the `only_path` option " \
-              "explicitly set to `true`. This option will stop working on " \
-              "path helpers in Rails 5. Simply remove the `only_path: true` " \
-              "argument from your call as it is redundant when applied to a " \
-              "path helper."
+            ActiveSupport::Deprecation.warn(<<-MSG.squish)
+              You are calling a `*_path` helper with the `only_path` option
+              explicitly set to `true`. This option will stop working on
+              path helpers in Rails 5. Simply remove the `only_path: true`
+              argument from your call as it is redundant when applied to a
+              path helper.
+            MSG
 
             PATH.call(options)
           else
-            ActiveSupport::Deprecation.warn \
-              "You are calling a `*_path` helper with the `only_path` option " \
-              "explicitly set to `false`. This option will stop working on " \
-              "path helpers in Rails 5. Use the corresponding `*_url` helper " \
-              "instead."
+            ActiveSupport::Deprecation.warn(<<-MSG.squish)
+              You are calling a `*_path` helper with the `only_path` option
+              explicitly set to `false`. This option will stop working on
+              path helpers in Rails 5. Use the corresponding `*_url` helper
+              instead.
+            MSG
 
             FULL.call(options)
           end

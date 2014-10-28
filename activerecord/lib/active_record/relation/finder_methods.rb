@@ -1,4 +1,5 @@
 require 'active_support/deprecation'
+require 'active_support/core_ext/string/filters'
 
 module ActiveRecord
   module FinderMethods
@@ -284,8 +285,10 @@ module ActiveRecord
     def exists?(conditions = :none)
       if Base === conditions
         conditions = conditions.id
-        ActiveSupport::Deprecation.warn "You are passing an instance of ActiveRecord::Base to `exists?`." \
-          "Please pass the id of the object by calling `.id`"
+        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          You are passing an instance of ActiveRecord::Base to `exists?`.
+          Please pass the id of the object by calling `.id`
+        MSG
       end
 
       return false if !conditions
@@ -435,8 +438,10 @@ module ActiveRecord
     def find_one(id)
       if ActiveRecord::Base === id
         id = id.id
-        ActiveSupport::Deprecation.warn "You are passing an instance of ActiveRecord::Base to `find`." \
-          "Please pass the id of the object by calling `.id`"
+        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          You are passing an instance of ActiveRecord::Base to `find`.
+          Please pass the id of the object by calling `.id`
+        MSG
       end
 
       column = columns_hash[primary_key]

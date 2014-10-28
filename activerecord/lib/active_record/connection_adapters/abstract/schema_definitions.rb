@@ -60,11 +60,12 @@ module ActiveRecord
       def emit_warning_if_null_unspecified(options)
         return if options.key?(:null)
 
-        ActiveSupport::Deprecation.warn \
-          "`timestamp` was called without specifying an option for `null`. In Rails " \
-          "5.0, this behavior will change to `null: false`. You should manually " \
-          "specify `null: true` to prevent the behavior of your existing migrations " \
-          "from changing."
+        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          `timestamp` was called without specifying an option for `null`. In Rails
+          5.0, this behavior will change to `null: false`. You should manually
+          specify `null: true` to prevent the behavior of your existing migrations
+          from changing.
+        MSG
       end
     end
 
