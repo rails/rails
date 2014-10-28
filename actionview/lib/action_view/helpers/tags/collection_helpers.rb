@@ -17,13 +17,14 @@ module ActionView
             @input_html_options = input_html_options
           end
 
-          def label(label_html_options={}, &block)
+          def label(label_html_options = {}, &block)
             html_options = @input_html_options.slice(:index, :namespace).merge(label_html_options)
             @template_object.label(@object_name, @sanitized_attribute_name, @text, html_options, &block)
           end
         end
 
-        def initialize(object_name, method_name, template_object, collection, value_method, text_method, options, html_options)
+        def initialize(object_name, method_name, template_object, collection, 
+                       value_method, text_method, options, html_options)
           @collection   = collection
           @value_method = value_method
           @text_method  = text_method

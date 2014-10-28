@@ -18,7 +18,7 @@ class DateHelperTest < ActionView::TestCase
     end
   end
 
-  def assert_distance_of_time_in_words(from, to=nil)
+  def assert_distance_of_time_in_words(from, to = nil)
     to ||= from
 
     # 0..1 minute with :include_seconds => true

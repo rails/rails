@@ -122,7 +122,7 @@ module Rails
     #
     # Notice that "rails:generators:webrat" could be loaded as well, what
     # Rails looks for is the first and last parts of the namespace.
-    def self.find_by_namespace(name, base=nil, context=nil) #:nodoc:
+    def self.find_by_namespace(name, base = nil, context = nil) #:nodoc:
       lookups = []
       lookups << "#{base}:#{name}"    if base
       lookups << "#{name}:#{context}" if context
@@ -150,7 +150,7 @@ module Rails
     # Receives a namespace, arguments and the behavior to invoke the generator.
     # It's used as the default entry point for generate, destroy and update
     # commands.
-    def self.invoke(namespace, args=ARGV, config={})
+    def self.invoke(namespace, args = ARGV, config = {})
       names = namespace.to_s.split(':')
       if klass = find_by_namespace(names.pop, names.any? && names.join(':'))
         args << "--help" if args.empty? && klass.arguments.any? { |a| a.required? }

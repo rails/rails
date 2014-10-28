@@ -153,10 +153,10 @@ module ActiveRecord
             # Loop prevention for validation of associations
             unless @_already_called[name]
               begin
-                @_already_called[name]=true
+                @_already_called[name] = true
                 result = instance_eval(&block)
               ensure
-                @_already_called[name]=false
+                @_already_called[name] = false
               end
             end
 

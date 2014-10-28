@@ -35,7 +35,7 @@ module ActionView
       end
     end
 
-    def instrument(name, options={})
+    def instrument(name, options = {})
       ActiveSupport::Notifications.instrument("render_#{name}.action_view", options){ yield }
     end
 

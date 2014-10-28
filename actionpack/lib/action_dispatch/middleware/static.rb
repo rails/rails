@@ -85,7 +85,7 @@ module ActionDispatch
   # produce a directory traversal using this middleware. Only 'GET' and 'HEAD'
   # requests will result in a file being returned.
   class Static
-    def initialize(app, path, cache_control=nil)
+    def initialize(app, path, cache_control = nil)
       @app = app
       @file_handler = FileHandler.new(path, cache_control)
     end

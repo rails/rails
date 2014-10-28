@@ -52,7 +52,7 @@ module ActionDispatch
         # segment, as in :controller(/:action), we should simply return nil and
         # delegate the control back to Rack cascade. Besides, if this is not a default
         # controller, it means we should respect the @scope[:module] parameter.
-        def controller(params, default_controller=true)
+        def controller(params, default_controller = true)
           if params && params.key?(:controller)
             controller_param = params[:controller]
             controller_reference(controller_param)

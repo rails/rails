@@ -615,7 +615,7 @@ module ActiveRecord
       write "== %s %s" % [text, "=" * length]
     end
 
-    def say(message, subitem=false)
+    def say(message, subitem = false)
       write "#{subitem ? "   ->" : "--"} #{message}"
     end
 

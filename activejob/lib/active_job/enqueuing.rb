@@ -41,7 +41,7 @@ module ActiveJob
     #      # raise ErrorLoadingSite if cannot scrape
     #    end
     #  end
-    def retry_job(options={})
+    def retry_job(options = {})
       enqueue options
     end
 
@@ -58,7 +58,7 @@ module ActiveJob
     #    my_job_instance.enqueue wait: 5.minutes
     #    my_job_instance.enqueue queue: :important
     #    my_job_instance.enqueue wait_until: Date.tomorrow.midnight
-    def enqueue(options={})
+    def enqueue(options = {})
       self.scheduled_at = options[:wait].seconds.from_now.to_f if options[:wait]
       self.scheduled_at = options[:wait_until].to_f if options[:wait_until]
       self.queue_name   = self.class.queue_name_from_part(options[:queue]) if options[:queue]

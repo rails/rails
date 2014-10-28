@@ -535,7 +535,7 @@ module ActionDispatch
         # [:format]
         #   Allows you to specify the default value for optional +format+
         #   segment or disable it by supplying +false+.
-        def match(path, options=nil)
+        def match(path, options = nil)
         end
 
         # Mount a Rack-based application to be used within the application.
@@ -814,7 +814,7 @@ module ActionDispatch
         #   controller "food" do
         #     match "bacon", action: "bacon"
         #   end
-        def controller(controller, options={})
+        def controller(controller, options = {})
           options[:controller] = controller
           scope(options) { yield }
         end
@@ -1551,7 +1551,7 @@ module ActionDispatch
           @set.add_route(app, conditions, requirements, defaults, as, anchor)
         end
 
-        def root(path, options={})
+        def root(path, options = {})
           if path.is_a?(String)
             options[:to] = path
           elsif path.is_a?(Hash) and options.empty?

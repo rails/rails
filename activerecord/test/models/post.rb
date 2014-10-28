@@ -164,7 +164,7 @@ class Post < ActiveRecord::Base
     @log = []
   end
 
-  def self.log(message=nil, side=nil, new_record=nil)
+  def self.log(message = nil, side = nil, new_record = nil)
     return @log if message.nil?
     @log << [message, side, new_record]
   end

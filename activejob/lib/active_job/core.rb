@@ -43,7 +43,7 @@ module ActiveJob
       #    VideoJob.set(wait_until: Time.now.tomorrow).perform_later(Video.last)
       #    VideoJob.set(queue: :some_queue, wait: 5.minutes).perform_later(Video.last)
       #    VideoJob.set(queue: :some_queue, wait_until: Time.now.tomorrow).perform_later(Video.last)
-      def set(options={})
+      def set(options = {})
         ConfiguredJob.new(self, options)
       end
     end

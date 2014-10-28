@@ -21,7 +21,7 @@ module ActiveRecord
         connection.table_exists?(table_name)
       end
 
-      def create_table(limit=nil)
+      def create_table(limit = nil)
         unless table_exists?
           version_options = {null: false}
           version_options[:limit] = limit if limit

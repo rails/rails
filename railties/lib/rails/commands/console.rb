@@ -50,7 +50,7 @@ module Rails
 
     attr_reader :options, :app, :console
 
-    def initialize(app, options={})
+    def initialize(app, options = {})
       @app     = app
       @options = options
 

@@ -39,13 +39,13 @@ module Rails
       # GET edit
       # PATCH/PUT update
       # DELETE destroy
-      def self.find(klass, params=nil)
+      def self.find(klass, params = nil)
         "#{klass}.find(#{params})"
       end
 
       # GET new
       # POST create
-      def self.build(klass, params=nil)
+      def self.build(klass, params = nil)
         if params
           "#{klass}.new(#{params})"
         else
@@ -59,7 +59,7 @@ module Rails
       end
 
       # PATCH/PUT update
-      def update(params=nil)
+      def update(params = nil)
         "#{name}.update(#{params})"
       end
 

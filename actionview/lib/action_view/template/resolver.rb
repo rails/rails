@@ -110,7 +110,7 @@ module ActionView
     end
 
     # Normalizes the arguments and passes it on to find_templates.
-    def find_all(name, prefix=nil, partial=false, details={}, key=nil, locals=[])
+    def find_all(name, prefix = nil, partial = false, details = {}, key = nil, locals = [])
       cached(key, [name, prefix, partial], details, locals) do
         find_templates(name, prefix, partial, details)
       end
@@ -166,7 +166,7 @@ module ActionView
     EXTENSIONS = { :locale => ".", :formats => ".", :variants => "+", :handlers => "." }
     DEFAULT_PATTERN = ":prefix/:action{.:locale,}{.:formats,}{+:variants,}{.:handlers,}"
 
-    def initialize(pattern=nil)
+    def initialize(pattern = nil)
       @pattern = pattern || DEFAULT_PATTERN
       super()
     end
@@ -303,7 +303,7 @@ module ActionView
   # * <tt>:handlers</tt> - possible handlers (for example erb, haml, builder...)
   #
   class FileSystemResolver < PathResolver
-    def initialize(path, pattern=nil)
+    def initialize(path, pattern = nil)
       raise ArgumentError, "path already is a Resolver class" if path.is_a?(Resolver)
       super(pattern)
       @path = File.expand_path(path)

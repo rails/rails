@@ -28,7 +28,7 @@ class CallbacksTest < ActiveModel::TestCase
 
     after_create "@callbacks << :final_callback"
 
-    def initialize(valid=true)
+    def initialize(valid = true)
       @callbacks, @valid = [], valid
     end
 

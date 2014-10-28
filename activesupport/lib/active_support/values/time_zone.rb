@@ -283,7 +283,7 @@ module ActiveSupport
 
     # Returns the offset of this time zone as a formatted string, of the
     # format "+HH:MM".
-    def formatted_offset(colon=true, alternate_utc_string = nil)
+    def formatted_offset(colon = true, alternate_utc_string = nil)
       utc_offset == 0 && alternate_utc_string || self.class.seconds_to_utc_offset(utc_offset, colon)
     end
 
@@ -397,7 +397,7 @@ module ActiveSupport
 
     # Adjust the given time to the simultaneous time in UTC. Returns a
     # Time.utc() instance.
-    def local_to_utc(time, dst=true)
+    def local_to_utc(time, dst = true)
       tzinfo.local_to_utc(time, dst)
     end
 
@@ -409,7 +409,7 @@ module ActiveSupport
 
     # Available so that TimeZone instances respond like TZInfo::Timezone
     # instances.
-    def period_for_local(time, dst=true)
+    def period_for_local(time, dst = true)
       tzinfo.period_for_local(time, dst)
     end
 
