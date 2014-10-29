@@ -61,10 +61,9 @@ module ActiveRecord
         return if options.key?(:null)
 
         ActiveSupport::Deprecation.warn(<<-MSG.squish)
-          `timestamp` was called without specifying an option for `null`. In Rails
-          5.0, this behavior will change to `null: false`. You should manually
-          specify `null: true` to prevent the behavior of your existing migrations
-          from changing.
+          `#timestamp` was called without specifying an option for `null`. In Rails 5,
+          this behavior will change to `null: false`. You should manually specify
+         `null: true` to prevent the behavior of your existing migrations from changing.
         MSG
       end
     end

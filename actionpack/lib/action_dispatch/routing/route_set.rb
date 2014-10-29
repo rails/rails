@@ -103,7 +103,10 @@ module ActionDispatch
         end
 
         def helpers
-          ActiveSupport::Deprecation.warn("`named_routes.helpers` is deprecated, please use `route_defined?(route_name)` to see if a named route was defined.")
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            `named_routes.helpers` is deprecated, please use `route_defined?(route_name)`
+            to see if a named route was defined.
+          MSG
           @path_helpers + @url_helpers
         end
 

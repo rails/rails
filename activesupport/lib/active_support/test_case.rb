@@ -25,7 +25,7 @@ module ActiveSupport
 
         if test_order.nil?
           ActiveSupport::Deprecation.warn "You did not specify a value for the " \
-            "configuration option 'active_support.test_order'. In Rails 5.0, " \
+            "configuration option `active_support.test_order`. In Rails 5, " \
             "the default value of this option will change from `:sorted` to " \
             "`:random`.\n" \
             "To disable this warning and keep the current behavior, you can add " \

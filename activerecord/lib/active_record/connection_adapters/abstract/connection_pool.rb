@@ -520,7 +520,7 @@ module ActiveRecord
 
       def connection_pools
         ActiveSupport::Deprecation.warn(<<-MSG.squish)
-          In the next release, this will return the same as #connection_pool_list.
+          In the next release, this will return the same as `#connection_pool_list`.
           (An array of pools, rather than a hash mapping specs to pools.)
         MSG
 

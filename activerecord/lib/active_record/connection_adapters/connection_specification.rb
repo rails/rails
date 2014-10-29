@@ -225,7 +225,7 @@ module ActiveRecord
             ActiveSupport::Deprecation.warn(<<-MSG.squish)
               Passing a string to ActiveRecord::Base.establish_connection for a
               configuration lookup is deprecated, please pass a symbol
-              (#{spec.to_sym.inspect}) instead
+              (#{spec.to_sym.inspect}) instead.
             MSG
 
             resolve_symbol_connection(spec)

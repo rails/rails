@@ -131,7 +131,7 @@ module ActiveSupport
             "The JSON encoder in Rails 4.1 no longer supports encoding BigDecimals as JSON numbers. Instead, " \
             "the new encoder will always encode them as strings.\n\n" \
             "You are seeing this error because you are trying to check the value of the related configuration, " \
-            "'active_support.encode_big_decimal_as_string'. If your application depends on this option, you should " \
+            "`active_support.encode_big_decimal_as_string`. If your application depends on this option, you should " \
             "add the 'activesupport-json_encoder' gem to your Gemfile. For now, this option will always be true. " \
             "In the future, it will be removed from Rails, so you should stop checking its value."
 

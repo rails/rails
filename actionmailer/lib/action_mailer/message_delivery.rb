@@ -87,8 +87,8 @@ module ActionMailer
 
     def deliver! #:nodoc:
       ActiveSupport::Deprecation.warn(<<-MSG.squish)
-        #deliver! is deprecated and will be removed in Rails 5. Use
-        #deliver_now! to deliver immediately or #deliver_later! to
+        `#deliver!` is deprecated and will be removed in Rails 5. Use
+        `#deliver_now!` to deliver immediately or `#deliver_later!` to
         deliver through Active Job.
       MSG
 
@@ -97,8 +97,8 @@ module ActionMailer
 
     def deliver #:nodoc:
       ActiveSupport::Deprecation.warn(<<-MSG.squish)
-        #deliver is deprecated and will be removed in Rails 5. Use
-        #deliver_now to deliver immediately or #deliver_later to
+        `#deliver` is deprecated and will be removed in Rails 5. Use
+        `#deliver_now` to deliver immediately or `#deliver_later` to
         deliver through Active Job.
       MSG
 

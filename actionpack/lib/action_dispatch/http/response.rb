@@ -290,9 +290,9 @@ module ActionDispatch # :nodoc:
     # Not sensible behavior.
     def to_ary
       ActiveSupport::Deprecation.warn(<<-MSG.squish)
-        'ActionDispatch::Response#to_ary no longer performs implicit conversion
-        to an Array. Please use response.to_a instead, or a splat like `status,
-        headers, body = *response`
+        `ActionDispatch::Response#to_ary` no longer performs implicit conversion
+        to an array. Please use `response.to_a` instead, or a splat like `status,
+        headers, body = *response`.
       MSG
 
       to_a
