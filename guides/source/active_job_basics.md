@@ -286,7 +286,7 @@ class TrashableCleanupJob
 end
 ```
 
-This works with any class that mixes in `ActiveModel::GlobalIdentification`, which
+This works with any class that mixes in `GlobalID::Identification`, which
 by default has been mixed into Active Model classes.
 
 
