@@ -177,7 +177,7 @@ after_bundle do
 end
 ```
 
-### Rails Html Sanitizer
+### Rails HTML Sanitizer
 
 There's a new choice for sanitizing HTML fragments in your applications. The
 venerable html-scanner approach is now officially being deprecated in favor of
@@ -200,15 +200,15 @@ Read the [gem's readme](https://github.com/rails/rails-html-sanitizer) for more 
 The documentation for `PermitScrubber` and `TargetScrubber` explains how you
 can gain complete control over when and how elements should be stripped.
 
-If your application needs to use the old behaviour, include `rails-deprecated_sanitizer` in your Gemfile:
+If your application needs to use the old sanitizer implementation, include `rails-deprecated_sanitizer` in your Gemfile:
 
 ```ruby
 gem 'rails-deprecated_sanitizer'
 ```
 
 ### Rails DOM Testing
+The [`TagAssertions` module](http://api.rubyonrails.org/classes/ActionDispatch/Assertions/TagAssertions.html) (containing methods such as `assert_tag`), [has been deprecated](https://github.com/rails/rails/blob/6061472b8c310158a2a2e8e9a6b81a1aef6b60fe/actionpack/lib/action_dispatch/testing/assertions/dom.rb) in favor of the `assert_select` methods from the `SelectorAssertions` module, which has been extracted into the [rails-dom-testing gem](https://github.com/rails/rails-dom-testing).  
 
-TODO: Mention https://github.com/rails/rails/commit/4e97d7585a2f4788b9eed98c6cdaf4bb6f2cf5ce
 
 Upgrading from Rails 4.0 to Rails 4.1
 -------------------------------------
