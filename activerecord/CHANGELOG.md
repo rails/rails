@@ -1,3 +1,10 @@
+*   MySQL enum type lookups, with values matching another type, no longer result
+    in an endless loop.
+
+    Fixes #17402.
+
+    *Yves Senn*
+
 *   Raise `ArgumentError` when the body of a scope is not callable.
 
     *Mauro George*

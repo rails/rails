@@ -656,12 +656,6 @@ module ActiveRecord
       def initialize_type_map(m) # :nodoc:
         super
 
-        m.register_type(%r(enum)i) do |sql_type|
-          limit = sql_type[/^enum\((.+)\)/i, 1]
-            .split(',').map{|enum| enum.strip.length - 2}.max
-          Type::String.new(limit: limit)
-        end
-
         m.register_type %r(tinytext)i,   Type::Text.new(limit: 2**8 - 1)
         m.register_type %r(tinyblob)i,   Type::Binary.new(limit: 2**8 - 1)
         m.register_type %r(text)i,       Type::Text.new(limit: 2**16 - 1)
@@ -682,6 +676,12 @@ module ActiveRecord
         m.alias_type %r(set)i,           'varchar'
         m.alias_type %r(year)i,          'integer'
         m.alias_type %r(bit)i,           'binary'
+
+        m.register_type(%r(enum)i) do |sql_type|
+          limit = sql_type[/^enum\((.+)\)/i, 1]
+            .split(',').map{|enum| enum.strip.length - 2}.max
+          Type::String.new(limit: limit)
+        end
       end
 
       # MySQL is too stupid to create a temporary table for use subquery, so we have
