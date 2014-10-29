@@ -513,12 +513,13 @@ module ActiveRecord
       if transaction_state && transaction_state.finalized? && !has_transactional_callbacks?
         unless @reflects_state[depth]
           restore_transaction_record_state if transaction_state.rolledback?
-          clear_transaction_record_state
           @reflects_state[depth] = true
         end
 
         if transaction_state.parent && !@reflects_state[depth+1]
           update_attributes_from_transaction_state(transaction_state.parent, depth+1)
+        else
+          clear_transaction_record_state
         end
       end
     end
