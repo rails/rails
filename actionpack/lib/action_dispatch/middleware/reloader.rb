@@ -32,8 +32,8 @@ module ActionDispatch
     define_callbacks :prepare
     define_callbacks :cleanup
 
-    # Add a prepare callback. Prepare callbacks are run before each request, prior
-    # to ActionDispatch::Callback's before callbacks.
+    # Add a prepare callback. Prepare callbacks are run before each request in development mode
+    # and once in production mode, prior to ActionDispatch::Callback's before callbacks.
     def self.to_prepare(*args, &block)
       unless block_given?
         warn "to_prepare without a block is deprecated. Please use a block"
