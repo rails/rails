@@ -836,9 +836,9 @@ module ActiveRecord
         # Gather up all of the SET variables...
         variable_assignments = variables.map do |k, v|
           if v == ':default' || v == :default
-            "@@SESSION.#{k.to_s} = DEFAULT" # Sets the value to the global or compile default
+            "@@SESSION.#{k} = DEFAULT" # Sets the value to the global or compile default
           elsif !v.nil?
-            "@@SESSION.#{k.to_s} = #{quote(v)}"
+            "@@SESSION.#{k} = #{quote(v)}"
           end
           # or else nil; compact to clear nils out
         end.compact.join(', ')
