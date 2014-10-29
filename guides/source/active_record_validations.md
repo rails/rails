@@ -427,7 +427,7 @@ class Essay < ActiveRecord::Base
   validates :content, length: {
     minimum: 300,
     maximum: 400,
-    tokenizer: lambda { |str| str.scan(/\w+/) },
+    tokenizer: lambda { |str| str.split(/\s+/) },
     too_short: "must have at least %{count} words",
     too_long: "must have at most %{count} words"
   }
