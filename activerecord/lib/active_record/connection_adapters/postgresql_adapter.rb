@@ -679,9 +679,9 @@ module ActiveRecord
           variables.map do |k, v|
             if v == ':default' || v == :default
               # Sets the value to the global or compile default
-              execute("SET SESSION #{k.to_s} TO DEFAULT", 'SCHEMA')
+              execute("SET SESSION #{k} TO DEFAULT", 'SCHEMA')
             elsif !v.nil?
-              execute("SET SESSION #{k.to_s} TO #{quote(v)}", 'SCHEMA')
+              execute("SET SESSION #{k} TO #{quote(v)}", 'SCHEMA')
             end
           end
         end
