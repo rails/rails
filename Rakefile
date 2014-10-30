@@ -1,20 +1,15 @@
-require "rubygems"
-gem 'hoe', '>= 3.3.1'
-require 'hoe'
+require 'bundler'
+Bundler::GemHelper.install_tasks
 
-Hoe.plugins.delete :rubyforge
-Hoe.plugin :minitest
-Hoe.plugin :gemspec # `gem install hoe-gemspec`
-Hoe.plugin :git     # `gem install hoe-git`
-Hoe.plugin :bundler # `gem install hoe-bundler`
+specname = "arel.gemspec"
+deps = `git ls-files`.split("\n") - [specname]
 
-Hoe.spec 'arel' do
-  developer('Aaron Patterson', 'aaron@tenderlovemaking.com')
-  developer('Bryan Helmkamp', 'bryan@brynary.com')
-  developer('Emilio Tagua', 'miloops@gmail.com')
-  developer('Nick Kallen', 'nick@example.org') # FIXME: need Nick's email
+file specname => deps do
+  files       = `git ls-files`.split("\n") - ["#{specname}.erb"]
 
-  self.licenses         = ['MIT']
-  self.readme_file      = 'README.markdown'
-  self.extra_rdoc_files = FileList['README.markdown']
+  require 'erb'
+
+  File.open specname, 'w:utf-8' do |f|
+    f.write ERB.new(File.read("#{specname}.erb")).result(binding)
+  end
 end
