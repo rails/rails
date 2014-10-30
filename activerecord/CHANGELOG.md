@@ -1,3 +1,7 @@
+*   Added SchemaDumper support for tables with jsonb columns.
+
+    *Ted O'Meara*
+
 *   Deprecate `sanitize_sql_hash_for_conditions` without replacement. Using a
     `Relation` for performing queries and updates is the prefered API.
 
