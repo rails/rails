@@ -147,7 +147,8 @@ class StaticTest < ActiveSupport::TestCase
   }
 
   def setup
-    @app = ActionDispatch::Static.new(DummyApp, "#{FIXTURE_LOAD_PATH}/public", "public, max-age=60")
+    @root = "#{FIXTURE_LOAD_PATH}/public"
+    @app = ActionDispatch::Static.new(DummyApp, @root, "public, max-age=60")
   end
 
   def public_path
@@ -155,11 +156,28 @@ class StaticTest < ActiveSupport::TestCase
   end
 
   include StaticTests
+
+  def test_custom_handler_called_when_file_is_outside_root
+    filename = 'shared.html.erb'
+    assert File.exist?(File.join(@root, '..', filename))
+    env = {
+      "REQUEST_METHOD"=>"GET",
+      "REQUEST_PATH"=>"/..%2F#{filename}",
+      "PATH_INFO"=>"/..%2F#{filename}",
+      "REQUEST_URI"=>"/..%2F#{filename}",
+      "HTTP_VERSION"=>"HTTP/1.1",
+      "SERVER_NAME"=>"localhost",
+      "SERVER_PORT"=>"8080",
+      "QUERY_STRING"=>""
+    }
+    assert_equal(DummyApp.call(nil), @app.call(env))
+  end
 end
 
 class StaticEncodingTest < StaticTest
   def setup
-    @app = ActionDispatch::Static.new(DummyApp, "#{FIXTURE_LOAD_PATH}/公共", "public, max-age=60")
+    @root = "#{FIXTURE_LOAD_PATH}/公共"
+    @app = ActionDispatch::Static.new(DummyApp, @root, "public, max-age=60")
   end
 
   def public_path
