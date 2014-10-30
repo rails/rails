@@ -120,10 +120,10 @@ Aggregate functions `AVG`, `SUM`, `COUNT`, `MIN`, `MAX`, `HAVING`:
 
 ```ruby
 photos.group(photos[:user_id]).having(photos[:id].count.gt(5)) # => SELECT FROM photos GROUP BY photos.user_id HAVING COUNT(photos.id) > 5
-users.project(users[:age].sum) # => SELECT SUM(users.age) FROM users
-users.project(users[:age].average) # => SELECT AVG(users.age) FROM users
-users.project(users[:age].maximum) # => SELECT MAX(users.age) FROM users
-users.project(users[:age].minimum) # => SELECT MIN(users.age) FROM users
+users.project(users[:age].sum) # => SELECT SUM(users.age) AS sum_id FROM users
+users.project(users[:age].average) # => SELECT AVG(users.age) AS avg_id FROM users
+users.project(users[:age].maximum) # => SELECT MAX(users.age) AS max_id FROM users
+users.project(users[:age].minimum) # => SELECT MIN(users.age) AS min_id FROM users
 users.project(users[:age].count) # => SELECT COUNT(users.age) FROM users
 ```
 
@@ -201,7 +201,7 @@ users.
   project(users[:id], cte_table[:click].sum).
   with(composed_cte)
 
-# => WITH cte_table AS (SELECT FROM photos  WHERE photos.created_at > '2014-05-02') SELECT users.id, SUM(cte_table.click) FROM users INNER JOIN cte_table ON users.id = cte_table.user_id
+# => WITH cte_table AS (SELECT FROM photos  WHERE photos.created_at > '2014-05-02') SELECT users.id, SUM(cte_table.click) AS sum_id FROM users INNER JOIN cte_table ON users.id = cte_table.user_id
 ```
 
 When your query is too complex for `Arel`, you can use `Arel::SqlLiteral`:
