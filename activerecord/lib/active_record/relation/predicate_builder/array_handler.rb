@@ -32,7 +32,7 @@ module ActiveRecord
           values_predicate = values_predicate.or(attribute.eq(nil))
         end
 
-        array_predicates = ranges.map { |range| attribute.in(range) }
+        array_predicates = ranges.map { |range| attribute.between(range) }
         array_predicates.unshift(values_predicate)
         array_predicates.inject { |composite, predicate| composite.or(predicate) }
       end
