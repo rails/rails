@@ -437,7 +437,7 @@ module ActiveSupport
             }
           end
 
-          if filter.arity <= 0
+          if filter.arity == 0
             lambda { |target, _| target.instance_exec(&filter) }
           else
             lambda { |target, _| target.instance_exec(target, &filter) }

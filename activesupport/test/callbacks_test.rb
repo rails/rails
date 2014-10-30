@@ -486,6 +486,7 @@ module CallbacksTest
         [:before_save, :proc],
         [:before_save, :symbol],
         [:before_save, :symbol],
+        [:before_save, :sym_to_proc],
         [:before_save, :string],
         [:before_save, :string],
         [:before_save, :combined_symbol],
@@ -799,11 +800,12 @@ module CallbacksTest
       end
     end
 
-    def test_proc_negative_called_with_empty_list
+    def test_proc_negative_arity
       calls = []
       klass = build_class(->(*args) { calls << args })
-      klass.new.run
-      assert_equal [[]], calls
+      instance = klass.new
+      instance.run
+      assert_equal [[instance]], calls
     end
   end
 
@@ -854,7 +856,7 @@ module CallbacksTest
       z = []
       object = build_class(->(*args) { z << args }).new
       object.run
-      assert_equal [], z.flatten
+      assert_equal [object], z.flatten
     end
 
     def test_proc_arity0
