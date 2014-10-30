@@ -1,5 +1,7 @@
 require "cases/helper"
 require 'models/topic'
+require 'models/author'
+require 'models/book'
 
 module ActiveRecord
   class PredicateBuilderTest < ActiveRecord::TestCase
@@ -9,6 +11,14 @@ module ActiveRecord
       end)
 
       assert_match %r{["`]topics["`].["`]title["`] ~ rails}i, Topic.where(title: /rails/).to_sql
+    end
+
+    def test_selectmanager_handler
+      author = Author.create!(name: 'Steven King')
+      Book.create!(author_id: author.id)
+      Book.create!(author_id: author.id)
+
+      assert_equal author, Author.where(id: Book.arel_table.project(:author_id)).first
     end
   end
 end
