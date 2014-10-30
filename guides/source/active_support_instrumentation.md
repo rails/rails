@@ -136,6 +136,7 @@ Action Controller
 | `:method`       | HTTP request verb                                         |
 | `:path`         | Request path                                              |
 | `:view_runtime` | Amount spent in view in ms                                |
+| `:db_runtime`   | Amount spent executing database queries in ms             |
 
 ```ruby
 {
