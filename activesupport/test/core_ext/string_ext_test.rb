@@ -380,16 +380,16 @@ class StringConversionsTest < ActiveSupport::TestCase
   include TimeZoneTestHelpers
 
   def test_string_to_time
-    with_env_tz "Europe/Moscow" do
+    with_env_tz "US/Eastern" do
       assert_equal Time.utc(2005, 2, 27, 23, 50), "2005-02-27 23:50".to_time(:utc)
       assert_equal Time.local(2005, 2, 27, 23, 50), "2005-02-27 23:50".to_time
       assert_equal Time.utc(2005, 2, 27, 23, 50, 19, 275038), "2005-02-27T23:50:19.275038".to_time(:utc)
       assert_equal Time.local(2005, 2, 27, 23, 50, 19, 275038), "2005-02-27T23:50:19.275038".to_time
       assert_equal Time.utc(2039, 2, 27, 23, 50), "2039-02-27 23:50".to_time(:utc)
       assert_equal Time.local(2039, 2, 27, 23, 50), "2039-02-27 23:50".to_time
-      assert_equal Time.local(2011, 2, 27, 17, 50), "2011-02-27 13:50 -0100".to_time
+      assert_equal Time.local(2011, 2, 27, 17, 50), "2011-02-27 21:50 -0100".to_time
       assert_equal Time.utc(2011, 2, 27, 23, 50), "2011-02-27 22:50 -0100".to_time(:utc)
-      assert_equal Time.local(2005, 2, 27, 22, 50), "2005-02-27 14:50 -0500".to_time
+      assert_equal Time.local(2005, 2, 27, 22, 50), "2005-02-27 22:50 -0500".to_time
       assert_nil "".to_time
     end
   end
@@ -404,11 +404,10 @@ class StringConversionsTest < ActiveSupport::TestCase
   end
 
   def test_partial_string_to_time
-    with_env_tz "Europe/Moscow" do
+    with_env_tz "US/Eastern" do
       now = Time.now
       assert_equal Time.local(now.year, now.month, now.day, 23, 50), "23:50".to_time
       assert_equal Time.utc(now.year, now.month, now.day, 23, 50), "23:50".to_time(:utc)
-      assert_equal Time.local(now.year, now.month, now.day, 18, 50), "13:50 -0100".to_time
       assert_equal Time.utc(now.year, now.month, now.day, 23, 50), "22:50 -0100".to_time(:utc)
     end
   end
