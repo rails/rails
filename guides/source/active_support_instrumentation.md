@@ -135,6 +135,7 @@ Action Controller
 | `:format`       | html/js/json/xml etc                                      |
 | `:method`       | HTTP request verb                                         |
 | `:path`         | Request path                                              |
+| `:status`       | HTTP status code                                          |
 | `:view_runtime` | Amount spent in view in ms                                |
 | `:db_runtime`   | Amount spent executing database queries in ms             |
 
