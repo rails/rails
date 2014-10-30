@@ -403,16 +403,6 @@ class StringConversionsTest < ActiveSupport::TestCase
     end
   end
 
-  def test_partial_string_to_time
-    with_env_tz "Europe/Moscow" do
-      now = Time.now
-      assert_equal Time.local(now.year, now.month, now.day, 23, 50), "23:50".to_time
-      assert_equal Time.utc(now.year, now.month, now.day, 23, 50), "23:50".to_time(:utc)
-      assert_equal Time.local(now.year, now.month, now.day, 18, 50), "13:50 -0100".to_time
-      assert_equal Time.utc(now.year, now.month, now.day, 23, 50), "22:50 -0100".to_time(:utc)
-    end
-  end
-
   def test_standard_time_string_to_time_when_current_time_is_standard_time
     with_env_tz "US/Eastern" do
       Time.stubs(:now).returns(Time.local(2012, 1, 1))
