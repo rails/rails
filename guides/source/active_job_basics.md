@@ -172,15 +172,15 @@ end
 # environment
 ```
 
-If you want more control on what queue a job will be run you can pass a :queue
-option to #set:
+If you want more control on what queue a job will be run you can pass a `:queue`
+option to `#set`:
 
 ```ruby
 MyJob.set(queue: :another_queue).perform_later(record)
 ```
 
-To control the queue from the job level you can pass a block to queue_as. The
-block will be executed in the job context (so you can access self.arguments)
+To control the queue from the job level you can pass a block to `#queue_as`. The
+block will be executed in the job context (so you can access `self.arguments`)
 and you must return the queue name:
 
 ```ruby
@@ -201,7 +201,6 @@ end
 
 ProcessVideoJob.perform_later(Video.last)
 ```
-
 
 NOTE: Make sure your queueing backend "listens" on your queue name. For some
 backends you need to specify the queues to listen to.

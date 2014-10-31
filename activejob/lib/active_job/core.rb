@@ -48,8 +48,8 @@ module ActiveJob
       end
     end
 
-    # Creates a new job instance. Takes as arguments the arguments that
-    # will be passed to the perform method.
+    # Creates a new job instance. Takes the arguments that will be
+    # passed to the perform method.
     def initialize(*arguments)
       @arguments  = arguments
       @job_id     = SecureRandom.uuid
@@ -84,6 +84,3 @@ module ActiveJob
       end
   end
 end
-
-
-
