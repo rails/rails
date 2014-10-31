@@ -154,6 +154,18 @@ class FormHelperTest < ActionView::TestCase
     def initialize; end
   end
 
+  class FooObject
+
+    def method_missing(*args)
+      nil
+    end
+
+    private
+      def private_property
+        raise "This method should not be called."
+      end
+  end
+
   def test_tags_base_child_without_render_method
     assert_raise(NotImplementedError) { FooTag.new.render }
   end
@@ -1780,6 +1792,21 @@ class FormHelperTest < ActionView::TestCase
       "<input name='other_name[secret]' value='0' type='hidden' />" +
       "<input name='other_name[secret]' checked='checked' id='other_name_secret' value='1' type='checkbox' />" +
       "<input name='commit' value='Create post' type='submit' />"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_tags_do_not_call_private_properties_on_form_object
+    obj = FooObject.new
+    form_for(obj, as: "other_name", url: '/', html: { id: "edit-other-name" }) do |f|
+      concat f.hidden_field(:private_property)
+      concat f.submit('Create Foo')
+    end
+
+    expected =  whole_form("/", "edit-other-name", "new_other_name", method: "post") do
+      "<input id='other_name_private_property' name='other_name[private_property]' type='hidden' />" +
+      "<input name='commit' value='Create Foo' type='submit' />"
     end
 
     assert_dom_equal expected, output_buffer
