@@ -100,6 +100,19 @@ class MigrationTest < ActiveRecord::TestCase
     ActiveRecord::Migrator.migrations_paths = old_path
   end
 
+  def test_any_migrations
+    old_path = ActiveRecord::Migrator.migrations_paths
+    ActiveRecord::Migrator.migrations_paths = MIGRATIONS_ROOT + "/valid"
+
+    assert ActiveRecord::Migrator.any_migrations?
+
+    ActiveRecord::Migrator.migrations_paths = MIGRATIONS_ROOT + "/empty"
+
+    assert_not ActiveRecord::Migrator.any_migrations?
+  ensure
+    ActiveRecord::Migrator.migrations_paths = old_path
+  end
+
   def test_migration_version
     ActiveRecord::Migrator.run(:up, MIGRATIONS_ROOT + "/version_check", 20131219224947)
   end
