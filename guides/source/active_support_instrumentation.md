@@ -225,11 +225,11 @@ Active Record
 
 ### sql.active_record
 
-| Key          | Value                 |
-| ------------ | --------------------- |
-| `:sql`       | SQL statement         |
-| `:name`      | Name of the operation |
-| `:object_id` | `self.object_id`      |
+| Key              | Value                 |
+| ---------------- | --------------------- |
+| `:sql`           | SQL statement         |
+| `:name`          | Name of the operation |
+| `:connection_id` | `self.object_id`      |
 
 INFO. The adapters will add their own data as well.
 
