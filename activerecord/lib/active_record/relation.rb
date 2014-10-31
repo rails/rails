@@ -336,7 +336,7 @@ module ActiveRecord
         stmt.wheres = arel.constraints
       end
 
-      bvs = bind_values + arel.bind_values
+      bvs = arel.bind_values + bind_values
       @klass.connection.update stmt, 'SQL', bvs
     end
 

@@ -585,6 +585,11 @@ ActiveRecord::Schema.define do
     t.integer :tags_with_nullify_count, default: 0
   end
 
+  create_table :serialized_posts, force: true do |t|
+    t.integer :author_id
+    t.string :title, null: false
+  end
+
   create_table :price_estimates, force: true do |t|
     t.string :estimate_of_type
     t.integer :estimate_of_id

@@ -1,3 +1,8 @@
+*   Queries now properly type cast values that are part of a join statement,
+    even when using type decorators such as `serialize`.
+
+    *Melanie Gilman & Sean Griffin*
+
 *   MySQL enum type lookups, with values matching another type, no longer result
     in an endless loop.
 

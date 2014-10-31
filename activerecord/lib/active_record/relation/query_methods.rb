@@ -980,6 +980,10 @@ module ActiveRecord
         end
       end
 
+      association_binds, non_binds = non_binds.partition do |column, value|
+        value.is_a?(Hash) && association_for_table(column)
+      end
+
       new_opts = {}
       binds = []
 
@@ -988,9 +992,22 @@ module ActiveRecord
         new_opts[column] = connection.substitute_at(column)
       end
 
+      association_binds.each do |(column, value)|
+        association_relation = association_for_table(column).klass.send(:relation)
+        association_new_opts, association_bind = association_relation.send(:create_binds, value)
+        new_opts[column] = association_new_opts
+        binds += association_bind
+      end
+
       non_binds.each { |column,value| new_opts[column] = value }
 
       [new_opts, binds]
+    end
+
+    def association_for_table(table_name)
+      table_name = table_name.to_s
+      @klass._reflect_on_association(table_name) ||
+        @klass._reflect_on_association(table_name.singularize)
     end
 
     def build_from
