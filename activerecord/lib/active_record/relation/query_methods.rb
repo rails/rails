@@ -61,35 +61,29 @@ module ActiveRecord
     end
 
     Relation::MULTI_VALUE_METHODS.each do |name|
-      class_eval <<-CODE, __FILE__, __LINE__ + 1
-        def #{name}_values                   # def select_values
-          @values[:#{name}] || []            #   @values[:select] || []
-        end                                  # end
-                                             #
-        def #{name}_values=(values)          # def select_values=(values)
-          raise ImmutableRelation if @loaded #   raise ImmutableRelation if @loaded
-          check_cached_relation
-          @values[:#{name}] = values         #   @values[:select] = values
-        end                                  # end
-      CODE
+      define_method "#{name}_values" do
+        @values[name] ||= []
+      end
+
+      define_method "#{name}_values=" do |values|
+        raise ImmutableRelation if @loaded
+        check_cached_relation
+        @values[name] = values
+      end
     end
 
     (Relation::SINGLE_VALUE_METHODS - [:create_with]).each do |name|
-      class_eval <<-CODE, __FILE__, __LINE__ + 1
-        def #{name}_value                    # def readonly_value
-          @values[:#{name}]                  #   @values[:readonly]
-        end                                  # end
-      CODE
+      define_method "#{name}_value" do
+        @values[name]
+      end
     end
 
     Relation::SINGLE_VALUE_METHODS.each do |name|
-      class_eval <<-CODE, __FILE__, __LINE__ + 1
-        def #{name}_value=(value)            # def readonly_value=(value)
-          raise ImmutableRelation if @loaded #   raise ImmutableRelation if @loaded
-          check_cached_relation
-          @values[:#{name}] = value          #   @values[:readonly] = value
-        end                                  # end
-      CODE
+      define_method "#{name}_value=" do |value|
+        raise ImmutableRelation if @loaded
+        check_cached_relation
+        @values[name] = value
+      end
     end
 
     def check_cached_relation # :nodoc:
