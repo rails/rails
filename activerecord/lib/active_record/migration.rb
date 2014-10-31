@@ -395,7 +395,7 @@ module ActiveRecord
 
       def load_schema_if_pending!
         if ActiveRecord::Migrator.needs_migration? || !ActiveRecord::Migrator.any_migrations?
-          ActiveRecord::Tasks::DatabaseTasks.load_schema_current
+          ActiveRecord::Tasks::DatabaseTasks.load_schema_current_if_exists
           check_pending!
         end
       end
