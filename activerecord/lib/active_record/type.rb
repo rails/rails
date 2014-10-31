@@ -4,6 +4,7 @@ require 'active_record/type/numeric'
 require 'active_record/type/time_value'
 require 'active_record/type/value'
 
+require 'active_record/type/big_integer'
 require 'active_record/type/binary'
 require 'active_record/type/boolean'
 require 'active_record/type/date'

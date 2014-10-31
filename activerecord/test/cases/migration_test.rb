@@ -15,7 +15,6 @@ class BigNumber < ActiveRecord::Base
   unless current_adapter?(:PostgreSQLAdapter, :SQLite3Adapter)
     attribute :value_of_e, Type::Integer.new
   end
-  attribute :world_population, Type::Integer.new
   attribute :my_house_population, Type::Integer.new
 end
 
