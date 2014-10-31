@@ -266,7 +266,7 @@ module ActiveRecord
     #   # Instantiates a single new object
     #   User.new(first_name: 'Jamie')
     def initialize(attributes = nil, options = {})
-      @attributes = self.class.default_attributes.dup
+      @attributes = self.class._default_attributes.dup
 
       init_internals
       initialize_internals_callback
