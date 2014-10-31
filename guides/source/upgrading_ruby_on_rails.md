@@ -177,7 +177,7 @@ after_bundle do
 end
 ```
 
-### Rails Html Sanitizer
+### Rails HTML Sanitizer
 
 There's a new choice for sanitizing HTML fragments in your applications. The
 venerable html-scanner approach is now officially being deprecated in favor of
@@ -210,6 +210,9 @@ gem 'rails-deprecated_sanitizer'
 
 TODO: Mention https://github.com/rails/rails/commit/4e97d7585a2f4788b9eed98c6cdaf4bb6f2cf5ce
 
+### Masked Authenticity Tokens
+In order to mitigate SSL attacks, `form_authenticity_token` is now masked so that it varies with each request.  Thus, tokens are validated by unmasking and then decrypting.  As a result, any strategies for verifying requests from non-rails forms that relied on a static session CSRF token have to take this into account.
+
 Upgrading from Rails 4.0 to Rails 4.1
 -------------------------------------
 
@@ -233,7 +236,7 @@ will now trigger CSRF protection. Switch to
 xhr :get, :index, format: :js
 ```
 
-to explicitly test an XmlHttpRequest.
+to explicitly test an `XmlHttpRequest`.
 
 If you really mean to load JavaScript from remote `<script>` tags, skip CSRF
 protection on that action.
@@ -588,7 +591,7 @@ response body, you should be using `render :plain` as most browsers will escape
 unsafe content in the response for you.
 
 We will be deprecating the use of `render :text` in a future version. So please
-start using the more precise `:plain:`, `:html`, and `:body` options instead.
+start using the more precise `:plain`, `:html`, and `:body` options instead.
 Using `render :text` may pose a security risk, as the content is sent as
 `text/html`.
 
@@ -767,7 +770,7 @@ this gem such as `whitelist_attributes` or `mass_assignment_sanitizer` options.
 * Rails 4.0 has deprecated `ActiveRecord::TestCase` in favor of `ActiveSupport::TestCase`.
 
 * Rails 4.0 has deprecated the old-style hash based finder API. This means that
-  methods which previously accepted "finder options" no longer do.
+  methods which previously accepted "finder options" no longer do.  For example, `Book.find(:all, conditions: { name: '1984' })` has been deprecated in favor of `Book.where(name: '1984')`
 
 * All dynamic methods except for `find_by_...` and `find_by_...!` are deprecated.
   Here's how you can handle the changes:
@@ -918,7 +921,7 @@ The order in which helpers from more than one directory are loaded has changed i
 
 ### Active Record Observer and Action Controller Sweeper
 
-Active Record Observer and Action Controller Sweeper have been extracted to the `rails-observers` gem. You will need to add the `rails-observers` gem if you require these features.
+`ActiveRecord::Observer` and `ActionController::Caching::Sweeper` have been extracted to the `rails-observers` gem. You will need to add the `rails-observers` gem if you require these features.
 
 ### sprockets-rails
 
