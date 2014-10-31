@@ -985,7 +985,6 @@ class BasicsTest < ActiveRecord::TestCase
   class NumericData < ActiveRecord::Base
     self.table_name = 'numeric_data'
 
-    attribute :world_population, Type::Integer.new
     attribute :my_house_population, Type::Integer.new
     attribute :atoms_in_universe, Type::Integer.new
   end

@@ -155,6 +155,8 @@ module ActiveRecord
           raise RecordNotFound, "Couldn't find #{name} with '#{primary_key}'=#{id}"
         end
         record
+      rescue RangeError
+        raise RecordNotFound, "Couldn't find #{name} with an out of range value for '#{primary_key}'"
       end
 
       def find_by(*args)
@@ -185,6 +187,8 @@ module ActiveRecord
           s.execute(hash.values, self, connection).first
         rescue TypeError => e
           raise ActiveRecord::StatementInvalid.new(e.message, e)
+        rescue RangeError
+          nil
         end
       end
 

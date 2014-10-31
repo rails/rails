@@ -433,6 +433,8 @@ module ActiveRecord
       else
         find_some(ids)
       end
+    rescue RangeError
+      raise RecordNotFound, "Couldn't find #{@klass.name} with an out of range ID"
     end
 
     def find_one(id)
