@@ -82,7 +82,7 @@ module Arel
           mgr = users.project(Arel.star).where(users[:karma].gt(avg))
 
           mgr.to_sql.must_be_like %{
-            SELECT * FROM "users" WHERE "users"."karma" > (SELECT AVG("users"."karma") AS avg_id FROM "users")
+            SELECT * FROM "users" WHERE "users"."karma" > (SELECT AVG("users"."karma") FROM "users")
           }
         end
 
@@ -313,12 +313,11 @@ module Arel
           relation[:id].average.must_be_kind_of Nodes::Avg
         end
 
-        # FIXME: backwards compat. Is this really necessary?
-        it 'should set the alias to "avg_id"' do
+        it 'should generate the proper SQL' do
           relation = Table.new(:users)
           mgr = relation.project relation[:id].average
           mgr.to_sql.must_be_like %{
-            SELECT AVG("users"."id") AS avg_id
+            SELECT AVG("users"."id")
             FROM "users"
           }
         end
@@ -330,12 +329,11 @@ module Arel
           relation[:id].maximum.must_be_kind_of Nodes::Max
         end
 
-        # FIXME: backwards compat. Is this really necessary?
-        it 'should set the alias to "max_id"' do
+        it 'should generate the proper SQL' do
           relation = Table.new(:users)
           mgr = relation.project relation[:id].maximum
           mgr.to_sql.must_be_like %{
-            SELECT MAX("users"."id") AS max_id
+            SELECT MAX("users"."id")
             FROM "users"
           }
         end
@@ -354,12 +352,11 @@ module Arel
           relation[:id].sum.must_be_kind_of Nodes::Sum
         end
 
-        # FIXME: backwards compat. Is this really necessary?
-        it 'should set the alias to "sum_id"' do
+        it 'should generate the proper SQL' do
           relation = Table.new(:users)
           mgr = relation.project relation[:id].sum
           mgr.to_sql.must_be_like %{
-            SELECT SUM("users"."id") AS sum_id
+            SELECT SUM("users"."id")
             FROM "users"
           }
         end
