@@ -34,9 +34,10 @@ module ActiveRecord
         scope         = klass.unscoped
         owner         = association.owner
         alias_tracker = AliasTracker.empty connection
+        chain         = get_chain(reflection, association)
 
         scope.extending! Array(reflection.options[:extend])
-        add_constraints(scope, owner, klass, reflection, alias_tracker)
+        add_constraints(scope, owner, klass, reflection, alias_tracker, chain)
       end
 
       def join_type
@@ -129,9 +130,59 @@ module ActiveRecord
         scope = scope.joins(join(foreign_table, constraint))
       end
 
-      def add_constraints(scope, owner, assoc_klass, refl, tracker)
-        chain = refl.chain
+      class RuntimeReflection
+        def initialize(reflection, association)
+          @reflection = reflection
+          @association = association
+        end
 
+        def klass
+          @association.klass
+        end
+
+        def scope
+          @reflection.scope
+        end
+
+        def table_name
+          if @reflection.polymorphic?
+            # If this is a polymorphic belongs_to, we want to get the klass from the
+            # association because it depends on the polymorphic_type attribute of
+            # the owner
+            klass.table_name
+          else
+            @reflection.table_name
+          end
+        end
+
+        def plural_name
+          @reflection.plural_name
+        end
+
+        def join_keys(assoc_klass)
+          @reflection.join_keys(assoc_klass)
+        end
+
+        def type
+          @reflection.type
+        end
+
+        def constraints
+          @reflection.constraints
+        end
+
+        def source_type_info
+          @reflection.source_type_info
+        end
+      end
+
+      def get_chain(reflection, association)
+        chain = reflection.chain.dup
+        chain[0] = RuntimeReflection.new(reflection, association)
+        chain
+      end
+
+      def add_constraints(scope, owner, assoc_klass, refl, tracker, chain)
         tables = construct_tables(chain, assoc_klass, refl, tracker)
 
         owner_reflection = chain.last
