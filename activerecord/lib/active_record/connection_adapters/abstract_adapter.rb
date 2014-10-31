@@ -267,7 +267,7 @@ module ActiveRecord
 
       # Returns a bind substitution value given a bind +index+ and +column+
       # NOTE: The column param is currently being used by the sqlserver-adapter
-      def substitute_at(column, index)
+      def substitute_at(column, index = 0)
         Arel::Nodes::BindParam.new '?'
       end
 
