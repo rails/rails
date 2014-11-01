@@ -585,14 +585,6 @@ module ActiveRecord
         end
       end
 
-      def add_column_position!(sql, options)
-        if options[:first]
-          sql << " FIRST"
-        elsif options[:after]
-          sql << " AFTER #{quote_column_name(options[:after])}"
-        end
-      end
-
       # SHOW VARIABLES LIKE 'name'
       def show_variable(name)
         variables = select_all("SHOW VARIABLES LIKE '#{name}'", 'SCHEMA')
