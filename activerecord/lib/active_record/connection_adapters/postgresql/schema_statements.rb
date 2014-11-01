@@ -294,12 +294,8 @@ module ActiveRecord
         end
 
         # Sets the sequence of a table's primary key to the specified value.
-        def set_pk_sequence!(table, value, pk = nil, sequence = nil) #:nodoc:
-          unless pk and sequence
-            default_pk, default_sequence = pk_and_sequence_for(table)
-            pk ||= default_pk
-            sequence ||= default_sequence
-          end
+        def set_pk_sequence!(table, value) #:nodoc:
+          pk, sequence = pk_and_sequence_for(table)
 
           if pk
             if sequence
