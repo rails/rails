@@ -303,7 +303,7 @@ module ActiveRecord
 
           if pk
             if sequence
-              quoted_sequence = quote_column_name(sequence)
+              quoted_sequence = quote_table_name(sequence)
 
               select_value <<-end_sql, 'SCHEMA'
               SELECT setval('#{quoted_sequence}', #{value})
