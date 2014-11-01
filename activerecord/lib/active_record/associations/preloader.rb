@@ -152,10 +152,10 @@ module ActiveRecord
       def grouped_records(association, records)
         h = {}
         records.each do |record|
-          next unless record
-          assoc = record.association(association)
-          klasses = h[assoc.reflection] ||= {}
-          (klasses[assoc.klass] ||= []) << record
+          if record && assoc = record.association(association)
+            klasses = h[assoc.reflection] ||= {}
+            (klasses[assoc.klass] ||= []) << record
+          end
         end
         h
       end

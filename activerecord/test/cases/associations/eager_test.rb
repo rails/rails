@@ -712,18 +712,9 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_with_invalid_association_reference
-    assert_raise(ActiveRecord::AssociationNotFoundError, "Association was not found; perhaps you misspelled it?  You specified :include => :monkeys") {
-      Post.all.merge!(:includes=> :monkeys ).find(6)
-    }
-    assert_raise(ActiveRecord::AssociationNotFoundError, "Association was not found; perhaps you misspelled it?  You specified :include => :monkeys") {
-      Post.all.merge!(:includes=>[ :monkeys ]).find(6)
-    }
-    assert_raise(ActiveRecord::AssociationNotFoundError, "Association was not found; perhaps you misspelled it?  You specified :include => :monkeys") {
-      Post.all.merge!(:includes=>[ 'monkeys' ]).find(6)
-    }
-    assert_raise(ActiveRecord::AssociationNotFoundError, "Association was not found; perhaps you misspelled it?  You specified :include => :monkeys, :elephants") {
-      Post.all.merge!(:includes=>[ :monkeys, :elephants ]).find(6)
-    }
+    post = Post.includes(:comments, :monkeys).find(6)
+    assert_no_queries{ post.comments.first }
+    assert_raises(NoMethodError) { post.monkeys }
   end
 
   def test_eager_with_default_scope

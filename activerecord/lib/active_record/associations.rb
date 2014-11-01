@@ -4,12 +4,6 @@ require 'active_support/core_ext/module/remove_method'
 require 'active_record/errors'
 
 module ActiveRecord
-  class AssociationNotFoundError < ConfigurationError #:nodoc:
-    def initialize(record, association_name)
-      super("Association named '#{association_name}' was not found on #{record.class.name}; perhaps you misspelled it?")
-    end
-  end
-
   class InverseOfAssociationNotFoundError < ActiveRecordError #:nodoc:
     def initialize(reflection, associated_class = nil)
       super("Could not find the inverse association for #{reflection.name} (#{reflection.options[:inverse_of].inspect} in #{associated_class.nil? ? reflection.class_name : associated_class.name})")
@@ -156,8 +150,7 @@ module ActiveRecord
     def association(name) #:nodoc:
       association = association_instance_get(name)
 
-      if association.nil?
-        raise AssociationNotFoundError.new(self, name) unless reflection = self.class._reflect_on_association(name)
+      if association.nil? && reflection = self.class._reflect_on_association(name)
         association = reflection.association_class.new(self, reflection)
         association_instance_set(name, association)
       end
