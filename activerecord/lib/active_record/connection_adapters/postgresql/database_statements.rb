@@ -156,7 +156,7 @@ module ActiveRecord
           end
         end
 
-        def substitute_at(column, index)
+        def substitute_at(column, index = 0)
           Arel::Nodes::BindParam.new "$#{index + 1}"
         end
 

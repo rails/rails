@@ -958,8 +958,7 @@ module ActiveRecord
       when Hash
         opts = PredicateBuilder.resolve_column_aliases(klass, opts)
 
-        bv_len = bind_values.length
-        tmp_opts, bind_values = create_binds(opts, bv_len)
+        tmp_opts, bind_values = create_binds(opts)
         self.bind_values += bind_values
 
         attributes = @klass.send(:expand_hash_conditions_for_aggregates, tmp_opts)
@@ -971,7 +970,7 @@ module ActiveRecord
       end
     end
 
-    def create_binds(opts, idx)
+    def create_binds(opts)
       bindable, non_binds = opts.partition do |column, value|
         case value
         when String, Integer, ActiveRecord::StatementCache::Substitute
@@ -984,9 +983,9 @@ module ActiveRecord
       new_opts = {}
       binds = []
 
-      bindable.each_with_index do |(column,value), index|
+      bindable.each do |(column,value)|
         binds.push [@klass.columns_hash[column.to_s], value]
-        new_opts[column] = connection.substitute_at(column, index + idx)
+        new_opts[column] = connection.substitute_at(column)
       end
 
       non_binds.each { |column,value| new_opts[column] = value }
