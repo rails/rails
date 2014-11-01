@@ -134,7 +134,7 @@ module ActiveRecord
         raise_if_bind_arity_mismatch(statement, statement.count('?'), values.size)
         bound = values.dup
         c = connection
-        statement.gsub('?') do
+        statement.gsub(/\?/) do
           replace_bind_variable(bound.shift, c)
         end
       end
