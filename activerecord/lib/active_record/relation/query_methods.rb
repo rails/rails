@@ -439,7 +439,7 @@ module ActiveRecord
       self
     end
 
-    def bind(value)
+    def bind(value) # :nodoc:
       spawn.bind!(value)
     end
 
