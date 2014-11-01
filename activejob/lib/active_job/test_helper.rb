@@ -53,7 +53,7 @@ module ActiveJob
         end
       end
 
-      # Assert that no job have been enqueued.
+      # Asserts that no jobs have been enqueued.
       #
       #   def test_jobs
       #     assert_no_enqueued_jobs
@@ -137,7 +137,7 @@ module ActiveJob
 
       # Asserts that the job passed in the block has been enqueued with the given arguments.
       #
-      #   def assert_enqueued_job
+      #   def test_assert_enqueued_with
       #     assert_enqueued_with(job: MyJob, args: [1,2,3], queue: 'low') do
       #       MyJob.perform_later(1,2,3)
       #     end

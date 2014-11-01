@@ -41,10 +41,12 @@ This section will provide a step-by-step guide to creating a job and enqueuing i
 ### Create the Job
 
 Active Job provides a Rails generator to create jobs. The following will create a
-job in `app/jobs`:
+job in `app/jobs` (with an attached test case under `test/jobs`):
 
 ```bash
 $ bin/rails generate job guests_cleanup
+invoke  test_unit
+create    test/jobs/guests_cleanup_job_test.rb
 create  app/jobs/guests_cleanup_job.rb
 ```
 
@@ -52,7 +54,6 @@ You can also create a job that will run on a specific queue:
 
 ```bash
 $ bin/rails generate job guests_cleanup --queue urgent
-create  app/jobs/guests_cleanup_job.rb
 ```
 
 As you can see, you can generate jobs just like you use other generators with
@@ -78,15 +79,18 @@ end
 Enqueue a job like so:
 
 ```ruby
-MyJob.perform_later record  # Enqueue a job to be performed as soon the queueing system is free.
+# Enqueue a job to be performed as soon the queueing system is free.
+MyJob.perform_later record
 ```
 
 ```ruby
-MyJob.set(wait_until: Date.tomorrow.noon).perform_later(record)  # Enqueue a job to be performed tomorrow at noon.
+# Enqueue a job to be performed tomorrow at noon.
+MyJob.set(wait_until: Date.tomorrow.noon).perform_later(record)
 ```
 
 ```ruby
-MyJob.set(wait: 1.week).perform_later(record) # Enqueue a job to be performed 1 week from now.
+# Enqueue a job to be performed 1 week from now.
+MyJob.set(wait: 1.week).perform_later(record)
 ```
 
 That's it!
@@ -108,9 +112,9 @@ see the API Documentation for [ActiveJob::QueueAdapters](http://api.rubyonrails.
 You can easily change your queueing backend:
 
 ```ruby
-# be sure to have the adapter gem in your Gemfile and follow the adapter specific
-# installation and deployment instructions
-Rails.application.config.active_job.queue_adapter = :sidekiq
+# be sure to have the adapter gem in your Gemfile and follow
+# the adapter specific installation and deployment instructions
+config.active_job.queue_adapter = :sidekiq
 ```
 
 
@@ -262,12 +266,13 @@ UserMailer.welcome(@user).deliver_later
 
 GlobalID
 --------
+
 Active Job supports GlobalID for parameters. This makes it possible to pass live
 Active Record objects to your job instead of class/id pairs, which you then have
 to manually deserialize. Before, jobs would look like this:
 
 ```ruby
-class TrashableCleanupJob
+class TrashableCleanupJob < ActiveJob::Base
   def perform(trashable_class, trashable_id, depth)
     trashable = trashable_class.constantize.find(trashable_id)
     trashable.cleanup(depth)
@@ -278,7 +283,7 @@ end
 Now you can simply do:
 
 ```ruby
-class TrashableCleanupJob
+class TrashableCleanupJob < ActiveJob::Base
   def perform(trashable, depth)
     trashable.cleanup(depth)
   end
