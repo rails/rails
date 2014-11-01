@@ -42,6 +42,11 @@ class AssociationsTest < ActiveRecord::TestCase
     assert_equal favs, fav2
   end
 
+  def test_subselect_with_duplicated_column_object
+    post = Post.create!(:title => "foo", :body => "bar")
+    assert_equal 0, post.comments.leaves.count
+  end
+
   def test_clear_association_cache_stored
     firm = Firm.find(1)
     assert_kind_of Firm, firm

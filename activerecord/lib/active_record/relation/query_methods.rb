@@ -881,12 +881,17 @@ module ActiveRecord
       arel.from(build_from) if from_value
       arel.lock(lock_value) if lock_value
 
-      # Reorder bind indexes if joins produced bind values
+      # Reordoring all bind parameters and values
+      bind_values_seen = Set.new
       bvs = arel.bind_values + bind_values
       arel.ast.grep(Arel::Nodes::BindParam).each_with_index do |bp, i|
-        column = bvs[i].first
-        bp.replace connection.substitute_at(column, i)
+        bind_value = bvs[i]
+        next unless bind_value
+        next if bind_values_seen.include?(bind_value)
+        bp.replace connection.substitute_at(bind_vlaue.first, bind_values_seen.count)
+        bind_values_seen << bind_value
       end
+      self.bind_values = bind_values.uniq - arel.bind_values
 
       arel
     end
