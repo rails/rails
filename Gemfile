@@ -14,7 +14,7 @@ gem 'rack-cache', '~> 1.2'
 gem 'jquery-rails', '~> 4.0.0.beta2'
 gem 'coffee-rails', '~> 4.1.0'
 gem 'turbolinks'
-gem 'arel', '~> 6.0.0.beta2'
+gem 'arel', github: 'rails/arel'
 
 # require: false so bcrypt is loaded only when has_secure_password is used.
 # This is to avoid ActiveModel (and by extension the entire framework)

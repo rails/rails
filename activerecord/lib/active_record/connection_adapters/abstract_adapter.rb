@@ -386,6 +386,10 @@ module ActiveRecord
         type_map.lookup(sql_type)
       end
 
+      def column_name_for_operation(operation, node) # :nodoc:
+        node.to_sql
+      end
+
       protected
 
       def initialize_type_map(m) # :nodoc:

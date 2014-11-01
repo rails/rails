@@ -393,6 +393,16 @@ module ActiveRecord
         super(oid)
       end
 
+      def column_name_for_operation(operation, node) # :nodoc:
+        OPERATION_ALIASES.fetch(operation) { operation.downcase }
+      end
+
+      OPERATION_ALIASES = { # :nodoc:
+        "maximum" => "max",
+        "minimum" => "min",
+        "average" => "avg",
+      }
+
       protected
 
         # Returns the version of the connected PostgreSQL server.
