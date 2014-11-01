@@ -522,6 +522,10 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal Topic.find(['1-meowmeow', '2-hello']), Topic.find([1, 2])
   end
 
+  def test_find_by_slug_with_range
+    assert_equal Topic.where(id: '1-meowmeow'..'2-hello'), Topic.where(id: 1..2)
+  end
+
   def test_equality_of_new_records
     assert_not_equal Topic.new, Topic.new
     assert_equal false, Topic.new == Topic.new
