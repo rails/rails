@@ -79,12 +79,18 @@ module ActiveRecord
         scope.unscope!(where: @klass.inheritance_column)
       end
 
-      um = scope.where(@klass.arel_table[@klass.primary_key].eq(id_was || id)).arel.compile_update(substitutes, @klass.primary_key)
+      relation = scope.where(@klass.primary_key => (id_was || id))
+      bvs = binds + relation.bind_values
+      um = relation
+        .arel
+        .compile_update(substitutes, @klass.primary_key)
+      reorder_bind_params(um.ast, bvs)
 
       @klass.connection.update(
         um,
         'SQL',
-        binds)
+        bvs,
+      )
     end
 
     def substitute_values(values) # :nodoc:
