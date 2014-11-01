@@ -88,13 +88,12 @@ module ActiveRecord
     end
 
     def substitute_values(values) # :nodoc:
-      substitutes = values.sort_by { |arel_attr,_| arel_attr.name }
-      binds       = substitutes.map do |arel_attr, value|
+      binds = values.map do |arel_attr, value|
         [@klass.columns_hash[arel_attr.name], value]
       end
 
-      substitutes.each_with_index do |tuple, i|
-        tuple[1] = @klass.connection.substitute_at(binds[i][0], i)
+      substitutes = values.each_with_index.map do |(arel_attr, _), i|
+        [arel_attr, @klass.connection.substitute_at(binds[i][0], i)]
       end
 
       [substitutes, binds]
