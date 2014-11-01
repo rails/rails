@@ -19,5 +19,9 @@ module ActiveJob
       end
     end
 
+    initializer 'active_job.test_helpers' do
+      ActiveSupport::TestCase.send(:include, ActiveJob::TestHelper)
+    end
+
   end
 end

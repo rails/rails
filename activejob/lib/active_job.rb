@@ -32,6 +32,5 @@ module ActiveJob
   autoload :Base
   autoload :QueueAdapters
   autoload :ConfiguredJob
-  autoload :TestCase
   autoload :TestHelper
 end
