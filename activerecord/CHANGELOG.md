@@ -1,6 +1,5 @@
-*   Deprecate `sanitize_sql_hash_for_conditions` and
-    `sanitize_sql_hash_for_assignment` without replacement. Using a `Relation`
-    for performing queries and updates is the prefered API.
+*   Deprecate `sanitize_sql_hash_for_conditions` without replacement. Using a
+    `Relation` for performing queries and updates is the prefered API.
 
     *Sean Griffin*
 
