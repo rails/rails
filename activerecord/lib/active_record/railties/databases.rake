@@ -196,6 +196,7 @@ db_namespace = namespace :db do
       fixture_files = if ENV['FIXTURES']
                         ENV['FIXTURES'].split(',')
                       else
+                        # The use of String#[] here is to support namespaced fixtures
                         Dir["#{fixtures_dir}/**/*.yml"].map {|f| f[(fixtures_dir.size + 1)..-5] }
                       end
 
