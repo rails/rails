@@ -87,6 +87,9 @@ module ActiveRecord
       #   { address: Address.new("123 abc st.", "chicago") }
       #     # => "address_street='123 abc st.' and address_city='chicago'"
       def sanitize_sql_hash_for_conditions(attrs, default_table_name = self.table_name)
+        ActiveSupport::Deprecation.warn(<<-EOWARN)
+sanitize_sql_hash_for_conditions is deprecated, and will be removed in Rails 5.0
+        EOWARN
         attrs = PredicateBuilder.resolve_column_aliases self, attrs
         attrs = expand_hash_conditions_for_aggregates(attrs)
 
@@ -101,6 +104,9 @@ module ActiveRecord
       #   { status: nil, group_id: 1 }
       #     # => "status = NULL , group_id = 1"
       def sanitize_sql_hash_for_assignment(attrs, table)
+        ActiveSupport::Deprecation.warn(<<-EOWARN)
+sanitize_sql_hash_for_assignment is deprecated, and will be removed in Rails 5.0
+        EOWARN
         c = connection
         attrs.map do |attr, value|
           "#{c.quote_table_name_for_assignment(table, attr)} = #{quote_bound_value(value, c, columns_hash[attr.to_s])}"
