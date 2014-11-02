@@ -1,3 +1,7 @@
+*   Allow hash or array syntax for the conditions in a partial index.
+
+    *Cody Cutrer*, *Alex Robbin*
+
 *   Queries now properly type cast values that are part of a join statement,
     even when using type decorators such as `serialize`.
 

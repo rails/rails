@@ -19,12 +19,12 @@ module ActiveRecord
       #   ["name='%s' and group_id='%s'", "foo'bar", 4]  returns  "name='foo''bar' and group_id='4'"
       #   { name: "foo'bar", group_id: 4 }  returns "name='foo''bar' and group_id='4'"
       #   "name='foo''bar' and group_id='4'" returns "name='foo''bar' and group_id='4'"
-      def sanitize_sql_for_conditions(condition, table_name = self.table_name)
+      def sanitize_sql_for_conditions(condition, table_name = self.table_name, original_table_name = self.table_name)
         return nil if condition.blank?
 
         case condition
         when Array; sanitize_sql_array(condition)
-        when Hash;  sanitize_sql_hash_for_conditions(condition, table_name)
+        when Hash;  sanitize_sql_hash_for_conditions(condition, table_name, original_table_name)
         else        condition
         end
       end
@@ -86,11 +86,11 @@ module ActiveRecord
       # And for value objects on a composed_of relationship:
       #   { address: Address.new("123 abc st.", "chicago") }
       #     # => "address_street='123 abc st.' and address_city='chicago'"
-      def sanitize_sql_hash_for_conditions(attrs, default_table_name = self.table_name)
+      def sanitize_sql_hash_for_conditions(attrs, default_table_name = self.table_name, original_table_name = self.table_name)
         attrs = PredicateBuilder.resolve_column_aliases self, attrs
         attrs = expand_hash_conditions_for_aggregates(attrs)
 
-        table = Arel::Table.new(table_name, arel_engine).alias(default_table_name)
+        table = Arel::Table.new(original_table_name, arel_engine).alias(default_table_name)
         PredicateBuilder.build_from_hash(self, attrs, table).map { |b|
           connection.visitor.compile b
         }.join(' AND ')
