@@ -210,6 +210,16 @@ class FinderTest < ActiveRecord::TestCase
     assert_nil Topic.find_by_id('9999999999999999999999999999999')
   end
 
+  def test_find_on_relation_with_large_number
+    assert_nil Topic.where('1=1').find_by(id: 9999999999999999999999999999999)
+  end
+
+  def test_find_by_bang_on_relation_with_large_number
+    assert_raises(ActiveRecord::RecordNotFound) do
+      Topic.where('1=1').find_by!(id: 9999999999999999999999999999999)
+    end
+  end
+
   def test_find_an_empty_array
     assert_equal [], Topic.find([])
   end
