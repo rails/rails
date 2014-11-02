@@ -446,10 +446,7 @@ module ActiveRecord
         MSG
       end
 
-      column = columns_hash[primary_key]
-      substitute = connection.substitute_at(column, bind_values.length)
-      relation = where(table[primary_key].eq(substitute))
-      relation.bind_values += [[column, id]]
+      relation = where(primary_key => id)
       record = relation.take
 
       raise_record_not_found_exception!(id, 0, 1) unless record
@@ -458,7 +455,7 @@ module ActiveRecord
     end
 
     def find_some(ids)
-      result = where(table[primary_key].in(ids)).to_a
+      result = where(primary_key => ids).to_a
 
       expected_size =
         if limit_value && ids.size > limit_value
