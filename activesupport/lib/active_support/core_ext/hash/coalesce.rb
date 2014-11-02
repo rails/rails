@@ -1,7 +1,7 @@
 class Hash
   # Returns a new hash with all of the properties in the other_hashes merged to the
-  # source hash. It's in-order, so the last other_hash will override properties of
-  # the same name in previous arguments.
+  # source hash. Arguments override in-order, so the last other_hash will override
+  # properties of the same name in previous arguments.
   #
   #   h1 = { a: true, b: "foo" }
   #   h2 = { c: "bar" }
