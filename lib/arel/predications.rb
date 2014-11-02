@@ -55,7 +55,7 @@ Passing a range to `#in` is deprecated. Call `#between`, instead.
           eowarn
         end
         between(other)
-      when Array
+      when Enumerable
         Nodes::In.new self, quoted_array(other)
       else
         Nodes::In.new self, quoted_node(other)
@@ -103,7 +103,7 @@ Passing a range to `#not_in` is deprecated. Call `#not_between`, instead.
           eowarn
         end
         not_between(other)
-      when Array
+      when Enumerable
         Nodes::NotIn.new self, quoted_array(other)
       else
         Nodes::NotIn.new self, quoted_node(other)
