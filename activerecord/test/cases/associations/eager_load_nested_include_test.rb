@@ -78,6 +78,21 @@ class EagerLoadPolyAssocsTest < ActiveRecord::TestCase
       end
     end
   end
+
+  def test_deeply_nested_include_query
+    expression = nil
+    assert_nothing_raised do
+      expression = ShapeExpression.includes(paint: {non_poly: [:paint_colors, :paint_textures]}).first
+    end
+    assert_no_queries do
+      case non_poly = expression.paint.non_poly
+      when NonPolyOne
+        non_poly.paint_colors
+      when NonPolyTwo
+        non_poly.paint_textures
+      end
+    end
+  end
 end
 
 class EagerLoadNestedIncludeWithMissingDataTest < ActiveRecord::TestCase
