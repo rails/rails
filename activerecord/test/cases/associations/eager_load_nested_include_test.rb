@@ -7,21 +7,6 @@ require 'models/category'
 require 'models/categorization'
 require 'models/tagging'
 
-module Remembered
-  extend ActiveSupport::Concern
-
-  included do
-    after_create :remember
-  protected
-    def remember; self.class.remembered << self; end
-  end
-
-  module ClassMethods
-    def remembered; @@remembered ||= []; end
-    def sample; @@remembered.sample; end
-  end
-end
-
 class ShapeExpression < ActiveRecord::Base
   belongs_to :shape, :polymorphic => true
   belongs_to :paint, :polymorphic => true
@@ -29,66 +14,58 @@ end
 
 class Circle < ActiveRecord::Base
   has_many :shape_expressions, :as => :shape
-  include Remembered
 end
 class Square < ActiveRecord::Base
   has_many :shape_expressions, :as => :shape
-  include Remembered
 end
 class Triangle < ActiveRecord::Base
   has_many :shape_expressions, :as => :shape
-  include Remembered
 end
 class PaintColor  < ActiveRecord::Base
   has_many   :shape_expressions, :as => :paint
   belongs_to :non_poly, :foreign_key => "non_poly_one_id", :class_name => "NonPolyOne"
-  include Remembered
 end
 class PaintTexture < ActiveRecord::Base
   has_many   :shape_expressions, :as => :paint
   belongs_to :non_poly, :foreign_key => "non_poly_two_id", :class_name => "NonPolyTwo"
-  include Remembered
 end
 class NonPolyOne < ActiveRecord::Base
   has_many :paint_colors
-  include Remembered
 end
 class NonPolyTwo < ActiveRecord::Base
   has_many :paint_textures
-  include Remembered
 end
-
 
 
 class EagerLoadPolyAssocsTest < ActiveRecord::TestCase
   NUM_SIMPLE_OBJS = 50
   NUM_SHAPE_EXPRESSIONS = 100
 
-  def setup
-    generate_test_object_graphs
+  setup do
+    cache = {}
+    1.upto(NUM_SIMPLE_OBJS) do
+      [Circle, Square, Triangle, NonPolyOne, NonPolyTwo].each do |klass|
+        cache[klass] ||= []
+        cache[klass] << klass.create!
+      end
+    end
+    1.upto(NUM_SIMPLE_OBJS) do
+      cache[PaintColor] ||= []
+      cache[PaintColor] << PaintColor.create!(:non_poly_one_id => cache[NonPolyOne].sample.id)
+      cache[PaintTexture] ||= []
+      cache[PaintTexture] << PaintTexture.create!(:non_poly_two_id => cache[NonPolyTwo].sample.id)
+    end
+    1.upto(NUM_SHAPE_EXPRESSIONS) do
+      shape = [Circle, Square, Triangle].sample
+      paint = [PaintColor, PaintTexture].sample
+      ShapeExpression.create!(:shape_type => shape.to_s, :shape_id => cache[shape].sample.id,
+                              :paint_type => paint.to_s, :paint_id => cache[paint].sample.id)
+    end
   end
 
   teardown do
     [Circle, Square, Triangle, PaintColor, PaintTexture,
-     ShapeExpression, NonPolyOne, NonPolyTwo].each do |c|
-      c.delete_all
-    end
-  end
-
-  def generate_test_object_graphs
-    1.upto(NUM_SIMPLE_OBJS) do
-      [Circle, Square, Triangle, NonPolyOne, NonPolyTwo].map(&:create!)
-    end
-    1.upto(NUM_SIMPLE_OBJS) do
-      PaintColor.create!(:non_poly_one_id => NonPolyOne.sample.id)
-      PaintTexture.create!(:non_poly_two_id => NonPolyTwo.sample.id)
-    end
-    1.upto(NUM_SHAPE_EXPRESSIONS) do
-      shape_type = [Circle, Square, Triangle].sample
-      paint_type = [PaintColor, PaintTexture].sample
-      ShapeExpression.create!(:shape_type => shape_type.to_s, :shape_id => shape_type.sample.id,
-                              :paint_type => paint_type.to_s, :paint_id => paint_type.sample.id)
-    end
+     ShapeExpression, NonPolyOne, NonPolyTwo].each(&:delete_all)
   end
 
   def test_include_query
