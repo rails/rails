@@ -115,7 +115,7 @@ module ActiveRecord
         end
 
         def clear
-          cache.values.each do |hash|
+          cache.each_value do |hash|
             dealloc hash[:stmt]
           end
           cache.clear

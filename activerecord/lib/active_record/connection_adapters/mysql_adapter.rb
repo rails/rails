@@ -88,7 +88,7 @@ module ActiveRecord
         end
 
         def clear
-          cache.values.each do |hash|
+          cache.each_value do |hash|
             hash[:stmt].close
           end
           cache.clear
