@@ -79,7 +79,12 @@ module ActiveRecord
       super
     end
 
-    def enum(definitions, opts = {})
+    def enum(definitions)
+      enum_methods(definitions)
+      enum_scopes(definitions)
+    end
+
+    def enum_methods(definitions)
       klass = self
       definitions.each do |name, values|
         # statuses = { }
@@ -125,12 +130,6 @@ module ActiveRecord
             # def active!() update! status: :active end
             klass.send(:detect_enum_conflict!, name, "#{value}!")
             define_method("#{value}!") { update! name => value }
-
-            if opts.fetch(:scope, true)
-              # scope :active, -> { where status: 0 }
-              klass.send(:detect_enum_conflict!, name, value, true)
-              klass.scope value, -> { klass.where name => i }
-            end
           end
         end
         defined_enums[name.to_s] = enum_values
@@ -138,6 +137,21 @@ module ActiveRecord
     end
 
     private
+      def enum_scopes(definitions)
+        klass = self
+        definitions.each do |name, values|
+          name        = name.to_sym
+          _enum_methods_module.module_eval do
+            pairs = values.respond_to?(:each_pair) ? values.each_pair : values.each_with_index
+            pairs.each do |value, i|
+              # scope :active, -> { where status: 0 }
+              klass.send(:detect_enum_conflict!, name, value, true)
+              klass.scope value, -> { klass.where name => i }
+            end
+          end
+        end
+      end
+
       def _enum_methods_module
         @_enum_methods_module ||= begin
           mod = Module.new do

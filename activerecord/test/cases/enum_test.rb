@@ -205,7 +205,7 @@ class EnumTest < ActiveRecord::TestCase
     end
   end
 
-  test "not setting scope" do
+  test "enum_methods doesn't define scope methods" do
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = "books"
       enum status: [:proposed, :written, :published]
@@ -213,7 +213,7 @@ class EnumTest < ActiveRecord::TestCase
 
     # new generates a scope that conflicts with an AR class method
     assert_nothing_raised do
-      klass.class_eval { enum({"status_1" => [:new]}, {scope: false}) }
+      klass.class_eval { enum_methods "status_1" => [:new] }
     end
   end
 
