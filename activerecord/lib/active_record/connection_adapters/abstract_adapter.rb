@@ -14,10 +14,7 @@ module ActiveRecord
   module ConnectionAdapters # :nodoc:
     extend ActiveSupport::Autoload
 
-    autoload_at 'active_record/connection_adapters/column' do
-      autoload :Column
-      autoload :NullColumn
-    end
+    autoload :Column
     autoload :ConnectionSpecification
 
     autoload_at 'active_record/connection_adapters/abstract/schema_definitions' do
