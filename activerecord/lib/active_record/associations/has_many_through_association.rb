@@ -161,7 +161,7 @@ module ActiveRecord
             if scope.klass.primary_key
               count = scope.destroy_all.length
             else
-              scope.to_a.each do |record|
+              scope.each do |record|
                 record._run_destroy_callbacks
               end
 
