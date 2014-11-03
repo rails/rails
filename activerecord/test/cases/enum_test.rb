@@ -213,8 +213,10 @@ class EnumTest < ActiveRecord::TestCase
 
     # new generates a scope that conflicts with an AR class method
     assert_nothing_raised do
-      klass.class_eval { enum_methods "status_1" => [:new] }
+      klass.class_eval { enum_methods "status_1" => [:new, :old] }
     end
+
+    assert !klass.respond_to?(:old)
   end
 
   test "overriding enum method should not raise" do
