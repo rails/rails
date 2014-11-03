@@ -205,6 +205,18 @@ class EnumTest < ActiveRecord::TestCase
     end
   end
 
+  test "not setting scope" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum status: [:proposed, :written, :published]
+    end
+
+    # new generates a scope that conflicts with an AR class method
+    assert_nothing_raised do
+      klass.class_eval { enum({"status_1" => [:new]}, {scope: false}) }
+    end
+  end
+
   test "overriding enum method should not raise" do
     assert_nothing_raised do
       Class.new(ActiveRecord::Base) do
