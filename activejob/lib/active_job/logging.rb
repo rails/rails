@@ -75,7 +75,7 @@ module ActiveJob
       def perform(event)
         info do
           job = event.payload[:job]
-          "Performed #{job.class.name} from #{queue_name(event)} in #{event.duration.round(2).to_s}ms"
+          "Performed #{job.class.name} from #{queue_name(event)} in #{event.duration.round(2)}ms"
         end
       end
 
