@@ -25,13 +25,13 @@ module ActionDispatch
       @environment = { 'action_dispatch.backtrace_cleaner' => cleaner }
     end
 
-    test '#source_extract fetches source fragments for every backtrace entry' do
+    test '#source_extracts fetches source fragments for every backtrace entry' do
       exception = TestError.new("lib/file.rb:42:in `index'")
       wrapper = ExceptionWrapper.new({}, exception)
 
       wrapper.expects(:source_fragment).with('lib/file.rb', 42).returns('foo')
 
-      assert_equal [ code: 'foo', file: 'lib/file.rb', line_number: 42 ], wrapper.source_extract
+      assert_equal [ code: 'foo', line_number: 42 ], wrapper.source_extracts
     end
 
 
