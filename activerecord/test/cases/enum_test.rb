@@ -208,15 +208,27 @@ class EnumTest < ActiveRecord::TestCase
   test "enum_methods doesn't define scope methods" do
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = "books"
-      enum status: [:proposed, :written, :published]
     end
 
     # new generates a scope that conflicts with an AR class method
     assert_nothing_raised do
-      klass.class_eval { enum_methods "status_1" => [:new, :old] }
+      klass.class_eval { enum_methods "status" => [:new, :old] }
     end
 
     assert !klass.respond_to?(:old)
+  end
+
+  test "enum_methods behaves like enum" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum_methods status: [:new, :old]
+    end
+
+    @book = klass.new(status: :new)
+    assert @book.new?
+    assert_equal "new", @book.status
+    @book.old!
+    assert @book.old?
   end
 
   test "overriding enum method should not raise" do
