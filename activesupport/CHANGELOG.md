@@ -1,3 +1,7 @@
+*   `String#remove` and `String#remove!` accept multiple arguments.
+
+    *Pavel Pravosud*
+
 *   TimeWithZone#strftime now delegates every directive to Time#strftime except for '%Z',
     it also now correctly handles escaped '%' characters placed just before time zone related directives.
 
