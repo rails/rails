@@ -49,13 +49,13 @@ bog down the controller or model.
 The new GlobalID library makes it easy to pass Active Record objects to jobs by
 serializing them in a generic form. This means you no longer have to manually
 pack and unpack your Active Records by passing ids. Just give the job the
-straight Active Record object, and it'll serialize it using GlobalID, and
-deserialize it at run time.
+Active Record object, and it'll serialize it using GlobalID, and deserialize
+it at run time.
 
 ### Adequate Record
 
 Adequate Record is a set of refactorings that make Active Record `find` and
-`find_by` methods and some association queries upto 2x faster.
+`find_by` methods and some association queries up to 2x faster.
 
 It works by caching SQL query patterns while executing the Active Record calls.
 The cache helps skip parts of the computation involved in the transformation of
@@ -88,7 +88,7 @@ The caching is not used in the following scenarios:
   Post.find [1,2]
   ```
 
-- `find_by` with sql fragments:
+- `find_by` with SQL fragments:
 
   ```ruby
   Post.find_by "published_at < ?", 2.weeks.ago
@@ -196,9 +196,9 @@ end
 Due to a [change in Rack](https://github.com/rack/rack/commit/28b014484a8ac0bbb388e7eaeeef159598ec64fc),
 `rails server` now listens on `localhost` instead of `0.0.0.0` by default. This
 should have minimal impact on the standard development workflow as both http://127.0.0.1:3000
-and http://localhost:3000 would continue to work as before on your own machine.
+and http://localhost:3000 will continue to work as before on your own machine.
 
-However, with this change you would no longer be able to access the Rails server
+However, with this change you will no longer be able to access the Rails server
 from a different machine (e.g. your development environment is in a virtual
 machine and you would like to access it from the host machine), you would need
 to start the server with `rails server -b 0.0.0.0` to restore the old behavior.
@@ -471,7 +471,7 @@ Please refer to the [Changelog][action-pack] for detailed changes.
     ([Pull Request](https://github.com/rails/rails/pull/14280))
 
 *   When the Rails server is set to serve static assets, gzip assets will now be
-    served if the client supports it and a pre-generated gzip file (.gz) is on disk.
+    served if the client supports it and a pre-generated gzip file (`.gz`) is on disk.
     By default the asset pipeline generates `.gz` files for all compressible assets.
     Serving gzip files minimizes data transfer and speeds up asset requests. Always
     [use a CDN](http://guides.rubyonrails.org/asset_pipeline.html#cdns) if you are
@@ -479,7 +479,7 @@ Please refer to the [Changelog][action-pack] for detailed changes.
     ([Pull Request](https://github.com/rails/rails/pull/16466))
 
 *   The way `assert_select` works has changed; specifically a different library
-    is used to interpret css selectors, build the transient DOM that the
+    is used to interpret CSS selectors, build the transient DOM that the
     selectors are applied against, and to extract the data from that DOM. These
     changes should only affect edge cases. Examples:
     *  Values in attribute selectors may need to be quoted if they contain
@@ -537,7 +537,7 @@ Please refer to the [Changelog][action-mailer] for detailed changes.
 *   Deprecated `*_path` helpers in mailers. Always use `*_url` helpers instead.
     ([Pull Request](https://github.com/rails/rails/pull/15840))
 
-*   Deprecated `deliver` / `deliver!` in favour of `deliver_now` / `deliver_now!`.
+*   Deprecated `deliver` / `deliver!` in favor of `deliver_now` / `deliver_now!`.
     ([Pull Request](https://github.com/rails/rails/pull/16582))
 
 ### Notable changes
@@ -596,7 +596,7 @@ Please refer to the [Changelog][active-record] for detailed changes.
     ([Pull Request](https://github.com/rails/rails/pull/15704))
 
 *   Deprecated returning `nil` from `column_for_attribute` when no column
-    exists. It will return a null object in Rails 5.0
+    exists. It will return a null object in Rails 5.0.
     ([Pull Request](https://github.com/rails/rails/pull/15878))
 
 *   Deprecated using `.joins`, `.preload` and `.eager_load` with associations
@@ -648,7 +648,7 @@ Please refer to the [Changelog][active-record] for detailed changes.
     ([Commit](https://github.com/rails/rails/commit/e2f232aba15937a4b9d14bd91e0392c6d55be58d))
 
 *   `ActiveRecord::Dirty` now detects in-place changes to mutable values.
-    Serialized attributes on ActiveRecord models will no longer save when
+    Serialized attributes on Active Record models will no longer save when
     unchanged. This also works with other types such as string columns and json
     columns on PostgreSQL.
     (Pull Requests [1](https://github.com/rails/rails/pull/15674),
