@@ -281,6 +281,34 @@ module ActionView
   #       Deadline: <%= user.deadline %>
   #     <%- end -%>
   #   <% end %>
+  #
+  # Collections can also be wrapped in their own layouts.
+  #
+  #   <%# app/views/users/_ul_collection_layout.html.erb %>
+  #   <ul>
+  #     <%= yield %>
+  #   </ul>
+  #
+  #   <%# app/views/users/_user.html.erb %>
+  #   <li>
+  #     Name: <%= user.name %>
+  #   </li>
+  #
+  #   <%# app/views/users/index.html.erb %>
+  #   <%= render partial: "user", collection_layout: "ul_layout", collection: users %>
+  #
+  # ... and, provided collection has members, this will return:
+  #
+  #   <ul>
+  #     <li>
+  #       Name: Alice
+  #     </li>
+  #     <li>
+  #       Name: Bob
+  #     </li>
+  #   </ul>
+  #
+  # However, in cases when collection is empty, it will return `nil`.
   class PartialRenderer < AbstractRenderer
     include CollectionCaching
 
@@ -322,9 +350,12 @@ module ActionView
             spacer = find_template(@options[:spacer_template], @locals.keys).render(@view, @locals)
           end
 
-          cache_collection_render(payload) do
+          result = cache_collection_render(payload) do
             @template ? collection_with_template : collection_without_template
           end.join(spacer).html_safe
+
+          result = wrap_collection_in_layout(result) if @options.key?(:collection_layout)
+          result
         end
       end
 
@@ -464,6 +495,11 @@ module ActionView
           partial_iteration.iterate!
           content
         end
+      end
+
+      def wrap_collection_in_layout(rendered_collection)
+        find_template(@options[:collection_layout], @locals.keys)
+          .render(@view, @locals) { rendered_collection }
       end
 
     # Obtains the path to where the object's partial is located. If the object
