@@ -103,6 +103,8 @@ module ActiveSupport
       @value.respond_to?(method, include_private)
     end
 
+    delegate :<=>, to: :value
+
     protected
 
       def sum(sign, time = ::Time.current) #:nodoc:
