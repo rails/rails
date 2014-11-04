@@ -66,10 +66,11 @@ module ApplicationTests
         end
       RUBY
       add_to_top_of_config <<-RUBY
-        equire 'my_logger'
+        require 'my_logger'
         config.logger = MyLogger.new STDOUT
       RUBY
       require "#{app_path}/config/environment"
+      assert_equal 'MyLogger', Rails.application.config.logger.class.name
     end
 
     test "a renders exception on pending migration" do

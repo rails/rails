@@ -88,6 +88,7 @@ module Rails
       def inherited(base)
         super
         Rails.app_class = base
+        add_lib_to_load_path!(find_root(base.called_from))
       end
 
       def instance
@@ -96,6 +97,10 @@ module Rails
 
       def create(initial_variable_values = {}, &block)
         new(initial_variable_values, &block).run_load_hooks!
+      end
+
+      def find_root(from)
+        find_root_with_flag "config.ru", from, Dir.pwd
       end
 
       # Makes the +new+ method public.
@@ -129,8 +134,6 @@ module Rails
       # are these actually used?
       @initial_variable_values = initial_variable_values
       @block = block
-
-      add_lib_to_load_path!
     end
 
     # Returns true if the application is initialized.
@@ -313,8 +316,8 @@ module Rails
     # are changing config.root inside your application definition or having a custom
     # Rails application, you will need to add lib to $LOAD_PATH on your own in case
     # you need to load files in lib/ during the application configuration as well.
-    def add_lib_to_load_path! #:nodoc:
-      path = File.join config.root, 'lib'
+    def self.add_lib_to_load_path!(root) #:nodoc:
+      path = File.join root, 'lib'
       if File.exist?(path) && !$LOAD_PATH.include?(path)
         $LOAD_PATH.unshift(path)
       end
@@ -358,7 +361,7 @@ module Rails
     end
 
     def config #:nodoc:
-      @config ||= Application::Configuration.new(find_root_with_flag("config.ru", Dir.pwd))
+      @config ||= Application::Configuration.new(self.class.find_root(self.class.called_from))
     end
 
     def config=(configuration) #:nodoc:
