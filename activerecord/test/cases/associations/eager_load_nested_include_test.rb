@@ -38,8 +38,8 @@ end
 
 
 class EagerLoadPolyAssocsTest < ActiveRecord::TestCase
-  NUM_SIMPLE_OBJS = 50
-  NUM_SHAPE_EXPRESSIONS = 100
+  NUM_SIMPLE_OBJS = 10
+  NUM_SHAPE_EXPRESSIONS = 30
 
   setup do
     cache = {}
@@ -80,17 +80,22 @@ class EagerLoadPolyAssocsTest < ActiveRecord::TestCase
   end
 
   def test_deeply_nested_include_query
-    expression = nil
-    assert_nothing_raised do
-      expression = ShapeExpression.includes(paint: {non_poly: [:paint_colors, :paint_textures]}).first
-    end
+    expressions = ShapeExpression.includes(paint: {non_poly: [:paint_colors, :paint_textures]}).to_a
     assert_no_queries do
-      case non_poly = expression.paint.non_poly
-      when NonPolyOne
-        non_poly.paint_colors
-      when NonPolyTwo
-        non_poly.paint_textures
+      expressions.each do |expression|
+        case non_poly = expression.paint.non_poly
+        when NonPolyOne
+          assert_equal PaintColor, non_poly.paint_colors.first.class
+        when NonPolyTwo
+          assert_equal PaintTexture, non_poly.paint_textures.first.class
+        end
       end
+    end
+  end
+
+  def test_deeply_nested_include_query_fails_when_included_association_isnt_required
+    assert_raises ActiveRecord::AssociationNotFoundError do
+      ShapeExpression.includes(paint: {non_poly: [:paint_colors, :paint_textures]}).first
     end
   end
 end

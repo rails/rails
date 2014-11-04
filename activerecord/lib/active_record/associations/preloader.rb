@@ -140,7 +140,12 @@ module ActiveRecord
       # classes, depending on the polymorphic_type field. So we group by the classes as
       # well.
       def preloaders_for_one(association, records, scope)
-        grouped_records(association, records).flat_map do |reflection, klasses|
+        grouped = grouped_records(association, records)
+        if records.any? && grouped.none?
+          raise AssociationNotFoundError.new(records.first.class, association)
+        end
+
+        grouped.flat_map do |reflection, klasses|
           klasses.map do |rhs_klass, rs|
             loader = preloader_for(reflection, rs, rhs_klass).new(rhs_klass, rs, reflection, scope)
             loader.run self
