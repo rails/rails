@@ -195,8 +195,8 @@ TIP: Compiling CoffeeScript and JavaScript asset compression requires you
 have a JavaScript runtime available on your system, in the absence
 of a runtime you will see an `execjs` error during asset compilation.
 Usually Mac OS X and Windows come with a JavaScript runtime installed.
-Rails adds the `therubyracer` gem to the generated `Gemfile` in a 
-commented line for new apps and you can uncomment if you need it. 
+Rails adds the `therubyracer` gem to the generated `Gemfile` in a
+commented line for new apps and you can uncomment if you need it.
 `therubyrhino` is the recommended runtime for JRuby users and is added by
 default to the `Gemfile` in apps generated under JRuby. You can investigate
 all the supported runtimes at [ExecJS](https://github.com/sstephenson/execjs#readme).
@@ -338,8 +338,8 @@ You can create, read, update and destroy items for a resource and these
 operations are referred to as _CRUD_ operations.
 
 Rails provides a `resources` method which can be used to declare a standard REST
-resource. Here's what `config/routes.rb` should look like after the
-_article resource_ is declared.
+resource. You need to add the _article resource_ to the
+`config/routes.rb` as follows:
 
 ```ruby
 Rails.application.routes.draw do
