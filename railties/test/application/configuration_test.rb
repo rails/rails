@@ -59,6 +59,19 @@ module ApplicationTests
       end
     end
 
+    test "lib dir is on LOAD_PATH during config" do
+      app_file 'lib/my_logger.rb', <<-RUBY
+        require "logger"
+        class MyLogger < ::Logger
+        end
+      RUBY
+      add_to_top_of_config <<-RUBY
+        equire 'my_logger'
+        config.logger = MyLogger.new STDOUT
+      RUBY
+      require "#{app_path}/config/environment"
+    end
+
     test "a renders exception on pending migration" do
       add_to_config <<-RUBY
         config.active_record.migration_error    = :page_load
