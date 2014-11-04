@@ -17,6 +17,8 @@ module ActiveJob
       attr_writer :queue_name
     end
 
+    # These methods will be included into any Active Job object, adding
+    # helpers for de/serialization and creation of job instances.
     module ClassMethods
       # Creates a new job instance from a hash created with +serialize+
       def deserialize(job_data)
@@ -48,8 +50,8 @@ module ActiveJob
       end
     end
 
-    # Creates a new job instance. Takes as arguments the arguments that
-    # will be passed to the perform method.
+    # Creates a new job instance. Takes the arguments that will be
+    # passed to the perform method.
     def initialize(*arguments)
       @arguments  = arguments
       @job_id     = SecureRandom.uuid
@@ -84,6 +86,3 @@ module ActiveJob
       end
   end
 end
-
-
-

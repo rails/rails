@@ -27,7 +27,7 @@ module ActionDispatch
 
       def symbolized_path_parameters
         ActiveSupport::Deprecation.warn(
-          "`symbolized_path_parameters` is deprecated. Please use `path_parameters`"
+          '`symbolized_path_parameters` is deprecated. Please use `path_parameters`.'
         )
         path_parameters
       end

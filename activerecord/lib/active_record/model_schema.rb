@@ -247,12 +247,12 @@ module ActiveRecord
       # Returns a hash where the keys are column names and the values are
       # default values when instantiating the AR object for this table.
       def column_defaults
-        default_attributes.to_hash
+        _default_attributes.to_hash
       end
 
-      def default_attributes # :nodoc:
+      def _default_attributes # :nodoc:
         @default_attributes ||= attributes_builder.build_from_database(
-          columns_hash.transform_values(&:default))
+          raw_default_values)
       end
 
       # Returns an array of column names as strings.
@@ -330,6 +330,10 @@ module ActiveRecord
           # STI subclasses always use their superclass' table.
           base.table_name
         end
+      end
+
+      def raw_default_values
+        columns_hash.transform_values(&:default)
       end
     end
   end

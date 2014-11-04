@@ -42,7 +42,7 @@ module ActiveRecord
 
       def test_creates_polymorphic_index
         add_reference table_name, :taggable, polymorphic: true, index: true
-        assert index_exists?(table_name, [:taggable_id, :taggable_type])
+        assert index_exists?(table_name, [:taggable_type, :taggable_id])
       end
 
       def test_creates_reference_type_column_with_default

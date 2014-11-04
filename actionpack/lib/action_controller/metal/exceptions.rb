@@ -25,7 +25,7 @@ module ActionController
     end
   end
 
-  class ActionController::UrlGenerationError < RoutingError #:nodoc:
+  class ActionController::UrlGenerationError < ActionControllerError #:nodoc:
   end
 
   class MethodNotAllowed < ActionControllerError #:nodoc:

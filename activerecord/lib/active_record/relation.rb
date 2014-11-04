@@ -79,22 +79,27 @@ module ActiveRecord
         scope.unscope!(where: @klass.inheritance_column)
       end
 
-      um = scope.where(@klass.arel_table[@klass.primary_key].eq(id_was || id)).arel.compile_update(substitutes, @klass.primary_key)
+      relation = scope.where(@klass.primary_key => (id_was || id))
+      bvs = binds + relation.bind_values
+      um = relation
+        .arel
+        .compile_update(substitutes, @klass.primary_key)
+      reorder_bind_params(um.ast, bvs)
 
       @klass.connection.update(
         um,
         'SQL',
-        binds)
+        bvs,
+      )
     end
 
     def substitute_values(values) # :nodoc:
-      substitutes = values.sort_by { |arel_attr,_| arel_attr.name }
-      binds       = substitutes.map do |arel_attr, value|
+      binds = values.map do |arel_attr, value|
         [@klass.columns_hash[arel_attr.name], value]
       end
 
-      substitutes.each_with_index do |tuple, i|
-        tuple[1] = @klass.connection.substitute_at(binds[i][0], i)
+      substitutes = values.each_with_index.map do |(arel_attr, _), i|
+        [arel_attr, @klass.connection.substitute_at(binds[i][0], i)]
       end
 
       [substitutes, binds]
@@ -337,7 +342,7 @@ module ActiveRecord
         stmt.wheres = arel.constraints
       end
 
-      bvs = bind_values + arel.bind_values
+      bvs = arel.bind_values + bind_values
       @klass.connection.update stmt, 'SQL', bvs
     end
 

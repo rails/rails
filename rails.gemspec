@@ -16,7 +16,7 @@ Gem::Specification.new do |s|
   s.email    = 'david@loudthinking.com'
   s.homepage = 'http://www.rubyonrails.org'
 
-  s.files = ['README.md'] + Dir['guides/**/*']
+  s.files = ['README.md'] + Dir['guides/**/*'] - Dir['guides/output/**/*']
 
   s.add_dependency 'activesupport', version
   s.add_dependency 'actionpack',    version

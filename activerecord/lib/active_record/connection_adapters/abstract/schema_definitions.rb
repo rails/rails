@@ -60,11 +60,11 @@ module ActiveRecord
       def emit_warning_if_null_unspecified(options)
         return if options.key?(:null)
 
-        ActiveSupport::Deprecation.warn \
-          "`timestamp` was called without specifying an option for `null`. In Rails " \
-          "5.0, this behavior will change to `null: false`. You should manually " \
-          "specify `null: true` to prevent the behavior of your existing migrations " \
-          "from changing."
+        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          `#timestamp` was called without specifying an option for `null`. In Rails 5,
+          this behavior will change to `null: false`. You should manually specify
+         `null: true` to prevent the behavior of your existing migrations from changing.
+        MSG
       end
     end
 
@@ -312,7 +312,7 @@ module ActiveRecord
         args.each do |col|
           column("#{col}_id", type, options)
           column("#{col}_type", :string, polymorphic.is_a?(Hash) ? polymorphic : options) if polymorphic
-          index(polymorphic ? %w(id type).map { |t| "#{col}_#{t}" } : "#{col}_id", index_options.is_a?(Hash) ? index_options : {}) if index_options
+          index(polymorphic ? %w(type id).map { |t| "#{col}_#{t}" } : "#{col}_id", index_options.is_a?(Hash) ? index_options : {}) if index_options
         end
       end
       alias :belongs_to :references

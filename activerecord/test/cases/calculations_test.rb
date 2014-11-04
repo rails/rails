@@ -461,7 +461,6 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 7, Company.includes(:contracts).sum(:developer_id)
   end
 
-
   def test_from_option_with_specified_index
     if Edge.connection.adapter_name == 'MySQL' or Edge.connection.adapter_name == 'Mysql2'
       assert_equal Edge.count(:all), Edge.from('edges USE INDEX(unique_edge_index)').count(:all)

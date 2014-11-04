@@ -118,6 +118,8 @@ HEADER
           if pkcol
             if pk != 'id'
               tbl.print %Q(, primary_key: "#{pk}")
+            elsif pkcol.sql_type == 'bigint'
+              tbl.print ", id: :bigserial"
             elsif pkcol.sql_type == 'uuid'
               tbl.print ", id: :uuid"
               tbl.print %Q(, default: "#{pkcol.default_function}") if pkcol.default_function

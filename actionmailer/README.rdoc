@@ -61,7 +61,7 @@ generated would look like this:
 
   Thank you for signing up!
 
-In order to send mails, you simply call the method and then call +deliver+ on the return value.
+In order to send mails, you simply call the method and then call +deliver_now+ on the return value.
 
 Calling the method returns a Mail Message object:
 
@@ -74,9 +74,17 @@ Or you can just chain the methods together like:
 
 == Setting defaults
 
-It is possible to set default values that will be used in every method in your Action Mailer class. To implement this functionality, you just call the public class method <tt>default</tt> which you get for free from <tt>ActionMailer::Base</tt>. This method accepts a Hash as the parameter. You can use any of the headers email messages have, like <tt>:from</tt> as the key. You can also pass in a string as the key, like "Content-Type", but Action Mailer does this out of the box for you, so you won't need to worry about that. Finally, it is also possible to pass in a Proc that will get evaluated when it is needed.
+It is possible to set default values that will be used in every method in your
+Action Mailer class. To implement this functionality, you just call the public
+class method +default+ which you get for free from <tt>ActionMailer::Base</tt>.
+This method accepts a Hash as the parameter. You can use any of the headers,
+email messages have, like +:from+ as the key. You can also pass in a string as
+the key, like "Content-Type", but Action Mailer does this out of the box for you,
+so you won't need to worry about that. Finally, it is also possible to pass in a
+Proc that will get evaluated when it is needed.
 
-Note that every value you set with this method will get overwritten if you use the same key in your mailer method.
+Note that every value you set with this method will get overwritten if you use the
+same key in your mailer method.
 
 Example:
 
@@ -87,10 +95,11 @@ Example:
 
 == Receiving emails
 
-To receive emails, you need to implement a public instance method called <tt>receive</tt> that takes an
-email object as its single parameter. The Action Mailer framework has a corresponding class method,
-which is also called <tt>receive</tt>, that accepts a raw, unprocessed email as a string, which it then turns
-into the email object and calls the receive instance method.
+To receive emails, you need to implement a public instance method called
++receive+ that takes an email object as its single parameter. The Action Mailer
+framework has a corresponding class method, which is also called +receive+, that
+accepts a raw, unprocessed email as a string, which it then turns into the email
+object and calls the receive instance method.
 
 Example:
 
@@ -111,13 +120,14 @@ Example:
     end
   end
 
-This Mailman can be the target for Postfix or other MTAs. In Rails, you would use the runner in the
-trivial case like this:
+This Mailman can be the target for Postfix or other MTAs. In Rails, you would use
+the runner in the trivial case like this:
 
   rails runner 'Mailman.receive(STDIN.read)'
 
-However, invoking Rails in the runner for each mail to be received is very resource intensive.  A single
-instance of Rails should be run within a daemon, if it is going to process more than just a limited amount of email.
+However, invoking Rails in the runner for each mail to be received is very
+resource intensive. A single instance of Rails should be run within a daemon, if
+it is going to process more than just a limited amount of email.
 
 == Configuration
 

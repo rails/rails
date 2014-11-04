@@ -1,3 +1,5 @@
+require 'active_support/core_ext/string/filters'
+
 module ActiveRecord
   # = Active Record Has Many Through Association
   module Associations
@@ -63,11 +65,12 @@ module ActiveRecord
 
         save_through_record(record)
         if has_cached_counter? && !through_reflection_updates_counter_cache?
-          ActiveSupport::Deprecation.warn \
-            "Automatic updating of counter caches on through associations has been " \
-            "deprecated, and will be removed in Rails 5.0. Instead, please set the " \
-            "appropriate counter_cache options on the has_many and belongs_to for " \
-            "your associations to #{through_reflection.name}."
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            Automatic updating of counter caches on through associations has been
+            deprecated, and will be removed in Rails 5. Instead, please set the
+            appropriate `counter_cache` options on the `has_many` and `belongs_to`
+            for your associations to #{through_reflection.name}.
+          MSG
 
           update_counter_in_database(1)
         end
@@ -158,8 +161,8 @@ module ActiveRecord
             if scope.klass.primary_key
               count = scope.destroy_all.length
             else
-              scope.to_a.each do |record|
-                record.run_destroy_callbacks
+              scope.each do |record|
+                record._run_destroy_callbacks
               end
 
               arel = scope.arel

@@ -91,6 +91,13 @@ module ActiveRecord
           collation && !collation.match(/_ci$/)
         end
 
+        def ==(other)
+          super &&
+            collation == other.collation &&
+            strict == other.strict &&
+            extra == other.extra
+        end
+
         private
 
         # MySQL misreports NOT NULL column default when none is given.
@@ -108,6 +115,10 @@ module ActiveRecord
           if blob_or_text_column? && default.present?
             raise ArgumentError, "#{type} columns cannot have a default value: #{default.inspect}"
           end
+        end
+
+        def attributes_for_hash
+          super + [collation, strict, extra]
         end
       end
 
@@ -485,7 +496,7 @@ module ActiveRecord
         end
       end
 
-      def change_column_default(table_name, column_name, default)
+      def change_column_default(table_name, column_name, default) #:nodoc:
         column = column_for(table_name, column_name)
         change_column table_name, column_name, column.sql_type, :default => default
       end
@@ -645,12 +656,6 @@ module ActiveRecord
       def initialize_type_map(m) # :nodoc:
         super
 
-        m.register_type(%r(enum)i) do |sql_type|
-          limit = sql_type[/^enum\((.+)\)/i, 1]
-            .split(',').map{|enum| enum.strip.length - 2}.max
-          Type::String.new(limit: limit)
-        end
-
         m.register_type %r(tinytext)i,   Type::Text.new(limit: 2**8 - 1)
         m.register_type %r(tinyblob)i,   Type::Binary.new(limit: 2**8 - 1)
         m.register_type %r(text)i,       Type::Text.new(limit: 2**16 - 1)
@@ -671,6 +676,12 @@ module ActiveRecord
         m.alias_type %r(set)i,           'varchar'
         m.alias_type %r(year)i,          'integer'
         m.alias_type %r(bit)i,           'binary'
+
+        m.register_type(%r(enum)i) do |sql_type|
+          limit = sql_type[/^enum\((.+)\)/i, 1]
+            .split(',').map{|enum| enum.strip.length - 2}.max
+          Type::String.new(limit: limit)
+        end
       end
 
       # MySQL is too stupid to create a temporary table for use subquery, so we have
@@ -825,9 +836,9 @@ module ActiveRecord
         # Gather up all of the SET variables...
         variable_assignments = variables.map do |k, v|
           if v == ':default' || v == :default
-            "@@SESSION.#{k.to_s} = DEFAULT" # Sets the value to the global or compile default
+            "@@SESSION.#{k} = DEFAULT" # Sets the value to the global or compile default
           elsif !v.nil?
-            "@@SESSION.#{k.to_s} = #{quote(v)}"
+            "@@SESSION.#{k} = #{quote(v)}"
           end
           # or else nil; compact to clear nils out
         end.compact.join(', ')

@@ -1,3 +1,32 @@
+*   Deprecate `sanitize_sql_hash_for_conditions` without replacement. Using a
+    `Relation` for performing queries and updates is the prefered API.
+
+    *Sean Griffin*
+
+*   Queries now properly type cast values that are part of a join statement,
+    even when using type decorators such as `serialize`.
+
+    *Melanie Gilman & Sean Griffin*
+
+*   MySQL enum type lookups, with values matching another type, no longer result
+    in an endless loop.
+
+    Fixes #17402.
+
+    *Yves Senn*
+
+*   Raise `ArgumentError` when the body of a scope is not callable.
+
+    *Mauro George*
+
+*   Use type column first in multi-column indexes created with `add-reference`.
+
+    *Derek Prior*
+
+*   Fix `Relation.rewhere` to work with Range values.
+
+    *Dan Olson*
+
 *   `AR::UnknownAttributeError` now includes the class name of a record.
 
         User.new(name: "Yuki Nishijima", project_attributes: {name: "kaminari"})

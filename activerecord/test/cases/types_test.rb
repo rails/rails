@@ -1,5 +1,4 @@
 require "cases/helper"
-require 'models/company'
 
 module ActiveRecord
   module ConnectionAdapters
@@ -35,52 +34,6 @@ module ActiveRecord
           assert_equal false, type.type_cast_from_user("\u0000")
           assert_equal false, type.type_cast_from_user('SOMETHING RANDOM')
         end
-      end
-
-      def test_type_cast_integer
-        type = Type::Integer.new
-        assert_equal 1, type.type_cast_from_user(1)
-        assert_equal 1, type.type_cast_from_user('1')
-        assert_equal 1, type.type_cast_from_user('1ignore')
-        assert_equal 0, type.type_cast_from_user('bad1')
-        assert_equal 0, type.type_cast_from_user('bad')
-        assert_equal 1, type.type_cast_from_user(1.7)
-        assert_equal 0, type.type_cast_from_user(false)
-        assert_equal 1, type.type_cast_from_user(true)
-        assert_nil type.type_cast_from_user(nil)
-      end
-
-      def test_type_cast_non_integer_to_integer
-        type = Type::Integer.new
-        assert_nil type.type_cast_from_user([1,2])
-        assert_nil type.type_cast_from_user({1 => 2})
-        assert_nil type.type_cast_from_user((1..2))
-      end
-
-      def test_type_cast_activerecord_to_integer
-        type = Type::Integer.new
-        firm = Firm.create(:name => 'Apple')
-        assert_nil type.type_cast_from_user(firm)
-      end
-
-      def test_type_cast_object_without_to_i_to_integer
-        type = Type::Integer.new
-        assert_nil type.type_cast_from_user(Object.new)
-      end
-
-      def test_type_cast_nan_and_infinity_to_integer
-        type = Type::Integer.new
-        assert_nil type.type_cast_from_user(Float::NAN)
-        assert_nil type.type_cast_from_user(1.0/0.0)
-      end
-
-      def test_changing_integers
-        type = Type::Integer.new
-
-        assert type.changed?(5, 5, '5wibble')
-        assert_not type.changed?(5, 5, '5')
-        assert_not type.changed?(5, 5, '5.0')
-        assert_not type.changed?(nil, nil, nil)
       end
 
       def test_type_cast_float

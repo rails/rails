@@ -99,21 +99,10 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_exists_fails_when_parameter_has_invalid_type
-    if current_adapter?(:PostgreSQLAdapter, :MysqlAdapter)
-      assert_raises ActiveRecord::StatementInvalid do
-        Topic.exists?(("9"*53).to_i) # number that's bigger than int
-      end
-    else
+    assert_raises(RangeError) do
       assert_equal false, Topic.exists?(("9"*53).to_i) # number that's bigger than int
     end
-
-    if current_adapter?(:PostgreSQLAdapter)
-      assert_raises ActiveRecord::StatementInvalid do
-        Topic.exists?("foo")
-      end
-    else
-      assert_equal false, Topic.exists?("foo")
-    end
+    assert_equal false, Topic.exists?("foo")
   end
 
   def test_exists_does_not_select_columns_without_alias
@@ -207,6 +196,28 @@ class FinderTest < ActiveRecord::TestCase
     devs = Developer.all
     last_devs = Developer.limit(3).offset(9).find devs.map(&:id)
     assert_equal 2, last_devs.size
+  end
+
+  def test_find_with_large_number
+    assert_raises(ActiveRecord::RecordNotFound) { Topic.find('9999999999999999999999999999999') }
+  end
+
+  def test_find_by_with_large_number
+    assert_nil Topic.find_by(id: '9999999999999999999999999999999')
+  end
+
+  def test_find_by_id_with_large_number
+    assert_nil Topic.find_by_id('9999999999999999999999999999999')
+  end
+
+  def test_find_on_relation_with_large_number
+    assert_nil Topic.where('1=1').find_by(id: 9999999999999999999999999999999)
+  end
+
+  def test_find_by_bang_on_relation_with_large_number
+    assert_raises(ActiveRecord::RecordNotFound) do
+      Topic.where('1=1').find_by!(id: 9999999999999999999999999999999)
+    end
   end
 
   def test_find_an_empty_array

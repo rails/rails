@@ -75,8 +75,8 @@ module ActiveSupport
 
     # Returns a <tt>Time.local()</tt> instance of the simultaneous time in your
     # system's <tt>ENV['TZ']</tt> zone.
-    def localtime
-      utc.respond_to?(:getlocal) ? utc.getlocal : utc.to_time.getlocal
+    def localtime(utc_offset = nil)
+      utc.respond_to?(:getlocal) ? utc.getlocal(utc_offset) : utc.to_time.getlocal(utc_offset)
     end
     alias_method :getlocal, :localtime
 
@@ -201,15 +201,11 @@ module ActiveSupport
     end
     alias_method :to_formatted_s, :to_s
 
-    # Replaces <tt>%Z</tt> and <tt>%z</tt> directives with +zone+ and
-    # +formatted_offset+, respectively, before passing to Time#strftime, so
-    # that zone information is correct
+    # Replaces <tt>%Z</tt> directive with +zone before passing to Time#strftime,
+    # so that zone information is correct.
     def strftime(format)
-      format = format.gsub('%Z', zone)
-                     .gsub('%z',   formatted_offset(false))
-                     .gsub('%:z',  formatted_offset(true))
-                     .gsub('%::z', formatted_offset(true) + ":00")
-      time.strftime(format)
+      format = format.gsub(/((?:\A|[^%])(?:%%)*)%Z/, "\\1#{zone}")
+      getlocal(utc_offset).strftime(format)
     end
 
     # Use the time in UTC for comparisons.

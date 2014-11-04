@@ -6,6 +6,7 @@ require 'active_support/core_ext/object/to_query'
 require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/module/remove_method'
 require 'active_support/core_ext/array/extract_options'
+require 'active_support/core_ext/string/filters'
 require 'action_controller/metal/exceptions'
 require 'action_dispatch/http/request'
 require 'action_dispatch/routing/endpoint'
@@ -102,7 +103,10 @@ module ActionDispatch
         end
 
         def helpers
-          ActiveSupport::Deprecation.warn("`named_routes.helpers` is deprecated, please use `route_defined?(route_name)` to see if a named route was defined.")
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            `named_routes.helpers` is deprecated, please use `route_defined?(route_name)`
+            to see if a named route was defined.
+          MSG
           @path_helpers + @url_helpers
         end
 
@@ -134,8 +138,8 @@ module ActionDispatch
             @url_helpers_module.send  :undef_method, url_name
           end
           routes[key] = route
-          define_url_helper @path_helpers_module, route, path_name, route.defaults, name, PATH
-          define_url_helper @url_helpers_module,  route, url_name,  route.defaults, name, FULL
+          define_url_helper @path_helpers_module, route, path_name, route.defaults, name, LEGACY
+          define_url_helper @url_helpers_module,  route, url_name,  route.defaults, name, UNKNOWN
 
           @path_helpers << path_name
           @url_helpers << url_name
@@ -322,6 +326,32 @@ module ActionDispatch
       PATH    = ->(options) { ActionDispatch::Http::URL.path_for(options) }
       FULL    = ->(options) { ActionDispatch::Http::URL.full_url_for(options) }
       UNKNOWN = ->(options) { ActionDispatch::Http::URL.url_for(options) }
+      LEGACY  = ->(options) {
+        if options.key?(:only_path)
+          if options[:only_path]
+            ActiveSupport::Deprecation.warn(<<-MSG.squish)
+              You are calling a `*_path` helper with the `only_path` option
+              explicitly set to `true`. This option will stop working on
+              path helpers in Rails 5. Simply remove the `only_path: true`
+              argument from your call as it is redundant when applied to a
+              path helper.
+            MSG
+
+            PATH.call(options)
+          else
+            ActiveSupport::Deprecation.warn(<<-MSG.squish)
+              You are calling a `*_path` helper with the `only_path` option
+              explicitly set to `false`. This option will stop working on
+              path helpers in Rails 5. Use the corresponding `*_url` helper
+              instead.
+            MSG
+
+            FULL.call(options)
+          end
+        else
+          PATH.call(options)
+        end
+      }
       # :startdoc:
 
       attr_accessor :formatter, :set, :named_routes, :default_scope, :router

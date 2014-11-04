@@ -289,25 +289,25 @@ module ActiveRecord
     end
 
     def destroy #:nodoc:
-      run_destroy_callbacks { super }
+      _run_destroy_callbacks { super }
     end
 
     def touch(*) #:nodoc:
-      run_touch_callbacks { super }
+      _run_touch_callbacks { super }
     end
 
   private
 
     def create_or_update #:nodoc:
-      run_save_callbacks { super }
+      _run_save_callbacks { super }
     end
 
     def _create_record #:nodoc:
-      run_create_callbacks { super }
+      _run_create_callbacks { super }
     end
 
     def _update_record(*) #:nodoc:
-      run_update_callbacks { super }
+      _run_update_callbacks { super }
     end
   end
 end

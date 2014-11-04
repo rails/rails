@@ -13,7 +13,7 @@ module ActiveJob
   # * {Sneakers}[https://github.com/jondot/sneakers]
   # * {Sucker Punch}[https://github.com/brandonhilkert/sucker_punch]
   #
-  # #### Backends Features
+  # === Backends Features
   #
   #   |                   | Async | Queues | Delayed   | Priorities | Timeout | Retries |
   #   |-------------------|-------|--------|-----------|------------|---------|---------|

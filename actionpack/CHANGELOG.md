@@ -1,3 +1,13 @@
+*   Deprecate the `only_path` option on `*_path` helpers.
+
+    In cases where this option is set to `true`, the option is redundant and can
+    be safely removed; otherwise, the corresponding `*_url` helper should be
+    used instead.
+
+    Fixes #17294.
+
+    *Dan Olson*, *Godfrey Chan*
+
 *   Improve Journey compliance to RFC 3986.
 
     The scanner in Journey failed to recognize routes that use literals

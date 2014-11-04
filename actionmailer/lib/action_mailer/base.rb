@@ -84,7 +84,8 @@ module ActionMailer
   # name as the method in your mailer model. For example, in the mailer defined above, the template at
   # <tt>app/views/notifier/welcome.text.erb</tt> would be used to generate the email.
   #
-  # Variables defined in the model are accessible as instance variables in the view.
+  # Variables defined in the methods of your mailer model are accessible as instance variables in their 
+  # corresponding view.
   #
   # Emails by default are sent in plain text, so a sample view for our model example might look like this:
   #
@@ -702,8 +703,8 @@ module ActionMailer
     # The main method that creates the message and renders the email templates. There are
     # two ways to call this method, with a block, or without a block.
     #
-    # Both methods accept a headers hash. This hash allows you to specify the most used headers
-    # in an email message, these are:
+    # It accepts a headers hash. This hash allows you to specify 
+    # the most used headers in an email message, these are:
     #
     # * +:subject+ - The subject of the message, if this is omitted, Action Mailer will
     #   ask the Rails I18n class for a translated +:subject+ in the scope of

@@ -1231,8 +1231,8 @@ module ActionView
     #     end
     #
     # The above code creates a new method +div_radio_button+ which wraps a div
-    # around the a new radio button. Note that when options are passed in, you
-    # must called +objectify_options+ in order for the model object to get
+    # around the new radio button. Note that when options are passed in, you
+    # must call +objectify_options+ in order for the model object to get
     # correctly passed to the method. If +objectify_options+ is not called,
     # then the newly created helper will not be linked back to the model.
     #

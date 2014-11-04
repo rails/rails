@@ -1,3 +1,9 @@
+*   Update `select_tag` to work correctly with `:include_blank` option passing a string.
+
+    Fixes #16483.
+
+    *Frank Groeneveld*
+
 *   Changed the meaning of `render "foo/bar"`.
 
     Previously, calling `render "foo/bar"` in a controller action is equivalent

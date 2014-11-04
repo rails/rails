@@ -1,4 +1,5 @@
 require 'delegate'
+require 'active_support/core_ext/string/filters'
 
 module ActionMailer
 
@@ -85,14 +86,22 @@ module ActionMailer
     end
 
     def deliver! #:nodoc:
-      ActiveSupport::Deprecation.warn "#deliver! is deprecated and will be removed in Rails 5. " \
-        "Use #deliver_now! to deliver immediately or #deliver_later! to deliver through Active Job."
+      ActiveSupport::Deprecation.warn(<<-MSG.squish)
+        `#deliver!` is deprecated and will be removed in Rails 5. Use
+        `#deliver_now!` to deliver immediately or `#deliver_later!` to
+        deliver through Active Job.
+      MSG
+
       deliver_now!
     end
 
     def deliver #:nodoc:
-      ActiveSupport::Deprecation.warn "#deliver is deprecated and will be removed in Rails 5. " \
-        "Use #deliver_now to deliver immediately or #deliver_later to deliver through Active Job."
+      ActiveSupport::Deprecation.warn(<<-MSG.squish)
+        `#deliver` is deprecated and will be removed in Rails 5. Use
+        `#deliver_now` to deliver immediately or `#deliver_later` to
+        deliver through Active Job.
+      MSG
+
       deliver_now
     end
 

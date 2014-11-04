@@ -21,7 +21,7 @@ module ActiveRecord
           case value
           when Float
             if value.infinite? || value.nan?
-              "'#{value.to_s}'"
+              "'#{value}'"
             else
               super
             end

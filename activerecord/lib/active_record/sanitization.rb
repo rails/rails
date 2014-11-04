@@ -87,6 +87,9 @@ module ActiveRecord
       #   { address: Address.new("123 abc st.", "chicago") }
       #     # => "address_street='123 abc st.' and address_city='chicago'"
       def sanitize_sql_hash_for_conditions(attrs, default_table_name = self.table_name)
+        ActiveSupport::Deprecation.warn(<<-EOWARN)
+sanitize_sql_hash_for_conditions is deprecated, and will be removed in Rails 5.0
+        EOWARN
         attrs = PredicateBuilder.resolve_column_aliases self, attrs
         attrs = expand_hash_conditions_for_aggregates(attrs)
 
@@ -134,7 +137,7 @@ module ActiveRecord
         raise_if_bind_arity_mismatch(statement, statement.count('?'), values.size)
         bound = values.dup
         c = connection
-        statement.gsub('?') do
+        statement.gsub(/\?/) do
           replace_bind_variable(bound.shift, c)
         end
       end

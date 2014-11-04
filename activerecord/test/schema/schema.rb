@@ -311,7 +311,7 @@ ActiveRecord::Schema.define do
   end
 
   create_table :cold_jokes, force: true do |t|
-    t.string :name
+    t.string :cold_name
   end
 
   create_table :friendships, force: true do |t|
@@ -583,6 +583,11 @@ ActiveRecord::Schema.define do
     t.integer :tags_count, default: 0
     t.integer :tags_with_destroy_count, default: 0
     t.integer :tags_with_nullify_count, default: 0
+  end
+
+  create_table :serialized_posts, force: true do |t|
+    t.integer :author_id
+    t.string :title, null: false
   end
 
   create_table :price_estimates, force: true do |t|

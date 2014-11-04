@@ -20,14 +20,18 @@ class String
     self
   end
 
-  # Returns a new string with all occurrences of the pattern removed. Short-hand for String#gsub(pattern, '').
-  def remove(pattern)
-    gsub pattern, ''
+  # Returns a new string with all occurrences of the patterns removed.
+  def remove(*patterns)
+    dup.remove!(*patterns)
   end
 
-  # Alters the string by removing all occurrences of the pattern. Short-hand for String#gsub!(pattern, '').
-  def remove!(pattern)
-    gsub! pattern, ''
+  # Alters the string by removing all occurrences of the patterns.
+  def remove!(*patterns)
+    patterns.each do |pattern|
+      gsub! pattern, ""
+    end
+
+    self
   end
 
   # Truncates a given +text+ after a given <tt>length</tt> if +text+ is longer than <tt>length</tt>:

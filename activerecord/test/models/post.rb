@@ -233,3 +233,7 @@ class PostWithCommentWithDefaultScopeReferencesAssociation < ActiveRecord::Base
   has_many :comment_with_default_scope_references_associations, foreign_key: :post_id
   has_one :first_comment, class_name: "CommentWithDefaultScopeReferencesAssociation", foreign_key: :post_id
 end
+
+class SerializedPost < ActiveRecord::Base
+  serialize :title
+end

@@ -4,7 +4,7 @@ module ActiveRecord
       module OID # :nodoc:
         # This class uses the data from PostgreSQL pg_type table to build
         # the OID -> Type mapping.
-        #   - OID is and integer representing the type.
+        #   - OID is an integer representing the type.
         #   - Type is an OID::Type object.
         # This class has side effects on the +store+ passed during initialization.
         class TypeMapInitializer # :nodoc:

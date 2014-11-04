@@ -68,7 +68,7 @@ class TestJSONEncoding < ActiveSupport::TestCase
                    [ 1.0/0.0,   %(null) ],
                    [ -1.0/0.0,  %(null) ],
                    [ BigDecimal('0.0')/BigDecimal('0.0'),  %(null) ],
-                   [ BigDecimal('2.5'), %("#{BigDecimal('2.5').to_s}") ]]
+                   [ BigDecimal('2.5'), %("#{BigDecimal('2.5')}") ]]
 
   StringTests   = [[ 'this is the <string>',     %("this is the \\u003cstring\\u003e")],
                    [ 'a "string" with quotes & an ampersand', %("a \\"string\\" with quotes \\u0026 an ampersand") ],

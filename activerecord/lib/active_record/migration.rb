@@ -394,8 +394,8 @@ module ActiveRecord
       end
 
       def load_schema_if_pending!
-        if ActiveRecord::Migrator.needs_migration?
-          ActiveRecord::Tasks::DatabaseTasks.load_schema_current
+        if ActiveRecord::Migrator.needs_migration? || !ActiveRecord::Migrator.any_migrations?
+          ActiveRecord::Tasks::DatabaseTasks.load_schema_current_if_exists
           check_pending!
         end
       end
@@ -846,6 +846,10 @@ module ActiveRecord
 
       def needs_migration?(connection = Base.connection)
         (migrations(migrations_paths).collect(&:version) - get_all_versions(connection)).size > 0
+      end
+
+      def any_migrations?
+        migrations(migrations_paths).any?
       end
 
       def last_version

@@ -78,6 +78,7 @@ module ActiveRecord
 
       NATIVE_DATABASE_TYPES = {
         primary_key: "serial primary key",
+        bigserial: "bigserial",
         string:      { name: "character varying" },
         text:        { name: "text" },
         integer:     { name: "integer" },
@@ -392,6 +393,16 @@ module ActiveRecord
         super(oid)
       end
 
+      def column_name_for_operation(operation, node) # :nodoc:
+        OPERATION_ALIASES.fetch(operation) { operation.downcase }
+      end
+
+      OPERATION_ALIASES = { # :nodoc:
+        "maximum" => "max",
+        "minimum" => "min",
+        "average" => "avg",
+      }
+
       protected
 
         # Returns the version of the connected PostgreSQL server.
@@ -678,9 +689,9 @@ module ActiveRecord
           variables.map do |k, v|
             if v == ':default' || v == :default
               # Sets the value to the global or compile default
-              execute("SET SESSION #{k.to_s} TO DEFAULT", 'SCHEMA')
+              execute("SET SESSION #{k} TO DEFAULT", 'SCHEMA')
             elsif !v.nil?
-              execute("SET SESSION #{k.to_s} TO #{quote(v)}", 'SCHEMA')
+              execute("SET SESSION #{k} TO #{quote(v)}", 'SCHEMA')
             end
           end
         end
