@@ -120,7 +120,7 @@ module ActiveRecord
 
             # def active?() status == 0 end
             klass.send(:detect_enum_conflict!, name, "#{value}?")
-            define_method("#{value}?") { self[name] == i }
+            define_method("#{name}_#{value}?") { self[name] == i }
 
             # def active!() update! status: :active end
             klass.send(:detect_enum_conflict!, name, "#{value}!")
