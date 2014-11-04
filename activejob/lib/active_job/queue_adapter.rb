@@ -7,6 +7,7 @@ module ActiveJob
   module QueueAdapter #:nodoc:
     extend ActiveSupport::Concern
 
+    # Includes the setter method for changing the active queue adapter.
     module ClassMethods
       mattr_reader(:queue_adapter) { ActiveJob::QueueAdapters::InlineAdapter }
 
