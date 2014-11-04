@@ -364,6 +364,10 @@ module Rails
         super
       end
 
+      def find_root(from)
+        find_root_with_flag "lib", from
+      end
+
       def endpoint(endpoint = nil)
         @endpoint ||= nil
         @endpoint = endpoint if endpoint
@@ -531,7 +535,7 @@ module Rails
 
     # Define the configuration object for the engine.
     def config
-      @config ||= Engine::Configuration.new(find_root_with_flag("lib"))
+      @config ||= Engine::Configuration.new(self.class.find_root(self.class.called_from))
     end
 
     # Load data from db/seeds.rb file. It can be used in to load engines'
@@ -658,8 +662,7 @@ module Rails
       paths["db/migrate"].existent.any?
     end
 
-    def find_root_with_flag(flag, default=nil) #:nodoc:
-      root_path = self.class.called_from
+    def self.find_root_with_flag(flag, root_path, default=nil) #:nodoc:
 
       while root_path && File.directory?(root_path) && !File.exist?("#{root_path}/#{flag}")
         parent = File.dirname(root_path)

@@ -231,6 +231,15 @@ module TestHelpers
       end
     end
 
+    def add_to_top_of_config(str)
+      environment = File.read("#{app_path}/config/application.rb")
+      if environment =~ /(Rails::Application\s*)/
+        File.open("#{app_path}/config/application.rb", 'w') do |f|
+          f.puts $` + $1 + "\n#{str}\n" + $'
+        end
+      end
+    end
+
     def add_to_config(str)
       environment = File.read("#{app_path}/config/application.rb")
       if environment =~ /(\n\s*end\s*end\s*)\Z/
