@@ -88,6 +88,7 @@ module Rails
       def inherited(base)
         super
         Rails.app_class = base
+        Rails.application.add_lib_to_load_path!
       end
 
       def instance
@@ -129,8 +130,6 @@ module Rails
       # are these actually used?
       @initial_variable_values = initial_variable_values
       @block = block
-
-      add_lib_to_load_path!
     end
 
     # Returns true if the application is initialized.
