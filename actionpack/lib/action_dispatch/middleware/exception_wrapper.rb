@@ -57,6 +57,28 @@ module ActionDispatch
       clean_backtrace(:all)
     end
 
+    def traces
+      appplication_trace_with_ids = []
+      framework_trace_with_ids = []
+      full_trace_with_ids = []
+
+      if full_trace
+        full_trace.each_with_index do |trace, idx|
+          trace_with_id = { id: idx, trace: trace }
+
+          appplication_trace_with_ids << trace_with_id if application_trace.include?(trace)
+          framework_trace_with_ids << trace_with_id if framework_trace.include?(trace)
+          full_trace_with_ids << trace_with_id
+        end
+      end
+
+      {
+        "Application Trace" => appplication_trace_with_ids,
+        "Framework Trace" => framework_trace_with_ids,
+        "Full Trace" => full_trace_with_ids
+      }
+    end
+
     def self.status_code_for_exception(class_name)
       Rack::Utils.status_code(@@rescue_responses[class_name])
     end
