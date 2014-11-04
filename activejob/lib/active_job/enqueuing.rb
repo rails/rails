@@ -4,7 +4,7 @@ module ActiveJob
   module Enqueuing
     extend ActiveSupport::Concern
 
-    # Includes the `perform_later` method for job initialization.
+    # Includes the +perform_later+ method for job initialization.
     module ClassMethods
       # Push a job onto the queue. The arguments must be legal JSON types
       # (string, int, float, nil, true, false, hash or array) or

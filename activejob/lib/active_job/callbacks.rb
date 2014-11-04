@@ -23,7 +23,7 @@ module ActiveJob
     end
 
     # These methods will be included into any Active Job object, adding
-    # callbacks for `perform` and `enqueue` methods.
+    # callbacks for +perform+ and +enqueue+ methods.
     module ClassMethods
       # Defines a callback that will get called right before the
       # job's perform method is executed.
