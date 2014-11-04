@@ -63,20 +63,10 @@ module ActiveRecord
 
       private
 
-      def construct_tables(chain, klass, refl, alias_tracker)
+      def construct_tables(chain, alias_tracker, name)
         chain.map do |reflection|
-          alias_tracker.aliased_table_for(
-            table_name_for(reflection, klass, refl),
-            table_alias_for(reflection, refl, reflection != refl),
-            type_caster: klass.type_caster,
-          )
+          reflection.alias_name(name, alias_tracker)
         end
-      end
-
-      def table_alias_for(reflection, refl, join = false)
-        name = "#{reflection.plural_name}_#{alias_suffix(refl)}"
-        name << "_join" if join
-        name
       end
 
       def join(table, constraint)
@@ -145,14 +135,7 @@ module ActiveRecord
         end
 
         def table_name
-          if @reflection.polymorphic?
-            # If this is a polymorphic belongs_to, we want to get the klass from the
-            # association because it depends on the polymorphic_type attribute of
-            # the owner
-            klass.table_name
-          else
-            @reflection.table_name
-          end
+          klass.table_name
         end
 
         def plural_name
@@ -174,6 +157,12 @@ module ActiveRecord
         def source_type_info
           @reflection.source_type_info
         end
+
+        def alias_name(name, alias_tracker)
+          alias_name = "#{plural_name}_#{name}_join"
+          table_name = klass.table_name
+          alias_tracker.aliased_table_for(table_name, alias_name)
+        end
       end
 
       def get_chain(reflection, association)
@@ -183,7 +172,7 @@ module ActiveRecord
       end
 
       def add_constraints(scope, owner, assoc_klass, refl, tracker, chain)
-        tables = construct_tables(chain, assoc_klass, refl, tracker)
+        tables = construct_tables(chain, tracker, refl.name)
 
         owner_reflection = chain.last
         table = tables.last
@@ -223,21 +212,6 @@ module ActiveRecord
         end
 
         scope
-      end
-
-      def alias_suffix(refl)
-        refl.name
-      end
-
-      def table_name_for(reflection, klass, refl)
-        if reflection == refl
-          # If this is a polymorphic belongs_to, we want to get the klass from the
-          # association because it depends on the polymorphic_type attribute of
-          # the owner
-          klass.table_name
-        else
-          reflection.table_name
-        end
       end
 
       def eval_scope(klass, scope, owner)
