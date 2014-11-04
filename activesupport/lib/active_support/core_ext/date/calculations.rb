@@ -85,6 +85,13 @@ class Date
   end
   alias :at_end_of_day :end_of_day
 
+
+  # Adds parameter to the date object
+  #   date = Date.today                   # => Tue, 04 Nov 2014 
+  #   date.plus_with_duration(1)          # => Wed, 05 Nov 2014 
+  #   date.plus_with_duration(1.day)      # => Wed, 05 Nov 2014 
+  #   date.plus_with_duration(1.month)    # => Thu, 04 Dec 2014 
+  #   date.plus_with_duration(1.year)     # => Wed, 04 Nov 2015 
   def plus_with_duration(other) #:nodoc:
     if ActiveSupport::Duration === other
       other.since(self)
@@ -95,6 +102,12 @@ class Date
   alias_method :plus_without_duration, :+
   alias_method :+, :plus_with_duration
 
+  # Subtracts parameter from the date object
+  #   date = Date.today                   # => Tue, 04 Nov 2014 
+  #   date.minus_with_duration(1)         # => Mon, 03 Nov 2014 
+  #   date.minus_with_duration(1.day)     # => Mon, 03 Nov 2014 
+  #   date.minus_with_duration(1.month)   # => Sat, 04 Oct 2014  
+  #   date.minus_with_duration(1.year)    # => Mon, 04 Nov 2013  
   def minus_with_duration(other) #:nodoc:
     if ActiveSupport::Duration === other
       plus_with_duration(-other)
