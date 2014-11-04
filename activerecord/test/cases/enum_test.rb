@@ -9,11 +9,11 @@ class EnumTest < ActiveRecord::TestCase
   end
 
   test "query state by predicate" do
-    assert @book.proposed?
-    assert_not @book.written?
-    assert_not @book.published?
+    assert @book.status_proposed?
+    assert_not @book.status_written?
+    assert_not @book.status_published?
 
-    assert @book.unread?
+    assert @book.read_status_unread?
   end
 
   test "query state with strings" do
@@ -28,27 +28,27 @@ class EnumTest < ActiveRecord::TestCase
 
   test "update by declaration" do
     @book.written!
-    assert @book.written?
+    assert @book.status_written?
   end
 
   test "update by setter" do
     @book.update! status: :written
-    assert @book.written?
+    assert @book.status_written?
   end
 
   test "enum methods are overwritable" do
     assert_equal "do publish work...", @book.published!
-    assert @book.published?
+    assert @book.status_published?
   end
 
   test "direct assignment" do
     @book.status = :written
-    assert @book.written?
+    assert @book.status_written?
   end
 
   test "assign string value" do
     @book.status = "written"
-    assert @book.written?
+    assert @book.status_written?
   end
 
   test "enum changed attributes" do
@@ -151,13 +151,13 @@ class EnumTest < ActiveRecord::TestCase
   end
 
   test "building new objects with enum scopes" do
-    assert Book.written.build.written?
-    assert Book.read.build.read?
+    assert Book.written.build.status_written?
+    assert Book.read.build.read_status_read?
   end
 
   test "creating new objects with enum scopes" do
-    assert Book.written.create.written?
-    assert Book.read.create.read?
+    assert Book.written.create.status_written?
+    assert Book.read.create.read_status_read?
   end
 
   test "_before_type_cast returns the enum label (required for form fields)" do
