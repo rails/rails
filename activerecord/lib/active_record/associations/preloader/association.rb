@@ -154,6 +154,7 @@ module ActiveRecord
             scope.where!(klass.table_name => { reflection.type => model.base_class.sti_name })
           end
 
+          scope.unscope_values = Array(values[:unscope])
           klass.default_scoped.merge(scope)
         end
       end

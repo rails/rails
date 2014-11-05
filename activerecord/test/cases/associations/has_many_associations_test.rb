@@ -1827,6 +1827,14 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal [bulb1, bulb2], car.all_bulbs.sort_by(&:id)
   end
 
+  test 'unscopes the default scope of associated model when used with include' do
+    car = Car.create!
+    bulb = Bulb.create! name: "other", car: car
+
+    assert_equal bulb, Car.find(car.id).all_bulbs.first
+    assert_equal bulb, Car.includes(:all_bulbs).find(car.id).all_bulbs.first
+  end
+
   test "raises RecordNotDestroyed when replaced child can't be destroyed" do
     car = Car.create!
     original_child = FailedBulb.create!(car: car)

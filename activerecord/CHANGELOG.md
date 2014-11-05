@@ -1,3 +1,9 @@
+*   Fix preloading of associations which unscope a default scope.
+
+    Fixes #11036.
+
+    *Byron Bischoff*
+
 *   Do not use `RENAME INDEX` syntax for MariaDB 10.0.
 
     Fixes #15931.
