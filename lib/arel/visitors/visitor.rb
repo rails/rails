@@ -3,8 +3,7 @@ module Arel
     class Visitor
       def initialize
         @dispatch = Hash.new do |hash, class_name|
-          raise if class_name == 'Arel::Nodes::Union'
-           hash[class_name] = "visit_#{(class_name || '').gsub('::', '_')}"
+          hash[class_name] = "visit_#{(class_name || '').gsub('::', '_')}"
         end
 
         # pre-populate cache. FIXME: this should be passed in to each
