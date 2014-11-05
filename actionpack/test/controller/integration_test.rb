@@ -814,3 +814,39 @@ class HeadWithStatusActionIntegrationTest < ActionDispatch::IntegrationTest
     assert_response :ok
   end
 end
+
+class IntegrationWithRoutingTest < ActionDispatch::IntegrationTest
+  class FooController < ActionController::Base
+    def index
+      render plain: 'ok'
+    end
+  end
+
+  def test_with_routing_resets_session
+    klass_namespace = self.class.name.underscore
+
+    with_routing do |routes|
+      routes.draw do
+        namespace klass_namespace do
+          resources :foo, path: '/with'
+        end
+      end
+
+      get '/integration_with_routing_test/with'
+      assert_response 200
+      assert_equal 'ok', response.body
+    end
+
+    with_routing do |routes|
+      routes.draw do
+        namespace klass_namespace do
+          resources :foo, path: '/routing'
+        end
+      end
+
+      get '/integration_with_routing_test/routing'
+      assert_response 200
+      assert_equal 'ok', response.body
+    end
+  end
+end
