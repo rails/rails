@@ -89,7 +89,7 @@
 
     *Rafael Mendonça França*
 
-*   Add a generic --skip-turbolinks options to generator.
+*   Add `--skip-turbolinks` option to the app generator.
 
     *Rafael Mendonça França*
 

@@ -358,6 +358,10 @@ Please refer to the [Changelog][railties] for detailed changes.
 
     ([Pull Request](https://github.com/rails/rails/pull/16129))
 
+*   Introduce a `--skip-turbolinks` option in the app generator to not generate
+    any turbolinks integration.
+    ([Commit](https://github.com/rails/rails/commit/bf17c8a531bc8059d50ad731398002a3e7162a7d))
+
 *   Introduced a `bin/setup` script to enable automated setup code when
     bootstrapping an application.
     ([Pull Request](https://github.com/rails/rails/pull/15189))
