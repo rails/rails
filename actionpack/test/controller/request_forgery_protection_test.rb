@@ -74,17 +74,17 @@ module RequestForgeryProtectionActions
 end
 
 # sample controllers
-class RequestForgeryProtectionControllerUsingResetSession < ActionController::Base
+class RequestForgeryProtectionUsingResetSessionController < ActionController::Base
   include RequestForgeryProtectionActions
   protect_from_forgery :only => %w(index meta same_origin_js negotiate_same_origin), :with => :reset_session
 end
 
-class RequestForgeryProtectionControllerUsingException < ActionController::Base
+class RequestForgeryProtectionUsingExceptionController < ActionController::Base
   include RequestForgeryProtectionActions
   protect_from_forgery :only => %w(index meta same_origin_js negotiate_same_origin), :with => :exception
 end
 
-class RequestForgeryProtectionControllerUsingNullSession < ActionController::Base
+class RequestForgeryProtectionUsingNullSessionController < ActionController::Base
   protect_from_forgery :with => :null_session
 
   def signed
@@ -103,7 +103,7 @@ class RequestForgeryProtectionControllerUsingNullSession < ActionController::Bas
   end
 end
 
-class FreeCookieController < RequestForgeryProtectionControllerUsingResetSession
+class FreeCookieController < RequestForgeryProtectionUsingResetSessionController
   self.allow_forgery_protection = false
 
   def index
@@ -115,7 +115,7 @@ class FreeCookieController < RequestForgeryProtectionControllerUsingResetSession
   end
 end
 
-class CustomAuthenticityParamController < RequestForgeryProtectionControllerUsingResetSession
+class CustomAuthenticityParamController < RequestForgeryProtectionUsingResetSessionController
   def form_authenticity_param
     'foobar'
   end
@@ -374,7 +374,7 @@ end
 
 # OK let's get our test on
 
-class RequestForgeryProtectionControllerUsingResetSessionTest < ActionController::TestCase
+class RequestForgeryProtectionUsingResetSessionControllerTest < ActionController::TestCase
   include RequestForgeryProtectionTests
 
   setup do
@@ -395,7 +395,7 @@ class RequestForgeryProtectionControllerUsingResetSessionTest < ActionController
   end
 end
 
-class RequestForgeryProtectionControllerUsingNullSessionTest < ActionController::TestCase
+class RequestForgeryProtectionUsingNullSessionControllerTest < ActionController::TestCase
   class NullSessionDummyKeyGenerator
     def generate_key(secret)
       '03312270731a2ed0d11ed091c2338a06'
@@ -422,7 +422,7 @@ class RequestForgeryProtectionControllerUsingNullSessionTest < ActionController:
   end
 end
 
-class RequestForgeryProtectionControllerUsingExceptionTest < ActionController::TestCase
+class RequestForgeryProtectionUsingExceptionControllerTest < ActionController::TestCase
   include RequestForgeryProtectionTests
   def assert_blocked
     assert_raises(ActionController::InvalidAuthenticityToken) do

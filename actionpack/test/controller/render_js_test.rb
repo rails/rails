@@ -2,20 +2,20 @@ require 'abstract_unit'
 require 'controller/fake_models'
 require 'pathname'
 
+ActiveSupport::Inflector.inflections do |inflect|
+  inflect.acronym 'JS'
+end
+
 class RenderJSTest < ActionController::TestCase
   class TestController < ActionController::Base
     protect_from_forgery
-
-    def self.controller_path
-      'test'
-    end
 
     def render_vanilla_js_hello
       render :js => "alert('hello')"
     end
 
     def show_partial
-      render :partial => 'partial'
+      render :partial => 'test/partial'
     end
   end
 

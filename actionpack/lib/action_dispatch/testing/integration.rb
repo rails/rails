@@ -292,6 +292,9 @@ module ActionDispatch
 
           session = Rack::Test::Session.new(_mock_session)
 
+          # See https://github.com/brynary/rack-test/pull/116 for more details.
+          session.instance_variable_set(:@digest_username, nil)
+
           # NOTE: rack-test v0.5 doesn't build a default uri correctly
           # Make sure requested path is always a full uri
           session.request(build_full_uri(path, env), env)
@@ -324,6 +327,12 @@ module ActionDispatch
       # in a single test case.
       def reset!
         @integration_session = Integration::Session.new(app)
+      end
+
+      # Remove the current session. This is used for testing multiple sessions
+      # in a single test case but using different applications.
+      def remove!
+        @integration_session = nil
       end
 
       %w(get post patch put head delete cookies assigns

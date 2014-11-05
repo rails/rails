@@ -191,6 +191,11 @@ module ActionController
     def dispatch(name, request) #:nodoc:
       @_request = request
       @_env = request.env
+
+      if variant = @_env['request.variant']
+        request.variant = variant
+      end
+
       @_env['action_controller.instance'] = self
       process(name)
       to_a
@@ -233,7 +238,29 @@ module ActionController
           new.dispatch(name, klass.new(env))
         end
       else
-        lambda { |env| new.dispatch(name, klass.new(env)) }
+        lambda do |env|
+          if controller = env.delete('action_controller.instance')
+            begin
+              controller.class_eval do
+                def remove_instance_variables
+                  remove_instance_variable("@_url_options") if instance_variable_defined?("@_url_options")
+                  remove_instance_variable("@_params") if instance_variable_defined?("@_params")
+                  remove_instance_variable("@_env") if instance_variable_defined?("@_env")
+                end
+              end
+
+              controller.remove_instance_variables
+            ensure
+              controller.class_eval do
+                undef_method :remove_instance_variables
+              end
+            end
+          else
+            controller = self.new
+          end
+
+          controller.dispatch(name, klass.new(env))
+        end
       end
     end
 

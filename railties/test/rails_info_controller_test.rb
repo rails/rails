@@ -7,8 +7,14 @@ module ActionController
   end
 end
 
+ActiveRecord::Base.establish_connection(adapter: 'sqlite3', database: ':memory:')
+
 class InfoControllerTest < ActionController::TestCase
   tests Rails::InfoController
+
+  def app
+    Rails.application
+  end
 
   def setup
     Rails.application.routes.draw do
@@ -17,6 +23,7 @@ class InfoControllerTest < ActionController::TestCase
     end
     @controller.stubs(:local_request? => true)
     @routes = Rails.application.routes
+    Rails.logger = Logger.new(nil)
 
     Rails::InfoController.send(:include, @routes.url_helpers)
   end

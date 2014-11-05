@@ -74,13 +74,12 @@ end
 
 class HelperPathsTest < ActiveSupport::TestCase
   def setup
-    @request    = ActionController::TestRequest.new
+    @request    = ActionController::TestRequest.new(Rack::MockRequest.env_for('/'))
     @response   = ActionController::TestResponse.new
   end
 
   def test_helpers_paths_priority
-    request  = ActionController::TestRequest.new
-    responses = HelpersPathsController.action(:index).call(request.env)
+    responses = HelpersPathsController.action(:index).call(@request.env)
 
     # helpers1_pack was given as a second path, so pack1_helper should be
     # included as the second one
@@ -141,7 +140,7 @@ class HelperTest < ActiveSupport::TestCase
   end
 
   def call_controller(klass, action)
-    request  = ActionController::TestRequest.new
+    request  = ActionController::TestRequest.new(Rack::MockRequest.env_for('/'))
     klass.action(action).call(request.env)
   end
 
@@ -223,10 +222,10 @@ class HelperTest < ActiveSupport::TestCase
     # fun/pdf_helper.rb
     assert methods.include?(:foobar)
   end
-  
+
   def test_helper_proxy_config
     AllHelpersController.config.my_var = 'smth'
-    
+
     assert_equal 'smth', AllHelpersController.helpers.config.my_var
   end
 
@@ -273,7 +272,7 @@ class IsolatedHelpersTest < ActiveSupport::TestCase
   end
 
   def call_controller(klass, action)
-    request  = ActionController::TestRequest.new
+    request  = ActionController::TestRequest.new(Rack::MockRequest.env_for('/'))
     klass.action(action).call(request.env)
   end
 

@@ -2,16 +2,23 @@ require 'abstract_unit'
 require 'rbconfig'
 require 'active_support/core_ext/array/extract_options'
 
-# The view_paths array must be set on Base and not LayoutTest so that LayoutTest's inherited
+# The view_paths array must be set on Base and not LayoutTestController so that LayoutTestController's inherited
 # method has access to the view_paths array when looking for a layout to automatically assign.
 old_load_paths = ActionController::Base.view_paths
 
 ActionController::Base.view_paths = [ File.dirname(__FILE__) + '/../../fixtures/actionpack/layout_tests/' ]
 
-class LayoutTest < ActionController::Base
-  def self.controller_path; 'views' end
+class LayoutTestController < ActionController::Base
   def self._implied_layout_name; to_s.underscore.gsub(/_controller$/, '') ; end
   self.view_paths = ActionController::Base.view_paths.dup
+
+  def hello
+    render 'views/hello.erb'
+  end
+
+  def goodbye
+    render 'views/goodbye'
+  end
 end
 
 module TemplateHandlerHelper
@@ -26,22 +33,22 @@ end
 # Restore view_paths to previous value
 ActionController::Base.view_paths = old_load_paths
 
-class ProductController < LayoutTest
+class ProductController < LayoutTestController
 end
 
-class ItemController < LayoutTest
+class ItemController < LayoutTestController
 end
 
-class ThirdPartyTemplateLibraryController < LayoutTest
+class ThirdPartyTemplateLibraryController < LayoutTestController
 end
 
 module ControllerNameSpace
 end
 
-class ControllerNameSpace::NestedController < LayoutTest
+class ControllerNameSpace::NestedController < LayoutTestController
 end
 
-class MultipleExtensions < LayoutTest
+class MultipleExtensionsController < LayoutTestController
 end
 
 class LayoutAutoDiscoveryTest < ActionController::TestCase
@@ -80,31 +87,31 @@ class LayoutAutoDiscoveryTest < ActionController::TestCase
   end
 
   def test_namespaced_controllers_auto_detect_layouts2
-    @controller = MultipleExtensions.new
+    @controller = MultipleExtensionsController.new
     get :hello
     assert_equal 'multiple_extensions.html.erb hello.erb', @response.body.strip
   end
 end
 
-class DefaultLayoutController < LayoutTest
+class DefaultLayoutController < LayoutTestController
 end
 
-class StreamingLayoutController < LayoutTest
+class StreamingLayoutController < LayoutTestController
   def render(*args)
     options = args.extract_options!
     super(*args, options.merge(:stream => true))
   end
 end
 
-class AbsolutePathLayoutController < LayoutTest
+class AbsolutePathLayoutController < LayoutTestController
   layout File.expand_path(File.expand_path(__FILE__) + '/../../../fixtures/actionpack/layout_tests/layouts/layout_test')
 end
 
-class HasOwnLayoutController < LayoutTest
+class HasOwnLayoutController < LayoutTestController
   layout 'item'
 end
 
-class HasNilLayoutSymbol < LayoutTest
+class HasNilLayoutSymbolController < LayoutTestController
   layout :nilz
 
   def nilz
@@ -112,34 +119,34 @@ class HasNilLayoutSymbol < LayoutTest
   end
 end
 
-class HasNilLayoutProc < LayoutTest
+class HasNilLayoutProcController < LayoutTestController
   layout proc { nil }
 end
 
-class PrependsViewPathController < LayoutTest
+class PrependsViewPathController < LayoutTestController
   def hello
     prepend_view_path File.dirname(__FILE__) + '/../../fixtures/actionpack/layout_tests/alt/'
-    render :layout => 'alt'
+    render 'views/hello', :layout => 'alt'
   end
 end
 
-class OnlyLayoutController < LayoutTest
+class OnlyLayoutController < LayoutTestController
   layout 'item', :only => "hello"
 end
 
-class ExceptLayoutController < LayoutTest
+class ExceptLayoutController < LayoutTestController
   layout 'item', :except => "goodbye"
 end
 
-class SetsLayoutInRenderController < LayoutTest
+class SetsLayoutInRenderController < LayoutTestController
   def hello
-    render :layout => 'third_party_template_library'
+    render 'views/hello', :layout => 'third_party_template_library'
   end
 end
 
-class RendersNoLayoutController < LayoutTest
+class RendersNoLayoutController < LayoutTestController
   def hello
-    render :layout => false
+    render 'views/hello', :layout => false
   end
 end
 
@@ -156,7 +163,7 @@ class LayoutSetInResponseTest < ActionController::TestCase
   def test_layout_set_when_using_streaming_layout
     @controller = StreamingLayoutController.new
     get :hello
-    assert_template :hello
+    assert_template 'views/hello.erb', layout: 'layouts/layout_test'
   end
 
   def test_layout_set_when_set_in_controller
@@ -166,13 +173,13 @@ class LayoutSetInResponseTest < ActionController::TestCase
   end
 
   def test_layout_symbol_set_in_controller_returning_nil_falls_back_to_default
-    @controller = HasNilLayoutSymbol.new
+    @controller = HasNilLayoutSymbolController.new
     get :hello
     assert_template layout: "layouts/layout_test"
   end
 
   def test_layout_proc_set_in_controller_returning_nil_falls_back_to_default
-    @controller = HasNilLayoutProc.new
+    @controller = HasNilLayoutProcController.new
     get :hello
     assert_template layout: "layouts/layout_test"
   end
@@ -228,39 +235,39 @@ class LayoutSetInResponseTest < ActionController::TestCase
   end
 end
 
-class SetsNonExistentLayoutFile < LayoutTest
+class SetsNonExistentLayoutFileController < LayoutTestController
   layout "nofile"
 end
 
 class LayoutExceptionRaisedTest < ActionController::TestCase
   def test_exception_raised_when_layout_file_not_found
-    @controller = SetsNonExistentLayoutFile.new
+    @controller = SetsNonExistentLayoutFileController.new
     assert_raise(ActionView::MissingTemplate) { get :hello }
   end
 end
 
-class LayoutStatusIsRendered < LayoutTest
+class LayoutStatusIsRenderedController < LayoutTestController
   def hello
-    render :status => 401
+    render 'views/hello.erb', :status => 401
   end
 end
 
 class LayoutStatusIsRenderedTest < ActionController::TestCase
   def test_layout_status_is_rendered
-    @controller = LayoutStatusIsRendered.new
+    @controller = LayoutStatusIsRenderedController.new
     get :hello
     assert_response 401
   end
 end
 
 unless RbConfig::CONFIG['host_os'] =~ /mswin|mingw/
-  class LayoutSymlinkedTest < LayoutTest
+  class LayoutSymlinkedTestController < LayoutTestController
     layout "symlinked/symlinked_layout"
   end
 
   class LayoutSymlinkedIsRenderedTest < ActionController::TestCase
     def test_symlinked_layout_is_rendered
-      @controller = LayoutSymlinkedTest.new
+      @controller = LayoutSymlinkedTestController.new
       get :hello
       assert_response 200
       assert_template :layout => "layouts/symlinked/symlinked_layout"

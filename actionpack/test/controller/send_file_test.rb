@@ -26,7 +26,7 @@ class SendFileController < ActionController::Base
   end
 end
 
-class SendFileWithActionControllerLive < SendFileController
+class SendFileWithActionControllerLiveController < SendFileController
   include ActionController::Live
 end
 
@@ -53,8 +53,8 @@ class SendFileTest < ActionController::TestCase
     response = nil
     assert_nothing_raised { response = process('file') }
     assert_not_nil response
-    assert_respond_to response.stream, :each
-    assert_respond_to response.stream, :to_path
+    assert_respond_to @controller.response.stream, :each
+    assert_respond_to @controller.response.stream, :to_path
 
     require 'stringio'
     output = StringIO.new
@@ -200,7 +200,7 @@ class SendFileTest < ActionController::TestCase
   end
 
   def test_send_file_with_action_controller_live
-    @controller = SendFileWithActionControllerLive.new
+    @controller = SendFileWithActionControllerLiveController.new
     @controller.options = { :content_type => "application/x-ruby" }
 
     response = process('file')

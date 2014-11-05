@@ -110,10 +110,28 @@ module ActionDispatch
 
       SharedTestRoutes.draw do
         get ':controller(/:action)'
+        get ':controller(/:action(/:id))', controller: /[^\/]+\/[^\/]+/
+        post ':controller(/:action)'
+        post ':controller(/:action(/:id))', controller: /[^\/]+\/[^\/]+/
+        put ':controller(/:action)'
+        put ':controller/(:action(/:id))', controller: /[^\/]+\/[^\/]+/
+        patch ':controller(/:action)'
+        patch ':controller/(:action(/:id))', controller: /[^\/]+\/[^\/]+/
+        delete ':controller(/:action)'
+        delete ':controller/(:action(/:id))', controller: /[^\/]+\/[^\/]+/
       end
 
       ActionDispatch::IntegrationTest.app.routes.draw do
         get ':controller(/:action)'
+        get ':controller(/:action(/:id))', controller: /[^\/]+\/[^\/]+/
+        post ':controller(/:action)'
+        post ':controller(/:action(/:id))', controller: /[^\/]+\/[^\/]+/
+        put ':controller(/:action)'
+        put ':controller/(:action(/:id))', controller: /[^\/]+\/[^\/]+/
+        patch ':controller(/:action)'
+        patch ':controller/(:action(/:id))', controller: /[^\/]+\/[^\/]+/
+        delete ':controller(/:action)'
+        delete ':controller/(:action(/:id))', controller: /[^\/]+\/[^\/]+/
       end
 
       DrawOnce.drew = true
@@ -195,18 +213,6 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
   ensure
     ActionDispatch::Routing::RouteSet.module_eval { remove_const :Dispatcher }
     ActionDispatch::Routing::RouteSet.module_eval { const_set :Dispatcher, old_dispatcher }
-  end
-
-  def with_routing(&block)
-    temporary_routes = ActionDispatch::Routing::RouteSet.new
-    old_app, self.class.app = self.class.app, self.class.build_app(temporary_routes)
-    old_routes = SharedTestRoutes
-    silence_warnings { Object.const_set(:SharedTestRoutes, temporary_routes) }
-
-    yield temporary_routes
-  ensure
-    self.class.app = old_app
-    silence_warnings { Object.const_set(:SharedTestRoutes, old_routes) }
   end
 
   def with_autoload_path(path)
@@ -296,6 +302,31 @@ module ActionView
     # Must repeat the setup because AV::TestCase is a duplication
     # of AC::TestCase
     include ActionDispatch::SharedRoutes
+
+    def with_routing
+      old_routes, @routes = @routes, ActionDispatch::Routing::RouteSet.new
+      if defined?(@controller) && @controller
+        old_controller, @controller = @controller, @controller.clone
+        _routes = @routes
+
+        # Unfortunately, there is currently an abstraction leak between AC::Base
+        # and AV::Base which requires having the URL helpers in both AC and AV.
+        # To do this safely at runtime for tests, we need to bump up the helper serial
+        # to that the old AV subclass isn't cached.
+        #
+        # TODO: Make this unnecessary
+        @controller.singleton_class.send(:include, _routes.url_helpers)
+        @controller.view_context_class = Class.new(@controller.view_context_class) do
+          include _routes.url_helpers
+        end
+      end
+      yield @routes
+    ensure
+      @routes = old_routes
+      if defined?(@controller) && @controller
+        @controller = old_controller
+      end
+    end
   end
 end
 

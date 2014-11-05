@@ -95,10 +95,28 @@ module ActionDispatch
 
       SharedTestRoutes.draw do
         get ':controller(/:action)'
+        get ':controller(/:action(/:id))', controller: /[^\/]+\/[^\/]+/
+        post ':controller(/:action)'
+        post ':controller(/:action(/:id))', controller: /[^\/]+\/[^\/]+/
+        put ':controller(/:action)'
+        put ':controller/(:action(/:id))', controller: /[^\/]+\/[^\/]+/
+        patch ':controller(/:action)'
+        patch ':controller/(:action(/:id))', controller: /[^\/]+\/[^\/]+/
+        delete ':controller(/:action)'
+        delete ':controller/(:action(/:id))', controller: /[^\/]+\/[^\/]+/
       end
 
       ActionDispatch::IntegrationTest.app.routes.draw do
         get ':controller(/:action)'
+        get ':controller(/:action(/:id))', controller: /[^\/]+\/[^\/]+/
+        post ':controller(/:action)'
+        post ':controller(/:action(/:id))', controller: /[^\/]+\/[^\/]+/
+        put ':controller(/:action)'
+        put ':controller/(:action(/:id))', controller: /[^\/]+\/[^\/]+/
+        patch ':controller(/:action)'
+        patch ':controller/(:action(/:id))', controller: /[^\/]+\/[^\/]+/
+        delete ':controller(/:action)'
+        delete ':controller/(:action(/:id))', controller: /[^\/]+\/[^\/]+/
       end
 
       DrawOnce.drew = true
@@ -183,18 +201,6 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
   ensure
     ActionDispatch::Routing::RouteSet.module_eval { remove_const :Dispatcher }
     ActionDispatch::Routing::RouteSet.module_eval { const_set :Dispatcher, old_dispatcher }
-  end
-
-  def with_routing(&block)
-    temporary_routes = ActionDispatch::Routing::RouteSet.new
-    old_app, self.class.app = self.class.app, self.class.build_app(temporary_routes)
-    old_routes = SharedTestRoutes
-    silence_warnings { Object.const_set(:SharedTestRoutes, temporary_routes) }
-
-    yield temporary_routes
-  ensure
-    self.class.app = old_app
-    silence_warnings { Object.const_set(:SharedTestRoutes, old_routes) }
   end
 
   def with_autoload_path(path)

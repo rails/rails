@@ -106,7 +106,9 @@ class ParamsWrapperTest < ActionController::TestCase
   def test_not_enabled_format
     with_default_wrapper_options do
       @request.env['CONTENT_TYPE'] = 'application/xml'
-      post :parse, { 'username' => 'sikachu', 'title' => 'Developer' }
+      # Simulate parsing of XML
+      @request.env['action_dispatch.request.request_parameters'] = { 'username' => 'sikachu', 'title' => 'Developer' }
+      post :parse
       assert_parameters({ 'username' => 'sikachu', 'title' => 'Developer' })
     end
   end
@@ -125,7 +127,9 @@ class ParamsWrapperTest < ActionController::TestCase
       UsersController.wrap_parameters :format => :xml
 
       @request.env['CONTENT_TYPE'] = 'application/xml'
-      post :parse, { 'username' => 'sikachu', 'title' => 'Developer' }
+      # Simulate parsing of XML
+      @request.env['action_dispatch.request.request_parameters'] = { 'username' => 'sikachu', 'title' => 'Developer' }
+      post :parse
       assert_parameters({ 'username' => 'sikachu', 'title' => 'Developer', 'user' => { 'username' => 'sikachu', 'title' => 'Developer' }})
     end
   end
@@ -280,38 +284,6 @@ class NamespacedParamsWrapperTest < ActionController::TestCase
     end
   end
 
-end
-
-class AnonymousControllerParamsWrapperTest < ActionController::TestCase
-  include ParamsWrapperTestHelp
-
-  tests(Class.new(ActionController::Base) do
-    class << self
-      attr_accessor :last_parameters
-    end
-
-    def parse
-      self.class.last_parameters = request.params.except(:controller, :action)
-      head :ok
-    end
-  end)
-
-  def test_does_not_implicitly_wrap_params
-    with_default_wrapper_options do
-      @request.env['CONTENT_TYPE'] = 'application/json'
-      post :parse, { 'username' => 'sikachu' }
-      assert_parameters({ 'username' => 'sikachu' })
-    end
-  end
-
-  def test_does_wrap_params_if_name_provided
-    with_default_wrapper_options do
-      @controller.class.wrap_parameters(:name => "guest")
-      @request.env['CONTENT_TYPE'] = 'application/json'
-      post :parse, { 'username' => 'sikachu' }
-      assert_parameters({ 'username' => 'sikachu', 'guest' => { 'username' => 'sikachu' }})
-    end
-  end
 end
 
 class IrregularInflectionParamsWrapperTest < ActionController::TestCase

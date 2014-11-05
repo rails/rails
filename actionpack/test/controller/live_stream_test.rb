@@ -2,6 +2,10 @@ require 'abstract_unit'
 require 'active_support/concurrency/latch'
 Thread.abort_on_exception = true
 
+ActiveSupport::Inflector.inflections do |inflect|
+  inflect.acronym 'SSE'
+end
+
 module ActionController
   class SSETest < ActionController::TestCase
     class SSETestController < ActionController::Base
@@ -113,10 +117,6 @@ module ActionController
       include ActionController::Live
 
       attr_accessor :latch, :tc
-
-      def self.controller_path
-        'test'
-      end
 
       def set_cookie
         cookies[:hello] = "world"
@@ -240,8 +240,8 @@ module ActionController
     tests TestController
 
     def assert_stream_closed
-      assert response.stream.closed?, 'stream should be closed'
-      assert response.sent?, 'stream should be sent'
+      assert @controller.response.stream.closed?, 'stream should be closed'
+      assert @controller.response.sent?, 'stream should be sent'
     end
 
     def capture_log_output
@@ -279,6 +279,7 @@ module ActionController
       @controller.latch = ActiveSupport::Concurrency::Latch.new
       parts             = ['hello', 'world']
 
+      @request = ActionController::TestRequest.new(Rack::MockRequest.env_for('/'))
       @controller.request  = @request
       @controller.response = @response
 
@@ -300,6 +301,7 @@ module ActionController
     def test_abort_with_full_buffer
       @controller.latch = ActiveSupport::Concurrency::Latch.new
 
+      @request = ActionController::TestRequest.new(Rack::MockRequest.env_for('/'))
       @request.parameters[:format] = 'plain'
       @controller.request  = @request
       @controller.response = @response
@@ -331,6 +333,7 @@ module ActionController
     def test_ignore_client_disconnect
       @controller.latch = ActiveSupport::Concurrency::Latch.new
 
+      @request = ActionController::TestRequest.new(Rack::MockRequest.env_for('/'))
       @controller.request  = @request
       @controller.response = @response
 
@@ -362,6 +365,7 @@ module ActionController
     end
 
     def test_live_stream_default_header
+      @request = ActionController::TestRequest.new(Rack::MockRequest.env_for('/'))
       @controller.request  = @request
       @controller.response = @response
       @controller.process :default_header
@@ -383,7 +387,7 @@ module ActionController
       capture_log_output do |output|
         get :exception_in_view_after_commit
         assert_match %r((window\.location = "/500\.html"</script></html>)$), response.body
-        assert_match 'Missing template test/doesntexist', output.rewind && output.read
+        assert_match 'Missing template action_controller/live_stream_test/test/doesntexist', output.rewind && output.read
         assert_stream_closed
       end
       assert response.body
@@ -398,7 +402,7 @@ module ActionController
       capture_log_output do |output|
         get :exception_in_view_after_commit, format: :json
         assert_equal '', response.body
-        assert_match 'Missing template test/doesntexist', output.rewind && output.read
+        assert_match 'Missing template action_controller/live_stream_test/test/doesntexist', output.rewind && output.read
         assert_stream_closed
       end
     end

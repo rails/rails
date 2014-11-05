@@ -19,10 +19,6 @@ class RenderJsonTest < ActionController::TestCase
   class TestController < ActionController::Base
     protect_from_forgery
 
-    def self.controller_path
-      'test'
-    end
-
     def render_json_nil
       render :json => nil
     end
@@ -52,7 +48,7 @@ class RenderJsonTest < ActionController::TestCase
     end
 
     def render_json_with_render_to_string
-      render :json => {:hello => render_to_string(:partial => 'partial')}
+      render :json => {:hello => render_to_string(:partial => 'test/partial')}
     end
 
     def render_json_with_extra_options
