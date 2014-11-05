@@ -1,3 +1,9 @@
+*   Fix preloading of associations which unscope a default scope.
+
+    Fixes #11036.
+
+    *Byron Bischoff*
+
 *   Added SchemaDumper support for tables with jsonb columns.
 
     *Ted O'Meara*
