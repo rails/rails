@@ -50,6 +50,15 @@ class RequestIdResponseTest < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_custom_request_id_header_is_passed_to_response
+    original_request_id, ActionDispatch::RequestId.request_id_header = ActionDispatch::RequestId.request_id_header, 'X-REQUEST-ID'
+    with_test_route_set do
+      get '/', headers: {'HTTP_X_REQUEST_ID' => 'X' * 500}
+      assert_equal "X" * 255, @response.headers["X-REQUEST-ID"]
+    end
+  ensure
+    ActionDispatch::RequestId.request_id_header = original_request_id
+  end
 
   private
 

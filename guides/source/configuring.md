@@ -373,6 +373,9 @@ The schema dumper adds one additional configuration option:
 
 * `config.action_dispatch.tld_length` sets the TLD (top-level domain) length for the application. Defaults to `1`.
 
+* `config.action_dispatch.request_id_header` sets the header key to be used when setting unique request id value.
+Defaults to `'X-Request-Id'`
+
 * `config.action_dispatch.http_auth_salt` sets the HTTP Auth salt value. Defaults
 to `'http authentication'`.
 

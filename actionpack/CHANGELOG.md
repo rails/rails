@@ -1,3 +1,14 @@
+*   Allow `config.action_dispatch.request_id_header` to set custom header key used for setting unique request id value.
+    Defaults to `'X-Request-Id'`
+    
+    Example:
+        
+        config.action_dispatch.request_id_header = 'X-REQUEST-ID'
+        
+    will set response header for request id on `X-REQUEST-ID` key.
+    
+    *Vipul A M*   
+    
 *   Response etags to always be weak: Prefixes 'W/' to value returned by
    `ActionDispatch::Http::Cache::Response#etag=`, such that etags set in
    `fresh_when` and `stale?` are weak.

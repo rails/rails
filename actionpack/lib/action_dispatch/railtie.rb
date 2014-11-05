@@ -32,6 +32,7 @@ module ActionDispatch
       ActionDispatch::Request::Utils.perform_deep_munge = app.config.action_dispatch.perform_deep_munge
       ActionDispatch::Response.default_charset = app.config.action_dispatch.default_charset || app.config.encoding
       ActionDispatch::Response.default_headers = app.config.action_dispatch.default_headers
+      ActionDispatch::RequestId.request_id_header = config.action_dispatch.request_id_header
 
       ActionDispatch::ExceptionWrapper.rescue_responses.merge!(config.action_dispatch.rescue_responses)
       ActionDispatch::ExceptionWrapper.rescue_templates.merge!(config.action_dispatch.rescue_templates)

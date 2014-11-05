@@ -12,16 +12,17 @@ module ActionDispatch
   # The unique request id can be used to trace a request end-to-end and would typically end up being part of log files
   # from multiple pieces of the stack.
   class RequestId
-    X_REQUEST_ID = "X-Request-Id".freeze # :nodoc:
+    cattr_accessor :request_id_header
 
     def initialize(app)
+      self.request_id_header = 'X-Request-Id'
       @app = app
     end
 
     def call(env)
       req = ActionDispatch::Request.new env
       req.request_id = make_request_id(req.x_request_id)
-      @app.call(env).tap { |_status, headers, _body| headers[X_REQUEST_ID] = req.request_id }
+      @app.call(env).tap { |_status, headers, _body| headers[self.request_id_header] = req.request_id }
     end
 
     private
