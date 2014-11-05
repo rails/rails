@@ -850,3 +850,35 @@ class IntegrationWithRoutingTest < ActionDispatch::IntegrationTest
     end
   end
 end
+
+class EngineControllerRoutingTest < ActionController::TestCase
+  module FooEngine
+    class Engine < ::Rails::Engine
+      isolate_namespace FooEngine
+      routes.draw do
+        get '/index', :to => 'spree/orders#index'
+      end
+    end
+
+    class OrdersController < ActionController::Base
+      def index
+        render :text => request.fullpath
+      end
+    end
+  end
+
+  def setup
+    @controller = FooEngine::OrdersController.new
+    @routes = ActionDispatch::Routing::RouteSet.new.tap do |r|
+      r.draw do
+        mount FooEngine::Engine, :at => '/'
+      end
+    end
+  end
+
+  def test_process_with_use_route
+    assert_raises(ActionController::UrlGenerationError) do
+      process :index, "GET", :use_route => :lalala
+    end
+  end
+end
