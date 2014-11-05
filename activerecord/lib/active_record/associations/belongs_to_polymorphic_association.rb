@@ -4,14 +4,20 @@ module ActiveRecord
     class BelongsToPolymorphicAssociation < BelongsToAssociation #:nodoc:
       def klass
         type = owner[reflection.foreign_type]
-        type.presence && type.constantize
+        if type.presence
+          if reflection.options[:class_name].is_a?(Proc)
+            reflection.options[:class_name].call(type)
+          else
+            type.constantize
+          end
+        end
       end
 
       private
 
         def replace_keys(record)
           super
-          owner[reflection.foreign_type] = record.class.base_class.name
+          owner[reflection.foreign_type] = record.class.sti_name
         end
 
         def remove_keys
