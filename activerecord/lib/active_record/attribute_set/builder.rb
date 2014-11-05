@@ -11,7 +11,7 @@ module ActiveRecord
         build_from_database_pairs(values.keys, values.values, additional_types)
       end
 
-      def build_from_database_pairs(columns = [], values = [], additional_types = {})
+      def build_from_database_pairs(columns, values, additional_types)
         attributes = build_attributes_from_values(columns, values, additional_types)
         add_uninitialized_attributes(attributes)
         AttributeSet.new(attributes)
