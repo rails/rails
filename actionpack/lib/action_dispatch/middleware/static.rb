@@ -15,7 +15,7 @@ module ActionDispatch
       paths = "#{full_path}#{ext}"
 
       matches = Dir[paths]
-      match = matches.detect { |m| File.file?(m) }
+      match = matches.detect { |m| File.file?(m) && File.readable?(m) }
       if match
         match.sub!(@compiled_root, '')
         ::Rack::Utils.escape(match)
@@ -38,7 +38,8 @@ module ActionDispatch
     end
 
     def escape_glob_chars(path)
-      path.gsub(/[*?{}\[\]]/, "\\\\\\&")
+      path.force_encoding('binary') if path.respond_to? :force_encoding
+      path.gsub(/[*?{}\[\]\\]/, "\\\\\\&")
     end
 
     private
@@ -46,6 +47,7 @@ module ActionDispatch
     PATH_SEPS = Regexp.union(*[::File::SEPARATOR, ::File::ALT_SEPARATOR].compact)
 
     def clean_path_info(path_info)
+      path_info.force_encoding('binary') if path_info.respond_to? :force_encoding
       parts = path_info.split PATH_SEPS
 
       clean = []
