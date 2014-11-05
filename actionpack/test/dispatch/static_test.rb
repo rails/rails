@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'fileutils'
 require 'rbconfig'
 
 module StaticTests
@@ -148,6 +149,46 @@ class StaticTest < ActiveSupport::TestCase
   end
 
   include StaticTests
+
+  def test_custom_handler_called_when_file_is_not_readable
+    filename = 'unreadable.html.erb'
+    target = File.join(@root, filename)
+    FileUtils.touch target
+    File.chmod 0200, target
+    assert File.exist? target
+    assert !File.readable?(target)
+    path = "/#{filename}"
+    env = {
+      "REQUEST_METHOD"=>"GET",
+      "REQUEST_PATH"=> path,
+      "PATH_INFO"=> path,
+      "REQUEST_URI"=> path,
+      "HTTP_VERSION"=>"HTTP/1.1",
+      "SERVER_NAME"=>"localhost",
+      "SERVER_PORT"=>"8080",
+      "QUERY_STRING"=>""
+    }
+    assert_equal(DummyApp.call(nil), @app.call(env))
+  ensure
+    File.unlink target
+  end
+
+  def test_custom_handler_called_when_file_is_outside_root_backslash
+    filename = 'shared.html.erb'
+    assert File.exist?(File.join(@root, '..', filename))
+    path = "/%5C..%2F#{filename}"
+    env = {
+      "REQUEST_METHOD"=>"GET",
+      "REQUEST_PATH"=> path,
+      "PATH_INFO"=> path,
+      "REQUEST_URI"=> path,
+      "HTTP_VERSION"=>"HTTP/1.1",
+      "SERVER_NAME"=>"localhost",
+      "SERVER_PORT"=>"8080",
+      "QUERY_STRING"=>""
+    }
+    assert_equal(DummyApp.call(nil), @app.call(env))
+  end
 
   def test_custom_handler_called_when_file_is_outside_root
     filename = 'shared.html.erb'
