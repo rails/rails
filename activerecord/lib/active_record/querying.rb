@@ -47,7 +47,7 @@ module ActiveRecord
       }
 
       message_bus.instrument('instantiation.active_record', payload) do
-        result_set.map { |record| instantiate(record, column_types) }
+        instantiate_result_set(result_set, column_types)
       end
     end
 
