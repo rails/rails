@@ -6,6 +6,7 @@ class CodeStatistics #:nodoc:
                 'Helper tests',
                 'Model tests',
                 'Mailer tests',
+                'Job tests',
                 'Integration tests',
                 'Functional tests (old)',
                 'Unit tests (old)']
