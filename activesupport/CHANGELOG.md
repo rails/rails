@@ -2,12 +2,12 @@
 
     *Pavel Pravosud*
 
-*   TimeWithZone#strftime now delegates every directive to Time#strftime except for '%Z',
+*   `TimeWithZone#strftime` now delegates every directive to `Time#strftime` except for '%Z',
     it also now correctly handles escaped '%' characters placed just before time zone related directives.
 
     *Pablo Herrero*
 
-*   Corrected Inflector#underscore handling of multiple successive acroynms.
+*   Corrected `Inflector#underscore` handling of multiple successive acroynms.
 
     *James Le Cuirot*
 
@@ -160,7 +160,7 @@
 
 *   Fixed `ActiveSupport::Cache::FileStore` exploding with long paths.
 
-    *Adam Panzer / Michael Grosser*
+    *Adam Panzer*, *Michael Grosser*
 
 *   Fixed `ActiveSupport::TimeWithZone#-` so precision is not unnecessarily lost
     when working with objects with a nanosecond component.

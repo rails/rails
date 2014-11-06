@@ -300,6 +300,9 @@ Please refer to the [Changelog][railties] for detailed changes.
 
 ### Removals
 
+*   The `--skip-action-view` option has been removed from the
+    app generator. ([Pull Request](https://github.com/rails/rails/pull/17042))
+
 *   The `rails application` command has been removed without replacement.
     ([Pull Request](https://github.com/rails/rails/pull/11616))
 
@@ -575,6 +578,10 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 ### Deprecations
 
+*   Deprecated `sanitize_sql_hash_for_conditions` without replacement. Using a
+    `Relation` for performing queries and updates is the prefered API.
+    ([Commit](https://github.com/rails/rails/commit/d5902c9e))
+
 *   Deprecated swallowing of errors inside `after_commit` and `after_rollback`.
     ([Pull Request](https://github.com/rails/rails/pull/16537))
 
@@ -753,14 +760,14 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 ### Notable changes
 
-*   `Object#try` and `Object#try!` can now be used without an explicit receiver.
-    ([Commit](https://github.com/rails/rails/commit/5e51bdda59c9ba8e5faf86294e3e431bd45f1830),
-    [Pull Request](https://github.com/rails/rails/pull/17361))
-
 *   Introduced new configuration option `active_support.test_order` for
     specifying the order test cases are executed. This option currently defaults
     to `:sorted` but will be changed to `:random` in Rails 5.0.
     ([Commit](https://github.com/rails/rails/commit/53e877f7d9291b2bf0b8c425f9e32ef35829f35b))
+
+*   `Object#try` and `Object#try!` can now be used without an explicit receiver.
+    ([Commit](https://github.com/rails/rails/commit/5e51bdda59c9ba8e5faf86294e3e431bd45f1830),
+    [Pull Request](https://github.com/rails/rails/pull/17361))
 
 *   The `travel_to` test helper now truncates the `usec` component to 0.
     ([Commit](https://github.com/rails/rails/commit/9f6e82ee4783e491c20f5244a613fdeb4024beb5))
