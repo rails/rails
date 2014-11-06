@@ -1,8 +1,5 @@
 # encoding: utf-8
-
 require "cases/helper"
-require 'active_record/base'
-require 'active_record/connection_adapters/postgresql_adapter'
 require 'support/schema_dumping_helper'
 
 module PostgresqlJSONSharedTestCases
