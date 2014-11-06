@@ -194,6 +194,7 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
     yield temporary_routes
   ensure
     self.class.app = old_app
+    self.remove!
     silence_warnings { Object.const_set(:SharedTestRoutes, old_routes) }
   end
 

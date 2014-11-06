@@ -326,6 +326,10 @@ module ActionDispatch
         @integration_session = Integration::Session.new(app)
       end
 
+      def remove! # :nodoc:
+        @integration_session = nil
+      end
+
       %w(get post patch put head delete cookies assigns
          xml_http_request xhr get_via_redirect post_via_redirect).each do |method|
         define_method(method) do |*args|
