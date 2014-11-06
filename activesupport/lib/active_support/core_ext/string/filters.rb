@@ -13,6 +13,9 @@ class String
   end
 
   # Performs a destructive squish. See String#squish.
+  #   str = " foo   bar    \n   \t   boo"
+  #   str.squish!                         # => "foo bar boo"
+  #   str                                 # => "foo bar boo"
   def squish!
     gsub!(/\A[[:space:]]+/, '')
     gsub!(/[[:space:]]+\z/, '')
@@ -21,11 +24,17 @@ class String
   end
 
   # Returns a new string with all occurrences of the patterns removed.
+  #   str = "foo bar test"
+  #   str.remove(" test")                 # => "foo bar"
+  #   str                                 # => "foo bar test"
   def remove(*patterns)
     dup.remove!(*patterns)
   end
 
   # Alters the string by removing all occurrences of the patterns.
+  #   str = "foo bar test"
+  #   str.remove!(" test")                 # => "foo bar"
+  #   str                                  # => "foo bar"
   def remove!(*patterns)
     patterns.each do |pattern|
       gsub! pattern, ""
