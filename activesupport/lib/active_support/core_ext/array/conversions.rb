@@ -206,4 +206,27 @@ class Array
       end
     end
   end
+
+  # Returns a proc that extracts elements of the array as keys from the passed
+  # argument. Could be used for quick extraction of the specific values by key
+  # from an array of hashes or array of arrays. Instead of writing
+  #
+  #   array_of_hashes.map{ |hash| hash[:name] }
+  #
+  # it allows to use the Ruby #to_proc shortcut syntax
+  #
+  #   array_of_hashes.map(&[:name])
+  #
+  # The result will be a flat array of names.
+  #
+  # If there are more than one element in the array, the `values_at` method is
+  # used to extract values. So, the same example
+  #
+  #   array_of_hashes.map(&[:name, :age])
+  #
+  # will return an array of arrays as a result, each one of them containing
+  # name and age.
+  def to_proc
+    ->(array_or_hash){ length == 1 ? array_or_hash[first] : array_or_hash.values_at(*self) }
+  end
 end

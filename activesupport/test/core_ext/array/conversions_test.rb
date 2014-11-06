@@ -195,3 +195,25 @@ class ToXmlTest < ActiveSupport::TestCase
     assert_equal({ skip_instruct: true }, options)
   end
 end
+
+class ArrayToProcTest < ActiveSupport::TestCase
+  PEOPLE_HASH = [
+    { name: "Pavel", age: 28 },
+    { name: "Taylor", age: 29 }
+  ]
+
+   PEOPLE_ARRAY = [
+     [ "Pavel", 28 ],
+     [ "Taylor", 29 ]
+   ]
+
+  def test_to_proc_with_one_argument
+    assert_equal %w[Pavel Taylor], PEOPLE_HASH.map(&[:name])
+    assert_equal %w[Pavel Taylor], PEOPLE_ARRAY.map(&[0])
+  end
+
+  def test_to_proc_with_multiple_arguments
+    assert_equal [["Pavel", 28], ["Taylor", 29]], PEOPLE_HASH.map(&[:name, :age])
+    assert_equal [["Pavel", 28], ["Taylor", 29]], PEOPLE_ARRAY.map(&[0, 1])
+  end
+end
