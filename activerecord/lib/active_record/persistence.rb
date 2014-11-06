@@ -188,7 +188,7 @@ module ActiveRecord
     # and <tt>destroy</tt> returns +false+. See
     # ActiveRecord::Callbacks for further details.
     def destroy
-      raise ReadOnlyRecord if readonly?
+      raise ReadOnlyRecord, "#{self.class} is marked as readonly" if readonly?
       destroy_associations
       destroy_row if persisted?
       @destroyed = true
@@ -519,7 +519,7 @@ module ActiveRecord
     end
 
     def create_or_update
-      raise ReadOnlyRecord if readonly?
+      raise ReadOnlyRecord, "#{self.class} is marked as readonly" if readonly?
       result = new_record? ? _create_record : _update_record
       result != false
     end
