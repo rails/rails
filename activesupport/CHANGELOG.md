@@ -1,3 +1,7 @@
+*   Add `Array#to_proc` method.
+
+    *Henrik Nyh*, *Pavel Pravosud*
+
 *   `String#remove` and `String#remove!` accept multiple arguments.
 
     *Pavel Pravosud*
