@@ -1,3 +1,7 @@
+*   Fix bug which caused connection pool to fill up on reconnect failures.
+
+    *Dylan Thacker-Smith*
+
 *   Fix preloading of associations which unscope a default scope.
 
     Fixes #11036.
