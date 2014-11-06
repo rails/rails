@@ -6,8 +6,8 @@ module ActiveRecord
     # We can then redefine how certain data types may be handled in the schema dumper on the
     # Adapter level by over-writing this code inside the database specific adapters
     module ColumnDumper
-      def column_spec(column, types)
-        spec = prepare_column_options(column, types)
+      def column_spec(column)
+        spec = prepare_column_options(column)
         (spec.keys - [:name, :type]).each{ |k| spec[k].insert(0, "#{k}: ")}
         spec
       end
@@ -15,13 +15,13 @@ module ActiveRecord
       # This can be overridden on a Adapter level basis to support other
       # extended datatypes (Example: Adding an array option in the
       # PostgreSQLAdapter)
-      def prepare_column_options(column, types)
+      def prepare_column_options(column)
         spec = {}
         spec[:name]      = column.name.inspect
         spec[:type]      = column.type.to_s
         spec[:null]      = 'false' unless column.null
 
-        limit = column.limit || types[column.type][:limit]
+        limit = column.limit || native_database_types[column.type][:limit]
         spec[:limit]     = limit.inspect if limit
         spec[:precision] = column.precision.inspect if column.precision
         spec[:scale]     = column.scale.inspect if column.scale
