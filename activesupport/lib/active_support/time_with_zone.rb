@@ -326,8 +326,8 @@ module ActiveSupport
     end
 
     # So that +self+ <tt>acts_like?(:time)</tt>.
-    def acts_like_time?
-      true
+    def acts_like?(duck_type)
+      duck_type == :time
     end
 
     # Say we're a Time to thwart type checking.
@@ -360,8 +360,6 @@ module ActiveSupport
     # Ensure proxy class responds to all methods that underlying time instance
     # responds to.
     def respond_to_missing?(sym, include_priv)
-      # consistently respond false to acts_like?(:date), regardless of whether #time is a Time or DateTime
-      return false if sym.to_sym == :acts_like_date?
       time.respond_to?(sym, include_priv)
     end
 
