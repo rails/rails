@@ -43,6 +43,16 @@ class Object
   def presence
     self if present?
   end
+
+  # Returns the receiver if it's present otherwise returns +alternative+ object.
+  # <tt>object.presence_or(alternative)</tt> is equivalent to
+  #
+  #    object.present? ? object : alternative
+  #
+  # @return [Object]
+  def presence_or(alternative)
+    present? ? self : alternative
+  end
 end
 
 class NilClass

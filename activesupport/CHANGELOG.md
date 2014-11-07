@@ -1,3 +1,8 @@
+*   Added `Object#presence_or(alternative)` to return the alternative object if
+    self is not present.
+
+    *David Boot*
+
 *   `String#remove` and `String#remove!` accept multiple arguments.
 
     *Pavel Pravosud*
