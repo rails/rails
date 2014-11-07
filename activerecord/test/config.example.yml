@@ -69,12 +69,6 @@ connections:
       username: rails
       encoding: utf8
 
-  openbase:
-    arunit:
-      username: admin
-    arunit2:
-      username: admin
-
   oracle:
      arunit:
        adapter: oracle_enhanced
