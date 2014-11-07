@@ -94,8 +94,14 @@ class EagerLoadPolyAssocsTest < ActiveRecord::TestCase
   end
 
   def test_deeply_nested_include_query_fails_when_included_association_isnt_required
-    assert_raises ActiveRecord::AssociationNotFoundError do
-      ShapeExpression.includes(paint: {non_poly: [:paint_colors, :paint_textures]}).first
+    expression = ShapeExpression.includes(paint: {non_poly: [:paint_colors, :paint_textures]}).first
+    assert_no_queries do
+      case non_poly = expression.paint.non_poly
+      when NonPolyOne
+        assert_equal PaintColor, non_poly.paint_colors.first.class
+      when NonPolyTwo
+        assert_equal PaintTexture, non_poly.paint_textures.first.class
+      end
     end
   end
 end
