@@ -728,7 +728,7 @@ class UserFlowsTest < ActionDispatch::IntegrationTest
     https!(false)
     get "/articles/all"
     assert_response :success
-    assert assigns(:products)
+    assert assigns(:articles)
   end
 end
 ```
