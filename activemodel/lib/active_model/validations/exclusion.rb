@@ -8,7 +8,12 @@ module ActiveModel
 
       def validate_each(record, attribute, value)
         if include?(record, value)
-          record.errors.add(attribute, :exclusion, options.except(:in, :within).merge!(value: value))
+          # check custom message
+          if options[:message]
+            record.errors.add(attribute, options[:message], options.except(:in, :within, :message).merge!(:value => value))
+          else
+            record.errors.add(attribute, :exclusion, options.except(:in, :within).merge!(:value => value))
+          end
         end
       end
     end

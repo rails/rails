@@ -9,7 +9,12 @@ module ActiveModel
 
       def validate_each(record, attribute, value)
         unless value == options[:accept]
-          record.errors.add(attribute, :accepted, options.except(:accept, :allow_nil))
+          # check custom message
+          if options[:message]
+            record.errors.add(attribute, options[:message], options.except(:accept, :allow_nil, :message))
+          else
+            record.errors.add(attribute, :accepted, options.except(:accept, :allow_nil))
+          end
         end
       end
 

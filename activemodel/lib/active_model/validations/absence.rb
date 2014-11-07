@@ -3,7 +3,14 @@ module ActiveModel
     # == Active Model Absence Validator
     class AbsenceValidator < EachValidator #:nodoc:
       def validate_each(record, attr_name, value)
-        record.errors.add(attr_name, :present, options) if value.present?
+        if value.present?
+          # check custom message
+          if options[:message]
+            record.errors.add(attr_name, options[:message], options.except(:message))
+          else
+            record.errors.add(attr_name, :present, options)
+          end
+        end
       end
     end
 
