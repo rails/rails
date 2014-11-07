@@ -29,12 +29,7 @@ module ActiveModel
       end
 
       def record_error(record, attribute, name, value)
-        # check custom message
-        if options[:message]
-          record.errors.add(attribute, options[:message], options.except(name, :message).merge!(value: value))
-        else
-          record.errors.add(attribute, :invalid, options.except(name).merge!(value: value))
-        end
+        record.errors.add(attribute, :invalid, options.except(name).merge!(value: value))
       end
 
       def check_options_validity(name)

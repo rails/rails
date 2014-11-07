@@ -4,14 +4,7 @@ module ActiveModel
   module Validations
     class PresenceValidator < EachValidator # :nodoc:
       def validate_each(record, attr_name, value)
-        if value.blank?
-          # check custom message
-          if options[:message]
-            record.errors.add(attr_name, options[:message], options.except(:message))
-          else
-            record.errors.add(attr_name, :blank, options)
-          end
-        end
+        record.errors.add(attr_name, :blank, options) if value.blank?
       end
     end
 

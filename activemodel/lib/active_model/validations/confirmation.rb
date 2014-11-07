@@ -10,12 +10,7 @@ module ActiveModel
       def validate_each(record, attribute, value)
         if (confirmed = record.send("#{attribute}_confirmation")) && (value != confirmed)
           human_attribute_name = record.class.human_attribute_name(attribute)
-          # check custom message
-          if options[:message]
-            record.errors.add(:"#{attribute}_confirmation", options[:message], options.except(:message).merge(attribute: human_attribute_name))
-          else
-            record.errors.add(:"#{attribute}_confirmation", :confirmation, options.merge(attribute: human_attribute_name))
-          end
+          record.errors.add(:"#{attribute}_confirmation", :confirmation, options.merge(attribute: human_attribute_name))
         end
       end
 
