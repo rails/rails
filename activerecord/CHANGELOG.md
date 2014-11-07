@@ -1,3 +1,7 @@
+*   `ActiveRecord::ReadOnlyRecord` now has a descriptive message.
+
+    *Franky W.*
+
 *   Fix preloading of associations which unscope a default scope.
 
     Fixes #11036.
