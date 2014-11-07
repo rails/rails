@@ -443,15 +443,12 @@ module ActiveModel
     end
 
     private
-    def normalize_message(attribute, message, options)
+    def normalize_message(attribute, default_message, options)
+      message = options[:message] || default_message
+
       case message
-      when Symbol
-        begin
-          # when options[:message] is a Proc
-          options[:message].call
-        rescue
-          generate_message(attribute, message, options.except(*CALLBACKS_OPTIONS))
-        end
+      when Symbol, String
+        generate_message(attribute, message, options.except(*CALLBACKS_OPTIONS))
       when Proc
         message.call
       else
