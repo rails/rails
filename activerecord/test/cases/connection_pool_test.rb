@@ -341,6 +341,19 @@ module ActiveRecord
           handler.establish_connection anonymous, nil
         }
       end
+
+      def test_reconnect_failure
+        connection = @pool.connection
+        @pool.release_connection
+
+        connection.expects(:active?).at_least_once.returns(false)
+        connection.expects(:reconnect!).raises(Errno::ECONNREFUSED)
+        @pool.connection rescue nil
+
+        @pool.connection
+
+        assert_equal 1, @pool.connections.size
+      end
     end
   end
 end
