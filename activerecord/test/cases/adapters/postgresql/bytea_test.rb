@@ -17,7 +17,6 @@ class PostgresqlByteaTest < ActiveRecord::TestCase
       end
     end
     @column = ByteaDataType.columns_hash['payload']
-    assert(@column.is_a?(ActiveRecord::ConnectionAdapters::PostgreSQLColumn))
   end
 
   teardown do
@@ -25,6 +24,7 @@ class PostgresqlByteaTest < ActiveRecord::TestCase
   end
 
   def test_column
+    assert @column.is_a?(ActiveRecord::ConnectionAdapters::PostgreSQLColumn)
     assert_equal :binary, @column.type
   end
 
