@@ -1045,6 +1045,68 @@ end
 Moreover, since the test class extends from `ActionView::TestCase`, you have
 access to Rails' helper methods such as `link_to` or `pluralize`.
 
+Testing Jobs
+------------
+
+Since your custom jobs can be queued at different levels inside your application,
+you'll need to test both jobs themselves (their behavior when they get enqueued)
+and that other entities correctly enqueue them.
+
+### A Basic Test Case
+
+By default, when you generate a job, an associated test will be generated as well
+under the `test/jobs` directory. Here's an example test with a billing job:
+
+```ruby
+require 'test_helper'
+
+class BillingJobTest < ActiveJob::TestCase
+  test 'that account is charged' do
+    BillingJob.perform_now(account, product)
+    assert account.reload.charged_for?(product)
+  end
+end
+```
+
+This test is pretty simple and only asserts that the job get the work done
+as expected.
+
+By default, `ActiveJob::TestCase` will set the queue adapter to `:test` so that
+your jobs are performed inline. It will also ensure that all previously performed
+and enqueued jobs are cleared before any test run so you can safely assume that
+no jobs have already been executed in the scope of each test.
+
+### Custom Assertions And Testing Jobs Inside Other Components
+
+Active Job ships with a bunch of custom assertions that can be used to lessen
+the verbosity of tests:
+
+| Assertion                              | Purpose |
+| -------------------------------------- | ------- |
+| `assert_enqueued_jobs(number)`         | Asserts that the number of enqueued jobs matches the given number. |
+| `assert_performed_jobs(number)`        | Asserts that the number of performed jobs matches the given number. |
+| `assert_no_enqueued_jobs { ... }`      | Asserts that no jobs have been enqueued. |
+| `assert_no_performed_jobs { ... }`     | Asserts that no jobs have been performed. |
+| `assert_enqueued_with([args]) { ... }` | Asserts that the job passed in the block has been enqueued with the given arguments. |
+| `assert_performed_with([args]) { ... }`| Asserts that the job passed in the block has been performed with the given arguments. |
+
+It's a good practice to ensure that your jobs correctly get enqueued or performed
+wherever you invoke them (e.g. inside your controllers). This is precisely where
+the custom assertions provided by Active Job are pretty useful. For instance,
+within a model:
+
+```ruby
+require 'test_helper'
+
+class ProductTest < ActiveSupport::TestCase
+  test 'billing job scheduling' do
+    assert_enqueued_with(job: BillingJob) do
+      product.charge(account)
+    end
+  end
+end
+```
+
 Other Testing Approaches
 ------------------------
 
