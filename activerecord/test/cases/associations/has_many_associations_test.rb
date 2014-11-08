@@ -76,6 +76,32 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
                  dev.developer_projects.map(&:project_id).sort
   end
 
+  def test_default_scope_on_relations_is_not_cached
+    counter = 0
+    posts = Class.new(ActiveRecord::Base) {
+      self.table_name = 'posts'
+      self.inheritance_column = 'not_there'
+      post = self
+
+      comments = Class.new(ActiveRecord::Base) {
+        self.table_name = 'comments'
+        self.inheritance_column = 'not_there'
+        belongs_to :post, :class => post
+        default_scope -> {
+          counter += 1
+          where("id = :inc", :inc => counter)
+        }
+      }
+      has_many :comments, :class => comments, :foreign_key => 'post_id'
+    }
+    assert_equal 0, counter
+    post = posts.first
+    assert_equal 0, counter
+    sql = capture_sql { post.comments.to_a }
+    post.comments.reset
+    assert_not_equal sql, capture_sql { post.comments.to_a }
+  end
+
   def test_has_many_build_with_options
     college = College.create(name: 'UFMT')
     Student.create(active: true, college_id: college.id, name: 'Sarah')
