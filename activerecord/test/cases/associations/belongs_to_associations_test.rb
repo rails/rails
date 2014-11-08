@@ -57,6 +57,35 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_default_scope_on_relations_is_not_cached
+    counter = 0
+
+    comments = Class.new(ActiveRecord::Base) {
+      self.table_name = 'comments'
+      self.inheritance_column = 'not_there'
+
+      posts = Class.new(ActiveRecord::Base) {
+        self.table_name = 'posts'
+        self.inheritance_column = 'not_there'
+
+        default_scope -> {
+          counter += 1
+          where("id = :inc", :inc => counter)
+        }
+
+        has_many :comments, :class => comments
+      }
+      belongs_to :post, :class => posts, :inverse_of => false
+    }
+
+    assert_equal 0, counter
+    comment = comments.first
+    assert_equal 0, counter
+    sql = capture_sql { comment.post }
+    comment.reload
+    assert_not_equal sql, capture_sql { comment.post }
+  end
+
   def test_proxy_assignment
     account = Account.find(1)
     assert_nothing_raised { account.firm = account.firm }
