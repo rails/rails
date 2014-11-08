@@ -88,6 +88,24 @@ module ActiveRecord
         assert !pool.active_connection?
       end
 
+      def test_connection_returned_to_pool_after_verify_exception
+        pool.with_connection do |connection|
+          def connection.verify!
+            raise Errno::ECONNREFUSED
+          end
+        end
+
+        assert_equal 0, active_connections(pool).size
+
+        assert_raises(Errno::ECONNREFUSED) do
+          pool.checkout
+        end
+
+        pool.release_connection
+
+        assert_equal 0, active_connections(pool).size
+      end
+
       def test_full_pool_exception
         @pool.size.times { @pool.checkout }
         assert_raises(ConnectionTimeoutError) do
