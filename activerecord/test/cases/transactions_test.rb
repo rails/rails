@@ -531,11 +531,17 @@ class TransactionTest < ActiveRecord::TestCase
     topic_1 = Topic.new(:title => 'test_1')
     topic_2 = Topic.new(:title => 'test_2')
     topic_3 = topic_without_callbacks.new(:title => 'test_3')
+    topic_4 = Topic.new(:title => 'test_4')
 
     Topic.transaction do
       assert topic_1.save
       assert topic_2.save
-      assert topic_3.save
+
+      Topic.transaction(requires_new: true) do
+        assert topic_3.save
+        assert topic_4.save
+      end
+
       @first.save
       @second.destroy
       assert topic_1.persisted?, 'persisted'
@@ -544,6 +550,8 @@ class TransactionTest < ActiveRecord::TestCase
       assert_not_nil topic_2.id
       assert topic_3.persisted?, 'persisted'
       assert_not_nil topic_3.id
+      assert topic_4.persisted?, 'persisted'
+      assert_not_nil topic_4.id
       assert @first.persisted?, 'persisted'
       assert_not_nil @first.id
       assert @second.destroyed?, 'destroyed'
@@ -556,6 +564,9 @@ class TransactionTest < ActiveRecord::TestCase
     assert_nil topic_2.id
     assert !topic_3.persisted?, 'not persisted'
     assert_nil topic_3.id
+    assert !topic_4.persisted?, 'not persisted'
+    assert_nil topic_4.id
+
     assert @first.persisted?, 'persisted'
     assert_not_nil @first.id
     assert !@second.destroyed?, 'not destroyed'
