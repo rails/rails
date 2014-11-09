@@ -494,7 +494,7 @@ Rails comes with a test suite called Minitest. Rails owes its stability to the u
 
 ### `tmp`
 
-The `Rails.root/tmp` directory is, like the *nix /tmp directory, the holding place for temporary files like sessions (if you're using a file store for files), process id files, and cached actions.
+The `Rails.root/tmp` directory is, like the *nix /tmp directory, the holding place for temporary files like sessions (if you're using a file store for sessions), process id files, and cached actions.
 
 The `tmp:` namespaced tasks will help you clear and create the `Rails.root/tmp` directory:
 
