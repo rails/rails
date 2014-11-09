@@ -1,3 +1,7 @@
+*   Correctly dump `:options` on `create_table` for MySQL.
+
+    *Ryuta Kamizono*
+
 *   Make `unscope` aware of "less than" and "greater than" conditions.
 
     *TAKAHASHI Kazuaki*
