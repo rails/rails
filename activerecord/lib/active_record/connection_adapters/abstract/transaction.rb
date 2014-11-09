@@ -1,7 +1,7 @@
 module ActiveRecord
   module ConnectionAdapters
     class TransactionState
-      attr_reader :parent
+      attr_accessor :parent
 
       VALID_STATES = Set.new([:committed, :rolledback, nil])
 
@@ -171,6 +171,7 @@ module ActiveRecord
           else
             SavepointTransaction.new(@connection, "active_record_#{@stack.size}", options)
           end
+        transaction.state.parent = @stack.last.try(:state)
         @stack.push(transaction)
         transaction
       end
