@@ -15,6 +15,8 @@ class Developer < ActiveRecord::Base
 
   accepts_nested_attributes_for :projects
 
+  has_and_belongs_to_many :shared_computers, class_name: "Computer"
+
   has_and_belongs_to_many :projects_extended_by_name,
       -> { extending(DeveloperProjectsAssociationExtension) },
       :class_name => "Project",

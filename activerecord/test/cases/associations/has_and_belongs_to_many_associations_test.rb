@@ -1,5 +1,6 @@
 require "cases/helper"
 require 'models/developer'
+require 'models/computer'
 require 'models/project'
 require 'models/company'
 require 'models/customer'
@@ -80,7 +81,7 @@ end
 
 class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :categories, :posts, :categories_posts, :developers, :projects, :developers_projects,
-           :parrots, :pirates, :parrots_pirates, :treasures, :price_estimates, :tags, :taggings
+           :parrots, :pirates, :parrots_pirates, :treasures, :price_estimates, :tags, :taggings, :computers
 
   def setup_data_for_habtm_case
     ActiveRecord::Base.connection.execute('delete from countries_treaties')
@@ -882,5 +883,13 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     child = SubDeveloper.new("name" => "Aredridel")
     child.special_projects << SpecialProject.new("name" => "Special Project")
     assert child.save, 'child object should be saved'
+  end
+
+  def test_habtm_with_reflection_using_class_name_and_fixtures
+    assert_not_nil Developer._reflections['shared_computers']
+    # Checking the fixture for named association is important here, because it's the only way
+    # we've been able to reproduce this bug
+    assert_not_nil File.read(File.expand_path("../../../fixtures/developers.yml", __FILE__)).index("shared_computers")
+    assert_equal developers(:david).shared_computers.first, computers(:laptop)
   end
 end
