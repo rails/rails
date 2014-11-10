@@ -32,7 +32,7 @@ module ActiveJob #:nodoc:
   #   end
   #
   # Records that are passed in are serialized/deserialized using Global
-  # Id. More information can be found in Arguments.
+  # ID. More information can be found in Arguments.
   #
   # To enqueue a job to be performed as soon the queueing system is free:
   #
