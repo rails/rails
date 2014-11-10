@@ -347,19 +347,17 @@ module ApplicationTests
       end
     end
 
-    test "uses secrets.secret_token when secrets.secret_key_base and config.secret_token are blank" do
+    test "prefer secrets.secret_token over config.secret_token" do
       app_file 'config/initializers/secret_token.rb', <<-RUBY
         Rails.application.config.secret_token = ""
       RUBY
       app_file 'config/secrets.yml', <<-YAML
         development:
-          secret_key_base:
           secret_token: 3b7cd727ee24e8444053437c36cc66c3
       YAML
       require "#{app_path}/config/environment"
 
       assert_equal '3b7cd727ee24e8444053437c36cc66c3', app.secrets.secret_token
-      assert_equal '3b7cd727ee24e8444053437c36cc66c3', app.config.secret_token
     end
 
     test "application verifier can build different verifiers" do
@@ -404,7 +402,7 @@ module ApplicationTests
 
     test "config.secret_token over-writes a blank secrets.secret_token" do
       app_file 'config/initializers/secret_token.rb', <<-RUBY
-        Rails.application.config.secret_token    = "b3c631c314c0bbca50c1b2843150fe33"
+        Rails.application.config.secret_token = "b3c631c314c0bbca50c1b2843150fe33"
       RUBY
       app_file 'config/secrets.yml', <<-YAML
         development:
@@ -415,36 +413,6 @@ module ApplicationTests
 
       assert_equal 'b3c631c314c0bbca50c1b2843150fe33', app.secrets.secret_token
       assert_equal 'b3c631c314c0bbca50c1b2843150fe33', app.config.secret_token
-    end
-
-    test "secret_token is copied from secrets to config when set" do
-      app_file 'config/initializers/secret_token.rb', <<-RUBY
-        Rails.application.config.secret_token    = ""
-      RUBY
-      app_file 'config/secrets.yml', <<-YAML
-        development:
-          secret_key_base:
-          secret_token: 3b7cd727ee24e8444053437c36cc66c3
-      YAML
-      require "#{app_path}/config/environment"
-
-      assert_equal '3b7cd727ee24e8444053437c36cc66c3', app.secrets.secret_token
-      assert_equal '3b7cd727ee24e8444053437c36cc66c3', app.config.secret_token
-    end
-
-    test "secret_token is copied from secrets to config when different" do
-      app_file 'config/initializers/secret_token.rb', <<-RUBY
-        Rails.application.config.secret_token    = "b3c631c314c0bbca50c1b2843150fe33"
-      RUBY
-      app_file 'config/secrets.yml', <<-YAML
-        development:
-          secret_key_base:
-          secret_token: 3b7cd727ee24e8444053437c36cc66c3
-      YAML
-      require "#{app_path}/config/environment"
-
-      assert_equal '3b7cd727ee24e8444053437c36cc66c3', app.secrets.secret_token
-      assert_equal '3b7cd727ee24e8444053437c36cc66c3', app.config.secret_token
     end
 
     test "custom secrets saved in config/secrets.yml are loaded in app secrets" do

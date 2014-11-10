@@ -381,13 +381,8 @@ module Rails
 
         # Fallback to config.secret_key_base if secrets.secret_key_base isn't set
         secrets.secret_key_base ||= config.secret_key_base
-        # Sync secrets.secret_token with config.secret_token, preferring secrets.secret_token
-        # note that unset config's default to "", secrets default to nil
-        if secrets.secret_token.blank? && config.secret_token.present?
-          secrets.secret_token = config.secret_token
-        elsif secrets.secret_token.present?
-          config.secret_token = secrets.secret_token
-        end
+        # Fallback to config.secret_token if secrets.secret_token isn't set
+        secrets.secret_token ||= config.secret_token
 
         secrets
       end
