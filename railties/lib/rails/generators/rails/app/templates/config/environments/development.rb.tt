@@ -42,4 +42,7 @@ Rails.application.configure do
 
   # Raises error for missing translations
   # config.action_view.raise_on_missing_translations = true
+
+  # Rotates the log automatically every week
+  config.logger_shift_age  = 'weekly'
 end

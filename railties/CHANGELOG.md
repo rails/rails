@@ -1,3 +1,7 @@
+*   Log rotation by default in development and test environments
+
+    *Alexey Gaziev*
+
 *   Remove `--skip-action-view` option from `Rails::Generators::AppBase`.
 
     Fixes #17023.
