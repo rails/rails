@@ -1037,6 +1037,18 @@ class DependenciesTest < ActiveSupport::TestCase
     assert_nothing_raised { ActiveSupport::Dependencies.hook! }
   end
 
+  def test_load_and_require_stay_private
+    assert Object.private_methods.include?(:load)
+    assert Object.private_methods.include?(:require)
+
+    ActiveSupport::Dependencies.unhook!
+
+    assert Object.private_methods.include?(:load)
+    assert Object.private_methods.include?(:require)
+  ensure
+    ActiveSupport::Dependencies.hook!
+  end
+
   def test_unhook
     ActiveSupport::Dependencies.unhook!
     assert !Module.new.respond_to?(:const_missing_without_dependencies)

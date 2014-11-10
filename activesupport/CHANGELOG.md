@@ -1,3 +1,9 @@
+*   The decorated `load` and `require` methods are now kept private.
+
+    Fixes #17553.
+
+    *Xavier Noria*
+
 *   `String#remove` and `String#remove!` accept multiple arguments.
 
     *Pavel Pravosud*
