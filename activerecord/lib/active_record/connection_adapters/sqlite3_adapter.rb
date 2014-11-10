@@ -179,10 +179,6 @@ module ActiveRecord
         true
       end
 
-      def supports_add_column?
-        true
-      end
-
       def supports_views?
         true
       end
@@ -451,12 +447,12 @@ module ActiveRecord
 
       # See: http://www.sqlite.org/lang_altertable.html
       # SQLite has an additional restriction on the ALTER TABLE statement
-      def valid_alter_table_options( type, options)
+      def valid_alter_table_type?(type)
         type.to_sym != :primary_key
       end
 
       def add_column(table_name, column_name, type, options = {}) #:nodoc:
-        if supports_add_column? && valid_alter_table_options( type, options )
+        if valid_alter_table_type?(type)
           super(table_name, column_name, type, options)
         else
           alter_table(table_name) do |definition|
