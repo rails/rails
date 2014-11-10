@@ -274,11 +274,12 @@ NOTE: Defined in `active_support/core_ext/kernel/singleton_class.rb`.
 The method `acts_like?` provides a way to check whether some class acts like some other class based on a simple convention: a class that provides the same interface as `String` defines
 
 ```ruby
-def acts_like_string?
+def acts_like?(duck_type)
+  duck_type.in? [:string]
 end
 ```
 
-which is only a marker, its body or return value are irrelevant. Then, client code can query for duck-type-safeness this way:
+Then, client code can query for duck-type-safeness this way:
 
 ```ruby
 some_klass.acts_like?(:string)

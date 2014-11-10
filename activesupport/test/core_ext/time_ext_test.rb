@@ -685,7 +685,7 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_acts_like_time
-    assert Time.new.acts_like_time?
+    assert Time.new.acts_like?(:time)
   end
 
   def test_formatted_offset_with_utc

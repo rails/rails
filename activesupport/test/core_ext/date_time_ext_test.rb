@@ -275,11 +275,11 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_acts_like_date
-    assert DateTime.new.acts_like_date?
+    assert DateTime.new.acts_like?(:date)
   end
 
   def test_acts_like_time
-    assert DateTime.new.acts_like_time?
+    assert DateTime.new.acts_like?(:time)
   end
 
   def test_utc?

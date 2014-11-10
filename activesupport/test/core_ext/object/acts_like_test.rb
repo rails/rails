@@ -3,8 +3,8 @@ require 'active_support/core_ext/object'
 
 class ObjectTests < ActiveSupport::TestCase
   class DuckTime
-    def acts_like_time?
-      true
+    def acts_like?(duck_type)
+      duck_type == :time
     end
   end
 

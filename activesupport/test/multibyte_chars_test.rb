@@ -472,7 +472,7 @@ class MultibyteCharsUTF8BehaviourTest < ActiveSupport::TestCase
   end
 
   def test_acts_like_string
-    assert 'Bambi'.mb_chars.acts_like_string?
+    assert 'Bambi'.mb_chars.acts_like?(:string)
   end
 end
 

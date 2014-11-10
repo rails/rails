@@ -568,7 +568,7 @@ end
 
 class StringBehaviourTest < ActiveSupport::TestCase
   def test_acts_like_string
-    assert 'Bambi'.acts_like_string?
+    assert 'Bambi'.acts_like?(:string)
   end
 end
 
