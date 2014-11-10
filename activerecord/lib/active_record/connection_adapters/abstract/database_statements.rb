@@ -287,10 +287,6 @@ module ActiveRecord
         "DEFAULT VALUES"
       end
 
-      def limited_update_conditions(where_sql, quoted_table_name, quoted_primary_key)
-        "WHERE #{quoted_primary_key} IN (SELECT #{quoted_primary_key} FROM #{quoted_table_name} #{where_sql})"
-      end
-
       # Sanitizes the given LIMIT parameter in order to prevent SQL injection.
       #
       # The +limit+ may be anything that can evaluate to a string via #to_s. It

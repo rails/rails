@@ -631,10 +631,6 @@ module ActiveRecord
         end
       end
 
-      def limited_update_conditions(where_sql, quoted_table_name, quoted_primary_key)
-        where_sql
-      end
-
       def strict_mode?
         self.class.type_cast_config_to_boolean(@config.fetch(:strict, true))
       end
