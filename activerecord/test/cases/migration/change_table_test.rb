@@ -213,6 +213,12 @@ module ActiveRecord
           t.rename :bar, :baz
         end
       end
+
+      def test_table_name_set
+        with_change_table do |t|
+          assert_equal :delete_me, t.name
+        end
+      end
     end
   end
 end
