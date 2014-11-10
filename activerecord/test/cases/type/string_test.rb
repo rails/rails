@@ -4,8 +4,8 @@ module ActiveRecord
   class StringTypeTest < ActiveRecord::TestCase
     test "type casting" do
       type = Type::String.new
-      assert_equal "1", type.type_cast_from_user(true)
-      assert_equal "0", type.type_cast_from_user(false)
+      assert_equal "t", type.type_cast_from_user(true)
+      assert_equal "f", type.type_cast_from_user(false)
       assert_equal "123", type.type_cast_from_user(123)
     end
 

@@ -648,6 +648,8 @@ module ActiveRecord
       def initialize_type_map(m) # :nodoc:
         super
 
+        register_class_with_limit m, %r(char)i, MysqlString
+
         m.register_type %r(tinytext)i,   Type::Text.new(limit: 2**8 - 1)
         m.register_type %r(tinyblob)i,   Type::Binary.new(limit: 2**8 - 1)
         m.register_type %r(text)i,       Type::Text.new(limit: 2**16 - 1)
@@ -672,7 +674,7 @@ module ActiveRecord
         m.register_type(%r(enum)i) do |sql_type|
           limit = sql_type[/^enum\((.+)\)/i, 1]
             .split(',').map{|enum| enum.strip.length - 2}.max
-          Type::String.new(limit: limit)
+          MysqlString.new(limit: limit)
         end
       end
 
@@ -844,6 +846,26 @@ module ActiveRecord
           case $1
           when 'CASCADE'; :cascade
           when 'SET NULL'; :nullify
+          end
+        end
+      end
+
+      class MysqlString < Type::String # :nodoc:
+        def type_cast_for_database(value)
+          case value
+          when true then "1"
+          when false then "0"
+          else super
+          end
+        end
+
+        private
+
+        def cast_value(value)
+          case value
+          when true then "1"
+          when false then "0"
+          else super
           end
         end
       end
