@@ -326,7 +326,7 @@ module ApplicationTests
       require "#{app_path}/config/environment"
 
 
-      assert_equal app.env_config['action_dispatch.key_generator'],     Rails.application.key_generator
+      assert_equal app.env_config['action_dispatch.key_generator'], Rails.application.key_generator
       assert_equal app.env_config['action_dispatch.key_generator'].class, ActiveSupport::LegacyKeyGenerator
       message = app.message_verifier(:sensitive_value).generate("some_value")
       assert_equal 'some_value', Rails.application.message_verifier(:sensitive_value).verify(message)
