@@ -1,3 +1,5 @@
+*   Response etags to always be weak: Prefixed 'W/' to value returned by `ActionDispatch::Http::Cache::Response#etag`, such that etags set in `fresh_when` and `stale?` are weak. Fixes #17556.
+
 *   Deprecate the `only_path` option on `*_path` helpers.
 
     In cases where this option is set to `true`, the option is redundant and can
