@@ -25,8 +25,7 @@ module AbstractController
 
         path = klass.new.fun_path({:controller => :articles,
                                    :baz        => "baz",
-                                   :zot        => "zot",
-                                   :only_path  => true })
+                                   :zot        => "zot"})
         # :bar key isn't provided
         assert_equal '/foo/zot', path
       end
@@ -291,7 +290,7 @@ module AbstractController
           assert_equal '/brave/new/world',
             controller.url_for(:controller => 'brave', :action => 'new', :id => 'world', :only_path => true)
 
-          assert_equal("/home/sweet/home/alabama", controller.home_path(:user => 'alabama', :host => 'unused', :only_path => true))
+          assert_equal("/home/sweet/home/alabama", controller.home_path(:user => 'alabama', :host => 'unused'))
           assert_equal("/home/sweet/home/alabama", controller.home_path('alabama'))
         end
       end
