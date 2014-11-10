@@ -105,7 +105,10 @@ HEADER
       end
 
       def table(table, stream)
-        columns = @connection.columns(table)
+        columns = @connection.columns(table).map do |column|
+          column.instance_variable_set(:@table_name, table)
+          column
+        end
         begin
           tbl = StringIO.new
 

@@ -28,6 +28,7 @@ module ActiveRecord
         @null = null
         @default = default
         @default_function = default_function
+        @table_name = nil
       end
 
       def has_default?

@@ -13,6 +13,10 @@ module ActiveRecord
         end
       end
 
+      class ColumnDefinition < ActiveRecord::ConnectionAdapters::ColumnDefinition
+        attr_accessor :charset, :collation
+      end
+
       class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
         include ColumnMethods
 
@@ -23,7 +27,15 @@ module ActiveRecord
             column.type = :integer
             column.auto_increment = true
           end
+          column.charset = options[:charset]
+          column.collation = options[:collation]
           column
+        end
+
+        private
+
+        def create_column_definition(name, type)
+          ColumnDefinition.new(name, type)
         end
       end
 
@@ -58,6 +70,23 @@ module ActiveRecord
         def visit_ChangeColumnDefinition(o)
           change_column_sql = "CHANGE #{quote_column_name(o.name)} #{accept(o.column)}"
           add_column_position!(change_column_sql, column_options(o.column))
+        end
+
+        def column_options(o)
+          column_options = super
+          column_options[:charset] = o.charset
+          column_options[:collation] = o.collation
+          column_options
+        end
+
+        def add_column_options!(sql, options)
+          if options[:charset]
+            sql << " CHARACTER SET #{options[:charset]}"
+          end
+          if options[:collation]
+            sql << " COLLATE #{options[:collation]}"
+          end
+          super
         end
 
         def add_column_position!(sql, options)
@@ -99,7 +128,16 @@ module ActiveRecord
         spec = super
         spec.delete(:precision) if /time/ === column.sql_type && column.precision == 0
         spec.delete(:limit)     if :boolean === column.type
+        if column.collation && table_name = column.instance_variable_get(:@table_name)
+          @collation_cache ||= {}
+          @collation_cache[table_name] ||= select_one("SHOW TABLE STATUS LIKE '#{table_name}'")["Collation"]
+          spec[:collation] = column.collation.inspect if column.collation != @collation_cache[table_name]
+        end
         spec
+      end
+
+      def migration_keys
+        super + [:collation]
       end
 
       class Column < ConnectionAdapters::Column # :nodoc:

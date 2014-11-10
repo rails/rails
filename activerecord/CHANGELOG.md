@@ -1,3 +1,14 @@
+*   Add `:charset` and `:collation` options support for MySQL string and text columns.
+
+    Example:
+
+        create_table :foos do |t|
+          t.string :string_utf8_bin, charset: 'utf8', collation: 'utf8_bin'
+          t.text   :text_ascii,      charset: 'ascii'
+        end
+
+    *Ryuta Kamizono*
+
 *   Correctly dump `serial` and `bigserial`.
 
     *Ryuta Kamizono*
