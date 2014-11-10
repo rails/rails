@@ -429,7 +429,7 @@ module ActionController
     end
 
     def test_stale_with_etag
-      @request.if_none_match = Digest::MD5.hexdigest("123")
+      @request.if_none_match = %(W/"#{Digest::MD5.hexdigest('123')}")
       get :with_stale
       assert_equal 304, response.status.to_i
     end

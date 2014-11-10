@@ -1,3 +1,11 @@
+*   Response etags to always be weak: Prefixes 'W/' to value returned by
+   `ActionDispatch::Http::Cache::Response#etag=`, such that etags set in
+   `fresh_when` and `stale?` are weak.
+
+    Fixes #17556.
+
+    *Abhishek Yadav*
+
 *   Provide the name of HTTP Status code in assertions.
 
     *Sean Collins*
