@@ -11,12 +11,12 @@ module Rails
                     :eager_load, :exceptions_app, :file_watcher, :filter_parameters,
                     :force_ssl, :helpers_paths, :logger, :log_formatter, :log_tags,
                     :railties_order, :relative_url_root, :secret_key_base, :secret_token,
-                    :serve_static_assets, :ssl_options, :static_cache_control, :session_options,
+                    :ssl_options, :static_cache_control, :session_options,
                     :time_zone, :reload_classes_only_on_change,
                     :beginning_of_week, :filter_redirect, :x
 
       attr_writer :log_level
-      attr_reader :encoding
+      attr_reader :encoding, :serve_static_assets
 
       def initialize(*)
         super
@@ -64,6 +64,15 @@ module Rails
         @assets.js_compressor            = nil
         @assets.css_compressor           = nil
         @assets.logger                   = nil
+      end
+
+      def serve_static_assets=(serve_static_assets)
+        @serve_static_assets = case serve_static_assets
+        when "false"
+          false
+        else
+          serve_static_assets
+        end
       end
 
       def encoding=(value)

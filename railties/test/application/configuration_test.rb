@@ -49,6 +49,24 @@ module ApplicationTests
       FileUtils.rm_rf(new_app) if File.directory?(new_app)
     end
 
+
+    test "serve_static_assets converts false string to falsey" do
+      make_basic_app do |app|
+        app.config.serve_static_assets = :foo
+
+        app.config.serve_static_assets = "true"
+        assert_equal "true", app.config.serve_static_assets
+
+
+        app.config.serve_static_assets = "false"
+        assert_equal false, app.config.serve_static_assets
+
+
+        app.config.serve_static_assets = nil
+        assert_equal nil, app.config.serve_static_assets
+      end
+    end
+
     test "Rails.env does not set the RAILS_ENV environment variable which would leak out into rake tasks" do
       require "rails"
 

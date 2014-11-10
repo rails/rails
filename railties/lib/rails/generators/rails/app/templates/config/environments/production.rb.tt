@@ -20,8 +20,10 @@ Rails.application.configure do
   # NGINX, varnish or squid.
   # config.action_dispatch.rack_cache = true
 
-  # Disable Rails's static asset server (Apache or NGINX will already do this).
-  config.serve_static_assets = false
+  # When enabled Rails will serve static assets. If you have configured Apache
+  # or NGINX to serve assets, this can be disabled.
+  # Values `"false"`, `false`, and `nil` will disable.
+  config.serve_static_assets = ENV['SERVE_STATIC_ASSETS']
 
   <%- unless options.skip_sprockets? -%>
   # Compress JavaScripts and CSS.
