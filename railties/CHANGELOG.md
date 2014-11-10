@@ -1,3 +1,9 @@
+*   `secret_token` is now saved in `Rails.application.secrets.secret_token`
+    and it falls back to the value of `config.secret_token` when it is not
+    present in `config/secrets.yml`.
+
+    *Benjamin Fleischer*
+
 *   Specify dummy app's db migrate path in plugin's test_helper.rb.
 
     Fixes #16877.

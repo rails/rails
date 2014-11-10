@@ -158,7 +158,7 @@ module Rails
           key_generator = ActiveSupport::KeyGenerator.new(secrets.secret_key_base, iterations: 1000)
           ActiveSupport::CachingKeyGenerator.new(key_generator)
         else
-          ActiveSupport::LegacyKeyGenerator.new(config.secret_token)
+          ActiveSupport::LegacyKeyGenerator.new(secrets.secret_token)
         end
       end
     end
@@ -197,7 +197,7 @@ module Rails
         super.merge({
           "action_dispatch.parameter_filter" => config.filter_parameters,
           "action_dispatch.redirect_filter" => config.filter_redirect,
-          "action_dispatch.secret_token" => config.secret_token,
+          "action_dispatch.secret_token" => secrets.secret_token,
           "action_dispatch.secret_key_base" => secrets.secret_key_base,
           "action_dispatch.show_exceptions" => config.action_dispatch.show_exceptions,
           "action_dispatch.show_detailed_exceptions" => config.consider_all_requests_local,
@@ -329,6 +329,8 @@ module Rails
 
         # Fallback to config.secret_key_base if secrets.secret_key_base isn't set
         secrets.secret_key_base ||= config.secret_key_base
+        # Fallback to config.secret_token if secrets.secret_token isn't set
+        secrets.secret_token ||= config.secret_token
 
         secrets
       end
@@ -458,8 +460,13 @@ module Rails
     end
 
     def validate_secret_key_config! #:nodoc:
-      if secrets.secret_key_base.blank? && config.secret_token.blank?
-        raise "Missing `secret_key_base` for '#{Rails.env}' environment, set this value in `config/secrets.yml`"
+      if secrets.secret_key_base.blank?
+        ActiveSupport::Deprecation.warn "You didn't set `secret_key_base`. " +
+          "Read the upgrade documentation to learn more about this new config option."
+
+        if secrets.secret_token.blank?
+          raise "Missing `secret_token` and `secret_key_base` for '#{Rails.env}' environment, set these values in `config/secrets.yml`"
+        end
       end
     end
   end
