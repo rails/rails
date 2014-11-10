@@ -16,7 +16,7 @@ module ActiveSupport
   #     render text: 'Foo'
   #   end
   #
-  # That executes the block first and notifies all subscribers once done.
+  # That first executes the block and then notifies all subscribers once done.
   #
   # In the example above +render+ is the name of the event, and the rest is called
   # the _payload_. The payload is a mechanism that allows instrumenters to pass
