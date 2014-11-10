@@ -33,7 +33,13 @@ module ActiveRecord
           reload
         end
 
-        @proxy ||= CollectionProxy.create(klass, self)
+        if owner.new_record?
+          # Cache the proxy separately before the owner has an id
+          # or else a post-save proxy will still lack the id
+          @new_record_proxy ||= CollectionProxy.create(klass, self)
+        else
+          @proxy ||= CollectionProxy.create(klass, self)
+        end
       end
 
       # Implements the writer method, e.g. foo.items= for Foo.has_many :items

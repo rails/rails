@@ -1,3 +1,9 @@
+*   Cache `CollectionAssociation#reader` proxies separately before and after
+    the owner has been saved so that the proxy is not cached without the
+    owner's id.
+
+    *Ben Woosley*
+
 *   Fix preloading of associations which unscope a default scope.
 
     Fixes #11036.
