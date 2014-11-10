@@ -1,3 +1,10 @@
+*   Cache `CollectionAssociation#reader` proxies separately before and after
+    the owner has been saved so that the proxy is not cached without the
+    owner's id.
+
+    *Ben Woosley*
+
+
 ## Rails 4.0.10 (September 11, 2014) ##
 
 *   Fixed a regression where whitespaces were stripped from DISTINCT queries in
