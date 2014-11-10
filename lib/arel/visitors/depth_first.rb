@@ -173,6 +173,12 @@ module Arel
       def visit_Hash o
         o.each { |k,v| visit(k); visit(v) }
       end
+
+      DISPATCH = dispatch_cache
+
+      def get_dispatch_cache
+        DISPATCH
+      end
     end
   end
 end

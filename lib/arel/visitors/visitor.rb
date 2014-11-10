@@ -2,16 +2,7 @@ module Arel
   module Visitors
     class Visitor
       def initialize
-        @dispatch = Hash.new do |hash, class_name|
-          hash[class_name] = "visit_#{(class_name || '').gsub('::', '_')}"
-        end
-
-        # pre-populate cache. FIXME: this should be passed in to each
-        # instance, but we can do that later.
-        self.class.private_instance_methods.sort.each do |name|
-          next unless name =~ /^visit_(.*)$/
-          @dispatch[$1.gsub('_', '::')] = name
-        end
+        @dispatch = get_dispatch_cache
       end
 
       def accept object
@@ -19,6 +10,24 @@ module Arel
       end
 
       private
+
+      def self.dispatch_cache
+        dispatch = Hash.new do |hash, class_name|
+          hash[class_name] = "visit_#{(class_name || '').gsub('::', '_')}"
+        end
+
+        # pre-populate cache. FIXME: this should be passed in to each
+        # instance, but we can do that later.
+        self.class.private_instance_methods.sort.each do |name|
+          next unless name =~ /^visit_(.*)$/
+          dispatch[$1.gsub('_', '::')] = name
+        end
+        dispatch
+      end
+
+      def get_dispatch_cache
+        self.class.dispatch_cache
+      end
 
       def dispatch
         @dispatch
