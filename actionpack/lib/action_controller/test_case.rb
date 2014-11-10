@@ -710,7 +710,8 @@ module ActionController
             :relative_url_root => nil,
             :_recall => @request.path_parameters)
 
-          url, query_string = @routes.path_for(options).split("?", 2)
+          route_name = options.delete :use_route
+          url, query_string = @routes.path_for(options, route_name).split("?", 2)
 
           @request.env["SCRIPT_NAME"] = @controller.config.relative_url_root
           @request.env["PATH_INFO"] = url

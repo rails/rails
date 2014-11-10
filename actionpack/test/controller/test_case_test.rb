@@ -499,6 +499,18 @@ XML
     end
   end
 
+  def test_use_route
+    with_routing do |set|
+      set.draw do
+        get 'via_unnamed_route', to: 'test_case_test/test#test_uri'
+        get 'via_named_route', as: :a_named_route, to: 'test_case_test/test#test_uri'
+      end
+
+      get :test_uri, use_route: :a_named_route
+      assert_equal '/via_named_route', @response.body
+    end
+  end
+
   def test_assert_realistic_path_parameters
     get :test_params, :id => 20, :foo => Object.new
 
