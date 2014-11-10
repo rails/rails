@@ -413,6 +413,13 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal "Summit", Firm.all.merge!(:order => "id").first.clients_using_primary_key.first.name
   end
 
+  def test_update_all_on_association_accessed_before_save
+    firm = Firm.new(name: 'Firm')
+    firm.clients << Client.first
+    firm.save!
+    assert_equal firm.clients.count, firm.clients.update_all(description: 'Great!')
+  end
+
   def test_belongs_to_sanity
     c = Client.new
     assert_nil c.firm, "belongs_to failed sanity check on new object"

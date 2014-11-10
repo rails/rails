@@ -1,3 +1,9 @@
+*   Cache `CollectionAssociation#reader` proxies separately before and after
+    the owner has been saved so that the proxy is not cached without the
+    owner's id.
+
+    *Ben Woosley*
+
 *   `ActiveRecord::ReadOnlyRecord` now has a descriptive message.
 
     *Franky W.*
