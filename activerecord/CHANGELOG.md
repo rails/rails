@@ -1,3 +1,7 @@
+*   Add `Table#name` to match `TableDefinition#name`.
+
+    *Cody Cutrer*
+
 *   Cache `CollectionAssociation#reader` proxies separately before and after
     the owner has been saved so that the proxy is not cached without the
     owner's id.
