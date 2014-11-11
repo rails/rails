@@ -159,32 +159,45 @@ module ActiveRecord
         end
 
         def alias_name(name, alias_tracker)
-          alias_name = "#{plural_name}_#{name}_join"
-          table_name = klass.table_name
-          alias_tracker.aliased_table_for(table_name, alias_name)
+          @alias ||= begin
+            alias_name = "#{plural_name}_#{name}_join"
+            table_name = klass.table_name
+            alias_tracker.aliased_table_for(table_name, alias_name)
+          end
+        end
+      end
+
+      class ReflectionProxy < SimpleDelegator
+        def alias_name(name, alias_tracker)
+          @alias ||= begin
+            alias_name = "#{plural_name}_#{name}"
+            alias_tracker.aliased_table_for(table_name, alias_name)
+          end
         end
       end
 
       def get_chain(reflection, association)
-        chain = reflection.chain.dup
+        chain = reflection.chain.map { |reflection|
+          ReflectionProxy.new(reflection)
+        }
         chain[0] = RuntimeReflection.new(reflection, association)
         chain
       end
 
       def add_constraints(scope, owner, assoc_klass, refl, tracker, chain)
-        tables = construct_tables(chain, tracker, refl.name)
-
+        construct_tables(chain, tracker, refl.name)
         owner_reflection = chain.last
-        table = tables.last
-        scope = last_chain_scope(scope, table, owner_reflection, owner, connection, assoc_klass)
+        table = owner_reflection.alias_name(refl.name, tracker)
+        scope = last_chain_scope(scope, table, owner_reflection, owner, tracker, assoc_klass)
 
         # chain.first always == refl
         chain.each_with_index do |reflection, i|
-          table, foreign_table = tables.shift, tables.first
+          table = reflection.alias_name(refl.name, tracker)
 
           unless reflection == chain.last
             next_reflection = chain[i + 1]
-            scope = next_chain_scope(scope, table, reflection, connection, assoc_klass, foreign_table, next_reflection)
+            foreign_table = next_reflection.alias_name(refl.name, tracker)
+            scope = next_chain_scope(scope, table, reflection, tracker, assoc_klass, foreign_table, next_reflection)
           end
 
           # Exclude the scope of the association itself, because that

@@ -165,11 +165,6 @@ module ActiveRecord
       def constraints
         scope ? [scope] : []
       end
-
-      def alias_name(name, alias_tracker)
-        alias_name = "#{plural_name}_#{name}"
-        alias_tracker.aliased_table_for(table_name, alias_name)
-      end
     end
 
     # Base class for AggregateReflection and AssociationReflection. Objects of
@@ -757,11 +752,6 @@ module ActiveRecord
           type = @prev_reflection.foreign_type
           source_type = @prev_reflection.options[:source_type]
           lambda { |object| where(type => source_type) }
-        end
-
-        def alias_name(name, alias_tracker)
-          alias_name = "#{plural_name}_#{name}"
-          alias_tracker.aliased_table_for(table_name, alias_name)
         end
       end
 
