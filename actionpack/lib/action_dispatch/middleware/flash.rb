@@ -125,7 +125,7 @@ module ActionDispatch
       end
 
       def key?(name)
-        @flashes.key? name
+        @flashes.key? name.to_s
       end
 
       def delete(key)
