@@ -89,9 +89,10 @@ class AssociationsTest < ActiveRecord::TestCase
   end
 
   def test_bad_collection_keys
-    assert_raise(ArgumentError, 'ActiveRecord should have barked on bad collection keys') do
+    e = assert_raise(ArgumentError, 'ActiveRecord should have barked on bad collection keys') do
       Class.new(ActiveRecord::Base).has_many(:wheels, :name => 'wheels')
     end
+    assert e.message.include? "Unknown key:"
   end
 
   def test_should_construct_new_finder_sql_after_create

@@ -511,14 +511,16 @@ class MigrationTest < ActiveRecord::TestCase
   if current_adapter?(:MysqlAdapter, :Mysql2Adapter, :PostgreSQLAdapter)
     def test_out_of_range_limit_should_raise
       Person.connection.drop_table :test_limits rescue nil
-      assert_raise(ActiveRecord::ActiveRecordError, "integer limit didn't raise") do
+      e = assert_raise(ActiveRecord::ActiveRecordError, "integer limit didn't raise") do
         Person.connection.create_table :test_integer_limits, :force => true do |t|
           t.column :bigone, :integer, :limit => 10
         end
       end
 
+      assert_match /No integer type has byte size 10/, e.message
+
       unless current_adapter?(:PostgreSQLAdapter)
-        assert_raise(ActiveRecord::ActiveRecordError, "text limit didn't raise") do
+        e = assert_raise(ActiveRecord::ActiveRecordError, "text limit didn't raise") do
           Person.connection.create_table :test_text_limits, :force => true do |t|
             t.column :bigtext, :text, :limit => 0xfffffffff
           end
