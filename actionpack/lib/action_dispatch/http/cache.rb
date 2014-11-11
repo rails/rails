@@ -84,7 +84,7 @@ module ActionDispatch
 
         def etag=(etag)
           key = ActiveSupport::Cache.expand_cache_key(etag)
-          @etag = self[ETAG] = %("#{Digest::MD5.hexdigest(key)}")
+          @etag = self[ETAG] = %(W/"#{Digest::MD5.hexdigest(key)}")
         end
 
       private
