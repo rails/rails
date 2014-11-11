@@ -34,7 +34,7 @@ module ActiveRecord
         scope         = klass.unscoped
         owner         = association.owner
         alias_tracker = AliasTracker.empty connection
-        chain         = get_chain(reflection, association)
+        chain         = get_chain(reflection, association, alias_tracker)
 
         scope.extending! Array(reflection.options[:extend])
         add_constraints(scope, owner, klass, reflection, alias_tracker, chain)
@@ -62,13 +62,6 @@ module ActiveRecord
       end
 
       private
-
-      def construct_tables(chain, alias_tracker, name)
-        chain.map do |reflection|
-          reflection.alias_name(name, alias_tracker)
-        end
-      end
-
       def join(table, constraint)
         table.create_join(table, table.create_on(constraint), join_type)
       end
@@ -176,16 +169,20 @@ module ActiveRecord
         end
       end
 
-      def get_chain(reflection, association)
-        chain = reflection.chain.map { |reflection|
-          ReflectionProxy.new(reflection)
+      def get_chain(refl, association, tracker)
+        name = refl.name
+        runtime_reflection = RuntimeReflection.new(refl, association)
+        runtime_reflection.alias_name(name, tracker)
+        chain = [runtime_reflection]
+        chain.concat refl.chain.drop(1).map { |reflection|
+          proxy = ReflectionProxy.new(reflection)
+          proxy.alias_name(name, tracker)
+          proxy
         }
-        chain[0] = RuntimeReflection.new(reflection, association)
         chain
       end
 
       def add_constraints(scope, owner, assoc_klass, refl, tracker, chain)
-        construct_tables(chain, tracker, refl.name)
         owner_reflection = chain.last
         table = owner_reflection.alias_name(refl.name, tracker)
         scope = last_chain_scope(scope, table, owner_reflection, owner, tracker, assoc_klass)
@@ -209,7 +206,7 @@ module ActiveRecord
               scope.merge! item.except(:where, :includes, :bind)
             end
 
-            if i == 0
+            if reflection == chain.first
               scope.includes! item.includes_values
             end
 
