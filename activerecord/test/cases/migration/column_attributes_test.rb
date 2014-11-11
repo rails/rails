@@ -180,6 +180,16 @@ module ActiveRecord
           end
         end
       end
+
+      def test_add_column_with_index
+        add_column "test_models", "first_name", :integer, index: true
+        assert index_exists?('test_models', 'first_name')
+      end
+
+      def test_add_column_with_index_as_hash
+        add_column "test_models", "first_name", :integer, index: { name: 'index_test_models_on_first_name' }
+        assert index_exists?('test_models', 'first_name', name: 'index_test_models_on_first_name')
+      end
     end
   end
 end

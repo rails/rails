@@ -1,3 +1,7 @@
+*   The `:index` option in migrations now works with `add_column`.
+
+    *Andrey Deryabin*
+
 *   Cache `CollectionAssociation#reader` proxies separately before and after
     the owner has been saved so that the proxy is not cached without the
     owner's id.

@@ -80,6 +80,15 @@ class ActiveSchemaTest < ActiveRecord::TestCase
     assert_equal "ALTER TABLE `people` ADD `last_name` varchar(255)", add_column(:people, :last_name, :string)
   end
 
+  def test_add_column_with_index
+    def (ActiveRecord::Base.connection).table_exists?(*); true; end
+    def (ActiveRecord::Base.connection).index_name_exists?(*); false; end
+
+    expected = %{ALTER TABLE `people` ADD `last_name` varchar(255);
+CREATE  INDEX `index_people_on_last_name`  ON `people` (`last_name`) }
+    assert_equal expected, add_column(:people, :last_name, :string, index: true)
+  end
+
   def test_add_column_with_limit
     assert_equal "ALTER TABLE `people` ADD `key` varchar(32)", add_column(:people, :key, :string, :limit => 32)
   end

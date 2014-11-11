@@ -372,8 +372,11 @@ module ActiveRecord
       # See TableDefinition#column for details of the options you can use.
       def add_column(table_name, column_name, type, options = {})
         at = create_alter_table table_name
+        index_options = options.delete(:index)
         at.add_column(column_name, type, options)
-        execute schema_creation.accept at
+        result = Array(execute schema_creation.accept at)
+        result << add_index(table_name, column_name, index_options.is_a?(Hash) ? index_options : {}) if index_options
+        result.compact.join(";\n")
       end
 
       # Removes the given columns from the table definition.
