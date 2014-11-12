@@ -48,6 +48,7 @@ module ActionDispatch
     PATH_SEPS = Regexp.union(*[::File::SEPARATOR, ::File::ALT_SEPARATOR].compact)
 
     def clean_path_info(path_info)
+      path_info.force_encoding('binary') if path_info.respond_to? :force_encoding
       parts = path_info.split PATH_SEPS
 
       clean = []
