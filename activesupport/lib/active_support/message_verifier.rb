@@ -40,7 +40,7 @@ module ActiveSupport
       data, digest = signed_message.split("--")
       if data.present? && digest.present? && ActiveSupport::SecurityUtils.secure_compare(digest, generate_digest(data))
         begin
-          @serializer.load(::Base64.strict_decode64(data))
+          @serializer.load(decode(data))
         rescue ArgumentError => argument_error
           raise InvalidSignature if argument_error.message =~ %r{invalid base64}
           raise
@@ -51,11 +51,19 @@ module ActiveSupport
     end
 
     def generate(value)
-      data = ::Base64.strict_encode64(@serializer.dump(value))
+      data = encode(@serializer.dump(value))
       "#{data}--#{generate_digest(data)}"
     end
 
     private
+      def encode(data)
+        ::Base64.strict_encode64(data)
+      end
+
+      def decode(data)
+        ::Base64.strict_decode64(data)
+      end
+
       def generate_digest(data)
         require 'openssl' unless defined?(OpenSSL)
         OpenSSL::HMAC.hexdigest(OpenSSL::Digest.const_get(@digest).new, @secret, data)
