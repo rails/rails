@@ -792,7 +792,7 @@ when you initiate a Rails project.
 
 | Tasks                   | Description |
 | ----------------------- | ----------- |
-| `rake test`             | Runs all unit, functional and integration tests. You can also simply run `rake` as Rails will run all the tests by default |
+| `rake test`             | Runs all tests in the test folder. You can also simply run `rake` as Rails will run all the tests by default |
 | `rake test:controllers` | Runs all the controller tests from `test/controllers` |
 | `rake test:functionals` | Runs all the functional tests from `test/controllers`, `test/mailers`, and `test/functional` |
 | `rake test:helpers`     | Runs all the helper tests from `test/helpers` |
@@ -801,8 +801,7 @@ when you initiate a Rails project.
 | `rake test:mailers`     | Runs all the mailer tests from `test/mailers` |
 | `rake test:models`      | Runs all the model tests from `test/models` |
 | `rake test:units`       | Runs all the unit tests from `test/models`, `test/helpers`, and `test/unit` |
-| `rake test:all`         | Runs all tests quickly by merging all types and not resetting db |
-| `rake test:all:db`      | Runs all tests quickly by merging all types and resetting db |
+| `rake test:db`          | Runs all tests and resets the db |
 
 
 Brief Note About `Minitest`

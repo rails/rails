@@ -181,4 +181,10 @@
 
     *Yves Senn*, *Carlos Antonio da Silva*, *Robin Dupret*
 
+*   Make `rake test` run all tests in test folder.
+
+    Deprecate `rake test:all` and replace `rake test:all:db` with `rake test:db`
+
+    *David Geukers*
+
 Please check [4-1-stable](https://github.com/rails/rails/blob/4-1-stable/railties/CHANGELOG.md) for previous changes.
