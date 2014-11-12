@@ -1,3 +1,7 @@
+*   Add `SchemaMigration.create_table` support any unicode charsets for MySQL.
+
+    *Ryuta Kamizono*
+
 *   PostgreSQL, no longer disables user triggers if system triggers can't be
     disabled. Disabling user triggers does not fulfill what the method promises.
     Rails currently requires superuser privileges for this method.

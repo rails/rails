@@ -235,6 +235,16 @@ module ActiveRecord
         end
       end
 
+      MAX_INDEX_LENGTH_FOR_CHARSETS_OF_4BYTES_MAXLEN = 191
+      CHARSETS_OF_4BYTES_MAXLEN = ['utf8mb4', 'utf16', 'utf16le', 'utf32']
+      def initialize_schema_migrations_table
+        if CHARSETS_OF_4BYTES_MAXLEN.include?(charset)
+          ActiveRecord::SchemaMigration.create_table(MAX_INDEX_LENGTH_FOR_CHARSETS_OF_4BYTES_MAXLEN)
+        else
+          ActiveRecord::SchemaMigration.create_table
+        end
+      end
+
       # Returns true, since this connection adapter supports migrations.
       def supports_migrations?
         true

@@ -2,7 +2,7 @@ require "cases/helper"
 
 module ActiveRecord
   module ConnectionAdapters
-    class Mysql2Adapter
+    class AbstractMysqlAdapter
       class SchemaMigrationsTest < ActiveRecord::TestCase
         def test_renaming_index_on_foreign_key
           connection.add_index "engines", "car_id"
@@ -28,7 +28,7 @@ module ActiveRecord
 
           connection.initialize_schema_migrations_table
 
-          assert connection.column_exists?(smtn, :version, :string, limit: Mysql2Adapter::MAX_INDEX_LENGTH_FOR_UTF8MB4)
+          assert connection.column_exists?(smtn, :version, :string, limit: AbstractMysqlAdapter::MAX_INDEX_LENGTH_FOR_CHARSETS_OF_4BYTES_MAXLEN)
         ensure
           execute("ALTER DATABASE #{database_name} DEFAULT CHARACTER SET #{original_charset} COLLATE #{original_collation}")
         end
