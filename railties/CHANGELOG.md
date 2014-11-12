@@ -1,3 +1,8 @@
+*   `Rails::Paths::Path.unshift` is now have the same interface as
+    `Array.unshift`.
+
+    *Igor Kapkov*
+
 *   `secret_token` is now saved in `Rails.application.secrets.secret_token`
     and it falls back to the value of `config.secret_token` when it is not
     present in `config/secrets.yml`.
