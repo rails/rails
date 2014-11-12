@@ -167,8 +167,8 @@ module Rails
         @paths.concat paths
       end
 
-      def unshift(path)
-        @paths.unshift path
+      def unshift(*paths)
+        @paths.unshift(*paths)
       end
 
       def to_ary
