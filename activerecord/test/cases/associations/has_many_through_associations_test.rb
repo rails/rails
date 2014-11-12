@@ -14,6 +14,7 @@ require 'models/pet'
 require 'models/toy'
 require 'models/contract'
 require 'models/company'
+require 'models/computer'
 require 'models/developer'
 require 'models/subscriber'
 require 'models/book'
@@ -75,6 +76,31 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       assert_operator left.id, :>, right.id
     end
   end
+
+  def test_many_to_many_new_then_save_with_plural_association_name
+    person_model = make_model('Person')
+    job_model = make_model('Job')
+    ref_model = make_model('Reference')
+
+    ref_model.belongs_to :job, class: job_model
+    ref_model.belongs_to :person, class: person_model
+
+    person_model.has_many :references, class: ref_model
+    person_model.has_many :jobs, through: :references, class: job_model
+
+    # but if change the below lines :references to singular association will pass the test
+    # ex: 
+    #    job_model.has_many :reference, class: ref_model
+    #    job_model.has_many :persons, through: :reference, class: person_model
+    job_model.has_many :reference, class: ref_model
+    job_model.has_many :persons, through: :reference, class: person_model
+
+    person = person_model.create(first_name: 'ADZ')
+    job = person.jobs.new.tap { |j| j.save }
+    assert job.persisted?, 'should be a persisted record'
+    assert person.jobs.reload.include?(job), 'should find association'
+  end
+
 
   def test_singleton_has_many_through
     book         = make_model "Book"
