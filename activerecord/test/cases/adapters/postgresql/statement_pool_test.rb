@@ -35,6 +35,14 @@ module ActiveRecord
           cache['foo'] = 'bar'
           assert_nothing_raised { cache.clear }
         end
+
+        def test_next_key_always_returns_new_key
+          cache = StatementPool.new nil, 10
+          key1 = cache.next_key
+          key2 = cache.next_key
+
+          assert key1 != key2, 'each call to next_key should return different key'
+        end
       end
     end
   end

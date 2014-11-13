@@ -182,14 +182,14 @@ module ActiveRecord
         def length;       cache.length; end
 
         def next_key
-          "a#{@counter + 1}"
+          @counter += 1
+          "a#{@counter}"
         end
 
         def []=(sql, key)
           while @max <= cache.size
             dealloc(cache.shift.last)
           end
-          @counter += 1
           cache[sql] = key
         end
 
