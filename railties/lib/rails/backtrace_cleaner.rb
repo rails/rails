@@ -15,7 +15,7 @@ module Rails
       add_filter { |line| line.sub(RENDER_TEMPLATE_PATTERN, EMPTY_STRING) }
       add_filter { |line| line.sub(DOT_SLASH, SLASH) } # for tests
 
-      add_gem_filters
+      add_gem_filters if defined?(Gem)
       add_silencer { |line| line !~ APP_DIRS_PATTERN }
     end
 
