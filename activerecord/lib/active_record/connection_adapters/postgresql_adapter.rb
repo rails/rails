@@ -13,7 +13,7 @@ require 'active_record/connection_adapters/postgresql/database_statements'
 require 'arel/visitors/bind_visitor'
 
 # Make sure we're using pg high enough for PGResult#values
-gem 'pg', '~> 0.11'
+gem 'pg', '~> 0.15'
 require 'pg'
 
 require 'ipaddr'
@@ -596,9 +596,7 @@ module ActiveRecord
           }
 
           log(sql, name, type_casted_binds, stmt_key) do
-            @connection.send_query_prepared(stmt_key, type_casted_binds.map { |_, val| val })
-            @connection.block
-            @connection.get_last_result
+            @connection.exec_prepared(stmt_key, type_casted_binds.map { |_, val| val })
           end
         rescue ActiveRecord::StatementInvalid => e
           pgerror = e.original_exception
