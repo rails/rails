@@ -82,7 +82,7 @@ Each fixture is given a name followed by an indented list of colon-separated key
 
 If you are working with [associations](/association_basics.html), you can simply
 define a reference node between two different fixtures. Here's an example with
-a belongs_to/has_many association:
+a `belongs_to`/`has_many` association:
 
 ```yaml
 # In fixtures/categories.yml
