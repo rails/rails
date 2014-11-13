@@ -786,13 +786,14 @@ Rake Tasks for Running your Tests
 ---------------------------------
 
 You don't need to set up and run your tests by hand on a test-by-test basis.
-Rails comes with a number of commands to help in testing.
-The table below lists all commands that come along in the default Rakefile
+Rails comes with a number of built-in rake tasks to help in testing.
+Below table lists available commands which comes along with `Rakefile` tasks
 when you initiate a Rails project.
 
 | Tasks                   | Description |
 | ----------------------- | ----------- |
-| `rake test`             | Runs all tests in the test folder. You can also simply run `rake` as Rails will run all the tests by default |
+| `rake test`             | Runs all tests in the test folder by default |
+| `rake test:all`         | Runs tests quickly by merging all types and not resetting the db |
 | `rake test:controllers` | Runs all the controller tests from `test/controllers` |
 | `rake test:functionals` | Runs all the functional tests from `test/controllers`, `test/mailers`, and `test/functional` |
 | `rake test:helpers`     | Runs all the helper tests from `test/helpers` |
@@ -802,6 +803,7 @@ when you initiate a Rails project.
 | `rake test:models`      | Runs all the model tests from `test/models` |
 | `rake test:units`       | Runs all the unit tests from `test/models`, `test/helpers`, and `test/unit` |
 | `rake test:db`          | Runs all tests and resets the db |
+| `rake test:all:db`      | Runs tests quickly by merging all types and resets the db |
 
 
 Brief Note About `Minitest`
