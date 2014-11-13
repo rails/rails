@@ -901,12 +901,16 @@ end
 Testing Routes
 --------------
 
-Like everything else in your Rails application, it is recommended that you test your routes. An example test for a route in the default `show` action of `Articles` controller above should look like:
+Like everything else in your Rails application, it is recommended that you test your routes. Below are example tests for the routes of default `show` and `create` action of `Articles` controller above and it should look like:
 
 ```ruby
 class ArticleRoutesTest < ActionController::TestCase
   test "should route to article" do
     assert_routing '/articles/1', { controller: "articles", action: "show", id: "1" }
+  end
+
+  test "should route to create article" do
+    assert_routing({ method: 'post', path: '/articles' }, { controller: "articles", action: "create" })
   end
 end
 ```
