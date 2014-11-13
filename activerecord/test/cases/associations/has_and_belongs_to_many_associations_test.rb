@@ -79,6 +79,10 @@ class SubDeveloper < Developer
     :association_foreign_key => "developer_id"
 end
 
+class DeveloperWithSymbolClassName < Developer
+  has_and_belongs_to_many :projects, class_name: :ProjectWithSymbolsForKeys
+end
+
 class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :categories, :posts, :categories_posts, :developers, :projects, :developers_projects,
            :parrots, :pirates, :parrots_pirates, :treasures, :price_estimates, :tags, :taggings, :computers
@@ -891,5 +895,11 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     # we've been able to reproduce this bug
     assert_not_nil File.read(File.expand_path("../../../fixtures/developers.yml", __FILE__)).index("shared_computers")
     assert_equal developers(:david).shared_computers.first, computers(:laptop)
+  end
+
+  def test_with_symbol_class_name
+    assert_nothing_raised NoMethodError do
+      DeveloperWithSymbolClassName.new
+    end
   end
 end

@@ -110,7 +110,7 @@ module ActiveRecord::Associations::Builder
       rhs_options = {}
 
       if options.key? :class_name
-        rhs_options[:foreign_key] = options[:class_name].foreign_key
+        rhs_options[:foreign_key] = options[:class_name].to_s.foreign_key
         rhs_options[:class_name] = options[:class_name]
       end
 
