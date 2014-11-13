@@ -90,6 +90,7 @@ module ActionView
         ENCODING_TAG = Regexp.new("\\A(<%#{ENCODING_FLAG}-?%>)[ \\t]*")
 
         def self.call(template)
+          binding.pry
           new.call(template)
         end
 

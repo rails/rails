@@ -50,6 +50,8 @@ module RenderTestCases
     assert_equal "Hello world", @view.render(:template => "test/one", :formats => [:html])
   end
 
+
+
   def test_render_partial_implicitly_use_format_of_the_rendered_partial
     @view.lookup_context.formats = [:html]
     assert_equal "Third level", @view.render(:template => "test/html_template")
@@ -378,6 +380,15 @@ module RenderTestCases
 
   def test_render_fallbacks_to_erb_for_unknown_types
     assert_equal "Hello, World!", @view.render(:inline => "Hello, World!", :type => :bar)
+  end
+
+  def test_js_debug
+    @view.class.debug_js = true
+
+    output = @view.render(:file => "test/layout_render_file")
+    js_wrapped_output = @view.render(:file => "test/layout_render_file", :formats => [:js])
+
+    assert_equal "try {#{output}}catch(e){console.error(e);}", js_wrapped_output
   end
 
   CustomHandler = lambda do |template|

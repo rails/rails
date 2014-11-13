@@ -149,6 +149,8 @@ module ActionView #:nodoc:
     # Specify default_formats that can be rendered.
     cattr_accessor :default_formats
 
+    cattr_accessor :debug_js
+
     # Specify whether an error should be raised for missing translations
     cattr_accessor :raise_on_missing_translations
     @@raise_on_missing_translations = false

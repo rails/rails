@@ -97,7 +97,7 @@ module ActionView
 
     extend Template::Handlers
 
-    attr_accessor :locals, :formats, :variants, :virtual_path
+    attr_accessor :locals, :formats, :variants, :virtual_path, :path
 
     attr_reader :source, :identifier, :handler, :original_encoding, :updated_at
 
@@ -117,6 +117,7 @@ module ActionView
       @source            = source
       @identifier        = identifier
       @handler           = handler
+      @path              = inspect
       @compiled          = false
       @original_encoding = nil
       @locals            = details[:locals] || []
@@ -140,6 +141,7 @@ module ActionView
     # we use a bang in this instrumentation because you don't want to
     # consume this in production. This is only slow if it's being listened to.
     def render(view, locals, buffer=nil, &block)
+      puts "compile! and render"
       instrument("!render_template") do
         compile!(view)
         view.send(method_name, locals, buffer, &block)
@@ -268,6 +270,9 @@ module ActionView
         encode!
         method_name = self.method_name
         code = @handler.call(self)
+
+        binding.pry
+        #####
 
         # Make sure that the resulting String to be eval'd is in the
         # encoding of the code

@@ -6,6 +6,7 @@ module ActionView
       @view    = context
       @details = extract_details(options)
       template = determine_template(options)
+      @path    = template.path
 
       prepend_formats(template.formats)
 
@@ -51,7 +52,10 @@ module ActionView
 
       render_with_layout(layout_name, locals) do |layout|
         instrument(:template, :identifier => template.identifier, :layout => layout.try(:virtual_path)) do
-          template.render(view, locals) { |*name| view._layout_for(*name) }
+          puts "1111"
+          x = template.render(view, locals) { |*name| view._layout_for(*name) }
+          puts "2222"
+          x
         end
       end
     end

@@ -4,6 +4,7 @@ require "rails"
 module ActionView
   # = Action View Railtie
   class Railtie < Rails::Railtie # :nodoc:
+    #puts "config = #{config.inspect}"
     config.action_view = ActiveSupport::OrderedOptions.new
     config.action_view.embed_authenticity_token_in_remote_forms = false
 
@@ -26,6 +27,8 @@ module ActionView
           send "#{k}=", v
         end
       end
+
+      ActionView::Renderer.debug_js = app.config.debug_js
     end
 
     initializer "action_view.caching" do |app|

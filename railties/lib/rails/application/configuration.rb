@@ -8,7 +8,7 @@ module Rails
     class Configuration < ::Rails::Engine::Configuration
       attr_accessor :allow_concurrency, :asset_host, :assets, :autoflush_log,
                     :cache_classes, :cache_store, :consider_all_requests_local, :console,
-                    :eager_load, :exceptions_app, :file_watcher, :filter_parameters,
+                    :debug_js, :eager_load, :exceptions_app, :file_watcher, :filter_parameters,
                     :force_ssl, :helpers_paths, :logger, :log_formatter, :log_tags,
                     :railties_order, :relative_url_root, :secret_key_base, :secret_token,
                     :serve_static_files, :ssl_options, :static_cache_control, :session_options,
@@ -29,6 +29,7 @@ module Rails
         @serve_static_files            = true
         @static_cache_control          = nil
         @force_ssl                     = false
+        @debug_js                      = false
         @ssl_options                   = {}
         @session_store                 = :cookie_store
         @session_options               = {}
