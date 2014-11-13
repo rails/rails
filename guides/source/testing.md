@@ -1121,3 +1121,4 @@ The built-in `minitest` based testing is not the only way to test Rails applicat
 * [MiniTest::Spec Rails](https://github.com/metaskills/minitest-spec-rails), use the MiniTest::Spec DSL within your rails tests.
 * [Shoulda](http://www.thoughtbot.com/projects/shoulda), an extension to `test/unit` with additional helpers, macros, and assertions.
 * [RSpec](http://relishapp.com/rspec), a behavior-driven development framework
+* [Capybara](http://jnicklas.github.com/capybara/), Acceptance test framework for web applications
