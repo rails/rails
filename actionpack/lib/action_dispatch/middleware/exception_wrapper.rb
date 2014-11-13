@@ -65,8 +65,12 @@ module ActionDispatch
       full_trace.each_with_index do |trace, idx|
         trace_with_id = { id: idx, trace: trace }
 
-        appplication_trace_with_ids << trace_with_id if application_trace.include?(trace)
-        framework_trace_with_ids << trace_with_id if framework_trace.include?(trace)
+        if application_trace.include?(trace)
+          appplication_trace_with_ids << trace_with_id
+        else
+          framework_trace_with_ids << trace_with_id
+        end
+
         full_trace_with_ids << trace_with_id
       end
 
