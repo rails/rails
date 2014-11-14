@@ -165,19 +165,15 @@ module ActiveRecord
       # record instance. For single-table inheritance, we check the record
       # for a +type+ column and return the corresponding class.
       def discriminate_class_for_record(record)
-        discriminate_class_for_value(record[inheritance_column])
-      end
-
-      def discriminate_class_for_value(value)
-        if using_single_table_inheritance?(value)
-          find_sti_class(value)
+        if using_single_table_inheritance?(record)
+          find_sti_class(record[inheritance_column])
         else
           super
         end
       end
 
-      def using_single_table_inheritance?(value)
-        value.present? && columns_hash.include?(inheritance_column)
+      def using_single_table_inheritance?(record)
+        record[inheritance_column].present? && columns_hash.include?(inheritance_column)
       end
 
       def find_sti_class(type_name)

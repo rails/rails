@@ -54,15 +54,6 @@ module ActiveRecord
       end
     end
 
-    def each_pair
-      return to_enum(__method__) unless block_given?
-
-      columns = @columns.map { |c| c.dup.freeze }
-      @rows.each do |row|
-        yield columns, row
-      end
-    end
-
     def to_hash
       hash_rows
     end

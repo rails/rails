@@ -65,40 +65,18 @@ module ActiveRecord
       # how this "single-table" inheritance mapping is implemented.
       def instantiate(attributes, column_types = {})
         klass = discriminate_class_for_record(attributes)
-        klass.instantiate_pairs(attributes.keys, attributes.values, column_types)
-      end
-
-      def instantiate_pairs(columns, values, column_types = {}) # :nodoc:
-        attributes = attributes_builder.build_from_database_pairs(columns, values, column_types)
-        allocate.init_with('attributes' => attributes, 'new_record' => false)
-      end
-
-      def instantiate_result_set(result_set, column_types = {}) # :nodoc:
-        inheritance_column_index = inheritance_column && result_set.columns.find_index(inheritance_column)
-
-        result_set.each_pair.map do |columns, values|
-          inheritance_value = inheritance_column_index && values[inheritance_column_index]
-          klass = discriminate_class_for_value(inheritance_value)
-          klass.instantiate_pairs(columns, values, column_types)
-        end
+        attributes = klass.attributes_builder.build_from_database(attributes, column_types)
+        klass.allocate.init_with('attributes' => attributes, 'new_record' => false)
       end
 
       private
         # Called by +instantiate+ to decide which class to use for a new
         # record instance.
         #
-        # See +ActiveRecord::Inheritance#discriminate_class_for_value+ for
+        # See +ActiveRecord::Inheritance#discriminate_class_for_record+ for
         # the single-table inheritance discriminator.
-        def discriminate_class_for_value(*)
-          self
-        end
-
         def discriminate_class_for_record(record)
           self
-        end
-
-        def inheritance_column
-          nil
         end
     end
 
