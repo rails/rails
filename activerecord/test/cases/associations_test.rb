@@ -1,6 +1,7 @@
 require "cases/helper"
 require 'models/computer'
 require 'models/developer'
+require 'models/computer'
 require 'models/project'
 require 'models/company'
 require 'models/categorization'

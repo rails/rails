@@ -2,6 +2,7 @@ require 'cases/helper'
 require 'models/post'
 require 'models/comment'
 require 'models/developer'
+require 'models/computer'
 
 class DefaultScopingTest < ActiveRecord::TestCase
   fixtures :developers, :posts, :comments
