@@ -252,7 +252,10 @@ module ActiveRecord
 
       def relation #:nodoc:
         relation = Relation.create(self, arel_table)
+        ensure_relation_typed(relation)
+      end
 
+      def ensure_relation_typed(relation) #:nodoc:
         if finder_needs_type_condition?
           relation.where(type_condition).create_with(inheritance_column.to_sym => sti_name)
         else
