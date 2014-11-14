@@ -5,6 +5,7 @@ require 'bigdecimal/util'
 require 'models/person'
 require 'models/topic'
 require 'models/developer'
+require 'models/computer'
 
 require MIGRATIONS_ROOT + "/valid/2_we_need_reminders"
 require MIGRATIONS_ROOT + "/rename/1_we_need_things"
