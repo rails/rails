@@ -4,7 +4,6 @@ require "rails"
 module ActionView
   # = Action View Railtie
   class Railtie < Rails::Railtie # :nodoc:
-    #puts "config = #{config.inspect}"
     config.action_view = ActiveSupport::OrderedOptions.new
     config.action_view.embed_authenticity_token_in_remote_forms = false
 

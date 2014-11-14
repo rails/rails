@@ -302,6 +302,11 @@ module ActionView
         ObjectSpace.define_finalizer(self, Finalizer[method_name, mod])
       end
 
+      def track_render(partial)
+        puts "partial = #{partial.inspect}"
+        partial
+      end
+
       def handle_render_error(view, e) #:nodoc:
         if e.is_a?(Template::Error)
           e.sub_template_of(self)

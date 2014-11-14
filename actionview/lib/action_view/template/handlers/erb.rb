@@ -40,9 +40,9 @@ module ActionView
         def add_expr_literal(src, code)
           flush_newline_if_pending(src)
           if code =~ BLOCK_EXPR
-            src << '@output_buffer.append= ' << code
+            src << '@output_buffer.append=track_render(' << code << ')'
           else
-            src << '@output_buffer.append=(' << code << ');'
+            src << '@output_buffer.append=(track_render(' << code << '));'
           end
         end
 

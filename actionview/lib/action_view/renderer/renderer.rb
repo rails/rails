@@ -74,7 +74,7 @@ module ActionView
       @partials.each do |partial_data|
 
         partial_output = partial_data[1]
-        source_index   = source.index(partial_output)
+        source_index   = source.index(partial_output) || source.index(escape_javascript(partial_output))
 
         if source_index
           partial_path    = partial_data[0]

@@ -52,10 +52,7 @@ module ActionView
 
       render_with_layout(layout_name, locals) do |layout|
         instrument(:template, :identifier => template.identifier, :layout => layout.try(:virtual_path)) do
-          puts "1111"
-          x = template.render(view, locals) { |*name| view._layout_for(*name) }
-          puts "2222"
-          x
+          template.render(view, locals) { |*name| view._layout_for(*name) }
         end
       end
     end
