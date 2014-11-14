@@ -23,7 +23,7 @@ module ActiveRecord
 
   class LazyAttributeHash
     delegate :select, :transform_values, to: :materialize
-    delegate :[], :[]=, :freeze, to: :delegate_hash
+    delegate :[]=, :freeze, to: :delegate_hash
 
     def initialize(types, values, additional_types)
       @types = types
@@ -31,11 +31,18 @@ module ActiveRecord
       @additional_types = additional_types
       @materialized = false
       @delegate_hash = {}
-      assign_default_proc
     end
 
     def key?(key)
       delegate_hash.key?(key) || values.key?(key) || types.key?(key)
+    end
+
+    def [](key)
+      if delegate_hash.key?(key)
+        delegate_hash[key]
+      else
+        assign_default_value(key)
+      end
     end
 
     def initialized_keys
@@ -44,7 +51,6 @@ module ActiveRecord
 
     def initialize_dup(_)
       @delegate_hash = delegate_hash.transform_values(&:dup)
-      assign_default_proc
       super
     end
 
@@ -59,22 +65,20 @@ module ActiveRecord
 
     private
 
-    def assign_default_proc
-      delegate_hash.default_proc = proc do |hash, name|
-        type = additional_types.fetch(name, types[name])
+    def assign_default_value(name)
+      type = additional_types.fetch(name, types[name])
 
-        if values.key?(name)
-          hash[name] = Attribute.from_database(name, values[name], type)
-        elsif types.key?(name)
-          hash[name] = Attribute.uninitialized(name, type)
-        end
+      if values.key?(name)
+        delegate_hash[name] = Attribute.from_database(name, values[name], type)
+      elsif types.key?(name)
+        delegate_hash[name] = Attribute.uninitialized(name, type)
       end
     end
 
     def materialize
       unless @materialized
-        values.each_key { |key| delegate_hash[key] }
-        types.each_key { |key| delegate_hash[key] }
+        values.each_key { |key| self[key] }
+        types.each_key { |key| self[key] }
         @materialized = true
       end
       delegate_hash
