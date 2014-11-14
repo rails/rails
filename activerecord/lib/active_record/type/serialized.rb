@@ -1,6 +1,6 @@
 module ActiveRecord
   module Type
-    class Serialized < SimpleDelegator # :nodoc:
+    class Serialized < DelegateClass(Type::Value) # :nodoc:
       include Mutable
       include Decorator
 
