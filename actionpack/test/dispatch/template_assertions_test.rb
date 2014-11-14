@@ -42,6 +42,7 @@ class AssertTemplateControllerTest < ActionDispatch::IntegrationTest
 
   def test_layout_reset_between_requests
     get '/assert_template/render_with_layout'
+    assert_nil assigns(:variable_for_layout)
     assert_template layout: 'layouts/standard'
 
     get '/assert_template/render_nothing'
