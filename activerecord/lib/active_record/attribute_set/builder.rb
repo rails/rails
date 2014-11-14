@@ -23,7 +23,6 @@ module ActiveRecord
 
   class LazyAttributeHash
     delegate :select, :transform_values, to: :materialize
-    delegate :[]=, :freeze, to: :delegate_hash
 
     def initialize(types, values, additional_types)
       @types = types
@@ -45,17 +44,19 @@ module ActiveRecord
       end
     end
 
+    def []=(key, value)
+      if frozen?
+        raise RuntimeError, "Can't modify frozen hash"
+      end
+      delegate_hash[key] = value
+    end
+
     def initialized_keys
       delegate_hash.keys | values.keys
     end
 
     def initialize_dup(_)
       @delegate_hash = delegate_hash.transform_values(&:dup)
-      super
-    end
-
-    def initialize_clone(_)
-      @delegate_hash = delegate_hash.clone
       super
     end
 
