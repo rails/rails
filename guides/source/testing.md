@@ -785,10 +785,9 @@ end
 Rake Tasks for Running your Tests
 ---------------------------------
 
-You don't need to set up and run your tests by hand on a test-by-test basis.
-Rails comes with a number of built-in rake tasks to help in testing.
-Below table lists available commands which come along in the default `Rakefile`
-when you initiate a Rails project.
+Rails comes with a number of built-in rake tasks to help with testing. The
+table below lists the commands included in the default Rakefile when a Rails
+project is created.
 
 | Tasks                   | Description |
 | ----------------------- | ----------- |
@@ -804,7 +803,7 @@ when you initiate a Rails project.
 | `rake test:db`          | Runs all tests in the `test` folder and resets the db |
 
 
-Brief Note About `Minitest`
+A Brief Note About Minitest
 -----------------------------
 
 Ruby ships with a vast Standard Library for all common use-cases including testing. Since version 1.9, Ruby provides `Minitest`, a framework for testing. All the basic assertions such as `assert_equal` discussed above are actually defined in `Minitest::Assertions`. The classes `ActiveSupport::TestCase`, `ActionController::TestCase`, `ActionMailer::TestCase`, `ActionView::TestCase` and `ActionDispatch::IntegrationTest` - which we have been inheriting in our test classes - include `Minitest::Assertions`, allowing us to use all of the basic assertions in our tests.
