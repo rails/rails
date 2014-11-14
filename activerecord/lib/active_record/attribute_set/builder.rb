@@ -65,7 +65,7 @@ module ActiveRecord
 
         if values.key?(name)
           hash[name] = Attribute.from_database(name, values[name], type)
-        elsif type
+        elsif types.key?(name)
           hash[name] = Attribute.uninitialized(name, type)
         end
       end
