@@ -231,7 +231,7 @@ module ActiveRecord
       end
 
       def attributes_builder # :nodoc:
-        @attributes_builder ||= AttributeSet::Builder.new(column_types)
+        @attributes_builder ||= AttributeSet::Builder.new(column_types, primary_key)
       end
 
       def column_types # :nodoc:

@@ -536,8 +536,6 @@ module ActiveRecord
     end
 
     def init_internals
-      @attributes.ensure_initialized(self.class.primary_key)
-
       @aggregation_cache        = {}
       @association_cache        = {}
       @readonly                 = false

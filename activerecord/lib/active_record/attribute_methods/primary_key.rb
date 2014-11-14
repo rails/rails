@@ -120,6 +120,7 @@ module ActiveRecord
         def primary_key=(value)
           @primary_key        = value && value.to_s
           @quoted_primary_key = nil
+          @attributes_builder = nil
         end
       end
     end

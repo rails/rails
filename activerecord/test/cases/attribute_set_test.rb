@@ -123,6 +123,15 @@ module ActiveRecord
       assert_nil attributes.fetch_value(:bar)
     end
 
+    test "the primary_key is always initialized" do
+      builder = AttributeSet::Builder.new({ foo: Type::Integer.new }, :foo)
+      attributes = builder.build_from_database
+
+      assert attributes.key?(:foo)
+      assert_equal [:foo], attributes.keys
+      assert attributes[:foo].initialized?
+    end
+
     class MyType
       def type_cast_from_user(value)
         return if value.nil?
