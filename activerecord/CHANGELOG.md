@@ -1,3 +1,9 @@
+*   Support for any type primary key.
+
+    Fixes #14194.
+
+    *Ryuta Kamizono*
+
 *   Fix `rewhere` in a `has_many` association.
 
     Fixes #21955.

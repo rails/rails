@@ -195,6 +195,30 @@ class PrimaryKeyWithNoConnectionTest < ActiveRecord::TestCase
   end
 end
 
+class PrimaryKeyAnyTypeTest < ActiveRecord::TestCase
+  self.use_transactional_fixtures = false
+
+  class Barcode < ActiveRecord::Base
+  end
+
+  setup do
+    @connection = ActiveRecord::Base.connection
+    @connection.create_table(:barcodes, primary_key: "code", id: :string, limit: 42, force: true)
+  end
+
+  teardown do
+    @connection.execute("DROP TABLE IF EXISTS barcodes")
+  end
+
+  def test_any_type_primary_key
+    assert_equal "code", Barcode.primary_key
+
+    column_type = Barcode.type_for_attribute(Barcode.primary_key)
+    assert_equal :string, column_type.type
+    assert_equal 42, column_type.limit
+  end
+end
+
 if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
   class PrimaryKeyWithAnsiQuotesTest < ActiveRecord::TestCase
     self.use_transactional_fixtures = false

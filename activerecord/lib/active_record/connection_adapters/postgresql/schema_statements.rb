@@ -4,15 +4,6 @@ module ActiveRecord
       class SchemaCreation < AbstractAdapter::SchemaCreation
         private
 
-        def visit_ColumnDefinition(o)
-          sql = super
-          if o.primary_key? && o.type != :primary_key
-            sql << " PRIMARY KEY "
-            add_column_options!(sql, column_options(o))
-          end
-          sql
-        end
-
         def add_column_options!(sql, options)
           if options[:array] || options[:column].try(:array)
             sql << '[]'
