@@ -282,5 +282,15 @@ if current_adapter?(:PostgreSQLAdapter, :MysqlAdapter, :Mysql2Adapter)
         assert_match %r{create_table "widgets", id: :bigint}, schema
       end
     end
+
+    if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
+      test "primary key column type with options" do
+        @connection.create_table(:widgets, id: :primary_key, limit: 8, force: true)
+        column = @connection.columns(:widgets).find { |c| c.name == 'id' }
+        assert column.auto_increment?
+        assert_equal :integer, column.type
+        assert_equal 8, column.limit
+      end
+    end
   end
 end

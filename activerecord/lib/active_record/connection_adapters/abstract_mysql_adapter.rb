@@ -11,6 +11,16 @@ module ActiveRecord
           options[:auto_increment] ||= type == :bigint
           super
         end
+
+        def new_column_definition(name, type, options) # :nodoc:
+          column = super
+          case column.type
+          when :primary_key
+            column.type = :integer
+            column.auto_increment = true
+          end
+          column
+        end
       end
 
       class SchemaCreation < AbstractAdapter::SchemaCreation
