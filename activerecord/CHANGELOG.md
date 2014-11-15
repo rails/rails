@@ -1,3 +1,9 @@
+*   Support for any type primary key.
+
+    Fixes #14194.
+
+    *Ryuta Kamizono*
+
 *   Dump the default `nil` for PostgreSQL UUID primary key.
 
     *Ryuta Kamizono*
