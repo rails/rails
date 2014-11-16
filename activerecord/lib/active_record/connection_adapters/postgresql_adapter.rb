@@ -629,7 +629,12 @@ module ActiveRecord
         end
 
         def exec_no_cache(sql, name, binds)
-          log(sql, name, binds) { @connection.async_exec(sql, []) }
+          @connection.send_query(sql, [])
+
+          log(sql, name, binds) do
+            @connection.block
+            @connection.get_last_result
+          end
         end
 
         def exec_cache(sql, name, binds)
@@ -646,9 +651,13 @@ module ActiveRecord
             type_cast(attr.value_for_database)
           end
 
+          @connection.send_query_prepared(pool_entry.stmt_key, type_casted_binds, 0, pool_entry.enc_type_map)
+
           log(sql, name, binds, pool_entry.stmt_key) do
-            result = @connection.exec_prepared(pool_entry.stmt_key, type_casted_binds, 0, pool_entry.enc_type_map)
-            [result, pool_entry]
+            # do an extra call to PG::Connection#block, because although
+            # get_last_result is GVL friendly, it doesn't stop on Ctrl-C
+            @connection.block
+            [@connection.get_last_result, pool_entry]
           end
         rescue ActiveRecord::StatementInvalid => e
           pgerror = e.original_exception
