@@ -59,11 +59,7 @@ module ActionDispatch
       end
 
       %w{ Symbol Slash Dot }.each do |t|
-        class_eval <<-eoruby, __FILE__, __LINE__ + 1
-          class #{t} < Terminal;
-            def type; :#{t.upcase}; end
-          end
-        eoruby
+        const_set(t, Class.new(Terminal) { define_method(:type) { t.upcase.to_sym } })
       end
 
       class Symbol < Terminal # :nodoc:

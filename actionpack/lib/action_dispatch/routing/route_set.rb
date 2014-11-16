@@ -448,13 +448,11 @@ module ActionDispatch
           define_method "_#{name}" do
             RoutesProxy.new(routes, _routes_context)
           end
-        end
-
-        MountedHelpers.class_eval(<<-RUBY, __FILE__, __LINE__ + 1)
-          def #{name}
-            @_#{name} ||= _#{name}
+          define_method(name) do
+            ivar = :"@_#{name}"
+            instance_variable_defined?(ivar) && instance_variable_get(ivar) || instance_variable_set(ivar, send("_#{name}"))
           end
-        RUBY
+        end
       end
 
       def url_helpers(include_path_helpers = true)

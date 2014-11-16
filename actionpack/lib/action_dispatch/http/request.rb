@@ -35,11 +35,9 @@ module ActionDispatch
         HTTP_NEGOTIATE HTTP_PRAGMA ].freeze
 
     ENV_METHODS.each do |env|
-      class_eval <<-METHOD, __FILE__, __LINE__ + 1
-        def #{env.sub(/^HTTP_/n, '').downcase}  # def accept_charset
-          @env["#{env}"]                        #   @env["HTTP_ACCEPT_CHARSET"]
-        end                                     # end
-      METHOD
+      define_method(env.sub(/^HTTP_/n, '').downcase) do # def accept_charset
+        @env[env]                                       #   @env["HTTP_ACCEPT_CHARSET"]
+      end                                               # end
     end
 
     def initialize(env)
