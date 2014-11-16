@@ -10,6 +10,12 @@ module ActionDispatch
       end
     end
 
+    class BadlyDefinedError < StandardError
+      def backtrace
+        nil
+      end
+    end
+
     setup do
       Rails.stubs(:root).returns(Pathname.new('.'))
 
@@ -28,11 +34,20 @@ module ActionDispatch
       assert_equal [ code: 'foo', file: 'lib/file.rb', line_number: 42 ], wrapper.source_extract
     end
 
+
     test '#application_trace returns traces only from the application' do
       exception = TestError.new(caller.prepend("lib/file.rb:42:in `index'"))
       wrapper = ExceptionWrapper.new(@environment, exception)
 
       assert_equal [ "lib/file.rb:42:in `index'" ], wrapper.application_trace
+    end
+
+    test '#application_trace cannot be nil' do
+      nil_backtrace_wrapper = ExceptionWrapper.new(@environment, BadlyDefinedError.new)
+      nil_cleaner_wrapper = ExceptionWrapper.new({}, BadlyDefinedError.new)
+
+      assert_equal [], nil_backtrace_wrapper.application_trace
+      assert_equal [], nil_cleaner_wrapper.application_trace
     end
 
     test '#framework_trace returns traces outside the application' do
@@ -42,11 +57,27 @@ module ActionDispatch
       assert_equal caller, wrapper.framework_trace
     end
 
+    test '#framework_trace cannot be nil' do
+      nil_backtrace_wrapper = ExceptionWrapper.new(@environment, BadlyDefinedError.new)
+      nil_cleaner_wrapper = ExceptionWrapper.new({}, BadlyDefinedError.new)
+
+      assert_equal [], nil_backtrace_wrapper.framework_trace
+      assert_equal [], nil_cleaner_wrapper.framework_trace
+    end
+
     test '#full_trace returns application and framework traces' do
       exception = TestError.new(caller.prepend("lib/file.rb:42:in `index'"))
       wrapper = ExceptionWrapper.new(@environment, exception)
 
       assert_equal exception.backtrace, wrapper.full_trace
+    end
+
+    test '#full_trace cannot be nil' do
+      nil_backtrace_wrapper = ExceptionWrapper.new(@environment, BadlyDefinedError.new)
+      nil_cleaner_wrapper = ExceptionWrapper.new({}, BadlyDefinedError.new)
+
+      assert_equal [], nil_backtrace_wrapper.full_trace
+      assert_equal [], nil_cleaner_wrapper.full_trace
     end
 
     test '#traces returns every trace by category enumerated with an index' do
