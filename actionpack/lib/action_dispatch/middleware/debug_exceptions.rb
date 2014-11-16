@@ -53,7 +53,7 @@ module ActionDispatch
           show_source_idx: source_to_show_id,
           trace_to_show: trace_to_show,
           routes_inspector: routes_inspector(exception),
-          source_extract: wrapper.source_extract,
+          source_extracts: wrapper.source_extracts,
           line_number: wrapper.line_number,
           file: wrapper.file
         )
