@@ -248,7 +248,7 @@ end
 ```
 
 
-ActionMailer
+Action Mailer
 ------------
 
 One of the most common jobs in a modern web application is sending emails outside
