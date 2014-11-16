@@ -38,7 +38,7 @@ module ActionDispatch
         traces = wrapper.traces
 
         trace_to_show = 'Application Trace'
-        if traces[trace_to_show].empty?
+        if traces[trace_to_show].empty? && wrapper.rescue_template != 'routing_error'
           trace_to_show = 'Full Trace'
         end
 
