@@ -5,11 +5,9 @@ module AbstractController
     def self.generate_method_for_mime(mime)
       sym = mime.is_a?(Symbol) ? mime : mime.to_sym
       const = sym.upcase
-      class_eval <<-RUBY, __FILE__, __LINE__ + 1
-        def #{sym}(*args, &block)                # def html(*args, &block)
-          custom(Mime::#{const}, *args, &block)  #   custom(Mime::HTML, *args, &block)
-        end                                      # end
-      RUBY
+      define_method(sym) do |*args, &block|
+        custom(Mime.const_get(const), *args, &block)
+      end
     end
 
     Mime::SET.each do |mime|
