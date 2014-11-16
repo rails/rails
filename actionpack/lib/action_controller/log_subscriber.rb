@@ -65,14 +65,12 @@ module ActionController
 
     %w(write_fragment read_fragment exist_fragment?
        expire_fragment expire_page write_page).each do |method|
-      class_eval <<-METHOD, __FILE__, __LINE__ + 1
-        def #{method}(event)
-          return unless logger.info?
-          key_or_path = event.payload[:key] || event.payload[:path]
-          human_name  = #{method.to_s.humanize.inspect}
-          info("\#{human_name} \#{key_or_path} (\#{event.duration.round(1)}ms)")
-        end
-      METHOD
+      human_name  = method.to_s.humanize
+      define_method(method) do |event|
+        return unless logger.info?
+        key_or_path = event.payload[:key] || event.payload[:path]
+        info("#{human_name} #{key_or_path} (#{event.duration.round(1)}ms)")
+      end
     end
 
     def logger

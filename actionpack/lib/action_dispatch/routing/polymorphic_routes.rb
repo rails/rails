@@ -140,15 +140,13 @@ module ActionDispatch
 
 
       %w(edit new).each do |action|
-        module_eval <<-EOT, __FILE__, __LINE__ + 1
-          def #{action}_polymorphic_url(record_or_hash, options = {})
-            polymorphic_url_for_action("#{action}", record_or_hash, options)
-          end
+        define_method("#{action}_polymorphic_url") do |record_or_hash, options = {}|
+          polymorphic_url_for_action(action, record_or_hash, options)
+        end
 
-          def #{action}_polymorphic_path(record_or_hash, options = {})
-            polymorphic_path_for_action("#{action}", record_or_hash, options)
-          end
-        EOT
+        define_method("#{action}_polymorphic_path") do |record_or_hash, options = {}|
+          polymorphic_path_for_action(action, record_or_hash, options)
+        end
       end
 
       private

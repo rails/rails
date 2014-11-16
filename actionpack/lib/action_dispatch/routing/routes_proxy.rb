@@ -24,13 +24,13 @@ module ActionDispatch
 
       def method_missing(method, *args)
         if routes.url_helpers.respond_to?(method)
-          self.class.class_eval <<-RUBY, __FILE__, __LINE__ + 1
-            def #{method}(*args)
-              options = args.extract_options!
-              args << url_options.merge((options || {}).symbolize_keys)
-              routes.url_helpers.#{method}(*args)
+          self.class.class_eval do
+            define_method(method) do |*methargs|
+              options = methargs.extract_options!
+              methargs << url_options.merge((options || {}).symbolize_keys)
+              routes.url_helpers.send(method, *methargs)
             end
-          RUBY
+          end
           send(method, *args)
         else
           super
