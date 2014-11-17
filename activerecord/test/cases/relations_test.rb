@@ -1703,7 +1703,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_unscope_removes_binds
-    left  = Post.where(id: Arel::Nodes::BindParam.new('?'))
+    left  = Post.where(id: Arel::Nodes::BindParam.new)
     column = Post.columns_hash['id']
     left.bind_values += [[column, 20]]
 

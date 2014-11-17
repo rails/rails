@@ -84,7 +84,6 @@ module ActiveRecord
       um = relation
         .arel
         .compile_update(substitutes, @klass.primary_key)
-      reorder_bind_params(um.ast, bvs)
 
       @klass.connection.update(
         um,

@@ -305,10 +305,7 @@ module ActiveRecord
 
       def test_substitute_at
         bind = @connection.substitute_at(nil, 0)
-        assert_equal Arel.sql('$1'), bind
-
-        bind = @connection.substitute_at(nil, 1)
-        assert_equal Arel.sql('$2'), bind
+        assert_equal Arel.sql('$1'), bind.to_sql
       end
 
       def test_partial_index

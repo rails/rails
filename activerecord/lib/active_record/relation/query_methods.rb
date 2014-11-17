@@ -881,17 +881,7 @@ module ActiveRecord
       arel.from(build_from) if from_value
       arel.lock(lock_value) if lock_value
 
-      # Reorder bind indexes if joins produced bind values
-      bvs = arel.bind_values + bind_values
-      reorder_bind_params(arel.ast, bvs)
       arel
-    end
-
-    def reorder_bind_params(ast, bvs)
-      ast.grep(Arel::Nodes::BindParam).each_with_index do |bp, i|
-        column = bvs[i].first
-        bp.replace connection.substitute_at(column, i)
-      end
     end
 
     def symbol_unscoping(scope)
