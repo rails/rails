@@ -16,9 +16,16 @@ module Arel
       end
 
       it 'works with BindParams' do
-        node = Nodes::BindParam.new 'omg'
+        node = Nodes::BindParam.new
         sql = compile node
-        sql.must_be_like 'omg'
+        sql.must_be_like '?'
+      end
+
+      it 'does not quote BindParams used as part of a Values' do
+        bp = Nodes::BindParam.new
+        values = Nodes::Values.new([bp])
+        sql = compile values
+        sql.must_be_like 'VALUES (?)'
       end
 
       it 'can define a dispatch method' do

@@ -18,7 +18,7 @@ module Arel
       def test_assignment_binds_are_substituted
         table = Table.new(:users)
         um = Arel::UpdateManager.new Table.engine
-        bp = Nodes::BindParam.new '?'
+        bp = Nodes::BindParam.new
         um.set [[table[:name], bp]]
         visitor = Class.new(Arel::Visitors::ToSql) {
           include Arel::Visitors::BindVisitor
@@ -38,7 +38,7 @@ module Arel
           include Arel::Visitors::BindVisitor
         }.new nil
 
-        bp = Nodes::BindParam.new 'omg'
+        bp = Nodes::BindParam.new
         called = false
         visitor.accept(bp, collector) { called = true }
         assert called

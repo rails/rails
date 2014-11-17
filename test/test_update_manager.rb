@@ -12,7 +12,7 @@ module Arel
       table = Table.new(:users)
       um = Arel::UpdateManager.new Table.engine
       um.table table
-      um.set [[table[:name], (Arel::Nodes::BindParam.new '?')]]
+      um.set [[table[:name], Arel::Nodes::BindParam.new]]
       um.to_sql.must_be_like %{ UPDATE "users" SET "name" =  ? }
     end
 

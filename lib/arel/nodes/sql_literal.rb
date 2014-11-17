@@ -10,8 +10,5 @@ module Arel
         coder.scalar = self.to_s
       end
     end
-
-    class BindParam < SqlLiteral
-    end
   end
 end

@@ -186,7 +186,8 @@ module Arel
 
         len = o.expressions.length - 1
         o.expressions.zip(o.columns).each_with_index { |(value, attr), i|
-          if Nodes::SqlLiteral === value
+          case value
+          when Nodes::SqlLiteral, Nodes::BindParam
             collector = visit value, collector
           else
             collector << quote(value, attr && column_for(attr)).to_s
@@ -713,7 +714,7 @@ module Arel
       def literal o, collector; collector << o.to_s; end
 
       def visit_Arel_Nodes_BindParam o, collector
-        collector.add_bind o
+        collector.add_bind(o) { "?" }
       end
 
       alias :visit_Arel_Nodes_SqlLiteral :literal

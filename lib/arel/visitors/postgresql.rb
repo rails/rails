@@ -23,6 +23,10 @@ module Arel
         collector << "DISTINCT ON ( "
         visit(o.expr, collector) << " )"
       end
+
+      def visit_Arel_Nodes_BindParam o, collector
+        collector.add_bind(o) { |i| "$#{i}" }
+      end
     end
   end
 end

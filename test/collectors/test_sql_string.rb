@@ -27,7 +27,7 @@ module Arel
       end
 
       def test_compile
-        bv = Nodes::BindParam.new('?')
+        bv = Nodes::BindParam.new
         collector = collect ast_with_binds bv
 
         sql = collector.compile ["hello", "world"]
