@@ -58,7 +58,7 @@ INFO
         if Rails.env.production? && !config.has_explicit_log_level?
           ActiveSupport::Deprecation.warn \
            "You did not specify a `log_level` in `production.rb`. Currently, " \
-           "the default value for `log_leve` is `:info` for the production " \
+           "the default value for `log_level` is `:info` for the production " \
            "environment and `:debug` in all other environments. In Rails 5 " \
            "the default value will be unified to `:debug` across all " \
            "environments. To preserve the current setting, add the following " \
