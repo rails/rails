@@ -431,16 +431,22 @@ module ActiveRecord
       private
 
         def get_oid_type(oid, fmod, column_name, sql_type = '') # :nodoc:
-          if !type_map.key?(oid)
+
+          result = type_map.fetch(oid, fmod, sql_type) {
+            nil
+          }
+
+          unless result
             load_additional_types(type_map, [oid])
+            result = type_map.fetch(oid, fmod, sql_type) {
+              warn "unknown OID #{oid}: failed to recognize type of '#{column_name}'. It will be treated as String."
+              Type::Value.new.tap do |cast_type|
+                type_map.register_type(oid, cast_type)
+              end
+            }
           end
 
-          type_map.fetch(oid, fmod, sql_type) {
-            warn "unknown OID #{oid}: failed to recognize type of '#{column_name}'. It will be treated as String."
-            Type::Value.new.tap do |cast_type|
-              type_map.register_type(oid, cast_type)
-            end
-          }
+          result
         end
 
         def initialize_type_map(m) # :nodoc:
