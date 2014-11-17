@@ -5,4 +5,9 @@
 
     *Yves Senn*
 
-Please check [4-2-stable](https://github.com/rails/rails/blob/4-2-stable/activerecord/CHANGELOG.md) for previous changes.
+*   `add_timestamps` and `remove_timestamps` now properly reversible with
+    options.
+
+    *Noam Gagliardi-Rabinovich*
+
+Please check [4-1-stable](https://github.com/rails/rails/blob/4-1-stable/activerecord/CHANGELOG.md) for previous changes.
