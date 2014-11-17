@@ -15,7 +15,7 @@ gem 'jquery-rails', '~> 4.0.0.beta2'
 gem 'coffee-rails', '~> 4.1.0'
 gem 'turbolinks'
 gem 'arel', github: 'rails/arel'
-gem 'rails-dom-testing', path: '~/src/rails/rails-dom-testing'
+gem 'rails-dom-testing', github: 'rails/rails-dom-testing'
 
 # require: false so bcrypt is loaded only when has_secure_password is used.
 # This is to avoid ActiveModel (and by extension the entire framework)
