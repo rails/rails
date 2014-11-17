@@ -17,11 +17,11 @@ module ActiveRecord
 
       setup do
         @connection = ActiveRecord::Base.connection
-        @connection.create_table "rockets" do |t|
+        @connection.create_table "rockets", force: true do |t|
           t.string :name
         end
 
-        @connection.create_table "astronauts" do |t|
+        @connection.create_table "astronauts", force: true do |t|
           t.string :name
           t.references :rocket
         end
