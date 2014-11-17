@@ -16,8 +16,6 @@ module ActiveRecord
         attributes = LazyAttributeHash.new(types, values, additional_types)
         AttributeSet.new(attributes)
       end
-
-      private
     end
   end
 
