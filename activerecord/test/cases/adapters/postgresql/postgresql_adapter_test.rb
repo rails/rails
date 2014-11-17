@@ -304,7 +304,7 @@ module ActiveRecord
       end
 
       def test_substitute_at
-        bind = @connection.substitute_at(nil, 0)
+        bind = @connection.substitute_at(nil)
         assert_equal Arel.sql('$1'), bind.to_sql
       end
 

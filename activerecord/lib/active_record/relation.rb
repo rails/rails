@@ -98,7 +98,7 @@ module ActiveRecord
       end
 
       substitutes = values.each_with_index.map do |(arel_attr, _), i|
-        [arel_attr, @klass.connection.substitute_at(binds[i][0], i)]
+        [arel_attr, @klass.connection.substitute_at(binds[i][0])]
       end
 
       [substitutes, binds]

@@ -120,7 +120,7 @@ module ActiveRecord
           if locking_enabled?
             column_name = self.class.locking_column
             column      = self.class.columns_hash[column_name]
-            substitute  = self.class.connection.substitute_at(column, relation.bind_values.length)
+            substitute  = self.class.connection.substitute_at(column)
 
             relation = relation.where(self.class.arel_table[column_name].eq(substitute))
             relation.bind_values << [column, self[column_name].to_i]

@@ -133,7 +133,7 @@ module ActiveRecord
       end
 
       def test_bind_value_substitute
-        bind_param = @conn.substitute_at('foo', 0)
+        bind_param = @conn.substitute_at('foo')
         assert_equal Arel.sql('?'), bind_param.to_sql
       end
 

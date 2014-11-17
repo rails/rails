@@ -31,7 +31,7 @@ module ActiveRecord
 
     if ActiveRecord::Base.connection.supports_statement_cache?
       def test_binds_are_logged
-        sub   = @connection.substitute_at(@pk, 0)
+        sub   = @connection.substitute_at(@pk)
         binds = [[@pk, 1]]
         sql   = "select * from topics where id = #{sub.to_sql}"
 
@@ -42,7 +42,7 @@ module ActiveRecord
       end
 
       def test_binds_are_logged_after_type_cast
-        sub   = @connection.substitute_at(@pk, 0)
+        sub   = @connection.substitute_at(@pk)
         binds = [[@pk, "3"]]
         sql   = "select * from topics where id = #{sub.to_sql}"
 
