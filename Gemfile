@@ -64,6 +64,10 @@ group :test do
     gem 'ruby-prof', '~> 0.11.2'
   end
 
+  platforms :mri_21 do
+    gem 'stackprof'
+  end
+
   # platforms :mri_19, :mri_20 do
   #   gem 'debugger'
   # end
