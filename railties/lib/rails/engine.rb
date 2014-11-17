@@ -110,8 +110,8 @@ module Rails
   #
   # == Endpoint
   #
-  # An engine can be also a rack application. It can be useful if you have a rack application that
-  # you would like to wrap with +Engine+ and provide some of the +Engine+'s features.
+  # An engine can also be a rack application. It can be useful if you have a rack application that
+  # you would like to wrap with +Engine+ and provide with some of the +Engine+'s features.
   #
   # To do that, use the +endpoint+ method:
   #

@@ -1011,7 +1011,7 @@ self.default_params = {
 }.freeze
 ```
 
-They can be also accessed and overridden at the instance level.
+They can also be accessed and overridden at the instance level.
 
 ```ruby
 A.x = 1
