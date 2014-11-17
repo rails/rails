@@ -342,7 +342,7 @@ module Rails
       end
 
       def spring_install?
-        !options[:skip_spring] && Process.respond_to?(:fork)
+        !options[:skip_spring] && Process.respond_to?(:fork) && !RUBY_PLATFORM.include?("cygwin")
       end
 
       def run_bundle
