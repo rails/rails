@@ -959,10 +959,12 @@ module ActiveRecord
         wait_timeout = 2147483 unless wait_timeout.is_a?(Fixnum)
         variables['wait_timeout'] = self.class.type_cast_config_to_integer(wait_timeout)
 
+        defaults = [':default', :default].to_set
+
         # Make MySQL reject illegal values rather than truncating or blanking them, see
         # http://dev.mysql.com/doc/refman/5.6/en/sql-mode.html#sqlmode_strict_all_tables
         # If the user has provided another value for sql_mode, don't replace it.
-        unless variables.has_key?('sql_mode')
+        unless variables.has_key?('sql_mode') || defaults.include?(@config[:strict])
           variables['sql_mode'] = strict_mode? ? 'STRICT_ALL_TABLES' : ''
         end
 
@@ -977,7 +979,7 @@ module ActiveRecord
 
         # Gather up all of the SET variables...
         variable_assignments = variables.map do |k, v|
-          if v == ':default' || v == :default
+          if defaults.include?(v)
             "@@SESSION.#{k} = DEFAULT" # Sets the value to the global or compile default
           elsif !v.nil?
             "@@SESSION.#{k} = #{quote(v)}"
