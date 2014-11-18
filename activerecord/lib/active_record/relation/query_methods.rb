@@ -1059,8 +1059,13 @@ module ActiveRecord
     def build_select(arel, selects)
       if !selects.empty?
         expanded_select = selects.map do |field|
-          columns_hash.key?(field.to_s) ? arel_table[field] : field
+          if (Symbol === field || String === field) && columns_hash.key?(field.to_s)
+            arel_table[field]
+          else
+            field
+          end
         end
+
         arel.project(*expanded_select)
       else
         arel.project(@klass.arel_table[Arel.star])
