@@ -292,7 +292,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       assert_equal({}, cookies.to_hash)
       assert_equal "OK", body
       assert_equal "OK", response.body
-      assert_kind_of Nokogiri::HTML::DocumentFragment, html_document
+      assert_kind_of Nokogiri::HTML::Document, html_document
       assert_equal 1, request_count
     end
   end
@@ -308,7 +308,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       assert_equal({}, cookies.to_hash)
       assert_equal "Created", body
       assert_equal "Created", response.body
-      assert_kind_of Nokogiri::HTML::DocumentFragment, html_document
+      assert_kind_of Nokogiri::HTML::Document, html_document
       assert_equal 1, request_count
     end
   end
@@ -368,7 +368,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       assert_response :redirect
       assert_response :found
       assert_equal "<html><body>You are being <a href=\"http://www.example.com/get\">redirected</a>.</body></html>", response.body
-      assert_kind_of Nokogiri::HTML::DocumentFragment, html_document
+      assert_kind_of Nokogiri::HTML::Document, html_document
       assert_equal 1, request_count
 
       follow_redirect!

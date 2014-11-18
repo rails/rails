@@ -505,7 +505,7 @@ module ActionDispatch
     end
 
     def document_root_element
-      html_document
+      html_document.root
     end
   end
 end

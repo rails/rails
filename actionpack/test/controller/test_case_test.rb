@@ -132,6 +132,14 @@ XML
       render :nothing => true
     end
 
+    def test_without_body
+      render html: '<div class="foo"></div>'.html_safe
+    end
+
+    def test_with_body
+      render html: '<body class="foo"></body>'.html_safe
+    end
+
     private
 
       def generate_url(opts)
@@ -177,6 +185,19 @@ XML
         super
       end
     end
+  end
+
+  def test_assert_select_without_body
+    get :test_without_body
+
+    assert_select 'body', 0
+    assert_select 'div.foo'
+  end
+
+  def test_assert_select_with_body
+    get :test_with_body
+
+    assert_select 'body.foo'
   end
 
   def test_url_options_reset

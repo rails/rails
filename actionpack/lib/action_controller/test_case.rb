@@ -679,10 +679,6 @@ module ActionController
         klass.new
       end
 
-      def document_root_element
-        html_document
-      end
-
       included do
         include ActionController::TemplateAssertions
         include ActionDispatch::Assertions
@@ -691,6 +687,10 @@ module ActionController
       end
 
       private
+
+      def document_root_element
+        html_document.root
+      end
 
       def check_required_ivars
         # Sanity check for required instance variables so we can give an
