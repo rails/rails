@@ -22,7 +22,7 @@ class InheritanceTest < ActiveRecord::TestCase
     company = Company.first
     company = company.dup
     company.extend(Module.new {
-      def read_attribute(name)
+      def _read_attribute(name)
         return '  ' if name == 'type'
         super
       end

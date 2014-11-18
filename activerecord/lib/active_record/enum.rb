@@ -142,7 +142,7 @@ module ActiveRecord
             private
               def save_changed_attribute(attr_name, old)
                 if (mapping = self.class.defined_enums[attr_name.to_s])
-                  value = read_attribute(attr_name)
+                  value = _read_attribute(attr_name)
                   if attribute_changed?(attr_name)
                     if mapping[old] == value
                       clear_attribute_changes([attr_name])

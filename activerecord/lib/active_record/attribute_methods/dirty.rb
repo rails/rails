@@ -110,7 +110,7 @@ module ActiveRecord
         if attribute_changed?(attr)
           changed_attributes[attr]
         else
-          clone_attribute_value(:read_attribute, attr)
+          clone_attribute_value(:_read_attribute, attr)
         end
       end
 

@@ -27,8 +27,8 @@ module ActiveRecord
       attributes.initialized_keys
     end
 
-    def fetch_value(name, &block)
-      self[name].value(&block)
+    def fetch_value(name)
+      self[name].value { |n| yield n if block_given? }
     end
 
     def write_from_database(name, value)

@@ -66,7 +66,7 @@ module ActiveRecord
         # the loaded flag is set to true as well.
         def count_records
           count = if has_cached_counter?
-            owner.read_attribute cached_counter_attribute_name
+            owner._read_attribute cached_counter_attribute_name
           else
             scope.count
           end
