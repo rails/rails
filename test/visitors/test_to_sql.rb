@@ -36,7 +36,7 @@ module Arel
           end
 
           def dispatch
-            { Arel::Table.name => 'hello' }
+            { Arel::Table => 'hello' }
           end
         }.new
 

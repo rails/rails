@@ -10,14 +10,14 @@ module Arel
       private
 
       def visit object, collector
-        send dispatch[object.class.name], object, collector
+        send dispatch[object.class], object, collector
       rescue NoMethodError => e
-        raise e if respond_to?(dispatch[object.class.name], true)
+        raise e if respond_to?(dispatch[object.class], true)
         superklass = object.class.ancestors.find { |klass|
-          respond_to?(dispatch[klass.name], true)
+          respond_to?(dispatch[klass], true)
         }
         raise(TypeError, "Cannot visit #{object.class}") unless superklass
-        dispatch[object.class.name] = dispatch[superklass.name]
+        dispatch[object.class] = dispatch[superklass]
         retry
       end
     end
