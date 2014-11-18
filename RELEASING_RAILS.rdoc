@@ -28,7 +28,7 @@ Do not release with Red AWDwR tests.
 === Are the supported plugins working? If not, make it work.
 
 Some Rails plugins are important and need to be supported until Rails 5.
-As these plugins are outside the Rails repository it is easy to break then without knowing
+As these plugins are outside the Rails repository it is easy to break them without knowing
 after some refactoring or bug fix, so it is important to check if the following plugins
 are working with the versions that will be released:
 
@@ -54,7 +54,7 @@ addressed, and that can impact your release date.
 Ruby implementors have high stakes in making sure Rails works.  Be kind and
 give them a heads up that Rails will be released soonish.
 
-This only needs done for major and minor releases, bugfix releases aren't a
+This only need to be done for major and minor releases, bugfix releases aren't a
 big enough deal, and are supposed to be backwards compatible.
 
 Send an email just giving a heads up about the upcoming release to these
