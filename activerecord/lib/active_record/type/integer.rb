@@ -13,7 +13,8 @@ module ActiveRecord
       end
 
       def type_cast_from_database(value)
-        value.to_i unless value.nil?
+        return if value.nil?
+        value.to_i
       end
 
       protected
