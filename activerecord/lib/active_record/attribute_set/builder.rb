@@ -19,7 +19,7 @@ module ActiveRecord
     end
   end
 
-  class LazyAttributeHash
+  class LazyAttributeHash # :nodoc:
     delegate :select, :transform_values, to: :materialize
 
     def initialize(types, values, additional_types)
