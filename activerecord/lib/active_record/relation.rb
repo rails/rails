@@ -639,7 +639,7 @@ module ActiveRecord
 
       preload = preload_values
       preload +=  includes_values unless eager_loading?
-      preloader = ActiveRecord::Associations::Preloader.new
+      preloader = build_preloader
       preload.each do |associations|
         preloader.preload @records, associations
       end
@@ -648,6 +648,10 @@ module ActiveRecord
 
       @loaded = true
       @records
+    end
+
+    def build_preloader
+      ActiveRecord::Associations::Preloader.new
     end
 
     def references_eager_loaded_tables?
