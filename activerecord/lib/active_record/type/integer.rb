@@ -12,7 +12,9 @@ module ActiveRecord
         :integer
       end
 
-      alias type_cast_for_database type_cast
+      def type_cast_from_database(value)
+        value.to_i unless value.nil?
+      end
 
       protected
 
