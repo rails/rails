@@ -211,6 +211,24 @@ module ActiveRecord
     ensure
       FileUtils.rm(filename)
     end
+
+    def test_structure_dump_raises_on_command_failure
+      filename = "awesome-file.sql"
+      Kernel.expects(:system).with("pg_dump -i -s -x -O -f #{filename}  my-app-db").returns(false)
+
+      assert_raises RuntimeError do
+        ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
+      end
+    end
+
+    def test_structure_dump_raises_on_missing_command
+      filename = "awesome-file.sql"
+      Kernel.expects(:system).with("pg_dump -i -s -x -O -f #{filename}  my-app-db").returns(nil)
+
+      assert_raises RuntimeError do
+        ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
+      end
+    end
   end
 
   class PostgreSQLStructureLoadTest < ActiveRecord::TestCase
@@ -228,16 +246,34 @@ module ActiveRecord
 
     def test_structure_load
       filename = "awesome-file.sql"
-      Kernel.expects(:system).with("psql -q -f #{filename} my-app-db")
+      Kernel.expects(:system).with("psql -q -f #{filename} my-app-db").returns(true)
 
       ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
     end
 
     def test_structure_load_accepts_path_with_spaces
       filename = "awesome file.sql"
-      Kernel.expects(:system).with("psql -q -f awesome\\ file.sql my-app-db")
+      Kernel.expects(:system).with("psql -q -f awesome\\ file.sql my-app-db").returns(true)
 
       ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
+    end
+
+    def test_structure_load_raises_on_command_failure
+      filename = "awesome-file.sql"
+      Kernel.expects(:system).with("psql -q -f #{filename} my-app-db").returns(false)
+
+      assert_raises RuntimeError do
+        ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
+      end
+    end
+
+    def test_structure_load_raises_on_missing_command
+      filename = "awesome-file.sql"
+      Kernel.expects(:system).with("psql -q -f #{filename} my-app-db").returns(nil)
+
+      assert_raises RuntimeError do
+        ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
+      end
     end
   end
 
