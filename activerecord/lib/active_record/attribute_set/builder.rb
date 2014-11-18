@@ -62,9 +62,11 @@ module ActiveRecord
 
     def assign_default_value(name)
       type = additional_types.fetch(name, types[name])
+      value_present = true
+      value = values.fetch(name) { value_present = false }
 
-      if values.key?(name)
-        delegate_hash[name] = Attribute.from_database(name, values[name], type)
+      if value_present
+        delegate_hash[name] = Attribute.from_database(name, value, type)
       elsif types.key?(name)
         delegate_hash[name] = Attribute.uninitialized(name, type)
       end
