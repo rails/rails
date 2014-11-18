@@ -14,6 +14,11 @@ module ActiveRecord
 
       alias type_cast_for_database type_cast
 
+      def type_cast_from_database(value)
+        return if value.nil?
+        value.to_i
+      end
+
       protected
 
       attr_reader :range
