@@ -35,11 +35,7 @@ module ActiveRecord
     end
 
     def [](key)
-      if delegate_hash.key?(key)
-        delegate_hash[key]
-      else
-        assign_default_value(key)
-      end
+      delegate_hash[key] || assign_default_value(key)
     end
 
     def []=(key, value)
