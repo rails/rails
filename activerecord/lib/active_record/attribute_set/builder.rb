@@ -35,9 +35,7 @@ module ActiveRecord
     end
 
     def [](key)
-      if delegate_hash.key?(key)
-        delegate_hash[key]
-      else
+      delegate_hash.fetch(key) do
         assign_default_value(key)
       end
     end
@@ -66,12 +64,23 @@ module ActiveRecord
 
     def assign_default_value(name)
       type = additional_types.fetch(name, types[name])
+      converted = false
 
-      if values.key?(name)
-        delegate_hash[name] = Attribute.from_database(name, values[name], type)
-      elsif types.key?(name)
-        delegate_hash[name] = Attribute.uninitialized(name, type)
+      val = values.fetch(name) do
+        converted = true
+
+        if types.key?(name)
+          val = Attribute.uninitialized(name, type)
+          delegate_hash[name] = val
+        end
       end
+
+      unless converted
+        val = Attribute.from_database(name, val, type)
+        delegate_hash[name] = val
+      end
+
+      val
     end
 
     def materialize
