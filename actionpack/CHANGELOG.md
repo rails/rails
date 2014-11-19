@@ -1,3 +1,5 @@
+## Rails 4.1.8 (November 16, 2014) ##
+
 *   Fix regression where path was getting overwritten when route anchor was false, and X-Cascade pass
 
     fixes #17035.
@@ -9,6 +11,20 @@
     fixes #11502.
 
     *Yuki Nishijima*
+
+
+## Rails 4.1.7.1 (November 19, 2014) ##
+
+*   Fix arbitrary file existence disclosure in Action Pack.
+
+    CVE-2014-7829.
+
+
+## Rails 4.1.7 (October 29, 2014) ##
+
+*   Fix arbitrary file existence disclosure in Action Pack.
+
+    CVE-2014-7818.
 
 
 ## Rails 4.1.6 (September 11, 2014) ##

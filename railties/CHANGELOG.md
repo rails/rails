@@ -1,3 +1,5 @@
+## Rails 4.1.8 (November 16, 2014) ##
+
 *   `secret_token` is now saved in `Rails.application.secrets.secret_token`
     and it falls back to the value of `config.secret_token` when it is not
     present in `config/secrets.yml`.
@@ -14,6 +16,16 @@
     you specify dummy_path option.
 
     *Yukio Mizuta*
+
+
+## Rails 4.1.7.1 (November 19, 2014) ##
+
+*   No changes.
+
+
+## Rails 4.1.7 (October 29, 2014) ##
+
+*   No changes.
 
 
 ## Rails 4.1.6 (September 11, 2014) ##

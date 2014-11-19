@@ -1,7 +1,19 @@
+## Rails 4.1.8 (November 16, 2014) ##
+
 *   `Method` objects now report themselves as not `duplicable?`. This allows
     hashes and arrays containing `Method` objects to be `deep_dup`ed.
 
     *Peter Jaros*
+
+
+## Rails 4.1.7.1 (November 19, 2014) ##
+
+*   No changes.
+
+
+## Rails 4.1.7 (October 29, 2014) ##
+
+*   No changes.
 
 
 ## Rails 4.1.6 (September 11, 2014) ##
