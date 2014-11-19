@@ -124,6 +124,21 @@ module ActiveRecord
         assert_equal mapping.lookup(3), 'string'
         assert_kind_of Type::Value, mapping.lookup(4)
       end
+
+      def test_fetch
+        mapping = TypeMap.new
+        mapping.register_type(1, "string")
+
+        assert_equal "string", mapping.fetch(1) { "int" }
+        assert_equal "int", mapping.fetch(2) { "int" }
+      end
+
+      def test_fetch_yields_args
+        mapping = TypeMap.new
+
+        assert_equal "foo-1-2-3", mapping.fetch("foo", 1, 2, 3) { |*args| args.join("-") }
+        assert_equal "bar-1-2-3", mapping.fetch("bar", 1, 2, 3) { |*args| args.join("-") }
+      end
     end
   end
 end

@@ -6,6 +6,10 @@ module ActiveRecord
       end
 
       def lookup(lookup_key, *args)
+        fetch(lookup_key, *args) { default_value }
+      end
+
+      def fetch(lookup_key, *args)
         matching_pair = @mapping.reverse_each.detect do |key, _|
           key === lookup_key
         end
@@ -13,7 +17,7 @@ module ActiveRecord
         if matching_pair
           matching_pair.last.call(lookup_key, *args)
         else
-          default_value
+          yield lookup_key, *args
         end
       end
 

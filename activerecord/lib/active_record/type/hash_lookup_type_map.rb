@@ -3,10 +3,6 @@ module ActiveRecord
     class HashLookupTypeMap < TypeMap # :nodoc:
       delegate :key?, to: :@mapping
 
-      def lookup(type, *args)
-        @mapping.fetch(type, proc { default_value }).call(type, *args)
-      end
-
       def fetch(type, *args, &block)
         @mapping.fetch(type, block).call(type, *args)
       end
