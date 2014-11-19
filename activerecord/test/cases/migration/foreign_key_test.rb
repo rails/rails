@@ -162,6 +162,14 @@ module ActiveRecord
         assert_equal [], @connection.foreign_keys("astronauts")
       end
 
+      def test_remove_foreign_key_by_symbol_column
+        @connection.add_foreign_key :astronauts, :rockets, column: :rocket_id
+
+        assert_equal 1, @connection.foreign_keys("astronauts").size
+        @connection.remove_foreign_key :astronauts, column: :rocket_id
+        assert_equal [], @connection.foreign_keys("astronauts")
+      end
+
       def test_remove_foreign_key_by_name
         @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", name: "fancy_named_fk"
 

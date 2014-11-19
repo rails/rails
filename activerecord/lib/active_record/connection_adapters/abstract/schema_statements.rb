@@ -740,7 +740,7 @@ module ActiveRecord
         end
 
         fk_name_to_delete = options.fetch(:name) do
-          fk_to_delete = foreign_keys(from_table).detect {|fk| fk.column == options[:column] }
+          fk_to_delete = foreign_keys(from_table).detect {|fk| fk.column == options[:column].to_s }
 
           if fk_to_delete
             fk_to_delete.name
