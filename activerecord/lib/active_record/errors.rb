@@ -52,10 +52,29 @@ module ActiveRecord
   # Raised by ActiveRecord::Base.save! and ActiveRecord::Base.create! methods when record cannot be
   # saved because record is invalid.
   class RecordNotSaved < ActiveRecordError
+    attr_reader :record
+
+    def initialize(record)
+      @record = record
+      super()
+    end
   end
 
   # Raised by ActiveRecord::Base.destroy! when a call to destroy would return false.
+  #
+  #   begin
+  #     complex_operation_that_internally_calls_destroy!
+  #   rescue ActiveRecord::RecordNotDestroyed => invalid
+  #     puts invalid.record.errors
+  #   end
+  #
   class RecordNotDestroyed < ActiveRecordError
+    attr_reader :record
+
+    def initialize(record)
+      @record = record
+      super()
+    end
   end
 
   # Superclass for all database execution errors.
