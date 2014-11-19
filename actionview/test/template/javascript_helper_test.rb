@@ -31,6 +31,7 @@ class JavaScriptHelperTest < ActionView::TestCase
     assert_equal %(unicode &#x2029; newline), escape_javascript(%(unicode \342\200\251 newline).force_encoding(Encoding::UTF_8).encode!)
 
     assert_equal %(dont <\\/close> tags), j(%(dont </close> tags))
+    assert_equal '42', escape_javascript(42)
   end
 
   def test_escape_javascript_with_safebuffer
