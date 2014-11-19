@@ -124,16 +124,6 @@ module ActiveRecord
         assert_equal mapping.lookup(3), 'string'
         assert_kind_of Type::Value, mapping.lookup(4)
       end
-
-      def test_aliases_are_not_improperly_cached
-        mapping = HashLookupTypeMap.new
-
-        mapping.register_type("foo") { |*args| args.join("-") }
-        mapping.alias_type("bar", "foo")
-
-        assert_equal "bar-1-2-3", mapping.lookup("bar", 1, 2, 3)
-        assert_equal "foo-1-2-3", mapping.lookup("foo", 1, 2, 3)
-      end
     end
   end
 end
