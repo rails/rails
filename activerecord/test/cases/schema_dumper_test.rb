@@ -232,6 +232,13 @@ class SchemaDumperTest < ActiveRecord::TestCase
     end
   end
 
+  if mysql_56?
+    def test_schema_dump_includes_datetime_precision
+      output = standard_dump
+      assert_match %r{t.datetime\s+"written_on",\s+precision: 6$}, output
+    end
+  end
+
   def test_schema_dump_includes_decimal_options
     output = dump_all_table_schema([/^[^n]/])
     assert_match %r{precision: 3,[[:space:]]+scale: 2,[[:space:]]+default: 2.78}, output

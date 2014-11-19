@@ -1,3 +1,7 @@
+*   Allow precision option for MySQL datetimes.
+
+    *Ryuta Kamizono*
+
 *   Fix `reaping_frequency` option when the value is a string.
 
     This usually happens when it is configured using `DATABASE_URL`.
