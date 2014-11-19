@@ -1,3 +1,8 @@
+*   Fix a bug that <%= foo(){ %> and <%= foo()do %> in view templates were not regarded
+    as Ruby block calls.
+
+    * Akira Matsuda *
+
 *   Update `select_tag` to work correctly with `:include_blank` option passing a string.
 
     Fixes #16483.
