@@ -1,8 +1,20 @@
+## Rails 4.0.12 (November 16, 2014) ##
+
 *   Cache `CollectionAssociation#reader` proxies separately before and after
     the owner has been saved so that the proxy is not cached without the
     owner's id.
 
     *Ben Woosley*
+
+
+## Rails 4.0.11.1 (November 19, 2014) ##
+
+*No changes*
+
+
+## Rails 4.0.11 (September 11, 2014) ##
+
+*No changes*
 
 
 ## Rails 4.0.10 (September 11, 2014) ##

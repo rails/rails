@@ -1,8 +1,24 @@
+## Rails 4.0.12 (November 16, 2014) ##
+
 *   Fix a bug where malformed query strings lead to 500.
 
     fixes #11502.
 
     *Yuki Nishijima*
+
+
+## Rails 4.0.11.1 (November 19, 2014) ##
+
+*   Fix arbitrary file existence disclosure in Action Pack.
+
+    CVE-2014-7829.
+
+
+## Rails 4.0.11 (September 11, 2014) ##
+
+*   Fix arbitrary file existence disclosure in Action Pack.
+
+    CVE-2014-7818.
 
 
 ## Rails 4.0.10 (September 11, 2014) ##

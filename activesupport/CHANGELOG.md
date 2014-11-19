@@ -1,3 +1,18 @@
+## Rails 4.0.12 (November 16, 2014) ##
+
+*No changes*
+
+
+## Rails 4.0.11.1 (November 19, 2014) ##
+
+*No changes*
+
+
+## Rails 4.0.11 (September 11, 2014) ##
+
+*No changes*
+
+
 ## Rails 4.0.10 (September 11, 2014) ##
 
 *   Fix DateTime comparison with DateTime::Infinity object.
