@@ -125,7 +125,7 @@ module ActiveRecord
         PostgreSQL::SchemaCreation.new self
       end
 
-      # Adds `:array` option to the default set provided by the
+      # Adds +:array+ option to the default set provided by the
       # AbstractAdapter
       def prepare_column_options(column, types) # :nodoc:
         spec = super
@@ -134,7 +134,7 @@ module ActiveRecord
         spec
       end
 
-      # Adds `:array` as a valid migration key
+      # Adds +:array+ as a valid migration key
       def migration_keys
         super + [:array]
       end

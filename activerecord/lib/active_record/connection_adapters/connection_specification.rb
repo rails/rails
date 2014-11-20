@@ -234,7 +234,7 @@ module ActiveRecord
           end
         end
 
-        # Takes the environment such as `:production` or `:development`.
+        # Takes the environment such as +:production+ or +:development+.
         # This requires that the @configurations was initialized with a key that
         # matches.
         #
