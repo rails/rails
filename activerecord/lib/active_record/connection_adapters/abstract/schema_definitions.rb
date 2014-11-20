@@ -226,7 +226,7 @@ module ActiveRecord
       #     t.integer :shop_id, :creator_id
       #     t.string  :item_number, index: true
       #     t.string  :name, :value, default: "Untitled"
-      #     t.timestamps
+      #     t.timestamps null: false
       #   end
       #
       # There's a short-hand method for each of the type values declared at the top. And then there's
@@ -287,7 +287,9 @@ module ActiveRecord
       end
 
       # Appends <tt>:datetime</tt> columns <tt>:created_at</tt> and
-      # <tt>:updated_at</tt> to the table.
+      # <tt>:updated_at</tt> to the table. See SchemaStatements#add_timestamps
+      #
+      #   t.timestamps null: false
       def timestamps(*args)
         options = args.extract_options!
         emit_warning_if_null_unspecified(options)
@@ -412,8 +414,6 @@ module ActiveRecord
     #   end
     #
     class Table
-      include TimestampDefaultDeprecation
-
       attr_reader :name
 
       def initialize(table_name, base)
@@ -462,9 +462,8 @@ module ActiveRecord
 
       # Adds timestamps (+created_at+ and +updated_at+) columns to the table. See SchemaStatements#add_timestamps
       #
-      #  t.timestamps
+      #  t.timestamps null: false
       def timestamps(options = {})
-        emit_warning_if_null_unspecified(options)
         @base.add_timestamps(name, options)
       end
 

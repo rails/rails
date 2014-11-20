@@ -115,6 +115,15 @@ if ActiveRecord::Base.connection.supports_migrations?
       end
     end
 
+    def test_timestamps_without_null_is_deprecated_on_add_timestamps
+      assert_deprecated do
+        ActiveRecord::Schema.define do
+          create_table :has_timestamps
+          add_timestamps :has_timestamps
+        end
+      end
+    end
+
     def test_no_deprecation_warning_from_timestamps_on_create_table
       assert_not_deprecated do
         ActiveRecord::Schema.define do
