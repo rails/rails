@@ -103,11 +103,6 @@ profile.settings # => {"color"=>"blue", "resolution"=>"800x600"}
 
 profile.settings = {"color" => "yellow", "resolution" => "1280x1024"}
 profile.save!
-
-## you need to call _will_change! if you are editing the store in place
-profile.settings["color"] = "green"
-profile.settings_will_change!
-profile.save!
 ```
 
 ### JSON
