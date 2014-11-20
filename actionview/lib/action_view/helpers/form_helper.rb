@@ -164,6 +164,21 @@ module ActionView
       # * <tt>:namespace</tt> - A namespace for your form to ensure uniqueness of
       #   id attributes on form elements. The namespace attribute will be prefixed
       #   with underscore on the generated HTML id.
+      # * <tt>:method</tt> - The method to use when submitting the form, usually
+      #   either "get" or "post". If "patch", "put", "delete", or another verb
+      #   is used, a hidden input with name <tt>_method</tt> is added to
+      #   simulate the verb over post.
+      # * <tt>:authenticity_token</tt> - Authenticity token to use in the form.
+      #   Use only if you need to pass custom authenticity token string, or to
+      #   not add authenticity_token field at all (by passing <tt>false</tt>).
+      #   Remote forms may omit the embedded authenticity token by setting
+      #   <tt>config.action_view.embed_authenticity_token_in_remote_forms = false</tt>.
+      #   This is helpful when you're fragment-caching the form. Remote forms
+      #   get the authenticity token from the <tt>meta</tt> tag, so embedding is
+      #   unnecessary unless you support browsers without JavaScript.
+      # * <tt>:remote</tt> - If set to true, will allow the Unobtrusive
+      #   JavaScript drivers to control the submit behavior. By default this
+      #   behavior is an ajax submit.
       # * <tt>:html</tt> - Optional HTML attributes for the form tag.
       #
       # Also note that +form_for+ doesn't create an exclusive scope. It's still
