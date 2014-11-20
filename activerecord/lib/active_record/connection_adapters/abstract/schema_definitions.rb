@@ -393,8 +393,8 @@ module ActiveRecord
       # Adds timestamps (+created_at+ and +updated_at+) columns to the table. See SchemaStatements#add_timestamps
       #
       #  t.timestamps
-      def timestamps
-        @base.add_timestamps(@table_name)
+      def timestamps(options = {})
+        @base.add_timestamps(@table_name, options)
       end
 
       # Changes the column's definition according to the new options.

@@ -721,8 +721,8 @@ module ActiveRecord
         "DROP INDEX #{index_name}"
       end
 
-      def add_timestamps_sql(table_name)
-        [add_column_sql(table_name, :created_at, :datetime), add_column_sql(table_name, :updated_at, :datetime)]
+      def add_timestamps_sql(table_name, options = {})
+        [add_column_sql(table_name, :created_at, :datetime, options), add_column_sql(table_name, :updated_at, :datetime, options)]
       end
 
       def remove_timestamps_sql(table_name)
