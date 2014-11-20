@@ -6,8 +6,6 @@ require 'jobs/logging_job'
 require 'jobs/nested_job'
 
 class EnqueuedJobsTest < ActiveJob::TestCase
-  setup { queue_adapter.perform_enqueued_at_jobs = true }
-
   def test_assert_enqueued_jobs
     assert_nothing_raised do
       assert_enqueued_jobs 1 do
@@ -44,11 +42,16 @@ class EnqueuedJobsTest < ActiveJob::TestCase
     end
   end
 
+  def test_assert_no_enqueued_jobs_with_no_block
+    assert_nothing_raised do
+      assert_no_enqueued_jobs
+    end
+  end
+
   def test_assert_no_enqueued_jobs
     assert_nothing_raised do
       assert_no_enqueued_jobs do
-        # Scheduled jobs are being performed in this context
-        HelloJob.set(wait_until: Date.tomorrow.noon).perform_later('godfrey')
+        HelloJob.perform_now
       end
     end
   end
@@ -86,7 +89,7 @@ class EnqueuedJobsTest < ActiveJob::TestCase
 
   def test_assert_enqueued_job
     assert_enqueued_with(job: LoggingJob, queue: 'default') do
-      NestedJob.set(wait_until: Date.tomorrow.noon).perform_later
+      LoggingJob.set(wait_until: Date.tomorrow.noon).perform_later
     end
   end
 
