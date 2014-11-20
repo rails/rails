@@ -391,7 +391,7 @@ module ActionDispatch
 
         # Matches a url pattern to one or more routes.
         #
-        # You should not use the `match` method in your router
+        # You should not use the +match+ method in your router
         # without specifying an HTTP method.
         #
         # If you want to expose your action to both GET and POST, use:
@@ -402,7 +402,7 @@ module ActionDispatch
         # Note that +:controller+, +:action+ and +:id+ are interpreted as url
         # query parameters and thus available through +params+ in an action.
         #
-        # If you want to expose your action to GET, use `get` in the router:
+        # If you want to expose your action to GET, use +get+ in the router:
         #
         # Instead of:
         #
@@ -457,7 +457,7 @@ module ActionDispatch
         #   The route's action.
         #
         # [:param]
-        #   Overrides the default resource identifier `:id` (name of the
+        #   Overrides the default resource identifier +:id+ (name of the
         #   dynamic segment used to generate the routes).
         #   You can access that segment from your controller using
         #   <tt>params[<:param>]</tt>.
