@@ -1,3 +1,11 @@
+*   `timestamps` and `add_timestamps` passes additional options along.
+    (like `null: false`)
+
+    Closes #17624.
+
+    *Yves Senn*
+
+
 ## Rails 4.1.8 (November 16, 2014) ##
 
 *   Cache `CollectionAssociation#reader` proxies separately before and after
