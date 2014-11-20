@@ -76,9 +76,12 @@ module ActiveJob
         assert_enqueued_jobs 0, &block
       end
 
-      # Asserts that the number of performed jobs matches the given number.
+      # Asserts that the number of performed jobs matches the given number,
+      # provided that queue_adapter is configured to perform enqueued jobs.
       #
       #   def test_jobs
+      #     queue_adapter.perform_enqueued_jobs = true
+      #
       #     assert_performed_jobs 0
       #     HelloJob.perform_later('xavier')
       #     assert_performed_jobs 1
@@ -90,6 +93,8 @@ module ActiveJob
       # jobs to be performed.
       #
       #   def test_jobs_again
+      #     queue_adapter.perform_enqueued_jobs = true
+      #
       #     assert_performed_jobs 1 do
       #       HelloJob.perform_later('robin')
       #     end
@@ -112,9 +117,12 @@ module ActiveJob
         end
       end
 
-      # Asserts that no jobs have been performed.
+      # Asserts that no jobs have been performed,
+      # provided that queue_adapter is configured to perform enqueued jobs.
       #
       #   def test_jobs
+      #     queue_adapter.perform_enqueued_jobs = true
+      #
       #     assert_no_performed_jobs
       #     HelloJob.perform_later('matthew')
       #     assert_performed_jobs 1
@@ -123,6 +131,8 @@ module ActiveJob
       # If a block is passed, that block should not cause any job to be performed.
       #
       #   def test_jobs_again
+      #     queue_adapter.perform_enqueued_jobs = true
+      #
       #     assert_no_performed_jobs do
       #       # No job should be performed from this block
       #     end
@@ -155,9 +165,12 @@ module ActiveJob
         queue_adapter.enqueued_jobs = original_enqueued_jobs + enqueued_jobs
       end
 
-      # Asserts that the job passed in the block has been performed with the given arguments.
+      # Asserts that the job passed in the block has been performed with the given arguments,
+      # provided that queue_adapter is configured to perform enqueued jobs.
       #
       #   def test_assert_performed_with
+      #     queue_adapter.perform_enqueued_jobs = true
+      #
       #     assert_performed_with(job: MyJob, args: [1,2,3], queue: 'high') do
       #       MyJob.perform_later(1,2,3)
       #     end
