@@ -382,14 +382,27 @@ module RenderTestCases
     assert_equal "Hello, World!", @view.render(:inline => "Hello, World!", :type => :bar)
   end
 
-  def test_js_debug
-    @view.class.debug_js = true
+  def test_js_debug_template
+    ActionView::Renderer.debug_js = true
+    @view.lookup_context.formats = [:js]
 
-    output = @view.render(:file => "test/layout_render_file")
-    js_wrapped_output = @view.render(:file => "test/layout_render_file", :formats => [:js])
+    js_wrapped_output = @view.render(:template => "test/js_test", :formats => [:js])
 
-    assert_equal "try {#{output}}catch(e){console.error(e);}", js_wrapped_output
+    puts js_wrapped_output
+
+    assert_match(/try {/, js_wrapped_output)
+    assert_match(/}catch\(e\){/, js_wrapped_output)
   end
+
+  def test_js_partial_infos
+    @view.lookup_context.formats = [:js]
+
+    js_wrapped_output = @view.render(:template => "test/js_test", :formats => [:js])
+    partial_info = @view.view_renderer.send(:js_partial_infos, js_wrapped_output)
+
+    assert_equal(partial_info.size, 3)
+  end
+
 
   CustomHandler = lambda do |template|
     "@output_buffer = ''\n" +

@@ -141,7 +141,6 @@ module ActionView
     # we use a bang in this instrumentation because you don't want to
     # consume this in production. This is only slow if it's being listened to.
     def render(view, locals, buffer=nil, &block)
-      puts "compile! and render"
       instrument("!render_template") do
         compile!(view)
         view.send(method_name, locals, buffer, &block)
@@ -271,9 +270,6 @@ module ActionView
         method_name = self.method_name
         code = @handler.call(self)
 
-        binding.pry
-        #####
-
         # Make sure that the resulting String to be eval'd is in the
         # encoding of the code
         source = <<-end_src
@@ -300,11 +296,6 @@ module ActionView
 
         mod.module_eval(source, identifier, 0)
         ObjectSpace.define_finalizer(self, Finalizer[method_name, mod])
-      end
-
-      def track_render(partial)
-        puts "partial = #{partial.inspect}"
-        partial
       end
 
       def handle_render_error(view, e) #:nodoc:

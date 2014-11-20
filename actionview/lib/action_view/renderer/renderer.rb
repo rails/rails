@@ -68,49 +68,71 @@ module ActionView
 
     def js_rails_info(source, template_path)
       output = "function railsJsInfo(exception){\n"
-      output << "  var partials = [\n"
+      output << "  var partial_map = {};\n"
 
-      partial_info = []
-      @partials.each do |partial_data|
+      partial_info = js_partial_infos(source)
 
-        partial_output = partial_data[1]
-        source_index   = source.index(partial_output) || source.index(escape_javascript(partial_output))
-
-        if source_index
-          partial_path    = partial_data[0]
-          preceeding_code = source[0..source_index]
-          line_number     = preceeding_code.scan(/\n/).length
-
-          partial_info << "    [#{line_number}, #{source_index}, '#{partial_path}', '#{partial_output}']"
-        end
-      end
-
-      output << partial_info.join(", \n")
-      output << "  ];\n"
-
+      output << partial_info.join("; \n")
       output << <<-LOOKUP
-        var sourcePath = '#{template_path}';
+        var sourcePath     = '#{template_path}';
         var sourceFragment = '';
 
-        for (var i = 0; i < partials.length; i++){
-           partial = partials[i];
+        partial = partial_map[exception.lineNumber];
 
-           line    = partial[0];
-           column  = partial[1];
+        if (partial){
+          partialLineMatch  = partial[2];
+          partialPath       = partial[3];
+          partialOutput     = partial[4];
 
-           if(line == exception.lineNumber){
-             sourcePath = partial[2];
-             if (column == 0) {
-               sourcePath = partial[3];
-             } else {
-               sourcePath = " (maybe " + sourcePath + "?)";
-             }
-           }
+          sourcePath        = partialPath;
+
+          if (partialLineMatch) {
+            sourcePath = sourcePath + " or " + partialPath
+          }
         }
+
         return sourcePath;
       LOOKUP
 
       output << "}\n\n"
+    end
+
+    def js_partial_infos(source)
+      partial_info = []
+
+      puts "-----------------------"
+      puts @partials.inspect
+      puts "-----------------------"
+
+      @partials.each do |partial_data|
+
+        partial_output = partial_data[1]
+        beg_column     = source.index(partial_output) || source.index(escape_javascript(partial_output))
+        source_lines   = source.split(/\r?\n/)
+
+        if beg_column
+          partial_path    = partial_data[0]
+          preceeding_code = source[0..source_index]
+
+          beg_line_number = preceeding_code.scan(/\r?\n/).length
+          partial_lines   = partial_output.split(/\r?\n/)
+
+          partial_lines.each_with_index do |line, i|
+            line_number = beg_line_number + i
+            source_line = source_lines[line_number].length
+
+            beg_column  = source_lines[line_number].index(line)
+            end_column  = line.length
+
+            # Is the partial output begin/end on the same line as the template
+            partial_line_match = (beg_column > 0 || end_column != source_line.length) ? true : false
+
+            partial_info << "  partial_map['#{line_number}'] = [#{beg_column}, #{end_column}, #{partial_line_match}, '#{escape_javascript(partial_path)}', '#{escape_javascript(partial_output)}']"
+          end
+        end
+
+      end
+      partial_info
     end
   end
 
