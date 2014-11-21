@@ -696,7 +696,7 @@ module ActiveRecord
 
     def find
       if model_class
-        model_class.find(fixture[model_class.primary_key])
+        model_class.unscoped.find(fixture[model_class.primary_key])
       else
         raise FixtureClassNotFound, "No class attached to find."
       end
