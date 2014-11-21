@@ -5,6 +5,7 @@ require 'models/admin/randomly_named_c1'
 require 'models/admin/user'
 require 'models/binary'
 require 'models/book'
+require 'models/bulb'
 require 'models/category'
 require 'models/company'
 require 'models/computer'
@@ -851,5 +852,18 @@ class CustomNameForFixtureOrModelTest < ActiveRecord::TestCase
   def test_table_name_is_defined_in_the_model
     assert_equal 'randomly_named_table', ActiveRecord::FixtureSet::all_loaded_fixtures["admin/randomly_named_a9"].table_name
     assert_equal 'randomly_named_table', Admin::ClassNameThatDoesNotFollowCONVENTIONS.table_name
+  end
+end
+
+class FixturesWithDefaultScopeTest < ActiveRecord::TestCase
+  fixtures :bulbs
+
+  test "inserts fixtures excluded by a default scope" do
+    assert_equal 1, Bulb.count
+    assert_equal 2, Bulb.unscoped.count
+  end
+
+  test "allows access to fixtures excluded by a default scope" do
+    assert_equal "special", bulbs(:special).name
   end
 end

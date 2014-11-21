@@ -1,3 +1,7 @@
+*   Make it possible to access fixtures excluded by a `default_scope`.
+
+    *Yves Senn*
+
 *   Add `Table#name` to match `TableDefinition#name`.
 
     *Cody Cutrer*
