@@ -166,12 +166,9 @@ module ActiveJob
         queue_adapter.enqueued_jobs = original_enqueued_jobs + enqueued_jobs
       end
 
-      # Asserts that the job passed in the block has been performed with the given arguments,
-      # provided that queue_adapter is configured to perform enqueued jobs.
+      # Asserts that the job passed in the block has been performed with the given arguments.
       #
       #   def test_assert_performed_with
-      #     queue_adapter.perform_enqueued_jobs = true
-      #
       #     assert_performed_with(job: MyJob, args: [1,2,3], queue: 'high') do
       #       MyJob.perform_later(1,2,3)
       #     end
