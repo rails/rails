@@ -12,15 +12,24 @@ sudo: false
 
 services:
   - memcached
+  - redis
+  - rabbitmq
+
+addons:
+  postgresql: "9.3"
 
 env:
-  - "GEM=railties"
-  - "GEM=ap"
-  - "GEM=am,amo,as,av,aj"
-  - "GEM=ar:mysql"
-  - "GEM=ar:mysql2"
-  - "GEM=ar:sqlite3"
-  - "GEM=ar:postgresql"
+  global:
+    - JRUBY_OPTS='-J-Xmx1024M'
+  matrix:
+    - "GEM=railties"
+    - "GEM=ap"
+    - "GEM=am,amo,as,av,aj"
+    - "GEM=ar:mysql"
+    - "GEM=ar:mysql2"
+    - "GEM=ar:sqlite3"
+    - "GEM=ar:postgresql"
+    - "GEM=aj:integration"
 
 bundler_args: --path vendor/bundle --without test
 
@@ -32,9 +41,12 @@ matrix:
   allow_failures:
     - rvm: 1.9.3
       env: "GEM=ar:mysql"
+    - rvm: 2.0.0
+      env: "GEM=ar:mysql"
+    - rvm: ruby-head
+      env: "GEM=ar:mysql"
     - rvm: rbx-2
     - rvm: jruby
-    - rvm: ruby-head
   fast_finish: true
 
 notifications:
