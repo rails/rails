@@ -162,16 +162,6 @@ class SchemaDumperTest < ActiveRecord::TestCase
     assert_no_match %r{create_table "schema_migrations"}, output
   end
 
-  def test_schema_dump_illegal_ignored_table_value
-    stream = StringIO.new
-    old_ignore_tables, ActiveRecord::SchemaDumper.ignore_tables = ActiveRecord::SchemaDumper.ignore_tables, [5]
-    assert_raise(StandardError) do
-      ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, stream)
-    end
-  ensure
-    ActiveRecord::SchemaDumper.ignore_tables = old_ignore_tables
-  end
-
   def test_schema_dumps_index_columns_in_right_order
     index_definition = standard_dump.split(/\n/).grep(/add_index.*companies/).first.strip
     if current_adapter?(:MysqlAdapter, :Mysql2Adapter, :PostgreSQLAdapter)
