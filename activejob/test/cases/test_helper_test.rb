@@ -119,8 +119,6 @@ class EnqueuedJobsTest < ActiveJob::TestCase
 end
 
 class PerformedJobsTest < ActiveJob::TestCase
-  setup { queue_adapter.perform_enqueued_jobs = true }
-
   def test_assert_performed_jobs
     assert_nothing_raised do
       assert_performed_jobs 1 do
@@ -146,22 +144,31 @@ class PerformedJobsTest < ActiveJob::TestCase
 
   def test_assert_performed_jobs_with_no_block
     assert_nothing_raised do
-      HelloJob.perform_later('rafael')
+      perform_enqueued_jobs do
+        HelloJob.perform_later('rafael')
+      end
       assert_performed_jobs 1
     end
 
     assert_nothing_raised do
-      HelloJob.perform_later('aaron')
-      HelloJob.perform_later('matthew')
-      assert_performed_jobs 3
+      perform_enqueued_jobs do
+        HelloJob.perform_later('aaron')
+        HelloJob.perform_later('matthew')
+        assert_performed_jobs 3
+      end
+    end
+  end
+
+  def test_assert_no_performed_jobs_with_no_block
+    assert_nothing_raised do
+      assert_no_performed_jobs
     end
   end
 
   def test_assert_no_performed_jobs
     assert_nothing_raised do
       assert_no_performed_jobs do
-        # Scheduled jobs are being enqueued in this context
-        HelloJob.set(wait_until: Date.tomorrow.noon).perform_later('godfrey')
+        # empty block won't perform jobs
       end
     end
   end

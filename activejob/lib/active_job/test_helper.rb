@@ -76,25 +76,28 @@ module ActiveJob
         assert_enqueued_jobs 0, &block
       end
 
-      # Asserts that the number of performed jobs matches the given number,
-      # provided that queue_adapter is configured to perform enqueued jobs.
+      # Asserts that the number of performed jobs matches the given number.
+      # If no block is passed, <tt>perform_enqueued_jobs</tt>
+      # must be called around the job call.
       #
       #   def test_jobs
-      #     queue_adapter.perform_enqueued_jobs = true
-      #
       #     assert_performed_jobs 0
-      #     HelloJob.perform_later('xavier')
+      #
+      #     perform_enqueued_jobs do
+      #       HelloJob.perform_later('xavier')
+      #     end
       #     assert_performed_jobs 1
-      #     HelloJob.perform_later('yves')
-      #     assert_performed_jobs 2
+      #
+      #     perform_enqueued_jobs do
+      #       HelloJob.perform_later('yves')
+      #       assert_performed_jobs 2
+      #     end
       #   end
       #
       # If a block is passed, that block should cause the specified number of
       # jobs to be performed.
       #
       #   def test_jobs_again
-      #     queue_adapter.perform_enqueued_jobs = true
-      #
       #     assert_performed_jobs 1 do
       #       HelloJob.perform_later('robin')
       #     end
@@ -107,7 +110,7 @@ module ActiveJob
       def assert_performed_jobs(number)
         if block_given?
           original_count = performed_jobs.size
-          yield
+          perform_enqueued_jobs { yield }
           new_count = performed_jobs.size
           assert_equal original_count + number, new_count,
                        "#{number} jobs expected, but #{new_count - original_count} were performed"
@@ -117,22 +120,20 @@ module ActiveJob
         end
       end
 
-      # Asserts that no jobs have been performed,
-      # provided that queue_adapter is configured to perform enqueued jobs.
+      # Asserts that no jobs have been performed.
       #
       #   def test_jobs
-      #     queue_adapter.perform_enqueued_jobs = true
-      #
       #     assert_no_performed_jobs
-      #     HelloJob.perform_later('matthew')
-      #     assert_performed_jobs 1
+      #
+      #     perform_enqueued_jobs do
+      #       HelloJob.perform_later('matthew')
+      #       assert_performed_jobs 1
+      #     end
       #   end
       #
       # If a block is passed, that block should not cause any job to be performed.
       #
       #   def test_jobs_again
-      #     queue_adapter.perform_enqueued_jobs = true
-      #
       #     assert_no_performed_jobs do
       #       # No job should be performed from this block
       #     end
@@ -179,13 +180,24 @@ module ActiveJob
         original_performed_jobs = performed_jobs.dup
         clear_performed_jobs
         args.assert_valid_keys(:job, :args, :at, :queue)
-        yield
+        perform_enqueued_jobs { yield }
         matching_job = performed_jobs.any? do |job|
           args.all? { |key, value| value == job[key] }
         end
         assert matching_job, "No performed job found with #{args}"
       ensure
         queue_adapter.performed_jobs = original_performed_jobs + performed_jobs
+      end
+
+      def perform_enqueued_jobs
+        @old_perform_enqueued_jobs = queue_adapter.perform_enqueued_jobs
+        @old_perform_enqueued_at_jobs = queue_adapter.perform_enqueued_at_jobs
+        queue_adapter.perform_enqueued_jobs = true
+        queue_adapter.perform_enqueued_at_jobs = true
+        yield
+      ensure
+        queue_adapter.perform_enqueued_jobs = @old_perform_enqueued_jobs
+        queue_adapter.perform_enqueued_at_jobs = @old_perform_enqueued_at_jobs
       end
 
       def queue_adapter
