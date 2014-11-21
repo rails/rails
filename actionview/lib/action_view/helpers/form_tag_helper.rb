@@ -140,7 +140,9 @@ module ActionView
             include_blank = ''
           end
 
-          option_tags = content_tag(:option, include_blank, value: '').safe_concat(option_tags)
+          if include_blank
+            option_tags = content_tag(:option, include_blank, value: '').safe_concat(option_tags)
+          end
         end
 
         if prompt = options.delete(:prompt)
