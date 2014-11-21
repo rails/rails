@@ -1,3 +1,8 @@
+*   Generated `.gitignore` excludes the whole `log/` directory, not only
+    `*.log` files.
+
+    *ShunsukeAida*
+
 *   `Rails::Paths::Path.unshift` now has the same interface as `Array.unshift`.
 
     *Igor Kapkov*
