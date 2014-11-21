@@ -1,3 +1,7 @@
+*   Make it possible to access fixtures excluded by a `default_scope`.
+
+    *Yves Senn*
+
 *   `timestamps` and `add_timestamps` passes additional options along.
     (like `null: false`)
 
