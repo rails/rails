@@ -71,9 +71,9 @@ module ActiveRecord
         _reflections.each do |name, reflection|
           parent_name, parent_reflection = reflection.parent_reflection
           if parent_name
-            ref[parent_name] = parent_reflection
+            ref[parent_name.to_sym] = parent_reflection
           else
-            ref[name] = reflection
+            ref[name.to_sym] = reflection
           end
         end
         ref
@@ -102,7 +102,7 @@ module ActiveRecord
       #
       #   @api public
       def reflect_on_association(association)
-        reflections[association.to_s]
+        reflections[association.to_sym]
       end
 
       #   @api private

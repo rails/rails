@@ -1,3 +1,10 @@
+*   Ensure Model.reflections returns as hash with keys as symbols, per the
+    documentation.
+
+    Fixes #16928
+
+    *Byron Bischoff*
+
 *   Add `Table#name` to match `TableDefinition#name`.
 
     *Cody Cutrer*
