@@ -34,20 +34,29 @@ module ActiveSupport
       @serializer = options[:serializer] || Marshal
     end
 
-    def verify(signed_message)
-      raise InvalidSignature if signed_message.blank?
-
+    def valid_message?(signed_message)
+      return false if signed_message.blank?
+      
       data, digest = signed_message.split("--")
-      if data.present? && digest.present? && ActiveSupport::SecurityUtils.secure_compare(digest, generate_digest(data))
+      data.present? && digest.present? && ActiveSupport::SecurityUtils.secure_compare(digest, generate_digest(data))
+    end
+
+    def verified(signed_message)
+      if valid_message?(signed_message)
         begin
+          data = signed_message.split("--")[0]
           @serializer.load(decode(data))
         rescue ArgumentError => argument_error
-          raise InvalidSignature if argument_error.message =~ %r{invalid base64}
+          return false if argument_error.message =~ %r{invalid base64}
           raise
         end
       else
-        raise InvalidSignature
+        false
       end
+    end
+    
+    def verify(signed_message)
+      verified(signed_message) || raise(InvalidSignature)
     end
 
     def generate(value)
