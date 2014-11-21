@@ -833,7 +833,7 @@ class ArticlesController < ApplicationController
 
 A couple of things to note. We use `Article.find` to find the article we're
 interested in, passing in `params[:id]` to get the `:id` parameter from the
-request. We also use an instance variable (prefixed by `@`) to hold a
+request. We also use an instance variable (prefixed with `@`) to hold a
 reference to the article object. We do this because Rails will pass all instance
 variables to the view.
 
@@ -1279,7 +1279,7 @@ And here's how our app looks so far:
 Our `edit` page looks very similar to the `new` page; in fact, they
 both share the same code for displaying the form. Let's remove this
 duplication by using a view partial. By convention, partial files are
-prefixed by an underscore.
+prefixed with an underscore.
 
 TIP: You can read more about partials in the
 [Layouts and Rendering in Rails](layouts_and_rendering.html) guide.
