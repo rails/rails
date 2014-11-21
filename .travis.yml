@@ -1,7 +1,5 @@
-script: 'ci/travis.rb'
-before_install:
-  - travis_retry gem install bundler
-  - "rvm current | grep 'jruby' && export AR_JDBC=true || echo"
+language: ruby
+
 rvm:
   - 1.9.3
   - 2.0.0
@@ -9,6 +7,7 @@ rvm:
   - ruby-head
   - rbx-2
   - jruby
+
 env:
   - "GEM=railties"
   - "GEM=ap,am,amo,as,av"
@@ -16,6 +15,19 @@ env:
   - "GEM=ar:mysql2"
   - "GEM=ar:sqlite3"
   - "GEM=ar:postgresql"
+
+sudo: false
+
+bundler_args: --path vendor/bundle --without test
+
+services:
+  - memcached
+
+script: 'ci/travis.rb'
+
+before_install:
+  - "rvm current | grep 'jruby' && export AR_JDBC=true || echo"
+
 matrix:
   allow_failures:
     - rvm: rbx-2
@@ -34,6 +46,3 @@ notifications:
     on_failure: always
     rooms:
       - secure: "YA1alef1ESHWGFNVwvmVGCkMe4cUy4j+UcNvMUESraceiAfVyRMAovlQBGs6\n9kBRm7DHYBUXYC2ABQoJbQRLDr/1B5JPf/M8+Qd7BKu8tcDC03U01SMHFLpO\naOs/HLXcDxtnnpL07tGVsm0zhMc5N8tq4/L3SHxK7Vi+TacwQzI="
-bundler_args: --path vendor/bundle --without test
-services:
-  - memcached
