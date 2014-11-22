@@ -1,3 +1,9 @@
+*   Renaming a table in pg also renames the primary key index.
+
+    Fixes #12856
+
+    *Sean Griffin*
+
 *   Make it possible to access fixtures excluded by a `default_scope`.
 
     *Yves Senn*
