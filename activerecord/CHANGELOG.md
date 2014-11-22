@@ -1,3 +1,7 @@
+*   Fix connection pool leak when a driver error occurs during connection checkout_and_verify.
+
+    *Chethan Reddy*
+
 *   Make it possible to access fixtures excluded by a `default_scope`.
 
     *Yves Senn*

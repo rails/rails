@@ -454,6 +454,9 @@ module ActiveRecord
           c.verify!
         end
         c
+      rescue
+        c.close
+        raise
       end
     end
 
