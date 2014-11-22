@@ -151,7 +151,8 @@ module ActiveRecord
 
         message_bus.instrument('instantiation.active_record', payload) do
           result_set.each { |row_hash|
-            parent = parents[row_hash[primary_key]] ||= join_root.instantiate(row_hash, column_aliases)
+            parent_key = primary_key ? row_hash[primary_key] : row_hash.object_id
+            parent = parents[parent_key] ||= join_root.instantiate(row_hash, column_aliases)
             construct(parent, join_root, row_hash, result_set, seen, model_cache, aliases)
           }
         end
@@ -233,7 +234,7 @@ module ActiveRecord
       end
 
       def construct(ar_parent, parent, row, rs, seen, model_cache, aliases)
-        primary_id  = ar_parent.id
+        primary_id  = ar_parent.id || ar_parent.object_id
 
         parent.children.each do |node|
           if node.reflection.collection?
