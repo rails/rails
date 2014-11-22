@@ -412,8 +412,10 @@ module ActiveRecord
           if seq && seq.identifier == "#{table_name}_#{pk}_seq"
             new_seq = "#{new_name}_#{pk}_seq"
             execute "ALTER TABLE #{quote_table_name(seq)} RENAME TO #{quote_table_name(new_seq)}"
+            execute "ALTER TABLE #{new_name} DROP CONSTRAINT #{table_name}_pkey;"
+            execute "ALTER TABLE #{new_name} ADD PRIMARY KEY (#{pk});"
           end
-
+          
           rename_table_indexes(table_name, new_name)
         end
 
