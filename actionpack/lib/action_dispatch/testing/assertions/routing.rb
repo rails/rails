@@ -144,12 +144,6 @@ module ActionDispatch
           old_controller, @controller = @controller, @controller.clone
           _routes = @routes
 
-          # Unfortunately, there is currently an abstraction leak between AC::Base
-          # and AV::Base which requires having the URL helpers in both AC and AV.
-          # To do this safely at runtime for tests, we need to bump up the helper serial
-          # to that the old AV subclass isn't cached.
-          #
-          # TODO: Make this unnecessary
           @controller.singleton_class.send(:include, _routes.url_helpers)
           @controller.view_context_class = Class.new(@controller.view_context_class) do
             include _routes.url_helpers
