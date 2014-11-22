@@ -54,6 +54,20 @@ module AbstractController
         )
       end
 
+      def test_nil_anchor
+        assert_equal(
+          '/c/a',
+          W.new.url_for(only_path: true, controller: 'c', action: 'a', anchor: nil)
+        )
+      end
+
+      def test_false_anchor
+        assert_equal(
+          '/c/a',
+          W.new.url_for(only_path: true, controller: 'c', action: 'a', anchor: false)
+        )
+      end
+
       def test_anchor_should_call_to_param
         assert_equal('/c/a#anchor',
           W.new.url_for(:only_path => true, :controller => 'c', :action => 'a', :anchor => Struct.new(:to_param).new('anchor'))

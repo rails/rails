@@ -1001,6 +1001,9 @@ class RouteSetTest < ActiveSupport::TestCase
 
     assert_equal "http://test.host/people?baz=bar#location",
       controller.send(:index_url, :baz => "bar", :anchor => 'location')
+
+    assert_equal "http://test.host/people", controller.send(:index_url, anchor: nil)
+    assert_equal "http://test.host/people", controller.send(:index_url, anchor: false)
   end
 
   def test_named_route_url_method_with_port

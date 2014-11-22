@@ -68,7 +68,9 @@ module ActionDispatch
         end
 
         def add_anchor(path, anchor)
-          path << "##{Journey::Router::Utils.escape_fragment(anchor.to_param.to_s)}"
+          if anchor
+            path << "##{Journey::Router::Utils.escape_fragment(anchor.to_param)}"
+          end
         end
 
         def extract_domain_from(host, tld_length)
