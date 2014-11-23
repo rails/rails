@@ -47,7 +47,7 @@ module ActionDispatch
         else
           false
         end
-      rescue Exception => e # JSON or Ruby code block errors
+      rescue => e # JSON or Ruby code block errors
         logger(env).debug "Error occurred while parsing request parameters.\nContents:\n\n#{request.raw_post}"
 
         raise ParseError.new(e.message, e)
