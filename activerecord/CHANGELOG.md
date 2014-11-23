@@ -1,3 +1,9 @@
+*   Change `reflections` public api to return the keys as String objects.
+
+    Fixes #16928.
+
+    *arthurnn*
+
 *   Renaming a table in pg also renames the primary key index.
 
     Fixes #12856
