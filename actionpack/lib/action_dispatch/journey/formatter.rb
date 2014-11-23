@@ -1,4 +1,5 @@
 require 'action_controller/metal/exceptions'
+require 'active_support/deprecation'
 
 module ActionDispatch
   module Journey
@@ -80,6 +81,15 @@ module ActionDispatch
           if named_routes.key?(name)
             yield named_routes[name]
           else
+            if name
+              ActiveSupport::Deprecation.warn <<-MSG.squish
+                You are trying to generate the URL for a named route called
+                #{name.inspect} but no such route was found. In the future,
+                this will result in an `ActionController::UrlGenerationError`
+                exception.
+              MSG
+            end
+
             routes = non_recursive(cache, options)
 
             hash = routes.group_by { |_, r| r.score(options) }
