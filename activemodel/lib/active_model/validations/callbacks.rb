@@ -106,7 +106,7 @@ module ActiveModel
         end
       end
 
-    protected
+    private
 
       # Overwrite run validations to include callbacks.
       def run_validations! #:nodoc:

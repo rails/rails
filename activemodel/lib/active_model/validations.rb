@@ -389,7 +389,7 @@ module ActiveModel
     #   end
     alias :read_attribute_for_validation :send
 
-  protected
+  private
 
     def run_validations! #:nodoc:
       _run_validate_callbacks
