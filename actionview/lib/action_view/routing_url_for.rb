@@ -80,21 +80,38 @@ module ActionView
       when String
         options
       when nil
-        super({:only_path => true})
+        super(only_path: _generate_paths_by_default)
       when Hash
         options = options.symbolize_keys
-        options[:only_path] = options[:host].nil? unless options.key?(:only_path)
+        unless options.key?(:only_path)
+          if options[:host].nil?
+            options[:only_path] = _generate_paths_by_default
+          else
+            options[:only_path] = false
+          end
+        end
+
         super(options)
       when :back
         _back_url
-      when Symbol
-        ActionDispatch::Routing::PolymorphicRoutes::HelperMethodBuilder.path.handle_string_call self, options
       when Array
-        polymorphic_path(options, options.extract_options!)
-      when Class
-        ActionDispatch::Routing::PolymorphicRoutes::HelperMethodBuilder.path.handle_class_call self, options
+        if _generate_paths_by_default
+          polymorphic_path(options, options.extract_options!)
+        else
+          polymorphic_url(options, options.extract_options!)
+        end
       else
-        ActionDispatch::Routing::PolymorphicRoutes::HelperMethodBuilder.path.handle_model_call self, options
+        method = _generate_paths_by_default ? :path : :url
+        builder = ActionDispatch::Routing::PolymorphicRoutes::HelperMethodBuilder.send(method)
+
+        case options
+        when Symbol
+          builder.handle_string_call(self, options)
+        when Class
+          builder.handle_class_call(self, options)
+        else
+          builder.handle_model_call(self, options)
+        end
       end
     end
 

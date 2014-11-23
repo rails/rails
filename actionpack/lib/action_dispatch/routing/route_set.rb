@@ -457,7 +457,7 @@ module ActionDispatch
         RUBY
       end
 
-      def url_helpers(include_path_helpers = true)
+      def url_helpers(supports_path = true)
         routes = self
 
         Module.new do
@@ -484,7 +484,7 @@ module ActionDispatch
           # named routes...
           include url_helpers
 
-          if include_path_helpers
+          if supports_path
             path_helpers = routes.named_routes.path_helpers_module
           else
             path_helpers = routes.named_routes.path_helpers_module(true)
@@ -502,6 +502,10 @@ module ActionDispatch
           # UrlFor (included in this module) add extra
           # conveniences for working with @_routes.
           define_method(:_routes) { @_routes || routes }
+
+          define_method(:_generate_paths_by_default) do
+            supports_path
+          end
         end
       end
 

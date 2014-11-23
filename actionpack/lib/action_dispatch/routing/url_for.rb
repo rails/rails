@@ -184,6 +184,12 @@ module ActionDispatch
       def _routes_context
         self
       end
+
+      private
+
+        def _generate_paths_by_default
+          true
+        end
     end
   end
 end
