@@ -91,7 +91,10 @@ module ActionDispatch
 
         flash.tap(&:sweep)
       end
-
+      
+      # Builds a hash containing the discarded values and the hashes
+      # representing the flashes.
+      # If there are no values in @flashes, returns nil.
       def to_session_value
         return nil if empty?
         {'discard' => @discard.to_a, 'flashes' => @flashes}
