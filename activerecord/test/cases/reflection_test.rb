@@ -209,6 +209,10 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_not_equal Object.new, Firm._reflections['clients']
   end
 
+  def test_reflections_should_return_keys_as_strings
+    assert Category.reflections.keys.all? { |key| key.is_a? String }, "Model.reflections is expected to return string for keys"
+  end
+
   def test_has_and_belongs_to_many_reflection
     assert_equal :has_and_belongs_to_many, Category.reflections['posts'].macro
     assert_equal :posts, Category.reflect_on_all_associations(:has_and_belongs_to_many).first.name
