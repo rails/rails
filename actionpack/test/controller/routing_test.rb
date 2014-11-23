@@ -1386,7 +1386,7 @@ class RouteSetTest < ActiveSupport::TestCase
     url = controller.url_for({ :controller => "connection", :only_path => true })
     assert_equal "/connection/connection", url
 
-    url = controller.url_for({ :use_route => :family_connection,
+    url = controller.url_for({ :use_route => "family_connection",
                                :controller => "connection", :only_path => true })
     assert_equal "/connection", url
   end
