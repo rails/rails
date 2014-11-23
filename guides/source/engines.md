@@ -590,11 +590,11 @@ This is the final step required to get the new comment form working. Displaying
 the comments, however, is not quite right yet. If you were to create a comment
 right now, you would see this error:
 
-``` 
+```
 Missing partial blorgh/comments/comment with {:handlers=>[:erb, :builder],
 :formats=>[:html], :locale=>[:en, :en]}. Searched in:   *
 "/Users/ryan/Sites/side_projects/blorgh/test/dummy/app/views"   *
-"/Users/ryan/Sites/side_projects/blorgh/app/views" 
+"/Users/ryan/Sites/side_projects/blorgh/app/views"
 ```
 
 The engine is unable to find the partial required for rendering the comments.
@@ -828,12 +828,12 @@ $ bin/rake blorgh:install:migrations
 Notice that only _one_ migration was copied over here. This is because the first
 two migrations were copied over the first time this command was run.
 
-``` 
+```
 NOTE Migration [timestamp]_create_blorgh_posts.rb from blorgh has been
 skipped. Migration with the same name already exists. NOTE Migration
 [timestamp]_create_blorgh_comments.rb from blorgh has been skipped. Migration
 with the same name already exists. Copied migration
-[timestamp]_add_author_id_to_blorgh_posts.rb from blorgh 
+[timestamp]_add_author_id_to_blorgh_posts.rb from blorgh
 ```
 
 Run the migration using:
@@ -1036,21 +1036,42 @@ functionality, especially controllers. This means that if you were to make a
 typical `GET` to a controller in a controller's functional test like this:
 
 ```ruby
-get :index
+module Blorgh
+  class FooControllerTest < ActionController::TestCase
+    def test_index
+      get :index
+      ...
+    end
+  end
+end
 ```
 
 It may not function correctly. This is because the application doesn't know how
 to route these requests to the engine unless you explicitly tell it **how**. To
-do this, you must also pass the `:use_route` option as a parameter on these
-requests:
+do this, you must set the `@routes` instance variable to the engine's route set
+in your setup code:
 
 ```ruby
-get :index, use_route: :blorgh
+module Blorgh
+  class FooControllerTest < ActionController::TestCase
+    setup do
+      @routes = Engine.routes
+    end
+
+    def test_index
+      get :index
+      ...
+    end
+  end
+end
 ```
 
 This tells the application that you still want to perform a `GET` request to the
 `index` action of this controller, but you want to use the engine's route to get
 there, rather than the application's one.
+
+This also ensures that the engine's URL helpers will work as expected in your
+tests.
 
 Improving engine functionality
 ------------------------------
