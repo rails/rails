@@ -479,6 +479,8 @@ ActiveRecord::Schema.define do
     # Oracle/SQLServer supports precision up to 38
     if current_adapter?(:OracleAdapter, :SQLServerAdapter)
       t.decimal :atoms_in_universe, precision: 38, scale: 0
+    elsif current_adapter?(:FbAdapter)
+      t.decimal :atoms_in_universe, precision: 18, scale: 0
     else
       t.decimal :atoms_in_universe, precision: 55, scale: 0
     end
