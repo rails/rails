@@ -528,7 +528,7 @@ XML
         get 'via_named_route', as: :a_named_route, to: 'test_case_test/test#test_uri'
       end
 
-      get :test_uri, use_route: :a_named_route
+      assert_deprecated { get :test_uri, use_route: :a_named_route }
       assert_equal '/via_named_route', @response.body
     end
   end
@@ -798,7 +798,7 @@ module EngineControllerTests
       with_routing do |set|
         set.draw { mount Engine => '/foo' }
 
-        get :index, use_route: :foo
+        assert_deprecated { get :index, use_route: :foo }
         assert_equal @response.body, 'bar'
       end
     end
