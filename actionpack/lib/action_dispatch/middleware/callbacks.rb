@@ -1,6 +1,6 @@
 
 module ActionDispatch
-  # Provide callbacks to be executed before and after the request dispatch.
+  # Provides callbacks to be executed before and after dispatching the request.
   class Callbacks
     include ActiveSupport::Callbacks
 
