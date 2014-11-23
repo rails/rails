@@ -26,19 +26,19 @@ module ActiveJob
 
       def enqueue(job) #:nodoc:
         if perform_enqueued_jobs
-          performed_jobs << {job: job.class, args: job.arguments, queue: job.queue_name}
+          performed_jobs << { job: job.class, args: job.arguments, queue: job.queue_name }
           job.perform_now
         else
-          enqueued_jobs << {job: job.class, args: job.arguments, queue: job.queue_name}
+          enqueued_jobs << { job: job.class, args: job.arguments, queue: job.queue_name }
         end
       end
 
       def enqueue_at(job, timestamp) #:nodoc:
         if perform_enqueued_at_jobs
-          performed_jobs << {job: job.class, args: job.arguments, queue: job.queue_name, at: timestamp}
+          performed_jobs << { job: job.class, args: job.arguments, queue: job.queue_name, at: timestamp }
           job.perform_now
         else
-          enqueued_jobs << {job: job.class, args: job.arguments, queue: job.queue_name, at: timestamp}
+          enqueued_jobs << { job: job.class, args: job.arguments, queue: job.queue_name, at: timestamp }
         end
       end
     end

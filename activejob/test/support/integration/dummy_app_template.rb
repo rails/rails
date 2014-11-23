@@ -13,7 +13,7 @@ class TestJob < ActiveJob::Base
   queue_as :integration_tests
 
   def perform(x)
-    File.open(Rails.root.join("tmp/\#{x}"), "w+") do |f|
+    File.open(Rails.root.join("tmp", "\#{x}"), "w+") do |f|
       f.write x
     end
   end

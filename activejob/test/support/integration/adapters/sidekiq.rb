@@ -19,8 +19,8 @@ module SidekiqJobsManager
   def start_workers
     fork do
       sidekiq = Sidekiq::CLI.instance
-      logfile = Rails.root.join("log/sidekiq.log").to_s
-      pidfile = Rails.root.join("tmp/sidekiq.pid").to_s
+      logfile = Rails.root.join("log", "sidekiq.log").to_s
+      pidfile = Rails.root.join("tmp", "sidekiq.pid").to_s
       sidekiq.parse([ "--require", Rails.root.to_s,
                       "--queue",   "integration_tests",
                       "--logfile", logfile,
@@ -40,7 +40,7 @@ module SidekiqJobsManager
   end
 
   def stop_workers
-    pidfile = Rails.root.join("tmp/sidekiq.pid").to_s
+    pidfile = Rails.root.join("tmp", "sidekiq.pid").to_s
     Process.kill 'TERM', File.open(pidfile).read.to_i
     FileUtils.rm_f pidfile
   rescue
@@ -48,7 +48,7 @@ module SidekiqJobsManager
 
   def can_run?
     begin
-      Sidekiq.redis { |conn| conn.connect }
+      Sidekiq.redis(&:connect)
     rescue
       return false
     end

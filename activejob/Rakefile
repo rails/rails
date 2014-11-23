@@ -10,17 +10,17 @@ task test: 'test:default'
 namespace :test do
   desc 'Run all adapter tests'
   task :default do
-    run_without_aborting ACTIVEJOB_ADAPTERS.map { |a| "test:#{a}" }
+    run_without_aborting ACTIVEJOB_ADAPTERS.map { |adapter| "test:#{adapter}" }
   end
 
   desc 'Run all adapter tests in isolation'
   task :isolated do
-    run_without_aborting ACTIVEJOB_ADAPTERS.map { |a| "test:isolated:#{a}" }
+    run_without_aborting ACTIVEJOB_ADAPTERS.map { |adapter| "test:isolated:#{adapter}" }
   end
 
   desc 'Run integration tests for all adapters'
   task :integration do
-    run_without_aborting ACTIVEJOB_ADAPTERS.map { |a| "test:integration:#{a}" }
+    run_without_aborting ACTIVEJOB_ADAPTERS.map { |adapter| "test:integration:#{adapter}" }
   end
 
   task 'env:integration' do
