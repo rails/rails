@@ -277,7 +277,7 @@ Much of Action Controller's functionality is implemented as Middlewares. The fol
 
 **`ActionDispatch::Callbacks`**
 
-* Runs the prepare callbacks before serving the request.
+* Provide callbacks to be executed before and after the request dispatch.
 
 **`ActiveRecord::Migration::CheckPending`**
 
