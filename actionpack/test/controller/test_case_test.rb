@@ -1,6 +1,7 @@
 require 'abstract_unit'
 require 'controller/fake_controllers'
 require 'active_support/json/decoding'
+require 'rails/engine'
 
 class TestCaseTest < ActionController::TestCase
   class TestController < ActionController::Base
@@ -749,6 +750,57 @@ XML
     # Must be a :redirect response.
     assert_raise(ActiveSupport::TestCase::Assertion) do
       assert_redirected_to 'created resource'
+    end
+  end
+end
+
+module EngineControllerTests
+  class Engine < ::Rails::Engine
+    isolate_namespace EngineControllerTests
+
+    routes.draw do
+      get '/' => 'bar#index'
+    end
+  end
+
+  class BarController < ActionController::Base
+    def index
+      render :text => 'bar'
+    end
+  end
+
+  class BarControllerTest < ActionController::TestCase
+    tests BarController
+
+    def test_engine_controller_route
+      get :index
+      assert_equal @response.body, 'bar'
+    end
+  end
+
+  class BarControllerTestWithExplicitRouteSet < ActionController::TestCase
+    tests BarController
+
+    def setup
+      @routes = Engine.routes
+    end
+
+    def test_engine_controller_route
+      get :index
+      assert_equal @response.body, 'bar'
+    end
+  end
+
+  class BarControllerTestWithHostApplicationRouteSet < ActionController::TestCase
+    tests BarController
+
+    def test_use_route
+      with_routing do |set|
+        set.draw { mount Engine => '/foo' }
+
+        get :index, use_route: :foo
+        assert_equal @response.body, 'bar'
+      end
     end
   end
 end
