@@ -217,6 +217,7 @@ module ActionDispatch
               if args.size == arg_size && !inner_options && optimize_routes_generation?(t)
                 options = t.url_options.merge @options
                 options[:path] = optimized_helper(args)
+
                 url_strategy.call options
               else
                 super
@@ -232,8 +233,8 @@ module ActionDispatch
               unless missing_keys.empty?
                 raise_generation_error(params, missing_keys)
               end
-
-              @route.format params
+              relative_root = ENV['RAILS_RELATIVE_URL_ROOT']
+              "#{relative_root}#{@route.format params}"
             end
 
             def optimize_routes_generation?(t)
@@ -270,11 +271,15 @@ module ActionDispatch
           def call(t, args, inner_options)
             controller_options = t.url_options
             options = controller_options.merge @options
+
+            relative_path = ENV['RAILS_RELATIVE_URL_ROOT']
+            relative_hash = relative_path.present? ? {relative_url_root: relative_path, script_name: nil} : {}
+
             hash = handle_positional_args(controller_options,
                                           deprecate_string_options(inner_options) || {},
                                           args,
                                           options,
-                                          @segment_keys)
+                                          @segment_keys).merge(relative_hash)
 
             t._routes.url_for(hash, route_name, url_strategy)
           end
@@ -400,6 +405,7 @@ module ActionDispatch
         @set    = Journey::Routes.new
         @router = Journey::Router.new @set
         @formatter = Journey::Formatter.new @set
+
       end
 
       def draw(&block)
@@ -750,7 +756,7 @@ module ActionDispatch
 
       RESERVED_OPTIONS = [:host, :protocol, :port, :subdomain, :domain, :tld_length,
                           :trailing_slash, :anchor, :params, :only_path, :script_name,
-                          :original_script_name]
+                          :original_script_name, :relative_url_root]
 
       def optimize_routes_generation?
         default_url_options.empty?
@@ -791,6 +797,10 @@ module ActionDispatch
 
         if options.key? :params
           params.merge! options[:params]
+        end
+
+        if options.key? :relative_url_root
+          path = "#{options[:relative_url_root]}#{path}"
         end
 
         options[:path]        = path
