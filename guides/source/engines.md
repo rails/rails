@@ -1039,20 +1039,8 @@ typical `GET` to a controller in a controller's functional test like this:
 get :index
 ```
 
-It may not function correctly. This is because the application doesn't know how
-to route these requests to the engine unless you explicitly tell it **how**. To
-do this, you must also pass the `:use_route` option as a parameter on these
-requests:
-
-```ruby
-get :index, use_route: :blorgh
-```
-
-This tells the application that you still want to perform a `GET` request to the
-`index` action of this controller, but you want to use the engine's route to get
-there, rather than the application's one.
-
-Another way to do this is to assign the `@routes` instance variable to `Engine.routes` in your test setup:
+You'll need to assign the `@routes` instance variable to `Engine.routes` in
+your test setup:
 
 ```ruby
 setup do

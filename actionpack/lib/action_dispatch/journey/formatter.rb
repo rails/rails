@@ -22,7 +22,7 @@ module ActionDispatch
           # Skip this route unless a name has been provided or it is a
           # standard Rails route since we can't determine whether an options
           # hash passed to url_for matches a Rack application or a redirect.
-          next unless name || route.dispatcher?
+          next unless named_routes[name] || route.dispatcher?
 
           missing_keys = missing_keys(route, parameterized_parts)
           next unless missing_keys.empty?
