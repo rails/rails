@@ -247,6 +247,11 @@ module ActiveSupport #:nodoc:
 end
 
 class String
+  # Marks a string as trusted safe. It will be inserted into HTML with no
+  # additional escaping performed. It is your responsibilty to ensure that the
+  # string contains no malicious content. This method is equivalent to the
+  # `raw` helper in views. It is recommended that you use `sanitize` instead of
+  # this method. It should never be called on user input.
   def html_safe
     ActiveSupport::SafeBuffer.new(self)
   end
