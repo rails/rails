@@ -1,10 +1,12 @@
+require 'thread_safe'
+
 module ActiveRecord
   module Type
     class TypeMap # :nodoc:
       def initialize
         @mapping = {}
-        @cache = Hash.new do |h, key|
-          h[key] = {}
+        @cache = ThreadSafe::Cache.new do |h, key|
+          h.fetch_or_store(key, ThreadSafe::Cache.new)
         end
       end
 
@@ -13,7 +15,9 @@ module ActiveRecord
       end
 
       def fetch(lookup_key, *args, &block)
-        @cache[lookup_key][args] ||= perform_fetch(lookup_key, *args, &block)
+        @cache[lookup_key].fetch_or_store(args) do
+          perform_fetch(lookup_key, *args, &block)
+        end
       end
 
       def register_type(key, value = nil, &block)
