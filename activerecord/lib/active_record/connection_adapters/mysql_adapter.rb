@@ -137,7 +137,9 @@ module ActiveRecord
         @connection.quote(string)
       end
 
+      #--
       # CONNECTION MANAGEMENT ====================================
+      #++
 
       def active?
         if @connection.respond_to?(:stat)
@@ -178,7 +180,9 @@ module ActiveRecord
         end
       end
 
+      #--
       # DATABASE STATEMENTS ======================================
+      #++
 
       def select_rows(sql, name = nil, binds = [])
         @connection.query_with_result = true
