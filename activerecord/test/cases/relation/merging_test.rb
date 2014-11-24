@@ -174,7 +174,7 @@ class MergingDifferentRelationsTest < ActiveRecord::TestCase
     rating_1 = comment_1.ratings.create!
 
     comment_2 = dev.comments.create!(body: "I'm John", post: Post.first)
-    rating_2 = comment_2.ratings.create!
+    comment_2.ratings.create!
 
     assert_equal dev.ratings, [rating_1]
   end
