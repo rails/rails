@@ -66,7 +66,9 @@ module ActiveRecord
         exception.error_number if exception.respond_to?(:error_number)
       end
 
+      #--
       # QUOTING ==================================================
+      #++
 
       def quote_string(string)
         @connection.escape(string)
@@ -80,7 +82,9 @@ module ActiveRecord
         end
       end
 
+      #--
       # CONNECTION MANAGEMENT ====================================
+      #++
 
       def active?
         return false unless @connection
@@ -104,7 +108,9 @@ module ActiveRecord
         end
       end
 
+      #--
       # DATABASE STATEMENTS ======================================
+      #++
 
       def explain(arel, binds = [])
         sql     = "EXPLAIN #{to_sql(arel, binds.dup)}"
