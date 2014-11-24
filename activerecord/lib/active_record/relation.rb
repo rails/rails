@@ -304,8 +304,7 @@ module ActiveRecord
       klass.current_scope = previous
     end
 
-    # Updates all records in the current scope (respecting the <tt>default_scope</tt>, <tt>where</tt>,
-    # <tt>limit</tt> and <tt>order</tt> specified) with details given. This method constructs a single SQL update_all
+    # Updates all records in the current relation with details given. This method constructs a single SQL UPDATE
     # statement and sends it straight to the database. It does not instantiate the involved models and it does not
     # trigger Active Record callbacks or validations. Values passed to `update_all` will not go through
     # ActiveRecord's type-casting behavior. It should receive only values that can be passed as-is to the SQL
@@ -319,12 +318,6 @@ module ActiveRecord
     #
     #   # Update all customers with the given attributes
     #   Customer.update_all wants_email: true
-    #
-    #   # Update all active accounts with the given attributes
-    #   class Account < ActiveRecord::Base
-    #     default_scope -> { where active: true }
-    #   end
-    #   Account.update_all(failed_logins: 0)
     #
     #   # Update all books with 'Rails' in their title
     #   Book.where('title LIKE ?', '%Rails%').update_all(author: 'David')
