@@ -52,21 +52,21 @@ module ActiveJob
 
     class LogSubscriber < ActiveSupport::LogSubscriber #:nodoc:
       def enqueue(event)
-        info do
+        debug do
           job = event.payload[:job]
           "Enqueued #{job.class.name} (Job ID: #{job.job_id}) to #{queue_name(event)}" + args_info(job)
         end
       end
 
       def enqueue_at(event)
-        info do
+        debug do
           job = event.payload[:job]
           "Enqueued #{job.class.name} (Job ID: #{job.job_id}) to #{queue_name(event)} at #{scheduled_at(event)}" + args_info(job)
         end
       end
 
       def perform_start(event)
-        info do
+        debug do
           job = event.payload[:job]
           "Performing #{job.class.name} from #{queue_name(event)}" + args_info(job)
         end
