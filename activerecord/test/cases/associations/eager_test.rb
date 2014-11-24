@@ -904,6 +904,12 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_no_queries {assert_equal posts(:sti_comments), comment.post}
   end
 
+  def test_eager_association_with_scope_with_joins
+    assert_nothing_raised do
+      Post.includes(:very_special_comment_with_post_with_joins).to_a
+    end
+  end
+
   def test_preconfigured_includes_with_has_many
     posts = authors(:david).posts_with_comments
     one = posts.detect { |p| p.id == 1 }

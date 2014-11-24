@@ -14,6 +14,12 @@
 
     *Yves Senn*
 
+*   Fix includes on association with a scope containing joins along with conditions
+    on the joined assoiciation.
+
+    *Siddharth Sharma*
+
+
 *   Add `Table#name` to match `TableDefinition#name`.
 
     *Cody Cutrer*
