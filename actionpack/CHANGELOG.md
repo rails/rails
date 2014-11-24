@@ -1,3 +1,11 @@
+*   Deprecate use of string keys in URL helpers.
+
+    Use symbols instead.
+
+    Fixes #16958.
+
+    *Byron Bischoff*, *Melanie Gilman*
+
 *   Deprecate the `only_path` option on `*_path` helpers.
 
     In cases where this option is set to `true`, the option is redundant and can
