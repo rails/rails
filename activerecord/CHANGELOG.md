@@ -1,3 +1,9 @@
+*   Fix preload HABTM associations with hashed conditions
+
+    Fixes #15244
+
+    *scambra*
+
 *   Includes HABTM returns correct size now. It's caused by the join dependency
     only instantiates one HABTM object because the join table hasn't a primary key.
 
