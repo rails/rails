@@ -38,7 +38,7 @@ module ActiveModel
             decorations
           end
 
-        protected
+        private
 
           def compute_type
             return if value.nil?
