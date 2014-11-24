@@ -435,6 +435,9 @@ module ActiveRecord
           sql_type << "[]" if options[:array]
           sql = "ALTER TABLE #{quoted_table_name} ALTER COLUMN #{quote_column_name(column_name)} TYPE #{sql_type}"
           sql << " USING #{options[:using]}" if options[:using]
+          if options[:cast_as]
+            sql << " USING CAST(#{quote_column_name(column_name)} AS #{type_to_sql(options[:cast_as], options[:limit], options[:precision], options[:scale])})"
+          end
           execute sql
 
           change_column_default(table_name, column_name, options[:default]) if options_include_default?(options)
