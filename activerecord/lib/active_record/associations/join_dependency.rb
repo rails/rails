@@ -234,7 +234,7 @@ module ActiveRecord
       end
 
       def construct(ar_parent, parent, row, rs, seen, model_cache, aliases)
-        primary_id  = ar_parent.id || ar_parent
+        primary_id  = ar_parent
 
         parent.children.each do |node|
           if node.reflection.collection?
