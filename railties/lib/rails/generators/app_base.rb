@@ -239,8 +239,6 @@ module Rails
 
         gems = []
         if options.dev? || options.edge?
-          gems << GemfileEntry.github('sprockets-rails', 'rails/sprockets-rails',
-                                    'Use edge version of sprockets-rails')
           gems << GemfileEntry.github('sass-rails', 'rails/sass-rails',
                                     'Use SCSS for stylesheets')
         else
