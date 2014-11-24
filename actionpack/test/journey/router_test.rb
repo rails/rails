@@ -415,7 +415,7 @@ module ActionDispatch
 
       def test_generate_with_name
         path  = Path::Pattern.from_string '/:controller(/:action)'
-        @router.routes.add_route @app, path, {}, {}, {}
+        @router.routes.add_route @app, path, {}, {}, "tasks"
 
         path, params = @formatter.generate(
           "tasks",
