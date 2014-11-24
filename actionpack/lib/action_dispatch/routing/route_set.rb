@@ -271,7 +271,7 @@ module ActionDispatch
             controller_options = t.url_options
             options = controller_options.merge @options
             hash = handle_positional_args(controller_options,
-                                          inner_options || {},
+                                          deprecate_string_options(inner_options) || {},
                                           args,
                                           options,
                                           @segment_keys)
@@ -292,6 +292,22 @@ module ActionDispatch
             end
 
             result.merge!(inner_options)
+          end
+
+          DEPRECATED_STRING_OPTIONS = %w[controller action]
+
+          def deprecate_string_options(options)
+            options ||= {}
+            deprecated_string_options = options.keys & DEPRECATED_STRING_OPTIONS
+            if deprecated_string_options.any?
+              msg = "Calling URL helpers with string keys #{deprecated_string_options.join(", ")} is deprecated. Use symbols instead."
+              ActiveSupport::Deprecation.warn(msg)
+              deprecated_string_options.each do |option|
+                value = options.delete(option)
+                options[option.to_sym] = value
+              end
+            end
+            options
           end
         end
 
