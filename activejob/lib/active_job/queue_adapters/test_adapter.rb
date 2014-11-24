@@ -3,8 +3,8 @@ module ActiveJob
     # == Test adapter for Active Job
     #
     # The test adapter should be used only in testing. Along with
-    # <tt>ActiveJob::TestCase</tt> and <tt>ActiveJob::TestHelper</tt>
-    # it makes a great tool to test your Rails application.
+    # <tt>ActiveJob::TestHelper</tt> it makes a great tool to test
+    # your Rails application.
     #
     # To use the test adapter set queue_adapter config to +:test+.
     #

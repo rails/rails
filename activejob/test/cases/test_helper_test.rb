@@ -5,7 +5,11 @@ require 'jobs/hello_job'
 require 'jobs/logging_job'
 require 'jobs/nested_job'
 
-class EnqueuedJobsTest < ActiveJob::TestCase
+class EnqueuedJobsTest < ActiveSupport::TestCase
+  # This stub emulates the Railtie including the test
+  # helpers in ActiveSupport::TestCase.
+  include ActiveJob::TestHelper
+
   setup { queue_adapter.perform_enqueued_at_jobs = true }
 
   def test_assert_enqueued_jobs
@@ -115,7 +119,11 @@ class EnqueuedJobsTest < ActiveJob::TestCase
   end
 end
 
-class PerformedJobsTest < ActiveJob::TestCase
+class PerformedJobsTest < ActiveSupport::TestCase
+  # This stub emulates the Railtie including the test
+  # helpers in ActiveSupport::TestCase.
+  include ActiveJob::TestHelper
+
   setup { queue_adapter.perform_enqueued_jobs = true }
 
   def test_assert_performed_jobs
