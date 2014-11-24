@@ -84,7 +84,7 @@ module ActiveRecord
               scope.bind_values     = reflection_scope.bind_values
             end
 
-            scope.references! reflection_scope.values[:references]
+            scope.references! reflection_scope.values[:references].presence
             scope = scope.order reflection_scope.values[:order] if scope.eager_loading?
           end
 
