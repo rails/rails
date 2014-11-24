@@ -127,6 +127,42 @@ SELECT * FROM clients WHERE (clients.id IN (1,10))
 
 WARNING: The `find` method will raise an `ActiveRecord::RecordNotFound` exception unless a matching record is found for **all** of the supplied primary keys.
 
+You can join another table calling the `joins` method before `find`:
+
+```ruby
+client = Client.joins(:companies).find(1)
+```
+
+This would proceduce a `JOIN`, but returning just the first row:
+
+```sql
+SELECT clients.*
+FROM clients
+INNER JOIN companies
+  ON clients.company_id = companies.id
+WHERE clients.id = 1
+LIMIT 1
+```
+
+It makes more sense to bring some columns from the _companies_ table too. For that, use `select`:
+
+```ruby
+client = Client.select('clients.id, clients.first_name, companies.name AS company_name').joins(:companies).find(1)
+client.first_name # "Lifo"
+client.company_name # "A Company"
+```
+
+The above would produce the following SQL:
+
+```sql
+SELECT clients.id, clients.first_name, companies.name AS company_name
+FROM clients
+INNER JOIN companies
+  ON clients.company_id = companies.id
+WHERE clients.id = 1
+LIMIT 1
+```
+
 #### `take`
 
 The `take` method retrieves a record without any implicit ordering. For example:
