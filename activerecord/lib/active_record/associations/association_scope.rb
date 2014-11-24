@@ -33,11 +33,11 @@ module ActiveRecord
         reflection    = association.reflection
         scope         = klass.unscoped
         owner         = association.owner
-        alias_tracker = AliasTracker.empty connection
-        chain         = get_chain(reflection, association, alias_tracker)
+        alias_tracker = AliasTracker.create connection, association.klass.table_name
+        chain_head, chain_tail = get_chain(reflection, association, alias_tracker)
 
         scope.extending! Array(reflection.options[:extend])
-        add_constraints(scope, owner, klass, reflection, alias_tracker, chain)
+        add_constraints(scope, owner, klass, reflection, alias_tracker, chain_head, chain_tail)
       end
 
       def join_type
@@ -114,6 +114,8 @@ module ActiveRecord
       end
 
       class RuntimeReflection
+        attr_accessor :next
+
         def initialize(reflection, association)
           @reflection = reflection
           @association = association
@@ -161,6 +163,8 @@ module ActiveRecord
       end
 
       class ReflectionProxy < SimpleDelegator
+        attr_accessor :next
+
         def alias_name(name, alias_tracker)
           @alias ||= begin
             alias_name = "#{plural_name}_#{name}"
@@ -173,26 +177,28 @@ module ActiveRecord
         name = refl.name
         runtime_reflection = RuntimeReflection.new(refl, association)
         runtime_reflection.alias_name(name, tracker)
-        chain = [runtime_reflection]
-        chain.concat refl.chain.drop(1).map { |reflection|
+        prev = runtime_reflection
+        refl.chain.drop(1).each { |reflection|
           proxy = ReflectionProxy.new(reflection)
           proxy.alias_name(name, tracker)
-          proxy
+          prev.next = proxy
+          prev = proxy
         }
-        chain
+        [runtime_reflection, prev]
       end
 
-      def add_constraints(scope, owner, assoc_klass, refl, tracker, chain)
-        owner_reflection = chain.last
+      def add_constraints(scope, owner, assoc_klass, refl, tracker, chain_head, chain_tail)
+        owner_reflection = chain_tail
         table = owner_reflection.alias_name(refl.name, tracker)
         scope = last_chain_scope(scope, table, owner_reflection, owner, tracker, assoc_klass)
 
-        # chain.first always == refl
-        chain.each_with_index do |reflection, i|
+        reflection = chain_head
+        loop do
+          break unless reflection
           table = reflection.alias_name(refl.name, tracker)
 
-          unless reflection == chain.last
-            next_reflection = chain[i + 1]
+          unless reflection == chain_tail
+            next_reflection = reflection.next
             foreign_table = next_reflection.alias_name(refl.name, tracker)
             scope = next_chain_scope(scope, table, reflection, tracker, assoc_klass, foreign_table, next_reflection)
           end
@@ -206,7 +212,7 @@ module ActiveRecord
               scope.merge! item.except(:where, :includes, :bind)
             end
 
-            if reflection == chain.first
+            if reflection == chain_head
               scope.includes! item.includes_values
             end
 
@@ -214,6 +220,7 @@ module ActiveRecord
             scope.bind_values  += item.bind_values
             scope.order_values |= item.order_values
           end
+          reflection = reflection.next
         end
 
         scope
