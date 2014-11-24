@@ -630,6 +630,9 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 ### Notable changes
 
+*   `ActiveRecord::Base#reflections` now returns a hash with `String` keys instead of `Symbol` keys.
+    ([Pull Request](https://github.com/rails/rails/pull/17718))
+
 *   The PostgreSQL adapter now supports the `JSONB` datatype in PostgreSQL 9.4+.
     ([Pull Request](https://github.com/rails/rails/pull/16220))
 
