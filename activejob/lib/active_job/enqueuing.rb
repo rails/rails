@@ -17,7 +17,7 @@ module ActiveJob
         job_or_instantiate(*args).enqueue
       end
 
-      protected
+      private
         def job_or_instantiate(*args)
           args.first.is_a?(self) ? args.first : new(*args)
         end
@@ -61,9 +61,14 @@ module ActiveJob
     #    my_job_instance.enqueue queue: :important
     #    my_job_instance.enqueue wait_until: Date.tomorrow.midnight
     def enqueue(options={})
-      self.scheduled_at = options[:wait].seconds.from_now.to_f if options[:wait]
-      self.scheduled_at = options[:wait_until].to_f if options[:wait_until]
-      self.queue_name   = self.class.queue_name_from_part(options[:queue]) if options[:queue]
+      self.scheduled_at = if options[:wait_until]
+        options[:wait_until].to_f
+      elsif options[:wait]
+        options[:wait].seconds.from_now.to_f
+      end
+
+      self.queue_name = self.class.queue_name_from_part(options[:queue]) if options[:queue]
+
       run_callbacks :enqueue do
         if self.scheduled_at
           self.class.queue_adapter.enqueue_at self, self.scheduled_at

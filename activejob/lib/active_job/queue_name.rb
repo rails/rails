@@ -17,10 +17,10 @@ module ActiveJob
       #     end
       #   end
       def queue_as(part_name=nil, &block)
-        if block_given?
-          self.queue_name = block
+        self.queue_name = if block_given?
+          block
         else
-          self.queue_name = queue_name_from_part(part_name)
+          queue_name_from_part(part_name)
         end
       end
 
@@ -41,7 +41,7 @@ module ActiveJob
 
     # Returns the name of the queue the job will be run on
     def queue_name
-      if @queue_name.is_a?(Proc)
+      if @queue_name.respond_to? :call
         @queue_name = self.class.queue_name_from_part(instance_exec(&@queue_name))
       end
       @queue_name
