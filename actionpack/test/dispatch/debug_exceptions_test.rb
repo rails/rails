@@ -43,6 +43,8 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
         raise ActionController::InvalidAuthenticityToken
       when "/not_found_original_exception"
         raise ActionView::Template::Error.new('template', AbstractController::ActionNotFound.new)
+      when "/missing_template"
+        raise ActionView::MissingTemplate.new(%w(foo), 'foo/index', %w(foo), false, 'mailer')
       when "/bad_request"
         raise ActionController::BadRequest
       when "/missing_keys"
@@ -118,6 +120,15 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert_match '/:controller(/:action)(.:format)', routing_table
     assert_match ':controller#:action', routing_table
     assert_no_match '&lt;|&gt;', routing_table, "there should not be escaped html in the output"
+  end
+
+  test 'displays request and response info when a RoutingError occurs' do
+    @app = DevelopmentApp
+
+    get "/pass", {}, {'action_dispatch.show_exceptions' => true}
+
+    assert_select 'h2', /Request/
+    assert_select 'h2', /Response/
   end
 
   test "rescue with diagnostics message" do
@@ -273,6 +284,22 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert_select '#Application-Trace' do
       assert_select 'pre code', /\(eval\):1: syntax error, unexpected/
     end
+  end
+
+  test 'display backtrace on template missing errors' do
+    @app = DevelopmentApp
+
+    get "/missing_template", nil, {}
+
+    assert_select "header h1", /Template is missing/
+
+    assert_select "#container h2", /^Missing template/
+
+    assert_select '#Application-Trace'
+    assert_select '#Framework-Trace'
+    assert_select '#Full-Trace'
+
+    assert_select 'h2', /Request/
   end
 
   test 'display backtrace when error type is SyntaxError wrapped by ActionView::Template::Error' do
