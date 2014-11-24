@@ -7,7 +7,7 @@ module Erb # :nodoc:
         view_base_path = File.join("app/views", class_path, file_name)
         empty_directory view_base_path
 
-        layout_base_path = File.join("app/views/layouts")
+        layout_base_path = "app/views/layouts"
 
         actions.each do |action|
           @action = action
