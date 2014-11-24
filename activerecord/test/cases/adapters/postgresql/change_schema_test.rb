@@ -19,6 +19,7 @@ module ActiveRecord
 
       def test_change_string_to_date
         connection.change_column :strings, :somedate, :timestamp, using: 'CAST("somedate" AS timestamp)'
+        assert_equal :datetime, connection.columns(:strings).find { |c| c.name == 'somedate' }.type
       end
     end
   end
