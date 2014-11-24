@@ -907,7 +907,7 @@ module ActiveRecord
     def where_unscoping(target_value)
       target_value = target_value.to_s
 
-      where_values.reject! do |rel|
+      self.where_values = where_values.reject do |rel|
         case rel
         when Arel::Nodes::Between, Arel::Nodes::In, Arel::Nodes::NotIn, Arel::Nodes::Equality, Arel::Nodes::NotEqual, Arel::Nodes::LessThanOrEqual, Arel::Nodes::GreaterThanOrEqual
           subrelation = (rel.left.kind_of?(Arel::Attributes::Attribute) ? rel.left : rel.right)
@@ -915,7 +915,7 @@ module ActiveRecord
         end
       end
 
-      bind_values.reject! { |col,_| col.name == target_value }
+      self.bind_values = bind_values.reject { |col,_| col.name == target_value }
     end
 
     def custom_join_ast(table, joins)
