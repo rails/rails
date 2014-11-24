@@ -304,11 +304,11 @@ module ActiveRecord
       klass.current_scope = previous
     end
 
-    # Updates all records with details given if they match a set of conditions supplied, limits and order can
-    # also be supplied. This method constructs a single SQL UPDATE statement and sends it straight to the
-    # database. It does not instantiate the involved models and it does not trigger Active Record callbacks
-    # or validations. Values passed to `update_all` will not go through ActiveRecord's type-casting behavior.
-    # It should receive only values that can be passed as-is to the SQL database.
+    # Updates all records in the current relation with details given. This method constructs a single SQL UPDATE
+    # statement and sends it straight to the database. It does not instantiate the involved models and it does not
+    # trigger Active Record callbacks or validations. Values passed to `update_all` will not go through
+    # ActiveRecord's type-casting behavior. It should receive only values that can be passed as-is to the SQL
+    # database.
     #
     # ==== Parameters
     #
