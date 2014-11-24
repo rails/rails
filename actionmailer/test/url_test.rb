@@ -23,9 +23,34 @@ class UrlTestMailer < ActionMailer::Base
     mail(to: recipient, subject: "[Signed up] Welcome #{recipient}",
       from: "system@loudthinking.com", date: Time.local(2004, 12, 12))
   end
+
+  def exercise_url_for(options)
+    @options     = options
+    @from_method = url_for(@options)
+    mail(to:   "foo@foo.com", subject: "Welcome",
+         from: "system@loudthinking.com", date: Time.local(2004, 12, 12))
+  end
 end
 
 class ActionMailerUrlTest < ActionMailer::TestCase
+
+  class FakeBasecampKlass
+    def self.model_name
+      OpenStruct.new(route_key: "welcome")
+    end
+
+    def persisted?
+      false
+    end
+
+    def model_name
+      self.class.model_name
+    end
+
+    def to_model
+      self
+    end
+  end
 
   def encode( text, charset="UTF-8" )
     quoted_printable( text, charset )
@@ -42,6 +67,37 @@ class ActionMailerUrlTest < ActionMailer::TestCase
 
   def setup
     @recipient = 'test@localhost'
+  end
+
+  def test_url_for
+    UrlTestMailer.delivery_method = :test
+
+    AppRoutes.draw do
+      get ':controller(/:action(/:id))'
+      get '/welcome'  => "foo#bar", as: "welcome"
+    end
+
+    # class
+    expected = "http://www.basecamphq.com/welcome http://www.basecamphq.com/welcome"
+    created = UrlTestMailer.exercise_url_for(FakeBasecampKlass)
+    assert_equal expected, created.body.to_s.chomp
+
+    # Array
+    created = UrlTestMailer.exercise_url_for([FakeBasecampKlass])
+    assert_equal expected, created.body.to_s.chomp
+
+    # Model
+    created = UrlTestMailer.exercise_url_for(FakeBasecampKlass.new)
+    assert_equal expected, created.body.to_s.chomp
+
+    # symbol
+    created = UrlTestMailer.exercise_url_for(:welcome)
+    assert_equal expected, created.body.to_s.chomp
+
+    # string
+    expected = "foo foo"
+    created = UrlTestMailer.exercise_url_for("http://foo/")
+    assert_equal "http://foo/ http://foo/", created.body.to_s.chomp
   end
 
   def test_signed_up_with_url
