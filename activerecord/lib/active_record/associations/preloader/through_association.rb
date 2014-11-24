@@ -83,7 +83,7 @@ module ActiveRecord
               scope.where_values    = reflection_scope.values[:where]
             end
 
-            scope.references! reflection_scope.values[:references]
+            scope.references! reflection_scope.values[:references].presence
             scope.order! reflection_scope.values[:order] if scope.eager_loading?
           end
 
