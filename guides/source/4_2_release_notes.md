@@ -49,8 +49,8 @@ bog down the controller or model.
 The new GlobalID library makes it easy to pass Active Record objects to jobs by
 serializing them in a generic form. This means you no longer have to manually
 pack and unpack your Active Records by passing ids. Just give the job the
-Active Record object, and it'll serialize it using GlobalID, and deserialize
-it at run time.
+Active Record object, and the object will be serialized using GlobalID, and
+then deserialized again at run time.
 
 ### Adequate Record
 
