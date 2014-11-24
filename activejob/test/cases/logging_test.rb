@@ -48,11 +48,13 @@ class AdapterTest < ActiveSupport::TestCase
 
   def test_uses_job_name_as_tag
     LoggingJob.perform_later "Dummy"
+    sleep 0.01
     assert_match(/\[LoggingJob\]/, @logger.messages)
   end
 
   def test_uses_job_id_as_tag
     LoggingJob.perform_later "Dummy"
+    sleep 0.01
     assert_match(/\[LOGGING-JOB-ID\]/, @logger.messages)
   end
 
@@ -60,6 +62,7 @@ class AdapterTest < ActiveSupport::TestCase
     original_queue_name = LoggingJob.queue_name
     LoggingJob.queue_as :php_jobs
     LoggingJob.perform_later("Dummy")
+    sleep 0.01
     assert_match(/to .*?\(php_jobs\).*/, @logger.messages)
   ensure
     LoggingJob.queue_name = original_queue_name
@@ -67,11 +70,13 @@ class AdapterTest < ActiveSupport::TestCase
 
   def test_enqueue_job_logging
     HelloJob.perform_later "Cristian"
+    sleep 0.01
     assert_match(/Enqueued HelloJob \(Job ID: .*?\) to .*?:.*Cristian/, @logger.messages)
   end
 
   def test_perform_job_logging
     LoggingJob.perform_later "Dummy"
+    sleep 0.01
     assert_match(/Performing LoggingJob from .*? with arguments:.*Dummy/, @logger.messages)
     assert_match(/Dummy, here is it: Dummy/, @logger.messages)
     assert_match(/Performed LoggingJob from .*? in .*ms/, @logger.messages)
@@ -79,6 +84,7 @@ class AdapterTest < ActiveSupport::TestCase
 
   def test_perform_nested_jobs_logging
     NestedJob.perform_later
+    sleep 0.01
     assert_match(/\[LoggingJob\] \[.*?\]/, @logger.messages)
     assert_match(/\[ActiveJob\] Enqueued NestedJob \(Job ID: .*\) to/, @logger.messages)
     assert_match(/\[ActiveJob\] \[NestedJob\] \[NESTED-JOB-ID\] Performing NestedJob from/, @logger.messages)

@@ -10,11 +10,13 @@ class QueuingTest < ActiveSupport::TestCase
 
   test 'run queued job' do
     HelloJob.perform_later
+    sleep 0.01
     assert_equal "David says hello", JobBuffer.last_value
   end
 
   test 'run queued job with arguments' do
     HelloJob.perform_later "Jamie"
+    sleep 0.01
     assert_equal "Jamie says hello", JobBuffer.last_value
   end
 
