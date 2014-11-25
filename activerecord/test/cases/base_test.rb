@@ -88,6 +88,7 @@ class BasicsTest < ActiveRecord::TestCase
       'Mysql2Adapter'     => '`',
       'PostgreSQLAdapter' => '"',
       'OracleAdapter'     => '"',
+      'FbAdapter'         => '"'
     }.fetch(classname) {
       raise "need a bad char for #{classname}"
     }
@@ -111,7 +112,7 @@ class BasicsTest < ActiveRecord::TestCase
     assert_nil Edge.primary_key
   end
 
-  unless current_adapter?(:PostgreSQLAdapter, :OracleAdapter, :SQLServerAdapter)
+  unless current_adapter?(:PostgreSQLAdapter, :OracleAdapter, :SQLServerAdapter, :FbAdapter)
     def test_limit_with_comma
       assert Topic.limit("1,2").to_a
     end
