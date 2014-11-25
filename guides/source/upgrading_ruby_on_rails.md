@@ -145,6 +145,18 @@ assigning `nil` to a serialized attribute will save it to the database
 as `NULL` instead of passing the `nil` value through the coder (e.g. `"null"`
 when using the `JSON` coder).
 
+### Production log level
+
+In Rails 5, the default log level for the production environment will be changed
+to `:debug` (from `:info`). To preserve the current default, add the following
+line to your `production.rb`:
+
+```ruby
+# Set to `:info` to match the current default, or set to `:debug` to opt-into
+# the future default.
+config.log_level = :info
+```
+
 ### `after_bundle` in Rails templates
 
 If you have a Rails template that adds all the files in version control, it
