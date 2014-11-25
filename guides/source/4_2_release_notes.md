@@ -417,6 +417,19 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 
     ([Commit](https://github.com/rails/rails/commit/cc26b6b7bccf0eea2e2c1a9ebdcc9d30ca7390d9))
 
+*   Deprecated support for String keys in URL helpers:
+
+    ```ruby
+    # bad
+    Rails.application.routes.url_helpers.root_path('controller' => 'posts', 'action' => 'index')
+    # good
+    Rails.application.routes.url_helpers.root_path(:controller => 'posts', :action => 'index')
+    # better :trollface:
+    Rails.application.routes.url_helpers.root_path(controller: 'posts', action: 'index')
+    ```
+
+    ([Pull Request](https://github.com/rails/rails/pull/17743))
+
 ### Notable changes
 
 *   Rails will now automatically include the template's digest in ETags.
