@@ -13,11 +13,11 @@ module Erb # :nodoc:
           @action = action
 
           formats.each do |format|
-            @view_path = File.join(view_base_path, filename_with_extensions(action, format))
-            template filename_with_extensions(:view, format), @view_path
+            @path = File.join(view_base_path, filename_with_extensions(action, format))
+            template filename_with_extensions(:view, format), @path
 
-            @layout_path = File.join(layout_base_path, filename_with_extensions("mailer", format))
-            template filename_with_extensions(:layout, format), @layout_path
+            layout_path = File.join(layout_base_path, filename_with_extensions("mailer", format))
+            template filename_with_extensions(:layout, format), layout_path
           end
         end
 
