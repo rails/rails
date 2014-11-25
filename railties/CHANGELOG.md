@@ -1,3 +1,8 @@
+*   Generated migrations add the appropriate foreign key constraints to
+    references.
+
+    *Derek Prior*
+
 *   Deprecate different default for `log_level` in production.
 
     *Godfrey Chan*, *Matthew Draper*
