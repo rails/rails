@@ -163,6 +163,7 @@ module TestHelpers
       app.secrets.secret_key_base = "3b7cd727ee24e8444053437c36cc66c4"
       app.config.session_store :cookie_store, key: "_myapp_session"
       app.config.active_support.deprecation = :log
+      app.config.log_level = :info
 
       yield app if block_given?
       app.initialize!
