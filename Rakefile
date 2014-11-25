@@ -14,7 +14,7 @@ specname = "arel.gemspec"
 deps = `git ls-files`.split("\n") - [specname]
 
 file specname => deps do
-  files       = `git ls-files`.split("\n") - ["#{specname}.erb"]
+  files = ["History.txt", "MIT-LICENSE.txt", "README.markdown"] + `git ls-files -- lib`.split("\n")
 
   require 'erb'
 
