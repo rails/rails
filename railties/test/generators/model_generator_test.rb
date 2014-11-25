@@ -407,6 +407,27 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_foreign_key_is_added_for_references
+    run_generator ["account", "supplier:belongs_to", "user:references"]
+
+    assert_migration "db/migrate/create_accounts.rb" do |m|
+      assert_method :change, m do |up|
+        assert_match(/add_foreign_key :accounts, :suppliers/, up)
+        assert_match(/add_foreign_key :accounts, :users/, up)
+      end
+    end
+  end
+
+  def test_foreign_key_is_skipped_for_polymorphic_references
+    run_generator ["account", "supplier:belongs_to{polymorphic}"]
+
+    assert_migration "db/migrate/create_accounts.rb" do |m|
+      assert_method :change, m do |up|
+        assert_no_match(/add_foreign_key :accounts, :suppliers/, up)
+      end
+    end
+  end
+
   private
     def assert_generated_fixture(path, parsed_contents)
       fixture_file = File.new File.expand_path(path, destination_root)
