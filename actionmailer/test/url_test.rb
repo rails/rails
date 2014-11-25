@@ -63,7 +63,7 @@ class ActionMailerUrlTest < ActionMailer::TestCase
     mail
   end
 
-  def assert_url_for(expected, options, relative: false)
+  def assert_url_for(expected, options, relative = false)
     expected = "http://www.basecamphq.com#{expected}" if expected.start_with?('/') && !relative
     urls = UrlTestMailer.exercise_url_for(options).body.to_s.chomp.split
 
@@ -92,7 +92,7 @@ class ActionMailerUrlTest < ActionMailer::TestCase
 
     # hash
     assert_url_for '/a/b/c', controller: 'a', action: 'b', id: 'c'
-    assert_url_for '/a/b/c', {controller: 'a', action: 'b', id: 'c', only_path: true}, relative: true
+    assert_url_for '/a/b/c', {controller: 'a', action: 'b', id: 'c', only_path: true}, true
 
     # model
     assert_url_for '/dummy_model', DummyModel.new
