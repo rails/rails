@@ -297,6 +297,13 @@ Please refer to the [Changelog][railties] for detailed changes.
 *   Deprecated missing `config.log_level` for production environments.
     ([Pull Request](https://github.com/rails/rails/pull/16622))
 
+*   Deprecated `rake test:all` in favor of `rake test` as it now run all tests
+    in the `test` folder.
+    ([Pull Request](https://github.com/rails/rails/pull/17348))
+
+*   Deprecated `rake test:all:db` in favor of `rake test:db`.
+    ([Pull Request](https://github.com/rails/rails/pull/17348))
+
 ### Notable changes
 
 *   Introduced `web-console` in the default application Gemfile.
@@ -409,8 +416,6 @@ Please refer to the [Changelog][action-pack] for detailed changes.
     # bad
     Rails.application.routes.url_helpers.root_path('controller' => 'posts', 'action' => 'index')
     # good
-    Rails.application.routes.url_helpers.root_path(:controller => 'posts', :action => 'index')
-    # better :trollface:
     Rails.application.routes.url_helpers.root_path(controller: 'posts', action: 'index')
     ```
 
