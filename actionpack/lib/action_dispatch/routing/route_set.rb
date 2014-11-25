@@ -749,7 +749,7 @@ module ActionDispatch
       end
 
       def find_script_name(options)
-        options.delete(:script_name) { '' }
+        options.delete(:script_name) || ''
       end
 
       def path_for(options, route_name = nil) # :nodoc:

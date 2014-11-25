@@ -290,6 +290,13 @@ module AbstractController
         end
       end
 
+      def test_using_nil_script_name_properly_concats_with_original_script_name
+        add_host!
+        assert_equal('https://www.basecamphq.com/subdir/c/a/i',
+          W.new.url_for(:controller => 'c', :action => 'a', :id => 'i', :protocol => 'https', :script_name => nil, :original_script_name => '/subdir')
+        )
+      end
+
       def test_only_path
         with_routing do |set|
           set.draw do
