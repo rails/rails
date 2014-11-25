@@ -968,18 +968,20 @@ module ApplicationTests
     end
 
     test "warns when config.log_level is never set" do
-      ENV["RAILS_ENV"] = "production"
-      assert_deprecated(/You did not specify a `log_level` in `production.rb`./) do
-        make_basic_app
+      with_rails_env "production" do
+        assert_deprecated(/You did not specify a `log_level` in `production.rb`./) do
+          make_basic_app
+        end
       end
     end
 
     test "no warning when config.log_level is set" do
       build_app
-      ENV["RAILS_ENV"] = "production"
-      add_to_env_config "production", "config.log_level = :info"
-      require "#{app_path}/config/environment"
-      assert_equal :info, app.config.log_level
+      with_rails_env "production" do
+        add_to_env_config "production", "config.log_level = :info"
+        require "#{app_path}/config/environment"
+        assert_equal :info, app.config.log_level
+      end
     end
 
     test "config.log_level with custom logger" do
