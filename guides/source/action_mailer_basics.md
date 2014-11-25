@@ -35,10 +35,26 @@ views.
 ```bash
 $ bin/rails generate mailer UserMailer
 create  app/mailers/user_mailer.rb
+create  app/mailers/application_mailer.rb
 invoke  erb
 create    app/views/user_mailer
+create    app/views/layouts/mailer.text.erb
+create    app/views/layouts/mailer.html.erb
 invoke  test_unit
 create    test/mailers/user_mailer_test.rb
+create    test/mailers/previews/user_mailer_preview.rb
+```
+
+```ruby
+# app/mailers/application_mailer.rb
+class ApplicationMailer < ActionMailer::Base
+  default "from@example.com"
+  layout 'mailer'
+end
+
+# app/mailers/user_mailer.rb
+class UserMailer < ApplicationMailer
+end
 ```
 
 As you can see, you can generate mailers just like you use other generators with
@@ -63,8 +79,7 @@ delivered via email.
 `app/mailers/user_mailer.rb` contains an empty mailer:
 
 ```ruby
-class UserMailer < ActionMailer::Base
-  default from: 'from@example.com'
+class UserMailer < ApplicationMailer
 end
 ```
 
@@ -72,7 +87,7 @@ Let's add a method called `welcome_email`, that will send an email to the user's
 registered email address:
 
 ```ruby
-class UserMailer < ActionMailer::Base
+class UserMailer < ApplicationMailer
   default from: 'notifications@example.com'
 
   def welcome_email(user)
@@ -348,7 +363,7 @@ for the HTML version and `welcome_email.text.erb` for the plain text version.
 To change the default mailer view for your action you do something like:
 
 ```ruby
-class UserMailer < ActionMailer::Base
+class UserMailer < ApplicationMailer
   default from: 'notifications@example.com'
 
   def welcome_email(user)
@@ -370,7 +385,7 @@ If you want more flexibility you can also pass a block and render specific
 templates or even render inline or text without using a template file:
 
 ```ruby
-class UserMailer < ActionMailer::Base
+class UserMailer < ApplicationMailer
   default from: 'notifications@example.com'
 
   def welcome_email(user)
@@ -400,7 +415,7 @@ layout.
 In order to use a different file, call `layout` in your mailer:
 
 ```ruby
-class UserMailer < ActionMailer::Base
+class UserMailer < ApplicationMailer
   layout 'awesome' # use awesome.(html|text).erb as the layout
 end
 ```
@@ -412,7 +427,7 @@ You can also pass in a `layout: 'layout_name'` option to the render call inside
 the format block to specify different layouts for different formats:
 
 ```ruby
-class UserMailer < ActionMailer::Base
+class UserMailer < ApplicationMailer
   def welcome_email(user)
     mail(to: user.email) do |format|
       format.html { render layout: 'my_layout' }
@@ -510,7 +525,7 @@ while delivering emails, you can do this using `delivery_method_options` in the
 mailer action.
 
 ```ruby
-class UserMailer < ActionMailer::Base
+class UserMailer < ApplicationMailer
   def welcome_email(user, company)
     @user = user
     @url  = user_url(@user)
@@ -532,7 +547,7 @@ option. In such cases don't forget to add the `:content_type` option. Rails
 will default to `text/plain` otherwise.
 
 ```ruby
-class UserMailer < ActionMailer::Base
+class UserMailer < ApplicationMailer
   def welcome_email(user, email_body)
     mail(to: user.email,
          body: email_body,
@@ -562,7 +577,7 @@ mailer, and pass the email object to the mailer `receive` instance
 method. Here's an example:
 
 ```ruby
-class UserMailer < ActionMailer::Base
+class UserMailer < ApplicationMailer
   def receive(email)
     page = Page.find_by(address: email.to.first)
     page.emails.create(
@@ -598,7 +613,7 @@ Action Mailer allows for you to specify a `before_action`, `after_action` and
   using instance variables set in your mailer action.
 
 ```ruby
-class UserMailer < ActionMailer::Base
+class UserMailer < ApplicationMailer
   after_action :set_delivery_options,
                :prevent_delivery_to_guests,
                :set_business_headers
