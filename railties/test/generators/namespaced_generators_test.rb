@@ -174,10 +174,12 @@ class NamespacedMailerGeneratorTest < NamespacedGeneratorTestCase
   def test_invokes_default_template_engine
     run_generator
     assert_file "app/views/test_app/notifier/foo.text.erb" do |view|
+      assert_match(%r(app/views/test_app/notifier/foo\.text\.erb), view)
       assert_match(/<%= @greeting %>/, view)
     end
 
     assert_file "app/views/test_app/notifier/bar.text.erb" do |view|
+      assert_match(%r(app/views/test_app/notifier/bar\.text\.erb), view)
       assert_match(/<%= @greeting %>/, view)
     end
   end
