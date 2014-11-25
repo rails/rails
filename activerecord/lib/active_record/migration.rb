@@ -395,7 +395,14 @@ module ActiveRecord
 
       def load_schema_if_pending!
         if ActiveRecord::Migrator.needs_migration? || !ActiveRecord::Migrator.any_migrations?
-          ActiveRecord::Tasks::DatabaseTasks.load_schema_current_if_exists
+          # Roundrip to Rake to allow plugins to hook into database initialization.
+          FileUtils.cd Rails.root do
+            current_config = Base.connection_config
+            Base.clear_all_connections!
+            system("bin/rake db:test:prepare")
+            # Establish a new connection, the old database may be gone (db:test:prepare uses purge)
+            Base.establish_connection(current_config)
+          end
           check_pending!
         end
       end
