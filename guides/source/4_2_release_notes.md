@@ -311,6 +311,9 @@ Please refer to the [Changelog][railties] for detailed changes.
 *   Deprecated `Rails::Rack::LogTailer` without replacement.
     ([Commit](https://github.com/rails/rails/commit/84a13e019e93efaa8994b3f8303d635a7702dbce))
 
+*   Deprecated missing `config.log_level` for production environments.
+    ([Pull Request](https://github.com/rails/rails/pull/16622))
+
 ### Notable changes
 
 *   Introduced `web-console` in the default application Gemfile.

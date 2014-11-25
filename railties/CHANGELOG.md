@@ -1,3 +1,7 @@
+*   Deprecate different default for `log_level` in production.
+
+    *Godfrey Chan*, *Matthew Draper*
+
 *   Generated `.gitignore` excludes the whole `log/` directory, not only
     `*.log` files.
 
