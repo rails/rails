@@ -1997,4 +1997,68 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 1, car.bulbs.count
     assert_equal 1, car.tyres.count
   end
+
+  test 'associations replace in memory when records have the same id' do
+    bulb = Bulb.create!
+    car = Car.create!(bulbs: [bulb])
+
+    new_bulb = Bulb.find(bulb.id)
+    new_bulb.name = "foo"
+    car.bulbs = [new_bulb]
+
+    assert_equal "foo", car.bulbs.first.name
+  end
+
+  test 'in memory replacement executes no queries' do
+    bulb = Bulb.create!
+    car = Car.create!(bulbs: [bulb])
+
+    new_bulb = Bulb.find(bulb.id)
+
+    assert_no_queries do
+      car.bulbs = [new_bulb]
+    end
+  end
+
+  test 'in memory replacements do not execute callbacks' do
+    raise_after_add = false
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = :cars
+      has_many :bulbs, after_add: proc { raise if raise_after_add }
+
+      def self.name
+        "Car"
+      end
+    end
+    bulb = Bulb.create!
+    car = klass.create!(bulbs: [bulb])
+
+    new_bulb = Bulb.find(bulb.id)
+    raise_after_add = true
+
+    assert_nothing_raised do
+      car.bulbs = [new_bulb]
+    end
+  end
+
+  test 'in memory replacements sets inverse instance' do
+    bulb = Bulb.create!
+    car = Car.create!(bulbs: [bulb])
+
+    new_bulb = Bulb.find(bulb.id)
+    car.bulbs = [new_bulb]
+
+    assert_same car, new_bulb.car
+  end
+
+  test 'in memory replacement maintains order' do
+    first_bulb = Bulb.create!
+    second_bulb = Bulb.create!
+    car = Car.create!(bulbs: [first_bulb, second_bulb])
+
+    same_bulb = Bulb.find(first_bulb.id)
+    car.bulbs = [second_bulb, same_bulb]
+
+    assert_equal [first_bulb, second_bulb], car.bulbs
+  end
 end

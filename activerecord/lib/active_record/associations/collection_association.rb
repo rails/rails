@@ -358,6 +358,7 @@ module ActiveRecord
         if owner.new_record?
           replace_records(other_array, original_target)
         else
+          replace_common_records_in_memory(other_array, original_target)
           if other_array != original_target
             transaction { replace_records(other_array, original_target) }
           end
@@ -385,11 +386,18 @@ module ActiveRecord
         target
       end
 
-      def add_to_target(record, skip_callbacks = false)
+      def add_to_target(record, skip_callbacks = false, &block)
+        if association_scope.distinct_value
+          index = @target.index(record)
+        end
+        replace_on_target(record, index, skip_callbacks, &block)
+      end
+
+      def replace_on_target(record, index, skip_callbacks)
         callback(:before_add, record) unless skip_callbacks
         yield(record) if block_given?
 
-        if association_scope.distinct_value && index = @target.index(record)
+        if index
           @target[index] = record
         else
           @target << record
@@ -532,6 +540,14 @@ module ActiveRecord
           end
 
           target
+        end
+
+        def replace_common_records_in_memory(new_target, original_target)
+          common_records = new_target & original_target
+          common_records.each do |record|
+            skip_callbacks = true
+            replace_on_target(record, @target.index(record), skip_callbacks)
+          end
         end
 
         def concat_records(records, should_raise = false)
