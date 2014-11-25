@@ -180,15 +180,6 @@ module ApplicationTests
         db_test_load_structure
       end
 
-      test 'db:test deprecation' do
-        require "#{app_path}/config/environment"
-        Dir.chdir(app_path) do
-          output = `bundle exec rake db:migrate db:test:prepare 2>&1`
-          assert_equal "WARNING: db:test:prepare is deprecated. The Rails test helper now maintains " \
-                       "your test schema automatically, see the release notes for details.\n", output
-        end
-      end
-
       test 'db:setup loads schema and seeds database' do
         begin
           @old_rails_env = ENV["RAILS_ENV"]
