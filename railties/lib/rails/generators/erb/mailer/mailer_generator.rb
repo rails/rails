@@ -1,8 +1,10 @@
-require 'rails/generators/erb/controller/controller_generator'
+require 'rails/generators/erb'
 
 module Erb # :nodoc:
   module Generators # :nodoc:
-    class MailerGenerator < ControllerGenerator # :nodoc:
+    class MailerGenerator < Base # :nodoc:
+      argument :actions, type: :array, default: [], banner: "method method"
+
       def copy_view_files
         view_base_path = File.join("app/views", class_path, file_name)
         empty_directory view_base_path
@@ -20,7 +22,6 @@ module Erb # :nodoc:
             template filename_with_extensions(:layout, format), layout_path
           end
         end
-
       end
 
       protected
