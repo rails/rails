@@ -51,7 +51,7 @@ Upgrading from Rails 4.1 to Rails 4.2
 -------------------------------------
 
 NOTE: This section is a work in progress, please help to improve this by sending
-a [pull request](https://github.com/rails/rails/edit/master/guides/source/upgrading_ruby_on_rails.md).
+a [pull request](https://github.com/rails/rails/edit/4-2-stabble/guides/source/upgrading_ruby_on_rails.md).
 
 ### Web Console
 
