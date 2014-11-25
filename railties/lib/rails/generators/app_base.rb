@@ -195,9 +195,9 @@ module Rails
 
       def rails_gemfile_entry
         if options.dev?
-          [GemfileEntry.path('rails', Rails::Generators::RAILS_DEV_PATH),
+          [GemfileEntry.path('rails', Rails::Generators::RAILS_DEV_PATH)]
         elsif options.edge?
-          [GemfileEntry.github('rails', 'rails/rails'),
+          [GemfileEntry.github('rails', 'rails/rails')]
         else
           [GemfileEntry.version('rails',
                             Rails::VERSION::STRING,
