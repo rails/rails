@@ -57,20 +57,10 @@ module ActiveRecord
       end
 
       def aliased_table_for(table_name, aliased_name)
-        table_alias = aliased_name_for(table_name, aliased_name)
-
-        if table_alias == table_name
-          Arel::Table.new(table_name)
-        else
-          Arel::Table.new(table_name).alias(table_alias)
-        end
-      end
-
-      def aliased_name_for(table_name, aliased_name)
         if aliases[table_name].zero?
           # If it's zero, we can have our table_name
           aliases[table_name] = 1
-          table_name
+          Arel::Table.new(table_name)
         else
           # Otherwise, we need to use an alias
           aliased_name = connection.table_alias_for(aliased_name)
@@ -78,11 +68,12 @@ module ActiveRecord
           # Update the count
           aliases[aliased_name] += 1
 
-          if aliases[aliased_name] > 1
+          table_alias = if aliases[aliased_name] > 1
             "#{truncate(aliased_name)}_#{aliases[aliased_name]}"
           else
             aliased_name
           end
+          Arel::Table.new(table_name).alias(table_alias)
         end
       end
 
