@@ -143,6 +143,7 @@ module TestHelpers
         config.active_support.deprecation = :log
         config.active_support.test_order = :random
         config.action_controller.allow_forgery_protection = false
+        config.log_level = :info
       RUBY
     end
 
