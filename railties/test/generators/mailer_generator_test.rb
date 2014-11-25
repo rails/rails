@@ -113,6 +113,8 @@ class MailerGeneratorTest < Rails::Generators::TestCase
   def test_invokes_default_template_engine_even_with_no_action
     run_generator ["notifier"]
     assert_file "app/views/notifier"
+    assert_file "app/views/layouts/mailer.text.erb"
+    assert_file "app/views/layouts/mailer.html.erb"
   end
 
   def test_logs_if_the_template_engine_cannot_be_found
