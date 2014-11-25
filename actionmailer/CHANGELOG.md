@@ -1,3 +1,10 @@
+*   MailerGenerator now generates layouts by default. HTML mailer layout will
+    include `<html>` and `<body>` tags which will help to reduce spam score in
+    some spam detection engines. Mailers will now inherit from `ApplicationMailer`
+    which sets the default layout.
+
+    *Andy Jeffries*
+
 *   `link_to` and `url_for` generate URLs by default in templates, it is no
     longer needed to pass `only_path: false`.
 
