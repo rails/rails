@@ -332,7 +332,7 @@ module ActionView
       prepend_formats(options[:formats])
 
       if String === partial
-        @object     = options[:object]
+        @object     = options[:object] if options.has_key?(:object)
         @path       = partial
         @collection = collection
       else
@@ -466,7 +466,7 @@ module ActionView
 
     def retrieve_template_keys
       keys = @locals.keys
-      keys << @variable         if @object || @collection
+      keys << @variable if defined?(@object) || @collection
       keys << @variable_counter if @collection
       keys
     end

@@ -1,3 +1,10 @@
+*   Local variable in a partial is now available even if a falsy value is
+    passed to `:object` when rendering a partial.
+
+    Fixes #17373.
+
+    *Agis Anastasopoulos*
+
 *   Default translations that have a lower precidence than an html safe default,
     but are not themselves safe, should not be marked as html_safe.
 
