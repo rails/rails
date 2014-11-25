@@ -54,15 +54,6 @@ Upgrading from Rails 4.1 to Rails 4.2
 
 First, add `gem 'web-console', '~> 2.0.0.beta4'` to the `:development` group in your Gemfile and run `bundle install` (it won't have been included when you upgraded Rails). Once it's been installed, you can simply drop a reference to the console helper (i.e., `<%= console %>`) into any view you want to enable it for. A console will also be provided on any error page you view in your development environment.
 
-Additionally, you can tell Rails to automatically mount a VT100-compatible console on a predetermined path by setting the appropriate configuration flags in your development config:
-
-```ruby
-# config/environments/development.rb
-
-config.web_console.automount = true
-config.web_console.default_mount_path = '/terminal' # Optional, defaults to /console
-```
-
 ### Responders
 
 `respond_with` and the class-level `respond_to` methods have been extracted to the `responders` gem. To use them, simply add `gem 'responders', '~> 2.0'` to your Gemfile. Calls to `respond_with` and `respond_to` (again, at the class level) will no longer work without having included the `responders` gem in your dependencies:

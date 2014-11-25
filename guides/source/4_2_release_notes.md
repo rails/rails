@@ -97,8 +97,8 @@ New applications generated from Rails 4.2 now come with the Web Console gem by
 default.
 
 Web Console is a set of debugging tools for your Rails application. It will add
-an interactive console on every error page, a `console` view helper and a VT100
-compatible terminal.
+an interactive console on every error page and a `console` view and controller 
+helper.
 
 The interactive console on the error pages let you execute code where the
 exception originated. It's quite handy being able to introspect the state that
@@ -107,9 +107,8 @@ led to the error.
 The `console` view helper launches an interactive console within the context of
 the view where it is invoked.
 
-Finally, you can launch a VT100 terminal that runs `rails console`. If you need
-to create or modify existing test data, you can do that straight from the
-browser.
+The `console` controller helper spawns an interactive console within the
+context of the controller action it was invoked in.
 
 ### Foreign key support
 
