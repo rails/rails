@@ -206,22 +206,6 @@ to start the server with `rails server -b 0.0.0.0` to restore the old behavior.
 If you do this, be sure to configure your firewall properly such that only
 trusted machines on your network can access your development server.
 
-### Production logging
-
-The default log level in the `production` environment is now `:debug`. This
-makes it consistent with the other environments, and ensures plenty of
-information is available to diagnose problems.
-
-It can be returned to the previous level, `:info`, in the environment
-configuration:
-
-```ruby
-# config/environments/production.rb
-
-# Decrease the log volume.
-config.log_level = :info
-```
-
 ### HTML Sanitizer
 
 The HTML sanitizer has been replaced with a new, more robust, implementation
