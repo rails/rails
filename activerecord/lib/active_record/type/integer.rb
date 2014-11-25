@@ -38,7 +38,7 @@ module ActiveRecord
 
       def ensure_in_range(value)
         unless range.cover?(value)
-          raise RangeError, "#{value} is too large for #{self.class} with limit #{limit || 4}"
+          raise RangeError, "#{value} is out of range for #{self.class} with limit #{limit || 4}"
         end
       end
 
