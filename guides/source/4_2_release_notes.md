@@ -383,7 +383,8 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 *   `respond_with` and the class-level `respond_to` were removed from Rails and
     moved to the `responders` gem (version 2.0). Add `gem 'responders', '~> 2.0'`
     to your `Gemfile` to continue using these features.
-    ([Pull Request](https://github.com/rails/rails/pull/16526))
+    ([Pull Request](https://github.com/rails/rails/pull/16526),
+     [More Details](http://guides.rubyonrails.org/upgrading_ruby_on_rails.html#responders))
 
 *   Removed deprecated `AbstractController::Helpers::ClassMethods::MissingHelperError`
     in favor of `AbstractController::Helpers::MissingHelperError`.
