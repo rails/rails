@@ -54,26 +54,26 @@ then deserialized again at run time.
 
 ### Adequate Record
 
-Adequate Record is a set of refactorings that make Active Record `find` and
-`find_by` methods and some association queries up to 2x faster.
+Adequate Record is a set of performance improvements in Active Record that makes
+common `find` and `find_by` calls and some association queries up to 2x faster.
 
-It works by caching SQL query patterns while executing the Active Record calls.
-The cache helps skip parts of the computation involved in the transformation of
-the calls into SQL queries. More details in [Aaron Patterson's
-post](http://tenderlovemaking.com/2014/02/19/adequaterecord-pro-like-activerecord.html).
+It works by caching common SQL queries as prepared statements and reusing them
+on similar calls, skipping most of the query-generation work on subsequent
+calls. For more details, please refer to [Aaron Patterson's blog post](http://tenderlovemaking.com/2014/02/19/adequaterecord-pro-like-activerecord.html).
 
-Nothing special has to be done to activate this feature. Most `find` and
-`find_by` calls and association queries will use it automatically. Examples:
+Active Record will automatically take advantage of this feature on the supported
+operations without any user involvement and code changes. Here are some examples
+of the supported operations:
 
 ```ruby
-Post.find 1  # caches query pattern
-Post.find 2  # uses the cached pattern
+Post.find 1  # First call will generate and cache the prepared statement
+Post.find 2  # Second call will reuse the cached statement
 
-Post.find_by_title 'first post'  # caches query pattern
-Post.find_by_title 'second post' # uses the cached pattern
+Post.find_by_title 'first post'
+Post.find_by_title 'second post'
 
-post.comments        # caches query pattern
-post.comments(true)  # uses cached pattern
+post.comments
+post.comments(true)
 ```
 
 The caching is not used in the following scenarios:
