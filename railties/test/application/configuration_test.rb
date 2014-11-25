@@ -974,6 +974,14 @@ module ApplicationTests
       end
     end
 
+    test "no warning when config.log_level is set" do
+      build_app
+      ENV["RAILS_ENV"] = "production"
+      add_to_env_config "production", "config.log_level = :info"
+      require "#{app_path}/config/environment"
+      assert_equal :info, app.config.log_level
+    end
+
     test "config.log_level with custom logger" do
       make_basic_app do |app|
         app.config.logger = Logger.new(STDOUT)
