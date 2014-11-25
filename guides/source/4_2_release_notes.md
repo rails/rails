@@ -228,10 +228,9 @@ for more detail on the changes in the new sanitizer.
 
 ### `assert_select`
 
-`assert_select` is now based on Nokogiri, making it (TODO: betterer).
-
-As a result, some previously-valid selectors are now unsupported. If your
-application is using any of these spellings, you will need to update them:
+`assert_select` is now based on Nokogiri. As a result, some previously-valid
+selectors are now unsupported. If your application is using any of these
+spellings, you will need to update them:
 
 *   Values in attribute selectors may need to be quoted if they contain
     non-alphanumeric characters.
