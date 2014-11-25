@@ -967,28 +967,33 @@ module ApplicationTests
       end
     end
 
-    test "Not setting config.log_level is not deprecated for non-production environment" do
-      build_app
-      remove_from_config "config.log_level = .*"
+    test "Blank config.log_level is not deprecated for non-production environment" do
       with_rails_env "development" do
-        assert_not_deprecated(/log_level/) { require "#{app_path}/config/environment" }
+        assert_not_deprecated do
+          make_basic_app do |app|
+            app.config.log_level = nil
+          end
+        end
       end
     end
 
-    test "Not setting config.log_level is deprecated for the production environment" do
-      build_app
-      remove_from_config "config.log_level = .*"
+    test "Blank config.log_level is deprecated for the production environment" do
       with_rails_env "production" do
-        assert_deprecated(/log_level/) { require "#{app_path}/config/environment" }
+        assert_deprecated(/log_level/) do
+          make_basic_app do |app|
+            app.config.log_level = nil
+          end
+        end
       end
     end
 
-    test "Setting config.log_level removes the deprecation warning" do
-      build_app
-      remove_from_config "config.log_level = .*"
-      add_to_env_config "production", "config.log_level = :info"
+    test "Not blank config.log_level is not deprecated for the production environment" do
       with_rails_env "production" do
-        assert_not_deprecated(/log_level/) { require "#{app_path}/config/environment" }
+        assert_not_deprecated do
+          make_basic_app do |app|
+            app.config.log_level = :info
+          end
+        end
       end
     end
 
