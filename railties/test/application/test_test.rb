@@ -208,7 +208,7 @@ module ApplicationTests
       end
 
       def run_test_file(name, options = {})
-        ruby '-Itest', "#{app_path}/test/#{name}", options
+        ruby '-Itest', "#{app_path}/test/#{name}", options.deep_merge(env: {"RAILS_ENV" => "test"})
       end
 
       def ruby(*args)
