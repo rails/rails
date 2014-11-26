@@ -531,13 +531,11 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert_dom_equal %{<a href="tel:+112345678">Call me</a>}, phone_to("+112345678", "Call me")
   end
 
-  def test_phone_to_honurs_html_options
+  def test_phone_to_honours_html_options
     assert_dom_equal(
         %{<a class="admin" <a href="tel:+112345678">Call me</a>},
-        phone_to("+112345678", "Call me", "class" => "admin")
+        phone_to("+112345678", "Call me", class: "admin")
     )
-    assert_equal phone_to("+112345678", "Call me", "class" => "admin"),
-                 phone_to("+112345678", "Call me", class: "admin")
   end
 
   def test_phone_to_with_block
