@@ -20,27 +20,23 @@ namespace :test do
       'lib',
       "#{File.dirname(__FILE__)}/../activesupport/lib",
       "#{File.dirname(__FILE__)}/../actionpack/lib",
-      "#{File.dirname(__FILE__)}/../activemodel/lib"
+      "#{File.dirname(__FILE__)}/../activemodel/lib",
     ]
 
     if Process.respond_to?(:fork)
+      require "#{File.dirname(__FILE__)}../../load_paths"
+
       dash_i.each do |path|
-        $: << path
+        $LOAD_PATH << path
       end
-
-      require 'bundler'
-      Bundler.setup
-
-      status = 0
 
       test_files.each do |file|
-        Process.wait(Process.fork{
-          puts file
+        Process.wait(Process.fork {
+          puts "Running #{file}"
           require "./#{file}"
         })
-        status = $?.exitstatus if $?.exitstatus != 0
+        exit $?.exitstatus if $?.exitstatus != 0
       end
-      exit status if status != 0
     else
       test_files.each do |file|
         ruby "-w", "-I#{dash_i.join ':'}", file
