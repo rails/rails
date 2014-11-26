@@ -351,7 +351,7 @@ module Rails
 
           base.called_from = begin
             call_stack = if Kernel.respond_to?(:caller_locations)
-              caller_locations.map(&:path)
+              caller_locations.map(&:absolute_path)
             else
               # Remove the line number from backtraces making sure we don't leave anything behind
               caller.map { |p| p.sub(/:\d+.*/, '') }
