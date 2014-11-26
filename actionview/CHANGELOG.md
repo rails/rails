@@ -215,4 +215,8 @@
 
     *Piotr Chmolowski, Łukasz Strzałkowski*
 
+*   Add `phone_to` tag to make calling links similar to mail_to.
+
+    *Abhijat Mahajan*
+
 Please check [4-1-stable](https://github.com/rails/rails/blob/4-1-stable/actionview/CHANGELOG.md) for previous changes.

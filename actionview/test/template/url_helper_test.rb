@@ -523,6 +523,37 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert_equal({ class: 'special' }, options)
   end
 
+  def test_phone_to
+    assert_dom_equal %{<a href="tel:+112345678">+112345678</a>}, phone_to("+112345678")
+    assert_dom_equal %{<a href="tel:+112345678">Call me</a>}, phone_to("+112345678", "Call me")
+    assert_dom_equal(
+        %{<a class="admin" <a href="tel:+112345678">Call me</a>},
+        phone_to("+112345678", "Call me", "class" => "admin")
+    )
+    assert_equal phone_to("+112345678", "Call me", "class" => "admin"),
+                 phone_to("+112345678", "Call me", class: "admin")
+  end
+
+  def test_phone_to_with_img
+    assert_dom_equal %{<a href="tel:+112345678"><img src="/feedback.png" /></a>},
+                     phone_to('+112345678', '<img src="/feedback.png" />'.html_safe)
+  end
+
+  def test_phone_to_returns_html_safe_string
+    assert phone_to("+112345678").html_safe?
+  end
+
+  def test_phone_to_with_block
+    assert_dom_equal %{<a href="tel:+112345678"><span>Call me</span></a>},
+                     phone_to('+112345678') { content_tag(:span, 'Call me') }
+  end
+
+  def test_phone_to_does_not_modify_html_options_hash
+    options = { class: 'special' }
+    phone_to '+112345678', 'ME!', options
+    assert_equal({ class: 'special' }, options)
+  end
+
   def protect_against_forgery?
     self.request_forgery
   end
