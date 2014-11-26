@@ -235,7 +235,7 @@ module ActiveRecord
       #     scope :published_and_commented, -> { published.and(self.arel_table[:comments_count].gt(0)) }
       #   end
       def arel_table # :nodoc:
-        @arel_table ||= Arel::Table.new(table_name, arel_engine)
+        @arel_table ||= Arel::Table.new(table_name)
       end
 
       # Returns the Arel engine.
