@@ -1,3 +1,16 @@
+*   Add `unsigned` support for numeric data types in MySQL.
+
+    Example:
+
+        create_table :foos do |t|
+          t.integer :unsigned_integer, unsigned: true
+          t.bigint  :unsigned_bigint,  unsigned: true
+          t.float   :unsigned_float,   unsigned: true
+          t.decimal :unsigned_decimal, unsigned: true, precision: 10, scale: 2
+        end
+
+    *Ryuta Kamizono*
+
 *   Lookup the attribute name for `restrict_with_error` messages on the
     model class that defines the association.
 
