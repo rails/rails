@@ -19,7 +19,13 @@ namespace :test do
         "#{File.dirname(__FILE__)}/../actionpack/lib",
         "#{File.dirname(__FILE__)}/../activemodel/lib"
       ]
-      ruby "-w", "-I#{dash_i.join ':'}", file
+      dash_i.each do |path|
+        $: << path
+      end
+      require 'abstract_unit'
+      Process.wait(Process.fork{
+        load "./#{file}"
+      })
     end
   end
 end
