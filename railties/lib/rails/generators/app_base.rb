@@ -241,23 +241,14 @@ module Rails
       def assets_gemfile_entry
         return [] if options[:skip_sprockets]
 
-        gems = []
-        if options.dev? || options.edge?
-          gems << GemfileEntry.github('sprockets-rails', 'rails/sprockets-rails', '2-1-stable',
-                                    'Use latest 2.1 version of sprockets-rails')
-          gems << GemfileEntry.github('sass-rails', 'rails/sass-rails', nil,
-                                    'Use SCSS for stylesheets')
-        else
-          gems << GemfileEntry.version('sass-rails',
-                                     '~> 4.0.3',
-                                     'Use SCSS for stylesheets')
-        end
-
-        gems << GemfileEntry.version('uglifier',
-                                   '>= 1.3.0',
-                                   'Use Uglifier as compressor for JavaScript assets')
-
-        gems
+        [
+          GemfileEntry.version('sass-rails',
+                               '~> 4.0.3',
+                               'Use SCSS for stylesheets'),
+          GemfileEntry.version('uglifier',
+                               '>= 1.3.0',
+                               'Use Uglifier as compressor for JavaScript assets')
+        ]
       end
 
       def jbuilder_gemfile_entry
