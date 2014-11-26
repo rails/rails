@@ -79,7 +79,7 @@ module ActionDispatch
     class FlashHash
       include Enumerable
 
-      def self.from_session_value(value)
+      def self.from_session_value(value) #:nodoc:
         flash = case value
                 when FlashHash # Rails 3.1, 3.2
                   new(value.instance_variable_get(:@flashes), value.instance_variable_get(:@used))
@@ -91,8 +91,11 @@ module ActionDispatch
 
         flash.tap(&:sweep)
       end
-
-      def to_session_value
+      
+      # Builds a hash containing the discarded values and the hashes
+      # representing the flashes.
+      # If there are no values in @flashes, returns nil.
+      def to_session_value #:nodoc:
         return nil if empty?
         {'discard' => @discard.to_a, 'flashes' => @flashes}
       end
