@@ -218,7 +218,7 @@ module ActiveRecord
 
     # A Person object with a name attribute can ask <tt>person.respond_to?(:name)</tt>,
     # <tt>person.respond_to?(:name=)</tt>, and <tt>person.respond_to?(:name?)</tt>
-    # which will all return +true+. It also define the attribute methods if they have
+    # which will all return +true+. It also defines the attribute methods if they have
     # not been generated.
     #
     #   class Person < ActiveRecord::Base
