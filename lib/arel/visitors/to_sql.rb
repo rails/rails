@@ -211,7 +211,6 @@ module Arel
         }
 
         unless o.orders.empty?
-          collector << SPACE
           collector << ORDER_BY
           len = o.orders.length - 1
           o.orders.each_with_index { |x, i|
