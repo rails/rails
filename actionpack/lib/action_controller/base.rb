@@ -44,7 +44,7 @@ module ActionController
   # The full request object is available via the request accessor and is primarily used to query for HTTP headers:
   #
   #   def server_ip
-  #     location = request.env["SERVER_ADDR"]
+  #     location = request.env["REMOTE_ADDR"]
   #     render plain: "This server hosted at #{location}"
   #   end
   #
