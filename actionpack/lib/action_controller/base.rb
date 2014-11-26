@@ -48,13 +48,6 @@ module ActionController
   #     render plain: "This server hosted at #{location}"
   #   end
   # 
-  # The location of the server is also available in request object itself 
-  #
-  #  def server_ip
-  #     location = request.remote_ip
-  #     render plain: "This server hosted at #{location}"
-  #  end
-  #
   # == Parameters
   #
   # All request parameters, whether they come from a GET or POST request, or from the URL, are available through the params method
