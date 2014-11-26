@@ -397,6 +397,7 @@ module ActionController
     #
     #   RewriteRule ^(.*)$ dispatch.fcgi [E=X-HTTP_AUTHORIZATION:%{HTTP:Authorization},QSA,L]
     module Token
+      TOKEN_KEY = 'token='
       TOKEN_REGEX = /^Token /
       AUTHN_PAIR_DELIMITERS = /(?:,|;|\t+)/
       extend self
@@ -471,7 +472,13 @@ module ActionController
       # pairs by the standardized `:`, `;`, or `\t` delimiters defined in
       # `AUTHN_PAIR_DELIMITERS`.
       def raw_params(auth)
-        auth.sub(TOKEN_REGEX, '').split(/\s*#{AUTHN_PAIR_DELIMITERS}\s*/)
+        _raw_params = auth.sub(TOKEN_REGEX, '').split(/\s*#{AUTHN_PAIR_DELIMITERS}\s*/)
+
+        if !(_raw_params.first =~ %r{\A#{TOKEN_KEY}})
+          _raw_params[0] = "#{TOKEN_KEY}#{_raw_params.first}"
+        end
+
+        _raw_params
       end
 
       # Encodes the given token and options into an Authorization header value.
@@ -481,7 +488,7 @@ module ActionController
       #
       # Returns String.
       def encode_credentials(token, options = {})
-        values = ["token=#{token.to_s.inspect}"] + options.map do |key, value|
+        values = ["#{TOKEN_KEY}#{token.to_s.inspect}"] + options.map do |key, value|
           "#{key}=#{value.to_s.inspect}"
         end
         "Token #{values * ", "}"

@@ -1,3 +1,11 @@
+*   Restore handling of a bare `Authorization` header, without `token=`
+    prefix.
+
+    Fixes #17108.
+
+    *Guo Xiang Tan*
+
+
 ## Rails 4.1.8 (November 16, 2014) ##
 
 *   Fix regression where path was getting overwritten when route anchor was false, and X-Cascade pass
