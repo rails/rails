@@ -1,3 +1,10 @@
+*   Restore handling of a bare `Authorization` header, without `token=`
+    prefix.
+
+    Fixes #17108.
+
+    *Guo Xiang Tan*
+
 *   Deprecate use of string keys in URL helpers.
 
     Use symbols instead.
