@@ -1,3 +1,8 @@
+*   Add `phone_to` tag to make calling links similar to mail_to.
+
+    *Abhijat Mahajan*
+
+
 *   Local variable in a partial is now available even if a falsy value is
     passed to `:object` when rendering a partial.
 
@@ -214,9 +219,5 @@
     regular (required) arguments is deprecated and will be removed in Rails 5.0 or later.
 
     *Piotr Chmolowski, Łukasz Strzałkowski*
-
-*   Add `phone_to` tag to make calling links similar to mail_to.
-
-    *Abhijat Mahajan*
 
 Please check [4-1-stable](https://github.com/rails/rails/blob/4-1-stable/actionview/CHANGELOG.md) for previous changes.
