@@ -1,3 +1,11 @@
+*   Restore handling of a bare `Authorization` header, without `token=`
+    prefix.
+
+    Fixes #17108.
+
+    *Guo Xiang Tan*
+
+
 ## Rails 4.0.12 (November 16, 2014) ##
 
 *   Fix a bug where malformed query strings lead to 500.
