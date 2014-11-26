@@ -17,7 +17,6 @@ module Arel
       @columns = nil
       @aliases = []
       @table_alias = nil
-      @primary_key = nil
 
       if Hash === engine
         @engine  = engine[:engine] || Table.engine
@@ -26,19 +25,6 @@ module Arel
         # that it is an Alias.  We may want to override new, and return a
         # TableAlias node?
         @table_alias = engine[:as] unless engine[:as].to_s == @name
-      end
-    end
-
-    def primary_key
-      if $VERBOSE
-        warn <<-eowarn
-primary_key (#{caller.first}) is deprecated and will be removed in Arel 4.0.0
-        eowarn
-      end
-      @primary_key ||= begin
-        primary_key_name = @engine.connection.primary_key(name)
-        # some tables might be without primary key
-        primary_key_name && self[primary_key_name]
       end
     end
 

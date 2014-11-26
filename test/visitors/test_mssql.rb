@@ -26,6 +26,25 @@ module Arel
         sql.must_be_like "SELECT _t.* FROM (SELECT ROW_NUMBER() OVER (ORDER BY \"users\".\"id\") as _row_num FROM \"users\") as _t WHERE _row_num BETWEEN 1 AND 10"
       end
 
+      it 'caches the PK lookup for order' do
+        connection = MiniTest::Mock.new
+        connection.expect(:primary_key, ["id"], ["users"])
+
+        # We don't care how many times these methods are called
+        def connection.quote_table_name(*); ""; end
+        def connection.quote_column_name(*); ""; end
+
+        @visitor = MSSQL.new(connection)
+        stmt = Nodes::SelectStatement.new
+        stmt.cores.first.from = @table
+        stmt.limit = Nodes::Limit.new(10)
+
+        compile(stmt)
+        compile(stmt)
+
+        connection.verify
+      end
+
       it 'should go over query ORDER BY if .order()' do
         stmt = Nodes::SelectStatement.new
         stmt.limit = Nodes::Limit.new(10)

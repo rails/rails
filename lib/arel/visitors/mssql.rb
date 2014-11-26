@@ -3,6 +3,11 @@ module Arel
     class MSSQL < Arel::Visitors::ToSql
       RowNumber = Struct.new :children
 
+      def initialize(*)
+        @primary_keys = {}
+        super
+      end
+
       private
 
       # `top` wouldn't really work here. I.e. User.select("distinct first_name").limit(10) would generate
@@ -81,10 +86,20 @@ module Arel
       end
 
       # FIXME raise exception of there is no pk?
-      # FIXME!! Table.primary_key will be deprecated. What is the replacement??
       def find_left_table_pk o
-        return o.primary_key if o.instance_of? Arel::Table
-        find_left_table_pk o.left if o.kind_of? Arel::Nodes::Join
+        if o.kind_of?(Arel::Nodes::Join)
+          find_left_table_pk(o.left)
+        elsif o.instance_of?(Arel::Table)
+          find_primary_key(o)
+        end
+      end
+
+      def find_primary_key(o)
+        @primary_keys[o.name] ||= begin
+          primary_key_name = @connection.primary_key(o.name)
+          # some tables might be without primary key
+          primary_key_name && o[primary_key_name]
+        end
       end
     end
   end
