@@ -110,14 +110,14 @@ module Arel
       describe 'having' do
         it 'converts strings to SQLLiterals' do
           table   = Table.new :users
-          mgr = table.from table
+          mgr = table.from
           mgr.having 'foo'
           mgr.to_sql.must_be_like %{ SELECT FROM "users" HAVING foo }
         end
 
         it 'can have multiple items specified separately' do
           table = Table.new :users
-          mgr = table.from table
+          mgr = table.from
           mgr.having 'foo'
           mgr.having 'bar'
           mgr.to_sql.must_be_like %{ SELECT FROM "users" HAVING foo AND bar }
@@ -125,7 +125,7 @@ module Arel
 
         it 'can have multiple items specified together' do
           table = Table.new :users
-          mgr = table.from table
+          mgr = table.from
           mgr.having 'foo', 'bar'
           mgr.to_sql.must_be_like %{ SELECT FROM "users" HAVING foo AND bar }
         end
@@ -135,7 +135,7 @@ module Arel
         it 'converts to sqlliterals' do
           table = Table.new :users
           right = table.alias
-          mgr   = table.from table
+          mgr   = table.from
           mgr.join(right).on("omg")
           mgr.to_sql.must_be_like %{ SELECT  FROM "users" INNER JOIN "users" "users_2" ON omg }
         end
@@ -143,7 +143,7 @@ module Arel
         it 'converts to sqlliterals with multiple items' do
           table = Table.new :users
           right = table.alias
-          mgr   = table.from table
+          mgr   = table.from
           mgr.join(right).on("omg", "123")
           mgr.to_sql.must_be_like %{ SELECT  FROM "users" INNER JOIN "users" "users_2" ON omg AND 123 }
         end
@@ -153,7 +153,7 @@ module Arel
     describe 'clone' do
       it 'creates new cores' do
         table   = Table.new :users, :as => 'foo'
-        mgr = table.from table
+        mgr = table.from
         m2 = mgr.clone
         m2.project "foo"
         mgr.to_sql.wont_equal m2.to_sql
@@ -161,7 +161,7 @@ module Arel
 
       it 'makes updates to the correct copy' do
         table   = Table.new :users, :as => 'foo'
-        mgr = table.from table
+        mgr = table.from
         m2 = mgr.clone
         m3 = m2.clone
         m2.project "foo"
@@ -173,7 +173,7 @@ module Arel
     describe 'initialize' do
       it 'uses alias in sql' do
         table   = Table.new :users, :as => 'foo'
-        mgr = table.from table
+        mgr = table.from
         mgr.skip 10
         mgr.to_sql.must_be_like %{ SELECT FROM "users" "foo" OFFSET 10 }
       end
@@ -182,14 +182,14 @@ module Arel
     describe 'skip' do
       it 'should add an offset' do
         table   = Table.new :users
-        mgr = table.from table
+        mgr = table.from
         mgr.skip 10
         mgr.to_sql.must_be_like %{ SELECT FROM "users" OFFSET 10 }
       end
 
       it 'should chain' do
         table   = Table.new :users
-        mgr = table.from table
+        mgr = table.from
         mgr.skip(10).to_sql.must_be_like %{ SELECT FROM "users" OFFSET 10 }
       end
     end
@@ -197,14 +197,14 @@ module Arel
     describe 'offset' do
       it 'should add an offset' do
         table   = Table.new :users
-        mgr = table.from table
+        mgr = table.from
         mgr.offset = 10
         mgr.to_sql.must_be_like %{ SELECT FROM "users" OFFSET 10 }
       end
 
       it 'should remove an offset' do
         table   = Table.new :users
-        mgr = table.from table
+        mgr = table.from
         mgr.offset = 10
         mgr.to_sql.must_be_like %{ SELECT FROM "users" OFFSET 10 }
 
@@ -214,7 +214,7 @@ module Arel
 
       it 'should return the offset' do
         table   = Table.new :users
-        mgr = table.from table
+        mgr = table.from
         mgr.offset = 10
         assert_equal 10, mgr.offset
       end
@@ -379,13 +379,13 @@ module Arel
     describe 'ast' do
       it 'should return the ast' do
         table   = Table.new :users
-        mgr = table.from table
+        mgr = table.from
         assert mgr.ast
       end
 
       it 'should allow orders to work when the ast is grepped' do
         table   = Table.new :users
-        mgr = table.from table
+        mgr = table.from
         mgr.project Arel.sql '*'
         mgr.from table
         mgr.orders << Arel::Nodes::Ascending.new(Arel.sql('foo'))
@@ -406,7 +406,7 @@ module Arel
       # This should fail on other databases
       it 'adds a lock node' do
         table   = Table.new :users
-        mgr = table.from table
+        mgr = table.from
         mgr.lock.to_sql.must_be_like %{ SELECT FROM "users" FOR UPDATE }
       end
     end

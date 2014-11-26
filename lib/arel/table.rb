@@ -11,20 +11,18 @@ module Arel
     # TableAlias and Table both have a #table_name which is the name of the underlying table
     alias :table_name :name
 
-    def initialize name, engine = Table.engine
+    def initialize name, options = {}
       @name    = name.to_s
-      @engine  = engine
       @columns = nil
       @aliases = []
-      @table_alias = nil
+      @engine = Table.engine
 
-      if Hash === engine
-        @engine  = engine[:engine] || Table.engine
-
-        # Sometime AR sends an :as parameter to table, to let the table know
-        # that it is an Alias.  We may want to override new, and return a
-        # TableAlias node?
-        @table_alias = engine[:as] unless engine[:as].to_s == @name
+      # Sometime AR sends an :as parameter to table, to let the table know
+      # that it is an Alias.  We may want to override new, and return a
+      # TableAlias node?
+      @table_alias = options[:as]
+      if @table_alias.to_s == @name
+        @table_alias = nil
       end
     end
 
@@ -34,12 +32,12 @@ module Arel
       end
     end
 
-    def from table
-      SelectManager.new(@engine, table)
+    def from engine = Table.engine
+      SelectManager.new(engine, self)
     end
 
     def join relation, klass = Nodes::InnerJoin
-      return from(self) unless relation
+      return from unless relation
 
       case relation
       when String, Nodes::SqlLiteral
@@ -47,7 +45,7 @@ module Arel
         klass = Nodes::StringJoin
       end
 
-      from(self).join(relation, klass)
+      from.join(relation, klass)
     end
 
     def outer_join relation
@@ -55,55 +53,39 @@ module Arel
     end
 
     def group *columns
-      from(self).group(*columns)
+      from.group(*columns)
     end
 
     def order *expr
-      from(self).order(*expr)
+      from.order(*expr)
     end
 
     def where condition
-      from(self).where condition
+      from.where condition
     end
 
     def project *things
-      from(self).project(*things)
+      from.project(*things)
     end
 
     def take amount
-      from(self).take amount
+      from.take amount
     end
 
     def skip amount
-      from(self).skip amount
+      from.skip amount
     end
 
     def having expr
-      from(self).having expr
+      from.having expr
     end
 
     def [] name
       ::Arel::Attribute.new self, name
     end
 
-    def select_manager
-      SelectManager.new(@engine)
-    end
-
-    def insert_manager
-      InsertManager.new(@engine)
-    end
-
-    def update_manager
-      UpdateManager.new(@engine)
-    end
-
-    def delete_manager
-      DeleteManager.new(@engine)
-    end
-
     def hash
-      # Perf note: aliases, table alias and engine is excluded from the hash
+      # Perf note: aliases and table alias is excluded from the hash
       #  aliases can have a loop back to this table breaking hashes in parent
       #  relations, for the vast majority of cases @name is unique to a query
       @name.hash
@@ -112,7 +94,6 @@ module Arel
     def eql? other
       self.class == other.class &&
         self.name == other.name &&
-        self.engine == other.engine &&
         self.aliases == other.aliases &&
         self.table_alias == other.table_alias
     end

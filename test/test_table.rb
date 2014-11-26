@@ -47,39 +47,10 @@ module Arel
       assert_equal "INSERT INTO \"users\" VALUES(NULL)", im.to_sql
     end
 
-    it 'should return IM from insert_manager' do
-      im = @relation.insert_manager
-      assert_kind_of Arel::InsertManager, im
-      assert_equal im.engine, @relation.engine
-    end
-
     describe 'skip' do
       it 'should add an offset' do
         sm = @relation.skip 2
         sm.to_sql.must_be_like "SELECT FROM \"users\" OFFSET 2"
-      end
-    end
-
-    describe 'select_manager' do
-      it 'should return an empty select manager' do
-        sm = @relation.select_manager
-        sm.to_sql.must_be_like 'SELECT'
-      end
-    end
-
-    describe 'update_manager' do
-      it 'should return an update manager' do
-        um = @relation.update_manager
-        assert_kind_of Arel::UpdateManager, um
-        assert_equal um.engine, @relation.engine
-      end
-    end
-
-    describe 'delete_manager' do
-      it 'should return a delete manager' do
-        dm = @relation.delete_manager
-        assert_kind_of Arel::DeleteManager, dm
-        assert_equal dm.engine, @relation.engine
       end
     end
 
@@ -149,14 +120,9 @@ module Arel
     end
 
     describe 'new' do
-      it 'should accept an engine' do
-        rel = Table.new :users, 'foo'
-        rel.engine.must_equal 'foo'
-      end
-
       it 'should accept a hash' do
-        rel = Table.new :users, :engine => 'foo'
-        rel.engine.must_equal 'foo'
+        rel = Table.new :users, :as => 'foo'
+        rel.table_alias.must_equal 'foo'
       end
 
       it 'ignores as if it equals name' do
@@ -228,10 +194,10 @@ module Arel
 
     describe 'equality' do
       it 'is equal with equal ivars' do
-        relation1 = Table.new(:users, 'vroom')
+        relation1 = Table.new(:users)
         relation1.aliases     = %w[a b c]
         relation1.table_alias = 'zomg'
-        relation2 = Table.new(:users, 'vroom')
+        relation2 = Table.new(:users)
         relation2.aliases     = %w[a b c]
         relation2.table_alias = 'zomg'
         array = [relation1, relation2]
@@ -239,10 +205,10 @@ module Arel
       end
 
       it 'is not equal with different ivars' do
-        relation1 = Table.new(:users, 'vroom')
+        relation1 = Table.new(:users)
         relation1.aliases     = %w[a b c]
         relation1.table_alias = 'zomg'
-        relation2 = Table.new(:users, 'vroom')
+        relation2 = Table.new(:users)
         relation2.aliases     = %w[x y z]
         relation2.table_alias = 'zomg'
         array = [relation1, relation2]
