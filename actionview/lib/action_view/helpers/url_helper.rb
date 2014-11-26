@@ -475,7 +475,7 @@ module ActionView
       #
       # ==== Examples
       #   phone_to "+112345567"
-      #   # => <a href="tel:(02) 12345567">+112345567</a>
+      #   # => <a href="tel:+112345567">+112345567</a>
       #
       #
       # You can use a block as well if your link target is hard to fit into the name parameter. ERB example:
