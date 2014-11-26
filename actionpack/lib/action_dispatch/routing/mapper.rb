@@ -244,12 +244,10 @@ module ActionDispatch
           def app(blocks)
             if to.respond_to?(:call)
               Constraints.new(to, blocks, false)
+            elsif blocks.any?
+              Constraints.new(dispatcher(defaults), blocks, true)
             else
-              if blocks.any?
-                Constraints.new(dispatcher(defaults), blocks, true)
-              else
-                dispatcher(defaults)
-              end
+              dispatcher(defaults)
             end
           end
 
