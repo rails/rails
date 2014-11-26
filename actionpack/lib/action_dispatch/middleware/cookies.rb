@@ -155,7 +155,7 @@ module ActionDispatch
       def handle_options(options) #:nodoc:
         options[:path] ||= "/"
 
-        if options[:domain] == :all
+        if options[:domain].respond_to?(:to_sym) && options[:domain].to_sym == :all
           # if there is a provided tld length then we use it otherwise default domain regexp
           domain_regexp = options[:tld_length] ? /([^.]+\.?){#{options[:tld_length]}}$/ : DOMAIN_REGEXP
 
