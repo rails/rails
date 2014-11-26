@@ -5,13 +5,14 @@ module ActiveRecord
   # +record+ method to retrieve the record which did not validate.
   #
   #   begin
-  #     complex_operation_that_calls_save!_internally
+  #     complex_operation_that_internally_calls_save!
   #   rescue ActiveRecord::RecordInvalid => invalid
   #     puts invalid.record.errors
   #   end
   class RecordInvalid < ActiveRecordError
-    attr_reader :record # :nodoc:
-    def initialize(record) # :nodoc:
+    attr_reader :record
+
+    def initialize(record)
       @record = record
       errors = @record.errors.full_messages.join(", ")
       super(I18n.t(:"#{@record.class.i18n_scope}.errors.messages.record_invalid", :errors => errors, :default => :"errors.messages.record_invalid"))
