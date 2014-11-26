@@ -196,6 +196,7 @@ module ActiveRecord
   # offending attribute.
   class AttributeAssignmentError < ActiveRecordError
     attr_reader :exception, :attribute
+
     def initialize(message, exception, attribute)
       super(message)
       @exception = exception
@@ -208,6 +209,7 @@ module ActiveRecord
   # objects, each corresponding to the error while assigning to an attribute.
   class MultiparameterAssignmentErrors < ActiveRecordError
     attr_reader :errors
+
     def initialize(errors)
       @errors = errors
     end
