@@ -4,7 +4,7 @@ Ruby on Rails 4.2 Release Notes
 Highlights in Rails 4.2:
 
 * Active Job
-* Asynchronous Mails
+* Asynchronous mails
 * Adequate Record
 * Web Console
 * Foreign key support
@@ -119,22 +119,15 @@ The caching is not used in the following scenarios:
 
 ### Web Console
 
-New applications generated from Rails 4.2 now come with the Web Console gem by
-default.
+New applications generated from Rails 4.2 now come with the [Web
+Console](https://github.com/rails/web-console) gem by default. Web Console adds
+an interactive Ruby console on every error page and provides a `console` view
+and controller helpers.
 
-Web Console is a set of debugging tools for your Rails application. It adds an
-interactive console on every error page and a `console` view and controller
-helper.
-
-The interactive console on the error pages lets you execute code where the
-exception originated. It's quite handy being able to introspect the state that
-led to the error.
-
-The `console` view helper launches an interactive console within the context of
-the view where it is invoked.
-
-The `console` controller helper spawns an interactive console within the
-context of the controller action it was invoked in.
+The interactive console on error pages lets you execute code in the context of
+the place where the exception originated. The `console` helper, if called
+anywhere in a view or controller, launches an interactive console with the final
+context, once rendering has completed.
 
 ### Foreign Key Support
 
@@ -178,7 +171,7 @@ Previously, calling `render "foo/bar"` in a controller action was equivalent to
 instead. If you need to render a file, please change your code to use the
 explicit form (`render file: "foo/bar"`) instead.
 
-### `respond_with` / class-level `respond_to`
+### `respond_with` / Class-Level `respond_to`
 
 `respond_with` and the corresponding class-level `respond_to` have been moved
 to the [responders](https://github.com/plataformatec/responders) gem. Add
@@ -260,8 +253,13 @@ application is using any of these spellings, you will need to update them:
     non-alphanumeric characters.
 
     ```
-    a[href=/]      =>     a[href="/"]
-    a[href$=/]     =>     a[href$="/"]
+    # before
+    a[href=/]
+    a[href$=/]
+
+    # now
+    a[href="/"]
+    a[href$="/"]
     ```
 
 *   DOMs built from HTML source containing invalid HTML with improperly
