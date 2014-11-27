@@ -6,7 +6,7 @@
     *Andy Jeffries*
 
 *   `link_to` and `url_for` now generate URLs by default in templates.
-    Passing `only_path: false` is longer needed.
+    Passing `only_path: false` is no longer needed.
 
     Fixes #16497 and #16589.
 
