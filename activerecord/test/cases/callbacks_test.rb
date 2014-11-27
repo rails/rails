@@ -444,6 +444,8 @@ class CallbacksTest < ActiveRecord::TestCase
     assert david.valid?
     assert !david.save
     exc = assert_raise(ActiveRecord::RecordNotSaved) { david.save! }
+
+    assert_equal "Failed to save the record because one of the before callbacks returned false", exc.message
     assert_equal exc.record, david
 
     david = ImmutableDeveloper.find(1)
@@ -479,6 +481,8 @@ class CallbacksTest < ActiveRecord::TestCase
     david = ImmutableDeveloper.find(1)
     assert !david.destroy
     exc = assert_raise(ActiveRecord::RecordNotDestroyed) { david.destroy! }
+
+    assert_equal "Failed to destroy the record because one of the before callbacks returned false", exc.message
     assert_equal exc.record, david
     assert_not_nil ImmutableDeveloper.find_by_id(1)
 

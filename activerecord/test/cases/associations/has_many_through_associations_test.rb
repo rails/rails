@@ -615,8 +615,11 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   def test_create_on_new_record
     p = Post.new
 
-    assert_raises(ActiveRecord::RecordNotSaved) { p.people.create(:first_name => "mew") }
-    assert_raises(ActiveRecord::RecordNotSaved) { p.people.create!(:first_name => "snow") }
+    error = assert_raises(ActiveRecord::RecordNotSaved) { p.people.create(:first_name => "mew") }
+    assert_equal "You cannot call create unless the parent is saved", error.message
+
+    error = assert_raises(ActiveRecord::RecordNotSaved) { p.people.create!(:first_name => "snow") }
+    assert_equal "You cannot call create unless the parent is saved", error.message
   end
 
   def test_associate_with_create_and_invalid_options
