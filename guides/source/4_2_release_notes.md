@@ -41,13 +41,23 @@ Jobs written with the Active Job API run on any of the supported queues thanks
 to their respective adapters. Active Job comes pre-configured with an inline
 runner that executes jobs right away.
 
-Jobs often need to take Active Record objects as arguments, but we can't pass
-fully-marshaled Ruby objects through many queueing systems. Active Job passes
+Jobs often need to take Active Record objects as arguments. Active Job passes
 object references as URIs (uniform resource identifiers) instead of marshaling
 the object itself. The new [Global ID](https://github.com/rails/globalid)
 library builds URIs and looks up the objects they reference. Passing Active
-Record objects as job arguments "just works:" Active Job passes a reference to
-the object, then looks up the object from its reference.
+Record objects as job arguments just works by using Global ID internally.
+
+For example, if `trashable` is an AR this job runs just fine
+
+```ruby
+class TrashableCleanupJob < ActiveJob::Base
+  def perform(trashable, depth)
+    trashable.cleanup(depth)
+  end
+end
+```
+
+with no serialization involved.
 
 See the [Active Job Basics](active_job_basics.html) guide for more
 information.
