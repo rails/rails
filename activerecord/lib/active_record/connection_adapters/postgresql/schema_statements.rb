@@ -4,12 +4,6 @@ module ActiveRecord
       class SchemaCreation < AbstractAdapter::SchemaCreation
         private
 
-        def visit_AddColumn(o)
-          sql_type = type_to_sql(o.type, o.limit, o.precision, o.scale)
-          sql = "ADD COLUMN #{quote_column_name(o.name)} #{sql_type}"
-          add_column_options!(sql, column_options(o))
-        end
-
         def visit_ColumnDefinition(o)
           sql = super
           if o.primary_key? && o.type != :primary_key
