@@ -488,7 +488,7 @@ module ActionView
       #        </a>
       def phone_to(phone_number, name = nil, html_options = {}, &block)
         html_options, name = name, nil if block_given?
-        html_options = (html_options || {}).stringify_keys
+        html_options = convert_options_to_data_attributes(name, html_options)
 
         html_options["href"] = "tel:#{phone_number}"
 
