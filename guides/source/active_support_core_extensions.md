@@ -440,7 +440,8 @@ corresponding values. Keys are strings:
 ```ruby
 class C
   def initialize(x, y)
-    @x, @y = x, y
+    @x = x
+    @y = y
   end
 end
 
@@ -456,7 +457,8 @@ The method `instance_variable_names` returns an array.  Each name includes the "
 ```ruby
 class C
   def initialize(x, y)
-    @x, @y = x, y
+    @x = x
+    @y = y
   end
 end
 

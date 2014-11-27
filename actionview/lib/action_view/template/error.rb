@@ -63,7 +63,8 @@ module ActionView
 
       def initialize(template, original_exception)
         super(original_exception.message)
-        @template, @original_exception = template, original_exception
+        @template = template
+        @original_exception = original_exception
         @sub_templates = nil
         set_backtrace(original_exception.backtrace)
       end

@@ -1,7 +1,8 @@
 ORIG_ARGV = ARGV.dup
 
 begin
-  old, $VERBOSE = $VERBOSE, nil
+  old = $VERBOSE
+  $VERBOSE = nil
   require File.expand_path('../../../load_paths', __FILE__)
 ensure
   $VERBOSE = old

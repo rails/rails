@@ -32,7 +32,8 @@ module ActiveRecord
     #    EXCHANGE_RATES = { "USD_TO_DKK" => 6 }
     #
     #    def initialize(amount, currency = "USD")
-    #      @amount, @currency = amount, currency
+    #      @amount = amount
+    #      @currency = currency
     #    end
     #
     #    def exchange_to(other_currency)

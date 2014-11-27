@@ -66,7 +66,8 @@ module ActiveRecord
     end
 
     test 'extending!' do
-      mod, mod2 = Module.new, Module.new
+      mod = Module.new
+      mod2 = Module.new
 
       assert relation.extending!(mod).equal?(relation)
       assert_equal [mod], relation.extending_values

@@ -44,7 +44,9 @@ module ActiveSupport
     attr_reader :time_zone
 
     def initialize(utc_time, time_zone, local_time = nil, period = nil)
-      @utc, @time_zone, @time = utc_time, time_zone, local_time
+      @utc = utc_time
+      @time_zone = time_zone
+      @time = local_time
       @period = @utc ? period : get_period_and_ensure_valid_local_time(period)
     end
 

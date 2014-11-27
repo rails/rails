@@ -141,7 +141,8 @@ module ActionDispatch
       def with_routing
         old_routes, @routes = @routes, ActionDispatch::Routing::RouteSet.new
         if defined?(@controller) && @controller
-          old_controller, @controller = @controller, @controller.clone
+          old_controller = @controller
+          @controller = @controller.clone
           _routes = @routes
 
           @controller.singleton_class.send(:include, _routes.url_helpers)

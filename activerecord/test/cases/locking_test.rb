@@ -446,7 +446,7 @@ unless in_memory_db?
 
       protected
         def duel(zzz = 5)
-          t0, t1, t2, t3 = nil, nil, nil, nil
+          t0 = t1 = t2 = t3 = nil
 
           a = Thread.new do
             t0 = Time.now

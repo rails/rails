@@ -81,7 +81,8 @@ module ActionView
       end
 
       def initialize(name, template)
-        @name, @template = name, template
+        @name = name
+        @template = template
       end
 
       def dependencies

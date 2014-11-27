@@ -31,7 +31,8 @@ class Money
   EXCHANGE_RATES = { "USD_TO_DKK" => 6, "DKK_TO_USD" => 0.6 }
 
   def initialize(amount, currency = "USD")
-    @amount, @currency = amount, currency
+    @amount = amount
+    @currency = currency
   end
 
   def exchange_to(other_currency)

@@ -54,7 +54,8 @@ class ConfirmationValidationTest < ActiveModel::TestCase
 
   def test_title_confirmation_with_i18n_attribute
     begin
-      @old_load_path, @old_backend = I18n.load_path.dup, I18n.backend
+      @old_load_path = I18n.load_path.dup
+      @old_backend = I18n.backend
       I18n.load_path.clear
       I18n.backend = I18n::Backend::Simple.new
       I18n.backend.store_translations('en', {

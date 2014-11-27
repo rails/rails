@@ -86,7 +86,7 @@ class DeprecationTest < ActiveSupport::TestCase
   end
 
   def test_several_behaviors
-    @a, @b = nil, nil
+    @a = @b = nil
 
     ActiveSupport::Deprecation.behavior = [
       Proc.new { |msg, callstack| @a = msg },

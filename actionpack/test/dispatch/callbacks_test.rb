@@ -12,7 +12,7 @@ class DispatcherTest < ActiveSupport::TestCase
   end
 
   def setup
-    Foo.a, Foo.b = 0, 0
+    Foo.a = Foo.b = 0
     ActionDispatch::Callbacks.reset_callbacks(:call)
   end
 

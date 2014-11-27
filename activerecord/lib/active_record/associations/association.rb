@@ -24,7 +24,8 @@ module ActiveRecord
       def initialize(owner, reflection)
         reflection.check_validity!
 
-        @owner, @reflection = owner, reflection
+        @owner = owner
+        @reflection = reflection
 
         reset
         reset_scope

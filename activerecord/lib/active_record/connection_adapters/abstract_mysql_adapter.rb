@@ -139,7 +139,8 @@ module ActiveRecord
         "Lost connection to MySQL server during query",
         "MySQL server has gone away" ]
 
-      QUOTED_TRUE, QUOTED_FALSE = '1', '0'
+      QUOTED_TRUE = '1'
+      QUOTED_FALSE = '0'
 
       NATIVE_DATABASE_TYPES = {
         :primary_key => "int(11) auto_increment PRIMARY KEY",

@@ -5,7 +5,8 @@ class GrandParent
 
   attr_reader :log, :action_name
   def initialize(action_name)
-    @action_name, @log = action_name, []
+    @action_name = action_name
+    @log = []
   end
 
   define_callbacks :dispatch

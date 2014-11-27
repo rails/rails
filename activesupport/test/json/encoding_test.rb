@@ -11,7 +11,8 @@ class TestJSONEncoding < ActiveSupport::TestCase
 
   class Foo
     def initialize(a, b)
-      @a, @b = a, b
+      @a = a
+      @b = b
     end
   end
 

@@ -48,11 +48,13 @@ module ActionView
 
         begin
           @waiting_for = key
-          view.output_buffer, @parent = @child, view.output_buffer
+          @parent = view.output_buffer
+          view.output_buffer = @child
           Fiber.yield
         ensure
           @waiting_for = nil
-          view.output_buffer, @child = @parent, view.output_buffer
+          @child = view.output_buffer
+          view.output_buffer = @parent
         end
       end
 

@@ -207,7 +207,8 @@ db_namespace = namespace :db do
     task :identify => [:environment, :load_config] do
       require 'active_record/fixtures'
 
-      label, id = ENV['LABEL'], ENV['ID']
+      label = ENV['LABEL']
+      id = ENV['ID']
       raise 'LABEL or ID required' if label.blank? && id.blank?
 
       puts %Q(The fixture ID for "#{label}" is #{ActiveRecord::FixtureSet.identify(label)}.) if label
