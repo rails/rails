@@ -5,7 +5,7 @@ module ActiveRecord
 
       def initialize(*)
         super
-        @range = -max_value...max_value
+        @range = min_value...max_value
       end
 
       def type
@@ -45,6 +45,10 @@ module ActiveRecord
       def max_value
         limit = self.limit || 4
         1 << (limit * 8 - 1) # 8 bits per byte with one bit for sign
+      end
+
+      def min_value
+        -max_value
       end
     end
   end
