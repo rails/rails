@@ -13,10 +13,10 @@ module ActiveRecord
   #
   # The relation returned by the block is cached, and for each +execute+ call the cached relation gets duped.
   # Database is queried when +to_a+ is called on the relation.
-  class StatementCache
-    class Substitute; end
+  class StatementCache # :nodoc:
+    class Substitute; end # :nodoc:
 
-    class Query
+    class Query # :nodoc:
       def initialize(sql)
         @sql = sql
       end
@@ -26,7 +26,7 @@ module ActiveRecord
       end
     end
 
-    class PartialQuery < Query
+    class PartialQuery < Query # :nodoc:
       def initialize values
         @values = values
         @indexes = values.each_with_index.find_all { |thing,i|
@@ -51,11 +51,11 @@ module ActiveRecord
       PartialQuery.new collected
     end
 
-    class Params
+    class Params # :nodoc:
       def bind; Substitute.new; end
     end
 
-    class BindMap
+    class BindMap # :nodoc:
       def initialize(bind_values)
         @indexes   = []
         @bind_values = bind_values
