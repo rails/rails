@@ -560,10 +560,6 @@ Please refer to the [Changelog][action-mailer] for detailed changes.
     to deliver emails asynchronously.
     ([Pull Request](https://github.com/rails/rails/pull/16485))
 
-*   Introduced `deliver_now` to send emails right away, without going through
-    the application's queue.
-    ([Commit](https://github.com/rails/rails/commit/f4ee114746ddc68db606f63e17e6de28274fc2bd))
-
 *   Added the `show_previews` configuration option for enabling mailer previews
     outside of the development environment.
     ([Pull Request](https://github.com/rails/rails/pull/15970))
