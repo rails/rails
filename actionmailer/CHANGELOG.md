@@ -30,8 +30,8 @@
 
     *Cristian Bica*
 
-*   Deprecate `*_path` helpers in email views. They generated broken
-    links and were not the intention of most developers. The `*_url`
+*   Deprecate `*_path` helpers in email views. They generated broken links in
+    email views and were not the intention of most developers. The `*_url`
     helper is recommended instead.
 
     *Richard Schneeman*
