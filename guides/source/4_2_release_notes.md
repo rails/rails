@@ -3,7 +3,8 @@ Ruby on Rails 4.2 Release Notes
 
 Highlights in Rails 4.2:
 
-* Active Job, Action Mailer's `deliver_later`
+* Active Job
+* Asynchronous Mails
 * Adequate Record
 * Web Console
 * Foreign key support
@@ -29,7 +30,7 @@ Rails](upgrading_ruby_on_rails.html#upgrading-from-rails-4-1-to-rails-4-2).
 Major Features
 --------------
 
-### Active Job, Action Mailer's `deliver_later`
+### Active Job
 
 Active Job is a new framework in Rails 4.2. It is a common interface on top of
 queuing systems like [Resque](https://github.com/resque/resque), [Delayed
@@ -40,19 +41,24 @@ Jobs written with the Active Job API run on any of the supported queues thanks
 to their respective adapters. Active Job comes pre-configured with an inline
 runner that executes jobs right away.
 
-Building on top of Active Job, Action Mailer now comes with a `deliver_later`
-method that sends the email asynchronously via a job in a queue, so it doesn't
-block the controller or model.
-
-The new [Global ID](https://github.com/rails/globalid) library makes it easy
-to pass Active Record objects to jobs. The library stores a global URI that
-uniquely represents the model without serializing its state. This means you no
-longer have to manually pack and unpack your Active Records by passing ids.
-Just give the job the Active Record object, its global ID will be stored, and
-then the object transparently loaded for you from it.
+Jobs often need to take Active Record objects as arguments, but we can't pass
+fully-marshaled Ruby objects through many queueing systems. Active Job passes
+object references as URIs (uniform resource identifiers) instead of marshaling
+the object itself. The new [Global ID](https://github.com/rails/globalid)
+library builds URIs and looks up the objects they reference. Passing Active
+Record objects as job arguments "just works:" Active Job passes a reference to
+the object, then looks up the object from its reference.
 
 See the [Active Job Basics](active_job_basics.html) guide for more
 information.
+
+### Asynchronous Mails
+
+Building on top of Active Job, Action Mailer now comes with a `deliver_later`
+method that sends emails via the queue, so it doesn't block the controller or
+model if the queue is asynchronous (the default inline queue blocks).
+
+Sending emails right away is still possible with `deliver_now`.
 
 ### Adequate Record
 
@@ -553,6 +559,10 @@ Please refer to the [Changelog][action-mailer] for detailed changes.
 *   Introduced `deliver_later` which enqueues a job on the application's queue
     to deliver emails asynchronously.
     ([Pull Request](https://github.com/rails/rails/pull/16485))
+
+*   Introduced `deliver_now` to send emails right away, without going through
+    the application's queue.
+    ([Commit](https://github.com/rails/rails/commit/f4ee114746ddc68db606f63e17e6de28274fc2bd))
 
 *   Added the `show_previews` configuration option for enabling mailer previews
     outside of the development environment.
