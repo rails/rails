@@ -13,6 +13,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
 
   teardown do
     Topic.serialize("content")
+    TrafficLight.serialize("long_state", Array)
   end
 
   def test_serialize_does_not_eagerly_load_columns
@@ -237,6 +238,27 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     light = TrafficLight.new
     assert_equal [], light.state
     assert_equal [], light.long_state
+  end
+
+  class NullSerializer
+    def self.load(string)
+      return {'value' => nil} if string.nil?
+
+      Marshal.load(string)['value']
+    end
+
+    def self.dump(obj)
+      Marshal.dump({'value' => obj})
+    end
+  end
+
+  def test_custom_null_serializer
+    TrafficLight.serialize(:long_state, NullSerializer)
+
+    light = TrafficLight.new(long_state: '')
+    assert light.save
+    light.reload
+    assert_equal '', light.long_state
   end
 
   def test_serialized_column_should_unserialize_after_update_column

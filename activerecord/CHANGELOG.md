@@ -1,3 +1,10 @@
+*   Null values will still be passed to custom serializers.
+
+    This removes an undocumented conditional case and makes the load/dump
+    contract easier to reason about.
+
+    *Xavier Shay*
+
 *   Bring back `db:test:prepare` to synchronize the test database schema.
 
     Manual synchronization using `bin/rake db:test:prepare` is required
