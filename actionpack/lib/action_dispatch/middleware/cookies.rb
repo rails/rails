@@ -71,11 +71,13 @@ module ActionDispatch
   #   restrict to the domain level. If you use a schema like www.example.com
   #   and want to share session with user.example.com set <tt>:domain</tt>
   #   to <tt>:all</tt>. Make sure to specify the <tt>:domain</tt> option with
-  #   <tt>:all</tt> again when deleting cookies.
+  #   <tt>:all</tt> or <tt>Array</tt> again when deleting cookies.
   #
   #     domain: nil  # Does not sets cookie domain. (default)
   #     domain: :all # Allow the cookie for the top most level
   #                  # domain and subdomains.
+  #     domain: %w(.example.com .example.org) # Allow the cookie
+  #                                           # for concrete domain names.
   #
   # * <tt>:expires</tt> - The time at which this cookie expires, as a \Time object.
   # * <tt>:secure</tt> - Whether this cookie is only transmitted to HTTPS servers.
