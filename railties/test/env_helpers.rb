@@ -22,7 +22,8 @@ module EnvHelpers
   end
 
   def switch_env(key, value)
-    old, ENV[key] = ENV[key], value
+    old = ENV[key]
+    ENV[key] = value
     yield
   ensure
     ENV[key] = old

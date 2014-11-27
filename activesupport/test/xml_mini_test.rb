@@ -163,7 +163,8 @@ module XmlMiniTest
     module Nokogiri end
 
     setup do
-      @xml, @default_backend = ActiveSupport::XmlMini, ActiveSupport::XmlMini.backend
+      @xml = ActiveSupport::XmlMini
+      @default_backend = ActiveSupport::XmlMini.backend
     end
 
     teardown do
@@ -196,7 +197,8 @@ module XmlMiniTest
     module LibXML end
 
     setup do
-      @xml, @default_backend = ActiveSupport::XmlMini, ActiveSupport::XmlMini.backend
+      @xml = ActiveSupport::XmlMini
+      @default_backend = ActiveSupport::XmlMini.backend
     end
 
     teardown do

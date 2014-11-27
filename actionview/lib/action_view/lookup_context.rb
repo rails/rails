@@ -92,7 +92,8 @@ module ActionView
 
       # Temporary skip passing the details_key forward.
       def disable_cache
-        old_value, @cache = @cache, false
+        old_value = @cache
+        @cache = false
         yield
       ensure
         @cache = old_value

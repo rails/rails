@@ -46,21 +46,24 @@ module ActiveSupport
     end
 
     def autoload_under(path)
-      @_under_path, old_path = path, @_under_path
+      old_path = @_under_path
+      @_under_path = path
       yield
     ensure
       @_under_path = old_path
     end
 
     def autoload_at(path)
-      @_at_path, old_path = path, @_at_path
+      old_path = @_at_path
+      @_at_path = path
       yield
     ensure
       @_at_path = old_path
     end
 
     def eager_autoload
-      old_eager, @_eager_autoload = @_eager_autoload, true
+      old_eager = @_eager_autoload
+      @_eager_autoload = true
       yield
     ensure
       @_eager_autoload = old_eager

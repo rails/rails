@@ -2,7 +2,8 @@ module ActionController
   class Middleware < Metal
     class ActionMiddleware
       def initialize(controller, app)
-        @controller, @app = controller, app
+        @controller = controller
+        @app = app
       end
 
       def call(env)

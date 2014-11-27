@@ -8,7 +8,9 @@ class SerializationTest < ActiveModel::TestCase
     attr_accessor :name, :email, :gender, :address, :friends
 
     def initialize(name, email, gender)
-      @name, @email, @gender = name, email, gender
+      @name = name
+      @email = email
+      @gender = gender
       @friends = []
     end
 

@@ -14,7 +14,8 @@ module CodeTools
     attr_reader :path, :mode
     def initialize(path, mode=nil)
       assert_ruby_file_exists(path)
-      @path, @mode = path, mode
+      @path = path
+      @mode = mode
       require 'benchmark'
     end
 

@@ -56,7 +56,8 @@ class ShowExceptionsTest < ActionDispatch::IntegrationTest
   end
 
   test "localize rescue error page" do
-    old_locale, I18n.locale = I18n.locale, :da
+    old_locale = I18n.locale
+    I18n.locale = :da
 
     begin
       @app = ProductionApp

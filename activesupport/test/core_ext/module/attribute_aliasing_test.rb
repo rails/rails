@@ -6,7 +6,8 @@ module AttributeAliasing
     attr_accessor :title, :Data
 
     def initialize
-      @title, @Data = nil, nil
+      @title = nil
+      @Data = nil
     end
 
     def title?

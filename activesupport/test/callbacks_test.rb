@@ -94,7 +94,8 @@ module CallbacksTest
 
     attr_reader :action_name, :logger
     def initialize(action_name)
-      @action_name, @logger = action_name, []
+      @action_name = action_name
+      @logger = []
     end
 
     def log

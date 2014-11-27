@@ -59,7 +59,7 @@ class ReloaderTest < ActiveSupport::TestCase
   end
 
   def test_condition_specifies_when_to_reload
-    i, j = 0, 0, 0, 0
+    i = j = 0
     Reloader.to_prepare { |*args| i += 1 }
     Reloader.to_cleanup { |*args| j += 1 }
     app = Reloader.new(lambda { |env| [200, {}, []] }, lambda { i < 3 })

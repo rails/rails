@@ -695,7 +695,8 @@ module ActiveRecord
 
           migration.version = next_migration_number(last ? last.version + 1 : 0).to_i
           new_path = File.join(destination, "#{migration.version}_#{migration.name.underscore}.#{scope}.rb")
-          old_path, migration.filename = migration.filename, new_path
+          old_path = migration.filename
+          migration.filename = new_path
           last = migration
 
           File.binwrite(migration.filename, source)

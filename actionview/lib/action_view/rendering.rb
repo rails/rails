@@ -8,7 +8,8 @@ module ActionView
 
     def initialize(original_config, lookup_context)
       original_config = original_config.original_config if original_config.respond_to?(:original_config)
-      @original_config, @lookup_context = original_config, lookup_context
+      @original_config = original_config
+      @lookup_context = lookup_context
     end
 
     def locale
@@ -26,7 +27,8 @@ module ActionView
 
     # Overwrite process to setup I18n proxy.
     def process(*) #:nodoc:
-      old_config, I18n.config = I18n.config, I18nProxy.new(I18n.config, lookup_context)
+      old_config = I18n.config
+      I18n.config = I18nProxy.new(I18n.config, lookup_context)
       super
     ensure
       I18n.config = old_config

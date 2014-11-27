@@ -3376,7 +3376,8 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def with_locale(testing_locale = :label)
-    old_locale, I18n.locale = I18n.locale, testing_locale
+    old_locale = I18n.locale
+    I18n.locale = testing_locale
     yield
   ensure
     I18n.locale = old_locale

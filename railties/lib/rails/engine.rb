@@ -381,7 +381,8 @@ module Rails
         self.isolated = true
 
         unless mod.respond_to?(:railtie_namespace)
-          name, railtie = engine_name, self
+          name = engine_name
+          railtie = self
 
           mod.singleton_class.instance_eval do
             define_method(:railtie_namespace) { railtie }

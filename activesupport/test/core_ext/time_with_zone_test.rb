@@ -824,7 +824,9 @@ class TimeWithZoneMethodsForTimeAndDateTimeTest < ActiveSupport::TestCase
   include TimeZoneTestHelpers
 
   def setup
-    @t, @dt, @zone = Time.utc(2000), DateTime.civil(2000), Time.zone
+    @t = Time.utc(2000)
+    @dt = DateTime.civil(2000)
+    @zone = Time.zone
   end
 
   def teardown

@@ -27,7 +27,9 @@ module RailsGuides
         s.match?(re)
         if matched = s.matched
           matched =~ re
-          level, idx, title = $1.to_i, $2, $3.strip
+          level = $1.to_i
+          idx = $2
+          title = $3.strip
 
           if level < current_level
             # This is needed. Go figure.

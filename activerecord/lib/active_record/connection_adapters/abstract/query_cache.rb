@@ -28,7 +28,8 @@ module ActiveRecord
 
       # Enable the query cache within the block.
       def cache
-        old, @query_cache_enabled = @query_cache_enabled, true
+        old = @query_cache_enabled
+        @query_cache_enabled = true
         yield
       ensure
         @query_cache_enabled = old
@@ -45,7 +46,8 @@ module ActiveRecord
 
       # Disable the query cache within the block.
       def uncached
-        old, @query_cache_enabled = @query_cache_enabled, false
+        old = @query_cache_enabled
+        @query_cache_enabled = false
         yield
       ensure
         @query_cache_enabled = old

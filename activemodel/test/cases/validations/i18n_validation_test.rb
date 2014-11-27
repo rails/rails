@@ -4,12 +4,12 @@ require "cases/helper"
 require 'models/person'
 
 class I18nValidationTest < ActiveModel::TestCase
-
   def setup
     Person.clear_validators!
     @person = Person.new
 
-    @old_load_path, @old_backend = I18n.load_path.dup, I18n.backend
+    @old_load_path = I18n.load_path.dup
+    @old_backend = I18n.backend
     I18n.load_path.clear
     I18n.backend = I18n::Backend::Simple.new
     I18n.backend.store_translations('en', errors: { messages: { custom: nil } })

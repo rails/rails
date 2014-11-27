@@ -7,7 +7,8 @@ module ActiveRecord
       attr_reader :config, :adapter_method
 
       def initialize(config, adapter_method)
-        @config, @adapter_method = config, adapter_method
+        @config = config
+        @adapter_method = adapter_method
       end
 
       def initialize_dup(original)

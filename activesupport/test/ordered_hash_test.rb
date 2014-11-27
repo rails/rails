@@ -27,7 +27,8 @@ class OrderedHashTest < ActiveSupport::TestCase
   end
 
   def test_assignment
-    key, value = 'purple', '5422a8'
+    key = 'purple'
+    value = '5422a8'
 
     @ordered_hash[key] = value
     assert_equal @keys.length + 1, @ordered_hash.length
@@ -37,7 +38,8 @@ class OrderedHashTest < ActiveSupport::TestCase
   end
 
   def test_delete
-    key, value = 'white', 'ffffff'
+    key = 'white'
+    value = 'ffffff'
     bad_key = 'black'
 
     @ordered_hash[key] = value

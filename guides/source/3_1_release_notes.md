@@ -244,7 +244,8 @@ Action Pack
 
     ```ruby
     class PostsController < ApplicationController
-      USER_NAME, PASSWORD = "dhh", "secret"
+      USER_NAME = "dhh"
+      PASSWORD = "secret"
 
       before_filter :authenticate, :except => [ :index ]
 

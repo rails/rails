@@ -35,13 +35,15 @@ module AbstractController
       end
 
       def test_default_translation
-        key, expected = 'one.two', 'bar'
+        key = 'one.two'
+        expected = 'bar'
         I18n.stubs(:translate).with(key).returns(expected)
         assert_equal expected, @controller.t(key)
       end
 
       def test_localize
-        time, expected = Time.gm(2000), 'Sat, 01 Jan 2000 00:00:00 +0000'
+        time = Time.gm(2000)
+        expected = 'Sat, 01 Jan 2000 00:00:00 +0000'
         I18n.stubs(:localize).with(time).returns(expected)
         assert_equal expected, @controller.l(time)
       end

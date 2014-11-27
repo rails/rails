@@ -4,7 +4,8 @@ class Object
   #
   #   class C
   #     def initialize(x, y)
-  #       @x, @y = x, y
+  #       @x = x
+  #       @y = y
   #     end
   #   end
   #
@@ -17,7 +18,8 @@ class Object
   #
   #   class C
   #     def initialize(x, y)
-  #       @x, @y = x, y
+  #       @x = x
+  #       @y = y
   #     end
   #   end
   #
