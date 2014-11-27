@@ -45,7 +45,7 @@ method that sends the email asynchronously via a job in a queue, so it doesn't
 block the controller or model.
 
 The new [Global ID](https://github.com/rails/globalid) library makes it easy
-to pass Active Record objects to jobs. The library stores a glogal URI that
+to pass Active Record objects to jobs. The library stores a global URI that
 uniquely represents the model without serializing its state. This means you no
 longer have to manually pack and unpack your Active Records by passing ids.
 Just give the job the Active Record object, its global ID will be stored, and
