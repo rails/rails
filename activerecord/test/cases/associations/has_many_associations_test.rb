@@ -589,17 +589,21 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_create_with_bang_on_has_many_when_parent_is_new_raises
-    assert_raise(ActiveRecord::RecordNotSaved) do
+    error = assert_raise(ActiveRecord::RecordNotSaved) do
       firm = Firm.new
       firm.plain_clients.create! :name=>"Whoever"
     end
+
+    assert_equal "You cannot call create unless the parent is saved", error.message
   end
 
   def test_regular_create_on_has_many_when_parent_is_new_raises
-    assert_raise(ActiveRecord::RecordNotSaved) do
+    error = assert_raise(ActiveRecord::RecordNotSaved) do
       firm = Firm.new
       firm.plain_clients.create :name=>"Whoever"
     end
+
+    assert_equal "You cannot call create unless the parent is saved", error.message
   end
 
   def test_create_with_bang_on_has_many_raises_when_record_not_saved
@@ -610,9 +614,11 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_create_with_bang_on_habtm_when_parent_is_new_raises
-    assert_raise(ActiveRecord::RecordNotSaved) do
+    error = assert_raise(ActiveRecord::RecordNotSaved) do
       Developer.new("name" => "Aredridel").projects.create!
     end
+
+    assert_equal "You cannot call create unless the parent is saved", error.message
   end
 
   def test_adding_a_mismatch_class
@@ -1353,10 +1359,13 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     assert !account.valid?
     assert !orig_accounts.empty?
-    assert_raise ActiveRecord::RecordNotSaved do
+    error = assert_raise ActiveRecord::RecordNotSaved do
       firm.accounts = [account]
     end
+
     assert_equal orig_accounts, firm.accounts
+    assert_equal "Failed to replace accounts because one or more of the " \
+                 "new records could not be saved.", error.message
   end
 
   def test_replace_with_same_content
@@ -1941,11 +1950,12 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     car = Car.create!
     original_child = FailedBulb.create!(car: car)
 
-    assert_raise(ActiveRecord::RecordNotDestroyed) do
+    error = assert_raise(ActiveRecord::RecordNotDestroyed) do
       car.failed_bulbs = [FailedBulb.create!]
     end
 
     assert_equal [original_child], car.reload.failed_bulbs
+    assert_equal "Failed to destroy the record because one of the before callbacks returned false", error.message
   end
 
   test 'updates counter cache when default scope is given' do
