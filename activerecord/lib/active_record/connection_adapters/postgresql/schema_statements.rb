@@ -19,14 +19,22 @@ module ActiveRecord
           sql
         end
 
+        def column_options(o)
+          column_options = super
+          column_options[:array] = o.array
+          column_options
+        end
+
         def add_column_options!(sql, options)
-          if options[:array] || options[:column].try(:array)
+          if options[:array]
             sql << '[]'
           end
+          super
+        end
 
-          column = options.fetch(:column) { return super }
-          if column.type == :uuid && options[:default] =~ /\(\)/
-            sql << " DEFAULT #{options[:default]}"
+        def quote_value(value, column)
+          if column.type == :uuid && value =~ /\(\)/
+            value
           else
             super
           end
