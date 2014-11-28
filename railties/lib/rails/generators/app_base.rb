@@ -240,8 +240,7 @@ module Rails
           gems << GemfileEntry.github('sass-rails', 'rails/sass-rails',
                                     'Use SCSS for stylesheets')
         else
-          gems << GemfileEntry.version('sass-rails',
-                                     '~> 5.0.0.beta1',
+          gems << GemfileEntry.version('sass-rails', '~> 4.0',
                                      'Use SCSS for stylesheets')
         end
 
