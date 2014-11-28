@@ -6,6 +6,8 @@ module ActiveJob
   module Logging #:nodoc:
     extend ActiveSupport::Concern
 
+    FILTERED = '[FILTERED]'.freeze
+
     included do
       cattr_accessor(:logger) { ActiveSupport::TaggedLogging.new(ActiveSupport::Logger.new(STDOUT)) }
 
@@ -84,8 +86,21 @@ module ActiveJob
           event.payload[:adapter].name.demodulize.remove('Adapter') + "(#{event.payload[:job].queue_name})"
         end
 
+        def global_id_or_filtered(argument)
+          if argument.is_a?(GlobalID::Identification)
+            argument.to_global_id.to_s
+          else
+            FILTERED
+          end
+        end
+
         def args_info(job)
-          job.arguments.any? ? " with arguments: #{job.arguments.map(&:inspect).join(", ")}" : ""
+          if job.arguments.any?
+            ' with arguments: ' +
+              job.arguments.map { |arg| global_id_or_filtered(arg) }.join(', ')
+          else
+            ""
+          end
         end
 
         def scheduled_at(event)
