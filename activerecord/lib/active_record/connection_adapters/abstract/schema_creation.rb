@@ -83,7 +83,7 @@ module ActiveRecord
           end
 
           def add_column_options!(sql, options)
-            sql << " DEFAULT #{quote_value(options[:default], options[:column])}" if options_include_default?(options)
+            sql << " DEFAULT #{quote_default_expression(options[:default], options[:column])}" if options_include_default?(options)
             # must explicitly check for :null to allow change_column to work on migrations
             if options[:null] == false
               sql << " NOT NULL"
@@ -94,7 +94,7 @@ module ActiveRecord
             sql
           end
 
-          def quote_value(value, column)
+          def quote_default_expression(value, column)
             column.sql_type ||= type_to_sql(column.type, column.limit, column.precision, column.scale)
             column.cast_type ||= type_for_column(column)
 
