@@ -1,3 +1,7 @@
+ *   Changed welcome#index page overall look and feel.
+    
+    *Islam Wazery*
+ 
 *   Remove sqlite support from `rails dbconsole`.
 
     *Andrew White*
