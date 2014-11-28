@@ -30,11 +30,11 @@ class Topic
   end
 
   def my_validation
-    errors.add :title, "is missing" unless title
+    errors.add :title, 'is missing' unless title
   end
 
   def my_validation_with_arg(attr)
-    errors.add attr, "is missing" unless send(attr)
+    errors.add attr, 'is missing' unless send(attr)
   end
 
 end

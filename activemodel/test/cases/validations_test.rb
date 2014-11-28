@@ -18,20 +18,20 @@ class ValidationsTest < ActiveModel::TestCase
   def test_single_field_validation
     r = Reply.new
     r.title = "There's no content!"
-    assert r.invalid?, "A reply without content should be invalid"
-    assert r.after_validation_performed, "after_validation callback should be called"
+    assert r.invalid?, 'A reply without content should be invalid'
+    assert r.after_validation_performed, 'after_validation callback should be called'
 
-    r.content = "Messa content!"
-    assert r.valid?, "A reply with content should be valid"
-    assert r.after_validation_performed, "after_validation callback should be called"
+    r.content = 'Messa content!'
+    assert r.valid?, 'A reply with content should be valid'
+    assert r.after_validation_performed, 'after_validation callback should be called'
   end
 
   def test_single_attr_validation_and_error_msg
     r = Reply.new
     r.title = "There's no content!"
     assert r.invalid?
-    assert r.errors[:content].any?, "A reply without content should mark that attribute as invalid"
-    assert_equal ["is Empty"], r.errors["content"], "A reply without content should contain an error"
+    assert r.errors[:content].any?, 'A reply without content should mark that attribute as invalid'
+    assert_equal ['is Empty'], r.errors['content'], 'A reply without content should contain an error'
     assert_equal 1, r.errors.count
   end
 
@@ -39,11 +39,11 @@ class ValidationsTest < ActiveModel::TestCase
     r = Reply.new
     assert r.invalid?
 
-    assert r.errors[:title].any?, "A reply without title should mark that attribute as invalid"
-    assert_equal ["is Empty"], r.errors["title"], "A reply without title should contain an error"
+    assert r.errors[:title].any?, 'A reply without title should mark that attribute as invalid'
+    assert_equal ['is Empty'], r.errors['title'], 'A reply without title should contain an error'
 
-    assert r.errors[:content].any?, "A reply without content should mark that attribute as invalid"
-    assert_equal ["is Empty"], r.errors["content"], "A reply without content should contain an error"
+    assert r.errors[:content].any?, 'A reply without content should mark that attribute as invalid'
+    assert_equal ['is Empty'], r.errors['content'], 'A reply without content should contain an error'
 
     assert_equal 2, r.errors.count
   end
@@ -54,56 +54,56 @@ class ValidationsTest < ActiveModel::TestCase
 
     errors = r.errors.collect {|attr, messages| [attr.to_s, messages]}
 
-    assert errors.include?(["title", "is Empty"])
-    assert errors.include?(["content", "is Empty"])
+    assert errors.include?(['title', 'is Empty'])
+    assert errors.include?(['content', 'is Empty'])
   end
 
   def test_multiple_errors_per_attr_iteration_with_full_error_composition
     r = Reply.new
-    r.title   = ""
-    r.content = ""
+    r.title   = ''
+    r.content = ''
     r.valid?
 
     errors = r.errors.to_a
 
-    assert_equal "Content is Empty", errors[0]
-    assert_equal "Title is Empty", errors[1]
+    assert_equal 'Content is Empty', errors[0]
+    assert_equal 'Title is Empty', errors[1]
     assert_equal 2, r.errors.count
   end
 
   def test_errors_on_nested_attributes_expands_name
     t = Topic.new
-    t.errors["replies.name"] << "can't be blank"
+    t.errors['replies.name'] << "can't be blank"
     assert_equal ["Replies name can't be blank"], t.errors.full_messages
   end
 
   def test_errors_on_base
     r = Reply.new
-    r.content = "Mismatch"
+    r.content = 'Mismatch'
     r.valid?
-    r.errors.add(:base, "Reply is not dignifying")
+    r.errors.add(:base, 'Reply is not dignifying')
 
     errors = r.errors.to_a.inject([]) { |result, error| result + [error] }
 
-    assert_equal ["Reply is not dignifying"], r.errors[:base]
+    assert_equal ['Reply is not dignifying'], r.errors[:base]
 
-    assert errors.include?("Title is Empty")
-    assert errors.include?("Reply is not dignifying")
+    assert errors.include?('Title is Empty')
+    assert errors.include?('Reply is not dignifying')
     assert_equal 2, r.errors.count
   end
 
   def test_errors_on_base_with_symbol_message
     r = Reply.new
-    r.content = "Mismatch"
+    r.content = 'Mismatch'
     r.valid?
     r.errors.add(:base, :invalid)
 
     errors = r.errors.to_a.inject([]) { |result, error| result + [error] }
 
-    assert_equal ["is invalid"], r.errors[:base]
+    assert_equal ['is invalid'], r.errors[:base]
 
-    assert errors.include?("Title is Empty")
-    assert errors.include?("is invalid")
+    assert errors.include?('Title is Empty')
+    assert errors.include?('is invalid')
 
     assert_equal 2, r.errors.count
   end
@@ -120,7 +120,7 @@ class ValidationsTest < ActiveModel::TestCase
       record.errors.add attr, 'gotcha'
       hits += 1
     end
-    t = Topic.new("title" => "valid", "content" => "whatever")
+    t = Topic.new(title: 'valid', content: 'whatever')
     assert t.invalid?
     assert_equal 4, hits
     assert_equal %w(gotcha gotcha), t.errors[:title]
@@ -133,7 +133,7 @@ class ValidationsTest < ActiveModel::TestCase
       record.errors.add attr, 'gotcha'
       hits += 1
     end
-    t = CustomReader.new("title" => "valid", "content" => "whatever")
+    t = CustomReader.new(title: 'valid', content: 'whatever')
     assert t.invalid?
     assert_equal 4, hits
     assert_equal %w(gotcha gotcha), t.errors[:title]
@@ -143,19 +143,19 @@ class ValidationsTest < ActiveModel::TestCase
   end
 
   def test_validate_block
-    Topic.validate { errors.add("title", "will never be valid") }
-    t = Topic.new("title" => "Title", "content" => "whatever")
+    Topic.validate { errors.add('title', 'will never be valid') }
+    t = Topic.new(title: 'Title', content: 'whatever')
     assert t.invalid?
     assert t.errors[:title].any?
-    assert_equal ["will never be valid"], t.errors["title"]
+    assert_equal ['will never be valid'], t.errors['title']
   end
 
   def test_validate_block_with_params
-    Topic.validate { |topic| topic.errors.add("title", "will never be valid") }
-    t = Topic.new("title" => "Title", "content" => "whatever")
+    Topic.validate { |topic| topic.errors.add('title', 'will never be valid') }
+    t = Topic.new(title: 'Title', content: 'whatever')
     assert t.invalid?
     assert t.errors[:title].any?
-    assert_equal ["will never be valid"], t.errors["title"]
+    assert_equal ['will never be valid'], t.errors['title']
   end
 
   def test_invalid_validator
@@ -195,9 +195,9 @@ class ValidationsTest < ActiveModel::TestCase
     Topic.validates_presence_of :title
     Topic.validates_length_of :title, minimum: 2
 
-    t = Topic.new("title" => "")
+    t = Topic.new(title: '')
     assert t.invalid?
-    assert_equal "can't be blank", t.errors["title"].first
+    assert_equal "can't be blank", t.errors['title'].first
     Topic.validates_presence_of :title, :author_name
     Topic.validate {errors.add('author_email_address', 'will never be valid')}
     Topic.validates_length_of :title, :content, minimum: 2
@@ -282,7 +282,7 @@ class ValidationsTest < ActiveModel::TestCase
       ActiveModel::Validations::FormatValidator,
       ActiveModel::Validations::LengthValidator,
       ActiveModel::Validations::PresenceValidator
-    ], validators.map { |v| v.class }.sort_by { |c| c.to_s }
+    ], validators.map { |v| v.class }.sort_by(&:to_s)
   end
 
   def test_list_of_validators_will_be_empty_when_empty
@@ -379,7 +379,7 @@ class ValidationsTest < ActiveModel::TestCase
 
   def test_dup_validity_is_independent
     Topic.validates_presence_of :title
-    topic = Topic.new("title" => "Literature")
+    topic = Topic.new(title: 'Literature')
     topic.valid?
 
     duped = topic.dup
