@@ -15,9 +15,7 @@ module ActiveRecord
         end
 
         def visit_AddColumn(o)
-          sql_type = type_to_sql(o.type, o.limit, o.precision, o.scale)
-          sql = "ADD #{quote_column_name(o.name)} #{sql_type}"
-          add_column_options!(sql, column_options(o))
+          "ADD #{accept(o)}"
         end
 
         private
