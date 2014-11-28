@@ -1,3 +1,10 @@
+*   Add `add_once` on `ActiveModel::Errors`.
+
+    Acts just like `add` except it checks to see if the message has been
+    added already.
+
+    *Charles Smith*
+
 *   Passwords with spaces only allowed in `ActiveModel::SecurePassword`.
 
     Presence validation can be used to restore old behavior.

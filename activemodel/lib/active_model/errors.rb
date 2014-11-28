@@ -343,6 +343,23 @@ module ActiveModel
       self[attribute].include? message
     end
 
+    # Adds +message+ to the error messages on +attribute+ only if it has not 
+    # yet been added. If no +message+ is supplied, <tt>:invalid</tt> is 
+    # assumed.
+    #
+    #   person.errors.add_once(:name)
+    #   # => ["is invalid"]
+    #   person.errors.add_once(:name)
+    #   # => ["is_invalid"]
+    #   person.errors.add_once(:name, 'must be implemented')
+    #   # => ["is invalid", "must be implemented"]
+    #   person.errors.add_once(:name, 'must be implemented')
+    #   # => ["is invalid", "must be implemented"]
+    def add_once(attribute, message = :invalid, options = {})
+      add(attribute, message, options) unless added?(attribute, message, options)
+      self[attribute]
+    end
+
     # Returns all the full error messages in an array.
     #
     #   class Person

@@ -200,6 +200,33 @@ class ErrorsTest < ActiveModel::TestCase
     assert !person.errors.added?(:name, "cannot be blank")
   end
 
+  test "add_once adds a specific message to an attribute only once" do
+    person = Person.new
+    message = "has only one error message"
+    person.errors.add_once(:name, message)
+    person.errors.add_once(:name, message)
+    assert_equal [message], person.errors[:name]
+    assert_not_equal [message, message], person.errors[:name]
+  end
+
+  test "add_once an error with a symbol only adds the message once" do
+    person = Person.new
+    person.errors.add_once(:name, :blank)
+    person.errors.add_once(:name, :blank)
+    message = person.errors.generate_message(:name, :blank)
+    assert_equal [message], person.errors[:name]
+    assert_not_equal [message, message], person.errors[:name]
+  end
+
+  test "add_once an error with a proc only adds the same message once" do
+    person = Person.new
+    message = Proc.new { "cannot be blank" }
+    person.errors.add_once(:name, message)
+    person.errors.add_once(:name, message)
+    assert_equal ["cannot be blank"], person.errors[:name]
+    assert_not_equal ["cannot be blank", "cannot be blank"], person.errors[:name]
+  end
+
   test "size calculates the number of error messages" do
     person = Person.new
     person.errors.add(:name, "cannot be blank")
