@@ -4,8 +4,8 @@ require 'core_ext/date_and_time_behavior'
 require 'time_zone_test_helpers'
 
 class DateTimeExtCalculationsTest < ActiveSupport::TestCase
-  def date_time_init(year,month,day,hour,minute,second,*args)
-    DateTime.civil(year,month,day,hour,minute,second)
+  def date_time_init(year,month,day,hour,minute,second, usec = 0)
+    DateTime.civil(year,month,day,hour,minute, second + usec / 1_000_000)
   end
 
   include DateAndTimeBehavior
@@ -89,7 +89,11 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_end_of_day
-    assert_equal DateTime.civil(2005,2,4,23,59,59), DateTime.civil(2005,2,4,10,10,10).end_of_day
+    assert_equal DateTime.civil(2005,2,4,23,59,59.999_999_999), DateTime.civil(2005,2,4,10,10,10).end_of_day
+  end
+
+  def test_end_of_day_consistent_for_time_and_datetime
+    assert_equal DateTime.civil(2005,2,4,10,10,10).end_of_day.to_time, Time.utc(2005,2,4,10,10,10).end_of_day
   end
 
   def test_beginning_of_hour
@@ -97,7 +101,7 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_end_of_hour
-    assert_equal DateTime.civil(2005,2,4,19,59,59), DateTime.civil(2005,2,4,19,30,10).end_of_hour
+    assert_equal DateTime.civil(2005,2,4,19,59,59.999_999_999), DateTime.civil(2005,2,4,19,30,10).end_of_hour
   end
 
   def test_beginning_of_minute
@@ -105,13 +109,13 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_end_of_minute
-    assert_equal DateTime.civil(2005,2,4,19,30,59), DateTime.civil(2005,2,4,19,30,10).end_of_minute
+    assert_equal DateTime.civil(2005,2,4,19,30,59.999_999_999), DateTime.civil(2005,2,4,19,30,10).end_of_minute
   end
 
   def test_end_of_month
-    assert_equal DateTime.civil(2005,3,31,23,59,59), DateTime.civil(2005,3,20,10,10,10).end_of_month
-    assert_equal DateTime.civil(2005,2,28,23,59,59), DateTime.civil(2005,2,20,10,10,10).end_of_month
-    assert_equal DateTime.civil(2005,4,30,23,59,59), DateTime.civil(2005,4,20,10,10,10).end_of_month
+    assert_equal DateTime.civil(2005,3,31,23,59,59.999_999_999), DateTime.civil(2005,3,20,10,10,10).end_of_month
+    assert_equal DateTime.civil(2005,2,28,23,59,59.999_999_999), DateTime.civil(2005,2,20,10,10,10).end_of_month
+    assert_equal DateTime.civil(2005,4,30,23,59,59.999_999_999), DateTime.civil(2005,4,20,10,10,10).end_of_month
   end
 
   def test_last_year
@@ -141,9 +145,12 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal DateTime.civil(2005,2,22,16),       DateTime.civil(2005,2,22,15,15,10).change(:hour => 16)
     assert_equal DateTime.civil(2005,2,22,16,45),    DateTime.civil(2005,2,22,15,15,10).change(:hour => 16, :min => 45)
     assert_equal DateTime.civil(2005,2,22,15,45),    DateTime.civil(2005,2,22,15,15,10).change(:min => 45)
+    assert_equal DateTime.civil(2005,2,22,15,15,10.000_008),    DateTime.civil(2005,2,22,15,15,10).change(:usec => 8)
+    assert_equal DateTime.civil(2005,2,22,15,15,10.000_008),    DateTime.civil(2005,2,22,15,15,10).change(:nsec => 8000)
 
     # datetime with fractions of a second
     assert_equal DateTime.civil(2005,2,1,15,15,10.7), DateTime.civil(2005,2,22,15,15,10.7).change(:day => 1)
+    assert_raise(ArgumentError) { DateTime.civil(2005,2,22,15,15,10).change(:usec => 1, :nsec => 1) }
   end
 
   def test_advance
