@@ -54,9 +54,9 @@ module ActiveRecord
   class RecordNotSaved < ActiveRecordError
     attr_reader :record
 
-    def initialize(record)
+    def initialize(message, record = nil)
       @record = record
-      super()
+      super(message)
     end
   end
 

@@ -139,7 +139,7 @@ module ActiveRecord
     # Attributes marked as readonly are silently ignored if the record is
     # being updated.
     def save!(*)
-      create_or_update || raise(RecordNotSaved, self)
+      create_or_update || raise(RecordNotSaved.new(nil, self))
     end
 
     # Deletes the record in the database and freezes this instance to
