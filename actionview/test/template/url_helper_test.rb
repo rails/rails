@@ -523,6 +523,26 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert_equal({ class: 'special' }, options)
   end
 
+  def test_phone_to_generates_default_link
+    assert_dom_equal %{<a href="tel:+112345678">+112345678</a>}, phone_to("+112345678")
+  end
+
+  def test_phone_to_generates_text_and_link
+    assert_dom_equal %{<a href="tel:+112345678">Call me</a>}, phone_to("+112345678", "Call me")
+  end
+
+  def test_phone_to_honours_html_options
+    assert_dom_equal(
+        %{<a class="admin" href="tel:+112345678">Call me</a>},
+        phone_to("+112345678", "Call me", class: "admin")
+    )
+  end
+
+  def test_phone_to_with_block
+    assert_dom_equal %{<a href="tel:+112345678"><span>Call me</span></a>},
+                     phone_to('+112345678') { content_tag(:span, 'Call me') }
+  end
+
   def protect_against_forgery?
     self.request_forgery
   end

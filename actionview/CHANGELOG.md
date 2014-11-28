@@ -1,3 +1,8 @@
+*   Add `phone_to` tag to make calling links similar to mail_to.
+
+    *Abhijat Mahajan*
+
+
 *   Local variable in a partial is now available even if a falsy value is
     passed to `:object` when rendering a partial.
 
