@@ -16,7 +16,7 @@ class ValidatesTest < ActiveModel::TestCase
   end
 
   def test_validates_with_messages_empty
-    Person.validates :title, presence: { message: "" }
+    Person.validates :title, presence: { message: '' }
     person = Person.new
     assert !person.valid?, 'person should not be valid.'
   end
@@ -29,7 +29,7 @@ class ValidatesTest < ActiveModel::TestCase
   end
 
   def test_validates_with_attribute_specified_as_string
-    Person.validates "title", numericality: true
+    Person.validates 'title', numericality: true
     person = Person.new
     person.valid?
     assert_equal ['is not a number'], person.errors[:title]
@@ -71,7 +71,7 @@ class ValidatesTest < ActiveModel::TestCase
     Person.validates :karma, presence: true, email: true, if: :condition_is_true
     person = Person.new
     person.valid?
-    assert_equal ["can't be blank", "is not an email"], person.errors[:karma].sort
+    assert_equal ["can't be blank", 'is not an email'], person.errors[:karma].sort
   end
 
   def test_validates_with_unless_shared_conditions
@@ -91,7 +91,7 @@ class ValidatesTest < ActiveModel::TestCase
     person = Person.new
     assert person.invalid?
     assert_equal ['is invalid'], person.errors[:karma]
-    person.karma = "positive"
+    person.karma = 'positive'
     assert person.valid?
   end
 
@@ -100,7 +100,7 @@ class ValidatesTest < ActiveModel::TestCase
     person = Person.new
     assert person.invalid?
     assert_equal ['is not included in the list'], person.errors[:gender]
-    person.gender = "m"
+    person.gender = 'm'
     assert person.valid?
   end
 
@@ -139,10 +139,10 @@ class ValidatesTest < ActiveModel::TestCase
   end
 
   def test_validates_with_included_validator_and_wildcard_shortcut
-    # Shortcut for PersonWithValidator.validates :title, like: { with: "Mr." }
-    PersonWithValidator.validates :title, like: "Mr."
+    # Shortcut for PersonWithValidator.validates :title, like: { with: 'Mr.' }
+    PersonWithValidator.validates :title, like: 'Mr.'
     person = PersonWithValidator.new
-    person.title = "Ms. Pacman"
+    person.title = 'Ms. Pacman'
     person.valid?
     assert_equal ['does not appear to be like Mr.'], person.errors[:title]
   end
@@ -151,7 +151,7 @@ class ValidatesTest < ActiveModel::TestCase
     Topic.validates :title, confirmation: true, message: 'Y U NO CONFIRM'
     topic = Topic.new
     topic.title = "What's happening"
-    topic.title_confirmation = "Not this"
+    topic.title_confirmation = 'Not this'
     assert !topic.valid?
     assert_equal ['Y U NO CONFIRM'], topic.errors[:title_confirmation]
   end

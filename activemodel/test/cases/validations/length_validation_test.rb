@@ -126,7 +126,7 @@ class LengthValidationTest < ActiveModel::TestCase
   def test_optionally_validates_length_of_using_within
     Topic.validates_length_of :title, :content, within: 3..5, allow_nil: true
 
-    t = Topic.new('title' => 'abc', 'content' => 'abcd')
+    t = Topic.new(title: 'abc', content: 'abcd')
     assert t.valid?
 
     t.title = nil
