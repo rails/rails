@@ -11,7 +11,7 @@ gem 'rake', '>= 10.3'
 gem 'mocha', '~> 0.14', require: false
 
 gem 'rack-cache', '~> 1.2'
-gem 'jquery-rails', '~> 4.0'
+gem 'jquery-rails', github: 'rails/jquery-rails'
 gem 'coffee-rails', '~> 4.1.0'
 gem 'turbolinks'
 
@@ -47,7 +47,7 @@ group :job do
   gem 'backburner', require: false
   gem 'qu-rails', github: "bkeepers/qu", branch: "master", require: false
   gem 'qu-redis', require: false
-  gem 'delayed_job_active_record', require: false
+  # gem 'delayed_job_active_record', require: false
   gem 'sequel', require: false
 end
 
