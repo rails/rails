@@ -13,22 +13,14 @@ module ActiveRecord
       end
 
       def type_cast_from_database(value)
-        if default_value?(value)
-          value
-        else
-          coder.load(super)
-        end
+        coder.load(super)
       end
 
       def type_cast_for_database(value)
-        return if value.nil?
-        unless default_value?(value)
-          super coder.dump(value)
-        end
+        super coder.dump(value)
       end
 
       def changed_in_place?(raw_old_value, value)
-        return false if value.nil?
         subtype.changed_in_place?(raw_old_value, coder.dump(value))
       end
 
@@ -44,12 +36,6 @@ module ActiveRecord
       def encode_with(coder)
         coder['coder'] = @coder
         super
-      end
-
-      private
-
-      def default_value?(value)
-        value == coder.load(nil)
       end
     end
   end
