@@ -269,6 +269,14 @@ class EagerAssociationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_three_level_nested_preloading_does_not_raise_exception_when_association_does_not_exist
+    post_id = Comment.where(author_id: nil).where.not(post_id: nil).first.post_id
+
+    assert_nothing_raised do
+      Post.preload(:comments => [{:author => :essays}]).find(post_id)
+    end
+  end
+
   def test_nested_loading_through_has_one_association
     aa = AuthorAddress.all.merge!(:includes => {:author => :posts}).find(author_addresses(:david_address).id)
     assert_equal aa.author.posts.count, aa.author.posts.length
