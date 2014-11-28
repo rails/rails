@@ -47,7 +47,8 @@ the object itself. The new [Global ID](https://github.com/rails/globalid)
 library builds URIs and looks up the objects they reference. Passing Active
 Record objects as job arguments just works by using Global ID internally.
 
-For example, if `trashable` is an AR this job runs just fine
+For example, if `trashable` is an Active Record object, then this job runs
+just fine with no serialization involved:
 
 ```ruby
 class TrashableCleanupJob < ActiveJob::Base
@@ -56,8 +57,6 @@ class TrashableCleanupJob < ActiveJob::Base
   end
 end
 ```
-
-with no serialization involved.
 
 See the [Active Job Basics](active_job_basics.html) guide for more
 information.
@@ -80,9 +79,9 @@ on similar calls, skipping most of the query-generation work on subsequent
 calls. For more details, please refer to [Aaron Patterson's blog
 post](http://tenderlovemaking.com/2014/02/19/adequaterecord-pro-like-activerecord.html).
 
-Active Record will automatically take advantage of this feature on the
+Active Record will automatically take advantage of this feature on
 supported operations without any user involvement or code changes. Here are
-some examples of the supported operations:
+some examples of supported operations:
 
 ```ruby
 Post.find(1)  # First call generates and cache the prepared statement
@@ -96,10 +95,10 @@ post.comments(true)
 ```
 
 It's important to highlight that, as the examples above suggest, the prepared
-statements do not cache the values passed in the method calls, they rather
+statements do not cache the values passed in the method calls; rather, they
 have placeholders for them.
 
-The caching is not used in the following scenarios:
+Caching is not used in the following scenarios:
 
 - The model has a default scope
 - The model uses single table inheritance
@@ -119,7 +118,7 @@ The caching is not used in the following scenarios:
 
 ### Web Console
 
-New applications generated from Rails 4.2 now come with the [Web
+New applications generated with Rails 4.2 now come with the [Web
 Console](https://github.com/rails/web-console) gem by default. Web Console adds
 an interactive Ruby console on every error page and provides a `console` view
 and controller helpers.
@@ -167,9 +166,9 @@ The following changes may require immediate action upon upgrade.
 ### `render` with a String Argument
 
 Previously, calling `render "foo/bar"` in a controller action was equivalent to
-`render file: "foo/bar"`. In Rails 4.2, this has been changed to mean `render template: "foo/bar"`
-instead. If you need to render a file, please change your code to use the
-explicit form (`render file: "foo/bar"`) instead.
+`render file: "foo/bar"`. In Rails 4.2, this has been changed to mean
+`render template: "foo/bar"` instead. If you need to render a file, please
+change your code to use the explicit form (`render file: "foo/bar"`) instead.
 
 ### `respond_with` / Class-Level `respond_to`
 
@@ -210,8 +209,9 @@ end
 
 Due to a [change in Rack](https://github.com/rack/rack/commit/28b014484a8ac0bbb388e7eaeeef159598ec64fc),
 `rails server` now listens on `localhost` instead of `0.0.0.0` by default. This
-should have minimal impact on the standard development workflow as both http://127.0.0.1:3000
-and http://localhost:3000 will continue to work as before on your own machine.
+should have minimal impact on the standard development workflow as both
+http://127.0.0.1:3000 and http://localhost:3000 will continue to work as before
+on your own machine.
 
 However, with this change you will no longer be able to access the Rails
 server from a different machine, for example if your development environment
@@ -229,8 +229,8 @@ built upon [Loofah](https://github.com/flavorjones/loofah) and
 [Nokogiri](https://github.com/sparklemotion/nokogiri). The new sanitizer is
 more secure and its sanitization is more powerful and flexible.
 
-Due to the new algorithm, sanitized output changes for certain pathological
-inputs.
+Due to the new algorithm, the sanitized output may be different for certain
+pathological inputs.
 
 If you have a particular need for the exact output of the old sanitizer, you
 can add the [rails-deprecated_sanitizer](https://github.com/kaspth/rails-deprecated_sanitizer)
@@ -663,8 +663,8 @@ Please refer to the [Changelog][active-record] for detailed changes.
     current environment.
     ([Commit](https://github.com/rails/rails/commit/e2f232aba15937a4b9d14bd91e0392c6d55be58d))
 
-*   Introduced `ActiveRecord::Base#validate!` that raises `ActiveRecord::RecordInvalid` if the
-    record is invalid.
+*   Introduced `ActiveRecord::Base#validate!` that raises
+    `ActiveRecord::RecordInvalid` if the record is invalid.
     ([Pull Request](https://github.com/rails/rails/pull/8639))
 
 *   Introduced `validate` as an alias for `valid?`.
@@ -704,8 +704,8 @@ Please refer to the [Changelog][active-record] for detailed changes.
     `SELECT`s.
     ([Pull Request](https://github.com/rails/rails/pull/15866))
 
-*   `ActiveRecord::Base#reflections` now returns a hash with string keys instead of symbol keys.
-    ([Pull Request](https://github.com/rails/rails/pull/17718))
+*   `ActiveRecord::Base#reflections` now returns a hash with string keys instead
+    of symbol keys. ([Pull Request](https://github.com/rails/rails/pull/17718))
 
 *   The `references` method in migrations now supports a `type` option for
     specifying the type of the foreign key (e.g. `:uuid`).
