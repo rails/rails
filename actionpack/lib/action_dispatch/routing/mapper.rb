@@ -580,13 +580,7 @@ module ActionDispatch
           raise "A rack application must be specified" unless path
 
           rails_app = rails_app? app
-
-          if rails_app
-            options[:as]  ||= app.railtie_name
-          else
-            # non rails apps can't have an :as
-            options[:as]  = nil
-          end
+          options[:as] ||= app.railtie_name if rails_app
 
           target_as       = name_for_action(options[:as], path)
           options[:via] ||= :all

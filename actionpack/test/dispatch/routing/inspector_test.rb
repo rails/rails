@@ -235,7 +235,7 @@ module ActionDispatch
 
         assert_equal [
           "Prefix Verb URI Pattern Controller#Action",
-          "            /foo        #{RackApp.name} {:constraint=>( my custom constraint )}"
+          "   foo      /foo        #{RackApp.name} {:constraint=>( my custom constraint )}"
         ], output
       end
 
