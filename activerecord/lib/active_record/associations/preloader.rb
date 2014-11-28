@@ -178,6 +178,7 @@ module ActiveRecord
       class NullPreloader
         def self.new(klass, owners, reflection, preload_scope); self; end
         def self.run(preloader); end
+        def self.preloaded_records; []; end
       end
 
       def preloader_for(reflection, owners, rhs_klass)
