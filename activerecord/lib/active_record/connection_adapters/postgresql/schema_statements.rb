@@ -17,7 +17,7 @@ module ActiveRecord
           super
         end
 
-        def quote_value(value, column)
+        def quote_default_expression(value, column)
           if column.type == :uuid && value =~ /\(\)/
             value
           else
