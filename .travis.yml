@@ -9,7 +9,8 @@ env:
   matrix:
     - "GEM=railties"
     - "GEM=ap"
-    - "GEM=am,amo,as,av,aj"
+    - "GEM=aj"
+    - "GEM=am,amo,as,av"
     - "GEM=ar:mysql"
     - "GEM=ar:mysql2"
     - "GEM=ar:sqlite3"
@@ -26,6 +27,7 @@ matrix:
       env: "GEM=ar:mysql"
     - rvm: rbx-2
     - rvm: jruby
+    - env: "GEM=aj"
   fast_finish: true
 notifications:
   email: false
