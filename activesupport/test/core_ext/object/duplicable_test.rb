@@ -6,16 +6,7 @@ require 'active_support/core_ext/numeric/time'
 class DuplicableTest < ActiveSupport::TestCase
   RAISE_DUP  = [nil, false, true, :symbol, 1, 2.3, method(:puts)]
   ALLOW_DUP = ['1', Object.new, /foo/, [], {}, Time.now, Class.new, Module.new]
-
-  # Needed to support Ruby 1.9.x, as it doesn't allow dup on BigDecimal, instead
-  # raises TypeError exception. Checking here on the runtime whether BigDecimal
-  # will allow dup or not.
-  begin
-    bd = BigDecimal.new('4.56')
-    ALLOW_DUP << bd.dup
-  rescue TypeError
-    RAISE_DUP << bd
-  end
+  ALLOW_DUP << BigDecimal.new('4.56')
 
   def test_duplicable
     RAISE_DUP.each do |v|
