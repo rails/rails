@@ -503,35 +503,30 @@ class TransactionTest < ActiveRecord::TestCase
     assert topic.frozen?, 'not frozen'
   end
 
-  # The behavior of killed threads having a status of "aborting" was changed
-  # in Ruby 2.0, so Thread#kill on 1.9 will prematurely commit the transaction
-  # and there's nothing we can do about it.
-  if !RUBY_VERSION.start_with?('1.9') && !in_memory_db?
-    def test_rollback_when_thread_killed
-      queue = Queue.new
-      thread = Thread.new do
-        Topic.transaction do
-          @first.approved  = true
-          @second.approved = false
-          @first.save
+  def test_rollback_when_thread_killed
+    queue = Queue.new
+    thread = Thread.new do
+      Topic.transaction do
+        @first.approved  = true
+        @second.approved = false
+        @first.save
 
-          queue.push nil
-          sleep
+        queue.push nil
+        sleep
 
-          @second.save
-        end
+        @second.save
       end
-
-      queue.pop
-      thread.kill
-      thread.join
-
-      assert @first.approved?, "First should still be changed in the objects"
-      assert !@second.approved?, "Second should still be changed in the objects"
-
-      assert !Topic.find(1).approved?, "First shouldn't have been approved"
-      assert Topic.find(2).approved?, "Second should still be approved"
     end
+
+    queue.pop
+    thread.kill
+    thread.join
+
+    assert @first.approved?, "First should still be changed in the objects"
+    assert !@second.approved?, "Second should still be changed in the objects"
+
+    assert !Topic.find(1).approved?, "First shouldn't have been approved"
+    assert Topic.find(2).approved?, "Second should still be approved"
   end
 
   def test_restore_active_record_state_for_all_records_in_a_transaction
