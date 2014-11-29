@@ -28,8 +28,6 @@ class DependenciesTest < ActiveSupport::TestCase
   end
 
   def test_depend_on_path
-    skip "LoadError#path does not exist" if RUBY_VERSION < '2.0.0'
-
     expected = assert_raises(LoadError) do
       Kernel.require 'omgwtfbbq'
     end
