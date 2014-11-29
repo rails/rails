@@ -122,6 +122,11 @@ module ActionDispatch
             re = @matchers[node.left.to_sym] || '.+'
             "(#{re})"
           end
+
+          def visit_OR(node)
+            children = node.children.map { |n| visit n }
+            "(?:#{children.join(?|)})"
+          end
         end
 
         class UnanchoredRegexp < AnchoredRegexp # :nodoc:

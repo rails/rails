@@ -16,6 +16,7 @@ module ActionDispatch
           '/:controller(.:format)'       => %r{\A/(#{x})(?:\.([^/.?]+))?\Z},
           '/:controller/*foo'            => %r{\A/(#{x})/(.+)\Z},
           '/:controller/*foo/bar'        => %r{\A/(#{x})/(.+)/bar\Z},
+          '/:foo|*bar'                   => %r{\A/(?:([^/.?]+)|(.+))\Z},
         }.each do |path, expected|
           define_method(:"test_to_regexp_#{path}") do
             strexp = Router::Strexp.build(
@@ -39,6 +40,7 @@ module ActionDispatch
           '/:controller(.:format)'       => %r{\A/(#{x})(?:\.([^/.?]+))?},
           '/:controller/*foo'            => %r{\A/(#{x})/(.+)},
           '/:controller/*foo/bar'        => %r{\A/(#{x})/(.+)/bar},
+          '/:foo|*bar'                   => %r{\A/(?:([^/.?]+)|(.+))},
         }.each do |path, expected|
           define_method(:"test_to_non_anchored_regexp_#{path}") do
             strexp = Router::Strexp.build(
