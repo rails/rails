@@ -109,12 +109,6 @@ module ActionDispatch
           svg         = to_svg
           javascripts = [states, fsm_js]
 
-          # Annoying hack for 1.9 warnings
-          fun_routes  = fun_routes
-          stylesheets = stylesheets
-          svg         = svg
-          javascripts = javascripts
-
           require 'erb'
           template = ERB.new erb
           template.result(binding)
