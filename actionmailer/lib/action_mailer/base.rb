@@ -108,7 +108,6 @@ module ActionMailer
   #   You got a new note from <%= message.from %>!
   #   <%= truncate(@note.body, length: 25) %>
   #
-  #
   # = Generating URLs
   #
   # URLs can be generated in mailer views using <tt>url_for</tt> or named routes. Unlike controllers from
