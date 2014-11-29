@@ -1,4 +1,3 @@
-# encoding: utf-8
 require 'isolation/abstract_unit'
 require 'rack/test'
 

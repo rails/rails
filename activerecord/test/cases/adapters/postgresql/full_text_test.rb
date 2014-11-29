@@ -1,4 +1,3 @@
-# encoding: utf-8
 require "cases/helper"
 
 class PostgresqlFullTextTest < ActiveRecord::TestCase
