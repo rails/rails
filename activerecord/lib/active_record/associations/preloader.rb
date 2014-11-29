@@ -107,26 +107,27 @@ module ActiveRecord
 
       private
 
-      def preloaders_on(association, records, scope)
+      def preloaders_on(association, records, scope, options = {})
         case association
         when Hash
-          preloaders_for_hash(association, records, scope)
+          preloaders_for_hash(association, records, scope, options)
         when Symbol
-          preloaders_for_one(association, records, scope)
+          preloaders_for_one(association, records, scope, options)
         when String
-          preloaders_for_one(association.to_sym, records, scope)
+          preloaders_for_one(association.to_sym, records, scope, options)
         else
           raise ArgumentError, "#{association.inspect} was not recognised for preload"
         end
       end
 
-      def preloaders_for_hash(association, records, scope)
+      def preloaders_for_hash(association, records, scope, options = {})
         association.flat_map { |parent, child|
           loaders = preloaders_for_one parent, records, scope
+          polymorphic = options[:polymorphic] || loaders.any?{ |l| l.reflection.polymorphic? }
 
           recs = loaders.flat_map(&:preloaded_records).uniq
           loaders.concat Array.wrap(child).flat_map { |assoc|
-            preloaders_on assoc, recs, scope
+            preloaders_on assoc, recs, scope, polymorphic: polymorphic
           }
           loaders
         }
@@ -139,8 +140,13 @@ module ActiveRecord
       # Additionally, polymorphic belongs_to associations can have multiple associated
       # classes, depending on the polymorphic_type field. So we group by the classes as
       # well.
-      def preloaders_for_one(association, records, scope)
-        grouped_records(association, records).flat_map do |reflection, klasses|
+      def preloaders_for_one(association, records, scope, options = {})
+        grouped = grouped_records(association, records)
+        if records.any? && grouped.none? && !options[:polymorphic]
+          raise AssociationNotFoundError.new(records.first.class, association)
+        end
+
+        grouped.flat_map do |reflection, klasses|
           klasses.map do |rhs_klass, rs|
             loader = preloader_for(reflection, rs, rhs_klass).new(rhs_klass, rs, reflection, scope)
             loader.run self
@@ -152,10 +158,10 @@ module ActiveRecord
       def grouped_records(association, records)
         h = {}
         records.each do |record|
-          next unless record
-          assoc = record.association(association)
-          klasses = h[assoc.reflection] ||= {}
-          (klasses[assoc.klass] ||= []) << record
+          if record && assoc = record.association(association)
+            klasses = h[assoc.reflection] ||= {}
+            (klasses[assoc.klass] ||= []) << record
+          end
         end
         h
       end

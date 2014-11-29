@@ -5,8 +5,8 @@ require 'active_record/errors'
 
 module ActiveRecord
   class AssociationNotFoundError < ConfigurationError #:nodoc:
-    def initialize(record, association_name)
-      super("Association named '#{association_name}' was not found on #{record.class.name}; perhaps you misspelled it?")
+    def initialize(klass, association_name)
+      super("Association named '#{association_name}' was not found on #{klass.name}; perhaps you misspelled it?")
     end
   end
 
@@ -156,8 +156,7 @@ module ActiveRecord
     def association(name) #:nodoc:
       association = association_instance_get(name)
 
-      if association.nil?
-        raise AssociationNotFoundError.new(self, name) unless reflection = self.class._reflect_on_association(name)
+      if association.nil? && reflection = self.class._reflect_on_association(name)
         association = reflection.association_class.new(self, reflection)
         association_instance_set(name, association)
       end
