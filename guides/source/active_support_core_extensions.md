@@ -1447,7 +1447,7 @@ Returns the substring of the string starting at position `position`:
 "hello".from(0)  # => "hello"
 "hello".from(2)  # => "llo"
 "hello".from(-2) # => "lo"
-"hello".from(10) # => "" if < 1.9, nil in 1.9
+"hello".from(10) # => nil
 ```
 
 NOTE: Defined in `active_support/core_ext/string/access.rb`.
