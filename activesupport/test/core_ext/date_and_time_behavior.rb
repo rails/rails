@@ -94,6 +94,10 @@ module DateAndTimeBehavior
     assert_equal date_time_init(2005,1,1,0,0,0), date_time_init(2005,2,22,10,10,10).beginning_of_year
   end
 
+  def test_beginning_of_decade
+    assert_equal date_time_init(2000,1,1,0,0,0), date_time_init(2005,2,22,10,10,10).beginning_of_decade
+  end
+
   def test_next_week
     #   M   |   T  | W | T | F | S | S #   M   | T |   W   | T |  F  | S | S #
     #       | 22/2 |   |   |   |   |   # 28/2  |   |       |   |     |   |   # monday in next week `next_week`
@@ -217,6 +221,11 @@ module DateAndTimeBehavior
   def test_end_of_year
     assert_equal date_time_init(2007,12,31,23,59,59,Rational(999999999, 1000)), date_time_init(2007,2,22,10,10,10).end_of_year
     assert_equal date_time_init(2007,12,31,23,59,59,Rational(999999999, 1000)), date_time_init(2007,12,31,10,10,10).end_of_year
+  end
+
+  def test_end_of_decade
+    assert_equal date_time_init(2009,12,31,23,59,59,Rational(999999999, 1000)), date_time_init(2007,2,22,10,10,10).end_of_decade
+    assert_equal date_time_init(2009,12,31,23,59,59,Rational(999999999, 1000)), date_time_init(2007,12,31,10,10,10).end_of_decade
   end
 
   def test_monday_with_default_beginning_of_week_set

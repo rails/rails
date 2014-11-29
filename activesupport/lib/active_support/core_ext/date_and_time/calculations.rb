@@ -108,6 +108,14 @@ module DateAndTime
     end
     alias :at_beginning_of_year :beginning_of_year
 
+    # Return a new date/time at the beginning of the decade.
+    # Example: 1st January 2010
+    # DateTime objects will have a time set to 0:00.
+    def beginning_of_decade
+      change(:month => 1, :year => to_date.year - (to_date.year % 10) ).beginning_of_month
+    end
+    alias :at_beginning_of_decade :beginning_of_decade
+
     # Returns a new date/time representing the given day in the next week.
     # The +given_day_in_next_week+ defaults to the beginning of the week
     # which is determined by +Date.beginning_of_week+ or +config.beginning_of_week+
@@ -212,6 +220,13 @@ module DateAndTime
       change(:month => 12).end_of_month
     end
     alias :at_end_of_year :end_of_year
+
+    # Returns a new date/time representing the end of the decade.
+    # DateTime objects will have a time set to 23:59:59.
+    def end_of_decade
+      change(:month => 12, :year => to_date.year + 9 - (to_date.year % 10) ).end_of_month
+    end
+    alias :at_end_of_decade :end_of_decade
 
     # Returns a Range representing the whole week of the current date/time.
     # Week starts on start_day, default is <tt>Date.week_start</tt> or <tt>config.week_start</tt> when set.

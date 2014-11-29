@@ -84,6 +84,10 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
   def test_end_of_week_in_calendar_reform
     assert_equal Date.new(1582,10,17), Date.new(1582,10,4).end_of_week #thursday
   end
+  
+  def test_end_of_decade
+    assert_equal Date.new(2009,12,31).to_s, Date.new(2008,2,22).end_of_decade.to_s
+  end
 
   def test_end_of_year
     assert_equal Date.new(2008,12,31).to_s, Date.new(2008,2,22).end_of_year.to_s
