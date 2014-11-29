@@ -8,7 +8,7 @@ module ActiveRecord
           records_by_owner = super
 
           if reflection_scope.distinct_value
-            records_by_owner.each_value { |records| records.uniq! }
+            records_by_owner.each_value(&:uniq!)
           end
 
           records_by_owner

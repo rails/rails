@@ -338,31 +338,31 @@ class EagerAssociationTest < ActiveRecord::TestCase
   def test_eager_association_loading_with_belongs_to_and_limit
     comments = Comment.all.merge!(:includes => :post, :limit => 5, :order => 'comments.id').to_a
     assert_equal 5, comments.length
-    assert_equal [1,2,3,5,6], comments.collect { |c| c.id }
+    assert_equal [1,2,3,5,6], comments.collect(&:id)
   end
 
   def test_eager_association_loading_with_belongs_to_and_limit_and_conditions
     comments = Comment.all.merge!(:includes => :post, :where => 'post_id = 4', :limit => 3, :order => 'comments.id').to_a
     assert_equal 3, comments.length
-    assert_equal [5,6,7], comments.collect { |c| c.id }
+    assert_equal [5,6,7], comments.collect(&:id)
   end
 
   def test_eager_association_loading_with_belongs_to_and_limit_and_offset
     comments = Comment.all.merge!(:includes => :post, :limit => 3, :offset => 2, :order => 'comments.id').to_a
     assert_equal 3, comments.length
-    assert_equal [3,5,6], comments.collect { |c| c.id }
+    assert_equal [3,5,6], comments.collect(&:id)
   end
 
   def test_eager_association_loading_with_belongs_to_and_limit_and_offset_and_conditions
     comments = Comment.all.merge!(:includes => :post, :where => 'post_id = 4', :limit => 3, :offset => 1, :order => 'comments.id').to_a
     assert_equal 3, comments.length
-    assert_equal [6,7,8], comments.collect { |c| c.id }
+    assert_equal [6,7,8], comments.collect(&:id)
   end
 
   def test_eager_association_loading_with_belongs_to_and_limit_and_offset_and_conditions_array
     comments = Comment.all.merge!(:includes => :post, :where => ['post_id = ?',4], :limit => 3, :offset => 1, :order => 'comments.id').to_a
     assert_equal 3, comments.length
-    assert_equal [6,7,8], comments.collect { |c| c.id }
+    assert_equal [6,7,8], comments.collect(&:id)
   end
 
   def test_eager_association_loading_with_belongs_to_and_conditions_string_with_unquoted_table_name
@@ -377,7 +377,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
       comments = Comment.all.merge!(:includes => :post, :where => {:posts => {:id => 4}}, :limit => 3, :order => 'comments.id').to_a
     end
     assert_equal 3, comments.length
-    assert_equal [5,6,7], comments.collect { |c| c.id }
+    assert_equal [5,6,7], comments.collect(&:id)
     assert_no_queries do
       comments.first.post
     end
@@ -406,13 +406,13 @@ class EagerAssociationTest < ActiveRecord::TestCase
   def test_eager_association_loading_with_belongs_to_and_limit_and_multiple_associations
     posts = Post.all.merge!(:includes => [:author, :very_special_comment], :limit => 1, :order => 'posts.id').to_a
     assert_equal 1, posts.length
-    assert_equal [1], posts.collect { |p| p.id }
+    assert_equal [1], posts.collect(&:id)
   end
 
   def test_eager_association_loading_with_belongs_to_and_limit_and_offset_and_multiple_associations
     posts = Post.all.merge!(:includes => [:author, :very_special_comment], :limit => 1, :offset => 1, :order => 'posts.id').to_a
     assert_equal 1, posts.length
-    assert_equal [2], posts.collect { |p| p.id }
+    assert_equal [2], posts.collect(&:id)
   end
 
   def test_eager_association_loading_with_belongs_to_inferred_foreign_key_from_association_name
@@ -545,13 +545,13 @@ class EagerAssociationTest < ActiveRecord::TestCase
   def test_eager_with_has_many_and_limit_and_conditions
     posts = Post.all.merge!(:includes => [ :author, :comments ], :limit => 2, :where => "posts.body = 'hello'", :order => "posts.id").to_a
     assert_equal 2, posts.size
-    assert_equal [4,5], posts.collect { |p| p.id }
+    assert_equal [4,5], posts.collect(&:id)
   end
 
   def test_eager_with_has_many_and_limit_and_conditions_array
     posts = Post.all.merge!(:includes => [ :author, :comments ], :limit => 2, :where => [ "posts.body = ?", 'hello' ], :order => "posts.id").to_a
     assert_equal 2, posts.size
-    assert_equal [4,5], posts.collect { |p| p.id }
+    assert_equal [4,5], posts.collect(&:id)
   end
 
   def test_eager_with_has_many_and_limit_and_conditions_array_on_the_eagers

@@ -423,9 +423,7 @@ module ActiveRecord
 
           cols = nil
           if metadata = stmt.result_metadata
-            cols = cache[:cols] ||= metadata.fetch_fields.map { |field|
-              field.name
-            }
+            cols = cache[:cols] ||= metadata.fetch_fields.map(&:name)
             metadata.free
           end
 

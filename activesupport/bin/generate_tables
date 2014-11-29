@@ -55,7 +55,7 @@ module ActiveSupport
           codepoint.combining_class   = Integer($4)
           #codepoint.bidi_class        = $5
           codepoint.decomp_type       = $7
-          codepoint.decomp_mapping    = ($8=='') ? nil : $8.split.collect { |element| element.hex }
+          codepoint.decomp_mapping    = ($8=='') ? nil : $8.split.collect(&:hex)
           #codepoint.bidi_mirrored     = ($13=='Y') ? true : false
           codepoint.uppercase_mapping = ($16=='') ? 0 : $16.hex
           codepoint.lowercase_mapping = ($17=='') ? 0 : $17.hex

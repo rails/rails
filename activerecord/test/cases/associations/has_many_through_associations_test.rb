@@ -41,7 +41,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   def test_preload_sti_rhs_class
     developers = Developer.includes(:firms).all.to_a
     assert_no_queries do
-      developers.each { |d| d.firms }
+      developers.each(&:firms)
     end
   end
 

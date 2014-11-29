@@ -1219,7 +1219,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert !clients.empty?, "37signals has clients after load"
     destroyed = companies(:first_firm).clients_of_firm.destroy_all
     assert_equal clients.sort_by(&:id), destroyed.sort_by(&:id)
-    assert destroyed.all? { |client| client.frozen? }, "destroyed clients should be frozen"
+    assert destroyed.all?(&:frozen?), "destroyed clients should be frozen"
     assert companies(:first_firm).clients_of_firm.empty?, "37signals has no clients after destroy all"
     assert companies(:first_firm).clients_of_firm(true).empty?, "37signals has no clients after destroy all and refresh"
   end

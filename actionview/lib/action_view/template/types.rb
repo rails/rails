@@ -9,7 +9,7 @@ module ActionView
         self.types = Set.new
 
         def self.register(*t)
-          types.merge(t.map { |type| type.to_s })
+          types.merge(t.map(&:to_s))
         end
 
         register :html, :text, :js, :css,  :xml, :json

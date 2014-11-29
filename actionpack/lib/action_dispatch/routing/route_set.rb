@@ -543,7 +543,7 @@ module ActionDispatch
         path = conditions.delete :path_info
         ast  = conditions.delete :parsed_path_info
         path = build_path(path, ast, requirements, anchor)
-        conditions = build_conditions(conditions, path.names.map { |x| x.to_sym })
+        conditions = build_conditions(conditions, path.names.map(&:to_sym))
 
         route = @set.add_route(app, path, conditions, defaults, name)
         named_routes[name] = route if name
@@ -605,7 +605,7 @@ module ActionDispatch
           if name == :controller
             value
           elsif value.is_a?(Array)
-            value.map { |v| v.to_param }.join('/')
+            value.map(&:to_param).join('/')
           elsif param = value.to_param
             param
           end

@@ -327,11 +327,11 @@ module ActiveRecord
 
       def test_columns
         with_example_table do
-          columns = @conn.columns('ex').sort_by { |x| x.name }
+          columns = @conn.columns('ex').sort_by(&:name)
           assert_equal 2, columns.length
-          assert_equal %w{ id number }.sort, columns.map { |x| x.name }
-          assert_equal [nil, nil], columns.map { |x| x.default }
-          assert_equal [true, true], columns.map { |x| x.null }
+          assert_equal %w{ id number }.sort, columns.map(&:name)
+          assert_equal [nil, nil], columns.map(&:default)
+          assert_equal [true, true], columns.map(&:null)
         end
       end
 

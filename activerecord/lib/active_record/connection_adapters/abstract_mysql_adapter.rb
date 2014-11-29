@@ -398,7 +398,7 @@ module ActiveRecord
         sql << "LIKE #{quote(like)}" if like
 
         execute_and_free(sql, 'SCHEMA') do |result|
-          result.collect { |field| field.first }
+          result.collect(&:first)
         end
       end
 
@@ -786,7 +786,7 @@ module ActiveRecord
       private
 
       def version
-        @version ||= full_version.scan(/^(\d+)\.(\d+)\.(\d+)/).flatten.map { |v| v.to_i }
+        @version ||= full_version.scan(/^(\d+)\.(\d+)\.(\d+)/).flatten.map(&:to_i)
       end
 
       def mariadb?

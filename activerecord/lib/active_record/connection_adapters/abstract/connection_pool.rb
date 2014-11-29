@@ -320,9 +320,7 @@ module ActiveRecord
             checkin conn
             conn.disconnect! if conn.requires_reloading?
           end
-          @connections.delete_if do |conn|
-            conn.requires_reloading?
-          end
+          @connections.delete_if(&:requires_reloading?)
           @available.clear
           @connections.each do |conn|
             @available.add conn

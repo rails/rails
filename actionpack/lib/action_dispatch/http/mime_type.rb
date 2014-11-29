@@ -6,7 +6,7 @@ require 'active_support/core_ext/string/starts_ends_with'
 module Mime
   class Mimes < Array
     def symbols
-      @symbols ||= map { |m| m.to_sym }
+      @symbols ||= map(&:to_sym)
     end
 
     %w(<< concat shift unshift push pop []= clear compact! collect!

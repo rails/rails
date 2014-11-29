@@ -8,7 +8,7 @@ module Rails
     mattr_accessor :properties
     class << (@@properties = [])
       def names
-        map {|val| val.first }
+        map(&:first)
       end
 
       def value_for(property_name)
@@ -26,7 +26,7 @@ module Rails
       end
 
       def to_s
-        column_width = properties.names.map {|name| name.length}.max
+        column_width = properties.names.map(&:length).max
         info = properties.map do |name, value|
           value = value.join(", ") if value.is_a?(Array)
           "%-#{column_width}s   %s" % [name, value]

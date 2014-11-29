@@ -281,15 +281,11 @@ class StringInflectionsTest < ActiveSupport::TestCase
   end
 
   def test_constantize
-    run_constantize_tests_on do |string|
-      string.constantize
-    end
+    run_constantize_tests_on(&:constantize)
   end
 
   def test_safe_constantize
-    run_safe_constantize_tests_on do |string|
-      string.safe_constantize
-    end
+    run_safe_constantize_tests_on(&:safe_constantize)
   end
 end
 

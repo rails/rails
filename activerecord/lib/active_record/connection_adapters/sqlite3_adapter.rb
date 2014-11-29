@@ -88,11 +88,11 @@ module ActiveRecord
         include Comparable
 
         def initialize(version_string)
-          @version = version_string.split('.').map { |v| v.to_i }
+          @version = version_string.split('.').map(&:to_i)
         end
 
         def <=>(version_string)
-          @version <=> version_string.split('.').map { |v| v.to_i }
+          @version <=> version_string.split('.').map(&:to_i)
         end
       end
 
@@ -556,7 +556,7 @@ module ActiveRecord
           end
           copy_table_indexes(from, to, options[:rename] || {})
           copy_table_contents(from, to,
-            @definition.columns.map {|column| column.name},
+            @definition.columns.map(&:name),
             options[:rename] || {})
         end
 
@@ -569,7 +569,7 @@ module ActiveRecord
               name = name[1..-1]
             end
 
-            to_column_names = columns(to).map { |c| c.name }
+            to_column_names = columns(to).map(&:name)
             columns = index.columns.map {|c| rename[c] || c }.select do |column|
               to_column_names.include?(column)
             end
@@ -586,7 +586,7 @@ module ActiveRecord
         def copy_table_contents(from, to, columns, rename = {}) #:nodoc:
           column_mappings = Hash[columns.map {|name| [name, name]}]
           rename.each { |a| column_mappings[a.last] = a.first }
-          from_columns = columns(from).collect {|col| col.name}
+          from_columns = columns(from).collect(&:name)
           columns = columns.find_all{|col| from_columns.include?(column_mappings[col])}
           quoted_columns = columns.map { |col| quote_column_name(col) } * ','
 

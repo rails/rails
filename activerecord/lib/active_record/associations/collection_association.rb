@@ -62,9 +62,9 @@ module ActiveRecord
       # Implements the ids writer method, e.g. foo.item_ids= for Foo.has_many :items
       def ids_writer(ids)
         pk_type = reflection.primary_key_type
-        ids = Array(ids).reject { |id| id.blank? }
+        ids = Array(ids).reject(&:blank?)
         ids.map! { |i| pk_type.type_cast_from_user(i) }
-        replace(klass.find(ids).index_by { |r| r.id }.values_at(*ids))
+        replace(klass.find(ids).index_by(&:id).values_at(*ids))
       end
 
       def reset
@@ -289,7 +289,7 @@ module ActiveRecord
         elsif !loaded? && !association_scope.group_values.empty?
           load_target.size
         elsif !loaded? && !association_scope.distinct_value && target.is_a?(Array)
-          unsaved_records = target.select { |r| r.new_record? }
+          unsaved_records = target.select(&:new_record?)
           unsaved_records.size + count_records
         else
           count_records
@@ -506,7 +506,7 @@ module ActiveRecord
         def delete_or_destroy(records, method)
           records = records.flatten
           records.each { |record| raise_on_type_mismatch!(record) }
-          existing_records = records.reject { |r| r.new_record? }
+          existing_records = records.reject(&:new_record?)
 
           if existing_records.empty?
             remove_records(existing_records, records, method)
@@ -609,7 +609,7 @@ module ActiveRecord
         # specified, then #find scans the entire collection.
         def find_by_scan(*args)
           expects_array = args.first.kind_of?(Array)
-          ids           = args.flatten.compact.map{ |arg| arg.to_s }.uniq
+          ids           = args.flatten.compact.map(&:to_s).uniq
 
           if ids.size == 1
             id = ids.first

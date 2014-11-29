@@ -79,7 +79,7 @@ module ActiveRecord
       end
 
       def bind(values)
-        bvs = @bind_values.map { |pair| pair.dup }
+        bvs = @bind_values.map(&:dup)
         @indexes.each_with_index { |offset,i| bvs[offset][1] = values[i] }
         bvs
       end
