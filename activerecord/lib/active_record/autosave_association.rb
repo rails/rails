@@ -212,6 +212,14 @@ module ActiveRecord
         end
     end
 
+    def validated_for_autosave?
+      @validated_for_autosave ||= false
+    end
+
+    def validated_for_autosave!
+      @validated_for_autosave = true
+    end
+
     # Reloads the attributes of the object as usual and clears <tt>marked_for_destruction</tt> flag.
     def reload(options = nil)
       @marked_for_destruction = false
@@ -269,13 +277,35 @@ module ActiveRecord
         end
       end
 
-      # go through nested autosave associations that are loaded in memory (without loading
-      # any new ones), and return true if is changed for autosave
+      # go through nested autosave associations that are loaded in
+      # memory (without loading any new ones), and return true if is
+      # changed for autosave
+      #
+      # Nested record validation will cause stack level too deep error
+      # if association has records which are inverse associtions to
+      # current record. This recursive looping is prevented by setting a
+      # flag <tt>validated_for_autosave<tt> to every record which is
+      # already valid, by doing this we effectively skip a record being
+      # called again from the inverse association.
+      # 
+      # ==== Example
+      #
+      # class Foo 
+      # has_many :bars, inverse_of: :foo
+      # accepts_nested_attributes_for :bars
+      #
+      # class Bar
+      # belongs_to  :foo, inverse_of: bars
+      # accepts_nested_attributes_for :foo
       def nested_records_changed_for_autosave?
+        validated_for_autosave!
         self.class._reflections.values.any? do |reflection|
           if reflection.options[:autosave]
             association = association_instance_get(reflection.name)
-            association && Array.wrap(association.target).any? { |a| a.changed_for_autosave? }
+            Array.wrap(association.target).any? do |object|
+              next if object.validated_for_autosave?
+              object.changed_for_autosave? 
+            end
           end
         end
       end

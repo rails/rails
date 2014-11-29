@@ -1125,7 +1125,12 @@ class TestAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCase
   end
 
   def test_should_not_load_the_associated_model
-    assert_queries(1) { @pirate.catchphrase = 'Arr'; @pirate.save! }
+    # Two update queries are made after both associations are defined as
+    # inverse of each other.
+    # 
+    # UPDATE "pirates" SET "catchphrase" = ?, "updated_on" = ? WHERE "pirates"."id" = 1
+    # UPDATE "pirates" SET "catchphrase" = ?, "updated_on" = ? WHERE "pirates"."id" = 1.
+    assert_queries(2) { @pirate.catchphrase = 'Arr'; @pirate.save! }
   end
 end
 
@@ -1571,3 +1576,4 @@ class TestAutosaveAssociationWithTouch < ActiveRecord::TestCase
     assert_nothing_raised { invoice.line_items.create(:amount => 10) }
   end
 end
+
