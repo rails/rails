@@ -1,5 +1,3 @@
-# encoding: utf-8
-
 require 'redcarpet'
 require 'nokogiri'
 require 'rails_guides/markdown/renderer'

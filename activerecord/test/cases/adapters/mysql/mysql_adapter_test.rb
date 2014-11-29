@@ -1,5 +1,3 @@
-# encoding: utf-8
-
 require "cases/helper"
 require 'support/ddl_helper'
 

@@ -1,5 +1,3 @@
-# encoding: utf-8
-
 module MultibyteTestHelpers
   UNICODE_STRING = 'こにちわ'.freeze
   ASCII_STRING = 'ohayo'.freeze

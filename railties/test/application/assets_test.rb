@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 require 'isolation/abstract_unit'
 require 'rack/test'
 require 'active_support/json'
