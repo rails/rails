@@ -345,8 +345,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
         assert_no_match(/byebug/, content)
         assert_no_match(/debugger/, content)
       end
-    elsif RUBY_VERSION < '2.0.0'
-      assert_gem 'debugger'
     else
       assert_gem 'byebug'
     end

@@ -23,13 +23,8 @@ source 'https://rubygems.org'
 
 group :development, :test do
 <% unless defined?(JRUBY_VERSION) -%>
-  <%- if RUBY_VERSION < '2.0.0' -%>
-  # Call 'debugger' anywhere in the code to stop execution and get a debugger console
-  gem 'debugger'
-  <%- else -%>
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
   gem 'byebug'
-  <%- end -%>
 
   # Access an IRB console on exception pages or by using <%%= console %> in views
   gem 'web-console', '~> 2.0'
