@@ -1,6 +1,8 @@
 require 'cases/helper'
 require 'models/post'
 require 'models/comment'
+require 'models/price_estimate'
+require 'models/treasure'
 
 module ActiveRecord
   class WhereChainTest < ActiveRecord::TestCase
@@ -45,6 +47,19 @@ module ActiveRecord
       expected = Comment.arel_table[@name].not_eq('hello')
       relation = Post.joins(:comments).where.not(comments: {title: 'hello'})
       assert_equal(expected.to_sql, relation.where_values.first.to_sql)
+    end
+
+    def test_polymorphic_nested_relation_not_eq
+      treasure = Treasure.new(id: 1)
+      table    = PriceEstimate.arel_table
+      relation = PriceEstimate.where.not(estimate_of: treasure)
+
+      expected = Arel::Nodes::Not.new(
+        Arel::Nodes::Equality.new(table[:estimate_of_type], 'Treasure').and(
+        Arel::Nodes::Equality.new(table[:estimate_of_id], 1))
+      ).to_sql      
+
+      assert_equal(expected, relation.where_values.first.to_sql)
     end
 
     def test_not_eq_with_preceding_where

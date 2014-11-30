@@ -137,9 +137,11 @@ def disable_extension!(extension, connection)
 end
 
 require "cases/validations_repair_helper"
+require "cases/where_polymorphic_expectations_helper"
 class ActiveSupport::TestCase
   include ActiveRecord::TestFixtures
   include ActiveRecord::ValidationsRepairHelper
+  include ActiveRecord::WherePolymorphicExpectationsHelper
 
   self.fixture_path = FIXTURES_ROOT
   self.use_instantiated_fixtures  = false

@@ -2,8 +2,11 @@ module ActiveRecord
   class PredicateBuilder # :nodoc:
     @handlers = []
 
+    PolymorphicAssociation = Struct.new(:reflection, :base_class, :table, :value)
+
     autoload :RelationHandler, 'active_record/relation/predicate_builder/relation_handler'
     autoload :ArrayHandler, 'active_record/relation/predicate_builder/array_handler'
+    autoload :PolymorphicHandler, 'active_record/relation/predicate_builder/polymorphic_handler'
 
     def self.resolve_column_aliases(klass, hash)
       hash = hash.dup
@@ -57,9 +60,9 @@ module ActiveRecord
       # PriceEstimate.where(estimate_of: treasure)
       if klass && reflection = klass._reflect_on_association(column)
         if reflection.polymorphic? && base_class = polymorphic_base_class_from_value(value)
-          queries << build(table[reflection.foreign_type], base_class)
+          value = PolymorphicAssociation.new(reflection, base_class, table, value)
         end
-
+        
         column = reflection.foreign_key
       end
 
@@ -112,6 +115,7 @@ module ActiveRecord
     register_handler(Range, ->(attribute, value) { attribute.between(value) })
     register_handler(Relation, RelationHandler.new)
     register_handler(Array, ArrayHandler.new)
+    register_handler(PolymorphicAssociation, PolymorphicHandler.new)
 
     def self.build(attribute, value)
       handler_for(value).call(attribute, value)
