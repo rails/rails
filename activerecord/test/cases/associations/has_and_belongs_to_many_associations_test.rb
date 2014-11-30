@@ -902,4 +902,11 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
       DeveloperWithSymbolClassName.new
     end
   end
+
+  def test_preloaded_associations_size
+    assert_equal Project.first.developers.where(:name => 'David').size,
+      Project.preload(:developers_named_david).first.developers_named_david.size
+    assert_equal Project.first.developers.where(:name => 'David').size,
+      Project.preload(:developers_named_david_with_hash_conditions).first.developers_named_david.size
+  end
 end
