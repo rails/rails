@@ -165,7 +165,7 @@ module ActiveRecord
 
               arel = scope.arel
 
-              stmt = Arel::DeleteManager.new arel.engine
+              stmt = Arel::DeleteManager.new
               stmt.from scope.klass.arel_table
               stmt.wheres = arel.constraints
 

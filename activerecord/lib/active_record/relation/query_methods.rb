@@ -858,7 +858,7 @@ module ActiveRecord
     private
 
     def build_arel
-      arel = Arel::SelectManager.new(klass.arel_engine, table)
+      arel = Arel::SelectManager.new(table)
 
       build_joins(arel, joins_values.flatten) unless joins_values.empty?
 

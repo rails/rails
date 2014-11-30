@@ -108,7 +108,7 @@ module ActiveRecord
     # Same as +take+ but raises <tt>ActiveRecord::RecordNotFound</tt> if no record
     # is found. Note that <tt>take!</tt> accepts no arguments.
     def take!
-      take or raise RecordNotFound.new("Couldn't find #{@klass.name} with [#{arel.where_sql}]")
+      take or raise RecordNotFound.new("Couldn't find #{@klass.name} with [#{arel.where_sql(@klass.arel_engine)}]")
     end
 
     # Find the first record (or first N records if a parameter is supplied).
@@ -176,7 +176,7 @@ module ActiveRecord
     # Same as +last+ but raises <tt>ActiveRecord::RecordNotFound</tt> if no record
     # is found. Note that <tt>last!</tt> accepts no arguments.
     def last!
-      last or raise RecordNotFound.new("Couldn't find #{@klass.name} with [#{arel.where_sql}]")
+      last or raise RecordNotFound.new("Couldn't find #{@klass.name} with [#{arel.where_sql(@klass.arel_engine)}]")
     end
 
     # Find the second record.
@@ -323,7 +323,7 @@ module ActiveRecord
     # the expected number of results should be provided in the +expected_size+
     # argument.
     def raise_record_not_found_exception!(ids, result_size, expected_size) #:nodoc:
-      conditions = arel.where_sql
+      conditions = arel.where_sql(@klass.arel_engine)
       conditions = " [#{conditions}]" if conditions
 
       if Array(ids).size == 1
@@ -498,7 +498,7 @@ module ActiveRecord
     end
 
     def find_nth!(index)
-      find_nth(index, offset_index) or raise RecordNotFound.new("Couldn't find #{@klass.name} with [#{arel.where_sql}]")
+      find_nth(index, offset_index) or raise RecordNotFound.new("Couldn't find #{@klass.name} with [#{arel.where_sql(@klass.arel_engine)}]")
     end
 
     def find_nth_with_limit(offset, limit)

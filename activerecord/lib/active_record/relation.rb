@@ -327,7 +327,7 @@ module ActiveRecord
     def update_all(updates)
       raise ArgumentError, "Empty list of attributes to change" if updates.blank?
 
-      stmt = Arel::UpdateManager.new(arel.engine)
+      stmt = Arel::UpdateManager.new
 
       stmt.set Arel.sql(@klass.send(:sanitize_sql_for_assignment, updates))
       stmt.table(table)
@@ -465,7 +465,7 @@ module ActiveRecord
       if conditions
         where(conditions).delete_all
       else
-        stmt = Arel::DeleteManager.new(arel.engine)
+        stmt = Arel::DeleteManager.new
         stmt.from(table)
 
         if joins_values.any?
