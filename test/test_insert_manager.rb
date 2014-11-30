@@ -4,13 +4,13 @@ module Arel
   describe 'insert manager' do
     describe 'new' do
       it 'takes an engine' do
-        Arel::InsertManager.new Table.engine
+        Arel::InsertManager.new
       end
     end
 
     describe 'insert' do
       it 'can create a Values node' do
-        manager = Arel::InsertManager.new Table.engine
+        manager = Arel::InsertManager.new
         values  = manager.create_values %w{ a b }, %w{ c d }
 
         assert_kind_of Arel::Nodes::Values, values
@@ -19,7 +19,7 @@ module Arel
       end
 
       it 'allows sql literals' do
-        manager        = Arel::InsertManager.new Table.engine
+        manager        = Arel::InsertManager.new
         manager.into Table.new(:users)
         manager.values = manager.create_values [Arel.sql('*')], %w{ a }
         manager.to_sql.must_be_like %{
@@ -29,7 +29,7 @@ module Arel
 
       it "inserts false" do
         table = Table.new(:users)
-        manager = Arel::InsertManager.new Table.engine
+        manager = Arel::InsertManager.new
 
         manager.insert [[table[:bool], false]]
         manager.to_sql.must_be_like %{
@@ -39,7 +39,7 @@ module Arel
 
       it "inserts null" do
         table = Table.new(:users)
-        manager = Arel::InsertManager.new Table.engine
+        manager = Arel::InsertManager.new
         manager.insert [[table[:id], nil]]
         manager.to_sql.must_be_like %{
           INSERT INTO "users" ("id") VALUES (NULL)
@@ -48,7 +48,7 @@ module Arel
 
       it "inserts time" do
         table = Table.new(:users)
-        manager = Arel::InsertManager.new Table.engine
+        manager = Arel::InsertManager.new
 
         time = Time.now
         attribute = table[:created_at]
@@ -61,7 +61,7 @@ module Arel
 
       it 'takes a list of lists' do
         table = Table.new(:users)
-        manager = Arel::InsertManager.new Table.engine
+        manager = Arel::InsertManager.new
         manager.into table
         manager.insert [[table[:id], 1], [table[:name], 'aaron']]
         manager.to_sql.must_be_like %{
@@ -71,7 +71,7 @@ module Arel
 
       it 'defaults the table' do
         table = Table.new(:users)
-        manager = Arel::InsertManager.new Table.engine
+        manager = Arel::InsertManager.new
         manager.insert [[table[:id], 1], [table[:name], 'aaron']]
         manager.to_sql.must_be_like %{
           INSERT INTO "users" ("id", "name") VALUES (1, 'aaron')
@@ -80,7 +80,7 @@ module Arel
 
       it 'noop for empty list' do
         table = Table.new(:users)
-        manager = Arel::InsertManager.new Table.engine
+        manager = Arel::InsertManager.new
         manager.insert [[table[:id], 1]]
         manager.insert []
         manager.to_sql.must_be_like %{
@@ -91,13 +91,13 @@ module Arel
 
     describe 'into' do
       it 'takes a Table and chains' do
-        manager = Arel::InsertManager.new Table.engine
+        manager = Arel::InsertManager.new
         manager.into(Table.new(:users)).must_equal manager
       end
 
       it 'converts to sql' do
         table   = Table.new :users
-        manager = Arel::InsertManager.new Table.engine
+        manager = Arel::InsertManager.new
         manager.into table
         manager.to_sql.must_be_like %{
           INSERT INTO "users"
@@ -108,7 +108,7 @@ module Arel
     describe 'columns' do
       it "converts to sql" do
         table   = Table.new :users
-        manager = Arel::InsertManager.new Table.engine
+        manager = Arel::InsertManager.new
         manager.into table
         manager.columns << table[:id]
         manager.to_sql.must_be_like %{
@@ -120,7 +120,7 @@ module Arel
     describe "values" do
       it "converts to sql" do
         table   = Table.new :users
-        manager = Arel::InsertManager.new Table.engine
+        manager = Arel::InsertManager.new
         manager.into table
 
         manager.values = Nodes::Values.new [1]
@@ -133,7 +133,7 @@ module Arel
     describe "combo" do
       it "combines columns and values list in order" do
         table   = Table.new :users
-        manager = Arel::InsertManager.new Table.engine
+        manager = Arel::InsertManager.new
         manager.into table
 
         manager.values = Nodes::Values.new [1, 'aaron']
@@ -150,10 +150,10 @@ module Arel
       it "accepts a select query in place of a VALUES clause" do
         table   = Table.new :users
 
-        manager = Arel::InsertManager.new Table.engine
+        manager = Arel::InsertManager.new
         manager.into table
 
-        select = Arel::SelectManager.new Table.engine
+        select = Arel::SelectManager.new
         select.project Arel.sql('1')
         select.project Arel.sql('"aaron"')
 

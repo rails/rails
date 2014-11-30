@@ -179,10 +179,6 @@ module Arel
       @relation.table_name.must_equal 'users'
     end
 
-    it "should have an engine" do
-      @relation.engine.must_equal Table.engine
-    end
-
     describe '[]' do
       describe 'when given a Symbol' do
         it "manufactures an attribute if the symbol names an attribute within the relation" do

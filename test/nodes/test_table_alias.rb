@@ -4,13 +4,6 @@ require 'ostruct'
 module Arel
   module Nodes
     describe 'table alias' do
-      it 'has an #engine which delegates to the relation' do
-        relation = OpenStruct.new(engine: 'vroom')
-
-        node = TableAlias.new relation, :foo
-        node.engine.must_equal 'vroom'
-      end
-
       describe 'equality' do
         it 'is equal with equal ivars' do
           relation1 = Table.new(:users)

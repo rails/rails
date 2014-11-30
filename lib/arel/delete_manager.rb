@@ -1,6 +1,6 @@
 module Arel
   class DeleteManager < Arel::TreeManager
-    def initialize engine
+    def initialize
       super
       @ast = Nodes::DeleteStatement.new
       @ctx = @ast

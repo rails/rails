@@ -1,6 +1,6 @@
 module Arel
   class UpdateManager < Arel::TreeManager
-    def initialize engine
+    def initialize
       super
       @ast = Nodes::UpdateStatement.new
       @ctx = @ast

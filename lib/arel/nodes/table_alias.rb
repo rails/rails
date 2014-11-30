@@ -12,10 +12,6 @@ module Arel
       def table_name
         relation.respond_to?(:name) ? relation.name : name
       end
-
-      def engine
-        relation.engine
-      end
     end
   end
 end

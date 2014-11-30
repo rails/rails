@@ -6,7 +6,7 @@ module Arel
     @engine = nil
     class << self; attr_accessor :engine; end
 
-    attr_accessor :name, :engine, :aliases, :table_alias
+    attr_accessor :name, :aliases, :table_alias
 
     # TableAlias and Table both have a #table_name which is the name of the underlying table
     alias :table_name :name
@@ -15,7 +15,6 @@ module Arel
       @name    = name.to_s
       @columns = nil
       @aliases = []
-      @engine = Table.engine
 
       # Sometime AR sends an :as parameter to table, to let the table know
       # that it is an Alias.  We may want to override new, and return a
@@ -32,8 +31,8 @@ module Arel
       end
     end
 
-    def from engine = Table.engine
-      SelectManager.new(engine, self)
+    def from
+      SelectManager.new(self)
     end
 
     def join relation, klass = Nodes::InnerJoin

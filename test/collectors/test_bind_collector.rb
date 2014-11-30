@@ -20,7 +20,7 @@ module Arel
 
       def ast_with_binds bv
         table = Table.new(:users)
-        manager = Arel::SelectManager.new Table.engine, table
+        manager = Arel::SelectManager.new table
         manager.where(table[:age].eq(bv))
         manager.where(table[:name].eq(bv))
         manager.ast

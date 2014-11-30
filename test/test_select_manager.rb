@@ -4,13 +4,13 @@ module Arel
 
   describe 'select manager' do
     def test_join_sources
-      manager = Arel::SelectManager.new Table.engine
+      manager = Arel::SelectManager.new
       manager.join_sources << Arel::Nodes::StringJoin.new(Nodes.build_quoted('foo'))
       assert_equal "SELECT FROM 'foo'", manager.to_sql
     end
 
     def test_manager_stores_bind_values
-      manager = Arel::SelectManager.new Table.engine
+      manager = Arel::SelectManager.new
       assert_equal [], manager.bind_values
       manager.bind_values = [1]
       assert_equal [1], manager.bind_values
@@ -20,7 +20,7 @@ module Arel
       describe 'project' do
         it 'accepts symbols as sql literals' do
           table   = Table.new :users
-          manager = Arel::SelectManager.new Table.engine
+          manager = Arel::SelectManager.new
           manager.project :id
           manager.from table
           manager.to_sql.must_be_like %{
@@ -32,7 +32,7 @@ module Arel
       describe 'order' do
         it 'accepts symbols' do
           table   = Table.new :users
-          manager = Arel::SelectManager.new Table.engine
+          manager = Arel::SelectManager.new
           manager.project Nodes::SqlLiteral.new '*'
           manager.from table
           manager.order :foo
@@ -43,7 +43,7 @@ module Arel
       describe 'group' do
         it 'takes a symbol' do
           table   = Table.new :users
-          manager = Arel::SelectManager.new Table.engine
+          manager = Arel::SelectManager.new
           manager.from table
           manager.group :foo
           manager.to_sql.must_be_like %{ SELECT FROM "users" GROUP BY foo }
@@ -52,7 +52,7 @@ module Arel
 
       describe 'as' do
         it 'makes an AS node by grouping the AST' do
-          manager = Arel::SelectManager.new Table.engine
+          manager = Arel::SelectManager.new
           as = manager.as(Arel.sql('foo'))
           assert_kind_of Arel::Nodes::Grouping, as.left
           assert_equal manager.ast, as.left.expr
@@ -60,18 +60,18 @@ module Arel
         end
 
         it 'converts right to SqlLiteral if a string' do
-          manager = Arel::SelectManager.new Table.engine
+          manager = Arel::SelectManager.new
           as = manager.as('foo')
           assert_kind_of Arel::Nodes::SqlLiteral, as.right
         end
 
         it 'can make a subselect' do
-          manager = Arel::SelectManager.new Table.engine
+          manager = Arel::SelectManager.new
           manager.project Arel.star
           manager.from Arel.sql('zomg')
           as = manager.as(Arel.sql('foo'))
 
-          manager = Arel::SelectManager.new Table.engine
+          manager = Arel::SelectManager.new
           manager.project Arel.sql('name')
           manager.from as
           manager.to_sql.must_be_like "SELECT name FROM (SELECT * FROM zomg) foo"
@@ -81,7 +81,7 @@ module Arel
       describe 'from' do
         it 'ignores strings when table of same name exists' do
           table   = Table.new :users
-          manager = Arel::SelectManager.new Table.engine
+          manager = Arel::SelectManager.new
 
           manager.from table
           manager.from 'users'
@@ -91,9 +91,9 @@ module Arel
 
         it 'should support any ast' do
           table   = Table.new :users
-          manager1 = Arel::SelectManager.new Table.engine
+          manager1 = Arel::SelectManager.new
 
-          manager2 = Arel::SelectManager.new Table.engine
+          manager2 = Arel::SelectManager.new
           manager2.project(Arel.sql('*'))
           manager2.from table
 
@@ -223,7 +223,7 @@ module Arel
     describe 'exists' do
       it 'should create an exists clause' do
         table = Table.new(:users)
-        manager = Arel::SelectManager.new Table.engine, table
+        manager = Arel::SelectManager.new table
         manager.project Nodes::SqlLiteral.new '*'
         m2 = Arel::SelectManager.new(manager.engine)
         m2.project manager.exists
@@ -232,7 +232,7 @@ module Arel
 
       it 'can be aliased' do
         table = Table.new(:users)
-        manager = Arel::SelectManager.new Table.engine, table
+        manager = Arel::SelectManager.new table
         manager.project Nodes::SqlLiteral.new '*'
         m2 = Arel::SelectManager.new(manager.engine)
         m2.project manager.exists.as('foo')
@@ -243,11 +243,11 @@ module Arel
     describe 'union' do
       before do
         table = Table.new :users
-        @m1 = Arel::SelectManager.new Table.engine, table
+        @m1 = Arel::SelectManager.new table
         @m1.project Arel.star
         @m1.where(table[:age].lt(18))
 
-        @m2 = Arel::SelectManager.new Table.engine, table
+        @m2 = Arel::SelectManager.new table
         @m2.project Arel.star
         @m2.where(table[:age].gt(99))
 
@@ -278,11 +278,11 @@ module Arel
     describe 'intersect' do
       before do
         table = Table.new :users
-        @m1 = Arel::SelectManager.new Table.engine, table
+        @m1 = Arel::SelectManager.new table
         @m1.project Arel.star
         @m1.where(table[:age].gt(18))
 
-        @m2 = Arel::SelectManager.new Table.engine, table
+        @m2 = Arel::SelectManager.new table
         @m2.project Arel.star
         @m2.where(table[:age].lt(99))
 
@@ -305,11 +305,11 @@ module Arel
     describe 'except' do
       before do
         table = Table.new :users
-        @m1 = Arel::SelectManager.new Table.engine, table
+        @m1 = Arel::SelectManager.new table
         @m1.project Arel.star
         @m1.where(table[:age].between(18..60))
 
-        @m2 = Arel::SelectManager.new Table.engine, table
+        @m2 = Arel::SelectManager.new table
         @m2.project Arel.star
         @m2.where(table[:age].between(40..99))
       end
@@ -351,17 +351,17 @@ module Arel
         replies            = Table.new(:replies)
         replies_id         = replies[:id]
 
-        recursive_term = Arel::SelectManager.new Table.engine
+        recursive_term = Arel::SelectManager.new
         recursive_term.from(comments).project(comments_id, comments_parent_id).where(comments_id.eq 42)
 
-        non_recursive_term = Arel::SelectManager.new Table.engine
+        non_recursive_term = Arel::SelectManager.new
         non_recursive_term.from(comments).project(comments_id, comments_parent_id).join(replies).on(comments_parent_id.eq replies_id)
 
         union = recursive_term.union(non_recursive_term)
 
         as_statement = Arel::Nodes::As.new replies, union
 
-        manager = Arel::SelectManager.new Table.engine
+        manager = Arel::SelectManager.new
         manager.with(:recursive, as_statement).from(replies).project(Arel.star)
 
         sql = manager.to_sql
@@ -396,7 +396,7 @@ module Arel
 
     describe 'taken' do
       it 'should return limit' do
-        manager = Arel::SelectManager.new Table.engine
+        manager = Arel::SelectManager.new
         manager.take 10
         manager.taken.must_equal 10
       end
@@ -414,7 +414,7 @@ module Arel
     describe 'orders' do
       it 'returns order clauses' do
         table   = Table.new :users
-        manager = Arel::SelectManager.new Table.engine
+        manager = Arel::SelectManager.new
         order = table[:id]
         manager.order table[:id]
         manager.orders.must_equal [order]
@@ -424,7 +424,7 @@ module Arel
     describe 'order' do
       it 'generates order clauses' do
         table   = Table.new :users
-        manager = Arel::SelectManager.new Table.engine
+        manager = Arel::SelectManager.new
         manager.project Nodes::SqlLiteral.new '*'
         manager.from table
         manager.order table[:id]
@@ -436,7 +436,7 @@ module Arel
       # FIXME: I would like to deprecate this
       it 'takes *args' do
         table   = Table.new :users
-        manager = Arel::SelectManager.new Table.engine
+        manager = Arel::SelectManager.new
         manager.project Nodes::SqlLiteral.new '*'
         manager.from table
         manager.order table[:id], table[:name]
@@ -447,13 +447,13 @@ module Arel
 
       it 'chains' do
         table   = Table.new :users
-        manager = Arel::SelectManager.new Table.engine
+        manager = Arel::SelectManager.new
         manager.order(table[:id]).must_equal manager
       end
 
       it 'has order attributes' do
         table   = Table.new :users
-        manager = Arel::SelectManager.new Table.engine
+        manager = Arel::SelectManager.new
         manager.project Nodes::SqlLiteral.new '*'
         manager.from table
         manager.order table[:id].desc
@@ -468,7 +468,7 @@ module Arel
         left      = Table.new :users
         right     = left.alias
         predicate = left[:id].eq(right[:id])
-        manager   = Arel::SelectManager.new Table.engine
+        manager   = Arel::SelectManager.new
 
         manager.from left
         manager.join(right).on(predicate, predicate)
@@ -484,7 +484,7 @@ module Arel
         left      = Table.new :users
         right     = left.alias
         predicate = left[:id].eq(right[:id])
-        manager   = Arel::SelectManager.new Table.engine
+        manager   = Arel::SelectManager.new
 
         manager.from left
         manager.join(right).on(
@@ -503,12 +503,12 @@ module Arel
     end
 
     it 'should hand back froms' do
-      relation = Arel::SelectManager.new Table.engine
+      relation = Arel::SelectManager.new
       assert_equal [], relation.froms
     end
 
     it 'should create and nodes' do
-      relation = Arel::SelectManager.new Table.engine
+      relation = Arel::SelectManager.new
       children = ['foo', 'bar', 'baz']
       clause = relation.create_and children
       assert_kind_of Arel::Nodes::And, clause
@@ -516,13 +516,13 @@ module Arel
     end
 
     it 'should create insert managers' do
-      relation = Arel::SelectManager.new Table.engine
+      relation = Arel::SelectManager.new
       insert = relation.create_insert
       assert_kind_of Arel::InsertManager, insert
     end
 
     it 'should create join nodes' do
-      relation = Arel::SelectManager.new Table.engine
+      relation = Arel::SelectManager.new
       join = relation.create_join 'foo', 'bar'
       assert_kind_of Arel::Nodes::InnerJoin, join
       assert_equal 'foo', join.left
@@ -530,7 +530,7 @@ module Arel
     end
 
     it 'should create join nodes with a full outer join klass' do
-      relation = Arel::SelectManager.new Table.engine
+      relation = Arel::SelectManager.new
       join = relation.create_join 'foo', 'bar', Arel::Nodes::FullOuterJoin
       assert_kind_of Arel::Nodes::FullOuterJoin, join
       assert_equal 'foo', join.left
@@ -538,7 +538,7 @@ module Arel
     end
 
     it 'should create join nodes with a outer join klass' do
-      relation = Arel::SelectManager.new Table.engine
+      relation = Arel::SelectManager.new
       join = relation.create_join 'foo', 'bar', Arel::Nodes::OuterJoin
       assert_kind_of Arel::Nodes::OuterJoin, join
       assert_equal 'foo', join.left
@@ -546,7 +546,7 @@ module Arel
     end
 
     it 'should create join nodes with a right outer join klass' do
-      relation = Arel::SelectManager.new Table.engine
+      relation = Arel::SelectManager.new
       join = relation.create_join 'foo', 'bar', Arel::Nodes::RightOuterJoin
       assert_kind_of Arel::Nodes::RightOuterJoin, join
       assert_equal 'foo', join.left
@@ -558,7 +558,7 @@ module Arel
         left      = Table.new :users
         right     = left.alias
         predicate = left[:id].eq(right[:id])
-        manager   = Arel::SelectManager.new Table.engine
+        manager   = Arel::SelectManager.new
 
         manager.from left
         manager.join(right).on(predicate)
@@ -573,7 +573,7 @@ module Arel
         left      = Table.new :users
         right     = left.alias
         predicate = left[:id].eq(right[:id])
-        manager   = Arel::SelectManager.new Table.engine
+        manager   = Arel::SelectManager.new
 
         manager.from left
         manager.join(right, Nodes::OuterJoin).on(predicate)
@@ -585,7 +585,7 @@ module Arel
       end
 
       it 'noops on nil' do
-        manager   = Arel::SelectManager.new Table.engine
+        manager   = Arel::SelectManager.new
         manager.join(nil).must_equal manager
       end
     end
@@ -595,7 +595,7 @@ module Arel
         left      = Table.new :users
         right     = left.alias
         predicate = left[:id].eq(right[:id])
-        manager   = Arel::SelectManager.new Table.engine
+        manager   = Arel::SelectManager.new
 
         manager.from left
         manager.outer_join(right).on(predicate)
@@ -607,7 +607,7 @@ module Arel
       end
 
       it 'noops on nil' do
-        manager   = Arel::SelectManager.new Table.engine
+        manager   = Arel::SelectManager.new
         manager.outer_join(nil).must_equal manager
       end
     end
@@ -617,7 +617,7 @@ module Arel
       it 'returns inner join sql' do
         table   = Table.new :users
         aliaz   = table.alias
-        manager = Arel::SelectManager.new Table.engine
+        manager = Arel::SelectManager.new
         manager.from Nodes::InnerJoin.new(aliaz, table[:id].eq(aliaz[:id]))
         assert_match 'INNER JOIN "users" "users_2" "users"."id" = "users_2"."id"',
                      manager.to_sql
@@ -626,7 +626,7 @@ module Arel
       it 'returns outer join sql' do
         table   = Table.new :users
         aliaz   = table.alias
-        manager = Arel::SelectManager.new Table.engine
+        manager = Arel::SelectManager.new
         manager.from Nodes::OuterJoin.new(aliaz, table[:id].eq(aliaz[:id]))
         assert_match 'LEFT OUTER JOIN "users" "users_2" "users"."id" = "users_2"."id"',
                      manager.to_sql
@@ -636,7 +636,7 @@ module Arel
         users    = Table.new :users
         comments = Table.new :comments
 
-        counts = comments.from(comments).
+        counts = comments.from.
           group(comments[:user_id]).
           project(
             comments[:user_id].as("user_id"),
@@ -666,7 +666,7 @@ module Arel
       end
 
       it 'returns string join sql' do
-        manager = Arel::SelectManager.new Table.engine
+        manager = Arel::SelectManager.new
         manager.from Nodes::StringJoin.new(Nodes.build_quoted('hello'))
         assert_match "'hello'", manager.to_sql
       end
@@ -675,7 +675,7 @@ module Arel
     describe 'group' do
       it 'takes an attribute' do
         table   = Table.new :users
-        manager = Arel::SelectManager.new Table.engine
+        manager = Arel::SelectManager.new
         manager.from table
         manager.group table[:id]
         manager.to_sql.must_be_like %{
@@ -685,13 +685,13 @@ module Arel
 
       it 'chains' do
         table   = Table.new :users
-        manager = Arel::SelectManager.new Table.engine
+        manager = Arel::SelectManager.new
         manager.group(table[:id]).must_equal manager
       end
 
       it 'takes multiple args' do
         table   = Table.new :users
-        manager = Arel::SelectManager.new Table.engine
+        manager = Arel::SelectManager.new
         manager.from table
         manager.group table[:id], table[:name]
         manager.to_sql.must_be_like %{
@@ -702,7 +702,7 @@ module Arel
       # FIXME: backwards compat
       it 'makes strings literals' do
         table   = Table.new :users
-        manager = Arel::SelectManager.new Table.engine
+        manager = Arel::SelectManager.new
         manager.from table
         manager.group 'foo'
         manager.to_sql.must_be_like %{ SELECT FROM "users" GROUP BY foo }
@@ -712,7 +712,7 @@ module Arel
     describe 'window definition' do
       it 'can be empty' do
         table   = Table.new :users
-        manager = Arel::SelectManager.new Table.engine
+        manager = Arel::SelectManager.new
         manager.from table
         manager.window('a_window')
         manager.to_sql.must_be_like %{
@@ -722,7 +722,7 @@ module Arel
 
       it 'takes an order' do
         table   = Table.new :users
-        manager = Arel::SelectManager.new Table.engine
+        manager = Arel::SelectManager.new
         manager.from table
         manager.window('a_window').order(table['foo'].asc)
         manager.to_sql.must_be_like %{
@@ -732,7 +732,7 @@ module Arel
 
       it 'takes an order with multiple columns' do
         table   = Table.new :users
-        manager = Arel::SelectManager.new Table.engine
+        manager = Arel::SelectManager.new
         manager.from table
         manager.window('a_window').order(table['foo'].asc, table['bar'].desc)
         manager.to_sql.must_be_like %{
@@ -742,7 +742,7 @@ module Arel
 
       it 'takes a partition' do
         table   = Table.new :users
-        manager = Arel::SelectManager.new Table.engine
+        manager = Arel::SelectManager.new
         manager.from table
         manager.window('a_window').partition(table['bar'])
         manager.to_sql.must_be_like %{
@@ -752,7 +752,7 @@ module Arel
 
       it 'takes a partition and an order' do
         table   = Table.new :users
-        manager = Arel::SelectManager.new Table.engine
+        manager = Arel::SelectManager.new
         manager.from table
         manager.window('a_window').partition(table['foo']).order(table['foo'].asc)
         manager.to_sql.must_be_like %{
@@ -763,7 +763,7 @@ module Arel
 
       it 'takes a partition with multiple columns' do
         table   = Table.new :users
-        manager = Arel::SelectManager.new Table.engine
+        manager = Arel::SelectManager.new
         manager.from table
         manager.window('a_window').partition(table['bar'], table['baz'])
         manager.to_sql.must_be_like %{
@@ -773,7 +773,7 @@ module Arel
 
       it 'takes a rows frame, unbounded preceding' do
         table   = Table.new :users
-        manager = Arel::SelectManager.new Table.engine
+        manager = Arel::SelectManager.new
         manager.from table
         manager.window('a_window').rows(Arel::Nodes::Preceding.new)
         manager.to_sql.must_be_like %{
@@ -783,7 +783,7 @@ module Arel
 
       it 'takes a rows frame, bounded preceding' do
         table   = Table.new :users
-        manager = Arel::SelectManager.new Table.engine
+        manager = Arel::SelectManager.new
         manager.from table
         manager.window('a_window').rows(Arel::Nodes::Preceding.new(5))
         manager.to_sql.must_be_like %{
@@ -793,7 +793,7 @@ module Arel
 
       it 'takes a rows frame, unbounded following' do
         table   = Table.new :users
-        manager = Arel::SelectManager.new Table.engine
+        manager = Arel::SelectManager.new
         manager.from table
         manager.window('a_window').rows(Arel::Nodes::Following.new)
         manager.to_sql.must_be_like %{
@@ -803,7 +803,7 @@ module Arel
 
       it 'takes a rows frame, bounded following' do
         table   = Table.new :users
-        manager = Arel::SelectManager.new Table.engine
+        manager = Arel::SelectManager.new
         manager.from table
         manager.window('a_window').rows(Arel::Nodes::Following.new(5))
         manager.to_sql.must_be_like %{
@@ -813,7 +813,7 @@ module Arel
 
       it 'takes a rows frame, current row' do
         table   = Table.new :users
-        manager = Arel::SelectManager.new Table.engine
+        manager = Arel::SelectManager.new
         manager.from table
         manager.window('a_window').rows(Arel::Nodes::CurrentRow.new)
         manager.to_sql.must_be_like %{
@@ -823,7 +823,7 @@ module Arel
 
       it 'takes a rows frame, between two delimiters' do
         table   = Table.new :users
-        manager = Arel::SelectManager.new Table.engine
+        manager = Arel::SelectManager.new
         manager.from table
         window = manager.window('a_window')
         window.frame(
@@ -840,7 +840,7 @@ module Arel
 
       it 'takes a range frame, unbounded preceding' do
         table   = Table.new :users
-        manager = Arel::SelectManager.new Table.engine
+        manager = Arel::SelectManager.new
         manager.from table
         manager.window('a_window').range(Arel::Nodes::Preceding.new)
         manager.to_sql.must_be_like %{
@@ -850,7 +850,7 @@ module Arel
 
       it 'takes a range frame, bounded preceding' do
         table   = Table.new :users
-        manager = Arel::SelectManager.new Table.engine
+        manager = Arel::SelectManager.new
         manager.from table
         manager.window('a_window').range(Arel::Nodes::Preceding.new(5))
         manager.to_sql.must_be_like %{
@@ -860,7 +860,7 @@ module Arel
 
       it 'takes a range frame, unbounded following' do
         table   = Table.new :users
-        manager = Arel::SelectManager.new Table.engine
+        manager = Arel::SelectManager.new
         manager.from table
         manager.window('a_window').range(Arel::Nodes::Following.new)
         manager.to_sql.must_be_like %{
@@ -870,7 +870,7 @@ module Arel
 
       it 'takes a range frame, bounded following' do
         table   = Table.new :users
-        manager = Arel::SelectManager.new Table.engine
+        manager = Arel::SelectManager.new
         manager.from table
         manager.window('a_window').range(Arel::Nodes::Following.new(5))
         manager.to_sql.must_be_like %{
@@ -880,7 +880,7 @@ module Arel
 
       it 'takes a range frame, current row' do
         table   = Table.new :users
-        manager = Arel::SelectManager.new Table.engine
+        manager = Arel::SelectManager.new
         manager.from table
         manager.window('a_window').range(Arel::Nodes::CurrentRow.new)
         manager.to_sql.must_be_like %{
@@ -890,7 +890,7 @@ module Arel
 
       it 'takes a range frame, between two delimiters' do
         table   = Table.new :users
-        manager = Arel::SelectManager.new Table.engine
+        manager = Arel::SelectManager.new
         manager.from table
         window = manager.window('a_window')
         window.frame(
@@ -909,7 +909,7 @@ module Arel
     describe 'delete' do
       it "copies from" do
         table   = Table.new :users
-        manager = Arel::SelectManager.new Table.engine
+        manager = Arel::SelectManager.new
         manager.from table
         stmt = manager.compile_delete
 
@@ -918,7 +918,7 @@ module Arel
 
       it "copies where" do
         table   = Table.new :users
-        manager = Arel::SelectManager.new Table.engine
+        manager = Arel::SelectManager.new
         manager.from table
         manager.where table[:id].eq 10
         stmt = manager.compile_delete
@@ -932,7 +932,7 @@ module Arel
     describe 'where_sql' do
       it 'gives me back the where sql' do
         table   = Table.new :users
-        manager = Arel::SelectManager.new Table.engine
+        manager = Arel::SelectManager.new
         manager.from table
         manager.where table[:id].eq 10
         manager.where_sql.must_be_like %{ WHERE "users"."id" = 10 }
@@ -940,7 +940,7 @@ module Arel
 
       it 'returns nil when there are no wheres' do
         table   = Table.new :users
-        manager = Arel::SelectManager.new Table.engine
+        manager = Arel::SelectManager.new
         manager.from table
         manager.where_sql.must_be_nil
       end
@@ -950,7 +950,7 @@ module Arel
 
       it 'creates an update statement' do
         table   = Table.new :users
-        manager = Arel::SelectManager.new Table.engine
+        manager = Arel::SelectManager.new
         manager.from table
         stmt = manager.compile_update({table[:id] => 1}, Arel::Attributes::Attribute.new(table, 'id'))
 
@@ -961,7 +961,7 @@ module Arel
 
       it 'takes a string' do
         table   = Table.new :users
-        manager = Arel::SelectManager.new Table.engine
+        manager = Arel::SelectManager.new
         manager.from table
         stmt = manager.compile_update(Nodes::SqlLiteral.new('foo = bar'), Arel::Attributes::Attribute.new(table, 'id'))
 
@@ -970,7 +970,7 @@ module Arel
 
       it 'copies limits' do
         table   = Table.new :users
-        manager = Arel::SelectManager.new Table.engine
+        manager = Arel::SelectManager.new
         manager.from table
         manager.take 1
         stmt = manager.compile_update(Nodes::SqlLiteral.new('foo = bar'), Arel::Attributes::Attribute.new(table, 'id'))
@@ -984,7 +984,7 @@ module Arel
 
       it 'copies order' do
         table   = Table.new :users
-        manager = Arel::SelectManager.new Table.engine
+        manager = Arel::SelectManager.new
         manager.from table
         manager.order :foo
         stmt = manager.compile_update(Nodes::SqlLiteral.new('foo = bar'), Arel::Attributes::Attribute.new(table, 'id'))
@@ -998,7 +998,7 @@ module Arel
 
       it 'copies where clauses' do
         table   = Table.new :users
-        manager = Arel::SelectManager.new Table.engine
+        manager = Arel::SelectManager.new
         manager.where table[:id].eq 10
         manager.from table
         stmt = manager.compile_update({table[:id] => 1}, Arel::Attributes::Attribute.new(table, 'id'))
@@ -1010,7 +1010,7 @@ module Arel
 
       it 'copies where clauses when nesting is triggered' do
         table   = Table.new :users
-        manager = Arel::SelectManager.new Table.engine
+        manager = Arel::SelectManager.new
         manager.where table[:foo].eq 10
         manager.take 42
         manager.from table
@@ -1025,20 +1025,20 @@ module Arel
 
     describe 'project' do
       it "takes sql literals" do
-        manager = Arel::SelectManager.new Table.engine
+        manager = Arel::SelectManager.new
         manager.project Nodes::SqlLiteral.new '*'
         manager.to_sql.must_be_like %{ SELECT * }
       end
 
       it 'takes multiple args' do
-        manager = Arel::SelectManager.new Table.engine
+        manager = Arel::SelectManager.new
         manager.project Nodes::SqlLiteral.new('foo'),
           Nodes::SqlLiteral.new('bar')
         manager.to_sql.must_be_like %{ SELECT foo, bar }
       end
 
       it 'takes strings' do
-        manager = Arel::SelectManager.new Table.engine
+        manager = Arel::SelectManager.new
         manager.project '*'
         manager.to_sql.must_be_like %{ SELECT * }
       end
@@ -1047,7 +1047,7 @@ module Arel
 
     describe 'projections' do
       it 'reads projections' do
-        manager = Arel::SelectManager.new Table.engine
+        manager = Arel::SelectManager.new
         manager.project Arel.sql('foo'), Arel.sql('bar')
         manager.projections.must_equal [Arel.sql('foo'), Arel.sql('bar')]
       end
@@ -1055,7 +1055,7 @@ module Arel
 
     describe 'projections=' do
       it 'overwrites projections' do
-        manager = Arel::SelectManager.new Table.engine
+        manager = Arel::SelectManager.new
         manager.project Arel.sql('foo')
         manager.projections = [Arel.sql('bar')]
         manager.to_sql.must_be_like %{ SELECT bar }
@@ -1065,7 +1065,7 @@ module Arel
     describe 'take' do
       it "knows take" do
         table   = Table.new :users
-        manager = Arel::SelectManager.new Table.engine
+        manager = Arel::SelectManager.new
         manager.from(table).project(table['id'])
         manager.where(table['id'].eq(1))
         manager.take 1
@@ -1079,12 +1079,12 @@ module Arel
       end
 
       it "chains" do
-        manager = Arel::SelectManager.new Table.engine
+        manager = Arel::SelectManager.new
         manager.take(1).must_equal manager
       end
 
       it 'removes LIMIT when nil is passed' do
-        manager = Arel::SelectManager.new Table.engine
+        manager = Arel::SelectManager.new
         manager.limit = 10
         assert_match('LIMIT', manager.to_sql)
 
@@ -1096,7 +1096,7 @@ module Arel
     describe 'where' do
       it "knows where" do
         table   = Table.new :users
-        manager = Arel::SelectManager.new Table.engine
+        manager = Arel::SelectManager.new
         manager.from(table).project(table['id'])
         manager.where(table['id'].eq(1))
         manager.to_sql.must_be_like %{
@@ -1108,7 +1108,7 @@ module Arel
 
       it "chains" do
         table   = Table.new :users
-        manager = Arel::SelectManager.new Table.engine
+        manager = Arel::SelectManager.new
         manager.from(table)
         manager.project(table['id']).where(table['id'].eq 1).must_equal manager
       end
@@ -1117,7 +1117,7 @@ module Arel
     describe 'from' do
       it "makes sql" do
         table   = Table.new :users
-        manager = Arel::SelectManager.new Table.engine
+        manager = Arel::SelectManager.new
 
         manager.from table
         manager.project table['id']
@@ -1126,7 +1126,7 @@ module Arel
 
       it "chains" do
         table   = Table.new :users
-        manager = Arel::SelectManager.new Table.engine
+        manager = Arel::SelectManager.new
         manager.from(table).project(table['id']).must_equal manager
         manager.to_sql.must_be_like 'SELECT "users"."id" FROM "users"'
       end
@@ -1134,14 +1134,14 @@ module Arel
 
     describe 'source' do
       it 'returns the join source of the select core' do
-        manager = Arel::SelectManager.new Table.engine
+        manager = Arel::SelectManager.new
         manager.source.must_equal manager.ast.cores.last.source
       end
     end
 
     describe 'distinct' do
       it 'sets the quantifier' do
-        manager = Arel::SelectManager.new Table.engine
+        manager = Arel::SelectManager.new
 
         manager.distinct
         manager.ast.cores.last.set_quantifier.class.must_equal Arel::Nodes::Distinct
@@ -1151,7 +1151,7 @@ module Arel
       end
 
       it "chains" do
-        manager = Arel::SelectManager.new Table.engine
+        manager = Arel::SelectManager.new
         manager.distinct.must_equal manager
         manager.distinct(false).must_equal manager
       end
@@ -1159,7 +1159,7 @@ module Arel
 
     describe 'distinct_on' do
       it 'sets the quantifier' do
-        manager = Arel::SelectManager.new Table.engine
+        manager = Arel::SelectManager.new
         table = Table.new :users
 
         manager.distinct_on(table['id'])
@@ -1170,7 +1170,7 @@ module Arel
       end
 
       it "chains" do
-        manager = Arel::SelectManager.new Table.engine
+        manager = Arel::SelectManager.new
         table = Table.new :users
 
         manager.distinct_on(table['id']).must_equal manager

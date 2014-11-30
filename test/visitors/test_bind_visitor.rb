@@ -17,7 +17,7 @@ module Arel
       # substitutes binds with values from block
       def test_assignment_binds_are_substituted
         table = Table.new(:users)
-        um = Arel::UpdateManager.new Table.engine
+        um = Arel::UpdateManager.new
         bp = Nodes::BindParam.new
         um.set [[table[:name], bp]]
         visitor = Class.new(Arel::Visitors::ToSql) {

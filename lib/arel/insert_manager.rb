@@ -1,6 +1,6 @@
 module Arel
   class InsertManager < Arel::TreeManager
-    def initialize engine
+    def initialize
       super
       @ast = Nodes::InsertStatement.new
     end

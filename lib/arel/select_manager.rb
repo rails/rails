@@ -6,8 +6,8 @@ module Arel
 
     STRING_OR_SYMBOL_CLASS = [Symbol, String]
 
-    def initialize engine, table = nil
-      super(engine)
+    def initialize table = nil
+      super()
       @ast   = Nodes::SelectStatement.new
       @ctx    = @ast.cores.last
       from table
@@ -176,10 +176,10 @@ module Arel
       @ast.orders
     end
 
-    def where_sql
+    def where_sql engine = Table.engine
       return if @ctx.wheres.empty?
 
-      viz = Visitors::WhereSql.new @engine.connection
+      viz = Visitors::WhereSql.new engine.connection
       Nodes::SqlLiteral.new viz.accept(@ctx, Collectors::SQLString.new).value
     end
 

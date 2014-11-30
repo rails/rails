@@ -8,8 +8,7 @@ module Arel
 
     attr_accessor :bind_values
 
-    def initialize engine
-      @engine = engine
+    def initialize
       @ctx    = nil
       @bind_values = []
     end
@@ -20,13 +19,9 @@ module Arel
       collector.value
     end
 
-    def visitor
-      engine.connection.visitor
-    end
-
-    def to_sql
+    def to_sql engine = Table.engine
       collector = Arel::Collectors::SQLString.new
-      collector = visitor.accept @ast, collector
+      collector = engine.connection.visitor.accept @ast, collector
       collector.value
     end
 
