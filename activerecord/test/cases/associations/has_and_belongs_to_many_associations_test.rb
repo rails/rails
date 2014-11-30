@@ -921,7 +921,9 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert preloaded_first_project.salaried_developers.loaded?, true
     assert_equal first_project.salaried_developers.size, preloaded_first_project.salaried_developers.size
 
-    assert_equal Project.first.developers.where(:name => 'David').size, Project.preload(:developers_named_david).first.developers_named_david.size
-    assert_equal Project.first.developers.where(:name => 'David').size, Project.preload(:developers_named_david_with_hash_conditions).first.developers_named_david.size
+    assert_equal Project.first.developers.where(:name => 'David').size,
+      Project.preload(:developers_named_david).first.developers_named_david.size
+    assert_equal Project.first.developers.where(:name => 'David').size,
+      Project.preload(:developers_named_david_with_hash_conditions).first.developers_named_david.size
   end
 end
