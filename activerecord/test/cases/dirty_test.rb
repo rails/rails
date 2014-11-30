@@ -165,18 +165,6 @@ class DirtyTest < ActiveRecord::TestCase
     assert_equal parrot.name_change, parrot.title_change
   end
 
-  def test_reset_attribute!
-    pirate = Pirate.create!(:catchphrase => 'Yar!')
-    pirate.catchphrase = 'Ahoy!'
-
-    assert_deprecated do
-      pirate.reset_catchphrase!
-    end
-    assert_equal "Yar!", pirate.catchphrase
-    assert_equal Hash.new, pirate.changes
-    assert !pirate.catchphrase_changed?
-  end
-
   def test_restore_attribute!
     pirate = Pirate.create!(:catchphrase => 'Yar!')
     pirate.catchphrase = 'Ahoy!'

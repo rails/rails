@@ -200,15 +200,6 @@ module ActiveModel
         @changed_attributes = ActiveSupport::HashWithIndifferentAccess.new
       end
 
-      def reset_changes
-        ActiveSupport::Deprecation.warn(<<-MSG.squish)
-          `#reset_changes` is deprecated and will be removed on Rails 5.
-          Please use `#clear_changes_information` instead.
-        MSG
-
-        clear_changes_information
-      end
-
       # Handle <tt>*_change</tt> for +method_missing+.
       def attribute_change(attr)
         [changed_attributes[attr], __send__(attr)] if attribute_changed?(attr)
@@ -225,16 +216,6 @@ module ActiveModel
         end
 
         set_attribute_was(attr, value)
-      end
-
-      # Handle <tt>reset_*!</tt> for +method_missing+.
-      def reset_attribute!(attr)
-        ActiveSupport::Deprecation.warn(<<-MSG.squish)
-          `#reset_#{attr}!` is deprecated and will be removed on Rails 5.
-          Please use `#restore_#{attr}!` instead.
-        MSG
-
-        restore_attribute!(attr)
       end
 
       # Handle <tt>restore_*!</tt> for +method_missing+.
