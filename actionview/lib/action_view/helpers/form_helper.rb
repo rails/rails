@@ -164,6 +164,23 @@ module ActionView
       # * <tt>:namespace</tt> - A namespace for your form to ensure uniqueness of
       #   id attributes on form elements. The namespace attribute will be prefixed
       #   with underscore on the generated HTML id.
+      # * <tt>:method</tt> - The method to use when submitting the form, usually
+      #   either "get" or "post". If "patch", "put", "delete", or another verb
+      #   is used, a hidden input with name <tt>_method</tt> is added to
+      #   simulate the verb over post.
+      # * <tt>:authenticity_token</tt> - Authenticity token to use in the form.
+      #   Use only if you need to pass custom authenticity token string, or to
+      #   not add authenticity_token field at all (by passing <tt>false</tt>).
+      #   Remote forms may omit the embedded authenticity token by setting
+      #   <tt>config.action_view.embed_authenticity_token_in_remote_forms = false</tt>.
+      #   This is helpful when you're fragment-caching the form. Remote forms
+      #   get the authenticity token from the <tt>meta</tt> tag, so embedding is
+      #   unnecessary unless you support browsers without JavaScript.
+      # * <tt>:remote</tt> - If set to true, will allow the Unobtrusive
+      #   JavaScript drivers to control the submit behavior. By default this
+      #   behavior is an ajax submit.
+      # * <tt>:enforce_utf8</tt> - If set to false, a hidden input with name
+      #   utf8 is not output.
       # * <tt>:html</tt> - Optional HTML attributes for the form tag.
       #
       # Also note that +form_for+ doesn't create an exclusive scope. It's still
@@ -420,6 +437,7 @@ module ActionView
         html_options[:data]   = options.delete(:data)   if options.has_key?(:data)
         html_options[:remote] = options.delete(:remote) if options.has_key?(:remote)
         html_options[:method] = options.delete(:method) if options.has_key?(:method)
+        html_options[:enforce_utf8] = options.delete(:enforce_utf8) if options.has_key?(:enforce_utf8)
         html_options[:authenticity_token] = options.delete(:authenticity_token)
 
         builder = instantiate_builder(object_name, object, options)

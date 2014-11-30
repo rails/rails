@@ -1,5 +1,6 @@
 require "cases/helper"
 require 'models/developer'
+require 'models/computer'
 require 'models/project'
 require 'models/company'
 require 'models/ship'
@@ -409,9 +410,11 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     pirate = pirates(:redbeard)
     new_ship = Ship.new
 
-    assert_raise(ActiveRecord::RecordNotSaved) do
+    error = assert_raise(ActiveRecord::RecordNotSaved) do
       pirate.ship = new_ship
     end
+
+    assert_equal "Failed to save the new associated ship.", error.message
     assert_nil pirate.ship
     assert_nil new_ship.pirate_id
   end
@@ -421,20 +424,25 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     pirate.ship.name = nil
 
     assert !pirate.ship.valid?
-    assert_raise(ActiveRecord::RecordNotSaved) do
+    error = assert_raise(ActiveRecord::RecordNotSaved) do
       pirate.ship = ships(:interceptor)
     end
+
     assert_equal ships(:black_pearl), pirate.ship
     assert_equal pirate.id, pirate.ship.pirate_id
+    assert_equal "Failed to remove the existing associated ship. " +
+                 "The record failed to save after its foreign key was set to nil.", error.message
   end
 
   def test_replacement_failure_due_to_new_record_should_raise_error
     pirate = pirates(:blackbeard)
     new_ship = Ship.new
 
-    assert_raise(ActiveRecord::RecordNotSaved) do
+    error = assert_raise(ActiveRecord::RecordNotSaved) do
       pirate.ship = new_ship
     end
+
+    assert_equal "Failed to save the new associated ship.", error.message
     assert_equal ships(:black_pearl), pirate.ship
     assert_equal pirate.id, pirate.ship.pirate_id
     assert_equal pirate.id, ships(:black_pearl).reload.pirate_id

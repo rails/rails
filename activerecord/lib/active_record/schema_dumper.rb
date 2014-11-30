@@ -244,12 +244,7 @@ HEADER
 
       def ignored?(table_name)
         ['schema_migrations', ignore_tables].flatten.any? do |ignored|
-          case ignored
-          when String; remove_prefix_and_suffix(table_name) == ignored
-          when Regexp; remove_prefix_and_suffix(table_name) =~ ignored
-          else
-            raise StandardError, 'ActiveRecord::SchemaDumper.ignore_tables accepts an array of String and / or Regexp values.'
-          end
+          ignored === remove_prefix_and_suffix(table_name)
         end
       end
   end

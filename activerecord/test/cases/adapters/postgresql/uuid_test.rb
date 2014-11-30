@@ -1,8 +1,6 @@
 # encoding: utf-8
-
 require "cases/helper"
-require 'active_record/base'
-require 'active_record/connection_adapters/postgresql_adapter'
+require 'support/schema_dumping_helper'
 
 module PostgresqlUUIDHelper
   def connection
@@ -112,6 +110,8 @@ end
 
 class PostgresqlLargeKeysTest < ActiveRecord::TestCase
   include PostgresqlUUIDHelper
+  include SchemaDumpingHelper
+
   def setup
     connection.create_table('big_serials', id: :bigserial) do |t|
       t.string 'name'
@@ -119,10 +119,8 @@ class PostgresqlLargeKeysTest < ActiveRecord::TestCase
   end
 
   def test_omg
-    schema = StringIO.new
-    ActiveRecord::SchemaDumper.dump(connection, schema)
-    assert_match "create_table \"big_serials\", id: :bigserial, force: true",
-      schema.string
+    schema = dump_table_schema "big_serials"
+    assert_match "create_table \"big_serials\", id: :bigserial, force: true", schema
   end
 
   def teardown
@@ -132,6 +130,7 @@ end
 
 class PostgresqlUUIDGenerationTest < ActiveRecord::TestCase
   include PostgresqlUUIDHelper
+  include SchemaDumpingHelper
 
   class UUID < ActiveRecord::Base
     self.table_name = 'pg_uuids'
@@ -191,17 +190,15 @@ class PostgresqlUUIDGenerationTest < ActiveRecord::TestCase
     end
 
     def test_schema_dumper_for_uuid_primary_key
-      schema = StringIO.new
-      ActiveRecord::SchemaDumper.dump(connection, schema)
-      assert_match(/\bcreate_table "pg_uuids", id: :uuid, default: "uuid_generate_v1\(\)"/, schema.string)
-      assert_match(/t\.uuid   "other_uuid", default: "uuid_generate_v4\(\)"/, schema.string)
+      schema = dump_table_schema "pg_uuids"
+      assert_match(/\bcreate_table "pg_uuids", id: :uuid, default: "uuid_generate_v1\(\)"/, schema)
+      assert_match(/t\.uuid   "other_uuid", default: "uuid_generate_v4\(\)"/, schema)
     end
 
     def test_schema_dumper_for_uuid_primary_key_with_custom_default
-      schema = StringIO.new
-      ActiveRecord::SchemaDumper.dump(connection, schema)
-      assert_match(/\bcreate_table "pg_uuids_2", id: :uuid, default: "my_uuid_generator\(\)"/, schema.string)
-      assert_match(/t\.uuid   "other_uuid_2", default: "my_uuid_generator\(\)"/, schema.string)
+      schema = dump_table_schema "pg_uuids_2"
+      assert_match(/\bcreate_table "pg_uuids_2", id: :uuid, default: "my_uuid_generator\(\)"/, schema)
+      assert_match(/t\.uuid   "other_uuid_2", default: "my_uuid_generator\(\)"/, schema)
     end
   end
 end

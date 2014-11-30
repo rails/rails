@@ -3,6 +3,7 @@ require 'models/post'
 require 'models/comment'
 require 'models/project'
 require 'models/developer'
+require 'models/computer'
 require 'models/company_in_module'
 
 class AssociationsExtensionsTest < ActiveRecord::TestCase

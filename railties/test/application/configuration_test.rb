@@ -59,6 +59,20 @@ module ApplicationTests
       end
     end
 
+    test "lib dir is on LOAD_PATH during config" do
+      app_file 'lib/my_logger.rb', <<-RUBY
+        require "logger"
+        class MyLogger < ::Logger
+        end
+      RUBY
+      add_to_top_of_config <<-RUBY
+        require 'my_logger'
+        config.logger = MyLogger.new STDOUT
+      RUBY
+      require "#{app_path}/config/environment"
+      assert_equal 'MyLogger', Rails.application.config.logger.class.name
+    end
+
     test "a renders exception on pending migration" do
       add_to_config <<-RUBY
         config.active_record.migration_error    = :page_load
@@ -301,6 +315,51 @@ module ApplicationTests
       assert_equal 'some_value', verifier.verify(message)
     end
 
+    test "application message verifier can be used when the key_generator is ActiveSupport::LegacyKeyGenerator" do
+      app_file 'config/initializers/secret_token.rb', <<-RUBY
+        Rails.application.config.secret_token = "b3c631c314c0bbca50c1b2843150fe33"
+      RUBY
+      app_file 'config/secrets.yml', <<-YAML
+        development:
+          secret_key_base:
+      YAML
+      require "#{app_path}/config/environment"
+
+
+      assert_equal app.env_config['action_dispatch.key_generator'], Rails.application.key_generator
+      assert_equal app.env_config['action_dispatch.key_generator'].class, ActiveSupport::LegacyKeyGenerator
+      message = app.message_verifier(:sensitive_value).generate("some_value")
+      assert_equal 'some_value', Rails.application.message_verifier(:sensitive_value).verify(message)
+    end
+
+    test "warns when secrets.secret_key_base is blank and config.secret_token is set" do
+      app_file 'config/initializers/secret_token.rb', <<-RUBY
+        Rails.application.config.secret_token = "b3c631c314c0bbca50c1b2843150fe33"
+      RUBY
+      app_file 'config/secrets.yml', <<-YAML
+        development:
+          secret_key_base:
+      YAML
+      require "#{app_path}/config/environment"
+
+      assert_deprecated(/You didn't set `secret_key_base`./) do
+        app.env_config
+      end
+    end
+
+    test "prefer secrets.secret_token over config.secret_token" do
+      app_file 'config/initializers/secret_token.rb', <<-RUBY
+        Rails.application.config.secret_token = ""
+      RUBY
+      app_file 'config/secrets.yml', <<-YAML
+        development:
+          secret_token: 3b7cd727ee24e8444053437c36cc66c3
+      YAML
+      require "#{app_path}/config/environment"
+
+      assert_equal '3b7cd727ee24e8444053437c36cc66c3', app.secrets.secret_token
+    end
+
     test "application verifier can build different verifiers" do
       make_basic_app do |app|
         app.secrets.secret_key_base = 'b3c631c314c0bbca50c1b2843150fe33'
@@ -341,6 +400,21 @@ module ApplicationTests
       assert_equal '3b7cd727ee24e8444053437c36cc66c3', app.secrets.secret_key_base
     end
 
+    test "config.secret_token over-writes a blank secrets.secret_token" do
+      app_file 'config/initializers/secret_token.rb', <<-RUBY
+        Rails.application.config.secret_token = "b3c631c314c0bbca50c1b2843150fe33"
+      RUBY
+      app_file 'config/secrets.yml', <<-YAML
+        development:
+          secret_key_base:
+          secret_token:
+      YAML
+      require "#{app_path}/config/environment"
+
+      assert_equal 'b3c631c314c0bbca50c1b2843150fe33', app.secrets.secret_token
+      assert_equal 'b3c631c314c0bbca50c1b2843150fe33', app.config.secret_token
+    end
+
     test "custom secrets saved in config/secrets.yml are loaded in app secrets" do
       app_file 'config/secrets.yml', <<-YAML
         development:
@@ -360,6 +434,51 @@ module ApplicationTests
       require "#{app_path}/config/environment"
 
       assert_nil app.secrets.not_defined
+    end
+
+    test "config.secret_key_base over-writes a blank secrets.secret_key_base" do
+      app_file 'config/initializers/secret_token.rb', <<-RUBY
+        Rails.application.config.secret_key_base = "iaminallyoursecretkeybase"
+      RUBY
+      app_file 'config/secrets.yml', <<-YAML
+        development:
+          secret_key_base:
+      YAML
+      require "#{app_path}/config/environment"
+
+      assert_equal "iaminallyoursecretkeybase", app.secrets.secret_key_base
+    end
+
+    test "uses ActiveSupport::LegacyKeyGenerator as app.key_generator when secrets.secret_key_base is blank" do
+      app_file 'config/initializers/secret_token.rb', <<-RUBY
+        Rails.application.config.secret_token = "b3c631c314c0bbca50c1b2843150fe33"
+      RUBY
+      app_file 'config/secrets.yml', <<-YAML
+        development:
+          secret_key_base:
+      YAML
+      require "#{app_path}/config/environment"
+
+      assert_equal 'b3c631c314c0bbca50c1b2843150fe33', app.config.secret_token
+      assert_equal nil, app.secrets.secret_key_base
+      assert_equal app.key_generator.class, ActiveSupport::LegacyKeyGenerator
+    end
+
+    test "uses ActiveSupport::LegacyKeyGenerator with config.secret_token as app.key_generator when secrets.secret_key_base is blank" do
+      app_file 'config/initializers/secret_token.rb', <<-RUBY
+        Rails.application.config.secret_token = ""
+      RUBY
+      app_file 'config/secrets.yml', <<-YAML
+        development:
+          secret_key_base:
+      YAML
+      require "#{app_path}/config/environment"
+
+      assert_equal '', app.config.secret_token
+      assert_equal nil, app.secrets.secret_key_base
+      assert_raise ArgumentError, /\AA secret is required/ do
+        app.key_generator
+      end
     end
 
     test "protect from forgery is the default in a new app" do
@@ -844,6 +963,36 @@ module ApplicationTests
       assert_raise RuntimeError, /activerecord-session_store/ do
         make_basic_app do |app|
           app.config.session_store :active_record_store
+        end
+      end
+    end
+
+    test "Blank config.log_level is not deprecated for non-production environment" do
+      with_rails_env "development" do
+        assert_not_deprecated do
+          make_basic_app do |app|
+            app.config.log_level = nil
+          end
+        end
+      end
+    end
+
+    test "Blank config.log_level is deprecated for the production environment" do
+      with_rails_env "production" do
+        assert_deprecated(/log_level/) do
+          make_basic_app do |app|
+            app.config.log_level = nil
+          end
+        end
+      end
+    end
+
+    test "Not blank config.log_level is not deprecated for the production environment" do
+      with_rails_env "production" do
+        assert_not_deprecated do
+          make_basic_app do |app|
+            app.config.log_level = :info
+          end
         end
       end
     end

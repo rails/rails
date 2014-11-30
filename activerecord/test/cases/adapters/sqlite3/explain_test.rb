@@ -1,5 +1,6 @@
 require "cases/helper"
 require 'models/developer'
+require 'models/computer'
 
 module ActiveRecord
   module ConnectionAdapters

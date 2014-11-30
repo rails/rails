@@ -2,8 +2,6 @@ require 'active_record/attribute_set/builder'
 
 module ActiveRecord
   class AttributeSet # :nodoc:
-    delegate :keys, to: :initialized_attributes
-
     def initialize(attributes)
       @attributes = attributes
     end
@@ -25,8 +23,12 @@ module ActiveRecord
       attributes.key?(name) && self[name].initialized?
     end
 
-    def fetch_value(name, &block)
-      self[name].value(&block)
+    def keys
+      attributes.initialized_keys
+    end
+
+    def fetch_value(name)
+      self[name].value { |n| yield n if block_given? }
     end
 
     def write_from_database(name, value)
@@ -43,7 +45,7 @@ module ActiveRecord
     end
 
     def initialize_dup(_)
-      @attributes = attributes.transform_values(&:dup)
+      @attributes = attributes.dup
       super
     end
 
@@ -54,12 +56,6 @@ module ActiveRecord
 
     def reset(key)
       if key?(key)
-        write_from_database(key, nil)
-      end
-    end
-
-    def ensure_initialized(key)
-      unless self[key].initialized?
         write_from_database(key, nil)
       end
     end

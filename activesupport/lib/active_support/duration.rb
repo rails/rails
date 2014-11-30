@@ -1,4 +1,3 @@
-require 'active_support/proxy_object'
 require 'active_support/core_ext/array/conversions'
 require 'active_support/core_ext/object/acts_like'
 
@@ -102,6 +101,8 @@ module ActiveSupport
     def respond_to_missing?(method, include_private=false) #:nodoc
       @value.respond_to?(method, include_private)
     end
+
+    delegate :<=>, to: :value
 
     protected
 

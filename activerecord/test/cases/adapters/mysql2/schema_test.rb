@@ -51,7 +51,7 @@ module ActiveRecord
 
         table = 'key_tests'
 
-        indexes = @connection.indexes(table).sort_by {|i| i.name}
+        indexes = @connection.indexes(table).sort_by(&:name)
         assert_equal 3,indexes.size
 
         index_a = indexes.select{|i| i.name == index_a_name}[0]

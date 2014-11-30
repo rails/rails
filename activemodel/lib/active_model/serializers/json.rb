@@ -130,10 +130,10 @@ module ActiveModel
       #
       #   json = { person: { name: 'bob', age: 22, awesome:true } }.to_json
       #   person = Person.new
-      #   person.from_json(json) # => #<Person:0x007fec5e7a0088 @age=22, @awesome=true, @name="bob">
-      #   person.name            # => "bob"
-      #   person.age             # => 22
-      #   person.awesome         # => true
+      #   person.from_json(json, true) # => #<Person:0x007fec5e7a0088 @age=22, @awesome=true, @name="bob">
+      #   person.name                  # => "bob"
+      #   person.age                   # => 22
+      #   person.awesome               # => true
       def from_json(json, include_root=include_root_in_json)
         hash = ActiveSupport::JSON.decode(json)
         hash = hash.values.first if include_root

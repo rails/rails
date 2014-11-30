@@ -41,7 +41,7 @@ class TopicWithUniqEvent < Topic
 end
 
 class UniquenessValidationTest < ActiveRecord::TestCase
-  fixtures :topics, 'warehouse-things', :developers
+  fixtures :topics, 'warehouse-things'
 
   repair_validations(Topic, Reply)
 

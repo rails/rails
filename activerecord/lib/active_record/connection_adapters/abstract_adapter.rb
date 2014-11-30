@@ -24,6 +24,7 @@ module ActiveRecord
       autoload :TableDefinition
       autoload :Table
       autoload :AlterTable
+      autoload :TimestampDefaultDeprecation
     end
 
     autoload_at 'active_record/connection_adapters/abstract/connection_pool' do
@@ -262,10 +263,10 @@ module ActiveRecord
 
       # QUOTING ==================================================
 
-      # Returns a bind substitution value given a bind +index+ and +column+
+      # Returns a bind substitution value given a bind +column+
       # NOTE: The column param is currently being used by the sqlserver-adapter
-      def substitute_at(column, index = 0)
-        Arel::Nodes::BindParam.new '?'
+      def substitute_at(column, _unused = 0)
+        Arel::Nodes::BindParam.new
       end
 
       # REFERENTIAL INTEGRITY ====================================

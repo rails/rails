@@ -8,8 +8,18 @@ class MailerGeneratorTest < Rails::Generators::TestCase
   def test_mailer_skeleton_is_created
     run_generator
     assert_file "app/mailers/notifier.rb" do |mailer|
-      assert_match(/class Notifier < ActionMailer::Base/, mailer)
+      assert_match(/class Notifier < ApplicationMailer/, mailer)
+      assert_no_match(/default from: "from@example.com"/, mailer)
+      assert_no_match(/layout :mailer_notifier/, mailer)
+    end
+  end
+
+  def test_application_mailer_skeleton_is_created
+    run_generator
+    assert_file "app/mailers/application_mailer.rb" do |mailer|
+      assert_match(/class ApplicationMailer < ActionMailer::Base/, mailer)
       assert_match(/default from: "from@example.com"/, mailer)
+      assert_match(/layout 'mailer'/, mailer)
     end
   end
 
@@ -77,6 +87,10 @@ class MailerGeneratorTest < Rails::Generators::TestCase
       assert_match(%r(\sapp/views/notifier/bar\.text\.erb), view)
       assert_match(/<%= @greeting %>/, view)
     end
+
+    assert_file "app/views/layouts/mailer.text.erb" do |view|
+      assert_match(/<%= yield %>/, view)
+    end
   end
 
   def test_invokes_default_html_template_engine
@@ -90,11 +104,17 @@ class MailerGeneratorTest < Rails::Generators::TestCase
       assert_match(%r(\sapp/views/notifier/bar\.html\.erb), view)
       assert_match(/<%= @greeting %>/, view)
     end
+
+    assert_file "app/views/layouts/mailer.html.erb" do |view|
+      assert_match(%r{<html>\n  <body>\n    <%= yield %>\n  </body>\n</html>}, view)
+    end
   end
 
   def test_invokes_default_template_engine_even_with_no_action
     run_generator ["notifier"]
     assert_file "app/views/notifier"
+    assert_file "app/views/layouts/mailer.text.erb"
+    assert_file "app/views/layouts/mailer.html.erb"
   end
 
   def test_logs_if_the_template_engine_cannot_be_found
@@ -105,7 +125,7 @@ class MailerGeneratorTest < Rails::Generators::TestCase
   def test_mailer_with_namedspaced_mailer
     run_generator ["Farm::Animal", "moos"]
     assert_file "app/mailers/farm/animal.rb" do |mailer|
-      assert_match(/class Farm::Animal < ActionMailer::Base/, mailer)
+      assert_match(/class Farm::Animal < ApplicationMailer/, mailer)
       assert_match(/en\.farm\.animal\.moos\.subject/, mailer)
     end
     assert_file "test/mailers/previews/farm/animal_preview.rb" do |preview|

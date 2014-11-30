@@ -138,7 +138,7 @@ More Information: - [Rails Edge Architecture](http://yehudakatz.com/2009/06/11/r
 
 [Arel](http://github.com/brynary/arel) (or Active Relation) has been taken on as the underpinnings of Active Record and is now required for Rails. Arel provides an SQL abstraction that simplifies out Active Record and provides the underpinnings for the relation functionality in Active Record.
 
-More information: - [Why I wrote Arel](http://magicscalingsprinkles.wordpress.com/2010/01/28/why-i-wrote-arel/.)
+More information: - [Why I wrote Arel](https://web.archive.org/web/20120718093140/http://magicscalingsprinkles.wordpress.com/2010/01/28/why-i-wrote-arel/)
 
 
 ### Mail Extraction
@@ -298,7 +298,7 @@ Deprecations
 
 More Information:
 * [The Rails 3 Router: Rack it Up](http://yehudakatz.com/2009/12/26/the-rails-3-router-rack-it-up/)
-* [Revamped Routes in Rails 3](http://rizwanreza.com/2009/12/20/revamped-routes-in-rails-3)
+* [Revamped Routes in Rails 3](https://medium.com/fusion-of-thoughts/revamped-routes-in-rails-3-b6d00654e5b0)
 * [Generic Actions in Rails 3](http://yehudakatz.com/2009/12/20/generic-actions-in-rails-3/)
 
 

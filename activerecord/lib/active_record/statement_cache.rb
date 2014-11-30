@@ -1,22 +1,33 @@
 module ActiveRecord
 
   # Statement cache is used to cache a single statement in order to avoid creating the AST again.
-  # Initializing the cache is done by passing the statement in the initialization block:
+  # Initializing the cache is done by passing the statement in the create block:
   #
-  #   cache = ActiveRecord::StatementCache.new do
-  #     Book.where(name: "my book").limit(100)
+  #   cache = StatementCache.create(Book.connection) do |params|
+  #     Book.where(name: "my book").where("author_id > 3")
   #   end
   #
   # The cached statement is executed by using the +execute+ method:
   #
-  #   cache.execute
+  #   cache.execute([], Book, Book.connection)
   #
   # The relation returned by the block is cached, and for each +execute+ call the cached relation gets duped.
   # Database is queried when +to_a+ is called on the relation.
-  class StatementCache
-    class Substitute; end
+  #
+  # If you want to cache the statement without the values you can use the +bind+ method of the
+  # block parameter.
+  #
+  #   cache = StatementCache.create(Book.connection) do |params|
+  #     Book.where(name: params.bind)
+  #   end
+  #
+  # And pass the bind values as the first argument of +execute+ call.
+  #
+  #   cache.execute(["my book"], Book, Book.connection)
+  class StatementCache # :nodoc:
+    class Substitute; end # :nodoc:
 
-    class Query
+    class Query # :nodoc:
       def initialize(sql)
         @sql = sql
       end
@@ -26,7 +37,7 @@ module ActiveRecord
       end
     end
 
-    class PartialQuery < Query
+    class PartialQuery < Query # :nodoc:
       def initialize values
         @values = values
         @indexes = values.each_with_index.find_all { |thing,i|
@@ -51,11 +62,11 @@ module ActiveRecord
       PartialQuery.new collected
     end
 
-    class Params
+    class Params # :nodoc:
       def bind; Substitute.new; end
     end
 
-    class BindMap
+    class BindMap # :nodoc:
       def initialize(bind_values)
         @indexes   = []
         @bind_values = bind_values
@@ -68,7 +79,7 @@ module ActiveRecord
       end
 
       def bind(values)
-        bvs = @bind_values.map { |pair| pair.dup }
+        bvs = @bind_values.map(&:dup)
         @indexes.each_with_index { |offset,i| bvs[offset][1] = values[i] }
         bvs
       end

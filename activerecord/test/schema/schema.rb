@@ -228,6 +228,11 @@ ActiveRecord::Schema.define do
     t.integer :extendedWarranty, null: false
   end
 
+  create_table :computers_developers, id: false, force: true do |t|
+    t.references :computer
+    t.references :developer
+  end
+
   create_table :contracts, force: true do |t|
     t.integer :developer_id
     t.integer :company_id

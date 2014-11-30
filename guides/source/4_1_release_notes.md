@@ -136,7 +136,7 @@ end
 
 ### Action Mailer Previews
 
-Action Mailer previews provide a way to visually see how emails look by visiting
+Action Mailer previews provide a way to see how emails look by visiting
 a special URL that renders them.
 
 You implement a preview class whose methods return the mail object you'd like

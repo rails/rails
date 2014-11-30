@@ -114,9 +114,7 @@ module ActionDispatch
       def collect_routes(routes)
         routes.collect do |route|
           RouteWrapper.new(route)
-        end.reject do |route|
-          route.internal?
-        end.collect do |route|
+        end.reject(&:internal?).collect do |route|
           collect_engine_routes(route)
 
           { name:   route.name,

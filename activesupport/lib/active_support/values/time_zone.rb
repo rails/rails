@@ -237,7 +237,7 @@ module ActiveSupport
         case arg
           when String
           begin
-            @lazy_zones_map[arg] ||= create(arg).tap { |tz| tz.utc_offset }
+            @lazy_zones_map[arg] ||= create(arg).tap(&:utc_offset)
           rescue TZInfo::InvalidTimezoneIdentifier
             nil
           end

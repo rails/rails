@@ -68,7 +68,7 @@ module ActiveRecord
         end
       end
 
-      test "very large numbers are in range" do
+      test "very large numbers are out of range" do
         assert_raises(::RangeError) do
           Integer.new.type_cast_from_user("9999999999999999999999999999999")
         end

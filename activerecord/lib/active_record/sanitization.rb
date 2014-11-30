@@ -93,7 +93,7 @@ sanitize_sql_hash_for_conditions is deprecated, and will be removed in Rails 5.0
         attrs = PredicateBuilder.resolve_column_aliases self, attrs
         attrs = expand_hash_conditions_for_aggregates(attrs)
 
-        table = Arel::Table.new(table_name, arel_engine).alias(default_table_name)
+        table = Arel::Table.new(table_name).alias(default_table_name)
         PredicateBuilder.build_from_hash(self, attrs, table).map { |b|
           connection.visitor.compile b
         }.join(' AND ')

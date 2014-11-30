@@ -3,20 +3,18 @@ Ruby on Rails 4.2 Release Notes
 
 Highlights in Rails 4.2:
 
-* Active Job, Action Mailer #deliver_later
+* Active Job
+* Asynchronous mails
 * Adequate Record
 * Web Console
 * Foreign key support
 
-These release notes cover only the major changes. To learn about various bug
-fixes and changes, please refer to the change logs or check out the [list of
-commits](https://github.com/rails/rails/commits/master) in the main Rails
-repository on GitHub.
+These release notes cover only the major changes. To learn about other
+features, bug fixes, and changes, please refer to the changelogs or check out
+the [list of commits](https://github.com/rails/rails/commits/4-2-stable) in
+the main Rails repository on GitHub.
 
 --------------------------------------------------------------------------------
-
-NOTE: This document is a work in progress, please help to improve this by sending
-a [pull request](https://github.com/rails/rails/edit/master/guides/source/4_2_release_notes.md).
 
 Upgrading to Rails 4.2
 ----------------------
@@ -25,96 +23,112 @@ If you're upgrading an existing application, it's a great idea to have good test
 coverage before going in. You should also first upgrade to Rails 4.1 in case you
 haven't and make sure your application still runs as expected before attempting
 to upgrade to Rails 4.2. A list of things to watch out for when upgrading is
-available in the guide: [Upgrading Ruby on
-Rails](upgrading_ruby_on_rails.html#upgrading-from-rails-4-1-to-rails-4-2)
+available in the guide [Upgrading Ruby on
+Rails](upgrading_ruby_on_rails.html#upgrading-from-rails-4-1-to-rails-4-2).
 
 
 Major Features
 --------------
 
-### Active Job, Action Mailer #deliver_later
+### Active Job
 
-Active Job is a new framework in Rails 4.2. It is an adapter layer on top of
+Active Job is a new framework in Rails 4.2. It is a common interface on top of
 queuing systems like [Resque](https://github.com/resque/resque), [Delayed
 Job](https://github.com/collectiveidea/delayed_job),
 [Sidekiq](https://github.com/mperham/sidekiq), and more.
 
-You can write your jobs with the Active Job API, and it'll run on all these
-queues with no changes (it comes pre-configured with an inline runner).
+Jobs written with the Active Job API run on any of the supported queues thanks
+to their respective adapters. Active Job comes pre-configured with an inline
+runner that executes jobs right away.
 
-Building on top of Active Job, Action Mailer now comes with a `#deliver_later`
-method, which adds your email to be sent as a job to a queue, so it doesn't
-bog down the controller or model.
+Jobs often need to take Active Record objects as arguments. Active Job passes
+object references as URIs (uniform resource identifiers) instead of marshaling
+the object itself. The new [Global ID](https://github.com/rails/globalid)
+library builds URIs and looks up the objects they reference. Passing Active
+Record objects as job arguments just works by using Global ID internally.
 
-The new GlobalID library makes it easy to pass Active Record objects to jobs by
-serializing them in a generic form. This means you no longer have to manually
-pack and unpack your Active Records by passing ids. Just give the job the
-straight Active Record object, and it'll serialize it using GlobalID, and
-deserialize it at run time.
+For example, if `trashable` is an Active Record object, then this job runs
+just fine with no serialization involved:
+
+```ruby
+class TrashableCleanupJob < ActiveJob::Base
+  def perform(trashable, depth)
+    trashable.cleanup(depth)
+  end
+end
+```
+
+See the [Active Job Basics](active_job_basics.html) guide for more
+information.
+
+### Asynchronous Mails
+
+Building on top of Active Job, Action Mailer now comes with a `deliver_later`
+method that sends emails via the queue, so it doesn't block the controller or
+model if the queue is asynchronous (the default inline queue blocks).
+
+Sending emails right away is still possible with `deliver_now`.
 
 ### Adequate Record
 
-Adequate Record is a set of refactorings that make Active Record `find` and
-`find_by` methods and some association queries upto 2x faster.
+Adequate Record is a set of performance improvements in Active Record that makes
+common `find` and `find_by` calls and some association queries up to 2x faster.
 
-It works by caching SQL query patterns while executing the Active Record calls.
-The cache helps skip parts of the computation involved in the transformation of
-the calls into SQL queries. More details in [Aaron Patterson's
+It works by caching common SQL queries as prepared statements and reusing them
+on similar calls, skipping most of the query-generation work on subsequent
+calls. For more details, please refer to [Aaron Patterson's blog
 post](http://tenderlovemaking.com/2014/02/19/adequaterecord-pro-like-activerecord.html).
 
-Nothing special has to be done to activate this feature. Most `find` and
-`find_by` calls and association queries will use it automatically. Examples:
+Active Record will automatically take advantage of this feature on
+supported operations without any user involvement or code changes. Here are
+some examples of supported operations:
 
 ```ruby
-Post.find 1  # caches query pattern
-Post.find 2  # uses the cached pattern
+Post.find(1)  # First call generates and cache the prepared statement
+Post.find(2)  # Subsequent calls reuse the cached prepared statement
 
-Post.find_by_title 'first post'  # caches query pattern
-Post.find_by_title 'second post' # uses the cached pattern
+Post.find_by_title('first post')
+Post.find_by_title('second post')
 
-post.comments        # caches query pattern
-post.comments(true)  # uses cached pattern
+post.comments
+post.comments(true)
 ```
 
-The caching is not used in the following scenarios:
+It's important to highlight that, as the examples above suggest, the prepared
+statements do not cache the values passed in the method calls; rather, they
+have placeholders for them.
+
+Caching is not used in the following scenarios:
 
 - The model has a default scope
-- The model uses single table inheritance to inherit from another model
-- `find` with a list of ids. eg:
+- The model uses single table inheritance
+- `find` with a list of ids, e.g.:
 
   ```ruby
-  Post.find(1,2,3)
-  OR
-  Post.find [1,2]
+  # not cached
+  Post.find(1, 2, 3)
+  Post.find([1,2])
   ```
 
-- `find_by` with sql fragments:
+- `find_by` with SQL fragments:
 
   ```ruby
-  Post.find_by "published_at < ?", 2.weeks.ago
+  Post.find_by('published_at < ?', 2.weeks.ago)
   ```
 
 ### Web Console
 
-New applications generated from Rails 4.2 now come with the Web Console gem by
-default.
+New applications generated with Rails 4.2 now come with the [Web
+Console](https://github.com/rails/web-console) gem by default. Web Console adds
+an interactive Ruby console on every error page and provides a `console` view
+and controller helpers.
 
-Web Console is a set of debugging tools for your Rails application. It will add
-an interactive console on every error page, a `console` view helper and a VT100
-compatible terminal.
+The interactive console on error pages lets you execute code in the context of
+the place where the exception originated. The `console` helper, if called
+anywhere in a view or controller, launches an interactive console with the final
+context, once rendering has completed.
 
-The interactive console on the error pages lets you execute code where the
-exception originated. It's quite handy to introspect the state that led to the
-error.
-
-The `console` view helper launches an interactive console within the context of
-the view where it is invoked.
-
-Finally, you can launch a VT100 terminal that runs `rails console`. If you need
-to create or modify existing test data, you can do that straight from the
-browser.
-
-### Foreign key support
+### Foreign Key Support
 
 The migration DSL now supports adding and removing foreign keys. They are dumped
 to `schema.rb` as well. At this time, only the `mysql`, `mysql2` and `postgresql`
@@ -149,18 +163,18 @@ individual components for new deprecations in this release.
 
 The following changes may require immediate action upon upgrade.
 
-### `render` with a String argument
+### `render` with a String Argument
 
-Previously, calling `render "foo/bar"` in a controller action is equivalent to
-`render file: "foo/bar"`. In Rails 4.2, this has been changed to mean `render template: "foo/bar"`
-instead. If you need to render a file, please change your code to use the
-explicit form (`render file: "foo/bar"`) instead.
+Previously, calling `render "foo/bar"` in a controller action was equivalent to
+`render file: "foo/bar"`. In Rails 4.2, this has been changed to mean
+`render template: "foo/bar"` instead. If you need to render a file, please
+change your code to use the explicit form (`render file: "foo/bar"`) instead.
 
-### `respond_with` / class-level `respond_to`
+### `respond_with` / Class-Level `respond_to`
 
-`respond_with` and the corresponding class-level `respond_to` have been moved to
-the `responders` gem. To use the following, add `gem 'responders', '~> 2.0'` to
-your Gemfile:
+`respond_with` and the corresponding class-level `respond_to` have been moved
+to the [responders](https://github.com/plataformatec/responders) gem. Add
+`gem 'responders', '~> 2.0'` to your Gemfile to use it:
 
 ```ruby
 # app/controllers/users_controller.rb
@@ -191,61 +205,47 @@ class UsersController < ApplicationController
 end
 ```
 
-### Default host for `rails server`
+### Default Host for `rails server`
 
 Due to a [change in Rack](https://github.com/rack/rack/commit/28b014484a8ac0bbb388e7eaeeef159598ec64fc),
 `rails server` now listens on `localhost` instead of `0.0.0.0` by default. This
-should have minimal impact on the standard development workflow as both http://127.0.0.1:3000
-and http://localhost:3000 would continue to work as before on your own machine.
+should have minimal impact on the standard development workflow as both
+http://127.0.0.1:3000 and http://localhost:3000 will continue to work as before
+on your own machine.
 
-However, with this change you would no longer be able to access the Rails server
-from a different machine (e.g. your development environment is in a virtual
-machine and you would like to access it from the host machine), you would need
-to start the server with `rails server -b 0.0.0.0` to restore the old behavior.
+However, with this change you will no longer be able to access the Rails
+server from a different machine, for example if your development environment
+is in a virtual machine and you would like to access it from the host machine.
+In such cases, please start the server with `rails server -b 0.0.0.0` to
+restore the old behavior.
 
 If you do this, be sure to configure your firewall properly such that only
 trusted machines on your network can access your development server.
 
-### Production logging
-
-The default log level in the `production` environment is now `:debug`. This
-makes it consistent with the other environments, and ensures plenty of
-information is available to diagnose problems.
-
-It can be returned to the previous level, `:info`, in the environment
-configuration:
-
-```ruby
-# config/environments/production.rb
-
-# Decrease the log volume.
-config.log_level = :info
-```
-
 ### HTML Sanitizer
 
 The HTML sanitizer has been replaced with a new, more robust, implementation
-built upon Loofah and Nokogiri. The new sanitizer is more secure and its
-sanitization is more powerful and flexible.
+built upon [Loofah](https://github.com/flavorjones/loofah) and
+[Nokogiri](https://github.com/sparklemotion/nokogiri). The new sanitizer is
+more secure and its sanitization is more powerful and flexible.
 
-With a new sanitization algorithm, the sanitized output will change for certain
+Due to the new algorithm, the sanitized output may be different for certain
 pathological inputs.
 
-If you have particular need for the exact output of the old sanitizer, you can
-add `rails-deprecated_sanitizer` to your Gemfile, and it will automatically
-replace the new implementation. Because it is opt-in, the legacy gem will not
-give deprecation warnings.
+If you have a particular need for the exact output of the old sanitizer, you
+can add the [rails-deprecated_sanitizer](https://github.com/kaspth/rails-deprecated_sanitizer)
+gem to the `Gemfile`, to have the old behavior. The gem does not issue
+deprecation warnings because it is opt-in.
 
 `rails-deprecated_sanitizer` will be supported for Rails 4.2 only; it will not
 be maintained for Rails 5.0.
 
-See [the blog post](http://blog.plataformatec.com.br/2014/07/the-new-html-sanitizer-in-rails-4-2/)
-for more detail on the changes in the new sanitizer.
+See [this blog post](http://blog.plataformatec.com.br/2014/07/the-new-html-sanitizer-in-rails-4-2/)
+for more details on the changes in the new sanitizer.
 
 ### `assert_select`
 
-`assert_select` is now based on Nokogiri, making it (TODO: betterer).
-
+`assert_select` is now based on [Nokogiri](https://github.com/sparklemotion/nokogiri).
 As a result, some previously-valid selectors are now unsupported. If your
 application is using any of these spellings, you will need to update them:
 
@@ -253,8 +253,13 @@ application is using any of these spellings, you will need to update them:
     non-alphanumeric characters.
 
     ```
-    a[href=/]      =>     a[href="/"]
-    a[href$=/]     =>     a[href$="/"]
+    # before
+    a[href=/]
+    a[href$=/]
+
+    # now
+    a[href="/"]
+    a[href$="/"]
     ```
 
 *   DOMs built from HTML source containing invalid HTML with improperly
@@ -300,10 +305,23 @@ Please refer to the [Changelog][railties] for detailed changes.
 
 ### Removals
 
+*   The `--skip-action-view` option has been removed from the
+    app generator. ([Pull Request](https://github.com/rails/rails/pull/17042))
+
 *   The `rails application` command has been removed without replacement.
     ([Pull Request](https://github.com/rails/rails/pull/11616))
 
 ### Deprecations
+
+*   Deprecated missing `config.log_level` for production environments.
+    ([Pull Request](https://github.com/rails/rails/pull/16622))
+
+*   Deprecated `rake test:all` in favor of `rake test` as it now run all tests
+    in the `test` folder.
+    ([Pull Request](https://github.com/rails/rails/pull/17348))
+
+*   Deprecated `rake test:all:db` in favor of `rake test:db`.
+    ([Pull Request](https://github.com/rails/rails/pull/17348))
 
 *   Deprecated `Rails::Rack::LogTailer` without replacement.
     ([Commit](https://github.com/rails/rails/commit/84a13e019e93efaa8994b3f8303d635a7702dbce))
@@ -315,9 +333,6 @@ Please refer to the [Changelog][railties] for detailed changes.
 
 *   Added a `required` option to the model generator for associations.
     ([Pull Request](https://github.com/rails/rails/pull/16062))
-
-*   Introduced an `after_bundle` callback for use in Rails templates.
-    ([Pull Request](https://github.com/rails/rails/pull/16359))
 
 *   Introduced the `x` namespace for defining custom configuration options:
 
@@ -358,19 +373,22 @@ Please refer to the [Changelog][railties] for detailed changes.
 
     ([Pull Request](https://github.com/rails/rails/pull/16129))
 
-*   Introduced a `--skip-gems` option in the app generator to skip gems such as
-    `turbolinks` and `coffee-rails` that do not have their own specific flags.
-    ([Commit](https://github.com/rails/rails/commit/10565895805887d4faf004a6f71219da177f78b7))
+*   Introduced a `--skip-turbolinks` option in the app generator to not generate
+    turbolinks integration.
+    ([Commit](https://github.com/rails/rails/commit/bf17c8a531bc8059d50ad731398002a3e7162a7d))
 
-*   Introduced a `bin/setup` script to enable automated setup code when
+*   Introduced a `bin/setup` script as a convention for automated setup code when
     bootstrapping an application.
     ([Pull Request](https://github.com/rails/rails/pull/15189))
 
-*   Changed default value for `config.assets.digest` to `true` in development.
+*   Changed the default value for `config.assets.digest` to `true` in development.
     ([Pull Request](https://github.com/rails/rails/pull/15155))
 
 *   Introduced an API to register new extensions for `rake notes`.
     ([Pull Request](https://github.com/rails/rails/pull/14379))
+
+*   Introduced an `after_bundle` callback for use in Rails templates.
+    ([Pull Request](https://github.com/rails/rails/pull/16359))
 
 *   Introduced `Rails.gem_version` as a convenience method to return
     `Gem::Version.new(Rails.version)`.
@@ -384,10 +402,11 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 
 ### Removals
 
-*   `respond_with` and the class-level `respond_to` were removed from Rails and
+*   `respond_with` and the class-level `respond_to` have been removed from Rails and
     moved to the `responders` gem (version 2.0). Add `gem 'responders', '~> 2.0'`
     to your `Gemfile` to continue using these features.
-    ([Pull Request](https://github.com/rails/rails/pull/16526))
+    ([Pull Request](https://github.com/rails/rails/pull/16526),
+     [More Details](http://guides.rubyonrails.org/upgrading_ruby_on_rails.html#responders))
 
 *   Removed deprecated `AbstractController::Helpers::ClassMethods::MissingHelperError`
     in favor of `AbstractController::Helpers::MissingHelperError`.
@@ -403,7 +422,7 @@ Please refer to the [Changelog][action-pack] for detailed changes.
     ([Commit](https://github.com/rails/rails-dom-testing/commit/b12850bc5ff23ba4b599bf2770874dd4f11bf750))
 
 *   Deprecated support for setting the `:to` option of a router to a symbol or a
-    string that does not contain a `#` character:
+    string that does not contain a "#" character:
 
     ```ruby
     get '/posts', to: MyRackApp    => (No change necessary)
@@ -414,22 +433,22 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 
     ([Commit](https://github.com/rails/rails/commit/cc26b6b7bccf0eea2e2c1a9ebdcc9d30ca7390d9))
 
+*   Deprecated support for string keys in URL helpers:
+
+    ```ruby
+    # bad
+    root_path('controller' => 'posts', 'action' => 'index')
+
+    # good
+    root_path(controller: 'posts', action: 'index')
+    ```
+
+    ([Pull Request](https://github.com/rails/rails/pull/17743))
+
 ### Notable changes
 
-*   Rails will now automatically include the template's digest in ETags.
-    ([Pull Request](https://github.com/rails/rails/pull/16527))
-
-*   `render nothing: true` or rendering a `nil` body no longer add a single
-    space padding to the response body.
-    ([Pull Request](https://github.com/rails/rails/pull/14883))
-
-*   Introduced the `always_permitted_parameters` option to configure which
-    parameters are permitted globally. The default value of this configuration
-    is `['controller', 'action']`.
-    ([Pull Request](https://github.com/rails/rails/pull/15933))
-
-*   The `*_filter` family methods have been removed from the documentation. Their
-    usage is discouraged in favor of the `*_action` family methods:
+*   The `*_filter` family of methods have been removed from the documentation. Their
+    usage is discouraged in favor of the `*_action` family of methods:
 
     ```
     after_filter          => after_action
@@ -454,15 +473,27 @@ Please refer to the [Changelog][action-pack] for detailed changes.
     (Commit [1](https://github.com/rails/rails/commit/6c5f43bab8206747a8591435b2aa0ff7051ad3de),
     [2](https://github.com/rails/rails/commit/489a8f2a44dc9cea09154ee1ee2557d1f037c7d4))
 
-*   Added HTTP method `MKCALENDAR` from RFC-4791
+*   `render nothing: true` or rendering a `nil` body no longer add a single
+    space padding to the response body.
+    ([Pull Request](https://github.com/rails/rails/pull/14883))
+
+*   Rails now automatically includes the template's digest in ETags.
+    ([Pull Request](https://github.com/rails/rails/pull/16527))
+
+*   Segments that are passed into URL helpers are now automatically escaped.
+    ([Commit](https://github.com/rails/rails/commit/5460591f0226a9d248b7b4f89186bd5553e7768f))
+
+*   Introduced the `always_permitted_parameters` option to configure which
+    parameters are permitted globally. The default value of this configuration
+    is `['controller', 'action']`.
+    ([Pull Request](https://github.com/rails/rails/pull/15933))
+
+*   Added the HTTP method `MKCALENDAR` from [RFC 4791](https://tools.ietf.org/html/rfc4791).
     ([Pull Request](https://github.com/rails/rails/pull/15121))
 
 *   `*_fragment.action_controller` notifications now include the controller
     and action name in the payload.
     ([Pull Request](https://github.com/rails/rails/pull/14137))
-
-*   Segments that are passed into URL helpers are now automatically escaped.
-    ([Commit](https://github.com/rails/rails/commit/5460591f0226a9d248b7b4f89186bd5553e7768f))
 
 *   Improved the Routing Error page with fuzzy matching for route search.
     ([Pull Request](https://github.com/rails/rails/pull/14619))
@@ -471,28 +502,15 @@ Please refer to the [Changelog][action-pack] for detailed changes.
     ([Pull Request](https://github.com/rails/rails/pull/14280))
 
 *   When the Rails server is set to serve static assets, gzip assets will now be
-    served if the client supports it and a pre-generated gzip file (.gz) is on disk.
+    served if the client supports it and a pre-generated gzip file (`.gz`) is on disk.
     By default the asset pipeline generates `.gz` files for all compressible assets.
     Serving gzip files minimizes data transfer and speeds up asset requests. Always
     [use a CDN](http://guides.rubyonrails.org/asset_pipeline.html#cdns) if you are
     serving assets from your Rails server in production.
     ([Pull Request](https://github.com/rails/rails/pull/16466))
 
-*   The way `assert_select` works has changed; specifically a different library
-    is used to interpret css selectors, build the transient DOM that the
-    selectors are applied against, and to extract the data from that DOM. These
-    changes should only affect edge cases. Examples:
-    *  Values in attribute selectors may need to be quoted if they contain
-       non-alphanumeric characters.
-    *  DOMs built from HTML source containing invalid HTML with improperly
-       nested elements may differ.
-    *  If the data selected contains entities, the value selected for comparison
-       used to be raw (e.g. `AT&amp;T`), and now is evaluated
-       (e.g. `AT&T`).
-
-
 Action View
--------------
+-----------
 
 Please refer to the [Changelog][action-view] for detailed changes.
 
@@ -513,15 +531,15 @@ Please refer to the [Changelog][action-view] for detailed changes.
     `render file: "foo/bar"`.
     ([Pull Request](https://github.com/rails/rails/pull/16888))
 
-*   Introduced a `#{partial_name}_iteration` special local variable for use with
-    partials that are rendered with a collection. It provides access to the
-    current state of the iteration via the `#index`, `#size`, `#first?` and
-    `#last?` methods.
-    ([Pull Request](https://github.com/rails/rails/pull/7698))
-
 *   The form helpers no longer generate a `<div>` element with inline CSS around
     the hidden fields.
     ([Pull Request](https://github.com/rails/rails/pull/14738))
+
+*   Introduced a `#{partial_name}_iteration` special local variable for use with
+    partials that are rendered with a collection. It provides access to the
+    current state of the iteration via the `index`, `size`, `first?` and
+    `last?` methods.
+    ([Pull Request](https://github.com/rails/rails/pull/7698))
 
 *   Placeholder I18n follows the same convention as `label` I18n.
     ([Pull Request](https://github.com/rails/rails/pull/16438))
@@ -537,10 +555,14 @@ Please refer to the [Changelog][action-mailer] for detailed changes.
 *   Deprecated `*_path` helpers in mailers. Always use `*_url` helpers instead.
     ([Pull Request](https://github.com/rails/rails/pull/15840))
 
-*   Deprecated `deliver` / `deliver!` in favour of `deliver_now` / `deliver_now!`.
+*   Deprecated `deliver` / `deliver!` in favor of `deliver_now` / `deliver_now!`.
     ([Pull Request](https://github.com/rails/rails/pull/16582))
 
 ### Notable changes
+
+*   `link_to` and `url_for` generate absolute URLs by default in templates,
+    it is no longer needed to pass `only_path: false`.
+    ([Commit](https://github.com/rails/rails/commit/9685080a7677abfa5d288a81c3e078368c6bb67c))
 
 *   Introduced `deliver_later` which enqueues a job on the application's queue
     to deliver emails asynchronously.
@@ -570,7 +592,7 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Removed unused `:timestamp` type. Transparently alias it to `:datetime`
     in all cases. Fixes inconsistencies when column types are sent outside of
-    `ActiveRecord`, such as for XML serialization.
+    Active Record, such as for XML serialization.
     ([Pull Request](https://github.com/rails/rails/pull/15184))
 
 ### Deprecations
@@ -578,112 +600,116 @@ Please refer to the [Changelog][active-record] for detailed changes.
 *   Deprecated swallowing of errors inside `after_commit` and `after_rollback`.
     ([Pull Request](https://github.com/rails/rails/pull/16537))
 
-*   Deprecated calling `DatabaseTasks.load_schema` without a connection. Use
-    `DatabaseTasks.load_schema_current` instead.
-    ([Commit](https://github.com/rails/rails/commit/f15cef67f75e4b52fd45655d7c6ab6b35623c608))
-
-*   Deprecated `Reflection#source_macro` without replacement as it is no longer
-    needed in Active Record.
-    ([Pull Request](https://github.com/rails/rails/pull/16373))
-
 *   Deprecated broken support for automatic detection of counter caches on
     `has_many :through` associations. You should instead manually specify the
     counter cache on the `has_many` and `belongs_to` associations for the
     through records.
     ([Pull Request](https://github.com/rails/rails/pull/15754))
 
-*   Deprecated `serialized_attributes` without replacement.
-    ([Pull Request](https://github.com/rails/rails/pull/15704))
-
-*   Deprecated returning `nil` from `column_for_attribute` when no column
-    exists. It will return a null object in Rails 5.0
-    ([Pull Request](https://github.com/rails/rails/pull/15878))
-
-*   Deprecated using `.joins`, `.preload` and `.eager_load` with associations
-    that depends on the instance state (i.e. those defined with a scope that
-    takes an argument) without replacement.
-    ([Commit](https://github.com/rails/rails/commit/ed56e596a0467390011bc9d56d462539776adac1))
-
 *   Deprecated passing Active Record objects to `.find` or `.exists?`. Call
-    `#id` on the objects first.
+    `id` on the objects first.
     (Commit [1](https://github.com/rails/rails/commit/d92ae6ccca3bcfd73546d612efaea011270bd270),
     [2](https://github.com/rails/rails/commit/d35f0033c7dec2b8d8b52058fb8db495d49596f7))
 
 *   Deprecated half-baked support for PostgreSQL range values with excluding
     beginnings. We currently map PostgreSQL ranges to Ruby ranges. This conversion
-    is not fully possible because the Ruby range does not support excluded
-    beginnings.
+    is not fully possible because Ruby ranges do not support excluded beginnings.
 
     The current solution of incrementing the beginning is not correct
     and is now deprecated. For subtypes where we don't know how to increment
-    (e.g. `#succ` is not defined) it will raise an `ArgumentError` for ranges
+    (e.g. `succ` is not defined) it will raise an `ArgumentError` for ranges
     with excluding beginnings.
-
     ([Commit](https://github.com/rails/rails/commit/91949e48cf41af9f3e4ffba3e5eecf9b0a08bfc3))
 
+*   Deprecated calling `DatabaseTasks.load_schema` without a connection. Use
+    `DatabaseTasks.load_schema_current` instead.
+    ([Commit](https://github.com/rails/rails/commit/f15cef67f75e4b52fd45655d7c6ab6b35623c608))
+
+*   Deprecated `sanitize_sql_hash_for_conditions` without replacement. Using a
+    `Relation` for performing queries and updates is the preferred API.
+    ([Commit](https://github.com/rails/rails/commit/d5902c9e))
+
+*   Deprecated `Reflection#source_macro` without replacement as it is no longer
+    needed in Active Record.
+    ([Pull Request](https://github.com/rails/rails/pull/16373))
+
+*   Deprecated `serialized_attributes` without replacement.
+    ([Pull Request](https://github.com/rails/rails/pull/15704))
+
+*   Deprecated returning `nil` from `column_for_attribute` when no column
+    exists. It will return a null object in Rails 5.0.
+    ([Pull Request](https://github.com/rails/rails/pull/15878))
+
+*   Deprecated using `.joins`, `.preload` and `.eager_load` with associations
+    that depend on the instance state (i.e. those defined with a scope that
+    takes an argument) without replacement.
+    ([Commit](https://github.com/rails/rails/commit/ed56e596a0467390011bc9d56d462539776adac1))
+
 ### Notable changes
-
-*   The PostgreSQL adapter now supports the `JSONB` datatype in PostgreSQL 9.4+.
-    ([Pull Request](https://github.com/rails/rails/pull/16220))
-
-*   The `#references` method in migrations now supports a `type` option for
-    specifying the type of the foreign key (e.g. `:uuid`).
-    ([Pull Request](https://github.com/rails/rails/pull/16231))
 
 *   Added a `:required` option to singular associations, which defines a
     presence validation on the association.
     ([Pull Request](https://github.com/rails/rails/pull/16056))
 
-*   Introduced `ActiveRecord::Base#validate!` that raises `RecordInvalid` if the
-    record is invalid.
-    ([Pull Request](https://github.com/rails/rails/pull/8639))
-
-*   `ActiveRecord::Base#reload` now behaves the same as `m = Model.find(m.id)`,
-    meaning that it no longer retains the extra attributes from custom
-    `select`s.
-    ([Pull Request](https://github.com/rails/rails/pull/15866))
-
-*   Introduced the `bin/rake db:purge` task to empty the database for the
-    current environment.
-    ([Commit](https://github.com/rails/rails/commit/e2f232aba15937a4b9d14bd91e0392c6d55be58d))
-
 *   `ActiveRecord::Dirty` now detects in-place changes to mutable values.
-    Serialized attributes on ActiveRecord models will no longer save when
+    Serialized attributes on Active Record models are no longer saved when
     unchanged. This also works with other types such as string columns and json
     columns on PostgreSQL.
     (Pull Requests [1](https://github.com/rails/rails/pull/15674),
     [2](https://github.com/rails/rails/pull/15786),
     [3](https://github.com/rails/rails/pull/15788))
 
-*   Added support for `#pretty_print` in `ActiveRecord::Base` objects.
-    ([Pull Request](https://github.com/rails/rails/pull/15172))
+*   Introduced the `db:purge` Rake task to empty the database for the
+    current environment.
+    ([Commit](https://github.com/rails/rails/commit/e2f232aba15937a4b9d14bd91e0392c6d55be58d))
 
-*   PostgreSQL and SQLite adapters no longer add a default limit of 255
+*   Introduced `ActiveRecord::Base#validate!` that raises
+    `ActiveRecord::RecordInvalid` if the record is invalid.
+    ([Pull Request](https://github.com/rails/rails/pull/8639))
+
+*   Introduced `validate` as an alias for `valid?`.
+    ([Pull Request](https://github.com/rails/rails/pull/14456))
+
+*   `touch` now accepts multiple attributes to be touched at once.
+    ([Pull Request](https://github.com/rails/rails/pull/14423))
+
+*   The PostgreSQL adapter now supports the `jsonb` datatype in PostgreSQL 9.4+.
+    ([Pull Request](https://github.com/rails/rails/pull/16220))
+
+*   The PostgreSQL and SQLite adapters no longer add a default limit of 255
     characters on string columns.
     ([Pull Request](https://github.com/rails/rails/pull/14579))
+
+*   Added support for the `citext` column type in the PostgreSQL adapter.
+    ([Pull Request](https://github.com/rails/rails/pull/12523))
+
+*   Added support for user-created range types in the PostgreSQL adapter.
+    ([Commit](https://github.com/rails/rails/commit/4cb47167e747e8f9dc12b0ddaf82bdb68c03e032))
 
 *   `sqlite3:///some/path` now resolves to the absolute system path
     `/some/path`. For relative paths, use `sqlite3:some/path` instead.
     (Previously, `sqlite3:///some/path` resolved to the relative path
-    `some/path`. This behaviour was deprecated on Rails 4.1).
+    `some/path`. This behavior was deprecated on Rails 4.1).
     ([Pull Request](https://github.com/rails/rails/pull/14569))
-
-*   Introduced `#validate` as an alias for `#valid?`.
-    ([Pull Request](https://github.com/rails/rails/pull/14456))
-
-*   `#touch` now accepts multiple attributes to be touched at once.
-    ([Pull Request](https://github.com/rails/rails/pull/14423))
 
 *   Added support for fractional seconds for MySQL 5.6 and above.
     (Pull Request [1](https://github.com/rails/rails/pull/8240),
     [2](https://github.com/rails/rails/pull/14359))
 
-*   Added support for the `citext` column type in PostgreSQL adapter.
-    ([Pull Request](https://github.com/rails/rails/pull/12523))
+*   Added `ActiveRecord::Base#pretty_print` to pretty print models.
+    ([Pull Request](https://github.com/rails/rails/pull/15172))
 
-*   Added support for user-created range types in PostgreSQL adapter.
-    ([Commit](https://github.com/rails/rails/commit/4cb47167e747e8f9dc12b0ddaf82bdb68c03e032))
+*   `ActiveRecord::Base#reload` now behaves the same as `m = Model.find(m.id)`,
+    meaning that it no longer retains the extra attributes from custom
+    `SELECT`s.
+    ([Pull Request](https://github.com/rails/rails/pull/15866))
 
+*   `ActiveRecord::Base#reflections` now returns a hash with string keys instead
+    of symbol keys. ([Pull Request](https://github.com/rails/rails/pull/17718))
+
+*   The `references` method in migrations now supports a `type` option for
+    specifying the type of the foreign key (e.g. `:uuid`).
+    ([Pull Request](https://github.com/rails/rails/pull/16231))
 
 Active Model
 ------------
@@ -701,10 +727,13 @@ Please refer to the [Changelog][active-model] for detailed changes.
     ([Pull Request](https://github.com/rails/rails/pull/16180))
 
 *   Deprecated `ActiveModel::Dirty#reset_changes` in favor of
-    `#clear_changes_information`.
+    `clear_changes_information`.
     ([Pull Request](https://github.com/rails/rails/pull/16180))
 
 ### Notable changes
+
+*   Introduced `validate` as an alias for `valid?`.
+    ([Pull Request](https://github.com/rails/rails/pull/14456))
 
 *   Introduced the `restore_attributes` method in `ActiveModel::Dirty` to restore
     the changed (dirty) attributes to their previous values.
@@ -718,10 +747,6 @@ Please refer to the [Changelog][active-model] for detailed changes.
 *   `has_secure_password` now verifies that the given password is less than 72
     characters if validations are enabled.
     ([Pull Request](https://github.com/rails/rails/pull/15708))
-
-*   Introduced `#validate` as an alias for `#valid?`.
-    ([Pull Request](https://github.com/rails/rails/pull/14456))
-
 
 Active Support
 --------------
@@ -753,14 +778,14 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 ### Notable changes
 
-*   `Object#try` and `Object#try!` can now be used without an explicit receiver.
-    ([Commit](https://github.com/rails/rails/commit/5e51bdda59c9ba8e5faf86294e3e431bd45f1830),
-    [Pull Request](https://github.com/rails/rails/pull/17361))
-
-*   Introduced new configuration option `active_support.test_order` for
+*   Introduced a new configuration option `active_support.test_order` for
     specifying the order test cases are executed. This option currently defaults
     to `:sorted` but will be changed to `:random` in Rails 5.0.
     ([Commit](https://github.com/rails/rails/commit/53e877f7d9291b2bf0b8c425f9e32ef35829f35b))
+
+*   `Object#try` and `Object#try!` can now be used without an explicit receiver in the block.
+    ([Commit](https://github.com/rails/rails/commit/5e51bdda59c9ba8e5faf86294e3e431bd45f1830),
+    [Pull Request](https://github.com/rails/rails/pull/17361))
 
 *   The `travel_to` test helper now truncates the `usec` component to 0.
     ([Commit](https://github.com/rails/rails/commit/9f6e82ee4783e491c20f5244a613fdeb4024beb5))
@@ -769,7 +794,7 @@ Please refer to the [Changelog][active-support] for detailed changes.
     (Commit [1](https://github.com/rails/rails/commit/702ad710b57bef45b081ebf42e6fa70820fdd810),
     [2](https://github.com/rails/rails/commit/64d91122222c11ad3918cc8e2e3ebc4b0a03448a))
 
-*   `Object#with_options` can now be used without an explicit receiver.
+*   `Object#with_options` can now be used without an explicit receiver in the block.
     ([Pull Request](https://github.com/rails/rails/pull/16339))
 
 *   Introduced `String#truncate_words` to truncate a string by a number of words.

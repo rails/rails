@@ -88,6 +88,7 @@ module Rails
       def inherited(base)
         super
         Rails.app_class = base
+        add_lib_to_load_path!(find_root(base.called_from))
       end
 
       def instance
@@ -96,6 +97,10 @@ module Rails
 
       def create(initial_variable_values = {}, &block)
         new(initial_variable_values, &block).run_load_hooks!
+      end
+
+      def find_root(from)
+        find_root_with_flag "config.ru", from, Dir.pwd
       end
 
       # Makes the +new+ method public.
@@ -129,8 +134,6 @@ module Rails
       # are these actually used?
       @initial_variable_values = initial_variable_values
       @block = block
-
-      add_lib_to_load_path!
     end
 
     # Returns true if the application is initialized.
@@ -175,7 +178,7 @@ module Rails
           key_generator = ActiveSupport::KeyGenerator.new(secrets.secret_key_base, iterations: 1000)
           ActiveSupport::CachingKeyGenerator.new(key_generator)
         else
-          ActiveSupport::LegacyKeyGenerator.new(config.secret_token)
+          ActiveSupport::LegacyKeyGenerator.new(secrets.secret_token)
         end
     end
 
@@ -245,7 +248,7 @@ module Rails
         super.merge({
           "action_dispatch.parameter_filter" => config.filter_parameters,
           "action_dispatch.redirect_filter" => config.filter_redirect,
-          "action_dispatch.secret_token" => config.secret_token,
+          "action_dispatch.secret_token" => secrets.secret_token,
           "action_dispatch.secret_key_base" => secrets.secret_key_base,
           "action_dispatch.show_exceptions" => config.action_dispatch.show_exceptions,
           "action_dispatch.show_detailed_exceptions" => config.consider_all_requests_local,
@@ -313,8 +316,8 @@ module Rails
     # are changing config.root inside your application definition or having a custom
     # Rails application, you will need to add lib to $LOAD_PATH on your own in case
     # you need to load files in lib/ during the application configuration as well.
-    def add_lib_to_load_path! #:nodoc:
-      path = File.join config.root, 'lib'
+    def self.add_lib_to_load_path!(root) #:nodoc:
+      path = File.join root, 'lib'
       if File.exist?(path) && !$LOAD_PATH.include?(path)
         $LOAD_PATH.unshift(path)
       end
@@ -358,7 +361,7 @@ module Rails
     end
 
     def config #:nodoc:
-      @config ||= Application::Configuration.new(find_root_with_flag("config.ru", Dir.pwd))
+      @config ||= Application::Configuration.new(self.class.find_root(self.class.called_from))
     end
 
     def config=(configuration) #:nodoc:
@@ -378,6 +381,8 @@ module Rails
 
         # Fallback to config.secret_key_base if secrets.secret_key_base isn't set
         secrets.secret_key_base ||= config.secret_key_base
+        # Fallback to config.secret_token if secrets.secret_token isn't set
+        secrets.secret_token ||= config.secret_token
 
         secrets
       end
@@ -507,8 +512,13 @@ module Rails
     end
 
     def validate_secret_key_config! #:nodoc:
-      if secrets.secret_key_base.blank? && config.secret_token.blank?
-        raise "Missing `secret_key_base` for '#{Rails.env}' environment, set this value in `config/secrets.yml`"
+      if secrets.secret_key_base.blank?
+        ActiveSupport::Deprecation.warn "You didn't set `secret_key_base`. " +
+          "Read the upgrade documentation to learn more about this new config option."
+
+        if secrets.secret_token.blank?
+          raise "Missing `secret_token` and `secret_key_base` for '#{Rails.env}' environment, set these values in `config/secrets.yml`"
+        end
       end
     end
   end

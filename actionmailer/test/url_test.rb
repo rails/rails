@@ -23,9 +23,32 @@ class UrlTestMailer < ActionMailer::Base
     mail(to: recipient, subject: "[Signed up] Welcome #{recipient}",
       from: "system@loudthinking.com", date: Time.local(2004, 12, 12))
   end
+
+  def exercise_url_for(options)
+    @options = options
+    @url = url_for(@options)
+    mail(from: 'from@example.com', to: 'to@example.com', subject: 'subject')
+  end
 end
 
 class ActionMailerUrlTest < ActionMailer::TestCase
+  class DummyModel
+    def self.model_name
+      OpenStruct.new(route_key: 'dummy_model')
+    end
+
+    def persisted?
+      false
+    end
+
+    def model_name
+      self.class.model_name
+    end
+
+    def to_model
+      self
+    end
+  end
 
   def encode( text, charset="UTF-8" )
     quoted_printable( text, charset )
@@ -40,8 +63,45 @@ class ActionMailerUrlTest < ActionMailer::TestCase
     mail
   end
 
+  def assert_url_for(expected, options, relative = false)
+    expected = "http://www.basecamphq.com#{expected}" if expected.start_with?('/') && !relative
+    urls = UrlTestMailer.exercise_url_for(options).body.to_s.chomp.split
+
+    assert_equal expected, urls.first
+    assert_equal expected, urls.second
+  end
+
   def setup
     @recipient = 'test@localhost'
+  end
+
+  def test_url_for
+    UrlTestMailer.delivery_method = :test
+
+    AppRoutes.draw do
+      get ':controller(/:action(/:id))'
+      get '/welcome'  => 'foo#bar', as: 'welcome'
+      get '/dummy_model' => 'foo#baz', as: 'dummy_model'
+    end
+
+    # string
+    assert_url_for 'http://foo/', 'http://foo/'
+
+    # symbol
+    assert_url_for '/welcome', :welcome
+
+    # hash
+    assert_url_for '/a/b/c', controller: 'a', action: 'b', id: 'c'
+    assert_url_for '/a/b/c', {controller: 'a', action: 'b', id: 'c', only_path: true}, true
+
+    # model
+    assert_url_for '/dummy_model', DummyModel.new
+
+    # class
+    assert_url_for '/dummy_model', DummyModel
+
+    # array
+    assert_url_for '/dummy_model' , [DummyModel]
   end
 
   def test_signed_up_with_url

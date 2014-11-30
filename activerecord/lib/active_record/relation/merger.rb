@@ -118,18 +118,6 @@ module ActiveRecord
         where_values = kept + rhs_wheres
         bind_values  = filter_binds(lhs_binds, removed) + rhs_binds
 
-        conn = relation.klass.connection
-        bv_index = 0
-        where_values.map! do |node|
-          if Arel::Nodes::Equality === node && Arel::Nodes::BindParam === node.right
-            substitute = conn.substitute_at(bind_values[bv_index].first, bv_index)
-            bv_index += 1
-            Arel::Nodes::Equality.new(node.left, substitute)
-          else
-            node
-          end
-        end
-
         relation.where_values = where_values
         relation.bind_values  = bind_values
 

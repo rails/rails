@@ -27,7 +27,7 @@ module ActiveRecord
           <<-EOMETHOD
           def #{method_name}
             name = ::ActiveRecord::AttributeMethods::AttrNames::ATTR_#{const_name}
-            read_attribute(name) { |n| missing_attribute(n, caller) }
+            _read_attribute(name) { |n| missing_attribute(n, caller) }
           end
           EOMETHOD
         end
@@ -64,7 +64,7 @@ module ActiveRecord
             generated_attribute_methods.module_eval <<-STR, __FILE__, __LINE__ + 1
               def #{temp_method}
                 name = ::ActiveRecord::AttributeMethods::AttrNames::ATTR_#{safe_name}
-                read_attribute(name) { |n| missing_attribute(n, caller) }
+                _read_attribute(name) { |n| missing_attribute(n, caller) }
               end
             STR
 
@@ -76,19 +76,27 @@ module ActiveRecord
         end
       end
 
+      ID = 'id'.freeze
+
       # Returns the value of the attribute identified by <tt>attr_name</tt> after
       # it has been typecast (for example, "2004-12-12" in a date column is cast
       # to a date object, like Date.new(2004, 12, 12)).
       def read_attribute(attr_name, &block)
         name = attr_name.to_s
-        name = self.class.primary_key if name == 'id'
-        @attributes.fetch_value(name, &block)
+        name = self.class.primary_key if name == ID
+        _read_attribute(name, &block)
+      end
+
+      # This method exists to avoid the expensive primary_key check internally, without
+      # breaking compatibility with the read_attribute API
+      def _read_attribute(attr_name) # :nodoc:
+        @attributes.fetch_value(attr_name.to_s) { |n| yield n if block_given? }
       end
 
       private
 
       def attribute(attribute_name)
-        read_attribute(attribute_name)
+        _read_attribute(attribute_name)
       end
     end
   end

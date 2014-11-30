@@ -1864,6 +1864,30 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
+  def test_form_for_enforce_utf8_true
+    form_for(:post, enforce_utf8: true) do |f|
+      concat f.text_field(:title)
+    end
+
+    expected = whole_form("/", nil, nil, enforce_utf8: true) do
+      "<input name='post[title]' type='text' id='post_title' value='Hello World' />"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_for_enforce_utf8_false
+    form_for(:post, enforce_utf8: false) do |f|
+      concat f.text_field(:title)
+    end
+
+    expected = whole_form("/", nil, nil, enforce_utf8: false) do
+      "<input name='post[title]' type='text' id='post_title' value='Hello World' />"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
   def test_form_for_with_remote_in_html
     form_for(@post, url: '/', html: { remote: true, id: 'create-post', method: :patch }) do |f|
       concat f.text_field(:title)
@@ -3313,8 +3337,14 @@ class FormHelperTest < ActionView::TestCase
 
   protected
 
-  def hidden_fields(method = nil)
-    txt = %{<input name="utf8" type="hidden" value="&#x2713;" />}
+  def hidden_fields(options = {})
+    method = options[:method]
+
+    if options.fetch(:enforce_utf8, true)
+      txt = %{<input name="utf8" type="hidden" value="&#x2713;" />}
+    else
+      txt = ''
+    end
 
     if method && !%w(get post).include?(method.to_s)
       txt << %{<input name="_method" type="hidden" value="#{method}" />}
@@ -3338,7 +3368,7 @@ class FormHelperTest < ActionView::TestCase
 
     method, remote, multipart = options.values_at(:method, :remote, :multipart)
 
-    form_text(action, id, html_class, remote, multipart, method) + hidden_fields(method) + contents + "</form>"
+    form_text(action, id, html_class, remote, multipart, method) + hidden_fields(options.slice :method, :enforce_utf8) + contents + "</form>"
   end
 
   def protect_against_forgery?

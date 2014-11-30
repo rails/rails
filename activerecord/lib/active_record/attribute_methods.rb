@@ -332,7 +332,7 @@ module ActiveRecord
     #   task.attribute_present?(:title)   # => true
     #   task.attribute_present?(:is_done) # => true
     def attribute_present?(attribute)
-      value = read_attribute(attribute)
+      value = _read_attribute(attribute)
       !value.nil? && !(value.respond_to?(:empty?) && value.empty?)
     end
 
@@ -433,7 +433,7 @@ module ActiveRecord
     end
 
     def typecasted_attribute_value(name)
-      read_attribute(name)
+      _read_attribute(name)
     end
   end
 end

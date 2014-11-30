@@ -231,7 +231,7 @@ module ActiveRecord
       end
 
       def attributes_builder # :nodoc:
-        @attributes_builder ||= AttributeSet::Builder.new(column_types)
+        @attributes_builder ||= AttributeSet::Builder.new(column_types, primary_key)
       end
 
       def column_types # :nodoc:
@@ -257,7 +257,7 @@ module ActiveRecord
 
       # Returns an array of column names as strings.
       def column_names
-        @column_names ||= columns.map { |column| column.name }
+        @column_names ||= columns.map(&:name)
       end
 
       # Returns an array of column objects where the primary id, all columns ending in "_id" or "_count",

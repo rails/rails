@@ -84,7 +84,6 @@ module ActiveRecord
       um = relation
         .arel
         .compile_update(substitutes, @klass.primary_key)
-      reorder_bind_params(um.ast, bvs)
 
       @klass.connection.update(
         um,
@@ -99,7 +98,7 @@ module ActiveRecord
       end
 
       substitutes = values.each_with_index.map do |(arel_attr, _), i|
-        [arel_attr, @klass.connection.substitute_at(binds[i][0], i)]
+        [arel_attr, @klass.connection.substitute_at(binds[i][0])]
       end
 
       [substitutes, binds]
@@ -305,11 +304,11 @@ module ActiveRecord
       klass.current_scope = previous
     end
 
-    # Updates all records with details given if they match a set of conditions supplied, limits and order can
-    # also be supplied. This method constructs a single SQL UPDATE statement and sends it straight to the
-    # database. It does not instantiate the involved models and it does not trigger Active Record callbacks
-    # or validations. Values passed to `update_all` will not go through ActiveRecord's type-casting behavior.
-    # It should receive only values that can be passed as-is to the SQL database.
+    # Updates all records in the current relation with details given. This method constructs a single SQL UPDATE
+    # statement and sends it straight to the database. It does not instantiate the involved models and it does not
+    # trigger Active Record callbacks or validations. Values passed to `update_all` will not go through
+    # ActiveRecord's type-casting behavior. It should receive only values that can be passed as-is to the SQL
+    # database.
     #
     # ==== Parameters
     #
@@ -328,7 +327,7 @@ module ActiveRecord
     def update_all(updates)
       raise ArgumentError, "Empty list of attributes to change" if updates.blank?
 
-      stmt = Arel::UpdateManager.new(arel.engine)
+      stmt = Arel::UpdateManager.new
 
       stmt.set Arel.sql(@klass.send(:sanitize_sql_for_assignment, updates))
       stmt.table(table)
@@ -401,7 +400,7 @@ module ActiveRecord
       if conditions
         where(conditions).destroy_all
       else
-        to_a.each {|object| object.destroy }.tap { reset }
+        to_a.each(&:destroy).tap { reset }
       end
     end
 
@@ -466,7 +465,7 @@ module ActiveRecord
       if conditions
         where(conditions).delete_all
       else
-        stmt = Arel::DeleteManager.new(arel.engine)
+        stmt = Arel::DeleteManager.new
         stmt.from(table)
 
         if joins_values.any?
@@ -640,15 +639,19 @@ module ActiveRecord
 
       preload = preload_values
       preload +=  includes_values unless eager_loading?
-      preloader = ActiveRecord::Associations::Preloader.new
+      preloader = build_preloader
       preload.each do |associations|
         preloader.preload @records, associations
       end
 
-      @records.each { |record| record.readonly! } if readonly_value
+      @records.each(&:readonly!) if readonly_value
 
       @loaded = true
       @records
+    end
+
+    def build_preloader
+      ActiveRecord::Associations::Preloader.new
     end
 
     def references_eager_loaded_tables?
@@ -663,7 +666,7 @@ module ActiveRecord
       joined_tables += [table.name, table.table_alias]
 
       # always convert table names to downcase as in Oracle quoted table names are in uppercase
-      joined_tables = joined_tables.flatten.compact.map { |t| t.downcase }.uniq
+      joined_tables = joined_tables.flatten.compact.map(&:downcase).uniq
 
       (references_values - joined_tables).any?
     end
@@ -672,7 +675,7 @@ module ActiveRecord
       return [] if string.blank?
       # always convert table names to downcase as in Oracle quoted table names are in uppercase
       # ignore raw_sql_ that is used by Oracle adapter as alias for limit/offset subqueries
-      string.scan(/([a-zA-Z_][.\w]+).?\./).flatten.map{ |s| s.downcase }.uniq - ['raw_sql_']
+      string.scan(/([a-zA-Z_][.\w]+).?\./).flatten.map(&:downcase).uniq - ['raw_sql_']
     end
   end
 end

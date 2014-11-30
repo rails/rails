@@ -9,29 +9,26 @@ env:
   matrix:
     - "GEM=railties"
     - "GEM=ap"
-    - "GEM=am,amo,as,av,aj"
+    - "GEM=aj"
+    - "GEM=am,amo,as,av"
     - "GEM=ar:mysql"
     - "GEM=ar:mysql2"
     - "GEM=ar:sqlite3"
     - "GEM=ar:postgresql"
     - "GEM=aj:integration"
 rvm:
-  - 1.9.3
-  - 2.0.0
   - 2.1
   - ruby-head
   - rbx-2
   - jruby
 matrix:
   allow_failures:
-    - rvm: 1.9.3
-      env: "GEM=ar:mysql"
-    - rvm: 2.0.0
-      env: "GEM=ar:mysql"
     - rvm: ruby-head
       env: "GEM=ar:mysql"
     - rvm: rbx-2
     - rvm: jruby
+    - env: "GEM=aj"
+    - env: "GEM=aj:integration"
   fast_finish: true
 notifications:
   email: false

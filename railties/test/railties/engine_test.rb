@@ -518,7 +518,7 @@ YAML
 
       def call(env)
         response = @app.call(env)
-        response[2].each { |b| b.upcase! }
+        response[2].each(&:upcase!)
         response
       end
     end

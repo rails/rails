@@ -52,10 +52,29 @@ module ActiveRecord
   # Raised by ActiveRecord::Base.save! and ActiveRecord::Base.create! methods when record cannot be
   # saved because record is invalid.
   class RecordNotSaved < ActiveRecordError
+    attr_reader :record
+
+    def initialize(message, record = nil)
+      @record = record
+      super(message)
+    end
   end
 
   # Raised by ActiveRecord::Base.destroy! when a call to destroy would return false.
+  #
+  #   begin
+  #     complex_operation_that_internally_calls_destroy!
+  #   rescue ActiveRecord::RecordNotDestroyed => invalid
+  #     puts invalid.record.errors
+  #   end
+  #
   class RecordNotDestroyed < ActiveRecordError
+    attr_reader :record
+
+    def initialize(record)
+      @record = record
+      super()
+    end
   end
 
   # Superclass for all database execution errors.
@@ -177,6 +196,7 @@ module ActiveRecord
   # offending attribute.
   class AttributeAssignmentError < ActiveRecordError
     attr_reader :exception, :attribute
+
     def initialize(message, exception, attribute)
       super(message)
       @exception = exception
@@ -189,6 +209,7 @@ module ActiveRecord
   # objects, each corresponding to the error while assigning to an attribute.
   class MultiparameterAssignmentErrors < ActiveRecordError
     attr_reader :errors
+
     def initialize(errors)
       @errors = errors
     end

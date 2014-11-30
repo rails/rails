@@ -35,10 +35,10 @@ module ActionDispatch
 
       if env['action_dispatch.show_detailed_exceptions']
         request = Request.new(env)
-        traces = traces_from_wrapper(wrapper)
+        traces = wrapper.traces
 
         trace_to_show = 'Application Trace'
-        if traces[trace_to_show].empty?
+        if traces[trace_to_show].empty? && wrapper.rescue_template != 'routing_error'
           trace_to_show = 'Full Trace'
         end
 
@@ -53,7 +53,7 @@ module ActionDispatch
           show_source_idx: source_to_show_id,
           trace_to_show: trace_to_show,
           routes_inspector: routes_inspector(exception),
-          source_extract: wrapper.source_extract,
+          source_extracts: wrapper.source_extracts,
           line_number: wrapper.line_number,
           file: wrapper.file
         )
@@ -105,34 +105,6 @@ module ActionDispatch
       if @routes_app.respond_to?(:routes) && (exception.is_a?(ActionController::RoutingError) || exception.is_a?(ActionView::Template::Error))
         ActionDispatch::Routing::RoutesInspector.new(@routes_app.routes.routes)
       end
-    end
-
-    # Augment the exception traces by providing ids for all unique stack frame
-    def traces_from_wrapper(wrapper)
-      application_trace = wrapper.application_trace
-      framework_trace   = wrapper.framework_trace
-      full_trace        = wrapper.full_trace
-
-      appplication_trace_with_ids = []
-      framework_trace_with_ids = []
-      full_trace_with_ids = []
-
-      if full_trace
-        full_trace.each_with_index do |trace, idx|
-          id_trace = {
-            id: idx,
-            trace: trace
-          }
-          appplication_trace_with_ids << id_trace if application_trace.include? trace
-          framework_trace_with_ids << id_trace if framework_trace.include? trace
-          full_trace_with_ids << id_trace
-        end
-      end
-      {
-        "Application Trace" => appplication_trace_with_ids,
-        "Framework Trace" => framework_trace_with_ids,
-        "Full Trace" => full_trace_with_ids
-      }
     end
   end
 end

@@ -205,7 +205,10 @@ module ActiveSupport #:nodoc:
     # Object includes this module.
     module Loadable #:nodoc:
       def self.exclude_from(base)
-        base.class_eval { define_method(:load, Kernel.instance_method(:load)) }
+        base.class_eval do
+          define_method(:load, Kernel.instance_method(:load))
+          private :load
+        end
       end
 
       def require_or_load(file_name)
@@ -241,18 +244,6 @@ module ActiveSupport #:nodoc:
         raise
       end
 
-      def load(file, wrap = false)
-        result = false
-        load_dependency(file) { result = super }
-        result
-      end
-
-      def require(file)
-        result = false
-        load_dependency(file) { result = super }
-        result
-      end
-
       # Mark the given constant as unloadable. Unloadable constants are removed
       # each time dependencies are cleared.
       #
@@ -268,6 +259,20 @@ module ActiveSupport #:nodoc:
       # +false+ otherwise.
       def unloadable(const_desc)
         Dependencies.mark_for_unload const_desc
+      end
+
+      private
+
+      def load(file, wrap = false)
+        result = false
+        load_dependency(file) { result = super }
+        result
+      end
+
+      def require(file)
+        result = false
+        load_dependency(file) { result = super }
+        result
       end
     end
 
@@ -737,7 +742,7 @@ module ActiveSupport #:nodoc:
     protected
       def log_call(*args)
         if log_activity?
-          arg_str = args.collect { |arg| arg.inspect } * ', '
+          arg_str = args.collect(&:inspect) * ', '
           /in `([a-z_\?\!]+)'/ =~ caller(1).first
           selector = $1 || '<unknown>'
           log "called #{selector}(#{arg_str})"

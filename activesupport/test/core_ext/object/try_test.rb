@@ -52,11 +52,11 @@ class ObjectTryTest < ActiveSupport::TestCase
   end
 
   def test_try_only_block
-    assert_equal @string.reverse, @string.try { |s| s.reverse }
+    assert_equal @string.reverse, @string.try(&:reverse)
   end
 
   def test_try_only_block_bang
-    assert_equal @string.reverse, @string.try! { |s| s.reverse }
+    assert_equal @string.reverse, @string.try!(&:reverse)
   end
 
   def test_try_only_block_nil

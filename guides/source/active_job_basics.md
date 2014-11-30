@@ -23,7 +23,7 @@ clean-ups, to billing charges, to mailings. Anything that can be chopped up
 into small units of work and run in parallel, really.
 
 
-The Purpose of the Active Job
+The Purpose of Active Job
 -----------------------------
 The main point is to ensure that all Rails apps will have a job infrastructure
 in place, even if it's in the form of an "immediate runner". We can then have
@@ -55,9 +55,6 @@ You can also create a job that will run on a specific queue:
 ```bash
 $ bin/rails generate job guests_cleanup --queue urgent
 ```
-
-As you can see, you can generate jobs just like you use other generators with
-Rails.
 
 If you don't want to use a generator, you could create your own file inside of
 `app/jobs`, just make sure that it inherits from `ActiveJob::Base`.
@@ -107,14 +104,19 @@ Active Job has built-in adapters for multiple queueing backends (Sidekiq,
 Resque, Delayed Job and others). To get an up-to-date list of the adapters
 see the API Documentation for [ActiveJob::QueueAdapters](http://api.rubyonrails.org/classes/ActiveJob/QueueAdapters.html).
 
-### Changing the Backend
+### Setting the Backend
 
-You can easily change your queueing backend:
+You can easily set your queueing backend:
 
 ```ruby
-# be sure to have the adapter gem in your Gemfile and follow
-# the adapter specific installation and deployment instructions
-config.active_job.queue_adapter = :sidekiq
+# config/application.rb
+module YourApp
+  class Application < Rails::Application
+    # Be sure to have the adapter's gem in your Gemfile and follow
+    # the adapter's specific installation and deployment instructions.
+    config.active_job.queue_adapter = :sidekiq
+  end
+end
 ```
 
 
@@ -149,7 +151,7 @@ class GuestsCleanupJob < ActiveJob::Base
 end
 
 # Now your job will run on queue production_low_priority on your
-# production environment and on beta_low_priority on your beta
+# production environment and on staging_low_priority on your staging
 # environment
 ```
 
@@ -248,7 +250,7 @@ end
 ```
 
 
-ActionMailer
+Action Mailer
 ------------
 
 One of the most common jobs in a modern web application is sending emails outside

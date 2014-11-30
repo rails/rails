@@ -124,8 +124,8 @@ module ActiveRecord
       # which is one of the following:
       # <tt>:primary_key</tt>, <tt>:string</tt>, <tt>:text</tt>,
       # <tt>:integer</tt>, <tt>:float</tt>, <tt>:decimal</tt>,
-      # <tt>:datetime</tt>, <tt>:timestamp</tt>, <tt>:time</tt>,
-      # <tt>:date</tt>, <tt>:binary</tt>, <tt>:boolean</tt>.
+      # <tt>:datetime</tt>, <tt>:time</tt>, <tt>:date</tt>,
+      # <tt>:binary</tt>, <tt>:boolean</tt>.
       #
       # You may use a type not in this list as long as it is supported by your
       # database (for example, "polygon" in MySQL), but this will not be database
@@ -226,7 +226,7 @@ module ActiveRecord
       #     t.integer :shop_id, :creator_id
       #     t.string  :item_number, index: true
       #     t.string  :name, :value, default: "Untitled"
-      #     t.timestamps
+      #     t.timestamps null: false
       #   end
       #
       # There's a short-hand method for each of the type values declared at the top. And then there's
@@ -287,7 +287,9 @@ module ActiveRecord
       end
 
       # Appends <tt>:datetime</tt> columns <tt>:created_at</tt> and
-      # <tt>:updated_at</tt> to the table.
+      # <tt>:updated_at</tt> to the table. See SchemaStatements#add_timestamps
+      #
+      #   t.timestamps null: false
       def timestamps(*args)
         options = args.extract_options!
         emit_warning_if_null_unspecified(options)
@@ -412,10 +414,10 @@ module ActiveRecord
     #   end
     #
     class Table
-      include TimestampDefaultDeprecation
+      attr_reader :name
 
       def initialize(table_name, base)
-        @table_name = table_name
+        @name = table_name
         @base = base
       end
 
@@ -425,12 +427,12 @@ module ActiveRecord
       # ====== Creating a simple column
       #  t.column(:name, :string)
       def column(column_name, type, options = {})
-        @base.add_column(@table_name, column_name, type, options)
+        @base.add_column(name, column_name, type, options)
       end
 
       # Checks to see if a column exists. See SchemaStatements#column_exists?
       def column_exists?(column_name, type = nil, options = {})
-        @base.column_exists?(@table_name, column_name, type, options)
+        @base.column_exists?(name, column_name, type, options)
       end
 
       # Adds a new index to the table. +column_name+ can be a single Symbol, or
@@ -443,27 +445,26 @@ module ActiveRecord
       # ====== Creating a named index
       #  t.index([:branch_id, :party_id], unique: true, name: 'by_branch_party')
       def index(column_name, options = {})
-        @base.add_index(@table_name, column_name, options)
+        @base.add_index(name, column_name, options)
       end
 
       # Checks to see if an index exists. See SchemaStatements#index_exists?
       def index_exists?(column_name, options = {})
-        @base.index_exists?(@table_name, column_name, options)
+        @base.index_exists?(name, column_name, options)
       end
 
       # Renames the given index on the table.
       #
       #  t.rename_index(:user_id, :account_id)
       def rename_index(index_name, new_index_name)
-        @base.rename_index(@table_name, index_name, new_index_name)
+        @base.rename_index(name, index_name, new_index_name)
       end
 
       # Adds timestamps (+created_at+ and +updated_at+) columns to the table. See SchemaStatements#add_timestamps
       #
-      #  t.timestamps
+      #  t.timestamps null: false
       def timestamps(options = {})
-        emit_warning_if_null_unspecified(options)
-        @base.add_timestamps(@table_name, options)
+        @base.add_timestamps(name, options)
       end
 
       # Changes the column's definition according to the new options.
@@ -472,7 +473,7 @@ module ActiveRecord
       #  t.change(:name, :string, limit: 80)
       #  t.change(:description, :text)
       def change(column_name, type, options = {})
-        @base.change_column(@table_name, column_name, type, options)
+        @base.change_column(name, column_name, type, options)
       end
 
       # Sets a new default value for a column. See SchemaStatements#change_column_default
@@ -480,7 +481,7 @@ module ActiveRecord
       #  t.change_default(:qualification, 'new')
       #  t.change_default(:authorized, 1)
       def change_default(column_name, default)
-        @base.change_column_default(@table_name, column_name, default)
+        @base.change_column_default(name, column_name, default)
       end
 
       # Removes the column(s) from the table definition.
@@ -488,7 +489,7 @@ module ActiveRecord
       #  t.remove(:qualification)
       #  t.remove(:qualification, :experience)
       def remove(*column_names)
-        @base.remove_columns(@table_name, *column_names)
+        @base.remove_columns(name, *column_names)
       end
 
       # Removes the given index from the table.
@@ -502,21 +503,21 @@ module ActiveRecord
       # ====== Remove the index named by_branch_party in the table_name table
       #   t.remove_index name: :by_branch_party
       def remove_index(options = {})
-        @base.remove_index(@table_name, options)
+        @base.remove_index(name, options)
       end
 
       # Removes the timestamp columns (+created_at+ and +updated_at+) from the table.
       #
       #  t.remove_timestamps
       def remove_timestamps
-        @base.remove_timestamps(@table_name)
+        @base.remove_timestamps(name)
       end
 
       # Renames a column.
       #
       #  t.rename(:description, :name)
       def rename(column_name, new_column_name)
-        @base.rename_column(@table_name, column_name, new_column_name)
+        @base.rename_column(name, column_name, new_column_name)
       end
 
       # Adds a reference. Optionally adds a +type+ column, if <tt>:polymorphic</tt> option is provided.
@@ -531,7 +532,7 @@ module ActiveRecord
       def references(*args)
         options = args.extract_options!
         args.each do |ref_name|
-          @base.add_reference(@table_name, ref_name, options)
+          @base.add_reference(name, ref_name, options)
         end
       end
       alias :belongs_to :references
@@ -546,7 +547,7 @@ module ActiveRecord
       def remove_references(*args)
         options = args.extract_options!
         args.each do |ref_name|
-          @base.remove_reference(@table_name, ref_name, options)
+          @base.remove_reference(name, ref_name, options)
         end
       end
       alias :remove_belongs_to :remove_references
@@ -558,8 +559,8 @@ module ActiveRecord
       [:string, :text, :integer, :float, :decimal, :datetime, :timestamp, :time, :date, :binary, :boolean].each do |column_type|
         define_method column_type do |*args|
           options = args.extract_options!
-          args.each do |name|
-            @base.add_column(@table_name, name, column_type, options)
+          args.each do |column_name|
+            @base.add_column(name, column_name, column_type, options)
           end
         end
       end

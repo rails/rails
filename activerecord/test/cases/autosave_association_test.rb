@@ -4,6 +4,7 @@ require 'models/comment'
 require 'models/company'
 require 'models/customer'
 require 'models/developer'
+require 'models/computer'
 require 'models/invoice'
 require 'models/line_item'
 require 'models/order'
@@ -773,13 +774,13 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
   def test_should_destroy_has_many_as_part_of_the_save_transaction_if_they_were_marked_for_destruction
     2.times { |i| @pirate.birds.create!(:name => "birds_#{i}") }
 
-    assert !@pirate.birds.any? { |child| child.marked_for_destruction? }
+    assert !@pirate.birds.any?(&:marked_for_destruction?)
 
-    @pirate.birds.each { |child| child.mark_for_destruction }
+    @pirate.birds.each(&:mark_for_destruction)
     klass = @pirate.birds.first.class
     ids = @pirate.birds.map(&:id)
 
-    assert @pirate.birds.all? { |child| child.marked_for_destruction? }
+    assert @pirate.birds.all?(&:marked_for_destruction?)
     ids.each { |id| assert klass.find_by_id(id) }
 
     @pirate.save
@@ -813,14 +814,14 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
     @pirate.birds.each { |bird| bird.name = '' }
     assert !@pirate.valid?
 
-    @pirate.birds.each { |bird| bird.destroy }
+    @pirate.birds.each(&:destroy)
     assert @pirate.valid?
   end
 
   def test_a_child_marked_for_destruction_should_not_be_destroyed_twice_while_saving_has_many
     @pirate.birds.create!(:name => "birds_1")
 
-    @pirate.birds.each { |bird| bird.mark_for_destruction }
+    @pirate.birds.each(&:mark_for_destruction)
     assert @pirate.save
 
     @pirate.birds.each { |bird| bird.expects(:destroy).never }
@@ -887,7 +888,7 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
       association_name_with_callbacks = "birds_with_#{callback_type}_callbacks"
 
       @pirate.send(association_name_with_callbacks).create!(:name => "Crowe the One-Eyed")
-      @pirate.send(association_name_with_callbacks).each { |c| c.mark_for_destruction }
+      @pirate.send(association_name_with_callbacks).each(&:mark_for_destruction)
       child_id = @pirate.send(association_name_with_callbacks).first.id
 
       @pirate.ship_log.clear
@@ -905,8 +906,8 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
   def test_should_destroy_habtm_as_part_of_the_save_transaction_if_they_were_marked_for_destruction
     2.times { |i| @pirate.parrots.create!(:name => "parrots_#{i}") }
 
-    assert !@pirate.parrots.any? { |parrot| parrot.marked_for_destruction? }
-    @pirate.parrots.each { |parrot| parrot.mark_for_destruction }
+    assert !@pirate.parrots.any?(&:marked_for_destruction?)
+    @pirate.parrots.each(&:mark_for_destruction)
 
     assert_no_difference "Parrot.count" do
       @pirate.save
@@ -939,14 +940,14 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
     @pirate.parrots.each { |parrot| parrot.name = '' }
     assert !@pirate.valid?
 
-    @pirate.parrots.each { |parrot| parrot.destroy }
+    @pirate.parrots.each(&:destroy)
     assert @pirate.valid?
   end
 
   def test_a_child_marked_for_destruction_should_not_be_destroyed_twice_while_saving_habtm
     @pirate.parrots.create!(:name => "parrots_1")
 
-    @pirate.parrots.each { |parrot| parrot.mark_for_destruction }
+    @pirate.parrots.each(&:mark_for_destruction)
     assert @pirate.save
 
     Pirate.transaction do
@@ -991,7 +992,7 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
       association_name_with_callbacks = "parrots_with_#{callback_type}_callbacks"
 
       @pirate.send(association_name_with_callbacks).create!(:name => "Crowe the One-Eyed")
-      @pirate.send(association_name_with_callbacks).each { |c| c.mark_for_destruction }
+      @pirate.send(association_name_with_callbacks).each(&:mark_for_destruction)
       child_id = @pirate.send(association_name_with_callbacks).first.id
 
       @pirate.ship_log.clear

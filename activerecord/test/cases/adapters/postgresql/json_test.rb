@@ -1,10 +1,10 @@
 # encoding: utf-8
-
 require "cases/helper"
-require 'active_record/base'
-require 'active_record/connection_adapters/postgresql_adapter'
+require 'support/schema_dumping_helper'
 
 module PostgresqlJSONSharedTestCases
+  include SchemaDumpingHelper
+
   class JsonDataType < ActiveRecord::Base
     self.table_name = 'json_data_type'
 
@@ -62,6 +62,11 @@ module PostgresqlJSONSharedTestCases
     end
   ensure
     JsonDataType.reset_column_information
+  end
+
+  def test_schema_dumping
+    output = dump_table_schema("json_data_type")
+    assert_match(/t.#{column_type.to_s}\s+"payload",\s+default: {}/, output)
   end
 
   def test_cast_value_on_write

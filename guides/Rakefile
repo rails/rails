@@ -34,9 +34,11 @@ namespace :guides do
   task :help do
     puts <<-help
 
-Guides are taken from the source directory, and the resulting HTML goes into the
+Guides are taken from the source directory, and the result goes into the
 output directory. Assets are stored under files, and copied to output/files as
 part of the generation process.
+
+You can generate HTML, Kindle or both formats using the `guides:generate` task.
 
 All this process is handled via rake tasks, here's a full list of them:
 

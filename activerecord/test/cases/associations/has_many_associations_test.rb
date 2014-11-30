@@ -1,5 +1,6 @@
 require "cases/helper"
 require 'models/developer'
+require 'models/computer'
 require 'models/project'
 require 'models/company'
 require 'models/contract'
@@ -74,6 +75,32 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_operator dev.developer_projects.count, :>, 0
     assert_equal named.projects.map(&:id).sort,
                  dev.developer_projects.map(&:project_id).sort
+  end
+
+  def test_default_scope_on_relations_is_not_cached
+    counter = 0
+    posts = Class.new(ActiveRecord::Base) {
+      self.table_name = 'posts'
+      self.inheritance_column = 'not_there'
+      post = self
+
+      comments = Class.new(ActiveRecord::Base) {
+        self.table_name = 'comments'
+        self.inheritance_column = 'not_there'
+        belongs_to :post, :class => post
+        default_scope -> {
+          counter += 1
+          where("id = :inc", :inc => counter)
+        }
+      }
+      has_many :comments, :class => comments, :foreign_key => 'post_id'
+    }
+    assert_equal 0, counter
+    post = posts.first
+    assert_equal 0, counter
+    sql = capture_sql { post.comments.to_a }
+    post.comments.reset
+    assert_not_equal sql, capture_sql { post.comments.to_a }
   end
 
   def test_has_many_build_with_options
@@ -387,6 +414,13 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal "Summit", Firm.all.merge!(:order => "id").first.clients_using_primary_key.first.name
   end
 
+  def test_update_all_on_association_accessed_before_save
+    firm = Firm.new(name: 'Firm')
+    firm.clients << Client.first
+    firm.save!
+    assert_equal firm.clients.count, firm.clients.update_all(description: 'Great!')
+  end
+
   def test_belongs_to_sanity
     c = Client.new
     assert_nil c.firm, "belongs_to failed sanity check on new object"
@@ -555,17 +589,21 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_create_with_bang_on_has_many_when_parent_is_new_raises
-    assert_raise(ActiveRecord::RecordNotSaved) do
+    error = assert_raise(ActiveRecord::RecordNotSaved) do
       firm = Firm.new
       firm.plain_clients.create! :name=>"Whoever"
     end
+
+    assert_equal "You cannot call create unless the parent is saved", error.message
   end
 
   def test_regular_create_on_has_many_when_parent_is_new_raises
-    assert_raise(ActiveRecord::RecordNotSaved) do
+    error = assert_raise(ActiveRecord::RecordNotSaved) do
       firm = Firm.new
       firm.plain_clients.create :name=>"Whoever"
     end
+
+    assert_equal "You cannot call create unless the parent is saved", error.message
   end
 
   def test_create_with_bang_on_has_many_raises_when_record_not_saved
@@ -576,9 +614,11 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_create_with_bang_on_habtm_when_parent_is_new_raises
-    assert_raise(ActiveRecord::RecordNotSaved) do
+    error = assert_raise(ActiveRecord::RecordNotSaved) do
       Developer.new("name" => "Aredridel").projects.create!
     end
+
+    assert_equal "You cannot call create unless the parent is saved", error.message
   end
 
   def test_adding_a_mismatch_class
@@ -1179,7 +1219,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert !clients.empty?, "37signals has clients after load"
     destroyed = companies(:first_firm).clients_of_firm.destroy_all
     assert_equal clients.sort_by(&:id), destroyed.sort_by(&:id)
-    assert destroyed.all? { |client| client.frozen? }, "destroyed clients should be frozen"
+    assert destroyed.all?(&:frozen?), "destroyed clients should be frozen"
     assert companies(:first_firm).clients_of_firm.empty?, "37signals has no clients after destroy all"
     assert companies(:first_firm).clients_of_firm(true).empty?, "37signals has no clients after destroy all and refresh"
   end
@@ -1319,10 +1359,13 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     assert !account.valid?
     assert !orig_accounts.empty?
-    assert_raise ActiveRecord::RecordNotSaved do
+    error = assert_raise ActiveRecord::RecordNotSaved do
       firm.accounts = [account]
     end
+
     assert_equal orig_accounts, firm.accounts
+    assert_equal "Failed to replace accounts because one or more of the " \
+                 "new records could not be saved.", error.message
   end
 
   def test_replace_with_same_content
@@ -1895,6 +1938,14 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal [bulb1, bulb2], car.all_bulbs.sort_by(&:id)
   end
 
+  test 'unscopes the default scope of associated model when used with include' do
+    car = Car.create!
+    bulb = Bulb.create! name: "other", car: car
+
+    assert_equal bulb, Car.find(car.id).all_bulbs.first
+    assert_equal bulb, Car.includes(:all_bulbs).find(car.id).all_bulbs.first
+  end
+
   test "raises RecordNotDestroyed when replaced child can't be destroyed" do
     car = Car.create!
     original_child = FailedBulb.create!(car: car)
@@ -1954,5 +2005,69 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     assert_equal 1, car.bulbs.count
     assert_equal 1, car.tyres.count
+  end
+
+  test 'associations replace in memory when records have the same id' do
+    bulb = Bulb.create!
+    car = Car.create!(bulbs: [bulb])
+
+    new_bulb = Bulb.find(bulb.id)
+    new_bulb.name = "foo"
+    car.bulbs = [new_bulb]
+
+    assert_equal "foo", car.bulbs.first.name
+  end
+
+  test 'in memory replacement executes no queries' do
+    bulb = Bulb.create!
+    car = Car.create!(bulbs: [bulb])
+
+    new_bulb = Bulb.find(bulb.id)
+
+    assert_no_queries do
+      car.bulbs = [new_bulb]
+    end
+  end
+
+  test 'in memory replacements do not execute callbacks' do
+    raise_after_add = false
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = :cars
+      has_many :bulbs, after_add: proc { raise if raise_after_add }
+
+      def self.name
+        "Car"
+      end
+    end
+    bulb = Bulb.create!
+    car = klass.create!(bulbs: [bulb])
+
+    new_bulb = Bulb.find(bulb.id)
+    raise_after_add = true
+
+    assert_nothing_raised do
+      car.bulbs = [new_bulb]
+    end
+  end
+
+  test 'in memory replacements sets inverse instance' do
+    bulb = Bulb.create!
+    car = Car.create!(bulbs: [bulb])
+
+    new_bulb = Bulb.find(bulb.id)
+    car.bulbs = [new_bulb]
+
+    assert_same car, new_bulb.car
+  end
+
+  test 'in memory replacement maintains order' do
+    first_bulb = Bulb.create!
+    second_bulb = Bulb.create!
+    car = Car.create!(bulbs: [first_bulb, second_bulb])
+
+    same_bulb = Bulb.find(first_bulb.id)
+    car.bulbs = [second_bulb, same_bulb]
+
+    assert_equal [first_bulb, second_bulb], car.bulbs
   end
 end

@@ -15,8 +15,8 @@ module ActiveRecord
         case value
         when ::Numeric, ActiveSupport::Duration then value.to_s
         when ::String then ::String.new(value)
-        when true then "1"
-        when false then "0"
+        when true then "t"
+        when false then "f"
         else super
         end
       end
@@ -25,8 +25,8 @@ module ActiveRecord
 
       def cast_value(value)
         case value
-        when true then "1"
-        when false then "0"
+        when true then "t"
+        when false then "f"
         # String.new is slightly faster than dup
         else ::String.new(value.to_s)
         end

@@ -266,6 +266,12 @@ class StringInflectionsTest < ActiveSupport::TestCase
     assert_equal "This is a good day to die", original
   end
 
+  def test_remove_for_multiple_occurrences
+    original = "This is a good day to die to die"
+    assert_equal "This is a good day", original.remove(" to die")
+    assert_equal "This is a good day to die to die", original
+  end
+
   def test_remove!
     original = "This is a very good day to die"
     assert_equal "This is a good day to die", original.remove!(" very")
@@ -275,15 +281,11 @@ class StringInflectionsTest < ActiveSupport::TestCase
   end
 
   def test_constantize
-    run_constantize_tests_on do |string|
-      string.constantize
-    end
+    run_constantize_tests_on(&:constantize)
   end
 
   def test_safe_constantize
-    run_safe_constantize_tests_on do |string|
-      string.safe_constantize
-    end
+    run_safe_constantize_tests_on(&:safe_constantize)
   end
 end
 
@@ -414,11 +416,11 @@ class StringConversionsTest < ActiveSupport::TestCase
   end
 
   def test_partial_string_to_time
-    with_env_tz "Europe/Moscow" do
+    with_env_tz "Europe/Moscow" do # use timezone which does not observe DST.
       now = Time.now
       assert_equal Time.local(now.year, now.month, now.day, 23, 50), "23:50".to_time
       assert_equal Time.utc(now.year, now.month, now.day, 23, 50), "23:50".to_time(:utc)
-      assert_equal Time.local(now.year, now.month, now.day, 18, 50), "13:50 -0100".to_time
+      assert_equal Time.local(now.year, now.month, now.day, 17, 50), "13:50 -0100".to_time
       assert_equal Time.utc(now.year, now.month, now.day, 23, 50), "22:50 -0100".to_time(:utc)
     end
   end

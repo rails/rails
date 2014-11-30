@@ -25,8 +25,7 @@ module AbstractController
 
         path = klass.new.fun_path({:controller => :articles,
                                    :baz        => "baz",
-                                   :zot        => "zot",
-                                   :only_path  => true })
+                                   :zot        => "zot"})
         # :bar key isn't provided
         assert_equal '/foo/zot', path
       end
@@ -52,6 +51,20 @@ module AbstractController
       def test_anchor
         assert_equal('/c/a#anchor',
           W.new.url_for(:only_path => true, :controller => 'c', :action => 'a', :anchor => 'anchor')
+        )
+      end
+
+      def test_nil_anchor
+        assert_equal(
+          '/c/a',
+          W.new.url_for(only_path: true, controller: 'c', action: 'a', anchor: nil)
+        )
+      end
+
+      def test_false_anchor
+        assert_equal(
+          '/c/a',
+          W.new.url_for(only_path: true, controller: 'c', action: 'a', anchor: false)
         )
       end
 
@@ -277,6 +290,13 @@ module AbstractController
         end
       end
 
+      def test_using_nil_script_name_properly_concats_with_original_script_name
+        add_host!
+        assert_equal('https://www.basecamphq.com/subdir/c/a/i',
+          W.new.url_for(:controller => 'c', :action => 'a', :id => 'i', :protocol => 'https', :script_name => nil, :original_script_name => '/subdir')
+        )
+      end
+
       def test_only_path
         with_routing do |set|
           set.draw do
@@ -291,7 +311,7 @@ module AbstractController
           assert_equal '/brave/new/world',
             controller.url_for(:controller => 'brave', :action => 'new', :id => 'world', :only_path => true)
 
-          assert_equal("/home/sweet/home/alabama", controller.home_path(:user => 'alabama', :host => 'unused', :only_path => true))
+          assert_equal("/home/sweet/home/alabama", controller.home_path(:user => 'alabama', :host => 'unused'))
           assert_equal("/home/sweet/home/alabama", controller.home_path('alabama'))
         end
       end

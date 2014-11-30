@@ -237,13 +237,10 @@ module Rails
 
         gems = []
         if options.dev? || options.edge?
-          gems << GemfileEntry.github('sprockets-rails', 'rails/sprockets-rails',
-                                    'Use edge version of sprockets-rails')
           gems << GemfileEntry.github('sass-rails', 'rails/sass-rails',
                                     'Use SCSS for stylesheets')
         else
-          gems << GemfileEntry.version('sass-rails',
-                                     '~> 5.0.0.beta1',
+          gems << GemfileEntry.version('sass-rails', '~> 4.0',
                                      'Use SCSS for stylesheets')
         end
 
@@ -278,14 +275,8 @@ module Rails
           []
         else
           gems = [coffee_gemfile_entry, javascript_runtime_gemfile_entry]
-
-          if options[:javascript] == 'jquery'
-            gems << GemfileEntry.version('jquery-rails', '~> 4.0.0.beta2',
-                                         'Use jQuery as the JavaScript library')
-          else
-            gems << GemfileEntry.version("#{options[:javascript]}-rails", nil,
-                                         "Use #{options[:javascript]} as the JavaScript library")
-          end
+          gems << GemfileEntry.version("#{options[:javascript]}-rails", nil,
+                                       "Use #{options[:javascript]} as the JavaScript library")
 
           unless options[:skip_turbolinks]
             gems << GemfileEntry.version("turbolinks", nil,
@@ -342,7 +333,7 @@ module Rails
       end
 
       def spring_install?
-        !options[:skip_spring] && Process.respond_to?(:fork)
+        !options[:skip_spring] && Process.respond_to?(:fork) && !RUBY_PLATFORM.include?("cygwin")
       end
 
       def run_bundle

@@ -1,41 +1,38 @@
 # encoding: utf-8
-
 require "cases/helper"
-require 'active_record/base'
-require 'active_record/connection_adapters/postgresql_adapter'
 
-class PostgresqlHstoreTest < ActiveRecord::TestCase
-  class Hstore < ActiveRecord::Base
-    self.table_name = 'hstores'
+if ActiveRecord::Base.connection.supports_extensions?
+  class PostgresqlHstoreTest < ActiveRecord::TestCase
+    class Hstore < ActiveRecord::Base
+      self.table_name = 'hstores'
 
-    store_accessor :settings, :language, :timezone
-  end
-
-  def setup
-    @connection = ActiveRecord::Base.connection
-
-    unless @connection.extension_enabled?('hstore')
-      @connection.enable_extension 'hstore'
-      @connection.commit_db_transaction
+      store_accessor :settings, :language, :timezone
     end
 
-    @connection.reconnect!
+    def setup
+      @connection = ActiveRecord::Base.connection
 
-    @connection.transaction do
-      @connection.create_table('hstores') do |t|
-        t.hstore 'tags', :default => ''
-        t.hstore 'payload', array: true
-        t.hstore 'settings'
+      unless @connection.extension_enabled?('hstore')
+        @connection.enable_extension 'hstore'
+        @connection.commit_db_transaction
       end
+
+      @connection.reconnect!
+
+      @connection.transaction do
+        @connection.create_table('hstores') do |t|
+          t.hstore 'tags', :default => ''
+          t.hstore 'payload', array: true
+          t.hstore 'settings'
+        end
+      end
+      @column = Hstore.columns_hash['tags']
     end
-    @column = Hstore.columns_hash['tags']
-  end
 
-  teardown do
-    @connection.execute 'drop table if exists hstores'
-  end
+    teardown do
+      @connection.execute 'drop table if exists hstores'
+    end
 
-  if ActiveRecord::Base.connection.supports_extensions?
     def test_hstore_included_in_extensions
       assert @connection.respond_to?(:extensions), "connection should have a list of extensions"
       assert @connection.extensions.include?('hstore'), "extension list should include hstore"
@@ -315,10 +312,8 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
       dupe = record.dup
       assert_equal({"one" => "two"}, dupe.tags.to_hash)
     end
-  end
 
-  private
-
+    private
     def assert_array_cycle(array)
       # test creation
       x = Hstore.create!(payload: array)
@@ -346,4 +341,5 @@ class PostgresqlHstoreTest < ActiveRecord::TestCase
       x.reload
       assert_equal(hash, x.tags)
     end
+  end
 end

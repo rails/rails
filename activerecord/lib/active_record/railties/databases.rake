@@ -305,7 +305,7 @@ db_namespace = namespace :db do
     end
 
     # desc "Recreate the test database from the current schema"
-    task :load => %w(db:test:deprecated db:test:purge) do
+    task :load => %w(db:test:purge) do
       case ActiveRecord::Base.schema_format
         when :ruby
           db_namespace["test:load_schema"].invoke
@@ -315,7 +315,7 @@ db_namespace = namespace :db do
     end
 
     # desc "Recreate the test database from an existent schema.rb file"
-    task :load_schema => %w(db:test:deprecated db:test:purge) do
+    task :load_schema => %w(db:test:purge) do
       begin
         should_reconnect = ActiveRecord::Base.connection_pool.active_connection?
         ActiveRecord::Schema.verbose = false
@@ -328,7 +328,7 @@ db_namespace = namespace :db do
     end
 
     # desc "Recreate the test database from an existent structure.sql file"
-    task :load_structure => %w(db:test:deprecated db:test:purge) do
+    task :load_structure => %w(db:test:purge) do
       ActiveRecord::Tasks::DatabaseTasks.load_schema_for ActiveRecord::Base.configurations['test'], :sql, ENV['SCHEMA']
     end
 
@@ -349,12 +349,12 @@ db_namespace = namespace :db do
     task :clone_structure => %w(db:test:deprecated db:structure:dump db:test:load_structure)
 
     # desc "Empty the test database"
-    task :purge => %w(db:test:deprecated environment load_config) do
+    task :purge => %w(environment load_config) do
       ActiveRecord::Tasks::DatabaseTasks.purge ActiveRecord::Base.configurations['test']
     end
 
     # desc 'Check for pending migrations and load the test schema'
-    task :prepare => %w(db:test:deprecated environment load_config) do
+    task :prepare => %w(environment load_config) do
       unless ActiveRecord::Base.configurations.blank?
         db_namespace['test:load'].invoke
       end
@@ -366,7 +366,7 @@ namespace :railties do
   namespace :install do
     # desc "Copies missing migrations from Railties (e.g. engines). You can specify Railties to use with FROM=railtie1,railtie2"
     task :migrations => :'db:load_config' do
-      to_load = ENV['FROM'].blank? ? :all : ENV['FROM'].split(",").map {|n| n.strip }
+      to_load = ENV['FROM'].blank? ? :all : ENV['FROM'].split(",").map(&:strip)
       railties = {}
       Rails.application.migration_railties.each do |railtie|
         next unless to_load == :all || to_load.include?(railtie.railtie_name)

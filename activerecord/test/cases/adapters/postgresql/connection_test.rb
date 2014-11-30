@@ -177,9 +177,7 @@ module ActiveRecord
         "successfully querying with the same connection pid."
 
       # Repair all fixture connections so other tests won't break.
-      @fixture_connections.each do |c|
-        c.verify!
-      end
+      @fixture_connections.each(&:verify!)
     end
 
     def test_set_session_variable_true

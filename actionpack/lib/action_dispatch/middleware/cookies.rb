@@ -71,11 +71,13 @@ module ActionDispatch
   #   restrict to the domain level. If you use a schema like www.example.com
   #   and want to share session with user.example.com set <tt>:domain</tt>
   #   to <tt>:all</tt>. Make sure to specify the <tt>:domain</tt> option with
-  #   <tt>:all</tt> again when deleting cookies.
+  #   <tt>:all</tt> or <tt>Array</tt> again when deleting cookies.
   #
   #     domain: nil  # Does not sets cookie domain. (default)
   #     domain: :all # Allow the cookie for the top most level
   #                  # domain and subdomains.
+  #     domain: %w(.example.com .example.org) # Allow the cookie
+  #                                           # for concrete domain names.
   #
   # * <tt>:expires</tt> - The time at which this cookie expires, as a \Time object.
   # * <tt>:secure</tt> - Whether this cookie is only transmitted to HTTPS servers.
@@ -120,7 +122,7 @@ module ActionDispatch
       # the cookie again. This is useful for creating cookies with values that the user is not supposed to change. If a signed
       # cookie was tampered with by the user (or a 3rd party), nil will be returned.
       #
-      # If +secrets.secret_key_base+ and +config.secret_token+ (deprecated) are both set,
+      # If +secrets.secret_key_base+ and +secrets.secret_token+ (deprecated) are both set,
       # legacy cookies signed with the old key generator will be transparently upgraded.
       #
       # This jar requires that you set a suitable secret for the verification on your app's +secrets.secret_key_base+.
@@ -143,7 +145,7 @@ module ActionDispatch
       # Returns a jar that'll automatically encrypt cookie values before sending them to the client and will decrypt them for read.
       # If the cookie was tampered with by the user (or a 3rd party), nil will be returned.
       #
-      # If +secrets.secret_key_base+ and +config.secret_token+ (deprecated) are both set,
+      # If +secrets.secret_key_base+ and +secrets.secret_token+ (deprecated) are both set,
       # legacy cookies signed with the old key generator will be transparently upgraded.
       #
       # This jar requires that you set a suitable secret for the verification on your app's +secrets.secret_key_base+.
@@ -479,7 +481,7 @@ module ActionDispatch
     end
 
     # UpgradeLegacySignedCookieJar is used instead of SignedCookieJar if
-    # config.secret_token and secrets.secret_key_base are both set. It reads
+    # secrets.secret_token and secrets.secret_key_base are both set. It reads
     # legacy cookies signed with the old dummy key generator and re-saves
     # them using the new key generator to provide a smooth upgrade path.
     class UpgradeLegacySignedCookieJar < SignedCookieJar #:nodoc:
@@ -537,7 +539,7 @@ module ActionDispatch
     end
 
     # UpgradeLegacyEncryptedCookieJar is used by ActionDispatch::Session::CookieStore
-    # instead of EncryptedCookieJar if config.secret_token and secrets.secret_key_base
+    # instead of EncryptedCookieJar if secrets.secret_token and secrets.secret_key_base
     # are both set. It reads legacy cookies signed with the old dummy key generator and
     # encrypts and re-saves them using the new key generator to provide a smooth upgrade path.
     class UpgradeLegacyEncryptedCookieJar < EncryptedCookieJar #:nodoc:

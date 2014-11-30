@@ -35,7 +35,7 @@ module ActionView
           end
         end
 
-        BLOCK_EXPR = /\s+(do|\{)(\s*\|[^|]*\|)?\s*\Z/
+        BLOCK_EXPR = /\s*((\s+|\))do|\{)(\s*\|[^|]*\|)?\s*\Z/
 
         def add_expr_literal(src, code)
           flush_newline_if_pending(src)

@@ -143,6 +143,7 @@ module TestHelpers
         config.active_support.deprecation = :log
         config.active_support.test_order = :random
         config.action_controller.allow_forgery_protection = false
+        config.log_level = :info
       RUBY
     end
 
@@ -162,6 +163,8 @@ module TestHelpers
       app.secrets.secret_key_base = "3b7cd727ee24e8444053437c36cc66c4"
       app.config.session_store :cookie_store, key: "_myapp_session"
       app.config.active_support.deprecation = :log
+      app.config.active_support.test_order = :random
+      app.config.log_level = :info
 
       yield app if block_given?
       app.initialize!
@@ -228,6 +231,15 @@ module TestHelpers
     def script(script)
       Dir.chdir(app_path) do
         `#{Gem.ruby} #{app_path}/bin/rails #{script}`
+      end
+    end
+
+    def add_to_top_of_config(str)
+      environment = File.read("#{app_path}/config/application.rb")
+      if environment =~ /(Rails::Application\s*)/
+        File.open("#{app_path}/config/application.rb", 'w') do |f|
+          f.puts $` + $1 + "\n#{str}\n" + $'
+        end
       end
     end
 

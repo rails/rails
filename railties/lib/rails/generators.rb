@@ -153,7 +153,7 @@ module Rails
     def self.invoke(namespace, args=ARGV, config={})
       names = namespace.to_s.split(':')
       if klass = find_by_namespace(names.pop, names.any? && names.join(':'))
-        args << "--help" if args.empty? && klass.arguments.any? { |a| a.required? }
+        args << "--help" if args.empty? && klass.arguments.any?(&:required?)
         klass.start(args, config)
       else
         options     = sorted_groups.map(&:last).flatten
@@ -226,7 +226,7 @@ module Rails
 
     def self.public_namespaces
       lookup!
-      subclasses.map { |k| k.namespace }
+      subclasses.map(&:namespace)
     end
 
     def self.print_generators

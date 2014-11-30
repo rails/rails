@@ -292,7 +292,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       assert_equal({}, cookies.to_hash)
       assert_equal "OK", body
       assert_equal "OK", response.body
-      assert_kind_of Nokogiri::HTML::DocumentFragment, html_document
+      assert_kind_of Nokogiri::HTML::Document, html_document
       assert_equal 1, request_count
     end
   end
@@ -308,7 +308,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       assert_equal({}, cookies.to_hash)
       assert_equal "Created", body
       assert_equal "Created", response.body
-      assert_kind_of Nokogiri::HTML::DocumentFragment, html_document
+      assert_kind_of Nokogiri::HTML::Document, html_document
       assert_equal 1, request_count
     end
   end
@@ -368,7 +368,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       assert_response :redirect
       assert_response :found
       assert_equal "<html><body>You are being <a href=\"http://www.example.com/get\">redirected</a>.</body></html>", response.body
-      assert_kind_of Nokogiri::HTML::DocumentFragment, html_document
+      assert_kind_of Nokogiri::HTML::Document, html_document
       assert_equal 1, request_count
 
       follow_redirect!
@@ -812,5 +812,41 @@ class HeadWithStatusActionIntegrationTest < ActionDispatch::IntegrationTest
       get '/foo/status'
     end
     assert_response :ok
+  end
+end
+
+class IntegrationWithRoutingTest < ActionDispatch::IntegrationTest
+  class FooController < ActionController::Base
+    def index
+      render plain: 'ok'
+    end
+  end
+
+  def test_with_routing_resets_session
+    klass_namespace = self.class.name.underscore
+
+    with_routing do |routes|
+      routes.draw do
+        namespace klass_namespace do
+          resources :foo, path: '/with'
+        end
+      end
+
+      get '/integration_with_routing_test/with'
+      assert_response 200
+      assert_equal 'ok', response.body
+    end
+
+    with_routing do |routes|
+      routes.draw do
+        namespace klass_namespace do
+          resources :foo, path: '/routing'
+        end
+      end
+
+      get '/integration_with_routing_test/routing'
+      assert_response 200
+      assert_equal 'ok', response.body
+    end
   end
 end

@@ -1,4 +1,6 @@
 require "cases/helper"
+require 'models/developer'
+require 'models/computer'
 
 class CallbackDeveloper < ActiveRecord::Base
   self.table_name = 'developers'
@@ -441,7 +443,8 @@ class CallbacksTest < ActiveRecord::TestCase
     david = ImmutableDeveloper.find(1)
     assert david.valid?
     assert !david.save
-    assert_raise(ActiveRecord::RecordNotSaved) { david.save! }
+    exc = assert_raise(ActiveRecord::RecordNotSaved) { david.save! }
+    assert_equal exc.record, david
 
     david = ImmutableDeveloper.find(1)
     david.salary = 10_000_000
@@ -475,7 +478,8 @@ class CallbacksTest < ActiveRecord::TestCase
   def test_before_destroy_returning_false
     david = ImmutableDeveloper.find(1)
     assert !david.destroy
-    assert_raise(ActiveRecord::RecordNotDestroyed) { david.destroy! }
+    exc = assert_raise(ActiveRecord::RecordNotDestroyed) { david.destroy! }
+    assert_equal exc.record, david
     assert_not_nil ImmutableDeveloper.find_by_id(1)
 
     someone = CallbackCancellationDeveloper.find(1)

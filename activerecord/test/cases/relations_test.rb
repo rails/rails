@@ -7,6 +7,7 @@ require 'models/comment'
 require 'models/author'
 require 'models/entrant'
 require 'models/developer'
+require 'models/computer'
 require 'models/reply'
 require 'models/company'
 require 'models/bird'
@@ -248,7 +249,7 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_finding_with_reorder
     topics = Topic.order('author_name').order('title').reorder('id').to_a
-    topics_titles = topics.map{ |t| t.title }
+    topics_titles = topics.map(&:title)
     assert_equal ['The First Topic', 'The Second Topic of the day', 'The Third Topic of the day', 'The Fourth Topic of the day', 'The Fifth Topic of the day'], topics_titles
   end
 
@@ -440,7 +441,7 @@ class RelationTest < ActiveRecord::TestCase
       where('project_id=1').to_a
 
     assert_equal 3, developers_on_project_one.length
-    developer_names = developers_on_project_one.map { |d| d.name }
+    developer_names = developers_on_project_one.map(&:name)
     assert developer_names.include?('David')
     assert developer_names.include?('Jamis')
   end
@@ -651,8 +652,8 @@ class RelationTest < ActiveRecord::TestCase
     expected_taggings = taggings(:welcome_general, :thinking_general)
 
     assert_no_queries do
-      assert_equal expected_taggings, author.taggings.distinct.sort_by { |t| t.id }
-      assert_equal expected_taggings, author.taggings.uniq.sort_by { |t| t.id }
+      assert_equal expected_taggings, author.taggings.distinct.sort_by(&:id)
+      assert_equal expected_taggings, author.taggings.uniq.sort_by(&:id)
     end
 
     authors = Author.all
@@ -1702,7 +1703,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_unscope_removes_binds
-    left  = Post.where(id: Arel::Nodes::BindParam.new('?'))
+    left  = Post.where(id: Arel::Nodes::BindParam.new)
     column = Post.columns_hash['id']
     left.bind_values += [[column, 20]]
 

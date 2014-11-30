@@ -184,8 +184,8 @@ module ActiveRecord
   # you wish to downgrade. Alternatively, you can also use the STEP option if you
   # wish to rollback last few migrations. <tt>rake db:migrate STEP=2</tt> will rollback
   # the latest two migrations.
-  # 
-  # If any of the migrations throw an <tt>ActiveRecord::IrreversibleMigration</tt> exception, 
+  #
+  # If any of the migrations throw an <tt>ActiveRecord::IrreversibleMigration</tt> exception,
   # that step will fail and you'll have some manual work to do.
   #
   # == Database support
@@ -395,7 +395,14 @@ module ActiveRecord
 
       def load_schema_if_pending!
         if ActiveRecord::Migrator.needs_migration? || !ActiveRecord::Migrator.any_migrations?
-          ActiveRecord::Tasks::DatabaseTasks.load_schema_current_if_exists
+          # Roundrip to Rake to allow plugins to hook into database initialization.
+          FileUtils.cd Rails.root do
+            current_config = Base.connection_config
+            Base.clear_all_connections!
+            system("bin/rake db:test:prepare")
+            # Establish a new connection, the old database may be gone (db:test:prepare uses purge)
+            Base.establish_connection(current_config)
+          end
           check_pending!
         end
       end
@@ -640,7 +647,7 @@ module ActiveRecord
     end
 
     def method_missing(method, *arguments, &block)
-      arg_list = arguments.map{ |a| a.inspect } * ', '
+      arg_list = arguments.map(&:inspect) * ', '
 
       say_with_time "#{method}(#{arg_list})" do
         unless @connection.respond_to? :revert

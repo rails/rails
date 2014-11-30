@@ -427,14 +427,12 @@ module ActiveRecord
     #   => SELECT "users".* FROM "users" LEFT JOIN bookmarks ON bookmarks.bookmarkable_type = 'Post' AND bookmarks.user_id = users.id
     def joins(*args)
       check_if_method_has_arguments!(:joins, args)
-
-      args.compact!
-      args.flatten!
-
       spawn.joins!(*args)
     end
 
     def joins!(*args) # :nodoc:
+      args.compact!
+      args.flatten!
       self.joins_values += args
       self
     end
@@ -860,7 +858,7 @@ module ActiveRecord
     private
 
     def build_arel
-      arel = Arel::SelectManager.new(table.engine, table)
+      arel = Arel::SelectManager.new(table)
 
       build_joins(arel, joins_values.flatten) unless joins_values.empty?
 
@@ -881,17 +879,7 @@ module ActiveRecord
       arel.from(build_from) if from_value
       arel.lock(lock_value) if lock_value
 
-      # Reorder bind indexes if joins produced bind values
-      bvs = arel.bind_values + bind_values
-      reorder_bind_params(arel.ast, bvs)
       arel
-    end
-
-    def reorder_bind_params(ast, bvs)
-      ast.grep(Arel::Nodes::BindParam).each_with_index do |bp, i|
-        column = bvs[i].first
-        bp.replace connection.substitute_at(column, i)
-      end
     end
 
     def symbol_unscoping(scope)
@@ -1069,8 +1057,13 @@ module ActiveRecord
     def build_select(arel, selects)
       if !selects.empty?
         expanded_select = selects.map do |field|
-          columns_hash.key?(field.to_s) ? arel_table[field] : field
+          if (Symbol === field || String === field) && columns_hash.key?(field.to_s)
+            arel_table[field]
+          else
+            field
+          end
         end
+
         arel.project(*expanded_select)
       else
         arel.project(@klass.arel_table[Arel.star])

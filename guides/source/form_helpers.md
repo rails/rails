@@ -96,7 +96,15 @@ form_tag({controller: "people", action: "search"}, method: "get", class: "nifty_
 
 ### Helpers for Generating Form Elements
 
-Rails provides a series of helpers for generating form elements such as checkboxes, text fields, and radio buttons. These basic helpers, with names ending in "_tag" (such as `text_field_tag` and `check_box_tag`), generate just a single `<input>` element. The first parameter to these is always the name of the input. When the form is submitted, the name will be passed along with the form data, and will make its way to the `params` hash in the controller with the value entered by the user for that field. For example, if the form contains `<%= text_field_tag(:query) %>`, then you would be able to get the value of this field in the controller with `params[:query]`.
+Rails provides a series of helpers for generating form elements such as
+checkboxes, text fields, and radio buttons. These basic helpers, with names
+ending in `_tag` (such as `text_field_tag` and `check_box_tag`), generate just a
+single `<input>` element. The first parameter to these is always the name of the
+input. When the form is submitted, the name will be passed along with the form
+data, and will make its way to the `params` hash in the controller with the
+value entered by the user for that field. For example, if the form contains `<%=
+text_field_tag(:query) %>`, then you would be able to get the value of this
+field in the controller with `params[:query]`.
 
 When naming inputs, Rails uses certain conventions that make it possible to submit parameters with non-scalar values such as arrays or hashes, which will also be accessible in `params`. You can read more about them in [chapter 7 of this guide](#understanding-parameter-naming-conventions). For details on the precise usage of these helpers, please refer to the [API documentation](http://api.rubyonrails.org/classes/ActionView/Helpers/FormTagHelper.html).
 

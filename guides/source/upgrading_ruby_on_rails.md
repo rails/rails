@@ -50,21 +50,9 @@ Don't forget to review the difference, to see if there were any unexpected chang
 Upgrading from Rails 4.1 to Rails 4.2
 -------------------------------------
 
-NOTE: This section is a work in progress, please help to improve this by sending
-a [pull request](https://github.com/rails/rails/edit/master/guides/source/upgrading_ruby_on_rails.md).
-
 ### Web Console
 
 First, add `gem 'web-console', '~> 2.0'` to the `:development` group in your Gemfile and run `bundle install` (it won't have been included when you upgraded Rails). Once it's been installed, you can simply drop a reference to the console helper (i.e., `<%= console %>`) into any view you want to enable it for. A console will also be provided on any error page you view in your development environment.
-
-Additionally, you can tell Rails to automatically mount a VT100-compatible console on a predetermined path by setting the appropriate configuration flags in your development config:
-
-```ruby
-# config/environments/development.rb
-
-config.web_console.automount = true
-config.web_console.default_mount_path = '/terminal' # Optional, defaults to /console
-```
 
 ### Responders
 
@@ -145,6 +133,18 @@ assigning `nil` to a serialized attribute will save it to the database
 as `NULL` instead of passing the `nil` value through the coder (e.g. `"null"`
 when using the `JSON` coder).
 
+### Production log level
+
+In Rails 5, the default log level for the production environment will be changed
+to `:debug` (from `:info`). To preserve the current default, add the following
+line to your `production.rb`:
+
+```ruby
+# Set to `:info` to match the current default, or set to `:debug` to opt-into
+# the future default.
+config.log_level = :info
+```
+
 ### `after_bundle` in Rails templates
 
 If you have a Rails template that adds all the files in version control, it
@@ -181,7 +181,7 @@ end
 
 There's a new choice for sanitizing HTML fragments in your applications. The
 venerable html-scanner approach is now officially being deprecated in favor of
-[`Rails Html Sanitizer`](https://github.com/rails/rails-html-sanitizer).
+[`Rails HTML Sanitizer`](https://github.com/rails/rails-html-sanitizer).
 
 This means the methods `sanitize`, `sanitize_css`, `strip_tags` and
 `strip_links` are backed by a new implementation.
@@ -207,7 +207,7 @@ gem 'rails-deprecated_sanitizer'
 ```
 
 ### Rails DOM Testing
-The [`TagAssertions` module](http://api.rubyonrails.org/classes/ActionDispatch/Assertions/TagAssertions.html) (containing methods such as `assert_tag`), [has been deprecated](https://github.com/rails/rails/blob/6061472b8c310158a2a2e8e9a6b81a1aef6b60fe/actionpack/lib/action_dispatch/testing/assertions/dom.rb) in favor of the `assert_select` methods from the `SelectorAssertions` module, which has been extracted into the [rails-dom-testing gem](https://github.com/rails/rails-dom-testing).  
+The [`TagAssertions` module](http://api.rubyonrails.org/classes/ActionDispatch/Assertions/TagAssertions.html) (containing methods such as `assert_tag`), [has been deprecated](https://github.com/rails/rails/blob/6061472b8c310158a2a2e8e9a6b81a1aef6b60fe/actionpack/lib/action_dispatch/testing/assertions/dom.rb) in favor of the `assert_select` methods from the `SelectorAssertions` module, which has been extracted into the [rails-dom-testing gem](https://github.com/rails/rails-dom-testing).
 
 
 ### Masked Authenticity Tokens
@@ -421,7 +421,7 @@ class ReadOnlyModel < ActiveRecord::Base
 end
 ```
 
-This behaviour was never intentionally supported. Due to a change in the internals
+This behavior was never intentionally supported. Due to a change in the internals
 of `ActiveSupport::Callbacks`, this is no longer allowed in Rails 4.1. Using a
 `return` statement in an inline callback block causes a `LocalJumpError` to
 be raised when the callback is executed.
@@ -795,7 +795,7 @@ Rails 4.0 extracted Active Resource to its own gem. If you still need the featur
 
 * Rails 4.0 has changed how errors attach with the `ActiveModel::Validations::ConfirmationValidator`. Now when confirmation validations fail, the error will be attached to `:#{attribute}_confirmation` instead of `attribute`.
 
-* Rails 4.0 has changed `ActiveModel::Serializers::JSON.include_root_in_json` default value to `false`. Now, Active Model Serializers and Active Record objects have the same default behaviour. This means that you can comment or remove the following option in the `config/initializers/wrap_parameters.rb` file:
+* Rails 4.0 has changed `ActiveModel::Serializers::JSON.include_root_in_json` default value to `false`. Now, Active Model Serializers and Active Record objects have the same default behavior. This means that you can comment or remove the following option in the `config/initializers/wrap_parameters.rb` file:
 
 ```ruby
 # Disable root element in JSON by default.

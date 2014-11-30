@@ -255,7 +255,7 @@ module ActiveModel
       end
 
       # Remove changes information for the provided attributes.
-      def clear_attribute_changes(attributes)
+      def clear_attribute_changes(attributes) # :doc:
         attributes_changed_by_setter.except!(*attributes)
       end
   end

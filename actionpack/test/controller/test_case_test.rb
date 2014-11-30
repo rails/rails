@@ -1,6 +1,7 @@
 require 'abstract_unit'
 require 'controller/fake_controllers'
 require 'active_support/json/decoding'
+require 'rails/engine'
 
 class TestCaseTest < ActionController::TestCase
   class TestController < ActionController::Base
@@ -132,6 +133,14 @@ XML
       render :nothing => true
     end
 
+    def test_without_body
+      render html: '<div class="foo"></div>'.html_safe
+    end
+
+    def test_with_body
+      render html: '<body class="foo"></body>'.html_safe
+    end
+
     private
 
       def generate_url(opts)
@@ -177,6 +186,19 @@ XML
         super
       end
     end
+  end
+
+  def test_assert_select_without_body
+    get :test_without_body
+
+    assert_select 'body', 0
+    assert_select 'div.foo'
+  end
+
+  def test_assert_select_with_body
+    get :test_with_body
+
+    assert_select 'body.foo'
   end
 
   def test_url_options_reset
@@ -499,6 +521,18 @@ XML
     end
   end
 
+  def test_use_route
+    with_routing do |set|
+      set.draw do
+        get 'via_unnamed_route', to: 'test_case_test/test#test_uri'
+        get 'via_named_route', as: :a_named_route, to: 'test_case_test/test#test_uri'
+      end
+
+      assert_deprecated { get :test_uri, use_route: :a_named_route }
+      assert_equal '/via_named_route', @response.body
+    end
+  end
+
   def test_assert_realistic_path_parameters
     get :test_params, :id => 20, :foo => Object.new
 
@@ -716,6 +750,57 @@ XML
     # Must be a :redirect response.
     assert_raise(ActiveSupport::TestCase::Assertion) do
       assert_redirected_to 'created resource'
+    end
+  end
+end
+
+module EngineControllerTests
+  class Engine < ::Rails::Engine
+    isolate_namespace EngineControllerTests
+
+    routes.draw do
+      get '/' => 'bar#index'
+    end
+  end
+
+  class BarController < ActionController::Base
+    def index
+      render :text => 'bar'
+    end
+  end
+
+  class BarControllerTest < ActionController::TestCase
+    tests BarController
+
+    def test_engine_controller_route
+      get :index
+      assert_equal @response.body, 'bar'
+    end
+  end
+
+  class BarControllerTestWithExplicitRouteSet < ActionController::TestCase
+    tests BarController
+
+    def setup
+      @routes = Engine.routes
+    end
+
+    def test_engine_controller_route
+      get :index
+      assert_equal @response.body, 'bar'
+    end
+  end
+
+  class BarControllerTestWithHostApplicationRouteSet < ActionController::TestCase
+    tests BarController
+
+    def test_use_route
+      with_routing do |set|
+        set.draw { mount Engine => '/foo' }
+
+        assert_deprecated { get :index, use_route: :foo }
+        assert_equal @response.body, 'bar'
+      end
     end
   end
 end

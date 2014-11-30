@@ -85,6 +85,18 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_remove_migration_with_references_removes_foreign_keys
+    migration = "remove_references_from_books"
+    run_generator [migration, "author:belongs_to", "distributor:references{polymorphic}"]
+
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_method :change, content do |change|
+        assert_match(/remove_foreign_key :books, :authors/, change)
+        assert_no_match(/remove_foreign_key :books, :distributors/, change)
+      end
+    end
+  end
+
   def test_add_migration_with_attributes_and_indices
     migration = "add_title_with_index_and_body_to_posts"
     run_generator [migration, "title:string:index", "body:text", "user_id:integer:uniq"]
@@ -171,6 +183,18 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_add_migration_with_references_adds_foreign_keys
+    migration = "add_references_to_books"
+    run_generator [migration, "author:belongs_to", "distributor:references{polymorphic}"]
+
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_method :change, content do |change|
+        assert_match(/add_foreign_key :books, :authors/, change)
+        assert_no_match(/add_foreign_key :books, :distributors/, change)
+      end
+    end
+  end
+
   def test_create_join_table_migration
     migration = "add_media_join_table"
     run_generator [migration, "artist_id", "musics:uniq"]
@@ -205,7 +229,7 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
       end
     end
   end
-  
+
   def test_properly_identifies_usage_file
     assert generator_class.send(:usage_path)
   end

@@ -285,7 +285,9 @@ module ActiveRecord
         end
       end
 
+      #--
       # DATABASE STATEMENTS ======================================
+      #++
 
       def clear_cache!
         super
@@ -396,7 +398,7 @@ module ActiveRecord
         sql << "LIKE #{quote(like)}" if like
 
         execute_and_free(sql, 'SCHEMA') do |result|
-          result.collect { |field| field.first }
+          result.collect(&:first)
         end
       end
 
@@ -585,14 +587,6 @@ module ActiveRecord
         end
       end
 
-      def add_column_position!(sql, options)
-        if options[:first]
-          sql << " FIRST"
-        elsif options[:after]
-          sql << " AFTER #{quote_column_name(options[:after])}"
-        end
-      end
-
       # SHOW VARIABLES LIKE 'name'
       def show_variable(name)
         variables = select_all("SHOW VARIABLES LIKE '#{name}'", 'SCHEMA')
@@ -639,10 +633,6 @@ module ActiveRecord
         end
       end
 
-      def limited_update_conditions(where_sql, quoted_table_name, quoted_primary_key)
-        where_sql
-      end
-
       def strict_mode?
         self.class.type_cast_config_to_boolean(@config.fetch(:strict, true))
       end
@@ -655,6 +645,8 @@ module ActiveRecord
 
       def initialize_type_map(m) # :nodoc:
         super
+
+        register_class_with_limit m, %r(char)i, MysqlString
 
         m.register_type %r(tinytext)i,   Type::Text.new(limit: 2**8 - 1)
         m.register_type %r(tinyblob)i,   Type::Binary.new(limit: 2**8 - 1)
@@ -680,7 +672,7 @@ module ActiveRecord
         m.register_type(%r(enum)i) do |sql_type|
           limit = sql_type[/^enum\((.+)\)/i, 1]
             .split(',').map{|enum| enum.strip.length - 2}.max
-          Type::String.new(limit: limit)
+          MysqlString.new(limit: limit)
         end
       end
 
@@ -794,7 +786,7 @@ module ActiveRecord
       private
 
       def version
-        @version ||= full_version.scan(/^(\d+)\.(\d+)\.(\d+)/).flatten.map { |v| v.to_i }
+        @version ||= full_version.scan(/^(\d+)\.(\d+)\.(\d+)/).flatten.map(&:to_i)
       end
 
       def mariadb?
@@ -852,6 +844,26 @@ module ActiveRecord
           case $1
           when 'CASCADE'; :cascade
           when 'SET NULL'; :nullify
+          end
+        end
+      end
+
+      class MysqlString < Type::String # :nodoc:
+        def type_cast_for_database(value)
+          case value
+          when true then "1"
+          when false then "0"
+          else super
+          end
+        end
+
+        private
+
+        def cast_value(value)
+          case value
+          when true then "1"
+          when false then "0"
+          else super
           end
         end
       end

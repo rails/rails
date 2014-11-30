@@ -57,7 +57,7 @@ module ActiveRecord
       through_reflection      = reflection.through_reflection
       source_reflection_names = reflection.source_reflection_names
       source_associations     = reflection.through_reflection.klass._reflections.keys
-      super("Could not find the source association(s) #{source_reflection_names.collect{ |a| a.inspect }.to_sentence(:two_words_connector => ' or ', :last_word_connector => ', or ', :locale => :en)} in model #{through_reflection.klass}. Try 'has_many #{reflection.name.inspect}, :through => #{through_reflection.name.inspect}, :source => <name>'. Is it one of #{source_associations.to_sentence(:two_words_connector => ' or ', :last_word_connector => ', or ', :locale => :en)}?")
+      super("Could not find the source association(s) #{source_reflection_names.collect(&:inspect).to_sentence(:two_words_connector => ' or ', :last_word_connector => ', or ', :locale => :en)} in model #{through_reflection.klass}. Try 'has_many #{reflection.name.inspect}, :through => #{through_reflection.name.inspect}, :source => <name>'. Is it one of #{source_associations.to_sentence(:two_words_connector => ' or ', :last_word_connector => ', or ', :locale => :en)}?")
     end
   end
 
@@ -1700,7 +1700,7 @@ module ActiveRecord
         hm_options[:through] = middle_reflection.name
         hm_options[:source] = join_model.right_reflection.name
 
-        [:before_add, :after_add, :before_remove, :after_remove, :autosave, :validate, :join_table].each do |k|
+        [:before_add, :after_add, :before_remove, :after_remove, :autosave, :validate, :join_table, :class_name].each do |k|
           hm_options[k] = options[k] if options.key? k
         end
 

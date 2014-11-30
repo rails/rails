@@ -5,6 +5,7 @@ require 'models/comment'
 require 'models/reply'
 require 'models/author'
 require 'models/developer'
+require 'models/computer'
 
 class NamedScopingTest < ActiveRecord::TestCase
   fixtures :posts, :authors, :topics, :comments, :author_addresses

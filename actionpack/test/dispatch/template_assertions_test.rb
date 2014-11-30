@@ -10,7 +10,7 @@ class AssertTemplateController < ActionController::Base
   end
 
   def render_with_layout
-    @variable_for_layout = nil
+    @variable_for_layout = 'hello'
     render 'test/hello_world', layout: "layouts/standard"
   end
 
@@ -94,5 +94,17 @@ class AssertTemplateControllerTest < ActionDispatch::IntegrationTest
       session.get '/assert_template/render_nothing'
       session.assert_template file: nil
     end
+  end
+
+  def test_assigns_do_not_reset_template_assertion
+    get '/assert_template/render_with_layout'
+    assert_equal 'hello', assigns(:variable_for_layout)
+    assert_template layout: 'layouts/standard'
+  end
+
+  def test_cookies_do_not_reset_template_assertion
+    get '/assert_template/render_with_layout'
+    cookies
+    assert_template layout: 'layouts/standard'
   end
 end

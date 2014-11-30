@@ -139,7 +139,7 @@ module ActiveRecord
     # Attributes marked as readonly are silently ignored if the record is
     # being updated.
     def save!(*)
-      create_or_update || raise(RecordNotSaved)
+      create_or_update || raise(RecordNotSaved.new(nil, self))
     end
 
     # Deletes the record in the database and freezes this instance to
@@ -166,7 +166,7 @@ module ActiveRecord
     # and <tt>destroy</tt> returns +false+. See
     # ActiveRecord::Callbacks for further details.
     def destroy
-      raise ReadOnlyRecord if readonly?
+      raise ReadOnlyRecord, "#{self.class} is marked as readonly" if readonly?
       destroy_associations
       destroy_row if persisted?
       @destroyed = true
@@ -181,7 +181,7 @@ module ActiveRecord
     # and <tt>destroy!</tt> raises ActiveRecord::RecordNotDestroyed. See
     # ActiveRecord::Callbacks for further details.
     def destroy!
-      destroy || raise(ActiveRecord::RecordNotDestroyed)
+      destroy || raise(ActiveRecord::RecordNotDestroyed, self)
     end
 
     # Returns an instance of the specified +klass+ with the attributes of the
@@ -487,7 +487,7 @@ module ActiveRecord
     def relation_for_destroy
       pk         = self.class.primary_key
       column     = self.class.columns_hash[pk]
-      substitute = self.class.connection.substitute_at(column, 0)
+      substitute = self.class.connection.substitute_at(column)
 
       relation = self.class.unscoped.where(
         self.class.arel_table[pk].eq(substitute))
@@ -497,7 +497,7 @@ module ActiveRecord
     end
 
     def create_or_update
-      raise ReadOnlyRecord if readonly?
+      raise ReadOnlyRecord, "#{self.class} is marked as readonly" if readonly?
       result = new_record? ? _create_record : _update_record
       result != false
     end

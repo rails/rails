@@ -125,6 +125,7 @@ module ActionView
         @_rendered_views ||= RenderedViewsCollection.new
       end
 
+      # Need to experiment if this priority is the best one: rendered => output_buffer
       class RenderedViewsCollection
         def initialize
           @rendered_views ||= Hash.new { |hash, key| hash[key] = [] }
@@ -158,7 +159,7 @@ module ActionView
 
       # Need to experiment if this priority is the best one: rendered => output_buffer
       def document_root_element
-        Nokogiri::HTML::DocumentFragment.parse(@rendered.blank? ? @output_buffer : @rendered)
+        Nokogiri::HTML::Document.parse(@rendered.blank? ? @output_buffer : @rendered).root
       end
 
       def say_no_to_protect_against_forgery!

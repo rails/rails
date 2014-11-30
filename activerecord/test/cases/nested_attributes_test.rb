@@ -13,7 +13,7 @@ require 'active_support/hash_with_indifferent_access'
 
 class TestNestedAttributesInGeneral < ActiveRecord::TestCase
   teardown do
-    Pirate.accepts_nested_attributes_for :ship, :allow_destroy => true, :reject_if => proc { |attributes| attributes.empty? }
+    Pirate.accepts_nested_attributes_for :ship, :allow_destroy => true, :reject_if => proc(&:empty?)
   end
 
   def test_base_should_have_an_empty_nested_attributes_options
@@ -300,13 +300,13 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
   end
 
   def test_should_not_destroy_an_existing_record_if_allow_destroy_is_false
-    Pirate.accepts_nested_attributes_for :ship, :allow_destroy => false, :reject_if => proc { |attributes| attributes.empty? }
+    Pirate.accepts_nested_attributes_for :ship, :allow_destroy => false, :reject_if => proc(&:empty?)
 
     @pirate.update(ship_attributes: { id: @pirate.ship.id, _destroy: '1' })
 
     assert_equal @ship, @pirate.reload.ship
 
-    Pirate.accepts_nested_attributes_for :ship, :allow_destroy => true, :reject_if => proc { |attributes| attributes.empty? }
+    Pirate.accepts_nested_attributes_for :ship, :allow_destroy => true, :reject_if => proc(&:empty?)
   end
 
   def test_should_also_work_with_a_HashWithIndifferentAccess
@@ -494,12 +494,12 @@ class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
   end
 
   def test_should_not_destroy_an_existing_record_if_allow_destroy_is_false
-    Ship.accepts_nested_attributes_for :pirate, :allow_destroy => false, :reject_if => proc { |attributes| attributes.empty? }
+    Ship.accepts_nested_attributes_for :pirate, :allow_destroy => false, :reject_if => proc(&:empty?)
 
     @ship.update(pirate_attributes: { id: @ship.pirate.id, _destroy: '1' })
     assert_nothing_raised(ActiveRecord::RecordNotFound) { @ship.pirate.reload }
   ensure
-    Ship.accepts_nested_attributes_for :pirate, :allow_destroy => true, :reject_if => proc { |attributes| attributes.empty? }
+    Ship.accepts_nested_attributes_for :pirate, :allow_destroy => true, :reject_if => proc(&:empty?)
   end
 
   def test_should_work_with_update_as_well
@@ -855,7 +855,7 @@ end
 
 module NestedAttributesLimitTests
   def teardown
-    Pirate.accepts_nested_attributes_for :parrots, :allow_destroy => true, :reject_if => proc { |attributes| attributes.empty? }
+    Pirate.accepts_nested_attributes_for :parrots, :allow_destroy => true, :reject_if => proc(&:empty?)
   end
 
   def test_limit_with_less_records

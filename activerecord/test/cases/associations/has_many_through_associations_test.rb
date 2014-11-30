@@ -15,6 +15,7 @@ require 'models/toy'
 require 'models/contract'
 require 'models/company'
 require 'models/developer'
+require 'models/computer'
 require 'models/subscriber'
 require 'models/book'
 require 'models/subscription'
@@ -40,7 +41,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   def test_preload_sti_rhs_class
     developers = Developer.includes(:firms).all.to_a
     assert_no_queries do
-      developers.each { |d| d.firms }
+      developers.each(&:firms)
     end
   end
 
@@ -614,8 +615,11 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   def test_create_on_new_record
     p = Post.new
 
-    assert_raises(ActiveRecord::RecordNotSaved) { p.people.create(:first_name => "mew") }
-    assert_raises(ActiveRecord::RecordNotSaved) { p.people.create!(:first_name => "snow") }
+    error = assert_raises(ActiveRecord::RecordNotSaved) { p.people.create(:first_name => "mew") }
+    assert_equal "You cannot call create unless the parent is saved", error.message
+
+    error = assert_raises(ActiveRecord::RecordNotSaved) { p.people.create!(:first_name => "snow") }
+    assert_equal "You cannot call create unless the parent is saved", error.message
   end
 
   def test_associate_with_create_and_invalid_options
