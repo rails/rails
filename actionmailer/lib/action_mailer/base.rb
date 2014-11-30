@@ -132,11 +132,6 @@ module ActionMailer
   #
   #   config.action_mailer.default_url_options = { host: "example.com" }
   #
-  # When you decide to set a default <tt>:host</tt> for your mailers, then you need to make sure to use the
-  # <tt>only_path: false</tt> option when using <tt>url_for</tt>. Since the <tt>url_for</tt> view helper
-  # will generate relative URLs by default when a <tt>:host</tt> option isn't explicitly provided, passing
-  # <tt>only_path: false</tt> will ensure that absolute URLs are generated.
-  #
   # = Sending mail
   #
   # Once a mailer action and template are defined, you can deliver your message or create it and save it

@@ -470,16 +470,7 @@ By using the full URL, your links will now work in your emails.
 
 #### generating URLs with `url_for`
 
-You need to pass the `only_path: false` option when using `url_for`. This will
-ensure that absolute URLs are generated because the `url_for` view helper will,
-by default, generate relative URLs when a `:host` option isn't explicitly
-provided.
-
-```erb
-<%= url_for(controller: 'welcome',
-            action: 'greeting',
-            only_path: false) %>
-```
+`url_for` generate full URL by default in templates.
 
 If you did not configure the `:host` option globally make sure to pass it to
 `url_for`.
@@ -490,9 +481,6 @@ If you did not configure the `:host` option globally make sure to pass it to
             controller: 'welcome',
             action: 'greeting') %>
 ```
-
-NOTE: When you explicitly pass the `:host` Rails will always generate absolute
-URLs, so there is no need to pass `only_path: false`.
 
 #### generating URLs with named routes
 
