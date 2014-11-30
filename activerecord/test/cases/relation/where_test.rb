@@ -75,7 +75,10 @@ module ActiveRecord
       treasure = Treasure.new
       treasure.id = 1
 
-      expected = PriceEstimate.where(estimate_of_type: 'Treasure', estimate_of_id: 1)
+      type_condition = PriceEstimate.arel_table[:estimate_of_type].eq('Treasure')
+      id_condition   = PriceEstimate.arel_table[:estimate_of_id].eq(1)
+
+      expected = PriceEstimate.where(type_condition.and(id_condition))
       actual   = PriceEstimate.where(estimate_of: treasure)
 
       assert_equal expected.to_sql, actual.to_sql
@@ -87,14 +90,20 @@ module ActiveRecord
       hidden = HiddenTreasure.new
       hidden.id = 2
 
-      expected = PriceEstimate.where(estimate_of_type: 'Treasure', estimate_of_id: [treasure, hidden])
+      type_condition = PriceEstimate.arel_table[:estimate_of_type].eq('Treasure')
+      id_condition   = PriceEstimate.arel_table[:estimate_of_id].in([treasure, hidden])
+
+      expected = PriceEstimate.where(type_condition.and(id_condition))
       actual   = PriceEstimate.where(estimate_of: [treasure, hidden])
 
       assert_equal expected.to_sql, actual.to_sql
     end
 
     def test_polymorphic_nested_relation_where
-      expected = PriceEstimate.where(estimate_of_type: 'Treasure', estimate_of_id: Treasure.where(id: [1,2]))
+      type_condition = PriceEstimate.arel_table[:estimate_of_type].eq('Treasure')
+      id_condition   = PriceEstimate.arel_table[:estimate_of_id].in(Treasure.select(:id).where(id: [1,2]).arel)
+
+      expected = PriceEstimate.where(type_condition.and(id_condition))
       actual   = PriceEstimate.where(estimate_of: Treasure.where(id: [1,2]))
 
       assert_equal expected.to_sql, actual.to_sql
@@ -104,7 +113,10 @@ module ActiveRecord
       treasure = HiddenTreasure.new
       treasure.id = 1
 
-      expected = PriceEstimate.where(estimate_of_type: 'Treasure', estimate_of_id: 1)
+      type_condition = PriceEstimate.arel_table[:estimate_of_type].eq('Treasure')
+      id_condition   = PriceEstimate.arel_table[:estimate_of_id].eq(1)
+
+      expected = PriceEstimate.where(type_condition.and(id_condition))
       actual   = PriceEstimate.where(estimate_of: treasure)
 
       assert_equal expected.to_sql, actual.to_sql
@@ -114,7 +126,10 @@ module ActiveRecord
       thing = Post.new
       thing.id = 1
 
-      expected = Treasure.where(price_estimates: { thing_type: 'Post', thing_id: 1 }).joins(:price_estimates)
+      type_condition = PriceEstimate.arel_table[:thing_type].eq('Post')
+      id_condition   = PriceEstimate.arel_table[:thing_id].eq(1)
+
+      expected = Treasure.where(type_condition.and(id_condition)).joins(:price_estimates)
       actual   = Treasure.where(price_estimates: { thing: thing }).joins(:price_estimates)
 
       assert_equal expected.to_sql, actual.to_sql
@@ -124,7 +139,10 @@ module ActiveRecord
       treasure = HiddenTreasure.new
       treasure.id = 1
 
-      expected = Treasure.where(price_estimates: { estimate_of_type: 'Treasure', estimate_of_id: 1 }).joins(:price_estimates)
+      type_condition = PriceEstimate.arel_table[:estimate_of_type].eq('Treasure')
+      id_condition   = PriceEstimate.arel_table[:estimate_of_id].eq(1)
+
+      expected = Treasure.where(type_condition.and(id_condition)).joins(:price_estimates)
       actual   = Treasure.where(price_estimates: { estimate_of: treasure }).joins(:price_estimates)
 
       assert_equal expected.to_sql, actual.to_sql
@@ -149,8 +167,116 @@ module ActiveRecord
       treasure.id = 1
       decorated_treasure = treasure_decorator.new(treasure)
 
-      expected = PriceEstimate.where(estimate_of_type: 'Treasure', estimate_of_id: 1)
+      type_condition = PriceEstimate.arel_table[:estimate_of_type].eq('Treasure')
+      id_condition   = PriceEstimate.arel_table[:estimate_of_id].eq(1)
+
+      expected = PriceEstimate.where(type_condition.and(id_condition))
       actual   = PriceEstimate.where(estimate_of: decorated_treasure)
+
+      assert_equal expected.to_sql, actual.to_sql
+    end
+
+    def test_polymorphic_shallow_where_not
+      treasure = Treasure.new
+      treasure.id = 1
+
+      type_condition = PriceEstimate.arel_table[:estimate_of_type].eq('Treasure')
+      id_condition   = PriceEstimate.arel_table[:estimate_of_id].eq(1)
+
+      expected = PriceEstimate.where.not(type_condition.and(id_condition))
+      actual   = PriceEstimate.where.not(estimate_of: treasure)
+
+      assert_equal expected.to_sql, actual.to_sql
+    end
+
+    def test_polymorphic_nested_array_where_not
+      treasure = Treasure.new
+      treasure.id = 1
+      hidden = HiddenTreasure.new
+      hidden.id = 2
+
+      type_condition = PriceEstimate.arel_table[:estimate_of_type].eq('Treasure')
+      id_condition   = PriceEstimate.arel_table[:estimate_of_id].in([treasure, hidden])
+
+      expected = PriceEstimate.where.not(type_condition.and(id_condition))
+      actual   = PriceEstimate.where.not(estimate_of: [treasure, hidden])
+
+      assert_equal expected.to_sql, actual.to_sql
+    end
+
+    def test_polymorphic_nested_relation_where_not
+      type_condition = PriceEstimate.arel_table[:estimate_of_type].eq('Treasure')
+      id_condition   = PriceEstimate.arel_table[:estimate_of_id].in(Treasure.select(:id).where(id: [1,2]).arel)
+
+      expected = PriceEstimate.where.not(type_condition.and(id_condition))
+      actual   = PriceEstimate.where.not(estimate_of: Treasure.where(id: [1,2]))
+
+      assert_equal expected.to_sql, actual.to_sql
+    end
+
+    def test_polymorphic_sti_shallow_where_not
+      treasure = HiddenTreasure.new
+      treasure.id = 1
+
+      type_condition = PriceEstimate.arel_table[:estimate_of_type].eq('Treasure')
+      id_condition   = PriceEstimate.arel_table[:estimate_of_id].eq(1)
+
+      expected = PriceEstimate.where.not(type_condition.and(id_condition))
+      actual   = PriceEstimate.where.not(estimate_of: treasure)
+
+      assert_equal expected.to_sql, actual.to_sql
+    end
+
+    def test_polymorphic_nested_where_not
+      thing = Post.new
+      thing.id = 1
+
+      type_condition = PriceEstimate.arel_table[:thing_type].eq('Post')
+      id_condition   = PriceEstimate.arel_table[:thing_id].eq(1)
+
+      expected = Treasure.where.not(type_condition.and(id_condition)).joins(:price_estimates)
+      actual   = Treasure.where.not(price_estimates: { thing: thing }).joins(:price_estimates)
+
+      assert_equal expected.to_sql, actual.to_sql
+    end
+
+    def test_polymorphic_sti_nested_where_not
+      treasure = HiddenTreasure.new
+      treasure.id = 1
+
+      type_condition = PriceEstimate.arel_table[:estimate_of_type].eq('Treasure')
+      id_condition   = PriceEstimate.arel_table[:estimate_of_id].eq(1)
+
+      expected = Treasure.where.not(type_condition.and(id_condition)).joins(:price_estimates)
+      actual   = Treasure.where.not(price_estimates: { estimate_of: treasure }).joins(:price_estimates)
+
+      assert_equal expected.to_sql, actual.to_sql
+    end
+
+    def test_decorated_polymorphic_where_not
+      treasure_decorator = Struct.new(:model) do
+        def self.method_missing(method, *args, &block)
+          Treasure.send(method, *args, &block)
+        end
+
+        def is_a?(klass)
+          model.is_a?(klass)
+        end
+
+        def method_missing(method, *args, &block)
+          model.send(method, *args, &block)
+        end
+      end
+
+      treasure = Treasure.new
+      treasure.id = 1
+      decorated_treasure = treasure_decorator.new(treasure)
+
+      type_condition = PriceEstimate.arel_table[:estimate_of_type].eq('Treasure')
+      id_condition   = PriceEstimate.arel_table[:estimate_of_id].eq(1)
+
+      expected = PriceEstimate.where.not(type_condition.and(id_condition))
+      actual   = PriceEstimate.where.not(estimate_of: decorated_treasure)
 
       assert_equal expected.to_sql, actual.to_sql
     end

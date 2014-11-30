@@ -29,7 +29,7 @@ module ActiveRecord
             association = klass._reflect_on_association(column)
 
             value.each do |k, v|
-              queries.concat expand(association && association.klass, table, k, v)
+              queries << expand(association && association.klass, table, k, v)
             end
           end
         else
@@ -40,7 +40,7 @@ module ActiveRecord
             table = Arel::Table.new(table_name)
           end
 
-          queries.concat expand(klass, table, column, value)
+          queries << expand(klass, table, column, value)
         end
       end
 
@@ -48,23 +48,23 @@ module ActiveRecord
     end
 
     def self.expand(klass, table, column, value)
-      queries = []
-
       # Find the foreign key when using queries such as:
       # Post.where(author: author)
       #
       # For polymorphic relationships, find the foreign key and type:
       # PriceEstimate.where(estimate_of: treasure)
       if klass && reflection = klass._reflect_on_association(column)
-        if reflection.polymorphic? && base_class = polymorphic_base_class_from_value(value)
-          queries << build(table[reflection.foreign_type], base_class)
-        end
-
         column = reflection.foreign_key
+
+        if reflection.polymorphic? && base_class = polymorphic_base_class_from_value(value)
+          id_condition = build(table[column], value)
+          type_condition = build(table[reflection.foreign_type], base_class)
+          return type_condition.and(id_condition)
+        end
       end
 
-      queries << build(table[column], value)
-      queries
+      id_condition = build(table[column], value)
+      return id_condition
     end
 
     def self.polymorphic_base_class_from_value(value)
