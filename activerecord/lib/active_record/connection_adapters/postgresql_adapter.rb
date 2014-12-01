@@ -532,7 +532,7 @@ module ActiveRecord
             when 'true', 'false'
               default
             # Numeric types
-            when /\A\(?(-?\d+(\.\d*)?\)?(::bigint)?)\z/
+            when /\A\(?(-?\d+(\.\d*)?)\)?(::bigint)?\z/
               $1
             # Object identifier types
             when /\A-?\d+\z/
