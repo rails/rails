@@ -254,6 +254,7 @@ module ActiveRecord
         select_value = operation_over_aggregate_column(column, operation, distinct)
 
         column_alias = select_value.alias
+        column_alias ||= @klass.connection.column_name_for_operation(operation, select_value)
         relation.select_values = [select_value]
 
         query_builder = relation.arel

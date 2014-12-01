@@ -17,7 +17,6 @@ class PostgresqlByteaTest < ActiveRecord::TestCase
       end
     end
     @column = ByteaDataType.columns_hash['payload']
-    assert(@column.is_a?(ActiveRecord::ConnectionAdapters::PostgreSQLColumn))
   end
 
   teardown do
@@ -25,7 +24,15 @@ class PostgresqlByteaTest < ActiveRecord::TestCase
   end
 
   def test_column
+    assert @column.is_a?(ActiveRecord::ConnectionAdapters::PostgreSQLColumn)
     assert_equal :binary, @column.type
+  end
+
+  def test_binary_columns_are_limitless_the_upper_limit_is_one_GB
+    assert_equal 'bytea', @connection.type_to_sql(:binary, 100_000)
+    assert_raise ActiveRecord::ActiveRecordError do
+      @connection.type_to_sql :binary, 4294967295
+    end
   end
 
   def test_type_cast_binary_converts_the_encoding

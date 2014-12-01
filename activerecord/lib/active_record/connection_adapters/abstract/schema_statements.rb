@@ -571,6 +571,9 @@ module ActiveRecord
       #   rename_index :people, 'index_people_on_last_name', 'index_users_on_last_name'
       #
       def rename_index(table_name, old_name, new_name)
+        if new_name.length > allowed_index_name_length
+          raise ArgumentError, "Index name '#{new_name}' on table '#{table_name}' is too long; the limit is #{allowed_index_name_length} characters"
+        end
         # this is a naive implementation; some DBs may support this more efficiently (Postgres, for instance)
         old_index_def = indexes(table_name).detect { |i| i.name == old_name }
         return unless old_index_def
@@ -629,7 +632,7 @@ module ActiveRecord
         type = options.delete(:type) || :integer
         add_column(table_name, "#{ref_name}_id", type, options)
         add_column(table_name, "#{ref_name}_type", :string, polymorphic.is_a?(Hash) ? polymorphic : options) if polymorphic
-        add_index(table_name, polymorphic ? %w[id type].map{ |t| "#{ref_name}_#{t}" } : "#{ref_name}_id", index_options.is_a?(Hash) ? index_options : {}) if index_options
+        add_index(table_name, polymorphic ? %w[type id].map{ |t| "#{ref_name}_#{t}" } : "#{ref_name}_id", index_options.is_a?(Hash) ? index_options : {}) if index_options
       end
       alias :add_belongs_to :add_reference
 
@@ -740,7 +743,7 @@ module ActiveRecord
         end
 
         fk_name_to_delete = options.fetch(:name) do
-          fk_to_delete = foreign_keys(from_table).detect {|fk| fk.column == options[:column] }
+          fk_to_delete = foreign_keys(from_table).detect {|fk| fk.column == options[:column].to_s }
 
           if fk_to_delete
             fk_to_delete.name
@@ -778,7 +781,7 @@ module ActiveRecord
         version = version.to_i
         sm_table = quote_table_name(ActiveRecord::Migrator.schema_migrations_table_name)
 
-        migrated = select_values("SELECT version FROM #{sm_table}").map { |v| v.to_i }
+        migrated = select_values("SELECT version FROM #{sm_table}").map(&:to_i)
         paths = migrations_paths.map {|p| "#{p}/[0-9]*_*.rb" }
         versions = Dir[*paths].map do |filename|
           filename.split('/').last.split('_').first.to_i
@@ -835,11 +838,14 @@ module ActiveRecord
         columns
       end
 
-      # Adds timestamps (+created_at+ and +updated_at+) columns to the named table.
+      include TimestampDefaultDeprecation
+      # Adds timestamps (+created_at+ and +updated_at+) columns to +table_name+.
+      # Additional options (like <tt>null: false</tt>) are forwarded to #add_column.
       #
-      #   add_timestamps(:suppliers)
+      #   add_timestamps(:suppliers, null: false)
       #
       def add_timestamps(table_name, options = {})
+        emit_warning_if_null_unspecified(options)
         add_column table_name, :created_at, :datetime, options
         add_column table_name, :updated_at, :datetime, options
       end

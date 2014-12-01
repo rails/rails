@@ -14,22 +14,6 @@ module ActiveRecord
           @connection.unescape_bytea(value) if value
         end
 
-        # Quotes PostgreSQL-specific data types for SQL input.
-        def quote(value, column = nil) #:nodoc:
-          return super unless column
-
-          case value
-          when Float
-            if value.infinite? || value.nan?
-              "'#{value.to_s}'"
-            else
-              super
-            end
-          else
-            super
-          end
-        end
-
         # Quotes strings for use in SQL input.
         def quote_string(s) #:nodoc:
           @connection.escape(s)
@@ -93,6 +77,12 @@ module ActiveRecord
               "B'#{value}'"
             elsif value.hex?
               "X'#{value}'"
+            end
+          when Float
+            if value.infinite? || value.nan?
+              "'#{value}'"
+            else
+              super
             end
           else
             super

@@ -31,7 +31,7 @@ Object Relational Mapping system.
 in his book _Patterns of Enterprise Application Architecture_. In
 Active Record, objects carry both persistent data and behavior which
 operates on that data. Active Record takes the opinion that ensuring
-data access logic is part of the object will educate users of that
+data access logic as part of the object will educate users of that
 object on how to write to and read from the database.
 
 ### Object Relational Mapping

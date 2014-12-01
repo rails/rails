@@ -93,13 +93,13 @@ class RescuableTest < ActiveSupport::TestCase
 
   def test_rescues_defined_later_are_added_at_end_of_the_rescue_handlers_array
     expected = ["WraithAttack", "WraithAttack", "NuclearExplosion", "MadRonon"]
-    result = @stargate.send(:rescue_handlers).collect {|e| e.first}
+    result = @stargate.send(:rescue_handlers).collect(&:first)
     assert_equal expected, result
   end
 
   def test_children_should_inherit_rescue_definitions_from_parents_and_child_rescue_should_be_appended
     expected = ["WraithAttack", "WraithAttack", "NuclearExplosion", "MadRonon", "CoolError"]
-    result = @cool_stargate.send(:rescue_handlers).collect {|e| e.first}
+    result = @cool_stargate.send(:rescue_handlers).collect(&:first)
     assert_equal expected, result
   end
 end

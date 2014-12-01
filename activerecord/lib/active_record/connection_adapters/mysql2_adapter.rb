@@ -66,7 +66,9 @@ module ActiveRecord
         exception.error_number if exception.respond_to?(:error_number)
       end
 
+      #--
       # QUOTING ==================================================
+      #++
 
       def quote_string(string)
         @connection.escape(string)
@@ -80,7 +82,9 @@ module ActiveRecord
         end
       end
 
+      #--
       # CONNECTION MANAGEMENT ====================================
+      #++
 
       def active?
         return false unless @connection
@@ -104,7 +108,9 @@ module ActiveRecord
         end
       end
 
+      #--
       # DATABASE STATEMENTS ======================================
+      #++
 
       def explain(arel, binds = [])
         sql     = "EXPLAIN #{to_sql(arel, binds.dup)}"
@@ -231,11 +237,6 @@ module ActiveRecord
       end
 
       alias exec_without_stmt exec_query
-
-      # Returns an ActiveRecord::Result instance.
-      def select(sql, name = nil, binds = [])
-        exec_query(sql, name)
-      end
 
       def insert_sql(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)
         super

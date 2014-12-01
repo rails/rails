@@ -2,6 +2,7 @@ require "cases/helper"
 require 'models/post'
 require 'models/author'
 require 'models/developer'
+require 'models/computer'
 require 'models/project'
 require 'models/comment'
 require 'models/category'
@@ -13,6 +14,26 @@ class RelationScopingTest < ActiveRecord::TestCase
 
   setup do
     developers(:david)
+  end
+
+  def test_unscoped_breaks_caching
+    author = authors :mary
+    assert_nil author.first_post
+    post = FirstPost.unscoped do
+      author.reload.first_post
+    end
+    assert post
+  end
+
+  def test_scope_breaks_caching_on_collections
+    author = authors :david
+    ids = author.reload.special_posts_with_default_scope.map(&:id)
+    assert_equal [1,5,6], ids.sort
+    scoped_posts = SpecialPostWithDefaultScope.unscoped do
+      author = authors :david
+      author.reload.special_posts_with_default_scope.to_a
+    end
+    assert_equal author.posts.map(&:id).sort, scoped_posts.map(&:id).sort
   end
 
   def test_reverse_order

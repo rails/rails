@@ -3,14 +3,13 @@ require 'bigdecimal/util'
 
 class BigDecimal
   DEFAULT_STRING_FORMAT = 'F'
-  def to_formatted_s(*args)
-    if args[0].is_a?(Symbol)
-      super
+  alias_method :to_default_s, :to_s
+
+  def to_s(format = nil, options = nil)
+    if format.is_a?(Symbol)
+      to_formatted_s(format, options || {})
     else
-      format = args[0] || DEFAULT_STRING_FORMAT
-      _original_to_s(format)
+      to_default_s(format || DEFAULT_STRING_FORMAT)
     end
   end
-  alias_method :_original_to_s, :to_s
-  alias_method :to_s, :to_formatted_s
 end

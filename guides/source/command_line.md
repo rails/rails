@@ -61,7 +61,7 @@ With no further work, `rails server` will run our new shiny Rails app:
 $ cd commandsapp
 $ bin/rails server
 => Booting WEBrick
-=> Rails 4.2.0 application starting in development on http://0.0.0.0:3000
+=> Rails 4.2.0 application starting in development on http://localhost:3000
 => Call with -d to detach
 => Ctrl-C to shutdown server
 [2013-08-07 02:00:01] INFO  WEBrick 1.3.1
@@ -79,7 +79,7 @@ The server can be run on a different port using the `-p` option. The default dev
 $ bin/rails server -e production -p 4000
 ```
 
-The `-b` option binds Rails to the specified IP, by default it is 0.0.0.0. You can run a server as a daemon by passing a `-d` option.
+The `-b` option binds Rails to the specified IP, by default it is localhost. You can run a server as a daemon by passing a `-d` option.
 
 ### `rails generate`
 
@@ -368,8 +368,7 @@ Rake is Ruby Make, a standalone Ruby utility that replaces the Unix utility 'mak
 
 You can get a list of Rake tasks available to you, which will often depend on your current directory, by typing `rake --tasks`. Each task has a description, and should help you find the thing you need.
 
-To get the full backtrace for running rake task you can pass the option
-```--trace``` to command line, for example ```rake db:create --trace```.
+To get the full backtrace for running rake task you can pass the option ```--trace``` to command line, for example ```rake db:create --trace```.
 
 ```bash
 $ bin/rake --tasks
@@ -394,16 +393,11 @@ INFO: You can also use ```rake -T```  to get the list of tasks.
 ```bash
 $ bin/rake about
 About your application's environment
+Rails version             4.2.0
 Ruby version              1.9.3 (x86_64-linux)
 RubyGems version          1.3.6
 Rack version              1.3
-Rails version             4.2.0
 JavaScript Runtime        Node.js (V8)
-Active Record version     4.2.0
-Action Pack version       4.2.0
-Action View version       4.2.0
-Action Mailer version     4.2.0
-Active Support version    4.2.0
 Middleware                Rack::Sendfile, ActionDispatch::Static, Rack::Lock, #<ActiveSupport::Cache::Strategy::LocalCache::Middleware:0x007ffd131a7c88>, Rack::Runtime, Rack::MethodOverride, ActionDispatch::RequestId, Rails::Rack::Logger, ActionDispatch::ShowExceptions, ActionDispatch::DebugExceptions, ActionDispatch::RemoteIp, ActionDispatch::Reloader, ActionDispatch::Callbacks, ActiveRecord::Migration::CheckPending, ActiveRecord::ConnectionAdapters::ConnectionManagement, ActiveRecord::QueryCache, ActionDispatch::Cookies, ActionDispatch::Session::CookieStore, ActionDispatch::Flash, ActionDispatch::ParamsParser, Rack::Head, Rack::ConditionalGet, Rack::ETag
 Application root          /home/foobar/commandsapp
 Environment               development
@@ -413,10 +407,7 @@ Database schema version   20110805173523
 
 ### `assets`
 
-You can precompile the assets in `app/assets` using `rake assets:precompile`,
-and remove older compiled assets using `rake assets:clean`. The `assets:clean`
-task allows for rolling deploys that may still be linking to an old asset while
-the new assets are being built.
+You can precompile the assets in `app/assets` using `rake assets:precompile`, and remove older compiled assets using `rake assets:clean`. The `assets:clean` task allows for rolling deploys that may still be linking to an old asset while the new assets are being built.
 
 If you want to clear `public/assets` completely, you can use `rake assets:clobber`.
 
@@ -503,7 +494,7 @@ Rails comes with a test suite called Minitest. Rails owes its stability to the u
 
 ### `tmp`
 
-The `Rails.root/tmp` directory is, like the *nix /tmp directory, the holding place for temporary files like sessions (if you're using a file store for files), process id files, and cached actions.
+The `Rails.root/tmp` directory is, like the *nix /tmp directory, the holding place for temporary files like sessions (if you're using a file store for sessions), process id files, and cached actions.
 
 The `tmp:` namespaced tasks will help you clear and create the `Rails.root/tmp` directory:
 

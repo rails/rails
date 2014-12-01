@@ -1,3 +1,5 @@
+require 'active_support/core_ext/string/filters'
+
 module ActiveRecord
   class PredicateBuilder
     class ArrayHandler # :nodoc:
@@ -6,9 +8,12 @@ module ActiveRecord
         nils, values = values.partition(&:nil?)
 
         if values.any? { |val| val.is_a?(Array) }
-          ActiveSupport::Deprecation.warn "Passing a nested array to Active Record " \
-            "finder methods is deprecated and will be removed. Flatten your array " \
-            "before using it for 'IN' conditions."
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            Passing a nested array to Active Record finder methods is
+            deprecated and will be removed. Flatten your array before using
+            it for 'IN' conditions.
+          MSG
+
           values = values.flatten
         end
 
@@ -27,7 +32,7 @@ module ActiveRecord
           values_predicate = values_predicate.or(attribute.eq(nil))
         end
 
-        array_predicates = ranges.map { |range| attribute.in(range) }
+        array_predicates = ranges.map { |range| attribute.between(range) }
         array_predicates.unshift(values_predicate)
         array_predicates.inject { |composite, predicate| composite.or(predicate) }
       end

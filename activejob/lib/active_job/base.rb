@@ -9,14 +9,14 @@ require 'active_job/logging'
 module ActiveJob #:nodoc:
   # = Active Job
   #
-  # Active job objects can be configured to work with different backend
+  # Active Job objects can be configured to work with different backend
   # queuing frameworks. To specify a queue adapter to use:
   #
   #   ActiveJob::Base.queue_adapter = :inline
   #
   # A list of supported adapters can be found in QueueAdapters.
   #
-  # Active job objects can be defined by creating a class that inherits
+  # Active Job objects can be defined by creating a class that inherits
   # from the ActiveJob::Base class. The only necessary method to
   # implement is the "perform" method.
   #
@@ -32,17 +32,21 @@ module ActiveJob #:nodoc:
   #   end
   #
   # Records that are passed in are serialized/deserialized using Global
-  # Id. More information can be found in Arguments.
+  # ID. More information can be found in Arguments.
   #
-  # To queue a job to be processed asynchronously immediately:
+  # To enqueue a job to be performed as soon the queueing system is free:
   #
   #   ProcessPhotoJob.perform_later(photo)
   #
-  # To queue a job to be processed at some point in the future:
+  # To enqueue a job to be processed at some point in the future:
   #
   #   ProcessPhotoJob.set(wait_until: Date.tomorrow.noon).perform_later(photo)
   #
   # More information can be found in ActiveJob::Core::ClassMethods#set
+  #
+  # A job can also be processed immediately without sending to the queue:
+  #
+  #  ProcessPhotoJob.perform_now(photo)
   #
   # == Exceptions
   #

@@ -1,5 +1,6 @@
 require 'base64'
 require 'active_support/core_ext/object/blank'
+require 'active_support/security_utils'
 
 module ActiveSupport
   # +MessageVerifier+ makes it easy to generate and verify messages which are
@@ -37,9 +38,9 @@ module ActiveSupport
       raise InvalidSignature if signed_message.blank?
 
       data, digest = signed_message.split("--")
-      if data.present? && digest.present? && secure_compare(digest, generate_digest(data))
+      if data.present? && digest.present? && ActiveSupport::SecurityUtils.secure_compare(digest, generate_digest(data))
         begin
-          @serializer.load(::Base64.strict_decode64(data))
+          @serializer.load(decode(data))
         rescue ArgumentError => argument_error
           raise InvalidSignature if argument_error.message =~ %r{invalid base64}
           raise
@@ -50,20 +51,17 @@ module ActiveSupport
     end
 
     def generate(value)
-      data = ::Base64.strict_encode64(@serializer.dump(value))
+      data = encode(@serializer.dump(value))
       "#{data}--#{generate_digest(data)}"
     end
 
     private
-      # constant-time comparison algorithm to prevent timing attacks
-      def secure_compare(a, b)
-        return false unless a.bytesize == b.bytesize
+      def encode(data)
+        ::Base64.strict_encode64(data)
+      end
 
-        l = a.unpack "C#{a.bytesize}"
-
-        res = 0
-        b.each_byte { |byte| res |= byte ^ l.shift }
-        res == 0
+      def decode(data)
+        ::Base64.strict_decode64(data)
       end
 
       def generate_digest(data)

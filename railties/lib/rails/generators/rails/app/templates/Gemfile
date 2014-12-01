@@ -12,8 +12,6 @@ source 'https://rubygems.org'
 <% end -%>
 <% end -%>
 
-gem 'rails-dom-testing', github: 'rails/rails-dom-testing'
-
 # Use ActiveModel has_secure_password
 # gem 'bcrypt', '~> 3.1.7'
 
@@ -25,15 +23,16 @@ gem 'rails-dom-testing', github: 'rails/rails-dom-testing'
 
 group :development, :test do
 <% unless defined?(JRUBY_VERSION) -%>
-  # Call 'debugger' anywhere in the code to stop execution and get a debugger console
   <%- if RUBY_VERSION < '2.0.0' -%>
+  # Call 'debugger' anywhere in the code to stop execution and get a debugger console
   gem 'debugger'
   <%- else -%>
+  # Call 'byebug' anywhere in the code to stop execution and get a debugger console
   gem 'byebug'
   <%- end -%>
 
   # Access an IRB console on exception pages or by using <%%= console %> in views
-  gem 'web-console', '~> 2.0.0.beta4'
+  gem 'web-console', '~> 2.0'
 <%- if spring_install? %>
   # Spring speeds up development by keeping your application running in the background. Read more: https://github.com/rails/spring
   gem 'spring'
@@ -41,7 +40,7 @@ group :development, :test do
 <% end -%>
 end
 
-<% if RUBY_PLATFORM.match(/bccwin|cygwin|emx|mingw|mswin|wince/) -%>
+<% if RUBY_PLATFORM.match(/bccwin|cygwin|emx|mingw|mswin|wince|java/) -%>
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
-gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw]
+gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]
 <% end -%>

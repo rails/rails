@@ -148,8 +148,8 @@ class NamespacedMailerGeneratorTest < NamespacedGeneratorTestCase
     run_generator
     assert_file "app/mailers/test_app/notifier.rb" do |mailer|
       assert_match(/module TestApp/, mailer)
-      assert_match(/class Notifier < ActionMailer::Base/, mailer)
-      assert_match(/default from: "from@example.com"/, mailer)
+      assert_match(/class Notifier < ApplicationMailer/, mailer)
+      assert_no_match(/default from: "from@example.com"/, mailer)
     end
   end
 

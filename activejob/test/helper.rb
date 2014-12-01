@@ -26,5 +26,4 @@ end
 
 require 'active_support/testing/autorun'
 
-ActiveJob::Base.logger.level = Logger::DEBUG
 ActiveSupport::TestCase.test_order = :random

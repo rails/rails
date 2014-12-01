@@ -388,6 +388,14 @@ class SchemaTest < ActiveRecord::TestCase
     assert_equal "1", @connection.select_value("SELECT nextval('#{sequence_name}')")
   end
 
+  def test_set_pk_sequence
+    table_name = "#{SCHEMA_NAME}.#{PK_TABLE_NAME}"
+    _, sequence_name = @connection.pk_and_sequence_for table_name
+    @connection.set_pk_sequence! table_name, 123
+    assert_equal "124", @connection.select_value("SELECT nextval('#{sequence_name}')")
+    @connection.reset_pk_sequence! table_name
+  end
+
   private
     def columns(table_name)
       @connection.send(:column_definitions, table_name).map do |name, type, default|
@@ -404,7 +412,7 @@ class SchemaTest < ActiveRecord::TestCase
 
     def do_dump_index_tests_for_schema(this_schema_name, first_index_column_name, second_index_column_name, third_index_column_name, fourth_index_column_name)
       with_schema_search_path(this_schema_name) do
-        indexes = @connection.indexes(TABLE_NAME).sort_by {|i| i.name}
+        indexes = @connection.indexes(TABLE_NAME).sort_by(&:name)
         assert_equal 4,indexes.size
 
         do_dump_index_assertions_for_one_index(indexes[0], INDEX_A_NAME, first_index_column_name)

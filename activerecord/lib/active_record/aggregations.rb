@@ -230,8 +230,8 @@ module ActiveRecord
       private
         def reader_method(name, class_name, mapping, allow_nil, constructor)
           define_method(name) do
-            if @aggregation_cache[name].nil? && (!allow_nil || mapping.any? {|key, _| !read_attribute(key).nil? })
-              attrs = mapping.collect {|key, _| read_attribute(key)}
+            if @aggregation_cache[name].nil? && (!allow_nil || mapping.any? {|key, _| !_read_attribute(key).nil? })
+              attrs = mapping.collect {|key, _| _read_attribute(key)}
               object = constructor.respond_to?(:call) ?
                 constructor.call(*attrs) :
                 class_name.constantize.send(constructor, *attrs)

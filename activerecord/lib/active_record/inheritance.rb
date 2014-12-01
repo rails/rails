@@ -80,12 +80,12 @@ module ActiveRecord
       end
 
       def symbolized_base_class
-        ActiveSupport::Deprecation.warn("ActiveRecord::Base.symbolized_base_class is deprecated and will be removed without replacement.")
+        ActiveSupport::Deprecation.warn('`ActiveRecord::Base.symbolized_base_class` is deprecated and will be removed without replacement.')
         @symbolized_base_class ||= base_class.to_s.to_sym
       end
 
       def symbolized_sti_name
-        ActiveSupport::Deprecation.warn("ActiveRecord::Base.symbolized_sti_name is deprecated and will be removed without replacement.")
+        ActiveSupport::Deprecation.warn('`ActiveRecord::Base.symbolized_sti_name` is deprecated and will be removed without replacement.')
         @symbolized_sti_name ||= sti_name.present? ? sti_name.to_sym : symbolized_base_class
       end
 
@@ -192,7 +192,7 @@ module ActiveRecord
 
       def type_condition(table = arel_table)
         sti_column = table[inheritance_column]
-        sti_names  = ([self] + descendants).map { |model| model.sti_name }
+        sti_names  = ([self] + descendants).map(&:sti_name)
 
         sti_column.in(sti_names)
       end

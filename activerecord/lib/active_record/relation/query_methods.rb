@@ -1,4 +1,5 @@
 require 'active_support/core_ext/array/wrap'
+require 'active_support/core_ext/string/filters'
 require 'active_model/forbidden_attributes_protection'
 
 module ActiveRecord
@@ -94,8 +95,10 @@ module ActiveRecord
     def check_cached_relation # :nodoc:
       if defined?(@arel) && @arel
         @arel = nil
-        ActiveSupport::Deprecation.warn "Modifying already cached Relation. The " \
-          "cache will be reset. Use a cloned Relation to prevent this warning."
+        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          Modifying already cached Relation. The cache will be reset. Use a
+          cloned Relation to prevent this warning.
+        MSG
       end
     end
 
@@ -424,19 +427,17 @@ module ActiveRecord
     #   => SELECT "users".* FROM "users" LEFT JOIN bookmarks ON bookmarks.bookmarkable_type = 'Post' AND bookmarks.user_id = users.id
     def joins(*args)
       check_if_method_has_arguments!(:joins, args)
-
-      args.compact!
-      args.flatten!
-
       spawn.joins!(*args)
     end
 
     def joins!(*args) # :nodoc:
+      args.compact!
+      args.flatten!
       self.joins_values += args
       self
     end
 
-    def bind(value)
+    def bind(value) # :nodoc:
       spawn.bind!(value)
     end
 
@@ -857,7 +858,7 @@ module ActiveRecord
     private
 
     def build_arel
-      arel = Arel::SelectManager.new(table.engine, table)
+      arel = Arel::SelectManager.new(table)
 
       build_joins(arel, joins_values.flatten) unless joins_values.empty?
 
@@ -877,13 +878,6 @@ module ActiveRecord
       arel.distinct(distinct_value)
       arel.from(build_from) if from_value
       arel.lock(lock_value) if lock_value
-
-      # Reorder bind indexes if joins produced bind values
-      bvs = arel.bind_values + bind_values
-      arel.ast.grep(Arel::Nodes::BindParam).each_with_index do |bp, i|
-        column = bvs[i].first
-        bp.replace connection.substitute_at(column, i)
-      end
 
       arel
     end
@@ -913,7 +907,7 @@ module ActiveRecord
 
       where_values.reject! do |rel|
         case rel
-        when Arel::Nodes::In, Arel::Nodes::NotIn, Arel::Nodes::Equality, Arel::Nodes::NotEqual
+        when Arel::Nodes::Between, Arel::Nodes::In, Arel::Nodes::NotIn, Arel::Nodes::Equality, Arel::Nodes::NotEqual, Arel::Nodes::LessThanOrEqual, Arel::Nodes::GreaterThanOrEqual
           subrelation = (rel.left.kind_of?(Arel::Attributes::Attribute) ? rel.left : rel.right)
           subrelation.name == target_value
         end
@@ -955,8 +949,7 @@ module ActiveRecord
       when Hash
         opts = PredicateBuilder.resolve_column_aliases(klass, opts)
 
-        bv_len = bind_values.length
-        tmp_opts, bind_values = create_binds(opts, bv_len)
+        tmp_opts, bind_values = create_binds(opts)
         self.bind_values += bind_values
 
         attributes = @klass.send(:expand_hash_conditions_for_aggregates, tmp_opts)
@@ -968,7 +961,7 @@ module ActiveRecord
       end
     end
 
-    def create_binds(opts, idx)
+    def create_binds(opts)
       bindable, non_binds = opts.partition do |column, value|
         case value
         when String, Integer, ActiveRecord::StatementCache::Substitute
@@ -978,17 +971,34 @@ module ActiveRecord
         end
       end
 
+      association_binds, non_binds = non_binds.partition do |column, value|
+        value.is_a?(Hash) && association_for_table(column)
+      end
+
       new_opts = {}
       binds = []
 
-      bindable.each_with_index do |(column,value), index|
+      bindable.each do |(column,value)|
         binds.push [@klass.columns_hash[column.to_s], value]
-        new_opts[column] = connection.substitute_at(column, index + idx)
+        new_opts[column] = connection.substitute_at(column)
+      end
+
+      association_binds.each do |(column, value)|
+        association_relation = association_for_table(column).klass.send(:relation)
+        association_new_opts, association_bind = association_relation.send(:create_binds, value)
+        new_opts[column] = association_new_opts
+        binds += association_bind
       end
 
       non_binds.each { |column,value| new_opts[column] = value }
 
       [new_opts, binds]
+    end
+
+    def association_for_table(table_name)
+      table_name = table_name.to_s
+      @klass._reflect_on_association(table_name) ||
+        @klass._reflect_on_association(table_name.singularize)
     end
 
     def build_from
@@ -1047,8 +1057,13 @@ module ActiveRecord
     def build_select(arel, selects)
       if !selects.empty?
         expanded_select = selects.map do |field|
-          columns_hash.key?(field.to_s) ? arel_table[field] : field
+          if (Symbol === field || String === field) && columns_hash.key?(field.to_s)
+            arel_table[field]
+          else
+            field
+          end
         end
+
         arel.project(*expanded_select)
       else
         arel.project(@klass.arel_table[Arel.star])

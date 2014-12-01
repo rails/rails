@@ -13,7 +13,7 @@ class PooledConnectionsTest < ActiveRecord::TestCase
   teardown do
     ActiveRecord::Base.clear_all_connections!
     ActiveRecord::Base.establish_connection(@connection)
-    @per_test_teardown.each {|td| td.call }
+    @per_test_teardown.each(&:call)
   end
 
   # Will deadlock due to lack of Monitor timeouts in 1.9

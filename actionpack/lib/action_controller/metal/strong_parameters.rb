@@ -1,5 +1,6 @@
 require 'active_support/core_ext/hash/indifferent_access'
 require 'active_support/core_ext/array/wrap'
+require 'active_support/core_ext/string/filters'
 require 'active_support/deprecation'
 require 'active_support/rescuable'
 require 'action_dispatch/http/upload'
@@ -114,10 +115,12 @@ module ActionController
 
     def self.const_missing(const_name)
       super unless const_name == :NEVER_UNPERMITTED_PARAMS
-      ActiveSupport::Deprecation.warn "`ActionController::Parameters::NEVER_UNPERMITTED_PARAMS`"\
-                                      " has been deprecated. Use "\
-                                      "`ActionController::Parameters.always_permitted_parameters` instead."
-      self.always_permitted_parameters
+      ActiveSupport::Deprecation.warn(<<-MSG.squish)
+        `ActionController::Parameters::NEVER_UNPERMITTED_PARAMS` has been deprecated.
+        Use `ActionController::Parameters.always_permitted_parameters` instead.
+      MSG
+
+      always_permitted_parameters
     end
 
     # Returns a new instance of <tt>ActionController::Parameters</tt>.

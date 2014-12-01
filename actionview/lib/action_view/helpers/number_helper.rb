@@ -306,12 +306,12 @@ module ActionView
       #   string containing an i18n scope where to find this hash. It
       #   might have the following keys:
       #   * *integers*: <tt>:unit</tt>, <tt>:ten</tt>,
-      #     *<tt>:hundred</tt>, <tt>:thousand</tt>, <tt>:million</tt>,
-      #     *<tt>:billion</tt>, <tt>:trillion</tt>,
-      #     *<tt>:quadrillion</tt>
+      #     <tt>:hundred</tt>, <tt>:thousand</tt>, <tt>:million</tt>,
+      #     <tt>:billion</tt>, <tt>:trillion</tt>,
+      #     <tt>:quadrillion</tt>
       #   * *fractionals*: <tt>:deci</tt>, <tt>:centi</tt>,
-      #     *<tt>:mili</tt>, <tt>:micro</tt>, <tt>:nano</tt>,
-      #     *<tt>:pico</tt>, <tt>:femto</tt>
+      #     <tt>:mili</tt>, <tt>:micro</tt>, <tt>:nano</tt>,
+      #     <tt>:pico</tt>, <tt>:femto</tt>
       # * <tt>:format</tt> - Sets the format of the output string
       #   (defaults to "%n %u"). The field types are:
       #   * %u - The quantifier (ex.: 'thousand')

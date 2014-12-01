@@ -33,7 +33,7 @@ class AdapterTest < ActiveSupport::TestCase
   def teardown
     super
     ActiveJob::Logging::LogSubscriber.log_subscribers.pop
-    ActiveJob::Base.logger = @old_logger
+    set_logger @old_logger
   end
 
   def set_logger(logger)

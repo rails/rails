@@ -361,6 +361,8 @@ class Product < ActiveRecord::Base
 end
 ```
 
+Alternatively, you can require that the specified attribute does _not_ match the regular expression by using the `:without` option.
+
 The default error message is _"is invalid"_.
 
 ### `inclusion`
@@ -425,7 +427,7 @@ class Essay < ActiveRecord::Base
   validates :content, length: {
     minimum: 300,
     maximum: 400,
-    tokenizer: lambda { |str| str.scan(/\w+/) },
+    tokenizer: lambda { |str| str.split(/\s+/) },
     too_short: "must have at least %{count} words",
     too_long: "must have at most %{count} words"
   }
@@ -532,6 +534,7 @@ validates :boolean_field_name, inclusion: { in: [true, false] }
 validates :boolean_field_name, exclusion: { in: [nil] }
 validates :boolean_field_name, nil: false
 ```
+
 By using one of these validations, you will ensure the value will NOT be `nil`
 which would result in a `NULL` value in most cases.
 
@@ -705,7 +708,7 @@ we don't want names and surnames to begin with lower case.
 ```ruby
 class Person < ActiveRecord::Base
   validates_each :name, :surname do |record, attr, value|
-    record.errors.add(attr, 'must start with upper case') if value =~ /\A[a-z]/
+    record.errors.add(attr, 'must start with upper case') if value =~ /\A[[:lower:]]/
   end
 end
 ```

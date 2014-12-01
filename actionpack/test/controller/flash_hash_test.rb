@@ -29,6 +29,15 @@ module ActionDispatch
       assert_equal 'world', @hash['hello']
     end
 
+    def test_key
+      @hash['foo'] = 'bar'
+
+      assert @hash.key?('foo')
+      assert @hash.key?(:foo)
+      assert_not @hash.key?('bar')
+      assert_not @hash.key?(:bar)
+    end
+
     def test_delete
       @hash['foo'] = 'bar'
       @hash.delete 'foo'

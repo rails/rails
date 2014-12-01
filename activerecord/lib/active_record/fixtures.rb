@@ -649,7 +649,7 @@ module ActiveRecord
               model_class
             end
 
-          reflection_class._reflections.values.each do |association|
+          reflection_class._reflections.each_value do |association|
             case association.macro
             when :belongs_to
               # Do not replace association name with association foreign key if they are named the same
@@ -745,7 +745,7 @@ module ActiveRecord
       end
 
       def column_names
-        @column_names ||= @connection.columns(@table_name).collect { |c| c.name }
+        @column_names ||= @connection.columns(@table_name).collect(&:name)
       end
 
       def read_fixture_files(path, model_class)
@@ -806,7 +806,9 @@ module ActiveRecord
 
     def find
       if model_class
-        model_class.find(fixture[model_class.primary_key])
+        model_class.unscoped do
+          model_class.find(fixture[model_class.primary_key])
+        end
       else
         raise FixtureClassNotFound, "No class attached to find."
       end
@@ -866,36 +868,11 @@ module ActiveRecord
           fixture_set_names = Dir["#{fixture_path}/{**,*}/*.{yml}"]
           fixture_set_names.map! { |f| f[(fixture_path.to_s.size + 1)..-5] }
         else
-          fixture_set_names = fixture_set_names.flatten.map { |n| n.to_s }
+          fixture_set_names = fixture_set_names.flatten.map(&:to_s)
         end
 
         self.fixture_table_names |= fixture_set_names
-        require_fixture_classes(fixture_set_names, self.config)
         setup_fixture_accessors(fixture_set_names)
-      end
-
-      def try_to_load_dependency(file_name)
-        require_dependency file_name
-      rescue LoadError => e
-        unless fixture_class_names.key?(file_name.pluralize)
-          if ActiveRecord::Base.logger
-            ActiveRecord::Base.logger.warn("Unable to load #{file_name}, make sure you added it to ActiveSupport::TestCase.set_fixture_class")
-            ActiveRecord::Base.logger.warn("underlying cause #{e.message} \n\n #{e.backtrace.join("\n")}")
-          end
-        end
-      end
-
-      def require_fixture_classes(fixture_set_names = nil, config = ActiveRecord::Base)
-        if fixture_set_names
-          fixture_set_names = fixture_set_names.map { |n| n.to_s }
-        else
-          fixture_set_names = fixture_table_names
-        end
-
-        fixture_set_names.each do |file_name|
-          file_name = file_name.singularize if config.pluralize_table_names
-          try_to_load_dependency(file_name)
-        end
       end
 
       def setup_fixture_accessors(fixture_set_names = nil)
@@ -931,7 +908,7 @@ module ActiveRecord
 
       def uses_transaction(*methods)
         @uses_transaction = [] unless defined?(@uses_transaction)
-        @uses_transaction.concat methods.map { |m| m.to_s }
+        @uses_transaction.concat methods.map(&:to_s)
       end
 
       def uses_transaction?(method)
@@ -974,7 +951,7 @@ module ActiveRecord
       end
 
       # Instantiate fixtures for every test if requested.
-      instantiate_fixtures(config) if use_instantiated_fixtures
+      instantiate_fixtures if use_instantiated_fixtures
     end
 
     def teardown_fixtures
@@ -1001,16 +978,9 @@ module ActiveRecord
         Hash[fixtures.map { |f| [f.name, f] }]
       end
 
-      # for pre_loaded_fixtures, only require the classes once. huge speed improvement
-      @@required_fixture_classes = false
-
-      def instantiate_fixtures(config)
+      def instantiate_fixtures
         if pre_loaded_fixtures
           raise RuntimeError, 'Load fixtures before instantiating them.' if ActiveRecord::FixtureSet.all_loaded_fixtures.empty?
-          unless @@required_fixture_classes
-            self.class.require_fixture_classes ActiveRecord::FixtureSet.all_loaded_fixtures.keys, config
-            @@required_fixture_classes = true
-          end
           ActiveRecord::FixtureSet.instantiate_all_loaded_fixtures(self, load_instances?)
         else
           raise RuntimeError, 'Load fixtures before instantiating them.' if @loaded_fixtures.nil?

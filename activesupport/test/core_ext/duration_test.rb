@@ -30,7 +30,6 @@ class DurationTest < ActiveSupport::TestCase
     assert ActiveSupport::Duration === 1.day
     assert !(ActiveSupport::Duration === 1.day.to_i)
     assert !(ActiveSupport::Duration === 'foo')
-    assert !(ActiveSupport::Duration === ActiveSupport::ProxyObject.new)
   end
 
   def test_equals
@@ -199,5 +198,17 @@ class DurationTest < ActiveSupport::TestCase
 
   def test_hash
     assert_equal 1.minute.hash, 60.seconds.hash
+  end
+
+  def test_comparable
+    assert_equal(-1, (0.seconds <=> 1.second))
+    assert_equal(-1, (1.second <=> 1.minute))
+    assert_equal(-1, (1 <=> 1.minute))
+    assert_equal(0, (0.seconds <=> 0.seconds))
+    assert_equal(0, (0.seconds <=> 0.minutes))
+    assert_equal(0, (1.second <=> 1.second))
+    assert_equal(1, (1.second <=> 0.second))
+    assert_equal(1, (1.minute <=> 1.second))
+    assert_equal(1, (61 <=> 1.minute))
   end
 end

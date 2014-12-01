@@ -165,7 +165,7 @@ module ActionController
       headers["Location"] = url
     end
 
-    # basic url_for that can be overridden for more robust functionality
+    # Basic url_for that can be overridden for more robust functionality
     def url_for(string)
       string
     end
@@ -182,7 +182,7 @@ module ActionController
       body = [body] unless body.nil? || body.respond_to?(:each)
       super
     end
-    
+
     # Tests if render or redirect has already happened.
     def performed?
       response_body || (response && response.committed?)
@@ -237,7 +237,7 @@ module ActionController
       end
     end
 
-    def _status_code
+    def _status_code #:nodoc:
       @_status
     end
   end

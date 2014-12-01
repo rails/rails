@@ -2,6 +2,7 @@ david:
   id: 1
   name: David
   salary: 80000
+  shared_computers: laptop
 
 jamis:
   id: 2

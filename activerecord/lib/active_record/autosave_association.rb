@@ -184,7 +184,9 @@ module ActiveRecord
             before_save :before_save_collection_association
 
             define_non_cyclic_method(save_method) { save_collection_association(reflection) }
-            after_save save_method
+            # Doesn't use after_save as that would save associations added in after_create/after_update twice
+            after_create save_method
+            after_update save_method
           elsif reflection.has_one?
             define_method(save_method) { save_has_one_association(reflection) } unless method_defined?(save_method)
             # Configures two callbacks instead of a single after_save so that
@@ -261,9 +263,9 @@ module ActiveRecord
         if new_record
           association && association.target
         elsif autosave
-          association.target.find_all { |record| record.changed_for_autosave? }
+          association.target.find_all(&:changed_for_autosave?)
         else
-          association.target.find_all { |record| record.new_record? }
+          association.target.find_all(&:new_record?)
         end
       end
 
@@ -273,7 +275,7 @@ module ActiveRecord
         self.class._reflections.values.any? do |reflection|
           if reflection.options[:autosave]
             association = association_instance_get(reflection.name)
-            association && Array.wrap(association.target).any? { |a| a.changed_for_autosave? }
+            association && Array.wrap(association.target).any?(&:changed_for_autosave?)
           end
         end
       end

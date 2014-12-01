@@ -245,6 +245,10 @@ class PluginGeneratorTest < Rails::Generators::TestCase
       assert_match(/stylesheet_link_tag\s+['"]bukkits\/application['"]/, contents)
       assert_match(/javascript_include_tag\s+['"]bukkits\/application['"]/, contents)
     end
+    assert_file "test/test_helper.rb" do |content|
+      assert_match(/ActiveRecord::Migrator\.migrations_paths.+\.\.\/test\/dummy\/db\/migrate/, content)
+      assert_match(/ActiveRecord::Migrator\.migrations_paths.+<<.+\.\.\/db\/migrate/, content)
+    end
   end
 
   def test_creating_gemspec

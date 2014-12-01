@@ -127,7 +127,7 @@ EOT
         require 'rails/generators'
         require_application_and_environment!
         Rails.application.load_generators
-        require "rails/commands/#{command}"
+        require_command!(command)
       end
 
       # Change to the application's path if there is no config.ru file in current directory.

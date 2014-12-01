@@ -313,11 +313,15 @@ module ActionView
 
       def locals_code #:nodoc:
         # Double assign to suppress the dreaded 'assigned but unused variable' warning
-        @locals.map { |key| "#{key} = #{key} = local_assigns[:#{key}];" }.join
+        @locals.each_with_object('') { |key, code| code << "#{key} = #{key} = local_assigns[:#{key}];" }
       end
 
       def method_name #:nodoc:
-        @method_name ||= "_#{identifier_method_name}__#{@identifier.hash}_#{__id__}".tr('-', "_")
+        @method_name ||= begin
+          m = "_#{identifier_method_name}__#{@identifier.hash}_#{__id__}"
+          m.tr!('-', '_')
+          m
+        end
       end
 
       def identifier_method_name #:nodoc:

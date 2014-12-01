@@ -1,4 +1,5 @@
 require 'active_support/core_ext/module/attribute_accessors'
+require 'active_support/core_ext/string/filters'
 require 'active_support/deprecation'
 require 'action_dispatch/http/filter_redirect'
 require 'monitor'
@@ -288,7 +289,12 @@ module ActionDispatch # :nodoc:
     # as arrays work, and "flattening" responses, cascading to the rack body!
     # Not sensible behavior.
     def to_ary
-      ActiveSupport::Deprecation.warn 'ActionDispatch::Response#to_ary no longer performs implicit conversion to an Array. Please use response.to_a instead, or a splat like `status, headers, body = *response`'
+      ActiveSupport::Deprecation.warn(<<-MSG.squish)
+        `ActionDispatch::Response#to_ary` no longer performs implicit conversion
+        to an array. Please use `response.to_a` instead, or a splat like `status,
+        headers, body = *response`.
+      MSG
+
       to_a
     end
 
@@ -309,9 +315,6 @@ module ActionDispatch # :nodoc:
       cookies
     end
 
-    def _status_code
-      @status
-    end
   private
 
     def before_committed

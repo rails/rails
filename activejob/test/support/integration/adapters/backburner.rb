@@ -29,7 +29,7 @@ module BackburnerJobsManager
   def can_run?
     begin
       Backburner::Worker.connection.send :connect!
-    rescue => e
+    rescue
       return false
     end
     true

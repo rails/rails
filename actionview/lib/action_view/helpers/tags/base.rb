@@ -25,7 +25,7 @@ module ActionView
         private
 
         def value(object)
-          object.send @method_name if object
+          object.public_send @method_name if object
         end
 
         def value_before_type_cast(object)

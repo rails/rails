@@ -6,16 +6,17 @@ module ActionDispatch
     cattr_accessor :rescue_responses
     @@rescue_responses = Hash.new(:internal_server_error)
     @@rescue_responses.merge!(
-      'ActionController::RoutingError'             => :not_found,
-      'AbstractController::ActionNotFound'         => :not_found,
-      'ActionController::MethodNotAllowed'         => :method_not_allowed,
-      'ActionController::UnknownHttpMethod'        => :method_not_allowed,
-      'ActionController::NotImplemented'           => :not_implemented,
-      'ActionController::UnknownFormat'            => :not_acceptable,
-      'ActionController::InvalidAuthenticityToken' => :unprocessable_entity,
-      'ActionDispatch::ParamsParser::ParseError'   => :bad_request,
-      'ActionController::BadRequest'               => :bad_request,
-      'ActionController::ParameterMissing'         => :bad_request
+      'ActionController::RoutingError'                => :not_found,
+      'AbstractController::ActionNotFound'            => :not_found,
+      'ActionController::MethodNotAllowed'            => :method_not_allowed,
+      'ActionController::UnknownHttpMethod'           => :method_not_allowed,
+      'ActionController::NotImplemented'              => :not_implemented,
+      'ActionController::UnknownFormat'               => :not_acceptable,
+      'ActionController::InvalidAuthenticityToken'    => :unprocessable_entity,
+      'ActionController::InvalidCrossOriginRequest'   => :unprocessable_entity,
+      'ActionDispatch::ParamsParser::ParseError'      => :bad_request,
+      'ActionController::BadRequest'                  => :bad_request,
+      'ActionController::ParameterMissing'            => :bad_request
     )
 
     cattr_accessor :rescue_templates
@@ -56,23 +57,51 @@ module ActionDispatch
       clean_backtrace(:all)
     end
 
+    def traces
+      appplication_trace_with_ids = []
+      framework_trace_with_ids = []
+      full_trace_with_ids = []
+
+      full_trace.each_with_index do |trace, idx|
+        trace_with_id = { id: idx, trace: trace }
+
+        if application_trace.include?(trace)
+          appplication_trace_with_ids << trace_with_id
+        else
+          framework_trace_with_ids << trace_with_id
+        end
+
+        full_trace_with_ids << trace_with_id
+      end
+
+      {
+        "Application Trace" => appplication_trace_with_ids,
+        "Framework Trace" => framework_trace_with_ids,
+        "Full Trace" => full_trace_with_ids
+      }
+    end
+
     def self.status_code_for_exception(class_name)
       Rack::Utils.status_code(@@rescue_responses[class_name])
     end
 
-    def source_extract
-      exception.backtrace.map do |trace|
+    def source_extracts
+      backtrace.map do |trace|
         file, line = trace.split(":")
         line_number = line.to_i
+
         {
           code: source_fragment(file, line_number),
-          file: file,
           line_number: line_number
         }
-      end if exception.backtrace
+      end
     end
 
     private
+
+    def backtrace
+      Array(@exception.backtrace)
+    end
 
     def original_exception(exception)
       if registered_original_exception?(exception)
@@ -88,9 +117,9 @@ module ActionDispatch
 
     def clean_backtrace(*args)
       if backtrace_cleaner
-        backtrace_cleaner.clean(@exception.backtrace, *args)
+        backtrace_cleaner.clean(backtrace, *args)
       else
-        @exception.backtrace
+        backtrace
       end
     end
 

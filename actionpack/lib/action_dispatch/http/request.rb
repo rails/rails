@@ -328,7 +328,7 @@ module ActionDispatch
     # Extracted into ActionDispatch::Request::Utils.deep_munge, but kept here for backwards compatibility.
     def deep_munge(hash)
       ActiveSupport::Deprecation.warn(
-        "This method has been extracted into ActionDispatch::Request::Utils.deep_munge. Please start using that instead."
+        'This method has been extracted into `ActionDispatch::Request::Utils.deep_munge`. Please start using that instead.'
       )
 
       Utils.deep_munge(hash)

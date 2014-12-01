@@ -15,7 +15,7 @@ module ActionDispatch
       @html_document ||= if @response.content_type =~ /xml$/
         Nokogiri::XML::Document.parse(@response.body)
       else
-        Nokogiri::HTML::DocumentFragment.parse(@response.body)
+        Nokogiri::HTML::Document.parse(@response.body)
       end
     end
   end

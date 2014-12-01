@@ -6,6 +6,7 @@ module ActiveJob
     extend ActiveSupport::Concern
     include ActiveSupport::Rescuable
 
+    # Includes methods for executing and performing jobs instantly.
     module ClassMethods
       # Performs the job immediately.
       #

@@ -260,9 +260,7 @@ module Rails
       public_task :generate_spring_binstubs
 
       def run_after_bundle_callbacks
-        @after_bundle_callbacks.each do |callback|
-          callback.call
-        end
+        @after_bundle_callbacks.each(&:call)
       end
 
     protected

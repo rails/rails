@@ -50,13 +50,13 @@ class ReflectionTest < ActiveRecord::TestCase
   end
 
   def test_columns_are_returned_in_the_order_they_were_declared
-    column_names = Topic.columns.map { |column| column.name }
+    column_names = Topic.columns.map(&:name)
     assert_equal %w(id title author_name author_email_address written_on bonus_time last_read content important approved replies_count unique_replies_count parent_id parent_title type group created_at updated_at), column_names
   end
 
   def test_content_columns
     content_columns        = Topic.content_columns
-    content_column_names   = content_columns.map {|column| column.name}
+    content_column_names   = content_columns.map(&:name)
     assert_equal 13, content_columns.length
     assert_equal %w(title author_name author_email_address written_on bonus_time last_read content important group approved parent_title created_at updated_at).sort, content_column_names.sort
   end
@@ -207,6 +207,10 @@ class ReflectionTest < ActiveRecord::TestCase
 
   def test_reflection_should_not_raise_error_when_compared_to_other_object
     assert_not_equal Object.new, Firm._reflections['clients']
+  end
+
+  def test_reflections_should_return_keys_as_strings
+    assert Category.reflections.keys.all? { |key| key.is_a? String }, "Model.reflections is expected to return string for keys"
   end
 
   def test_has_and_belongs_to_many_reflection

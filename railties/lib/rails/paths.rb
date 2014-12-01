@@ -77,23 +77,23 @@ module Rails
       end
 
       def all_paths
-        values.tap { |v| v.uniq! }
+        values.tap(&:uniq!)
       end
 
       def autoload_once
-        filter_by { |p| p.autoload_once? }
+        filter_by(&:autoload_once?)
       end
 
       def eager_load
-        filter_by { |p| p.eager_load? }
+        filter_by(&:eager_load?)
       end
 
       def autoload_paths
-        filter_by { |p| p.autoload? }
+        filter_by(&:autoload?)
       end
 
       def load_paths
-        filter_by { |p| p.load_path? }
+        filter_by(&:load_path?)
       end
 
     private
@@ -167,8 +167,8 @@ module Rails
         @paths.concat paths
       end
 
-      def unshift(path)
-        @paths.unshift path
+      def unshift(*paths)
+        @paths.unshift(*paths)
       end
 
       def to_ary

@@ -193,7 +193,7 @@ Now get busy and add/edit code. You're on your branch now, so you can write what
 * Update the (surrounding) documentation, examples elsewhere, and the guides: whatever is affected by your contribution.
 
 
-TIP: Changes that are cosmetic in nature and do not add anything substantial to the stability, functionality, or testability of Rails will generally not be accepted.
+TIP: Changes that are cosmetic in nature and do not add anything substantial to the stability, functionality, or testability of Rails will generally not be accepted (read more about [our rationales behind this decision](https://github.com/rails/rails/pull/13771#issuecomment-32746700)).
 
 #### Follow the Coding Conventions
 

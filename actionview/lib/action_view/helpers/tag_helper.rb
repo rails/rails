@@ -18,7 +18,7 @@ module ActionView
                            itemscope allowfullscreen default inert sortable
                            truespeed typemustmatch).to_set
 
-      BOOLEAN_ATTRIBUTES.merge(BOOLEAN_ATTRIBUTES.map {|attribute| attribute.to_sym })
+      BOOLEAN_ATTRIBUTES.merge(BOOLEAN_ATTRIBUTES.map(&:to_sym))
 
       TAG_PREFIXES = ['aria', 'data', :aria, :data].to_set
 
@@ -123,7 +123,7 @@ module ActionView
       #   cdata_section("hello]]>world")
       #   # => <![CDATA[hello]]]]><![CDATA[>world]]>
       def cdata_section(content)
-        splitted = content.to_s.gsub(']]>', ']]]]><![CDATA[>')
+        splitted = content.to_s.gsub(/\]\]\>/, ']]]]><![CDATA[>')
         "<![CDATA[#{splitted}]]>".html_safe
       end
 

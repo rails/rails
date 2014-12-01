@@ -5,6 +5,7 @@ require 'models/comment'
 require 'models/reply'
 require 'models/author'
 require 'models/developer'
+require 'models/computer'
 
 class NamedScopingTest < ActiveRecord::TestCase
   fixtures :posts, :authors, :topics, :comments, :author_addresses
@@ -130,6 +131,13 @@ class NamedScopingTest < ActiveRecord::TestCase
     # Oracle sometimes sorts differently if WHERE condition is changed
     assert_equal authors(:david).posts.ranked_by_comments.limit_by(5).to_a.sort_by(&:id), authors(:david).posts.top(5).to_a.sort_by(&:id)
     assert_equal Post.ranked_by_comments.limit_by(5), Post.top(5)
+  end
+
+  def test_scopes_body_is_a_callable
+    e = assert_raises ArgumentError do
+      Class.new(Post).class_eval { scope :containing_the_letter_z, where("body LIKE '%z%'") }
+    end
+    assert_equal "The scope body needs to be callable.", e.message
   end
 
   def test_active_records_have_scope_named__all__

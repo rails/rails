@@ -1785,6 +1785,20 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
+  def test_form_tags_do_not_call_private_properties_on_form_object
+    obj = Class.new do
+      private
+
+      def private_property
+        raise "This method should not be called."
+      end
+    end.new
+
+    form_for(obj, as: "other_name", url: '/', html: { id: "edit-other-name" }) do |f|
+      assert_raise(NoMethodError) { f.hidden_field(:private_property) }
+    end
+  end
+
   def test_form_for_with_method_as_part_of_html_options
     form_for(@post, url: '/', html: { id: 'create-post', method: :delete }) do |f|
       concat f.text_field(:title)
@@ -1845,6 +1859,30 @@ class FormHelperTest < ActionView::TestCase
       "<textarea name='post[body]' id='post_body'>\nBack to the hill and over it again!</textarea>" +
       "<input name='post[secret]' type='hidden' value='0' />" +
       "<input name='post[secret]' checked='checked' type='checkbox' id='post_secret' value='1' />"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_for_enforce_utf8_true
+    form_for(:post, enforce_utf8: true) do |f|
+      concat f.text_field(:title)
+    end
+
+    expected = whole_form("/", nil, nil, enforce_utf8: true) do
+      "<input name='post[title]' type='text' id='post_title' value='Hello World' />"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_for_enforce_utf8_false
+    form_for(:post, enforce_utf8: false) do |f|
+      concat f.text_field(:title)
+    end
+
+    expected = whole_form("/", nil, nil, enforce_utf8: false) do
+      "<input name='post[title]' type='text' id='post_title' value='Hello World' />"
     end
 
     assert_dom_equal expected, output_buffer
@@ -3299,8 +3337,14 @@ class FormHelperTest < ActionView::TestCase
 
   protected
 
-  def hidden_fields(method = nil)
-    txt = %{<input name="utf8" type="hidden" value="&#x2713;" />}
+  def hidden_fields(options = {})
+    method = options[:method]
+
+    if options.fetch(:enforce_utf8, true)
+      txt = %{<input name="utf8" type="hidden" value="&#x2713;" />}
+    else
+      txt = ''
+    end
 
     if method && !%w(get post).include?(method.to_s)
       txt << %{<input name="_method" type="hidden" value="#{method}" />}
@@ -3324,7 +3368,7 @@ class FormHelperTest < ActionView::TestCase
 
     method, remote, multipart = options.values_at(:method, :remote, :multipart)
 
-    form_text(action, id, html_class, remote, multipart, method) + hidden_fields(method) + contents + "</form>"
+    form_text(action, id, html_class, remote, multipart, method) + hidden_fields(options.slice :method, :enforce_utf8) + contents + "</form>"
   end
 
   def protect_against_forgery?

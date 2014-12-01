@@ -193,6 +193,98 @@ module ApplicationTests
       assert_successful_test_run('models/user_test.rb')
     end
 
+    # TODO: would be nice if we could detect the schema change automatically.
+    # For now, the user has to synchronize the schema manually.
+    # This test-case serves as a reminder for this use-case.
+    test "manually synchronize test schema after rollback" do
+      output  = script('generate model user name:string')
+      version = output.match(/(\d+)_create_users\.rb/)[1]
+
+      app_file 'test/models/user_test.rb', <<-RUBY
+        require 'test_helper'
+
+        class UserTest < ActiveSupport::TestCase
+          test "user" do
+            assert_equal ["id", "name"], User.columns_hash.keys
+          end
+        end
+      RUBY
+      app_file 'db/schema.rb', <<-RUBY
+        ActiveRecord::Schema.define(version: #{version}) do
+          create_table :users do |t|
+            t.string :name
+          end
+        end
+      RUBY
+
+      assert_successful_test_run "models/user_test.rb"
+
+      # Simulate `db:rollback` + edit of the migration file + `db:migrate`
+      app_file 'db/schema.rb', <<-RUBY
+        ActiveRecord::Schema.define(version: #{version}) do
+          create_table :users do |t|
+            t.string :name
+            t.integer :age
+          end
+        end
+      RUBY
+
+      assert_successful_test_run "models/user_test.rb"
+
+      Dir.chdir(app_path) { `bin/rake db:test:prepare` }
+
+      assert_unsuccessful_run "models/user_test.rb", <<-ASSERTION
+Expected: ["id", "name"]
+  Actual: ["id", "name", "age"]
+      ASSERTION
+    end
+
+    test "hooks for plugins" do
+      output  = script('generate model user name:string')
+      version = output.match(/(\d+)_create_users\.rb/)[1]
+
+      app_file 'lib/tasks/hooks.rake', <<-RUBY
+        task :before_hook do
+          has_user_table = ActiveRecord::Base.connection.table_exists?('users')
+          puts "before: " + has_user_table.to_s
+        end
+
+        task :after_hook do
+          has_user_table = ActiveRecord::Base.connection.table_exists?('users')
+          puts "after: " + has_user_table.to_s
+        end
+
+        Rake::Task["db:test:prepare"].enhance [:before_hook] do
+          Rake::Task[:after_hook].invoke
+        end
+      RUBY
+      app_file 'test/models/user_test.rb', <<-RUBY
+        require 'test_helper'
+        class UserTest < ActiveSupport::TestCase
+          test "user" do
+            User.create! name: "Jon"
+          end
+        end
+      RUBY
+
+      # Simulate `db:migrate`
+      app_file 'db/schema.rb', <<-RUBY
+        ActiveRecord::Schema.define(version: #{version}) do
+          create_table :users do |t|
+            t.string :name
+          end
+        end
+      RUBY
+
+      output = assert_successful_test_run "models/user_test.rb"
+      assert_includes output, "before: false\nafter: true"
+
+      # running tests again won't trigger a schema update
+      output = assert_successful_test_run "models/user_test.rb"
+      assert_not_includes output, "before:"
+      assert_not_includes output, "after:"
+    end
+
     private
       def assert_unsuccessful_run(name, message)
         result = run_test_file(name)
@@ -208,7 +300,7 @@ module ApplicationTests
       end
 
       def run_test_file(name, options = {})
-        ruby '-Itest', "#{app_path}/test/#{name}", options
+        ruby '-Itest', "#{app_path}/test/#{name}", options.deep_merge(env: {"RAILS_ENV" => "test"})
       end
 
       def ruby(*args)

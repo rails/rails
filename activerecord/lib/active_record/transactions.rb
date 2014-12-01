@@ -11,7 +11,7 @@ module ActiveRecord
       "\n" \
       "You can opt into the new behavior and remove this warning by setting:\n" \
       "\n" \
-      "  config.active_record.raise_in_transactional_callbacks = true"
+      "  config.active_record.raise_in_transactional_callbacks = true\n\n"
 
     included do
       define_callbacks :commit, :rollback,
@@ -309,7 +309,7 @@ module ActiveRecord
     # Ensure that it is not called if the object was never persisted (failed create),
     # but call it after the commit of a destroyed object.
     def committed!(should_run_callbacks = true) #:nodoc:
-      run_commit_callbacks if should_run_callbacks && destroyed? || persisted?
+      _run_commit_callbacks if should_run_callbacks && destroyed? || persisted?
     ensure
       force_clear_transaction_record_state
     end
@@ -317,7 +317,7 @@ module ActiveRecord
     # Call the +after_rollback+ callbacks. The +force_restore_state+ argument indicates if the record
     # state should be rolled back to the beginning or just to the last savepoint.
     def rolledback!(force_restore_state = false, should_run_callbacks = true) #:nodoc:
-      run_rollback_callbacks if should_run_callbacks
+      _run_rollback_callbacks if should_run_callbacks
     ensure
       restore_transaction_record_state(force_restore_state)
       clear_transaction_record_state

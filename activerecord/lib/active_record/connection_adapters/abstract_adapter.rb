@@ -14,10 +14,7 @@ module ActiveRecord
   module ConnectionAdapters # :nodoc:
     extend ActiveSupport::Autoload
 
-    autoload_at 'active_record/connection_adapters/column' do
-      autoload :Column
-      autoload :NullColumn
-    end
+    autoload :Column
     autoload :ConnectionSpecification
 
     autoload_at 'active_record/connection_adapters/abstract/schema_definitions' do
@@ -27,6 +24,7 @@ module ActiveRecord
       autoload :TableDefinition
       autoload :Table
       autoload :AlterTable
+      autoload :TimestampDefaultDeprecation
     end
 
     autoload_at 'active_record/connection_adapters/abstract/connection_pool' do
@@ -265,10 +263,10 @@ module ActiveRecord
 
       # QUOTING ==================================================
 
-      # Returns a bind substitution value given a bind +index+ and +column+
+      # Returns a bind substitution value given a bind +column+
       # NOTE: The column param is currently being used by the sqlserver-adapter
-      def substitute_at(column, index)
-        Arel::Nodes::BindParam.new '?'
+      def substitute_at(column, _unused = 0)
+        Arel::Nodes::BindParam.new
       end
 
       # REFERENTIAL INTEGRITY ====================================
@@ -384,6 +382,10 @@ module ActiveRecord
 
       def lookup_cast_type(sql_type) # :nodoc:
         type_map.lookup(sql_type)
+      end
+
+      def column_name_for_operation(operation, node) # :nodoc:
+        node.to_sql
       end
 
       protected

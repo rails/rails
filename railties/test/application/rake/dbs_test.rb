@@ -109,6 +109,16 @@ module ApplicationTests
         db_fixtures_load database_url_db_name
       end
 
+      test 'db:fixtures:load with namespaced fixture' do
+        require "#{app_path}/config/environment"
+        Dir.chdir(app_path) do
+          `rails generate model admin::book title:string;
+           bundle exec rake db:migrate db:fixtures:load`
+          require "#{app_path}/app/models/admin/book"
+          assert_equal 2, Admin::Book.count
+        end
+      end
+
       def db_structure_dump_and_load(expected_database)
         Dir.chdir(app_path) do
           `rails generate model book title:string;
@@ -163,15 +173,6 @@ module ApplicationTests
       test 'db:test:load_structure without database_url' do
         require "#{app_path}/config/environment"
         db_test_load_structure
-      end
-
-      test 'db:test deprecation' do
-        require "#{app_path}/config/environment"
-        Dir.chdir(app_path) do
-          output = `bundle exec rake db:migrate db:test:prepare 2>&1`
-          assert_equal "WARNING: db:test:prepare is deprecated. The Rails test helper now maintains " \
-                       "your test schema automatically, see the release notes for details.\n", output
-        end
       end
 
       test 'db:setup loads schema and seeds database' do

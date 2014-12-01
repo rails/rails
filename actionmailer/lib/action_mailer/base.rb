@@ -15,11 +15,17 @@ module ActionMailer
   #
   #   $ rails generate mailer Notifier
   #
-  # The generated model inherits from <tt>ActionMailer::Base</tt>. A mailer model defines methods
+  # The generated model inherits from <tt>ApplicationMailer</tt> which in turn
+  # inherits from <tt>ActionMailer::Base</tt>. A mailer model defines methods
   # used to generate an email message. In these methods, you can setup variables to be used in
   # the mailer views, options on the mail itself such as the <tt>:from</tt> address, and attachments.
   #
-  #   class Notifier < ActionMailer::Base
+  #   class ApplicationMailer < ActionMailer::Base
+  #     default from: 'from@exmaple.com'
+  #     layout 'mailer'
+  #   end
+  #
+  #   class Notifier < ApplicationMailer
   #     default from: 'no-reply@example.com',
   #             return_path: 'system@example.com'
   #
@@ -39,11 +45,8 @@ module ActionMailer
   #   in the same manner as <tt>attachments[]=</tt>
   #
   # * <tt>headers[]=</tt> - Allows you to specify any header field in your email such
-  #   as <tt>headers['X-No-Spam'] = 'True'</tt>. Note, while most fields like <tt>To:</tt>
-  #   <tt>From:</tt> can only appear once in an email header, other fields like <tt>X-Anything</tt>
-  #   can appear multiple times. If you want to change a field that can appear multiple times,
-  #   you need to set it to nil first so that Mail knows you are replacing it and not adding
-  #   another field of the same name.
+  #   as <tt>headers['X-No-Spam'] = 'True'</tt>. Note that declaring a header multiple times
+  #   will add many fields of the same name. Read #headers doc for more information.
   #
   # * <tt>headers(hash)</tt> - Allows you to specify multiple headers in your email such
   #   as <tt>headers({'X-No-Spam' => 'True', 'In-Reply-To' => '1234@message.id'})</tt>
@@ -87,7 +90,8 @@ module ActionMailer
   # name as the method in your mailer model. For example, in the mailer defined above, the template at
   # <tt>app/views/notifier/welcome.text.erb</tt> would be used to generate the email.
   #
-  # Variables defined in the model are accessible as instance variables in the view.
+  # Variables defined in the methods of your mailer model are accessible as instance variables in their
+  # corresponding view.
   #
   # Emails by default are sent in plain text, so a sample view for our model example might look like this:
   #
@@ -127,11 +131,6 @@ module ActionMailer
   # option as a configuration option in <tt>config/application.rb</tt>:
   #
   #   config.action_mailer.default_url_options = { host: "example.com" }
-  #
-  # When you decide to set a default <tt>:host</tt> for your mailers, then you need to make sure to use the
-  # <tt>only_path: false</tt> option when using <tt>url_for</tt>. Since the <tt>url_for</tt> view helper
-  # will generate relative URLs by default when a <tt>:host</tt> option isn't explicitly provided, passing
-  # <tt>only_path: false</tt> will ensure that absolute URLs are generated.
   #
   # = Sending mail
   #
@@ -180,7 +179,7 @@ module ActionMailer
   #
   # Sending attachment in emails is easy:
   #
-  #   class ApplicationMailer < ActionMailer::Base
+  #   class Notifier < ApplicationMailer
   #     def welcome(recipient)
   #       attachments['free_book.pdf'] = File.read('path/to/file.pdf')
   #       mail(to: recipient, subject: "New account information")
@@ -196,7 +195,7 @@ module ActionMailer
   # If you need to send attachments with no content, you need to create an empty view for it,
   # or add an empty body parameter like this:
   #
-  #     class ApplicationMailer < ActionMailer::Base
+  #     class Notifier < ApplicationMailer
   #       def welcome(recipient)
   #         attachments['free_book.pdf'] = File.read('path/to/file.pdf')
   #         mail(to: recipient, subject: "New account information", body: "")
@@ -208,7 +207,7 @@ module ActionMailer
   # You can also specify that a file should be displayed inline with other HTML. This is useful
   # if you want to display a corporate logo or a photo.
   #
-  #   class ApplicationMailer < ActionMailer::Base
+  #   class Notifier < ApplicationMailer
   #     def welcome(recipient)
   #       attachments.inline['photo.png'] = File.read('path/to/photo.png')
   #       mail(to: recipient, subject: "Here is what we look like")
@@ -247,7 +246,7 @@ module ActionMailer
   # Action Mailer provides some intelligent defaults for your emails, these are usually specified in a
   # default method inside the class definition:
   #
-  #   class Notifier < ActionMailer::Base
+  #   class Notifier < ApplicationMailer
   #     default sender: 'system@example.com'
   #   end
   #
@@ -265,7 +264,7 @@ module ActionMailer
   # As you can pass in any header, you need to either quote the header as a string, or pass it in as
   # an underscored symbol, so the following will work:
   #
-  #   class Notifier < ActionMailer::Base
+  #   class Notifier < ApplicationMailer
   #     default 'Content-Transfer-Encoding' => '7bit',
   #             content_description: 'This is a description'
   #   end
@@ -273,7 +272,7 @@ module ActionMailer
   # Finally, Action Mailer also supports passing <tt>Proc</tt> objects into the default hash, so you
   # can define methods that evaluate as the message is being generated:
   #
-  #   class Notifier < ActionMailer::Base
+  #   class Notifier < ApplicationMailer
   #     default 'X-Special-Header' => Proc.new { my_method }
   #
   #     private
@@ -298,7 +297,7 @@ module ActionMailer
   # This may be useful, for example, when you want to add default inline attachments for all
   # messages sent out by a certain mailer class:
   #
-  #   class Notifier < ActionMailer::Base
+  #   class Notifier < ApplicationMailer
   #     before_action :add_inline_attachment!
   #
   #     def welcome
@@ -625,6 +624,26 @@ module ActionMailer
     # The resulting <tt>Mail::Message</tt> will have the following in its header:
     #
     #   X-Special-Domain-Specific-Header: SecretValue
+    #
+    # Note about replacing already defined headers:
+    #
+    # * +subject+
+    # * +sender+
+    # * +from+
+    # * +to+
+    # * +cc+
+    # * +bcc+
+    # * +reply-to+
+    # * +orig-date+
+    # * +message-id+
+    # * +references+
+    #
+    # Fields can only appear once in email headers while other fields such as
+    # <tt>X-Anything</tt> can appear multiple times.
+    #
+    # If you want to replace any header which already exists, first set it to
+    # +nil+ in order to reset the value otherwise another field will be added
+    # for the same header.
     def headers(args = nil)
       if args
         @_message.headers(args)
@@ -685,8 +704,8 @@ module ActionMailer
     # The main method that creates the message and renders the email templates. There are
     # two ways to call this method, with a block, or without a block.
     #
-    # Both methods accept a headers hash. This hash allows you to specify the most used headers
-    # in an email message, these are:
+    # It accepts a headers hash. This hash allows you to specify
+    # the most used headers in an email message, these are:
     #
     # * +:subject+ - The subject of the message, if this is omitted, Action Mailer will
     #   ask the Rails I18n class for a translated +:subject+ in the scope of
@@ -835,7 +854,7 @@ module ActionMailer
       when user_content_type.present?
         user_content_type
       when m.has_attachments?
-        if m.attachments.detect { |a| a.inline? }
+        if m.attachments.detect(&:inline?)
           ["multipart", "related", params]
         else
           ["multipart", "mixed", params]
@@ -890,7 +909,7 @@ module ActionMailer
       if templates.empty?
         raise ActionView::MissingTemplate.new(paths, name, paths, false, 'mailer')
       else
-        templates.uniq { |t| t.formats }.each(&block)
+        templates.uniq(&:formats).each(&block)
       end
     end
 

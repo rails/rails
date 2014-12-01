@@ -39,7 +39,16 @@ module ActiveRecord
       result_set = connection.select_all(sanitize_sql(sql), "#{name} Load", binds)
       column_types = result_set.column_types.dup
       columns_hash.each_key { |k| column_types.delete k }
-      result_set.map { |record| instantiate(record, column_types) }
+      message_bus = ActiveSupport::Notifications.instrumenter
+
+      payload = {
+        record_count: result_set.length,
+        class_name: name
+      }
+
+      message_bus.instrument('instantiation.active_record', payload) do
+        result_set.map { |record| instantiate(record, column_types) }
+      end
     end
 
     # Returns the result of an SQL statement that should only include a COUNT(*) in the SELECT part.

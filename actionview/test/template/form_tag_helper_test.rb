@@ -170,6 +170,13 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal expected, actual
   end
 
+  def test_multiple_field_tags_with_same_options
+    options = {class: 'important'}
+    assert_dom_equal %(<input name="title" type="file" id="title" class="important"/>), file_field_tag("title", options)
+    assert_dom_equal %(<input type="password" name="title" id="title" value="Hello!" class="important" />), password_field_tag("title", "Hello!", options)
+    assert_dom_equal %(<input type="text" name="title" id="title" value="Hello!" class="important" />), text_field_tag("title", "Hello!", options)
+  end
+
   def test_radio_button_tag
     actual = radio_button_tag "people", "david"
     expected = %(<input id="people_david" name="people" type="radio" value="david" />)
@@ -222,6 +229,18 @@ class FormTagHelperTest < ActionView::TestCase
   def test_select_tag_with_include_blank
     actual = select_tag "places", "<option>Home</option><option>Work</option><option>Pub</option>".html_safe, :include_blank => true
     expected = %(<select id="places" name="places"><option value=""></option><option>Home</option><option>Work</option><option>Pub</option></select>)
+    assert_dom_equal expected, actual
+  end
+
+  def test_select_tag_with_include_blank_false
+    actual = select_tag "places", "<option>Home</option><option>Work</option><option>Pub</option>".html_safe, include_blank: false
+    expected = %(<select id="places" name="places"><option>Home</option><option>Work</option><option>Pub</option></select>)
+    assert_dom_equal expected, actual
+  end
+
+  def test_select_tag_with_include_blank_string
+    actual = select_tag "places", "<option>Home</option><option>Work</option><option>Pub</option>".html_safe, include_blank: 'Choose'
+    expected = %(<select id="places" name="places"><option value="">Choose</option><option>Home</option><option>Work</option><option>Pub</option></select>)
     assert_dom_equal expected, actual
   end
 

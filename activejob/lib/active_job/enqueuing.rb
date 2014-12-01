@@ -4,13 +4,14 @@ module ActiveJob
   module Enqueuing
     extend ActiveSupport::Concern
 
+    # Includes the +perform_later+ method for job initialization.
     module ClassMethods
       # Push a job onto the queue. The arguments must be legal JSON types
       # (string, int, float, nil, true, false, hash or array) or
       # GlobalID::Identification instances. Arbitrary Ruby objects
       # are not supported.
       #
-      # Returns an instance of the job class queued with args available in
+      # Returns an instance of the job class queued with arguments available in
       # Job#arguments.
       def perform_later(*args)
         job_or_instantiate(*args).enqueue
@@ -22,7 +23,7 @@ module ActiveJob
         end
     end
 
-    # Reschedule the job to be re-executed. This is useful in combination
+    # Reschedules the job to be re-executed. This is useful in combination
     # with the +rescue_from+ option. When you rescue an exception from your job
     # you can ask Active Job to retry performing your job.
     #
@@ -37,6 +38,7 @@ module ActiveJob
     #    rescue_from(ErrorLoadingSite) do
     #      retry_job queue: :low_priority
     #    end
+    #
     #    def perform(*args)
     #      # raise ErrorLoadingSite if cannot scrape
     #    end

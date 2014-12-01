@@ -12,7 +12,7 @@
   <% end %>
 
   <% @traces.each do |name, trace| %>
-    <div id="<%= name.gsub(/\s/, '-') %>" style="display: <%= (name == "Application Trace") ? 'block' : 'none' %>;">
+    <div id="<%= name.gsub(/\s/, '-') %>" style="display: <%= (name == @trace_to_show) ? 'block' : 'none' %>;">
       <pre><code><% trace.each do |frame| %><a class="trace-frames" data-frame-id="<%= frame[:id] %>" href="#"><%= frame[:trace] %></a><br><% end %></code></pre>
     </div>
   <% end %>

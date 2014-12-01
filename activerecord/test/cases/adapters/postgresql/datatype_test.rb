@@ -94,6 +94,13 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
     assert @first_oid.reload
     assert_equal new_value, @first_oid.obj_id
   end
+
+  def test_text_columns_are_limitless_the_upper_limit_is_one_GB
+    assert_equal 'text', @connection.type_to_sql(:text, 100_000)
+    assert_raise ActiveRecord::ActiveRecordError do
+      @connection.type_to_sql :text, 4294967295
+    end
+  end
 end
 
 class PostgresqlInternalDataTypeTest < ActiveRecord::TestCase

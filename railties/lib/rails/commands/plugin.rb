@@ -11,7 +11,7 @@ else
               end
     if File.exist?(railsrc)
       extra_args_string = File.read(railsrc)
-      extra_args = extra_args_string.split(/\n+/).flat_map {|l| l.split}
+      extra_args = extra_args_string.split(/\n+/).flat_map(&:split)
       puts "Using #{extra_args.join(" ")} from #{railsrc}"
       ARGV.insert(1, *extra_args)
     end

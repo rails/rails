@@ -1,4 +1,5 @@
 require 'thread'
+require 'active_support/core_ext/string/filters'
 
 module ActiveRecord
   # = Active Record Reflection
@@ -62,7 +63,7 @@ module ActiveRecord
 
       # Returns a Hash of name of the reflection as the key and a AssociationReflection as the value.
       #
-      #   Account.reflections # => {balance: AggregateReflection}
+      #   Account.reflections # => {"balance" => AggregateReflection}
       #
       # @api public
       def reflections
@@ -153,8 +154,11 @@ module ActiveRecord
       end
 
       def source_macro
-        ActiveSupport::Deprecation.warn("ActiveRecord::Base.source_macro is deprecated and " \
-          "will be removed without replacement.")
+        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          ActiveRecord::Base.source_macro is deprecated and will be removed
+          without replacement.
+        MSG
+
         macro
       end
     end
@@ -283,7 +287,7 @@ module ActiveRecord
       def association_scope_cache(conn, owner)
         key = conn.prepared_statements
         if polymorphic?
-          key = [key, owner.read_attribute(@foreign_type)]
+          key = [key, owner._read_attribute(@foreign_type)]
         end
         @association_scope_cache[key] ||= @scope_lock.synchronize {
           @association_scope_cache[key] ||= yield
@@ -339,13 +343,14 @@ module ActiveRecord
         return unless scope
 
         if scope.arity > 0
-          ActiveSupport::Deprecation.warn \
-            "The association scope '#{name}' is instance dependent (the scope " \
-            "block takes an argument). Preloading happens before the individual " \
-            "instances are created. This means that there is no instance being " \
-            "passed to the association scope. This will most likely result in " \
-            "broken or incorrect behavior. Joining, Preloading and eager loading " \
-            "of these associations is deprecated and will be removed in the future."
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            The association scope '#{name}' is instance dependent (the scope
+            block takes an argument). Preloading happens before the individual
+            instances are created. This means that there is no instance being
+            passed to the association scope. This will most likely result in
+            broken or incorrect behavior. Joining, Preloading and eager loading
+            of these associations is deprecated and will be removed in the future.
+          MSG
         end
       end
       alias :check_eager_loadable! :check_preloadable!
@@ -746,8 +751,11 @@ module ActiveRecord
 
       # The macro used by the source association
       def source_macro
-        ActiveSupport::Deprecation.warn("ActiveRecord::Base.source_macro is deprecated and " \
-          "will be removed without replacement.")
+        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          ActiveRecord::Base.source_macro is deprecated and will be removed
+          without replacement.
+        MSG
+
         source_reflection.source_macro
       end
 
@@ -783,7 +791,7 @@ module ActiveRecord
       def source_reflection_name # :nodoc:
         return @source_reflection_name if @source_reflection_name
 
-        names = [name.to_s.singularize, name].collect { |n| n.to_sym }.uniq
+        names = [name.to_s.singularize, name].collect(&:to_sym).uniq
         names = names.find_all { |n|
           through_reflection.klass._reflect_on_association(n)
         }
@@ -821,7 +829,11 @@ module ActiveRecord
         end
 
         if through_reflection.polymorphic?
-          raise HasManyThroughAssociationPolymorphicThroughError.new(active_record.name, self)
+          if has_one?
+            raise HasOneAssociationPolymorphicThroughError.new(active_record.name, self)
+          else
+            raise HasManyThroughAssociationPolymorphicThroughError.new(active_record.name, self)
+          end
         end
 
         if source_reflection.nil?

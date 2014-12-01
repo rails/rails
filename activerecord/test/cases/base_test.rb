@@ -10,6 +10,7 @@ require 'models/category'
 require 'models/company'
 require 'models/customer'
 require 'models/developer'
+require 'models/computer'
 require 'models/project'
 require 'models/default'
 require 'models/auto_id'
@@ -522,6 +523,10 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal Topic.find(['1-meowmeow', '2-hello']), Topic.find([1, 2])
   end
 
+  def test_find_by_slug_with_range
+    assert_equal Topic.where(id: '1-meowmeow'..'2-hello'), Topic.where(id: 1..2)
+  end
+
   def test_equality_of_new_records
     assert_not_equal Topic.new, Topic.new
     assert_equal false, Topic.new == Topic.new
@@ -985,7 +990,6 @@ class BasicsTest < ActiveRecord::TestCase
   class NumericData < ActiveRecord::Base
     self.table_name = 'numeric_data'
 
-    attribute :world_population, Type::Integer.new
     attribute :my_house_population, Type::Integer.new
     attribute :atoms_in_universe, Type::Integer.new
   end
@@ -1383,7 +1387,10 @@ class BasicsTest < ActiveRecord::TestCase
     c1 = Post.connection.schema_cache.columns('posts')
     ActiveRecord::Base.clear_cache!
     c2 = Post.connection.schema_cache.columns('posts')
-    assert_not_equal c1, c2
+    c1.each_with_index do |v, i|
+      assert_not_same v, c2[i]
+    end
+    assert_equal c1, c2
   end
 
   def test_current_scope_is_reset

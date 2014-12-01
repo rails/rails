@@ -109,7 +109,15 @@ module ActiveRecord
 
     test "fetch_value returns nil for unknown attributes" do
       attributes = attributes_with_uninitialized_key
-      assert_nil attributes.fetch_value(:wibble)
+      assert_nil attributes.fetch_value(:wibble) { "hello" }
+    end
+
+    test "fetch_value returns nil for unknown attributes when types has a default" do
+      types = Hash.new(Type::Value.new)
+      builder = AttributeSet::Builder.new(types)
+      attributes = builder.build_from_database
+
+      assert_nil attributes.fetch_value(:wibble) { "hello" }
     end
 
     test "fetch_value uses the given block for uninitialized attributes" do
@@ -121,6 +129,15 @@ module ActiveRecord
     test "fetch_value returns nil for uninitialized attributes if no block is given" do
       attributes = attributes_with_uninitialized_key
       assert_nil attributes.fetch_value(:bar)
+    end
+
+    test "the primary_key is always initialized" do
+      builder = AttributeSet::Builder.new({ foo: Type::Integer.new }, :foo)
+      attributes = builder.build_from_database
+
+      assert attributes.key?(:foo)
+      assert_equal [:foo], attributes.keys
+      assert attributes[:foo].initialized?
     end
 
     class MyType

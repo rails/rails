@@ -5,11 +5,13 @@ require 'models/admin/randomly_named_c1'
 require 'models/admin/user'
 require 'models/binary'
 require 'models/book'
+require 'models/bulb'
 require 'models/category'
 require 'models/company'
 require 'models/computer'
 require 'models/course'
 require 'models/developer'
+require 'models/computer'
 require 'models/joke'
 require 'models/matey'
 require 'models/parrot'
@@ -822,25 +824,6 @@ class ActiveSupportSubclassWithFixturesTest < ActiveRecord::TestCase
   end
 end
 
-class FixtureLoadingTest < ActiveRecord::TestCase
-  def test_logs_message_for_failed_dependency_load
-    ActiveRecord::Base.logger.expects(:warn).twice
-    ActiveRecord::TestCase.try_to_load_dependency('does_not_exist')
-  end
-
-  def test_does_not_logs_message_for_dependency_that_has_been_defined_with_set_fixture_class
-    ActiveRecord::TestCase.set_fixture_class unknown_dead_parrots: DeadParrot
-    ActiveRecord::Base.logger.expects(:warn).never
-    ActiveRecord::TestCase.try_to_load_dependency('unknown_dead_parrot')
-  end
-
-  def test_does_not_logs_message_for_successful_dependency_load
-    ActiveRecord::TestCase.expects(:require_dependency).with('works_out_fine')
-    ActiveRecord::Base.logger.expects(:warn).never
-    ActiveRecord::TestCase.try_to_load_dependency('works_out_fine')
-  end
-end
-
 class CustomNameForFixtureOrModelTest < ActiveRecord::TestCase
   ActiveRecord::FixtureSet.reset_cache
 
@@ -869,5 +852,18 @@ class CustomNameForFixtureOrModelTest < ActiveRecord::TestCase
   def test_table_name_is_defined_in_the_model
     assert_equal 'randomly_named_table', ActiveRecord::FixtureSet::all_loaded_fixtures["admin/randomly_named_a9"].table_name
     assert_equal 'randomly_named_table', Admin::ClassNameThatDoesNotFollowCONVENTIONS.table_name
+  end
+end
+
+class FixturesWithDefaultScopeTest < ActiveRecord::TestCase
+  fixtures :bulbs
+
+  test "inserts fixtures excluded by a default scope" do
+    assert_equal 1, Bulb.count
+    assert_equal 2, Bulb.unscoped.count
+  end
+
+  test "allows access to fixtures excluded by a default scope" do
+    assert_equal "special", bulbs(:special).name
   end
 end

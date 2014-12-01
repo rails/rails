@@ -25,7 +25,7 @@ module ActiveRecord
           if value.empty?
             queries << '1=0'
           else
-            table       = Arel::Table.new(column, default_table.engine)
+            table       = Arel::Table.new(column)
             association = klass._reflect_on_association(column)
 
             value.each do |k, v|
@@ -37,7 +37,7 @@ module ActiveRecord
 
           if column.include?('.')
             table_name, column = column.split('.', 2)
-            table = Arel::Table.new(table_name, default_table.engine)
+            table = Arel::Table.new(table_name)
           end
 
           queries.concat expand(klass, table, column, value)
@@ -109,7 +109,7 @@ module ActiveRecord
     # FIXME: I think we need to deprecate this behavior
     register_handler(Class, ->(attribute, value) { attribute.eq(value.name) })
     register_handler(Base, ->(attribute, value) { attribute.eq(value.id) })
-    register_handler(Range, ->(attribute, value) { attribute.in(value) })
+    register_handler(Range, ->(attribute, value) { attribute.between(value) })
     register_handler(Relation, RelationHandler.new)
     register_handler(Array, ArrayHandler.new)
 

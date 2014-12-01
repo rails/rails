@@ -85,10 +85,10 @@ module Rails
       #   environment(nil, env: "development") do
       #     "config.autoload_paths += %W(#{config.root}/extras)"
       #   end
-      def environment(data=nil, options={}, &block)
+      def environment(data=nil, options={})
         sentinel = /class [a-z_:]+ < Rails::Application/i
         env_file_sentinel = /Rails\.application\.configure do/
-        data = block.call if !data && block_given?
+        data = yield if !data && block_given?
 
         in_root do
           if options[:env].nil?
@@ -189,7 +189,7 @@ module Rails
       #   generate(:authenticated, "user session")
       def generate(what, *args)
         log :generate, what
-        argument = args.flat_map {|arg| arg.to_s }.join(" ")
+        argument = args.flat_map(&:to_s).join(" ")
 
         in_root { run_ruby_script("bin/rails generate #{what} #{argument}", verbose: false) }
       end

@@ -4,12 +4,6 @@ module ActiveRecord
       class SchemaCreation < AbstractAdapter::SchemaCreation
         private
 
-        def visit_AddColumn(o)
-          sql_type = type_to_sql(o.type, o.limit, o.precision, o.scale)
-          sql = "ADD COLUMN #{quote_column_name(o.name)} #{sql_type}"
-          add_column_options!(sql, column_options(o))
-        end
-
         def visit_ColumnDefinition(o)
           sql = super
           if o.primary_key? && o.type != :primary_key
@@ -19,14 +13,22 @@ module ActiveRecord
           sql
         end
 
+        def column_options(o)
+          column_options = super
+          column_options[:array] = o.array
+          column_options
+        end
+
         def add_column_options!(sql, options)
-          if options[:array] || options[:column].try(:array)
+          if options[:array]
             sql << '[]'
           end
+          super
+        end
 
-          column = options.fetch(:column) { return super }
-          if column.type == :uuid && options[:default] =~ /\(\)/
-            sql << " DEFAULT #{options[:default]}"
+        def quote_default_expression(value, column)
+          if column.type == :uuid && value =~ /\(\)/
+            value
           else
             super
           end
@@ -293,6 +295,23 @@ module ActiveRecord
           result.rows.first.first
         end
 
+        # Sets the sequence of a table's primary key to the specified value.
+        def set_pk_sequence!(table, value) #:nodoc:
+          pk, sequence = pk_and_sequence_for(table)
+
+          if pk
+            if sequence
+              quoted_sequence = quote_table_name(sequence)
+
+              select_value <<-end_sql, 'SCHEMA'
+              SELECT setval('#{quoted_sequence}', #{value})
+              end_sql
+            else
+              @logger.warn "#{table} has primary key #{pk} with no default sequence" if @logger
+            end
+          end
+        end
+
         # Resets the sequence of a table's primary key to the maximum value.
         def reset_pk_sequence!(table, pk = nil, sequence = nil) #:nodoc:
           unless pk and sequence
@@ -394,7 +413,10 @@ module ActiveRecord
           pk, seq = pk_and_sequence_for(new_name)
           if seq && seq.identifier == "#{table_name}_#{pk}_seq"
             new_seq = "#{new_name}_#{pk}_seq"
+            idx = "#{table_name}_pkey"
+            new_idx = "#{new_name}_pkey"
             execute "ALTER TABLE #{quote_table_name(seq)} RENAME TO #{quote_table_name(new_seq)}"
+            execute "ALTER INDEX #{quote_table_name(idx)} RENAME TO #{quote_table_name(new_idx)}"
           end
 
           rename_table_indexes(table_name, new_name)
@@ -413,7 +435,12 @@ module ActiveRecord
           quoted_table_name = quote_table_name(table_name)
           sql_type = type_to_sql(type, options[:limit], options[:precision], options[:scale])
           sql_type << "[]" if options[:array]
-          execute "ALTER TABLE #{quoted_table_name} ALTER COLUMN #{quote_column_name(column_name)} TYPE #{sql_type}"
+          sql = "ALTER TABLE #{quoted_table_name} ALTER COLUMN #{quote_column_name(column_name)} TYPE #{sql_type}"
+          sql << " USING #{options[:using]}" if options[:using]
+          if options[:cast_as]
+            sql << " USING CAST(#{quote_column_name(column_name)} AS #{type_to_sql(options[:cast_as], options[:limit], options[:precision], options[:scale])})"
+          end
+          execute sql
 
           change_column_default(table_name, column_name, options[:default]) if options_include_default?(options)
           change_column_null(table_name, column_name, options[:null], options[:default]) if options.key?(:null)
@@ -461,6 +488,9 @@ module ActiveRecord
         end
 
         def rename_index(table_name, old_name, new_name)
+          if new_name.length > allowed_index_name_length
+            raise ArgumentError, "Index name '#{new_name}' on table '#{table_name}' is too long; the limit is #{allowed_index_name_length} characters"
+          end
           execute "ALTER INDEX #{quote_column_name(old_name)} RENAME TO #{quote_table_name(new_name)}"
         end
 

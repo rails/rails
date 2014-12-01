@@ -10,6 +10,7 @@ require 'models/reply'
 require 'models/entrant'
 require 'models/project'
 require 'models/developer'
+require 'models/computer'
 require 'models/customer'
 require 'models/toy'
 require 'models/matey'
@@ -99,21 +100,10 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_exists_fails_when_parameter_has_invalid_type
-    if current_adapter?(:PostgreSQLAdapter, :MysqlAdapter)
-      assert_raises ActiveRecord::StatementInvalid do
-        Topic.exists?(("9"*53).to_i) # number that's bigger than int
-      end
-    else
+    assert_raises(RangeError) do
       assert_equal false, Topic.exists?(("9"*53).to_i) # number that's bigger than int
     end
-
-    if current_adapter?(:PostgreSQLAdapter)
-      assert_raises ActiveRecord::StatementInvalid do
-        Topic.exists?("foo")
-      end
-    else
-      assert_equal false, Topic.exists?("foo")
-    end
+    assert_equal false, Topic.exists?("foo")
   end
 
   def test_exists_does_not_select_columns_without_alias
@@ -207,6 +197,28 @@ class FinderTest < ActiveRecord::TestCase
     devs = Developer.all
     last_devs = Developer.limit(3).offset(9).find devs.map(&:id)
     assert_equal 2, last_devs.size
+  end
+
+  def test_find_with_large_number
+    assert_raises(ActiveRecord::RecordNotFound) { Topic.find('9999999999999999999999999999999') }
+  end
+
+  def test_find_by_with_large_number
+    assert_nil Topic.find_by(id: '9999999999999999999999999999999')
+  end
+
+  def test_find_by_id_with_large_number
+    assert_nil Topic.find_by_id('9999999999999999999999999999999')
+  end
+
+  def test_find_on_relation_with_large_number
+    assert_nil Topic.where('1=1').find_by(id: 9999999999999999999999999999999)
+  end
+
+  def test_find_by_bang_on_relation_with_large_number
+    assert_raises(ActiveRecord::RecordNotFound) do
+      Topic.where('1=1').find_by!(id: 9999999999999999999999999999999)
+    end
   end
 
   def test_find_an_empty_array
@@ -922,7 +934,7 @@ class FinderTest < ActiveRecord::TestCase
       joins('LEFT JOIN developers_projects ON developers.id = developers_projects.developer_id').
       where('project_id=1').to_a
     assert_equal 3, developers_on_project_one.length
-    developer_names = developers_on_project_one.map { |d| d.name }
+    developer_names = developers_on_project_one.map(&:name)
     assert developer_names.include?('David')
     assert developer_names.include?('Jamis')
   end
@@ -977,7 +989,7 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_select_values
-    assert_equal ["1","2","3","4","5","6","7","8","9", "10", "11"], Company.connection.select_values("SELECT id FROM companies ORDER BY id").map! { |i| i.to_s }
+    assert_equal ["1","2","3","4","5","6","7","8","9", "10", "11"], Company.connection.select_values("SELECT id FROM companies ORDER BY id").map!(&:to_s)
     assert_equal ["37signals","Summit","Microsoft", "Flamboyant Software", "Ex Nihilo", "RailsCore", "Leetsoft", "Jadedpixel", "Odegy", "Ex Nihilo Part Deux", "Apex"], Company.connection.select_values("SELECT name FROM companies ORDER BY id")
   end
 
@@ -1003,7 +1015,7 @@ class FinderTest < ActiveRecord::TestCase
       where(client_of: [2, 1, nil],
             name: ['37signals', 'Summit', 'Microsoft']).
       order('client_of DESC').
-      map { |x| x.client_of }
+      map(&:client_of)
 
     assert client_of.include?(nil)
     assert_equal [2, 1].sort, client_of.compact.sort
@@ -1013,7 +1025,7 @@ class FinderTest < ActiveRecord::TestCase
     client_of = Company.
       where(client_of: [nil]).
       order('client_of DESC').
-      map { |x| x.client_of }
+      map(&:client_of)
 
     assert_equal [], client_of.compact
   end

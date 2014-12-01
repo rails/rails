@@ -17,11 +17,11 @@ module ActiveRecord
 
       setup do
         @connection = ActiveRecord::Base.connection
-        @connection.create_table "rockets" do |t|
+        @connection.create_table "rockets", force: true do |t|
           t.string :name
         end
 
-        @connection.create_table "astronauts" do |t|
+        @connection.create_table "astronauts", force: true do |t|
           t.string :name
           t.references :rocket
         end
@@ -159,6 +159,14 @@ module ActiveRecord
 
         assert_equal 1, @connection.foreign_keys("astronauts").size
         @connection.remove_foreign_key :astronauts, column: "rocket_id"
+        assert_equal [], @connection.foreign_keys("astronauts")
+      end
+
+      def test_remove_foreign_key_by_symbol_column
+        @connection.add_foreign_key :astronauts, :rockets, column: :rocket_id
+
+        assert_equal 1, @connection.foreign_keys("astronauts").size
+        @connection.remove_foreign_key :astronauts, column: :rocket_id
         assert_equal [], @connection.foreign_keys("astronauts")
       end
 

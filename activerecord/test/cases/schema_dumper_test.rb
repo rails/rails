@@ -19,7 +19,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
   def test_dump_schema_information_outputs_lexically_ordered_versions
     versions = %w{ 20100101010101 20100201010101 20100301010101 }
-    versions.reverse.each do |v|
+    versions.reverse_each do |v|
       ActiveRecord::SchemaMigration.create!(:version => v)
     end
 
@@ -162,16 +162,6 @@ class SchemaDumperTest < ActiveRecord::TestCase
     assert_no_match %r{create_table "schema_migrations"}, output
   end
 
-  def test_schema_dump_illegal_ignored_table_value
-    stream = StringIO.new
-    old_ignore_tables, ActiveRecord::SchemaDumper.ignore_tables = ActiveRecord::SchemaDumper.ignore_tables, [5]
-    assert_raise(StandardError) do
-      ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, stream)
-    end
-  ensure
-    ActiveRecord::SchemaDumper.ignore_tables = old_ignore_tables
-  end
-
   def test_schema_dumps_index_columns_in_right_order
     index_definition = standard_dump.split(/\n/).grep(/add_index.*companies/).first.strip
     if current_adapter?(:MysqlAdapter, :Mysql2Adapter, :PostgreSQLAdapter)
@@ -268,13 +258,6 @@ class SchemaDumperTest < ActiveRecord::TestCase
       output = standard_dump
       if %r{create_table "postgresql_xml_data_type"} =~ output
         assert_match %r{t.xml "data"}, output
-      end
-    end
-
-    def test_schema_dump_includes_json_shorthand_definition
-      output = standard_dump
-      if %r{create_table "postgresql_json_data_type"} =~ output
-        assert_match %r|t.json "json_data", default: {}|, output
       end
     end
 

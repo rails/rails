@@ -39,18 +39,18 @@ module ActionDispatch
             [:SLASH, text]
           when text = @ss.scan(/\*\w+/)
             [:STAR, text]
-          when text = @ss.scan(/\(/)
+          when text = @ss.scan(/(?<!\\)\(/)
             [:LPAREN, text]
-          when text = @ss.scan(/\)/)
+          when text = @ss.scan(/(?<!\\)\)/)
             [:RPAREN, text]
           when text = @ss.scan(/\|/)
             [:OR, text]
           when text = @ss.scan(/\./)
             [:DOT, text]
-          when text = @ss.scan(/:\w+/)
+          when text = @ss.scan(/(?<!\\):\w+/)
             [:SYMBOL, text]
-          when text = @ss.scan(/[\w%\-~]+/)
-            [:LITERAL, text]
+          when text = @ss.scan(/(?:[\w%\-~!$&'*+,;=@]|\\:|\\\(|\\\))+/)
+            [:LITERAL, text.tr('\\', '')]
             # any char
           when text = @ss.scan(/./)
             [:LITERAL, text]

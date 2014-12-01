@@ -47,9 +47,7 @@ class MysqlConnectionTest < ActiveRecord::TestCase
     assert !@connection.active?
 
     # Repair all fixture connections so other tests won't break.
-    @fixture_connections.each do |c|
-      c.verify!
-    end
+    @fixture_connections.each(&:verify!)
   end
 
   def test_successful_reconnection_after_timeout_with_manual_reconnect
@@ -69,8 +67,8 @@ class MysqlConnectionTest < ActiveRecord::TestCase
   end
 
   def test_bind_value_substitute
-    bind_param = @connection.substitute_at('foo', 0)
-    assert_equal Arel.sql('?'), bind_param
+    bind_param = @connection.substitute_at('foo')
+    assert_equal Arel.sql('?'), bind_param.to_sql
   end
 
   def test_exec_no_binds

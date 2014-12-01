@@ -61,9 +61,7 @@ module ActiveRecord
       end
 
       def size
-        [@columns, @columns_hash, @primary_keys, @tables].map { |x|
-          x.size
-        }.inject :+
+        [@columns, @columns_hash, @primary_keys, @tables].map(&:size).inject :+
       end
 
       # Clear out internal caches for table with +table_name+.

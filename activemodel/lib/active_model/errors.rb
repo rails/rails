@@ -98,6 +98,8 @@ module ActiveModel
     end
     # aliases include?
     alias :has_key? :include?
+    # aliases include?
+    alias :key? :include?
 
     # Get messages for +key+.
     #

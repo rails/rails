@@ -19,6 +19,10 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
       @closed = true
     end
 
+    def method_that_raises
+      raise StandardError.new 'error in framework'
+    end
+
     def call(env)
       env['action_dispatch.show_detailed_exceptions'] = @detailed
       req = ActionDispatch::Request.new(env)
@@ -39,6 +43,8 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
         raise ActionController::InvalidAuthenticityToken
       when "/not_found_original_exception"
         raise ActionView::Template::Error.new('template', AbstractController::ActionNotFound.new)
+      when "/missing_template"
+        raise ActionView::MissingTemplate.new(%w(foo), 'foo/index', %w(foo), false, 'mailer')
       when "/bad_request"
         raise ActionController::BadRequest
       when "/missing_keys"
@@ -57,7 +63,8 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
                                               {})
           raise ActionView::Template::Error.new(template, e)
         end
-
+      when "/framework_raises"
+        method_that_raises
       else
         raise "puke!"
       end
@@ -113,6 +120,15 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert_match '/:controller(/:action)(.:format)', routing_table
     assert_match ':controller#:action', routing_table
     assert_no_match '&lt;|&gt;', routing_table, "there should not be escaped html in the output"
+  end
+
+  test 'displays request and response info when a RoutingError occurs' do
+    @app = DevelopmentApp
+
+    get "/pass", {}, {'action_dispatch.show_exceptions' => true}
+
+    assert_select 'h2', /Request/
+    assert_select 'h2', /Response/
   end
 
   test "rescue with diagnostics message" do
@@ -270,6 +286,22 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test 'display backtrace on template missing errors' do
+    @app = DevelopmentApp
+
+    get "/missing_template", nil, {}
+
+    assert_select "header h1", /Template is missing/
+
+    assert_select "#container h2", /^Missing template/
+
+    assert_select '#Application-Trace'
+    assert_select '#Framework-Trace'
+    assert_select '#Full-Trace'
+
+    assert_select 'h2', /Request/
+  end
+
   test 'display backtrace when error type is SyntaxError wrapped by ActionView::Template::Error' do
     @app = DevelopmentApp
 
@@ -278,6 +310,41 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert_response 500
     assert_select '#Application-Trace' do
       assert_select 'pre code', /\(eval\):1: syntax error, unexpected/
+    end
+  end
+
+  test 'debug exceptions app shows user code that caused the error in source view' do
+    @app = DevelopmentApp
+    Rails.stubs(:root).returns(Pathname.new('.'))
+    cleaner = ActiveSupport::BacktraceCleaner.new.tap do |bc|
+      bc.add_silencer { |line| line =~ /method_that_raises/ }
+      bc.add_silencer { |line| line !~ %r{test/dispatch/debug_exceptions_test.rb} }
+    end
+
+    get '/framework_raises', {}, {'action_dispatch.backtrace_cleaner' => cleaner}
+
+    # Assert correct error
+    assert_response 500
+    assert_select 'h2', /error in framework/
+
+    # assert source view line is the call to method_that_raises
+    assert_select 'div.source:not(.hidden)' do
+      assert_select 'pre .line.active', /method_that_raises/
+    end
+
+    # assert first source view (hidden) that throws the error
+    assert_select 'div.source:first' do
+      assert_select 'pre .line.active', /raise StandardError\.new/
+    end
+
+    # assert application trace refers to line that calls method_that_raises is first
+    assert_select '#Application-Trace' do
+      assert_select 'pre code a:first', %r{test/dispatch/debug_exceptions_test\.rb:\d+:in `call}
+    end
+
+    # assert framework trace that that threw the error is first
+    assert_select '#Framework-Trace' do
+      assert_select 'pre code a:first', /method_that_raises/
     end
   end
 end

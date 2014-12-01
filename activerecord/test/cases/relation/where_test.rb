@@ -7,6 +7,7 @@ require 'models/comment'
 require 'models/edge'
 require 'models/topic'
 require 'models/binary'
+require 'models/vertex'
 
 module ActiveRecord
   class WhereTest < ActiveRecord::TestCase

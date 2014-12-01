@@ -2,7 +2,7 @@ module ActionView
   module Template::Handlers
     class Raw
       def call(template)
-        escaped = template.source.gsub(':', '\:')
+        escaped = template.source.gsub(/:/, '\:')
 
         '%q:' + escaped + ':;'
       end

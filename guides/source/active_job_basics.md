@@ -23,7 +23,7 @@ clean-ups, to billing charges, to mailings. Anything that can be chopped up
 into small units of work and run in parallel, really.
 
 
-The Purpose of the Active Job
+The Purpose of Active Job
 -----------------------------
 The main point is to ensure that all Rails apps will have a job infrastructure
 in place, even if it's in the form of an "immediate runner". We can then have
@@ -41,10 +41,12 @@ This section will provide a step-by-step guide to creating a job and enqueuing i
 ### Create the Job
 
 Active Job provides a Rails generator to create jobs. The following will create a
-job in `app/jobs`:
+job in `app/jobs` (with an attached test case under `test/jobs`):
 
 ```bash
 $ bin/rails generate job guests_cleanup
+invoke  test_unit
+create    test/jobs/guests_cleanup_job_test.rb
 create  app/jobs/guests_cleanup_job.rb
 ```
 
@@ -52,11 +54,7 @@ You can also create a job that will run on a specific queue:
 
 ```bash
 $ bin/rails generate job guests_cleanup --queue urgent
-create  app/jobs/guests_cleanup_job.rb
 ```
-
-As you can see, you can generate jobs just like you use other generators with
-Rails.
 
 If you don't want to use a generator, you could create your own file inside of
 `app/jobs`, just make sure that it inherits from `ActiveJob::Base`.
@@ -78,15 +76,18 @@ end
 Enqueue a job like so:
 
 ```ruby
-MyJob.perform_later record  # Enqueue a job to be performed as soon the queueing system is free.
+# Enqueue a job to be performed as soon the queueing system is free.
+MyJob.perform_later record
 ```
 
 ```ruby
-MyJob.set(wait_until: Date.tomorrow.noon).perform_later(record)  # Enqueue a job to be performed tomorrow at noon.
+# Enqueue a job to be performed tomorrow at noon.
+MyJob.set(wait_until: Date.tomorrow.noon).perform_later(record)
 ```
 
 ```ruby
-MyJob.set(wait: 1.week).perform_later(record) # Enqueue a job to be performed 1 week from now.
+# Enqueue a job to be performed 1 week from now.
+MyJob.set(wait: 1.week).perform_later(record)
 ```
 
 That's it!
@@ -103,14 +104,19 @@ Active Job has built-in adapters for multiple queueing backends (Sidekiq,
 Resque, Delayed Job and others). To get an up-to-date list of the adapters
 see the API Documentation for [ActiveJob::QueueAdapters](http://api.rubyonrails.org/classes/ActiveJob/QueueAdapters.html).
 
-### Changing the Backend
+### Setting the Backend
 
-You can easily change your queueing backend:
+You can easily set your queueing backend:
 
 ```ruby
-# be sure to have the adapter gem in your Gemfile and follow the adapter specific
-# installation and deployment instructions
-Rails.application.config.active_job.queue_adapter = :sidekiq
+# config/application.rb
+module YourApp
+  class Application < Rails::Application
+    # Be sure to have the adapter's gem in your Gemfile and follow
+    # the adapter's specific installation and deployment instructions.
+    config.active_job.queue_adapter = :sidekiq
+  end
+end
 ```
 
 
@@ -145,19 +151,42 @@ class GuestsCleanupJob < ActiveJob::Base
 end
 
 # Now your job will run on queue production_low_priority on your
-# production environment and on beta_low_priority on your beta
+# production environment and on staging_low_priority on your staging
 # environment
 ```
 
-If you want more control on what queue a job will be run you can pass a :queue
-option to #set:
+The default queue name prefix delimiter is '_'.  This can be changed by setting
+`config.active_job.queue_name_delimiter` in `application.rb`:
+
+```ruby
+# config/application.rb
+module YourApp
+  class Application < Rails::Application
+    config.active_job.queue_name_prefix = Rails.env
+    config.active_job.queue_name_delimiter = '.'
+  end
+end
+
+# app/jobs/guests_cleanup.rb
+class GuestsCleanupJob < ActiveJob::Base
+  queue_as :low_priority
+  #....
+end
+
+# Now your job will run on queue production.low_priority on your
+# production environment and on staging.low_priority on your staging
+# environment
+```
+
+If you want more control on what queue a job will be run you can pass a `:queue`
+option to `#set`:
 
 ```ruby
 MyJob.set(queue: :another_queue).perform_later(record)
 ```
 
-To control the queue from the job level you can pass a block to queue_as. The
-block will be executed in the job context (so you can access self.arguments)
+To control the queue from the job level you can pass a block to `#queue_as`. The
+block will be executed in the job context (so you can access `self.arguments`)
 and you must return the queue name:
 
 ```ruby
@@ -178,7 +207,6 @@ end
 
 ProcessVideoJob.perform_later(Video.last)
 ```
-
 
 NOTE: Make sure your queueing backend "listens" on your queue name. For some
 backends you need to specify the queues to listen to.
@@ -222,7 +250,7 @@ end
 ```
 
 
-ActionMailer
+Action Mailer
 ------------
 
 One of the most common jobs in a modern web application is sending emails outside
@@ -240,12 +268,13 @@ UserMailer.welcome(@user).deliver_later
 
 GlobalID
 --------
+
 Active Job supports GlobalID for parameters. This makes it possible to pass live
 Active Record objects to your job instead of class/id pairs, which you then have
 to manually deserialize. Before, jobs would look like this:
 
 ```ruby
-class TrashableCleanupJob
+class TrashableCleanupJob < ActiveJob::Base
   def perform(trashable_class, trashable_id, depth)
     trashable = trashable_class.constantize.find(trashable_id)
     trashable.cleanup(depth)
@@ -256,14 +285,14 @@ end
 Now you can simply do:
 
 ```ruby
-class TrashableCleanupJob
+class TrashableCleanupJob < ActiveJob::Base
   def perform(trashable, depth)
     trashable.cleanup(depth)
   end
 end
 ```
 
-This works with any class that mixes in `ActiveModel::GlobalIdentification`, which
+This works with any class that mixes in `GlobalID::Identification`, which
 by default has been mixed into Active Model classes.
 
 

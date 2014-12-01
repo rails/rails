@@ -4,7 +4,7 @@ module Rails
   module Rack
     class LogTailer
       def initialize(app, log = nil)
-        ActiveSupport::Deprecation.warn "LogTailer is deprecated and will be removed on Rails 5"
+        ActiveSupport::Deprecation.warn('LogTailer is deprecated and will be removed on Rails 5.')
 
         @app = app
 

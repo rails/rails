@@ -13,7 +13,7 @@ module ActiveRecord
         @hash     = hash
       end
 
-      def merge
+      def merge #:nodoc:
         Merger.new(relation, other).merge
       end
 
@@ -83,12 +83,12 @@ module ActiveRecord
       private
 
       def merge_joins
-        return if values[:joins].blank?
+        return if other.joins_values.blank?
 
         if other.klass == relation.klass
-          relation.joins!(*values[:joins])
+          relation.joins!(*other.joins_values)
         else
-          joins_dependency, rest = values[:joins].partition do |join|
+          joins_dependency, rest = other.joins_values.partition do |join|
             case join
             when Hash, Symbol, Array
               true
@@ -108,48 +108,36 @@ module ActiveRecord
 
       def merge_multi_values
         lhs_wheres = relation.where_values
-        rhs_wheres = values[:where] || []
+        rhs_wheres = other.where_values
 
         lhs_binds  = relation.bind_values
-        rhs_binds  = values[:bind] || []
+        rhs_binds  = other.bind_values
 
         removed, kept = partition_overwrites(lhs_wheres, rhs_wheres)
 
         where_values = kept + rhs_wheres
         bind_values  = filter_binds(lhs_binds, removed) + rhs_binds
 
-        conn = relation.klass.connection
-        bv_index = 0
-        where_values.map! do |node|
-          if Arel::Nodes::Equality === node && Arel::Nodes::BindParam === node.right
-            substitute = conn.substitute_at(bind_values[bv_index].first, bv_index)
-            bv_index += 1
-            Arel::Nodes::Equality.new(node.left, substitute)
-          else
-            node
-          end
-        end
-
         relation.where_values = where_values
         relation.bind_values  = bind_values
 
-        if values[:reordering]
+        if other.reordering_value
           # override any order specified in the original relation
-          relation.reorder! values[:order]
-        elsif values[:order]
+          relation.reorder! other.order_values
+        elsif other.order_values
           # merge in order_values from relation
-          relation.order! values[:order]
+          relation.order! other.order_values
         end
 
-        relation.extend(*values[:extending]) unless values[:extending].blank?
+        relation.extend(*other.extending_values) unless other.extending_values.blank?
       end
 
       def merge_single_values
-        relation.from_value          = values[:from] unless relation.from_value
-        relation.lock_value          = values[:lock] unless relation.lock_value
+        relation.from_value          = other.from_value unless relation.from_value
+        relation.lock_value          = other.lock_value unless relation.lock_value
 
-        unless values[:create_with].blank?
-          relation.create_with_value = (relation.create_with_value || {}).merge(values[:create_with])
+        unless other.create_with_value.blank?
+          relation.create_with_value = (relation.create_with_value || {}).merge(other.create_with_value)
         end
       end
 

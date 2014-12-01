@@ -1,4 +1,5 @@
 require 'uri'
+require 'active_support/core_ext/string/filters'
 
 module ActiveRecord
   module ConnectionAdapters
@@ -221,15 +222,19 @@ module ActiveRecord
           # this ambiguous behaviour and in the future this function
           # can be removed in favor of resolve_url_connection.
           if configurations.key?(spec) || spec !~ /:/
-            ActiveSupport::Deprecation.warn "Passing a string to ActiveRecord::Base.establish_connection " \
-              "for a configuration lookup is deprecated, please pass a symbol (#{spec.to_sym.inspect}) instead"
+            ActiveSupport::Deprecation.warn(<<-MSG.squish)
+              Passing a string to ActiveRecord::Base.establish_connection for a
+              configuration lookup is deprecated, please pass a symbol
+              (#{spec.to_sym.inspect}) instead.
+            MSG
+
             resolve_symbol_connection(spec)
           else
             resolve_url_connection(spec)
           end
         end
 
-        # Takes the environment such as `:production` or `:development`.
+        # Takes the environment such as +:production+ or +:development+.
         # This requires that the @configurations was initialized with a key that
         # matches.
         #

@@ -5,6 +5,7 @@ require 'bigdecimal/util'
 require 'models/person'
 require 'models/topic'
 require 'models/developer'
+require 'models/computer'
 
 require MIGRATIONS_ROOT + "/valid/2_we_need_reminders"
 require MIGRATIONS_ROOT + "/rename/1_we_need_things"
@@ -15,7 +16,6 @@ class BigNumber < ActiveRecord::Base
   unless current_adapter?(:PostgreSQLAdapter, :SQLite3Adapter)
     attribute :value_of_e, Type::Integer.new
   end
-  attribute :world_population, Type::Integer.new
   attribute :my_house_population, Type::Integer.new
 end
 
@@ -97,6 +97,19 @@ class MigrationTest < ActiveRecord::TestCase
     ActiveRecord::Migrator.migrations_paths = migrations_path
 
     assert_equal true, ActiveRecord::Migrator.needs_migration?
+  ensure
+    ActiveRecord::Migrator.migrations_paths = old_path
+  end
+
+  def test_any_migrations
+    old_path = ActiveRecord::Migrator.migrations_paths
+    ActiveRecord::Migrator.migrations_paths = MIGRATIONS_ROOT + "/valid"
+
+    assert ActiveRecord::Migrator.any_migrations?
+
+    ActiveRecord::Migrator.migrations_paths = MIGRATIONS_ROOT + "/empty"
+
+    assert_not ActiveRecord::Migrator.any_migrations?
   ensure
     ActiveRecord::Migrator.migrations_paths = old_path
   end

@@ -13,10 +13,10 @@ Person, Post, etc.) and encapsulates the business logic that is specific to
 your application. In Rails, database-backed model classes are derived from
 `ActiveRecord::Base`. Active Record allows you to present the data from
 database rows as objects and embellish these data objects with business logic
-methods. Although most Rails models are backed by a database, models can also
-be ordinary Ruby classes, or Ruby classes that implement a set of interfaces
-as provided by the Active Model module. You can read more about Active Record
-in its [README](activerecord/README.rdoc).
+methods. You can read more about Active Record in its [README](activerecord/README.rdoc).
+Although most Rails models are backed by a database, models can also be ordinary
+Ruby classes, or Ruby classes that implement a set of interfaces as provided by
+the Active Model module. You can read more about Active Model in its [README](activemodel/README.rdoc).
 
 The _Controller layer_ is responsible for handling incoming HTTP requests and
 providing a suitable response. Usually this means returning HTML, but Rails controllers
@@ -36,9 +36,11 @@ You can read more about Action View in its [README](actionview/README.rdoc).
 
 Active Record, Action Pack, and Action View can each be used independently outside Rails.
 In addition to them, Rails also comes with Action Mailer ([README](actionmailer/README.rdoc)), a library
-to generate and send emails; and Active Support ([README](activesupport/README.rdoc)), a collection of
-utility classes and standard library extensions that are useful for Rails, and may also be used
-independently outside Rails.
+to generate and send emails; Active Job ([README](activejob/README.md)), a
+framework for declaring jobs and making them run on a variety of queueing
+backends; and Active Support ([README](activesupport/README.rdoc)), a collection
+of utility classes and standard library extensions that are useful for Rails,
+and may also be used independently outside Rails.
 
 ## Getting Started
 

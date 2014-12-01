@@ -1347,8 +1347,8 @@ config.assets.digest = true
 
 Rails 4 no longer sets default config values for Sprockets in `test.rb`, so
 `test.rb` now requires Sprockets configuration. The old defaults in the test
-environment are: `config.assets.compile = true`, `config.assets.compress =
-false`, `config.assets.debug = false` and `config.assets.digest = false`.
+environment are: `config.assets.compile = true`, `config.assets.compress = false`,
+`config.assets.debug = false` and `config.assets.digest = false`.
 
 The following should also be added to `Gemfile`:
 

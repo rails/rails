@@ -2,6 +2,7 @@ require "cases/helper"
 require 'models/topic'
 require 'models/reply'
 require 'models/developer'
+require 'models/computer'
 require 'models/book'
 require 'models/author'
 require 'models/post'
@@ -12,7 +13,7 @@ class TransactionTest < ActiveRecord::TestCase
   fixtures :topics, :developers, :authors, :posts
 
   def setup
-    @first, @second = Topic.find(1, 2).sort_by { |t| t.id }
+    @first, @second = Topic.find(1, 2).sort_by(&:id)
   end
 
   def test_persisted_in_a_model_with_custom_primary_key_after_failed_save
@@ -698,7 +699,7 @@ if current_adapter?(:PostgreSQLAdapter)
           end
         end
 
-        threads.each { |t| t.join }
+        threads.each(&:join)
       end
     end
 
@@ -746,7 +747,7 @@ if current_adapter?(:PostgreSQLAdapter)
           Developer.connection.close
         end
 
-        threads.each { |t| t.join }
+        threads.each(&:join)
       end
 
       assert_equal original_salary, Developer.find(1).salary

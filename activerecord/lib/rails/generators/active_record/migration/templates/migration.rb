@@ -4,6 +4,9 @@ class <%= migration_class_name %> < ActiveRecord::Migration
 <% attributes.each do |attribute| -%>
   <%- if attribute.reference? -%>
     add_reference :<%= table_name %>, :<%= attribute.name %><%= attribute.inject_options %>
+    <%- unless attribute.polymorphic? -%>
+    add_foreign_key :<%= table_name %>, :<%= attribute.name.pluralize %>
+    <%- end -%>
   <%- else -%>
     add_column :<%= table_name %>, :<%= attribute.name %>, :<%= attribute.type %><%= attribute.inject_options %>
     <%- if attribute.has_index? -%>
@@ -26,6 +29,9 @@ class <%= migration_class_name %> < ActiveRecord::Migration
 <%- if migration_action -%>
   <%- if attribute.reference? -%>
     remove_reference :<%= table_name %>, :<%= attribute.name %><%= attribute.inject_options %>
+    <%- unless attribute.polymorphic? -%>
+    remove_foreign_key :<%= table_name %>, :<%= attribute.name.pluralize %>
+    <%- end -%>
   <%- else -%>
     <%- if attribute.has_index? -%>
     remove_index :<%= table_name %>, :<%= attribute.index_name %><%= attribute.inject_index_options %>

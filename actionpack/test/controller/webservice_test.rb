@@ -83,6 +83,16 @@ class WebServiceTest < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_parsing_json_doesnot_rescue_exception
+    with_test_route_set do
+      with_params_parsers Mime::JSON => Proc.new { |data| raise Interrupt } do
+        assert_raises(Interrupt) do
+          post "/", '{"title":"JSON"}}', 'CONTENT_TYPE' => 'application/json'
+        end
+      end
+    end
+  end
+
   private
     def with_params_parsers(parsers = {})
       old_session = @integration_session

@@ -1,4 +1,5 @@
 require 'delegate'
+require 'active_support/core_ext/string/filters'
 
 module ActionMailer
 
@@ -46,6 +47,7 @@ module ActionMailer
     #
     # * <tt>:wait</tt> - Enqueue the email to be delivered with a delay
     # * <tt>:wait_until</tt> - Enqueue the email to be delivered at (after) a specific date / time
+    # * <tt>:queue</tt> - Enqueue the email on the specified queue
     def deliver_later!(options={})
       enqueue_delivery :deliver_now!, options
     end
@@ -61,6 +63,7 @@ module ActionMailer
     #
     # * <tt>:wait</tt> - Enqueue the email to be delivered with a delay
     # * <tt>:wait_until</tt> - Enqueue the email to be delivered at (after) a specific date / time
+    # * <tt>:queue</tt> - Enqueue the email on the specified queue
     def deliver_later(options={})
       enqueue_delivery :deliver_now, options
     end
@@ -83,14 +86,22 @@ module ActionMailer
     end
 
     def deliver! #:nodoc:
-      ActiveSupport::Deprecation.warn "#deliver! is deprecated and will be removed in Rails 5. " \
-        "Use #deliver_now! to deliver immediately or #deliver_later! to deliver through Active Job."
+      ActiveSupport::Deprecation.warn(<<-MSG.squish)
+        `#deliver!` is deprecated and will be removed in Rails 5. Use
+        `#deliver_now!` to deliver immediately or `#deliver_later!` to
+        deliver through Active Job.
+      MSG
+
       deliver_now!
     end
 
     def deliver #:nodoc:
-      ActiveSupport::Deprecation.warn "#deliver is deprecated and will be removed in Rails 5. " \
-        "Use #deliver_now to deliver immediately or #deliver_later to deliver through Active Job."
+      ActiveSupport::Deprecation.warn(<<-MSG.squish)
+        `#deliver` is deprecated and will be removed in Rails 5. Use
+        `#deliver_now` to deliver immediately or `#deliver_later` to
+        deliver through Active Job.
+      MSG
+
       deliver_now
     end
 

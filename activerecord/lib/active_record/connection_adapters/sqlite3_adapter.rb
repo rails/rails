@@ -88,11 +88,11 @@ module ActiveRecord
         include Comparable
 
         def initialize(version_string)
-          @version = version_string.split('.').map { |v| v.to_i }
+          @version = version_string.split('.').map(&:to_i)
         end
 
         def <=>(version_string)
-          @version <=> version_string.split('.').map { |v| v.to_i }
+          @version <=> version_string.split('.').map(&:to_i)
         end
       end
 
@@ -115,7 +115,7 @@ module ActiveRecord
         end
 
         def clear
-          cache.values.each do |hash|
+          cache.each_value do |hash|
             dealloc hash[:stmt]
           end
           cache.clear
@@ -176,10 +176,6 @@ module ActiveRecord
       end
 
       def requires_reloading?
-        true
-      end
-
-      def supports_add_column?
         true
       end
 
@@ -270,7 +266,9 @@ module ActiveRecord
         end
       end
 
+      #--
       # DATABASE STATEMENTS ======================================
+      #++
 
       def explain(arel, binds = [])
         sql = "EXPLAIN QUERY PLAN #{to_sql(arel, binds)}"
@@ -451,12 +449,12 @@ module ActiveRecord
 
       # See: http://www.sqlite.org/lang_altertable.html
       # SQLite has an additional restriction on the ALTER TABLE statement
-      def valid_alter_table_options( type, options)
+      def valid_alter_table_type?(type)
         type.to_sym != :primary_key
       end
 
       def add_column(table_name, column_name, type, options = {}) #:nodoc:
-        if supports_add_column? && valid_alter_table_options( type, options )
+        if valid_alter_table_type?(type)
           super(table_name, column_name, type, options)
         else
           alter_table(table_name) do |definition|
@@ -514,10 +512,6 @@ module ActiveRecord
           register_class_with_limit m, %r(char)i, SQLite3String
         end
 
-        def select(sql, name = nil, binds = []) #:nodoc:
-          exec_query(sql, name, binds)
-        end
-
         def table_structure(table_name)
           structure = exec_query("PRAGMA table_info(#{quote_table_name(table_name)})", 'SCHEMA').to_hash
           raise(ActiveRecord::StatementInvalid, "Could not find table '#{table_name}'") if structure.empty?
@@ -562,7 +556,7 @@ module ActiveRecord
           end
           copy_table_indexes(from, to, options[:rename] || {})
           copy_table_contents(from, to,
-            @definition.columns.map {|column| column.name},
+            @definition.columns.map(&:name),
             options[:rename] || {})
         end
 
@@ -575,7 +569,7 @@ module ActiveRecord
               name = name[1..-1]
             end
 
-            to_column_names = columns(to).map { |c| c.name }
+            to_column_names = columns(to).map(&:name)
             columns = index.columns.map {|c| rename[c] || c }.select do |column|
               to_column_names.include?(column)
             end
@@ -592,7 +586,7 @@ module ActiveRecord
         def copy_table_contents(from, to, columns, rename = {}) #:nodoc:
           column_mappings = Hash[columns.map {|name| [name, name]}]
           rename.each { |a| column_mappings[a.last] = a.first }
-          from_columns = columns(from).collect {|col| col.name}
+          from_columns = columns(from).collect(&:name)
           columns = columns.find_all{|col| from_columns.include?(column_mappings[col])}
           quoted_columns = columns.map { |col| quote_column_name(col) } * ','
 

@@ -3,11 +3,25 @@ module ActiveRecord
     class Integer < Value # :nodoc:
       include Numeric
 
+      def initialize(*)
+        super
+        @range = -max_value...max_value
+      end
+
       def type
         :integer
       end
 
       alias type_cast_for_database type_cast
+
+      def type_cast_from_database(value)
+        return if value.nil?
+        value.to_i
+      end
+
+      protected
+
+      attr_reader :range
 
       private
 
@@ -15,8 +29,22 @@ module ActiveRecord
         case value
         when true then 1
         when false then 0
-        else value.to_i rescue nil
+        else
+          result = value.to_i rescue nil
+          ensure_in_range(result) if result
+          result
         end
+      end
+
+      def ensure_in_range(value)
+        unless range.cover?(value)
+          raise RangeError, "#{value} is out of range for #{self.class} with limit #{limit || 4}"
+        end
+      end
+
+      def max_value
+        limit = self.limit || 4
+        1 << (limit * 8 - 1) # 8 bits per byte with one bit for sign
       end
     end
   end

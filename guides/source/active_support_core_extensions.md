@@ -1011,7 +1011,7 @@ self.default_params = {
 }.freeze
 ```
 
-They can be also accessed and overridden at the instance level.
+They can also be accessed and overridden at the instance level.
 
 ```ruby
 A.x = 1
@@ -1447,7 +1447,7 @@ Returns the substring of the string starting at position `position`:
 "hello".from(0)  # => "hello"
 "hello".from(2)  # => "llo"
 "hello".from(-2) # => "lo"
-"hello".from(10) # => "" if < 1.9, nil in 1.9
+"hello".from(10) # => nil
 ```
 
 NOTE: Defined in `active_support/core_ext/string/access.rb`.
@@ -1833,16 +1833,14 @@ attribute names:
 
 ```ruby
 def full_messages
-  full_messages = []
+  map { |attribute, message| full_message(attribute, message) }
+end
 
-  each do |attribute, messages|
-    ...
-    attr_name = attribute.to_s.gsub('.', '_').humanize
-    attr_name = @base.class.human_attribute_name(attribute, default: attr_name)
-    ...
-  end
-
-  full_messages
+def full_message
+  ...
+  attr_name = attribute.to_s.tr('.', '_').humanize
+  attr_name = @base.class.human_attribute_name(attribute, default: attr_name)
+  ...
 end
 ```
 

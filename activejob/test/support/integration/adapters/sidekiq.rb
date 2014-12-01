@@ -48,8 +48,8 @@ module SidekiqJobsManager
 
   def can_run?
     begin
-      Sidekiq.redis { |conn| conn.connect }
-    rescue => e
+      Sidekiq.redis(&:connect)
+    rescue
       return false
     end
     true

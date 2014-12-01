@@ -4420,7 +4420,7 @@ class TestUrlGenerationErrors < ActionDispatch::IntegrationTest
 
   include Routes.url_helpers
 
-  test "url helpers raise a helpful error message whem generation fails" do
+  test "url helpers raise a helpful error message when generation fails" do
     url, missing = { action: 'show', controller: 'products', id: nil }, [:id]
     message = "No route matches #{url.inspect} missing required keys: #{missing.inspect}"
 

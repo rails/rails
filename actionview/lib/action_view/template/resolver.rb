@@ -1,6 +1,7 @@
 require "pathname"
 require "active_support/core_ext/class"
 require "active_support/core_ext/module/attribute_accessors"
+require 'active_support/core_ext/string/filters'
 require "action_view/template"
 require "thread"
 require "thread_safe"
@@ -138,7 +139,7 @@ module ActionView
     # resolver is fresher before returning it.
     def cached(key, path_info, details, locals) #:nodoc:
       name, prefix, partial = path_info
-      locals = locals.map { |x| x.to_s }.sort!
+      locals = locals.map(&:to_s).sort!
 
       if key
         @cache.cache(key, name, prefix, partial, locals) do
@@ -251,9 +252,10 @@ module ActionView
 
       extension = pieces.pop
       unless extension
-        message = "The file #{path} did not specify a template handler. The default is currently ERB, " \
-                  "but will change to RAW in the future."
-        ActiveSupport::Deprecation.warn message
+        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          The file #{path} did not specify a template handler. The default is
+          currently ERB, but will change to RAW in the future.
+        MSG
       end
 
       handler = Template.handler_for_extension(extension)

@@ -1,3 +1,5 @@
+require 'active_support/core_ext/string/filters'
+
 module ActiveRecord
   module AttributeMethods
     module Serialization
@@ -8,11 +10,8 @@ module ActiveRecord
         # object, and retrieved as the same object, then specify the name of that
         # attribute using this method and it will be handled automatically. The
         # serialization is done through YAML. If +class_name+ is specified, the
-        # serialized object must be of that class on retrieval or
-        # <tt>SerializationTypeMismatch</tt> will be raised.
-        #
-        # A notable side effect of serialized attributes is that the model will
-        # be updated on every save, even if it is not dirty.
+        # serialized object must be of that class on assignment and retrieval.
+        # Otherwise <tt>SerializationTypeMismatch</tt> will be raised.
         #
         # ==== Parameters
         #
@@ -54,8 +53,10 @@ module ActiveRecord
         end
 
         def serialized_attributes
-          ActiveSupport::Deprecation.warn "`serialized_attributes` is deprecated " \
-            "without replacement, and will be removed in Rails 5.0."
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            `serialized_attributes` is deprecated without replacement, and will
+            be removed in Rails 5.0.
+          MSG
 
           @serialized_attributes ||= Hash[
             columns.select { |t| t.cast_type.is_a?(Type::Serialized) }.map { |c|

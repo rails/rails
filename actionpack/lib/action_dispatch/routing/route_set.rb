@@ -6,6 +6,7 @@ require 'active_support/core_ext/object/to_query'
 require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/module/remove_method'
 require 'active_support/core_ext/array/extract_options'
+require 'active_support/core_ext/string/filters'
 require 'action_controller/metal/exceptions'
 require 'action_dispatch/http/request'
 require 'action_dispatch/routing/endpoint'
@@ -102,7 +103,10 @@ module ActionDispatch
         end
 
         def helpers
-          ActiveSupport::Deprecation.warn("`named_routes.helpers` is deprecated, please use `route_defined?(route_name)` to see if a named route was defined.")
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            `named_routes.helpers` is deprecated, please use `route_defined?(route_name)`
+            to see if a named route was defined.
+          MSG
           @path_helpers + @url_helpers
         end
 
@@ -134,8 +138,8 @@ module ActionDispatch
             @url_helpers_module.send  :undef_method, url_name
           end
           routes[key] = route
-          define_url_helper @path_helpers_module, route, path_name, route.defaults, name, PATH
-          define_url_helper @url_helpers_module,  route, url_name,  route.defaults, name, FULL
+          define_url_helper @path_helpers_module, route, path_name, route.defaults, name, LEGACY
+          define_url_helper @url_helpers_module,  route, url_name,  route.defaults, name, UNKNOWN
 
           @path_helpers << path_name
           @url_helpers << url_name
@@ -267,7 +271,7 @@ module ActionDispatch
             controller_options = t.url_options
             options = controller_options.merge @options
             hash = handle_positional_args(controller_options,
-                                          inner_options || {},
+                                          deprecate_string_options(inner_options) || {},
                                           args,
                                           options,
                                           @segment_keys)
@@ -288,6 +292,22 @@ module ActionDispatch
             end
 
             result.merge!(inner_options)
+          end
+
+          DEPRECATED_STRING_OPTIONS = %w[controller action]
+
+          def deprecate_string_options(options)
+            options ||= {}
+            deprecated_string_options = options.keys & DEPRECATED_STRING_OPTIONS
+            if deprecated_string_options.any?
+              msg = "Calling URL helpers with string keys #{deprecated_string_options.join(", ")} is deprecated. Use symbols instead."
+              ActiveSupport::Deprecation.warn(msg)
+              deprecated_string_options.each do |option|
+                value = options.delete(option)
+                options[option.to_sym] = value
+              end
+            end
+            options
           end
         end
 
@@ -322,6 +342,32 @@ module ActionDispatch
       PATH    = ->(options) { ActionDispatch::Http::URL.path_for(options) }
       FULL    = ->(options) { ActionDispatch::Http::URL.full_url_for(options) }
       UNKNOWN = ->(options) { ActionDispatch::Http::URL.url_for(options) }
+      LEGACY  = ->(options) {
+        if options.key?(:only_path)
+          if options[:only_path]
+            ActiveSupport::Deprecation.warn(<<-MSG.squish)
+              You are calling a `*_path` helper with the `only_path` option
+              explicitly set to `true`. This option will stop working on
+              path helpers in Rails 5. Simply remove the `only_path: true`
+              argument from your call as it is redundant when applied to a
+              path helper.
+            MSG
+
+            PATH.call(options)
+          else
+            ActiveSupport::Deprecation.warn(<<-MSG.squish)
+              You are calling a `*_path` helper with the `only_path` option
+              explicitly set to `false`. This option will stop working on
+              path helpers in Rails 5. Use the corresponding `*_url` helper
+              instead.
+            MSG
+
+            FULL.call(options)
+          end
+        else
+          PATH.call(options)
+        end
+      }
       # :startdoc:
 
       attr_accessor :formatter, :set, :named_routes, :default_scope, :router
@@ -427,7 +473,7 @@ module ActionDispatch
         RUBY
       end
 
-      def url_helpers(include_path_helpers = true)
+      def url_helpers(supports_path = true)
         routes = self
 
         Module.new do
@@ -454,7 +500,7 @@ module ActionDispatch
           # named routes...
           include url_helpers
 
-          if include_path_helpers
+          if supports_path
             path_helpers = routes.named_routes.path_helpers_module
           else
             path_helpers = routes.named_routes.path_helpers_module(true)
@@ -472,6 +518,10 @@ module ActionDispatch
           # UrlFor (included in this module) add extra
           # conveniences for working with @_routes.
           define_method(:_routes) { @_routes || routes }
+
+          define_method(:_generate_paths_by_default) do
+            supports_path
+          end
         end
       end
 
@@ -493,7 +543,7 @@ module ActionDispatch
         path = conditions.delete :path_info
         ast  = conditions.delete :parsed_path_info
         path = build_path(path, ast, requirements, anchor)
-        conditions = build_conditions(conditions, path.names.map { |x| x.to_sym })
+        conditions = build_conditions(conditions, path.names.map(&:to_sym))
 
         route = @set.add_route(app, path, conditions, defaults, name)
         named_routes[name] = route if name
@@ -555,7 +605,7 @@ module ActionDispatch
           if name == :controller
             value
           elsif value.is_a?(Array)
-            value.map { |v| v.to_param }.join('/')
+            value.map(&:to_param).join('/')
           elsif param = value.to_param
             param
           end
@@ -699,7 +749,7 @@ module ActionDispatch
       end
 
       def find_script_name(options)
-        options.delete(:script_name) { '' }
+        options.delete(:script_name) || ''
       end
 
       def path_for(options, route_name = nil) # :nodoc:

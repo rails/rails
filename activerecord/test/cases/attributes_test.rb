@@ -20,7 +20,7 @@ end
 
 module ActiveRecord
   class CustomPropertiesTest < ActiveRecord::TestCase
-    def test_overloading_types
+    test "overloading types" do
       data = OverloadedType.new
 
       data.overloaded_float = "1.1"
@@ -30,7 +30,7 @@ module ActiveRecord
       assert_equal 1.1, data.unoverloaded_float
     end
 
-    def test_overloaded_properties_save
+    test "overloaded properties save" do
       data = OverloadedType.new
 
       data.overloaded_float = "2.2"
@@ -43,18 +43,18 @@ module ActiveRecord
       assert_kind_of Float, UnoverloadedType.last.overloaded_float
     end
 
-    def test_properties_assigned_in_constructor
+    test "properties assigned in constructor" do
       data = OverloadedType.new(overloaded_float: '3.3')
 
       assert_equal 3, data.overloaded_float
     end
 
-    def test_overloaded_properties_with_limit
+    test "overloaded properties with limit" do
       assert_equal 50, OverloadedType.columns_hash['overloaded_string_with_limit'].limit
       assert_equal 255, UnoverloadedType.columns_hash['overloaded_string_with_limit'].limit
     end
 
-    def test_nonexistent_attribute
+    test "nonexistent attribute" do
       data = OverloadedType.new(non_existent_decimal: 1)
 
       assert_equal BigDecimal.new(1), data.non_existent_decimal
@@ -63,7 +63,7 @@ module ActiveRecord
       end
     end
 
-    def test_changing_defaults
+    test "changing defaults" do
       data = OverloadedType.new
       unoverloaded_data = UnoverloadedType.new
 
@@ -71,24 +71,28 @@ module ActiveRecord
       assert_equal 'the original default', unoverloaded_data.string_with_default
     end
 
-    def test_children_inherit_custom_properties
+    test "defaults are not touched on the columns" do
+      assert_equal 'the original default', OverloadedType.columns_hash['string_with_default'].default
+    end
+
+    test "children inherit custom properties" do
       data = ChildOfOverloadedType.new(overloaded_float: '4.4')
 
       assert_equal 4, data.overloaded_float
     end
 
-    def test_children_can_override_parents
+    test "children can override parents" do
       data = GrandchildOfOverloadedType.new(overloaded_float: '4.4')
 
       assert_equal 4.4, data.overloaded_float
     end
 
-    def test_overloading_properties_does_not_change_column_order
+    test "overloading properties does not change column order" do
       column_names = OverloadedType.column_names
       assert_equal %w(id overloaded_float unoverloaded_float overloaded_string_with_limit string_with_default non_existent_decimal), column_names
     end
 
-    def test_caches_are_cleared
+    test "caches are cleared" do
       klass = Class.new(OverloadedType)
 
       assert_equal 6, klass.columns.length

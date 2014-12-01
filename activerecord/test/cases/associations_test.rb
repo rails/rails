@@ -1,6 +1,7 @@
 require "cases/helper"
 require 'models/computer'
 require 'models/developer'
+require 'models/computer'
 require 'models/project'
 require 'models/company'
 require 'models/categorization'
@@ -47,7 +48,7 @@ class AssociationsTest < ActiveRecord::TestCase
     assert_kind_of Firm, firm
 
     firm.clear_association_cache
-    assert_equal Firm.find(1).clients.collect{ |x| x.name }.sort, firm.clients.collect{ |x| x.name }.sort
+    assert_equal Firm.find(1).clients.collect(&:name).sort, firm.clients.collect(&:name).sort
   end
 
   def test_clear_association_cache_new_record

@@ -13,12 +13,13 @@ module ActiveJob
   # * {Sneakers}[https://github.com/jondot/sneakers]
   # * {Sucker Punch}[https://github.com/brandonhilkert/sucker_punch]
   #
-  # #### Backends Features
+  # === Backends Features
   #
   #   |                   | Async | Queues | Delayed   | Priorities | Timeout | Retries |
   #   |-------------------|-------|--------|-----------|------------|---------|---------|
   #   | Backburner        | Yes   | Yes    | Yes       | Yes        | Job     | Global  |
   #   | Delayed Job       | Yes   | Yes    | Yes       | Job        | Global  | Global  |
+  #   | Qu                | Yes   | Yes    | No        | No         | No      | Global  |
   #   | Que               | Yes   | Yes    | Yes       | Job        | No      | Job     |
   #   | queue_classic     | Yes   | Yes    | No*       | No         | No      | No      |
   #   | Resque            | Yes   | Yes    | Yes (Gem) | Queue      | Global  | Yes     |

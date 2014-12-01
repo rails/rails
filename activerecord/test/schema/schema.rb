@@ -228,6 +228,11 @@ ActiveRecord::Schema.define do
     t.integer :extendedWarranty, null: false
   end
 
+  create_table :computers_developers, id: false, force: true do |t|
+    t.references :computer
+    t.references :developer
+  end
+
   create_table :contracts, force: true do |t|
     t.integer :developer_id
     t.integer :company_id
@@ -311,7 +316,7 @@ ActiveRecord::Schema.define do
   end
 
   create_table :cold_jokes, force: true do |t|
-    t.string :name
+    t.string :cold_name
   end
 
   create_table :friendships, force: true do |t|
@@ -583,6 +588,11 @@ ActiveRecord::Schema.define do
     t.integer :tags_count, default: 0
     t.integer :tags_with_destroy_count, default: 0
     t.integer :tags_with_nullify_count, default: 0
+  end
+
+  create_table :serialized_posts, force: true do |t|
+    t.integer :author_id
+    t.string :title, null: false
   end
 
   create_table :price_estimates, force: true do |t|

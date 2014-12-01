@@ -1,5 +1,6 @@
 require 'active_support/hash_with_indifferent_access'
 require 'active_support/core_ext/object/duplicable'
+require 'active_support/core_ext/string/filters'
 
 module ActiveModel
   # == Active \Model \Dirty
@@ -200,7 +201,11 @@ module ActiveModel
       end
 
       def reset_changes
-        ActiveSupport::Deprecation.warn "#reset_changes is deprecated and will be removed on Rails 5. Please use #clear_changes_information instead."
+        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          `#reset_changes` is deprecated and will be removed on Rails 5.
+          Please use `#clear_changes_information` instead.
+        MSG
+
         clear_changes_information
       end
 
@@ -224,7 +229,10 @@ module ActiveModel
 
       # Handle <tt>reset_*!</tt> for +method_missing+.
       def reset_attribute!(attr)
-        ActiveSupport::Deprecation.warn "#reset_#{attr}! is deprecated and will be removed on Rails 5. Please use #restore_#{attr}! instead."
+        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          `#reset_#{attr}!` is deprecated and will be removed on Rails 5.
+          Please use `#restore_#{attr}!` instead.
+        MSG
 
         restore_attribute!(attr)
       end
@@ -247,7 +255,7 @@ module ActiveModel
       end
 
       # Remove changes information for the provided attributes.
-      def clear_attribute_changes(attributes)
+      def clear_attribute_changes(attributes) # :doc:
         attributes_changed_by_setter.except!(*attributes)
       end
   end

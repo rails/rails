@@ -13,7 +13,9 @@ class SanitizeTest < ActiveRecord::TestCase
     quoted_table_name = ActiveRecord::Base.connection.quote_table_name("adorable_animals")
     expected_value = "#{quoted_table_name}.#{quoted_column_name} = #{quoted_bambi}"
 
-    assert_equal expected_value, Binary.send(:sanitize_sql_hash, {adorable_animals: {name: 'Bambi'}})
+    assert_deprecated do
+      assert_equal expected_value, Binary.send(:sanitize_sql_hash, {adorable_animals: {name: 'Bambi'}})
+    end
   end
 
   def test_sanitize_sql_array_handles_string_interpolation

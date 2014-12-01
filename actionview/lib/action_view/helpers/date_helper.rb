@@ -177,7 +177,7 @@ module ActionView
       #   and +:name+ (string). A format string would be something like "%{name} (%<number>02d)" for example.
       #   See <tt>Kernel.sprintf</tt> for documentation on format sequences.
       # * <tt>:date_separator</tt>    - Specifies a string to separate the date fields. Default is "" (i.e. nothing).
-      # * <tt>:start_year</tt>        - Set the start year for the year select. Default is <tt>Date.today.year - 5</tt>if
+      # * <tt>:start_year</tt>        - Set the start year for the year select. Default is <tt>Date.today.year - 5</tt> if
       #   you are creating new record. While editing existing record, <tt>:start_year</tt> defaults to
       #   the current selected year minus 5.
       # * <tt>:end_year</tt>          - Set the end year for the year select. Default is <tt>Date.today.year + 5</tt> if
@@ -898,7 +898,7 @@ module ActionView
 
         def translated_date_order
           date_order = I18n.translate(:'date.order', :locale => @options[:locale], :default => [])
-          date_order = date_order.map { |element| element.to_sym }
+          date_order = date_order.map(&:to_sym)
 
           forbidden_elements = date_order - [:year, :month, :day]
           if forbidden_elements.any?
@@ -1035,7 +1035,7 @@ module ActionView
         def build_selects_from_types(order)
           select = ''
           first_visible = order.find { |type| !@options[:"discard_#{type}"] }
-          order.reverse.each do |type|
+          order.reverse_each do |type|
             separator = separator(type) unless type == first_visible # don't add before first visible field
             select.insert(0, separator.to_s + send("select_#{type}").to_s)
           end

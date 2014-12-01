@@ -56,6 +56,26 @@ module ActiveRecord
           clone.instance_variable_set('@cast_type', type)
         end
       end
+
+      def ==(other)
+        other.name == name &&
+          other.default == default &&
+          other.cast_type == cast_type &&
+          other.sql_type == sql_type &&
+          other.null == null &&
+          other.default_function == default_function
+      end
+      alias :eql? :==
+
+      def hash
+        attributes_for_hash.hash
+      end
+
+      private
+
+      def attributes_for_hash
+        [self.class, name, default, cast_type, sql_type, null, default_function]
+      end
     end
   end
   # :startdoc:

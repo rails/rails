@@ -1,3 +1,5 @@
+require 'active_support/core_ext/string/filters'
+
 module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
@@ -25,10 +27,11 @@ module ActiveRecord
             if !infinity?(from) && extracted[:exclude_start]
               if from.respond_to?(:succ)
                 from = from.succ
-                ActiveSupport::Deprecation.warn \
-                  "Excluding the beginning of a Range is only partialy supported " \
-                  "through `#succ`. This is not reliable and will be removed in " \
-                  "the future."
+                ActiveSupport::Deprecation.warn(<<-MSG.squish)
+                  Excluding the beginning of a Range is only partialy supported
+                  through `#succ`. This is not reliable and will be removed in
+                  the future.
+                MSG
               else
                 raise ArgumentError, "The Ruby Range object does not support excluding the beginning of a Range. (unsupported value: '#{value}')"
               end

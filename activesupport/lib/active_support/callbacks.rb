@@ -78,7 +78,7 @@ module ActiveSupport
     #     save
     #   end
     def run_callbacks(kind, &block)
-      send "run_#{kind}_callbacks", &block
+      send "_run_#{kind}_callbacks", &block
     end
 
     private
@@ -559,7 +559,7 @@ module ActiveSupport
       # This is used internally to append, prepend and skip callbacks to the
       # CallbackChain.
       def __update_callbacks(name) #:nodoc:
-        ([self] + ActiveSupport::DescendantsTracker.descendants(self)).reverse.each do |target|
+        ([self] + ActiveSupport::DescendantsTracker.descendants(self)).reverse_each do |target|
           chain = target.get_callbacks name
           yield target, chain.dup
         end
@@ -730,7 +730,7 @@ module ActiveSupport
           set_callbacks name, CallbackChain.new(name, options)
 
           module_eval <<-RUBY, __FILE__, __LINE__ + 1
-            def run_#{name}_callbacks(&block)
+            def _run_#{name}_callbacks(&block)
               _run_callbacks(_#{name}_callbacks, &block)
             end
           RUBY

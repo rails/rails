@@ -11,8 +11,7 @@ module ActiveRecord
         end
 
         def bind_value(scope, column, value, alias_tracker)
-          substitute = alias_tracker.connection.substitute_at(
-            column, scope.bind_values.length)
+          substitute = alias_tracker.connection.substitute_at(column)
           scope.bind_values += [[column, @block.call(value)]]
           substitute
         end

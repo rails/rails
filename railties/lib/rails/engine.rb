@@ -110,8 +110,8 @@ module Rails
   #
   # == Endpoint
   #
-  # An engine can be also a rack application. It can be useful if you have a rack application that
-  # you would like to wrap with +Engine+ and provide some of the +Engine+'s features.
+  # An engine can also be a rack application. It can be useful if you have a rack application that
+  # you would like to wrap with +Engine+ and provide with some of the +Engine+'s features.
   #
   # To do that, use the +endpoint+ method:
   #
@@ -351,7 +351,7 @@ module Rails
 
           base.called_from = begin
             call_stack = if Kernel.respond_to?(:caller_locations)
-              caller_locations.map(&:path)
+              caller_locations.map { |l| l.absolute_path || l.path }
             else
               # Remove the line number from backtraces making sure we don't leave anything behind
               caller.map { |p| p.sub(/:\d+.*/, '') }
@@ -362,6 +362,10 @@ module Rails
         end
 
         super
+      end
+
+      def find_root(from)
+        find_root_with_flag "lib", from
       end
 
       def endpoint(endpoint = nil)
@@ -531,7 +535,7 @@ module Rails
 
     # Define the configuration object for the engine.
     def config
-      @config ||= Engine::Configuration.new(find_root_with_flag("lib"))
+      @config ||= Engine::Configuration.new(self.class.find_root(self.class.called_from))
     end
 
     # Load data from db/seeds.rb file. It can be used in to load engines'
@@ -658,8 +662,7 @@ module Rails
       paths["db/migrate"].existent.any?
     end
 
-    def find_root_with_flag(flag, default=nil) #:nodoc:
-      root_path = self.class.called_from
+    def self.find_root_with_flag(flag, root_path, default=nil) #:nodoc:
 
       while root_path && File.directory?(root_path) && !File.exist?("#{root_path}/#{flag}")
         parent = File.dirname(root_path)

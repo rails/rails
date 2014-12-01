@@ -7,8 +7,8 @@ module ActionController
   #
   #   config.action_controller.etag_with_template_digest = false
   #
-  # Override the template to digest by passing `:template` to `fresh_when`
-  # and `stale?` calls. For example:
+  # Override the template to digest by passing +:template+ to +fresh_when+
+  # and +stale?+ calls. For example:
   #
   #   # We're going to render widgets/show, not posts/show
   #   fresh_when @post, template: 'widgets/show'

@@ -18,7 +18,11 @@ module ActiveRecord
         end
 
         def quoted
-          parts.map { |p| PGconn.quote_ident(p) }.join SEPARATOR
+          if schema
+            PGconn.quote_ident(schema) << SEPARATOR << PGconn.quote_ident(identifier)
+          else
+            PGconn.quote_ident(identifier)
+          end
         end
 
         def ==(o)
@@ -32,8 +36,11 @@ module ActiveRecord
 
         protected
           def unquote(part)
-            return unless part
-            part.gsub(/(^"|"$)/,'')
+            if part && part.start_with?('"')
+              part[1..-2]
+            else
+              part
+            end
           end
 
           def parts
@@ -57,7 +64,11 @@ module ActiveRecord
         # * <tt>"schema_name".table_name</tt>
         # * <tt>"schema.name"."table name"</tt>
         def extract_schema_qualified_name(string)
-          table, schema = string.scan(/[^".\s]+|"[^"]*"/)[0..1].reverse
+          schema, table = string.scan(/[^".\s]+|"[^"]*"/)
+          if table.nil?
+            table = schema
+            schema = nil
+          end
           PostgreSQL::Name.new(schema, table)
         end
       end

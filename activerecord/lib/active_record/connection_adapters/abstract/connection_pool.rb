@@ -2,6 +2,7 @@ require 'thread'
 require 'thread_safe'
 require 'monitor'
 require 'set'
+require 'active_support/core_ext/string/filters'
 
 module ActiveRecord
   # Raised when a connection could not be obtained within the connection
@@ -319,9 +320,7 @@ module ActiveRecord
             checkin conn
             conn.disconnect! if conn.requires_reloading?
           end
-          @connections.delete_if do |conn|
-            conn.requires_reloading?
-          end
+          @connections.delete_if(&:requires_reloading?)
           @available.clear
           @connections.each do |conn|
             @available.add conn
@@ -360,7 +359,7 @@ module ActiveRecord
         synchronize do
           owner = conn.owner
 
-          conn.run_checkin_callbacks do
+          conn._run_checkin_callbacks do
             conn.expire
           end
 
@@ -449,7 +448,7 @@ module ActiveRecord
       end
 
       def checkout_and_verify(c)
-        c.run_checkout_callbacks do
+        c._run_checkout_callbacks do
           c.verify!
         end
         c
@@ -518,10 +517,11 @@ module ActiveRecord
       end
 
       def connection_pools
-        ActiveSupport::Deprecation.warn(
-          "In the next release, this will return the same as #connection_pool_list. " \
-          "(An array of pools, rather than a hash mapping specs to pools.)"
-        )
+        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          In the next release, this will return the same as `#connection_pool_list`.
+          (An array of pools, rather than a hash mapping specs to pools.)
+        MSG
+
         Hash[connection_pool_list.map { |pool| [pool.spec, pool] }]
       end
 

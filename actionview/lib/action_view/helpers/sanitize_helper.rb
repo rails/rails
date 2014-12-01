@@ -57,7 +57,7 @@ module ActionView
       # Add table tags to the default allowed tags
       #
       #   class Application < Rails::Application
-      #     config.action_view.sanitized_allowed_tags = 'table', 'tr', 'td'
+      #     config.action_view.sanitized_allowed_tags = ['table', 'tr', 'td']
       #   end
       #
       # Remove tags to the default allowed tags
@@ -176,7 +176,7 @@ module ActionView
         # Replaces the allowed tags for the +sanitize+ helper.
         #
         #   class Application < Rails::Application
-        #     config.action_view.sanitized_allowed_tags = 'table', 'tr', 'td'
+        #     config.action_view.sanitized_allowed_tags = ['table', 'tr', 'td']
         #   end
         #
 

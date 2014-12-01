@@ -78,6 +78,7 @@ class Post < ActiveRecord::Base
 
   has_one  :very_special_comment
   has_one  :very_special_comment_with_post, -> { includes(:post) }, :class_name => "VerySpecialComment"
+  has_one :very_special_comment_with_post_with_joins, -> { joins(:post).order('posts.id') }, class_name: "VerySpecialComment"
   has_many :special_comments
   has_many :nonexistant_comments, -> { where 'comments.id < 0' }, :class_name => 'Comment'
 
@@ -219,8 +220,21 @@ class PostThatLoadsCommentsInAnAfterSaveHook < ActiveRecord::Base
   end
 end
 
+class PostWithAfterCreateCallback < ActiveRecord::Base
+  self.table_name = 'posts'
+  has_many :comments, foreign_key: :post_id
+
+  after_create do |post|
+    update_attribute(:author_id, comments.first.id)
+  end
+end
+
 class PostWithCommentWithDefaultScopeReferencesAssociation < ActiveRecord::Base
   self.table_name = 'posts'
   has_many :comment_with_default_scope_references_associations, foreign_key: :post_id
   has_one :first_comment, class_name: "CommentWithDefaultScopeReferencesAssociation", foreign_key: :post_id
+end
+
+class SerializedPost < ActiveRecord::Base
+  serialize :title
 end

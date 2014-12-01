@@ -99,7 +99,7 @@ module Rails
         end
 
         def class_name
-          (class_path + [file_name]).map!{ |m| m.camelize }.join('::')
+          (class_path + [file_name]).map!(&:camelize).join('::')
         end
 
         def human_name
@@ -156,7 +156,7 @@ module Rails
 
         def assign_names!(name) #:nodoc:
           @class_path = name.include?('/') ? name.split('/') : name.split('::')
-          @class_path.map! { |m| m.underscore }
+          @class_path.map!(&:underscore)
           @file_name = @class_path.pop
         end
 

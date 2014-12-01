@@ -91,6 +91,13 @@ module ActiveRecord
           collation && !collation.match(/_ci$/)
         end
 
+        def ==(other)
+          super &&
+            collation == other.collation &&
+            strict == other.strict &&
+            extra == other.extra
+        end
+
         private
 
         # MySQL misreports NOT NULL column default when none is given.
@@ -108,6 +115,10 @@ module ActiveRecord
           if blob_or_text_column? && default.present?
             raise ArgumentError, "#{type} columns cannot have a default value: #{default.inspect}"
           end
+        end
+
+        def attributes_for_hash
+          super + [collation, strict, extra]
         end
       end
 
@@ -274,7 +285,9 @@ module ActiveRecord
         end
       end
 
+      #--
       # DATABASE STATEMENTS ======================================
+      #++
 
       def clear_cache!
         super
@@ -385,7 +398,7 @@ module ActiveRecord
         sql << "LIKE #{quote(like)}" if like
 
         execute_and_free(sql, 'SCHEMA') do |result|
-          result.collect { |field| field.first }
+          result.collect(&:first)
         end
       end
 
@@ -485,7 +498,7 @@ module ActiveRecord
         end
       end
 
-      def change_column_default(table_name, column_name, default)
+      def change_column_default(table_name, column_name, default) #:nodoc:
         column = column_for(table_name, column_name)
         change_column table_name, column_name, column.sql_type, :default => default
       end
@@ -574,14 +587,6 @@ module ActiveRecord
         end
       end
 
-      def add_column_position!(sql, options)
-        if options[:first]
-          sql << " FIRST"
-        elsif options[:after]
-          sql << " AFTER #{quote_column_name(options[:after])}"
-        end
-      end
-
       # SHOW VARIABLES LIKE 'name'
       def show_variable(name)
         variables = select_all("SHOW VARIABLES LIKE '#{name}'", 'SCHEMA')
@@ -628,10 +633,6 @@ module ActiveRecord
         end
       end
 
-      def limited_update_conditions(where_sql, quoted_table_name, quoted_primary_key)
-        where_sql
-      end
-
       def strict_mode?
         self.class.type_cast_config_to_boolean(@config.fetch(:strict, true))
       end
@@ -645,11 +646,7 @@ module ActiveRecord
       def initialize_type_map(m) # :nodoc:
         super
 
-        m.register_type(%r(enum)i) do |sql_type|
-          limit = sql_type[/^enum\((.+)\)/i, 1]
-            .split(',').map{|enum| enum.strip.length - 2}.max
-          Type::String.new(limit: limit)
-        end
+        register_class_with_limit m, %r(char)i, MysqlString
 
         m.register_type %r(tinytext)i,   Type::Text.new(limit: 2**8 - 1)
         m.register_type %r(tinyblob)i,   Type::Binary.new(limit: 2**8 - 1)
@@ -671,6 +668,12 @@ module ActiveRecord
         m.alias_type %r(set)i,           'varchar'
         m.alias_type %r(year)i,          'integer'
         m.alias_type %r(bit)i,           'binary'
+
+        m.register_type(%r(enum)i) do |sql_type|
+          limit = sql_type[/^enum\((.+)\)/i, 1]
+            .split(',').map{|enum| enum.strip.length - 2}.max
+          MysqlString.new(limit: limit)
+        end
       end
 
       # MySQL is too stupid to create a temporary table for use subquery, so we have
@@ -783,7 +786,7 @@ module ActiveRecord
       private
 
       def version
-        @version ||= full_version.scan(/^(\d+)\.(\d+)\.(\d+)/).flatten.map { |v| v.to_i }
+        @version ||= full_version.scan(/^(\d+)\.(\d+)\.(\d+)/).flatten.map(&:to_i)
       end
 
       def mariadb?
@@ -825,9 +828,9 @@ module ActiveRecord
         # Gather up all of the SET variables...
         variable_assignments = variables.map do |k, v|
           if v == ':default' || v == :default
-            "@@SESSION.#{k.to_s} = DEFAULT" # Sets the value to the global or compile default
+            "@@SESSION.#{k} = DEFAULT" # Sets the value to the global or compile default
           elsif !v.nil?
-            "@@SESSION.#{k.to_s} = #{quote(v)}"
+            "@@SESSION.#{k} = #{quote(v)}"
           end
           # or else nil; compact to clear nils out
         end.compact.join(', ')
@@ -841,6 +844,26 @@ module ActiveRecord
           case $1
           when 'CASCADE'; :cascade
           when 'SET NULL'; :nullify
+          end
+        end
+      end
+
+      class MysqlString < Type::String # :nodoc:
+        def type_cast_for_database(value)
+          case value
+          when true then "1"
+          when false then "0"
+          else super
+          end
+        end
+
+        private
+
+        def cast_value(value)
+          case value
+          when true then "1"
+          when false then "0"
+          else super
           end
         end
       end
