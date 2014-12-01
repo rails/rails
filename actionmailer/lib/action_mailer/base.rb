@@ -498,7 +498,7 @@ module ActionMailer
 
       # Sets the defaults through app configuration:
       #
-      #     config.action_mailer.default { from: "no-reply@example.org" }
+      #     config.action_mailer.default(from: "no-reply@example.org")
       #
       # Aliased by ::default_options=
       def default(value = nil)
