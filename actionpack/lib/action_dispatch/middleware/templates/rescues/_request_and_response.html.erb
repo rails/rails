@@ -13,10 +13,7 @@
   request_dump = if clean_params.empty?
     'None'
   else
-    pretty_params = ""
-    PP.pp(clean_params, pretty_params, 200)
-
-    pretty_params
+    PP.pp(clean_params, '', 200)
   end
 
   def debug_hash(object)
