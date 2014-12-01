@@ -309,7 +309,7 @@ module ActionDispatch
         end
 
         def build_full_uri(path, env)
-          "#{env['rack.url_scheme']}://#{env['SERVER_NAME']}:#{env['SERVER_PORT']}#{path}"
+          URI.join("#{env['rack.url_scheme']}://#{env['SERVER_NAME']}:#{env['SERVER_PORT']}", path).to_s
         end
     end
 

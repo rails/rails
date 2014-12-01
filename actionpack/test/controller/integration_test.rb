@@ -506,6 +506,13 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_passing_path_without_leading_slash
+    with_test_route_set do
+      get 'get'
+      assert_equal 200, status
+    end
+  end
+
   private
     def with_test_route_set
       with_routing do |set|
