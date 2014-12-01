@@ -18,29 +18,47 @@ class DefaultTest < ActiveRecord::TestCase
     end
   end
 
-  if current_adapter?(:PostgreSQLAdapter, :OracleAdapter)
-    def test_default_integers
-      default = Default.new
-      assert_instance_of Fixnum, default.positive_integer
-      assert_equal 1, default.positive_integer
-      assert_instance_of Fixnum, default.negative_integer
-      assert_equal(-1, default.negative_integer)
-      assert_instance_of BigDecimal, default.decimal_number
-      assert_equal BigDecimal.new("2.78"), default.decimal_number
-    end
-  end
-
   if current_adapter?(:PostgreSQLAdapter)
     def test_multiline_default_text
       # older postgres versions represent the default with escapes ("\\012" for a newline)
       assert( "--- []\n\n" == Default.columns_hash['multiline_default'].default ||
                "--- []\\012\\012" == Default.columns_hash['multiline_default'].default)
     end
+  end
+end
 
-    def test_default_negative_integer
-      assert_equal -1, Default.new.negative_integer
-      assert_equal "-1", Default.new.negative_integer_before_type_cast
+class DefaultNumbersTest < ActiveRecord::TestCase
+  class DefaultNumber < ActiveRecord::Base; end
+
+  setup do
+    @connection = ActiveRecord::Base.connection
+    @connection.create_table :default_numbers do |t|
+      t.integer :positive_integer, default: 7
+      t.integer :negative_integer, default: -5
+      t.decimal :decimal_number, default: "2.78", precision: 5, scale: 2
     end
+  end
+
+  teardown do
+    @connection.drop_table "default_numbers" if @connection.table_exists? 'default_numbers'
+  end
+
+  def test_default_positive_integer
+    record = DefaultNumber.new
+    assert_equal 7, record.positive_integer
+    assert_equal "7", record.positive_integer_before_type_cast
+  end
+
+  def test_default_negative_integer
+    record = DefaultNumber.new
+    assert_equal -5, record.negative_integer
+    assert_equal "-5", record.negative_integer_before_type_cast
+  end
+
+  def test_default_decimal_number
+    record = DefaultNumber.new
+    assert_equal BigDecimal.new("2.78"), record.decimal_number
+    assert_equal "2.78", record.decimal_number_before_type_cast
   end
 end
 
