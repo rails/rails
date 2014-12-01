@@ -241,6 +241,29 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert_match(/RuntimeError\n\s+in FeaturedTileController/, body)
   end
 
+  test "show formatted params" do
+    @app = DevelopmentApp
+
+    params = {
+      'id' => 'unknown',
+      'someparam' => {
+        'foo' => 'bar',
+        'abc' => 'goo'
+      }
+    }
+
+    get("/runtime_error", {}, {
+      'action_dispatch.show_exceptions' => true,
+      'action_dispatch.request.parameters' => {
+        'action' => 'show',
+        'controller' => 'featured_tile'
+      }.merge(params)
+    })
+    assert_response 500
+
+    assert_includes(body, CGI.escapeHTML(PP.pp(params, "", 200)))
+  end
+
   test "sets the HTTP charset parameter" do
     @app = DevelopmentApp
 
