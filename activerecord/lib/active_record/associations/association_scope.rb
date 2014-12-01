@@ -113,55 +113,6 @@ module ActiveRecord
         scope = scope.joins(join(foreign_table, constraint))
       end
 
-      class RuntimeReflection
-        attr_accessor :next
-
-        def initialize(reflection, association)
-          @reflection = reflection
-          @association = association
-        end
-
-        def klass
-          @association.klass
-        end
-
-        def scope
-          @reflection.scope
-        end
-
-        def table_name
-          klass.table_name
-        end
-
-        def plural_name
-          @reflection.plural_name
-        end
-
-        def join_keys(assoc_klass)
-          @reflection.join_keys(assoc_klass)
-        end
-
-        def type
-          @reflection.type
-        end
-
-        def constraints
-          @reflection.constraints
-        end
-
-        def source_type_info
-          @reflection.source_type_info
-        end
-
-        def alias_name(name, alias_tracker)
-          @alias ||= begin
-            alias_name = "#{plural_name}_#{name}_join"
-            table_name = klass.table_name
-            alias_tracker.aliased_table_for(table_name, alias_name)
-          end
-        end
-      end
-
       class ReflectionProxy < SimpleDelegator
         attr_accessor :next
 
@@ -175,7 +126,7 @@ module ActiveRecord
 
       def get_chain(refl, association, tracker)
         name = refl.name
-        runtime_reflection = RuntimeReflection.new(refl, association)
+        runtime_reflection = ActiveRecord::Reflection::RuntimeReflection.new(refl, association)
         runtime_reflection.alias_name(name, tracker)
         prev = runtime_reflection
         refl.chain.drop(1).each { |reflection|

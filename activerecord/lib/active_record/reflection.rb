@@ -163,7 +163,7 @@ module ActiveRecord
       end
 
       def constraints
-        scope ? [scope] : []
+        scope_chain.flatten
       end
     end
 
@@ -714,47 +714,6 @@ module ActiveRecord
         end
       end
 
-      class PolymorphicReflection
-        def initialize(reflection, prev_reflection)
-          @reflection = reflection
-          @prev_reflection = prev_reflection
-        end
-
-        def klass
-          @reflection.klass
-        end
-
-        def scope
-          @reflection.scope
-        end
-
-        def table_name
-          @reflection.table_name
-        end
-
-        def plural_name
-          @reflection.plural_name
-        end
-
-        def join_keys(assoc_klass)
-          @reflection.join_keys(assoc_klass)
-        end
-
-        def type
-          @reflection.type
-        end
-
-        def constraints
-          [source_type_info]
-        end
-
-        def source_type_info
-          type = @prev_reflection.foreign_type
-          source_type = @prev_reflection.options[:source_type]
-          lambda { |object| where(type => source_type) }
-        end
-      end
-
       # Consider the following example:
       #
       #   class Person
@@ -933,6 +892,80 @@ module ActiveRecord
 
         delegate(*delegate_methods, to: :delegate_reflection)
 
+    end
+
+    class PolymorphicReflection < ThroughReflection
+      def initialize(reflection, prev_reflection)
+        @reflection = reflection
+        @prev_reflection = prev_reflection
+      end
+
+      def klass
+        @reflection.klass
+      end
+
+      def scope
+        @reflection.scope
+      end
+
+      def table_name
+        @reflection.table_name
+      end
+
+      def plural_name
+        @reflection.plural_name
+      end
+
+      def join_keys(assoc_klass)
+        @reflection.join_keys(assoc_klass)
+      end
+
+      def type
+        @reflection.type
+      end
+
+      def constraints
+        [source_type_info]
+      end
+
+      def source_type_info
+        type = @prev_reflection.foreign_type
+        source_type = @prev_reflection.options[:source_type]
+        lambda { |object| where(type => source_type) }
+      end
+    end
+
+    class RuntimeReflection < PolymorphicReflection
+      attr_accessor :next
+
+      def initialize(reflection, association)
+        @reflection = reflection
+        @association = association
+      end
+
+      def klass
+        @association.klass
+      end
+
+      def table_name
+        klass.table_name
+      end
+
+      def constraints
+        @reflection.constraints
+      end
+
+      def source_type_info
+        @reflection.source_type_info
+      end
+
+      def alias_name(name, alias_tracker)
+        @alias ||= begin
+          alias_name = "#{plural_name}_#{name}_join"
+          table_name = klass.table_name
+          alias_tracker.aliased_table_for(table_name, alias_name)
+        end
+      end
     end
   end
 end
