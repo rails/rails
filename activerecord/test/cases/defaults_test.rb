@@ -36,6 +36,10 @@ class DefaultTest < ActiveRecord::TestCase
       assert( "--- []\n\n" == Default.columns_hash['multiline_default'].default ||
                "--- []\\012\\012" == Default.columns_hash['multiline_default'].default)
     end
+
+    def test_default_negative_integer
+      assert_equal "-1", Default.columns_hash['negative_integer'].default
+    end
   end
 end
 
