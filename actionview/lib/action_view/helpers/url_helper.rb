@@ -276,6 +276,11 @@ module ActionView
       #   #       <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"/>
       #   #     </form>"
       #   #
+      #
+      # :call-seq:
+      #   button_to(name = nil, options = nil, html_options = nil)
+      #   button_to(options = nil, html_options = nil, &block)
+      #
       def button_to(name = nil, options = nil, html_options = nil, &block)
         html_options, options = options, name if block_given?
         options      ||= {}

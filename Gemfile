@@ -26,7 +26,7 @@ gem 'bcrypt', '~> 3.1.7', require: false
 gem 'uglifier', '>= 1.3.0', require: false
 
 group :doc do
-  gem 'sdoc', '~> 0.4.0'
+  gem 'sdoc', github: 'voloko/sdoc' #, '~> 0.4.2'
   gem 'redcarpet', '~> 3.1.2', platforms: :ruby
   gem 'w3c_validators'
   gem 'kindlerb'
