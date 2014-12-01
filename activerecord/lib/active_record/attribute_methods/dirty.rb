@@ -69,6 +69,11 @@ module ActiveRecord
         end
       end
 
+      def attribute_changed_in_place?(attr_name)
+        old_value = original_raw_attribute(attr_name)
+        @attributes[attr_name].changed_in_place_from?(old_value)
+      end
+
       private
 
       def calculate_changes_from_defaults
@@ -141,13 +146,8 @@ module ActiveRecord
 
       def changed_in_place
         self.class.attribute_names.select do |attr_name|
-          changed_in_place?(attr_name)
+          attribute_changed_in_place?(attr_name)
         end
-      end
-
-      def changed_in_place?(attr_name)
-        old_value = original_raw_attribute(attr_name)
-        @attributes[attr_name].changed_in_place_from?(old_value)
       end
 
       def original_raw_attribute(attr_name)

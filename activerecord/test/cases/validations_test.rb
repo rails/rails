@@ -149,4 +149,17 @@ class ValidationsTest < ActiveRecord::TestCase
     assert_equal 1, Company.validators_on(:name).size
   end
 
+  def test_numericality_validation_with_mutation
+    Topic.class_eval do
+      attribute :wibble, ActiveRecord::Type::String.new
+      validates_numericality_of :wibble, only_integer: true
+    end
+
+    topic = Topic.new(wibble: '123-4567')
+    topic.wibble.gsub!('-', '')
+
+    assert topic.valid?
+  ensure
+    Topic.reset_column_information
+  end
 end
