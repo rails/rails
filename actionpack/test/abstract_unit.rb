@@ -21,6 +21,7 @@ PROCESS_COUNT = (ENV['N'] || 4).to_i
 
 require 'active_support/testing/autorun'
 require 'abstract_controller'
+require 'abstract_controller/railties/routes_helpers'
 require 'action_controller'
 require 'action_view'
 require 'action_view/testing/resolvers'
@@ -260,7 +261,7 @@ end
 module ActionController
   class Base
     # This stub emulates the Railtie including the URL helpers from a Rails application
-    include SharedTestRoutes.url_helpers
+    extend AbstractController::Railties::RoutesHelpers.with(SharedTestRoutes)
     include SharedTestRoutes.mounted_helpers
 
     self.view_paths = FIXTURE_LOAD_PATH
