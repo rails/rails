@@ -281,6 +281,45 @@ module ApplicationTests
       assert last_response.body =~ /csrf\-param/
     end
 
+    test "default form builder specified as a string" do
+
+      app_file 'config/initializers/form_builder.rb', <<-RUBY
+      class CustomFormBuilder < ActionView::Helpers::FormBuilder
+        def text_field(attribute, *args)
+          label(attribute) + super(attribute, *args)
+        end
+      end
+      Rails.configuration.action_view.default_form_builder = "CustomFormBuilder"
+      RUBY
+
+      app_file 'app/models/post.rb', <<-RUBY
+      class Post
+        include ActiveModel::Model
+        attr_accessor :name
+      end
+      RUBY
+
+
+      app_file 'app/controllers/posts_controller.rb', <<-RUBY
+      class PostsController < ApplicationController
+        def index
+          render inline: "<%= begin; form_for(Post.new) {|f| f.text_field(:name)}; rescue => e; e.to_s; end %>"
+        end
+      end
+      RUBY
+
+      add_to_config <<-RUBY
+        routes.prepend do
+          resources :posts
+        end
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      get "/posts"
+      assert_match(/label/, last_response.body)
+    end
+
     test "default method for update can be changed" do
       app_file 'app/models/post.rb', <<-RUBY
       class Post
