@@ -20,9 +20,9 @@ class DefaultTest < ActiveRecord::TestCase
 
   if current_adapter?(:PostgreSQLAdapter)
     def test_multiline_default_text
+      record = Default.new
       # older postgres versions represent the default with escapes ("\\012" for a newline)
-      assert( "--- []\n\n" == Default.columns_hash['multiline_default'].default ||
-               "--- []\\012\\012" == Default.columns_hash['multiline_default'].default)
+      assert("--- []\n\n" == record.multiline_default || "--- []\\012\\012" == record.multiline_default)
     end
   end
 end
@@ -51,7 +51,7 @@ class DefaultNumbersTest < ActiveRecord::TestCase
 
   def test_default_negative_integer
     record = DefaultNumber.new
-    assert_equal -5, record.negative_integer
+    assert_equal (-5), record.negative_integer
     assert_equal "-5", record.negative_integer_before_type_cast
   end
 
@@ -122,19 +122,21 @@ if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
     def test_mysql_text_not_null_defaults_non_strict
       using_strict(false) do
         with_text_blob_not_null_table do |klass|
-          assert_equal '', klass.columns_hash['non_null_blob'].default
-          assert_equal '', klass.columns_hash['non_null_text'].default
+          record = klass.new
+          assert_equal '', record.non_null_blob
+          assert_equal '', record.non_null_text
 
-          assert_nil klass.columns_hash['null_blob'].default
-          assert_nil klass.columns_hash['null_text'].default
+          assert_nil record.null_blob
+          assert_nil record.null_text
 
-          instance = klass.create!
+          record.save!
+          record.reload
 
-          assert_equal '', instance.non_null_text
-          assert_equal '', instance.non_null_blob
+          assert_equal '', record.non_null_text
+          assert_equal '', record.non_null_blob
 
-          assert_nil instance.null_text
-          assert_nil instance.null_blob
+          assert_nil record.null_text
+          assert_nil record.null_blob
         end
       end
     end
@@ -142,10 +144,11 @@ if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
     def test_mysql_text_not_null_defaults_strict
       using_strict(true) do
         with_text_blob_not_null_table do |klass|
-          assert_nil klass.columns_hash['non_null_blob'].default
-          assert_nil klass.columns_hash['non_null_text'].default
-          assert_nil klass.columns_hash['null_blob'].default
-          assert_nil klass.columns_hash['null_text'].default
+          record = klass.new
+          assert_nil record.non_null_blob
+          assert_nil record.non_null_text
+          assert_nil record.null_blob
+          assert_nil record.null_text
 
           assert_raises(ActiveRecord::StatementInvalid) { klass.create }
         end

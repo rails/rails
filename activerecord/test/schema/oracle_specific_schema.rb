@@ -32,10 +32,7 @@ create sequence test_oracle_defaults_seq minvalue 10000
       fixed_time date default TO_DATE('2004-01-01 00:00:00', 'YYYY-MM-DD HH24:MI:SS'),
       char1 varchar2(1) default 'Y',
       char2 varchar2(50) default 'a varchar field',
-      char3 clob default 'a text field',
-      positive_integer integer default 1,
-      negative_integer integer default -1,
-      decimal_number number(3,2) default 2.78
+      char3 clob default 'a text field'
   )
   SQL
   execute "create sequence defaults_seq minvalue 10000"

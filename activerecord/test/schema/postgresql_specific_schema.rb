@@ -32,10 +32,7 @@ ActiveRecord::Schema.define do
     char1 char(1) default 'Y',
     char2 character varying(50) default 'a varchar field',
     char3 text default 'a text field',
-    positive_integer integer default 1,
-    negative_integer integer default -1,
     bigint_default bigint default 0::bigint,
-    decimal_number decimal(3,2) default 2.78,
     multiline_default text DEFAULT '--- []
 
 '::text
