@@ -113,7 +113,7 @@ module ActiveRecord
         logger.warn("Scoped order and limit are ignored, it's forced to be batch order and batch size")
       end
 
-      relation = relation.reorder(batch_order).limit(batch_size)
+      relation = relation.reverse_order.reorder(batch_order).limit(batch_size)
       records = start ? relation.where(table[primary_key].gteq(start)).to_a : relation.to_a
 
       while records.any?

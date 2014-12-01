@@ -1,1 +1,2 @@
 Please check [4-2-stable](https://github.com/rails/rails/blob/4-2-stable/activerecord/CHANGELOG.md) for previous changes.
+reverse_order will be called for all batch calls as a fix for the issue when using find_in_batches and reverse_order
