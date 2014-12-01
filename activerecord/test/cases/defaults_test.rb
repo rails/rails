@@ -38,7 +38,8 @@ class DefaultTest < ActiveRecord::TestCase
     end
 
     def test_default_negative_integer
-      assert_equal "-1", Default.columns_hash['negative_integer'].default
+      assert_equal -1, Default.new.negative_integer
+      assert_equal "-1", Default.new.negative_integer_before_type_cast
     end
   end
 end
