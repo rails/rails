@@ -489,6 +489,12 @@ class FinderTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::RecordNotFound) { Topic.where(topics: { approved: true }).find(1) }
   end
 
+  def test_find_on_combined_explicit_and_hashed_table_names
+    assert Topic.where('topics.approved' => false, topics: { author_name: "David" }).find(1)
+    assert_raise(ActiveRecord::RecordNotFound) { Topic.where('topics.approved' => true, topics: { author_name: "David" }).find(1) }
+    assert_raise(ActiveRecord::RecordNotFound) { Topic.where('topics.approved' => false, topics: { author_name: "Melanie" }).find(1) }
+  end
+
   def test_find_with_hash_conditions_on_joined_table
     firms = Firm.joins(:account).where(:accounts => { :credit_limit => 50 })
     assert_equal 1, firms.size
