@@ -509,6 +509,17 @@ Please refer to the [Changelog][action-pack] for detailed changes.
     serving assets from your Rails server in production.
     ([Pull Request](https://github.com/rails/rails/pull/16466))
 
+*   When calling the `process` helpers in an integration test the path needs to have
+    a leading slash. Previously you could omit it but that was a byproduct of the
+    implementation and not an intentional feature, e.g.:
+
+    ```ruby
+    test "list all posts" do
+      get "/posts"
+      assert_response :success 
+    end
+    ```
+
 Action View
 -----------
 

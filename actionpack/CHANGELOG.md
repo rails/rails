@@ -275,7 +275,10 @@
     *Dan Langevin*
 
 *   Build full URI as string when processing path in integration tests for
-    performance reasons.
+    performance reasons. One consequence of this is that the leading slash
+    is now required in integration test `process` helpers, whereas previously
+    it could be omitted. The fact that this worked was a unintended consequence
+    of the implementation and was never an intentional feature.
 
     *Guo Xiang Tan*
 
