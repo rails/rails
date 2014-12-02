@@ -2,9 +2,6 @@ require "cases/helper"
 require 'support/ddl_helper'
 
 
-class PostgresqlNumber < ActiveRecord::Base
-end
-
 class PostgresqlTime < ActiveRecord::Base
 end
 
@@ -20,13 +17,6 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
   def setup
     @connection = ActiveRecord::Base.connection
 
-    @connection.execute("INSERT INTO postgresql_numbers (id, single, double) VALUES (1, 123.456, 123456.789)")
-    @connection.execute("INSERT INTO postgresql_numbers (id, single, double) VALUES (2, '-Infinity', 'Infinity')")
-    @connection.execute("INSERT INTO postgresql_numbers (id, single, double) VALUES (3, 123.456, 'NaN')")
-    @first_number = PostgresqlNumber.find(1)
-    @second_number = PostgresqlNumber.find(2)
-    @third_number = PostgresqlNumber.find(3)
-
     @connection.execute("INSERT INTO postgresql_times (id, time_interval, scaled_time_interval) VALUES (1, '1 year 2 days ago', '3 weeks ago')")
     @first_time = PostgresqlTime.find(1)
 
@@ -35,12 +25,7 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
   end
 
   teardown do
-    [PostgresqlNumber, PostgresqlTime, PostgresqlOid].each(&:delete_all)
-  end
-
-  def test_data_type_of_number_types
-    assert_equal :float, @first_number.column_for_attribute(:single).type
-    assert_equal :float, @first_number.column_for_attribute(:double).type
+    [PostgresqlTime, PostgresqlOid].each(&:delete_all)
   end
 
   def test_data_type_of_time_types
@@ -52,14 +37,6 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
     assert_equal :integer, @first_oid.column_for_attribute(:obj_id).type
   end
 
-  def test_number_values
-    assert_equal 123.456, @first_number.single
-    assert_equal 123456.789, @first_number.double
-    assert_equal(-::Float::INFINITY, @second_number.single)
-    assert_equal ::Float::INFINITY, @second_number.double
-    assert_same ::Float::NAN, @third_number.double
-  end
-
   def test_time_values
     assert_equal '-1 years -2 days', @first_time.time_interval
     assert_equal '-21 days', @first_time.scaled_time_interval
@@ -67,17 +44,6 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
 
   def test_oid_values
     assert_equal 1234, @first_oid.obj_id
-  end
-
-  def test_update_number
-    new_single = 789.012
-    new_double = 789012.345
-    @first_number.single = new_single
-    @first_number.double = new_double
-    assert @first_number.save
-    assert @first_number.reload
-    assert_equal new_single, @first_number.single
-    assert_equal new_double, @first_number.double
   end
 
   def test_update_time

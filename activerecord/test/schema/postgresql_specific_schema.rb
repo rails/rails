@@ -1,6 +1,6 @@
 ActiveRecord::Schema.define do
 
-  %w(postgresql_arrays postgresql_numbers postgresql_times
+  %w(postgresql_arrays postgresql_times
       postgresql_oids defaults postgresql_timestamp_with_zones
       postgresql_partitioned_table postgresql_partitioned_table_parent).each do |table_name|
     execute "DROP TABLE IF EXISTS #{quote_table_name table_name}"
@@ -48,14 +48,6 @@ _SQL
     id SERIAL PRIMARY KEY,
     commission_by_quarter INTEGER[],
     nicknames TEXT[]
-  );
-_SQL
-
-  execute <<_SQL
-  CREATE TABLE postgresql_numbers (
-    id SERIAL PRIMARY KEY,
-    single REAL,
-    double DOUBLE PRECISION
   );
 _SQL
 
