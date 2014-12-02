@@ -522,6 +522,8 @@ module ActionDispatch
           define_method(:_generate_paths_by_default) do
             supports_path
           end
+
+          private :_generate_paths_by_default
         end
       end
 
