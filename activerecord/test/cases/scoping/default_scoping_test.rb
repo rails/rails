@@ -143,6 +143,14 @@ class DefaultScopingTest < ActiveRecord::TestCase
     expected_5 = Developer.order('salary DESC').collect(&:name)
     received_5 = DeveloperOrderedBySalary.where.not("name" => ["Jamis", "David"]).unscope(where: :name).collect(&:name)
     assert_equal expected_5, received_5
+
+    expected_6 = Developer.order('salary DESC').collect(&:name)
+    received_6 = DeveloperOrderedBySalary.where(Developer.arel_table['name'].eq('David')).unscope(where: :name).collect(&:name)
+    assert_equal expected_6, received_6
+
+    expected_7 = Developer.order('salary DESC').collect(&:name)
+    received_7 = DeveloperOrderedBySalary.where(Developer.arel_table[:name].eq('David')).unscope(where: :name).collect(&:name)
+    assert_equal expected_7, received_7
   end
 
   def test_unscope_multiple_where_clauses
