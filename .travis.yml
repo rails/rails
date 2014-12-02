@@ -23,8 +23,7 @@ rvm:
   - jruby
 matrix:
   allow_failures:
-    - rvm: ruby-head
-      env: "GEM=ar:mysql"
+    - env: "GEM=ar:mysql"
     - rvm: rbx-2
     - rvm: jruby
     - env: "GEM=aj"
