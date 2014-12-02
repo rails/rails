@@ -45,19 +45,6 @@ _SQL
   execute "CREATE DOMAIN schema_1.bpchar AS bpchar"
 
   execute <<_SQL
-  CREATE TABLE geometrics (
-    id serial primary key,
-    a_point point,
-    -- a_line line, (the line type is currently not implemented in postgresql)
-    a_line_segment lseg,
-    a_box box,
-    a_path path,
-    a_polygon polygon,
-    a_circle circle
-  );
-_SQL
-
-  execute <<_SQL
   CREATE TABLE postgresql_arrays (
     id SERIAL PRIMARY KEY,
     commission_by_quarter INTEGER[],
