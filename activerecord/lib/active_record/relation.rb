@@ -677,5 +677,9 @@ module ActiveRecord
       # ignore raw_sql_ that is used by Oracle adapter as alias for limit/offset subqueries
       string.scan(/([a-zA-Z_][.\w]+).?\./).flatten.map(&:downcase).uniq - ['raw_sql_']
     end
+
+    def predicate_builder
+      @predicate_builder ||= PredicateBuilder.new(klass, table)
+    end
   end
 end
