@@ -170,6 +170,15 @@ class InflectorTest < ActiveSupport::TestCase
     assert_equal("htmlAPI", ActiveSupport::Inflector.camelize("HTMLAPI", false))
   end
 
+  def test_acronym_humanize_upcased
+    ActiveSupport::Inflector.inflections do |inflect|
+      inflect.acronym("API")
+    end
+
+    assert_equal("API controller", ActiveSupport::Inflector.humanize("API Controller"))
+    assert_equal("API controller", ActiveSupport::Inflector.camelize("api controller"))
+  end
+
   def test_underscore_acronym_sequence
     ActiveSupport::Inflector.inflections do |inflect|
       inflect.acronym("API")

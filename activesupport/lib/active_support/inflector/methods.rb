@@ -132,7 +132,7 @@ module ActiveSupport
       result.tr!('_', ' ')
 
       result.gsub!(/([a-z\d]*)/i) do |match|
-        "#{inflections.acronyms[match] || match.downcase}"
+        "#{inflections.acronyms[match.downcase] || match.downcase}"
       end
 
       if options.fetch(:capitalize, true)
