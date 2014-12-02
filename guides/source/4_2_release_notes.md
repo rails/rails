@@ -544,6 +544,17 @@ Please refer to the [Changelog][action-view] for detailed changes.
 *   Placeholder I18n follows the same convention as `label` I18n.
     ([Pull Request](https://github.com/rails/rails/pull/16438))
 
+*   When calling the `process` helpers in an integration test the path needs to
+    a leading slash. Previously you could omit it but that was a byproduct of t
+    implementation and not an intentional feature, e.g.:
+
+    ```ruby
+    test "list all posts" do
+      get "/posts"
+      assert_response :success 
+    end
+    ```
+
 
 Action Mailer
 -------------
