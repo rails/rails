@@ -14,6 +14,7 @@ end
 
 class PostgresqlUUIDTest < ActiveRecord::TestCase
   include PostgresqlUUIDHelper
+  include SchemaDumpingHelper
 
   class UUIDType < ActiveRecord::Base
     self.table_name = "uuid_data_type"
@@ -105,6 +106,11 @@ class PostgresqlUUIDTest < ActiveRecord::TestCase
       uuid = UUIDType.last
       assert_equal "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11", uuid.guid
     end
+  end
+
+  def test_schema_dump_with_shorthand
+    output = dump_table_schema "uuid_data_type"
+    assert_match %r{t.uuid "guid"}, output
   end
 end
 

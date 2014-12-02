@@ -1,8 +1,10 @@
 # encoding: utf-8
 require "cases/helper"
+require 'support/schema_dumping_helper'
 
 if ActiveRecord::Base.connection.supports_extensions?
   class PostgresqlHstoreTest < ActiveRecord::TestCase
+    include SchemaDumpingHelper
     class Hstore < ActiveRecord::Base
       self.table_name = 'hstores'
 
@@ -311,6 +313,11 @@ if ActiveRecord::Base.connection.supports_extensions?
       record = HstoreWithSerialize.first
       dupe = record.dup
       assert_equal({"one" => "two"}, dupe.tags.to_hash)
+    end
+
+    def test_schema_dump_with_shorthand
+      output = dump_table_schema("hstores")
+      assert_match %r[t.hstore "tags",\s+default: {}], output
     end
 
     private

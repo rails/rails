@@ -1,9 +1,8 @@
 ActiveRecord::Schema.define do
 
-  %w(postgresql_tsvectors postgresql_hstores postgresql_arrays postgresql_moneys postgresql_numbers postgresql_times
-      postgresql_network_addresses postgresql_uuids postgresql_ltrees postgresql_oids postgresql_xml_data_type defaults
-      geometrics postgresql_timestamp_with_zones postgresql_partitioned_table postgresql_partitioned_table_parent
-      postgresql_citext).each do |table_name|
+  %w(postgresql_arrays postgresql_numbers postgresql_times
+      postgresql_oids defaults postgresql_timestamp_with_zones
+      postgresql_partitioned_table postgresql_partitioned_table_parent).each do |table_name|
     execute "DROP TABLE IF EXISTS #{quote_table_name table_name}"
   end
 
@@ -53,48 +52,6 @@ _SQL
 _SQL
 
   execute <<_SQL
-  CREATE TABLE postgresql_uuids (
-    id SERIAL PRIMARY KEY,
-    guid uuid,
-    compact_guid uuid
-  );
-_SQL
-
-  execute <<_SQL
-  CREATE TABLE postgresql_tsvectors (
-    id SERIAL PRIMARY KEY,
-    text_vector tsvector
-  );
-_SQL
-
-  if 't' == select_value("select 'hstore'=ANY(select typname from pg_type)")
-  execute <<_SQL
-  CREATE TABLE postgresql_hstores (
-    id SERIAL PRIMARY KEY,
-    hash_store hstore default ''::hstore
-  );
-_SQL
-  end
-
-  if 't' == select_value("select 'ltree'=ANY(select typname from pg_type)")
-  execute <<_SQL
-  CREATE TABLE postgresql_ltrees (
-    id SERIAL PRIMARY KEY,
-    path ltree
-  );
-_SQL
-  end
-
-  if 't' == select_value("select 'citext'=ANY(select typname from pg_type)")
-  execute <<_SQL
-  CREATE TABLE postgresql_citext (
-    id SERIAL PRIMARY KEY,
-    text_citext citext default ''::citext
-  );
-_SQL
-  end
-
-  execute <<_SQL
   CREATE TABLE postgresql_numbers (
     id SERIAL PRIMARY KEY,
     single REAL,
@@ -107,15 +64,6 @@ _SQL
     id SERIAL PRIMARY KEY,
     time_interval INTERVAL,
     scaled_time_interval INTERVAL(6)
-  );
-_SQL
-
-  execute <<_SQL
-  CREATE TABLE postgresql_network_addresses (
-    id SERIAL PRIMARY KEY,
-    cidr_address CIDR default '192.168.1.0/24',
-    inet_address INET default '192.168.1.1',
-    mac_address MACADDR default 'ff:ff:ff:ff:ff:ff'
   );
 _SQL
 

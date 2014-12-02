@@ -1,7 +1,9 @@
 # encoding: utf-8
 require "cases/helper"
+require 'support/schema_dumping_helper'
 
 class PostgresqlArrayTest < ActiveRecord::TestCase
+  include SchemaDumpingHelper
   include InTimeZone
   OID = ActiveRecord::ConnectionAdapters::PostgreSQL::OID
 
@@ -106,6 +108,12 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
     x.reload
 
     assert_equal([1, 2], x.ratings)
+  end
+
+  def test_schema_dump_with_shorthand
+    output = dump_table_schema "pg_arrays"
+    assert_match %r[t.string\s+"tags",\s+array: true], output
+    assert_match %r[t.integer\s+"ratings",\s+array: true], output
   end
 
   def test_select_with_strings

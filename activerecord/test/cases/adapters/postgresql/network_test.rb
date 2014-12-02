@@ -1,8 +1,22 @@
 # encoding: utf-8
 require "cases/helper"
+require 'support/schema_dumping_helper'
 
 class PostgresqlNetworkTest < ActiveRecord::TestCase
-  class PostgresqlNetworkAddress < ActiveRecord::Base
+  include SchemaDumpingHelper
+  class PostgresqlNetworkAddress < ActiveRecord::Base; end
+
+  setup do
+    @connection = ActiveRecord::Base.connection
+    @connection.create_table('postgresql_network_addresses') do |t|
+      t.inet 'inet_address', default: "192.168.1.1"
+      t.cidr 'cidr_address', default: "192.168.1.0/24"
+      t.macaddr 'mac_address', default: "ff:ff:ff:ff:ff:ff"
+    end
+  end
+
+  teardown do
+    @connection.execute 'DROP TABLE IF EXISTS postgresql_network_addresses'
   end
 
   def test_cidr_column
@@ -67,5 +81,12 @@ class PostgresqlNetworkTest < ActiveRecord::TestCase
     assert_nil invalid_address.inet_address
     assert_nil invalid_address.cidr_address_before_type_cast
     assert_nil invalid_address.inet_address_before_type_cast
+  end
+
+  def test_schema_dump_with_shorthand
+    output = dump_table_schema("postgresql_network_addresses")
+    assert_match %r{t.inet\s+"inet_address",\s+default: "192.168.1.1"}, output
+    assert_match %r{t.cidr\s+"cidr_address",\s+default: "192.168.1.0/24"}, output
+    assert_match %r{t.macaddr\s+"mac_address",\s+default: "ff:ff:ff:ff:ff:ff"}, output
   end
 end

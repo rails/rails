@@ -1,7 +1,9 @@
 # encoding: utf-8
 require "cases/helper"
+require 'support/schema_dumping_helper'
 
 class PostgresqlLtreeTest < ActiveRecord::TestCase
+  include SchemaDumpingHelper
   class Ltree < ActiveRecord::Base
     self.table_name = 'ltrees'
   end
@@ -42,5 +44,10 @@ class PostgresqlLtreeTest < ActiveRecord::TestCase
     @connection.execute "insert into ltrees (path) VALUES ('1.2.3')"
     ltree = Ltree.first
     assert_equal '1.2.3', ltree.path
+  end
+
+  def test_schema_dump_with_shorthand
+    output = dump_table_schema("ltrees")
+    assert_match %r[t.ltree "path"], output
   end
 end

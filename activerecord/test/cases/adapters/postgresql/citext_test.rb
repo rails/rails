@@ -1,8 +1,10 @@
 # encoding: utf-8
 require 'cases/helper'
+require 'support/schema_dumping_helper'
 
 if ActiveRecord::Base.connection.supports_extensions?
   class PostgresqlCitextTest < ActiveRecord::TestCase
+    include SchemaDumpingHelper
     class Citext < ActiveRecord::Base
       self.table_name = 'citexts'
     end
@@ -66,6 +68,11 @@ if ActiveRecord::Base.connection.supports_extensions?
       @connection.execute "insert into citexts (cival) values('Cased Text')"
       x = Citext.where(cival: 'cased text').first
       assert_equal 'Cased Text', x.cival
+    end
+
+    def test_schema_dump_with_shorthand
+      output = dump_table_schema("citexts")
+      assert_match %r[t.citext "cival"], output
     end
   end
 end
