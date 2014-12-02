@@ -34,6 +34,7 @@ module ActiveSupport
       @serializer = options[:serializer] || Marshal
     end
 
+    # FIXME: Document this method
     def valid_message?(signed_message)
       return if signed_message.blank?
 
@@ -41,6 +42,7 @@ module ActiveSupport
       data.present? && digest.present? && ActiveSupport::SecurityUtils.secure_compare(digest, generate_digest(data))
     end
 
+    # FIXME: Document this method
     def verified(signed_message)
       if valid_message?(signed_message)
         begin
@@ -53,10 +55,12 @@ module ActiveSupport
       end
     end
 
+    # FIXME: Document this method
     def verify(signed_message)
       verified(signed_message) || raise(InvalidSignature)
     end
 
+    # FIXME: Document this method
     def generate(value)
       data = encode(@serializer.dump(value))
       "#{data}--#{generate_digest(data)}"
