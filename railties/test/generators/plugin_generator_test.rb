@@ -57,6 +57,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "test/test_helper.rb" do |content|
       assert_match(/require.+test\/dummy\/config\/environment/, content)
       assert_match(/ActiveRecord::Migrator\.migrations_paths.+test\/dummy\/db\/migrate/, content)
+      assert_match(/Minitest\.backtrace_filter = Minitest::BacktraceFilter\.new/, content)
     end
     assert_file "test/bukkits_test.rb", /assert_kind_of Module, Bukkits/
   end
