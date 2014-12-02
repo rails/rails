@@ -1,4 +1,5 @@
 require "cases/helper"
+require 'models/default'
 require 'support/schema_dumping_helper'
 
 class SchemaTest < ActiveRecord::TestCase
@@ -88,7 +89,7 @@ class SchemaTest < ActiveRecord::TestCase
   end
 
   def test_schema_names
-    assert_equal ["public", "schema_1", "test_schema", "test_schema2"], @connection.schema_names
+    assert_equal ["public", "test_schema", "test_schema2"], @connection.schema_names
   end
 
   def test_create_schema
@@ -458,5 +459,54 @@ class SchemaForeignKeyTest < ActiveRecord::TestCase
     @connection.execute "DROP TABLE IF EXISTS wagons"
     @connection.execute "DROP TABLE IF EXISTS my_schema.trains"
     @connection.execute "DROP SCHEMA IF EXISTS my_schema"
+  end
+end
+
+class DefaultsUsingMultipleSchemasAndDomainTest < ActiveSupport::TestCase
+  setup do
+    @connection = ActiveRecord::Base.connection
+    @connection.execute "DROP SCHEMA IF EXISTS schema_1 CASCADE"
+    @connection.execute "CREATE SCHEMA schema_1"
+    @connection.execute "CREATE DOMAIN schema_1.text AS text"
+    @connection.execute "CREATE DOMAIN schema_1.varchar AS varchar"
+    @connection.execute "CREATE DOMAIN schema_1.bpchar AS bpchar"
+
+    @old_search_path = @connection.schema_search_path
+    @connection.schema_search_path = "schema_1, pg_catalog"
+    @connection.create_table "defaults" do |t|
+      t.text "text_col", default: "some value"
+      t.string "string_col", default: "some value"
+    end
+    Default.reset_column_information
+  end
+
+  teardown do
+    @connection.schema_search_path = @old_search_path
+    @connection.execute "DROP SCHEMA IF EXISTS schema_1 CASCADE"
+    Default.reset_column_information
+  end
+
+  def test_text_defaults_in_new_schema_when_overriding_domain
+    assert_equal "some value", Default.new.text_col, "Default of text column was not correctly parsed"
+  end
+
+  def test_string_defaults_in_new_schema_when_overriding_domain
+    assert_equal "some value", Default.new.string_col, "Default of string column was not correctly parsed"
+  end
+
+  def test_bpchar_defaults_in_new_schema_when_overriding_domain
+    @connection.execute "ALTER TABLE defaults ADD bpchar_col bpchar DEFAULT 'some value'"
+    Default.reset_column_information
+    assert_equal "some value", Default.new.bpchar_col, "Default of bpchar column was not correctly parsed"
+  end
+
+  def test_text_defaults_after_updating_column_default
+    @connection.execute "ALTER TABLE defaults ALTER COLUMN text_col SET DEFAULT 'some text'::schema_1.text"
+    assert_equal "some text", Default.new.text_col, "Default of text column was not correctly parsed after updating default using '::text' since postgreSQL will add parens to the default in db"
+  end
+
+  def test_default_containing_quote_and_colons
+    @connection.execute "ALTER TABLE defaults ALTER COLUMN string_col SET DEFAULT 'foo''::bar'"
+    assert_equal "foo'::bar", Default.new.string_col
   end
 end
