@@ -30,11 +30,6 @@ class ReplyWithTitleObject < Reply
   def title; ReplyTitle.new; end
 end
 
-class Employee < ActiveRecord::Base
-  self.table_name = 'postgresql_arrays'
-  validates_uniqueness_of :nicknames
-end
-
 class TopicWithUniqEvent < Topic
   belongs_to :event, foreign_key: :parent_id
   validates :event, uniqueness: true
@@ -376,18 +371,6 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     assert_raises(ArgumentError) {
       Topic.validates_uniqueness_of :title, conditions: Topic.where(approved: true)
     }
-  end
-
-  if current_adapter? :PostgreSQLAdapter
-    def test_validate_uniqueness_with_array_column
-      e1 = Employee.create("nicknames" => ["john", "johnny"], "commission_by_quarter" => [1000, 1200])
-      assert e1.persisted?, "Saving e1"
-
-      e2 = Employee.create("nicknames" => ["john", "johnny"], "commission_by_quarter" => [2200])
-      assert !e2.persisted?, "e2 shouldn't be valid"
-      assert e2.errors[:nicknames].any?, "Should have errors for nicknames"
-      assert_equal ["has already been taken"], e2.errors[:nicknames], "Should have uniqueness message for nicknames"
-    end
   end
 
   def test_validate_uniqueness_on_existing_relation

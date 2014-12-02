@@ -1,7 +1,6 @@
 ActiveRecord::Schema.define do
 
-  %w(postgresql_arrays postgresql_times
-      postgresql_oids defaults postgresql_timestamp_with_zones
+  %w(postgresql_times postgresql_oids defaults postgresql_timestamp_with_zones
       postgresql_partitioned_table postgresql_partitioned_table_parent).each do |table_name|
     execute "DROP TABLE IF EXISTS #{quote_table_name table_name}"
   end
@@ -42,14 +41,6 @@ _SQL
   execute "CREATE DOMAIN schema_1.text AS text"
   execute "CREATE DOMAIN schema_1.varchar AS varchar"
   execute "CREATE DOMAIN schema_1.bpchar AS bpchar"
-
-  execute <<_SQL
-  CREATE TABLE postgresql_arrays (
-    id SERIAL PRIMARY KEY,
-    commission_by_quarter INTEGER[],
-    nicknames TEXT[]
-  );
-_SQL
 
   execute <<_SQL
   CREATE TABLE postgresql_times (
