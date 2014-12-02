@@ -317,11 +317,11 @@ class StringConversionsTest < ActiveSupport::TestCase
   end
 
   def test_partial_string_to_time
-    with_env_tz "Europe/Moscow" do
+    with_env_tz "Europe/Moscow" do # use timezone which does not observe DST.
       now = Time.now
       assert_equal Time.local(now.year, now.month, now.day, 23, 50), "23:50".to_time
       assert_equal Time.utc(now.year, now.month, now.day, 23, 50), "23:50".to_time(:utc)
-      assert_equal Time.local(now.year, now.month, now.day, 18, 50), "13:50 -0100".to_time
+      assert_equal Time.local(now.year, now.month, now.day, 17, 50), "13:50 -0100".to_time
       assert_equal Time.utc(now.year, now.month, now.day, 23, 50), "22:50 -0100".to_time(:utc)
     end
   end
