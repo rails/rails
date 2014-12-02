@@ -909,7 +909,7 @@ module ActiveRecord
         case rel
         when Arel::Nodes::Between, Arel::Nodes::In, Arel::Nodes::NotIn, Arel::Nodes::Equality, Arel::Nodes::NotEqual, Arel::Nodes::LessThanOrEqual, Arel::Nodes::GreaterThanOrEqual
           subrelation = (rel.left.kind_of?(Arel::Attributes::Attribute) ? rel.left : rel.right)
-          subrelation.name == target_value
+          subrelation.name.to_s == target_value
         end
       end
 
