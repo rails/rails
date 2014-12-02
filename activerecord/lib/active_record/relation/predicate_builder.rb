@@ -21,35 +21,8 @@ module ActiveRecord
     end
 
     def build_from_hash(attributes)
-      queries = []
-      builder = self
-
-      attributes.each do |column, value|
-        if value.is_a?(Hash)
-          if value.empty?
-            queries << '1=0'
-          else
-            arel_table = Arel::Table.new(column)
-            association = klass._reflect_on_association(column)
-            builder = self.class.new(association && association.klass, arel_table)
-
-            value.each do |k, v|
-              queries.concat builder.expand(k, v)
-            end
-          end
-        else
-          column = column.to_s
-
-          if column.include?('.')
-            table_name, column = column.split('.', 2)
-            arel_table = Arel::Table.new(table_name)
-            builder = self.class.new(klass, arel_table)
-          end
-          queries.concat builder.expand(column, value)
-        end
-      end
-
-      queries
+      attributes = convert_dot_notation_to_hash(attributes.stringify_keys)
+      expand_from_hash(attributes)
     end
 
     def expand(column, value)
@@ -130,5 +103,37 @@ module ActiveRecord
     protected
 
     attr_reader :klass, :table
+
+    def expand_from_hash(attributes)
+      return ["1=0"] if attributes.empty?
+
+      attributes.flat_map do |key, value|
+        if value.is_a?(Hash)
+          arel_table = Arel::Table.new(key)
+          association = klass._reflect_on_association(key)
+          builder = self.class.new(association && association.klass, arel_table)
+
+          builder.expand_from_hash(value)
+        else
+          expand(key, value)
+        end
+      end
+    end
+
+    private
+
+    def convert_dot_notation_to_hash(attributes)
+      dot_notation = attributes.keys.select { |s| s.include?(".") }
+
+      dot_notation.each do |key|
+        table_name, column_name = key.split(".")
+        value = attributes.delete(key)
+        attributes[table_name] ||= {}
+
+        attributes[table_name] = attributes[table_name].merge(column_name => value)
+      end
+
+      attributes
+    end
   end
 end
