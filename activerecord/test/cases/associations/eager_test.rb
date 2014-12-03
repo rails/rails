@@ -503,8 +503,8 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_with_has_many_through_an_sti_join_model_with_conditions_on_both
-    author = Author.all.merge!(:includes => :special_nonexistant_post_comments, :order => 'authors.id').first
-    assert_equal [], author.special_nonexistant_post_comments
+    author = Author.all.merge!(:includes => :special_nonexistent_post_comments, :order => 'authors.id').first
+    assert_equal [], author.special_nonexistent_post_comments
   end
 
   def test_eager_with_has_many_through_join_model_with_conditions
