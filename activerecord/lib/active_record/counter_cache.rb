@@ -123,16 +123,6 @@ module ActiveRecord
       end
     end
 
-    protected
-
-      def actually_destroyed?
-        @_actually_destroyed
-      end
-
-      def clear_destroy_state
-        @_actually_destroyed = nil
-      end
-
     private
 
       def _create_record(*)
