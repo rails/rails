@@ -768,7 +768,7 @@ module ActiveRecord
       end
 
       def add_column_sql(table_name, column_name, type, options = {})
-        td = create_table_definition table_name, options[:temporary], options[:options]
+        td = create_table_definition(table_name)
         cd = td.new_column_definition(column_name, type, options)
         schema_creation.visit_AddColumn cd
       end
@@ -892,7 +892,7 @@ module ActiveRecord
         end
       end
 
-      def create_table_definition(name, temporary, options, as = nil) # :nodoc:
+      def create_table_definition(name, temporary = false, options = nil, as = nil) # :nodoc:
         TableDefinition.new(native_database_types, name, temporary, options, as)
       end
 

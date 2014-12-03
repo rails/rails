@@ -761,7 +761,7 @@ module ActiveRecord
           $1.strip if $1
         end
 
-        def create_table_definition(name, temporary, options, as = nil) # :nodoc:
+        def create_table_definition(name, temporary = false, options = nil, as = nil) # :nodoc:
           PostgreSQL::TableDefinition.new native_database_types, name, temporary, options, as
         end
     end
