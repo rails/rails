@@ -444,7 +444,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   def test_has_many_through_uses_conditions_specified_on_the_has_many_association
     author = Author.first
     assert author.comments.present?
-    assert author.nonexistant_comments.blank?
+    assert author.nonexistent_comments.blank?
   end
 
   def test_has_many_through_uses_correct_attributes

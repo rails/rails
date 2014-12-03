@@ -102,7 +102,7 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
 
   def test_find_with_conditions_on_reflection
     assert !posts(:welcome).comments.empty?
-    assert Post.joins(:nonexistant_comments).where(:id => posts(:welcome).id).empty? # [sic!]
+    assert Post.joins(:nonexistent_comments).where(:id => posts(:welcome).id).empty? # [sic!]
   end
 
   def test_find_with_conditions_on_through_reflection

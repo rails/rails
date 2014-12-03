@@ -1158,7 +1158,7 @@ module ApplicationTests
       app_file 'config/environments/development.rb', <<-RUBY
 
       Rails.application.configure do
-        config.paths.add 'config/database', with: 'config/nonexistant.yml'
+        config.paths.add 'config/database', with: 'config/nonexistent.yml'
         config.paths['config/database'] << 'config/database.yml'
         end
       RUBY

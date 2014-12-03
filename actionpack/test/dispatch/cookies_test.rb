@@ -494,7 +494,7 @@ class CookiesTest < ActionController::TestCase
     assert_nil @response.cookies["user_id"]
   end
 
-  def test_accessing_nonexistant_signed_cookie_should_not_raise_an_invalid_signature
+  def test_accessing_nonexistent_signed_cookie_should_not_raise_an_invalid_signature
     get :set_signed_cookie
     assert_nil @controller.send(:cookies).signed[:non_existant_attribute]
   end
@@ -612,7 +612,7 @@ class CookiesTest < ActionController::TestCase
     assert_nil @response.cookies["foo"]
   end
 
-  def test_accessing_nonexistant_encrypted_cookie_should_not_raise_invalid_message
+  def test_accessing_nonexistent_encrypted_cookie_should_not_raise_invalid_message
     get :set_encrypted_cookie
     assert_nil @controller.send(:cookies).encrypted[:non_existant_attribute]
   end
