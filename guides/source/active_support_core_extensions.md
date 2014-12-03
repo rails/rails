@@ -1950,24 +1950,6 @@ as well as adding or subtracting their results from a Time object. For example:
 (4.months + 5.years).from_now
 ```
 
-While these methods provide precise calculation when used as in the examples above, care
-should be taken to note that this is not true if the result of `months', `years', etc is
-converted before use:
-
-```ruby
-# equivalent to 30.days.to_i.from_now
-1.month.to_i.from_now
-
-# equivalent to 365.25.days.to_f.from_now
-1.year.to_f.from_now
-```
-
-In such cases, Ruby's core [Date](http://ruby-doc.org/stdlib/libdoc/date/rdoc/Date.html) and
-[Time](http://ruby-doc.org/stdlib/libdoc/time/rdoc/Time.html) should be used for precision
-date and time arithmetic.
-
-NOTE: Defined in `active_support/core_ext/numeric/time.rb`.
-
 ### Formatting
 
 Enables the formatting of numbers in a variety of ways.
