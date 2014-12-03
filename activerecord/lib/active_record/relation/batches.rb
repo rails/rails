@@ -40,8 +40,8 @@ module ActiveRecord
     #
     # NOTE: It's not possible to set the order. That is automatically set to
     # ascending on the primary key ("id ASC") to make the batch ordering
-    # work. This also means that this method only works with integer-based
-    # primary keys.
+    # work. This also means that this method only works when the primary key is
+    # orderable (e.g. an integer or string).
     #
     # NOTE: You can't set the limit either, that's used to control
     # the batch sizes.
@@ -90,8 +90,8 @@ module ActiveRecord
     #
     # NOTE: It's not possible to set the order. That is automatically set to
     # ascending on the primary key ("id ASC") to make the batch ordering
-    # work. This also means that this method only works with integer-based
-    # primary keys.
+    # work. This also means that this method only works when the primary key is
+    # orderable (e.g. an integer or string).
     #
     # NOTE: You can't set the limit either, that's used to control
     # the batch sizes.
