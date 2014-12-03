@@ -496,7 +496,7 @@ class TransactionTest < ActiveRecord::TestCase
   # The behavior of killed threads having a status of "aborting" was changed
   # in Ruby 2.0, so Thread#kill on 1.9 will prematurely commit the transaction
   # and there's nothing we can do about it.
-  unless RUBY_VERSION.start_with? '1.9'
+  if !RUBY_VERSION.start_with?('1.9') && !in_memory_db?
     def test_rollback_when_thread_killed
       queue = Queue.new
       thread = Thread.new do
