@@ -936,7 +936,7 @@ module ActiveRecord
     end
 
     class RuntimeReflection < PolymorphicReflection
-      attr_accessor :next
+      attr_accessor :next, :alias_name
 
       def initialize(reflection, association)
         @reflection = reflection
@@ -959,12 +959,8 @@ module ActiveRecord
         @reflection.source_type_info
       end
 
-      def alias_name(name, alias_tracker)
-        @alias ||= begin
-          alias_name = "#{plural_name}_#{name}_join"
-          table_name = klass.table_name
-          alias_tracker.aliased_table_for(table_name, alias_name)
-        end
+      def alias_candidate(name)
+        "#{plural_name}_#{name}_join"
       end
     end
   end
