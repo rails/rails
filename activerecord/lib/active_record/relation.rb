@@ -26,6 +26,7 @@ module ActiveRecord
       @values = values
       @offsets = {}
       @loaded = false
+      @predicate_builder = PredicateBuilder.new(klass, table)
     end
 
     def initialize_copy(other)
@@ -632,6 +633,10 @@ module ActiveRecord
       "#<#{self.class.name} [#{entries.join(', ')}]>"
     end
 
+    protected
+
+    attr_reader :predicate_builder
+
     private
 
     def exec_queries
@@ -676,10 +681,6 @@ module ActiveRecord
       # always convert table names to downcase as in Oracle quoted table names are in uppercase
       # ignore raw_sql_ that is used by Oracle adapter as alias for limit/offset subqueries
       string.scan(/([a-zA-Z_][.\w]+).?\./).flatten.map(&:downcase).uniq - ['raw_sql_']
-    end
-
-    def predicate_builder
-      @predicate_builder ||= PredicateBuilder.new(klass, table)
     end
   end
 end
