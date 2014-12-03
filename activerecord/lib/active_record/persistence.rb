@@ -149,6 +149,8 @@ module ActiveRecord
     # The row is simply removed with an SQL +DELETE+ statement on the
     # record's primary key, and no callbacks are executed.
     #
+    # Note that this will also delete records marked as <tt>readonly?</tt>.
+    #
     # To enforce the object's +before_destroy+ and +after_destroy+
     # callbacks or any <tt>:dependent</tt> association
     # options, use <tt>#destroy</tt>.
