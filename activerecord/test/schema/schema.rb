@@ -577,6 +577,11 @@ ActiveRecord::Schema.define do
     t.integer :tags_with_nullify_count, default: 0
   end
 
+  create_table :images, force: true do |t|
+    t.integer :imageable_identifier
+    t.string :imageable_class
+  end
+
   create_table :price_estimates, force: true do |t|
     t.string :estimate_of_type
     t.integer :estimate_of_id
