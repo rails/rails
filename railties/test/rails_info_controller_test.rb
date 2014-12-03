@@ -1,5 +1,4 @@
 require 'abstract_unit'
-require 'mocha/setup' # FIXME: stop using mocha
 
 module ActionController
   class Base
@@ -15,26 +14,26 @@ class InfoControllerTest < ActionController::TestCase
       get '/rails/info/properties' => "rails/info#properties"
       get '/rails/info/routes'     => "rails/info#routes"
     end
-    @controller.stubs(:local_request? => true)
     @routes = Rails.application.routes
 
     Rails::InfoController.send(:include, @routes.url_helpers)
+
+    @request.env["REMOTE_ADDR"] = "127.0.0.1"
   end
 
   test "info controller does not allow remote requests" do
-    @controller.stubs(local_request?: false)
+    @request.env["REMOTE_ADDR"] = "example.org"
     get :properties
     assert_response :forbidden
   end
 
   test "info controller renders an error message when request was forbidden" do
-    @controller.stubs(local_request?: false)
+    @request.env["REMOTE_ADDR"] = "example.org"
     get :properties
     assert_select 'p'
   end
 
   test "info controller allows requests when all requests are considered local" do
-    @controller.stubs(local_request?: true)
     get :properties
     assert_response :success
   end
