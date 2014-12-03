@@ -22,6 +22,9 @@ source 'https://rubygems.org'
 # gem 'capistrano-rails', group: :development
 
 group :development, :test do
+  # Use Jasmine for Javascript unit-testing. Read more: https://github.com/jasmine/jasmine-gem
+  # gem 'jasmine'
+
 <% unless defined?(JRUBY_VERSION) -%>
   <%- if RUBY_VERSION < '2.0.0' -%>
   # Call 'debugger' anywhere in the code to stop execution and get a debugger console
