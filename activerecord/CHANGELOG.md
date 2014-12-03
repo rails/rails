@@ -1,3 +1,8 @@
+*   `add_timestamps` and `remove_timestamps` now properly reversible with
+    options.
+
+    *Noam Gagliardi-Rabinovich*
+
 *   Bring back `db:test:prepare` to synchronize the test database schema.
 
     Manual synchronization using `bin/rake db:test:prepare` is required

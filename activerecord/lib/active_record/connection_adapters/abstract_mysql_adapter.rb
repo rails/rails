@@ -779,7 +779,7 @@ module ActiveRecord
         [add_column_sql(table_name, :created_at, :datetime, options), add_column_sql(table_name, :updated_at, :datetime, options)]
       end
 
-      def remove_timestamps_sql(table_name)
+      def remove_timestamps_sql(table_name, options = {})
         [remove_column_sql(table_name, :updated_at), remove_column_sql(table_name, :created_at)]
       end
 

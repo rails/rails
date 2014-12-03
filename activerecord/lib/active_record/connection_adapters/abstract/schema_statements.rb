@@ -854,7 +854,7 @@ module ActiveRecord
       #
       #  remove_timestamps(:suppliers)
       #
-      def remove_timestamps(table_name)
+      def remove_timestamps(table_name, options = {})
         remove_column table_name, :updated_at
         remove_column table_name, :created_at
       end

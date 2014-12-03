@@ -509,8 +509,8 @@ module ActiveRecord
       # Removes the timestamp columns (+created_at+ and +updated_at+) from the table.
       #
       #  t.remove_timestamps
-      def remove_timestamps
-        @base.remove_timestamps(name)
+      def remove_timestamps(options = {})
+        @base.remove_timestamps(name, options)
       end
 
       # Renames a column.
