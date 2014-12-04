@@ -85,7 +85,6 @@ module ActiveRecord
       mattr_accessor :dump_schema_after_migration, instance_writer: false
       self.dump_schema_after_migration = true
 
-      # :nodoc:
       mattr_accessor :maintain_test_schema, instance_accessor: false
 
       def self.disable_implicit_join_references=(value)
