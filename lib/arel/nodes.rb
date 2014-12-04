@@ -76,6 +76,7 @@ module Arel
     end
 
     class Quoted < Arel::Nodes::Unary # :nodoc:
+      alias :val :value
     end
 
     def self.build_quoted other, attribute = nil
