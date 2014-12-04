@@ -240,7 +240,7 @@ db_namespace = namespace :db do
     end
 
     desc 'Load a schema.rb file into the database'
-    task :load => [:environment, :load_config] do
+    task :load => [:load_config] do
       ActiveRecord::Tasks::DatabaseTasks.load_schema_current(:ruby, ENV['SCHEMA'])
     end
 
