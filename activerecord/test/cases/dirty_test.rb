@@ -698,6 +698,13 @@ class DirtyTest < ActiveRecord::TestCase
     assert binary.changed?
   end
 
+  test "reset_column_information redefine attribute methods" do
+    model = Person.first!
+    assert model.respond_to?(:id_changed?)
+    Person.reset_column_information
+    assert model.respond_to?(:id_changed?)
+  end
+
   private
     def with_partial_writes(klass, on = true)
       old = klass.partial_writes?
