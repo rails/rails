@@ -353,14 +353,12 @@ module ActiveModel
           @attribute_method_matchers_cache ||= ThreadSafe::Cache.new(initial_capacity: 4)
         end
 
-        def attribute_method_matcher(method_name) #:nodoc:
+        def attribute_method_matchers_matching(method_name) #:nodoc:
           attribute_method_matchers_cache.compute_if_absent(method_name) do
             # Must try to match prefixes/suffixes first, or else the matcher with no prefix/suffix
             # will match every time.
             matchers = attribute_method_matchers.partition(&:plain?).reverse.flatten(1)
-            match = nil
-            matchers.detect { |method| match = method.match(method_name) }
-            match
+            matchers.map { |method| method.match(method_name) }.compact
           end
         end
 
@@ -469,8 +467,8 @@ module ActiveModel
       # Returns a struct representing the matching attribute method.
       # The struct's attributes are prefix, base and suffix.
       def match_attribute_method?(method_name)
-        match = self.class.send(:attribute_method_matcher, method_name)
-        match if match && attribute_method?(match.attr_name)
+        matches = self.class.send(:attribute_method_matchers_matching, method_name)
+        matches.detect { |match| attribute_method?(match.attr_name) }
       end
 
       def missing_attribute(attr_name, stack)

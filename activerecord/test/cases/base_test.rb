@@ -1614,4 +1614,14 @@ class BasicsTest < ActiveRecord::TestCase
   test "records without an id have unique hashes" do
     assert_not_equal Post.new.hash, Post.new.hash
   end
+
+  test "resetting column information doesn't remove attribute methods" do
+    topic = topics(:first)
+
+    assert_not topic.id_changed?
+
+    Topic.reset_column_information
+
+    assert_not topic.id_changed?
+  end
 end
