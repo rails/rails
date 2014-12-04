@@ -712,7 +712,9 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_find_by_classname
     Author.create!(:name => Mary.name)
-    assert_equal 1, Author.where(:name => Mary).size
+    assert_deprecated do
+      assert_equal 1, Author.where(:name => Mary).size
+    end
   end
 
   def test_find_by_id_with_list_of_ar
