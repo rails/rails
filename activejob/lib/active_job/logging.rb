@@ -84,14 +84,10 @@ module ActiveJob
           event.payload[:adapter].name.demodulize.remove('Adapter') + "(#{event.payload[:job].queue_name})"
         end
 
-        def global_id_or_inspected(argument)
-          argument.try(:to_global_id).try(:to_s) || argument.inspect
-        end
-
         def args_info(job)
           if job.arguments.any?
             ' with arguments: ' +
-              job.arguments.map { |arg| global_id_or_inspected(arg) }.join(', ')
+              job.arguments.map { |arg| arg.try(:to_global_id).try(:to_s) || arg.inspect }.join(', ')
           else
             ''
           end
