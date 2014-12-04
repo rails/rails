@@ -53,10 +53,13 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_symbols_table_ref
+    gc_disabled = GC.disable if RUBY_VERSION >= '2.2.0'
     Post.where("author_id" => nil)  # warm up
     x = Symbol.all_symbols.count
     Post.where("title" => {"xxxqqqq" => "bar"})
     assert_equal x, Symbol.all_symbols.count
+  ensure
+    GC.enable if gc_disabled == false
   end
 
   # find should handle strings that come from URLs
