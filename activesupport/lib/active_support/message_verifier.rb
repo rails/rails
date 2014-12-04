@@ -55,23 +55,22 @@ module ActiveSupport
     #   verifier = ActiveSupport::MessageVerifier.new 's3Krit'
     #
     #   signed_message = verifier.generate 'a private message'
-    #   verifier.verified(signed_message) #=> 'a private message'
+    #   verifier.verified(signed_message) # => 'a private message'
     #
     # Returns +nil+ if the message was not signed with the same secret.
     #
     #   other_verifier = ActiveSupport::MessageVerifier.new 'd1ff3r3nt-s3Krit'
-    #   other_verifier.verified(signed_message) #=> nil
+    #   other_verifier.verified(signed_message) # => nil
     #
     # Returns +nil+ if the message is not Base64-encoded.
     #
     #   invalid_message = "f--46a0120593880c733a53b6dad75b42ddc1c8996d"
-    #   verifier.verified(invalid_message) #=> nil
+    #   verifier.verified(invalid_message) # => nil
     #
     # Raises any error raised while decoding the signed message.
     #
     #   incompatible_message = "test--dad7b06c94abba8d46a15fafaef56c327665d5ff"
-    #   verifier.verified(incompatible_message) #=> TypeError: incompatible marshal file format
-    #
+    #   verifier.verified(incompatible_message) # => TypeError: incompatible marshal file format
     def verified(signed_message)
       if valid_message?(signed_message)
         begin
@@ -89,13 +88,13 @@ module ActiveSupport
     #   verifier = ActiveSupport::MessageVerifier.new 's3Krit'
     #   signed_message = verifier.generate 'a private message'
     #
-    #   verifier.verify(signed_message) #=> 'a private message'
+    #   verifier.verify(signed_message) # => 'a private message'
     #
     # Raises +InvalidSignature+ if the message was not signed with the same
     # secret or was not Base64-encoded.
     #
     #   other_verifier = ActiveSupport::MessageVerifier.new 'd1ff3r3nt-s3Krit'
-    #   other_verifier.verified(signed_message) #=> ActiveSupport::MessageVerifier::InvalidSignature
+    #   other_verifier.verified(signed_message) # => ActiveSupport::MessageVerifier::InvalidSignature
     def verify(signed_message)
       verified(signed_message) || raise(InvalidSignature)
     end
