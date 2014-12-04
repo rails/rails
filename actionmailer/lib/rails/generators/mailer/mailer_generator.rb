@@ -8,7 +8,9 @@ module Rails
 
       def create_mailer_file
         template "mailer.rb", File.join('app/mailers', class_path, "#{file_name}.rb")
-        template "application_mailer.rb", 'app/mailers/application_mailer.rb'
+        if self.behavior == :invoke
+          template "application_mailer.rb", 'app/mailers/application_mailer.rb'
+        end
       end
 
       hook_for :template_engine, :test_framework
