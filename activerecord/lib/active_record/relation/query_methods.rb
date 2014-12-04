@@ -906,11 +906,8 @@ module ActiveRecord
       target_value = target_value.to_s
 
       where_values.reject! do |rel|
-        case rel
-        when Arel::Nodes::Between, Arel::Nodes::In, Arel::Nodes::NotIn, Arel::Nodes::Equality, Arel::Nodes::NotEqual, Arel::Nodes::LessThanOrEqual, Arel::Nodes::GreaterThanOrEqual
-          subrelation = (rel.left.kind_of?(Arel::Attributes::Attribute) ? rel.left : rel.right)
-          subrelation.name.to_s == target_value
-        end
+        next unless rel.kind_of?(Arel::Nodes::Node)
+        rel.none? { |node| node.kind_of?(Arel::Attributes::Attribute) && node.name.to_s != target_value }
       end
 
       bind_values.reject! { |col,_| col.name == target_value }
