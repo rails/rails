@@ -85,11 +85,7 @@ module ActiveJob
         end
 
         def global_id_or_inspected(argument)
-          if argument.is_a?(GlobalID::Identification)
-            argument.to_global_id.to_s
-          else
-            argument.inspect
-          end
+          argument.try(:to_global_id).try(:to_s) || argument.inspect
         end
 
         def args_info(job)
