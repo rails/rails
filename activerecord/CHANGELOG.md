@@ -1,3 +1,8 @@
+*   Deprecate passing a class as a value in a query. Users should pass strings
+    instead.
+
+    *Melanie Gilman*
+
 *   `add_timestamps` and `remove_timestamps` now properly reversible with
     options.
 

@@ -35,7 +35,7 @@ module ActiveRecord
       # PriceEstimate.where(estimate_of: treasure)
       if klass && reflection = klass._reflect_on_association(column)
         if reflection.polymorphic? && base_class = polymorphic_base_class_from_value(value)
-          queries << self.class.build(table[reflection.foreign_type], base_class)
+          queries << self.class.build(table[reflection.foreign_type], base_class.name)
         end
 
         column = reflection.foreign_key
@@ -84,8 +84,7 @@ module ActiveRecord
     end
 
     register_handler(BasicObject, ->(attribute, value) { attribute.eq(value) })
-    # FIXME: I think we need to deprecate this behavior
-    register_handler(Class, ->(attribute, value) { attribute.eq(value.name) })
+    register_handler(Class, ->(attribute, value) { deprecate_class_handler; attribute.eq(value.name) })
     register_handler(Base, ->(attribute, value) { attribute.eq(value.id) })
     register_handler(Range, ->(attribute, value) { attribute.between(value) })
     register_handler(Relation, RelationHandler.new)
@@ -99,6 +98,13 @@ module ActiveRecord
       @handlers.detect { |klass, _| klass === object }.last
     end
     private_class_method :handler_for
+
+    def self.deprecate_class_handler
+      ActiveSupport::Deprecation.warn(<<-MSG.squish)
+        Passing a class as a value in an Active Record query is deprecated and
+        will be removed. Pass a string instead.
+      MSG
+    end
 
     protected
 
