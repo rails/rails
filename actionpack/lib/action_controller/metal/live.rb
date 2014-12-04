@@ -189,12 +189,6 @@ module ActionController
         !@aborted
       end
 
-      def await_close
-        synchronize do
-          @cv.wait_until { @closed }
-        end
-      end
-
       def on_error(&block)
         @error_callback = block
       end
