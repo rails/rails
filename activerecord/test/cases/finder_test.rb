@@ -546,30 +546,6 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal [1,2,6,7,8], Comment.where(id: [1..2, 6..8]).to_a.map(&:id).sort
   end
 
-  def test_find_on_hash_conditions_with_nested_array_of_integers_and_ranges
-    assert_deprecated do
-      assert_equal [1,2,3,5,6,7,8,9], Comment.where(id: [[1..2], 3, [5], 6..8, 9]).to_a.map(&:id).sort
-    end
-  end
-
-  def test_find_on_hash_conditions_with_array_of_integers_and_arrays
-    assert_deprecated do
-      assert_equal [1,2,3,5,6,7,8,9], Comment.where(id: [[1, 2], 3, 5, [6, [7], 8], 9]).to_a.map(&:id).sort
-    end
-  end
-
-  def test_find_on_hash_conditions_with_nested_array_of_integers_and_ranges_and_nils
-    assert_deprecated do
-      assert_equal [1,3,4,5], Topic.where(parent_id: [[2..6], nil]).to_a.map(&:id).sort
-    end
-  end
-
-  def test_find_on_hash_conditions_with_nested_array_of_integers_and_ranges_and_more_nils
-    assert_deprecated do
-      assert_equal [], Topic.where(parent_id: [[7..10, nil, [nil]], [nil]]).to_a.map(&:id).sort
-    end
-  end
-
   def test_find_on_multiple_hash_conditions
     assert Topic.where(author_name: "David", title: "The First Topic", replies_count: 1, approved: false).find(1)
     assert_raise(ActiveRecord::RecordNotFound) { Topic.where(author_name: "David", title: "The First Topic", replies_count: 1, approved: true).find(1) }
