@@ -1,12 +1,5 @@
 require 'abstract_unit'
-
-begin
-  require 'openssl'
-  OpenSSL::PKCS5
-rescue LoadError, NameError
-  $stderr.puts "Skipping KeyGenerator test: broken OpenSSL install"
-else
-
+require 'openssl'
 require 'active_support/key_generator'
 require 'active_support/message_verifier'
 
@@ -1154,6 +1147,4 @@ class CookiesTest < ActionController::TestCase
         assert_not_equal expected.split("\n"), header
       end
     end
-end
-
 end
