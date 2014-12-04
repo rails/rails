@@ -1,12 +1,5 @@
 require 'abstract_unit'
-
-begin
-  require 'openssl'
-  OpenSSL::Digest::SHA1
-rescue LoadError, NameError
-  $stderr.puts "Skipping MessageVerifier test: broken OpenSSL install"
-else
-
+require 'openssl'
 require 'active_support/time'
 require 'active_support/json'
 
@@ -41,11 +34,11 @@ class MessageVerifierTest < ActiveSupport::TestCase
     assert_equal @data, @verifier.verified(message)
     assert_equal @data, @verifier.verify(message)
   end
-  
+
   def test_verified_returns_false_on_invalid_message
     assert !@verifier.verified("purejunk")
   end
-  
+
   def test_verify_exception_on_invalid_message
     assert_raise(ActiveSupport::MessageVerifier::InvalidSignature) do
       @verifier.verify("purejunk")
@@ -89,6 +82,4 @@ class MessageVerifierTest < ActiveSupport::TestCase
     end
     assert_equal exception.message, 'Secret should not be nil.'
   end
-end
-
 end
