@@ -243,9 +243,23 @@ module ActiveSupport
       utc.hash
     end
 
+    # Adds an interval of time to the current object's time and return that
+    # value as a new TimeWithZone object.
+    #
+    #   Time.zone = 'Eastern Time (US & Canada)' # => 'Eastern Time (US & Canada)'
+    #   now = Time.zone.now # => Sun, 02 Nov 2014 01:26:28 EDT -04:00
+    #   now + 1000          # => Sun, 02 Nov 2014 01:43:08 EDT -04:00
+    #
+    # If we're adding a Duration of variable length (i.e., years, months, days),
+    # move forward from #time, otherwise move forward from #utc, for accuracy
+    # when moving across DST boundaries.
+    #
+    # For instance, a time + 24.hours will advance exactly 24 hours, while a
+    # time + 1.day will advance 23-25 hours, depending on the day.
+    #
+    #   now + 24.hours      # => Mon, 03 Nov 2014 00:26:28 EST -05:00
+    #   now + 1.day         # => Mon, 03 Nov 2014 01:26:28 EST -05:00
     def +(other)
-      # If we're adding a Duration of variable length (i.e., years, months, days), move forward from #time,
-      # otherwise move forward from #utc, for accuracy when moving across DST boundaries
       if duration_of_variable_length?(other)
         method_missing(:+, other)
       else
@@ -254,9 +268,23 @@ module ActiveSupport
       end
     end
 
+    # Returns a new TimeWithZone object that represents the difference between
+    # the current object's time and the +other+ time.
+    #
+    #   Time.zone = 'Eastern Time (US & Canada)' # => 'Eastern Time (US & Canada)'
+    #   now = Time.zone.now # => Sun, 02 Nov 2014 01:26:28 EST -05:00
+    #   now - 1000          # => Sun, 02 Nov 2014 01:09:48 EST -05:00
+    #
+    # If subtracting a Duration of variable length (i.e., years, months, days),
+    # move backward from #time, otherwise move backward from #utc, for accuracy
+    # when moving across DST boundaries.
+    #
+    # For instance, a time - 24.hours will go subtract exactly 24 hours, while a
+    # time - 1.day will subtract 23-25 hours, depending on the day.
+    #
+    #   now - 24.hours      # => Sat, 01 Nov 2014 02:26:28 EDT -04:00
+    #   now - 1.day         # => Sat, 01 Nov 2014 01:26:28 EDT -04:00
     def -(other)
-      # If we're subtracting a Duration of variable length (i.e., years, months, days), move backwards from #time,
-      # otherwise move backwards #utc, for accuracy when moving across DST boundaries
       if other.acts_like?(:time)
         to_time - other.to_time
       elsif duration_of_variable_length?(other)
