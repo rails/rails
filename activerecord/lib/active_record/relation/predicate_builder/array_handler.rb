@@ -7,16 +7,6 @@ module ActiveRecord
         values = value.map { |x| x.is_a?(Base) ? x.id : x }
         nils, values = values.partition(&:nil?)
 
-        if values.any? { |val| val.is_a?(Array) }
-          ActiveSupport::Deprecation.warn(<<-MSG.squish)
-            Passing a nested array to Active Record finder methods is
-            deprecated and will be removed. Flatten your array before using
-            it for 'IN' conditions.
-          MSG
-
-          values = values.flatten
-        end
-
         return attribute.in([]) if values.empty? && nils.empty?
 
         ranges, values = values.partition { |v| v.is_a?(Range) }
