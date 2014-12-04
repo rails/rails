@@ -152,4 +152,19 @@ class MailerGeneratorTest < Rails::Generators::TestCase
       end
     end
   end
+
+  def test_mailer_on_revoke
+    run_generator
+    run_generator ["notifier"], behavior: :revoke
+
+    assert_no_file "app/mailers/notifier.rb"
+    assert_no_file "app/views/notifier/foo.text.erb"
+    assert_no_file "app/views/notifier/bar.text.erb"
+    assert_no_file "app/views/notifier/foo.html.erb"
+    assert_no_file "app/views/notifier/bar.html.erb"
+
+    assert_file "app/mailers/application_mailer.rb"
+    assert_file "app/views/layouts/mailer.text.erb"
+    assert_file "app/views/layouts/mailer.html.erb"
+  end
 end
