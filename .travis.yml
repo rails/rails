@@ -17,30 +17,11 @@ env:
     - "GEM=ar:postgresql"
     - "GEM=aj:integration"
 rvm:
-  - 2.1
-  - ruby-head
-  - rbx-2
-  - jruby
+  - jruby-head
 matrix:
   allow_failures:
-    - env: "GEM=ar:mysql"
-    - rvm: rbx-2
-    - rvm: jruby
-    - env: "GEM=aj"
-    - env: "GEM=aj:integration"
+    - rvm: jruby-head
   fast_finish: true
-notifications:
-  email: false
-  irc:
-    on_success: change
-    on_failure: always
-    channels:
-      - "irc.freenode.org#rails-contrib"
-  campfire:
-    on_success: change
-    on_failure: always
-    rooms:
-      - secure: "YA1alef1ESHWGFNVwvmVGCkMe4cUy4j+UcNvMUESraceiAfVyRMAovlQBGs6\n9kBRm7DHYBUXYC2ABQoJbQRLDr/1B5JPf/M8+Qd7BKu8tcDC03U01SMHFLpO\naOs/HLXcDxtnnpL07tGVsm0zhMc5N8tq4/L3SHxK7Vi+TacwQzI="
 bundler_args: --path vendor/bundle --without test
 services:
   - memcached
