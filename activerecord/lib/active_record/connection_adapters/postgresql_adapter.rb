@@ -516,9 +516,12 @@ module ActiveRecord
 
         def extract_limit(sql_type) # :nodoc:
           case sql_type
-          when /^bigint/i;    8
-          when /^smallint/i;  2
-          else super
+          when /^bigint/i, /^int8/i
+            8
+          when /^smallint/i
+            2
+          else
+            super
           end
         end
 
