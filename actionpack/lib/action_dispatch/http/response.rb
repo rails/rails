@@ -148,10 +148,6 @@ module ActionDispatch # :nodoc:
       end
     end
 
-    def await_sent
-      synchronize { @cv.wait_until { @sent } }
-    end
-
     def commit!
       synchronize do
         before_committed
