@@ -10,7 +10,11 @@ class DateTime
     end
   end
 
-  # Seconds since midnight: DateTime.now.seconds_since_midnight.
+  # Returns the number of seconds since 00:00:00.
+  #
+  #   DateTime.new(2012, 8, 29,  0,  0,  0).seconds_since_midnight # => 0
+  #   DateTime.new(2012, 8, 29, 12, 34, 56).seconds_since_midnight # => 45296
+  #   DateTime.new(2012, 8, 29, 23, 59, 59).seconds_since_midnight # => 86399
   def seconds_since_midnight
     sec + (min * 60) + (hour * 3600)
   end
