@@ -40,7 +40,7 @@ part of the generation process.
 
 You can generate HTML, Kindle or both formats using the `guides:generate` task.
 
-All this process is handled via rake tasks, here's a full list of them:
+All of these processes are handled via rake tasks, here's a full list of them:
 
 #{%x[rake -T]}
 Some arguments may be passed via environment variables:
