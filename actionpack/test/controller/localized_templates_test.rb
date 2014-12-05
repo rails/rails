@@ -19,7 +19,7 @@ class LocalizedTemplatesTest < ActionController::TestCase
   def test_localized_template_is_used
     I18n.locale = :de
     get :hello_world
-    assert_equal "Gutten Tag", @response.body
+    assert_equal "Guten Tag", @response.body
   end
 
   def test_default_locale_template_is_used_when_locale_is_missing
@@ -34,7 +34,7 @@ class LocalizedTemplatesTest < ActionController::TestCase
     I18n.fallbacks[:"de-AT"] = [:de]
 
     get :hello_world
-    assert_equal "Gutten Tag", @response.body
+    assert_equal "Guten Tag", @response.body
   end
 
   def test_localized_template_has_correct_header_with_no_format_in_template_name
