@@ -85,7 +85,12 @@ module ActiveJob
         end
 
         def args_info(job)
-          job.arguments.any? ? " with arguments: #{job.arguments.map(&:inspect).join(", ")}" : ""
+          if job.arguments.any?
+            ' with arguments: ' +
+              job.arguments.map { |arg| arg.try(:to_global_id).try(:to_s) || arg.inspect }.join(', ')
+          else
+            ''
+          end
         end
 
         def scheduled_at(event)
