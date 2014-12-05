@@ -4,6 +4,7 @@ require 'active_support/core_ext/numeric/time'
 require 'jobs/hello_job'
 require 'jobs/logging_job'
 require 'jobs/nested_job'
+require 'models/person'
 
 class AdapterTest < ActiveSupport::TestCase
   include ActiveSupport::LogSubscriber::TestHelper
