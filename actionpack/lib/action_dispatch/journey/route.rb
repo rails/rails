@@ -68,10 +68,6 @@ module ActionDispatch
         @path_formatter.evaluate path_options
       end
 
-      def optional_parts
-        path.optional_names.map(&:to_sym)
-      end
-
       def required_parts
         @required_parts ||= path.required_names.map(&:to_sym)
       end
