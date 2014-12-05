@@ -2,6 +2,13 @@ require 'abstract_unit'
 
 module RenderStreaming
   class BasicController < ActionController::Base
+    class CustomStreamer
+      def each
+        yield "Hello world"
+        yield "I'm streaming!"
+      end
+    end
+
     self.view_paths = [ActionView::FixtureResolver.new(
       "render_streaming/basic/hello_world.html.erb" => "Hello world",
       "render_streaming/basic/boom.html.erb" => "<%= raise 'Ruby was here!' %>",
@@ -13,6 +20,10 @@ module RenderStreaming
 
     def hello_world
       render :stream => true
+    end
+
+    def hello_world_custom_stream
+      render :stream => CustomStreamer.new
     end
 
     def layout_exception
@@ -45,6 +56,12 @@ module RenderStreaming
     test "rendering with streaming enabled at the class level" do
       get "/render_streaming/basic/hello_world"
       assert_body "b\r\nHello world\r\nb\r\n, I'm here!\r\n0\r\n\r\n"
+      assert_streaming!
+    end
+
+    test "rendering with custom streamer" do
+      get "/render_streaming/basic/hello_world_custom_stream"
+      assert_body "b\r\nHello world\r\ne\r\nI'm streaming!\r\n0\r\n\r\n"
       assert_streaming!
     end
 
