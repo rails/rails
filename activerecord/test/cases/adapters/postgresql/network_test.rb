@@ -8,7 +8,7 @@ class PostgresqlNetworkTest < ActiveRecord::TestCase
 
   setup do
     @connection = ActiveRecord::Base.connection
-    @connection.create_table('postgresql_network_addresses') do |t|
+    @connection.create_table('postgresql_network_addresses', force: true) do |t|
       t.inet 'inet_address', default: "192.168.1.1"
       t.cidr 'cidr_address', default: "192.168.1.0/24"
       t.macaddr 'mac_address', default: "ff:ff:ff:ff:ff:ff"
