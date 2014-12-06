@@ -579,15 +579,14 @@ module ActionDispatch
 
           raise "A rack application must be specified" unless path
 
-          rails_app = rails_app? app
-          options[:as] ||= app.railtie_name if rails_app
+          options[:as] ||= app_name(app)
 
           target_as       = name_for_action(options[:as], path)
           options[:via] ||= :all
 
           match(path, options.merge(:to => app, :anchor => false, :format => false))
 
-          define_generate_prefix(app, target_as) if rails_app
+          define_generate_prefix(app, target_as) if rails_app?(app)
           self
         end
 
@@ -610,6 +609,14 @@ module ActionDispatch
         private
           def rails_app?(app)
             app.is_a?(Class) && app < Rails::Railtie
+          end
+
+          def app_name(app)
+            if rails_app?(app)
+              app.railtie_name
+            elsif class_name = app.try(:name)
+              ActiveSupport::Inflector.underscore(class_name).tr("/", "_")
+            end
           end
 
           def define_generate_prefix(app, name)
