@@ -950,7 +950,7 @@ The following changes are meant for upgrading your application to the latest
 Make the following changes to your `Gemfile`.
 
 ```ruby
-gem 'rails', '3.2.18'
+gem 'rails', '3.2.21'
 
 group :assets do
   gem 'sass-rails',   '~> 3.2.6'
