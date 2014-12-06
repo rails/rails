@@ -2,6 +2,11 @@ require 'abstract_unit'
 require 'rails/engine'
 require 'action_dispatch/routing/inspector'
 
+class MountedRackApp
+  def self.call(env)
+  end
+end
+
 module ActionDispatch
   module Routing
     class RoutesInspectorTest < ActiveSupport::TestCase
@@ -204,19 +209,36 @@ module ActionDispatch
         ], output
       end
 
-      class RackApp
-        def self.call(env)
-        end
-      end
-
       def test_rake_routes_shows_route_with_rack_app
         output = draw do
-          get 'foo/:id' => RackApp, :id => /[A-Z]\d{5}/
+          get 'foo/:id' => MountedRackApp, :id => /[A-Z]\d{5}/
         end
 
         assert_equal [
           "Prefix Verb URI Pattern        Controller#Action",
-          "       GET  /foo/:id(.:format) #{RackApp.name} {:id=>/[A-Z]\\d{5}/}"
+          "       GET  /foo/:id(.:format) MountedRackApp {:id=>/[A-Z]\\d{5}/}"
+        ], output
+      end
+
+      def test_rake_routes_shows_named_route_with_mounted_rack_app
+        output = draw do
+          mount MountedRackApp => '/foo'
+        end
+
+        assert_equal [
+          "          Prefix Verb URI Pattern Controller#Action",
+          "mounted_rack_app      /foo        MountedRackApp"
+        ], output
+      end
+
+      def test_rake_routes_shows_overridden_named_route_with_mounted_rack_app_with_name
+        output = draw do
+          mount MountedRackApp => '/foo', as: 'blog'
+        end
+
+        assert_equal [
+          "Prefix Verb URI Pattern Controller#Action",
+          "  blog      /foo        MountedRackApp"
         ], output
       end
 
@@ -229,21 +251,21 @@ module ActionDispatch
 
         output = draw do
           scope :constraint => constraint.new do
-            mount RackApp => '/foo'
+            mount MountedRackApp => '/foo'
           end
         end
 
         assert_equal [
-          "Prefix Verb URI Pattern Controller#Action",
-          "   foo      /foo        #{RackApp.name} {:constraint=>( my custom constraint )}"
+          "          Prefix Verb URI Pattern Controller#Action",
+          "mounted_rack_app      /foo        MountedRackApp {:constraint=>( my custom constraint )}"
         ], output
       end
 
       def test_rake_routes_dont_show_app_mounted_in_assets_prefix
         output = draw do
-          get '/sprockets' => RackApp
+          get '/sprockets' => MountedRackApp
         end
-        assert_no_match(/RackApp/, output.first)
+        assert_no_match(/MountedRackApp/, output.first)
         assert_no_match(/\/sprockets/, output.first)
       end
 
