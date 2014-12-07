@@ -304,10 +304,7 @@ user.destroy
 Validations
 -----------
 
-Active Record allows you to validate the state of a model before it gets written
-into the database. There are several methods that you can use to check your
-models and validate that an attribute value is not empty, is unique and not
-already in the database, follows a specific format and many more.
+Active Record allows you to validate the state of objects before they are persisted to the database.  With Active Record validations you can ensure a value is not empty, is unique, exists in the database or follows a specific format.  These are just a few of the options available, the Validations guide has a complete list of helpers.
 
 Validation is a very important issue to consider when persisting to the database, so
 the methods `save` and `update` take it into account when
