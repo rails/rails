@@ -279,7 +279,7 @@ module ActionView
       #   # => <video height="120" width="160"><source src="/videos/trailer.ogg" /><source src="/videos/trailer.flv" /></video>
       def video_tag(*sources)
         multiple_sources_tag('video', sources) do |options|
-          options[:poster] = path_to_image(options[:poster]) if options[:poster]
+          options[:poster] &&= path_to_image(options[:poster])
           options[:width], options[:height] = extract_dimensions(options.delete(:size)) if options[:size]
         end
       end
