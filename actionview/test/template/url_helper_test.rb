@@ -523,6 +523,38 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert_equal({ class: 'special' }, options)
   end
 
+  def test_telephone_to
+    assert_equal %{<a href="tel:16044401234">16044401234</a>}, telephone_to('16044401234')
+  end
+
+  def test_telephone_to_with_name
+    assert_equal %{<a href="tel:6044401234">604.440.1234</a>}, telephone_to("604.440.1234", "(604)-440-1234")
+  end
+
+  def test_telephone_to_with_ext_seperator
+    assert_equal %{<a href="tel:6044401234p123">(604)-440-1234 ext 123</a>}, telephone_to("(604)-440-1234 ext 123")
+  end
+
+  def test_telephone_to_with_x_seperator
+    assert_equal %{<a href="tel:6044401234p123">(604)-440-1234 ext 123</a>}, telephone_to("(604)-440-1234 ext 123", "(604)-440-1234 x123")
+  end
+
+  def test_telephone_to_with_p_seperator
+    assert_equal %{<a href="tel:6044401234p123">(604)-440-1234 ext 123</a>}, telephone_to("(604)-440-1234 ext 123", "(604)-440-1234p123")
+  end
+
+  def test_telephone_to_with_skype
+    assert_equal %{<a href="callto:6044401234">(604)-440-1234</a>}, telephone_to("(604)-440-1234", skype: true)
+  end
+
+  def test_telephone_to_with_pauses
+    assert_equal %{<a href="tel:6044401234p4343">(604)-440-1234 ext 4343</a>}, telephone_to("(604)-440-1234", pauses: 4343)
+  end
+
+  def test_telephone_to_with_and_prefix
+    assert_equal %{<a href="tel:6044401234p4343">(604)-440-1234 ext 4343</a>}, telephone_to("(604)-440-1234", pauses: 4343, pause_seperator: 'ext')
+  end
+
   def protect_against_forgery?
     self.request_forgery
   end
