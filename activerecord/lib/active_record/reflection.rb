@@ -39,9 +39,9 @@ module ActiveRecord
       ar.aggregate_reflections = ar.aggregate_reflections.merge(name.to_s => reflection)
     end
 
-    # \Reflection enables interrogating of Active Record classes and objects
-    # about their associations and aggregations. This information can,
-    # for example, be used in a form builder that takes an Active Record object
+    # \Reflection enables the ability to examine the associations and aggregations of
+    # Active Record classes and objects. This information, for example,
+    # can be used in a form builder that takes an Active Record object
     # and creates input fields for all of the attributes depending on their type
     # and displays the associations to other objects.
     #
