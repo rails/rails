@@ -904,7 +904,10 @@ You can also specify multiple videos to play by passing an array of videos to th
 This will produce:
 
 ```erb
-<video><source src="/videos/trailer.ogg" /><source src="/videos/trailer.flv" /></video>
+<video>
+  <source src="/videos/trailer.ogg">
+  <source src="/videos/movie.ogg">
+</video>
 ```
 
 #### Linking to Audio Files with the `audio_tag`
