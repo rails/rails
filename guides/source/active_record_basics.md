@@ -306,13 +306,9 @@ Validations
 
 Active Record allows you to validate the state of objects before they are persisted to the database.  With Active Record validations you can ensure a value is not empty, is unique, exists in the database or follows a specific format.  These are just a few of the options available, the Validations guide has a complete list of helpers.
 
-Validation is a very important issue to consider when persisting to the database, so
-the methods `save` and `update` take it into account when
-running: they return `false` when validation fails and they didn't actually
-perform any operation on the database. All of these have a bang counterpart (that
-is, `save!` and `update!`), which are stricter in that
-they raise the exception `ActiveRecord::RecordInvalid` if validation fails.
-A quick example to illustrate:
+Validation is a very important issue to consider when persisting to the database.  The methods `save`, `update` and `create` return `false` when validation rules fail.  When this happens, the methods will not persist data to the database.  Each of these methods have a bang counterpart (for example, `save!`, `update!` and `create!`) which will return the full exception `ActiveRecord::RecordInvalid` if validation fails.
+
+Here is a quick example to illustrate the difference:
 
 ```ruby
 class User < ActiveRecord::Base
