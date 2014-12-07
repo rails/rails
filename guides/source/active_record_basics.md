@@ -175,7 +175,7 @@ class Product < ActiveRecord::Base
 end
 ```
 
-If you do so, you will have to define manually the class name that is hosting
+If you do so, you will have to manually define the class name that is hosting
 the fixtures (class_name.yml) using the `set_fixture_class` method in your test
 definition:
 
