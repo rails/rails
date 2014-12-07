@@ -83,9 +83,12 @@ Book.where("array_length(ratings, 1) >= 3")
 
 * [type definition](http://www.postgresql.org/docs/9.3/static/hstore.html)
 
+NOTE: you need to enable the `hstore` extension to use hstore.
+
 ```ruby
 # db/migrate/20131009135255_create_profiles.rb
 ActiveRecord::Schema.define do
+  enable_extension 'hstore' unless extension_enabled?('hstore')
   create_table :profiles do |t|
     t.hstore 'settings'
   end
