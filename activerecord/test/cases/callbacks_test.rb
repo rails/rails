@@ -59,27 +59,6 @@ class ChildDeveloper < ParentDeveloper
 
 end
 
-class RecursiveCallbackDeveloper < ActiveRecord::Base
-  self.table_name = 'developers'
-
-  before_save :on_before_save
-  after_save :on_after_save
-
-  attr_reader :on_before_save_called, :on_after_save_called
-
-  def on_before_save
-    @on_before_save_called ||= 0
-    @on_before_save_called += 1
-    save unless @on_before_save_called > 1
-  end
-
-  def on_after_save
-    @on_after_save_called ||= 0
-    @on_after_save_called += 1
-    save unless @on_after_save_called > 1
-  end
-end
-
 class ImmutableDeveloper < ActiveRecord::Base
   self.table_name = 'developers'
 
@@ -88,35 +67,10 @@ class ImmutableDeveloper < ActiveRecord::Base
   before_save :cancel
   before_destroy :cancel
 
-  def cancelled?
-    @cancelled == true
-  end
-
   private
     def cancel
-      @cancelled = true
       false
     end
-end
-
-class ImmutableMethodDeveloper < ActiveRecord::Base
-  self.table_name = 'developers'
-
-  validates_inclusion_of :salary, :in => 50000..200000
-
-  def cancelled?
-    @cancelled == true
-  end
-
-  before_save do
-    @cancelled = true
-    false
-  end
-
-  before_destroy do
-    @cancelled = true
-    false
-  end
 end
 
 class OnCallbacksDeveloper < ActiveRecord::Base
