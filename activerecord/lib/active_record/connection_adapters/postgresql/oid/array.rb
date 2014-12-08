@@ -34,6 +34,9 @@ module ActiveRecord
           end
 
           def type_cast_from_user(value)
+            if value.is_a?(::String)
+              value = parse_pg_array(value)
+            end
             type_cast_array(value, :type_cast_from_user)
           end
 
