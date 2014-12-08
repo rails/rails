@@ -178,5 +178,13 @@ module ActiveRecord
       builder = AttributeSet::Builder.new(foo: Type::Integer.new, bar: Type::Float.new)
       builder.build_from_database(foo: '1.1')
     end
+
+    test "freezing doesn't prevent the set from materializing" do
+      builder = AttributeSet::Builder.new(foo: Type::String.new)
+      attributes = builder.build_from_database(foo: "1")
+
+      attributes.freeze
+      assert_equal({ foo: "1" }, attributes.to_hash)
+    end
   end
 end

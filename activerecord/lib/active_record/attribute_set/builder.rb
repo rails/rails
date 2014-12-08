@@ -76,7 +76,9 @@ module ActiveRecord
       unless @materialized
         values.each_key { |key| self[key] }
         types.each_key { |key| self[key] }
-        @materialized = true
+        unless frozen?
+          @materialized = true
+        end
       end
       delegate_hash
     end
