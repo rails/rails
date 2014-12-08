@@ -122,13 +122,13 @@ module ActiveRecord
         # greater than the number of threads currently waiting (that
         # is, don't jump ahead in line).  Otherwise, return nil.
         #
-        # If +timeout+ is given, block if it there is no element
+        # If +timeout+ is given, block if there is no element
         # available, waiting up to +timeout+ seconds for an element to
         # become available.
         #
         # Raises:
         # - ConnectionTimeoutError if +timeout+ is given and no element
-        # becomes available after +timeout+ seconds,
+        # becomes available within +timeout+ seconds,
         def poll(timeout = nil)
           synchronize do
             if timeout
@@ -151,7 +151,7 @@ module ActiveRecord
         end
 
         # A thread can remove an element from the queue without
-        # waiting if an only if the number of currently available
+        # waiting if and only if the number of currently available
         # connections is strictly greater than the number of waiting
         # threads.
         def can_remove_no_wait?
