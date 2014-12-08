@@ -256,11 +256,26 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
 
   def test_assigning_non_array_value
     record = PgArray.new(tags: "not-an-array")
-    assert_equal "not-an-array", record.tags
-    e = assert_raises(ActiveRecord::StatementInvalid) do
-      record.save!
-    end
-    assert_instance_of PG::InvalidTextRepresentation, e.original_exception
+    assert_equal [], record.tags
+    assert_equal "not-an-array", record.tags_before_type_cast
+    assert record.save
+    assert_equal record.tags, record.reload.tags
+  end
+
+  def test_assigning_empty_string
+    record = PgArray.new(tags: "")
+    assert_equal [], record.tags
+    assert_equal "", record.tags_before_type_cast
+    assert record.save
+    assert_equal record.tags, record.reload.tags
+  end
+
+  def test_assigning_valid_pg_array_literal
+    record = PgArray.new(tags: "{1,2,3}")
+    assert_equal ["1", "2", "3"], record.tags
+    assert_equal "{1,2,3}", record.tags_before_type_cast
+    assert record.save
+    assert_equal record.tags, record.reload.tags
   end
 
   private
