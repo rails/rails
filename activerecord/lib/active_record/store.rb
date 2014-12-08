@@ -20,8 +20,9 @@ module ActiveRecord
   # the accessor methods. Be aware that these columns use a string keyed hash and do not allow access
   # using a symbol.
   #
-  # NOTE: The default Validations with the exception of +uniqueness+ will work. For example, if you
-  # want to check for +uniqueness+ with +hstore+ you will need to use a custom validation to handle it.
+  # NOTE: The default validations with the exception of +uniqueness+ will work.
+  # For example, if you want to check for +uniqueness+ with +hstore+ you will
+  # need to use a custom validation to handle it.
   #
   # Examples:
   #
