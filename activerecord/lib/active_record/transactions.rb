@@ -249,7 +249,7 @@ module ActiveRecord
 
       def assert_valid_transaction_action(actions)
         if (actions - ACTIONS).any?
-          raise ArgumentError, ":on conditions for after_commit and after_rollback callbacks have to be one of #{ACTIONS.join(",")}"
+          raise ArgumentError, ":on conditions for after_commit and after_rollback callbacks have to be one of #{ACTIONS}"
         end
       end
     end
