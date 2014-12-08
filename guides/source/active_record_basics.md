@@ -304,9 +304,18 @@ user.destroy
 Validations
 -----------
 
-Active Record allows you to validate the state of objects before they are persisted to the database.  With Active Record validations you can ensure a value is not empty, is unique, exists in the database or follows a specific format.  These are just a few of the options available, the Validations guide has a complete list of helpers.
+Active Record allows you to validate the state of objects before they are 
+persisted to the database.  With Active Record validations, you can ensure a 
+value is not empty, is unique, exists in the database or follows a specific 
+format.  These are just a few of the options available; the Validations guide 
+has a complete list of helpers.
 
-Validation is a very important issue to consider when persisting to the database.  The methods `save`, `update` and `create` return `false` when validation rules fail.  When this happens, the methods will not persist data to the database.  Each of these methods have a bang counterpart (for example, `save!`, `update!` and `create!`) which will return the full exception `ActiveRecord::RecordInvalid` if validation fails.
+Validation is a very important issue to consider when persisting to the 
+database.  The methods `save`, `update` and `create` return `false` when 
+validation rules fail.  When this happens, the methods will not persist data 
+to the database.  Each of these methods have a bang counterpart (for example, 
+`save!`, `update!` and `create!`) which will return the full exception 
+`ActiveRecord::RecordInvalid` if validation fails.
 
 Here is a quick example to illustrate the difference:
 
