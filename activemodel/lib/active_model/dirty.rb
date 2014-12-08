@@ -13,7 +13,7 @@ module ActiveModel
   # * <tt>include ActiveModel::Dirty</tt> in your object.
   # * Call <tt>define_attribute_methods</tt> passing each method you want to
   #   track.
-  # * Call <tt>attr_name_will_change!</tt> before each change to the tracked
+  # * Call <tt>[attr_name]_will_change!</tt> before each change to the tracked
   #   attribute.
   # * Call <tt>changes_applied</tt> after the changes are persisted.
   # * Call <tt>clear_changes_information</tt> when you want to reset the changes
