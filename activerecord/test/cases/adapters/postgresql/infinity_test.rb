@@ -41,4 +41,10 @@ class PostgresqlInfinityTest < ActiveRecord::TestCase
     record.reload
     assert_equal Float::INFINITY, record.datetime
   end
+
+  test "assigning 'infinity' on a datetime column" do
+    record = PostgresqlInfinity.create!(datetime: "infinity")
+    assert_equal Float::INFINITY, record.datetime
+    assert_equal record.datetime, record.reload.datetime
+  end
 end
