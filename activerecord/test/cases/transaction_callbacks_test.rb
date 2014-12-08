@@ -371,10 +371,14 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
 
   def test_after_rollback_callbacks_should_validate_on_condition
     assert_raise(ArgumentError) { Topic.after_rollback(on: :save) }
+    e = assert_raise(ArgumentError) { Topic.after_rollback(on: 'create') }
+    assert_match(/:on conditions for after_commit and after_rollback callbacks have to be one of \[:create, :destroy, :update\]/, e.message)
   end
 
   def test_after_commit_callbacks_should_validate_on_condition
     assert_raise(ArgumentError) { Topic.after_commit(on: :save) }
+    e = assert_raise(ArgumentError) { Topic.after_commit(on: 'create') }
+    assert_match(/:on conditions for after_commit and after_rollback callbacks have to be one of \[:create, :destroy, :update\]/, e.message)
   end
 
   def test_saving_a_record_with_a_belongs_to_that_specifies_touching_the_parent_should_call_callbacks_on_the_parent_object
