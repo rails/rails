@@ -140,7 +140,7 @@ end
 This will create a `Product` model, mapped to a `products` table at the
 database. By doing this you'll also have the ability to map the columns of each
 row in that table with the attributes of the instances of your model. Suppose
-that the `products` table was created using an SQL sentence like:
+that the `products` table was created using an SQL statement like:
 
 ```sql
 CREATE TABLE products (
@@ -175,7 +175,7 @@ class Product < ActiveRecord::Base
 end
 ```
 
-If you do so, you will have to define manually the class name that is hosting
+If you do so, you will have to manually define the class name that is hosting
 the fixtures (class_name.yml) using the `set_fixture_class` method in your test
 definition:
 
@@ -304,18 +304,20 @@ user.destroy
 Validations
 -----------
 
-Active Record allows you to validate the state of a model before it gets written
-into the database. There are several methods that you can use to check your
-models and validate that an attribute value is not empty, is unique and not
-already in the database, follows a specific format and many more.
+Active Record allows you to validate the state of objects before they are 
+persisted to the database.  With Active Record validations, you can ensure a 
+value is not empty, is unique, exists in the database or follows a specific 
+format.  These are just a few of the options available; the Validations guide 
+has a complete list of helpers.
 
-Validation is a very important issue to consider when persisting to the database, so
-the methods `save` and `update` take it into account when
-running: they return `false` when validation fails and they didn't actually
-perform any operation on the database. All of these have a bang counterpart (that
-is, `save!` and `update!`), which are stricter in that
-they raise the exception `ActiveRecord::RecordInvalid` if validation fails.
-A quick example to illustrate:
+Validation is a very important issue to consider when persisting to the 
+database.  The methods `save`, `update` and `create` return `false` when 
+validation rules fail.  When this happens, the methods will not persist data 
+to the database.  Each of these methods have a bang counterpart (for example, 
+`save!`, `update!` and `create!`) which will return the full exception 
+`ActiveRecord::RecordInvalid` if validation fails.
+
+Here is a quick example to illustrate the difference:
 
 ```ruby
 class User < ActiveRecord::Base
