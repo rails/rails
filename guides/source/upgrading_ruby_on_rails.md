@@ -213,6 +213,29 @@ The [`TagAssertions` module](http://api.rubyonrails.org/classes/ActionDispatch/A
 ### Masked Authenticity Tokens
 In order to mitigate SSL attacks, `form_authenticity_token` is now masked so that it varies with each request.  Thus, tokens are validated by unmasking and then decrypting.  As a result, any strategies for verifying requests from non-rails forms that relied on a static session CSRF token have to take this into account.
 
+### ActionMailer
+Execution of instance methods defined on ActionMailer::Base subclasses, are deferred to `deliver_now` and `deliver_later`.
+So if you don't call `deliver_now`, `message`, `deliver_later` on the return value of your instance method, they will not be
+executed. Change those instance methods not returning undelivered Messages to class methods.
+
+```ruby
+class Notifier < ActionMailer::Base
+  def welcome(recipient)
+    mail(to: recipient.email_address_with_name)
+  end
+
+  # def send_welcome(recipient)
+  #   welcome.deliver
+  # end
+  # The above will just return a delegate when calling Notifier.send_welcome
+  # To actually execute we'd need to call deliver_*, so change them
+  # to class methods.
+  def self.send_welcome(recipient)
+    welcome.deliver
+  end
+end
+```
+
 Upgrading from Rails 4.0 to Rails 4.1
 -------------------------------------
 

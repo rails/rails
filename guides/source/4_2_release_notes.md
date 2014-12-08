@@ -576,7 +576,8 @@ Please refer to the [Changelog][action-mailer] for detailed changes.
     ([Commit](https://github.com/rails/rails/commit/9685080a7677abfa5d288a81c3e078368c6bb67c))
 
 *   Introduced `deliver_later` which enqueues a job on the application's queue
-    to deliver emails asynchronously.
+    to render and deliver emails asynchronously. Execution of instance methods defined 
+    on ActionMailer::Base subclasses, are deferred to execution of `deliver_` method.
     ([Pull Request](https://github.com/rails/rails/pull/16485))
 
 *   Added the `show_previews` configuration option for enabling mailer previews
