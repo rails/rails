@@ -41,7 +41,7 @@ module ActionMailer
         options.each { |k,v| send("#{k}=", v) }
 
         if options.show_previews
-          app.routes.append do
+          app.routes.prepend do
             get '/rails/mailers'         => "rails/mailers#index"
             get '/rails/mailers/*path'   => "rails/mailers#preview"
           end

@@ -40,6 +40,17 @@ module ApplicationTests
       assert_equal 404, last_response.status
     end
 
+    test "/rails/mailers is accessible with globbing route present" do
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          get '*foo', to: 'foo#index'
+        end
+      RUBY
+      app("development")
+      get "/rails/mailers"
+      assert_equal 200, last_response.status
+    end
+
     test "mailer previews are loaded from the default preview_path" do
       mailer 'notifier', <<-RUBY
         class Notifier < ActionMailer::Base
