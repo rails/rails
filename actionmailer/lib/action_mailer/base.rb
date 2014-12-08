@@ -134,25 +134,28 @@ module ActionMailer
   #
   # = Sending mail
   #
-  # Once a mailer action and template are defined, you can deliver your message or create it and save it
-  # for delivery later:
+  # Once a mailer action and template are defined, you can deliver your message or defer its creation and
+  # delivery for later:
   #
   #   Notifier.welcome(User.first).deliver_now # sends the email
   #   mail = Notifier.welcome(User.first)      # => an ActionMailer::MessageDelivery object
-  #   mail.deliver_now                    # sends the email
+  #   mail.deliver_now                    # generates and sends the email now
   #
-  # The <tt>ActionMailer::MessageDelivery</tt> class is a wrapper around a <tt>Mail::Message</tt> object. If
-  # you want direct access to the <tt>Mail::Message</tt> object you can call the <tt>message</tt> method on
-  # the <tt>ActionMailer::MessageDelivery</tt> object.
+  # The <tt>ActionMailer::MessageDelivery</tt> class is a wrapper around a delegate that will call
+  # your method to generate the mail. If you want direct access to <tt>Mail::Message</tt> you can
+  # call the <tt>message</tt> method on the <tt>ActionMailer::MessageDelivery</tt> object.
   #
   #   Notifier.welcome(User.first).message     # => a Mail::Message object
   #
-  # Action Mailer is nicely integrated with Active Job so you can send emails in the background (example: outside
-  # of the request-response cycle, so the user doesn't have to wait on it):
+  # Action Mailer is nicely integrated with Active Job so you can generate and send emails in the background
+  # (example: outside of the request-response cycle, so the user doesn't have to wait on it):
   #
   #   Notifier.welcome(User.first).deliver_later # enqueue the email sending to Active Job
   #
+  # Note that <tt>deliver_later</tt> will execute your method from the background job.
+  #
   # You never instantiate your mailer class. Rather, you just call the method you defined on the class itself.
+  # All instance method are expected to return a message object to be sent.
   #
   # = Multipart Emails
   #
