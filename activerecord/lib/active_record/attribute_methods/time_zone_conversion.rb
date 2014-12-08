@@ -34,7 +34,7 @@ module ActiveRecord
           if create_time_zone_conversion_attribute?(attr_name, columns_hash[attr_name])
             method_body, line = <<-EOV, __LINE__ + 1
               def #{attr_name}=(time)
-                time_with_zone = convert_value_to_time_zone(time)
+                time_with_zone = convert_value_to_time_zone("#{attr_name}", time)
                 previous_time = attribute_changed?("#{attr_name}") ? changed_attributes["#{attr_name}"] : read_attribute(:#{attr_name})
                 write_attribute(:#{attr_name}, time)
                 #{attr_name}_will_change! if previous_time != time_with_zone
@@ -57,11 +57,11 @@ module ActiveRecord
 
       private
 
-      def convert_value_to_time_zone(value)
+      def convert_value_to_time_zone(attr_name, value)
         if value.is_a?(Array)
-          value.map { |v| convert_value_to_time_zone(v) }
+          value.map { |v| convert_value_to_time_zone(attr_name, v) }
         elsif value.respond_to?(:in_time_zone)
-          value.in_time_zone
+          value.in_time_zone || self.class.columns_hash[attr_name].type_cast(value)
         else
           nil
         end
