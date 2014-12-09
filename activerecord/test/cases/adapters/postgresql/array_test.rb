@@ -167,17 +167,22 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
     old_awareness = ActiveRecord::Base.time_zone_aware_attributes
     ActiveRecord::Base.time_zone_aware_attributes = true
 
-    PgArray.reset_column_information
-    current_time = [Time.current]
+    old_zone  = Time.zone
+    Time.zone = ActiveSupport::TimeZone["Pacific Time (US & Canada)"]
 
-    record = PgArray.new(datetimes: current_time)
-    assert_equal current_time, record.datetimes
+    PgArray.reset_column_information
+    time_string = Time.current.to_s
+    time = Time.zone.parse(time_string)
+
+    record = PgArray.new(datetimes: [time_string])
+    assert_equal [time], record.datetimes
 
     record.save!
     record.reload
 
-    assert_equal current_time, record.datetimes
+    assert_equal [time], record.datetimes
   ensure
+    Time.zone = old_zone
     ActiveRecord::Base.time_zone_aware_attributes = old_awareness
   end
 
