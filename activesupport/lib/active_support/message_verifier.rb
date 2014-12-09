@@ -94,7 +94,7 @@ module ActiveSupport
     # secret or was not Base64-encoded.
     #
     #   other_verifier = ActiveSupport::MessageVerifier.new 'd1ff3r3nt-s3Krit'
-    #   other_verifier.verified(signed_message) # => ActiveSupport::MessageVerifier::InvalidSignature
+    #   other_verifier.verify(signed_message) # => ActiveSupport::MessageVerifier::InvalidSignature
     def verify(signed_message)
       verified(signed_message) || raise(InvalidSignature)
     end
