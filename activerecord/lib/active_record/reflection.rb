@@ -165,6 +165,10 @@ module ActiveRecord
       def constraints
         scope_chain.flatten
       end
+
+      def alias_candidate(name)
+        "#{plural_name}_#{name}"
+      end
     end
 
     # Base class for AggregateReflection and AssociationReflection. Objects of
@@ -936,7 +940,7 @@ module ActiveRecord
     end
 
     class RuntimeReflection < PolymorphicReflection
-      attr_accessor :next, :alias_name
+      attr_accessor :next
 
       def initialize(reflection, association)
         @reflection = reflection
@@ -961,6 +965,10 @@ module ActiveRecord
 
       def alias_candidate(name)
         "#{plural_name}_#{name}_join"
+      end
+
+      def alias_name
+        Arel::Table.new(table_name)
       end
     end
   end

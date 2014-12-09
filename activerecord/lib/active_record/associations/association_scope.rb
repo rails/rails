@@ -114,10 +114,12 @@ module ActiveRecord
       end
 
       class ReflectionProxy < SimpleDelegator
-        attr_accessor :next, :alias_name
+        attr_accessor :next
+        attr_reader :alias_name
 
-        def alias_candidate(name)
-          "#{plural_name}_#{name}"
+        def initialize(reflection, alias_name)
+          super(reflection)
+          @alias_name = alias_name
         end
       end
 
@@ -125,14 +127,10 @@ module ActiveRecord
         name = refl.name
         runtime_reflection = ActiveRecord::Reflection::RuntimeReflection.new(refl, association)
         alias_name = tracker.aliased_table_for(runtime_reflection.table_name, runtime_reflection.alias_candidate(name))
-        runtime_reflection.alias_name = alias_name
         prev = runtime_reflection
         refl.chain.drop(1).each { |reflection|
-          proxy = ReflectionProxy.new(reflection)
-
-          alias_name = tracker.aliased_table_for(proxy.table_name, proxy.alias_candidate(name))
-          proxy.alias_name = alias_name
-
+          alias_name = tracker.aliased_table_for(reflection.table_name, reflection.alias_candidate(name))
+          proxy = ReflectionProxy.new(reflection, alias_name)
           prev.next = proxy
           prev = proxy
         }
