@@ -487,6 +487,8 @@ constraints to acceptable values:
 * `:even` - Specifies the value must be an even number if set to true. The
   default error message for this option is _"must be even"_.
 
+NOTE: By default, `numericality` doesn't allow `nil` values. You can use `allow_nil: true` option to permit it.
+
 The default error message is _"is not a number"_.
 
 ### `presence`
