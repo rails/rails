@@ -15,6 +15,12 @@ source 'https://rubygems.org'
 # Use ActiveModel has_secure_password
 # gem 'bcrypt', '~> 3.1.7'
 
+# Use Passenger as the app server
+# Note: instead of running 'bundle exec rails s',
+# run 'bundle exec passenger start'
+#
+# gem 'passenger'
+
 # Use Unicorn as the app server
 # gem 'unicorn'
 
