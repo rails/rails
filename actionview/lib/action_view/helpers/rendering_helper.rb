@@ -32,7 +32,7 @@ module ActionView
             view_renderer.render(self, options)
           end
         else
-          view_renderer.render_partial(self, :partial => options, :locals => locals)
+          view_renderer.render_partial(self, :partial => options, :locals => locals, &block)
         end
       end
 
