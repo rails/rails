@@ -37,7 +37,7 @@ module ActiveRecord
         chain_head, chain_tail = get_chain(reflection, association, alias_tracker)
 
         scope.extending! Array(reflection.options[:extend])
-        add_constraints(scope, owner, klass, reflection, alias_tracker, chain_head, chain_tail)
+        add_constraints(scope, owner, klass, reflection, connection, chain_head, chain_tail)
       end
 
       def join_type
@@ -139,10 +139,10 @@ module ActiveRecord
         [runtime_reflection, prev]
       end
 
-      def add_constraints(scope, owner, assoc_klass, refl, tracker, chain_head, chain_tail)
+      def add_constraints(scope, owner, assoc_klass, refl, connection, chain_head, chain_tail)
         owner_reflection = chain_tail
         table = owner_reflection.alias_name
-        scope = last_chain_scope(scope, table, owner_reflection, owner, tracker, assoc_klass)
+        scope = last_chain_scope(scope, table, owner_reflection, owner, connection, assoc_klass)
 
         reflection = chain_head
         loop do
@@ -152,7 +152,7 @@ module ActiveRecord
           unless reflection == chain_tail
             next_reflection = reflection.next
             foreign_table = next_reflection.alias_name
-            scope = next_chain_scope(scope, table, reflection, tracker, assoc_klass, foreign_table, next_reflection)
+            scope = next_chain_scope(scope, table, reflection, connection, assoc_klass, foreign_table, next_reflection)
           end
 
           # Exclude the scope of the association itself, because that

@@ -5,7 +5,7 @@ module ActiveRecord
     # Keeps track of table aliases for ActiveRecord::Associations::ClassMethods::JoinDependency and
     # ActiveRecord::Associations::ThroughAssociationScope
     class AliasTracker # :nodoc:
-      attr_reader :aliases, :connection
+      attr_reader :aliases
 
       def self.empty(connection)
         new connection, Hash.new(0)
@@ -63,7 +63,7 @@ module ActiveRecord
           Arel::Table.new(table_name, table_options)
         else
           # Otherwise, we need to use an alias
-          aliased_name = connection.table_alias_for(aliased_name)
+          aliased_name = @connection.table_alias_for(aliased_name)
 
           # Update the count
           aliases[aliased_name] += 1
@@ -80,7 +80,7 @@ module ActiveRecord
       private
 
         def truncate(name)
-          name.slice(0, connection.table_alias_length - 2)
+          name.slice(0, @connection.table_alias_length - 2)
         end
     end
   end
