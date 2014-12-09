@@ -26,6 +26,20 @@ class MysqlConnectionTest < ActiveRecord::TestCase
     end
   end
 
+  def test_cannot_connect_via_domain_socket
+    assert_raise ActiveRecord::CannotConnect do
+      configuration = {socket: "/tmp/walrus/narwhal/unicorn"}
+      ActiveRecord::Base.mysql2_connection(configuration)
+    end
+  end
+
+  def test_cannot_connect_via_tcp
+    assert_raise ActiveRecord::CannotConnect do
+      configuration = {host: "127.0.0.1", port: 54444}
+      ActiveRecord::Base.mysql2_connection(configuration)
+    end
+  end
+
   def test_truncate
     rows = ActiveRecord::Base.connection.exec_query("select count(*) from comments")
     count = rows.first.values.first

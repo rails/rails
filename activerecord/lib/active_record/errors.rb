@@ -40,7 +40,7 @@ module ActiveRecord
   class AdapterNotFound < ActiveRecordError
   end
 
-  # Raised when connection to the database could not been established (for
+  # Raised when connection to the database has not been established (for
   # example when +connection=+ is given a nil object).
   class ConnectionNotEstablished < ActiveRecordError
   end
@@ -87,6 +87,10 @@ module ActiveRecord
       super(message)
       @original_exception = original_exception
     end
+  end
+
+  # Raised when a connection to the database cannot be estabalished.
+  class CannotConnect < StatementInvalid
   end
 
   # Defunct wrapper class kept for compatibility.
