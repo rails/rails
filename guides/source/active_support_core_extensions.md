@@ -1811,15 +1811,19 @@ Specifically performs these transformations:
   * Downcases all words except acronyms.
   * Capitalizes the first word.
 
+The removal of the "_id" suffix can be can be turned off by setting the
++:remove_suffix+ option to false (default is true).
+
 The capitalization of the first word can be turned off by setting the
 +:capitalize+ option to false (default is true).
 
 ```ruby
-"name".humanize                         # => "Name"
-"author_id".humanize                    # => "Author"
-"author_id".humanize(capitalize: false) # => "author"
-"comments_count".humanize               # => "Comments count"
-"_id".humanize                          # => "Id"
+"name".humanize                            # => "Name"
+"author_id".humanize                       # => "Author"
+"author_id".humanize(remove_suffix: false) # => "Author id"
+"author_id".humanize(capitalize: false)    # => "author"
+"comments_count".humanize                  # => "Comments count"
+"_id".humanize                             # => "Id"
 ```
 
 If "SSL" was defined to be an acronym:

@@ -110,13 +110,17 @@ module ActiveSupport
     #   * Downcases all words except acronyms.
     #   * Capitalizes the first word.
     #
+    # The removal of the "_id" suffix can be can be turned off by setting the
+    # +:remove_suffix+ option to false (default is true).
+    #
     # The capitalization of the first word can be turned off by setting the
     # +:capitalize+ option to false (default is true).
     #
-    #   humanize('employee_salary')              # => "Employee salary"
-    #   humanize('author_id')                    # => "Author"
-    #   humanize('author_id', capitalize: false) # => "author"
-    #   humanize('_id')                          # => "Id"
+    #   humanize('employee_salary')                 # => "Employee salary"
+    #   humanize('author_id')                       # => "Author"
+    #   humanize('author_id', remove_suffix: false) # => "Author id"
+    #   humanize('author_id', capitalize: false)    # => "author"
+    #   humanize('_id')                             # => "Id"
     #
     # If "SSL" was defined to be an acronym:
     #
@@ -128,7 +132,11 @@ module ActiveSupport
       inflections.humans.each { |(rule, replacement)| break if result.sub!(rule, replacement) }
 
       result.sub!(/\A_+/, '')
-      result.sub!(/_id\z/, '')
+
+      if options.fetch(:remove_suffix, true)
+        result.sub!(/_id\z/, '')
+      end
+
       result.tr!('_', ' ')
 
       result.gsub!(/([a-z\d]*)/i) do |match|

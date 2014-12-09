@@ -216,6 +216,14 @@ module InflectorTestCases
     '_external_id'    => 'External'
   }
 
+  UnderscoreToHumanWithoutRemoveSuffix = {
+    'employee_salary' => 'Employee salary',
+    'employee_id'     => 'Employee id',
+    'underground'     => 'underground',
+    '_id'             => 'Id',
+    '_external_id'    => 'External id'
+  }
+
   UnderscoreToHumanWithoutCapitalize = {
     "employee_salary" => "employee salary",
     "employee_id"     => "employee",

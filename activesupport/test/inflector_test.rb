@@ -293,6 +293,12 @@ class InflectorTest < ActiveSupport::TestCase
     end
   end
 
+  def test_humanize_without_remove_suffix
+    UnderscoreToHumanWithoutRemoveSuffix.each do |underscore, human|
+      assert_equal(human, ActiveSupport::Inflector.humanize(underscore, remove_suffix: false))
+    end
+  end
+
   def test_humanize_without_capitalize
     UnderscoreToHumanWithoutCapitalize.each do |underscore, human|
       assert_equal(human, ActiveSupport::Inflector.humanize(underscore, capitalize: false))

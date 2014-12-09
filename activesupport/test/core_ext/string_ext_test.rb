@@ -162,6 +162,12 @@ class StringInflectionsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_humanize_without_remove_suffix
+    UnderscoreToHumanWithoutRemoveSuffix.each do |underscore, human|
+      assert_equal(human, underscore.humanize(remove_suffix: false))
+    end
+  end
+
   def test_humanize_without_capitalize
     UnderscoreToHumanWithoutCapitalize.each do |underscore, human|
       assert_equal(human, underscore.humanize(capitalize: false))
