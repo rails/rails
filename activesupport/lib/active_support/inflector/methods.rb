@@ -1,6 +1,7 @@
 # encoding: utf-8
 
 require 'active_support/inflections'
+require 'active_support/core_ext/string/multibyte'
 
 module ActiveSupport
   # The Inflector transforms words from singular to plural, class names to table
@@ -68,11 +69,11 @@ module ActiveSupport
     def camelize(term, uppercase_first_letter = true)
       string = term.to_s
       if uppercase_first_letter
-        string = string.sub(/^[a-z\d]*/) { inflections.acronyms[$&] || $&.capitalize }
+        string = string.sub(/^[\p{Ll}\d]*/) { inflections.acronyms[$&] || $&.mb_chars.capitalize }
       else
-        string = string.sub(/^(?:#{inflections.acronym_regex}(?=\b|[A-Z_])|\w)/) { $&.downcase }
+        string = string.sub(/^(?:#{inflections.acronym_regex}(?=\b|[\p{Lu}_])|\w)/) { $&.mb_chars.downcase }
       end
-      string.gsub!(/(?:_|(\/))([a-z\d]*)/i) { "#{$1}#{inflections.acronyms[$2] || $2.capitalize}" }
+      string.gsub!(/(?:_|(\/))([\p{Ll}\d]*)/i) { "#{$1}#{inflections.acronyms[$2] || $2.mb_chars.capitalize}" }
       string.gsub!(/\//, '::')
       string
     end
@@ -89,14 +90,13 @@ module ActiveSupport
     #
     #   'SSLError'.underscore.camelize # => "SslError"
     def underscore(camel_cased_word)
-      return camel_cased_word unless camel_cased_word =~ /[A-Z-]|::/
+      return camel_cased_word unless camel_cased_word =~ /[\p{Lu}-]|::/
       word = camel_cased_word.to_s.gsub(/::/, '/')
-      word.gsub!(/(?:(?<=([A-Za-z\d]))|\b)(#{inflections.acronym_regex})(?=\b|[^a-z])/) { "#{$1 && '_'}#{$2.downcase}" }
-      word.gsub!(/([A-Z\d]+)([A-Z][a-z])/,'\1_\2')
-      word.gsub!(/([a-z\d])([A-Z])/,'\1_\2')
+      word.gsub!(/(?:(?<=([\p{L}\d]))|\b)(#{inflections.acronym_regex})(?=\b|[^\p{Ll}])/) { "#{$1 && '_'}#{$2.mb_chars.downcase}" }
+      word.gsub!(/([\p{Lu}\d]+)([\p{Lu}][\p{Ll}])/,'\1_\2')
+      word.gsub!(/([\p{Ll}\d])([\p{Lu}])/,'\1_\2')
       word.tr!("-", "_")
-      word.downcase!
-      word
+      word.mb_chars.downcase.to_s
     end
 
     # Tweaks an attribute name for display to end users.

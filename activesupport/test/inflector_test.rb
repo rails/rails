@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 require 'abstract_unit'
 require 'active_support/inflector'
 
@@ -96,6 +98,10 @@ class InflectorTest < ActiveSupport::TestCase
 
   def test_camelize_with_underscores
     assert_equal("CamelCase", ActiveSupport::Inflector.camelize('Camel_Case'))
+  end
+
+  def test_camelize_with_mb_chars
+    assert_equal("СтудентПервокурсник", ActiveSupport::Inflector.camelize('студент_первокурсник'))
   end
 
   def test_acronyms
@@ -199,6 +205,10 @@ class InflectorTest < ActiveSupport::TestCase
     CamelWithModuleToUnderscoreWithSlash.each do |camel, underscore|
       assert_equal(underscore, ActiveSupport::Inflector.underscore(camel))
     end
+  end
+
+  def test_underscore_with_mb_chars
+    assert_equal("студент_первокурсник", ActiveSupport::Inflector.underscore('СтудентПервокурсник'))
   end
 
   def test_demodulize
