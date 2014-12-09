@@ -928,6 +928,11 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal(expected, search_field("contact", "notes_query"))
   end
 
+  def test_search_field_with_onsearch_value
+    expected = %{<input onsearch="true" type="search" name="contact[notes_query]" id="contact_notes_query" incremental="true" />}
+    assert_dom_equal(expected, search_field("contact", "notes_query", onsearch: true))
+  end
+
   def test_telephone_field
     expected = %{<input id="user_cell" name="user[cell]" type="tel" />}
     assert_dom_equal(expected, telephone_field("user", "cell"))
