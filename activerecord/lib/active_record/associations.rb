@@ -1176,6 +1176,12 @@ module ActiveRecord
       #   Specify the foreign key used for the association. By default this is guessed to be the name
       #   of this class in lower-case and "_id" suffixed. So a Person class that makes a +has_many+
       #   association will use "person_id" as the default <tt>:foreign_key</tt>.
+      # [:foreign_type]
+      #   Specify the column used to store the associated object's type, if this is a polymorphic
+      #   association. By default this is guessed to be the name of the polymorphic association
+      #   specified on "as" option with a "_type" suffix. So a class that defines a
+      #   <tt>has_many :tags, as: :taggable</tt> association will use "taggable_type" as the
+      #   default <tt>:foreign_type</tt>.
       # [:primary_key]
       #   Specify the name of the column to use as the primary key for the association. By default this is +id+.
       # [:dependent]
@@ -1323,6 +1329,12 @@ module ActiveRecord
       #   Specify the foreign key used for the association. By default this is guessed to be the name
       #   of this class in lower-case and "_id" suffixed. So a Person class that makes a +has_one+ association
       #   will use "person_id" as the default <tt>:foreign_key</tt>.
+      # [:foreign_type]
+      #   Specify the column used to store the associated object's type, if this is a polymorphic
+      #   association. By default this is guessed to be the name of the polymorphic association
+      #   specified on "as" option with a "_type" suffix. So a class that defines a
+      #   <tt>has_one :tag, as: :taggable</tt> association will use "taggable_type" as the
+      #   default <tt>:foreign_type</tt>.
       # [:primary_key]
       #   Specify the method that returns the primary key used for the association. By default this is +id+.
       # [:as]
