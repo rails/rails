@@ -277,7 +277,7 @@ module ActiveRecord
       def initialize(name, scope, options, active_record)
         super
         @automatic_inverse_of = nil
-        @type         = options[:as] && "#{options[:as]}_type"
+        @type         = options[:as] && (options[:foreign_type] || "#{options[:as]}_type")
         @foreign_type = options[:foreign_type] || "#{name}_type"
         @constructable = calculate_constructable(macro, options)
         @association_scope_cache = {}

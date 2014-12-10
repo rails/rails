@@ -128,6 +128,9 @@ class Post < ActiveRecord::Base
   has_many :taggings_using_author_id, :primary_key => :author_id, :as => :taggable, :class_name => 'Tagging'
   has_many :tags_using_author_id, :through => :taggings_using_author_id, :source => :tag
 
+  has_many :images, :as => :imageable, :foreign_key => :imageable_identifier, :foreign_type => :imageable_class
+  has_one :main_image, :as => :imageable, :foreign_key => :imageable_identifier, :foreign_type => :imageable_class, :class_name => 'Image'
+
   has_many :standard_categorizations, :class_name => 'Categorization', :foreign_key => :post_id
   has_many :author_using_custom_pk,  :through => :standard_categorizations
   has_many :authors_using_custom_pk, :through => :standard_categorizations
