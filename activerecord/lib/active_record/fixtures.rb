@@ -808,7 +808,7 @@ module ActiveRecord
       def try_to_load_dependency(file_name)
         require_dependency file_name
       rescue LoadError => e
-        # Let's hope the developer has included it himself
+        # Let's hope the developer has included it themselves
 
         # Let's warn in case this is a subdependency, otherwise
         # subdependency error messages are totally cryptic
