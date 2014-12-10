@@ -1,3 +1,9 @@
+*   Add `foreign_type` option to `has_one` and `has_many` association macros.
+
+    This option enables to define the column name of associated object's type for polymorphic associations.
+
+    *Ulisses Almeida, Kassio Borges*
+
 *   Remove deprecated behavior allowing nested arrays to be passed as query
     values.
 

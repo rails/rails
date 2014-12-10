@@ -7,6 +7,7 @@ require 'models/contract'
 require 'models/topic'
 require 'models/reply'
 require 'models/category'
+require 'models/image'
 require 'models/post'
 require 'models/author'
 require 'models/essay'
@@ -1781,6 +1782,15 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     post = SubStiPost.create! :title => "fooo", :body => "baa"
     tagging = Tagging.create! :taggable => post
     assert_equal [tagging], post.taggings
+  end
+
+  def test_with_polymorphic_has_many_with_custom_columns_name
+    post = Post.create! :title => 'foo', :body => 'bar'
+    image = Image.create!
+
+    post.images << image
+
+    assert_equal [image], post.images
   end
 
   def test_build_with_polymorphic_has_many_does_not_allow_to_override_type_and_id
