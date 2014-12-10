@@ -163,9 +163,9 @@ module ActiveRecord
       end
 
       ENUM_CONFLICT_MESSAGE = \
-        "You tried to define an enum named \"%{enum}\" on the model \"%{klass}\", but " \
-        "this will generate a %{type} method \"%{method}\", which is already defined " \
-        "by %{source}."
+        "You tried to define an enum named \"%{enum}\" with a value named \"%{method}\" on the model \"%{klass}\". " \
+        "Enum cannot generate a %{type} method for the value \"%{method}\" because it will conflict " \
+        "with reserved keyword \"%{method}\" that was defined by %{source}. Please choose a different name for enum value \"%{method}\"."
 
       def detect_enum_conflict!(enum_name, method_name, klass_method = false)
         if klass_method && dangerous_class_method?(method_name)
