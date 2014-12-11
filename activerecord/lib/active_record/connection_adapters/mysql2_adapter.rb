@@ -74,14 +74,6 @@ module ActiveRecord
         @connection.escape(string)
       end
 
-      def quoted_date(value)
-        if value.acts_like?(:time) && value.respond_to?(:usec)
-          "#{super}.#{sprintf("%06d", value.usec)}"
-        else
-          super
-        end
-      end
-
       #--
       # CONNECTION MANAGEMENT ====================================
       #++
