@@ -1,3 +1,7 @@
+*   Fix undesirable RangeError by Type::Integer. Add Type::UnsignedInteger.
+
+    *Ryuta Kamizono*
+
 *   Add `foreign_type` option to `has_one` and `has_many` association macros.
 
     This option enables to define the column name of associated object's type for polymorphic associations.
