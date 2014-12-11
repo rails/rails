@@ -231,7 +231,9 @@ images, JavaScript files or stylesheets.
 scope of the application or those libraries which are shared across applications.
 
 * `vendor/assets` is for assets that are owned by outside entities, such as
-code for JavaScript plugins and CSS frameworks.
+code for JavaScript plugins and CSS frameworks. Keep in mind that third party
+code with references to other files also processed by the asset Pipeline (images,
+stylesheets, etc.), will need to be rewritten to use helpers like `asset_path`.
 
 WARNING: If you are upgrading from Rails 3, please take into account that assets
 under `lib/assets` or `vendor/assets` are available for inclusion via the
