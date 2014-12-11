@@ -1,3 +1,10 @@
+*   Improve a dump of the primary key support. If it is not a default primary key,
+    correctly dump the type and options.
+
+    Fixes #14169, #16599.
+
+    *Ryuta Kamizono*
+
 *   Provide `:touch` option to `save()` to accommodate saving without updating
     timestamps.
 
