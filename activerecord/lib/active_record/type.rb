@@ -17,6 +17,7 @@ require 'active_record/type/serialized'
 require 'active_record/type/string'
 require 'active_record/type/text'
 require 'active_record/type/time'
+require 'active_record/type/unsigned_integer'
 
 require 'active_record/type/type_map'
 require 'active_record/type/hash_lookup_type_map'
