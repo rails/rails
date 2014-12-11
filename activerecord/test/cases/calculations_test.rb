@@ -618,6 +618,13 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal part.id, ShipPart.joins(:trinkets).sum(:id)
   end
 
+  def test_pluck_joined_with_polymorphic_relation
+    part = ShipPart.create!(name: "has trinket")
+    part.trinkets.create!
+
+    assert_equal [part.id], ShipPart.joins(:trinkets).pluck(:id)
+  end
+
   def test_grouped_calculation_with_polymorphic_relation
     part = ShipPart.create!(name: "has trinket")
     part.trinkets.create!
