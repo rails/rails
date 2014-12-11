@@ -256,16 +256,6 @@ module ActiveRecord
         %Q("#{name.to_s.gsub('"', '""')}")
       end
 
-      # Quote date/time values for use in SQL input. Includes microseconds
-      # if the value is a Time responding to usec.
-      def quoted_date(value) #:nodoc:
-        if value.respond_to?(:usec)
-          "#{super}.#{sprintf("%06d", value.usec)}"
-        else
-          super
-        end
-      end
-
       #--
       # DATABASE STATEMENTS ======================================
       #++

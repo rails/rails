@@ -263,6 +263,16 @@ module ActiveRecord
 
       # QUOTING ==================================================
 
+      # Quote date/time values for use in SQL input. Includes microseconds
+      # if the value is a Time responding to usec.
+      def quoted_date(value) #:nodoc:
+        if value.acts_like?(:time) && value.respond_to?(:usec)
+          "#{super}.#{sprintf("%06d", value.usec)}"
+        else
+          super
+        end
+      end
+
       # Returns a bind substitution value given a bind +column+
       # NOTE: The column param is currently being used by the sqlserver-adapter
       def substitute_at(column, _unused = 0)

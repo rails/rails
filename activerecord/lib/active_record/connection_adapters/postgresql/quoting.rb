@@ -43,16 +43,12 @@ module ActiveRecord
         # Quote date/time values for use in SQL input. Includes microseconds
         # if the value is a Time responding to usec.
         def quoted_date(value) #:nodoc:
-          result = super
-          if value.acts_like?(:time) && value.respond_to?(:usec)
-            result = "#{result}.#{sprintf("%06d", value.usec)}"
-          end
-
           if value.year <= 0
             bce_year = format("%04d", -value.year + 1)
-            result = result.sub(/^-?\d+/, bce_year) + " BC"
+            super.sub(/^-?\d+/, bce_year) + " BC"
+          else
+            super
           end
-          result
         end
 
         # Does not quote function default values for UUID columns
