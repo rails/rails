@@ -961,7 +961,7 @@ module ActiveRecord
       #   #      #<Pet id: 3, name: "Choo-Choo", person_id: 1>
       #   #    ]
       def <<(*records)
-        proxy_association.concat(records) && self
+        concat(records) && self
       end
       alias_method :push, :<<
       alias_method :append, :<<
