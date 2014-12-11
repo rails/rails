@@ -193,18 +193,18 @@ class String
   # Like +titleize+, this is meant for creating pretty output.
   #
   # The removal of the "_id" suffix can be can be turned off by setting the
-  # optional parameter +remove_suffix+ to false.
-  # By default, this parameter is true.
+  # optional parameter +suffix+ to true.
+  # By default, this parameter is false.
   #
   # The capitalization of the first word can be turned off by setting the
   # optional parameter +capitalize+ to false.
   # By default, this parameter is true.
   #
-  #   'employee_salary'.humanize                 # => "Employee salary"
-  #   'author_id'.humanize                       # => "Author"
-  #   'author_id'.humanize(remove_suffix: false) # => "Author id"
-  #   'author_id'.humanize(capitalize: false)    # => "author"
-  #   '_id'.humanize                             # => "Id"
+  #   'employee_salary'.humanize              # => "Employee salary"
+  #   'author_id'.humanize                    # => "Author"
+  #   'author_id'.humanize(suffix: true)      # => "Author id"
+  #   'author_id'.humanize(capitalize: false) # => "author"
+  #   '_id'.humanize                          # => "Id"
   def humanize(options = {})
     ActiveSupport::Inflector.humanize(self, options)
   end

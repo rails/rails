@@ -111,16 +111,16 @@ module ActiveSupport
     #   * Capitalizes the first word.
     #
     # The removal of the "_id" suffix can be can be turned off by setting the
-    # +:remove_suffix+ option to false (default is true).
+    # +:suffix+ option to true (default is false).
     #
     # The capitalization of the first word can be turned off by setting the
     # +:capitalize+ option to false (default is true).
     #
-    #   humanize('employee_salary')                 # => "Employee salary"
-    #   humanize('author_id')                       # => "Author"
-    #   humanize('author_id', remove_suffix: false) # => "Author id"
-    #   humanize('author_id', capitalize: false)    # => "author"
-    #   humanize('_id')                             # => "Id"
+    #   humanize('employee_salary')              # => "Employee salary"
+    #   humanize('author_id')                    # => "Author"
+    #   humanize('author_id', suffix: true)      # => "Author id"
+    #   humanize('author_id', capitalize: false) # => "author"
+    #   humanize('_id')                          # => "Id"
     #
     # If "SSL" was defined to be an acronym:
     #
@@ -133,7 +133,7 @@ module ActiveSupport
 
       result.sub!(/\A_+/, '')
 
-      if options.fetch(:remove_suffix, true)
+      unless options.fetch(:suffix, false)
         result.sub!(/_id\z/, '')
       end
 
