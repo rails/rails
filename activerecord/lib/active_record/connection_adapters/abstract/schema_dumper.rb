@@ -12,6 +12,12 @@ module ActiveRecord
         spec
       end
 
+      def column_spec_for_primary_key(column)
+        return if column.type == :integer
+        spec = { id: column.type.inspect }
+        spec.merge!(prepare_column_options(column).delete_if { |key, _| [:name, :type].include?(key) })
+      end
+
       # This can be overridden on a Adapter level basis to support other
       # extended datatypes (Example: Adding an array option in the
       # PostgreSQLAdapter)

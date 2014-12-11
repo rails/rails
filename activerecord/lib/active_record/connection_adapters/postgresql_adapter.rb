@@ -125,6 +125,21 @@ module ActiveRecord
         PostgreSQL::SchemaCreation.new self
       end
 
+      def column_spec_for_primary_key(column)
+        spec = {}
+        if column.serial?
+          return unless column.sql_type == 'bigint'
+          spec[:id] = ':bigserial'
+        elsif column.type == :uuid
+          spec[:id] = ':uuid'
+          spec[:default] = column.default_function.inspect
+        else
+          spec[:id] = column.type.inspect
+          spec.merge!(prepare_column_options(column).delete_if { |key, _| [:name, :type, :null].include?(key) })
+        end
+        spec
+      end
+
       # Adds +:array+ option to the default set provided by the
       # AbstractAdapter
       def prepare_column_options(column, types) # :nodoc:
