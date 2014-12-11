@@ -612,25 +612,16 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_calculation_with_polymorphic_relation
-    sp = ShipPart.create! name: "no trinket"
-    sp_with_trinket = ShipPart.create! name: "has_trinket"
-    sp_with_trinket.trinkets.create!
-    ship_parts = [sp.id,sp_with_trinket.id]
+    part = ShipPart.create!(name: "has trinket")
+    part.trinkets.create!
 
-    sp_with_trinket_relation = ShipPart.where(id:ship_parts).joins(:trinkets)
-    sp_with_trinket_relation2 = sp_with_trinket_relation.where(name:"has_trinket")
-    sp_with_trinket_relation3 = sp_with_trinket_relation.where(treasures: {looter_type:"ShipPart"})
-    sp_with_trinket_relation4 = ShipPart.where(id:ship_parts).eager_load(:trinkets).where.not(treasures:{id:nil})
-
-    [sp_with_trinket_relation,sp_with_trinket_relation2,
-     sp_with_trinket_relation3,sp_with_trinket_relation4].each do |with_trinket_rel|
-      assert_equal 1, with_trinket_rel.count
-      assert_equal [sp_with_trinket.id], with_trinket_rel.pluck(:id)
-      assert_equal sp_with_trinket.id, with_trinket_rel.sum(:id)
-      assert_equal ({"has_trinket" => sp_with_trinket.id}), with_trinket_rel.group('ship_parts.name').sum(:id)
-      assert_equal ({"has_trinket" => sp_with_trinket.id}), with_trinket_rel.where(id:sp_with_trinket.id).
-        group('ship_parts.name').sum(:id)
-    end
+    assert_equal part.id, ShipPart.joins(:trinkets).sum(:id)
   end
 
+  def test_grouped_calculation_with_polymorphic_relation
+    part = ShipPart.create!(name: "has trinket")
+    part.trinkets.create!
+
+    assert_equal({ "has trinket" => part.id }, ShipPart.joins(:trinkets).group("ship_parts.name").sum(:id))
+  end
 end
