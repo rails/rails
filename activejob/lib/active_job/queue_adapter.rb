@@ -25,6 +25,14 @@ module ActiveJob
             name_or_adapter
           end
       end
+      
+      def with_adapter(adapter)
+        old_adapter = queue_adapter
+        self.queue_adapter = adapter
+        yield
+      ensure
+        self.queue_adapter = old_adapter
+      end
 
       private
         def load_adapter(name)
