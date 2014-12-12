@@ -240,13 +240,8 @@ module Rails
         return [] if options[:skip_sprockets]
 
         gems = []
-        if options.dev? || options.edge?
-          gems << GemfileEntry.github('sass-rails', 'rails/sass-rails', nil,
-                                    'Use SCSS for stylesheets')
-        else
-          gems << GemfileEntry.version('sass-rails', '~> 4.0',
+        gems << GemfileEntry.version('sass-rails', '~> 5.0',
                                      'Use SCSS for stylesheets')
-        end
 
         gems << GemfileEntry.version('uglifier',
                                    '>= 1.3.0',
