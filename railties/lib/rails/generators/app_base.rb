@@ -181,8 +181,12 @@ module Rails
           super
         end
 
-        def self.github(name, github, comment = nil)
-          new(name, nil, comment, github: github)
+        def self.github(name, github, branch = nil, comment = nil)
+          if branch
+            new(name, nil, comment, github: github, branch: branch)
+          else
+            new(name, nil, comment, github: github)
+          end
         end
 
         def self.version(name, version, comment = nil)
@@ -238,7 +242,7 @@ module Rails
 
         gems = []
         if options.dev? || options.edge?
-          gems << GemfileEntry.github('sass-rails', 'rails/sass-rails',
+          gems << GemfileEntry.github('sass-rails', 'rails/sass-rails', nil,
                                     'Use SCSS for stylesheets')
         else
           gems << GemfileEntry.version('sass-rails', '~> 4.0',
@@ -265,7 +269,7 @@ module Rails
       def console_gemfile_entry
         comment = 'Use Rails Console on the Browser'
         if options.dev? || options.edge?
-          GemfileEntry.github 'web-console', 'rails/web-console', comment
+          GemfileEntry.github 'web-console', 'rails/web-console', nil, comment
         else
           []
         end
@@ -274,7 +278,7 @@ module Rails
       def coffee_gemfile_entry
         comment = 'Use CoffeeScript for .coffee assets and views'
         if options.dev? || options.edge?
-          GemfileEntry.github 'coffee-rails', 'rails/coffee-rails', comment
+          GemfileEntry.github 'coffee-rails', 'rails/coffee-rails', nil, comment
         else
           GemfileEntry.version 'coffee-rails', '~> 4.1.0', comment
         end
