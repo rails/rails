@@ -155,7 +155,7 @@ end
 # environment
 ```
 
-The default queue name prefix delimiter is '_'.  This can be changed by setting
+The default queue name prefix delimiter is '\_'.  This can be changed by setting
 `config.active_job.queue_name_delimiter` in `application.rb`:
 
 ```ruby
