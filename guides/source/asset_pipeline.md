@@ -149,7 +149,10 @@ that filenames are consistent based on their content.
 
 Fingerprinting is enabled by default for production and disabled for all other
 environments. You can enable or disable it in your configuration through the
-`config.assets.digest` option.
+`config.assets.digest` option. This option only works in `development`
+mode or when `config.assets.compile` is set to `true`. However, keep in mind
+that setting `config.assets.compile` to `true` in `production` mode would compile
+your assets on every request, drastically reducing performance.
 
 More reading:
 
