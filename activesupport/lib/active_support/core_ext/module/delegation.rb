@@ -17,7 +17,7 @@ class Module
   # ==== Options
   # * <tt>:to</tt> - Specifies the target object
   # * <tt>:prefix</tt> - Prefixes the new method with the target name or a custom prefix
-  # * <tt>:allow_nil</tt> - if set to true, prevents a +NoMethodError+ to be raised
+  # * <tt>:allow_nil</tt> - if set to true, prevents a +NoMethodError+ from being raised
   #
   # The macro receives one or more method names (specified as symbols or
   # strings) and the name of the target object via the <tt>:to</tt> option
