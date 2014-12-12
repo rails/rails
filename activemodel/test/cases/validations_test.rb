@@ -172,7 +172,43 @@ class ValidationsTest < ActiveModel::TestCase
       Topic.validate :title, presence: true
     end
     message = 'Unknown key: :presence. Valid keys are: :on, :if, :unless. Perhaps you meant to call `validates` instead of `validate`?'
-    assert_equal message, error.message
+    assert_includes error.message, "Unknown key: :presence"
+    assert_includes error.message, "Perhaps you meant to call `validates` instead of `validate`?"
+  end
+
+  def test_callback_options_to_validate
+    klass = Class.new(Topic) do
+      attr_reader :call_sequence
+
+      def initialize(*)
+        super
+        @call_sequence = []
+      end
+
+      private
+        def validator_a
+          @call_sequence << :a
+        end
+
+        def validator_b
+          @call_sequence << :b
+        end
+
+        def validator_c
+          @call_sequence << :c
+        end
+    end
+
+    assert_nothing_raised do
+      klass.validate :validator_a, if: ->{ true }
+      klass.validate :validator_b, prepend: true
+      klass.validate :validator_c, unless: ->{ true }
+    end
+
+    t = klass.new
+
+    assert_predicate t, :valid?
+    assert_equal [:b, :a], t.call_sequence
   end
 
   def test_errors_conversions
