@@ -100,7 +100,6 @@ module ActionController
   #   params[:key]  # => "value"
   #   params["key"] # => "value"
   class Parameters < ActiveSupport::HashWithIndifferentAccess
-    cattr_accessor :permit_all_parameters, instance_accessor: false
     cattr_accessor :action_on_unpermitted_parameters, instance_accessor: false
 
     # By default, never raise an UnpermittedParameters exception if these
@@ -121,6 +120,16 @@ module ActionController
       MSG
 
       always_permitted_parameters
+    end
+
+    # Returns the value of +permit_all_parameters+.
+    def self.permit_all_parameters
+      Thread.current[:action_controller_permit_all_parameters]
+    end
+
+    # Sets the value of +permit_all_parameters+.
+    def self.permit_all_parameters=(value)
+      Thread.current[:action_controller_permit_all_parameters] = value
     end
 
     # Returns a new instance of <tt>ActionController::Parameters</tt>.
