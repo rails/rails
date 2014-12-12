@@ -180,8 +180,12 @@ module Rails
           super
         end
 
-        def self.github(name, github, comment = nil)
-          new(name, nil, comment, github: github)
+        def self.github(name, github, branch = nil, comment = nil)
+          if branch
+            new(name, nil, comment, github: github, branch: branch)
+          else
+            new(name, nil, comment, github: github)
+          end
         end
 
         def self.version(name, version, comment = nil)
@@ -197,7 +201,7 @@ module Rails
         if options.dev?
           [GemfileEntry.path('rails', Rails::Generators::RAILS_DEV_PATH)]
         elsif options.edge?
-          [GemfileEntry.github('rails', 'rails/rails')]
+          [GemfileEntry.github('rails', 'rails/rails', '4-2-stable')]
         else
           [GemfileEntry.version('rails',
                             Rails::VERSION::STRING,
@@ -237,7 +241,7 @@ module Rails
 
         gems = []
         if options.dev? || options.edge?
-          gems << GemfileEntry.github('sass-rails', 'rails/sass-rails',
+          gems << GemfileEntry.github('sass-rails', 'rails/sass-rails', nil,
                                     'Use SCSS for stylesheets')
         else
           gems << GemfileEntry.version('sass-rails', '~> 4.0',
