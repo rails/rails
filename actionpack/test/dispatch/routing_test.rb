@@ -4433,3 +4433,31 @@ class TestUrlGenerationErrors < ActionDispatch::IntegrationTest
     assert_equal message, error.message
   end
 end
+
+class TestDefaultUrlOptions < ActionDispatch::IntegrationTest
+  class PostsController < ActionController::Base
+    def archive
+      render :text => "posts#archive"
+    end
+  end
+
+  Routes = ActionDispatch::Routing::RouteSet.new
+  Routes.draw do
+    default_url_options locale: 'en'
+    scope ':locale', format: false do
+      get '/posts/:year/:month/:day', to: 'posts#archive', as: 'archived_posts'
+    end
+  end
+
+  APP = build_app Routes
+
+  def app
+    APP
+  end
+
+  include Routes.url_helpers
+
+  def test_positional_args_with_format_false
+    assert_equal '/en/posts/2014/12/13', archived_posts_path(2014, 12, 13)
+  end
+end

@@ -280,9 +280,15 @@ module ActionDispatch
           end
 
           def handle_positional_args(controller_options, inner_options, args, result, path_params)
-
             if args.size > 0
-              if args.size < path_params.size - 1 # take format into account
+              # take format into account
+              if path_params.include?(:format)
+                path_params_size = path_params.size - 1
+              else
+                path_params_size = path_params.size
+              end
+
+              if args.size < path_params_size
                 path_params -= controller_options.keys
                 path_params -= result.keys
               end
