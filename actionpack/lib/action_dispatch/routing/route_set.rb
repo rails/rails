@@ -287,7 +287,7 @@ module ActionDispatch
                 path_params -= result.keys
               end
               path_params.each { |param|
-                result[param] = inner_options[param] || args.shift
+                result[param] = inner_options.fetch(param) { args.shift }
               }
             end
 

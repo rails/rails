@@ -1,7 +1,13 @@
+*   Fixed usage of optional scopes in URL helpers.
+
+    *Alex Robbin*
+
 *   Add `ActionController::Parameters#to_unsafe_h` to return an unfiltered
     `Hash` representation of Parameters object. This is now a preferred way to
     retrieve unfiltered parameters as we will stop inheriting `AC::Parameters`
     object in Rails 5.0.
+
+*   Fixed handling of positional url helper arguments when `format: false`. 
 
     *Prem Sichanugrist*
 
