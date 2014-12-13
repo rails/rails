@@ -7,8 +7,6 @@
     retrieve unfiltered parameters as we will stop inheriting `AC::Parameters`
     object in Rails 5.0.
 
-*   Fixed handling of positional url helper arguments when `format: false`. 
-
     *Prem Sichanugrist*
 
 *   Restore handling of a bare `Authorization` header, without `token=`
