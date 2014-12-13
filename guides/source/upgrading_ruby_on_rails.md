@@ -231,7 +231,7 @@ class Notifier < ActionMailer::Base
   end
 end
 
-mail = Notifier.notify(user, ...) # Notifier#welcome is not yet called at this point
+mail = Notifier.notify(user, ...) # Notifier#notify is not yet called at this point
 mail = mail.deliver_now           # Prints "Called"
 ```
 
