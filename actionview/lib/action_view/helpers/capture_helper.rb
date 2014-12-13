@@ -36,7 +36,7 @@ module ActionView
       def capture(*args)
         value = nil
         buffer = with_output_buffer { value = yield(*args) }
-        if string = buffer.presence || value and string.is_a?(String)
+        if string = buffer.presence || value
           ERB::Util.html_escape string
         end
       end
