@@ -160,6 +160,18 @@ module ActionDispatch
         assert_equal '/foo/1/bar/2', url_helpers.foo_bar_path(2, foo_id: 1)
       end
 
+      test "having an optional scope with resources" do
+        draw do
+          scope "(/:foo)" do
+            resources :users
+          end
+        end
+
+        assert_equal '/users/1', url_helpers.user_path(1)
+        assert_equal '/users/1', url_helpers.user_path(1, foo: nil)
+        assert_equal '/a/users/1', url_helpers.user_path(1, foo: 'a')
+      end
+
       test "stringified controller and action keys are properly symbolized" do
         draw do
           root 'foo#bar'
