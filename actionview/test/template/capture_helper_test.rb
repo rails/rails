@@ -24,8 +24,8 @@ class CaptureHelperTest < ActionView::TestCase
     assert_equal 'foobar', string
   end
 
-  def test_capture_returns_nil_if_the_returned_value_is_not_a_string
-    assert_nil @av.capture { 1 }
+  def test_capture_returns_value_even_if_the_returned_value_is_not_a_string
+    assert_equal '1', @av.capture { 1 }
   end
 
   def test_capture_escapes_html
