@@ -122,6 +122,10 @@
       work_in_progress: true
       url: initialization.html
       description: This guide explains the internals of the Rails initialization process as of Rails 4
+    -
+      name: Constant Autoloading and Reloading
+      url: constant_autoloading_and_reloading.html
+      description: This guide documents how constant autoloading and reloading work.
 -
   name: Extending Rails
   documents:
