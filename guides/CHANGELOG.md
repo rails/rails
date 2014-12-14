@@ -1,3 +1,7 @@
+*   New guide about constant autoloading and reloading.
+
+    *Xavier Noria*
+
 * Change Posts to Articles in Getting Started sample application in order to
 better align with the actual guides.
 
