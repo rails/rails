@@ -157,22 +157,6 @@ differences between defining classes and modules in one way or another.
 
 The nesting at any given place can be inspected with `Module.nesting`.
 
-At any given point, the nesting can be empty, let's use *cref* to refer to the
-first element of the nesting if it is not empty, or `Object` otherwise. Without
-getting too much into the details, the resolution algorithm for relative
-constant references goes like this:
-
-1. First, if the nesting is not empty it looks for the constant in its elements
-and in order, ignoring their ancestors.
-
-2. If not found, then it walks up the ancestor chain of the cref.
-
-3. If not found, `const_missing` is invoked on the cref.
-
-Rails autoloading **does not emulate this algorithm**, but its starting point is
-the name of the constant to be autoloaded, and the cref.
-
-
 ### Class and Module Definitions are Constant Assignments
 
 Let's suppose the following snippet creates a class (rather than reopening it):
@@ -273,6 +257,51 @@ would have separate entries in their respective constant tables.
 Put special attention in the previous paragraphs to the distinction between
 class and module objects, constant names, and value objects assiociated to them
 in constant tables.
+
+### Resolution Algorithm for Relative Constants
+
+At any given point the nesting can be empty, let's use *cref* to refer to the
+first element of the nesting if it is not empty, or `Object` otherwise. Without
+getting too much into the details, the resolution algorithm for relative
+constant references goes like this:
+
+1. First, if the nesting is not empty it looks for the constant in its elements
+and in order, ignoring their ancestors.
+
+2. If not found, then it walks up the ancestor chain of the cref.
+
+3. If not found, `const_missing` is invoked on the cref.
+
+Rails autoloading **does not emulate this algorithm**, but its starting point is
+the name of the constant to be autoloaded, and the cref. See more in [Relative
+References](#relative-references).
+
+### Resolution Algorithm for Qualified Constants
+
+Qualified constants look like this:
+
+```ruby
+Billing::Invoice
+```
+
+`Billing::Invoice` is composed of two constants: `Billing`, in the first
+segment, is relative and is resolved using the algorithm of the previous
+section; `Invoice`, in the secong segment, is qualified by `Billing` and we are
+going to see its resolution next. Let's call *parent* to that qualifying class
+or module object:
+
+1. The constant is looked up in the parent and its ancestors.
+
+2. If the lookup fails, `const_missing` is invoked in the parent.
+
+As you see, this algorithm is simpler than the one for relative constants. In
+particular, the nesting plays no role here, and modules are not special-cased,
+if neither they nor their ancestors have the constants, `Object` is **not**
+checked.
+
+Rails autoloading **does not emulate this algorithm**, but its starting point is
+the name of the constant to be autoloaded, and the parent. See more in
+[Qualified References](#qualified-references).
 
 
 Vocabulary
@@ -630,10 +659,14 @@ creates an empty module and assigns it to the `Admin` constant on the fly.
 The procedure to autoload constant `C` in an arbitrary situation is:
 
 ```
-if the nesting is empty
+# For relative references C is missing in the cref, and for qualified
+# references the C is missing in the parent. See "Constants Refresher"
+# at the beginning of this guide for their respective definitions.
+
+if the class or module in which the constant is missing is Object
   let ns = ''
 else
-  let M = nesting.first
+  let M = the class or module in which the constant is missing
 
   if M is anonymous
     let ns = ''
