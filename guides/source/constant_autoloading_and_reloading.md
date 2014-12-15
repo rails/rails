@@ -253,7 +253,7 @@ that may live in any other class or module object. If there were any, they
 would have separate entries in their respective constant tables.
 
 Put special attention in the previous paragraphs to the distinction between
-class and module objects, constant names, and value objects assiociated to them
+class and module objects, constant names, and value objects associated to them
 in constant tables.
 
 ### Resolution Algorithm for Relative Constants
@@ -773,7 +773,7 @@ the code.
 Autoloading keeps track of autoloaded constants. Reloading is implemented by
 removing them all from their respective classes and modules using
 `Module#remove_const`. That way, when the code goes on, those constants are
-going to be unkown again, and files reloaded on demand.
+going to be unknown again, and files reloaded on demand.
 
 INFO. This is an all-or-nothing operation, Rails does not attempt to reload only
 what changed since dependencies between classes makes that really tricky.
@@ -793,7 +793,7 @@ the boot process. But constant autoloading in Rails is **not** implemented with
 
 One possible implementation based on `Module#autoload` would be to walk the
 application tree and issue `autoload` calls that map existing file names to
-their conventional contant name.
+their conventional constant name.
 
 There are a number of reasons that prevent Rails from using that implementation.
 
@@ -849,7 +849,7 @@ constant was missing and so it is not able to act as Ruby would. In particular,
 if `Admin::User` is autoloadable, it will get autoloaded in either case.
 
 Albeit qualified constants with `class` and `module` keywords may technically
-work with autoloading in some cases, it is preferrable to use relative constants
+work with autoloading in some cases, it is preferable to use relative constants
 instead:
 
 ```ruby
@@ -1065,7 +1065,7 @@ way. Normally, though, such a call does not make sense in an initializer.
 
 `require_dependency` provides a way to ensure a certain constant is defined at
 some point regardless of the execution path, and one could think about doing
-some calls in an initialzer to make sure certain constants are loaded upfront,
+some calls in an initializer to make sure certain constants are loaded upfront,
 for example as an attempt to address the gotcha with STIs.
 
 Problem is, in development mode all autoloaded constants are wiped on a
