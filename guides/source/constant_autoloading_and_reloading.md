@@ -15,6 +15,8 @@ After reading this guide, you will know:
 
 * How constant reloading works
 
+* That autoloading is not based on `Kernel#autoload`
+
 * Solutions to common autoloading gotchas
 
 --------------------------------------------------------------------------------
@@ -641,6 +643,39 @@ going to be unkown again, and files reloaded on demand.
 INFO. This is an all-or-nothing operation, Rails does not attempt to reload only
 what changed since dependencies between classes makes that really tricky.
 Instead, everything is wiped.
+
+
+Kernel#autoload isn't Involved
+------------------------------
+
+`Kernel#autoload` provides a lazy way to load constants that is fully integrated
+with the Ruby constant lookup algorithms, dynamic constant API, etc. It is quite
+transparent.
+
+Rails internals make extensive use of it to defer as much work as possible from
+the boot process. But constant autoloading in Rails is **not** implemented with
+`Kernel#autoload`.
+
+One possible implementation based on `Kernel#autoload` would be to walk the
+application tree and issue `autoload` calls that map existing file names to
+their conventional contant name.
+
+There are a number of reasons that prevent Rails from using that implementation.
+
+For example, `Kernel#autoload` is only capable of loading files using `require`,
+so reloading would not be possible. Not only that, it uses an internal `require`
+which is not `Kernel#require`.
+
+Then, it provides no way to remove declarations in case a file is deleted. If a
+constant gets removed with `Module#remove_const` its `autoload` is not triggered
+again. Also, it doesn't support qualified names, so files with namespaces should
+be interpreted during the walk tree to install their own `autoload` calls, but
+those files could have constant references not yet configured.
+
+An implementation based on `Kernel#autoload` would be awesome but, as you see,
+at least as of today it is not possible. Constant autoloading in Rails is
+implemented with `Module#const_missing`, and that's why it has its own contract,
+documented in this guide.
 
 
 Common Gotchas
