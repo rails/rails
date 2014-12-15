@@ -459,7 +459,7 @@ Rails is not able to say if the trigger was a relative or qualified reference.
 For example, consider
 
 ```ruby
-module Amin
+module Admin
   User
 end
 ```
@@ -490,7 +490,7 @@ and the `User` constant is already present in `Object`, it is not possible that
 the situation is
 
 ```ruby
-module Amin
+module Admin
   User
 end
 ```
@@ -505,7 +505,7 @@ namespaces respectively and the constants that make the rule apply are known at
 that time.
 
 But since autoloading happens on demand, if the top-level `User` by chance was
-not yet loaded then Rails has no way to know whether `Amin::User` should load it
+not yet loaded then Rails has no way to know whether `Admin::User` should load it
 or raise `NameError`.
 
 These kind of name conflicts are rare in practice, but in case there's one
