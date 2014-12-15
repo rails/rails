@@ -420,6 +420,24 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_gem 'web-console'
   end
 
+  def test_web_console_with_dev_option
+    run_generator [destination_root, "--dev"]
+
+    assert_file "Gemfile" do |content|
+      assert_match(/gem 'web-console',\s+github: "rails\/web-console"/, content)
+      assert_no_match(/gem 'web-console', '~> 2.0'/, content)
+    end
+  end
+
+  def test_web_console_with_edge_option
+    run_generator [destination_root, "--edge"]
+
+    assert_file "Gemfile" do |content|
+      assert_match(/gem 'web-console',\s+github: "rails\/web-console"/, content)
+      assert_no_match(/gem 'web-console', '~> 2.0'/, content)
+    end
+  end
+
   def test_spring
     run_generator
     assert_gem 'spring'

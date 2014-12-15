@@ -111,7 +111,6 @@ module Rails
          jbuilder_gemfile_entry,
          sdoc_gemfile_entry,
          psych_gemfile_entry,
-         console_gemfile_entry,
          @extra_entries].flatten.find_all(&@gem_filter)
       end
 
@@ -265,15 +264,6 @@ module Rails
       def sdoc_gemfile_entry
         comment = 'bundle exec rake doc:rails generates the API under doc/api.'
         GemfileEntry.new('sdoc', '~> 0.4.0', comment, group: :doc)
-      end
-
-      def console_gemfile_entry
-        comment = 'Use Rails Console on the Browser'
-        if options.dev? || options.edge?
-          GemfileEntry.github 'web-console', 'rails/web-console', nil, comment
-        else
-          []
-        end
       end
 
       def coffee_gemfile_entry
