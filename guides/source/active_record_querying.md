@@ -9,6 +9,7 @@ After reading this guide, you will know:
 * How to specify the order, retrieved attributes, grouping, and other properties of the found records.
 * How to use eager loading to reduce the number of database queries needed for data retrieval.
 * How to use dynamic finders methods.
+* How to use method chaining to use multiple ActiveRecord methods together.
 * How to check for the existence of particular records.
 * How to perform various calculations on Active Record models.
 * How to run EXPLAIN on relations.
@@ -1326,6 +1327,40 @@ For every field (also known as an attribute) you define in your table, Active Re
 You can specify an exclamation point (`!`) on the end of the dynamic finders to get them to raise an `ActiveRecord::RecordNotFound` error if they do not return any records, like `Client.find_by_name!("Ryan")`
 
 If you want to find both by name and locked, you can chain these finders together by simply typing "`and`" between the fields. For example, `Client.find_by_first_name_and_locked("Ryan", true)`.
+
+Understanding The Method Chaining
+---------------------------------
+
+The ActiveRecord pattern implements [Method Chaining](http://en.wikipedia.org/wiki/Method_chaining).
+This allow us to use multiple ActiveRecord methods in a simple and straightforward way.
+
+You can chain a method in a sentence when the previous method called returns `ActiveRecord::Relation`,
+like `all`, `where`, and `joins`. Methods that returns a instance of a single object 
+(see [Retrieving a Single Object Section](#retrieving-a-single-object)) have to be be the last
+in the sentence.
+
+This guide won't cover all the possibilities, just a few as example.
+
+### Retrieving filtered data from multiple tables
+
+```ruby
+Person
+  .select('people.id, people.name, comments.text')
+  .joins(:comments)
+  .where('comments.create_at > ?', 1.week.ago)
+```
+
+### Retrieving specific data from multiple tables
+
+```ruby
+Person
+  .select('people.id, people.name, companies.name')
+  .joins(:company)
+  .find_by('people.name' => 'John') # this should be the last
+```
+
+NOTE: Remember that, if `find_by` return more than one registry, it will take just the first
+and ignore the others.
 
 Find or Build a New Object
 --------------------------
