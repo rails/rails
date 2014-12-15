@@ -260,10 +260,10 @@ in constant tables.
 
 ### Resolution Algorithm for Relative Constants
 
-At any given point the nesting can be empty, let's use *cref* to refer to the
-first element of the nesting if it is not empty, or `Object` otherwise. Without
-getting too much into the details, the resolution algorithm for relative
-constant references goes like this:
+At any given place in the code, let's define *cref* to be the first element of
+the nesting if it is not empty, or `Object` otherwise. Without getting too much
+into the details, the resolution algorithm for relative constant references goes
+like this:
 
 1. First, if the nesting is not empty it looks for the constant in its elements
 and in order, ignoring their ancestors.
@@ -656,17 +656,21 @@ creates an empty module and assigns it to the `Admin` constant on the fly.
 
 ### Generic Procedure
 
-The procedure to autoload constant `C` in an arbitrary situation is:
+Relative references are reported to be missing in the cref where they were hit,
+and qualified references are reported to be missing in their parent. (See
+[Resolution Algorithm for Relative
+Constants](#resolution-algorithm-for-relative-constants) at the beginning of
+this guide for the definition of *cref*, and [Resolution Algorithm for Qualified
+Constants](#resolution-algorithm-for-qualified-constants) for the definition of
+*parent*.)
+
+The procedure to autoload constant `C` in an arbitrary situation is as follows:
 
 ```
-# For relative references C is missing in the cref, and for qualified
-# references the C is missing in the parent. See "Constants Refresher"
-# at the beginning of this guide for their respective definitions.
-
-if the class or module in which the constant is missing is Object
+if the class or module in which C is missing is Object
   let ns = ''
 else
-  let M = the class or module in which the constant is missing
+  let M = the class or module in which C is missing
 
   if M is anonymous
     let ns = ''
