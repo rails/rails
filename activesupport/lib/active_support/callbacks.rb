@@ -4,6 +4,7 @@ require 'active_support/core_ext/array/extract_options'
 require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/kernel/reporting'
 require 'active_support/core_ext/kernel/singleton_class'
+require 'active_support/core_ext/string/filters'
 require 'thread'
 
 module ActiveSupport
@@ -595,11 +596,22 @@ module ActiveSupport
         Proc.new do |target, result_lambda|
           terminate = true
           catch(:abort) do
-            result_lambda.call if result_lambda.is_a?(Proc)
-            terminate = false
+            result = result_lambda.call if result_lambda.is_a?(Proc)
+            if result == false
+              display_deprecation_warning_for_false_terminator
+            else
+              terminate = false
+            end
           end
           terminate
         end
+      end
+
+      def display_deprecation_warning_for_false_terminator
+        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          Returning `false` in a callback will not implicitly halt a callback chain in the next release of Rails.
+          To explicitly halt a callback chain, please use `throw :abort` instead.
+        MSG
       end
     end
 

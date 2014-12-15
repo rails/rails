@@ -1,3 +1,11 @@
+*   Deprecate returning `false` as a way to halt callback chains.
+
+    Returning `false` in a callback will display a deprecation warning
+    explaining that the preferred method to halt a callback chain is to
+    explicitly `throw(:abort)`.
+
+    *claudiob*
+
 *   Changes arguments and default value of CallbackChain's :terminator option
 
     Chains of callbacks defined without an explicit `:terminator` option will
