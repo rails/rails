@@ -7,7 +7,7 @@ After reading this guide, you will know:
 
 * Key aspects of Ruby constants
 
-* What is `autoload_paths`
+* The purpose of `autoload_paths`
 
 * How constant autoloading works
 
@@ -15,7 +15,7 @@ After reading this guide, you will know:
 
 * How constant reloading works
 
-* That autoloading is not based on `Module#autoload`
+* Why autoloading is not based on `Module#autoload`
 
 * Solutions to common autoloading gotchas
 
@@ -227,13 +227,13 @@ constants on the fly.
 ### Constants are Stored in Modules
 
 Constants belong to modules in a very literal sense. Classes and modules have
-a constant table, think of it as a hash table.
+a constant table; think of it as a hash table.
 
-Let's analyze an example to really understand what that means. While in a
-casual setting some abuses of language are customary, the exposition is going
-to be exact here for didactic purposes.
+Let's analyze an example to really understand what that means. While figurative
+language may be customary in a casual setting, for didactic purposes we will
+be literal and precise.
 
-Let's consider the following module definition:
+Consider the following module definition:
 
 ```ruby
 module Colors
@@ -649,7 +649,7 @@ trigger the heuristic is defined in the conflicting place.
 When a module acts as a namespace, Rails does not require the application to
 defines a file for it, a directory matching the namespace is enough.
 
-Suppose an application has a backoffice whose controllers are stored in
+Suppose an application has a back office whose controllers are stored in
 `app/controllers/admin`. If the `Admin` module is not yet loaded when
 `Admin::UsersController` is hit, Rails needs first to autoload the constant
 `Admin`.
