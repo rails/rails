@@ -101,13 +101,13 @@ class CreateOrders < ActiveRecord::Migration
   def change
     create_table :customers do |t|
       t.string :name
-      t.timestamps
+      t.timestamps null: false
     end
 
     create_table :orders do |t|
       t.belongs_to :customer, index: true
       t.datetime :order_date
-      t.timestamps
+      t.timestamps null: false
     end
   end
 end
@@ -132,13 +132,13 @@ class CreateSuppliers < ActiveRecord::Migration
   def change
     create_table :suppliers do |t|
       t.string :name
-      t.timestamps
+      t.timestamps null: false
     end
 
     create_table :accounts do |t|
       t.belongs_to :supplier, index: true
       t.string :account_number
-      t.timestamps
+      t.timestamps null: false
     end
   end
 end
@@ -165,13 +165,13 @@ class CreateCustomers < ActiveRecord::Migration
   def change
     create_table :customers do |t|
       t.string :name
-      t.timestamps
+      t.timestamps null: false
     end
 
     create_table :orders do |t|
       t.belongs_to :customer, index:true
       t.datetime :order_date
-      t.timestamps
+      t.timestamps null: false
     end
   end
 end
@@ -207,19 +207,19 @@ class CreateAppointments < ActiveRecord::Migration
   def change
     create_table :physicians do |t|
       t.string :name
-      t.timestamps
+      t.timestamps null: false
     end
 
     create_table :patients do |t|
       t.string :name
-      t.timestamps
+      t.timestamps null: false
     end
 
     create_table :appointments do |t|
       t.belongs_to :physician, index: true
       t.belongs_to :patient, index: true
       t.datetime :appointment_date
-      t.timestamps
+      t.timestamps null: false
     end
   end
 end
@@ -291,19 +291,19 @@ class CreateAccountHistories < ActiveRecord::Migration
   def change
     create_table :suppliers do |t|
       t.string :name
-      t.timestamps
+      t.timestamps null: false
     end
 
     create_table :accounts do |t|
       t.belongs_to :supplier, index: true
       t.string :account_number
-      t.timestamps
+      t.timestamps null: false
     end
 
     create_table :account_histories do |t|
       t.belongs_to :account, index: true
       t.integer :credit_rating
-      t.timestamps
+      t.timestamps null: false
     end
   end
 end
@@ -332,12 +332,12 @@ class CreateAssembliesAndParts < ActiveRecord::Migration
   def change
     create_table :assemblies do |t|
       t.string :name
-      t.timestamps
+      t.timestamps null: false
     end
 
     create_table :parts do |t|
       t.string :part_number
-      t.timestamps
+      t.timestamps null: false
     end
 
     create_table :assemblies_parts, id: false do |t|
@@ -371,13 +371,13 @@ class CreateSuppliers < ActiveRecord::Migration
   def change
     create_table :suppliers do |t|
       t.string  :name
-      t.timestamps
+      t.timestamps null: false
     end
 
     create_table :accounts do |t|
       t.integer :supplier_id
       t.string  :account_number
-      t.timestamps
+      t.timestamps null: false
     end
 
     add_index :accounts, :supplier_id
@@ -455,7 +455,7 @@ class CreatePictures < ActiveRecord::Migration
       t.string  :name
       t.integer :imageable_id
       t.string  :imageable_type
-      t.timestamps
+      t.timestamps null: false
     end
 
     add_index :pictures, :imageable_id
@@ -471,7 +471,7 @@ class CreatePictures < ActiveRecord::Migration
     create_table :pictures do |t|
       t.string :name
       t.references :imageable, polymorphic: true, index: true
-      t.timestamps
+      t.timestamps null: false
     end
   end
 end
@@ -501,7 +501,7 @@ class CreateEmployees < ActiveRecord::Migration
   def change
     create_table :employees do |t|
       t.references :manager, index: true
-      t.timestamps
+      t.timestamps null: false
     end
   end
 end
