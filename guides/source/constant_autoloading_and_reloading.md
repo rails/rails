@@ -346,7 +346,7 @@ derivation.
 
 ### Loading Mechanism
 
-Rails autoloads files with `Kerne#load` when `config.cache_classes` is false,
+Rails autoloads files with `Kernel#load` when `config.cache_classes` is false,
 the default in development mode, and with `Kernel#require` otherwise, the
 default in production mode.
 
