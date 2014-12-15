@@ -94,8 +94,8 @@ module called also "A"!
 the module object itself could still be alive somewhere and its name would
 still be "A::B".
 
-The idea of a parent namespace it's at the core of the autoloading algorithms
-and helps explain and understand intuitively their motivation, but as you see
+The idea of a parent namespace is at the core of the autoloading algorithms
+and helps explain and understand their motivation intuitively, but as you see
 that metaphor leaks easily. Given an edge case to reason about, take always into
 account the by "parent namespace" the guide means exactly that specific string
 derivation.
@@ -130,8 +130,7 @@ autoloads.
 
 By default, Rails eager loads the application files when it boots in production
 mode, so most of the autoloading going on in development does not happen. But
-autoloading may still be triggered because at top-level constants not yet loaded
-may be referenced.
+autoloading may still be triggered during eager loading.
 
 For example, given
 
@@ -324,7 +323,7 @@ Autoloading Algorithms
 
 ### Relative References
 
-A relative constant may appear in several places, for example, in
+A relative constant reference may appear in several places, for example, in
 
 ```ruby
 class PostsController < ApplicationController
@@ -334,7 +333,7 @@ class PostsController < ApplicationController
 end
 ```
 
-all three constants are relative.
+all three constant references are relative.
 
 #### Constants after the `class` and `module` Keywords
 
@@ -351,8 +350,8 @@ define the controller.
 
 #### Top-Level Constants
 
-On the contrary, if `ApplicationController` is unknown, an autoload is going to
-be attempted by Rails.
+On the contrary, if `ApplicationController` is unknown, the constant is
+considered missing and an autoload is going to be attempted by Rails.
 
 In order to load `ApplicationController`, Rails iterates over `autoload_paths`.
 First checks if `app/assets/application_controller.rb` exists. If it does not,
@@ -380,7 +379,7 @@ for namespaces comes into play.
 
 The basic idea is that given
 
-```
+```ruby
 module Admin
   class BaseController < ApplicationController
     @@all_roles = Role.all
@@ -427,7 +426,7 @@ test/mailers/previews/posts_controller/post.rb
 ```
 
 Since the lookup is exhausted without success, a similar search for a directory
-is performed, we are going to see why in the next section:
+is performed, we are going to see why in the [next section](#automatic-modules):
 
 ```
 app/assets/posts_controller/post
@@ -462,14 +461,14 @@ For example, consider
 
 ```ruby
 module Admin
-  User
+  User # relative reference
 end
 ```
 
 and
 
 ```ruby
-Admin::User
+Admin::User # qualified reference
 ```
 
 If `User` is missing, in either case all Rails knows is that a constant called
@@ -526,7 +525,7 @@ Suppose an application has a backoffice whose controllers are stored in
 
 If `autoload_paths` has a file called `admin.rb` Rails is going to load that
 one, but if there's no such file and a directory called `admin` is found, Rails
-creates an empty module and assigns it to the constant `Admin` on the fly.
+creates an empty module and assigns it to the `Admin` constant on the fly.
 
 ### Generic Procedure
 
@@ -709,7 +708,7 @@ If Ruby resolves `User` in the former case it checks whether there's a `User`
 constant in the `Admin` module. It does not in the latter case, because `Admin`
 does not belong to the nesting.
 
-Unfortunately autoloading does not know the nesting in the spot where the
+Unfortunately Rails autoloading does not know the nesting in the spot where the
 constant was missing and so it is not able to act as Ruby would. In particular,
 if `Admin::User` is autoloadable, it will get autoloaded in either case.
 
@@ -853,7 +852,7 @@ updated in development mode.
 Just follow the flow and use constant autoloading always, never mix autoloading
 and `require`. As a last resort, if some file absolutely needs to load a certain
 file by hand use `require_dependency` to play nice with constant autoloading.
-This option is rarely needed though in practice.
+This option is rarely needed in practice, though.
 
 Of course, using `require` in autoloaded files to load ordinary 3rd party
 libraries is fine, and Rails is able to distinguish their constants, so they are
@@ -1033,18 +1032,18 @@ module Hotel
 end
 ```
 
-If `Hotel::Services` is known by the time `Hotel::GeoLocation` is being loaded,
+1. If `Hotel::Services` is known by the time `Hotel::GeoLocation` is being loaded,
 everything works because `Hotel` belongs to the nesting when the singleton class
 of `Hotel::GeoLocation` is opened, and thus Ruby itself is able to resolve the
 constant.
 
-But if `Hotel::Services` is not known and we rely on autoloading for the
+2. But if `Hotel::Services` is not known and we rely on autoloading for the
 `Services` constant in `Hotel::GeoLocation`, Rails is not able to find
 `Hotel::Services`. The application raises `NameError`.
 
 The reason is that autoloading is triggered for the singleton class, which is
-anonymous, and as we saw before, Rails only checks the top-level namespace in
-that edge case.
+anonymous, and as we [saw before](#generic-procedure), Rails only checks the
+top-level namespace in that edge case.
 
 An easy solution to this caveat is to qualify the constant:
 
@@ -1084,7 +1083,7 @@ first time the `user` method is invoked. You only get the exception if the
 `User` constant is known at that point, in particular in a *second* call to
 `user`:
 
-```
+```ruby
 c = C.new
 c.user # surprisingly fine, User
 c.user # NameError: uninitialized constant C::User
