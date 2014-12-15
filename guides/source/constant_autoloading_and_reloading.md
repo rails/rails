@@ -25,11 +25,9 @@ After reading this guide, you will know:
 Introduction
 ------------
 
-Ruby on Rails allows applications to be written as if all their code was
-preloaded.
+Ruby on Rails allows applications to be written as if their code was preloaded.
 
-For example, in a normal Ruby program a class like the following controller
-would need to load its dependencies:
+In a normal Ruby program a class needs to load its dependencies:
 
 ```ruby
 require 'application_controller'
@@ -43,7 +41,7 @@ end
 ```
 
 Our Rubyist instinct quickly sees some redundancy in there: If classes were
-defined in files matching their name, couldn't their loading maybe be automated
+defined in files matching their name, couldn't their loading be automated
 somehow? We could save scanning the file for dependencies, which is brittle.
 
 Moreover, `Kernel#require` loads files once, but development is much more smooth
@@ -51,7 +49,7 @@ if code gets refreshed when it changes without restarting the server. It would
 be nice to be able to use `Kernel#load` in development, and `Kernel#require` in
 production.
 
-Indeed, those features are provided by Ruby on Rails, where we just write this:
+Indeed, those features are provided by Ruby on Rails, where we just write
 
 ```ruby
 class PostsController < ApplicationController
@@ -125,7 +123,7 @@ module X::Y
 end
 ```
 
-The nesting in (3) is composed of two module objects:
+The nesting in (3) consists of two module objects:
 
 ```ruby
 [A::B, X::Y]
@@ -143,16 +141,16 @@ executed, and popped after it.
 * The module object following a `module` keyword gets pushed when its body is
 executed, and popped after it.
 
-* When a singleton class is opened with `class << object`, the singleton class
+* When a singleton class is opened with `class << object`, said singleton class
 gets pushed when the body is executed, and popped after it.
 
 * When any of the `*_eval` family of methods is called using a string argument,
 the singleton class of the receiver is pushed to the nesting of the eval'ed
 code.
 
-It is interesting to observe that **no** block gets a modified nesting. In
-particular the blocks that may be passed to `Class.new` and `Module.new` do not
-get the class or module being defined pushed to their nesting. That's one of the
+It is interesting to observe that blocks do not modify the stack. In particular
+the blocks that may be passed to `Class.new` and `Module.new` do not get the
+class or module being defined pushed to their nesting. That's one of the
 differences between defining classes and modules in one way or another.
 
 The nesting at any given place can be inspected with `Module.nesting`.
@@ -183,7 +181,7 @@ performs a constant assignment equivalent to
 Project = Class.new(ActiveRecord::Base)
 ```
 
-Similarly, module creation using the `module` keyword:
+Similarly, module creation using the `module` keyword as in
 
 ```ruby
 module Admin
@@ -198,8 +196,8 @@ Admin = Module.new
 
 WARNING. The execution context of a block passed to `Class.new` or `Module.new`
 is not entirely equivalent to the one of the body of the definitions using the
-`class` and `module` keywords. But as far as this guide concerns, both idioms
-perform the same constant assignment.
+`class` and `module` keywords. But both idioms result in the same constant
+assignment.
 
 Thus, when one informally says "the `String` class", that really means: the
 class object the interpreter creates and stores in a constant called "String" in
@@ -207,7 +205,7 @@ the class object stored in the `Object` constant. `String` is otherwise an
 ordinary Ruby constant and everything related to constants applies to it,
 resolution algorithms, etc.
 
-Similarly, in the controller
+Likewise, in the controller
 
 ```ruby
 class PostsController < ApplicationController
@@ -271,7 +269,8 @@ order. The ancestors of those elements are ignored.
 
 2. If not found, then the algorithm walks up the ancestor chain of the cref.
 
-3. If not found, `const_missing` is invoked on the cref.
+3. If not found, `const_missing` is invoked on the cref. The default
+implementation of `const_missing` raises `NameError`, but it can be overridden.
 
 Rails autoloading **does not emulate this algorithm**, but its starting point is
 the name of the constant to be autoloaded, and the cref. See more in [Relative
@@ -285,15 +284,16 @@ Qualified constants look like this:
 Billing::Invoice
 ```
 
-`Billing::Invoice` is composed of two constants: `Billing`, in the first
-segment, is relative and is resolved using the algorithm of the previous
-section; `Invoice`, in the second segment, is qualified by `Billing` and we are
-going to see its resolution next. Let's call *parent* to that qualifying class
-or module object, that is, `Billing` in the example above:
+`Billing::Invoice` is composed of two constants: `Billing` is relative and is
+resolved using the algorithm of the previous section; `Invoice` is qualified by
+`Billing` and we are going to see its resolution next. Let's call *parent* to
+that qualifying class or module object, that is, `Billing` in the example above.
+The algorithm for qualified constants goes like this:
 
 1. The constant is looked up in the parent and its ancestors.
 
-2. If the lookup fails, `const_missing` is invoked in the parent.
+2. If the lookup fails, `const_missing` is invoked in the parent. The default
+implementation of `const_missing` raises `NameError`, but it can be overridden.
 
 As you see, this algorithm is simpler than the one for relative constants. In
 particular, the nesting plays no role here, and modules are not special-cased,
@@ -1143,9 +1143,9 @@ set.
 
 It is interesting to note here that fix works because `Hotel` is a module, and
 `Hotel::Image` won’t look for `Image` in `Object` as it would if `Hotel` was a
-class (because `Object` would be among its ancestors). If `Hotel` was class we
-would resort to loading `Hotel::Image` with `require_dependency`. Furthermore,
-with that solution the qualified name would no longer be necessary.
+class with `Object` in its ancestors. If `Hotel` was a class we would resort to
+loading `Hotel::Image` with `require_dependency`. Furthermore, with that
+solution the qualified name would no longer be necessary.
 
 ### Autoloading within Singleton Classes
 
