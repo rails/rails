@@ -108,6 +108,15 @@ profile.settings = {"color" => "yellow", "resolution" => "1280x1024"}
 profile.save!
 ```
 
+ActiveRecord statements support variable binding and question mark `?` is being used as a wildcard for it.
+Unfortunately, it clashes with several `hstore` operators: `?` (does `hstore` contain key?), `?&` (does `hstore`
+contain all keys) and `?|` (does `hstore` contain any of the specified keys?). If you need to use this operators, there
+is an escape sequence `??` which you can safely use with binding functionality of ActiveRecord:
+
+```ruby
+Profile.where("settings ?? ?", "color") # => "settings ? 'color'"
+```
+
 ### JSON
 
 * [type definition](http://www.postgresql.org/docs/9.3/static/datatype-json.html)

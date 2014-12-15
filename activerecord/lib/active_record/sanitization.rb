@@ -3,6 +3,8 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     module ClassMethods
+      BIND_WILDCARD = /(?<!\?)\?(?!\?)/
+
       def quote_value(value, column) #:nodoc:
         connection.quote(value, column)
       end
@@ -125,7 +127,7 @@ sanitize_sql_hash_for_conditions is deprecated, and will be removed in Rails 5.0
         statement, *values = ary
         if values.first.is_a?(Hash) && statement =~ /:\w+/
           replace_named_bind_variables(statement, values.first)
-        elsif statement.include?('?')
+        elsif statement.index BIND_WILDCARD
           replace_bind_variables(statement, values)
         elsif statement.blank?
           statement
@@ -135,11 +137,15 @@ sanitize_sql_hash_for_conditions is deprecated, and will be removed in Rails 5.0
       end
 
       def replace_bind_variables(statement, values) #:nodoc:
-        raise_if_bind_arity_mismatch(statement, statement.count('?'), values.size)
+        raise_if_bind_arity_mismatch(statement, statement.scan(BIND_WILDCARD).size, values.size)
         bound = values.dup
         c = connection
-        statement.gsub(/\?/) do
-          replace_bind_variable(bound.shift, c)
+        statement.gsub(/\?\??/) do |match|
+          if match == '?'
+            replace_bind_variable(bound.shift, c)
+          else
+            '?'
+          end
         end
       end
 

@@ -1,3 +1,9 @@
+*   Allow to escape question mark in where statements for purpose of using postgresql `hstore`
+    operators (`?`, `?&`, `?|`). Example: `where("properties ?? ?", :key)` will generate `properties ? 'key'`
+    statement now.
+
+    *Nikolay Shebanov*
+
 *   Introduce `force: :cascade` option for `create_table`. Using this option
     will recreate tables even if they have dependent objects (like foreign keys).
     `db/schema.rb` now uses `force: :cascade`. This makes it possible to

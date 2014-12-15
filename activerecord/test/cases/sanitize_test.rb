@@ -31,9 +31,12 @@ class SanitizeTest < ActiveRecord::TestCase
     quoted_bambi = ActiveRecord::Base.connection.quote("Bambi")
     assert_equal "name=#{quoted_bambi}", Binary.send(:sanitize_sql_array, ["name=?", "Bambi"])
     assert_equal "name=#{quoted_bambi}", Binary.send(:sanitize_sql_array, ["name=?", "Bambi".mb_chars])
+    assert_equal "adorable_animals ? #{quoted_bambi}", Binary.send(:sanitize_sql_array, ["adorable_animals ?? ?", "Bambi"])
     quoted_bambi_and_thumper = ActiveRecord::Base.connection.quote("Bambi\nand\nThumper")
     assert_equal "name=#{quoted_bambi_and_thumper}", Binary.send(:sanitize_sql_array, ["name=?", "Bambi\nand\nThumper"])
     assert_equal "name=#{quoted_bambi_and_thumper}", Binary.send(:sanitize_sql_array, ["name=?", "Bambi\nand\nThumper".mb_chars])
+    assert_equal "adorable_animals ? #{quoted_bambi_and_thumper}",
+      Binary.send(:sanitize_sql_array, ["adorable_animals ?? ?", "Bambi\nand\nThumper"])
   end
 
   def test_sanitize_sql_array_handles_relations
