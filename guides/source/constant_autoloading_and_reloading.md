@@ -64,85 +64,6 @@ end
 This guide documents how that works.
 
 
-Vocabulary
-----------
-
-### Parent Namespaces
-
-Given a string with a constant path we define its *parent namespace* to be the
-string that results from removing its rightmost segment.
-
-For example, the parent namespace of the string "A::B::C" is the string "A::B",
-the parent namespace of "A::B" is "A", and the parent namespace of "A" is "".
-
-The interpretation of a parent namespace when thinking about classes and modules
-is tricky though. Let's consider a module M named "A::B":
-
-* The parent namespace, "A", may not reflect nesting at a given spot.
-
-* The constant `A` may no longer exist, some code could have removed it from
-`Object`.
-
-* If `A` exists, the class or module that was originally in `A` may not be there
-anymore. For example, if after a constant removal there was another constant
-assignment there would generally be a different object in there.
-
-* In such case, it could even happen that the reassigned `A` held a new class or
-module called also "A"!
-
-* In the previous scenarios M would no longer be reachable through `A::B` but
-the module object itself could still be alive somewhere and its name would
-still be "A::B".
-
-The idea of a parent namespace is at the core of the autoloading algorithms
-and helps explain and understand their motivation intuitively, but as you see
-that metaphor leaks easily. Given an edge case to reason about, take always into
-account the by "parent namespace" the guide means exactly that specific string
-derivation.
-
-### Loading Mechanism
-
-Rails autoloads files with `Kerne#load` when `config.cache_classes` is false,
-the default in development mode, and with `Kernel#require` otherwise, the
-default in production mode.
-
-`Kernel#load` allows Rails to execute files more than once if [constant
-reloading](#constant-reloading) is enabled.
-
-This guide uses the word "load" freely to mean a given file is interpreted, but
-the actual mechanism can be `Kernel#load` or `Kernel#require` depending on that
-flag.
-
-
-Autoloading Availability
-------------------------
-
-Rails is always able to autoload provided its environment is in place. For
-example the `runner` command autoloads:
-
-```
-$ bin/rails runner 'p User.column_names'
-["id", "email", "created_at", "updated_at"]
-```
-
-The console autoloads, the test suite autoloads, and of course the application
-autoloads.
-
-By default, Rails eager loads the application files when it boots in production
-mode, so most of the autoloading going on in development does not happen. But
-autoloading may still be triggered during eager loading.
-
-For example, given
-
-```ruby
-class BeachHouse < House
-end
-```
-
-if `House` is still unknown when `app/models/beach_house.rb` is being eager
-loaded, Rails autoloads it.
-
-
 Constants Refresher
 -------------------
 
@@ -150,9 +71,107 @@ While constants are trivial in most programming languages, they are a rich
 topic in Ruby.
 
 It is beyond the scope of this guide to document Ruby constants, but we are
-nevertheless going to highlight a couple of key topics. Truly grasping the
-following two sections is instrumental to understanding constant autoloading and
-reloading.
+nevertheless going to highlight a few key topics. Truly grasping the following
+sections is instrumental to understanding constant autoloading and reloading.
+
+### Nesting
+
+Class and module definitions can be nested to create namespaces:
+
+```ruby
+module XML
+  class SAXParser
+    # (1)
+  end
+end
+```
+
+The *nesting* at any given place is the collection of enclosing nested class and
+module objects outwards. For example, in the previous example, the nesting at
+(1) is
+
+```ruby
+[XML::SAXParser, XML]
+```
+
+It is important to understand that the nesting is composed of class and module
+*objects*, it has nothing to do with the constants used to access them, and is
+also unrelated to their names.
+
+For instance, while this definition is similar to the previous one:
+
+```ruby
+class XML::SAXParser
+  # (2)
+end
+```
+
+the nesting in (2) is different, `XML` does not belong to it:
+
+```ruby
+[XML::SAXParser]
+```
+
+We can see in this example that the name of a class or module that belongs to a
+certaing nesting does not necessarily correlate with the namespaces at the spot.
+
+Even more, they are totally independent, take for instance
+
+```ruby
+module X::Y
+  module A::B
+    # (3)
+  end
+end
+```
+
+The nesting in (3) is composed of two module objects:
+
+```ruby
+[A::B, X::Y]
+```
+
+So, it not only doesn't end in `A`, which does not even belong to the nesting,
+but it also contains `X::Y`, which is independent from `A::B`.
+
+The nesting is an internal stack maintained by the interpreter, and it gets
+modified according to these rules:
+
+* The class object following a `class` keyword gets pushed when its body is
+executed, and popped after it.
+
+* The module object following a `module` keyword gets pushed when its body is
+executed, and popped after it.
+
+* When a singleton class is opened with `class << object`, the singleton class
+gets pushed when the body is executed, and popped after it.
+
+* When any of the `*_eval` family of methods is called using a string argument,
+the singleton class of the receiver is pushed to the nesting of the eval'ed
+code.
+
+It is interesting to observe that **no** block gets a modified nesting. In
+particular the blocks that may be passed to `Class.new` and `Module.new` do not
+get the class or module being defined pushed to their nesting. That's one of the
+differences between defining classes and modules in one way or another.
+
+The nesting at any given place can be inspected with `Module.nesting`.
+
+At any given point, the nesting can be empty, let's use *cref* to refer to the
+first element of the nesting if it is not empty, or `Object` otherwise. Without
+getting too much into the details, the resolution algorithm for relative
+constant references goes like this:
+
+1. First, if the nesting is not empty it looks for the constant in its elements
+and in order, ingoring their ancestors.
+
+2. If not found, then it walks up the ancestor chain of the cref.
+
+3. If not found, `const_missing` is invoked on the cref.
+
+Rails autoloading **does not emulate this algorithm**, but its starting point is
+the name of the constant to be autoloaded, and the cref.
+
 
 ### Class and Module Definitions are Constant Assignments
 
@@ -254,6 +273,85 @@ would have separate entries in their respective constant tables.
 Put special attention in the previous paragraphs to the distinction between
 class and module objects, constant names, and value objects assiociated to them
 in constant tables.
+
+
+Vocabulary
+----------
+
+### Parent Namespaces
+
+Given a string with a constant path we define its *parent namespace* to be the
+string that results from removing its rightmost segment.
+
+For example, the parent namespace of the string "A::B::C" is the string "A::B",
+the parent namespace of "A::B" is "A", and the parent namespace of "A" is "".
+
+The interpretation of a parent namespace when thinking about classes and modules
+is tricky though. Let's consider a module M named "A::B":
+
+* The parent namespace, "A", may not reflect nesting at a given spot.
+
+* The constant `A` may no longer exist, some code could have removed it from
+`Object`.
+
+* If `A` exists, the class or module that was originally in `A` may not be there
+anymore. For example, if after a constant removal there was another constant
+assignment there would generally be a different object in there.
+
+* In such case, it could even happen that the reassigned `A` held a new class or
+module called also "A"!
+
+* In the previous scenarios M would no longer be reachable through `A::B` but
+the module object itself could still be alive somewhere and its name would
+still be "A::B".
+
+The idea of a parent namespace is at the core of the autoloading algorithms
+and helps explain and understand their motivation intuitively, but as you see
+that metaphor leaks easily. Given an edge case to reason about, take always into
+account the by "parent namespace" the guide means exactly that specific string
+derivation.
+
+### Loading Mechanism
+
+Rails autoloads files with `Kerne#load` when `config.cache_classes` is false,
+the default in development mode, and with `Kernel#require` otherwise, the
+default in production mode.
+
+`Kernel#load` allows Rails to execute files more than once if [constant
+reloading](#constant-reloading) is enabled.
+
+This guide uses the word "load" freely to mean a given file is interpreted, but
+the actual mechanism can be `Kernel#load` or `Kernel#require` depending on that
+flag.
+
+
+Autoloading Availability
+------------------------
+
+Rails is always able to autoload provided its environment is in place. For
+example the `runner` command autoloads:
+
+```
+$ bin/rails runner 'p User.column_names'
+["id", "email", "created_at", "updated_at"]
+```
+
+The console autoloads, the test suite autoloads, and of course the application
+autoloads.
+
+By default, Rails eager loads the application files when it boots in production
+mode, so most of the autoloading going on in development does not happen. But
+autoloading may still be triggered during eager loading.
+
+For example, given
+
+```ruby
+class BeachHouse < House
+end
+```
+
+if `House` is still unknown when `app/models/beach_house.rb` is being eager
+loaded, Rails autoloads it.
 
 
 autoload_paths
