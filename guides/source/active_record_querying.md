@@ -1330,7 +1330,7 @@ If you want to find both by name and locked, you can chain these finders togethe
 Find or Build a New Object
 --------------------------
 
-NOTE: Some dynamic finders have been deprecated in Rails 4.0 and will be
+NOTE: Some dynamic finders were deprecated in Rails 4.0 and
 removed in Rails 4.1. The best practice is to use Active Record scopes
 instead. You can find the deprecation gem at
 https://github.com/rails/activerecord-deprecated_finders
