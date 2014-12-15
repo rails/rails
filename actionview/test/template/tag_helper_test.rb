@@ -64,11 +64,6 @@ class TagHelperTest < ActionView::TestCase
                  content_tag("a", "href" => "create") { "Create" }
   end
 
-  def test_content_tag_with_block_and_non_string_outside_out_of_erb
-    assert_equal content_tag("p", "1.0", nil, false),
-                 content_tag("p") { 1.0 }
-  end
-
   def test_content_tag_nested_in_content_tag_out_of_erb
     assert_equal content_tag("p", content_tag("b", "Hello")),
                  content_tag("p") { content_tag("b", "Hello") },
