@@ -200,7 +200,7 @@ module ActiveRecord
             after_create save_method
             after_update save_method
           else
-            define_non_cyclic_method(save_method) { save_belongs_to_association(reflection) }
+            define_non_cyclic_method(save_method) { throw(:abort) if save_belongs_to_association(reflection) == false }
             before_save save_method
           end
 

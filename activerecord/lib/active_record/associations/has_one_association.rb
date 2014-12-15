@@ -13,7 +13,7 @@ module ActiveRecord
           if load_target
             record = klass.human_attribute_name(reflection.name).downcase
             owner.errors.add(:base, :"restrict_dependent_destroy.one", record: record)
-            false
+            throw(:abort)
           end
 
         else

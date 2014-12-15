@@ -192,14 +192,14 @@ module ActiveRecord
   #
   # == <tt>before_validation*</tt> returning statements
   #
-  # If the returning value of a +before_validation+ callback can be evaluated to +false+, the process will be
+  # If the +before_validation+ callback throws +:abort+, the process will be
   # aborted and <tt>Base#save</tt> will return +false+. If Base#save! is called it will raise a
   # ActiveRecord::RecordInvalid exception. Nothing will be appended to the errors object.
   #
   # == Canceling callbacks
   #
-  # If a <tt>before_*</tt> callback returns +false+, all the later callbacks and the associated action are
-  # cancelled. If an <tt>after_*</tt> callback returns +false+, all the later callbacks are cancelled.
+  # If a <tt>before_*</tt> callback throws +:abort+, all the later callbacks and
+  # the associated action are cancelled.
   # Callbacks are generally run in the order they are defined, with the exception of callbacks defined as
   # methods on the model, which are called last.
   #

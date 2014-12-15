@@ -17,7 +17,6 @@ module ActiveRecord
 
     included do
       define_callbacks :commit, :rollback,
-                       terminator: ->(_, result_lambda) { result_lambda.call == false },
                        scope: [:kind, :name]
 
       mattr_accessor :raise_in_transactional_callbacks, instance_writer: false

@@ -1,3 +1,11 @@
+*   Deprecate returning `false` as a way to halt callback chains.
+
+    Returning `false` in a `before_` callback will display a
+    deprecation warning explaining that the preferred method to halt a callback
+    chain is to explicitly `throw(:abort)`.
+
+    *claudiob*
+
 *   Clear query cache on rollback.
 
     *Florian Weingarten*

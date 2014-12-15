@@ -194,6 +194,16 @@ class TransactionTest < ActiveRecord::TestCase
     assert_equal posts_count, author.posts(true).size
   end
 
+  def test_cancellation_from_returning_false_in_before_filter
+    def @first.before_save_for_transaction
+      false
+    end
+
+    assert_deprecated do
+      @first.save
+    end
+  end
+
   def test_cancellation_from_before_destroy_rollbacks_in_destroy
     add_cancelling_before_destroy_with_db_side_effect_to_topic @first
     nbooks_before_destroy = Book.count
@@ -650,7 +660,7 @@ class TransactionTest < ActiveRecord::TestCase
       meta = class << topic; self; end
       meta.send("define_method", "before_#{filter}_for_transaction") do
         Book.create
-        false
+        throw(:abort)
       end
     end
   end
