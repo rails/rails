@@ -677,7 +677,7 @@ class CreateArticles < ActiveRecord::Migration
       t.string :title
       t.text :text
 
-      t.timestamps
+      t.timestamps null: false
     end
   end
 end
@@ -1539,7 +1539,7 @@ class CreateComments < ActiveRecord::Migration
       # this line adds an integer column called `article_id`.
       t.references :article, index: true
 
-      t.timestamps
+      t.timestamps null: false
     end
   end
 end
