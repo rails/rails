@@ -15,8 +15,6 @@ After reading this guide, you will know:
 
 * How constant reloading works
 
-* That autoloading is not based on `Module#autoload`
-
 * Solutions to common autoloading gotchas
 
 --------------------------------------------------------------------------------
@@ -259,7 +257,9 @@ Put special attention in the previous paragraphs to the distinction between
 class and module objects, constant names, and value objects associated to them
 in constant tables.
 
-### Resolution Algorithm for Relative Constants
+### Resolution Algorithms
+
+#### Resolution Algorithm for Relative Constants
 
 At any given place in the code, let's define *cref* to be the first element of
 the nesting if it is not empty, or `Object` otherwise.
@@ -279,7 +279,7 @@ Rails autoloading **does not emulate this algorithm**, but its starting point is
 the name of the constant to be autoloaded, and the cref. See more in [Relative
 References](#relative-references).
 
-### Resolution Algorithm for Qualified Constants
+#### Resolution Algorithm for Qualified Constants
 
 Qualified constants look like this:
 
@@ -843,13 +843,13 @@ class Admin::UsersController < ApplicationController
 end
 ```
 
-If Ruby resolves `User` in the former case it checks whether there's a `User`
-constant in the `Admin` module. It does not in the latter case, because `Admin`
-does not belong to the nesting.
+To resolve `User` Ruby checks `Admin` in the former case, but it does not in
+the latter because it does not belong to the nesting. (See [Nesting](#nesting)
+and [Resolution Algorithms](#resolution- algorithms).)
 
 Unfortunately Rails autoloading does not know the nesting in the spot where the
 constant was missing and so it is not able to act as Ruby would. In particular,
-if `Admin::User` is autoloadable, it will get autoloaded in either case.
+`Admin::User` will get autoloaded in either case.
 
 Albeit qualified constants with `class` and `module` keywords may technically
 work with autoloading in some cases, it is preferable to use relative constants
@@ -867,10 +867,10 @@ end
 
 ### Autoloading and STI
 
-STI (Single Table Inheritance) is a feature of Active Record that easies storing
-records that belong to a hierarchy of classes in one single table. The API of
-such models is aware of the hierarchy and encapsulates some common needs. For
-example, given these classes:
+Single Table Inheritance (STI) is a feature of Active Record that easies
+storing a hierarchy of models in one single table. The API of such models is
+aware of the hierarchy and encapsulates some common needs. For example, given
+these classes:
 
 ```ruby
 # app/models/polygon.rb
@@ -887,37 +887,35 @@ end
 ```
 
 `Triangle.create` creates a row that represents a triangle, and
-`Rectangle.create` creates a row that represents a rectangle. If `id` is the ID
-of an existing record, `Polygon.find(id)` returns an object of the correct type.
+`Rectangle.create` creates a row that represents a rectangle. If `id` is the
+ID of an existing record, `Polygon.find(id)` returns an object of the correct
+type.
 
-Methods that perform operations on collections are also aware of the hierarchy.
-For example, `Polygon.all` returns all the records of the table, because all
+Methods that operate on collections are also aware of the hierarchy. For
+example, `Polygon.all` returns all the records of the table, because all
 rectangles and triangles are polygons. Active Record takes care of returning
 instances of their corresponding class in the result set.
 
-When Active Record does this, it autoloads constants as needed. For example, if
-the class of `Polygon.first` is `Rectangle` and it has not yet been loaded,
-Active Record autoloads it and the record is fetched and correctly instantiated,
-transparently.
+Types are autoloaded as needed. For example, if `Polygon.first` is a rectangle
+and `Rectangle` has not yet been loaded, Active Record autoloads it and the
+record is correctly instantiated.
 
 All good, but if instead of performing queries based on the root class we need
-to work on some subclass, then things get interesting.
+to work on some subclass, things get interesting.
 
 While working with `Polygon` you do not need to be aware of all its descendants,
 because anything in the table is by definition a polygon, but when working with
 subclasses Active Record needs to be able to enumerate the types it is looking
 for. Let’s see an example.
 
-`Rectangle.all` should return all the rectangles in the "polygons" table. In
-particular, no triangle should be fetched. To accomplish this, Active Record
-constraints the query to rows whose type column is “Rectangle”:
+`Rectangle.all` only loads rectangles by adding a type constraint to the query:
 
 ```sql
 SELECT "polygons".* FROM "polygons"
 WHERE "polygons"."type" IN ("Rectangle")
 ```
 
-That works, but let’s introduce now a child of `Rectangle`:
+Let’s introduce now a subclass of `Rectangle`:
 
 ```ruby
 # app/models/square.rb
@@ -925,16 +923,15 @@ class Square < Rectangle
 end
 ```
 
-`Rectangle.all` should return rectangles **and** squares, the query should
-become
+`Rectangle.all` should now return rectangles **and** squares:
 
 ```sql
 SELECT "polygons".* FROM "polygons"
 WHERE "polygons"."type" IN ("Rectangle", "Square")
 ```
 
-But there’s a subtle caveat here: How does Active Record know that the class
-`Square` exists at all?
+But there’s a caveat here: How does Active Record know that the class `Square`
+exists at all?
 
 Even if the file `app/models/square.rb` exists and defines the `Square` class,
 if no code yet used that class, `Rectangle.all` issues the query
@@ -944,8 +941,7 @@ SELECT "polygons".* FROM "polygons"
 WHERE "polygons"."type" IN ("Rectangle")
 ```
 
-That is not a bug in Active Record, as we saw above the query does include all
-*known* descendants of `Rectangle`.
+That is not a bug, the query includes all *known* descendants of `Rectangle`.
 
 A way to ensure this works correctly regardless of the order of execution is to
 load the leaves of the tree by hand at the bottom of the file that defines the
@@ -958,15 +954,14 @@ end
 require_dependency ‘square’
 ```
 
-Only the leaves that are **at least grandchildren** have to be loaded that way.
-Direct subclasses do not need to be preloaded, and if the hierarchy is deeper
-intermediate superclasses will be autoloaded recursively from the bottom because
-their constant will appear in the definitions.
+Only the leaves that are **at least grandchildren** have to be loaded that
+way. Direct subclasses do not need to be preloaded, and if the hierarchy is
+deeper intermediate classes will be autoloaded recursively from the bottom
+because their constant will appear in the class definitions as superclass.
 
 ### Autoloading and `require`
 
-Files defining constants that should be autoloaded should never be loaded with
-`require`:
+Files defining constants to be autoloaded should never be `require`d:
 
 ```ruby
 require 'user' # DO NOT DO THIS
@@ -976,25 +971,21 @@ class UsersController < ApplicationController
 end
 ```
 
-If some part of the application autoloads the `User` constant before, then the
-application will interpret `app/models/user.rb` twice in development mode.
+There are two possible gotchas here in development mode:
 
-As we saw before, in development mode autoloading uses `Kernel#load` by default.
-Since `load` does not store the name of the interpreted file in
-`$LOADED_FEATURES` (`$"`) `require` executes, again, `app/models/user.rb`.
+1. If `User` is autoloaded before reaching the `require`, `app/models/user.rb`
+runs again because `load` does not update `$LOADED_FEATURES`.
 
-On the other hand, if `app/controllers/users_controllers.rb` happens to be
-evaluated before `User` is autoloaded then dependencies won’t mark `User` as an
-autoloaded constant, and therefore changes to `app/models/user.rb` won’t be
-updated in development mode.
+2. If the `require` runs first Rails does not mark `User` as an autoloaded
+constant and changes to `app/models/user.rb` aren't reloaded.
 
-Just follow the flow and use constant autoloading always, never mix autoloading
-and `require`. As a last resort, if some file absolutely needs to load a certain
-file by hand use `require_dependency` to play nice with constant autoloading.
-This option is rarely needed in practice, though.
+Just follow the flow and use constant autoloading always, never mix
+autoloading and `require`. As a last resort, if some file absolutely needs to
+load a certain file use `require_dependency` to play nice with constant
+autoloading. This option is rarely needed in practice, though.
 
 Of course, using `require` in autoloaded files to load ordinary 3rd party
-libraries is fine, and Rails is able to distinguish their constants, so they are
+libraries is fine, and Rails is able to distinguish their constants, they are
 not marked as autoloaded.
 
 ### Autoloading and Initializers
@@ -1002,24 +993,22 @@ not marked as autoloaded.
 Consider this assignment in `config/initializers/set_auth_service.rb`:
 
 ```ruby
-AUTH_SERVICE = Rails.env.production? ? RealAuthService : MockedAuthService
+AUTH_SERVICE = if Rails.env.production?
+  RealAuthService
+else
+  MockedAuthService
+end
 ```
 
-The purpose of this setup would be that the application code uses always
-`AUTH_SERVICE` and that constant holds the proper class for the runtime
-environment. In development mode `MockedAuthService` gets autoloaded when the
-initializer is run. Let’s suppose we do some requests, change the implementation
-of `MockedAuthService`, and hit the application again. To our surprise the
-changes are not reflected. Why?
+The purpose of this setup would be that the application uses the class that
+corresponds to the environment via `AUTH_SERVICE`. In development mode
+`MockedAuthService` gets autoloaded when the initializer runs. Let’s suppose
+we do some requests, change its implementation, and hit the application again.
+To our surprise the changes are not reflected. Why?
 
-As we saw earlier, Rails wipes autoloaded constants by removing them from their
-containers using `remove_const`. But the object the constant holds may remain
-stored somewhere else. Constant removal can’t do anything about that.
-
-That is precisely the case in this example. `AUTH_SERVICE` stores the original
-class object which is perfectly functional regardless of the fact that there is
-no longer a constant in `Object` that matches its class name. The class object
-is independent of the constants it may or may not be stored in.
+As [we saw earlier](#constant-reloading), Rails removes autoloaded constants,
+but `AUTH_SERVICE` stores the original class object. Stale, non-reachable
+using the original constant, but perfectly functional.
 
 The following code summarizes the situation:
 
@@ -1040,10 +1029,10 @@ C           # => uninitialized constant C (NameError)
 Because of that, it is not a good idea to autoload constants on application
 initialization.
 
-In the case above we could for instance implement a dynamic access point that
-returns something that depends on the environment:
+In the case above we could implement a dynamic access point:
 
 ```ruby
+# app/models/auth_service.rb
 class AuthService
   if Rails.env.production?
     def self.instance
@@ -1057,32 +1046,28 @@ class AuthService
 end
 ```
 
-and have the application use `AuthService.instance` instead of `AUTH_SERVICE`.
-The code in that `AuthService` would be loaded on demand and be
-autoload-friendly.
+and have the application use `AuthService.instance` instead. `AuthService`
+would be loaded on demand and be autoload-friendly.
 
 ### `require_dependency` and Initializers
 
-As we saw before, `require_dependency` loads files in a autoloading-friendly
+As we saw before, `require_dependency` loads files in an autoloading-friendly
 way. Normally, though, such a call does not make sense in an initializer.
 
-`require_dependency` provides a way to ensure a certain constant is defined at
-some point regardless of the execution path, and one could think about doing
-some calls in an initializer to make sure certain constants are loaded upfront,
-for example as an attempt to address the gotcha with STIs.
+One could think about doing some [`require_dependency`](#require-dependency)
+calls in an initializer to make sure certain constants are loaded upfront, for
+example as an attempt to address the [gotcha with STIs](#autoloading-and-sti).
 
-Problem is, in development mode all autoloaded constants are wiped on a
-subsequent request as soon as there is some relevant change in the file system.
-When that happens the application is in the very same situation the initializer
-wanted to avoid!
+Problem is, in development mode [autoloaded constants are wiped](#constant-reloading)
+if there is any relevant change in the file system. If that happens the
+we are in the very same situation the initializer wanted to avoid!
 
 Calls to `require_dependency` have to be strategically written in autoloaded
 spots.
 
 ### When Constants aren't Missed
 
-Let’s imagine that a Rails application has an `Image` model, and a subclass
-`Hotel::Image`:
+Let's consider an `Image` model, superclass of `Hotel::Image`:
 
 ```ruby
 # app/models/image.rb
@@ -1110,8 +1095,7 @@ end
 ```
 
 The intention is to subclass `Hotel::Image`, but which is actually the
-superclass of `Hotel::Poster`? Well, it depends on the order of execution of the
-files:
+superclass of `Hotel::Poster`? Well, it depends on the order of execution:
 
 1. If neither `app/models/image.rb` nor `app/models/hotel/image.rb` have been
 loaded at that point, the superclass is `Hotel::Image` because Rails is told
@@ -1125,10 +1109,8 @@ is `Hotel::Image` because Ruby is able to resolve the constant. Good.
 is `Image`. Gotcha!
 
 The last scenario (3) may be surprising. Why isn't `Hotel::Image` autoloaded?
-
-Constant autoloading cannot happen at that point because Ruby is able to
-resolve `Image` as a top-level constant, in consequence autoloading is not
-triggered.
+Because Ruby is able to resolve `Image` as a top-level constant, so
+autoloading does not even get a chance.
 
 Most of the time, these kind of ambiguities can be resolved using qualified
 constants. In this case we would write
@@ -1140,9 +1122,7 @@ module Hotel
 end
 ```
 
-That class definition now is robust. No matter which files have been
-previously loaded, we know for certain that the superclass is unambiguously
-set.
+That class definition now is robust.
 
 It is interesting to note here that fix works because `Hotel` is a module, and
 `Hotel::Image` won’t look for `Image` in `Object` as it would if `Hotel` was a
@@ -1152,7 +1132,7 @@ solution the qualified name would no longer be necessary.
 
 ### Autoloading within Singleton Classes
 
-Let’s suppose we have these class definitions:
+Let's suppose we have these class definitions:
 
 ```ruby
 # app/models/hotel/services.rb
@@ -1171,17 +1151,15 @@ module Hotel
 end
 ```
 
-1. If `Hotel::Services` is known by the time `Hotel::GeoLocation` is being loaded,
-everything works because `Hotel` belongs to the nesting when the singleton class
-of `Hotel::GeoLocation` is opened, and thus Ruby itself is able to resolve the
-constant.
+If `Hotel::Services` is known by the time `app/models/hotel/geo_location.rb`
+is being loaded, `Services` is resolved by Ruby because `Hotel` belongs to the
+nesting when the singleton class of `Hotel::GeoLocation` is opened.
 
-2. But if `Hotel::Services` is not known and we rely on autoloading for the
-`Services` constant in `Hotel::GeoLocation`, Rails is not able to find
-`Hotel::Services`. The application raises `NameError`.
+But if `Hotel::Services` is not known, Rails is not able to autoload it, the
+application raises `NameError`.
 
 The reason is that autoloading is triggered for the singleton class, which is
-anonymous, and as we [saw before](#generic-procedure), Rails only checks the
+anonymous, and as [we saw before](#generic-procedure), Rails only checks the
 top-level namespace in that edge case.
 
 An easy solution to this caveat is to qualify the constant:
@@ -1228,7 +1206,8 @@ c.user # surprisingly fine, User
 c.user # NameError: uninitialized constant C::User
 ```
 
-because it detects a parent namespace already has the constant.
+because it detects a parent namespace already has the constant (see [Qualified
+References](#qualified-references).)
 
 As with pure Ruby, within the body of a direct descendant of `BasicObject` use
 always absolute constant paths:
