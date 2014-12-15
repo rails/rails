@@ -113,7 +113,7 @@ the nesting in (2) is different, `XML` does not belong to it:
 ```
 
 We can see in this example that the name of a class or module that belongs to a
-certaing nesting does not necessarily correlate with the namespaces at the spot.
+certain nesting does not necessarily correlate with the namespaces at the spot.
 
 Even more, they are totally independent, take for instance
 
@@ -163,7 +163,7 @@ getting too much into the details, the resolution algorithm for relative
 constant references goes like this:
 
 1. First, if the nesting is not empty it looks for the constant in its elements
-and in order, ingoring their ancestors.
+and in order, ignoring their ancestors.
 
 2. If not found, then it walks up the ancestor chain of the cref.
 
