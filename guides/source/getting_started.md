@@ -422,12 +422,12 @@ If you refresh <http://localhost:3000/articles/new> now, you'll get a new error:
 This error indicates that Rails cannot find the `new` action inside the
 `ArticlesController` that you just generated. This is because when controllers
 are generated in Rails they are empty by default, unless you tell it
-your wanted actions during the generation process.
+your desired actions during the generation process.
 
 To manually define an action inside a controller, all you need to do is to
 define a new method inside the controller. Open
 `app/controllers/articles_controller.rb` and inside the `ArticlesController`
-class, define a `new` method so that the controller now looks like this:
+class, define the `new` method so that your controller now looks like this:
 
 ```ruby
 class ArticlesController < ApplicationController
@@ -444,23 +444,23 @@ With the `new` method defined in `ArticlesController`, if you refresh
 
 You're getting this error now because Rails expects plain actions like this one
 to have views associated with them to display their information. With no view
-available, Rails errors out.
+available, Rails will raise an exception.
 
 In the above image, the bottom line has been truncated. Let's see what the full
-thing looks like:
+error message looks like:
 
 >Missing template articles/new, application/new with {locale:[:en], formats:[:html], handlers:[:erb, :builder, :coffee]}. Searched in: * "/path/to/blog/app/views"
 
 That's quite a lot of text! Let's quickly go through and understand what each
-part of it does.
+part of it means.
 
-The first part identifies what template is missing. In this case, it's the
+The first part identifies which template is missing. In this case, it's the
 `articles/new` template. Rails will first look for this template. If not found,
 then it will attempt to load a template called `application/new`. It looks for
 one here because the `ArticlesController` inherits from `ApplicationController`.
 
 The next part of the message contains a hash. The `:locale` key in this hash
-simply indicates what spoken language template should be retrieved. By default,
+simply indicates which spoken language template should be retrieved. By default,
 this is the English - or "en" - template. The next key, `:formats` specifies the
 format of template to be served in response. The default format is `:html`, and
 so Rails is looking for an HTML template. The final key, `:handlers`, is telling
@@ -473,14 +473,16 @@ Templates within a basic Rails application like this are kept in a single
 location, but in more complex applications it could be many different paths.
 
 The simplest template that would work in this case would be one located at
-`app/views/articles/new.html.erb`. The extension of this file name is key: the
-first extension is the _format_ of the template, and the second extension is the
-_handler_ that will be used. Rails is attempting to find a template called
-`articles/new` within `app/views` for the application. The format for this
-template can only be `html` and the handler must be one of `erb`, `builder` or
-`coffee`. Because you want to create a new HTML form, you will be using the `ERB`
-language. Therefore the file should be called `articles/new.html.erb` and needs
-to be located inside the `app/views` directory of the application.
+`app/views/articles/new.html.erb`. The extension of this file name is important:
+the first extension is the _format_ of the template, and the second extension
+is the _handler_ that will be used. Rails is attempting to find a template
+called `articles/new` within `app/views` for the application. The format for
+this template can only be `html` and the handler must be one of `erb`,
+`builder` or `coffee`. Because you want to create a new HTML form, you will be
+using the `ERB` language which is designed to embed Ruby in HTML.
+
+Therefore the file should be called `articles/new.html.erb` and needs to be
+located inside the `app/views` directory of the application.
 
 Go ahead now and create a new file at `app/views/articles/new.html.erb` and
 write this content in it:
