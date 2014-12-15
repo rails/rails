@@ -667,8 +667,8 @@ rake commands to run migrations, and it's possible to undo a migration after
 it's been applied to your database. Migration filenames include a timestamp to
 ensure that they're processed in the order that they were created.
 
-If you look in the `db/migrate/20140120191729_create_articles.rb` file (remember,
-yours will have a slightly different name), here's what you'll find:
+If you look in the `db/migrate/YYYYMMDDHHMMSS_create_articles.rb` file
+(remember, yours will have a slightly different name), here's what you'll find:
 
 ```ruby
 class CreateArticles < ActiveRecord::Migration
