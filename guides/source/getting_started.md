@@ -738,7 +738,7 @@ database columns. In the first line we do just that (remember that
 `@article.save` is responsible for saving the model in the database. Finally,
 we redirect the user to the `show` action, which we'll define later.
 
-TIP: You might be wondering why the `A` in `Article.new` is capitalized above, whereas most other references to articles in this guide have used lowercase. In this context, we are referring to the class named `Article` that is defined in `\models\article.rb`. Class names in Ruby must begin with a capital letter.
+TIP: You might be wondering why the `A` in `Article.new` is capitalized above, whereas most other references to articles in this guide have used lowercase. In this context, we are referring to the class named `Article` that is defined in `app/models/article.rb`. Class names in Ruby must begin with a capital letter.
 
 TIP: As we'll see later, `@article.save` returns a boolean indicating whether
 the article was saved or not.
