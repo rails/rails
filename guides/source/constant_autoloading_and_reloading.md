@@ -539,7 +539,7 @@ role.rb
 
 modulus some additional directory lookups we are going to cover soon.
 
-INFO. 'Constant::Name'.underscore gives the relative path without extension of
+INFO. `'Constant::Name'.underscore` gives the relative path without extension of
 the file name where `Constant::Name` is expected to be defined.
 
 Let's see how does Rails autoload the `Post` constant in the `PostsController`
