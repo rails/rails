@@ -261,14 +261,15 @@ in constant tables.
 ### Resolution Algorithm for Relative Constants
 
 At any given place in the code, let's define *cref* to be the first element of
-the nesting if it is not empty, or `Object` otherwise. Without getting too much
-into the details, the resolution algorithm for relative constant references goes
-like this:
+the nesting if it is not empty, or `Object` otherwise.
 
-1. First, if the nesting is not empty it looks for the constant in its elements
-and in order, ignoring their ancestors.
+Without getting too much into the details, the resolution algorithm for relative
+constant references goes like this:
 
-2. If not found, then it walks up the ancestor chain of the cref.
+1. If the nesting is not empty the constant is looked up in its elements and in
+order. The ancestors of those elements are ignored.
+
+2. If not found, then the algorithm walks up the ancestor chain of the cref.
 
 3. If not found, `const_missing` is invoked on the cref.
 
@@ -286,9 +287,9 @@ Billing::Invoice
 
 `Billing::Invoice` is composed of two constants: `Billing`, in the first
 segment, is relative and is resolved using the algorithm of the previous
-section; `Invoice`, in the secong segment, is qualified by `Billing` and we are
+section; `Invoice`, in the second segment, is qualified by `Billing` and we are
 going to see its resolution next. Let's call *parent* to that qualifying class
-or module object:
+or module object, that is, `Billing` in the example above:
 
 1. The constant is looked up in the parent and its ancestors.
 
@@ -588,14 +589,14 @@ For example, consider
 
 ```ruby
 module Admin
-  User # relative reference
+  User
 end
 ```
 
 and
 
 ```ruby
-Admin::User # qualified reference
+Admin::User
 ```
 
 If `User` is missing, in either case all Rails knows is that a constant called
