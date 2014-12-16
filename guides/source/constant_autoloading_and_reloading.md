@@ -405,7 +405,7 @@ next directory of the list. If the list gets exhausted, `LoadError` is raised.
 We are going to cover how constant autoloading works in more detail later, but
 the idea is that when a constant like `Post` is hit and missing, if there is a
 *post.rb* file, for example in *app/models*, Rails will find it, evaluate it
-and have `Post` defined as a side-effect.
+and allocate the class `Post` as a side-effect.
 
 At this point, Rails has a collection of directories similar to `$LOAD_PATH` in
 which to look up *post.rb*. That collection is called `autoload_paths` and by
