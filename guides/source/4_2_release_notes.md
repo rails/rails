@@ -514,9 +514,9 @@ Please refer to the [Changelog][action-pack] for detailed changes.
     implementation and not an intentional feature, e.g.:
 
     ```ruby
-    test "list all posts" do
-      get "/posts"
-      assert_response :success 
+    test "list all posts" do
+      get "/posts"
+      assert_response :success
     end
     ```
 
