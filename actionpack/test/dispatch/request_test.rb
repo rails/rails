@@ -1143,6 +1143,13 @@ class RequestVariant < BaseRequestTest
     end
   end
 
+  test "reset variant" do
+    request = stub_request
+
+    request.variant = nil
+    assert_equal nil, request.variant
+  end
+
   test "setting variant with non symbol value" do
     request = stub_request
     assert_raise ArgumentError do
