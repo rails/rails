@@ -879,9 +879,11 @@ class Order < ActiveRecord::Base
   belongs_to :customer, counter_cache: :count_of_orders
 end
 class Customer < ActiveRecord::Base
-  has_many :orders
+  has_many :orders, counter_cache: :count_of_orders
 end
 ```
+
+NOTE: You only need to specify the :counter_cache option on the "has_many side" of the association when using a custom name for the counter cache.
 
 Counter cache columns are added to the containing model's list of read-only attributes through `attr_readonly`.
 
@@ -1495,6 +1497,7 @@ The `has_many` association supports these options:
 * `:as`
 * `:autosave`
 * `:class_name`
+* `:counter_cache`
 * `:dependent`
 * `:foreign_key`
 * `:inverse_of`
@@ -1521,6 +1524,9 @@ class Customer < ActiveRecord::Base
   has_many :orders, class_name: "Transaction"
 end
 ```
+
+##### `:counter_cache`
+This option can be used to configure a custom named `:counter_cache`. You only need this option when you customized the name of your `:counter_cache` on the [belongs_to association](#options-for-belongs-to).
 
 ##### `:dependent`
 
