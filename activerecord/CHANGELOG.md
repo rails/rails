@@ -1,3 +1,11 @@
+*   `db:schema:load` and `db:structure:load` no longer purge the database
+    before loading the schema. This is left for the user to do.
+    `db:test:prepare` will still purge the database.
+
+    Closes #17945.
+
+    *Yves Senn*
+
 *   Bring back `db:test:prepare` to synchronize the test database schema.
 
     Manual synchronization using `bin/rake db:test:prepare` is required
