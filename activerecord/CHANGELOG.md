@@ -283,6 +283,12 @@
 
     *Yves Senn*, *Matthew Draper*
 
+*   `add_timestamps` and `t.timestamps` now require you to pass the `:null` option.
+    Not passing the option is deprecated but the default is still `null: true`.
+    With Rails 5 this will change to `null: false`.
+
+    *Sean Griffin*
+
 *   When calling `update_columns` on a record that is not persisted, the error
     message now reflects whether that object is a new record or has been
     destroyed.
