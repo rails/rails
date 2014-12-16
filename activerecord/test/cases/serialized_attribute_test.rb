@@ -243,8 +243,9 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     t = Topic.create(content: "first")
     assert_equal("first", t.content)
 
-    t.update_column(:content, Topic.type_for_attribute('content').type_cast_for_database("second"))
-    assert_equal("second", t.content)
+    t.update_column(:content, ["second"])
+    assert_equal(["second"], t.content)
+    assert_equal(["second"], t.reload.content)
   end
 
   def test_serialized_column_should_unserialize_after_update_attribute
@@ -253,5 +254,6 @@ class SerializedAttributeTest < ActiveRecord::TestCase
 
     t.update_attribute(:content, "second")
     assert_equal("second", t.content)
+    assert_equal("second", t.reload.content)
   end
 end

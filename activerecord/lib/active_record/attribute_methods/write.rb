@@ -73,7 +73,7 @@ module ActiveRecord
         if should_type_cast
           @attributes.write_from_user(attr_name, value)
         else
-          @attributes.write_from_database(attr_name, value)
+          @attributes.write_cast_value(attr_name, value)
         end
 
         value
