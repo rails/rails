@@ -6,15 +6,10 @@ This guide documents how constant autoloading and reloading works.
 After reading this guide, you will know:
 
 * Key aspects of Ruby constants
-
 * What is `autoload_paths`
-
 * How constant autoloading works
-
 * What is `require_dependency`
-
 * How constant reloading works
-
 * Solutions to common autoloading gotchas
 
 --------------------------------------------------------------------------------
