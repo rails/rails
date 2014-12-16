@@ -72,11 +72,12 @@ module ActionDispatch
           end
         end
       end
+
       # Sets the \variant for template.
       def variant=(variant)
         if variant.is_a?(Symbol)
           @variant = [variant]
-        elsif variant.is_a?(Array) && variant.any? && variant.all?{ |v| v.is_a?(Symbol) }
+        elsif variant.nil? || variant.is_a?(Array) && variant.any? && variant.all?{ |v| v.is_a?(Symbol) }
           @variant = variant
         else
           raise ArgumentError, "request.variant must be set to a Symbol or an Array of Symbols, not a #{variant.class}. " \
