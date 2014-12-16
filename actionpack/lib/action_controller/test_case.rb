@@ -145,6 +145,8 @@ module ActionController
             assert(@_layouts.keys.any? {|l| l =~ expected_layout }, msg)
           when nil, false
             assert(@_layouts.empty?, msg)
+          else
+            raise ArgumentError, "assert_template only accepts a String, Symbol, Regexp, nil or false for :layout"
           end
         end
 
