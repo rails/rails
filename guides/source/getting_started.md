@@ -90,18 +90,18 @@ current version of Ruby installed:
 TIP: A number of tools exist to help you quickly install Ruby and Ruby
 on Rails on your system. Windows users can use [Rails Installer](http://railsinstaller.org),
 while Mac OS X users can use [Tokaido](https://github.com/tokaido/tokaidoapp).
+For more installation methods for most Operating Systems take a look at
+[ruby-lang.org](https://www.ruby-lang.org/en/documentation/installation/).
 
 ```bash
 $ ruby -v
 ruby 2.0.0p353
 ```
 
-If you don't have Ruby installed have a look at
-[ruby-lang.org](https://www.ruby-lang.org/en/installation/) for possible ways to
-install Ruby on your platform.
-
-Many popular UNIX-like OSes ship with an acceptable version of SQLite3. Windows
-users and others can find installation instructions at the [SQLite3 website](https://www.sqlite.org).
+Many popular UNIX-like OSes ship with an acceptable version of SQLite3.
+On Windows, if you installed Rails through Rails Installer, you
+already have SQLite installed. Others can find installation instructions
+at the [SQLite3 website](https://www.sqlite.org).
 Verify that it is correctly installed and in your PATH:
 
 ```bash
@@ -124,6 +124,11 @@ $ rails --version
 ```
 
 If it says something like "Rails 4.2.0", you are ready to continue.
+
+TIP: There are some performance and incompatibility issues with Ruby in Windows
+environments. Some developers do not recommend developing Ruby apps on Windows.
+But if you are just learning, do not worry by now, you shouldn't have problems
+following this tutorial.
 
 ### Creating the Blog Application
 
