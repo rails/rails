@@ -7,7 +7,7 @@ After reading this guide, you will know:
 
 * Key aspects of Ruby constants
 
-* What is `autoload_paths`
+* The purpose `autoload_paths`
 
 * How constant autoloading works
 
@@ -225,7 +225,7 @@ constants on the fly.
 ### Constants are Stored in Modules
 
 Constants belong to modules in a very literal sense. Classes and modules have
-a constant table, think of it as a hash table.
+a constant table; think of it as a hash table.
 
 Let's analyze an example to really understand what that means. While in a
 casual setting some abuses of language are customary, the exposition is going
@@ -405,11 +405,11 @@ is raised.
 
 We are going to cover how constant autoloading works in more detail later, but
 the idea is that when a constant like `Post` is hit and missing, if there's a
-*post.rb* file for example in *app/models* Rails is going to find it, evaluate
+`post.rb` file for example in `app/models` Rails is going to find it, evaluate
 it, and have `Post` defined as a side-effect.
 
 Alright, Rails has a collection of directories similar to `$LOAD_PATH` in which
-to lookup that *post.rb*. That collection is called `autoload_paths` and by
+to lookup that `post.rb`. That collection is called `autoload_paths` and by
 default it contains:
 
 * All subdirectories of `app` in the application and engines. For example,
