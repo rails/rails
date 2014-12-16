@@ -125,11 +125,6 @@ $ rails --version
 
 If it says something like "Rails 4.2.0", you are ready to continue.
 
-TIP: There are some performance and incompatibility issues with Ruby in Windows
-environments. Some developers do not recommend developing Ruby apps on Windows.
-But if you are just learning, do not worry by now, you shouldn't have problems
-following this tutorial.
-
 ### Creating the Blog Application
 
 Rails comes with a number of scripts called generators that are designed to make
