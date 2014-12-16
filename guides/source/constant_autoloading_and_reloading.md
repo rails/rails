@@ -341,7 +341,7 @@ still be "A::B".
 The idea of a parent namespace is at the core of the autoloading algorithms
 and helps explain and understand their motivation intuitively, but as you see
 that metaphor leaks easily. Given an edge case to reason about, take always into
-account the by "parent namespace" the guide means exactly that specific string
+account that by "parent namespace" the guide means exactly that specific string
 derivation.
 
 ### Loading Mechanism
@@ -542,7 +542,7 @@ modulus some additional directory lookups we are going to cover soon.
 INFO. `'Constant::Name'.underscore` gives the relative path without extension of
 the file name where `Constant::Name` is expected to be defined.
 
-Let's see how does Rails autoload the `Post` constant in the `PostsController`
+Let's see how Rails autoloads the `Post` constant in the `PostsController`
 above assuming the application has a `Post` model defined in
 `app/models/post.rb`.
 
@@ -585,7 +585,7 @@ file is loaded. If the file actually defines `Post` all is fine, otherwise
 ### Qualified References
 
 When a qualified constant is missing Rails does not look for it in the parent
-namespaces. But there's a caveat: Unfortunately, when a constant is missing
+namespaces. But there's a caveat: unfortunately, when a constant is missing
 Rails is not able to say if the trigger was a relative or qualified reference.
 
 For example, consider
@@ -640,7 +640,7 @@ But since autoloading happens on demand, if the top-level `User` by chance was
 not yet loaded then Rails has no way to know whether `Admin::User` should load it
 or raise `NameError`.
 
-These kind of name conflicts are rare in practice, but in case there's one
+These kind of name conflicts are rare in practice but, in case there's one,
 `require_dependency` provides a solution by making sure the constant needed to
 trigger the heuristic is defined in the conflicting place.
 
@@ -955,8 +955,8 @@ require_dependency ‘square’
 ```
 
 Only the leaves that are **at least grandchildren** have to be loaded that
-way. Direct subclasses do not need to be preloaded, and if the hierarchy is
-deeper intermediate classes will be autoloaded recursively from the bottom
+way. Direct subclasses do not need to be preloaded and, if the hierarchy is
+deeper, intermediate classes will be autoloaded recursively from the bottom
 because their constant will appear in the class definitions as superclass.
 
 ### Autoloading and `require`
@@ -1059,7 +1059,7 @@ calls in an initializer to make sure certain constants are loaded upfront, for
 example as an attempt to address the [gotcha with STIs](#autoloading-and-sti).
 
 Problem is, in development mode [autoloaded constants are wiped](#constant-reloading)
-if there is any relevant change in the file system. If that happens the
+if there is any relevant change in the file system. If that happens then
 we are in the very same situation the initializer wanted to avoid!
 
 Calls to `require_dependency` have to be strategically written in autoloaded
@@ -1124,7 +1124,7 @@ end
 
 That class definition now is robust.
 
-It is interesting to note here that fix works because `Hotel` is a module, and
+It is interesting to note here that the fix works because `Hotel` is a module, and
 `Hotel::Image` won’t look for `Image` in `Object` as it would if `Hotel` was a
 class with `Object` in its ancestors. If `Hotel` was a class we would resort to
 loading `Hotel::Image` with `require_dependency`. Furthermore, with that
