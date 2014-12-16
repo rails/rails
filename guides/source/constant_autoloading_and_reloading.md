@@ -627,17 +627,17 @@ been triggered in the first place. Thus, Rails assumes a qualified reference and
 considers the file `admin/user.rb` and directory `admin/user` to be the only
 valid options.
 
-In practice this works quite well as long as the nesting matches all parent
+In practice, this works quite well as long as the nesting matches all parent
 namespaces respectively and the constants that make the rule apply are known at
 that time.
 
-But since autoloading happens on demand, if the top-level `User` by chance was
-not yet loaded then Rails has no way to know whether `Admin::User` should load it
-or raise `NameError`.
+However, autoloading happens on demand. If by chance the top-level `User` was
+not yet loaded, then Rails has no way to know whether `Admin::User` should load
+it or raise `NameError`.
 
-These kind of name conflicts are rare in practice but, in case there's one,
-`require_dependency` provides a solution by making sure the constant needed to
-trigger the heuristic is defined in the conflicting place.
+Naming conflicts of this kind are rare in practice, but if one occurs,
+`require_dependency` provides a solution by ensuring that the constant needed
+to trigger the heuristic is defined in the conflicting place.
 
 ### Automatic Modules
 
