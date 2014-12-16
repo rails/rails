@@ -509,6 +509,17 @@ Please refer to the [Changelog][action-pack] for detailed changes.
     serving assets from your Rails server in production.
     ([Pull Request](https://github.com/rails/rails/pull/16466))
 
+*   When calling the `process` helpers in an integration test the path needs to have
+    a leading slash. Previously you could omit it but that was a byproduct of the
+    implementation and not an intentional feature, e.g.:
+
+    ```ruby
+    test "list all posts" do
+      get "/posts"
+      assert_response :success
+    end
+    ```
+
 Action View
 -----------
 
@@ -543,17 +554,6 @@ Please refer to the [Changelog][action-view] for detailed changes.
 
 *   Placeholder I18n follows the same convention as `label` I18n.
     ([Pull Request](https://github.com/rails/rails/pull/16438))
-
-*   When calling the `process` helpers in an integration test the path needs to have
-    a leading slash. Previously you could omit it but that was a byproduct of the
-    implementation and not an intentional feature, e.g.:
-
-    ```ruby
-    test "list all posts" do
-      get "/posts"
-      assert_response :success 
-    end
-    ```
 
 
 Action Mailer
@@ -828,6 +828,7 @@ Please refer to the [Changelog][active-support] for detailed changes.
     `module Foo; extend ActiveSupport::Concern; end` boilerplate.
     ([Commit](https://github.com/rails/rails/commit/b16c36e688970df2f96f793a759365b248b582ad))
 
+*   New [guide](constant_autoloading_and_reloading.html) about constant autoloading and reloading.
 
 Credits
 -------
