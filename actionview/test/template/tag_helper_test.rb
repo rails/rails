@@ -50,6 +50,11 @@ class TagHelperTest < ActionView::TestCase
     assert_dom_equal "<div>Hello world!</div>", buffer
   end
 
+  def test_content_tag_with_block_in_erb_containing_non_displayed_erb
+    buffer = render_erb("<%= content_tag(:p) do %><% 1 %><% end %>")
+    assert_dom_equal "<p></p>", buffer
+  end
+
   def test_content_tag_with_block_and_options_in_erb
     buffer = render_erb("<%= content_tag(:div, :class => 'green') do %>Hello world!<% end %>")
     assert_dom_equal %(<div class="green">Hello world!</div>), buffer
