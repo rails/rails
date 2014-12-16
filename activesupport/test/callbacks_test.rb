@@ -49,7 +49,7 @@ module CallbacksTest
     def self.before(model)
       model.history << [:before_save, :class]
     end
-    
+
     def self.after(model)
       model.history << [:after_save, :class]
     end
@@ -501,21 +501,20 @@ module CallbacksTest
     end
   end
 
-  class CallbackTerminator
+  class AbstractCallbackTerminator
     include ActiveSupport::Callbacks
 
-    define_callbacks :save, :terminator => ->(_,result) { result == :halt }
-
-    set_callback :save, :before, :first
-    set_callback :save, :before, :second
-    set_callback :save, :around, :around_it
-    set_callback :save, :before, :third
-    set_callback :save, :after, :first
-    set_callback :save, :around, :around_it
-    set_callback :save, :after, :second
-    set_callback :save, :around, :around_it
-    set_callback :save, :after, :third
-
+    def self.set_save_callbacks
+      set_callback :save, :before, :first
+      set_callback :save, :before, :second
+      set_callback :save, :around, :around_it
+      set_callback :save, :before, :third
+      set_callback :save, :after, :first
+      set_callback :save, :around, :around_it
+      set_callback :save, :after, :second
+      set_callback :save, :around, :around_it
+      set_callback :save, :after, :third
+    end
 
     attr_reader :history, :saved, :halted
     def initialize
@@ -550,6 +549,17 @@ module CallbacksTest
     def halted_callback_hook(filter)
       @halted = filter
     end
+  end
+
+  class CallbackTerminator < AbstractCallbackTerminator
+    define_callbacks :save, terminator: ->(_,result) { result == :halt }
+    set_save_callbacks
+  end
+
+  class CallbackTerminatorSkippingAfterCallbacks < AbstractCallbackTerminator
+    define_callbacks :save, terminator: ->(_,result) { result == :halt },
+                            skip_after_callbacks_if_terminated: true
+    set_save_callbacks
   end
 
   class CallbackObject
@@ -688,7 +698,7 @@ module CallbacksTest
   end
 
   class CallbackTerminatorTest < ActiveSupport::TestCase
-    def test_termination
+    def test_termination_skips_following_before_and_around_callbacks
       terminator = CallbackTerminator.new
       terminator.save
       assert_equal ["first", "second", "third", "second", "first"], terminator.history
@@ -704,6 +714,14 @@ module CallbacksTest
       obj = CallbackTerminator.new
       obj.save
       assert !obj.saved
+    end
+  end
+
+  class CallbackTerminatorSkippingAfterCallbacksTest < ActiveSupport::TestCase
+    def test_termination_skips_after_callbacks
+      terminator = CallbackTerminatorSkippingAfterCallbacks.new
+      terminator.save
+      assert_equal ["first", "second"], terminator.history
     end
   end
 

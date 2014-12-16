@@ -659,16 +659,17 @@ module ActiveSupport
       # ===== Options
       #
       # * <tt>:terminator</tt> - Determines when a before filter will halt the
-      #   callback chain, preventing following callbacks from being called and
-      #   the event from being triggered. This should be a lambda to be executed.
+      #   callback chain, preventing following before and around callbacks from
+      #   being called and the event from being triggered.
+      #   This should be a lambda to be executed.
       #   The current object and the return result of the callback will be called
       #   with the lambda.
       #
       #     define_callbacks :validate, terminator: ->(target, result) { result == false }
       #
       #   In this example, if any before validate callbacks returns +false+,
-      #   other callbacks are not executed. Defaults to +false+, meaning no value
-      #   halts the chain.
+      #   any successive before and around callback is not executed.
+      #   Defaults to +false+, meaning no value halts the chain.
       #
       # * <tt>:skip_after_callbacks_if_terminated</tt> - Determines if after
       #   callbacks should be terminated by the <tt>:terminator</tt> option. By
