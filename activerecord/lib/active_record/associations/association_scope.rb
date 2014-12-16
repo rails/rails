@@ -126,7 +126,6 @@ module ActiveRecord
       def get_chain(refl, association, tracker)
         name = refl.name
         runtime_reflection = ActiveRecord::Reflection::RuntimeReflection.new(refl, association)
-        alias_name = tracker.aliased_table_for(runtime_reflection.table_name, runtime_reflection.alias_candidate(name))
         prev = runtime_reflection
         refl.chain.drop(1).each { |reflection|
           alias_name = tracker.aliased_table_for(reflection.table_name, reflection.alias_candidate(name))

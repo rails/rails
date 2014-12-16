@@ -7,18 +7,21 @@ module ActiveRecord
     class AliasTracker # :nodoc:
       attr_reader :aliases
 
-      def self.empty(connection)
-        new connection, Hash.new(0)
+      def self.create(connection, initial_table)
+        aliases = Hash.new(0)
+        aliases[initial_table] = 1
+        new connection, aliases
       end
 
-      def self.create(connection, table_joins)
-        if table_joins.empty?
-          empty connection
+      def self.create_with_joins(connection, initial_table, joins, type_caster)
+        if joins.empty?
+          create(connection, initial_table, type_caster)
         else
-          aliases = Hash.new { |h,k|
-            h[k] = initial_count_for(connection, k, table_joins)
+          aliases = Hash.new { |h, k|
+            h[k] = initial_count_for(connection, k, joins)
           }
-          new connection, aliases
+          aliases[initial_table] = 1
+          new connection, aliases, type_caster
         end
       end
 
