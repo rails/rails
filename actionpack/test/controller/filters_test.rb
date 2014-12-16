@@ -504,7 +504,6 @@ class FilterTest < ActionController::TestCase
 
       def non_yielding_action
         @filters  << "it didn't yield"
-        @filter_return_value
       end
 
       def action_three
@@ -528,32 +527,15 @@ class FilterTest < ActionController::TestCase
     end
   end
 
-  def test_non_yielding_around_actions_not_returning_false_do_not_raise
+  def test_non_yielding_around_actions_do_not_raise
     controller = NonYieldingAroundFilterController.new
-    controller.instance_variable_set "@filter_return_value", true
     assert_nothing_raised do
       test_process(controller, "index")
     end
-  end
-
-  def test_non_yielding_around_actions_returning_false_do_not_raise
-    controller = NonYieldingAroundFilterController.new
-    controller.instance_variable_set "@filter_return_value", false
-    assert_nothing_raised do
-      test_process(controller, "index")
-    end
-  end
-
-  def test_after_actions_are_not_run_if_around_action_returns_false
-    controller = NonYieldingAroundFilterController.new
-    controller.instance_variable_set "@filter_return_value", false
-    test_process(controller, "index")
-    assert_equal ["filter_one", "it didn't yield"], controller.assigns['filters']
   end
 
   def test_after_actions_are_not_run_if_around_action_does_not_yield
     controller = NonYieldingAroundFilterController.new
-    controller.instance_variable_set "@filter_return_value", true
     test_process(controller, "index")
     assert_equal ["filter_one", "it didn't yield"], controller.assigns['filters']
   end
