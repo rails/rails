@@ -7,15 +7,13 @@ After reading this guide, you will know:
 
 * Key aspects of Ruby constants
 
-* The purpose of `autoload_paths`
+* The purpose `autoload_paths`
 
 * How constant autoloading works
 
 * What is `require_dependency`
 
 * How constant reloading works
-
-* Why autoloading is not based on `Module#autoload`
 
 * Solutions to common autoloading gotchas
 
@@ -229,11 +227,11 @@ constants on the fly.
 Constants belong to modules in a very literal sense. Classes and modules have
 a constant table; think of it as a hash table.
 
-Let's analyze an example to really understand what that means. While figurative
-language may be customary in a casual setting, for didactic purposes we will
-be literal and precise.
+Let's analyze an example to really understand what that means. While in a
+casual setting some abuses of language are customary, the exposition is going
+to be exact here for didactic purposes.
 
-Consider the following module definition:
+Let's consider the following module definition:
 
 ```ruby
 module Colors
@@ -399,18 +397,19 @@ require 'erb'
 ```
 
 Ruby looks for the file in the directories listed in `$LOAD_PATH`. That is, Ruby
-iterates over all its directories and for each one of them checks whether it
-has a file called "erb.rb", "erb.so", "erb.o" or "erb.dll". If it finds one,
-the interpreter loads it and ends the search. Otherwise, it tries again in the
-next directory of the list. If the list gets exhausted, `LoadError` is raised.
+iterates over all its directories and for each one of them checks whether they
+have a file called "erb.rb", or "erb.so", or "erb.o", or "erb.dll". If it finds
+any of them, the interpreter loads it and ends the search. Otherwise, it tries
+again in the next directory of the list. If the list gets exhausted, `LoadError`
+is raised.
 
 We are going to cover how constant autoloading works in more detail later, but
-the idea is that when a constant like `Post` is hit and missing, if there is a
-*post.rb* file, for example in *app/models*, Rails will find it, evaluate it
-and allocate the class `Post` as a side-effect.
+the idea is that when a constant like `Post` is hit and missing, if there's a
+`post.rb` file for example in `app/models` Rails is going to find it, evaluate
+it, and have `Post` defined as a side-effect.
 
-At this point, Rails has a collection of directories similar to `$LOAD_PATH` in
-which to look up *post.rb*. That collection is called `autoload_paths` and by
+Alright, Rails has a collection of directories similar to `$LOAD_PATH` in which
+to lookup that `post.rb`. That collection is called `autoload_paths` and by
 default it contains:
 
 * All subdirectories of `app` in the application and engines. For example,
@@ -650,7 +649,7 @@ trigger the heuristic is defined in the conflicting place.
 When a module acts as a namespace, Rails does not require the application to
 defines a file for it, a directory matching the namespace is enough.
 
-Suppose an application has a back office whose controllers are stored in
+Suppose an application has a backoffice whose controllers are stored in
 `app/controllers/admin`. If the `Admin` module is not yet loaded when
 `Admin::UsersController` is hit, Rails needs first to autoload the constant
 `Admin`.
