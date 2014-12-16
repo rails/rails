@@ -575,6 +575,13 @@ class AssertTemplateTest < ActionController::TestCase
     end
   end
 
+  def test_fails_expecting_not_known_layout
+    get :render_with_layout
+    assert_raise(ArgumentError) do
+      assert_template :layout => 1
+    end
+  end
+
   def test_passes_with_correct_layout
     get :render_with_layout
     assert_template :layout => "layouts/standard"
