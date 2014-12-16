@@ -7,6 +7,7 @@ class CallbacksTest < ActiveModel::TestCase
       model.callbacks << :before_around_create
       yield
       model.callbacks << :after_around_create
+      false
     end
   end
 
@@ -24,16 +25,20 @@ class CallbacksTest < ActiveModel::TestCase
 
     after_create do |model|
       model.callbacks << :after_create
+      false
     end
 
     after_create "@callbacks << :final_callback"
 
-    def initialize(valid=true)
-      @callbacks, @valid = [], valid
+    def initialize(options = {})
+      @callbacks = []
+      @valid = options[:valid]
+      @before_create_returns = options[:before_create_returns]
     end
 
     def before_create
       @callbacks << :before_create
+      @before_create_returns
     end
 
     def create
@@ -51,14 +56,20 @@ class CallbacksTest < ActiveModel::TestCase
                                     :after_around_create, :after_create, :final_callback]
   end
 
-  test "after callbacks are always appended" do
+  test "the callback chain is not halted when around or after callbacks return false" do
     model = ModelCallbacks.new
     model.create
     assert_equal model.callbacks.last, :final_callback
   end
 
+  test "the callback chain is halted when a before callback returns false" do
+    model = ModelCallbacks.new(before_create_returns: false)
+    model.create
+    assert_equal model.callbacks.last, :before_create
+  end
+
   test "after callbacks are not executed if the block returns false" do
-    model = ModelCallbacks.new(false)
+    model = ModelCallbacks.new(valid: false)
     model.create
     assert_equal model.callbacks, [ :before_create, :before_around_create,
                                     :create, :after_around_create]
