@@ -7,7 +7,7 @@ After reading this guide, you will know:
 
 * Key aspects of Ruby constants
 
-* The purpose of `autoload_paths`
+* What is `autoload_paths`
 
 * How constant autoloading works
 
