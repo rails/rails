@@ -1,3 +1,19 @@
+*   Added support for error dispatcher classes in ActiveSupport::Rescuable. Now it acts closer to Ruby's rescue.
+
+        class BaseController < ApplicationController
+          module ErrorDispatcher
+            def self.===(other)
+              Exception === other && other.respond_to?(:status)
+            end
+          end
+
+          rescue_from ErrorDispatcher do |error|
+            render status: error.status, json: { error: error.to_s }
+          end
+        end
+
+    *Genadi Samokovarov*
+
 *   Added `#verified` and `#valid_message?` methods to `ActiveSupport::MessageVerifier`
 
     Previously, the only way to decode a message with `ActiveSupport::MessageVerifier` was to use `#verify`, which would raise an exception on invalid messages. Now `#verified` can also be used, which returns `nil` on messages that cannot be decoded.
