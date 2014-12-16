@@ -1331,15 +1331,17 @@ If you want to find both by name and locked, you can chain these finders togethe
 Understanding The Method Chaining
 ---------------------------------
 
-The ActiveRecord pattern implements [Method Chaining](http://en.wikipedia.org/wiki/Method_chaining).
-This allow us to use multiple ActiveRecord methods in a simple and straightforward way.
+The Active Record pattern implements [Method Chaining](http://en.wikipedia.org/wiki/Method_chaining),
+which allow us to use multiple Active Record methods together in a simple and straightforward way.
 
 You can chain a method in a sentence when the previous method called returns `ActiveRecord::Relation`,
 like `all`, `where`, and `joins`. Methods that returns a instance of a single object 
 (see [Retrieving a Single Object Section](#retrieving-a-single-object)) have to be be the last
 in the sentence.
 
-This guide won't cover all the possibilities, just a few as example.
+There are some examples below. This guide won't cover all the possibilities, just a few as example.
+When a Active Record method is called, the query is not immediately generated and sent to the database,
+this just happen when the data is actually needed. So each example below generate a single query.
 
 ### Retrieving filtered data from multiple tables
 
@@ -1347,7 +1349,17 @@ This guide won't cover all the possibilities, just a few as example.
 Person
   .select('people.id, people.name, comments.text')
   .joins(:comments)
-  .where('comments.create_at > ?', 1.week.ago)
+  .where('comments.created_at > ?', 1.week.ago)
+```
+
+The result should be something like this:
+
+```sql
+SELECT people.id, people.name, comments.text
+FROM people
+INNER JOIN comments
+  ON comments.person_id = people.id
+WHERE comments.created_at = '2015-01-01'
 ```
 
 ### Retrieving specific data from multiple tables
@@ -1359,8 +1371,19 @@ Person
   .find_by('people.name' => 'John') # this should be the last
 ```
 
+The above should generate:
+
+```sql
+SELECT people.id, people.name, companies.name
+FROM people
+INNER JOIN companies
+  ON companies.person_id = people.id
+WHERE people.name = 'John'
+LIMIT 1
+```
+
 NOTE: Remember that, if `find_by` return more than one registry, it will take just the first
-and ignore the others.
+and ignore the others. Note the `LIMIT 1` statement above.
 
 Find or Build a New Object
 --------------------------
