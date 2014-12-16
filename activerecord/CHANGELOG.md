@@ -1,3 +1,11 @@
+*   `db:schema:load` and `db:structure:load` no longer purge the database
+    before loading the schema. This is left for the user to do.
+    `db:test:prepare` will still purge the database.
+
+    Closes #17945.
+
+    *Yves Senn*
+
 *   Fix undesirable RangeError by Type::Integer. Add Type::UnsignedInteger.
 
     *Ryuta Kamizono*
