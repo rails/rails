@@ -949,8 +949,8 @@ end
 require_dependency ‘square’
 ```
 
-Only the leaves that are **at least grandchildren** have to be loaded that
-way. Direct subclasses do not need to be preloaded and, if the hierarchy is
+Only the leaves that are **at least grandchildren** need to be loaded this
+way. Direct subclasses do not need to be preloaded. If the hierarchy is
 deeper, intermediate classes will be autoloaded recursively from the bottom
 because their constant will appear in the class definitions as superclass.
 
