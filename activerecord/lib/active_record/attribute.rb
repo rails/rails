@@ -9,6 +9,10 @@ module ActiveRecord
         FromUser.new(name, value, type)
       end
 
+      def with_cast_value(name, value, type)
+        WithCastValue.new(name, value, type)
+      end
+
       def null(name)
         Null.new(name)
       end
@@ -58,6 +62,10 @@ module ActiveRecord
       self.class.from_database(name, value, type)
     end
 
+    def with_cast_value(value)
+      self.class.with_cast_value(name, value, type)
+    end
+
     def type_cast(*)
       raise NotImplementedError
     end
@@ -90,6 +98,16 @@ module ActiveRecord
     class FromUser < Attribute # :nodoc:
       def type_cast(value)
         type.type_cast_from_user(value)
+      end
+    end
+
+    class WithCastValue < Attribute # :nodoc:
+      def type_cast(value)
+        value
+      end
+
+      def changed_in_place_from?(old_value)
+        false
       end
     end
 
