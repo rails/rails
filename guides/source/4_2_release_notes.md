@@ -640,6 +640,10 @@ Please refer to the [Changelog][active-record] for detailed changes.
     `Relation` for performing queries and updates is the preferred API.
     ([Commit](https://github.com/rails/rails/commit/d5902c9e))
 
+*   Deprecated `add_timestamps` and `t.timestamps` without passing the `:null`
+    option. The default of `null: true` will change in Rails 5 to `null: false`.
+    ([Pull Request](https://github.com/rails/rails/pull/16481))
+
 *   Deprecated `Reflection#source_macro` without replacement as it is no longer
     needed in Active Record.
     ([Pull Request](https://github.com/rails/rails/pull/16373))
