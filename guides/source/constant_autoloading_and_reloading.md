@@ -580,8 +580,8 @@ file is loaded. If the file actually defines `Post` all is fine, otherwise
 ### Qualified References
 
 When a qualified constant is missing Rails does not look for it in the parent
-namespaces. But there's a caveat: unfortunately, when a constant is missing
-Rails is not able to say if the trigger was a relative or qualified reference.
+namespaces. But there is a caveat: When a constant is missing, Rails is
+unable to tell if the trigger was a relative reference or a qualified one.
 
 For example, consider
 
