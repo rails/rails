@@ -404,7 +404,7 @@ the idea is that when a constant like `Post` is hit and missing, if there's a
 it, and have `Post` defined as a side-effect.
 
 Alright, Rails has a collection of directories similar to `$LOAD_PATH` in which
-to lookup that `post.rb`. That collection is called `autoload_paths` and by
+to look up `post.rb`. That collection is called `autoload_paths` and by
 default it contains:
 
 * All subdirectories of `app` in the application and engines. For example,
@@ -644,7 +644,7 @@ to trigger the heuristic is defined in the conflicting place.
 When a module acts as a namespace, Rails does not require the application to
 defines a file for it, a directory matching the namespace is enough.
 
-Suppose an application has a backoffice whose controllers are stored in
+Suppose an application has a back office whose controllers are stored in
 `app/controllers/admin`. If the `Admin` module is not yet loaded when
 `Admin::UsersController` is hit, Rails needs first to autoload the constant
 `Admin`.
