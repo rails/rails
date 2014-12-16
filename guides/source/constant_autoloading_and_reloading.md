@@ -397,19 +397,18 @@ require 'erb'
 ```
 
 Ruby looks for the file in the directories listed in `$LOAD_PATH`. That is, Ruby
-iterates over all its directories and for each one of them checks whether they
-have a file called "erb.rb", or "erb.so", or "erb.o", or "erb.dll". If it finds
-any of them, the interpreter loads it and ends the search. Otherwise, it tries
-again in the next directory of the list. If the list gets exhausted, `LoadError`
-is raised.
+iterates over all its directories and for each one of them checks whether it
+has a file called "erb.rb", "erb.so", "erb.o" or "erb.dll". If it finds one,
+the interpreter loads it and ends the search. Otherwise, it tries again in the
+next directory of the list. If the list gets exhausted, `LoadError` is raised.
 
 We are going to cover how constant autoloading works in more detail later, but
-the idea is that when a constant like `Post` is hit and missing, if there's a
-*post.rb* file for example in *app/models* Rails is going to find it, evaluate
-it, and have `Post` defined as a side-effect.
+the idea is that when a constant like `Post` is hit and missing, if there is a
+*post.rb* file, for example in *app/models*, Rails will find it, evaluate it
+and have `Post` defined as a side-effect.
 
-Alright, Rails has a collection of directories similar to `$LOAD_PATH` in which
-to lookup that *post.rb*. That collection is called `autoload_paths` and by
+At this point, Rails has a collection of directories similar to `$LOAD_PATH` in
+which to look up *post.rb*. That collection is called `autoload_paths` and by
 default it contains:
 
 * All subdirectories of `app` in the application and engines. For example,
