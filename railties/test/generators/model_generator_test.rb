@@ -173,6 +173,18 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_add_migration_with_user_defined_attribute_default
+    run_generator ["product", "price:decimal:index=12.99"]
+
+    assert_migration "db/migrate/create_products.rb" do |content|
+      assert_method :change, content do |up|
+        assert_match(/create_table :products/, up)
+        assert_match(/t.decimal :price, :default => 12.99/, up)
+      end
+      assert_match(/add_index :products, :price/, content)
+    end
+  end
+
   def test_add_migration_with_attributes_index_declaration_and_attribute_options
     run_generator ["product", "title:string{40}:index", "content:string{255}", "price:decimal{5,2}:index", "discount:decimal{5,2}:uniq", "supplier:references{polymorphic}"]
 

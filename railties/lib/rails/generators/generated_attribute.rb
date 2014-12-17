@@ -12,7 +12,9 @@ module Rails
 
       class << self
         def parse(column_definition)
-          name, type, has_index = column_definition.split(':')
+
+          name, type, has_index = column_definition.split("=")[0].split(':')
+          assigned_default = column_definition.split("=")[1]
 
           # if user provided "name:index" instead of "name:string:index"
           # type should be set blank so GeneratedAttribute's constructor
@@ -27,7 +29,7 @@ module Rails
             attr_options[:index] = references_index
           end
 
-          new(name, type, has_index, attr_options)
+          new(name, type, has_index, assigned_default, attr_options)
         end
 
         def reference?(type)
@@ -55,12 +57,14 @@ module Rails
         end
       end
 
-      def initialize(name, type=nil, index_type=false, attr_options={})
-        @name           = name
-        @type           = type || :string
-        @has_index      = INDEX_OPTIONS.include?(index_type)
-        @has_uniq_index = UNIQ_INDEX_OPTIONS.include?(index_type)
-        @attr_options   = attr_options
+      def initialize(name, type=nil, index_type=false, assigned_default=nil, attr_options={})
+        @name             = name
+        @type             = type || :string
+        @has_index        = INDEX_OPTIONS.include?(index_type)
+        @has_uniq_index   = UNIQ_INDEX_OPTIONS.include?(index_type)
+        @assigned_default = assigned_default
+        @has_default      = assigned_default.present? 
+        @attr_options     = attr_options
       end
 
       def field_type
@@ -139,6 +143,26 @@ module Rails
 
       def has_uniq_index?
         @has_uniq_index
+      end
+
+      def has_default?
+        @has_default
+      end
+
+      def assigned_default
+        case self.type
+        when :string, :text
+          case
+          when @assigned_default[0] == '"' && @assigned_default[-1] == '"'
+            @assigned_default
+          when @assigned_default[0] == "'" && @assigned_default[-1] == "'"
+            @assigned_default
+          else
+            "'#{@assigned_default}'"
+          end
+        else
+          @assigned_default
+        end
       end
 
       def password_digest?

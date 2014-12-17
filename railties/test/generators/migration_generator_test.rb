@@ -159,6 +159,28 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_add_migration_with_assigned_defaults
+    migration = "add_author_to_books"
+    run_generator [migration, "author:string:index=Anonymous"]
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_method :change, content do |change|
+        assert_match(/add_column :books, :author, :string, :default => 'Anonymous'/, change)
+      end
+    end
+  end
+
+  def test_add_migration_with_user_assigned_defaults_and_indices
+    migration = "add_author_and_price_to_books"
+    run_generator [migration, "author:string:index='Anonymous'", "price:decimal:index=9.99"]
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_method :change, content do |change|
+        assert_match(/add_column :books, :author, :string, :default => 'Anonymous'/, change)
+        assert_match(/add_column :books, :price, :decimal, :default => 9.99/, change)
+      end
+      assert_match(/add_index :books, :price/, content)
+    end
+  end
+
   def test_add_migration_with_references_options
     migration = "add_references_to_books"
     run_generator [migration, "author:belongs_to", "distributor:references{polymorphic}"]

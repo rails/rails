@@ -3,7 +3,7 @@ require 'rails/generators/active_record'
 module ActiveRecord
   module Generators # :nodoc:
     class MigrationGenerator < Base # :nodoc:
-      argument :attributes, :type => :array, :default => [], :banner => "field[:type][:index] field[:type][:index]"
+      argument :attributes, :type => :array, :default => [], :banner => "field[:type][:index][=default] field[:type][:index][=default]"
 
       def create_migration_file
         set_local_assigns!

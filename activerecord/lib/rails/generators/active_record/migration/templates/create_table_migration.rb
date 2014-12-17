@@ -5,7 +5,7 @@ class <%= migration_class_name %> < ActiveRecord::Migration
 <% if attribute.password_digest? -%>
       t.string :password_digest<%= attribute.inject_options %>
 <% else -%>
-      t.<%= attribute.type %> :<%= attribute.name %><%= attribute.inject_options %>
+      t.<%= attribute.type -%> :<%= attribute.name %><%= attribute.inject_options -%><% if attribute.has_default? %>, :default => <%= attribute.assigned_default %><%- end %>
 <% end -%>
 <% end -%>
 <% if options[:timestamps] %>

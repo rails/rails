@@ -8,7 +8,7 @@ class <%= migration_class_name %> < ActiveRecord::Migration
     add_foreign_key :<%= table_name %>, :<%= attribute.name.pluralize %>
     <%- end -%>
   <%- else -%>
-    add_column :<%= table_name %>, :<%= attribute.name %>, :<%= attribute.type %><%= attribute.inject_options %>
+    add_column :<%= table_name %>, :<%= attribute.name %>, :<%= attribute.type %><%- if attribute.has_default? -%>, :default => <%= attribute.assigned_default %><%- end -%><%= attribute.inject_options %>
     <%- if attribute.has_index? -%>
     add_index :<%= table_name %>, :<%= attribute.index_name %><%= attribute.inject_index_options %>
     <%- end -%>
