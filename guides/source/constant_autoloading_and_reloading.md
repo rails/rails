@@ -1062,68 +1062,65 @@ spots.
 
 ### When Constants aren't Missed
 
-Let's consider an `Image` model, superclass of `Hotel::Image`:
+Let's consider a flight simulator. The application has a default flight model
 
 ```ruby
-# app/models/image.rb
-class Image
+# app/models/flight_model.rb
+class FlightModel
+end
+```
+
+that can be overriden by each airplane, for instance
+
+```ruby
+# app/models/bell_x1/flight_model.rb
+module BellX1
+  class FlightModel < FlightModel
+  end
 end
 
-# app/models/hotel/image.rb
-module Hotel
-  class Image < Image
+# app/models/bell_x1/aircraft.rb
+module BellX1
+  class Aircraft
+    def initialize
+      @flight_model = FlightModel.new
+    end
   end
 end
 ```
 
-No matter which file is interpreted first, `app/models/hotel/image.rb` is
-well-defined.
+The initializer wants to create a `BellX1::FlightModel` and nesting has
+`BellX1`, that looks good. But if the default flight model is loaded and the
+one for the Bell-X1 is not, the interpreter is able to resolve the top-level
+`FlightModel` and autoloading is thus not triggered for `BellX1::FlightModel`.
 
-Now consider a third file with this apparently harmless code:
+That code depends on the execution path.
+
+These kind of ambiguities can often be resolved using qualified constants:
 
 ```ruby
-# app/models/hotel/poster.rb
-module Hotel
-  class Poster < Image
+module BellX1
+  class Plane
+    def flight_model
+      @flight_model ||= BellX1::FlightModel.new
+    end
   end
 end
 ```
 
-The intention is to subclass `Hotel::Image`, but which is actually the
-superclass of `Hotel::Poster`? Well, it depends on the order of execution:
-
-1. If neither `app/models/image.rb` nor `app/models/hotel/image.rb` have been
-loaded at that point, the superclass is `Hotel::Image` because Rails is told
-`Hotel` is missing a constant called "Image" and loads
-`app/models/hotel/image.rb`. Good.
-
-2. If `app/models/hotel/image.rb` has been loaded at that point, the superclass
-is `Hotel::Image` because Ruby is able to resolve the constant. Good.
-
-3. Lastly, if only `app/models/image.rb` has been loaded so far, the superclass
-is `Image`. Gotcha!
-
-The last scenario (3) may be surprising. Why isn't `Hotel::Image` autoloaded?
-Because Ruby is able to resolve `Image` as a top-level constant, so
-autoloading does not even get a chance.
-
-Most of the time, these kind of ambiguities can be resolved using qualified
-constants. In this case we would write
+Also, `require_dependency` is a solution:
 
 ```ruby
-module Hotel
-  class Poster < Hotel::Image
+require_dependency 'bell_x1/flight_model'
+
+module BellX1
+  class Plane
+    def flight_model
+      @flight_model ||= FlightModel.new
+    end
   end
 end
 ```
-
-That class definition now is robust.
-
-It is interesting to note here that the fix works because `Hotel` is a module, and
-`Hotel::Image` won’t look for `Image` in `Object` as it would if `Hotel` was a
-class with `Object` in its ancestors. If `Hotel` was a class we would resort to
-loading `Hotel::Image` with `require_dependency`. Furthermore, with that
-solution the qualified name would no longer be necessary.
 
 ### Autoloading within Singleton Classes
 
