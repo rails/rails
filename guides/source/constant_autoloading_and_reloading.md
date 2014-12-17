@@ -840,7 +840,7 @@ end
 
 To resolve `User` Ruby checks `Admin` in the former case, but it does not in
 the latter because it does not belong to the nesting. (See [Nesting](#nesting)
-and [Resolution Algorithms](#resolution- algorithms).)
+and [Resolution Algorithms](#resolution-algorithms).)
 
 Unfortunately Rails autoloading does not know the nesting in the spot where the
 constant was missing and so it is not able to act as Ruby would. In particular,
