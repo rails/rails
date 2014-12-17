@@ -398,9 +398,18 @@ module RenderTestCases
     @view.lookup_context.formats = [:js]
 
     js_wrapped_output = @view.render(:template => "test/js_test", :formats => [:js])
-    partial_info = @view.view_renderer.send(:js_partial_infos, js_wrapped_output)
+    partial_info      = @view.view_renderer.send(:js_partial_infos, js_wrapped_output)
 
-    assert_equal(partial_info.size, 3)
+    # assert_equal(partial_info.size, 3)
+
+    puts "-----------------------------"
+    puts partial_info.inspect
+    puts "-----------------------------"
+    puts js_wrapped_output
+    puts "-----------------------------"
+
+    assert_match("\'3\'", partial_info[0])
+    puts
   end
 
 

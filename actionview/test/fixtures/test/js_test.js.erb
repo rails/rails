@@ -1,3 +1,7 @@
-alert("testing js1");
-alert("testing js2");
-<%= render partial: "test/alert" %>
+console.log("testing js1");
+console.log("testing js2");
+console.log("testing js3");$("#users").append('<%= j(render partial: "test/user", locals: {first_name: "Jim"}) %>');
+
+
+
+<%= render partial: "test/js_partial" %>alert('Im tired');

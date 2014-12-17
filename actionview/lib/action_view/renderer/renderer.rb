@@ -62,7 +62,7 @@ module ActionView
     def js_debug(source, template_path)
       output = js_rails_info(source, template_path)
 
-      output << "try { #{source} }catch(e){ console.error(\"Rails: Javascript error in \" + railsJsInfo(e) , e); };"
+      output << "try { #{source} }catch(e){ debugger; console.error(\"Rails: Javascript error in \" + railsJsInfo(e) , e); };"
       output
     end
 
@@ -72,10 +72,12 @@ module ActionView
 
       partial_info = js_partial_infos(source)
 
-      output << partial_info.join("; \n")
+      output << "#{partial_info.join("; \n")};\n"
       output << <<-LOOKUP
         var sourcePath     = '#{template_path}';
         var sourceFragment = '';
+
+        console.log("yyyy = " + exception.line);
 
         partial = partial_map[exception.lineNumber];
 
@@ -100,39 +102,56 @@ module ActionView
     def js_partial_infos(source)
       partial_info = []
 
-      puts "-----------------------"
-      puts @partials.inspect
-      puts "-----------------------"
+      puts "==================================="
+      puts source
+      puts "==================================="
 
-      @partials.each do |partial_data|
-
+      @partials.each_with_index do |partial_data, index|
         partial_output = partial_data[1]
-        beg_column     = source.index(partial_output) || source.index(escape_javascript(partial_output))
-        source_lines   = source.split(/\r?\n/)
+
+        # First look for the escape version of the partial render
+        beg_column = source.index(escape_javascript(partial_output))
+
+        if beg_column
+          partial_lines = escape_javascript(partial_output).lines.map(&:chomp)
+
+        # No escaped version of the partial?  Maybe it's just a regular partial render
+        else
+          beg_column    = source.index(partial_output)
+          partial_lines = partial_output.lines.map(&:chomp) if beg_column
+        end
 
         if beg_column
           partial_path    = partial_data[0]
-          preceeding_code = source[0..source_index]
+          preceeding_code = source[0..beg_column]
 
-          beg_line_number = preceeding_code.scan(/\r?\n/).length
-          partial_lines   = partial_output.split(/\r?\n/)
+          beg_line_number = preceeding_code.lines.length
+          last_index      = partial_lines.size - 1
 
-          partial_lines.each_with_index do |line, i|
-            line_number = beg_line_number + i
-            source_line = source_lines[line_number].length
-
-            beg_column  = source_lines[line_number].index(line)
-            end_column  = line.length
+          partial_lines.each_with_index do |line, index|
+            line_number     = beg_line_number + index
+            beg_line_column = index == 0 ? beg_column : 0
+            end_line_column = line.length
 
             # Is the partial output begin/end on the same line as the template
-            partial_line_match = (beg_column > 0 || end_column != source_line.length) ? true : false
+            partial_line_match = partial_line_match?(beg_line_column, end_line_column, index, last_index, line)
 
-            partial_info << "  partial_map['#{line_number}'] = [#{beg_column}, #{end_column}, #{partial_line_match}, '#{escape_javascript(partial_path)}', '#{escape_javascript(partial_output)}']"
+            partial_info << "  partial_map['#{line_number}'] = [#{beg_line_column}, #{end_line_column}, #{partial_line_match}, '#{escape_javascript(partial_path)}', '#{escape_javascript(partial_output)}']"
           end
         end
-
       end
+
       partial_info
+    end
+
+    def partial_line_match?(beg_column, end_column, index, last_index, source_line)
+      if index == 0 && beg_column > 0
+        true
+      elsif last_index == index && end_column != source_line.length
+        true
+      else
+        false
+      end
     end
   end
 
