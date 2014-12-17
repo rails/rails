@@ -57,8 +57,8 @@ module ActiveSupport
         @duration       = nil
       end
 
-      # Returns the difference in milliseconds between the moments when the
-      # execution of the instrumented event started and when it ended.
+      # Returns the difference in milliseconds between when the execution of the
+      # event started and when it ended.
       #
       #   ActiveSupport::Notifications.subscribe('wait') do |*args|
       #     @event = ActiveSupport::Notifications::Event.new(*args)
