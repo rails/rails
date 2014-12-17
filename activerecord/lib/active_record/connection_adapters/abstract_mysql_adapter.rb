@@ -688,7 +688,7 @@ module ActiveRecord
 
         m.register_type(%r(datetime)i) do |sql_type|
           precision = extract_precision(sql_type)
-          Type::DateTime.new(precision: precision)
+          MysqlDateTime.new(precision: precision)
         end
 
         m.register_type(%r(enum)i) do |sql_type|
@@ -882,6 +882,22 @@ module ActiveRecord
 
       def create_table_definition(name, temporary, options, as = nil) # :nodoc:
         TableDefinition.new(native_database_types, name, temporary, options, as)
+      end
+
+      class MysqlDateTime < Type::DateTime # :nodoc:
+        def type_cast_for_database(value)
+          if value.acts_like?(:time) && value.respond_to?(:usec)
+            result = super.to_s(:db)
+            case precision
+            when 1..6
+              "#{result}.#{sprintf("%0#{precision}d", value.usec / 10**(6 - precision))}"
+            else
+              result
+            end
+          else
+            super
+          end
+        end
       end
 
       class MysqlString < Type::String # :nodoc:

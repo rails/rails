@@ -2,6 +2,9 @@ require 'cases/helper'
 
 if mysql_56?
   class DateTimeTest < ActiveRecord::TestCase
+    self.use_transactional_fixtures = false
+
+    class Foo < ActiveRecord::Base; end
 
     def test_default_datetime_precision
       ActiveRecord::Base.connection.create_table(:foos, force: true)
@@ -48,6 +51,20 @@ if mysql_56?
       end
       assert_equal 4, mysql_datetime_precision('foos', 'created_at')
       assert_equal 4, mysql_datetime_precision('foos', 'updated_at')
+    end
+
+    def test_formatting_datetime_according_to_precision
+      ActiveRecord::Base.connection.create_table(:foos, force: true) do |t|
+        t.datetime :created_at, precision: 0
+        t.datetime :updated_at, precision: 4
+      end
+      date = ::Time.utc(2014, 8, 17, 12, 30, 0, 999999)
+      Foo.create!(created_at: date, updated_at: date)
+      assert foo = Foo.find_by(created_at: date)
+      assert_equal date.to_s, foo.created_at.to_s
+      assert_equal date.to_s, foo.updated_at.to_s
+      assert_equal 000000, foo.created_at.usec
+      assert_equal 999900, foo.updated_at.usec
     end
 
     private
