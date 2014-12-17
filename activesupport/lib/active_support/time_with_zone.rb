@@ -276,6 +276,7 @@ module ActiveSupport
         result.in_time_zone(time_zone)
       end
     end
+    alias_method :since, :+
 
     # Returns a new TimeWithZone object that represents the difference between
     # the current object's time and the +other+ time.
@@ -301,16 +302,6 @@ module ActiveSupport
       else
         result = utc.acts_like?(:date) ? utc.ago(other) : utc - other rescue utc.ago(other)
         result.in_time_zone(time_zone)
-      end
-    end
-
-    def since(other)
-      # If we're adding a Duration of variable length (i.e., years, months, days), move forward from #time,
-      # otherwise move forward from #utc, for accuracy when moving across DST boundaries
-      if duration_of_variable_length?(other)
-        method_missing(:since, other)
-      else
-        utc.since(other).in_time_zone(time_zone)
       end
     end
 
