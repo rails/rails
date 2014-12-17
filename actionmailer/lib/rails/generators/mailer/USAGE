@@ -11,7 +11,7 @@ Example:
     rails generate mailer Notifications signup forgot_password invoice
 
     creates a Notifications mailer class, views, and test:
-        Mailer:     app/mailers/notifications.rb
+        Mailer:     app/mailers/notifications_mailer.rb
         Views:      app/views/notifications/signup.text.erb [...]
         Test:       test/mailers/notifications_test.rb
 

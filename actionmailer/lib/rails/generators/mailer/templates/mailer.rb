@@ -1,5 +1,5 @@
 <% module_namespacing do -%>
-class <%= class_name %> < ApplicationMailer
+class <%= class_name %>Mailer < ApplicationMailer
 <% actions.each do |action| -%>
 
   # Subject can be set in your I18n file at config/locales/en.yml

@@ -146,16 +146,16 @@ class NamespacedMailerGeneratorTest < NamespacedGeneratorTestCase
 
   def test_mailer_skeleton_is_created
     run_generator
-    assert_file "app/mailers/test_app/notifier.rb" do |mailer|
+    assert_file "app/mailers/test_app/notifier_mailer.rb" do |mailer|
       assert_match(/module TestApp/, mailer)
-      assert_match(/class Notifier < ApplicationMailer/, mailer)
+      assert_match(/class NotifierMailer < ApplicationMailer/, mailer)
       assert_no_match(/default from: "from@example.com"/, mailer)
     end
   end
 
   def test_mailer_with_i18n_helper
     run_generator
-    assert_file "app/mailers/test_app/notifier.rb" do |mailer|
+    assert_file "app/mailers/test_app/notifier_mailer.rb" do |mailer|
       assert_match(/en\.notifier\.foo\.subject/, mailer)
       assert_match(/en\.notifier\.bar\.subject/, mailer)
     end
@@ -163,9 +163,9 @@ class NamespacedMailerGeneratorTest < NamespacedGeneratorTestCase
 
   def test_invokes_default_test_framework
     run_generator
-    assert_file "test/mailers/test_app/notifier_test.rb" do |test|
+    assert_file "test/mailers/test_app/notifier_mailer_test.rb" do |test|
       assert_match(/module TestApp/, test)
-      assert_match(/class NotifierTest < ActionMailer::TestCase/, test)
+      assert_match(/class NotifierMailerTest < ActionMailer::TestCase/, test)
       assert_match(/test "foo"/, test)
       assert_match(/test "bar"/, test)
     end
