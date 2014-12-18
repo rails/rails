@@ -1062,6 +1062,8 @@ spots.
 
 ### When Constants aren't Missed
 
+#### Relative References
+
 Let's consider a flight simulator. The application has a default flight model
 
 ```ruby
@@ -1121,6 +1123,59 @@ module BellX1
   end
 end
 ```
+
+#### Qualified References
+
+Given
+
+```ruby
+# app/models/hotel.rb
+class Hotel
+end
+
+# app/models/image.rb
+class Image
+end
+
+# app/models/hotel/image.rb
+class Hotel
+  class Image < Image
+  end
+end
+```
+
+the expression `Hotel::Image` is ambiguous, depends on the execution path.
+
+As [we saw before](#resolution-algorithm-for-qualified-constants), Ruby looks
+up the constant in `Hotel` and its ancestors. If `app/models/image.rb` has
+been loaded but `app/models/hotel/image.rb` hasn't, Ruby does not find `Image`
+in `Hotel`, but it does in `Object`:
+
+```
+$ bin/rails r 'Image; p Hotel::Image' 2>/dev/null
+Image # NOT Hotel::Image!
+```
+
+The code evaluating `Hotel::Image` needs to make sure
+`app/models/hotel/image.rb` has been loaded, possibly with
+`require_dependency`.
+
+In these cases the interpreter issues a warning though:
+
+```
+warning: toplevel constant Image referenced by Hotel::Image
+```
+
+This surprising constant resolution can be observed with any qualifying class:
+
+```
+2.1.5 :001 > String::Array
+(irb):1: warning: toplevel constant Array referenced by String::Array
+ => Array
+```
+
+WARNING. To find this gotcha the qualifying namespace has to be a class,
+`Object` is not an ancestor of modules.
 
 ### Autoloading within Singleton Classes
 
