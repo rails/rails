@@ -31,7 +31,8 @@ module ActionView
       #   <head><title><%= @greeting %></title></head>
       #   <body>
       #   <b><%= @greeting %></b>
-      #   </body></html>
+      #   </body>
+      #   </html>
       #
       def capture(*args)
         value = nil
