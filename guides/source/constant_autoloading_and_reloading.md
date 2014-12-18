@@ -1072,7 +1072,7 @@ class FlightModel
 end
 ```
 
-that can be overriden by each airplane, for instance
+that can be overridden by each airplane, for instance
 
 ```ruby
 # app/models/bell_x1/flight_model.rb
