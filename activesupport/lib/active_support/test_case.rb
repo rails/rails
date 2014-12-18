@@ -16,10 +16,25 @@ module ActiveSupport
     Assertion = Minitest::Assertion
 
     class << self
+      # Sets the order in which test cases are run.
+      #
+      #   ActiveSupport::TestCase.test_order = :random # => :random
+      #
+      # Valid values are:
+      # * +:random+   (to run tests in random order)
+      # * +:parallel+ (to run tests in parallel)
+      # * +:sorted+   (to run tests alphabetically by method name)
+      # * +:alpha+    (equivalent to +:sorted+)
       def test_order=(new_order)
         ActiveSupport.test_order = new_order
       end
 
+      # Returns the order in which test cases are run.
+      #
+      #   ActiveSupport::TestCase.test_order # => :sorted
+      #
+      # Possible values are +:random+, +:parallel+, +:alpha+, +:sorted+.
+      # Defaults to +:sorted+.
       def test_order
         test_order = ActiveSupport.test_order
 
