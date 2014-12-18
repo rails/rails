@@ -1,8 +1,11 @@
 language: ruby
+sudo: false
 script: 'ci/travis.rb'
 before_install:
-  - travis_retry gem install bundler
   - "rvm current | grep 'jruby' && export AR_JDBC=true || echo"
+before_script:
+  - bundle update
+cache: bundler
 env:
   global:
     - JRUBY_OPTS='-J-Xmx1024M'
@@ -41,11 +44,10 @@ notifications:
     on_failure: always
     rooms:
       - secure: "YA1alef1ESHWGFNVwvmVGCkMe4cUy4j+UcNvMUESraceiAfVyRMAovlQBGs6\n9kBRm7DHYBUXYC2ABQoJbQRLDr/1B5JPf/M8+Qd7BKu8tcDC03U01SMHFLpO\naOs/HLXcDxtnnpL07tGVsm0zhMc5N8tq4/L3SHxK7Vi+TacwQzI="
-bundler_args: --path vendor/bundle --without test
+bundler_args: --without test
 services:
   - memcached
   - redis
   - rabbitmq
 addons:
   postgresql: "9.3"
-
