@@ -55,12 +55,12 @@ class Time
     # Accepts the time zone in any format supported by <tt>Time.zone=</tt>.
     # Raises an ArgumentError for invalid time zones.
     #
-    #   Time.find_zone! "America/New_York" #=> #<ActiveSupport::TimeZone @name="America/New_York" ...>
-    #   Time.find_zone! "EST"              #=> #<ActiveSupport::TimeZone @name="EST" ...>
-    #   Time.find_zone! -5.hours           #=> #<ActiveSupport::TimeZone @name="Bogota" ...>
-    #   Time.find_zone! nil                #=> nil
-    #   Time.find_zone! false              #=> false
-    #   Time.find_zone! "NOT-A-TIMEZONE"   #=> ArgumentError: Invalid Timezone: NOT-A-TIMEZONE
+    #   Time.find_zone! "America/New_York" # => #<ActiveSupport::TimeZone @name="America/New_York" ...>
+    #   Time.find_zone! "EST"              # => #<ActiveSupport::TimeZone @name="EST" ...>
+    #   Time.find_zone! -5.hours           # => #<ActiveSupport::TimeZone @name="Bogota" ...>
+    #   Time.find_zone! nil                # => nil
+    #   Time.find_zone! false              # => false
+    #   Time.find_zone! "NOT-A-TIMEZONE"   # => ArgumentError: Invalid Timezone: NOT-A-TIMEZONE
     def find_zone!(time_zone)
       if !time_zone || time_zone.is_a?(ActiveSupport::TimeZone)
         time_zone
@@ -85,8 +85,8 @@ class Time
     # Accepts the time zone in any format supported by <tt>Time.zone=</tt>.
     # Returns +nil+ for invalid time zones.
     #
-    #   Time.find_zone "America/New_York" #=> #<ActiveSupport::TimeZone @name="America/New_York" ...>
-    #   Time.find_zone "NOT-A-TIMEZONE"   #=> nil
+    #   Time.find_zone "America/New_York" # => #<ActiveSupport::TimeZone @name="America/New_York" ...>
+    #   Time.find_zone "NOT-A-TIMEZONE"   # => nil
     def find_zone(time_zone)
       find_zone!(time_zone) rescue nil
     end

@@ -203,7 +203,7 @@ class Module
   #     include HairColors
   #   end
   #
-  #   Person.class_variable_get("@@hair_colors") #=> [:brown, :black, :blonde, :red]
+  #   Person.class_variable_get("@@hair_colors") # => [:brown, :black, :blonde, :red]
   def mattr_accessor(*syms, &blk)
     mattr_reader(*syms, &blk)
     mattr_writer(*syms, &blk)

@@ -67,8 +67,8 @@ class Thread
   #
   #   me = Thread.current
   #   me.freeze
-  #   me.thread_variable_set(:oliver, "a")  #=> RuntimeError: can't modify frozen thread locals
-  #   me[:oliver] = "a"                     #=> RuntimeError: can't modify frozen thread locals
+  #   me.thread_variable_set(:oliver, "a")  # => RuntimeError: can't modify frozen thread locals
+  #   me[:oliver] = "a"                     # => RuntimeError: can't modify frozen thread locals
   def freeze
     _locals.freeze
     super

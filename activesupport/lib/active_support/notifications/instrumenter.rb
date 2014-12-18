@@ -68,7 +68,7 @@ module ActiveSupport
       #     sleep 1
       #   end
       #
-      #   @event.duration #=> 1000.138
+      #   @event.duration # => 1000.138
       def duration
         @duration ||= 1000.0 * (self.end - time)
       end

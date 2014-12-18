@@ -21,11 +21,11 @@ class Object
   #
   # +try+ will also return +nil+ if the receiver does not respond to the method:
   #
-  #   @person.try(:non_existing_method) #=> nil
+  #   @person.try(:non_existing_method) # => nil
   #
   # instead of
   #
-  #   @person.non_existing_method if @person.respond_to?(:non_existing_method) #=> nil
+  #   @person.non_existing_method if @person.respond_to?(:non_existing_method) # => nil
   #
   # +try+ returns +nil+ when called on +nil+ regardless of whether it responds
   # to the method:
