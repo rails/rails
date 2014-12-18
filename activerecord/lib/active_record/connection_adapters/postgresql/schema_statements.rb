@@ -120,6 +120,10 @@ module ActiveRecord
           SQL
         end
 
+        def drop_table(table_name, options = {})
+          execute "DROP TABLE #{quote_table_name(table_name)}#{' CASCADE' if options[:force] == :cascade}"
+        end
+
         # Returns true if schema exists.
         def schema_exists?(name)
           exec_query(<<-SQL, 'SCHEMA').rows.first[0].to_i > 0

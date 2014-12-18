@@ -1,3 +1,10 @@
+*   Introduce `force: :cascade` option for `create_table`. Using this option
+    will recreate tables even if they have dependent objects (like foreign keys).
+    `db/schema.rb` now uses `force: :cascade`. This makes it possible to
+    reload the schema when foreign keys are in place.
+
+    *Matthew Draper*, *Yves Senn*
+
 *   `db:schema:load` and `db:structure:load` no longer purge the database
     before loading the schema. This is left for the user to do.
     `db:test:prepare` will still purge the database.
