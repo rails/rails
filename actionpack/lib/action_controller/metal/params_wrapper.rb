@@ -86,7 +86,7 @@ module ActionController
         new name, format, include, exclude, nil, nil
       end
 
-      def initialize(name, format, include, exclude, klass, model) # nodoc
+      def initialize(name, format, include, exclude, klass, model) # :nodoc:
         super
         @include_set = include
         @name_set    = name
