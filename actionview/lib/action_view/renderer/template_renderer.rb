@@ -5,14 +5,13 @@ module ActionView
     def render(context, options)
       @view    = context
       @details = extract_details(options)
-      template = determine_template(options)
-      @path    = template.path
+      @template = determine_template(options)
 
-      prepend_formats(template.formats)
+      prepend_formats(@template.formats)
 
-      @lookup_context.rendered_format ||= (template.formats.first || formats.first)
+      @lookup_context.rendered_format ||= (@template.formats.first || formats.first)
 
-      render_template(template, options[:layout], options[:locals])
+      render_template(@template, options[:layout], options[:locals])
     end
 
     private

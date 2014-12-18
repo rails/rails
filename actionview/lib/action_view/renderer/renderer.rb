@@ -45,7 +45,7 @@ module ActionView
     def render_template(context, options) #:nodoc:
       renderer =  TemplateRenderer.new(@lookup_context)
       output   =  renderer.render(context, options)
-      output   =  js_debug(output, renderer.path) if @@debug_js && @lookup_context.rendered_format == :js
+      output   =  js_debug(output, renderer.template.path) if @@debug_js && @lookup_context.rendered_format == :js
       output
     end
 
@@ -53,64 +53,79 @@ module ActionView
     def render_partial(context, options, &block) #:nodoc:
       renderer  =  PartialRenderer.new(@lookup_context)
       output    =  renderer.render(context, options, block)
-      @partials << [renderer.path, output]
+      @partials << [renderer.template.path, output]
       output
     end
 
     private
 
     def js_debug(source, template_path)
-      output = js_rails_info(source, template_path)
+      puts "==================================="
+      puts source
+      puts "==================================="
 
-      output << "try { #{source} }catch(e){ debugger; console.error(\"Rails: Javascript error in \" + railsJsInfo(e) , e); };"
-      output
+      output =  parse_stack_trace()
+      output << js_rails_info(source, template_path)
+      output << "try { #{source} }catch(e){ var srcOffset = #{output.lines.size}; console.error(\"Rails: Javascript error in \" + railsJsInfo(e, srcOffset) , e); };"
     end
 
     def js_rails_info(source, template_path)
-      output = "function railsJsInfo(exception){\n"
-      output << "  var partial_map = {};\n"
+      output = <<-LOOKUP
+      function railsJsInfo(exception, srcOffset){
+        var partial_map = {};\n"
+        #{js_partial_infos(source).join("; \n")};
 
-      partial_info = js_partial_infos(source)
+        var sourcePath = '#{template_path}';
 
-      output << "#{partial_info.join("; \n")};\n"
-      output << <<-LOOKUP
-        var sourcePath     = '#{template_path}';
-        var sourceFragment = '';
+        // Safari
+        var lineNumber = exception.line;
 
-        console.log("yyyy = " + exception.line);
+        // Chrome
+        if (lineNumber == undefined) {
+          lineNumber = parseStackTrace(exception);
+        }
 
-        partial = partial_map[exception.lineNumber];
+        lineNumber = lineNumber - srcOffset;
+        partial    = partial_map[lineNumber];
 
         if (partial){
-          partialLineMatch  = partial[2];
-          partialPath       = partial[3];
-          partialOutput     = partial[4];
-
-          sourcePath        = partialPath;
+          partialPath = partial[3];
+          sourcePath  = partialPath;
 
           if (partialLineMatch) {
-            sourcePath = sourcePath + " or " + partialPath
+            sourcePath  = sourcePath + " or " + partialPath
           }
         }
 
         return sourcePath;
+      }\n\n
       LOOKUP
+    end
 
-      output << "}\n\n"
+    # Chrome doesn't define the line number in the exception on an arbitrary js snippet,
+    # so it must be extracted from the stacktrace
+    def parse_stack_trace
+      output = <<-STACKPARSE
+      function parseStackTrace(exception){\n
+        var trace      = exception.stack.split("\\n");
+        var info       = trace[1].match(/:(\\d+):(\\d+)\\)$/);
+        var lineNumber = info[1];
+
+        return parseInt(lineNumber);
+      }
+      STACKPARSE
+
+      output
     end
 
     def js_partial_infos(source)
       partial_info = []
 
-      puts "==================================="
-      puts source
-      puts "==================================="
-
       @partials.each_with_index do |partial_data, index|
         partial_output = partial_data[1]
 
         # First look for the escape version of the partial render
-        beg_column = source.index(escape_javascript(partial_output))
+        beg_column     = source.index(escape_javascript(partial_output))
 
         if beg_column
           partial_lines = escape_javascript(partial_output).lines.map(&:chomp)

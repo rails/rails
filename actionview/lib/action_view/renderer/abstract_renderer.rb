@@ -15,7 +15,7 @@ module ActionView
   # that new object is called in turn. This abstracts the setup and rendering
   # into a separate classes for partials and templates.
   class AbstractRenderer #:nodoc:
-    attr_reader :path
+    attr_reader :template
 
     delegate :find_template, :template_exists?, :with_fallbacks, :with_layout_format, :formats, :to => :@lookup_context
 
