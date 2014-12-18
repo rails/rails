@@ -235,8 +235,8 @@ mail = Notifier.notify(user, ...) # Notifier#notify is not yet called at this po
 mail = mail.deliver_now           # Prints "Called"
 ```
 
-This should not result in any noticible differnces for most applications.
-However, if you need some non-mailer methods to be exectuted synchronously, and
+This should not result in any noticeable differences for most applications.
+However, if you need some non-mailer methods to be executed synchronously, and
 you were previously relying on the synchronous proxying behavior, you should
 define them as class methods on the mailer class directly:
 
