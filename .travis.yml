@@ -49,3 +49,4 @@ services:
 addons:
   postgresql: "9.3"
 
+sudo: false
