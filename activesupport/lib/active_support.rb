@@ -73,11 +73,11 @@ module ActiveSupport
 
   @@test_order = nil
 
-  def self.test_order=(new_order)
+  def self.test_order=(new_order) # :nodoc:
     @@test_order = new_order
   end
 
-  def self.test_order
+  def self.test_order # :nodoc:
     @@test_order
   end
 end
