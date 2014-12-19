@@ -22,10 +22,11 @@ module AbstractController
     end
 
     module ClassMethods
-      # If :only or :except are used, convert the options into the
-      # :unless and :if options of ActiveSupport::Callbacks.
-      # The basic idea is that :only => :index gets converted to
-      # :if => proc {|c| c.action_name == "index" }.
+      # If +:only+ or +:except+ are used, convert the options into the
+      # +:if+ and +:unless+ options of ActiveSupport::Callbacks.
+      #
+      # The basic idea is that <tt>:only => :index</tt> gets converted to
+      # <tt>:if => proc {|c| c.action_name == "index" }</tt>.
       #
       # ==== Options
       # * <tt>only</tt>   - The callback should be run only for this action
