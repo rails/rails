@@ -113,8 +113,8 @@ module ApplicationTests
       assert !middleware.include?("Rack::Lock")
     end
 
-    test "removes static asset server if serve_static_assets is disabled" do
-      add_to_config "config.serve_static_assets = false"
+    test "removes static asset server if serve_static_files is disabled" do
+      add_to_config "config.serve_static_files = false"
       boot!
       assert !middleware.include?("ActionDispatch::Static")
     end

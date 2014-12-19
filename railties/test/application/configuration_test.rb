@@ -41,12 +41,21 @@ module ApplicationTests
     def setup
       build_app
       boot_rails
-      FileUtils.rm_rf("#{app_path}/config/environments")
+      supress_default_config
     end
 
     def teardown
       teardown_app
       FileUtils.rm_rf(new_app) if File.directory?(new_app)
+    end
+
+    def supress_default_config
+      FileUtils.mv("#{app_path}/config/environments", "#{app_path}/config/__environments__")
+    end
+
+    def restore_default_config
+      FileUtils.rm_rf("#{app_path}/config/environments")
+      FileUtils.mv("#{app_path}/config/__environments__", "#{app_path}/config/environments")
     end
 
     test "Rails.env does not set the RAILS_ENV environment variable which would leak out into rake tasks" do
@@ -278,6 +287,53 @@ module ApplicationTests
 
       require "#{app_path}/config/application"
       assert_equal Pathname.new(app_path).join("somewhere"), Rails.public_path
+    end
+
+    test "In production mode, config.serve_static_files is off by default" do
+      restore_default_config
+
+      with_rails_env "production" do
+        require "#{app_path}/config/environment"
+        assert_not app.config.serve_static_files
+      end
+    end
+
+    test "In production mode, config.serve_static_files is enabled when RAILS_SERVE_STATIC_FILES is set" do
+      restore_default_config
+
+      with_rails_env "production" do
+        switch_env "RAILS_SERVE_STATIC_FILES", "1" do
+          require "#{app_path}/config/environment"
+          assert app.config.serve_static_files
+        end
+      end
+    end
+
+    test "In production mode, config.serve_static_files is disabled when RAILS_SERVE_STATIC_FILES is blank" do
+      restore_default_config
+
+      with_rails_env "production" do
+        switch_env "RAILS_SERVE_STATIC_FILES", " " do
+          require "#{app_path}/config/environment"
+          assert_not app.config.serve_static_files
+        end
+      end
+    end
+
+    test "config.serve_static_assets is deprecated" do
+      require "#{app_path}/config/application"
+
+      assert_deprecated(/serve_static_assets/) do
+        app.config.serve_static_assets = false
+      end
+
+      assert_not app.config.serve_static_files
+      assert_deprecated(/serve_static_assets/) { assert_not app.config.serve_static_assets }
+
+      app.config.serve_static_files = true
+
+      assert app.config.serve_static_files
+      assert_deprecated(/serve_static_assets/) { assert app.config.serve_static_assets }
     end
 
     test "Use key_generator when secret_key_base is set" do
