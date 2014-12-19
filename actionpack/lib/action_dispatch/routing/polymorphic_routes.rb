@@ -1,5 +1,3 @@
-require 'action_controller/model_naming'
-
 module ActionDispatch
   module Routing
     # Polymorphic URL helpers are methods for smart resolution to a named route call when
@@ -55,8 +53,6 @@ module ActionDispatch
     #   form_for([blog, @post])         # => "/blog/posts/1"
     #
     module PolymorphicRoutes
-      include ActionController::ModelNaming
-
       # Constructs a call to a named RESTful route for the given record and returns the
       # resulting URL string. For example:
       #
