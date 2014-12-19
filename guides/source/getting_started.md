@@ -259,9 +259,9 @@ invoke  helper
 create    app/helpers/welcome_helper.rb
 invoke  assets
 invoke    coffee
-create      app/assets/javascripts/welcome.js.coffee
+create      app/assets/javascripts/welcome.coffee
 invoke    scss
-create      app/assets/stylesheets/welcome.css.scss
+create      app/assets/stylesheets/welcome.scss
 ```
 
 Most important of these are of course the controller, located at
@@ -1637,8 +1637,8 @@ This creates five files and one empty directory:
 | app/views/comments/                          | Views of the controller are stored here  |
 | test/controllers/comments_controller_test.rb | The test for the controller              |
 | app/helpers/comments_helper.rb               | A view helper file                       |
-| app/assets/javascripts/comment.js.coffee     | CoffeeScript for the controller          |
-| app/assets/stylesheets/comment.css.scss      | Cascading style sheet for the controller |
+| app/assets/javascripts/comment.coffee        | CoffeeScript for the controller          |
+| app/assets/stylesheets/comment.scss          | Cascading style sheet for the controller |
 
 Like with any blog, our readers will create their comments directly after
 reading the article, and once they have added their comment, will be sent back
