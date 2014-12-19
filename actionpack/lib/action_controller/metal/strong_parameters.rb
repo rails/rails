@@ -92,7 +92,11 @@ module ActionController
   #   params.permit(:c)
   #   # => ActionController::UnpermittedParameters: found unpermitted keys: a, b
   #
-  # <tt>ActionController::Parameters</tt> is inherited from
+  # Please note that these options *are not thread-safe*. In a multi-threaded
+  # environment they should only be set once at boot-time and never mutated at
+  # runtime.
+  #
+  # <tt>ActionController::Parameters</tt> inherits from
   # <tt>ActiveSupport::HashWithIndifferentAccess</tt>, this means
   # that you can fetch values using either <tt>:key</tt> or <tt>"key"</tt>.
   #
@@ -100,6 +104,7 @@ module ActionController
   #   params[:key]  # => "value"
   #   params["key"] # => "value"
   class Parameters < ActiveSupport::HashWithIndifferentAccess
+    cattr_accessor :permit_all_parameters, instance_accessor: false
     cattr_accessor :action_on_unpermitted_parameters, instance_accessor: false
 
     # By default, never raise an UnpermittedParameters exception if these
@@ -120,16 +125,6 @@ module ActionController
       MSG
 
       always_permitted_parameters
-    end
-
-    # Returns the value of +permit_all_parameters+.
-    def self.permit_all_parameters
-      Thread.current[:action_controller_permit_all_parameters]
-    end
-
-    # Sets the value of +permit_all_parameters+.
-    def self.permit_all_parameters=(value)
-      Thread.current[:action_controller_permit_all_parameters] = value
     end
 
     # Returns a new instance of <tt>ActionController::Parameters</tt>.
