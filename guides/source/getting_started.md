@@ -300,8 +300,9 @@ Rails.application.routes.draw do
   # ...
 ```
 
-This is your application's _routing file_ which holds entries in a special DSL
-(domain-specific language) that tells Rails how to connect incoming requests to
+This is your application's _routing file_ which holds entries in a special
+[DSL (domain-specific language)](http://en.wikipedia.org/wiki/Domain-specific_language)
+that tells Rails how to connect incoming requests to
 controllers and actions. This file contains many sample routes on commented
 lines, and one of them actually shows you how to connect the root of your site
 to a specific controller and action. Find the line beginning with `root` and
