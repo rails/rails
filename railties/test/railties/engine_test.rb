@@ -1210,7 +1210,7 @@ YAML
 
     test "engine can be properly mounted at root" do
       add_to_config("config.action_dispatch.show_exceptions = false")
-      add_to_config("config.serve_static_assets = false")
+      add_to_config("config.serve_static_files = false")
 
       @plugin.write "lib/bukkits.rb", <<-RUBY
         module Bukkits
