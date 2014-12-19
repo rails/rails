@@ -156,6 +156,31 @@ module ApplicationTests
         end
       end
 
+      test 'db:schema:load and db:structure:load do not purge the existing database' do
+        Dir.chdir(app_path) do
+          `bin/rails runner 'ActiveRecord::Base.connection.create_table(:posts) {|t| t.string :title }'`
+
+          app_file 'db/schema.rb', <<-RUBY
+            ActiveRecord::Schema.define(version: 20140423102712) do
+              create_table(:comments) {}
+            end
+          RUBY
+
+          list_tables = lambda { `bin/rails runner 'p ActiveRecord::Base.connection.tables'`.strip }
+
+          assert_equal '["posts"]', list_tables[]
+          `bin/rake db:schema:load`
+          assert_equal '["posts", "comments", "schema_migrations"]', list_tables[]
+
+          app_file 'db/structure.sql', <<-SQL
+            CREATE TABLE "users" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "name" varchar(255));
+          SQL
+
+          `bin/rake db:structure:load`
+          assert_equal '["posts", "comments", "schema_migrations", "users"]', list_tables[]
+        end
+      end
+
       def db_test_load_structure
         Dir.chdir(app_path) do
           `rails generate model book title:string;
