@@ -1,3 +1,9 @@
+*   `config.serve_static_assets` can now be set from an environment variable in
+    production mode. The feature remains off by default, but can be enabled by
+    setting `RAILS_SERVE_STATIC_FILES` to a non-empty string at boot time.
+
+    *Richard Schneeman*, *Godfrey Chan*
+
 *   Generated migrations add the appropriate foreign key constraints to
     references.
 
