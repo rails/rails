@@ -2,7 +2,9 @@ module ActiveRecord
   # See ActiveRecord::Transactions::ClassMethods for documentation.
   module Transactions
     extend ActiveSupport::Concern
+    #:nodoc:
     ACTIONS = [:create, :destroy, :update]
+    #:nodoc:
     CALLBACK_WARN_MESSAGE = "Currently, Active Record suppresses errors raised " \
       "within `after_rollback`/`after_commit` callbacks and only print them to " \
       "the logs. In the next version, these errors will no longer be suppressed. " \
