@@ -1,3 +1,9 @@
+*   `eager_load` preserves readonly flag for associations.
+
+    Closes #15853.
+
+    *Takashi Kokubun*
+
 *   Provide `:touch` option to `save()` to accommodate saving without updating
     timestamps.
 
