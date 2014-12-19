@@ -1,3 +1,7 @@
+*   Add `ActiveRecord::Timestamp#without_timestamps` to skip timestamps easily.
+
+    *Takashi Kokubun*
+
 *   Fix undesirable RangeError by Type::Integer. Add Type::UnsignedInteger.
 
     *Ryuta Kamizono*

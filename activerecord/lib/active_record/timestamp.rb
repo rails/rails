@@ -40,6 +40,13 @@ module ActiveRecord
       clear_timestamp_attributes
     end
 
+    def without_timestamps
+      previous, self.record_timestamps = self.record_timestamps, false
+      yield
+    ensure
+      self.record_timestamps = previous
+    end
+
   private
 
     def _create_record
