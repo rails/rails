@@ -662,6 +662,9 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 ### Notable changes
 
+*   `SchemaDumper` uses `force: :cascade` on `create_table`. This makes it
+    possible to reload a schema when foreign keys are in place.
+
 *   Added a `:required` option to singular associations, which defines a
     presence validation on the association.
     ([Pull Request](https://github.com/rails/rails/pull/16056))

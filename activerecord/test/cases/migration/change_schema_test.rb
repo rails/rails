@@ -415,5 +415,36 @@ module ActiveRecord
         yield
       end
     end
+
+    if ActiveRecord::Base.connection.supports_foreign_keys?
+      class ChangeSchemaWithDependentObjectsTest < ActiveRecord::TestCase
+        self.use_transactional_fixtures = false
+
+        setup do
+          @connection = ActiveRecord::Base.connection
+          @connection.create_table :trains
+          @connection.create_table(:wagons) { |t| t.references :train }
+          @connection.add_foreign_key :wagons, :trains
+        end
+
+        teardown do
+          [:wagons, :trains].each do |table|
+            @connection.drop_table(table) if @connection.table_exists?(table)
+          end
+        end
+
+        def test_create_table_with_force_cascade_drops_dependent_objects
+          skip "MySQL > 5.5 does not drop dependent objects with DROP TABLE CASCADE" if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
+          # can't re-create table referenced by foreign key
+          assert_raises(ActiveRecord::StatementInvalid) do
+            @connection.create_table :trains, force: true
+          end
+
+          # can recreate referenced table with force: :cascade
+          @connection.create_table :trains, force: :cascade
+          assert_equal [], @connection.foreign_keys(:wagons)
+        end
+      end
+    end
   end
 end

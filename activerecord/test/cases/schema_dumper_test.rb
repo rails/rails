@@ -40,6 +40,11 @@ class SchemaDumperTest < ActiveRecord::TestCase
     assert_no_match %r{create_table "schema_migrations"}, output
   end
 
+  def test_schema_dump_uses_force_cascade_on_create_table
+    output = dump_table_schema "authors"
+    assert_match %r{create_table "authors", force: :cascade}, output
+  end
+
   def test_schema_dump_excludes_sqlite_sequence
     output = standard_dump
     assert_no_match %r{create_table "sqlite_sequence"}, output

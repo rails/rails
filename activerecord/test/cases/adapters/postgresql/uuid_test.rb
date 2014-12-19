@@ -130,7 +130,7 @@ class PostgresqlLargeKeysTest < ActiveRecord::TestCase
 
   def test_omg
     schema = dump_table_schema "big_serials"
-    assert_match "create_table \"big_serials\", id: :bigserial, force: true", schema
+    assert_match "create_table \"big_serials\", id: :bigserial", schema
   end
 
   def teardown
