@@ -1,5 +1,7 @@
 require 'active_support/core_ext/kernel/reporting'
+require 'active_support/core_ext/string/filters'
 require 'active_support/file_update_checker'
+require 'active_support/deprecation'
 require 'rails/engine/configuration'
 require 'rails/source_annotation_extractor'
 
@@ -11,7 +13,7 @@ module Rails
                     :eager_load, :exceptions_app, :file_watcher, :filter_parameters,
                     :force_ssl, :helpers_paths, :logger, :log_formatter, :log_tags,
                     :railties_order, :relative_url_root, :secret_key_base, :secret_token,
-                    :serve_static_assets, :ssl_options, :static_cache_control, :session_options,
+                    :serve_static_files, :ssl_options, :static_cache_control, :session_options,
                     :time_zone, :reload_classes_only_on_change,
                     :beginning_of_week, :filter_redirect, :x
 
@@ -25,7 +27,7 @@ module Rails
         @filter_parameters             = []
         @filter_redirect               = []
         @helpers_paths                 = []
-        @serve_static_assets           = true
+        @serve_static_files            = true
         @static_cache_control          = nil
         @force_ssl                     = false
         @ssl_options                   = {}
@@ -137,6 +139,25 @@ module Rails
       def colorize_logging=(val)
         ActiveSupport::LogSubscriber.colorize_logging = val
         self.generators.colorize_logging = val
+      end
+
+      # :nodoc:
+      SERVE_STATIC_ASSETS_DEPRECATION_MESSAGE = <<-MSG.squish
+        The configuration option `config.serve_static_assets` has been renamed
+        to `config.serve_static_files` to clarify its role (it merely enables
+        serving everything in the `public` folder and is unrelated to the asset
+        pipeline). The `serve_static_assets` alias will be removed in Rails 5.0.
+        Please migrate your configuration files accordingly.
+      MSG
+
+      def serve_static_assets
+        ActiveSupport::Deprecation.warn SERVE_STATIC_ASSETS_DEPRECATION_MESSAGE
+        serve_static_files
+      end
+
+      def serve_static_assets=(value)
+        ActiveSupport::Deprecation.warn SERVE_STATIC_ASSETS_DEPRECATION_MESSAGE
+        self.serve_static_files = value
       end
 
       def session_store(*args)
