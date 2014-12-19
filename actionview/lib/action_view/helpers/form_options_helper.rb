@@ -390,9 +390,13 @@ module ActionView
       # Will not select a person with the id of 1 because 1 (an Integer) is not the same as '1' (a string)
       #   options_from_collection_for_select(@people, 'id', 'name', 1)
       # should produce the desired results.
-      def options_from_collection_for_select(collection, value_method, text_method, selected = nil)
+      
+      # Additionally, you can also also pass any other attributes to be added in option tag using +option_attributes+.
+      #   options_from_collection_for_select(@categories, 'id', 'name', nil, :title => 'description')
+      #   # => <option value="#{category.id}" title="#{category.description}">#{category.name}</option>
+      def options_from_collection_for_select(collection, value_method, text_method, selected = nil, option_attributes = {})
         options = collection.map do |element|
-          [value_for_collection(element, text_method), value_for_collection(element, value_method), option_html_attributes(element)]
+          [value_for_collection(element, text_method), value_for_collection(element, value_method), value_for_attribute_collection(element, option_attributes), option_html_attributes(element)]
         end
         selected, disabled = extract_selected_and_disabled(selected)
         select_deselect = {
@@ -752,6 +756,13 @@ module ActionView
             end.compact
           else
             selected
+          end
+        end
+
+        def value_for_attribute_collection(item, attributes)
+          attributes.inject({}) do |memo, (key, value)|
+            memo[key] = value_for_collection(item, value)
+            memo
           end
         end
 
