@@ -6,15 +6,10 @@ This guide documents how constant autoloading and reloading works.
 After reading this guide, you will know:
 
 * Key aspects of Ruby constants
-
 * What is `autoload_paths`
-
 * How constant autoloading works
-
 * What is `require_dependency`
-
 * How constant reloading works
-
 * Solutions to common autoloading gotchas
 
 --------------------------------------------------------------------------------
@@ -25,7 +20,7 @@ Introduction
 
 Ruby on Rails allows applications to be written as if their code was preloaded.
 
-In a normal Ruby program a class needs to load its dependencies:
+In a normal Ruby program classes need to load their dependencies:
 
 ```ruby
 require 'application_controller'
@@ -102,11 +97,13 @@ class XML::SAXParser
 end
 ```
 
-the nesting in (2) is different, `XML` does not belong to it:
+the nesting in (2) is different:
 
 ```ruby
 [XML::SAXParser]
 ```
+
+`XML` does not belong to it.
 
 We can see in this example that the name of a class or module that belongs to a
 certain nesting does not necessarily correlate with the namespaces at the spot.
@@ -182,6 +179,21 @@ performs a constant assignment equivalent to
 Project = Class.new(ActiveRecord::Base)
 ```
 
+including setting the name of the class as a side-effect:
+
+```ruby
+Project.name # => "Project"
+```
+
+Constant assignment has a special rule to make that happen: if the object
+being assigned is an anonymous class or module, Ruby sets its name to be the
+one the constant.
+
+INFO. From then on, what happens to the constant and the instance does not
+matter. For example, the constant could be deleted, the class object could be
+assigned to a different constant, be stored in no constant anymore, etc. Once
+the name is set, it doesn't change.
+
 Similarly, module creation using the `module` keyword as in
 
 ```ruby
@@ -195,16 +207,21 @@ performs a constant assignment equivalent to
 Admin = Module.new
 ```
 
+including setting the name as a side-effect:
+
+```ruby
+Admin.name # => "Admin"
+```
+
 WARNING. The execution context of a block passed to `Class.new` or `Module.new`
 is not entirely equivalent to the one of the body of the definitions using the
 `class` and `module` keywords. But both idioms result in the same constant
 assignment.
 
 Thus, when one informally says "the `String` class", that really means: the
-class object the interpreter creates and stores in a constant called "String" in
-the class object stored in the `Object` constant. `String` is otherwise an
-ordinary Ruby constant and everything related to constants applies to it,
-resolution algorithms, etc.
+class object stored in the constant called "String" in the class object stored
+in the `Object` constant. `String` is otherwise an ordinary Ruby constant and
+everything related to constants applies to it, resolution algorithms, etc.
 
 Likewise, in the controller
 
@@ -219,17 +236,17 @@ end
 `Post` is not syntax for a class. Rather, `Post` is a regular Ruby constant. If
 all is good, the constant evaluates to an object that responds to `all`.
 
-That is why we talk about *constant autoloading*, Rails has the ability to load
-constants on the fly.
+That is why we talk about *constant* autoloading, Rails has the ability to
+load constants on the fly.
 
 ### Constants are Stored in Modules
 
 Constants belong to modules in a very literal sense. Classes and modules have
 a constant table; think of it as a hash table.
 
-Let's analyze an example to really understand what that means. While in a
-casual setting some abuses of language are customary, the exposition is going
-to be exact here for didactic purposes.
+Let's analyze an example to really understand what that means. While common
+abuses of language like "the `String` class" are convenient, the exposition is
+going to be precise here for didactic purposes.
 
 Let's consider the following module definition:
 
@@ -288,10 +305,16 @@ Billing::Invoice
 ```
 
 `Billing::Invoice` is composed of two constants: `Billing` is relative and is
-resolved using the algorithm of the previous section; `Invoice` is qualified by
-`Billing` and we are going to see its resolution next. Let's call *parent* to
-that qualifying class or module object, that is, `Billing` in the example above.
-The algorithm for qualified constants goes like this:
+resolved using the algorithm of the previous section.
+
+INFO. Leading colons would make the first segment absolute rather than
+relative: `::Billing::Invoice`. That would force `Billing` to be looked up
+only as a top-level constant.
+
+`Invoice` on the other hand is qualified by `Billing` and we are going to see
+its resolution next. Let's call *parent* to that qualifying class or module
+object, that is, `Billing` in the example above. The algorithm for qualified
+constants goes like this:
 
 1. The constant is looked up in the parent and its ancestors.
 
@@ -409,7 +432,7 @@ the idea is that when a constant like `Post` is hit and missing, if there's a
 it, and have `Post` defined as a side-effect.
 
 Alright, Rails has a collection of directories similar to `$LOAD_PATH` in which
-to lookup that `post.rb`. That collection is called `autoload_paths` and by
+to look up `post.rb`. That collection is called `autoload_paths` and by
 default it contains:
 
 * All subdirectories of `app` in the application and engines. For example,
@@ -585,8 +608,8 @@ file is loaded. If the file actually defines `Post` all is fine, otherwise
 ### Qualified References
 
 When a qualified constant is missing Rails does not look for it in the parent
-namespaces. But there's a caveat: unfortunately, when a constant is missing
-Rails is not able to say if the trigger was a relative or qualified reference.
+namespaces. But there is a caveat: When a constant is missing, Rails is
+unable to tell if the trigger was a relative reference or a qualified one.
 
 For example, consider
 
@@ -632,24 +655,23 @@ been triggered in the first place. Thus, Rails assumes a qualified reference and
 considers the file `admin/user.rb` and directory `admin/user` to be the only
 valid options.
 
-In practice this works quite well as long as the nesting matches all parent
+In practice, this works quite well as long as the nesting matches all parent
 namespaces respectively and the constants that make the rule apply are known at
 that time.
 
-But since autoloading happens on demand, if the top-level `User` by chance was
-not yet loaded then Rails has no way to know whether `Admin::User` should load it
-or raise `NameError`.
+However, autoloading happens on demand. If by chance the top-level `User` was
+not yet loaded, then Rails assumes a relative reference by contract.
 
-These kind of name conflicts are rare in practice but, in case there's one,
-`require_dependency` provides a solution by making sure the constant needed to
-trigger the heuristic is defined in the conflicting place.
+Naming conflicts of this kind are rare in practice, but if one occurs,
+`require_dependency` provides a solution by ensuring that the constant needed
+to trigger the heuristic is defined in the conflicting place.
 
 ### Automatic Modules
 
 When a module acts as a namespace, Rails does not require the application to
 defines a file for it, a directory matching the namespace is enough.
 
-Suppose an application has a backoffice whose controllers are stored in
+Suppose an application has a back office whose controllers are stored in
 `app/controllers/admin`. If the `Admin` module is not yet loaded when
 `Admin::UsersController` is hit, Rails needs first to autoload the constant
 `Admin`.
@@ -845,7 +867,7 @@ end
 
 To resolve `User` Ruby checks `Admin` in the former case, but it does not in
 the latter because it does not belong to the nesting. (See [Nesting](#nesting)
-and [Resolution Algorithms](#resolution- algorithms).)
+and [Resolution Algorithms](#resolution-algorithms).)
 
 Unfortunately Rails autoloading does not know the nesting in the spot where the
 constant was missing and so it is not able to act as Ruby would. In particular,
@@ -954,8 +976,8 @@ end
 require_dependency ‘square’
 ```
 
-Only the leaves that are **at least grandchildren** have to be loaded that
-way. Direct subclasses do not need to be preloaded and, if the hierarchy is
+Only the leaves that are **at least grandchildren** need to be loaded this
+way. Direct subclasses do not need to be preloaded. If the hierarchy is
 deeper, intermediate classes will be autoloaded recursively from the bottom
 because their constant will appear in the class definitions as superclass.
 
@@ -1067,68 +1089,120 @@ spots.
 
 ### When Constants aren't Missed
 
-Let's consider an `Image` model, superclass of `Hotel::Image`:
+#### Relative References
+
+Let's consider a flight simulator. The application has a default flight model
 
 ```ruby
+# app/models/flight_model.rb
+class FlightModel
+end
+```
+
+that can be overridden by each airplane, for instance
+
+```ruby
+# app/models/bell_x1/flight_model.rb
+module BellX1
+  class FlightModel < FlightModel
+  end
+end
+
+# app/models/bell_x1/aircraft.rb
+module BellX1
+  class Aircraft
+    def initialize
+      @flight_model = FlightModel.new
+    end
+  end
+end
+```
+
+The initializer wants to create a `BellX1::FlightModel` and nesting has
+`BellX1`, that looks good. But if the default flight model is loaded and the
+one for the Bell-X1 is not, the interpreter is able to resolve the top-level
+`FlightModel` and autoloading is thus not triggered for `BellX1::FlightModel`.
+
+That code depends on the execution path.
+
+These kind of ambiguities can often be resolved using qualified constants:
+
+```ruby
+module BellX1
+  class Plane
+    def flight_model
+      @flight_model ||= BellX1::FlightModel.new
+    end
+  end
+end
+```
+
+Also, `require_dependency` is a solution:
+
+```ruby
+require_dependency 'bell_x1/flight_model'
+
+module BellX1
+  class Plane
+    def flight_model
+      @flight_model ||= FlightModel.new
+    end
+  end
+end
+```
+
+#### Qualified References
+
+Given
+
+```ruby
+# app/models/hotel.rb
+class Hotel
+end
+
 # app/models/image.rb
 class Image
 end
 
 # app/models/hotel/image.rb
-module Hotel
+class Hotel
   class Image < Image
   end
 end
 ```
 
-No matter which file is interpreted first, `app/models/hotel/image.rb` is
-well-defined.
+the expression `Hotel::Image` is ambiguous, depends on the execution path.
 
-Now consider a third file with this apparently harmless code:
+As [we saw before](#resolution-algorithm-for-qualified-constants), Ruby looks
+up the constant in `Hotel` and its ancestors. If `app/models/image.rb` has
+been loaded but `app/models/hotel/image.rb` hasn't, Ruby does not find `Image`
+in `Hotel`, but it does in `Object`:
 
-```ruby
-# app/models/hotel/poster.rb
-module Hotel
-  class Poster < Image
-  end
-end
+```
+$ bin/rails r 'Image; p Hotel::Image' 2>/dev/null
+Image # NOT Hotel::Image!
 ```
 
-The intention is to subclass `Hotel::Image`, but which is actually the
-superclass of `Hotel::Poster`? Well, it depends on the order of execution:
+The code evaluating `Hotel::Image` needs to make sure
+`app/models/hotel/image.rb` has been loaded, possibly with
+`require_dependency`.
 
-1. If neither `app/models/image.rb` nor `app/models/hotel/image.rb` have been
-loaded at that point, the superclass is `Hotel::Image` because Rails is told
-`Hotel` is missing a constant called "Image" and loads
-`app/models/hotel/image.rb`. Good.
+In these cases the interpreter issues a warning though:
 
-2. If `app/models/hotel/image.rb` has been loaded at that point, the superclass
-is `Hotel::Image` because Ruby is able to resolve the constant. Good.
-
-3. Lastly, if only `app/models/image.rb` has been loaded so far, the superclass
-is `Image`. Gotcha!
-
-The last scenario (3) may be surprising. Why isn't `Hotel::Image` autoloaded?
-Because Ruby is able to resolve `Image` as a top-level constant, so
-autoloading does not even get a chance.
-
-Most of the time, these kind of ambiguities can be resolved using qualified
-constants. In this case we would write
-
-```ruby
-module Hotel
-  class Poster < Hotel::Image
-  end
-end
+```
+warning: toplevel constant Image referenced by Hotel::Image
 ```
 
-That class definition now is robust.
+This surprising constant resolution can be observed with any qualifying class:
 
-It is interesting to note here that the fix works because `Hotel` is a module, and
-`Hotel::Image` won’t look for `Image` in `Object` as it would if `Hotel` was a
-class with `Object` in its ancestors. If `Hotel` was a class we would resort to
-loading `Hotel::Image` with `require_dependency`. Furthermore, with that
-solution the qualified name would no longer be necessary.
+```
+2.1.5 :001 > String::Array
+(irb):1: warning: toplevel constant Array referenced by String::Array
+ => Array
+```
+
+WARNING. To find this gotcha the qualifying namespace has to be a class,
+`Object` is not an ancestor of modules.
 
 ### Autoloading within Singleton Classes
 
