@@ -66,38 +66,58 @@ module ActionView
 
       output =  parse_stack_trace()
       output << js_rails_info(source, template_path)
-      output << "try { #{source} }catch(e){ var srcOffset = #{output.lines.size}; console.error(\"Rails: Javascript error in \" + railsJsInfo(e, srcOffset) , e); };"
+      output << <<-TRYCATCH
+      try {
+        #{source}
+      } catch(e) {
+        debugger;
+        var srcOffset = #{output.lines.size};
+        var errorInfo = railsPartialLookup(e, srcOffset);
+        console.error(\"Rails: Javascript error in : \" + errorInfo[0] + "\\n" +
+                      \"Rails: Error on line: \\n\" + errorInfo[1], e);
+      }
+      TRYCATCH
     end
 
     def js_rails_info(source, template_path)
       output = <<-LOOKUP
-      function railsJsInfo(exception, srcOffset){
-        var partial_map = {};\n"
+      function railsPartialLookup(exception, srcOffset){
+        var partial_map = {};\n
         #{js_partial_infos(source).join("; \n")};
 
-        var sourcePath = '#{template_path}';
+        var sourcePath   = '#{template_path}';
 
         // Safari
-        var lineNumber = exception.line;
+        var lineNumber   = exception.line;
+        var columnNumber = null;
+        var sourceLine   = null;
 
         // Chrome
         if (lineNumber == undefined) {
-          lineNumber = parseStackTrace(exception);
+          var offsets  = parseStackTrace(exception);
+          lineNumber   = offsets[0];
+          columnNumber = offsets[1];
         }
 
-        lineNumber = lineNumber - srcOffset;
-        partial    = partial_map[lineNumber];
+        lineNumber  = lineNumber - srcOffset;
+        var partial = partial_map[lineNumber];
 
         if (partial){
-          partialPath = partial[3];
-          sourcePath  = partialPath;
+
+          partialLineMatch = partial[2];
+          partialPath      = partial[3];
+          sourceLine       = partial[4];
 
           if (partialLineMatch) {
-            sourcePath  = sourcePath + " or " + partialPath
+            var begLineColumn = partial[0];
+            var endLineColumn = partial[1];
+
+            if (columnNumber != null && columnNumber >= begLineColumn && columnNumber <= endLineColumn){
+                sourcePath = partialPath;
+            }
           }
         }
-
-        return sourcePath;
+        return [sourcePath, sourceLine];
       }\n\n
       LOOKUP
     end
@@ -107,11 +127,12 @@ module ActionView
     def parse_stack_trace
       output = <<-STACKPARSE
       function parseStackTrace(exception){\n
-        var trace      = exception.stack.split("\\n");
-        var info       = trace[1].match(/:(\\d+):(\\d+)\\)$/);
-        var lineNumber = info[1];
+        var trace        = exception.stack.split("\\n");
+        var info         = trace[1].match(/:(\\d+):(\\d+)\\)$/);
+        var lineNumber   = info[1];
+        var columnNumber = info[2];
 
-        return parseInt(lineNumber);
+        return [parseInt(lineNumber), parseInt(columnNumber)];
       }
       STACKPARSE
 
@@ -121,11 +142,11 @@ module ActionView
     def js_partial_infos(source)
       partial_info = []
 
-      @partials.each_with_index do |partial_data, index|
+      @partials.each do |partial_data|
         partial_output = partial_data[1]
 
         # First look for the escape version of the partial render
-        beg_column     = source.index(escape_javascript(partial_output))
+        beg_column = source.index(escape_javascript(partial_output))
 
         if beg_column
           partial_lines = escape_javascript(partial_output).lines.map(&:chomp)
@@ -151,7 +172,7 @@ module ActionView
             # Is the partial output begin/end on the same line as the template
             partial_line_match = partial_line_match?(beg_line_column, end_line_column, index, last_index, line)
 
-            partial_info << "  partial_map['#{line_number}'] = [#{beg_line_column}, #{end_line_column}, #{partial_line_match}, '#{escape_javascript(partial_path)}', '#{escape_javascript(partial_output)}']"
+            partial_info << "  partial_map['#{line_number}'] = [#{beg_line_column}, #{end_line_column}, #{partial_line_match}, '#{escape_javascript(partial_path)}', '#{escape_javascript(line)}']"
           end
         end
       end
