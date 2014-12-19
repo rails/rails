@@ -214,12 +214,10 @@ module ActiveRecord
         case format
         when :ruby
           check_schema_file(file)
-          purge(configuration)
           ActiveRecord::Base.establish_connection(configuration)
           load(file)
         when :sql
           check_schema_file(file)
-          purge(configuration)
           structure_load(configuration, file)
         else
           raise ArgumentError, "unknown format #{format.inspect}"

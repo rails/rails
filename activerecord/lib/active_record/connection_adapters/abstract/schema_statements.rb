@@ -132,6 +132,7 @@ module ActiveRecord
       #   Make a temporary table.
       # [<tt>:force</tt>]
       #   Set to true to drop the table before creating it.
+      #   Set to +:cascade+ to drop dependent objects as well.
       #   Defaults to false.
       # [<tt>:as</tt>]
       #   SQL to use to generate the table. When this option is used, the block is
@@ -361,8 +362,12 @@ module ActiveRecord
 
       # Drops a table from the database.
       #
-      # Although this command ignores +options+ and the block if one is given, it can be helpful
-      # to provide these in a migration's +change+ method so it can be reverted.
+      # [<tt>:force</tt>]
+      #   Set to +:cascade+ to drop dependent objects as well.
+      #   Defaults to false.
+      #
+      # Although this command ignores most +options+ and the block if one is given,
+      # it can be helpful to provide these in a migration's +change+ method so it can be reverted.
       # In that case, +options+ and the block will be used by create_table.
       def drop_table(table_name, options = {})
         execute "DROP TABLE #{quote_table_name(table_name)}"
