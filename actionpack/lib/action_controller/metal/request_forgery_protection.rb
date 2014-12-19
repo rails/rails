@@ -209,6 +209,7 @@ module ActionController #:nodoc:
         forgery_protection_strategy.new(self).handle_unverified_request
       end
 
+      #:nodoc:
       CROSS_ORIGIN_JAVASCRIPT_WARNING = "Security warning: an embedded " \
         "<script> tag on another site requested protected JavaScript. " \
         "If you know what you're doing, go ahead and disable forgery " \
