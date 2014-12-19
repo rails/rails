@@ -20,7 +20,7 @@ Introduction
 
 Ruby on Rails allows applications to be written as if their code was preloaded.
 
-In a normal Ruby program a class needs to load its dependencies:
+In a normal Ruby program classes need to load their dependencies:
 
 ```ruby
 require 'application_controller'
@@ -97,11 +97,13 @@ class XML::SAXParser
 end
 ```
 
-the nesting in (2) is different, `XML` does not belong to it:
+the nesting in (2) is different:
 
 ```ruby
 [XML::SAXParser]
 ```
+
+`XML` does not belong to it.
 
 We can see in this example that the name of a class or module that belongs to a
 certain nesting does not necessarily correlate with the namespaces at the spot.
@@ -177,6 +179,21 @@ performs a constant assignment equivalent to
 Project = Class.new(ActiveRecord::Base)
 ```
 
+including setting the name of the class as a side-effect:
+
+```ruby
+Project.name # => "Project"
+```
+
+Constant assignment has a special rule to make that happen: if the object
+being assigned is an anonymous class or module, Ruby sets its name to be the
+one the constant.
+
+INFO. From then on, what happens to the constant and the instance does not
+matter. For example, the constant could be deleted, the class object could be
+assigned to a different constant, be stored in no constant anymore, etc. Once
+the name is set, it doesn't change.
+
 Similarly, module creation using the `module` keyword as in
 
 ```ruby
@@ -190,16 +207,21 @@ performs a constant assignment equivalent to
 Admin = Module.new
 ```
 
+including setting the name as a side-effect:
+
+```ruby
+Admin.name # => "Admin"
+```
+
 WARNING. The execution context of a block passed to `Class.new` or `Module.new`
 is not entirely equivalent to the one of the body of the definitions using the
 `class` and `module` keywords. But both idioms result in the same constant
 assignment.
 
 Thus, when one informally says "the `String` class", that really means: the
-class object the interpreter creates and stores in a constant called "String" in
-the class object stored in the `Object` constant. `String` is otherwise an
-ordinary Ruby constant and everything related to constants applies to it,
-resolution algorithms, etc.
+class object stored in the constant called "String" in the class object stored
+in the `Object` constant. `String` is otherwise an ordinary Ruby constant and
+everything related to constants applies to it, resolution algorithms, etc.
 
 Likewise, in the controller
 
@@ -214,17 +236,17 @@ end
 `Post` is not syntax for a class. Rather, `Post` is a regular Ruby constant. If
 all is good, the constant evaluates to an object that responds to `all`.
 
-That is why we talk about *constant autoloading*, Rails has the ability to load
-constants on the fly.
+That is why we talk about *constant* autoloading, Rails has the ability to
+load constants on the fly.
 
 ### Constants are Stored in Modules
 
 Constants belong to modules in a very literal sense. Classes and modules have
 a constant table; think of it as a hash table.
 
-Let's analyze an example to really understand what that means. While in a
-casual setting some abuses of language are customary, the exposition is going
-to be exact here for didactic purposes.
+Let's analyze an example to really understand what that means. While common
+abuses of language like "the `String` class" are convenient, the exposition is
+going to be precise here for didactic purposes.
 
 Let's consider the following module definition:
 
@@ -283,10 +305,16 @@ Billing::Invoice
 ```
 
 `Billing::Invoice` is composed of two constants: `Billing` is relative and is
-resolved using the algorithm of the previous section; `Invoice` is qualified by
-`Billing` and we are going to see its resolution next. Let's call *parent* to
-that qualifying class or module object, that is, `Billing` in the example above.
-The algorithm for qualified constants goes like this:
+resolved using the algorithm of the previous section.
+
+INFO. Leading colons would make the first segment absolute rather than
+relative: `::Billing::Invoice`. That would force `Billing` to be looked up
+only as a top-level constant.
+
+`Invoice` on the other hand is qualified by `Billing` and we are going to see
+its resolution next. Let's call *parent* to that qualifying class or module
+object, that is, `Billing` in the example above. The algorithm for qualified
+constants goes like this:
 
 1. The constant is looked up in the parent and its ancestors.
 
@@ -632,8 +660,7 @@ namespaces respectively and the constants that make the rule apply are known at
 that time.
 
 However, autoloading happens on demand. If by chance the top-level `User` was
-not yet loaded, then Rails has no way to know whether `Admin::User` should load
-it or raise `NameError`.
+not yet loaded, then Rails assumes a relative reference by contract.
 
 Naming conflicts of this kind are rare in practice, but if one occurs,
 `require_dependency` provides a solution by ensuring that the constant needed
