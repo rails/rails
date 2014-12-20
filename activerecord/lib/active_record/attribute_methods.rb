@@ -150,7 +150,7 @@ module ActiveRecord
         BLACKLISTED_CLASS_METHODS.include?(method_name.to_s) || class_method_defined_within?(method_name, Base)
       end
 
-      def class_method_defined_within?(name, klass, superklass = klass.superclass) # :nodoc
+      def class_method_defined_within?(name, klass, superklass = klass.superclass) # :nodoc:
         if klass.respond_to?(name, true)
           if superklass.respond_to?(name, true)
             klass.method(name).owner != superklass.method(name).owner
