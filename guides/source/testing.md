@@ -43,7 +43,7 @@ controllers/    helpers/        mailers/        test_helper.rb
 fixtures/       integration/    models/
 ```
 
-The `models` directory is meant to hold tests for your models, the `controllers` directory is meant to hold tests for your controllers and the `integration` directory is meant to hold tests that involve any number of controllers interacting.
+The `models` directory is meant to hold tests for your models, the `controllers` directory is meant to hold tests for your controllers and the `integration` directory is meant to hold tests that involve any number of controllers interacting. There is also a directory for testing your mailers, and helper methods which you are used within the view layer.
 
 Fixtures are a way of organizing test data; they reside in the `fixtures` folder.
 
