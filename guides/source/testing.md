@@ -98,6 +98,8 @@ one:
   category: about
 ```
 
+Notice the `category` key of the `one` article found in `fixtures/articles.yml` has a value of `about`. This tells Rails to load the category `about` found in `fixtures/categories.yml`.
+
 Note: For associations to reference one another by name, you cannot specify the `id:`
  attribute on the fixtures. Rails will auto assign a primary key to be consistent between
  runs. If you manually specify an `id:` attribute, this behavior will not work. For more
