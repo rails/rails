@@ -100,11 +100,7 @@ one:
 
 Notice the `category` key of the `one` article found in `fixtures/articles.yml` has a value of `about`. This tells Rails to load the category `about` found in `fixtures/categories.yml`.
 
-Note: For associations to reference one another by name, you cannot specify the `id:`
- attribute on the fixtures. Rails will auto assign a primary key to be consistent between
- runs. If you manually specify an `id:` attribute, this behavior will not work. For more
-  information on this association behavior please read the
-  [Fixtures API documentation](http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html).
+NOTE: For associations to reference one another by name, you cannot specify the `id:` attribute on the associated fixtures. Rails will auto assign a primary key to be consistent between runs. For more information on this association behavior please read the [Fixtures API documentation](http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html).
 
 #### ERB'in It Up
 
