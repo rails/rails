@@ -294,7 +294,7 @@ implementation of `const_missing` raises `NameError`, but it can be overridden.
 
 Rails autoloading **does not emulate this algorithm**, but its starting point is
 the name of the constant to be autoloaded, and the cref. See more in [Relative
-References](#relative-references).
+References](#autoloading-algorithms-relative-references).
 
 #### Resolution Algorithm for Qualified Constants
 
