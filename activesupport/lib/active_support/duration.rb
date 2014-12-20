@@ -98,7 +98,7 @@ module ActiveSupport
       to_i
     end
 
-    def respond_to_missing?(method, include_private=false) #:nodoc
+    def respond_to_missing?(method, include_private=false) #:nodoc:
       @value.respond_to?(method, include_private)
     end
 
