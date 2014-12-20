@@ -793,7 +793,7 @@ project is created.
 
 | Tasks                   | Description |
 | ----------------------- | ----------- |
-| `rake test`             | Runs all tests in the `test` folder. You can also simply run `rake` as Rails will run all the tests by default |
+| `rake test`             | Runs all tests in the `test` directory. You can also run `rake` and Rails will run all tests by default |
 | `rake test:controllers` | Runs all the controller tests from `test/controllers` |
 | `rake test:functionals` | Runs all the functional tests from `test/controllers`, `test/mailers`, and `test/functional` |
 | `rake test:helpers`     | Runs all the helper tests from `test/helpers` |
