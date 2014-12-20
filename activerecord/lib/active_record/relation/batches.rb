@@ -27,7 +27,7 @@ module ActiveRecord
     #
     # ==== Options
     # * <tt>:batch_size</tt> - Specifies the size of the batch. Default to 1000.
-    # * <tt>:start</tt> - Specifies the starting point for the batch processing.
+    # * <tt>:start</tt> - Specifies the primary key value to start from.
     # This is especially useful if you want multiple workers dealing with
     # the same processing queue. You can make worker 1 handle all the records
     # between id 0 and 10,000 and worker 2 handle from 10,000 and beyond
@@ -77,7 +77,7 @@ module ActiveRecord
     #
     # ==== Options
     # * <tt>:batch_size</tt> - Specifies the size of the batch. Default to 1000.
-    # * <tt>:start</tt> - Specifies the starting point for the batch processing.
+    # * <tt>:start</tt> - Specifies the primary key value to start from.
     # This is especially useful if you want multiple workers dealing with
     # the same processing queue. You can make worker 1 handle all the records
     # between id 0 and 10,000 and worker 2 handle from 10,000 and beyond
