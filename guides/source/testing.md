@@ -120,13 +120,13 @@ Rails by default automatically loads all fixtures from the `test/fixtures` direc
 
 * Remove any existing data from the table corresponding to the fixture
 * Load the fixture data into the table
-* Dump the fixture data into a variable in case you want to access it directly
+* Dump the fixture data into a method in case you want to access it directly
 
 TIP: In order to remove existing data from the database, Rails tries to disable referential integrity triggers (like foreign keys and check constraints). If you are getting annoying permission errors on running tests, make sure the database user has privilege to disable these triggers in testing environment. (In PostgreSQL, only superusers can disable all triggers. Read more about PostgreSQL permissions [here](http://blog.endpoint.com/2012/10/postgres-system-triggers-error.html))
 
 #### Fixtures are Active Record objects
 
-Fixtures are instances of Active Record. As mentioned in point #3 above, you can access the object directly because it is automatically setup as a local variable of the test case. For example:
+Fixtures are instances of Active Record. As mentioned in point #3 above, you can access the object directly because it is automatically available as a method who's scope is local of the test case. For example:
 
 ```ruby
 # this will return the User object for the fixture named david
