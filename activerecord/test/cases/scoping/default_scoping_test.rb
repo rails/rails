@@ -353,6 +353,10 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal 10, DeveloperCalledJamis.unscoped { DeveloperCalledJamis.poor }.length
   end
 
+  def test_unscoped_with_joins_should_not_have_default_scope
+    assert_equal FirstPost.unscoped { Comment.joins(:post_with_default_scope).to_a }, Comment.joins(:post).to_a
+  end
+
   def test_default_scope_select_ignored_by_aggregations
     assert_equal DeveloperWithSelect.all.to_a.count, DeveloperWithSelect.count
   end

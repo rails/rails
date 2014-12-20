@@ -1,3 +1,9 @@
+*   Allow `joins` to be unscoped.
+
+    Backport of #18109.
+
+    *Takashi Kokubun*, *Andrey Novikov*
+
 *   Fix default `format` value in `ActiveRecord::Tasks::DatabaseTasks#schema_file`.
 
     *James Cox*
