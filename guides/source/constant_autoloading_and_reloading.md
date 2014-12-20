@@ -1,5 +1,5 @@
-Constant Autoloading and Reloading
-==================================
+Autoloading and Reloading Constants
+===================================
 
 This guide documents how constant autoloading and reloading works.
 
@@ -186,8 +186,8 @@ Project.name # => "Project"
 ```
 
 Constant assignment has a special rule to make that happen: if the object
-being assigned is an anonymous class or module, Ruby sets its name to be the
-one the constant.
+being assigned is an anonymous class or module, Ruby sets the object's name to
+the name of the constant.
 
 INFO. From then on, what happens to the constant and the instance does not
 matter. For example, the constant could be deleted, the class object could be
@@ -221,7 +221,7 @@ assignment.
 Thus, when one informally says "the `String` class", that really means: the
 class object stored in the constant called "String" in the class object stored
 in the `Object` constant. `String` is otherwise an ordinary Ruby constant and
-everything related to constants applies to it, resolution algorithms, etc.
+everything related to constants such as resolution algorithms applies to it.
 
 Likewise, in the controller
 
@@ -270,7 +270,7 @@ In particular, `Colors::RED` is totally unrelated to any other `RED` constant
 that may live in any other class or module object. If there were any, they
 would have separate entries in their respective constant tables.
 
-Put special attention in the previous paragraphs to the distinction between
+Pay special attention in the previous paragraphs to the distinction between
 class and module objects, constant names, and value objects associated to them
 in constant tables.
 
@@ -446,7 +446,7 @@ default it contains:
 
 Also, this collection is configurable via `config.autoload_paths`. For example,
 `lib` was in the list years ago, but no longer is. An application can opt-in
-throwing this to `config/application.rb`:
+by adding this to `config/application.rb`:
 
 ```ruby
 config.autoload_paths += "#{Rails.root}/lib"
@@ -889,7 +889,7 @@ end
 
 ### Autoloading and STI
 
-Single Table Inheritance (STI) is a feature of Active Record that easies
+Single Table Inheritance (STI) is a feature of Active Record that enables
 storing a hierarchy of models in one single table. The API of such models is
 aware of the hierarchy and encapsulates some common needs. For example, given
 these classes:
