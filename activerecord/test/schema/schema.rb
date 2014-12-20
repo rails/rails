@@ -429,7 +429,7 @@ ActiveRecord::Schema.define do
 
   create_table :memberships, force: true do |t|
     t.datetime :joined_on
-    t.integer :club_id, :member_id
+    t.integer :club_id, :member_id, null: false
     t.boolean :favourite, default: false
     t.string :type
   end

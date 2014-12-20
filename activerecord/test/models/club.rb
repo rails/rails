@@ -8,6 +8,8 @@ class Club < ActiveRecord::Base
 
   has_many :favourites, -> { where(memberships: { favourite: true }) }, through: :memberships, source: :member
 
+  accepts_nested_attributes_for :memberships
+
   private
 
   def private_method
