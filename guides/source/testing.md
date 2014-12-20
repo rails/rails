@@ -29,7 +29,9 @@ Testing support was woven into the Rails fabric from the beginning. It wasn't an
 
 By default, every Rails application has three environments: development, test, and production. The database for each one of them is configured in `config/database.yml`.
 
-A dedicated test database allows you to set up and interact with test data in isolation. Tests can mangle test data with confidence, that won't touch the data in the development or production databases.
+A dedicated test database allows you to set up and interact with test data in isolation. This way your tests can mangle test data with confidence, without worrying about the data in the development or production databases.
+
+Also, each environment's configuration can be modified similarly. In this case, we can modify our test environment by changing the options found in `config/environments/test.rb`.
 
 ### Rails Sets up for Testing from the Word Go
 
