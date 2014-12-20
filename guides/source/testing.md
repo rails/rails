@@ -35,7 +35,7 @@ Also, each environment's configuration can be modified similarly. In this case, 
 
 ### Rails Sets up for Testing from the Word Go
 
-Rails creates a `test` folder for you as soon as you create a Rails project using `rails new` _application_name_. If you list the contents of this folder then you shall see:
+Rails creates a `test` directory for you as soon as you create a Rails project using `rails new` _application_name_. If you list the contents of this directory then you shall see:
 
 ```bash
 $ ls -F test
@@ -45,7 +45,7 @@ fixtures/       integration/    models/
 
 The `models` directory is meant to hold tests for your models, the `controllers` directory is meant to hold tests for your controllers and the `integration` directory is meant to hold tests that involve any number of controllers interacting. There is also a directory for testing your mailers, and helper methods which you are used within the view layer.
 
-Fixtures are a way of organizing test data; they reside in the `fixtures` folder.
+Fixtures are a way of organizing test data; they reside in the `fixtures` directory.
 
 The `test_helper.rb` file holds the default configuration for your tests.
 
@@ -116,7 +116,7 @@ user_<%= n %>:
 
 #### Fixtures in Action
 
-Rails by default automatically loads all fixtures from the `test/fixtures` folder for your models and controllers test. Loading involves three steps:
+Rails by default automatically loads all fixtures from the `test/fixtures` directory for your models and controllers test. Loading involves three steps:
 
 * Remove any existing data from the table corresponding to the fixture
 * Load the fixture data into the table
@@ -142,13 +142,13 @@ email(david.girlfriend.email, david.location_tonight)
 Unit Testing your Models
 ------------------------
 
-In Rails, models tests are what you write to test your models.
+In Rails, unit tests are what you write to test your models.
 
 For this guide we will be using Rails _scaffolding_. It will create the model, a migration, controller and views for the new resource in a single operation. It will also create a full test suite following Rails best practices. We will be using examples from this generated code and will be supplementing it with additional examples where necessary.
 
 NOTE: For more information on Rails _scaffolding_, refer to [Getting Started with Rails](getting_started.html)
 
-When you use `rails generate scaffold`, for a resource among other things it creates a test stub in the `test/models` folder:
+When you use `rails generate scaffold`, for a resource among other things it creates a test stub in the `test/models` directory:
 
 ```bash
 $ bin/rails generate scaffold article title:string body:text
@@ -668,7 +668,7 @@ Integration Testing
 
 Integration tests are used to test the interaction among any number of controllers. They are generally used to test important work flows within your application.
 
-Unlike Unit and Functional tests, integration tests have to be explicitly created under the 'test/integration' folder within your application. Rails provides a generator to create an integration test skeleton for you.
+Unlike Unit and Functional tests, integration tests have to be explicitly created under the 'test/integration' directory within your application. Rails provides a generator to create an integration test skeleton for you.
 
 ```bash
 $ bin/rails generate integration_test user_flows
@@ -802,7 +802,7 @@ project is created.
 | `rake test:mailers`     | Runs all the mailer tests from `test/mailers` |
 | `rake test:models`      | Runs all the model tests from `test/models` |
 | `rake test:units`       | Runs all the unit tests from `test/models`, `test/helpers`, and `test/unit` |
-| `rake test:db`          | Runs all tests in the `test` folder and resets the db |
+| `rake test:db`          | Runs all tests in the `test` directory and resets the db |
 
 
 A Brief Note About Minitest
