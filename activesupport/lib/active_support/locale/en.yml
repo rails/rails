@@ -99,13 +99,19 @@ en:
         # %u is the storage unit, %n is the number (default: 2 MB)
         format: "%n %u"
         units:
-          byte:
+          byte: &byte
             one:   "Byte"
             other: "Bytes"
           kb: "KB"
           mb: "MB"
           gb: "GB"
           tb: "TB"
+        binary_units:
+          byte: *byte
+          kb: "KiB"
+          mb: "MiB"
+          gb: "GiB"
+          tb: "TiB"
       # Used in NumberHelper.number_to_human()
       decimal_units:
         format: "%n %u"

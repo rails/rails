@@ -35,7 +35,8 @@ module ActiveSupport
 
         def storage_unit_key
           key_end = smaller_than_base? ? 'byte' : STORAGE_UNITS[exponent]
-          "human.storage_units.units.#{key_end}"
+          units_key = opts[:prefix] == :si ? "units" : "binary_units"
+          "human.storage_units.#{units_key}.#{key_end}"
         end
 
         def exponent
