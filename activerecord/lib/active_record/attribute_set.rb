@@ -39,6 +39,10 @@ module ActiveRecord
       attributes[name] = self[name].with_value_from_user(value)
     end
 
+    def write_cast_value(name, value)
+      attributes[name] = self[name].with_cast_value(value)
+    end
+
     def freeze
       @attributes.freeze
       super
