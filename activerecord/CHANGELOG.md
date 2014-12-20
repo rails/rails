@@ -1,3 +1,9 @@
+*   Allow `joins` to be unscoped.
+
+    Closes #13775.
+
+    *Takashi Kokubun*
+
 *   Rework `ActiveRecord::Relation#last` 
     
     1. Always find last with ruby if relation is loaded
