@@ -9,7 +9,6 @@ class RecordIdentifierTest < ActiveSupport::TestCase
     @record = @klass.new
     @singular = 'comment'
     @plural = 'comments'
-    @uncountable = Sheep
   end
 
   def test_dom_id_with_new_record
