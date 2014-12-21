@@ -1,3 +1,5 @@
+require 'active_support/core_ext/hash/indifferent_access'
+
 module ActiveJob
   # Raised when an exception is raised during job arguments deserialization.
   #
