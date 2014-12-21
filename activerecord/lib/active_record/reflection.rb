@@ -970,6 +970,8 @@ module ActiveRecord
       def alias_name
         Arel::Table.new(table_name)
       end
+
+      def all_includes; yield; end
     end
   end
 end

@@ -121,6 +121,8 @@ module ActiveRecord
           super(reflection)
           @alias_name = alias_name
         end
+
+        def all_includes; nil; end
       end
 
       def get_chain(refl, association, tracker)
@@ -161,7 +163,7 @@ module ActiveRecord
               scope.merge! item.except(:where, :includes, :bind)
             end
 
-            if reflection == chain_head
+            reflection.all_includes do
               scope.includes! item.includes_values
             end
 
