@@ -20,11 +20,11 @@ example:
 
 Simply executing <tt>bundle exec rake test</tt> is equivalent to the following:
 
-  $ bundle exec rake test_mysql
-  $ bundle exec rake test_mysql2
-  $ bundle exec rake test_postgresql
-  $ bundle exec rake test_sqlite3
-  $ bundle exec rake test_sqlite3_mem
+  $ bundle exec rake test:mysql
+  $ bundle exec rake test:mysql2
+  $ bundle exec rake test:postgresql
+  $ bundle exec rake test:sqlite3
+  $ bundle exec rake test:sqlite3_mem
 
 There should be tests available for each database backend listed in the {Config
 File}[rdoc-label:label-Config+File]. (the exact set of available tests is
