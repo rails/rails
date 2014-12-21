@@ -126,7 +126,7 @@ TIP: In order to remove existing data from the database, Rails tries to disable 
 
 #### Fixtures are Active Record objects
 
-Fixtures are instances of Active Record. As mentioned in point #3 above, you can access the object directly because it is automatically available as a method who's scope is local of the test case. For example:
+Fixtures are instances of Active Record. As mentioned in point #3 above, you can access the object directly because it is automatically available as a method whose scope is local of the test case. For example:
 
 ```ruby
 # this will return the User object for the fixture named david
