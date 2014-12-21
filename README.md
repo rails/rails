@@ -78,7 +78,7 @@ We encourage you to contribute to Ruby on Rails! Please check out the
 
 ## Code Status
 
-* [![Build Status](https://travis-ci.org/rails/rails.svg?branch=master)](https://travis-ci.org/rails/rails)
+[![Build Status](https://travis-ci.org/rails/rails.svg?branch=master)](https://travis-ci.org/rails/rails)
 
 ## License
 
