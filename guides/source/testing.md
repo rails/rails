@@ -175,7 +175,7 @@ A line by line examination of this file will help get you oriented to Rails test
 require 'test_helper'
 ```
 
-As you know by now, `test_helper.rb` specifies the default configuration to run our tests. This is included with all the tests, so any methods added to this file are available to all your tests.
+By requiring this file, `test_helper.rb` the default configuration to run our tests is loaded. We will include this with all the tests we write, so any methods added to this file are available to all your tests.
 
 ```ruby
 class ArticleTest < ActiveSupport::TestCase
