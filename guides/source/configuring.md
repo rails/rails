@@ -197,7 +197,7 @@ The full set of methods that can be used in this block are as follows:
 Every Rails application comes with a standard set of middleware which it uses in this order in the development environment:
 
 * `ActionDispatch::SSL` forces every request to be under HTTPS protocol. Will be available if `config.force_ssl` is set to `true`. Options passed to this can be configured by using `config.ssl_options`.
-* `ActionDispatch::Static` is used to serve static assets. Disabled if `config.serve_static_assets` is `false`.
+* `ActionDispatch::Static` is used to serve static assets. Disabled if `config.serve_static_files` is `false`.
 * `Rack::Lock` wraps the app in mutex so it can only be called by a single thread at a time. Only enabled when `config.cache_classes` is `false`.
 * `ActiveSupport::Cache::Strategy::LocalCache` serves as a basic memory backed cache. This cache is not thread safe and is intended only for serving as a temporary memory cache for a single thread.
 * `Rack::Runtime` sets an `X-Runtime` header, containing the time (in seconds) taken to execute the request.
