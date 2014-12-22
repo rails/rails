@@ -76,6 +76,10 @@ module ActiveRecord
 
       private
 
+      def changes_include?(attr_name)
+        super || attribute_changed_in_place?(attr_name)
+      end
+
       def calculate_changes_from_defaults
         @changed_attributes = nil
         self.class.column_defaults.each do |attr, orig_value|

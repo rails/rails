@@ -170,7 +170,7 @@ module ActiveModel
 
     # Handle <tt>*_changed?</tt> for +method_missing+.
     def attribute_changed?(attr, options = {}) #:nodoc:
-      result = changed_attributes.include?(attr)
+      result = changes_include?(attr)
       result &&= options[:to] == __send__(attr) if options.key?(:to)
       result &&= options[:from] == changed_attributes[attr] if options.key?(:from)
       result
@@ -187,6 +187,10 @@ module ActiveModel
     end
 
     private
+
+      def changes_include?(attr_name)
+        attributes_changed_by_setter.include?(attr_name)
+      end
 
       # Removes current changes and makes them accessible through +previous_changes+.
       def changes_applied # :doc:
