@@ -131,6 +131,7 @@ module ActiveRecord
         return super if block_given? ||
                         primary_key.nil? ||
                         default_scopes.any? ||
+                        current_scope ||
                         columns_hash.include?(inheritance_column) ||
                         ids.first.kind_of?(Array)
 
