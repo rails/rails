@@ -16,7 +16,7 @@ module ActiveRecord
       def cast_value(value)
         case value
         when ::Float
-          BigDecimal(value, float_precision)
+          convert_float_to_big_decimal(value)
         when ::Numeric, ::String
           BigDecimal(value, precision.to_i)
         else
@@ -25,6 +25,14 @@ module ActiveRecord
           else
             cast_value(value.to_s)
           end
+        end
+      end
+
+      def convert_float_to_big_decimal(value)
+        if precision
+          BigDecimal(value, float_precision)
+        else
+          value.to_d
         end
       end
 

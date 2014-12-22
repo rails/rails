@@ -15,6 +15,11 @@ module ActiveRecord
         assert_equal BigDecimal.new("123.0"), type.type_cast_from_user(123.0)
       end
 
+      def test_type_cast_from_float_with_unspecified_precision
+        type = Decimal.new
+        assert_equal 22.68.to_d, type.type_cast_from_user(22.68)
+      end
+
       def test_type_cast_decimal_from_rational_with_precision
         type = Decimal.new(precision: 2)
         assert_equal BigDecimal("0.33"), type.type_cast_from_user(Rational(1, 3))
