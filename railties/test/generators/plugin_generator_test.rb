@@ -71,7 +71,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
 
   def test_inclusion_of_a_debugger
     run_generator [destination_root, '--full']
-    if defined?(JRUBY_VERSION)
+    if defined?(JRUBY_VERSION) || RUBY_ENGINE == "rbx"
       assert_file "Gemfile" do |content|
         assert_no_match(/byebug/, content)
         assert_no_match(/debugger/, content)
