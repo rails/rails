@@ -231,8 +231,8 @@ raised. Usually this indicates that your schema is not fully migrated. Running
 the migrations against the development database (`bin/rake db:migrate`) will
 bring the schema up to date.
 
-NOTE: If existing migrations are edited and rerun, the test database needs to be
-rebuilt. This can be done by executing `bin/rake db:test:prepare`.
+NOTE: If existing migrations required modifications, the test database needs to
+be rebuilt. This can be done by executing `bin/rake db:test:prepare`.
 
 ### Running Tests
 
