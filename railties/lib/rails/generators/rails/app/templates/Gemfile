@@ -22,7 +22,7 @@ source 'https://rubygems.org'
 # gem 'capistrano-rails', group: :development
 
 group :development, :test do
-<% unless defined?(JRUBY_VERSION) -%>
+<% if RUBY_ENGINE == 'ruby' -%>
   <%- if RUBY_VERSION < '2.0.0' -%>
   # Call 'debugger' anywhere in the code to stop execution and get a debugger console
   gem 'debugger'
