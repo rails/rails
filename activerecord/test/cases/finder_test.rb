@@ -15,9 +15,11 @@ require 'models/customer'
 require 'models/toy'
 require 'models/matey'
 require 'models/dog'
+require 'models/car'
+require 'models/tyre'
 
 class FinderTest < ActiveRecord::TestCase
-  fixtures :companies, :topics, :entrants, :developers, :developers_projects, :posts, :comments, :accounts, :authors, :customers, :categories, :categorizations
+  fixtures :companies, :topics, :entrants, :developers, :developers_projects, :posts, :comments, :accounts, :authors, :customers, :categories, :categorizations, :cars
 
   def test_find_by_id_with_hash
     assert_raises(ActiveRecord::StatementInvalid) do
@@ -1099,6 +1101,26 @@ class FinderTest < ActiveRecord::TestCase
     assert_raises(ActiveRecord::RecordNotFound) do
       Post.find_by!("1 = 0")
     end
+  end
+
+  test "find on a scope does not perform statement caching" do
+    honda = cars(:honda)
+    zyke = cars(:zyke)
+    tyre = honda.tyres.create!
+    tyre2 = zyke.tyres.create!
+
+    assert_equal tyre, honda.tyres.custom_find(tyre.id)
+    assert_equal tyre2, zyke.tyres.custom_find(tyre2.id)
+  end
+
+  test "find_by on a scope does not perform statement caching" do
+    honda = cars(:honda)
+    zyke = cars(:zyke)
+    tyre = honda.tyres.create!
+    tyre2 = zyke.tyres.create!
+
+    assert_equal tyre, honda.tyres.custom_find_by(id: tyre.id)
+    assert_equal tyre2, zyke.tyres.custom_find_by(id: tyre2.id)
   end
 
   protected
