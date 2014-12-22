@@ -7,7 +7,7 @@ if RUBY_PLATFORM =~ /java/
   class JDOMEngineTest < ActiveSupport::TestCase
     include ActiveSupport
 
-    FILES_DIR = File.dirname(__FILE__) + '/../fixtures/xml'
+    FILES_DIR = __dir__ + '/../fixtures/xml'
 
     def setup
       @default_backend = XmlMini.backend

@@ -1,4 +1,4 @@
-dir = File.dirname(__FILE__)
+dir = __dir__
 
 require 'rake/testtask'
 

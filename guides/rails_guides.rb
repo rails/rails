@@ -1,4 +1,4 @@
-pwd = File.dirname(__FILE__)
+pwd = __dir__
 $:.unshift pwd
 
 # This is a predicate useful for the doc:guides task of applications.

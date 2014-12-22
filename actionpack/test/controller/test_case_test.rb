@@ -656,7 +656,7 @@ XML
     end
   end
 
-  FILES_DIR = File.dirname(__FILE__) + '/../fixtures/multipart'
+  FILES_DIR = __dir__ + '/../fixtures/multipart'
 
   READ_BINARY = 'rb:binary'
   READ_PLAIN = 'r:binary'

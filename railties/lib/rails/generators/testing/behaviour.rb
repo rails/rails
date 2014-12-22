@@ -38,7 +38,7 @@ module Rails
 
           # Sets the destination of generator files:
           #
-          #   destination File.expand_path("../tmp", File.dirname(__FILE__))
+          #   destination File.expand_path("../tmp", __dir__)
           def destination(path)
             self.destination_root = path
           end
@@ -49,7 +49,7 @@ module Rails
         #
         #   class AppGeneratorTest < Rails::Generators::TestCase
         #     tests AppGenerator
-        #     destination File.expand_path("../tmp", File.dirname(__FILE__))
+        #     destination File.expand_path("../tmp", __dir__)
         #     setup :prepare_destination
         #
         #     test "database.yml is not created when skipping Active Record" do

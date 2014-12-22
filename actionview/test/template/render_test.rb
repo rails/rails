@@ -120,7 +120,7 @@ module RenderTestCases
   end
 
   def test_render_file_with_full_path
-    template_path = File.join(File.dirname(__FILE__), '../fixtures/test/hello_world')
+    template_path = File.join(__dir__, '../fixtures/test/hello_world')
     assert_equal "Hello world!", @view.render(:file => template_path)
   end
 

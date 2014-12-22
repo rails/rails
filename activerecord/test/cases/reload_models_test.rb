@@ -13,7 +13,7 @@ class ReloadModelsTest < ActiveRecord::TestCase
     # development environment. Note that meanwhile the class Pet is not
     # reloaded, simulating a class that is present in a plugin.
     Object.class_eval { remove_const :Owner }
-    Kernel.load(File.expand_path(File.join(File.dirname(__FILE__), "../models/owner.rb")))
+    Kernel.load(File.expand_path(File.join(__dir__, "../models/owner.rb")))
 
     pet = Pet.find_by_name('parrot')
     pet.owner = Owner.find_by_name('ashley')

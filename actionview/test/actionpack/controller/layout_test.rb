@@ -6,7 +6,7 @@ require 'active_support/core_ext/array/extract_options'
 # method has access to the view_paths array when looking for a layout to automatically assign.
 old_load_paths = ActionController::Base.view_paths
 
-ActionController::Base.view_paths = [ File.dirname(__FILE__) + '/../../fixtures/actionpack/layout_tests/' ]
+ActionController::Base.view_paths = [ __dir__ + '/../../fixtures/actionpack/layout_tests/' ]
 
 class LayoutTest < ActionController::Base
   def self.controller_path; 'views' end
@@ -118,7 +118,7 @@ end
 
 class PrependsViewPathController < LayoutTest
   def hello
-    prepend_view_path File.dirname(__FILE__) + '/../../fixtures/actionpack/layout_tests/alt/'
+    prepend_view_path __dir__ + '/../../fixtures/actionpack/layout_tests/alt/'
     render :layout => 'alt'
   end
 end

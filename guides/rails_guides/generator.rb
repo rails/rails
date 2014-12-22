@@ -123,7 +123,7 @@ module RailsGuides
     end
 
     def initialize_dirs(output)
-      @guides_dir = File.join(File.dirname(__FILE__), '..')
+      @guides_dir = File.join(__dir__, '..')
       @source_dir = "#@guides_dir/source/#@lang"
       @output_dir = if output
         output

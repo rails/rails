@@ -29,7 +29,7 @@ class StarStarMimeControllerTest < ActionController::TestCase
 end
 
 class AbstractPostController < ActionController::Base
-  self.view_paths = File.dirname(__FILE__) + "/../../fixtures/post_test/"
+  self.view_paths = __dir__ + "/../../fixtures/post_test/"
 end
 
 # For testing layouts which are set automatically

@@ -355,7 +355,7 @@ module ActiveSupport
 
         # Returns the directory in which the data files are stored.
         def self.dirname
-          File.dirname(__FILE__) + '/../values/'
+          __dir__ + '/../values/'
         end
 
         # Returns the filename for the data file for this version.

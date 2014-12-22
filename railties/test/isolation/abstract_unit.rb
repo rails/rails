@@ -13,7 +13,7 @@ require 'active_support'
 require 'active_support/testing/autorun'
 require 'active_support/test_case'
 
-RAILS_FRAMEWORK_ROOT = File.expand_path("#{File.dirname(__FILE__)}/../../..")
+RAILS_FRAMEWORK_ROOT = File.expand_path("#{__dir__}/../../..")
 
 # These files do not require any others and are needed
 # to run the tests
