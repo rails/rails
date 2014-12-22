@@ -939,6 +939,21 @@ module ActiveRecord
         [index_name, index_type, index_columns, index_options, algorithm, using]
       end
 
+
+      # Create a view given the SQL definition.  Specify :force => true
+      # to first drop the view if it already exists.#
+      #   create_view(:view_name, :definition, :options)
+      #
+      def create_view(view_name, definition, options = {})
+        raise NotImplementedError, "create_view is not implemented"
+      end
+
+      # Drop the named view.  Specify :if_exists => true
+      # to fail silently if the view doesn't exist.
+      def drop_view(view_name, options = {})
+        raise NotImplementedError, "drop_view is not implemented"
+      end
+
       protected
         def add_index_sort_order(option_strings, column_names, options = {})
           if options.is_a?(Hash) && order = options[:order]

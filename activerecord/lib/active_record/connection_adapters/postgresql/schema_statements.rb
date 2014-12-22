@@ -590,6 +590,28 @@ module ActiveRecord
 
           [super, *order_columns].join(', ')
         end
+
+        # Create a view given the SQL definition.  Specify :force => true
+        # to first drop the view if it already exists.#
+        #   create_view(:view_name, :definition, :options)
+        #
+        def create_view(view_name, definition, options = {})
+          definition = definition.to_sql if definition.respond_to? :to_sql
+          if options[:force]
+            drop_view(view_name, if_exists: true)
+          end
+          execute "CREATE VIEW #{quote_table_name(view_name)} AS #{definition}"
+        end
+
+        # Drop the named view.  Specify :if_exists => true
+        # to fail silently if the view doesn't exist.
+        def drop_view(view_name, options = {})
+          sql = "DROP VIEW"
+          sql += " IF EXISTS" if options[:if_exists]
+          sql += " #{quote_table_name(view_name)}"
+          execute sql
+        end
+
       end
     end
   end
