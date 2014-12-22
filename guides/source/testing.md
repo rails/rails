@@ -181,7 +181,7 @@ By requiring this file, `test_helper.rb` the default configuration to run our te
 class ArticleTest < ActiveSupport::TestCase
 ```
 
-The `ArticleTest` class defines a _test case_ because it inherits from `ActiveSupport::TestCase`. `ArticleTest` thus has all the methods available from `ActiveSupport::TestCase`. You'll see those methods a little later in this guide.
+The `ArticleTest` class defines a _test case_ because it inherits from `ActiveSupport::TestCase`. `ArticleTest` thus has all the methods available from `ActiveSupport::TestCase`. Later in this guide, you'll see some of the methods it gives you.
 
 Any method defined within a class inherited from `Minitest::Test`
 (which is the superclass of `ActiveSupport::TestCase`) that begins with `test_` (case sensitive) is simply called a test. So, `test_password` and `test_valid_password` are legal test names and are run automatically when the test case is run.
