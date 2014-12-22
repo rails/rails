@@ -445,8 +445,8 @@ module ActiveRecord
 
         def initialize_type_map(m) # :nodoc:
           register_class_with_limit m, 'int2', OID::Integer
-          m.alias_type 'int4', 'int2'
-          m.alias_type 'int8', 'int2'
+          register_class_with_limit m, 'int4', OID::Integer
+          register_class_with_limit m, 'int8', OID::Integer
           m.alias_type 'oid', 'int2'
           m.register_type 'float4', OID::Float.new
           m.alias_type 'float8', 'float4'
