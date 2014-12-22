@@ -5,6 +5,7 @@ require 'rails/generators/app_base'
 module Rails
   module Generators
     class GeneratorTest < ActiveSupport::TestCase
+      self.test_order = :random
       def make_builder_class
         Class.new(AppBase) do
           add_shared_options_for "application"

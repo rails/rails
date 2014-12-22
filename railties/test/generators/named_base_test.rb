@@ -6,6 +6,8 @@ require 'mocha/setup' # FIXME: stop using mocha
 module ActiveRecord
   class Base
     class << self
+      undef :pluralize_table_names  if method_defined? :pluralize_table_names
+      undef :pluralize_table_names= if method_defined? :pluralize_table_names=
       attr_accessor :pluralize_table_names
     end
     self.pluralize_table_names = true
