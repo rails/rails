@@ -334,7 +334,7 @@ module Rails
     #
     # This class should be called before the AppGenerator is required and started
     # since it configures and mutates ARGV correctly.
-    class ARGVScrubber # :nodoc
+    class ARGVScrubber # :nodoc:
       def initialize(argv = ARGV)
         @argv = argv
       end
