@@ -223,7 +223,16 @@ Every test must contain at least one assertion, with no restriction as to how ma
 
 ### Maintaining the test database schema
 
-In order to run your tests, your test database will need to have the current structure. The test helper checks whether your test database has any pending migrations. If so, it will try to load your `db/schema.rb` or `db/structure.sql` into the test database. If migrations are still pending, an error will be raised.
+In order to run your tests, your test database will need to have the current
+structure. The test helper checks whether your test database has any pending
+migrations. If so, it will try to load your `db/schema.rb` or `db/structure.sql`
+into the test database. If migrations are still pending, an error will be
+raised. Usually this indicates that your schema is not fully migrated. Running
+the migrations against the development database (`bin/rake db:migrate`) will
+bring the schema up to date.
+
+NOTE: If existing migrations are edited and rerun, the test database needs to be
+rebuilt. This can be done by executing `bin/rake db:test:prepare`.
 
 ### Running Tests
 
