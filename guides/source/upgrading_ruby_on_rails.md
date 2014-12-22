@@ -1110,7 +1110,7 @@ You can help test performance with these additions to your test environment:
 
 ```ruby
 # Configure static asset server for tests with Cache-Control for performance
-config.serve_static_assets = true
+config.serve_static_files = true
 config.static_cache_control = 'public, max-age=3600'
 ```
 
