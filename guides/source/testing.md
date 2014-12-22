@@ -219,7 +219,7 @@ An assertion is a line of code that evaluates an object (or expression) for expe
 * does this line of code throw an exception?
 * is the user's password greater than 5 characters?
 
-Every test contains one or more assertions. Only when all the assertions are successful will the test pass.
+Every test must contain at least one assertion, with no restriction as to how many assertions are allowed. Only when all the assertions are successful will the test pass.
 
 ### Maintaining the test database schema
 
