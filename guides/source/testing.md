@@ -324,8 +324,6 @@ Finished tests in 0.047721s, 20.9551 tests/s, 20.9551 assertions/s.
 
 Now, if you noticed, we first wrote a test which fails for a desired functionality, then we wrote some code which adds the functionality and finally we ensured that our test passes. This approach to software development is referred to as _Test-Driven Development_ (TDD).
 
-TIP: Many Rails developers practice _Test-Driven Development_ (TDD). This is an excellent way to build up a test suite that exercises every part of your application. TDD is beyond the scope of this guide, but one place to start is with [15 TDD steps to create a Rails application](http://andrzejonsoftware.blogspot.com/2007/05/15-tdd-steps-to-create-rails.html).
-
 To see how an error gets reported, here's a test containing an error:
 
 ```ruby
