@@ -262,6 +262,8 @@ This will run all test methods from the test case.
 
 The `.` (dot) above indicates a passing test. When a test fails you see an `F`; when a test throws an error you see an `E` in its place. The last line of the output is the summary.
 
+#### Your first failing test
+
 To see how a test failure is reported, you can add a failing test to the `article_test.rb` test case.
 
 ```ruby
@@ -323,6 +325,8 @@ Finished tests in 0.047721s, 20.9551 tests/s, 20.9551 assertions/s.
 ```
 
 Now, if you noticed, we first wrote a test which fails for a desired functionality, then we wrote some code which adds the functionality and finally we ensured that our test passes. This approach to software development is referred to as _Test-Driven Development_ (TDD).
+
+#### What an error looks like
 
 To see how an error gets reported, here's a test containing an error:
 
