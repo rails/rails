@@ -369,10 +369,6 @@ behavior:
 $ BACKTRACE=1 bin/rake test test/models/article_test.rb
 ```
 
-### What to Include in Your Unit Tests
-
-Ideally, you would like to include a test for everything which could possibly break. It's a good practice to have at least one test for each of your validations and at least one test for every method in your model.
-
 ### Available Assertions
 
 By now you've caught a glimpse of some of the assertions that are available. Assertions are the worker bees of testing. They are the ones that actually perform the checks to ensure that things are going as planned.
