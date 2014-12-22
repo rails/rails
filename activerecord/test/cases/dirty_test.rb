@@ -698,6 +698,21 @@ class DirtyTest < ActiveRecord::TestCase
     assert binary.changed?
   end
 
+  test "attribute_changed? doesn't compute in-place changes for unrelated attributes" do
+    test_type_class = Class.new(ActiveRecord::Type::Value) do
+      define_method(:changed_in_place?) do |*|
+        raise
+      end
+    end
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = 'people'
+      attribute :foo, test_type_class.new
+    end
+
+    model = klass.new(first_name: "Jim")
+    assert model.first_name_changed?
+  end
+
   private
     def with_partial_writes(klass, on = true)
       old = klass.partial_writes?
