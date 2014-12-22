@@ -152,6 +152,17 @@ module ActiveRecord #:nodoc:
   #   anonymous = User.new(name: "")
   #   anonymous.name? # => false
   #
+  # Note that the query method will also return false for boolean attributes with a value of false:
+  #
+  #   user = User.new(has_joined_newsletter: false)
+  #   user.has_joined_newsletter? # => false
+  #
+  # One way to compensate for this is to use <tt>present?</tt> or <tt>nil?</tt> when checking for presence of a boolean attribute:
+  #
+  #   user = User.new(has_joined_newsletter: false)
+  #   user.has_joined_newsletter.present? # => true
+  #   user.has_joined_newsletter.nil? # => false
+  #
   # == Accessing attributes before they have been typecasted
   #
   # Sometimes you want to be able to read the raw attribute data without having the column-determined
