@@ -6,9 +6,7 @@ module ActiveRecord
     class ReferencesForeignKeyTest < ActiveRecord::TestCase
       setup do
         @connection = ActiveRecord::Base.connection
-        @connection.transaction do
-          @connection.create_table(:testing_parents, force: true)
-        end
+        @connection.create_table(:testing_parents, force: true)
       end
 
       teardown do
