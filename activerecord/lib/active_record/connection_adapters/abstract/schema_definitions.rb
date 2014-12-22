@@ -549,9 +549,12 @@ module ActiveRecord
         @base.rename_column(name, column_name, new_column_name)
       end
 
-      # Adds a reference. Optionally adds a +type+ column, if <tt>:polymorphic</tt> option is provided.
-      # <tt>references</tt> and <tt>belongs_to</tt> are acceptable. The reference column will be an +integer+
-      # by default, the <tt>:type</tt> option can be used to specify a different type.
+      # Adds a reference. Optionally adds a +type+ column, if
+      # <tt>:polymorphic</tt> option is provided.  <tt>references</tt> and
+      # <tt>belongs_to</tt> are acceptable. The reference column will be an
+      # +integer+ by default, the <tt>:type</tt> option can be used to specify
+      # a different type. A foreign key will be created if a +foreign_key+
+      # option is passed.
       #
       #  t.references(:user)
       #  t.references(:user, type: "string")

@@ -637,20 +637,31 @@ module ActiveRecord
       #
       #   add_belongs_to(:products, :supplier, polymorphic: true)
       #
-      # ====== Create a supplier_id, supplier_type columns and appropriate index
+      # ====== Create supplier_id, supplier_type columns and appropriate index
       #
       #   add_reference(:products, :supplier, polymorphic: true, index: true)
+      #
+      # ====== Create a supplier_id column and appropriate foreign key
+      #
+      #   add_reference(:products, :supplier, foreign_key: true)
       #
       def add_reference(
         table_name,
         ref_name,
         polymorphic: false,
         index: false,
+        foreign_key: false,
         type: :integer,
         **options
       )
         polymorphic_options = polymorphic.is_a?(Hash) ? polymorphic : options
         index_options = index.is_a?(Hash) ? index : {}
+        foreign_key_options = foreign_key.is_a?(Hash) ? foreign_key : {}
+
+        if polymorphic && foreign_key
+          raise ArgumentError, "Cannot add a foreign key to a polymorphic relation"
+        end
+
         add_column(table_name, "#{ref_name}_id", type, options)
 
         if polymorphic
@@ -659,6 +670,10 @@ module ActiveRecord
 
         if index
           add_index(table_name, polymorphic ? %w[type id].map{ |t| "#{ref_name}_#{t}" } : "#{ref_name}_id", index_options)
+        end
+
+        if foreign_key
+          add_foreign_key(table_name, ref_name.to_s.pluralize, foreign_key_options)
         end
       end
       alias :add_belongs_to :add_reference
