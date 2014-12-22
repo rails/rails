@@ -212,7 +212,7 @@ Next, let's look at our first assertion:
 assert true
 ```
 
-This line of code is called an _assertion_. An assertion is a line of code that evaluates an object (or expression) for expected results. For example, an assertion can check:
+An assertion is a line of code that evaluates an object (or expression) for expected results. For example, an assertion can check:
 
 * does this value = that value?
 * is this object nil?
