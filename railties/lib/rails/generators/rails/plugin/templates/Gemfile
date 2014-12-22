@@ -37,7 +37,7 @@ end
 <% end -%>
 
 <% end -%>
-<% unless defined?(JRUBY_VERSION) -%>
+<% if RUBY_ENGINE == 'ruby' -%>
 # To use a debugger
   <%- if RUBY_VERSION < '2.0.0' -%>
 # gem 'debugger', group: [:development, :test]
