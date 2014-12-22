@@ -204,7 +204,17 @@ module ActiveRecord
         end
 
         result = execute schema_creation.accept td
-        td.indexes.each_pair { |c, o| add_index(table_name, c, o) } unless supports_indexes_in_create?
+
+        unless supports_indexes_in_create?
+          td.indexes.each_pair do |column_name, index_options|
+            add_index(table_name, column_name, index_options)
+          end
+        end
+
+        td.foreign_keys.each_pair do |other_table_name, foreign_key_options|
+          add_foreign_key(table_name, other_table_name, foreign_key_options)
+        end
+
         result
       end
 
