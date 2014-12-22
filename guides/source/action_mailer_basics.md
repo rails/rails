@@ -708,7 +708,7 @@ Mailer Testing
 --------------
 
 You can find detailed instructions on how to test your mailers in the
-[testing guide](testing.html#testing-your-mailers).
+[testing guide](http://guides.rubyonrails.org/testing.html#testing-your-mailers).
 
 Intercepting Emails
 -------------------
