@@ -641,13 +641,25 @@ module ActiveRecord
       #
       #   add_reference(:products, :supplier, polymorphic: true, index: true)
       #
-      def add_reference(table_name, ref_name, options = {})
-        polymorphic = options.delete(:polymorphic)
-        index_options = options.delete(:index)
-        type = options.delete(:type) || :integer
+      def add_reference(
+        table_name,
+        ref_name,
+        polymorphic: false,
+        index: false,
+        type: :integer,
+        **options
+      )
+        polymorphic_options = polymorphic.is_a?(Hash) ? polymorphic : options
+        index_options = index.is_a?(Hash) ? index : {}
         add_column(table_name, "#{ref_name}_id", type, options)
-        add_column(table_name, "#{ref_name}_type", :string, polymorphic.is_a?(Hash) ? polymorphic : options) if polymorphic
-        add_index(table_name, polymorphic ? %w[type id].map{ |t| "#{ref_name}_#{t}" } : "#{ref_name}_id", index_options.is_a?(Hash) ? index_options : {}) if index_options
+
+        if polymorphic
+          add_column(table_name, "#{ref_name}_type", :string, polymorphic_options)
+        end
+
+        if index
+          add_index(table_name, polymorphic ? %w[type id].map{ |t| "#{ref_name}_#{t}" } : "#{ref_name}_id", index_options)
+        end
       end
       alias :add_belongs_to :add_reference
 
