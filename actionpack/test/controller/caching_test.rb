@@ -3,7 +3,7 @@ require 'abstract_unit'
 
 CACHE_DIR = 'test_cache'
 # Don't change '/../temp/' cavalierly or you might hose something you don't want hosed
-FILE_STORE_PATH = File.join(File.dirname(__FILE__), '/../temp/', CACHE_DIR)
+FILE_STORE_PATH = File.join(__dir__, '/../temp/', CACHE_DIR)
 
 class FragmentCachingMetalTestController < ActionController::Metal
   abstract!

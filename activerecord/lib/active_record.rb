@@ -169,5 +169,5 @@ ActiveSupport.on_load(:active_record) do
 end
 
 ActiveSupport.on_load(:i18n) do
-  I18n.load_path << File.dirname(__FILE__) + '/active_record/locale/en.yml'
+  I18n.load_path << __dir__ + '/active_record/locale/en.yml'
 end

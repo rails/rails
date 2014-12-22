@@ -46,7 +46,7 @@ class CodeStatisticsCalculatorTest < ActiveSupport::TestCase
   end
 
   test 'calculate statistics using #add_by_file_path' do
-    tmp_path = File.expand_path(File.join(File.dirname(__FILE__), 'fixtures', 'tmp'))
+    tmp_path = File.expand_path(File.join(__dir__, 'fixtures', 'tmp'))
     FileUtils.mkdir_p(tmp_path)
 
     code = <<-'CODE'

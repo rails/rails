@@ -13,7 +13,7 @@ class FixtureTemplate
 end
 
 class FixtureFinder
-  FIXTURES_DIR = "#{File.dirname(__FILE__)}/../fixtures/digestor"
+  FIXTURES_DIR = "#{__dir__}/../fixtures/digestor"
 
   attr_reader   :details
   attr_accessor :formats

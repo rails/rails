@@ -105,7 +105,7 @@ class DependenciesTest < ActiveSupport::TestCase
     with_loading 'dependencies' do
       old_warnings, ActiveSupport::Dependencies.warnings_on_first_load = ActiveSupport::Dependencies.warnings_on_first_load, true
       filename = "check_warnings"
-      expanded = File.expand_path("#{File.dirname(__FILE__)}/dependencies/#{filename}")
+      expanded = File.expand_path("#{__dir__}/dependencies/#{filename}")
       $check_warnings_load_count = 0
 
       assert_not ActiveSupport::Dependencies.loaded.include?(expanded)
@@ -413,7 +413,7 @@ class DependenciesTest < ActiveSupport::TestCase
 
   def test_loadable_constants_for_path_should_handle_relative_paths
     fake_root = 'dependencies'
-    relative_root = File.dirname(__FILE__) + '/dependencies'
+    relative_root = __dir__ + '/dependencies'
     ['', '/'].each do |suffix|
       with_loading fake_root + suffix do
         assert_equal ["A::B"], ActiveSupport::Dependencies.loadable_constants_for_path(relative_root + '/a/b')
@@ -438,7 +438,7 @@ class DependenciesTest < ActiveSupport::TestCase
   end
 
   def test_loadable_constants_with_load_path_without_trailing_slash
-    path = File.dirname(__FILE__) + '/autoloading_fixtures/class_folder/inline_class.rb'
+    path = __dir__ + '/autoloading_fixtures/class_folder/inline_class.rb'
     with_loading 'autoloading_fixtures/class/' do
       assert_equal [], ActiveSupport::Dependencies.loadable_constants_for_path(path)
     end

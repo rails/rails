@@ -1,8 +1,8 @@
 require 'rake/testtask'
 require 'rubygems/package_task'
 
-require File.expand_path(File.dirname(__FILE__)) + "/test/config"
-require File.expand_path(File.dirname(__FILE__)) + "/test/support/config"
+require File.expand_path(__dir__) + "/test/config"
+require File.expand_path(__dir__) + "/test/support/config"
 
 def run_without_aborting(*tasks)
   errors = []
@@ -147,7 +147,7 @@ task :drop_postgresql_databases => 'db:postgresql:drop'
 task :rebuild_postgresql_databases => 'db:postgresql:rebuild'
 
 task :lines do
-  load File.expand_path('..', File.dirname(__FILE__)) + '/tools/line_statistics'
+  load File.expand_path('..', __dir__) + '/tools/line_statistics'
   files = FileList["lib/active_record/**/*.rb"]
   CodeTools::LineStatistics.new(files).print_loc
 end

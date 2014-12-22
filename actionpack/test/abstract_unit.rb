@@ -1,8 +1,8 @@
 require File.expand_path('../../../load_paths', __FILE__)
 
-$:.unshift(File.dirname(__FILE__) + '/lib')
-$:.unshift(File.dirname(__FILE__) + '/fixtures/helpers')
-$:.unshift(File.dirname(__FILE__) + '/fixtures/alternate_helpers')
+$:.unshift(__dir__ + '/lib')
+$:.unshift(__dir__ + '/fixtures/helpers')
+$:.unshift(__dir__ + '/fixtures/alternate_helpers')
 
 require 'active_support/core_ext/kernel/reporting'
 
@@ -56,7 +56,7 @@ I18n.backend.store_translations 'da', {}
 I18n.backend.store_translations 'pt-BR', {}
 ORIGINAL_LOCALES = I18n.available_locales.map(&:to_s).sort
 
-FIXTURE_LOAD_PATH = File.join(File.dirname(__FILE__), 'fixtures')
+FIXTURE_LOAD_PATH = File.join(__dir__, 'fixtures')
 FIXTURES = Pathname.new(FIXTURE_LOAD_PATH)
 
 module RackTestUtils
@@ -200,7 +200,7 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
   end
 
   def with_autoload_path(path)
-    path = File.join(File.dirname(__FILE__), "fixtures", path)
+    path = File.join(__dir__, "fixtures", path)
     if ActiveSupport::Dependencies.autoload_paths.include?(path)
       yield
     else

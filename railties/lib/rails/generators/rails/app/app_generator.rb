@@ -153,7 +153,7 @@ module Rails
   module Generators
     # We need to store the RAILS_DEV_PATH in a constant, otherwise the path
     # can change in Ruby 1.8.7 when we FileUtils.cd.
-    RAILS_DEV_PATH = File.expand_path("../../../../../..", File.dirname(__FILE__))
+    RAILS_DEV_PATH = File.expand_path("../../../../../..", __dir__)
     RESERVED_NAMES = %w[application destroy plugin runner test]
 
     class AppGenerator < AppBase # :nodoc:
