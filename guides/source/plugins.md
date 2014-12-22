@@ -433,7 +433,7 @@ Once your README is solid, go through and add rdoc comments to all of the method
 Once your comments are good to go, navigate to your plugin directory and run:
 
 ```bash
-$ bin/rake rdoc
+$ bundle exec rake rdoc
 ```
 
 ### References
