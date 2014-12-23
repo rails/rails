@@ -14,6 +14,7 @@ module ActionDispatch
       end
 
       def generate(name, options, path_parameters, parameterize = nil)
+        options = options.symbolize_keys
         constraints = path_parameters.merge(options)
         missing_keys = []
 

@@ -1,3 +1,7 @@
+*   Fix route helper to work with string params
+
+    *Sammy Larbi*
+
 *   Fixed handling of positional url helper arguments when `format: false`.
 
     Fixes #17819.
