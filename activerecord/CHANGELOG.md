@@ -1,3 +1,8 @@
+*   Don't raise when writing an attribute with an out-of-range datetime passed
+    by the user.
+
+    *Grey Baker*
+
 *   Fixes bug with 'ActiveRecord::Type::Numeric' that causes negative values to
     be marked as having changed when set to the same negative value.
 
