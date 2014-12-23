@@ -140,7 +140,8 @@ module ActiveRecord #:nodoc:
   # == Attribute query methods
   #
   # In addition to the basic accessors, query methods are also automatically available on the Active Record object.
-  # A query method returns true or false depending on the value of the attribute.
+  # Query methods allow you to test whether an attribute value is present, as defined by <tt>Object#present?</tt>.
+  # For numeric values, present is defined as non-zero.
   #
   # For example, an Active Record User with the <tt>name</tt> attribute has a <tt>name?</tt> method that you can call
   # to determine whether the user has a name:
@@ -150,41 +151,6 @@ module ActiveRecord #:nodoc:
   #
   #   anonymous = User.new(name: "")
   #   anonymous.name? # => false
-  #
-  # When an attribute's value is nil, the query method will return false:
-  #
-  #   user = User.new(name: nil)
-  #   user.name? # => false
-  #
-  # When the value is not nil, whether true or false is returned depends on the
-  # attribute's underlying class.
-  #
-  # When used on a boolean attribute, the query method returns false if the
-  # attribute is false, or true if it is true:
-  #
-  #   user = User.new(has_joined_newsletter: false)
-  #   user.has_joined_newsletter? # => false
-  #
-  #   user.has_joined_newsletter = true
-  #   user.has_joined_newsletter? # => true
-  #
-  # In other words, it returns the value of the boolean attribute.
-  #
-  # For numeric attributes, the query method will return false if the value is
-  # zero, or true otherwise:
-  #
-  #   user = User.new(age: 0)
-  #   user.age? # => false
-  #
-  #   user.age = 25
-  #   user.age? # => true
-  #
-  # With other classes, the query method returns true if the value is present
-  # (more specifically, it returns true if it is not blank, as defined by
-  # <tt>Object#blank?</tt>). For instance, as seen above, a non-blank String
-  # would cause the query method to return true, while a blank String would
-  # return false. A String is considered blank when it has a length of zero,
-  # or contains only whitespace.
   #
   # == Accessing attributes before they have been typecasted
   #
