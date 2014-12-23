@@ -365,7 +365,7 @@ module ActiveRecord
             conn.expire
           end
 
-          release owner
+          release conn, owner
 
           @available.add conn
         end
@@ -378,7 +378,7 @@ module ActiveRecord
           @connections.delete conn
           @available.delete conn
 
-          release conn.owner
+          release conn, conn.owner
 
           @available.add checkout_new_connection if @available.any_waiting?
         end
@@ -426,10 +426,12 @@ module ActiveRecord
         end
       end
 
-      def release(owner)
+      def release(conn, owner)
         thread_id = owner.object_id
 
-        @reserved_connections.delete thread_id
+        if @reserved_connections[thread_id] == conn
+          @reserved_connections.delete thread_id
+        end
       end
 
       def new_connection
