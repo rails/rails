@@ -1150,4 +1150,57 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     club.members << member
     assert_equal 1, SuperMembership.where(member_id: member.id, club_id: club.id).count
   end
+
+  class Shout < ActiveRecord::Base
+    self.table_name = "test_poly_shouts"
+
+    belongs_to :account
+    belongs_to :content, :polymorphic => true
+  end
+
+  class TextShout < ActiveRecord::Base
+    self.table_name = "test_poly_text_shouts"
+  end
+
+  class PictureShout < ActiveRecord::Base
+    self.table_name = "test_poly_picture_shouts"
+  end
+
+  class Account < ActiveRecord::Base
+    self.table_name = "test_poly_accounts"
+    has_many :shouts
+    has_many :text_shouts, :through => :shouts, :source => :content, :source_type => TextShout
+    has_many :picture_shouts, :through => :shouts, :source => :content, :source_type => PictureShout
+  end
+
+  def test_eager_load_polymorphic_nested_associations
+    @connection = ActiveRecord::Base.connection
+    @connection.create_table(:test_poly_accounts, force: true)
+    @connection.create_table(:test_poly_shouts, force: true) do |t|
+      t.references :account
+      t.references :content, polymorphic: true
+    end
+    @connection.create_table(:test_poly_text_shouts, force: true) do |t|
+      t.text :text
+    end
+    @connection.create_table(:test_poly_picture_shouts, force: true) do |t|
+      t.text :url
+    end
+
+    account = Account.create!
+
+    text_shout = TextShout.new(:text => "Hello")
+    picture_shout = PictureShout.new(:url => "some url")
+
+    account.shouts.create! :content => text_shout
+    account.shouts.create! :content => picture_shout
+
+    assert_includes Account.eager_load(:text_shouts, :picture_shouts).where("test_poly_text_shouts.text like '%Hello%'"), account
+    assert_includes Account.eager_load(:text_shouts, :picture_shouts).where("test_poly_picture_shouts.url like '%some%'"), account
+  ensure
+    @connection.execute("DROP TABLE IF EXISTS test_poly_accounts")
+    @connection.execute("DROP TABLE IF EXISTS test_poly_shouts")
+    @connection.execute("DROP TABLE IF EXISTS test_poly_text_shouts")
+    @connection.execute("DROP TABLE IF EXISTS test_poly_picture_shouts")
+  end
 end
