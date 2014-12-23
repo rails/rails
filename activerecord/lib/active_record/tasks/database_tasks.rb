@@ -209,7 +209,7 @@ module ActiveRecord
           This method was renamed to `#load_schema` and will be removed in the future.
           Use `#load_schema` instead.
         MSG
-        load_schema *args
+        load_schema(*args)
       end
 
       def schema_file(format = ActiveSupport::Base.schema_format)
