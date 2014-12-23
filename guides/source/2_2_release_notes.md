@@ -1,3 +1,5 @@
+**GITHUB-WARNING: This is source code, guides are published in http://guides.rubyonrails.org.**
+
 Ruby on Rails 2.2 Release Notes
 ===============================
 
