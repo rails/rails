@@ -1,3 +1,5 @@
+**DO NOT READ THIS FILE IN GITHUB, GUIDES ARE PUBLISHED IN http://guides.rubyonrails.org.**
+
 Creating and Customizing Rails Generators & Templates
 =====================================================
 

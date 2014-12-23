@@ -1,3 +1,5 @@
+**DO NOT READ THIS FILE IN GITHUB, GUIDES ARE PUBLISHED IN http://guides.rubyonrails.org.**
+
 Ruby on Rails 4.1 Release Notes
 ===============================
 
