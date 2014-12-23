@@ -1,3 +1,8 @@
+*   Don't raise when writing an attribute with an out-of-range datetime passed
+    by the user.
+
+    *Grey Baker*
+
 *   Replace deprecated `ActiveRecord::Tasks::DatabaseTasks#load_schema` with
     `ActiveRecord::Tasks::DatabaseTasks#load_schema_for`.
 

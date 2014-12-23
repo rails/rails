@@ -12,7 +12,11 @@ module ActiveRecord
           if value.is_a?(Array)
             value.map { |v| type_cast_from_user(v) }
           elsif value.respond_to?(:in_time_zone)
-            value.in_time_zone || super
+            begin
+              value.in_time_zone || super
+            rescue ArgumentError
+              nil
+            end
           end
         end
 
