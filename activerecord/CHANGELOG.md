@@ -1,3 +1,8 @@
+*   Don't raise when writing an attribute with an out-of-range datetime passed
+    by the user.
+
+    *Grey Baker*
+
 *   Introduce `force: :cascade` option for `create_table`. Using this option
     will recreate tables even if they have dependent objects (like foreign keys).
     `db/schema.rb` now uses `force: :cascade`. This makes it possible to
