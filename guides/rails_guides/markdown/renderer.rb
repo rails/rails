@@ -23,7 +23,7 @@ HTML
       end
 
       def paragraph(text)
-        if text =~ /^(TIP|IMPORTANT|CAUTION|WARNING|NOTE|INFO|TODO)[.:](.*?)/
+        if text =~ /^(TIP|IMPORTANT|CAUTION|WARNING|NOTE|INFO|TODO)[.:]/
           convert_notes(text)
         elsif text.include?('DO NOT READ THIS FILE IN GITHUB')
         elsif text =~ /^\[<sup>(\d+)\]:<\/sup> (.+)$/
