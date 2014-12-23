@@ -1382,16 +1382,12 @@ WHERE people.name = 'John'
 LIMIT 1
 ```
 
-NOTE: Remember that, if `find_by` return more than one registry, it will take just the first
-and ignore the others. Note the `LIMIT 1` statement above.
+NOTE: Remember that, if `find_by` return more than one registry, it will take just the first and ignore the others. Note the `LIMIT 1` statement above.
 
 Find or Build a New Object
 --------------------------
 
-NOTE: Some dynamic finders were deprecated in Rails 4.0 and
-removed in Rails 4.1. The best practice is to use Active Record scopes
-instead. You can find the deprecation gem at
-https://github.com/rails/activerecord-deprecated_finders
+NOTE: Some dynamic finders were deprecated in Rails 4.0 and removed in Rails 4.1. The best practice is to use Active Record scopes instead. You can find the deprecation gem at https://github.com/rails/activerecord-deprecated_finders
 
 It's common that you need to find a record or create it if it doesn't exist. You can do that with the `find_or_create_by` and `find_or_create_by!` methods.
 
