@@ -1,5 +1,6 @@
 require 'isolation/abstract_unit'
 require 'rack/test'
+
 module ApplicationTests
   class MailerPreviewsTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
@@ -478,6 +479,48 @@ module ApplicationTests
         get "/rails/mailers/notifier/path_in_mailer.html"
         assert_equal 200, last_response.status
       end
+    end
+
+    test "encodes inline attachments" do
+      image_content = 'image_content'
+      mailer 'notifier', <<-RUBY
+        class Notifier < ActionMailer::Base
+          default from: "from@example.com"
+
+          def foo
+            attachments.inline['image.png'] = '#{image_content}'
+            mail to: "to@example.org"
+          end
+        end
+      RUBY
+
+      html_template 'notifier/foo', <<-RUBY
+        <p>Hello, World! <%= image_tag attachments['image.png'].url %></p>
+      RUBY
+
+      text_template 'notifier/foo', <<-RUBY
+        Hello, World!
+      RUBY
+
+      mailer_preview 'notifier', <<-RUBY
+        class NotifierPreview < ActionMailer::Preview
+          def foo
+            Notifier.foo
+          end
+        end
+      RUBY
+
+      app('development')
+
+      get "/rails/mailers/notifier/foo.html"
+      assert_equal 200, last_response.status
+
+      get "/rails/mailers/notifier/foo.txt"
+      assert_equal 200, last_response.status
+
+      get "/rails/mailers/notifier/foo?part=text%2Fhtml"
+      assert_equal 200, last_response.status
+      assert_match "<p>Hello, World! <img src=\"data:image/png;base64,#{Base64.encode64(image_content)}\" />", last_response.body
     end
 
     private
