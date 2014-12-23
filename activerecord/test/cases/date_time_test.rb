@@ -3,6 +3,8 @@ require 'models/topic'
 require 'models/task'
 
 class DateTimeTest < ActiveRecord::TestCase
+  include InTimeZone
+
   def test_saves_both_date_and_time
     with_env_tz 'America/New_York' do
       with_timezone_config default: :utc do
@@ -27,6 +29,14 @@ class DateTimeTest < ActiveRecord::TestCase
     task.ending = nil
     assert_nil task.starting
     assert_nil task.ending
+  end
+
+  def test_assign_bad_date_time_with_timezone
+    in_time_zone "Pacific Time (US & Canada)" do
+      task = Task.new
+      task.starting = '2014-07-01T24:59:59GMT'
+      assert_nil task.starting
+    end
   end
 
   def test_assign_empty_date
