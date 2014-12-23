@@ -81,6 +81,9 @@ module ActiveRecord
     #
     # Note that the model will _not_ be destroyed until the parent is saved.
     #
+    # Also note that the model will not be destroyed unless you also specify
+    # its id in the updated hash. 
+    #
     # === One-to-many
     #
     # Consider a member that has a number of posts:
