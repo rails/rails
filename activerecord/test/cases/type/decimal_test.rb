@@ -38,6 +38,14 @@ module ActiveRecord
         type = Decimal.new
         assert_equal BigDecimal("1"), type.type_cast_from_user(value)
       end
+
+      def test_changed?
+        type = Decimal.new
+
+        assert type.changed?(5.0, 5.0, '5.0wibble')
+        assert_not type.changed?(5.0, 5.0, '5.0')
+        assert_not type.changed?(-5.0, -5.0, '-5.0')
+      end
     end
   end
 end
