@@ -53,9 +53,9 @@ module ActiveRecord
       #   store_listing.price_in_cents # => 10
       #
       # Users may also define their own custom types, as long as they respond to the methods
-      # defined on the value type. The `type_cast` method on your type object will be called
+      # defined on the value type. The +type_cast+ method on your type object will be called
       # with values both from the database, and from your controllers. See
-      # `ActiveRecord::Attributes::Type::Value` for the expected API. It is recommended that your
+      # +ActiveRecord::Attributes::Type::Value+ for the expected API. It is recommended that your
       # type objects inherit from an existing type, or the base value type.
       #
       #   class MoneyType < ActiveRecord::Type::Integer

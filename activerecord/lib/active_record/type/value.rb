@@ -91,8 +91,8 @@ module ActiveRecord
 
       # Convenience method for types which do not need separate type casting
       # behavior for user and database inputs. Called by
-      # `type_cast_from_database` and `type_cast_from_user` for all values
-      # except `nil`.
+      # +type_cast_from_database+ and +type_cast_from_user+ for all values
+      # except +nil+.
       def cast_value(value) # :doc:
         value
       end
