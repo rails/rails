@@ -170,3 +170,15 @@ end
 
 class Car < Struct.new(:color)
 end
+
+class Plane
+  attr_reader :to_key
+
+  def model_name
+    OpenStruct.new param_key: 'airplane'
+  end
+
+  def save
+    @to_key = [1]
+  end
+end
