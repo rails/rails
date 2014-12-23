@@ -1150,6 +1150,10 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     club.members << member
     assert_equal 1, SuperMembership.where(member_id: member.id, club_id: club.id).count
   end
+end
+
+class NonTransactionalHMTAssociationsTest < ActiveRecord::TestCase
+  self.use_transactional_fixtures = false
 
   class Shout < ActiveRecord::Base
     self.table_name = "test_poly_shouts"
