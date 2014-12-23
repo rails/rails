@@ -1,3 +1,8 @@
+*   Replace deprecated `ActiveRecord::Tasks::DatabaseTasks#load_schema` with
+    `ActiveRecord::Tasks::DatabaseTasks#load_schema_for`.
+
+    *Yves Senn*
+
 *   Fixes bug with 'ActiveRecord::Type::Numeric' that causes negative values to
     be marked as having changed when set to the same negative value.
 
