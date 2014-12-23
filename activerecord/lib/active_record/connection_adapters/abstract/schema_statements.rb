@@ -645,36 +645,8 @@ module ActiveRecord
       #
       #   add_reference(:products, :supplier, foreign_key: true)
       #
-      def add_reference(
-        table_name,
-        ref_name,
-        polymorphic: false,
-        index: false,
-        foreign_key: false,
-        type: :integer,
-        **options
-      )
-        polymorphic_options = polymorphic.is_a?(Hash) ? polymorphic : options
-        index_options = index.is_a?(Hash) ? index : {}
-        foreign_key_options = foreign_key.is_a?(Hash) ? foreign_key : {}
-
-        if polymorphic && foreign_key
-          raise ArgumentError, "Cannot add a foreign key to a polymorphic relation"
-        end
-
-        add_column(table_name, "#{ref_name}_id", type, options)
-
-        if polymorphic
-          add_column(table_name, "#{ref_name}_type", :string, polymorphic_options)
-        end
-
-        if index
-          add_index(table_name, polymorphic ? %w[type id].map{ |t| "#{ref_name}_#{t}" } : "#{ref_name}_id", index_options)
-        end
-
-        if foreign_key
-          add_foreign_key(table_name, ref_name.to_s.pluralize, foreign_key_options)
-        end
+      def add_reference(table_name, *args)
+        ReferenceDefinition.new(*args).add_to(update_table_definition(table_name, self))
       end
       alias :add_belongs_to :add_reference
 

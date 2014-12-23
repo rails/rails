@@ -68,6 +68,84 @@ module ActiveRecord
       end
     end
 
+    class ReferenceDefinition # :nodoc:
+      def initialize(
+        name,
+        polymorphic: false,
+        index: false,
+        foreign_key: false,
+        type: :integer,
+        **options
+      )
+        @name = name
+        @polymorphic = polymorphic
+        @index = index
+        @foreign_key = foreign_key
+        @type = type
+        @options = options
+
+        if polymorphic && foreign_key
+          raise ArgumentError, "Cannot add a foreign key to a polymorphic relation"
+        end
+      end
+
+      def add_to(table)
+        columns.each do |column_options|
+          table.column(*column_options)
+        end
+
+        if index
+          table.index(column_names, index_options)
+        end
+
+        if foreign_key
+          table.foreign_key(foreign_table_name, foreign_key_options)
+        end
+      end
+
+      protected
+
+      attr_reader :name, :polymorphic, :index, :foreign_key, :type, :options
+
+      private
+
+      def as_options(value, default = {})
+        if value.is_a?(Hash)
+          value
+        else
+          default
+        end
+      end
+
+      def polymorphic_options
+        as_options(polymorphic, options)
+      end
+
+      def index_options
+        as_options(index)
+      end
+
+      def foreign_key_options
+        as_options(foreign_key)
+      end
+
+      def columns
+        result = [["#{name}_id", type, options]]
+        if polymorphic
+          result.unshift(["#{name}_type", :string, polymorphic_options])
+        end
+        result
+      end
+
+      def column_names
+        columns.map(&:first)
+      end
+
+      def foreign_table_name
+        name.to_s.pluralize
+      end
+    end
+
     # Represents the schema of an SQL table in an abstract way. This class
     # provides methods for manipulating the schema representation.
     #
@@ -314,36 +392,9 @@ module ActiveRecord
       #  t.belongs_to(:supplier, polymorphic: true)
       #
       # See SchemaStatements#add_reference
-      def references(
-        *args,
-        polymorphic: false,
-        index: false,
-        foreign_key: false,
-        type: :integer,
-        **options
-      )
-        polymorphic_options = polymorphic.is_a?(Hash) ? polymorphic : options
-        index_options = index.is_a?(Hash) ? index : {}
-        foreign_key_options = foreign_key.is_a?(Hash) ? foreign_key : {}
-
-        if polymorphic && foreign_key
-          raise ArgumentError, "Cannot add a foreign key on a polymorphic relation"
-        end
-
+      def references(*args, **options)
         args.each do |col|
-          column("#{col}_id", type, options)
-
-          if polymorphic
-            column("#{col}_type", :string, polymorphic_options)
-          end
-
-          if index
-            self.index(polymorphic ? %w(type id).map { |t| "#{col}_#{t}" } : "#{col}_id", index_options)
-          end
-
-          if foreign_key
-            self.foreign_key(col.to_s.pluralize, foreign_key_options)
-          end
+          ReferenceDefinition.new(col, **options).add_to(self)
         end
       end
       alias :belongs_to :references
@@ -595,6 +646,10 @@ module ActiveRecord
             @base.add_column(name, column_name, column_type, options)
           end
         end
+      end
+
+      def foreign_key(*args) # :nodoc:
+        @base.add_foreign_key(name, *args)
       end
 
       private
