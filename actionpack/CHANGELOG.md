@@ -1,3 +1,7 @@
+*   Fix route helper to work with string params
+
+    *Sammy Larbi*
+
 *   For actions with no corresponding templates, render `head :no_content`
     instead of raising an error. This allows for slimmer API controller
     methods that simply work, without needing further instructions.

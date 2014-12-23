@@ -129,6 +129,15 @@ module TestUrlGeneration
       )
     end
 
+    test "does not raise ArgumentError: comparison of Array with Array failed" do
+      assert_raises ActionController::UrlGenerationError do
+        bar_path(id_is_purposefully_not_present: true, "symbol_mixed_with_string_would_cause_ArgumentError" => true)
+      end
+    end
+
+    test "accepts a string key for required keys" do
+      assert_equal "/bars/1", bar_path("id" => 1)
+    end
   end
 end
 
