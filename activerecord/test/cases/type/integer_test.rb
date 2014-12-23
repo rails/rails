@@ -47,6 +47,8 @@ module ActiveRecord
         assert type.changed?(5, 5, '5wibble')
         assert_not type.changed?(5, 5, '5')
         assert_not type.changed?(5, 5, '5.0')
+        assert_not type.changed?(-5, -5, '-5')
+        assert_not type.changed?(-5, -5, '-5.0')
         assert_not type.changed?(nil, nil, nil)
       end
 

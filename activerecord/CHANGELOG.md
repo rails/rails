@@ -1,3 +1,10 @@
+*   Fixes bug with 'ActiveRecord::Type::Numeric' that causes negative values to
+    be marked as having changed when set to the same negative value.
+
+    Closes GH#18161
+
+    *Daniel Fox*
+
 *   Introduce `force: :cascade` option for `create_table`. Using this option
     will recreate tables even if they have dependent objects (like foreign keys).
     `db/schema.rb` now uses `force: :cascade`. This makes it possible to
