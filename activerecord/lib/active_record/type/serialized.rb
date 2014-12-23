@@ -29,7 +29,7 @@ module ActiveRecord
 
       def changed_in_place?(raw_old_value, value)
         return false if value.nil?
-        subtype.changed_in_place?(raw_old_value, coder.dump(value))
+        subtype.changed_in_place?(raw_old_value, type_cast_for_database(value))
       end
 
       def accessor
