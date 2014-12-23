@@ -954,6 +954,14 @@ module ActiveRecord
         raise NotImplementedError, "drop_view is not implemented"
       end
 
+      # Update a view given the SQL definition.
+      # to first drop the view if it already exists.#
+      #   update_view(:view_name, :definition)
+      #
+      def update_view(view_name, definition)
+        raise NotImplementedError, "update_view is not implemented"
+      end
+
       protected
         def add_index_sort_order(option_strings, column_names, options = {})
           if options.is_a?(Hash) && order = options[:order]

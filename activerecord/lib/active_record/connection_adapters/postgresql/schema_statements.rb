@@ -612,6 +612,15 @@ module ActiveRecord
           execute sql
         end
 
+        # Update a view given the SQL definition.
+        # to first drop the view if it already exists.#
+        #   update_view(:view_name, :definition)
+        #
+        def update_view(view_name, definition)
+          drop_view(view_name, if_exists: true)
+          create_view(view_name, definition)
+        end
+
       end
     end
   end
