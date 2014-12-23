@@ -1,4 +1,4 @@
-*   Added support for error dispatcher classes in ActiveSupport::Rescuable. Now it acts closer to Ruby's rescue.
+*   Added support for error dispatcher classes in `ActiveSupport::Rescuable`. Now it acts closer to Ruby's rescue.
 
         class BaseController < ApplicationController
           module ErrorDispatcher

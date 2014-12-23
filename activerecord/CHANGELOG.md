@@ -1,7 +1,7 @@
 *   Fixes bug with 'ActiveRecord::Type::Numeric' that causes negative values to
     be marked as having changed when set to the same negative value.
 
-    Closes GH#18161
+    Closes #18161.
 
     *Daniel Fox*
 
@@ -20,7 +20,7 @@
 
     *Yves Senn*
 
-*   Fix undesirable RangeError by Type::Integer. Add Type::UnsignedInteger.
+*   Fix undesirable RangeError by `Type::Integer`. Add `Type::UnsignedInteger`.
 
     *Ryuta Kamizono*
 

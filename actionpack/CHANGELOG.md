@@ -9,11 +9,11 @@
 
     *Chris Sinjakli*
 
-*   Fixed usage of optional scopes in URL helpers.
+*   Fixed usage of optional scopes in url helpers.
 
     *Alex Robbin*
 
-*   Fixed handling of positional url helper arguments when `format: false`. 
+*   Fixed handling of positional url helper arguments when `format: false`.
 
     Fixes #17819.
 
