@@ -1,3 +1,9 @@
+*   Add a `:foreign_key` option to `references` and associated migration
+    methods. The model and migration generators now use this option, rather than
+    the `add_foreign_key` form.
+
+    *Sean Griffin*
+
 *   Don't raise when writing an attribute with an out-of-range datetime passed
     by the user.
 
