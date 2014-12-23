@@ -425,6 +425,9 @@ Rails understands both numeric status codes and the corresponding symbols shown 
 |                     | 510              | :not_extended                    |
 |                     | 511              | :network_authentication_required |
 
+NOTE:  If you try to render content along with a non-content status code 
+(100-199, 204, 205 or 304), it will be dropped from the response.
+
 #### Finding Layouts
 
 To find the current layout, Rails first looks for a file in `app/views/layouts` with the same base name as the controller. For example, rendering actions from the `PhotosController` class will use `app/views/layouts/photos.html.erb` (or `app/views/layouts/photos.builder`). If there is no such controller-specific layout, Rails will use `app/views/layouts/application.html.erb` or `app/views/layouts/application.builder`. If there is no `.erb` layout, Rails will use a `.builder` layout if one exists. Rails also provides several ways to more precisely assign specific layouts to individual controllers and actions.
