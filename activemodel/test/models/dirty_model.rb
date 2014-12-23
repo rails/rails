@@ -1,11 +1,14 @@
   class DirtyModel
     include ActiveModel::Dirty
+    include ActiveModel::Validations
+
     define_attribute_methods :name, :color, :size
 
     def initialize
       @name = nil
       @color = nil
       @size = nil
+      @new_record = true
     end
 
     def name
@@ -37,6 +40,7 @@
 
     def save
       changes_applied
+      @new_record = false
     end
 
     def reload
@@ -45,5 +49,9 @@
 
     def deprecated_reload
       reset_changes
+    end
+
+    def new_record?
+      @new_record
     end
   end
