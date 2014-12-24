@@ -1,8 +1,30 @@
-*   Deprecate returning `false` as a way to halt callback chains.
+*   Change the way in which callback chains can be halted.
 
-    Returning `false` in a callback will display a deprecation warning
-    explaining that the preferred method to halt a callback chain is to
-    explicitly `throw(:abort)`.
+    The preferred method to halt a callback chain from now on is to explicitly
+    `throw(:abort)`.
+    In the past, returning `false` in an ActiveSupport callback had the side
+    effect of halting the callback chain. This is not recommended anymore and,
+    depending on the value of
+    `Callbacks::CallbackChain.halt_and_display_warning_on_return_false`, will
+    either not work at all or display a deprecation warning.
+
+
+*   Add Callbacks::CallbackChain.halt_and_display_warning_on_return_false
+
+    Setting `Callbacks::CallbackChain.halt_and_display_warning_on_return_false`
+    to true will let an app support the deprecated way of halting callback
+    chains by returning `false`.
+
+    Setting the value to false will tell the app to ignore any `false` value
+    returned by callbacks, and only halt the chain upon `throw(:abort)`.
+
+    The value can also be set with the Rails configuration option
+    `config.active_support.halt_callback_chains_on_return_false`.
+
+    When the configuration option is missing, its value is `true`, so older apps
+    ported to Rails 5.0 will not break (but display a deprecation warning).
+    For new Rails 5.0 apps, its value is set to `false` in an initializer, so
+    these apps will support the new behavior by default.
 
     *claudiob*
 
@@ -13,8 +35,7 @@
 
     Chains of callbacks defined with a `:terminator` option will maintain their
     existing behavior of halting as soon as a `before_` callback matches the
-    terminator's expectation. For instance, ActiveModel's callbacks will still
-    halt the chain when a `before_` callback returns `false`.
+    terminator's expectation.
 
     *claudiob*
 
