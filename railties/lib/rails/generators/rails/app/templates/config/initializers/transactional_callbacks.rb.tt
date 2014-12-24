@@ -1,0 +1,8 @@
+# Be sure to restart your server when you modify this file.
+
+# Do not swallow errors in after_commit/after_rollback callbacks.
+<%- if options.skip_active_record? -%>
+# Rails.application.config.active_record.raise_in_transactional_callbacks = true
+<%- else -%>
+Rails.application.config.active_record.raise_in_transactional_callbacks = true
+<%- end -%>
