@@ -126,6 +126,11 @@
       name: Constant Autoloading and Reloading
       url: constant_autoloading_and_reloading.html
       description: This guide documents how constant autoloading and reloading work.
+    -
+      name: Active Support Instrumentation
+      work_in_progress: true
+      url: active_support_instrumentation.html
+      description: This guide explains how to use the instrumentation API inside of Active Support to measure events inside of Rails and other Ruby code.
 -
   name: Extending Rails
   documents:
