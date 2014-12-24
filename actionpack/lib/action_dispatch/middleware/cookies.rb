@@ -410,7 +410,7 @@ module ActionDispatch
           @options[:serializer] == :hybrid && value.start_with?(MARSHAL_SIGNATURE)
         end
 
-        def serialize(name, value)
+        def serialize(value)
           serializer.dump(value)
         end
 
@@ -463,9 +463,9 @@ module ActionDispatch
       def []=(name, options)
         if options.is_a?(Hash)
           options.symbolize_keys!
-          options[:value] = @verifier.generate(serialize(name, options[:value]))
+          options[:value] = @verifier.generate(serialize(options[:value]))
         else
-          options = { :value => @verifier.generate(serialize(name, options)) }
+          options = { :value => @verifier.generate(serialize(options)) }
         end
 
         raise CookieOverflow if options[:value].bytesize > MAX_COOKIE_SIZE
@@ -524,7 +524,7 @@ module ActionDispatch
           options = { :value => options }
         end
 
-        options[:value] = @encryptor.encrypt_and_sign(serialize(name, options[:value]))
+        options[:value] = @encryptor.encrypt_and_sign(serialize(options[:value]))
 
         raise CookieOverflow if options[:value].bytesize > MAX_COOKIE_SIZE
         @parent_jar[name] = options
