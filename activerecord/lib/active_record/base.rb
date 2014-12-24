@@ -141,7 +141,7 @@ module ActiveRecord #:nodoc:
   #
   # In addition to the basic accessors, query methods are also automatically available on the Active Record object.
   # Query methods allow you to test whether an attribute value is present.
-  # For numeric values, present is defined as non-zero.
+  # Additionally, when dealing with numeric values, a query method will return false if the value is zero.
   #
   # For example, an Active Record User with the <tt>name</tt> attribute has a <tt>name?</tt> method that you can call
   # to determine whether the user has a name:
