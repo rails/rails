@@ -258,7 +258,7 @@ module Colors
 end
 ```
 
-First, when the `module` keyword is processed the interpreter creates a new
+First, when the `module` keyword is processed, the interpreter creates a new
 entry in the constant table of the class object stored in the `Object` constant.
 Said entry associates the name "Colors" to a newly created module object.
 Furthermore, the interpreter sets the name of the new module object to be the
@@ -1173,7 +1173,8 @@ class Hotel
 end
 ```
 
-the expression `Hotel::Image` is ambiguous, depends on the execution path.
+the expression `Hotel::Image` is ambiguous because it depends on the execution
+path.
 
 As [we saw before](#resolution-algorithm-for-qualified-constants), Ruby looks
 up the constant in `Hotel` and its ancestors. If `app/models/image.rb` has
@@ -1282,8 +1283,8 @@ c.user # surprisingly fine, User
 c.user # NameError: uninitialized constant C::User
 ```
 
-because it detects a parent namespace already has the constant (see [Qualified
-References](#qualified-references).)
+because it detects that a parent namespace already has the constant (see [Qualified
+References](#autoloading-algorithms-qualified-references).)
 
 As with pure Ruby, within the body of a direct descendant of `BasicObject` use
 always absolute constant paths:

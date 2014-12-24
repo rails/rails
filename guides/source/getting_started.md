@@ -2054,7 +2054,7 @@ command-line utility:
   in your web browser to explore the API documentation.
 
 TIP: To be able to generate the Rails Guides locally with the `doc:guides` rake
-task you need to install the RedCloth and Nokogiri gems. Add it to your `Gemfile` and run
+task you need to install the Redcarpet and Nokogiri gems. Add it to your `Gemfile` and run
 `bundle install` and you're ready to go.
 
 Configuration Gotchas
