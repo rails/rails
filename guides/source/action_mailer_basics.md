@@ -50,7 +50,7 @@ create    test/mailers/previews/user_mailer_preview.rb
 ```ruby
 # app/mailers/application_mailer.rb
 class ApplicationMailer < ActionMailer::Base
-  default "from@example.com"
+  default from: "from@example.com"
   layout 'mailer'
 end
 
