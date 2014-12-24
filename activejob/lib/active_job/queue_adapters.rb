@@ -9,7 +9,7 @@ module ActiveJob
   # * {Que}[https://github.com/chanks/que]
   # * {queue_classic}[https://github.com/QueueClassic/queue_classic]
   # * {Resque 1.x}[https://github.com/resque/resque/tree/1-x-stable]
-  # * {Sidekiq}[http://sidekiq.org]
+  # * {Sidekiq}[https://github.com/mperham/sidekiq]
   # * {Sneakers}[https://github.com/jondot/sneakers]
   # * {Sucker Punch}[https://github.com/brandonhilkert/sucker_punch]
   #
