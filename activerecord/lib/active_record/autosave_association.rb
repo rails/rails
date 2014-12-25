@@ -147,7 +147,6 @@ module ActiveRecord
       private
 
         def define_non_cyclic_method(name, &block)
-          return if method_defined?(name)
           define_method(name) do |*args|
             result = true; @_already_called ||= {}
             # Loop prevention for validation of associations
@@ -180,31 +179,33 @@ module ActiveRecord
           validation_method = :"validate_associated_records_for_#{reflection.name}"
           collection = reflection.collection?
 
-          if collection
-            before_save :before_save_collection_association
+          unless method_defined_within?(save_method, self)
+            if collection
+              before_save :before_save_collection_association
 
-            define_non_cyclic_method(save_method) { save_collection_association(reflection) }
-            # Doesn't use after_save as that would save associations added in after_create/after_update twice
-            after_create save_method
-            after_update save_method
-          elsif reflection.has_one?
-            define_method(save_method) { save_has_one_association(reflection) } unless method_defined?(save_method)
-            # Configures two callbacks instead of a single after_save so that
-            # the model may rely on their execution order relative to its
-            # own callbacks.
-            #
-            # For example, given that after_creates run before after_saves, if
-            # we configured instead an after_save there would be no way to fire
-            # a custom after_create callback after the child association gets
-            # created.
-            after_create save_method
-            after_update save_method
-          else
-            define_non_cyclic_method(save_method) { save_belongs_to_association(reflection) }
-            before_save save_method
+              define_non_cyclic_method(save_method) { save_collection_association(reflection) }
+              # Doesn't use after_save as that would save associations added in after_create/after_update twice
+              after_create save_method
+              after_update save_method
+            elsif reflection.has_one?
+              define_non_cyclic_method(save_method) { save_has_one_association(reflection) }
+              # Configures two callbacks instead of a single after_save so that
+              # the model may rely on their execution order relative to its
+              # own callbacks.
+              #
+              # For example, given that after_creates run before after_saves, if
+              # we configured instead an after_save there would be no way to fire
+              # a custom after_create callback after the child association gets
+              # created.
+              after_create save_method
+              after_update save_method
+            else
+              define_non_cyclic_method(save_method) { save_belongs_to_association(reflection) }
+              before_save save_method
+            end
           end
 
-          if reflection.validate? && !method_defined?(validation_method)
+          if reflection.validate? && !method_defined_within?(validation_method, self)
             method = (collection ? :validate_collection_association : :validate_single_association)
             define_non_cyclic_method(validation_method) { send(method, reflection) }
             validate validation_method
