@@ -371,6 +371,19 @@ behavior:
 $ BACKTRACE=1 bin/rake test test/models/article_test.rb
 ```
 
+If we want this test to pass we can modify it to use `assert_raises` like so:
+
+```ruby
+test "should report error" do
+  # some_undefined_variable is not defined elsewhere in the test case
+  assert_raises(NameError) do
+    some_undefined_variable
+  end
+end
+```
+
+This test should now pass.
+
 ### Available Assertions
 
 By now you've caught a glimpse of some of the assertions that are available. Assertions are the worker bees of testing. They are the ones that actually perform the checks to ensure that things are going as planned.
