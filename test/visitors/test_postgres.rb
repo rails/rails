@@ -58,6 +58,13 @@ module Arel
           }
         end
 
+        it "can handle ESCAPE" do
+          node = @table[:name].matches('foo!%', '!')
+          compile(node).must_be_like %{
+            "users"."name" ILIKE 'foo!%' ESCAPE '!'
+          }
+        end
+
         it 'can handle subqueries' do
           subquery = @table.project(:id).where(@table[:name].matches('foo%'))
           node = @attr.in subquery
@@ -72,6 +79,13 @@ module Arel
           node = @table[:name].does_not_match('foo%')
           compile(node).must_be_like %{
             "users"."name" NOT ILIKE 'foo%'
+          }
+        end
+
+        it "can handle ESCAPE" do
+          node = @table[:name].does_not_match('foo!%', '!')
+          compile(node).must_be_like %{
+            "users"."name" NOT ILIKE 'foo!%' ESCAPE '!'
           }
         end
 

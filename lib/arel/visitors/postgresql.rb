@@ -4,11 +4,23 @@ module Arel
       private
 
       def visit_Arel_Nodes_Matches o, collector
-        infix_value o, collector, ' ILIKE '
+        collector = infix_value o, collector, ' ILIKE '
+        if o.escape
+          collector << ' ESCAPE '
+          visit o.escape, collector
+        else
+          collector
+        end
       end
 
       def visit_Arel_Nodes_DoesNotMatch o, collector
-        infix_value o, collector, ' NOT ILIKE '
+        collector = infix_value o, collector, ' NOT ILIKE '
+        if o.escape
+          collector << ' ESCAPE '
+          visit o.escape, collector
+        else
+          collector
+        end
       end
 
       def visit_Arel_Nodes_Regexp o, collector
