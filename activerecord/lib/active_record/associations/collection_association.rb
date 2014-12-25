@@ -597,8 +597,8 @@ module ActiveRecord
           if reflection.is_a?(ActiveRecord::Reflection::ThroughReflection)
             assoc = owner.association(reflection.through_reflection.name)
             assoc.reader.any? { |source|
-              target = source.send(reflection.source_reflection.name)
-              target.respond_to?(:include?) ? target.include?(record) : target == record
+              target_reflection = source.send(reflection.source_reflection.name)
+              target_reflection.respond_to?(:include?) ? target_reflection.include?(record) : target_reflection == record
             } || target.include?(record)
           else
             target.include?(record)
