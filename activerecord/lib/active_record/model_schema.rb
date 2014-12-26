@@ -147,7 +147,6 @@ module ActiveRecord
         @quoted_table_name = nil
         @arel_table        = nil
         @sequence_name     = nil unless defined?(@explicit_sequence_name) && @explicit_sequence_name
-        @relation          = Relation.create(self, arel_table)
       end
 
       # Returns a quoted version of the table name, used to construct SQL statements.
@@ -303,7 +302,6 @@ module ActiveRecord
         @content_columns    = nil
         @default_attributes = nil
         @inheritance_column = nil unless defined?(@explicit_inheritance_column) && @explicit_inheritance_column
-        @relation           = nil
       end
 
       private
