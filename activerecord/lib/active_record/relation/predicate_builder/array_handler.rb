@@ -19,7 +19,12 @@ module ActiveRecord
           case values.length
           when 0 then NullPredicate
           when 1 then predicate_builder.build(attribute, values.first)
-          else attribute.in(values)
+          else
+            attribute_name = attribute.name
+            casted_values = values.map do |v|
+              predicate_builder.type_cast_for_database(attribute_name, v)
+            end
+            attribute.in(casted_values)
           end
 
         unless nils.empty?
