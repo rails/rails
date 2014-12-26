@@ -1,14 +1,10 @@
 language: ruby
 sudo: false
 script: 'ci/travis.rb'
-before_install:
-  - "rvm current | grep 'jruby' && export AR_JDBC=true || echo"
 before_script:
   - bundle update
 cache: bundler
 env:
-  global:
-    - JRUBY_OPTS='-J-Xmx1024M'
   matrix:
     - "GEM=railties"
     - "GEM=ap"
@@ -20,15 +16,10 @@ env:
     - "GEM=ar:postgresql"
     - "GEM=aj:integration"
 rvm:
-  - 2.1
-  - ruby-head
-  - rbx-2
-  - jruby
+  - 2.2
 matrix:
   allow_failures:
     - env: "GEM=ar:mysql"
-    - rvm: rbx-2
-    - rvm: jruby
     - env: "GEM=aj"
     - env: "GEM=aj:integration"
   fast_finish: true
