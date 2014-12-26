@@ -33,7 +33,7 @@ module ActiveRecord
         end
 
         def query_scope(ids)
-          scope.where(association_key.in(ids))
+          scope.where(association_key_name => ids)
         end
 
         def table
