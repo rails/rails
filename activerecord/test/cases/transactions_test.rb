@@ -562,6 +562,21 @@ class TransactionTest < ActiveRecord::TestCase
     assert !@second.destroyed?, 'not destroyed'
   end
 
+  def test_restore_frozen_state_after_double_destroy
+    topic = Topic.create
+    reply = topic.replies.create
+
+    Topic.transaction do
+      topic.destroy # calls #destroy on reply (since dependent: destroy)
+      reply.destroy
+
+      raise ActiveRecord::Rollback
+    end
+
+    assert_not reply.frozen?
+    assert_not topic.frozen?
+  end
+
   def test_sqlite_add_column_in_transaction
     return true unless current_adapter?(:SQLite3Adapter)
 
