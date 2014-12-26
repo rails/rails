@@ -1,13 +1,23 @@
 module ActiveRecord
   class PredicateBuilder # :nodoc:
-    @handlers = []
-
-    autoload :RelationHandler, 'active_record/relation/predicate_builder/relation_handler'
-    autoload :ArrayHandler, 'active_record/relation/predicate_builder/array_handler'
+    require 'active_record/relation/predicate_builder/array_handler'
+    require 'active_record/relation/predicate_builder/base_handler'
+    require 'active_record/relation/predicate_builder/basic_object_handler'
+    require 'active_record/relation/predicate_builder/class_handler'
+    require 'active_record/relation/predicate_builder/range_handler'
+    require 'active_record/relation/predicate_builder/relation_handler'
 
     def initialize(klass, table)
       @klass = klass
       @table = table
+      @handlers = []
+
+      register_handler(BasicObject, BasicObjectHandler.new)
+      register_handler(Class, ClassHandler.new)
+      register_handler(Base, BaseHandler.new)
+      register_handler(Range, RangeHandler.new)
+      register_handler(Relation, RelationHandler.new)
+      register_handler(Array, ArrayHandler.new)
     end
 
     def resolve_column_aliases(hash)
@@ -35,13 +45,13 @@ module ActiveRecord
       # PriceEstimate.where(estimate_of: treasure)
       if klass && reflection = klass._reflect_on_association(column)
         if reflection.polymorphic? && base_class = polymorphic_base_class_from_value(value)
-          queries << self.class.build(table[reflection.foreign_type], base_class.name)
+          queries << build(table[reflection.foreign_type], base_class.name)
         end
 
         column = reflection.foreign_key
       end
 
-      queries << self.class.build(table[column], value)
+      queries << build(table[column], value)
       queries
     end
 
@@ -79,31 +89,8 @@ module ActiveRecord
     #       )
     #     end
     #     ActiveRecord::PredicateBuilder.register_handler(MyCustomDateRange, handler)
-    def self.register_handler(klass, handler)
+    def register_handler(klass, handler)
       @handlers.unshift([klass, handler])
-    end
-
-    register_handler(BasicObject, ->(attribute, value) { attribute.eq(value) })
-    register_handler(Class, ->(attribute, value) { deprecate_class_handler; attribute.eq(value.name) })
-    register_handler(Base, ->(attribute, value) { attribute.eq(value.id) })
-    register_handler(Range, ->(attribute, value) { attribute.between(value) })
-    register_handler(Relation, RelationHandler.new)
-    register_handler(Array, ArrayHandler.new)
-
-    def self.build(attribute, value)
-      handler_for(value).call(attribute, value)
-    end
-
-    def self.handler_for(object)
-      @handlers.detect { |klass, _| klass === object }.last
-    end
-    private_class_method :handler_for
-
-    def self.deprecate_class_handler
-      ActiveSupport::Deprecation.warn(<<-MSG.squish)
-        Passing a class as a value in an Active Record query is deprecated and
-        will be removed. Pass a string instead.
-      MSG
     end
 
     protected
@@ -140,6 +127,14 @@ module ActiveRecord
       end
 
       attributes
+    end
+
+    def build(attribute, value)
+      handler_for(value).call(attribute, value)
+    end
+
+    def handler_for(object)
+      @handlers.detect { |klass, _| klass === object }.last
     end
   end
 end
