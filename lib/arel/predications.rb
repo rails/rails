@@ -25,15 +25,15 @@ module Arel
     end
 
     def between other
-      if other.begin == -Float::INFINITY
-        if other.end == Float::INFINITY
+      if equals_quoted?(other.begin, -Float::INFINITY)
+        if equals_quoted?(other.end, Float::INFINITY)
           not_in([])
         elsif other.exclude_end?
           lt(other.end)
         else
           lteq(other.end)
         end
-      elsif other.end == Float::INFINITY
+      elsif equals_quoted?(other.end, Float::INFINITY)
         gteq(other.begin)
       elsif other.exclude_end?
         gteq(other.begin).and(lt(other.end))
@@ -71,15 +71,15 @@ Passing a range to `#in` is deprecated. Call `#between`, instead.
     end
 
     def not_between other
-      if other.begin == -Float::INFINITY # The range begins with negative infinity
-        if other.end == Float::INFINITY
+      if equals_quoted?(other.begin, -Float::INFINITY)
+        if equals_quoted?(other.end, Float::INFINITY)
           self.in([])
         elsif other.exclude_end?
           gteq(other.end)
         else
           gt(other.end)
         end
-      elsif other.end == Float::INFINITY
+      elsif equals_quoted?(other.end, Float::INFINITY)
         lt(other.begin)
       else
         left = lt(other.begin)
@@ -210,6 +210,14 @@ Passing a range to `#not_in` is deprecated. Call `#not_between`, instead.
 
     def quoted_array(others)
       others.map { |v| quoted_node(v) }
+    end
+
+    def equals_quoted?(maybe_quoted, value)
+      if maybe_quoted.is_a?(Nodes::Quoted)
+        maybe_quoted.val == value
+      else
+        maybe_quoted == value
+      end
     end
   end
 end

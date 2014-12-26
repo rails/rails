@@ -1,4 +1,5 @@
 require 'helper'
+require 'ostruct'
 
 module Arel
   module Attributes
@@ -572,6 +573,16 @@ module Arel
           )
         end
 
+        it 'can be constructed with a quoted range starting from -Infinity' do
+          attribute = Attribute.new nil, nil
+          node = attribute.between(quoted_range(-::Float::INFINITY, 3, false))
+
+          node.must_equal Nodes::LessThanOrEqual.new(
+            attribute,
+            Nodes::Quoted.new(3)
+          )
+        end
+
         it 'can be constructed with an exclusive range starting from -Infinity' do
           attribute = Attribute.new nil, nil
           node = attribute.between(-::Float::INFINITY...3)
@@ -582,12 +593,30 @@ module Arel
           )
         end
 
+        it 'can be constructed with a quoted exclusive range starting from -Infinity' do
+          attribute = Attribute.new nil, nil
+          node = attribute.between(quoted_range(-::Float::INFINITY, 3, true))
+
+          node.must_equal Nodes::LessThan.new(
+            attribute,
+            Nodes::Quoted.new(3)
+          )
+        end
+
         it 'can be constructed with an infinite range' do
           attribute = Attribute.new nil, nil
           node = attribute.between(-::Float::INFINITY..::Float::INFINITY)
 
           node.must_equal Nodes::NotIn.new(attribute, [])
         end
+
+        it 'can be constructed with a quoted infinite range' do
+          attribute = Attribute.new nil, nil
+          node = attribute.between(quoted_range(-::Float::INFINITY, ::Float::INFINITY, false))
+
+          node.must_equal Nodes::NotIn.new(attribute, [])
+        end
+
 
         it 'can be constructed with a range ending at Infinity' do
           attribute = Attribute.new nil, nil
@@ -596,6 +625,16 @@ module Arel
           node.must_equal Nodes::GreaterThanOrEqual.new(
             attribute,
             Nodes::Casted.new(0, attribute)
+          )
+        end
+
+        it 'can be constructed with a quoted range ending at Infinity' do
+          attribute = Attribute.new nil, nil
+          node = attribute.between(quoted_range(0, ::Float::INFINITY, false))
+
+          node.must_equal Nodes::GreaterThanOrEqual.new(
+            attribute,
+            Nodes::Quoted.new(0)
           )
         end
 
@@ -613,6 +652,14 @@ module Arel
               Nodes::Casted.new(3, attribute)
             )
           ])
+        end
+
+        def quoted_range(begin_val, end_val, exclude)
+          OpenStruct.new(
+            begin: Nodes::Quoted.new(begin_val),
+            end: Nodes::Quoted.new(end_val),
+            exclude_end?: exclude,
+          )
         end
       end
 
