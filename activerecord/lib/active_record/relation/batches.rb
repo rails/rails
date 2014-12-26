@@ -125,7 +125,11 @@ module ActiveRecord
 
         break if records_size < batch_size
 
-        records = relation.where(table[primary_key].gt(primary_key_offset)).to_a
+        # FIXME: Remove this when type casting is removed from Arel
+        # (Rails 5.1). We can pass the offset directly instead.
+        quoted_offset = Arel::Nodes::Quoted.new(primary_key_offset)
+
+        records = relation.where(table[primary_key].gt(quoted_offset)).to_a
       end
     end
 
