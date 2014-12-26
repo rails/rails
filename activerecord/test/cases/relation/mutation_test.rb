@@ -99,7 +99,7 @@ module ActiveRecord
     end
 
     test '#reorder!' do
-      relation = self.relation.order('foo')
+      @relation = self.relation.order('foo')
 
       assert relation.reorder!('bar').equal?(relation)
       assert_equal ['bar'], relation.order_values
@@ -116,7 +116,7 @@ module ActiveRecord
     end
 
     test 'reverse_order!' do
-      relation = Post.order('title ASC, comments_count DESC')
+      @relation = Post.order('title ASC, comments_count DESC')
 
       relation.reverse_order!
 
