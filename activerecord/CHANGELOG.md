@@ -1,3 +1,7 @@
+*   Dump the default `nil` for PostgreSQL UUID primary key.
+
+    *Ryuta Kamizono*
+
 *   Don't raise when writing an attribute with an out-of-range datetime passed
     by the user.
 
