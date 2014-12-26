@@ -18,7 +18,7 @@ module ActiveRecord
         relation = build_relation(finder_class, table, attribute, value)
         relation = relation.and(table[finder_class.primary_key.to_sym].not_eq(record.id)) if record.persisted?
         relation = scope_relation(record, table, relation)
-        relation = finder_class.unscoped.where(relation)
+        relation = finder_class.unscoped.default_scoped.where(relation)
         relation = relation.merge(options[:conditions]) if options[:conditions]
 
         if relation.exists?
