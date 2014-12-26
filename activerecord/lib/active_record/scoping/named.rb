@@ -23,7 +23,7 @@ module ActiveRecord
         # <tt>ActiveRecord::Base.default_scope</tt>.
         def all
           if current_scope
-            current_scope.clone
+            ensure_relation_typed(current_scope.clone)
           else
             default_scoped
           end

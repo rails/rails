@@ -230,6 +230,11 @@ class InheritanceTest < ActiveRecord::TestCase
     assert_nothing_raised   { Firm.find(1) }
   end
 
+  def test_finding_incorrect_type_when_scoped
+    assert_raise(ActiveRecord::RecordNotFound) { Company.where(name: 'Summit').find_firm(2) }
+    assert_nothing_raised { Company.where(name: '37signals').find_firm(1) }
+  end
+
   def test_alt_finding_incorrect_type_data
     assert_raise(ActiveRecord::RecordNotFound) { Cucumber.find(2) }
     assert_nothing_raised   { Cucumber.find(1) }

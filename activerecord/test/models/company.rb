@@ -17,6 +17,10 @@ class Company < AbstractCompany
     where('firms.id' => 1)
   }
 
+  def self.find_firm(id)
+    Firm.find(id)
+  end
+
   def arbitrary_method
     "I am Jack's profound disappointment"
   end
