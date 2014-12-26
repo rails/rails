@@ -199,11 +199,11 @@ $ bin/rails generate scaffold User name:string
       create      app/views/users/show.json.jbuilder
       invoke  assets
       invoke    coffee
-      create      app/assets/javascripts/users.js.coffee
+      create      app/assets/javascripts/users.coffee
       invoke    scss
-      create      app/assets/stylesheets/users.css.scss
+      create      app/assets/stylesheets/users.scss
       invoke  scss
-      create    app/assets/stylesheets/scaffolds.css.scss
+      create    app/assets/stylesheets/scaffolds.scss
 ```
 
 Looking at this output, it's easy to understand how generators work in Rails 3.0 and above. The scaffold generator doesn't actually generate anything, it just invokes others to do the work. This allows us to add/replace/remove any of those invocations. For instance, the scaffold generator invokes the scaffold_controller generator, which invokes erb, test_unit and helper generators. Since each generator has a single responsibility, they are easy to reuse, avoiding code duplication.
@@ -409,7 +409,7 @@ $ bin/rails generate scaffold Comment body:text
       create      app/views/comments/show.json.jbuilder
       invoke  assets
       invoke    coffee
-      create      app/assets/javascripts/comments.js.coffee
+      create      app/assets/javascripts/comments.coffee
       invoke    scss
 ```
 

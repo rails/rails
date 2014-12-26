@@ -182,12 +182,12 @@ When you generate a scaffold or a controller, Rails also generates a JavaScript
 file (or CoffeeScript file if the `coffee-rails` gem is in the `Gemfile`) and a
 Cascading Style Sheet file (or SCSS file if `sass-rails` is in the `Gemfile`)
 for that controller. Additionally, when generating a scaffold, Rails generates
-the file scaffolds.css (or scaffolds.css.scss if `sass-rails` is in the
+the file scaffolds.css (or scaffolds.scss if `sass-rails` is in the
 `Gemfile`.)
 
 For example, if you generate a `ProjectsController`, Rails will also add a new
-file at `app/assets/javascripts/projects.js.coffee` and another at
-`app/assets/stylesheets/projects.css.scss`. By default these files will be ready
+file at `app/assets/javascripts/projects.coffee` and another at
+`app/assets/stylesheets/projects.scss`. By default these files will be ready
 to use by your application immediately using the `require_tree` directive. See
 [Manifest Files and Directives](#manifest-files-and-directives) for more details
 on require_tree.
@@ -424,7 +424,7 @@ $('#logo').attr({ src: "<%= asset_path('logo.png') %>" });
 This writes the path to the particular asset being referenced.
 
 Similarly, you can use the `asset_path` helper in CoffeeScript files with `erb`
-extension (e.g., `application.js.coffee.erb`):
+extension (e.g., `application.coffee.erb`):
 
 ```js
 $('#logo').attr src: "<%= asset_path('logo.png') %>"
@@ -525,8 +525,8 @@ The file extensions used on an asset determine what preprocessing is applied.
 When a controller or a scaffold is generated with the default Rails gemset, a
 CoffeeScript file and a SCSS file are generated in place of a regular JavaScript
 and CSS file. The example used before was a controller called "projects", which
-generated an `app/assets/javascripts/projects.js.coffee` and an
-`app/assets/stylesheets/projects.css.scss` file.
+generated an `app/assets/javascripts/projects.coffee` and an
+`app/assets/stylesheets/projects.scss` file.
 
 In development mode, or if the asset pipeline is disabled, when these files are
 requested they are processed by the processors provided by the `coffee-script`
@@ -538,13 +538,13 @@ web server.
 Additional layers of preprocessing can be requested by adding other extensions,
 where each extension is processed in a right-to-left manner. These should be
 used in the order the processing should be applied. For example, a stylesheet
-called `app/assets/stylesheets/projects.css.scss.erb` is first processed as ERB,
+called `app/assets/stylesheets/projects.scss.erb` is first processed as ERB,
 then SCSS, and finally served as CSS. The same applies to a JavaScript file -
-`app/assets/javascripts/projects.js.coffee.erb` is processed as ERB, then
+`app/assets/javascripts/projects.coffee.erb` is processed as ERB, then
 CoffeeScript, and served as JavaScript.
 
 Keep in mind the order of these preprocessors is important. For example, if
-you called your JavaScript file `app/assets/javascripts/projects.js.erb.coffee`
+you called your JavaScript file `app/assets/javascripts/projects.erb.coffee`
 then it would be processed with the CoffeeScript interpreter first, which
 wouldn't understand ERB and therefore you would run into problems.
 

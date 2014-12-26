@@ -153,9 +153,9 @@ $ bin/rails generate controller Greetings hello
      create    app/helpers/greetings_helper.rb
      invoke  assets
      invoke    coffee
-     create      app/assets/javascripts/greetings.js.coffee
+     create      app/assets/javascripts/greetings.coffee
      invoke    scss
-     create      app/assets/stylesheets/greetings.css.scss
+     create      app/assets/stylesheets/greetings.scss
 ```
 
 What all did this generate? It made sure a bunch of directories were in our application, and created a controller file, a view file, a functional test file, a helper for the view, a JavaScript file and a stylesheet file.
@@ -241,11 +241,11 @@ $ bin/rails generate scaffold HighScore game:string score:integer
     create      app/views/high_scores/show.json.jbuilder
     invoke  assets
     invoke    coffee
-    create      app/assets/javascripts/high_scores.js.coffee
+    create      app/assets/javascripts/high_scores.coffee
     invoke    scss
-    create      app/assets/stylesheets/high_scores.css.scss
+    create      app/assets/stylesheets/high_scores.scss
     invoke  scss
-   identical    app/assets/stylesheets/scaffolds.css.scss
+   identical    app/assets/stylesheets/scaffolds.scss
 ```
 
 The generator checks that there exist the directories for models, controllers, helpers, layouts, functional and unit tests, stylesheets, creates the views, controller, model and database migration for HighScore (creating the `high_scores` table and fields), takes care of the route for the **resource**, and new tests for everything.
