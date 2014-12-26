@@ -145,6 +145,10 @@ module ActiveRecord
           scope.joins! preload_values[:joins] || values[:joins]
           scope.order! preload_values[:order] || values[:order]
 
+          if values.key? :unscope
+            scope.unscope_values = values[:unscope]
+          end
+
           if preload_values[:readonly] || values[:readonly]
             scope.readonly!
           end

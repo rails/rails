@@ -777,6 +777,22 @@ class EagerAssociationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_eager_with_unscoping_default_scope_sql_query
+    posts = PostUnscopingDefaultScope.includes(:comments).references(:posts)
+    
+    assert_not posts.to_sql.include?('"deleted_at" IS NULL')
+  end
+
+  def test_eager_with_unscoping_default_scope_contains_deleted_comment
+    post = PostUnscopingDefaultScope.create!(title: "title", body: "body")
+    CommentWithDefaultScope.create!(body: "body", post: post)
+    CommentWithDefaultScope.create!(body: "body", post: post, deleted_at: '2014/01/01')
+
+    posts = PostUnscopingDefaultScope.includes(:comments).references(:posts).to_a
+    
+    assert_equal 2, posts.first.comments.count
+  end
+
   def find_all_ordered(className, include=nil)
     className.all.merge!(:order=>"#{className.table_name}.#{className.primary_key}", :includes=>include).to_a
   end
@@ -1048,6 +1064,22 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
     post_with_readers = Post.includes(:lazy_readers_skimmers_or_not).find(post.id)
     assert_equal 2, post_with_readers.lazy_readers_skimmers_or_not.to_a.size
+  end
+
+  def test_preload_with_unscoping_default_scope_sql_query
+    posts = PostUnscopingDefaultScope.includes(:comments)
+    
+    assert_not posts.to_sql.include?('"deleted_at" IS NULL')
+  end
+
+  def test_preload_with_unscoping_default_scope_contains_deleted_comment
+    post = PostUnscopingDefaultScope.create!(title: "title", body: "body")
+    CommentWithDefaultScope.create!(body: "body", post: post)
+    CommentWithDefaultScope.create!(body: "body", post: post, deleted_at: '2014/01/01')
+
+    posts = PostUnscopingDefaultScope.includes(:comments).to_a
+    
+    assert_equal 2, posts.first.comments.count
   end
 
   def test_eager_loading_with_conditions_on_string_joined_table_preloads

@@ -185,6 +185,11 @@ class SubStiPost < StiPost
   self.table_name = Post.table_name
 end
 
+class PostUnscopingDefaultScope < Post
+  self.table_name = 'posts'
+  has_many :comments, -> { unscope(where: :deleted_at) }, class_name: "CommentWithDefaultScope", foreign_key: :post_id
+end
+
 class FirstPost < ActiveRecord::Base
   self.table_name = 'posts'
   default_scope { where(:id => 1) }

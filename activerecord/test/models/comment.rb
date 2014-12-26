@@ -57,3 +57,9 @@ class CommentWithDefaultScopeReferencesAssociation < Comment
   default_scope ->{ includes(:developer).order('developers.name').references(:developer) }
   belongs_to :developer
 end
+
+class CommentWithDefaultScope < Comment
+  belongs_to :post, class_name: "PostUnscopingDefaultScope", foreign_key: :post_id
+
+  default_scope { where(deleted_at: nil) }
+end
