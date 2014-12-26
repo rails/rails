@@ -571,10 +571,10 @@ module Rails
     end
 
     initializer :add_routing_paths do |app|
-      paths = self.paths["config/routes.rb"].existent
+      routing_paths = self.paths["config/routes.rb"].existent
 
-      if routes? || paths.any?
-        app.routes_reloader.paths.unshift(*paths)
+      if routes? || routing_paths.any?
+        app.routes_reloader.paths.unshift(*routing_paths)
         app.routes_reloader.route_sets << routes
       end
     end
