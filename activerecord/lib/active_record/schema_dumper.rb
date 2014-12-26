@@ -121,7 +121,7 @@ HEADER
               tbl.print ", id: :bigserial"
             elsif pkcol.sql_type == 'uuid'
               tbl.print ", id: :uuid"
-              tbl.print %Q(, default: "#{pkcol.default_function}") if pkcol.default_function
+              tbl.print %Q(, default: #{pkcol.default_function.inspect})
             end
           else
             tbl.print ", id: false"

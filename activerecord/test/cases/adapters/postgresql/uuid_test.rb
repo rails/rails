@@ -215,6 +215,7 @@ end
 
 class PostgresqlUUIDTestNilDefault < ActiveRecord::TestCase
   include PostgresqlUUIDHelper
+  include SchemaDumpingHelper
 
   setup do
     enable_extension!('uuid-ossp', connection)
@@ -237,6 +238,11 @@ class PostgresqlUUIDTestNilDefault < ActiveRecord::TestCase
                                     LEFT JOIN pg_attrdef d ON a.attrelid = d.adrelid AND a.attnum = d.adnum
                                     WHERE a.attname='id' AND a.attrelid = 'pg_uuids'::regclass").first
       assert_nil col_desc["default"]
+    end
+
+    def test_schema_dumper_for_uuid_primary_key_with_default_override_via_nil
+      schema = dump_table_schema "pg_uuids"
+      assert_match(/\bcreate_table "pg_uuids", id: :uuid, default: nil/, schema)
     end
   end
 end

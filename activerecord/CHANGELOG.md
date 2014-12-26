@@ -1,3 +1,7 @@
+*   Dump the default `nil` for PostgreSQL UUID primary key.
+
+    *Ryuta Kamizono*
+
 *   Add a `:foreign_key` option to `references` and associated migration
     methods. The model and migration generators now use this option, rather than
     the `add_foreign_key` form.
