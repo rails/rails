@@ -16,7 +16,7 @@ module ActiveRecord
       attr_reader :name, :cast_type, :null, :sql_type, :default, :default_function
 
       delegate :type, :precision, :scale, :limit, :klass, :accessor,
-        :number?, :binary?, :changed?,
+        :text?, :number?, :binary?, :changed?,
         :type_cast_from_user, :type_cast_from_database, :type_cast_for_database,
         :type_cast_for_schema,
         to: :cast_type

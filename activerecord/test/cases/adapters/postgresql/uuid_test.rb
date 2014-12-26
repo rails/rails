@@ -110,6 +110,23 @@ class PostgresqlUUIDTest < ActiveRecord::TestCase
       assert_equal "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11", uuid.guid
     end
   end
+
+  def test_uniqueness_validation_ignores_uuid
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "uuid_data_type"
+      validates :guid, uniqueness: { case_sensitive: false }
+
+      def self.name
+        "UUIDType"
+      end
+    end
+
+    record = klass.create!(guid: "a0ee-bc99-9c0b-4ef8-bb6d-6bb9-bd38-0a11")
+    duplicate = klass.new(guid: record.guid)
+
+    assert record.guid.present? # Ensure we actually are testing a UUID
+    assert_not duplicate.valid?
+  end
 end
 
 class PostgresqlLargeKeysTest < ActiveRecord::TestCase
