@@ -8,8 +8,9 @@ module ActiveRecord
     require 'active_record/relation/predicate_builder/range_handler'
     require 'active_record/relation/predicate_builder/relation_handler'
 
-    def initialize(klass, table)
-      @klass = klass
+    delegate :resolve_column_aliases, to: :table
+
+    def initialize(table)
       @table = table
       @handlers = []
 
@@ -20,16 +21,6 @@ module ActiveRecord
       register_handler(Relation, RelationHandler.new)
       register_handler(Array, ArrayHandler.new(self))
       register_handler(AssociationQueryValue, AssociationQueryHandler.new(self))
-    end
-
-    def resolve_column_aliases(hash)
-      hash = hash.dup
-      hash.keys.grep(Symbol) do |key|
-        if klass.attribute_alias? key
-          hash[klass.attribute_alias(key)] = hash.delete key
-        end
-      end
-      hash
     end
 
     def build_from_hash(attributes)
@@ -43,11 +34,11 @@ module ActiveRecord
       #
       # For polymorphic relationships, find the foreign key and type:
       # PriceEstimate.where(estimate_of: treasure)
-      if klass && reflection = klass._reflect_on_association(column)
-        value = AssociationQueryValue.new(reflection, value)
+      if table.associated_with?(column)
+        value = AssociationQueryValue.new(table.associated_table(column), value)
       end
 
-      build(table[column], value)
+      build(table.arel_attribute(column), value)
     end
 
     def self.references(attributes)
@@ -82,17 +73,14 @@ module ActiveRecord
 
     protected
 
-    attr_reader :klass, :table
+    attr_reader :table
 
     def expand_from_hash(attributes)
       return ["1=0"] if attributes.empty?
 
       attributes.flat_map do |key, value|
         if value.is_a?(Hash)
-          arel_table = Arel::Table.new(key)
-          association = klass._reflect_on_association(key)
-          builder = self.class.new(association && association.klass, arel_table)
-
+          builder = self.class.new(table.associated_table(key))
           builder.expand_from_hash(value)
         else
           expand(key, value)

@@ -8,11 +8,12 @@ module ActiveRecord
       def call(attribute, value)
         queries = {}
 
+        table = value.associated_table
         if value.base_class
-          queries[value.association.foreign_type] = value.base_class.name
+          queries[table.association_foreign_type] = value.base_class.name
         end
 
-        queries[value.association.foreign_key] = value.ids
+        queries[table.association_foreign_key] = value.ids
         predicate_builder.build_from_hash(queries)
       end
 
@@ -22,10 +23,10 @@ module ActiveRecord
     end
 
     class AssociationQueryValue # :nodoc:
-      attr_reader :association, :value
+      attr_reader :associated_table, :value
 
-      def initialize(association, value)
-        @association = association
+      def initialize(associated_table, value)
+        @associated_table = associated_table
         @value = value
       end
 
@@ -34,7 +35,7 @@ module ActiveRecord
       end
 
       def base_class
-        if association.polymorphic?
+        if associated_table.polymorphic_association?
           @base_class ||= polymorphic_base_class_from_value
         end
       end

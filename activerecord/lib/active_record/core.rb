@@ -249,12 +249,12 @@ module ActiveRecord
       end
 
       def predicate_builder # :nodoc:
-        @predicate_builder ||= PredicateBuilder.new(self, arel_table)
+        @predicate_builder ||= PredicateBuilder.new(table_metadata)
       end
 
       private
 
-      def relation #:nodoc:
+      def relation # :nodoc:
         relation = Relation.create(self, arel_table, predicate_builder)
 
         if finder_needs_type_condition?
@@ -262,6 +262,10 @@ module ActiveRecord
         else
           relation
         end
+      end
+
+      def table_metadata # :nodoc:
+        TableMetadata.new(self, arel_table)
       end
     end
 

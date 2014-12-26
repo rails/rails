@@ -43,7 +43,7 @@ module ActiveRecord
 
             constraint = build_constraint(klass, table, key, foreign_table, foreign_key)
 
-            predicate_builder = PredicateBuilder.new(klass, table)
+            predicate_builder = PredicateBuilder.new(TableMetadata.new(klass, table))
             scope_chain_items = scope_chain[scope_chain_index].map do |item|
               if item.is_a?(Relation)
                 item

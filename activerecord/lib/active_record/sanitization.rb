@@ -88,7 +88,7 @@ module ActiveRecord
       #     # => "address_street='123 abc st.' and address_city='chicago'"
       def sanitize_sql_hash_for_conditions(attrs, default_table_name = self.table_name)
         table = Arel::Table.new(table_name).alias(default_table_name)
-        predicate_builder = PredicateBuilder.new(self, table)
+        predicate_builder = PredicateBuilder.new(TableMetadata.new(self, table))
         ActiveSupport::Deprecation.warn(<<-EOWARN)
 sanitize_sql_hash_for_conditions is deprecated, and will be removed in Rails 5.0
         EOWARN
