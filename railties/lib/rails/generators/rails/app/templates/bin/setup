@@ -3,7 +3,7 @@ require 'fileutils'
 include FileUtils
 
 # path to your application root.
-APP_ROOT = Pathname.new File.expand_path('../../',  __FILE__)
+APP_ROOT = Pathname.new File.expand_path('../../', __FILE__)
 
 chdir APP_ROOT do
   # This script is a starting point to setup your application.
