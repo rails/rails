@@ -17,7 +17,7 @@ module ActiveRecord
       register_handler(Base, BaseHandler.new)
       register_handler(Range, RangeHandler.new)
       register_handler(Relation, RelationHandler.new)
-      register_handler(Array, ArrayHandler.new)
+      register_handler(Array, ArrayHandler.new(self))
     end
 
     def resolve_column_aliases(hash)
@@ -93,6 +93,10 @@ module ActiveRecord
       @handlers.unshift([klass, handler])
     end
 
+    def build(attribute, value)
+      handler_for(value).call(attribute, value)
+    end
+
     protected
 
     attr_reader :klass, :table
@@ -127,10 +131,6 @@ module ActiveRecord
       end
 
       attributes
-    end
-
-    def build(attribute, value)
-      handler_for(value).call(attribute, value)
     end
 
     def handler_for(object)
