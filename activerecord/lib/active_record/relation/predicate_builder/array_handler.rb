@@ -37,7 +37,7 @@ module ActiveRecord
         array_predicates.inject { |composite, predicate| composite.or(predicate) }
       end
 
-      module NullPredicate
+      module NullPredicate # :nodoc:
         def self.or(other)
           other
         end
