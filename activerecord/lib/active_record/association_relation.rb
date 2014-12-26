@@ -1,7 +1,7 @@
 module ActiveRecord
   class AssociationRelation < Relation
-    def initialize(klass, table, association)
-      super(klass, table)
+    def initialize(klass, table, predicate_builder, association)
+      super(klass, table, predicate_builder)
       @association = association
     end
 

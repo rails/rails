@@ -16,17 +16,17 @@ module ActiveRecord
 
     include FinderMethods, Calculations, SpawnMethods, QueryMethods, Batches, Explain, Delegation
 
-    attr_reader :table, :klass, :loaded
+    attr_reader :table, :klass, :loaded, :predicate_builder
     alias :model :klass
     alias :loaded? :loaded
 
-    def initialize(klass, table, values = {})
+    def initialize(klass, table, predicate_builder, values = {})
       @klass  = klass
       @table  = table
       @values = values
       @offsets = {}
       @loaded = false
-      @predicate_builder = PredicateBuilder.new(klass, table)
+      @predicate_builder = predicate_builder
     end
 
     def initialize_copy(other)
@@ -632,10 +632,6 @@ module ActiveRecord
 
       "#<#{self.class.name} [#{entries.join(', ')}]>"
     end
-
-    protected
-
-    attr_reader :predicate_builder
 
     private
 

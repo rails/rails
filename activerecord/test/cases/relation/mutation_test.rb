@@ -25,7 +25,7 @@ module ActiveRecord
     end
 
     def relation
-      @relation ||= Relation.new FakeKlass.new('posts'), Post.arel_table
+      @relation ||= Relation.new FakeKlass.new('posts'), Post.arel_table, Post.predicate_builder
     end
 
     (Relation::MULTI_VALUE_METHODS - [:references, :extending, :order, :unscope, :select]).each do |method|

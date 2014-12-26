@@ -1663,7 +1663,8 @@ class RelationTest < ActiveRecord::TestCase
   test 'using a custom table affects the wheres' do
     table_alias = Post.arel_table.alias('omg_posts')
 
-    relation = ActiveRecord::Relation.new Post, table_alias
+    predicate_builder = ActiveRecord::PredicateBuilder.new(Post, table_alias)
+    relation = ActiveRecord::Relation.new(Post, table_alias, predicate_builder)
     relation.where!(:foo => "bar")
 
     node = relation.arel.constraints.first.grep(Arel::Attributes::Attribute).first

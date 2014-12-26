@@ -32,7 +32,7 @@ module ActiveRecord
 
       def initialize(klass, association) #:nodoc:
         @association = association
-        super klass, klass.arel_table
+        super klass, klass.arel_table, klass.predicate_builder
         merge! association.scope(nullify: false)
       end
 

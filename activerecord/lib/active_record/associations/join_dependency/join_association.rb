@@ -43,16 +43,23 @@ module ActiveRecord
 
             constraint = build_constraint(klass, table, key, foreign_table, foreign_key)
 
+            predicate_builder = PredicateBuilder.new(klass, table)
             scope_chain_items = scope_chain[scope_chain_index].map do |item|
               if item.is_a?(Relation)
                 item
               else
-                ActiveRecord::Relation.create(klass, table).instance_exec(node, &item)
+                ActiveRecord::Relation.create(klass, table, predicate_builder)
+                  .instance_exec(node, &item)
               end
             end
             scope_chain_index += 1
 
-            scope_chain_items.concat [klass.send(:build_default_scope, ActiveRecord::Relation.create(klass, table))].compact
+            relation = ActiveRecord::Relation.create(
+              klass,
+              table,
+              predicate_builder,
+            )
+            scope_chain_items.concat [klass.send(:build_default_scope, relation)].compact
 
             rel = scope_chain_items.inject(scope_chain_items.shift) do |left, right|
               left.merge right
