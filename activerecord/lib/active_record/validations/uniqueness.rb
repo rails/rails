@@ -65,7 +65,7 @@ module ActiveRecord
           value = value.to_s[0, column.limit]
         end
 
-        if !options[:case_sensitive] && value.is_a?(String)
+        if !options[:case_sensitive] && value && column.text?
           # will use SQL LOWER function before comparison, unless it detects a case insensitive collation
           klass.connection.case_insensitive_comparison(table, attribute, column, value)
         else
