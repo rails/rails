@@ -193,6 +193,7 @@ module ActiveRecord
       def type_condition(table = arel_table)
         sti_column = table[inheritance_column]
         sti_names  = ([self] + descendants).map(&:sti_name)
+        sti_names.map! { |v| Arel::Nodes::Quoted.new(v) } # FIXME: Remove this when type casting in Arel is removed (5.1)
 
         sti_column.in(sti_names)
       end
