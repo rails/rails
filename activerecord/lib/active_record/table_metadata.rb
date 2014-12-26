@@ -8,6 +8,12 @@ module ActiveRecord
       @association = association
     end
 
+    def type_cast_for_database(attribute_name, value)
+      return value if value.is_a?(Arel::Nodes::BindParam) || klass.nil?
+      type = klass.type_for_attribute(attribute_name.to_s)
+      Arel::Nodes::Quoted.new(type.type_cast_for_database(value))
+    end
+
     def resolve_column_aliases(hash)
       hash = hash.dup
       hash.keys.grep(Symbol) do |key|

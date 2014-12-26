@@ -8,15 +8,15 @@ module ActiveRecord
     require 'active_record/relation/predicate_builder/range_handler'
     require 'active_record/relation/predicate_builder/relation_handler'
 
-    delegate :resolve_column_aliases, to: :table
+    delegate :resolve_column_aliases, :type_cast_for_database, to: :table
 
     def initialize(table)
       @table = table
       @handlers = []
 
-      register_handler(BasicObject, BasicObjectHandler.new)
-      register_handler(Class, ClassHandler.new)
-      register_handler(Base, BaseHandler.new)
+      register_handler(BasicObject, BasicObjectHandler.new(self))
+      register_handler(Class, ClassHandler.new(self))
+      register_handler(Base, BaseHandler.new(self))
       register_handler(Range, RangeHandler.new)
       register_handler(Relation, RelationHandler.new)
       register_handler(Array, ArrayHandler.new(self))

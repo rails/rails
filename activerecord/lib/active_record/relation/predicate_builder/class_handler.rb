@@ -1,10 +1,18 @@
 module ActiveRecord
   class PredicateBuilder
     class ClassHandler # :nodoc:
+      def initialize(predicate_builder)
+        @predicate_builder = predicate_builder
+      end
+
       def call(attribute, value)
         print_deprecation_warning
-        attribute.eq(value.name)
+        predicate_builder.build(attribute, value.name)
       end
+
+      protected
+
+      attr_reader :predicate_builder
 
       private
 

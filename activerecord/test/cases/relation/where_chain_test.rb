@@ -24,7 +24,7 @@ module ActiveRecord
     end
 
     def test_not_null
-      expected = Post.arel_table[@name].not_eq(nil)
+      expected = Post.arel_table[@name].not_eq(Arel::Nodes::Quoted.new(nil))
       relation = Post.where.not(title: nil)
       assert_equal([expected], relation.where_values)
     end
