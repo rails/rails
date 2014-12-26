@@ -1,6 +1,7 @@
 module ActiveRecord
   class PredicateBuilder # :nodoc:
     require 'active_record/relation/predicate_builder/array_handler'
+    require 'active_record/relation/predicate_builder/association_query_handler'
     require 'active_record/relation/predicate_builder/base_handler'
     require 'active_record/relation/predicate_builder/basic_object_handler'
     require 'active_record/relation/predicate_builder/class_handler'
@@ -18,6 +19,7 @@ module ActiveRecord
       register_handler(Range, RangeHandler.new)
       register_handler(Relation, RelationHandler.new)
       register_handler(Array, ArrayHandler.new(self))
+      register_handler(AssociationQueryValue, AssociationQueryHandler.new(self))
     end
 
     def resolve_column_aliases(hash)
@@ -36,35 +38,16 @@ module ActiveRecord
     end
 
     def expand(column, value)
-      queries = []
-
       # Find the foreign key when using queries such as:
       # Post.where(author: author)
       #
       # For polymorphic relationships, find the foreign key and type:
       # PriceEstimate.where(estimate_of: treasure)
       if klass && reflection = klass._reflect_on_association(column)
-        if reflection.polymorphic? && base_class = polymorphic_base_class_from_value(value)
-          queries << build(table[reflection.foreign_type], base_class.name)
-        end
-
-        column = reflection.foreign_key
+        value = AssociationQueryValue.new(reflection, value)
       end
 
-      queries << build(table[column], value)
-      queries
-    end
-
-    def polymorphic_base_class_from_value(value)
-      case value
-      when Relation
-        value.klass.base_class
-      when Array
-        val = value.compact.first
-        val.class.base_class if val.is_a?(Base)
-      when Base
-        value.class.base_class
-      end
+      build(table[column], value)
     end
 
     def self.references(attributes)
