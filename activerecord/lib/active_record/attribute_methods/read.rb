@@ -1,5 +1,3 @@
-require 'active_support/core_ext/module/method_transplanting'
-
 module ActiveRecord
   module AttributeMethods
     module Read
