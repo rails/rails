@@ -502,33 +502,36 @@ module ActiveRecord
       end
 
       # Adds a new column to the named table.
-      # See TableDefinition#column for details of the options you can use.
       #
-      # ====== Creating a simple column
       #  t.column(:name, :string)
+      #
+      # See TableDefinition#column for details of the options you can use.
       def column(column_name, type, options = {})
         @base.add_column(name, column_name, type, options)
       end
 
-      # Checks to see if a column exists. See SchemaStatements#column_exists?
+      # Checks to see if a column exists.
+      #
+      # See SchemaStatements#column_exists?
       def column_exists?(column_name, type = nil, options = {})
         @base.column_exists?(name, column_name, type, options)
       end
 
       # Adds a new index to the table. +column_name+ can be a single Symbol, or
-      # an Array of Symbols. See SchemaStatements#add_index
+      # an Array of Symbols.
       #
-      # ====== Creating a simple index
       #  t.index(:name)
-      # ====== Creating a unique index
       #  t.index([:branch_id, :party_id], unique: true)
-      # ====== Creating a named index
       #  t.index([:branch_id, :party_id], unique: true, name: 'by_branch_party')
+      #
+      # See SchemaStatements#add_index for details of the options you can use.
       def index(column_name, options = {})
         @base.add_index(name, column_name, options)
       end
 
-      # Checks to see if an index exists. See SchemaStatements#index_exists?
+      # Checks to see if an index exists.
+      #
+      # See SchemaStatements#index_exists?
       def index_exists?(column_name, options = {})
         @base.index_exists?(name, column_name, options)
       end
@@ -536,30 +539,37 @@ module ActiveRecord
       # Renames the given index on the table.
       #
       #  t.rename_index(:user_id, :account_id)
+      #
+      # See SchemaStatements#rename_index
       def rename_index(index_name, new_index_name)
         @base.rename_index(name, index_name, new_index_name)
       end
 
-      # Adds timestamps (+created_at+ and +updated_at+) columns to the table. See SchemaStatements#add_timestamps
+      # Adds timestamps (+created_at+ and +updated_at+) columns to the table.
       #
-      #  t.timestamps null: false
+      #  t.timestamps(null: false)
+      #
+      # See SchemaStatements#add_timestamps
       def timestamps(options = {})
         @base.add_timestamps(name, options)
       end
 
       # Changes the column's definition according to the new options.
-      # See TableDefinition#column for details of the options you can use.
       #
       #  t.change(:name, :string, limit: 80)
       #  t.change(:description, :text)
+      #
+      # See TableDefinition#column for details of the options you can use.
       def change(column_name, type, options = {})
         @base.change_column(name, column_name, type, options)
       end
 
-      # Sets a new default value for a column. See SchemaStatements#change_column_default
+      # Sets a new default value for a column.
       #
       #  t.change_default(:qualification, 'new')
       #  t.change_default(:authorized, 1)
+      #
+      # See SchemaStatements#change_column_default
       def change_default(column_name, default)
         @base.change_column_default(name, column_name, default)
       end
@@ -568,20 +578,19 @@ module ActiveRecord
       #
       #  t.remove(:qualification)
       #  t.remove(:qualification, :experience)
+      #
+      # See SchemaStatements#remove_columns
       def remove(*column_names)
         @base.remove_columns(name, *column_names)
       end
 
       # Removes the given index from the table.
       #
-      # ====== Remove the index_table_name_on_column in the table_name table
-      #   t.remove_index :column
-      # ====== Remove the index named index_table_name_on_branch_id in the table_name table
-      #   t.remove_index column: :branch_id
-      # ====== Remove the index named index_table_name_on_branch_id_and_party_id in the table_name table
-      #   t.remove_index column: [:branch_id, :party_id]
-      # ====== Remove the index named by_branch_party in the table_name table
-      #   t.remove_index name: :by_branch_party
+      #   t.remove_index(:branch_id)
+      #   t.remove_index(column: [:branch_id, :party_id])
+      #   t.remove_index(name: :by_branch_party)
+      #
+      # See SchemaStatements#remove_index
       def remove_index(options = {})
         @base.remove_index(name, options)
       end
@@ -589,6 +598,8 @@ module ActiveRecord
       # Removes the timestamp columns (+created_at+ and +updated_at+) from the table.
       #
       #  t.remove_timestamps
+      #
+      # See SchemaStatements#remove_timestamps
       def remove_timestamps(options = {})
         @base.remove_timestamps(name, options)
       end
@@ -596,20 +607,19 @@ module ActiveRecord
       # Renames a column.
       #
       #  t.rename(:description, :name)
+      #
+      # See SchemaStatements#rename_column
       def rename(column_name, new_column_name)
         @base.rename_column(name, column_name, new_column_name)
       end
 
       # Adds a reference. Optionally adds a +type+ column, if
-      # <tt>:polymorphic</tt> option is provided.  <tt>references</tt> and
-      # <tt>belongs_to</tt> are acceptable. The reference column will be an
-      # +integer+ by default, the <tt>:type</tt> option can be used to specify
-      # a different type. A foreign key will be created if a +foreign_key+
-      # option is passed.
+      # <tt>:polymorphic</tt> option is provided.
       #
       #  t.references(:user)
       #  t.references(:user, type: "string")
       #  t.belongs_to(:supplier, polymorphic: true)
+      #  t.belongs_to(:supplier, foreign_key: true)
       #
       # See SchemaStatements#add_reference
       def references(*args)
@@ -621,7 +631,6 @@ module ActiveRecord
       alias :belongs_to :references
 
       # Removes a reference. Optionally removes a +type+ column.
-      # <tt>remove_references</tt> and <tt>remove_belongs_to</tt> are acceptable.
       #
       #  t.remove_references(:user)
       #  t.remove_belongs_to(:supplier, polymorphic: true)
@@ -635,10 +644,12 @@ module ActiveRecord
       end
       alias :remove_belongs_to :remove_references
 
-      # Adds a column or columns of a specified type
+      # Adds a column or columns of a specified type.
       #
       #  t.string(:goat)
       #  t.string(:goat, :sheep)
+      #
+      # See SchemaStatements#add_column
       [:string, :text, :integer, :float, :decimal, :datetime, :timestamp, :time, :date, :binary, :boolean].each do |column_type|
         define_method column_type do |*args|
           options = args.extract_options!
