@@ -80,10 +80,18 @@ module ActiveRecord
           begin
             relation = self.class.unscoped
 
-            stmt = relation.where(
-              relation.table[self.class.primary_key].eq(id).and(
-                relation.table[lock_col].eq(self.class.quote_value(previous_lock_value, column_for_attribute(lock_col)))
+            # FIXME: Remove the Arel::Nodes::Quoted when we remove type casting
+            # from Arel (Rails 5.1)
+            quoted_lock_value = Arel::Nodes::Quoted.new(
+              self.class.quote_value(
+                previous_lock_value,
+                column_for_attribute(lock_col),
               )
+            )
+            quoted_id = Arel::Nodes::Quoted.new(id)
+            stmt = relation.where(
+              relation.table[self.class.primary_key].eq(quoted_id).and(
+                relation.table[lock_col].eq(quoted_lock_value))
             ).arel.compile_update(
               arel_attributes_with_values_for_update(attribute_names),
               self.class.primary_key
