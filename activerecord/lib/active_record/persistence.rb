@@ -116,8 +116,8 @@ module ActiveRecord
     #
     # Attributes marked as readonly are silently ignored if the record is
     # being updated.
-    def save(*)
-      create_or_update
+    def save(*args)
+      create_or_update(*args)
     rescue ActiveRecord::RecordInvalid
       false
     end
@@ -138,8 +138,8 @@ module ActiveRecord
     #
     # Attributes marked as readonly are silently ignored if the record is
     # being updated.
-    def save!(*)
-      create_or_update || raise(RecordNotSaved.new(nil, self))
+    def save!(*args)
+      create_or_update(*args) || raise(RecordNotSaved.new(nil, self))
     end
 
     # Deletes the record in the database and freezes this instance to
@@ -498,9 +498,9 @@ module ActiveRecord
       relation
     end
 
-    def create_or_update
+    def create_or_update(*args)
       raise ReadOnlyRecord, "#{self.class} is marked as readonly" if readonly?
-      result = new_record? ? _create_record : _update_record
+      result = new_record? ? _create_record : _update_record(*args)
       result != false
     end
 
