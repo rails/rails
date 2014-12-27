@@ -125,10 +125,8 @@ module ActiveRecord
         # a record (as primary keys cannot be +nil+). This might be done via the
         # +SecureRandom.uuid+ method and a +before_save+ callback, for instance.
         def primary_key(name, type = :primary_key, options = {})
-          return super unless type == :uuid
-          options[:default] = options.fetch(:default, 'uuid_generate_v4()')
-          options[:primary_key] = true
-          column name, type, options
+          options[:default] = options.fetch(:default, 'uuid_generate_v4()') if type == :uuid
+          super
         end
 
         def new_column_definition(name, type, options) # :nodoc:
