@@ -994,6 +994,8 @@ you would like in a response object. The `ActionController::Live` module allows
 you to create a persistent connection with a browser. Using this module, you will
 be able to send arbitrary data to the browser at specific points in time.
 
+NOTE: The default web server that rails comes with (WEBrick) is a buffering web server and does not support streaming. In order to use streaming, we need to use the non buffering servers like Puma, Rainbows, Apache with Passenger, etc.
+
 #### Incorporating Live Streaming
 
 Including `ActionController::Live` inside of your controller class will provide
