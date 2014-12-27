@@ -397,7 +397,7 @@ module ActiveRecord
       else
         if relation.limit_value
           limited_ids = limited_ids_for(relation)
-          limited_ids.empty? ? relation.none! : relation.where!(table[primary_key].in(limited_ids))
+          limited_ids.empty? ? relation.none! : relation.where!(primary_key => limited_ids)
         end
         relation.except(:limit, :offset)
       end
