@@ -65,6 +65,7 @@ module ActiveRecord
             column_options[:column] = o
             column_options[:first] = o.first
             column_options[:after] = o.after
+            column_options[:auto_increment] = o.auto_increment
             column_options[:primary_key] = o.primary_key
             column_options
           end

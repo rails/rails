@@ -233,7 +233,7 @@ if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
   end
 end
 
-if current_adapter?(:PostgreSQLAdapter)
+if current_adapter?(:PostgreSQLAdapter, :MysqlAdapter, :Mysql2Adapter)
   class PrimaryKeyBigSerialTest < ActiveRecord::TestCase
     self.use_transactional_fixtures = false
 
@@ -242,17 +242,24 @@ if current_adapter?(:PostgreSQLAdapter)
 
     setup do
       @connection = ActiveRecord::Base.connection
-      @connection.create_table(:widgets, id: :bigserial) { |t| }
+      if current_adapter?(:PostgreSQLAdapter)
+        @connection.create_table(:widgets, id: :bigserial, force: true)
+      else
+        @connection.create_table(:widgets, id: :bigint, force: true)
+      end
     end
 
     teardown do
-      @connection.drop_table :widgets
+      @connection.execute("DROP TABLE IF EXISTS widgets")
     end
 
-    def test_bigserial_primary_key
-      assert_equal "id", Widget.primary_key
-      assert_equal :integer, Widget.columns_hash[Widget.primary_key].type
+    test "primary key column type with bigserial" do
+      column_type = Widget.type_for_attribute(Widget.primary_key)
+      assert_equal :integer, column_type.type
+      assert_equal 8, column_type.limit
+    end
 
+    test "primary key with bigserial are automatically numbered" do
       widget = Widget.create!
       assert_not_nil widget.id
     end
