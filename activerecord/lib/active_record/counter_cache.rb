@@ -37,10 +37,9 @@ module ActiveRecord
           reflection   = child_class._reflections.values.find { |e| e.belongs_to? && e.foreign_key.to_s == foreign_key && e.options[:counter_cache].present? }
           counter_name = reflection.counter_cache_column
 
-          stmt = unscoped.where(arel_table[primary_key].eq(object.id)).arel.compile_update({
-            arel_table[counter_name] => object.send(counter_association).count(:all)
-          }, primary_key)
-          connection.update stmt
+          unscoped.where(primary_key => object.id).update_all(
+            counter_name => object.send(counter_association).count(:all)
+          )
         end
         return true
       end
