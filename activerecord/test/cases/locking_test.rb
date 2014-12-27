@@ -33,8 +33,6 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     p1 = Person.find(1)
     assert_equal 0, p1.lock_version
 
-    Person.expects(:quote_value).with(0, Person.columns_hash[Person.locking_column]).returns('0').once
-
     p1.first_name = 'anika2'
     p1.save!
 

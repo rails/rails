@@ -80,24 +80,14 @@ module ActiveRecord
           begin
             relation = self.class.unscoped
 
-            # FIXME: Remove the Arel::Nodes::Quoted when we remove type casting
-            # from Arel (Rails 5.1)
-            quoted_lock_value = Arel::Nodes::Quoted.new(
-              self.class.quote_value(
-                previous_lock_value,
-                column_for_attribute(lock_col),
-              )
+            affected_rows = relation.where(
+              self.class.primary_key => id,
+              lock_col => previous_lock_value,
+            ).update_all(
+              attribute_names.map do |name|
+                [name, _read_attribute(name)]
+              end.to_h
             )
-            quoted_id = Arel::Nodes::Quoted.new(id)
-            stmt = relation.where(
-              relation.table[self.class.primary_key].eq(quoted_id).and(
-                relation.table[lock_col].eq(quoted_lock_value))
-            ).arel.compile_update(
-              arel_attributes_with_values_for_update(attribute_names),
-              self.class.primary_key
-            )
-
-            affected_rows = self.class.connection.update stmt
 
             unless affected_rows == 1
               raise ActiveRecord::StaleObjectError.new(self, "update")
