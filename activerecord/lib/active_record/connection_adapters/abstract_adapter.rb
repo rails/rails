@@ -21,6 +21,7 @@ module ActiveRecord
       autoload :IndexDefinition
       autoload :ColumnDefinition
       autoload :ChangeColumnDefinition
+      autoload :ForeignKeyDefinition
       autoload :TableDefinition
       autoload :Table
       autoload :AlterTable
