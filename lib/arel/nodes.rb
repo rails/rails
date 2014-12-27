@@ -87,6 +87,17 @@ module Arel
       else
         case attribute
         when Arel::Attributes::Attribute
+          unless $arel_silence_type_casting_deprecation
+            warn <<-eowarn
+Arel performing automatic type casting is deprecated, and will be removed in Arel 8.0. If you are seeing this, it is because you are manually passing a value to an Arel predicate.
+
+If you're certain the value is already of the right type, change `attribute.eq(value)` to `attribute.eq(Arel::Nodes::Quoted.new(value))` (you will be able to remove that in Arel 8.0, it is only required to silence this deprecation warning).
+
+You can also silence this warning globally by setting `$arel_silence_type_casting_deprecation` to `true`. (Do NOT do this if you are a library author)
+
+If you are passing user input to a predicate, you are responsible for type casting appropriately before passing the value to Arel.
+            eowarn
+          end
           Casted.new other, attribute
         else
           Quoted.new other
