@@ -43,7 +43,7 @@ module ActiveRecord
     end
 
     def test_association_not_eq
-      expected = Comment.arel_table[@name].not_eq('hello')
+      expected = Comment.arel_table[@name].not_eq(Arel::Nodes::Quoted.new('hello'))
       relation = Post.joins(:comments).where.not(comments: {title: 'hello'})
       assert_equal(expected.to_sql, relation.where_values.first.to_sql)
     end
