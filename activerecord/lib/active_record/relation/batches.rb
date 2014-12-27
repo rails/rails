@@ -52,7 +52,12 @@ module ActiveRecord
         end
       else
         enum_for :find_each, options do
-          options[:start] ? where(table[primary_key].gteq(options[:start])).size : size
+          # FIXME: Remove this when type casting is removed from Arel
+          # (Rails 5.1). We can pass start directly instead.
+          if options[:start]
+            quoted_start = Arel::Nodes::Quoted.new(options[:start])
+          end
+          options[:start] ? where(table[primary_key].gteq(quoted_start)).size : size
         end
       end
     end
