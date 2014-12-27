@@ -6,6 +6,13 @@ module ActiveRecord
     class AbstractMysqlAdapter < AbstractAdapter
       include Savepoints
 
+      class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
+        def primary_key(name, type = :primary_key, options = {})
+          options[:auto_increment] ||= type == :bigint
+          super
+        end
+      end
+
       class SchemaCreation < AbstractAdapter::SchemaCreation
         def visit_AddColumn(o)
           add_column_position!(super, column_options(o))
@@ -857,6 +864,10 @@ module ActiveRecord
           when 'SET NULL'; :nullify
           end
         end
+      end
+
+      def create_table_definition(name, temporary, options, as = nil) # :nodoc:
+        TableDefinition.new(native_database_types, name, temporary, options, as)
       end
 
       class MysqlString < Type::String # :nodoc:
