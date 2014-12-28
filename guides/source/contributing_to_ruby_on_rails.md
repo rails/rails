@@ -291,9 +291,9 @@ file.
 
 #### Testing Active Record
 
-First, create the databases you'll need. For MySQL and PostgreSQL, 
-running the SQL statements `create database activerecord_unittest` and 
-`create database activerecord_unittest2` is sufficient. This is not 
+First, create the databases you'll need. For MySQL and PostgreSQL,
+running the SQL statements `create database activerecord_unittest` and
+`create database activerecord_unittest2` is sufficient. This is not
 necessary for SQLite3.
 
 This is how you run the Active Record test suite only for SQLite3:

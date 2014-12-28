@@ -1336,14 +1336,14 @@ Understanding The Method Chaining
 The Active Record pattern implements [Method Chaining](http://en.wikipedia.org/wiki/Method_chaining),
 which allow us to use multiple Active Record methods together in a simple and straightforward way.
 
-You can chain a method in a sentence when the previous method called returns `ActiveRecord::Relation`,
-like `all`, `where`, and `joins`. Methods that returns a instance of a single object 
-(see [Retrieving a Single Object Section](#retrieving-a-single-object)) have to be be the last
-in the sentence.
+You can chain methods in a statement when the previous method called returns an
+`ActiveRecord::Relation`, like `all`, `where`, and `joins`. Methods that return
+a single object (see [Retrieving a Single Object Section](#retrieving-a-single-object))
+have to be at the end of the statement.
 
-There are some examples below. This guide won't cover all the possibilities, just a few as example.
-When a Active Record method is called, the query is not immediately generated and sent to the database,
-this just happen when the data is actually needed. So each example below generate a single query.
+There are some examples below. This guide won't cover all the possibilities, just a few as examples.
+When an Active Record method is called, the query is not immediately generated and sent to the database,
+this just happens when the data is actually needed. So each example below generates a single query.
 
 ### Retrieving filtered data from multiple tables
 
@@ -1384,7 +1384,7 @@ WHERE people.name = 'John'
 LIMIT 1
 ```
 
-NOTE: Remember that, if `find_by` return more than one registry, it will take just the first and ignore the others. Note the `LIMIT 1` statement above.
+NOTE: Remember that, if `find_by` returns more than one registry, it will take just the first and ignore the others. Note the `LIMIT 1` statement above.
 
 Find or Build a New Object
 --------------------------

@@ -1528,6 +1528,7 @@ end
 ```
 
 ##### `:counter_cache`
+
 This option can be used to configure a custom named `:counter_cache`. You only need this option when you customized the name of your `:counter_cache` on the [belongs_to association](#options-for-belongs-to).
 
 ##### `:dependent`

@@ -380,12 +380,11 @@ module ActiveRecord
         column(:updated_at, :datetime, options)
       end
 
-      # Adds a reference. Optionally adds a +type+ column, if
-      # <tt>:polymorphic</tt> option is provided.  <tt>references</tt> and
-      # <tt>belongs_to</tt> are acceptable. The reference column will be an
-      # +integer+ by default, the <tt>:type</tt> option can be used to specify
-      # a different type. A foreign key will be created if a +foreign_key+
-      # option is passed.
+      # Adds a reference. Optionally adds a +type+ column, if the
+      # +:polymorphic+ option is provided. +references+ and +belongs_to+
+      # are acceptable. The reference column will be an +integer+ by default,
+      # the +:type+ option can be used to specify a different type. A foreign
+      # key will be created if the +:foreign_key+ option is passed.
       #
       #  t.references(:user)
       #  t.references(:user, type: "string")
