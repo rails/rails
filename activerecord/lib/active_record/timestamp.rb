@@ -67,7 +67,7 @@ module ActiveRecord
           write_attribute(column, current_time)
         end
       end
-      super *args
+      super(*args)
     end
 
     def should_record_timestamps?
