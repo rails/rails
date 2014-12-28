@@ -289,6 +289,7 @@ module ActionDispatch
           }
           # this modifies the passed env directly
           Http::Headers.new(env).merge!(headers_or_env || {})
+          save_session_to_cookie env if request
 
           session = Rack::Test::Session.new(_mock_session)
 
@@ -306,6 +307,16 @@ module ActionDispatch
           @controller = session.last_request.env['action_controller.instance']
 
           return response.status
+        end
+
+        def save_session_to_cookie(env)
+          session = request.session or return
+          by = session.instance_variable_get(:@by) or return
+          data = by.send(:set_session, env, session.id, session.to_hash, session.options)
+          headers = {}
+          by.send(:set_cookie, request.env, headers, value: data)
+          request.cookie_jar.write headers
+          cookies.merge headers['Set-Cookie']
         end
 
         def build_full_uri(path, env)

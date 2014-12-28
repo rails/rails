@@ -522,10 +522,57 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
         end
 
         self.singleton_class.send(:include, set.url_helpers)
-
         yield
       end
     end
+end
+
+class SessionStoreTest < ActionDispatch::IntegrationTest
+  class Controller < ActionController::Base
+    def get_session
+      render text: session[:foo]
+    end
+
+    def set_session
+      session[:foo] = 'bar'
+      head :ok
+    end
+  end
+
+  test 'session access' do
+    with_test_route_set do
+      get '/set_session'
+      assert_equal 'bar', session[:foo]
+
+      get '/get_session'
+      assert_equal 'bar', body
+
+      session[:foo] = 'bar2'
+
+      get '/get_session'
+      assert_equal 'bar2', session[:foo]
+      assert_equal 'bar2', body
+    end
+  end
+
+  private
+
+  def with_test_route_set
+    with_routing do |set|
+      set.draw { get ':action' => Controller }
+
+      # add CookieStore to middleware stack
+      @app = self.class.build_app set do |stack|
+        stack.insert_after ActionDispatch::Cookies, ActionDispatch::Session::CookieStore
+        stack.use Rack::Config do |env|
+          generator = ActiveSupport::LegacyKeyGenerator.new(?x*30)
+          env[ActionDispatch::Cookies::GENERATOR_KEY] = generator
+        end
+      end
+
+      yield
+    end
+  end
 end
 
 class MetalIntegrationTest < ActionDispatch::IntegrationTest
