@@ -298,7 +298,7 @@ module ActiveRecord
 
   private
 
-    def create_or_update #:nodoc:
+    def create_or_update(*) #:nodoc:
       _run_save_callbacks { super }
     end
 
