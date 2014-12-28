@@ -1,5 +1,5 @@
 require 'active_support/core_ext/hash/indifferent_access'
-
+require 'active_record/relation'
 module ActiveRecord
   # == Single table inheritance
   #
@@ -49,8 +49,18 @@ module ActiveRecord
         if abstract_class? || self == Base
           raise NotImplementedError, "#{self} is an abstract class and cannot be instantiated."
         end
+        
+        args_hash = args.first
+        where_hash = self.current_scope.try(:where_values_hash)
 
-        attrs = args.first
+        if args_hash.nil? && !where_hash.nil?
+          attrs = where_hash
+        elsif where_hash.nil? && !args_hash.nil?
+          attrs = args_hash
+        else
+          attrs = args_hash.try(:merge, where_hash)
+        end      
+
         if subclass_from_attributes?(attrs)
           subclass = subclass_from_attributes(attrs)
         end
@@ -209,7 +219,7 @@ module ActiveRecord
       def subclass_from_attributes(attrs)
         subclass_name = attrs.with_indifferent_access[inheritance_column]
 
-        if subclass_name.present? && subclass_name != self.name
+        if subclass_name.present? && subclass_name != self.name && subclass_name.is_a?(String)
           subclass = subclass_name.safe_constantize
 
           unless descendants.include?(subclass)
