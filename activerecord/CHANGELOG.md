@@ -1,14 +1,14 @@
-*   Provide :touch option to save() to accommodate saving without updating
+*   Provide `:touch` option to `save()` to accommodate saving without updating
     timestamps.
 
-    Fixes #18202
+    Fixes #18202.
 
     *Dan Olson*
 
 *   Provide a more helpful error message when an unsupported class is passed to
-    `serialize`
+    `serialize`.
 
-    Fixes #18224
+    Fixes #18224.
 
     *Sean Griffin*
 
