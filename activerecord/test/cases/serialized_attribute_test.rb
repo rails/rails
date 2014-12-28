@@ -264,4 +264,10 @@ class SerializedAttributeTest < ActiveRecord::TestCase
 
     assert_not topic.content_changed?
   end
+
+  def test_classes_without_no_arg_constructors_are_not_supported
+    assert_raises(ArgumentError) do
+      Topic.serialize(:content, Regexp)
+    end
+  end
 end

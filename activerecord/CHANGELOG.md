@@ -1,3 +1,10 @@
+*   Provide a more helpful error message when an unsupported class is passed to
+    `serialize`
+
+    Fixes #18224
+
+    *Sean Griffin*
+
 *   Add bigint primary key support for MySQL.
 
     Example:
