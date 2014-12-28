@@ -1,3 +1,18 @@
+*   Add bigint primary key support for MySQL.
+
+    Example:
+
+        create_table :foos, id: :bigint do |t|
+        end
+
+    *Ryuta Kamizono*
+
+*   Support for any type primary key.
+
+    Fixes #14194.
+
+    *Ryuta Kamizono*
+
 *   Dump the default `nil` for PostgreSQL UUID primary key.
 
     *Ryuta Kamizono*
