@@ -1,3 +1,8 @@
+*   Added ActiveRecord::SecureToken in order to encapsulate generation of
+    unique tokens for attributes in a model using SecureRandom
+
+    *Roberto Miranda*
+
 *   Change the behavior of boolean columns to be closer to Ruby's semantics.
 
     Before this change we had a small set of "truthy", and all others are "falsy".

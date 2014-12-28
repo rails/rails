@@ -312,6 +312,7 @@ module ActiveRecord #:nodoc:
     include Reflection
     include Serialization
     include Store
+    include SecureToken
   end
 
   ActiveSupport.run_load_hooks(:active_record, Base)
