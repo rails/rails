@@ -298,6 +298,7 @@ module ActiveRecord
         connection.schema_cache.clear_table_cache!(table_name) if table_exists?
 
         @arel_engine        = nil
+        @arel_table         = nil
         @column_names       = nil
         @column_types       = nil
         @content_columns    = nil

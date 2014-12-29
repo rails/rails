@@ -22,6 +22,7 @@ require 'active_record/log_subscriber'
 require 'active_record/explain_subscriber'
 require 'active_record/relation/delegation'
 require 'active_record/attributes'
+require 'active_record/type_caster'
 
 module ActiveRecord #:nodoc:
   # = Active Record

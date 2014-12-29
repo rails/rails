@@ -122,6 +122,7 @@ module ActiveRecord
       end
 
       def clear_caches_calculated_from_columns
+        @arel_table = nil
         @attributes_builder = nil
         @column_names = nil
         @column_types = nil
