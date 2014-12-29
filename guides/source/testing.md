@@ -575,6 +575,10 @@ post :create # simulate the request with custom env variable
 
 ### Testing Templates and Layouts
 
+Eventually, you may want to test whether a specific layout is rendered in the view of a response.
+
+#### Asserting Templates
+
 If you want to make sure that the response rendered the correct template and layout, you can use the `assert_template`
 method:
 
@@ -583,24 +587,22 @@ test "index should render correct template and layout" do
   get :index
   assert_template :index
   assert_template layout: "layouts/application"
+
+  # You can also pass a regular expression.
+  assert_template layout: /layouts\/application/
 end
 ```
 
-Note that you cannot test for template and layout at the same time, with one call to `assert_template` method.
-Also, for the `layout` test, you can give a regular expression instead of a string, but using the string, makes
-things clearer. On the other hand, you have to include the "layouts" directory name even if you save your layout
-file in this standard layout directory. Hence,
+NOTE: You cannot test for template and layout at the same time, with a single call to `assert_template`.
 
-```ruby
-assert_template layout: "application"
-```
+WARNING: You must include the "layouts" directory name even if you save your layout file in this standard layout directory. Hence, `assert_template layout: "application"` will not work.
 
-will not work.
+#### Asserting Partials
 
-If your view renders any partial, when asserting for the layout, you have to assert for the partial at the same time.
+If your view renders any partial, when asserting for the layout, you can to assert for the partial at the same time.
 Otherwise, assertion will fail.
 
-Hence:
+Remember, we added the "_form" partial to our creating Articles view? Let's write an assertion for that in the `:new` action now:
 
 ```ruby
 test "new should render correct layout" do
@@ -609,7 +611,7 @@ test "new should render correct layout" do
 end
 ```
 
-is the correct way to assert for the layout when the view renders a partial with name `_form`. Omitting the `:partial` key in your `assert_template` call will complain.
+This is the correct way to assert for when the view renders a partial with a given name. As identified by the `:partial` key passed to the `assert_template` call.
 
 ### A Fuller Functional Test Example
 
