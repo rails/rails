@@ -1328,7 +1328,6 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   test "eager-loading readonly association" do
-    skip "eager_load does not yet preserve readonly associations"
     # has-one
     firm = Firm.where(id: "1").eager_load(:readonly_account).first!
     assert firm.readonly_account.readonly?
@@ -1340,6 +1339,10 @@ class EagerAssociationTest < ActiveRecord::TestCase
     # has-many :through
     david = Author.where(id: "1").eager_load(:readonly_comments).first!
     assert david.readonly_comments.first.readonly?
+
+    # belongs_to
+    post = Post.where(id: "1").eager_load(:author).first!
+    assert post.author.readonly?
   end
 
   test "preloading a polymorphic association with references to the associated table" do
