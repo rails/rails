@@ -688,7 +688,7 @@ Finished in 0.081972s, 12.1993 runs/s, 48.7972 assertions/s.
 
 ### Testing Views
 
-Testing the response to your request by asserting the presence of key HTML elements and their content is a useful way to test the views of your application. The `assert_select` assertion allows you to do this by using a simple yet powerful syntax.
+Testing the response to your request by asserting the presence of key HTML elements and their content is a common way to test the views of your application. The `assert_select` method allows you to query HTML elements of the response by using a simple yet powerful syntax.
 
 NOTE: You may find references to `assert_tag` in other documentation. This has been removed in 4.2. Use `assert_select` instead.
 
@@ -704,7 +704,10 @@ For example, you could verify the contents on the title element in your response
 assert_select 'title', "Welcome to Rails Testing Guide"
 ```
 
-You can also use nested `assert_select` blocks. In this case the inner `assert_select` runs the assertion on the complete collection of elements selected by the outer `assert_select` block:
+You can also use nested `assert_select` blocks for deeper investigation.
+
+In the following example, the inner `assert_select` for `li.menu_item` runs
+within the collection of elements selected by the outer block:
 
 ```ruby
 assert_select 'ul.navigation' do
@@ -712,7 +715,9 @@ assert_select 'ul.navigation' do
 end
 ```
 
-Alternatively the collection of elements selected by the outer `assert_select` may be iterated through so that `assert_select` may be called separately for each element. Suppose for example that the response contains two ordered lists, each with four list elements then the following tests will both pass.
+A collection of selected elements may be iterated through so that `assert_select` may be called separately for each element.
+
+For example if the response contains two ordered lists, each with four nested list elements then the following tests will both pass.
 
 ```ruby
 assert_select "ol" do |elements|
@@ -726,7 +731,7 @@ assert_select "ol" do
 end
 ```
 
-The `assert_select` assertion is quite powerful. For more advanced usage, refer to its [documentation](https://github.com/rails/rails-dom-testing/blob/master/lib/rails/dom/testing/assertions/selector_assertions.rb).
+This assertion is quite powerful. For more advanced usage, refer to its [documentation](https://github.com/rails/rails-dom-testing/blob/master/lib/rails/dom/testing/assertions/selector_assertions.rb).
 
 #### Additional View-Based Assertions
 
