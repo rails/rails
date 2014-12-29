@@ -6,7 +6,6 @@ module ActiveRecord
       end
 
       def call(attribute, value)
-        value = predicate_builder.type_cast_for_database(attribute.name, value)
         attribute.eq(value)
       end
 

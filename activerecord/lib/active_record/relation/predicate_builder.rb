@@ -8,7 +8,7 @@ module ActiveRecord
     require 'active_record/relation/predicate_builder/range_handler'
     require 'active_record/relation/predicate_builder/relation_handler'
 
-    delegate :resolve_column_aliases, :type_cast_for_database, to: :table
+    delegate :resolve_column_aliases, to: :table
 
     def initialize(table)
       @table = table

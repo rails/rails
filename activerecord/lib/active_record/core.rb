@@ -235,7 +235,7 @@ module ActiveRecord
       #     scope :published_and_commented, -> { published.and(self.arel_table[:comments_count].gt(0)) }
       #   end
       def arel_table # :nodoc:
-        @arel_table ||= Arel::Table.new(table_name)
+        @arel_table ||= Arel::Table.new(table_name, type_caster: self)
       end
 
       # Returns the Arel engine.
@@ -250,6 +250,12 @@ module ActiveRecord
 
       def predicate_builder # :nodoc:
         @predicate_builder ||= PredicateBuilder.new(table_metadata)
+      end
+
+      def type_cast_for_database(attribute_name, value)
+        return value if value.is_a?(Arel::Nodes::BindParam)
+        type = type_for_attribute(attribute_name.to_s)
+        type.type_cast_for_database(value)
       end
 
       private
