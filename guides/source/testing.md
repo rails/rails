@@ -553,8 +553,8 @@ assigns["something"]          assigns(:something)
 You also have access to three instance variables in your functional tests:
 
 * `@controller` - The controller processing the request
-* `@request` - The request
-* `@response` - The response
+* `@request` - The request object
+* `@response` - The response object
 
 ### Setting Headers and CGI variables
 
