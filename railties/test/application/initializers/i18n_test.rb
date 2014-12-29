@@ -198,7 +198,9 @@ en:
       end
     end
 
-    test "disable config.i18n.enforce_available_locales" do
+    test "disable config.i18n.enforce_available_locales when initial value is nil" do
+      I18n.enforce_available_locales = nil
+
       add_to_config <<-RUBY
         config.i18n.enforce_available_locales = false
         config.i18n.default_locale = :fr
@@ -213,10 +215,28 @@ en:
       end
     end
 
-    test "default config.i18n.enforce_available_locales does not override I18n.enforce_available_locales" do
+    test "disable config.i18n.enforce_available_locales when initial value is true" do
+      I18n.enforce_available_locales = true
+
+      add_to_config <<-RUBY
+        config.i18n.enforce_available_locales = false
+        config.i18n.default_locale = :fr
+      RUBY
+
+      output = capture(:stderr) { load_app }
+      assert_no_match %r{deprecated.*enforce_available_locales}, output
+      assert_equal false, I18n.enforce_available_locales
+
+      assert_nothing_raised do
+        I18n.locale = :es
+      end
+    end
+
+    test "disable config.i18n.enforce_available_locales when initial value is false" do
       I18n.enforce_available_locales = false
 
       add_to_config <<-RUBY
+        config.i18n.enforce_available_locales = false
         config.i18n.default_locale = :fr
       RUBY
 
