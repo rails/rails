@@ -450,7 +450,7 @@ You'll see the usage of some of these assertions in the next chapter.
 Functional Tests for Your Controllers
 -------------------------------------
 
-In Rails, testing the various actions of a single controller is called writing functional tests for that controller. Controllers handle the incoming web requests to your application and eventually respond with a rendered view.
+In Rails, testing the various actions of a controller is a form of writing functional tests. Remember your controllers handle the incoming web requests to your application and eventually respond with a rendered view. When writing functional tests, you're testing how your actions handle the requests and the expected result, or response in some cases an HTML view.
 
 ### What to Include in your Functional Tests
 
