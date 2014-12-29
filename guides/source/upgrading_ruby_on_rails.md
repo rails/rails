@@ -541,7 +541,7 @@ file (in `config/application.rb`):
 ```ruby
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
-Bundler.require(:default, Rails.env)
+Bundler.require(*Rails.groups)
 ```
 
 ### vendor/plugins
