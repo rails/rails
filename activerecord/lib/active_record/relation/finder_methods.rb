@@ -143,7 +143,7 @@ module ActiveRecord
     # Same as +first+ but raises <tt>ActiveRecord::RecordNotFound</tt> if no record
     # is found. Note that <tt>first!</tt> accepts no arguments.
     def first!
-      find_nth! 0
+      find_nth! 0 or raise RecordNotFound.new("Couldn't find #{@klass.name} with [#{arel.where_sql(@klass.arel_engine)}]")
     end
 
     # Find the last record (or last N records if a parameter is supplied).
