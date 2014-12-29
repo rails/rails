@@ -1,3 +1,8 @@
+*   Added an explicit error message, in `ActionView::PartialRenderer`
+    for partial `rendering`, when the value of option `as` has invalid charters.
+
+    *Angelo Capilleri*
+
 *   Local variable in a partial is now available even if a falsy value is
     passed to `:object` when rendering a partial.
 
