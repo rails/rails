@@ -348,6 +348,22 @@ module ActiveRecord
       self
     end
 
+    # Allows to move order presendence to first place in the order chain:
+    #
+    #   User.order(:name).preorder(:id)
+    #   => SELECT "users".* FROM "users" ORDER BY "users"."id" ASC, "users"."name" ASC
+    def preorder(*args)
+      check_if_method_has_arguments!(:preorder, args)
+      spawn.preorder!(*args)
+    end
+
+    def preorder!(*args) # :nodoc:
+      preprocess_order_args(args)
+
+      self.order_values = args + order_values
+      self
+    end
+
     VALID_UNSCOPING_VALUES = Set.new([:where, :select, :group, :order, :lock,
                                      :limit, :offset, :joins, :includes, :from,
                                      :readonly, :having])
