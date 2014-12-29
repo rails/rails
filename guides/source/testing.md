@@ -613,18 +613,77 @@ end
 
 This is the correct way to assert for when the view renders a partial with a given name. As identified by the `:partial` key passed to the `assert_template` call.
 
-### A Fuller Functional Test Example
+### Testing `flash` notices
 
-Here's another example that uses `flash`, `assert_redirected_to`, and `assert_difference`:
+If you remember from earlier one of the Four Hashes of the Apocalypse was `flash`.
+
+We want to add a `flash` message to our blog application whenever someone
+successfully creates a new Article.
+
+Let's start by adding this assertion to our `test_should_create_article` test:
 
 ```ruby
 test "should create article" do
   assert_difference('Article.count') do
-    post :create, article: {title: 'Hi', body: 'This is my first article.'}
+    post :create, article: {title: 'Some title'}
   end
+
   assert_redirected_to article_path(assigns(:article))
   assert_equal 'Article was successfully created.', flash[:notice]
 end
+```
+
+If we run our test now, we should see a failure:
+
+```bash
+$ bin/rake test test/controllers/articles_controller_test.rb test_should_create_article
+Run options: -n test_should_create_article --seed 32266
+
+# Running:
+
+F
+
+Finished in 0.114870s, 8.7055 runs/s, 34.8220 assertions/s.
+
+  1) Failure:
+ArticlesControllerTest#test_should_create_article [/Users/zzak/code/bench/sharedapp/test/controllers/articles_controller_test.rb:16]:
+--- expected
++++ actual
+@@ -1 +1 @@
+-"Article was successfully created."
++nil
+
+1 runs, 4 assertions, 1 failures, 0 errors, 0 skips
+```
+
+Let's implement the flash message now in our controller. Our `:create` action should now look like this:
+
+```ruby
+def create
+  @article = Article.new(article_params)
+
+  if @article.save
+    flash[:notice] = 'Article was successfully created.'
+    redirect_to @article
+  else
+    render 'new'
+  end
+end
+```
+
+Now if we run our tests, we should see it pass:
+
+```bash
+$ bin/rake test test/controllers/articles_controller_test.rb test_should_create_article
+Run options: -n test_should_create_article --seed 18981
+
+# Running:
+
+.
+
+Finished in 0.081972s, 12.1993 runs/s, 48.7972 assertions/s.
+
+1 runs, 4 assertions, 0 failures, 0 errors, 0 skips
 ```
 
 ### Testing Views
