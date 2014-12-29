@@ -182,3 +182,7 @@ class Plane
     @to_key = [1]
   end
 end
+
+class Template
+  CONSTANT = "Simple Constant"
+end

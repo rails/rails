@@ -24,6 +24,12 @@ module RenderTestCases
     assert_match(/You invoked render but did not give any of (.+) option./, e.message)
   end
 
+  def test_should_be_render_file_with_constants
+    assert_nothing_raised RuntimeError do
+      @view.render(:file => "test/template_with_constants")
+    end
+  end
+
   def test_render_file
     assert_equal "Hello world!", @view.render(:file => "test/hello_world")
   end
