@@ -1,3 +1,9 @@
+*   Added an explicit error message, in `ActionView::PartialRenderer`
+    for partial `rendering`, when the value of option `as` has invalid charters.
+
+    *Angelo Capilleri*
+
+
 ## Rails 4.1.8 (November 16, 2014) ##
 
 *   Update `select_tag` to work correctly with `:include_blank` option passing a string.
