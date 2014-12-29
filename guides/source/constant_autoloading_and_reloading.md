@@ -439,7 +439,7 @@ default it contains:
   `app/controllers`. They do not need to be the default ones, any custom
   directories like `app/workers` belong automatically to `autoload_paths`.
 
-* Any existing second level directories called `app/*/concerns` in the
+* Second level directories `app/{controllers,models}/concerns` in the
   application and engines.
 
 * The directory `test/mailers/previews`.
