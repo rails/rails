@@ -570,6 +570,7 @@ module ActiveSupport
     # using short instance variable names that are lazily defined.
     class Entry # :nodoc:
       DEFAULT_COMPRESS_LIMIT = 16.kilobytes
+      MARSHAL_SIGNATURE = "\x04\x08".freeze
 
       # Create a new cache entry for the specified value. Options supported are
       # +:compress+, +:compress_threshold+, and +:expires_in+.
@@ -593,8 +594,8 @@ module ActiveSupport
       # Check if the entry is expired. The +expires_in+ parameter can override
       # the value set when the entry was created.
       def expired?
-        convert_version_4beta1_entry! if defined?(@value)
-        @expires_in && @created_at + @expires_in <= Time.now.to_f
+        convert_version_4beta1_entry! if defined?(@v)
+        (@expires_in && @created_at + @expires_in <= Time.now.to_f) || marshaled_rails_3_value?
       end
 
       def expires_at
@@ -677,6 +678,11 @@ module ActiveSupport
             @expires_in = @x - @created_at
             remove_instance_variable(:@x)
           end
+        end
+
+        def marshaled_rails_3_value?
+          cached_value = value
+          cached_value.is_a?(String) && cached_value.start_with?(MARSHAL_SIGNATURE)
         end
     end
   end

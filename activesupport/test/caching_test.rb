@@ -979,6 +979,33 @@ class CacheEntryTest < ActiveSupport::TestCase
     assert_equal value.bytesize, entry.size
   end
 
+  def test_restoring_version_3_entries_should_be_expired
+    version_3_entry = ActiveSupport::Cache::Entry.allocate
+    version_3_entry.instance_variable_set(:@value, Marshal.dump("hello"))
+    version_3_entry.instance_variable_set(:@created_at, Time.now.to_i - 60)
+    version_3_entry.instance_variable_set(:@expires_in, 120)
+    entry = Marshal.load(Marshal.dump(version_3_entry))
+    assert_equal true, entry.expired?
+  end
+
+  def test_restoring_compressed_version_3_entries_should_not_be_expired
+    version_3_entry = ActiveSupport::Cache::Entry.allocate
+    version_3_entry.instance_variable_set(:@value, Zlib::Deflate.deflate(Marshal.dump("hello")))
+    version_3_entry.instance_variable_set(:@compressed, true)
+    entry = Marshal.load(Marshal.dump(version_3_entry))
+    assert_equal false, entry.expired?
+    assert_equal "hello", entry.value
+  end
+
+  def test_restoring_expired_version_3_entries
+    version_3_entry = ActiveSupport::Cache::Entry.allocate
+    version_3_entry.instance_variable_set(:@value, Marshal.dump("hello"))
+    version_3_entry.instance_variable_set(:@created_at, Time.now.to_i - 60)
+    version_3_entry.instance_variable_set(:@expires_in, 58.9)
+    entry = Marshal.load(Marshal.dump(version_3_entry))
+    assert_equal true, entry.expired?
+  end
+
   def test_restoring_version_4beta1_entries
     version_4beta1_entry = ActiveSupport::Cache::Entry.allocate
     version_4beta1_entry.instance_variable_set(:@v, "hello")
@@ -1001,7 +1028,7 @@ class CacheEntryTest < ActiveSupport::TestCase
     version_4beta1_entry.instance_variable_set(:@v, "hello")
     version_4beta1_entry.instance_variable_set(:@x, Time.now.to_i - 1)
     entry = Marshal.load(Marshal.dump(version_4beta1_entry))
-    assert_equal "hello", entry.value
     assert_equal true, entry.expired?
+    assert_equal "hello", entry.value
   end
 end
