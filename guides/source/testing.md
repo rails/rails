@@ -690,8 +690,6 @@ Finished in 0.081972s, 12.1993 runs/s, 48.7972 assertions/s.
 
 Testing the response to your request by asserting the presence of key HTML elements and their content is a common way to test the views of your application. The `assert_select` method allows you to query HTML elements of the response by using a simple yet powerful syntax.
 
-NOTE: You may find references to `assert_tag` in other documentation. This has been removed in 4.2. Use `assert_select` instead.
-
 There are two forms of `assert_select`:
 
 `assert_select(selector, [equality], [message])` ensures that the equality condition is met on the selected elements through the selector. The selector may be a CSS selector expression (String) or an expression with substitution values.
