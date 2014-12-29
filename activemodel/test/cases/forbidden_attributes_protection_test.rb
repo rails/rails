@@ -17,7 +17,7 @@ class ProtectedParams < ActiveSupport::HashWithIndifferentAccess
   end
 end
 
-class ActiveModelMassUpdateProtectionTest < ActiveSupport::TestCase
+class ActiveModelMassUpdateProtectionTest < ActiveModel::TestCase
   test "forbidden attributes cannot be used for mass updating" do
     params = ProtectedParams.new({ "a" => "b" })
     assert_raises(ActiveModel::ForbiddenAttributesError) do
