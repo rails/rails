@@ -140,4 +140,9 @@ class SafeBufferTest < ActiveSupport::TestCase
     # should still be unsafe
     assert !y.html_safe?, "should not be safe"
   end
+
+  test 'Should not affect frozen objects when accessing characters' do
+    x = 'Hello'.html_safe
+    assert_equal x[/a/, 1], nil
+  end
 end
