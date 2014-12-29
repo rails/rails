@@ -36,7 +36,11 @@ module I18n
       # Avoid issues with setting the default_locale by disabling available locales
       # check while configuring.
       enforce_available_locales = app.config.i18n.delete(:enforce_available_locales)
-      enforce_available_locales = I18n.enforce_available_locales unless I18n.enforce_available_locales.nil?
+
+      if enforce_available_locales.nil?
+        enforce_available_locales = I18n.enforce_available_locales
+      end
+
       I18n.enforce_available_locales = false
 
       app.config.i18n.each do |setting, value|
