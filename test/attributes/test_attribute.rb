@@ -950,5 +950,39 @@ module Arel
         end
       end
     end
+
+    describe 'type casting' do
+      it 'does not type cast by default' do
+        table = Table.new(:foo)
+        condition = table["id"].eq("1")
+
+        refute table.able_to_type_cast?
+        condition.to_sql.must_equal %("foo"."id" = '1')
+      end
+
+      it 'type casts when given an explicit caster' do
+        fake_caster = Object.new
+        def fake_caster.type_cast_for_database(attr_name, value)
+          if attr_name == "id"
+            value.to_i
+          else
+            value
+          end
+        end
+        table = Table.new(:foo, type_caster: fake_caster)
+        condition = table["id"].eq("1").and(table["other_id"].eq("2"))
+
+        assert table.able_to_type_cast?
+        condition.to_sql.must_equal %("foo"."id" = 1 AND "foo"."other_id" = '2')
+      end
+
+      it 'falls back to using the connection adapter for type casting' do
+        table = Table.new(:users)
+        condition = table["id"].eq("1")
+
+        refute table.able_to_type_cast?
+        condition.to_sql.must_equal %("users"."id" = 1)
+      end
+    end
   end
 end

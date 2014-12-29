@@ -721,7 +721,11 @@ module Arel
       alias :visit_Fixnum                :literal
 
       def quoted o, a
-        quote(o, column_for(a))
+        if a && a.able_to_type_cast?
+          quote(a.type_cast_for_database(o))
+        else
+          quote(o, column_for(a))
+        end
       end
 
       def unsupported o, collector
@@ -761,6 +765,9 @@ module Arel
 
       def quote value, column = nil
         return value if Arel::Nodes::SqlLiteral === value
+        if column
+          print_type_cast_deprecation
+        end
         @connection.quote value, column
       end
 
@@ -808,6 +815,20 @@ module Arel
           visit o.alias, collector
         else
           collector
+        end
+      end
+
+      def print_type_cast_deprecation
+        unless defined?($arel_silence_type_casting_deprecation) && $arel_silence_type_casting_deprecation
+          warn <<-eowarn
+Arel performing automatic type casting is deprecated, and will be removed in Arel 8.0. If you are seeing this, it is because you are manually passing a value to an Arel predicate, and the `Arel::Table` object was constructed manually. The easiest way to remove this warning is to use an `Arel::Table` object returned from calling `arel_table` on an ActiveRecord::Base subclass.
+
+If you're certain the value is already of the right type, change `attribute.eq(value)` to `attribute.eq(Arel::Nodes::Quoted.new(value))` (you will be able to remove that in Arel 8.0, it is only required to silence this deprecation warning).
+
+You can also silence this warning globally by setting `$arel_silence_type_casting_deprecation` to `true`. (Do NOT do this if you are a library author)
+
+If you are passing user input to a predicate, you must either give an appropriate type caster object to the `Arel::Table`, or manually cast the value before passing it to Arel.
+          eowarn
         end
       end
     end

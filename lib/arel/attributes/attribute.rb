@@ -12,6 +12,14 @@ module Arel
       def lower
         relation.lower self
       end
+
+      def type_cast_for_database(value)
+        relation.type_cast_for_database(name, value)
+      end
+
+      def able_to_type_cast?
+        relation.able_to_type_cast?
+      end
     end
 
     class String    < Attribute; end
