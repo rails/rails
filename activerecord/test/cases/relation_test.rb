@@ -64,21 +64,21 @@ module ActiveRecord
 
     def test_has_values
       relation = Relation.new(Post, Post.arel_table, Post.predicate_builder)
-      relation.where! relation.table[:id].eq(Arel::Nodes::Quoted.new(10))
+      relation.where! relation.table[:id].eq(10)
       assert_equal({:id => 10}, relation.where_values_hash)
     end
 
     def test_values_wrong_table
       relation = Relation.new(Post, Post.arel_table, Post.predicate_builder)
-      relation.where! Comment.arel_table[:id].eq(Arel::Nodes::Quoted.new(10))
+      relation.where! Comment.arel_table[:id].eq(10)
       assert_equal({}, relation.where_values_hash)
     end
 
     def test_tree_is_not_traversed
       relation = Relation.new(Post, Post.arel_table, Post.predicate_builder)
       # FIXME: Remove the Arel::Nodes::Quoted in Rails 5.1
-      left     = relation.table[:id].eq(Arel::Nodes::Quoted.new(10))
-      right    = relation.table[:id].eq(Arel::Nodes::Quoted.new(10))
+      left     = relation.table[:id].eq(10)
+      right    = relation.table[:id].eq(10)
       combine  = left.and right
       relation.where! combine
       assert_equal({}, relation.where_values_hash)
@@ -104,7 +104,7 @@ module ActiveRecord
     def test_create_with_value_with_wheres
       relation = Relation.new(Post, Post.arel_table, Post.predicate_builder)
       # FIXME: Remove the Arel::Nodes::Quoted in Rails 5.1
-      relation.where! relation.table[:id].eq(Arel::Nodes::Quoted.new(10))
+      relation.where! relation.table[:id].eq(10)
       relation.create_with_value = {:hello => 'world'}
       assert_equal({:hello => 'world', :id => 10}, relation.scope_for_create)
     end
@@ -115,7 +115,7 @@ module ActiveRecord
       assert_equal({}, relation.scope_for_create)
 
       # FIXME: Remove the Arel::Nodes::Quoted in Rails 5.1
-      relation.where! relation.table[:id].eq(Arel::Nodes::Quoted.new(10))
+      relation.where! relation.table[:id].eq(10)
       assert_equal({}, relation.scope_for_create)
 
       relation.create_with_value = {:hello => 'world'}

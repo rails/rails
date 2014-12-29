@@ -52,12 +52,7 @@ module ActiveRecord
         end
       else
         enum_for :find_each, options do
-          # FIXME: Remove this when type casting is removed from Arel
-          # (Rails 5.1). We can pass start directly instead.
-          if options[:start]
-            quoted_start = Arel::Nodes::Quoted.new(options[:start])
-          end
-          options[:start] ? where(table[primary_key].gteq(quoted_start)).size : size
+          options[:start] ? where(table[primary_key].gteq(options[:start])).size : size
         end
       end
     end
@@ -107,15 +102,9 @@ module ActiveRecord
       start = options[:start]
       batch_size = options[:batch_size] || 1000
 
-      if start
-        # FIXME: Remove this when type casting is removed from Arel
-        # (Rails 5.1). We can pass start directly instead.
-        quoted_start = Arel::Nodes::Quoted.new(start)
-      end
-
       unless block_given?
         return to_enum(:find_in_batches, options) do
-          total = start ? where(table[primary_key].gteq(quoted_start)).size : size
+          total = start ? where(table[primary_key].gteq(start)).size : size
           (total - 1).div(batch_size) + 1
         end
       end
@@ -125,7 +114,7 @@ module ActiveRecord
       end
 
       relation = relation.reorder(batch_order).limit(batch_size)
-      records = start ? relation.where(table[primary_key].gteq(quoted_start)).to_a : relation.to_a
+      records = start ? relation.where(table[primary_key].gteq(start)).to_a : relation.to_a
 
       while records.any?
         records_size = records.size
@@ -136,11 +125,7 @@ module ActiveRecord
 
         break if records_size < batch_size
 
-        # FIXME: Remove this when type casting is removed from Arel
-        # (Rails 5.1). We can pass the offset directly instead.
-        quoted_offset = Arel::Nodes::Quoted.new(primary_key_offset)
-
-        records = relation.where(table[primary_key].gt(quoted_offset)).to_a
+        records = relation.where(table[primary_key].gt(primary_key_offset)).to_a
       end
     end
 

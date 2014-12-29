@@ -64,7 +64,6 @@ module ActiveRecord
           value = value.to_s[0, column.limit]
         end
 
-        # FIXME: Remove this when type casting is removed from Arel (Rails 5.1)
         value = Arel::Nodes::Quoted.new(value)
 
         comparison = if !options[:case_sensitive] && value && column.text?

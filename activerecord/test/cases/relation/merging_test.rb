@@ -25,8 +25,8 @@ class RelationMergingTest < ActiveRecord::TestCase
   end
 
   def test_relation_merging_with_arel_equalities_keeps_last_equality
-    devs = Developer.where(Developer.arel_table[:salary].eq(Arel::Nodes::Quoted.new(80000))).merge(
-      Developer.where(Developer.arel_table[:salary].eq(Arel::Nodes::Quoted.new(9000)))
+    devs = Developer.where(Developer.arel_table[:salary].eq(80000)).merge(
+      Developer.where(Developer.arel_table[:salary].eq(9000))
     )
     assert_equal [developers(:poor_jamis)], devs.to_a
   end
