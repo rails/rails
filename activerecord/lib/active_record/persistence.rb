@@ -109,6 +109,10 @@ module ActiveRecord
     # validate: false, validations are bypassed altogether. See
     # ActiveRecord::Validations for more information.
     #
+    # By default, #save also sets the +updated_at+/+updated_on+ attributes to
+    # the current time. However, if you supply <tt>touch: false</tt>, these
+    # timestamps will not be updated.
+    #
     # There's a series of callbacks associated with +save+. If any of the
     # <tt>before_*</tt> callbacks return +false+ the action is cancelled and
     # +save+ returns +false+. See ActiveRecord::Callbacks for further
@@ -130,6 +134,10 @@ module ActiveRecord
     # With <tt>save!</tt> validations always run. If any of them fail
     # ActiveRecord::RecordInvalid gets raised. See ActiveRecord::Validations
     # for more information.
+    #
+    # By default, #save! also sets the +updated_at+/+updated_on+ attributes to
+    # the current time. However, if you supply <tt>touch: false</tt>, these
+    # timestamps will not be updated.
     #
     # There's a series of callbacks associated with <tt>save!</tt>. If any of
     # the <tt>before_*</tt> callbacks return +false+ the action is cancelled
