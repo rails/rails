@@ -1,3 +1,9 @@
+*   Ensure `first!` and friends work on loaded associations.
+
+    Fixes #18237.
+
+    *Sean Griffin*
+
 *   Dump the default `nil` for PostgreSQL UUID primary key.
 
     *Ryuta Kamizono*
