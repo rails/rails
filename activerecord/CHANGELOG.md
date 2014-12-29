@@ -1,3 +1,9 @@
+*   Ensure `first!` and friends work on loaded associations.
+
+    Fixes #18237.
+
+    *Sean Griffin*
+
 *   `eager_load` preserves readonly flag for associations.
 
     Closes #15853.
