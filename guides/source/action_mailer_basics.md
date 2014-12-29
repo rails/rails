@@ -733,7 +733,9 @@ Mailer framework. You can do this in an initializer file
 `config/initializers/sandbox_email_interceptor.rb`
 
 ```ruby
-ActionMailer::Base.register_interceptor(SandboxEmailInterceptor) if Rails.env.staging?
+if Rails.env.staging?
+  ActionMailer::Base.register_interceptor(SandboxEmailInterceptor)
+end
 ```
 
 NOTE: The example above uses a custom environment called "staging" for a
