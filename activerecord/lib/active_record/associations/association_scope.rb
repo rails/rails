@@ -66,7 +66,8 @@ module ActiveRecord
         chain.map do |reflection|
           alias_tracker.aliased_table_for(
             table_name_for(reflection, klass, refl),
-            table_alias_for(reflection, refl, reflection != refl)
+            table_alias_for(reflection, refl, reflection != refl),
+            type_caster: klass.type_caster,
           )
         end
       end

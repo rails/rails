@@ -252,6 +252,10 @@ module ActiveRecord
         @predicate_builder ||= PredicateBuilder.new(table_metadata)
       end
 
+      def type_caster # :nodoc:
+        TypeCaster::Map.new(self)
+      end
+
       private
 
       def relation # :nodoc:
@@ -266,10 +270,6 @@ module ActiveRecord
 
       def table_metadata # :nodoc:
         TableMetadata.new(self, arel_table)
-      end
-
-      def type_caster # :nodoc:
-        TypeCaster::Map.new(self)
       end
     end
 

@@ -56,11 +56,11 @@ module ActiveRecord
         @connection = connection
       end
 
-      def aliased_table_for(table_name, aliased_name)
+      def aliased_table_for(table_name, aliased_name, **table_options)
         if aliases[table_name].zero?
           # If it's zero, we can have our table_name
           aliases[table_name] = 1
-          Arel::Table.new(table_name)
+          Arel::Table.new(table_name, table_options)
         else
           # Otherwise, we need to use an alias
           aliased_name = connection.table_alias_for(aliased_name)
@@ -73,7 +73,7 @@ module ActiveRecord
           else
             aliased_name
           end
-          Arel::Table.new(table_name).alias(table_alias)
+          Arel::Table.new(table_name, table_options).alias(table_alias)
         end
       end
 
