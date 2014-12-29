@@ -150,7 +150,11 @@ module ActiveSupport #:nodoc:
       else
         if html_safe?
           new_safe_buffer = super
-          new_safe_buffer.instance_variable_set :@html_safe, true
+
+          if new_safe_buffer
+            new_safe_buffer.instance_variable_set :@html_safe, true
+          end
+
           new_safe_buffer
         else
           to_str[*args]
