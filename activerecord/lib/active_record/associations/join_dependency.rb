@@ -93,7 +93,7 @@ module ActiveRecord
       #    joins # =>  []
       #
       def initialize(base, associations, joins)
-        @alias_tracker = AliasTracker.create_with_joins(base.connection, base.table_name, joins)
+        @alias_tracker = AliasTracker.create_with_joins(base.connection, base.table_name, joins, base.type_caster)
         tree = self.class.make_tree associations
         @join_root = JoinBase.new base, build(tree, base)
         @join_root.children.each { |child| construct_tables! @join_root, child }
@@ -185,13 +185,9 @@ module ActiveRecord
 
       def table_aliases_for(parent, node)
         node.reflection.chain.map { |reflection|
-          if reflection.klass
-            type_caster = reflection.klass.type_caster
-          end
           alias_tracker.aliased_table_for(
             reflection.table_name,
-            table_alias_for(reflection, parent, reflection != node.reflection),
-            type_caster: type_caster,
+            table_alias_for(reflection, parent, reflection != node.reflection)
           )
         }
       end

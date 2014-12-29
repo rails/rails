@@ -7,10 +7,10 @@ module ActiveRecord
     class AliasTracker # :nodoc:
       attr_reader :aliases
 
-      def self.create(connection, initial_table)
+      def self.create(connection, initial_table, type_caster)
         aliases = Hash.new(0)
         aliases[initial_table] = 1
-        new connection, aliases
+        new connection, aliases, type_caster
       end
 
       def self.create_with_joins(connection, initial_table, joins, type_caster)
@@ -54,16 +54,17 @@ module ActiveRecord
       end
 
       # table_joins is an array of arel joins which might conflict with the aliases we assign here
-      def initialize(connection, aliases)
+      def initialize(connection, aliases, type_caster)
         @aliases    = aliases
         @connection = connection
+        @type_caster = type_caster
       end
 
-      def aliased_table_for(table_name, aliased_name, **table_options)
+      def aliased_table_for(table_name, aliased_name)
         if aliases[table_name].zero?
           # If it's zero, we can have our table_name
           aliases[table_name] = 1
-          Arel::Table.new(table_name, table_options)
+          Arel::Table.new(table_name, type_caster: @type_caster)
         else
           # Otherwise, we need to use an alias
           aliased_name = @connection.table_alias_for(aliased_name)
@@ -76,7 +77,7 @@ module ActiveRecord
           else
             aliased_name
           end
-          Arel::Table.new(table_name, table_options).alias(table_alias)
+          Arel::Table.new(table_name, type_caster: @type_caster).alias(table_alias)
         end
       end
 
