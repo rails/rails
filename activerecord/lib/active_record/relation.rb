@@ -568,7 +568,7 @@ module ActiveRecord
         [name, binds.fetch(name.to_s) {
           case where.right
           when Array then where.right.map(&:val)
-          else
+          when Arel::Nodes::Casted
             where.right.val
           end
         }]

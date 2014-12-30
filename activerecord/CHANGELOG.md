@@ -1,3 +1,16 @@
+*   Fix error message when trying to create an associated record and the foreign
+    key is missing.
+
+    Before this fix the following exception was being raised:
+
+        NoMethodError: undefined method `val' for #<Arel::Nodes::BindParam:0x007fc64d19c218>
+
+    Now the message is:
+
+        ActiveRecord::UnknownAttributeError: unknown attribute 'foreign_key' for Model.
+
+    *Rafael Mendonça França*
+
 *   When a table has a composite primary key, the `primary_key` method for
     SQLite3 and PostgreSQL adapters was only returning the first field of the key.
     Ensures that it will return nil instead, as Active Record doesn't support
