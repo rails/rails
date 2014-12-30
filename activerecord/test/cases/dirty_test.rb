@@ -688,7 +688,14 @@ class DirtyTest < ActiveRecord::TestCase
       serialize :data
     end
 
-    klass.create!(data: "foo")
+    binary = klass.create!(data: "\\\\foo")
+
+    assert_not binary.changed?
+
+    binary.data = binary.data.dup
+
+    assert_not binary.changed?
+
     binary = klass.last
 
     assert_not binary.changed?
