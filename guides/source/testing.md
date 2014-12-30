@@ -786,6 +786,81 @@ When performing requests, you will have [`ActionDispatch::Integration::RequestHe
 
 If you'd like to modify the session, or state of your integration test you should look for [`ActionDispatch::Integration::Session`](http://api.rubyonrails.org/classes/ActionDispatch/Integration/Session.html) to help.
 
+### Implementing an integration test
+
+Let's add an integration test to our blog application. We'll start with a basic workflow of creating a new blog article, to verify that everything is working properly.
+
+We'll start by generating our integration test skeleton:
+
+```bash
+$ bin/rails generate integration_test blog_flow
+```
+
+It should have created a test file placeholder for us, with the output of the previous command you should see:
+
+```bash
+      invoke  test_unit
+      create    test/integration/blog_flow_test.rb
+```
+
+Now let's open that file and write our first assertion:
+
+```ruby
+require 'test_helper'
+
+class BlogFlowTest < ActionDispatch::IntegrationTest
+  test "can see the welcome page" do
+    get "/"
+    assert_select "h1", "Welcome#index"
+  end
+end
+```
+
+If you remember from earlier in the "Testing Views" section we covered `assert_select` to query the resulting HTML of a request.
+
+When visit our root path, we should see `welcome/index.html.erb` rendered for the view. So this assertion should pass.
+
+#### Creating articles integration
+
+How about testing our ability to create a new article in our blog and see the resulting article.
+
+```ruby
+test "can create an article" do
+  get "/articles/new"
+  assert_response :success
+  assert_template "articles/new", partial: "articles/_form"
+
+  post "/articles", article: {title: "can create", body: "article successfully."}
+  assert_response :redirect
+  follow_redirect!
+  assert_response :success
+  assert_template "articles/show"
+  assert_select "p", "Title:\n  can create"
+end
+```
+
+Let's break this test down so we can understand it.
+
+We start by calling the `:new` action on our Articles controller. This response should be successful, and we can verify the correct template is rendered including the form partial.
+
+After this we make a post request to the `:create` action of our Articles controller:
+
+```ruby
+post "/articles", article: {title: "can create", body: "article successfully."}
+assert_response :redirect
+follow_redirect!
+```
+
+The two lines following the request are to handle the redirect we setup when creating a new article.
+
+NOTE: Don't forget to call `follow_redirect!` if you plan to make subsequent requests after a redirect is made.
+
+Finally we can assert that our response was successful, template was rendered, and our new article is readable on the page.
+
+#### Taking it further
+
+We were able to successfully test a very small workflow for visiting our blog and creating a new article. If we wanted to take this further we could add tests for commenting, removing articles, or editting comments. Integration tests are a great place to experiment with all kinds of use-cases for our applications.
+
 Setup and Teardown
 ------------------
 
