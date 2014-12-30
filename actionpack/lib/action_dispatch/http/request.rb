@@ -105,6 +105,14 @@ module ActionDispatch
       @request_method ||= check_method(env["REQUEST_METHOD"])
     end
 
+    def routes # :nodoc:
+      env["action_dispatch.routes".freeze]
+    end
+
+    def original_script_name # :nodoc:
+      env['ORIGINAL_SCRIPT_NAME'.freeze]
+    end
+
     def request_method=(request_method) #:nodoc:
       if check_method(request_method)
         @request_method = env["REQUEST_METHOD"] = request_method
