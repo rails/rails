@@ -752,9 +752,9 @@ end
 Integration Testing
 -------------------
 
-Integration tests are used to test the interaction among any number of controllers. They are generally used to test important work flows within your application.
+Integration tests are used to test how various parts of your application interact. They are generally used to test important work flows within your application.
 
-Unlike Unit and Functional tests, integration tests have to be explicitly created under the 'test/integration' directory within your application. Rails provides a generator to create an integration test skeleton for you.
+For creating Rails integration tests, we use the 'test/integration' directory for your application. Rails provides a generator to create an integration test skeleton for you.
 
 ```bash
 $ bin/rails generate integration_test user_flows
@@ -774,7 +774,7 @@ class UserFlowsTest < ActionDispatch::IntegrationTest
 end
 ```
 
-Integration tests inherit from `ActionDispatch::IntegrationTest`. This makes available some additional helpers to use in your integration tests. Also you need to explicitly include the fixtures to be made available to the test.
+Inheriting from `ActionDispatch::IntegrationTest` comes with some advantages. This makes available some additional helpers to use in your integration tests.
 
 ### Helpers Available for Integration Tests
 
