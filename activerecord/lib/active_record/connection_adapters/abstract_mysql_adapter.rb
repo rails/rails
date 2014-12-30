@@ -499,6 +499,9 @@ module ActiveRecord
 
       def rename_index(table_name, old_name, new_name)
         if supports_rename_index?
+          if new_name.length > allowed_index_name_length
+            raise ArgumentError, "Index name '#{new_name}' on table '#{table_name}' is too long; the limit is #{allowed_index_name_length} characters"
+          end
           execute "ALTER TABLE #{quote_table_name(table_name)} RENAME INDEX #{quote_table_name(old_name)} TO #{quote_table_name(new_name)}"
         else
           super
