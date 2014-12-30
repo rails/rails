@@ -11,7 +11,7 @@ module ActiveRecord
     #
     # == Usage
     #
-    # Active Records support optimistic locking if the field +lock_version+ is present. Each update to the
+    # Active Record supports optimistic locking if the +lock_version+ field is present. Each update to the
     # record increments the +lock_version+ column and the locking facilities ensure that records instantiated twice
     # will let the last one saved raise a +StaleObjectError+ if the first was also updated. Example:
     #

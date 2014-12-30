@@ -35,8 +35,9 @@ module ActionView
   #
   # Note that these methods do not strictly require +Post+ to be a subclass of
   # ActiveRecord::Base.
-  # Any +Post+ class will do as long as its instances respond to +post.to_key+
-  # and +post.model_name.param_key+; for instance:
+  # Any +Post+ class will work as long as its instances respond to +to_key+
+  # and +model_name+, given that +model_name+ responds to +param_key+.
+  # For instance:
   #
   #   class Post
   #     attr_accessor :to_key
@@ -46,7 +47,7 @@ module ActionView
   #     end
   #
   #     def self.find(id)
-  #       new.tap{|post| post.to_key = [id]}
+  #       new.tap { |post| post.to_key = [id] }
   #     end
   #   end
   module RecordIdentifier
