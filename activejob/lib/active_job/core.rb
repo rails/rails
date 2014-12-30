@@ -22,10 +22,8 @@ module ActiveJob
     module ClassMethods
       # Creates a new job instance from a hash created with +serialize+
       def deserialize(job_data)
-        job                      = job_data['job_class'].constantize.new
-        job.job_id               = job_data['job_id']
-        job.queue_name           = job_data['queue_name']
-        job.serialized_arguments = job_data['arguments']
+        job = job_data['job_class'].constantize.new
+        job.deserialize(job_data)
         job
       end
 
@@ -67,6 +65,32 @@ module ActiveJob
         'queue_name' => queue_name,
         'arguments'  => serialize_arguments(arguments)
       }
+    end
+
+    # Attaches the stored job data to the current instance. Receives a hash
+    # returned from +serialize+
+    #
+    # ==== Examples
+    #
+    #    class DeliverWebhookJob < ActiveJob::Base
+    #      def serialize
+    #        super.merge('attempt_number' => (@attempt_number || 0) + 1)
+    #      end
+    #
+    #      def deserialize(job_data)
+    #        super(job_data)
+    #        @attempt_number = job_data['attempt_number']
+    #      end
+    #
+    #      rescue_from(TimeoutError) do |ex|
+    #        raise ex if @attempt_number > 5
+    #        retry_job(wait: 10)
+    #      end
+    #    end
+    def deserialize(job_data)
+      self.job_id               = job_data['job_id']
+      self.queue_name           = job_data['queue_name']
+      self.serialized_arguments = job_data['arguments']
     end
 
     private
