@@ -86,8 +86,7 @@
     -
       name: Testing Rails Applications
       url: testing.html
-      work_in_progress: true
-      description: This is a rather comprehensive guide to doing both unit and functional tests in Rails. It covers everything from 'What is a test?' to the testing APIs. Enjoy.
+      description: This is a rather comprehensive guide to the various testing facilities in Rails. It covers everything from 'What is a test?' to the testing APIs. Enjoy.
     -
       name: Securing Rails Applications
       url: security.html
