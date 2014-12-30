@@ -99,7 +99,7 @@ module ActiveModel
       #   user.authenticate('notright')      # => false
       #   user.authenticate('mUc3m00RsqyRe') # => user
       def authenticate(unencrypted_password)
-        BCrypt::Password.new(password_digest) == unencrypted_password && self
+        BCrypt::Password.new(password_digest).is_password?(unencrypted_password) && self
       end
 
       attr_reader :password
