@@ -353,9 +353,34 @@ class BaseTest < ActiveSupport::TestCase
       assert_equal("text/plain", email.parts[0].mime_type)
       assert_equal("Implicit with locale PL TEXT", email.parts[0].body.encoded)
       assert_equal("text/html", email.parts[1].mime_type)
-      assert_equal("Implicit with locale HTML", email.parts[1].body.encoded)
+      assert_equal("Implicit with locale EN HTML", email.parts[1].body.encoded)
     end
   end
+
+  test "implicit multipart with fallback locale" do
+    fallback_backend = Class.new(I18n::Backend::Simple) do
+      include I18n::Backend::Fallbacks
+    end
+
+    begin
+      backend = I18n.backend
+      I18n.backend = fallback_backend.new
+      I18n.fallbacks[:"de-AT"] = [:de]
+
+      swap I18n, locale: 'de-AT' do
+        email = BaseMailer.implicit_with_locale
+        assert_equal(2, email.parts.size)
+        assert_equal("multipart/alternative", email.mime_type)
+        assert_equal("text/plain", email.parts[0].mime_type)
+        assert_equal("Implicit with locale DE-AT TEXT", email.parts[0].body.encoded)
+        assert_equal("text/html", email.parts[1].mime_type)
+        assert_equal("Implicit with locale DE HTML", email.parts[1].body.encoded)
+      end
+    ensure
+      I18n.backend = backend
+    end
+  end
+
 
   test "implicit multipart with several view paths uses the first one with template" do
     old = BaseMailer.view_paths

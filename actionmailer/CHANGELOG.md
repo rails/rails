@@ -1,1 +1,24 @@
+* Template lookup now respect default locale and I18n fallbacks.
+
+  Given the following templates:
+
+      mailer/demo.html.erb
+      mailer/demo.en.html.erb
+      mailer/demo.pt.html.erb
+
+  Before this change for a locale that doesn't have its related file the `mailer/demo.html.erb` will
+  be rendered even if `en` is the default locale.
+
+  Now `mailer/demo.en.html.erb` has precedence over the file without locale.
+
+  Also, it is possible to give a fallback.
+
+      mailer/demo.pt.html.erb
+      mailer/demo.pt-BR.html.erb
+
+  So if the locale is `pt-PT`, `mailer/demo.pt.html.erb` will be rendered given the right I18n
+  fallback configuration.
+
+  *Rafael Mendonça França*
+
 Please check [4-2-stable](https://github.com/rails/rails/blob/4-2-stable/actionmailer/CHANGELOG.md) for previous changes.
