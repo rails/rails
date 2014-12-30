@@ -1,3 +1,15 @@
+*   Using `head` method returns empty response_body instead
+    of returning a single space " ".
+
+    The old behavior was added as a workaround for a bug in an early
+    version of Safari, where the HTTP headers are not returned correctly
+    if the response body has a 0-length. This is been fixed since and
+    the workaround is no longer necessary.
+
+    Fixes #18253.
+
+    *Prathamesh Sonpatki*
+
 *   Fix how polymorphic routes works with objects that implement `to_model`.
 
     *Travis Grathwell*
