@@ -778,22 +778,13 @@ Inheriting from `ActionDispatch::IntegrationTest` comes with some advantages. Th
 
 ### Helpers Available for Integration Tests
 
-In addition to the standard testing helpers, there are some additional helpers available to integration tests:
+In addition to the standard testing helpers, inheriting `ActionDispatch::IntegrationTest` comes with some additional helpers available when writing integration tests. Let's briefly introduce you to the three categories of helpers you get to choose from.
 
-| Helper                                                             | Purpose |
-| ------------------------------------------------------------------ | ------- |
-| `https?`                                                           | Returns `true` if the session is mimicking a secure HTTPS request.|
-| `https!`                                                           | Allows you to mimic a secure HTTPS request.|
-| `host!`                                                            | Allows you to set the host name to use in the next request.|
-| `redirect?`                                                        | Returns `true` if the last request was a redirect.|
-| `follow_redirect!`                                                 | Follows a single redirect response.|
-| `request_via_redirect(http_method, path, [parameters], [headers])` | Allows you to make an HTTP request and follow any subsequent redirects.|
-| `post_via_redirect(path, [parameters], [headers])`                 | Allows you to make an HTTP POST request and follow any subsequent redirects.|
-| `get_via_redirect(path, [parameters], [headers])`                  | Allows you to make an HTTP GET request and follow any subsequent redirects.|
-| `patch_via_redirect(path, [parameters], [headers])`                | Allows you to make an HTTP PATCH request and follow any subsequent redirects.|
-| `put_via_redirect(path, [parameters], [headers])`                  | Allows you to make an HTTP PUT request and follow any subsequent redirects.|
-| `delete_via_redirect(path, [parameters], [headers])`               | Allows you to make an HTTP DELETE request and follow any subsequent redirects.|
-| `open_session`                                                     | Opens a new session instance.|
+For dealing with the integration test runner, see [`ActionDispatch::Integration::Runner`](http://api.rubyonrails.org/classes/ActionDispatch/Integration/Runner.html).
+
+When performing requests, you will have [`ActionDispatch::Integration::RequestHelpers`](http://api.rubyonrails.org/classes/ActionDispatch/Integration/RequestHelpers.html) available for your use.
+
+If you'd like to modify the session, or state of your integration test you should look for [`ActionDispatch::Integration::Session`](http://api.rubyonrails.org/classes/ActionDispatch/Integration/Session.html) to help.
 
 Setup and Teardown
 ------------------
