@@ -1,6 +1,7 @@
-*   When table has a composite primary key, the `primary_key` method for
-    sqlite3 and postgresql was only returning the first field of the key.
-    Ensures that it will return nil instead, as AR dont support composite pks.
+*   When a table has a composite primary key, the `primary_key` method for
+    SQLite3 and PostgreSQL adapters was only returning the first field of the key.
+    Ensures that it will return nil instead, as Active Record doesn't support
+    composite primary keys.
 
     Fixes #18070.
 
