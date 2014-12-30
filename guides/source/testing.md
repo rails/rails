@@ -1144,17 +1144,7 @@ no jobs have already been executed in the scope of each test.
 
 ### Custom Assertions And Testing Jobs Inside Other Components
 
-Active Job ships with a bunch of custom assertions that can be used to lessen
-the verbosity of tests:
-
-| Assertion                              | Purpose |
-| -------------------------------------- | ------- |
-| `assert_enqueued_jobs(number)`         | Asserts that the number of enqueued jobs matches the given number. |
-| `assert_performed_jobs(number)`        | Asserts that the number of performed jobs matches the given number. |
-| `assert_no_enqueued_jobs { ... }`      | Asserts that no jobs have been enqueued. |
-| `assert_no_performed_jobs { ... }`     | Asserts that no jobs have been performed. |
-| `assert_enqueued_with([args]) { ... }` | Asserts that the job passed in the block has been enqueued with the given arguments. |
-| `assert_performed_with([args]) { ... }`| Asserts that the job passed in the block has been performed with the given arguments. |
+Active Job ships with a bunch of custom assertions that can be used to lessen the verbosity of tests. For a full list of available assertions, see the API documentation for [`ActiveJob::TestHelper`](http://api.rubyonrails.org/classes/ActiveJob/TestHelper.html).
 
 It's a good practice to ensure that your jobs correctly get enqueued or performed
 wherever you invoke them (e.g. inside your controllers). This is precisely where
