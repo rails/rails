@@ -357,6 +357,14 @@ class BaseTest < ActiveSupport::TestCase
     end
   end
 
+  test "implicit multipart with missing locale and using I18n fallbacks" do
+    I18n::Backend::Simple.send(:include, I18n::Backend::Fallbacks)
+    swap I18n, { locale: :missinglocale, fallbacks: I18n::Locale::Fallbacks.new(missinglocale: :pl) } do
+      email = BaseMailer.implicit_with_locale
+      assert_equal("Implicit with locale PL TEXT", email.parts[0].body.encoded)
+    end
+  end
+
   test "implicit multipart with several view paths uses the first one with template" do
     old = BaseMailer.view_paths
     begin
