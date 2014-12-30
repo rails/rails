@@ -1,3 +1,7 @@
+*   Fix how polymorphic routes works with objects that implement `to_model`.
+
+    *Travis Grathwell*
+
 *   Stop converting empty arrays in `params` to `nil`
 
     This behaviour was introduced in response to CVE-2012-2660, CVE-2012-2694
