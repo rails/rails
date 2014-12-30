@@ -309,7 +309,7 @@ module ActionView
       #   <table>
       #   <% @items.each do |item| %>
       #     <tr class="<%= cycle("odd", "even") -%>">
-      #       <td>item</td>
+      #       <td><%= item %></td>
       #     </tr>
       #   <% end %>
       #   </table>
