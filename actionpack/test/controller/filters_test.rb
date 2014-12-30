@@ -1003,21 +1003,21 @@ class YieldingAroundFiltersTest < ActionController::TestCase
   def test_first_action_in_multiple_before_action_chain_halts
     controller = ::FilterTest::TestMultipleFiltersController.new
     response = test_process(controller, 'fail_1')
-    assert_equal ' ', response.body
+    assert_equal '', response.body
     assert_equal 1, controller.instance_variable_get(:@try)
   end
 
   def test_second_action_in_multiple_before_action_chain_halts
     controller = ::FilterTest::TestMultipleFiltersController.new
     response = test_process(controller, 'fail_2')
-    assert_equal ' ', response.body
+    assert_equal '', response.body
     assert_equal 2, controller.instance_variable_get(:@try)
   end
 
   def test_last_action_in_multiple_before_action_chain_halts
     controller = ::FilterTest::TestMultipleFiltersController.new
     response = test_process(controller, 'fail_3')
-    assert_equal ' ', response.body
+    assert_equal '', response.body
     assert_equal 3, controller.instance_variable_get(:@try)
   end
 
