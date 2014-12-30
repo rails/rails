@@ -447,8 +447,6 @@ Each of these classes include `Minitest::Assertions`, allowing us to use all of 
 
 NOTE: For more information on `Minitest`, refer to [Minitest](http://ruby-doc.org/stdlib-2.1.0/libdoc/minitest/rdoc/MiniTest.html)
 
-There are many benefits to using Minitest, one of them is the addition of setup and teardown methods for all test classes that inherit from the Minitest family.
-
 Functional Tests for Your Controllers
 -------------------------------------
 
