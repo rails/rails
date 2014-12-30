@@ -528,6 +528,19 @@ All of request types have equivalent methods that you can use. In a typical C.R.
 
 NOTE: Functional tests do not verify whether the specified request type is accepted by the action, we're more concerned with the result. Request tests exist for this use case to make your tests more purposeful.
 
+### Testing XHR (AJAX) requests
+
+`xhr` accepts method (listed in the section above), action name and parameters:
+
+```ruby
+test "ajax request responds with no layout" do
+  xhr :get, :show, id: articles(:first).id
+
+  assert_template :index
+  assert_template layout: nil
+end
+```
+
 ### The Four Hashes of the Apocalypse
 
 After a request has been made and processed, you will have 4 Hash objects ready for use:
