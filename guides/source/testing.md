@@ -769,6 +769,23 @@ end
 
 Similar to other callbacks in Rails, the `setup` and `teardown` methods can also be used by passing a block, lambda, or method name as a symbol to call.
 
+Testing Routes
+--------------
+
+Like everything else in your Rails application, it is recommended that you test your routes. Below are example tests for the routes of default `show` and `create` action of `Articles` controller above and it should look like:
+
+```ruby
+class ArticleRoutesTest < ActionController::TestCase
+  test "should route to article" do
+    assert_routing '/articles/1', { controller: "articles", action: "show", id: "1" }
+  end
+
+  test "should route to create article" do
+    assert_routing({ method: 'post', path: '/articles' }, { controller: "articles", action: "create" })
+  end
+end
+```
+
 Testing Views
 -------------
 
@@ -832,6 +849,39 @@ assert_select_email do
   assert_select 'small', 'Please click the "Unsubscribe" link if you want to opt-out.'
 end
 ```
+
+Testing helpers
+---------------
+
+In order to test helpers, all you need to do is check that the output of the
+helper method matches what you'd expect. Tests related to the helpers are
+located under the `test/helpers` directory.
+
+A helper test looks like so:
+
+```ruby
+require 'test_helper'
+
+class UserHelperTest < ActionView::TestCase
+end
+```
+
+A helper is just a simple module where you can define methods which are
+available into your views. To test the output of the helper's methods, you just
+have to use a mixin like this:
+
+```ruby
+class UserHelperTest < ActionView::TestCase
+  include UserHelper
+
+  test "should return the user name" do
+    # ...
+  end
+end
+```
+
+Moreover, since the test class extends from `ActionView::TestCase`, you have
+access to Rails' helper methods such as `link_to` or `pluralize`.
 
 Integration Testing
 -------------------
@@ -945,23 +995,6 @@ Finally we can assert that our response was successful, template was rendered, a
 
 We were able to successfully test a very small workflow for visiting our blog and creating a new article. If we wanted to take this further we could add tests for commenting, removing articles, or editting comments. Integration tests are a great place to experiment with all kinds of use-cases for our applications.
 
-Testing Routes
---------------
-
-Like everything else in your Rails application, it is recommended that you test your routes. Below are example tests for the routes of default `show` and `create` action of `Articles` controller above and it should look like:
-
-```ruby
-class ArticleRoutesTest < ActionController::TestCase
-  test "should route to article" do
-    assert_routing '/articles/1', { controller: "articles", action: "show", id: "1" }
-  end
-
-  test "should route to create article" do
-    assert_routing({ method: 'post', path: '/articles' }, { controller: "articles", action: "create" })
-  end
-end
-```
-
 Testing Your Mailers
 --------------------
 
@@ -1061,39 +1094,6 @@ class UserControllerTest < ActionController::TestCase
   end
 end
 ```
-
-Testing helpers
----------------
-
-In order to test helpers, all you need to do is check that the output of the
-helper method matches what you'd expect. Tests related to the helpers are
-located under the `test/helpers` directory.
-
-A helper test looks like so:
-
-```ruby
-require 'test_helper'
-
-class UserHelperTest < ActionView::TestCase
-end
-```
-
-A helper is just a simple module where you can define methods which are
-available into your views. To test the output of the helper's methods, you just
-have to use a mixin like this:
-
-```ruby
-class UserHelperTest < ActionView::TestCase
-  include UserHelper
-
-  test "should return the user name" do
-    # ...
-  end
-end
-```
-
-Moreover, since the test class extends from `ActionView::TestCase`, you have
-access to Rails' helper methods such as `link_to` or `pluralize`.
 
 Testing Jobs
 ------------
