@@ -566,6 +566,12 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_equal author.post, post
   end
 
+  def test_has_one_loading_for_new_record
+    post = Post.create!(author_id: 42, title: 'foo', body: 'bar')
+    author = Author.new(id: 42)
+    assert author.post
+  end
+
   def test_has_one_relationship_cannot_have_a_counter_cache
     assert_raise(ArgumentError) do
       Class.new(ActiveRecord::Base) do

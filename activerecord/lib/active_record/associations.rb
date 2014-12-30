@@ -116,6 +116,7 @@ module ActiveRecord
     autoload :Association,           'active_record/associations/association'
     autoload :SingularAssociation,   'active_record/associations/singular_association'
     autoload :CollectionAssociation, 'active_record/associations/collection_association'
+    autoload :ForeignAssociation,    'active_record/associations/foreign_association'
     autoload :CollectionProxy,       'active_record/associations/collection_proxy'
 
     autoload :BelongsToAssociation,            'active_record/associations/belongs_to_association'
