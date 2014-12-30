@@ -99,11 +99,11 @@ module ActiveRecord
     end
 
     test '#reorder!' do
-      relation = self.relation.order('foo')
+      order_relation = self.relation.order('foo')
 
-      assert relation.reorder!('bar').equal?(relation)
-      assert_equal ['bar'], relation.order_values
-      assert relation.reordering_value
+      assert order_relation.reorder!('bar').equal?(order_relation)
+      assert_equal ['bar'], order_relation.order_values
+      assert order_relation.reordering_value
     end
 
     test '#reorder! with symbol prepends the table name' do
@@ -116,18 +116,18 @@ module ActiveRecord
     end
 
     test 'reverse_order!' do
-      relation = Post.order('title ASC, comments_count DESC')
+      order_relation = Post.order('title ASC, comments_count DESC')
 
-      relation.reverse_order!
+      order_relation.reverse_order!
 
-      assert_equal 'title DESC', relation.order_values.first
-      assert_equal 'comments_count ASC', relation.order_values.last
+      assert_equal 'title DESC', order_relation.order_values.first
+      assert_equal 'comments_count ASC', order_relation.order_values.last
 
 
-      relation.reverse_order!
+      order_relation.reverse_order!
 
-      assert_equal 'title ASC', relation.order_values.first
-      assert_equal 'comments_count DESC', relation.order_values.last
+      assert_equal 'title ASC', order_relation.order_values.first
+      assert_equal 'comments_count DESC', order_relation.order_values.last
     end
 
     test 'create_with!' do
