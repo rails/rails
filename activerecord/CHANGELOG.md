@@ -1,3 +1,11 @@
+*   When table has a composite primary key, the `primary_key` method for
+    sqlite3 and postgresql was only returning the first field of the key.
+    Ensures that it will return nil instead, as AR dont support composite pks.
+
+    Fixes #18070.
+
+    *arthurnn*
+
 *   `validates_size_of` / `validates_length_of` do not count records,
     which are `marked_for_destruction?`.
 
