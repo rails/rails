@@ -480,6 +480,84 @@ module ActionDispatch
   #         end
   #       end
   #   end
+  #
+  # Another longer example would be:
+  #
+  # A simple integration test that exercises multiple controllers:
+  #
+  #   require 'test_helper'
+  #
+  #   class UserFlowsTest < ActionDispatch::IntegrationTest
+  #     test "login and browse site" do
+  #       # login via https
+  #       https!
+  #       get "/login"
+  #       assert_response :success
+  #
+  #       post_via_redirect "/login", username: users(:david).username, password: users(:david).password
+  #       assert_equal '/welcome', path
+  #       assert_equal 'Welcome david!', flash[:notice]
+  #
+  #       https!(false)
+  #       get "/articles/all"
+  #       assert_response :success
+  #       assert assigns(:articles)
+  #     end
+  #   end
+  #
+  # As you can see the integration test involves multiple controllers and
+  # exercises the entire stack from database to dispatcher. In addition you can
+  # have multiple session instances open simultaneously in a test and extend
+  # those instances with assertion methods to create a very powerful testing
+  # DSL (domain-specific language) just for your application.
+  #
+  # Here's an example of multiple sessions and custom DSL in an integration test
+  #
+  #   require 'test_helper'
+  #
+  #   class UserFlowsTest < ActionDispatch::IntegrationTest
+  #     test "login and browse site" do
+  #       # User david logs in
+  #       david = login(:david)
+  #       # User guest logs in
+  #       guest = login(:guest)
+  #
+  #       # Both are now available in different sessions
+  #       assert_equal 'Welcome david!', david.flash[:notice]
+  #       assert_equal 'Welcome guest!', guest.flash[:notice]
+  #
+  #       # User david can browse site
+  #       david.browses_site
+  #       # User guest can browse site as well
+  #       guest.browses_site
+  #
+  #       # Continue with other assertions
+  #     end
+  #
+  #     private
+  #
+  #       module CustomDsl
+  #         def browses_site
+  #           get "/products/all"
+  #           assert_response :success
+  #           assert assigns(:products)
+  #         end
+  #       end
+  #
+  #       def login(user)
+  #         open_session do |sess|
+  #           sess.extend(CustomDsl)
+  #           u = users(user)
+  #           sess.https!
+  #           sess.post "/login", username: u.username, password: u.password
+  #           assert_equal '/welcome', sess.path
+  #           sess.https!(false)
+  #         end
+  #       end
+  #   end
+  #
+  # Consult the Rails Testing Guide for more.
+
   class IntegrationTest < ActiveSupport::TestCase
     include Integration::Runner
     include ActionController::TemplateAssertions
