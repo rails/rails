@@ -786,6 +786,22 @@ class ArticleRoutesTest < ActionController::TestCase
 end
 ```
 
+I've added this file here `test/controllers/articles_routes_test.rb` and if we run the test we should see:
+
+```bash
+$ be rake test test/controllers/articles_routes_test.rb
+
+# Running:
+
+..
+
+Finished in 0.069381s, 28.8263 runs/s, 86.4790 assertions/s.
+
+2 runs, 6 assertions, 0 failures, 0 errors, 0 skips
+```
+
+For more information on routing assertions available in Rails, see the API documentation for [`ActionDispatch::Assertions::RoutingAssertions`](http://api.rubyonrails.org/classes/ActionDispatch/Assertions/RoutingAssertions.html).
+
 Testing Views
 -------------
 
