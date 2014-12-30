@@ -25,15 +25,17 @@ class Series < ActiveRecord::Base
   self.table_name = 'projects'
 end
 
-class ModelDelegator < ActiveRecord::Base
-  self.table_name = 'projects'
-
+class ModelDelegator
   def to_model
     ModelDelegate.new
   end
 end
 
 class ModelDelegate
+  def persisted?
+    true
+  end
+
   def model_name
     ActiveModel::Name.new(self.class)
   end
@@ -605,10 +607,15 @@ class PolymorphicRoutesTest < ActionController::TestCase
     end
   end
 
-  def test_routing_a_to_model_delegate
+  def test_routing_to_a_model_delegate
     with_test_routes do
-      @delegator.save
       assert_url "http://example.com/model_delegates/overridden", @delegator
+    end
+  end
+
+  def test_nested_routing_to_a_model_delegate
+    with_test_routes do
+      assert_url "http://example.com/foo/model_delegates/overridden", [:foo, @delegator]
     end
   end
 
@@ -645,6 +652,9 @@ class PolymorphicRoutesTest < ActionController::TestCase
         end
         resources :series
         resources :model_delegates
+        namespace :foo do
+          resources :model_delegates
+        end
       end
 
       extend @routes.url_helpers

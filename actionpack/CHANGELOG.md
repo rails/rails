@@ -1,3 +1,7 @@
+*   Fix how polymorphic routes works with objects that implement `to_model`.
+
+    *Travis Grathwell*
+
 *   Fixed handling of positional url helper arguments when `format: false`.
 
     Fixes #17819.
