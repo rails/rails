@@ -72,6 +72,7 @@ class Firm < Company
   # Oracle tests were failing because of that as the second fixture was selected
   has_one :account_using_primary_key, -> { order('id') }, :primary_key => "firm_id", :class_name => "Account"
   has_one :account_using_foreign_and_primary_keys, :foreign_key => "firm_name", :primary_key => "name", :class_name => "Account"
+  has_one :account_with_inexistent_foreign_key, class_name: 'Account', foreign_key: "inexistent"
   has_one :deletable_account, :foreign_key => "firm_id", :class_name => "Account", :dependent => :delete
 
   has_one :account_limit_500_with_hash_conditions, -> { where :credit_limit => 500 }, :foreign_key => "firm_id", :class_name => "Account"

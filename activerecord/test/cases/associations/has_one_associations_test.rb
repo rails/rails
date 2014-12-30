@@ -273,6 +273,14 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_equal account, firm.reload.account
   end
 
+  def test_create_with_inexistent_foreign_key_failing
+    firm = Firm.create(name: 'GlobalMegaCorp')
+
+    assert_raises(ActiveRecord::UnknownAttributeError) do
+      firm.create_account_with_inexistent_foreign_key
+    end
+  end
+
   def test_build
     firm = Firm.new("name" => "GlobalMegaCorp")
     firm.save
