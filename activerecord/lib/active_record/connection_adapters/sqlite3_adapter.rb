@@ -418,10 +418,9 @@ module ActiveRecord
       end
 
       def primary_key(table_name) #:nodoc:
-        column = table_structure(table_name).find { |field|
-          field['pk'] == 1
-        }
-        column && column['name']
+        pks = table_structure(table_name).select { |f| f['pk'] > 0 }
+        return nil unless pks.count == 1
+        pks[0]['name']
       end
 
       def remove_index!(table_name, index_name) #:nodoc:

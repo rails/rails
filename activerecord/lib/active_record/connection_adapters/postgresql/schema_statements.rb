@@ -385,15 +385,15 @@ module ActiveRecord
 
         # Returns just a table's primary key
         def primary_key(table)
-          row = exec_query(<<-end_sql, 'SCHEMA').rows.first
+          pks = exec_query(<<-end_sql, 'SCHEMA').rows
             SELECT attr.attname
             FROM pg_attribute attr
-            INNER JOIN pg_constraint cons ON attr.attrelid = cons.conrelid AND attr.attnum = cons.conkey[1]
+            INNER JOIN pg_constraint cons ON attr.attrelid = cons.conrelid AND attr.attnum = any(cons.conkey)
             WHERE cons.contype = 'p'
               AND cons.conrelid = '#{quote_table_name(table)}'::regclass
           end_sql
-
-          row && row.first
+          return nil unless pks.count == 1
+          pks[0][0]
         end
 
         # Renames a table.

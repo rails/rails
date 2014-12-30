@@ -54,6 +54,12 @@ module ActiveRecord
         end
       end
 
+      def test_composite_primary_key
+        with_example_table 'id serial, number serial, PRIMARY KEY (id, number)' do
+          assert_nil @connection.primary_key('ex')
+        end
+      end
+
       def test_primary_key_raises_error_if_table_not_found
         assert_raises(ActiveRecord::StatementInvalid) do
           @connection.primary_key('unobtainium')

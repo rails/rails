@@ -99,6 +99,12 @@ module ActiveRecord
         end
       end
 
+      def test_composite_primary_key
+        with_example_table '`id` INT(11), `number` INT(11), foo INT(11), PRIMARY KEY (`id`, `number`)' do
+          assert_nil @conn.primary_key('ex')
+        end
+      end
+
       def test_tinyint_integer_typecasting
         with_example_table '`status` TINYINT(4)' do
           insert(@conn, { 'status' => 2 }, 'ex')
