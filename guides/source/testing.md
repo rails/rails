@@ -816,14 +816,6 @@ project is created.
 | `rake test:units`       | Runs all the unit tests from `test/models`, `test/helpers`, and `test/unit` |
 | `rake test:db`          | Runs all tests in the `test` directory and resets the db |
 
-
-A Brief Note About Minitest
------------------------------
-
-Ruby ships with a vast Standard Library for all common use-cases including testing. Since version 1.9, Ruby provides `Minitest`, a framework for testing. All the basic assertions such as `assert_equal` discussed above are actually defined in `Minitest::Assertions`. The classes `ActiveSupport::TestCase`, `ActionController::TestCase`, `ActionMailer::TestCase`, `ActionView::TestCase` and `ActionDispatch::IntegrationTest` - which we have been inheriting in our test classes - include `Minitest::Assertions`, allowing us to use all of the basic assertions in our tests.
-
-NOTE: For more information on `Minitest`, refer to [Minitest](http://ruby-doc.org/stdlib-2.1.0/libdoc/minitest/rdoc/MiniTest.html)
-
 Setup and Teardown
 ------------------
 
