@@ -247,7 +247,7 @@ module ActionDispatch
           args  = []
 
           model = record.to_model
-          name = if record.persisted?
+          name = if model.persisted?
                    args << model
                    model.model_name.singular_route_key
                  else
@@ -290,11 +290,12 @@ module ActionDispatch
           when Class
             @key_strategy.call record.model_name
           else
-            if record.persisted?
-              args << record.to_model
-              record.to_model.model_name.singular_route_key
+            model = record.to_model
+            if model.persisted?
+              args << model
+              model.model_name.singular_route_key
             else
-              @key_strategy.call record.to_model.model_name
+              @key_strategy.call model.model_name
             end
           end
 
