@@ -31,7 +31,7 @@ module ActionController
       }.merge!(super).freeze
 
       if (same_origin = _routes.equal?(request.routes)) ||
-         (script_name = env["ROUTES_#{_routes.object_id}_SCRIPT_NAME"]) ||
+         (script_name = request.engine_script_name(_routes)) ||
          (original_script_name = request.original_script_name)
 
         options = @_url_options.dup

@@ -113,6 +113,10 @@ module ActionDispatch
       env['ORIGINAL_SCRIPT_NAME'.freeze]
     end
 
+    def engine_script_name(_routes) # :nodoc:
+      env["ROUTES_#{_routes.object_id}_SCRIPT_NAME"]
+    end
+
     def request_method=(request_method) #:nodoc:
       if check_method(request_method)
         @request_method = env["REQUEST_METHOD"] = request_method
