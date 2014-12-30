@@ -141,6 +141,27 @@ users(:david).id
 email(david.girlfriend.email, david.location_tonight)
 ```
 
+### Rake Tasks for Running your Tests
+
+Rails comes with a number of built-in rake tasks to help with testing. The
+table below lists the commands included in the default Rakefile when a Rails
+project is created.
+
+| Tasks                   | Description |
+| ----------------------- | ----------- |
+| `rake test`             | Runs all tests in the `test` directory. You can also run `rake` and Rails will run all tests by default |
+| `rake test:controllers` | Runs all the controller tests from `test/controllers` |
+| `rake test:functionals` | Runs all the functional tests from `test/controllers`, `test/mailers`, and `test/functional` |
+| `rake test:helpers`     | Runs all the helper tests from `test/helpers` |
+| `rake test:integration` | Runs all the integration tests from `test/integration` |
+| `rake test:jobs`        | Runs all the job tests from `test/jobs` |
+| `rake test:mailers`     | Runs all the mailer tests from `test/mailers` |
+| `rake test:models`      | Runs all the model tests from `test/models` |
+| `rake test:units`       | Runs all the unit tests from `test/models`, `test/helpers`, and `test/unit` |
+| `rake test:db`          | Runs all tests in the `test` directory and resets the db |
+
+We will cover each of types Rails tests listed above in this guide.
+
 Unit Testing your Models
 ------------------------
 
@@ -775,27 +796,6 @@ In addition to the standard testing helpers, there are some additional helpers a
 | `put_via_redirect(path, [parameters], [headers])`                  | Allows you to make an HTTP PUT request and follow any subsequent redirects.|
 | `delete_via_redirect(path, [parameters], [headers])`               | Allows you to make an HTTP DELETE request and follow any subsequent redirects.|
 | `open_session`                                                     | Opens a new session instance.|
-
-
-Rake Tasks for Running your Tests
----------------------------------
-
-Rails comes with a number of built-in rake tasks to help with testing. The
-table below lists the commands included in the default Rakefile when a Rails
-project is created.
-
-| Tasks                   | Description |
-| ----------------------- | ----------- |
-| `rake test`             | Runs all tests in the `test` directory. You can also run `rake` and Rails will run all tests by default |
-| `rake test:controllers` | Runs all the controller tests from `test/controllers` |
-| `rake test:functionals` | Runs all the functional tests from `test/controllers`, `test/mailers`, and `test/functional` |
-| `rake test:helpers`     | Runs all the helper tests from `test/helpers` |
-| `rake test:integration` | Runs all the integration tests from `test/integration` |
-| `rake test:jobs`        | Runs all the job tests from `test/jobs` |
-| `rake test:mailers`     | Runs all the mailer tests from `test/mailers` |
-| `rake test:models`      | Runs all the model tests from `test/models` |
-| `rake test:units`       | Runs all the unit tests from `test/models`, `test/helpers`, and `test/unit` |
-| `rake test:db`          | Runs all tests in the `test` directory and resets the db |
 
 Setup and Teardown
 ------------------
