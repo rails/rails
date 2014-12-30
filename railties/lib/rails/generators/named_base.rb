@@ -145,7 +145,7 @@ module Rails
           @route_url ||= class_path.collect {|dname| "/" + dname }.join + "/" + plural_file_name
         end
 
-        # Tries to retrieve the application name or simple return application.
+        # Tries to retrieve the application name or simply return application.
         def application_name
           if defined?(Rails) && Rails.application
             Rails.application.class.name.split('::').first.underscore
