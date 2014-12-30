@@ -112,11 +112,6 @@
       url: working_with_javascript_in_rails.html
       description: This guide covers the built-in Ajax/JavaScript functionality of Rails.
     -
-      name: Getting Started with Engines
-      url: engines.html
-      description: This guide explains how to write a mountable engine.
-      work_in_progress: true
-    -
       name: The Rails Initialization Process
       work_in_progress: true
       url: initialization.html
@@ -146,6 +141,11 @@
       name: Creating and Customizing Rails Generators
       url: generators.html
       description: This guide covers the process of adding a brand new generator to your extension or providing an alternative to an element of a built-in Rails generator (such as providing alternative test stubs for the scaffold generator).
+    -
+      name: Getting Started with Engines
+      url: engines.html
+      description: This guide explains how to write a mountable engine.
+      work_in_progress: true
 -
   name: Contributing to Ruby on Rails
   documents:
