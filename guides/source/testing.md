@@ -686,7 +686,91 @@ Finished in 0.081972s, 12.1993 runs/s, 48.7972 assertions/s.
 1 runs, 4 assertions, 0 failures, 0 errors, 0 skips
 ```
 
-### Testing Views
+### Putting it together
+
+At this point our Articles controller tests the `:index` as well as `:new` and `:create` actions. What about dealing with existing data?
+
+Let's write a test for the `:show` action:
+
+```ruby
+test "should show article" do
+  article = articles(:one)
+  get :show, id: article.id
+  assert_response :success
+end
+```
+
+Remember from our discussion earlier on fixtures the `articles()` method will give us access to our Articles fixtures.
+
+How about deleting an existing Article?
+
+```ruby
+test "should destroy article" do
+  article = articles(:one)
+  assert_difference('Article.count', -1) do
+    delete :destroy, id: article.id
+  end
+
+  assert_redirected_to articles_path
+end
+```
+
+We can also add a test for updating an existing Article.
+
+```ruby
+test "should update article" do
+  article = articles(:one)
+  patch :update, id: article.id, article: {title: "updated"}
+  assert_redirected_to article_path(assigns(:article))
+end
+```
+
+Notice we're starting to see some duplication in these three tests, they both access the same Article fixture data. We can D.R.Y. this up by using the `setup` and `teardown` methods provided by `ActiveSupport::Callbacks`.
+
+Our test should now look something like this, disregard the other tests we're leaving them out for brevity.
+
+```ruby
+require 'test_helper'
+
+class ArticlesControllerTest < ActionController::TestCase
+  # called before every single test
+  def setup
+    @article = articles(:one)
+  end
+
+  # called after every single test
+  def teardown
+    # as we are re-initializing @article before every test
+    # setting it to nil here is not essential but I hope
+    # you understand how you can use the teardown method
+    @article = nil
+  end
+
+  test "should show article" do
+    # Reuse the @article instance variable from setup
+    get :show, id: @article.id
+    assert_response :success
+  end
+
+  test "should destroy article" do
+    assert_difference('Article.count', -1) do
+      delete :destroy, id: @article.id
+    end
+
+    assert_redirected_to articles_path
+  end
+
+  test "should update article" do
+    patch :update, id: @article.id, article: {title: "updated"}
+    assert_redirected_to article_path(assigns(:article))
+  end
+end
+```
+
+Similar to other callbacks in Rails, the `setup` and `teardown` methods can also be used by passing a block, lambda, or method name as a symbol to call.
+
+Testing Views
+-------------
 
 Testing the response to your request by asserting the presence of key HTML elements and their content is a common way to test the views of your application. The `assert_select` method allows you to query HTML elements of the response by using a simple yet powerful syntax.
 
@@ -860,93 +944,6 @@ Finally we can assert that our response was successful, template was rendered, a
 #### Taking it further
 
 We were able to successfully test a very small workflow for visiting our blog and creating a new article. If we wanted to take this further we could add tests for commenting, removing articles, or editting comments. Integration tests are a great place to experiment with all kinds of use-cases for our applications.
-
-Setup and Teardown
-------------------
-
-If you would like to run a block of code before the start of each test and another block of code after the end of each test you have two special callbacks for your rescue. Let's take note of this by looking at an example for our functional test in `Articles` controller:
-
-```ruby
-require 'test_helper'
-
-class ArticlesControllerTest < ActionController::TestCase
-
-  # called before every single test
-  def setup
-    @article = articles(:one)
-  end
-
-  # called after every single test
-  def teardown
-    # as we are re-initializing @article before every test
-    # setting it to nil here is not essential but I hope
-    # you understand how you can use the teardown method
-    @article = nil
-  end
-
-  test "should show article" do
-    get :show, id: @article.id
-    assert_response :success
-  end
-
-  test "should destroy article" do
-    assert_difference('Article.count', -1) do
-      delete :destroy, id: @article.id
-    end
-
-    assert_redirected_to articles_path
-  end
-
-end
-```
-
-Above, the `setup` method is called before each test and so `@article` is available for each of the tests. Rails implements `setup` and `teardown` as `ActiveSupport::Callbacks`. Which essentially means you need not only use `setup` and `teardown` as methods in your tests. You could specify them by using:
-
-* a block
-* a method (like in the earlier example)
-* a method name as a symbol
-* a lambda
-
-Let's see the earlier example by specifying `setup` callback by specifying a method name as a symbol:
-
-```ruby
-require 'test_helper'
-
-class ArticlesControllerTest < ActionController::TestCase
-
-  # called before every single test
-  setup :initialize_article
-
-  # called after every single test
-  def teardown
-    @article = nil
-  end
-
-  test "should show article" do
-    get :show, id: @article.id
-    assert_response :success
-  end
-
-  test "should update article" do
-    patch :update, id: @article.id, article: {}
-    assert_redirected_to article_path(assigns(:article))
-  end
-
-  test "should destroy article" do
-    assert_difference('Article.count', -1) do
-      delete :destroy, id: @article.id
-    end
-
-    assert_redirected_to articles_path
-  end
-
-  private
-
-    def initialize_article
-      @article = articles(:one)
-    end
-end
-```
 
 Testing Routes
 --------------
