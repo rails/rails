@@ -31,6 +31,8 @@ require 'models/student'
 require 'models/pirate'
 require 'models/ship'
 require 'models/tyre'
+require 'models/subscriber'
+require 'models/subscription'
 
 class HasManyAssociationsTestForReorderWithJoinDependency < ActiveRecord::TestCase
   fixtures :authors, :posts, :comments
@@ -43,12 +45,59 @@ class HasManyAssociationsTestForReorderWithJoinDependency < ActiveRecord::TestCa
   end
 end
 
+class HasManyAssociationsTestPrimaryKeys < ActiveRecord::TestCase
+  fixtures :authors, :essays, :subscribers, :subscriptions, :people
+
+  def test_custom_primary_key_on_new_record_should_fetch_with_query
+    subscriber = Subscriber.new(nick: 'webster132')
+    assert !subscriber.subscriptions.loaded?
+
+    assert_queries 1 do
+      assert_equal 2, subscriber.subscriptions.size
+    end
+
+    assert_equal subscriber.subscriptions, Subscription.where(subscriber_id: 'webster132')
+  end
+
+  def test_association_primary_key_on_new_record_should_fetch_with_query
+    author = Author.new(:name => "David")
+    assert !author.essays.loaded?
+
+    assert_queries 1 do
+      assert_equal 1, author.essays.size
+    end
+
+    assert_equal author.essays, Essay.where(writer_id: "David")
+  end
+
+  def test_has_many_custom_primary_key
+    david = authors(:david)
+    assert_equal david.essays, Essay.where(writer_id: "David")
+  end
+
+  def test_has_many_assignment_with_custom_primary_key
+    david = people(:david)
+
+    assert_equal ["A Modest Proposal"], david.essays.map(&:name)
+    david.essays = [Essay.create!(name: "Remote Work" )]
+    assert_equal ["Remote Work"], david.essays.map(&:name)
+  end
+
+  def test_blank_custom_primary_key_on_new_record_should_not_run_queries
+    author = Author.new
+    assert !author.essays.loaded?
+
+    assert_queries 0 do
+      assert_equal 0, author.essays.size
+    end
+  end
+end
 
 class HasManyAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :categories, :companies, :developers, :projects,
            :developers_projects, :topics, :authors, :comments,
-           :people, :posts, :readers, :taggings, :cars, :essays,
-           :categorizations, :jobs, :tags
+           :posts, :readers, :taggings, :cars, :jobs, :tags,
+           :categorizations
 
   def setup
     Client.destroyed_client_ids.clear
@@ -1575,39 +1624,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
       firm.clients.first
       firm.clients.second
       firm.clients.last
-    end
-  end
-
-  def test_custom_primary_key_on_new_record_should_fetch_with_query
-    author = Author.new(:name => "David")
-    assert !author.essays.loaded?
-
-    assert_queries 1 do
-      assert_equal 1, author.essays.size
-    end
-
-    assert_equal author.essays, Essay.where(writer_id: "David")
-  end
-
-  def test_has_many_custom_primary_key
-    david = authors(:david)
-    assert_equal david.essays, Essay.where(writer_id: "David")
-  end
-
-  def test_has_many_assignment_with_custom_primary_key
-    david = people(:david)
-
-    assert_equal ["A Modest Proposal"], david.essays.map(&:name)
-    david.essays = [Essay.create!(name: "Remote Work" )]
-    assert_equal ["Remote Work"], david.essays.map(&:name)
-  end
-
-  def test_blank_custom_primary_key_on_new_record_should_not_run_queries
-    author = Author.new
-    assert !author.essays.loaded?
-
-    assert_queries 0 do
-      assert_equal 0, author.essays.size
     end
   end
 
