@@ -217,8 +217,8 @@ backends you need to specify the queues to listen to.
 Callbacks
 ---------
 
-Active Job provides hooks during the lifecycle of a job. Callbacks allow you to
-trigger logic during the lifecycle of a job.
+Active Job provides hooks during the life cycle of a job. Callbacks allow you to
+trigger logic during the life cycle of a job.
 
 ### Available callbacks
 
