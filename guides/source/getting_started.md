@@ -1539,6 +1539,7 @@ class CreateComments < ActiveRecord::Migration
 
       t.timestamps null: false
     end
+    add_foreign_key :comments, :articles
   end
 end
 ```
@@ -1558,6 +1559,8 @@ run against the current database, so in this case you will just see:
 ==  CreateComments: migrating =================================================
 -- create_table(:comments)
    -> 0.0115s
+-- add_foreign_key(:comments, :articles)
+   -> 0.0000s
 ==  CreateComments: migrated (0.0119s) ========================================
 ```
 
