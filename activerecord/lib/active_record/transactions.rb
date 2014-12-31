@@ -277,7 +277,7 @@ module ActiveRecord
       self.class.transaction(options, &block)
     end
 
-    def destroy #:nodoc:
+    def destroy(*) #:nodoc:
       with_transaction_returning_status { super }
     end
 

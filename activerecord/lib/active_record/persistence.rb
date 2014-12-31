@@ -175,8 +175,8 @@ module ActiveRecord
     # the <tt>before_destroy</tt> callback return +false+ the action is cancelled
     # and <tt>destroy</tt> returns +false+. See
     # ActiveRecord::Callbacks for further details.
-    def destroy
-      raise ReadOnlyRecord, "#{self.class} is marked as readonly" if readonly?
+    def destroy(*args)
+      _check_readonly(*args)
       destroy_associations
       destroy_row if persisted?
       @destroyed = true
@@ -190,8 +190,8 @@ module ActiveRecord
     # the <tt>before_destroy</tt> callback return +false+ the action is cancelled
     # and <tt>destroy!</tt> raises ActiveRecord::RecordNotDestroyed. See
     # ActiveRecord::Callbacks for further details.
-    def destroy!
-      destroy || raise(ActiveRecord::RecordNotDestroyed, self)
+    def destroy!(*args)
+      destroy(*args) || raise(ActiveRecord::RecordNotDestroyed, self)
     end
 
     # Returns an instance of the specified +klass+ with the attributes of the
@@ -507,7 +507,7 @@ module ActiveRecord
     end
 
     def create_or_update(*args)
-      raise ReadOnlyRecord, "#{self.class} is marked as readonly" if readonly?
+      _check_readonly(*args)
       result = new_record? ? _create_record : _update_record(*args)
       result != false
     end
@@ -537,6 +537,13 @@ module ActiveRecord
 
     def verify_readonly_attribute(name)
       raise ActiveRecordError, "#{name} is marked as readonly" if self.class.readonly_attributes.include?(name)
+    end
+
+    # Raise ReadOnlyRecord if this record is marked as readonly
+    def _check_readonly *args
+      return unless readonly?
+      return if args.first.present? && args.first[:check_readonly] == false
+      raise ReadOnlyRecord, "#{self.class} is marked as readonly"
     end
   end
 end
