@@ -789,7 +789,7 @@ end
 I've added this file here `test/controllers/articles_routes_test.rb` and if we run the test we should see:
 
 ```bash
-$ be rake test test/controllers/articles_routes_test.rb
+$ bin/rake test test/controllers/articles_routes_test.rb
 
 # Running:
 
