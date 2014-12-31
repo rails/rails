@@ -173,6 +173,7 @@ module ActionController
     def status
       @_status
     end
+    alias :response_code :status # :nodoc:
 
     def status=(status)
       @_status = Rack::Utils.status_code(status)
@@ -235,10 +236,6 @@ module ActionController
       else
         lambda { |env| new.dispatch(name, klass.new(env)) }
       end
-    end
-
-    def _status_code #:nodoc:
-      @_status
     end
   end
 end

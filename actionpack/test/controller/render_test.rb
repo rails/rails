@@ -217,6 +217,15 @@ class TestController < ActionController::Base
     head :forbidden, :x_custom_header => "something"
   end
 
+  def head_with_no_content
+    # Fill in the headers with dummy data to make
+    # sure they get removed during the testing
+    response.headers["Content-Type"] = "dummy"
+    response.headers["Content-Length"] = 42
+
+    head 204
+  end
+
   private
 
     def set_variable_for_layout
@@ -543,6 +552,14 @@ class HeadRenderTest < ActionController::TestCase
       get :head_with_integer_status, :status => code.to_s
       assert_equal message, @response.message
     end
+  end
+
+  def test_head_with_no_content
+    get :head_with_no_content
+
+    assert_equal 204, @response.status
+    assert_nil @response.headers["Content-Type"]
+    assert_nil @response.headers["Content-Length"]
   end
 
   def test_head_with_string_status
