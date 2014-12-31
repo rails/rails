@@ -1,3 +1,7 @@
+*   Correctly rely on the response's status code to handle calls to `head`.
+
+    *Robin Dupret*
+
 *   Using `head` method returns empty response_body instead
     of returning a single space " ".
 
