@@ -125,6 +125,12 @@
       work_in_progress: true
       url: active_support_instrumentation.html
       description: This guide explains how to use the instrumentation API inside of Active Support to measure events inside of Rails and other Ruby code.
+    -
+      name: Profiling Rails Applications
+      work_in_progress: true
+      url: profiling.html
+      description: This guide explains how to profile your Rails applications to improve performance.
+
 -
   name: Extending Rails
   documents:
