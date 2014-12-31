@@ -1,3 +1,5 @@
+require 'active_support/core_ext/hash/keys'
+
 module ActiveJob
   # Provides helper methods for testing Active Job
   module TestHelper
