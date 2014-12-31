@@ -14,6 +14,11 @@ module ActiveJob
       attr_accessor(:perform_enqueued_jobs, :perform_enqueued_at_jobs)
       attr_writer(:enqueued_jobs, :performed_jobs)
 
+      def initialize
+        self.perform_enqueued_jobs = false
+        self.perform_enqueued_at_jobs = false
+      end
+
       # Provides a store of all the enqueued jobs with the TestAdapter so you can check them.
       def enqueued_jobs
         @enqueued_jobs ||= []
@@ -26,19 +31,19 @@ module ActiveJob
 
       def enqueue(job) #:nodoc:
         if perform_enqueued_jobs
-          performed_jobs << {job: job.class, args: job.arguments, queue: job.queue_name}
-          job.perform_now
+          performed_jobs << {job: job.class, args: job.serialize['arguments'], queue: job.queue_name}
+          Base.execute job.serialize
         else
-          enqueued_jobs << {job: job.class, args: job.arguments, queue: job.queue_name}
+          enqueued_jobs << {job: job.class, args: job.serialize['arguments'], queue: job.queue_name}
         end
       end
 
       def enqueue_at(job, timestamp) #:nodoc:
         if perform_enqueued_at_jobs
-          performed_jobs << {job: job.class, args: job.arguments, queue: job.queue_name, at: timestamp}
-          job.perform_now
+          performed_jobs << {job: job.class, args: job.serialize['arguments'], queue: job.queue_name, at: timestamp}
+          Base.execute job.serialize
         else
-          enqueued_jobs << {job: job.class, args: job.arguments, queue: job.queue_name, at: timestamp}
+          enqueued_jobs << {job: job.class, args: job.serialize['arguments'], queue: job.queue_name, at: timestamp}
         end
       end
     end

@@ -2,7 +2,7 @@ require 'active_job/queue_adapters/inline_adapter'
 require 'active_support/core_ext/string/inflections'
 
 module ActiveJob
-  # The <tt>ActionJob::QueueAdapter</tt> module is used to load the 
+  # The <tt>ActionJob::QueueAdapter</tt> module is used to load the
   # correct adapter. The default queue adapter is the :inline queue.
   module QueueAdapter #:nodoc:
     extend ActiveSupport::Concern
@@ -21,8 +21,8 @@ module ActiveJob
             ActiveJob::QueueAdapters::TestAdapter.new
           when Symbol, String
             load_adapter(name_or_adapter)
-          when Class
-            name_or_adapter
+          else
+            name_or_adapter if name_or_adapter.respond_to?(:enqueue)
           end
       end
 
