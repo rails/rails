@@ -80,8 +80,8 @@ module ActiveRecord
         bind_value scope, column, value, connection
       end
 
-      def last_chain_scope(scope, table, reflection, owner, connection, assoc_klass)
-        join_keys = reflection.join_keys(assoc_klass)
+      def last_chain_scope(scope, table, reflection, owner, connection, association_klass)
+        join_keys = reflection.join_keys(association_klass)
         key = join_keys.key
         foreign_key = join_keys.foreign_key
 
@@ -97,8 +97,8 @@ module ActiveRecord
         end
       end
 
-      def next_chain_scope(scope, table, reflection, connection, assoc_klass, foreign_table, next_reflection)
-        join_keys = reflection.join_keys(assoc_klass)
+      def next_chain_scope(scope, table, reflection, connection, association_klass, foreign_table, next_reflection)
+        join_keys = reflection.join_keys(association_klass)
         key = join_keys.key
         foreign_key = join_keys.foreign_key
 
@@ -113,7 +113,7 @@ module ActiveRecord
         scope = scope.joins(join(foreign_table, constraint))
       end
 
-      class ReflectionProxy < SimpleDelegator
+      class ReflectionProxy < SimpleDelegator # :nodoc:
         attr_accessor :next
         attr_reader :alias_name
 
@@ -125,23 +125,23 @@ module ActiveRecord
         def all_includes; nil; end
       end
 
-      def get_chain(refl, association, tracker)
-        name = refl.name
-        runtime_reflection = ActiveRecord::Reflection::RuntimeReflection.new(refl, association)
-        prev = runtime_reflection
-        refl.chain.drop(1).each { |reflection|
-          alias_name = tracker.aliased_table_for(reflection.table_name, reflection.alias_candidate(name))
-          proxy = ReflectionProxy.new(reflection, alias_name)
-          prev.next = proxy
-          prev = proxy
-        }
-        [runtime_reflection, prev]
+      def get_chain(reflection, association, tracker)
+        name = reflection.name
+        runtime_reflection = Reflection::RuntimeReflection.new(reflection, association)
+        previous_reflection = runtime_reflection
+        reflection.chain.drop(1).each do |refl|
+          alias_name = tracker.aliased_table_for(refl.table_name, refl.alias_candidate(name))
+          proxy = ReflectionProxy.new(refl, alias_name)
+          previous_reflection.next = proxy
+          previous_reflection = proxy
+        end
+        [runtime_reflection, previous_reflection]
       end
 
-      def add_constraints(scope, owner, assoc_klass, refl, connection, chain_head, chain_tail)
+      def add_constraints(scope, owner, association_klass, refl, connection, chain_head, chain_tail)
         owner_reflection = chain_tail
         table = owner_reflection.alias_name
-        scope = last_chain_scope(scope, table, owner_reflection, owner, connection, assoc_klass)
+        scope = last_chain_scope(scope, table, owner_reflection, owner, connection, association_klass)
 
         reflection = chain_head
         loop do
@@ -151,7 +151,7 @@ module ActiveRecord
           unless reflection == chain_tail
             next_reflection = reflection.next
             foreign_table = next_reflection.alias_name
-            scope = next_chain_scope(scope, table, reflection, connection, assoc_klass, foreign_table, next_reflection)
+            scope = next_chain_scope(scope, table, reflection, connection, association_klass, foreign_table, next_reflection)
           end
 
           # Exclude the scope of the association itself, because that
@@ -171,6 +171,7 @@ module ActiveRecord
             scope.bind_values  += item.bind_values
             scope.order_values |= item.order_values
           end
+
           reflection = reflection.next
         end
 

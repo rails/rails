@@ -149,7 +149,7 @@ module ActiveRecord
 
       JoinKeys = Struct.new(:key, :foreign_key) # :nodoc:
 
-      def join_keys(assoc_klass)
+      def join_keys(association_klass)
         JoinKeys.new(foreign_key, active_record_primary_key)
       end
 
@@ -610,8 +610,8 @@ module ActiveRecord
 
       def belongs_to?; true; end
 
-      def join_keys(assoc_klass)
-        key = polymorphic? ? association_primary_key(assoc_klass) : association_primary_key
+      def join_keys(association_klass)
+        key = polymorphic? ? association_primary_key(association_klass) : association_primary_key
         JoinKeys.new(key, foreign_key)
       end
 
@@ -706,7 +706,7 @@ module ActiveRecord
       def chain
         @chain ||= begin
           a = source_reflection.chain
-          b = through_reflection.chain.map(&:dup)
+          b = through_reflection.chain
 
           if options[:source_type]
             b[0] = PolymorphicReflection.new(b[0], self)
@@ -759,8 +759,8 @@ module ActiveRecord
         end
       end
 
-      def join_keys(assoc_klass)
-        source_reflection.join_keys(assoc_klass)
+      def join_keys(association_klass)
+        source_reflection.join_keys(association_klass)
       end
 
       # The macro used by the source association
@@ -898,10 +898,10 @@ module ActiveRecord
 
     end
 
-    class PolymorphicReflection < ThroughReflection
-      def initialize(reflection, prev_reflection)
+    class PolymorphicReflection < ThroughReflection # :nodoc:
+      def initialize(reflection, previous_reflection)
         @reflection = reflection
-        @prev_reflection = prev_reflection
+        @previous_reflection = previous_reflection
       end
 
       def klass
@@ -920,8 +920,8 @@ module ActiveRecord
         @reflection.plural_name
       end
 
-      def join_keys(assoc_klass)
-        @reflection.join_keys(assoc_klass)
+      def join_keys(association_klass)
+        @reflection.join_keys(association_klass)
       end
 
       def type
@@ -933,13 +933,13 @@ module ActiveRecord
       end
 
       def source_type_info
-        type = @prev_reflection.foreign_type
-        source_type = @prev_reflection.options[:source_type]
+        type = @previous_reflection.foreign_type
+        source_type = @previous_reflection.options[:source_type]
         lambda { |object| where(type => source_type) }
       end
     end
 
-    class RuntimeReflection < PolymorphicReflection
+    class RuntimeReflection < PolymorphicReflection # :nodoc:
       attr_accessor :next
 
       def initialize(reflection, association)
