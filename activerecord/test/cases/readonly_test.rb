@@ -32,6 +32,28 @@ class ReadOnlyTest < ActiveRecord::TestCase
 
     e = assert_raise(ActiveRecord::ReadOnlyRecord) { dev.destroy }
     assert_equal "Developer is marked as readonly", e.message
+
+    e = assert_raise(ActiveRecord::ReadOnlyRecord) { dev.destroy! }
+    assert_equal "Developer is marked as readonly", e.message
+  end
+
+  def test_can_disable_readonly_check
+    dev = Developer.find(1)
+    assert !dev.readonly?
+
+    dev.readonly!
+    assert dev.readonly?
+
+    assert_nothing_raised do
+      dev.name = 'Luscious forbidden fruit.'
+      assert !dev.save
+      dev.name = 'Forbidden.'
+
+      assert dev.save(check_readonly: false)
+      assert dev.save!(check_readonly: false)
+      assert dev.destroy(check_readonly: false)
+      assert dev.destroy!(check_readonly: false)
+    end
   end
 
 
