@@ -586,9 +586,8 @@ module ActiveRecord
       #   rename_index :people, 'index_people_on_last_name', 'index_users_on_last_name'
       #
       def rename_index(table_name, old_name, new_name)
-        if new_name.length > allowed_index_name_length
-          raise ArgumentError, "Index name '#{new_name}' on table '#{table_name}' is too long; the limit is #{allowed_index_name_length} characters"
-        end
+        validate_index_length!(table_name, new_name)
+
         # this is a naive implementation; some DBs may support this more efficiently (Postgres, for instance)
         old_index_def = indexes(table_name).detect { |i| i.name == old_name }
         return unless old_index_def
@@ -993,6 +992,12 @@ module ActiveRecord
       def foreign_key_name(table_name, options) # :nodoc:
         options.fetch(:name) do
           "fk_rails_#{SecureRandom.hex(5)}"
+        end
+      end
+
+      def validate_index_length!(table_name, new_name)
+        if new_name.length > allowed_index_name_length
+          raise ArgumentError, "Index name '#{new_name}' on table '#{table_name}' is too long; the limit is #{allowed_index_name_length} characters"
         end
       end
     end
