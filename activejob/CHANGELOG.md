@@ -1,6 +1,6 @@
 * `ActiveJob::Base.deserialize` delegates to the job class
 
-  Since `ActiveJob::Base#deserialize` can be overriden by subclasses (like `ActiveJob::Base#serialize`)
+  Since `ActiveJob::Base#deserialize` can be overridden by subclasses (like `ActiveJob::Base#serialize`)
   this allows jobs to attach arbitrary metadata when they get serialized and read it back when they get
   performed. E.g.
 
