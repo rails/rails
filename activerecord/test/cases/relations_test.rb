@@ -300,6 +300,17 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal entrants(:third).name, entrants.first.name
   end
 
+  def test_finding_last_with_arel_preorder
+    topics = Topic.preorder(Topic.arel_table[:id].asc)
+    assert_equal topics(:fifth).title, topics.last.title
+  end
+
+  def test_finding_with_preorder_concatenated
+    topics = Topic.order('author_name').preorder('title')
+    assert_equal 5, topics.to_a.size
+    assert_equal topics(:fifth).title, topics.first.title
+  end
+
   def test_finding_with_group
     developers = Developer.group("salary").select("salary").to_a
     assert_equal 4, developers.size
@@ -465,6 +476,7 @@ class RelationTest < ActiveRecord::TestCase
     assert_raises(ArgumentError) { Topic.preload() }
     assert_raises(ArgumentError) { Topic.group() }
     assert_raises(ArgumentError) { Topic.reorder() }
+    assert_raises(ArgumentError) { Topic.preorder() }
   end
 
   def test_blank_like_arguments_to_query_methods_dont_raise_errors
@@ -473,6 +485,7 @@ class RelationTest < ActiveRecord::TestCase
     assert_nothing_raised { Topic.preload([]) }
     assert_nothing_raised { Topic.group([]) }
     assert_nothing_raised { Topic.reorder([]) }
+    assert_nothing_raised { Topic.preorder([]) }
   end
 
   def test_scoped_responds_to_delegated_methods
