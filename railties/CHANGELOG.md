@@ -1,3 +1,7 @@
+*   Add `--skip-action-mailer` option to the app generator.
+
+    *claudiob*
+
 *   Autoload any second level directories called `app/*/concerns`.
 
     *Alex Robbin*
