@@ -78,12 +78,12 @@ module ActiveJob
     #      end
     #
     #      def deserialize(job_data)
-    #        super(job_data)
+    #        super
     #        @attempt_number = job_data['attempt_number']
     #      end
     #
-    #      rescue_from(TimeoutError) do |ex|
-    #        raise ex if @attempt_number > 5
+    #      rescue_from(TimeoutError) do |exception|
+    #        raise exception if @attempt_number > 5
     #        retry_job(wait: 10)
     #      end
     #    end
