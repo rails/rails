@@ -492,6 +492,8 @@ module ActiveRecord
 
       def rename_index(table_name, old_name, new_name)
         if supports_rename_index?
+          validate_index_length!(table_name, new_name)
+
           execute "ALTER TABLE #{quote_table_name(table_name)} RENAME INDEX #{quote_table_name(old_name)} TO #{quote_table_name(new_name)}"
         else
           super
