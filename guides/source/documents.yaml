@@ -182,6 +182,10 @@
       url: upgrading_ruby_on_rails.html
       description: This guide helps in upgrading applications to latest Ruby on Rails versions.
     -
+      name: Ruby on Rails 5.0 Release Notes
+      url: 5.0_release_notes.html
+      description: Release notes for Rails 5.0.
+    -
       name: Ruby on Rails 4.2 Release Notes
       url: 4_2_release_notes.html
       description: Release notes for Rails 4.2.
