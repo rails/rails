@@ -103,10 +103,14 @@ module ActiveRecord
 
     class WithCastValue < Attribute # :nodoc:
       def type_cast(value)
-        value
+        type.type_cast_from_user(value)
       end
 
       def changed_in_place_from?(old_value)
+        false
+      end
+
+      def changed_from?(old_value)
         false
       end
     end

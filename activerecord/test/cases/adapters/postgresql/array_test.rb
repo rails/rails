@@ -77,6 +77,18 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
     assert column.array
   end
 
+  def test_update_columns_should_use_connection_adapter_type_cast_from_user
+    @connection.execute "insert into pg_arrays (tags) VALUES ('{1,2,3}')"
+    x = PgArray.first
+    x.update_columns(tags: '{1,2,3,4}')
+    assert_equal ['1','2','3','4'], x.tags
+    assert_equal ['1','2','3','4'], x.reload.tags
+
+    x.update_columns(tags: ['1'])
+    assert_equal ['1'], x.tags
+    assert_equal ['1'], x.reload.tags
+  end
+
   def test_change_column_cant_make_non_array_column_to_array
     @connection.add_column :pg_arrays, :a_string, :string
     assert_raises ActiveRecord::StatementInvalid do
