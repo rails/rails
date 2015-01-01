@@ -577,23 +577,12 @@ module ActiveRecord
           rename.each { |a| column_mappings[a.last] = a.first }
           from_columns = columns(from).collect(&:name)
           columns = columns.find_all{|col| from_columns.include?(column_mappings[col])}
+          from_columns_to_copy = columns.map { |col| column_mappings[col] }
           quoted_columns = columns.map { |col| quote_column_name(col) } * ','
+          quoted_from_columns = from_columns_to_copy.map { |col| quote_column_name(col) } * ','
 
-          quoted_to = quote_table_name(to)
-
-          raw_column_mappings = Hash[columns(from).map { |c| [c.name, c] }]
-
-          exec_query("SELECT * FROM #{quote_table_name(from)}").each do |row|
-            sql = "INSERT INTO #{quoted_to} (#{quoted_columns}) VALUES ("
-
-            column_values = columns.map do |col|
-              quote(row[column_mappings[col]], raw_column_mappings[col])
-            end
-
-            sql << column_values * ', '
-            sql << ')'
-            exec_query sql
-          end
+          exec_query("INSERT INTO #{quote_table_name(to)} (#{quoted_columns})
+                     SELECT #{quoted_from_columns} FROM #{quote_table_name(from)}")
         end
 
         def sqlite_version
