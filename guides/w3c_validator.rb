@@ -90,7 +90,6 @@ module RailsGuides
         puts "\nHere are the detailed errors for each guide:" + error_detail
       end
     end
-
   end
 end
 
