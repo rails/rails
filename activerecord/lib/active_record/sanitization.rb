@@ -107,7 +107,8 @@ sanitize_sql_hash_for_conditions is deprecated, and will be removed in Rails 5.0
       def sanitize_sql_hash_for_assignment(attrs, table)
         c = connection
         attrs.map do |attr, value|
-          "#{c.quote_table_name_for_assignment(table, attr)} = #{quote_bound_value(value, c, columns_hash[attr.to_s])}"
+          value = type_for_attribute(attr.to_s).type_cast_for_database(value)
+          "#{c.quote_table_name_for_assignment(table, attr)} = #{c.quote(value)}"
         end.join(', ')
       end
 
@@ -163,10 +164,8 @@ sanitize_sql_hash_for_conditions is deprecated, and will be removed in Rails 5.0
         end
       end
 
-      def quote_bound_value(value, c = connection, column = nil) #:nodoc:
-        if column
-          c.quote(value, column)
-        elsif value.respond_to?(:map) && !value.acts_like?(:string)
+      def quote_bound_value(value, c = connection) #:nodoc:
+        if value.respond_to?(:map) && !value.acts_like?(:string)
           if value.respond_to?(:empty?) && value.empty?
             c.quote(nil)
           else
