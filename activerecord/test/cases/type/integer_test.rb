@@ -41,6 +41,12 @@ module ActiveRecord
         assert_nil type.type_cast_from_user(1.0/0.0)
       end
 
+      test "casting booleans for database" do
+        type = Type::Integer.new
+        assert_equal 1, type.type_cast_for_database(true)
+        assert_equal 0, type.type_cast_for_database(false)
+      end
+
       test "changed?" do
         type = Type::Integer.new
 

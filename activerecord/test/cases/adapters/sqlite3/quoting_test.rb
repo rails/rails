@@ -15,10 +15,9 @@ module ActiveRecord
 
         def test_type_cast_binary_encoding_without_logger
           @conn.extend(Module.new { def logger; end })
-          column = Column.new(nil, nil, Type::String.new)
           binary = SecureRandom.hex
           expected = binary.dup.encode!(Encoding::UTF_8)
-          assert_equal expected, @conn.type_cast(binary, column)
+          assert_equal expected, @conn.type_cast(binary)
         end
 
         def test_type_cast_symbol
@@ -47,31 +46,11 @@ module ActiveRecord
         end
 
         def test_type_cast_true
-          c = Column.new(nil, 1, Type::Integer.new)
           assert_equal 't', @conn.type_cast(true, nil)
-          assert_equal 1, @conn.type_cast(true, c)
         end
 
         def test_type_cast_false
-          c = Column.new(nil, 1, Type::Integer.new)
           assert_equal 'f', @conn.type_cast(false, nil)
-          assert_equal 0, @conn.type_cast(false, c)
-        end
-
-        def test_type_cast_string
-          assert_equal '10', @conn.type_cast('10', nil)
-
-          c = Column.new(nil, 1, Type::Integer.new)
-          assert_equal 10, @conn.type_cast('10', c)
-
-          c = Column.new(nil, 1, Type::Float.new)
-          assert_equal 10.1, @conn.type_cast('10.1', c)
-
-          c = Column.new(nil, 1, Type::Binary.new)
-          assert_equal '10.1', @conn.type_cast('10.1', c)
-
-          c = Column.new(nil, 1, Type::Date.new)
-          assert_equal '10.1', @conn.type_cast('10.1', c)
         end
 
         def test_type_cast_bigdecimal
