@@ -1,3 +1,8 @@
+*   Ensure that `update_columns` cast the values using the connection adapter's
+    `type_cast_from_user` method.
+
+    *James R. Bracy*
+
 *   Fix error message when trying to create an associated record and the foreign
     key is missing.
 
