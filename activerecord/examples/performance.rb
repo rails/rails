@@ -12,7 +12,7 @@ ActiveRecord::Base.establish_connection(conn)
 class User < ActiveRecord::Base
   connection.create_table :users, force: true do |t|
     t.string :name, :email
-    t.timestamps
+    t.timestamps null: false
   end
 
   has_many :exhibits
@@ -23,7 +23,7 @@ class Exhibit < ActiveRecord::Base
     t.belongs_to :user
     t.string :name
     t.text :notes
-    t.timestamps
+    t.timestamps null: false
   end
 
   belongs_to :user
