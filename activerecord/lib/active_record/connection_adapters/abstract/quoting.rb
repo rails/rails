@@ -19,7 +19,7 @@ module ActiveRecord
       # Cast a +value+ to a type that the database understands. For example,
       # SQLite does not understand dates, so this method will convert a Date
       # to a String.
-      def type_cast(value, column)
+      def type_cast(value, column = nil)
         if value.respond_to?(:quoted_id) && value.respond_to?(:id)
           return value.id
         end
