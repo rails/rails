@@ -99,9 +99,9 @@ module ActiveRecord
 
           def quote_default_expression(value, column)
             column.sql_type ||= type_to_sql(column.type, column.limit, column.precision, column.scale)
-            column.cast_type ||= type_for_column(column)
+            value = type_for_column(column).type_cast_for_database(value)
 
-            @conn.quote(value, column)
+            @conn.quote(value)
           end
 
           def options_include_default?(options)
