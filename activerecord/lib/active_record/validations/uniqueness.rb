@@ -59,7 +59,8 @@ module ActiveRecord
         end
 
         column = klass.columns_hash[attribute_name]
-        value  = klass.connection.type_cast(value, column)
+        value = klass.type_for_attribute(attribute_name).type_cast_for_database(value)
+        value = klass.connection.type_cast(value)
         if value.is_a?(String) && column.limit
           value = value.to_s[0, column.limit]
         end
