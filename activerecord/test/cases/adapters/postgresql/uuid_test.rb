@@ -51,7 +51,7 @@ class PostgresqlUUIDTest < ActiveRecord::TestCase
     assert_equal "uuid", column.sql_type
     assert_not column.number?
     assert_not column.binary?
-    assert_not column.array
+    assert_not column.array?
   end
 
   def test_treat_blank_uuid_as_nil

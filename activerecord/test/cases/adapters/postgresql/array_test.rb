@@ -35,13 +35,13 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
   def test_column
     assert_equal :string, @column.type
     assert_equal "character varying", @column.sql_type
-    assert @column.array
+    assert @column.array?
     assert_not @column.number?
     assert_not @column.binary?
 
     ratings_column = PgArray.columns_hash['ratings']
     assert_equal :integer, ratings_column.type
-    assert ratings_column.array
+    assert ratings_column.array?
     assert_not ratings_column.number?
   end
 
@@ -74,7 +74,7 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
 
     assert_equal :text, column.type
     assert_equal [], PgArray.column_defaults['snippets']
-    assert column.array
+    assert column.array?
   end
 
   def test_change_column_cant_make_non_array_column_to_array

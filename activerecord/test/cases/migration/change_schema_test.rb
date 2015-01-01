@@ -82,7 +82,7 @@ module ActiveRecord
           columns = connection.columns(:testings)
           array_column = columns.detect { |c| c.name == "foo" }
 
-          assert array_column.array
+          assert array_column.array?
         end
 
         def test_create_table_with_array_column
@@ -93,7 +93,7 @@ module ActiveRecord
           columns = connection.columns(:testings)
           array_column = columns.detect { |c| c.name == "foo" }
 
-          assert array_column.array
+          assert array_column.array?
         end
       end
 

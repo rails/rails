@@ -31,7 +31,7 @@ class PostgresqlDomainTest < ActiveRecord::TestCase
     assert_equal "custom_money", column.sql_type
     assert column.number?
     assert_not column.binary?
-    assert_not column.array
+    assert_not column.array?
   end
 
   def test_domain_acts_like_basetype

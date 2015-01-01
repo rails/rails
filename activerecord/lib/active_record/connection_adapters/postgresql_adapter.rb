@@ -144,7 +144,7 @@ module ActiveRecord
       # AbstractAdapter
       def prepare_column_options(column) # :nodoc:
         spec = super
-        spec[:array] = 'true' if column.respond_to?(:array) && column.array
+        spec[:array] = 'true' if column.array?
         spec[:default] = "\"#{column.default_function}\"" if column.default_function
         spec
       end
