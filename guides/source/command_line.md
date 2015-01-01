@@ -63,7 +63,7 @@ With no further work, `rails server` will run our new shiny Rails app:
 $ cd commandsapp
 $ bin/rails server
 => Booting WEBrick
-=> Rails 4.2.0 application starting in development on http://localhost:3000
+=> Rails 5.0.0 application starting in development on http://localhost:3000
 => Call with -d to detach
 => Ctrl-C to shutdown server
 [2013-08-07 02:00:01] INFO  WEBrick 1.3.1
@@ -286,7 +286,7 @@ If you wish to test out some code without changing any data, you can do that by 
 
 ```bash
 $ bin/rails console --sandbox
-Loading development environment in sandbox (Rails 4.2.0)
+Loading development environment in sandbox (Rails 5.0.0)
 Any modifications you make will be rolled back on exit
 irb(main):001:0>
 ```
@@ -395,10 +395,10 @@ INFO: You can also use `rake -T`  to get the list of tasks.
 ```bash
 $ bin/rake about
 About your application's environment
-Rails version             4.2.0
-Ruby version              1.9.3 (x86_64-linux)
-RubyGems version          1.3.6
-Rack version              1.3
+Rails version             5.0.0
+Ruby version              2.2.0 (x86_64-linux)
+RubyGems version          2.4.5
+Rack version              1.6
 JavaScript Runtime        Node.js (V8)
 Middleware                Rack::Sendfile, ActionDispatch::Static, Rack::Lock, #<ActiveSupport::Cache::Strategy::LocalCache::Middleware:0x007ffd131a7c88>, Rack::Runtime, Rack::MethodOverride, ActionDispatch::RequestId, Rails::Rack::Logger, ActionDispatch::ShowExceptions, ActionDispatch::DebugExceptions, ActionDispatch::RemoteIp, ActionDispatch::Reloader, ActionDispatch::Callbacks, ActiveRecord::Migration::CheckPending, ActiveRecord::ConnectionAdapters::ConnectionManagement, ActiveRecord::QueryCache, ActionDispatch::Cookies, ActionDispatch::Session::CookieStore, ActionDispatch::Flash, ActionDispatch::ParamsParser, Rack::Head, Rack::ConditionalGet, Rack::ETag
 Application root          /home/foobar/commandsapp

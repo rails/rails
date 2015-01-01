@@ -20,9 +20,10 @@ The best way to be sure that your application still works after upgrading is to 
 
 Rails generally stays close to the latest released Ruby version when it's released:
 
-* Rails 3 and above require Ruby 1.8.7 or higher. Support for all of the previous Ruby versions has been dropped officially. You should upgrade as early as possible.
-* Rails 3.2.x is the last branch to support Ruby 1.8.7.
+* Rails 5 requires Ruby 2.2 or newer.
 * Rails 4 prefers Ruby 2.0 and requires 1.9.3 or newer.
+* Rails 3.2.x is the last branch to support Ruby 1.8.7.
+* Rails 3 and above require Ruby 1.8.7 or higher. Support for all of the previous Ruby versions has been dropped officially. You should upgrade as early as possible.
 
 TIP: Ruby 1.8.7 p248 and p249 have marshaling bugs that crash Rails. Ruby Enterprise Edition has these fixed since the release of 1.8.7-2010.02. On the 1.9 front, Ruby 1.9.1 is not usable because it outright segfaults, so if you want to use 1.9.x, jump straight to 1.9.3 for smooth sailing.
 
@@ -48,6 +49,9 @@ Overwrite /myapp/config/application.rb? (enter "h" for help) [Ynaqdh]
 ```
 
 Don't forget to review the difference, to see if there were any unexpected changes.
+
+Upgrading from Rails 4.2 to Rails 5.0
+-------------------------------------
 
 Upgrading from Rails 4.1 to Rails 4.2
 -------------------------------------
