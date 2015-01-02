@@ -149,7 +149,7 @@ module ActiveRecord
 
       JoinKeys = Struct.new(:key, :foreign_key) # :nodoc:
 
-      def join_keys(assoc_klass)
+      def join_keys(association_klass)
         JoinKeys.new(foreign_key, active_record_primary_key)
       end
 
@@ -161,7 +161,16 @@ module ActiveRecord
 
         macro
       end
+
+      def constraints
+        scope_chain.flatten
+      end
+
+      def alias_candidate(name)
+        "#{plural_name}_#{name}"
+      end
     end
+
     # Base class for AggregateReflection and AssociationReflection. Objects of
     # AggregateReflection and AssociationReflection are returned by the Reflection::ClassMethods.
     #
@@ -601,8 +610,8 @@ module ActiveRecord
 
       def belongs_to?; true; end
 
-      def join_keys(assoc_klass)
-        key = polymorphic? ? association_primary_key(assoc_klass) : association_primary_key
+      def join_keys(association_klass)
+        key = polymorphic? ? association_primary_key(association_klass) : association_primary_key
         JoinKeys.new(key, foreign_key)
       end
 
@@ -698,6 +707,11 @@ module ActiveRecord
         @chain ||= begin
           a = source_reflection.chain
           b = through_reflection.chain
+
+          if options[:source_type]
+            b[0] = PolymorphicReflection.new(b[0], self)
+          end
+
           chain = a + b
           chain[0] = self # Use self so we don't lose the information from :source_type
           chain
@@ -745,8 +759,8 @@ module ActiveRecord
         end
       end
 
-      def join_keys(assoc_klass)
-        source_reflection.join_keys(assoc_klass)
+      def join_keys(association_klass)
+        source_reflection.join_keys(association_klass)
       end
 
       # The macro used by the source association
@@ -855,6 +869,12 @@ module ActiveRecord
         check_validity_of_inverse!
       end
 
+      def constraints
+        scope_chain = source_reflection.constraints
+        scope_chain << scope if scope
+        scope_chain
+      end
+
       protected
 
         def actual_source_reflection # FIXME: this is a horrible name
@@ -876,6 +896,82 @@ module ActiveRecord
 
         delegate(*delegate_methods, to: :delegate_reflection)
 
+    end
+
+    class PolymorphicReflection < ThroughReflection # :nodoc:
+      def initialize(reflection, previous_reflection)
+        @reflection = reflection
+        @previous_reflection = previous_reflection
+      end
+
+      def klass
+        @reflection.klass
+      end
+
+      def scope
+        @reflection.scope
+      end
+
+      def table_name
+        @reflection.table_name
+      end
+
+      def plural_name
+        @reflection.plural_name
+      end
+
+      def join_keys(association_klass)
+        @reflection.join_keys(association_klass)
+      end
+
+      def type
+        @reflection.type
+      end
+
+      def constraints
+        [source_type_info]
+      end
+
+      def source_type_info
+        type = @previous_reflection.foreign_type
+        source_type = @previous_reflection.options[:source_type]
+        lambda { |object| where(type => source_type) }
+      end
+    end
+
+    class RuntimeReflection < PolymorphicReflection # :nodoc:
+      attr_accessor :next
+
+      def initialize(reflection, association)
+        @reflection = reflection
+        @association = association
+      end
+
+      def klass
+        @association.klass
+      end
+
+      def table_name
+        klass.table_name
+      end
+
+      def constraints
+        @reflection.constraints
+      end
+
+      def source_type_info
+        @reflection.source_type_info
+      end
+
+      def alias_candidate(name)
+        "#{plural_name}_#{name}_join"
+      end
+
+      def alias_name
+        Arel::Table.new(table_name)
+      end
+
+      def all_includes; yield; end
     end
   end
 end
