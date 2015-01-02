@@ -1,3 +1,9 @@
+*   Fixed setting of foreign_key for through associations while building of new record.
+
+    Fixes #12698.
+
+    *Ivan Antropov*
+
 *   Improve a dump of the primary key support. If it is not a default primary key,
     correctly dump the type and options.
 

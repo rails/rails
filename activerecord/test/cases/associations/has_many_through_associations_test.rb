@@ -25,12 +25,13 @@ require 'models/categorization'
 require 'models/member'
 require 'models/membership'
 require 'models/club'
+require 'models/organization'
 
 class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   fixtures :posts, :readers, :people, :comments, :authors, :categories, :taggings, :tags,
            :owners, :pets, :toys, :jobs, :references, :companies, :members, :author_addresses,
            :subscribers, :books, :subscriptions, :developers, :categorizations, :essays,
-           :categories_posts, :clubs, :memberships
+           :categories_posts, :clubs, :memberships, :organizations
 
   # Dummies to force column loads so query counts are clean.
   def setup
@@ -1150,5 +1151,13 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
     club.members << member
     assert_equal 1, SuperMembership.where(member_id: member.id, club_id: club.id).count
+  end
+
+  def test_build_for_has_many_through_association
+    organization = organizations(:nsa)
+    author = organization.author
+    post_direct = author.posts.build
+    post_through = organization.posts.build
+    assert_equal post_direct.author_id, post_through.author_id
   end
 end

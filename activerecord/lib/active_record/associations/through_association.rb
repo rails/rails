@@ -91,6 +91,17 @@ module ActiveRecord
             raise HasManyThroughNestedAssociationsAreReadonly.new(owner, reflection)
           end
         end
+
+        def build_record(attributes)
+          inverse = source_reflection.inverse_of
+          target = through_association.target
+
+          if inverse && target && !target.is_a?(Array)
+            attributes[inverse.foreign_key] = target.id
+          end
+
+          super(attributes)
+        end
     end
   end
 end
