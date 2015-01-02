@@ -38,12 +38,8 @@ module ActiveRecord
         end
 
         def visit_ChangeColumnDefinition(o)
-          column = o.column
-          options = o.options
-          sql_type = type_to_sql(o.type, options[:limit], options[:precision], options[:scale])
-          change_column_sql = "CHANGE #{quote_column_name(column.name)} #{quote_column_name(options[:name])} #{sql_type}"
-          add_column_options!(change_column_sql, options.merge(column: column))
-          add_column_position!(change_column_sql, options)
+          change_column_sql = "CHANGE #{quote_column_name(o.name)} #{accept(o.column)}"
+          add_column_position!(change_column_sql, column_options(o.column))
         end
 
         def add_column_position!(sql, options)
@@ -768,7 +764,7 @@ module ActiveRecord
       end
 
       def add_column_sql(table_name, column_name, type, options = {})
-        td = create_table_definition table_name, options[:temporary], options[:options]
+        td = create_table_definition(table_name)
         cd = td.new_column_definition(column_name, type, options)
         schema_creation.visit_AddColumn cd
       end
@@ -784,21 +780,23 @@ module ActiveRecord
           options[:null] = column.null
         end
 
-        options[:name] = column.name
-        schema_creation.accept ChangeColumnDefinition.new column, type, options
+        td = create_table_definition(table_name)
+        cd = td.new_column_definition(column.name, type, options)
+        schema_creation.accept(ChangeColumnDefinition.new(cd, column.name))
       end
 
       def rename_column_sql(table_name, column_name, new_column_name)
         column  = column_for(table_name, column_name)
         options = {
-          name: new_column_name,
           default: column.default,
           null: column.null,
           auto_increment: column.extra == "auto_increment"
         }
 
         current_type = select_one("SHOW COLUMNS FROM #{quote_table_name(table_name)} LIKE '#{column_name}'", 'SCHEMA')["Type"]
-        schema_creation.accept ChangeColumnDefinition.new column, current_type, options
+        td = create_table_definition(table_name)
+        cd = td.new_column_definition(new_column_name, current_type, options)
+        schema_creation.accept(ChangeColumnDefinition.new(cd, column.name))
       end
 
       def remove_column_sql(table_name, column_name, type = nil, options = {})
@@ -892,7 +890,7 @@ module ActiveRecord
         end
       end
 
-      def create_table_definition(name, temporary, options, as = nil) # :nodoc:
+      def create_table_definition(name, temporary = false, options = nil, as = nil) # :nodoc:
         TableDefinition.new(native_database_types, name, temporary, options, as)
       end
 

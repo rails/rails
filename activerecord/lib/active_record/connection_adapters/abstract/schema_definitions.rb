@@ -22,7 +22,7 @@ module ActiveRecord
       end
     end
 
-    class ChangeColumnDefinition < Struct.new(:column, :type, :options) #:nodoc:
+    class ChangeColumnDefinition < Struct.new(:column, :name) #:nodoc:
     end
 
     class ForeignKeyDefinition < Struct.new(:from_table, :to_table, :options) #:nodoc:
