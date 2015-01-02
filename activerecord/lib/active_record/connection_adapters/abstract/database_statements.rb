@@ -258,7 +258,18 @@ module ActiveRecord
 
       # Rolls back the transaction (and turns on auto-committing). Must be
       # done if the transaction block raises an exception or returns false.
-      def rollback_db_transaction() end
+      def rollback_db_transaction
+        exec_rollback_db_transaction
+      end
+
+      def exec_rollback_db_transaction() end #:nodoc:
+
+      def rollback_to_savepoint(name = nil)
+        exec_rollback_to_savepoint(name)
+      end
+
+      def exec_rollback_to_savepoint(name = nil) #:nodoc:
+      end
 
       def default_sequence_name(table, column)
         nil

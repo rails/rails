@@ -352,9 +352,6 @@ module ActiveRecord
       def create_savepoint(name = nil)
       end
 
-      def rollback_to_savepoint(name = nil)
-      end
-
       def release_savepoint(name = nil)
       end
 

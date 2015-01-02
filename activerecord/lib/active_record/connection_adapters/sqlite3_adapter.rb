@@ -351,7 +351,7 @@ module ActiveRecord
         log('commit transaction',nil) { @connection.commit }
       end
 
-      def rollback_db_transaction #:nodoc:
+      def exec_rollback_db_transaction #:nodoc:
         log('rollback transaction',nil) { @connection.rollback }
       end
 
