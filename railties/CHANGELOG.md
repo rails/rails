@@ -1,3 +1,7 @@
+*   Fix scaffold generator with `--helper=false` option.
+
+    *Rafael Mendonça França*
+
 *   Deprecate `config.serve_static_assets` in favor of `config.serve_static_files`
     to clarify that the option is unrelated to the asset pipeline.
 
