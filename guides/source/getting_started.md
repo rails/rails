@@ -2039,9 +2039,6 @@ What's Next?
 Now that you've seen your first Rails application, you should feel free to
 update it and experiment on your own.
 
-We recommend next that you read [A Guide to Testing Rails Applications](testing.html),
-for a deep dive into Rails testing facilities and approaches.
-
 Remember you don't have to do everything without help. As you need assistance
 getting up and running with Rails, feel free to consult these support
 resources:
