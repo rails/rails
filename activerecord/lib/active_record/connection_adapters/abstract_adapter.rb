@@ -457,7 +457,12 @@ module ActiveRecord
       end
 
       def translate_exception_class(e, sql)
-        message = "#{e.class.name}: #{e.message}: #{sql}"
+        begin
+          message = "#{e.class.name}: #{e.message}: #{sql}"
+        rescue Encoding::CompatibilityError
+          message = "#{e.class.name}: #{e.message.force_encoding sql.encoding}: #{sql}"
+        end
+
         @logger.error message if @logger
         exception = translate_exception(e, message)
         exception.set_backtrace e.backtrace
