@@ -43,7 +43,9 @@ module ActiveSupport
       end
 
       def current_tags
-        Thread.current[:activesupport_tagged_logging_tags] ||= []
+        # We use our object ID here to void conflicting with other instances
+        thread_key = @thread_key ||= "activesupport_tagged_logging_tags:#{object_id}".freeze
+        Thread.current[thread_key] ||= []
       end
 
       private
