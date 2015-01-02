@@ -259,14 +259,14 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
   def test_scaffold_generator_no_helper_with_switch_no_helper
     output = run_generator [ "posts", "--no-helper" ]
 
-    assert_no_match /error/, output
+    assert_no_match(/error/, output)
     assert_no_file "app/helpers/posts_helper.rb"
   end
 
   def test_scaffold_generator_no_helper_with_switch_helper_false
     output = run_generator [ "posts", "--helper=false" ]
 
-    assert_no_match /error/, output
+    assert_no_match(/error/, output)
     assert_no_file "app/helpers/posts_helper.rb"
   end
 
