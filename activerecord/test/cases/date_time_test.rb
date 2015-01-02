@@ -50,4 +50,12 @@ class DateTimeTest < ActiveRecord::TestCase
     topic.bonus_time = ''
     assert_nil topic.bonus_time
   end
+
+  def test_assign_in_local_timezone
+    now = DateTime.now
+    with_timezone_config default: :local do
+      task = Task.new starting: now
+      assert now, task.starting
+    end
+  end
 end
