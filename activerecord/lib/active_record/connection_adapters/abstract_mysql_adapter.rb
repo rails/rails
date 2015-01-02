@@ -324,7 +324,7 @@ module ActiveRecord
         execute "COMMIT"
       end
 
-      def rollback_db_transaction #:nodoc:
+      def exec_rollback_db_transaction #:nodoc:
         execute "ROLLBACK"
       end
 
