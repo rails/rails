@@ -850,3 +850,27 @@ class IntegrationWithRoutingTest < ActionDispatch::IntegrationTest
     end
   end
 end
+
+# to work in contexts like rspec before(:all)
+class IntegrationRequestsWithoutSetup < ActionDispatch::IntegrationTest
+  self._setup_callbacks = []
+  self._teardown_callbacks = []
+
+  class FooController < ActionController::Base
+    def ok
+      cookies[:key] = 'ok'
+      render plain: 'ok'
+    end
+  end
+
+  def test_request
+    with_routing do |routes|
+      routes.draw { get ':action' => FooController }
+      get '/ok'
+
+      assert_response 200
+      assert_equal 'ok', response.body
+      assert_equal 'ok', cookies['key']
+    end
+  end
+end
