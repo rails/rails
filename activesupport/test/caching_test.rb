@@ -1047,30 +1047,4 @@ class CacheEntryTest < ActiveSupport::TestCase
     assert_equal value, entry.value
     assert_equal value.bytesize, entry.size
   end
-
-  def test_restoring_version_4beta1_entries
-    version_4beta1_entry = ActiveSupport::Cache::Entry.allocate
-    version_4beta1_entry.instance_variable_set(:@v, "hello")
-    version_4beta1_entry.instance_variable_set(:@x, Time.now.to_i + 60)
-    entry = Marshal.load(Marshal.dump(version_4beta1_entry))
-    assert_equal "hello", entry.value
-    assert_equal false, entry.expired?
-  end
-
-  def test_restoring_compressed_version_4beta1_entries
-    version_4beta1_entry = ActiveSupport::Cache::Entry.allocate
-    version_4beta1_entry.instance_variable_set(:@v, Zlib::Deflate.deflate(Marshal.dump("hello")))
-    version_4beta1_entry.instance_variable_set(:@c, true)
-    entry = Marshal.load(Marshal.dump(version_4beta1_entry))
-    assert_equal "hello", entry.value
-  end
-
-  def test_restoring_expired_version_4beta1_entries
-    version_4beta1_entry = ActiveSupport::Cache::Entry.allocate
-    version_4beta1_entry.instance_variable_set(:@v, "hello")
-    version_4beta1_entry.instance_variable_set(:@x, Time.now.to_i - 1)
-    entry = Marshal.load(Marshal.dump(version_4beta1_entry))
-    assert_equal true, entry.expired?
-    assert_equal "hello", entry.value
-  end
 end

@@ -615,14 +615,12 @@ module ActiveSupport
       end
 
       def value
-        convert_version_4beta1_entry! if defined?(@v)
         compressed? ? uncompress(@value) : @value
       end
 
       # Check if the entry is expired. The +expires_in+ parameter can override
       # the value set when the entry was created.
       def expired?
-        convert_version_4beta1_entry! if defined?(@v)
         @expires_in && @created_at + @expires_in <= Time.now.to_f
       end
 
@@ -658,8 +656,6 @@ module ActiveSupport
       # Duplicate the value in a class. This is used by cache implementations that don't natively
       # serialize entries to protect against accidental cache modifications.
       def dup_value!
-        convert_version_4beta1_entry! if defined?(@v)
-
         if @value && !compressed? && !(@value.is_a?(Numeric) || @value == true || @value == false)
           if @value.is_a?(String)
             @value = @value.dup
@@ -691,26 +687,6 @@ module ActiveSupport
 
         def uncompress(value)
           Marshal.load(Zlib::Inflate.inflate(value))
-        end
-
-        # The internals of this method changed between Rails 3.x and 4.0. This method provides the glue
-        # to ensure that cache entries created under the old version still work with the new class definition.
-        def convert_version_4beta1_entry!
-          if defined?(@v)
-            @value = @v
-            remove_instance_variable(:@v)
-          end
-
-          if defined?(@c)
-            @compressed = @c
-            remove_instance_variable(:@c)
-          end
-
-          if defined?(@x) && @x
-            @created_at ||= Time.now.to_f
-            @expires_in = @x - @created_at
-            remove_instance_variable(:@x)
-          end
         end
     end
   end
