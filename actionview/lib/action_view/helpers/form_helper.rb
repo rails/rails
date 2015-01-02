@@ -857,20 +857,21 @@ module ActionView
       #
       # ==== Gotcha
       #
-      # The HTML specification says when nothing is select on a file field web browsers do not send any value to server.
-      # Unfortunately this introduces a gotcha:
-      # if an +User+ model has a +avatar+ field, and in the form none file is selected no +avatar+ parameter is sent. So,
-      # any mass-assignment idiom like
+      # The HTML specification says that when a file field is empty, web browsers
+      # do not send any value to the server. Unfortunately this introduces a
+      # gotcha: if a +User+ model has an +avatar+ field, and no file is selected,
+      # then the +avatar+ parameter is empty. Thus, any mass-assignment idiom like
       #
       #   @user.update(params[:user])
       #
-      # wouldn't update avatar.
+      # wouldn't update the +avatar+ field.
       #
-      # To prevent this the helper generates an auxiliary hidden field before
-      # every file field. The hidden field has the same name as file field and blank value.
+      # To prevent this, the helper generates an auxiliary hidden field before
+      # every file field. The hidden field has the same name as the file one and
+      # a blank value.
       #
-      # In case if you don't want the helper to generate this hidden field you can specify
-      # <tt>include_hidden: false</tt> option.
+      # In case you don't want the helper to generate this hidden field you can
+      # specify the <tt>include_hidden: false</tt> option.
       def file_field(object_name, method, options = {})
         Tags::FileField.new(object_name, method, self, options).render
       end
