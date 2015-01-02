@@ -1,3 +1,8 @@
+*   Fix scaffold generator with `--helper=false` option.
+
+    *Rafael Mendonça França*
+
+
 ## Rails 4.1.8 (November 16, 2014) ##
 
 *   `secret_token` is now saved in `Rails.application.secrets.secret_token`
