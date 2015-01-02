@@ -981,12 +981,12 @@ module ActiveRecord
         end
 
       private
-      def create_table_definition(name, temporary, options, as = nil)
+      def create_table_definition(name, temporary = false, options = nil, as = nil)
         TableDefinition.new native_database_types, name, temporary, options, as
       end
 
       def create_alter_table(name)
-        AlterTable.new create_table_definition(name, false, {})
+        AlterTable.new create_table_definition(name)
       end
 
       def foreign_key_name(table_name, options) # :nodoc:
