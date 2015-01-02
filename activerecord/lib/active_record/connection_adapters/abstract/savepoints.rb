@@ -9,7 +9,7 @@ module ActiveRecord
         execute("SAVEPOINT #{name}")
       end
 
-      def rollback_to_savepoint(name = current_savepoint_name)
+      def exec_rollback_to_savepoint(name = current_savepoint_name)
         execute("ROLLBACK TO SAVEPOINT #{name}")
       end
 

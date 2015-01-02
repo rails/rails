@@ -208,7 +208,7 @@ module ActiveRecord
         end
 
         # Aborts a transaction.
-        def rollback_db_transaction
+        def exec_rollback_db_transaction
           execute "ROLLBACK"
         end
       end
