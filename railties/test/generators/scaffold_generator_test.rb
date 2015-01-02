@@ -267,7 +267,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     output = run_generator [ "posts", "--helper=false" ]
 
     assert_no_match /error/, output
-    assert_no_file "app/helpers/post_helper.rb"
+    assert_no_file "app/helpers/posts_helper.rb"
   end
 
   def test_scaffold_generator_no_stylesheets
