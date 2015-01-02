@@ -575,7 +575,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_one_loading_for_new_record
-    post = Post.create!(author_id: 42, title: 'foo', body: 'bar')
+    Post.create!(author_id: 42, title: 'foo', body: 'bar')
     author = Author.new(id: 42)
     assert author.post
   end
