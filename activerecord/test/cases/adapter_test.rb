@@ -213,6 +213,14 @@ module ActiveRecord
     test "type_to_sql returns a String for unmapped types" do
       assert_equal "special_db_type", @connection.type_to_sql(:special_db_type)
     end
+
+    def test_log_invalid_encoding
+      assert_raise ActiveRecord::StatementInvalid do
+        @connection.send :log, "SELECT 'ы' FROM DUAL" do
+          raise 'ы'.force_encoding(Encoding::ASCII_8BIT)
+        end
+      end
+    end
   end
 
   class AdapterTestWithoutTransaction < ActiveRecord::TestCase
