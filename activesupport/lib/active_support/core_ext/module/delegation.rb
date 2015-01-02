@@ -160,12 +160,11 @@ class Module
       raise ArgumentError, 'Can only automatically set the delegation prefix when delegating to a method.'
     end
 
-    method_prefix = \
-      if prefix
-        "#{prefix == true ? to : prefix}_"
-      else
-        ''
-      end
+    method_prefix = if prefix
+                      "#{prefix == true ? to : prefix}_"
+                    else
+                      ''
+                    end
 
     file, line = caller.first.split(':', 2)
     line = line.to_i
