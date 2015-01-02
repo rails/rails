@@ -149,8 +149,8 @@ class Module
   # The target method must be public, otherwise it will raise +NoMethodError+.
   #
   def delegate(*methods)
-    options = methods.pop
-    unless options.is_a?(Hash) && to = options[:to]
+    options = methods.extract_options!
+    unless to = options[:to]
       raise ArgumentError, 'Delegation needs a target. Supply an options hash with a :to key as the last argument (e.g. delegate :hello, to: :greeter).'
     end
 
