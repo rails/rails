@@ -145,6 +145,12 @@ class TranslationHelperTest < ActiveSupport::TestCase
     assert_equal true, translation.html_safe?
   end
 
+  def test_translate_with_last_default_not_named_html
+    translation = translate(:'translations.missing', :default => [:'translations.missing_html', :'translations.foo'])
+    assert_equal 'Foo', translation
+    assert_equal false, translation.html_safe?
+  end
+
   def test_translate_with_string_default
     translation = translate(:'translations.missing', default: 'A Generic String')
     assert_equal 'A Generic String', translation
