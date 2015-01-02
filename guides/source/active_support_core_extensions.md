@@ -3873,7 +3873,7 @@ def default_helper_module!
   module_name = name.sub(/Controller$/, '')
   module_path = module_name.underscore
   helper module_path
-rescue MissingSourceFile => e
+rescue LoadError => e
   raise e unless e.is_missing? "helpers/#{module_path}_helper"
 rescue NameError => e
   raise e unless e.missing_name? "#{module_name}Helper"
@@ -3885,7 +3885,7 @@ NOTE: Defined in `active_support/core_ext/name_error.rb`.
 Extensions to `LoadError`
 -------------------------
 
-Active Support adds `is_missing?` to `LoadError`, and also assigns that class to the constant `MissingSourceFile` for backwards compatibility.
+Active Support adds `is_missing?` to `LoadError`.
 
 Given a path name `is_missing?` tests whether the exception was raised due to that particular file (except perhaps for the ".rb" extension).
 
@@ -3896,7 +3896,7 @@ def default_helper_module!
   module_name = name.sub(/Controller$/, '')
   module_path = module_name.underscore
   helper module_path
-rescue MissingSourceFile => e
+rescue LoadError => e
   raise e unless e.is_missing? "helpers/#{module_path}_helper"
 rescue NameError => e
   raise e unless e.missing_name? "#{module_name}Helper"

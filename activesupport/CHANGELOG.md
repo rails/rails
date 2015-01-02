@@ -1,3 +1,10 @@
+*   Deprecate `MissingSourceFile` in favor of `LoadError`.
+
+    `MissingSourceFile` was just an alias to `LoadError` and was not being
+    raised inside the framework.
+
+    *Rafael Mendonça França*
+
 *   Add support for error dispatcher classes in `ActiveSupport::Rescuable`.
     Now it acts closer to Ruby's rescue.
 
