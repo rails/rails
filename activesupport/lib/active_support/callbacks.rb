@@ -117,24 +117,24 @@ module ActiveSupport
       ENDING = End.new
 
       class Before
-        def self.build(next_callback, user_callback, user_conditions, chain_config, filter)
+        def self.build(callback_sequence, user_callback, user_conditions, chain_config, filter)
           halted_lambda = chain_config[:terminator]
 
           if chain_config.key?(:terminator) && user_conditions.any?
-            halting_and_conditional(next_callback, user_callback, user_conditions, halted_lambda, filter)
+            halting_and_conditional(callback_sequence, user_callback, user_conditions, halted_lambda, filter)
           elsif chain_config.key? :terminator
-            halting(next_callback, user_callback, halted_lambda, filter)
+            halting(callback_sequence, user_callback, halted_lambda, filter)
           elsif user_conditions.any?
-            conditional(next_callback, user_callback, user_conditions)
+            conditional(callback_sequence, user_callback, user_conditions)
           else
-            simple next_callback, user_callback
+            simple callback_sequence, user_callback
           end
         end
 
         private
 
-        def self.halting_and_conditional(next_callback, user_callback, user_conditions, halted_lambda, filter)
-          lambda { |env|
+        def self.halting_and_conditional(callback_sequence, user_callback, user_conditions, halted_lambda, filter)
+          callback_sequence.before do |env|
             target = env.target
             value  = env.value
             halted = env.halted
@@ -146,12 +146,13 @@ module ActiveSupport
                 target.send :halted_callback_hook, filter
               end
             end
-            next_callback.call env
-          }
+
+            env
+          end
         end
 
-        def self.halting(next_callback, user_callback, halted_lambda, filter)
-          lambda { |env|
+        def self.halting(callback_sequence, user_callback, halted_lambda, filter)
+          callback_sequence.before do |env|
             target = env.target
             value  = env.value
             halted = env.halted
@@ -163,56 +164,58 @@ module ActiveSupport
                 target.send :halted_callback_hook, filter
               end
             end
-            next_callback.call env
-          }
+
+            env
+          end
         end
 
-        def self.conditional(next_callback, user_callback, user_conditions)
-          lambda { |env|
+        def self.conditional(callback_sequence, user_callback, user_conditions)
+          callback_sequence.before do |env|
             target = env.target
             value  = env.value
 
             if user_conditions.all? { |c| c.call(target, value) }
               user_callback.call target, value
             end
-            next_callback.call env
-          }
+
+            env
+          end
         end
 
-        def self.simple(next_callback, user_callback)
-          lambda { |env|
+        def self.simple(callback_sequence, user_callback)
+          callback_sequence.before do |env|
             user_callback.call env.target, env.value
-            next_callback.call env
-          }
+
+            env
+          end
         end
       end
 
       class After
-        def self.build(next_callback, user_callback, user_conditions, chain_config)
+        def self.build(callback_sequence, user_callback, user_conditions, chain_config)
           if chain_config[:skip_after_callbacks_if_terminated]
             if chain_config.key?(:terminator) && user_conditions.any?
-              halting_and_conditional(next_callback, user_callback, user_conditions)
+              halting_and_conditional(callback_sequence, user_callback, user_conditions)
             elsif chain_config.key?(:terminator)
-              halting(next_callback, user_callback)
+              halting(callback_sequence, user_callback)
             elsif user_conditions.any?
-              conditional next_callback, user_callback, user_conditions
+              conditional callback_sequence, user_callback, user_conditions
             else
-              simple next_callback, user_callback
+              simple callback_sequence, user_callback
             end
           else
             if user_conditions.any?
-              conditional next_callback, user_callback, user_conditions
+              conditional callback_sequence, user_callback, user_conditions
             else
-              simple next_callback, user_callback
+              simple callback_sequence, user_callback
             end
           end
         end
 
         private
 
-        def self.halting_and_conditional(next_callback, user_callback, user_conditions)
-          lambda { |env|
-            env = next_callback.call env
+        def self.halting_and_conditional(callback_sequence, user_callback, user_conditions)
+          callback_sequence.after do |env|
             target = env.target
             value  = env.value
             halted = env.halted
@@ -220,117 +223,119 @@ module ActiveSupport
             if !halted && user_conditions.all? { |c| c.call(target, value) }
               user_callback.call target, value
             end
+
             env
-          }
+          end
         end
 
-        def self.halting(next_callback, user_callback)
-          lambda { |env|
-            env = next_callback.call env
+        def self.halting(callback_sequence, user_callback)
+          callback_sequence.after do |env|
             unless env.halted
               user_callback.call env.target, env.value
             end
+
             env
-          }
+          end
         end
 
-        def self.conditional(next_callback, user_callback, user_conditions)
-          lambda { |env|
-            env = next_callback.call env
+        def self.conditional(callback_sequence, user_callback, user_conditions)
+          callback_sequence.after do |env|
             target = env.target
             value  = env.value
 
             if user_conditions.all? { |c| c.call(target, value) }
               user_callback.call target, value
             end
+
             env
-          }
+          end
         end
 
-        def self.simple(next_callback, user_callback)
-          lambda { |env|
-            env = next_callback.call env
+        def self.simple(callback_sequence, user_callback)
+          callback_sequence.after do |env|
             user_callback.call env.target, env.value
+
             env
-          }
+          end
         end
       end
 
       class Around
-        def self.build(next_callback, user_callback, user_conditions, chain_config)
+        def self.build(callback_sequence, user_callback, user_conditions, chain_config)
           if chain_config.key?(:terminator) && user_conditions.any?
-            halting_and_conditional(next_callback, user_callback, user_conditions)
+            halting_and_conditional(callback_sequence, user_callback, user_conditions)
           elsif chain_config.key? :terminator
-            halting(next_callback, user_callback)
+            halting(callback_sequence, user_callback)
           elsif user_conditions.any?
-            conditional(next_callback, user_callback, user_conditions)
+            conditional(callback_sequence, user_callback, user_conditions)
           else
-            simple(next_callback, user_callback)
+            simple(callback_sequence, user_callback)
           end
         end
 
         private
 
-        def self.halting_and_conditional(next_callback, user_callback, user_conditions)
-          lambda { |env|
+        def self.halting_and_conditional(callback_sequence, user_callback, user_conditions)
+          callback_sequence.around do |env, &run|
             target = env.target
             value  = env.value
             halted = env.halted
 
             if !halted && user_conditions.all? { |c| c.call(target, value) }
               user_callback.call(target, value) {
-                env = next_callback.call env
+                env = run.call env
                 env.value
               }
+
               env
             else
-              next_callback.call env
+              run.call env
             end
-          }
+          end
         end
 
-        def self.halting(next_callback, user_callback)
-          lambda { |env|
+        def self.halting(callback_sequence, user_callback)
+          callback_sequence.around do |env, &run|
             target = env.target
             value  = env.value
 
-            unless env.halted
+            if env.halted
+              run.call env
+            else
               user_callback.call(target, value) {
-                env = next_callback.call env
+                env = run.call env
                 env.value
               }
               env
-            else
-              next_callback.call env
             end
-          }
+          end
         end
 
-        def self.conditional(next_callback, user_callback, user_conditions)
-          lambda { |env|
+        def self.conditional(callback_sequence, user_callback, user_conditions)
+          callback_sequence.around do |env, &run|
             target = env.target
             value  = env.value
 
             if user_conditions.all? { |c| c.call(target, value) }
               user_callback.call(target, value) {
-                env = next_callback.call env
+                env = run.call env
                 env.value
               }
               env
             else
-              next_callback.call env
+              run.call env
             end
-          }
+          end
         end
 
-        def self.simple(next_callback, user_callback)
-          lambda { |env|
+        def self.simple(callback_sequence, user_callback)
+          callback_sequence.around do |env, &run|
             user_callback.call(env.target, env.value) {
-              env = next_callback.call env
+              env = run.call env
               env.value
             }
             env
-          }
+          end
         end
       end
     end
@@ -382,17 +387,17 @@ module ActiveSupport
       end
 
       # Wraps code with filter
-      def apply(next_callback)
+      def apply(callback_sequence)
         user_conditions = conditions_lambdas
         user_callback = make_lambda @filter
 
         case kind
         when :before
-          Filters::Before.build(next_callback, user_callback, user_conditions, chain_config, @filter)
+          Filters::Before.build(callback_sequence, user_callback, user_conditions, chain_config, @filter)
         when :after
-          Filters::After.build(next_callback, user_callback, user_conditions, chain_config)
+          Filters::After.build(callback_sequence, user_callback, user_conditions, chain_config)
         when :around
-          Filters::Around.build(next_callback, user_callback, user_conditions, chain_config)
+          Filters::Around.build(callback_sequence, user_callback, user_conditions, chain_config)
         end
       end
 
@@ -464,6 +469,42 @@ module ActiveSupport
       end
     end
 
+    # Execute before and after filters in a sequence instead of
+    # chaining them with nested lambda calls, see:
+    # https://github.com/rails/rails/issues/18011
+    class CallbackSequence
+      def initialize(&call)
+        @call = call
+        @before = []
+        @after = []
+      end
+
+      def before(&before)
+        @before.unshift(before)
+        self
+      end
+
+      def after(&after)
+        @after.push(after)
+        self
+      end
+
+      def around(&around)
+        CallbackSequence.new do |*args|
+          around.call(*args) {
+            self.call(*args)
+          }
+        end
+      end
+
+      def call(*args)
+        @before.each { |b| b.call(*args) }
+        value = @call.call(*args)
+        @after.each { |a| a.call(*args) }
+        value
+      end
+    end
+
     # An Array with a compile method.
     class CallbackChain #:nodoc:#
       include Enumerable
@@ -508,8 +549,9 @@ module ActiveSupport
 
       def compile
         @callbacks || @mutex.synchronize do
-          @callbacks ||= @chain.reverse.inject(Filters::ENDING) do |chain, callback|
-            callback.apply chain
+          final_sequence = CallbackSequence.new { |env| Filters::ENDING.call(env) }
+          @callbacks ||= @chain.reverse.inject(final_sequence) do |callback_sequence, callback|
+            callback.apply callback_sequence
           end
         end
       end
