@@ -1,7 +1,7 @@
 module ActiveRecord
   # Returns the version of the currently loaded ActiveRecord as a Gem::Version
   def self.version
-    Gem::Version.new "4.0.12"
+    Gem::Version.new "4.0.13.rc1"
   end
 
   module VERSION #:nodoc:
