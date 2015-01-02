@@ -249,7 +249,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     assert_no_file "app/assets/stylesheets/posts.css"
   end
 
-  def test_scaffold_generator_no_assets_with_switch_resource_route_false
+  def test_scaffold_generator_with_switch_resource_route_false
     run_generator [ "posts", "--resource-route=false" ]
     assert_file "config/routes.rb" do |route|
       assert_no_match(/resources :posts$/, route)
