@@ -67,7 +67,8 @@ module ActionController
 
     def reset_template_assertion
       RENDER_TEMPLATE_INSTANCE_VARIABLES.each do |instance_variable|
-        instance_variable_get("@_#{instance_variable}").clear
+        ivar = instance_variable_get("@_#{instance_variable}")
+        ivar.clear if ivar
       end
     end
 
