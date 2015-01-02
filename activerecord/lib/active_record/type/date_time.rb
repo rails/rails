@@ -11,7 +11,11 @@ module ActiveRecord
         zone_conversion_method = ActiveRecord::Base.default_timezone == :utc ? :getutc : :getlocal
 
         if value.acts_like?(:time)
-          value.send(zone_conversion_method)
+          if value.respond_to?(zone_conversion_method)
+            value.send(zone_conversion_method)
+          else
+            value
+          end
         else
           super
         end
