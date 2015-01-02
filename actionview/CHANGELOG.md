@@ -1,3 +1,8 @@
+*   Default translations that have a lower precidence than an html safe default,
+    but are not themselves safe, should not be marked as html_safe.
+
+    *Justin Coyne*
+
 *   Make possible to use blocks with short version of `render "partial"` helper.
 
     *Nikolay Shebanov*

@@ -37,7 +37,8 @@ module ActionView
       # you know what kind of output to expect when you call translate in a template.
       def translate(key, options = {})
         options = options.dup
-        options[:default] = wrap_translate_defaults(options[:default]) if options[:default]
+        remaining_defaults = Array(options.delete(:default))
+        options[:default] = remaining_defaults.shift if remaining_defaults.first.kind_of? String
 
         # If the user has specified rescue_format then pass it all through, otherwise use
         # raise and do the work ourselves
@@ -62,10 +63,14 @@ module ActionView
           I18n.translate(scope_key_by_partial(key), options)
         end
       rescue I18n::MissingTranslationData => e
-        raise e if raise_error
+        if remaining_defaults.present?
+          translate remaining_defaults.shift, options.merge(default: remaining_defaults)
+        else
+          raise e if raise_error
 
-        keys = I18n.normalize_keys(e.locale, e.key, e.options[:scope])
-        content_tag('span', keys.last.to_s.titleize, :class => 'translation_missing', :title => "translation missing: #{keys.join('.')}")
+          keys = I18n.normalize_keys(e.locale, e.key, e.options[:scope])
+          content_tag('span', keys.last.to_s.titleize, :class => 'translation_missing', :title => "translation missing: #{keys.join('.')}")
+        end
       end
       alias :t :translate
 
@@ -93,21 +98,6 @@ module ActionView
 
         def html_safe_translation_key?(key)
           key.to_s =~ /(\b|_|\.)html$/
-        end
-
-        def wrap_translate_defaults(defaults)
-          new_defaults = []
-          defaults     = Array(defaults)
-          while key = defaults.shift
-            if key.is_a?(Symbol)
-              new_defaults << lambda { |_, options| translate key, options.merge(:default => defaults) }
-              break
-            else
-              new_defaults << key
-            end
-          end
-
-          new_defaults
         end
     end
   end
