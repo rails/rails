@@ -1,3 +1,9 @@
+*   Fixed setting of foreign_key for through associations while building of new record.
+
+    Fixes #12698.
+
+    *Ivan Antropov*
+
 *   Fixed automatic inverse_of for models nested in module.
 
     *Andrew McCloud*
