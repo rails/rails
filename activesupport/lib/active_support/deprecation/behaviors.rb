@@ -20,7 +20,7 @@ module ActiveSupport
 
       log: ->(message, callstack) {
         logger =
-            if defined?(Rails) && Rails.logger
+            if defined?(Rails.logger) && Rails.logger
               Rails.logger
             else
               require 'active_support/logger'
