@@ -1,3 +1,7 @@
+*   Make possible to use blocks with short version of `render "partial"` helper.
+
+    *Nikolay Shebanov*
+
 *   Add a `hidden_field` on the `file_field` to avoid raise a error when the only
     input on the form is the `file_field`.
 

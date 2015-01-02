@@ -1030,6 +1030,42 @@ One way to use partials is to treat them as the equivalent of subroutines: as a 
 
 Here, the `_ad_banner.html.erb` and `_footer.html.erb` partials could contain content that is shared among many pages in your application. You don't need to see the details of these sections when you're concentrating on a particular page.
 
+As you already could see from the previous sections of this guide, `yield` is a very powerful tool for cleaning up your layouts. Keep in mind that it's pure ruby, so you can use it almost everywhere. For example, we can use it to DRY form layout definition for several similar resources:
+
+* `users/index.html.erb`
+
+    ```html+erb
+    <%= render "shared/search_filters", search: @q do |f| %>
+      <p>
+        Name contains: <%= f.text_field :name_contains %>
+      </p>
+    <%= end %>
+    ```
+
+* `roles/index.html.erb`
+
+    ```html+erb
+    <%= render "shared/search_filters", search: @q do |f| %>
+      <p>
+        Title contains: <%= f.text_field :title_contains %>
+      </p>
+    <%= end %>
+    ```
+
+* `shared/_search_filters.html.erb`
+
+    ```html+erb
+    <%= form_for(@q) do |f| %>
+      <h1>Search form:</h1>
+      <fieldset>
+        <%= yield f %>
+      </fieldset>
+      <p>
+        <%= f.submit "Search" %>
+      </p>
+    <% end %>
+    ```
+
 TIP: For content that is shared among all pages in your application, you can use partials directly from layouts.
 
 #### Partial Layouts
