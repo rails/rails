@@ -65,6 +65,18 @@ module ActiveRecord
         SchemaCreation.new self
       end
 
+      def column_spec_for_primary_key(column)
+        spec = {}
+        if column.extra == 'auto_increment'
+          return unless column.limit == 8
+          spec[:id] = ':bigint'
+        else
+          spec[:id] = column.type.inspect
+          spec.merge!(prepare_column_options(column).delete_if { |key, _| [:name, :type, :null].include?(key) })
+        end
+        spec
+      end
+
       class Column < ConnectionAdapters::Column # :nodoc:
         attr_reader :collation, :strict, :extra
 

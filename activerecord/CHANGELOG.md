@@ -1,3 +1,10 @@
+*   Improve a dump of the primary key support. If it is not a default primary key,
+    correctly dump the type and options.
+
+    Fixes #14169, #16599.
+
+    *Ryuta Kamizono*
+
 *   Format the datetime string according to the precision of the datetime field.
 
     Incompatible to rounding behavior between MySQL 5.6 and earlier.

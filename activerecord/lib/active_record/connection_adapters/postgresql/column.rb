@@ -15,6 +15,10 @@ module ActiveRecord
 
         @default_function = default_function
       end
+
+      def serial?
+        default_function && default_function =~ /\Anextval\(.*\)\z/
+      end
     end
   end
 end
