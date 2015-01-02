@@ -15,13 +15,10 @@ module ActiveRecord::Associations::Builder
   class Association #:nodoc:
     class << self
       attr_accessor :extensions
-      # TODO: This class accessor is needed to make activerecord-deprecated_finders work.
-      # We can move it to a constant in 5.0.
-      attr_accessor :valid_options
     end
     self.extensions = []
 
-    self.valid_options = [:class_name, :class, :foreign_key, :validate]
+    VALID_OPTIONS = [:class_name, :class, :foreign_key, :validate].freeze
 
     attr_reader :name, :scope, :options
 
@@ -32,7 +29,7 @@ module ActiveRecord::Associations::Builder
                              "Please choose a different association name."
       end
 
-      builder = create_builder model, name, scope, options, &block
+      builder = create_builder name, scope, options, &block
       reflection = builder.build(model)
       define_accessors model, reflection
       define_callbacks model, reflection
@@ -41,20 +38,19 @@ module ActiveRecord::Associations::Builder
       reflection
     end
 
-    def self.create_builder(model, name, scope, options, &block)
+    def self.create_builder(name, scope, options, &block)
       raise ArgumentError, "association names must be a Symbol" unless name.kind_of?(Symbol)
 
-      new(model, name, scope, options, &block)
+      new(name, scope, options, &block)
     end
 
-    def initialize(model, name, scope, options)
+    def initialize(name, scope, options)
       # TODO: Move this to create_builder as soon we drop support to activerecord-deprecated_finders.
       if scope.is_a?(Hash)
         options = scope
         scope   = nil
       end
 
-      # TODO: Remove this model argument as soon we drop support to activerecord-deprecated_finders.
       @name    = name
       @scope   = scope
       @options = options
@@ -75,7 +71,7 @@ module ActiveRecord::Associations::Builder
     end
 
     def valid_options
-      Association.valid_options + Association.extensions.flat_map(&:valid_options)
+      VALID_OPTIONS + Association.extensions.flat_map(&:valid_options)
     end
 
     def validate_options

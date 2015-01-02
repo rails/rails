@@ -14,7 +14,7 @@ module ActiveRecord::Associations::Builder
 
     attr_reader :block_extension
 
-    def initialize(model, name, scope, options)
+    def initialize(name, scope, options)
       super
       @mod = nil
       if block_given?
