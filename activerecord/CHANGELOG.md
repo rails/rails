@@ -1,3 +1,9 @@
+*   Fix `reaping_frequency` option when the value is a string.
+
+    This usually happens when it is configured using `DATABASE_URL`.
+
+    *korbin*
+
 *   Fix error message when trying to create an associated record and the foreign
     key is missing.
 
