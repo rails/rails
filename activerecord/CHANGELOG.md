@@ -1,3 +1,19 @@
+*   Change `ActiveRecord::Relation#update` behavior so that it can
+    be called without passing ids of the records to be updated.
+
+    This change allows to update multiple records returned by
+    `ActiveRecord::Relation` with callbacks and validations.
+
+        # Before
+        # ArgumentError: wrong number of arguments (1 for 2)
+        Comment.where(group: 'expert').update(body: "Group of Rails Experts")
+
+        # After
+        # Comments with group expert updated with body "Group of Rails Experts"
+        Comment.where(group: 'expert').update(body: "Group of Rails Experts")
+
+    *Prathamesh Sonpatki*
+
 *   Fix `reaping_frequency` option when the value is a string.
 
     This usually happens when it is configured using `DATABASE_URL`.

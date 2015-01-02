@@ -252,8 +252,10 @@ class PersistenceTest < ActiveRecord::TestCase
 
   def test_create_columns_not_equal_attributes
     topic = Topic.instantiate(
-      'title'          => 'Another New Topic',
-      'does_not_exist' => 'test'
+      'attributes' => {
+        'title'          => 'Another New Topic',
+        'does_not_exist' => 'test'
+      }
     )
     assert_nothing_raised { topic.save }
   end
