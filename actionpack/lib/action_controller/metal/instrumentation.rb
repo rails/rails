@@ -28,9 +28,12 @@ module ActionController
       ActiveSupport::Notifications.instrument("start_processing.action_controller", raw_payload.dup)
 
       ActiveSupport::Notifications.instrument("process_action.action_controller", raw_payload) do |payload|
-        result = super
-        payload[:status] = response.status
-        append_info_to_payload(payload)
+        result = begin
+          super
+          payload[:status] = response.status
+        ensure
+          append_info_to_payload(payload)
+        end
         result
       end
     end
