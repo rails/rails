@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 require "cases/helper"
 require "models/book"
 require "models/post"
