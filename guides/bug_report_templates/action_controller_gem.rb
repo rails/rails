@@ -1,5 +1,5 @@
 # Activate the gem you are reporting the issue against.
-gem 'rails', '4.0.0'
+gem 'rails', '4.2.0'
 
 require 'rails'
 require 'action_controller/railtie'
