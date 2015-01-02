@@ -346,6 +346,25 @@ module ActiveRecord
       @klass.connection.update stmt, 'SQL', bvs
     end
 
+    def update_counters(counters)
+      updates = counters.map do |counter_name, value|
+        operator = value < 0 ? '-' : '+'
+        quoted_column = connection.quote_column_name(counter_name)
+        "#{quoted_column} = COALESCE(#{quoted_column}, 0) #{operator} #{value.abs}"
+      end
+
+      update_all updates.join(', ')
+    end
+
+    def decrement_counter(counter_name)
+      update_counters(counter_name => -1)
+    end
+
+    def increment_counter(counter_name)
+      update_counters(counter_name => 1)
+    end
+
+
     # Updates an object (or multiple objects) and saves it to the database, if validations pass.
     # The resulting object is returned whether the object was saved successfully to the database or not.
     #

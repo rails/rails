@@ -7,7 +7,15 @@ module ActiveRecord
         type.presence && type.constantize
       end
 
+      def changed?
+        super || owner.attribute_changed?(reflection.foreign_type)
+      end
+
       private
+
+        def previous_klass
+          owner.attribute_was(reflection.foreign_type).try(:constantize)
+        end
 
         def replace_keys(record)
           super

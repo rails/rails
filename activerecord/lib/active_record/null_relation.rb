@@ -18,6 +18,18 @@ module ActiveRecord
       0
     end
 
+    def update_counters(_updates)
+      0
+    end
+
+    def decrement_counter(_name)
+      0
+    end
+
+    def increment_counter(_name)
+      0
+    end
+
     def delete(_id_or_array)
       0
     end

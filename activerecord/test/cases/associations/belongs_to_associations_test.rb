@@ -273,15 +273,18 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_belongs_to_counter_with_assigning_nil
-    post = Post.find(1)
-    comment = Comment.find(1)
+    topic = Topic.create("title" => "debate")
+    reply = Reply.create!("title" => "blah!", "content" => "world around!")
+    reply.topic = topic
+    reply.save!
 
-    assert_equal post.id, comment.post_id
-    assert_equal 2, Post.find(post.id).comments.size
+    assert_equal topic.id, reply.parent_id
+    assert_equal 1, Topic.find(topic.id).replies.size
 
-    comment.post = nil
+    reply.topic = nil
+    reply.save
 
-    assert_equal 1, Post.find(post.id).comments.size
+    assert_equal 0, Topic.find(topic.id).replies.size
   end
 
   def test_belongs_to_with_primary_key_counter
@@ -293,11 +296,13 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal 0, debate2.reload.replies_count
 
     reply.topic_with_primary_key = debate2
+    reply.save
 
     assert_equal 0, debate.reload.replies_count
     assert_equal 1, debate2.reload.replies_count
 
     reply.topic_with_primary_key = nil
+    reply.save
 
     assert_equal 0, debate.reload.replies_count
     assert_equal 0, debate2.reload.replies_count
@@ -324,11 +329,13 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal 1, Topic.find(topic2.id).replies.size
 
     reply1.topic = nil
+    reply1.save
 
     assert_equal 0, Topic.find(topic1.id).replies.size
     assert_equal 0, Topic.find(topic2.id).replies.size
 
     reply1.topic = topic1
+    reply1.save
 
     assert_equal 1, Topic.find(topic1.id).replies.size
     assert_equal 0, Topic.find(topic2.id).replies.size
@@ -507,12 +514,15 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
   def test_counter_cache
     topic = Topic.create :title => "Zoom-zoom-zoom"
-    assert_equal 0, topic[:replies_count]
+    assert_equal 0, topic.replies_count
 
     reply = Reply.create(:title => "re: zoom", :content => "speedy quick!")
-    reply.topic = topic
+    assert_no_queries do
+      reply.topic = topic
+    end
+    reply.save!
 
-    assert_equal 1, topic.reload[:replies_count]
+    assert_equal 1, topic.reload.replies_count
     assert_equal 1, topic.replies.size
 
     topic[:replies_count] = 15
@@ -557,6 +567,30 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
     reply_clone.destroy
     assert_equal 4, topic.reload[:replies_count]
+    assert_equal 4, topic.replies.size
+  end
+
+  def test_counter_cache_double_update
+    topic = Topic.create :title => "Zoom-zoom-zoom"
+    second_topic = Topic.create :title => "Sweet!"
+
+    5.times do
+      topic.replies.create(:title => "re: zoom", :content => "speedy quick!")
+    end
+
+    assert_equal 5, topic.reload.replies_count
+    assert_equal 5, topic.replies.size
+
+    reply = topic.replies.first
+    reply_clone = Reply.find(reply.id)
+
+    reply.topic = second_topic
+    reply.save!
+    assert_equal 4, topic.reload.replies_count
+
+    reply_clone.topic = second_topic
+    reply_clone.save!
+    assert_equal 4, topic.reload.replies_count
     assert_equal 4, topic.replies.size
   end
 
@@ -820,6 +854,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_difference lambda { post.reload.tags_count }, -1 do
       assert_difference 'comment.reload.tags_count', +1 do
         tagging.taggable = comment
+        tagging.save!
       end
     end
   end
