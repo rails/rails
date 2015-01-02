@@ -1,3 +1,7 @@
+*   Fixed automatic inverse_of for models nested in module.
+
+    *Andrew McCloud*
+
 *   Change `ActiveRecord::Relation#update` behavior so that it can
     be called without passing ids of the records to be updated.
 
