@@ -184,7 +184,7 @@ module AbstractController
         module_name = name.sub(/Controller$/, '')
         module_path = module_name.underscore
         helper module_path
-      rescue MissingSourceFile => e
+      rescue LoadError => e
         raise e unless e.is_missing? "helpers/#{module_path}_helper"
       rescue NameError => e
         raise e unless e.missing_name? "#{module_name}Helper"
