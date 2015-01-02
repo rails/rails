@@ -591,6 +591,13 @@ module ActiveRecord
           when 0x1000000..0xffffffff; 'longtext'
           else raise(ActiveRecordError, "No text type has character length #{limit}")
           end
+        when 'datetime'
+          return super unless precision
+
+          case precision
+            when 0..6; "datetime(#{precision})"
+            else raise(ActiveRecordError, "No datetime type has precision of #{precision}. The allowed range of precision is from 0 to 6.")
+          end
         else
           super
         end
@@ -678,6 +685,11 @@ module ActiveRecord
         m.alias_type %r(set)i,           'varchar'
         m.alias_type %r(year)i,          'integer'
         m.alias_type %r(bit)i,           'binary'
+
+        m.register_type(%r(datetime)i) do |sql_type|
+          precision = extract_precision(sql_type)
+          MysqlDateTime.new(precision: precision)
+        end
 
         m.register_type(%r(enum)i) do |sql_type|
           limit = sql_type[/^enum\((.+)\)/i, 1]
@@ -870,6 +882,22 @@ module ActiveRecord
 
       def create_table_definition(name, temporary, options, as = nil) # :nodoc:
         TableDefinition.new(native_database_types, name, temporary, options, as)
+      end
+
+      class MysqlDateTime < Type::DateTime # :nodoc:
+        def type_cast_for_database(value)
+          if value.acts_like?(:time) && value.respond_to?(:usec)
+            result = super.to_s(:db)
+            case precision
+            when 1..6
+              "#{result}.#{sprintf("%0#{precision}d", value.usec / 10 ** (6 - precision))}"
+            else
+              result
+            end
+          else
+            super
+          end
+        end
       end
 
       class MysqlString < Type::String # :nodoc:

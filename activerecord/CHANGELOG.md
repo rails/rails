@@ -1,3 +1,18 @@
+*   Format the datetime string according to the precision of the datetime field.
+
+    Incompatible to rounding behavior between MySQL 5.6 and earlier.
+
+    In 5.5, when you insert `2014-08-17 12:30:00.999999` the fractional part
+    is ignored. In 5.6, it's rounded to `2014-08-17 12:30:01`:
+
+    http://bugs.mysql.com/bug.php?id=68760
+
+    *Ryuta Kamizono*
+
+*   Allow precision option for MySQL datetimes.
+
+    *Ryuta Kamizono*
+
 *   Fixed automatic inverse_of for models nested in module.
 
     *Andrew McCloud*
