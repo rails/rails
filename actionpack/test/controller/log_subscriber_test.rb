@@ -73,6 +73,16 @@ module Another
     def with_action_not_found
       raise AbstractController::ActionNotFound
     end
+
+    def append_info_to_payload(payload)
+      super
+      payload[:test_key] = "test_value"
+      @last_payload = payload
+    end
+
+    def last_payload
+      @last_payload
+    end
   end
 end
 
@@ -161,6 +171,16 @@ class ACLogSubscriberTest < ActionController::TestCase
     get :show
     wait
     assert_match(/\(Views: [\d.]+ms\)/, logs[1])
+  end
+
+  def test_append_info_to_payload_is_called_even_with_exception
+    begin
+      get :with_exception
+      wait
+    rescue Exception
+    end
+
+    assert_equal "test_value", @controller.last_payload[:test_key]
   end
 
   def test_process_action_with_filter_parameters
