@@ -1,7 +1,3 @@
-*   Clear query cache on rollback.
-
-    *Florian Weingarten*
-
 *   Fixed setting of foreign_key for through associations while building of new record.
 
     Fixes #12698.
