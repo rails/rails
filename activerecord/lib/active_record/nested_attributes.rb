@@ -82,7 +82,7 @@ module ActiveRecord
     # Note that the model will _not_ be destroyed until the parent is saved.
     #
     # Also note that the model will not be destroyed unless you also specify
-    # its id in the updated hash. 
+    # its id in the updated hash.
     #
     # === One-to-many
     #
@@ -114,7 +114,7 @@ module ActiveRecord
     #   member.posts.first.title # => 'Kari, the awesome Ruby documentation browser!'
     #   member.posts.second.title # => 'The egalitarian assumption of the modern citizen'
     #
-    # You may also set a :reject_if proc to silently ignore any new record
+    # You may also set a +:reject_if+ proc to silently ignore any new record
     # hashes if they fail to pass your criteria. For example, the previous
     # example could be rewritten as:
     #
@@ -136,7 +136,7 @@ module ActiveRecord
     #   member.posts.first.title # => 'Kari, the awesome Ruby documentation browser!'
     #   member.posts.second.title # => 'The egalitarian assumption of the modern citizen'
     #
-    # Alternatively, :reject_if also accepts a symbol for using methods:
+    # Alternatively, +:reject_if+ also accepts a symbol for using methods:
     #
     #   class Member < ActiveRecord::Base
     #     has_many :posts
@@ -215,13 +215,13 @@ module ActiveRecord
     # All changes to models, including the destruction of those marked for
     # destruction, are saved and destroyed automatically and atomically when
     # the parent model is saved. This happens inside the transaction initiated
-    # by the parents save method. See ActiveRecord::AutosaveAssociation.
+    # by the parent's save method. See ActiveRecord::AutosaveAssociation.
     #
     # === Validating the presence of a parent model
     #
     # If you want to validate that a child record is associated with a parent
-    # record, you can use <tt>validates_presence_of</tt> and
-    # <tt>inverse_of</tt> as this example illustrates:
+    # record, you can use the +validates_presence_of+ method and the +:inverse_of+
+    # key as this example illustrates:
     #
     #   class Member < ActiveRecord::Base
     #     has_many :posts, inverse_of: :member
@@ -233,7 +233,7 @@ module ActiveRecord
     #     validates_presence_of :member
     #   end
     #
-    # Note that if you do not specify the <tt>inverse_of</tt> option, then
+    # Note that if you do not specify the +:inverse_of+ option, then
     # Active Record will try to automatically guess the inverse association
     # based on heuristics.
     #
@@ -267,29 +267,31 @@ module ActiveRecord
       #   Allows you to specify a Proc or a Symbol pointing to a method
       #   that checks whether a record should be built for a certain attribute
       #   hash. The hash is passed to the supplied Proc or the method
-      #   and it should return either +true+ or +false+. When no :reject_if
+      #   and it should return either +true+ or +false+. When no +:reject_if+
       #   is specified, a record will be built for all attribute hashes that
       #   do not have a <tt>_destroy</tt> value that evaluates to true.
       #   Passing <tt>:all_blank</tt> instead of a Proc will create a proc
       #   that will reject a record where all the attributes are blank excluding
-      #   any value for _destroy.
+      #   any value for +_destroy+.
       # [:limit]
-      #   Allows you to specify the maximum number of the associated records that
-      #   can be processed with the nested attributes. Limit also can be specified as a
-      #   Proc or a Symbol pointing to a method that should return number. If the size of the
-      #   nested attributes array exceeds the specified limit, NestedAttributes::TooManyRecords
-      #   exception is raised. If omitted, any number associations can be processed.
-      #   Note that the :limit option is only applicable to one-to-many associations.
+      #   Allows you to specify the maximum number of associated records that
+      #   can be processed with the nested attributes. Limit also can be specified
+      #   as a Proc or a Symbol pointing to a method that should return a number.
+      #   If the size of the nested attributes array exceeds the specified limit,
+      #   NestedAttributes::TooManyRecords exception is raised. If omitted, any
+      #   number of associations can be processed.
+      #   Note that the +:limit+ option is only applicable to one-to-many
+      #   associations.
       # [:update_only]
       #   For a one-to-one association, this option allows you to specify how
-      #   nested attributes are to be used when an associated record already
+      #   nested attributes are going to be used when an associated record already
       #   exists. In general, an existing record may either be updated with the
       #   new set of attribute values or be replaced by a wholly new record
-      #   containing those values. By default the :update_only option is +false+
+      #   containing those values. By default the +:update_only+ option is +false+
       #   and the nested attributes are used to update the existing record only
       #   if they include the record's <tt>:id</tt> value. Otherwise a new
       #   record will be instantiated and used to replace the existing one.
-      #   However if the :update_only option is +true+, the nested attributes
+      #   However if the +:update_only+ option is +true+, the nested attributes
       #   are used to update the record's attributes always, regardless of
       #   whether the <tt>:id</tt> is present. The option is ignored for collection
       #   associations.
