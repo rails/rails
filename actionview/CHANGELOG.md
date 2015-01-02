@@ -1,3 +1,8 @@
+*   Default translations that have a lower precidence than an html safe default,
+    but are not themselves safe, should not be marked as html_safe.
+
+    *Justin Coyne*
+
 *   Added an explicit error message, in `ActionView::PartialRenderer`
     for partial `rendering`, when the value of option `as` has invalid characters.
 
