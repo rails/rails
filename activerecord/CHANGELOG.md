@@ -1,3 +1,7 @@
+*   Fixed automatic inverse_of for models nested in module.
+
+    *Andrew McCloud*
+
 *   Fix `reaping_frequency` option when the value is a string.
 
     This usually happens when it is configured using `DATABASE_URL`.
