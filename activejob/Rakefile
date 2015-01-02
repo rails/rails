@@ -20,7 +20,7 @@ namespace :test do
 
   desc 'Run integration tests for all adapters'
   task :integration do
-    run_without_aborting ACTIVEJOB_ADAPTERS.map { |a| "test:integration:#{a}" }
+    run_without_aborting (ACTIVEJOB_ADAPTERS - ['test']).map { |a| "test:integration:#{a}" }
   end
 
   task 'env:integration' do
