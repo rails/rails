@@ -74,7 +74,8 @@ task default: :test
     end
 
     PASSTHROUGH_OPTIONS = [
-      :skip_active_record, :skip_javascript, :database, :javascript, :quiet, :pretend, :force, :skip
+      :skip_active_record, :skip_action_mailer, :skip_javascript, :database,
+      :javascript, :quiet, :pretend, :force, :skip
     ]
 
     def generate_test_dummy(force = false)
