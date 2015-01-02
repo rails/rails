@@ -94,20 +94,6 @@ class SyncLogSubscriberTest < ActiveSupport::TestCase
     wait
   end
 
-  def test_flushes_loggers
-    ActiveSupport::LogSubscriber.attach_to :my_log_subscriber, @log_subscriber
-    ActiveSupport::LogSubscriber.flush_all!
-    assert_equal 1, @logger.flush_count
-  end
-
-  def test_flushes_the_same_logger_just_once
-    ActiveSupport::LogSubscriber.attach_to :my_log_subscriber, @log_subscriber
-    ActiveSupport::LogSubscriber.attach_to :another, @log_subscriber
-    ActiveSupport::LogSubscriber.flush_all!
-    wait
-    assert_equal 1, @logger.flush_count
-  end
-
   def test_logging_does_not_die_on_failures
     ActiveSupport::LogSubscriber.attach_to :my_log_subscriber, @log_subscriber
     instrument "puke.my_log_subscriber"

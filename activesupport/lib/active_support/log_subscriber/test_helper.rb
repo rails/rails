@@ -52,11 +52,9 @@ module ActiveSupport
       class MockLogger
         include ActiveSupport::Logger::Severity
 
-        attr_reader :flush_count
         attr_accessor :level
 
         def initialize(level = DEBUG)
-          @flush_count = 0
           @level = level
           @logged = Hash.new { |h,k| h[k] = [] }
         end
@@ -71,10 +69,6 @@ module ActiveSupport
 
         def logged(level)
           @logged[level].compact.map { |l| l.to_s.strip }
-        end
-
-        def flush
-          @flush_count += 1
         end
 
         ActiveSupport::Logger::Severity.constants.each do |severity|

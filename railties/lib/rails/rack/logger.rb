@@ -6,7 +6,7 @@ require 'rack/body_proxy'
 
 module Rails
   module Rack
-    # Sets log tags, logs the request, calls the app, and flushes the logs.
+    # Sets log tags, logs the request, and calls the app.
     class Logger < ActiveSupport::LogSubscriber
       def initialize(app, taggers = nil)
         @app          = app
@@ -41,8 +41,6 @@ module Rails
       rescue Exception
         finish(request)
         raise
-      ensure
-        ActiveSupport::LogSubscriber.flush_all!
       end
 
       # Started GET "/session/new" for 127.0.0.1 at 2012-09-26 14:51:42 -0700

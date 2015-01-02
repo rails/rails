@@ -67,10 +67,5 @@ module ActiveSupport
     def tagged(*tags)
       formatter.tagged(*tags) { yield self }
     end
-
-    def flush
-      clear_tags!
-      super if defined?(super)
-    end
   end
 end
