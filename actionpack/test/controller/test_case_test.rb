@@ -521,18 +521,6 @@ XML
     end
   end
 
-  def test_use_route
-    with_routing do |set|
-      set.draw do
-        get 'via_unnamed_route', to: 'test_case_test/test#test_uri'
-        get 'via_named_route', as: :a_named_route, to: 'test_case_test/test#test_uri'
-      end
-
-      assert_deprecated { get :test_uri, use_route: :a_named_route }
-      assert_equal '/via_named_route', @response.body
-    end
-  end
-
   def test_assert_realistic_path_parameters
     get :test_params, :id => 20, :foo => Object.new
 
@@ -788,19 +776,6 @@ module EngineControllerTests
     def test_engine_controller_route
       get :index
       assert_equal @response.body, 'bar'
-    end
-  end
-
-  class BarControllerTestWithHostApplicationRouteSet < ActionController::TestCase
-    tests BarController
-
-    def test_use_route
-      with_routing do |set|
-        set.draw { mount Engine => '/foo' }
-
-        assert_deprecated { get :index, use_route: :foo }
-        assert_equal @response.body, 'bar'
-      end
     end
   end
 end
