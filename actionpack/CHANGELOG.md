@@ -1,3 +1,7 @@
+*   Remove deprecated support to define routes with `:to` option that doesn't contain `#`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `ActionDispatch::Response#to_ary`.
 
     *Rafael Mendonça França*
