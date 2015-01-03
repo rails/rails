@@ -1,3 +1,7 @@
+*   Remove deprecated `ActionDispatch::Request#deep_munge`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `ActionDispatch::Http::Parameters#symbolized_path_parameters`.
 
     *Rafael Mendonça França*
