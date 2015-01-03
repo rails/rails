@@ -48,7 +48,7 @@ HTML
           case code_type
             when 'ruby', 'sql', 'plain'
               code_type
-            when 'erb'
+            when 'erb', 'html+erb'
               'ruby; html-script: true'
             when 'html'
               'xml' # HTML is understood, but there are .xml rules in the CSS
