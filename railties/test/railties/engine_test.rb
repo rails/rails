@@ -498,17 +498,12 @@ YAML
       boot_rails
 
       initializers = Rails.application.initializers.tsort
-      index        = initializers.index { |i| i.name == "dummy_initializer" }
-      selection    = initializers[(index-3)..(index)].map(&:name).map(&:to_s)
+      dummy_index  = initializers.index  { |i| i.name == "dummy_initializer" }
+      config_index = initializers.rindex { |i| i.name == :load_config_initializers }
+      stack_index  = initializers.index  { |i| i.name == :build_middleware_stack }
 
-      assert_equal %w(
-       load_config_initializers
-       load_config_initializers
-       engines_blank_point
-       dummy_initializer
-      ), selection
-
-      assert index < initializers.index { |i| i.name == :build_middleware_stack }
+      assert config_index < dummy_index
+      assert dummy_index < stack_index
     end
 
     class Upcaser

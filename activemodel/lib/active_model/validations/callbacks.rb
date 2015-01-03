@@ -15,15 +15,14 @@ module ActiveModel
     #     after_validation  :do_stuff_after_validation
     #   end
     #
-    # Like other <tt>before_*</tt> callbacks if +before_validation+ returns
-    # +false+ then <tt>valid?</tt> will not be called.
+    # Like other <tt>before_*</tt> callbacks if +before_validation+ throws
+    # +:abort+ then <tt>valid?</tt> will not be called.
     module Callbacks
       extend ActiveSupport::Concern
 
       included do
         include ActiveSupport::Callbacks
         define_callbacks :validation,
-                         terminator: ->(_,result) { result == false },
                          skip_after_callbacks_if_terminated: true,
                          scope: [:kind, :name]
       end

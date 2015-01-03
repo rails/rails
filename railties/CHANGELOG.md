@@ -1,3 +1,18 @@
+*   Add `config/initializers/callback_terminator.rb`
+
+    Newly generated Rails apps have a new initializer called
+    `callback_terminator.rb` which sets the value of the configuration option
+    `config.active_support.halt_callback_chains_on_return_false` to `false`.
+
+    As a result, new Rails apps do not halt callback chains when a callback
+    returns `false`; only when they are explicitly halted with `throw(:abort)`.
+
+    The terminator is *not* added when running `rake rails:update`, so returning
+    `false` will still work on old apps ported to Rails 5, displaying a
+    deprecation warning to prompt users to update their code to the new syntax.
+
+    *claudiob*
+
 *   Generated fixtures won't use the id when generated with references attributes.
 
     *Pablo Olmos de Aguilera Corradini*
