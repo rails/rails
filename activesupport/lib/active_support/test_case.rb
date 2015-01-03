@@ -31,29 +31,15 @@ module ActiveSupport
 
       # Returns the order in which test cases are run.
       #
-      #   ActiveSupport::TestCase.test_order # => :sorted
+      #   ActiveSupport::TestCase.test_order # => :random
       #
       # Possible values are +:random+, +:parallel+, +:alpha+, +:sorted+.
-      # Defaults to +:sorted+.
+      # Defaults to +:random+.
       def test_order
         test_order = ActiveSupport.test_order
 
         if test_order.nil?
-          ActiveSupport::Deprecation.warn "You did not specify a value for the " \
-            "configuration option `active_support.test_order`. In Rails 5, " \
-            "the default value of this option will change from `:sorted` to " \
-            "`:random`.\n" \
-            "To disable this warning and keep the current behavior, you can add " \
-            "the following line to your `config/environments/test.rb`:\n" \
-            "\n" \
-            "  Rails.application.configure do\n" \
-            "    config.active_support.test_order = :sorted\n" \
-            "  end\n" \
-            "\n" \
-            "Alternatively, you can opt into the future behavior by setting this " \
-            "option to `:random`."
-
-          test_order = :sorted
+          test_order = :random
           self.test_order = test_order
         end
 

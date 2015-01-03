@@ -182,30 +182,28 @@ class TestOrderTest < ActiveSupport::TestCase
     ActiveSupport::TestCase.test_order = @original_test_order
   end
 
-  def test_defaults_to_sorted_with_warning
+  def test_defaults_to_random
     ActiveSupport::TestCase.test_order = nil
 
-    assert_equal :sorted, assert_deprecated { ActiveSupport::TestCase.test_order }
+    assert_equal :random, ActiveSupport::TestCase.test_order
 
-    # It should only produce a deprecation warning the first time this is accessed
-    assert_equal :sorted, assert_not_deprecated { ActiveSupport::TestCase.test_order }
-    assert_equal :sorted, assert_not_deprecated { ActiveSupport.test_order }
+    assert_equal :random, ActiveSupport.test_order
   end
 
   def test_test_order_is_global
-    ActiveSupport::TestCase.test_order = :random
-
-    assert_equal :random, ActiveSupport.test_order
-    assert_equal :random, ActiveSupport::TestCase.test_order
-    assert_equal :random, self.class.test_order
-    assert_equal :random, Class.new(ActiveSupport::TestCase).test_order
-
-    ActiveSupport.test_order = :sorted
+    ActiveSupport::TestCase.test_order = :sorted
 
     assert_equal :sorted, ActiveSupport.test_order
     assert_equal :sorted, ActiveSupport::TestCase.test_order
     assert_equal :sorted, self.class.test_order
     assert_equal :sorted, Class.new(ActiveSupport::TestCase).test_order
+
+    ActiveSupport.test_order = :random
+
+    assert_equal :random, ActiveSupport.test_order
+    assert_equal :random, ActiveSupport::TestCase.test_order
+    assert_equal :random, self.class.test_order
+    assert_equal :random, Class.new(ActiveSupport::TestCase).test_order
   end
 
   def test_i_suck_and_my_tests_are_order_dependent!

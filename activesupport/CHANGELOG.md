@@ -1,3 +1,7 @@
+*   Change the default test order from `:sorted` to `:random`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `ActiveSupport::JSON::Encoding::CircularReferenceError`.
 
     *Rafael Mendonça França*
