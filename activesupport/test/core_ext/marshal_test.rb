@@ -122,7 +122,7 @@ class MarshalTest < ActiveSupport::TestCase
     end
   end
 
-  test "that loading a abstract nested class raises an error" do
+  test "that loading an abstract nested class raises an error" do
     dumped = nil
     class SomeAbstractParent
       class SomeChild
