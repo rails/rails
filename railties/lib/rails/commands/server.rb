@@ -130,7 +130,7 @@ module Rails
       end
 
       def create_tmp_directories
-        %w(cache pids sessions sockets).each do |dir_to_make|
+        %w(cache pids sockets).each do |dir_to_make|
           FileUtils.mkdir_p(File.join(Rails.root, 'tmp', dir_to_make))
         end
       end

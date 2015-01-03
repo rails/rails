@@ -383,8 +383,8 @@ rake db:create          # Create the database from config/database.yml for the c
 rake log:clear          # Truncates all *.log files in log/ to zero bytes (specify which logs with LOGS=test,development)
 rake middleware         # Prints out your Rack middleware stack
 ...
-rake tmp:clear          # Clear session, cache, and socket files from tmp/ (narrow w/ tmp:sessions:clear, tmp:cache:clear, tmp:sockets:clear)
-rake tmp:create         # Creates tmp directories for sessions, cache, sockets, and pids
+rake tmp:clear          # Clear cache and socket files from tmp/ (narrow w/ tmp:cache:clear, tmp:sockets:clear)
+rake tmp:create         # Creates tmp directories for cache, sockets, and pids
 ```
 INFO: You can also use `rake -T`  to get the list of tasks.
 
@@ -496,15 +496,14 @@ Rails comes with a test suite called Minitest. Rails owes its stability to the u
 
 ### `tmp`
 
-The `Rails.root/tmp` directory is, like the *nix /tmp directory, the holding place for temporary files like sessions (if you're using a file store for sessions), process id files, and cached actions.
+The `Rails.root/tmp` directory is, like the *nix /tmp directory, the holding place for temporary files like process id files and cached actions.
 
 The `tmp:` namespaced tasks will help you clear and create the `Rails.root/tmp` directory:
 
 * `rake tmp:cache:clear` clears `tmp/cache`.
-* `rake tmp:sessions:clear` clears `tmp/sessions`.
 * `rake tmp:sockets:clear` clears `tmp/sockets`.
-* `rake tmp:clear` clears all the three: cache, sessions and sockets.
-* `rake tmp:create` creates tmp directories for sessions, cache, sockets, and pids.
+* `rake tmp:clear` clears all cache and sockets files.
+* `rake tmp:create` creates tmp directories for cache, sockets and pids.
 
 ### Miscellaneous
 
