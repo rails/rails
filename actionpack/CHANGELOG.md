@@ -1,3 +1,7 @@
+*   Remove deprecated `ActionDispatch::Http::Parameters#symbolized_path_parameters`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated option `use_route` in controller tests.
 
     *Rafael Mendonça França*
