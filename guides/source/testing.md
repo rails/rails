@@ -1098,9 +1098,10 @@ require 'test_helper'
 class UserMailerTest < ActionMailer::TestCase
   test "invite" do
     # Send the email, then test that it got queued
-    email = UserMailer.create_invite('me@example.com',
-                                     'friend@example.com', Time.now).deliver_now
-    assert ActionMailer::Base.deliveries.present?
+    assert_emails 1 do
+      email = UserMailer.create_invite('me@example.com',
+                                       'friend@example.com', Time.now).deliver_now
+    end
 
     # Test the body of the sent email contains what we expect it to
     assert_equal ['me@example.com'], email.from
