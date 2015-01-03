@@ -1,3 +1,7 @@
+*   Fix n+1 query problem when eager loading nil associations (fixes #18312)
+
+    *Sammy Larbi*
+
 *   Clear query cache on rollback.
 
     *Florian Weingarten*
