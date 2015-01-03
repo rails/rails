@@ -1,3 +1,15 @@
+*   Allow passing of a Class for STI subclass assignment.
+
+        # Before
+        # NoMethodError: undefined method `safe_constantize' for #<Class>
+        Post.new(type: SpecialPost)
+
+        # After
+        # Post initialized as SpecialPost
+        Post.new(type: SpecialPost).class # => SpecialPost
+
+    *Alex Robbin*
+
 *   Clear query cache on rollback.
 
     *Florian Weingarten*

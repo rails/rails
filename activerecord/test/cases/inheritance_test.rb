@@ -100,6 +100,11 @@ class InheritanceTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::SubclassNotFound) { Company.find(100) }
   end
 
+  def test_inheritance_assign_type_attribute_with_class
+    post = Post.new(type: SpecialPost)
+    assert_kind_of SpecialPost, post
+  end
+
   def test_inheritance_find
     assert_kind_of Firm, Company.find(1), "37signals should be a firm"
     assert_kind_of Firm, Firm.find(1), "37signals should be a firm"
