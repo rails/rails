@@ -182,22 +182,6 @@ module AbstractController
       end
     end
 
-    class DeprecatedParentPrefixes < OverridingLocalPrefixes
-      def self.parent_prefixes
-        ["abstract_controller/testing/me3"]
-      end
-    end
-
-    class DeprecatedParentPrefixesTest < ActiveSupport::TestCase # TODO: remove me in 5.0/4.3.
-      test "overriding .parent_prefixes is deprecated" do
-        @controller = DeprecatedParentPrefixes.new
-        assert_deprecated do
-          @controller.process(:index)
-        end
-        assert_equal "Hello from me3/index.erb", @controller.response_body
-      end
-    end
-
     # Test rendering with layouts
     # ====
     # self._layout is used when defined

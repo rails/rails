@@ -1,3 +1,7 @@
+*   Remove deprecated `AbstractController::Base::parent_prefixes`.
+
+    *Rafael Mendonça França*
+
 *   Default translations that have a lower precedence than a html safe default,
     but are not themselves safe, should not be marked as html_safe.
 
