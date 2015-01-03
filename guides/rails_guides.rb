@@ -24,11 +24,11 @@ begin
   require 'redcarpet'
 rescue LoadError
   # This can happen if doc:guides is executed in an application.
-  $stderr.puts('Generating guides requires Redcarpet 3.1.2+.')
+  $stderr.puts('Generating guides requires Redcarpet 3.2.2+.')
   $stderr.puts(<<ERROR) if bundler?
 Please add
 
-  gem 'redcarpet', '~> 3.1.2'
+  gem 'redcarpet', '~> 3.2.2'
 
 to the Gemfile, run
 
