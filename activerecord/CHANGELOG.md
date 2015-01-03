@@ -1,3 +1,7 @@
+*   Fix n+1 query problem when eager loading nil associations (fixes #18312)
+
+    *Sammy Larbi*
+
 *   Fixed an error which would occur in dirty checking when calling
     `update_attributes` from a getter.
 
