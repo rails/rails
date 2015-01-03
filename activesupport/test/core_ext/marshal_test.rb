@@ -8,7 +8,7 @@ class MarshalTest < ActiveSupport::TestCase
 
   def teardown
     ActiveSupport::Dependencies.clear
-    remove_constants(:E, :ClassFolder)
+    remove_constants(:E, :ClassFolder, :SomeAbstractParent, :SomeParent)
   end
 
   test "that Marshal#load still works" do
@@ -119,6 +119,27 @@ class MarshalTest < ActiveSupport::TestCase
       with_autoloading_fixtures do
         assert_kind_of E, Marshal.load(f)
       end
+    end
+  end
+
+  test "that loading a abstract nested class raises an error" do
+    dumped = nil
+    class SomeAbstractParent
+      class SomeChild
+      end
+    end
+
+    class SomeParent < SomeAbstractParent
+      class SomeChild
+      end
+    end
+
+    dumped = Marshal.dump(SomeParent::SomeChild.new)
+
+    SomeParent.send(:remove_const, :SomeChild)
+
+    assert_raise(ArgumentError) do
+      Marshal.load(dumped)
     end
   end
 end
