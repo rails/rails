@@ -63,9 +63,12 @@ class Object
     try!(*a, &b) if a.empty? || respond_to?(a.first)
   end
 
-  # Same as #try, but will raise a NoMethodError exception if the receiver is not +nil+ and
-  # does not implement the tried method.
-  
+  # Same as #try, but will raise a NoMethodError exception if the receiver is
+  # not +nil+ and does not implement the tried method.
+  #
+  #   "a".try!(:upcase) # => "A"
+  #   nil.try!(:upcase) # => nil
+  #   123.try!(:upcase) # => NoMethodError: undefined method `upcase' for 123:Fixnum
   def try!(*a, &b)
     if a.empty? && block_given?
       if b.arity.zero?
@@ -94,6 +97,9 @@ class NilClass
     nil
   end
 
+  # Calling +try!+ on +nil+ always returns +nil+.
+  #
+  #   nil.try!(:name) # => nil
   def try!(*args)
     nil
   end

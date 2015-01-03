@@ -305,7 +305,6 @@ Active Job provides a way to catch exceptions raised during the execution of the
 job:
 
 ```ruby
-
 class GuestsCleanupJob < ActiveJob::Base
   queue_as :default
 

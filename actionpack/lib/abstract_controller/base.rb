@@ -12,7 +12,7 @@ module AbstractController
   class ActionNotFound < StandardError
   end
 
-  # <tt>AbstractController::Base</tt> is a low-level API. Nobody should be
+  # AbstractController::Base is a low-level API. Nobody should be
   # using it directly, and subclasses (like ActionController::Base) are
   # expected to provide their own +render+ method, since rendering means
   # different things depending on the context.
@@ -69,9 +69,9 @@ module AbstractController
 
       # A list of method names that should be considered actions. This
       # includes all public instance methods on a controller, less
-      # any internal methods (see #internal_methods), adding back in
+      # any internal methods (see internal_methods), adding back in
       # any methods that are internal, but still exist on the class
-      # itself. Finally, #hidden_actions are removed.
+      # itself. Finally, hidden_actions are removed.
       #
       # ==== Returns
       # * <tt>Set</tt> - A set of all methods that should be considered actions.
@@ -92,15 +92,19 @@ module AbstractController
       end
 
       # action_methods are cached and there is sometimes need to refresh
-      # them. clear_action_methods! allows you to do that, so next time
+      # them. ::clear_action_methods! allows you to do that, so next time
       # you run action_methods, they will be recalculated
       def clear_action_methods!
         @action_methods = nil
       end
 
       # Returns the full controller name, underscored, without the ending Controller.
-      # For instance, MyApp::MyPostsController would return "my_app/my_posts" for
-      # controller_path.
+      #
+      #   class MyApp
+      #     MyPostsController < AbstractController::Base
+      #     end
+      #   end
+      #   MyApp::MyPostsController.controller_path # => "my_app/my_posts"
       #
       # ==== Returns
       # * <tt>String</tt>
@@ -137,12 +141,12 @@ module AbstractController
       process_action(action_name, *args)
     end
 
-    # Delegates to the class' #controller_path
+    # Delegates to the class' ::controller_path
     def controller_path
       self.class.controller_path
     end
 
-    # Delegates to the class' #action_methods
+    # Delegates to the class' ::action_methods
     def action_methods
       self.class.action_methods
     end

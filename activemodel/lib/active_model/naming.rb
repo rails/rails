@@ -211,7 +211,7 @@ module ActiveModel
   #   BookModule::BookCover.model_name.i18n_key  # => :"book_module/book_cover"
   #
   # Providing the functionality that ActiveModel::Naming provides in your object
-  # is required to pass the Active Model Lint test. So either extending the
+  # is required to pass the \Active \Model Lint test. So either extending the
   # provided method below, or rolling your own is required.
   module Naming
     def self.extended(base) #:nodoc:

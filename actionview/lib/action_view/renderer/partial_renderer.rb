@@ -73,7 +73,7 @@ module ActionView
   #
   #   <%= render partial: "account", locals: { user: @buyer } %>
   #
-  # == Rendering a collection of partials
+  # == \Rendering a collection of partials
   #
   # The example of partial use describes a familiar pattern where a template needs to iterate over an array and
   # render a sub template for each of the elements. This pattern has been implemented as a single method that
@@ -105,7 +105,7 @@ module ActionView
   # NOTE: Due to backwards compatibility concerns, the collection can't be one of hashes. Normally you'd also
   # just keep domain objects, like Active Records, in there.
   #
-  # == Rendering shared partials
+  # == \Rendering shared partials
   #
   # Two controllers can share a set of partials and render them like this:
   #
@@ -113,7 +113,7 @@ module ActionView
   #
   # This will render the partial "advertisement/_ad.html.erb" regardless of which controller this is being called from.
   #
-  # == Rendering objects that respond to `to_partial_path`
+  # == \Rendering objects that respond to `to_partial_path`
   #
   # Instead of explicitly naming the location of a partial, you can also let PartialRenderer do the work
   # and pick the proper path by checking `to_partial_path` method.
@@ -127,7 +127,7 @@ module ActionView
   #  # <%= render partial: "posts/post", collection: @posts %>
   #  <%= render partial: @posts %>
   #
-  # == Rendering the default case
+  # == \Rendering the default case
   #
   # If you're not going to be using any of the options like collections or layouts, you can also use the short-hand
   # defaults of render to render partials. Examples:
@@ -147,7 +147,7 @@ module ActionView
   #  # <%= render partial: "posts/post", collection: @posts %>
   #  <%= render @posts %>
   #
-  # == Rendering partials with layouts
+  # == \Rendering partials with layouts
   #
   # Partials can have their own layouts applied to them. These layouts are different than the ones that are
   # specified globally for the entire action, but they work in a similar fashion. Imagine a list with two types
