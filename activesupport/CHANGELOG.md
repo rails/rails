@@ -1,3 +1,7 @@
+*   Remove deprecated `ActiveSupport::SafeBuffer#prepend`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated methods at `Kernel`.
 
     `silence_stderr`, `silence_stream`, `capture` and `quietly`.
