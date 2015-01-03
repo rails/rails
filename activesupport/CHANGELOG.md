@@ -1,3 +1,9 @@
+*   Remove deprecated methods at `Kernel`.
+
+    `silence_stderr`, `silence_stream`, `capture` and `quietly`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `active_support/core_ext/big_decimal/yaml_conversions`
     file.
 
