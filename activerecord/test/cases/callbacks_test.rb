@@ -49,6 +49,19 @@ class CallbackDeveloperWithFalseValidation < CallbackDeveloper
   before_validation proc { |model| model.history << [:before_validation, :should_never_get_here] }
 end
 
+class DeveloperWithAfterAndAroundCallbackReturningFalse < ActiveRecord::Base
+  self.table_name = 'developers'
+
+  def history
+    @history ||= []
+  end
+
+  after_save proc  { |model| model.history << [:after_save, :returning_false]; false }
+  after_save proc  { |model| model.history << [:after_save, :will_get_here] }
+  around_save proc { |model, block| model.history << [:around_save, :returning_false]; block.call; false }
+  around_save proc { |model, block| model.history << [:around_save, :will_get_here]; block.call }
+end
+
 class ParentDeveloper < ActiveRecord::Base
   self.table_name = 'developers'
   attr_accessor :after_save_called
@@ -475,6 +488,17 @@ class CallbacksTest < ActiveRecord::TestCase
       [ :after_rollback, :proc   ],
       [ :after_rollback, :string ],
       [ :after_rollback, :method ],
+    ], david.history
+  end
+
+  def test_after_callbacks_and_around_callbacks_returning_false
+    david = DeveloperWithAfterAndAroundCallbackReturningFalse.find(1)
+    david.save
+    assert_equal [
+      [:around_save, :returning_false],
+      [:around_save, :will_get_here],
+      [:after_save, :returning_false],
+      [:after_save, :will_get_here]
     ], david.history
   end
 
