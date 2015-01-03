@@ -1,3 +1,7 @@
+*   Remove deprecated `NamedRouteCollection#helpers`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated support to define routes with `:to` option that doesn't contain `#`.
 
     *Rafael Mendonça França*

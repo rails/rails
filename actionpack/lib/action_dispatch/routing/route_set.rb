@@ -102,14 +102,6 @@ module ActionDispatch
           @path_helpers.include?(key) || @url_helpers.include?(key)
         end
 
-        def helpers
-          ActiveSupport::Deprecation.warn(<<-MSG.squish)
-            `named_routes.helpers` is deprecated, please use `route_defined?(route_name)`
-            to see if a named route was defined.
-          MSG
-          @path_helpers + @url_helpers
-        end
-
         def helper_names
           @path_helpers.map(&:to_s) + @url_helpers.map(&:to_s)
         end
