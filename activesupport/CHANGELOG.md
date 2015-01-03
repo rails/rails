@@ -1,3 +1,7 @@
+*   Remove deprecated `ActiveSupport::JSON::Encoding::CircularReferenceError`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated methods `ActiveSupport::JSON::Encoding.encode_big_decimal_as_string=`
     and `ActiveSupport::JSON::Encoding.encode_big_decimal_as_string`.
 

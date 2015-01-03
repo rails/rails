@@ -176,30 +176,6 @@ class TestJSONEncoding < ActiveSupport::TestCase
     assert_equal "𐒑", decoded_hash['string']
   end
 
-  def test_exception_raised_when_encoding_circular_reference_in_array
-    a = [1]
-    a << a
-    assert_deprecated do
-      assert_raise(ActiveSupport::JSON::Encoding::CircularReferenceError) { ActiveSupport::JSON.encode(a) }
-    end
-  end
-
-  def test_exception_raised_when_encoding_circular_reference_in_hash
-    a = { :name => 'foo' }
-    a[:next] = a
-    assert_deprecated do
-      assert_raise(ActiveSupport::JSON::Encoding::CircularReferenceError) { ActiveSupport::JSON.encode(a) }
-    end
-  end
-
-  def test_exception_raised_when_encoding_circular_reference_in_hash_inside_array
-    a = { :name => 'foo', :sub => [] }
-    a[:sub] << a
-    assert_deprecated do
-      assert_raise(ActiveSupport::JSON::Encoding::CircularReferenceError) { ActiveSupport::JSON.encode(a) }
-    end
-  end
-
   def test_hash_key_identifiers_are_always_quoted
     values = {0 => 0, 1 => 1, :_ => :_, "$" => "$", "a" => "a", :A => :A, :A0 => :A0, "A0B" => "A0B"}
     assert_equal %w( "$" "A" "A0" "A0B" "_" "a" "0" "1" ).sort, object_keys(ActiveSupport::JSON.encode(values))

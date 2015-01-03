@@ -112,28 +112,6 @@ module ActiveSupport
         # Sets the encoder used by Rails to encode Ruby objects into JSON strings
         # in +Object#to_json+ and +ActiveSupport::JSON.encode+.
         attr_accessor :json_encoder
-
-        # Deprecate CircularReferenceError
-        def const_missing(name)
-          if name == :CircularReferenceError
-            message = "The JSON encoder in Rails 4.1 no longer offers protection from circular references. " \
-                      "You are seeing this warning because you are rescuing from (or otherwise referencing) " \
-                      "ActiveSupport::Encoding::CircularReferenceError. In the future, this error will be " \
-                      "removed from Rails. You should remove these rescue blocks from your code and ensure " \
-                      "that your data structures are free of circular references so they can be properly " \
-                      "serialized into JSON.\n\n" \
-                      "For example, the following Hash contains a circular reference to itself:\n" \
-                      "   h = {}\n" \
-                      "   h['circular'] = h\n" \
-                      "In this case, calling h.to_json would not work properly."
-
-            ActiveSupport::Deprecation.warn message
-
-            SystemStackError
-          else
-            super
-          end
-        end
       end
 
       self.use_standard_json_time_format = true
