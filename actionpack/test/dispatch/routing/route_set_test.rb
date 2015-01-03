@@ -128,26 +128,6 @@ module ActionDispatch
         assert_equal '/a/users/1', url_helpers.user_path(1, foo: 'a')
       end
 
-      test "stringified controller and action keys are properly symbolized" do
-        draw do
-          root 'foo#bar'
-        end
-
-        assert_deprecated do
-          assert_equal '/', url_helpers.root_path('controller' => 'foo', 'action' => 'bar')
-        end
-      end
-
-      test "mix of string and symbol keys are properly symbolized" do
-        draw do
-          root 'foo#bar'
-        end
-
-        assert_deprecated do
-          assert_equal '/', url_helpers.root_path('controller' => 'foo', :action => 'bar')
-        end
-      end
-
       private
         def draw(&block)
           @set.draw(&block)

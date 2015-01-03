@@ -1,3 +1,7 @@
+*   Remove deprecated usage of string keys in URL helpers.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `only_path` option on `*_path` helpers.
 
     *Rafael Mendonça França*
