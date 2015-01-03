@@ -753,10 +753,8 @@ class ArticlesControllerTest < ActionController::TestCase
 
   # called after every single test
   def teardown
-    # as we are re-initializing @article before every test
-    # setting it to nil here is not essential but I hope
-    # you understand how you can use the teardown method
-    @article = nil
+    # when controller is using cache it may be a good idea to reset it afterwards
+    Rails.cache.clear
   end
 
   test "should show article" do
