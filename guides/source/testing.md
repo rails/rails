@@ -782,6 +782,41 @@ end
 
 Similar to other callbacks in Rails, the `setup` and `teardown` methods can also be used by passing a block, lambda, or method name as a symbol to call.
 
+### Test helpers
+
+To avoid code duplication, you can add your own test helpers.
+Sign in helper can be a good example:
+
+```ruby
+test/test_helper.rb
+
+module SignInHelper
+  def sign_in(user)
+    session[:user_id] = user.id
+  end
+end
+
+class ActionController::TestCase
+  include SignInHelper
+end
+```
+
+```ruby
+require 'test_helper'
+
+class ProfileControllerTest < ActionController::TestCase
+
+  test "should show profile" do
+    # helper is now reusable from any controller test case
+    sign_in users(:david)
+
+    get :show
+    assert_response :success
+    assert_equal users(:david), assigns(:user)
+  end
+end
+```
+
 Testing Routes
 --------------
 
