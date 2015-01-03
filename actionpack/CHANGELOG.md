@@ -1,3 +1,7 @@
+*   Remove deprecated `only_path` option on `*_path` helpers.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `NamedRouteCollection#helpers`.
 
     *Rafael Mendonça França*

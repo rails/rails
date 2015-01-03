@@ -105,50 +105,6 @@ module ActionDispatch
         assert_equal 'http://example.com/foo', url_helpers.foo_url(only_path: false)
       end
 
-      test "only_path: true with *_path" do
-        draw do
-          get 'foo', to: SimpleApp.new('foo#index')
-        end
-
-        assert_deprecated do
-          assert_equal '/foo', url_helpers.foo_path(only_path: true)
-        end
-      end
-
-      test "only_path: false with *_path with global :host option" do
-        @set.default_url_options = { host: 'example.com' }
-
-        draw do
-          get 'foo', to: SimpleApp.new('foo#index')
-        end
-
-        assert_deprecated do
-          assert_equal 'http://example.com/foo', url_helpers.foo_path(only_path: false)
-        end
-      end
-
-      test "only_path: false with *_path with local :host option" do
-        draw do
-          get 'foo', to: SimpleApp.new('foo#index')
-        end
-
-        assert_deprecated do
-          assert_equal 'http://example.com/foo', url_helpers.foo_path(only_path: false, host: 'example.com')
-        end
-      end
-
-      test "only_path: false with *_path with no :host option" do
-        draw do
-          get 'foo', to: SimpleApp.new('foo#index')
-        end
-
-        assert_deprecated do
-          assert_raises ArgumentError do
-            assert_equal 'http://example.com/foo', url_helpers.foo_path(only_path: false)
-          end
-        end
-      end
-
       test "explicit keys win over implicit keys" do
         draw do
           resources :foo do
