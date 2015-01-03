@@ -85,8 +85,7 @@ class TimeZoneTest < ActiveSupport::TestCase
 
   def test_unknown_timezones_delegation_to_tzinfo
     zone = ActiveSupport::TimeZone['America/Montevideo']
-    assert_equal ActiveSupport::TimeZone, zone.class
-    assert_equal zone.object_id, ActiveSupport::TimeZone['America/Montevideo'].object_id
+    assert_equal zone, ActiveSupport::TimeZone['America/Montevideo']
     assert_equal Time.utc(2010, 1, 31, 22), zone.utc_to_local(Time.utc(2010, 2)) # daylight saving offset -0200
     assert_equal Time.utc(2010, 3, 31, 21), zone.utc_to_local(Time.utc(2010, 4)) # standard offset -0300
   end
@@ -403,7 +402,7 @@ class TimeZoneTest < ActiveSupport::TestCase
 
   def test_unknown_zones_dont_store_mapping_keys
     ActiveSupport::TimeZone["bogus"]
-    assert !ActiveSupport::TimeZone.zones_map.key?("bogus")
+    assert ActiveSupport::TimeZone.all.none? {|place| place.name == "bogus" }
   end
 
   def test_new
@@ -413,5 +412,16 @@ class TimeZoneTest < ActiveSupport::TestCase
   def test_us_zones
     assert ActiveSupport::TimeZone.us_zones.include?(ActiveSupport::TimeZone["Hawaii"])
     assert !ActiveSupport::TimeZone.us_zones.include?(ActiveSupport::TimeZone["Kuala Lumpur"])
+  end
+
+  def test_not_populate_all_after_access
+    klass = ActiveSupport::TimeZone.dup # reset cache (ivars)
+    assert klass['America/Chicago']
+    assert klass.all.none? {|it| it.name == 'America/Chicago' }
+  end
+
+  def test_deprecated_zones_map
+    zones = assert_deprecated { ActiveSupport::TimeZone.zones_map }
+    assert_equal zones['Rome'], ActiveSupport::TimeZone['Rome']
   end
 end

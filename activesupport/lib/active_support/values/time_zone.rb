@@ -2,6 +2,7 @@ require 'tzinfo'
 require 'thread_safe'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/object/try'
+require 'active_support/deprecation'
 
 module ActiveSupport
   # The TimeZone class serves as a wrapper around TZInfo::Timezone instances.
@@ -186,8 +187,6 @@ module ActiveSupport
     UTC_OFFSET_WITH_COLON = '%s%02d:%02d'
     UTC_OFFSET_WITHOUT_COLON = UTC_OFFSET_WITH_COLON.tr(':', '')
 
-    @lazy_zones_map = ThreadSafe::Cache.new
-
     class << self
       # Assumes self represents an offset from UTC in seconds (as returned from
       # Time#utc_offset) and turns this into an +HH:MM formatted string.
@@ -218,15 +217,13 @@ module ActiveSupport
       # TimeZone objects per time zone, in many cases, to make it easier
       # for users to find their own time zone.
       def all
-        @zones ||= zones_map.values.sort
+        @all ||= MAPPING.keys.map {|place| self[place] }.sort
       end
 
       def zones_map
-        @zones_map ||= begin
-          MAPPING.each_key {|place| self[place]} # load all the zones
-          @lazy_zones_map
-        end
+        Hash[all.map {|place| [place.name, place] }]
       end
+      deprecate :zones_map
 
       # Locate a specific time zone object. If the argument is a string, it
       # is interpreted to mean the name of the timezone to locate. If it is a
@@ -237,7 +234,7 @@ module ActiveSupport
         case arg
           when String
           begin
-            @lazy_zones_map[arg] ||= create(arg)
+            create(arg)
           rescue TZInfo::InvalidTimezoneIdentifier
             nil
           end
@@ -273,12 +270,7 @@ module ActiveSupport
 
     # Returns the offset of this time zone from UTC in seconds.
     def utc_offset
-      if @utc_offset
-        @utc_offset
-      else
-        @current_period ||= tzinfo.current_period if tzinfo
-        @current_period.utc_offset if @current_period
-      end
+      @utc_offset ||= tzinfo.current_period.utc_offset 
     end
 
     # Returns the offset of this time zone as a formatted string, of the
