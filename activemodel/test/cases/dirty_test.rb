@@ -181,23 +181,6 @@ class DirtyTest < ActiveModel::TestCase
     assert_equal ActiveSupport::HashWithIndifferentAccess.new, @model.changed_attributes
   end
 
-  test "reset_changes is deprecated" do
-    @model.name = 'Dmitry'
-    @model.name_changed?
-    @model.save
-    @model.name = 'Bob'
-
-    assert_equal [nil, 'Dmitry'], @model.previous_changes['name']
-    assert_equal 'Dmitry', @model.changed_attributes['name']
-
-    assert_deprecated do
-      @model.deprecated_reload
-    end
-
-    assert_equal ActiveSupport::HashWithIndifferentAccess.new, @model.previous_changes
-    assert_equal ActiveSupport::HashWithIndifferentAccess.new, @model.changed_attributes
-  end
-
   test "restore_attributes should restore all previous data" do
     @model.name = 'Dmitry'
     @model.color = 'Red'
