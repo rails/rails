@@ -1,3 +1,8 @@
+*   Remove deprecated `active_support/core_ext/big_decimal/yaml_conversions`
+    file.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated methods `ActiveSupport::Cache::Store.instrument` and
     `ActiveSupport::Cache::Store.instrument=`.
 
