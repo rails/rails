@@ -1,3 +1,7 @@
+*   Remove deprecated `deliver` and `deliver!` methods.
+
+    *claudiob*
+
 *   Template lookup now respects default locale and I18n fallbacks.
 
     Given the following templates:
