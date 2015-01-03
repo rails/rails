@@ -1,3 +1,7 @@
+*   Generated fixtures won't use the id when generated with references attributes.
+
+    *Pablo Olmos de Aguilera Corradini*
+
 *   Add `--skip-action-mailer` option to the app generator.
 
     *claudiob*
