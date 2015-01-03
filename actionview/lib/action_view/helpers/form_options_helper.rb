@@ -569,6 +569,10 @@ module ActionView
         zone_options = "".html_safe
 
         zones = model.all
+        if selected and zones.none? {|zone| zone.name == selected }
+          raise ArgumentError, "#{model}.all does not contain #{selected}"
+        end
+
         convert_zones = lambda { |list| list.map { |z| [ z.to_s, z.name ] } }
 
         if priority_zones

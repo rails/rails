@@ -389,13 +389,9 @@ class FormOptionsHelperTest < ActionView::TestCase
   end
 
   def test_time_zone_options_with_unknown_selected
-    opts = time_zone_options_for_select( "K" )
-    assert_dom_equal "<option value=\"A\">A</option>\n" +
-                 "<option value=\"B\">B</option>\n" +
-                 "<option value=\"C\">C</option>\n" +
-                 "<option value=\"D\">D</option>\n" +
-                 "<option value=\"E\">E</option>",
-                 opts
+    assert_raise ArgumentError do
+      time_zone_options_for_select( "K" )
+    end
   end
 
   def test_time_zone_options_with_priority_zones
