@@ -1,3 +1,8 @@
+*   Remove deprecated methods `ActiveSupport::JSON::Encoding.encode_big_decimal_as_string=`
+    and `ActiveSupport::JSON::Encoding.encode_big_decimal_as_string`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `ActiveSupport::SafeBuffer#prepend`.
 
     *Rafael Mendonça França*
