@@ -87,7 +87,7 @@ module ActionDispatch
       # named routes.
       class NamedRouteCollection #:nodoc:
         include Enumerable
-        attr_reader :routes, :url_helpers_module
+        attr_reader :routes, :url_helpers_module, :path_helpers_module
 
         def initialize
           @routes  = {}
@@ -160,25 +160,6 @@ module ActionDispatch
 
         def length
           routes.length
-        end
-
-        def path_helpers_module(warn = false)
-          if warn
-            mod = @path_helpers_module
-            helpers = @path_helpers
-            Module.new do
-              include mod
-
-              helpers.each do |meth|
-                define_method(meth) do |*args, &block|
-                  ActiveSupport::Deprecation.warn("The method `#{meth}` cannot be used here as a full URL is required. Use `#{meth.to_s.sub(/_path$/, '_url')}` instead")
-                  super(*args, &block)
-                end
-              end
-            end
-          else
-            @path_helpers_module
-          end
         end
 
         class UrlHelper # :nodoc:
@@ -500,12 +481,10 @@ module ActionDispatch
 
           if supports_path
             path_helpers = routes.named_routes.path_helpers_module
-          else
-            path_helpers = routes.named_routes.path_helpers_module(true)
-          end
 
-          include path_helpers
-          extend path_helpers
+            include path_helpers
+            extend path_helpers
+          end
 
           # plus a singleton class method called _routes ...
           included do

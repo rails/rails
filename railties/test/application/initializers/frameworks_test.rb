@@ -65,7 +65,6 @@ module ApplicationTests
       RUBY
 
       require "#{app_path}/config/environment"
-      assert Foo.method_defined?(:foo_path)
       assert Foo.method_defined?(:foo_url)
       assert Foo.method_defined?(:main_app)
     end

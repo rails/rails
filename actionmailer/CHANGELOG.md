@@ -1,3 +1,7 @@
+*   Remove deprecate `*_path` helpers in email views.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `deliver` and `deliver!` methods.
 
     *claudiob*
