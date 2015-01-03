@@ -1,3 +1,7 @@
+*   Remove deprecated `ActionDispatch::Response#to_ary`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `ActionDispatch::Request#deep_munge`.
 
     *Rafael Mendonça França*
