@@ -1,3 +1,7 @@
+*   Remove deprecated assertion files.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated usage of string keys in URL helpers.
 
     *Rafael Mendonça França*
