@@ -63,20 +63,19 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     end
 
     # Views
-    %w(index edit new show _form).each do |view|
-      assert_file "app/views/product_lines/#{view}.html.erb"
-    end
     assert_no_file "app/views/layouts/product_lines.html.erb"
 
-    # Views local variables
-    assert_file "app/views/product_lines/_form.html.erb" do |test|
-      assert_no_match(/@product_line/, test)
+    %w(index show).each do |view|
+      assert_file "app/views/product_lines/#{view}.html.erb"
     end
 
     %w(edit new).each do |view|
-      assert_file "app/views/product_lines/#{view}.html.erb" do |test|
-        assert_match(/product_line: @product_line/, test)
-      end
+      assert_file "app/views/product_lines/#{view}.html.erb", /render 'form', product_line: @product_line/
+    end
+
+    assert_file "app/views/product_lines/_form.html.erb" do |test|
+      assert_match 'product_line', test
+      assert_no_match '@product_line', test
     end
 
     # Helpers
