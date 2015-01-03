@@ -63,7 +63,7 @@ class Object
     try!(*a, &b) if a.empty? || respond_to?(a.first)
   end
 
-  # Same as #try, but will raise a NoMethodError exception if the receiver is
+  # Same as #try, but raises a NoMethodError exception if the receiver is
   # not +nil+ and does not implement the tried method.
   #
   #   "a".try!(:upcase) # => "A"

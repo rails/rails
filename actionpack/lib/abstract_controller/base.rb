@@ -100,10 +100,10 @@ module AbstractController
 
       # Returns the full controller name, underscored, without the ending Controller.
       #
-      #   class MyApp
-      #     MyPostsController < AbstractController::Base
+      #   class MyApp::MyPostsController < AbstractController::Base
       #     end
       #   end
+      #
       #   MyApp::MyPostsController.controller_path # => "my_app/my_posts"
       #
       # ==== Returns

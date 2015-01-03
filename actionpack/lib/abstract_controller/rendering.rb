@@ -17,7 +17,7 @@ module AbstractController
     extend ActiveSupport::Concern
     include ActionView::ViewPaths
 
-    # Normalize arguments, options and then delegates render_to_body and
+    # Normalizes arguments, options and then delegates render_to_body and
     # sticks the result in <tt>self.response_body</tt>.
     # :api: public
     def render(*args, &block)
