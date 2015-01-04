@@ -323,4 +323,46 @@ class ErrorsTest < ActiveModel::TestCase
     person.errors.expects(:generate_message).with(:name, :blank, { message: 'custom' })
     person.errors.add_on_blank :name, message: 'custom'
   end
+
+  test "details returns added error detail" do
+    person = Person.new
+    person.errors.add(:name, :invalid)
+    assert_equal({ name: [{ error: :invalid }] }, person.errors.details)
+  end
+
+  test "details returns added error detail with custom option" do
+    person = Person.new
+    person.errors.add(:name, :greater_than, count: 5)
+    assert_equal({ name: [{ error: :greater_than, count: 5 }] }, person.errors.details)
+  end
+
+  test "details do not include message option" do
+    person = Person.new
+    person.errors.add(:name, :invalid, message: "is bad")
+    assert_equal({ name: [{ error: :invalid }] }, person.errors.details)
+  end
+
+  test "dup duplicates details" do
+    errors = ActiveModel::Errors.new(Person.new)
+    errors.add(:name, :invalid)
+    errors_dup = errors.dup
+    errors_dup.add(:name, :taken)
+    assert_not_same errors_dup.details, errors.details
+  end
+
+  test "delete removes details on given attribute" do
+    errors = ActiveModel::Errors.new(Person.new)
+    errors.add(:name, :invalid)
+    errors.delete(:name)
+    assert_empty errors.details[:name]
+  end
+
+  test "clear removes details" do
+    person = Person.new
+    person.errors.add(:name, :invalid)
+
+    assert_equal 1, person.errors.details.count
+    person.errors.clear
+    assert person.errors.details.empty?
+  end
 end

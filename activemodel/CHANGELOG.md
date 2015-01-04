@@ -1,7 +1,25 @@
+*   Add `ActiveModel::Errors#details`
+
+    To be able to return type of used validator, one can now call `details`
+    on Errors instance:
+
+    ```ruby
+    class User < ActiveRecord::Base
+      validates :name, presence: true
+    end
+    ```
+
+    ```ruby
+    user = User.new; user.valid?; user.errors.details
+    => {name: [{error: :blank}]}
+    ```
+
+    *Wojciech Wnętrzak*
+
 *   Change validates_acceptance_of to accept true by default.
 
     The default for validates_acceptance_of is now "1" and true.
-    In the past, only "1" was the default and you were required to add 
+    In the past, only "1" was the default and you were required to add
     accept: true.
 
 *   Remove deprecated `ActiveModel::Dirty#reset_#{attribute}` and
