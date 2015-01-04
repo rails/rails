@@ -1062,36 +1062,6 @@ module ApplicationTests
       end
     end
 
-    test "Blank config.log_level is not deprecated for non-production environment" do
-      with_rails_env "development" do
-        assert_not_deprecated do
-          make_basic_app do |application|
-            application.config.log_level = nil
-          end
-        end
-      end
-    end
-
-    test "Blank config.log_level is deprecated for the production environment" do
-      with_rails_env "production" do
-        assert_deprecated(/log_level/) do
-          make_basic_app do |application|
-            application.config.log_level = nil
-          end
-        end
-      end
-    end
-
-    test "Not blank config.log_level is not deprecated for the production environment" do
-      with_rails_env "production" do
-        assert_not_deprecated do
-          make_basic_app do |application|
-            application.config.log_level = :info
-          end
-        end
-      end
-    end
-
     test "config.log_level with custom logger" do
       make_basic_app do |application|
         application.config.logger = Logger.new(STDOUT)
