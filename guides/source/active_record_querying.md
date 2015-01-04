@@ -90,7 +90,7 @@ The primary operation of `Model.find(options)` can be summarized as:
 * Convert the supplied options to an equivalent SQL query.
 * Fire the SQL query and retrieve the corresponding results from the database.
 * Instantiate the equivalent Ruby object of the appropriate model for every resulting row.
-* Run `after_find` callbacks, if any.
+* Run `after_find` and then `after_initialize` callbacks, if any.
 
 ### Retrieving a Single Object
 
