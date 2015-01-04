@@ -8,15 +8,13 @@ require 'active_support/xml_mini'
 require 'active_support/core_ext/hash/conversions'
 
 class NokogiriSAXEngineTest < ActiveSupport::TestCase
-  include ActiveSupport
-
   def setup
-    @default_backend = XmlMini.backend
-    XmlMini.backend = 'NokogiriSAX'
+    @default_backend = ActiveSupport::XmlMini.backend
+    ActiveSupport::XmlMini.backend = 'NokogiriSAX'
   end
 
   def teardown
-    XmlMini.backend = @default_backend
+    ActiveSupport::XmlMini.backend = @default_backend
   end
 
   def test_file_from_xml
@@ -57,13 +55,13 @@ class NokogiriSAXEngineTest < ActiveSupport::TestCase
   end
 
   def test_setting_nokogirisax_as_backend
-    XmlMini.backend = 'NokogiriSAX'
-    assert_equal XmlMini_NokogiriSAX, XmlMini.backend
+    ActiveSupport::XmlMini.backend = 'NokogiriSAX'
+    assert_equal ActiveSupport::XmlMini_NokogiriSAX, ActiveSupport::XmlMini.backend
   end
 
   def test_blank_returns_empty_hash
-    assert_equal({}, XmlMini.parse(nil))
-    assert_equal({}, XmlMini.parse(''))
+    assert_equal({}, ActiveSupport::XmlMini.parse(nil))
+    assert_equal({}, ActiveSupport::XmlMini.parse(''))
   end
 
   def test_array_type_makes_an_array
@@ -208,9 +206,9 @@ class NokogiriSAXEngineTest < ActiveSupport::TestCase
 
   private
     def assert_equal_rexml(xml)
-      parsed_xml = XmlMini.parse(xml)
+      parsed_xml = ActiveSupport::XmlMini.parse(xml)
       xml.rewind if xml.respond_to?(:rewind)
-      hash = XmlMini.with_backend('REXML') { XmlMini.parse(xml) }
+      hash = ActiveSupport::XmlMini.with_backend('REXML') { ActiveSupport::XmlMini.parse(xml) }
       assert_equal(hash, parsed_xml)
     end
 end
