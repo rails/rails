@@ -1,3 +1,5 @@
+*   Remove deprecated `test:all` and `test:all:db` tasks.
+
 *   Remove deprecated `Rails::Rack::LogTailer`.
 
     *Rafael Mendonça França*
