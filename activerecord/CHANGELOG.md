@@ -1,3 +1,7 @@
+*   Remove deprecated `symbolized_base_class` and `symbolized_sti_name`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `ActiveRecord::Base.disable_implicit_join_references=`.
 
     *Rafael Mendonça França*
