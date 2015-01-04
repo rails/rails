@@ -1,3 +1,8 @@
+*   Remove `respond_to`/`respond_with` placeholder methods, this functionality
+    has been extracted to the `responders` gem.
+
+    *Carlos Antonio da Silva*
+
 *   Remove deprecated assertion files.
 
     *Rafael Mendonça França*
