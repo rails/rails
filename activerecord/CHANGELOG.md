@@ -1,3 +1,12 @@
+*   Change the behavior of boolean columns to be closer to Ruby's semantics.
+
+    Before this change we had a small set of "truthy", and all others are "falsy".
+
+    Now, we have a small set of "falsy" values and all others are "truthy" matching
+    Ruby's semantics.
+
+    *Rafael Mendonça França*
+
 *   Deprecate `ActiveRecord::Base.errors_in_transactional_callbacks=`.
 
     *Rafael Mendonça França*

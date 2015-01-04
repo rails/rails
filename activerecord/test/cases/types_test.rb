@@ -17,6 +17,10 @@ module ActiveRecord
         assert type.type_cast_from_user('TRUE')
         assert type.type_cast_from_user('on')
         assert type.type_cast_from_user('ON')
+        assert type.type_cast_from_user(' ')
+        assert type.type_cast_from_user("\u3000\r\n")
+        assert type.type_cast_from_user("\u0000")
+        assert type.type_cast_from_user('SOMETHING RANDOM')
 
         # explicitly check for false vs nil
         assert_equal false, type.type_cast_from_user(false)
@@ -28,12 +32,6 @@ module ActiveRecord
         assert_equal false, type.type_cast_from_user('FALSE')
         assert_equal false, type.type_cast_from_user('off')
         assert_equal false, type.type_cast_from_user('OFF')
-        assert_deprecated do
-          assert_equal false, type.type_cast_from_user(' ')
-          assert_equal false, type.type_cast_from_user("\u3000\r\n")
-          assert_equal false, type.type_cast_from_user("\u0000")
-          assert_equal false, type.type_cast_from_user('SOMETHING RANDOM')
-        end
       end
 
       def test_type_cast_float
