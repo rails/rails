@@ -71,7 +71,15 @@ module ActiveSupport
     NumberHelper.eager_load!
   end
 
-  cattr_accessor :test_order # :nodoc:
+  @@test_order = nil
+
+  def self.test_order=(new_order) # :nodoc:
+    @@test_order = new_order
+  end
+
+  def self.test_order # :nodoc:
+    @@test_order
+  end
 end
 
 autoload :I18n, "active_support/i18n"
