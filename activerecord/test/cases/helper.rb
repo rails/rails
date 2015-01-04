@@ -24,9 +24,6 @@ ActiveSupport::Deprecation.debug = true
 # Disable available locale checks to avoid warnings running the test suite.
 I18n.enforce_available_locales = false
 
-# Enable raise errors in after_commit and after_rollback.
-ActiveRecord::Base.raise_in_transactional_callbacks = true
-
 # Connect to the database
 ARTest.connect
 

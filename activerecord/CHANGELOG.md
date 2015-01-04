@@ -1,3 +1,16 @@
+*   Deprecate `ActiveRecord::Base.errors_in_transactional_callbacks=`.
+
+    *Rafael Mendonça França*
+
+*   Change transaction callbacks to not swallowing errors.
+
+    Before this change any error raised inside a transaction callback are
+    rescued and printed in the logs.
+
+    Now these errors are not rescue anymore and just bubble up, as the other callbacks.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `sanitize_sql_hash_for_conditions`.
 
     *Rafael Mendonça França*
