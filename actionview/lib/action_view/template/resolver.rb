@@ -1,7 +1,6 @@
 require "pathname"
 require "active_support/core_ext/class"
 require "active_support/core_ext/module/attribute_accessors"
-require 'active_support/core_ext/string/filters'
 require "action_view/template"
 require "thread"
 require "thread_safe"
@@ -251,12 +250,6 @@ module ActionView
       pieces.shift
 
       extension = pieces.pop
-      unless extension
-        ActiveSupport::Deprecation.warn(<<-MSG.squish)
-          The file #{path} did not specify a template handler. The default is
-          currently ERB, but will change to RAW in the future.
-        MSG
-      end
 
       handler = Template.handler_for_extension(extension)
       format, variant = pieces.last.split(EXTENSIONS[:variants], 2) if pieces.last

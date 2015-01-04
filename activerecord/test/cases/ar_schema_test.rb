@@ -93,69 +93,38 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert_equal "20131219224947", ActiveRecord::SchemaMigration.normalize_migration_number("20131219224947")
     end
 
-    def test_timestamps_without_null_is_deprecated_on_create_table
-      assert_deprecated do
-        ActiveRecord::Schema.define do
-          create_table :has_timestamps do |t|
-            t.timestamps
-          end
+    def test_timestamps_without_null_set_null_to_false_on_create_table
+      ActiveRecord::Schema.define do
+        create_table :has_timestamps do |t|
+          t.timestamps
         end
       end
+
+      assert !@connection.columns(:has_timestamps).find { |c| c.name == 'created_at' }.null
+      assert !@connection.columns(:has_timestamps).find { |c| c.name == 'updated_at' }.null
     end
 
-    def test_timestamps_without_null_is_deprecated_on_change_table
-      assert_deprecated do
-        ActiveRecord::Schema.define do
-          create_table :has_timestamps
+    def test_timestamps_without_null_set_null_to_false_on_change_table
+      ActiveRecord::Schema.define do
+        create_table :has_timestamps
 
-          change_table :has_timestamps do |t|
-            t.timestamps
-          end
+        change_table :has_timestamps do |t|
+          t.timestamps default: Time.now
         end
       end
+
+      assert !@connection.columns(:has_timestamps).find { |c| c.name == 'created_at' }.null
+      assert !@connection.columns(:has_timestamps).find { |c| c.name == 'updated_at' }.null
     end
 
-    def test_timestamps_without_null_is_deprecated_on_add_timestamps
-      assert_deprecated do
-        ActiveRecord::Schema.define do
-          create_table :has_timestamps
-          add_timestamps :has_timestamps
-        end
+    def test_timestamps_without_null_set_null_to_false_on_add_timestamps
+      ActiveRecord::Schema.define do
+        create_table :has_timestamps
+        add_timestamps :has_timestamps, default: Time.now
       end
-    end
 
-    def test_no_deprecation_warning_from_timestamps_on_create_table
-      assert_not_deprecated do
-        ActiveRecord::Schema.define do
-          create_table :has_timestamps do |t|
-            t.timestamps null: true
-          end
-
-          drop_table :has_timestamps
-
-          create_table :has_timestamps do |t|
-            t.timestamps null: false
-          end
-        end
-      end
-    end
-
-    def test_no_deprecation_warning_from_timestamps_on_change_table
-      assert_not_deprecated do
-        ActiveRecord::Schema.define do
-          create_table :has_timestamps
-          change_table :has_timestamps do |t|
-            t.timestamps null: true
-          end
-
-          drop_table :has_timestamps
-
-          create_table :has_timestamps
-          change_table :has_timestamps do |t|
-            t.timestamps null: false, default: Time.now
-          end
-        end
-      end
+      assert !@connection.columns(:has_timestamps).find { |c| c.name == 'created_at' }.null
+      assert !@connection.columns(:has_timestamps).find { |c| c.name == 'updated_at' }.null
     end
   end
 end

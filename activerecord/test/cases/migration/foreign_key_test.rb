@@ -29,7 +29,7 @@ module ActiveRecord
 
       teardown do
         if defined?(@connection)
-          @connection.drop_table "astronauts" if @connection.table_exists? 'astronauts' 
+          @connection.drop_table "astronauts" if @connection.table_exists? 'astronauts'
           @connection.drop_table "rockets" if @connection.table_exists? 'rockets'
         end
       end
@@ -219,6 +219,18 @@ module ActiveRecord
         assert_equal 1, @connection.foreign_keys("houses").size
       ensure
         silence_stream($stdout) { migration.migrate(:down) }
+      end
+
+      private
+
+      def silence_stream(stream)
+        old_stream = stream.dup
+        stream.reopen(RbConfig::CONFIG['host_os'] =~ /mswin|mingw/ ? 'NUL:' : '/dev/null')
+        stream.sync = true
+        yield
+      ensure
+        stream.reopen(old_stream)
+        old_stream.close
       end
     end
   end

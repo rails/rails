@@ -8,7 +8,6 @@ require 'active_support/core_ext/numeric/bytes'
 require 'active_support/core_ext/numeric/time'
 require 'active_support/core_ext/object/to_param'
 require 'active_support/core_ext/string/inflections'
-require 'active_support/deprecation'
 
 module ActiveSupport
   # See ActiveSupport::Cache::Store for documentation.
@@ -177,18 +176,6 @@ module ActiveSupport
         yield
       ensure
         @silence = previous_silence
-      end
-
-      # :deprecated:
-      def self.instrument=(boolean)
-        ActiveSupport::Deprecation.warn "ActiveSupport::Cache.instrument= is deprecated and will be removed in Rails 5. Instrumentation is now always on so you can safely stop using it."
-        true
-      end
-
-      # :deprecated:
-      def self.instrument
-        ActiveSupport::Deprecation.warn "ActiveSupport::Cache.instrument is deprecated and will be removed in Rails 5. Instrumentation is now always on so you can safely stop using it."
-        true
       end
 
       # Fetches data from the cache, using the given key. If there is data in

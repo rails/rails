@@ -1,3 +1,14 @@
+*   Change the default template handler from `ERB` to `Raw`.
+
+    Files without a template handler in their extension will be rended using the raw
+    handler instead of ERB.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `AbstractController::Base::parent_prefixes`.
+
+    *Rafael Mendonça França*
+
 *   Default translations that have a lower precedence than a html safe default,
     but are not themselves safe, should not be marked as html_safe.
 

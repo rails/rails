@@ -22,12 +22,6 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     end
   end
 
-  def test_list_of_serialized_attributes
-    assert_deprecated do
-      assert_equal %w(content), Topic.serialized_attributes.keys
-    end
-  end
-
   def test_serialized_attribute
     Topic.serialize("content", MyObject)
 

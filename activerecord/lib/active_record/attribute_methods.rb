@@ -192,7 +192,8 @@ module ActiveRecord
       end
 
       # Returns the column object for the named attribute.
-      # Returns nil if the named attribute does not exist.
+      # Returns a +ActiveRecord::ConnectionAdapters::NullColumn+ if the
+      # named attribute does not exist.
       #
       #   class Person < ActiveRecord::Base
       #   end
@@ -202,17 +203,12 @@ module ActiveRecord
       #   # => #<ActiveRecord::ConnectionAdapters::Column:0x007ff4ab083980 @name="name", @sql_type="varchar(255)", @null=true, ...>
       #
       #   person.column_for_attribute(:nothing)
-      #   # => nil
+      #   # => #<ActiveRecord::ConnectionAdapters::NullColumn:0xXXX @name=nil, @sql_type=nil, @cast_type=#<Type::Value>, ...>
       def column_for_attribute(name)
-        column = columns_hash[name.to_s]
-        if column.nil?
-          ActiveSupport::Deprecation.warn(<<-MSG.squish)
-            `#column_for_attribute` will return a null object for non-existent
-            columns in Rails 5. Use `#has_attribute?` if you need to check for
-            an attribute's existence.
-          MSG
+        name = name.to_s
+        columns_hash.fetch(name) do
+          ConnectionAdapters::NullColumn.new(name)
         end
-        column
       end
     end
 

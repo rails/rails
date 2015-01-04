@@ -5,7 +5,6 @@ module ActiveRecord
   module ConnectionAdapters
     # An abstract definition of a column in a table.
     class Column
-      TRUE_VALUES = [true, 1, '1', 't', 'T', 'true', 'TRUE', 'on', 'ON'].to_set
       FALSE_VALUES = [false, 0, '0', 'f', 'F', 'false', 'FALSE', 'off', 'OFF'].to_set
 
       module Format
@@ -75,6 +74,12 @@ module ActiveRecord
 
       def attributes_for_hash
         [self.class, name, default, cast_type, sql_type, null, default_function]
+      end
+    end
+
+    class NullColumn < Column
+      def initialize(name)
+        super name, nil, Type::Value.new
       end
     end
   end

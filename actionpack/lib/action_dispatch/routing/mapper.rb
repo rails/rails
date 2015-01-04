@@ -4,11 +4,9 @@ require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/enumerable'
 require 'active_support/core_ext/array/extract_options'
 require 'active_support/core_ext/module/remove_method'
-require 'active_support/core_ext/string/filters'
 require 'active_support/inflector'
 require 'action_dispatch/routing/redirection'
 require 'action_dispatch/routing/endpoint'
-require 'active_support/deprecation'
 
 module ActionDispatch
   module Routing
@@ -279,22 +277,8 @@ module ActionDispatch
           end
 
           def split_to(to)
-            case to
-            when Symbol
-              ActiveSupport::Deprecation.warn(<<-MSG.squish)
-                Defining a route where `to` is a symbol is deprecated.
-                Please change `to: :#{to}` to `action: :#{to}`.
-              MSG
-
-              [nil, to.to_s]
-            when /#/    then to.split('#')
-            when String
-              ActiveSupport::Deprecation.warn(<<-MSG.squish)
-                Defining a route where `to` is a controller without an action is deprecated.
-                Please change `to: :#{to}` to `controller: :#{to}`.
-              MSG
-
-              [to, nil]
+            if to =~ /#/
+              to.split('#')
             else
               []
             end

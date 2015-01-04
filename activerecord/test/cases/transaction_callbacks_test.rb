@@ -266,47 +266,6 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
     assert_equal 2, @first.rollbacks
   end
 
-  def test_after_transaction_callbacks_should_prevent_callbacks_from_being_called
-    old_transaction_config = ActiveRecord::Base.raise_in_transactional_callbacks
-    ActiveRecord::Base.raise_in_transactional_callbacks = false
-
-    def @first.last_after_transaction_error=(e); @last_transaction_error = e; end
-    def @first.last_after_transaction_error; @last_transaction_error; end
-    @first.after_commit_block{|r| r.last_after_transaction_error = :commit; raise "fail!";}
-    @first.after_rollback_block{|r| r.last_after_transaction_error = :rollback; raise "fail!";}
-
-    second = TopicWithCallbacks.find(3)
-    second.after_commit_block{|r| r.history << :after_commit}
-    second.after_rollback_block{|r| r.history << :after_rollback}
-
-    Topic.transaction do
-      @first.save!
-      second.save!
-    end
-    assert_equal :commit, @first.last_after_transaction_error
-    assert_equal [:after_commit], second.history
-
-    second.history.clear
-    Topic.transaction do
-      @first.save!
-      second.save!
-      raise ActiveRecord::Rollback
-    end
-    assert_equal :rollback, @first.last_after_transaction_error
-    assert_equal [:after_rollback], second.history
-  ensure
-    ActiveRecord::Base.raise_in_transactional_callbacks = old_transaction_config
-  end
-
-  def test_after_commit_should_not_raise_when_raise_in_transactional_callbacks_false
-    old_transaction_config = ActiveRecord::Base.raise_in_transactional_callbacks
-    ActiveRecord::Base.raise_in_transactional_callbacks = false
-    @first.after_commit_block{ fail "boom" }
-    Topic.transaction { @first.save! }
-  ensure
-    ActiveRecord::Base.raise_in_transactional_callbacks = old_transaction_config
-  end
-
   def test_after_commit_callback_should_not_swallow_errors
     @first.after_commit_block{ fail "boom" }
     assert_raises(RuntimeError) do

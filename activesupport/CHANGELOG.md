@@ -1,3 +1,36 @@
+*   Change the default test order from `:sorted` to `:random`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `ActiveSupport::JSON::Encoding::CircularReferenceError`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated methods `ActiveSupport::JSON::Encoding.encode_big_decimal_as_string=`
+    and `ActiveSupport::JSON::Encoding.encode_big_decimal_as_string`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `ActiveSupport::SafeBuffer#prepend`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated methods at `Kernel`.
+
+    `silence_stderr`, `silence_stream`, `capture` and `quietly`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `active_support/core_ext/big_decimal/yaml_conversions`
+    file.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated methods `ActiveSupport::Cache::Store.instrument` and
+    `ActiveSupport::Cache::Store.instrument=`.
+
+    *Rafael Mendonça França*
+
 *   Change the way in which callback chains can be halted.
 
     The preferred method to halt a callback chain from now on is to explicitly
@@ -7,7 +40,6 @@
     depending on the value of
     `Callbacks::CallbackChain.halt_and_display_warning_on_return_false`, will
     either not work at all or display a deprecation warning.
-
 
 *   Add Callbacks::CallbackChain.halt_and_display_warning_on_return_false
 

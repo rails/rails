@@ -25,7 +25,6 @@ module ActiveRecord
       autoload :TableDefinition
       autoload :Table
       autoload :AlterTable
-      autoload :TimestampDefaultDeprecation
     end
 
     autoload_at 'active_record/connection_adapters/abstract/connection_pool' do

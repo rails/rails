@@ -1,6 +1,5 @@
 require 'erb'
 require 'active_support/core_ext/kernel/singleton_class'
-require 'active_support/deprecation'
 
 class ERB
   module Util
@@ -188,11 +187,6 @@ module ActiveSupport #:nodoc:
 
     def prepend(value)
       super(html_escape_interpolated_argument(value))
-    end
-
-    def prepend!(value)
-      ActiveSupport::Deprecation.deprecation_warning "ActiveSupport::SafeBuffer#prepend!", :prepend
-      prepend value
     end
 
     def +(other)

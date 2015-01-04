@@ -1,3 +1,39 @@
+*   Remove deprecated assertion files.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated usage of string keys in URL helpers.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `only_path` option on `*_path` helpers.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `NamedRouteCollection#helpers`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated support to define routes with `:to` option that doesn't contain `#`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `ActionDispatch::Response#to_ary`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `ActionDispatch::Request#deep_munge`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `ActionDispatch::Http::Parameters#symbolized_path_parameters`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated option `use_route` in controller tests.
+
+    *Rafael Mendonça França*
+
 *   Ensure `append_info_to_payload` is called even if an exception is raised.
 
     Fixes an issue where when an exception is raised in the request the additonal

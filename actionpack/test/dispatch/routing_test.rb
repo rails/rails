@@ -3331,30 +3331,6 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal 'comments#index', @response.body
   end
 
-  def test_mix_symbol_to_controller_action
-    assert_deprecated do
-      draw do
-        get '/projects', controller: 'project_files',
-                         action: 'index',
-                         to: :show
-      end
-    end
-    get '/projects'
-    assert_equal 'project_files#show', @response.body
-  end
-
-  def test_mix_string_to_controller_action_no_hash
-    assert_deprecated do
-      draw do
-        get '/projects', controller: 'project_files',
-                         action: 'index',
-                         to: 'show'
-      end
-    end
-    get '/projects'
-    assert_equal 'show#index', @response.body
-  end
-
   def test_shallow_path_and_prefix_are_not_added_to_non_shallow_routes
     draw do
       scope shallow_path: 'projects', shallow_prefix: 'project' do
@@ -3629,15 +3605,13 @@ class TestNamespaceWithControllerOption < ActionDispatch::IntegrationTest
     assert_match(/Missing :controller/, ex.message)
   end
 
-  def test_missing_action
+  def test_missing_controller_with_to
     ex = assert_raises(ArgumentError) {
-      assert_deprecated do
-        draw do
-          get '/foo/bar', :to => 'foo'
-        end
+      draw do
+        get '/foo/bar', :to => 'foo'
       end
     }
-    assert_match(/Missing :action/, ex.message)
+    assert_match(/Missing :controller/, ex.message)
   end
 
   def test_missing_action_on_hash

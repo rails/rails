@@ -2,7 +2,6 @@ require 'rack/session/abstract/id'
 require 'active_support/core_ext/object/to_query'
 require 'active_support/core_ext/module/anonymous'
 require 'active_support/core_ext/hash/keys'
-require 'active_support/deprecation'
 
 require 'rails-dom-testing'
 
@@ -714,28 +713,7 @@ module ActionController
             :relative_url_root => nil,
             :_recall => @request.path_parameters)
 
-          if route_name = options.delete(:use_route)
-            ActiveSupport::Deprecation.warn <<-MSG.squish
-              Passing the `use_route` option in functional tests are deprecated.
-              Support for this option in the `process` method (and the related
-              `get`, `head`, `post`, `patch`, `put` and `delete` helpers) will
-              be removed in the next version without replacement.
-
-              Functional tests are essentially unit tests for controllers and
-              they should not require knowledge to how the application's routes
-              are configured. Instead, you should explicitly pass the appropiate
-              params to the `process` method.
-
-              Previously the engines guide also contained an incorrect example
-              that recommended using this option to test an engine's controllers
-              within the dummy application. That recommendation was incorrect
-              and has since been corrected. Instead, you should override the
-              `@routes` variable in the test case with `Foo::Engine.routes`. See
-              the updated engines guide for details.
-            MSG
-          end
-
-          url, query_string = @routes.path_for(options, route_name).split("?", 2)
+          url, query_string = @routes.path_for(options).split("?", 2)
 
           @request.env["SCRIPT_NAME"] = @controller.config.relative_url_root
           @request.env["PATH_INFO"] = url

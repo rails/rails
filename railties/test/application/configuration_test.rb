@@ -320,22 +320,6 @@ module ApplicationTests
       end
     end
 
-    test "config.serve_static_assets is deprecated" do
-      require "#{app_path}/config/application"
-
-      assert_deprecated(/serve_static_assets/) do
-        app.config.serve_static_assets = false
-      end
-
-      assert_not app.config.serve_static_files
-      assert_deprecated(/serve_static_assets/) { assert_not app.config.serve_static_assets }
-
-      app.config.serve_static_files = true
-
-      assert app.config.serve_static_files
-      assert_deprecated(/serve_static_assets/) { assert app.config.serve_static_assets }
-    end
-
     test "Use key_generator when secret_key_base is set" do
       make_basic_app do |application|
         application.secrets.secret_key_base = 'b3c631c314c0bbca50c1b2843150fe33'
@@ -1058,36 +1042,6 @@ module ApplicationTests
       assert_raise RuntimeError, /activerecord-session_store/ do
         make_basic_app do |application|
           application.config.session_store :active_record_store
-        end
-      end
-    end
-
-    test "Blank config.log_level is not deprecated for non-production environment" do
-      with_rails_env "development" do
-        assert_not_deprecated do
-          make_basic_app do |application|
-            application.config.log_level = nil
-          end
-        end
-      end
-    end
-
-    test "Blank config.log_level is deprecated for the production environment" do
-      with_rails_env "production" do
-        assert_deprecated(/log_level/) do
-          make_basic_app do |application|
-            application.config.log_level = nil
-          end
-        end
-      end
-    end
-
-    test "Not blank config.log_level is not deprecated for the production environment" do
-      with_rails_env "production" do
-        assert_not_deprecated do
-          make_basic_app do |application|
-            application.config.log_level = :info
-          end
         end
       end
     end

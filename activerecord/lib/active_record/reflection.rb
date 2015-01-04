@@ -153,15 +153,6 @@ module ActiveRecord
         JoinKeys.new(foreign_key, active_record_primary_key)
       end
 
-      def source_macro
-        ActiveSupport::Deprecation.warn(<<-MSG.squish)
-          ActiveRecord::Base.source_macro is deprecated and will be removed
-          without replacement.
-        MSG
-
-        macro
-      end
-
       def constraints
         scope_chain.flatten
       end
@@ -761,16 +752,6 @@ module ActiveRecord
 
       def join_keys(association_klass)
         source_reflection.join_keys(association_klass)
-      end
-
-      # The macro used by the source association
-      def source_macro
-        ActiveSupport::Deprecation.warn(<<-MSG.squish)
-          ActiveRecord::Base.source_macro is deprecated and will be removed
-          without replacement.
-        MSG
-
-        source_reflection.source_macro
       end
 
       # A through association is nested if there would be more than one join table

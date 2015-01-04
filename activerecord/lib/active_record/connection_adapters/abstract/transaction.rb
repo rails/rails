@@ -69,12 +69,7 @@ module ActiveRecord
       def rollback_records
         ite = records.uniq
         while record = ite.shift
-          begin
-            record.rolledback! full_rollback?
-          rescue => e
-            raise if ActiveRecord::Base.raise_in_transactional_callbacks
-            record.logger.error(e) if record.respond_to?(:logger) && record.logger
-          end
+          record.rolledback! full_rollback?
         end
       ensure
         ite.each do |i|
@@ -89,12 +84,7 @@ module ActiveRecord
       def commit_records
         ite = records.uniq
         while record = ite.shift
-          begin
-            record.committed!
-          rescue => e
-            raise if ActiveRecord::Base.raise_in_transactional_callbacks
-            record.logger.error(e) if record.respond_to?(:logger) && record.logger
-          end
+          record.committed!
         end
       ensure
         ite.each do |i|

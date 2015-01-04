@@ -1,3 +1,67 @@
+*   Change the behavior of boolean columns to be closer to Ruby's semantics.
+
+    Before this change we had a small set of "truthy", and all others are "falsy".
+
+    Now, we have a small set of "falsy" values and all others are "truthy" matching
+    Ruby's semantics.
+
+    *Rafael Mendonça França*
+
+*   Deprecate `ActiveRecord::Base.errors_in_transactional_callbacks=`.
+
+    *Rafael Mendonça França*
+
+*   Change transaction callbacks to not swallowing errors.
+
+    Before this change any error raised inside a transaction callback are
+    rescued and printed in the logs.
+
+    Now these errors are not rescue anymore and just bubble up, as the other callbacks.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `sanitize_sql_hash_for_conditions`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `Reflection#source_macro`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `symbolized_base_class` and `symbolized_sti_name`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `ActiveRecord::Base.disable_implicit_join_references=`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated access to connection specification using a string acessor.
+
+    Now all strings will be handled as a URL.
+
+    *Rafael Mendonça França*
+
+*   Change the default `null` value for `timestamps` to `false`.
+
+    *Rafael Mendonça França*
+
+*   Return an array of pools from `connection_pools`.
+
+    *Rafael Mendonça França*
+
+*   Return a null column from `column_for_attribute` when no column exists.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `serialized_attributes`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated automatic counter caches on `has_many :through`.
+
+    *Rafael Mendonça França*
+
 *   Change the way in which callback chains can be halted.
 
     The preferred method to halt a callback chain from now on is to explicitly

@@ -1,6 +1,5 @@
 require 'active_support/core_ext/hash/keys'
 require 'active_support/core_ext/hash/indifferent_access'
-require 'active_support/deprecation'
 
 module ActionDispatch
   module Http
@@ -23,13 +22,6 @@ module ActionDispatch
       def path_parameters=(parameters) #:nodoc:
         @env.delete('action_dispatch.request.parameters')
         @env[PARAMETERS_KEY] = parameters
-      end
-
-      def symbolized_path_parameters
-        ActiveSupport::Deprecation.warn(
-          '`symbolized_path_parameters` is deprecated. Please use `path_parameters`.'
-        )
-        path_parameters
       end
 
       # Returns a hash with the \parameters used to form the \path of the request.

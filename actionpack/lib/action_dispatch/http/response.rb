@@ -1,6 +1,4 @@
 require 'active_support/core_ext/module/attribute_accessors'
-require 'active_support/core_ext/string/filters'
-require 'active_support/deprecation'
 require 'action_dispatch/http/filter_redirect'
 require 'monitor'
 
@@ -283,20 +281,6 @@ module ActionDispatch # :nodoc:
       rack_response @status, @header.to_hash
     end
     alias prepare! to_a
-
-    # Be super clear that a response object is not an Array. Defining this
-    # would make implicit splatting work, but it also makes adding responses
-    # as arrays work, and "flattening" responses, cascading to the rack body!
-    # Not sensible behavior.
-    def to_ary
-      ActiveSupport::Deprecation.warn(<<-MSG.squish)
-        `ActionDispatch::Response#to_ary` no longer performs implicit conversion
-        to an array. Please use `response.to_a` instead, or a splat like `status,
-        headers, body = *response`.
-      MSG
-
-      to_a
-    end
 
     # Returns the response cookies, converted to a Hash of (name => value) pairs
     #
