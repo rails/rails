@@ -68,8 +68,8 @@ group :test do
     gem 'stackprof'
   end
 
-  # platforms :mri_19, :mri_20 do
-  #   gem 'debugger'
+  # platforms :mri do
+  #   gem 'byebug'
   # end
 
   gem 'benchmark-ips'

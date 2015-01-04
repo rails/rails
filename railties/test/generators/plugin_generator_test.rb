@@ -74,10 +74,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     if defined?(JRUBY_VERSION) || RUBY_ENGINE == "rbx"
       assert_file "Gemfile" do |content|
         assert_no_match(/byebug/, content)
-        assert_no_match(/debugger/, content)
       end
-    elsif RUBY_VERSION < '2.0.0'
-      assert_file "Gemfile", /# gem 'debugger'/
     else
       assert_file "Gemfile", /# gem 'byebug'/
     end

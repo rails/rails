@@ -65,27 +65,3 @@ class MockStdErr
     puts(message)
   end
 end
-
-class KernelDebuggerTest < ActiveSupport::TestCase
-  def test_debugger_not_available_message_to_stderr
-    old_stderr = $stderr
-    $stderr = MockStdErr.new
-    debugger
-    assert_match(/Debugger requested/, $stderr.output.first)
-  ensure
-    $stderr = old_stderr
-  end
-
-  def test_debugger_not_available_message_to_rails_logger
-    rails = Class.new do
-      def self.logger
-        @logger ||= MockStdErr.new
-      end
-    end
-    Object.const_set(:Rails, rails)
-    debugger
-    assert_match(/Debugger requested/, rails.logger.output.first)
-  ensure
-    Object.send(:remove_const, :Rails)
-  end
-end if RUBY_VERSION < '2.0.0'
