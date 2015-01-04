@@ -1,5 +1,3 @@
-require 'active_support/core_ext/string/filters'
-
 module ActiveRecord
   # = Active Record Has Many Through Association
   module Associations

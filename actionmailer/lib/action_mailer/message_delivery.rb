@@ -1,5 +1,4 @@
 require 'delegate'
-require 'active_support/core_ext/string/filters'
 
 module ActionMailer
 

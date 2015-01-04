@@ -1,5 +1,4 @@
 require 'active_support/core_ext/module/attribute_accessors'
-require 'active_support/core_ext/string/filters'
 require 'action_dispatch/http/filter_redirect'
 require 'monitor'
 

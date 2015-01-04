@@ -1,6 +1,5 @@
 require 'active_support/hash_with_indifferent_access'
 require 'active_support/core_ext/object/duplicable'
-require 'active_support/core_ext/string/filters'
 
 module ActiveModel
   # == Active \Model \Dirty

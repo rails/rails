@@ -1,7 +1,6 @@
 require "pathname"
 require "active_support/core_ext/class"
 require "active_support/core_ext/module/attribute_accessors"
-require 'active_support/core_ext/string/filters'
 require "action_view/template"
 require "thread"
 require "thread_safe"
