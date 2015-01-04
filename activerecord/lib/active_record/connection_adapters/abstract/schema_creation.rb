@@ -28,8 +28,8 @@ module ActiveRecord
           end
 
           def visit_ColumnDefinition(o)
-            sql_type = type_to_sql(o.type, o.limit, o.precision, o.scale)
-            column_sql = "#{quote_column_name(o.name)} #{sql_type}"
+            o.sql_type = type_to_sql(o.type, o.limit, o.precision, o.scale)
+            column_sql = "#{quote_column_name(o.name)} #{o.sql_type}"
             add_column_options!(column_sql, column_options(o)) unless o.type == :primary_key
             column_sql
           end
@@ -98,9 +98,7 @@ module ActiveRecord
           end
 
           def quote_default_expression(value, column)
-            column.sql_type ||= type_to_sql(column.type, column.limit, column.precision, column.scale)
             value = type_for_column(column).type_cast_for_database(value)
-
             @conn.quote(value)
           end
 
