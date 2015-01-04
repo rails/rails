@@ -1,3 +1,7 @@
+*   Change the default `null` value for `timestamps` to `false`.
+
+    *Rafael Mendonça França*
+
 *   Return an array of pools from `connection_pools`.
 
     *Rafael Mendonça França*

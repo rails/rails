@@ -851,14 +851,14 @@ module ActiveRecord
         columns
       end
 
-      include TimestampDefaultDeprecation
       # Adds timestamps (+created_at+ and +updated_at+) columns to +table_name+.
       # Additional options (like <tt>null: false</tt>) are forwarded to #add_column.
       #
       #   add_timestamps(:suppliers, null: false)
       #
       def add_timestamps(table_name, options = {})
-        emit_warning_if_null_unspecified(options)
+        options[:null] = false if options[:null].nil?
+
         add_column table_name, :created_at, :datetime, options
         add_column table_name, :updated_at, :datetime, options
       end

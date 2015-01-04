@@ -9,7 +9,7 @@ class <%= migration_class_name %> < ActiveRecord::Migration
 <% end -%>
 <% end -%>
 <% if options[:timestamps] %>
-      t.timestamps null: false
+      t.timestamps
 <% end -%>
     end
 <% attributes_with_index.each do |attribute| -%>

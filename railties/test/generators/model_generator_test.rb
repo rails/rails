@@ -223,7 +223,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
 
   def test_migration_with_timestamps
     run_generator
-    assert_migration "db/migrate/create_accounts.rb", /t.timestamps null: false/
+    assert_migration "db/migrate/create_accounts.rb", /t.timestamps/
   end
 
   def test_migration_timestamps_are_skipped
