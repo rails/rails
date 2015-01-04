@@ -116,12 +116,4 @@ class Class
       attr_writer name if instance_writer
     end
   end
-
-  private
-
-    unless respond_to?(:singleton_class?)
-      def singleton_class?
-        ancestors.first != self
-      end
-    end
 end
