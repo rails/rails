@@ -77,6 +77,12 @@ module ActiveRecord
         [self.class, name, default, cast_type, sql_type, null, default_function]
       end
     end
+
+    class NullColumn < Column
+      def initialize(name)
+        super name, nil, Type::Value.new
+      end
+    end
   end
   # :startdoc:
 end

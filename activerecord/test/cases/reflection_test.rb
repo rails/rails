@@ -80,10 +80,24 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal :integer, @first.column_for_attribute("id").type
   end
 
-  def test_non_existent_columns_return_nil
-    assert_deprecated do
-      assert_nil @first.column_for_attribute("attribute_that_doesnt_exist")
-    end
+  def test_non_existent_columns_return_null_object
+    column = @first.column_for_attribute("attribute_that_doesnt_exist")
+    assert_instance_of ActiveRecord::ConnectionAdapters::NullColumn, column
+    assert_equal "attribute_that_doesnt_exist", column.name
+    assert_equal nil, column.sql_type
+    assert_equal nil, column.type
+    assert_not column.number?
+    assert_not column.text?
+    assert_not column.binary?
+  end
+
+  def test_non_existent_columns_are_identity_types
+    column = @first.column_for_attribute("attribute_that_doesnt_exist")
+    object = Object.new
+
+    assert_equal object, column.type_cast_from_database(object)
+    assert_equal object, column.type_cast_from_user(object)
+    assert_equal object, column.type_cast_for_database(object)
   end
 
   def test_reflection_klass_for_nested_class_name

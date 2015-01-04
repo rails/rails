@@ -1,3 +1,7 @@
+*   Return a null column from `column_for_attribute` when no column exists.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `serialized_attributes`.
 
     *Rafael Mendonça França*
