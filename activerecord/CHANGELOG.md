@@ -1,3 +1,7 @@
+*   Remove deprecated automatic counter caches on `has_many :through`.
+
+    *Rafael Mendonça França*
+
 *   Change the way in which callback chains can be halted.
 
     The preferred method to halt a callback chain from now on is to explicitly
