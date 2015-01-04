@@ -1,3 +1,7 @@
+*   Remove deprecated `Rails::Rack::LogTailer`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `RAILS_CACHE` constant.
 
     *Rafael Mendonça França*
