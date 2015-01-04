@@ -9,7 +9,6 @@ require 'active_support/testing/isolation'
 require 'active_support/testing/constant_lookup'
 require 'active_support/testing/time_helpers'
 require 'active_support/core_ext/kernel/reporting'
-require 'active_support/deprecation'
 
 module ActiveSupport
   class TestCase < ::Minitest::Test

@@ -1,5 +1,4 @@
 require 'active_support/core_ext/object/try'
-require 'active_support/deprecation'
 require 'rails-html-sanitizer'
 
 module ActionView
