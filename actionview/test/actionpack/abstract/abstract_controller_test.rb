@@ -168,7 +168,7 @@ module AbstractController
       end
     end
 
-    class OverridingLocalPrefixesTest < ActiveSupport::TestCase # TODO: remove me in 5.0/4.3.
+    class OverridingLocalPrefixesTest < ActiveSupport::TestCase
       test "overriding .local_prefixes adds prefix" do
         @controller = OverridingLocalPrefixes.new
         @controller.process(:index)
