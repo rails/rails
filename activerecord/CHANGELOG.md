@@ -1,3 +1,7 @@
+*   Return an array of pools from `connection_pools`.
+
+    *Rafael Mendonça França*
+
 *   Return a null column from `column_for_attribute` when no column exists.
 
     *Rafael Mendonça França*

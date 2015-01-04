@@ -2,7 +2,6 @@ require 'thread'
 require 'thread_safe'
 require 'monitor'
 require 'set'
-require 'active_support/core_ext/string/filters'
 
 module ActiveRecord
   # Raised when a connection could not be obtained within the connection
@@ -517,15 +516,7 @@ module ActiveRecord
       def connection_pool_list
         owner_to_pool.values.compact
       end
-
-      def connection_pools
-        ActiveSupport::Deprecation.warn(<<-MSG.squish)
-          In the next release, this will return the same as `#connection_pool_list`.
-          (An array of pools, rather than a hash mapping specs to pools.)
-        MSG
-
-        Hash[connection_pool_list.map { |pool| [pool.spec, pool] }]
-      end
+      alias :connection_pools :connection_pool_list
 
       def establish_connection(owner, spec)
         @class_to_pool.clear
