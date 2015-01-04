@@ -87,13 +87,6 @@ module ActiveRecord
 
       mattr_accessor :maintain_test_schema, instance_accessor: false
 
-      def self.disable_implicit_join_references=(value)
-        ActiveSupport::Deprecation.warn(<<-MSG.squish)
-          Implicit join references were removed with Rails 4.1.
-          Make sure to remove this configuration because it does nothing.
-        MSG
-      end
-
       class_attribute :default_connection_handler, instance_writer: false
       class_attribute :find_by_statement_cache
 
