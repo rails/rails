@@ -1,7 +1,5 @@
 require 'active_support/core_ext/kernel/reporting'
-require 'active_support/core_ext/string/filters'
 require 'active_support/file_update_checker'
-require 'active_support/deprecation'
 require 'rails/engine/configuration'
 require 'rails/source_annotation_extractor'
 
@@ -130,25 +128,6 @@ module Rails
       def colorize_logging=(val)
         ActiveSupport::LogSubscriber.colorize_logging = val
         self.generators.colorize_logging = val
-      end
-
-      # :nodoc:
-      SERVE_STATIC_ASSETS_DEPRECATION_MESSAGE = <<-MSG.squish
-        The configuration option `config.serve_static_assets` has been renamed
-        to `config.serve_static_files` to clarify its role (it merely enables
-        serving everything in the `public` folder and is unrelated to the asset
-        pipeline). The `serve_static_assets` alias will be removed in Rails 5.0.
-        Please migrate your configuration files accordingly.
-      MSG
-
-      def serve_static_assets
-        ActiveSupport::Deprecation.warn SERVE_STATIC_ASSETS_DEPRECATION_MESSAGE
-        serve_static_files
-      end
-
-      def serve_static_assets=(value)
-        ActiveSupport::Deprecation.warn SERVE_STATIC_ASSETS_DEPRECATION_MESSAGE
-        self.serve_static_files = value
       end
 
       def session_store(*args)

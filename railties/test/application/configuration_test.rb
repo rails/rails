@@ -320,22 +320,6 @@ module ApplicationTests
       end
     end
 
-    test "config.serve_static_assets is deprecated" do
-      require "#{app_path}/config/application"
-
-      assert_deprecated(/serve_static_assets/) do
-        app.config.serve_static_assets = false
-      end
-
-      assert_not app.config.serve_static_files
-      assert_deprecated(/serve_static_assets/) { assert_not app.config.serve_static_assets }
-
-      app.config.serve_static_files = true
-
-      assert app.config.serve_static_files
-      assert_deprecated(/serve_static_assets/) { assert app.config.serve_static_assets }
-    end
-
     test "Use key_generator when secret_key_base is set" do
       make_basic_app do |application|
         application.secrets.secret_key_base = 'b3c631c314c0bbca50c1b2843150fe33'
