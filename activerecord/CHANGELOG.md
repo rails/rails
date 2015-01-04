@@ -1,3 +1,9 @@
+*   Remove deprecated access to connection specification using a string acessor.
+
+    Now all strings will be handled as a URL.
+
+    *Rafael Mendonça França*
+
 *   Change the default `null` value for `timestamps` to `false`.
 
     *Rafael Mendonça França*
