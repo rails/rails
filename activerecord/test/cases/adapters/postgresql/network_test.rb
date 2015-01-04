@@ -25,7 +25,7 @@ class PostgresqlNetworkTest < ActiveRecord::TestCase
     assert_equal "cidr", column.sql_type
     assert_not column.number?
     assert_not column.binary?
-    assert_not column.array
+    assert_not column.array?
   end
 
   def test_inet_column
@@ -34,7 +34,7 @@ class PostgresqlNetworkTest < ActiveRecord::TestCase
     assert_equal "inet", column.sql_type
     assert_not column.number?
     assert_not column.binary?
-    assert_not column.array
+    assert_not column.array?
   end
 
   def test_macaddr_column
@@ -43,7 +43,7 @@ class PostgresqlNetworkTest < ActiveRecord::TestCase
     assert_equal "macaddr", column.sql_type
     assert_not column.number?
     assert_not column.binary?
-    assert_not column.array
+    assert_not column.array?
   end
 
   def test_network_types

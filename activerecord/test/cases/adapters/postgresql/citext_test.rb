@@ -34,7 +34,7 @@ if ActiveRecord::Base.connection.supports_extensions?
       assert_equal 'citext', column.sql_type
       assert_not column.number?
       assert_not column.binary?
-      assert_not column.array
+      assert_not column.array?
     end
 
     def test_change_table_supports_json
