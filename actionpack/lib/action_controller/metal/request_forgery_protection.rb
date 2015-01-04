@@ -29,14 +29,7 @@ module ActionController #:nodoc:
   # you're building an API you'll need something like:
   #
   #   class ApplicationController < ActionController::Base
-  #     protect_from_forgery
-  #     skip_before_action :verify_authenticity_token, if: :json_request?
-  #
-  #     protected
-  #
-  #     def json_request?
-  #       request.format.json?
-  #     end
+  #     protect_from_forgery unless: -> { request.format.json? }
   #   end
   #
   # CSRF protection is turned on with the <tt>protect_from_forgery</tt> method,
@@ -93,6 +86,7 @@ module ActionController #:nodoc:
       # Valid Options:
       #
       # * <tt>:only/:except</tt> - Passed to the <tt>before_action</tt> call. Set which actions are verified.
+      # * <tt>:if/:unless</tt> - Passed to the <tt>before_action</tt> call. Set when actions are verified.
       # * <tt>:with</tt> - Set the method to handle unverified request.
       #
       # Valid unverified request handling methods are:
