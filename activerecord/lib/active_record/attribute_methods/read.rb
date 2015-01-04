@@ -36,18 +36,7 @@ module ActiveRecord
       extend ActiveSupport::Concern
 
       module ClassMethods
-        [:cache_attributes, :cached_attributes, :cache_attribute?].each do |method_name|
-          define_method method_name do |*|
-            cached_attributes_deprecation_warning(method_name)
-            true
-          end
-        end
-
         protected
-
-        def cached_attributes_deprecation_warning(method_name)
-          ActiveSupport::Deprecation.warn "Calling `#{method_name}` is no longer necessary. All attributes are cached."
-        end
 
         if Module.methods_transplantable?
           def define_method_attribute(name)

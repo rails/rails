@@ -531,20 +531,6 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     end
   end
 
-  def test_deprecated_cache_attributes
-    assert_deprecated do
-      Topic.cache_attributes :replies_count
-    end
-
-    assert_deprecated do
-      Topic.cached_attributes
-    end
-
-    assert_deprecated do
-      Topic.cache_attribute? :replies_count
-    end
-  end
-
   def test_converted_values_are_returned_after_assignment
     developer = Developer.new(name: 1337, salary: "50000")
 
