@@ -45,10 +45,6 @@ class DirtyTest < ActiveModel::TestCase
     def reload
       clear_changes_information
     end
-
-    def deprecated_reload
-      reset_changes
-    end
   end
 
   setup do
