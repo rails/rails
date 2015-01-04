@@ -1,3 +1,7 @@
+*   Remove deprecated `RAILS_CACHE` constant.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `serve_static_assets` configuration.
 
     *Rafael Mendonça França*
