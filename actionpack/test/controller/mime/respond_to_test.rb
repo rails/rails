@@ -338,10 +338,10 @@ class RespondToControllerTest < ActionController::TestCase
     xhr :get, :json_or_yaml
     assert_equal 'JSON', @response.body
 
-    get :json_or_yaml, :format => 'json'
+    get :json_or_yaml, format: 'json'
     assert_equal 'JSON', @response.body
 
-    get :json_or_yaml, :format => 'yaml'
+    get :json_or_yaml, format: 'yaml'
     assert_equal 'YAML', @response.body
 
     { 'YAML' => %w(text/yaml),
@@ -474,7 +474,7 @@ class RespondToControllerTest < ActionController::TestCase
   end
 
   def test_handle_any_any_parameter_format
-    get :handle_any_any, {:format=>'html'}
+    get :handle_any_any, format: 'html'
     assert_equal 'HTML', @response.body
   end
 
@@ -497,7 +497,7 @@ class RespondToControllerTest < ActionController::TestCase
   end
 
   def test_handle_any_any_unkown_format
-    get :handle_any_any, { format: 'php' }
+    get :handle_any_any, format: 'php'
     assert_equal 'Whatever you ask for, I got it', @response.body
   end
 
@@ -530,13 +530,13 @@ class RespondToControllerTest < ActionController::TestCase
   end
 
   def test_custom_constant
-    get :custom_constant_handling, :format => "mobile"
+    get :custom_constant_handling, format: "mobile"
     assert_equal "text/x-mobile", @response.content_type
     assert_equal "Mobile", @response.body
   end
 
   def test_custom_constant_handling_without_block
-    get :custom_constant_handling_without_block, :format => "mobile"
+    get :custom_constant_handling_without_block, format: "mobile"
     assert_equal "text/x-mobile", @response.content_type
     assert_equal "Mobile", @response.body
   end
@@ -545,13 +545,13 @@ class RespondToControllerTest < ActionController::TestCase
     get :html_xml_or_rss
     assert_equal "HTML", @response.body
 
-    get :html_xml_or_rss, :format => "html"
+    get :html_xml_or_rss, format: "html"
     assert_equal "HTML", @response.body
 
-    get :html_xml_or_rss, :format => "xml"
+    get :html_xml_or_rss, format: "xml"
     assert_equal "XML", @response.body
 
-    get :html_xml_or_rss, :format => "rss"
+    get :html_xml_or_rss, format: "rss"
     assert_equal "RSS", @response.body
   end
 
@@ -559,12 +559,12 @@ class RespondToControllerTest < ActionController::TestCase
     get :forced_xml
     assert_equal "XML", @response.body
 
-    get :forced_xml, :format => "html"
+    get :forced_xml, format: "html"
     assert_equal "XML", @response.body
   end
 
   def test_extension_synonyms
-    get :html_xml_or_rss, :format => "xhtml"
+    get :html_xml_or_rss, format: "xhtml"
     assert_equal "HTML", @response.body
   end
 
@@ -581,7 +581,7 @@ class RespondToControllerTest < ActionController::TestCase
     get :using_defaults
     assert_equal "using_defaults - #{[:html]}", @response.body
 
-    get :using_defaults, :format => "xml"
+    get :using_defaults, format: "xml"
     assert_equal "using_defaults - #{[:xml]}", @response.body
   end
 
@@ -589,7 +589,7 @@ class RespondToControllerTest < ActionController::TestCase
     get :iphone_with_html_response_type
     assert_equal '<html><div id="html">Hello future from Firefox!</div></html>', @response.body
 
-    get :iphone_with_html_response_type, :format => "iphone"
+    get :iphone_with_html_response_type, format: "iphone"
     assert_equal "text/html", @response.content_type
     assert_equal '<html><div id="iphone">Hello iPhone future from iPhone!</div></html>', @response.body
   end
@@ -603,7 +603,7 @@ class RespondToControllerTest < ActionController::TestCase
 
   def test_invalid_format
     assert_raises(ActionController::UnknownFormat) do
-      get :using_defaults, :format => "invalidformat"
+      get :using_defaults, format: "invalidformat"
     end
   end
 

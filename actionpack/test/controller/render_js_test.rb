@@ -28,7 +28,7 @@ class RenderJSTest < ActionController::TestCase
   end
 
   def test_should_render_js_partial
-    xhr :get, :show_partial, :format => 'js'
+    xhr :get, :show_partial, format: 'js'
     assert_equal 'partial js', @response.body
   end
 end

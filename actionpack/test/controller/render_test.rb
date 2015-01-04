@@ -462,21 +462,21 @@ class HeadRenderTest < ActionController::TestCase
   end
 
   def test_head_with_symbolic_status
-    get :head_with_symbolic_status, :status => "ok"
+    get :head_with_symbolic_status, params: { status: "ok" }
     assert_equal 200, @response.status
     assert_response :ok
 
-    get :head_with_symbolic_status, :status => "not_found"
+    get :head_with_symbolic_status, params: { status: "not_found" }
     assert_equal 404, @response.status
     assert_response :not_found
 
-    get :head_with_symbolic_status, :status => "no_content"
+    get :head_with_symbolic_status, params: { status: "no_content" }
     assert_equal 204, @response.status
     assert !@response.headers.include?('Content-Length')
     assert_response :no_content
 
     Rack::Utils::SYMBOL_TO_STATUS_CODE.each do |status, code|
-      get :head_with_symbolic_status, :status => status.to_s
+      get :head_with_symbolic_status, params: { status: status.to_s }
       assert_equal code, @response.response_code
       assert_response status
     end
@@ -484,7 +484,7 @@ class HeadRenderTest < ActionController::TestCase
 
   def test_head_with_integer_status
     Rack::Utils::HTTP_STATUS_CODES.each do |code, message|
-      get :head_with_integer_status, :status => code.to_s
+      get :head_with_integer_status, params: { status: code.to_s }
       assert_equal message, @response.message
     end
   end
@@ -498,7 +498,7 @@ class HeadRenderTest < ActionController::TestCase
   end
 
   def test_head_with_string_status
-    get :head_with_string_status, :status => "404 Eat Dirt"
+    get :head_with_string_status, params: { status: "404 Eat Dirt" }
     assert_equal 404, @response.response_code
     assert_equal "Not Found", @response.message
     assert_response :not_found

@@ -1,3 +1,15 @@
+*   Migrating to kwarg syntax in `ActionController::TestCase` and
+    `ActionDispatch::Integration` HTTP request methods
+
+    New syntax example:
+    ```ruby
+    post :create, params: { y: x }, session: { a: 'b' }
+    get :view, params: { id: 1 }
+    get :view, params: { id: 1 }, format: :json
+    ```
+
+    *Kir Shatrov*
+
 *   Preserve default url options when generating URLs
 
     Fixes an issue that would cause default_url_options to be lost when

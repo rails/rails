@@ -12,12 +12,14 @@ module ActionDispatch
       #
       # - +path+: The URI (as a String) on which you want to perform a GET
       #   request.
-      # - +parameters+: The HTTP parameters that you want to pass. This may
+      # - +params:+ The HTTP parameters that you want to pass. This may
       #   be +nil+,
       #   a Hash, or a String that is appropriately encoded
       #   (<tt>application/x-www-form-urlencoded</tt> or
       #   <tt>multipart/form-data</tt>).
-      # - +headers_or_env+: Additional headers to pass, as a Hash. The headers will be
+      # - +headers:+ Additional headers to pass, as a Hash. The headers will be
+      #   merged into the Rack env hash.
+      # - +env:+ Additional env to pass, as a Hash. The headers will be
       #   merged into the Rack env hash.
       #
       # This method returns a Response object, which one can use to
@@ -28,38 +30,43 @@ module ActionDispatch
       #
       # You can also perform POST, PATCH, PUT, DELETE, and HEAD requests with
       # +#post+, +#patch+, +#put+, +#delete+, and +#head+.
-      def get(path, parameters = nil, headers_or_env = nil)
-        process :get, path, parameters, headers_or_env
+      #
+      # Example:
+      #
+      #   get '/feed', params: { since: 201501011400 }
+      #   post '/profile', headers: {"X-Test-Header" => "testvalue" }
+      def get(path, *args)
+        process_with_kwargs(:get, path, *args)
       end
 
       # Performs a POST request with the given parameters. See +#get+ for more
       # details.
-      def post(path, parameters = nil, headers_or_env = nil)
-        process :post, path, parameters, headers_or_env
+      def post(path, *args)
+        process_with_kwargs(:post, path, *args)
       end
 
       # Performs a PATCH request with the given parameters. See +#get+ for more
       # details.
-      def patch(path, parameters = nil, headers_or_env = nil)
-        process :patch, path, parameters, headers_or_env
+      def patch(path, *args)
+        process_with_kwargs(:patch, path, *args)
       end
 
       # Performs a PUT request with the given parameters. See +#get+ for more
       # details.
-      def put(path, parameters = nil, headers_or_env = nil)
-        process :put, path, parameters, headers_or_env
+      def put(path, *args)
+        process_with_kwargs(:put, path, *args)
       end
 
       # Performs a DELETE request with the given parameters. See +#get+ for
       # more details.
-      def delete(path, parameters = nil, headers_or_env = nil)
-        process :delete, path, parameters, headers_or_env
+      def delete(path, *args)
+        process_with_kwargs(:delete, path, *args)
       end
 
       # Performs a HEAD request with the given parameters. See +#get+ for more
       # details.
-      def head(path, parameters = nil, headers_or_env = nil)
-        process :head, path, parameters, headers_or_env
+      def head(path, *args)
+        process_with_kwargs(:head, path, *args)
       end
 
       # Performs an XMLHttpRequest request with the given parameters, mirroring
@@ -68,11 +75,28 @@ module ActionDispatch
       # The request_method is +:get+, +:post+, +:patch+, +:put+, +:delete+ or
       # +:head+; the parameters are +nil+, a hash, or a url-encoded or multipart
       # string; the headers are a hash.
-      def xml_http_request(request_method, path, parameters = nil, headers_or_env = nil)
-        headers_or_env ||= {}
-        headers_or_env['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest'
-        headers_or_env['HTTP_ACCEPT'] ||= [Mime::JS, Mime::HTML, Mime::XML, 'text/xml', Mime::ALL].join(', ')
-        process(request_method, path, parameters, headers_or_env)
+      #
+      # Example:
+      #
+      #   xhr :get, '/feed', params: { since: 201501011400 }
+      def xml_http_request(request_method, path, *args)
+        if kwarg_request?(*args)
+          params, headers, env = args.first.values_at(:params, :headers, :env)
+        else
+          params = args[0]
+          headers = args[1]
+          env = {}
+
+          if params.present? || headers.present?
+            non_kwarg_request_warning
+          end
+        end
+
+        headers ||= {}
+        headers.merge!(env) if env
+        headers['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest'
+        headers['HTTP_ACCEPT'] ||= [Mime::JS, Mime::HTML, Mime::XML, 'text/xml', Mime::ALL].join(', ')
+        process(request_method, path, params: params, headers: headers)
       end
       alias xhr :xml_http_request
 
@@ -89,45 +113,52 @@ module ActionDispatch
       # redirect. Note that the redirects are followed until the response is
       # not a redirect--this means you may run into an infinite loop if your
       # redirect loops back to itself.
-      def request_via_redirect(http_method, path, parameters = nil, headers_or_env = nil)
-        process(http_method, path, parameters, headers_or_env)
+      #
+      # Example:
+      #
+      #   request_via_redirect :post, '/welcome',
+      #     params: { ref_id: 14 },
+      #     headers: {"X-Test-Header" => "testvalue"}
+      def request_via_redirect(http_method, path, *args)
+        process_with_kwargs(http_method, path, *args)
+
         follow_redirect! while redirect?
         status
       end
 
       # Performs a GET request, following any subsequent redirect.
       # See +request_via_redirect+ for more information.
-      def get_via_redirect(path, parameters = nil, headers_or_env = nil)
+      def get_via_redirect(path, *args)
         ActiveSupport::Deprecation.warn('`get_via_redirect` is deprecated and will be removed in the next version of Rails. Please use follow_redirect! manually after the request call for the same behavior.')
-        request_via_redirect(:get, path, parameters, headers_or_env)
+        request_via_redirect(:get, path, *args)
       end
 
       # Performs a POST request, following any subsequent redirect.
       # See +request_via_redirect+ for more information.
-      def post_via_redirect(path, parameters = nil, headers_or_env = nil)
+      def post_via_redirect(path, *args)
         ActiveSupport::Deprecation.warn('`post_via_redirect` is deprecated and will be removed in the next version of Rails. Please use follow_redirect! manually after the request call for the same behavior.')
-        request_via_redirect(:post, path, parameters, headers_or_env)
+        request_via_redirect(:post, path, *args)
       end
 
       # Performs a PATCH request, following any subsequent redirect.
       # See +request_via_redirect+ for more information.
-      def patch_via_redirect(path, parameters = nil, headers_or_env = nil)
+      def patch_via_redirect(path, *args)
         ActiveSupport::Deprecation.warn('`patch_via_redirect` is deprecated and will be removed in the next version of Rails. Please use follow_redirect! manually after the request call for the same behavior.')
-        request_via_redirect(:patch, path, parameters, headers_or_env)
+        request_via_redirect(:patch, path, *args)
       end
 
       # Performs a PUT request, following any subsequent redirect.
       # See +request_via_redirect+ for more information.
-      def put_via_redirect(path, parameters = nil, headers_or_env = nil)
+      def put_via_redirect(path, *args)
         ActiveSupport::Deprecation.warn('`put_via_redirect` is deprecated and will be removed in the next version of Rails. Please use follow_redirect! manually after the request call for the same behavior.')
-        request_via_redirect(:put, path, parameters, headers_or_env)
+        request_via_redirect(:put, path, *args)
       end
 
       # Performs a DELETE request, following any subsequent redirect.
       # See +request_via_redirect+ for more information.
-      def delete_via_redirect(path, parameters = nil, headers_or_env = nil)
+      def delete_via_redirect(path, *args)
         ActiveSupport::Deprecation.warn('`delete_via_redirect` is deprecated and will be removed in the next version of Rails. Please use follow_redirect! manually after the request call for the same behavior.')
-        request_via_redirect(:delete, path, parameters, headers_or_env)
+        request_via_redirect(:delete, path, *args)
       end
     end
 
@@ -266,8 +297,39 @@ module ActionDispatch
           @_mock_session ||= Rack::MockSession.new(@app, host)
         end
 
+        def process_with_kwargs(http_method, path, *args)
+          if kwarg_request?(*args)
+            process(http_method, path, *args)
+          else
+            non_kwarg_request_warning if args.present?
+            process(http_method, path, { params: args[0], headers: args[1] })
+          end
+        end
+
+        REQUEST_KWARGS = %i(params headers env)
+        def kwarg_request?(*args)
+          args[0].respond_to?(:keys) && args[0].keys.any? { |k| REQUEST_KWARGS.include?(k) }
+        end
+
+        def non_kwarg_request_warning
+          ActiveSupport::Deprecation.warn(<<-MSG.strip_heredoc)
+            ActionDispatch::Integration::TestCase HTTP request methods will accept only
+            keyword arguments in future Rails versions.
+
+            Examples:
+
+            get '/profile',
+              params: { id: 1 },
+              headers: { 'X-Extra-Header' => '123' },
+              env: { 'action_dispatch.custom' => 'custom' }
+
+            xhr :post, '/profile',
+              params: { id: 1 }
+          MSG
+        end
+
         # Performs the actual request.
-        def process(method, path, parameters = nil, headers_or_env = nil)
+        def process(method, path, params: nil, headers: nil, env: nil)
           if path =~ %r{://}
             location = URI.parse(path)
             https! URI::HTTPS === location if location.scheme
@@ -277,9 +339,9 @@ module ActionDispatch
 
           hostname, port = host.split(':')
 
-          env = {
+          request_env = {
             :method => method,
-            :params => parameters,
+            :params => params,
 
             "SERVER_NAME"     => hostname,
             "SERVER_PORT"     => port || (https? ? "443" : "80"),
@@ -292,14 +354,19 @@ module ActionDispatch
             "CONTENT_TYPE"   => "application/x-www-form-urlencoded",
             "HTTP_ACCEPT"    => accept
           }
-          # this modifies the passed env directly
-          Http::Headers.new(env).merge!(headers_or_env || {})
+          # this modifies the passed request_env directly
+          if headers.present?
+            Http::Headers.new(request_env).merge!(headers)
+          end
+          if env.present?
+            Http::Headers.new(request_env).merge!(env)
+          end
 
           session = Rack::Test::Session.new(_mock_session)
 
           # NOTE: rack-test v0.5 doesn't build a default uri correctly
           # Make sure requested path is always a full uri
-          session.request(build_full_uri(path, env), env)
+          session.request(build_full_uri(path, request_env), request_env)
 
           @request_count += 1
           @request  = ActionDispatch::Request.new(session.last_request.env)

@@ -210,7 +210,7 @@ CACHED
   end
 
   def test_skipping_fragment_cache_digesting
-    get :fragment_cached_without_digest, :format => "html"
+    get :fragment_cached_without_digest, format: "html"
     assert_response :success
     expected_body = "<body>\n<p>ERB</p>\n</body>\n"
 
@@ -244,7 +244,7 @@ CACHED
   end
 
   def test_html_formatted_fragment_caching
-    get :formatted_fragment_cached, :format => "html"
+    get :formatted_fragment_cached, format: "html"
     assert_response :success
     expected_body = "<body>\n<p>ERB</p>\n</body>\n"
 
@@ -255,7 +255,7 @@ CACHED
   end
 
   def test_xml_formatted_fragment_caching
-    get :formatted_fragment_cached, :format => "xml"
+    get :formatted_fragment_cached, format: "xml"
     assert_response :success
     expected_body = "<body>\n  <p>Builder</p>\n</body>\n"
 
@@ -269,7 +269,7 @@ CACHED
   def test_fragment_caching_with_variant
     @request.variant = :phone
 
-    get :formatted_fragment_cached_with_variant, :format => "html"
+    get :formatted_fragment_cached_with_variant, format: "html"
     assert_response :success
     expected_body = "<body>\n<p>PHONE</p>\n</body>\n"
 
