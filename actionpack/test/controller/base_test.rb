@@ -213,6 +213,22 @@ class UrlOptionsTest < ActionController::TestCase
     end
   end
 
+  def test_relative_url_root_is_respected
+    rs = ActionDispatch::Routing::RouteSet.new
+    rs.draw do
+      get 'home' => 'pages#home'
+    end
+
+    options = {
+      action: "home",
+      controller: "pages",
+      only_path: true,
+      relative_url_root: "/relative_path"
+    }
+
+    assert_equal '/relative_path/home', rs.url_for(options)
+  end
+
   def test_url_helpers_does_not_become_actions
     with_routing do |set|
       set.draw do
