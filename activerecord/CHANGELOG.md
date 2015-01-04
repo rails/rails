@@ -1,3 +1,7 @@
+*   Remove deprecated `serialized_attributes`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated automatic counter caches on `has_many :through`.
 
     *Rafael Mendonça França*
