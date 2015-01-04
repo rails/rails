@@ -13,9 +13,9 @@ module ActionController #:nodoc:
   # by including a token in the rendered HTML for your application. This token is
   # stored as a random string in the session, to which an attacker does not have
   # access. When a request reaches your application, \Rails verifies the received
-  # token with the token in the session. Only HTML and JavaScript requests are checked,
-  # so this will not protect your XML API (presumably you'll have a different
-  # authentication scheme there anyway).
+  # token with the token in the session. All requests are checked except GET requests
+  # as these should be idempotent. Keep in mind that all session-oriented requests
+  # should be CSRF protected, including Javascript and HTML requests.
   #
   # GET requests are not protected since they don't have side effects like writing
   # to the database and don't leak sensitive information. JavaScript requests are
@@ -26,22 +26,16 @@ module ActionController #:nodoc:
   # Ajax) requests are allowed to make GET requests for JavaScript responses.
   #
   # It's important to remember that XML or JSON requests are also affected and if
-  # you're building an API you'll need something like:
+  # you're building an API you should change forgery protection method in
+  # <tt>ApplicationController</tt> (by default: <tt>:exception</tt>):
   #
   #   class ApplicationController < ActionController::Base
   #     protect_from_forgery
-  #     skip_before_action :verify_authenticity_token, if: :json_request?
-  #
-  #     protected
-  #
-  #     def json_request?
-  #       request.format.json?
-  #     end
   #   end
   #
-  # CSRF protection is turned on with the <tt>protect_from_forgery</tt> method,
-  # which checks the token and resets the session if it doesn't match what was expected.
-  # A call to this method is generated for new \Rails applications by default.
+  # CSRF protection is turned on with the <tt>protect_from_forgery</tt> method.
+  # By default <tt>protect_from_forgery</tt> protects your session with
+  # <tt>:null_session</tt> method, which provides an empty session during request
   #
   # The token parameter is named <tt>authenticity_token</tt> by default. The name and
   # value of this token must be added to every layout that renders forms by including
