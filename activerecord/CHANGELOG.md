@@ -1,3 +1,7 @@
+*   Remove deprecated `Reflection#source_macro`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `symbolized_base_class` and `symbolized_sti_name`.
 
     *Rafael Mendonça França*
