@@ -202,7 +202,7 @@ module ActiveSupport
       end
 
       def find_tzinfo(name)
-        TZInfo::TimezoneProxy.new(MAPPING[name] || name)
+        TZInfo::Timezone.new(MAPPING[name] || name)
       end
 
       alias_method :create, :new
@@ -237,7 +237,7 @@ module ActiveSupport
         case arg
           when String
           begin
-            @lazy_zones_map[arg] ||= create(arg).tap(&:utc_offset)
+            @lazy_zones_map[arg] ||= create(arg)
           rescue TZInfo::InvalidTimezoneIdentifier
             nil
           end
