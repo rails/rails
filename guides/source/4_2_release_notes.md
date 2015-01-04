@@ -92,6 +92,9 @@ Post.find(2)  # Subsequent calls reuse the cached prepared statement
 Post.find_by_title('first post')
 Post.find_by_title('second post')
 
+Post.find_by(title: 'first post')
+Post.find_by(title: 'second post')
+
 post.comments
 post.comments(true)
 ```
