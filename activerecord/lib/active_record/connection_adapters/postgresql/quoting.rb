@@ -56,7 +56,8 @@ module ActiveRecord
           if column.type == :uuid && value =~ /\(\)/
             value
           else
-            quote(value, column)
+            value = column.cast_type.type_cast_for_database(value)
+            quote(value)
           end
         end
 
