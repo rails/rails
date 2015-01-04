@@ -1,3 +1,7 @@
+*   Remove deprecated `sanitize_sql_hash_for_conditions`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `Reflection#source_macro`.
 
     *Rafael Mendonça França*
