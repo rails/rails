@@ -10,10 +10,8 @@ module ActiveRecord
       def cast_value(value)
         if value == ''
           nil
-        elsif ConnectionAdapters::Column::FALSE_VALUES.include?(value)
-          false
         else
-          true
+          !ConnectionAdapters::Column::FALSE_VALUES.include?(value)
         end
       end
     end
