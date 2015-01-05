@@ -1,3 +1,7 @@
+*   Remove deprecated support for PostgreSQL ranges with exclusive lower bounds.
+
+    *Yves Senn*
+
 *   Remove deprecation when modifying a relation with cached arel.
     This raises an `ImmutableRelation` error instead.
 
