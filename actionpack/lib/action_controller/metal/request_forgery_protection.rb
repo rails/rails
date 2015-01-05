@@ -80,13 +80,13 @@ module ActionController #:nodoc:
       #   class FooController < ApplicationController
       #     protect_from_forgery except: :index
       #
-      # You can disable CSRF protection on controller by skipping the verification before_action:
+      # You can disable forgery protection on controller by skipping the verification before_action:
       #   skip_before_action :verify_authenticity_token
       #
       # Valid Options:
       #
-      # * <tt>:only/:except</tt> - Passed to the <tt>before_action</tt> call. Set which actions are verified.
-      # * <tt>:if/:unless</tt> - Passed to the <tt>before_action</tt> call. Set when actions are verified.
+      # * <tt>:only/:except</tt> - Only apply forgery protection to a subset of actions. Like <tt>only: [ :create, :create_all ]</tt>.
+      # * <tt>:if/:unless</tt> - Turn off the forgery protection entirely depending on the passed proc or method reference.
       # * <tt>:with</tt> - Set the method to handle unverified request.
       #
       # Valid unverified request handling methods are:
