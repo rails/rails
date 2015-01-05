@@ -72,10 +72,6 @@ class Post < ActiveRecord::Base
     through: :author_with_address,
     source: :author_address_extra
 
-  has_many :comments_with_interpolated_conditions,
-    ->(p) { where "#{"#{p.aliased_table_name}." rescue ""}body = ?", 'Thank you for the welcome' },
-    :class_name => 'Comment'
-
   has_one  :very_special_comment
   has_one  :very_special_comment_with_post, -> { includes(:post) }, :class_name => "VerySpecialComment"
   has_one :very_special_comment_with_post_with_joins, -> { joins(:post).order('posts.id') }, class_name: "VerySpecialComment"

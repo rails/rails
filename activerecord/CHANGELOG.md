@@ -1,3 +1,7 @@
+*   Remove deprecated support to preload instnace-dependent associations.
+
+    *Yves Senn*
+
 *   Remove deprecated support for PostgreSQL ranges with exclusive lower bounds.
 
     *Yves Senn*

@@ -343,13 +343,10 @@ module ActiveRecord
         return unless scope
 
         if scope.arity > 0
-          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          raise ArgumentError, <<-MSG.squish
             The association scope '#{name}' is instance dependent (the scope
-            block takes an argument). Preloading happens before the individual
-            instances are created. This means that there is no instance being
-            passed to the association scope. This will most likely result in
-            broken or incorrect behavior. Joining, Preloading and eager loading
-            of these associations is deprecated and will be removed in the future.
+            block takes an argument). Preloading instance dependent scopes is
+            not supported.
           MSG
         end
       end
