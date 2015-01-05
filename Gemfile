@@ -84,7 +84,7 @@ platforms :ruby do
   gem 'sqlite3', '~> 1.3.6'
 
   group :db do
-    gem 'pg', '>= 0.15.0'
+    gem 'pg', '>= 0.15.0', '< 0.18' # lock pg until https://github.com/QueueClassic/queue_classic/issues/240 is solved.
     gem 'mysql', '>= 2.9.0'
     gem 'mysql2', '>= 0.3.13'
   end
