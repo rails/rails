@@ -1,3 +1,8 @@
+*   Remove deprecation when modifying a relation with cached arel.
+    This raises an `ImmutableRelation` error instead.
+
+    *Yves Senn*
+
 *   Added `ActiveRecord::SecureToken` in order to encapsulate generation of
     unique tokens for attributes in a model using `SecureRandom`.
 

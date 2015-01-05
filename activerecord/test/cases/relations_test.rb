@@ -1651,6 +1651,14 @@ class RelationTest < ActiveRecord::TestCase
     end
   end
 
+  test "relations with cached arel can't be mutated [internal API]" do
+    relation = Post.all
+    relation.count
+
+    assert_raises(ActiveRecord::ImmutableRelation) { relation.limit!(5) }
+    assert_raises(ActiveRecord::ImmutableRelation) { relation.where!("1 = 2") }
+  end
+
   test "relations show the records in #inspect" do
     relation = Post.limit(2)
     assert_equal "#<ActiveRecord::Relation [#{Post.limit(2).map(&:inspect).join(', ')}]>", relation.inspect
