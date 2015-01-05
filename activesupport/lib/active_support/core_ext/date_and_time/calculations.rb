@@ -9,6 +9,7 @@ module DateAndTime
       :saturday  => 5,
       :sunday    => 6
     }
+    WEEKEND_DAYS = [ 6, 0 ]
 
     # Returns a new date/time representing yesterday.
     def yesterday
@@ -33,6 +34,11 @@ module DateAndTime
     # Returns true if the date/time is in the future.
     def future?
       self > self.class.current
+    end
+
+    # Returns true if the date/time falls on a Saturday or Sunday.
+    def on_weekend?
+      wday.in?(WEEKEND_DAYS)
     end
 
     # Returns a new date/time the specified number of days ago.
@@ -116,6 +122,15 @@ module DateAndTime
       first_hour(weeks_since(1).beginning_of_week.days_since(days_span(given_day_in_next_week)))
     end
 
+    # Returns a new date/time representing the next weekday.
+    def next_weekday
+      if tomorrow.on_weekend?
+        next_week(:monday).change(hour: hour, min: min, sec: sec, usec: try(:usec))
+      else
+        tomorrow
+      end
+    end
+
     # Short-hand for months_since(1).
     def next_month
       months_since(1)
@@ -139,6 +154,16 @@ module DateAndTime
       first_hour(weeks_ago(1).beginning_of_week.days_since(days_span(start_day)))
     end
     alias_method :last_week, :prev_week
+
+    # Returns a new date/time representing the previous weekday.
+    def prev_weekday
+      if yesterday.on_weekend?
+        beginning_of_week(:friday).change(hour: hour, min: min, sec: sec, usec: try(:usec))
+      else
+        yesterday
+      end
+    end
+    alias_method :last_weekday, :prev_weekday
 
     # Short-hand for months_ago(1).
     def prev_month

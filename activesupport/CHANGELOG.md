@@ -1,3 +1,17 @@
+*   Add `#on_weekend?`, `#next_weekday`, `#prev_weekday` methods to `Date`,
+    `Time`, and `DateTime`.
+
+    `#on_weekend?` returns true if the receiving date/time falls on a Saturday
+    or Sunday.
+
+    `#next_weekday` returns a new date/time representing the next day that does
+    not fall on a Saturday or Sunday.
+
+    `#prev_weekday` returns a new date/time representing the previous day that
+    does not fall on a Saturday or Sunday.
+
+    *George Claghorn*
+
 *   Change the default test order from `:sorted` to `:random`.
 
     *Rafael Mendonça França*

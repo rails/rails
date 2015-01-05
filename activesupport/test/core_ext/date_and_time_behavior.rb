@@ -115,6 +115,21 @@ module DateAndTimeBehavior
     end
   end
 
+  def test_next_weekday_on_wednesday
+    assert_equal date_time_init(2015,1,8,0,0,0), date_time_init(2015,1,7,0,0,0).next_weekday
+    assert_equal date_time_init(2015,1,8,15,15,10), date_time_init(2015,1,7,15,15,10).next_weekday
+  end
+
+  def test_next_weekday_on_friday
+    assert_equal date_time_init(2015,1,5,0,0,0), date_time_init(2015,1,2,0,0,0).next_weekday
+    assert_equal date_time_init(2015,1,5,15,15,10), date_time_init(2015,1,2,15,15,10).next_weekday
+  end
+
+  def test_next_weekday_on_saturday
+    assert_equal date_time_init(2015,1,5,0,0,0), date_time_init(2015,1,3,0,0,0).next_weekday
+    assert_equal date_time_init(2015,1,5,15,15,10), date_time_init(2015,1,3,15,15,10).next_weekday
+  end
+
   def test_next_month_on_31st
     assert_equal date_time_init(2005,9,30,15,15,10), date_time_init(2005,8,31,15,15,10).next_month
   end
@@ -142,6 +157,21 @@ module DateAndTimeBehavior
       assert_equal Time.local(2012, 3, 13), Time.local(2012, 3, 21).prev_week(:tuesday)
       assert_equal Time.local(2012, 3, 19), Time.local(2012, 3, 21).prev_week(:monday)
     end
+  end
+
+  def test_prev_weekday_on_wednesday
+    assert_equal date_time_init(2015,1,6,0,0,0), date_time_init(2015,1,7,0,0,0).prev_weekday
+    assert_equal date_time_init(2015,1,6,15,15,10), date_time_init(2015,1,7,15,15,10).prev_weekday
+  end
+
+  def test_prev_weekday_on_monday
+    assert_equal date_time_init(2015,1,2,0,0,0), date_time_init(2015,1,5,0,0,0).prev_weekday
+    assert_equal date_time_init(2015,1,2,15,15,10), date_time_init(2015,1,5,15,15,10).prev_weekday
+  end
+
+  def test_prev_weekday_on_sunday
+    assert_equal date_time_init(2015,1,2,0,0,0), date_time_init(2015,1,4,0,0,0).prev_weekday
+    assert_equal date_time_init(2015,1,2,15,15,10), date_time_init(2015,1,4,15,15,10).prev_weekday
   end
 
   def test_prev_month_on_31st
@@ -229,6 +259,21 @@ module DateAndTimeBehavior
     with_bw_default(:wednesday) do
       assert_equal date_time_init(2012,9,23,23,59,59, Rational(999999999, 1000)), date_time_init(2012,9,19,0,0,0).sunday
     end
+  end
+
+  def test_on_weekend_on_saturday
+    assert date_time_init(2015,1,3,0,0,0).on_weekend?
+    assert date_time_init(2015,1,3,15,15,10).on_weekend?
+  end
+
+  def test_on_weekend_on_sunday
+    assert date_time_init(2015,1,4,0,0,0).on_weekend?
+    assert date_time_init(2015,1,4,15,15,10).on_weekend?
+  end
+
+  def test_on_weekend_on_monday
+    assert_not date_time_init(2015,1,5,0,0,0).on_weekend?
+    assert_not date_time_init(2015,1,5,15,15,10).on_weekend?
   end
 
   def with_bw_default(bw = :monday)
