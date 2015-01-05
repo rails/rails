@@ -633,7 +633,7 @@ module ActiveRecord
 
           # interpolate the fixture label
           row.each do |key, value|
-            row[key] = value.gsub("$LABEL", label) if value.is_a?(String)
+            row[key] = value.gsub("$LABEL", label.to_s) if value.is_a?(String)
           end
 
           # generate a primary key if necessary
