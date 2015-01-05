@@ -655,7 +655,7 @@ class TransactionTest < ActiveRecord::TestCase
     connection.create_table(:transaction_without_primary_keys, force: true, id: false) do |t|
        t.integer :thing_id
     end
-    
+
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = 'transaction_without_primary_keys'
       after_commit { } # necessary to trigger the has_transactional_callbacks branch
@@ -667,7 +667,6 @@ class TransactionTest < ActiveRecord::TestCase
         raise ActiveRecord::Rollback
       end
     end
-    
   ensure
     connection.execute("DROP TABLE IF EXISTS transaction_without_primary_keys")
   end
