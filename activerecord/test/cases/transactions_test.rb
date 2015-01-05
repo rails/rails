@@ -504,6 +504,8 @@ class TransactionTest < ActiveRecord::TestCase
   end
 
   def test_rollback_when_thread_killed
+    return if in_memory_db?
+
     queue = Queue.new
     thread = Thread.new do
       Topic.transaction do
