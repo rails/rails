@@ -1,5 +1,5 @@
-*   Added ActiveRecord::SecureToken in order to encapsulate generation of
-    unique tokens for attributes in a model using SecureRandom
+*   Added `ActiveRecord::SecureToken` in order to encapsulate generation of
+    unique tokens for attributes in a model using `SecureRandom`.
 
     *Roberto Miranda*
 
