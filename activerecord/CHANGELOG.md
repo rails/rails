@@ -1,4 +1,4 @@
-*   Remove deprecated support to preload instnace-dependent associations.
+*   Remove deprecated support to preload instance-dependent associations.
 
     *Yves Senn*
 
