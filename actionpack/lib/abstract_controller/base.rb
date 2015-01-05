@@ -86,8 +86,7 @@ module AbstractController
             # And always exclude explicitly hidden actions
             hidden_actions.to_a
 
-          # Clear out AS callback method pollution
-          Set.new(methods.reject { |method| method =~ /_one_time_conditions/ })
+          methods.to_set
         end
       end
 
