@@ -14,7 +14,6 @@ class TranslationHelperTest < ActiveSupport::TestCase
   attr_reader :request, :view
 
   setup do
-    I18n.exception_handler = nil
     I18n.backend.store_translations(:en,
       :translations => {
         :templates => {
@@ -82,13 +81,19 @@ class TranslationHelperTest < ActiveSupport::TestCase
   end
 
   def test_uses_custom_exception_handler_when_specified
+    old_exception_handler = I18n.exception_handler
     I18n.exception_handler = I18n::CustomExceptionHandler
     assert_equal 'from CustomExceptionHandler', translate(:"translations.missing", raise: false)
+  ensure
+    I18n.exception_handler = old_exception_handler
   end
 
   def test_uses_custom_exception_handler_when_specified_for_html
+    old_exception_handler = I18n.exception_handler
     I18n.exception_handler = I18n::CustomExceptionHandler
     assert_equal 'from CustomExceptionHandler', translate(:"translations.missing_html", raise: false)
+  ensure
+    I18n.exception_handler = old_exception_handler
   end
 
   def test_i18n_translate_defaults_to_nil_rescue_format
