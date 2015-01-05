@@ -115,6 +115,7 @@ module ActiveRecord
       end
 
       relation = relation.reorder(batch_order).limit(batch_size)
+      relation.reverse_order_value = false
       records = start ? relation.where(table[primary_key].gteq(start)).to_a : relation.to_a
 
       while records.any?

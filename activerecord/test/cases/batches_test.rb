@@ -106,6 +106,15 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
+  def test_find_in_batches_should_ignore_reverse_order
+    ids = []
+    Post.select(:id).reverse_order.find_in_batches(:batch_size => 2) do |batch|
+      ids.concat batch.map(&:id)
+    end
+
+    assert_equal ids, Post.all.map(&:id)
+  end
+
   def test_find_in_batches_shouldnt_execute_query_unless_needed
     assert_queries(2) do
       Post.find_in_batches(:batch_size => @total) {|batch| assert_kind_of Array, batch }
@@ -198,6 +207,12 @@ class EachTest < ActiveRecord::TestCase
         assert_kind_of Post, batch.first
       end
     end
+  end
+
+  def test_find_in_batches_enumerator_should_ignore_reverse_order
+    enum = Post.select(:id).reverse_order.find_in_batches(:batch_size => 2)
+
+    assert_equal enum.first(2).flatten.map(&:id), Post.limit(4).map(&:id)
   end
 
   if Enumerator.method_defined? :size
