@@ -44,7 +44,7 @@ module ActionView
             value == !!@checked_value
           when NilClass
             false
-          when String
+          when String, Symbol
             value == @checked_value
           else
             if value.respond_to?(:include?)
