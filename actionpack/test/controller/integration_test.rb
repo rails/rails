@@ -853,9 +853,6 @@ end
 
 # to work in contexts like rspec before(:all)
 class IntegrationRequestsWithoutSetup < ActionDispatch::IntegrationTest
-  self._setup_callbacks = []
-  self._teardown_callbacks = []
-
   class FooController < ActionController::Base
     def ok
       cookies[:key] = 'ok'
