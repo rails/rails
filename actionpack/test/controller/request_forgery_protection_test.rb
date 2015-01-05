@@ -103,6 +103,31 @@ class RequestForgeryProtectionControllerUsingNullSession < ActionController::Bas
   end
 end
 
+class PrependProtectForgeryBaseController < ActionController::Base
+  before_action :custom_action
+  attr_accessor :called_callbacks
+
+  def index
+    render inline: 'OK'
+  end
+
+  protected
+
+  def add_called_callback(name)
+    @called_callbacks ||= []
+    @called_callbacks << name
+  end
+
+
+  def custom_action
+    add_called_callback("custom_action")
+  end
+
+  def verify_authenticity_token
+    add_called_callback("verify_authenticity_token")
+  end
+end
+
 class FreeCookieController < RequestForgeryProtectionControllerUsingResetSession
   self.allow_forgery_protection = false
 
@@ -428,6 +453,41 @@ class RequestForgeryProtectionControllerUsingExceptionTest < ActionController::T
     assert_raises(ActionController::InvalidAuthenticityToken) do
       yield
     end
+  end
+end
+
+class PrependProtectForgeryBaseControllerTest < ActionController::TestCase
+  PrependTrueController = Class.new(PrependProtectForgeryBaseController) do
+    protect_from_forgery prepend: true
+  end
+
+  PrependFalseController = Class.new(PrependProtectForgeryBaseController) do
+    protect_from_forgery prepend: false
+  end
+
+  PrependDefaultController = Class.new(PrependProtectForgeryBaseController) do
+    protect_from_forgery
+  end
+
+  def test_verify_authenticity_token_is_prepended
+    @controller = PrependTrueController.new
+    get :index
+    expected_callback_order = ["verify_authenticity_token", "custom_action"]
+    assert_equal(expected_callback_order, @controller.called_callbacks)
+  end
+
+  def test_verify_authenticity_token_is_not_prepended
+    @controller = PrependFalseController.new
+    get :index
+    expected_callback_order = ["custom_action", "verify_authenticity_token"]
+    assert_equal(expected_callback_order, @controller.called_callbacks)
+  end
+
+  def test_verify_authenticity_token_is_prepended_by_default
+    @controller = PrependDefaultController.new
+    get :index
+    expected_callback_order = ["verify_authenticity_token", "custom_action"]
+    assert_equal(expected_callback_order, @controller.called_callbacks)
   end
 end
 
