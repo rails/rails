@@ -1,3 +1,7 @@
+*   Fix accessing of fixtures having non-string labels like Fixnum.
+
+    *Prathamesh Sonpatki*
+
 *   Remove deprecated support to preload instance-dependent associations.
 
     *Yves Senn*

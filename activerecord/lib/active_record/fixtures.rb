@@ -882,7 +882,7 @@ module ActiveRecord
               @fixture_cache[fs_name] ||= {}
 
               instances = fixture_names.map do |f_name|
-                f_name = f_name.to_s
+                f_name = f_name.to_s if f_name.is_a?(Symbol)
                 @fixture_cache[fs_name].delete(f_name) if force_reload
 
                 if @loaded_fixtures[fs_name][f_name]
