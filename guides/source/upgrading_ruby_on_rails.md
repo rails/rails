@@ -276,6 +276,20 @@ class Notifier < ActionMailer::Base
 end
 ```
 
+### Foreign Key Support
+
+The migration DSL has been expanded to support foreign key definitions. If
+you've been using the Foreigner gem, you might want to consider removing it.
+Note that the foreign key support of Rails is a subset of Foreigner.
+
+If you are from Foreigner to Rails foreign keys, you can follow these steps:
+
+1. remove "foreigner" from the Gemfile
+2. run `bundle install`
+3. run `bin/rake db:schema:dump`
+4. make sure that `db/schema.rb` contains every foreign key definition with
+the necessary options
+
 Upgrading from Rails 4.0 to Rails 4.1
 -------------------------------------
 
