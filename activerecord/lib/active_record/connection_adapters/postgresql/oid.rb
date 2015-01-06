@@ -29,7 +29,7 @@ module ActiveRecord
             return if value.nil?
             # This is a flawed heuristic, but it avoids truncation;
             # we really shouldn’t be calling this with already-unescaped values
-            return value if value =~ /\x00/
+            return value if value.dup.force_encoding("BINARY") =~ /\x00/
             PGconn.unescape_bytea value
           end
         end
