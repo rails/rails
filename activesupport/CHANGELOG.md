@@ -1,3 +1,8 @@
+*   Add `same_time` option to `#next_week` and `#prev_week` for `Date`, `Time`,
+    and `DateTime`.
+
+    *George Claghorn*
+
 *   Add `#on_weekend?`, `#next_weekday`, `#prev_weekday` methods to `Date`,
     `Time`, and `DateTime`.
 

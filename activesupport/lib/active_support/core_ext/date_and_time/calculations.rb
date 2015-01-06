@@ -117,15 +117,16 @@ module DateAndTime
     # Returns a new date/time representing the given day in the next week.
     # The +given_day_in_next_week+ defaults to the beginning of the week
     # which is determined by +Date.beginning_of_week+ or +config.beginning_of_week+
-    # when set. +DateTime+ objects have their time set to 0:00.
-    def next_week(given_day_in_next_week = Date.beginning_of_week)
-      first_hour(weeks_since(1).beginning_of_week.days_since(days_span(given_day_in_next_week)))
+    # when set. +DateTime+ objects have their time set to 0:00 unless +same_time+ is true.
+    def next_week(given_day_in_next_week = Date.beginning_of_week, same_time: false)
+      result = first_hour(weeks_since(1).beginning_of_week.days_since(days_span(given_day_in_next_week)))
+      same_time ? copy_time_to(result) : result
     end
 
     # Returns a new date/time representing the next weekday.
     def next_weekday
       if tomorrow.on_weekend?
-        next_week(:monday).change(hour: hour, min: min, sec: sec, usec: try(:usec))
+        next_week(:monday, same_time: true)
       else
         tomorrow
       end
@@ -149,16 +150,17 @@ module DateAndTime
     # Returns a new date/time representing the given day in the previous week.
     # Week is assumed to start on +start_day+, default is
     # +Date.beginning_of_week+ or +config.beginning_of_week+ when set.
-    # DateTime objects have their time set to 0:00.
-    def prev_week(start_day = Date.beginning_of_week)
-      first_hour(weeks_ago(1).beginning_of_week.days_since(days_span(start_day)))
+    # DateTime objects have their time set to 0:00 unless +same_time+ is true.
+    def prev_week(start_day = Date.beginning_of_week, same_time: false)
+      result = first_hour(weeks_ago(1).beginning_of_week.days_since(days_span(start_day)))
+      same_time ? copy_time_to(result) : result
     end
     alias_method :last_week, :prev_week
 
     # Returns a new date/time representing the previous weekday.
     def prev_weekday
       if yesterday.on_weekend?
-        beginning_of_week(:friday).change(hour: hour, min: min, sec: sec, usec: try(:usec))
+        copy_time_to(beginning_of_week(:friday))
       else
         yesterday
       end
@@ -260,17 +262,20 @@ module DateAndTime
     end
 
     private
+      def first_hour(date_or_time)
+        date_or_time.acts_like?(:time) ? date_or_time.beginning_of_day : date_or_time
+      end
 
-    def first_hour(date_or_time)
-      date_or_time.acts_like?(:time) ? date_or_time.beginning_of_day : date_or_time
-    end
+      def last_hour(date_or_time)
+        date_or_time.acts_like?(:time) ? date_or_time.end_of_day : date_or_time
+      end
 
-    def last_hour(date_or_time)
-      date_or_time.acts_like?(:time) ? date_or_time.end_of_day : date_or_time
-    end
+      def days_span(day)
+        (DAYS_INTO_WEEK[day] - DAYS_INTO_WEEK[Date.beginning_of_week]) % 7
+      end
 
-    def days_span(day)
-      (DAYS_INTO_WEEK[day] - DAYS_INTO_WEEK[Date.beginning_of_week]) % 7
-    end
+      def copy_time_to(other)
+        other.change(hour: hour, min: min, sec: sec, usec: try(:usec))
+      end
   end
 end
