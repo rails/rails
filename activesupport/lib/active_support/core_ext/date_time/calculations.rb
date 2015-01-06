@@ -168,7 +168,7 @@ class DateTime
     if other.kind_of?(Infinity)
       super
     elsif other.respond_to? :to_datetime
-      super other.to_datetime
+      super other.to_datetime rescue nil
     else
       nil
     end
