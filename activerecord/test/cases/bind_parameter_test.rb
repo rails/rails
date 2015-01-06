@@ -1,9 +1,11 @@
 require 'cases/helper'
 require 'models/topic'
+require 'models/author'
+require 'models/post'
 
 module ActiveRecord
   class BindParameterTest < ActiveRecord::TestCase
-    fixtures :topics
+    fixtures :topics, :authors, :posts
 
     class LogListener
       attr_accessor :calls
@@ -30,6 +32,12 @@ module ActiveRecord
     end
 
     if ActiveRecord::Base.connection.supports_statement_cache?
+      def test_bind_from_join_in_subquery
+        subquery = Author.joins(:thinking_posts).where(name: 'David')
+        scope = Author.from(subquery, 'authors').where(id: 1)
+        assert_equal 1, scope.count
+      end
+
       def test_binds_are_logged
         sub   = @connection.substitute_at(@pk)
         binds = [[@pk, 1]]
