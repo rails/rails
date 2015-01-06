@@ -757,6 +757,9 @@ module ActiveRecord
 
     def from!(value, subquery_name = nil) # :nodoc:
       self.from_value = [value, subquery_name]
+      if value.is_a? Relation
+        self.bind_values = value.arel.bind_values + value.bind_values + bind_values
+      end
       self
     end
 
@@ -1006,7 +1009,6 @@ module ActiveRecord
       case opts
       when Relation
         name ||= 'subquery'
-        self.bind_values = opts.bind_values + self.bind_values
         opts.arel.as(name.to_s)
       else
         opts
