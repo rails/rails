@@ -1,3 +1,5 @@
+## Rails 4.0.13 (January 6, 2015) ##
+
 *   Renaming a table in pg also renames the primary key index.
 
     Fixes #12856

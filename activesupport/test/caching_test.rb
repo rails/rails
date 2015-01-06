@@ -1001,7 +1001,7 @@ class CacheEntryTest < ActiveSupport::TestCase
     version_4beta1_entry.instance_variable_set(:@v, "hello")
     version_4beta1_entry.instance_variable_set(:@x, Time.now.to_i - 1)
     entry = Marshal.load(Marshal.dump(version_4beta1_entry))
-    assert_equal "hello", entry.value
     assert_equal true, entry.expired?
+    assert_equal "hello", entry.value
   end
 end
