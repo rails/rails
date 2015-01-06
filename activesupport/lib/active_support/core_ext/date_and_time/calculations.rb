@@ -13,12 +13,22 @@ module DateAndTime
 
     # Returns a new date/time representing yesterday.
     def yesterday
-      advance(:days => -1)
+      advance(days: -1)
+    end
+
+    # Returns a new date/time representing the previous day.
+    def prev_day
+      advance(days: -1)
     end
 
     # Returns a new date/time representing tomorrow.
     def tomorrow
-      advance(:days => 1)
+      advance(days: 1)
+    end
+
+    # Returns a new date/time representing the next day.
+    def next_day
+      advance(days: 1)
     end
 
     # Returns true if the date/time is today.
@@ -125,10 +135,10 @@ module DateAndTime
 
     # Returns a new date/time representing the next weekday.
     def next_weekday
-      if tomorrow.on_weekend?
+      if next_day.on_weekend?
         next_week(:monday, same_time: true)
       else
-        tomorrow
+        next_day
       end
     end
 
@@ -159,10 +169,10 @@ module DateAndTime
 
     # Returns a new date/time representing the previous weekday.
     def prev_weekday
-      if yesterday.on_weekend?
+      if prev_day.on_weekend?
         copy_time_to(beginning_of_week(:friday))
       else
-        yesterday
+        prev_day
       end
     end
     alias_method :last_weekday, :prev_weekday

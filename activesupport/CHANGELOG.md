@@ -1,3 +1,8 @@
+*   Add `#prev_day` and `#next_day` counterparts to `#yesterday` and
+    `#tomorrow` for `Date`, `Time`, and `DateTime`.
+
+    *George Claghorn*
+
 *   Add `same_time` option to `#next_week` and `#prev_week` for `Date`, `Time`,
     and `DateTime`.
 
