@@ -29,4 +29,11 @@
 
     *Rafael Mendonça França*
 
+*   Add `_mailer` suffix to mailers created via generator, following the same
+naming convention used in controllers and jobs.
+
+    Closes #18074.
+
+    *Carlos Souza*
+
 Please check [4-2-stable](https://github.com/rails/rails/blob/4-2-stable/actionmailer/CHANGELOG.md) for previous changes.
