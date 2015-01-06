@@ -33,12 +33,12 @@
 
     *Rafael Mendonça França*
 
-*   Change transaction callbacks to not swallowing errors.
+*   Change transaction callbacks to not swallow errors.
 
-    Before this change any error raised inside a transaction callback are
-    rescued and printed in the logs.
+    Before this change any errors raised inside a transaction callback
+    were getting rescued and printed in the logs.
 
-    Now these errors are not rescue anymore and just bubble up, as the other callbacks.
+    Now these errors are not rescued anymore and just bubble up, as the other callbacks.
 
     *Rafael Mendonça França*
 
@@ -58,7 +58,7 @@
 
     *Rafael Mendonça França*
 
-*   Remove deprecated access to connection specification using a string acessor.
+*   Remove deprecated access to connection specification using a string accessor.
 
     Now all strings will be handled as a URL.
 
