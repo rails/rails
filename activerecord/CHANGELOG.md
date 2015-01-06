@@ -1,3 +1,5 @@
+## Rails 4.1.9 (January 6, 2015) ##
+
 *   `db:schema:load` and `db:structure:load` no longer purge the database
     before loading the schema. This is left for the user to do.
     `db:test:prepare` will still purge the database.

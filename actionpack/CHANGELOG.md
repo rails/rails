@@ -1,3 +1,5 @@
+## Rails 4.1.9 (January 6, 2015) ##
+
 *   Fixed handling of positional url helper arguments when `format: false`.
 
     Fixes #17819.

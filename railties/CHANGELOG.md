@@ -1,3 +1,8 @@
+## Rails 4.1.9 (January 6, 2015) ##
+
+*   No changes.
+
+
 ## Rails 4.1.8 (November 16, 2014) ##
 
 *   `secret_token` is now saved in `Rails.application.secrets.secret_token`

@@ -8,7 +8,7 @@ module ActionView
     MAJOR = 4
     MINOR = 1
     TINY  = 9
-    PRE   = "rc1"
+    PRE   = nil
 
     STRING = [MAJOR, MINOR, TINY, PRE].compact.join(".")
   end
