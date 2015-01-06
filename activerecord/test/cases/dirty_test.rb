@@ -4,6 +4,7 @@ require 'models/pirate'   # For timestamps
 require 'models/parrot'
 require 'models/person'   # For optimistic locking
 require 'models/aircraft'
+require 'models/binary'
 
 class Pirate # Just reopening it, not defining it
   attr_accessor :detected_changes_in_after_update # Boolean for if changes are detected
@@ -259,6 +260,14 @@ class DirtyTest < ActiveRecord::TestCase
 
     data.temperature = '0.00'
     assert_empty data.changes
+  end
+
+  def test_binary_with_null_byte_with_same_value_not_marked_as_changed
+    binary = Binary.create!(data: "\\\\foo\x00\\\\bar")
+
+    binary.data = "\\\\foo\x00\\\\bar"
+
+    assert_not binary.changed?, "should be unchanged"
   end
 
   def test_zero_to_blank_marked_as_changed
