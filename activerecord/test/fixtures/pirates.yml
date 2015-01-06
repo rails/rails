@@ -10,3 +10,6 @@ redbeard:
 
 mark:
   catchphrase: "X $LABELs the spot!"
+
+1:
+  catchphrase: "#$LABEL pirate!"

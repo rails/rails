@@ -792,6 +792,10 @@ class FoxyFixturesTest < ActiveRecord::TestCase
     assert_equal("X marks the spot!", pirates(:mark).catchphrase)
   end
 
+  def test_supports_label_interpolation_for_fixnum_label
+    assert_equal("#1 pirate!", pirates(1).catchphrase)
+  end
+
   def test_supports_polymorphic_belongs_to
     assert_equal(pirates(:redbeard), treasures(:sapphire).looter)
     assert_equal(parrots(:louis), treasures(:ruby).looter)

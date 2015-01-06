@@ -1,3 +1,8 @@
+*   Fix accessing of fixtures having non-string labels like Fixnum by converting
+    the label into string only if its a symbol.
+
+    *Prathamesh Sonpatki*
+
 *   Remove deprecated support to preload instance-dependent associations.
 
     *Yves Senn*
