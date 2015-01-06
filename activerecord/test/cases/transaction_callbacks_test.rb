@@ -82,6 +82,16 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
     assert_equal [:after_commit], @first.history
   end
 
+  def test_update_in_after_commit_on_create
+    new_record = TopicWithCallbacks.new(title: 'Topic')
+    new_record.after_commit_block(:create) do |r|
+      r.title += ' created'
+      r.save
+    end
+    new_record.save
+    assert 'Topic created', new_record.title
+  end
+
   def test_only_call_after_commit_on_update_after_transaction_commits_for_existing_record
     add_transaction_execution_blocks @first
 
