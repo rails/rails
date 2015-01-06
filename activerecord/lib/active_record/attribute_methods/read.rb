@@ -75,9 +75,8 @@ module ActiveRecord
 
       private
 
-      def attribute(attribute_name)
-        _read_attribute(attribute_name)
-      end
+      alias :attribute :_read_attribute
+
     end
   end
 end
