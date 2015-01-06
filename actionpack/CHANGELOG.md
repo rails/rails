@@ -1,3 +1,7 @@
+*   Remove `ActionController::HideActions`
+
+    *Ravil Bayramgalin*
+
 *   Remove `respond_to`/`respond_with` placeholder methods, this functionality
     has been extracted to the `responders` gem.
 

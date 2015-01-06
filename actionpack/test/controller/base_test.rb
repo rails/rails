@@ -1,30 +1,10 @@
 require 'abstract_unit'
 require 'active_support/logger'
 require 'controller/fake_models'
-require 'pp' # require 'pp' early to prevent hidden_methods from not picking up the pretty-print methods until too late
 
 # Provide some controller to run the tests on.
 module Submodule
   class ContainedEmptyController < ActionController::Base
-  end
-
-  class ContainedNonEmptyController < ActionController::Base
-    def public_action
-      render :nothing => true
-    end
-
-    hide_action :hidden_action
-    def hidden_action
-      raise "Noooo!"
-    end
-
-    def another_hidden_action
-    end
-    hide_action :another_hidden_action
-  end
-
-  class SubclassedController < ContainedNonEmptyController
-    hide_action :public_action # Hiding it here should not affect the superclass.
   end
 end
 
@@ -34,10 +14,6 @@ end
 class NonEmptyController < ActionController::Base
   def public_action
     render :nothing => true
-  end
-
-  hide_action :hidden_action
-  def hidden_action
   end
 end
 
@@ -108,10 +84,7 @@ class ControllerInstanceTests < ActiveSupport::TestCase
   def setup
     @empty = EmptyController.new
     @contained = Submodule::ContainedEmptyController.new
-    @empty_controllers = [@empty, @contained, Submodule::SubclassedController.new]
-
-    @non_empty_controllers = [NonEmptyController.new,
-                              Submodule::ContainedNonEmptyController.new]
+    @empty_controllers = [@empty, @contained]
   end
 
   def test_performed?
@@ -123,10 +96,6 @@ class ControllerInstanceTests < ActiveSupport::TestCase
   def test_action_methods
     @empty_controllers.each do |c|
       assert_equal Set.new, c.class.action_methods, "#{c.controller_path} should be empty!"
-    end
-
-    @non_empty_controllers.each do |c|
-      assert_equal Set.new(%w(public_action)), c.class.action_methods, "#{c.controller_path} should not be empty!"
     end
   end
 
@@ -159,12 +128,6 @@ class PerformActionTest < ActionController::TestCase
       get :non_existent
     end
     assert_equal "The action 'non_existent' could not be found for EmptyController", exception.message
-  end
-
-  def test_get_on_hidden_should_fail
-    use_controller NonEmptyController
-    assert_raise(AbstractController::ActionNotFound) { get :hidden_action }
-    assert_raise(AbstractController::ActionNotFound) { get :another_hidden_action }
   end
 
   def test_action_missing_should_work
