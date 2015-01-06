@@ -1,3 +1,8 @@
+## Rails 4.0.13 (January 6, 2015) ##
+
+*No changes*
+
+
 ## Rails 4.0.12 (November 16, 2014) ##
 
 *No changes*
