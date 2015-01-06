@@ -72,10 +72,8 @@ module ActiveRecord
       def _read_attribute(attr_name) # :nodoc:
         @attributes.fetch_value(attr_name.to_s) { |n| yield n if block_given? }
       end
-
-      private
-
       alias :attribute :_read_attribute
+      private :attribute
 
     end
   end
