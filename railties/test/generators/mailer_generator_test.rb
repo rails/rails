@@ -78,13 +78,13 @@ class MailerGeneratorTest < Rails::Generators::TestCase
 
   def test_invokes_default_text_template_engine
     run_generator
-    assert_file "app/views/notifier/foo.text.erb" do |view|
-      assert_match(%r(\sapp/views/notifier/foo\.text\.erb), view)
+    assert_file "app/views/notifier_mailer/foo.text.erb" do |view|
+      assert_match(%r(\sapp/views/notifier_mailer/foo\.text\.erb), view)
       assert_match(/<%= @greeting %>/, view)
     end
 
-    assert_file "app/views/notifier/bar.text.erb" do |view|
-      assert_match(%r(\sapp/views/notifier/bar\.text\.erb), view)
+    assert_file "app/views/notifier_mailer/bar.text.erb" do |view|
+      assert_match(%r(\sapp/views/notifier_mailer/bar\.text\.erb), view)
       assert_match(/<%= @greeting %>/, view)
     end
 
@@ -95,13 +95,13 @@ class MailerGeneratorTest < Rails::Generators::TestCase
 
   def test_invokes_default_html_template_engine
     run_generator
-    assert_file "app/views/notifier/foo.html.erb" do |view|
-      assert_match(%r(\sapp/views/notifier/foo\.html\.erb), view)
+    assert_file "app/views/notifier_mailer/foo.html.erb" do |view|
+      assert_match(%r(\sapp/views/notifier_mailer/foo\.html\.erb), view)
       assert_match(/<%= @greeting %>/, view)
     end
 
-    assert_file "app/views/notifier/bar.html.erb" do |view|
-      assert_match(%r(\sapp/views/notifier/bar\.html\.erb), view)
+    assert_file "app/views/notifier_mailer/bar.html.erb" do |view|
+      assert_match(%r(\sapp/views/notifier_mailer/bar\.html\.erb), view)
       assert_match(/<%= @greeting %>/, view)
     end
 
@@ -112,7 +112,7 @@ class MailerGeneratorTest < Rails::Generators::TestCase
 
   def test_invokes_default_template_engine_even_with_no_action
     run_generator ["notifier"]
-    assert_file "app/views/notifier"
+    assert_file "app/views/notifier_mailer"
     assert_file "app/views/layouts/mailer.text.erb"
     assert_file "app/views/layouts/mailer.html.erb"
   end
@@ -133,8 +133,8 @@ class MailerGeneratorTest < Rails::Generators::TestCase
       assert_match(/class Farm::AnimalMailerPreview < ActionMailer::Preview/, preview)
       assert_match(/\# Preview this email at http:\/\/localhost\:3000\/rails\/mailers\/farm\/animal\/moos/, preview)
     end
-    assert_file "app/views/farm/animal/moos.text.erb"
-    assert_file "app/views/farm/animal/moos.html.erb"
+    assert_file "app/views/farm/animal_mailer/moos.text.erb"
+    assert_file "app/views/farm/animal_mailer/moos.html.erb"
   end
 
   def test_actions_are_turned_into_methods
@@ -173,5 +173,14 @@ class MailerGeneratorTest < Rails::Generators::TestCase
 
     assert_no_file "app/mailers/notifier_mailer_mailer.rb"
     assert_file "app/mailers/notifier_mailer.rb"
+
+    assert_no_file "app/views/notifier_mailer_mailer/"
+    assert_file "app/views/notifier_mailer/"
+
+    assert_no_file "test/mailers/notifier_mailer_mailer_test.rb"
+    assert_file "test/mailers/notifier_mailer_test.rb"
+
+    assert_no_file "test/mailers/previews/notifier_mailer_mailer_preview.rb"
+    assert_file "test/mailers/previews/notifier_mailer_preview.rb"
   end
 end

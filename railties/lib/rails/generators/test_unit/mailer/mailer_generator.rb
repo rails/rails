@@ -16,6 +16,11 @@ module TestUnit # :nodoc:
       def create_preview_files
         template "preview.rb", File.join('test/mailers/previews', class_path, "#{file_name}_mailer_preview.rb")
       end
+
+      protected
+        def file_name
+          @_file_name ||= super.gsub(/\_mailer/i, '')
+        end
     end
   end
 end
