@@ -1,3 +1,8 @@
+*   Add `_mailer` suffix to mailers created via generator, following the same
+    naming convention used in controllers and jobs.
+
+    *Carlos Souza*
+
 *   Remove deprecate `*_path` helpers in email views.
 
     *Rafael Mendonça França*
@@ -28,12 +33,5 @@
     the right I18n fallback configuration.
 
     *Rafael Mendonça França*
-
-*   Add `_mailer` suffix to mailers created via generator, following the same
-naming convention used in controllers and jobs.
-
-    Closes #18074.
-
-    *Carlos Souza*
 
 Please check [4-2-stable](https://github.com/rails/rails/blob/4-2-stable/actionmailer/CHANGELOG.md) for previous changes.
