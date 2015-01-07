@@ -83,6 +83,7 @@ module ActiveSupport
           expanded_cache_key << "#{prefix}/"
         end
 
+        key = key.to_a if key.respond_to?(:to_a)
         expanded_cache_key << retrieve_cache_key(key)
         expanded_cache_key
       end
@@ -92,7 +93,6 @@ module ActiveSupport
           case
           when key.respond_to?(:cache_key) then key.cache_key
           when key.is_a?(Array)            then key.map { |element| retrieve_cache_key(element) }.to_param
-          when key.respond_to?(:to_a)      then retrieve_cache_key(key.to_a)
           else                                  key.to_param
           end.to_s
         end

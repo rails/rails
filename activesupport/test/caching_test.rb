@@ -114,6 +114,14 @@ class CacheKeyTest < ActiveSupport::TestCase
     assert_equal 'foo/bar/baz', ActiveSupport::Cache.expand_cache_key(%w{foo bar baz}.to_enum)
   end
 
+  def test_expand_cache_key_of_object_that_responds_to_to_a
+    key = "foo"
+    def key.to_a
+      [self]
+    end
+    assert_equal 'foo', ActiveSupport::Cache.expand_cache_key(key)
+  end
+
   private
 
   def with_env(kv)
