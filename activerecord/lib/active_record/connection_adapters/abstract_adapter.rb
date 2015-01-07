@@ -382,7 +382,7 @@ module ActiveRecord
       end
 
       def column_name_for_operation(operation, node) # :nodoc:
-        node.to_sql
+        visitor.accept(node, collector).value
       end
 
       protected
