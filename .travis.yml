@@ -6,6 +6,8 @@ rvm:
   - 1.9.2
   - 1.9.3
   - 2.0.0
+  - 2.1
+  - 2.2
 env:
   - "GEM=railties"
   - "GEM=ap,am,amo,ares,as"

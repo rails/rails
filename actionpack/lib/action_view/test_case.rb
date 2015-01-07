@@ -193,6 +193,7 @@ module ActionView
         @_result
         @_routes
         @controller
+        @internal_data
         @layouts
         @locals
         @method_name

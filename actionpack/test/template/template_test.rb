@@ -179,10 +179,11 @@ class TestERBTemplate < ActiveSupport::TestCase
     end
 
     def test_error_when_template_isnt_valid_utf8
-      assert_raises(ActionView::Template::Error, /\xFC/) do
+      exception = assert_raise(ActionView::Template::Error) do
         @template = new_template("hello \xFCmlat", :virtual_path => nil)
         render
       end
+      assert_match(/\xFC/, exception.message)
     end
 
     def with_external_encoding(encoding)

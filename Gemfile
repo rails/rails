@@ -17,6 +17,8 @@ else
   gem 'journey'
 end
 
+gem 'i18n', '~> 0.6.11'
+
 # This needs to be with require false to avoid
 # it being automatically loaded by sprockets
 gem 'uglifier', '>= 1.0.3', :require => false

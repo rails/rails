@@ -16,7 +16,9 @@ class BigDecimal
   #
   # Note that reconstituting YAML floats to native floats may lose precision.
   def to_yaml(opts = {})
-    return super if defined?(YAML::ENGINE) && !YAML::ENGINE.syck?
+    return super if
+      (defined?(YAML::ENGINE) && !YAML::ENGINE.syck?) ||
+      (defined?(Psych) && YAML == Psych)
 
     YAML.quick_emit(nil, opts) do |out|
       string = to_s
