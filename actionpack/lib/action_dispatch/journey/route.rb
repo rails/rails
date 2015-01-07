@@ -36,7 +36,7 @@ module ActionDispatch
 
       def requirements # :nodoc:
         # needed for rails `rake routes`
-        path.requirements.merge(@defaults).delete_if { |_,v|
+        @defaults.merge(path.requirements).delete_if { |_,v|
           /.+?/ == v
         }
       end
