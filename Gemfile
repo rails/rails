@@ -18,6 +18,7 @@ else
 end
 
 gem 'i18n', '~> 0.6.11'
+gem 'test-unit',  '~> 3.0'
 
 # This needs to be with require false to avoid
 # it being automatically loaded by sprockets

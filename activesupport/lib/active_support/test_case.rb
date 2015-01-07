@@ -1,4 +1,8 @@
-require 'test/unit/testcase'
+begin
+  require 'test/unit/testcase'
+rescue LoadError => e
+  raise LoadError, "Please add test-unit gem to your Gemfile: `gem 'test-unit', '~> 3.0'` (#{e.message})", e.backtrace
+end
 require 'active_support/testing/setup_and_teardown'
 require 'active_support/testing/assertions'
 require 'active_support/testing/deprecation'
