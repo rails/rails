@@ -269,9 +269,9 @@ db_namespace = namespace :db do
   end
 
   namespace :structure do
-    desc 'Dump the database structure to db/structure.sql. Specify another file with DB_STRUCTURE=db/my_structure.sql'
+    desc 'Dump the database structure to db/structure.sql. Specify another file with SCHEMA=db/my_structure.sql'
     task :dump => [:environment, :load_config] do
-      filename = ENV['DB_STRUCTURE'] || File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, "structure.sql")
+      filename = ENV['SCHEMA'] || File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, "structure.sql")
       current_config = ActiveRecord::Tasks::DatabaseTasks.current_config
       ActiveRecord::Tasks::DatabaseTasks.structure_dump(current_config, filename)
 
@@ -287,7 +287,7 @@ db_namespace = namespace :db do
 
     desc "Recreate the databases from the structure.sql file"
     task :load => [:environment, :load_config] do
-      ActiveRecord::Tasks::DatabaseTasks.load_schema_current(:sql, ENV['DB_STRUCTURE'])
+      ActiveRecord::Tasks::DatabaseTasks.load_schema_current(:sql, ENV['SCHEMA'])
     end
 
     task :load_if_sql => ['db:create', :environment] do
