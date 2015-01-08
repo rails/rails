@@ -1,4 +1,8 @@
-*   Allow you to pass `prepend: false` to protect_from_forgery to have the 
+*   Deprecate all *_filter callbacks in favor of *_action callbacks.
+
+    *Rafael Mendonça França*
+
+*   Allow you to pass `prepend: false` to protect_from_forgery to have the
     verification callback appended instead of prepended to the chain.
     This allows you to let the verification step depend on prior callbacks.
     Example:
