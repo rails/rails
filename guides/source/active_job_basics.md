@@ -295,7 +295,7 @@ end
 ```
 
 This works with any class that mixes in `GlobalID::Identification`, which
-by default has been mixed into Active Model classes.
+by default has been mixed into Active Record classes.
 
 
 Exceptions
