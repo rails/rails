@@ -1,38 +1,36 @@
-*  Add :only option to assert_enqueued_jobs
+*   Add `:only` option to `assert_enqueued_jobs`, to check the number of times
+    a specific kind of job is enqueued:
 
-   With the option, assert_enqueued_jobs will check the number of times a specific kind of job is enqueued:
-
-      def test_logging_job
-        assert_enqueued_jobs 1, only: LoggingJob do
-          LoggingJob.perform_later
-          HelloJob.perform_later('jeremy')
+        def test_logging_job
+          assert_enqueued_jobs 1, only: LoggingJob do
+            LoggingJob.perform_later
+            HelloJob.perform_later('jeremy')
+          end
         end
-      end
 
-   *George Claghorn*
+    *George Claghorn*
 
-*  `ActiveJob::Base.deserialize` delegates to the job class
-
+*   `ActiveJob::Base.deserialize` delegates to the job class.
 
     Since `ActiveJob::Base#deserialize` can be overridden by subclasses (like
     `ActiveJob::Base#serialize`) this allows jobs to attach arbitrary metadata
     when they get serialized and read it back when they get performed. Example:
 
-      class DeliverWebhookJob < ActiveJob::Base
-        def serialize
-          super.merge('attempt_number' => (@attempt_number || 0) + 1)
-        end
+        class DeliverWebhookJob < ActiveJob::Base
+          def serialize
+            super.merge('attempt_number' => (@attempt_number || 0) + 1)
+          end
 
-        def deserialize(job_data)
-          super
-          @attempt_number = job_data['attempt_number']
-        end
+          def deserialize(job_data)
+            super
+            @attempt_number = job_data['attempt_number']
+          end
 
-        rescue_from(TimeoutError) do |exception|
-          raise exception if @attempt_number > 5
-          retry_job(wait: 10)
+          rescue_from(TimeoutError) do |exception|
+            raise exception if @attempt_number > 5
+            retry_job(wait: 10)
+          end
         end
-      end
 
     *Isaac Seymour*
 
