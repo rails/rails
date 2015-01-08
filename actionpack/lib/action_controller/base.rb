@@ -206,7 +206,6 @@ module ActionController
       AbstractController::AssetPaths,
 
       Helpers,
-      HideActions,
       UrlFor,
       Redirecting,
       ActionView::Layouts,

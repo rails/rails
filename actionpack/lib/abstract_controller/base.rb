@@ -57,21 +57,11 @@ module AbstractController
         controller.public_instance_methods(true)
       end
 
-      # The list of hidden actions. Defaults to an empty array.
-      # This can be modified by other modules or subclasses
-      # to specify particular actions as hidden.
-      #
-      # ==== Returns
-      # * <tt>Array</tt> - An array of method names that should not be considered actions.
-      def hidden_actions
-        []
-      end
-
       # A list of method names that should be considered actions. This
       # includes all public instance methods on a controller, less
       # any internal methods (see internal_methods), adding back in
       # any methods that are internal, but still exist on the class
-      # itself. Finally, hidden_actions are removed.
+      # itself.
       #
       # ==== Returns
       # * <tt>Set</tt> - A set of all methods that should be considered actions.
@@ -82,9 +72,7 @@ module AbstractController
             # Except for public instance methods of Base and its ancestors
             internal_methods +
             # Be sure to include shadowed public instance methods of this class
-            public_instance_methods(false)).uniq.map(&:to_s) -
-            # And always exclude explicitly hidden actions
-            hidden_actions.to_a
+            public_instance_methods(false)).uniq.map(&:to_s)
 
           methods.to_set
         end
