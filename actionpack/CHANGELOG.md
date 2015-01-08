@@ -5,7 +5,7 @@
 
         class ApplicationController < ActionController::Base
           before_action :authenticate
-          protect_from_forgery unless: -> { @authenticated_by.oauth? }
+          protect_from_forgery prepend: true, unless: -> { @authenticated_by.oauth? }
 
           private
             def authenticate
