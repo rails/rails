@@ -79,11 +79,19 @@ module ActiveJob
       #     end
       #   end
       #
+      # It can be asserted that no jobs of a specific kind are enqueued:
+      #
+      #   def test_no_logging
+      #     assert_no_enqueued_jobs only: LoggingJob do
+      #       HelloJob.perform_later('jeremy')
+      #     end
+      #   end
+      #
       # Note: This assertion is simply a shortcut for:
       #
       #   assert_enqueued_jobs 0, &block
-      def assert_no_enqueued_jobs(&block)
-        assert_enqueued_jobs 0, &block
+      def assert_no_enqueued_jobs(only: nil, &block)
+        assert_enqueued_jobs 0, only: only, &block
       end
 
       # Asserts that the number of performed jobs matches the given number.

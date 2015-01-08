@@ -127,6 +127,25 @@ class EnqueuedJobsTest < ActiveJob::TestCase
     assert_match(/1 .* but 2/, error.message)
   end
 
+  def test_assert_no_enqueued_jobs_with_only_option
+    assert_nothing_raised do
+      assert_no_enqueued_jobs only: HelloJob do
+        LoggingJob.perform_later
+      end
+    end
+  end
+
+  def test_assert_no_enqueued_jobs_with_only_option_failure
+    error = assert_raise ActiveSupport::TestCase::Assertion do
+      assert_no_enqueued_jobs only: HelloJob do
+        HelloJob.perform_later('jeremy')
+        LoggingJob.perform_later
+      end
+    end
+
+    assert_match(/0 .* but 1/, error.message)
+  end
+
   def test_assert_enqueued_job
     assert_enqueued_with(job: LoggingJob, queue: 'default') do
       LoggingJob.set(wait_until: Date.tomorrow.noon).perform_later
