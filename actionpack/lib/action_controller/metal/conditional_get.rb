@@ -215,6 +215,24 @@ module ActionController
       response.cache_control.replace(:no_cache => true)
     end
 
+    # Cache or yield the block. The cache is suppose to never expire.
+    #
+    # You can use this method when you have a HTTP response that never changes,
+    # and the browser and proxies should cache it indefinitely.
+    #
+    # <tt>public</tt> By default, HTTP responses are private, cached only on the
+    #   user's web browser. To allow proxies to cache the response, set +true+ to
+    #   indicate that they can serve the cached response to all users.
+    #
+    # <tt>version</tt> is the version passed as a key for the cache.
+    def http_cache_forever(public: false, version: 'v1')
+      expires_in 100.years, public: public
+
+      yield if stale?(etag: "#{version}-#{request.fullpath}",
+                      last_modified: Time.parse('2011-01-01').utc,
+                      public: public)
+    end
+
     private
       def combine_etags(options)
         etags = etaggers.map { |etagger| instance_exec(options, &etagger) }.compact
