@@ -1,3 +1,20 @@
+*   Add `assert_enqueued_emails` and `assert_no_enqueued_emails`.
+
+        def test_emails
+          assert_enqueued_emails 2 do
+            ContactMailer.welcome.deliver_later
+            ContactMailer.welcome.deliver_later
+          end
+        end
+
+        def test_no_emails
+          assert_no_enqueued_emails do
+            # No emails enqueued here
+          end
+        end
+
+    *George Claghorn*
+
 *   Add `_mailer` suffix to mailers created via generator, following the same
     naming convention used in controllers and jobs.
 
