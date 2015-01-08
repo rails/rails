@@ -1,4 +1,5 @@
 require 'active_support/core_ext/object/deep_dup'
+require 'active_support/core_ext/hash/indifferent_access'
 
 module ActiveRecord
   # Declare an enum attribute where the values map to integers in the database,
@@ -71,7 +72,7 @@ module ActiveRecord
   module Enum
     def self.extended(base) # :nodoc:
       base.class_attribute(:defined_enums)
-      base.defined_enums = {}
+      base.defined_enums = ActiveSupport::HashWithIndifferentAccess.new
     end
 
     def inherited(base) # :nodoc:
@@ -131,7 +132,7 @@ module ActiveRecord
             klass.scope value, -> { klass.where name => i }
           end
         end
-        defined_enums[name.to_s] = enum_values
+        defined_enums[name] = enum_values
       end
     end
 
@@ -141,7 +142,7 @@ module ActiveRecord
           mod = Module.new do
             private
               def save_changed_attribute(attr_name, old)
-                if (mapping = self.class.defined_enums[attr_name.to_s])
+                if (mapping = self.class.defined_enums[attr_name])
                   value = _read_attribute(attr_name)
                   if attribute_changed?(attr_name)
                     if mapping[old] == value

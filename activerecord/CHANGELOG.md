@@ -1,3 +1,8 @@
+*   Change Enum's "defined_enums" class variable from a Hash to a
+    HashWithIndifferentAccess
+
+    *George Millo*
+
 *   Fix accessing of fixtures having non-string labels like Fixnum.
 
     *Prathamesh Sonpatki*
