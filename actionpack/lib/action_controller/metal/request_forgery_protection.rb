@@ -87,6 +87,11 @@ module ActionController #:nodoc:
       #
       # * <tt>:only/:except</tt> - Only apply forgery protection to a subset of actions. Like <tt>only: [ :create, :create_all ]</tt>.
       # * <tt>:if/:unless</tt> - Turn off the forgery protection entirely depending on the passed proc or method reference.
+      # * <tt>:prepend</tt> - By default, the verification of the authentication token is added to the front of the
+      #   callback chain. If you need to make the verification depend on other callbacks, like authentication methods
+      #   (say cookies vs oauth), this might not work for you. Pass <tt>prepend: false</tt> to just add the
+      #   verification callback in the position of the protect_from_forgery call. This means any callbacks added
+      #   before are run first.
       # * <tt>:with</tt> - Set the method to handle unverified request.
       #
       # Valid unverified request handling methods are:
@@ -94,9 +99,11 @@ module ActionController #:nodoc:
       # * <tt>:reset_session</tt> - Resets the session.
       # * <tt>:null_session</tt> - Provides an empty session during request but doesn't reset it completely. Used as default if <tt>:with</tt> option is not specified.
       def protect_from_forgery(options = {})
+        options = options.reverse_merge(prepend: true)
+
         self.forgery_protection_strategy = protection_method_class(options[:with] || :null_session)
         self.request_forgery_protection_token ||= :authenticity_token
-        prepend_before_action :verify_authenticity_token, options
+        before_action :verify_authenticity_token, options
         append_after_action :verify_same_origin_request
       end
 

@@ -1,3 +1,26 @@
+*   Allow you to pass `prepend: false` to protect_from_forgery to have the 
+    verification callback appended instead of prepended to the chain.
+    This allows you to let the verification step depend on prior callbacks.
+    Example:
+
+        class ApplicationController < ActionController::Base
+          before_action :authenticate
+          protect_from_forgery unless: -> { @authenticated_by.oauth? }
+
+          private
+            def authenticate
+              if oauth_request?
+                # authenticate with oauth
+                @authenticated_by = 'oauth'.inquiry
+              else
+                # authenticate with cookies
+                @authenticated_by = 'cookie'.inquiry
+              end
+            end
+        end
+
+    *Josef Šimánek*
+
 *   Remove `ActionController::HideActions`
 
     *Ravil Bayramgalin*
