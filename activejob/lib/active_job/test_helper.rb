@@ -42,16 +42,24 @@ module ActiveJob
       #       HelloJob.perform_later('rafael')
       #     end
       #   end
-      def assert_enqueued_jobs(number)
+      #
+      # The number of times a specific job is enqueued can be asserted.
+      #
+      #   def test_logging_job
+      #     assert_enqueued_jobs 2, only: LoggingJob do
+      #       LoggingJob.perform_later
+      #       HelloJob.perform_later('jeremy')
+      #     end
+      #   end
+      def assert_enqueued_jobs(number, only: nil)
         if block_given?
-          original_count = enqueued_jobs.size
+          original_count = enqueued_jobs_size(only: only)
           yield
-          new_count = enqueued_jobs.size
-          assert_equal original_count + number, new_count,
-                       "#{number} jobs expected, but #{new_count - original_count} were enqueued"
+          new_count = enqueued_jobs_size(only: only)
+          assert_equal original_count + number, new_count, "#{number} jobs expected, but #{new_count - original_count} were enqueued"
         else
-          enqueued_jobs_size = enqueued_jobs.size
-          assert_equal number, enqueued_jobs_size, "#{number} jobs expected, but #{enqueued_jobs_size} were enqueued"
+          actual_count = enqueued_jobs_size(only: only)
+          assert_equal number, actual_count, "#{number} jobs expected, but #{actual_count} were enqueued"
         end
       end
 
@@ -214,6 +222,14 @@ module ActiveJob
 
         def clear_performed_jobs
           performed_jobs.clear
+        end
+
+        def enqueued_jobs_size(only: nil)
+          if only
+            enqueued_jobs.select { |job| job[:job] == only }.size
+          else
+            enqueued_jobs.size
+          end
         end
     end
   end

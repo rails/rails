@@ -1,3 +1,16 @@
+*  Add :only option to assert_enqueued_jobs
+
+   With the option, assert_enqueued_jobs will check the number of times a specific kind of job is enqueued:
+
+      def test_logging_job
+        assert_enqueued_jobs 1, only: LoggingJob do
+          LoggingJob.perform_later
+          HelloJob.perform_later('jeremy')
+        end
+      end
+
+   *George Claghorn*
+
 *  `ActiveJob::Base.deserialize` delegates to the job class
 
 
