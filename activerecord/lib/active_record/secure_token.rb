@@ -13,35 +13,25 @@ module ActiveRecord
       #
       #   user = User.new
       #   user.save
-      #   user.token # => "44539a6a59835a4ee9d7b112"
-      #   user.auth_token # => "e2426a93718d1817a43abbaa"
+      #   user.token # => "4kUgL2pdQMSCQtjE"
+      #   user.auth_token # => "77TMHrHJFvFDwodq8w7Ev2m7"
       #   user.regenerate_token # => true
       #   user.regenerate_auth_token # => true
       #
-      # SecureRandom is used to generate the 24-character unique token, so collisions are highly unlikely.
-      # We'll check to see if the generated token has been used already using #exists?, and retry up to 10
-      # times to find another unused token. After that a RuntimeError is raised if the problem persists.
+      # SecureRandom::base58 is used to generate the 24-character unique token, so collisions are highly unlikely.
       #
       # Note that it's still possible to generate a race condition in the database in the same way that
       # validates_presence_of can. You're encouraged to add a unique index in the database to deal with
       # this even more unlikely scenario.
       def has_secure_token(attribute = :token)
         # Load securerandom only when has_secure_key is used.
-        require 'securerandom'
-        define_method("regenerate_#{attribute}") { update! attribute => self.class.generate_unique_secure_token(attribute) }
-        before_create { self.send("#{attribute}=", self.class.generate_unique_secure_token(attribute)) }
+        require 'active_support/core_ext/securerandom'
+        define_method("regenerate_#{attribute}") { update! attribute => self.class.generate_unique_secure_token }
+        before_create { self.send("#{attribute}=", self.class.generate_unique_secure_token) }
       end
 
-      def generate_unique_secure_token(attribute)
-        10.times do |i|
-          SecureRandom.hex(12).tap do |token|
-            if exists?(attribute => token)
-              raise "Couldn't generate a unique token in 10 attempts!" if i == 9
-            else
-              return token
-            end
-          end
-        end
+      def generate_unique_secure_token
+        SecureRandom.base58(24)
       end
     end
   end
