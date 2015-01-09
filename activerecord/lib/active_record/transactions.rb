@@ -300,7 +300,7 @@ module ActiveRecord
     #
     # Ensure that it is not called if the object was never persisted (failed create),
     # but call it after the commit of a destroyed object.
-    def committed!(should_run_callbacks = true) #:nodoc:
+    def committed!(should_run_callbacks: true) #:nodoc:
       _run_commit_callbacks if should_run_callbacks && destroyed? || persisted?
     ensure
       force_clear_transaction_record_state
@@ -308,7 +308,7 @@ module ActiveRecord
 
     # Call the +after_rollback+ callbacks. The +force_restore_state+ argument indicates if the record
     # state should be rolled back to the beginning or just to the last savepoint.
-    def rolledback!(force_restore_state = false, should_run_callbacks = true) #:nodoc:
+    def rolledback!(force_restore_state: false, should_run_callbacks: true) #:nodoc:
       _run_rollback_callbacks if should_run_callbacks
     ensure
       restore_transaction_record_state(force_restore_state)
