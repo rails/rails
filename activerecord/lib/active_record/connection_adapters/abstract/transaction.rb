@@ -69,11 +69,11 @@ module ActiveRecord
       def rollback_records
         ite = records.uniq
         while record = ite.shift
-          record.rolledback! full_rollback?
+          record.rolledback!(force_restore_state: full_rollback?)
         end
       ensure
         ite.each do |i|
-          i.rolledback!(full_rollback?, false)
+          i.rolledback!(force_restore_state: full_rollback?, should_run_callbacks: false)
         end
       end
 
@@ -88,7 +88,7 @@ module ActiveRecord
         end
       ensure
         ite.each do |i|
-          i.committed!(false)
+          i.committed!(should_run_callbacks: false)
         end
       end
 
