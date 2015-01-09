@@ -39,6 +39,7 @@ module ActiveRecord
       def closed?; true; end
       def open?; false; end
       def joinable?; false; end
+      def commit_records?; false; end
       def add_record(record); end
     end
 
@@ -52,6 +53,7 @@ module ActiveRecord
         @state = TransactionState.new
         @records = []
         @joinable = options.fetch(:joinable, true)
+        @commit_records = options.fetch(:commit_records, true)
       end
 
       def add_record(record)
@@ -94,6 +96,7 @@ module ActiveRecord
 
       def full_rollback?; true; end
       def joinable?; @joinable; end
+      def commit_records?; @commit_records; end
       def closed?; false; end
       def open?; !closed?; end
     end
@@ -142,7 +145,6 @@ module ActiveRecord
       def commit
         connection.commit_db_transaction
         super
-        commit_records
       end
     end
 
@@ -164,9 +166,16 @@ module ActiveRecord
       end
 
       def commit_transaction
-        transaction = @stack.pop
-        transaction.commit
-        transaction.records.each { |r| current_transaction.add_record(r) }
+        inner_transaction = @stack.pop
+        inner_transaction.commit
+
+        if current_transaction.commit_records?
+          inner_transaction.records.each do |r|
+            current_transaction.add_record(r)
+          end
+        else
+          inner_transaction.commit_records
+        end
       end
 
       def rollback_transaction

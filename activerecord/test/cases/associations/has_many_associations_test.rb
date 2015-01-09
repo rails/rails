@@ -1307,7 +1307,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_nothing_raised { topic.destroy }
   end
 
-  uses_transaction :test_dependence_with_transaction_support_on_failure
   def test_dependence_with_transaction_support_on_failure
     firm = companies(:first_firm)
     clients = firm.clients

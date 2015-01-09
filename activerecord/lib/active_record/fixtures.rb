@@ -935,7 +935,7 @@ module ActiveRecord
         end
         @fixture_connections = enlist_fixture_connections
         @fixture_connections.each do |connection|
-          connection.begin_transaction joinable: false
+          connection.begin_transaction joinable: false, commit_records: false
         end
       # Load fixtures for every test.
       else
