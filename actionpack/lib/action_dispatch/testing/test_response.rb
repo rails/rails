@@ -25,5 +25,12 @@ module ActionDispatch
 
     # Was there a server-side error?
     alias_method :error?, :server_error?
+
+    def merge_default_headers(original, *args)
+      # Default headers are already applied, no need to merge them a second time.
+      # This makes sure that default headers, removed in controller actions, will
+      # not be reapplied to the test response.
+      original
+    end
   end
 end
