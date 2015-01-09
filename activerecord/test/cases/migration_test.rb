@@ -939,15 +939,7 @@ class CopyMigrationsTest < ActiveRecord::TestCase
 
   def silence_stream(stream)
     old_stream = stream.dup
-    null = case
-           when IO.const_defined?(:NULL)
-             IO::NULL
-           when /mswin|mingw/ =~ RbConfig::CONFIG['host_os']
-             'NUL:'
-           else
-             '/dev/null'
-           end
-    stream.reopen(null)
+    stream.reopen(IO::NULL)
     stream.sync = true
     yield
   ensure
