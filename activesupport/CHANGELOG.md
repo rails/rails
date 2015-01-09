@@ -1,3 +1,7 @@
+*   Add `SecureRandom.base58` for generation of random base58 strings.
+
+    *Matthew Draper + Guillermo Iguaran*
+
 *   Add `#prev_day` and `#next_day` counterparts to `#yesterday` and
     `#tomorrow` for `Date`, `Time`, and `DateTime`.
 
