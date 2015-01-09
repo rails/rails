@@ -3,6 +3,11 @@ sudo: false
 script: 'ci/travis.rb'
 before_install:
   - "rvm current | grep 'jruby' && export AR_JDBC=true || echo"
+  - curl -L https://github.com/kr/beanstalkd/archive/v1.9.tar.gz | tar xz -C /tmp
+  - cd /tmp/beanstalkd-1.9/
+  - make
+  - ./beanstalkd &
+  - cd $TRAVIS_BUILD_DIR
 before_script:
   - bundle update
 cache: bundler
