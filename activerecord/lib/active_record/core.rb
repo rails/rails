@@ -274,16 +274,14 @@ module ActiveRecord
     # ==== Example:
     #   # Instantiates a single new object
     #   User.new(first_name: 'Jamie')
-    def initialize(attributes = nil, options = {})
+    def initialize(attributes = nil)
       @attributes = self.class._default_attributes.dup
       self.class.define_attribute_methods
 
       init_internals
       initialize_internals_callback
 
-      # +options+ argument is only needed to make protected_attributes gem easier to hook.
-      # Remove it when we drop support to this gem.
-      init_attributes(attributes, options) if attributes
+      assign_attributes(attributes) if attributes
 
       yield self if block_given?
       _run_initialize_callbacks
@@ -555,12 +553,6 @@ module ActiveRecord
     end
 
     def initialize_internals_callback
-    end
-
-    # This method is needed to make protected_attributes gem easier to hook.
-    # Remove it when we drop support to this gem.
-    def init_attributes(attributes, options)
-      assign_attributes(attributes)
     end
 
     def thaw

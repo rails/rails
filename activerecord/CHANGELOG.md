@@ -1,3 +1,7 @@
+*   Remove support for the `protected_attributes` gem.
+
+    *Carlos Antonio da Silva + Roberto Miranda*
+
 *   Fix accessing of fixtures having non-string labels like Fixnum.
 
     *Prathamesh Sonpatki*
