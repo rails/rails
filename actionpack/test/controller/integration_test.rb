@@ -279,6 +279,11 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
     def redirect
       redirect_to action_url('get')
     end
+
+    def remove_default_header
+      response.headers.except! 'X-Frame-Options'
+      head :ok
+    end
   end
 
   def test_get
@@ -503,6 +508,24 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       get 'https://www.example.com:8443/get'
       assert_equal 8443, request.port
       assert_equal true, request.ssl?
+    end
+  end
+
+  def test_removed_default_headers_on_test_response_are_not_reapplied
+    with_test_route_set do
+      begin
+        header_to_remove = 'X-Frame-Options'
+        original_default_headers = ActionDispatch::Response.default_headers
+        ActionDispatch::Response.default_headers = {
+          'X-Content-Type-Options' => 'nosniff',
+          header_to_remove => 'SAMEORIGIN',
+        }
+        get '/remove_default_header'
+        assert_includes headers, 'X-Content-Type-Options'
+        assert_not_includes headers, header_to_remove, "Should not contain removed default header"
+      ensure
+        ActionDispatch::Response.default_headers = original_default_headers
+      end
     end
   end
 

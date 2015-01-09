@@ -1,3 +1,8 @@
+*   Default headers, removed in controller actions, are no longer reapplied on
+    the test response.
+
+    *Jonas Baumann*
+
 *   Deprecate all *_filter callbacks in favor of *_action callbacks.
 
     *Rafael Mendonça França*
