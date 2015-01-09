@@ -5,7 +5,7 @@ class <%= class_name %>Mailer < ApplicationMailer
   # Subject can be set in your I18n file at config/locales/en.yml
   # with the following lookup:
   #
-  #   en.<%= file_path.tr("/",".") %>.<%= action %>.subject
+  #   en.<%= file_path.tr("/",".") %>_mailer.<%= action %>.subject
   #
   def <%= action %>
     @greeting = "Hi"
