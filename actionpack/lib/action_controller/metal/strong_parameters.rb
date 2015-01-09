@@ -4,6 +4,7 @@ require 'active_support/core_ext/string/filters'
 require 'active_support/deprecation'
 require 'active_support/rescuable'
 require 'action_dispatch/http/upload'
+require 'rack/test'
 require 'stringio'
 require 'set'
 
