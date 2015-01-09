@@ -1154,13 +1154,11 @@ module ActiveRecord
       end
     end
 
-    # This function is recursive just for better readablity.
-    # #where argument doesn't support more than one level nested hash in real world.
     def add_relations_to_bind_values(attributes)
       if attributes.is_a?(Hash)
         attributes.each_value do |value|
           if value.is_a?(ActiveRecord::Relation)
-            self.bind_values += value.bind_values
+            self.bind_values += value.arel.bind_values + value.bind_values
           else
             add_relations_to_bind_values(value)
           end
