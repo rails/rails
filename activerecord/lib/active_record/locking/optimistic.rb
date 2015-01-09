@@ -66,6 +66,15 @@ module ActiveRecord
           send(lock_col + '=', previous_lock_value + 1)
         end
 
+        def _create_record(attribute_names = self.attribute_names, *) # :nodoc:
+          if locking_enabled?
+            # We always want to persist the locking version, even if we don't detect
+            # a change from the default, since the database might have no default
+            attribute_names |= [self.class.locking_column]
+          end
+          super
+        end
+
         def _update_record(attribute_names = self.attribute_names) #:nodoc:
           return super unless locking_enabled?
           return 0 if attribute_names.empty?
@@ -183,11 +192,6 @@ module ActiveRecord
       def type_cast_from_database(value)
         # `nil` *should* be changed to 0
         super.to_i
-      end
-
-      def changed?(old_value, *)
-        # Ensure we save if the default was `nil`
-        super || old_value == 0
       end
 
       def init_with(coder)
