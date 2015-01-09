@@ -1,3 +1,25 @@
+*   Add `assert_enqueued_emails` and `assert_no_enqueued_emails`.
+
+        def test_emails
+          assert_enqueued_emails 2 do
+            ContactMailer.welcome.deliver_later
+            ContactMailer.welcome.deliver_later
+          end
+        end
+
+        def test_no_emails
+          assert_no_enqueued_emails do
+            # No emails enqueued here
+          end
+        end
+
+    *George Claghorn*
+
+*   Add `_mailer` suffix to mailers created via generator, following the same
+    naming convention used in controllers and jobs.
+
+    *Carlos Souza*
+
 *   Remove deprecate `*_path` helpers in email views.
 
     *Rafael Mendonça França*
@@ -28,12 +50,5 @@
     the right I18n fallback configuration.
 
     *Rafael Mendonça França*
-
-*   Add `_mailer` suffix to mailers created via generator, following the same
-naming convention used in controllers and jobs.
-
-    Closes #18074.
-
-    *Carlos Souza*
 
 Please check [4-2-stable](https://github.com/rails/rails/blob/4-2-stable/actionmailer/CHANGELOG.md) for previous changes.
