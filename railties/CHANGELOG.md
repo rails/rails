@@ -1,3 +1,9 @@
+*   Drop old test locations from `rake stats`
+    - test/functional
+    - test/unit
+
+    *Ravil Bayramgalin*
+
 *   Update `rake stats` to  correctly count declarative tests
     as methods in `_test.rb` files.
 
