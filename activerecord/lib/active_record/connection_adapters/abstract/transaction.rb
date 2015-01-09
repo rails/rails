@@ -117,8 +117,6 @@ module ActiveRecord
       def commit
         connection.release_savepoint(savepoint_name)
         super
-        parent = connection.transaction_manager.current_transaction
-        records.each { |r| parent.add_record(r) }
       end
 
       def full_rollback?; false; end
@@ -166,7 +164,9 @@ module ActiveRecord
       end
 
       def commit_transaction
-        @stack.pop.commit
+        transaction = @stack.pop
+        transaction.commit
+        transaction.records.each { |r| current_transaction.add_record(r) }
       end
 
       def rollback_transaction
