@@ -156,8 +156,8 @@ class NamespacedMailerGeneratorTest < NamespacedGeneratorTestCase
   def test_mailer_with_i18n_helper
     run_generator
     assert_file "app/mailers/test_app/notifier_mailer.rb" do |mailer|
-      assert_match(/en\.notifier\.foo\.subject/, mailer)
-      assert_match(/en\.notifier\.bar\.subject/, mailer)
+      assert_match(/en\.notifier_mailer\.foo\.subject/, mailer)
+      assert_match(/en\.notifier_mailer\.bar\.subject/, mailer)
     end
   end
 

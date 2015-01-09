@@ -26,8 +26,8 @@ class MailerGeneratorTest < Rails::Generators::TestCase
   def test_mailer_with_i18n_helper
     run_generator
     assert_file "app/mailers/notifier_mailer.rb" do |mailer|
-      assert_match(/en\.notifier\.foo\.subject/, mailer)
-      assert_match(/en\.notifier\.bar\.subject/, mailer)
+      assert_match(/en\.notifier_mailer\.foo\.subject/, mailer)
+      assert_match(/en\.notifier_mailer\.bar\.subject/, mailer)
     end
   end
 
@@ -126,7 +126,7 @@ class MailerGeneratorTest < Rails::Generators::TestCase
     run_generator ["Farm::Animal", "moos"]
     assert_file "app/mailers/farm/animal_mailer.rb" do |mailer|
       assert_match(/class Farm::AnimalMailer < ApplicationMailer/, mailer)
-      assert_match(/en\.farm\.animal\.moos\.subject/, mailer)
+      assert_match(/en\.farm\.animal_mailer\.moos\.subject/, mailer)
     end
     assert_file "test/mailers/previews/farm/animal_mailer_preview.rb" do |preview|
       assert_match(/\# Preview all emails at http:\/\/localhost\:3000\/rails\/mailers\/farm\/animal/, preview)
