@@ -1,13 +1,15 @@
 require "cases/helper"
-require 'models/author'
-require 'models/price_estimate'
-require 'models/treasure'
-require 'models/post'
-require 'models/comment'
-require 'models/edge'
-require 'models/topic'
-require 'models/binary'
-require 'models/vertex'
+require "models/author"
+require "models/binary"
+require "models/cake_designer"
+require "models/chef"
+require "models/comment"
+require "models/edge"
+require "models/post"
+require "models/price_estimate"
+require "models/topic"
+require "models/treasure"
+require "models/vertex"
 
 module ActiveRecord
   class WhereTest < ActiveRecord::TestCase
@@ -24,6 +26,16 @@ module ActiveRecord
         assert_equal author, post.author
         assert_not_equal 1, post.id
       }
+    end
+
+    def test_where_copies_arel_bind_params
+      chef = Chef.create!
+      CakeDesigner.create!(chef: chef)
+
+      cake_designers = CakeDesigner.joins(:chef).where(chefs: { id: chef.id })
+      chefs = Chef.where(employable: cake_designers)
+
+      assert_equal [chef], chefs.to_a
     end
 
     def test_rewhere_on_root
