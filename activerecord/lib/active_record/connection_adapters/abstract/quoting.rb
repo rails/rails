@@ -90,9 +90,7 @@ module ActiveRecord
         value.to_s(:db)
       end
 
-      private
-
-      def prepare_binds_for_database(binds)
+      def prepare_binds_for_database(binds) # :nodoc:
         binds.map do |column, value|
           if column
             column_name = column.name
@@ -101,6 +99,8 @@ module ActiveRecord
           [column_name, value]
         end
       end
+
+      private
 
       def types_which_need_no_typecasting
         [nil, Numeric, String]
