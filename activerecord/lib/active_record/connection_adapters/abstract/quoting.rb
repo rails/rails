@@ -10,6 +10,12 @@ module ActiveRecord
         return value.quoted_id if value.respond_to?(:quoted_id)
 
         if column
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            Passing a column to `quote` has been deprecated. It is only used
+            for type casting, which should be handled elsewhere. See
+            https://github.com/rails/arel/commit/6160bfbda1d1781c3b08a33ec4955f170e95be11
+            for more information.
+          MSG
           value = column.cast_type.type_cast_for_database(value)
         end
 
