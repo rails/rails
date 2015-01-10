@@ -129,16 +129,20 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
   end
 
   def test_only_call_after_commit_on_top_level_transactions
-    @first.after_commit_block{|r| r.history << :after_commit}
-    assert @first.history.empty?
+    def @first.commits(i=0); @commits ||= 0; @commits += i if i; end
+    @first.after_commit_block{|r| r.commits(1)}
+    assert_equal 0, @first.commits
 
     @first.transaction do
+      @first.touch
       @first.transaction(requires_new: true) do
-        @first.touch
+        @first.transaction(requires_new: true) do
+          @first.touch
+        end
       end
-      assert @first.history.empty?
+      assert_equal 0, @first.commits
     end
-    assert_equal [:after_commit], @first.history
+    assert_equal 1, @first.commits
   end
 
   def test_call_after_rollback_after_transaction_rollsback
@@ -201,7 +205,7 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
   def test_call_after_rollback_when_commit_fails
     @first.after_commit_block { |r| r.history << :after_commit }
     @first.after_rollback_block { |r| r.history << :after_rollback }
-    
+
     assert_raises RuntimeError do
       @first.transaction do
         tx = @first.class.connection.transaction_manager.current_transaction

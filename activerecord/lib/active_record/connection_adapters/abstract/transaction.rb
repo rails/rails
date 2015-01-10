@@ -160,7 +160,7 @@ module ActiveRecord
           transaction = RealTransaction.new(@connection, options)
         else
           transaction = SavepointTransaction.new(@connection, "active_record_#{@stack.size}", options)
-          transaction.top_level = true unless current_transaction.top_level
+          transaction.top_level = true unless @stack.detect { |t| t.top_level }
         end
 
         @stack.push(transaction)
