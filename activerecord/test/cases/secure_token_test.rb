@@ -16,10 +16,19 @@ class SecureTokenTest < ActiveRecord::TestCase
     @user.save
     old_token = @user.token
     old_auth_token = @user.auth_token
-    @user.regenerate_token
-    @user.regenerate_auth_token
+    @user.regenerate_token!
+    @user.regenerate_auth_token!
 
     assert_not_equal @user.token, old_token
     assert_not_equal @user.auth_token, old_auth_token
+  end
+
+  def test_generate_the_secure_token
+    @user.save
+    old_token = @user.token
+    old_auth_token = @user.auth_token
+
+    assert_not_equal @user.generate_token, old_token
+    assert_not_equal @user.generate_auth_token, old_auth_token
   end
 end
