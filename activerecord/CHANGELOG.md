@@ -1,3 +1,7 @@
+*   Run after_commit callbacks on tests that have `use_transactional_fixtures = true`.
+
+    *arthurnn*, *Ravil Bayramgalin*, *Matthew Draper*
+
 *   `attribute_will_change!` will no longer cause non-persistable attributes to
     be sent to the database.
 
