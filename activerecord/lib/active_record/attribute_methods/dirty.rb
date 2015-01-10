@@ -134,7 +134,7 @@ module ActiveRecord
       # Serialized attributes should always be written in case they've been
       # changed in place.
       def keys_for_partial_write
-        changed
+        changed & persistable_attribute_names
       end
 
       def _field_changed?(attr, old_value)

@@ -1,3 +1,10 @@
+*   `attribute_will_change!` will no longer cause non-persistable attributes to
+    be sent to the database.
+
+    Fixes #18407.
+
+    *Sean Griffin*
+
 *   Format the datetime string according to the precision of the datetime field.
 
     Incompatible to rounding behavior between MySQL 5.6 and earlier.
