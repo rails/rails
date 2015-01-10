@@ -386,4 +386,21 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     topic = TopicWithUniqEvent.new
     assert topic.valid?
   end
+
+  def test_does_not_validate_uniqueness_of_if_parent_record_is_validate_false
+    Reply.validates_uniqueness_of(:content)
+
+    Reply.create!(content: "Topic Title")
+
+    reply = Reply.new(content: "Topic Title")
+    reply.save!(validate: false)
+    assert reply.persisted?
+
+    topic = Topic.new(reply_ids: [reply.id])
+    topic.save!
+
+    assert_equal topic.replies.size, 1
+    assert reply.valid?
+    assert topic.valid?
+  end
 end
