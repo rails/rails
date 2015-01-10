@@ -30,7 +30,7 @@
 
     *Josef Šimánek*
 
-*   Remove `ActionController::HideActions`
+*   Remove `ActionController::HideActions`.
 
     *Ravil Bayramgalin*
 

@@ -1,5 +1,7 @@
 *   Add `:only` option to `assert_enqueued_jobs`, to check the number of times
-    a specific kind of job is enqueued:
+    a specific kind of job is enqueued.
+
+    Example:
 
         def test_logging_job
           assert_enqueued_jobs 1, only: LoggingJob do
@@ -14,7 +16,9 @@
 
     Since `ActiveJob::Base#deserialize` can be overridden by subclasses (like
     `ActiveJob::Base#serialize`) this allows jobs to attach arbitrary metadata
-    when they get serialized and read it back when they get performed. Example:
+    when they get serialized and read it back when they get performed.
+
+    Example:
 
         class DeliverWebhookJob < ActiveJob::Base
           def serialize

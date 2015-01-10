@@ -1,6 +1,6 @@
 *   Add `SecureRandom.base58` for generation of random base58 strings.
 
-    *Matthew Draper + Guillermo Iguaran*
+    *Matthew Draper*, *Guillermo Iguaran*
 
 *   Add `#prev_day` and `#next_day` counterparts to `#yesterday` and
     `#tomorrow` for `Date`, `Time`, and `DateTime`.
@@ -108,6 +108,8 @@
 
 *   Add support for error dispatcher classes in `ActiveSupport::Rescuable`.
     Now it acts closer to Ruby's rescue.
+
+    Example:
 
         class BaseController < ApplicationController
           module ErrorDispatcher

@@ -1,6 +1,6 @@
 *   Remove support for the `protected_attributes` gem.
 
-    *Carlos Antonio da Silva + Roberto Miranda*
+    *Carlos Antonio da Silva*, *Roberto Miranda*
 
 *   Fix accessing of fixtures having non-string labels like Fixnum.
 
@@ -278,7 +278,7 @@
 
     This option enables to define the column name of associated object's type for polymorphic associations.
 
-    *Ulisses Almeida, Kassio Borges*
+    *Ulisses Almeida*, *Kassio Borges*
 
 *   Remove deprecated behavior allowing nested arrays to be passed as query
     values.
