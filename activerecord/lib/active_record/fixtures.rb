@@ -814,6 +814,30 @@ module ActiveRecord
   module TestFixtures
     extend ActiveSupport::Concern
 
+    class Transaction < ActiveRecord::ConnectionAdapters::SavepointTransaction
+      def commit
+        super
+        commit_records
+      end
+    end
+
+    class TransactionManager < ActiveRecord::ConnectionAdapters::TransactionManager
+
+      def initialize(connection)
+        super
+        transaction = ActiveRecord::ConnectionAdapters::RealTransaction.new(connection, joinable: false)
+        @stack.push(transaction)
+      end
+
+      def create_transaction(options)
+        if @stack.size == 1
+          Transaction.new(@connection, "active_record_#{@stack.size}", options)
+        else
+          ActiveRecord::ConnectionAdapters::SavepointTransaction.new(@connection, "active_record_#{@stack.size}", options)
+        end
+      end
+    end
+
     def before_setup
       setup_fixtures
       super
@@ -935,7 +959,7 @@ module ActiveRecord
         end
         @fixture_connections = enlist_fixture_connections
         @fixture_connections.each do |connection|
-          connection.begin_transaction joinable: false
+          connection.transaction_manager = TransactionManager.new connection
         end
       # Load fixtures for every test.
       else
@@ -953,6 +977,7 @@ module ActiveRecord
       if run_in_transaction?
         @fixture_connections.each do |connection|
           connection.rollback_transaction if connection.transaction_open?
+          connection.reset_transaction
         end
         @fixture_connections.clear
       else

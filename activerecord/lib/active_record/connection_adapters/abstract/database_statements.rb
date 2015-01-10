@@ -216,7 +216,7 @@ module ActiveRecord
         # rollbacks are silently swallowed
       end
 
-      attr_reader :transaction_manager #:nodoc:
+      attr_accessor :transaction_manager #:nodoc:
 
       delegate :within_new_transaction, :open_transactions, :current_transaction, :begin_transaction, :commit_transaction, :rollback_transaction, to: :transaction_manager
 
