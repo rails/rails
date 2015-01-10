@@ -3,14 +3,11 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     module ClassMethods
-      def quote_value(value, column) #:nodoc:
-        connection.quote(value, column)
-      end
-
       # Used to sanitize objects before they're used in an SQL SELECT statement. Delegates to <tt>connection.quote</tt>.
       def sanitize(object) #:nodoc:
         connection.quote(object)
       end
+      alias_method :quote_value, :sanitize
 
       protected
 
@@ -156,7 +153,7 @@ module ActiveRecord
 
     # TODO: Deprecate this
     def quoted_id
-      self.class.quote_value(id, column_for_attribute(self.class.primary_key))
+      self.class.quote_value(@attributes[self.class.primary_key].value_for_database)
     end
   end
 end
