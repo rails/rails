@@ -47,6 +47,8 @@ module ActiveRecord
       attr_reader :connection, :state, :records, :savepoint_name
       attr_writer :joinable
 
+      attr_accessor :top_level
+
       def initialize(connection, options)
         @connection = connection
         @state = TransactionState.new
@@ -102,6 +104,7 @@ module ActiveRecord
 
       def initialize(connection, savepoint_name, options)
         super(connection, options)
+        @top_level = options.fetch(:top_level, false)
         if options[:isolation]
           raise ActiveRecord::TransactionIsolationError, "cannot set transaction isolation in a nested transaction"
         end
@@ -126,6 +129,7 @@ module ActiveRecord
 
       def initialize(connection, options)
         super
+        @top_level = options.fetch(:top_level, true)
         if options[:isolation]
           connection.begin_isolated_db_transaction(options[:isolation])
         else
@@ -142,7 +146,6 @@ module ActiveRecord
       def commit
         connection.commit_db_transaction
         super
-        commit_records
       end
     end
 
@@ -153,20 +156,28 @@ module ActiveRecord
       end
 
       def begin_transaction(options = {})
-        transaction =
-          if @stack.empty?
-            RealTransaction.new(@connection, options)
-          else
-            SavepointTransaction.new(@connection, "active_record_#{@stack.size}", options)
-          end
+        if @stack.empty?
+          transaction = RealTransaction.new(@connection, options)
+        else
+          transaction = SavepointTransaction.new(@connection, "active_record_#{@stack.size}", options)
+          transaction.top_level = true unless @stack.detect { |t| t.top_level }
+        end
+
         @stack.push(transaction)
         transaction
       end
 
       def commit_transaction
-        transaction = @stack.pop
-        transaction.commit
-        transaction.records.each { |r| current_transaction.add_record(r) }
+        inner_transaction = @stack.pop
+        inner_transaction.commit
+
+        if inner_transaction.top_level
+          inner_transaction.commit_records
+        else
+          inner_transaction.records.each do |r|
+            current_transaction.add_record(r)
+          end
+        end
       end
 
       def rollback_transaction
