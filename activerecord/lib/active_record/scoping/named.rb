@@ -154,7 +154,7 @@ module ActiveRecord
           singleton_class.send(:define_method, name) do |*args|
             scope = all.scoping { body.call(*args) }
             scope = scope.extending(extension) if extension
-
+            scope = all.merge(scope) if scope && scope.klass != all.klass
             scope || all
           end
         end
