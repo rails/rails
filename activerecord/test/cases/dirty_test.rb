@@ -708,6 +708,19 @@ class DirtyTest < ActiveRecord::TestCase
     assert model.first_name_changed?
   end
 
+  test "attribute_will_change! doesn't try to save non-persistable attributes" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = 'people'
+      attribute :non_persisted_attribute, ActiveRecord::Type::String.new
+    end
+
+    record = klass.new(first_name: "Sean")
+    record.non_persisted_attribute_will_change!
+
+    assert record.non_persisted_attribute_changed?
+    assert record.save
+  end
+
   private
     def with_partial_writes(klass, on = true)
       old = klass.partial_writes?

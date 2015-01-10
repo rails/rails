@@ -9,6 +9,8 @@ module ActiveRecord
       class_attribute :user_provided_defaults, instance_accessor: false # :internal:
       self.user_provided_columns = {}
       self.user_provided_defaults = {}
+
+      delegate :persistable_attribute_names, to: :class
     end
 
     module ClassMethods # :nodoc:
@@ -96,6 +98,10 @@ module ActiveRecord
         @columns_hash ||= Hash[columns.map { |c| [c.name, c] }]
       end
 
+      def persistable_attribute_names # :nodoc:
+        @persistable_attribute_names ||= connection.schema_cache.columns_hash(table_name).keys
+      end
+
       def reset_column_information # :nodoc:
         super
         clear_caches_calculated_from_columns
@@ -130,6 +136,7 @@ module ActiveRecord
         @columns_hash = nil
         @content_columns = nil
         @default_attributes = nil
+        @persistable_attribute_names = nil
       end
 
       def raw_default_values

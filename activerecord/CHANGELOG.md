@@ -1,3 +1,10 @@
+*   `attribute_will_change!` will no longer cause non-persistable attributes to
+    be sent to the database.
+
+    Fixes #18407.
+
+    *Sean Griffin*
+
 *   Remove support for the `protected_attributes` gem.
 
     *Carlos Antonio da Silva*, *Roberto Miranda*
