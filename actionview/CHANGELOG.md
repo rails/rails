@@ -3,6 +3,8 @@
 
     *Justin Coyne*
 
+## Rails 4.1.9 (January 6, 2015) ##
+
 *   Added an explicit error message, in `ActionView::PartialRenderer`
     for partial `rendering`, when the value of option `as` has invalid characters.
 
