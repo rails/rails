@@ -47,8 +47,8 @@ module ActiveRecord
 
       def sql_for(binds, connection)
         val = @values.dup
-        binds = binds.dup
-        @indexes.each { |i| val[i] = connection.quote(*binds.shift.reverse) }
+        binds = connection.prepare_binds_for_database(binds)
+        @indexes.each { |i| val[i] = connection.quote(binds.shift.last) }
         val.join
       end
     end
