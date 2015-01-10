@@ -23,7 +23,10 @@ module QueueClassicJobsManager
   end
 
   def start_workers
-    QC::Conn.disconnect
+    unless QC.respond_to?(:default_conn_adapter)
+      QC::Conn.disconnect
+    end
+
     @pid = fork do
       worker = QC::Worker.new(q_name: 'integration_tests')
       worker.start
