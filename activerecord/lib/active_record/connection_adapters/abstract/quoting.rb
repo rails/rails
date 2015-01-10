@@ -92,6 +92,16 @@ module ActiveRecord
 
       private
 
+      def prepare_binds_for_database(binds)
+        binds.map do |column, value|
+          if column
+            column_name = column.name
+            value = column.cast_type.type_cast_for_database(value)
+          end
+          [column_name, value]
+        end
+      end
+
       def types_which_need_no_typecasting
         [nil, Numeric, String]
       end

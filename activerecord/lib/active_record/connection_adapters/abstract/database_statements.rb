@@ -285,11 +285,11 @@ module ActiveRecord
       def insert_fixture(fixture, table_name)
         columns = schema_cache.columns_hash(table_name)
 
-        key_list   = []
-        value_list = fixture.map do |name, value|
-          key_list << quote_column_name(name)
-          quote(value, columns[name])
+        binds = fixture.map do |name, value|
+          [columns[name], value]
         end
+        key_list = fixture.keys.map { |name| quote_column_name(name) }
+        value_list = prepare_binds_for_database(binds).map { |_, value| quote(value) }
 
         execute "INSERT INTO #{quote_table_name(table_name)} (#{key_list.join(', ')}) VALUES (#{value_list.join(', ')})", 'Fixture Insert'
       end
