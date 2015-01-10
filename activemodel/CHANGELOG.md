@@ -1,3 +1,9 @@
+*   Change validates_acceptance_of to accept true by default.
+
+    The default for validates_acceptance_of is now "1" and true.
+    In the past, only "1" was the default and you were required to add 
+    accept: true.
+
 *   Remove deprecated `ActiveModel::Dirty#reset_#{attribute}` and
     `ActiveModel::Dirty#reset_changes`.
 
