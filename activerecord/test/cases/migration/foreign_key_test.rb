@@ -225,7 +225,7 @@ module ActiveRecord
 
       def silence_stream(stream)
         old_stream = stream.dup
-        stream.reopen(RbConfig::CONFIG['host_os'] =~ /mswin|mingw/ ? 'NUL:' : '/dev/null')
+        stream.reopen(IO::NULL)
         stream.sync = true
         yield
       ensure
