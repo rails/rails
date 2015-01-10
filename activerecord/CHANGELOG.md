@@ -1,3 +1,8 @@
+*   `nil` as a value for a binary column in a query no longer logs as
+    "<NULL binary data>", and instead logs as just "nil".
+
+    *Sean Griffin*
+
 *   `attribute_will_change!` will no longer cause non-persistable attributes to
     be sent to the database.
 
