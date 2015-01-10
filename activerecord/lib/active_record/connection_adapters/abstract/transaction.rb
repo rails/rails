@@ -153,14 +153,17 @@ module ActiveRecord
       end
 
       def begin_transaction(options = {})
-        transaction =
-          if @stack.empty?
-            RealTransaction.new(@connection, options)
-          else
-            SavepointTransaction.new(@connection, "active_record_#{@stack.size}", options)
-          end
+        transaction = create_transaction(options)
         @stack.push(transaction)
         transaction
+      end
+
+      def create_transaction(options)
+        if @stack.empty?
+          RealTransaction.new(@connection, options)
+        else
+          SavepointTransaction.new(@connection, "active_record_#{@stack.size}", options)
+        end
       end
 
       def commit_transaction

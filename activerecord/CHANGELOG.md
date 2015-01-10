@@ -1,3 +1,7 @@
+*   Run after_commit callbacks on tests that have `use_transactional_fixtures = true`.
+
+    *arthurnn*
+
 *   Remove support for the `protected_attributes` gem.
 
     *Carlos Antonio da Silva*, *Roberto Miranda*
