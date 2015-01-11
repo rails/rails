@@ -29,7 +29,7 @@ class SourceAnnotationExtractor
     end
 
     register_extensions("builder", "rb", "rake", "yml", "yaml", "ruby") { |tag| /#\s*(#{tag}):?\s*(.*)$/ }
-    register_extensions("css", "scss", "js") { |tag| /\/\/\s*(#{tag}):?\s*(.*)$/ }
+    register_extensions("css", "scss", "sass", "js") { |tag| /\/\/\s*(#{tag}):?\s*(.*)$/ }
     register_extensions("erb") { |tag| /<%\s*#\s*(#{tag}):?\s*(.*?)\s*%>/ }
     register_extensions("coffee") { |tag| /#\s*(#{tag}):?\s*(.*)$/ }
 
