@@ -1,3 +1,10 @@
+*   Add `Base.unregister_interceptor`, `Base.unregister_interceptors`,
+    `Base.unregister_preview_interceptor` and `Base.unregister_preview_interceptors`.
+    This makes it possible to dynamically add and remove email interceptors
+    at runtime in the same way they're registered.
+
+    *Claudio Ortolina*
+
 *   Add `assert_enqueued_emails` and `assert_no_enqueued_emails`.
 
         def test_emails
