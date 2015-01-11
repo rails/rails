@@ -22,7 +22,6 @@ module ActionController
     autoload :ForceSSL
     autoload :Head
     autoload :Helpers
-    autoload :HideActions
     autoload :HttpAuthentication
     autoload :ImplicitRender
     autoload :Instrumentation
