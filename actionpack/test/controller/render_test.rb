@@ -58,27 +58,6 @@ class TestController < ActionController::Base
     end
   end
 
-  def conditional_hello_with_public_header
-    if stale?(:last_modified => Time.now.utc.beginning_of_day, :etag => [:foo, 123], :public => true)
-      render :action => 'hello_world'
-    end
-  end
-
-  def conditional_hello_with_public_header_with_record
-    record = Struct.new(:updated_at, :cache_key).new(Time.now.utc.beginning_of_day, "foo/123")
-
-    if stale?(record, :public => true)
-      render :action => 'hello_world'
-    end
-  end
-
-  def conditional_hello_with_public_header_and_expires_at
-    expires_in 1.minute
-    if stale?(:last_modified => Time.now.utc.beginning_of_day, :etag => [:foo, 123], :public => true)
-      render :action => 'hello_world'
-    end
-  end
-
   def conditional_hello_with_expires_in
     expires_in 60.1.seconds
     render :action => 'hello_world'
@@ -127,50 +106,6 @@ class TestController < ActionController::Base
 
   def handle_last_modified_and_etags
     fresh_when(:last_modified => Time.now.utc.beginning_of_day, :etag => [ :foo, 123 ])
-  end
-
-  def heading
-    head :ok
-  end
-
-  # :ported:
-  def double_render
-    render :text => "hello"
-    render :text => "world"
-  end
-
-  def double_redirect
-    redirect_to :action => "double_render"
-    redirect_to :action => "double_render"
-  end
-
-  def render_and_redirect
-    render :text => "hello"
-    redirect_to :action => "double_render"
-  end
-
-  def render_to_string_and_render
-    @stuff = render_to_string :text => "here is some cached stuff"
-    render :text => "Hi web users! #{@stuff}"
-  end
-
-  def render_to_string_with_inline_and_render
-    render_to_string :inline => "<%= 'dlrow olleh'.reverse %>"
-    render :template => "test/hello_world"
-  end
-
-  def rendering_with_conflicting_local_vars
-    @name = "David"
-    render :action => "potential_conflicts"
-  end
-
-  def hello_world_from_rxml_using_action
-    render :action => "hello_world_from_rxml", :handlers => [:builder]
-  end
-
-  # :deprecated:
-  def hello_world_from_rxml_using_template
-    render :template => "test/hello_world_from_rxml", :handlers => [:builder]
   end
 
   def head_created
