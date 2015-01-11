@@ -1,5 +1,3 @@
-require 'rbconfig'
-
 module ActiveSupport
   module Testing
     module Isolation

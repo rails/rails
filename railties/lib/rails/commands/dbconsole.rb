@@ -1,7 +1,6 @@
 require 'erb'
 require 'yaml'
 require 'optparse'
-require 'rbconfig'
 
 module Rails
   class DBConsole

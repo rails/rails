@@ -1,5 +1,4 @@
 require 'abstract_unit'
-require 'rbconfig'
 require 'active_support/core_ext/array/extract_options'
 
 # The view_paths array must be set on Base and not LayoutTest so that LayoutTest's inherited

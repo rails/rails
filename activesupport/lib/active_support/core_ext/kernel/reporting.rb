@@ -1,4 +1,3 @@
-require 'rbconfig'
 require 'tempfile'
 
 module Kernel
