@@ -10,7 +10,7 @@ module ActiveSupport
       end
 
       def self.forking_env?
-        !ENV["NO_FORK"] && ((RbConfig::CONFIG['host_os'] !~ /mswin|mingw/) && (RUBY_PLATFORM !~ /java/))
+        !ENV["NO_FORK"] && Process.respond_to?(:fork)
       end
 
       @@class_setup_mutex = Mutex.new
