@@ -287,7 +287,7 @@ class BaseTest < ActiveSupport::TestCase
       end
     end
 
-    assert_nothing_raised { LateAttachmentAccessorMailer.welcome }
+    assert_nothing_raised { LateAttachmentAccessorMailer.welcome.message }
   end
 
   # Implicit multipart
