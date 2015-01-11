@@ -4,7 +4,6 @@ require 'models/pet'
 require 'models/topic'
 
 class TransactionCallbacksTest < ActiveRecord::TestCase
-  self.use_transactional_fixtures = false
   fixtures :topics, :owners, :pets
 
   class ReplyWithCallbacks < ActiveRecord::Base
@@ -200,21 +199,21 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
   end
 
   def test_call_after_rollback_when_commit_fails
-    @first.class.connection.singleton_class.send(:alias_method, :real_method_commit_db_transaction, :commit_db_transaction)
-    begin
-      @first.class.connection.singleton_class.class_eval do
-        def commit_db_transaction; raise "boom!"; end
+    @first.after_commit_block { |r| r.history << :after_commit }
+    @first.after_rollback_block { |r| r.history << :after_rollback }
+    
+    assert_raises RuntimeError do
+      @first.transaction do
+        tx = @first.class.connection.transaction_manager.current_transaction
+        def tx.commit
+          raise
+        end
+
+        @first.save
       end
-
-      @first.after_commit_block{|r| r.history << :after_commit}
-      @first.after_rollback_block{|r| r.history << :after_rollback}
-
-      assert !@first.save rescue nil
-      assert_equal [:after_rollback], @first.history
-    ensure
-      @first.class.connection.singleton_class.send(:remove_method, :commit_db_transaction)
-      @first.class.connection.singleton_class.send(:alias_method, :commit_db_transaction, :real_method_commit_db_transaction)
     end
+
+    assert_equal [:after_rollback], @first.history
   end
 
   def test_only_call_after_rollback_on_records_rolled_back_to_a_savepoint

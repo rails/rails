@@ -142,7 +142,6 @@ module ActiveRecord
       def commit
         connection.commit_db_transaction
         super
-        commit_records
       end
     end
 
@@ -159,14 +158,22 @@ module ActiveRecord
           else
             SavepointTransaction.new(@connection, "active_record_#{@stack.size}", options)
           end
+
         @stack.push(transaction)
         transaction
       end
 
       def commit_transaction
-        transaction = @stack.pop
-        transaction.commit
-        transaction.records.each { |r| current_transaction.add_record(r) }
+        inner_transaction = @stack.pop
+        inner_transaction.commit
+
+        if current_transaction.joinable?
+          inner_transaction.records.each do |r|
+            current_transaction.add_record(r)
+          end
+        else
+          inner_transaction.commit_records
+        end
       end
 
       def rollback_transaction
