@@ -438,6 +438,17 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_token_option_adds_has_secure_token
+    run_generator ["user", "token:token", "auth_token:token"]
+    expected_file = <<-FILE.strip_heredoc
+    class User < ActiveRecord::Base
+      has_secure_token
+      has_secure_token :auth_token
+    end
+    FILE
+    assert_file "app/models/user.rb", expected_file
+  end
+
   private
     def assert_generated_fixture(path, parsed_contents)
       fixture_file = File.new File.expand_path(path, destination_root)
