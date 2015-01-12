@@ -23,14 +23,14 @@ module ActiveRecord
 
     def test_creates_database_with_default_encoding_and_collation
       @connection.expects(:create_database).
-        with('my-app-db', charset: 'utf8', collation: 'utf8_unicode_ci')
+        with('my-app-db', charset: 'utf8', collation: 'utf8_general_ci')
 
       ActiveRecord::Tasks::DatabaseTasks.create @configuration
     end
 
     def test_creates_database_with_given_encoding_and_default_collation
       @connection.expects(:create_database).
-        with('my-app-db', charset: 'utf8', collation: 'utf8_unicode_ci')
+        with('my-app-db', charset: 'utf8', collation: 'utf8_general_ci')
 
       ActiveRecord::Tasks::DatabaseTasks.create @configuration.merge('encoding' => 'utf8')
     end
@@ -205,7 +205,7 @@ module ActiveRecord
 
     def test_recreates_database_with_the_default_options
       @connection.expects(:recreate_database).
-        with('test-db', charset: 'utf8', collation: 'utf8_unicode_ci')
+        with('test-db', charset: 'utf8', collation: 'utf8_general_ci')
 
       ActiveRecord::Tasks::DatabaseTasks.purge @configuration
     end
