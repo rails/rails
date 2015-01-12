@@ -123,7 +123,7 @@ end
 The nesting in (3) consists of two module objects:
 
 ```ruby
-[A::B, X::Y]
+[X::Y::A::B, X::Y]
 ```
 
 So, it not only doesn't end in `A`, which does not even belong to the nesting,
