@@ -409,15 +409,15 @@ class FormHelperTest < ActionView::TestCase
       text_field("post", "title")
     )
     assert_dom_equal(
-      '<input id="post_title" name="post[title]" type="password" />',
+      '<input id="post_title" name="post[title]" type="password" autocomplete="off" />',
       password_field("post", "title")
     )
     assert_dom_equal(
-      '<input id="post_title" name="post[title]" type="password" value="Hello World" />',
+      '<input id="post_title" name="post[title]" type="password" value="Hello World" autocomplete="off" />',
       password_field("post", "title", value: @post.title)
     )
     assert_dom_equal(
-      '<input id="person_name" name="person[name]" type="password" />',
+      '<input id="person_name" name="person[name]" type="password" autocomplete="off" />',
       password_field("person", "name")
     )
   end
