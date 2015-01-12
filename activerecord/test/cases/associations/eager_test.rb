@@ -616,6 +616,37 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert posts[1].categories.include?(categories(:general))
   end
 
+  def test_preload_respects_default_select_columns
+    klass_owner = Class.new(ActiveRecord::Base) do
+      def self.name; 'Category'; end
+    end
+
+    klass_owned = Class.new(ActiveRecord::Base) do
+      def self.name; 'Club'; end
+
+      belongs_to :category, class: klass_owner
+
+      def self.default_select_columns
+        [:category_id].map { |col| arel_table[col] }
+      end
+    end
+
+    klass_owner.has_many :clubs, class: klass_owned
+
+    category = klass_owner.create!(name: 'foo')
+    club = category.clubs.create!(name: 'bar')
+
+    # The attribute was written:
+    plucked_results = klass_owned.where(id: club.id).pluck(:name)
+    assert_equal 1, plucked_results.size
+    assert_equal 'bar', plucked_results[0]
+
+    # But won't be read by default:
+    results = klass_owner.preload(:clubs).where(name: 'foo').to_a
+    assert_equal 1, results.size
+    assert_nil results[0].attributes[:name]
+  end
+
   # Since the preloader for habtm gets raw row hashes from the database and then
   # instantiates them, this test ensures that it only instantiates one actual
   # object per record from the database.

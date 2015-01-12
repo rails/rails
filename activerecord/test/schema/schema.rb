@@ -895,6 +895,13 @@ ActiveRecord::Schema.define do
     t.string :string_with_default, default: 'the original default'
   end
 
+  create_table :overloaded_types_duplicate, force: true do |t|
+    t.float :overloaded_float, default: 500
+    t.float :unoverloaded_float
+    t.string :overloaded_string_with_limit, limit: 255
+    t.string :string_with_default, default: 'the original default'
+  end
+
   create_table :users, force: true do |t|
     t.string :token
     t.string :auth_token

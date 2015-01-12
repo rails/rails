@@ -474,6 +474,27 @@ class FinderTest < ActiveRecord::TestCase
     assert_respond_to topic, "author_name"
   end
 
+  def test_preload_respects_default_select_columns
+    klass = Class.new(ActiveRecord::Base) do
+      def self.name; 'Club'; end
+
+      def self.default_select_columns
+        [:category_id].map { |col| arel_table[col] }
+      end
+    end
+
+    club = klass.create!(name: 'bar')
+
+    # The attribute was written:
+    plucked_results = klass.where(id: club.id).pluck(:name)
+    assert_equal 1, plucked_results.size
+    assert_equal 'bar', plucked_results[0]
+
+    # But won't be read by default:
+    found_club = klass.find(club.id)
+    assert_nil found_club.attributes[:name]
+  end
+
   def test_find_on_array_conditions
     assert Topic.where(["approved = ?", false]).find(1)
     assert_raise(ActiveRecord::RecordNotFound) { Topic.where(["approved = ?", true]).find(1) }

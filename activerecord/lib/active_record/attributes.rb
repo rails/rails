@@ -102,6 +102,12 @@ module ActiveRecord
         @persistable_attribute_names ||= connection.schema_cache.columns_hash(table_name).keys
       end
 
+      # Returns an array of arel attributes to be used in select statements
+      # when the field list is not specified.
+      def default_select_columns
+        @default_select_columns ||= [arel_table[Arel.star]]
+      end
+
       def reset_column_information # :nodoc:
         super
         clear_caches_calculated_from_columns
@@ -135,6 +141,7 @@ module ActiveRecord
         @columns = nil
         @columns_hash = nil
         @content_columns = nil
+        @default_select_columns = nil
         @default_attributes = nil
         @persistable_attribute_names = nil
       end
