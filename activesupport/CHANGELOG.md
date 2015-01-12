@@ -1,3 +1,7 @@
+*   Replace fixed `:en` with `I18n.default_locale` in `Duration#inspect`.
+
+    *Dominik Masur*
+
 *   Add missing time zone definitions for Russian Federation and sync them
     with `zone.tab` file from tzdata version 2014j (latest).
 
