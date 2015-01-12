@@ -257,6 +257,12 @@ It is equivalent to writing:
 Client.where(first_name: 'Lifo').take
 ```
 
+The SQL equivalent of the above is:
+
+```sql
+SELECT * FROM clients WHERE (clients.first_name = 'Lifo') LIMIT 1
+```
+
 The `find_by!` method behaves exactly like `find_by`, except that it will raise `ActiveRecord::RecordNotFound` if no matching record is found. For example:
 
 ```ruby
