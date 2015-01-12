@@ -1,3 +1,16 @@
+*   Adds an option to override the default columns issued by select statements
+    for a model by overriding 'default_select_columns'.
+
+    This allows an opt-in fix to GH#12330 by adding this to models:
+
+        def self.default_select_columns
+          @default_select_columns ||=
+            connection.schema_cache.columns(table_name)
+            .map { |c| arel_table[c.name] }
+        end
+
+    *Todd Gardner*
+
 *   Fix accessing of fixtures having non-string labels like Fixnum.
 
     *Prathamesh Sonpatki*

@@ -1061,7 +1061,7 @@ module ActiveRecord
 
         arel.project(*expanded_select)
       else
-        arel.project(@klass.arel_table[Arel.star])
+        arel.project(*@klass.default_select_columns)
       end
     end
 
