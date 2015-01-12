@@ -51,6 +51,15 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal '14 days',                         1.fortnight.inspect
   end
 
+  def test_inspect_locale
+    current_locale = I18n.default_locale
+    I18n.default_locale = :de
+    I18n.backend.store_translations(:de, { support: { array: { last_word_connector: ' und ' } } })
+    assert_equal '10 years, 1 month und 1 day', (10.years + 1.month  + 1.day).inspect
+  ensure
+    I18n.default_locale = current_locale
+  end
+
   def test_minus_with_duration_does_not_break_subtraction_of_date_from_date
     assert_nothing_raised { Date.today - Date.today }
   end
