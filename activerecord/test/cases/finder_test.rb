@@ -138,6 +138,13 @@ class FinderTest < ActiveRecord::TestCase
   # ensures +exists?+ runs valid SQL by excluding order value
   def test_exists_with_order
     assert_equal true, Topic.order(:id).distinct.exists?
+    assert_equal true, Topic.order(:id).distinct.exists?(Topic.first.id)
+  end
+
+  # ensure +exists?+ overwrites the scope select with its own
+  def test_exists_with_select
+    assert_equal true, Topic.select('null').exists?
+    assert_equal true, Topic.select('null').exists?(Topic.first.id)
   end
 
   def test_exists_with_includes_limit_and_empty_result

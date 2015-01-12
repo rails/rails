@@ -1,3 +1,8 @@
+*   Fix that `exists?(id)` could incorrectly return false when the first column
+    returned for the existing record has a null value.
+
+    *Ben Woosley*
+
 *   `time` columns can now affected by `time_zone_aware_attributes`. If you have
     set `config.time_zone` to a value other than `'UTC'`, they will be treated
     as in that time zone by default in Rails 5.0. If this is not the desired
