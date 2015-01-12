@@ -456,22 +456,26 @@ module ActiveRecord
     # Takes a PP and prettily prints this record to it, allowing you to get a nice result from `pp record`
     # when pp is required.
     def pretty_print(pp)
-      pp.object_address_group(self) do
-        if defined?(@attributes) && @attributes
-          column_names = self.class.column_names.select { |name| has_attribute?(name) || new_record? }
-          pp.seplist(column_names, proc { pp.text ',' }) do |column_name|
-            column_value = read_attribute(column_name)
-            pp.breakable ' '
-            pp.group(1) do
-              pp.text column_name
-              pp.text ':'
-              pp.breakable
-              pp.pp column_value
+      if self.class.instance_method(:inspect).owner != ActiveRecord::Base.instance_method(:inspect).owner
+        pp.text inspect
+      else
+        pp.object_address_group(self) do
+          if defined?(@attributes) && @attributes
+            column_names = self.class.column_names.select { |name| has_attribute?(name) || new_record? }
+            pp.seplist(column_names, proc { pp.text ',' }) do |column_name|
+              column_value = read_attribute(column_name)
+              pp.breakable ' '
+              pp.group(1) do
+                pp.text column_name
+                pp.text ':'
+                pp.breakable
+                pp.pp column_value
+              end
             end
+          else
+            pp.breakable ' '
+            pp.text 'not initialized'
           end
-        else
-          pp.breakable ' '
-          pp.text 'not initialized'
         end
       end
     end
