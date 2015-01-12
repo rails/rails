@@ -388,8 +388,8 @@ module ActiveModel
     # Translates an error message in its default scope
     # (<tt>activemodel.errors.messages</tt>).
     #
-    # Error messages are first looked up in <tt>models.MODEL.attributes.ATTRIBUTE.MESSAGE</tt>,
-    # if it's not there, it's looked up in <tt>models.MODEL.MESSAGE</tt> and if
+    # Error messages are first looked up in <tt>activemodel.errors.models.MODEL.attributes.ATTRIBUTE.MESSAGE</tt>,
+    # if it's not there, it's looked up in <tt>activemodel.errors.models.MODEL.MESSAGE</tt> and if
     # that is not there also, it returns the translation of the default message
     # (e.g. <tt>activemodel.errors.messages.MESSAGE</tt>). The translated model
     # name, translated attribute name and the value are available for
