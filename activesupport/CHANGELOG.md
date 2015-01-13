@@ -1,3 +1,8 @@
+*   Add missing time zone definitions for Russian Federation and sync them
+    with `zone.tab` file from tzdata version 2014j (latest).
+
+    *Andrey Novikov*
+
 *   The decorated `load` and `require` methods are now kept private.
 
     Fixes #17553.
