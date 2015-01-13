@@ -3439,6 +3439,44 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal '/bar/comments/1', comment_path('1')
   end
 
+  def test_resource_where_as_is_empty
+    draw do
+      resource :post, as: ''
+
+      scope 'post', as: 'post' do
+        resource :comment, as: ''
+      end
+    end
+
+    assert_equal '/post/new', new_path
+    assert_equal '/post/comment/new', new_post_path
+  end
+
+  def test_resources_where_as_is_empty
+    draw do
+      resources :posts, as: ''
+
+      scope 'posts', as: 'posts' do
+        resources :comments, as: ''
+      end
+    end
+
+    assert_equal '/posts/new', new_path
+    assert_equal '/posts/comments/new', new_posts_path
+  end
+
+  def test_scope_where_as_is_empty
+    draw do
+      scope 'post', as: '' do
+        resource :user
+        resources :comments
+      end
+    end
+
+    assert_equal '/post/user/new', new_user_path
+    assert_equal '/post/comments/new', new_comment_path
+  end
+
 private
 
   def draw(&block)

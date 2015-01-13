@@ -1739,9 +1739,10 @@ module ActionDispatch
               member_name = parent_resource.member_name
             end
 
-            name = @scope.action_name(name_prefix, prefix, collection_name, member_name)
+            action_name = @scope.action_name(name_prefix, prefix, collection_name, member_name)
+            candidate = action_name.select(&:present?).join('_')
 
-            if candidate = name.compact.join("_").presence
+            unless candidate.empty?
               # If a name was not explicitly given, we check if it is valid
               # and return nil in case it isn't. Otherwise, we pass the invalid name
               # forward so the underlying router engine treats it and raises an exception.
