@@ -149,7 +149,7 @@ clients to fetch them again, even when the content of those assets has not chang
 Fingerprinting fixes these problems by avoiding query strings, and by ensuring
 that filenames are consistent based on their content.
 
-Fingerprinting is enabled by default for production and disabled for all other
+Fingerprinting is enabled by default for both the development and production 
 environments. You can enable or disable it in your configuration through the
 `config.assets.digest` option.
 
