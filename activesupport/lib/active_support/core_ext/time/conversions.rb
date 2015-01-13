@@ -1,5 +1,5 @@
 require 'active_support/inflector/methods'
-require 'active_support/values/time_zone'
+require 'active_support/time_zone'
 
 class Time
   DATE_FORMATS = {

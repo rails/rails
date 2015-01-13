@@ -1,4 +1,4 @@
-require 'active_support/values/time_zone'
+require 'active_support/time_zone'
 require 'active_support/core_ext/object/acts_like'
 
 module ActiveSupport
