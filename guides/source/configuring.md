@@ -1049,3 +1049,21 @@ These configuration points are then available through the configuration object:
   Rails.configuration.x.super_debugger              # => true
   Rails.configuration.x.super_debugger.not_set      # => nil
   ```
+
+Search Engines Indexing
+-----------------------
+
+Sometimes, you may want to prevent some pages of your application be visible on search sites like Google,
+Bing, Yahoo or Duck Duck Go. The robots that index these sites will first analyse the
+`https://your-site.com/robots.txt` file to know what pages it is allowed to index.
+
+Rails creates this file for you on `/public` folder. By default, it allows search engines to index all
+pages of your application. If you want to block indexing on all pages of you application, use this:
+
+```
+User-agent: *
+Disallow: /
+```
+
+To block just specific pages, it's necessary to use a more complex syntax. Learn it on the
+[official documentation](http://www.robotstxt.org/robotstxt.html).
