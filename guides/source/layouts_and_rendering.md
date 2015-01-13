@@ -255,7 +255,7 @@ extension for the layout file.
 
 #### Rendering HTML
 
-You can send a HTML string back to the browser by using the `:html` option to
+You can send an HTML string back to the browser by using the `:html` option to
 `render`:
 
 ```ruby
