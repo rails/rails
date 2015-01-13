@@ -357,6 +357,53 @@ module ApplicationTests
       assert_match "Email part &#39;text/html&#39; not found in NotifierPreview#foo", last_response.body
     end
 
+    test "mailer preview multipart mixed email" do
+      mailer 'notifier', <<-RUBY
+        class Notifier < ActionMailer::Base
+          default from: "from@example.com"
+
+          def foo
+            attachments['attached.file'] = 'attachment content'
+            mail to: "to@example.org"
+          end
+        end
+      RUBY
+
+      text_template 'notifier/foo', <<-RUBY
+        text part
+      RUBY
+      html_template 'notifier/foo', <<-RUBY
+        html part
+      RUBY
+
+      mailer_preview 'notifier', <<-RUBY
+        class NotifierPreview < ActionMailer::Preview
+          def foo
+            Notifier.foo
+          end
+        end
+      RUBY
+
+      app('development')
+
+      get "/rails/mailers/notifier/foo"
+      assert_equal 200, last_response.status
+
+      get "/rails/mailers/notifier/foo.txt"
+      assert_equal 200, last_response.status
+
+      get "/rails/mailers/notifier/foo.html"
+      assert_equal 200, last_response.status
+
+      get "/rails/mailers/notifier/foo?part=text%2Fplain"
+      assert_equal 200, last_response.status
+      assert_match /text part/, last_response.body
+
+      get "/rails/mailers/notifier/foo?part=text%2Fhtml"
+      assert_equal 200, last_response.status
+      assert_match /html part/, last_response.body
+    end
+
     test "message header uses full display names" do
       mailer 'notifier', <<-RUBY
         class Notifier < ActionMailer::Base
