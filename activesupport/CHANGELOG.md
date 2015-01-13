@@ -1,3 +1,8 @@
+*   Add missing time zone definitions for Russian Federation and sync them
+    with `zone.tab` file from tzdata version 2014j (latest).
+
+    *Andrey Novikov*
+
 *   Add `SecureRandom.base58` for generation of random base58 strings.
 
     *Matthew Draper*, *Guillermo Iguaran*
