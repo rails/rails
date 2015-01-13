@@ -880,7 +880,7 @@ module ActiveRecord
         column_names = Array(column_name)
         index_name   = index_name(table_name, column: column_names)
 
-        options.assert_valid_keys(:unique, :order, :name, :where, :length, :internal, :using, :algorithm, :type)
+        options.assert_valid_keys(:unique, :order, :name, :where, :length, :internal, :using, :algorithm, :type, :opclass)
 
         index_type = options[:unique] ? "UNIQUE" : ""
         index_type = options[:type].to_s if options.key?(:type)
@@ -894,6 +894,7 @@ module ActiveRecord
         end
 
         using = "USING #{options[:using]}" if options[:using].present?
+        opclass = " #{options[:opclass]}" if options[:opclass].present?
 
         if supports_partial_index?
           index_options = options[:where] ? " WHERE #{options[:where]}" : ""
@@ -907,7 +908,7 @@ module ActiveRecord
         end
         index_columns = quoted_columns_for_index(column_names, options).join(", ")
 
-        [index_name, index_type, index_columns, index_options, algorithm, using]
+        [index_name, index_type, index_columns, index_options, algorithm, using, opclass]
       end
 
       protected

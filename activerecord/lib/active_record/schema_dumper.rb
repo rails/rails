@@ -198,6 +198,7 @@ HEADER
             statement_parts << "order: #{index.orders.inspect}" if index_orders.any?
             statement_parts << "where: #{index.where.inspect}" if index.where
             statement_parts << "using: #{index.using.inspect}" if index.using
+            statement_parts << "opclass: #{index.opclass.inspect}" if index.opclass
             statement_parts << "type: #{index.type.inspect}" if index.type
 
             "  #{statement_parts.join(', ')}"
