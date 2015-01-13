@@ -454,7 +454,8 @@ module ActiveRecord
         end
         c
       rescue
-        disconnect!
+        remove c
+        c.disconnect!
         raise
       end
     end
