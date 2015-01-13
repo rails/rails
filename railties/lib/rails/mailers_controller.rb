@@ -26,7 +26,11 @@ class Rails::MailersController < Rails::ApplicationController # :nodoc:
 
           if part = find_part(part_type)
             response.content_type = part_type
-            render text: part.respond_to?(:decoded) ? part.decoded : part
+            part_text = part.respond_to?(:decoded) ? part.decoded : part
+            if @email.mime_type == 'multipart/related' && part_type == 'text/html'
+              part_text = inline_images(part_text, all_parts(@email).select(&:inline?))
+            end
+            render text: part_text
           else
             raise AbstractController::ActionNotFound, "Email part '#{part_type}' not found in #{@preview.name}##{email}"
           end
@@ -74,5 +78,16 @@ class Rails::MailersController < Rails::ApplicationController # :nodoc:
 
     def all_parts(email)
       email.parts.flat_map{ |p| p.body.multipart? ? p.body.parts : p }
+    end
+
+    def inline_images(part_text, inline_parts)
+      part_text.gsub(/cid:[^\s'"]+/) do |uri|
+        if referenced_part = inline_parts.detect{|p| p.url == uri}
+          base64 = Base64.encode64(referenced_part.body.decoded)
+          "data:#{referenced_part.mime_type};base64,#{base64}"
+        else
+          uri
+        end
+      end
     end
 end
