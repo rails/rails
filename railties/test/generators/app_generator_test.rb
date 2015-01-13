@@ -409,6 +409,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_inclusion_of_method_source
+    run_generator
+    assert_file "Gemfile" do |content|
+      assert_gem 'method_source'
+    end
+  end
+
   def test_inclusion_of_doc
     run_generator
     assert_file 'Gemfile', /gem 'sdoc',\s+'~> 0.4.0',\s+group: :doc/

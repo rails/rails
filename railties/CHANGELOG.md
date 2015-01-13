@@ -1,3 +1,7 @@
+*   Add the `method_source` gem to the default Gemfile for apps
+
+    *Sean Griffin*
+
 *   Drop old test locations from `rake stats`
     - test/functional
     - test/unit
