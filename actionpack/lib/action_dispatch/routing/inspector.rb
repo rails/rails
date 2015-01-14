@@ -34,6 +34,7 @@ module ActionDispatch
 
       def json_regexp
         str = regexp.inspect.
+              gsub(/#.*$/, '').
               sub('\\A' , '^').
               sub('\\Z' , '$').
               sub('\\z' , '$').

@@ -34,6 +34,30 @@ module ActionDispatch
         assert_equal "^\\/cart(?:\\.([^\\/.?]+))?$", route.json_regexp
       end
 
+      def test_json_regexp_with_comment_in_constraint
+        regex = %r{
+        [a-f\d]{8}
+        -
+        [a-f\d]{4}
+        -
+        [1-5]   # Version: http://tools.ietf.org/html/rfc4122#section-4.1.3
+        [a-f\d]{3}
+        -
+        [89ab]  # Variant: http://tools.ietf.org/html/rfc4122#section-4.1.1
+        [a-f\d]{3}
+        -
+        [a-f\d]{12}
+        }x
+
+        @set.draw do
+          with_options :format => false do |r|
+            r.put '/entry/:content_id' => 'entries#update', constraints: { content_id: regex }
+          end
+        end
+        route = ActionDispatch::Routing::RouteWrapper.new(@set.routes.first)
+        assert_equal "^\\/entry\\/((?x-mi:[a-f\\d]{8}-[a-f\\d]{4}-[1-5][a-f\\d]{3}-[89ab][a-f\\d]{3}-[a-f\\d]{12}))$", route.json_regexp
+      end
+
       def test_displaying_routes_for_engines
         engine = Class.new(Rails::Engine) do
           def self.inspect
