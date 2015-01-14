@@ -3,6 +3,7 @@ require File.expand_path('../boot', __FILE__)
 <% if include_all_railties? -%>
 require 'rails/all'
 <% else -%>
+require "rails"
 # Pick the frameworks you want:
 require "active_model/railtie"
 require "active_job/railtie"
