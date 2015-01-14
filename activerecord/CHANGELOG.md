@@ -1,3 +1,10 @@
+*   Correctly use the type provided by `serialize` when updating records using
+    optimistic locking.
+
+    Fixes #18385.
+
+    *Sean Griffin*
+
 *   `attribute_will_change!` will no longer cause non-persistable attributes to
     be sent to the database.
 

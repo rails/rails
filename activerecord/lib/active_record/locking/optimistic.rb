@@ -89,16 +89,14 @@ module ActiveRecord
           begin
             relation = self.class.unscoped
 
-            stmt = relation.where(
-              relation.table[self.class.primary_key].eq(id).and(
-                relation.table[lock_col].eq(self.class.quote_value(previous_lock_value, column_for_attribute(lock_col)))
-              )
-            ).arel.compile_update(
-              arel_attributes_with_values_for_update(attribute_names),
-              self.class.primary_key
+            affected_rows = relation.where(
+              self.class.primary_key => id,
+              lock_col => previous_lock_value,
+            ).update_all(
+              Hash[attribute_names.map do |name|
+                [name, _read_attribute(name)]
+              end]
             )
-
-            affected_rows = self.class.connection.update stmt
 
             unless affected_rows == 1
               raise ActiveRecord::StaleObjectError.new(self, "update")
