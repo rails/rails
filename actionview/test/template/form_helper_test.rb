@@ -99,7 +99,7 @@ class FormHelperTest < ActionView::TestCase
       }.new
     end
     def @post.to_key; [123]; end
-    def @post.id_before_type_cast; 123; end
+    def @post.id; 123; end
     def @post.to_param; '123'; end
 
     @post.persisted   = true
