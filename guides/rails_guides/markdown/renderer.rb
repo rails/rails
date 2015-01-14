@@ -25,7 +25,7 @@ HTML
       def paragraph(text)
         if text =~ /^(TIP|IMPORTANT|CAUTION|WARNING|NOTE|INFO|TODO)[.:]/
           convert_notes(text)
-        elsif text.include?('DO NOT READ THIS FILE IN GITHUB')
+        elsif text.include?('DO NOT READ THIS FILE ON GITHUB')
         elsif text =~ /^\[<sup>(\d+)\]:<\/sup> (.+)$/
           linkback = %(<a href="#footnote-#{$1}-ref"><sup>#{$1}</sup></a>)
           %(<p class="footnote" id="footnote-#{$1}">#{linkback} #{$2}</p>)
