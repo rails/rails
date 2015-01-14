@@ -1,6 +1,6 @@
 *   Change the default template handler from `ERB` to `Raw`.
 
-    Files without a template handler in their extension will be rended using the raw
+    Files without a template handler in their extension will be rendered using the raw
     handler instead of ERB.
 
     *Rafael Mendonça França*
