@@ -246,7 +246,7 @@ module ActiveRecord
       name = name.to_s
       verify_readonly_attribute(name)
       send("#{name}=", value)
-      save(validate: false)
+      save(validate: false) if changed?
     end
 
     # Updates the attributes of the model from the passed-in hash and saves the
@@ -260,6 +260,7 @@ module ActiveRecord
         save
       end
     end
+
 
     alias update_attributes update
 
@@ -507,6 +508,7 @@ module ActiveRecord
     end
 
     def create_or_update(*args)
+      p "HERE!"
       raise ReadOnlyRecord, "#{self.class} is marked as readonly" if readonly?
       result = new_record? ? _create_record : _update_record(*args)
       result != false
