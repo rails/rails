@@ -360,6 +360,18 @@ class StringAccessTest < ActiveSupport::TestCase
     assert_not_same different_string, string
   end
 
+  test "#word returns the nth word" do
+    assert_equal "hello", "hello world".word(0)
+  end
+
+  test "#first_word returns the first word" do
+    assert_equal "hello", "hello world".first_word
+  end
+
+  test "#last_word returns the last word" do
+    assert_equal "world", "hello world".last_word
+  end
+
   test "access returns a real string" do
     hash = {}
     hash["h"] = true
@@ -385,6 +397,21 @@ class StringAccessTest < ActiveSupport::TestCase
     hash["hello"] = true
     hash["hello123".first(5)] = true
     assert_equal %w(hello), hash.keys
+
+    hash = {}
+    hash["hello"] = true
+    hash["hello world".word(0)] = true
+    assert_equal %w(hello), hash.keys
+
+    hash = {}
+    hash["world"] = true
+    hash["hello world".last_word] = true
+    assert_equal %w(world), hash.keys
+
+    hash = {}
+    hash["hello"] = true
+    hash["hello world".first_word] = true
+    assert_equal %w(hello), hash.keys    
   end
 end
 

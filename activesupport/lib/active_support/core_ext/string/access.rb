@@ -101,4 +101,31 @@ class String
       from(-limit)
     end
   end
+  # Returns the nth word
+  #
+  #str = "hello world, nice to meet you!"
+  #str.word    # => "hello"
+  #str.word(0) # => "hello"
+  #str.word(1) # => "world"
+  #str.word(2) # => "nice"
+  #str.word(-1) # => "you"
+  def word(position = 0)
+    split(/\W+/)[position]
+  end
+
+  # Returns the first word
+  #
+  #str = "hello world, nice to meet you!"
+  #str.first_word    # => "hello"
+  def first_word
+    word(0)
+  end
+
+  # Returns the last word
+  #
+  #str = "hello world, nice to meet you!"
+  #str.last_word    # => "you"
+  def last_word
+    word(-1)
+  end
 end
