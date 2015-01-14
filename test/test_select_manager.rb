@@ -968,6 +968,27 @@ module Arel
         manager.where_sql.must_be_like %{ WHERE "users"."id" = 10 }
       end
 
+      it 'joins wheres with AND' do
+        table   = Table.new :users
+        manager = Arel::SelectManager.new
+        manager.from table
+        manager.where table[:id].eq 10
+        manager.where table[:id].eq 11
+        manager.where_sql.must_be_like %{ WHERE "users"."id" = 10 AND "users"."id" = 11}
+      end
+
+      it 'handles database specific statements' do
+        old_visitor = Table.engine.connection.visitor
+        Table.engine.connection.visitor = Visitors::PostgreSQL.new Table.engine.connection
+        table   = Table.new :users
+        manager = Arel::SelectManager.new
+        manager.from table
+        manager.where table[:id].eq 10
+        manager.where table[:name].matches 'foo%'
+        manager.where_sql.must_be_like %{ WHERE "users"."id" = 10 AND "users"."name" ILIKE 'foo%' }
+        Table.engine.connection.visitor = old_visitor
+      end
+
       it 'returns nil when there are no wheres' do
         table   = Table.new :users
         manager = Arel::SelectManager.new

@@ -5,7 +5,11 @@ module Arel
 
       def visit_Arel_Nodes_SelectCore o, collector
         collector << "WHERE "
-        inject_join o.wheres, collector, ' AND '
+        wheres = o.wheres.map do |where|
+          Nodes::SqlLiteral.new(@connection.visitor.accept(where, collector.class.new).value)
+        end
+
+        inject_join wheres, collector, ' AND '
       end
     end
   end
