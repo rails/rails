@@ -125,8 +125,7 @@ module ActiveRecord
         when Date, Time then "'#{quoted_date(value)}'"
         when Symbol     then "'#{quote_string(value.to_s)}'"
         when Class      then "'#{value}'"
-        else
-          "'#{quote_string(YAML.dump(value))}'"
+        else raise TypeError, "can't quote #{value.class.name}"
         end
       end
 

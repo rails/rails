@@ -289,7 +289,13 @@ module ActiveRecord
           [columns[name], value]
         end
         key_list = fixture.keys.map { |name| quote_column_name(name) }
-        value_list = prepare_binds_for_database(binds).map { |_, value| quote(value) }
+        value_list = prepare_binds_for_database(binds).map do |_, value|
+          begin
+            quote(value)
+          rescue TypeError
+            quote(YAML.dump(value))
+          end
+        end
 
         execute "INSERT INTO #{quote_table_name(table_name)} (#{key_list.join(', ')}) VALUES (#{value_list.join(', ')})", 'Fixture Insert'
       end
