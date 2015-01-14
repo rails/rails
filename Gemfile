@@ -26,6 +26,7 @@ group :doc do
   gem 'redcarpet', '~> 2.2.2', platforms: :ruby
   gem 'w3c_validators'
   gem 'kindlerb'
+  gem 'mustache', '~> 0.99.8'
 end
 
 # AS
