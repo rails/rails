@@ -99,7 +99,8 @@ class FormHelperTest < ActionView::TestCase
       }.new
     end
     def @post.to_key; [123]; end
-    def @post.id_before_type_cast; 123; end
+    def @post.id; 0; end
+    def @post.id_before_type_cast; "omg"; end
     def @post.to_param; '123'; end
 
     @post.persisted   = true
@@ -900,9 +901,9 @@ class FormHelperTest < ActionView::TestCase
     )
   end
 
-  def test_text_area_with_value_before_type_cast
+  def test_inputs_use_before_type_cast_to_retain_information_from_validations_like_numericality
     assert_dom_equal(
-      %{<textarea id="post_id" name="post[id]">\n123</textarea>},
+      %{<textarea id="post_id" name="post[id]">\nomg</textarea>},
       text_area("post", "id")
     )
   end
