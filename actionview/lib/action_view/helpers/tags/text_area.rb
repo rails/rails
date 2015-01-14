@@ -14,7 +14,7 @@ module ActionView
             options["cols"], options["rows"] = size.split("x") if size.respond_to?(:split)
           end
 
-          content_tag("textarea", options.delete("value") { value_before_type_cast(object) }, options)
+          content_tag("textarea", options.delete("value") { value(object) }, options)
         end
       end
     end
