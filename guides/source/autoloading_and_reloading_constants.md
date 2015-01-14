@@ -330,7 +330,7 @@ checked.
 
 Rails autoloading **does not emulate this algorithm**, but its starting point is
 the name of the constant to be autoloaded, and the parent. See more in
-[Qualified References](#qualified-references).
+[Qualified References](#autoloading-algorithms-qualified-references).
 
 
 Vocabulary
