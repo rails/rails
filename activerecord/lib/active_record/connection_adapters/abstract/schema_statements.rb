@@ -880,7 +880,7 @@ module ActiveRecord
         column_names = Array(column_name)
         index_name   = index_name(table_name, column: column_names)
 
-        options.assert_valid_keys(:unique, :order, :name, :where, :length, :internal, :using, :algorithm, :type)
+        options.assert_valid_keys(:unique, :order, :name, :where, :length, :internal, :using, :algorithm, :type, :opclass, :collate, :nulls)
 
         index_type = options[:unique] ? "UNIQUE" : ""
         index_type = options[:type].to_s if options.key?(:type)
@@ -911,26 +911,94 @@ module ActiveRecord
       end
 
       protected
+
+        def add_index_length(option_strings, column_names, options = {})
+          if options.is_a?(Hash) && length = options[:length]
+            case length
+            when Hash
+              column_names.each {|name| option_strings[name] += "(#{length[name]})" if length.has_key?(name) && length[name].present?}
+            when Fixnum
+              column_names.each {|name| option_strings[name] += "(#{length})"}
+            end
+          end
+
+          option_strings
+        end
+
+        def add_index_collation(option_strings, column_names, options = {})
+          if options.is_a?(Hash) && collation = options[:collate]
+            case collation
+            when Hash
+              column_names.each {|name| option_strings[name] += " COLLATE #{quote_column_name(collation[name])}" if collation.has_key?(name)}
+            when String, Symbol
+              column_names.each {|name| option_strings[name] += " COLLATE #{quote_column_name(collation)}"}
+            end
+          end
+
+          option_strings
+        end
+
+        def add_index_operator_class(option_strings, column_names, options = {})
+          if options.is_a?(Hash) && opclass = options[:opclass]
+            case opclass
+            when Hash
+              column_names.each {|name| option_strings[name] += " #{opclass[name]}" if opclass.has_key?(name)}
+            when String, Symbol
+              column_names.each {|name| option_strings[name] += " #{opclass}"}
+            end
+          end
+
+          option_strings
+        end
+
         def add_index_sort_order(option_strings, column_names, options = {})
           if options.is_a?(Hash) && order = options[:order]
             case order
             when Hash
               column_names.each {|name| option_strings[name] += " #{order[name].upcase}" if order.has_key?(name)}
-            when String
+            when String, Symbol
               column_names.each {|name| option_strings[name] += " #{order.upcase}"}
             end
           end
 
-          return option_strings
+          option_strings
+        end
+
+        def add_index_null_order(option_strings, column_names, options = {})
+          if options.is_a?(Hash) && order = options[:nulls]
+            case order
+            when Hash
+              column_names.each {|name| option_strings[name] += " NULLS #{order[name].upcase}" if order.has_key?(name)}
+            when String, Symbol
+              column_names.each {|name| option_strings[name] += " NULLS #{order.upcase}"}
+            end
+          end
+
+          option_strings
         end
 
         # Overridden by the MySQL adapter for supporting index lengths
         def quoted_columns_for_index(column_names, options = {})
           option_strings = Hash[column_names.map {|name| [name, '']}]
 
-          # add index sort order if supported
+          if supports_index_length?
+            option_strings = add_index_length(option_strings, column_names, options)
+          end
+
+          if supports_index_collation?
+            option_strings = add_index_collation(option_strings, column_names, options)
+          end
+
+          if supports_index_operator_class?
+            option_strings = add_index_operator_class(option_strings, column_names, options)
+          end
+
           if supports_index_sort_order?
             option_strings = add_index_sort_order(option_strings, column_names, options)
+          end
+
+          if supports_index_null_order?
+            option_strings = add_index_null_order(option_strings, column_names, options)
           end
 
           column_names.map {|name| quote_column_name(name) + option_strings[name]}

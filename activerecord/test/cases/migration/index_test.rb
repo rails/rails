@@ -174,9 +174,26 @@ module ActiveRecord
 
         connection.add_index("testings", %w(last_name first_name administrator), :name => "named_admin")
         connection.remove_index("testings", :name => "named_admin")
+      end
 
-        # Selected adapters support index sort order
-        if current_adapter?(:SQLite3Adapter, :MysqlAdapter, :Mysql2Adapter, :PostgreSQLAdapter)
+      if current_adapter?(:SQLite3Adapter, :PostgreSQLAdapter)
+        def test_add_index_collation
+          collation1 = current_adapter?(:SQLite3Adapter) ? :nocase : "POSIX"
+          collation2 = current_adapter?(:SQLite3Adapter) ? :binary : "C"
+
+          connection.add_index("testings", ["last_name"], :collate => {:last_name => collation1})
+          connection.remove_index("testings", ["last_name"])
+          connection.add_index("testings", ["last_name", "first_name"], :collate => {:last_name => collation1})
+          connection.remove_index("testings", ["last_name", "first_name"])
+          connection.add_index("testings", ["last_name", "first_name"], :collate => {:last_name => collation1, :first_name => collation2})
+          connection.remove_index("testings", ["last_name", "first_name"])
+          connection.add_index("testings", ["last_name", "first_name"], :collate => collation1)
+          connection.remove_index("testings", ["last_name", "first_name"])
+        end
+      end
+
+      if current_adapter?(:SQLite3Adapter, :MysqlAdapter, :Mysql2Adapter, :PostgreSQLAdapter)
+        def test_add_index_sort_order
           connection.add_index("testings", ["last_name"], :order => {:last_name => :desc})
           connection.remove_index("testings", ["last_name"])
           connection.add_index("testings", ["last_name", "first_name"], :order => {:last_name => :desc})
@@ -189,6 +206,32 @@ module ActiveRecord
       end
 
       if current_adapter?(:PostgreSQLAdapter)
+        def test_add_index_null_order
+          connection.add_index("testings", ["last_name"], :nulls => {:last_name => :first})
+          connection.remove_index("testings", ["last_name"])
+          connection.add_index("testings", ["last_name", "first_name"], :nulls => {:last_name => :first})
+          connection.remove_index("testings", ["last_name", "first_name"])
+          connection.add_index("testings", ["last_name", "first_name"], :order => {:last_name => :first, :first_name => :last})
+          connection.remove_index("testings", ["last_name", "first_name"])
+          connection.add_index("testings", ["last_name", "first_name"], :nulls => :first)
+          connection.remove_index("testings", ["last_name", "first_name"])
+        end
+      end
+
+      if current_adapter?(:PostgreSQLAdapter)
+        def test_add_index_opclass
+          connection.add_index("testings", ["last_name"], :opclass => {:last_name => :varchar_pattern_ops})
+          connection.remove_index("testings", ["last_name"])
+          connection.add_index("testings", ["last_name", "first_name"], :opclass => {:last_name => :varchar_pattern_ops})
+          connection.remove_index("testings", ["last_name", "first_name"])
+          connection.add_index("testings", ["last_name", "first_name"], :opclass => {:last_name => :varchar_pattern_ops, :first_name => :varchar_pattern_ops})
+          connection.remove_index("testings", ["last_name", "first_name"])
+          connection.add_index("testings", ["last_name", "first_name"], :opclass => :varchar_pattern_ops)
+          connection.remove_index("testings", ["last_name", "first_name"])
+        end
+      end
+
+      if current_adapter?(:SQLite3Adapter, :PostgreSQLAdapter)
         def test_add_partial_index
           connection.add_index("testings", "last_name", :where => "first_name = 'john doe'")
           assert connection.index_exists?("testings", "last_name")

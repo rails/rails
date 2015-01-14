@@ -168,13 +168,37 @@ module ActiveRecord
             column_names = columns.values_at(*indkey).compact
 
             unless column_names.empty?
-              # add info on sort order for columns (only desc order is explicitly specified, asc is the default)
-              desc_order_columns = inddef.scan(/(\w+) DESC/).flatten
-              orders = desc_order_columns.any? ? Hash[desc_order_columns.map {|order_column| [order_column, :desc]}] : {}
+              matching_braces = /(?=\(((?:[^()]++|\(\g<1>\))++)\))/
+              # the column definitions are inside the first pair of braces
+              coldefs = inddef.scan(matching_braces).flatten[0]
+
+              coldef_parser = %r{
+                (?<expr>[^\(]*\(.*\)|[^" ]+|"(?:[^"]|"")+")
+                (?:\ COLLATE\ "(?<collation>(?:[^"]|"")+)")?
+                (?:\ (?<opclass>[a-z0-9_]+_ops))?
+                (?:\ (?<order>ASC|DESC))?
+                (?:\ NULLS\ (?<nulls>FIRST|LAST))?
+                (?:,|$)
+              }x
+
+              collations = {}
+              opclasses = {}
+              orders = {}
+              nulls = {}
+
+              coldefs.scan(coldef_parser) do match = $~
+                column = match[:expr].gsub('""', '"')
+                next unless column_names.include? column # skip expressions (indkey 0)
+                collations[column] = match[:collation].gsub('""', '"') if match[:collation]
+                opclasses[column] = match[:opclass].to_sym if match[:opclass]
+                orders[column] = match[:order].downcase.to_sym if match[:order]
+                nulls[column] = match[:nulls].downcase.to_sym if match[:nulls]
+              end
+
               where = inddef.scan(/WHERE (.+)$/).flatten[0]
               using = inddef.scan(/USING (.+?) /).flatten[0].to_sym
 
-              IndexDefinition.new(table_name, index_name, unique, column_names, [], orders, where, nil, using)
+              IndexDefinition.new(table_name, index_name, unique, column_names, [], orders, where, nil, using, opclasses, collations, nulls)
             end
           end.compact
         end

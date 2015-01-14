@@ -160,8 +160,20 @@ module ActiveRecord
         true
       end
 
-      def supports_index_sort_order?
+      def supports_index_collation?
+        postgresql_version >= 90100
+      end
+
+      def supports_index_operator_class?
         true
+      end
+
+      def supports_index_sort_order?
+        postgresql_version >= 80300
+      end
+
+      def supports_index_null_order?
+        postgresql_version >= 80300
       end
 
       def supports_partial_index?

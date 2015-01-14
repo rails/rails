@@ -191,14 +191,14 @@ HEADER
             ]
             statement_parts << 'unique: true' if index.unique
 
-            index_lengths = (index.lengths || []).compact
-            statement_parts << "length: #{Hash[index.columns.zip(index.lengths)].inspect}" if index_lengths.any?
-
-            index_orders = index.orders || {}
-            statement_parts << "order: #{index.orders.inspect}" if index_orders.any?
+            statement_parts << "length: #{index.lengths.inspect}" if index.lengths.present?
+            statement_parts << "order: #{index.orders.inspect}" if index.orders.present?
             statement_parts << "where: #{index.where.inspect}" if index.where
             statement_parts << "using: #{index.using.inspect}" if index.using
             statement_parts << "type: #{index.type.inspect}" if index.type
+            statement_parts << "opclass: #{index.opclasses.inspect}" if index.opclasses.present?
+            statement_parts << "collate: #{index.collations.inspect}" if index.collations.present?
+            statement_parts << "nulls: #{index.nulls.inspect}" if index.nulls.present?
 
             "  #{statement_parts.join(', ')}"
           end

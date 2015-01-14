@@ -201,6 +201,10 @@ module ActiveRecord
         true
       end
 
+      def supports_index_length?
+        true
+      end
+
       # Technically MySQL allows to create indexes with the sort order syntax
       # but at the moment (5.5) it doesn't yet implement them
       def supports_index_sort_order?
@@ -449,11 +453,11 @@ module ActiveRecord
               mysql_index_type = row[:Index_type].downcase.to_sym
               index_type  = INDEX_TYPES.include?(mysql_index_type)  ? mysql_index_type : nil
               index_using = INDEX_USINGS.include?(mysql_index_type) ? mysql_index_type : nil
-              indexes << IndexDefinition.new(row[:Table], row[:Key_name], row[:Non_unique].to_i == 0, [], [], nil, nil, index_type, index_using)
+              indexes << IndexDefinition.new(row[:Table], row[:Key_name], row[:Non_unique].to_i == 0, [], {}, nil, nil, index_type, index_using)
             end
 
             indexes.last.columns << row[:Column_name]
-            indexes.last.lengths << row[:Sub_part]
+            indexes.last.lengths[row[:Column_name]] = row[:Sub_part] if row[:Sub_part]
           end
         end
 
@@ -725,31 +729,6 @@ module ActiveRecord
         subselect = Arel::SelectManager.new(select.engine)
         subselect.project Arel.sql(key.name)
         subselect.from subsubselect.as('__active_record_temp')
-      end
-
-      def add_index_length(option_strings, column_names, options = {})
-        if options.is_a?(Hash) && length = options[:length]
-          case length
-          when Hash
-            column_names.each {|name| option_strings[name] += "(#{length[name]})" if length.has_key?(name) && length[name].present?}
-          when Fixnum
-            column_names.each {|name| option_strings[name] += "(#{length})"}
-          end
-        end
-
-        return option_strings
-      end
-
-      def quoted_columns_for_index(column_names, options = {})
-        option_strings = Hash[column_names.map {|name| [name, '']}]
-
-        # add index length
-        option_strings = add_index_length(option_strings, column_names, options)
-
-        # add index sort order
-        option_strings = add_index_sort_order(option_strings, column_names, options)
-
-        column_names.map {|name| quote_column_name(name) + option_strings[name]}
       end
 
       def translate_exception(exception, message)

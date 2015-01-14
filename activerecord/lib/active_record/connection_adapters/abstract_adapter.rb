@@ -203,8 +203,28 @@ module ActiveRecord
         false
       end
 
+      # Does this adapter support index length?
+      def supports_index_length?
+        false
+      end
+
+      # Does this adapter support index operator class?
+      def supports_index_operator_class?
+        false
+      end
+
+      # Does this adapter support index collation?
+      def supports_index_collation?
+        false
+      end
+
       # Does this adapter support index sort order?
       def supports_index_sort_order?
+        false
+      end
+
+      # Does this adapter support index null order?
+      def supports_index_null_order?
         false
       end
 

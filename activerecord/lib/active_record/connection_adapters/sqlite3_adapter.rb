@@ -200,6 +200,10 @@ module ActiveRecord
         @statements.clear
       end
 
+      def supports_index_collation?
+        true
+      end
+
       def supports_index_sort_order?
         true
       end
@@ -405,15 +409,50 @@ module ActiveRecord
             WHERE name=#{quote(row['name'])} AND type='index'
           SQL
           index_sql = exec_query(sql).first['sql']
-          match = /\sWHERE\s+(.+)$/i.match(index_sql)
-          where = match[1] if match
+
+          collations = {}
+          orders = {}
+          where = nil
+
+          if index_sql
+            matching_braces = /(?=\(((?:[^()]++|\(\g<1>\))++)\))/
+            # the column definitions are inside the first pair of braces
+            coldefs = index_sql.scan(matching_braces).flatten[0]
+
+            coldef_parser = %r{
+              (?<column>"(?:[^"]|"")+"|'(?:[^']|'')+'|\S+)
+              (?:\sCOLLATE\s+(?<collation>"(?:[^"]|"")+"|'(?:[^']|'')+'|\S+))?
+              (?:\s(?<order>ASC|DESC))?
+              (?:,|$)
+            }xi
+
+            coldefs.scan(coldef_parser) do match = $~
+              column = unquote(match[:column])
+              collations[column] = unquote(match[:collation]) if match[:collation]
+              orders[column] = match[:order].downcase.to_sym if match[:order]
+            end
+
+            where = index_sql.scan(/\sWHERE\s+(.+)$/i).flatten[0]
+          end
+
           IndexDefinition.new(
             table_name,
             row['name'],
             row['unique'] != 0,
             exec_query("PRAGMA index_info('#{row['name']}')", "SCHEMA").map { |col|
               col['name']
-            }, nil, nil, where)
+            }, nil, orders, where, nil, nil, nil, collations)
+        end
+      end
+
+      def unquote(identifier) #:nodoc:
+        case identifier
+        when /^'(.*)'$/m
+          $1.gsub("''", "'")
+        when /^"(.*)"$/m
+          $1.gsub('""', '"')
+        else
+          identifier
         end
       end
 
@@ -494,6 +533,19 @@ module ActiveRecord
       end
 
       protected
+
+        def add_index_collation(option_strings, column_names, options = {})
+          if options.is_a?(Hash) && collation = options[:collate]
+            case collation
+            when Hash
+              column_names.each {|name| option_strings[name] += " COLLATE #{collation[name].upcase}" if collation.has_key?(name)}
+            when String, Symbol
+              column_names.each {|name| option_strings[name] += " COLLATE #{collation.upcase}"}
+            end
+          end
+
+          option_strings
+        end
 
         def initialize_type_map(m)
           super

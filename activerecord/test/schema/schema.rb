@@ -215,6 +215,16 @@ ActiveRecord::Schema.define do
   add_index :companies, [:firm_id, :type, :rating], name: "company_index"
   add_index :companies, [:firm_id, :type], name: "company_partial_index", where: "rating > 10"
   add_index :companies, :name, name: 'company_name_index', using: :btree
+  if current_adapter?(:PostgreSQLAdapter)
+    add_index :companies, :name, name: 'company_collation_index', using: :btree, collate: "C"
+  elsif current_adapter?(:SQLite3Adapter)
+    add_index :companies, :name, name: 'company_collation_index', using: :btree, collate: :nocase
+  else
+    add_index :companies, :name, name: 'company_collation_index', using: :btree, collate: :foobar
+  end
+  add_index :companies, :name, name: 'company_opclass_index', using: :btree, opclass: :varchar_pattern_ops
+  add_index :companies, :name, name: 'company_order_index', using: :btree, order: :desc
+  add_index :companies, :name, name: 'company_nulls_index', using: :btree, nulls: :first
 
   create_table :vegetables, force: true do |t|
     t.string :name
