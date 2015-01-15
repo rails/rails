@@ -6,6 +6,7 @@ module Rails
       desc 'This generator creates an active job file at app/jobs'
 
       class_option :queue, type: :string, default: 'default', desc: 'The queue name for the generated job'
+      argument :collaborators, type: :array, default: ['*args'], banner: 'arg arg arg'
 
       check_class_collision suffix: 'Job'
 

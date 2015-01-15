@@ -8,6 +8,7 @@ class JobGeneratorTest < Rails::Generators::TestCase
     run_generator ["refresh_counters"]
     assert_file "app/jobs/refresh_counters_job.rb" do |job|
       assert_match(/class RefreshCountersJob < ActiveJob::Base/, job)
+      assert_match(/def perform\(\*args\)/, job)
     end
   end
 
@@ -24,6 +25,24 @@ class JobGeneratorTest < Rails::Generators::TestCase
     assert_file "app/jobs/admin/refresh_counters_job.rb" do |job|
       assert_match(/class Admin::RefreshCountersJob < ActiveJob::Base/, job)
       assert_match(/queue_as :admin/, job)
+    end
+  end
+
+  def test_job_single_collaborator
+    run_generator ["refresh_counters", "user", "--queue", "important"]
+    assert_file "app/jobs/refresh_counters_job.rb" do |job|
+      assert_match(/class RefreshCountersJob < ActiveJob::Base/, job)
+      assert_match(/def perform\(user\)/, job)
+      assert_match(/queue_as :important/, job)
+    end
+  end
+
+  def test_job_perform_multiple_collaborators
+    run_generator ["refresh_counters", "user", "dashboard", "--queue", "important"]
+    assert_file "app/jobs/refresh_counters_job.rb" do |job|
+      assert_match(/class RefreshCountersJob < ActiveJob::Base/, job)
+      assert_match(/def perform\(user, dashboard\)/, job)
+      assert_match(/queue_as :important/, job)
     end
   end
 end

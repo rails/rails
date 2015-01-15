@@ -2,7 +2,7 @@
 class <%= class_name %>Job < ActiveJob::Base
   queue_as :<%= options[:queue] %>
 
-  def perform(*args)
+  def perform(<%= collaborators.join(", ") %>)
     # Do something later
   end
 end
