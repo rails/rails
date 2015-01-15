@@ -74,6 +74,10 @@ module ActiveRecord
       true
     end
 
+    def came_from_user?
+      false
+    end
+
     def ==(other)
       self.class == other.class &&
         name == other.name &&
@@ -98,6 +102,10 @@ module ActiveRecord
     class FromUser < Attribute # :nodoc:
       def type_cast(value)
         type.type_cast_from_user(value)
+      end
+
+      def came_from_user?
+        true
       end
     end
 
