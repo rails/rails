@@ -9,6 +9,10 @@ module ActiveRecord
         "'#{value.to_s(:db)}'"
       end
 
+      def user_input_in_time_zone(value)
+        value.in_time_zone
+      end
+
       private
 
       def new_time(year, mon, mday, hour, min, sec, microsec, offset = nil)
