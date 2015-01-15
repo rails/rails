@@ -9,6 +9,8 @@ module ActionCable
 
       attr_reader :params
 
+      class_attribute :channel_name
+
       class << self
         def matches?(identifier)
           raise "Please implement #{name}#matches? method"
