@@ -1485,6 +1485,9 @@ Without this file, the confirmation dialog box wouldn't appear.
 
 ![Confirm Dialog](images/getting_started/confirm_dialog.png)
 
+TIP: Learn more about jQuery Unobtrusive Adapter (jQuery UJS) on
+[Working With Javascript in Rails](working_with_javascript_in_rails.html) guide.
+
 Congratulations, you can now create, show, list, update and destroy
 articles.
 
