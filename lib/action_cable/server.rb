@@ -11,7 +11,7 @@ module ActionCable
 
     class << self
       def register_channels(*channel_classes)
-        registered_channels.merge(channel_classes)
+        self.registered_channels += channel_classes
       end
     end
 
