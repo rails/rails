@@ -783,17 +783,15 @@ module ActionDispatch
           end
 
           @scope.options.each do |option|
-            if option == :blocks
-              value = block
-            elsif option == :options
-              value = options
-            else
-              value = options.delete(option)
-            end
+            value = if option == :blocks
+                      block
+                    elsif option == :options
+                      options
+                    else
+                      options.delete(option)
+                    end
 
-            if value
-              scope[option] = send("merge_#{option}_scope", @scope[option], value)
-            end
+            value && scope[option] = send("merge_#{option}_scope", @scope[option], value)
           end
 
           @scope = @scope.new scope
