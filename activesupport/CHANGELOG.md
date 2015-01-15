@@ -1,3 +1,6 @@
+*   Add method `#pluck` to `Array` as alias for `array.map { |h| h[:a] }`.
+
+    *Alexander Balashov*
 *   Add missing time zone definitions for Russian Federation and sync them
     with `zone.tab` file from tzdata version 2014j (latest).
 
