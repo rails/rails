@@ -5,7 +5,7 @@ module ActiveRecord
     module ClassMethods
       # Example using has_secure_token
       #
-      #   # Schema: User(toke:string, auth_token:string)
+      #   # Schema: User(token:string, auth_token:string)
       #   class User < ActiveRecord::Base
       #     has_secure_token
       #     has_secure_token :auth_token
