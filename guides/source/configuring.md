@@ -692,7 +692,7 @@ development:
   pool: 5
 ```
 
-Prepared Statements are enabled by default on PostgreSQL. You can be disable prepared statements by setting `prepared_statements` to `false`:
+Prepared Statements are enabled by default on PostgreSQL. You can disable prepared statements by setting `prepared_statements` to `false`:
 
 ```yaml
 production:

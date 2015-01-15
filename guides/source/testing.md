@@ -528,6 +528,19 @@ All of request types have equivalent methods that you can use. In a typical C.R.
 
 NOTE: Functional tests do not verify whether the specified request type is accepted by the action, we're more concerned with the result. Request tests exist for this use case to make your tests more purposeful.
 
+### Testing XHR (AJAX) requests
+
+`xhr` accepts method (listed in the section above), action name and parameters:
+
+```ruby
+test "ajax request responds with no layout" do
+  xhr :get, :show, id: articles(:first).id
+
+  assert_template :index
+  assert_template layout: nil
+end
+```
+
 ### The Four Hashes of the Apocalypse
 
 After a request has been made and processed, you will have 4 Hash objects ready for use:
@@ -740,10 +753,8 @@ class ArticlesControllerTest < ActionController::TestCase
 
   # called after every single test
   def teardown
-    # as we are re-initializing @article before every test
-    # setting it to nil here is not essential but I hope
-    # you understand how you can use the teardown method
-    @article = nil
+    # when controller is using cache it may be a good idea to reset it afterwards
+    Rails.cache.clear
   end
 
   test "should show article" do
@@ -768,6 +779,41 @@ end
 ```
 
 Similar to other callbacks in Rails, the `setup` and `teardown` methods can also be used by passing a block, lambda, or method name as a symbol to call.
+
+### Test helpers
+
+To avoid code duplication, you can add your own test helpers.
+Sign in helper can be a good example:
+
+```ruby
+test/test_helper.rb
+
+module SignInHelper
+  def sign_in(user)
+    session[:user_id] = user.id
+  end
+end
+
+class ActionController::TestCase
+  include SignInHelper
+end
+```
+
+```ruby
+require 'test_helper'
+
+class ProfileControllerTest < ActionController::TestCase
+
+  test "should show profile" do
+    # helper is now reusable from any controller test case
+    sign_in users(:david)
+
+    get :show
+    assert_response :success
+    assert_equal users(:david), assigns(:user)
+  end
+end
+```
 
 Testing Routes
 --------------
@@ -1050,9 +1096,10 @@ require 'test_helper'
 class UserMailerTest < ActionMailer::TestCase
   test "invite" do
     # Send the email, then test that it got queued
-    email = UserMailer.create_invite('me@example.com',
-                                     'friend@example.com', Time.now).deliver_now
-    assert_not ActionMailer::Base.deliveries.empty?
+    assert_emails 1 do
+      email = UserMailer.create_invite('me@example.com',
+                                       'friend@example.com', Time.now).deliver_now
+    end
 
     # Test the body of the sent email contains what we expect it to
     assert_equal ['me@example.com'], email.from

@@ -78,7 +78,8 @@ end
 Enqueue a job like so:
 
 ```ruby
-# Enqueue a job to be performed as soon the queueing system is free.
+# Enqueue a job to be performed as soon the queueing system is
+# free.
 MyJob.perform_later record
 ```
 
@@ -114,8 +115,9 @@ You can easily set your queueing backend:
 # config/application.rb
 module YourApp
   class Application < Rails::Application
-    # Be sure to have the adapter's gem in your Gemfile and follow
-    # the adapter's specific installation and deployment instructions.
+    # Be sure to have the adapter's gem in your Gemfile
+    # and follow the adapter's specific installation
+    # and deployment instructions.
     config.active_job.queue_adapter = :sidekiq
   end
 end
@@ -153,8 +155,8 @@ class GuestsCleanupJob < ActiveJob::Base
 end
 
 # Now your job will run on queue production_low_priority on your
-# production environment and on staging_low_priority on your staging
-# environment
+# production environment and on staging_low_priority
+# on your staging environment
 ```
 
 The default queue name prefix delimiter is '\_'.  This can be changed by setting
@@ -176,8 +178,8 @@ class GuestsCleanupJob < ActiveJob::Base
 end
 
 # Now your job will run on queue production.low_priority on your
-# production environment and on staging.low_priority on your staging
-# environment
+# production environment and on staging.low_priority
+# on your staging environment
 ```
 
 If you want more control on what queue a job will be run you can pass a `:queue`
@@ -295,7 +297,7 @@ end
 ```
 
 This works with any class that mixes in `GlobalID::Identification`, which
-by default has been mixed into Active Model classes.
+by default has been mixed into Active Record classes.
 
 
 Exceptions
