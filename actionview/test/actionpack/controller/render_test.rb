@@ -453,6 +453,10 @@ class TestController < ApplicationController
     render :text => "foo"
   end
 
+  def render_with_assigns_option
+    render inline: '<%= @hello %>', assigns: { hello: "world" }
+  end
+
   def yield_content_for
     render :action => "content_for", :layout => "yield"
   end
@@ -1100,6 +1104,11 @@ class RenderTest < ActionController::TestCase
   def test_render_text_with_assigns
     get :render_text_with_assigns
     assert_equal "world", assigns["hello"]
+  end
+
+  def test_render_text_with_assigns_option
+    get :render_with_assigns_option
+    assert_equal 'world', response.body
   end
 
   # :ported:
