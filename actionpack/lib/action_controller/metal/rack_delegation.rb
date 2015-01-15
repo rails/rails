@@ -8,9 +8,9 @@ module ActionController
     delegate :headers, :status=, :location=, :content_type=,
              :status, :location, :content_type, :response_code, :to => "@_response"
 
-    def dispatch(action, request)
+    def set_request!(request) #:nodoc:
+      super
       set_response!(request)
-      super(action, request)
     end
 
     def response_body=(body)
