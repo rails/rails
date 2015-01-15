@@ -11,6 +11,7 @@ require 'fileutils'
 require 'bundler/setup' unless defined?(Bundler)
 require 'active_support'
 require 'active_support/testing/autorun'
+require 'active_support/testing/stream'
 require 'active_support/test_case'
 
 RAILS_FRAMEWORK_ROOT = File.expand_path("#{File.dirname(__FILE__)}/../../..")
@@ -309,45 +310,10 @@ class ActiveSupport::TestCase
   include TestHelpers::Paths
   include TestHelpers::Rack
   include TestHelpers::Generation
+  include ActiveSupport::Testing::Stream
 
   self.test_order = :sorted
 
-  private
-
-  def capture(stream)
-    stream = stream.to_s
-    captured_stream = Tempfile.new(stream)
-    stream_io = eval("$#{stream}")
-    origin_stream = stream_io.dup
-    stream_io.reopen(captured_stream)
-
-    yield
-
-    stream_io.rewind
-    return captured_stream.read
-  ensure
-    captured_stream.close
-    captured_stream.unlink
-    stream_io.reopen(origin_stream)
-  end
-
-  def quietly
-    silence_stream(STDOUT) do
-      silence_stream(STDERR) do
-        yield
-      end
-    end
-  end
-
-  def silence_stream(stream)
-    old_stream = stream.dup
-    stream.reopen(IO::NULL)
-    stream.sync = true
-    yield
-  ensure
-    stream.reopen(old_stream)
-    old_stream.close
-  end
 end
 
 # Create a scope and build a fixture rails app

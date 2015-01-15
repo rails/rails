@@ -1,3 +1,4 @@
+require 'active_support/testing/stream'
 require "cases/helper"
 require "cases/migration/helper"
 require 'bigdecimal/util'
@@ -718,6 +719,8 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
 end
 
 class CopyMigrationsTest < ActiveRecord::TestCase
+  include ActiveSupport::Testing::Stream
+
   def setup
   end
 
@@ -927,23 +930,4 @@ class CopyMigrationsTest < ActiveRecord::TestCase
     ActiveRecord::Base.logger = old
   end
 
-  private
-
-  def quietly
-    silence_stream(STDOUT) do
-      silence_stream(STDERR) do
-        yield
-      end
-    end
-  end
-
-  def silence_stream(stream)
-    old_stream = stream.dup
-    stream.reopen(IO::NULL)
-    stream.sync = true
-    yield
-  ensure
-    stream.reopen(old_stream)
-    old_stream.close
-  end
 end

@@ -1,4 +1,5 @@
 require 'cases/helper'
+require 'active_support/testing/stream'
 require 'support/ddl_helper'
 require 'support/schema_dumping_helper'
 
@@ -8,6 +9,7 @@ module ActiveRecord
     class ForeignKeyTest < ActiveRecord::TestCase
       include DdlHelper
       include SchemaDumpingHelper
+      include ActiveSupport::Testing::Stream
 
       class Rocket < ActiveRecord::Base
       end
@@ -221,17 +223,6 @@ module ActiveRecord
         silence_stream($stdout) { migration.migrate(:down) }
       end
 
-      private
-
-      def silence_stream(stream)
-        old_stream = stream.dup
-        stream.reopen(IO::NULL)
-        stream.sync = true
-        yield
-      ensure
-        stream.reopen(old_stream)
-        old_stream.close
-      end
     end
   end
 end
