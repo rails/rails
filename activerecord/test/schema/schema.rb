@@ -216,6 +216,14 @@ ActiveRecord::Schema.define do
   add_index :companies, [:firm_id, :type], name: "company_partial_index", where: "rating > 10"
   add_index :companies, :name, name: 'company_name_index', using: :btree
 
+  create_table :content, force: true do |t|
+    t.string :title
+  end
+
+  create_table :content_positions, force: true do |t|
+    t.integer :content_id
+  end
+
   create_table :vegetables, force: true do |t|
     t.string :name
     t.integer :seller_id

@@ -289,7 +289,14 @@ module ActiveRecord
     end
 
     def destroy #:nodoc:
-      _run_destroy_callbacks { super }
+      begin
+        @_destroy_callback_already_called ||= false
+        return if @_destroy_callback_already_called
+        @_destroy_callback_already_called = true
+        _run_destroy_callbacks { super }
+      ensure
+        @_destroy_callback_already_called = false
+      end
     end
 
     def touch(*) #:nodoc:
