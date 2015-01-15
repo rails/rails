@@ -60,21 +60,21 @@ module ActionView
     private
 
     def js_debug(source, template_path)
-      puts "==================================="
-      puts source
-      puts "==================================="
-
       output =  parse_stack_trace()
       output << js_rails_info(source, template_path)
       output << <<-TRYCATCH
       try {
         #{source}
       } catch(e) {
-        debugger;
         var srcOffset = #{output.lines.size};
         var errorInfo = railsPartialLookup(e, srcOffset);
-        console.error(\"Rails: Javascript error in : \" + errorInfo[0] + "\\n" +
-                      \"Rails: Error on line: \\n\" + errorInfo[1], e);
+        var error     = \"Rails: Javascript error in : \" + errorInfo[0] + "\\n";
+
+        if (errorInfo[1] != null) {
+          error = error + \"Rails: JS error at line: \\n\\n  \" + errorInfo[1] + "\\n\\n";
+        }
+
+        console.error(error, e);
       }
       TRYCATCH
     end
@@ -83,7 +83,9 @@ module ActionView
       output = <<-LOOKUP
       function railsPartialLookup(exception, srcOffset){
         var partial_map = {};\n
+        var sourceLines = {};\n
         #{js_partial_infos(source).join("; \n")};
+        #{js_source_info(source).join("; \n")};
 
         var sourcePath   = '#{template_path}';
 
@@ -99,11 +101,10 @@ module ActionView
           columnNumber = offsets[1];
         }
 
-        lineNumber  = lineNumber - srcOffset;
+        lineNumber  = lineNumber - srcOffset - 1;
         var partial = partial_map[lineNumber];
 
-        if (partial){
-
+        if (partial) {
           partialLineMatch = partial[2];
           partialPath      = partial[3];
           sourceLine       = partial[4];
@@ -113,8 +114,12 @@ module ActionView
             var endLineColumn = partial[1];
 
             if (columnNumber != null && columnNumber >= begLineColumn && columnNumber <= endLineColumn){
-                sourcePath = partialPath;
+              sourcePath = partialPath;
+            } else {
+              sourceLine = sourceLines[lineNumber];
             }
+          } else {
+            sourcePath = partialPath;
           }
         }
         return [sourcePath, sourceLine];
@@ -157,20 +162,30 @@ module ActionView
           partial_lines = partial_output.lines.map(&:chomp) if beg_column
         end
 
-        if beg_column
-          partial_path    = partial_data[0]
-          preceeding_code = source[0..beg_column]
 
+        if beg_column
+          preceeding_code = source[0..beg_column]
           beg_line_number = preceeding_code.lines.length
+
           last_index      = partial_lines.size - 1
+          partial_path    = partial_data[0]
+
+          partial_escaped = Regexp.escape(partial_output)
+          full_snippet    = source.scan(/^(.*)(#{partial_escaped})(.*)$/).flatten.join('').lines
 
           partial_lines.each_with_index do |line, index|
             line_number     = beg_line_number + index
             beg_line_column = index == 0 ? beg_column : 0
             end_line_column = line.length
 
+
+            ### TODO
+            ### partial_line_match isn't working; the 'line' var should represent the entire
+            ### source line, not just the partial output
+
             # Is the partial output begin/end on the same line as the template
-            partial_line_match = partial_line_match?(beg_line_column, end_line_column, index, last_index, line)
+            source_line        = full_snippet[index]
+            partial_line_match = partial_line_match?(beg_line_column, end_line_column, index, last_index, source_line)
 
             partial_info << "  partial_map['#{line_number}'] = [#{beg_line_column}, #{end_line_column}, #{partial_line_match}, '#{escape_javascript(partial_path)}', '#{escape_javascript(line)}']"
           end
@@ -179,6 +194,18 @@ module ActionView
 
       partial_info
     end
+
+    def js_source_info(source)
+      source_lines = source.lines
+      source_info  = []
+
+      source_lines.each_with_index do |source_line, index|
+        source_info << "  sourceLines['#{index + 1}'] = '#{escape_javascript(source_line)}'"
+      end
+
+      source_info
+    end
+
 
     def partial_line_match?(beg_column, end_column, index, last_index, source_line)
       if index == 0 && beg_column > 0
