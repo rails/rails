@@ -888,6 +888,14 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_not_equal ['id'], @target.column_names
   end
 
+  def test_came_from_user
+    model = @target.first
+
+    assert_not model.id_came_from_user?
+    model.id = "omg"
+    assert model.id_came_from_user?
+  end
+
   private
 
   def new_topic_like_ar_class(&block)

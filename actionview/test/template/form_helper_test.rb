@@ -101,6 +101,7 @@ class FormHelperTest < ActionView::TestCase
     def @post.to_key; [123]; end
     def @post.id; 0; end
     def @post.id_before_type_cast; "omg"; end
+    def @post.id_came_from_user?; true; end
     def @post.to_param; '123'; end
 
     @post.persisted   = true
@@ -902,6 +903,22 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_inputs_use_before_type_cast_to_retain_information_from_validations_like_numericality
+    assert_dom_equal(
+      %{<textarea id="post_id" name="post[id]">\nomg</textarea>},
+      text_area("post", "id")
+    )
+  end
+
+  def test_inputs_dont_use_before_type_cast_when_value_did_not_come_from_user
+    def @post.id_came_from_user?; false; end
+    assert_dom_equal(
+      %{<textarea id="post_id" name="post[id]">\n0</textarea>},
+      text_area("post", "id")
+    )
+  end
+
+  def test_inputs_use_before_typecast_when_object_doesnt_respond_to_came_from_user
+    class << @post; undef id_came_from_user?; end
     assert_dom_equal(
       %{<textarea id="post_id" name="post[id]">\nomg</textarea>},
       text_area("post", "id")
