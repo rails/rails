@@ -8,6 +8,12 @@ module ActionController
     delegate :headers, :status=, :location=, :content_type=,
              :status, :location, :content_type, :response_code, :to => "@_response"
 
+    module ClassMethods
+      def build_with_env(env = {}) #:nodoc:
+        new.tap { |c| c.set_request! ActionDispatch::Request.new(env) }
+      end
+    end
+
     def set_request!(request) #:nodoc:
       super
       set_response!(request)
