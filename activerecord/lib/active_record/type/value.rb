@@ -3,8 +3,7 @@ module ActiveRecord
     class Value # :nodoc:
       attr_reader :precision, :scale, :limit
 
-      # Valid options are +precision+, +scale+, and +limit+. They are only
-      # used when dumping schema.
+      # Valid options are +precision+, +scale+, and +limit+.
       def initialize(options = {})
         options.assert_valid_keys(:precision, :scale, :limit)
         @precision = options[:precision]
