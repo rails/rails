@@ -38,7 +38,7 @@ module ActionCable
       end
     end
 
-    def publish(data)
+    def broadcast(data)
       render data
     end
 

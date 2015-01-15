@@ -45,8 +45,8 @@ module ActionCable
           # Override in subclasses
         end
 
-        def publish(data)
-          @connection.publish(data.merge(identifier: @channel_identifier).to_json)
+        def broadcast(data)
+          @connection.broadcast(data.merge(identifier: @channel_identifier).to_json)
         end
 
         def start_periodic_timers
