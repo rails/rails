@@ -48,7 +48,7 @@ module ActionCable
         end
 
         def broadcast(data)
-          @connection.broadcast(data.merge(identifier: @channel_identifier).to_json)
+          @connection.broadcast({ identifier: @channel_identifier, message: data }.to_json)
         end
 
         def start_periodic_timers
