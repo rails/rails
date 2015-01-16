@@ -82,6 +82,11 @@ Available field types:
     has_secure_password, you should specify `password:digest`:
 
         `rails generate model user password:digest`
+        
+    If you require a `token` string column for use with
+    has_secure_token, you should specify `token:token`:
+
+        `rails generate model user token:token`
 
 Examples:
     `rails generate model account`
