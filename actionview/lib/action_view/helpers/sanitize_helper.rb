@@ -32,19 +32,21 @@ module ActionView
       # (supply a Loofah::Scrubber that does the sanitization)
       #
       # scrubber can either wrap a block:
-      # scrubber = Loofah::Scrubber.new do |node|
-      #   node.text = "dawn of cats"
-      # end
       #
-      # or be a subclass of Loofah::Scrubber which responds to scrub:
-      # class KittyApocalypse < Loofah::Scrubber
-      #   def scrub(node)
+      #   scrubber = Loofah::Scrubber.new do |node|
       #     node.text = "dawn of cats"
       #   end
-      # end
-      # scrubber = KittyApocalypse.new
       #
-      # <%= sanitize @article.body, scrubber: scrubber %>
+      # or be a subclass of Loofah::Scrubber which responds to scrub:
+      #
+      #   class KittyApocalypse < Loofah::Scrubber
+      #     def scrub(node)
+      #       node.text = "dawn of cats"
+      #     end
+      #   end
+      #   scrubber = KittyApocalypse.new
+      #
+      #   <%= sanitize @article.body, scrubber: scrubber %>
       #
       # A custom scrubber takes precedence over custom tags and attributes
       # Learn more about scrubbers here: https://github.com/flavorjones/loofah
