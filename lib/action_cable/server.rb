@@ -2,7 +2,6 @@ require 'set'
 
 module ActionCable
   class Server < Cramp::Websocket
-    on_start :initialize_subscriptions
     on_data :received_data
     on_finish :cleanup_subscriptions
 
@@ -15,8 +14,10 @@ module ActionCable
       end
     end
 
-    def initialize_subscriptions
+    def initialize(*)
       @subscriptions = {}
+
+      super
     end
 
     def received_data(data)
