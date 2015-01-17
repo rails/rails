@@ -7,12 +7,16 @@ module ActionView
         include Placeholderable
 
         def render
+          tag("input", options_for_rendering)
+        end
+
+        def options_for_rendering
           options = @options.stringify_keys
           options["size"] = options["maxlength"] unless options.key?("size")
           options["type"] ||= field_type
           options["value"] = options.fetch("value") { value_before_type_cast(object) } unless field_type == "file"
           add_default_name_and_id(options)
-          tag("input", options)
+          options.merge(user_options_for_rendering)
         end
 
         class << self
