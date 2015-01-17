@@ -27,7 +27,9 @@ module ActionCable
         @_active_periodic_timers = []
         @params = params
 
-        setup
+        connect
+
+        subscribe
       end
 
       def receive(data)
@@ -47,7 +49,7 @@ module ActionCable
       end
 
       protected
-        def setup
+        def connect
           # Override in subclasses
         end
 
@@ -56,8 +58,10 @@ module ActionCable
         end
 
         def start_periodic_timers
-          self.class.periodic_timers.each do |method, options|
-            @_active_periodic_timers << EventMachine::PeriodicTimer.new(options[:every]) { send(method) }
+          self.class.periodic_timers.each do |callback, options|
+            @_active_periodic_timers << EventMachine::PeriodicTimer.new(options[:every]) do
+              callback.respond_to?(:call) ? callback.call : send(callback)
+            end
           end
         end
 

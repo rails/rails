@@ -21,8 +21,8 @@ module ActionCable
           self.on_unsubscribe_callbacks += methods
         end
 
-        def periodic_timer(method, every:)
-          self.periodic_timers += [ [ method, every: every ] ]
+        def periodically(callback, every:)
+          self.periodic_timers += [ [ callback, every: every ] ]
         end
       end
 

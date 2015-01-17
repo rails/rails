@@ -54,7 +54,6 @@ module ActionCable
 
         if subscription_klass
           @subscriptions[id_key] = subscription_klass.new(self, id_key, id_options)
-          @subscriptions[id_key].subscribe
         else
           # No channel found
         end
