@@ -79,9 +79,14 @@ Available field types:
         `rails generate model product supplier:references{polymorphic}:index`
 
     If you require a `password_digest` string column for use with
-    has_secure_password, you should specify `password:digest`:
+    has_secure_password, you can specify `password:digest`:
 
         `rails generate model user password:digest`
+
+    If you require a `token` string column for use with
+    has_secure_token, you can specify `auth_token:token`:
+
+        `rails generate model user auth_token:token`
 
 Examples:
     `rails generate model account`
@@ -106,4 +111,3 @@ Examples:
             Test:       test/models/admin/account_test.rb
             Fixtures:   test/fixtures/admin/accounts.yml
             Migration:  db/migrate/XXX_create_admin_accounts.rb
-
