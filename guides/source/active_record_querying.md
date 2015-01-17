@@ -1275,7 +1275,7 @@ User.active.where(state: 'finished')
 # SELECT "users".* FROM "users" WHERE "users"."state" = 'active' AND "users"."state" = 'finished'
 ```
 
-If we do want the `last where clause` to win then `Relation#merge` can
+If we do want the last `where` clause to win then `Relation#merge` can
 be used.
 
 ```ruby
