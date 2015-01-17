@@ -49,7 +49,7 @@ module ActionCable
         id_options = ActiveSupport::JSON.decode(id_key).with_indifferent_access
 
         subscription_klass = registered_channels.detect do |channel_klass|
-          channel_klass.channel_name == id_options[:channel] && channel_klass.matches?(id_options)
+          channel_klass.find_name == id_options[:channel] && channel_klass.matches?(id_options)
         end
 
         if subscription_klass

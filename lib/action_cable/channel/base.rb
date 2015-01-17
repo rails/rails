@@ -15,6 +15,10 @@ module ActionCable
         def matches?(identifier)
           raise "Please implement #{name}#matches? method"
         end
+
+        def find_name
+          @name ||= channel_name || to_s.demodulize.underscore
+        end
       end
 
       def initialize(connection, channel_identifier, params = {})
