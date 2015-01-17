@@ -236,7 +236,7 @@ end
 ```
 
 `Post` is not syntax for a class. Rather, `Post` is a regular Ruby constant. If
-all is good, the constant evaluates to an object that responds to `all`.
+all is good, the constant is evaluated to an object that responds to `all`.
 
 That is why we talk about *constant* autoloading, Rails has the ability to
 load constants on the fly.
