@@ -111,3 +111,4 @@ Examples:
             Test:       test/models/admin/account_test.rb
             Fixtures:   test/fixtures/admin/accounts.yml
             Migration:  db/migrate/XXX_create_admin_accounts.rb
+
