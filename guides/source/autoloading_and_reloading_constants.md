@@ -244,7 +244,7 @@ load constants on the fly.
 ### Constants are Stored in Modules
 
 Constants belong to modules in a very literal sense. Classes and modules have
-a constant table; think of it as a hash table.
+a constant table: think of it as a hash table.
 
 Let's analyze an example to really understand what that means. While common
 abuses of language like "the `String` class" are convenient, the exposition is
