@@ -910,7 +910,11 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_inputs_dont_use_before_type_cast_when_value_did_not_come_from_user
-    def @post.id_came_from_user?; false; end
+    class << @post
+      undef id_came_from_user?
+      def id_came_from_user?; false; end
+    end
+
     assert_dom_equal(
       %{<textarea id="post_id" name="post[id]">\n0</textarea>},
       text_area("post", "id")
