@@ -1134,7 +1134,7 @@ This would generate a query which contains a `LEFT OUTER JOIN` whereas the
 If there was no `where` condition, this would generate the normal set of two queries.
 
 NOTE: Using `where` like this will only work when you pass it a Hash. For
-SQL-fragments you need use `references` to force joined tables:
+SQL-fragments you need to use `references` to force joined tables:
 
 ```ruby
 Article.includes(:comments).where("comments.visible = true").references(:comments)
