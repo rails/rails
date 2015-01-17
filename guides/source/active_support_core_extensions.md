@@ -467,7 +467,7 @@ C.new(0, 1).instance_variable_names # => ["@x", "@y"]
 
 NOTE: Defined in `active_support/core_ext/object/instance_variables.rb`.
 
-### Silencing Warnings, Streams, and Exceptions
+### Silencing Warnings and Exceptions
 
 The methods `silence_warnings` and `enable_warnings` change the value of `$VERBOSE` accordingly for the duration of their block, and reset it afterwards:
 
@@ -475,26 +475,10 @@ The methods `silence_warnings` and `enable_warnings` change the value of `$VERBO
 silence_warnings { Object.const_set "RAILS_DEFAULT_LOGGER", logger }
 ```
 
-You can silence any stream while a block runs with `silence_stream`:
-
-```ruby
-silence_stream(STDOUT) do
-  # STDOUT is silent here
-end
-```
-
-The `quietly` method addresses the common use case where you want to silence STDOUT and STDERR, even in subprocesses:
-
-```ruby
-quietly { system 'bundle install' }
-```
-
-For example, the railties test suite uses that one in a few places to prevent command messages from being echoed intermixed with the progress status.
-
 Silencing exceptions is also possible with `suppress`. This method receives an arbitrary number of exception classes. If an exception is raised during the execution of the block and is `kind_of?` any of the arguments, `suppress` captures it and returns silently. Otherwise the exception is reraised:
 
 ```ruby
-# If the user is locked the increment is lost, no big deal.
+# If the user is locked, the increment is lost, no big deal.
 suppress(ActiveRecord::StaleObjectError) do
   current_user.increment! :visits
 end
