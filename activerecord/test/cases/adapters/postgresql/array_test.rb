@@ -112,8 +112,8 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
 
   def test_schema_dump_with_shorthand
     output = dump_table_schema "pg_arrays"
-    assert_match %r[t.string\s+"tags",\s+array: true], output
-    assert_match %r[t.integer\s+"ratings",\s+array: true], output
+    assert_match %r[t\.string\s+"tags",\s+array: true], output
+    assert_match %r[t\.integer\s+"ratings",\s+array: true], output
   end
 
   def test_select_with_strings

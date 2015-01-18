@@ -85,8 +85,8 @@ class PostgresqlNetworkTest < ActiveRecord::TestCase
 
   def test_schema_dump_with_shorthand
     output = dump_table_schema("postgresql_network_addresses")
-    assert_match %r{t.inet\s+"inet_address",\s+default: "192.168.1.1"}, output
-    assert_match %r{t.cidr\s+"cidr_address",\s+default: "192.168.1.0/24"}, output
-    assert_match %r{t.macaddr\s+"mac_address",\s+default: "ff:ff:ff:ff:ff:ff"}, output
+    assert_match %r{t\.inet\s+"inet_address",\s+default: "192\.168\.1\.1"}, output
+    assert_match %r{t\.cidr\s+"cidr_address",\s+default: "192\.168\.1\.0/24"}, output
+    assert_match %r{t\.macaddr\s+"mac_address",\s+default: "ff:ff:ff:ff:ff:ff"}, output
   end
 end

@@ -204,25 +204,25 @@ class SchemaDumperTest < ActiveRecord::TestCase
   if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
     def test_schema_dump_should_add_default_value_for_mysql_text_field
       output = standard_dump
-      assert_match %r{t.text\s+"body",\s+limit: 65535,\s+null: false$}, output
+      assert_match %r{t\.text\s+"body",\s+limit: 65535,\s+null: false$}, output
     end
 
     def test_schema_dump_includes_length_for_mysql_binary_fields
       output = standard_dump
-      assert_match %r{t.binary\s+"var_binary",\s+limit: 255$}, output
-      assert_match %r{t.binary\s+"var_binary_large",\s+limit: 4095$}, output
+      assert_match %r{t\.binary\s+"var_binary",\s+limit: 255$}, output
+      assert_match %r{t\.binary\s+"var_binary_large",\s+limit: 4095$}, output
     end
 
     def test_schema_dump_includes_length_for_mysql_blob_and_text_fields
       output = standard_dump
-      assert_match %r{t.binary\s+"tiny_blob",\s+limit: 255$}, output
-      assert_match %r{t.binary\s+"normal_blob",\s+limit: 65535$}, output
-      assert_match %r{t.binary\s+"medium_blob",\s+limit: 16777215$}, output
-      assert_match %r{t.binary\s+"long_blob",\s+limit: 4294967295$}, output
-      assert_match %r{t.text\s+"tiny_text",\s+limit: 255$}, output
-      assert_match %r{t.text\s+"normal_text",\s+limit: 65535$}, output
-      assert_match %r{t.text\s+"medium_text",\s+limit: 16777215$}, output
-      assert_match %r{t.text\s+"long_text",\s+limit: 4294967295$}, output
+      assert_match %r{t\.binary\s+"tiny_blob",\s+limit: 255$}, output
+      assert_match %r{t\.binary\s+"normal_blob",\s+limit: 65535$}, output
+      assert_match %r{t\.binary\s+"medium_blob",\s+limit: 16777215$}, output
+      assert_match %r{t\.binary\s+"long_blob",\s+limit: 4294967295$}, output
+      assert_match %r{t\.text\s+"tiny_text",\s+limit: 255$}, output
+      assert_match %r{t\.text\s+"normal_text",\s+limit: 65535$}, output
+      assert_match %r{t\.text\s+"medium_text",\s+limit: 16777215$}, output
+      assert_match %r{t\.text\s+"long_text",\s+limit: 4294967295$}, output
     end
 
     def test_schema_dumps_index_type
@@ -235,19 +235,19 @@ class SchemaDumperTest < ActiveRecord::TestCase
   if mysql_56?
     def test_schema_dump_includes_datetime_precision
       output = standard_dump
-      assert_match %r{t.datetime\s+"written_on",\s+precision: 6$}, output
+      assert_match %r{t\.datetime\s+"written_on",\s+precision: 6$}, output
     end
   end
 
   def test_schema_dump_includes_decimal_options
     output = dump_all_table_schema([/^[^n]/])
-    assert_match %r{precision: 3,[[:space:]]+scale: 2,[[:space:]]+default: 2.78}, output
+    assert_match %r{precision: 3,[[:space:]]+scale: 2,[[:space:]]+default: 2\.78}, output
   end
 
   if current_adapter?(:PostgreSQLAdapter)
     def test_schema_dump_includes_bigint_default
       output = standard_dump
-      assert_match %r{t.integer\s+"bigint_default",\s+limit: 8,\s+default: 0}, output
+      assert_match %r{t\.integer\s+"bigint_default",\s+limit: 8,\s+default: 0}, output
     end
 
     if ActiveRecord::Base.connection.supports_extensions?
@@ -271,11 +271,11 @@ class SchemaDumperTest < ActiveRecord::TestCase
     output = standard_dump
     # Oracle supports precision up to 38 and it identifies decimals with scale 0 as integers
     if current_adapter?(:OracleAdapter)
-      assert_match %r{t.integer\s+"atoms_in_universe",\s+precision: 38}, output
+      assert_match %r{t\.integer\s+"atoms_in_universe",\s+precision: 38}, output
     elsif current_adapter?(:FbAdapter)
-      assert_match %r{t.integer\s+"atoms_in_universe",\s+precision: 18}, output
+      assert_match %r{t\.integer\s+"atoms_in_universe",\s+precision: 18}, output
     else
-      assert_match %r{t.decimal\s+"atoms_in_universe",\s+precision: 55}, output
+      assert_match %r{t\.decimal\s+"atoms_in_universe",\s+precision: 55}, output
     end
   end
 
@@ -284,7 +284,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
     match = output.match(%r{create_table "goofy_string_id"(.*)do.*\n(.*)\n})
     assert_not_nil(match, "goofy_string_id table not found")
     assert_match %r(id: false), match[1], "no table id not preserved"
-    assert_match %r{t.string\s+"id",.*?null: false$}, match[2], "non-primary key id column not preserved"
+    assert_match %r{t\.string\s+"id",.*?null: false$}, match[2], "non-primary key id column not preserved"
   end
 
   def test_schema_dump_keeps_id_false_when_id_is_false_and_unique_not_null_column_added

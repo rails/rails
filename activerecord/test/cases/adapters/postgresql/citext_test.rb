@@ -72,7 +72,7 @@ if ActiveRecord::Base.connection.supports_extensions?
 
     def test_schema_dump_with_shorthand
       output = dump_table_schema("citexts")
-      assert_match %r[t.citext "cival"], output
+      assert_match %r[t\.citext "cival"], output
     end
   end
 end

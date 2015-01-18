@@ -114,7 +114,7 @@ class PostgresqlUUIDTest < ActiveRecord::TestCase
 
   def test_schema_dump_with_shorthand
     output = dump_table_schema "uuid_data_type"
-    assert_match %r{t.uuid "guid"}, output
+    assert_match %r{t\.uuid "guid"}, output
   end
 
   def test_uniqueness_validation_ignores_uuid

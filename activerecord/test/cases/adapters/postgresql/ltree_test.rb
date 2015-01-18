@@ -48,6 +48,6 @@ class PostgresqlLtreeTest < ActiveRecord::TestCase
 
   def test_schema_dump_with_shorthand
     output = dump_table_schema("ltrees")
-    assert_match %r[t.ltree "path"], output
+    assert_match %r[t\.ltree "path"], output
   end
 end
