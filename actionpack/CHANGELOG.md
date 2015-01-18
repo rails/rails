@@ -1,3 +1,8 @@
+*   Add `ActionController::Renderer` to render arbitrary templates
+    outside controller actions.
+
+    *Ravil Bayramgalin*
+
 *   Support `:assigns` option when rendering with controllers/mailers.
 
     *Ravil Bayramgalin*
