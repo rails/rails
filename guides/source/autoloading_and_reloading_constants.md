@@ -80,7 +80,8 @@ end
 ```
 
 The *nesting* at any given place is the collection of enclosing nested class and
-module objects outwards. For example, in the previous example, the nesting at
+module objects outwards. The nesting at any given place can be inspected with
+`Module.nesting`. For example, in the previous example, the nesting at
 (1) is
 
 ```ruby
@@ -152,8 +153,6 @@ It is interesting to observe that blocks do not modify the stack. In particular
 the blocks that may be passed to `Class.new` and `Module.new` do not get the
 class or module being defined pushed to their nesting. That's one of the
 differences between defining classes and modules in one way or another.
-
-The nesting at any given place can be inspected with `Module.nesting`.
 
 ### Class and Module Definitions are Constant Assignments
 
