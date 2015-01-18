@@ -685,12 +685,12 @@ creates an empty module and assigns it to the `Admin` constant on the fly.
 ### Generic Procedure
 
 Relative references are reported to be missing in the cref where they were hit,
-and qualified references are reported to be missing in their parent. (See
+and qualified references are reported to be missing in their parent (see
 [Resolution Algorithm for Relative
 Constants](#resolution-algorithm-for-relative-constants) at the beginning of
 this guide for the definition of *cref*, and [Resolution Algorithm for Qualified
 Constants](#resolution-algorithm-for-qualified-constants) for the definition of
-*parent*.)
+*parent*).
 
 The procedure to autoload constant `C` in an arbitrary situation is as follows:
 
@@ -868,8 +868,8 @@ end
 ```
 
 To resolve `User` Ruby checks `Admin` in the former case, but it does not in
-the latter because it does not belong to the nesting. (See [Nesting](#nesting)
-and [Resolution Algorithms](#resolution-algorithms).)
+the latter because it does not belong to the nesting (see [Nesting](#nesting)
+and [Resolution Algorithms](#resolution-algorithms)).
 
 Unfortunately Rails autoloading does not know the nesting in the spot where the
 constant was missing and so it is not able to act as Ruby would. In particular,
@@ -1284,7 +1284,7 @@ c.user # NameError: uninitialized constant C::User
 ```
 
 because it detects that a parent namespace already has the constant (see [Qualified
-References](#autoloading-algorithms-qualified-references).)
+References](#autoloading-algorithms-qualified-references)).
 
 As with pure Ruby, within the body of a direct descendant of `BasicObject` use
 always absolute constant paths:
