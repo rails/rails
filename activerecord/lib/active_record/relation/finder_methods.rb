@@ -307,7 +307,7 @@ module ActiveRecord
         relation = relation.where(conditions)
       else
         unless conditions == :none
-          relation = where(primary_key => conditions)
+          relation = relation.where(primary_key => conditions)
         end
       end
 
