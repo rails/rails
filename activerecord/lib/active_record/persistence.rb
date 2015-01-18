@@ -246,7 +246,7 @@ module ActiveRecord
       name = name.to_s
       verify_readonly_attribute(name)
       send("#{name}=", value)
-      save(validate: false)
+      save(validate: false) if changed?
     end
 
     # Updates the attributes of the model from the passed-in hash and saves the
