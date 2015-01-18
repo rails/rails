@@ -64,7 +64,7 @@ group :test do
     gem 'ruby-prof', '~> 0.11.2'
   end
 
-  platforms :mri_21 do
+  platforms :mri_21, :mri_22 do
     gem 'stackprof'
   end
 
