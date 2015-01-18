@@ -3797,50 +3797,6 @@ WARNING. If the argument is an `IO` it needs to respond to `rewind` to be able t
 
 NOTE: Defined in `active_support/core_ext/marshal.rb`.
 
-Extensions to `Logger`
-----------------------
-
-### `around_[level]`
-
-Takes two arguments, a `before_message` and `after_message` and calls the current level method on the `Logger` instance, passing in the `before_message`, then the specified message, then the `after_message`:
-
-```ruby
-logger = Logger.new("log/development.log")
-logger.around_info("before", "after") { |logger| logger.info("during") }
-```
-
-### `silence`
-
-Silences every log level lesser to the specified one for the duration of the given block. Log level orders are: debug, info, error and fatal.
-
-```ruby
-logger = Logger.new("log/development.log")
-logger.silence(Logger::INFO) do
-  logger.debug("In space, no one can hear you scream.")
-  logger.info("Scream all you want, small mailman!")
-end
-```
-
-### `datetime_format=`
-
-Modifies the datetime format output by the formatter class associated with this logger. If the formatter class does not have a `datetime_format` method then this is ignored.
-
-```ruby
-class Logger::FormatWithTime < Logger::Formatter
-  cattr_accessor(:datetime_format) { "%Y%m%d%H%m%S" }
-
-  def self.call(severity, timestamp, progname, msg)
-    "#{timestamp.strftime(datetime_format)} -- #{String === msg ? msg : msg.inspect}\n"
-  end
-end
-
-logger = Logger.new("log/development.log")
-logger.formatter = Logger::FormatWithTime
-logger.info("<- is the current time")
-```
-
-NOTE: Defined in `active_support/core_ext/logger.rb`.
-
 Extensions to `NameError`
 -------------------------
 
