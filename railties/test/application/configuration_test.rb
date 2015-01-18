@@ -732,6 +732,19 @@ module ApplicationTests
       assert_equal [::MyMailObserver, ::MyOtherMailObserver], ::Mail.send(:class_variable_get, "@@delivery_notification_observers")
     end
 
+    test "allows setting the queue name for the ActionMailer::DeliveryJob" do
+      add_to_config <<-RUBY
+        config.action_mailer.deliver_later_queue_name = 'test_default'
+      RUBY
+
+      require "#{app_path}/config/environment"
+      require "mail"
+
+      _ = ActionMailer::Base
+
+      assert_equal 'test_default', ActionMailer::Base.send(:class_variable_get, "@@deliver_later_queue_name")
+    end
+
     test "valid timezone is setup correctly" do
       add_to_config <<-RUBY
         config.root = "#{app_path}"

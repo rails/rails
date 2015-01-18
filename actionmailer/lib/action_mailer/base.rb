@@ -409,6 +409,8 @@ module ActionMailer
   #
   # * <tt>deliveries</tt> - Keeps an array of all the emails sent out through the Action Mailer with
   #   <tt>delivery_method :test</tt>. Most useful for unit and functional testing.
+  #
+  # * <tt>deliver_later_queue_name</tt> - The name of the queue used with <tt>deliver_later</tt>
   class Base < AbstractController::Base
     include DeliveryMethods
     include Previews
