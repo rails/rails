@@ -96,7 +96,7 @@
 *   Fixes bug with 'ActiveRecord::Type::Numeric' that causes negative values to
     be marked as having changed when set to the same negative value.
 
-    Closes #18161.
+    Fixes #18161.
 
     *Daniel Fox*
 
@@ -111,7 +111,7 @@
     before loading the schema. This is left for the user to do.
     `db:test:prepare` will still purge the database.
 
-    Closes #17945.
+    Fixes #17945.
 
     *Yves Senn*
 
