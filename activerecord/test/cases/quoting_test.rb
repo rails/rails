@@ -125,14 +125,11 @@ module ActiveRecord
       end
 
       def test_crazy_object
-        crazy = Class.new.new
-        expected = "'#{YAML.dump(crazy)}'"
-        assert_equal expected, @quoter.quote(crazy, nil)
-      end
-
-      def test_crazy_object_calls_quote_string
-        crazy = Class.new { def initialize; @lol = 'lo\l' end }.new
-        assert_match "lo\\\\l", @quoter.quote(crazy, nil)
+        crazy = Object.new
+        e = assert_raises(TypeError) do
+          @quoter.quote(crazy, nil)
+        end
+        assert_equal "can't quote Object", e.message
       end
 
       def test_quote_string_no_column

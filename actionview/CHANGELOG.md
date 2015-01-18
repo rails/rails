@@ -1,6 +1,6 @@
 *   Change the default template handler from `ERB` to `Raw`.
 
-    Files without a template handler in their extension will be rended using the raw
+    Files without a template handler in their extension will be rendered using the raw
     handler instead of ERB.
 
     *Rafael Mendonça França*
@@ -28,5 +28,8 @@
 
     *Angelo Capilleri*
 
+*   Allow entries without a link tag in AtomFeedHelper.
+
+    *Daniel Gomez de Souza*
 
 Please check [4-2-stable](https://github.com/rails/rails/blob/4-2-stable/actionview/CHANGELOG.md) for previous changes.

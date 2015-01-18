@@ -250,8 +250,8 @@ class MultiParameterAttributeTest < ActiveRecord::TestCase
         }
         topic = Topic.find(1)
         topic.attributes = attributes
-        assert_equal Time.utc(2000, 1, 1, 16, 24, 0), topic.bonus_time
-        assert topic.bonus_time.utc?
+        assert_equal Time.zone.local(2000, 1, 1, 16, 24, 0), topic.bonus_time
+        assert_not topic.bonus_time.utc?
       end
     end
   end

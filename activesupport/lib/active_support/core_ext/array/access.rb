@@ -21,7 +21,7 @@ class Array
   #   %w( a b c ).to(-10)  # => []
   def to(position)
     if position >= 0
-      first position + 1
+      take position + 1
     else
       self[0..position]
     end

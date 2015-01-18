@@ -495,15 +495,7 @@ module ActiveRecord
     end
 
     def relation_for_destroy
-      pk         = self.class.primary_key
-      column     = self.class.columns_hash[pk]
-      substitute = self.class.connection.substitute_at(column)
-
-      relation = self.class.unscoped.where(
-        self.class.arel_table[pk].eq(substitute))
-
-      relation.bind_values = [[column, id]]
-      relation
+      self.class.unscoped.where(self.class.primary_key => id)
     end
 
     def create_or_update(*args)

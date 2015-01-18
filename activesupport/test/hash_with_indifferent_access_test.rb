@@ -7,4 +7,5 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
     hash.reverse_merge! key: :new_value
     assert_equal :old_value, hash[:key]
   end
+
 end

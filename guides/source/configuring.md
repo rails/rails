@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE IN GITHUB, GUIDES ARE PUBLISHED IN http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
 
 Configuring Rails Applications
 ==============================
@@ -692,7 +692,7 @@ development:
   pool: 5
 ```
 
-Prepared Statements are enabled by default on PostgreSQL. You can be disable prepared statements by setting `prepared_statements` to `false`:
+Prepared Statements are enabled by default on PostgreSQL. You can disable prepared statements by setting `prepared_statements` to `false`:
 
 ```yaml
 production:

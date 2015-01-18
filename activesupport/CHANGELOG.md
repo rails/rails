@@ -1,3 +1,10 @@
+*   Duplicate frozen array when assigning it to a HashWithIndifferentAccess so
+    that it doesn't raise a `RuntimeError` when calling `map!` on it in `convert_value`.
+
+    Fixes #18550.
+
+    *Aditya Kapoor*
+
 *   Add missing time zone definitions for Russian Federation and sync them
     with `zone.tab` file from tzdata version 2014j (latest).
 

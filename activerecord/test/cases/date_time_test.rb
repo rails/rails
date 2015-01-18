@@ -55,7 +55,7 @@ class DateTimeTest < ActiveRecord::TestCase
     now = DateTime.now
     with_timezone_config default: :local do
       task = Task.new starting: now
-      assert now, task.starting
+      assert_equal now, task.starting
     end
   end
 end

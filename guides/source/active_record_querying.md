@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE IN GITHUB, GUIDES ARE PUBLISHED IN http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
 
 Active Record Query Interface
 =============================
@@ -1134,7 +1134,7 @@ This would generate a query which contains a `LEFT OUTER JOIN` whereas the
 If there was no `where` condition, this would generate the normal set of two queries.
 
 NOTE: Using `where` like this will only work when you pass it a Hash. For
-SQL-fragments you need use `references` to force joined tables:
+SQL-fragments you need to use `references` to force joined tables:
 
 ```ruby
 Article.includes(:comments).where("comments.visible = true").references(:comments)
@@ -1275,7 +1275,7 @@ User.active.where(state: 'finished')
 # SELECT "users".* FROM "users" WHERE "users"."state" = 'active' AND "users"."state" = 'finished'
 ```
 
-If we do want the `last where clause` to win then `Relation#merge` can
+If we do want the last `where` clause to win then `Relation#merge` can
 be used.
 
 ```ruby

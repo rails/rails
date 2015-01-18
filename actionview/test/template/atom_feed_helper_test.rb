@@ -62,6 +62,23 @@ class ScrollsController < ActionController::Base
           end
         end
     EOT
+    FEEDS["entry_url_false_option"] = <<-EOT
+        atom_feed do |feed|
+          feed.title("My great blog!")
+          feed.updated((@scrolls.first.created_at))
+
+          @scrolls.each do |scroll|
+            feed.entry(scroll, :url => false) do |entry|
+              entry.title(scroll.title)
+              entry.content(scroll.body, :type => 'html')
+
+              entry.author do |author|
+                author.name("DHH")
+              end
+            end
+          end
+        end
+    EOT
     FEEDS["xml_block"] = <<-EOT
         atom_feed do |feed|
           feed.title("My great blog!")
@@ -334,6 +351,13 @@ class AtomFeedTest < ActionController::TestCase
     with_restful_routing(:scrolls) do
       get :index, :id => 'entry_type_options'
       assert_select "entry link[rel=alternate][type=\"text/xml\"]"
+    end
+  end
+
+  def test_feed_entry_url_false_option_adds_no_link
+    with_restful_routing(:scrolls) do
+      get :index, :id => 'entry_url_false_option'
+      assert_select "entry link", false
     end
   end
 
