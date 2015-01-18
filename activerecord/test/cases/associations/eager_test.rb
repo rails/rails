@@ -1313,6 +1313,18 @@ class EagerAssociationTest < ActiveRecord::TestCase
     end
   end
 
+  test "associations with extensions are not instance dependent" do
+    assert_not_deprecated do
+      Author.includes(:posts_with_extension).to_a
+    end
+  end
+
+  test "including associations with extensions and an instance dependent scope is deprecated" do
+    assert_deprecated do
+      Author.includes(:posts_with_extension_and_instance).to_a
+    end
+  end
+
   test "preloading readonly association" do
     # has-one
     firm = Firm.where(id: "1").preload(:readonly_account).first!

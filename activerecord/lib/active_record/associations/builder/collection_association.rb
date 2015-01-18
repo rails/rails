@@ -82,7 +82,11 @@ module ActiveRecord::Associations::Builder
 
     def wrap_scope(scope, mod)
       if scope
-        proc { |owner| instance_exec(owner, &scope).extending(mod) }
+        if scope.arity > 0
+          proc { |owner| instance_exec(owner, &scope).extending(mod) }
+        else
+          proc { instance_exec(&scope).extending(mod) }
+        end
       else
         proc { extending(mod) }
       end

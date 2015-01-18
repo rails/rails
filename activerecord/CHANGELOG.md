@@ -1,3 +1,12 @@
+*   no longer issue deprecation warning when including a scope with extensions.
+    Previously every scope with extension methods was transformed into an
+    instance dependent scope. Including such a scope would wrongfully issue a
+    dreprecation warning. This is no longer the case.
+
+    Fixes #18467.
+
+    *Yves Senn*
+
 *   Correctly use the type provided by `serialize` when updating records using
     optimistic locking.
 
