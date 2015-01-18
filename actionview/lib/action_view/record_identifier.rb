@@ -103,7 +103,7 @@ module ActionView
     # make sure yourself that your dom ids are valid, in case you overwrite this method.
     def record_key_for_dom_id(record)
       key = convert_to_model(record).to_key
-      key ? key.join('_') : key
+      key ? key.join(JOIN) : key
     end
   end
 end
