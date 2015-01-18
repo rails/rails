@@ -73,7 +73,7 @@ module ActiveRecord
             time_zone_aware_types.include?(:not_explicitly_configured)
             ActiveSupport::Deprecation.warn(<<-MESSAGE)
               Time columns will become time zone aware in Rails 5.1. This
-              still cause `String`s to be parsed as if they were in `Time.zone`,
+              still causes `String`s to be parsed as if they were in `Time.zone`,
               and `Time`s to be converted to `Time.zone`.
 
               To keep the old behavior, you must add the following to your initializer:
