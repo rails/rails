@@ -721,6 +721,14 @@ class DirtyTest < ActiveRecord::TestCase
     assert record.save
   end
 
+  test "mutating and then assigning doesn't remove the change" do
+    pirate = Pirate.create!(catchphrase: "arrrr")
+    pirate.catchphrase << " matey!"
+    pirate.catchphrase = "arrrr matey!"
+
+    assert pirate.catchphrase_changed?(from: "arrrr", to: "arrrr matey!")
+  end
+
   private
     def with_partial_writes(klass, on = true)
       old = klass.partial_writes?

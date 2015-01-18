@@ -108,7 +108,7 @@ module ActiveRecord
       end
 
       def save_changed_attribute(attr, old_value)
-        if attribute_changed?(attr)
+        if attribute_changed_by_setter?(attr)
           clear_attribute_changes(attr) unless _field_changed?(attr, old_value)
         else
           set_attribute_was(attr, old_value) if _field_changed?(attr, old_value)

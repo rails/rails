@@ -189,6 +189,7 @@ module ActiveModel
       def changes_include?(attr_name)
         attributes_changed_by_setter.include?(attr_name)
       end
+      alias attribute_changed_by_setter? changes_include?
 
       # Removes current changes and makes them accessible through +previous_changes+.
       def changes_applied # :doc:
