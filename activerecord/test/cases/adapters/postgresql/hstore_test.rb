@@ -317,7 +317,7 @@ if ActiveRecord::Base.connection.supports_extensions?
 
     def test_schema_dump_with_shorthand
       output = dump_table_schema("hstores")
-      assert_match %r[t.hstore "tags",\s+default: {}], output
+      assert_match %r[t\.hstore "tags",\s+default: {}], output
     end
 
     private

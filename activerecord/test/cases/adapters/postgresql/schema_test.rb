@@ -454,7 +454,7 @@ class SchemaForeignKeyTest < ActiveRecord::TestCase
     end
     @connection.add_foreign_key "wagons", "my_schema.trains", column: "train_id"
     output = dump_table_schema "wagons"
-    assert_match %r{\s+add_foreign_key "wagons", "my_schema.trains", column: "train_id"$}, output
+    assert_match %r{\s+add_foreign_key "wagons", "my_schema\.trains", column: "train_id"$}, output
   ensure
     @connection.execute "DROP TABLE IF EXISTS wagons"
     @connection.execute "DROP TABLE IF EXISTS my_schema.trains"

@@ -56,7 +56,7 @@ class PostgresqlMoneyTest < ActiveRecord::TestCase
   def test_schema_dumping
     output = dump_table_schema("postgresql_moneys")
     assert_match %r{t\.money\s+"wealth",\s+scale: 2$}, output
-    assert_match %r{t\.money\s+"depth",\s+scale: 2,\s+default: 150.55$}, output
+    assert_match %r{t\.money\s+"depth",\s+scale: 2,\s+default: 150\.55$}, output
   end
 
   def test_create_and_update_money

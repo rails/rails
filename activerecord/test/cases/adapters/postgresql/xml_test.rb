@@ -50,6 +50,6 @@ class PostgresqlXMLTest < ActiveRecord::TestCase
 
   def test_schema_dump_with_shorthand
     output = dump_table_schema("xml_data_type")
-    assert_match %r{t.xml "payload"}, output
+    assert_match %r{t\.xml "payload"}, output
   end
 end
