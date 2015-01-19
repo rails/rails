@@ -945,7 +945,7 @@ module ActiveRecord
       when Hash
         opts = predicate_builder.resolve_column_aliases(opts)
 
-        tmp_opts, bind_values = create_binds(opts)
+        tmp_opts, bind_values = predicate_builder.create_binds(opts)
         self.bind_values += bind_values
 
         attributes = @klass.send(:expand_hash_conditions_for_aggregates, tmp_opts)
@@ -955,37 +955,6 @@ module ActiveRecord
       else
         [opts]
       end
-    end
-
-    def create_binds(opts)
-      bindable, non_binds = opts.partition do |column, value|
-        value.is_a?(String) ||
-          value.is_a?(Integer) ||
-          value.is_a?(ActiveRecord::StatementCache::Substitute)
-      end
-
-      association_binds, non_binds = non_binds.partition do |column, value|
-        value.is_a?(Hash) && association_for_table(column)
-      end
-
-      new_opts = {}
-      binds = []
-
-      bindable.each do |(column,value)|
-        binds.push [@klass.columns_hash[column.to_s], value]
-        new_opts[column] = connection.substitute_at(column)
-      end
-
-      association_binds.each do |(column, value)|
-        association_relation = association_for_table(column).klass.send(:relation)
-        association_new_opts, association_bind = association_relation.send(:create_binds, value)
-        new_opts[column] = association_new_opts
-        binds += association_bind
-      end
-
-      non_binds.each { |column,value| new_opts[column] = value }
-
-      [new_opts, binds]
     end
 
     def association_for_table(table_name)

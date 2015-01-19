@@ -22,6 +22,12 @@ module ActiveRecord
       arel_table[column_name]
     end
 
+    def column(column_name)
+      if klass
+        klass.columns_hash[column_name.to_s]
+      end
+    end
+
     def associated_with?(association_name)
       klass && klass._reflect_on_association(association_name)
     end

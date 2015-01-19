@@ -28,6 +28,25 @@ module ActiveRecord
       expand_from_hash(attributes)
     end
 
+    def create_binds(attributes)
+      result = attributes.dup
+      binds = []
+
+      attributes.each do |column_name, value|
+        case value
+        when String, Integer, ActiveRecord::StatementCache::Substitute
+          result[column_name] = Arel::Nodes::BindParam.new
+          binds.push([table.column(column_name), value])
+        when Hash
+          attrs, bvs = associated_predicate_builder(column_name).create_binds(value)
+          result[column_name] = attrs
+          binds += bvs
+        end
+      end
+
+      [result, binds]
+    end
+
     def expand(column, value)
       # Find the foreign key when using queries such as:
       # Post.where(author: author)
@@ -80,8 +99,7 @@ module ActiveRecord
 
       attributes.flat_map do |key, value|
         if value.is_a?(Hash)
-          builder = self.class.new(table.associated_table(key))
-          builder.expand_from_hash(value)
+          associated_predicate_builder(key).expand_from_hash(value)
         else
           expand(key, value)
         end
@@ -89,6 +107,10 @@ module ActiveRecord
     end
 
     private
+
+    def associated_predicate_builder(association_name)
+      self.class.new(table.associated_table(association_name))
+    end
 
     def convert_dot_notation_to_hash(attributes)
       dot_notation = attributes.keys.select { |s| s.include?(".") }
