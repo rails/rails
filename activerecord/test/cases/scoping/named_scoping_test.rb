@@ -521,4 +521,12 @@ class NamedScopingTest < ActiveRecord::TestCase
     assert_equal 1, SpecialComment.where(body: 'go crazy').created.count
   end
 
+  def test_reverse_scope_without_arguments
+    assert_no_match(/e/, Comment.without_the_letter_e.pluck(:body).join)
+  end
+
+  def test_reverse_scope_with_arguments
+    assert_no_match(/body/, Comment.without_word('body').pluck(:body).join)
+  end
+
 end

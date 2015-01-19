@@ -39,21 +39,7 @@ module ActiveRecord
       #    User.where.not(name: "Jon", role: "admin")
       #    # SELECT * FROM users WHERE name != 'Jon' AND role != 'admin'
       def not(opts, *rest)
-        where_value = @scope.send(:build_where, opts, rest).map do |rel|
-          case rel
-          when NilClass
-            raise ArgumentError, 'Invalid argument for .where.not(), got nil.'
-          when Arel::Nodes::In
-            Arel::Nodes::NotIn.new(rel.left, rel.right)
-          when Arel::Nodes::Equality
-            Arel::Nodes::NotEqual.new(rel.left, rel.right)
-          when String
-            Arel::Nodes::Not.new(Arel::Nodes::SqlLiteral.new(rel))
-          else
-            Arel::Nodes::Not.new(rel)
-          end
-        end
-
+        where_value = @scope.send(:reverse_where_conditions, @scope.send(:build_where, opts, rest))
         @scope.references!(PredicateBuilder.references(opts)) if Hash === opts
         @scope.where_values += where_value
         @scope
@@ -841,6 +827,18 @@ module ActiveRecord
       self
     end
 
+    # Reverses existing where clause on the relation.
+    #
+    #  User.where(approved: true).reverse_where # => WHERE `approved` = 0
+    def reverse_where
+      spawn.reverse_where!
+    end
+
+    def reverse_where! # :nodoc:
+      self.where_values = reverse_where_conditions(where_values)
+      self
+    end
+
     # Returns the Arel object associated with the relation.
     def arel # :nodoc:
       @arel ||= build_arel
@@ -1162,6 +1160,23 @@ module ActiveRecord
           else
             add_relations_to_bind_values(value)
           end
+        end
+      end
+    end
+
+    def reverse_where_conditions(conditions)
+      conditions.map do |rel|
+        case rel
+        when NilClass
+          raise ArgumentError, 'Invalid argument for .where.not(), got nil.'
+        when Arel::Nodes::In
+          Arel::Nodes::NotIn.new(rel.left, rel.right)
+        when Arel::Nodes::Equality
+          Arel::Nodes::NotEqual.new(rel.left, rel.right)
+        when String
+          Arel::Nodes::Not.new(Arel::Nodes::SqlLiteral.new(rel))
+        else
+          Arel::Nodes::Not.new(rel)
         end
       end
     end

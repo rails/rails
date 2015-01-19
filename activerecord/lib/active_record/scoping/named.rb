@@ -158,6 +158,29 @@ module ActiveRecord
             scope || all
           end
         end
+
+        # Adds a scope that with reverse conditions than parent scope
+        #
+        #   class Post < ActiveRecord::Base
+        #
+        #     scope :active, -> { where(active: true) }
+        #     reverse_scope :inactive, :active
+        #
+        #     scope :created_before, ->(date) { where("posts.created_at < date")
+        #     reverse_scope :created_after, :created_before
+        #
+        #
+        #     scope :trending, -> { joins(:category).where(categories: {treding: true})
+        #     reverse_scope :abandon, :trending
+        #
+        #   end
+        #
+        #   Post.inactive # => WHERE `active` != 1
+        #   Post.created_after('1986-08-05') # => WHERE NOT(posts.created_at < '1986-08-05')
+        #   Post.abandon # => INNER JOIN `categories` ON `categories`.id = `posts`.`category_id` WHERE `categories`.`treding` != 1
+        def reverse_scope(name, parent, &block)
+          scope name, proc {|*args| send(parent, *args).reverse_where! }, &block
+        end
       end
     end
   end

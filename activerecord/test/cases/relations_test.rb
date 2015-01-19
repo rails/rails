@@ -1766,4 +1766,18 @@ class RelationTest < ActiveRecord::TestCase
   def test_relation_join_method
     assert_equal 'Thank you for the welcome,Thank you again for the welcome', Post.first.comments.join(",")
   end
+
+  def test_reverse_where
+    assert !Topic.approved.reverse_where.first.approved?
+  end
+
+  def test_reverse_where_scope_with_arguments
+    topic = Topic.create!(:written_on => 3.days.from_now)
+    assert_equal [topic], Topic.written_before(DateTime.now).reverse_where
+  end
+
+  def test_reverse_where_with_joins
+    assert_not_includes Comment.for_first_author.reverse_where.map(&:post_id), 1
+  end
+
 end
