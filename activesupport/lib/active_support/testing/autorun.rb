@@ -2,4 +2,6 @@ gem 'minitest'
 
 require 'minitest'
 
-Minitest.autorun
+unless Rails::TestRunner.running?
+  Minitest.autorun
+end
