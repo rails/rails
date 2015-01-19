@@ -28,6 +28,7 @@ module ActionView #:nodoc:
     autoload :TranslationHelper
     autoload :UrlHelper
     autoload :Tags
+    autoload :JSDebugHelper
 
     def self.eager_load!
       super

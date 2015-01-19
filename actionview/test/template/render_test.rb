@@ -6,6 +6,8 @@ class TestController < ActionController::Base
 end
 
 module RenderTestCases
+  include ActionView::Helpers::JavaScriptHelper
+
   def setup_view(paths)
     @assigns = { :secret => 'in the sauce' }
     @view = ActionView::Base.new(paths, @assigns)
@@ -383,26 +385,37 @@ module RenderTestCases
   end
 
   def test_js_debug_template
+    setup_view(ActionController::Base.view_paths)
+
     ActionView::Renderer.debug_js = true
     @view.lookup_context.formats = [:js]
 
     js_wrapped_output = @view.render(:template => "test/js_test", :formats => [:js])
 
-    puts js_wrapped_output
-
     assert_match(/try {/, js_wrapped_output)
-    assert_match(/}catch\(e\){/, js_wrapped_output)
+    assert_match(/} catch\(e\) {/, js_wrapped_output)
   end
 
   def test_js_partial_infos
     @view.lookup_context.formats = [:js]
+    ActionView::Renderer.debug_js = true
 
     js_wrapped_output = @view.render(:template => "test/js_test", :formats => [:js])
-    partial_info      = @view.view_renderer.send(:js_partial_infos, js_wrapped_output)
-
-    assert_match("\'3\'", partial_info[0])
+    partial_info      = @view.view_renderer.send(:partial_infos, js_wrapped_output)
+    assert_match("\'72\'", partial_info[0])
   end
 
+  def test_js_source_info
+    setup_view(ActionController::Base.view_paths)
+
+    @view.lookup_context.formats = [:js]
+    ActionView::Renderer.debug_js = true
+
+    js_wrapped_output = @view.render(:template => "test/js_test", :formats => [:js])
+    source            = @view.view_renderer.send(:source_info, js_wrapped_output)
+
+    assert_match(/#{Regexp.escape(escape_javascript("console.log(\"testing js3\");"))}/, source[71])
+  end
 
   CustomHandler = lambda do |template|
     "@output_buffer = ''\n" +
