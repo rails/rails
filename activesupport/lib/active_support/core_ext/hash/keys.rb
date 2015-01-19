@@ -19,7 +19,11 @@ class Hash
   def transform_keys!
     return enum_for(:transform_keys!) unless block_given?
     keys.each do |key|
-      self[yield(key)] = delete(key)
+      if keys.map(&:to_s).count(key.to_s) == 1 
+        self[yield(key)] = delete(key) 
+      else
+         delete(key) 
+      end
     end
     self
   end
