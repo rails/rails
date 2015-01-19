@@ -467,20 +467,26 @@ module ActionController
         end
       end
 
-      def each_element(object)
+      def each_element(object, &block)
         if object.is_a?(Array)
-          object.map { |el| yield el }.compact
+          object.map { |el| block.call(el) }.compact
         elsif fields_for_style?(object)
           hash = object.class.new
-          object.each { |k,v| hash[k] = yield v }
+          object.each do |k, v|
+            hash[k] = if v.is_a?(Array)
+              each_element(v, &block)
+            else
+              block.call(v)
+            end
+          end
           hash
         else
-          yield object
+          block.call(object)
         end
       end
 
       def fields_for_style?(object)
-        object.is_a?(Hash) && object.all? { |k, v| k =~ /\A-?\d+\z/ && v.is_a?(Hash) }
+        object.is_a?(Hash) && object.all? { |k, v| k =~ /\A-?\d+\z/ && (v.is_a?(Hash) || v.is_a?(Array)) }
       end
 
       def unpermitted_parameters!(params)

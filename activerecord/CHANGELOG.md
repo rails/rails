@@ -1,3 +1,11 @@
+*   Allow creation of new associated records (when updating parent) via
+    accept_nested_attributes for `has_many` relationship when an array of
+    hashes is passed to the parent.
+    `attachment_attributes` can now be passed as
+    `{ '0' => [{ file: ActionDispatch, caption: 'random file' }, { file: ActionDispatch, caption: 'another file' }] }`
+
+    *Jaspreet Singh Anand*
+
 *   Deprecate `Relation#uniq` use `Relation#distinct` instead.
 
     See #9683.

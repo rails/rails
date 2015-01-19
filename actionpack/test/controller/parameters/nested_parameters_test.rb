@@ -136,7 +136,8 @@ class NestedParametersTest < ActiveSupport::TestCase
         authors_attributes: {
           :'0' => { name: 'William Shakespeare', age_of_death: '52' },
           :'1' => { name: 'Unattributed Assistant' },
-          :'2' => { name: %w(injected names)}
+          :'2' => { name: %w(injected names)},
+          :'3' =>  [{ name: 'Kuldeep Aggarwal', age_of_death: '100' }, { name: 'Jaspreet Singh', age_of_death: '70' }]
         }
       }
     })
@@ -144,9 +145,11 @@ class NestedParametersTest < ActiveSupport::TestCase
 
     assert_not_nil permitted[:book][:authors_attributes]['0']
     assert_not_nil permitted[:book][:authors_attributes]['1']
+    assert_not_nil permitted[:book][:authors_attributes]['3']
     assert_empty permitted[:book][:authors_attributes]['2']
     assert_equal 'William Shakespeare', permitted[:book][:authors_attributes]['0'][:name]
     assert_equal 'Unattributed Assistant', permitted[:book][:authors_attributes]['1'][:name]
+    assert_equal [{ 'name' => 'Kuldeep Aggarwal' }, { 'name' => 'Jaspreet Singh' }], permitted[:book][:authors_attributes]['3']
 
     assert_filtered_out permitted[:book][:authors_attributes]['0'], :age_of_death
   end

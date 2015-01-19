@@ -454,7 +454,7 @@ module ActiveRecord
         attributes_collection = if keys.include?('id') || keys.include?(:id)
           [attributes_collection]
         else
-          attributes_collection.values
+          attributes_collection.values.flatten
         end
       end
 

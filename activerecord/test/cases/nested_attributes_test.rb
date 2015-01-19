@@ -154,6 +154,13 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
     assert_equal 'gardening', interest.reload.topic
   end
 
+  def test_has_many_association_creating_multiple_records_while_updating
+    Man.accepts_nested_attributes_for(:interests)
+    man = Man.create(name: 'Jaspreet Singh Anand')
+    man.update({ interests_attributes: { '0' => [{ topic: 'gardening' }, { topic: 'cycling' }] } })
+    assert_equal 2, man.interests(true).size
+  end
+
   def test_reject_if_with_blank_nested_attributes_id
     # When using a select list to choose an existing 'ship' id, with include_blank: true
     Pirate.accepts_nested_attributes_for :ship, :reject_if => proc {|attributes| attributes[:id].blank? }
