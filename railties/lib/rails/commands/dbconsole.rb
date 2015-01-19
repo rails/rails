@@ -171,7 +171,9 @@ module Rails
       commands = Array(commands)
 
       dirs_on_path = ENV['PATH'].to_s.split(File::PATH_SEPARATOR)
-      commands += commands.map{|cmd| "#{cmd}.exe"} if RbConfig::CONFIG['host_os'] =~ /mswin|mingw/
+      unless (ext = RbConfig::CONFIG['EXEEXT']).empty?
+        commands = commands.map{|cmd| "#{cmd}#{ext}"}
+      end
 
       full_path_command = nil
       found = commands.detect do |cmd|
