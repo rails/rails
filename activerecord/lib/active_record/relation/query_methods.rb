@@ -959,12 +959,9 @@ module ActiveRecord
 
     def create_binds(opts)
       bindable, non_binds = opts.partition do |column, value|
-        case value
-        when String, Integer, ActiveRecord::StatementCache::Substitute
-          @klass.columns_hash.include? column.to_s
-        else
-          false
-        end
+        value.is_a?(String) ||
+          value.is_a?(Integer) ||
+          value.is_a?(ActiveRecord::StatementCache::Substitute)
       end
 
       association_binds, non_binds = non_binds.partition do |column, value|
