@@ -41,6 +41,8 @@ module ActiveRecord
           attrs, bvs = associated_predicate_builder(column_name).create_binds(value)
           result[column_name] = attrs
           binds += bvs
+        when Relation
+          binds += value.arel.bind_values + value.bind_values
         end
       end
 

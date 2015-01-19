@@ -28,6 +28,14 @@ module ActiveRecord
       }
     end
 
+    def test_where_copies_bind_params_in_the_right_order
+      author = authors(:david)
+      posts = author.posts.where.not(id: 1)
+      joined = Post.where(id: posts, title: posts.first.title)
+
+      assert_equal joined, [posts.first]
+    end
+
     def test_where_copies_arel_bind_params
       chef = Chef.create!
       CakeDesigner.create!(chef: chef)

@@ -949,7 +949,6 @@ module ActiveRecord
         self.bind_values += bind_values
 
         attributes = @klass.send(:expand_hash_conditions_for_aggregates, tmp_opts)
-        add_relations_to_bind_values(attributes)
 
         predicate_builder.build_from_hash(attributes)
       else
@@ -1117,18 +1116,6 @@ module ActiveRecord
     def check_if_method_has_arguments!(method_name, args)
       if args.blank?
         raise ArgumentError, "The method .#{method_name}() must contain arguments."
-      end
-    end
-
-    def add_relations_to_bind_values(attributes)
-      if attributes.is_a?(Hash)
-        attributes.each_value do |value|
-          if value.is_a?(ActiveRecord::Relation)
-            self.bind_values += value.arel.bind_values + value.bind_values
-          else
-            add_relations_to_bind_values(value)
-          end
-        end
       end
     end
   end
