@@ -402,7 +402,20 @@ module RenderTestCases
 
     js_wrapped_output = @view.render(:template => "test/js_test", :formats => [:js])
     partial_info      = @view.view_renderer.send(:partial_infos, js_wrapped_output)
+
+    # test/fixtures/test/_user.js.erb
     assert_match("\'72\'", partial_info[0])
+    assert_match(/true/, partial_info[0])
+
+    # test/fixtures/test/_js_partial.js.erb
+    assert_match("\'75\'", partial_info[1])
+    assert_match(/true/, partial_info[1])
+
+    assert_match("\'76\'", partial_info[2])
+    assert_match(/false/, partial_info[2])
+
+    assert_match("\'77\'", partial_info[3])
+    assert_match(/true/, partial_info[3])
   end
 
   def test_js_source_info
