@@ -33,7 +33,6 @@ module ActiveRecord
       # This method is a hot spot, so for now, use Hash[] to dup the hash.
       #   https://bugs.ruby-lang.org/issues/7166
       @values        = Hash[@values]
-      @values[:bind] = @values[:bind].dup if @values.key? :bind
       reset
     end
 

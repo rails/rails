@@ -909,7 +909,7 @@ module ActiveRecord
         end
       end
 
-      bind_values.reject! { |col,_| col.name == target_value }
+      self.bind_values = bind_values.reject { |col,_| col.name == target_value }
     end
 
     def custom_join_ast(table, joins)
