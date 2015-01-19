@@ -3,6 +3,7 @@ module ActionCable
 
     class Base
       include Callbacks
+      include Redis
 
       on_subscribe :start_periodic_timers
       on_unsubscribe :stop_periodic_timers
