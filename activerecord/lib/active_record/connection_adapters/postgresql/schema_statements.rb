@@ -475,7 +475,7 @@ module ActiveRecord
 
         def add_index(table_name, column_name, options = {}) #:nodoc:
           index_name, index_type, index_columns, index_options, index_algorithm, index_using = add_index_options(table_name, column_name, options)
-          execute "CREATE #{index_type} INDEX #{index_algorithm} #{quote_column_name(index_name)} ON #{quote_table_name(table_name)} #{index_using} (#{index_columns})#{index_options}"
+          execute "CREATE #{index_type} INDEX #{index_algorithm} #{quote_column_name(index_name)} ON #{quote_table_name(table_name)} #{index_using} (#{index_columns})#{index_options}".squish!
         end
 
         def remove_index!(table_name, index_name) #:nodoc:
