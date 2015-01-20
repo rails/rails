@@ -111,7 +111,6 @@ module ActiveRecord
       def rollback
         connection.rollback_to_savepoint(savepoint_name)
         super
-        rollback_records
       end
 
       def commit
@@ -136,7 +135,6 @@ module ActiveRecord
       def rollback
         connection.rollback_db_transaction
         super
-        rollback_records
       end
 
       def commit
@@ -176,8 +174,10 @@ module ActiveRecord
         end
       end
 
-      def rollback_transaction
-        @stack.pop.rollback
+      def rollback_transaction(transaction = nil)
+        transaction ||= @stack.pop
+        transaction.rollback
+        transaction.rollback_records
       end
 
       def within_new_transaction(options = {})
@@ -194,7 +194,7 @@ module ActiveRecord
             begin
               commit_transaction
             rescue Exception
-              transaction.rollback unless transaction.state.completed?
+              rollback_transaction(transaction) unless transaction.state.completed?
               raise
             end
           end
