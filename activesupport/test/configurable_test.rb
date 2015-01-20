@@ -111,6 +111,14 @@ class ConfigurableActiveSupport < ActiveSupport::TestCase
     end
   end
 
+  test 'the config_accessor method should not be publicly callable' do
+    assert_raises NoMethodError do
+      Class.new {
+        include ActiveSupport::Configurable
+      }.config_accessor :foo
+    end
+  end
+
   def assert_method_defined(object, method)
     methods = object.public_methods.map(&:to_s)
     assert methods.include?(method.to_s), "Expected #{methods.inspect} to include #{method.to_s.inspect}"
