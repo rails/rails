@@ -1,3 +1,18 @@
+*   Introduce the `:if_exists` option for `drop_table`.
+
+    Example:
+
+        drop_table(:posts, if_exists: true)
+
+    That would execute:
+
+        DROP TABLE IF EXISTS posts
+
+    If the table doesn't exist, `if_exists: false` (the default) raises an
+    exception whereas `if_exists: true` does nothing.
+
+    *Cody Cutrer*, *Stefan Kanev*, *Ryuta Kamizono*
+
 *   Don't run SQL if attribute value is not changed for update_attribute method.
 
     *Prathamesh Sonpatki*

@@ -502,7 +502,7 @@ module ActiveRecord
       end
 
       def drop_table(table_name, options = {})
-        execute "DROP#{' TEMPORARY' if options[:temporary]} TABLE #{quote_table_name(table_name)}#{' CASCADE' if options[:force] == :cascade}"
+        execute "DROP#{' TEMPORARY' if options[:temporary]} TABLE#{' IF EXISTS' if options[:if_exists]} #{quote_table_name(table_name)}#{' CASCADE' if options[:force] == :cascade}"
       end
 
       def rename_index(table_name, old_name, new_name)

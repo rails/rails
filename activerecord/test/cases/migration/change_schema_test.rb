@@ -403,6 +403,17 @@ module ActiveRecord
         end
       end
 
+      def test_drop_table_if_exists
+        connection.create_table(:testings)
+        assert connection.table_exists?(:testings)
+        connection.drop_table(:testings, if_exists: true)
+        assert_not connection.table_exists?(:testings)
+      end
+
+      def test_drop_table_if_exists_nothing_raised
+        assert_nothing_raised { connection.drop_table(:nonexistent, if_exists: true) }
+      end
+
       private
       def testing_table_with_only_foo_attribute
         connection.create_table :testings, :id => false do |t|
