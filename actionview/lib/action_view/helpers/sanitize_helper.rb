@@ -8,76 +8,77 @@ module ActionView
     # These helper methods extend Action View making them callable within your template files.
     module SanitizeHelper
       extend ActiveSupport::Concern
-      # This +sanitize+ helper will HTML encode all tags and strip all attributes that
-      # aren't specifically allowed.
+      # Sanitizes HTML input, stripping all tags and attributes that aren't whitelisted.
       #
-      # It also strips href/src tags with invalid protocols, like javascript: especially.
-      # It does its best to counter any  tricks that hackers may use, like throwing in
-      # unicode/ascii/hex values to get past the javascript: filters. Check out
-      # the extensive test suite.
+      # It also strips href/src attributes with unsafe protocols like
+      # <tt>javascript:</tt>, while also protecting against attempts to use Unicode,
+      # ASCII, and hex character references to work around these protocol filters.
       #
-      #   <%= sanitize @article.body %>
+      # The default sanitizer is Rails::Html::WhiteListSanitizer. See {Rails HTML
+      # Sanitizers}[https://github.com/rails/rails-html-sanitizer] for more information.
       #
-      # You can add or remove tags/attributes if you want to customize it a bit.
-      # See ActionView::Base for full docs on the available options. You can add
-      # tags/attributes for single uses of +sanitize+ by passing either the
-      # <tt>:attributes</tt> or <tt>:tags</tt> options:
+      # Custom sanitization rules can also be provided.
       #
-      # Normal Use
+      # Please note that sanitizing user-provided text does not guarantee that the
+      # resulting markup is valid or even well-formed. For example, the output may still
+      # contain unescaped characters like <tt><</tt>, <tt>></tt>, or <tt>&</tt>.
       #
-      #   <%= sanitize @article.body %>
+      # ==== Options
       #
-      # Custom Use - Custom Scrubber
-      # (supply a Loofah::Scrubber that does the sanitization)
+      # * <tt>:tags</tt> - An array of allowed tags.
+      # * <tt>:attributes</tt> - An array of allowed attributes.
+      # * <tt>:scrubber</tt> - A {Rails::Html scrubber}[https://github.com/rails/rails-html-sanitizer]
+      #   or {Loofah::Scrubber}[https://github.com/flavorjones/loofah] object that
+      #   defines custom sanitization rules. A custom scrubber takes precedence over
+      #   custom tags and attributes.
       #
-      # scrubber can either wrap a block:
-      # scrubber = Loofah::Scrubber.new do |node|
-      #   node.text = "dawn of cats"
-      # end
+      # ==== Examples
       #
-      # or be a subclass of Loofah::Scrubber which responds to scrub:
-      # class KittyApocalypse < Loofah::Scrubber
-      #   def scrub(node)
-      #     node.text = "dawn of cats"
-      #   end
-      # end
-      # scrubber = KittyApocalypse.new
+      # Normal use:
       #
-      # <%= sanitize @article.body, scrubber: scrubber %>
+      #   <%= sanitize @comment.body %>
       #
-      # A custom scrubber takes precedence over custom tags and attributes
-      # Learn more about scrubbers here: https://github.com/flavorjones/loofah
+      # Providing custom whitelisted tags and attributes:
       #
-      # Custom Use - tags and attributes
-      # (only the mentioned tags and attributes are allowed, nothing else)
+      #   <%= sanitize @comment.body, tags: %w(strong em a), attributes: %w(href) %>
       #
-      #   <%= sanitize @article.body, tags: %w(table tr td), attributes: %w(id class style) %>
+      # Providing a custom Rails::Html scrubber:
       #
-      # Add table tags to the default allowed tags
+      #   class CommentScrubber < Rails::Html::PermitScrubber
+      #     def allowed_node?(node)
+      #       !%w(form script comment blockquote).include?(node.name)
+      #     end
       #
-      #   class Application < Rails::Application
-      #     config.action_view.sanitized_allowed_tags = ['table', 'tr', 'td']
-      #   end
+      #     def skip_node?(node)
+      #       node.text?
+      #     end
       #
-      # Remove tags to the default allowed tags
-      #
-      #   class Application < Rails::Application
-      #     config.after_initialize do
-      #       ActionView::Base.sanitized_allowed_tags.delete 'div'
+      #     def scrub_attribute?(name)
+      #       name == 'style'
       #     end
       #   end
       #
-      # Change allowed default attributes
+      #   <%= sanitize @comment.body, scrubber: CommentScrubber.new %>
       #
-      #   class Application < Rails::Application
-      #     config.action_view.sanitized_allowed_attributes = ['id', 'class', 'style']
+      # See {Rails HTML Sanitizer}[https://github.com/rails/rails-html-sanitizer] for
+      # documentation about Rails::Html scrubbers.
+      #
+      # Providing a custom Loofah::Scrubber:
+      #
+      #   scrubber = Loofah::Scrubber.new do |node|
+      #     node.remove if node.name == 'script'
       #   end
       #
-      # Please note that sanitizing user-provided text does not guarantee that the
-      # resulting markup is valid (conforming to a document type) or even well-formed.
-      # The output may still contain e.g. unescaped '<', '>', '&' characters and
-      # confuse browsers.
+      #   <%= sanitize @comment.body, scrubber: scrubber %>
       #
+      # See {Loofah's documentation}[https://github.com/flavorjones/loofah] for more
+      # information about defining custom Loofah::Scrubber objects.
+      #
+      # To set the default allowed tags or attributes across your application:
+      #
+      #   # In config/application.rb
+      #   config.action_view.sanitized_allowed_tags = ['strong', 'em', 'a']
+      #   config.action_view.sanitized_allowed_attributes = ['href', 'title']
       def sanitize(html, options = {})
         self.class.white_list_sanitizer.sanitize(html, options).try(:html_safe)
       end
@@ -87,9 +88,7 @@ module ActionView
         self.class.white_list_sanitizer.sanitize_css(style)
       end
 
-      # Strips all HTML tags from the +html+, including comments. This uses
-      # Nokogiri for tokenization (via Loofah) and so its HTML parsing ability
-      # is limited by that of Nokogiri.
+      # Strips all HTML tags from +html+, including comments.
       #
       #   strip_tags("Strip <i>these</i> tags!")
       #   # => Strip these tags!
@@ -103,7 +102,7 @@ module ActionView
         self.class.full_sanitizer.sanitize(html)
       end
 
-      # Strips all link tags from +text+ leaving just the link text.
+      # Strips all link tags from +html+ leaving just the link text.
       #
       #   strip_links('<a href="http://www.rubyonrails.org">Ruby on Rails</a>')
       #   # => Ruby on Rails
@@ -166,30 +165,6 @@ module ActionView
         def white_list_sanitizer
           @white_list_sanitizer ||= sanitizer_vendor.white_list_sanitizer.new
         end
-
-        ##
-        # :method: sanitized_allowed_tags=
-        #
-        # :call-seq: sanitized_allowed_tags=(tags)
-        #
-        # Replaces the allowed tags for the +sanitize+ helper.
-        #
-        #   class Application < Rails::Application
-        #     config.action_view.sanitized_allowed_tags = ['table', 'tr', 'td']
-        #   end
-        #
-
-        ##
-        # :method: sanitized_allowed_attributes=
-        #
-        # :call-seq: sanitized_allowed_attributes=(attributes)
-        #
-        # Replaces the allowed HTML attributes for the +sanitize+ helper.
-        #
-        #   class Application < Rails::Application
-        #     config.action_view.sanitized_allowed_attributes = ['onclick', 'longdesc']
-        #   end
-        #
       end
     end
   end
