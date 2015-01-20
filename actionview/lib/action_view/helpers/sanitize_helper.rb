@@ -54,7 +54,7 @@ module ActionView
       #     end
       #
       #     def scrub_attribute?(name)
-      #       name == "style"
+      #       name == 'style'
       #     end
       #   end
       #
@@ -66,7 +66,7 @@ module ActionView
       # Providing a custom Loofah::Scrubber:
       #
       #   scrubber = Loofah::Scrubber.new do |node|
-      #     node.remove if node.name == "script"
+      #     node.remove if node.name == 'script'
       #   end
       #
       #   <%= sanitize @comment.body, scrubber: scrubber %>
