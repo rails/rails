@@ -937,6 +937,16 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert model.id_came_from_user?
   end
 
+  def test_accessed_fields
+    model = @target.first
+
+    assert_equal [], model.accessed_fields
+
+    model.title
+
+    assert_equal ["title"], model.accessed_fields
+  end
+
   private
 
   def new_topic_like_ar_class(&block)

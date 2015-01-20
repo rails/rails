@@ -51,7 +51,7 @@ module ActiveRecord
     end
 
     def changed_in_place_from?(old_value)
-      type.changed_in_place?(old_value, value)
+      has_been_read? && type.changed_in_place?(old_value, value)
     end
 
     def with_value_from_user(value)
@@ -76,6 +76,10 @@ module ActiveRecord
 
     def came_from_user?
       false
+    end
+
+    def has_been_read?
+      defined?(@value)
     end
 
     def ==(other)

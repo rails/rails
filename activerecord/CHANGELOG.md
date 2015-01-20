@@ -1,3 +1,9 @@
+*   Add `ActiveRecord::Base#accessed_fields`, which can be used to quickly
+    discover which fields were read from a model when you are looking to only
+    select the data you need from the database.
+
+    *Sean Griffin*
+
 *   Introduce the `:if_exists` option for `drop_table`.
 
     Example:

@@ -64,6 +64,10 @@ module ActiveRecord
       end
     end
 
+    def accessed
+      attributes.select { |_, attr| attr.has_been_read? }.keys
+    end
+
     protected
 
     attr_reader :attributes

@@ -369,6 +369,39 @@ module ActiveRecord
       write_attribute(attr_name, value)
     end
 
+    # Returns the name of all database fields which have been read from this
+    # model. This can be useful in devleopment mode to determine which fields
+    # need to be selected. For performance critical pages, selecting only the
+    # required fields can be an easy performance win (assuming you aren't using
+    # all of the fields on the model).
+    #
+    # For example:
+    #
+    # class PostsController < ActionController::Base
+    #   after_action :print_accessed_fields, only: :index
+    #
+    #   def index
+    #     @posts = Post.all
+    #   end
+    #
+    #   private
+    #
+    #   def print_accessed_fields
+    #     p @posts.first.accessed_fields
+    #   end
+    # end
+    #
+    # Which allows you to quickly change your code to:
+    #
+    # class PostsController < ActionController::Base
+    #   def index
+    #     @posts = Post.select(:id, :title, :author_id, :updated_at)
+    #   end
+    # end
+    def accessed_fields
+      @attributes.accessed
+    end
+
     protected
 
     def clone_attribute_value(reader_method, attribute_name) # :nodoc:

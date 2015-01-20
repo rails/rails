@@ -169,5 +169,24 @@ module ActiveRecord
       second = Attribute.from_user(:foo, 1, Type::Integer.new)
       assert_not_equal first, second
     end
+
+    test "an attribute has not been read by default" do
+      attribute = Attribute.from_database(:foo, 1, Type::Value.new)
+      assert_not attribute.has_been_read?
+    end
+
+    test "an attribute has been read when its value is calculated" do
+      attribute = Attribute.from_database(:foo, 1, Type::Value.new)
+      attribute.value
+      assert attribute.has_been_read?
+    end
+
+    test "an attribute can not be mutated if it has not been read,
+      and skips expensive calculations" do
+      type_which_raises_from_all_methods = Object.new
+      attribute = Attribute.from_database(:foo, "bar", type_which_raises_from_all_methods)
+
+      assert_not attribute.changed_in_place_from?("bar")
+    end
   end
 end
