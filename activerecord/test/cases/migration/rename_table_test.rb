@@ -86,8 +86,8 @@ module ActiveRecord
           assert connection.table_exists? :felines
         ensure
           disable_extension!('uuid-ossp', connection)
-          connection.drop_table :cats if connection.table_exists? :cats
-          connection.drop_table :felines if connection.table_exists? :felines
+          connection.drop_table :cats, if_exists: true
+          connection.drop_table :felines, if_exists: true
         end
       end
     end

@@ -437,7 +437,7 @@ module ActiveRecord
 
         teardown do
           [:wagons, :trains].each do |table|
-            @connection.drop_table(table) if @connection.table_exists?(table)
+            @connection.drop_table table, if_exists: true
           end
         end
 

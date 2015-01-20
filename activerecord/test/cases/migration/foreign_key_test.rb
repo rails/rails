@@ -29,8 +29,8 @@ module ActiveRecord
 
       teardown do
         if defined?(@connection)
-          @connection.drop_table "astronauts" if @connection.table_exists? 'astronauts'
-          @connection.drop_table "rockets" if @connection.table_exists? 'rockets'
+          @connection.drop_table "astronauts", if_exists: true
+          @connection.drop_table "rockets", if_exists: true
         end
       end
 
