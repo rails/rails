@@ -31,6 +31,15 @@
 
     *Sean Griffin*
 
+*   Tests now run after_commit callbacks. You no longer have to declare
+    `uses_transaction ‘test name’` to test the results of an after_commit.
+
+    after_commit callbacks run after committing a transaction whose parent
+    is not `joinable?`: un-nested transactions, transactions within test cases,
+    and transactions in `console --sandbox`.
+
+    *arthurnn*, *Ravil Bayramgalin*, *Matthew Draper*
+
 *   `nil` as a value for a binary column in a query no longer logs as
     "<NULL binary data>", and instead logs as just "nil".
 
