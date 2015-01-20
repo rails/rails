@@ -201,7 +201,7 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
   def test_call_after_rollback_when_commit_fails
     @first.after_commit_block { |r| r.history << :after_commit }
     @first.after_rollback_block { |r| r.history << :after_rollback }
-    
+
     assert_raises RuntimeError do
       @first.transaction do
         tx = @first.class.connection.transaction_manager.current_transaction
