@@ -12,9 +12,8 @@ class ConsoleTest < ActiveSupport::TestCase
     teardown_app
   end
 
-  def load_environment(sandbox = false)
+  def load_environment
     require "#{rails_root}/config/environment"
-    Rails.application.sandbox = sandbox
     Rails.application.load_console
   end
 

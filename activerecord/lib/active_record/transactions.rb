@@ -206,6 +206,19 @@ module ActiveRecord
         connection.transaction(options, &block)
       end
 
+      def start_sandbox
+        @sandbox_connections = connection_handler.connection_pools
+          .map(&:connection)
+          .each {|c| c.begin_transaction joinable: false }
+      end
+
+      def finish_sandbox
+        if instance_variable_defined?(:@sandbox_connections) && @sandbox_connections
+          @sandbox_connections.each {|c| c.rollback_transaction if c.transaction_open? }
+          @sandbox_connections = nil
+        end
+      end
+
       # This callback is called after a record has been created, updated, or destroyed.
       #
       # You can specify that the callback should only be fired by a certain action with

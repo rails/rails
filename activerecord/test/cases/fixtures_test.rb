@@ -593,23 +593,14 @@ class ManyToManyFixturesWithClassDefined < ActiveRecord::TestCase
 end
 
 class FixturesBrokenRollbackTest < ActiveRecord::TestCase
-  def blank_setup
-    @fixture_connections = [ActiveRecord::Base.connection]
-  end
-  alias_method :ar_setup_fixtures, :setup_fixtures
-  alias_method :setup_fixtures, :blank_setup
-  alias_method :setup, :blank_setup
-
-  def blank_teardown; end
-  alias_method :ar_teardown_fixtures, :teardown_fixtures
-  alias_method :teardown_fixtures, :blank_teardown
-  alias_method :teardown, :blank_teardown
+  def before_setup; end
+  def after_teardown; end
 
   def test_no_rollback_in_teardown_unless_transaction_active
     assert_equal 0, ActiveRecord::Base.connection.open_transactions
-    assert_raise(RuntimeError) { ar_setup_fixtures }
+    assert_raise(RuntimeError) { setup_fixtures }
     assert_equal 0, ActiveRecord::Base.connection.open_transactions
-    assert_nothing_raised { ar_teardown_fixtures }
+    assert_nothing_raised { teardown_fixtures }
     assert_equal 0, ActiveRecord::Base.connection.open_transactions
   end
 

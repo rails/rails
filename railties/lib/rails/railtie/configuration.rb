@@ -17,6 +17,11 @@ module Rails
         @@eager_load_namespaces ||= []
       end
 
+      # All sandboxes that could be used by Rails.application.sandbox
+      def sandbox
+        @@sandbox ||= []
+      end
+
       # Add files that should be watched for change.
       def watchable_files
         @@watchable_files ||= []

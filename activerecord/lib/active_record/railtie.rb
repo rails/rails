@@ -55,7 +55,6 @@ module ActiveRecord
     # to avoid cross references when loading a constant for the
     # first time. Also, make it output to STDERR.
     console do |app|
-      require "active_record/railties/console_sandbox" if app.sandbox?
       require "active_record/base"
       console = ActiveSupport::Logger.new(STDERR)
       Rails.logger.extend ActiveSupport::Logger.broadcast console
@@ -157,6 +156,12 @@ end_warning
     initializer "active_record.add_watchable_files" do |app|
       path = app.paths["db"].first
       config.watchable_files.concat ["#{path}/schema.rb", "#{path}/structure.sql"]
+    end
+
+    initializer "active_record.sandbox" do |app|
+      ActiveSupport.on_load(:active_record) do
+        app.config.sandbox << ActiveRecord::Base
+      end
     end
   end
 end

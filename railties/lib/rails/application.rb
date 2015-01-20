@@ -111,8 +111,7 @@ module Rails
       public :new
     end
 
-    attr_accessor :assets, :sandbox
-    alias_method :sandbox?, :sandbox
+    attr_accessor :assets
     attr_reader :reloaders
 
     delegate :default_url_options, :default_url_options=, to: :routes
@@ -366,6 +365,19 @@ module Rails
 
     def config=(configuration) #:nodoc:
       @config = configuration
+    end
+
+    def sandbox(&block)
+      config.sandbox.inject(block) {|stack, klass|
+        -> do
+          begin
+            klass.start_sandbox
+            stack.call
+          ensure
+            klass.finish_sandbox
+          end
+        end
+      }.call
     end
 
     # Returns secrets added to config/secrets.yml.

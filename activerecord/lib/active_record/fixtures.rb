@@ -922,7 +922,6 @@ module ActiveRecord
       end
 
       @fixture_cache = {}
-      @fixture_connections = []
       @@already_loaded_fixtures ||= {}
 
       # Load fixtures once and begin transaction.
@@ -933,10 +932,7 @@ module ActiveRecord
           @loaded_fixtures = load_fixtures(config)
           @@already_loaded_fixtures[self.class] = @loaded_fixtures
         end
-        @fixture_connections = enlist_fixture_connections
-        @fixture_connections.each do |connection|
-          connection.begin_transaction joinable: false
-        end
+        ActiveRecord::Base.start_sandbox
       # Load fixtures for every test.
       else
         ActiveRecord::FixtureSet.reset_cache
@@ -951,19 +947,12 @@ module ActiveRecord
     def teardown_fixtures
       # Rollback changes if a transaction is active.
       if run_in_transaction?
-        @fixture_connections.each do |connection|
-          connection.rollback_transaction if connection.transaction_open?
-        end
-        @fixture_connections.clear
+        ActiveRecord::Base.finish_sandbox
       else
         ActiveRecord::FixtureSet.reset_cache
       end
 
       ActiveRecord::Base.clear_active_connections!
-    end
-
-    def enlist_fixture_connections
-      ActiveRecord::Base.connection_handler.connection_pool_list.map(&:connection)
     end
 
     private

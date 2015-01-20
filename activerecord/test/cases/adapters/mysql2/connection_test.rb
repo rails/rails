@@ -42,9 +42,7 @@ class MysqlConnectionTest < ActiveRecord::TestCase
     @connection.update('set @@wait_timeout=1')
     sleep 2
     assert !@connection.active?
-
-    # Repair all fixture connections so other tests won't break.
-    @fixture_connections.each(&:verify!)
+    @connection.reconnect!
   end
 
   def test_successful_reconnection_after_timeout_with_manual_reconnect

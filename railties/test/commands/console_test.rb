@@ -5,12 +5,15 @@ require 'rails/commands/console'
 class Rails::ConsoleTest < ActiveSupport::TestCase
   include EnvHelpers
 
-  class FakeConsole
-    def self.started?
+  class FakeConsole < Struct.new(:commands)
+    attr_reader :results
+
+    def started?
       @started
     end
 
-    def self.start
+    def start
+      @results = commands.map(&:call) if commands
       @started = true
     end
   end
@@ -38,11 +41,13 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
   end
 
   def test_start_with_sandbox
+    app.console.commands = [ -> { app.sandbox? } ]
+    assert !app.sandbox?
     start ["--sandbox"]
 
-
     assert app.console.started?
-    assert app.sandbox
+    assert !app.sandbox?
+    assert app.console.results.first, 'check that sandbox was turned on'
     assert_match(/Loading \w+ environment in sandbox \(Rails/, output)
   end
 
@@ -123,7 +128,7 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
   end
 
   def app
-    @app ||= build_app(FakeConsole)
+    @app ||= build_app(FakeConsole.new)
   end
 
   def build_app(console)
@@ -138,8 +143,15 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
         self
       end
 
-      def sandbox=(arg)
-        @sandbox = arg
+      def sandbox
+        @sandbox = true
+        yield
+      ensure
+        @sandbox = false
+      end
+
+      def sandbox?
+        @sandbox
       end
 
       def load_console

@@ -46,9 +46,7 @@ module Rails
       @app     = app
       @options = options
 
-      app.sandbox = sandbox?
       app.load_console
-
       @console = app.config.console || IRB
     end
 
@@ -71,17 +69,18 @@ module Rails
     def start
       set_environment! if environment?
 
-      if sandbox?
-        puts "Loading #{Rails.env} environment in sandbox (Rails #{Rails.version})"
-        puts "Any modifications you make will be rolled back on exit"
-      else
-        puts "Loading #{Rails.env} environment (Rails #{Rails.version})"
-      end
-
       if defined?(console::ExtendCommandBundle)
         console::ExtendCommandBundle.send :include, Rails::ConsoleMethods
       end
-      console.start
+
+      if sandbox?
+        puts "Loading #{Rails.env} environment in sandbox (Rails #{Rails.version})"
+        puts "Any modifications you make will be rolled back on exit"
+        app.sandbox { console.start }
+      else
+        puts "Loading #{Rails.env} environment (Rails #{Rails.version})"
+        console.start
+      end
     end
   end
 end
