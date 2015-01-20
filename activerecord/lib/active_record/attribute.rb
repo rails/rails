@@ -51,7 +51,7 @@ module ActiveRecord
     end
 
     def changed_in_place_from?(old_value)
-      type.changed_in_place?(old_value, value)
+      has_been_read? && type.changed_in_place?(old_value, value)
     end
 
     def with_value_from_user(value)
@@ -91,6 +91,12 @@ module ActiveRecord
       if defined?(@value) && @value.duplicable?
         @value = @value.dup
       end
+    end
+
+    private
+
+    def has_been_read?
+      defined?(@value)
     end
 
     class FromDatabase < Attribute # :nodoc:
