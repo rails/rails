@@ -442,11 +442,18 @@ module ActiveModel
       I18n.translate(key, options)
     end
 
-  private
+    private
     def normalize_message(attribute, message, options)
+      message ||= :invalid
+
       case message
       when Symbol
-        generate_message(attribute, message, options.except(*CALLBACKS_OPTIONS))
+        # when options[:message] is a Proc
+        if options[:message] && options[:message].respond_to?(:call)
+          options[:message].call
+        else
+          generate_message(attribute, message, options.except(*CALLBACKS_OPTIONS))
+        end
       when Proc
         message.call
       else
