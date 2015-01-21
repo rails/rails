@@ -1,3 +1,11 @@
+*   Preserve default url options when generating URLs
+
+    Fixes an issue that would cause default_url_options to be lost when
+    generating URLs with fewer positional arguments than parameters in the
+    route definition.
+
+    *Tekin Suleyman*
+
 *   Deprecate *_via_redirect integration test methods.
 
     Use `follow_redirect!` manually after the request call for the same behavior.
