@@ -68,6 +68,13 @@ module ActiveRecord
 
           assert_equal ['special_url_idx'], connection.indexes(:octopi).map(&:name)
         end
+
+        def test_rename_table_to_existent_table_with_force_true_does_nothing_raised
+          connection.create_table :octopi
+          assert_nothing_raised { rename_table(:test_models, :octopi, force: true) }
+          assert connection.table_exists? :octopi
+          assert_not connection.table_exists? :test_models
+        end
       end
 
       if current_adapter?(:PostgreSQLAdapter)

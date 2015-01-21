@@ -1,3 +1,14 @@
+*   Add `:force` option to `rename_table`.
+
+    Example:
+
+        rename_table(:test_models, :octopi, force: true)
+
+    Even if an `:octopi` table exists, `rename_table` does nothing raises
+    because drop the table before rename it.
+
+    *Ryuta Kamizono*
+
 *   Add `ActiveRecord::Base#accessed_fields`, which can be used to quickly
     discover which fields were read from a model when you are looking to only
     select the data you need from the database.

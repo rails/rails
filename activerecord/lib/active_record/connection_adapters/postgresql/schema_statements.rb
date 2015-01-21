@@ -402,8 +402,11 @@ module ActiveRecord
         #
         # Example:
         #   rename_table('octopuses', 'octopi')
-        def rename_table(table_name, new_name)
+        def rename_table(table_name, new_name, options = {})
           clear_cache!
+          if options[:force] && table_exists?(new_name) && table_exists?(table_name)
+            drop_table(new_name, options)
+          end
           execute "ALTER TABLE #{quote_table_name(table_name)} RENAME TO #{quote_table_name(new_name)}"
           pk, seq = pk_and_sequence_for(new_name)
           if seq && seq.identifier == "#{table_name}_#{pk}_seq"

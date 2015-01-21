@@ -496,7 +496,10 @@ module ActiveRecord
       #
       # Example:
       #   rename_table('octopuses', 'octopi')
-      def rename_table(table_name, new_name)
+      def rename_table(table_name, new_name, options = {})
+        if options[:force] && table_exists?(new_name) && table_exists?(table_name)
+          drop_table(new_name, options)
+        end
         execute "RENAME TABLE #{quote_table_name(table_name)} TO #{quote_table_name(new_name)}"
         rename_table_indexes(table_name, new_name)
       end
