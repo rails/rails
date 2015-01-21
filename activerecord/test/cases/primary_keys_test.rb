@@ -210,7 +210,7 @@ class PrimaryKeyAnyTypeTest < ActiveRecord::TestCase
   end
 
   teardown do
-    @connection.execute("DROP TABLE IF EXISTS barcodes")
+    @connection.drop_table(:barcodes) if @connection.table_exists? :barcodes
   end
 
   def test_any_type_primary_key
