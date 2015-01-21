@@ -165,16 +165,6 @@ module ActiveModel
       end
     end
 
-    # Returns the number of error messages.
-    #
-    #   person.errors.add(:name, "can't be blank")
-    #   person.errors.size # => 1
-    #   person.errors.add(:name, "must be specified")
-    #   person.errors.size # => 2
-    def size
-      values.flatten.size
-    end
-
     # Returns all message values.
     #
     #   person.errors.messages # => {:name=>["cannot be nil", "must be specified"]}
@@ -200,7 +190,7 @@ module ActiveModel
       full_messages
     end
 
-    # Returns the number of error messages.
+    # Returns the number of all error messages.
     #
     #   person.errors.add(:name, "can't be blank")
     #   person.errors.count # => 1
@@ -209,6 +199,7 @@ module ActiveModel
     def count
       to_a.size
     end
+    alias_method :size, :count
 
     # Returns +true+ if no errors are found, +false+ otherwise.
     # If the error message is a string it can be empty.

@@ -116,12 +116,43 @@ class ErrorsTest < ActiveModel::TestCase
     assert_equal [:foo, :baz], errors.keys
   end
 
-  test "detecting whether there are errors with empty?, blank?, include?" do
+  test "empty? and blank? doesn't detect initial empty value as an error" do
     person = Person.new
     person.errors[:foo]
     assert person.errors.empty?
     assert person.errors.blank?
+  end
+
+  test "empty? and blank? detect empty string as an error" do
+    person = Person.new
+    person.errors[:foo] = ''
+    assert !person.errors.empty?
+    assert !person.errors.blank?
+  end
+
+  test "empty? and blank? doesn't detect empty array as an error" do
+    person = Person.new
+    person.errors[:foo] = []
+    assert person.errors.empty?
+    assert person.errors.blank?
+  end
+
+  test "include? doesn't detect empty initial value as error on attributes" do
+    person = Person.new
+    person.errors[:foo]
     assert !person.errors.include?(:foo)
+  end
+
+  test "include? detects empty string as error on attributes" do
+    person = Person.new
+    person.errors[:foo] = ''
+    assert person.errors.include?(:foo)
+  end
+
+  test "include? detect empty array as error on attributes" do
+    person = Person.new
+    person.errors[:foo] = []
+    assert person.errors.include?(:foo)
   end
 
   test "adding errors using conditionals with Person#validate!" do
@@ -200,10 +231,18 @@ class ErrorsTest < ActiveModel::TestCase
     assert !person.errors.added?(:name, "cannot be blank")
   end
 
-  test "size calculates the number of error messages" do
+  test "both size and count calculates the number of error messages" do
     person = Person.new
     person.errors.add(:name, "cannot be blank")
     assert_equal 1, person.errors.size
+    assert_equal 1, person.errors.count
+  end
+
+  test "size and count empty array in error messages" do
+    person = Person.new
+    person.errors.add(:name, [])
+    assert_equal 1, person.errors.size
+    assert_equal 1, person.errors.count
   end
 
   test "to_a returns the list of errors with complete messages containing the attribute names" do
