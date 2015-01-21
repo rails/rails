@@ -1201,7 +1201,7 @@ within a model:
 ```ruby
 require 'test_helper'
 
-class ProductTest < ActiveSupport::TestCase
+class ProductTest < ActiveJob::TestCase
   test 'billing job scheduling' do
     assert_enqueued_with(job: BillingJob) do
       product.charge(account)
