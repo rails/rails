@@ -1,3 +1,9 @@
+*   Invalid values assigned to a JSON column are assumed to be `nil`.
+
+    Fixes #18629.
+
+    *Sean Griffin*
+
 *   No longer issue deprecation warning when including a scope with extensions.
     Previously every scope with extension methods was transformed into an
     instance dependent scope. Including such a scope would wrongfully issue a

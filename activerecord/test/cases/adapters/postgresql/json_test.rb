@@ -179,6 +179,14 @@ module PostgresqlJSONSharedTestCases
     assert_equal({ 'one' => 'two', 'three' => 'four' }, json.payload)
     assert_not json.changed?
   end
+
+  def test_assigning_invalid_json
+    json = JsonDataType.new
+
+    json.payload = 'foo'
+
+    assert_nil json.payload
+  end
 end
 
 class PostgresqlJSONTest < ActiveRecord::TestCase
