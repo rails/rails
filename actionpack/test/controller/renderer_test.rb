@@ -29,6 +29,10 @@ class RendererTest < ActiveSupport::TestCase
     assert_equal 'Hello world!', content
   end
 
+  test 'rendering with a controller class' do
+    assert_equal 'Hello world!', ApplicationController.render('test/hello_world')
+  end
+
   test 'rendering with locals' do
     renderer = ApplicationController.renderer
     content  = renderer.render template: 'test/render_file_with_locals',

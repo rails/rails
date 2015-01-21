@@ -5,6 +5,9 @@ module ActionController
     RENDER_FORMATS_IN_PRIORITY = [:body, :text, :plain, :html]
 
     module ClassMethods
+      # Documentation at ActionController::Renderer#render
+      delegate :render, to: :renderer
+
       # Returns a renderer class (inherited from ActionController::Renderer)
       # for the controller.
       def renderer
