@@ -3,6 +3,7 @@
 require 'active_support/core_ext/array/conversions'
 require 'active_support/core_ext/string/inflections'
 require 'active_support/core_ext/object/deep_dup'
+require 'active_support/deprecation'
 
 module ActiveModel
   # == Active \Model \Errors
@@ -72,7 +73,7 @@ module ActiveModel
     #   end
     def initialize(base)
       @base     = base
-      @messages = {}
+      @messages = Hash.new { |messages, attribute| messages[attribute] = [] }
       @details  = Hash.new { |details, attribute| details[attribute] = [] }
     end
 
@@ -110,8 +111,14 @@ module ActiveModel
     #
     #   person.errors.messages   # => {:name=>["cannot be nil"]}
     #   person.errors.get(:name) # => ["cannot be nil"]
-    #   person.errors.get(:age)  # => nil
+    #   person.errors.get(:age)  # => []
     def get(key)
+      ActiveSupport::Deprecation.warn(<<-MESSAGE.squish)
+        ActiveModel::Errors#get is deprecated and will be removed in Rails 5.1
+
+        To achieve the same use messages[:#{key}]
+      MESSAGE
+
       messages[key]
     end
 
@@ -121,6 +128,12 @@ module ActiveModel
     #   person.errors.set(:name, ["can't be nil"])
     #   person.errors.get(:name) # => ["can't be nil"]
     def set(key, value)
+      ActiveSupport::Deprecation.warn(<<-MESSAGE.squish)
+        ActiveModel::Errors#set is deprecated and will be removed in Rails 5.1
+
+        To achieve the same use messages[:#{key}] = "#{value}"
+      MESSAGE
+
       messages[key] = value
     end
 
@@ -128,7 +141,7 @@ module ActiveModel
     #
     #   person.errors.get(:name)    # => ["cannot be nil"]
     #   person.errors.delete(:name) # => ["cannot be nil"]
-    #   person.errors.get(:name)    # => nil
+    #   person.errors.get(:name)    # => []
     def delete(key)
       messages.delete(key)
       details.delete(key)
@@ -140,7 +153,7 @@ module ActiveModel
     #   person.errors[:name]  # => ["cannot be nil"]
     #   person.errors['name'] # => ["cannot be nil"]
     def [](attribute)
-      get(attribute.to_sym) || set(attribute.to_sym, [])
+      messages[attribute.to_sym]
     end
 
     # Adds to the supplied attribute the supplied error message.
@@ -148,7 +161,13 @@ module ActiveModel
     #   person.errors[:name] = "must be set"
     #   person.errors[:name] # => ['must be set']
     def []=(attribute, error)
-      self[attribute] << error
+      ActiveSupport::Deprecation.warn(<<-MESSAGE.squish)
+        ActiveModel::Errors#[]= is deprecated and will be removed in Rails 5.1
+
+        To achieve the same use messages[:#{attribute}] << "#{error}"
+      MESSAGE
+
+      messages[attribute.to_sym] << error
     end
 
     # Iterates through each error key, value pair in the error messages hash.
@@ -167,7 +186,7 @@ module ActiveModel
     #   end
     def each
       messages.each_key do |attribute|
-        self[attribute].each { |error| yield attribute, error }
+        messages[attribute].each { |error| yield attribute, error }
       end
     end
 
@@ -317,8 +336,8 @@ module ActiveModel
         raise exception, full_message(attribute, message)
       end
 
-      details[attribute.to_sym] << detail
-      self[attribute] << message
+      details[attribute.to_sym]  << detail
+      messages[attribute.to_sym] << message
     end
 
     # Will add an error message to each of the attributes in +attributes+
@@ -384,7 +403,7 @@ module ActiveModel
     #   person.errors.full_messages_for(:name)
     #   # => ["Name is too short (minimum is 5 characters)", "Name can't be blank"]
     def full_messages_for(attribute)
-      (get(attribute) || []).map { |message| full_message(attribute, message) }
+      messages[attribute].map { |message| full_message(attribute, message) }
     end
 
     # Returns a full message for a given attribute.

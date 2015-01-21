@@ -1,3 +1,8 @@
+*   Deprecate `ActiveModel::Errors#get`, `ActiveModel::Errors#set` and
+    `ActiveModel::Errors#[]=` methods that have inconsistent behaviour.
+
+    *Wojciech Wnętrzak*
+
 *   Change the default error message from `can't be blank` to `must exist` for
     the presence validator of the `:required` option on `belongs_to`/`has_one` associations.
 
