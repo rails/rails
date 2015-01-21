@@ -1,3 +1,9 @@
+*   Invalid values assigned to a JSON column are assumed to be `nil`.
+
+    Fixes #18629.
+
+    *Sean Griffin*
+
 *   Add `ActiveRecord::Base#accessed_fields`, which can be used to quickly
     discover which fields were read from a model when you are looking to only
     select the data you need from the database.

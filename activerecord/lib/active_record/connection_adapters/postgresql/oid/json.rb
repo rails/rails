@@ -11,7 +11,7 @@ module ActiveRecord
 
           def type_cast_from_database(value)
             if value.is_a?(::String)
-              ::ActiveSupport::JSON.decode(value)
+              ::ActiveSupport::JSON.decode(value) rescue nil
             else
               super
             end
