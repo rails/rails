@@ -1,5 +1,6 @@
 require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/module/introspection'
+require 'active_support/core_ext/module/remove_method'
 
 module ActiveModel
   class Name
