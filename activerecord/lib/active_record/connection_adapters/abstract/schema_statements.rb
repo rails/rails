@@ -366,7 +366,7 @@ module ActiveRecord
       #
       #   rename_table('octopuses', 'octopi')
       #
-      def rename_table(table_name, new_name)
+      def rename_table(table_name, new_name, options = {})
         raise NotImplementedError, "rename_table is not implemented"
       end
 
