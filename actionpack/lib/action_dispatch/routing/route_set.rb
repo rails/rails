@@ -241,6 +241,7 @@ module ActionDispatch
 
           def call(t, args, inner_options)
             controller_options = t.url_options
+            inner_options = inner_options.try(:symbolize_keys)
             options = controller_options.merge @options
             hash = handle_positional_args(controller_options,
                                           inner_options || {},

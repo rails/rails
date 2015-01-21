@@ -4,7 +4,11 @@ module AbstractController
   module Testing
     class UrlForTest < ActionController::TestCase
       class W
-        include ActionDispatch::Routing::RouteSet.new.tap { |r| r.draw { get ':controller(/:action(/:id(.:format)))' } }.url_helpers
+        routes = ActionDispatch::Routing::RouteSet.new
+        routes.draw do
+          get ':controller(/:action(/:id(.:format)))', as: :basic
+        end
+        include routes.url_helpers
       end
 
       def teardown
@@ -12,16 +16,16 @@ module AbstractController
       end
 
       def test_nested_optional
-        klass = Class.new {
-          include ActionDispatch::Routing::RouteSet.new.tap { |r|
-            r.draw {
-              get "/foo/(:bar/(:baz))/:zot", :as         => 'fun',
-                                             :controller => :articles,
-                                             :action     => :index
-            }
-          }.url_helpers
-          self.default_url_options[:host] = 'example.com'
-        }
+        klass = Class.new do
+          routes = ActionDispatch::Routing::RouteSet.new
+          routes.draw do
+            get "/foo/(:bar/(:baz))/:zot", :as         => 'fun',
+                                           :controller => :articles,
+                                           :action     => :index
+          end
+          include routes.url_helpers
+          default_url_options[:host] = 'example.com'
+        end
 
         path = klass.new.fun_path({:controller => :articles,
                                    :baz        => "baz",
@@ -405,10 +409,16 @@ module AbstractController
       def test_with_hash_with_indifferent_access
         W.default_url_options[:controller] = 'd'
         W.default_url_options[:only_path]  = false
-        assert_equal("/c", W.new.url_for(ActiveSupport::HashWithIndifferentAccess.new('controller' => 'c', 'only_path' => true)))
+        options = { 'controller' => 'c', 'only_path' => true }.with_indifferent_access
+
+        assert_equal("/c", W.new.url_for(options))
+        assert_equal("/c", W.new.basic_path(options))
 
         W.default_url_options[:action] = 'b'
-        assert_equal("/c/a", W.new.url_for(ActiveSupport::HashWithIndifferentAccess.new('controller' => 'c', 'action' => 'a', 'only_path' => true)))
+        options['action'] = 'a'
+
+        assert_equal("/c/a", W.new.url_for(options))
+        assert_equal("/c/a", W.new.basic_path(options))
       end
 
       def test_url_params_with_nil_to_param_are_not_in_url
