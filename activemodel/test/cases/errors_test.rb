@@ -86,6 +86,11 @@ class ErrorsTest < ActiveModel::TestCase
     assert_equal ["omg"], errors.get(:foo)
   end
 
+  test "get returns empty array when no errors for the provided key" do
+    errors = ActiveModel::Errors.new(self)
+    assert_equal [], errors.get(:foo)
+  end
+
   test "sets the error with the provided key" do
     errors = ActiveModel::Errors.new(self)
     errors.set(:foo, "omg")

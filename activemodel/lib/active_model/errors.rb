@@ -71,7 +71,7 @@ module ActiveModel
     #   end
     def initialize(base)
       @base     = base
-      @messages = {}
+      @messages = Hash.new { |messages, attribute| messages[attribute] = [] }
       @details  = Hash.new { |details, attribute| details[attribute] = [] }
     end
 
@@ -109,7 +109,7 @@ module ActiveModel
     #
     #   person.errors.messages   # => {:name=>["cannot be nil"]}
     #   person.errors.get(:name) # => ["cannot be nil"]
-    #   person.errors.get(:age)  # => nil
+    #   person.errors.get(:age)  # => []
     def get(key)
       messages[key]
     end
@@ -127,7 +127,7 @@ module ActiveModel
     #
     #   person.errors.get(:name)    # => ["cannot be nil"]
     #   person.errors.delete(:name) # => ["cannot be nil"]
-    #   person.errors.get(:name)    # => nil
+    #   person.errors.get(:name)    # => []
     def delete(key)
       messages.delete(key)
       details.delete(key)
@@ -139,7 +139,7 @@ module ActiveModel
     #   person.errors[:name]  # => ["cannot be nil"]
     #   person.errors['name'] # => ["cannot be nil"]
     def [](attribute)
-      get(attribute.to_sym) || set(attribute.to_sym, [])
+      messages[attribute.to_sym]
     end
 
     # Adds to the supplied attribute the supplied error message.
@@ -383,7 +383,7 @@ module ActiveModel
     #   person.errors.full_messages_for(:name)
     #   # => ["Name is too short (minimum is 5 characters)", "Name can't be blank"]
     def full_messages_for(attribute)
-      (get(attribute) || []).map { |message| full_message(attribute, message) }
+      messages[attribute].map { |message| full_message(attribute, message) }
     end
 
     # Returns a full message for a given attribute.
