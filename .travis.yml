@@ -24,12 +24,12 @@ rvm:
   - 2.2
   - ruby-head
   - rbx-2
-  - jruby
+  - jruby-head
 matrix:
   allow_failures:
     - env: "GEM=ar:mysql"
     - rvm: rbx-2
-    - rvm: jruby
+    - rvm: jruby-head
     - env: "GEM=aj"
     - env: "GEM=aj:integration"
   fast_finish: true
