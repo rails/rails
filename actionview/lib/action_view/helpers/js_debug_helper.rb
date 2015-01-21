@@ -6,85 +6,83 @@ module ActionView
         output = parse_stack_trace()
         output << js_rails_info(source, template_path)
         output << <<-TRYCATCH
-      try {
-        #{source}
-      } catch(e) {
-        var srcOffset = #{output.lines.size};
-        var errorInfo = railsPartialLookup(e, srcOffset);
-        var error     = \"Rails: Javascript error in : \" + errorInfo[0] + "\\n";
+        try {
+          #{source}
+        } catch(e) {
+          var srcOffset = #{output.lines.size};
+          var errorInfo = railsPartialLookup(e, srcOffset);
+          var error     = \"Rails: Javascript error in : \" + errorInfo[0] + "\\n";
 
-        if (errorInfo[1] != null) {
-          error = error + \"Rails: JS error at line: \\n\\n  \" + errorInfo[1] + "\\n\\n";
+          if (errorInfo[1] != null) {
+            error = error + \"Error at line: \\n\\n  \" + errorInfo[1] + "\\n\\n";
+          }
+
+          console.error(error, e);
         }
-
-        console.error(error, e);
-      }
         TRYCATCH
       end
 
       def js_rails_info(source, template_path)
         <<-LOOKUP
-      function railsPartialLookup(exception, srcOffset){
-        var partial_map = {};\n
-        var sourceLines = {};\n
-        #{partial_infos(source).join("; \n")};
-        #{source_info(source).join("; \n")};
+        function railsPartialLookup(exception, srcOffset){
+          var partial_map = {};\n
+          var sourceLines = {};\n
+          #{partial_infos(source).join("; \n")};
+          #{source_info(source).join("; \n")};
 
-        var sourcePath   = '#{template_path}';
+          var sourcePath   = '#{template_path}';
 
-        // Safari
-        var lineNumber   = exception.line;
-        var columnNumber = null;
-        var sourceLine   = null;
+          // Safari
+          var lineNumber   = exception.line;
+          var columnNumber = null;
+          var sourceLine   = null;
 
-        // Chrome
-        if (lineNumber == undefined) {
-          var offsets  = parseStackTrace(exception);
-          lineNumber   = offsets[0];
-          columnNumber = offsets[1];
-        }
-
-        lineNumber  = lineNumber - srcOffset - 1;
-        var partial = partial_map[lineNumber];
-
-        if (partial) {
-          partialLineMatch = partial[2];
-          partialPath      = partial[3];
-          sourceLine       = partial[4];
-
-          if (partialLineMatch) {
-            var begLineColumn = partial[0];
-            var endLineColumn = partial[1];
-
-            if (columnNumber != null && columnNumber >= begLineColumn && columnNumber <= endLineColumn){
-              sourcePath = partialPath;
-            } else {
-              sourceLine = sourceLines[lineNumber];
-            }
-          } else {
-            sourcePath = partialPath;
+          // Chrome
+          if (lineNumber == undefined) {
+            var offsets  = parseStackTrace(exception);
+            lineNumber   = offsets[0];
+            columnNumber = offsets[1];
           }
-        }
-        return [sourcePath, sourceLine];
-      }\n\n
+
+          lineNumber  = lineNumber - srcOffset - 1;
+          var partial = partial_map[lineNumber];
+
+          if (partial) {
+            partialLineMatch = partial[2];
+            partialPath      = partial[3];
+            sourceLine       = partial[4];
+
+            if (partialLineMatch) {
+              var begLineColumn = partial[0];
+              var endLineColumn = partial[1];
+
+              if (columnNumber != null && columnNumber >= begLineColumn && columnNumber <= endLineColumn){
+                sourcePath = partialPath;
+              } else {
+                sourceLine = sourceLines[lineNumber];
+              }
+            } else {
+              sourcePath = partialPath;
+            }
+          }
+          return [sourcePath, sourceLine];
+        }\n\n
         LOOKUP
       end
 
       # Chrome doesn't define the line number in the exception on an arbitrary js snippet,
       # so it must be extracted from the stacktrace
       def parse_stack_trace
-        output = <<-STACKPARSE
-      function parseStackTrace(exception){\n
-        var trace        = exception.stack.split("\\n");
-        var info         = trace[1].match(/:(\\d+):(\\d+)\\)$/);
-        var lineNumber   = info[1];
-        var columnNumber = info[2];
+        <<-STACKPARSE
+        function parseStackTrace(exception){\n
+          var trace        = exception.stack.split("\\n");
+          var info         = trace[1].match(/:(\\d+):(\\d+)\\)$/);
+          var lineNumber   = info[1];
+          var columnNumber = info[2];
 
-        return [parseInt(lineNumber), parseInt(columnNumber)];
-      }
+          return [parseInt(lineNumber), parseInt(columnNumber)];
+        }
         STACKPARSE
-
-        output
       end
 
       def partial_infos(source)
@@ -107,11 +105,11 @@ module ActionView
 
 
           if beg_column
-            preceeding_code = source[0..beg_column - 1]
+            preceeding_code = beg_column > 1 ? source[0..beg_column - 1] : " "
             beg_line_number = preceeding_code.lines.length
 
-            last_index = partial_lines.size - 1
-            partial_path = partial_data[0]
+            last_index      = partial_lines.size - 1
+            partial_path    = partial_data[0]
 
             # Extract the entire source snippet; e.g. the partial output
             #  plus any code that preceeds/follows on the same lines
@@ -136,7 +134,7 @@ module ActionView
 
       def source_info(source)
         source_lines = source.lines
-        source_info = []
+        source_info  = []
 
         source_lines.each_with_index do |source_line, index|
           source_info << "  sourceLines['#{index + 1}'] = '#{escape_javascript(source_line)}'"
