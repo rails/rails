@@ -599,12 +599,6 @@ module Rails
       end
     end
 
-    initializer :append_assets_path, group: :all do |app|
-      app.config.assets.paths.unshift(*paths["vendor/assets"].existent_directories)
-      app.config.assets.paths.unshift(*paths["lib/assets"].existent_directories)
-      app.config.assets.paths.unshift(*paths["app/assets"].existent_directories)
-    end
-
     initializer :prepend_helpers_path do |app|
       if !isolated? || (app == self)
         app.config.helpers_paths.unshift(*paths["app/helpers"].existent)
