@@ -18,15 +18,19 @@ module ActionView
             @object_name.gsub!(/\[(.*)_attributes\]\[\d+\]/, '.\1')
 
             if object.respond_to?(:to_model)
-              key = object.model_name.i18n_key
+              model = object.to_model
+            end
+
+            if model
+              key = model.model_name.i18n_key
               i18n_default = ["#{key}.#{method_and_value}".to_sym, ""]
             end
 
             i18n_default ||= ""
             content = I18n.t("#{@object_name}.#{method_and_value}", :default => i18n_default, :scope => "helpers.label").presence
 
-            content ||= if object && object.class.respond_to?(:human_attribute_name)
-                          object.class.human_attribute_name(method_and_value)
+            content ||= if model && model.class.respond_to?(:human_attribute_name)
+                          model.class.human_attribute_name(method_and_value)
                         end
 
             content ||= @method_name.humanize
