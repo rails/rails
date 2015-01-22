@@ -1,3 +1,5 @@
+require 'active_support/core_ext/hash/keys'
+
 module ActionController
   # ActionController::Renderer allows to render arbitrary templates
   # without requirement of being in controller actions.
@@ -71,20 +73,15 @@ module ActionController
 
     private
       def normalize_keys(env)
-        env.dup.tap do |new_env|
-          convert_symbols!   new_env
+        http_header_format(env).tap do |new_env|
           handle_method_key! new_env
           handle_https_key!  new_env
         end
       end
 
-      def convert_symbols!(env)
-        env.keys.each do |key|
-          if key.is_a? Symbol
-            value = env.delete key
-            key = key.to_s.upcase 
-            env[key] = value
-          end
+      def http_header_format(env)
+        env.transform_keys do |key|
+          key.is_a?(Symbol) ? key.to_s.upcase : key
         end
       end
 
