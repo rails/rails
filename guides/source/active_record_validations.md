@@ -470,7 +470,7 @@ point number. To specify that only integral numbers are allowed set
 If you set `:only_integer` to `true`, then it will use the
 
 ```ruby
-/\A[+-]?\d+\Z/
+/\A[+-]?\d+\z/
 ```
 
 regular expression to validate the attribute's value. Otherwise, it will try to
