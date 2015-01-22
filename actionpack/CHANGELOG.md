@@ -1,3 +1,15 @@
+*   Add `ActionController::Renderer` to render arbitrary templates
+    outside controller actions.
+
+    Its functionality is accessible through class methods `render` and
+    `renderer` of `ActionController::Base`.
+
+    *Ravil Bayramgalin*
+
+*   Support `:assigns` option when rendering with controllers/mailers.
+
+    *Ravil Bayramgalin*
+
 *   Default headers, removed in controller actions, are no longer reapplied on
     the test response.
 

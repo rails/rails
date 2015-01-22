@@ -31,6 +31,15 @@ module BareMetalTest
       controller.index
       assert_equal ["Hello world"], controller.response_body
     end
+
+    test "connect a request to controller instance without dispatch" do
+      env = {}
+      controller = BareController.new
+      controller.set_request! ActionDispatch::Request.new(env)
+      assert controller.request
+      assert controller.response
+      assert env['action_controller.instance']
+    end
   end
 
   class HeadController < ActionController::Metal
