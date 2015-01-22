@@ -316,12 +316,13 @@ NOTE: Unless overridden, your response returned from this render option will be
 
 #### Options for `render`
 
-Calls to the `render` method generally accept four options:
+Calls to the `render` method generally accept five options:
 
 * `:content_type`
 * `:layout`
 * `:location`
 * `:status`
+* `:formats`
 
 ##### The `:content_type` Option
 
@@ -429,6 +430,15 @@ Rails understands both numeric status codes and the corresponding symbols shown 
 
 NOTE:  If you try to render content along with a non-content status code 
 (100-199, 204, 205 or 304), it will be dropped from the response.
+
+##### The `:formats` Option
+
+Rails uses the format specified in request (or `:html` by default). You can change this adding the `:formats` option with a symbol or an array:
+
+```ruby
+render formats: :xml
+render formats: [:json, :xml]
+```
 
 #### Finding Layouts
 
