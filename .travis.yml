@@ -2,7 +2,6 @@ language: ruby
 sudo: false
 script: 'ci/travis.rb'
 before_install:
-  - "rvm current | grep 'jruby' && export AR_JDBC=true || echo"
   - gem install bundler
 before_script:
   - bundle update
