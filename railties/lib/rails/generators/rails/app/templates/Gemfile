@@ -43,6 +43,14 @@ group :development, :test do
 <% end -%>
 end
 
+<% if RUBY_ENGINE == 'rbx' -%>
+# Gems required for Rubinius support
+platforms :rbx do
+    gem 'rubysl'  # Standard library
+    gem 'racc'    # Parser generator
+end
+<% end -%>
+
 <% if RUBY_PLATFORM.match(/bccwin|cygwin|emx|mingw|mswin|wince|java/) -%>
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]
