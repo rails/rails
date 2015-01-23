@@ -10,6 +10,10 @@ module ActiveRecord
       []
     end
 
+    def pluck_hashes(*cols)
+      []
+    end
+
     def delete_all(_conditions = nil)
       0
     end

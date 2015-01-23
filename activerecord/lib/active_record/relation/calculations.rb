@@ -171,6 +171,47 @@ module ActiveRecord
       end
     end
 
+    # <tt>pluck_hashes</tt> works like <tt>pluck</tt>, only each row is a
+    # Hash rather than an Array
+    #
+    #   Person.pluck_hashes(:id, :name)
+    #
+    # returns
+    #
+    #   [{"id"=>1, "name"=>"David"}, {"id"=>2, "name"=>"Jeremy"}, {"id"=>3, "name"=>"Jose"}]
+    #
+    # The keys in the hash correspond to the column name in the SQL result, so
+    #   Person.pluck_hashes('DATEDIFF(updated_at, created_at) as update_period')
+    #
+    # returns
+    #   [{"update_period"=>'0'}, {"update_period"=>'27761'}, {"update_period"=>'173'}]
+
+    def pluck_hashes(*column_names)
+      column_names.map! do |column_name|
+        if column_name.is_a?(Symbol) && attribute_alias?(column_name)
+          attribute_alias(column_name)
+        else
+          column_name.to_s
+        end
+      end
+
+      if has_include?(column_names.first)
+        construct_relation_for_association_calculations.pluck_hashes(*column_names)
+      else
+        relation = spawn
+        relation.select_values = column_names.map { |cn|
+          columns_hash.key?(cn) ? arel_table[cn] : cn
+        }
+        result = klass.connection.select_all(relation.arel, nil, relation.arel.bind_values + bind_values)
+        arr = result.cast_values(klass.column_types)
+        if arr.first.class == Array
+          arr.map{|row| Hash[*result.columns.zip(row).flatten]}
+        else
+          arr.map{|val| {result.columns.first => val} }
+        end
+      end
+    end
+
     # Pluck all the ID's for the relation using the table's primary key
     #
     #   Person.ids # SELECT people.id FROM people
