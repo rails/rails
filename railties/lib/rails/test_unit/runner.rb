@@ -49,12 +49,12 @@ module Rails
 
     def run
       enable_backtrace if @options[:backtrace]
-      filter_tests_by_name if @options[:name]
 
       run_tests
     end
 
     def find_method
+      return @options[:name] if @options[:name]
       return if @line.blank?
       method = test_methods.find do |test_method, start_line, end_line|
         (start_line..end_line).include?(@line.to_i)
@@ -87,10 +87,6 @@ module Rails
 
     def enable_backtrace
       ENV["BACKTRACE"] = "1"
-    end
-
-    def filter_tests_by_name
-      ARGV.push("-n", @options[:name])
     end
 
     def test_methods
