@@ -650,6 +650,10 @@ module ActiveRecord
       def foreign_key(*args) # :nodoc:
         @base.add_foreign_key(name, *args)
       end
+      
+      def foreign_key_exists?(*args) # :nodoc:
+        @base.foreign_key_exists?(name, *args)
+      end
 
       private
         def native
