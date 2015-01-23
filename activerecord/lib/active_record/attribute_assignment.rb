@@ -3,62 +3,31 @@ require 'active_model/forbidden_attributes_protection'
 module ActiveRecord
   module AttributeAssignment
     extend ActiveSupport::Concern
-    include ActiveModel::ForbiddenAttributesProtection
+    include ActiveModel::AttributeAssignment
 
-    # Allows you to set all the attributes by passing in a hash of attributes with
-    # keys matching the attribute names (which again matches the column names).
-    #
-    # If the passed hash responds to <tt>permitted?</tt> method and the return value
-    # of this method is +false+ an <tt>ActiveModel::ForbiddenAttributesError</tt>
-    # exception is raised.
-    #
-    #   cat = Cat.new(name: "Gorby", status: "yawning")
-    #   cat.attributes # =>  { "name" => "Gorby", "status" => "yawning", "created_at" => nil, "updated_at" => nil}
-    #   cat.assign_attributes(status: "sleeping")
-    #   cat.attributes # =>  { "name" => "Gorby", "status" => "sleeping", "created_at" => nil, "updated_at" => nil }
-    #
-    # New attributes will be persisted in the database when the object is saved.
-    #
-    # Aliased to <tt>attributes=</tt>.
-    def assign_attributes(new_attributes)
-      if !new_attributes.respond_to?(:stringify_keys)
-        raise ArgumentError, "When assigning attributes, you must pass a hash as an argument."
-      end
-      return if new_attributes.blank?
-
-      attributes                  = new_attributes.stringify_keys
-      multi_parameter_attributes  = []
-      nested_parameter_attributes = []
-
-      attributes = sanitize_for_mass_assignment(attributes)
+    def _assign_attributes(attributes) # :nodoc:
+      multi_parameter_attributes  = {}
+      nested_parameter_attributes = {}
 
       attributes.each do |k, v|
         if k.include?("(")
-          multi_parameter_attributes << [ k, v ]
+          multi_parameter_attributes[k] = attributes.delete(k)
         elsif v.is_a?(Hash)
-          nested_parameter_attributes << [ k, v ]
-        else
-          _assign_attribute(k, v)
+          nested_parameter_attributes[k] = attributes.delete(k)
         end
       end
+      super(attributes)
 
       assign_nested_parameter_attributes(nested_parameter_attributes) unless nested_parameter_attributes.empty?
       assign_multiparameter_attributes(multi_parameter_attributes) unless multi_parameter_attributes.empty?
     end
 
-    alias attributes= assign_attributes
+    # Alias for `assign_attributes`. See +ActiveModel::AttributeAssignment+
+    def attributes=(attributes)
+      assign_attributes(attributes)
+    end
 
     private
-
-    def _assign_attribute(k, v)
-      public_send("#{k}=", v)
-    rescue NoMethodError
-      if respond_to?("#{k}=")
-        raise
-      else
-        raise UnknownAttributeError.new(self, k)
-      end
-    end
 
     # Assign any deferred nested attributes after the base attributes have been set.
     def assign_nested_parameter_attributes(pairs)

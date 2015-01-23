@@ -1,3 +1,23 @@
+*   Extracted `ActiveRecord::AttributeAssignment` to `ActiveModel::AttributeAssignment`
+    allowing to use it for any object as an includable module
+
+    ``` ruby
+    class Cat
+      include ActiveModel::AttributeAssignment
+      attr_accessor :name, :status
+    end
+
+    cat = Cat.new
+    cat.assign_attributes(name: "Gorby", status: "yawning")
+    cat.name # => 'Gorby'
+    cat.status => 'yawning'
+    cat.assign_attributes(status: "sleeping")
+    cat.name # => 'Gorby'
+    cat.status => 'sleeping'
+    ```
+
+    *Bogdan Gusiev*
+
 *   Add `ActiveModel::Errors#details`
 
     To be able to return type of used validator, one can now call `details`
