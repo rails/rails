@@ -16,11 +16,17 @@ module ActiveRecord
         :integer
       end
 
-      alias type_cast_for_database type_cast
-
       def type_cast_from_database(value)
         return if value.nil?
         value.to_i
+      end
+
+      def type_cast_for_database(value)
+        result = type_cast(value)
+        if result
+          ensure_in_range(result)
+        end
+        result
       end
 
       protected
@@ -34,9 +40,7 @@ module ActiveRecord
         when true then 1
         when false then 0
         else
-          result = value.to_i rescue nil
-          ensure_in_range(result) if result
-          result
+          value.to_i rescue nil
         end
       end
 
