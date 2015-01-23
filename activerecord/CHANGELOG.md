@@ -1,3 +1,9 @@
+*   Don't remove join dependencies in `Relation#exists?`
+
+    Fixes #18632
+
+    *Sean Griffin*
+
 *   Invalid values assigned to a JSON column are assumed to be `nil`.
 
     Fixes #18629.
