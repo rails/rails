@@ -456,6 +456,7 @@ module ActiveRecord
     # Takes a PP and prettily prints this record to it, allowing you to get a nice result from `pp record`
     # when pp is required.
     def pretty_print(pp)
+      return super if custom_inspect_method_defined?
       pp.object_address_group(self) do
         if defined?(@attributes) && @attributes
           column_names = self.class.column_names.select { |name| has_attribute?(name) || new_record? }
@@ -559,6 +560,10 @@ module ActiveRecord
       if frozen?
         @attributes = @attributes.dup
       end
+    end
+
+    def custom_inspect_method_defined?
+      self.class.instance_method(:inspect).owner != ActiveRecord::Base.instance_method(:inspect).owner
     end
   end
 end
