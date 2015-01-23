@@ -206,6 +206,22 @@ module ActiveRecord
     # So any change to the attributes in either instance will affect the other.
     def becomes(klass)
       became = klass.new
+
+      nested_keys = self.nested_attributes_options.keys &
+                    became.nested_attributes_options.keys
+      nested_attributes = {}
+      nested_keys.each do |n|
+        object = self.send(n)
+        next if object.blank?
+        if object.respond_to? :map
+          attributes = object.map { |o| o.attributes if o.new_record? }.compact
+        else
+          attributes = object.attributes if object.new_record?
+        end
+        nested_attributes["#{n}_attributes"] = attributes unless attributes.blank?
+      end
+
+      became.attributes = nested_attributes
       became.instance_variable_set("@attributes", @attributes)
       became.instance_variable_set("@changed_attributes", @changed_attributes) if defined?(@changed_attributes)
       became.instance_variable_set("@new_record", new_record?)

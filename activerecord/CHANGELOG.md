@@ -1,3 +1,12 @@
+*   Modifies the `becomes` method to allow for saving of dirty nested
+    attributes. Previously, calling `becomes` on an object with non-persisted
+    associated objects would cause loss of the objects. Checks if the objects
+    are persisted and skips copying them to the new object if they are.
+
+    Fixes #18549.
+
+    *Damian Z Mastylo*
+    
 *   Integer types will no longer raise a `RangeError` when assigning an
     attribute, but will instead raise when going to the database.
 
