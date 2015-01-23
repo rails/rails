@@ -18,8 +18,8 @@ class PostgresqlTypeLookupTest < ActiveRecord::TestCase
     bigint_array = @connection.type_map.lookup(1016, -1, "bigint[]")
     big_array = [123456789123456789]
 
-    assert_raises(RangeError) { int_array.type_cast_from_user(big_array) }
-    assert_equal big_array, bigint_array.type_cast_from_user(big_array)
+    assert_raises(RangeError) { int_array.type_cast_for_database(big_array) }
+    assert_equal "{123456789123456789}", bigint_array.type_cast_for_database(big_array)
   end
 
   test "range types correctly respect registration of subtypes" do
