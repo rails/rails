@@ -1,6 +1,7 @@
 require "ostruct"
 require "optparse"
 require "rake/file_list"
+require "method_source"
 
 module Rails
   class TestRunner
@@ -53,6 +54,14 @@ module Rails
       run_tests
     end
 
+    def find_method
+      return if @line.blank?
+      method = test_methods.find do |test_method, start_line, end_line|
+        (start_line..end_line).include?(@line.to_i)
+      end
+      method.first if method
+    end
+
     private
     def run_tests
       test_files.to_a.each do |file|
@@ -66,6 +75,10 @@ module Rails
     def test_files
       if @options[:pattern]
         pattern = NAMED_PATTERNS[@options[:pattern]]
+        unless pattern
+          filename, @line = @options[:pattern].split(':')
+          return [filename] if filename
+        end
       else
         pattern = "test/**/*_test.rb"
       end
@@ -78,6 +91,20 @@ module Rails
 
     def filter_tests_by_name
       ARGV.push("-n", @options[:name])
+    end
+
+    def test_methods
+      methods_map = []
+      suites = Minitest::Runnable.runnables.shuffle
+      suites.each do |suite_class|
+        suite_class.runnable_methods.each do |test_method|
+          method = suite_class.instance_method(test_method)
+          start_line = method.source_location.last
+          end_line = method.source.split("\n").size + start_line - 1
+          methods_map << [test_method, start_line, end_line]
+        end
+      end
+      methods_map
     end
   end
 end
