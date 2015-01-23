@@ -106,11 +106,11 @@ module ActionController
       end
 
       def auth_scheme(request)
-        request.authorization.split(' ', 2).first
+        request.authorization.to_s.split(' ', 2).first
       end
 
       def auth_param(request)
-        request.authorization.split(' ', 2).second
+        request.authorization.to_s.split(' ', 2).second
       end
 
       def encode_credentials(user_name, password)
