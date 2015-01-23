@@ -552,6 +552,10 @@ module ActiveRecord
       end
       alias :remove_belongs_to :remove_references
 
+      def foreign_key_exists?(*args) # :nodoc:
+        @base.foreign_key_exists?(name, *args)
+      end
+
       # Adds a column or columns of a specified type
       #
       #  t.string(:goat)

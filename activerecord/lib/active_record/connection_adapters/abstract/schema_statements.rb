@@ -663,6 +663,29 @@ module ActiveRecord
         raise NotImplementedError, "foreign_keys is not implemented"
       end
 
+      # Checks to see if a foreign key exists on a table for a given foreign key definition.
+      #
+      #   # Check a foreign key exists
+      #   foreign_key_exists?(:accounts, :branches)
+      #
+      #   # Check a foreign key on specified column exists
+      #   foreign_key_exists?(:accounts, column: :owner_id)
+      #
+      #   # Check a foreign key with a custom name exists
+      #   foreign_key_exists?(:accounts, name: "special_fk_name")
+      #
+      def foreign_key_exists?(from_table, options_or_to_table = {})
+        return unless supports_foreign_keys?
+
+        if options_or_to_table.is_a?(Hash)
+          options = options_or_to_table
+        else
+          options = { column: foreign_key_column_for(options_or_to_table) }
+        end
+
+        foreign_keys(from_table).any? {|fk| options.keys.all? {|key| fk.options[key].to_s == options[key].to_s } }
+      end
+
       # Adds a new foreign key. +from_table+ is the table with the key column,
       # +to_table+ contains the referenced primary key.
       #

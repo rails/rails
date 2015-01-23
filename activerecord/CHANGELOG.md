@@ -1,3 +1,7 @@
+*   Add `foreign_key_exists?` method.
+    
+    *Anton Semenov*
+
 *   Invalid values assigned to a JSON column are assumed to be `nil`.
 
     Fixes #18629.
