@@ -758,12 +758,12 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   def test_bulk_update_respects_access_control
     privatize("title=(value)")
 
-    assert_raise(ActiveRecord::UnknownAttributeError) { @target.new(:title => "Rants about pants") }
-    assert_raise(ActiveRecord::UnknownAttributeError) { @target.new.attributes = { :title => "Ants in pants" } }
+    assert_raise(ActiveModel::AttributeAssignment::UnknownAttributeError) { @target.new(:title => "Rants about pants") }
+    assert_raise(ActiveModel::AttributeAssignment::UnknownAttributeError) { @target.new.attributes = { :title => "Ants in pants" } }
   end
 
   def test_bulk_update_raise_unknown_attribute_error
-    error = assert_raises(ActiveRecord::UnknownAttributeError) {
+    error = assert_raises(ActiveModel::AttributeAssignment::UnknownAttributeError) {
       Topic.new(hello: "world")
     }
     assert_instance_of Topic, error.record
