@@ -2,9 +2,12 @@ language: ruby
 script: 
   - "rake test"
   - "gem build arel.gemspec"
+env:
+  global:
+    - JRUBY_OPTS='--dev -J-Xmx1024M'
 rvm:
   - rbx
-  - jruby
+  - jruby-head
   - 2.0.0
   - 2.1
   - ruby-head
