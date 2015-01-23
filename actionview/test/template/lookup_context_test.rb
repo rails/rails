@@ -57,8 +57,29 @@ class LookupContextTest < ActiveSupport::TestCase
   end
 
   test "adds :html fallback to :js formats" do
+    @lookup_context.view_paths = [
+      "#{FIXTURE_LOAD_PATH}/html_fallback/only_html" # contains only .html.erb
+    ]
     @lookup_context.formats = [:js]
-    assert_equal [:js, :html], @lookup_context.formats
+
+    template = @lookup_context.find("index", [])
+    assert_equal "only_html/index.html.erb", template.source.strip
+  end
+
+  test "does not fall back to HTML if JS can be found in any view path" do
+    # Only fall back to HTML if JS lookup fails for *all* view paths, not just
+    # the first.
+    @lookup_context.view_paths = [
+      "#{FIXTURE_LOAD_PATH}/html_fallback/only_html", # contains only .html.erb
+      "#{FIXTURE_LOAD_PATH}/html_fallback/html_and_js"  # contains .js.erb, .html.erb
+    ]
+
+    @lookup_context.formats = [:js]
+    template = @lookup_context.find("index", [])
+    assert_equal "html_and_js/index.js.erb", template.source.strip
+
+    templates = @lookup_context.find_all("index", [])
+    assert templates.include?(template)
   end
 
   test "provides getters and setters for locale" do
