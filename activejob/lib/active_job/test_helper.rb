@@ -175,9 +175,10 @@ module ActiveJob
         original_enqueued_jobs = enqueued_jobs.dup
         clear_enqueued_jobs
         args.assert_valid_keys(:job, :args, :at, :queue)
+        serialized_args = serialize_args_for_assertion(args)
         yield
         matching_job = enqueued_jobs.any? do |job|
-          args.all? { |key, value| value == job[key] }
+          serialized_args.all? { |key, value| value == job[key] }
         end
         assert matching_job, "No enqueued job found with #{args}"
       ensure
@@ -195,9 +196,10 @@ module ActiveJob
         original_performed_jobs = performed_jobs.dup
         clear_performed_jobs
         args.assert_valid_keys(:job, :args, :at, :queue)
+        serialized_args = serialize_args_for_assertion(args)
         perform_enqueued_jobs { yield }
         matching_job = performed_jobs.any? do |job|
-          args.all? { |key, value| value == job[key] }
+          serialized_args.all? { |key, value| value == job[key] }
         end
         assert matching_job, "No performed job found with #{args}"
       ensure
@@ -238,6 +240,14 @@ module ActiveJob
           else
             enqueued_jobs.size
           end
+        end
+
+        def serialize_args_for_assertion(args)
+          serialized_args = args.dup
+          if job_args = serialized_args.delete(:args)
+            serialized_args[:args] = ActiveJob::Arguments.serialize(job_args)
+          end
+          serialized_args
         end
     end
   end
