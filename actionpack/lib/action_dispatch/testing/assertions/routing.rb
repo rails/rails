@@ -38,18 +38,24 @@ module ActionDispatch
       #   # Test a custom route
       #   assert_recognizes({controller: 'items', action: 'show', id: '1'}, 'view/item1')
       def assert_recognizes(expected_options, path, extras={}, msg=nil)
-        request = recognized_request_for(path, extras, msg)
+        if path.is_a?(Hash) && path[:method].to_s == "all"
+          [:get, :post, :put, :delete].each do |method|
+            assert_recognizes(expected_options, path.merge(method: method), extras, msg)
+          end
+        else
+          request = recognized_request_for(path, extras, msg)
 
-        expected_options = expected_options.clone
+          expected_options = expected_options.clone
 
-        expected_options.stringify_keys!
+          expected_options.stringify_keys!
 
-        msg = message(msg, "") {
-          sprintf("The recognized options <%s> did not match <%s>, difference:",
-                  request.path_parameters, expected_options)
-        }
+          msg = message(msg, "") {
+            sprintf("The recognized options <%s> did not match <%s>, difference:",
+                    request.path_parameters, expected_options)
+          }
 
-        assert_equal(expected_options, request.path_parameters, msg)
+          assert_equal(expected_options, request.path_parameters, msg)
+        end
       end
 
       # Asserts that the provided options can be used to generate the provided path. This is the inverse of +assert_recognizes+.
