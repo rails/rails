@@ -114,6 +114,16 @@ certain nesting does not necessarily correlate with the namespaces at the spot.
 Even more, they are totally independent, take for instance
 
 ```ruby
+module X
+  module Y
+  end
+end
+
+module A
+  module B
+  end
+end
+
 module X::Y
   module A::B
     # (3)
