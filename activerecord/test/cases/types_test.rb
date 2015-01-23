@@ -117,6 +117,23 @@ module ActiveRecord
           assert_equal Encoding::ASCII_8BIT, type_cast.encoding
         end
       end
+
+      def test_attributes_which_are_invalid_for_database_can_still_be_reassigned
+        type_which_cannot_go_to_the_database = Type::Value.new
+        def type_which_cannot_go_to_the_database.type_cast_for_database(*)
+          raise
+        end
+        klass = Class.new(ActiveRecord::Base) do
+          self.table_name = 'posts'
+          attribute :foo, type_which_cannot_go_to_the_database
+        end
+        model = klass.new
+
+        model.foo = "foo"
+        model.foo = "bar"
+
+        assert_equal "bar", model.foo
+      end
     end
   end
 end

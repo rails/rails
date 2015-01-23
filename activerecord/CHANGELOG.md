@@ -1,6 +1,15 @@
+*   Values which would error while being sent to the database (such as an
+    ASCII-8BIT string with invalid UTF-8 bytes on Sqlite3), no longer error on
+    assignment. They will still error when sent to the database, but you are
+    given the ability to re-assign it to a valid value.
+
+    Fixes #18580.
+
+    *Sean Griffin*
+
 *   Don't remove join dependencies in `Relation#exists?`
 
-    Fixes #18632
+    Fixes #18632.
 
     *Sean Griffin*
 
