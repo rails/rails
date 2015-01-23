@@ -165,7 +165,7 @@ module ActiveRecord
       end
 
       def store_original_raw_attribute(attr_name)
-        original_raw_attributes[attr_name] = @attributes[attr_name].value_for_database
+        original_raw_attributes[attr_name] = @attributes[attr_name].value_for_database rescue nil
       end
 
       def store_original_raw_attributes

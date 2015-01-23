@@ -53,7 +53,7 @@ module ActiveRecord
     class SQLite3String < Type::String # :nodoc:
       def type_cast_for_database(value)
         if value.is_a?(::String) && value.encoding == Encoding::ASCII_8BIT
-          value.encode(Encoding::UTF_8)
+          value.encode(Encoding::UTF_8, undef: :replace)
         else
           super
         end
