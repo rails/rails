@@ -1,3 +1,11 @@
+*   Integer types will no longer raise a `RangeError` when assigning an
+    attribute, but will instead raise when going to the database.
+
+    Fixes several vague issues which were never reported directly. See the
+    commit message from the commit which added this line for some examples.
+
+    *Sean Griffin*
+
 *   Values which would error while being sent to the database (such as an
     ASCII-8BIT string with invalid UTF-8 bytes on Sqlite3), no longer error on
     assignment. They will still error when sent to the database, but you are
