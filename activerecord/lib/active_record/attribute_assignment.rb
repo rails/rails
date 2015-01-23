@@ -22,22 +22,10 @@ module ActiveRecord
       assign_multiparameter_attributes(multi_parameter_attributes) unless multi_parameter_attributes.empty?
     end
 
-    # Allows you to set all the attributes by passing in a hash of attributes with
-    # keys matching the attribute names (which again matches the column names).
-    #
-    # If the passed hash responds to <tt>permitted?</tt> method and the return value
-    # of this method is +false+ an <tt>ActiveModel::ForbiddenAttributesError</tt>
-    # exception is raised.
-    #
-    #   cat = Cat.new(name: "Gorby", status: "yawning")
-    #   cat.attributes # =>  { "name" => "Gorby", "status" => "yawning", "created_at" => nil, "updated_at" => nil}
-    #   cat.assign_attributes(status: "sleeping")
-    #   cat.attributes # =>  { "name" => "Gorby", "status" => "sleeping", "created_at" => nil, "updated_at" => nil }
-    #
-    # New attributes will be persisted in the database when the object is saved.
-    #
-    # Aliased to <tt>assign_attributes</tt>.
-    alias attributes= assign_attributes
+    # Alias for `assign_attributes`. See +ActiveModel::AttributeAssignment+
+    def attributes=(attributes)
+      assign_attributes(attributes)
+    end
 
     private
 

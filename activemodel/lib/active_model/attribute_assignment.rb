@@ -34,6 +34,7 @@ module ActiveModel
     end
 
     private
+
     def _assign_attributes(attributes)
       attributes.each do |k, v|
         _assign_attribute(k, v)
@@ -41,10 +42,8 @@ module ActiveModel
     end
 
     def _assign_attribute(k, v)
-      public_send("#{k}=", v)
-    rescue NoMethodError
       if respond_to?("#{k}=")
-        raise
+        public_send("#{k}=", v)
       else
         raise UnknownAttributeError.new(self, k)
       end
