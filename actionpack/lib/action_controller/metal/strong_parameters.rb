@@ -322,6 +322,19 @@ module ActionController
     #
     #   params.require(:person).permit(contact: [ :email, :phone ])
     #   # => {"contact"=>{"email"=>"none@test.com", "phone"=>"555-1234"}}
+    # 
+    # Specifying a key whose value is +true+ is equivalent to passing it 
+    # in the list; specifying one whose value is +false+ or +nil+ is ignored.
+    # This allows you to permit a key only if some condition is met:
+    #
+    #   params = ActionController::Parameters.new({
+    #     name: "John Doe",
+    #     status: "suspended"
+    #   })
+    # 
+    #   params.permit(:name, status: current_user.administrator?)
+    #   # If administrator? == true  => {"name"=>"John Doe", "status"=>"suspended"}
+    #   # If administrator? == false => {"name"=>"John Doe"}
     def permit(*filters)
       params = self.class.new
 
@@ -564,9 +577,16 @@ module ActionController
         slice(*filter.keys).each do |key, value|
           next unless value
 
-          if filter[key] == EMPTY_ARRAY
+          case filter[key]
+          when EMPTY_ARRAY
             # Declaration { comment_ids: [] }.
             array_of_permitted_scalars_filter(params, key)
+          when TrueClass
+            # Conditionally-permitted parameter (successful).
+            permitted_scalar_filter(params, key)
+          when FalseClass, NilClass
+            # Conditionally-permitted parameter (failed).
+            # Do nothing; this parameter should not be permitted.
           else
             # Declaration { user: :name } or { user: [:name, :age, { address: ... }] }.
             params[key] = each_element(value) do |element|

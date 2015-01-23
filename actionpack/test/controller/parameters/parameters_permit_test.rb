@@ -285,5 +285,12 @@ class ParametersPermitTest < ActiveSupport::TestCase
     assert @params.to_h.is_a? Hash
     assert_not @params.to_h.is_a? ActionController::Parameters
     assert_equal @params.to_hash, @params.to_unsafe_h
+  
+  test "conditionally permitting parameters works" do
+    assert_equal "32", @params[:person].permit(age: true)[:age]
+  end
+  
+  test "conditionally forbidding parameters works" do
+    assert_equal nil, @params[:person].permit(age: false)[:age]
   end
 end
