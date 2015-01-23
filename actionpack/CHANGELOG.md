@@ -1,3 +1,15 @@
+*   `ActionController::Parameters#permit` can now take hashes with
+    `true`, `false`, or `nil`-valued keys. `true`-valued keys permit
+    scalar values in the resulting hash as though they were included
+    directly in the filter list; `false`- or `nil`-valued keys are
+    ignored and thus not permitted. This makes it easier to
+    conditionally permit a key:
+
+        # Only administrators can change a post's author.
+        params.require(:post).permit(:title, :body, author_id: admin?)
+
+    *Brent Royal-Gordon*
+
 *   Add `ActionController::Renderer` to render arbitrary templates
     outside controller actions.
 
