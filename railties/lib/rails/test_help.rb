@@ -21,6 +21,7 @@ if defined?(ActiveRecord::Base)
   class ActiveSupport::TestCase
     include ActiveRecord::TestFixtures
     self.fixture_path = "#{Rails.root}/test/fixtures/"
+    self.file_fixture_path = self.fixture_path + "files"
   end
 
   ActionDispatch::IntegrationTest.fixture_path = ActiveSupport::TestCase.fixture_path
