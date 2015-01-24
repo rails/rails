@@ -14,6 +14,13 @@ module Rails
 
           opts.separator ""
           opts.separator "Filter options:"
+          opts.separator ""
+          opts.separator <<-DESC
+  You can run a single test by appending the line number to filename:
+
+    bin/rails test test/models/user_test.rb:27
+
+          DESC
 
           opts.on("-n", "--name [NAME]",
                   "Only run tests matching NAME") do |name|
