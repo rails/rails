@@ -1,3 +1,14 @@
+*   Assigning an unknown attribute key to an `ActiveModel` instance during initialization
+    will now raise `ActiveModel::AttributeAssignment::UnknownAttributeError` instead of
+    `NoMethodError`
+
+    ```ruby
+    User.new(foo: 'some value')
+    # => ActiveModel::AttributeAssignment::UnknownAttributeError: unknown attribute 'foo' for User.
+    ```
+
+    *Eugene Gilburg*
+
 *   Extracted `ActiveRecord::AttributeAssignment` to `ActiveModel::AttributeAssignment`
     allowing to use it for any object as an includable module
 
