@@ -10,7 +10,7 @@ module Rails
         options = { backtrace: false, name: nil }
 
         opt_parser = ::OptionParser.new do |opts|
-          opts.banner = "Usage: bin/rails test [options]"
+          opts.banner = "Usage: bin/rails test [options] [file or directory]"
 
           opts.separator ""
           opts.separator "Filter options:"
@@ -47,8 +47,8 @@ module Rails
         opt_parser.order!(args)
 
         if arg = args.shift
-          if NAMED_PATTERNS.key?(arg)
-            options[:pattern] = arg
+          if Dir.exists?(arg)
+            options[:pattern] = "#{arg}/**/*_test.rb"
           else
             options[:filename], options[:line] = arg.split(':')
             options[:filename] = File.expand_path options[:filename]
@@ -89,13 +89,10 @@ module Rails
       end
     end
 
-    NAMED_PATTERNS = {
-      "models" => "test/models/**/*_test.rb"
-    }
     def test_files
       return [@options[:filename]] if @options[:filename]
       if @options[:pattern]
-        pattern = NAMED_PATTERNS[@options[:pattern]]
+        pattern = @options[:pattern]
       else
         pattern = "test/**/*_test.rb"
       end

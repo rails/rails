@@ -44,4 +44,12 @@ class TestUnitTestRunnerTest < ActiveSupport::TestCase
     runner = Rails::TestRunner.new(options)
     assert_nil runner.find_method
   end
+
+  test "run all tests in a directory" do
+    options = @options.parse([__dir__])
+
+    assert_equal "#{__dir__}/**/*_test.rb", options[:pattern]
+    assert_nil options[:filename]
+    assert_nil options[:line]
+  end
 end
