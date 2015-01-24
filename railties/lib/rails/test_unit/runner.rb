@@ -38,7 +38,16 @@ module Rails
         end
 
         opt_parser.order!(args)
-        options[:pattern] = ARGV.shift
+
+        if arg = args.shift
+          if NAMED_PATTERNS.key?(arg)
+            options[:pattern] = arg
+          else
+            options[:filename], options[:line] = arg.split(':')
+            options[:filename] = File.expand_path options[:filename]
+            options[:line] &&= options[:line].to_i
+          end
+        end
         options
       end
     end
@@ -55,11 +64,12 @@ module Rails
 
     def find_method
       return @options[:name] if @options[:name]
-      return if @line.blank?
-      method = test_methods.find do |test_method, start_line, end_line|
-        (start_line..end_line).include?(@line.to_i)
+      return unless @options[:line]
+      method = test_methods.find do |location, test_method, start_line, end_line|
+        location == @options[:filename] &&
+          (start_line..end_line).include?(@options[:line].to_i)
       end
-      method.first if method
+      method[1] if method
     end
 
     private
@@ -73,12 +83,9 @@ module Rails
       "models" => "test/models/**/*_test.rb"
     }
     def test_files
+      return [@options[:filename]] if @options[:filename]
       if @options[:pattern]
         pattern = NAMED_PATTERNS[@options[:pattern]]
-        unless pattern
-          filename, @line = @options[:pattern].split(':')
-          return [filename] if filename
-        end
       else
         pattern = "test/**/*_test.rb"
       end
@@ -95,9 +102,10 @@ module Rails
       suites.each do |suite_class|
         suite_class.runnable_methods.each do |test_method|
           method = suite_class.instance_method(test_method)
-          start_line = method.source_location.last
+          location = method.source_location
+          start_line = location.last
           end_line = method.source.split("\n").size + start_line - 1
-          methods_map << [test_method, start_line, end_line]
+          methods_map << [location.first, test_method, start_line, end_line]
         end
       end
       methods_map
