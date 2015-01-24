@@ -1,5 +1,5 @@
-Constant Autoloading and Reloading
-==================================
+Autoloading and Reloading Constants
+===================================
 
 This guide documents how constant autoloading and reloading works.
 
@@ -78,7 +78,8 @@ end
 ```
 
 The *nesting* at any given place is the collection of enclosing nested class and
-module objects outwards. For example, in the previous example, the nesting at
+module objects outwards. The nesting at any given place can be inspected with
+`Module.nesting`. For example, in the previous example, the nesting at
 (1) is
 
 ```ruby
@@ -111,6 +112,16 @@ certain nesting does not necessarily correlate with the namespaces at the spot.
 Even more, they are totally independent, take for instance
 
 ```ruby
+module X
+  module Y
+  end
+end
+
+module A
+  module B
+  end
+end
+
 module X::Y
   module A::B
     # (3)
@@ -138,9 +149,10 @@ executed, and popped after it.
 
 * A singleton class opened with `class << object` gets pushed, and popped later.
 
-* When any of the `*_eval` family of methods is called using a string argument,
+* When `instance_eval` is called using a string argument,
 the singleton class of the receiver is pushed to the nesting of the eval'ed
-code.
+code. When `class_eval` or `module_eval` is called using a string argument,
+the receiver is pushed to the nesting of the eval'ed code.
 
 * The nesting at the top-level of code interpreted by `Kernel#load` is empty
 unless the `load` call receives a true value as second argument, in which case
@@ -150,8 +162,6 @@ It is interesting to observe that blocks do not modify the stack. In particular
 the blocks that may be passed to `Class.new` and `Module.new` do not get the
 class or module being defined pushed to their nesting. That's one of the
 differences between defining classes and modules in one way or another.
-
-The nesting at any given place can be inspected with `Module.nesting`.
 
 ### Class and Module Definitions are Constant Assignments
 
@@ -186,8 +196,8 @@ Project.name # => "Project"
 ```
 
 Constant assignment has a special rule to make that happen: if the object
-being assigned is an anonymous class or module, Ruby sets its name to be the
-one the constant.
+being assigned is an anonymous class or module, Ruby sets the object's name to
+the name of the constant.
 
 INFO. From then on, what happens to the constant and the instance does not
 matter. For example, the constant could be deleted, the class object could be
@@ -221,7 +231,7 @@ assignment.
 Thus, when one informally says "the `String` class", that really means: the
 class object stored in the constant called "String" in the class object stored
 in the `Object` constant. `String` is otherwise an ordinary Ruby constant and
-everything related to constants applies to it, resolution algorithms, etc.
+everything related to constants such as resolution algorithms applies to it.
 
 Likewise, in the controller
 
@@ -234,7 +244,7 @@ end
 ```
 
 `Post` is not syntax for a class. Rather, `Post` is a regular Ruby constant. If
-all is good, the constant evaluates to an object that responds to `all`.
+all is good, the constant is evaluated to an object that responds to `all`.
 
 That is why we talk about *constant* autoloading, Rails has the ability to
 load constants on the fly.
@@ -256,7 +266,7 @@ module Colors
 end
 ```
 
-First, when the `module` keyword is processed the interpreter creates a new
+First, when the `module` keyword is processed, the interpreter creates a new
 entry in the constant table of the class object stored in the `Object` constant.
 Said entry associates the name "Colors" to a newly created module object.
 Furthermore, the interpreter sets the name of the new module object to be the
@@ -270,7 +280,7 @@ In particular, `Colors::RED` is totally unrelated to any other `RED` constant
 that may live in any other class or module object. If there were any, they
 would have separate entries in their respective constant tables.
 
-Put special attention in the previous paragraphs to the distinction between
+Pay special attention in the previous paragraphs to the distinction between
 class and module objects, constant names, and value objects associated to them
 in constant tables.
 
@@ -294,7 +304,7 @@ implementation of `const_missing` raises `NameError`, but it can be overridden.
 
 Rails autoloading **does not emulate this algorithm**, but its starting point is
 the name of the constant to be autoloaded, and the cref. See more in [Relative
-References](#relative-references).
+References](#autoloading-algorithms-relative-references).
 
 #### Resolution Algorithm for Qualified Constants
 
@@ -446,7 +456,7 @@ default it contains:
 
 Also, this collection is configurable via `config.autoload_paths`. For example,
 `lib` was in the list years ago, but no longer is. An application can opt-in
-throwing this to `config/application.rb`:
+by adding this to `config/application.rb`:
 
 ```ruby
 config.autoload_paths += "#{Rails.root}/lib"
@@ -683,12 +693,12 @@ creates an empty module and assigns it to the `Admin` constant on the fly.
 ### Generic Procedure
 
 Relative references are reported to be missing in the cref where they were hit,
-and qualified references are reported to be missing in their parent. (See
+and qualified references are reported to be missing in their parent (see
 [Resolution Algorithm for Relative
 Constants](#resolution-algorithm-for-relative-constants) at the beginning of
 this guide for the definition of *cref*, and [Resolution Algorithm for Qualified
 Constants](#resolution-algorithm-for-qualified-constants) for the definition of
-*parent*.)
+*parent*).
 
 The procedure to autoload constant `C` in an arbitrary situation is as follows:
 
@@ -866,8 +876,8 @@ end
 ```
 
 To resolve `User` Ruby checks `Admin` in the former case, but it does not in
-the latter because it does not belong to the nesting. (See [Nesting](#nesting)
-and [Resolution Algorithms](#resolution-algorithms).)
+the latter because it does not belong to the nesting (see [Nesting](#nesting)
+and [Resolution Algorithms](#resolution-algorithms)).
 
 Unfortunately Rails autoloading does not know the nesting in the spot where the
 constant was missing and so it is not able to act as Ruby would. In particular,
@@ -889,7 +899,7 @@ end
 
 ### Autoloading and STI
 
-Single Table Inheritance (STI) is a feature of Active Record that easies
+Single Table Inheritance (STI) is a feature of Active Record that enables
 storing a hierarchy of models in one single table. The API of such models is
 aware of the hierarchy and encapsulates some common needs. For example, given
 these classes:
@@ -1171,7 +1181,8 @@ class Hotel
 end
 ```
 
-the expression `Hotel::Image` is ambiguous, depends on the execution path.
+the expression `Hotel::Image` is ambiguous because it depends on the execution
+path.
 
 As [we saw before](#resolution-algorithm-for-qualified-constants), Ruby looks
 up the constant in `Hotel` and its ancestors. If `app/models/image.rb` has
@@ -1280,8 +1291,8 @@ c.user # surprisingly fine, User
 c.user # NameError: uninitialized constant C::User
 ```
 
-because it detects a parent namespace already has the constant (see [Qualified
-References](#qualified-references).)
+because it detects that a parent namespace already has the constant (see [Qualified
+References](#autoloading-algorithms-qualified-references)).
 
 As with pure Ruby, within the body of a direct descendant of `BasicObject` use
 always absolute constant paths:
