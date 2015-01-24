@@ -14,10 +14,9 @@ module Rails
       filtered_results = results.dup
       filtered_results.reject!(&:skipped?) unless options[:verbose]
       filtered_results.map do |result|
-        result.failures.map { |failure|
-          "bin/rails test #{failure.location}\n"
-        }.join "\n"
-      end.join
+        location, line = result.method(result.name).source_location
+        "bin/rails test #{location}:#{line}"
+      end.join "\n"
     end
   end
 end
