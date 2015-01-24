@@ -151,9 +151,10 @@ executed, and popped after it.
 
 * A singleton class opened with `class << object` gets pushed, and popped later.
 
-* When any of the `*_eval` family of methods is called using a string argument,
+* When `instance_eval` is called using a string argument,
 the singleton class of the receiver is pushed to the nesting of the eval'ed
-code.
+code. When `class_eval` or `module_eval` is called using a string argument,
+the receiver is pushed to the nesting of the eval'ed code.
 
 * The nesting at the top-level of code interpreted by `Kernel#load` is empty
 unless the `load` call receives a true value as second argument, in which case
