@@ -2,6 +2,7 @@
 
 require 'active_support/core_ext/array/conversions'
 require 'active_support/core_ext/string/inflections'
+require 'active_support/core_ext/object/deep_dup'
 
 module ActiveModel
   # == Active \Model \Errors
@@ -77,7 +78,7 @@ module ActiveModel
 
     def initialize_dup(other) # :nodoc:
       @messages = other.messages.dup
-      @details  = other.details.dup
+      @details  = other.details.deep_dup
       super
     end
 
