@@ -347,7 +347,7 @@ class ErrorsTest < ActiveModel::TestCase
     errors.add(:name, :invalid)
     errors_dup = errors.dup
     errors_dup.add(:name, :taken)
-    assert_not_same errors_dup.details, errors.details
+    assert_not_equal errors_dup.details, errors.details
   end
 
   test "delete removes details on given attribute" do
