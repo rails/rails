@@ -5,7 +5,7 @@ module Rails
     def report
       return if passed?
       io.puts
-      io.puts "Failed test:"
+      io.puts "Failed tests:"
       io.puts
       io.puts aggregated_results
     end
