@@ -2,6 +2,7 @@ require "ostruct"
 require "optparse"
 require "rake/file_list"
 require "method_source"
+require "rails/test_unit/reporter"
 
 module Rails
   class TestRunner
@@ -58,6 +59,15 @@ module Rails
 
     def run
       enable_backtrace if @options[:backtrace]
+
+      $rails_test_runner = self
+      def Minitest.plugin_rails_init(options)
+        self.reporter << Rails::TestUnitReporter.new(options[:io], options)
+        if method = $rails_test_runner.find_method
+          options[:filter] = method
+        end
+      end
+      Minitest.extensions << 'rails'
 
       run_tests
     end
