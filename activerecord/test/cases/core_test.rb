@@ -109,4 +109,12 @@ class CoreTest < ActiveRecord::TestCase
     PP.pp(subtopic.new, StringIO.new(actual))
     assert_equal "inspecting topic\n", actual
   end
+
+  def test_arel_table_aliases_cache
+    10.times do
+      Fiber.new { Topic.arel_table.alias }.resume
+    end
+    Topic.arel_table.alias
+    assert_equal 1, Topic.arel_table.aliases.size
+  end
 end
