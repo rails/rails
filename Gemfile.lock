@@ -134,6 +134,7 @@ GEM
     loofah (2.0.1)
       nokogiri (>= 1.5.9)
     metaclass (0.0.4)
+    method_source (0.8.2)
     mime-types (2.4.3)
     mini_portile (0.6.2)
     minitest (5.3.3)
@@ -260,6 +261,7 @@ DEPENDENCIES
   json
   kindlerb (= 0.1.1)
   mail!
+  method_source
   minitest (< 5.3.4)
   mocha (~> 0.14)
   mysql (>= 2.9.0)
