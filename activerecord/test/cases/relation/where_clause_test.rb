@@ -66,6 +66,11 @@ class ActiveRecord::Relation
       # We might be able to change the implementation to remove conflicts by index, rather than column name
     end
 
+    test "a clause knows if it is empty" do
+      assert WhereClause.empty.empty?
+      assert_not WhereClause.new(["anything"], []).empty?
+    end
+
     private
 
     def table

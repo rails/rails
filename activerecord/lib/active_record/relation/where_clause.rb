@@ -3,6 +3,8 @@ module ActiveRecord
     class WhereClause # :nodoc:
       attr_reader :parts, :binds
 
+      delegate :empty?, to: :parts
+
       def initialize(parts, binds)
         @parts = parts
         @binds = binds

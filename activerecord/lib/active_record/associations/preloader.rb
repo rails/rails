@@ -89,7 +89,7 @@ module ActiveRecord
       #   { author: :avatar }
       #   [ :books, { author: :avatar } ]
 
-      NULL_RELATION = Struct.new(:values, :bind_values, :where_values).new({}, [], [])
+      NULL_RELATION = Struct.new(:values, :where_clause).new({}, Relation::WhereClause.empty)
 
       def preload(records, associations, preload_scope = nil)
         records       = Array.wrap(records).compact.uniq
