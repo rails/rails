@@ -110,6 +110,20 @@ module ActiveRecord
       assert_equal 'alone', bind.last
     end
 
+    def test_rewhere_does_not_overwrite_original_query
+      relation = Post.where(title: 'hello')
+
+      assert_equal 1, relation.where_values.size
+
+      relation.rewhere(title: 'alone')
+
+      assert_equal 1, relation.where_values.size
+      value = relation.where_values.first
+      bind = relation.bind_values.first
+      assert_bound_ast value, Post.arel_table[@name], Arel::Nodes::Equality
+      assert_equal 'hello', bind.last
+    end
+
     def test_rewhere_with_multiple_overwriting_conditions
       relation = Post.where(title: 'hello').where(body: 'world').rewhere(title: 'alone', body: 'again')
 
