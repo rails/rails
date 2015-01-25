@@ -193,6 +193,9 @@ following in the `blog` directory:
 $ bin/rails server
 ```
 
+TIP: If you are using Windows, you have to pass the scripts under the `bin` 
+folder directly to the Ruby interpreter e.g. `ruby bin\rails server`.
+
 TIP: Compiling CoffeeScript and JavaScript asset compression requires you
 have a JavaScript runtime available on your system, in the absence
 of a runtime you will see an `execjs` error during asset compilation.
