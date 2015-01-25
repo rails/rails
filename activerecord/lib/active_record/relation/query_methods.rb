@@ -2,6 +2,7 @@ require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/string/filters'
 require 'active_model/forbidden_attributes_protection'
 require "active_record/relation/where_clause"
+require "active_record/relation/where_clause_factory"
 
 module ActiveRecord
   module QueryMethods
@@ -969,20 +970,9 @@ module ActiveRecord
     end
 
     def build_where(opts, other = [])
-      case opts
-      when String, Array
-        [@klass.send(:sanitize_sql, other.empty? ? opts : ([opts] + other))]
-      when Hash
-        opts = predicate_builder.resolve_column_aliases(opts)
-        opts = @klass.send(:expand_hash_conditions_for_aggregates, opts)
-
-        attributes, bind_values = predicate_builder.create_binds(opts)
-        self.bind_values += bind_values
-
-        predicate_builder.build_from_hash(attributes)
-      else
-        [opts]
-      end
+      where_clause = where_clause_factory.build(opts, other)
+      self.bind_values += where_clause.binds
+      where_clause.parts
     end
 
     def association_for_table(table_name)
@@ -1150,6 +1140,10 @@ module ActiveRecord
 
     def new_where_clause
       Relation::WhereClause.empty
+    end
+
+    def where_clause_factory
+      @where_clause_factory ||= Relation::WhereClauseFactory.new(klass, predicate_builder)
     end
   end
 end
