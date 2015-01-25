@@ -1,3 +1,9 @@
+*   Adds an option to override the default columns issued by select statements
+    for a model by overriding 'default_select_columns'. This allows an opt-in
+    fix to GH#12330.
+
+    *Todd Gardner*
+
 *   Integer types will no longer raise a `RangeError` when assigning an
     attribute, but will instead raise when going to the database.
 

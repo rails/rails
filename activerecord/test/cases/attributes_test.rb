@@ -96,6 +96,7 @@ module ActiveRecord
       klass = Class.new(OverloadedType)
 
       assert_equal 6, klass.columns.length
+      assert_equal 'overloaded_types', klass.default_select_columns[0].relation.name
       assert_not klass.columns_hash.key?('wibble')
       assert_equal 6, klass.column_types.length
       assert_equal 6, klass.column_defaults.length
@@ -110,6 +111,10 @@ module ActiveRecord
       assert_equal 7, klass.column_defaults.length
       assert klass.column_names.include?('wibble')
       assert_equal 6, klass.content_columns.length
+
+      klass.table_name = 'overloaded_types_duplicate'
+
+      assert_equal 'overloaded_types_duplicate', klass.default_select_columns[0].relation.name
     end
   end
 end
