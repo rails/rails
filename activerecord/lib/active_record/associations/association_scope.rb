@@ -160,7 +160,7 @@ module ActiveRecord
             item  = eval_scope(reflection.klass, scope_chain_item, owner)
 
             if scope_chain_item == refl.scope
-              scope.merge! item.except(:where, :includes, :bind)
+              scope.merge! item.except(:where, :includes)
             end
 
             reflection.all_includes do
