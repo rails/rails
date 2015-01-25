@@ -1,6 +1,7 @@
 require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/string/filters'
 require 'active_model/forbidden_attributes_protection'
+require "active_record/relation/where_clause"
 
 module ActiveRecord
   module QueryMethods
@@ -88,6 +89,35 @@ module ActiveRecord
           @values[:#{name}] = value          #   @values[:readonly] = value
         end                                  # end
       CODE
+    end
+
+    Relation::CLAUSE_METHODS.each do |name|
+      class_eval <<-CODE, __FILE__, __LINE__ + 1
+        def #{name}_clause                           # def where_clause
+          @values[:#{name}] || new_#{name}_clause    #   @values[:where] || new_where_clause
+        end                                          # end
+                                                     #
+        def #{name}_clause=(value)                   # def where_clause=(value)
+          assert_mutability!                         #   assert_mutability!
+          @values[:#{name}] = value                  #   @values[:where] = value
+        end                                          # end
+      CODE
+    end
+
+    def where_values
+      where_clause.parts
+    end
+
+    def where_values=(values)
+      self.where_clause = Relation::WhereClause.new(values || [], where_clause.binds)
+    end
+
+    def bind_values
+      where_clause.binds
+    end
+
+    def bind_values=(values)
+      self.where_clause = Relation::WhereClause.new(where_clause.parts, values || [])
     end
 
     def create_with_value # :nodoc:
@@ -1116,6 +1146,10 @@ module ActiveRecord
       if args.blank?
         raise ArgumentError, "The method .#{method_name}() must contain arguments."
       end
+    end
+
+    def new_where_clause
+      Relation::WhereClause.empty
     end
   end
 end

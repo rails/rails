@@ -177,14 +177,8 @@ module ActiveRecord
     end
 
     test 'relations can be created with a values hash' do
-      relation = Relation.new(FakeKlass, :b, nil, where: [:foo])
-      assert_equal [:foo], relation.where_values
-    end
-
-    test 'merging a single where value' do
-      relation = Relation.new(FakeKlass, :b, nil)
-      relation.merge!(where: :foo)
-      assert_equal [:foo], relation.where_values
+      relation = Relation.new(FakeKlass, :b, nil, select: [:foo])
+      assert_equal [:foo], relation.select_values
     end
 
     test 'merging a hash interpolates conditions' do

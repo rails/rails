@@ -1,18 +1,19 @@
 # -*- coding: utf-8 -*-
-require 'arel/collectors/bind'
+require "arel/collectors/bind"
 
 module ActiveRecord
   # = Active Record Relation
   class Relation
     MULTI_VALUE_METHODS  = [:includes, :eager_load, :preload, :select, :group,
-                            :order, :joins, :where, :having, :bind, :references,
+                            :order, :joins, :having, :references,
                             :extending, :unscope]
 
     SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :from, :reordering,
                             :reverse_order, :distinct, :create_with, :uniq]
+    CLAUSE_METHODS = [:where]
     INVALID_METHODS_FOR_DELETE_ALL = [:limit, :distinct, :offset, :group, :having]
 
-    VALUE_METHODS = MULTI_VALUE_METHODS + SINGLE_VALUE_METHODS
+    VALUE_METHODS = MULTI_VALUE_METHODS + SINGLE_VALUE_METHODS + CLAUSE_METHODS
 
     include FinderMethods, Calculations, SpawnMethods, QueryMethods, Batches, Explain, Delegation
 
