@@ -4,7 +4,7 @@ require 'rails/generators/actions/create_migration'
 module Rails
   module Generators
     # Holds common methods for migrations. It assumes that migrations has the
-    # [0-9]*_name format and can be used by another frameworks (like Sequel)
+    # [0-9]*_name format and can be used by other frameworks (like Sequel)
     # just by implementing the next migration version method.
     module Migration
       extend ActiveSupport::Concern
