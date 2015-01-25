@@ -136,7 +136,7 @@ module ActiveRecord
           preload_values = preload_scope.values
           preload_binds  = preload_scope.bind_values
 
-          scope.where_values      = Array(values[:where])      + Array(preload_values[:where])
+          scope.where_values      = reflection_scope.where_values + preload_scope.where_values
           scope.references_values = Array(values[:references]) + Array(preload_values[:references])
           scope.bind_values       = (reflection_binds + preload_binds)
 
