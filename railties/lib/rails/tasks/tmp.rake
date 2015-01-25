@@ -11,7 +11,7 @@ namespace :tmp do
 
   tmp_dirs.each { |d| directory d }
 
-  desc "Creates tmp directories for sessions, cache, sockets, and pids"
+  desc "Creates tmp directories for cache, sockets, and pids"
   task create: tmp_dirs
 
   namespace :cache do
