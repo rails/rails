@@ -29,24 +29,8 @@ module ActiveRecord
     end
 
     def create_binds(attributes)
-      result = attributes.dup
-      binds = []
-
-      attributes.each do |column_name, value|
-        case value
-        when String, Integer, ActiveRecord::StatementCache::Substitute
-          result[column_name] = Arel::Nodes::BindParam.new
-          binds.push([table.column(column_name), value])
-        when Hash
-          attrs, bvs = associated_predicate_builder(column_name).create_binds(value)
-          result[column_name] = attrs
-          binds += bvs
-        when Relation
-          binds += value.arel.bind_values + value.bind_values
-        end
-      end
-
-      [result, binds]
+      attributes = convert_dot_notation_to_hash(attributes.stringify_keys)
+      create_binds_for_hash(attributes)
     end
 
     def expand(column, value)
@@ -106,6 +90,28 @@ module ActiveRecord
           expand(key, value)
         end
       end
+    end
+
+
+    def create_binds_for_hash(attributes)
+      result = attributes.dup
+      binds = []
+
+      attributes.each do |column_name, value|
+        case value
+        when String, Integer, ActiveRecord::StatementCache::Substitute
+          result[column_name] = Arel::Nodes::BindParam.new
+          binds.push([table.column(column_name), value])
+        when Hash
+          attrs, bvs = associated_predicate_builder(column_name).create_binds_for_hash(value)
+          result[column_name] = attrs
+          binds += bvs
+        when Relation
+          binds += value.arel.bind_values + value.bind_values
+        end
+      end
+
+      [result, binds]
     end
 
     private
