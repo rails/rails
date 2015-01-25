@@ -242,6 +242,58 @@ The contents of the block, and therefore the string interpolation, is only
 evaluated if debug is enabled. This performance savings is only really
 noticeable with large amounts of logging, but it's a good practice to employ.
 
+
+Debugging with the `web-console` gem
+-------------------------------------
+
+The web console allows you to create an interactive ruby session in your browser. An interactive 
+console is launched automatically in case on an error but can also be launched for debugging purposes
+by invoking `console` in a view or controller.
+
+For example in a view:
+
+```ruby
+# new.html.erb
+<%= console %>
+```
+
+Or in a controller:
+
+```ruby
+# posts_controller.rb
+class PostsController < ApplicationController
+  def new
+    console
+    @post = Post.new
+  end
+end
+```
+###config.web_console.whitelisted_ips
+
+By default the web console can only be accessed from localhost. `config.web_console.whitelisted_ips` 
+lets you control which IPs have access to the console. 
+
+For example, to allow access from both localhost and 192.168.0.100:
+
+```ruby
+# config/application.rb
+class Application < Rails::Application
+  config.web_console.whitelisted_ips = %w( 127.0.0.1 192.168.0.100 )
+end
+```
+
+To allow access from an entire network:
+
+```ruby
+# config/application.rb
+class Application < Rails::Application
+  config.web_console.whitelisted_ips = %w( 127.0.0.1 192.168.0.0/16 )
+end
+```
+
+Web console is a powerful tool so be careful who you open access to.
+
+
 Debugging with the `byebug` gem
 ---------------------------------
 
