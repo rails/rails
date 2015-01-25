@@ -99,15 +99,17 @@ module ActiveRecord
 
       attributes.each do |column_name, value|
         case value
-        when String, Integer, ActiveRecord::StatementCache::Substitute
-          result[column_name] = Arel::Nodes::BindParam.new
-          binds.push([table.column(column_name), value])
         when Hash
           attrs, bvs = associated_predicate_builder(column_name).create_binds_for_hash(value)
           result[column_name] = attrs
           binds += bvs
         when Relation
           binds += value.arel.bind_values + value.bind_values
+        else
+          if can_be_bound?(column_name, value)
+            result[column_name] = Arel::Nodes::BindParam.new
+            binds.push([table.column(column_name), value])
+          end
         end
       end
 
@@ -136,6 +138,12 @@ module ActiveRecord
 
     def handler_for(object)
       @handlers.detect { |klass, _| klass === object }.last
+    end
+
+    def can_be_bound?(column_name, value)
+      !value.nil? &&
+        handler_for(value).is_a?(BasicObjectHandler) &&
+        !table.associated_with?(column_name)
     end
   end
 end

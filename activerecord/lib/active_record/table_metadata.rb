@@ -25,6 +25,9 @@ module ActiveRecord
     def column(column_name)
       if klass
         klass.columns_hash[column_name.to_s]
+      else
+        # FIXME: We really shouldn't need to do this.
+        ConnectionAdapters::Column.new(column_name.to_s, nil, Type::Value.new)
       end
     end
 

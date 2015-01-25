@@ -944,11 +944,10 @@ module ActiveRecord
         [@klass.send(:sanitize_sql, other.empty? ? opts : ([opts] + other))]
       when Hash
         opts = predicate_builder.resolve_column_aliases(opts)
+        opts = @klass.send(:expand_hash_conditions_for_aggregates, opts)
 
-        tmp_opts, bind_values = predicate_builder.create_binds(opts)
+        attributes, bind_values = predicate_builder.create_binds(opts)
         self.bind_values += bind_values
-
-        attributes = @klass.send(:expand_hash_conditions_for_aggregates, tmp_opts)
 
         predicate_builder.build_from_hash(attributes)
       else
