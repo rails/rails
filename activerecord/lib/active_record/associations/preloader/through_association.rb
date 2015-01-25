@@ -80,7 +80,7 @@ module ActiveRecord
           else
             unless reflection_scope.where_values.empty?
               scope.includes_values = Array(reflection_scope.values[:includes] || options[:source])
-              scope.where_values    = reflection_scope.values[:where]
+              scope.where_values    = reflection_scope.where_values
               scope.bind_values     = reflection_scope.bind_values
             end
 
