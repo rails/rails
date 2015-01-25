@@ -28,6 +28,44 @@ class ActiveRecord::Relation
       assert_equal clause, clause + WhereClause.empty
     end
 
+    test "merge combines two where clauses" do
+      a = WhereClause.new([table["id"].eq(1)], [])
+      b = WhereClause.new([table["name"].eq("Sean")], [])
+      expected = WhereClause.new([table["id"].eq(1), table["name"].eq("Sean")], [])
+
+      assert_equal expected, a.merge(b)
+    end
+
+    test "merge keeps the right side, when two equality clauses reference the same column" do
+      a = WhereClause.new([table["id"].eq(1), table["name"].eq("Sean")], [])
+      b = WhereClause.new([table["name"].eq("Jim")], [])
+      expected = WhereClause.new([table["id"].eq(1), table["name"].eq("Jim")], [])
+
+      assert_equal expected, a.merge(b)
+    end
+
+    test "merge removes bind parameters matching overlapping equality clauses" do
+      a = WhereClause.new(
+        [table["id"].eq(bind_param), table["name"].eq(bind_param)],
+        [[column("id"), 1], [column("name"), "Sean"]],
+      )
+      b = WhereClause.new(
+        [table["name"].eq(bind_param)],
+        [[column("name"), "Jim"]]
+      )
+      expected = WhereClause.new(
+        [table["id"].eq(bind_param), table["name"].eq(bind_param)],
+        [[column("id"), 1], [column("name"), "Jim"]],
+      )
+
+      assert_equal expected, a.merge(b)
+    end
+
+    test "merge allows for columns with the same name from different tables" do
+      skip "This is not possible as of 4.2, and the binds do not yet contain sufficient information for this to happen"
+      # We might be able to change the implementation to remove conflicts by index, rather than column name
+    end
+
     private
 
     def table
@@ -36,6 +74,10 @@ class ActiveRecord::Relation
 
     def bind_param
       Arel::Nodes::BindParam.new
+    end
+
+    def column(name)
+      ActiveRecord::ConnectionAdapters::Column.new(name, nil, nil)
     end
   end
 end

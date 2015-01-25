@@ -50,7 +50,7 @@ module ActiveRecord
       end
 
       NORMAL_VALUES = Relation::VALUE_METHODS -
-                      [:joins, :where, :order, :bind, :reverse_order, :lock, :create_with, :reordering, :from] # :nodoc:
+                      [:joins, :where, :order, :reverse_order, :lock, :create_with, :reordering, :from] # :nodoc:
 
       def normal_values
         NORMAL_VALUES
@@ -106,19 +106,7 @@ module ActiveRecord
       end
 
       def merge_multi_values
-        lhs_wheres = relation.where_values
-        rhs_wheres = other.where_values
-
-        lhs_binds  = relation.bind_values
-        rhs_binds  = other.bind_values
-
-        removed, kept = partition_overwrites(lhs_wheres, rhs_wheres)
-
-        where_values = kept + rhs_wheres
-        bind_values  = filter_binds(lhs_binds, removed) + rhs_binds
-
-        relation.where_values = where_values
-        relation.bind_values  = bind_values
+        relation.where_clause = relation.where_clause.merge(other.where_clause)
 
         if other.reordering_value
           # override any order specified in the original relation
@@ -137,31 +125,6 @@ module ActiveRecord
 
         unless other.create_with_value.blank?
           relation.create_with_value = (relation.create_with_value || {}).merge(other.create_with_value)
-        end
-      end
-
-      def filter_binds(lhs_binds, removed_wheres)
-        return lhs_binds if removed_wheres.empty?
-
-        set = Set.new removed_wheres.map { |x| x.left.name.to_s }
-        lhs_binds.dup.delete_if { |col,_| set.include? col.name }
-      end
-
-      # Remove equalities from the existing relation with a LHS which is
-      # present in the relation being merged in.
-      # returns [things_to_remove, things_to_keep]
-      def partition_overwrites(lhs_wheres, rhs_wheres)
-        if lhs_wheres.empty? || rhs_wheres.empty?
-          return [[], lhs_wheres]
-        end
-
-        nodes = rhs_wheres.find_all do |w|
-          w.respond_to?(:operator) && w.operator == :==
-        end
-        seen = Set.new(nodes) { |node| node.left }
-
-        lhs_wheres.partition do |w|
-          w.respond_to?(:operator) && w.operator == :== && seen.include?(w.left)
         end
       end
     end
