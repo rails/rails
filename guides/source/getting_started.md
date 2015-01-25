@@ -193,7 +193,7 @@ following in the `blog` directory:
 $ bin/rails server
 ```
 
-TIP: If you are using Windows, you have to pass the scripts under the `bin` 
+TIP: If you are using Windows, you have to pass the scripts under the `bin`
 folder directly to the Ruby interpreter e.g. `ruby bin\rails server`.
 
 TIP: Compiling CoffeeScript and JavaScript asset compression requires you
