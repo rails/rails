@@ -370,7 +370,7 @@ module ActiveRecord
     end
 
     # Returns the name of all database fields which have been read from this
-    # model. This can be useful in devleopment mode to determine which fields
+    # model. This can be useful in development mode to determine which fields
     # need to be selected. For performance critical pages, selecting only the
     # required fields can be an easy performance win (assuming you aren't using
     # all of the fields on the model).
