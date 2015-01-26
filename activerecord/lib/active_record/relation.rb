@@ -5,12 +5,12 @@ module ActiveRecord
   # = Active Record Relation
   class Relation
     MULTI_VALUE_METHODS  = [:includes, :eager_load, :preload, :select, :group,
-                            :order, :joins, :having, :references,
+                            :order, :joins, :references,
                             :extending, :unscope]
 
     SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :from, :reordering,
                             :reverse_order, :distinct, :create_with, :uniq]
-    CLAUSE_METHODS = [:where]
+    CLAUSE_METHODS = [:where, :having]
     INVALID_METHODS_FOR_DELETE_ALL = [:limit, :distinct, :offset, :group, :having]
 
     VALUE_METHODS = MULTI_VALUE_METHODS + SINGLE_VALUE_METHODS + CLAUSE_METHODS
@@ -467,8 +467,10 @@ module ActiveRecord
       invalid_methods = INVALID_METHODS_FOR_DELETE_ALL.select { |method|
         if MULTI_VALUE_METHODS.include?(method)
           send("#{method}_values").any?
-        else
+        elsif SINGLE_VALUE_METHODS.include?(method)
           send("#{method}_value")
+        elsif CLAUSE_METHODS.include?(method)
+          send("#{method}_clause").any?
         end
       }
       if invalid_methods.any?

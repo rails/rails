@@ -3,7 +3,7 @@ module ActiveRecord
     class WhereClause # :nodoc:
       attr_reader :predicates, :binds
 
-      delegate :empty?, to: :predicates
+      delegate :any?, :empty?, to: :predicates
 
       def initialize(predicates, binds)
         @predicates = predicates

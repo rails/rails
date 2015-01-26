@@ -1468,10 +1468,26 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_doesnt_add_having_values_if_options_are_blank
     scope = Post.having('')
-    assert_equal [], scope.having_values
+    assert scope.having_clause.empty?
 
     scope = Post.having([])
-    assert_equal [], scope.having_values
+    assert scope.having_clause.empty?
+  end
+
+  def test_having_with_binds_for_both_where_and_having
+    post = Post.first
+    having_then_where = Post.having(id: post.id).where(title: post.title).group(:title)
+    where_then_having = Post.where(title: post.title).having(id: post.id).group(:title)
+
+    assert_equal [post], having_then_where
+    assert_equal [post], where_then_having
+  end
+
+  def test_multiple_where_and_having_clauses
+    post = Post.first
+    having_then_where = Post.having(id: post.id).where(title: post.title).having(id: post.id).where(title: post.title).group(:title)
+
+    assert_equal [post], having_then_where
   end
 
   def test_references_triggers_eager_loading

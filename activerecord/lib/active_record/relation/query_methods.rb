@@ -93,10 +93,11 @@ module ActiveRecord
     end
 
     def bind_values
-      where_clause.binds
+      where_clause.binds + having_clause.binds
     end
 
     def bind_values=(values)
+      self.having_clause = Relation::WhereClause.new(having_clause.predicates, [])
       self.where_clause = Relation::WhereClause.new(where_clause.predicates, values || [])
     end
 
@@ -605,7 +606,7 @@ module ActiveRecord
     def having!(opts, *rest) # :nodoc:
       references!(PredicateBuilder.references(opts)) if Hash === opts
 
-      self.having_values += build_where(opts, rest)
+      self.having_clause += having_clause_factory.build(opts, rest)
       self
     end
 
@@ -869,7 +870,7 @@ module ActiveRecord
 
       collapse_wheres(arel, (where_clause.predicates - [''])) #TODO: Add uniq with real value comparison / ignore uniqs that have binds
 
-      arel.having(*having_values.uniq.reject(&:blank?)) unless having_values.empty?
+      arel.having(*having_clause.predicates.uniq.reject(&:blank?)) if having_clause.any?
 
       arel.take(connection.sanitize_limit(limit_value)) if limit_value
       arel.skip(offset_value.to_i) if offset_value
@@ -1108,9 +1109,11 @@ module ActiveRecord
     def new_where_clause
       Relation::WhereClause.empty
     end
+    alias new_having_clause new_where_clause
 
     def where_clause_factory
       @where_clause_factory ||= Relation::WhereClauseFactory.new(klass, predicate_builder)
     end
+    alias having_clause_factory where_clause_factory
   end
 end
