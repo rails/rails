@@ -68,6 +68,9 @@ module ActiveRecord
         def increment_counter(counter_cache_name)
           if foreign_key_present?
             klass.increment_counter(counter_cache_name, target_id)
+            if target && !stale_target?
+              target.increment(counter_cache_name)
+            end
           end
         end
 
