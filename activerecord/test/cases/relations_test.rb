@@ -1476,8 +1476,8 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_having_with_binds_for_both_where_and_having
     post = Post.first
-    having_then_where = Post.having(id: post.id).where(title: post.title).group(:title)
-    where_then_having = Post.where(title: post.title).having(id: post.id).group(:title)
+    having_then_where = Post.having(id: post.id).where(title: post.title).group(:id)
+    where_then_having = Post.where(title: post.title).having(id: post.id).group(:id)
 
     assert_equal [post], having_then_where
     assert_equal [post], where_then_having
@@ -1485,7 +1485,8 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_multiple_where_and_having_clauses
     post = Post.first
-    having_then_where = Post.having(id: post.id).where(title: post.title).having(id: post.id).where(title: post.title).group(:title)
+    having_then_where = Post.having(id: post.id).where(title: post.title)
+      .having(id: post.id).where(title: post.title).group(:id)
 
     assert_equal [post], having_then_where
   end
