@@ -587,7 +587,7 @@ module ActiveRecord
         references!(PredicateBuilder.references(opts))
       end
 
-      self.where_values += build_where(opts, rest)
+      self.where_clause += where_clause_factory.build(opts, rest)
       self
     end
 
@@ -876,7 +876,7 @@ module ActiveRecord
 
       build_joins(arel, joins_values.flatten) unless joins_values.empty?
 
-      collapse_wheres(arel, (where_values - [''])) #TODO: Add uniq with real value comparison / ignore uniqs that have binds
+      collapse_wheres(arel, (where_clause.predicates - [''])) #TODO: Add uniq with real value comparison / ignore uniqs that have binds
 
       arel.having(*having_values.uniq.reject(&:blank?)) unless having_values.empty?
 
