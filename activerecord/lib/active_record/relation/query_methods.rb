@@ -41,23 +41,10 @@ module ActiveRecord
       #    User.where.not(name: "Jon", role: "admin")
       #    # SELECT * FROM users WHERE name != 'Jon' AND role != 'admin'
       def not(opts, *rest)
-        where_value = @scope.send(:build_where, opts, rest).map do |rel|
-          case rel
-          when NilClass
-            raise ArgumentError, 'Invalid argument for .where.not(), got nil.'
-          when Arel::Nodes::In
-            Arel::Nodes::NotIn.new(rel.left, rel.right)
-          when Arel::Nodes::Equality
-            Arel::Nodes::NotEqual.new(rel.left, rel.right)
-          when String
-            Arel::Nodes::Not.new(Arel::Nodes::SqlLiteral.new(rel))
-          else
-            Arel::Nodes::Not.new(rel)
-          end
-        end
+        where_clause = @scope.send(:where_clause_factory).build(opts, rest)
 
         @scope.references!(PredicateBuilder.references(opts)) if Hash === opts
-        @scope.where_values += where_value
+        @scope.where_clause += where_clause.invert
         @scope
       end
     end
