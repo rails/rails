@@ -101,7 +101,7 @@ module ActiveRecord
         end
 
         def update_counter_in_memory(difference, reflection = reflection())
-          if has_cached_counter?(reflection)
+          if counter_must_be_updated_by_has_many?(reflection)
             counter = cached_counter_attribute_name(reflection)
             owner[counter] += difference
             owner.send(:clear_attribute_changes, counter) # eww
@@ -118,16 +118,26 @@ module ActiveRecord
         #     it will be decremented twice.
         #
         # Hence this method.
-        def inverse_updates_counter_cache?(reflection = reflection())
+        def inverse_which_updates_counter_cache(reflection = reflection())
           counter_name = cached_counter_attribute_name(reflection)
-          inverse_updates_counter_named?(counter_name, reflection)
+          inverse_which_updates_counter_named(counter_name, reflection)
         end
+        alias inverse_updates_counter_cache? inverse_which_updates_counter_cache
 
-        def inverse_updates_counter_named?(counter_name, reflection = reflection())
-          reflection.klass._reflections.values.any? { |inverse_reflection|
+        def inverse_which_updates_counter_named(counter_name, reflection)
+          reflection.klass._reflections.values.find { |inverse_reflection|
             inverse_reflection.belongs_to? &&
             inverse_reflection.counter_cache_column == counter_name
           }
+        end
+
+        def inverse_updates_counter_in_memory?(reflection)
+          inverse = inverse_which_updates_counter_cache(reflection)
+          inverse && inverse == reflection.inverse_of
+        end
+
+        def counter_must_be_updated_by_has_many?(reflection)
+          !inverse_updates_counter_in_memory?(reflection) && has_cached_counter?(reflection)
         end
 
         def delete_count(method, scope)
