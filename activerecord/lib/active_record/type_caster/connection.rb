@@ -1,8 +1,8 @@
 module ActiveRecord
   module TypeCaster
     class Connection
-      def initialize(connection, table_name)
-        @connection = connection
+      def initialize(klass, table_name)
+        @klass = klass
         @table_name = table_name
       end
 
@@ -14,7 +14,8 @@ module ActiveRecord
 
       protected
 
-      attr_reader :connection, :table_name
+      attr_reader :table_name
+      delegate :connection, to: :@klass
 
       private
 
