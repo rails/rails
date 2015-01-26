@@ -93,12 +93,7 @@ module ActiveRecord
     end
 
     def bind_values
-      where_clause.binds + having_clause.binds
-    end
-
-    def bind_values=(values)
-      self.having_clause = Relation::WhereClause.new(having_clause.predicates, [])
-      self.where_clause = Relation::WhereClause.new(where_clause.predicates, values || [])
+      from_bind_values + where_clause.binds + having_clause.binds
     end
 
     def create_with_value # :nodoc:
@@ -747,7 +742,9 @@ module ActiveRecord
     def from!(value, subquery_name = nil) # :nodoc:
       self.from_value = [value, subquery_name]
       if value.is_a? Relation
-        self.bind_values = value.arel.bind_values + value.bind_values + bind_values
+        self.from_bind_values = value.arel.bind_values + value.bind_values
+      else
+        self.from_bind_values = []
       end
       self
     end
