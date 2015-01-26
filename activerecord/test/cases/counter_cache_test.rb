@@ -180,4 +180,13 @@ class CounterCacheTest < ActiveRecord::TestCase
       SpecialTopic.reset_counters(special.id, :lightweight_special_replies)
     end
   end
+
+  test "counters are updated both in memory and in the database on create" do
+    car = Car.new(engines_count: 0)
+    car.engines = [Engine.new, Engine.new]
+    car.save!
+
+    assert_equal 2, car.engines_count
+    assert_equal 2, car.reload.engines_count
+  end
 end
