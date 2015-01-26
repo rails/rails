@@ -64,7 +64,6 @@ module ActionView
       end
     rescue ActionView::MissingTemplate
       logger.try :error, "  Couldn't find template for digesting: #{name}"
-      ''
     end
 
     def dependencies
