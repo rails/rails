@@ -2,42 +2,30 @@ module ActiveRecord
   module Associations
     class AssociationScope #:nodoc:
       def self.scope(association, connection)
-        INSTANCE.scope association, connection
-      end
-
-      class BindSubstitution
-        def initialize(block)
-          @block = block
-        end
-
-        def bind_value(scope, column, value, connection)
-          substitute = connection.substitute_at(column)
-          scope.bind_values += [[column, @block.call(value)]]
-          substitute
-        end
+        INSTANCE.scope(association, connection)
       end
 
       def self.create(&block)
-        block = block ? block : lambda { |val| val }
-        new BindSubstitution.new(block)
+        block ||= lambda { |val| val }
+        new(block)
       end
 
-      def initialize(bind_substitution)
-        @bind_substitution = bind_substitution
+      def initialize(value_transformation)
+        @value_transformation = value_transformation
       end
 
       INSTANCE = create
 
       def scope(association, connection)
-        klass         = association.klass
-        reflection    = association.reflection
-        scope         = klass.unscoped
-        owner         = association.owner
+        klass = association.klass
+        reflection = association.reflection
+        scope = klass.unscoped
+        owner = association.owner
         alias_tracker = AliasTracker.create connection, association.klass.table_name, klass.type_caster
         chain_head, chain_tail = get_chain(reflection, association, alias_tracker)
 
         scope.extending! Array(reflection.options[:extend])
-        add_constraints(scope, owner, klass, reflection, connection, chain_head, chain_tail)
+        add_constraints(scope, owner, klass, reflection, chain_head, chain_tail)
       end
 
       def join_type
@@ -61,43 +49,36 @@ module ActiveRecord
         binds
       end
 
+      protected
+
+      attr_reader :value_transformation
+
       private
       def join(table, constraint)
         table.create_join(table, table.create_on(constraint), join_type)
       end
 
-      def column_for(table_name, column_name, connection)
-        columns = connection.schema_cache.columns_hash(table_name)
-        columns[column_name]
-      end
-
-      def bind_value(scope, column, value, connection)
-        @bind_substitution.bind_value scope, column, value, connection
-      end
-
-      def bind(scope, table_name, column_name, value, connection)
-        column   = column_for table_name, column_name, connection
-        bind_value scope, column, value, connection
-      end
-
-      def last_chain_scope(scope, table, reflection, owner, connection, association_klass)
+      def last_chain_scope(scope, table, reflection, owner, association_klass)
         join_keys = reflection.join_keys(association_klass)
         key = join_keys.key
         foreign_key = join_keys.foreign_key
 
-        bind_val = bind scope, table.table_name, key.to_s, owner[foreign_key], connection
-        scope    = scope.where(table[key].eq(bind_val))
+        value = transform_value(owner[foreign_key])
+        scope = scope.where(table.name => { key => value })
 
         if reflection.type
-          value    = owner.class.base_class.name
-          bind_val = bind scope, table.table_name, reflection.type, value, connection
-          scope    = scope.where(table[reflection.type].eq(bind_val))
-        else
-          scope
+          polymorphic_type = transform_value(owner.class.base_class.name)
+          scope = scope.where(table.name => { reflection.type => polymorphic_type })
         end
+
+        scope
       end
 
-      def next_chain_scope(scope, table, reflection, connection, association_klass, foreign_table, next_reflection)
+      def transform_value(value)
+        value_transformation.call(value)
+      end
+
+      def next_chain_scope(scope, table, reflection, association_klass, foreign_table, next_reflection)
         join_keys = reflection.join_keys(association_klass)
         key = join_keys.key
         foreign_key = join_keys.foreign_key
@@ -105,9 +86,8 @@ module ActiveRecord
         constraint = table[key].eq(foreign_table[foreign_key])
 
         if reflection.type
-          value    = next_reflection.klass.base_class.name
-          bind_val = bind scope, table.table_name, reflection.type, value, connection
-          scope    = scope.where(table[reflection.type].eq(bind_val))
+          value = transform_value(next_reflection.klass.base_class.name)
+          scope = scope.where(table.name => { reflection.type => value })
         end
 
         scope = scope.joins(join(foreign_table, constraint))
@@ -138,10 +118,10 @@ module ActiveRecord
         [runtime_reflection, previous_reflection]
       end
 
-      def add_constraints(scope, owner, association_klass, refl, connection, chain_head, chain_tail)
+      def add_constraints(scope, owner, association_klass, refl, chain_head, chain_tail)
         owner_reflection = chain_tail
         table = owner_reflection.alias_name
-        scope = last_chain_scope(scope, table, owner_reflection, owner, connection, association_klass)
+        scope = last_chain_scope(scope, table, owner_reflection, owner, association_klass)
 
         reflection = chain_head
         loop do
@@ -151,7 +131,7 @@ module ActiveRecord
           unless reflection == chain_tail
             next_reflection = reflection.next
             foreign_table = next_reflection.alias_name
-            scope = next_chain_scope(scope, table, reflection, connection, association_klass, foreign_table, next_reflection)
+            scope = next_chain_scope(scope, table, reflection, association_klass, foreign_table, next_reflection)
           end
 
           # Exclude the scope of the association itself, because that
