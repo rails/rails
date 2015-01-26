@@ -1,37 +1,37 @@
 module ActiveRecord
   class Relation
     class WhereClause # :nodoc:
-      attr_reader :parts, :binds
+      attr_reader :predicates, :binds
 
-      delegate :empty?, to: :parts
+      delegate :empty?, to: :predicates
 
-      def initialize(parts, binds)
-        @parts = parts
+      def initialize(predicates, binds)
+        @predicates = predicates
         @binds = binds
       end
 
       def +(other)
         WhereClause.new(
-          parts + other.parts,
+          predicates + other.predicates,
           binds + other.binds,
         )
       end
 
       def merge(other)
         WhereClause.new(
-          parts_unreferenced_by(other) + other.parts,
+          predicates_unreferenced_by(other) + other.predicates,
           non_conflicting_binds(other) + other.binds,
         )
       end
 
       def ==(other)
         other.is_a?(WhereClause) &&
-          parts == other.parts &&
+          predicates == other.predicates &&
           binds == other.binds
       end
 
       def invert
-        WhereClause.new(inverted_parts, binds)
+        WhereClause.new(inverted_predicates, binds)
       end
 
       def self.empty
@@ -42,15 +42,15 @@ module ActiveRecord
 
       def referenced_columns
         @referenced_columns ||= begin
-          equality_nodes = parts.select { |n| equality_node?(n) }
+          equality_nodes = predicates.select { |n| equality_node?(n) }
           Set.new(equality_nodes, &:left)
         end
       end
 
       private
 
-      def parts_unreferenced_by(other)
-        parts.reject do |n|
+      def predicates_unreferenced_by(other)
+        predicates.reject do |n|
           equality_node?(n) && other.referenced_columns.include?(n.left)
         end
       end
@@ -65,8 +65,8 @@ module ActiveRecord
         binds.reject { |col, _| conflicts.include?(col.name) }
       end
 
-      def inverted_parts
-        parts.map { |node| invert_predicate(node) }
+      def inverted_predicates
+        predicates.map { |node| invert_predicate(node) }
       end
 
       def invert_predicate(node)

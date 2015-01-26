@@ -93,7 +93,7 @@ module ActiveRecord
     end
 
     def where_values
-      where_clause.parts
+      where_clause.predicates
     end
 
     def where_values=(values)
@@ -105,7 +105,7 @@ module ActiveRecord
     end
 
     def bind_values=(values)
-      self.where_clause = Relation::WhereClause.new(where_clause.parts, values || [])
+      self.where_clause = Relation::WhereClause.new(where_clause.predicates, values || [])
     end
 
     def create_with_value # :nodoc:
@@ -959,7 +959,7 @@ module ActiveRecord
     def build_where(opts, other = [])
       where_clause = where_clause_factory.build(opts, other)
       self.bind_values += where_clause.binds
-      where_clause.parts
+      where_clause.predicates
     end
 
     def association_for_table(table_name)
