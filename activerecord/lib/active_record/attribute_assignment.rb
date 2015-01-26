@@ -5,6 +5,13 @@ module ActiveRecord
     extend ActiveSupport::Concern
     include ActiveModel::AttributeAssignment
 
+    # Alias for `assign_attributes`. See +ActiveModel::AttributeAssignment+.
+    def attributes=(attributes)
+      assign_attributes(attributes)
+    end
+
+    private
+
     def _assign_attributes(attributes) # :nodoc:
       multi_parameter_attributes  = {}
       nested_parameter_attributes = {}
@@ -21,13 +28,6 @@ module ActiveRecord
       assign_nested_parameter_attributes(nested_parameter_attributes) unless nested_parameter_attributes.empty?
       assign_multiparameter_attributes(multi_parameter_attributes) unless multi_parameter_attributes.empty?
     end
-
-    # Alias for `assign_attributes`. See +ActiveModel::AttributeAssignment+
-    def attributes=(attributes)
-      assign_attributes(attributes)
-    end
-
-    private
 
     # Assign any deferred nested attributes after the base attributes have been set.
     def assign_nested_parameter_attributes(pairs)
