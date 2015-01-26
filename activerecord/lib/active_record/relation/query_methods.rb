@@ -937,12 +937,6 @@ module ActiveRecord
       arel.where(Arel::Nodes::And.new(predicates)) if predicates.present?
     end
 
-    def build_where(opts, other = [])
-      where_clause = where_clause_factory.build(opts, other)
-      self.bind_values += where_clause.binds
-      where_clause.predicates
-    end
-
     def association_for_table(table_name)
       table_name = table_name.to_s
       @klass._reflect_on_association(table_name) ||
