@@ -92,14 +92,6 @@ module ActiveRecord
       CODE
     end
 
-    def where_values
-      where_clause.predicates
-    end
-
-    def where_values=(values)
-      self.where_clause = Relation::WhereClause.new(values || [], where_clause.binds)
-    end
-
     def bind_values
       where_clause.binds
     end
