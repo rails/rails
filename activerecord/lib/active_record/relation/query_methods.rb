@@ -435,15 +435,6 @@ module ActiveRecord
       self
     end
 
-    def bind(value) # :nodoc:
-      spawn.bind!(value)
-    end
-
-    def bind!(value) # :nodoc:
-      self.bind_values += [value]
-      self
-    end
-
     # Returns a new relation, which is the result of filtering the current relation
     # according to the conditions in the arguments.
     #

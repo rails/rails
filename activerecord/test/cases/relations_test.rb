@@ -39,15 +39,6 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal van, Minivan.where(:minivan_id => [van]).to_a.first
   end
 
-  def test_bind_values
-    relation = Post.all
-    assert_equal [], relation.bind_values
-
-    relation2 = relation.bind 'foo'
-    assert_equal %w{ foo }, relation2.bind_values
-    assert_equal [], relation.bind_values
-  end
-
   def test_two_scopes_with_includes_should_not_drop_any_include
     # heat habtm cache
     car = Car.incl_engines.incl_tyres.first
