@@ -6,7 +6,7 @@ module ActiveSupport
   # lines remain.
   #
   # Filters are used to modify lines of data, while silencers are used to remove
-  # lines entirely. The typical filter use case is to remove lengthy path
+  # lines entirely. The typical filter use case is to remove a lengthy path
   # information from the start of each line, and view file paths relevant to the
   # app directory instead of the file system root. The typical silencer use case
   # is to exclude the output of a noisy library from the backtrace, so that you
