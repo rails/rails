@@ -571,22 +571,7 @@ module ActiveRecord
     #   User.where(name: 'Oscar').where_values_hash
     #   # => {name: "Oscar"}
     def where_values_hash(relation_table_name = table_name)
-      equalities = where_values.grep(Arel::Nodes::Equality).find_all { |node|
-        node.left.relation.name == relation_table_name
-      }
-
-      binds = Hash[bind_values.find_all(&:first).map { |column, v| [column.name, v] }]
-
-      Hash[equalities.map { |where|
-        name = where.left.name
-        [name, binds.fetch(name.to_s) {
-          case where.right
-          when Array then where.right.map(&:val)
-          when Arel::Nodes::Casted, Arel::Nodes::Quoted
-            where.right.val
-          end
-        }]
-      }]
+      where_clause.to_h(relation_table_name)
     end
 
     def scope_for_create
