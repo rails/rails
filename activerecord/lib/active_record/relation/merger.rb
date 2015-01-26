@@ -50,7 +50,8 @@ module ActiveRecord
       end
 
       NORMAL_VALUES = Relation::VALUE_METHODS -
-                      [:joins, :where, :order, :reverse_order, :lock, :create_with, :reordering, :from] # :nodoc:
+                      Relation::CLAUSE_METHODS -
+                      [:joins, :order, :reverse_order, :lock, :create_with, :reordering, :from] # :nodoc:
 
       def normal_values
         NORMAL_VALUES
@@ -74,6 +75,7 @@ module ActiveRecord
 
         merge_multi_values
         merge_single_values
+        merge_clauses
         merge_joins
 
         relation
@@ -106,8 +108,6 @@ module ActiveRecord
       end
 
       def merge_multi_values
-        relation.where_clause = relation.where_clause.merge(other.where_clause)
-
         if other.reordering_value
           # override any order specified in the original relation
           relation.reorder! other.order_values
@@ -125,6 +125,14 @@ module ActiveRecord
 
         unless other.create_with_value.blank?
           relation.create_with_value = (relation.create_with_value || {}).merge(other.create_with_value)
+        end
+      end
+
+      def merge_clauses
+        CLAUSE_METHODS.each do |name|
+          clause = relation.send("#{name}_clause")
+          other_clause = other.send("#{name}_clause")
+          relation.send("#{name}_clause=", clause.merge(other_clause))
         end
       end
     end
