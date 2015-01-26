@@ -28,7 +28,7 @@ module ActiveRecord
       @relation ||= Relation.new FakeKlass.new('posts'), Post.arel_table, Post.predicate_builder
     end
 
-    (Relation::MULTI_VALUE_METHODS - [:references, :extending, :order, :unscope, :select, :from_bind]).each do |method|
+    (Relation::MULTI_VALUE_METHODS - [:references, :extending, :order, :unscope, :select]).each do |method|
       test "##{method}!" do
         assert relation.public_send("#{method}!", :foo).equal?(relation)
         assert_equal [:foo], relation.public_send("#{method}_values")
@@ -81,7 +81,7 @@ module ActiveRecord
       assert_equal [], relation.extending_values
     end
 
-    (Relation::SINGLE_VALUE_METHODS - [:from, :lock, :reordering, :reverse_order, :create_with]).each do |method|
+    (Relation::SINGLE_VALUE_METHODS - [:lock, :reordering, :reverse_order, :create_with]).each do |method|
       test "##{method}!" do
         assert relation.public_send("#{method}!", :foo).equal?(relation)
         assert_equal :foo, relation.public_send("#{method}_value")
@@ -90,7 +90,7 @@ module ActiveRecord
 
     test '#from!' do
       assert relation.from!('foo').equal?(relation)
-      assert_equal ['foo', nil], relation.from_value
+      assert_equal 'foo', relation.from_clause.value
     end
 
     test '#lock!' do

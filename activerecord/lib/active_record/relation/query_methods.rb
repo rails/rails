@@ -1,8 +1,9 @@
-require 'active_support/core_ext/array/wrap'
-require 'active_support/core_ext/string/filters'
-require 'active_model/forbidden_attributes_protection'
+require "active_record/relation/from_clause"
 require "active_record/relation/where_clause"
 require "active_record/relation/where_clause_factory"
+require 'active_model/forbidden_attributes_protection'
+require 'active_support/core_ext/array/wrap'
+require 'active_support/core_ext/string/filters'
 
 module ActiveRecord
   module QueryMethods
@@ -93,7 +94,7 @@ module ActiveRecord
     end
 
     def bind_values
-      from_bind_values + where_clause.binds + having_clause.binds
+      from_clause.binds + where_clause.binds + having_clause.binds
     end
 
     def create_with_value # :nodoc:
@@ -740,12 +741,7 @@ module ActiveRecord
     end
 
     def from!(value, subquery_name = nil) # :nodoc:
-      self.from_value = [value, subquery_name]
-      if value.is_a? Relation
-        self.from_bind_values = value.arel.bind_values + value.bind_values
-      else
-        self.from_bind_values = []
-      end
+      self.from_clause = Relation::FromClause.new(value, subquery_name)
       self
     end
 
@@ -870,7 +866,7 @@ module ActiveRecord
       build_select(arel, select_values.uniq)
 
       arel.distinct(distinct_value)
-      arel.from(build_from) if from_value
+      arel.from(build_from) unless from_clause.empty?
       arel.lock(lock_value) if lock_value
 
       arel
@@ -932,7 +928,8 @@ module ActiveRecord
     end
 
     def build_from
-      opts, name = from_value
+      opts = from_clause.value
+      name = from_clause.name
       case opts
       when Relation
         name ||= 'subquery'
@@ -1097,5 +1094,9 @@ module ActiveRecord
       @where_clause_factory ||= Relation::WhereClauseFactory.new(klass, predicate_builder)
     end
     alias having_clause_factory where_clause_factory
+
+    def new_from_clause
+      Relation::FromClause.empty
+    end
   end
 end

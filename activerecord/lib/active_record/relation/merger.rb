@@ -51,7 +51,7 @@ module ActiveRecord
 
       NORMAL_VALUES = Relation::VALUE_METHODS -
                       Relation::CLAUSE_METHODS -
-                      [:joins, :order, :reverse_order, :lock, :create_with, :reordering, :from, :from_bind] # :nodoc:
+                      [:joins, :order, :reverse_order, :lock, :create_with, :reordering] # :nodoc:
 
       def normal_values
         NORMAL_VALUES
@@ -120,9 +120,7 @@ module ActiveRecord
       end
 
       def merge_single_values
-        relation.from_value        ||= other.from_value
-        relation.from_bind_values    = other.from_bind_values unless relation.from_value
-        relation.lock_value        ||= other.lock_value
+        relation.lock_value ||= other.lock_value
 
         unless other.create_with_value.blank?
           relation.create_with_value = (relation.create_with_value || {}).merge(other.create_with_value)
