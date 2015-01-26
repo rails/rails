@@ -184,7 +184,7 @@ class RelationScopingTest < ActiveRecord::TestCase
     rescue
     end
 
-    assert !Developer.all.where_values.include?("name = 'Jamis'")
+    assert !Developer.all.where_clause.predicates.include?("name = 'Jamis'")
   end
 
   def test_default_scope_filters_on_joins

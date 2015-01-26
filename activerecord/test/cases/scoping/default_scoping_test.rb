@@ -284,8 +284,8 @@ class DefaultScopingTest < ActiveRecord::TestCase
 
   def test_unscope_merging
     merged = Developer.where(name: "Jamis").merge(Developer.unscope(:where))
-    assert merged.where_values.empty?
-    assert !merged.where(name: "Jon").where_values.empty?
+    assert merged.where_clause.empty?
+    assert !merged.where(name: "Jon").where_clause.empty?
   end
 
   def test_order_in_default_scope_should_not_prevail
@@ -426,19 +426,19 @@ class DefaultScopingTest < ActiveRecord::TestCase
 
   test "additional conditions are ANDed with the default scope" do
     scope = DeveloperCalledJamis.where(name: "David")
-    assert_equal 2, scope.where_values.length
+    assert_equal 2, scope.where_clause.predicates.length
     assert_equal [], scope.to_a
   end
 
   test "additional conditions in a scope are ANDed with the default scope" do
     scope = DeveloperCalledJamis.david
-    assert_equal 2, scope.where_values.length
+    assert_equal 2, scope.where_clause.predicates.length
     assert_equal [], scope.to_a
   end
 
   test "a scope can remove the condition from the default scope" do
     scope = DeveloperCalledJamis.david2
-    assert_equal 1, scope.where_values.length
+    assert_equal 1, scope.where_clause.predicates.length
     assert_equal Developer.where(name: "David").map(&:id), scope.map(&:id)
   end
 end

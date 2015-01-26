@@ -136,12 +136,12 @@ module ActiveRecord
     end
 
     test 'test_merge!' do
-      assert relation.merge!(where: :foo).equal?(relation)
-      assert_equal [:foo], relation.where_values
+      assert relation.merge!(select: :foo).equal?(relation)
+      assert_equal [:foo], relation.select_values
     end
 
     test 'merge with a proc' do
-      assert_equal [:foo], relation.merge(-> { where(:foo) }).where_values
+      assert_equal [:foo], relation.merge(-> { select(:foo) }).select_values
     end
 
     test 'none!' do

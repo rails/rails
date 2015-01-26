@@ -8,9 +8,9 @@ module ActiveRecord
       test 'does not duplicate conditions' do
         scope = AssociationScope.scope(Author.new.association(:welcome_posts),
                                         Author.connection)
-        wheres = scope.where_values.map(&:right)
-        binds = scope.bind_values.map(&:last)
-        wheres = scope.where_values.map(&:right).reject { |node|
+        wheres = scope.where_clause.predicates.map(&:right)
+        binds = scope.where_clause.binds.map(&:last)
+        wheres.reject! { |node|
           Arel::Nodes::BindParam === node
         }
         assert_equal wheres.uniq, wheres

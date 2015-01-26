@@ -237,16 +237,16 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
   def test_build_and_create_should_not_happen_within_scope
     pirate = pirates(:blackbeard)
-    scoped_count = pirate.association(:foo_bulb).scope.where_values.count
+    scoped_count = pirate.association(:foo_bulb).scope.where_clause.predicates.count
 
     bulb = pirate.build_foo_bulb
-    assert_not_equal scoped_count, bulb.scope_after_initialize.where_values.count
+    assert_not_equal scoped_count, bulb.scope_after_initialize.where_clause.predicates.count
 
     bulb = pirate.create_foo_bulb
-    assert_not_equal scoped_count, bulb.scope_after_initialize.where_values.count
+    assert_not_equal scoped_count, bulb.scope_after_initialize.where_clause.predicates.count
 
     bulb = pirate.create_foo_bulb!
-    assert_not_equal scoped_count, bulb.scope_after_initialize.where_values.count
+    assert_not_equal scoped_count, bulb.scope_after_initialize.where_clause.predicates.count
   end
 
   def test_create_association

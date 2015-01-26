@@ -156,12 +156,12 @@ module ActiveRecord
       relation = Relation.new(FakeKlass, :b, nil)
       relation = relation.merge where: :lol, readonly: true
 
-      assert_equal [:lol], relation.where_values
+      assert_equal [:lol], relation.where_clause.predicates
       assert_equal true, relation.readonly_value
     end
 
     test 'merging an empty hash into a relation' do
-      assert_equal [], Relation.new(FakeKlass, :b, nil).merge({}).where_values
+      assert_equal Relation::WhereClause.empty, Relation.new(FakeKlass, :b, nil).merge({}).where_clause
     end
 
     test 'merging a hash with unknown keys raises' do
@@ -173,7 +173,7 @@ module ActiveRecord
       values   = relation.values
 
       values[:where] = nil
-      assert_not_nil relation.where_values
+      assert_not_nil relation.where_clause
     end
 
     test 'relations can be created with a values hash' do
@@ -191,7 +191,7 @@ module ActiveRecord
 
       relation = Relation.new(klass, :b, nil)
       relation.merge!(where: ['foo = ?', 'bar'])
-      assert_equal ['foo = bar'], relation.where_values
+      assert_equal ['foo = bar'], relation.where_clause.predicates
     end
 
     def test_merging_readonly_false

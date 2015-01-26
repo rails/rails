@@ -380,7 +380,7 @@ class NamedScopingTest < ActiveRecord::TestCase
   end
 
   def test_should_not_duplicates_where_values
-    where_values = Topic.where("1=1").scope_with_lambda.where_values
+    where_values = Topic.where("1=1").scope_with_lambda.where_clause.predicates
     assert_equal ["1=1"], where_values
   end
 
