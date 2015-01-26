@@ -97,6 +97,20 @@ class ActiveRecord::Relation
       assert_equal expected, original.invert
     end
 
+    test "accept removes binary predicates referencing a given column" do
+      where_clause = WhereClause.new([
+        table["id"].in([1, 2, 3]),
+        table["name"].eq(bind_param),
+        table["age"].gteq(bind_param),
+      ], [
+        [column("name"), "Sean"],
+        [column("age"), 30],
+      ])
+      expected = WhereClause.new([table["age"].gteq(bind_param)], [[column("age"), 30]])
+
+      assert_equal expected, where_clause.except("id", "name")
+    end
+
     private
 
     def table

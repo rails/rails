@@ -410,9 +410,8 @@ module ActiveRecord
               raise ArgumentError, "Hash arguments in .unscope(*args) must have :where as the key."
             end
 
-            Array(target_value).each do |val|
-              where_unscoping(val)
-            end
+            target_values = Array(target_value).map(&:to_s)
+            self.where_clause = where_clause.except(*target_values)
           end
         else
           raise ArgumentError, "Unrecognized scoping: #{args.inspect}. Use .unscope(where: :attribute_name) or .unscope(:order), for example."
@@ -914,20 +913,6 @@ module ActiveRecord
       end
 
       self.send(unscope_code, result)
-    end
-
-    def where_unscoping(target_value)
-      target_value = target_value.to_s
-
-      self.where_values = where_values.reject do |rel|
-        case rel
-        when Arel::Nodes::Between, Arel::Nodes::In, Arel::Nodes::NotIn, Arel::Nodes::Equality, Arel::Nodes::NotEqual, Arel::Nodes::LessThanOrEqual, Arel::Nodes::GreaterThanOrEqual
-          subrelation = (rel.left.kind_of?(Arel::Attributes::Attribute) ? rel.left : rel.right)
-          subrelation.name.to_s == target_value
-        end
-      end
-
-      self.bind_values = bind_values.reject { |col,_| col.name == target_value }
     end
 
     def custom_join_ast(table, joins)

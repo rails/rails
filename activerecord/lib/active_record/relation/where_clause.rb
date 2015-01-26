@@ -24,6 +24,13 @@ module ActiveRecord
         )
       end
 
+      def except(*columns)
+        WhereClause.new(
+          predicates_except(columns),
+          binds_except(columns),
+        )
+      end
+
       def ==(other)
         other.is_a?(WhereClause) &&
           predicates == other.predicates &&
@@ -81,6 +88,22 @@ module ActiveRecord
           Arel::Nodes::Not.new(Arel::Nodes::SqlLiteral.new(node))
         else
           Arel::Nodes::Not.new(node)
+        end
+      end
+
+      def predicates_except(columns)
+        predicates.reject do |node|
+          case node
+          when Arel::Nodes::Between, Arel::Nodes::In, Arel::Nodes::NotIn, Arel::Nodes::Equality, Arel::Nodes::NotEqual, Arel::Nodes::LessThanOrEqual, Arel::Nodes::GreaterThanOrEqual
+            subrelation = (node.left.kind_of?(Arel::Attributes::Attribute) ? node.left : node.right)
+            columns.include?(subrelation.name.to_s)
+          end
+        end
+      end
+
+      def binds_except(columns)
+        binds.reject do |column, _|
+          columns.include?(column.name)
         end
       end
     end
