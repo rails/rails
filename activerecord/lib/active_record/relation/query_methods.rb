@@ -900,16 +900,19 @@ module ActiveRecord
         raise ArgumentError, "Called unscope() with invalid unscoping argument ':#{scope}'. Valid arguments are :#{VALID_UNSCOPING_VALUES.to_a.join(", :")}."
       end
 
-      single_val_method = Relation::SINGLE_VALUE_METHODS.include?(scope)
-      unscope_code = "#{scope}_value#{'s' unless single_val_method}="
+      clause_method = Relation::CLAUSE_METHODS.include?(scope)
+      multi_val_method = Relation::MULTI_VALUE_METHODS.include?(scope)
+      if clause_method
+        unscope_code = "#{scope}_clause="
+      else
+        unscope_code = "#{scope}_value#{'s' if multi_val_method}="
+      end
 
       case scope
       when :order
         result = []
-      when :where
-        self.bind_values = []
       else
-        result = [] unless single_val_method
+        result = [] if multi_val_method
       end
 
       self.send(unscope_code, result)
