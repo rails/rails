@@ -853,12 +853,9 @@ module ActiveRecord
       build_joins(arel, joins_values.flatten) unless joins_values.empty?
 
       arel.where(where_clause.ast) unless where_clause.empty?
-
-      arel.having(*having_clause.predicates.uniq.reject(&:blank?)) if having_clause.any?
-
+      arel.having(having_clause.ast) unless having_clause.empty?
       arel.take(connection.sanitize_limit(limit_value)) if limit_value
       arel.skip(offset_value.to_i) if offset_value
-
       arel.group(*group_values.uniq.reject(&:blank?)) unless group_values.empty?
 
       build_order(arel)
