@@ -34,7 +34,6 @@ module Arel
         Arel::Nodes::Grouping,
         Arel::Nodes::Offset,
         Arel::Nodes::Ordering,
-        Arel::Nodes::Having,
         Arel::Nodes::UnqualifiedColumn,
         Arel::Nodes::Top,
         Arel::Nodes::Limit,

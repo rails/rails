@@ -146,7 +146,7 @@ module Arel
         visit o.wheres
         visit o.groups
         visit o.windows
-        visit o.having
+        visit o.havings
       end
 
       def visit_Arel_Nodes_SelectStatement o

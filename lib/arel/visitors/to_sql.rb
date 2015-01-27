@@ -265,7 +265,10 @@ module Arel
           end
         end
 
-        collector = maybe_visit o.having, collector
+        unless o.havings.empty?
+          collector << " HAVING "
+          inject_join o.havings, collector, AND
+        end
 
         unless o.windows.empty?
           collector << WINDOW
@@ -402,11 +405,6 @@ module Arel
         else
           infix_value o, collector, " OVER "
         end
-      end
-
-      def visit_Arel_Nodes_Having o, collector
-        collector << "HAVING "
-        visit o.expr, collector
       end
 
       def visit_Arel_Nodes_Offset o, collector

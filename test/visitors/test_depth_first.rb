@@ -30,7 +30,6 @@ module Arel
         Arel::Nodes::Grouping,
         Arel::Nodes::Offset,
         Arel::Nodes::Ordering,
-        Arel::Nodes::Having,
         Arel::Nodes::StringJoin,
         Arel::Nodes::UnqualifiedColumn,
         Arel::Nodes::Top,
@@ -206,7 +205,7 @@ module Arel
         core.wheres << :c
         core.groups << :d
         core.windows << :e
-        core.having = :f
+        core.havings << :f
 
         @visitor.accept core
         assert_equal [
@@ -216,7 +215,7 @@ module Arel
           :c, core.wheres,
           :d, core.groups,
           :e, core.windows,
-          :f,
+          :f, core.havings,
           core], @collector.calls
       end
 

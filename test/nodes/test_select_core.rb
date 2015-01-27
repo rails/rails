@@ -34,14 +34,14 @@ module Arel
         core1.wheres      = %w[g h i]
         core1.groups      = %w[j k l]
         core1.windows     = %w[m n o]
-        core1.having      = %w[p q r]
+        core1.havings     = %w[p q r]
         core2 = SelectCore.new
         core2.froms       = %w[a b c]
         core2.projections = %w[d e f]
         core2.wheres      = %w[g h i]
         core2.groups      = %w[j k l]
         core2.windows     = %w[m n o]
-        core2.having      = %w[p q r]
+        core2.havings     = %w[p q r]
         array = [core1, core2]
         assert_equal 1, array.uniq.size
       end
@@ -53,14 +53,14 @@ module Arel
         core1.wheres      = %w[g h i]
         core1.groups      = %w[j k l]
         core1.windows     = %w[m n o]
-        core1.having      = %w[p q r]
+        core1.havings     = %w[p q r]
         core2 = SelectCore.new
         core2.froms       = %w[a b c]
         core2.projections = %w[d e f]
         core2.wheres      = %w[g h i]
         core2.groups      = %w[j k l]
         core2.windows     = %w[m n o]
-        core2.having      = %w[l o l]
+        core2.havings     = %w[l o l]
         array = [core1, core2]
         assert_equal 2, array.uniq.size
       end

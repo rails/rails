@@ -111,22 +111,22 @@ module Arel
         it 'converts strings to SQLLiterals' do
           table   = Table.new :users
           mgr = table.from
-          mgr.having 'foo'
+          mgr.having Arel.sql('foo')
           mgr.to_sql.must_be_like %{ SELECT FROM "users" HAVING foo }
         end
 
         it 'can have multiple items specified separately' do
           table = Table.new :users
           mgr = table.from
-          mgr.having 'foo'
-          mgr.having 'bar'
+          mgr.having Arel.sql('foo')
+          mgr.having Arel.sql('bar')
           mgr.to_sql.must_be_like %{ SELECT FROM "users" HAVING foo AND bar }
         end
 
-        it 'can have multiple items specified together' do
+        it 'can receive any node' do
           table = Table.new :users
           mgr = table.from
-          mgr.having 'foo', 'bar'
+          mgr.having Arel::Nodes::And.new([Arel.sql('foo'), Arel.sql('bar')])
           mgr.to_sql.must_be_like %{ SELECT FROM "users" HAVING foo AND bar }
         end
       end

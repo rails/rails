@@ -34,8 +34,13 @@ module Arel
           collector = inject_join o.groups, collector, ", "
         end
 
-        maybe_visit o.having, collector
+        if o.havings.any?
+          collector << " HAVING "
+          collector = inject_join o.havings, collector, " AND "
+        end
+        collector
       end
+
       def visit_Arel_Nodes_Offset o, collector
         collector << "SKIP "
         visit o.expr, collector

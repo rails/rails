@@ -23,7 +23,6 @@ module Arel
     %w{
       Bin
       Group
-      Having
       Limit
       Not
       Offset

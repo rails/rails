@@ -2,7 +2,7 @@ module Arel
   module Nodes
     class SelectCore < Arel::Nodes::Node
       attr_accessor :top, :projections, :wheres, :groups, :windows
-      attr_accessor :having, :source, :set_quantifier
+      attr_accessor :havings, :source, :set_quantifier
 
       def initialize
         super()
@@ -14,7 +14,7 @@ module Arel
         @projections    = []
         @wheres         = []
         @groups         = []
-        @having         = nil
+        @havings        = []
         @windows        = []
       end
 
@@ -35,14 +35,14 @@ module Arel
         @projections = @projections.clone
         @wheres      = @wheres.clone
         @groups      = @groups.clone
-        @having      = @having.clone if @having
+        @havings     = @havings.clone
         @windows     = @windows.clone
       end
 
       def hash
         [
           @source, @top, @set_quantifier, @projections,
-          @wheres, @groups, @having, @windows
+          @wheres, @groups, @havings, @windows
         ].hash
       end
 
@@ -54,7 +54,7 @@ module Arel
           self.projections == other.projections &&
           self.wheres == other.wheres &&
           self.groups == other.groups &&
-          self.having == other.having &&
+          self.havings == other.havings &&
           self.windows == other.windows
       end
       alias :== :eql?

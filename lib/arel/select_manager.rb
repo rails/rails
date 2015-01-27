@@ -118,8 +118,8 @@ module Arel
       join(relation, Nodes::OuterJoin)
     end
 
-    def having *exprs
-      @ctx.having = Nodes::Having.new(collapse(exprs, @ctx.having))
+    def having expr
+      @ctx.havings << expr
       self
     end
 
