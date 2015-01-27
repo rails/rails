@@ -94,7 +94,7 @@ module ActiveRecord
     end
 
     def bind_values
-      from_clause.binds + where_clause.binds + having_clause.binds
+      from_clause.binds + arel.bind_values + where_clause.binds + having_clause.binds
     end
 
     def create_with_value # :nodoc:

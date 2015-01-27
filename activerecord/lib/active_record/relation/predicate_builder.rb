@@ -104,7 +104,7 @@ module ActiveRecord
           result[column_name] = attrs
           binds += bvs
         when Relation
-          binds += value.arel.bind_values + value.bind_values
+          binds += value.bind_values
         else
           if can_be_bound?(column_name, value)
             result[column_name] = Arel::Nodes::BindParam.new

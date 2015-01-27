@@ -342,8 +342,7 @@ module ActiveRecord
         stmt.wheres = arel.constraints
       end
 
-      bvs = arel.bind_values + bind_values
-      @klass.connection.update stmt, 'SQL', bvs
+      @klass.connection.update stmt, 'SQL', bind_values
     end
 
     # Updates an object (or multiple objects) and saves it to the database, if validations pass.
@@ -559,11 +558,10 @@ module ActiveRecord
                       find_with_associations { |rel| relation = rel }
                     end
 
-                    arel  = relation.arel
-                    binds = arel.bind_values + relation.bind_values
+                    binds = relation.bind_values
                     binds = connection.prepare_binds_for_database(binds)
                     binds.map! { |_, value| connection.quote(value) }
-                    collect = visitor.accept(arel.ast, Arel::Collectors::Bind.new)
+                    collect = visitor.accept(relation.arel.ast, Arel::Collectors::Bind.new)
                     collect.substitute_binds(binds).join
                   end
     end
@@ -636,7 +634,7 @@ module ActiveRecord
     private
 
     def exec_queries
-      @records = eager_loading? ? find_with_associations : @klass.find_by_sql(arel, arel.bind_values + bind_values)
+      @records = eager_loading? ? find_with_associations : @klass.find_by_sql(arel, bind_values)
 
       preload = preload_values
       preload +=  includes_values unless eager_loading?
