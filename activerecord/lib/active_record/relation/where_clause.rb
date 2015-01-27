@@ -31,6 +31,13 @@ module ActiveRecord
         )
       end
 
+      def or(other)
+        WhereClause.new(
+          [ast.or(other.ast)],
+          binds + other.binds
+        )
+      end
+
       def to_h(table_name = nil)
         equalities = predicates.grep(Arel::Nodes::Equality)
         if table_name

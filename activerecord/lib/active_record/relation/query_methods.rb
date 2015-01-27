@@ -1,4 +1,5 @@
 require "active_record/relation/from_clause"
+require "active_record/relation/or_placeholder"
 require "active_record/relation/query_attribute"
 require "active_record/relation/where_clause"
 require "active_record/relation/where_clause_factory"
@@ -566,7 +567,11 @@ module ActiveRecord
         references!(PredicateBuilder.references(opts))
       end
 
-      self.where_clause += where_clause_factory.build(opts, rest)
+      if Relation::OrPlaceholder === opts
+        self.where_clause += opts.join(:where_clause)
+      else
+        self.where_clause += where_clause_factory.build(opts, rest)
+      end
       self
     end
 
@@ -593,7 +598,11 @@ module ActiveRecord
     def having!(opts, *rest) # :nodoc:
       references!(PredicateBuilder.references(opts)) if Hash === opts
 
-      self.having_clause += having_clause_factory.build(opts, rest)
+      if Relation::OrPlaceholder === opts
+        self.having_clause += opts.join(:having_clause)
+      else
+        self.having_clause += having_clause_factory.build(opts, rest)
+      end
       self
     end
 
@@ -766,6 +775,15 @@ module ActiveRecord
       self
     end
     alias uniq! distinct!
+
+    def or(other, *rest)
+      case other
+      when Relation, Relation::WhereClause
+        Relation::OrPlaceholder.new(self, other)
+      else
+        self.or(where_clause_factory.build(other, rest))
+      end
+    end
 
     # Used to extend a scope with additional methods, either through
     # a module or through a block provided.
