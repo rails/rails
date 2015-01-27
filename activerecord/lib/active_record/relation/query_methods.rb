@@ -2,7 +2,6 @@ require "active_record/relation/from_clause"
 require "active_record/relation/where_clause"
 require "active_record/relation/where_clause_factory"
 require 'active_model/forbidden_attributes_protection'
-require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/string/filters'
 
 module ActiveRecord
@@ -892,22 +891,6 @@ module ActiveRecord
       self.send(unscope_code, result)
     end
 
-    def custom_join_ast(table, joins)
-      joins = joins.reject(&:blank?)
-
-      return [] if joins.empty?
-
-      joins.map! do |join|
-        case join
-        when Array
-          join = Arel.sql(join.join(' ')) if array_of_strings?(join)
-        when String
-          join = Arel.sql(join)
-        end
-        table.create_string_join(join)
-      end
-    end
-
     def association_for_table(table_name)
       table_name = table_name.to_s
       @klass._reflect_on_association(table_name) ||
@@ -941,13 +924,14 @@ module ActiveRecord
           raise 'unknown class: %s' % join.class.name
         end
       end
+      buckets.default = []
 
-      association_joins         = buckets[:association_join] || []
-      stashed_association_joins = buckets[:stashed_join] || []
-      join_nodes                = (buckets[:join_node] || []).uniq
-      string_joins              = (buckets[:string_join] || []).map(&:strip).uniq
+      association_joins         = buckets[:association_join]
+      stashed_association_joins = buckets[:stashed_join]
+      join_nodes                = buckets[:join_node].uniq
+      string_joins              = buckets[:string_join].map(&:strip).uniq
 
-      join_list = join_nodes + custom_join_ast(manager, string_joins)
+      join_list = join_nodes + convert_join_strings_to_ast(manager, string_joins)
 
       join_dependency = ActiveRecord::Associations::JoinDependency.new(
         @klass,
@@ -965,6 +949,13 @@ module ActiveRecord
       manager.join_sources.concat(join_list)
 
       manager
+    end
+
+    def convert_join_strings_to_ast(table, joins)
+      joins
+        .flatten
+        .reject(&:blank?)
+        .map { |join| table.create_string_join(Arel.sql(join)) }
     end
 
     def build_select(arel, selects)
@@ -999,10 +990,6 @@ module ActiveRecord
           o
         end
       end
-    end
-
-    def array_of_strings?(o)
-      o.is_a?(Array) && o.all? { |obj| obj.is_a?(String) }
     end
 
     def build_order(arel)
