@@ -31,7 +31,7 @@ module ActiveRecord::Associations::Builder
     def self.define_validations(model, reflection)
       super
       if reflection.options[:required]
-        model.validates_presence_of reflection.name
+        model.validates_presence_of reflection.name, message: :required
       end
     end
   end
