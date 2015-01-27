@@ -104,11 +104,11 @@ module ActiveRecord
           result[column_name] = attrs
           binds += bvs
         when Relation
-          binds += value.bind_values
+          binds += value.bound_attributes
         else
           if can_be_bound?(column_name, value)
             result[column_name] = Arel::Nodes::BindParam.new
-            binds.push([table.column(column_name), value])
+            binds << Attribute.with_cast_value(column_name.to_s, value, table.type(column_name))
           end
         end
       end

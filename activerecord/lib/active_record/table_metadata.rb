@@ -22,12 +22,11 @@ module ActiveRecord
       arel_table[column_name]
     end
 
-    def column(column_name)
+    def type(column_name)
       if klass
-        klass.columns_hash[column_name.to_s]
+        klass.type_for_attribute(column_name.to_s)
       else
-        # FIXME: We really shouldn't need to do this.
-        ConnectionAdapters::Column.new(column_name.to_s, nil, Type::Value.new)
+        Type::Value.new
       end
     end
 

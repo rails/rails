@@ -10,7 +10,7 @@ module ActiveRecord
 
       def binds
         if value.is_a?(Relation)
-          value.bind_values
+          value.bound_attributes
         else
           []
         end

@@ -39,7 +39,7 @@ module ActiveRecord
           end
         end
 
-        binds = self.binds.select(&:first).to_h.transform_keys(&:name)
+        binds = self.binds.map { |attr| [attr.name, attr.value] }.to_h
 
         equalities.map { |node|
           name = node.left.name
@@ -97,7 +97,7 @@ module ActiveRecord
       def non_conflicting_binds(other)
         conflicts = referenced_columns & other.referenced_columns
         conflicts.map! { |node| node.name.to_s }
-        binds.reject { |col, _| conflicts.include?(col.name) }
+        binds.reject { |attr| conflicts.include?(attr.name) }
       end
 
       def inverted_predicates
@@ -130,8 +130,8 @@ module ActiveRecord
       end
 
       def binds_except(columns)
-        binds.reject do |column, _|
-          columns.include?(column.name)
+        binds.reject do |attr|
+          columns.include?(attr.name)
         end
       end
 

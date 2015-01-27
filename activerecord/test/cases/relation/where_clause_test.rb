@@ -47,15 +47,15 @@ class ActiveRecord::Relation
     test "merge removes bind parameters matching overlapping equality clauses" do
       a = WhereClause.new(
         [table["id"].eq(bind_param), table["name"].eq(bind_param)],
-        [[column("id"), 1], [column("name"), "Sean"]],
+        [attribute("id", 1), attribute("name", "Sean")],
       )
       b = WhereClause.new(
         [table["name"].eq(bind_param)],
-        [[column("name"), "Jim"]]
+        [attribute("name", "Jim")]
       )
       expected = WhereClause.new(
         [table["id"].eq(bind_param), table["name"].eq(bind_param)],
-        [[column("id"), 1], [column("name"), "Jim"]],
+        [attribute("id", 1), attribute("name", "Jim")],
       )
 
       assert_equal expected, a.merge(b)
@@ -103,10 +103,10 @@ class ActiveRecord::Relation
         table["name"].eq(bind_param),
         table["age"].gteq(bind_param),
       ], [
-        [column("name"), "Sean"],
-        [column("age"), 30],
+        attribute("name", "Sean"),
+        attribute("age", 30),
       ])
-      expected = WhereClause.new([table["age"].gteq(bind_param)], [[column("age"), 30]])
+      expected = WhereClause.new([table["age"].gteq(bind_param)], [attribute("age", 30)])
 
       assert_equal expected, where_clause.except("id", "name")
     end
@@ -155,8 +155,8 @@ class ActiveRecord::Relation
       Arel::Nodes::BindParam.new
     end
 
-    def column(name)
-      ActiveRecord::ConnectionAdapters::Column.new(name, nil, nil)
+    def attribute(name, value)
+      ActiveRecord::Attribute.with_cast_value(name, value, ActiveRecord::Type::Value.new)
     end
   end
 end

@@ -8,7 +8,7 @@ module ActiveRecord
       test 'does not duplicate conditions' do
         scope = AssociationScope.scope(Author.new.association(:welcome_posts),
                                         Author.connection)
-        binds = scope.where_clause.binds.map(&:last)
+        binds = scope.where_clause.binds.map(&:value)
         assert_equal binds.uniq, binds
       end
     end

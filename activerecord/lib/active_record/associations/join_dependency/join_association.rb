@@ -25,7 +25,7 @@ module ActiveRecord
 
         def join_constraints(foreign_table, foreign_klass, node, join_type, tables, scope_chain, chain)
           joins         = []
-          bind_values   = []
+          binds         = []
           tables        = tables.reverse
 
           scope_chain_index = 0
@@ -66,7 +66,7 @@ module ActiveRecord
             end
 
             if rel && !rel.arel.constraints.empty?
-              bind_values.concat rel.bind_values
+              binds += rel.bound_attributes
               constraint = constraint.and rel.arel.constraints
             end
 
@@ -75,7 +75,7 @@ module ActiveRecord
               column = klass.columns_hash[reflection.type.to_s]
 
               substitute = klass.connection.substitute_at(column)
-              bind_values.push [column, value]
+              binds << Attribute.with_cast_value(column.name, value, klass.type_for_attribute(column.name))
               constraint = constraint.and table[reflection.type].eq substitute
             end
 
@@ -85,7 +85,7 @@ module ActiveRecord
             foreign_table, foreign_klass = table, klass
           end
 
-          JoinInformation.new joins, bind_values
+          JoinInformation.new joins, binds
         end
 
         #  Builds equality condition.

@@ -92,8 +92,18 @@ module ActiveRecord
       CODE
     end
 
-    def bind_values
+    def bound_attributes
       from_clause.binds + arel.bind_values + where_clause.binds + having_clause.binds
+    end
+
+    def bind_values
+      # convert to old style
+      bound_attributes.map do |attribute|
+        if attribute.name
+          column = ConnectionAdapters::Column.new(attribute.name, nil, attribute.type)
+        end
+        [column, attribute.value_before_type_cast]
+      end
     end
 
     def create_with_value # :nodoc:
