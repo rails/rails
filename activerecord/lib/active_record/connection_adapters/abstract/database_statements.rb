@@ -286,10 +286,10 @@ module ActiveRecord
         columns = schema_cache.columns_hash(table_name)
 
         binds = fixture.map do |name, value|
-          [columns[name], value]
+          Relation::QueryAttribute.new(name, value, columns[name].cast_type)
         end
         key_list = fixture.keys.map { |name| quote_column_name(name) }
-        value_list = prepare_binds_for_database(binds).map do |_, value|
+        value_list = prepare_binds_for_database(binds).map do |value|
           begin
             quote(value)
           rescue TypeError
@@ -381,7 +381,7 @@ module ActiveRecord
 
         def binds_from_relation(relation, binds)
           if relation.is_a?(Relation) && binds.empty?
-            relation, binds = relation.arel, relation.bind_values
+            relation, binds = relation.arel, relation.bound_attributes
           end
           [relation, binds]
         end

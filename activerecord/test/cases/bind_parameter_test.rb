@@ -40,7 +40,7 @@ module ActiveRecord
 
       def test_binds_are_logged
         sub   = @connection.substitute_at(@pk)
-        binds = [[@pk, 1]]
+        binds = [Relation::QueryAttribute.new("id", 1, Type::Value.new)]
         sql   = "select * from topics where id = #{sub.to_sql}"
 
         @connection.exec_query(sql, 'SQL', binds)
@@ -49,29 +49,17 @@ module ActiveRecord
         assert_equal binds, message[4][:binds]
       end
 
-      def test_binds_are_logged_after_type_cast
-        sub   = @connection.substitute_at(@pk)
-        binds = [[@pk, "3"]]
-        sql   = "select * from topics where id = #{sub.to_sql}"
-
-        @connection.exec_query(sql, 'SQL', binds)
-
-        message = @subscriber.calls.find { |args| args[4][:sql] == sql }
-        assert_equal [[@pk, 3]], message[4][:binds]
-      end
-
       def test_find_one_uses_binds
         Topic.find(1)
-        binds = [[@pk, 1]]
-        message = @subscriber.calls.find { |args| args[4][:binds] == binds }
+        message = @subscriber.calls.find { |args| args[4][:binds].any? { |attr| attr.value == 1 } }
         assert message, 'expected a message with binds'
       end
 
-      def test_logs_bind_vars
+      def test_logs_bind_vars_after_type_cast
         payload = {
           :name  => 'SQL',
           :sql   => 'select * from topics where id = ?',
-          :binds => [[@pk, 10]]
+          :binds => [Relation::QueryAttribute.new("id", "10", Type::Integer.new)]
         }
         event  = ActiveSupport::Notifications::Event.new(
           'foo',

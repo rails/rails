@@ -88,6 +88,11 @@ module ActiveRecord
         value_before_type_cast == other.value_before_type_cast &&
         type == other.type
     end
+    alias eql? ==
+
+    def hash
+      [self.class, name, value_before_type_cast, type].hash
+    end
 
     protected
 

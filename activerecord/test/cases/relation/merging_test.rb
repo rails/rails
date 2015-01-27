@@ -82,10 +82,10 @@ class RelationMergingTest < ActiveRecord::TestCase
     left  = Post.where(title: "omg").where(comments_count: 1)
     right = Post.where(title: "wtf").where(title: "bbq")
 
-    expected = [left.bind_values[1]] + right.bind_values
+    expected = [left.bound_attributes[1]] + right.bound_attributes
     merged   = left.merge(right)
 
-    assert_equal expected, merged.bind_values
+    assert_equal expected, merged.bound_attributes
     assert !merged.to_sql.include?("omg")
     assert merged.to_sql.include?("wtf")
     assert merged.to_sql.include?("bbq")

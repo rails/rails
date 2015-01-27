@@ -1,4 +1,5 @@
 require "active_record/relation/from_clause"
+require "active_record/relation/query_attribute"
 require "active_record/relation/where_clause"
 require "active_record/relation/where_clause_factory"
 require 'active_model/forbidden_attributes_protection'
@@ -94,16 +95,6 @@ module ActiveRecord
 
     def bound_attributes
       from_clause.binds + arel.bind_values + where_clause.binds + having_clause.binds
-    end
-
-    def bind_values
-      # convert to old style
-      bound_attributes.map do |attribute|
-        if attribute.name
-          column = ConnectionAdapters::Column.new(attribute.name, nil, attribute.type)
-        end
-        [column, attribute.value_before_type_cast]
-      end
     end
 
     def create_with_value # :nodoc:

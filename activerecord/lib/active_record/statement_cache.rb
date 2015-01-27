@@ -48,7 +48,7 @@ module ActiveRecord
       def sql_for(binds, connection)
         val = @values.dup
         binds = connection.prepare_binds_for_database(binds)
-        @indexes.each { |i| val[i] = connection.quote(binds.shift.last) }
+        @indexes.each { |i| val[i] = connection.quote(binds.shift) }
         val.join
       end
     end
@@ -67,21 +67,21 @@ module ActiveRecord
     end
 
     class BindMap # :nodoc:
-      def initialize(bind_values)
+      def initialize(bound_attributes)
         @indexes   = []
-        @bind_values = bind_values
+        @bound_attributes = bound_attributes
 
-        bind_values.each_with_index do |(_, value), i|
-          if Substitute === value
+        bound_attributes.each_with_index do |attr, i|
+          if Substitute === attr.value
             @indexes << i
           end
         end
       end
 
       def bind(values)
-        bvs = @bind_values.map(&:dup)
-        @indexes.each_with_index { |offset,i| bvs[offset][1] = values[i] }
-        bvs
+        bas = @bound_attributes.dup
+        @indexes.each_with_index { |offset,i| bas[offset] = bas[offset].with_cast_value(values[i]) }
+        bas
       end
     end
 
@@ -89,7 +89,7 @@ module ActiveRecord
 
     def self.create(connection, block = Proc.new)
       relation      = block.call Params.new
-      bind_map      = BindMap.new relation.bind_values
+      bind_map      = BindMap.new relation.bound_attributes
       query_builder = connection.cacheable_query relation.arel
       new query_builder, bind_map
     end

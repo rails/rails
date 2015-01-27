@@ -311,7 +311,7 @@ module ActiveRecord
         end
       end
 
-      connection.select_value(relation, "#{name} Exists", relation.bind_values) ? true : false
+      connection.select_value(relation, "#{name} Exists", relation.bound_attributes) ? true : false
     end
 
     # This method is called whenever no records are found with either a single
@@ -365,7 +365,7 @@ module ActiveRecord
           []
         else
           arel = relation.arel
-          rows = connection.select_all(arel, 'SQL', relation.bind_values)
+          rows = connection.select_all(arel, 'SQL', relation.bound_attributes)
           join_dependency.instantiate(rows, aliases)
         end
       end
@@ -410,7 +410,7 @@ module ActiveRecord
       relation = relation.except(:select).select(values).distinct!
       arel = relation.arel
 
-      id_rows = @klass.connection.select_all(arel, 'SQL', relation.bind_values)
+      id_rows = @klass.connection.select_all(arel, 'SQL', relation.bound_attributes)
       id_rows.map {|row| row[primary_key]}
     end
 

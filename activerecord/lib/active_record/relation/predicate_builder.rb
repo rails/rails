@@ -108,7 +108,7 @@ module ActiveRecord
         else
           if can_be_bound?(column_name, value)
             result[column_name] = Arel::Nodes::BindParam.new
-            binds << Attribute.with_cast_value(column_name.to_s, value, table.type(column_name))
+            binds << Relation::QueryAttribute.new(column_name.to_s, value, table.type(column_name))
           end
         end
       end

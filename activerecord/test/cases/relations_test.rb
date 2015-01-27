@@ -1758,7 +1758,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_merging_keeps_lhs_bind_parameters
-    binds = [ActiveRecord::Attribute.with_cast_value("id", 20, Post.type_for_attribute("id"))]
+    binds = [ActiveRecord::Relation::QueryAttribute.new("id", 20, Post.type_for_attribute("id"))]
 
     right  = Post.where(id: 20)
     left   = Post.where(id: 10)

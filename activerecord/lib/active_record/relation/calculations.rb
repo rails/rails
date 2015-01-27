@@ -166,7 +166,7 @@ module ActiveRecord
         relation.select_values = column_names.map { |cn|
           columns_hash.key?(cn) ? arel_table[cn] : cn
         }
-        result = klass.connection.select_all(relation.arel, nil, bind_values)
+        result = klass.connection.select_all(relation.arel, nil, bound_attributes)
         result.cast_values(klass.column_types)
       end
     end
@@ -244,7 +244,7 @@ module ActiveRecord
         query_builder = relation.arel
       end
 
-      result = @klass.connection.select_all(query_builder, nil, bind_values)
+      result = @klass.connection.select_all(query_builder, nil, bound_attributes)
       row    = result.first
       value  = row && row.values.first
       column = result.column_types.fetch(column_alias) do
@@ -300,7 +300,7 @@ module ActiveRecord
       relation.group_values  = group
       relation.select_values = select_values
 
-      calculated_data = @klass.connection.select_all(relation, nil, relation.bind_values)
+      calculated_data = @klass.connection.select_all(relation, nil, relation.bound_attributes)
 
       if association
         key_ids     = calculated_data.collect { |row| row[group_aliases.first] }

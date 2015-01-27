@@ -126,11 +126,11 @@ module ActiveRecord
     end
 
     def test_statement_key_is_logged
-      bindval = 1
-      @connection.exec_query('SELECT $1::integer', 'SQL', [[nil, bindval]])
+      bind = Relation::QueryAttribute.new(nil, 1, Type::Value.new)
+      @connection.exec_query('SELECT $1::integer', 'SQL', [bind])
       name = @subscriber.payloads.last[:statement_name]
       assert name
-      res = @connection.exec_query("EXPLAIN (FORMAT JSON) EXECUTE #{name}(#{bindval})")
+      res = @connection.exec_query("EXPLAIN (FORMAT JSON) EXECUTE #{name}(1)")
       plan = res.column_types['QUERY PLAN'].type_cast_from_database res.rows.first.first
       assert_operator plan.length, :>, 0
     end

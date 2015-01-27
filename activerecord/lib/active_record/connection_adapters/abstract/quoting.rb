@@ -97,13 +97,7 @@ module ActiveRecord
       end
 
       def prepare_binds_for_database(binds) # :nodoc:
-        binds.map do |column, value|
-          if column
-            column_name = column.name
-            value = column.cast_type.type_cast_for_database(value)
-          end
-          [column_name, value]
-        end
+        binds.map(&:value_for_database)
       end
 
       private

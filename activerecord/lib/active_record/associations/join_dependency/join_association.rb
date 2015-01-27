@@ -75,7 +75,7 @@ module ActiveRecord
               column = klass.columns_hash[reflection.type.to_s]
 
               substitute = klass.connection.substitute_at(column)
-              binds << Attribute.with_cast_value(column.name, value, klass.type_for_attribute(column.name))
+              binds << Relation::QueryAttribute.new(column.name, value, klass.type_for_attribute(column.name))
               constraint = constraint.and table[reflection.type].eq substitute
             end
 

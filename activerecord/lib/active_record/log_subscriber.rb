@@ -20,18 +20,14 @@ module ActiveRecord
       @odd = false
     end
 
-    def render_bind(column, value)
-      if column
-        if column.binary? && value
-          # This specifically deals with the PG adapter that casts bytea columns into a Hash.
-          value = value[:value] if value.is_a?(Hash)
-          value = "<#{value.bytesize} bytes of binary data>"
-        end
-
-        [column.name, value]
+    def render_bind(attribute)
+      value = if attribute.type.binary? && attribute.value
+        "<#{attribute.value.bytesize} bytes of binary data>"
       else
-        [nil, value]
+        attribute.value_for_database
       end
+
+      [attribute.name, value]
     end
 
     def sql(event)
@@ -47,9 +43,7 @@ module ActiveRecord
       binds = nil
 
       unless (payload[:binds] || []).empty?
-        binds = "  " + payload[:binds].map { |col,v|
-          render_bind(col, v)
-        }.inspect
+        binds = "  " + payload[:binds].map { |attr| render_bind(attr) }.inspect
       end
 
       if odd?

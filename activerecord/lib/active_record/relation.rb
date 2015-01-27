@@ -81,7 +81,7 @@ module ActiveRecord
       end
 
       relation = scope.where(@klass.primary_key => (id_was || id))
-      bvs = binds + relation.bind_values
+      bvs = binds + relation.bound_attributes
       um = relation
         .arel
         .compile_update(substitutes, @klass.primary_key)
@@ -95,11 +95,11 @@ module ActiveRecord
 
     def substitute_values(values) # :nodoc:
       binds = values.map do |arel_attr, value|
-        [@klass.columns_hash[arel_attr.name], value]
+        QueryAttribute.new(arel_attr.name, value, klass.type_for_attribute(arel_attr.name))
       end
 
-      substitutes = values.each_with_index.map do |(arel_attr, _), i|
-        [arel_attr, @klass.connection.substitute_at(binds[i][0])]
+      substitutes = values.map do |(arel_attr, _)|
+        [arel_attr, connection.substitute_at(klass.columns_hash[arel_attr.name])]
       end
 
       [substitutes, binds]
@@ -342,7 +342,7 @@ module ActiveRecord
         stmt.wheres = arel.constraints
       end
 
-      @klass.connection.update stmt, 'SQL', bind_values
+      @klass.connection.update stmt, 'SQL', bound_attributes
     end
 
     # Updates an object (or multiple objects) and saves it to the database, if validations pass.
@@ -488,7 +488,7 @@ module ActiveRecord
           stmt.wheres = arel.constraints
         end
 
-        affected = @klass.connection.delete(stmt, 'SQL', bind_values)
+        affected = @klass.connection.delete(stmt, 'SQL', bound_attributes)
 
         reset
         affected
@@ -558,9 +558,9 @@ module ActiveRecord
                       find_with_associations { |rel| relation = rel }
                     end
 
-                    binds = relation.bind_values
+                    binds = relation.bound_attributes
                     binds = connection.prepare_binds_for_database(binds)
-                    binds.map! { |_, value| connection.quote(value) }
+                    binds.map! { |value| connection.quote(value) }
                     collect = visitor.accept(relation.arel.ast, Arel::Collectors::Bind.new)
                     collect.substitute_binds(binds).join
                   end
@@ -634,7 +634,7 @@ module ActiveRecord
     private
 
     def exec_queries
-      @records = eager_loading? ? find_with_associations : @klass.find_by_sql(arel, bind_values)
+      @records = eager_loading? ? find_with_associations : @klass.find_by_sql(arel, bound_attributes)
 
       preload = preload_values
       preload +=  includes_values unless eager_loading?
