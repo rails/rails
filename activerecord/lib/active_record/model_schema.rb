@@ -105,6 +105,12 @@ module ActiveRecord
       # +table_name_suffix+ is appended. So if you have "myapp_" as a prefix,
       # the table name guess for an Invoice class becomes "myapp_invoices".
       # Invoice::Lineitem becomes "myapp_invoice_lineitems".
+      #
+      # You can also set your own table name explicitly:
+      #
+      #   class Mouse < ActiveRecord::Base
+      #     self.table_name = "mice"
+      #   end
       def table_name
         reset_table_name unless defined?(@table_name)
         @table_name
