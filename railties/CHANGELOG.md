@@ -1,3 +1,7 @@
+*   Rename `--skip-test-unit` option to `--skip-test` in app generator
+
+    *Melanie Gilman*
+
 *   Add the `method_source` gem to the default Gemfile for apps
 
     *Sean Griffin*

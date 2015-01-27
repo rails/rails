@@ -9,7 +9,7 @@ require "action_controller/railtie"
 <%= comment_if :skip_action_mailer %>require "action_mailer/railtie"
 require "action_view/railtie"
 <%= comment_if :skip_sprockets %>require "sprockets/railtie"
-<%= comment_if :skip_test_unit %>require "rails/test_unit/railtie"
+<%= comment_if :skip_test %>require "rails/test_unit/railtie"
 <% end -%>
 
 Bundler.require(*Rails.groups)

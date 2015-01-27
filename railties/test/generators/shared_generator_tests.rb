@@ -48,7 +48,7 @@ module SharedGeneratorTests
   end
 
   def test_test_unit_is_skipped_if_required
-    run_generator [destination_root, "--skip-test-unit"]
+    run_generator [destination_root, "--skip-test"]
     assert_no_file "test"
   end
 
