@@ -33,7 +33,11 @@
       url: active_record_querying.html
       description: This guide covers the database query interface provided by Active Record.
     -
-      name: Active Model basics
+      name: ActiveRecord and PostgreSQL
+      url: active_record_postgresql.html
+      description: This guide covers PostgreSQL specific usage of Active Record.
+    -
+      name: Active Model Basics
       url: active_model_basics.html
       description: This guide covers the use of model classes without Active Record.
       work_in_progress: true
@@ -131,6 +135,14 @@
       work_in_progress: true
       url: profiling.html
       description: This guide explains how to profile your Rails applications to improve performance.
+    -
+      name: Rails Application Templates
+      url: rails_application_templates.html
+      description: Application templates are simple Ruby files containing DSL for adding gems/initializers etc. to your freshly created Rails project or an existing Rails project.
+    -
+      name: Caching with Rails: An overview
+      url: caching_with_rails.html
+      description: This guide will teach you what you need to know about avoiding that expensive round-trip to your database and returning what you need to return to the web clients in the shortest time possible.
 
 -
   name: Extending Rails
