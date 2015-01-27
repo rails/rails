@@ -1,7 +1,7 @@
 module ActiveRecord
   class Relation
     class WhereClause # :nodoc:
-      attr_reader :predicates, :binds
+      attr_reader :binds
 
       delegate :any?, :empty?, to: :predicates
 
@@ -72,6 +72,8 @@ module ActiveRecord
       end
 
       protected
+
+      attr_reader :predicates
 
       def referenced_columns
         @referenced_columns ||= begin

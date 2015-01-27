@@ -184,7 +184,7 @@ class RelationScopingTest < ActiveRecord::TestCase
     rescue
     end
 
-    assert !Developer.all.where_clause.predicates.include?("name = 'Jamis'")
+    assert_not Developer.all.to_sql.include?("name = 'Jamis'"), "scope was not restored"
   end
 
   def test_default_scope_filters_on_joins

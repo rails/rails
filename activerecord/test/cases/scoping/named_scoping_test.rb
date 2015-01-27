@@ -380,8 +380,8 @@ class NamedScopingTest < ActiveRecord::TestCase
   end
 
   def test_should_not_duplicates_where_values
-    where_values = Topic.where("1=1").scope_with_lambda.where_clause.predicates
-    assert_equal ["1=1"], where_values
+    relation = Topic.where("1=1")
+    assert_equal relation.where_clause, relation.scope_with_lambda.where_clause
   end
 
   def test_chaining_with_duplicate_joins

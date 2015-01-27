@@ -112,11 +112,12 @@ class ActiveRecord::Relation
     end
 
     test "ast groups its predicates with AND" do
-      where_clause = WhereClause.new([
+      predicates = [
         table["id"].in([1, 2, 3]),
         table["name"].eq(bind_param),
-      ], [])
-      expected = Arel::Nodes::And.new(where_clause.predicates)
+      ]
+      where_clause = WhereClause.new(predicates, [])
+      expected = Arel::Nodes::And.new(predicates)
 
       assert_equal expected, where_clause.ast
     end
