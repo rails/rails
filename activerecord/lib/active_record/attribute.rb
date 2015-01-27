@@ -156,6 +156,6 @@ module ActiveRecord
         false
       end
     end
-    private_constant :FromDatabase, :FromUser, :Null, :Uninitialized
+    private_constant :FromDatabase, :FromUser, :Null, :Uninitialized, :WithCastValue
   end
 end
