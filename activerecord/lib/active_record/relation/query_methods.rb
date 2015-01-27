@@ -852,7 +852,7 @@ module ActiveRecord
 
       build_joins(arel, joins_values.flatten) unless joins_values.empty?
 
-      collapse_wheres(arel, (where_clause.predicates - [''])) #TODO: Add uniq with real value comparison / ignore uniqs that have binds
+      arel.where(where_clause.ast) unless where_clause.empty?
 
       arel.having(*having_clause.predicates.uniq.reject(&:blank?)) if having_clause.any?
 
@@ -909,16 +909,6 @@ module ActiveRecord
         end
         table.create_string_join(join)
       end
-    end
-
-    def collapse_wheres(arel, wheres)
-      predicates = wheres.map do |where|
-        next where if ::Arel::Nodes::Equality === where
-        where = Arel.sql(where) if String === where
-        Arel::Nodes::Grouping.new(where)
-      end
-
-      arel.where(Arel::Nodes::And.new(predicates)) if predicates.present?
     end
 
     def association_for_table(table_name)

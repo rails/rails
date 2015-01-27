@@ -111,6 +111,39 @@ class ActiveRecord::Relation
       assert_equal expected, where_clause.except("id", "name")
     end
 
+    test "ast groups its predicates with AND" do
+      where_clause = WhereClause.new([
+        table["id"].in([1, 2, 3]),
+        table["name"].eq(bind_param),
+      ], [])
+      expected = Arel::Nodes::And.new(where_clause.predicates)
+
+      assert_equal expected, where_clause.ast
+    end
+
+    test "ast wraps any SQL literals in parenthesis" do
+      random_object = Object.new
+      where_clause = WhereClause.new([
+        table["id"].in([1, 2, 3]),
+        "foo = bar",
+        random_object,
+      ], [])
+      expected = Arel::Nodes::And.new([
+        table["id"].in([1, 2, 3]),
+        Arel::Nodes::Grouping.new(Arel.sql("foo = bar")),
+        Arel::Nodes::Grouping.new(random_object),
+      ])
+
+      assert_equal expected, where_clause.ast
+    end
+
+    test "ast removes any empty strings" do
+      where_clause = WhereClause.new([table["id"].in([1, 2, 3])], [])
+      where_clause_with_empty = WhereClause.new([table["id"].in([1, 2, 3]), ''], [])
+
+      assert_equal where_clause.ast, where_clause_with_empty.ast
+    end
+
     private
 
     def table

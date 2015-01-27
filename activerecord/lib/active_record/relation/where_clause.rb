@@ -53,6 +53,10 @@ module ActiveRecord
         }.to_h
       end
 
+      def ast
+        Arel::Nodes::And.new(predicates_with_wrapped_sql_literals)
+      end
+
       def ==(other)
         other.is_a?(WhereClause) &&
           predicates == other.predicates &&
@@ -127,6 +131,27 @@ module ActiveRecord
         binds.reject do |column, _|
           columns.include?(column.name)
         end
+      end
+
+      def predicates_with_wrapped_sql_literals
+        non_empty_predicates.map do |node|
+          if Arel::Nodes::Equality === node
+            node
+          else
+            wrap_sql_literal(node)
+          end
+        end
+      end
+
+      def non_empty_predicates
+        predicates - ['']
+      end
+
+      def wrap_sql_literal(node)
+        if ::String === node
+          node = Arel.sql(node)
+        end
+        Arel::Nodes::Grouping.new(node)
       end
     end
   end
