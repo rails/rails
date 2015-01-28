@@ -33,6 +33,7 @@ DEFAULT_APP_FILES = %w(
   log
   test/test_helper.rb
   test/fixtures
+  test/fixtures/files
   test/controllers
   test/models
   test/helpers

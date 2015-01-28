@@ -8,6 +8,7 @@ require 'active_support/testing/declarative'
 require 'active_support/testing/isolation'
 require 'active_support/testing/constant_lookup'
 require 'active_support/testing/time_helpers'
+require 'active_support/testing/file_fixtures'
 require 'active_support/core_ext/kernel/reporting'
 
 module ActiveSupport
@@ -55,6 +56,7 @@ module ActiveSupport
     include ActiveSupport::Testing::Assertions
     include ActiveSupport::Testing::Deprecation
     include ActiveSupport::Testing::TimeHelpers
+    include ActiveSupport::Testing::FileFixtures
     extend ActiveSupport::Testing::Declarative
 
     # test/unit backwards compatibility methods

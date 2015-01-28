@@ -125,6 +125,7 @@ module Rails
 
     def test
       empty_directory_with_keep_file 'test/fixtures'
+      empty_directory_with_keep_file 'test/fixtures/files'
       empty_directory_with_keep_file 'test/controllers'
       empty_directory_with_keep_file 'test/mailers'
       empty_directory_with_keep_file 'test/models'

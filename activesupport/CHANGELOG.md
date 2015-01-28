@@ -1,3 +1,11 @@
+*   Add `file_fixture` to `ActiveSupport::TestCase`.
+    It provides a simple mechanism to access sample files in your test cases.
+
+    By default file fixtures are stored in `test/fixtures/files`. This can be
+    configured per test-case using the `file_fixture_path` class attribute.
+
+    *Yves Senn*
+
 *   Return value of yielded block in `File.atomic_write`.
 
     *Ian Ker-Seymer*
