@@ -1,3 +1,10 @@
+*   Don't define autosave association callbacks twice from
+    `accepts_nested_attributes_for`.
+
+    Fixes #18704.
+
+    *Sean Griffin*
+
 *   Integer types will no longer raise a `RangeError` when assigning an
     attribute, but will instead raise when going to the database.
 
