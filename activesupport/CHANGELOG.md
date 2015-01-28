@@ -1,3 +1,7 @@
+*   Return value of yielded block in `File.atomic_write`.
+
+    *Ian Ker-Seymer*
+
 *   Duplicate frozen array when assigning it to a HashWithIndifferentAccess so
     that it doesn't raise a `RuntimeError` when calling `map!` on it in `convert_value`.
 
