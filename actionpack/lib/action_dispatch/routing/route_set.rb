@@ -419,13 +419,7 @@ module ActionDispatch
           # Rails.application.routes.url_helpers.url_for(args)
           @_routes = routes
           class << self
-            def url_for(options)
-              @_routes.url_for(options)
-            end
-
-            def optimize_routes_generation?
-              @_routes.optimize_routes_generation?
-            end
+            delegate :url_for, :optimize_routes_generation?, to: :@_routes
 
             attr_reader :_routes
             def url_options; {}; end
