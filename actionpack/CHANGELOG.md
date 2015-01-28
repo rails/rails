@@ -1,3 +1,9 @@
+*   Deprecate *_via_redirect integration test methods.
+
+    Use `follow_redirect!` manually after the request call for the same behavior.
+
+    *Aditya Kapoor*
+
 *   Add `ActionController::Renderer` to render arbitrary templates
     outside controller actions.
 
