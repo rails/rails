@@ -1779,4 +1779,36 @@ class RelationTest < ActiveRecord::TestCase
   def test_relation_join_method
     assert_equal 'Thank you for the welcome,Thank you again for the welcome', Post.first.comments.join(",")
   end
+
+  def test_or_with_two_relations
+    assert_equal Post.where(id: [1, 2]).to_a, Post.where(Post.where(id: 1).or(Post.where(id: 2)))
+  end
+
+  def test_or_with_relation_and_hash
+    assert_equal Post.where(id: [1, 2]).to_a, Post.where(Post.where(id: 1).or(id: 2))
+  end
+
+  def test_or_with_relations_for_two_different_tables
+    post = Post.create!(title: "left side of or", body: "Anything", author: authors(:mary))
+    has_title = Post.where(title: "left side of or")
+    has_author = Author.where(name: "David")
+    has_title_or_author = Post.where(has_title.or(has_author)).joins(:author)
+
+    assert_equal Set.new(authors(:david).posts + [post]), has_title_or_author.to_a.to_set
+  end
+
+  def test_or_with_having
+    first = Post.having(id: 1)
+    second = Post.having(id: 2)
+
+    assert_equal Post.having(id: [1, 2]).group(:id).to_a, Post.having(first.or(second)).group(:id)
+  end
+
+  def test_or_with_null_relation
+    assert_equal [Post.find(1)], Post.where(Post.where(id: 1).or(Post.none))
+  end
+
+  def test_or_with_no_additional_parts
+    assert_equal [Post.find(1)], Post.where(Post.where(id: 1).or({}))
+  end
 end

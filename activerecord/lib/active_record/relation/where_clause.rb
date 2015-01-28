@@ -31,6 +31,19 @@ module ActiveRecord
         )
       end
 
+      def or(other)
+        if empty?
+          other
+        elsif other.empty?
+          self
+        else
+          WhereClause.new(
+            [ast.or(other.ast)],
+            binds + other.binds
+          )
+        end
+      end
+
       def to_h(table_name = nil)
         equalities = predicates.grep(Arel::Nodes::Equality)
         if table_name
