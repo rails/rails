@@ -1037,4 +1037,14 @@ class TestHasManyAutosaveAssociationWhichItselfHasAutosaveAssociations < ActiveR
     ShipPart.create!(:ship => @ship, :name => "Stern")
     assert_no_queries { @ship.valid? }
   end
+
+  test "circular references do not perform unnecessary queries" do
+    ship = Ship.new(name: "The Black Rock")
+    part = ship.parts.build(name: "Stern")
+    ship.treasures.build(looter: part)
+
+    assert_queries 3 do
+      ship.save!
+    end
+  end
 end

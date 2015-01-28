@@ -4,6 +4,7 @@ class Ship < ActiveRecord::Base
   belongs_to :pirate
   belongs_to :update_only_pirate, :class_name => 'Pirate'
   has_many :parts, :class_name => 'ShipPart'
+  has_many :treasures
 
   accepts_nested_attributes_for :parts, :allow_destroy => true
   accepts_nested_attributes_for :pirate, :allow_destroy => true, :reject_if => proc { |attributes| attributes.empty? }
