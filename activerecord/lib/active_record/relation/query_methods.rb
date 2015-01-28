@@ -776,6 +776,21 @@ module ActiveRecord
     end
     alias uniq! distinct!
 
+
+    # Returns a predicate which can be used with +Relation#where+ or
+    # +Relation#having+. It can accept another +Relation+, or any options that
+    # would be valid when passed to +where+.
+    #
+    # Examples
+    # ==
+    #
+    #     Post.where(Post.recent.or(Post.pinned))
+    #       # => SELECT posts.* FROM posts WHERE (posts.created_at <= ? OR posts.pinned = ?)
+    #
+    # A hash would also be valid.
+    #
+    #     Post.where(Post.recent.or(pinned: true))
+    #
     def or(other, *rest)
       case other
       when Relation, Relation::WhereClause

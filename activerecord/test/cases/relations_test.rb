@@ -1803,4 +1803,12 @@ class RelationTest < ActiveRecord::TestCase
 
     assert_equal Post.having(id: [1, 2]).group(:id).to_a, Post.having(first.or(second)).group(:id)
   end
+
+  def test_or_with_null_relation
+    assert_equal [Post.find(1)], Post.where(Post.where(id: 1).or(Post.none))
+  end
+
+  def test_or_with_no_additional_parts
+    assert_equal [Post.find(1)], Post.where(Post.where(id: 1).or({}))
+  end
 end

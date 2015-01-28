@@ -1,3 +1,13 @@
+*   Added the `#or` method on ActiveRecord::Relation, allowing use of the OR
+    operator to combine WHERE or HAVING clauses.
+
+    Example:
+
+        Post.where(Post.recent.or(Post.pinned))
+        # => SELECT * FROM posts WHERE (posts.created_at < ? OR posts.pinned = 't')
+
+    *Sean Griffin*, *Matthew Draper*, *Gael Muller*, *Olivier El Mekki*
+
 *   Integer types will no longer raise a `RangeError` when assigning an
     attribute, but will instead raise when going to the database.
 

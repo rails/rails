@@ -158,6 +158,13 @@ class ActiveRecord::Relation
       assert_equal expected_binds, where_clause.or(other_clause).binds
     end
 
+    test "or does nothing with an empty where clause" do
+      where_clause = WhereClause.new([table["id"].eq(bind_param)], [attribute("id", 1)])
+
+      assert_equal where_clause, where_clause.or(WhereClause.empty)
+      assert_equal where_clause, WhereClause.empty.or(where_clause)
+    end
+
     private
 
     def table

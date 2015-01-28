@@ -32,10 +32,16 @@ module ActiveRecord
       end
 
       def or(other)
-        WhereClause.new(
-          [ast.or(other.ast)],
-          binds + other.binds
-        )
+        if empty?
+          other
+        elsif other.empty?
+          self
+        else
+          WhereClause.new(
+            [ast.or(other.ast)],
+            binds + other.binds
+          )
+        end
       end
 
       def to_h(table_name = nil)
