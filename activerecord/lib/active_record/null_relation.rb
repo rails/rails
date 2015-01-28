@@ -77,11 +77,7 @@ module ActiveRecord
     end
 
     def or(other)
-      if other.is_a?(NullRelation)
-        super
-      else
-        other.or(self)
-      end
+      other.spawn
     end
   end
 end

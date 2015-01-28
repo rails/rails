@@ -596,50 +596,22 @@ module ActiveRecord
       spawn.or!(other)
     end
 
-    def or!(other)
-      combining = group_values.any? ? :having : :where
-
-      unless structurally_compatible?(other, combining)
+    def or!(other) # :nodoc:
+      unless structurally_compatible_for_or?(other)
         raise ArgumentError, 'Relation passed to #or must be structurally compatible'
       end
 
-      unless other.is_a?(NullRelation)
-        left_values = send("#{combining}_values")
-        right_values = other.send("#{combining}_values")
-
-        common = left_values & right_values
-        mine = left_values - common
-        theirs = right_values - common
-
-        if mine.any? && theirs.any?
-          mine = mine.map { |x| String === x ? Arel.sql(x) : x }
-          theirs = theirs.map { |x| String === x ? Arel.sql(x) : x }
-
-          mine = [Arel::Nodes::And.new(mine)] if mine.size > 1
-          theirs = [Arel::Nodes::And.new(theirs)] if theirs.size > 1
-
-          common << Arel::Nodes::Or.new(mine.first, theirs.first)
-        end
-
-        send("#{combining}_values=", common)
-      end
+      self.where_clause = self.where_clause.or(other.where_clause)
+      self.having_clause = self.having_clause.or(other.having_clause)
 
       self
     end
 
-    def structurally_compatible?(other, allowed_to_vary)
-      Relation::SINGLE_VALUE_METHODS.all? do |name|
-        send("#{name}_value") == other.send("#{name}_value")
-      end &&
-        (Relation::MULTI_VALUE_METHODS - [allowed_to_vary, :extending]).all? do |name|
-          send("#{name}_values") == other.send("#{name}_values")
-        end &&
-        (extending_values - [NullRelation]) == (other.extending_values - [NullRelation]) &&
-        !limit_value &&
-        !offset_value &&
-        !uniq_value
+    private def structurally_compatible_for_or?(other) # :nodoc:
+      Relation::SINGLE_VALUE_METHODS.all? { |m| send("#{m}_value") == other.send("#{m}_value") } &&
+        (Relation::MULTI_VALUE_METHODS - [:extending]).all? { |m| send("#{m}_values") == other.send("#{m}_values") } &&
+        (Relation::CLAUSE_METHODS - [:having, :where]).all? { |m| send("#{m}_clause") != other.send("#{m}_clause") }
     end
-    private :structurally_compatible?
 
     # Allows to specify a HAVING clause. Note that you can't use HAVING
     # without also specifying a GROUP clause.

@@ -25,18 +25,22 @@ module ActiveRecord
       assert_equal expected, Post.where('id = 1').or(Post.none).to_a
     end
 
+    def test_or_with_bind_params
+      assert_equal Post.find([1, 2]), Post.where(id: 1).or(Post.where(id: 2)).to_a
+    end
+
     def test_or_with_null_both
       expected = Post.none.to_a
       assert_equal expected, Post.none.or(Post.none).to_a
     end
 
     def test_or_without_left_where
-      expected = Post.all.to_a
+      expected = Post.where('id = 1')
       assert_equal expected, Post.or(Post.where('id = 1')).to_a
     end
 
     def test_or_without_right_where
-      expected = Post.all.to_a
+      expected = Post.where('id = 1')
       assert_equal expected, Post.where('id = 1').or(Post.all).to_a
     end
 
@@ -76,6 +80,5 @@ module ActiveRecord
       assert_equal p.loaded?, true
       assert_equal expected, p.or(Post.where('id = 2')).to_a
     end
-
   end
 end
