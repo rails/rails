@@ -1,3 +1,10 @@
+*   Don't define autosave association callbacks twice from
+    `accepts_nested_attributes_for`.
+
+    Fixes #18704.
+
+    *Sean Griffin*
+
 ## Rails 4.1.12 (June 25, 2015) ##
 
 *   Raises the right exception when declares a has many through

@@ -743,6 +743,7 @@ ActiveRecord::Schema.define do
     t.column :type, :string
     t.column :looter_id, :integer
     t.column :looter_type, :string
+    t.belongs_to :ship
   end
 
   create_table :tyres, force: true do |t|
