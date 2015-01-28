@@ -22,7 +22,7 @@ Description:
 
     If you pass a namespaced model name (e.g. admin/account or Admin::Account)
     then the generator will create a module with a table_name_prefix method
-    to prefix the model's table name with the module name (e.g. admin_account)
+    to prefix the model's table name with the module name (e.g. admin_accounts)
 
 Available field types:
 
