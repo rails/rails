@@ -75,5 +75,9 @@ module ActiveRecord
     def exists?(_id = false)
       false
     end
+
+    def or(other)
+      other.spawn
+    end
   end
 end

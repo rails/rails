@@ -582,6 +582,37 @@ module ActiveRecord
       unscope(where: conditions.keys).where(conditions)
     end
 
+    # Returns a new relation, which is the logical union of this relation and the one passed as an
+    # argument.
+    #
+    # The two relations must be structurally compatible: they must be scoping the same model, and
+    # they must differ only by +where+ (if no +group+ has been defined) or +having+ (if a +group+ is
+    # present). Neither relation may have a +limit+, +offset+, or +uniq+ set.
+    #
+    #    Post.where("id = 1").or(Post.where("id = 2"))
+    #    # SELECT `posts`.* FROM `posts`  WHERE (('id = 1' OR 'id = 2'))
+    #
+    def or(other)
+      spawn.or!(other)
+    end
+
+    def or!(other) # :nodoc:
+      unless structurally_compatible_for_or?(other)
+        raise ArgumentError, 'Relation passed to #or must be structurally compatible'
+      end
+
+      self.where_clause = self.where_clause.or(other.where_clause)
+      self.having_clause = self.having_clause.or(other.having_clause)
+
+      self
+    end
+
+    private def structurally_compatible_for_or?(other) # :nodoc:
+      Relation::SINGLE_VALUE_METHODS.all? { |m| send("#{m}_value") == other.send("#{m}_value") } &&
+        (Relation::MULTI_VALUE_METHODS - [:extending]).all? { |m| send("#{m}_values") == other.send("#{m}_values") } &&
+        (Relation::CLAUSE_METHODS - [:having, :where]).all? { |m| send("#{m}_clause") != other.send("#{m}_clause") }
+    end
+
     # Allows to specify a HAVING clause. Note that you can't use HAVING
     # without also specifying a GROUP clause.
     #
