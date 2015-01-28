@@ -1083,7 +1083,13 @@ module ActionDispatch
           # Checks for uncountable plurals, and appends "_index" if the plural
           # and singular form are the same.
           def collection_name
-            singular == plural ? "#{plural}_index" : plural
+            if plural.empty?
+              'index'
+            elsif singular == plural
+              "#{plural}_index"
+            else
+              plural
+            end
           end
 
           def resource_scope

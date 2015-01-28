@@ -3446,10 +3446,17 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       scope 'post', as: 'post' do
         resource :comment, as: ''
       end
+
+      resource :user do
+        resource :comment, as: ''
+      end
     end
 
     assert_equal '/post/new', new_path
+    assert_equal '/post/comment', post_path
     assert_equal '/post/comment/new', new_post_path
+    assert_equal '/user/comment', user_path
+    assert_equal '/user/comment/new', new_user_path
   end
 
   def test_resources_where_as_is_empty
@@ -3459,10 +3466,18 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       scope 'posts', as: 'posts' do
         resources :comments, as: ''
       end
+
+      resources :users do
+        resources :comments, as: ''
+      end
     end
 
+    assert_equal '/posts', index_path
     assert_equal '/posts/new', new_path
+    assert_equal '/posts/comments', posts_index_path
     assert_equal '/posts/comments/new', new_posts_path
+    assert_equal '/users/1/comments', user_index_path(1)
+    assert_equal '/users/1/comments/new', new_user_path(1)
   end
 
   def test_scope_where_as_is_empty
@@ -3473,7 +3488,9 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       end
     end
 
+    assert_equal '/post/user', user_path
     assert_equal '/post/user/new', new_user_path
+    assert_equal '/post/comments', comments_path
     assert_equal '/post/comments/new', new_comment_path
   end
 
