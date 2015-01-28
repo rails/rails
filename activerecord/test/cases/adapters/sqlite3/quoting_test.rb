@@ -106,7 +106,7 @@ module ActiveRecord
 
         def test_quoting_binary_strings
           value = "hello".encode('ascii-8bit')
-          column = Column.new(nil, 1, SQLite3String.new)
+          column = Column.new(nil, 1, Type::String.new)
 
           assert_equal "'hello'", @conn.quote(value, column)
         end
