@@ -1794,7 +1794,7 @@ class RelationTest < ActiveRecord::TestCase
     has_author = Author.where(name: "David")
     has_title_or_author = Post.where(has_title.or(has_author)).joins(:author)
 
-    assert_equal authors(:david).posts + [post], has_title_or_author
+    assert_equal Set.new(authors(:david).posts + [post]), has_title_or_author.to_a.to_set
   end
 
   def test_or_with_having
