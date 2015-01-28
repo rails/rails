@@ -146,6 +146,14 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_equal "The First Topic", topics(:first).becomes(Reply).title
   end
 
+  def test_becomes_with_nested_attributes
+    pirate = Pirate.new
+    5.times { pirate.parrots.build }
+    destructive_pirate = pirate.becomes(DestructivePirate)
+
+    assert_equal pirate.parrots.length, destructive_pirate.parrots.length
+  end
+
   def test_becomes_includes_errors
     company = Company.new(:name => nil)
     assert !company.valid?
