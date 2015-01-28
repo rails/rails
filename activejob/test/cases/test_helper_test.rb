@@ -4,6 +4,7 @@ require 'active_support/core_ext/date'
 require 'jobs/hello_job'
 require 'jobs/logging_job'
 require 'jobs/nested_job'
+require 'models/person'
 
 class EnqueuedJobsTest < ActiveJob::TestCase
   def test_assert_enqueued_jobs
@@ -175,6 +176,25 @@ class EnqueuedJobsTest < ActiveJob::TestCase
       end
     end
   end
+
+  def test_assert_enqueued_job_with_global_id_args
+    ricardo = Person.new(9)
+    assert_enqueued_with(job: HelloJob, args: [ricardo]) do
+      HelloJob.perform_later(ricardo)
+    end
+  end
+
+  def test_assert_enqueued_job_failure_with_global_id_args
+    ricardo = Person.new(9)
+    wilma = Person.new(11)
+    error = assert_raise ActiveSupport::TestCase::Assertion do
+      assert_enqueued_with(job: HelloJob, args: [wilma]) do
+        HelloJob.perform_later(ricardo)
+      end
+    end
+
+    assert_equal "No enqueued job found with {:job=>HelloJob, :args=>[#{wilma.inspect}]}", error.message
+  end
 end
 
 class PerformedJobsTest < ActiveJob::TestCase
@@ -281,5 +301,24 @@ class PerformedJobsTest < ActiveJob::TestCase
         NestedJob.set(queue: 'low', wait_until: Date.tomorrow.noon).perform_later
       end
     end
+  end
+
+  def test_assert_performed_job_with_global_id_args
+    ricardo = Person.new(9)
+    assert_performed_with(job: HelloJob, args: [ricardo]) do
+      HelloJob.perform_later(ricardo)
+    end
+  end
+
+  def test_assert_performed_job_failure_with_global_id_args
+    ricardo = Person.new(9)
+    wilma = Person.new(11)
+    error = assert_raise ActiveSupport::TestCase::Assertion do
+      assert_performed_with(job: HelloJob, args: [wilma]) do
+        HelloJob.perform_later(ricardo)
+      end
+    end
+
+    assert_equal "No performed job found with {:job=>HelloJob, :args=>[#{wilma.inspect}]}", error.message
   end
 end
