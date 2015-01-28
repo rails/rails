@@ -791,6 +791,14 @@ module ActiveRecord
     #
     #     Post.where(Post.recent.or(pinned: true))
     #
+    # This reads most fluently inside of a named scope.
+    #
+    #     class Post < ActiveRecord::Base
+    #       def self.for_homepage
+    #         where(recent.or(pinned))
+    #       end
+    #     end
+    #
     def or(other, *rest)
       case other
       when Relation, Relation::WhereClause
