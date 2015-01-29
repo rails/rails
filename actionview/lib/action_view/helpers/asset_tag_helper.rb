@@ -214,7 +214,10 @@ module ActionView
           options[:alt] = options.fetch(:alt){ image_alt(src) }
         end
 
-        options[:width], options[:height] = extract_dimensions(options.delete(:size)) if options[:size]
+        if dimensions = extract_dimensions(options.delete(:size))
+          options[:width], options[:height] = dimensions
+        end
+
         tag("img", options)
       end
 
