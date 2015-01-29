@@ -63,6 +63,11 @@ module Rails
       @options = options
     end
 
+    def self.run(arguments)
+      options = Rails::TestRunner::Options.parse(arguments)
+      Rails::TestRunner.new(options).run
+    end
+
     def run
       $rails_test_runner = self
       run_tests
