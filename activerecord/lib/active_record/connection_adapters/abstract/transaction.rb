@@ -184,7 +184,7 @@ module ActiveRecord
         transaction = begin_transaction options
         yield
       rescue Exception => error
-        rollback_transaction if transaction
+        handle_transaction_exception(transaction, error) if transaction
         raise
       ensure
         unless error
@@ -210,6 +210,10 @@ module ActiveRecord
       end
 
       private
+        def handle_transaction_exception(transaction, error)
+          rollback_transaction
+        end
+
         NULL_TRANSACTION = NullTransaction.new
     end
   end

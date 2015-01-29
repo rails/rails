@@ -1,3 +1,10 @@
+*   MySQL Deadlock errors will no longer attempt to rollback to savepoints in
+    nested transactions.
+
+    MySQL will release all savepoints when it encounters a Deadlock. This would
+    cause ActiveRecord to attempt to rollback to a non-existent savepoint
+    resulting in a `SAVEPOINT active_record_X does not exist` error.
+
 *   Fixed ActiveRecord::Relation#group method when argument is SQL reserved key word:
 
       SplitTest.group(:key).count

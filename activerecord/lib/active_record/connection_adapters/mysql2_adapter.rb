@@ -28,6 +28,35 @@ module ActiveRecord
   end
 
   module ConnectionAdapters
+    class Mysql2TransactionManager < TransactionManager
+      MYSQL_ER_LOCK_DEADLOCK = 1213
+      MYSQL_ER_LOCK_DEADLOCK_SQL_STATE = '40001'
+
+      def deadlock_error?(error)
+        ActiveRecord::StatementInvalid === error &&
+        Mysql2::Error === error.original_exception &&
+        MYSQL_ER_LOCK_DEADLOCK == error.original_exception.error_number &&
+        MYSQL_ER_LOCK_DEADLOCK_SQL_STATE == error.original_exception.sql_state
+      end
+
+      private
+        def handle_transaction_exception(transaction, error)
+          if deadlock_error? error
+            rollback_on_deadlock(transaction)
+          else
+            super
+          end
+        end
+
+        def rollback_on_deadlock(transaction)
+          if ActiveRecord::ConnectionAdapters::SavepointTransaction === transaction
+            @stack.delete(transaction)
+          elsif ActiveRecord::ConnectionAdapters::RealTransaction === transaction
+            rollback_transaction
+          end
+        end
+    end
+
     class Mysql2Adapter < AbstractMysqlAdapter
       ADAPTER_NAME = 'Mysql2'.freeze
 
@@ -103,6 +132,10 @@ module ActiveRecord
       #--
       # DATABASE STATEMENTS ======================================
       #++
+
+      def reset_transaction #:nodoc:
+        @transaction_manager = Mysql2TransactionManager.new(self)
+      end
 
       def explain(arel, binds = [])
         sql     = "EXPLAIN #{to_sql(arel, binds.dup)}"
