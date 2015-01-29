@@ -494,11 +494,11 @@ module ActionController
       # Simulate a GET request with the given parameters.
       #
       # - +action+: The controller action to call.
-      # - +params:+ The hash with HTTP parameters that you want to pass. This may be +nil+.
-      # - +body:+ The request body with a string that is appropriately encoded
+      # - +params+: The hash with HTTP parameters that you want to pass. This may be +nil+.
+      # - +body+: The request body with a string that is appropriately encoded
       #   (<tt>application/x-www-form-urlencoded</tt> or <tt>multipart/form-data</tt>).
-      # - +session:+ A hash of parameters to store in the session. This may be +nil+.
-      # - +flash:+ A hash of parameters to store in the flash. This may be +nil+.
+      # - +session+: A hash of parameters to store in the session. This may be +nil+.
+      # - +flash+: A hash of parameters to store in the flash. This may be +nil+.
       #
       # You can also simulate POST, PATCH, PUT, DELETE, and HEAD requests with
       # +post+, +patch+, +put+, +delete+, and +head+.
@@ -574,11 +574,11 @@ module ActionController
       # - +action+: The controller action to call.
       # - +method+: Request method used to send the HTTP request. Possible values
       #   are +GET+, +POST+, +PATCH+, +PUT+, +DELETE+, +HEAD+. Defaults to +GET+. Can be a symbol.
-      # - +params:+ The hash with HTTP parameters that you want to pass. This may be +nil+.
-      # - +body:+ The request body with a string that is appropriately encoded
+      # - +params+: The hash with HTTP parameters that you want to pass. This may be +nil+.
+      # - +body+: The request body with a string that is appropriately encoded
       #   (<tt>application/x-www-form-urlencoded</tt> or <tt>multipart/form-data</tt>).
-      # - +session:+ A hash of parameters to store in the session. This may be +nil+.
-      # - +flash:+ A hash of parameters to store in the flash. This may be +nil+.
+      # - +session+: A hash of parameters to store in the session. This may be +nil+.
+      # - +flash+: A hash of parameters to store in the flash. This may be +nil+.
       #
       # Example calling +create+ action and sending two params:
       #

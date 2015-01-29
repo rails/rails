@@ -483,12 +483,12 @@ The `get` method kicks off the web request and populates the results into the re
 * The action of the controller you are requesting.
   This can be in the form of a string or a symbol.
 
-* `params:` option with a hash of request parameters to pass into the action
+* `params`: option with a hash of request parameters to pass into the action
   (e.g. query string parameters or article variables).
 
-* `session:` option with a hash of session variables to pass along with the request.
+* `session`: option with a hash of session variables to pass along with the request.
 
-* `flash:` option with a hash of flash values.
+* `flash`: option with a hash of flash values.
 
 All the keyword arguments are optional.
 

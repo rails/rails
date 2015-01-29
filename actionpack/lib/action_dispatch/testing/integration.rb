@@ -12,14 +12,14 @@ module ActionDispatch
       #
       # - +path+: The URI (as a String) on which you want to perform a GET
       #   request.
-      # - +params:+ The HTTP parameters that you want to pass. This may
+      # - +params+: The HTTP parameters that you want to pass. This may
       #   be +nil+,
       #   a Hash, or a String that is appropriately encoded
       #   (<tt>application/x-www-form-urlencoded</tt> or
       #   <tt>multipart/form-data</tt>).
-      # - +headers:+ Additional headers to pass, as a Hash. The headers will be
+      # - +headers+: Additional headers to pass, as a Hash. The headers will be
       #   merged into the Rack env hash.
-      # - +env:+ Additional env to pass, as a Hash. The headers will be
+      # - +env+: Additional env to pass, as a Hash. The headers will be
       #   merged into the Rack env hash.
       #
       # This method returns a Response object, which one can use to
