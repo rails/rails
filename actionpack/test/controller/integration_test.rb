@@ -58,12 +58,6 @@ class SessionTest < ActiveSupport::TestCase
     assert_equal 200, @session.request_via_redirect(:get, path, params: args, headers: headers)
   end
 
-  def test_get_via_redirect
-    path = "/somepath"; args = {:id => '1'}; headers = {"X-Test-Header" => "testvalue" }
-    @session.expects(:request_via_redirect).with(:get, path, params: args, headers: headers)
-    @session.get_via_redirect(path, params: args, headers: headers)
-  end
-
   def test_deprecated_get_via_redirect
     path = "/somepath"; args = { id: '1' }; headers = { "X-Test-Header" => "testvalue" }
     @session.expects(:request_via_redirect).with(:get, path, args, headers)
@@ -71,12 +65,6 @@ class SessionTest < ActiveSupport::TestCase
     assert_deprecated do
       @session.get_via_redirect(path, args, headers)
     end
-  end
-
-  def test_post_via_redirect
-    path = "/somepath"; args = {:id => '1'}; headers = {"X-Test-Header" => "testvalue" }
-    @session.expects(:request_via_redirect).with(:post, path, params: args, headers: headers)
-    @session.post_via_redirect(path, params: args, headers: headers)
   end
 
   def test_deprecated_post_via_redirect
@@ -88,12 +76,6 @@ class SessionTest < ActiveSupport::TestCase
     end
   end
 
-  def test_patch_via_redirect
-    path = "/somepath"; args = {:id => '1'}; headers = {"X-Test-Header" => "testvalue" }
-    @session.expects(:request_via_redirect).with(:patch, path, params: args, headers: headers)
-    @session.patch_via_redirect(path, params: args, headers: headers)
-  end
-
   def test_deprecated_patch_via_redirect
     path = "/somepath"; args = { id: '1' }; headers = { "X-Test-Header" => "testvalue" }
     @session.expects(:request_via_redirect).with(:patch, path, args, headers)
@@ -103,12 +85,6 @@ class SessionTest < ActiveSupport::TestCase
     end
   end
 
-  def test_put_via_redirect
-    path = "/somepath"; args = {:id => '1'}; headers = {"X-Test-Header" => "testvalue" }
-    @session.expects(:request_via_redirect).with(:put, path, params: args, headers: headers)
-    @session.put_via_redirect(path, params: args, headers: headers)
-  end
-
   def test_deprecated_put_via_redirect
     path = "/somepath"; args = { id: '1' }; headers = { "X-Test-Header" => "testvalue" }
     @session.expects(:request_via_redirect).with(:put, path, args, headers)
@@ -116,12 +92,6 @@ class SessionTest < ActiveSupport::TestCase
     assert_deprecated do
       @session.put_via_redirect(path, args, headers)
     end
-  end
-
-  def test_delete_via_redirect
-    path = "/somepath"; args = {:id => '1'}; headers = {"X-Test-Header" => "testvalue" }
-    @session.expects(:request_via_redirect).with(:delete, path, params: args, headers: headers)
-    @session.delete_via_redirect(path, params: args, headers: headers)
   end
 
   def test_deprecated_delete_via_redirect
