@@ -190,7 +190,7 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
 
     assert_migration "db/migrate/#{migration}.rb" do |content|
       assert_method :change, content do |change|
-        assert_match(/add_reference :books, :author,.*\sforeign_key: true/, change)
+        assert_match(/add_reference :books, :author,.*\sforeign_key: true, null: false/, change)
         assert_match(/add_reference :books, :distributor/, change) # sanity check
         assert_no_match(/add_reference :books, :distributor,.*\sforeign_key: true/, change)
       end

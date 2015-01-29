@@ -167,6 +167,10 @@ module Rails
           if reference? && !polymorphic?
             options[:foreign_key] = true
           end
+
+          if reference?
+            options[:null] = false
+          end
         end
       end
     end
