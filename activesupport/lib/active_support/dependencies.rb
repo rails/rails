@@ -373,7 +373,7 @@ module ActiveSupport #:nodoc:
 
     # Is the provided constant path defined?
     def qualified_const_defined?(path)
-      Object.qualified_const_defined?(path.sub(/^::/, ''), false)
+      Object.const_defined?(path, false)
     end
 
     # Given +path+, a filesystem path to a ruby file, return an array of
@@ -607,7 +607,7 @@ module ActiveSupport #:nodoc:
     def autoloaded?(desc)
       return false if desc.is_a?(Module) && desc.anonymous?
       name = to_constant_name desc
-      return false unless qualified_const_defined? name
+      return false unless qualified_const_defined?(name)
       return autoloaded_constants.include?(name)
     end
 
