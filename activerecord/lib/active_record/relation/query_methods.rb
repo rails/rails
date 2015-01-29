@@ -887,11 +887,11 @@ module ActiveRecord
       arel.having(having_clause.ast) unless having_clause.empty?
       arel.take(connection.sanitize_limit(limit_value)) if limit_value
       arel.skip(offset_value.to_i) if offset_value
-      arel.group(*group_values.uniq.reject(&:blank?)) unless group_values.empty?
+      arel.group(*arel_columns(group_values.uniq.reject(&:blank?))) unless group_values.empty?
 
       build_order(arel)
 
-      build_select(arel, select_values.uniq)
+      build_select(arel)
 
       arel.distinct(distinct_value)
       arel.from(build_from) unless from_clause.empty?
@@ -990,19 +990,21 @@ module ActiveRecord
         .map { |join| table.create_string_join(Arel.sql(join)) }
     end
 
-    def build_select(arel, selects)
-      if !selects.empty?
-        expanded_select = selects.map do |field|
-          if (Symbol === field || String === field) && columns_hash.key?(field.to_s)
-            arel_table[field]
-          else
-            field
-          end
-        end
-
-        arel.project(*expanded_select)
+    def build_select(arel)
+      if select_values.any?
+        arel.project(*arel_columns(select_values.uniq))
       else
         arel.project(@klass.arel_table[Arel.star])
+      end
+    end
+
+    def arel_columns(columns)
+      columns.map do |field|
+        if (Symbol === field || String === field) && columns_hash.key?(field.to_s)
+          arel_table[field]
+        else
+          field
+        end
       end
     end
 

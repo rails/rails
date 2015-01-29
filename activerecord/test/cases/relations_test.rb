@@ -16,6 +16,7 @@ require 'models/engine'
 require 'models/tyre'
 require 'models/minivan'
 require 'models/aircraft'
+require "models/possession"
 
 
 class RelationTest < ActiveRecord::TestCase
@@ -1480,6 +1481,10 @@ class RelationTest < ActiveRecord::TestCase
       .having(id: post.id).where(title: post.title).group(:id)
 
     assert_equal [post], having_then_where
+  end
+
+  def test_grouping_by_column_with_reserved_name
+    assert_equal [], Possession.select(:where).group(:where).to_a
   end
 
   def test_references_triggers_eager_loading
