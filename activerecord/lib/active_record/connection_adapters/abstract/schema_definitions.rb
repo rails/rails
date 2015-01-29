@@ -50,6 +50,14 @@ module ActiveRecord
         options[:primary_key] != default_primary_key
       end
 
+      def defined_for?(options_or_to_table = {})
+        if options_or_to_table.is_a?(Hash)
+          options_or_to_table.all? {|assoc| options[assoc[0]].to_s == assoc[1].to_s }
+        else
+          to_table == options_or_to_table.to_s
+        end
+      end
+
       private
       def default_primary_key
         "id"
