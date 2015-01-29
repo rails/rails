@@ -112,7 +112,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
 
   def test_ensure_that_test_dummy_can_be_generated_from_a_template
     FileUtils.cd(Rails.root)
-    run_generator([destination_root, "-m", "lib/create_test_dummy_template.rb", "--skip-test-unit"])
+    run_generator([destination_root, "-m", "lib/create_test_dummy_template.rb", "--skip-test"])
     assert_file "spec/dummy"
     assert_no_file "test"
   end
@@ -321,7 +321,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_creating_dummy_without_tests_but_with_dummy_path
-    run_generator [destination_root, "--dummy_path", "spec/dummy", "--skip-test-unit"]
+    run_generator [destination_root, "--dummy_path", "spec/dummy", "--skip-test"]
     assert_file "spec/dummy"
     assert_file "spec/dummy/config/application.rb"
     assert_no_file "test"
@@ -333,14 +333,14 @@ class PluginGeneratorTest < Rails::Generators::TestCase
 
   def test_ensure_that_gitignore_can_be_generated_from_a_template_for_dummy_path
     FileUtils.cd(Rails.root)
-    run_generator([destination_root, "--dummy_path", "spec/dummy", "--skip-test-unit"])
+    run_generator([destination_root, "--dummy_path", "spec/dummy", "--skip-test"])
     assert_file ".gitignore" do |contents|
       assert_match(/spec\/dummy/, contents)
     end
   end
 
-  def test_skipping_test_unit
-    run_generator [destination_root, "--skip-test-unit"]
+  def test_skipping_test_files
+    run_generator [destination_root, "--skip-test"]
     assert_no_file "test"
     assert_file "bukkits.gemspec" do |contents|
       assert_no_match(/s.test_files = Dir\["test\/\*\*\/\*"\]/, contents)

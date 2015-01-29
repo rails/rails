@@ -235,7 +235,7 @@ module Rails
       end
 
       def create_test_files
-        build(:test) unless options[:skip_test_unit]
+        build(:test) unless options[:skip_test]
       end
 
       def create_tmp_files

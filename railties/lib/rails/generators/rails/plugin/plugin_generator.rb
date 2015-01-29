@@ -226,7 +226,7 @@ task default: :test
       end
 
       def create_test_files
-        build(:test) unless options[:skip_test_unit]
+        build(:test) unless options[:skip_test]
       end
 
       def create_test_dummy_files
@@ -294,7 +294,7 @@ task default: :test
       end
 
       def with_dummy_app?
-        options[:skip_test_unit].blank? || options[:dummy_path] != 'test/dummy'
+        options[:skip_test].blank? || options[:dummy_path] != 'test/dummy'
       end
 
       def self.banner
