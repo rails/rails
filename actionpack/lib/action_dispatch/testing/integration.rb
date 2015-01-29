@@ -34,7 +34,7 @@ module ActionDispatch
       # Example:
       #
       #   get '/feed', params: { since: 201501011400 }
-      #   post '/profile', headers: {"X-Test-Header" => "testvalue" }
+      #   post '/profile', headers: { "X-Test-Header" => "testvalue" }
       def get(path, *args)
         process_with_kwargs(:get, path, *args)
       end
@@ -118,7 +118,7 @@ module ActionDispatch
       #
       #   request_via_redirect :post, '/welcome',
       #     params: { ref_id: 14 },
-      #     headers: {"X-Test-Header" => "testvalue"}
+      #     headers: { "X-Test-Header" => "testvalue" }
       def request_via_redirect(http_method, path, *args)
         process_with_kwargs(http_method, path, *args)
 

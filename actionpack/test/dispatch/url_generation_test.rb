@@ -39,7 +39,7 @@ module TestUrlGeneration
     end
 
     test "the request's SCRIPT_NAME takes precedence over the route" do
-      get "/foo", headers: {'SCRIPT_NAME' => "/new", 'action_dispatch.routes' => Routes}
+      get "/foo", headers: { 'SCRIPT_NAME' => "/new", 'action_dispatch.routes' => Routes }
       assert_equal "/new/foo", response.body
     end
 

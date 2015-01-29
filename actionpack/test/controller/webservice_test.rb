@@ -37,7 +37,7 @@ class WebServiceTest < ActionDispatch::IntegrationTest
     with_test_route_set do
       post "/",
         params: '{"entry":{"summary":"content..."}}',
-        headers: {'CONTENT_TYPE' => 'application/json'}
+        headers: { 'CONTENT_TYPE' => 'application/json' }
 
       assert_equal 'entry', @controller.response.body
       assert @controller.params.has_key?(:entry)
@@ -62,7 +62,7 @@ class WebServiceTest < ActionDispatch::IntegrationTest
       with_params_parsers Mime::JSON => Proc.new { |data| ActiveSupport::JSON.decode(data)['request'].with_indifferent_access } do
         post "/",
           params: '{"request":{"summary":"content...","title":"JSON"}}',
-          headers: {'CONTENT_TYPE' => 'application/json'}
+          headers: { 'CONTENT_TYPE' => 'application/json' }
 
         assert_equal 'summary, title', @controller.response.body
         assert @controller.params.has_key?(:summary)
@@ -75,7 +75,7 @@ class WebServiceTest < ActionDispatch::IntegrationTest
 
   def test_use_json_with_empty_request
     with_test_route_set do
-      assert_nothing_raised { post "/", headers: {'CONTENT_TYPE' => 'application/json'} }
+      assert_nothing_raised { post "/", headers: { 'CONTENT_TYPE' => 'application/json' } }
       assert_equal '', @controller.response.body
     end
   end
@@ -84,7 +84,7 @@ class WebServiceTest < ActionDispatch::IntegrationTest
     with_test_route_set do
       post "/?full=1",
         params: '{"first-key":{"sub-key":"..."}}',
-        headers: {'CONTENT_TYPE' => 'application/json'}
+        headers: { 'CONTENT_TYPE' => 'application/json' }
       assert_equal 'action, controller, first-key(sub-key), full', @controller.response.body
       assert_equal "...", @controller.params['first-key']['sub-key']
     end
@@ -96,7 +96,7 @@ class WebServiceTest < ActionDispatch::IntegrationTest
         assert_raises(Interrupt) do
           post "/",
             params: '{"title":"JSON"}}',
-            headers: {'CONTENT_TYPE' => 'application/json'}
+            headers: { 'CONTENT_TYPE' => 'application/json' }
         end
       end
     end

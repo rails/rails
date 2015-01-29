@@ -495,13 +495,13 @@ All the keyword arguments are optional.
 Example: Calling the `:show` action, passing an `id` of 12 as the `params` and setting a `user_id` of 5 in the session:
 
 ```ruby
-get(:show, params: {'id' => "12"}, session: {'user_id' => 5})
+get(:show, params: { 'id' => "12" }, session: { 'user_id' => 5 })
 ```
 
 Another example: Calling the `:view` action, passing an `id` of 12 as the `params`, this time with no session, but with a flash message.
 
 ```ruby
-get(:view, params: {'id' => '12'}, flash: {'message' => 'booya!'})
+get(:view, params: { 'id' => '12' }, flash: { 'message' => 'booya!' })
 ```
 
 NOTE: If you try running `test_should_create_article` test from `articles_controller_test.rb` it will fail on account of the newly added model level validation and rightly so.
@@ -511,7 +511,7 @@ Let us modify `test_should_create_article` test in `articles_controller_test.rb`
 ```ruby
 test "should create article" do
   assert_difference('Article.count') do
-    post :create, params: { article: {title: 'Some title'} }
+    post :create, params: { article: { title: 'Some title' } }
   end
 
   assert_redirected_to article_path(assigns(:article))
@@ -645,7 +645,7 @@ Let's start by adding this assertion to our `test_should_create_article` test:
 ```ruby
 test "should create article" do
   assert_difference('Article.count') do
-    post :create, params: { article: {title: 'Some title'} }
+    post :create, params: { article: { title: 'Some title' } }
   end
 
   assert_redirected_to article_path(assigns(:article))
@@ -740,7 +740,7 @@ We can also add a test for updating an existing Article.
 ```ruby
 test "should update article" do
   article = articles(:one)
-  patch :update, params: { id: article.id, article: {title: "updated"} }
+  patch :update, params: { id: article.id, article: { title: "updated" } }
   assert_redirected_to article_path(assigns(:article))
 end
 ```
@@ -779,7 +779,7 @@ class ArticlesControllerTest < ActionController::TestCase
   end
 
   test "should update article" do
-    patch :update, params: { id: @article.id, article: {title: "updated"} }
+    patch :update, params: { id: @article.id, article: { title: "updated" } }
     assert_redirected_to article_path(assigns(:article))
   end
 end
@@ -1034,7 +1034,7 @@ test "can create an article" do
   assert_template "articles/new", partial: "articles/_form"
 
   post "/articles",
-    params: { article: {title: "can create", body: "article successfully."} }
+    params: { article: { title: "can create", body: "article successfully." } }
   assert_response :redirect
   follow_redirect!
   assert_response :success
@@ -1051,7 +1051,7 @@ After this we make a post request to the `:create` action of our Articles contro
 
 ```ruby
 post "/articles",
-  params: { article: {title: "can create", body: "article successfully."} }
+  params: { article: { title: "can create", body: "article successfully." } }
 assert_response :redirect
 follow_redirect!
 ```

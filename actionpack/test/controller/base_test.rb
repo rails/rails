@@ -178,7 +178,7 @@ class UrlOptionsTest < ActionController::TestCase
         get ':controller/:action'
       end
 
-      get :from_view, params: { route: "from_view_url"}
+      get :from_view, params: { route: "from_view_url" }
 
       assert_equal 'http://www.override.com/from_view', @response.body
       assert_equal 'http://www.override.com/from_view', @controller.send(:from_view_url)

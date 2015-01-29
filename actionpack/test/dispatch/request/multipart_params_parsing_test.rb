@@ -140,7 +140,7 @@ class MultipartParamsParsingTest < ActionDispatch::IntegrationTest
 
   test "uploads and reads file" do
     with_test_routing do
-      post '/read', params: { uploaded_data: fixture_file_upload(FIXTURE_PATH + "/hello.txt", "text/plain")}
+      post '/read', params: { uploaded_data: fixture_file_upload(FIXTURE_PATH + "/hello.txt", "text/plain") }
       assert_equal "File: Hello", response.body
     end
   end

@@ -125,7 +125,7 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
 
   def test_does_set_secure_cookies_over_https
     with_test_route_set(:secure => true) do
-      get '/set_session_value', headers: {'HTTPS' => 'on'}
+      get '/set_session_value', headers: { 'HTTPS' => 'on' }
       assert_response :success
       assert_equal "_myapp_session=#{response.body}; path=/; secure; HttpOnly",
         headers['Set-Cookie']

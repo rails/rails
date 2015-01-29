@@ -129,7 +129,7 @@ XML
 
     def test_assigns
       @foo = "foo"
-      @foo_hash = {foo: :bar}
+      @foo_hash = { foo: :bar }
       render nothing: true
     end
 
@@ -209,7 +209,7 @@ XML
   end
 
   def test_raw_post_handling
-    params = Hash[:page, {name: 'page name'}, 'some key', 123]
+    params = Hash[:page, { name: 'page name' }, 'some key', 123]
     post :render_raw_post, params: params.dup
 
     assert_equal params.to_query, @response.body
@@ -381,7 +381,7 @@ XML
   end
 
   def test_deprecated_process_with_request_uri_with_params
-    assert_deprecated { process :test_uri, "GET", id: 7}
+    assert_deprecated { process :test_uri, "GET", id: 7 }
     assert_equal "/test_case_test/test/test_uri/7", @response.body
   end
 
@@ -401,7 +401,7 @@ XML
 
   def test_process_with_request_uri_with_params_with_explicit_uri
     @request.env['PATH_INFO'] = "/explicit/uri"
-    process :test_uri, method: "GET", params: {id: 7}
+    process :test_uri, method: "GET", params: { id: 7 }
     assert_equal "/explicit/uri", @response.body
   end
 
@@ -466,10 +466,10 @@ XML
 
   def test_assert_generates
     assert_generates 'controller/action/5', controller: 'controller', action: 'action', id: '5'
-    assert_generates 'controller/action/7', {id: "7"}, {controller: "controller", action: "action"}
-    assert_generates 'controller/action/5', {controller: "controller", action: "action", id: "5", name: "bob"}, {}, {name: "bob"}
-    assert_generates 'controller/action/7', {id: "7", name: "bob"}, {controller: "controller", action: "action"}, {name: "bob"}
-    assert_generates 'controller/action/7', {id: "7"}, {controller: "controller", action: "action", name: "bob"}, {}
+    assert_generates 'controller/action/7', { id: "7" }, { controller: "controller", action: "action" }
+    assert_generates 'controller/action/5', { controller: "controller", action: "action", id: "5", name: "bob" }, {}, { name: "bob" }
+    assert_generates 'controller/action/7', { id: "7", name: "bob" }, { controller: "controller", action: "action" }, { name: "bob" }
+    assert_generates 'controller/action/7', { id: "7" }, { controller: "controller", action: "action", name: "bob" }, {}
   end
 
   def test_assert_routing
@@ -504,12 +504,14 @@ XML
 
   def test_deprecated_params_passing
     assert_deprecated {
-      get :test_params, page: {name: "Page name", month: '4', year: '2004', day: '6'}
+      get :test_params, page: { name: "Page name", month: '4', year: '2004', day: '6' }
     }
     parsed_params = eval(@response.body)
     assert_equal(
-      {'controller' => 'test_case_test/test', 'action' => 'test_params',
-       'page' => {'name' => "Page name", 'month' => '4', 'year' => '2004', 'day' => '6'}},
+      {
+        'controller' => 'test_case_test/test', 'action' => 'test_params',
+        'page' => { 'name' => "Page name", 'month' => '4', 'year' => '2004', 'day' => '6' }
+      },
       parsed_params
     )
   end
@@ -525,8 +527,10 @@ XML
     }
     parsed_params = eval(@response.body)
     assert_equal(
-      {'controller' => 'test_case_test/test', 'action' => 'test_params',
-       'page' => {'name' => "Page name", 'month' => '4', 'year' => '2004', 'day' => '6'}},
+      {
+        'controller' => 'test_case_test/test', 'action' => 'test_params',
+        'page' => { 'name' => "Page name", 'month' => '4', 'year' => '2004', 'day' => '6' }
+      },
       parsed_params
     )
   end
@@ -609,7 +613,7 @@ XML
   end
 
   def test_params_passing_doesnt_modify_in_place
-    page = {name: "Page name", month: 4, year: 2004, day: 6}
+    page = { name: "Page name", month: 4, year: 2004, day: 6 }
     get :test_params, params: { page: page }
     assert_equal 2004, page[:year]
   end

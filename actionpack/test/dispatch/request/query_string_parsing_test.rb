@@ -147,7 +147,7 @@ class QueryStringParsingTest < ActionDispatch::IntegrationTest
         get ':action', :to => ::QueryStringParsingTest::TestController
       end
 
-      get "/parse", headers: {"QUERY_STRING" => "foo[]=bar&foo[4]=bar"}
+      get "/parse", headers: { "QUERY_STRING" => "foo[]=bar&foo[4]=bar" }
       assert_response :bad_request
     end
   end

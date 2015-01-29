@@ -362,22 +362,22 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       get 'admin/passwords' => "queenbee#passwords", :constraints => ::TestRoutingMapper::IpRestrictor
     end
 
-    get '/admin', headers: {'REMOTE_ADDR' => '192.168.1.100'}
+    get '/admin', headers: { 'REMOTE_ADDR' => '192.168.1.100' }
     assert_equal 'queenbee#index', @response.body
 
-    get '/admin', headers: {'REMOTE_ADDR' => '10.0.0.100'}
+    get '/admin', headers: { 'REMOTE_ADDR' => '10.0.0.100' }
     assert_equal 'pass', @response.headers['X-Cascade']
 
-    get '/admin/accounts', headers: {'REMOTE_ADDR' => '192.168.1.100'}
+    get '/admin/accounts', headers: { 'REMOTE_ADDR' => '192.168.1.100' }
     assert_equal 'queenbee#accounts', @response.body
 
-    get '/admin/accounts', headers: {'REMOTE_ADDR' => '10.0.0.100'}
+    get '/admin/accounts', headers: { 'REMOTE_ADDR' => '10.0.0.100' }
     assert_equal 'pass', @response.headers['X-Cascade']
 
-    get '/admin/passwords', headers: {'REMOTE_ADDR' => '192.168.1.100'}
+    get '/admin/passwords', headers: { 'REMOTE_ADDR' => '192.168.1.100' }
     assert_equal 'queenbee#passwords', @response.body
 
-    get '/admin/passwords', headers: {'REMOTE_ADDR' => '10.0.0.100'}
+    get '/admin/passwords', headers: { 'REMOTE_ADDR' => '10.0.0.100' }
     assert_equal 'pass', @response.headers['X-Cascade']
   end
 
@@ -1683,9 +1683,9 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     get '/products/0001/images/0001'
     assert_equal 'images#show', @response.body
 
-    get '/dashboard', headers: {'REMOTE_ADDR' => '10.0.0.100'}
+    get '/dashboard', headers: { 'REMOTE_ADDR' => '10.0.0.100' }
     assert_equal 'pass', @response.headers['X-Cascade']
-    get '/dashboard', headers: {'REMOTE_ADDR' => '192.168.1.100'}
+    get '/dashboard', headers: { 'REMOTE_ADDR' => '192.168.1.100' }
     assert_equal 'dashboards#show', @response.body
   end
 
@@ -3573,12 +3573,12 @@ class TestAltApp < ActionDispatch::IntegrationTest
   end
 
   def test_alt_request_with_matched_header
-    get "/", headers: {"HTTP_X_HEADER" => "HEADER"}
+    get "/", headers: { "HTTP_X_HEADER" => "HEADER" }
     assert_equal "XHeader", @response.body
   end
 
   def test_alt_request_with_unmatched_header
-    get "/", headers: {"HTTP_X_HEADER" => "NON_MATCH"}
+    get "/", headers: { "HTTP_X_HEADER" => "NON_MATCH" }
     assert_equal "Alternative App", @response.body
   end
 end
@@ -3773,7 +3773,7 @@ class TestHttpMethods < ActionDispatch::IntegrationTest
 
   (RFC2616 + RFC2518 + RFC3253 + RFC3648 + RFC3744 + RFC5323 + RFC4791 + RFC5789).each do |method|
     test "request method #{method.underscore} can be matched" do
-      get '/', headers: {'REQUEST_METHOD' => method}
+      get '/', headers: { 'REQUEST_METHOD' => method }
       assert_equal method, @response.body
     end
   end

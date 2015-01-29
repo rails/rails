@@ -38,7 +38,7 @@ class SessionTest < ActiveSupport::TestCase
   end
 
   def test_deprecated_request_via_redirect_uses_given_method
-    path = "/somepath"; args = {:id => '1'}; headers = {"X-Test-Header" => "testvalue"}
+    path = "/somepath"; args = { id: '1' }; headers = { "X-Test-Header" => "testvalue" }
     @session.expects(:process).with(:put, path, params: args, headers: headers)
     @session.stubs(:redirect?).returns(false)
     assert_deprecated { @session.request_via_redirect(:put, path, args, headers) }
@@ -65,7 +65,7 @@ class SessionTest < ActiveSupport::TestCase
   end
 
   def test_deprecated_get_via_redirect
-    path = "/somepath"; args = {:id => '1'}; headers = {"X-Test-Header" => "testvalue" }
+    path = "/somepath"; args = { id: '1' }; headers = { "X-Test-Header" => "testvalue" }
     @session.expects(:request_via_redirect).with(:get, path, args, headers)
 
     assert_deprecated do
@@ -80,7 +80,7 @@ class SessionTest < ActiveSupport::TestCase
   end
 
   def test_deprecated_post_via_redirect
-    path = "/somepath"; args = {:id => '1'}; headers = {"X-Test-Header" => "testvalue" }
+    path = "/somepath"; args = { id: '1' }; headers = { "X-Test-Header" => "testvalue" }
     @session.expects(:request_via_redirect).with(:post, path, args, headers)
 
     assert_deprecated do
@@ -95,7 +95,7 @@ class SessionTest < ActiveSupport::TestCase
   end
 
   def test_deprecated_patch_via_redirect
-    path = "/somepath"; args = {:id => '1'}; headers = {"X-Test-Header" => "testvalue" }
+    path = "/somepath"; args = { id: '1' }; headers = { "X-Test-Header" => "testvalue" }
     @session.expects(:request_via_redirect).with(:patch, path, args, headers)
 
     assert_deprecated do
@@ -110,7 +110,7 @@ class SessionTest < ActiveSupport::TestCase
   end
 
   def test_deprecated_put_via_redirect
-    path = "/somepath"; args = {:id => '1'}; headers = {"X-Test-Header" => "testvalue" }
+    path = "/somepath"; args = { id: '1' }; headers = { "X-Test-Header" => "testvalue" }
     @session.expects(:request_via_redirect).with(:put, path, args, headers)
 
     assert_deprecated do
@@ -125,7 +125,7 @@ class SessionTest < ActiveSupport::TestCase
   end
 
   def test_deprecated_delete_via_redirect
-    path = "/somepath"; args = {:id => '1'}; headers = {"X-Test-Header" => "testvalue" }
+    path = "/somepath"; args = { id: '1' }; headers = { "X-Test-Header" => "testvalue" }
     @session.expects(:request_via_redirect).with(:delete, path, args, headers)
 
     assert_deprecated do
@@ -763,7 +763,7 @@ class MetalIntegrationTest < ActionDispatch::IntegrationTest
   end
 
   def test_pass_headers_and_env
-    get "/success", headers: {"X-Test-Header" => "value"}, env: {"HTTP_REFERER" => "http://test.com/", "HTTP_HOST" => "http://test.com"}
+    get "/success", headers: { "X-Test-Header" => "value" }, env: { "HTTP_REFERER" => "http://test.com/", "HTTP_HOST" => "http://test.com" }
 
     assert_equal "http://test.com", @request.env["HTTP_HOST"]
     assert_equal "http://test.com/", @request.env["HTTP_REFERER"]
@@ -771,7 +771,7 @@ class MetalIntegrationTest < ActionDispatch::IntegrationTest
   end
 
   def test_pass_env
-    get "/success", env: {"HTTP_REFERER" => "http://test.com/", "HTTP_HOST" => "http://test.com"}
+    get "/success", env: { "HTTP_REFERER" => "http://test.com/", "HTTP_HOST" => "http://test.com" }
 
     assert_equal "http://test.com", @request.env["HTTP_HOST"]
     assert_equal "http://test.com/", @request.env["HTTP_REFERER"]
@@ -891,7 +891,7 @@ class EnvironmentFilterIntegrationTest < ActionDispatch::IntegrationTest
   end
 
   test "filters rack request form vars" do
-    post "/post", params: {username: 'cjolly', password: 'secret'}
+    post "/post", params: { username: 'cjolly', password: 'secret' }
 
     assert_equal 'cjolly', request.filtered_parameters['username']
     assert_equal '[FILTERED]', request.filtered_parameters['password']
