@@ -94,13 +94,6 @@ module Rails
       @options[:backtrace]
     end
 
-    private
-    def run_tests
-      test_files.to_a.each do |file|
-        require File.expand_path file
-      end
-    end
-
     def test_files
       return [@options[:filename]] if @options[:filename]
       if @options[:patterns]
@@ -109,6 +102,13 @@ module Rails
         pattern = "test/**/*_test.rb"
       end
       Rake::FileList[pattern]
+    end
+
+    private
+    def run_tests
+      test_files.to_a.each do |file|
+        require File.expand_path file
+      end
     end
 
     def test_methods

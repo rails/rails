@@ -70,6 +70,9 @@ class TestUnitTestRunnerTest < ActiveSupport::TestCase
     assert_equal ["#{__dir__}/**/*_test.rb", "#{application_dir}/**/*_test.rb"], options[:patterns]
     assert_nil options[:filename]
     assert_nil options[:line]
+
+    runner = Rails::TestRunner.new(options)
+    assert runner.test_files.size > 0
   end
 
   test "run multiple files and run one file by line" do
@@ -78,6 +81,17 @@ class TestUnitTestRunnerTest < ActiveSupport::TestCase
 
     assert_equal ["#{__dir__}/**/*_test.rb"], options[:patterns]
     assert_equal __FILE__, options[:filename]
+    assert_equal line, options[:line]
+
+    runner = Rails::TestRunner.new(options)
+    assert_equal [__FILE__], runner.test_files, 'Only returns the file that running by line'
+  end
+
+  test "running multiple files passing line number" do
+    line = __LINE__
+    options = @options.parse(["foobar.rb:8", "#{__FILE__}:#{line}"])
+
+    assert_equal __FILE__, options[:filename], 'Returns the last file'
     assert_equal line, options[:line]
   end
 end
