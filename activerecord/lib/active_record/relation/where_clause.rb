@@ -33,9 +33,9 @@ module ActiveRecord
 
       def or(other)
         if empty?
-          other
-        elsif other.empty?
           self
+        elsif other.empty?
+          other
         else
           WhereClause.new(
             [ast.or(other.ast)],
