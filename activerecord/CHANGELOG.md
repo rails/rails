@@ -1,3 +1,10 @@
+*   Fixed ActiveRecord::Relation#group method when argument is SQL reserved key word:
+
+      SplitTest.group(:key).count
+      Property.group(:value).count
+
+    *Bogdan Gusiev*
+
 *   Fixed setting of foreign_key for through associations while building of new record.
 
     Fixes #12698.
