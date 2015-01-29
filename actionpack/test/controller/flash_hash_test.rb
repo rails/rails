@@ -70,22 +70,23 @@ module ActionDispatch
     end
 
     def test_from_session_value
-      rails_3_2_cookie = 'BAh7B0kiD3Nlc3Npb25faWQGOgZFRkkiJWY4ZTFiODE1MmJhNzYwOWMyOGJiYjE3ZWM5MjYzYmE3BjsAVEkiCmZsYXNoBjsARm86JUFjdGlvbkRpc3BhdGNoOjpGbGFzaDo6Rmxhc2hIYXNoCToKQHVzZWRvOghTZXQGOgpAaGFzaHsAOgxAY2xvc2VkRjoNQGZsYXNoZXN7BkkiDG1lc3NhZ2UGOwBGSSIKSGVsbG8GOwBGOglAbm93MA=='
+      # {"session_id"=>"f8e1b8152ba7609c28bbb17ec9263ba7", "flash"=>#<ActionDispatch::Flash::FlashHash:0x00000000000000 @used=#<Set: {"farewell"}>, @closed=false, @flashes={"greeting"=>"Hello", "farewell"=>"Goodbye"}, @now=nil>}
+      rails_3_2_cookie = 'BAh7B0kiD3Nlc3Npb25faWQGOgZFRkkiJWY4ZTFiODE1MmJhNzYwOWMyOGJiYjE3ZWM5MjYzYmE3BjsAVEkiCmZsYXNoBjsARm86JUFjdGlvbkRpc3BhdGNoOjpGbGFzaDo6Rmxhc2hIYXNoCToKQHVzZWRvOghTZXQGOgpAaGFzaHsGSSINZmFyZXdlbGwGOwBUVDoMQGNsb3NlZEY6DUBmbGFzaGVzewdJIg1ncmVldGluZwY7AFRJIgpIZWxsbwY7AFRJIg1mYXJld2VsbAY7AFRJIgxHb29kYnllBjsAVDoJQG5vdzA='
       session = Marshal.load(Base64.decode64(rails_3_2_cookie))
       hash = Flash::FlashHash.from_session_value(session['flash'])
-      assert_equal({'message' => 'Hello'}, hash.to_hash)
+      assert_equal({'greeting' => 'Hello'}, hash.to_hash)
       assert_equal(nil, hash.to_session_value)
     end
 
     def test_from_session_value_on_json_serializer
-      decrypted_data = "{ \"session_id\":\"d98bdf6d129618fc2548c354c161cfb5\", \"flash\":{\"discard\":[], \"flashes\":{\"message\":\"hey you\"}} }"
+      decrypted_data = "{ \"session_id\":\"d98bdf6d129618fc2548c354c161cfb5\", \"flash\":{\"discard\":[\"farewell\"], \"flashes\":{\"greeting\":\"Hello\",\"farewell\":\"Goodbye\"}} }"
       session = ActionDispatch::Cookies::JsonSerializer.load(decrypted_data)
       hash = Flash::FlashHash.from_session_value(session['flash'])
 
-      assert_equal({'message' => 'hey you'}, hash.to_hash)
+      assert_equal({'greeting' => 'Hello'}, hash.to_hash)
       assert_equal(nil, hash.to_session_value)
-      assert_equal "hey you", hash[:message]
-      assert_equal "hey you", hash["message"]
+      assert_equal "Hello", hash[:greeting]
+      assert_equal "Hello", hash["greeting"]
     end
 
     def test_empty?
