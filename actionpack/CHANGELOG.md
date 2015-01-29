@@ -1,3 +1,12 @@
+## Rails 3.2.20 ##
+
+*   fix regression (issue #17454): ArgumentError: invalid byte sequence 
+    in UTF-8
+
+    This regression was introduced at 3437f260a5903b651bf8b8f751345fb288fa9052
+
+    *Jordi Massaguer Pla*
+    
 ## Rails 3.2.19 (Jul 2, 2014) ##
 
 *   Fix regression when using `ActionView::Helpers::TranslationHelper#translate` with
