@@ -27,6 +27,16 @@ class DefaultUrlOptionsController < ActionController::Base
   end
 end
 
+class OptionalDefaultUrlOptionsController < ActionController::Base
+  def show
+    render nothing: true
+  end
+
+  def default_url_options
+    { format: 'atom', id: 'default-id' }
+  end
+end
+
 class UrlOptionsController < ActionController::Base
   def from_view
     render :inline => "<%= #{params[:route]} %>"
@@ -234,7 +244,18 @@ class DefaultUrlOptionsTest < ActionController::TestCase
       assert_equal '/en/descriptions/1.xml', @controller.send(:description_path, 1, :format => "xml")
     end
   end
+end
 
+class OptionalDefaultUrlOptionsControllerTest < ActionController::TestCase
+  def test_default_url_options_override_missing_positional_arguments
+    with_routing do |set|
+      set.draw do
+        get "/things/:id(.:format)" => 'things#show', :as => :thing
+      end
+      assert_equal '/things/1.atom', thing_path('1')
+      assert_equal '/things/default-id.atom', thing_path
+    end
+  end
 end
 
 class EmptyUrlOptionsTest < ActionController::TestCase

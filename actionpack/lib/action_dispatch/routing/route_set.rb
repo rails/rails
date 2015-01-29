@@ -264,9 +264,10 @@ module ActionDispatch
                 path_params -= controller_options.keys
                 path_params -= result.keys
               end
-              path_params.each { |param|
-                result[param] = inner_options.fetch(param) { args.shift }
-              }
+              path_params -= inner_options.keys
+              path_params.take(args.size).each do |param|
+                result[param] = args.shift
+              end
             end
 
             result.merge!(inner_options)
