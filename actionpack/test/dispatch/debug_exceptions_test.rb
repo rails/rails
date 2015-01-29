@@ -86,21 +86,21 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
   test 'skip diagnosis if not showing detailed exceptions' do
     @app = ProductionApp
     assert_raise RuntimeError do
-      get "/", {}, {'action_dispatch.show_exceptions' => true}
+      get "/", headers: {'action_dispatch.show_exceptions' => true}
     end
   end
 
   test 'skip diagnosis if not showing exceptions' do
     @app = DevelopmentApp
     assert_raise RuntimeError do
-      get "/", {}, {'action_dispatch.show_exceptions' => false}
+      get "/", headers: {'action_dispatch.show_exceptions' => false}
     end
   end
 
   test 'raise an exception on cascade pass' do
     @app = ProductionApp
     assert_raise ActionController::RoutingError do
-      get "/pass", {}, {'action_dispatch.show_exceptions' => true}
+      get "/pass", headers: {'action_dispatch.show_exceptions' => true}
     end
   end
 
@@ -108,14 +108,14 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     boomer = Boomer.new(false)
     @app = ActionDispatch::DebugExceptions.new(boomer)
     assert_raise ActionController::RoutingError do
-      get "/pass", {}, {'action_dispatch.show_exceptions' => true}
+      get "/pass", headers: {'action_dispatch.show_exceptions' => true}
     end
     assert boomer.closed, "Expected to close the response body"
   end
 
   test 'displays routes in a table when a RoutingError occurs' do
     @app = DevelopmentApp
-    get "/pass", {}, {'action_dispatch.show_exceptions' => true}
+    get "/pass", headers: {'action_dispatch.show_exceptions' => true}
     routing_table = body[/route_table.*<.table>/m]
     assert_match '/:controller(/:action)(.:format)', routing_table
     assert_match ':controller#:action', routing_table
@@ -125,7 +125,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
   test 'displays request and response info when a RoutingError occurs' do
     @app = DevelopmentApp
 
-    get "/pass", {}, {'action_dispatch.show_exceptions' => true}
+    get "/pass", headers: {'action_dispatch.show_exceptions' => true}
 
     assert_select 'h2', /Request/
     assert_select 'h2', /Response/
@@ -134,27 +134,27 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
   test "rescue with diagnostics message" do
     @app = DevelopmentApp
 
-    get "/", {}, {'action_dispatch.show_exceptions' => true}
+    get "/", headers: {'action_dispatch.show_exceptions' => true}
     assert_response 500
     assert_match(/puke/, body)
 
-    get "/not_found", {}, {'action_dispatch.show_exceptions' => true}
+    get "/not_found", headers: {'action_dispatch.show_exceptions' => true}
     assert_response 404
     assert_match(/#{AbstractController::ActionNotFound.name}/, body)
 
-    get "/method_not_allowed", {}, {'action_dispatch.show_exceptions' => true}
+    get "/method_not_allowed", headers: {'action_dispatch.show_exceptions' => true}
     assert_response 405
     assert_match(/ActionController::MethodNotAllowed/, body)
 
-    get "/unknown_http_method", {}, {'action_dispatch.show_exceptions' => true}
+    get "/unknown_http_method", headers: {'action_dispatch.show_exceptions' => true}
     assert_response 405
     assert_match(/ActionController::UnknownHttpMethod/, body)
 
-    get "/bad_request", {}, {'action_dispatch.show_exceptions' => true}
+    get "/bad_request", headers: {'action_dispatch.show_exceptions' => true}
     assert_response 400
     assert_match(/ActionController::BadRequest/, body)
 
-    get "/parameter_missing", {}, {'action_dispatch.show_exceptions' => true}
+    get "/parameter_missing", headers: {'action_dispatch.show_exceptions' => true}
     assert_response 400
     assert_match(/ActionController::ParameterMissing/, body)
   end
@@ -163,38 +163,38 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     @app = DevelopmentApp
     xhr_request_env = {'action_dispatch.show_exceptions' => true, 'HTTP_X_REQUESTED_WITH' => 'XMLHttpRequest'}
 
-    get "/", {}, xhr_request_env
+    get "/", headers: xhr_request_env
     assert_response 500
     assert_no_match(/<header>/, body)
     assert_no_match(/<body>/, body)
     assert_equal "text/plain", response.content_type
     assert_match(/RuntimeError\npuke/, body)
 
-    get "/not_found", {}, xhr_request_env
+    get "/not_found", headers: xhr_request_env
     assert_response 404
     assert_no_match(/<body>/, body)
     assert_equal "text/plain", response.content_type
     assert_match(/#{AbstractController::ActionNotFound.name}/, body)
 
-    get "/method_not_allowed", {}, xhr_request_env
+    get "/method_not_allowed", headers: xhr_request_env
     assert_response 405
     assert_no_match(/<body>/, body)
     assert_equal "text/plain", response.content_type
     assert_match(/ActionController::MethodNotAllowed/, body)
 
-    get "/unknown_http_method", {}, xhr_request_env
+    get "/unknown_http_method", headers: xhr_request_env
     assert_response 405
     assert_no_match(/<body>/, body)
     assert_equal "text/plain", response.content_type
     assert_match(/ActionController::UnknownHttpMethod/, body)
 
-    get "/bad_request", {}, xhr_request_env
+    get "/bad_request", headers: xhr_request_env
     assert_response 400
     assert_no_match(/<body>/, body)
     assert_equal "text/plain", response.content_type
     assert_match(/ActionController::BadRequest/, body)
 
-    get "/parameter_missing", {}, xhr_request_env
+    get "/parameter_missing", headers: xhr_request_env
     assert_response 400
     assert_no_match(/<body>/, body)
     assert_equal "text/plain", response.content_type
@@ -204,7 +204,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
   test "does not show filtered parameters" do
     @app = DevelopmentApp
 
-    get "/", {"foo"=>"bar"}, {'action_dispatch.show_exceptions' => true,
+    get "/", params: {"foo"=>"bar"}, headers: {'action_dispatch.show_exceptions' => true,
       'action_dispatch.parameter_filter' => [:foo]}
     assert_response 500
     assert_match("&quot;foo&quot;=&gt;&quot;[FILTERED]&quot;", body)
@@ -213,7 +213,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
   test "show registered original exception for wrapped exceptions" do
     @app = DevelopmentApp
 
-    get "/not_found_original_exception", {}, {'action_dispatch.show_exceptions' => true}
+    get "/not_found_original_exception", headers: {'action_dispatch.show_exceptions' => true}
     assert_response 404
     assert_match(/AbstractController::ActionNotFound/, body)
   end
@@ -221,7 +221,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
   test "named urls missing keys raise 500 level error" do
     @app = DevelopmentApp
 
-    get "/missing_keys", {}, {'action_dispatch.show_exceptions' => true}
+    get "/missing_keys", headers: {'action_dispatch.show_exceptions' => true}
     assert_response 500
 
     assert_match(/ActionController::UrlGenerationError/, body)
@@ -229,7 +229,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
 
   test "show the controller name in the diagnostics template when controller name is present" do
     @app = DevelopmentApp
-    get("/runtime_error", {}, {
+    get("/runtime_error", headers: {
       'action_dispatch.show_exceptions' => true,
       'action_dispatch.request.parameters' => {
         'action' => 'show',
@@ -252,7 +252,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
       }
     }
 
-    get("/runtime_error", {}, {
+    get("/runtime_error", headers: {
       'action_dispatch.show_exceptions' => true,
       'action_dispatch.request.parameters' => {
         'action' => 'show',
@@ -267,21 +267,21 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
   test "sets the HTTP charset parameter" do
     @app = DevelopmentApp
 
-    get "/", {}, {'action_dispatch.show_exceptions' => true}
+    get "/", headers: {'action_dispatch.show_exceptions' => true}
     assert_equal "text/html; charset=utf-8", response.headers["Content-Type"]
   end
 
   test 'uses logger from env' do
     @app = DevelopmentApp
     output = StringIO.new
-    get "/", {}, {'action_dispatch.show_exceptions' => true, 'action_dispatch.logger' => Logger.new(output)}
+    get "/", headers: {'action_dispatch.show_exceptions' => true, 'action_dispatch.logger' => Logger.new(output)}
     assert_match(/puke/, output.rewind && output.read)
   end
 
   test 'uses backtrace cleaner from env' do
     @app = DevelopmentApp
     cleaner = stub(:clean => ['passed backtrace cleaner'])
-    get "/", {}, {'action_dispatch.show_exceptions' => true, 'action_dispatch.backtrace_cleaner' => cleaner}
+    get "/", headers: {'action_dispatch.show_exceptions' => true, 'action_dispatch.backtrace_cleaner' => cleaner}
     assert_match(/passed backtrace cleaner/, body)
   end
 
@@ -294,14 +294,14 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
            'action_dispatch.logger' => Logger.new(output),
            'action_dispatch.backtrace_cleaner' => backtrace_cleaner}
 
-    get "/", {}, env
+    get "/", headers: env
     assert_operator((output.rewind && output.read).lines.count, :>, 10)
   end
 
   test 'display backtrace when error type is SyntaxError' do
     @app = DevelopmentApp
 
-    get '/original_syntax_error', {}, {'action_dispatch.backtrace_cleaner' => ActiveSupport::BacktraceCleaner.new}
+    get '/original_syntax_error', headers: {'action_dispatch.backtrace_cleaner' => ActiveSupport::BacktraceCleaner.new}
 
     assert_response 500
     assert_select '#Application-Trace' do
@@ -312,7 +312,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
   test 'display backtrace on template missing errors' do
     @app = DevelopmentApp
 
-    get "/missing_template", nil, {}
+    get "/missing_template"
 
     assert_select "header h1", /Template is missing/
 
@@ -328,7 +328,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
   test 'display backtrace when error type is SyntaxError wrapped by ActionView::Template::Error' do
     @app = DevelopmentApp
 
-    get '/syntax_error_into_view', {}, {'action_dispatch.backtrace_cleaner' => ActiveSupport::BacktraceCleaner.new}
+    get '/syntax_error_into_view', headers: {'action_dispatch.backtrace_cleaner' => ActiveSupport::BacktraceCleaner.new}
 
     assert_response 500
     assert_select '#Application-Trace' do
@@ -344,7 +344,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
       bc.add_silencer { |line| line !~ %r{test/dispatch/debug_exceptions_test.rb} }
     end
 
-    get '/framework_raises', {}, {'action_dispatch.backtrace_cleaner' => cleaner}
+    get '/framework_raises', headers: {'action_dispatch.backtrace_cleaner' => cleaner}
 
     # Assert correct error
     assert_response 500

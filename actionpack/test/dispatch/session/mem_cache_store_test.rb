@@ -172,7 +172,7 @@ class MemCacheStoreTest < ActionDispatch::IntegrationTest
 
         reset!
 
-        get '/set_session_value', :_session_id => session_id
+        get '/set_session_value', params: { _session_id: session_id }
         assert_response :success
         assert_not_equal session_id, cookies['_session_id']
       end

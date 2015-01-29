@@ -125,7 +125,7 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
 
   def test_does_set_secure_cookies_over_https
     with_test_route_set(:secure => true) do
-      get '/set_session_value', nil, 'HTTPS' => 'on'
+      get '/set_session_value', headers: {'HTTPS' => 'on'}
       assert_response :success
       assert_equal "_myapp_session=#{response.body}; path=/; secure; HttpOnly",
         headers['Set-Cookie']
@@ -331,9 +331,11 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
   private
 
     # Overwrite get to send SessionSecret in env hash
-    def get(path, parameters = nil, env = {})
-      env["action_dispatch.key_generator"] ||= Generator
-      super
+    def get(path, *args)
+      args[0] ||= {}
+      args[0][:headers] ||= {}
+      args[0][:headers]["action_dispatch.key_generator"] ||= Generator
+      super(path, *args)
     end
 
     def with_test_route_set(options = {})

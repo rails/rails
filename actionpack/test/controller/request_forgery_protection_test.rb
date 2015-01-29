@@ -266,19 +266,19 @@ module RequestForgeryProtectionTests
   end
 
   def test_should_allow_post_with_token
-    assert_not_blocked { post :index, :custom_authenticity_token => @token }
+    assert_not_blocked { post :index, params: { custom_authenticity_token: @token } }
   end
 
   def test_should_allow_patch_with_token
-    assert_not_blocked { patch :index, :custom_authenticity_token => @token }
+    assert_not_blocked { patch :index, params: { custom_authenticity_token: @token } }
   end
 
   def test_should_allow_put_with_token
-    assert_not_blocked { put :index, :custom_authenticity_token => @token }
+    assert_not_blocked { put :index, params: { custom_authenticity_token: @token } }
   end
 
   def test_should_allow_delete_with_token
-    assert_not_blocked { delete :index, :custom_authenticity_token => @token }
+    assert_not_blocked { delete :index, params: { custom_authenticity_token: @token } }
   end
 
   def test_should_allow_post_with_token_in_header
@@ -341,7 +341,7 @@ module RequestForgeryProtectionTests
     end
 
     assert_cross_origin_not_blocked { xhr :get, :same_origin_js }
-    assert_cross_origin_not_blocked { xhr :get, :same_origin_js, format: 'js' }
+    assert_cross_origin_not_blocked { xhr :get, :same_origin_js, format: 'js'}
     assert_cross_origin_not_blocked do
       @request.accept = 'text/javascript'
       xhr :get, :negotiate_same_origin
@@ -350,11 +350,11 @@ module RequestForgeryProtectionTests
 
   # Allow non-GET requests since GET is all a remote <script> tag can muster.
   def test_should_allow_non_get_js_without_xhr_header
-    assert_cross_origin_not_blocked { post :same_origin_js, custom_authenticity_token: @token }
-    assert_cross_origin_not_blocked { post :same_origin_js, format: 'js', custom_authenticity_token: @token }
+    assert_cross_origin_not_blocked { post :same_origin_js, params: { custom_authenticity_token: @token } }
+    assert_cross_origin_not_blocked { post :same_origin_js, params: { format: 'js', custom_authenticity_token: @token } }
     assert_cross_origin_not_blocked do
       @request.accept = 'text/javascript'
-      post :negotiate_same_origin, custom_authenticity_token: @token
+      post :negotiate_same_origin, params: { custom_authenticity_token: @token}
     end
   end
 
@@ -543,7 +543,7 @@ class CustomAuthenticityParamControllerTest < ActionController::TestCase
     @controller.stubs(:valid_authenticity_token?).returns(:true)
 
     begin
-      post :index, :custom_token_name => 'foobar'
+      post :index, params: { custom_token_name: 'foobar' }
       assert_equal 0, @logger.logged(:warn).size
     ensure
       ActionController::Base.logger = @old_logger
@@ -554,7 +554,7 @@ class CustomAuthenticityParamControllerTest < ActionController::TestCase
     ActionController::Base.logger = @logger
 
     begin
-      post :index, :custom_token_name => 'bazqux'
+      post :index, params: { custom_token_name: 'bazqux' }
       assert_equal 1, @logger.logged(:warn).size
     ensure
       ActionController::Base.logger = @old_logger

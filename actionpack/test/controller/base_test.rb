@@ -178,7 +178,7 @@ class UrlOptionsTest < ActionController::TestCase
         get ':controller/:action'
       end
 
-      get :from_view, :route => "from_view_url"
+      get :from_view, params: { route: "from_view_url"}
 
       assert_equal 'http://www.override.com/from_view', @response.body
       assert_equal 'http://www.override.com/from_view', @controller.send(:from_view_url)
@@ -212,7 +212,7 @@ class DefaultUrlOptionsTest < ActionController::TestCase
         get ':controller/:action'
       end
 
-      get :from_view, :route => "from_view_url"
+      get :from_view, params: { route: "from_view_url" }
 
       assert_equal 'http://www.override.com/from_view?locale=en', @response.body
       assert_equal 'http://www.override.com/from_view?locale=en', @controller.send(:from_view_url)
@@ -229,7 +229,7 @@ class DefaultUrlOptionsTest < ActionController::TestCase
         get ':controller/:action'
       end
 
-      get :from_view, :route => "description_path(1)"
+      get :from_view, params: { route: "description_path(1)" }
 
       assert_equal '/en/descriptions/1', @response.body
       assert_equal '/en/descriptions', @controller.send(:descriptions_path)
