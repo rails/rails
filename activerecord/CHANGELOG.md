@@ -1,3 +1,10 @@
+*   Fixed ActiveRecord::Relation#group method when argument is SQL reserved key word:
+
+      SplitTest.group(:key).count
+      Property.group(:value).count
+
+    *Bogdan Gusiev*
+
 *   Added the `#or` method on ActiveRecord::Relation, allowing use of the OR
     operator to combine WHERE or HAVING clauses.
 
