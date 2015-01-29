@@ -339,7 +339,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_skipping_test_unit
+  def test_skipping_test_files
     run_generator [destination_root, "--skip-test"]
     assert_no_file "test"
     assert_file "bukkits.gemspec" do |contents|

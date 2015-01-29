@@ -70,7 +70,7 @@ module Rails
                                           desc: 'Skip turbolinks gem'
 
         class_option :skip_test,          type: :boolean, aliases: '-T', default: false,
-                                          desc: 'Skip ActiveSupport::TestCase files'
+                                          desc: 'Skip test files'
 
         class_option :rc,                 type: :string, default: false,
                                           desc: "Path to file containing extra configuration options for rails command"

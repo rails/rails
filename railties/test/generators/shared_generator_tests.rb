@@ -47,7 +47,7 @@ module SharedGeneratorTests
     assert_match(/Invalid value for \-\-database option/, content)
   end
 
-  def test_test_unit_is_skipped_if_required
+  def test_test_files_are_skipped_if_required
     run_generator [destination_root, "--skip-test"]
     assert_no_file "test"
   end
