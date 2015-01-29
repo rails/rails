@@ -1,12 +1,11 @@
-*   Migrating to kwarg syntax in `ActionController::TestCase` and
+*   Migrating to keyword arguments syntax in `ActionController::TestCase` and
     `ActionDispatch::Integration` HTTP request methods
 
     New syntax example:
-    ```ruby
-    post :create, params: { y: x }, session: { a: 'b' }
-    get :view, params: { id: 1 }
-    get :view, params: { id: 1 }, format: :json
-    ```
+
+        post :create, params: { y: x }, session: { a: 'b' }
+        get :view, params: { id: 1 }
+        get :view, params: { id: 1 }, format: :json
 
     *Kir Shatrov*
 
