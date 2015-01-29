@@ -173,6 +173,14 @@ $ git checkout -b my_new_branch
 
 It doesn't matter much what name you use, because this branch will only exist on your local computer and your personal repository on GitHub. It won't be part of the Rails Git repository.
 
+### Bundle Update
+
+Update and install the required gems.
+
+```bash
+$ bundle update
+```
+
 ### Running an Application Against Your Local Branch
 
 In case you need a dummy Rails app to test changes, the `--dev` flag of `rails new` generates an application that uses your local branch:
