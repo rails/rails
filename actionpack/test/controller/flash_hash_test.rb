@@ -57,13 +57,13 @@ module ActionDispatch
 
     def test_to_session_value
       @hash['foo'] = 'bar'
-      assert_equal({'flashes' => {'foo' => 'bar'}, 'discard' => []}, @hash.to_session_value)
-
-      @hash.discard('foo')
-      assert_equal({'flashes' => {'foo' => 'bar'}, 'discard' => %w[foo]}, @hash.to_session_value)
+      assert_equal({'flashes' => {'foo' => 'bar'}}, @hash.to_session_value)
 
       @hash.now['qux'] = 1
-      assert_equal({'flashes' => {'foo' => 'bar', 'qux' => 1}, 'discard' => %w[foo qux]}, @hash.to_session_value)
+      assert_equal({'flashes' => {'foo' => 'bar'}}, @hash.to_session_value)
+
+      @hash.discard('foo')
+      assert_equal(nil, @hash.to_session_value)
 
       @hash.sweep
       assert_equal(nil, @hash.to_session_value)
@@ -73,7 +73,8 @@ module ActionDispatch
       rails_3_2_cookie = 'BAh7B0kiD3Nlc3Npb25faWQGOgZFRkkiJWY4ZTFiODE1MmJhNzYwOWMyOGJiYjE3ZWM5MjYzYmE3BjsAVEkiCmZsYXNoBjsARm86JUFjdGlvbkRpc3BhdGNoOjpGbGFzaDo6Rmxhc2hIYXNoCToKQHVzZWRvOghTZXQGOgpAaGFzaHsAOgxAY2xvc2VkRjoNQGZsYXNoZXN7BkkiDG1lc3NhZ2UGOwBGSSIKSGVsbG8GOwBGOglAbm93MA=='
       session = Marshal.load(Base64.decode64(rails_3_2_cookie))
       hash = Flash::FlashHash.from_session_value(session['flash'])
-      assert_equal({'flashes' => {'message' => 'Hello'}, 'discard' => %w[message]}, hash.to_session_value)
+      assert_equal({'message' => 'Hello'}, hash.to_hash)
+      assert_equal(nil, hash.to_session_value)
     end
 
     def test_from_session_value_on_json_serializer
@@ -81,7 +82,8 @@ module ActionDispatch
       session = ActionDispatch::Cookies::JsonSerializer.load(decrypted_data)
       hash = Flash::FlashHash.from_session_value(session['flash'])
 
-      assert_equal({'discard' => %w[message], 'flashes' => { 'message' => 'hey you'}}, hash.to_session_value)
+      assert_equal({'message' => 'hey you'}, hash.to_hash)
+      assert_equal(nil, hash.to_session_value)
       assert_equal "hey you", hash[:message]
       assert_equal "hey you", hash["message"]
     end
