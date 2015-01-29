@@ -51,9 +51,10 @@ module Rails
 
         opt_parser.order!(args)
 
-        if arg = args.shift
+        options[:patterns] = []
+        while arg = args.shift
           if Dir.exists?(arg)
-            options[:pattern] = "#{arg}/**/*_test.rb"
+            options[:patterns] << "#{arg}/**/*_test.rb"
           else
             options[:filename], options[:line] = arg.split(':')
             options[:filename] = File.expand_path options[:filename]
@@ -102,8 +103,8 @@ module Rails
 
     def test_files
       return [@options[:filename]] if @options[:filename]
-      if @options[:pattern]
-        pattern = @options[:pattern]
+      if @options[:patterns]
+        pattern = @options[:patterns]
       else
         pattern = "test/**/*_test.rb"
       end

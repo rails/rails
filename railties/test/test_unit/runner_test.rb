@@ -58,12 +58,26 @@ class TestUnitTestRunnerTest < ActiveSupport::TestCase
   test "run all tests in a directory" do
     options = @options.parse([__dir__])
 
-    assert_equal "#{__dir__}/**/*_test.rb", options[:pattern]
+    assert_equal ["#{__dir__}/**/*_test.rb"], options[:patterns]
     assert_nil options[:filename]
     assert_nil options[:line]
   end
 
   test "run multiple files" do
-    skip "needs implementation"
+    application_dir = File.expand_path("#{__dir__}/../application")
+    options = @options.parse([__dir__, application_dir])
+
+    assert_equal ["#{__dir__}/**/*_test.rb", "#{application_dir}/**/*_test.rb"], options[:patterns]
+    assert_nil options[:filename]
+    assert_nil options[:line]
+  end
+
+  test "run multiple files and run one file by line" do
+    line = __LINE__
+    options = @options.parse([__dir__, "#{__FILE__}:#{line}"])
+
+    assert_equal ["#{__dir__}/**/*_test.rb"], options[:patterns]
+    assert_equal __FILE__, options[:filename]
+    assert_equal line, options[:line]
   end
 end
