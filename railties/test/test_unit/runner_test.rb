@@ -19,6 +19,16 @@ class TestUnitTestRunnerTest < ActiveSupport::TestCase
     assert options[:backtrace]
   end
 
+  test "tests run in the test environment by default" do
+    options = @options.parse([])
+    assert_equal "test", options[:environment]
+  end
+
+  test "can run in a specific environment" do
+    options = @options.parse(["-e development"])
+    assert_equal "development", options[:environment]
+  end
+
   test "parse the filename and line" do
     options = @options.parse(["foobar.rb:20"])
     assert_equal File.expand_path("foobar.rb"), options[:filename]
@@ -51,5 +61,9 @@ class TestUnitTestRunnerTest < ActiveSupport::TestCase
     assert_equal "#{__dir__}/**/*_test.rb", options[:pattern]
     assert_nil options[:filename]
     assert_nil options[:line]
+  end
+
+  test "run multiple files" do
+    skip "needs implementation"
   end
 end

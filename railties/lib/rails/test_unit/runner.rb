@@ -7,11 +7,16 @@ module Rails
   class TestRunner
     class Options
       def self.parse(args)
-        options = { backtrace: false, name: nil }
+        options = { backtrace: false, name: nil, environment: "test" }
 
         opt_parser = ::OptionParser.new do |opts|
           opts.banner = "Usage: bin/rails test [options] [file or directory]"
 
+          opts.separator ""
+          opts.on("-e", "--environment [ENV]",
+                  "run tests in the ENV environment") do |env|
+            options[:environment] = env.strip
+          end
           opts.separator ""
           opts.separator "Filter options:"
           opts.separator ""
@@ -70,6 +75,7 @@ module Rails
 
     def run
       $rails_test_runner = self
+      ENV["RAILS_ENV"] = @options[:environment]
       run_tests
     end
 
