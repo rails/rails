@@ -223,6 +223,7 @@ module ActiveSupport
     # Compare this time zone to the parameter. The two are compared first on
     # their offsets, and then by name.
     def <=>(zone)
+      return unless zone.respond_to?(:utc_offset) && zone.respond_to?(:name)
       result = (utc_offset <=> zone.utc_offset)
       result = (name <=> zone.name) if result == 0
       result
