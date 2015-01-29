@@ -1,3 +1,10 @@
+*   Fixed ActiveRecord::Relation#group method when argument is SQL reserved key word:
+
+      SplitTest.group(:key).count
+      Property.group(:value).count
+
+    *Bogdan Gusiev*
+
 *   Don't define autosave association callbacks twice from
     `accepts_nested_attributes_for`.
 
