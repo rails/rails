@@ -30,16 +30,18 @@ class TestUnitTestRunnerTest < ActiveSupport::TestCase
   end
 
   test "parse the filename and line" do
-    options = @options.parse(["foobar.rb:20"])
-    assert_equal File.expand_path("foobar.rb"), options[:filename]
+    file = "test/test_unit/runner_test.rb"
+    absolute_file = __FILE__
+    options = @options.parse(["#{file}:20"])
+    assert_equal absolute_file, options[:filename]
     assert_equal 20, options[:line]
 
-    options = @options.parse(["foobar.rb:"])
-    assert_equal File.expand_path("foobar.rb"), options[:filename]
+    options = @options.parse(["#{file}:"])
+    assert_equal [absolute_file], options[:patterns]
     assert_nil options[:line]
 
-    options = @options.parse(["foobar.rb"])
-    assert_equal File.expand_path("foobar.rb"), options[:filename]
+    options = @options.parse([file])
+    assert_equal [absolute_file], options[:patterns]
     assert_nil options[:line]
   end
 
@@ -56,16 +58,18 @@ class TestUnitTestRunnerTest < ActiveSupport::TestCase
   end
 
   test "run all tests in a directory" do
-    options = @options.parse([__dir__])
+    dir = Pathname.new(__dir__).basename.to_s
+    options = @options.parse([dir])
 
     assert_equal ["#{__dir__}/**/*_test.rb"], options[:patterns]
     assert_nil options[:filename]
     assert_nil options[:line]
   end
 
-  test "run multiple files" do
+  test "run multiple folders" do
     application_dir = File.expand_path("#{__dir__}/../application")
-    options = @options.parse([__dir__, application_dir])
+
+    options = @options.parse([Pathname.new(__dir__).basename.to_s, Pathname.new(application_dir).basename.to_s])
 
     assert_equal ["#{__dir__}/**/*_test.rb", "#{application_dir}/**/*_test.rb"], options[:patterns]
     assert_nil options[:filename]
@@ -77,7 +81,7 @@ class TestUnitTestRunnerTest < ActiveSupport::TestCase
 
   test "run multiple files and run one file by line" do
     line = __LINE__
-    options = @options.parse([__dir__, "#{__FILE__}:#{line}"])
+    options = @options.parse([Pathname.new(__dir__).basename.to_s, "#{__FILE__}:#{line}"])
 
     assert_equal ["#{__dir__}/**/*_test.rb"], options[:patterns]
     assert_equal __FILE__, options[:filename]

@@ -53,12 +53,17 @@ module Rails
 
         options[:patterns] = []
         while arg = args.shift
-          if Dir.exists?(arg)
-            options[:patterns] << "#{arg}/**/*_test.rb"
-          else
-            options[:filename], options[:line] = arg.split(':')
+          if (file_and_line = arg.split(':')).size > 1
+            options[:filename], options[:line] = file_and_line
             options[:filename] = File.expand_path options[:filename]
             options[:line] &&= options[:line].to_i
+          else
+            arg = arg.gsub(':', '')
+            if Dir.exists?("test/#{arg}")
+              options[:patterns] << File.expand_path("test/#{arg}/**/*_test.rb")
+            elsif File.file?(arg)
+              options[:patterns] << File.expand_path(arg)
+            end
           end
         end
         options
@@ -96,7 +101,7 @@ module Rails
 
     def test_files
       return [@options[:filename]] if @options[:filename]
-      if @options[:patterns]
+      if @options[:patterns] && @options[:patterns].count > 0
         pattern = @options[:patterns]
       else
         pattern = "test/**/*_test.rb"
