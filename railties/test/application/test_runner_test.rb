@@ -173,7 +173,6 @@ module ApplicationTests
     end
 
     def test_run_matched_test
-      skip "bin/rails test does not yet support running tests by pattern"
       app_file 'test/unit/chu_2_koi_test.rb', <<-RUBY
         require 'test_helper'
 
@@ -188,7 +187,7 @@ module ApplicationTests
         end
       RUBY
 
-      run_test_command('-n rikka test/unit/chu_2_koi_test.rb').tap do |output|
+      run_test_command('-p rikka test/unit/chu_2_koi_test.rb').tap do |output|
         assert_match "Rikka", output
         assert_no_match "Sanae", output
       end

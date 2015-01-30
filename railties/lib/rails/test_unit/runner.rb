@@ -31,6 +31,10 @@ module Rails
                   "Only run tests matching NAME") do |name|
             options[:name] = name
           end
+          opts.on("-p", "--pattern [PATTERN]",
+                  "Only run tests matching PATTERN") do |pattern|
+            options[:name] = "/#{pattern}/"
+          end
 
           opts.separator ""
           opts.separator "Output options:"
