@@ -7,9 +7,8 @@ def Minitest.plugin_rails_init(options)
     options[:filter] = method
   end
 
-  if ENV["BACKTRACE"].nil? && !($rails_test_runner && $rails_test_runner.show_backtrace?)
+  if !($rails_test_runner && $rails_test_runner.show_backtrace?)
     Minitest.backtrace_filter = Rails.backtrace_cleaner
   end
 end
 Minitest.extensions << 'rails'
-

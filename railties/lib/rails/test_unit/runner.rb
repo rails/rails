@@ -7,7 +7,7 @@ module Rails
   class TestRunner
     class Options
       def self.parse(args)
-        options = { backtrace: false, name: nil, environment: "test" }
+        options = { backtrace: !ENV["BACKTRACE"].nil?, name: nil, environment: "test" }
 
         opt_parser = ::OptionParser.new do |opts|
           opts.banner = "Usage: bin/rails test [options] [file or directory]"

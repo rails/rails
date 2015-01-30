@@ -1,7 +1,10 @@
 require 'abstract_unit'
+require 'env_helpers'
 require 'rails/test_unit/runner'
 
 class TestUnitTestRunnerTest < ActiveSupport::TestCase
+  include EnvHelpers
+
   setup do
     @options = Rails::TestRunner::Options
   end
@@ -17,6 +20,13 @@ class TestUnitTestRunnerTest < ActiveSupport::TestCase
 
     options = @options.parse(["--backtrace"])
     assert options[:backtrace]
+  end
+
+  test "show full backtrace using BACKTRACE environment variable" do
+    switch_env "BACKTRACE", "true" do
+      options = @options.parse([])
+      assert options[:backtrace]
+    end
   end
 
   test "tests run in the test environment by default" do
