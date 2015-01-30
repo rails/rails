@@ -1,3 +1,19 @@
+*   Add optional arguments to JobGenerator, to generate arguments within perform
+
+    Example:
+
+        rails generate job send_csv account user
+
+    Generates:
+
+        class SendCsvJob < ActiveJob::Base
+          def perform(account, user)
+            # Do something later
+          end
+        end
+
+    *Dan Ott*
+
 *   Add `:only` option to `assert_enqueued_jobs`, to check the number of times
     a specific kind of job is enqueued.
 
@@ -38,5 +54,4 @@
 
     *Isaac Seymour*
 
-
-Please check [4-2-stable](https://github.com/rails/rails/blob/4-2-stable/activejob/CHANGELOG.md) for previous changes.
+*  Started project.
