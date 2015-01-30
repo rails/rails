@@ -286,7 +286,8 @@ module ActiveRecord
         columns = schema_cache.columns_hash(table_name)
 
         binds = fixture.map do |name, value|
-          Relation::QueryAttribute.new(name, value, columns[name].cast_type)
+          type = lookup_cast_type_from_column(columns[name])
+          Relation::QueryAttribute.new(name, value, type)
         end
         key_list = fixture.keys.map { |name| quote_column_name(name) }
         value_list = prepare_binds_for_database(binds).map do |value|

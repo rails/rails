@@ -16,7 +16,7 @@ module ActiveRecord
             https://github.com/rails/arel/commit/6160bfbda1d1781c3b08a33ec4955f170e95be11
             for more information.
           MSG
-          value = column.cast_type.type_cast_for_database(value)
+          value = type_cast_from_column(column, value)
         end
 
         _quote(value)
@@ -31,13 +31,36 @@ module ActiveRecord
         end
 
         if column
-          value = column.cast_type.type_cast_for_database(value)
+          value = type_cast_from_column(column, value)
         end
 
         _type_cast(value)
       rescue TypeError
         to_type = column ? " to #{column.type}" : ""
         raise TypeError, "can't cast #{value.class}#{to_type}"
+      end
+
+      # If you are having to call this function, you are likely doing something
+      # wrong. The column does not have sufficient type information if the user
+      # provided a custom type on the class level either explicitly (via
+      # `attribute`) or implicitly (via `serialize`,
+      # `time_zone_aware_attributes`). In almost all cases, the sql type should
+      # only be used to change quoting behavior, when the primitive to
+      # represent the type doesn't sufficiently reflect the differences
+      # (varchar vs binary) for example. The type used to get this primitive
+      # should have been provided before reaching the connection adapter.
+      def type_cast_from_column(column, value) # :nodoc:
+        if column
+          type = lookup_cast_type_from_column(column)
+          type.type_cast_for_database(value)
+        else
+          value
+        end
+      end
+
+      # See docs for +type_cast_from_column+
+      def lookup_cast_type_from_column(column) # :nodoc:
+        lookup_cast_type(column.sql_type)
       end
 
       # Quotes a string, escaping any ' (single quote) and \ (backslash)

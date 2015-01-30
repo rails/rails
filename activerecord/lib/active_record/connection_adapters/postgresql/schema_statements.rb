@@ -183,15 +183,17 @@ module ActiveRecord
         def columns(table_name)
           # Limit, precision, and scale are all handled by the superclass.
           column_definitions(table_name).map do |column_name, type, default, notnull, oid, fmod|
-            oid = get_oid_type(oid.to_i, fmod.to_i, column_name, type)
-            default_value = extract_value_from_default(oid, default)
+            oid = oid.to_i
+            fmod = fmod.to_i
+            cast_type = get_oid_type(oid, fmod, column_name, type)
+            default_value = extract_value_from_default(cast_type, default)
             default_function = extract_default_function(default_value, default)
-            new_column(column_name, default_value, oid, type, notnull == 'f', default_function)
+            new_column(column_name, default_value, cast_type, type, notnull == 'f', default_function, oid, fmod)
           end
         end
 
-        def new_column(name, default, cast_type, sql_type = nil, null = true, default_function = nil) # :nodoc:
-          PostgreSQLColumn.new(name, default, cast_type, sql_type, null, default_function)
+        def new_column(name, default, cast_type, sql_type = nil, null = true, default_function = nil, oid = nil, fmod = nil) # :nodoc:
+          PostgreSQLColumn.new(name, default, cast_type, sql_type, null, default_function, oid, fmod)
         end
 
         # Returns the current database name.
