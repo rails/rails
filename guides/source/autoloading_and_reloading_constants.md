@@ -324,7 +324,7 @@ relative: `::Billing::Invoice`. That would force `Billing` to be looked up
 only as a top-level constant.
 
 `Invoice` on the other hand is qualified by `Billing` and we are going to see
-its resolution next. Let's call *parent* to that qualifying class or module
+its resolution next. Let's define *parent* to be that qualifying class or module
 object, that is, `Billing` in the example above. The algorithm for qualified
 constants goes like this:
 
