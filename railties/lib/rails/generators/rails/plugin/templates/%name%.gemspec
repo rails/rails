@@ -10,8 +10,8 @@ Gem::Specification.new do |s|
   s.authors     = ["<%= author %>"]
   s.email       = ["<%= email %>"]
   s.homepage    = "TODO"
-  s.summary     = "TODO: Summary of <%= camelized %>."
-  s.description = "TODO: Description of <%= camelized %>."
+  s.summary     = "TODO: Summary of <%= camelized_modules %>."
+  s.description = "TODO: Description of <%= camelized_modules %>."
   s.license     = "MIT"
 
   s.files = Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.rdoc"]
