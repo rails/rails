@@ -1,3 +1,9 @@
+*   Allow keyword arguments to be used with Active Job.
+
+    Fixes #18741.
+
+    *Sean Griffin*
+
 *   Add `:only` option to `assert_enqueued_jobs`, to check the number of times
     a specific kind of job is enqueued.
 
