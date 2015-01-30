@@ -69,7 +69,7 @@ module AbstractController
       end
 
       def skip_filter(*names)
-        ActiveSupport::Deprecation.warn("#{callback}_filter is deprecated and will removed in Rails 5.1. Use #{callback}_action instead.")
+        ActiveSupport::Deprecation.warn("#{callback}_filter is deprecated and will be removed in Rails 5.1. Use #{callback}_action instead.")
         skip_action_callback(*names)
       end
 
@@ -188,7 +188,7 @@ module AbstractController
         end
 
         define_method "#{callback}_filter" do |*names, &blk|
-          ActiveSupport::Deprecation.warn("#{callback}_filter is deprecated and will removed in Rails 5.1. Use #{callback}_action instead.")
+          ActiveSupport::Deprecation.warn("#{callback}_filter is deprecated and will be removed in Rails 5.1. Use #{callback}_action instead.")
           send("#{callback}_action", *names, &blk)
         end
 
@@ -199,7 +199,7 @@ module AbstractController
         end
 
         define_method "prepend_#{callback}_filter" do |*names, &blk|
-          ActiveSupport::Deprecation.warn("prepend_#{callback}_filter is deprecated and will removed in Rails 5.1. Use prepend_#{callback}_action instead.")
+          ActiveSupport::Deprecation.warn("prepend_#{callback}_filter is deprecated and will be removed in Rails 5.1. Use prepend_#{callback}_action instead.")
           send("prepend_#{callback}_action", *names, &blk)
         end
 
@@ -212,7 +212,7 @@ module AbstractController
         end
 
         define_method "skip_#{callback}_filter" do |*names, &blk|
-          ActiveSupport::Deprecation.warn("skip_#{callback}_filter is deprecated and will removed in Rails 5.1. Use skip_#{callback}_action instead.")
+          ActiveSupport::Deprecation.warn("skip_#{callback}_filter is deprecated and will be removed in Rails 5.1. Use skip_#{callback}_action instead.")
           send("skip_#{callback}_action", *names, &blk)
         end
 
@@ -220,7 +220,7 @@ module AbstractController
         alias_method :"append_#{callback}_action", :"#{callback}_action"
 
         define_method "append_#{callback}_filter" do |*names, &blk|
-          ActiveSupport::Deprecation.warn("append_#{callback}_filter is deprecated and will removed in Rails 5.1. Use append_#{callback}_action instead.")
+          ActiveSupport::Deprecation.warn("append_#{callback}_filter is deprecated and will be removed in Rails 5.1. Use append_#{callback}_action instead.")
           send("append_#{callback}_action", *names, &blk)
         end
       end
