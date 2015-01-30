@@ -177,10 +177,8 @@ module ActiveRecord
         # before actually defining them.
         def add_autosave_association_callbacks(reflection)
           save_method = :"autosave_associated_records_for_#{reflection.name}"
-          validation_method = :"validate_associated_records_for_#{reflection.name}"
-          collection = reflection.collection?
 
-          if collection
+          if reflection.collection?
             before_save :before_save_collection_association
 
             define_non_cyclic_method(save_method) { save_collection_association(reflection) }
@@ -204,9 +202,22 @@ module ActiveRecord
             before_save save_method
           end
 
+          define_autosave_validation_callbacks(reflection)
+        end
+
+        def define_autosave_validation_callbacks(reflection)
+          validation_method = :"validate_associated_records_for_#{reflection.name}"
           if reflection.validate? && !method_defined?(validation_method)
-            method = (collection ? :validate_collection_association : :validate_single_association)
-            define_non_cyclic_method(validation_method) { send(method, reflection) }
+            if reflection.collection?
+              method = :validate_collection_association
+            else
+              method = :validate_single_association
+            end
+
+            define_non_cyclic_method(validation_method) do
+              send(method, reflection)
+              true
+            end
             validate validation_method
           end
         end
