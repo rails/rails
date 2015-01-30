@@ -4,30 +4,15 @@ module ActiveRecord
       class SchemaCreation < AbstractAdapter::SchemaCreation
         private
 
-        def column_options(o)
-          column_options = super
-          column_options[:array] = o.array
-          column_options
-        end
-
-        def add_column_options!(sql, options)
-          if options[:array]
-            sql << '[]'
-          end
+        def visit_ColumnDefinition(o)
+          o.sql_type = type_to_sql(o.type, o.limit, o.precision, o.scale)
+          o.sql_type << '[]' if o.array
           super
         end
 
         def quote_default_expression(value, column)
           if column.type == :uuid && value =~ /\(\)/
             value
-          else
-            super
-          end
-        end
-
-        def type_for_column(column)
-          if column.array
-            @conn.lookup_cast_type("#{column.sql_type}[]")
           else
             super
           end
