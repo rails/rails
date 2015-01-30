@@ -312,6 +312,7 @@ module ActiveRecord
         attr_names.each do |association_name|
           if reflection = _reflect_on_association(association_name)
             reflection.autosave = true
+            define_autosave_validation_callbacks(reflection)
 
             nested_attributes_options = self.nested_attributes_options.dup
             nested_attributes_options[association_name.to_sym] = options
