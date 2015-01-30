@@ -15,6 +15,7 @@ module ActiveRecord
         when false, nil  then false
         else
           column = self.class.columns_hash[attr_name]
+          type = self.class.type_for_attribute(attr_name)
           if column.nil?
             if Numeric === value || value !~ /[^0-9]/
               !value.to_i.zero?
@@ -22,7 +23,7 @@ module ActiveRecord
               return false if ActiveRecord::ConnectionAdapters::Column::FALSE_VALUES.include?(value)
               !value.blank?
             end
-          elsif column.number?
+          elsif type.number?
             !value.zero?
           else
             !value.blank?

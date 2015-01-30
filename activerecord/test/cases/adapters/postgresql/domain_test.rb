@@ -29,9 +29,11 @@ class PostgresqlDomainTest < ActiveRecord::TestCase
     column = PostgresqlDomain.columns_hash["price"]
     assert_equal :decimal, column.type
     assert_equal "custom_money", column.sql_type
-    assert column.number?
-    assert_not column.binary?
     assert_not column.array?
+
+    type = PostgresqlDomain.type_for_attribute("price")
+    assert type.number?
+    assert_not type.binary?
   end
 
   def test_domain_acts_like_basetype

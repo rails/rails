@@ -46,9 +46,10 @@ module ActiveRecord
       private
 
       def schema_default(column)
-        default = column.type_cast_from_database(column.default)
+        type = lookup_cast_type_from_column(column)
+        default = type.type_cast_from_database(column.default)
         unless default.nil?
-          column.type_cast_for_schema(default)
+          type.type_cast_for_schema(default)
         end
       end
     end

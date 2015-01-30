@@ -196,7 +196,7 @@ module ActiveRecord
 
         old_columns = connection.columns(TestModel.table_name)
         assert old_columns.find { |c|
-          default = c.type_cast_from_database(c.default)
+          default = connection.lookup_cast_type_from_column(c).type_cast_from_database(c.default)
           c.name == 'approved' && c.type == :boolean && default == true
         }
 
@@ -204,11 +204,11 @@ module ActiveRecord
         new_columns = connection.columns(TestModel.table_name)
 
         assert_not new_columns.find { |c|
-          default = c.type_cast_from_database(c.default)
+          default = connection.lookup_cast_type_from_column(c).type_cast_from_database(c.default)
           c.name == 'approved' and c.type == :boolean and default == true
         }
         assert new_columns.find { |c|
-          default = c.type_cast_from_database(c.default)
+          default = connection.lookup_cast_type_from_column(c).type_cast_from_database(c.default)
           c.name == 'approved' and c.type == :boolean and default == false
         }
         change_column :test_models, :approved, :boolean, :default => true

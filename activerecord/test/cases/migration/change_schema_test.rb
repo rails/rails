@@ -68,8 +68,8 @@ module ActiveRecord
         five = columns.detect { |c| c.name == "five" } unless mysql
 
         assert_equal "hello", one.default
-        assert_equal true, two.type_cast_from_database(two.default)
-        assert_equal false, three.type_cast_from_database(three.default)
+        assert_equal true, connection.lookup_cast_type_from_column(two).type_cast_from_database(two.default)
+        assert_equal false, connection.lookup_cast_type_from_column(three).type_cast_from_database(three.default)
         assert_equal '1', four.default
         assert_equal "hello", five.default unless mysql
       end

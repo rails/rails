@@ -21,9 +21,11 @@ class PostgresqlFullTextTest < ActiveRecord::TestCase
     column = Tsvector.columns_hash["text_vector"]
     assert_equal :tsvector, column.type
     assert_equal "tsvector", column.sql_type
-    assert_not column.number?
-    assert_not column.binary?
     assert_not column.array?
+
+    type = Tsvector.type_for_attribute("text_vector")
+    assert_not type.number?
+    assert_not type.binary?
   end
 
   def test_update_tsvector

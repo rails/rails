@@ -59,7 +59,8 @@ module ActiveRecord
         end
 
         column = klass.columns_hash[attribute_name]
-        value = klass.type_for_attribute(attribute_name).type_cast_for_database(value)
+        cast_type = klass.type_for_attribute(attribute_name)
+        value = cast_type.type_cast_for_database(value)
         value = klass.connection.type_cast(value)
         if value.is_a?(String) && column.limit
           value = value.to_s[0, column.limit]
@@ -67,7 +68,7 @@ module ActiveRecord
 
         value = Arel::Nodes::Quoted.new(value)
 
-        comparison = if !options[:case_sensitive] && value && column.text?
+        comparison = if !options[:case_sensitive] && value && cast_type.text?
           # will use SQL LOWER function before comparison, unless it detects a case insensitive collation
           klass.connection.case_insensitive_comparison(table, attribute, column, value)
         else

@@ -661,7 +661,7 @@ module ActiveRecord
                   row[association.foreign_type] = $1
                 end
 
-                fk_type = association.active_record.columns_hash[fk_name].type
+                fk_type = association.active_record.type_for_attribute(fk_name).type
                 row[fk_name] = ActiveRecord::FixtureSet.identify(value, fk_type)
               end
             when :has_many
@@ -691,7 +691,7 @@ module ActiveRecord
       end
 
       def primary_key_type
-        @association.klass.column_types[@association.klass.primary_key].type
+        @association.klass.type_for_attribute(@association.klass.primary_key).type
       end
     end
 
@@ -711,7 +711,7 @@ module ActiveRecord
       end
 
       def primary_key_type
-        @primary_key_type ||= model_class && model_class.column_types[model_class.primary_key].type
+        @primary_key_type ||= model_class && model_class.type_for_attribute(model_class.primary_key).type
       end
 
       def add_join_records(rows, row, association)

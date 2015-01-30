@@ -25,6 +25,7 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
       end
     end
     @column = PgArray.columns_hash['tags']
+    @type = PgArray.type_for_attribute("tags")
   end
 
   teardown do
@@ -36,13 +37,14 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
     assert_equal :string, @column.type
     assert_equal "character varying", @column.sql_type
     assert @column.array?
-    assert_not @column.number?
-    assert_not @column.binary?
+    assert_not @type.number?
+    assert_not @type.binary?
 
     ratings_column = PgArray.columns_hash['ratings']
     assert_equal :integer, ratings_column.type
+    type = PgArray.type_for_attribute("ratings")
     assert ratings_column.array?
-    assert_not ratings_column.number?
+    assert_not type.number?
   end
 
   def test_default
@@ -94,9 +96,9 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
   end
 
   def test_type_cast_array
-    assert_equal(['1', '2', '3'], @column.type_cast_from_database('{1,2,3}'))
-    assert_equal([], @column.type_cast_from_database('{}'))
-    assert_equal([nil], @column.type_cast_from_database('{NULL}'))
+    assert_equal(['1', '2', '3'], @type.type_cast_from_database('{1,2,3}'))
+    assert_equal([], @type.type_cast_from_database('{}'))
+    assert_equal([nil], @type.type_cast_from_database('{NULL}'))
   end
 
   def test_type_cast_integers
@@ -208,7 +210,7 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
     x = PgArray.create!(tags: tags)
     x.reload
 
-    assert_equal x.tags_before_type_cast, PgArray.columns_hash['tags'].type_cast_for_database(tags)
+    assert_equal x.tags_before_type_cast, PgArray.type_for_attribute('tags').type_cast_for_database(tags)
   end
 
   def test_quoting_non_standard_delimiters

@@ -210,7 +210,7 @@ module ActiveRecord
         elsif !connected?
           "#{super} (call '#{super}.connection' to establish a connection)"
         elsif table_exists?
-          attr_list = columns.map { |c| "#{c.name}: #{c.type}" } * ', '
+          attr_list = column_types.map { |name, type| "#{name}: #{type.type}" } * ', '
           "#{super}(#{attr_list})"
         else
           "#{super}(Table doesn't exist)"
