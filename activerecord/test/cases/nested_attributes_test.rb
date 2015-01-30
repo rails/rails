@@ -1047,4 +1047,11 @@ class TestHasManyAutosaveAssociationWhichItselfHasAutosaveAssociations < ActiveR
       ship.save!
     end
   end
+
+  test "nested singular associations are validated" do
+    part = ShipPart.new(name: "Stern", ship_attributes: { name: nil })
+
+    assert_not part.valid?
+    assert_equal ["Ship name can't be blank"], part.errors.full_messages
+  end
 end
