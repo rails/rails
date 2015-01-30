@@ -1,12 +1,12 @@
 $:.push File.expand_path("../lib", __FILE__)
 
 # Maintain your gem's version:
-require "<%= name %>/version"
+require "<%= namespaced_name %>/version"
 
 # Describe your gem and declare its dependencies:
 Gem::Specification.new do |s|
   s.name        = "<%= name %>"
-  s.version     = <%= camelized %>::VERSION
+  s.version     = <%= camelized_modules %>::VERSION
   s.authors     = ["<%= author %>"]
   s.email       = ["<%= email %>"]
   s.homepage    = "TODO"

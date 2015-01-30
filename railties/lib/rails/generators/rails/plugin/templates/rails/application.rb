@@ -13,6 +13,6 @@ require "action_view/railtie"
 <% end -%>
 
 Bundler.require(*Rails.groups)
-require "<%= name %>"
+require "<%= namespaced_name %>"
 
 <%= application_definition %>

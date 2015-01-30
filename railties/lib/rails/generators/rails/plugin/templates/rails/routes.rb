@@ -1,4 +1,4 @@
 Rails.application.routes.draw do
 
-  mount <%= camelized %>::Engine => "/<%= name %>"
+  mount <%= camelized_modules %>::Engine => "/<%= name %>"
 end
