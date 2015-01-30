@@ -1044,11 +1044,16 @@ class TestAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCase
   end
 
   def test_should_not_ignore_different_error_messages_on_the_same_attribute
+    old_validators = Ship._validators.deep_dup
+    old_callbacks = Ship._validate_callbacks.deep_dup
     Ship.validates_format_of :name, :with => /\w/
     @pirate.ship.name   = ""
     @pirate.catchphrase = nil
     assert @pirate.invalid?
     assert_equal ["can't be blank", "is invalid"], @pirate.errors[:"ship.name"]
+  ensure
+    Ship._validators = old_validators if old_validators
+    Ship._validate_callbacks = old_callbacks if old_callbacks
   end
 
   def test_should_still_allow_to_bypass_validations_on_the_associated_model
