@@ -167,7 +167,7 @@ module ActiveRecord
           columns_hash.key?(cn) ? arel_table[cn] : cn
         }
         result = klass.connection.select_all(relation.arel, nil, bound_attributes)
-        result.cast_values(klass.column_types)
+        result.cast_values(klass.attribute_types)
       end
     end
 

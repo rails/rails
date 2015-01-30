@@ -10,6 +10,10 @@ module ActiveRecord
       attributes[name] || Attribute.null(name)
     end
 
+    def []=(name, value)
+      attributes[name] = value
+    end
+
     def values_before_type_cast
       attributes.transform_values(&:value_before_type_cast)
     end
@@ -49,7 +53,7 @@ module ActiveRecord
     end
 
     def initialize_dup(_)
-      @attributes = attributes.dup
+      @attributes = attributes.deep_dup
       super
     end
 

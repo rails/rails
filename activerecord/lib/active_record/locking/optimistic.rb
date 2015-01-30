@@ -144,7 +144,7 @@ module ActiveRecord
 
         # Set the column to use for optimistic locking. Defaults to +lock_version+.
         def locking_column=(value)
-          clear_caches_calculated_from_columns
+          reload_schema_from_cache
           @locking_column = value.to_s
         end
 

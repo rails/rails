@@ -66,6 +66,10 @@ module ActiveRecord
       self.class.with_cast_value(name, value, type)
     end
 
+    def with_type(type)
+      self.class.new(name, value_before_type_cast, type)
+    end
+
     def type_cast(*)
       raise NotImplementedError
     end
@@ -135,6 +139,10 @@ module ActiveRecord
 
       def value
         nil
+      end
+
+      def with_type(type)
+        self.class.with_cast_value(name, nil, type)
       end
 
       def with_value_from_database(value)

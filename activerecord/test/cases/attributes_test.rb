@@ -50,8 +50,8 @@ module ActiveRecord
     end
 
     test "overloaded properties with limit" do
-      assert_equal 50, OverloadedType.columns_hash['overloaded_string_with_limit'].limit
-      assert_equal 255, UnoverloadedType.columns_hash['overloaded_string_with_limit'].limit
+      assert_equal 50, OverloadedType.type_for_attribute('overloaded_string_with_limit').limit
+      assert_equal 255, UnoverloadedType.type_for_attribute('overloaded_string_with_limit').limit
     end
 
     test "nonexistent attribute" do
@@ -87,29 +87,42 @@ module ActiveRecord
       assert_equal 4.4, data.overloaded_float
     end
 
-    test "overloading properties does not change column order" do
-      column_names = OverloadedType.column_names
-      assert_equal %w(id overloaded_float unoverloaded_float overloaded_string_with_limit string_with_default non_existent_decimal), column_names
+    test "overloading properties does not attribute method order" do
+      attribute_names = OverloadedType.attribute_names
+      assert_equal %w(id overloaded_float unoverloaded_float overloaded_string_with_limit string_with_default non_existent_decimal), attribute_names
     end
 
     test "caches are cleared" do
       klass = Class.new(OverloadedType)
 
-      assert_equal 6, klass.columns.length
-      assert_not klass.columns_hash.key?('wibble')
-      assert_equal 6, klass.column_types.length
+      assert_equal 6, klass.attribute_types.length
       assert_equal 6, klass.column_defaults.length
-      assert_not klass.column_names.include?('wibble')
-      assert_equal 5, klass.content_columns.length
+      assert_not klass.attribute_types.include?('wibble')
 
       klass.attribute :wibble, Type::Value.new
 
-      assert_equal 7, klass.columns.length
-      assert klass.columns_hash.key?('wibble')
-      assert_equal 7, klass.column_types.length
+      assert_equal 7, klass.attribute_types.length
       assert_equal 7, klass.column_defaults.length
-      assert klass.column_names.include?('wibble')
-      assert_equal 6, klass.content_columns.length
+      assert klass.attribute_types.include?('wibble')
+    end
+
+    test "the given default value is cast from user" do
+      custom_type = Class.new(Type::Value) do
+        def type_cast_from_user(*)
+          "from user"
+        end
+
+        def type_cast_from_database(*)
+          "from database"
+        end
+      end
+
+      klass = Class.new(OverloadedType) do
+        attribute :wibble, custom_type.new, default: "default"
+      end
+      model = klass.new
+
+      assert_equal "from user", model.wibble
     end
   end
 end

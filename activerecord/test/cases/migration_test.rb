@@ -162,6 +162,7 @@ class MigrationTest < ActiveRecord::TestCase
 
     assert !BigNumber.table_exists?
     GiveMeBigNumbers.up
+    BigNumber.reset_column_information
 
     assert BigNumber.create(
       :bank_balance => 1586.43,
@@ -397,6 +398,7 @@ class MigrationTest < ActiveRecord::TestCase
     Thing.reset_table_name
     Thing.reset_sequence_name
     WeNeedThings.up
+    Thing.reset_column_information
 
     assert Thing.create("content" => "hello world")
     assert_equal "hello world", Thing.first.content
@@ -416,6 +418,7 @@ class MigrationTest < ActiveRecord::TestCase
     ActiveRecord::Base.table_name_suffix = '_suffix'
     Reminder.reset_table_name
     Reminder.reset_sequence_name
+    Reminder.reset_column_information
     WeNeedReminders.up
     assert Reminder.create("content" => "hello world", "remind_at" => Time.now)
     assert_equal "hello world", Reminder.first.content

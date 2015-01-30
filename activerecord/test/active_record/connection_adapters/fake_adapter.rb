@@ -22,7 +22,7 @@ module ActiveRecord
       end
 
       def primary_key(table)
-        @primary_keys[table]
+        @primary_keys[table] || "id"
       end
 
       def merge_column(table_name, name, sql_type = nil, options = {})
@@ -36,6 +36,10 @@ module ActiveRecord
 
       def columns(table_name)
         @columns[table_name]
+      end
+
+      def table_exists?(*)
+        true
       end
 
       def active?
