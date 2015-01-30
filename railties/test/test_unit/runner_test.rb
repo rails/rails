@@ -58,8 +58,7 @@ class TestUnitTestRunnerTest < ActiveSupport::TestCase
   end
 
   test "run all tests in a directory" do
-    dir = Pathname.new(__dir__).basename.to_s
-    options = @options.parse([dir])
+    options = @options.parse([__dir__])
 
     assert_equal ["#{__dir__}/**/*_test.rb"], options[:patterns]
     assert_nil options[:filename]
@@ -69,7 +68,7 @@ class TestUnitTestRunnerTest < ActiveSupport::TestCase
   test "run multiple folders" do
     application_dir = File.expand_path("#{__dir__}/../application")
 
-    options = @options.parse([Pathname.new(__dir__).basename.to_s, Pathname.new(application_dir).basename.to_s])
+    options = @options.parse([__dir__, application_dir])
 
     assert_equal ["#{__dir__}/**/*_test.rb", "#{application_dir}/**/*_test.rb"], options[:patterns]
     assert_nil options[:filename]
@@ -81,7 +80,7 @@ class TestUnitTestRunnerTest < ActiveSupport::TestCase
 
   test "run multiple files and run one file by line" do
     line = __LINE__
-    options = @options.parse([Pathname.new(__dir__).basename.to_s, "#{__FILE__}:#{line}"])
+    options = @options.parse([__dir__, "#{__FILE__}:#{line}"])
 
     assert_equal ["#{__dir__}/**/*_test.rb"], options[:patterns]
     assert_equal __FILE__, options[:filename]

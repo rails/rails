@@ -7,7 +7,6 @@ module ApplicationTests
 
     def setup
       build_app
-      ENV['RAILS_ENV'] = nil
       create_schema
     end
 
@@ -55,7 +54,7 @@ module ApplicationTests
       create_test_file :models, 'foo'
       create_test_file :models, 'bar'
       create_test_file :controllers, 'foobar_controller'
-      run_test_models_command.tap do |output|
+      run_test_command("test/models").tap do |output|
         assert_match "FooTest", output
         assert_match "BarTest", output
         assert_match "2 runs, 2 assertions, 0 failures", output
@@ -66,7 +65,7 @@ module ApplicationTests
       create_test_file :helpers, 'foo_helper'
       create_test_file :helpers, 'bar_helper'
       create_test_file :controllers, 'foobar_controller'
-      run_test_helpers_command.tap do |output|
+      run_test_command("test/helpers").tap do |output|
         assert_match "FooHelperTest", output
         assert_match "BarHelperTest", output
         assert_match "2 runs, 2 assertions, 0 failures", output
@@ -74,6 +73,7 @@ module ApplicationTests
     end
 
     def test_run_units
+      skip "we no longer have the concept of unit tests. Just different directories..."
       create_test_file :models, 'foo'
       create_test_file :helpers, 'bar_helper'
       create_test_file :unit, 'baz_unit'
@@ -90,7 +90,7 @@ module ApplicationTests
       create_test_file :controllers, 'foo_controller'
       create_test_file :controllers, 'bar_controller'
       create_test_file :models, 'foo'
-      run_test_controllers_command.tap do |output|
+      run_test_command("test/controllers").tap do |output|
         assert_match "FooControllerTest", output
         assert_match "BarControllerTest", output
         assert_match "2 runs, 2 assertions, 0 failures", output
@@ -101,7 +101,7 @@ module ApplicationTests
       create_test_file :mailers, 'foo_mailer'
       create_test_file :mailers, 'bar_mailer'
       create_test_file :models, 'foo'
-      run_test_mailers_command.tap do |output|
+      run_test_command("test/mailers").tap do |output|
         assert_match "FooMailerTest", output
         assert_match "BarMailerTest", output
         assert_match "2 runs, 2 assertions, 0 failures", output
@@ -112,7 +112,7 @@ module ApplicationTests
       create_test_file :jobs, 'foo_job'
       create_test_file :jobs, 'bar_job'
       create_test_file :models, 'foo'
-      run_test_jobs_command.tap do |output|
+      run_test_command("test/jobs").tap do |output|
         assert_match "FooJobTest", output
         assert_match "BarJobTest", output
         assert_match "2 runs, 2 assertions, 0 failures", output
@@ -120,6 +120,7 @@ module ApplicationTests
     end
 
     def test_run_functionals
+      skip "we no longer have the concept of functional tests. Just different directories..."
       create_test_file :mailers, 'foo_mailer'
       create_test_file :controllers, 'bar_controller'
       create_test_file :functional, 'baz_functional'
@@ -135,7 +136,7 @@ module ApplicationTests
     def test_run_integration
       create_test_file :integration, 'foo_integration'
       create_test_file :models, 'foo'
-      run_test_integration_command.tap do |output|
+      run_test_command("test/integration").tap do |output|
         assert_match "FooIntegration", output
         assert_match "1 runs, 1 assertions, 0 failures", output
       end
@@ -165,13 +166,14 @@ module ApplicationTests
         end
       RUBY
 
-      run_test_command('test/unit/chu_2_koi_test.rb test_rikka').tap do |output|
+      run_test_command('-n test_rikka test/unit/chu_2_koi_test.rb').tap do |output|
         assert_match "Rikka", output
         assert_no_match "Sanae", output
       end
     end
 
     def test_run_matched_test
+      skip "bin/rails test does not yet support running tests by pattern"
       app_file 'test/unit/chu_2_koi_test.rb', <<-RUBY
         require 'test_helper'
 
@@ -186,7 +188,7 @@ module ApplicationTests
         end
       RUBY
 
-      run_test_command('test/unit/chu_2_koi_test.rb /rikka/').tap do |output|
+      run_test_command('-n rikka test/unit/chu_2_koi_test.rb').tap do |output|
         assert_match "Rikka", output
         assert_no_match "Sanae", output
       end
@@ -194,18 +196,18 @@ module ApplicationTests
 
     def test_load_fixtures_when_running_test_suites
       create_model_with_fixture
-      suites = [:models, :helpers, [:units, :unit], :controllers, :mailers,
-        [:functionals, :functional], :integration]
+      suites = [:models, :helpers, :controllers, :mailers, :integration]
 
       suites.each do |suite, directory|
         directory ||= suite
         create_fixture_test directory
-        assert_match "3 users", run_task(["test:#{suite}"])
+        assert_match "3 users", run_test_command("test/#{suite}")
         Dir.chdir(app_path) { FileUtils.rm_f "test/#{directory}" }
       end
     end
 
     def test_run_with_model
+      skip "These feel a bit odd. Not sure we should keep supporting them."
       create_model_with_fixture
       create_fixture_test 'models', 'user'
       assert_match "3 users", run_task(["test models/user"])
@@ -213,6 +215,7 @@ module ApplicationTests
     end
 
     def test_run_different_environment_using_env_var
+      skip "no longer possible. Running tests in a different environment should be explicit"
       app_file 'test/unit/env_test.rb', <<-RUBY
         require 'test_helper'
 
@@ -227,7 +230,7 @@ module ApplicationTests
       assert_match "development", run_test_command('test/unit/env_test.rb')
     end
 
-    def test_run_different_environment_using_e_tag
+    def test_run_different_environment
       env = "development"
       app_file 'test/unit/env_test.rb', <<-RUBY
         require 'test_helper'
@@ -239,7 +242,7 @@ module ApplicationTests
         end
       RUBY
 
-      assert_match env, run_test_command("test/unit/env_test.rb RAILS_ENV=#{env}")
+      assert_match env, run_test_command("-e #{env} test/unit/env_test.rb")
     end
 
     def test_generated_scaffold_works_with_rails_test
@@ -248,17 +251,8 @@ module ApplicationTests
     end
 
     private
-      def run_task(tasks)
-        Dir.chdir(app_path) { `bundle exec rake #{tasks.join ' '}` }
-      end
-
       def run_test_command(arguments = 'test/unit/test_test.rb')
-        run_task ['test', arguments]
-      end
-      %w{ mailers models helpers units controllers functionals integration jobs }.each do |type|
-        define_method("run_test_#{type}_command") do
-          run_task ["test:#{type}"]
-        end
+        Dir.chdir(app_path) { `bin/rails t #{arguments}` }
       end
 
       def create_model_with_fixture

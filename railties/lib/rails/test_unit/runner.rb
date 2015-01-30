@@ -59,8 +59,8 @@ module Rails
             options[:line] &&= options[:line].to_i
           else
             arg = arg.gsub(':', '')
-            if Dir.exists?("test/#{arg}")
-              options[:patterns] << File.expand_path("test/#{arg}/**/*_test.rb")
+            if Dir.exists?("#{arg}")
+              options[:patterns] << File.expand_path("#{arg}/**/*_test.rb")
             elsif File.file?(arg)
               options[:patterns] << File.expand_path(arg)
             end
