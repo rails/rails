@@ -63,7 +63,7 @@ module ActiveRecord
 
       def column_spec_for_primary_key(column)
         spec = {}
-        if column.extra == 'auto_increment'
+        if column.auto_increment?
           return unless column.limit == 8
           spec[:id] = ':bigint'
         else
@@ -101,6 +101,10 @@ module ActiveRecord
 
         def case_sensitive?
           collation && !collation.match(/_ci$/)
+        end
+
+        def auto_increment?
+          extra == 'auto_increment'
         end
 
         private
@@ -808,7 +812,7 @@ module ActiveRecord
         options = {
           default: column.default,
           null: column.null,
-          auto_increment: column.extra == "auto_increment"
+          auto_increment: column.auto_increment?
         }
 
         current_type = select_one("SHOW COLUMNS FROM #{quote_table_name(table_name)} LIKE '#{column_name}'", 'SCHEMA')["Type"]
