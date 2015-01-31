@@ -97,6 +97,10 @@ class Firm < Company
     end
 end
 
+class NoAutosaveFirm < Firm
+  has_one :account, foreign_key: 'firm_id', autosave: false
+end
+
 class DependentFirm < Company
   has_one :account, :foreign_key => "firm_id", :dependent => :nullify
   has_many :companies, :foreign_key => 'client_of', :dependent => :nullify

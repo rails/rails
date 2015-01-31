@@ -619,6 +619,17 @@ class TestDefaultAutosaveAssociationOnNewRecord < ActiveRecord::TestCase
     assert !account.persisted?
   end
 
+  def test_autosave_new_record_on_has_one_can_be_disabled_per_subclass
+    firm = NoAutosaveFirm.new("name" => "some firm")
+    account = Account.new("credit_limit" => 1000)
+
+    assert !account.persisted?
+    firm.account = account
+
+    firm.save!
+    assert !account.persisted?, 'account should not have been saved'
+  end
+
   def test_autosave_new_record_with_after_create_callback
     post = PostWithAfterCreateCallback.new(title: 'Captain Murphy', body: 'is back')
     post.comments.build(body: 'foo')
