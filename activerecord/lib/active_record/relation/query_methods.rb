@@ -1016,14 +1016,48 @@ module ActiveRecord
         when Arel::Nodes::Ordering
           o.reverse
         when String
-          o.to_s.split(',').map! do |s|
-            s.strip!
-            s.gsub!(/\sasc\Z/i, ' DESC') || s.gsub!(/\sdesc\Z/i, ' ASC') || s.concat(' DESC')
-          end
+          reverse_string_sql_order(o)
         else
           o
         end
       end
+    end
+
+    def reverse_string_sql_order(sql)
+      split_sql_statement(sql).map do |parts|
+        dir_index = -1
+        if parts[-2] =~ /^NULLS$/i
+          nulls_first = parts[-1] =~ /FIRST/
+          if nulls_first || parts[-1] =~ /^LAST$/i
+            parts[-1] = nulls_first ? 'LAST' : 'FIRST'
+            dir_index = -3
+          end
+        end
+        case parts[dir_index]
+        when /ASC/i
+          parts[dir_index] = 'DESC'
+        when /DESC/i
+          parts[dir_index] = 'ASC'
+        else
+          parts.insert dir_index, 'DESC'
+        end
+        parts.join(' ')
+      end.join(', ')
+    end
+
+    # Splits a SQL statement
+    # first separated by commas
+    # then by spaces:
+    #   split_sql_statement('name DESC, age') # =>
+    #   [
+    #      ['name', 'DESC'],
+    #      ['age']
+    #   ]
+    #
+    def split_sql_statement(sql)
+      result = sql.split(',').map!{ |words| words.split(' ') }
+      result.each {|words| words.reject!(&:empty?) }
+      result
     end
 
     def build_order(arel)
