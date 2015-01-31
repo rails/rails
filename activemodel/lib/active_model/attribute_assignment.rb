@@ -45,7 +45,7 @@ module ActiveModel
       if respond_to?("#{k}=")
         public_send("#{k}=", v)
       else
-        raise UnknownAttributeError.new(self, k)
+        raise UnknownAttributeError.new(record: self, attribute: k)
       end
     end
 
@@ -53,7 +53,7 @@ module ActiveModel
     class UnknownAttributeError < NoMethodError
       attr_reader :record, :attribute
 
-      def initialize(record, attribute)
+      def initialize(record:, attribute:)
         @record = record
         @attribute = attribute
         super("unknown attribute '#{attribute}' for #{@record.class}.")
