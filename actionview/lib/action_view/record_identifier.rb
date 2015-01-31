@@ -47,7 +47,7 @@ module ActionView
   #     end
   #
   #     def self.find(id)
-  #       new.tap { |post| post.to_key = [id] }
+  #       new.tap { |post| post.to_key = id }
   #     end
   #   end
   module RecordIdentifier
@@ -103,7 +103,7 @@ module ActionView
     # make sure yourself that your dom ids are valid, in case you overwrite this method.
     def record_key_for_dom_id(record)
       key = convert_to_model(record).to_key
-      key ? key.join(JOIN) : key
+      key if key
     end
   end
 end

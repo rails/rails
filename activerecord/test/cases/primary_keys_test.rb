@@ -15,14 +15,14 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     topic = Topic.new
     assert_nil topic.to_key
     topic = Topic.find(1)
-    assert_equal [1], topic.to_key
+    assert_equal 1, topic.to_key
   end
 
   def test_to_key_with_customized_primary_key
     keyboard = Keyboard.new
     assert_nil keyboard.to_key
     keyboard.save
-    assert_equal keyboard.to_key, [keyboard.id]
+    assert_equal keyboard.to_key, keyboard.id
   end
 
   def test_read_attribute_with_custom_primary_key
@@ -33,7 +33,7 @@ class PrimaryKeysTest < ActiveRecord::TestCase
   def test_to_key_with_primary_key_after_destroy
     topic = Topic.find(1)
     topic.destroy
-    assert_equal [1], topic.to_key
+    assert_equal 1, topic.to_key
   end
 
   def test_integer_key

@@ -98,7 +98,7 @@ class FormHelperTest < ActionView::TestCase
         def full_messages() ["Author name can't be empty"] end
       }.new
     end
-    def @post.to_key; [123]; end
+    def @post.to_key; 123; end
     def @post.id; 0; end
     def @post.id_before_type_cast; "omg"; end
     def @post.id_came_from_user?; true; end

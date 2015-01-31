@@ -10,7 +10,7 @@ module ActiveRecord
       def to_key
         sync_with_transaction_state
         key = self.id
-        [key] if key
+        key if key
       end
 
       # Returns the primary key value.

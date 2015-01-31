@@ -13,7 +13,7 @@ class ConversionTest < ActiveModel::TestCase
   end
 
   test "to_key default implementation returns the id in an array for persisted records" do
-    assert_equal [1], Contact.new(id: 1).to_key
+    assert_equal 1, Contact.new(id: 1).to_key
   end
 
   test "to_param default implementation returns nil for new records" do
@@ -22,10 +22,6 @@ class ConversionTest < ActiveModel::TestCase
 
   test "to_param default implementation returns a string of ids for persisted records" do
     assert_equal "1", Contact.new(id: 1).to_param
-  end
-
-  test "to_param returns the string joined by '-'" do
-    assert_equal "abc-xyz", Contact.new(id: ["abc", "xyz"]).to_param
   end
 
   test "to_param returns nil if to_key is nil" do

@@ -61,7 +61,7 @@ class Comment
   attr_reader :id
   attr_reader :post_id
   def initialize(id = nil, post_id = nil); @id, @post_id = id, post_id end
-  def to_key; id ? [id] : nil end
+  def to_key; id ? id : nil end
   def save; @id = 1; @post_id = 1 end
   def persisted?; @id.present? end
   def to_param; @id.to_s; end
@@ -82,7 +82,7 @@ class Tag
   attr_reader :id
   attr_reader :post_id
   def initialize(id = nil, post_id = nil); @id, @post_id = id, post_id end
-  def to_key; id ? [id] : nil end
+  def to_key; id ? id : nil end
   def save; @id = 1; @post_id = 1 end
   def persisted?; @id.present? end
   def to_param; @id; end
@@ -102,7 +102,7 @@ class CommentRelevance
   attr_reader :id
   attr_reader :comment_id
   def initialize(id = nil, comment_id = nil); @id, @comment_id = id, comment_id end
-  def to_key; id ? [id] : nil end
+  def to_key; id ? id : nil end
   def save; @id = 1; @comment_id = 1 end
   def persisted?; @id.present? end
   def to_param; @id; end
@@ -118,7 +118,7 @@ class TagRelevance
   attr_reader :id
   attr_reader :tag_id
   def initialize(id = nil, tag_id = nil); @id, @tag_id = id, tag_id end
-  def to_key; id ? [id] : nil end
+  def to_key; id ? id : nil end
   def save; @id = 1; @tag_id = 1 end
   def persisted?; @id.present? end
   def to_param; @id; end
@@ -179,6 +179,6 @@ class Plane
   end
 
   def save
-    @to_key = [1]
+    @to_key = 1
   end
 end
