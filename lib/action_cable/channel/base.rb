@@ -5,8 +5,10 @@ module ActionCable
       include Callbacks
       include Redis
 
-      on_subscribe :start_periodic_timers
+      on_subscribe   :start_periodic_timers
       on_unsubscribe :stop_periodic_timers
+
+      on_unsubscribe :disconnect
 
       attr_reader :params
 
@@ -51,6 +53,10 @@ module ActionCable
 
       protected
         def connect
+          # Override in subclasses
+        end
+
+        def disconnect
           # Override in subclasses
         end
 
