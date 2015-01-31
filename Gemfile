@@ -42,7 +42,7 @@ group :job do
   gem 'sidekiq', require: false
   gem 'sucker_punch', require: false
   gem 'delayed_job', require: false
-  gem 'queue_classic', "< 3.0.0", require: false, platforms: :ruby
+  gem 'queue_classic', require: false, platforms: :ruby
   gem 'sneakers', '0.1.1.pre', require: false
   gem 'que', require: false
   gem 'backburner', require: false
