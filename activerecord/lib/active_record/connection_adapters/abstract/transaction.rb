@@ -78,11 +78,7 @@ module ActiveRecord
         ite.each do |i|
           i.rolledback!(force_restore_state: full_rollback?, should_run_callbacks: false)
         end
-        @records.uniq.each do |r|
-          if r.weakref_alive?
-            r.rolledback!(force_restore_state: full_rollback?, should_run_callbacks: false)
-          end
-        end
+        each_record { |r| r.rolledback!(force_restore_state: full_rollback?, should_run_callbacks: false) }
       end
 
       def commit
@@ -98,10 +94,12 @@ module ActiveRecord
         ite.each do |i|
           i.committed!(should_run_callbacks: false)
         end
-        @records.uniq.each do |i|
-          if i.weakref_alive?
-            i.committed!(should_run_callbacks: false)
-          end
+        each_record { |r| r.committed!(should_run_callbacks: false) }
+      end
+
+      def each_record
+        @records.uniq.each do |record|
+          yield record if record.weakref_alive?
         end
       end
 
