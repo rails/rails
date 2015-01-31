@@ -1,7 +1,7 @@
 *   Migrating to keyword arguments syntax in `ActionController::TestCase` and
-    `ActionDispatch::Integration` HTTP request methods
+    `ActionDispatch::Integration` HTTP request methods.
 
-    New syntax example:
+    Example:
 
         post :create, params: { y: x }, session: { a: 'b' }
         get :view, params: { id: 1 }
@@ -9,7 +9,7 @@
 
     *Kir Shatrov*
 
-*   Preserve default url options when generating URLs
+*   Preserve default url options when generating URLs.
 
     Fixes an issue that would cause default_url_options to be lost when
     generating URLs with fewer positional arguments than parameters in the
@@ -47,6 +47,7 @@
 *   Allow you to pass `prepend: false` to protect_from_forgery to have the
     verification callback appended instead of prepended to the chain.
     This allows you to let the verification step depend on prior callbacks.
+
     Example:
 
         class ApplicationController < ActionController::Base
@@ -143,7 +144,7 @@
 
     *Travis Grathwell*
 
-*   Stop converting empty arrays in `params` to `nil`
+*   Stop converting empty arrays in `params` to `nil`.
 
     This behaviour was introduced in response to CVE-2012-2660, CVE-2012-2694
     and CVE-2013-0155

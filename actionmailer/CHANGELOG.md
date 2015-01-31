@@ -1,5 +1,7 @@
 *   Add `assert_enqueued_emails` and `assert_no_enqueued_emails`.
 
+    Example:
+
         def test_emails
           assert_enqueued_emails 2 do
             ContactMailer.welcome.deliver_later

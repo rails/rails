@@ -2,48 +2,46 @@
     will now raise `ActiveModel::AttributeAssignment::UnknownAttributeError` instead of
     `NoMethodError`
 
-    ```ruby
-    User.new(foo: 'some value')
-    # => ActiveModel::AttributeAssignment::UnknownAttributeError: unknown attribute 'foo' for User.
-    ```
+    Example:
+
+        User.new(foo: 'some value')
+        # => ActiveModel::AttributeAssignment::UnknownAttributeError: unknown attribute 'foo' for User.
 
     *Eugene Gilburg*
 
 *   Extracted `ActiveRecord::AttributeAssignment` to `ActiveModel::AttributeAssignment`
-    allowing to use it for any object as an includable module
+    allowing to use it for any object as an includable module.
 
-    ``` ruby
-    class Cat
-      include ActiveModel::AttributeAssignment
-      attr_accessor :name, :status
-    end
+    Example:
 
-    cat = Cat.new
-    cat.assign_attributes(name: "Gorby", status: "yawning")
-    cat.name # => 'Gorby'
-    cat.status => 'yawning'
-    cat.assign_attributes(status: "sleeping")
-    cat.name # => 'Gorby'
-    cat.status => 'sleeping'
-    ```
+        class Cat
+          include ActiveModel::AttributeAssignment
+          attr_accessor :name, :status
+        end
+
+        cat = Cat.new
+        cat.assign_attributes(name: "Gorby", status: "yawning")
+        cat.name # => 'Gorby'
+        cat.status => 'yawning'
+        cat.assign_attributes(status: "sleeping")
+        cat.name # => 'Gorby'
+        cat.status => 'sleeping'
 
     *Bogdan Gusiev*
 
 *   Add `ActiveModel::Errors#details`
 
     To be able to return type of used validator, one can now call `details`
-    on Errors instance:
+    on errors instance.
 
-    ```ruby
-    class User < ActiveRecord::Base
-      validates :name, presence: true
-    end
-    ```
+    Example:
 
-    ```ruby
-    user = User.new; user.valid?; user.errors.details
-    => {name: [{error: :blank}]}
-    ```
+        class User < ActiveRecord::Base
+          validates :name, presence: true
+        end
+
+        user = User.new; user.valid?; user.errors.details
+        => {name: [{error: :blank}]}
 
     *Wojciech Wnętrzak*
 

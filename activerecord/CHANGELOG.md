@@ -1,7 +1,9 @@
 *   Fixed ActiveRecord::Relation#group method when argument is SQL reserved key word:
 
-      SplitTest.group(:key).count
-      Property.group(:value).count
+    Example:
+
+        SplitTest.group(:key).count
+        Property.group(:value).count
 
     *Bogdan Gusiev*
 
@@ -86,7 +88,7 @@
     A deprecation warning will be emitted if you have a `:time` column, and have
     not explicitly opted out.
 
-    Fixes #3145
+    Fixes #3145.
 
     *Sean Griffin*
 
