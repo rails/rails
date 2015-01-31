@@ -1,3 +1,7 @@
+*   New section in Active Record Association Basics: Single Table Inheritance
+
+    *Andrey Nering*
+
 *   New section in Active Record Querying: Understanding The Method Chaining
 
     *Andrey Nering*
