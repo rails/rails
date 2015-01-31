@@ -746,8 +746,8 @@ module ActiveSupport
       #
       # * <tt>:skip_after_callbacks_if_terminated</tt> - Determines if after
       #   callbacks should be terminated by the <tt>:terminator</tt> option. By
-      #   default after callbacks executed no matter if callback chain was
-      #   terminated or not. Option makes sense only when <tt>:terminator</tt>
+      #   default after callbacks are executed no matter if callback chain was
+      #   terminated or not. This option makes sense only when <tt>:terminator</tt>
       #   option is specified.
       #
       # * <tt>:scope</tt> - Indicates which methods should be executed when an
