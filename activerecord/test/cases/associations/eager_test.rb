@@ -713,6 +713,11 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal companies(:first_firm, :reload).account, f.account
   end
 
+  def test_eager_with_has_one_does_not_issue_extra_queries_for_nulls
+    post = Post.all.merge!(:eager_load => [ :very_special_comment ]).find(3)
+    assert_no_queries { post.very_special_comment }
+  end
+
   def test_eager_with_multi_table_conditional_properly_counts_the_records_when_using_size
     author = authors(:david)
     posts_with_no_comments = author.posts.select { |post| post.comments.blank? }
