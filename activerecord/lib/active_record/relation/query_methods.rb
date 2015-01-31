@@ -1054,8 +1054,45 @@ module ActiveRecord
     #      ['age']
     #   ]
     #
+    # Anything inside parenthesis is not split.
+    #
     def split_sql_statement(sql)
-      result = sql.split(',').map!{ |words| words.split(' ') }
+      unless sql.include? '('
+        result = sql.split(',').map!{ |words| words.split(' ') }
+      else
+        result = [term = [word = '']]
+        quoted = false
+        level = 0
+        sql.each_char do |c|
+          # Deal with quotes:
+          if quoted
+            quoted = false if c == quoted
+          elsif c =~ /['"]/
+            quoted = c
+          end
+
+          if quoted
+            # No more checks if inside quotes
+            word << c
+          else
+            # If outside of quotes, check if we need to split
+            if level == 0 && c =~ /\s/
+              term << word = ''
+            elsif level == 0 && c =~ /,/
+              result << term = [word = '']
+            else
+              # Otherwise keep track of the parenthesis level
+              word << c
+              if c == '('
+                level += 1
+              elsif c == ')'
+                level -= 1
+              end
+            end
+          end
+        end
+        raise UnreversableOrderError, "SQL Order appears to be invalid and can't be reversed" unless level == 0 && !quoted
+      end
       result.each {|words| words.reject!(&:empty?) }
       result
     end
