@@ -1,3 +1,18 @@
+*   Change reference to associated model when association_id changes.
+
+    Example:
+
+        comment = Comment.create!(:post => post1)
+
+        found_comment = post1.comments.find comment.id
+        found_comment.post_id = post2.id
+
+        assert_equal post2.id, found_comment.post.id # no longer fails
+
+    Fixes #18633.
+
+    *Yasyf Mohamedali*
+
 *   Validation errors would be raised for parent records when an association
     was saved when the parent had `validate: false`. It should not be the
     responsibility of the model to validate an associated object unless the

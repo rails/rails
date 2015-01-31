@@ -96,7 +96,21 @@ module ActiveRecord
         result = super
         store_original_raw_attribute(attr)
         save_changed_attribute(attr, old_value)
+        set_inversed_false(attr, value, old_value)
         result
+      end
+
+      def set_inversed_false(attr, value, old_value)
+        if old_value && _field_changed?(attr, old_value)
+          self.class.reflections
+          .select { |k,v| v.belongs_to? && v.foreign_key == attr }
+          .each_key do |key|
+            assoc = association_instance_get(key.to_sym)
+            if assoc && !assoc.stale_target? && assoc.reader.try(:id) != value
+              assoc.inversed = false
+            end
+          end
+        end
       end
 
       def raw_write_attribute(attr, value)
