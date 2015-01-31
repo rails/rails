@@ -624,13 +624,13 @@ class UrlHelperControllerTest < ActionController::TestCase
   end
 
   def test_named_route_url_shows_host_and_path
-    get :show_named_route, kind: 'url'
+    get :show_named_route, params: { kind: 'url' }
     assert_equal 'http://test.host/url_helper_controller_test/url_helper/show_named_route',
       @response.body
   end
 
   def test_named_route_path_shows_only_path
-    get :show_named_route, kind: 'path'
+    get :show_named_route, params: { kind: 'path' }
     assert_equal '/url_helper_controller_test/url_helper/show_named_route', @response.body
   end
 
@@ -646,7 +646,7 @@ class UrlHelperControllerTest < ActionController::TestCase
       end
     end
 
-    get :show_named_route, kind: 'url'
+    get :show_named_route, params: { kind: 'url' }
     assert_equal 'http://testtwo.host/url_helper_controller_test/url_helper/show_named_route', @response.body
   end
 
@@ -661,11 +661,11 @@ class UrlHelperControllerTest < ActionController::TestCase
   end
 
   def test_recall_params_should_normalize_id
-    get :show, id: '123'
+    get :show, params: { id: '123' }
     assert_equal 302, @response.status
     assert_equal 'http://test.host/url_helper_controller_test/url_helper/profile/123', @response.location
 
-    get :show, name: '123'
+    get :show, params: { name: '123' }
     assert_equal 'ok', @response.body
   end
 
@@ -704,7 +704,7 @@ class LinkToUnlessCurrentWithControllerTest < ActionController::TestCase
   end
 
   def test_link_to_unless_current_shows_link
-    get :show, id: 1
+    get :show, params: { id: 1 }
     assert_equal %{<a href="/tasks">tasks</a>\n} +
       %{<a href="#{@request.protocol}#{@request.host_with_port}/tasks">tasks</a>},
       @response.body
@@ -778,21 +778,21 @@ class PolymorphicControllerTest < ActionController::TestCase
   def test_existing_resource
     @controller = WorkshopsController.new
 
-    get :show, id: 1
+    get :show, params: { id: 1 }
     assert_equal %{/workshops/1\n<a href="/workshops/1">Workshop</a>}, @response.body
   end
 
   def test_new_nested_resource
     @controller = SessionsController.new
 
-    get :index, workshop_id: 1
+    get :index, params: { workshop_id: 1 }
     assert_equal %{/workshops/1/sessions\n<a href="/workshops/1/sessions">Session</a>}, @response.body
   end
 
   def test_existing_nested_resource
     @controller = SessionsController.new
 
-    get :show, workshop_id: 1, id: 1
+    get :show, params: { workshop_id: 1, id: 1 }
     assert_equal %{/workshops/1/sessions/1\n<a href="/workshops/1/sessions/1">Session</a>}, @response.body
   end
 end
