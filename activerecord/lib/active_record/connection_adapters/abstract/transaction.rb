@@ -167,7 +167,7 @@ module ActiveRecord
 
         if current_transaction.joinable?
           inner_transaction.records.each do |r|
-            current_transaction.add_record(r)
+            r.add_to_transaction
           end
         else
           inner_transaction.commit_records
