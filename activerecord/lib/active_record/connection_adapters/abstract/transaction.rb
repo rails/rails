@@ -1,3 +1,4 @@
+require 'weakref'
 module ActiveRecord
   module ConnectionAdapters
     class TransactionState
@@ -44,21 +45,23 @@ module ActiveRecord
 
     class Transaction #:nodoc:
 
-      attr_reader :connection, :state, :records, :savepoint_name
+      attr_reader :connection, :state, :savepoint_name, :transactional_records
       attr_writer :joinable
 
       def initialize(connection, options)
         @connection = connection
         @state = TransactionState.new
-        @records = []
+        @transactional_records, @records = [], []
         @joinable = options.fetch(:joinable, true)
       end
 
       def add_record(record)
         if record.has_transactional_callbacks?
-          records << record
+          @transactional_records << record
         else
-          record.set_transaction_state(@state)
+          # We need to use a weak-ref, so a long living transaciton will
+          # not hold records that dont need to restore state
+          @records << WeakRef.new(record)
         end
       end
 
@@ -67,7 +70,7 @@ module ActiveRecord
       end
 
       def rollback_records
-        ite = records.uniq
+        ite = @transactional_records.uniq
         while record = ite.shift
           record.rolledback!(force_restore_state: full_rollback?)
         end
@@ -75,6 +78,7 @@ module ActiveRecord
         ite.each do |i|
           i.rolledback!(force_restore_state: full_rollback?, should_run_callbacks: false)
         end
+        each_record { |r| r.rolledback!(force_restore_state: full_rollback?, should_run_callbacks: false) }
       end
 
       def commit
@@ -82,13 +86,20 @@ module ActiveRecord
       end
 
       def commit_records
-        ite = records.uniq
+        ite = @transactional_records.uniq
         while record = ite.shift
           record.committed!
         end
       ensure
         ite.each do |i|
           i.committed!(should_run_callbacks: false)
+        end
+        each_record { |r| r.committed!(should_run_callbacks: false) }
+      end
+
+      def each_record
+        @records.uniq.each do |record|
+          yield record if record.weakref_alive?
         end
       end
 
@@ -166,7 +177,7 @@ module ActiveRecord
         inner_transaction.commit
 
         if current_transaction.joinable?
-          inner_transaction.records.each do |r|
+          inner_transaction.transactional_records.each do |r|
             current_transaction.add_record(r)
           end
         else

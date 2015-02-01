@@ -1,3 +1,11 @@
+*   Use WeakRef to store records on transactions in order to restore state.
+    Also this avoids a massive memory grow, due the nature of WeakRef, that
+    would allow records to be garbage collected.
+
+    Fixes #15549.
+
+    *arthurnn*
+
 *   Fixed ActiveRecord::Relation#group method when argument is SQL reserved key word:
 
     Example:
