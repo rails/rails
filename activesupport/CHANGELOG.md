@@ -1,3 +1,8 @@
+*   `AS::Testing::TimeHelpers#travel_to` now changes `DateTime.now` as well as
+    `Time.now` and `Date.today`.
+
+    *Yuki Nishijima*
+
 *   Add `file_fixture` to `ActiveSupport::TestCase`.
     It provides a simple mechanism to access sample files in your test cases.
 

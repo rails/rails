@@ -99,6 +99,7 @@ module ActiveSupport
 
         simple_stubs.stub_object(Time, :now, now)
         simple_stubs.stub_object(Date, :today, now.to_date)
+        simple_stubs.stub_object(DateTime, :now, now.to_datetime)
 
         if block_given?
           begin
