@@ -479,6 +479,8 @@ module ActiveRecord
       Hash[methods.map! { |method| [method, public_send(method)] }].with_indifferent_access
     end
 
+    private
+
     def set_transaction_state(state) # :nodoc:
       @transaction_state = state
     end
@@ -486,8 +488,6 @@ module ActiveRecord
     def has_transactional_callbacks? # :nodoc:
       !_rollback_callbacks.empty? || !_commit_callbacks.empty?
     end
-
-    private
 
     # Updates the attributes on this particular ActiveRecord object so that
     # if it is associated with a transaction, then the state of the AR object
