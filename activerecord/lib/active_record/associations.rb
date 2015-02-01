@@ -1000,6 +1000,8 @@ module ActiveRecord
     # callbacks declared either before or after the <tt>:dependent</tt> option
     # can affect what it does.
     #
+    # Note that <tt>:dependent</tt> option is ignored for +has_one+ <tt>:through</tt> associations.
+    # 
     # === Delete or destroy?
     #
     # +has_many+ and +has_and_belongs_to_many+ associations have the methods <tt>destroy</tt>,
@@ -1330,6 +1332,8 @@ module ActiveRecord
       #   * <tt>:nullify</tt> causes the foreign key to be set to +NULL+. Callbacks are not executed.
       #   * <tt>:restrict_with_exception</tt> causes an exception to be raised if there is an associated record
       #   * <tt>:restrict_with_error</tt> causes an error to be added to the owner if there is an associated object
+      #
+      #   Note that <tt>:dependent</tt> option is ignored when using <tt>:through</tt> option.
       # [:foreign_key]
       #   Specify the foreign key used for the association. By default this is guessed to be the name
       #   of this class in lower-case and "_id" suffixed. So a Person class that makes a +has_one+ association
