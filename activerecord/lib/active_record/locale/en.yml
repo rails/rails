@@ -7,6 +7,7 @@ en:
   # Default error messages
   errors:
     messages:
+      required: "must exist"
       taken: "has already been taken"
 
   # Active Record models configuration

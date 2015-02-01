@@ -14,10 +14,9 @@ en:
       empty: "can't be empty"
       blank: "can't be blank"
       present: "must be blank"
-      required: "must exist"
       too_long:
         one: "is too long (maximum is 1 character)"
-        other: "is too long (maximum is %{count} characters)" 
+        other: "is too long (maximum is %{count} characters)"
       too_short:
         one: "is too short (minimum is 1 character)"
         other: "is too short (minimum is %{count} characters)"

@@ -1,8 +1,3 @@
-*   Change the default error message from `can't be blank` to `must exist` for
-    the presence validator of the `:required` option on `belongs_to`/`has_one` associations.
-
-    *Henrik Nygren*
-
 *   Assigning an unknown attribute key to an `ActiveModel` instance during initialization
     will now raise `ActiveModel::AttributeAssignment::UnknownAttributeError` instead of
     `NoMethodError`
