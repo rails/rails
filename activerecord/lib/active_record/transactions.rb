@@ -318,7 +318,11 @@ module ActiveRecord
     # Add the record to the current transaction so that the +after_rollback+ and +after_commit+ callbacks
     # can be called.
     def add_to_transaction
-      self.class.connection.add_transaction_record(self)
+      if has_transactional_callbacks?
+        self.class.connection.add_transaction_record(self)
+      else
+        set_transaction_state(self.class.connection.transaction_state)
+      end
       remember_transaction_record_state
     end
 
