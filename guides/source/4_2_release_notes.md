@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE IN GITHUB, GUIDES ARE PUBLISHED IN http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
 
 Ruby on Rails 4.2 Release Notes
 ===============================
@@ -91,6 +91,9 @@ Post.find(2)  # Subsequent calls reuse the cached prepared statement
 
 Post.find_by_title('first post')
 Post.find_by_title('second post')
+
+Post.find_by(title: 'first post')
+Post.find_by(title: 'second post')
 
 post.comments
 post.comments(true)

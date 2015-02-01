@@ -25,9 +25,11 @@ class PostgresqlMoneyTest < ActiveRecord::TestCase
     assert_equal :money, column.type
     assert_equal "money", column.sql_type
     assert_equal 2, column.scale
-    assert column.number?
-    assert_not column.binary?
-    assert_not column.array
+    assert_not column.array?
+
+    type = PostgresqlMoney.type_for_attribute("wealth")
+    assert type.number?
+    assert_not type.binary?
   end
 
   def test_default
@@ -46,17 +48,17 @@ class PostgresqlMoneyTest < ActiveRecord::TestCase
   end
 
   def test_money_type_cast
-    column = PostgresqlMoney.columns_hash['wealth']
-    assert_equal(12345678.12, column.type_cast_from_user("$12,345,678.12"))
-    assert_equal(12345678.12, column.type_cast_from_user("$12.345.678,12"))
-    assert_equal(-1.15, column.type_cast_from_user("-$1.15"))
-    assert_equal(-2.25, column.type_cast_from_user("($2.25)"))
+    type = PostgresqlMoney.type_for_attribute('wealth')
+    assert_equal(12345678.12, type.type_cast_from_user("$12,345,678.12"))
+    assert_equal(12345678.12, type.type_cast_from_user("$12.345.678,12"))
+    assert_equal(-1.15, type.type_cast_from_user("-$1.15"))
+    assert_equal(-2.25, type.type_cast_from_user("($2.25)"))
   end
 
   def test_schema_dumping
     output = dump_table_schema("postgresql_moneys")
     assert_match %r{t\.money\s+"wealth",\s+scale: 2$}, output
-    assert_match %r{t\.money\s+"depth",\s+scale: 2,\s+default: 150.55$}, output
+    assert_match %r{t\.money\s+"depth",\s+scale: 2,\s+default: 150\.55$}, output
   end
 
   def test_create_and_update_money

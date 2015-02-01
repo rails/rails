@@ -51,7 +51,7 @@ module ActionController
     #
     #   def show
     #     @article = Article.find(params[:id])
-    #     fresh_when(etag: @article, last_modified: @article.created_at, public: true)
+    #     fresh_when(etag: @article, last_modified: @article.updated_at, public: true)
     #   end
     #
     # This will render the show template if the request isn't sending a matching ETag or
@@ -115,7 +115,7 @@ module ActionController
     #   def show
     #     @article = Article.find(params[:id])
     #
-    #     if stale?(etag: @article, last_modified: @article.created_at)
+    #     if stale?(etag: @article, last_modified: @article.updated_at)
     #       @statistics = @article.really_expensive_call
     #       respond_to do |format|
     #         # all the supported formats

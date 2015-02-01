@@ -29,8 +29,8 @@ module ActiveRecord
 
       teardown do
         if defined?(@connection)
-          @connection.drop_table "astronauts" if @connection.table_exists? 'astronauts' 
-          @connection.drop_table "rockets" if @connection.table_exists? 'rockets'
+          @connection.drop_table "astronauts", if_exists: true
+          @connection.drop_table "rockets", if_exists: true
         end
       end
 
@@ -219,6 +219,18 @@ module ActiveRecord
         assert_equal 1, @connection.foreign_keys("houses").size
       ensure
         silence_stream($stdout) { migration.migrate(:down) }
+      end
+
+      private
+
+      def silence_stream(stream)
+        old_stream = stream.dup
+        stream.reopen(IO::NULL)
+        stream.sync = true
+        yield
+      ensure
+        stream.reopen(old_stream)
+        old_stream.close
       end
     end
   end

@@ -1,5 +1,5 @@
 <% if mountable? -%>
-<%= camelized %>::Engine.routes.draw do
+<%= camelized_modules %>::Engine.routes.draw do
 <% else -%>
 Rails.application.routes.draw do
 <% end -%>

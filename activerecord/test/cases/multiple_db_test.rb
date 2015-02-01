@@ -93,6 +93,13 @@ class MultipleDbTest < ActiveRecord::TestCase
     assert_not_equal Entrant.arel_engine.connection, Course.arel_engine.connection
   end
 
+  def test_count_on_custom_connection
+    ActiveRecord::Base.remove_connection
+    assert_equal 1, College.count
+  ensure
+    ActiveRecord::Base.establish_connection :arunit
+  end
+
   unless in_memory_db?
     def test_associations_should_work_when_model_has_no_connection
       begin

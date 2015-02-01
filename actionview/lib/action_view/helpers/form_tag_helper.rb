@@ -777,10 +777,10 @@ module ActionView
       #   # => <input id="quantity" name="quantity" min="1" max="9" type="number" />
       #
       #   number_field_tag 'quantity', nil, min: 1, max: 10
-      #   # => <input id="quantity" name="quantity" min="1" max="9" type="number" />
+      #   # => <input id="quantity" name="quantity" min="1" max="10" type="number" />
       #
       #   number_field_tag 'quantity', nil, min: 1, max: 10, step: 2
-      #   # => <input id="quantity" name="quantity" min="1" max="9" step="2" type="number" />
+      #   # => <input id="quantity" name="quantity" min="1" max="10" step="2" type="number" />
       #
       #   number_field_tag 'quantity', '1', class: 'special_input', disabled: true
       #   # => <input disabled="disabled" class="special_input" id="quantity" name="quantity" type="number" value="1" />

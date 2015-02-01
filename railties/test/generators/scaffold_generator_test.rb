@@ -58,15 +58,25 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     assert_file "test/controllers/product_lines_controller_test.rb" do |test|
       assert_match(/class ProductLinesControllerTest < ActionController::TestCase/, test)
-      assert_match(/post :create, product_line: \{ product_id: @product_line\.product_id, title: @product_line\.title, user_id: @product_line\.user_id \}/, test)
-      assert_match(/patch :update, id: @product_line, product_line: \{ product_id: @product_line\.product_id, title: @product_line\.title, user_id: @product_line\.user_id \}/, test)
+      assert_match(/post :create, params: \{ product_line: \{ product_id: @product_line\.product_id, title: @product_line\.title, user_id: @product_line\.user_id \} \}/, test)
+      assert_match(/patch :update, params: \{ id: @product_line, product_line: \{ product_id: @product_line\.product_id, title: @product_line\.title, user_id: @product_line\.user_id \} \}/, test)
     end
 
     # Views
-    %w(index edit new show _form).each do |view|
+    assert_no_file "app/views/layouts/product_lines.html.erb"
+
+    %w(index show).each do |view|
       assert_file "app/views/product_lines/#{view}.html.erb"
     end
-    assert_no_file "app/views/layouts/product_lines.html.erb"
+
+    %w(edit new).each do |view|
+      assert_file "app/views/product_lines/#{view}.html.erb", /render 'form', product_line: @product_line/
+    end
+
+    assert_file "app/views/product_lines/_form.html.erb" do |test|
+      assert_match 'product_line', test
+      assert_no_match '@product_line', test
+    end
 
     # Helpers
     assert_file "app/helpers/product_lines_helper.rb"
@@ -83,8 +93,8 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     assert_file "test/controllers/product_lines_controller_test.rb" do |content|
       assert_match(/class ProductLinesControllerTest < ActionController::TestCase/, content)
       assert_match(/test "should get index"/, content)
-      assert_match(/post :create, product_line: \{  \}/, content)
-      assert_match(/patch :update, id: @product_line, product_line: \{  \}/, content)
+      assert_match(/post :create, params: \{ product_line: \{  \} \}/, content)
+      assert_match(/patch :update, params: \{ id: @product_line, product_line: \{  \} \}/, content)
     end
   end
 

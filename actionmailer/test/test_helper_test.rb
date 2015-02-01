@@ -119,6 +119,53 @@ class TestHelperMailerTest < ActionMailer::TestCase
 
     assert_match(/0 .* but 1/, error.message)
   end
+
+  def test_assert_enqueued_emails
+    assert_nothing_raised do
+      assert_enqueued_emails 1 do
+        TestHelperMailer.test.deliver_later
+      end
+    end
+  end
+
+  def test_assert_enqueued_emails_too_few_sent
+    error = assert_raise ActiveSupport::TestCase::Assertion do
+      assert_enqueued_emails 2 do
+        TestHelperMailer.test.deliver_later
+      end
+    end
+
+    assert_match(/2 .* but 1/, error.message)
+  end
+
+  def test_assert_enqueued_emails_too_many_sent
+    error = assert_raise ActiveSupport::TestCase::Assertion do
+      assert_enqueued_emails 1 do
+        TestHelperMailer.test.deliver_later
+        TestHelperMailer.test.deliver_later
+      end
+    end
+
+    assert_match(/1 .* but 2/, error.message)
+  end
+
+  def test_assert_no_enqueued_emails
+    assert_nothing_raised do
+      assert_no_enqueued_emails do
+        TestHelperMailer.test.deliver_now
+      end
+    end
+  end
+
+  def test_assert_no_enqueued_emails_failure
+    error = assert_raise ActiveSupport::TestCase::Assertion do
+      assert_no_enqueued_emails do
+        TestHelperMailer.test.deliver_later
+      end
+    end
+
+    assert_match(/0 .* but 1/, error.message)
+  end
 end
 
 class AnotherTestHelperMailerTest < ActionMailer::TestCase

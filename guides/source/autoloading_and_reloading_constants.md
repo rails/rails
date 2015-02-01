@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE IN GITHUB, GUIDES ARE PUBLISHED IN http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
 
 Autoloading and Reloading Constants
 ===================================
@@ -80,7 +80,8 @@ end
 ```
 
 The *nesting* at any given place is the collection of enclosing nested class and
-module objects outwards. For example, in the previous example, the nesting at
+module objects outwards. The nesting at any given place can be inspected with
+`Module.nesting`. For example, in the previous example, the nesting at
 (1) is
 
 ```ruby
@@ -113,6 +114,16 @@ certain nesting does not necessarily correlate with the namespaces at the spot.
 Even more, they are totally independent, take for instance
 
 ```ruby
+module X
+  module Y
+  end
+end
+
+module A
+  module B
+  end
+end
+
 module X::Y
   module A::B
     # (3)
@@ -140,9 +151,10 @@ executed, and popped after it.
 
 * A singleton class opened with `class << object` gets pushed, and popped later.
 
-* When any of the `*_eval` family of methods is called using a string argument,
+* When `instance_eval` is called using a string argument,
 the singleton class of the receiver is pushed to the nesting of the eval'ed
-code.
+code. When `class_eval` or `module_eval` is called using a string argument,
+the receiver is pushed to the nesting of the eval'ed code.
 
 * The nesting at the top-level of code interpreted by `Kernel#load` is empty
 unless the `load` call receives a true value as second argument, in which case
@@ -152,8 +164,6 @@ It is interesting to observe that blocks do not modify the stack. In particular
 the blocks that may be passed to `Class.new` and `Module.new` do not get the
 class or module being defined pushed to their nesting. That's one of the
 differences between defining classes and modules in one way or another.
-
-The nesting at any given place can be inspected with `Module.nesting`.
 
 ### Class and Module Definitions are Constant Assignments
 
@@ -236,7 +246,7 @@ end
 ```
 
 `Post` is not syntax for a class. Rather, `Post` is a regular Ruby constant. If
-all is good, the constant evaluates to an object that responds to `all`.
+all is good, the constant is evaluated to an object that responds to `all`.
 
 That is why we talk about *constant* autoloading, Rails has the ability to
 load constants on the fly.
@@ -314,7 +324,7 @@ relative: `::Billing::Invoice`. That would force `Billing` to be looked up
 only as a top-level constant.
 
 `Invoice` on the other hand is qualified by `Billing` and we are going to see
-its resolution next. Let's call *parent* to that qualifying class or module
+its resolution next. Let's define *parent* to be that qualifying class or module
 object, that is, `Billing` in the example above. The algorithm for qualified
 constants goes like this:
 
@@ -330,7 +340,7 @@ checked.
 
 Rails autoloading **does not emulate this algorithm**, but its starting point is
 the name of the constant to be autoloaded, and the parent. See more in
-[Qualified References](#qualified-references).
+[Qualified References](#autoloading-algorithms-qualified-references).
 
 
 Vocabulary
@@ -685,12 +695,12 @@ creates an empty module and assigns it to the `Admin` constant on the fly.
 ### Generic Procedure
 
 Relative references are reported to be missing in the cref where they were hit,
-and qualified references are reported to be missing in their parent. (See
+and qualified references are reported to be missing in their parent (see
 [Resolution Algorithm for Relative
 Constants](#resolution-algorithm-for-relative-constants) at the beginning of
 this guide for the definition of *cref*, and [Resolution Algorithm for Qualified
 Constants](#resolution-algorithm-for-qualified-constants) for the definition of
-*parent*.)
+*parent*).
 
 The procedure to autoload constant `C` in an arbitrary situation is as follows:
 
@@ -868,8 +878,8 @@ end
 ```
 
 To resolve `User` Ruby checks `Admin` in the former case, but it does not in
-the latter because it does not belong to the nesting. (See [Nesting](#nesting)
-and [Resolution Algorithms](#resolution-algorithms).)
+the latter because it does not belong to the nesting (see [Nesting](#nesting)
+and [Resolution Algorithms](#resolution-algorithms)).
 
 Unfortunately Rails autoloading does not know the nesting in the spot where the
 constant was missing and so it is not able to act as Ruby would. In particular,
@@ -1284,7 +1294,7 @@ c.user # NameError: uninitialized constant C::User
 ```
 
 because it detects that a parent namespace already has the constant (see [Qualified
-References](#autoloading-algorithms-qualified-references).)
+References](#autoloading-algorithms-qualified-references)).
 
 As with pure Ruby, within the body of a direct descendant of `BasicObject` use
 always absolute constant paths:

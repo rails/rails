@@ -14,7 +14,7 @@ require 'rails/version'
 require 'active_support/railtie'
 require 'action_dispatch/railtie'
 
-# For Ruby 1.9, UTF-8 is the default internal and external encoding.
+# UTF-8 is the default internal and external encoding.
 silence_warnings do
   Encoding.default_external = Encoding::UTF_8
   Encoding.default_internal = Encoding::UTF_8
@@ -56,10 +56,18 @@ module Rails
       application && application.config.root
     end
 
+    # Returns the current Rails environment.
+    #
+    #   Rails.env # => "development"
+    #   Rails.env.development? # => true
+    #   Rails.env.production? # => false
     def env
       @_env ||= ActiveSupport::StringInquirer.new(ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "development")
     end
 
+    # Sets the Rails environment.
+    #
+    #   Rails.env = "staging" # => "staging"
     def env=(environment)
       @_env = ActiveSupport::StringInquirer.new(environment)
     end

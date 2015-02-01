@@ -32,25 +32,6 @@ class MessageDeliveryTest < ActiveSupport::TestCase
     assert_equal Mail::Message , @mail.message.class
   end
 
-  test 'should respond to .deliver' do
-    assert_respond_to @mail, :deliver
-  end
-
-  test 'should respond to .deliver!' do
-    assert_respond_to @mail, :deliver!
-  end
-
-  test '.deliver is deprecated' do
-    assert_deprecated do
-      @mail.deliver
-    end
-  end
-  test '.deliver! is deprecated' do
-    assert_deprecated do
-      @mail.deliver!
-    end
-  end
-
   test 'should respond to .deliver_later' do
     assert_respond_to @mail, :deliver_later
   end

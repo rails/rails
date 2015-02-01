@@ -41,7 +41,7 @@ class RequestIdResponseTest < ActionDispatch::IntegrationTest
 
   test "request id given on request is passed all the way to the response" do
     with_test_route_set do
-      get '/', {}, 'HTTP_X_REQUEST_ID' => 'X' * 500
+      get '/', headers: { 'HTTP_X_REQUEST_ID' => 'X' * 500 }
       assert_equal "X" * 255, @response.headers["X-Request-Id"]
     end
   end

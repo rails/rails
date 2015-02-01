@@ -42,16 +42,24 @@ module ActiveJob
       #       HelloJob.perform_later('rafael')
       #     end
       #   end
-      def assert_enqueued_jobs(number)
+      #
+      # The number of times a specific job is enqueued can be asserted.
+      #
+      #   def test_logging_job
+      #     assert_enqueued_jobs 2, only: LoggingJob do
+      #       LoggingJob.perform_later
+      #       HelloJob.perform_later('jeremy')
+      #     end
+      #   end
+      def assert_enqueued_jobs(number, only: nil)
         if block_given?
-          original_count = enqueued_jobs.size
+          original_count = enqueued_jobs_size(only: only)
           yield
-          new_count = enqueued_jobs.size
-          assert_equal original_count + number, new_count,
-                       "#{number} jobs expected, but #{new_count - original_count} were enqueued"
+          new_count = enqueued_jobs_size(only: only)
+          assert_equal original_count + number, new_count, "#{number} jobs expected, but #{new_count - original_count} were enqueued"
         else
-          enqueued_jobs_size = enqueued_jobs.size
-          assert_equal number, enqueued_jobs_size, "#{number} jobs expected, but #{enqueued_jobs_size} were enqueued"
+          actual_count = enqueued_jobs_size(only: only)
+          assert_equal number, actual_count, "#{number} jobs expected, but #{actual_count} were enqueued"
         end
       end
 
@@ -71,11 +79,19 @@ module ActiveJob
       #     end
       #   end
       #
+      # It can be asserted that no jobs of a specific kind are enqueued:
+      #
+      #   def test_no_logging
+      #     assert_no_enqueued_jobs only: LoggingJob do
+      #       HelloJob.perform_later('jeremy')
+      #     end
+      #   end
+      #
       # Note: This assertion is simply a shortcut for:
       #
       #   assert_enqueued_jobs 0, &block
-      def assert_no_enqueued_jobs(&block)
-        assert_enqueued_jobs 0, &block
+      def assert_no_enqueued_jobs(only: nil, &block)
+        assert_enqueued_jobs 0, only: only, &block
       end
 
       # Asserts that the number of performed jobs matches the given number.
@@ -159,9 +175,10 @@ module ActiveJob
         original_enqueued_jobs = enqueued_jobs.dup
         clear_enqueued_jobs
         args.assert_valid_keys(:job, :args, :at, :queue)
+        serialized_args = serialize_args_for_assertion(args)
         yield
         matching_job = enqueued_jobs.any? do |job|
-          args.all? { |key, value| value == job[key] }
+          serialized_args.all? { |key, value| value == job[key] }
         end
         assert matching_job, "No enqueued job found with #{args}"
       ensure
@@ -179,9 +196,10 @@ module ActiveJob
         original_performed_jobs = performed_jobs.dup
         clear_performed_jobs
         args.assert_valid_keys(:job, :args, :at, :queue)
+        serialized_args = serialize_args_for_assertion(args)
         perform_enqueued_jobs { yield }
         matching_job = performed_jobs.any? do |job|
-          args.all? { |key, value| value == job[key] }
+          serialized_args.all? { |key, value| value == job[key] }
         end
         assert matching_job, "No performed job found with #{args}"
       ensure
@@ -214,6 +232,22 @@ module ActiveJob
 
         def clear_performed_jobs
           performed_jobs.clear
+        end
+
+        def enqueued_jobs_size(only: nil)
+          if only
+            enqueued_jobs.select { |job| job[:job] == only }.size
+          else
+            enqueued_jobs.size
+          end
+        end
+
+        def serialize_args_for_assertion(args)
+          serialized_args = args.dup
+          if job_args = serialized_args.delete(:args)
+            serialized_args[:args] = ActiveJob::Arguments.serialize(job_args)
+          end
+          serialized_args
         end
     end
   end

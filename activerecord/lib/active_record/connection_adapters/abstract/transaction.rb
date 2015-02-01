@@ -69,16 +69,11 @@ module ActiveRecord
       def rollback_records
         ite = records.uniq
         while record = ite.shift
-          begin
-            record.rolledback! full_rollback?
-          rescue => e
-            raise if ActiveRecord::Base.raise_in_transactional_callbacks
-            record.logger.error(e) if record.respond_to?(:logger) && record.logger
-          end
+          record.rolledback!(force_restore_state: full_rollback?)
         end
       ensure
         ite.each do |i|
-          i.rolledback!(full_rollback?, false)
+          i.rolledback!(force_restore_state: full_rollback?, should_run_callbacks: false)
         end
       end
 
@@ -89,16 +84,11 @@ module ActiveRecord
       def commit_records
         ite = records.uniq
         while record = ite.shift
-          begin
-            record.committed!
-          rescue => e
-            raise if ActiveRecord::Base.raise_in_transactional_callbacks
-            record.logger.error(e) if record.respond_to?(:logger) && record.logger
-          end
+          record.committed!
         end
       ensure
         ite.each do |i|
-          i.committed!(false)
+          i.committed!(should_run_callbacks: false)
         end
       end
 
@@ -121,14 +111,11 @@ module ActiveRecord
       def rollback
         connection.rollback_to_savepoint(savepoint_name)
         super
-        rollback_records
       end
 
       def commit
         connection.release_savepoint(savepoint_name)
         super
-        parent = connection.transaction_manager.current_transaction
-        records.each { |r| parent.add_record(r) }
       end
 
       def full_rollback?; false; end
@@ -148,13 +135,11 @@ module ActiveRecord
       def rollback
         connection.rollback_db_transaction
         super
-        rollback_records
       end
 
       def commit
         connection.commit_db_transaction
         super
-        commit_records
       end
     end
 
@@ -171,16 +156,28 @@ module ActiveRecord
           else
             SavepointTransaction.new(@connection, "active_record_#{@stack.size}", options)
           end
+
         @stack.push(transaction)
         transaction
       end
 
       def commit_transaction
-        @stack.pop.commit
+        inner_transaction = @stack.pop
+        inner_transaction.commit
+
+        if current_transaction.joinable?
+          inner_transaction.records.each do |r|
+            current_transaction.add_record(r)
+          end
+        else
+          inner_transaction.commit_records
+        end
       end
 
-      def rollback_transaction
-        @stack.pop.rollback
+      def rollback_transaction(transaction = nil)
+        transaction ||= @stack.pop
+        transaction.rollback
+        transaction.rollback_records
       end
 
       def within_new_transaction(options = {})
@@ -197,7 +194,7 @@ module ActiveRecord
             begin
               commit_transaction
             rescue Exception
-              transaction.rollback unless transaction.state.completed?
+              rollback_transaction(transaction) unless transaction.state.completed?
               raise
             end
           end

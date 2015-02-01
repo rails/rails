@@ -32,9 +32,11 @@ if ActiveRecord::Base.connection.supports_extensions?
       column = Citext.columns_hash['cival']
       assert_equal :citext, column.type
       assert_equal 'citext', column.sql_type
-      assert_not column.number?
-      assert_not column.binary?
-      assert_not column.array
+      assert_not column.array?
+
+      type = Citext.type_for_attribute('cival')
+      assert_not type.number?
+      assert_not type.binary?
     end
 
     def test_change_table_supports_json
@@ -72,7 +74,7 @@ if ActiveRecord::Base.connection.supports_extensions?
 
     def test_schema_dump_with_shorthand
       output = dump_table_schema("citexts")
-      assert_match %r[t.citext "cival"], output
+      assert_match %r[t\.citext "cival"], output
     end
   end
 end

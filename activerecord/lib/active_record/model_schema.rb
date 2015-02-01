@@ -111,17 +111,6 @@ module ActiveRecord
       #   class Mouse < ActiveRecord::Base
       #     self.table_name = "mice"
       #   end
-      #
-      # Alternatively, you can override the table_name method to define your
-      # own computation. (Possibly using <tt>super</tt> to manipulate the default
-      # table name.) Example:
-      #
-      #   class Post < ActiveRecord::Base
-      #     def self.table_name
-      #       "special_" + super
-      #     end
-      #   end
-      #   Post.table_name # => "special_posts"
       def table_name
         reset_table_name unless defined?(@table_name)
         @table_name
@@ -132,9 +121,6 @@ module ActiveRecord
       #   class Project < ActiveRecord::Base
       #     self.table_name = "project"
       #   end
-      #
-      # You can also just define your own <tt>self.table_name</tt> method; see
-      # the documentation for ActiveRecord::Base#table_name.
       def table_name=(value)
         value = value && value.to_s
 
@@ -231,28 +217,37 @@ module ActiveRecord
       end
 
       def attributes_builder # :nodoc:
-        @attributes_builder ||= AttributeSet::Builder.new(column_types, primary_key)
+        @attributes_builder ||= AttributeSet::Builder.new(attribute_types, primary_key)
       end
 
-      def column_types # :nodoc:
-        @column_types ||= columns_hash.transform_values(&:cast_type).tap do |h|
-          h.default = Type::Value.new
-        end
+      def columns_hash # :nodoc:
+        load_schema
+        @columns_hash
+      end
+
+      def columns
+        load_schema
+        @columns ||= columns_hash.values
+      end
+
+      def attribute_types # :nodoc:
+        load_schema
+        @attribute_types ||= Hash.new(Type::Value.new)
       end
 
       def type_for_attribute(attr_name) # :nodoc:
-        column_types[attr_name]
+        attribute_types[attr_name]
       end
 
       # Returns a hash where the keys are column names and the values are
       # default values when instantiating the AR object for this table.
       def column_defaults
+        load_schema
         _default_attributes.to_hash
       end
 
       def _default_attributes # :nodoc:
-        @default_attributes ||= attributes_builder.build_from_database(
-          raw_default_values)
+        @default_attributes ||= AttributeSet.new({})
       end
 
       # Returns an array of column names as strings.
@@ -295,18 +290,52 @@ module ActiveRecord
       def reset_column_information
         connection.clear_cache!
         undefine_attribute_methods
-        connection.schema_cache.clear_table_cache!(table_name) if table_exists?
+        connection.schema_cache.clear_table_cache!(table_name)
 
-        @arel_engine        = nil
-        @arel_table         = nil
-        @column_names       = nil
-        @column_types       = nil
-        @content_columns    = nil
-        @default_attributes = nil
-        @inheritance_column = nil unless defined?(@explicit_inheritance_column) && @explicit_inheritance_column
+        reload_schema_from_cache
       end
 
       private
+
+      def schema_loaded?
+        defined?(@columns_hash) && @columns_hash
+      end
+
+      def load_schema
+        unless schema_loaded?
+          load_schema!
+        end
+      end
+
+      def load_schema!
+        @columns_hash = connection.schema_cache.columns_hash(table_name)
+        @columns_hash.each do |name, column|
+          define_attribute(
+            name,
+            column.cast_type,
+            default: column.default,
+            user_provided_default: false
+          )
+        end
+      end
+
+      def reload_schema_from_cache
+        @arel_engine = nil
+        @arel_table = nil
+        @column_names = nil
+        @attribute_types = nil
+        @content_columns = nil
+        @default_attributes = nil
+        @inheritance_column = nil unless defined?(@explicit_inheritance_column) && @explicit_inheritance_column
+        @attributes_builder = nil
+        @column_names = nil
+        @attribute_types = nil
+        @columns = nil
+        @columns_hash = nil
+        @content_columns = nil
+        @default_attributes = nil
+        @attribute_names = nil
+      end
 
       # Guesses the table name, but does not decorate it with prefix and suffix information.
       def undecorated_table_name(class_name = base_class.name)
@@ -330,10 +359,6 @@ module ActiveRecord
           # STI subclasses always use their superclass' table.
           base.table_name
         end
-      end
-
-      def raw_default_values
-        columns_hash.transform_values(&:default)
       end
     end
   end

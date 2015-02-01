@@ -631,4 +631,9 @@ class CalculationsTest < ActiveRecord::TestCase
 
     assert_equal({ "has trinket" => part.id }, ShipPart.joins(:trinkets).group("ship_parts.name").sum(:id))
   end
+
+  def test_calculation_grouped_by_association_doesnt_error_when_no_records_have_association
+    Client.update_all(client_of: nil)
+    assert_equal({ nil => Client.count }, Client.group(:firm).count)
+  end
 end

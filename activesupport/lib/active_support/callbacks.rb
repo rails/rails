@@ -4,6 +4,7 @@ require 'active_support/core_ext/array/extract_options'
 require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/kernel/reporting'
 require 'active_support/core_ext/kernel/singleton_class'
+require 'active_support/core_ext/string/filters'
 require 'thread'
 
 module ActiveSupport
@@ -142,8 +143,8 @@ module ActiveSupport
             halted = env.halted
 
             if !halted && user_conditions.all? { |c| c.call(target, value) }
-              result = user_callback.call target, value
-              env.halted = halted_lambda.call(target, result)
+              result_lambda = -> { user_callback.call target, value }
+              env.halted = halted_lambda.call(target, result_lambda)
               if env.halted
                 target.send :halted_callback_hook, filter
               end
@@ -161,8 +162,9 @@ module ActiveSupport
             halted = env.halted
 
             unless halted
-              result = user_callback.call target, value
-              env.halted = halted_lambda.call(target, result)
+              result_lambda = -> { user_callback.call target, value }
+              env.halted = halted_lambda.call(target, result_lambda)
+
               if env.halted
                 target.send :halted_callback_hook, filter
               end
@@ -514,10 +516,17 @@ module ActiveSupport
 
       attr_reader :name, :config
 
+      # If true, any callback returning +false+ will halt the entire callback
+      # chain and display a deprecation message. If false, callback chains will
+      # only be halted by calling +throw :abort+. Defaults to +true+.
+      class_attribute :halt_and_display_warning_on_return_false
+      self.halt_and_display_warning_on_return_false = true
+
       def initialize(name, config)
         @name = name
         @config = {
-          :scope => [ :kind ]
+          scope: [:kind],
+          terminator: default_terminator
         }.merge!(config)
         @chain = []
         @callbacks = nil
@@ -587,6 +596,28 @@ module ActiveSupport
       def remove_duplicates(callback)
         @callbacks = nil
         @chain.delete_if { |c| callback.duplicates?(c) }
+      end
+
+      def default_terminator
+        Proc.new do |target, result_lambda|
+          terminate = true
+          catch(:abort) do
+            result = result_lambda.call if result_lambda.is_a?(Proc)
+            if halt_and_display_warning_on_return_false && result == false
+              display_deprecation_warning_for_false_terminator
+            else
+              terminate = false
+            end
+          end
+          terminate
+        end
+      end
+
+      def display_deprecation_warning_for_false_terminator
+        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          Returning `false` in a callback will not implicitly halt a callback chain in the next release of Rails.
+          To explicitly halt a callback chain, please use `throw :abort` instead.
+        MSG
       end
     end
 

@@ -22,7 +22,7 @@ Description:
 
     If you pass a namespaced model name (e.g. admin/account or Admin::Account)
     then the generator will create a module with a table_name_prefix method
-    to prefix the model's table name with the module name (e.g. admin_account)
+    to prefix the model's table name with the module name (e.g. admin_accounts)
 
 Available field types:
 
@@ -79,9 +79,14 @@ Available field types:
         `rails generate model product supplier:references{polymorphic}:index`
 
     If you require a `password_digest` string column for use with
-    has_secure_password, you should specify `password:digest`:
+    has_secure_password, you can specify `password:digest`:
 
         `rails generate model user password:digest`
+
+    If you require a `token` string column for use with
+    has_secure_token, you can specify `auth_token:token`:
+
+        `rails generate model user auth_token:token`
 
 Examples:
     `rails generate model account`

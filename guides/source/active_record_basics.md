@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE IN GITHUB, GUIDES ARE PUBLISHED IN http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
 
 Active Record Basics
 ====================
@@ -62,7 +62,7 @@ Convention over Configuration in Active Record
 When writing applications using other programming languages or frameworks, it
 may be necessary to write a lot of configuration code. This is particularly true
 for ORM frameworks in general. However, if you follow the conventions adopted by
-Rails, you'll need to write very little configuration (in some case no
+Rails, you'll need to write very little configuration (in some cases no
 configuration at all) when creating Active Record models. The idea is that if
 you configure your applications in the very same way most of the time then this
 should be the default way. Thus, explicit configuration would be needed

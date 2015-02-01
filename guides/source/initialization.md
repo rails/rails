@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE IN GITHUB, GUIDES ARE PUBLISHED IN http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
 
 The Rails Initialization Process
 ================================
@@ -359,7 +359,7 @@ private
   end
 
   def create_tmp_directories
-    %w(cache pids sessions sockets).each do |dir_to_make|
+    %w(cache pids sockets).each do |dir_to_make|
       FileUtils.mkdir_p(File.join(Rails.root, 'tmp', dir_to_make))
     end
   end
@@ -375,13 +375,12 @@ private
   end
 ```
 
-This is where the first output of the Rails initialization happens. This
-method creates a trap for `INT` signals, so if you `CTRL-C` the server,
-it will exit the process. As we can see from the code here, it will
-create the `tmp/cache`, `tmp/pids`, `tmp/sessions` and `tmp/sockets`
-directories. It then calls `wrapped_app` which is responsible for
-creating the Rack app, before creating and assigning an
-instance of `ActiveSupport::Logger`.
+This is where the first output of the Rails initialization happens. This method
+creates a trap for `INT` signals, so if you `CTRL-C` the server, it will exit the
+process. As we can see from the code here, it will create the `tmp/cache`,
+`tmp/pids`, and `tmp/sockets` directories. It then calls `wrapped_app` which is
+responsible for creating the Rack app, before creating and assigning an instance
+of `ActiveSupport::Logger`.
 
 The `super` method will call `Rack::Server.start` which begins its definition like this:
 

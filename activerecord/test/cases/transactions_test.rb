@@ -194,6 +194,16 @@ class TransactionTest < ActiveRecord::TestCase
     assert_equal posts_count, author.posts(true).size
   end
 
+  def test_cancellation_from_returning_false_in_before_filter
+    def @first.before_save_for_transaction
+      false
+    end
+
+    assert_deprecated do
+      @first.save
+    end
+  end
+
   def test_cancellation_from_before_destroy_rollbacks_in_destroy
     add_cancelling_before_destroy_with_db_side_effect_to_topic @first
     nbooks_before_destroy = Book.count
@@ -493,35 +503,32 @@ class TransactionTest < ActiveRecord::TestCase
     assert topic.frozen?, 'not frozen'
   end
 
-  # The behavior of killed threads having a status of "aborting" was changed
-  # in Ruby 2.0, so Thread#kill on 1.9 will prematurely commit the transaction
-  # and there's nothing we can do about it.
-  if !RUBY_VERSION.start_with?('1.9') && !in_memory_db?
-    def test_rollback_when_thread_killed
-      queue = Queue.new
-      thread = Thread.new do
-        Topic.transaction do
-          @first.approved  = true
-          @second.approved = false
-          @first.save
+  def test_rollback_when_thread_killed
+    return if in_memory_db?
 
-          queue.push nil
-          sleep
+    queue = Queue.new
+    thread = Thread.new do
+      Topic.transaction do
+        @first.approved  = true
+        @second.approved = false
+        @first.save
 
-          @second.save
-        end
+        queue.push nil
+        sleep
+
+        @second.save
       end
-
-      queue.pop
-      thread.kill
-      thread.join
-
-      assert @first.approved?, "First should still be changed in the objects"
-      assert !@second.approved?, "Second should still be changed in the objects"
-
-      assert !Topic.find(1).approved?, "First shouldn't have been approved"
-      assert Topic.find(2).approved?, "Second should still be approved"
     end
+
+    queue.pop
+    thread.kill
+    thread.join
+
+    assert @first.approved?, "First should still be changed in the objects"
+    assert !@second.approved?, "Second should still be changed in the objects"
+
+    assert !Topic.find(1).approved?, "First shouldn't have been approved"
+    assert Topic.find(2).approved?, "Second should still be approved"
   end
 
   def test_restore_active_record_state_for_all_records_in_a_transaction
@@ -643,6 +650,27 @@ class TransactionTest < ActiveRecord::TestCase
     assert transaction.state.committed?
   end
 
+  def test_transaction_rollback_with_primarykeyless_tables
+    connection = ActiveRecord::Base.connection
+    connection.create_table(:transaction_without_primary_keys, force: true, id: false) do |t|
+       t.integer :thing_id
+    end
+
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = 'transaction_without_primary_keys'
+      after_commit { } # necessary to trigger the has_transactional_callbacks branch
+    end
+
+    assert_no_difference(-> { klass.count }) do
+      ActiveRecord::Base.transaction do
+        klass.create!
+        raise ActiveRecord::Rollback
+      end
+    end
+  ensure
+    connection.execute("DROP TABLE IF EXISTS transaction_without_primary_keys")
+  end
+
   private
 
   %w(validation save destroy).each do |filter|
@@ -650,7 +678,7 @@ class TransactionTest < ActiveRecord::TestCase
       meta = class << topic; self; end
       meta.send("define_method", "before_#{filter}_for_transaction") do
         Book.create
-        false
+        throw(:abort)
       end
     end
   end

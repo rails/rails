@@ -33,6 +33,7 @@ DEFAULT_APP_FILES = %w(
   log
   test/test_helper.rb
   test/fixtures
+  test/fixtures/files
   test/controllers
   test/models
   test/helpers
@@ -158,6 +159,38 @@ class AppGeneratorTest < Rails::Generators::TestCase
     generator.send(:app_const)
     quietly { generator.send(:update_config_files) }
     assert_file("#{app_root}/config/initializers/cookies_serializer.rb", /Rails\.application\.config\.action_dispatch\.cookies_serializer = :json/)
+  end
+
+  def test_rails_update_does_not_create_callback_terminator_initializer
+    app_root = File.join(destination_root, 'myapp')
+    run_generator [app_root]
+
+    FileUtils.rm("#{app_root}/config/initializers/callback_terminator.rb")
+
+    Rails.application.config.root = app_root
+    Rails.application.class.stubs(:name).returns("Myapp")
+    Rails.application.stubs(:is_a?).returns(Rails::Application)
+
+    generator = Rails::Generators::AppGenerator.new ["rails"], { with_dispatchers: true }, destination_root: app_root, shell: @shell
+    generator.send(:app_const)
+    quietly { generator.send(:update_config_files) }
+    assert_no_file "#{app_root}/config/initializers/callback_terminator.rb"
+  end
+
+  def test_rails_update_does_not_remove_callback_terminator_initializer_if_already_present
+    app_root = File.join(destination_root, 'myapp')
+    run_generator [app_root]
+
+    FileUtils.touch("#{app_root}/config/initializers/callback_terminator.rb")
+
+    Rails.application.config.root = app_root
+    Rails.application.class.stubs(:name).returns("Myapp")
+    Rails.application.stubs(:is_a?).returns(Rails::Application)
+
+    generator = Rails::Generators::AppGenerator.new ["rails"], { with_dispatchers: true }, destination_root: app_root, shell: @shell
+    generator.send(:app_const)
+    quietly { generator.send(:update_config_files) }
+    assert_file "#{app_root}/config/initializers/callback_terminator.rb"
   end
 
   def test_rails_update_set_the_cookie_serializer_to_marchal_if_it_is_not_already_configured
@@ -371,12 +404,16 @@ class AppGeneratorTest < Rails::Generators::TestCase
     if defined?(JRUBY_VERSION) || RUBY_ENGINE == "rbx"
       assert_file "Gemfile" do |content|
         assert_no_match(/byebug/, content)
-        assert_no_match(/debugger/, content)
       end
-    elsif RUBY_VERSION < '2.0.0'
-      assert_gem 'debugger'
     else
       assert_gem 'byebug'
+    end
+  end
+
+  def test_inclusion_of_method_source
+    run_generator
+    assert_file "Gemfile" do |content|
+      assert_gem 'method_source'
     end
   end
 
@@ -409,13 +446,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file 'lib/test_file.rb', 'heres test data'
   end
 
-  def test_test_unit_is_removed_from_frameworks_if_skip_test_unit_is_given
-    run_generator [destination_root, "--skip-test-unit"]
+  def test_tests_are_removed_from_frameworks_if_skip_test_is_given
+    run_generator [destination_root, "--skip-test"]
     assert_file "config/application.rb", /#\s+require\s+["']rails\/test_unit\/railtie["']/
   end
 
-  def test_no_active_record_or_test_unit_if_skips_given
-    run_generator [destination_root, "--skip-test-unit", "--skip-active-record"]
+  def test_no_active_record_or_tests_if_skips_given
+    run_generator [destination_root, "--skip-test", "--skip-active-record"]
     assert_file "config/application.rb", /#\s+require\s+["']rails\/test_unit\/railtie["']/
     assert_file "config/application.rb", /#\s+require\s+["']active_record\/railtie["']/
     assert_file "config/application.rb", /\s+require\s+["']active_job\/railtie["']/

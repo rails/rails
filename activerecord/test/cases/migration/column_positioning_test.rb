@@ -3,7 +3,7 @@ require 'cases/helper'
 module ActiveRecord
   class Migration
     class ColumnPositioningTest < ActiveRecord::TestCase
-      attr_reader :connection, :table_name
+      attr_reader :connection
       alias :conn :connection
 
       def setup

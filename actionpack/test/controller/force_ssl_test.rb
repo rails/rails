@@ -100,7 +100,7 @@ class ForceSSLControllerLevelTest < ActionController::TestCase
   end
 
   def test_banana_redirects_to_https_with_extra_params
-    get :banana, :token => "secret"
+    get :banana, params: { token: "secret" }
     assert_response 301
     assert_equal "https://test.host/force_ssl_controller_level/banana?token=secret", redirect_to_url
   end
@@ -273,7 +273,7 @@ class ForceSSLFormatTest < ActionController::TestCase
         get '/foo', :to => 'force_ssl_controller_level#banana'
       end
 
-      get :banana, :format => :json
+      get :banana, format: :json
       assert_response 301
       assert_equal 'https://test.host/foo.json', redirect_to_url
     end
@@ -294,7 +294,7 @@ class ForceSSLOptionalSegmentsTest < ActionController::TestCase
       end
 
       @request.env['PATH_INFO'] = '/en/foo'
-      get :banana, :locale => 'en'
+      get :banana, params: { locale: 'en' }
       assert_equal 'en',  @controller.params[:locale]
       assert_response 301
       assert_equal 'https://test.host/en/foo', redirect_to_url

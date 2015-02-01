@@ -4,6 +4,7 @@ require 'active_support/core_ext/date'
 require 'jobs/hello_job'
 require 'jobs/logging_job'
 require 'jobs/nested_job'
+require 'models/person'
 
 class EnqueuedJobsTest < ActiveJob::TestCase
   def test_assert_enqueued_jobs
@@ -87,6 +88,65 @@ class EnqueuedJobsTest < ActiveJob::TestCase
     assert_match(/0 .* but 1/, error.message)
   end
 
+  def test_assert_enqueued_jobs_with_only_option
+    assert_nothing_raised do
+      assert_enqueued_jobs 1, only: HelloJob do
+        HelloJob.perform_later('jeremy')
+        LoggingJob.perform_later
+      end
+    end
+  end
+
+  def test_assert_enqueued_jobs_with_only_option_and_none_sent
+    error = assert_raise ActiveSupport::TestCase::Assertion do
+      assert_enqueued_jobs 1, only: HelloJob do
+        LoggingJob.perform_later
+      end
+    end
+
+    assert_match(/1 .* but 0/, error.message)
+  end
+
+  def test_assert_enqueued_jobs_with_only_option_and_too_few_sent
+    error = assert_raise ActiveSupport::TestCase::Assertion do
+      assert_enqueued_jobs 5, only: HelloJob do
+        HelloJob.perform_later('jeremy')
+        4.times { LoggingJob.perform_later }
+      end
+    end
+
+    assert_match(/5 .* but 1/, error.message)
+  end
+
+  def test_assert_enqueued_jobs_with_only_option_and_too_many_sent
+    error = assert_raise ActiveSupport::TestCase::Assertion do
+      assert_enqueued_jobs 1, only: HelloJob do
+        2.times { HelloJob.perform_later('jeremy') }
+      end
+    end
+
+    assert_match(/1 .* but 2/, error.message)
+  end
+
+  def test_assert_no_enqueued_jobs_with_only_option
+    assert_nothing_raised do
+      assert_no_enqueued_jobs only: HelloJob do
+        LoggingJob.perform_later
+      end
+    end
+  end
+
+  def test_assert_no_enqueued_jobs_with_only_option_failure
+    error = assert_raise ActiveSupport::TestCase::Assertion do
+      assert_no_enqueued_jobs only: HelloJob do
+        HelloJob.perform_later('jeremy')
+        LoggingJob.perform_later
+      end
+    end
+
+    assert_match(/0 .* but 1/, error.message)
+  end
+
   def test_assert_enqueued_job
     assert_enqueued_with(job: LoggingJob, queue: 'default') do
       LoggingJob.set(wait_until: Date.tomorrow.noon).perform_later
@@ -115,6 +175,25 @@ class EnqueuedJobsTest < ActiveJob::TestCase
         NestedJob.set(wait_until: Date.tomorrow.noon).perform_later
       end
     end
+  end
+
+  def test_assert_enqueued_job_with_global_id_args
+    ricardo = Person.new(9)
+    assert_enqueued_with(job: HelloJob, args: [ricardo]) do
+      HelloJob.perform_later(ricardo)
+    end
+  end
+
+  def test_assert_enqueued_job_failure_with_global_id_args
+    ricardo = Person.new(9)
+    wilma = Person.new(11)
+    error = assert_raise ActiveSupport::TestCase::Assertion do
+      assert_enqueued_with(job: HelloJob, args: [wilma]) do
+        HelloJob.perform_later(ricardo)
+      end
+    end
+
+    assert_equal "No enqueued job found with {:job=>HelloJob, :args=>[#{wilma.inspect}]}", error.message
   end
 end
 
@@ -222,5 +301,24 @@ class PerformedJobsTest < ActiveJob::TestCase
         NestedJob.set(queue: 'low', wait_until: Date.tomorrow.noon).perform_later
       end
     end
+  end
+
+  def test_assert_performed_job_with_global_id_args
+    ricardo = Person.new(9)
+    assert_performed_with(job: HelloJob, args: [ricardo]) do
+      HelloJob.perform_later(ricardo)
+    end
+  end
+
+  def test_assert_performed_job_failure_with_global_id_args
+    ricardo = Person.new(9)
+    wilma = Person.new(11)
+    error = assert_raise ActiveSupport::TestCase::Assertion do
+      assert_performed_with(job: HelloJob, args: [wilma]) do
+        HelloJob.perform_later(ricardo)
+      end
+    end
+
+    assert_equal "No performed job found with {:job=>HelloJob, :args=>[#{wilma.inspect}]}", error.message
   end
 end

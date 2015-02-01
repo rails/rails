@@ -1245,6 +1245,10 @@ module ActiveRecord
       #   that is the inverse of this <tt>has_many</tt> association. Does not work in combination
       #   with <tt>:through</tt> or <tt>:as</tt> options.
       #   See ActiveRecord::Associations::ClassMethods's overview on Bi-directional associations for more detail.
+      # [:extend]
+      #   Specifies a module or array of modules that will be extended into the association object returned.
+      #   Useful for defining methods on associations, especially when they should be shared between multiple
+      #   association objects.
       #
       # Option examples:
       #   has_many :comments, -> { order "posted_on" }

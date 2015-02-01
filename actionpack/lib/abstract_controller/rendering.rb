@@ -17,8 +17,8 @@ module AbstractController
     extend ActiveSupport::Concern
     include ActionView::ViewPaths
 
-    # Normalize arguments, options and then delegates render_to_body and
-    # sticks the result in self.response_body.
+    # Normalizes arguments, options and then delegates render_to_body and
+    # sticks the result in <tt>self.response_body</tt>.
     # :api: public
     def render(*args, &block)
       options = _normalize_render(*args, &block)
@@ -30,11 +30,11 @@ module AbstractController
     # Raw rendering of a template to a string.
     #
     # It is similar to render, except that it does not
-    # set the response_body and it should be guaranteed
+    # set the +response_body+ and it should be guaranteed
     # to always return a string.
     #
-    # If a component extends the semantics of response_body
-    # (as Action Controller extends it to be anything that
+    # If a component extends the semantics of +response_body+
+    # (as ActionController extends it to be anything that
     # responds to the method each), this method needs to be
     # overridden in order to still return a string.
     # :api: plugin
@@ -73,8 +73,9 @@ module AbstractController
       }
     end
 
-    # Normalize args by converting render "foo" to render :action => "foo" and
-    # render "foo/bar" to render :file => "foo/bar".
+    # Normalize args by converting <tt>render "foo"</tt> to
+    # <tt>render :action => "foo"</tt> and <tt>render "foo/bar"</tt> to
+    # <tt>render :file => "foo/bar"</tt>.
     # :api: plugin
     def _normalize_args(action=nil, options={})
       if action.is_a? Hash

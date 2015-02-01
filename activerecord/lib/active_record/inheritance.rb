@@ -79,16 +79,6 @@ module ActiveRecord
         :true == (@finder_needs_type_condition ||= descends_from_active_record? ? :false : :true)
       end
 
-      def symbolized_base_class
-        ActiveSupport::Deprecation.warn('`ActiveRecord::Base.symbolized_base_class` is deprecated and will be removed without replacement.')
-        @symbolized_base_class ||= base_class.to_s.to_sym
-      end
-
-      def symbolized_sti_name
-        ActiveSupport::Deprecation.warn('`ActiveRecord::Base.symbolized_sti_name` is deprecated and will be removed without replacement.')
-        @symbolized_sti_name ||= sti_name.present? ? sti_name.to_sym : symbolized_base_class
-      end
-
       # Returns the class descending directly from ActiveRecord::Base, or
       # an abstract class, if any, in the inheritance hierarchy.
       #
@@ -202,7 +192,7 @@ module ActiveRecord
       # If this is a StrongParameters hash, and access to inheritance_column is not permitted,
       # this will ignore the inheritance column and return nil
       def subclass_from_attributes?(attrs)
-        columns_hash.include?(inheritance_column) && attrs.is_a?(Hash)
+        attribute_names.include?(inheritance_column) && attrs.is_a?(Hash)
       end
 
       def subclass_from_attributes(attrs)

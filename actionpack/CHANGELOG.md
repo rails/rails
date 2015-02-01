@@ -1,3 +1,118 @@
+*   Migrating to keyword arguments syntax in `ActionController::TestCase` and
+    `ActionDispatch::Integration` HTTP request methods.
+
+    Example:
+
+        post :create, params: { y: x }, session: { a: 'b' }
+        get :view, params: { id: 1 }
+        get :view, params: { id: 1 }, format: :json
+
+    *Kir Shatrov*
+
+*   Preserve default url options when generating URLs.
+
+    Fixes an issue that would cause default_url_options to be lost when
+    generating URLs with fewer positional arguments than parameters in the
+    route definition.
+
+    *Tekin Suleyman*
+
+*   Deprecate *_via_redirect integration test methods.
+
+    Use `follow_redirect!` manually after the request call for the same behavior.
+
+    *Aditya Kapoor*
+
+*   Add `ActionController::Renderer` to render arbitrary templates
+    outside controller actions.
+
+    Its functionality is accessible through class methods `render` and
+    `renderer` of `ActionController::Base`.
+
+    *Ravil Bayramgalin*
+
+*   Support `:assigns` option when rendering with controllers/mailers.
+
+    *Ravil Bayramgalin*
+
+*   Default headers, removed in controller actions, are no longer reapplied on
+    the test response.
+
+    *Jonas Baumann*
+
+*   Deprecate all *_filter callbacks in favor of *_action callbacks.
+
+    *Rafael Mendonça França*
+
+*   Allow you to pass `prepend: false` to protect_from_forgery to have the
+    verification callback appended instead of prepended to the chain.
+    This allows you to let the verification step depend on prior callbacks.
+
+    Example:
+
+        class ApplicationController < ActionController::Base
+          before_action :authenticate
+          protect_from_forgery prepend: false, unless: -> { @authenticated_by.oauth? }
+
+          private
+            def authenticate
+              if oauth_request?
+                # authenticate with oauth
+                @authenticated_by = 'oauth'.inquiry
+              else
+                # authenticate with cookies
+                @authenticated_by = 'cookie'.inquiry
+              end
+            end
+        end
+
+    *Josef Šimánek*
+
+*   Remove `ActionController::HideActions`.
+
+    *Ravil Bayramgalin*
+
+*   Remove `respond_to`/`respond_with` placeholder methods, this functionality
+    has been extracted to the `responders` gem.
+
+    *Carlos Antonio da Silva*
+
+*   Remove deprecated assertion files.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated usage of string keys in URL helpers.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `only_path` option on `*_path` helpers.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `NamedRouteCollection#helpers`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated support to define routes with `:to` option that doesn't contain `#`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `ActionDispatch::Response#to_ary`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `ActionDispatch::Request#deep_munge`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `ActionDispatch::Http::Parameters#symbolized_path_parameters`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated option `use_route` in controller tests.
+
+    *Rafael Mendonça França*
+
 *   Ensure `append_info_to_payload` is called even if an exception is raised.
 
     Fixes an issue where when an exception is raised in the request the additonal
@@ -29,7 +144,7 @@
 
     *Travis Grathwell*
 
-*   Stop converting empty arrays in `params` to `nil`
+*   Stop converting empty arrays in `params` to `nil`.
 
     This behaviour was introduced in response to CVE-2012-2660, CVE-2012-2694
     and CVE-2013-0155

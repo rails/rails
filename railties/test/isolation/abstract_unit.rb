@@ -69,7 +69,8 @@ module TestHelpers
 
     def assert_welcome(resp)
       assert_equal 200, resp[0]
-      assert resp[1]["Content-Type"] = "text/html"
+      assert_match 'text/html', resp[1]["Content-Type"]
+      assert_match 'charset=utf-8', resp[1]["Content-Type"]
       assert extract_body(resp).match(/Welcome aboard/)
     end
 
@@ -337,6 +338,16 @@ class ActiveSupport::TestCase
         yield
       end
     end
+  end
+
+  def silence_stream(stream)
+    old_stream = stream.dup
+    stream.reopen(IO::NULL)
+    stream.sync = true
+    yield
+  ensure
+    stream.reopen(old_stream)
+    old_stream.close
   end
 end
 

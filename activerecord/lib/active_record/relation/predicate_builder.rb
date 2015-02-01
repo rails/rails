@@ -28,6 +28,11 @@ module ActiveRecord
       expand_from_hash(attributes)
     end
 
+    def create_binds(attributes)
+      attributes = convert_dot_notation_to_hash(attributes.stringify_keys)
+      create_binds_for_hash(attributes)
+    end
+
     def expand(column, value)
       # Find the foreign key when using queries such as:
       # Post.where(author: author)
@@ -80,15 +85,42 @@ module ActiveRecord
 
       attributes.flat_map do |key, value|
         if value.is_a?(Hash)
-          builder = self.class.new(table.associated_table(key))
-          builder.expand_from_hash(value)
+          associated_predicate_builder(key).expand_from_hash(value)
         else
           expand(key, value)
         end
       end
     end
 
+
+    def create_binds_for_hash(attributes)
+      result = attributes.dup
+      binds = []
+
+      attributes.each do |column_name, value|
+        case value
+        when Hash
+          attrs, bvs = associated_predicate_builder(column_name).create_binds_for_hash(value)
+          result[column_name] = attrs
+          binds += bvs
+        when Relation
+          binds += value.bound_attributes
+        else
+          if can_be_bound?(column_name, value)
+            result[column_name] = Arel::Nodes::BindParam.new
+            binds << Relation::QueryAttribute.new(column_name.to_s, value, table.type(column_name))
+          end
+        end
+      end
+
+      [result, binds]
+    end
+
     private
+
+    def associated_predicate_builder(association_name)
+      self.class.new(table.associated_table(association_name))
+    end
 
     def convert_dot_notation_to_hash(attributes)
       dot_notation = attributes.keys.select { |s| s.include?(".") }
@@ -106,6 +138,12 @@ module ActiveRecord
 
     def handler_for(object)
       @handlers.detect { |klass, _| klass === object }.last
+    end
+
+    def can_be_bound?(column_name, value)
+      !value.nil? &&
+        handler_for(value).is_a?(BasicObjectHandler) &&
+        !table.associated_with?(column_name)
     end
   end
 end

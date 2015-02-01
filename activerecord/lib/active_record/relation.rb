@@ -1,18 +1,19 @@
 # -*- coding: utf-8 -*-
-require 'arel/collectors/bind'
+require "arel/collectors/bind"
 
 module ActiveRecord
   # = Active Record Relation
   class Relation
     MULTI_VALUE_METHODS  = [:includes, :eager_load, :preload, :select, :group,
-                            :order, :joins, :where, :having, :bind, :references,
+                            :order, :joins, :references,
                             :extending, :unscope]
 
-    SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :from, :reordering,
+    SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :reordering,
                             :reverse_order, :distinct, :create_with, :uniq]
+    CLAUSE_METHODS = [:where, :having, :from]
     INVALID_METHODS_FOR_DELETE_ALL = [:limit, :distinct, :offset, :group, :having]
 
-    VALUE_METHODS = MULTI_VALUE_METHODS + SINGLE_VALUE_METHODS
+    VALUE_METHODS = MULTI_VALUE_METHODS + SINGLE_VALUE_METHODS + CLAUSE_METHODS
 
     include FinderMethods, Calculations, SpawnMethods, QueryMethods, Batches, Explain, Delegation
 
@@ -33,7 +34,6 @@ module ActiveRecord
       # This method is a hot spot, so for now, use Hash[] to dup the hash.
       #   https://bugs.ruby-lang.org/issues/7166
       @values        = Hash[@values]
-      @values[:bind] = @values[:bind].dup if @values.key? :bind
       reset
     end
 
@@ -81,7 +81,7 @@ module ActiveRecord
       end
 
       relation = scope.where(@klass.primary_key => (id_was || id))
-      bvs = binds + relation.bind_values
+      bvs = binds + relation.bound_attributes
       um = relation
         .arel
         .compile_update(substitutes, @klass.primary_key)
@@ -95,11 +95,11 @@ module ActiveRecord
 
     def substitute_values(values) # :nodoc:
       binds = values.map do |arel_attr, value|
-        [@klass.columns_hash[arel_attr.name], value]
+        QueryAttribute.new(arel_attr.name, value, klass.type_for_attribute(arel_attr.name))
       end
 
-      substitutes = values.each_with_index.map do |(arel_attr, _), i|
-        [arel_attr, @klass.connection.substitute_at(binds[i][0])]
+      substitutes = values.map do |(arel_attr, _)|
+        [arel_attr, connection.substitute_at(klass.columns_hash[arel_attr.name])]
       end
 
       [substitutes, binds]
@@ -342,8 +342,7 @@ module ActiveRecord
         stmt.wheres = arel.constraints
       end
 
-      bvs = arel.bind_values + bind_values
-      @klass.connection.update stmt, 'SQL', bvs
+      @klass.connection.update stmt, 'SQL', bound_attributes
     end
 
     # Updates an object (or multiple objects) and saves it to the database, if validations pass.
@@ -467,8 +466,10 @@ module ActiveRecord
       invalid_methods = INVALID_METHODS_FOR_DELETE_ALL.select { |method|
         if MULTI_VALUE_METHODS.include?(method)
           send("#{method}_values").any?
-        else
+        elsif SINGLE_VALUE_METHODS.include?(method)
           send("#{method}_value")
+        elsif CLAUSE_METHODS.include?(method)
+          send("#{method}_clause").any?
         end
       }
       if invalid_methods.any?
@@ -487,7 +488,7 @@ module ActiveRecord
           stmt.wheres = arel.constraints
         end
 
-        affected = @klass.connection.delete(stmt, 'SQL', bind_values)
+        affected = @klass.connection.delete(stmt, 'SQL', bound_attributes)
 
         reset
         affected
@@ -557,10 +558,10 @@ module ActiveRecord
                       find_with_associations { |rel| relation = rel }
                     end
 
-                    arel  = relation.arel
-                    binds = (arel.bind_values + relation.bind_values).dup
-                    binds.map! { |bv| connection.quote(*bv.reverse) }
-                    collect = visitor.accept(arel.ast, Arel::Collectors::Bind.new)
+                    binds = relation.bound_attributes
+                    binds = connection.prepare_binds_for_database(binds)
+                    binds.map! { |value| connection.quote(value) }
+                    collect = visitor.accept(relation.arel.ast, Arel::Collectors::Bind.new)
                     collect.substitute_binds(binds).join
                   end
     end
@@ -570,22 +571,7 @@ module ActiveRecord
     #   User.where(name: 'Oscar').where_values_hash
     #   # => {name: "Oscar"}
     def where_values_hash(relation_table_name = table_name)
-      equalities = where_values.grep(Arel::Nodes::Equality).find_all { |node|
-        node.left.relation.name == relation_table_name
-      }
-
-      binds = Hash[bind_values.find_all(&:first).map { |column, v| [column.name, v] }]
-
-      Hash[equalities.map { |where|
-        name = where.left.name
-        [name, binds.fetch(name.to_s) {
-          case where.right
-          when Array then where.right.map(&:val)
-          when Arel::Nodes::Casted, Arel::Nodes::Quoted
-            where.right.val
-          end
-        }]
-      }]
+      where_clause.to_h(relation_table_name)
     end
 
     def scope_for_create
@@ -648,7 +634,7 @@ module ActiveRecord
     private
 
     def exec_queries
-      @records = eager_loading? ? find_with_associations : @klass.find_by_sql(arel, arel.bind_values + bind_values)
+      @records = eager_loading? ? find_with_associations : @klass.find_by_sql(arel, bound_attributes)
 
       preload = preload_values
       preload +=  includes_values unless eager_loading?

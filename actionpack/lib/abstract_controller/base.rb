@@ -12,7 +12,7 @@ module AbstractController
   class ActionNotFound < StandardError
   end
 
-  # <tt>AbstractController::Base</tt> is a low-level API. Nobody should be
+  # AbstractController::Base is a low-level API. Nobody should be
   # using it directly, and subclasses (like ActionController::Base) are
   # expected to provide their own +render+ method, since rendering means
   # different things depending on the context.
@@ -57,21 +57,11 @@ module AbstractController
         controller.public_instance_methods(true)
       end
 
-      # The list of hidden actions. Defaults to an empty array.
-      # This can be modified by other modules or subclasses
-      # to specify particular actions as hidden.
-      #
-      # ==== Returns
-      # * <tt>Array</tt> - An array of method names that should not be considered actions.
-      def hidden_actions
-        []
-      end
-
       # A list of method names that should be considered actions. This
       # includes all public instance methods on a controller, less
-      # any internal methods (see #internal_methods), adding back in
+      # any internal methods (see internal_methods), adding back in
       # any methods that are internal, but still exist on the class
-      # itself. Finally, #hidden_actions are removed.
+      # itself.
       #
       # ==== Returns
       # * <tt>Set</tt> - A set of all methods that should be considered actions.
@@ -82,25 +72,26 @@ module AbstractController
             # Except for public instance methods of Base and its ancestors
             internal_methods +
             # Be sure to include shadowed public instance methods of this class
-            public_instance_methods(false)).uniq.map(&:to_s) -
-            # And always exclude explicitly hidden actions
-            hidden_actions.to_a
+            public_instance_methods(false)).uniq.map(&:to_s)
 
-          # Clear out AS callback method pollution
-          Set.new(methods.reject { |method| method =~ /_one_time_conditions/ })
+          methods.to_set
         end
       end
 
       # action_methods are cached and there is sometimes need to refresh
-      # them. clear_action_methods! allows you to do that, so next time
+      # them. ::clear_action_methods! allows you to do that, so next time
       # you run action_methods, they will be recalculated
       def clear_action_methods!
         @action_methods = nil
       end
 
       # Returns the full controller name, underscored, without the ending Controller.
-      # For instance, MyApp::MyPostsController would return "my_app/my_posts" for
-      # controller_path.
+      #
+      #   class MyApp::MyPostsController < AbstractController::Base
+      #     end
+      #   end
+      #
+      #   MyApp::MyPostsController.controller_path # => "my_app/my_posts"
       #
       # ==== Returns
       # * <tt>String</tt>
@@ -137,12 +128,12 @@ module AbstractController
       process_action(action_name, *args)
     end
 
-    # Delegates to the class' #controller_path
+    # Delegates to the class' ::controller_path
     def controller_path
       self.class.controller_path
     end
 
-    # Delegates to the class' #action_methods
+    # Delegates to the class' ::action_methods
     def action_methods
       self.class.action_methods
     end

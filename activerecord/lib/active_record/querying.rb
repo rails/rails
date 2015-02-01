@@ -7,7 +7,7 @@ module ActiveRecord
     delegate :find_by, :find_by!, to: :all
     delegate :destroy, :destroy_all, :delete, :delete_all, :update, :update_all, to: :all
     delegate :find_each, :find_in_batches, to: :all
-    delegate :select, :group, :order, :except, :reorder, :limit, :offset, :joins,
+    delegate :select, :group, :order, :except, :reorder, :limit, :offset, :joins, :or,
              :where, :rewhere, :preload, :eager_load, :includes, :from, :lock, :readonly,
              :having, :create_with, :uniq, :distinct, :references, :none, :unscope, to: :all
     delegate :count, :average, :minimum, :maximum, :sum, :calculate, to: :all
@@ -55,11 +55,12 @@ module ActiveRecord
     # The use of this method should be restricted to complicated SQL queries that can't be executed
     # using the ActiveRecord::Calculations class methods. Look into those before using this.
     #
+    #   Product.count_by_sql "SELECT COUNT(*) FROM sales s, customers c WHERE s.customer_id = c.id"
+    #   # => 12
+    #
     # ==== Parameters
     #
-    # * +sql+ - An SQL statement which should return a count query from the database, see the example below.
-    #
-    #   Product.count_by_sql "SELECT COUNT(*) FROM sales s, customers c WHERE s.customer_id = c.id"
+    # * +sql+ - An SQL statement which should return a count query from the database, see the example above.
     def count_by_sql(sql)
       sql = sanitize_conditions(sql)
       connection.select_value(sql, "#{name} Count").to_i

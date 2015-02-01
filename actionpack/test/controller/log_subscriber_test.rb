@@ -140,7 +140,7 @@ class ACLogSubscriberTest < ActionController::TestCase
   end
 
   def test_process_action_with_parameters
-    get :show, :id => '10'
+    get :show, params: { id: '10' }
     wait
 
     assert_equal 3, logs.size
@@ -148,8 +148,8 @@ class ACLogSubscriberTest < ActionController::TestCase
   end
 
   def test_multiple_process_with_parameters
-    get :show, :id => '10'
-    get :show, :id => '20'
+    get :show, params: { id: '10' }
+    get :show, params: { id: '20' }
 
     wait
 
@@ -160,7 +160,7 @@ class ACLogSubscriberTest < ActionController::TestCase
 
   def test_process_action_with_wrapped_parameters
     @request.env['CONTENT_TYPE'] = 'application/json'
-    post :show, :id => '10', :name => 'jose'
+    post :show, params: { id: '10', name: 'jose' }
     wait
 
     assert_equal 3, logs.size
@@ -186,7 +186,9 @@ class ACLogSubscriberTest < ActionController::TestCase
   def test_process_action_with_filter_parameters
     @request.env["action_dispatch.parameter_filter"] = [:lifo, :amount]
 
-    get :show, :lifo => 'Pratik', :amount => '420', :step => '1'
+    get :show, params: {
+      lifo: 'Pratik', amount: '420', step: '1'
+    }
     wait
 
     params = logs[1]

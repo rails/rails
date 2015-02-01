@@ -225,6 +225,30 @@ class FilterTest < ActionController::TestCase
     skip_before_action :clean_up_tmp, if: -> { true }
   end
 
+  class SkipFilterUsingOnlyAndIf < ConditionalFilterController
+    before_action :clean_up_tmp
+    before_action :ensure_login
+
+    skip_before_action :ensure_login, only: :login, if: -> { false }
+    skip_before_action :clean_up_tmp, only: :login, if: -> { true }
+
+    def login
+      render text: 'ok'
+    end
+  end
+
+  class SkipFilterUsingIfAndExcept < ConditionalFilterController
+    before_action :clean_up_tmp
+    before_action :ensure_login
+
+    skip_before_action :ensure_login, if: -> { false }, except: :login
+    skip_before_action :clean_up_tmp, if: -> { true }, except: :login
+
+    def login
+      render text: 'ok'
+    end
+  end
+
   class ClassController < ConditionalFilterController
     before_action ConditionalClassFilter
   end
@@ -594,6 +618,16 @@ class FilterTest < ActionController::TestCase
   def test_running_conditional_skip_options
     test_process(ConditionalOptionsSkipFilter)
     assert_equal %w( ensure_login ), assigns["ran_filter"]
+  end
+
+  def test_if_is_ignored_when_used_with_only
+    test_process(SkipFilterUsingOnlyAndIf, 'login')
+    assert_nil assigns['ran_filter']
+  end
+
+  def test_except_is_ignored_when_used_with_if
+    test_process(SkipFilterUsingIfAndExcept, 'login')
+    assert_equal %w(ensure_login), assigns["ran_filter"]
   end
 
   def test_skipping_class_actions

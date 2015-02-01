@@ -141,7 +141,7 @@ class AssociationsTest < ActiveRecord::TestCase
 
   def test_association_with_references
     firm = companies(:first_firm)
-    assert_equal ['foo'], firm.association_with_references.references_values
+    assert_includes firm.association_with_references.references_values, 'foo'
   end
 
 end
@@ -238,7 +238,7 @@ class AssociationProxyTest < ActiveRecord::TestCase
   end
 
   def test_scoped_allows_conditions
-    assert developers(:david).projects.merge!(where: 'foo').where_values.include?('foo')
+    assert developers(:david).projects.merge(where: 'foo').to_sql.include?('foo')
   end
 
   test "getting a scope from an association" do

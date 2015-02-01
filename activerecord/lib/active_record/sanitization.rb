@@ -3,14 +3,11 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     module ClassMethods
-      def quote_value(value, column) #:nodoc:
-        connection.quote(value, column)
-      end
-
       # Used to sanitize objects before they're used in an SQL SELECT statement. Delegates to <tt>connection.quote</tt>.
       def sanitize(object) #:nodoc:
         connection.quote(object)
       end
+      alias_method :quote_value, :sanitize
 
       protected
 
@@ -71,35 +68,6 @@ module ActiveRecord
         end
         expanded_attrs
       end
-
-      # Sanitizes a hash of attribute/value pairs into SQL conditions for a WHERE clause.
-      #   { name: "foo'bar", group_id: 4 }
-      #     # => "name='foo''bar' and group_id= 4"
-      #   { status: nil, group_id: [1,2,3] }
-      #     # => "status IS NULL and group_id IN (1,2,3)"
-      #   { age: 13..18 }
-      #     # => "age BETWEEN 13 AND 18"
-      #   { 'other_records.id' => 7 }
-      #     # => "`other_records`.`id` = 7"
-      #   { other_records: { id: 7 } }
-      #     # => "`other_records`.`id` = 7"
-      # And for value objects on a composed_of relationship:
-      #   { address: Address.new("123 abc st.", "chicago") }
-      #     # => "address_street='123 abc st.' and address_city='chicago'"
-      def sanitize_sql_hash_for_conditions(attrs, default_table_name = self.table_name)
-        table = Arel::Table.new(table_name).alias(default_table_name)
-        predicate_builder = PredicateBuilder.new(TableMetadata.new(self, table))
-        ActiveSupport::Deprecation.warn(<<-EOWARN)
-sanitize_sql_hash_for_conditions is deprecated, and will be removed in Rails 5.0
-        EOWARN
-        attrs = predicate_builder.resolve_column_aliases(attrs)
-        attrs = expand_hash_conditions_for_aggregates(attrs)
-
-        predicate_builder.build_from_hash(attrs).map { |b|
-          connection.visitor.compile b
-        }.join(' AND ')
-      end
-      alias_method :sanitize_sql_hash, :sanitize_sql_hash_for_conditions
 
       # Sanitizes a hash of attribute/value pairs into SQL conditions for a SET clause.
       #   { status: nil, group_id: 1 }
@@ -185,7 +153,7 @@ sanitize_sql_hash_for_conditions is deprecated, and will be removed in Rails 5.0
 
     # TODO: Deprecate this
     def quoted_id
-      self.class.quote_value(id, column_for_attribute(self.class.primary_key))
+      self.class.quote_value(@attributes[self.class.primary_key].value_for_database)
     end
   end
 end

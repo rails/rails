@@ -2,6 +2,223 @@
 
     *Sammy Larbi*
 
+*   Fixed ActiveRecord::Relation#group method when argument is SQL reserved key word:
+
+    Example:
+
+        SplitTest.group(:key).count
+        Property.group(:value).count
+
+    *Bogdan Gusiev*
+
+*   Added the `#or` method on ActiveRecord::Relation, allowing use of the OR
+    operator to combine WHERE or HAVING clauses.
+
+    Example:
+
+        Post.where('id = 1').or(Post.where('id = 2'))
+        # => SELECT * FROM posts WHERE (id = 1) OR (id = 2)
+
+    *Sean Griffin*, *Matthew Draper*, *Gael Muller*, *Olivier El Mekki*
+
+*   Don't define autosave association callbacks twice from
+    `accepts_nested_attributes_for`.
+
+    Fixes #18704.
+
+    *Sean Griffin*
+
+*   Integer types will no longer raise a `RangeError` when assigning an
+    attribute, but will instead raise when going to the database.
+
+    Fixes several vague issues which were never reported directly. See the
+    commit message from the commit which added this line for some examples.
+
+    *Sean Griffin*
+
+*   Values which would error while being sent to the database (such as an
+    ASCII-8BIT string with invalid UTF-8 bytes on Sqlite3), no longer error on
+    assignment. They will still error when sent to the database, but you are
+    given the ability to re-assign it to a valid value.
+
+    Fixes #18580.
+
+    *Sean Griffin*
+
+*   Don't remove join dependencies in `Relation#exists?`
+
+    Fixes #18632.
+
+    *Sean Griffin*
+
+*   Invalid values assigned to a JSON column are assumed to be `nil`.
+
+    Fixes #18629.
+
+    *Sean Griffin*
+
+*   Add `ActiveRecord::Base#accessed_fields`, which can be used to quickly
+    discover which fields were read from a model when you are looking to only
+    select the data you need from the database.
+
+    *Sean Griffin*
+
+*   Introduce the `:if_exists` option for `drop_table`.
+
+    Example:
+
+        drop_table(:posts, if_exists: true)
+
+    That would execute:
+
+        DROP TABLE IF EXISTS posts
+
+    If the table doesn't exist, `if_exists: false` (the default) raises an
+    exception whereas `if_exists: true` does nothing.
+
+    *Cody Cutrer*, *Stefan Kanev*, *Ryuta Kamizono*
+
+*   Don't run SQL if attribute value is not changed for update_attribute method.
+
+    *Prathamesh Sonpatki*
+
+*   `time` columns can now get affected by `time_zone_aware_attributes`. If you have
+    set `config.time_zone` to a value other than `'UTC'`, they will be treated
+    as in that time zone by default in Rails 5.1. If this is not the desired
+    behavior, you can set
+
+        ActiveRecord::Base.time_zone_aware_types = [:datetime]
+
+    A deprecation warning will be emitted if you have a `:time` column, and have
+    not explicitly opted out.
+
+    Fixes #3145.
+
+    *Sean Griffin*
+
+*   Tests now run after_commit callbacks. You no longer have to declare
+    `uses_transaction ‘test name’` to test the results of an after_commit.
+
+    after_commit callbacks run after committing a transaction whose parent
+    is not `joinable?`: un-nested transactions, transactions within test cases,
+    and transactions in `console --sandbox`.
+
+    *arthurnn*, *Ravil Bayramgalin*, *Matthew Draper*
+
+*   `nil` as a value for a binary column in a query no longer logs as
+    "<NULL binary data>", and instead logs as just "nil".
+
+    *Sean Griffin*
+
+*   `attribute_will_change!` will no longer cause non-persistable attributes to
+    be sent to the database.
+
+    Fixes #18407.
+
+    *Sean Griffin*
+
+*   Remove support for the `protected_attributes` gem.
+
+    *Carlos Antonio da Silva*, *Roberto Miranda*
+
+*   Fix accessing of fixtures having non-string labels like Fixnum.
+
+    *Prathamesh Sonpatki*
+
+*   Remove deprecated support to preload instance-dependent associations.
+
+    *Yves Senn*
+
+*   Remove deprecated support for PostgreSQL ranges with exclusive lower bounds.
+
+    *Yves Senn*
+
+*   Remove deprecation when modifying a relation with cached arel.
+    This raises an `ImmutableRelation` error instead.
+
+    *Yves Senn*
+
+*   Added `ActiveRecord::SecureToken` in order to encapsulate generation of
+    unique tokens for attributes in a model using `SecureRandom`.
+
+    *Roberto Miranda*
+
+*   Change the behavior of boolean columns to be closer to Ruby's semantics.
+
+    Before this change we had a small set of "truthy", and all others are "falsy".
+
+    Now, we have a small set of "falsy" values and all others are "truthy" matching
+    Ruby's semantics.
+
+    *Rafael Mendonça França*
+
+*   Deprecate `ActiveRecord::Base.errors_in_transactional_callbacks=`.
+
+    *Rafael Mendonça França*
+
+*   Change transaction callbacks to not swallow errors.
+
+    Before this change any errors raised inside a transaction callback
+    were getting rescued and printed in the logs.
+
+    Now these errors are not rescued anymore and just bubble up, as the other callbacks.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `sanitize_sql_hash_for_conditions`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `Reflection#source_macro`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `symbolized_base_class` and `symbolized_sti_name`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `ActiveRecord::Base.disable_implicit_join_references=`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated access to connection specification using a string accessor.
+
+    Now all strings will be handled as a URL.
+
+    *Rafael Mendonça França*
+
+*   Change the default `null` value for `timestamps` to `false`.
+
+    *Rafael Mendonça França*
+
+*   Return an array of pools from `connection_pools`.
+
+    *Rafael Mendonça França*
+
+*   Return a null column from `column_for_attribute` when no column exists.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `serialized_attributes`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated automatic counter caches on `has_many :through`.
+
+    *Rafael Mendonça França*
+
+*   Change the way in which callback chains can be halted.
+
+    The preferred method to halt a callback chain from now on is to explicitly
+    `throw(:abort)`.
+    In the past, returning `false` in an ActiveRecord `before_` callback had the
+    side effect of halting the callback chain.
+    This is not recommended anymore and, depending on the value of the
+    `config.active_support.halt_callback_chains_on_return_false` option, will
+    either not work at all or display a deprecation warning.
+
+    *claudiob*
+
 *   Clear query cache on rollback.
 
     *Florian Weingarten*
@@ -180,7 +397,7 @@
 
     This option enables to define the column name of associated object's type for polymorphic associations.
 
-    *Ulisses Almeida, Kassio Borges*
+    *Ulisses Almeida*, *Kassio Borges*
 
 *   Remove deprecated behavior allowing nested arrays to be passed as query
     values.

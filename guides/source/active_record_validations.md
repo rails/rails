@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE IN GITHUB, GUIDES ARE PUBLISHED IN http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
 
 Active Record Validations
 =========================
@@ -227,8 +227,26 @@ end
 ```
 
 We'll cover validation errors in greater depth in the [Working with Validation
-Errors](#working-with-validation-errors) section. For now, let's turn to the
-built-in validation helpers that Rails provides by default.
+Errors](#working-with-validation-errors) section.
+
+### `errors.details`
+
+To check what validator type was used on invalid attribute, you can use
+`errors.details[:attribute]`. It returns array of hashes where under `:error`
+ key you will find symbol of used validator.
+
+```ruby
+class Person < ActiveRecord::Base
+  validates :name, presence: true
+end
+
+>> person = Person.new
+>> person.valid?
+>> person.errors.details[:name] #=> [{error: :blank}]
+```
+
+Using `details` with custom validators are covered in the [Working with
+Validation Errors](#working-with-validation-errors) section.
 
 Validation Helpers
 ------------------
@@ -452,7 +470,7 @@ point number. To specify that only integral numbers are allowed set
 If you set `:only_integer` to `true`, then it will use the
 
 ```ruby
-/\A[+-]?\d+\Z/
+/\A[+-]?\d+\z/
 ```
 
 regular expression to validate the attribute's value. Otherwise, it will try to
@@ -1073,6 +1091,42 @@ Another way to do this is using `[]=` setter
   person.errors.to_a
    # => ["Name cannot contain the characters !@#%*()_-+="]
 ```
+
+### `errors.details`
+
+You can add validator type to details hash when using `errors.add` method.
+
+```ruby
+  class Person < ActiveRecord::Base
+    def a_method_used_for_validation_purposes
+      errors.add(:name, :invalid_characters)
+    end
+  end
+
+  person = Person.create(name: "!@#")
+
+  person.errors.details[:name]
+   # => [{error: :invalid_characters}]
+```
+
+To improve error details to contain not allowed characters set, you can
+pass additional options to `errors.add` method.
+
+```ruby
+  class Person < ActiveRecord::Base
+    def a_method_used_for_validation_purposes
+      errors.add(:name, :invalid_characters, not_allowed: "!@#%*()_-+=")
+    end
+  end
+
+  person = Person.create(name: "!@#")
+
+  person.errors.details[:name]
+  # => [{error: :invalid_characters, not_allowed: "!@#%*()_-+="}]
+```
+
+All built in Rails validators populate details hash with corresponding
+validator types.
 
 ### `errors[:base]`
 

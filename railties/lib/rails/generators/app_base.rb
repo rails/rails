@@ -69,8 +69,8 @@ module Rails
         class_option :skip_turbolinks,    type: :boolean, default: false,
                                           desc: 'Skip turbolinks gem'
 
-        class_option :skip_test_unit,     type: :boolean, aliases: '-T', default: false,
-                                          desc: 'Skip Test::Unit files'
+        class_option :skip_test,          type: :boolean, aliases: '-T', default: false,
+                                          desc: 'Skip test files'
 
         class_option :rc,                 type: :string, default: false,
                                           desc: "Path to file containing extra configuration options for rails command"
@@ -168,7 +168,7 @@ module Rails
       end
 
       def include_all_railties?
-        options.values_at(:skip_active_record, :skip_action_mailer, :skip_test_unit, :skip_sprockets).none?
+        options.values_at(:skip_active_record, :skip_action_mailer, :skip_test, :skip_sprockets).none?
       end
 
       def comment_if(value)

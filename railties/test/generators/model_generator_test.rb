@@ -223,7 +223,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
 
   def test_migration_with_timestamps
     run_generator
-    assert_migration "db/migrate/create_accounts.rb", /t.timestamps null: false/
+    assert_migration "db/migrate/create_accounts.rb", /t.timestamps/
   end
 
   def test_migration_timestamps_are_skipped
@@ -436,6 +436,17 @@ class ModelGeneratorTest < Rails::Generators::TestCase
         assert_no_match(/foreign_key/, up)
       end
     end
+  end
+
+  def test_token_option_adds_has_secure_token
+    run_generator ["user", "token:token", "auth_token:token"]
+    expected_file = <<-FILE.strip_heredoc
+    class User < ActiveRecord::Base
+      has_secure_token
+      has_secure_token :auth_token
+    end
+    FILE
+    assert_file "app/models/user.rb", expected_file
   end
 
   private

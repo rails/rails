@@ -174,7 +174,7 @@ module ActionView
         #
         # * <tt>:published</tt>: Time first published. Defaults to the created_at attribute on the record if one such exists.
         # * <tt>:updated</tt>: Time of update. Defaults to the updated_at attribute on the record if one such exists.
-        # * <tt>:url</tt>: The URL for this entry. Defaults to the polymorphic_url for the record.
+        # * <tt>:url</tt>: The URL for this entry or false or nil for not having a link tag. Defaults to the polymorphic_url for the record.
         # * <tt>:id</tt>: The ID for this entry. Defaults to "tag:#{@view.request.host},#{@feed_options[:schema_date]}:#{record.class}/#{record.id}"
         # * <tt>:type</tt>: The TYPE for this entry. Defaults to "text/html".
         def entry(record, options = {})
@@ -191,7 +191,8 @@ module ActionView
 
             type = options.fetch(:type, 'text/html')
 
-            @xml.link(:rel => 'alternate', :type => type, :href => options[:url] || @view.polymorphic_url(record))
+            url = options.fetch(:url) { @view.polymorphic_url(record) }
+            @xml.link(:rel => 'alternate', :type => type, :href => url) if url
 
             yield AtomBuilder.new(@xml)
           end

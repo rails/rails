@@ -56,8 +56,13 @@ module ActiveRecord
           if column.type == :uuid && value =~ /\(\)/
             value
           else
-            quote(value, column)
+            value = type_cast_from_column(column, value)
+            quote(value)
           end
+        end
+
+        def lookup_cast_type_from_column(column) # :nodoc:
+          type_map.lookup(column.oid, column.fmod, column.sql_type)
         end
 
         private

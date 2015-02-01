@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE IN GITHUB, GUIDES ARE PUBLISHED IN http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
 
 A Guide to Testing Rails Applications
 =====================================
@@ -480,21 +480,28 @@ In the `test_should_get_index` test, Rails simulates a request on the action cal
 
 The `get` method kicks off the web request and populates the results into the response. It accepts 4 arguments:
 
-* The action of the controller you are requesting. This can be in the form of a string or a symbol.
-* An optional hash of request parameters to pass into the action (eg. query string parameters or article variables).
-* An optional hash of session variables to pass along with the request.
-* An optional hash of flash values.
+* The action of the controller you are requesting.
+  This can be in the form of a string or a symbol.
+
+* `params`: option with a hash of request parameters to pass into the action
+  (e.g. query string parameters or article variables).
+
+* `session`: option with a hash of session variables to pass along with the request.
+
+* `flash`: option with a hash of flash values.
+
+All the keyword arguments are optional.
 
 Example: Calling the `:show` action, passing an `id` of 12 as the `params` and setting a `user_id` of 5 in the session:
 
 ```ruby
-get(:show, {'id' => "12"}, {'user_id' => 5})
+get(:show, params: { 'id' => "12" }, session: { 'user_id' => 5 })
 ```
 
 Another example: Calling the `:view` action, passing an `id` of 12 as the `params`, this time with no session, but with a flash message.
 
 ```ruby
-get(:view, {'id' => '12'}, nil, {'message' => 'booya!'})
+get(:view, params: { 'id' => '12' }, flash: { 'message' => 'booya!' })
 ```
 
 NOTE: If you try running `test_should_create_article` test from `articles_controller_test.rb` it will fail on account of the newly added model level validation and rightly so.
@@ -504,7 +511,7 @@ Let us modify `test_should_create_article` test in `articles_controller_test.rb`
 ```ruby
 test "should create article" do
   assert_difference('Article.count') do
-    post :create, article: {title: 'Some title'}
+    post :create, params: { article: { title: 'Some title' } }
   end
 
   assert_redirected_to article_path(assigns(:article))
@@ -527,6 +534,19 @@ If you're familiar with the HTTP protocol, you'll know that `get` is a type of r
 All of request types have equivalent methods that you can use. In a typical C.R.U.D. application you'll be using `get`, `post`, `put` and `delete` more often.
 
 NOTE: Functional tests do not verify whether the specified request type is accepted by the action, we're more concerned with the result. Request tests exist for this use case to make your tests more purposeful.
+
+### Testing XHR (AJAX) requests
+
+`xhr` accepts method (listed in the section above), action name and parameters:
+
+```ruby
+test "ajax request responds with no layout" do
+  xhr :get, :show, params: { id: articles(:first).id }
+
+  assert_template :index
+  assert_template layout: nil
+end
+```
 
 ### The Four Hashes of the Apocalypse
 
@@ -625,7 +645,7 @@ Let's start by adding this assertion to our `test_should_create_article` test:
 ```ruby
 test "should create article" do
   assert_difference('Article.count') do
-    post :create, article: {title: 'Some title'}
+    post :create, params: { article: { title: 'Some title' } }
   end
 
   assert_redirected_to article_path(assigns(:article))
@@ -695,7 +715,7 @@ Let's write a test for the `:show` action:
 ```ruby
 test "should show article" do
   article = articles(:one)
-  get :show, id: article.id
+  get :show, params: { id: article.id }
   assert_response :success
 end
 ```
@@ -708,7 +728,7 @@ How about deleting an existing Article?
 test "should destroy article" do
   article = articles(:one)
   assert_difference('Article.count', -1) do
-    delete :destroy, id: article.id
+    delete :destroy, params: { id: article.id }
   end
 
   assert_redirected_to articles_path
@@ -720,7 +740,7 @@ We can also add a test for updating an existing Article.
 ```ruby
 test "should update article" do
   article = articles(:one)
-  patch :update, id: article.id, article: {title: "updated"}
+  patch :update, params: { id: article.id, article: { title: "updated" } }
   assert_redirected_to article_path(assigns(:article))
 end
 ```
@@ -740,34 +760,67 @@ class ArticlesControllerTest < ActionController::TestCase
 
   # called after every single test
   def teardown
-    # as we are re-initializing @article before every test
-    # setting it to nil here is not essential but I hope
-    # you understand how you can use the teardown method
-    @article = nil
+    # when controller is using cache it may be a good idea to reset it afterwards
+    Rails.cache.clear
   end
 
   test "should show article" do
     # Reuse the @article instance variable from setup
-    get :show, id: @article.id
+    get :show, params: { id: @article.id }
     assert_response :success
   end
 
   test "should destroy article" do
     assert_difference('Article.count', -1) do
-      delete :destroy, id: @article.id
+      delete :destroy, params: { id: @article.id }
     end
 
     assert_redirected_to articles_path
   end
 
   test "should update article" do
-    patch :update, id: @article.id, article: {title: "updated"}
+    patch :update, params: { id: @article.id, article: { title: "updated" } }
     assert_redirected_to article_path(assigns(:article))
   end
 end
 ```
 
 Similar to other callbacks in Rails, the `setup` and `teardown` methods can also be used by passing a block, lambda, or method name as a symbol to call.
+
+### Test helpers
+
+To avoid code duplication, you can add your own test helpers.
+Sign in helper can be a good example:
+
+```ruby
+test/test_helper.rb
+
+module SignInHelper
+  def sign_in(user)
+    session[:user_id] = user.id
+  end
+end
+
+class ActionController::TestCase
+  include SignInHelper
+end
+```
+
+```ruby
+require 'test_helper'
+
+class ProfileControllerTest < ActionController::TestCase
+
+  test "should show profile" do
+    # helper is now reusable from any controller test case
+    sign_in users(:david)
+
+    get :show
+    assert_response :success
+    assert_equal users(:david), assigns(:user)
+  end
+end
+```
 
 Testing Routes
 --------------
@@ -980,7 +1033,8 @@ test "can create an article" do
   assert_response :success
   assert_template "articles/new", partial: "articles/_form"
 
-  post "/articles", article: {title: "can create", body: "article successfully."}
+  post "/articles",
+    params: { article: { title: "can create", body: "article successfully." } }
   assert_response :redirect
   follow_redirect!
   assert_response :success
@@ -996,7 +1050,8 @@ We start by calling the `:new` action on our Articles controller. This response 
 After this we make a post request to the `:create` action of our Articles controller:
 
 ```ruby
-post "/articles", article: {title: "can create", body: "article successfully."}
+post "/articles",
+  params: { article: { title: "can create", body: "article successfully." } }
 assert_response :redirect
 follow_redirect!
 ```
@@ -1050,9 +1105,10 @@ require 'test_helper'
 class UserMailerTest < ActionMailer::TestCase
   test "invite" do
     # Send the email, then test that it got queued
-    email = UserMailer.create_invite('me@example.com',
-                                     'friend@example.com', Time.now).deliver_now
-    assert_not ActionMailer::Base.deliveries.empty?
+    assert_emails 1 do
+      email = UserMailer.create_invite('me@example.com',
+                                       'friend@example.com', Time.now).deliver_now
+    end
 
     # Test the body of the sent email contains what we expect it to
     assert_equal ['me@example.com'], email.from
@@ -1100,7 +1156,7 @@ require 'test_helper'
 class UserControllerTest < ActionController::TestCase
   test "invite friend" do
     assert_difference 'ActionMailer::Base.deliveries.size', +1 do
-      post :invite_friend, email: 'friend@example.com'
+      post :invite_friend, params: { email: 'friend@example.com' }
     end
     invite_email = ActionMailer::Base.deliveries.last
 
@@ -1154,7 +1210,7 @@ within a model:
 ```ruby
 require 'test_helper'
 
-class ProductTest < ActiveSupport::TestCase
+class ProductTest < ActiveJob::TestCase
   test 'billing job scheduling' do
     assert_enqueued_with(job: BillingJob) do
       product.charge(account)

@@ -6,7 +6,6 @@ require 'active_support/core_ext/object/to_query'
 require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/module/remove_method'
 require 'active_support/core_ext/array/extract_options'
-require 'active_support/core_ext/string/filters'
 require 'action_controller/metal/exceptions'
 require 'action_dispatch/http/request'
 require 'action_dispatch/routing/endpoint'
@@ -87,7 +86,7 @@ module ActionDispatch
       # named routes.
       class NamedRouteCollection #:nodoc:
         include Enumerable
-        attr_reader :routes, :url_helpers_module
+        attr_reader :routes, :url_helpers_module, :path_helpers_module
 
         def initialize
           @routes  = {}
@@ -100,14 +99,6 @@ module ActionDispatch
         def route_defined?(name)
           key = name.to_sym
           @path_helpers.include?(key) || @url_helpers.include?(key)
-        end
-
-        def helpers
-          ActiveSupport::Deprecation.warn(<<-MSG.squish)
-            `named_routes.helpers` is deprecated, please use `route_defined?(route_name)`
-            to see if a named route was defined.
-          MSG
-          @path_helpers + @url_helpers
         end
 
         def helper_names
@@ -138,7 +129,7 @@ module ActionDispatch
             @url_helpers_module.send  :undef_method, url_name
           end
           routes[key] = route
-          define_url_helper @path_helpers_module, route, path_name, route.defaults, name, LEGACY
+          define_url_helper @path_helpers_module, route, path_name, route.defaults, name, PATH
           define_url_helper @url_helpers_module,  route, url_name,  route.defaults, name, UNKNOWN
 
           @path_helpers << path_name
@@ -168,25 +159,6 @@ module ActionDispatch
 
         def length
           routes.length
-        end
-
-        def path_helpers_module(warn = false)
-          if warn
-            mod = @path_helpers_module
-            helpers = @path_helpers
-            Module.new do
-              include mod
-
-              helpers.each do |meth|
-                define_method(meth) do |*args, &block|
-                  ActiveSupport::Deprecation.warn("The method `#{meth}` cannot be used here as a full URL is required. Use `#{meth.to_s.sub(/_path$/, '_url')}` instead")
-                  super(*args, &block)
-                end
-              end
-            end
-          else
-            @path_helpers_module
-          end
         end
 
         class UrlHelper # :nodoc:
@@ -271,7 +243,7 @@ module ActionDispatch
             controller_options = t.url_options
             options = controller_options.merge @options
             hash = handle_positional_args(controller_options,
-                                          deprecate_string_options(inner_options) || {},
+                                          inner_options || {},
                                           args,
                                           options,
                                           @segment_keys)
@@ -292,28 +264,13 @@ module ActionDispatch
                 path_params -= controller_options.keys
                 path_params -= result.keys
               end
-              path_params.each { |param|
-                result[param] = inner_options.fetch(param) { args.shift }
-              }
+              path_params -= inner_options.keys
+              path_params.take(args.size).each do |param|
+                result[param] = args.shift
+              end
             end
 
             result.merge!(inner_options)
-          end
-
-          DEPRECATED_STRING_OPTIONS = %w[controller action]
-
-          def deprecate_string_options(options)
-            options ||= {}
-            deprecated_string_options = options.keys & DEPRECATED_STRING_OPTIONS
-            if deprecated_string_options.any?
-              msg = "Calling URL helpers with string keys #{deprecated_string_options.join(", ")} is deprecated. Use symbols instead."
-              ActiveSupport::Deprecation.warn(msg)
-              deprecated_string_options.each do |option|
-                value = options.delete(option)
-                options[option.to_sym] = value
-              end
-            end
-            options
           end
         end
 
@@ -346,34 +303,7 @@ module ActionDispatch
       # :stopdoc:
       # strategy for building urls to send to the client
       PATH    = ->(options) { ActionDispatch::Http::URL.path_for(options) }
-      FULL    = ->(options) { ActionDispatch::Http::URL.full_url_for(options) }
       UNKNOWN = ->(options) { ActionDispatch::Http::URL.url_for(options) }
-      LEGACY  = ->(options) {
-        if options.key?(:only_path)
-          if options[:only_path]
-            ActiveSupport::Deprecation.warn(<<-MSG.squish)
-              You are calling a `*_path` helper with the `only_path` option
-              explicitly set to `true`. This option will stop working on
-              path helpers in Rails 5. Simply remove the `only_path: true`
-              argument from your call as it is redundant when applied to a
-              path helper.
-            MSG
-
-            PATH.call(options)
-          else
-            ActiveSupport::Deprecation.warn(<<-MSG.squish)
-              You are calling a `*_path` helper with the `only_path` option
-              explicitly set to `false`. This option will stop working on
-              path helpers in Rails 5. Use the corresponding `*_url` helper
-              instead.
-            MSG
-
-            FULL.call(options)
-          end
-        else
-          PATH.call(options)
-        end
-      }
       # :startdoc:
 
       attr_accessor :formatter, :set, :named_routes, :default_scope, :router
@@ -490,7 +420,14 @@ module ActionDispatch
           # Rails.application.routes.url_helpers.url_for(args)
           @_routes = routes
           class << self
-            delegate :url_for, :optimize_routes_generation?, to: '@_routes'
+            def url_for(options)
+              @_routes.url_for(options)
+            end
+
+            def optimize_routes_generation?
+              @_routes.optimize_routes_generation?
+            end
+
             attr_reader :_routes
             def url_options; {}; end
           end
@@ -508,12 +445,10 @@ module ActionDispatch
 
           if supports_path
             path_helpers = routes.named_routes.path_helpers_module
-          else
-            path_helpers = routes.named_routes.path_helpers_module(true)
-          end
 
-          include path_helpers
-          extend path_helpers
+            include path_helpers
+            extend path_helpers
+          end
 
           # plus a singleton class method called _routes ...
           included do

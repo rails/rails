@@ -453,6 +453,10 @@ class TestController < ApplicationController
     render :text => "foo"
   end
 
+  def render_with_assigns_option
+    render inline: '<%= @hello %>', assigns: { hello: "world" }
+  end
+
   def yield_content_for
     render :action => "content_for", :layout => "yield"
   end
@@ -953,12 +957,12 @@ class RenderTest < ActionController::TestCase
   end
 
   def test_accessing_params_in_template
-    get :accessing_params_in_template, :name => "David"
+    get :accessing_params_in_template, params: { name: "David" }
     assert_equal "Hello: David", @response.body
   end
 
   def test_accessing_local_assigns_in_inline_template
-    get :accessing_local_assigns_in_inline_template, :local_name => "Local David"
+    get :accessing_local_assigns_in_inline_template, params: { local_name: "Local David" }
     assert_equal "Goodbye, Local David", @response.body
     assert_equal "text/html", @response.content_type
   end
@@ -1042,7 +1046,7 @@ class RenderTest < ActionController::TestCase
   end
 
   def test_accessing_params_in_template_with_layout
-    get :accessing_params_in_template_with_layout, :name => "David"
+    get :accessing_params_in_template_with_layout, params: { name: "David" }
     assert_equal "<html>Hello: David</html>", @response.body
   end
 
@@ -1100,6 +1104,11 @@ class RenderTest < ActionController::TestCase
   def test_render_text_with_assigns
     get :render_text_with_assigns
     assert_equal "world", assigns["hello"]
+  end
+
+  def test_render_text_with_assigns_option
+    get :render_with_assigns_option
+    assert_equal 'world', response.body
   end
 
   # :ported:

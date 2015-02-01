@@ -22,6 +22,14 @@ module ActiveRecord
       arel_table[column_name]
     end
 
+    def type(column_name)
+      if klass
+        klass.type_for_attribute(column_name.to_s)
+      else
+        Type::Value.new
+      end
+    end
+
     def associated_with?(association_name)
       klass && klass._reflect_on_association(association_name)
     end
@@ -34,7 +42,7 @@ module ActiveRecord
         association_klass = association.klass
         arel_table = association_klass.arel_table
       else
-        type_caster = TypeCaster::Connection.new(klass.connection, table_name)
+        type_caster = TypeCaster::Connection.new(klass, table_name)
         association_klass = nil
         arel_table = Arel::Table.new(table_name, type_caster: type_caster)
       end

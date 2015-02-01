@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE IN GITHUB, GUIDES ARE PUBLISHED IN http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
 
 Rails on Rack
 =============
@@ -63,7 +63,6 @@ Here's how it loads the middlewares:
 ```ruby
 def middleware
   middlewares = []
-  middlewares << [Rails::Rack::Debugger] if options[:debugger]
   middlewares << [::Rack::ContentLength]
   Hash.new(middlewares)
 end

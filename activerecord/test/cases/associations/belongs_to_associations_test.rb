@@ -122,14 +122,14 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     Firm.create("name" => "Apple")
     Client.create("name" => "Citibank", :firm_name => "Apple")
     citibank_result = Client.all.merge!(:where => {:name => "Citibank"}, :includes => :firm_with_primary_key).first
-    assert citibank_result.association_cache.key?(:firm_with_primary_key)
+    assert citibank_result.association(:firm_with_primary_key).loaded?
   end
 
   def test_eager_loading_with_primary_key_as_symbol
     Firm.create("name" => "Apple")
     Client.create("name" => "Citibank", :firm_name => "Apple")
     citibank_result = Client.all.merge!(:where => {:name => "Citibank"}, :includes => :firm_with_primary_key_symbols).first
-    assert citibank_result.association_cache.key?(:firm_with_primary_key_symbols)
+    assert citibank_result.association(:firm_with_primary_key_symbols).loaded?
   end
 
   def test_creating_the_belonging_object

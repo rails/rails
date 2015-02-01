@@ -667,16 +667,6 @@ class OutputSafetyTest < ActiveSupport::TestCase
     assert_equal other, "&lt;foo&gt;other"
   end
 
-  test "Deprecated #prepend! method is still present" do
-    other = "other".html_safe
-
-    assert_deprecated do
-      other.prepend! "<foo>"
-    end
-
-    assert_equal other, "&lt;foo&gt;other"
-  end
-
   test "Concatting safe onto unsafe yields unsafe" do
     @other_string = "other"
 

@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE IN GITHUB, GUIDES ARE PUBLISHED IN http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
 
 Getting Started with Rails
 ==========================
@@ -174,7 +174,7 @@ of the files and folders that Rails created by default:
 |Rakefile|This file locates and loads tasks that can be run from the command line. The task definitions are defined throughout the components of Rails. Rather than changing Rakefile, you should add your own tasks by adding files to the lib/tasks directory of your application.|
 |README.rdoc|This is a brief instruction manual for your application. You should edit this file to tell others what your application does, how to set it up, and so on.|
 |test/|Unit tests, fixtures, and other test apparatus. These are covered in [Testing Rails Applications](testing.html).|
-|tmp/|Temporary files (like cache, pid, and session files).|
+|tmp/|Temporary files (like cache and pid files).|
 |vendor/|A place for all third-party code. In a typical Rails application this includes vendored gems.|
 
 Hello, Rails!
@@ -192,6 +192,9 @@ following in the `blog` directory:
 ```bash
 $ bin/rails server
 ```
+
+TIP: If you are using Windows, you have to pass the scripts under the `bin`
+folder directly to the Ruby interpreter e.g. `ruby bin\rails server`.
 
 TIP: Compiling CoffeeScript and JavaScript asset compression requires you
 have a JavaScript runtime available on your system, in the absence
@@ -1271,8 +1274,8 @@ bottom of the template:
 ```html+erb
 ...
 
-<%= link_to 'Back', articles_path %> |
-<%= link_to 'Edit', edit_article_path(@article) %>
+<%= link_to 'Edit', edit_article_path(@article) %> |
+<%= link_to 'Back', articles_path %>
 ```
 
 And here's how our app looks so far:
@@ -1485,6 +1488,9 @@ Without this file, the confirmation dialog box wouldn't appear.
 
 ![Confirm Dialog](images/getting_started/confirm_dialog.png)
 
+TIP: Learn more about jQuery Unobtrusive Adapter (jQuery UJS) on
+[Working With Javascript in Rails](working_with_javascript_in_rails.html) guide.
+
 Congratulations, you can now create, show, list, update and destroy
 articles.
 
@@ -1681,8 +1687,8 @@ So first, we'll wire up the Article show template
   </p>
 <% end %>
 
-<%= link_to 'Back', articles_path %> |
-<%= link_to 'Edit', edit_article_path(@article) %>
+<%= link_to 'Edit', edit_article_path(@article) %> |
+<%= link_to 'Back', articles_path %>
 ```
 
 This adds a form on the `Article` show page that creates a new comment by
@@ -1762,8 +1768,8 @@ add that to the `app/views/articles/show.html.erb`.
   </p>
 <% end %>
 
-<%= link_to 'Edit Article', edit_article_path(@article) %> |
-<%= link_to 'Back to Articles', articles_path %>
+<%= link_to 'Edit', edit_article_path(@article) %> |
+<%= link_to 'Back', articles_path %>
 ```
 
 Now you can add articles and comments to your blog and have them show up in the
@@ -1828,8 +1834,8 @@ following:
   </p>
 <% end %>
 
-<%= link_to 'Edit Article', edit_article_path(@article) %> |
-<%= link_to 'Back to Articles', articles_path %>
+<%= link_to 'Edit', edit_article_path(@article) %> |
+<%= link_to 'Back', articles_path %>
 ```
 
 This will now render the partial in `app/views/comments/_comment.html.erb` once
@@ -1878,8 +1884,8 @@ Then you make the `app/views/articles/show.html.erb` look like the following:
 <h2>Add a comment:</h2>
 <%= render 'comments/form' %>
 
-<%= link_to 'Edit Article', edit_article_path(@article) %> |
-<%= link_to 'Back to Articles', articles_path %>
+<%= link_to 'Edit', edit_article_path(@article) %> |
+<%= link_to 'Back', articles_path %>
 ```
 
 The second render just defines the partial template we want to render,

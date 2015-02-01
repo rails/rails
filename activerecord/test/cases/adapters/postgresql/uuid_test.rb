@@ -49,9 +49,11 @@ class PostgresqlUUIDTest < ActiveRecord::TestCase
     column = UUIDType.columns_hash["guid"]
     assert_equal :uuid, column.type
     assert_equal "uuid", column.sql_type
-    assert_not column.number?
-    assert_not column.binary?
-    assert_not column.array
+    assert_not column.array?
+
+    type = UUIDType.type_for_attribute("guid")
+    assert_not type.number?
+    assert_not type.binary?
   end
 
   def test_treat_blank_uuid_as_nil
@@ -114,7 +116,7 @@ class PostgresqlUUIDTest < ActiveRecord::TestCase
 
   def test_schema_dump_with_shorthand
     output = dump_table_schema "uuid_data_type"
-    assert_match %r{t.uuid "guid"}, output
+    assert_match %r{t\.uuid "guid"}, output
   end
 
   def test_uniqueness_validation_ignores_uuid

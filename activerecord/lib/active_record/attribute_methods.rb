@@ -83,7 +83,7 @@ module ActiveRecord
         generated_attribute_methods.synchronize do
           return false if @attribute_methods_generated
           superclass.define_attribute_methods unless self == base_class
-          super(column_names)
+          super(attribute_names)
           @attribute_methods_generated = true
         end
         true
@@ -185,14 +185,15 @@ module ActiveRecord
       #   # => ["id", "created_at", "updated_at", "name", "age"]
       def attribute_names
         @attribute_names ||= if !abstract_class? && table_exists?
-            column_names
+            attribute_types.keys
           else
             []
           end
       end
 
       # Returns the column object for the named attribute.
-      # Returns nil if the named attribute does not exist.
+      # Returns a +ActiveRecord::ConnectionAdapters::NullColumn+ if the
+      # named attribute does not exist.
       #
       #   class Person < ActiveRecord::Base
       #   end
@@ -202,17 +203,12 @@ module ActiveRecord
       #   # => #<ActiveRecord::ConnectionAdapters::Column:0x007ff4ab083980 @name="name", @sql_type="varchar(255)", @null=true, ...>
       #
       #   person.column_for_attribute(:nothing)
-      #   # => nil
+      #   # => #<ActiveRecord::ConnectionAdapters::NullColumn:0xXXX @name=nil, @sql_type=nil, @cast_type=#<Type::Value>, ...>
       def column_for_attribute(name)
-        column = columns_hash[name.to_s]
-        if column.nil?
-          ActiveSupport::Deprecation.warn(<<-MSG.squish)
-            `#column_for_attribute` will return a null object for non-existent
-            columns in Rails 5. Use `#has_attribute?` if you need to check for
-            an attribute's existence.
-          MSG
+        name = name.to_s
+        columns_hash.fetch(name) do
+          ConnectionAdapters::NullColumn.new(name)
         end
-        column
       end
     end
 
@@ -371,6 +367,39 @@ module ActiveRecord
     #   person[:age] # => Fixnum
     def []=(attr_name, value)
       write_attribute(attr_name, value)
+    end
+
+    # Returns the name of all database fields which have been read from this
+    # model. This can be useful in development mode to determine which fields
+    # need to be selected. For performance critical pages, selecting only the
+    # required fields can be an easy performance win (assuming you aren't using
+    # all of the fields on the model).
+    #
+    # For example:
+    #
+    # class PostsController < ActionController::Base
+    #   after_action :print_accessed_fields, only: :index
+    #
+    #   def index
+    #     @posts = Post.all
+    #   end
+    #
+    #   private
+    #
+    #   def print_accessed_fields
+    #     p @posts.first.accessed_fields
+    #   end
+    # end
+    #
+    # Which allows you to quickly change your code to:
+    #
+    # class PostsController < ActionController::Base
+    #   def index
+    #     @posts = Post.select(:id, :title, :author_id, :updated_at)
+    #   end
+    # end
+    def accessed_fields
+      @attributes.accessed
     end
 
     protected

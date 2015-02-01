@@ -294,12 +294,12 @@ class InheritanceTest < ActiveRecord::TestCase
 
   def test_eager_load_belongs_to_something_inherited
     account = Account.all.merge!(:includes => :firm).find(1)
-    assert account.association_cache.key?(:firm), "nil proves eager load failed"
+    assert account.association(:firm).loaded?, "association was not eager loaded"
   end
 
   def test_alt_eager_loading
     cabbage = RedCabbage.all.merge!(:includes => :seller).find(4)
-    assert cabbage.association_cache.key?(:seller), "nil proves eager load failed"
+    assert cabbage.association(:seller).loaded?, "association was not eager loaded"
   end
 
   def test_eager_load_belongs_to_primary_key_quoting

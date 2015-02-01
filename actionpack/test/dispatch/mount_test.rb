@@ -64,7 +64,7 @@ class TestRoutingMount < ActionDispatch::IntegrationTest
   end
 
   def test_mounting_works_with_nested_script_name
-    get "/foo/sprockets/omg", {}, 'SCRIPT_NAME' => '/foo', 'PATH_INFO' => '/sprockets/omg'
+    get "/foo/sprockets/omg", headers: { 'SCRIPT_NAME' => '/foo', 'PATH_INFO' => '/sprockets/omg' }
     assert_equal "/foo/sprockets -- /omg", response.body
   end
 

@@ -1187,7 +1187,7 @@ class ResourcesTest < ActionController::TestCase
       @controller.singleton_class.send(:include, @routes.url_helpers)
       @request    = ActionController::TestRequest.new
       @response   = ActionController::TestResponse.new
-      get :index, options[:options]
+      get :index, params: options[:options]
       options[:options].delete :action
 
       path = "#{options[:as] || controller_name}"
@@ -1257,7 +1257,7 @@ class ResourcesTest < ActionController::TestCase
       @controller.singleton_class.send(:include, @routes.url_helpers)
       @request    = ActionController::TestRequest.new
       @response   = ActionController::TestResponse.new
-      get :show, options[:options]
+      get :show, params: options[:options]
       options[:options].delete :action
 
       full_path = "/#{options[:path_prefix]}#{options[:as] || singleton_name}"

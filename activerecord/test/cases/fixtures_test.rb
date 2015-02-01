@@ -672,7 +672,8 @@ class FasterFixturesTest < ActiveRecord::TestCase
 end
 
 class FoxyFixturesTest < ActiveRecord::TestCase
-  fixtures :parrots, :parrots_pirates, :pirates, :treasures, :mateys, :ships, :computers, :developers, :"admin/accounts", :"admin/users"
+  fixtures :parrots, :parrots_pirates, :pirates, :treasures, :mateys, :ships, :computers,
+           :developers, :"admin/accounts", :"admin/users", :live_parrots, :dead_parrots
 
   if ActiveRecord::Base.connection.adapter_name == 'PostgreSQL'
     require 'models/uuid_parent'
@@ -792,6 +793,10 @@ class FoxyFixturesTest < ActiveRecord::TestCase
     assert_equal("X marks the spot!", pirates(:mark).catchphrase)
   end
 
+  def test_supports_label_interpolation_for_fixnum_label
+    assert_equal("#1 pirate!", pirates(1).catchphrase)
+  end
+
   def test_supports_polymorphic_belongs_to
     assert_equal(pirates(:redbeard), treasures(:sapphire).looter)
     assert_equal(parrots(:louis), treasures(:ruby).looter)
@@ -806,6 +811,12 @@ class FoxyFixturesTest < ActiveRecord::TestCase
   def test_supports_sti
     assert_kind_of DeadParrot, parrots(:polly)
     assert_equal pirates(:blackbeard), parrots(:polly).killer
+  end
+
+  def test_supports_sti_with_respective_files
+    assert_kind_of LiveParrot, live_parrots(:dusty)
+    assert_kind_of DeadParrot, dead_parrots(:deadbird)
+    assert_equal pirates(:blackbeard), dead_parrots(:deadbird).killer
   end
 
   def test_namespaced_models
@@ -830,9 +841,9 @@ class CustomNameForFixtureOrModelTest < ActiveRecord::TestCase
   set_fixture_class :randomly_named_a9         =>
                         ClassNameThatDoesNotFollowCONVENTIONS,
                     :'admin/randomly_named_a9' =>
-                        Admin::ClassNameThatDoesNotFollowCONVENTIONS,
+                        Admin::ClassNameThatDoesNotFollowCONVENTIONS1,
                     'admin/randomly_named_b0'  =>
-                        Admin::ClassNameThatDoesNotFollowCONVENTIONS
+                        Admin::ClassNameThatDoesNotFollowCONVENTIONS2
 
   fixtures :randomly_named_a9, 'admin/randomly_named_a9',
            :'admin/randomly_named_b0'
@@ -843,15 +854,15 @@ class CustomNameForFixtureOrModelTest < ActiveRecord::TestCase
   end
 
   def test_named_accessor_for_randomly_named_namespaced_fixture_and_class
-    assert_kind_of Admin::ClassNameThatDoesNotFollowCONVENTIONS,
+    assert_kind_of Admin::ClassNameThatDoesNotFollowCONVENTIONS1,
                    admin_randomly_named_a9(:first_instance)
-    assert_kind_of Admin::ClassNameThatDoesNotFollowCONVENTIONS,
+    assert_kind_of Admin::ClassNameThatDoesNotFollowCONVENTIONS2,
                    admin_randomly_named_b0(:second_instance)
   end
 
   def test_table_name_is_defined_in_the_model
-    assert_equal 'randomly_named_table', ActiveRecord::FixtureSet::all_loaded_fixtures["admin/randomly_named_a9"].table_name
-    assert_equal 'randomly_named_table', Admin::ClassNameThatDoesNotFollowCONVENTIONS.table_name
+    assert_equal 'randomly_named_table2', ActiveRecord::FixtureSet::all_loaded_fixtures["admin/randomly_named_a9"].table_name
+    assert_equal 'randomly_named_table2', Admin::ClassNameThatDoesNotFollowCONVENTIONS1.table_name
   end
 end
 

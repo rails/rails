@@ -378,7 +378,9 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
   end
 
   def test_render_based_on_parameters
-    process :render_based_on_parameters, "GET", "name" => "David"
+    process :render_based_on_parameters,
+      method: "GET",
+      params: { name: "David" }
     assert_equal "Mr. David", @response.body
   end
 

@@ -1,5 +1,3 @@
-require 'active_support/core_ext/module/method_transplanting'
-
 module ActiveRecord
   module AttributeMethods
     module Read
@@ -36,42 +34,24 @@ module ActiveRecord
       extend ActiveSupport::Concern
 
       module ClassMethods
-        [:cache_attributes, :cached_attributes, :cache_attribute?].each do |method_name|
-          define_method method_name do |*|
-            cached_attributes_deprecation_warning(method_name)
-            true
-          end
-        end
-
         protected
 
-        def cached_attributes_deprecation_warning(method_name)
-          ActiveSupport::Deprecation.warn "Calling `#{method_name}` is no longer necessary. All attributes are cached."
-        end
+        def define_method_attribute(name)
+          safe_name = name.unpack('h*').first
+          temp_method = "__temp__#{safe_name}"
 
-        if Module.methods_transplantable?
-          def define_method_attribute(name)
-            method = ReaderMethodCache[name]
-            generated_attribute_methods.module_eval { define_method name, method }
-          end
-        else
-          def define_method_attribute(name)
-            safe_name = name.unpack('h*').first
-            temp_method = "__temp__#{safe_name}"
+          ActiveRecord::AttributeMethods::AttrNames.set_name_cache safe_name, name
 
-            ActiveRecord::AttributeMethods::AttrNames.set_name_cache safe_name, name
-
-            generated_attribute_methods.module_eval <<-STR, __FILE__, __LINE__ + 1
-              def #{temp_method}
-                name = ::ActiveRecord::AttributeMethods::AttrNames::ATTR_#{safe_name}
-                _read_attribute(name) { |n| missing_attribute(n, caller) }
-              end
-            STR
-
-            generated_attribute_methods.module_eval do
-              alias_method name, temp_method
-              undef_method temp_method
+          generated_attribute_methods.module_eval <<-STR, __FILE__, __LINE__ + 1
+            def #{temp_method}
+              name = ::ActiveRecord::AttributeMethods::AttrNames::ATTR_#{safe_name}
+              _read_attribute(name) { |n| missing_attribute(n, caller) }
             end
+          STR
+
+          generated_attribute_methods.module_eval do
+            alias_method name, temp_method
+            undef_method temp_method
           end
         end
       end
@@ -92,12 +72,9 @@ module ActiveRecord
       def _read_attribute(attr_name) # :nodoc:
         @attributes.fetch_value(attr_name.to_s) { |n| yield n if block_given? }
       end
+      alias :attribute :_read_attribute
+      private :attribute
 
-      private
-
-      def attribute(attribute_name)
-        _read_attribute(attribute_name)
-      end
     end
   end
 end

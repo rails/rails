@@ -20,7 +20,7 @@ module ActiveRecord
   end
 
   class LazyAttributeHash # :nodoc:
-    delegate :select, :transform_values, to: :materialize
+    delegate :select, :transform_values, :each_key, to: :materialize
 
     def initialize(types, values, additional_types)
       @types = types
@@ -43,10 +43,6 @@ module ActiveRecord
         raise RuntimeError, "Can't modify frozen hash"
       end
       delegate_hash[key] = value
-    end
-
-    def initialized_keys
-      delegate_hash.keys | values.keys
     end
 
     def initialize_dup(_)

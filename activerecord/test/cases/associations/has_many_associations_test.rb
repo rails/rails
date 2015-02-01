@@ -316,16 +316,16 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   # would be convenient), because this would cause that scope to be applied to any callbacks etc.
   def test_build_and_create_should_not_happen_within_scope
     car = cars(:honda)
-    scoped_count = car.foo_bulbs.where_values.count
+    scope = car.foo_bulbs.where_values_hash
 
     bulb = car.foo_bulbs.build
-    assert_not_equal scoped_count, bulb.scope_after_initialize.where_values.count
+    assert_not_equal scope, bulb.scope_after_initialize.where_values_hash
 
     bulb = car.foo_bulbs.create
-    assert_not_equal scoped_count, bulb.scope_after_initialize.where_values.count
+    assert_not_equal scope, bulb.scope_after_initialize.where_values_hash
 
     bulb = car.foo_bulbs.create!
-    assert_not_equal scoped_count, bulb.scope_after_initialize.where_values.count
+    assert_not_equal scope, bulb.scope_after_initialize.where_values_hash
   end
 
   def test_no_sql_should_be_fired_if_association_already_loaded
@@ -1307,7 +1307,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_nothing_raised { topic.destroy }
   end
 
-  uses_transaction :test_dependence_with_transaction_support_on_failure
   def test_dependence_with_transaction_support_on_failure
     firm = companies(:first_firm)
     clients = firm.clients

@@ -25,7 +25,6 @@ module ActiveRecord
       autoload :TableDefinition
       autoload :Table
       autoload :AlterTable
-      autoload :TimestampDefaultDeprecation
     end
 
     autoload_at 'active_record/connection_adapters/abstract/connection_pool' do
@@ -114,7 +113,8 @@ module ActiveRecord
 
       class BindCollector < Arel::Collectors::Bind
         def compile(bvs, conn)
-          super(bvs.map { |bv| conn.quote(*bv.reverse) })
+          casted_binds = conn.prepare_binds_for_database(bvs)
+          super(casted_binds.map { |value| conn.quote(value) })
         end
       end
 
@@ -393,7 +393,7 @@ module ActiveRecord
       end
 
       def column_name_for_operation(operation, node) # :nodoc:
-        node.to_sql
+        visitor.accept(node, collector).value
       end
 
       protected

@@ -373,7 +373,7 @@ module ActiveSupport #:nodoc:
 
     # Is the provided constant path defined?
     def qualified_const_defined?(path)
-      Object.qualified_const_defined?(path.sub(/^::/, ''), false)
+      Object.const_defined?(path, false)
     end
 
     # Given +path+, a filesystem path to a ruby file, return an array of
@@ -421,7 +421,7 @@ module ActiveSupport #:nodoc:
     end
 
     def load_once_path?(path)
-      # to_s works around a ruby1.9 issue where String#starts_with?(Pathname)
+      # to_s works around a ruby issue where String#starts_with?(Pathname)
       # will raise a TypeError: no implicit conversion of Pathname into String
       autoload_once_paths.any? { |base| path.starts_with? base.to_s }
     end
@@ -607,7 +607,7 @@ module ActiveSupport #:nodoc:
     def autoloaded?(desc)
       return false if desc.is_a?(Module) && desc.anonymous?
       name = to_constant_name desc
-      return false unless qualified_const_defined? name
+      return false unless qualified_const_defined?(name)
       return autoloaded_constants.include?(name)
     end
 

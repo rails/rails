@@ -29,7 +29,7 @@ group :doc do
   gem 'sdoc', '~> 0.4.0'
   gem 'redcarpet', '~> 3.2.2', platforms: :ruby
   gem 'w3c_validators'
-  gem 'kindlerb'
+  gem 'kindlerb', '0.1.1'
 end
 
 # AS
@@ -64,12 +64,12 @@ group :test do
     gem 'ruby-prof', '~> 0.11.2'
   end
 
-  platforms :mri_21 do
+  platforms :mri_21, :mri_22 do
     gem 'stackprof'
   end
 
-  # platforms :mri_19, :mri_20 do
-  #   gem 'debugger'
+  # platforms :mri do
+  #   gem 'byebug'
   # end
 
   gem 'benchmark-ips'

@@ -479,6 +479,8 @@ ActiveRecord::Schema.define do
     # Oracle/SQLServer supports precision up to 38
     if current_adapter?(:OracleAdapter, :SQLServerAdapter)
       t.decimal :atoms_in_universe, precision: 38, scale: 0
+    elsif current_adapter?(:FbAdapter)
+      t.decimal :atoms_in_universe, precision: 18, scale: 0
     else
       t.decimal :atoms_in_universe, precision: 55, scale: 0
     end
@@ -621,7 +623,17 @@ ActiveRecord::Schema.define do
     t.string :type
   end
 
-  create_table :randomly_named_table, force: true do |t|
+  create_table :randomly_named_table1, force: true do |t|
+    t.string  :some_attribute
+    t.integer :another_attribute
+  end
+
+  create_table :randomly_named_table2, force: true do |t|
+    t.string  :some_attribute
+    t.integer :another_attribute
+  end
+
+  create_table :randomly_named_table3, force: true do |t|
     t.string  :some_attribute
     t.integer :another_attribute
   end
@@ -770,6 +782,7 @@ ActiveRecord::Schema.define do
     t.column :type, :string
     t.column :looter_id, :integer
     t.column :looter_type, :string
+    t.belongs_to :ship
   end
 
   create_table :tyres, force: true do |t|
@@ -891,6 +904,11 @@ ActiveRecord::Schema.define do
     t.float :unoverloaded_float
     t.string :overloaded_string_with_limit, limit: 255
     t.string :string_with_default, default: 'the original default'
+  end
+
+  create_table :users, force: true do |t|
+    t.string :token
+    t.string :auth_token
   end
 end
 

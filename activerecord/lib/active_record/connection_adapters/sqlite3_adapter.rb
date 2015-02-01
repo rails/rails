@@ -50,16 +50,6 @@ module ActiveRecord
       end
     end
 
-    class SQLite3String < Type::String # :nodoc:
-      def type_cast_for_database(value)
-        if value.is_a?(::String) && value.encoding == Encoding::ASCII_8BIT
-          value.encode(Encoding::UTF_8)
-        else
-          super
-        end
-      end
-    end
-
     # The SQLite3 adapter works SQLite 3.6.16 or newer
     # with the sqlite3-ruby drivers (available as gem from https://rubygems.org/gems/sqlite3).
     #
@@ -239,6 +229,12 @@ module ActiveRecord
         case value
         when BigDecimal
           value.to_f
+        when String
+          if value.encoding == Encoding::ASCII_8BIT
+            super(value.encode(Encoding::UTF_8))
+          else
+            super
+          end
         else
           super
         end
@@ -280,11 +276,9 @@ module ActiveRecord
       end
 
       def exec_query(sql, name = nil, binds = [])
-        type_casted_binds = binds.map { |col, val|
-          [col, type_cast(val, col)]
-        }
+        type_casted_binds = binds.map { |attr| type_cast(attr.value_for_database) }
 
-        log(sql, name, type_casted_binds) do
+        log(sql, name, binds) do
           # Don't cache statements if they are not prepared
           if without_prepared_statement?(binds)
             stmt    = @connection.prepare(sql)
@@ -302,7 +296,7 @@ module ActiveRecord
             stmt = cache[:stmt]
             cols = cache[:cols] ||= stmt.columns
             stmt.reset!
-            stmt.bind_params type_casted_binds.map { |_, val| val }
+            stmt.bind_params type_casted_binds
           end
 
           ActiveRecord::Result.new(cols, stmt.to_a)
@@ -498,7 +492,6 @@ module ActiveRecord
         def initialize_type_map(m)
           super
           m.register_type(/binary/i, SQLite3Binary.new)
-          register_class_with_limit m, %r(char)i, SQLite3String
         end
 
         def table_structure(table_name)

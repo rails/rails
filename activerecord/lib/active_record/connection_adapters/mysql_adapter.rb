@@ -395,11 +395,9 @@ module ActiveRecord
 
       def exec_stmt(sql, name, binds)
         cache = {}
-        type_casted_binds = binds.map { |col, val|
-          [col, type_cast(val, col)]
-        }
+        type_casted_binds = binds.map { |attr| type_cast(attr.value_for_database) }
 
-        log(sql, name, type_casted_binds) do
+        log(sql, name, binds) do
           if binds.empty?
             stmt = @connection.prepare(sql)
           else
@@ -410,7 +408,7 @@ module ActiveRecord
           end
 
           begin
-            stmt.execute(*type_casted_binds.map { |_, val| val })
+            stmt.execute(*type_casted_binds)
           rescue Mysql::Error => e
             # Older versions of MySQL leave the prepared statement in a bad
             # place when an error occurs. To support older MySQL versions, we

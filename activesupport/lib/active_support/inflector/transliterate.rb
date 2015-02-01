@@ -67,17 +67,8 @@ module ActiveSupport
     # Replaces special characters in a string so that it may be used as part of
     # a 'pretty' URL.
     #
-    #   class Person
-    #     def to_param
-    #       "#{id}-#{name.parameterize}"
-    #     end
-    #   end
-    #
-    #   @person = Person.find(1)
-    #   # => #<Person id: 1, name: "Donald E. Knuth">
-    #
-    #   <%= link_to(@person.name, person_path(@person)) %>
-    #   # => <a href="/person/1-donald-e-knuth">Donald E. Knuth</a>
+    #   parameterize("Donald E. Knuth") # => "donald-e-knuth"
+    #   parameterize("^trés|Jolie-- ")  # => "tres-jolie"
     def parameterize(string, sep = '-')
       # replace accented chars with their ascii equivalents
       parameterized_string = transliterate(string)
@@ -92,6 +83,5 @@ module ActiveSupport
       end
       parameterized_string.downcase
     end
-
   end
 end

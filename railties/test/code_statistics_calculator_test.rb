@@ -6,6 +6,43 @@ class CodeStatisticsCalculatorTest < ActiveSupport::TestCase
     @code_statistics_calculator = CodeStatisticsCalculator.new
   end
 
+  test 'calculate statistics using #add_by_file_path' do
+    code = <<-RUBY
+      def foo
+        puts 'foo'
+        # bar
+      end
+    RUBY
+
+    temp_file 'stats.rb', code do |path|
+      @code_statistics_calculator.add_by_file_path path
+
+      assert_equal 4, @code_statistics_calculator.lines
+      assert_equal 3, @code_statistics_calculator.code_lines
+      assert_equal 0, @code_statistics_calculator.classes
+      assert_equal 1, @code_statistics_calculator.methods
+    end
+  end
+
+  test 'count number of methods in MiniTest file' do
+    code = <<-RUBY
+      class FooTest < ActionController::TestCase
+        test 'expectation' do
+          assert true
+        end
+
+        def test_expectation
+          assert true
+        end
+      end
+    RUBY
+
+    temp_file 'foo_test.rb', code do |path|
+      @code_statistics_calculator.add_by_file_path path
+      assert_equal 2, @code_statistics_calculator.methods
+    end
+  end
+
   test 'add statistics to another using #add' do
     code_statistics_calculator_1 = CodeStatisticsCalculator.new(1, 2, 3, 4)
     @code_statistics_calculator.add(code_statistics_calculator_1)
@@ -43,30 +80,6 @@ class CodeStatisticsCalculatorTest < ActiveSupport::TestCase
     assert_equal 7, @code_statistics_calculator.code_lines
     assert_equal 4, @code_statistics_calculator.classes
     assert_equal 6, @code_statistics_calculator.methods
-  end
-
-  test 'calculate statistics using #add_by_file_path' do
-    tmp_path = File.expand_path(File.join(File.dirname(__FILE__), 'fixtures', 'tmp'))
-    FileUtils.mkdir_p(tmp_path)
-
-    code = <<-'CODE'
-      def foo
-        puts 'foo'
-        # bar
-      end
-    CODE
-
-    file_path = "#{tmp_path}/stats.rb"
-    File.open(file_path, 'w') { |f| f.write(code) }
-
-    @code_statistics_calculator.add_by_file_path(file_path)
-
-    assert_equal 4, @code_statistics_calculator.lines
-    assert_equal 3, @code_statistics_calculator.code_lines
-    assert_equal 0, @code_statistics_calculator.classes
-    assert_equal 1, @code_statistics_calculator.methods
-
-    FileUtils.rm_rf(tmp_path)
   end
 
   test 'calculate number of Ruby methods' do
@@ -285,4 +298,17 @@ class Animal
     assert_equal 0, @code_statistics_calculator.classes
     assert_equal 0, @code_statistics_calculator.methods
   end
+
+  private
+    def temp_file(name, content)
+      dir = File.expand_path '../fixtures/tmp', __FILE__
+      path = "#{dir}/#{name}"
+
+      FileUtils.mkdir_p dir
+      File.write path, content
+
+      yield path
+    ensure
+      FileUtils.rm_rf path
+    end
 end

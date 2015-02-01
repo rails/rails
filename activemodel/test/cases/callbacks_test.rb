@@ -33,11 +33,13 @@ class CallbacksTest < ActiveModel::TestCase
     def initialize(options = {})
       @callbacks = []
       @valid = options[:valid]
-      @before_create_returns = options[:before_create_returns]
+      @before_create_returns = options.fetch(:before_create_returns, true)
+      @before_create_throws = options[:before_create_throws]
     end
 
     def before_create
       @callbacks << :before_create
+      throw(@before_create_throws) if @before_create_throws
       @before_create_returns
     end
 
@@ -62,10 +64,18 @@ class CallbacksTest < ActiveModel::TestCase
     assert_equal model.callbacks.last, :final_callback
   end
 
-  test "the callback chain is halted when a before callback returns false" do
+  test "the callback chain is halted when a before callback returns false (deprecated)" do
     model = ModelCallbacks.new(before_create_returns: false)
+    assert_deprecated do
+      model.create
+      assert_equal model.callbacks.last, :before_create
+    end
+  end
+
+  test "the callback chain is halted when a callback throws :abort" do
+    model = ModelCallbacks.new(before_create_throws: :abort)
     model.create
-    assert_equal model.callbacks.last, :before_create
+    assert_equal model.callbacks, [:before_create]
   end
 
   test "after callbacks are not executed if the block returns false" do

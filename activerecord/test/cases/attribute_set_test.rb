@@ -186,5 +186,16 @@ module ActiveRecord
       attributes.freeze
       assert_equal({ foo: "1" }, attributes.to_hash)
     end
+
+    test "#accessed_attributes returns only attributes which have been read" do
+      builder = AttributeSet::Builder.new(foo: Type::Value.new, bar: Type::Value.new)
+      attributes = builder.build_from_database(foo: "1", bar: "2")
+
+      assert_equal [], attributes.accessed
+
+      attributes.fetch_value(:foo)
+
+      assert_equal [:foo], attributes.accessed
+    end
   end
 end

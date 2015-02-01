@@ -672,7 +672,7 @@ module NestedAttributesOnACollectionAssociationTests
   end
 
   def test_should_not_assign_destroy_key_to_a_record
-    assert_nothing_raised ActiveRecord::UnknownAttributeError do
+    assert_nothing_raised ActiveModel::AttributeAssignment::UnknownAttributeError do
       @pirate.send(association_setter, { 'foo' => { '_destroy' => '0' }})
     end
   end
@@ -1036,5 +1036,22 @@ class TestHasManyAutosaveAssociationWhichItselfHasAutosaveAssociations < ActiveR
     Ship.create!(:name => "The Black Rock")
     ShipPart.create!(:ship => @ship, :name => "Stern")
     assert_no_queries { @ship.valid? }
+  end
+
+  test "circular references do not perform unnecessary queries" do
+    ship = Ship.new(name: "The Black Rock")
+    part = ship.parts.build(name: "Stern")
+    ship.treasures.build(looter: part)
+
+    assert_queries 3 do
+      ship.save!
+    end
+  end
+
+  test "nested singular associations are validated" do
+    part = ShipPart.new(name: "Stern", ship_attributes: { name: nil })
+
+    assert_not part.valid?
+    assert_equal ["Ship name can't be blank"], part.errors.full_messages
   end
 end

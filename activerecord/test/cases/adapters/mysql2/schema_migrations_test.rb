@@ -16,7 +16,7 @@ module ActiveRecord
 
         def test_initializes_schema_migrations_for_encoding_utf8mb4
           smtn = ActiveRecord::Migrator.schema_migrations_table_name
-          connection.drop_table(smtn) if connection.table_exists?(smtn)
+          connection.drop_table smtn, if_exists: true
 
           config = connection.instance_variable_get(:@config)
           original_encoding = config[:encoding]

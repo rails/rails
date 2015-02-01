@@ -88,8 +88,13 @@ module Rails
 
     def config_when_updating
       cookie_serializer_config_exist = File.exist?('config/initializers/cookies_serializer.rb')
+      callback_terminator_config_exist = File.exist?('config/initializers/callback_terminator.rb')
 
       config
+
+      unless callback_terminator_config_exist
+        remove_file 'config/initializers/callback_terminator.rb'
+      end
 
       unless cookie_serializer_config_exist
         gsub_file 'config/initializers/cookies_serializer.rb', /json/, 'marshal'
@@ -120,6 +125,7 @@ module Rails
 
     def test
       empty_directory_with_keep_file 'test/fixtures'
+      empty_directory_with_keep_file 'test/fixtures/files'
       empty_directory_with_keep_file 'test/controllers'
       empty_directory_with_keep_file 'test/mailers'
       empty_directory_with_keep_file 'test/models'
@@ -229,7 +235,7 @@ module Rails
       end
 
       def create_test_files
-        build(:test) unless options[:skip_test_unit]
+        build(:test) unless options[:skip_test]
       end
 
       def create_tmp_files

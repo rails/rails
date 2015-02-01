@@ -5,14 +5,12 @@ module ActiveRecord
     Type = ActiveRecord::Type
 
     included do
-      class_attribute :user_provided_columns, instance_accessor: false # :internal:
-      class_attribute :user_provided_defaults, instance_accessor: false # :internal:
-      self.user_provided_columns = {}
-      self.user_provided_defaults = {}
+      class_attribute :user_provided_types, instance_accessor: false # :internal:
+      self.user_provided_types = {}
     end
 
     module ClassMethods # :nodoc:
-      # Defines or overrides a attribute on this model. This allows customization of
+      # Defines or overrides an attribute on this model. This allows customization of
       # Active Record's type casting behavior, as well as adding support for user defined
       # types.
       #
@@ -75,65 +73,44 @@ module ActiveRecord
       #
       #   store_listing = StoreListing.new(price_in_cents: '$10.00')
       #   store_listing.price_in_cents # => 1000
-      def attribute(name, cast_type, options = {})
+      def attribute(name, cast_type, **options)
         name = name.to_s
-        clear_caches_calculated_from_columns
-        # Assign a new hash to ensure that subclasses do not share a hash
-        self.user_provided_columns = user_provided_columns.merge(name => cast_type)
+        reload_schema_from_cache
 
-        if options.key?(:default)
-          self.user_provided_defaults = user_provided_defaults.merge(name => options[:default])
-        end
+        self.user_provided_types = user_provided_types.merge(name => [cast_type, options])
       end
 
-      # Returns an array of column objects for the table associated with this class.
-      def columns
-        @columns ||= add_user_provided_columns(connection.schema_cache.columns(table_name))
+      def define_attribute(
+        name,
+        cast_type,
+        default: NO_DEFAULT_PROVIDED,
+        user_provided_default: true
+      )
+        attribute_types[name] = cast_type
+        define_default_attribute(name, default, cast_type, from_user: user_provided_default)
       end
 
-      # Returns a hash of column objects for the table associated with this class.
-      def columns_hash
-        @columns_hash ||= Hash[columns.map { |c| [c.name, c] }]
-      end
-
-      def reset_column_information # :nodoc:
+      def load_schema!
         super
-        clear_caches_calculated_from_columns
+        user_provided_types.each do |name, (type, options)|
+          define_attribute(name, type, **options)
+        end
       end
 
       private
 
-      def add_user_provided_columns(schema_columns)
-        existing_columns = schema_columns.map do |column|
-          new_type = user_provided_columns[column.name]
-          if new_type
-            column.with_type(new_type)
-          else
-            column
-          end
+      NO_DEFAULT_PROVIDED = Object.new # :nodoc:
+      private_constant :NO_DEFAULT_PROVIDED
+
+      def define_default_attribute(name, value, type, from_user:)
+        if value == NO_DEFAULT_PROVIDED
+          default_attribute = _default_attributes[name].with_type(type)
+        elsif from_user
+          default_attribute = Attribute.from_user(name, value, type)
+        else
+          default_attribute = Attribute.from_database(name, value, type)
         end
-
-        existing_column_names = existing_columns.map(&:name)
-        new_columns = user_provided_columns.except(*existing_column_names).map do |(name, type)|
-          connection.new_column(name, nil, type)
-        end
-
-        existing_columns + new_columns
-      end
-
-      def clear_caches_calculated_from_columns
-        @arel_table = nil
-        @attributes_builder = nil
-        @column_names = nil
-        @column_types = nil
-        @columns = nil
-        @columns_hash = nil
-        @content_columns = nil
-        @default_attributes = nil
-      end
-
-      def raw_default_values
-        super.merge(user_provided_defaults)
+        _default_attributes[name] = default_attribute
       end
     end
   end

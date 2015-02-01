@@ -129,10 +129,10 @@ module ActiveRecord
 
       private
       def insert(ctx, data, table='ex')
-        binds   = data.map { |name, value|
-          [ctx.columns(table).find { |x| x.name == name }, value]
+        binds = data.map { |name, value|
+          Relation::QueryAttribute.new(name, value, Type::Value.new)
         }
-        columns = binds.map(&:first).map(&:name)
+        columns = binds.map(&:name)
 
         sql = "INSERT INTO #{table} (#{columns.join(", ")})
                VALUES (#{(['?'] * columns.length).join(', ')})"

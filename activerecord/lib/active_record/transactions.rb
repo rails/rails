@@ -4,24 +4,10 @@ module ActiveRecord
     extend ActiveSupport::Concern
     #:nodoc:
     ACTIONS = [:create, :destroy, :update]
-    #:nodoc:
-    CALLBACK_WARN_MESSAGE = "Currently, Active Record suppresses errors raised " \
-      "within `after_rollback`/`after_commit` callbacks and only print them to " \
-      "the logs. In the next version, these errors will no longer be suppressed. " \
-      "Instead, the errors will propagate normally just like in other Active " \
-      "Record callbacks.\n" \
-      "\n" \
-      "You can opt into the new behavior and remove this warning by setting:\n" \
-      "\n" \
-      "  config.active_record.raise_in_transactional_callbacks = true\n\n"
 
     included do
       define_callbacks :commit, :rollback,
-                       terminator: ->(_, result) { result == false },
                        scope: [:kind, :name]
-
-      mattr_accessor :raise_in_transactional_callbacks, instance_writer: false
-      self.raise_in_transactional_callbacks = false
     end
 
     # = Active Record Transactions
@@ -237,9 +223,6 @@ module ActiveRecord
       def after_commit(*args, &block)
         set_options_for_callbacks!(args)
         set_callback(:commit, :after, *args, &block)
-        unless ActiveRecord::Base.raise_in_transactional_callbacks
-          ActiveSupport::Deprecation.warn(CALLBACK_WARN_MESSAGE)
-        end
       end
 
       # This callback is called after a create, update, or destroy are rolled back.
@@ -248,9 +231,16 @@ module ActiveRecord
       def after_rollback(*args, &block)
         set_options_for_callbacks!(args)
         set_callback(:rollback, :after, *args, &block)
-        unless ActiveRecord::Base.raise_in_transactional_callbacks
-          ActiveSupport::Deprecation.warn(CALLBACK_WARN_MESSAGE)
-        end
+      end
+
+      def raise_in_transactional_callbacks
+        ActiveSupport::Deprecation.warn('ActiveRecord::Base.raise_in_transactional_callbacks is deprecated and will be removed without replacement.')
+        true
+      end
+
+      def raise_in_transactional_callbacks=(value)
+        ActiveSupport::Deprecation.warn('ActiveRecord::Base.raise_in_transactional_callbacks= is deprecated, has no effect and will be removed without replacement.')
+        value
       end
 
       private
@@ -310,7 +300,7 @@ module ActiveRecord
     #
     # Ensure that it is not called if the object was never persisted (failed create),
     # but call it after the commit of a destroyed object.
-    def committed!(should_run_callbacks = true) #:nodoc:
+    def committed!(should_run_callbacks: true) #:nodoc:
       _run_commit_callbacks if should_run_callbacks && destroyed? || persisted?
     ensure
       force_clear_transaction_record_state
@@ -318,7 +308,7 @@ module ActiveRecord
 
     # Call the +after_rollback+ callbacks. The +force_restore_state+ argument indicates if the record
     # state should be rolled back to the beginning or just to the last savepoint.
-    def rolledback!(force_restore_state = false, should_run_callbacks = true) #:nodoc:
+    def rolledback!(force_restore_state: false, should_run_callbacks: true) #:nodoc:
       _run_rollback_callbacks if should_run_callbacks
     ensure
       restore_transaction_record_state(force_restore_state)
@@ -388,7 +378,7 @@ module ActiveRecord
           thaw unless restore_state[:frozen?]
           @new_record = restore_state[:new_record]
           @destroyed  = restore_state[:destroyed]
-          write_attribute(self.class.primary_key, restore_state[:id])
+          write_attribute(self.class.primary_key, restore_state[:id]) if self.class.primary_key
         end
       end
     end

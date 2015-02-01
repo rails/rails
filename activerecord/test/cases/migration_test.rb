@@ -90,7 +90,7 @@ class MigrationTest < ActiveRecord::TestCase
   end
 
   def test_migration_detection_without_schema_migration_table
-    ActiveRecord::Base.connection.drop_table('schema_migrations') if ActiveRecord::Base.connection.table_exists?('schema_migrations')
+    ActiveRecord::Base.connection.drop_table 'schema_migrations', if_exists: true
 
     migrations_path = MIGRATIONS_ROOT + "/valid"
     old_path = ActiveRecord::Migrator.migrations_paths
@@ -162,6 +162,7 @@ class MigrationTest < ActiveRecord::TestCase
 
     assert !BigNumber.table_exists?
     GiveMeBigNumbers.up
+    BigNumber.reset_column_information
 
     assert BigNumber.create(
       :bank_balance => 1586.43,
@@ -397,6 +398,7 @@ class MigrationTest < ActiveRecord::TestCase
     Thing.reset_table_name
     Thing.reset_sequence_name
     WeNeedThings.up
+    Thing.reset_column_information
 
     assert Thing.create("content" => "hello world")
     assert_equal "hello world", Thing.first.content
@@ -416,6 +418,7 @@ class MigrationTest < ActiveRecord::TestCase
     ActiveRecord::Base.table_name_suffix = '_suffix'
     Reminder.reset_table_name
     Reminder.reset_sequence_name
+    Reminder.reset_column_information
     WeNeedReminders.up
     assert Reminder.create("content" => "hello world", "remind_at" => Time.now)
     assert_equal "hello world", Reminder.first.content
@@ -935,5 +938,15 @@ class CopyMigrationsTest < ActiveRecord::TestCase
         yield
       end
     end
+  end
+
+  def silence_stream(stream)
+    old_stream = stream.dup
+    stream.reopen(IO::NULL)
+    stream.sync = true
+    yield
+  ensure
+    stream.reopen(old_stream)
+    old_stream.close
   end
 end

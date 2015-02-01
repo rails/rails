@@ -30,9 +30,11 @@ class PostgresqlLtreeTest < ActiveRecord::TestCase
     column = Ltree.columns_hash['path']
     assert_equal :ltree, column.type
     assert_equal "ltree", column.sql_type
-    assert_not column.number?
-    assert_not column.binary?
-    assert_not column.array
+    assert_not column.array?
+
+    type = Ltree.type_for_attribute('path')
+    assert_not type.number?
+    assert_not type.binary?
   end
 
   def test_write
@@ -48,6 +50,6 @@ class PostgresqlLtreeTest < ActiveRecord::TestCase
 
   def test_schema_dump_with_shorthand
     output = dump_table_schema("ltrees")
-    assert_match %r[t.ltree "path"], output
+    assert_match %r[t\.ltree "path"], output
   end
 end

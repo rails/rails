@@ -51,7 +51,7 @@ module ActiveRecord
     end
 
     def changed_in_place_from?(old_value)
-      type.changed_in_place?(old_value, value)
+      has_been_read? && type.changed_in_place?(old_value, value)
     end
 
     def with_value_from_user(value)
@@ -66,6 +66,10 @@ module ActiveRecord
       self.class.with_cast_value(name, value, type)
     end
 
+    def with_type(type)
+      self.class.new(name, value_before_type_cast, type)
+    end
+
     def type_cast(*)
       raise NotImplementedError
     end
@@ -74,11 +78,24 @@ module ActiveRecord
       true
     end
 
+    def came_from_user?
+      false
+    end
+
+    def has_been_read?
+      defined?(@value)
+    end
+
     def ==(other)
       self.class == other.class &&
         name == other.name &&
         value_before_type_cast == other.value_before_type_cast &&
         type == other.type
+    end
+    alias eql? ==
+
+    def hash
+      [self.class, name, value_before_type_cast, type].hash
     end
 
     protected
@@ -99,6 +116,10 @@ module ActiveRecord
       def type_cast(value)
         type.type_cast_from_user(value)
       end
+
+      def came_from_user?
+        true
+      end
     end
 
     class WithCastValue < Attribute # :nodoc:
@@ -118,6 +139,10 @@ module ActiveRecord
 
       def value
         nil
+      end
+
+      def with_type(type)
+        self.class.with_cast_value(name, nil, type)
       end
 
       def with_value_from_database(value)
@@ -144,6 +169,6 @@ module ActiveRecord
         false
       end
     end
-    private_constant :FromDatabase, :FromUser, :Null, :Uninitialized
+    private_constant :FromDatabase, :FromUser, :Null, :Uninitialized, :WithCastValue
   end
 end

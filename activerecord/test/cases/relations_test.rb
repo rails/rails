@@ -16,6 +16,7 @@ require 'models/engine'
 require 'models/tyre'
 require 'models/minivan'
 require 'models/aircraft'
+require "models/possession"
 
 
 class RelationTest < ActiveRecord::TestCase
@@ -37,15 +38,6 @@ class RelationTest < ActiveRecord::TestCase
     van = Minivan.last
     assert van
     assert_equal van, Minivan.where(:minivan_id => [van]).to_a.first
-  end
-
-  def test_bind_values
-    relation = Post.all
-    assert_equal [], relation.bind_values
-
-    relation2 = relation.bind 'foo'
-    assert_equal %w{ foo }, relation2.bind_values
-    assert_equal [], relation.bind_values
   end
 
   def test_two_scopes_with_includes_should_not_drop_any_include
@@ -857,6 +849,12 @@ class RelationTest < ActiveRecord::TestCase
     assert ! fake.exists?(authors(:david).id)
   end
 
+  def test_exists_uses_existing_scope
+    post = authors(:david).posts.first
+    authors = Author.includes(:posts).where(name: "David", posts: { id: post.id })
+    assert authors.exists?(authors(:david).id)
+  end
+
   def test_last
     authors = Author.all
     assert_equal authors(:bob), authors.last
@@ -1382,12 +1380,6 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal "id", Post.all.primary_key
   end
 
-  def test_disable_implicit_join_references_is_deprecated
-    assert_deprecated do
-      ActiveRecord::Base.disable_implicit_join_references = true
-    end
-  end
-
   def test_ordering_with_extra_spaces
     assert_equal authors(:david), Author.order('id DESC , name DESC').last
   end
@@ -1468,10 +1460,31 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_doesnt_add_having_values_if_options_are_blank
     scope = Post.having('')
-    assert_equal [], scope.having_values
+    assert scope.having_clause.empty?
 
     scope = Post.having([])
-    assert_equal [], scope.having_values
+    assert scope.having_clause.empty?
+  end
+
+  def test_having_with_binds_for_both_where_and_having
+    post = Post.first
+    having_then_where = Post.having(id: post.id).where(title: post.title).group(:id)
+    where_then_having = Post.where(title: post.title).having(id: post.id).group(:id)
+
+    assert_equal [post], having_then_where
+    assert_equal [post], where_then_having
+  end
+
+  def test_multiple_where_and_having_clauses
+    post = Post.first
+    having_then_where = Post.having(id: post.id).where(title: post.title)
+      .having(id: post.id).where(title: post.title).group(:id)
+
+    assert_equal [post], having_then_where
+  end
+
+  def test_grouping_by_column_with_reserved_name
+    assert_equal [], Possession.select(:where).group(:where).to_a
   end
 
   def test_references_triggers_eager_loading
@@ -1657,6 +1670,14 @@ class RelationTest < ActiveRecord::TestCase
     end
   end
 
+  test "relations with cached arel can't be mutated [internal API]" do
+    relation = Post.all
+    relation.count
+
+    assert_raises(ActiveRecord::ImmutableRelation) { relation.limit!(5) }
+    assert_raises(ActiveRecord::ImmutableRelation) { relation.where!("1 = 2") }
+  end
+
   test "relations show the records in #inspect" do
     relation = Post.limit(2)
     assert_equal "#<ActiveRecord::Relation [#{Post.limit(2).map(&:inspect).join(', ')}]>", relation.inspect
@@ -1742,14 +1763,13 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_merging_keeps_lhs_bind_parameters
-    column = Post.columns_hash['id']
-    binds = [[column, 20]]
+    binds = [ActiveRecord::Relation::QueryAttribute.new("id", 20, Post.type_for_attribute("id"))]
 
     right  = Post.where(id: 20)
     left   = Post.where(id: 10)
 
     merged = left.merge(right)
-    assert_equal binds, merged.bind_values
+    assert_equal binds, merged.bound_attributes
   end
 
   def test_merging_reorders_bind_params

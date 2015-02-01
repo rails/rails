@@ -94,7 +94,7 @@ class MysqlConnectionTest < ActiveRecord::TestCase
     with_example_table do
       @connection.exec_query('INSERT INTO ex (id, data) VALUES (1, "foo")')
       result = @connection.exec_query(
-        'SELECT id, data FROM ex WHERE id = ?', nil, [[nil, 1]])
+        'SELECT id, data FROM ex WHERE id = ?', nil, [ActiveRecord::Relation::QueryAttribute.new("id", 1, ActiveRecord::Type::Value.new)])
 
       assert_equal 1, result.rows.length
       assert_equal 2, result.columns.length
@@ -106,10 +106,10 @@ class MysqlConnectionTest < ActiveRecord::TestCase
   def test_exec_typecasts_bind_vals
     with_example_table do
       @connection.exec_query('INSERT INTO ex (id, data) VALUES (1, "foo")')
-      column = @connection.columns('ex').find { |col| col.name == 'id' }
+      bind = ActiveRecord::Relation::QueryAttribute.new("id", "1-fuu", ActiveRecord::Type::Integer.new)
 
       result = @connection.exec_query(
-        'SELECT id, data FROM ex WHERE id = ?', nil, [[column, '1-fuu']])
+        'SELECT id, data FROM ex WHERE id = ?', nil, [bind])
 
       assert_equal 1, result.rows.length
       assert_equal 2, result.columns.length

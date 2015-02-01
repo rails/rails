@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE IN GITHUB, GUIDES ARE PUBLISHED IN http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
 
 Active Model Basics
 ===================
@@ -396,7 +396,7 @@ class Person
 end
 ```
 
-With the `to_xml` you have a XML representing the model.
+With the `to_xml` you have an XML representing the model.
 
 ```ruby
 person = Person.new
@@ -405,7 +405,7 @@ person.name = "Bob"
 person.to_xml # => "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<person>\n  <name>Bob</name>\n</person>\n"
 ```
 
-From a XML string you define the attributes of the model.
+From an XML string you define the attributes of the model.
 You need to have the `attributes=` method defined on your class:
 
 ```ruby

@@ -19,7 +19,7 @@
 class Object
   # Can you safely dup this object?
   #
-  # False for +nil+, +false+, +true+, symbol, number and BigDecimal(in 1.9.x) objects;
+  # False for +nil+, +false+, +true+, symbol, number objects;
   # true otherwise.
   def duplicable?
     true
@@ -78,17 +78,8 @@ end
 
 require 'bigdecimal'
 class BigDecimal
-  # Needed to support Ruby 1.9.x, as it doesn't allow dup on BigDecimal, instead
-  # raises TypeError exception. Checking here on the runtime whether BigDecimal
-  # will allow dup or not.
-  begin
-    BigDecimal.new('4.56').dup
-
-    def duplicable?
-      true
-    end
-  rescue TypeError
-    # can't dup, so use superclass implementation
+  def duplicable?
+    true
   end
 end
 

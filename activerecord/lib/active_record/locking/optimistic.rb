@@ -66,6 +66,15 @@ module ActiveRecord
           send(lock_col + '=', previous_lock_value + 1)
         end
 
+        def _create_record(attribute_names = self.attribute_names, *) # :nodoc:
+          if locking_enabled?
+            # We always want to persist the locking version, even if we don't detect
+            # a change from the default, since the database might have no default
+            attribute_names |= [self.class.locking_column]
+          end
+          super
+        end
+
         def _update_record(attribute_names = self.attribute_names) #:nodoc:
           return super unless locking_enabled?
           return 0 if attribute_names.empty?
@@ -116,12 +125,8 @@ module ActiveRecord
           relation = super
 
           if locking_enabled?
-            column_name = self.class.locking_column
-            column      = self.class.columns_hash[column_name]
-            substitute  = self.class.connection.substitute_at(column)
-
-            relation = relation.where(self.class.arel_table[column_name].eq(substitute))
-            relation.bind_values << [column, self[column_name].to_i]
+            locking_column = self.class.locking_column
+            relation = relation.where(locking_column => _read_attribute(locking_column))
           end
 
           relation
@@ -139,7 +144,7 @@ module ActiveRecord
 
         # Set the column to use for optimistic locking. Defaults to +lock_version+.
         def locking_column=(value)
-          clear_caches_calculated_from_columns
+          reload_schema_from_cache
           @locking_column = value.to_s
         end
 
@@ -183,11 +188,6 @@ module ActiveRecord
       def type_cast_from_database(value)
         # `nil` *should* be changed to 0
         super.to_i
-      end
-
-      def changed?(old_value, *)
-        # Ensure we save if the default was `nil`
-        super || old_value == 0
       end
 
       def init_with(coder)

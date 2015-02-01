@@ -196,7 +196,7 @@ module ActiveSupport
 
     # Returns a string of the object's date and time.
     # Accepts an optional <tt>format</tt>:
-    # * <tt>:default</tt> - default value, mimics Ruby 1.9 Time#to_s format.
+    # * <tt>:default</tt> - default value, mimics Ruby Time#to_s format.
     # * <tt>:db</tt> - format outputs time in UTC :db time. See Time#to_formatted_s(:db).
     # * Any key in <tt>Time::DATE_FORMATS</tt> can be used. See active_support/core_ext/time/conversions.rb.
     def to_s(format = :default)
@@ -205,7 +205,7 @@ module ActiveSupport
       elsif formatter = ::Time::DATE_FORMATS[format]
         formatter.respond_to?(:call) ? formatter.call(self).to_s : strftime(formatter)
       else
-        "#{time.strftime("%Y-%m-%d %H:%M:%S")} #{formatted_offset(false, 'UTC')}" # mimicking Ruby 1.9 Time#to_s format
+        "#{time.strftime("%Y-%m-%d %H:%M:%S")} #{formatted_offset(false, 'UTC')}" # mimicking Ruby Time#to_s format
       end
     end
     alias_method :to_formatted_s, :to_s

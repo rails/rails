@@ -153,15 +153,6 @@ module ActiveRecord
         JoinKeys.new(foreign_key, active_record_primary_key)
       end
 
-      def source_macro
-        ActiveSupport::Deprecation.warn(<<-MSG.squish)
-          ActiveRecord::Base.source_macro is deprecated and will be removed
-          without replacement.
-        MSG
-
-        macro
-      end
-
       def constraints
         scope_chain.flatten
       end
@@ -352,13 +343,10 @@ module ActiveRecord
         return unless scope
 
         if scope.arity > 0
-          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          raise ArgumentError, <<-MSG.squish
             The association scope '#{name}' is instance dependent (the scope
-            block takes an argument). Preloading happens before the individual
-            instances are created. This means that there is no instance being
-            passed to the association scope. This will most likely result in
-            broken or incorrect behavior. Joining, Preloading and eager loading
-            of these associations is deprecated and will be removed in the future.
+            block takes an argument). Preloading instance dependent scopes is
+            not supported.
           MSG
         end
       end
@@ -761,16 +749,6 @@ module ActiveRecord
 
       def join_keys(association_klass)
         source_reflection.join_keys(association_klass)
-      end
-
-      # The macro used by the source association
-      def source_macro
-        ActiveSupport::Deprecation.warn(<<-MSG.squish)
-          ActiveRecord::Base.source_macro is deprecated and will be removed
-          without replacement.
-        MSG
-
-        source_reflection.source_macro
       end
 
       # A through association is nested if there would be more than one join table

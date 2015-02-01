@@ -1,6 +1,5 @@
 require 'abstract_unit'
 
-
 class ControllerWithBeforeActionAndDefaultUrlOptions < ActionController::Base
 
   before_action { I18n.locale = params[:locale] }
@@ -23,7 +22,7 @@ class ControllerWithBeforeActionAndDefaultUrlOptionsTest < ActionController::Tes
 
   # This test has its roots in issue #1872
   test "should redirect with correct locale :de" do
-    get :redirect, :locale => "de"
+    get :redirect, params: { locale: "de" }
     assert_redirected_to "/controller_with_before_action_and_default_url_options/target?locale=de"
   end
 end

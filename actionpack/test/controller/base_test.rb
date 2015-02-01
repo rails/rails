@@ -1,30 +1,10 @@
 require 'abstract_unit'
 require 'active_support/logger'
 require 'controller/fake_models'
-require 'pp' # require 'pp' early to prevent hidden_methods from not picking up the pretty-print methods until too late
 
 # Provide some controller to run the tests on.
 module Submodule
   class ContainedEmptyController < ActionController::Base
-  end
-
-  class ContainedNonEmptyController < ActionController::Base
-    def public_action
-      render :nothing => true
-    end
-
-    hide_action :hidden_action
-    def hidden_action
-      raise "Noooo!"
-    end
-
-    def another_hidden_action
-    end
-    hide_action :another_hidden_action
-  end
-
-  class SubclassedController < ContainedNonEmptyController
-    hide_action :public_action # Hiding it here should not affect the superclass.
   end
 end
 
@@ -35,10 +15,6 @@ class NonEmptyController < ActionController::Base
   def public_action
     render :nothing => true
   end
-
-  hide_action :hidden_action
-  def hidden_action
-  end
 end
 
 class DefaultUrlOptionsController < ActionController::Base
@@ -48,6 +24,16 @@ class DefaultUrlOptionsController < ActionController::Base
 
   def default_url_options
     { :host => 'www.override.com', :action => 'new', :locale => 'en' }
+  end
+end
+
+class OptionalDefaultUrlOptionsController < ActionController::Base
+  def show
+    render nothing: true
+  end
+
+  def default_url_options
+    { format: 'atom', id: 'default-id' }
   end
 end
 
@@ -108,10 +94,7 @@ class ControllerInstanceTests < ActiveSupport::TestCase
   def setup
     @empty = EmptyController.new
     @contained = Submodule::ContainedEmptyController.new
-    @empty_controllers = [@empty, @contained, Submodule::SubclassedController.new]
-
-    @non_empty_controllers = [NonEmptyController.new,
-                              Submodule::ContainedNonEmptyController.new]
+    @empty_controllers = [@empty, @contained]
   end
 
   def test_performed?
@@ -123,10 +106,6 @@ class ControllerInstanceTests < ActiveSupport::TestCase
   def test_action_methods
     @empty_controllers.each do |c|
       assert_equal Set.new, c.class.action_methods, "#{c.controller_path} should be empty!"
-    end
-
-    @non_empty_controllers.each do |c|
-      assert_equal Set.new(%w(public_action)), c.class.action_methods, "#{c.controller_path} should not be empty!"
     end
   end
 
@@ -159,12 +138,6 @@ class PerformActionTest < ActionController::TestCase
       get :non_existent
     end
     assert_equal "The action 'non_existent' could not be found for EmptyController", exception.message
-  end
-
-  def test_get_on_hidden_should_fail
-    use_controller NonEmptyController
-    assert_raise(AbstractController::ActionNotFound) { get :hidden_action }
-    assert_raise(AbstractController::ActionNotFound) { get :another_hidden_action }
   end
 
   def test_action_missing_should_work
@@ -205,7 +178,7 @@ class UrlOptionsTest < ActionController::TestCase
         get ':controller/:action'
       end
 
-      get :from_view, :route => "from_view_url"
+      get :from_view, params: { route: "from_view_url" }
 
       assert_equal 'http://www.override.com/from_view', @response.body
       assert_equal 'http://www.override.com/from_view', @controller.send(:from_view_url)
@@ -239,7 +212,7 @@ class DefaultUrlOptionsTest < ActionController::TestCase
         get ':controller/:action'
       end
 
-      get :from_view, :route => "from_view_url"
+      get :from_view, params: { route: "from_view_url" }
 
       assert_equal 'http://www.override.com/from_view?locale=en', @response.body
       assert_equal 'http://www.override.com/from_view?locale=en', @controller.send(:from_view_url)
@@ -256,7 +229,7 @@ class DefaultUrlOptionsTest < ActionController::TestCase
         get ':controller/:action'
       end
 
-      get :from_view, :route => "description_path(1)"
+      get :from_view, params: { route: "description_path(1)" }
 
       assert_equal '/en/descriptions/1', @response.body
       assert_equal '/en/descriptions', @controller.send(:descriptions_path)
@@ -271,7 +244,18 @@ class DefaultUrlOptionsTest < ActionController::TestCase
       assert_equal '/en/descriptions/1.xml', @controller.send(:description_path, 1, :format => "xml")
     end
   end
+end
 
+class OptionalDefaultUrlOptionsControllerTest < ActionController::TestCase
+  def test_default_url_options_override_missing_positional_arguments
+    with_routing do |set|
+      set.draw do
+        get "/things/:id(.:format)" => 'things#show', :as => :thing
+      end
+      assert_equal '/things/1.atom', thing_path('1')
+      assert_equal '/things/default-id.atom', thing_path
+    end
+  end
 end
 
 class EmptyUrlOptionsTest < ActionController::TestCase

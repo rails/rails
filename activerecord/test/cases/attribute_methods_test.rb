@@ -502,7 +502,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   def test_typecast_attribute_from_select_to_false
     Topic.create(:title => 'Budget')
     # Oracle does not support boolean expressions in SELECT
-    if current_adapter?(:OracleAdapter)
+    if current_adapter?(:OracleAdapter, :FbAdapter)
       topic = Topic.all.merge!(:select => "topics.*, 0 as is_test").first
     else
       topic = Topic.all.merge!(:select => "topics.*, 1=2 as is_test").first
@@ -513,7 +513,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   def test_typecast_attribute_from_select_to_true
     Topic.create(:title => 'Budget')
     # Oracle does not support boolean expressions in SELECT
-    if current_adapter?(:OracleAdapter)
+    if current_adapter?(:OracleAdapter, :FbAdapter)
       topic = Topic.all.merge!(:select => "topics.*, 1 as is_test").first
     else
       topic = Topic.all.merge!(:select => "topics.*, 2=2 as is_test").first
@@ -528,20 +528,6 @@ class AttributeMethodsTest < ActiveRecord::TestCase
       assert_raise ActiveRecord::DangerousAttributeError do
         klass.instance_method_already_implemented?(method)
       end
-    end
-  end
-
-  def test_deprecated_cache_attributes
-    assert_deprecated do
-      Topic.cache_attributes :replies_count
-    end
-
-    assert_deprecated do
-      Topic.cached_attributes
-    end
-
-    assert_deprecated do
-      Topic.cache_attribute? :replies_count
     end
   end
 
@@ -671,7 +657,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     end
   end
 
-  def test_setting_time_zone_aware_attribute_in_current_time_zone
+  def test_setting_time_zone_aware_datetime_in_current_time_zone
     utc_time = Time.utc(2008, 1, 1)
     in_time_zone "Pacific Time (US & Canada)" do
       record   = @target.new
@@ -687,6 +673,47 @@ class AttributeMethodsTest < ActiveRecord::TestCase
       record = Topic.new(id: 1)
       record.written_on = "Jan 01 00:00:00 2014"
       assert_equal record, YAML.load(YAML.dump(record))
+    end
+  end
+
+  def test_setting_time_zone_aware_time_in_current_time_zone
+    in_time_zone "Pacific Time (US & Canada)" do
+      record = @target.new
+      time_string = "10:00:00"
+      expected_time = Time.zone.parse("2000-01-01 #{time_string}")
+
+      record.bonus_time = time_string
+      assert_equal expected_time, record.bonus_time
+      assert_equal ActiveSupport::TimeZone["Pacific Time (US & Canada)"], record.bonus_time.time_zone
+
+      record.bonus_time = ''
+      assert_nil record.bonus_time
+    end
+  end
+
+  def test_setting_time_zone_aware_time_with_dst
+    in_time_zone "Pacific Time (US & Canada)" do
+      current_time = Time.zone.local(2014, 06, 15, 10)
+      record = @target.new(bonus_time: current_time)
+      time_before_save = record.bonus_time
+
+      record.save
+      record.reload
+
+      assert_equal time_before_save, record.bonus_time
+      assert_equal ActiveSupport::TimeZone["Pacific Time (US & Canada)"], record.bonus_time.time_zone
+    end
+  end
+
+  def test_removing_time_zone_aware_types
+    with_time_zone_aware_types(:datetime) do
+      in_time_zone "Pacific Time (US & Canada)" do
+        record = @target.new(bonus_time: "10:00:00")
+        expected_time = Time.utc(2000, 01, 01, 10)
+
+        assert_equal expected_time, record.bonus_time
+        assert record.bonus_time.utc?
+      end
     end
   end
 
@@ -731,12 +758,12 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   def test_bulk_update_respects_access_control
     privatize("title=(value)")
 
-    assert_raise(ActiveRecord::UnknownAttributeError) { @target.new(:title => "Rants about pants") }
-    assert_raise(ActiveRecord::UnknownAttributeError) { @target.new.attributes = { :title => "Ants in pants" } }
+    assert_raise(ActiveModel::AttributeAssignment::UnknownAttributeError) { @target.new(:title => "Rants about pants") }
+    assert_raise(ActiveModel::AttributeAssignment::UnknownAttributeError) { @target.new.attributes = { :title => "Ants in pants" } }
   end
 
   def test_bulk_update_raise_unknown_attribute_error
-    error = assert_raises(ActiveRecord::UnknownAttributeError) {
+    error = assert_raises(ActiveModel::AttributeAssignment::UnknownAttributeError) {
       Topic.new(hello: "world")
     }
     assert_instance_of Topic, error.record
@@ -902,6 +929,24 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_not_equal ['id'], @target.column_names
   end
 
+  def test_came_from_user
+    model = @target.first
+
+    assert_not model.id_came_from_user?
+    model.id = "omg"
+    assert model.id_came_from_user?
+  end
+
+  def test_accessed_fields
+    model = @target.first
+
+    assert_equal [], model.accessed_fields
+
+    model.title
+
+    assert_equal ["title"], model.accessed_fields
+  end
+
   private
 
   def new_topic_like_ar_class(&block)
@@ -912,6 +957,14 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
     assert_empty klass.generated_attribute_methods.instance_methods(false)
     klass
+  end
+
+  def with_time_zone_aware_types(*types)
+    old_types = ActiveRecord::Base.time_zone_aware_types
+    ActiveRecord::Base.time_zone_aware_types = types
+    yield
+  ensure
+    ActiveRecord::Base.time_zone_aware_types = old_types
   end
 
   def cached_columns

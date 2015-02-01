@@ -12,21 +12,21 @@ class ActionControllerRequiredParamsTest < ActionController::TestCase
 
   test "missing required parameters will raise exception" do
     assert_raise ActionController::ParameterMissing do
-      post :create, { magazine: { name: "Mjallo!" } }
+      post :create, params: { magazine: { name: "Mjallo!" } }
     end
 
     assert_raise ActionController::ParameterMissing do
-      post :create, { book: { title: "Mjallo!" } }
+      post :create, params: { book: { title: "Mjallo!" } }
     end
   end
 
   test "required parameters that are present will not raise" do
-    post :create, { book: { name: "Mjallo!" } }
+    post :create, params: { book: { name: "Mjallo!" } }
     assert_response :ok
   end
 
   test "required parameters with false value will not raise" do
-    post :create, { book: { name: false } }
+    post :create, params: { book: { name: false } }
     assert_response :ok
   end
 end

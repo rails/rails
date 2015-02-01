@@ -87,13 +87,6 @@ module ActiveRecord
 
       mattr_accessor :maintain_test_schema, instance_accessor: false
 
-      def self.disable_implicit_join_references=(value)
-        ActiveSupport::Deprecation.warn(<<-MSG.squish)
-          Implicit join references were removed with Rails 4.1.
-          Make sure to remove this configuration because it does nothing.
-        MSG
-      end
-
       class_attribute :default_connection_handler, instance_writer: false
       class_attribute :find_by_statement_cache
 
@@ -217,7 +210,7 @@ module ActiveRecord
         elsif !connected?
           "#{super} (call '#{super}.connection' to establish a connection)"
         elsif table_exists?
-          attr_list = columns.map { |c| "#{c.name}: #{c.type}" } * ', '
+          attr_list = attribute_types.map { |name, type| "#{name}: #{type.type}" } * ', '
           "#{super}(#{attr_list})"
         else
           "#{super}(Table doesn't exist)"
@@ -281,16 +274,14 @@ module ActiveRecord
     # ==== Example:
     #   # Instantiates a single new object
     #   User.new(first_name: 'Jamie')
-    def initialize(attributes = nil, options = {})
+    def initialize(attributes = nil)
       @attributes = self.class._default_attributes.dup
+      self.class.define_attribute_methods
 
       init_internals
       initialize_internals_callback
 
-      self.class.define_attribute_methods
-      # +options+ argument is only needed to make protected_attributes gem easier to hook.
-      # Remove it when we drop support to this gem.
-      init_attributes(attributes, options) if attributes
+      assign_attributes(attributes) if attributes
 
       yield self if block_given?
       _run_initialize_callbacks
@@ -465,6 +456,7 @@ module ActiveRecord
     # Takes a PP and prettily prints this record to it, allowing you to get a nice result from `pp record`
     # when pp is required.
     def pretty_print(pp)
+      return super if custom_inspect_method_defined?
       pp.object_address_group(self) do
         if defined?(@attributes) && @attributes
           column_names = self.class.column_names.select { |name| has_attribute?(name) || new_record? }
@@ -564,16 +556,14 @@ module ActiveRecord
     def initialize_internals_callback
     end
 
-    # This method is needed to make protected_attributes gem easier to hook.
-    # Remove it when we drop support to this gem.
-    def init_attributes(attributes, options)
-      assign_attributes(attributes)
-    end
-
     def thaw
       if frozen?
         @attributes = @attributes.dup
       end
+    end
+
+    def custom_inspect_method_defined?
+      self.class.instance_method(:inspect).owner != ActiveRecord::Base.instance_method(:inspect).owner
     end
   end
 end

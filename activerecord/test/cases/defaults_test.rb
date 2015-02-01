@@ -40,7 +40,7 @@ class DefaultNumbersTest < ActiveRecord::TestCase
   end
 
   teardown do
-    @connection.drop_table "default_numbers" if @connection.table_exists? 'default_numbers'
+    @connection.drop_table :default_numbers, if_exists: true
   end
 
   def test_default_positive_integer

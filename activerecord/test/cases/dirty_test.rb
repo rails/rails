@@ -165,18 +165,6 @@ class DirtyTest < ActiveRecord::TestCase
     assert_equal parrot.name_change, parrot.title_change
   end
 
-  def test_reset_attribute!
-    pirate = Pirate.create!(:catchphrase => 'Yar!')
-    pirate.catchphrase = 'Ahoy!'
-
-    assert_deprecated do
-      pirate.reset_catchphrase!
-    end
-    assert_equal "Yar!", pirate.catchphrase
-    assert_equal Hash.new, pirate.changes
-    assert !pirate.catchphrase_changed?
-  end
-
   def test_restore_attribute!
     pirate = Pirate.create!(:catchphrase => 'Yar!')
     pirate.catchphrase = 'Ahoy!'
@@ -718,6 +706,27 @@ class DirtyTest < ActiveRecord::TestCase
 
     model = klass.new(first_name: "Jim")
     assert model.first_name_changed?
+  end
+
+  test "attribute_will_change! doesn't try to save non-persistable attributes" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = 'people'
+      attribute :non_persisted_attribute, ActiveRecord::Type::String.new
+    end
+
+    record = klass.new(first_name: "Sean")
+    record.non_persisted_attribute_will_change!
+
+    assert record.non_persisted_attribute_changed?
+    assert record.save
+  end
+
+  test "mutating and then assigning doesn't remove the change" do
+    pirate = Pirate.create!(catchphrase: "arrrr")
+    pirate.catchphrase << " matey!"
+    pirate.catchphrase = "arrrr matey!"
+
+    assert pirate.catchphrase_changed?(from: "arrrr", to: "arrrr matey!")
   end
 
   private

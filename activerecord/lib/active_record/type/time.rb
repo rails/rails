@@ -7,6 +7,19 @@ module ActiveRecord
         :time
       end
 
+      def user_input_in_time_zone(value)
+        return unless value.present?
+
+        case value
+        when ::String
+          value = "2000-01-01 #{value}"
+        when ::Time
+          value = value.change(year: 2000, day: 1, month: 1)
+        end
+
+        super(value)
+      end
+
       private
 
       def cast_value(value)

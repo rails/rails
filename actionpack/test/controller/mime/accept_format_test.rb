@@ -11,7 +11,7 @@ end
 class StarStarMimeControllerTest < ActionController::TestCase
   def test_javascript_with_format
     @request.accept = "text/javascript"
-    get :index, :format => 'js'
+    get :index, format: 'js'
     assert_match "function addition(a,b){ return a+b; }", @response.body
   end
 
@@ -86,7 +86,7 @@ class MimeControllerLayoutsTest < ActionController::TestCase
   end
 
   def test_non_navigational_format_with_no_template_fallbacks_to_html_template_with_no_layout
-    get :index, :format => :js
+    get :index, format: :js
     assert_equal "Hello Firefox", @response.body
   end
 end

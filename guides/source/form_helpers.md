@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE IN GITHUB, GUIDES ARE PUBLISHED IN http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
 
 Form Helpers
 ============
@@ -275,7 +275,7 @@ There are a few things to note here:
 The resulting HTML is:
 
 ```html
-<form accept-charset="UTF-8" action="/articles/create" method="post" class="nifty_form">
+<form accept-charset="UTF-8" action="/articles" method="post" class="nifty_form">
   <input id="article_title" name="article[title]" type="text" />
   <textarea id="article_body" name="article[body]" cols="60" rows="12"></textarea>
   <input name="commit" type="submit" value="Create" />
@@ -300,7 +300,7 @@ You can create a similar binding without actually creating `<form>` tags with th
 which produces the following output:
 
 ```html
-<form accept-charset="UTF-8" action="/people/create" class="new_person" id="new_person" method="post">
+<form accept-charset="UTF-8" action="/people" class="new_person" id="new_person" method="post">
   <input id="person_name" name="person[name]" type="text" />
   <input id="contact_detail_phone_number" name="contact_detail[phone_number]" type="text" />
 </form>
@@ -687,7 +687,14 @@ class LabellingFormBuilder < ActionView::Helpers::FormBuilder
 end
 ```
 
-If you reuse this frequently you could define a `labeled_form_for` helper that automatically applies the `builder: LabellingFormBuilder` option.
+If you reuse this frequently you could define a `labeled_form_for` helper that automatically applies the `builder: LabellingFormBuilder` option:
+
+```ruby
+def labeled_form_for(record, options = {}, &block)
+  options.merge! builder: LabellingFormBuilder
+  form_for record, options, &block
+end
+```
 
 The form builder used also determines what happens when you do
 

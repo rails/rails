@@ -24,14 +24,14 @@ ActiveSupport::Deprecation.debug = true
 # Disable available locale checks to avoid warnings running the test suite.
 I18n.enforce_available_locales = false
 
-# Enable raise errors in after_commit and after_rollback.
-ActiveRecord::Base.raise_in_transactional_callbacks = true
-
 # Connect to the database
 ARTest.connect
 
 # Quote "type" if it's a reserved word for the current connection.
 QUOTED_TYPE = ActiveRecord::Base.connection.quote_column_name('type')
+
+# FIXME: Remove this when the deprecation cycle on TZ aware types by default ends.
+ActiveRecord::Base.time_zone_aware_types << :time
 
 def current_adapter?(*types)
   types.any? do |type|

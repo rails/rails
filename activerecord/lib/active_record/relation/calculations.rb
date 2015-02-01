@@ -166,8 +166,8 @@ module ActiveRecord
         relation.select_values = column_names.map { |cn|
           columns_hash.key?(cn) ? arel_table[cn] : cn
         }
-        result = klass.connection.select_all(relation.arel, nil, relation.arel.bind_values + bind_values)
-        result.cast_values(klass.column_types)
+        result = klass.connection.select_all(relation.arel, nil, bound_attributes)
+        result.cast_values(klass.attribute_types)
       end
     end
 
@@ -227,14 +227,11 @@ module ActiveRecord
 
       column_alias = column_name
 
-      bind_values = nil
-
       if operation == "count" && (relation.limit_value || relation.offset_value)
         # Shortcut when limit is zero.
         return 0 if relation.limit_value == 0
 
         query_builder = build_count_subquery(relation, column_name, distinct)
-        bind_values = query_builder.bind_values + relation.bind_values
       else
         column = aggregate_column(column_name)
 
@@ -245,10 +242,9 @@ module ActiveRecord
         relation.select_values = [select_value]
 
         query_builder = relation.arel
-        bind_values = query_builder.bind_values + relation.bind_values
       end
 
-      result = @klass.connection.select_all(query_builder, nil, bind_values)
+      result = @klass.connection.select_all(query_builder, nil, bound_attributes)
       row    = result.first
       value  = row && row.values.first
       column = result.column_types.fetch(column_alias) do
@@ -290,7 +286,7 @@ module ActiveRecord
           operation,
           distinct).as(aggregate_alias)
       ]
-      select_values += select_values unless having_values.empty?
+      select_values += select_values unless having_clause.empty?
 
       select_values.concat group_fields.zip(group_aliases).map { |field,aliaz|
         if field.respond_to?(:as)
@@ -304,11 +300,11 @@ module ActiveRecord
       relation.group_values  = group
       relation.select_values = select_values
 
-      calculated_data = @klass.connection.select_all(relation, nil, relation.arel.bind_values + bind_values)
+      calculated_data = @klass.connection.select_all(relation, nil, relation.bound_attributes)
 
       if association
         key_ids     = calculated_data.collect { |row| row[group_aliases.first] }
-        key_records = association.klass.base_class.find(key_ids)
+        key_records = association.klass.base_class.where(association.klass.base_class.primary_key => key_ids)
         key_records = Hash[key_records.map { |r| [r.id, r] }]
       end
 
@@ -378,11 +374,9 @@ module ActiveRecord
 
       aliased_column = aggregate_column(column_name == :all ? 1 : column_name).as(column_alias)
       relation.select_values = [aliased_column]
-      arel = relation.arel
-      subquery = arel.as(subquery_alias)
+      subquery = relation.arel.as(subquery_alias)
 
       sm = Arel::SelectManager.new relation.engine
-      sm.bind_values = arel.bind_values
       select_value = operation_over_aggregate_column(column_alias, 'count', distinct)
       sm.project(select_value).from(subquery)
     end

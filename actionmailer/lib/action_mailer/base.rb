@@ -58,7 +58,7 @@ module ActionMailer
   #
   # The mail method, if not passed a block, will inspect your views and send all the views with
   # the same name as the method, so the above action would send the +welcome.text.erb+ view
-  # file as well as the +welcome.text.html.erb+ view file in a +multipart/alternative+ email.
+  # file as well as the +welcome.html.erb+ view file in a +multipart/alternative+ email.
   #
   # If you want to explicitly render only certain templates, pass a block:
   #

@@ -92,12 +92,15 @@ module ActionView
       # Find and render a template based on the options given.
       # :api: private
       def _render_template(options) #:nodoc:
-        variant = options[:variant]
+        variant = options.delete(:variant)
+        assigns = options.delete(:assigns)
+        context = view_context
 
+        context.assign assigns if assigns
         lookup_context.rendered_format = nil if options[:formats]
         lookup_context.variants = variant if variant
 
-        view_renderer.render(view_context, options)
+        view_renderer.render(context, options)
       end
 
       # Assign the rendered format to lookup context.

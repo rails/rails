@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE IN GITHUB, GUIDES ARE PUBLISHED IN http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
 
 Active Record Query Interface
 =============================
@@ -90,7 +90,7 @@ The primary operation of `Model.find(options)` can be summarized as:
 * Convert the supplied options to an equivalent SQL query.
 * Fire the SQL query and retrieve the corresponding results from the database.
 * Instantiate the equivalent Ruby object of the appropriate model for every resulting row.
-* Run `after_find` callbacks, if any.
+* Run `after_find` and then `after_initialize` callbacks, if any.
 
 ### Retrieving a Single Object
 
@@ -255,6 +255,12 @@ It is equivalent to writing:
 
 ```ruby
 Client.where(first_name: 'Lifo').take
+```
+
+The SQL equivalent of the above is:
+
+```sql
+SELECT * FROM clients WHERE (clients.first_name = 'Lifo') LIMIT 1
 ```
 
 The `find_by!` method behaves exactly like `find_by`, except that it will raise `ActiveRecord::RecordNotFound` if no matching record is found. For example:
@@ -1128,7 +1134,7 @@ This would generate a query which contains a `LEFT OUTER JOIN` whereas the
 If there was no `where` condition, this would generate the normal set of two queries.
 
 NOTE: Using `where` like this will only work when you pass it a Hash. For
-SQL-fragments you need use `references` to force joined tables:
+SQL-fragments you need to use `references` to force joined tables:
 
 ```ruby
 Article.includes(:comments).where("comments.visible = true").references(:comments)
@@ -1269,7 +1275,7 @@ User.active.where(state: 'finished')
 # SELECT "users".* FROM "users" WHERE "users"."state" = 'active' AND "users"."state" = 'finished'
 ```
 
-If we do want the `last where clause` to win then `Relation#merge` can
+If we do want the last `where` clause to win then `Relation#merge` can
 be used.
 
 ```ruby

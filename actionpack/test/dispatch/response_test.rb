@@ -231,9 +231,9 @@ class ResponseTest < ActiveSupport::TestCase
     assert_equal ['Not Found'], body.each.to_a
   end
 
-  test "[response].flatten does not recurse infinitely" do
+  test "[response.to_a].flatten does not recurse infinitely" do
     Timeout.timeout(1) do # use a timeout to prevent it stalling indefinitely
-      status, headers, body = assert_deprecated { [@response].flatten }
+      status, headers, body = [@response.to_a].flatten
       assert_equal @response.status, status
       assert_equal @response.headers, headers
       assert_equal @response.body, body.each.to_a.join
@@ -250,20 +250,6 @@ class ResponseTest < ActiveSupport::TestCase
 
     status, headers, body = Rack::ContentLength.new(app).call(env)
     assert_equal '5', headers['Content-Length']
-  end
-
-  test "implicit destructuring and Array conversion is deprecated" do
-    response = ActionDispatch::Response.new(404, { 'Content-Type' => 'text/plain' }, ['Not Found'])
-
-    assert_deprecated do
-      status, headers, body = response
-
-      assert_equal 404, status
-      assert_equal({ 'Content-Type' => 'text/plain' }, headers)
-      assert_equal ['Not Found'], body.each.to_a
-    end
-
-    assert_deprecated { response.to_ary }
   end
 end
 

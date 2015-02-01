@@ -73,7 +73,7 @@ module ActionDispatch
   #   to <tt>:all</tt>. Make sure to specify the <tt>:domain</tt> option with
   #   <tt>:all</tt> or <tt>Array</tt> again when deleting cookies.
   #
-  #     domain: nil  # Does not sets cookie domain. (default)
+  #     domain: nil  # Does not set cookie domain. (default)
   #     domain: :all # Allow the cookie for the top most level
   #                  # domain and subdomains.
   #     domain: %w(.example.com .example.org) # Allow the cookie

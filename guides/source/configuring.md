@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE IN GITHUB, GUIDES ARE PUBLISHED IN http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
 
 Configuring Rails Applications
 ==============================
@@ -110,7 +110,7 @@ numbers. New applications filter out passwords by adding the following `config.f
 
 * `config.log_formatter` defines the formatter of the Rails logger. This option defaults to an instance of `ActiveSupport::Logger::SimpleFormatter` for all modes except production, where it defaults to `Logger::Formatter`.
 
-* `config.log_level` defines the verbosity of the Rails logger. This option defaults to `:debug` for all environments.
+* `config.log_level` defines the verbosity of the Rails logger. This option defaults to `:debug` for all environments. The available log levels are: :debug, :info, :warn, :error, :fatal, and :unknown.
 
 * `config.log_tags` accepts a list of methods that the `request` object responds to. This makes it easy to tag log lines with debug information like subdomain and request id - both very helpful in debugging multi-user production applications.
 
@@ -507,6 +507,8 @@ There are a few configuration options available in Active Support:
 
 * `config.active_support.time_precision` sets the precision of JSON encoded time values. Defaults to `3`.
 
+* `config.active_support.halt_callback_chains_on_return_false` specifies whether ActiveRecord, ActiveModel and ActiveModel::Validations callback chains can be halted by returning `false` in a 'before' callback. Defaults to `true`.
+
 * `ActiveSupport::Logger.silencer` is set to `false` to disable the ability to silence logging in a block. The default is `true`.
 
 * `ActiveSupport::Cache::Store.logger` specifies the logger to use within cache store operations.
@@ -690,7 +692,7 @@ development:
   pool: 5
 ```
 
-Prepared Statements are enabled by default on PostgreSQL. You can be disable prepared statements by setting `prepared_statements` to `false`:
+Prepared Statements are enabled by default on PostgreSQL. You can disable prepared statements by setting `prepared_statements` to `false`:
 
 ```yaml
 production:

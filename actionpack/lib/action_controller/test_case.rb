@@ -2,7 +2,6 @@ require 'rack/session/abstract/id'
 require 'active_support/core_ext/object/to_query'
 require 'active_support/core_ext/module/anonymous'
 require 'active_support/core_ext/hash/keys'
-require 'active_support/deprecation'
 
 require 'rails-dom-testing'
 
@@ -67,8 +66,10 @@ module ActionController
 
     def reset_template_assertion
       RENDER_TEMPLATE_INSTANCE_VARIABLES.each do |instance_variable|
-        ivar = instance_variable_get("@_#{instance_variable}")
-        ivar.clear if ivar
+        ivar_name = "@_#{instance_variable}"
+        if instance_variable_defined?(ivar_name)
+          instance_variable_get(ivar_name).clear
+        end
       end
     end
 
@@ -493,55 +494,61 @@ module ActionController
       # Simulate a GET request with the given parameters.
       #
       # - +action+: The controller action to call.
-      # - +parameters+: The HTTP parameters that you want to pass. This may
-      #   be +nil+, a hash, or a string that is appropriately encoded
+      # - +params+: The hash with HTTP parameters that you want to pass. This may be +nil+.
+      # - +body+: The request body with a string that is appropriately encoded
       #   (<tt>application/x-www-form-urlencoded</tt> or <tt>multipart/form-data</tt>).
       # - +session+: A hash of parameters to store in the session. This may be +nil+.
       # - +flash+: A hash of parameters to store in the flash. This may be +nil+.
       #
       # You can also simulate POST, PATCH, PUT, DELETE, and HEAD requests with
       # +post+, +patch+, +put+, +delete+, and +head+.
+      # Example sending parameters, session and setting a flash message:
+      #
+      #   get :show,
+      #     params: { id: 7 },
+      #     session: { user_id: 1 },
+      #     flash: { notice: 'This is flash message' }
       #
       # Note that the request method is not verified. The different methods are
       # available to make the tests more expressive.
       def get(action, *args)
-        process(action, "GET", *args)
+        process_with_kwargs("GET", action, *args)
       end
 
       # Simulate a POST request with the given parameters and set/volley the response.
       # See +get+ for more details.
       def post(action, *args)
-        process(action, "POST", *args)
+        process_with_kwargs("POST", action, *args)
       end
 
       # Simulate a PATCH request with the given parameters and set/volley the response.
       # See +get+ for more details.
       def patch(action, *args)
-        process(action, "PATCH", *args)
+        process_with_kwargs("PATCH", action, *args)
       end
 
       # Simulate a PUT request with the given parameters and set/volley the response.
       # See +get+ for more details.
       def put(action, *args)
-        process(action, "PUT", *args)
+        process_with_kwargs("PUT", action, *args)
       end
 
       # Simulate a DELETE request with the given parameters and set/volley the response.
       # See +get+ for more details.
       def delete(action, *args)
-        process(action, "DELETE", *args)
+        process_with_kwargs("DELETE", action, *args)
       end
 
       # Simulate a HEAD request with the given parameters and set/volley the response.
       # See +get+ for more details.
       def head(action, *args)
-        process(action, "HEAD", *args)
+        process_with_kwargs("HEAD", action, *args)
       end
 
-      def xml_http_request(request_method, action, parameters = nil, session = nil, flash = nil)
+      def xml_http_request(*args)
         @request.env['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest'
         @request.env['HTTP_ACCEPT'] ||=  [Mime::JS, Mime::HTML, Mime::XML, 'text/xml', Mime::ALL].join(', ')
-        __send__(request_method, action, parameters, session, flash).tap do
+        __send__(*args).tap do
           @request.env.delete 'HTTP_X_REQUESTED_WITH'
           @request.env.delete 'HTTP_ACCEPT'
         end
@@ -565,40 +572,68 @@ module ActionController
       # parameters and set/volley the response.
       #
       # - +action+: The controller action to call.
-      # - +http_method+: Request method used to send the http request. Possible values
-      #   are +GET+, +POST+, +PATCH+, +PUT+, +DELETE+, +HEAD+. Defaults to +GET+.
-      # - +parameters+: The HTTP parameters. This may be +nil+, a hash, or a
-      #   string that is appropriately encoded (+application/x-www-form-urlencoded+
-      #   or +multipart/form-data+).
+      # - +method+: Request method used to send the HTTP request. Possible values
+      #   are +GET+, +POST+, +PATCH+, +PUT+, +DELETE+, +HEAD+. Defaults to +GET+. Can be a symbol.
+      # - +params+: The hash with HTTP parameters that you want to pass. This may be +nil+.
+      # - +body+: The request body with a string that is appropriately encoded
+      #   (<tt>application/x-www-form-urlencoded</tt> or <tt>multipart/form-data</tt>).
       # - +session+: A hash of parameters to store in the session. This may be +nil+.
       # - +flash+: A hash of parameters to store in the flash. This may be +nil+.
+      # - +format+: Request format. Defaults to +nil+. Can be string or symbol.
       #
       # Example calling +create+ action and sending two params:
       #
-      #   process :create, 'POST', user: { name: 'Gaurish Sharma', email: 'user@example.com' }
-      #
-      # Example sending parameters, +nil+ session and setting a flash message:
-      #
-      #   process :view, 'GET', { id: 7 }, nil, { notice: 'This is flash message' }
+      #   process :create,
+      #     method: 'POST',
+      #     params: {
+      #       user: { name: 'Gaurish Sharma', email: 'user@example.com' }
+      #     },
+      #     session: { user_id: 1 },
+      #     flash: { notice: 'This is flash message' }
       #
       # To simulate +GET+, +POST+, +PATCH+, +PUT+, +DELETE+ and +HEAD+ requests
       # prefer using #get, #post, #patch, #put, #delete and #head methods
       # respectively which will make tests more expressive.
       #
       # Note that the request method is not verified.
-      def process(action, http_method = 'GET', *args)
+      def process(action, *args)
         check_required_ivars
 
-        if args.first.is_a?(String) && http_method != 'HEAD'
-          @request.env['RAW_POST_DATA'] = args.shift
+        if kwarg_request?(*args)
+          parameters, session, body, flash, http_method, format = args[0].values_at(:params, :session, :body, :flash, :method, :format)
+        else
+          http_method, parameters, session, flash = args
+          format = nil
+
+          if parameters.is_a?(String) && http_method != 'HEAD'
+            body = parameters
+            parameters = nil
+          end
+
+          if parameters.present? || session.present? || flash.present?
+            non_kwarg_request_warning
+          end
         end
 
-        parameters, session, flash = args
+        if body.present?
+          @request.env['RAW_POST_DATA'] = body
+        end
+
+        if http_method.present?
+          http_method = http_method.to_s.upcase
+        else
+          http_method = "GET"
+        end
+
         parameters ||= {}
 
         # Ensure that numbers and symbols passed as params are converted to
         # proper params, as is the case when engaging rack.
         parameters = paramify_values(parameters) if html_format?(parameters)
+
+        if format.present?
+          parameters[:format] = format
+        end
 
         @html_document = nil
 
@@ -692,6 +727,38 @@ module ActionController
 
       private
 
+      def process_with_kwargs(http_method, action, *args)
+        if kwarg_request?(*args)
+          args.first.merge!(method: http_method)
+          process(action, *args)
+        else
+          non_kwarg_request_warning if args.present?
+
+          args = args.unshift(http_method)
+          process(action, *args)
+        end
+      end
+
+      REQUEST_KWARGS = %i(params session flash method body)
+      def kwarg_request?(*args)
+        args[0].respond_to?(:keys) && (
+          (args[0].key?(:format) && args[0].keys.size == 1) ||
+          args[0].keys.any? { |k| REQUEST_KWARGS.include?(k) }
+        )
+      end
+
+      def non_kwarg_request_warning
+        ActiveSupport::Deprecation.warn(<<-MSG.strip_heredoc)
+          ActionController::TestCase HTTP request methods will accept only
+          keyword arguments in future Rails versions.
+
+          Examples:
+
+          get :show, params: { id: 1 }, session: { user_id: 1 }
+          process :update, method: :post, params: { id: 1 }
+        MSG
+      end
+
       def document_root_element
         html_document.root
       end
@@ -714,28 +781,7 @@ module ActionController
             :relative_url_root => nil,
             :_recall => @request.path_parameters)
 
-          if route_name = options.delete(:use_route)
-            ActiveSupport::Deprecation.warn <<-MSG.squish
-              Passing the `use_route` option in functional tests are deprecated.
-              Support for this option in the `process` method (and the related
-              `get`, `head`, `post`, `patch`, `put` and `delete` helpers) will
-              be removed in the next version without replacement.
-
-              Functional tests are essentially unit tests for controllers and
-              they should not require knowledge to how the application's routes
-              are configured. Instead, you should explicitly pass the appropiate
-              params to the `process` method.
-
-              Previously the engines guide also contained an incorrect example
-              that recommended using this option to test an engine's controllers
-              within the dummy application. That recommendation was incorrect
-              and has since been corrected. Instead, you should override the
-              `@routes` variable in the test case with `Foo::Engine.routes`. See
-              the updated engines guide for details.
-            MSG
-          end
-
-          url, query_string = @routes.path_for(options, route_name).split("?", 2)
+          url, query_string = @routes.path_for(options).split("?", 2)
 
           @request.env["SCRIPT_NAME"] = @controller.config.relative_url_root
           @request.env["PATH_INFO"] = url

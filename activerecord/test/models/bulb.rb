@@ -46,6 +46,6 @@ end
 
 class FailedBulb < Bulb
   before_destroy do
-    false
+    throw(:abort)
   end
 end

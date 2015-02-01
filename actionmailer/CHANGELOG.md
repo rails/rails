@@ -1,3 +1,35 @@
+*   Add `assert_enqueued_emails` and `assert_no_enqueued_emails`.
+
+    Example:
+
+        def test_emails
+          assert_enqueued_emails 2 do
+            ContactMailer.welcome.deliver_later
+            ContactMailer.welcome.deliver_later
+          end
+        end
+
+        def test_no_emails
+          assert_no_enqueued_emails do
+            # No emails enqueued here
+          end
+        end
+
+    *George Claghorn*
+
+*   Add `_mailer` suffix to mailers created via generator, following the same
+    naming convention used in controllers and jobs.
+
+    *Carlos Souza*
+
+*   Remove deprecate `*_path` helpers in email views.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `deliver` and `deliver!` methods.
+
+    *claudiob*
+
 *   Template lookup now respects default locale and I18n fallbacks.
 
     Given the following templates:

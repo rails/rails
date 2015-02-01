@@ -64,7 +64,7 @@ module ActiveRecord
     #   <tt>SET client_min_messages TO <min_messages></tt> call on the connection.
     # * <tt>:variables</tt> - An optional hash of additional parameters that
     #   will be used in <tt>SET SESSION key = val</tt> calls on the connection.
-    # * <tt>:insert_returning</tt> - An optional boolean to control the use or <tt>RETURNING</tt> for <tt>INSERT</tt> statements
+    # * <tt>:insert_returning</tt> - An optional boolean to control the use of <tt>RETURNING</tt> for <tt>INSERT</tt> statements
     #   defaults to true.
     #
     # Any further options are used as connection parameters to libpq. See
@@ -144,7 +144,7 @@ module ActiveRecord
       # AbstractAdapter
       def prepare_column_options(column) # :nodoc:
         spec = super
-        spec[:array] = 'true' if column.respond_to?(:array) && column.array
+        spec[:array] = 'true' if column.array?
         spec[:default] = "\"#{column.default_function}\"" if column.default_function
         spec
       end
@@ -609,12 +609,10 @@ module ActiveRecord
 
         def exec_cache(sql, name, binds)
           stmt_key = prepare_statement(sql)
-          type_casted_binds = binds.map { |col, val|
-            [col, type_cast(val, col)]
-          }
+          type_casted_binds = binds.map { |attr| type_cast(attr.value_for_database) }
 
-          log(sql, name, type_casted_binds, stmt_key) do
-            @connection.exec_prepared(stmt_key, type_casted_binds.map { |_, val| val })
+          log(sql, name, binds, stmt_key) do
+            @connection.exec_prepared(stmt_key, type_casted_binds)
           end
         rescue ActiveRecord::StatementInvalid => e
           pgerror = e.original_exception

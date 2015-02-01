@@ -39,12 +39,12 @@ module TestUrlGeneration
     end
 
     test "the request's SCRIPT_NAME takes precedence over the route" do
-      get "/foo", {}, 'SCRIPT_NAME' => "/new", 'action_dispatch.routes' => Routes
+      get "/foo", headers: { 'SCRIPT_NAME' => "/new", 'action_dispatch.routes' => Routes }
       assert_equal "/new/foo", response.body
     end
 
     test "the request's SCRIPT_NAME wraps the mounted app's" do
-      get '/new/bar/foo', {}, 'SCRIPT_NAME' => '/new', 'PATH_INFO' => '/bar/foo', 'action_dispatch.routes' => Routes
+      get '/new/bar/foo', headers: { 'SCRIPT_NAME' => '/new', 'PATH_INFO' => '/bar/foo', 'action_dispatch.routes' => Routes }
       assert_equal "/new/bar/foo", response.body
     end
 

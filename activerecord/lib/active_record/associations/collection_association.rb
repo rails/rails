@@ -151,6 +151,7 @@ module ActiveRecord
       # be chained. Since << flattens its argument list and inserts each record,
       # +push+ and +concat+ behave identically.
       def concat(*records)
+        records = records.flatten
         if owner.new_record?
           load_target
           concat_records(records)
@@ -549,7 +550,7 @@ module ActiveRecord
         def concat_records(records, should_raise = false)
           result = true
 
-          records.flatten.each do |record|
+          records.each do |record|
             raise_on_type_mismatch!(record)
             add_to_target(record) do |rec|
               result &&= insert_record(rec, true, should_raise) unless owner.new_record?
