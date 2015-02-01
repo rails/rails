@@ -1,6 +1,7 @@
 require 'erb'
 require 'yaml'
 require 'zlib'
+require 'set'
 require 'active_support/dependencies'
 require 'active_support/core_ext/digest/uuid'
 require 'active_record/fixture_set/file'
@@ -521,7 +522,7 @@ module ActiveRecord
           update_all_loaded_fixtures fixtures_map
 
           connection.transaction(:requires_new => true) do
-            deleted_tables = []
+            deleted_tables = Set.new 
             fixture_sets.each do |fs|
               conn = fs.model_class.respond_to?(:connection) ? fs.model_class.connection : connection
               table_rows = fs.table_rows
