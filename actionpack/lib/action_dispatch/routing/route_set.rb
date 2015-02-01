@@ -480,6 +480,14 @@ module ActionDispatch
       end
 
       def url_helpers(supports_path = true)
+        if supports_path
+          @url_helpers_with_paths ||= generate_url_helpers(supports_path)
+        else
+          @url_helpers_without_paths ||= generate_url_helpers(supports_path)
+        end
+      end
+
+      def generate_url_helpers(supports_path)
         routes = self
 
         Module.new do
