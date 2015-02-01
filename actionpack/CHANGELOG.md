@@ -1,3 +1,16 @@
+*   Migrating xhr methods to keyword arguments syntax
+    in `ActionController::TestCase` and `ActionDispatch::Integration`
+
+    Old syntax:
+
+        xhr :get, :create, params: { id: 1 }
+
+    New syntax example:
+
+        get :create, params: { id: 1 }, xhr: true
+
+    *Kir Shatrov*
+
 *   Migrating to keyword arguments syntax in `ActionController::TestCase` and
     `ActionDispatch::Integration` HTTP request methods
 

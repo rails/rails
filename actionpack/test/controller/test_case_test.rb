@@ -694,19 +694,34 @@ XML
   end
 
   def test_header_properly_reset_after_remote_http_request
-    xhr :get, :test_params
+    get :test_params, xhr: true
     assert_nil @request.env['HTTP_X_REQUESTED_WITH']
     assert_nil @request.env['HTTP_ACCEPT']
   end
 
+  def test_deprecated_xhr_with_params
+    assert_deprecated { xhr :get, :test_params, params: { id: 1 } }
+
+    assert_equal(%({"id"=>"1", "controller"=>"test_case_test/test", "action"=>"test_params"}), @response.body)
+  end
+
   def test_xhr_with_params
-    xhr :get, :test_params, params: { id: 1 }
+    get :test_params, params: { id: 1 }, xhr: true
 
     assert_equal(%({"id"=>"1", "controller"=>"test_case_test/test", "action"=>"test_params"}), @response.body)
   end
 
   def test_xhr_with_session
-    xhr :get, :set_session
+    get :set_session, xhr: true
+
+    assert_equal 'A wonder', session['string'], "A value stored in the session should be available by string key"
+    assert_equal 'A wonder', session[:string], "Test session hash should allow indifferent access"
+    assert_equal 'it works', session['symbol'], "Test session hash should allow indifferent access"
+    assert_equal 'it works', session[:symbol], "Test session hash should allow indifferent access"
+  end
+
+  def test_deprecated_xhr_with_session
+    assert_deprecated { xhr :get, :set_session }
 
     assert_equal 'A wonder', session['string'], "A value stored in the session should be available by string key"
     assert_equal 'A wonder', session[:string], "Test session hash should allow indifferent access"

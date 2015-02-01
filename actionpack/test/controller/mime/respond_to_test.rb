@@ -310,17 +310,17 @@ class RespondToControllerTest < ActionController::TestCase
 
   def test_js_or_html
     @request.accept = "text/javascript, text/html"
-    xhr :get, :js_or_html
+    get :js_or_html, xhr: true
     assert_equal 'JS', @response.body
 
     @request.accept = "text/javascript, text/html"
-    xhr :get, :html_or_xml
+    get :html_or_xml, xhr: true
     assert_equal 'HTML', @response.body
 
     @request.accept = "text/javascript, text/html"
 
     assert_raises(ActionController::UnknownFormat) do
-      xhr :get, :just_xml
+      get :just_xml, xhr: true
     end
   end
 
@@ -335,7 +335,7 @@ class RespondToControllerTest < ActionController::TestCase
   end
 
   def test_json_or_yaml
-    xhr :get, :json_or_yaml
+    get :json_or_yaml, xhr: true
     assert_equal 'JSON', @response.body
 
     get :json_or_yaml, format: 'json'
@@ -357,13 +357,13 @@ class RespondToControllerTest < ActionController::TestCase
 
   def test_js_or_anything
     @request.accept = "text/javascript, */*"
-    xhr :get, :js_or_html
+    get :js_or_html, xhr: true
     assert_equal 'JS', @response.body
 
-    xhr :get, :html_or_xml
+    get :html_or_xml, xhr: true
     assert_equal 'HTML', @response.body
 
-    xhr :get, :just_xml
+    get :just_xml, xhr: true
     assert_equal 'XML', @response.body
   end
 
@@ -408,14 +408,14 @@ class RespondToControllerTest < ActionController::TestCase
   def test_with_atom_content_type
     @request.accept = ""
     @request.env["CONTENT_TYPE"] = "application/atom+xml"
-    xhr :get, :made_for_content_type
+    get :made_for_content_type, xhr: true
     assert_equal "ATOM", @response.body
   end
 
   def test_with_rss_content_type
     @request.accept = ""
     @request.env["CONTENT_TYPE"] = "application/rss+xml"
-    xhr :get, :made_for_content_type
+    get :made_for_content_type, xhr: true
     assert_equal "RSS", @response.body
   end
 
@@ -525,7 +525,7 @@ class RespondToControllerTest < ActionController::TestCase
   end
 
   def test_xhr
-    xhr :get, :js_or_html
+    get :js_or_html, xhr: true
     assert_equal 'JS', @response.body
   end
 
