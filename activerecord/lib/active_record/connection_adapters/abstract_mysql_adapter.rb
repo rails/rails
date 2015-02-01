@@ -287,6 +287,10 @@ module ActiveRecord
         0
       end
 
+      def quote_like(str)
+        quote(str).gsub('_', '\_')
+      end
+
       # REFERENTIAL INTEGRITY ====================================
 
       def disable_referential_integrity #:nodoc:
@@ -410,7 +414,7 @@ module ActiveRecord
       def tables(name = nil, database = nil, like = nil) #:nodoc:
         sql = "SHOW TABLES "
         sql << "IN #{quote_table_name(database)} " if database
-        sql << "LIKE #{quote(like)}" if like
+        sql << "LIKE #{quote_like(like)}" if like
 
         execute_and_free(sql, 'SCHEMA') do |result|
           result.collect(&:first)

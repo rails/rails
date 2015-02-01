@@ -1,3 +1,10 @@
+*   Fixed ActiveRecord::Base.connection.table_exists? method to escape
+    underscore in SQL LIKE clause when using MySQL. Previously,
+    table_exists('Foo_') will return true if any table named "Foo?" exists 
+    where "?" can be any character. 
+    
+    *Kai Huang*
+
 *   Fixed ActiveRecord::Relation#group method when argument is SQL reserved key word:
 
     Example:
