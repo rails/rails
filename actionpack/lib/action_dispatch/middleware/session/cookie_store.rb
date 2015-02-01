@@ -118,6 +118,12 @@ module ActionDispatch
         request = ActionDispatch::Request.new(env)
         request.cookie_jar.signed_or_encrypted
       end
+
+      def valid_cookie?(env)
+        cookie = get_cookie(env)
+        cookie_jar(env).validate_cookie_with_all_keys(cookie)
+      end
+
     end
   end
 end

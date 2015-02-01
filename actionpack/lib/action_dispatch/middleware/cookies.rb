@@ -498,17 +498,48 @@ module ActionDispatch
       include ChainedCookieJars
       include SerializedCookieJars
 
-      def initialize(parent_jar, key_generator, options = {})
+      def check_legacy_generator(key_generator)
         if ActiveSupport::LegacyKeyGenerator === key_generator
           raise "You didn't set secrets.secret_key_base, which is required for this cookie jar. " +
             "Read the upgrade documentation to learn more about this new config option."
         end
+      end
 
+      def initialize(parent_jar, key_generator, options = {})
+        # Unfortunately, check_legacy_generator is called twice (here and in set_key);
+        # there doesn't seem to be a good way around this
+        check_legacy_generator(key_generator)
         @parent_jar = parent_jar
+        @valid_keys = []
+        set_key(key_generator, options)
+      end
+
+      def set_key(key_generator, options = {})
+        check_legacy_generator(key_generator)
         @options = options
         secret = key_generator.generate_key(@options[:encrypted_cookie_salt])
         sign_secret = key_generator.generate_key(@options[:encrypted_signed_cookie_salt])
         @encryptor = ActiveSupport::MessageEncryptor.new(secret, sign_secret, digest: digest, serializer: ActiveSupport::MessageEncryptor::NullSerializer)
+        @valid_keys.push({"secret" => secret, "sign_secret" => sign_secret})
+      end
+
+      # This method needs a better name
+      def validate_cookie_with_all_keys(cookie)
+        valid = false
+        valid_keys.each do |key_pair|
+          begin
+            secret = key_pair["secret"]
+            sign_secret = key_pair["sign_secret"]
+            temp_encryptor = ActiveSupport::MessageEncryptor.new(secret,
+              sign_secret, digest: digest,
+              serializer: ActiveSupport::MessageEncryptor::NullSerializer)
+            temp_encryptor.decrypt_and_verify(cookie)
+            valid = true
+          rescue InvalidMessage
+            valid ||= false
+          end
+        end
+        valid
       end
 
       def [](name)
