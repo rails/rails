@@ -59,24 +59,24 @@ class ConcernTest < ActiveSupport::TestCase
   end
 
   def test_module_is_included_normally
-    @klass.send(:include, Baz)
+    @klass.include(Baz)
     assert_equal "baz", @klass.new.baz
     assert @klass.included_modules.include?(ConcernTest::Baz)
   end
 
   def test_class_methods_are_extended
-    @klass.send(:include, Baz)
+    @klass.include(Baz)
     assert_equal "baz", @klass.baz
     assert_equal ConcernTest::Baz::ClassMethods, (class << @klass; self.included_modules; end)[0]
   end
 
   def test_included_block_is_ran
-    @klass.send(:include, Baz)
+    @klass.include(Baz)
     assert_equal true, @klass.included_ran
   end
 
   def test_modules_dependencies_are_met
-    @klass.send(:include, Bar)
+    @klass.include(Bar)
     assert_equal "bar", @klass.new.bar
     assert_equal "bar+baz", @klass.new.baz
     assert_equal "bar's baz + baz", @klass.baz
@@ -84,7 +84,7 @@ class ConcernTest < ActiveSupport::TestCase
   end
 
   def test_dependencies_with_multiple_modules
-    @klass.send(:include, Foo)
+    @klass.include(Foo)
     assert_equal [ConcernTest::Foo, ConcernTest::Bar, ConcernTest::Baz], @klass.included_modules[0..2]
   end
 

@@ -268,7 +268,7 @@ class Rack::TestCase < ActionDispatch::IntegrationTest
   end
 end
 
-ActionView::RoutingUrlFor.send(:include, ActionDispatch::Routing::UrlFor)
+ActionView::RoutingUrlFor.include(ActionDispatch::Routing::UrlFor)
 
 module ActionController
   class Base

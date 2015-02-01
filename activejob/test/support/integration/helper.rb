@@ -20,7 +20,7 @@ require 'rails/test_help'
 Rails.backtrace_cleaner.remove_silencers!
 
 require_relative 'test_case_helpers'
-ActiveSupport::TestCase.send(:include, TestCaseHelpers)
+ActiveSupport::TestCase.include(TestCaseHelpers)
 
 JobsManager.current_manager.start_workers
 

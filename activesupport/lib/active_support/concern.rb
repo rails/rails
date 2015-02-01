@@ -114,7 +114,7 @@ module ActiveSupport
         return false
       else
         return false if base < self
-        @_dependencies.each { |dep| base.send(:include, dep) }
+        @_dependencies.each { |dep| base.include(dep) }
         super
         base.extend const_get(:ClassMethods) if const_defined?(:ClassMethods)
         base.class_eval(&@_included_block) if instance_variable_defined?(:@_included_block)

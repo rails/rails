@@ -1184,7 +1184,7 @@ class ResourcesTest < ActionController::TestCase
       end
 
       @controller = "#{options[:options][:controller].camelize}Controller".constantize.new
-      @controller.singleton_class.send(:include, @routes.url_helpers)
+      @controller.singleton_class.include(@routes.url_helpers)
       @request    = ActionController::TestRequest.new
       @response   = ActionController::TestResponse.new
       get :index, params: options[:options]
@@ -1254,7 +1254,7 @@ class ResourcesTest < ActionController::TestCase
     def assert_singleton_named_routes_for(singleton_name, options = {})
       (options[:options] ||= {})[:controller] ||= singleton_name.to_s.pluralize
       @controller = "#{options[:options][:controller].camelize}Controller".constantize.new
-      @controller.singleton_class.send(:include, @routes.url_helpers)
+      @controller.singleton_class.include(@routes.url_helpers)
       @request    = ActionController::TestRequest.new
       @response   = ActionController::TestResponse.new
       get :show, params: options[:options]

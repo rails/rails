@@ -2,6 +2,11 @@
 
     *Sammy Larbi*
 
+*   Change the default error message from `can't be blank` to `must exist` for
+    the presence validator of the `:required` option on `belongs_to`/`has_one` associations.
+
+    *Henrik Nygren*
+
 *   Fixed ActiveRecord::Relation#group method when argument is SQL reserved key word:
 
     Example:

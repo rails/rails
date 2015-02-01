@@ -127,7 +127,7 @@ module Rails
       def builder
         @builder ||= begin
           builder_class = get_builder_class
-          builder_class.send(:include, ActionMethods)
+          builder_class.include(ActionMethods)
           builder_class.new(self)
         end
       end
