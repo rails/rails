@@ -1,3 +1,7 @@
+*   Fix n+1 query problem when eager loading nil associations (fixes #18312)
+
+    *Sammy Larbi*
+
 *   Fixed ActiveRecord::Relation#group method when argument is SQL reserved key word:
 
     Example:
