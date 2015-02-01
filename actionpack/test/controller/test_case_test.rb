@@ -14,6 +14,11 @@ class TestCaseTest < ActionController::TestCase
       render text: 'ignore me'
     end
 
+    def delete_flash
+      flash.delete("test")
+      render :text => 'ignore me'
+    end
+
     def set_flash_now
       flash.now["test_now"] = ">#{flash["test_now"]}<"
       render text: 'ignore me'
@@ -288,6 +293,13 @@ XML
       method: "GET",
       flash: { "test_now" => "value_now" }
     assert_equal '>value_now<', flash['test_now']
+  end
+
+  def test_process_delete_flash
+    process :set_flash
+    process :delete_flash
+    assert_empty flash
+    assert_empty session
   end
 
   def test_process_with_session

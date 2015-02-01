@@ -677,6 +677,8 @@ module ActionController
 
         if flash_value = @request.flash.to_session_value
           @request.session['flash'] = flash_value
+        else
+          @request.session.delete('flash')
         end
 
         @response

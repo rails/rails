@@ -80,24 +80,30 @@ module ActionDispatch
       include Enumerable
 
       def self.from_session_value(value) #:nodoc:
-        flash = case value
-                when FlashHash # Rails 3.1, 3.2
-                  new(value.instance_variable_get(:@flashes), value.instance_variable_get(:@used))
-                when Hash # Rails 4.0
-                  new(value['flashes'], value['discard'])
-                else
-                  new
-                end
-
-        flash.tap(&:sweep)
+        case value
+        when FlashHash # Rails 3.1, 3.2
+          flashes = value.instance_variable_get(:@flashes)
+          if discard = value.instance_variable_get(:@used)
+            flashes.except!(*discard)
+          end
+          new(flashes, flashes.keys)
+        when Hash # Rails 4.0
+          flashes = value['flashes']
+          if discard = value['discard']
+            flashes.except!(*discard)
+          end
+          new(flashes, flashes.keys)
+        else
+          new
+        end
       end
-      
-      # Builds a hash containing the discarded values and the hashes
-      # representing the flashes.
-      # If there are no values in @flashes, returns nil.
+
+      # Builds a hash containing the flashes to keep for the next request.
+      # If there are none to keep, returns nil.
       def to_session_value #:nodoc:
-        return nil if empty?
-        {'discard' => @discard.to_a, 'flashes' => @flashes}
+        flashes_to_keep = @flashes.except(*@discard)
+        return nil if flashes_to_keep.empty?
+        {'flashes' => flashes_to_keep}
       end
 
       def initialize(flashes = {}, discard = []) #:nodoc:
