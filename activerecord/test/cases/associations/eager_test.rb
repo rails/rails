@@ -77,7 +77,15 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   def test_has_many_through_with_order
     authors = Author.includes(:favorite_authors).to_a
+    assert authors.count > 0
     assert_no_queries { authors.map(&:favorite_authors) }
+  end
+
+  def test_eager_loaded_has_one_association_with_references_does_not_run_additional_queries
+    Post.update_all(author_id: nil)
+    authors = Author.includes(:post).references(:post).to_a
+    assert authors.count > 0
+    assert_no_queries { authors.map(&:post) }
   end
 
   def test_with_two_tables_in_from_without_getting_double_quoted
