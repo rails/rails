@@ -168,6 +168,7 @@ module ActiveRecord
     def destroy
       raise ReadOnlyRecord, "#{self.class} is marked as readonly" if readonly?
       destroy_associations
+      self.class.connection.add_transaction_record(self)
       destroy_row if persisted?
       @destroyed = true
       freeze
