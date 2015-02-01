@@ -16,7 +16,7 @@ class InfoControllerTest < ActionController::TestCase
     end
     @routes = Rails.application.routes
 
-    Rails::InfoController.send(:include, @routes.url_helpers)
+    Rails::InfoController.include(@routes.url_helpers)
 
     @request.env["REMOTE_ADDR"] = "127.0.0.1"
   end

@@ -68,7 +68,7 @@ module I18n
     end
 
     def self.include_fallbacks_module
-      I18n.backend.class.send(:include, I18n::Backend::Fallbacks)
+      I18n.backend.class.include(I18n::Backend::Fallbacks)
     end
 
     def self.init_fallbacks(fallbacks)

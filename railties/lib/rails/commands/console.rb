@@ -79,7 +79,7 @@ module Rails
       end
 
       if defined?(console::ExtendCommandBundle)
-        console::ExtendCommandBundle.send :include, Rails::ConsoleMethods
+        console::ExtendCommandBundle.include(Rails::ConsoleMethods)
       end
       console.start
     end
