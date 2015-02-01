@@ -24,7 +24,7 @@ module ActiveRecord
     end
 
     def keys
-      attributes.initialized_keys
+      attributes.each_key.select { |name| self[name].initialized? }
     end
 
     def fetch_value(name)
