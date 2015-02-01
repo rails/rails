@@ -65,10 +65,10 @@ class RendererTest < ActiveSupport::TestCase
   end
 
   test 'same defaults from the same controller' do
-    defaults = ->(controller) { controller.renderer.defaults }
+    renderer_defaults = ->(controller) { controller.renderer.defaults }
 
-    assert defaults[AccountsController].equal? defaults[AccountsController]
-    assert_not defaults[AccountsController].equal? defaults[CommentsController]
+    assert renderer_defaults[AccountsController].equal? renderer_defaults[AccountsController]
+    assert_not renderer_defaults[AccountsController].equal? renderer_defaults[CommentsController]
   end
 
   test 'rendering with different formats' do
