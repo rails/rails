@@ -132,7 +132,7 @@ module ActiveRecord
   #         Digest::SHA2.hexdigest(File.read(Rails.root.join('test/fixtures', path)))
   #       end
   #     end
-  #     ActiveRecord::FixtureSet.context_class.send :include, FixtureFileHelpers
+  #     ActiveRecord::FixtureSet.context_class.include FixtureFileHelpers
   #
   # - use the helper method in a fixture
   #     photo:
@@ -522,7 +522,7 @@ module ActiveRecord
           update_all_loaded_fixtures fixtures_map
 
           connection.transaction(:requires_new => true) do
-            deleted_tables = Set.new 
+            deleted_tables = Set.new
             fixture_sets.each do |fs|
               conn = fs.model_class.respond_to?(:connection) ? fs.model_class.connection : connection
               table_rows = fs.table_rows
