@@ -87,8 +87,7 @@ module ActionDispatch
 
     def source_extracts
       backtrace.map do |trace|
-        file, line = trace.split(":")
-        line_number = line.to_i
+        file, line_number = extract_file_and_line_number(trace)
 
         {
           code: source_fragment(file, line_number),
@@ -137,6 +136,13 @@ module ActionDispatch
           Hash[*(start+1..(lines.count+start)).zip(lines).flatten]
         end
       end
+    end
+
+    def extract_file_and_line_number(trace)
+      # Split by the first colon followed by some digits, which works for both
+      # Windows and Unix path styles.
+      file, line = trace.match(/^(.+?):(\d+).*$/, &:captures) || trace
+      [file, line.to_i]
     end
 
     def expand_backtrace

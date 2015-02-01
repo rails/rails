@@ -34,6 +34,23 @@ module ActionDispatch
       assert_equal [ code: 'foo', line_number: 42 ], wrapper.source_extracts
     end
 
+    test '#source_extracts works with Windows paths' do
+      exc = TestError.new("c:/path/to/rails/app/controller.rb:27:in 'index':")
+
+      wrapper = ExceptionWrapper.new({}, exc)
+      wrapper.expects(:source_fragment).with('c:/path/to/rails/app/controller.rb', 27).returns('nothing')
+
+      assert_equal [ code: 'nothing', line_number: 27 ], wrapper.source_extracts
+    end
+
+    test '#source_extracts works with non standard backtrace' do
+      exc = TestError.new('invalid')
+
+      wrapper = ExceptionWrapper.new({}, exc)
+      wrapper.expects(:source_fragment).with('invalid', 0).returns('nothing')
+
+      assert_equal [ code: 'nothing', line_number: 0 ], wrapper.source_extracts
+    end
 
     test '#application_trace returns traces only from the application' do
       exception = TestError.new(caller.prepend("lib/file.rb:42:in `index'"))
