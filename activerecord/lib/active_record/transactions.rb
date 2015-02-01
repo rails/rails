@@ -381,7 +381,10 @@ module ActiveRecord
           thaw unless restore_state[:frozen?]
           @new_record = restore_state[:new_record]
           @destroyed  = restore_state[:destroyed]
-          write_attribute(self.class.primary_key, restore_state[:id]) if self.class.primary_key
+          pk = self.class.primary_key
+          if pk && read_attribute(pk) != restore_state[:id]
+            write_attribute(pk, restore_state[:id])
+          end
         end
       end
     end
