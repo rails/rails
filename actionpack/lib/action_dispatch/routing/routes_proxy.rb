@@ -27,7 +27,7 @@ module ActionDispatch
           self.class.class_eval <<-RUBY, __FILE__, __LINE__ + 1
             def #{method}(*args)
               options = args.extract_options!
-              args << url_options.merge((options || {}).symbolize_keys)
+              args << url_options.merge(options || {})
               routes.url_helpers.#{method}(*args)
             end
           RUBY
