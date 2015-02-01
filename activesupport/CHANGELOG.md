@@ -1,3 +1,8 @@
+*   `AS::Testing::TimeHelpers#travel_to` now changes `DateTime.now` as well as
+    `Time.now` and `Date.today`.
+
+    *Yuki Nishijima*
+
 *   Make `getlocal` and `getutc` always return instances of `Time` for
     `ActiveSupport::TimeWithZone` and `DateTime`. This eliminates a possible
     stack level too deep error in `to_time` where `ActiveSupport::TimeWithZone`
