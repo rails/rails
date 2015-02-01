@@ -4,7 +4,7 @@ require 'fixtures/project'
 require 'active_support/log_subscriber/test_helper'
 require 'action_controller/log_subscriber'
 
-ActionController::Base.send :include, ActiveRecord::Railties::ControllerRuntime
+ActionController::Base.include(ActiveRecord::Railties::ControllerRuntime)
 
 class ControllerRuntimeLogSubscriberTest < ActionController::TestCase
   class LogSubscriberController < ActionController::Base

@@ -29,7 +29,7 @@ module ImpressiveLibrary
   def useful_function() end
 end
 
-ActionController::Base.send :include, ImpressiveLibrary
+ActionController::Base.include(ImpressiveLibrary)
 
 class JustMeController < ActionController::Base
   clear_helpers
@@ -223,10 +223,10 @@ class HelperTest < ActiveSupport::TestCase
     # fun/pdf_helper.rb
     assert methods.include?(:foobar)
   end
-  
+
   def test_helper_proxy_config
     AllHelpersController.config.my_var = 'smth'
-    
+
     assert_equal 'smth', AllHelpersController.helpers.config.my_var
   end
 

@@ -144,7 +144,7 @@ module ActionDispatch
           old_controller, @controller = @controller, @controller.clone
           _routes = @routes
 
-          @controller.singleton_class.send(:include, _routes.url_helpers)
+          @controller.singleton_class.include(_routes.url_helpers)
           @controller.view_context_class = Class.new(@controller.view_context_class) do
             include _routes.url_helpers
           end

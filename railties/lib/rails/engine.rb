@@ -484,7 +484,7 @@ module Rails
         helpers = Module.new
         all = ActionController::Base.all_helpers_from_path(helpers_paths)
         ActionController::Base.modules_for_helpers(all).each do |mod|
-          helpers.send(:include, mod)
+          helpers.include(mod)
         end
         helpers
       end

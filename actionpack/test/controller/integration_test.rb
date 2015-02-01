@@ -682,7 +682,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
           get 'get/:action', :to => controller, :as => :get_action
         end
 
-        self.singleton_class.send(:include, set.url_helpers)
+        self.singleton_class.include(set.url_helpers)
 
         yield
       end

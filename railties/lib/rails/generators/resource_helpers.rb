@@ -8,7 +8,7 @@ module Rails
     module ResourceHelpers # :nodoc:
 
       def self.included(base) #:nodoc:
-        base.send :include, Rails::Generators::ModelHelpers
+        base.include(Rails::Generators::ModelHelpers)
         base.class_option :model_name, type: :string, desc: "ModelName to be used"
       end
 
