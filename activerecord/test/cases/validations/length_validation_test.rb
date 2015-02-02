@@ -37,7 +37,7 @@ class LengthValidationTest < ActiveRecord::TestCase
 
   def test_validates_size_of_association_utf8
     repair_validations Owner do
-      assert_nothing_raised { Owner.validates_size_of :pets, :minimum => 1 }
+      Owner.validates_size_of :pets, :minimum => 1
       o = Owner.new('name' => 'あいうえおかきくけこ')
       assert !o.save
       assert o.errors[:pets].any?
@@ -46,8 +46,8 @@ class LengthValidationTest < ActiveRecord::TestCase
     end
   end
 
-  def test_validates_size_of_reprects_records_marked_for_destruction
-    assert_nothing_raised { Owner.validates_size_of :pets, minimum: 1 }
+  def test_validates_size_of_respects_records_marked_for_destruction
+    Owner.validates_size_of :pets, minimum: 1
     owner = Owner.new
     assert_not owner.save
     assert owner.errors[:pets].any?
@@ -62,4 +62,17 @@ class LengthValidationTest < ActiveRecord::TestCase
     assert_equal pet_count, Pet.count
   end
 
+  def test_does_not_validate_length_of_if_parent_record_is_validate_false
+    Owner.validates_length_of :name, minimum: 1
+    owner = Owner.new
+    owner.save!(validate: false)
+    assert owner.persisted?
+
+    pet = Pet.new(owner_id: owner.id)
+    pet.save!
+
+    assert_equal owner.pets.size, 1
+    assert owner.valid?
+    assert pet.valid?
+  end
 end

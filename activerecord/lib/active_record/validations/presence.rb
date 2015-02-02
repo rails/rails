@@ -2,6 +2,7 @@ module ActiveRecord
   module Validations
     class PresenceValidator < ActiveModel::Validations::PresenceValidator # :nodoc:
       def validate(record)
+        return unless should_validate?(record)
         super
         attributes.each do |attribute|
           next unless record.class._reflect_on_association(attribute)
