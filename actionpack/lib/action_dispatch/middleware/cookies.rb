@@ -394,7 +394,7 @@ module ActionDispatch
 
     class JsonSerializer
       def self.load(value)
-        ActiveSupport::JSON.decode(value)
+        ActiveSupport::JSON.decode_loose(value)
       end
 
       def self.dump(value)

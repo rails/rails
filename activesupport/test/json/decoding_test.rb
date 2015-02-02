@@ -60,7 +60,21 @@ class TestJSONDecoding < ActiveSupport::TestCase
     %q({"a":"\u000a"}) => {"a"=>"\n"},
     %q({"a":"Line1\u000aLine2"}) => {"a"=>"Line1\nLine2"},
     # prevent json unmarshalling
-    %q({"json_class":"TestJSONDecoding::Foo"}) => {"json_class"=>"TestJSONDecoding::Foo"},
+    %q({"json_class":"TestJSONDecoding::Foo"}) => {"json_class"=>"TestJSONDecoding::Foo"}
+  }
+
+  TESTS.each_with_index do |(json, expected), index|
+    test "json decodes #{index}" do
+      with_parse_json_times(true) do
+        silence_warnings do
+          assert_equal expected, ActiveSupport::JSON.decode(json), "JSON decoding \
+          failed for #{json}"
+        end
+      end
+    end
+  end
+
+  TESTS_LOOSE = {
     # json "fragments" - these are invalid JSON, but ActionPack relies on this
     %q("a string") => "a string",
     %q(1.1) => 1.1,
@@ -71,11 +85,11 @@ class TestJSONDecoding < ActiveSupport::TestCase
     %q(null) => nil
   }
 
-  TESTS.each_with_index do |(json, expected), index|
-    test "json decodes #{index}" do
+  TESTS_LOOSE.each_with_index do |(json, expected), index|
+    test "json decodes #{TESTS.length + index}" do
       with_parse_json_times(true) do
         silence_warnings do
-          assert_equal expected, ActiveSupport::JSON.decode(json), "JSON decoding \
+          assert_equal expected, ActiveSupport::JSON.decode_loose(json), "JSON decoding \
           failed for #{json}"
         end
       end

@@ -136,11 +136,15 @@ class RootLessJSONParamsParsingTest < ActionDispatch::IntegrationTest
     )
   end
 
-  test "parses json with non-object JSON content" do
-    assert_parses(
-      {"user" => {"_json" => "string content" }, "_json" => "string content" },
-      "\"string content\"", { 'CONTENT_TYPE' => 'application/json' }
-    )
+  test "logs error if parsing json with non-object JSON content unsuccessful" do
+    with_test_routing(UsersController) do
+      output = StringIO.new
+      json = "\"string content\""
+      post "/parse", params: json, headers: { 'CONTENT_TYPE' => 'application/json', 'action_dispatch.show_exceptions' => true, 'action_dispatch.logger' => ActiveSupport::Logger.new(output) }
+      assert_response :bad_request
+      output.rewind && err = output.read
+      assert err =~ /Error occurred while parsing request parameters/
+    end
   end
 
   private

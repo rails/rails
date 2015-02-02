@@ -51,7 +51,7 @@ class ErbUtilTest < ActiveSupport::TestCase
 
   def test_json_escape_does_not_alter_json_string_meaning
     JSON_ESCAPE_TEST_CASES.each do |(raw, _)|
-      assert_equal ActiveSupport::JSON.decode(raw), ActiveSupport::JSON.decode(json_escape(raw))
+      assert_equal ActiveSupport::JSON.decode_loose(raw), ActiveSupport::JSON.decode_loose(json_escape(raw))
     end
   end
 
