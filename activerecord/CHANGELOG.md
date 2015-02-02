@@ -1,3 +1,12 @@
+*   Foreign keys added by migrations were given random, generated names. This
+    meant a different `structure.sql` would be generated every time a developer
+    ran migrations on their machine.
+
+    The generated part of foreign key names is now a hash of the table name and
+    column name, which is consistent every time you run the migration.
+
+    *Chris Sinjakli*
+
 *   Validation errors would be raised for parent records when an association
     was saved when the parent had `validate: false`. It should not be the
     responsibility of the model to validate an associated object unless the
