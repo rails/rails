@@ -207,6 +207,7 @@ module ActionView
       #   # => <img alt="Icon" class="menu_icon" src="/icons/icon.gif" />
       def image_tag(source, options={})
         options = options.symbolize_keys
+        check_for_image_tag_errors(options)
 
         src = options[:src] = path_to_image(source)
 
@@ -323,6 +324,12 @@ module ActionView
             size.split('x')
           elsif size =~ %r{\A\d+\z}
             [size, size]
+          end
+        end
+
+        def check_for_image_tag_errors(options)
+          if options[:size] && (options[:height] || options[:width])
+            raise ArgumentError, "Cannot pass a :size option with a :height or :width option"
           end
         end
     end
