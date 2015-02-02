@@ -203,12 +203,14 @@ module ActiveRecord
     # like render <tt>partial: @client.becomes(Company)</tt> to render that
     # instance using the companies/company partial instead of clients/client.
     #
-    # Note: The new instance will share a link to the same attributes as the original class.
-    # So any change to the attributes in either instance will affect the other.
+    # Note: The new instance will share a link to the same attributes and associations
+    # as the original class. So any change to the attributes or associations in either
+    # instance will affect the other.
     def becomes(klass)
       became = klass.new
       became.instance_variable_set("@attributes", @attributes)
       became.instance_variable_set("@changed_attributes", @changed_attributes) if defined?(@changed_attributes)
+      became.instance_variable_set("@association_cache", @association_cache)
       became.instance_variable_set("@new_record", new_record?)
       became.instance_variable_set("@destroyed", destroyed?)
       became.instance_variable_set("@errors", errors)
