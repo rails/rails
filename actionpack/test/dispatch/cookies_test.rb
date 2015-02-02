@@ -736,6 +736,44 @@ class CookiesTest < ActionController::TestCase
     assert_kind_of ActionDispatch::Cookies::UpgradeLegacyEncryptedCookieJar, cookies.encrypted
   end
 
+  def test_encrypted_pushes_valid_secret_key_base_and_secret_token
+    @request.env["action_dispatch.secret_token"] = nil
+    @request.env["action_dispatch.secret_key_base"] = "c3b95688f35581fad38df788add315ff"
+    get :get_encrypted_cookie
+    assert_equal cookies.encrypted.instance_variable_get(:@valid_keys).length, 1
+  end
+
+  def test_encrypted_changing_secret_key_base_pushes_new_keys
+    @request.env["action_dispatch.secret_token"] = nil
+    @request.env["action_dispatch.secret_key_base"] = "c3b95688f35581fad38df788add315ff"
+    get :get_encrypted_cookie
+    assert_equal cookies.encrypted.instance_variable_get(:@valid_keys).length, 1
+    @request.env["action_dispatch.secret_key_base"] = "315fcfbb748b8f072e34a0db321cbafa"
+    @request.env["action_dispatch.key_generator"] = ActiveSupport::KeyGenerator.new("315fcfbb748b8f072e34a0db321cbafa", iterations: 2)
+    key_generator = @request.env["action_dispatch.key_generator"]
+    enc_salt = @request.env["action_dispatch.encrypted_cookie_salt"]
+    signed_salt = @request.env["action_dispatch.encrypted_signed_cookie_salt"]
+    cookies.encrypted.set_key(key_generator, {encrypted_cookie_salt: enc_salt, encrypted_signed_cookie_salt: signed_salt})
+    get :get_encrypted_cookie
+    assert_equal cookies.encrypted.instance_variable_get(:@valid_keys).length, 2
+  end
+
+  def test_encrypted_changing_secret_key_base_still_allows_decrypting_old_cookies
+    @request.env["action_dispatch.secret_token"] = nil
+    @request.env["action_dispatch.secret_key_base"] = "c3b95688f35581fad38df788add315ff"
+    cookies.encrypted[:test1] = "test1"
+
+    @request.env["action_dispatch.secret_key_base"] = "315fcfbb748b8f072e34a0db321cbafa"
+    @request.env["action_dispatch.secret_key_base"] = "315fcfbb748b8f072e34a0db321cbafa"
+    @request.env["action_dispatch.key_generator"] = ActiveSupport::KeyGenerator.new("315fcfbb748b8f072e34a0db321cbafa", iterations: 2)
+    key_generator = @request.env["action_dispatch.key_generator"]
+    enc_salt = @request.env["action_dispatch.encrypted_cookie_salt"]
+    signed_salt = @request.env["action_dispatch.encrypted_signed_cookie_salt"]
+    cookies.encrypted.set_key(key_generator, {encrypted_cookie_salt: enc_salt, encrypted_signed_cookie_salt: signed_salt})
+    cookies.encrypted[:test2] = "test2"
+    cookies.encrypted.validate_cookie_with_all_keys(cookies.encrypted[:test2])
+  end
+
   def test_legacy_signed_cookie_is_read_and_transparently_upgraded_by_signed_cookie_jar_if_both_secret_token_and_secret_key_base_are_set
     @request.env["action_dispatch.secret_token"] = "b3c631c314c0bbca50c1b2843150fe33"
     @request.env["action_dispatch.secret_key_base"] = "c3b95688f35581fad38df788add315ff"
