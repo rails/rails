@@ -520,22 +520,22 @@ module ActionDispatch
         secret = key_generator.generate_key(@options[:encrypted_cookie_salt])
         sign_secret = key_generator.generate_key(@options[:encrypted_signed_cookie_salt])
         @encryptor = ActiveSupport::MessageEncryptor.new(secret, sign_secret, digest: digest, serializer: ActiveSupport::MessageEncryptor::NullSerializer)
-        @valid_keys.push({"secret" => secret, "sign_secret" => sign_secret})
+        @valid_keys.push({"secret": secret, "sign_secret": sign_secret})
       end
 
       # This method needs a better name
       def validate_cookie_with_all_keys(cookie)
         valid = false
-        valid_keys.each do |key_pair|
+        @valid_keys.each do |key_pair|
           begin
-            secret = key_pair["secret"]
-            sign_secret = key_pair["sign_secret"]
+            secret = key_pair[:"secret"]
+            sign_secret = key_pair[:"sign_secret"]
             temp_encryptor = ActiveSupport::MessageEncryptor.new(secret,
               sign_secret, digest: digest,
               serializer: ActiveSupport::MessageEncryptor::NullSerializer)
             temp_encryptor.decrypt_and_verify(cookie)
             valid = true
-          rescue InvalidMessage
+          rescue ActiveSupport::MessageEncryptor::InvalidMessage
             valid ||= false
           end
         end
