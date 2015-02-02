@@ -9,6 +9,16 @@ module ActiveRecord
         values = value.map { |x| x.is_a?(Base) ? x.id : x }
         nils, values = values.partition(&:nil?)
 
+        unless nils.empty?
+          ActiveSupport::Deprecation.warn(<<-WARNING)
+The behavior of passing an array containing `nil` to `where` will change in Rails 5.1.
+Currently, it generates OR ... IS NULL. In 5.1, where(foo: [1, nil]) will generate
+WHERE foo IN (1, NULL). If you would like to keep the old behavior, you should explicitly
+specify that you would like a separate OR IS NULL by doing
+where(foo: [1, 2, 3]).or(where(foo: nil))
+          WARNING
+        end
+
         return attribute.in([]) if values.empty? && nils.empty?
 
         ranges, values = values.partition { |v| v.is_a?(Range) }

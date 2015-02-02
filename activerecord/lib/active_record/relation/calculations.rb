@@ -303,8 +303,14 @@ module ActiveRecord
       calculated_data = @klass.connection.select_all(relation, nil, relation.bound_attributes)
 
       if association
-        key_ids     = calculated_data.collect { |row| row[group_aliases.first] }
-        key_records = association.klass.base_class.where(association.klass.base_class.primary_key => key_ids)
+        relation_class = association.klass.base_class
+        key_ids = calculated_data.collect { |row| row[group_aliases.first] }
+        nils, key_ids = key_ids.partition(&:nil?)
+        key_records = relation_class.where(relation_class.primary_key => key_ids)
+        if nils.any?
+          where_nil = relation_class.where(relation_class.primary_key => nil)
+          key_records = key_records.or(where_nil)
+        end
         key_records = Hash[key_records.map { |r| [r.id, r] }]
       end
 

@@ -998,21 +998,27 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_find_with_nil_inside_set_passed_for_one_attribute
-    client_of = Company.
-      where(client_of: [2, 1, nil],
-            name: ['37signals', 'Summit', 'Microsoft']).
-      order('client_of DESC').
-      map(&:client_of)
+    client_of = nil
+    assert_deprecated do
+      client_of = Company.
+        where(client_of: [2, 1, nil],
+              name: ['37signals', 'Summit', 'Microsoft']).
+        order('client_of DESC').
+        map(&:client_of)
+    end
 
     assert client_of.include?(nil)
     assert_equal [2, 1].sort, client_of.compact.sort
   end
 
   def test_find_with_nil_inside_set_passed_for_attribute
-    client_of = Company.
-      where(client_of: [nil]).
-      order('client_of DESC').
-      map(&:client_of)
+    client_of = nil
+    assert_deprecated do
+      client_of = Company.
+        where(client_of: [nil]).
+        order('client_of DESC').
+        map(&:client_of)
+    end
 
     assert_equal [], client_of.compact
   end
