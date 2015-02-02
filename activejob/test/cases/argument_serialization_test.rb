@@ -2,7 +2,7 @@ require 'helper'
 require 'active_job/arguments'
 require 'models/person'
 require 'active_support/core_ext/hash/indifferent_access'
-require 'jobs/kwargs_job'
+require 'jobs/kwargs_job' unless ruby_193?
 
 class ArgumentSerializationTest < ActiveSupport::TestCase
   setup do
@@ -82,10 +82,12 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
     end
   end
 
-  test 'allows for keyword arguments' do
-    KwargsJob.perform_later(argument: 2)
+  unless ruby_193?
+    test 'allows for keyword arguments' do
+      KwargsJob.perform_later(argument: 2)
 
-    assert_equal "Job with argument: 2", JobBuffer.last_value
+      assert_equal "Job with argument: 2", JobBuffer.last_value
+    end
   end
 
   private
