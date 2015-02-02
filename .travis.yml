@@ -36,6 +36,7 @@ matrix:
       env: "GEM=ar:mysql"
     - rvm: rbx-2
     - rvm: jruby
+    - env: "GEM=aj:integration"
   fast_finish: true
 notifications:
   email: false
