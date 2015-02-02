@@ -5,8 +5,8 @@ module ActiveRecord
     Type = ActiveRecord::Type
 
     included do
-      class_attribute :user_provided_types, instance_accessor: false # :internal:
-      self.user_provided_types = {}
+      class_attribute :attributes_to_define_after_schema_loads, instance_accessor: false # :internal:
+      self.attributes_to_define_after_schema_loads = {}
     end
 
     module ClassMethods # :nodoc:
@@ -77,7 +77,7 @@ module ActiveRecord
         name = name.to_s
         reload_schema_from_cache
 
-        self.user_provided_types = user_provided_types.merge(name => [cast_type, options])
+        self.attributes_to_define_after_schema_loads = attributes_to_define_after_schema_loads.merge(name => [cast_type, options])
       end
 
       def define_attribute(
@@ -92,7 +92,7 @@ module ActiveRecord
 
       def load_schema!
         super
-        user_provided_types.each do |name, (type, options)|
+        attributes_to_define_after_schema_loads.each do |name, (type, options)|
           define_attribute(name, type, **options)
         end
       end
