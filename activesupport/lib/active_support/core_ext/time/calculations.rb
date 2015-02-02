@@ -69,7 +69,7 @@ class Time
   # and minute is passed, then sec, usec and nsec is set to 0. The +options+
   # parameter takes a hash with any of these keys: <tt>:year</tt>, <tt>:month</tt>,
   # <tt>:day</tt>, <tt>:hour</tt>, <tt>:min</tt>, <tt>:sec</tt>, <tt>:usec</tt>
-  # <tt>:nsec</tt>. Path either <tt>:usec</tt> or <tt>:nsec</tt>, not both.
+  # <tt>:nsec</tt>. Pass either <tt>:usec</tt> or <tt>:nsec</tt>, not both.
   #
   #   Time.new(2012, 8, 29, 22, 35, 0).change(day: 1)              # => Time.new(2012, 8, 1, 22, 35, 0)
   #   Time.new(2012, 8, 29, 22, 35, 0).change(year: 1981, day: 1)  # => Time.new(1981, 8, 1, 22, 35, 0)
