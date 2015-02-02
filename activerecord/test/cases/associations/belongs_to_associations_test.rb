@@ -769,6 +769,21 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal companies(:another_firm), client.firm_with_condition
   end
 
+  def test_reassigning_the_association_id_updates_the_reference
+    record1 = RecordWithColumns.create!
+    record2 = RecordWithColumns.create!
+    column = Column.create!(:record => record1)
+
+    found_column = record1.columns.find column.id
+    found_column.record_id = record2.id
+
+    record2_proxy = found_column.send(:association, :record)
+    assert !record2_proxy.inversed
+
+    assert_equal record2.id, found_column.record.id
+    assert_equal record2.id, found_column.record_id
+  end
+
   def test_polymorphic_reassignment_of_associated_id_updates_the_object
     sponsor = sponsors(:moustache_club_sponsor_for_groucho)
 
