@@ -442,7 +442,12 @@ module ActiveRecord
       end
 
       def extract_limit(sql_type) # :nodoc:
-        $1.to_i if sql_type =~ /\((.*)\)/
+        case sql_type
+        when /^bigint/i
+          8
+        when /\((.*)\)/
+          $1.to_i
+        end
       end
 
       def translate_exception_class(e, sql)
