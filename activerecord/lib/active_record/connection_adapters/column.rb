@@ -46,12 +46,6 @@ module ActiveRecord
         Base.human_attribute_name(@name)
       end
 
-      def with_type(type)
-        dup.tap do |clone|
-          clone.instance_variable_set('@cast_type', type)
-        end
-      end
-
       def ==(other)
         other.name == name &&
           other.default == default &&
