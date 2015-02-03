@@ -19,6 +19,7 @@ require 'models/invoice'
 require 'models/line_item'
 require 'models/column'
 require 'models/record'
+require 'models/entrant'
 
 class BelongsToAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :topics,
@@ -947,6 +948,18 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
     assert post.save
     assert_equal post.author_id, author2.id
+  end
+
+  def test_change_reference_id_should_change_reference
+    course1 = Course.create!(:name => 'Course 1')
+    course2 = Course.create!(:name => 'Course 2')
+    entrant = Entrant.create!(:course => course1, :name => 'Entrant')
+
+    founded_entrant = course1.entrants.find entrant.id
+    founded_entrant.course_id = course2.id
+
+    assert_equal course2.id, founded_entrant.course_id
+    assert_equal course2.id, founded_entrant.course.id
   end
 
   test 'dangerous association name raises ArgumentError' do
