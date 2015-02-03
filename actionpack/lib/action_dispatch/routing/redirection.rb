@@ -111,8 +111,12 @@ module ActionDispatch
           :params   => request.query_parameters
         }.merge! options
 
-        if !params.empty? && url_options[:path].match(/%\{\w*\}/)
-          url_options[:path] = (url_options[:path] % escape_path(params))
+        if !params.empty?
+          %i(path subdomain).each do |param|
+            if url_options[param] && url_options[param].match(/%\{\w*\}/)
+              url_options[param] = (url_options[param] % escape_path(params))
+            end
+          end
         end
 
         unless options[:host] || options[:domain]

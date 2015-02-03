@@ -256,6 +256,15 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     verify_redirect 'http://super-docs.com/super_new_documentation?section=top'
   end
 
+  def test_redirect_hash_subdomain_substitution
+    draw do
+      get 'stores/:name', :to => redirect(:subdomain => '%{name}', :path => '/')
+    end
+
+    get '/stores/iernest'
+    verify_redirect 'http://iernest.example.com/'
+  end
+
   def test_redirect_hash_path_substitution
     draw do
       get 'stores/:name', :to => redirect(:subdomain => 'stores', :path => '/%{name}')
