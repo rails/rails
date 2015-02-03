@@ -381,8 +381,8 @@ module ActiveRecord
           end
 
           sql_type = field['type']
-          cast_type = lookup_cast_type(sql_type)
-          new_column(field['name'], field['dflt_value'], cast_type, sql_type, field['notnull'].to_i == 0)
+          type_metadata = fetch_type_metadata(sql_type)
+          new_column(field['name'], field['dflt_value'], type_metadata, field['notnull'].to_i == 0)
         end
       end
 

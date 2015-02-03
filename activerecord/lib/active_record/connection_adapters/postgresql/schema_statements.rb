@@ -185,15 +185,15 @@ module ActiveRecord
           column_definitions(table_name).map do |column_name, type, default, notnull, oid, fmod|
             oid = oid.to_i
             fmod = fmod.to_i
-            cast_type = get_oid_type(oid, fmod, column_name, type)
-            default_value = extract_value_from_default(cast_type, default)
+            type_metadata = fetch_type_metadata(column_name, type, oid, fmod)
+            default_value = extract_value_from_default(default)
             default_function = extract_default_function(default_value, default)
-            new_column(column_name, default_value, cast_type, type, notnull == 'f', default_function, oid, fmod)
+            new_column(column_name, default_value, type_metadata, notnull == 'f', default_function)
           end
         end
 
-        def new_column(name, default, cast_type, sql_type = nil, null = true, default_function = nil, oid = nil, fmod = nil) # :nodoc:
-          PostgreSQLColumn.new(name, default, cast_type, sql_type, null, default_function, oid, fmod)
+        def new_column(name, default, sql_type_metadata = nil, null = true, default_function = nil) # :nodoc:
+          PostgreSQLColumn.new(name, default, sql_type_metadata, null, default_function)
         end
 
         # Returns the current database name.
@@ -581,6 +581,18 @@ module ActiveRecord
             }.reject(&:blank?).map.with_index { |column, i| "#{column} AS alias_#{i}" }
 
           [super, *order_columns].join(', ')
+        end
+
+        def fetch_type_metadata(column_name, sql_type, oid, fmod)
+          cast_type = get_oid_type(oid, fmod, column_name, sql_type)
+          simple_type = SqlTypeMetadata.new(
+            sql_type: sql_type,
+            type: cast_type.type,
+            limit: cast_type.limit,
+            precision: cast_type.precision,
+            scale: cast_type.scale,
+          )
+          PostgreSQLTypeMetadata.new(simple_type, oid: oid, fmod: fmod)
         end
       end
     end

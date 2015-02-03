@@ -74,13 +74,10 @@ module ActiveRecord
       end
 
       class Column < ConnectionAdapters::Column # :nodoc:
-        attr_reader :collation, :strict, :extra
+        delegate :strict, :collation, :extra, to: :sql_type_metadata, allow_nil: true
 
-        def initialize(name, default, cast_type, sql_type = nil, null = true, collation = nil, strict = false, extra = "")
-          @strict    = strict
-          @collation = collation
-          @extra     = extra
-          super(name, default, cast_type, sql_type, null)
+        def initialize(*)
+          super
           assert_valid_default(default)
           extract_default
         end
@@ -88,7 +85,7 @@ module ActiveRecord
         def extract_default
           if blob_or_text_column?
             @default = null || strict ? nil : ''
-          elsif missing_default_forged_as_empty_string?(@default)
+          elsif missing_default_forged_as_empty_string?(default)
             @default = nil
           end
         end
@@ -104,13 +101,6 @@ module ActiveRecord
 
         def case_sensitive?
           collation && !collation.match(/_ci$/)
-        end
-
-        def ==(other)
-          super &&
-            collation == other.collation &&
-            strict == other.strict &&
-            extra == other.extra
         end
 
         private
@@ -131,9 +121,33 @@ module ActiveRecord
             raise ArgumentError, "#{type} columns cannot have a default value: #{default.inspect}"
           end
         end
+      end
+
+      class MysqlTypeMetadata < DelegateClass(SqlTypeMetadata) # :nodoc:
+        attr_reader :collation, :extra, :strict
+
+        def initialize(type_metadata, collation: "", extra: "", strict: false)
+          super(type_metadata)
+          @type_metadata = type_metadata
+          @collation = collation
+          @extra = extra
+          @strict = strict
+        end
+
+        def ==(other)
+          other.is_a?(MysqlTypeMetadata) &&
+            attributes_for_hash == other.attributes_for_hash
+        end
+        alias eql? ==
+
+        def hash
+          attributes_for_hash.hash
+        end
+
+        protected
 
         def attributes_for_hash
-          super + [collation, strict, extra]
+          [self.class, @type_metadata, collation, extra, strict]
         end
       end
 
@@ -243,8 +257,8 @@ module ActiveRecord
         raise NotImplementedError
       end
 
-      def new_column(field, default, cast_type, sql_type = nil, null = true, collation = "", extra = "") # :nodoc:
-        Column.new(field, default, cast_type, sql_type, null, collation, strict_mode?, extra)
+      def new_column(field, default, sql_type_metadata = nil, null = true) # :nodoc:
+        Column.new(field, default, sql_type_metadata, null)
       end
 
       # Must return the MySQL error number from the exception, if the exception has an
@@ -467,8 +481,8 @@ module ActiveRecord
           each_hash(result).map do |field|
             field_name = set_field_encoding(field[:Field])
             sql_type = field[:Type]
-            cast_type = lookup_cast_type(sql_type)
-            new_column(field_name, field[:Default], cast_type, sql_type, field[:Null] == "YES", field[:Collation], field[:Extra])
+            type_metadata = fetch_type_metadata(sql_type, field[:Collation], field[:Extra])
+            new_column(field_name, field[:Default], type_metadata, field[:Null] == "YES")
           end
         end
       end
@@ -714,6 +728,10 @@ module ActiveRecord
             Type::Integer.new(options)
           end
         end
+      end
+
+      def fetch_type_metadata(sql_type, collation = "", extra = "")
+        MysqlTypeMetadata.new(super(sql_type), collation: collation, extra: extra, strict: strict_mode?)
       end
 
       # MySQL is too stupid to create a temporary table for use subquery, so we have

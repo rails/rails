@@ -23,7 +23,7 @@ module ActiveRecord
       super
       @connection = ActiveRecord::Base.connection
       @subscriber = LogListener.new
-      @pk = ConnectionAdapters::Column.new(Topic.primary_key, nil, Topic.type_for_attribute(Topic.primary_key))
+      @pk = Topic.columns_hash[Topic.primary_key]
       @subscription = ActiveSupport::Notifications.subscribe('sql.active_record', @subscriber)
     end
 

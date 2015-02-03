@@ -63,6 +63,17 @@ module ActiveRecord
         lookup_cast_type(column.sql_type)
       end
 
+      def fetch_type_metadata(sql_type)
+        cast_type = lookup_cast_type(sql_type)
+        SqlTypeMetadata.new(
+          sql_type: sql_type,
+          type: cast_type.type,
+          limit: cast_type.limit,
+          precision: cast_type.precision,
+          scale: cast_type.scale,
+        )
+      end
+
       # Quotes a string, escaping any ' (single quote) and \ (backslash)
       # characters.
       def quote_string(s)

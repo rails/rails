@@ -4,6 +4,7 @@ require 'bigdecimal/util'
 require 'active_record/type'
 require 'active_support/core_ext/benchmark'
 require 'active_record/connection_adapters/schema_cache'
+require 'active_record/connection_adapters/sql_type_metadata'
 require 'active_record/connection_adapters/abstract/schema_dumper'
 require 'active_record/connection_adapters/abstract/schema_creation'
 require 'monitor'
@@ -384,8 +385,8 @@ module ActiveRecord
         end
       end
 
-      def new_column(name, default, cast_type, sql_type = nil, null = true)
-        Column.new(name, default, cast_type, sql_type, null)
+      def new_column(name, default, sql_type_metadata = nil, null = true)
+        Column.new(name, default, sql_type_metadata, null)
       end
 
       def lookup_cast_type(sql_type) # :nodoc:

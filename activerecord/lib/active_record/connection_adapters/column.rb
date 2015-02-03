@@ -12,25 +12,21 @@ module ActiveRecord
         ISO_DATETIME = /\A(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d):(\d\d)(\.\d+)?\z/
       end
 
-      attr_reader :name, :cast_type, :null, :sql_type, :default, :default_function
+      attr_reader :name, :null, :sql_type_metadata, :default, :default_function
 
-      delegate :precision, :scale, :limit, :type, to: :cast_type
+      delegate :precision, :scale, :limit, :type, :sql_type, to: :sql_type_metadata, allow_nil: true
 
       # Instantiates a new column in the table.
       #
       # +name+ is the column's name, such as <tt>supplier_id</tt> in <tt>supplier_id int(11)</tt>.
       # +default+ is the type-casted default value, such as +new+ in <tt>sales_stage varchar(20) default 'new'</tt>.
-      # +cast_type+ is the object used for type casting and type information.
-      # +sql_type+ is used to extract the column's length, if necessary. For example +60+ in
-      # <tt>company_name varchar(60)</tt>.
-      # It will be mapped to one of the standard Rails SQL types in the <tt>type</tt> attribute.
+      # +sql_type_metadata+ is various information about the type of the column
       # +null+ determines if this column allows +NULL+ values.
-      def initialize(name, default, cast_type, sql_type = nil, null = true, default_function = nil)
-        @name             = name
-        @cast_type        = cast_type
-        @sql_type         = sql_type
-        @null             = null
-        @default          = default
+      def initialize(name, default, sql_type_metadata = nil, null = true, default_function = nil)
+        @name = name
+        @sql_type_metadata = sql_type_metadata
+        @null = null
+        @default = default
         @default_function = default_function
       end
 
@@ -47,12 +43,8 @@ module ActiveRecord
       end
 
       def ==(other)
-        other.name == name &&
-          other.default == default &&
-          other.cast_type == cast_type &&
-          other.sql_type == sql_type &&
-          other.null == null &&
-          other.default_function == default_function
+        other.is_a?(Column) &&
+          attributes_for_hash == other.attributes_for_hash
       end
       alias :eql? :==
 
@@ -60,16 +52,16 @@ module ActiveRecord
         attributes_for_hash.hash
       end
 
-      private
+      protected
 
       def attributes_for_hash
-        [self.class, name, default, cast_type, sql_type, null, default_function]
+        [self.class, name, default, sql_type_metadata, null, default_function]
       end
     end
 
     class NullColumn < Column
       def initialize(name)
-        super name, nil, Type::Value.new
+        super(name, nil)
       end
     end
   end
