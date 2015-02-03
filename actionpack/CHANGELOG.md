@@ -1,3 +1,13 @@
+*   Preserve default format when generating URLs
+
+    Fixes an issue that would cause the format set in default_url_options to be
+    lost when generating URLs with fewer positional arguments than parameters in
+    the route definition.
+
+    Backport of #18627
+
+    *Tekin Suleyman*, *Dominic Baggott*
+
 *   Default headers, removed in controller actions, are no longer reapplied on
     the test response.
 

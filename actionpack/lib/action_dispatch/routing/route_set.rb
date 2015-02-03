@@ -247,7 +247,14 @@ module ActionDispatch
                 keys -= options.keys
               end
               keys -= inner_options.keys
-              result.merge!(Hash[keys.zip(args)])
+
+              keys.each do |key|
+                value = inner_options.fetch(key) { args.shift }
+
+                unless key == :format && value.nil?
+                  result[key] = value
+                end
+              end
             end
 
             result.merge!(inner_options)
