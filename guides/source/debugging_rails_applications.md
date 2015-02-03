@@ -544,7 +544,7 @@ This way an irb session will be started within the context you invoked it. But
 be warned: this is an experimental feature.
 
 The `var` method is the most convenient way to show variables and their values.
-Let's let `byebug` to help us with it.
+Let's let `byebug` help us with it.
 
 ```
 (byebug) help var
