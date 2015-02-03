@@ -1,3 +1,9 @@
+*   Don't remove all line endings from routes.rb when revoking scaffold.
+
+    Fixes #15913.
+
+    *Andrew White*
+
 *   Rename `--skip-test-unit` option to `--skip-test` in app generator
 
     *Melanie Gilman*

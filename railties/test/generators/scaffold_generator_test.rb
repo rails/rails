@@ -245,6 +245,24 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     assert_file "config/routes.rb", /\.routes\.draw do\s*\|map\|\s*$/
   end
 
+  def test_scaffold_generator_on_revoke_does_not_mutilate_routes
+    run_generator
+
+    route_path = File.expand_path("config/routes.rb", destination_root)
+    content = File.read(route_path)
+
+    # Remove all of the comments and blank lines from the routes file
+    content.gsub!(/^  \#.*\n/, '')
+    content.gsub!(/^\n/, '')
+
+    File.open(route_path, "wb") { |file| file.write(content) }
+    assert_file "config/routes.rb", /\.routes\.draw do\n  resources :product_lines\nend\n\z/
+
+    run_generator ["product_line"], :behavior => :revoke
+
+    assert_file "config/routes.rb", /\.routes\.draw do\nend\n\z/
+  end
+
   def test_scaffold_generator_no_assets_with_switch_no_assets
     run_generator [ "posts", "--no-assets" ]
     assert_no_file "app/assets/stylesheets/scaffold.css"
