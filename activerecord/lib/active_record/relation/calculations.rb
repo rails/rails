@@ -234,7 +234,8 @@ module ActiveRecord
 
     def execute_simple_calculation(operation, column_name, distinct) #:nodoc:
       # PostgreSQL doesn't like ORDER BY when there are no GROUP BY
-      relation = unscope(:order)
+      # Distinct value gets passed to us, and is already calculated before for a relation.
+      relation = unscope(:order).distinct(false)
 
       column_alias = column_name
 

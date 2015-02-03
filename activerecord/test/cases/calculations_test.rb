@@ -426,6 +426,12 @@ class CalculationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_count_with_distinct_emits_single_distinct_in_query
+    assert_equal 4, Account.select(:credit_limit).distinct.count
+    queries = assert_sql { Account.select(:credit_limit).distinct.count}
+    assert_equal 1, queries.last.scan(/DISTINCT/).count
+  end
+
   def test_count_with_aliased_attribute
     assert_equal 6, Account.count(:available_credit)
   end
