@@ -57,7 +57,7 @@ module ActiveRecord
         assert_equal "rockets", fk.to_table
         assert_equal "rocket_id", fk.column
         assert_equal "id", fk.primary_key
-        assert_match(/^fk_rails_.{10}$/, fk.name)
+        assert_equal("fk_rails_78146ddd2e", fk.name)
       end
 
       def test_add_foreign_key_with_column
@@ -71,7 +71,7 @@ module ActiveRecord
         assert_equal "rockets", fk.to_table
         assert_equal "rocket_id", fk.column
         assert_equal "id", fk.primary_key
-        assert_match(/^fk_rails_.{10}$/, fk.name)
+        assert_equal("fk_rails_78146ddd2e", fk.name)
       end
 
       def test_add_foreign_key_with_non_standard_primary_key
