@@ -1,3 +1,18 @@
+*   Added the ability to select distinct on a particular column.
+
+      Events.distinct(true)
+      Events.distinct(:id) 
+
+      if ((distinct_value.is_a? TrueClass) || (distinct_value.is_a? FalseClass) || distinct_value.nil?)
+        arel.distinct(distinct_value)
+      else
+        arel.distinct_on(Arel.sql(distinct_value))
+      end
+ 
+    Both distinct method calls should now work. GH#17706
+ 
+    *Isobeye Daso*
+
 *   Rename `--skip-test-unit` option to `--skip-test` in app generator
 
     *Melanie Gilman*

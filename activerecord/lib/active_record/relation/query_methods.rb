@@ -786,6 +786,9 @@ module ActiveRecord
     #
     #   User.select(:name).distinct.distinct(false)
     #   # => You can also remove the uniqueness
+    #   
+    #   User.distinct(:name)
+    #   # => Returns all columns in record per distinct name 
     def distinct(value = true)
       spawn.distinct!(value)
     end
@@ -893,7 +896,11 @@ module ActiveRecord
 
       build_select(arel)
 
-      arel.distinct(distinct_value)
+      if ((distinct_value.is_a? TrueClass) || (distinct_value.is_a? FalseClass) || distinct_value.nil?)
+        arel.distinct(distinct_value)
+      else
+        arel.distinct_on(Arel.sql(distinct_value))
+      end
       arel.from(build_from) unless from_clause.empty?
       arel.lock(lock_value) if lock_value
 
