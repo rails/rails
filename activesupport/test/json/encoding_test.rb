@@ -1,4 +1,3 @@
-# encoding: utf-8
 require 'securerandom'
 require 'abstract_unit'
 require 'active_support/core_ext/string/inflections'
