@@ -1,3 +1,9 @@
+*   Don't remove all line endings from routes.rb when revoking scaffold.
+
+    Fixes #15913.
+
+    *Andrew White*
+
 *   Fix scaffold generator with `--helper=false` option.
 
     *Rafael Mendonça França*

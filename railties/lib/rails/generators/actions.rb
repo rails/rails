@@ -218,10 +218,10 @@ module Rails
       #   route "root 'welcome#index'"
       def route(routing_code)
         log :route, routing_code
-        sentinel = /\.routes\.draw do\s*$/
+        sentinel = /\.routes\.draw do\s*\n/m
 
         in_root do
-          inject_into_file 'config/routes.rb', "\n  #{routing_code}", { after: sentinel, verbose: false }
+          inject_into_file 'config/routes.rb', "  #{routing_code}", { after: sentinel, verbose: false }
         end
       end
 
