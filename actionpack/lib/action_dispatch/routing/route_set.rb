@@ -293,7 +293,11 @@ module ActionDispatch
                 path_params -= result.keys
               end
               path_params.each { |param|
-                result[param] = inner_options.fetch(param) { args.shift }
+                value = inner_options.fetch(param) { args.shift }
+
+                unless param == :format && value.nil?
+                  result[param] = value
+                end
               }
             end
 
