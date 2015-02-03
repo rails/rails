@@ -188,9 +188,9 @@ module ActiveRecord
 
           if through_reflection.collection? && update_through_counter?(method)
             update_counter(-count, through_reflection)
+          else
+            update_counter(-count)
           end
-
-          update_counter(-count)
         end
 
         def through_records_for(record)

@@ -1,3 +1,10 @@
+*   Fixed several edge cases which could result in a counter cache updating
+    twice or not updating at all for `has_many` and `has_many :through`.
+
+    Fixes #10865.
+
+    *Sean Griffin*
+
 *   Foreign keys added by migrations were given random, generated names. This
     meant a different `structure.sql` would be generated every time a developer
     ran migrations on their machine.

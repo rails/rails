@@ -85,7 +85,11 @@ module ActiveRecord
         end
 
         def cached_counter_attribute_name(reflection = reflection())
-          options[:counter_cache] || "#{reflection.name}_count"
+          if reflection.options[:counter_cache]
+            reflection.options[:counter_cache].to_s
+          else
+            "#{reflection.name}_count"
+          end
         end
 
         def update_counter(difference, reflection = reflection())
