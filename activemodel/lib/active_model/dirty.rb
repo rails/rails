@@ -26,7 +26,7 @@ module ActiveModel
   #
   #     define_attribute_methods :name
   #
-  #     def initialize name = nil
+  #     def initialize(name = nil)
   #       @name = name
   #     end
   #
