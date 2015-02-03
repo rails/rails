@@ -1,3 +1,12 @@
+*   Foreign keys added by migrations were given random, generated names. This
+    meant a different `structure.sql` would be generated every time a developer
+    ran migrations on their machine.
+
+    The generated part of foreign key names is now a hash of the table name and
+    column name, which is consistent every time you run the migration.
+
+    *Chris Sinjakli*
+
 *   Fixed ActiveRecord::Relation#group method when argument is SQL reserved key word:
 
       SplitTest.group(:key).count

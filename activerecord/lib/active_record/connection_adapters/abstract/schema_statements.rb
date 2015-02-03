@@ -1,4 +1,6 @@
 require 'active_record/migration/join_table'
+require 'active_support/core_ext/string/access'
+require 'digest'
 
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
@@ -981,8 +983,10 @@ module ActiveRecord
       end
 
       def foreign_key_name(table_name, options) # :nodoc:
+        identifier = "#{table_name}_#{options.fetch(:column)}_fk"
+        hashed_identifier = Digest::SHA256.hexdigest(identifier).first(10)
         options.fetch(:name) do
-          "fk_rails_#{SecureRandom.hex(5)}"
+          "fk_rails_#{hashed_identifier}"
         end
       end
 
