@@ -156,7 +156,7 @@ module Rails
         args << "--help" if args.empty? && klass.arguments.any?(&:required?)
         klass.start(args, config)
       else
-        options     = sorted_groups.map(&:last).flatten
+        options     = sorted_groups.flat_map(&:last)
         suggestions = options.sort_by {|suggested| levenshtein_distance(namespace.to_s, suggested) }.first(3)
         msg =  "Could not find generator '#{namespace}'. "
         msg << "Maybe you meant #{ suggestions.map {|s| "'#{s}'"}.join(" or ") }\n"
@@ -286,7 +286,7 @@ module Rails
           d[m] = x
         end
 
-        return x
+        x
       end
 
       # Prints a list of generators.
