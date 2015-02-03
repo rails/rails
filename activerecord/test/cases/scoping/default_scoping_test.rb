@@ -185,6 +185,18 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal expected, received
   end
 
+  def test_unscope_with_distinct_in_query
+    expected = Developer.order('salary DESC').collect(&:salary)
+    received = DeveloperOrderedBySalary.select('salary').distinct.unscope(:distinct).collect(&:salary)
+    assert_equal expected, received
+  end
+
+  def test_unscope_with_uniq_in_query
+    expected = Developer.order('salary DESC').collect(&:salary)
+    received = DeveloperOrderedBySalary.select('salary').uniq.unscope(:uniq).collect(&:salary)
+    assert_equal expected, received
+  end
+
   def test_order_to_unscope_reordering
     scope = DeveloperOrderedBySalary.order('salary DESC, name ASC').reverse_order.unscope(:order)
     assert !(scope.to_sql =~ /order/i)

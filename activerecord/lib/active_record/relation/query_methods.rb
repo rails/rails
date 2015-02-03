@@ -345,7 +345,7 @@ module ActiveRecord
 
     VALID_UNSCOPING_VALUES = Set.new([:where, :select, :group, :order, :lock,
                                      :limit, :offset, :joins, :includes, :from,
-                                     :readonly, :having])
+                                     :readonly, :having, :distinct, :uniq])
 
     # Removes an unwanted relation that is already defined on a chain of relations.
     # This is useful when passing around chains of relations and would like to
@@ -904,6 +904,7 @@ module ActiveRecord
       if !VALID_UNSCOPING_VALUES.include?(scope)
         raise ArgumentError, "Called unscope() with invalid unscoping argument ':#{scope}'. Valid arguments are :#{VALID_UNSCOPING_VALUES.to_a.join(", :")}."
       end
+      scope = :distinct if scope == :uniq
 
       clause_method = Relation::CLAUSE_METHODS.include?(scope)
       multi_val_method = Relation::MULTI_VALUE_METHODS.include?(scope)

@@ -1,3 +1,8 @@
+*   Added support for `Relation#unscope` to work with `:uniq` and/or `:distinct` options,
+    to remove distinct clause from a relation.
+
+    *Vipul A M*
+
 *   Foreign keys added by migrations were given random, generated names. This
     meant a different `structure.sql` would be generated every time a developer
     ran migrations on their machine.
