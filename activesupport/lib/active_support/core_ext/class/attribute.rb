@@ -85,19 +85,6 @@ class Class
           remove_possible_method(name)
           define_method(name) { val }
         end
-
-        if singleton_class?
-          class_eval do
-            remove_possible_method(name)
-            define_method(name) do
-              if instance_variable_defined? ivar
-                instance_variable_get ivar
-              else
-                singleton_class.send name
-              end
-            end
-          end
-        end
         val
       end
 
@@ -107,7 +94,11 @@ class Class
           if instance_variable_defined?(ivar)
             instance_variable_get ivar
           else
-            self.class.public_send name
+            if self.singleton_class.respond_to? :name
+              self.singleton_class.public_send name
+            else
+              self.class.public_send name
+            end
           end
         end
         define_method("#{name}?") { !!public_send(name) } if instance_predicate
