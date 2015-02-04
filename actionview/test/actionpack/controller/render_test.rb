@@ -870,6 +870,11 @@ class RenderTest < ActionController::TestCase
   end
 
   # :ported:
+  def test_action_is_empty
+    assert_raise(AbstractController::ActionNotFound, "No action responded to []") { get '' }
+  end
+
+  # :ported:
   def test_access_to_request_in_view
     get :accessing_request_in_template
     assert_equal "Hello: www.nextangle.com", @response.body

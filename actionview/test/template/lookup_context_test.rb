@@ -205,6 +205,12 @@ class LookupContextTest < ActiveSupport::TestCase
     @lookup_context.prefixes = ["foo"]
     assert_equal ["foo"], @lookup_context.prefixes
   end
+
+  test "if given view paths is empty, raise error" do
+    assert_raise ActionView::MissingTemplate do
+      @lookup_context.find("")
+    end
+  end
 end
 
 class LookupContextWithFalseCaching < ActiveSupport::TestCase
