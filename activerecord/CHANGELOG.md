@@ -1,3 +1,9 @@
+*   Respect custom primary keys for associations when calling `Relation#where`
+
+    Fixes #18813.
+
+    *Sean Griffin*
+
 *   Fixed ActiveRecord::Relation#group method when argument is SQL reserved key word:
 
       SplitTest.group(:key).count
