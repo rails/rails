@@ -1,3 +1,9 @@
+*   Respect custom primary keys for associations when calling `Relation#where`
+
+    Fixes #18813.
+
+    *Sean Griffin*
+
 *   Fixed several edge cases which could result in a counter cache updating
     twice or not updating at all for `has_many` and `has_many :through`.
 

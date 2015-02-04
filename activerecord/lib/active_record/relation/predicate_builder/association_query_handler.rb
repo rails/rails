@@ -31,7 +31,14 @@ module ActiveRecord
       end
 
       def ids
-        value
+        case value
+        when Relation
+          value.select(primary_key)
+        when Array
+          value.map { |v| convert_to_id(v) }
+        else
+          convert_to_id(value)
+        end
       end
 
       def base_class
@@ -42,6 +49,10 @@ module ActiveRecord
 
       private
 
+      def primary_key
+        associated_table.association_primary_key(base_class)
+      end
+
       def polymorphic_base_class_from_value
         case value
         when Relation
@@ -51,6 +62,15 @@ module ActiveRecord
           val.class.base_class if val.is_a?(Base)
         when Base
           value.class.base_class
+        end
+      end
+
+      def convert_to_id(value)
+        case value
+        when Base
+          value._read_attribute(primary_key)
+        else
+          value
         end
       end
     end
