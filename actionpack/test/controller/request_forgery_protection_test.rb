@@ -340,6 +340,11 @@ module RequestForgeryProtectionTests
       get :negotiate_same_origin
     end
 
+    assert_cross_origin_blocked do
+      @request.accept = 'application/javascript'
+      get :negotiate_same_origin
+    end
+
     assert_cross_origin_not_blocked { xhr :get, :same_origin_js }
     assert_cross_origin_not_blocked { xhr :get, :same_origin_js, format: 'js'}
     assert_cross_origin_not_blocked do
