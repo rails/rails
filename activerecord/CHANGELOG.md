@@ -1,3 +1,22 @@
+*   Fixed bug which caused `has_many :through` associations to return an empty
+    result. This effected `has_many :through` associations with STI models
+    that shared the same table.
+
+    Example:
+        # PrimaryTask and SecondaryTask inherit from Task
+        class Person < ActiveRecord::Base
+          has_many :primary_tasks
+          has_many :secondary_tasks, through: :primary_tasks
+        end
+
+        Person.first.secondary_tasks # query contained always-false WHERE =>
+            WHERE `tasks`.`type` IN ('PrimaryTask')
+              AND `tasks`.`type` IN ('SecondaryTask')
+
+    Fixes: #12474
+
+    *Ivan Antropov, Jordan Raine*
+
 *   Respect custom primary keys for associations when calling `Relation#where`
 
     Fixes #18813.

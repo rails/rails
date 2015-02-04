@@ -14,6 +14,8 @@ module ActiveRecord
         def target_scope
           scope = super
           reflection.chain.drop(1).each do |reflection|
+            next if reflection.table_name == scope.table.name
+
             relation = reflection.klass.all
 
             reflection_scope = reflection.scope
