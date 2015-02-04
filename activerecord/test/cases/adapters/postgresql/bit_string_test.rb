@@ -14,6 +14,8 @@ class PostgresqlBitStringTest < ActiveRecord::TestCase
     @connection.create_table('postgresql_bit_strings', :force => true) do |t|
       t.bit :a_bit, default: "00000011", limit: 8
       t.bit_varying :a_bit_varying, default: "0011", limit: 4
+      t.bit :another_bit
+      t.bit_varying :another_bit_varying
     end
   end
 
