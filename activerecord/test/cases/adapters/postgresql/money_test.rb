@@ -10,8 +10,8 @@ class PostgresqlMoneyTest < ActiveRecord::TestCase
     @connection = ActiveRecord::Base.connection
     @connection.execute("set lc_monetary = 'C'")
     @connection.create_table('postgresql_moneys', force: true) do |t|
-      t.column "wealth", "money"
-      t.column "depth", "money", default: "150.55"
+      t.money "wealth"
+      t.money "depth", default: "150.55"
     end
   end
 
