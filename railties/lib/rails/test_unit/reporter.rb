@@ -3,7 +3,7 @@ require "minitest"
 module Rails
   class TestUnitReporter < Minitest::StatisticsReporter
     def report
-      return if passed?
+      return if results.empty?
       io.puts
       io.puts "Failed tests:"
       io.puts

@@ -12,7 +12,7 @@ class TestUnitReporterTest < ActiveSupport::TestCase
   end
 
   test "prints rerun snippet to run a single failed test" do
-    @reporter.results << failed_test
+    @reporter.record(failed_test)
     @reporter.report
 
     assert_match %r{^bin/rails test .*test/test_unit/reporter_test.rb:6$}, @output.string
@@ -20,26 +20,24 @@ class TestUnitReporterTest < ActiveSupport::TestCase
   end
 
   test "prints rerun snippet for every failed test" do
-    @reporter.results << failed_test
-    @reporter.results << failed_test
-    @reporter.results << failed_test
+    @reporter.record(failed_test)
+    @reporter.record(failed_test)
+    @reporter.record(failed_test)
     @reporter.report
 
     assert_rerun_snippet_count 3
   end
 
   test "does not print snippet for successful and skipped tests" do
-    skip "confirm the expected behavior with Arthur"
-    @reporter.results << passing_test
-    @reporter.results << skipped_test
+    @reporter.record(passing_test)
+    @reporter.record(skipped_test)
     @reporter.report
     assert_rerun_snippet_count 0
   end
 
   test "prints rerun snippet for skipped tests if run in verbose mode" do
-    skip "confirm the expected behavior with Arthur"
     verbose = Rails::TestUnitReporter.new @output, verbose: true
-    verbose.results << skipped_test
+    verbose.record(skipped_test)
     verbose.report
 
     assert_rerun_snippet_count 1
