@@ -51,6 +51,22 @@ class DefaultUrlOptionsController < ActionController::Base
   end
 end
 
+class OptionalDefaultUrlOptionsController < ActionController::Base
+  def default_url_options
+    { thing: 'default_thing' }
+  end
+end
+
+class DefaultFormatController < ActionController::Base
+  def show
+    render nothing: true
+  end
+
+  def default_url_options
+    { format: 'atom' }
+  end
+end
+
 class UrlOptionsController < ActionController::Base
   def from_view
     render :inline => "<%= #{params[:route]} %>"
@@ -272,6 +288,30 @@ class DefaultUrlOptionsTest < ActionController::TestCase
     end
   end
 
+end
+
+class DefaultFormatControllerTest < ActionController::TestCase
+  def test_default_format_preserved_when_missing_from_positional_arguments
+    with_routing do |set|
+      set.draw do
+        get "/things/:id(.:format)" => 'default_format#show', :as => :thing
+      end
+      assert_equal '/things/1.atom', thing_path("1")
+    end
+  end
+end
+
+class OptionalDefaultUrlOptionsControllerTest < ActionController::TestCase
+  def test_optional_default_url_options_are_overridden_by_missing_positional_args
+    with_routing do |set|
+      set.draw do
+        get "/:category(/:thing)" => "optional_default_url_options#show", :as => :thing
+      end
+
+      assert_equal "/things/a_thing", thing_path('things', 'a_thing')
+      assert_equal "/things/default_thing", thing_path('things')
+    end
+  end
 end
 
 class EmptyUrlOptionsTest < ActionController::TestCase
