@@ -350,7 +350,7 @@ For example, the following escaped ERB tag would be needed in the template
 (note the extra `%`)...
 
 ```ruby
-<%= stylesheet_include_tag :application %>
+<%%= stylesheet_include_tag :application %>
 ```
 
 ...to generate the following output:
