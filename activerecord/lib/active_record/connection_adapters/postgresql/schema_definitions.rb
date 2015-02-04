@@ -84,7 +84,7 @@ module ActiveRecord
           column(name, :bit_varying, options)
         end
 
-        def money(name, options)
+        def money(name, options = {})
           column(name, :money, options)
         end
       end
