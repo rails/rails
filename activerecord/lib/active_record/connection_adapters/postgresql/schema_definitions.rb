@@ -76,11 +76,11 @@ module ActiveRecord
           column(name, :point, options)
         end
 
-        def bit(name, options)
+        def bit(name, options = {})
           column(name, :bit, options)
         end
 
-        def bit_varying(name, options)
+        def bit_varying(name, options = {})
           column(name, :bit_varying, options)
         end
 
