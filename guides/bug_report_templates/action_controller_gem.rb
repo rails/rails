@@ -2,6 +2,7 @@
 gem 'rails', '4.2.0'
 
 require 'rails'
+require 'rack/test'
 require 'action_controller/railtie'
 
 class TestApp < Rails::Application
@@ -27,7 +28,6 @@ class TestController < ActionController::Base
 end
 
 require 'minitest/autorun'
-require 'rack/test'
 
 # Ensure backward compatibility with Minitest 4
 Minitest::Test = MiniTest::Unit::TestCase unless defined?(Minitest::Test)
