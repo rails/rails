@@ -12,7 +12,15 @@ module ActionCable
     end
 
     def cleanup_subscriptions(connection)
-      connection.cleanup_subscriptions
+      run_callbacks :work do
+        connection.cleanup_subscriptions
+      end
+    end
+
+    def run_periodic_timer(channel, callback)
+      run_callbacks :work do
+        callback.respond_to?(:call) ? channel.instance_exec(&callback) : channel.send(callback)
+      end
     end
 
   end
