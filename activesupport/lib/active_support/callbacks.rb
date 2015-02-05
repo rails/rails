@@ -373,7 +373,7 @@ module ActiveSupport
       def filter; @key; end
       def raw_filter; @filter; end
 
-      def merge(chain, new_options)
+      def merge_conditional_options(chain, new_options)
         options = {
           :if     => @if.dup,
           :unless => @unless.dup
@@ -701,7 +701,7 @@ module ActiveSupport
             filter = chain.find {|c| c.matches?(type, filter) }
 
             if filter && options.any?
-              new_filter = filter.merge(chain, options)
+              new_filter = filter.merge_conditional_options(chain, options)
               chain.insert(chain.index(filter), new_filter)
             end
 
