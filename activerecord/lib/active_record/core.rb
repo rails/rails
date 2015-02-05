@@ -119,8 +119,6 @@ module ActiveRecord
       def find(*ids)
         # We don't have cache keys for this stuff yet
         return super unless ids.length == 1
-        # Allow symbols to super to maintain compatibility for deprecated finders until Rails 5
-        return super if ids.first.kind_of?(Symbol)
         return super if block_given? ||
                         primary_key.nil? ||
                         default_scopes.any? ||
