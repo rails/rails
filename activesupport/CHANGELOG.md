@@ -1,3 +1,7 @@
+*   config_accessor became a private method, as with Ruby's attr_accessor.
+
+    *Akira Matsuda*
+
 *   `AS::Testing::TimeHelpers#travel_to` now changes `DateTime.now` as well as
     `Time.now` and `Date.today`.
 
