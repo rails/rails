@@ -2,8 +2,6 @@ module ActionView
   module Helpers
     module Tags # :nodoc:
       class Translator # :nodoc:
-        attr_reader :object_name, :method_and_value, :i18n_scope, :model
-
         def initialize(object, object_name, method_and_value, i18n_scope)
           @object_name = object_name.gsub(/\[(.*)_attributes\]\[\d+\]/, '.\1')
           @method_and_value = method_and_value
@@ -15,6 +13,10 @@ module ActionView
           translated_attribute = I18n.t("#{object_name}.#{method_and_value}", :default => i18n_default, :scope => i18n_scope).presence
           translated_attribute || human_attribute_name
         end
+
+        private
+
+        attr_reader :object_name, :method_and_value, :i18n_scope, :model
 
         def i18n_default
           if model
