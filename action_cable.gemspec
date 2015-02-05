@@ -10,7 +10,6 @@ Gem::Specification.new do |s|
   s.homepage = 'http://basecamp.com'
 
   s.add_dependency('activesupport',   '~> 4.2.0')
-  s.add_dependency('cramp',           '~> 0.15.4')
 
   s.files = Dir['README', 'lib/**/*']
   s.has_rdoc = false

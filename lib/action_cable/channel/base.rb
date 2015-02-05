@@ -41,13 +41,13 @@ module ActionCable
 
       def subscribe
         self.class.on_subscribe_callbacks.each do |callback|
-          EM.next_tick { send(callback) }
+          send(callback)
         end
       end
 
       def unsubscribe
         self.class.on_unsubscribe_callbacks.each do |callback|
-          EM.next_tick { send(callback) }
+          send(callback)
         end
       end
 

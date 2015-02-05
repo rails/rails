@@ -15,9 +15,8 @@ ActiveSupport.test_order = :sorted
 require 'logger'
 logger = Logger.new(File.join(File.dirname(__FILE__), "tests.log"))
 logger.level = Logger::DEBUG
-Cramp.logger = logger
 
-class ActionCableTest < Cramp::TestCase
+class ActionCableTest < ActiveSupport::TestCase
   PORT = 420420
 
   setup :start_puma_server

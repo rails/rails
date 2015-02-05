@@ -1,10 +1,11 @@
 require 'set'
+require 'faye/websocket'
+require 'celluloid'
+
+Celluloid::Actor[:worker_pool] = ActionCable::Worker.pool(size: 100)
 
 module ActionCable
-  class Server < Cramp::Websocket
-    on_data :received_data
-    on_finish :cleanup_subscriptions
-
+  class Server
     class_attribute :registered_channels
     self.registered_channels = Set.new
 
@@ -12,12 +13,35 @@ module ActionCable
       def register_channels(*channel_classes)
         self.registered_channels += channel_classes
       end
+
+      def call(env)
+        new(env).process
+      end
     end
 
-    def initialize(*)
-      @subscriptions = {}
+    def initialize(env)
+      @env = env
+    end
 
-      super
+    def process
+      if Faye::WebSocket.websocket?(@env)
+        @subscriptions = {}
+
+        @websocket = Faye::WebSocket.new(@env)
+
+        @websocket.on(:message) do |event|
+          message = event.data
+          Celluloid::Actor[:worker_pool].async.received_data(self, message) if message.is_a?(String)
+        end
+
+        @websocket.on(:close) do |event|
+          Celluloid::Actor[:worker_pool].async.cleanup_subscriptions(self)
+        end
+
+        @websocket.rack_response
+      else
+        invalid_request
+      end
     end
 
     def received_data(data)
@@ -40,7 +64,7 @@ module ActionCable
     end
 
     def broadcast(data)
-      render data
+      @websocket.send data
     end
 
     private
@@ -71,5 +95,8 @@ module ActionCable
         @subscriptions.delete(id_key)
       end
 
+      def invalid_request
+        [404, {'Content-Type' => 'text/plain'}, ['Page not found']]
+      end
   end
 end
