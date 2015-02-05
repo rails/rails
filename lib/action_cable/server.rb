@@ -37,6 +37,7 @@ module ActionCable
 
         @websocket.on(:close) do |event|
           worker_pool.async.invoke(self, :cleanup_subscriptions)
+          worker_pool.async.invoke(self, :disconnect) if respond_to?(:disconnect)
         end
 
         @websocket.rack_response
