@@ -10,7 +10,7 @@ module ActionView
         end
 
         def call
-          translated_attribute = I18n.t("#{object_name}.#{method_and_value}", :default => i18n_default, :scope => i18n_scope).presence
+          translated_attribute = I18n.t("#{object_name}.#{method_and_value}", default: i18n_default, scope: i18n_scope).presence
           translated_attribute || human_attribute_name
         end
 
