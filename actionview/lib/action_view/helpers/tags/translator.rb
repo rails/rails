@@ -2,13 +2,13 @@ module ActionView
   module Helpers
     module Tags # :nodoc:
       class Translator # :nodoc:
-        attr_reader :object, :object_name, :method_and_value, :i18n_scope
+        attr_reader :object_name, :method_and_value, :i18n_scope, :model
 
         def initialize(object, object_name, method_and_value, i18n_scope)
-          @object = object
           @object_name = object_name.gsub(/\[(.*)_attributes\]\[\d+\]/, '.\1')
           @method_and_value = method_and_value
           @i18n_scope = i18n_scope
+          @model = object.respond_to?(:to_model) ? object.to_model : object
         end
 
         def call
@@ -29,10 +29,6 @@ module ActionView
           if model && model.class.respond_to?(:human_attribute_name)
             model.class.human_attribute_name(method_and_value)
           end
-        end
-
-        def model
-          @model ||= object.to_model if object.respond_to?(:to_model)
         end
       end
     end
