@@ -107,16 +107,16 @@ module ActiveRecord
         super
       end
 
-      def initialize_find_by_cache
+      def initialize_find_by_cache # :nodoc:
         self.find_by_statement_cache = {}.extend(Mutex_m)
       end
 
-      def inherited(child_class)
+      def inherited(child_class) # :nodoc:
         child_class.initialize_find_by_cache
         super
       end
 
-      def find(*ids)
+      def find(*ids) # :nodoc:
         # We don't have cache keys for this stuff yet
         return super unless ids.length == 1
         return super if block_given? ||
@@ -150,7 +150,7 @@ module ActiveRecord
         raise RecordNotFound, "Couldn't find #{name} with an out of range value for '#{primary_key}'"
       end
 
-      def find_by(*args)
+      def find_by(*args) # :nodoc:
         return super if current_scope || !(Hash === args.first) || reflect_on_all_aggregations.any?
         return super if default_scopes.any?
 
@@ -183,11 +183,11 @@ module ActiveRecord
         end
       end
 
-      def find_by!(*args)
+      def find_by!(*args) # :nodoc:
         find_by(*args) or raise RecordNotFound.new("Couldn't find #{name}")
       end
 
-      def initialize_generated_modules
+      def initialize_generated_modules # :nodoc:
         generated_association_methods
       end
 
