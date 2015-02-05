@@ -1,3 +1,13 @@
+*   Support interpolation for subdomain in routing redirection.
+
+    Example:
+
+        get '/companies/:subdomain', to: redirect(subdomain: '%{subdomain}', path: '/')
+
+    http://example.com/companies/company will redirect to http://company.example.com
+
+    *Airat Shigapov*
+
 *   Migrating to keyword arguments syntax in `ActionController::TestCase` and
     `ActionDispatch::Integration` HTTP request methods.
 
