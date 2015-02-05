@@ -3712,6 +3712,15 @@ class TestNamespaceWithControllerOption < ActionDispatch::IntegrationTest
 
     assert_match "'Admin' is not a supported controller name", e.message
   end
+
+  def test_action_is_empty
+    ex = assert_raises(ArgumentError) {
+      draw do
+        get '/foo/bar', controller: :foo, action: ''
+      end
+    }
+    assert_match(/:action can't be blank/, ex.message)
+  end
 end
 
 class TestDefaultScope < ActionDispatch::IntegrationTest
