@@ -2,6 +2,7 @@ require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/module/delegation'
 require 'active_support/core_ext/hash/reverse_merge'
 require 'active_support/core_ext/kernel/reporting'
+require 'active_support/testing/stream'
 require 'active_support/concern'
 require 'rails/generators'
 
@@ -10,6 +11,7 @@ module Rails
     module Testing
       module Behaviour
         extend ActiveSupport::Concern
+        include ActiveSupport::Testing::Stream
 
         included do
           class_attribute :destination_root, :current_path, :generator_class, :default_arguments
@@ -101,22 +103,6 @@ module Rails
             Dir.glob("#{dirname}/[0-9]*_*.rb").grep(/\d+_#{file_name}.rb$/).first
           end
 
-          def capture(stream)
-            stream = stream.to_s
-            captured_stream = Tempfile.new(stream)
-            stream_io = eval("$#{stream}")
-            origin_stream = stream_io.dup
-            stream_io.reopen(captured_stream)
-
-            yield
-
-            stream_io.rewind
-            return captured_stream.read
-          ensure
-            captured_stream.close
-            captured_stream.unlink
-            stream_io.reopen(origin_stream)
-          end
       end
     end
   end

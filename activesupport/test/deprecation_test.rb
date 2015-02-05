@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'active_support/testing/stream'
 
 class Deprecatee
   def initialize
@@ -36,6 +37,8 @@ end
 
 
 class DeprecationTest < ActiveSupport::TestCase
+  include ActiveSupport::Testing::Stream
+
   def setup
     # Track the last warning.
     @old_behavior = ActiveSupport::Deprecation.behavior
@@ -356,20 +359,4 @@ class DeprecationTest < ActiveSupport::TestCase
       deprecator
     end
 
-    def capture(stream)
-      stream = stream.to_s
-      captured_stream = Tempfile.new(stream)
-      stream_io = eval("$#{stream}")
-      origin_stream = stream_io.dup
-      stream_io.reopen(captured_stream)
-
-      yield
-
-      stream_io.rewind
-      return captured_stream.read
-    ensure
-      captured_stream.close
-      captured_stream.unlink
-      stream_io.reopen(origin_stream)
-    end
 end

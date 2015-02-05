@@ -1,33 +1,19 @@
 require 'active_support/test_case'
+require 'active_support/testing/stream'
 
 module ActiveRecord
   # = Active Record Test Case
   #
   # Defines some test assertions to test against SQL queries.
   class TestCase < ActiveSupport::TestCase #:nodoc:
+    include ActiveSupport::Testing::Stream
+
     def teardown
       SQLCounter.clear_log
     end
 
     def assert_date_from_db(expected, actual, message = nil)
       assert_equal expected.to_s, actual.to_s, message
-    end
-
-    def capture(stream)
-      stream = stream.to_s
-      captured_stream = Tempfile.new(stream)
-      stream_io = eval("$#{stream}")
-      origin_stream = stream_io.dup
-      stream_io.reopen(captured_stream)
-
-      yield
-
-      stream_io.rewind
-      return captured_stream.read
-    ensure
-      captured_stream.close
-      captured_stream.unlink
-      stream_io.reopen(origin_stream)
     end
 
     def capture_sql
