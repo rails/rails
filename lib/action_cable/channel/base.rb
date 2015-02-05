@@ -67,7 +67,7 @@ module ActionCable
         def start_periodic_timers
           self.class.periodic_timers.each do |callback, options|
             @_active_periodic_timers << EventMachine::PeriodicTimer.new(options[:every]) do
-              Celluloid::Actor[:worker_pool].async.run_periodic_timer(self, callback)
+              connection.class.worker_pool.async.run_periodic_timer(self, callback)
             end
           end
         end

@@ -1,9 +1,10 @@
-Celluloid::Actor[:worker_pool] = ActionCable::Worker.pool(size: 100)
-
 module ActionCable
   class Server
     class_attribute :registered_channels
     self.registered_channels = Set.new
+
+    class_attribute :worker_pool_size
+    self.worker_pool_size = 100
 
     class << self
       def register_channels(*channel_classes)
@@ -12,6 +13,10 @@ module ActionCable
 
       def call(env)
         new(env).process
+      end
+
+      def worker_pool
+        @worker_pool ||= ActionCable::Worker.pool(size: worker_pool_size)
       end
     end
 
@@ -27,11 +32,11 @@ module ActionCable
 
         @websocket.on(:message) do |event|
           message = event.data
-          Celluloid::Actor[:worker_pool].async.received_data(self, message) if message.is_a?(String)
+          self.class.worker_pool.async.received_data(self, message) if message.is_a?(String)
         end
 
         @websocket.on(:close) do |event|
-          Celluloid::Actor[:worker_pool].async.cleanup_subscriptions(self)
+          self.class.worker_pool.async.cleanup_subscriptions(self)
         end
 
         @websocket.rack_response
