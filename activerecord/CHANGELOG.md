@@ -1,3 +1,9 @@
+*   Use `SCHEMA` instead of `DB_STRUCTURE` for specifiying structure file.
+
+    This makes the db:structure tasks consistent with test:load_structure.
+
+    *Dieter Komendera*
+
 *   Respect custom primary keys for associations when calling `Relation#where`
 
     Fixes #18813.
