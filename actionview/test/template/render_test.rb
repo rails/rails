@@ -171,18 +171,12 @@ module RenderTestCases
     assert_equal "only partial", @view.render("test/partial_only", :counter_counter => 5)
   end
 
-  def test_render_partial_with_invalid_name
-    e = assert_raises(ArgumentError) { @view.render(:partial => "test/200") }
-    assert_equal "The partial name (test/200) is not a valid Ruby identifier; " +
-      "make sure your partial name starts with underscore, " +
-      "and is followed by any combination of letters, numbers and underscores.", e.message
+  def test_render_partial_with_number
+    assert_nothing_raised { @view.render(:partial => "test/200") }
   end
 
   def test_render_partial_with_missing_filename
-    e = assert_raises(ArgumentError) { @view.render(:partial => "test/") }
-    assert_equal "The partial name (test/) is not a valid Ruby identifier; " +
-      "make sure your partial name starts with underscore, " +
-      "and is followed by any combination of letters, numbers and underscores.", e.message
+    assert_raises(ActionView::MissingTemplate) { @view.render(:partial => "test/") }
   end
 
   def test_render_partial_with_incompatible_object
@@ -190,11 +184,12 @@ module RenderTestCases
     assert_equal "'#{nil.inspect}' is not an ActiveModel-compatible object. It must implement :to_partial_path.", e.message
   end
 
+  def test_render_partial_starting_with_a_capital
+    assert_nothing_raised { @view.render(:partial => 'test/FooBar') }
+  end
+
   def test_render_partial_with_hyphen
-    e = assert_raises(ArgumentError) { @view.render(:partial => "test/a-in") }
-    assert_equal "The partial name (test/a-in) is not a valid Ruby identifier; " +
-      "make sure your partial name starts with underscore, " +
-      "and is followed by any combination of letters, numbers and underscores.", e.message
+    assert_nothing_raised { @view.render(:partial => "test/a-in") }
   end
 
   def test_render_partial_with_invalid_option_as

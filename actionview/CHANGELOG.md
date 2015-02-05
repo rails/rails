@@ -1,3 +1,13 @@
+*   Partial template name does no more have to be a valid Ruby identifier.
+
+    There used to be a naming rule that the partial name should start with
+    underscore, and should be followed by any combination of letters, numbers
+    and underscores.
+    But now we can give our partials any name starting with underscore, such as
+    _🍔.html.erb.
+
+    *Akira Matsuda*
+
 *   Change the default template handler from `ERB` to `Raw`.
 
     Files without a template handler in their extension will be rendered using the raw

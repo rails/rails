@@ -519,7 +519,7 @@ module ActionView
     def retrieve_variable(path, as)
       variable = as || begin
         base = path[-1] == "/" ? "" : File.basename(path)
-        raise_invalid_identifier(path) unless base =~ /\A_?([a-z]\w*)(\.\w+)*\z/
+        raise_invalid_identifier(path) unless base =~ /\A_?(.*)(?:\.\w+)*\z/
         $1.to_sym
       end
       if @collection
@@ -530,8 +530,7 @@ module ActionView
     end
 
     IDENTIFIER_ERROR_MESSAGE = "The partial name (%s) is not a valid Ruby identifier; " +
-                               "make sure your partial name starts with underscore, " +
-                               "and is followed by any combination of letters, numbers and underscores."
+                               "make sure your partial name starts with underscore."
 
     OPTION_AS_ERROR_MESSAGE  = "The value (%s) of the option `as` is not a valid Ruby identifier; " +
                                "make sure it starts with lowercase letter, " +
