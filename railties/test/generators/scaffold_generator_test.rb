@@ -253,6 +253,11 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     assert_file "config/routes.rb", /\.routes\.draw do\nend\n\z/
   end
 
+  def test_scaffold_generator_ignores_commented_routes
+    run_generator ["product"]
+    assert_file "config/routes.rb", /\.routes\.draw do\n  resources :products\n/
+  end
+
   def test_scaffold_generator_no_assets_with_switch_no_assets
     run_generator [ "posts", "--no-assets" ]
     assert_no_file "app/assets/stylesheets/scaffold.css"
