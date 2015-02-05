@@ -1,11 +1,16 @@
 require 'eventmachine'
 EM.epoll
 
+require 'set'
+
 require 'active_support'
 require 'active_support/json'
 require 'active_support/concern'
 require 'active_support/core_ext/hash/indifferent_access'
 require 'active_support/callbacks'
+
+require 'faye/websocket'
+require 'celluloid'
 
 module ActionCable
   VERSION = '0.0.1'

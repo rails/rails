@@ -9,7 +9,9 @@ Gem::Specification.new do |s|
   s.email = ['pratiknaik@gmail.com']
   s.homepage = 'http://basecamp.com'
 
-  s.add_dependency('activesupport',   '~> 4.2.0')
+  s.add_dependency('activesupport', '~> 4.2.0')
+  s.add_dependency('faye-websocket', '~> 0.9.2')
+  s.add_dependency('celluloid', '~> 0.16.0')
 
   s.files = Dir['README', 'lib/**/*']
   s.has_rdoc = false

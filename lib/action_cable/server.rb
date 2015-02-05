@@ -1,7 +1,3 @@
-require 'set'
-require 'faye/websocket'
-require 'celluloid'
-
 Celluloid::Actor[:worker_pool] = ActionCable::Worker.pool(size: 100)
 
 module ActionCable
