@@ -26,6 +26,7 @@ require 'models/member'
 require 'models/membership'
 require 'models/club'
 require 'models/organization'
+require 'models/task'
 
 class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   fixtures :posts, :readers, :people, :comments, :authors, :categories, :taggings, :tags,
@@ -1115,6 +1116,14 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
     readers(:michael_authorless).update(first_post_id: 1)
     assert_equal [posts(:thinking)], person.reload.first_posts
+  end
+
+  test "has many through with STI" do
+    program  = MainTask.create! name: "Program"
+    function = program.sub_tasks.create! name: "Function"
+    command  = function.elementary_tasks.create! name: "Command"
+
+    assert_equal [command], program.elementary_tasks.to_a
   end
 
   def test_has_many_through_with_includes_in_through_association_scope
