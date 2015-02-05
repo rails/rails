@@ -185,7 +185,7 @@ module ActiveRecord
       ensure
         unless error
           if Thread.current.status == 'aborting'
-            rollback_transaction
+            rollback_transaction if transaction
           else
             begin
               commit_transaction
