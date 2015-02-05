@@ -32,11 +32,11 @@ module ActionCable
 
         @websocket.on(:message) do |event|
           message = event.data
-          worker_pool.async.received_data(self, message) if message.is_a?(String)
+          worker_pool.async.invoke(self, :received_data, message) if message.is_a?(String)
         end
 
         @websocket.on(:close) do |event|
-          worker_pool.async.cleanup_subscriptions(self)
+          worker_pool.async.invoke(self, :cleanup_subscriptions)
         end
 
         @websocket.rack_response

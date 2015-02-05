@@ -5,15 +5,9 @@ module ActionCable
 
     define_callbacks :work
 
-    def received_data(connection, data)
+    def invoke(receiver, method, *args)
       run_callbacks :work do
-        connection.received_data(data)
-      end
-    end
-
-    def cleanup_subscriptions(connection)
-      run_callbacks :work do
-        connection.cleanup_subscriptions
+        receiver.send method, *args
       end
     end
 
