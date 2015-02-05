@@ -1,3 +1,7 @@
+*   Force generated routes to be inserted into routes.rb
+
+    *Andrew White*
+
 *   Don't remove all line endings from routes.rb when revoking scaffold.
 
     Fixes #15913.
