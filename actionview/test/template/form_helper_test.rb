@@ -40,6 +40,9 @@ class FormHelperTest < ActionView::TestCase
           },
           tag: {
             value: "Tag"
+          },
+          post_delegate: {
+            title: 'Delegate model_name title'
           }
         }
       }
@@ -81,6 +84,9 @@ class FormHelperTest < ActionView::TestCase
               body: "Write body here"
             }
           },
+          post_delegate: {
+            title: 'Delegate model_name title'
+          },
           tag: {
             value: "Tag"
           }
@@ -116,6 +122,10 @@ class FormHelperTest < ActionView::TestCase
 
     @post.tags = []
     @post.tags << Tag.new
+
+    @post_delegator = PostDelegator.new
+
+    @post_delegator.title = 'Hello World'
 
     @car = Car.new("#000FFF")
   end
@@ -337,6 +347,22 @@ class FormHelperTest < ActionView::TestCase
     )
   end
 
+  def test_label_with_to_model
+    assert_dom_equal(
+      %{<label for="post_delegator_title">Delegate Title</label>},
+      label(:post_delegator, :title)
+    )
+  end
+
+  def test_label_with_to_model_and_overriden_model_name
+    with_locale :label do
+      assert_dom_equal(
+        %{<label for="post_delegator_title">Delegate model_name title</label>},
+        label(:post_delegator, :title)
+      )
+    end
+  end
+
   def test_text_field_placeholder_without_locales
     with_locale :placeholder do
       assert_dom_equal('<input id="post_body" name="post[body]" placeholder="Body" type="text" value="Back to the hill and over it again!" />', text_field(:post, :body, placeholder: true))
@@ -349,10 +375,26 @@ class FormHelperTest < ActionView::TestCase
     end
   end
 
+  def test_text_field_placeholder_with_locales_and_to_model
+    with_locale :placeholder do
+      assert_dom_equal(
+        '<input id="post_delegator_title" name="post_delegator[title]" placeholder="Delegate model_name title" type="text" value="Hello World" />',
+        text_field(:post_delegator, :title, placeholder: true)
+      )
+    end
+  end
+
   def test_text_field_placeholder_with_human_attribute_name
     with_locale :placeholder do
       assert_dom_equal('<input id="post_cost" name="post[cost]" placeholder="Total cost" type="text" />', text_field(:post, :cost, placeholder: true))
     end
+  end
+
+  def test_text_field_placeholder_with_human_attribute_name_and_to_model
+    assert_dom_equal(
+      '<input id="post_delegator_title" name="post_delegator[title]" placeholder="Delegate Title" type="text" value="Hello World" />',
+      text_field(:post_delegator, :title, placeholder: true)
+    )
   end
 
   def test_text_field_placeholder_with_string_value

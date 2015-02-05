@@ -54,6 +54,22 @@ class Post < Struct.new(:title, :author_name, :body, :secret, :persisted, :writt
   def tags_attributes=(attributes); end
 end
 
+class PostDelegator < Post
+  def to_model
+    PostDelegate.new
+  end
+end
+
+class PostDelegate < Post
+  def self.human_attribute_name(attribute)
+    "Delegate #{super}"
+  end
+
+  def model_name
+    ActiveModel::Name.new(self.class)
+  end
+end
+
 class Comment
   extend ActiveModel::Naming
   include ActiveModel::Conversion
