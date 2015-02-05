@@ -32,11 +32,11 @@ module ActionCable
 
         @websocket.on(:message) do |event|
           message = event.data
-          self.class.worker_pool.async.received_data(self, message) if message.is_a?(String)
+          worker_pool.async.received_data(self, message) if message.is_a?(String)
         end
 
         @websocket.on(:close) do |event|
-          self.class.worker_pool.async.cleanup_subscriptions(self)
+          worker_pool.async.cleanup_subscriptions(self)
         end
 
         @websocket.rack_response
@@ -66,6 +66,10 @@ module ActionCable
 
     def broadcast(data)
       @websocket.send data
+    end
+
+    def worker_pool
+      self.class.worker_pool
     end
 
     private
