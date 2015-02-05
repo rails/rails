@@ -9,7 +9,7 @@ module ActionView
           @model = object.respond_to?(:to_model) ? object.to_model : object
         end
 
-        def call
+        def translate
           translated_attribute = I18n.t("#{object_name}.#{method_and_value}", default: i18n_default, scope: scope).presence
           translated_attribute || human_attribute_name
         end

@@ -11,7 +11,7 @@ module ActionView
 
             placeholder ||= Tags::Translator
               .new(object, @object_name, method_and_value, scope: "helpers.placeholder")
-              .call
+              .translate
             placeholder ||= @method_name.humanize
             @options[:placeholder] = placeholder
           end

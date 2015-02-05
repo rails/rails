@@ -18,7 +18,7 @@ module ActionView
 
             content ||= Translator
               .new(object, @object_name, method_and_value, scope: "helpers.label")
-              .call
+              .translate
             content ||= @method_name.humanize
 
             content
