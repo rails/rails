@@ -262,7 +262,7 @@ module RequestForgeryProtectionTests
   end
 
   def test_should_not_allow_xhr_post_without_token
-    assert_blocked { xhr :post, :index }
+    assert_blocked { post :index, xhr: true }
   end
 
   def test_should_allow_post_with_token
@@ -340,11 +340,11 @@ module RequestForgeryProtectionTests
       get :negotiate_same_origin
     end
 
-    assert_cross_origin_not_blocked { xhr :get, :same_origin_js }
-    assert_cross_origin_not_blocked { xhr :get, :same_origin_js, format: 'js'}
+    assert_cross_origin_not_blocked { get :same_origin_js, xhr: true }
+    assert_cross_origin_not_blocked { get :same_origin_js, xhr: true, format: 'js'}
     assert_cross_origin_not_blocked do
       @request.accept = 'text/javascript'
-      xhr :get, :negotiate_same_origin
+      get :negotiate_same_origin, xhr: true
     end
   end
 
@@ -366,11 +366,11 @@ module RequestForgeryProtectionTests
       get :negotiate_cross_origin
     end
 
-    assert_cross_origin_not_blocked { xhr :get, :cross_origin_js }
-    assert_cross_origin_not_blocked { xhr :get, :cross_origin_js, format: 'js' }
+    assert_cross_origin_not_blocked { get :cross_origin_js, xhr: true }
+    assert_cross_origin_not_blocked { get :cross_origin_js, xhr: true, format: 'js' }
     assert_cross_origin_not_blocked do
       @request.accept = 'text/javascript'
-      xhr :get, :negotiate_cross_origin
+      get :negotiate_cross_origin, xhr: true
     end
   end
 

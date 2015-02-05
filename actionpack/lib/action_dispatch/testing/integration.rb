@@ -92,11 +92,12 @@ module ActionDispatch
           end
         end
 
-        headers ||= {}
-        headers.merge!(env) if env
-        headers['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest'
-        headers['HTTP_ACCEPT'] ||= [Mime::JS, Mime::HTML, Mime::XML, 'text/xml', Mime::ALL].join(', ')
-        process(request_method, path, params: params, headers: headers)
+        ActiveSupport::Deprecation.warn(<<-MSG.strip_heredoc)
+          xhr and xml_http_request methods are deprecated in favor of
+          `get "/posts", xhr: true` and `post "/posts/1", xhr: true`
+        MSG
+
+        process(request_method, path, params: params, headers: headers, xhr: true)
       end
       alias xhr :xml_http_request
 
@@ -306,7 +307,7 @@ module ActionDispatch
           end
         end
 
-        REQUEST_KWARGS = %i(params headers env)
+        REQUEST_KWARGS = %i(params headers env xhr)
         def kwarg_request?(*args)
           args[0].respond_to?(:keys) && args[0].keys.any? { |k| REQUEST_KWARGS.include?(k) }
         end
@@ -329,7 +330,7 @@ module ActionDispatch
         end
 
         # Performs the actual request.
-        def process(method, path, params: nil, headers: nil, env: nil)
+        def process(method, path, params: nil, headers: nil, env: nil, xhr: false)
           if path =~ %r{://}
             location = URI.parse(path)
             https! URI::HTTPS === location if location.scheme
@@ -354,6 +355,13 @@ module ActionDispatch
             "CONTENT_TYPE"   => "application/x-www-form-urlencoded",
             "HTTP_ACCEPT"    => accept
           }
+
+          if xhr
+            headers ||= {}
+            headers['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest'
+            headers['HTTP_ACCEPT'] ||= [Mime::JS, Mime::HTML, Mime::XML, 'text/xml', Mime::ALL].join(', ')
+          end
+
           # this modifies the passed request_env directly
           if headers.present?
             Http::Headers.new(request_env).merge!(headers)
@@ -377,7 +385,7 @@ module ActionDispatch
 
           @controller = session.last_request.env['action_controller.instance']
 
-          return response.status
+          response.status
         end
 
         def build_full_uri(path, env)

@@ -195,133 +195,112 @@ class SessionTest < ActiveSupport::TestCase
 
   def test_xml_http_request_get
     path = "/index"; params = "blah"; headers = { location: 'blah' }
-    headers_after_xhr = headers.merge(
-      "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest",
-      "HTTP_ACCEPT"           => "text/javascript, text/html, application/xml, text/xml, */*"
-    )
-    @session.expects(:process).with(:get, path, params: params, headers: headers_after_xhr)
-    @session.xml_http_request(:get, path, params: params, headers: headers)
+    @session.expects(:process).with(:get, path, params: params, headers: headers, xhr: true)
+    @session.get(path, params: params, headers: headers, xhr: true)
   end
 
   def test_deprecated_xml_http_request_get
     path = "/index"; params = "blah"; headers = { location: 'blah' }
-    headers_after_xhr = headers.merge(
-      "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest",
-      "HTTP_ACCEPT"           => "text/javascript, text/html, application/xml, text/xml, */*"
-    )
-    @session.expects(:process).with(:get, path, params: params, headers: headers_after_xhr)
-    assert_deprecated {
-      @session.xml_http_request(:get,path,params,headers)
+    @session.expects(:process).with(:get, path, params: params, headers: headers, xhr: true)
+    @session.get(path, params: params, headers: headers, xhr: true)
+  end
+
+  def test_deprecated_args_xml_http_request_get
+    path = "/index"; params = "blah"; headers = { location: 'blah' }
+    @session.expects(:process).with(:get, path, params: params, headers: headers, xhr: true)
+    assert_deprecated(/xml_http_request/) {
+      @session.xml_http_request(:get, path, params, headers)
     }
   end
 
   def test_xml_http_request_post
     path = "/index"; params = "blah"; headers = { location: 'blah' }
-    headers_after_xhr = headers.merge(
-      "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest",
-      "HTTP_ACCEPT"           => "text/javascript, text/html, application/xml, text/xml, */*"
-    )
-    @session.expects(:process).with(:post, path, params: params, headers: headers_after_xhr)
-    @session.xml_http_request(:post, path, params: params, headers: headers)
+    @session.expects(:process).with(:post, path, params: params, headers: headers, xhr: true)
+    @session.post(path, params: params, headers: headers, xhr: true)
   end
 
   def test_deprecated_xml_http_request_post
     path = "/index"; params = "blah"; headers = { location: 'blah' }
-    headers_after_xhr = headers.merge(
-      "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest",
-      "HTTP_ACCEPT"           => "text/javascript, text/html, application/xml, text/xml, */*"
-    )
-    @session.expects(:process).with(:post, path, params: params, headers: headers_after_xhr)
-    assert_deprecated { @session.xml_http_request(:post,path,params,headers) }
+    @session.expects(:process).with(:post, path, params: params, headers: headers, xhr: true)
+    @session.post(path, params: params, headers: headers, xhr: true)
+  end
+
+  def test_deprecated_args_xml_http_request_post
+    path = "/index"; params = "blah"; headers = { location: 'blah' }
+    @session.expects(:process).with(:post, path, params: params, headers: headers, xhr: true)
+    assert_deprecated(/xml_http_request/) { @session.xml_http_request(:post,path,params,headers) }
   end
 
   def test_xml_http_request_patch
     path = "/index"; params = "blah"; headers = { location: 'blah' }
-    headers_after_xhr = headers.merge(
-      "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest",
-      "HTTP_ACCEPT"           => "text/javascript, text/html, application/xml, text/xml, */*"
-    )
-    @session.expects(:process).with(:patch, path, params: params, headers: headers_after_xhr)
-    @session.xml_http_request(:patch, path, params: params, headers: headers)
+    @session.expects(:process).with(:patch, path, params: params, headers: headers, xhr: true)
+    @session.patch(path, params: params, headers: headers, xhr: true)
   end
 
   def test_deprecated_xml_http_request_patch
     path = "/index"; params = "blah"; headers = { location: 'blah' }
-    headers_after_xhr = headers.merge(
-      "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest",
-      "HTTP_ACCEPT"           => "text/javascript, text/html, application/xml, text/xml, */*"
-    )
-    @session.expects(:process).with(:patch, path, params: params, headers: headers_after_xhr)
-    assert_deprecated { @session.xml_http_request(:patch,path,params,headers) }
+    @session.expects(:process).with(:patch, path, params: params, headers: headers, xhr: true)
+    @session.patch(path, params: params, headers: headers, xhr: true)
+  end
+
+  def test_deprecated_args_xml_http_request_patch
+    path = "/index"; params = "blah"; headers = { location: 'blah' }
+    @session.expects(:process).with(:patch, path, params: params, headers: headers, xhr: true)
+    assert_deprecated(/xml_http_request/) { @session.xml_http_request(:patch,path,params,headers) }
   end
 
   def test_xml_http_request_put
     path = "/index"; params = "blah"; headers = { location: 'blah' }
-    headers_after_xhr = headers.merge(
-      "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest",
-      "HTTP_ACCEPT"           => "text/javascript, text/html, application/xml, text/xml, */*"
-    )
-    @session.expects(:process).with(:put, path, params: params, headers: headers_after_xhr)
-    @session.xml_http_request(:put, path, params: params, headers: headers)
+    @session.expects(:process).with(:put, path, params: params, headers: headers, xhr: true)
+    @session.put(path, params: params, headers: headers, xhr: true)
   end
 
   def test_deprecated_xml_http_request_put
     path = "/index"; params = "blah"; headers = { location: 'blah' }
-    headers_after_xhr = headers.merge(
-      "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest",
-      "HTTP_ACCEPT"           => "text/javascript, text/html, application/xml, text/xml, */*"
-    )
-    @session.expects(:process).with(:put, path, params: params, headers: headers_after_xhr)
-    assert_deprecated { @session.xml_http_request(:put, path, params, headers) }
+    @session.expects(:process).with(:put, path, params: params, headers: headers, xhr: true)
+    @session.put(path, params: params, headers: headers, xhr: true)
+  end
+
+  def test_deprecated_args_xml_http_request_put
+    path = "/index"; params = "blah"; headers = { location: 'blah' }
+    @session.expects(:process).with(:put, path, params: params, headers: headers, xhr: true)
+    assert_deprecated(/xml_http_request/) { @session.xml_http_request(:put, path, params, headers) }
   end
 
   def test_xml_http_request_delete
     path = "/index"; params = "blah"; headers = { location: 'blah' }
-    headers_after_xhr = headers.merge(
-      "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest",
-      "HTTP_ACCEPT"           => "text/javascript, text/html, application/xml, text/xml, */*"
-    )
-    @session.expects(:process).with(:delete, path, params: params, headers: headers_after_xhr)
-    @session.xml_http_request(:delete, path, params: params, headers: headers)
+    @session.expects(:process).with(:delete, path, params: params, headers: headers, xhr: true)
+    @session.delete(path, params: params, headers: headers, xhr: true)
   end
 
   def test_deprecated_xml_http_request_delete
     path = "/index"; params = "blah"; headers = { location: 'blah' }
-    headers_after_xhr = headers.merge(
-      "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest",
-      "HTTP_ACCEPT"           => "text/javascript, text/html, application/xml, text/xml, */*"
-    )
-    @session.expects(:process).with(:delete, path, params: params, headers: headers_after_xhr)
-    assert_deprecated { @session.xml_http_request(:delete, path, params, headers) }
+    @session.expects(:process).with(:delete, path, params: params, headers: headers, xhr: true)
+    assert_deprecated { @session.xml_http_request(:delete, path, params: params, headers: headers) }
+  end
+
+  def test_deprecated_args_xml_http_request_delete
+    path = "/index"; params = "blah"; headers = { location: 'blah' }
+    @session.expects(:process).with(:delete, path, params: params, headers: headers, xhr: true)
+    assert_deprecated(/xml_http_request/) { @session.xml_http_request(:delete, path, params, headers) }
   end
 
   def test_xml_http_request_head
     path = "/index"; params = "blah"; headers = { location: 'blah' }
-    headers_after_xhr = headers.merge(
-      "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest",
-      "HTTP_ACCEPT"           => "text/javascript, text/html, application/xml, text/xml, */*"
-    )
-    @session.expects(:process).with(:head, path, params: params, headers: headers_after_xhr)
-    @session.xml_http_request(:head, path, params: params, headers: headers)
+    @session.expects(:process).with(:head, path, params: params, headers: headers, xhr: true)
+    @session.head(path, params: params, headers: headers, xhr: true)
   end
 
   def test_deprecated_xml_http_request_head
     path = "/index"; params = "blah"; headers = { location: 'blah' }
-    headers_after_xhr = headers.merge(
-      "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest",
-      "HTTP_ACCEPT"           => "text/javascript, text/html, application/xml, text/xml, */*"
-    )
-    @session.expects(:process).with(:head, path, params: params, headers: headers_after_xhr)
-    assert_deprecated { @session.xml_http_request(:head, path, params, headers) }
+    @session.expects(:process).with(:head, path, params: params, headers: headers, xhr: true)
+    assert_deprecated(/xml_http_request/) { @session.xml_http_request(:head, path, params: params, headers: headers) }
   end
 
-  def test_xml_http_request_override_accept
-    path = "/index"; params = "blah"; headers = {:location => 'blah', "HTTP_ACCEPT" => "application/xml"}
-    headers_after_xhr = headers.merge(
-      "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest"
-    )
-    @session.expects(:process).with(:post, path, params: params, headers: headers_after_xhr)
-    @session.xml_http_request(:post, path, params: params, headers: headers)
+  def test_deprecated_args_xml_http_request_head
+    path = "/index"; params = "blah"; headers = { location: 'blah' }
+    @session.expects(:process).with(:head, path, params: params, headers: headers, xhr: true)
+    assert_deprecated { @session.xml_http_request(:head, path, params, headers) }
   end
 end
 
@@ -526,7 +505,19 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
 
   def test_xml_http_request_get
     with_test_route_set do
-      xhr :get, '/get'
+      get '/get', xhr: true
+      assert_equal 200, status
+      assert_equal "OK", status_message
+      assert_response 200
+      assert_response :success
+      assert_response :ok
+      assert_equal "JS OK", response.body
+    end
+  end
+
+  def test_deprecated_xml_http_request_get
+    with_test_route_set do
+      assert_deprecated { xhr :get, '/get' }
       assert_equal 200, status
       assert_equal "OK", status_message
       assert_response 200
@@ -538,7 +529,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
 
   def test_request_with_bad_format
     with_test_route_set do
-      xhr :get, '/get.php'
+      get '/get.php', xhr: true
       assert_equal 406, status
       assert_response 406
       assert_response :not_acceptable

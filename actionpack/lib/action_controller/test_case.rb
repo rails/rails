@@ -546,8 +546,13 @@ module ActionController
       end
 
       def xml_http_request(*args)
+        ActiveSupport::Deprecation.warn(<<-MSG.strip_heredoc)
+          xhr and xml_http_request methods are deprecated in favor of
+          `get :index, xhr: true` and `post :create, xhr: true`
+        MSG
+
         @request.env['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest'
-        @request.env['HTTP_ACCEPT'] ||=  [Mime::JS, Mime::HTML, Mime::XML, 'text/xml', Mime::ALL].join(', ')
+        @request.env['HTTP_ACCEPT'] ||= [Mime::JS, Mime::HTML, Mime::XML, 'text/xml', Mime::ALL].join(', ')
         __send__(*args).tap do
           @request.env.delete 'HTTP_X_REQUESTED_WITH'
           @request.env.delete 'HTTP_ACCEPT'
@@ -600,7 +605,7 @@ module ActionController
         check_required_ivars
 
         if kwarg_request?(*args)
-          parameters, session, body, flash, http_method, format = args[0].values_at(:params, :session, :body, :flash, :method, :format)
+          parameters, session, body, flash, http_method, format, xhr = args[0].values_at(:params, :session, :body, :flash, :method, :format, :xhr)
         else
           http_method, parameters, session, flash = args
           format = nil
@@ -656,6 +661,11 @@ module ActionController
         @request.session.update(session) if session
         @request.flash.update(flash || {})
 
+        if xhr
+          @request.env['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest'
+          @request.env['HTTP_ACCEPT'] ||= [Mime::JS, Mime::HTML, Mime::XML, 'text/xml', Mime::ALL].join(', ')
+        end
+
         @controller.request  = @request
         @controller.response = @response
 
@@ -679,6 +689,11 @@ module ActionController
           @request.session['flash'] = flash_value
         else
           @request.session.delete('flash')
+        end
+
+        if xhr
+          @request.env.delete 'HTTP_X_REQUESTED_WITH'
+          @request.env.delete 'HTTP_ACCEPT'
         end
 
         @response
@@ -741,7 +756,7 @@ module ActionController
         end
       end
 
-      REQUEST_KWARGS = %i(params session flash method body)
+      REQUEST_KWARGS = %i(params session flash method body xhr)
       def kwarg_request?(*args)
         args[0].respond_to?(:keys) && (
           (args[0].key?(:format) && args[0].keys.size == 1) ||
