@@ -94,7 +94,7 @@ module ActiveSupport
     # * <tt>:locale</tt> - Sets the locale to be used for formatting
     #   (defaults to current locale).
     # * <tt>:precision</tt> - Sets the precision of the number
-    #   (defaults to 3).
+    #   (defaults to 3). Keeps the number's precision if nil.
     # * <tt>:significant</tt> - If +true+, precision will be the #
     #   of significant_digits. If +false+, the # of fractional
     #   digits (defaults to +false+).
@@ -116,6 +116,7 @@ module ActiveSupport
     #   number_to_percentage(1000, delimiter: '.', separator: ',') # => 1.000,000%
     #   number_to_percentage(302.24398923423, precision: 5)        # => 302.24399%
     #   number_to_percentage(1000, locale: :fr)                    # => 1 000,000%
+    #   number_to_percentage:(1000, precision: nil)                # => 1000%
     #   number_to_percentage('98a')                                # => 98a%
     #   number_to_percentage(100, format: '%n  %')                 # => 100  %
     def number_to_percentage(number, options = {})
@@ -161,7 +162,7 @@ module ActiveSupport
     # * <tt>:locale</tt> - Sets the locale to be used for formatting
     #   (defaults to current locale).
     # * <tt>:precision</tt> - Sets the precision of the number
-    #   (defaults to 3).
+    #   (defaults to 3). Keeps the number's precision if nil.
     # * <tt>:significant</tt> - If +true+, precision will be the #
     #   of significant_digits. If +false+, the # of fractional
     #   digits (defaults to +false+).
@@ -182,6 +183,7 @@ module ActiveSupport
     #   number_to_rounded(111.2345, significant: true)               # => 111
     #   number_to_rounded(111.2345, precision: 1, significant: true) # => 100
     #   number_to_rounded(13, precision: 5, significant: true)       # => 13.000
+    #   number_to_rounded(13, precision: nil)                        # => 13
     #   number_to_rounded(111.234, locale: :fr)                      # => 111,234
     #
     #   number_to_rounded(13, precision: 5, significant: true, strip_insignificant_zeros: true)
