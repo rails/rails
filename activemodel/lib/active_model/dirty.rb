@@ -27,6 +27,10 @@ module ActiveModel
   #
   #     define_attribute_methods :name
   #
+  #     def initialize(name = nil)
+  #       @name = name
+  #     end
+  #
   #     def name
   #       @name
   #     end
@@ -55,7 +59,7 @@ module ActiveModel
   #
   # A newly instantiated object is unchanged:
   #
-  #   person = Person.find_by(name: 'Uncle Bob')
+  #   person = Person.new 'Uncle Bob'
   #   person.changed?       # => false
   #
   # Change the name:
