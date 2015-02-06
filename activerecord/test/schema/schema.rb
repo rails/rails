@@ -499,7 +499,7 @@ ActiveRecord::Schema.define do
     t.string :name
     t.column :updated_at, :datetime
     t.column :happy_at,   :datetime
-    t.column :sad_at  ,   :datetime
+    t.column :sad_at,     :datetime
     t.string :essay_id
   end
 
