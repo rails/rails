@@ -91,7 +91,7 @@ class EachTest < ActiveRecord::TestCase
   def test_find_in_batches_should_return_batches
     assert_queries(@total + 1) do
       Post.find_in_batches(:batch_size => 1) do |batch|
-        assert_kind_of Array, batch
+        assert_kind_of ActiveRecord::Relation, batch
         assert_kind_of Post, batch.first
       end
     end
@@ -100,7 +100,7 @@ class EachTest < ActiveRecord::TestCase
   def test_find_in_batches_should_start_from_the_start_option
     assert_queries(@total) do
       Post.find_in_batches(:batch_size => 1, :start => 2) do |batch|
-        assert_kind_of Array, batch
+        assert_kind_of ActiveRecord::Relation, batch
         assert_kind_of Post, batch.first
       end
     end
@@ -108,11 +108,11 @@ class EachTest < ActiveRecord::TestCase
 
   def test_find_in_batches_shouldnt_execute_query_unless_needed
     assert_queries(2) do
-      Post.find_in_batches(:batch_size => @total) {|batch| assert_kind_of Array, batch }
+      Post.find_in_batches(:batch_size => @total) {|batch| assert_kind_of ActiveRecord::Relation, batch }
     end
 
     assert_queries(1) do
-      Post.find_in_batches(:batch_size => @total + 1) {|batch| assert_kind_of Array, batch }
+      Post.find_in_batches(:batch_size => @total + 1) {|batch| assert_kind_of ActiveRecord::Relation, batch }
     end
   end
 
@@ -120,7 +120,7 @@ class EachTest < ActiveRecord::TestCase
     c = Post.connection
     assert_sql(/ORDER BY #{c.quote_table_name('posts')}.#{c.quote_column_name('id')}/) do
       Post.find_in_batches(:batch_size => 1) do |batch|
-        assert_kind_of Array, batch
+        assert_kind_of ActiveRecord::Relation, batch
         assert_kind_of Post, batch.first
       end
     end
@@ -132,10 +132,10 @@ class EachTest < ActiveRecord::TestCase
 
     assert_nothing_raised do
       Post.find_in_batches(:batch_size => 1) do |batch|
-        assert_kind_of Array, batch
+        assert_kind_of ActiveRecord::Relation, batch
         assert_kind_of Post, batch.first
 
-        batch.map! { not_a_post }
+        batch.map { not_a_post }
       end
     end
   end

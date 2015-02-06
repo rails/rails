@@ -98,7 +98,6 @@ module ActiveRecord
     def find_in_batches(options = {})
       options.assert_valid_keys(:start, :batch_size)
 
-      relation = self
       start = options[:start]
       batch_size = options[:batch_size] || 1000
 
@@ -113,19 +112,20 @@ module ActiveRecord
         logger.warn("Scoped order and limit are ignored, it's forced to be batch order and batch size")
       end
 
-      relation = relation.reorder(batch_order).limit(batch_size)
-      records = start ? relation.where(table[primary_key].gteq(start)).to_a : relation.to_a
+      relation = reorder(batch_order).limit(batch_size)
+      relation = relation.where(table[primary_key].gteq(start)) if start
+      relation.load
 
-      while records.any?
-        records_size = records.size
-        primary_key_offset = records.last.id
+      while relation.any?
+
+        primary_key_offset = relation.last.id
         raise "Primary key not included in the custom select clause" unless primary_key_offset
 
-        yield records
+        yield relation
 
-        break if records_size < batch_size
+        break if relation.size < batch_size
 
-        records = relation.where(table[primary_key].gt(primary_key_offset)).to_a
+        relation = relation.where(table[primary_key].gt(primary_key_offset)).load
       end
     end
 
