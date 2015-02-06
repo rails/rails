@@ -60,7 +60,7 @@ module ActiveModel
   # A newly instantiated object is unchanged:
   #
   #   person = Person.new 'Uncle Bob'
-  #   person.changed?       # => false
+  #   person.changed? # => false
   #
   # Change the name:
   #
@@ -76,8 +76,8 @@ module ActiveModel
   # Save the changes:
   #
   #   person.save
-  #   person.changed?       # => false
-  #   person.name_changed?  # => false
+  #   person.changed?      # => false
+  #   person.name_changed? # => false
   #
   # Reset the changes:
   #
@@ -89,20 +89,20 @@ module ActiveModel
   #
   #   person.name = "Uncle Bob"
   #   person.rollback!
-  #   person.name           # => "Bill"
-  #   person.name_changed?  # => false
+  #   person.name          # => "Bill"
+  #   person.name_changed? # => false
   #
   # Assigning the same value leaves the attribute unchanged:
   #
   #   person.name = 'Bill'
-  #   person.name_changed?  # => false
-  #   person.name_change    # => nil
+  #   person.name_changed? # => false
+  #   person.name_change   # => nil
   #
   # Which attributes have changed?
   #
   #   person.name = 'Bob'
-  #   person.changed        # => ["name"]
-  #   person.changes        # => {"name" => ["Bill", "Bob"]}
+  #   person.changed # => ["name"]
+  #   person.changes # => {"name" => ["Bill", "Bob"]}
   #
   # If an attribute is modified in-place then make use of
   # +[attribute_name]_will_change!+ to mark that the attribute is changing.
@@ -111,9 +111,9 @@ module ActiveModel
   # not need to call +[attribute_name]_will_change!+ on Active Record models.
   #
   #   person.name_will_change!
-  #   person.name_change    # => ["Bill", "Bill"]
+  #   person.name_change # => ["Bill", "Bill"]
   #   person.name << 'y'
-  #   person.name_change    # => ["Bill", "Billy"]
+  #   person.name_change # => ["Bill", "Billy"]
   module Dirty
     extend ActiveSupport::Concern
     include ActiveModel::AttributeMethods
