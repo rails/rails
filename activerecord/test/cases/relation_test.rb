@@ -168,6 +168,22 @@ module ActiveRecord
       assert_raises(ArgumentError) { Relation::HashMerger.new(nil, omg: 'lol') }
     end
 
+    test 'merging nil or false raises' do
+      relation = Relation.new(FakeKlass, :b, nil)
+
+      e = assert_raises(ArgumentError) do
+        relation = relation.merge nil
+      end
+
+      assert_equal 'invalid argument: nil.', e.message
+
+      e = assert_raises(ArgumentError) do
+        relation = relation.merge false
+      end
+
+      assert_equal 'invalid argument: false.', e.message
+    end
+
     test '#values returns a dup of the values' do
       relation = Relation.new(FakeKlass, :b, nil).where! :foo
       values   = relation.values

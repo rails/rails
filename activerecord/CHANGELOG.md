@@ -1,3 +1,10 @@
+*   Raise `ArgumentError` when passing `nil` or `false` to `Relation#merge`.
+
+    These are not valid values to merge in a relation so it should warn the users
+    early.
+
+    *Rafael Mendonça França*
+
 *   Use `SCHEMA` instead of `DB_STRUCTURE` for specifiying structure file.
 
     This makes the db:structure tasks consistent with test:load_structure.
