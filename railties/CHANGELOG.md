@@ -1,3 +1,7 @@
+*   Newly generated applications get a `README.md` in Markdown.
+
+    *Xavier Noria*
+
 *   Remove the documentation tasks `doc:app`, `doc:rails`, and `doc:guides`.
 
     *Xavier Noria*

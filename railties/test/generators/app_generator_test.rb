@@ -5,7 +5,7 @@ require 'mocha/setup' # FIXME: stop using mocha
 
 DEFAULT_APP_FILES = %w(
   .gitignore
-  README.rdoc
+  README.md
   Gemfile
   Rakefile
   config.ru
