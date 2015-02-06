@@ -895,7 +895,7 @@ class ArticlesController < ApplicationController
   # snipped for brevity
 ```
 
-And then finally, add the view for this action, located at
+And then finally, add the view for this action (including a link to show a specific post), located at
 `app/views/articles/index.html.erb`:
 
 ```html+erb
@@ -911,6 +911,7 @@ And then finally, add the view for this action, located at
     <tr>
       <td><%= article.title %></td>
       <td><%= article.text %></td>
+      <td><%= link_to 'Show', post %></td>
     </tr>
   <% end %>
 </table>
