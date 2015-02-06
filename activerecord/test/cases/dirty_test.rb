@@ -711,7 +711,7 @@ class DirtyTest < ActiveRecord::TestCase
   test "attribute_will_change! doesn't try to save non-persistable attributes" do
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = 'people'
-      attribute :non_persisted_attribute, ActiveRecord::Type::String.new
+      attribute :non_persisted_attribute, :string
     end
 
     record = klass.new(first_name: "Sean")

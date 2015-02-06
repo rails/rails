@@ -134,7 +134,28 @@ module ActiveRecord
         binds.map(&:value_for_database)
       end
 
+      def type_for_attribute_options(type_name, **options)
+        klass = type_classes_with_standard_constructor.fetch(type_name, Type::Value)
+        klass.new(**options)
+      end
+
       private
+
+      def type_classes_with_standard_constructor
+        {
+          big_integer: Type::BigInteger,
+          binary: Type::Binary,
+          boolean: Type::Boolean,
+          date: Type::Date,
+          date_time: Type::DateTime,
+          decimal: Type::Decimal,
+          float: Type::Float,
+          integer: Type::Integer,
+          string: Type::String,
+          text: Type::Text,
+          time: Type::Time,
+        }
+      end
 
       def types_which_need_no_typecasting
         [nil, Numeric, String]

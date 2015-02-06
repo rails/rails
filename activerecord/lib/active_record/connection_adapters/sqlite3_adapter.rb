@@ -240,6 +240,10 @@ module ActiveRecord
         end
       end
 
+      def type_classes_with_standard_constructor
+        super.merge(binary: SQLite3Binary)
+      end
+
       def quote_string(s) #:nodoc:
         @connection.class.quote(s)
       end

@@ -150,7 +150,7 @@ class ValidationsTest < ActiveRecord::TestCase
 
   def test_numericality_validation_with_mutation
     Topic.class_eval do
-      attribute :wibble, ActiveRecord::Type::String.new
+      attribute :wibble, :string
       validates_numericality_of :wibble, only_integer: true
     end
 

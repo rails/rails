@@ -48,6 +48,12 @@ module ActiveRecord
             end
           end
 
+          def ==(other)
+            other.is_a?(Array) &&
+              subtype == other.subtype &&
+              delimiter == other.delimiter
+          end
+
           private
 
           def type_cast_array(value, method)

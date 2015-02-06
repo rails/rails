@@ -947,6 +947,10 @@ module ActiveRecord
           end
         end
       end
+
+      def type_classes_with_standard_constructor
+        super.merge(string: MysqlString, date_time: MysqlDateTime)
+      end
     end
   end
 end

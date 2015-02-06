@@ -7,7 +7,7 @@ module ActiveRecord
         class Range < Type::Value # :nodoc:
           attr_reader :subtype, :type
 
-          def initialize(subtype, type)
+          def initialize(subtype, type = :range)
             @subtype = subtype
             @type = type
           end
@@ -38,6 +38,12 @@ module ActiveRecord
             else
               super
             end
+          end
+
+          def ==(other)
+            other.is_a?(Range) &&
+              other.subtype == subtype &&
+              other.type == type
           end
 
           private

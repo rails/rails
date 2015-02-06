@@ -78,6 +78,11 @@ class SchemaDumperTest < ActiveRecord::TestCase
         end
       end.compact
 
+      if lengths.uniq.length != 1
+        p lengths.uniq.length
+        puts column_set
+      end
+
       assert_equal 1, lengths.uniq.length
     end
   end

@@ -44,7 +44,7 @@ module ActiveRecord
       #   store_listing.price_in_cents # => BigDecimal.new(10.1)
       #
       #   class StoreListing < ActiveRecord::Base
-      #     attribute :price_in_cents, Type::Integer.new
+      #     attribute :price_in_cents, :integer
       #   end
       #
       #   # after
@@ -77,7 +77,10 @@ module ActiveRecord
         name = name.to_s
         reload_schema_from_cache
 
-        self.attributes_to_define_after_schema_loads = attributes_to_define_after_schema_loads.merge(name => [cast_type, options])
+        self.attributes_to_define_after_schema_loads =
+          attributes_to_define_after_schema_loads.merge(
+            name => [cast_type, options]
+          )
       end
 
       def define_attribute(
@@ -93,7 +96,11 @@ module ActiveRecord
       def load_schema!
         super
         attributes_to_define_after_schema_loads.each do |name, (type, options)|
-          define_attribute(name, type, **options)
+          if type.is_a?(Symbol)
+            type = connection.type_for_attribute_options(type, **options.except(:default))
+          end
+
+          define_attribute(name, type, **options.slice(:default))
         end
       end
 
