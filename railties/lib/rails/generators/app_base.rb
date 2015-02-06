@@ -113,7 +113,6 @@ module Rails
          assets_gemfile_entry,
          javascript_gemfile_entry,
          jbuilder_gemfile_entry,
-         sdoc_gemfile_entry,
          psych_gemfile_entry,
          @extra_entries].flatten.find_all(&@gem_filter)
       end
@@ -263,11 +262,6 @@ module Rails
       def jbuilder_gemfile_entry
         comment = 'Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder'
         GemfileEntry.version('jbuilder', '~> 2.0', comment)
-      end
-
-      def sdoc_gemfile_entry
-        comment = 'bundle exec rake doc:rails generates the API under doc/api.'
-        GemfileEntry.new('sdoc', '~> 0.4.0', comment, group: :doc)
       end
 
       def coffee_gemfile_entry
