@@ -1,3 +1,7 @@
+*   Enable number_to_percentage to keep the number's precision by allowing :precision to be nil
+
+    *Jack Xu*
+
 *   config_accessor became a private method, as with Ruby's attr_accessor.
 
     *Akira Matsuda*
