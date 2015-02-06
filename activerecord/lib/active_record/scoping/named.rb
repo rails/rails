@@ -30,7 +30,13 @@ module ActiveRecord
         end
 
         def default_scoped # :nodoc:
-          relation.merge(build_default_scope)
+          scope = build_default_scope
+
+          if scope
+            relation.spawn.merge!(scope)
+          else
+            relation
+          end
         end
 
         # Collects attributes from scopes that should be applied when creating
