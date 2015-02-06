@@ -1,34 +1,36 @@
 module ActiveRecord
   module Type
-    class Value # :nodoc:
+    class Value
       attr_reader :precision, :scale, :limit
 
-      # Valid options are +precision+, +scale+, and +limit+.
-      def initialize(options = {})
-        options.assert_valid_keys(:precision, :scale, :limit)
-        @precision = options[:precision]
-        @scale = options[:scale]
-        @limit = options[:limit]
+      def initialize(precision: nil, limit: nil, scale: nil)
+        @precision = precision
+        @scale = scale
+        @limit = limit
       end
 
-      # The simplified type that this object represents. Returns a symbol such
-      # as +:string+ or +:integer+
-      def type; end
+      def type; end # :nodoc:
 
-      # Type casts a string from the database into the appropriate ruby type.
-      # Classes which do not need separate type casting behavior for database
-      # and user provided values should override +cast_value+ instead.
+      # Convert a value from database input to the appropriate ruby type. The
+      # return value of this method will be returned from
+      # +ActiveRecord::AttributeMethods::Read#read_attribute+. See also
+      # +type_cast+ and +cast_value+
+      #
+      # +value+ The raw input, as provided from the database
       def type_cast_from_database(value)
         type_cast(value)
       end
 
       # Type casts a value from user input (e.g. from a setter). This value may
-      # be a string from the form builder, or an already type cast value
-      # provided manually to a setter.
+      # be a string from the form builder, or a ruby object passed to a setter.
+      # There is currently no way to differentiate between which source it came
+      # from.
       #
-      # Classes which do not need separate type casting behavior for database
-      # and user provided values should override +type_cast+ or +cast_value+
-      # instead.
+      # The return value of this method will be returned from
+      # +ActiveRecord::AttributeMethods::Read#read_attribute+. See also:
+      # +type_cast+ and +cast_value+
+      #
+      # +value+ The raw input, as provided to the attribute setter.
       def type_cast_from_user(value)
         type_cast(value)
       end
@@ -72,10 +74,23 @@ module ActiveRecord
       end
 
       # Determines whether the mutable value has been modified since it was
-      # read. Returns +false+ by default. This method should not be overridden
-      # directly. Types which return a mutable value should include
-      # +Type::Mutable+, which will define this method.
-      def changed_in_place?(*)
+      # read. Returns +false+ by default. If your type returns an object
+      # which could be mutated, you should override this method. You will need
+      # to either:
+      #
+      # - pass +new_value+ to +type_cast_for_database+ and compare it to
+      #   +raw_old_value+
+      #
+      # or
+      #
+      # - pass +raw_old_value+ to +type_cast_from_database+ and compare it to
+      #   +new_value+
+      #
+      # +raw_old_value+ The original value, before being passed to
+      # +type_cast_from_database+.
+      #
+      # +new_value+ The current value, after type casting.
+      def changed_in_place?(raw_old_value, new_value)
         false
       end
 
@@ -88,7 +103,11 @@ module ActiveRecord
 
       private
 
-      def type_cast(value)
+      # Convenience method. If you don't need separate behavior for
+      # +type_cast_from_database+ and +type_cast_from_user+, you can override
+      # this method instead. The default behavior of both methods is to call
+      # this one. See also +cast_value+
+      def type_cast(value) # :doc:
         cast_value(value) unless value.nil?
       end
 
