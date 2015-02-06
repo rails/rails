@@ -6,8 +6,8 @@ module ActiveRecord
     # store per-thread instances in thread-local variables.
     class State # :nodoc:
       def initialize
-        @records = Hash.new { Set.new }
-        @already_updated_records = Hash.new { Set.new }
+        @records = Hash.new { SortedSet.new }
+        @already_updated_records = Hash.new { SortedSet.new }
       end
 
       def updated(klass, attrs, records)
@@ -17,15 +17,15 @@ module ActiveRecord
       # Return the records grouped by class and columns that were touched:
       #
       #   {
-      #     [Owner, [:updated_at]]               => [owner1, owner2],
-      #     [Pet,   [:neutered_at, :updated_at]] => [pet1],
-      #     [Pet,   [:updated_at]]               => [pet2]
+      #     [Owner, [:updated_at]]               => SortedSet.new([owner1, owner2]),
+      #     [Pet,   [:neutered_at, :updated_at]] => SortedSet.new([pet1]),
+      #     [Pet,   [:updated_at]]               => SortedSet.new([pet2])
       #   }
       #
       # As a side-effect, clears out the list of records.
       def get_and_clear_records
         records = @records
-        @records = Hash.new { Set.new }
+        @records = Hash.new { SortedSet.new }
         records
       end
 
