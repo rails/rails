@@ -911,6 +911,7 @@ And then finally, add the view for this action, located at
     <tr>
       <td><%= article.title %></td>
       <td><%= article.text %></td>
+      <td><%= link_to 'Show', article_path(article) %></td>
     </tr>
   <% end %>
 </table>
