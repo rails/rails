@@ -63,6 +63,20 @@ module ActiveRecord
       #   # after
       #   store_listing.price_in_cents # => 10
       #
+      # A default can also be provided.
+      #
+      #   create_table :store_listings, force: true do |t|
+      #     t.string :my_string, default: "original default"
+      #   end
+      #
+      #   StoreListing.new.my_string # => "original default"
+      #
+      #   class StoreListing < ActiveRecord::Base
+      #     attribute :my_string, :string, default: "new default"
+      #   end
+      #
+      #   StoreListing.new.my_string # => "new default"
+      #
       # Attributes do not need to be backed by a database column.
       #
       #   class MyModel < ActiveRecord::Base
