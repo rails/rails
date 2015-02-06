@@ -9,14 +9,15 @@ module ActiveRecord
         @limit = limit
       end
 
-      def type; end # :nodoc:
+      def type # :nodoc:
+      end
 
       # Convert a value from database input to the appropriate ruby type. The
       # return value of this method will be returned from
-      # +ActiveRecord::AttributeMethods::Read#read_attribute+. See also
-      # +type_cast+ and +cast_value+
+      # ActiveRecord::AttributeMethods::Read#read_attribute. See also
+      # Value#type_cast and Value#cast_value.
       #
-      # +value+ The raw input, as provided from the database
+      # +value+ The raw input, as provided from the database.
       def type_cast_from_database(value)
         type_cast(value)
       end
@@ -27,8 +28,8 @@ module ActiveRecord
       # from.
       #
       # The return value of this method will be returned from
-      # +ActiveRecord::AttributeMethods::Read#read_attribute+. See also:
-      # +type_cast+ and +cast_value+
+      # ActiveRecord::AttributeMethods::Read#read_attribute. See also:
+      # Value#type_cast and Value#cast_value.
       #
       # +value+ The raw input, as provided to the attribute setter.
       def type_cast_from_user(value)
@@ -38,7 +39,7 @@ module ActiveRecord
       # Cast a value from the ruby type to a type that the database knows how
       # to understand. The returned value from this method should be a
       # +String+, +Numeric+, +Date+, +Time+, +Symbol+, +true+, +false+, or
-      # +nil+
+      # +nil+.
       def type_cast_for_database(value)
         value
       end
@@ -78,12 +79,12 @@ module ActiveRecord
       # which could be mutated, you should override this method. You will need
       # to either:
       #
-      # - pass +new_value+ to +type_cast_for_database+ and compare it to
+      # - pass +new_value+ to Value#type_cast_for_database and compare it to
       #   +raw_old_value+
       #
       # or
       #
-      # - pass +raw_old_value+ to +type_cast_from_database+ and compare it to
+      # - pass +raw_old_value+ to Value#type_cast_from_database and compare it to
       #   +new_value+
       #
       # +raw_old_value+ The original value, before being passed to
@@ -104,17 +105,16 @@ module ActiveRecord
       private
 
       # Convenience method. If you don't need separate behavior for
-      # +type_cast_from_database+ and +type_cast_from_user+, you can override
+      # Value#type_cast_from_database and Value#type_cast_from_user, you can override
       # this method instead. The default behavior of both methods is to call
-      # this one. See also +cast_value+
+      # this one. See also Value#cast_value.
       def type_cast(value) # :doc:
         cast_value(value) unless value.nil?
       end
 
       # Convenience method for types which do not need separate type casting
-      # behavior for user and database inputs. Called by
-      # +type_cast_from_database+ and +type_cast_from_user+ for all values
-      # except +nil+.
+      # behavior for user and database inputs. Called by Value#type_cast for
+      # values except +nil+.
       def cast_value(value) # :doc:
         value
       end

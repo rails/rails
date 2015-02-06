@@ -1,7 +1,9 @@
 module ActiveRecord
+  # See ActiveRecord::Attributes::ClassMethods for documentation
   module Attributes
     extend ActiveSupport::Concern
 
+    # :nodoc:
     Type = ActiveRecord::Type
 
     included do
@@ -14,7 +16,7 @@ module ActiveRecord
       # type of existing attributes if needed. This allows control over how
       # values are converted to and from SQL when assigned to a model. It also
       # changes the behavior of values passed to
-      # +ActiveRecord::Relation::QueryMethods#where+. This will let you use
+      # ActiveRecord::QueryMethods#where. This will let you use
       # your domain objects across much of Active Record, without having to
       # rely on implementation details or monkey patching.
       #
@@ -31,9 +33,9 @@ module ActiveRecord
       # is not passed, the previous default value (if any) will be used.
       # Otherwise, the default will be +nil+.
       #
-      # +array+ (PG only) specifies that the type should be an array (see the examples below)
+      # +array+ (PG only) specifies that the type should be an array (see the examples below).
       #
-      # +range+ (PG only) specifies that the type should be a range (see the examples below)
+      # +range+ (PG only) specifies that the type should be a range (see the examples below).
       #
       # ==== Examples
       #
@@ -84,19 +86,20 @@ module ActiveRecord
       # ==== Creating Custom Types
       #
       # Users may also define their own custom types, as long as they respond
-      # to the methods defined on the value type. The +type_cast+ method on
-      # your type object will be called with values both from the database, and
-      # from your controllers. See +ActiveRecord::Attributes::Type::Value+ for
-      # the expected API. It is recommended that your type objects inherit from
-      # an existing type, or the base value type.
+      # to the methods defined on the value type. The method
+      # +type_cast_from_database+ or +type_cast_from_user+ will be called on
+      # your type object, with raw input from the database or from your
+      # controllers.  See ActiveRecord::Type::Value for the expected API. It is
+      # recommended that your type objects inherit from an existing type, or
+      # from ActiveRecord::Type::Value
       #
       #   class MoneyType < ActiveRecord::Type::Integer
-      #     def type_cast(value)
+      #     def type_cast_from_user(value)
       #       if value.include?('$')
       #         price_in_dollars = value.gsub(/\$/, '').to_f
-      #         price_in_dollars * 100
+      #         super(price_in_dollars * 100)
       #       else
-      #         value.to_i
+      #         super
       #       end
       #     end
       #   end
@@ -109,11 +112,11 @@ module ActiveRecord
       #   store_listing.price_in_cents # => 1000
       #
       # For more details on creating custom types, see the documentation for
-      # +ActiveRecord::Type::Value+
+      # ActiveRecord::Type::Value
       #
       # ==== Querying
       #
-      # When +ActiveRecord::Relation::QueryMethods#where+ is called, it will
+      # When ActiveRecord::QueryMethods#where is called, it will
       # use the type defined by the model class to convert the value to SQL,
       # calling +type_cast_for_database+ on your type object. For example:
       #
@@ -149,9 +152,8 @@ module ActiveRecord
       #
       # The type of an attribute is given the opportunity to change how dirty
       # tracking is performed. The methods +changed?+ and +changed_in_place?+
-      # will be called from +ActiveRecord::AttributeMethods::Dirty+. See the
-      # documentation for those methods in +ActiveRecord::Type::Value+ for more
-      # details.
+      # will be called from ActiveModel::Dirty. See the documentation for those
+      # methods in ActiveRecord::Type::Value for more details.
       def attribute(name, cast_type, **options)
         name = name.to_s
         reload_schema_from_cache
@@ -165,20 +167,20 @@ module ActiveRecord
       # This is the low level API which sits beneath +attribute+. It only
       # accepts type objects, and will do its work immediately instead of
       # waiting for the schema to load. Automatic schema detection and
-      # +attribute+ both call this under the hood. While this method is
-      # provided so it can be used by plugin authors, application code should
-      # probably use +attribute+.
+      # ClassMethods#attribute both call this under the hood. While this method
+      # is provided so it can be used by plugin authors, application code
+      # should probably use ClassMethods#attribute.
       #
       # +name+ The name of the attribute being defined. Expected to be a +String+.
       #
-      # +cast_type+ The type object to use for this attribute
+      # +cast_type+ The type object to use for this attribute.
       #
       # +default+ The default value to use when no value is provided. If this option
       # is not passed, the previous default value (if any) will be used.
       # Otherwise, the default will be +nil+.
       #
       # +user_provided_default+ Whether the default value should be cast using
-      # +type_cast_from_user+ or +type_cast_from_database+
+      # +type_cast_from_user+ or +type_cast_from_database+.
       def define_attribute(
         name,
         cast_type,
