@@ -44,5 +44,39 @@
 
     *Isaac Seymour*
 
+*   Add an `:only` option to `perform_enqueued_jobs` to filter jobs based on
+    type.
+
+    This allows specific jobs to be tested, while preventing others from
+    being performed unnecessarily.
+
+    Example:
+
+        def test_hello_job
+          assert_performed_jobs 1, only: HelloJob do
+            HelloJob.perform_later('jeremy')
+            LoggingJob.perform_later
+          end
+        end
+
+    An array may also be specified, to support testing multiple jobs.
+
+    Example:
+
+        def test_hello_and_logging_jobs
+          assert_nothing_raised do
+            assert_performed_jobs 2, only: [HelloJob, LoggingJob] do
+              HelloJob.perform_later('jeremy')
+              LoggingJob.perform_later('stewie')
+              RescueJob.perform_later('david')
+            end
+          end
+        end
+
+    Fixes #18802.
+
+    *Michael Ryan*
+
+
 
 Please check [4-2-stable](https://github.com/rails/rails/blob/4-2-stable/activejob/CHANGELOG.md) for previous changes.
