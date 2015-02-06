@@ -23,8 +23,9 @@ module ActiveRecord
       # +name+ The name of the methods to define attribute methods for, and the
       # column which this will persist to.
       #
-      # +cast_type+ A type object that contains information about how to type cast the value.
-      # See the examples section for more information.
+      # +cast_type+ A symbol such as +:string+ or +:integer+, or a type object
+      # to be used for this attribute. See the examples below for more
+      # information about providing custom type objects.
       #
       # ==== Options
       # The following options are accepted:
@@ -112,7 +113,7 @@ module ActiveRecord
       #   store_listing.price_in_cents # => 1000
       #
       # For more details on creating custom types, see the documentation for
-      # ActiveRecord::Type::Value
+      # ActiveRecord::Type::Value.
       #
       # ==== Querying
       #
