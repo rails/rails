@@ -1434,7 +1434,7 @@ module ActiveRecord
       # when you access the associated object.
       #
       # Scope examples:
-      #   belongs_to :user, -> { where(id: 2) }
+      #   belongs_to :firm, -> { where(id: 2) }
       #   belongs_to :user, -> { joins(:friends) }
       #   belongs_to :level, ->(level) { where("game_level > ?", level.current) }
       #
@@ -1512,9 +1512,9 @@ module ActiveRecord
       #   belongs_to :attachable, polymorphic: true
       #   belongs_to :project, readonly: true
       #   belongs_to :post, counter_cache: true
-      #   belongs_to :company, touch: true
+      #   belongs_to :comment, touch: true
       #   belongs_to :company, touch: :employees_last_updated_at
-      #   belongs_to :company, required: true
+      #   belongs_to :user, required: true
       def belongs_to(name, scope = nil, options = {})
         reflection = Builder::BelongsTo.build(self, name, scope, options)
         Reflection.add_reflection self, name, reflection
