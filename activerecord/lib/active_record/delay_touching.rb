@@ -112,7 +112,7 @@ module ActiveRecord
         end
 
         state.updated klass, attrs, records
-        records.each { |record| record._run_touch_callbacks }
+        records.each(&:_run_touch_callbacks)
       end
     end
   end
