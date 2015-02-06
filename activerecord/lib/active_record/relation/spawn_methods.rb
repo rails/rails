@@ -29,14 +29,14 @@ module ActiveRecord
     def merge(other)
       if other.is_a?(Array)
         to_a & other
-      elsif other
-        spawn.merge!(other)
       else
-        self
+        spawn.merge!(other)
       end
     end
 
     def merge!(other) # :nodoc:
+      return self unless other
+
       if !other.is_a?(Relation) && other.respond_to?(:to_proc)
         instance_exec(&other)
       else
