@@ -95,20 +95,19 @@ module ActiveRecord
       def touch_records(klass, attrs, records)
         if attrs.present?
           current_time = records.first.current_time_from_proper_timezone
-          changes = {}
 
-          attrs.each do |column|
-            column = column.to_s
-            changes[column] = current_time
-            records.each do |record|
-              record.instance_eval do
-                write_attribute column, current_time
-                @changed_attributes.except!(*changes.keys)
-              end
+          records.each do |record|
+            record.instance_eval do
+              attrs.each { |column| write_attribute column, current_time }
+              increment_lock if locking_enabled?
+              @changed_attributes.except!(*attrs)
             end
           end
 
-          klass.unscoped.where(klass.primary_key => records.to_a).update_all(changes)
+          sql = attrs.map { |column| "#{klass.connection.quote_column_name(column)} = :current_time" }.join(", ")
+          sql += ", #{klass.locking_column} = #{klass.locking_column} + 1" if klass.locking_enabled?
+
+          klass.unscoped.where(klass.primary_key => records.to_a).update_all([sql, current_time: current_time])
         end
 
         state.updated klass, attrs, records

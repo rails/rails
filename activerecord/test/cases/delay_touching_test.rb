@@ -1,9 +1,10 @@
 require 'cases/helper'
 require 'models/owner'
 require 'models/pet'
+require 'models/car'
 
 class DelayTouchingTest < ActiveRecord::TestCase
-  fixtures :owners, :pets
+  fixtures :owners, :pets, :cars
 
   setup do
     Owner.reset_touch_callbacks
@@ -60,6 +61,14 @@ class DelayTouchingTest < ActiveRecord::TestCase
     ActiveRecord::Base.transaction do
       owner.touch
       assert_not owner.changed?
+    end
+  end
+
+  test "delay_touching does not mark the instance as changed, even if its lock_version is incremented" do
+    ActiveRecord::Base.transaction do
+      car = Car.first
+      car.touch
+      assert_not car.changed?
     end
   end
 
@@ -295,6 +304,24 @@ class DelayTouchingTest < ActiveRecord::TestCase
     end
   end
 
+  test "delay_touching increments the optimistic lock column in memory and in the DB" do
+    car1 = Car.first
+    car2 = Car.last
+    car1.update_columns lock_version: 1
+    car2.update_columns lock_version: 2
+
+    ActiveRecord::Base.transaction do
+      car1.touch
+      car2.touch
+    end
+
+    assert_equal 2, car1.lock_version
+    assert_equal 3, car2.lock_version
+
+    assert_equal 2, car1.reload.lock_version
+    assert_equal 3, car2.reload.lock_version
+  end
+
   private
 
   def owner
@@ -354,7 +381,7 @@ class DelayTouchingTest < ActiveRecord::TestCase
   def touch_sql(table, columns, ids)
     case ENV['ARCONN']
     when "mysql", "mysql2"
-      %{UPDATE `#{table}` SET #{columns.map { |column| %{`#{table}`.`#{column}` =.+} }.join(", ") } .+#{ids_sql(ids)}\\Z}
+      %{UPDATE `#{table}` SET #{columns.map { |column| %{(`#{table}`.)?`#{column}` =.+} }.join(", ") } .+#{ids_sql(ids)}\\Z}
     when "sqlite3", "postgresql"
       %{UPDATE "#{table}" SET #{columns.map { |column| %{"#{column}" =.+} }.join(", ") } .+#{ids_sql(ids)}\\Z}
     else raise "Unexpected database: #{ENV['ARCONN']}"
