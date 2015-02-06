@@ -1,3 +1,11 @@
+*   Allow variants to be set through the URL
+
+    request.variant can be set by setting :format. For example, accessing
+    http://example.com/posts.html+partial or `request.format = 'html+partial'` set
+    both `format: :html` and `request.variant = [:partial]` automatically.
+
+    *Hong ChulJu*
+
 *   Explicitly ignored wildcard verbs when searching for HEAD routes before fallback
 
     Fixes an issue where a mounted rack app at root would intercept the HEAD 

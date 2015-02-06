@@ -781,4 +781,16 @@ class RespondToControllerTest < ActionController::TestCase
     assert_equal "text/html", @response.content_type
     assert_equal "phone", @response.body
   end
+
+  def test_variant_from_format
+    get :format_any_variant_any, format: "js+tablet"
+    assert_equal "text/javascript", @response.content_type
+    assert_equal "tablet", @response.body
+  end
+
+  def test_multiple_variants_from_format
+    get :format_any_variant_any, format: "js+mobile+phone"
+    assert_equal "text/javascript", @response.content_type
+    assert_equal "phone", @response.body
+  end
 end

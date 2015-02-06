@@ -56,6 +56,7 @@ module ActionDispatch
       def formats
         @env["action_dispatch.request.formats"] ||= begin
           params_readable = begin
+                              extract_variant!
                               parameters[:format]
                             rescue ActionController::BadRequest
                               false
@@ -100,6 +101,7 @@ module ActionDispatch
       #   end
       def format=(extension)
         parameters[:format] = extension.to_s
+        extract_variant!
         @env["action_dispatch.request.formats"] = [Mime::Type.lookup_by_extension(parameters[:format])]
       end
 
@@ -119,6 +121,7 @@ module ActionDispatch
       #   end
       def formats=(extensions)
         parameters[:format] = extensions.first.to_s
+        extract_variant!
         @env["action_dispatch.request.formats"] = extensions.collect do |extension|
           Mime::Type.lookup_by_extension(extension)
         end
@@ -150,6 +153,17 @@ module ActionDispatch
 
       def use_accept_header
         !self.class.ignore_accept_header
+      end
+
+      private
+
+      def extract_variant!
+        if parameters.key?(:format)
+          segments = parameters[:format].to_s.split("+")
+          parameters[:format] = segments[0]
+          variants = segments[1..-1].map!(&:to_sym)
+          self.variant = variants unless variants.empty?
+        end
       end
     end
   end

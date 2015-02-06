@@ -1156,4 +1156,26 @@ class RequestVariant < BaseRequestTest
       request.variant = "mobile"
     end
   end
+
+  test "setting variant from setting format" do
+    request = stub_request
+
+    request.format = "html+mobile"
+    assert_equal [:mobile], request.variant
+  end
+
+  test "setting variant from setting formats" do
+    request = stub_request
+
+    request.formats = ["html+mobile+phone", "xml+phone"]
+    assert_equal [:mobile, :phone], request.variant
+  end
+
+  test "setting format without variant shouid not overwriting existing variant" do
+    request = stub_request
+
+    request.variant = [:mobile]
+    request.format = "html"
+    assert_equal [:mobile], request.variant
+  end
 end
