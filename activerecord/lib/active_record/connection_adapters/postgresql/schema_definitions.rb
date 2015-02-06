@@ -60,6 +60,10 @@ module ActiveRecord
           column(name, :uuid, options)
         end
 
+        def serial(name, options = {})
+          column(name, :serial, options)
+        end
+
         def json(name, options = {})
           column(name, :json, options)
         end
