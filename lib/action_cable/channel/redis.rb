@@ -25,7 +25,7 @@ module ActionCable
         end
 
         def pubsub
-          @connection.pubsub
+          @connection.class.pubsub
         end
     end
 
