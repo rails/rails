@@ -37,7 +37,7 @@ module ActiveRecord
         # Include the standard updated_at column and any additional specified columns
         updated_at_attrs = record.timestamp_attributes_for_update_in_model
         columns += updated_at_attrs if updated_at_attrs.present?
-        columns = columns.sort
+        columns = columns.map(&:to_sym).sort
 
         @records[[record.class, columns]] += [record] unless @already_updated_records[[record.class, columns]].include?(record)
       end

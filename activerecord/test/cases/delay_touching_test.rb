@@ -117,6 +117,15 @@ class DelayTouchingTest < ActiveRecord::TestCase
     end
   end
 
+  test "delay_touching treats string column names and symbol column names as the same" do
+    expect_updates ["owners" => { ids: owner, columns: ["updated_at", "happy_at"] }] do
+      ActiveRecord::Base.transaction do
+        owner.touch :happy_at
+        owner.touch "happy_at"
+      end
+    end
+  end
+
   test "delay_touching splits up nonstandard column touches and standard column touches" do
     expect_updates [{ "pets" => { ids: pet1, columns: ["updated_at", "neutered_at"] } },
                     { "pets" => { ids: pet2, columns: ["updated_at"] } },
