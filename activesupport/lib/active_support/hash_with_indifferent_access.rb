@@ -237,12 +237,12 @@ module ActiveSupport
     def deep_symbolize_keys; to_hash.deep_symbolize_keys! end
     def to_options!; self end
 
-    def select(*)
-      super.with_indifferent_access
+    def select(*args, &block)
+      dup.tap { |hash| hash.select!(*args, &block) }
     end
 
-    def reject(*)
-      super.with_indifferent_access
+    def reject(*args, &block)
+      dup.tap { |hash| hash.reject!(*args, &block) }
     end
 
     # Convert to a regular hash with string keys.
