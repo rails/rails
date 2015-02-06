@@ -6,7 +6,7 @@ module ActionView
           @object_name = object_name.gsub(/\[(.*)_attributes\]\[\d+\]/, '.\1')
           @method_and_value = method_and_value
           @scope = scope
-          @model = object.respond_to?(:to_model) ? object.to_model : object
+          @model = object.respond_to?(:to_model) ? object.to_model : nil
         end
 
         def translate

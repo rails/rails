@@ -259,6 +259,18 @@ class FormHelperTest < ActionView::TestCase
     end
   end
 
+  def test_label_with_non_active_record_object
+    form_for(OpenStruct.new(name:'ok'), as: 'person', url: 'an_url', html: { id: 'create-person' }) do |f|
+      f.label(:name)
+    end
+
+    expected = whole_form("an_url", "create-person", "new_person", method: "post") do
+      '<label for="person_name">Name</label>'
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
   def test_label_with_for_attribute_as_symbol
     assert_dom_equal('<label for="my_for">Title</label>', label(:post, :title, nil, for: "my_for"))
   end
