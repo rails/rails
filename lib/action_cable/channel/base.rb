@@ -10,7 +10,7 @@ module ActionCable
 
       on_unsubscribe :disconnect
 
-      attr_reader :params
+      attr_reader :params, :connection
 
       class_attribute :channel_name
 
@@ -61,7 +61,7 @@ module ActionCable
         end
 
         def broadcast(data)
-          @connection.broadcast({ identifier: @channel_identifier, message: data }.to_json)
+          connection.broadcast({ identifier: @channel_identifier, message: data }.to_json)
         end
 
         def start_periodic_timers
