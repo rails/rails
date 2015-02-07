@@ -224,7 +224,7 @@ module ActiveSupport
         @zones ||= zones_map.values.sort
       end
 
-      def zones_map
+      def zones_map #:nodoc:
         @zones_map ||= begin
           MAPPING.each_key {|place| self[place]} # load all the zones
           @lazy_zones_map
