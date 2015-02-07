@@ -1,7 +1,7 @@
 module ActiveRecord
   module Type
     module Helpers
-      class AcceptsMultiparameterTime < Module
+      class AcceptsMultiparameterTime < Module # :nodoc:
         def initialize(defaults: {})
           define_method(:type_cast_from_user) do |value|
             if value.is_a?(Hash)

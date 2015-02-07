@@ -1,7 +1,7 @@
 module ActiveRecord
   module Type
     class DateTime < Value # :nodoc:
-      include TimeValue
+      include Helpers::TimeValue
       include Helpers::AcceptsMultiparameterTime.new(
         defaults: { 4 => 0, 5 => 0 }
       )

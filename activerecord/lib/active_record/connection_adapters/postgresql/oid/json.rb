@@ -3,7 +3,7 @@ module ActiveRecord
     module PostgreSQL
       module OID # :nodoc:
         class Json < Type::Value # :nodoc:
-          include Type::Mutable
+          include Type::Helpers::Mutable
 
           def type
             :json
