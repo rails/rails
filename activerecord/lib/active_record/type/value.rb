@@ -64,9 +64,6 @@ module ActiveRecord
         false
       end
 
-      def klass # :nodoc:
-      end
-
       # Determines whether a value has changed for dirty checking. +old_value+
       # and +new_value+ will always be type-cast. Types should not need to
       # override this method.

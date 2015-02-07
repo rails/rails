@@ -245,7 +245,8 @@ module ActiveRecord
           define_method("#{name}=") do |part|
             klass = class_name.constantize
             if part.is_a?(Hash)
-              part = klass.new(*part.values)
+              raise ArgumentError unless part.size == part.keys.max
+              part = klass.new(*part.sort.map(&:last))
             end
 
             unless part.is_a?(klass) || converter.nil? || part.nil?

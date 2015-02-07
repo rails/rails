@@ -2,6 +2,9 @@ module ActiveRecord
   module Type
     class Time < Value # :nodoc:
       include TimeValue
+      include Helpers::AcceptsMultiparameterTime.new(
+        defaults: { 1 => 1970, 2 => 1, 3 => 1, 4 => 0, 5 => 0 }
+      )
 
       def type
         :time

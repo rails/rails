@@ -1,10 +1,6 @@
 module ActiveRecord
   module Type
     module TimeValue # :nodoc:
-      def klass
-        ::Time
-      end
-
       def type_cast_for_schema(value)
         "'#{value.to_s(:db)}'"
       end
