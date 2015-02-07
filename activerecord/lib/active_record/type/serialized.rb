@@ -2,7 +2,6 @@ module ActiveRecord
   module Type
     class Serialized < DelegateClass(Type::Value) # :nodoc:
       include Mutable
-      include Decorator
 
       attr_reader :subtype, :coder
 
@@ -34,16 +33,6 @@ module ActiveRecord
 
       def accessor
         ActiveRecord::Store::IndifferentHashAccessor
-      end
-
-      def init_with(coder)
-        @coder = coder['coder']
-        super
-      end
-
-      def encode_with(coder)
-        coder['coder'] = @coder
-        super
       end
 
       private
