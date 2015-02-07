@@ -23,8 +23,7 @@ class NameError
   #   # => true
   def missing_name?(name)
     if name.is_a? Symbol
-      last_name = (missing_name || '').split('::').last
-      last_name == name.to_s
+      self.name == name
     else
       missing_name == name.to_s
     end
