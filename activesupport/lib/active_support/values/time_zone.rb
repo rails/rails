@@ -224,13 +224,6 @@ module ActiveSupport
         @zones ||= zones_map.values.sort
       end
 
-      def zones_map
-        @zones_map ||= begin
-          MAPPING.each_key {|place| self[place]} # load all the zones
-          @lazy_zones_map
-        end
-      end
-
       # Locate a specific time zone object. If the argument is a string, it
       # is interpreted to mean the name of the timezone to locate. If it is a
       # numeric value it is either the hour offset, or the second offset, of the
@@ -257,6 +250,14 @@ module ActiveSupport
       def us_zones
         @us_zones ||= all.find_all { |z| z.name =~ /US|Arizona|Indiana|Hawaii|Alaska/ }
       end
+
+      private
+        def zones_map
+          @zones_map ||= begin
+            MAPPING.each_key {|place| self[place]} # load all the zones
+            @lazy_zones_map
+          end
+        end
     end
 
     include Comparable
