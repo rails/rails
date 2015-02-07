@@ -13,47 +13,48 @@ class NumericalityValidationTest < ActiveModel::TestCase
 
   NIL = [nil]
   BLANK = ["", " ", " \t \r \n"]
-  BIGDECIMAL_STRINGS = %w(12345678901234567890.1234567890) # 30 significant digits
+  BIGDECIMAL_FLOAT = [BigDecimal.new('12345678901234567890.1234567890')] # 30 significant digits
+  BIGDECIMAL_INTEGER = [BigDecimal.new('123456789012345678901234567890')] # 30 significant digits
   FLOAT_STRINGS = %w(0.0 +0.0 -0.0 10.0 10.5 -10.5 -0.0001 -090.1 90.1e1 -90.1e5 -90.1e-5 90e-5)
   INTEGER_STRINGS = %w(0 +0 -0 10 +10 -10 0090 -090)
   FLOATS = [0.0, 10.0, 10.5, -10.5, -0.0001] + FLOAT_STRINGS
   INTEGERS = [0, 10, -10] + INTEGER_STRINGS
-  BIGDECIMAL = BIGDECIMAL_STRINGS.collect! { |bd| BigDecimal.new(bd) }
+  BIGDECIMALS = BIGDECIMAL_FLOAT + BIGDECIMAL_INTEGER
   JUNK = ["not a number", "42 not a number", "0xdeadbeef", "0xinvalidhex", "0Xdeadbeef", "00-1", "--3", "+-3", "+3-1", "-+019.0", "12.12.13.12", "123\nnot a number"]
   INFINITY = [1.0/0.0]
 
   def test_default_validates_numericality_of
     Topic.validates_numericality_of :approved
     invalid!(NIL + BLANK + JUNK)
-    valid!(FLOATS + INTEGERS + BIGDECIMAL + INFINITY)
+    valid!(FLOATS + INTEGERS + BIGDECIMALS + INFINITY)
   end
 
   def test_validates_numericality_of_with_nil_allowed
     Topic.validates_numericality_of :approved, allow_nil: true
 
     invalid!(JUNK + BLANK)
-    valid!(NIL + FLOATS + INTEGERS + BIGDECIMAL + INFINITY)
+    valid!(NIL + FLOATS + INTEGERS + BIGDECIMALS + INFINITY)
   end
 
   def test_validates_numericality_of_with_integer_only
     Topic.validates_numericality_of :approved, only_integer: true
 
-    invalid!(NIL + BLANK + JUNK + FLOATS + BIGDECIMAL + INFINITY)
-    valid!(INTEGERS)
+    invalid!(NIL + BLANK + JUNK + FLOATS + BIGDECIMAL_FLOAT + INFINITY)
+    valid!(INTEGERS + BIGDECIMAL_INTEGER)
   end
 
   def test_validates_numericality_of_with_integer_only_and_nil_allowed
     Topic.validates_numericality_of :approved, only_integer: true, allow_nil: true
 
-    invalid!(JUNK + BLANK + FLOATS + BIGDECIMAL + INFINITY)
-    valid!(NIL + INTEGERS)
+    invalid!(JUNK + BLANK + FLOATS + BIGDECIMAL_FLOAT + INFINITY)
+    valid!(NIL + INTEGERS + BIGDECIMAL_INTEGER)
   end
 
   def test_validates_numericality_of_with_integer_only_and_symbol_as_value
     Topic.validates_numericality_of :approved, only_integer: :condition_is_true_but_its_not
 
     invalid!(NIL + BLANK + JUNK)
-    valid!(FLOATS + INTEGERS + BIGDECIMAL + INFINITY)
+    valid!(FLOATS + INTEGERS + BIGDECIMALS + INFINITY)
   end
 
   def test_validates_numericality_of_with_integer_only_and_proc_as_value
@@ -61,7 +62,7 @@ class NumericalityValidationTest < ActiveModel::TestCase
     Topic.validates_numericality_of :approved, only_integer: Proc.new(&:allow_only_integers?)
 
     invalid!(NIL + BLANK + JUNK)
-    valid!(FLOATS + INTEGERS + BIGDECIMAL + INFINITY)
+    valid!(FLOATS + INTEGERS + BIGDECIMALS + INFINITY)
   end
 
   def test_validates_numericality_with_greater_than
