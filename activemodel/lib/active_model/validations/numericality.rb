@@ -71,7 +71,11 @@ module ActiveModel
       end
 
       def parse_raw_value_as_an_integer(raw_value)
-        raw_value.to_i if raw_value.to_s =~ /\A[+-]?\d+\z/
+        if raw_value.to_s =~ /\A[+-]?\d+\z/
+          raw_value.to_i
+        elsif defined?(BigDecimal) && raw_value.is_a?(BigDecimal) && raw_value == raw_value.fix
+          raw_value
+        end
       end
 
       def filtered_options(value)

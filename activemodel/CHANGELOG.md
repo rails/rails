@@ -1,3 +1,21 @@
+*   The numericality validator option :only_integer will now allow integer BigDecimal values.
+
+    Example:
+
+      class Beach
+        include ActiveModel::Validations
+        attr_accessor :grains_of_sand
+        validates_numericality_of :grains_of_sand, only_integer: true
+      end
+
+      ipanema = Beach.new
+      ipanema.grains_of_sand = BigDecimal.new('1000000000000000000.1')
+      ipanema.valid? # => false
+      ipanema.grains_of_sand = BigDecimal.new('1000000000000000000')
+      ipanema.valid? # => true
+
+    *Johnny Shields*
+
 *   Assigning an unknown attribute key to an `ActiveModel` instance during initialization
     will now raise `ActiveModel::AttributeAssignment::UnknownAttributeError` instead of
     `NoMethodError`
