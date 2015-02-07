@@ -9,9 +9,10 @@ module ActionCable
       end
 
       def subscribe_to(redis_channel, callback = nil)
-        @_redis_channels ||= []
+        raise "`ActionCable::Server.pubsub` class method is not defined" unless connection.class.respond_to?(:pubsub)
 
         callback ||= -> (message) { broadcast ActiveSupport::JSON.decode(message) }
+        @_redis_channels ||= []
         @_redis_channels << [ redis_channel, callback ]
 
         pubsub.subscribe(redis_channel, &callback)
@@ -25,7 +26,7 @@ module ActionCable
         end
 
         def pubsub
-          @connection.class.pubsub
+          connection.class.pubsub
         end
     end
 
