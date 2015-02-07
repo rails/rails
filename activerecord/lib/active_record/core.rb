@@ -94,6 +94,15 @@ module ActiveRecord
       mattr_accessor :dump_schemas, instance_writer: false
       self.dump_schemas = :schema_search_path
 
+      ##
+      # :singleton-method:
+      # Specify a threshold for the size of query result sets. If the
+      # number of records in the set exceeds threshold, a warning is
+      # logged. This should be used to identify queries which pull
+      # thousands of records, which may cause memory bloat.
+      mattr_accessor :warn_on_records_fetched_greater_than, instance_writer: false
+      self.warn_on_records_fetched_greater_than = nil
+
       mattr_accessor :maintain_test_schema, instance_accessor: false
 
       mattr_accessor :belongs_to_required_by_default, instance_accessor: false
