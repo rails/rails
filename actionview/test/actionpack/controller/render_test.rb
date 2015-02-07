@@ -968,12 +968,12 @@ class RenderTest < ActionController::TestCase
   end
 
   def test_should_implicitly_render_html_template_from_xhr_request
-    xhr :get, :render_implicit_html_template_from_xhr_request
+    get :render_implicit_html_template_from_xhr_request, xhr: true
     assert_equal "XHR!\nHello HTML!", @response.body
   end
 
   def test_should_implicitly_render_js_template_without_layout
-    xhr :get, :render_implicit_js_template_without_layout, :format => :js
+    get :render_implicit_js_template_without_layout, format: :js, xhr: true
     assert_no_match %r{<html>}, @response.body
   end
 
