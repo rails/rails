@@ -1,3 +1,11 @@
+*   Respect the database default charset for `schema_migrations` table.
+
+    The charset of `version` column in `schema_migrations` table is depend
+    on the database default charset and collation rather than the encoding
+    of the connection.
+
+    *Ryuta Kamizono*
+
 *   Raise `ArgumentError` when passing `nil` or `false` to `Relation#merge`.
 
     These are not valid values to merge in a relation so it should warn the users
