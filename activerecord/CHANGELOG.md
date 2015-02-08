@@ -1,3 +1,10 @@
+*   Fix rounding problem for PostgreSQL timestamp column.
+
+    If timestamp column have the precision, it need to format according to
+    the precision of timestamp column.
+
+    *Ryuta Kamizono*
+
 *   Respect the database default charset for `schema_migrations` table.
 
     The charset of `version` column in `schema_migrations` table is depend
