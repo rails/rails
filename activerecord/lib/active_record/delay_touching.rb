@@ -85,7 +85,7 @@ module ActiveRecord
           end
         end
       ensure
-        current_state.clear_already_updated_records
+        current_state.clear_already_touched_records
       end
 
       # Touch the specified records--non-empty set of instances of the same class.
@@ -107,7 +107,7 @@ module ActiveRecord
           klass.unscoped.where(klass.primary_key => records.to_a).update_all([sql, current_time: current_time])
         end
 
-        current_state.updated klass, attrs, records
+        current_state.touched klass, attrs, records
         records.each(&:_run_touch_callbacks)
       end
     end

@@ -7,11 +7,11 @@ module ActiveRecord
     class State # :nodoc:
       def initialize
         @records = Hash.new { SortedSet.new }
-        @already_updated_records = Hash.new { SortedSet.new }
+        @already_touched_records = Hash.new { SortedSet.new }
       end
 
-      def updated(klass, attrs, records)
-        @already_updated_records[[klass, attrs]] += records
+      def touched(klass, attrs, records)
+        @already_touched_records[[klass, attrs]] += records
       end
 
       # Return the records grouped by class and columns that were touched:
@@ -39,21 +39,21 @@ module ActiveRecord
         columns = columns.map(&:to_sym).sort
 
         key = [record.class, columns]
-        @records[key] += [record] unless @already_updated_records[key].include?(record)
+        @records[key] += [record] unless @already_touched_records[key].include?(record)
       end
 
-      def clear_already_updated_records
-        @already_updated_records.clear
+      def clear_already_touched_records
+        @already_touched_records.clear
       end
 
       # Merge another state into this one
       def merge!(other_state)
         merge_records!(@records, other_state.records)
-        merge_records!(@already_updated_records, other_state.already_updated_records)
+        merge_records!(@already_touched_records, other_state.already_touched_records)
       end
 
       protected
-        attr_reader :records, :already_updated_records
+        attr_reader :records, :already_touched_records
 
         # Merge from_records into into_records
         def merge_records!(into_records, from_records)
