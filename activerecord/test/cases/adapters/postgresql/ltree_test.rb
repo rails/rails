@@ -32,7 +32,6 @@ class PostgresqlLtreeTest < ActiveRecord::TestCase
     assert_not column.array?
 
     type = Ltree.type_for_attribute('path')
-    assert_not type.number?
     assert_not type.binary?
   end
 

@@ -31,7 +31,6 @@ class PostgresqlDomainTest < ActiveRecord::TestCase
     assert_not column.array?
 
     type = PostgresqlDomain.type_for_attribute("price")
-    assert type.number?
     assert_not type.binary?
   end
 

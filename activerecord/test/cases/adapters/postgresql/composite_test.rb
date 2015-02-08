@@ -52,7 +52,6 @@ class PostgresqlCompositeTest < ActiveRecord::TestCase
     assert_not column.array?
 
     type = PostgresqlComposite.type_for_attribute("address")
-    assert_not type.number?
     assert_not type.binary?
   end
 
@@ -115,7 +114,6 @@ class PostgresqlCompositeWithCustomOIDTest < ActiveRecord::TestCase
     assert_not column.array?
 
     type = PostgresqlComposite.type_for_attribute("address")
-    assert_not type.number?
     assert_not type.binary?
   end
 

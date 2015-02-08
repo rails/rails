@@ -52,10 +52,6 @@ module ActiveRecord
 
       # These predicates are not documented, as I need to look further into
       # their use, and see if they can be removed entirely.
-      def number? # :nodoc:
-        false
-      end
-
       def binary? # :nodoc:
         false
       end

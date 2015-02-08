@@ -36,14 +36,12 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
     assert_equal :string, @column.type
     assert_equal "character varying", @column.sql_type
     assert @column.array?
-    assert_not @type.number?
     assert_not @type.binary?
 
     ratings_column = PgArray.columns_hash['ratings']
     assert_equal :integer, ratings_column.type
     type = PgArray.type_for_attribute("ratings")
     assert ratings_column.array?
-    assert_not type.number?
   end
 
   def test_default

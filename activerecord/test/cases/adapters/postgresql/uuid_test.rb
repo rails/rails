@@ -51,7 +51,6 @@ class PostgresqlUUIDTest < ActiveRecord::TestCase
     assert_not column.array?
 
     type = UUIDType.type_for_attribute("guid")
-    assert_not type.number?
     assert_not type.binary?
   end
 
