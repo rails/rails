@@ -21,10 +21,6 @@ module ActiveRecord
         end
       end
 
-      def text?
-        true
-      end
-
       private
 
       def cast_value(value)

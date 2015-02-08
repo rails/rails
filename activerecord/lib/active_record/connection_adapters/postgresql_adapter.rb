@@ -762,6 +762,24 @@ module ActiveRecord
         def create_table_definition(name, temporary = false, options = nil, as = nil) # :nodoc:
           PostgreSQL::TableDefinition.new native_database_types, name, temporary, options, as
         end
+
+        def can_perform_case_insensitive_comparison_for?(column)
+          @case_insensitive_cache ||= {}
+          @case_insensitive_cache[column.sql_type] ||= begin
+            sql = <<-end_sql
+              SELECT exists(
+                SELECT * FROM pg_proc
+                INNER JOIN pg_cast
+                  ON casttarget::text::oidvector = proargtypes
+                WHERE proname = 'lower'
+                  AND castsource = '#{column.sql_type}'::regtype::oid
+              )
+            end_sql
+            execute_and_clear(sql, "SCHEMA", []) do |result|
+              result.getvalue(0, 0) == 't'
+            end
+          end
+        end
     end
   end
 end
