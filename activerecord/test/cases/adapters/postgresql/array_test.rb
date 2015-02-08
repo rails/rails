@@ -40,7 +40,6 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
 
     ratings_column = PgArray.columns_hash['ratings']
     assert_equal :integer, ratings_column.type
-    type = PgArray.type_for_attribute("ratings")
     assert ratings_column.array?
   end
 
