@@ -66,12 +66,8 @@ module ActiveRecord
         end
       end
 
-      def test_tables_quoting
-        @conn.tables(nil, "foo-bar", nil)
-        flunk
-      rescue => e
-        # assertion for *quoted* database properly
-        assert_match(/database 'foo-bar'/, e.inspect)
+      def test_table_exists_with_like_metacharacters
+        assert_not @conn.table_exists?('aut_ors'), 'nonexistent table should not exist'
       end
 
       def test_pk_and_sequence_for

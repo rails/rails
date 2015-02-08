@@ -36,14 +36,6 @@ module ActiveRecord
         assert(!@connection.table_exists?("#{@db_name}.zomg"), "table should not exist")
       end
 
-      def test_tables_quoting
-        @connection.tables(nil, "foo-bar", nil)
-        flunk
-      rescue => e
-        # assertion for *quoted* database properly
-        assert_match(/database 'foo-bar'/, e.inspect)
-      end
-
       def test_dump_indexes
         index_a_name = 'index_key_tests_on_snack'
         index_b_name = 'index_key_tests_on_pizza'

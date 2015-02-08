@@ -422,9 +422,11 @@ module ActiveRecord
       end
 
       def tables(name = nil, database = nil, like = nil) #:nodoc:
-        sql = "SHOW TABLES "
-        sql << "IN #{quote_table_name(database)} " if database
-        sql << "LIKE #{quote(like)}" if like
+        database ||= current_database
+
+        sql = "SELECT table_name FROM information_schema.tables "
+        sql << "WHERE table_schema = #{quote(database)}"
+        sql << " AND table_name = #{quote(like)}" if like
 
         execute_and_free(sql, 'SCHEMA') do |result|
           result.collect(&:first)
