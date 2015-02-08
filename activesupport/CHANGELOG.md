@@ -1,3 +1,7 @@
+*   Fix a range of values for parameters of the Time#change
+
+    *Nikolay Kondratyev*
+
 *   Add missing time zone definitions for Russian Federation and sync them
     with `zone.tab` file from tzdata version 2014j (latest).
 
