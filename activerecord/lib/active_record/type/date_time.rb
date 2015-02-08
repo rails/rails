@@ -8,20 +8,27 @@ module ActiveRecord
       end
 
       def type_cast_for_database(value)
+        return super unless value.acts_like?(:time)
+
         zone_conversion_method = ActiveRecord::Base.default_timezone == :utc ? :getutc : :getlocal
 
-        if value.acts_like?(:time)
-          if value.respond_to?(zone_conversion_method)
-            value.send(zone_conversion_method)
-          else
-            value
-          end
+        if value.respond_to?(zone_conversion_method)
+          value = value.send(zone_conversion_method)
+        end
+
+        return value unless has_precision?
+
+        result = value.to_s(:db)
+        if value.respond_to?(:usec) && (1..6).cover?(precision)
+          "#{result}.#{sprintf("%0#{precision}d", value.usec / 10 ** (6 - precision))}"
         else
-          super
+          result
         end
       end
 
       private
+
+      alias has_precision? precision
 
       def cast_value(string)
         return string unless string.is_a?(::String)

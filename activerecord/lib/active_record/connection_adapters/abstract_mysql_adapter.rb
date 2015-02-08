@@ -874,18 +874,10 @@ module ActiveRecord
       end
 
       class MysqlDateTime < Type::DateTime # :nodoc:
-        def type_cast_for_database(value)
-          if value.acts_like?(:time) && value.respond_to?(:usec)
-            result = super.to_s(:db)
-            case precision
-            when 1..6
-              "#{result}.#{sprintf("%0#{precision}d", value.usec / 10 ** (6 - precision))}"
-            else
-              result
-            end
-          else
-            super
-          end
+        private
+
+        def has_precision?
+          precision || 0
         end
       end
 
