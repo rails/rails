@@ -1,27 +1,37 @@
 module ActiveRecord
   module Type
     class DateTime < Value # :nodoc:
-      include TimeValue
+      include Helpers::TimeValue
+      include Helpers::AcceptsMultiparameterTime.new(
+        defaults: { 4 => 0, 5 => 0 }
+      )
 
       def type
         :datetime
       end
 
       def type_cast_for_database(value)
+        return super unless value.acts_like?(:time)
+
         zone_conversion_method = ActiveRecord::Base.default_timezone == :utc ? :getutc : :getlocal
 
-        if value.acts_like?(:time)
-          if value.respond_to?(zone_conversion_method)
-            value.send(zone_conversion_method)
-          else
-            value
-          end
+        if value.respond_to?(zone_conversion_method)
+          value = value.send(zone_conversion_method)
+        end
+
+        return value unless has_precision?
+
+        result = value.to_s(:db)
+        if value.respond_to?(:usec) && (1..6).cover?(precision)
+          "#{result}.#{sprintf("%0#{precision}d", value.usec / 10 ** (6 - precision))}"
         else
-          super
+          result
         end
       end
 
       private
+
+      alias has_precision? precision
 
       def cast_value(string)
         return string unless string.is_a?(::String)
@@ -41,6 +51,14 @@ module ActiveRecord
         time_hash[:sec_fraction] = microseconds(time_hash)
 
         new_time(*time_hash.values_at(:year, :mon, :mday, :hour, :min, :sec, :sec_fraction, :offset))
+      end
+
+      def value_from_multiparameter_assignment(values_hash)
+        missing_parameter = (1..3).detect { |key| !values_hash.key?(key) }
+        if missing_parameter
+          raise ArgumentError, missing_parameter
+        end
+        super
       end
     end
   end

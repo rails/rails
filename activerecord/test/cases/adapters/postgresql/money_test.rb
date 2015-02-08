@@ -27,7 +27,6 @@ class PostgresqlMoneyTest < ActiveRecord::TestCase
     assert_not column.array?
 
     type = PostgresqlMoney.type_for_attribute("wealth")
-    assert type.number?
     assert_not type.binary?
   end
 

@@ -1,7 +1,7 @@
 module ActiveRecord
   module Type
     class Integer < Value # :nodoc:
-      include Numeric
+      include Helpers::Numeric
 
       # Column storage size in bytes.
       # 4 bytes means a MySQL int or Postgres integer as opposed to smallint etc.

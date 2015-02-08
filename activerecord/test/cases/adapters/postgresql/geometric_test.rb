@@ -28,7 +28,6 @@ class PostgresqlPointTest < ActiveRecord::TestCase
     assert_not column.array?
 
     type = PostgresqlPoint.type_for_attribute("x")
-    assert_not type.number?
     assert_not type.binary?
   end
 

@@ -63,7 +63,7 @@ module ActiveRecord
 
       def column_spec_for_primary_key(column)
         spec = {}
-        if column.extra == 'auto_increment'
+        if column.auto_increment?
           return unless column.limit == 8
           spec[:id] = ':bigint'
         else
@@ -101,6 +101,10 @@ module ActiveRecord
 
         def case_sensitive?
           collation && !collation.match(/_ci$/)
+        end
+
+        def auto_increment?
+          extra == 'auto_increment'
         end
 
         private
@@ -808,7 +812,7 @@ module ActiveRecord
         options = {
           default: column.default,
           null: column.null,
-          auto_increment: column.extra == "auto_increment"
+          auto_increment: column.auto_increment?
         }
 
         current_type = select_one("SHOW COLUMNS FROM #{quote_table_name(table_name)} LIKE '#{column_name}'", 'SCHEMA')["Type"]
@@ -913,18 +917,10 @@ module ActiveRecord
       end
 
       class MysqlDateTime < Type::DateTime # :nodoc:
-        def type_cast_for_database(value)
-          if value.acts_like?(:time) && value.respond_to?(:usec)
-            result = super.to_s(:db)
-            case precision
-            when 1..6
-              "#{result}.#{sprintf("%0#{precision}d", value.usec / 10 ** (6 - precision))}"
-            else
-              result
-            end
-          else
-            super
-          end
+        private
+
+        def has_precision?
+          precision || 0
         end
       end
 
@@ -946,6 +942,10 @@ module ActiveRecord
           else super
           end
         end
+      end
+
+      def type_classes_with_standard_constructor
+        super.merge(string: MysqlString, date_time: MysqlDateTime)
       end
     end
   end

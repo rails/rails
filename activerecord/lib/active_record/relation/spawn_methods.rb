@@ -32,7 +32,7 @@ module ActiveRecord
       elsif other
         spawn.merge!(other)
       else
-        self
+        raise ArgumentError, "invalid argument: #{other.inspect}."
       end
     end
 

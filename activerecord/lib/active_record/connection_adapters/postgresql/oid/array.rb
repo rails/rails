@@ -3,7 +3,7 @@ module ActiveRecord
     module PostgreSQL
       module OID # :nodoc:
         class Array < Type::Value # :nodoc:
-          include Type::Mutable
+          include Type::Helpers::Mutable
 
           # Loads pg_array_parser if available. String parsing can be
           # performed quicker by a native extension, which will not create
@@ -46,6 +46,12 @@ module ActiveRecord
             else
               super
             end
+          end
+
+          def ==(other)
+            other.is_a?(Array) &&
+              subtype == other.subtype &&
+              delimiter == other.delimiter
           end
 
           private

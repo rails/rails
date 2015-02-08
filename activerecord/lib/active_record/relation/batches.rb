@@ -45,19 +45,19 @@ module ActiveRecord
     #
     # NOTE: You can't set the limit either, that's used to control
     # the batch sizes.
-    def find_each(options = {})
+    def find_each(start: nil, batch_size: 1000)
       if block_given?
-        find_in_batches(options) do |records|
+        find_in_batches(start: start, batch_size: batch_size) do |records|
           records.each { |record| yield record }
         end
       else
-        enum_for :find_each, options do
-          options[:start] ? where(table[primary_key].gteq(options[:start])).size : size
+        enum_for(:find_each, start: start, batch_size: batch_size) do
+          start ? where(table[primary_key].gteq(start)).size : size
         end
       end
     end
 
-    # Yields each batch of records that was found by the find +options+ as
+    # Yields each batch of records that was found by the find options as
     # an array.
     #
     #   Person.where("age > 21").find_in_batches do |group|
@@ -95,15 +95,11 @@ module ActiveRecord
     #
     # NOTE: You can't set the limit either, that's used to control
     # the batch sizes.
-    def find_in_batches(options = {})
-      options.assert_valid_keys(:start, :batch_size)
-
+    def find_in_batches(start: nil, batch_size: 1000)
       relation = self
-      start = options[:start]
-      batch_size = options[:batch_size] || 1000
 
       unless block_given?
-        return to_enum(:find_in_batches, options) do
+        return to_enum(:find_in_batches, start: start, batch_size: batch_size) do
           total = start ? where(table[primary_key].gteq(start)).size : size
           (total - 1).div(batch_size) + 1
         end

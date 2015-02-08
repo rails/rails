@@ -36,7 +36,6 @@ module PostgresqlJSONSharedTestCases
     assert_not column.array?
 
     type = JsonDataType.type_for_attribute("payload")
-    assert_not type.number?
     assert_not type.binary?
   end
 

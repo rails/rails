@@ -65,7 +65,7 @@ module ActiveRecord
       if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
         def test_mysql_rename_column_preserves_auto_increment
           rename_column "test_models", "id", "id_test"
-          assert_equal "auto_increment", connection.columns("test_models").find { |c| c.name == "id_test" }.extra
+          assert connection.columns("test_models").find { |c| c.name == "id_test" }.auto_increment?
           TestModel.reset_column_information
         ensure
           rename_column "test_models", "id_test", "id"

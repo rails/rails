@@ -2,8 +2,6 @@ module ActiveRecord
   module AttributeMethods
     module TimeZoneConversion
       class TimeZoneConverter < DelegateClass(Type::Value) # :nodoc:
-        include Type::Decorator
-
         def type_cast_from_database(value)
           convert_time_to_time_zone(super)
         end
@@ -11,6 +9,8 @@ module ActiveRecord
         def type_cast_from_user(value)
           if value.is_a?(Array)
             value.map { |v| type_cast_from_user(v) }
+          elsif value.is_a?(Hash)
+            set_time_zone_without_conversion(super)
           elsif value.respond_to?(:in_time_zone)
             begin
               user_input_in_time_zone(value) || super
@@ -20,6 +20,8 @@ module ActiveRecord
           end
         end
 
+        private
+
         def convert_time_to_time_zone(value)
           if value.is_a?(Array)
             value.map { |v| convert_time_to_time_zone(v) }
@@ -28,6 +30,10 @@ module ActiveRecord
           else
             value
           end
+        end
+
+        def set_time_zone_without_conversion(value)
+          ::Time.zone.local_to_utc(value).in_time_zone
         end
       end
 

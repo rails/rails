@@ -65,6 +65,23 @@ module ActiveRecord
           type_map.lookup(column.oid, column.fmod, column.sql_type)
         end
 
+        def type_for_attribute_options(
+          type_name,
+          array: false,
+          range: false,
+          **options
+        )
+          if array
+            subtype = type_for_attribute_options(type_name, **options)
+            OID::Array.new(subtype)
+          elsif range
+            subtype = type_for_attribute_options(type_name, **options)
+            OID::Range.new(subtype)
+          else
+            super(type_name, **options)
+          end
+        end
+
         private
 
         def _quote(value)
@@ -102,6 +119,30 @@ module ActiveRecord
           else
             super
           end
+        end
+
+        def type_classes_with_standard_constructor
+          super.merge(
+            bit: OID::Bit,
+            bit_varying: OID::BitVarying,
+            binary: OID::Bytea,
+            cidr: OID::Cidr,
+            date: OID::Date,
+            date_time: OID::DateTime,
+            decimal: OID::Decimal,
+            enum: OID::Enum,
+            float: OID::Float,
+            hstore: OID::Hstore,
+            inet: OID::Inet,
+            json: OID::Json,
+            jsonb: OID::Jsonb,
+            money: OID::Money,
+            point: OID::Point,
+            time: OID::Time,
+            uuid: OID::Uuid,
+            vector: OID::Vector,
+            xml: OID::Xml,
+          )
         end
       end
     end

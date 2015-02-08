@@ -85,6 +85,11 @@ class ERB
     # automatically flag the result as HTML safe, since the raw value is unsafe to
     # use inside HTML attributes.
     #
+    # If your JSON is being used downstream for insertion into the DOM, be aware of
+    # whether or not it is being inserted via +html()+. Most JQuery plugins do this.
+    # If that is the case, be sure to +html_escape+ or +sanitize+ any user-generated
+    # content returned by your JSON.
+    #
     # If you need to output JSON elsewhere in your HTML, you can just do something
     # like this, as any unsafe characters (including quotation marks) will be
     # automatically escaped for you:

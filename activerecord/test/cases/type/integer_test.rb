@@ -113,7 +113,7 @@ module ActiveRecord
       test "values which are out of range can be re-assigned" do
         klass = Class.new(ActiveRecord::Base) do
           self.table_name = 'posts'
-          attribute :foo, Type::Integer.new
+          attribute :foo, :integer
         end
         model = klass.new
 

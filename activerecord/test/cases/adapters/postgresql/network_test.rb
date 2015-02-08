@@ -25,7 +25,6 @@ class PostgresqlNetworkTest < ActiveRecord::TestCase
     assert_not column.array?
 
     type = PostgresqlNetworkAddress.type_for_attribute("cidr_address")
-    assert_not type.number?
     assert_not type.binary?
   end
 
@@ -36,7 +35,6 @@ class PostgresqlNetworkTest < ActiveRecord::TestCase
     assert_not column.array?
 
     type = PostgresqlNetworkAddress.type_for_attribute("inet_address")
-    assert_not type.number?
     assert_not type.binary?
   end
 
@@ -47,7 +45,6 @@ class PostgresqlNetworkTest < ActiveRecord::TestCase
     assert_not column.array?
 
     type = PostgresqlNetworkAddress.type_for_attribute("mac_address")
-    assert_not type.number?
     assert_not type.binary?
   end
 

@@ -34,7 +34,6 @@ if ActiveRecord::Base.connection.supports_extensions?
       assert_not column.array?
 
       type = Citext.type_for_attribute('cival')
-      assert_not type.number?
       assert_not type.binary?
     end
 

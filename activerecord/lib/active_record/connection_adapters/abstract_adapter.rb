@@ -367,8 +367,17 @@ module ActiveRecord
       end
 
       def case_insensitive_comparison(table, attribute, column, value)
-        table[attribute].lower.eq(table.lower(value))
+        if can_perform_case_insensitive_comparison_for?(column)
+          table[attribute].lower.eq(table.lower(value))
+        else
+          case_sensitive_comparison(table, attribute, column, value)
+        end
       end
+
+      def can_perform_case_insensitive_comparison_for?(column)
+        true
+      end
+      private :can_perform_case_insensitive_comparison_for?
 
       def current_savepoint_name
         current_transaction.savepoint_name

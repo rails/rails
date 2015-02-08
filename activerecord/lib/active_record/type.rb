@@ -1,7 +1,4 @@
-require 'active_record/type/decorator'
-require 'active_record/type/mutable'
-require 'active_record/type/numeric'
-require 'active_record/type/time_value'
+require 'active_record/type/helpers'
 require 'active_record/type/value'
 
 require 'active_record/type/big_integer'

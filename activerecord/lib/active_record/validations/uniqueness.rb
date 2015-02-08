@@ -69,7 +69,7 @@ module ActiveRecord
 
         value = Arel::Nodes::Quoted.new(value)
 
-        comparison = if !options[:case_sensitive] && value && cast_type.text?
+        comparison = if !options[:case_sensitive] && !value.nil?
           # will use SQL LOWER function before comparison, unless it detects a case insensitive collation
           klass.connection.case_insensitive_comparison(table, attribute, column, value)
         else

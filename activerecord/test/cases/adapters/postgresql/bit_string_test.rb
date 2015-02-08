@@ -30,7 +30,6 @@ class PostgresqlBitStringTest < ActiveRecord::TestCase
     assert_not column.array?
 
     type = PostgresqlBitString.type_for_attribute("a_bit")
-    assert_not type.number?
     assert_not type.binary?
   end
 
@@ -41,7 +40,6 @@ class PostgresqlBitStringTest < ActiveRecord::TestCase
     assert_not column.array?
 
     type = PostgresqlBitString.type_for_attribute("a_bit_varying")
-    assert_not type.number?
     assert_not type.binary?
   end
 

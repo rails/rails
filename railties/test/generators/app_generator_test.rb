@@ -5,7 +5,7 @@ require 'mocha/setup' # FIXME: stop using mocha
 
 DEFAULT_APP_FILES = %w(
   .gitignore
-  README.rdoc
+  README.md
   Gemfile
   Rakefile
   config.ru
@@ -415,11 +415,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "Gemfile" do |content|
       assert_gem 'method_source'
     end
-  end
-
-  def test_inclusion_of_doc
-    run_generator
-    assert_file 'Gemfile', /gem 'sdoc',\s+'~> 0.4.0',\s+group: :doc/
   end
 
   def test_template_from_dir_pwd

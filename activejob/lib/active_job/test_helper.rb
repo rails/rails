@@ -125,10 +125,32 @@ module ActiveJob
       #       HelloJob.perform_later('sean')
       #     end
       #   end
-      def assert_performed_jobs(number)
+      #
+      # The block form supports filtering. If the :only option is specified,
+      # then only the listed job(s) will be performed.
+      #
+      #     def test_hello_job
+      #       assert_performed_jobs 1, only: HelloJob do
+      #         HelloJob.perform_later('jeremy')
+      #         LoggingJob.perform_later
+      #       end
+      #     end
+      #
+      # An array may also be specified, to support testing multiple jobs.
+      #
+      #     def test_hello_and_logging_jobs
+      #       assert_nothing_raised do
+      #         assert_performed_jobs 2, only: [HelloJob, LoggingJob] do
+      #           HelloJob.perform_later('jeremy')
+      #           LoggingJob.perform_later('stewie')
+      #           RescueJob.perform_later('david')
+      #         end
+      #       end
+      #     end
+      def assert_performed_jobs(number, only: nil)
         if block_given?
           original_count = performed_jobs.size
-          perform_enqueued_jobs { yield }
+          perform_enqueued_jobs(only: only) { yield }
           new_count = performed_jobs.size
           assert_equal original_count + number, new_count,
                        "#{number} jobs expected, but #{new_count - original_count} were performed"
@@ -157,11 +179,33 @@ module ActiveJob
       #     end
       #   end
       #
+      # The block form supports filtering. If the :only option is specified,
+      # then only the listed job(s) will be performed.
+      #
+      #     def test_hello_job
+      #       assert_performed_jobs 1, only: HelloJob do
+      #         HelloJob.perform_later('jeremy')
+      #         LoggingJob.perform_later
+      #       end
+      #     end
+      #
+      # An array may also be specified, to support testing multiple jobs.
+      #
+      #     def test_hello_and_logging_jobs
+      #       assert_nothing_raised do
+      #         assert_performed_jobs 2, only: [HelloJob, LoggingJob] do
+      #           HelloJob.perform_later('jeremy')
+      #           LoggingJob.perform_later('stewie')
+      #           RescueJob.perform_later('david')
+      #         end
+      #       end
+      #     end
+      #
       # Note: This assertion is simply a shortcut for:
       #
       #   assert_performed_jobs 0, &block
-      def assert_no_performed_jobs(&block)
-        assert_performed_jobs 0, &block
+      def assert_no_performed_jobs(only: nil, &block)
+        assert_performed_jobs 0, only: only, &block
       end
 
       # Asserts that the job passed in the block has been enqueued with the given arguments.
@@ -206,11 +250,12 @@ module ActiveJob
         queue_adapter.performed_jobs = original_performed_jobs + performed_jobs
       end
 
-      def perform_enqueued_jobs
+      def perform_enqueued_jobs(only: nil)
         @old_perform_enqueued_jobs = queue_adapter.perform_enqueued_jobs
         @old_perform_enqueued_at_jobs = queue_adapter.perform_enqueued_at_jobs
         queue_adapter.perform_enqueued_jobs = true
         queue_adapter.perform_enqueued_at_jobs = true
+        queue_adapter.filter = only
         yield
       ensure
         queue_adapter.perform_enqueued_jobs = @old_perform_enqueued_jobs

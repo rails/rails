@@ -13,6 +13,28 @@
 
     *Brian Morearty*
 
+*   Fix rounding problem for PostgreSQL timestamp column.
+
+    If timestamp column have the precision, it need to format according to
+    the precision of timestamp column.
+
+    *Ryuta Kamizono*
+
+*   Respect the database default charset for `schema_migrations` table.
+
+    The charset of `version` column in `schema_migrations` table is depend
+    on the database default charset and collation rather than the encoding
+    of the connection.
+
+    *Ryuta Kamizono*
+
+*   Raise `ArgumentError` when passing `nil` or `false` to `Relation#merge`.
+
+    These are not valid values to merge in a relation so it should warn the users
+    early.
+
+    *Rafael Mendonça França*
+
 *   Use `SCHEMA` instead of `DB_STRUCTURE` for specifiying structure file.
 
     This makes the db:structure tasks consistent with test:load_structure.

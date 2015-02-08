@@ -56,7 +56,6 @@ if ActiveRecord::Base.connection.supports_extensions?
       assert_equal "hstore", @column.sql_type
       assert_not @column.array?
 
-      assert_not @type.number?
       assert_not @type.binary?
     end
 

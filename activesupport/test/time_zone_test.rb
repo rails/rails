@@ -402,8 +402,7 @@ class TimeZoneTest < ActiveSupport::TestCase
   end
 
   def test_unknown_zones_dont_store_mapping_keys
-    ActiveSupport::TimeZone["bogus"]
-    assert !ActiveSupport::TimeZone.zones_map.key?("bogus")
+    assert_nil ActiveSupport::TimeZone["bogus"]
   end
 
   def test_new

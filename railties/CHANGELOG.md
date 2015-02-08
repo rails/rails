@@ -1,3 +1,11 @@
+*   Newly generated applications get a `README.md` in Markdown.
+
+    *Xavier Noria*
+
+*   Remove the documentation tasks `doc:app`, `doc:rails`, and `doc:guides`.
+
+    *Xavier Noria*
+
 *   Force generated routes to be inserted into routes.rb
 
     *Andrew White*
