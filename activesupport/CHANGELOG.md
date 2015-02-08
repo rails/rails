@@ -1,3 +1,7 @@
+*   Fix a range of values for parameters of the Time#change
+
+    *Nikolay Kondratyev*
+
 *   Add `Enumerable#pluck` to get the same values from arrays as from ActiveRecord
     associations.
 
