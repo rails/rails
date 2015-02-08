@@ -147,7 +147,7 @@ module ActiveRecord
       #     # +type_cast_from_user+. Assumed to be in instance of +Money+ in
       #     # this case.
       #     def type_cast_for_database(value)
-      #       value_in_bitcoins = currency_converter.convert_to_bitcoins(value)
+      #       value_in_bitcoins = @currency_converter.convert_to_bitcoins(value)
       #       value_in_bitcoins.amount
       #     end
       #   end
