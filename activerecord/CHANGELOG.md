@@ -1,3 +1,11 @@
+*   Respect the database default charset for `schema_migrations` table.
+
+    The charset of `version` column in `schema_migrations` table is depend
+    on the database default charset and collation rather than the encoding
+    of the connection.
+
+    *Ryuta Kamizono*
+
 *   Respect custom primary keys for associations when calling `Relation#where`
 
     Fixes #18813.

@@ -18,20 +18,28 @@ module ActiveRecord
           smtn = ActiveRecord::Migrator.schema_migrations_table_name
           connection.drop_table(smtn) if connection.table_exists?(smtn)
 
-          config = connection.instance_variable_get(:@config)
-          original_encoding = config[:encoding]
+          database_name = connection.current_database
+          database_info = connection.select_one("SELECT * FROM information_schema.schemata WHERE schema_name = '#{database_name}'")
 
-          config[:encoding] = 'utf8mb4'
+          original_charset = database_info["DEFAULT_CHARACTER_SET_NAME"]
+          original_collation = database_info["DEFAULT_COLLATION_NAME"]
+
+          execute("ALTER DATABASE #{database_name} DEFAULT CHARACTER SET utf8mb4")
+
           connection.initialize_schema_migrations_table
 
           assert connection.column_exists?(smtn, :version, :string, limit: Mysql2Adapter::MAX_INDEX_LENGTH_FOR_UTF8MB4)
         ensure
-          config[:encoding] = original_encoding
+          execute("ALTER DATABASE #{database_name} DEFAULT CHARACTER SET #{original_charset} COLLATE #{original_collation}")
         end
 
         private
         def connection
           @connection ||= ActiveRecord::Base.connection
+        end
+
+        def execute(sql)
+          connection.execute(sql)
         end
       end
     end
