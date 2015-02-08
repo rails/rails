@@ -35,15 +35,11 @@ module ActiveRecord
 
       def add_record(record, columns)
         # Include the standard updated_at column and any additional specified columns
-        updated_at_attrs = record.timestamp_attributes_for_update_in_model
-        columns += updated_at_attrs if updated_at_attrs.present?
+        columns += record.timestamp_attributes_for_update_in_model
         columns = columns.map(&:to_sym).sort
 
-        @records[[record.class, columns]] += [record] unless @already_updated_records[[record.class, columns]].include?(record)
-      end
-
-      def clear_records
-        @records.clear
+        key = [record.class, columns]
+        @records[key] += [record] unless @already_updated_records[key].include?(record)
       end
 
       def clear_already_updated_records
@@ -57,15 +53,14 @@ module ActiveRecord
       end
 
       protected
+        attr_reader :records, :already_updated_records
 
-      attr_accessor :records, :already_updated_records
-
-      # Merge from_records into into_records
-      def merge_records!(into_records, from_records)
-        from_records.each do |key, records|
-          into_records[key] += records
+        # Merge from_records into into_records
+        def merge_records!(into_records, from_records)
+          from_records.each do |key, records|
+            into_records[key] += records
+          end
         end
-      end
     end
   end
 end

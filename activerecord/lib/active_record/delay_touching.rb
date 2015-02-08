@@ -46,27 +46,27 @@ module ActiveRecord
         Thread.current[:delay_touching_states] ||= []
       end
 
-      def state
+      def current_state
         states.last
       end
 
-      delegate :add_record, to: :state
+      delegate :add_record, to: :current_state
 
-      # Are we currently executing in a delay_touching block?
       def delay_touching?
-        DelayTouching.states.length > 0
+        states.present?
       end
 
       # Start delaying all touches. When done, apply them. (Unless nested.)
       def start(options = {})
         states.push State.new
         result = yield
-        apply if states.length == 1
+        apply_touches if states.length == 1
         result
       ensure
         merge_transactions unless $! && options[:requires_new]
 
-        # Decrement nesting even if +apply+ raised an error.
+        # Decrement nesting even if +apply_touches+ raised an error. To ensure the stack of States
+        # is empty after the top-level transaction exits.
         states.pop
       end
 
@@ -74,21 +74,18 @@ module ActiveRecord
       # touched records with the outer transaction's touched records.
       def merge_transactions
         num_states = states.length
-        states[num_states - 2].merge!(states[num_states - 1]) if num_states > 1
+        states[num_states - 2].merge!(current_state) if num_states > 1
       end
 
       # Apply the touches that were delayed. We're in a transaction already so there's no need to open one.
-      def apply
-        begin
-          class_attrs_and_records = state.get_and_clear_records
-          class_attrs_and_records.each do |class_and_attrs, records|
-            klass = class_and_attrs.first
-            attrs = class_and_attrs.second
+      def apply_touches
+        while current_state.more_records?
+          current_state.get_and_clear_records.each do |(klass, attrs), records|
             touch_records klass, attrs, records
           end
-        end while state.more_records?
+        end
       ensure
-        state.clear_already_updated_records
+        current_state.clear_already_updated_records
       end
 
       # Touch the specified records--non-empty set of instances of the same class.
@@ -110,7 +107,7 @@ module ActiveRecord
           klass.unscoped.where(klass.primary_key => records.to_a).update_all([sql, current_time: current_time])
         end
 
-        state.updated klass, attrs, records
+        current_state.updated klass, attrs, records
         records.each(&:_run_touch_callbacks)
       end
     end
