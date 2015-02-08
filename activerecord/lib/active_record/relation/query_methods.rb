@@ -893,7 +893,7 @@ module ActiveRecord
 
       build_select(arel)
 
-      arel.distinct(distinct_value)
+      arel.distinct(distinct_value) unless select_values.any? { |v| v.instance_of?(Arel::Nodes::Count) }
       arel.from(build_from) unless from_clause.empty?
       arel.lock(lock_value) if lock_value
 
