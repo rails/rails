@@ -442,6 +442,39 @@ end
 Will render the HTML part using the `my_layout.html.erb` file and the text part
 with the usual `user_mailer.text.erb` file if it exists.
 
+### Previewing Emails
+
+Action Mailer previews provide a way to see how emails look by visiting a
+special URL that renders them. In the above example, the preview class for
+`UserMailer` should be named `UserMailerPreview` and located in
+`test/mailers/previews/user_mailer_preview.rb`. To see the preview of
+`welcome_email`, implement a method that has the same name and call
+`UserMailer.welcome_email`:
+
+```ruby
+class UserMailerPreview < ActionMailer::Preview
+  def welcome_email
+    UserMailer.welcome_email(User.first)
+  end
+end
+```
+
+Then the preview will be available in <http://localhost:3000/rails/mailers/user_mailer/welcome_email>.
+
+If you change something in `app/views/user_mailer/welcome_email.html.erb`
+or the mailer itself, it'll automatically reload and render it so you can
+visually see the new style instantly. A list of previews are also available
+in <http://localhost:3000/rails/mailers>.
+
+By default, these preview classes live in `test/mailers/previews`.
+This can be configured using the `preview_path` option. For example, if you
+want to change it to `lib/mailer_previews`, you can configure it in
+`config/application.rb`:
+
+```ruby
+config.action_mailer.preview_path = "#{Rails.root}/lib/mailer_previews"
+```
+
 ### Generating URLs in Action Mailer Views
 
 Unlike controllers, the mailer instance doesn't have any context about the
