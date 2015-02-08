@@ -1,3 +1,23 @@
+*   Explicitly ignored wildcard verbs when searching for HEAD routes before fallback
+
+    Fixes an issue where a mounted rack app at root would intercept the HEAD 
+    request causing an incorrect behavior during the fall back to GET requests.
+
+    Example:
+    ```ruby
+    draw do
+        get '/home' => 'test#index'
+        mount rack_app, at: '/'
+    end
+    head '/home'
+    assert_response :success
+    ```
+    In this case, a HEAD request runs through the routes the first time and fails
+    to match anything. Then, it runs through the list with the fallback and matches
+    `get '/home'`. The original behavior would match the rack app in the first pass.
+
+    *Terence Sun*
+
 *   Migrating xhr methods to keyword arguments syntax
     in `ActionController::TestCase` and `ActionDispatch::Integration`
 
