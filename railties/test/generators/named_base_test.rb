@@ -49,11 +49,13 @@ class NamedBaseTest < Rails::Generators::TestCase
   end
 
   def test_named_generator_attributes_without_pluralized
+    original_pluralize_table_names = ActiveRecord::Base.pluralize_table_names
     ActiveRecord::Base.pluralize_table_names = false
+
     g = generator ['admin/foo']
     assert_name g, 'admin_foo', :table_name
   ensure
-    ActiveRecord::Base.pluralize_table_names = true
+    ActiveRecord::Base.pluralize_table_names = original_pluralize_table_names
   end
 
   def test_scaffold_plural_names
