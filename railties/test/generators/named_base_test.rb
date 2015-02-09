@@ -2,16 +2,6 @@ require 'generators/generators_test_helper'
 require 'rails/generators/rails/scaffold_controller/scaffold_controller_generator'
 require 'mocha/setup' # FIXME: stop using mocha
 
-# Mock out what we need from AR::Base.
-module ActiveRecord
-  class Base
-    class << self
-      attr_accessor :pluralize_table_names
-    end
-    self.pluralize_table_names = true
-  end
-end
-
 class NamedBaseTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
   tests Rails::Generators::ScaffoldControllerGenerator
