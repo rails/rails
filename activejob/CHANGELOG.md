@@ -1,3 +1,11 @@
+*   Support enqueue_at in AJ inline adapter.
+
+    Previously, it was impossible to use inline adapter with delaying
+    job, like: `MyWorker.set(wait: 10.seconds).perform_later`
+    Now, this job runs immediately.
+
+    *Wojciech Wnętrzak*
+
 *   Add an `:only` option to `perform_enqueued_jobs` to filter jobs based on
     type.
 
