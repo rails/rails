@@ -1014,7 +1014,7 @@ module ActiveRecord
     # record(s) being removed so that callbacks are run. However <tt>delete</tt> and <tt>delete_all</tt> will either
     # do the deletion according to the strategy specified by the <tt>:dependent</tt> option, or
     # if no <tt>:dependent</tt> option is given, then it will follow the default strategy.
-    # The default strategy is <tt>:nullify</tt> (set the foreign keys to <tt>nil</tt>), except for
+    # The default strategy is to do nothing (leave the foreign keys with the parent ids set), except for
     # +has_many+ <tt>:through</tt>, where the default strategy is <tt>delete_all</tt> (delete
     # the join records, without running their callbacks).
     #
