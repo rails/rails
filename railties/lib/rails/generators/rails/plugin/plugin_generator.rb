@@ -317,9 +317,9 @@ task default: :test
         @modules ||= namespaced_name.camelize.split("::")
       end
 
-      def wrap_in_modules(content)
-        content = "#{content}".strip.gsub(/\W$\n/, '')
-        modules.reverse.inject(content) do |content, mod|
+      def wrap_in_modules(unwrapped_code)
+        unwrapped_code = "#{unwrapped_code}".strip.gsub(/\W$\n/, '')
+        modules.reverse.inject(unwrapped_code) do |content, mod|
           str = "module #{mod}\n"
           str += content.lines.map { |line| "  #{line}" }.join
           str += content.present? ? "\nend" : "end"
