@@ -8,7 +8,7 @@ module Rails
     class Configuration < ::Rails::Engine::Configuration
       attr_accessor :allow_concurrency, :asset_host, :autoflush_log,
                     :cache_classes, :cache_store, :consider_all_requests_local, :console,
-                    :eager_load, :exceptions_app, :file_watcher, :filter_parameters,
+                    :eager_load, :exceptions_app, :booting_handler, :file_watcher, :filter_parameters,
                     :force_ssl, :helpers_paths, :logger, :log_formatter, :log_tags,
                     :railties_order, :relative_url_root, :secret_key_base, :secret_token,
                     :serve_static_files, :ssl_options, :static_cache_control, :session_options,
@@ -43,6 +43,7 @@ module Rails
         @reload_classes_only_on_change = true
         @file_watcher                  = ActiveSupport::FileUpdateChecker
         @exceptions_app                = nil
+        @booting_handler               = Rails::Application::DefaultBootingHandler
         @autoflush_log                 = true
         @log_formatter                 = ActiveSupport::Logger::SimpleFormatter.new
         @eager_load                    = nil

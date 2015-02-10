@@ -80,6 +80,7 @@ module Rails
     autoload :Bootstrap,              'rails/application/bootstrap'
     autoload :Configuration,          'rails/application/configuration'
     autoload :DefaultMiddlewareStack, 'rails/application/default_middleware_stack'
+    autoload :DefaultBootingHandler,  'rails/application/default_booting_handler'
     autoload :Finisher,               'rails/application/finisher'
     autoload :Railties,               'rails/engine/railties'
     autoload :RoutesReloader,         'rails/application/routes_reloader'
@@ -349,7 +350,7 @@ module Rails
     # group is :default
     def initialize!(group=:default) #:nodoc:
       raise "Application has been already initialized." if @initialized
-      run_initializers(group, self)
+      config.booting_handler.call! { run_initializers(group, self) }
       @initialized = true
       self
     end
