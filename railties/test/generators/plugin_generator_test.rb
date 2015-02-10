@@ -197,7 +197,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     end
     assert_match(/run  bundle install/, result)
     assert_match(/Using bukkits \(?0\.0\.1\)?/, result)
-    assert_match(/Your bundle is complete/, result)
+    assert_match(/Bundle complete!/, result)
     assert_equal 1, result.scan("Your bundle is complete").size
   end
 
