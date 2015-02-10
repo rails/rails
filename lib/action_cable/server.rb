@@ -6,6 +6,8 @@ module ActionCable
     class_attribute :worker_pool_size
     self.worker_pool_size = 100
 
+    PING_INTERVAL = 3
+
     class << self
       def register_channels(*channel_classes)
         self.registered_channels += channel_classes
@@ -30,6 +32,11 @@ module ActionCable
 
         @websocket = Faye::WebSocket.new(@env)
 
+        @websocket.on(:open) do |event|
+          broadcast_ping_timestamp
+          @ping_timer = EventMachine.add_periodic_timer(PING_INTERVAL) { broadcast_ping_timestamp }
+        end
+
         @websocket.on(:message) do |event|
           message = event.data
           worker_pool.async.invoke(self, :received_data, message) if message.is_a?(String)
@@ -38,6 +45,8 @@ module ActionCable
         @websocket.on(:close) do |event|
           worker_pool.async.invoke(self, :cleanup_subscriptions)
           worker_pool.async.invoke(self, :disconnect) if respond_to?(:disconnect)
+
+          EventMachine.cancel_timer(@ping_timer) if @ping_timer
         end
 
         @websocket.rack_response
@@ -74,6 +83,10 @@ module ActionCable
     end
 
     private
+      def broadcast_ping_timestamp
+        broadcast({ identifier: '_ping', message: Time.now.to_i }.to_json)
+      end
+
       def subscribe_channel(data)
         id_key = data['identifier']
         id_options = ActiveSupport::JSON.decode(id_key).with_indifferent_access
@@ -104,5 +117,6 @@ module ActionCable
       def invalid_request
         [404, {'Content-Type' => 'text/plain'}, ['Page not found']]
       end
+
   end
 end
