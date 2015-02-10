@@ -77,18 +77,16 @@ module ActionController
     #
     #   before_action { fresh_when @article, template: 'widgets/show' }
     #
-    def fresh_when(record_or_options, additional_options = {})
-      if record_or_options.is_a? Hash
-        options = record_or_options
-        options.assert_valid_keys(:etag, :last_modified, :public, :template)
-      else
-        record  = record_or_options
-        options = { etag: record, last_modified: record.try(:updated_at) }.merge!(additional_options)
+    def fresh_when(record = nil, etag: record, last_modified: nil, public: false, template: nil)
+      last_modified ||= record.try(:updated_at)
+
+      if etag || template
+        response.etag = combine_etags(etag: etag, last_modified: last_modified,
+          public: public, template: template)
       end
 
-      response.etag          = combine_etags(options)   if options[:etag] || options[:template]
-      response.last_modified = options[:last_modified]  if options[:last_modified]
-      response.cache_control[:public] = true            if options[:public]
+      response.last_modified = last_modified if last_modified
+      response.cache_control[:public] = true if public
 
       head :not_modified if request.fresh?(response)
     end
@@ -157,8 +155,8 @@ module ActionController
     #     super if stale? @article, template: 'widgets/show'
     #   end
     #
-    def stale?(record_or_options, additional_options = {})
-      fresh_when(record_or_options, additional_options)
+    def stale?(record = nil, etag: nil, last_modified: nil, public: nil, template: nil)
+      fresh_when(record, etag: etag, last_modified: last_modified, public: public, template: template)
       !request.fresh?(response)
     end
 
