@@ -1,3 +1,12 @@
+*   ActiveRecord::Persistence#becomes now copies preloaded associations to the
+    new class.
+
+    This fixes an issue where calling `includes` or `preload` on a model and
+    then converting with `#becomes` would discard the cached associations,
+    causing them to be reloaded with n+1 queries.
+
+    *Benjamin Manns*
+
 *   Fix rounding problem for PostgreSQL timestamp column.
 
     If timestamp column have the precision, it need to format according to

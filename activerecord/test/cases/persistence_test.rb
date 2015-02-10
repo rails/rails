@@ -7,6 +7,7 @@ require 'models/topic'
 require 'models/reply'
 require 'models/category'
 require 'models/company'
+require 'models/contract'
 require 'models/developer'
 require 'models/computer'
 require 'models/project'
@@ -166,6 +167,14 @@ class PersistenceTest < ActiveRecord::TestCase
     client = company.becomes(Client)
     assert_equal "37signals", client.name
     assert_equal %w{name}, client.changed
+  end
+
+  def test_becomes_includes_association_cache
+    company = Company.preload(:contracts).first
+    client = company.becomes(Client)
+    assert_no_queries do
+      client.contracts.to_a
+    end
   end
 
   def test_delete_many
