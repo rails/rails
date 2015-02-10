@@ -69,6 +69,8 @@ module Rails
         reloader.execute_if_updated
         self.reloaders << reloader
         ActionDispatch::Reloader.to_prepare do
+          Rails.logger.debug "Some application files were modified, unloading all autoloaded classes and constants..."
+
           # We configure #execute rather than #execute_if_updated because if
           # autoloaded constants are cleared we need to reload routes also in
           # case any was used there, as in
@@ -98,6 +100,8 @@ module Rails
           # any other possible reloading, in case they need to autoload fresh
           # constants.
           ActionDispatch::Reloader.to_prepare(prepend: true) do
+            Rails.logger.debug "Some application files were modified, rebuilding the routes table..."
+
             # In addition to changes detected by the file watcher, if routes
             # or i18n have been updated we also need to clear constants,
             # that's why we run #execute rather than #execute_if_updated, this
