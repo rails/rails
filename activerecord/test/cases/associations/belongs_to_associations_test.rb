@@ -423,11 +423,12 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
   def test_belongs_to_with_touch_option_on_touch_and_reassigned_parent
     line_item = LineItem.create!
-    Invoice.create!(line_items: [line_item])
+    old_invoice = Invoice.create!(line_items: [line_item])
 
-    line_item.invoice = Invoice.create!
+    line_item.invoice = new_invoice = Invoice.create!
 
-    assert_queries(3) { line_item.touch }
+    touch_sql = /UPDATE .+updated_at.+ IN \(#{old_invoice.id}, #{new_invoice.id}\)/
+    assert_sql(touch_sql) { line_item.touch }
   end
 
   def test_belongs_to_counter_after_update

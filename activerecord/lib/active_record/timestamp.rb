@@ -40,6 +40,14 @@ module ActiveRecord
       clear_timestamp_attributes
     end
 
+    def timestamp_attributes_for_update_in_model # :nodoc:
+      timestamp_attributes_for_update.select { |c| self.class.column_names.include?(c.to_s) }
+    end
+
+    def current_time_from_proper_timezone # :nodoc:
+      self.class.default_timezone == :utc ? Time.now.utc : Time.now
+    end
+
   private
 
     def _create_record
@@ -78,10 +86,6 @@ module ActiveRecord
       timestamp_attributes_for_create.select { |c| self.class.column_names.include?(c.to_s) }
     end
 
-    def timestamp_attributes_for_update_in_model
-      timestamp_attributes_for_update.select { |c| self.class.column_names.include?(c.to_s) }
-    end
-
     def all_timestamp_attributes_in_model
       timestamp_attributes_for_create_in_model + timestamp_attributes_for_update_in_model
     end
@@ -104,10 +108,6 @@ module ActiveRecord
         .compact
         .map(&:to_time)
         .max
-    end
-
-    def current_time_from_proper_timezone
-      self.class.default_timezone == :utc ? Time.now.utc : Time.now
     end
 
     # Clear attributes and changed_attributes
