@@ -1,3 +1,7 @@
+*   Allow `:precision` option for time type columns.
+
+    *Ryuta Kamizono*
+
 *   Add `ActiveRecord::Base.suppress` to prevent the receiver from being saved
     during the given block.
 

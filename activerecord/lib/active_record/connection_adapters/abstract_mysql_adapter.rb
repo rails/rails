@@ -251,6 +251,10 @@ module ActiveRecord
         version[0] >= 5
       end
 
+      def supports_datetime_with_precision?
+        (version[0] == 5 && version[1] >= 6) || version[0] >= 6
+      end
+
       def native_database_types
         NATIVE_DATABASE_TYPES
       end
@@ -622,13 +626,6 @@ module ActiveRecord
           when 0x10000..0xffffff;     'mediumtext'
           when 0x1000000..0xffffffff; 'longtext'
           else raise(ActiveRecordError, "No text type has character length #{limit}")
-          end
-        when 'datetime'
-          return super unless precision
-
-          case precision
-            when 0..6; "datetime(#{precision})"
-            else raise(ActiveRecordError, "No datetime type has precision of #{precision}. The allowed range of precision is from 0 to 6.")
           end
         else
           super
