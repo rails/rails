@@ -59,11 +59,21 @@ module ActiveRecord
           def extract_bounds(value)
             from, to = value[1..-2].split(',')
             {
-              from:          (value[1] == ',' || from == '-infinity') ? @subtype.infinity(negative: true) : from,
-              to:            (value[-2] == ',' || to == 'infinity') ? @subtype.infinity : to,
+              from:          (value[1] == ',' || from == '-infinity') ? infinity(negative: true) : from,
+              to:            (value[-2] == ',' || to == 'infinity') ? infinity : to,
               exclude_start: (value[0] == '('),
               exclude_end:   (value[-1] == ')')
             }
+          end
+
+          def infinity(negative: false)
+            if subtype.respond_to?(:infinity)
+              subtype.infinity(negative: negative)
+            elsif negative
+              -::Float::INFINITY
+            else
+              ::Float::INFINITY
+            end
           end
 
           def infinity?(value)

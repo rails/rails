@@ -12,7 +12,13 @@ module ActiveRecord
       private
 
       def cast_value(value)
-        value.to_f
+        case value
+        when ::Float then value
+        when "Infinity" then ::Float::INFINITY
+        when "-Infinity" then -::Float::INFINITY
+        when "NaN" then ::Float::NAN
+        else value.to_f
+        end
       end
     end
   end

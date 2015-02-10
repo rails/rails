@@ -3,8 +3,6 @@ module ActiveRecord
     module PostgreSQL
       module OID # :nodoc:
         class Money < Type::Decimal # :nodoc:
-          include Infinity
-
           class_attribute :precision
 
           def type

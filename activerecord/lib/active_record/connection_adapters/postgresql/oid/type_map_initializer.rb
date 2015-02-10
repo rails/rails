@@ -8,8 +8,9 @@ module ActiveRecord
         #   - Type is an OID::Type object.
         # This class has side effects on the +store+ passed during initialization.
         class TypeMapInitializer # :nodoc:
-          def initialize(store)
+          def initialize(store, run_complex_types = true)
             @store = store
+            @run_complex_types = run_complex_types
           end
 
           def run(records)

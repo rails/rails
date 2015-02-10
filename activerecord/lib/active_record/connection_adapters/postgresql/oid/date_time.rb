@@ -3,8 +3,6 @@ module ActiveRecord
     module PostgreSQL
       module OID # :nodoc:
         class DateTime < Type::DateTime # :nodoc:
-          include Infinity
-
           def cast_value(value)
             if value.is_a?(::String)
               case value

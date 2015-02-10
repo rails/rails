@@ -255,6 +255,8 @@ module ActiveRecord
         @table_alias_length = nil
 
         connect
+        add_pg_decoders
+
         @statements = StatementPool.new @connection,
                                         self.class.type_cast_config_to_integer(config.fetch(:statement_limit) { 1000 })
 
@@ -459,11 +461,11 @@ module ActiveRecord
         end
 
         def initialize_type_map(m) # :nodoc:
-          register_class_with_limit m, 'int2', OID::Integer
-          register_class_with_limit m, 'int4', OID::Integer
-          register_class_with_limit m, 'int8', OID::Integer
+          register_class_with_limit m, 'int2', Type::Integer
+          register_class_with_limit m, 'int4', Type::Integer
+          register_class_with_limit m, 'int8', Type::Integer
           m.alias_type 'oid', 'int2'
-          m.register_type 'float4', OID::Float.new
+          m.register_type 'float4', Type::Float.new
           m.alias_type 'float8', 'float4'
           m.register_type 'text', Type::Text.new
           register_class_with_limit m, 'varchar', Type::String
@@ -474,8 +476,8 @@ module ActiveRecord
           register_class_with_limit m, 'bit', OID::Bit
           register_class_with_limit m, 'varbit', OID::BitVarying
           m.alias_type 'timestamptz', 'timestamp'
-          m.register_type 'date', OID::Date.new
-          m.register_type 'time', OID::Time.new
+          m.register_type 'date', Type::Date.new
+          m.register_type 'time', Type::Time.new
 
           m.register_type 'money', OID::Money.new
           m.register_type 'bytea', OID::Bytea.new
@@ -779,6 +781,36 @@ module ActiveRecord
               result.getvalue(0, 0) == 't'
             end
           end
+        end
+
+        def add_pg_decoders
+          coders_by_name = {
+            'int2' => PG::TextDecoder::Integer,
+            'int4' => PG::TextDecoder::Integer,
+            'int8' => PG::TextDecoder::Integer,
+            'oid' => PG::TextDecoder::Integer,
+            'float4' => PG::TextDecoder::Float,
+            'float8' => PG::TextDecoder::Float,
+            'bool' => PG::TextDecoder::Boolean,
+          }
+          query = <<-SQL
+            SELECT t.oid, t.typname, t.typelem, t.typdelim, t.typinput, t.typtype, t.typbasetype
+            FROM pg_type as t
+          SQL
+          coders = execute_and_clear(query, "SCHEMA", []) do |result|
+            result
+              .map { |row| construct_coder(row, coders_by_name['typname']) }
+              .compact
+          end
+
+          map = PG::TypeMapByOid.new
+          coders.each { |coder| map.add_coder(coder) }
+          @connection.type_map_for_results = map
+        end
+
+        def construct_coder(row, coder_class)
+          return unless coder_class
+          coder_class.new(oid: row['oid'], name: row['typname'])
         end
     end
   end
