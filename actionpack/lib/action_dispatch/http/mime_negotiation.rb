@@ -156,15 +156,12 @@ module ActionDispatch
       end
 
       private
-
-      def extract_variant!
-        if parameters.key?(:format)
-          segments = parameters[:format].to_s.split("+")
-          parameters[:format] = segments[0]
-          variants = segments[1..-1].map!(&:to_sym)
-          self.variant = variants unless variants.empty?
+        def extract_variant!
+          if parameters.key?(:format)
+            parameters[:format], *variants = parameters[:format].to_s.split("+")
+            self.variant = variants.map(&:to_sym) unless variants.empty?
+          end
         end
-      end
     end
   end
 end
