@@ -20,7 +20,7 @@
 
     *Rafael Mendonça França*
 
-*   Use `SCHEMA` instead of `DB_STRUCTURE` for specifiying structure file.
+*   Use `SCHEMA` instead of `DB_STRUCTURE` for specifying structure file.
 
     This makes the db:structure tasks consistent with test:load_structure.
 
@@ -104,7 +104,7 @@
     *Sean Griffin*
 
 *   Values which would error while being sent to the database (such as an
-    ASCII-8BIT string with invalid UTF-8 bytes on Sqlite3), no longer error on
+    ASCII-8BIT string with invalid UTF-8 bytes on SQLite3), no longer error on
     assignment. They will still error when sent to the database, but you are
     given the ability to re-assign it to a valid value.
 
