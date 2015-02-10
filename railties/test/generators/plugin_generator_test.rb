@@ -198,7 +198,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_match(/run  bundle install/, result)
     assert_match(/Using bukkits \(?0\.0\.1\)?/, result)
     assert_match(/Bundle complete!/, result)
-    assert_equal 1, result.scan("Your bundle is complete").size
+    assert_equal 1, result.scan("Bundle complete!").size
   end
 
   def test_skipping_javascripts_without_mountable_option
