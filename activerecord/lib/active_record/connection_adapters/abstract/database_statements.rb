@@ -201,16 +201,14 @@ module ActiveRecord
       # isolation level. However, support is disabled for MySQL versions below 5,
       # because they are affected by a bug[http://bugs.mysql.com/bug.php?id=39170]
       # which means the isolation level gets persisted outside the transaction.
-      def transaction(options = {})
-        options.assert_valid_keys :requires_new, :joinable, :isolation
-
-        if !options[:requires_new] && current_transaction.joinable?
-          if options[:isolation]
+      def transaction(requires_new: nil, isolation: nil, joinable: true)
+        if !requires_new && current_transaction.joinable?
+          if isolation
             raise ActiveRecord::TransactionIsolationError, "cannot set isolation when joining a transaction"
           end
           yield
         else
-          transaction_manager.within_new_transaction(options) { yield }
+          transaction_manager.within_new_transaction(isolation: isolation, joinable: joinable) { yield }
         end
       rescue ActiveRecord::Rollback
         # rollbacks are silently swallowed
