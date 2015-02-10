@@ -46,28 +46,28 @@ module ActiveRecord
 
       def test_quoted_time_utc
         with_timezone_config default: :utc do
-          t = Time.now
+          t = Time.now.change(usec: 0)
           assert_equal t.getutc.to_s(:db), @quoter.quoted_date(t)
         end
       end
 
       def test_quoted_time_local
         with_timezone_config default: :local do
-          t = Time.now
+          t = Time.now.change(usec: 0)
           assert_equal t.getlocal.to_s(:db), @quoter.quoted_date(t)
         end
       end
 
       def test_quoted_time_crazy
         with_timezone_config default: :asdfasdf do
-          t = Time.now
+          t = Time.now.change(usec: 0)
           assert_equal t.getlocal.to_s(:db), @quoter.quoted_date(t)
         end
       end
 
       def test_quoted_datetime_utc
         with_timezone_config default: :utc do
-          t = DateTime.now
+          t = Time.now.change(usec: 0).to_datetime
           assert_equal t.getutc.to_s(:db), @quoter.quoted_date(t)
         end
       end
@@ -76,7 +76,7 @@ module ActiveRecord
       # DateTime doesn't define getlocal, so make sure it does nothing
       def test_quoted_datetime_local
         with_timezone_config default: :local do
-          t = DateTime.now
+          t = Time.now.change(usec: 0).to_datetime
           assert_equal t.to_s(:db), @quoter.quoted_date(t)
         end
       end

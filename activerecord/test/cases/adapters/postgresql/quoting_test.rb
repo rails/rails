@@ -27,11 +27,6 @@ module ActiveRecord
           assert_equal "'Infinity'", @conn.quote(infinity)
         end
 
-        def test_quote_time_usec
-          assert_equal "'1970-01-01 00:00:00.000000'", @conn.quote(Time.at(0))
-          assert_equal "'1970-01-01 00:00:00.000000'", @conn.quote(Time.at(0).to_datetime)
-        end
-
         def test_quote_range
           range = "1,2]'; SELECT * FROM users; --".."a"
           type = OID::Range.new(Type::Integer.new, :int8range)

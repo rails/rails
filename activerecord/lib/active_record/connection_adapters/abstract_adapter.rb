@@ -263,18 +263,6 @@ module ActiveRecord
         {}
       end
 
-      # QUOTING ==================================================
-
-      # Quote date/time values for use in SQL input. Includes microseconds
-      # if the value is a Time responding to usec.
-      def quoted_date(value) #:nodoc:
-        if value.acts_like?(:time) && value.respond_to?(:usec)
-          "#{super}.#{sprintf("%06d", value.usec)}"
-        else
-          super
-        end
-      end
-
       # Returns a bind substitution value given a bind +column+
       # NOTE: The column param is currently being used by the sqlserver-adapter
       def substitute_at(column, _unused = 0)
@@ -409,15 +397,15 @@ module ActiveRecord
       protected
 
       def initialize_type_map(m) # :nodoc:
-        register_class_with_limit m, %r(boolean)i,   Type::Boolean
-        register_class_with_limit m, %r(char)i,      Type::String
-        register_class_with_limit m, %r(binary)i,    Type::Binary
-        register_class_with_limit m, %r(text)i,      Type::Text
-        register_class_with_limit m, %r(date)i,      Type::Date
-        register_class_with_limit m, %r(time)i,      Type::Time
-        register_class_with_limit m, %r(datetime)i,  Type::DateTime
-        register_class_with_limit m, %r(float)i,     Type::Float
-        register_class_with_limit m, %r(int)i,       Type::Integer
+        register_class_with_limit m, %r(boolean)i,       Type::Boolean
+        register_class_with_limit m, %r(char)i,          Type::String
+        register_class_with_limit m, %r(binary)i,        Type::Binary
+        register_class_with_limit m, %r(text)i,          Type::Text
+        register_class_with_precision m, %r(date)i,      Type::Date
+        register_class_with_precision m, %r(time)i,      Type::Time
+        register_class_with_precision m, %r(datetime)i,  Type::DateTime
+        register_class_with_limit m, %r(float)i,         Type::Float
+        register_class_with_limit m, %r(int)i,           Type::Integer
 
         m.alias_type %r(blob)i,      'binary'
         m.alias_type %r(clob)i,      'text'
@@ -448,6 +436,13 @@ module ActiveRecord
         mapping.register_type(key) do |*args|
           limit = extract_limit(args.last)
           klass.new(limit: limit)
+        end
+      end
+
+      def register_class_with_precision(mapping, key, klass) # :nodoc:
+        mapping.register_type(key) do |*args|
+          precision = extract_precision(args.last)
+          klass.new(precision: precision)
         end
       end
 

@@ -712,11 +712,6 @@ module ActiveRecord
         m.alias_type %r(year)i,          'integer'
         m.alias_type %r(bit)i,           'binary'
 
-        m.register_type(%r(datetime)i) do |sql_type|
-          precision = extract_precision(sql_type)
-          MysqlDateTime.new(precision: precision)
-        end
-
         m.register_type(%r(enum)i) do |sql_type|
           limit = sql_type[/^enum\((.+)\)/i, 1]
             .split(',').map{|enum| enum.strip.length - 2}.max
@@ -731,6 +726,14 @@ module ActiveRecord
           else
             Type::Integer.new(options)
           end
+        end
+      end
+
+      def extract_precision(sql_type)
+        if /datetime/ === sql_type
+          super || 0
+        else
+          super
         end
       end
 
@@ -916,14 +919,6 @@ module ActiveRecord
         TableDefinition.new(native_database_types, name, temporary, options, as)
       end
 
-      class MysqlDateTime < Type::DateTime # :nodoc:
-        private
-
-        def has_precision?
-          precision || 0
-        end
-      end
-
       class MysqlString < Type::String # :nodoc:
         def type_cast_for_database(value)
           case value
@@ -945,7 +940,7 @@ module ActiveRecord
       end
 
       def type_classes_with_standard_constructor
-        super.merge(string: MysqlString, date_time: MysqlDateTime)
+        super.merge(string: MysqlString)
       end
     end
   end

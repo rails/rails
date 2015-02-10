@@ -145,10 +145,13 @@ class TimestampTest < ActiveRecord::TestCase
     date = ::Time.utc(2014, 8, 17, 12, 30, 0, 999999)
     Foo.create!(created_at: date, updated_at: date)
     assert foo = Foo.find_by(created_at: date)
+    assert_equal 1, Foo.where(updated_at: date).count
     assert_equal date.to_s, foo.created_at.to_s
     assert_equal date.to_s, foo.updated_at.to_s
     assert_equal 000000, foo.created_at.usec
     assert_equal 999900, foo.updated_at.usec
+  ensure
+    ActiveRecord::Base.connection.drop_table(:foos, if_exists: true)
   end
 
   private

@@ -4,14 +4,11 @@ if mysql_56?
   class DateTimeTest < ActiveRecord::TestCase
     self.use_transactional_fixtures = false
 
-    class Foo < ActiveRecord::Base; end
-
-    def test_default_datetime_precision
-      ActiveRecord::Base.connection.create_table(:foos, force: true)
-      ActiveRecord::Base.connection.add_column :foos, :created_at, :datetime
-      ActiveRecord::Base.connection.add_column :foos, :updated_at, :datetime
-      assert_nil activerecord_column_option('foos', 'created_at', 'precision')
+    teardown do
+      ActiveRecord::Base.connection.drop_table(:foos, if_exists: true)
     end
+
+    class Foo < ActiveRecord::Base; end
 
     def test_datetime_data_type_with_precision
       ActiveRecord::Base.connection.create_table(:foos, force: true)
