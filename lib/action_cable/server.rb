@@ -88,17 +88,14 @@ module ActionCable
       end
 
       def process_message(message)
-        id_key = message['identifier']
-
-        if @subscriptions[id_key]
-          @subscriptions[id_key].receive(ActiveSupport::JSON.decode message['data'])
+        if @subscriptions[message['identifier']]
+          @subscriptions[message['identifier']].receive(ActiveSupport::JSON.decode message['data'])
         end
       end
 
       def unsubscribe_channel(data)
-        id_key = data['identifier']
-        @subscriptions[id_key].unsubscribe
-        @subscriptions.delete(id_key)
+        @subscriptions[data['identifier']].unsubscribe
+        @subscriptions.delete(data['identifier'])
       end
 
       def invalid_request
