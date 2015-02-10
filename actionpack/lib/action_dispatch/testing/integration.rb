@@ -222,15 +222,6 @@ module ActionDispatch
         super()
         @app = app
 
-        # If the app is a Rails app, make url_helpers available on the session
-        # This makes app.url_for and app.foo_path available in the console
-        if app.respond_to?(:routes)
-          singleton_class.class_eval do
-            include app.routes.url_helpers
-            include app.routes.mounted_helpers
-          end
-        end
-
         reset!
       end
 
@@ -396,6 +387,8 @@ module ActionDispatch
     module Runner
       include ActionDispatch::Assertions
 
+      APP_SESSIONS = {}
+
       def app
         @app ||= nil
       end
@@ -403,7 +396,19 @@ module ActionDispatch
       # Reset the current session. This is useful for testing multiple sessions
       # in a single test case.
       def reset!
-        @integration_session = Integration::Session.new(app)
+        @integration_session = create_session(app)
+      end
+
+      def create_session(app)
+        klass = APP_SESSIONS[app] ||= Class.new(Integration::Session) {
+          # If the app is a Rails app, make url_helpers available on the session
+          # This makes app.url_for and app.foo_path available in the console
+          if app.respond_to?(:routes)
+            include app.routes.url_helpers
+            include app.routes.mounted_helpers
+          end
+        }
+        klass.new(app)
       end
 
       def remove! # :nodoc:
