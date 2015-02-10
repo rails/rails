@@ -106,6 +106,15 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
+  def test_find_in_batches_should_end_at_the_end_option
+    assert_queries(6) do
+      Post.find_in_batches(batch_size: 1, end_at: 5) do |batch|
+        assert_kind_of Array, batch
+        assert_kind_of Post, batch.first
+      end
+    end
+  end
+
   def test_find_in_batches_shouldnt_execute_query_unless_needed
     assert_queries(2) do
       Post.find_in_batches(:batch_size => @total) {|batch| assert_kind_of Array, batch }
