@@ -108,11 +108,11 @@ module ActiveRecord
 
           # def status() statuses.key self[:status] end
           klass.send(:detect_enum_conflict!, name, name)
-          define_method(name) { enum_values.key self[name] }
+          define_method(name) { self[name] }
 
           # def status_before_type_cast() statuses.key self[:status] end
           klass.send(:detect_enum_conflict!, name, "#{name}_before_type_cast")
-          define_method("#{name}_before_type_cast") { enum_values.key self[name] }
+          define_method("#{name}_before_type_cast") { self[name] }
 
           pairs = values.respond_to?(:each_pair) ? values.each_pair : values.each_with_index
           pairs.each do |value, i|
@@ -120,7 +120,7 @@ module ActiveRecord
 
             # def active?() status == 0 end
             klass.send(:detect_enum_conflict!, name, "#{value}?")
-            define_method("#{value}?") { self[name] == i }
+            define_method("#{value}?") { self[name] == value.to_s }
 
             # def active!() update! status: :active end
             klass.send(:detect_enum_conflict!, name, "#{value}!")
@@ -139,6 +139,27 @@ module ActiveRecord
       def _enum_methods_module
         @_enum_methods_module ||= begin
           mod = Module.new do
+            def read_attribute(attr_name)
+              attr_name = attr_name.to_s
+              read_attribute = super(attr_name)
+              if defined_enums.keys.include?(attr_name)
+                if defined_enums[attr_name].has_value?(read_attribute)
+                  read_attribute = defined_enums[attr_name].key(read_attribute)
+                end
+              end
+              read_attribute
+            end
+
+            def attributes
+              attributes = super()
+              defined_enums.each do |name, values|
+                if attributes.has_key? name
+                  attributes[name] = values.key(attributes[name])
+                end
+              end
+              attributes
+            end
+
             private
               def save_changed_attribute(attr_name, old)
                 if (mapping = self.class.defined_enums[attr_name.to_s])
