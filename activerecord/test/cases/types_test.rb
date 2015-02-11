@@ -108,16 +108,6 @@ module ActiveRecord
         assert_not_equal Type::Value.new(precision: 1), Type::Value.new(precision: 2)
       end
 
-      if current_adapter?(:SQLite3Adapter)
-        def test_binary_encoding
-          type = SQLite3Binary.new
-          utf8_string = "a string".encode(Encoding::UTF_8)
-          type_cast = type.type_cast_from_user(utf8_string)
-
-          assert_equal Encoding::ASCII_8BIT, type_cast.encoding
-        end
-      end
-
       def test_attributes_which_are_invalid_for_database_can_still_be_reassigned
         type_which_cannot_go_to_the_database = Type::Value.new
         def type_which_cannot_go_to_the_database.type_cast_for_database(*)

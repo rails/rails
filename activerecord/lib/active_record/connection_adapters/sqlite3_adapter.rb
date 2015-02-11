@@ -41,15 +41,6 @@ module ActiveRecord
   end
 
   module ConnectionAdapters #:nodoc:
-    class SQLite3Binary < Type::Binary # :nodoc:
-      def cast_value(value)
-        if value.encoding != Encoding::ASCII_8BIT
-          value = value.force_encoding(Encoding::ASCII_8BIT)
-        end
-        value
-      end
-    end
-
     # The SQLite3 adapter works SQLite 3.6.16 or newer
     # with the sqlite3-ruby drivers (available as gem from https://rubygems.org/gems/sqlite3).
     #
@@ -238,10 +229,6 @@ module ActiveRecord
         else
           super
         end
-      end
-
-      def type_classes_with_standard_constructor
-        super.merge(binary: SQLite3Binary)
       end
 
       def quote_string(s) #:nodoc:
@@ -492,11 +479,6 @@ module ActiveRecord
       end
 
       protected
-
-        def initialize_type_map(m)
-          super
-          m.register_type(/binary/i, SQLite3Binary.new)
-        end
 
         def table_structure(table_name)
           structure = exec_query("PRAGMA table_info(#{quote_table_name(table_name)})", 'SCHEMA').to_hash
