@@ -1587,9 +1587,9 @@ class HashToXmlTest < ActiveSupport::TestCase
     assert_equal 3, hash_wia[:new_key]
   end
 
-  def test_should_use_default_proc_if_no_key_is_supplied
+  def test_should_return_nil_if_no_key_is_supplied
     hash_wia = HashWithIndifferentAccess.new { 1 +  2 }
-    assert_equal 3, hash_wia.default
+    assert_equal nil, hash_wia.default
   end
 
   def test_should_use_default_value_for_unknown_key
