@@ -159,6 +159,10 @@ module Rails
             options.delete(:required)
             options[:null] = false
           end
+
+          if reference? && !polymorphic?
+            options[:foreign_key] = true
+          end
         end
       end
     end

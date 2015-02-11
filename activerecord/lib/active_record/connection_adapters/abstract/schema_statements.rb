@@ -206,7 +206,17 @@ module ActiveRecord
         end
 
         result = execute schema_creation.accept td
-        td.indexes.each_pair { |c, o| add_index(table_name, c, o) } unless supports_indexes_in_create?
+
+        unless supports_indexes_in_create?
+          td.indexes.each_pair do |column_name, index_options|
+            add_index(table_name, column_name, index_options)
+          end
+        end
+
+        td.foreign_keys.each_pair do |other_table_name, foreign_key_options|
+          add_foreign_key(table_name, other_table_name, foreign_key_options)
+        end
+
         result
       end
 
@@ -628,7 +638,7 @@ module ActiveRecord
       #
       #   add_belongs_to(:products, :supplier, polymorphic: true)
       #
-      # ====== Create a supplier_id, supplier_type columns and appropriate index
+      # ====== Create supplier_id, supplier_type columns and appropriate index
       #
       #   add_reference(:products, :supplier, polymorphic: true, index: true)
       #
@@ -636,9 +646,16 @@ module ActiveRecord
         polymorphic = options.delete(:polymorphic)
         index_options = options.delete(:index)
         type = options.delete(:type) || :integer
+        foreign_key_options = options.delete(:foreign_key)
+
+        if polymorphic && foreign_key_options
+          raise ArgumentError, "Cannot add a foreign key to a polymorphic relation"
+        end
+
         add_column(table_name, "#{ref_name}_id", type, options)
         add_column(table_name, "#{ref_name}_type", :string, polymorphic.is_a?(Hash) ? polymorphic : options) if polymorphic
         add_index(table_name, polymorphic ? %w[type id].map{ |t| "#{ref_name}_#{t}" } : "#{ref_name}_id", index_options.is_a?(Hash) ? index_options : {}) if index_options
+        add_foreign_key(table_name, ref_name.to_s.pluralize, foreign_key_options.is_a?(Hash) ? foreign_key_options : {}) if foreign_key_options
       end
       alias :add_belongs_to :add_reference
 
@@ -653,7 +670,13 @@ module ActiveRecord
       #
       #   remove_reference(:products, :supplier, polymorphic: true)
       #
+      # ====== Remove the reference with a foreign key
+      #
+      #   remove_reference(:products, :user, index: true, foreign_key: true)
+      #
       def remove_reference(table_name, ref_name, options = {})
+        remove_foreign_key table_name, ref_name if options[:foreign_key]
+
         remove_column(table_name, "#{ref_name}_id")
         remove_column(table_name, "#{ref_name}_type") if options[:polymorphic]
       end

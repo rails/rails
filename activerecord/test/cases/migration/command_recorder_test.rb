@@ -256,6 +256,11 @@ module ActiveRecord
         assert_equal [:add_reference, [:table, :taggable, { polymorphic: true }], nil], add
       end
 
+      def test_invert_remove_reference_with_index_and_foreign_key
+        add = @recorder.inverse_of :remove_reference, [:table, :taggable, { index: true, foreign_key: true }]
+        assert_equal [:add_reference, [:table, :taggable, { index: true, foreign_key: true }], nil], add
+      end
+
       def test_invert_remove_belongs_to_alias
         add = @recorder.inverse_of :remove_belongs_to, [:table, :user]
         assert_equal [:add_reference, [:table, :user], nil], add

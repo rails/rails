@@ -1,3 +1,17 @@
+*   `remove_reference` with `foreign_key: true` removes the foreign key before
+    removing the column. This fixes a bug where it was not possible to remove
+    the column on MySQL.
+
+    Fixes #18664.
+
+    *Yves Senn*
+
+*   Add a `:foreign_key` option to `references` and associated migration
+    methods. The model and migration generators now use this option, rather than
+    the `add_foreign_key` form.
+
+    *Sean Griffin*
+
 *   Fix rounding problem for PostgreSQL timestamp column.
 
     If timestamp column have the precision, it need to format according to

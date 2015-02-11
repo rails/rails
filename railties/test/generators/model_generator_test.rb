@@ -407,13 +407,23 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_foreign_key_is_not_added_for_non_references
+    run_generator ["account", "supplier:string"]
+
+    assert_migration "db/migrate/create_accounts.rb" do |m|
+      assert_method :change, m do |up|
+        assert_no_match(/foreign_key/, up)
+      end
+    end
+  end
+
   def test_foreign_key_is_added_for_references
     run_generator ["account", "supplier:belongs_to", "user:references"]
 
     assert_migration "db/migrate/create_accounts.rb" do |m|
       assert_method :change, m do |up|
-        assert_match(/add_foreign_key :accounts, :suppliers/, up)
-        assert_match(/add_foreign_key :accounts, :users/, up)
+        assert_match(/t\.belongs_to :supplier,.*\sforeign_key: true/, up)
+        assert_match(/t\.references :user,.*\sforeign_key: true/, up)
       end
     end
   end
@@ -423,7 +433,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
 
     assert_migration "db/migrate/create_accounts.rb" do |m|
       assert_method :change, m do |up|
-        assert_no_match(/add_foreign_key :accounts, :suppliers/, up)
+        assert_no_match(/foreign_key/, up)
       end
     end
   end

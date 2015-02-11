@@ -15,8 +15,5 @@ class <%= migration_class_name %> < ActiveRecord::Migration
 <% attributes_with_index.each do |attribute| -%>
     add_index :<%= table_name %>, :<%= attribute.index_name %><%= attribute.inject_index_options %>
 <% end -%>
-<% attributes.select(&:reference?).reject(&:polymorphic?).each do |attribute| -%>
-    add_foreign_key :<%= table_name %>, :<%= attribute.name.pluralize %>
-<% end -%>
   end
 end
