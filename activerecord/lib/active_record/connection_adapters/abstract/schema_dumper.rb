@@ -29,7 +29,7 @@ module ActiveRecord
 
         limit = column.limit || native_database_types[column.type][:limit]
         spec[:limit]     = limit.inspect if limit
-        spec[:precision] = column.precision.inspect if column.precision && column.precision != 0
+        spec[:precision] = column.precision.inspect if column.precision
         spec[:scale]     = column.scale.inspect if column.scale
 
         default = schema_default(column) if column.has_default?

@@ -1,4 +1,5 @@
 require 'cases/helper'
+require 'support/schema_dumping_helper'
 require 'models/developer'
 require 'models/topic'
 
@@ -46,8 +47,6 @@ end
 class TimestampTest < ActiveRecord::TestCase
   fixtures :topics
 
-  class Foo < ActiveRecord::Base; end
-
   def test_group_by_date
     keys = Topic.group("date_trunc('month', created_at)").count.keys
     assert_operator keys.length, :>, 0
@@ -70,6 +69,35 @@ class TimestampTest < ActiveRecord::TestCase
 
     d = Developer.create!(:name => 'aaron', :updated_at => -1.0 / 0.0)
     assert_equal(-1.0 / 0.0, d.updated_at)
+  end
+
+  def test_bc_timestamp
+    date = Date.new(0) - 1.week
+    Developer.create!(:name => "aaron", :updated_at => date)
+    assert_equal date, Developer.find_by_name("aaron").updated_at
+  end
+
+  def test_bc_timestamp_leap_year
+    date = Time.utc(-4, 2, 29)
+    Developer.create!(:name => "taihou", :updated_at => date)
+    assert_equal date, Developer.find_by_name("taihou").updated_at
+  end
+
+  def test_bc_timestamp_year_zero
+    date = Time.utc(0, 4, 7)
+    Developer.create!(:name => "yahagi", :updated_at => date)
+    assert_equal date, Developer.find_by_name("yahagi").updated_at
+  end
+end
+
+class TimestampPrecisionTest < ActiveRecord::TestCase
+  include SchemaDumpingHelper
+  self.use_transactional_fixtures = false
+
+  class Foo < ActiveRecord::Base; end
+
+  teardown do
+    ActiveRecord::Base.connection.drop_table(:foos, if_exists: true)
   end
 
   def test_default_datetime_precision
@@ -119,24 +147,6 @@ class TimestampTest < ActiveRecord::TestCase
     assert_equal '4', pg_datetime_precision('foos', 'updated_at')
   end
 
-  def test_bc_timestamp
-    date = Date.new(0) - 1.week
-    Developer.create!(:name => "aaron", :updated_at => date)
-    assert_equal date, Developer.find_by_name("aaron").updated_at
-  end
-
-  def test_bc_timestamp_leap_year
-    date = Time.utc(-4, 2, 29)
-    Developer.create!(:name => "taihou", :updated_at => date)
-    assert_equal date, Developer.find_by_name("taihou").updated_at
-  end
-
-  def test_bc_timestamp_year_zero
-    date = Time.utc(0, 4, 7)
-    Developer.create!(:name => "yahagi", :updated_at => date)
-    assert_equal date, Developer.find_by_name("yahagi").updated_at
-  end
-
   def test_formatting_timestamp_according_to_precision
     ActiveRecord::Base.connection.create_table(:foos, force: true) do |t|
       t.datetime :created_at, precision: 0
@@ -150,8 +160,15 @@ class TimestampTest < ActiveRecord::TestCase
     assert_equal date.to_s, foo.updated_at.to_s
     assert_equal 000000, foo.created_at.usec
     assert_equal 999900, foo.updated_at.usec
-  ensure
-    ActiveRecord::Base.connection.drop_table(:foos, if_exists: true)
+  end
+
+  def test_datetime_precision_with_zero_should_be_dumped
+    ActiveRecord::Base.connection.create_table(:foos) do |t|
+      t.timestamps precision: 0
+    end
+    output = dump_table_schema("foos")
+    assert_match %r{t\.datetime\s+"created_at",\s+precision: 0,\s+null: false$}, output
+    assert_match %r{t\.datetime\s+"updated_at",\s+precision: 0,\s+null: false$}, output
   end
 
   private
