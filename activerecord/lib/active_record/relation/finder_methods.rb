@@ -166,7 +166,7 @@ module ActiveRecord
         if order_values.empty? && primary_key
           order(arel_table[primary_key].desc).limit(limit).reverse
         else
-          to_a.last(limit)
+          reverse_order.limit(limit).to_a.reverse
         end
       else
         find_last
