@@ -120,9 +120,9 @@ user_<%= n %>:
 
 Rails by default automatically loads all fixtures from the `test/fixtures` directory for your models and controllers test. Loading involves three steps:
 
-* Remove any existing data from the table corresponding to the fixture
-* Load the fixture data into the table
-* Dump the fixture data into a method in case you want to access it directly
+1. Remove any existing data from the table corresponding to the fixture
+2. Load the fixture data into the table
+3. Dump the fixture data into a method in case you want to access it directly
 
 TIP: In order to remove existing data from the database, Rails tries to disable referential integrity triggers (like foreign keys and check constraints). If you are getting annoying permission errors on running tests, make sure the database user has privilege to disable these triggers in testing environment. (In PostgreSQL, only superusers can disable all triggers. Read more about PostgreSQL permissions [here](http://blog.endpoint.com/2012/10/postgres-system-triggers-error.html))
 
@@ -270,6 +270,8 @@ Finished tests in 0.009262s, 107.9680 tests/s, 107.9680 assertions/s.
 1 tests, 1 assertions, 0 failures, 0 errors, 0 skips
 ```
 
+This will run all test methods from the test case.
+
 You can also run a particular test method from the test case by running the test and providing the `test method name`.
 
 ```bash
@@ -280,8 +282,6 @@ Finished tests in 0.009064s, 110.3266 tests/s, 110.3266 assertions/s.
 
 1 tests, 1 assertions, 0 failures, 0 errors, 0 skips
 ```
-
-This will run all test methods from the test case.
 
 The `.` (dot) above indicates a passing test. When a test fails you see an `F`; when a test throws an error you see an `E` in its place. The last line of the output is the summary.
 
@@ -347,7 +347,11 @@ Finished tests in 0.047721s, 20.9551 tests/s, 20.9551 assertions/s.
 1 tests, 1 assertions, 0 failures, 0 errors, 0 skips
 ```
 
-Now, if you noticed, we first wrote a test which fails for a desired functionality, then we wrote some code which adds the functionality and finally we ensured that our test passes. This approach to software development is referred to as _Test-Driven Development_ (TDD).
+Now, if you noticed, we first wrote a test which fails for a desired
+functionality, then we wrote some code which adds the functionality and finally
+we ensured that our test passes. This approach to software development is
+referred to as
+[_Test-Driven Development_ (TDD)](http://c2.com/cgi/wiki?TestDrivenDevelopment).
 
 #### What an error looks like
 
@@ -379,7 +383,11 @@ NameError: undefined local variable or method `some_undefined_variable' for #<Ar
 
 Notice the 'E' in the output. It denotes a test with error.
 
-NOTE: The execution of each test method stops as soon as any error or an assertion failure is encountered, and the test suite continues with the next method. All test methods are executed in alphabetical order.
+NOTE: The execution of each test method stops as soon as any error or an
+assertion failure is encountered, and the test suite continues with the next
+method. All test methods are executed in random order. The
+[`config.active_support.test_order` option](http://edgeguides.rubyonrails.org/configuring.html#configuring-active-support)
+can be used to configure test order.
 
 When a test fails you are presented with the corresponding backtrace. By default
 Rails filters that backtrace and will only print lines relevant to your
