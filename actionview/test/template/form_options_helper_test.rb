@@ -303,6 +303,14 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
+  def test_option_groups_from_collection_for_select_with_proc_for_group_method
+    proc_for_group_method = lambda { |continent| continent.countries.select.with_index { |country, idx| idx.odd? } }
+    assert_dom_equal(
+      "<optgroup label=\"&lt;Africa&gt;\"><option value=\"so\">Somalia</option></optgroup><optgroup label=\"Europe\"><option value=\"ie\">Ireland</option></optgroup>",
+      option_groups_from_collection_for_select(dummy_continents, proc_for_group_method, "continent_name", "country_id", "country_name", "dk")
+    )
+  end
+
   def test_option_groups_from_collection_for_select_returns_html_safe_string
     assert option_groups_from_collection_for_select(dummy_continents, "countries", "continent_name", "country_id", "country_name", "dk").html_safe?
   end

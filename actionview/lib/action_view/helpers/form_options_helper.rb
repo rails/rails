@@ -409,7 +409,8 @@ module ActionView
       # Parameters:
       # * +collection+ - An array of objects representing the <tt><optgroup></tt> tags.
       # * +group_method+ - The name of a method which, when called on a member of +collection+, returns an
-      #   array of child objects representing the <tt><option></tt> tags.
+      #   array of child objects representing the <tt><option></tt> tags or a proc taking member of +collection+
+      #   as an argument, which returns an array of child objects representing the <tt><option></tt> tags.
       # * group_label_method+ - The name of a method which, when called on a member of +collection+, returns a
       #   string to be used as the +label+ attribute for its <tt><optgroup></tt> tag.
       # * +option_key_method+ - The name of a method which, when called on a child object of a member of
@@ -454,7 +455,7 @@ module ActionView
       def option_groups_from_collection_for_select(collection, group_method, group_label_method, option_key_method, option_value_method, selected_key = nil)
         collection.map do |group|
           option_tags = options_from_collection_for_select(
-            group.send(group_method), option_key_method, option_value_method, selected_key)
+            value_for_collection(group, group_method), option_key_method, option_value_method, selected_key)
 
           content_tag(:optgroup, option_tags, label: group.send(group_label_method))
         end.join.html_safe

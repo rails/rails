@@ -1,3 +1,7 @@
+*   Make possible to pass proc as `group_method` in `ActionView::Helpers::FormOptionsHelper#option_groups_from_collection_for_select`.
+
+    *Karol Galanciak*
+
 *   Extracted `ActionView::Helpers::RecordTagHelper` to external gem
     (`record_tag_helper`) and added removal notices.
 
