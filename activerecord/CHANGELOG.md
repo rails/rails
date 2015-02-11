@@ -1,3 +1,15 @@
+*   Fix missing index when using `timestamps` with the `index` option.
+
+    The `index` option used with `timestamps` should be passed to both
+    `column` definitions for `created_at` and `updated_at` rather than just
+    the first.
+
+    *Paul Mucur*
+
+*   Add support for `Set` to `Relation#where`.
+
+    *Yuki Nishijima*
+
 *   Fixed a bug where uniqueness validations would error on out of range values,
     even if an validation should have prevented it from hitting the database.
 
