@@ -299,6 +299,7 @@ class LastModifiedRenderTest < ActionController::TestCase
     get :conditional_hello_with_record
     assert_equal 304, @response.status.to_i
     assert @response.body.blank?
+    assert_not_nil @response.etag
     assert_equal @last_modified, @response.headers['Last-Modified']
   end
 
