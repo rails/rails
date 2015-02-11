@@ -73,8 +73,7 @@ module ActiveRecord
       # When exiting a nested transaction, merge the nested transaction's
       # touched records with the outer transaction's touched records.
       def merge_transactions
-        num_states = states.length
-        states[num_states - 2].merge!(current_state) if num_states > 1
+        states[-2].merge!(current_state) if states.length > 1
       end
 
       # Apply the touches that were delayed. We're in a transaction already so there's no need to open one.
@@ -97,7 +96,7 @@ module ActiveRecord
             record.instance_eval do
               attrs.each { |column| write_attribute column, current_time }
               increment_lock if locking_enabled?
-              @changed_attributes.except!(*attrs)
+              clear_attribute_changes(attrs)
             end
           end
 
