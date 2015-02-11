@@ -1,3 +1,14 @@
+*   `scoping` no longer pollutes the current scope of sibling classes when using
+    STI. e.x.
+
+    StiOne.none.scoping do
+      StiTwo.all
+    end
+
+    Fixes #18806.
+
+    *Sean Griffin*
+
 *   `remove_reference` with `foreign_key: true` removes the foreign key before
     removing the column. This fixes a bug where it was not possible to remove
     the column on MySQL.

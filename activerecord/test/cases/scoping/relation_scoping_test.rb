@@ -208,6 +208,12 @@ class RelationScopingTest < ActiveRecord::TestCase
     assert_equal [], DeveloperFilteredOnJoins.all
     assert_not_equal [], Developer.all
   end
+
+  def test_current_scope_does_not_pollute_other_subclasses
+    Post.none.scoping do
+      assert StiPost.all.any?
+    end
+  end
 end
 
 class NestedRelationScopingTest < ActiveRecord::TestCase
