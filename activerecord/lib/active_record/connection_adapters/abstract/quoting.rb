@@ -102,6 +102,11 @@ module ActiveRecord
         quote_table_name("#{table}.#{attr}")
       end
 
+      def quote_default_expression(value, column) #:nodoc:
+        value = lookup_cast_type(column.sql_type).type_cast_for_database(value)
+        quote(value)
+      end
+
       def quoted_true
         "'t'"
       end

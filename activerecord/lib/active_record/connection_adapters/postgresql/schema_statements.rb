@@ -9,14 +9,6 @@ module ActiveRecord
           o.sql_type << '[]' if o.array
           super
         end
-
-        def quote_default_expression(value, column)
-          if column.type == :uuid && value =~ /\(\)/
-            value
-          else
-            super
-          end
-        end
       end
 
       module SchemaStatements
@@ -440,7 +432,7 @@ module ActiveRecord
             # cast the default to the columns type, which leaves us with a default like "default NULL::character varying".
             execute alter_column_query % "DROP DEFAULT"
           else
-            execute alter_column_query % "SET DEFAULT #{quote_default_value(default, column)}"
+            execute alter_column_query % "SET DEFAULT #{quote_default_expression(default, column)}"
           end
         end
 
@@ -448,7 +440,7 @@ module ActiveRecord
           clear_cache!
           unless null || default.nil?
             column = column_for(table_name, column_name)
-            execute("UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote_default_value(default, column)} WHERE #{quote_column_name(column_name)} IS NULL") if column
+            execute("UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote_default_expression(default, column)} WHERE #{quote_column_name(column_name)} IS NULL") if column
           end
           execute("ALTER TABLE #{quote_table_name(table_name)} ALTER #{quote_column_name(column_name)} #{null ? 'DROP' : 'SET'} NOT NULL")
         end

@@ -98,8 +98,7 @@ module ActiveRecord
           end
 
           def quote_default_expression(value, column)
-            value = type_for_column(column).type_cast_for_database(value)
-            @conn.quote(value)
+            @conn.quote_default_expression(value, column)
           end
 
           def options_include_default?(options)
@@ -117,10 +116,6 @@ module ActiveRecord
                 Supported values are: :nullify, :cascade, :restrict
               MSG
             end
-          end
-
-          def type_for_column(column)
-            @conn.lookup_cast_type(column.sql_type)
           end
       end
     end
