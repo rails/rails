@@ -73,6 +73,12 @@ module ActiveRecord
         spec
       end
 
+      def prepare_column_options(column)
+        spec = super
+        spec.delete(:precision) if column.type == :datetime && column.precision == 0
+        spec
+      end
+
       class Column < ConnectionAdapters::Column # :nodoc:
         delegate :strict, :collation, :extra, to: :sql_type_metadata, allow_nil: true
 
