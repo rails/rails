@@ -406,14 +406,15 @@ module ActiveRecord
         m.alias_type %r(double)i,    'float'
 
         m.register_type(%r(decimal)i) do |sql_type|
+          limit = extract_limit(sql_type)
           scale = extract_scale(sql_type)
           precision = extract_precision(sql_type)
 
           if scale == 0
             # FIXME: Remove this class as well
-            Type::DecimalWithoutScale.new(precision: precision)
+            Type::DecimalWithoutScale.new(limit: limit, precision: precision)
           else
-            Type::Decimal.new(precision: precision, scale: scale)
+            Type::Decimal.new(limit: limit, precision: precision, scale: scale)
           end
         end
       end
