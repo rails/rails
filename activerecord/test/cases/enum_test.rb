@@ -26,6 +26,17 @@ class EnumTest < ActiveRecord::TestCase
     assert_equal @book, Book.unread.first
   end
 
+  test "build from scope" do
+    assert Book.proposed.build.proposed?
+    refute Book.proposed.build.written?
+    assert Book.where(status: Book.statuses[:proposed]).build.proposed?
+  end
+
+  test "find via where" do
+    assert_equal @book, Book.where(status: "proposed").first
+    refute_equal @book, Book.where(status: "written").first
+  end
+
   test "update by declaration" do
     @book.written!
     assert @book.written?
@@ -161,7 +172,11 @@ class EnumTest < ActiveRecord::TestCase
   end
 
   test "_before_type_cast returns the enum label (required for form fields)" do
-    assert_equal "proposed", @book.status_before_type_cast
+    if @book.status_came_from_user?
+      assert_equal "proposed", @book.status_before_type_cast
+    else
+      assert_equal "proposed", @book.status
+    end
   end
 
   test "reserved enum names" do

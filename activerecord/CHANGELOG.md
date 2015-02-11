@@ -1,3 +1,8 @@
+*   Have `enum` perform type casting consistently with the rest of Active
+    Record, such as `where`.
+
+    *Sean Griffin*
+
 *   `scoping` no longer pollutes the current scope of sibling classes when using
     STI. e.x.
 

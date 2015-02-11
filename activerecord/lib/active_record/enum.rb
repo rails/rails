@@ -79,6 +79,37 @@ module ActiveRecord
       super
     end
 
+    class EnumType < Type::Value
+      def initialize(name, mapping)
+        @name = name
+        @mapping = mapping
+      end
+
+      def type_cast_from_user(value)
+        return if value.blank?
+
+        if mapping.has_key?(value)
+          value.to_s
+        elsif mapping.has_value?(value)
+          mapping.key(value)
+        else
+          raise ArgumentError, "'#{value}' is not a valid #{name}"
+        end
+      end
+
+      def type_cast_from_database(value)
+        mapping.key(value)
+      end
+
+      def type_cast_for_database(value)
+        mapping.fetch(value, value)
+      end
+
+      protected
+
+      attr_reader :name, :mapping
+    end
+
     def enum(definitions)
       klass = self
       definitions.each do |name, values|
@@ -90,37 +121,19 @@ module ActiveRecord
         detect_enum_conflict!(name, name.to_s.pluralize, true)
         klass.singleton_class.send(:define_method, name.to_s.pluralize) { enum_values }
 
+        detect_enum_conflict!(name, name)
+        detect_enum_conflict!(name, "#{name}=")
+
+        attribute name, EnumType.new(name, enum_values)
+
         _enum_methods_module.module_eval do
-          # def status=(value) self[:status] = statuses[value] end
-          klass.send(:detect_enum_conflict!, name, "#{name}=")
-          define_method("#{name}=") { |value|
-            if enum_values.has_key?(value) || value.blank?
-              self[name] = enum_values[value]
-            elsif enum_values.has_value?(value)
-              # Assigning a value directly is not a end-user feature, hence it's not documented.
-              # This is used internally to make building objects from the generated scopes work
-              # as expected, i.e. +Conversation.archived.build.archived?+ should be true.
-              self[name] = value
-            else
-              raise ArgumentError, "'#{value}' is not a valid #{name}"
-            end
-          }
-
-          # def status() statuses.key self[:status] end
-          klass.send(:detect_enum_conflict!, name, name)
-          define_method(name) { enum_values.key self[name] }
-
-          # def status_before_type_cast() statuses.key self[:status] end
-          klass.send(:detect_enum_conflict!, name, "#{name}_before_type_cast")
-          define_method("#{name}_before_type_cast") { enum_values.key self[name] }
-
           pairs = values.respond_to?(:each_pair) ? values.each_pair : values.each_with_index
           pairs.each do |value, i|
             enum_values[value] = i
 
             # def active?() status == 0 end
             klass.send(:detect_enum_conflict!, name, "#{value}?")
-            define_method("#{value}?") { self[name] == i }
+            define_method("#{value}?") { self[name] == value.to_s }
 
             # def active!() update! status: :active end
             klass.send(:detect_enum_conflict!, name, "#{value}!")
@@ -128,7 +141,7 @@ module ActiveRecord
 
             # scope :active, -> { where status: 0 }
             klass.send(:detect_enum_conflict!, name, value, true)
-            klass.scope value, -> { klass.where name => i }
+            klass.scope value, -> { klass.where name => value }
           end
         end
         defined_enums[name.to_s] = enum_values
@@ -138,25 +151,7 @@ module ActiveRecord
     private
       def _enum_methods_module
         @_enum_methods_module ||= begin
-          mod = Module.new do
-            private
-              def save_changed_attribute(attr_name, old)
-                if (mapping = self.class.defined_enums[attr_name.to_s])
-                  value = _read_attribute(attr_name)
-                  if attribute_changed?(attr_name)
-                    if mapping[old] == value
-                      clear_attribute_changes([attr_name])
-                    end
-                  else
-                    if old != value
-                      set_attribute_was(attr_name, mapping.key(old))
-                    end
-                  end
-                else
-                  super
-                end
-              end
-          end
+          mod = Module.new
           include mod
           mod
         end
