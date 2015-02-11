@@ -1,3 +1,21 @@
+*   Expand `ActionController::ConditionalGet#fresh_when` and `stale?` to also
+    accept a collection of records as the first argument, so that the
+    following code can be written in a shorter form.
+
+        # Before
+        def index
+          @article = Article.all
+          fresh_when(etag: @articles, last_modified: @articles.maximum(:created_at))
+        end
+
+        # After
+        def index
+          @article = Article.all
+          fresh_when(@articles)
+        end
+
+    *claudiob*
+
 *   Explicitly ignored wildcard verbs when searching for HEAD routes before fallback
 
     Fixes an issue where a mounted rack app at root would intercept the HEAD 

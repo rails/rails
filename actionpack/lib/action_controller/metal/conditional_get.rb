@@ -57,15 +57,25 @@ module ActionController
     # This will render the show template if the request isn't sending a matching ETag or
     # If-Modified-Since header and just a <tt>304 Not Modified</tt> response if there's a match.
     #
-    # You can also just pass a record where +last_modified+ will be set by calling
-    # +updated_at+ and the +etag+ by passing the object itself.
+    # You can also just pass a record. In this case +last_modified+ will be set
+    # by calling +updated_at+ and +etag+ by passing the object itself.
     #
     #   def show
     #     @article = Article.find(params[:id])
     #     fresh_when(@article)
     #   end
     #
-    # When passing a record, you can still set whether the public header:
+    # You can also pass an object that responds to +maximum+, such as a
+    # collection of active records. In this case +last_modified+ will be set by
+    # calling +maximum(:updated_at)+ on the collection (the timestamp of the
+    # most recently updated record) and the +etag+ by passing the object itself.
+    #
+    #   def index
+    #     @articles = Article.all
+    #     fresh_when(@articles)
+    #   end
+    #
+    # When passing a record or a collection, you can still set the public header:
     #
     #   def show
     #     @article = Article.find(params[:id])
@@ -77,8 +87,8 @@ module ActionController
     #
     #   before_action { fresh_when @article, template: 'widgets/show' }
     #
-    def fresh_when(record = nil, etag: record, last_modified: nil, public: false, template: nil)
-      last_modified ||= record.try(:updated_at)
+    def fresh_when(object = nil, etag: object, last_modified: nil, public: false, template: nil)
+      last_modified ||= object.try(:updated_at) || object.try(:maximum, :updated_at)
 
       if etag || template
         response.etag = combine_etags(etag: etag, last_modified: last_modified,
@@ -121,8 +131,8 @@ module ActionController
     #     end
     #   end
     #
-    # You can also just pass a record where +last_modified+ will be set by calling
-    # +updated_at+ and the +etag+ by passing the object itself.
+    # You can also just pass a record. In this case +last_modified+ will be set
+    # by calling +updated_at+ and +etag+ by passing the object itself.
     #
     #   def show
     #     @article = Article.find(params[:id])
@@ -135,7 +145,23 @@ module ActionController
     #     end
     #   end
     #
-    # When passing a record, you can still set whether the public header:
+    # You can also pass an object that responds to +maximum+, such as a
+    # collection of active records. In this case +last_modified+ will be set by
+    # calling +maximum(:updated_at)+ on the collection (the timestamp of the
+    # most recently updated record) and the +etag+ by passing the object itself.
+    #
+    #   def index
+    #     @articles = Article.all
+    #
+    #     if stale?(@articles)
+    #       @statistics = @articles.really_expensive_call
+    #       respond_to do |format|
+    #         # all the supported formats
+    #       end
+    #     end
+    #   end
+    #
+    # When passing a record or a collection, you can still set the public header:
     #
     #   def show
     #     @article = Article.find(params[:id])
@@ -155,8 +181,8 @@ module ActionController
     #     super if stale? @article, template: 'widgets/show'
     #   end
     #
-    def stale?(record = nil, etag: record, last_modified: nil, public: nil, template: nil)
-      fresh_when(record, etag: etag, last_modified: last_modified, public: public, template: template)
+    def stale?(object = nil, etag: object, last_modified: nil, public: nil, template: nil)
+      fresh_when(object, etag: etag, last_modified: last_modified, public: public, template: template)
       !request.fresh?(response)
     end
 

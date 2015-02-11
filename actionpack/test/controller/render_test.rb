@@ -58,6 +58,27 @@ class TestController < ActionController::Base
     end
   end
 
+  class Collection
+    def initialize(records)
+      @records = records
+    end
+
+    def maximum(attribute)
+      @records.max_by(&attribute).public_send(attribute)
+    end
+  end
+
+  def conditional_hello_with_collection_of_records
+    ts = Time.now.utc.beginning_of_day
+
+    record = Struct.new(:updated_at, :cache_key).new(ts, "foo/123")
+    old_record = Struct.new(:updated_at, :cache_key).new(ts - 1.day, "bar/123")
+
+    if stale?(Collection.new([record, old_record]))
+      render action: 'hello_world'
+    end
+  end
+
   def conditional_hello_with_expires_in
     expires_in 60.1.seconds
     render :action => 'hello_world'
@@ -288,7 +309,6 @@ class LastModifiedRenderTest < ActionController::TestCase
     assert_equal @last_modified, @response.headers['Last-Modified']
   end
 
-
   def test_responds_with_last_modified_with_record
     get :conditional_hello_with_record
     assert_equal @last_modified, @response.headers['Last-Modified']
@@ -313,6 +333,34 @@ class LastModifiedRenderTest < ActionController::TestCase
   def test_request_modified_with_record
     @request.if_modified_since = 'Thu, 16 Jul 2008 00:00:00 GMT'
     get :conditional_hello_with_record
+    assert_equal 200, @response.status.to_i
+    assert @response.body.present?
+    assert_equal @last_modified, @response.headers['Last-Modified']
+  end
+
+  def test_responds_with_last_modified_with_collection_of_records
+    get :conditional_hello_with_collection_of_records
+    assert_equal @last_modified, @response.headers['Last-Modified']
+  end
+
+  def test_request_not_modified_with_collection_of_records
+    @request.if_modified_since = @last_modified
+    get :conditional_hello_with_collection_of_records
+    assert_equal 304, @response.status.to_i
+    assert @response.body.blank?
+    assert_equal @last_modified, @response.headers['Last-Modified']
+  end
+
+  def test_request_not_modified_but_etag_differs_with_collection_of_records
+    @request.if_modified_since = @last_modified
+    @request.if_none_match = "234"
+    get :conditional_hello_with_collection_of_records
+    assert_response :success
+  end
+
+  def test_request_modified_with_collection_of_records
+    @request.if_modified_since = 'Thu, 16 Jul 2008 00:00:00 GMT'
+    get :conditional_hello_with_collection_of_records
     assert_equal 200, @response.status.to_i
     assert @response.body.present?
     assert_equal @last_modified, @response.headers['Last-Modified']
