@@ -1,3 +1,11 @@
+*   `remove_reference` with `foreign_key: true` removes the foreign key before
+    removing the column. This fixes a bug where it was not possible to remove
+    the column on MySQL.
+
+    Fixes #18664.
+
+    *Yves Senn*
+
 *   `find_in_batches` now accepts an `:end_at` parameter that complements the `:start`
      parameter to specify where to stop batch processing.
 
