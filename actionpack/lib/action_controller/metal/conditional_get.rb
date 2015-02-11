@@ -155,7 +155,7 @@ module ActionController
     #     super if stale? @article, template: 'widgets/show'
     #   end
     #
-    def stale?(record = nil, etag: nil, last_modified: nil, public: nil, template: nil)
+    def stale?(record = nil, etag: record, last_modified: nil, public: nil, template: nil)
       fresh_when(record, etag: etag, last_modified: last_modified, public: public, template: template)
       !request.fresh?(response)
     end
