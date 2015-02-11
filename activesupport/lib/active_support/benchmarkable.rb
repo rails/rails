@@ -32,14 +32,11 @@ module ActiveSupport
     #  <% benchmark 'Process data files', level: :info, silence: true do %>
     #    <%= expensive_and_chatty_files_operation %>
     #  <% end %>
-    def benchmark(message = "Benchmarking", options = {})
+    def benchmark(message = "Benchmarking", level: :info, silence: false)
       if logger
-        options.assert_valid_keys(:level, :silence)
-        options[:level] ||= :info
-
         result = nil
-        ms = Benchmark.ms { result = options[:silence] ? silence { yield } : yield }
-        logger.send(options[:level], '%s (%.1fms)' % [ message, ms ])
+        ms = Benchmark.ms { result = silence ? silence { yield } : yield }
+        logger.send(level, '%s (%.1fms)' % [ message, ms ])
         result
       else
         yield
