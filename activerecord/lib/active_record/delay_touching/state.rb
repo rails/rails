@@ -10,8 +10,8 @@ module ActiveRecord
         @already_touched_records = Hash.new { SortedSet.new }
       end
 
-      def touched(klass, attrs, records)
-        @already_touched_records[[klass, attrs]] += records
+      def touched(klass, columns, records)
+        @already_touched_records[[klass, columns]] += records
       end
 
       # Return the records grouped by class and columns that were touched:

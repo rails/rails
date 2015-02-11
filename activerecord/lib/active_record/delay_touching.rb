@@ -79,8 +79,8 @@ module ActiveRecord
       # Apply the touches that were delayed. We're in a transaction already so there's no need to open one.
       def apply_touches
         while current_state.more_records?
-          current_state.get_and_clear_records.each do |(klass, attrs), records|
-            touch_records klass, attrs, records
+          current_state.get_and_clear_records.each do |(klass, columns), records|
+            touch_records klass, columns, records
           end
         end
       ensure
@@ -88,25 +88,25 @@ module ActiveRecord
       end
 
       # Touch the specified records--non-empty set of instances of the same class.
-      def touch_records(klass, attrs, records)
-        if attrs.present?
+      def touch_records(klass, columns, records)
+        if columns.present?
           current_time = records.first.current_time_from_proper_timezone
 
           records.each do |record|
             record.instance_eval do
-              attrs.each { |column| write_attribute column, current_time }
+              columns.each { |column| write_attribute column, current_time }
               increment_lock if locking_enabled?
-              clear_attribute_changes(attrs)
+              clear_attribute_changes(columns)
             end
           end
 
-          sql = attrs.map { |column| "#{klass.connection.quote_column_name(column)} = :current_time" }.join(", ")
+          sql = columns.map { |column| "#{klass.connection.quote_column_name(column)} = :current_time" }.join(", ")
           sql += ", #{klass.locking_column} = #{klass.locking_column} + 1" if klass.locking_enabled?
 
           klass.unscoped.where(klass.primary_key => records.to_a).update_all([sql, current_time: current_time])
         end
 
-        current_state.touched klass, attrs, records
+        current_state.touched klass, columns, records
         records.each(&:_run_touch_callbacks)
       end
     end
