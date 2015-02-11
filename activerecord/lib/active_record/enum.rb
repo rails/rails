@@ -98,7 +98,7 @@ module ActiveRecord
       end
 
       def type_cast_from_database(value)
-        mapping.key(value)
+        mapping.key(value.to_i)
       end
 
       def type_cast_for_database(value)
