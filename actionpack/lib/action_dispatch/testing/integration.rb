@@ -457,9 +457,9 @@ module ActionDispatch
       # Copy the instance variables from the current session instance into the
       # test instance.
       def copy_session_variables! #:nodoc:
-        %w(controller response request).each do |var|
-          instance_variable_set("@#{var}", @integration_session.__send__(var))
-        end
+        @controller = @integration_session.controller
+        @response   = @integration_session.response
+        @request    = @integration_session.request
       end
 
       def default_url_options
