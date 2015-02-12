@@ -1,3 +1,8 @@
+*   Non-string authenticity tokens do not raise NoMethodError when decoding
+    the masked token.
+
+    *Ville Lautanala*
+
 *   ActionController#translate supports symbols as shortcuts.
     When shortcut is given it also lookups without action name.
 
