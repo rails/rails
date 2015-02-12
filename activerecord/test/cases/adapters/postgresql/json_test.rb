@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 require "cases/helper"
 require 'support/schema_dumping_helper'
 
@@ -13,20 +14,18 @@ module PostgresqlJSONSharedTestCases
   def setup
     @connection = ActiveRecord::Base.connection
     begin
-      @connection.transaction do
-        @connection.create_table('json_data_type') do |t|
-          t.public_send column_type, 'payload', default: {} # t.json 'payload', default: {}
-          t.public_send column_type, 'settings'             # t.json 'settings'
-        end
+      @connection.create_table('json_data_type') do |t|
+        t.public_send column_type, 'payload', default: {} # t.json 'payload', default: {}
+        t.public_send column_type, 'settings'             # t.json 'settings'
       end
     rescue ActiveRecord::StatementInvalid
-      skip "do not test on PG without json"
+      skip "do not test on PostgreSQL without #{column_type} type."
     end
     @column = JsonDataType.columns_hash['payload']
   end
 
   def teardown
-    @connection.execute 'drop table if exists json_data_type'
+    @connection.drop_table :json_data_type, if_exists: true
   end
 
   def test_column

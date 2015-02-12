@@ -119,10 +119,6 @@ class MigrationTest < ActiveRecord::TestCase
   end
 
   def test_create_table_with_force_true_does_not_drop_nonexisting_table
-    if Person.connection.table_exists?(:testings2)
-      Person.connection.drop_table :testings2
-    end
-
     # using a copy as we need the drop_table method to
     # continue to work for the ensure block of the test
     temp_conn = Person.connection.dup
@@ -133,7 +129,7 @@ class MigrationTest < ActiveRecord::TestCase
       t.column :foo, :string
     end
   ensure
-    Person.connection.drop_table :testings2 rescue nil
+    Person.connection.drop_table :testings2, if_exists: true
   end
 
   def connection
@@ -430,8 +426,6 @@ class MigrationTest < ActiveRecord::TestCase
   end
 
   def test_create_table_with_binary_column
-    Person.connection.drop_table :binary_testings rescue nil
-
     assert_nothing_raised {
       Person.connection.create_table :binary_testings do |t|
         t.column "data", :binary, :null => false
@@ -443,7 +437,7 @@ class MigrationTest < ActiveRecord::TestCase
 
     assert_nil data_column.default
 
-    Person.connection.drop_table :binary_testings rescue nil
+    Person.connection.drop_table :binary_testings, if_exists: true
   end
 
   unless mysql_enforcing_gtid_consistency?
