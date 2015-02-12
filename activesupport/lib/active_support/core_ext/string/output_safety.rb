@@ -222,7 +222,7 @@ module ActiveSupport #:nodoc:
     end
 
     def encode_with(coder)
-      coder.represent_scalar nil, to_str
+      coder.represent_object nil, to_str
     end
 
     UNSAFE_STRING_METHODS.each do |unsafe_method|
