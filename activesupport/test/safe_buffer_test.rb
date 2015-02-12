@@ -61,6 +61,13 @@ class SafeBufferTest < ActiveSupport::TestCase
     assert_equal({'str' => str}, YAML.load(yaml))
   end
 
+  test "Should work with primitive-like-strings in to_yaml conversion" do
+    assert_equal 'true',  YAML.load(ActiveSupport::SafeBuffer.new('true').to_yaml)
+    assert_equal 'false', YAML.load(ActiveSupport::SafeBuffer.new('false').to_yaml)
+    assert_equal '1',     YAML.load(ActiveSupport::SafeBuffer.new('1').to_yaml)
+    assert_equal '1.1',   YAML.load(ActiveSupport::SafeBuffer.new('1.1').to_yaml)
+  end
+
   test "Should work with underscore" do
     str = "MyTest".html_safe.underscore
     assert_equal "my_test", str
