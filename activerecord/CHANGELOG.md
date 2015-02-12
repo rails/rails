@@ -1,3 +1,7 @@
+*   Format the time string according to the precision of the time column.
+
+    *Ryuta Kamizono*
+
 *   Allow `:precision` option for time type columns.
 
     *Ryuta Kamizono*

@@ -75,7 +75,7 @@ module ActiveRecord
 
       def prepare_column_options(column)
         spec = super
-        spec.delete(:precision) if column.type == :datetime && column.precision == 0
+        spec.delete(:precision) if /time/ === column.sql_type && column.precision == 0
         spec
       end
 
@@ -733,7 +733,7 @@ module ActiveRecord
       end
 
       def extract_precision(sql_type)
-        if /datetime/ === sql_type
+        if /time/ === sql_type
           super || 0
         else
           super

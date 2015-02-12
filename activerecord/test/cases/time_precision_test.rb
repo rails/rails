@@ -2,6 +2,10 @@ require 'cases/helper'
 
 if ActiveRecord::Base.connection.supports_datetime_with_precision?
 class TimePrecisionTest < ActiveRecord::TestCase
+  self.use_transactional_fixtures = false
+
+  class Foo < ActiveRecord::Base; end
+
   setup do
     @connection = ActiveRecord::Base.connection
   end
@@ -43,6 +47,21 @@ class TimePrecisionTest < ActiveRecord::TestCase
     end
     assert_equal 2, database_datetime_precision('foos', 'start')
     assert_equal 4, database_datetime_precision('foos', 'finish')
+  end
+
+  def test_formatting_time_according_to_precision
+    @connection.create_table(:foos, force: true) do |t|
+      t.time :start,  precision: 0
+      t.time :finish, precision: 4
+    end
+    time = ::Time.utc(2000, 1, 1, 12, 30, 0, 999999)
+    Foo.create!(start: time, finish: time)
+    assert foo = Foo.find_by(start: time)
+    assert_equal 1, Foo.where(finish: time).count
+    assert_equal time.to_s, foo.start.to_s
+    assert_equal time.to_s, foo.finish.to_s
+    assert_equal 000000, foo.start.usec
+    assert_equal 999900, foo.finish.usec
   end
 
   private
