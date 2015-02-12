@@ -1,3 +1,7 @@
+*   Allow `:precision` option for time type columns.
+
+    *Ryuta Kamizono*
+
 *   Have `enum` perform type casting consistently with the rest of Active
     Record, such as `where`.
 
