@@ -1,3 +1,24 @@
+*   Fixed a roundtrip problem with AS::SafeBuffer where primitive-like strings
+    will be dumped as primitives:
+
+    Before:
+
+       YAML.load ActiveSupport::SafeBuffer.new("Hello").to_yaml  # => "Hello"
+       YAML.load ActiveSupport::SafeBuffer.new("true").to_yaml   # => true
+       YAML.load ActiveSupport::SafeBuffer.new("false").to_yaml  # => false
+       YAML.load ActiveSupport::SafeBuffer.new("1").to_yaml      # => 1
+       YAML.load ActiveSupport::SafeBuffer.new("1.1").to_yaml    # => 1.1
+
+     After:
+
+       YAML.load ActiveSupport::SafeBuffer.new("Hello").to_yaml  # => "Hello"
+       YAML.load ActiveSupport::SafeBuffer.new("true").to_yaml   # => "true"
+       YAML.load ActiveSupport::SafeBuffer.new("false").to_yaml  # => "false"
+       YAML.load ActiveSupport::SafeBuffer.new("1").to_yaml      # => "1"
+       YAML.load ActiveSupport::SafeBuffer.new("1.1").to_yaml    # => "1.1"
+
+    *Godfrey Chan*
+
 *   Replace fixed `:en` with `I18n.default_locale` in `Duration#inspect`.
 
     *Dominik Masur*
