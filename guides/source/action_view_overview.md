@@ -190,6 +190,21 @@ One way to use partials is to treat them as the equivalent of subroutines; a way
 
 Here, the `_ad_banner.html.erb` and `_footer.html.erb` partials could contain content that is shared among many pages in your application. You don't need to see the details of these sections when you're concentrating on a particular page.
 
+#### `render` without `partial` and `locals` options
+
+In the above example, `render` takes 2 options: `partial` and `locals`. But if these are the only options you want to pass, you can skip using these options. For example, instead of:
+
+```erb
+<%= render partial: "product", locals: {product: @product} %>
+```
+
+You can also do:
+
+```erb
+<%= render "product", product: @product %>
+```
+
+
 #### The `as` and `object` options
 
 By default `ActionView::Partials::PartialRenderer` has its object in a local variable with the same name as the template. So, given:
