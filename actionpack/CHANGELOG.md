@@ -4,13 +4,13 @@
 
         # Before
         def index
-          @article = Article.all
-          fresh_when(etag: @articles, last_modified: @articles.maximum(:created_at))
+          @articles = Article.all
+          fresh_when(etag: @articles, last_modified: @articles.maximum(:updated_at))
         end
 
         # After
         def index
-          @article = Article.all
+          @articles = Article.all
           fresh_when(@articles)
         end
 
