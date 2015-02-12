@@ -389,12 +389,16 @@ module ActionDispatch
 
       APP_SESSIONS = {}
 
-      attr_reader :app, :integration_session
+      attr_reader :app
 
       def before_setup
         super
         @app = nil
         @integration_session = nil
+      end
+
+      def integration_session
+        @integration_session ||= create_session(app)
       end
 
       # Reset the current session. This is useful for testing multiple sessions
@@ -422,8 +426,6 @@ module ActionDispatch
       %w(get post patch put head delete cookies assigns
          xml_http_request xhr get_via_redirect post_via_redirect).each do |method|
         define_method(method) do |*args|
-          reset! unless integration_session
-
           # reset the html_document variable, except for cookies/assigns calls
           unless method == 'cookies' || method == 'assigns'
             @html_document = nil
@@ -462,12 +464,10 @@ module ActionDispatch
       end
 
       def default_url_options
-        reset! unless integration_session
         integration_session.default_url_options
       end
 
       def default_url_options=(options)
-        reset! unless integration_session
         integration_session.default_url_options = options
       end
 
@@ -477,7 +477,6 @@ module ActionDispatch
 
       # Delegate unhandled messages to the current session instance.
       def method_missing(sym, *args, &block)
-        reset! unless integration_session
         if integration_session.respond_to?(sym)
           integration_session.__send__(sym, *args, &block).tap do
             copy_session_variables!
@@ -662,7 +661,6 @@ module ActionDispatch
     end
 
     def url_options
-      reset! unless integration_session
       integration_session.url_options
     end
 
