@@ -124,7 +124,7 @@ def enable_extension!(extension, connection)
   return connection.reconnect! if connection.extension_enabled?(extension)
 
   connection.enable_extension extension
-  connection.commit_db_transaction
+  connection.commit_db_transaction if connection.transaction_open?
   connection.reconnect!
 end
 
