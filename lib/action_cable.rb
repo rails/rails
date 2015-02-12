@@ -12,6 +12,8 @@ require 'active_support/callbacks'
 require 'faye/websocket'
 require 'celluloid'
 
+require 'action_cable/engine' if defined?(Rails)
+
 module ActionCable
   VERSION = '0.0.1'
 
