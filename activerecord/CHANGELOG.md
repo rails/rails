@@ -1,3 +1,10 @@
+*   `has_secure_token` does not overwrite value when already present.
+
+        user = User.create(token: "custom-secure-token")
+        user.token # => "custom-secure-token"
+
+    *Wojciech Wnętrzak*
+
 *   Use SQL COUNT and LIMIT 1 queries for `none?` and `one?` methods if no block or limit is given,
     instead of loading the entire collection to memory.
     This applies to relations (e.g. `User.all`) as well as associations (e.g. `account.users`)
