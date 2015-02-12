@@ -1,5 +1,4 @@
 require 'cases/helper'
-require 'active_support/testing/stream'
 require 'support/ddl_helper'
 require 'support/schema_dumping_helper'
 

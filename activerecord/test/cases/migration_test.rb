@@ -1,4 +1,3 @@
-require 'active_support/testing/stream'
 require "cases/helper"
 require "cases/migration/helper"
 require 'bigdecimal/util'
