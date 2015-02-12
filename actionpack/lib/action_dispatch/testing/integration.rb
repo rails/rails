@@ -389,8 +389,12 @@ module ActionDispatch
 
       APP_SESSIONS = {}
 
-      def app
-        @app ||= nil
+      attr_reader :app, :integration_session
+
+      def before_setup
+        super
+        @app = nil
+        @integration_session = nil
       end
 
       # Reset the current session. This is useful for testing multiple sessions
@@ -482,11 +486,6 @@ module ActionDispatch
           super
         end
       end
-
-      private
-        def integration_session
-          @integration_session ||= nil
-        end
     end
   end
 
