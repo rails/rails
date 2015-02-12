@@ -9,6 +9,22 @@ module AbstractController
     class TranslationControllerTest < ActiveSupport::TestCase
       def setup
         @controller = TranslationController.new
+        I18n.backend.store_translations(:en, {
+          one: {
+            two: 'bar',
+          },
+          abstract_controller: {
+            testing: {
+              translation: {
+                index: {
+                  foo: 'bar',
+                },
+                no_action: 'no_action_tr',
+              },
+            },
+          },
+        })
+        @controller.stubs(action_name: :index)
       end
 
       def test_action_controller_base_responds_to_translate
@@ -28,16 +44,19 @@ module AbstractController
       end
 
       def test_lazy_lookup
-        expected = 'bar'
-        @controller.stubs(action_name: :index)
-        I18n.stubs(:translate).with('abstract_controller.testing.translation.index.foo').returns(expected)
-        assert_equal expected, @controller.t('.foo')
+        assert_equal 'bar', @controller.t('.foo')
+      end
+
+      def test_lazy_lookup_with_symbol
+        assert_equal 'bar', @controller.t(:'.foo')
+      end
+
+      def test_lazy_lookup_fallback
+        assert_equal 'no_action_tr', @controller.t(:'.no_action')
       end
 
       def test_default_translation
-        key, expected = 'one.two', 'bar'
-        I18n.stubs(:translate).with(key).returns(expected)
-        assert_equal expected, @controller.t(key)
+        assert_equal 'bar', @controller.t('one.two')
       end
 
       def test_localize

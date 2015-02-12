@@ -1,3 +1,8 @@
+*   ActionController#translate supports symbols as shortcuts.
+    When shortcut is given it also lookups without action name.
+
+    *Max Melentiev*
+
 *   Expand `ActionController::ConditionalGet#fresh_when` and `stale?` to also
     accept a collection of records as the first argument, so that the
     following code can be written in a shorter form.
