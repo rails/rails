@@ -342,6 +342,16 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_queries(1) { line_item.touch }
   end
 
+  def test_belongs_to_with_touch_option_on_touch_does_not_touch
+    invoice = Invoice.create!
+    line_item = LineItem.create!(invoice: invoice)
+    time = invoice.updated_at
+    sleep(1)
+    line_item.touch
+    assert_equal time, invoice.reload.updated_at
+    #assert_queries(1) { line_item.touch }
+  end
+
   def test_belongs_to_with_touch_option_on_touch_without_updated_at_attributes
     assert_not LineItem.column_names.include?("updated_at")
 
