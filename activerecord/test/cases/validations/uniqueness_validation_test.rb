@@ -45,6 +45,11 @@ class UniquenessValidationTest < ActiveRecord::TestCase
 
   repair_validations(Topic, Reply)
 
+  class ModelWithScopedValidationOnArray < ActiveRecord::Base
+    self.table_name = 'postgresql_arrays'
+    validates_uniqueness_of :name, scope: [:commission_by_quarter]
+  end
+
   def test_validate_uniqueness
     Topic.validates_uniqueness_of(:title)
 
@@ -387,6 +392,15 @@ class UniquenessValidationTest < ActiveRecord::TestCase
       assert !e2.persisted?, "e2 shouldn't be valid"
       assert e2.errors[:nicknames].any?, "Should have errors for nicknames"
       assert_equal ["has already been taken"], e2.errors[:nicknames], "Should have uniqueness message for nicknames"
+    end
+
+    def test_validate_uniqueness_scoped_to_array
+      record = ModelWithScopedValidationOnArray.new(
+        name: "Sheldon Cooper",
+        commission_by_quarter: [1, 2, 3]
+      )
+
+      assert_nothing_raised { record.valid? }
     end
   end
 

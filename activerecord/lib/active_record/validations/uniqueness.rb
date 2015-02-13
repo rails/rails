@@ -81,7 +81,13 @@ module ActiveRecord
           else
             scope_value = record.read_attribute(scope_item)
           end
-          relation = relation.and(table[scope_item].eq(scope_value))
+
+          # This is basically emulating an Arel::Nodes::Casted
+          column = record.class.columns_hash[scope_item.to_s]
+          quoted_value = record.class.connection.quote(scope_value, column)
+          node = Arel::Nodes::SqlLiteral.new(quoted_value)
+
+          relation = relation.and(table[scope_item].eq(node))
         end
 
         relation

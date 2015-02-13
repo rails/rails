@@ -62,7 +62,8 @@ _SQL
   CREATE TABLE postgresql_arrays (
     id SERIAL PRIMARY KEY,
     commission_by_quarter INTEGER[],
-    nicknames TEXT[]
+    nicknames TEXT[],
+    name TEXT
   );
 _SQL
 
