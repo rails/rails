@@ -314,7 +314,7 @@ module ActionDispatch
             get '/profile',
               params: { id: 1 },
               headers: { 'X-Extra-Header' => '123' },
-              env: { 'action_dispatch.custom' => 'custom' }
+              env: { 'action_dispatch.custom' => 'custom' },
               xhr: true
           MSG
         end
