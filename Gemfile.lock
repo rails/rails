@@ -1,20 +1,10 @@
-GIT
-  remote: git://github.com/lifo/cramp.git
-  revision: 60f6f30fe69fedd076ac7cb64f65ba8f382c8a67
-  specs:
-    cramp (0.15.4)
-      activesupport (~> 4.2.0)
-      eventmachine (~> 1.0.3)
-      faye-websocket (~> 0.9.2)
-      rack (~> 1.6.0)
-      thor (~> 0.19.0)
-
 PATH
   remote: .
   specs:
     action_cable (0.0.1)
       activesupport (~> 4.2.0)
-      cramp (~> 0.15.4)
+      celluloid (~> 0.16.0)
+      faye-websocket (~> 0.9.2)
 
 GEM
   remote: http://rubygems.org/
@@ -25,10 +15,13 @@ GEM
       minitest (~> 5.1)
       thread_safe (~> 0.3, >= 0.3.4)
       tzinfo (~> 1.1)
+    celluloid (0.16.0)
+      timers (~> 4.0.0)
     eventmachine (1.0.4)
     faye-websocket (0.9.2)
       eventmachine (>= 0.12.0)
       websocket-driver (>= 0.5.1)
+    hitimes (1.2.2)
     i18n (0.7.0)
     json (1.8.2)
     minitest (5.5.1)
@@ -36,8 +29,9 @@ GEM
       rack (>= 1.1, < 2.0)
     rack (1.6.0)
     rake (10.4.2)
-    thor (0.19.1)
     thread_safe (0.3.4)
+    timers (4.0.1)
+      hitimes
     tzinfo (1.2.2)
       thread_safe (~> 0.1)
     websocket-driver (0.5.1)
@@ -49,6 +43,5 @@ PLATFORMS
 
 DEPENDENCIES
   action_cable!
-  cramp!
   puma
   rake
