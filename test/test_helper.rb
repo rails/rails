@@ -12,10 +12,6 @@ require 'puma'
 require 'action_cable'
 ActiveSupport.test_order = :sorted
 
-require 'logger'
-logger = Logger.new(File.join(File.dirname(__FILE__), "tests.log"))
-logger.level = Logger::DEBUG
-
 class ActionCableTest < ActiveSupport::TestCase
   PORT = 420420
 
