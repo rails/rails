@@ -771,8 +771,11 @@ module ActionController
 
           Examples:
 
-          get :show, params: { id: 1 }, session: { user_id: 1 }
-          process :update, method: :post, params: { id: 1 }
+          BEFORE: get :show, id: 1, session: { user_id: 1 }
+          AFTER: get :show, params: { id: 1 }, session: { user_id: 1 } 
+
+          BEFORE: patch :update, project: { id: 1 }
+          AFTER: patch :update, params: { project: { id: 1 } }
         MSG
       end
 

@@ -310,13 +310,25 @@ module ActionDispatch
 
             Examples:
 
+            BEFORE:
+            get '/profile',
+              id: 1,
+              headers: { 'X-Extra-Header' => '123' },
+              env: { 'action_dispatch.custom' => 'custom' }
+
+            AFTER:
             get '/profile',
               params: { id: 1 },
               headers: { 'X-Extra-Header' => '123' },
               env: { 'action_dispatch.custom' => 'custom' }
 
+            BEFORE:
             xhr :post, '/profile',
-              params: { id: 1 }
+              profile: { id: 1 }
+
+            AFTER:
+            xhr :post, '/profile',
+              params: { profile: { id: 1 } }
           MSG
         end
 
