@@ -407,12 +407,16 @@ module ActiveRecord
         def change_column(table_name, column_name, type, options = {})
           clear_cache!
           quoted_table_name = quote_table_name(table_name)
+          quoted_column_name = quote_column_name(column_name)
           sql_type = type_to_sql(type, options[:limit], options[:precision], options[:scale])
           sql_type << "[]" if options[:array]
-          sql = "ALTER TABLE #{quoted_table_name} ALTER COLUMN #{quote_column_name(column_name)} TYPE #{sql_type}"
-          sql << " USING #{options[:using]}" if options[:using]
-          if options[:cast_as]
-            sql << " USING CAST(#{quote_column_name(column_name)} AS #{type_to_sql(options[:cast_as], options[:limit], options[:precision], options[:scale])})"
+          sql = "ALTER TABLE #{quoted_table_name} ALTER COLUMN #{quoted_column_name} TYPE #{sql_type}"
+          if options[:using]
+            sql << " USING #{options[:using]}"
+          elsif options[:cast_as]
+            cast_as_type = type_to_sql(options[:cast_as], options[:limit], options[:precision], options[:scale])
+            cast_as_type << "[]" if options[:array]
+            sql << " USING CAST(#{quoted_column_name} AS #{cast_as_type})"
           end
           execute sql
 
