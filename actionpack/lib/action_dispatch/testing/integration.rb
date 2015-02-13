@@ -408,15 +408,21 @@ module ActionDispatch
       end
 
       def create_session(app)
-        klass = APP_SESSIONS[app] ||= Class.new(Integration::Session) {
-          # If the app is a Rails app, make url_helpers available on the session
-          # This makes app.url_for and app.foo_path available in the console
-          if app.respond_to?(:routes)
-            include app.routes.url_helpers
-            include app.routes.mounted_helpers
-          end
-        }
+        klass = APP_SESSIONS[app] ||= Class.new(Integration::Session)
+        if app.respond_to?(:routes)
+          add_helpers(klass, app)
+        end
+
         klass.new(app)
+      end
+
+      def add_helpers(session_class, app)
+      # If the app is a Rails app, make url_helpers available on the session
+      # This makes app.url_for and app.foo_path available in the console
+        session_class.instance_eval do
+          include app.routes.url_helpers
+          include app.routes.mounted_helpers
+        end
       end
 
       def remove! # :nodoc:
