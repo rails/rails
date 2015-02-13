@@ -306,7 +306,8 @@ module ActionDispatch
         def non_kwarg_request_warning
           ActiveSupport::Deprecation.warn(<<-MSG.strip_heredoc)
             ActionDispatch::Integration::TestCase HTTP request methods will accept only
-            keyword arguments in future Rails versions.
+            the following keyword arguments in future Rails versions:
+            #{REQUEST_KWARGS.join(', ')}
 
             Examples:
 
@@ -314,9 +315,7 @@ module ActionDispatch
               params: { id: 1 },
               headers: { 'X-Extra-Header' => '123' },
               env: { 'action_dispatch.custom' => 'custom' }
-
-            xhr :post, '/profile',
-              params: { id: 1 }
+              xhr: true
           MSG
         end
 
