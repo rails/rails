@@ -22,4 +22,11 @@ class SecureTokenTest < ActiveRecord::TestCase
     assert_not_equal @user.token, old_token
     assert_not_equal @user.auth_token, old_auth_token
   end
+
+  def test_token_value_not_overwritten_when_present
+    @user.token = "custom-secure-token"
+    @user.save
+
+    assert_equal @user.token, "custom-secure-token"
+  end
 end
