@@ -314,9 +314,6 @@ module ActionDispatch
               params: { id: 1 },
               headers: { 'X-Extra-Header' => '123' },
               env: { 'action_dispatch.custom' => 'custom' }
-
-            xhr :post, '/profile',
-              params: { id: 1 }
           MSG
         end
 
