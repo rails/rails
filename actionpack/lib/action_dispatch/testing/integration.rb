@@ -305,7 +305,7 @@ module ActionDispatch
 
         def non_kwarg_request_warning
           ActiveSupport::Deprecation.warn(<<-MSG.strip_heredoc)
-            ActionDispatch::Integration::TestCase HTTP request methods will accept only
+            ActionDispatch::IntegrationTest HTTP request methods will accept only
             the following keyword arguments in future Rails versions:
             #{REQUEST_KWARGS.join(', ')}
 
