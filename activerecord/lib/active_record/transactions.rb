@@ -7,6 +7,8 @@ module ActiveRecord
 
     included do
       define_callbacks :commit, :rollback,
+                       :commit_without_transaction_enrollment,
+                       :rollback_without_transaction_enrollment,
                        scope: [:kind, :name]
     end
 
@@ -233,6 +235,16 @@ module ActiveRecord
         set_callback(:rollback, :after, *args, &block)
       end
 
+      def after_commit_without_transaction_enrollment(*args, &block) # :nodoc:
+        set_options_for_callbacks!(args)
+        set_callback(:commit_without_transaction_enrollment, :after, *args, &block)
+      end
+
+      def after_rollback_without_transaction_enrollment(*args, &block) # :nodoc:
+        set_options_for_callbacks!(args)
+        set_callback(:rollback_without_transaction_enrollment, :after, *args, &block)
+      end
+
       def raise_in_transactional_callbacks
         ActiveSupport::Deprecation.warn('ActiveRecord::Base.raise_in_transactional_callbacks is deprecated and will be removed without replacement.')
         true
@@ -301,7 +313,10 @@ module ActiveRecord
     # Ensure that it is not called if the object was never persisted (failed create),
     # but call it after the commit of a destroyed object.
     def committed!(should_run_callbacks: true) #:nodoc:
-      _run_commit_callbacks if should_run_callbacks && destroyed? || persisted?
+      if should_run_callbacks && destroyed? || persisted?
+        _run_commit_without_transaction_enrollment_callbacks
+        _run_commit_callbacks
+      end
     ensure
       force_clear_transaction_record_state
     end
@@ -309,7 +324,10 @@ module ActiveRecord
     # Call the +after_rollback+ callbacks. The +force_restore_state+ argument indicates if the record
     # state should be rolled back to the beginning or just to the last savepoint.
     def rolledback!(force_restore_state: false, should_run_callbacks: true) #:nodoc:
-      _run_rollback_callbacks if should_run_callbacks
+      if should_run_callbacks
+        _run_rollback_without_transaction_enrollment_callbacks
+        _run_rollback_callbacks
+      end
     ensure
       restore_transaction_record_state(force_restore_state)
       clear_transaction_record_state
