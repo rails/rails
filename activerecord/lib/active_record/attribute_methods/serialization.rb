@@ -34,21 +34,28 @@ module ActiveRecord
         #     serialize :preferences, Hash
         #   end
         def serialize(attr_name, class_name_or_coder = Object)
-          # When ::JSON is used, force it to go through the Active Support JSON encoder
-          # to ensure special objects (e.g. Active Record models) are dumped correctly
-          # using the #as_json hook.
-          coder = if class_name_or_coder == ::JSON
-                    Coders::JSON
-                  elsif [:load, :dump].all? { |x| class_name_or_coder.respond_to?(x) }
-                    class_name_or_coder
-                  else
-                    Coders::YAMLColumn.new(class_name_or_coder)
-                  end
+          coder = serialize_coder_for(class_name_or_coder)
 
           decorate_attribute_type(attr_name, :serialize) do |type|
             Type::Serialized.new(type, coder)
           end
         end
+
+        private
+
+          def serialize_coder_for(class_name_or_coder)
+            # When ::JSON is used, force it to go through the Active Support JSON encoder
+            # to ensure special objects (e.g. Active Record models) are dumped correctly
+            # using the #as_json hook.
+            if class_name_or_coder == ::JSON
+              Coders::JSON
+            elsif [:load, :dump].all? { |x| class_name_or_coder.respond_to?(x) }
+              class_name_or_coder
+            else
+              Coders::YAMLColumn.new(class_name_or_coder)
+            end
+          end
+
       end
     end
   end
