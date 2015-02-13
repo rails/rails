@@ -15,8 +15,8 @@ module ActiveRecord
       #   user.save
       #   user.token # => "4kUgL2pdQMSCQtjE"
       #   user.auth_token # => "77TMHrHJFvFDwodq8w7Ev2m7"
-      #   user.regenerate_token # => true
-      #   user.regenerate_auth_token # => true
+      #   user.regenerate_token! # => true
+      #   user.regenerate_auth_token! # => true
       #
       # SecureRandom::base58 is used to generate the 24-character unique token, so collisions are highly unlikely.
       #
@@ -26,8 +26,11 @@ module ActiveRecord
       def has_secure_token(attribute = :token)
         # Load securerandom only when has_secure_token is used.
         require 'active_support/core_ext/securerandom'
-        define_method("regenerate_#{attribute}") { update! attribute => self.class.generate_unique_secure_token }
-        before_create { self.send("#{attribute}=", self.class.generate_unique_secure_token) }
+        unless self.method_defined?("generate_#{attribute}")
+          define_method("generate_#{attribute}") { self.send("#{attribute}=", self.class.generate_unique_secure_token) }
+        end
+        define_method("regenerate_#{attribute}!") { update! attribute => self.class.generate_unique_secure_token }
+        before_create { self.public_send("generate_#{attribute}") }
       end
 
       def generate_unique_secure_token
