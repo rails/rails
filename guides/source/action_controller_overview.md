@@ -735,7 +735,7 @@ You can choose not to yield and build the response yourself, in which case the a
 
 While the most common way to use filters is by creating private methods and using *_action to add them, there are two other ways to do the same thing.
 
-The first is to use a block directly with the *_action methods. The block receives the controller as an argument, and the `require_login` filter from above could be rewritten to use a block:
+The first is to use a block directly with the *\_action methods. The block receives the controller as an argument, and the `require_login` filter from above could be rewritten to use a block:
 
 ```ruby
 class ApplicationController < ActionController::Base
