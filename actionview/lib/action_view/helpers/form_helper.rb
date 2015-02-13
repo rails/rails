@@ -428,8 +428,13 @@ module ActionView
           object_name = record
           object      = nil
         else
-          object      = record.is_a?(Array) ? record.last : record
-          raise ArgumentError, "First argument in form cannot contain nil or be empty" unless object
+          record_is_array = record.is_a?(Array)
+          object = record_is_array ? record.last : record
+
+          if record_is_array && record.any?(&:nil?) || object.nil?
+            raise ArgumentError, "First argument in form cannot contain nil or be empty"
+          end
+
           object_name = options[:as] || model_name_from_record_or_class(object).param_key
           apply_form_for_options!(record, object, options)
         end
