@@ -61,8 +61,6 @@ class EnumTest < ActiveRecord::TestCase
   end
 
   test "build from where" do
-    assert Book.where(status: Book.statuses[:written]).build.written?
-    refute Book.where(status: Book.statuses[:written]).build.proposed?
     assert Book.where(status: :written).build.written?
     refute Book.where(status: :written).build.proposed?
     assert Book.where(status: "written").build.written?

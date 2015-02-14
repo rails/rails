@@ -98,8 +98,6 @@ module ActiveRecord
 
         if mapping.has_key?(value)
           value.to_s
-        elsif mapping.has_value?(value)
-          mapping.key(value)
         else
           raise ArgumentError, "'#{value}' is not a valid #{name}"
         end
