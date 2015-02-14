@@ -32,9 +32,22 @@ class EnumTest < ActiveRecord::TestCase
     assert Book.where(status: Book.statuses[:proposed]).build.proposed?
   end
 
-  test "find via where" do
+  test "find via where with symbols" do
+    assert_equal @book, Book.where(format: :paperback).first
+    refute_equal @book, Book.where(format: :ebook).first
+    assert_equal @book, Book.where(format: [:paperback]).first
+    refute_equal @book, Book.where(format: [:ebook]).first
+    refute_equal @book, Book.where("format <> ?", :paperback).first
+    assert_equal @book, Book.where("format <> ?", :ebook).first
+  end
+
+  test "find via where with strings" do
     assert_equal @book, Book.where(status: "proposed").first
     refute_equal @book, Book.where(status: "written").first
+    assert_equal @book, Book.where(status: ["proposed"]).first
+    refute_equal @book, Book.where(status: ["written"]).first
+    refute_equal @book, Book.where("format <> ?", "paperback").first
+    assert_equal @book, Book.where("format <> ?", "ebook").first
   end
 
   test "update by declaration" do

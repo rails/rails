@@ -32,6 +32,12 @@ module ActiveRecord
   #   Conversation.active
   #   Conversation.archived
   #
+  # Of course, you can also query them directly if the scopes doesn't fit your
+  # needs:
+  #
+  #   Conversation.where(status: [:active, :archived])
+  #   Conversation.where("status <> ?", :active)
+  #
   # You can set the default value from the database declaration, like:
   #
   #   create_table :conversations do |t|
@@ -63,11 +69,6 @@ module ActiveRecord
   #
   #   Conversation.statuses # => { "active" => 0, "archived" => 1 }
   #
-  # Use that class method when you need to know the ordinal value of an enum:
-  #
-  #   Conversation.where("status <> ?", Conversation.statuses[:archived])
-  #
-  # Where conditions on an enum attribute must use the ordinal value of an enum.
   module Enum
     def self.extended(base) # :nodoc:
       base.class_attribute(:defined_enums)
