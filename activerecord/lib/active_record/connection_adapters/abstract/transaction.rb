@@ -77,6 +77,10 @@ module ActiveRecord
         @state.set_state(:committed)
       end
 
+      def before_commit_records
+        records.uniq.each(&:before_committed!)
+      end
+
       def commit_records
         ite = records.uniq
         while record = ite.shift
@@ -159,13 +163,15 @@ module ActiveRecord
 
       def commit_transaction
         inner_transaction = @stack.pop
-        inner_transaction.commit
 
         if current_transaction.joinable?
+          inner_transaction.commit
           inner_transaction.records.each do |r|
             r.add_to_transaction
           end
         else
+          inner_transaction.before_commit_records
+          inner_transaction.commit
           inner_transaction.commit_records
         end
       end

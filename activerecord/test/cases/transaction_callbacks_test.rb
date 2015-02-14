@@ -407,7 +407,8 @@ class TransactionEnrollmentCallbacksTest < ActiveRecord::TestCase
   class TopicWithoutTransactionalEnrollmentCallbacks < ActiveRecord::Base
     self.table_name = :topics
 
-    after_commit_without_transaction_enrollment { |r| r.history << :commit }
+    before_commit_without_transaction_enrollment { |r| r.history << :before_commit }
+    after_commit_without_transaction_enrollment { |r| r.history << :after_commit }
     after_rollback_without_transaction_enrollment { |r| r.history << :rollback }
 
     def history
@@ -435,7 +436,7 @@ class TransactionEnrollmentCallbacksTest < ActiveRecord::TestCase
       end
       @topic.class.connection.add_transaction_record(@topic)
     end
-    assert_equal [:commit], @topic.history
+    assert_equal [:before_commit, :after_commit], @topic.history
   end
 
   def test_rollback_dont_enroll_transaction

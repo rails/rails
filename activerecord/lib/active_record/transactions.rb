@@ -7,6 +7,8 @@ module ActiveRecord
 
     included do
       define_callbacks :commit, :rollback,
+                       :before_commit,
+                       :before_commit_without_transaction_enrollment,
                        :commit_without_transaction_enrollment,
                        :rollback_without_transaction_enrollment,
                        scope: [:kind, :name]
@@ -208,6 +210,11 @@ module ActiveRecord
         connection.transaction(options, &block)
       end
 
+      def before_commit(*args, &block) # :nodoc:
+        set_options_for_callbacks!(args)
+        set_callback(:before_commit, :before, *args, &block)
+      end
+
       # This callback is called after a record has been created, updated, or destroyed.
       #
       # You can specify that the callback should only be fired by a certain action with
@@ -233,6 +240,11 @@ module ActiveRecord
       def after_rollback(*args, &block)
         set_options_for_callbacks!(args)
         set_callback(:rollback, :after, *args, &block)
+      end
+
+      def before_commit_without_transaction_enrollment(*args, &block) # :nodoc:
+        set_options_for_callbacks!(args)
+        set_callback(:before_commit_without_transaction_enrollment, :before, *args, &block)
       end
 
       def after_commit_without_transaction_enrollment(*args, &block) # :nodoc:
@@ -306,6 +318,11 @@ module ActiveRecord
       raise
     ensure
       clear_transaction_record_state
+    end
+
+    def before_committed! # :nodoc:
+      _run_before_commit_without_transaction_enrollment_callbacks
+      _run_before_commit_callbacks
     end
 
     # Call the +after_commit+ callbacks.

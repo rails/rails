@@ -487,7 +487,7 @@ module ActiveRecord
     end
 
     def has_transactional_callbacks? # :nodoc:
-      !_rollback_callbacks.empty? || !_commit_callbacks.empty?
+      !_rollback_callbacks.empty? || !_commit_callbacks.empty? || !_before_commit_callbacks.empty?
     end
 
     # Updates the attributes on this particular ActiveRecord object so that
