@@ -26,10 +26,15 @@ class EnumTest < ActiveRecord::TestCase
     assert_equal @book, Book.unread.first
   end
 
-  test "build from scope" do
-    assert Book.proposed.build.proposed?
-    refute Book.proposed.build.written?
-    assert Book.where(status: Book.statuses[:proposed]).build.proposed?
+  test "find via where with values" do
+    proposed, written = Book.statuses[:proposed], Book.statuses[:written]
+
+    assert_equal @book, Book.where(status: proposed).first
+    refute_equal @book, Book.where(status: written).first
+    assert_equal @book, Book.where(status: [proposed]).first
+    refute_equal @book, Book.where(status: [written]).first
+    refute_equal @book, Book.where("status <> ?", proposed).first
+    assert_equal @book, Book.where("status <> ?", written).first
   end
 
   test "find via where with symbols" do
@@ -48,6 +53,20 @@ class EnumTest < ActiveRecord::TestCase
     refute_equal @book, Book.where(status: ["written"]).first
     refute_equal @book, Book.where("status <> ?", "proposed").first
     assert_equal @book, Book.where("status <> ?", "written").first
+  end
+
+  test "build from scope" do
+    assert Book.written.build.written?
+    refute Book.written.build.proposed?
+  end
+
+  test "build from where" do
+    assert Book.where(status: Book.statuses[:written]).build.written?
+    refute Book.where(status: Book.statuses[:written]).build.proposed?
+    assert Book.where(status: :written).build.written?
+    refute Book.where(status: :written).build.proposed?
+    assert Book.where(status: "written").build.written?
+    refute Book.where(status: "written").build.proposed?
   end
 
   test "update by declaration" do
