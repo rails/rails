@@ -65,9 +65,10 @@ module ActiveRecord
   #
   # In rare circumstances you might need to access the mapping directly.
   # The mappings are exposed through a class method with the pluralized attribute
-  # name:
+  # name, which return the mapping in a +HashWithIndifferentAccess+:
   #
-  #   Conversation.statuses # => { "active" => 0, "archived" => 1 }
+  #   Conversation.statuses[:active]    # => 0
+  #   Conversation.statuses["archived"] # => 1
   #
   module Enum
     def self.extended(base) # :nodoc:
