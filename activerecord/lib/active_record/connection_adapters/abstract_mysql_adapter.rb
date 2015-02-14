@@ -14,6 +14,22 @@ module ActiveRecord
         def json(*args, **options)
           args.each { |name| column(name, :json, options) }
         end
+
+        def unsigned_integer(*args, **options)
+          args.each { |name| column(name, :unsigned_integer, options) }
+        end
+
+        def unsigned_bigint(*args, **options)
+          args.each { |name| column(name, :unsigned_bigint, options) }
+        end
+
+        def unsigned_float(*args, **options)
+          args.each { |name| column(name, :unsigned_float, options) }
+        end
+
+        def unsigned_decimal(*args, **options)
+          args.each { |name| column(name, :unsigned_decimal, options) }
+        end
       end
 
       class ColumnDefinition < ActiveRecord::ConnectionAdapters::ColumnDefinition
@@ -29,6 +45,9 @@ module ActiveRecord
           when :primary_key
             column.type = :integer
             column.auto_increment = true
+          when /\Aunsigned_(?<type>.+)\z/
+            column.type = $~[:type].to_sym
+            column.unsigned = true
           end
           column.unsigned ||= options[:unsigned]
           column.charset = options[:charset]
@@ -1108,6 +1127,8 @@ module ActiveRecord
       ActiveRecord::Type.register(:json, MysqlJson, adapter: :mysql2)
       ActiveRecord::Type.register(:string, MysqlString, adapter: :mysql)
       ActiveRecord::Type.register(:string, MysqlString, adapter: :mysql2)
+      ActiveRecord::Type.register(:unsigned_integer, Type::UnsignedInteger, adapter: :mysql)
+      ActiveRecord::Type.register(:unsigned_integer, Type::UnsignedInteger, adapter: :mysql2)
     end
   end
 end

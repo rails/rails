@@ -42,6 +42,19 @@ class Mysql2UnsignedTypeTest < ActiveRecord::Mysql2TestCase
     end
   end
 
+  test "schema definition can use unsigned as the type" do
+    @connection.change_table("unsigned_types") do |t|
+      t.unsigned_integer :unsigned_integer_t
+      t.unsigned_bigint  :unsigned_bigint_t
+      t.unsigned_float   :unsigned_float_t
+      t.unsigned_decimal :unsigned_decimal_t, precision: 10, scale: 2
+    end
+
+    @connection.columns("unsigned_types").select { |c| /^unsigned_/ === c.name }.each do |column|
+      assert column.unsigned?
+    end
+  end
+
   test "schema dump includes unsigned option" do
     schema = dump_table_schema "unsigned_types"
     assert_match %r{t.integer\s+"unsigned_integer",\s+limit: 4,\s+unsigned: true$}, schema

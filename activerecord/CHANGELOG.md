@@ -9,6 +9,15 @@
           t.decimal :unsigned_decimal, unsigned: true, precision: 10, scale: 2
         end
 
+    In the case of using `unsigned` as the type:
+
+        create_table :foos do |t|
+          t.unsigned_integer :unsigned_integer
+          t.unsigned_bigint  :unsigned_bigint
+          t.unsigned_float   :unsigned_float
+          t.unsigned_decimal :unsigned_decimal, precision: 10, scale: 2
+        end
+
     *Ryuta Kamizono*
 
 *   Lookup the attribute name for `restrict_with_error` messages on the
