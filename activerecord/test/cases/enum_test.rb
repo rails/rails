@@ -168,19 +168,24 @@ class EnumTest < ActiveRecord::TestCase
     assert_equal "'unknown' is not a valid status", e.message
   end
 
+  test "NULL values from database should be casted to nil" do
+    Book.where(id: @book.id).update_all("status = NULL")
+    assert_nil @book.reload.status
+  end
+
   test "assign nil value" do
     @book.status = nil
-    assert @book.status.nil?
+    assert_nil @book.status
   end
 
   test "assign empty string value" do
     @book.status = ''
-    assert @book.status.nil?
+    assert_nil @book.status
   end
 
   test "assign long empty string value" do
     @book.status = '   '
-    assert @book.status.nil?
+    assert_nil @book.status
   end
 
   test "constant to access the mapping" do
