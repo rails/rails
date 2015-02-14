@@ -832,7 +832,7 @@ application. Here is a list of useful plugins for debugging:
 * [Footnotes](https://github.com/josevalim/rails-footnotes) Every Rails page has
 footnotes that give request information and link back to your source via
 TextMate.
-* [Query Trace](https://github.com/ntalbott/query_trace/tree/master) Adds query
+* [Query Trace](https://github.com/ruckus/active-record-query-trace/tree/master) Adds query
 origin tracing to your logs.
 * [Query Reviewer](https://github.com/nesquena/query_reviewer) This rails plugin
 not only runs "EXPLAIN" before each of your select queries in development, but
