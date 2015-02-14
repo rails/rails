@@ -288,16 +288,17 @@ module ActionController #:nodoc:
         end
 
         def variant
-          if @variant.nil?
+          if @variant.empty?
             @variants[:none] || @variants[:any]
-          elsif (@variants.keys & @variant).any?
-            @variant.each do |v|
-              return @variants[v] if @variants.key?(v)
-            end
           else
-            @variants[:any]
+            @variants[variant_key]
           end
         end
+
+        private
+          def variant_key
+            @variant.find { |variant| @variants.key?(variant) } || :any
+          end
       end
     end
   end

@@ -10,8 +10,6 @@ module ActionDispatch
         self.ignore_accept_header = false
       end
 
-      attr_reader :variant
-
       # The MIME type of the HTTP request, such as Mime::XML.
       #
       # For backward compatibility, the post \format is extracted from the
@@ -75,16 +73,20 @@ module ActionDispatch
 
       # Sets the \variant for template.
       def variant=(variant)
-        if variant.is_a?(Symbol)
-          @variant = [variant]
-        elsif variant.nil? || variant.is_a?(Array) && variant.any? && variant.all?{ |v| v.is_a?(Symbol) }
-          @variant = variant
+        variant = Array(variant)
+
+        if variant.all? { |v| v.is_a?(Symbol) }
+          @variant = VariantInquirer.new(variant)
         else
-          raise ArgumentError, "request.variant must be set to a Symbol or an Array of Symbols, not a #{variant.class}. " \
+          raise ArgumentError, "request.variant must be set to a Symbol or an Array of Symbols. " \
             "For security reasons, never directly set the variant to a user-provided value, " \
             "like params[:variant].to_sym. Check user-provided value against a whitelist first, " \
             "then set the variant: request.variant = :tablet if params[:variant] == 'tablet'"
         end
+      end
+
+      def variant
+        @variant ||= VariantInquirer.new
       end
 
       # Sets the \format by string extension, which can be used to force custom formats
@@ -137,6 +139,31 @@ module ActionDispatch
         end
 
         order.include?(Mime::ALL) ? format : nil
+      end
+
+      class VariantInquirer # :nodoc:
+        delegate :each, :empty?, to: :@variants
+
+        def initialize(variants = [])
+          @variants = variants
+        end
+
+        def any?(*candidates)
+          (@variants & candidates).any?
+        end
+
+        def to_ary
+          @variants
+        end
+
+        private
+          def method_missing(name, *args)
+            if name[-1] == '?'
+              any? name[0..-2].to_sym
+            else
+              super
+            end
+          end
       end
 
       protected
