@@ -87,10 +87,11 @@ module ActiveRecord
       super
     end
 
-    class EnumType < Type::Value
-      def initialize(name, mapping)
+    class EnumType < DelegateClass(Type::Value) # :nodoc:
+      def initialize(subtype, name, mapping)
         @name = name
         @mapping = mapping
+        super(subtype)
       end
 
       def type_cast_from_user(value)
@@ -105,11 +106,15 @@ module ActiveRecord
 
       def type_cast_from_database(value)
         return if value.nil?
-        mapping.key(value.to_i)
+        mapping.key(super)
       end
 
       def type_cast_for_database(value)
-        mapping.fetch(value, value)
+        super mapping.fetch(value, value)
+      end
+
+      def changed?(old_value, new_value, _new_value_before_type_cast)
+        old_value != new_value
       end
 
       protected
@@ -131,7 +136,9 @@ module ActiveRecord
         detect_enum_conflict!(name, name)
         detect_enum_conflict!(name, "#{name}=")
 
-        attribute name, EnumType.new(name, enum_values)
+        decorate_attribute_type(name, :enum) do |type|
+          EnumType.new(type, name, enum_values)
+        end
 
         _enum_methods_module.module_eval do
           pairs = values.respond_to?(:each_pair) ? values.each_pair : values.each_with_index
