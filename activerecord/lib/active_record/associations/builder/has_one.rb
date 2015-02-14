@@ -17,5 +17,12 @@ module ActiveRecord::Associations::Builder
     def self.add_destroy_callbacks(model, reflection)
       super unless reflection.options[:through]
     end
+
+    def self.define_validations(model, reflection)
+      super
+      if reflection.options[:required]
+        model.validates_presence_of reflection.name, message: :required
+      end
+    end
   end
 end

@@ -1520,10 +1520,16 @@ module ActiveRecord
       #   object that is the inverse of this <tt>belongs_to</tt> association. Does not work in
       #   combination with the <tt>:polymorphic</tt> options.
       #   See ActiveRecord::Associations::ClassMethods's overview on Bi-directional associations for more detail.
+      # [:optional]
+      #   When set to +true+, the association will not have its presence validated.
       # [:required]
       #   When set to +true+, the association will also have its presence validated.
       #   This will validate the association itself, not the id. You can use
       #   +:inverse_of+ to avoid an extra query during validation.
+      #   NOTE: <tt>required</tt> is set to <tt>true</tt> by default and is deprecated. If
+      #   you don't want to have association presence validated, use <tt>optional: true</tt>.
+      #
+      #
       #
       # Option examples:
       #   belongs_to :firm, foreign_key: "client_of"
@@ -1536,7 +1542,7 @@ module ActiveRecord
       #   belongs_to :post, counter_cache: true
       #   belongs_to :comment, touch: true
       #   belongs_to :company, touch: :employees_last_updated_at
-      #   belongs_to :user, required: true
+      #   belongs_to :user, optional: true
       def belongs_to(name, scope = nil, options = {})
         reflection = Builder::BelongsTo.build(self, name, scope, options)
         Reflection.add_reflection self, name, reflection

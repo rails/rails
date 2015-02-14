@@ -58,6 +58,56 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_optional_relation
+    original_value = ActiveRecord::Base.belongs_to_required_by_default
+    ActiveRecord::Base.belongs_to_required_by_default = true
+
+    model = Class.new(ActiveRecord::Base) do
+      self.table_name = "accounts"
+      def self.name; "Temp"; end
+      belongs_to :company, optional: true
+    end
+
+    account = model.new
+    assert account.valid?
+  ensure
+    ActiveRecord::Base.belongs_to_required_by_default = original_value
+  end
+
+  def test_not_optional_relation
+    original_value = ActiveRecord::Base.belongs_to_required_by_default
+    ActiveRecord::Base.belongs_to_required_by_default = true
+
+    model = Class.new(ActiveRecord::Base) do
+      self.table_name = "accounts"
+      def self.name; "Temp"; end
+      belongs_to :company, optional: false
+    end
+
+    account = model.new
+    refute account.valid?
+    assert_equal [{error: :blank}], account.errors.details[:company]
+  ensure
+    ActiveRecord::Base.belongs_to_required_by_default = original_value
+  end
+
+  def test_required_belongs_to_config
+    original_value = ActiveRecord::Base.belongs_to_required_by_default
+    ActiveRecord::Base.belongs_to_required_by_default = true
+
+    model = Class.new(ActiveRecord::Base) do
+      self.table_name = "accounts"
+      def self.name; "Temp"; end
+      belongs_to :company
+    end
+
+    account = model.new
+    refute account.valid?
+    assert_equal [{error: :blank}], account.errors.details[:company]
+  ensure
+    ActiveRecord::Base.belongs_to_required_by_default = original_value
+  end
+
   def test_default_scope_on_relations_is_not_cached
     counter = 0
 

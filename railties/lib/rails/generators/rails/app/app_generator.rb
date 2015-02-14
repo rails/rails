@@ -89,6 +89,7 @@ module Rails
     def config_when_updating
       cookie_serializer_config_exist = File.exist?('config/initializers/cookies_serializer.rb')
       callback_terminator_config_exist = File.exist?('config/initializers/callback_terminator.rb')
+      active_record_belongs_to_required_by_default_config_exist = File.exist?('config/initializers/active_record_belongs_to_required_by_default.rb')
 
       config
 
@@ -98,6 +99,10 @@ module Rails
 
       unless cookie_serializer_config_exist
         gsub_file 'config/initializers/cookies_serializer.rb', /json/, 'marshal'
+      end
+
+      unless active_record_belongs_to_required_by_default_config_exist
+        remove_file 'config/initializers/active_record_belongs_to_required_by_default.rb'
       end
     end
 
@@ -255,6 +260,12 @@ module Rails
       def delete_assets_initializer_skipping_sprockets
         if options[:skip_sprockets]
           remove_file 'config/initializers/assets.rb'
+        end
+      end
+
+      def delete_active_record_initializers_skipping_active_record
+        if options[:skip_active_record]
+          remove_file 'config/initializers/active_record_belongs_to_required_by_default.rb'
         end
       end
 
