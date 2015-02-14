@@ -44,6 +44,7 @@ module ActionView
     autoload :RoutingUrlFor
     autoload :Template
     autoload :ViewPaths
+    autoload :TemplateEagerLoader
 
     autoload_under "renderer" do
       autoload :Renderer

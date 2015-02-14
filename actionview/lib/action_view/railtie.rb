@@ -48,6 +48,14 @@ module ActionView
       end
     end
 
+    initializer "cache_templates" do
+      ActiveSupport.on_load(:action_controller) do
+        if Rails.env.production? && app.config.eager_load_templates
+          ActionView::TemplateEagerLoader.new(_view_paths).cache_templates
+        end
+      end
+    end
+
     rake_tasks do
       load "action_view/tasks/dependencies.rake"
     end
