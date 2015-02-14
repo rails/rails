@@ -118,7 +118,7 @@ module ActiveModel
       attribute_method_affix prefix: 'restore_', suffix: '!'
     end
 
-    # Returns +true+ if any attribute have unsaved changes, +false+ otherwise.
+    # Returns +true+ if any of the attributes have unsaved changes, +false+ otherwise.
     #
     #   person.changed? # => false
     #   person.name = 'bob'
@@ -166,7 +166,7 @@ module ActiveModel
       @changed_attributes ||= ActiveSupport::HashWithIndifferentAccess.new
     end
 
-    # Handle <tt>*_changed?</tt> for +method_missing+.
+    # Handles <tt>*_changed?</tt> for +method_missing+.
     def attribute_changed?(attr, options = {}) #:nodoc:
       result = changes_include?(attr)
       result &&= options[:to] == __send__(attr) if options.key?(:to)
@@ -174,7 +174,7 @@ module ActiveModel
       result
     end
 
-    # Handle <tt>*_was</tt> for +method_missing+.
+    # Handles <tt>*_was</tt> for +method_missing+.
     def attribute_was(attr) # :nodoc:
       attribute_changed?(attr) ? changed_attributes[attr] : __send__(attr)
     end
@@ -186,6 +186,7 @@ module ActiveModel
 
     private
 
+      # Returns +true+ if attr_name is changed, +false+ otherwise.
       def changes_include?(attr_name)
         attributes_changed_by_setter.include?(attr_name)
       end
@@ -197,18 +198,18 @@ module ActiveModel
         @changed_attributes = ActiveSupport::HashWithIndifferentAccess.new
       end
 
-      # Clear all dirty data: current changes and previous changes.
+      # Clears all dirty data: current changes and previous changes.
       def clear_changes_information # :doc:
         @previously_changed = ActiveSupport::HashWithIndifferentAccess.new
         @changed_attributes = ActiveSupport::HashWithIndifferentAccess.new
       end
 
-      # Handle <tt>*_change</tt> for +method_missing+.
+      # Handles <tt>*_change</tt> for +method_missing+.
       def attribute_change(attr)
         [changed_attributes[attr], __send__(attr)] if attribute_changed?(attr)
       end
 
-      # Handle <tt>*_will_change!</tt> for +method_missing+.
+      # Handles <tt>*_will_change!</tt> for +method_missing+.
       def attribute_will_change!(attr)
         return if attribute_changed?(attr)
 
@@ -221,7 +222,7 @@ module ActiveModel
         set_attribute_was(attr, value)
       end
 
-      # Handle <tt>restore_*!</tt> for +method_missing+.
+      # Handles <tt>restore_*!</tt> for +method_missing+.
       def restore_attribute!(attr)
         if attribute_changed?(attr)
           __send__("#{attr}=", changed_attributes[attr])
@@ -230,7 +231,7 @@ module ActiveModel
       end
 
       # This is necessary because `changed_attributes` might be overridden in
-      # other implemntations (e.g. in `ActiveRecord`)
+      # other implementations (e.g. in `ActiveRecord`)
       alias_method :attributes_changed_by_setter, :changed_attributes # :nodoc:
 
       # Force an attribute to have a particular "before" value

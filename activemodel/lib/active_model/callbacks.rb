@@ -49,7 +49,7 @@ module ActiveModel
   #    puts 'block successfully called.'
   #  end
   #
-  # You can choose not to have all three callbacks by passing a hash to the
+  # You can choose to have only specific callbacks by passing a hash to the
   # +define_model_callbacks+ method.
   #
   #   define_model_callbacks :create, only: [:after, :before]

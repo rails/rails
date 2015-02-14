@@ -171,7 +171,7 @@ class CreateCustomers < ActiveRecord::Migration
     end
 
     create_table :orders do |t|
-      t.belongs_to :customer, index:true
+      t.belongs_to :customer, index: true
       t.datetime :order_date
       t.timestamps null: false
     end
@@ -691,7 +691,7 @@ c.first_name = 'Manny'
 c.first_name == o.customer.first_name # => false
 ```
 
-This happens because c and o.customer are two different in-memory representations of the same data, and neither one is automatically refreshed from changes to the other. Active Record provides the `:inverse_of` option so that you can inform it of these relations:
+This happens because `c` and `o.customer` are two different in-memory representations of the same data, and neither one is automatically refreshed from changes to the other. Active Record provides the `:inverse_of` option so that you can inform it of these relations:
 
 ```ruby
 class Customer < ActiveRecord::Base
@@ -726,10 +726,10 @@ Most associations with standard names will be supported. However, associations
 that contain the following options will not have their inverses set
 automatically:
 
-* :conditions
-* :through
-* :polymorphic
-* :foreign_key
+* `:conditions`
+* `:through`
+* `:polymorphic`
+* `:foreign_key`
 
 Detailed Association Reference
 ------------------------------
