@@ -42,8 +42,6 @@ class EnumTest < ActiveRecord::TestCase
     refute_equal @book, Book.where(status: :written).first
     assert_equal @book, Book.where(status: [:proposed]).first
     refute_equal @book, Book.where(status: [:written]).first
-    refute_equal @book, Book.where("status <> ?", :proposed).first
-    assert_equal @book, Book.where("status <> ?", :written).first
   end
 
   test "find via where with strings" do
@@ -51,8 +49,6 @@ class EnumTest < ActiveRecord::TestCase
     refute_equal @book, Book.where(status: "written").first
     assert_equal @book, Book.where(status: ["proposed"]).first
     refute_equal @book, Book.where(status: ["written"]).first
-    refute_equal @book, Book.where("status <> ?", "proposed").first
-    assert_equal @book, Book.where("status <> ?", "written").first
   end
 
   test "build from scope" do

@@ -36,7 +36,6 @@ module ActiveRecord
   # needs:
   #
   #   Conversation.where(status: [:active, :archived])
-  #   Conversation.where("status <> ?", :active)
   #
   # You can set the default value from the database declaration, like:
   #
@@ -70,6 +69,13 @@ module ActiveRecord
   #   Conversation.statuses[:active]    # => 0
   #   Conversation.statuses["archived"] # => 1
   #
+  # Use that class method when you need to know the ordinal value of an enum. For
+  # example, you can use that when manually building a SQL string inside a `where`
+  # condition:
+  #
+  #   Conversation.where("status <> ?", Conversation.statuses[:archived])
+  #
+
   module Enum
     def self.extended(base) # :nodoc:
       base.class_attribute(:defined_enums)
