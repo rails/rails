@@ -1,3 +1,7 @@
+*   Add http_cache_forever to Action Controller, so we can cache a response that never gets expired.
+
+    *arthurnn*
+
 *   ActionController#translate supports symbols as shortcuts.
     When shortcut is given it also lookups without action name.
 

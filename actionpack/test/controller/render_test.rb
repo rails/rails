@@ -561,3 +561,56 @@ class HeadRenderTest < ActionController::TestCase
     assert_response :forbidden
   end
 end
+
+class HttpCacheForeverTest < ActionController::TestCase
+  class HttpCacheForeverController < ActionController::Base
+    def cache_me_forever
+      http_cache_forever(public: params[:public], version: params[:version] || 'v1') do
+        render text: 'hello'
+      end
+    end
+  end
+
+  tests HttpCacheForeverController
+
+  def test_cache_with_public
+    get :cache_me_forever, params: {public: true}
+    assert_equal "max-age=#{100.years.to_i}, public", @response.headers["Cache-Control"]
+    assert_not_nil @response.etag
+  end
+
+  def test_cache_with_private
+    get :cache_me_forever
+    assert_equal "max-age=#{100.years.to_i}, private", @response.headers["Cache-Control"]
+    assert_not_nil @response.etag
+    assert_response :success
+  end
+
+  def test_cache_response_code_with_if_modified_since
+    get :cache_me_forever
+    assert_response :success
+    @request.if_modified_since = @response.headers['Last-Modified']
+    get :cache_me_forever
+    assert_response :not_modified
+  end
+
+  def test_cache_response_code_with_etag
+    get :cache_me_forever
+    assert_response :success
+    @request.if_modified_since = @response.headers['Last-Modified']
+    @request.if_none_match = @response.etag
+
+    get :cache_me_forever
+    assert_response :not_modified
+    @request.if_modified_since = @response.headers['Last-Modified']
+    @request.if_none_match = @response.etag
+
+    get :cache_me_forever, params: {version: 'v2'}
+    assert_response :success
+    @request.if_modified_since = @response.headers['Last-Modified']
+    @request.if_none_match = @response.etag
+
+    get :cache_me_forever, params: {version: 'v2'}
+    assert_response :not_modified
+  end
+end
