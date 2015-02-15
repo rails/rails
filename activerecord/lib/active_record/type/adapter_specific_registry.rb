@@ -1,6 +1,7 @@
 module ActiveRecord
+  # :stopdoc:
   module Type
-    class AdapterSpecificRegistry # :nodoc:
+    class AdapterSpecificRegistry
       def initialize
         @registrations = []
       end
@@ -136,4 +137,6 @@ module ActiveRecord
 
   class TypeConflictError < StandardError
   end
+
+  # :startdoc:
 end

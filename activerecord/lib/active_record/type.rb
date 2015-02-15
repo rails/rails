@@ -27,9 +27,7 @@ module ActiveRecord
     class << self
       attr_accessor :registry # :nodoc:
 
-      def register(*args)
-        registry.register(*args)
-      end
+      delegate :register, :add_modifier, to: :registry
 
       def lookup(*args, adapter: current_adapter_name, **kwargs)
         registry.lookup(*args, adapter: adapter, **kwargs)
@@ -41,5 +39,17 @@ module ActiveRecord
         ActiveRecord::Base.connection.adapter_name.downcase.to_sym
       end
     end
+
+    register(:big_integer, Type::BigInteger, override: false)
+    register(:binary, Type::Binary, override: false)
+    register(:boolean, Type::Boolean, override: false)
+    register(:date, Type::Date, override: false)
+    register(:date_time, Type::DateTime, override: false)
+    register(:decimal, Type::Decimal, override: false)
+    register(:float, Type::Float, override: false)
+    register(:integer, Type::Integer, override: false)
+    register(:string, Type::String, override: false)
+    register(:text, Type::Text, override: false)
+    register(:time, Type::Time, override: false)
   end
 end

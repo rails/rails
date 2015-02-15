@@ -942,9 +942,8 @@ module ActiveRecord
         end
       end
 
-      def type_classes_with_standard_constructor
-        super.merge(string: MysqlString)
-      end
+      ActiveRecord::Type.register(:string, MysqlString, adapter: :mysql)
+      ActiveRecord::Type.register(:string, MysqlString, adapter: :mysql2)
     end
   end
 end

@@ -813,6 +813,25 @@ module ActiveRecord
           return unless coder_class
           coder_class.new(oid: row['oid'], name: row['typname'])
         end
+
+        ActiveRecord::Type.add_modifier({ array: true }, OID::Array, adapter: :postgresql)
+        ActiveRecord::Type.add_modifier({ range: true }, OID::Range, adapter: :postgresql)
+        ActiveRecord::Type.register(:bit, OID::Bit, adapter: :postgresql)
+        ActiveRecord::Type.register(:bit_varying, OID::BitVarying, adapter: :postgresql)
+        ActiveRecord::Type.register(:binary, OID::Bytea, adapter: :postgresql)
+        ActiveRecord::Type.register(:cidr, OID::Cidr, adapter: :postgresql)
+        ActiveRecord::Type.register(:date_time, OID::DateTime, adapter: :postgresql)
+        ActiveRecord::Type.register(:decimal, OID::Decimal, adapter: :postgresql)
+        ActiveRecord::Type.register(:enum, OID::Enum, adapter: :postgresql)
+        ActiveRecord::Type.register(:hstore, OID::Hstore, adapter: :postgresql)
+        ActiveRecord::Type.register(:inet, OID::Inet, adapter: :postgresql)
+        ActiveRecord::Type.register(:json, OID::Json, adapter: :postgresql)
+        ActiveRecord::Type.register(:jsonb, OID::Jsonb, adapter: :postgresql)
+        ActiveRecord::Type.register(:money, OID::Money, adapter: :postgresql)
+        ActiveRecord::Type.register(:point, OID::Point, adapter: :postgresql)
+        ActiveRecord::Type.register(:uuid, OID::Uuid, adapter: :postgresql)
+        ActiveRecord::Type.register(:vector, OID::Vector, adapter: :postgresql)
+        ActiveRecord::Type.register(:xml, OID::Xml, adapter: :postgresql)
     end
   end
 end

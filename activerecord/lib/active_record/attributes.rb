@@ -210,7 +210,7 @@ module ActiveRecord
         super
         attributes_to_define_after_schema_loads.each do |name, (type, options)|
           if type.is_a?(Symbol)
-            type = connection.type_for_attribute_options(type, **options.except(:default))
+            type = ActiveRecord::Type.lookup(type, **options.except(:default))
           end
 
           define_attribute(name, type, **options.slice(:default))
