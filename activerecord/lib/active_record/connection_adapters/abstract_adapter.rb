@@ -391,15 +391,15 @@ module ActiveRecord
         Column.new(name, default, sql_type_metadata, null)
       end
 
-      def lookup_cast_type(sql_type) # :nodoc:
-        type_map.lookup(sql_type)
-      end
-
       def column_name_for_operation(operation, node) # :nodoc:
         visitor.accept(node, collector).value
       end
 
       protected
+
+      def lookup_cast_type(sql_type) # :nodoc:
+        type_map.lookup(sql_type)
+      end
 
       def initialize_type_map(m) # :nodoc:
         register_class_with_limit m, %r(boolean)i,       Type::Boolean
