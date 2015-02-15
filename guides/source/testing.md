@@ -545,7 +545,8 @@ NOTE: Functional tests do not verify whether the specified request type is accep
 
 ### Testing XHR (AJAX) requests
 
-Enable set  `xhr: true` option as an argument to `get/post/patch/put/delete` method:
+To test AJAX requests, you can specify the `xhr: true` option to `get`, `post`,
+`patch`, `put`, and `delete` methods:
 
 ```ruby
 test "ajax request responds with no layout" do

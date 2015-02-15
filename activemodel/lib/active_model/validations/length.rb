@@ -112,10 +112,12 @@ module ActiveModel
       # * <tt>:message</tt> - The error message to use for a <tt>:minimum</tt>,
       #   <tt>:maximum</tt>, or <tt>:is</tt> violation. An alias of the appropriate
       #   <tt>too_long</tt>/<tt>too_short</tt>/<tt>wrong_length</tt> message.
-      # * <tt>:tokenizer</tt> - Specifies a method, proc or string to how to split up the attribute string.
-      #   (e.g. <tt>tokenizer: ->(str) { str.scan(/\w+/) }</tt> or <tt>tokenizer: :word_tokenizer</tt> to count words
-      #   as in above example). Defaults to <tt>->(value) { value.split(//) }</tt>
-      #   which counts individual characters.
+      # * <tt>:tokenizer</tt> - A method (as a symbol), proc or string to
+      #   specify how to split up the attribute string. (e.g.
+      #   <tt>tokenizer: :word_tokenizer</tt> to call the +word_tokenizer+ method
+      #   or <tt>tokenizer: ->(str) { str.scan(/\w+/) }</tt> to count words as in
+      #   above example). Defaults to <tt>->(value) { value.split(//) }</tt> which
+      #   counts individual characters.
       #
       # There is also a list of default options supported by every validator:
       # +:if+, +:unless+, +:on+ and +:strict+.
