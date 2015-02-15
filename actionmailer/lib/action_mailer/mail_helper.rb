@@ -33,6 +33,8 @@ module ActionMailer
     end
 
     # Returns +text+ wrapped at +len+ columns and indented +indent+ spaces.
+    # By default column length +len+ equals 72 characters and indent
+    # +indent+ equal two spaces.
     #
     #   my_text = 'Here is a sample text with more than 40 characters'
     #
