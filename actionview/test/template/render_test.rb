@@ -599,6 +599,12 @@ class LazyViewRenderTest < ActiveSupport::TestCase
 end
 
 class CachedCollectionViewRenderTest < CachedViewRenderTest
+  class CachedCustomer < Customer; end
+
+  teardown do
+    ActionView::PartialRenderer.collection_cache.clear
+  end
+
   test "with custom key" do
     customer = Customer.new("david")
     key = ActionController::Base.new.fragment_cache_key([customer, 'key'])
@@ -607,7 +613,25 @@ class CachedCollectionViewRenderTest < CachedViewRenderTest
 
     assert_equal "Hello",
       @view.render(partial: "test/customer", collection: [customer], cache: ->(item) { [item, 'key'] })
+  end
 
-    ActionView::PartialRenderer.collection_cache.clear
+  test "automatic caching with inferred cache name" do
+    customer = CachedCustomer.new("david")
+    key = ActionController::Base.new.fragment_cache_key(customer)
+
+    ActionView::PartialRenderer.collection_cache.write(key, 'Cached')
+
+    assert_equal "Cached",
+      @view.render(partial: "test/cached_customer", collection: [customer])
+  end
+
+  test "automatic caching with as name" do
+    customer = CachedCustomer.new("david")
+    key = ActionController::Base.new.fragment_cache_key(customer)
+
+    ActionView::PartialRenderer.collection_cache.write(key, 'Cached')
+
+    assert_equal "Cached",
+      @view.render(partial: "test/cached_customer_as", collection: [customer], as: :buyer)
   end
 end

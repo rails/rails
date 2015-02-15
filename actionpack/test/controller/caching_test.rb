@@ -1,5 +1,6 @@
 require 'fileutils'
 require 'abstract_unit'
+require 'lib/controller/fake_models'
 
 CACHE_DIR = 'test_cache'
 # Don't change '/../temp/' cavalierly or you might hose something you don't want hosed
@@ -347,5 +348,62 @@ class ViewCacheDependencyTest < ActionController::TestCase
 
   def test_view_cache_dependencies_are_listed_in_declaration_order
     assert_equal %w(trombone flute), HasDependenciesController.new.view_cache_dependencies
+  end
+end
+
+class CollectionCacheController < ActionController::Base
+  def index
+    @customers = [Customer.new('david', params[:id] || 1)]
+  end
+
+  def index_ordered
+    @customers = [Customer.new('david', 1), Customer.new('david', 2), Customer.new('david', 3)]
+    render 'index'
+  end
+
+  def index_explicit_render
+    @customers = [Customer.new('david', 1)]
+    render partial: 'customers/customer', collection: @customers
+  end
+
+  def index_with_comment
+    @customers = [Customer.new('david', 1)]
+    render partial: 'customers/commented_customer', collection: @customers, as: :customer
+  end
+end
+
+class AutomaticCollectionCacheTest < ActionController::TestCase
+  def setup
+    super
+    @controller = CollectionCacheController.new
+    @controller.perform_caching = true
+    @controller.cache_store = ActiveSupport::Cache::MemoryStore.new
+  end
+
+  def test_collection_fetches_cached_views
+    get :index
+
+    ActionView::PartialRenderer.expects(:collection_with_template).never
+    get :index
+  end
+
+  def test_preserves_order_when_reading_from_cache_plus_rendering
+    get :index, params: { id: 2 }
+    get :index_ordered
+
+    assert_select ':root', "david, 1\n  david, 2\n  david, 3"
+  end
+
+  def test_explicit_render_call_with_options
+    get :index_explicit_render
+
+    assert_select ':root', "david, 1"
+  end
+
+  def test_caching_works_with_beginning_comment
+    get :index_with_comment
+
+    ActionView::PartialRenderer.expects(:collection_with_template).never
+    get :index_with_comment
   end
 end

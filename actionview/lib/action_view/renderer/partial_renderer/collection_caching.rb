@@ -26,11 +26,24 @@ module ActionView
       end
 
       def cache_collection?
-        @options[:cache].present?
+        @options.fetch(:cache, automatic_cache_eligible?)
+      end
+
+      def automatic_cache_eligible?
+        single_template_render? && !callable_cache_key? &&
+          @template.eligible_for_collection_caching?(as: @options[:as])
+      end
+
+      def single_template_render?
+        @template # Template is only set when a collection renders one template.
+      end
+
+      def callable_cache_key?
+        @options[:cache].respond_to?(:call)
       end
 
       def collection_by_cache_keys
-        seed = @options[:cache].respond_to?(:call) ? @options[:cache] : ->(i) { i }
+        seed = callable_cache_key? ? @options[:cache] : ->(i) { i }
 
         @collection.each_with_object({}) do |item, hash|
           hash[expanded_cache_key(seed.call(item))] = item
