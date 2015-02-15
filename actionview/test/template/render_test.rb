@@ -597,3 +597,17 @@ class LazyViewRenderTest < ActiveSupport::TestCase
     silence_warnings { Encoding.default_external = old }
   end
 end
+
+class CachedCollectionViewRenderTest < CachedViewRenderTest
+  test "with custom key" do
+    customer = Customer.new("david")
+    key = ActionController::Base.new.fragment_cache_key([customer, 'key'])
+
+    ActionView::PartialRenderer.collection_cache.write(key, 'Hello')
+
+    assert_equal "Hello",
+      @view.render(partial: "test/customer", collection: [customer], cache: ->(item) { [item, 'key'] })
+
+    ActionView::PartialRenderer.collection_cache.clear
+  end
+end
