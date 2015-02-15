@@ -318,6 +318,7 @@ module ActionView
         end
 
         def extract_dimensions(size)
+          size = size.to_s
           if size =~ %r{\A\d+x\d+\z}
             size.split('x')
           elsif size =~ %r{\A\d+\z}
