@@ -1049,7 +1049,7 @@ As you already could see from the previous sections of this guide, `yield` is a 
       <p>
         Name contains: <%= f.text_field :name_contains %>
       </p>
-    <%= end %>
+    <% end %>
     ```
 
 * `roles/index.html.erb`
@@ -1059,7 +1059,7 @@ As you already could see from the previous sections of this guide, `yield` is a 
       <p>
         Title contains: <%= f.text_field :title_contains %>
       </p>
-    <%= end %>
+    <% end %>
     ```
 
 * `shared/_search_filters.html.erb`
