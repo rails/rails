@@ -1,3 +1,8 @@
+*   Add support for `infinity`/`-infinity` in `date` columns to the PostgreSQL
+    adapter.
+
+    *Thorsten Ball*
+
 *   Add `foreign_key_exists?` method.
 
     *Tõnis Simo*

@@ -11,6 +11,7 @@ class PostgresqlInfinityTest < ActiveRecord::TestCase
     @connection.create_table(:postgresql_infinities) do |t|
       t.float :float
       t.datetime :datetime
+      t.date :date
     end
   end
 
@@ -56,5 +57,18 @@ class PostgresqlInfinityTest < ActiveRecord::TestCase
       # There is no way to do this automatically since it can be set on a superclass
       PostgresqlInfinity.reset_column_information
     end
+  end
+
+  test "type casting infinity on a date column" do
+    record = PostgresqlInfinity.create!(date: Float::INFINITY)
+    record.reload
+    assert_equal Float::INFINITY, record.date
+  end
+
+  test "update_all with infinity on a date column" do
+    record = PostgresqlInfinity.create!
+    PostgresqlInfinity.update_all(date: Float::INFINITY)
+    record.reload
+    assert_equal Float::INFINITY, record.date
   end
 end
