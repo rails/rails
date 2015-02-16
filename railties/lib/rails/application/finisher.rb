@@ -56,6 +56,9 @@ module Rails
 
       # All initialization is done, including eager loading in production
       initializer :finisher_hook do
+        # Clear all connections that were used during initialization
+        ActiveRecord::Base.clear_reloadable_connections!
+
         ActiveSupport.run_load_hooks(:after_initialize, self)
       end
 

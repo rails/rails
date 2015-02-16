@@ -1,3 +1,10 @@
+## Rails 3.2.22 (Feb 15, 2015) ##
+
+*   Fix bug that left connection open after Application.initialize!
+    Fix #18953.
+
+    *Jeff Kuchta*
+
 ## Rails 3.2.19 (Jul 2, 2014) ##
 
 * No changes.
