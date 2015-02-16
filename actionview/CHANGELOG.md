@@ -1,3 +1,9 @@
+*   Allow to pass a string value to `size` option in `image_tag` and `video_tag`.
+
+    This makes the behavior more consistent with `width` or `height` options.
+
+    *Mehdi Lahmam*
+
 *   Partial template name does no more have to be a valid Ruby identifier.
 
     There used to be a naming rule that the partial name should start with
