@@ -606,9 +606,7 @@ This helper validates that the attribute's value is unique right before the
 object gets saved. It does not create a uniqueness constraint in the database,
 so it may happen that two different database connections create two records
 with the same value for a column that you intend to be unique. To avoid that,
-you must create a unique index on both columns in your database. See
-[the MySQL manual](http://dev.mysql.com/doc/refman/5.6/en/multiple-column-indexes.html)
-for more details about multiple column indexes.
+you must create a unique index on that column in your database.
 
 ```ruby
 class Account < ActiveRecord::Base
@@ -628,6 +626,7 @@ class Holiday < ActiveRecord::Base
     message: "should happen once per year" }
 end
 ```
+Should you wish to create a database constraint to prevent possible violations of a uniqueness validation using the `:scope` option, you must create a unique index on both columns in your database. See [the MySQL manual](http://dev.mysql.com/doc/refman/5.6/en/multiple-column-indexes.html) for more details about multiple column indexes or [the PostgreSQL manual](http://www.postgresql.org/docs/9.4/static/ddl-constraints.html) for examples of unique constraints that refer to a group of columns.
 
 There is also a `:case_sensitive` option that you can use to define whether the
 uniqueness constraint will be case sensitive or not. This option defaults to
