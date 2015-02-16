@@ -667,7 +667,7 @@ module ActiveRecord
       #   remove_reference(:products, :user, index: true, foreign_key: true)
       #
       def remove_reference(table_name, ref_name, options = {})
-        remove_foreign_key table_name, ref_name if options[:foreign_key]
+        remove_foreign_key table_name, ref_name.to_s.pluralize if options[:foreign_key]
 
         remove_column(table_name, "#{ref_name}_id")
         remove_column(table_name, "#{ref_name}_type") if options[:polymorphic]
