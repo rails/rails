@@ -6,6 +6,8 @@ module ActionCable
     class_attribute :worker_pool_size
     self.worker_pool_size = 100
 
+    cattr_accessor(:logger, instance_reader: true) { Rails.logger }
+
     PING_INTERVAL = 3
 
     class << self
@@ -75,6 +77,7 @@ module ActionCable
     end
 
     def broadcast(data)
+      logger.info "Sending data: #{data}"
       @websocket.send data
     end
 
@@ -94,24 +97,25 @@ module ActionCable
         subscription_klass = registered_channels.detect { |channel_klass| channel_klass.find_name == id_options[:channel] }
 
         if subscription_klass
+          logger.info "Subscribing to channel: #{id_key}"
           @subscriptions[id_key] = subscription_klass.new(self, id_key, id_options)
         else
-          # No channel found
+          logger.error "Unable to subscribe to channel: #{id_key}"
         end
       end
 
       def process_message(message)
-        id_key = message['identifier']
-
-        if @subscriptions[id_key]
-          @subscriptions[id_key].receive(ActiveSupport::JSON.decode message['data'])
+        if @subscriptions[message['identifier']]
+          @subscriptions[message['identifier']].receive(ActiveSupport::JSON.decode message['data'])
+        else
+          logger.error "Unable to process message: #{message}"
         end
       end
 
       def unsubscribe_channel(data)
-        id_key = data['identifier']
-        @subscriptions[id_key].unsubscribe
-        @subscriptions.delete(id_key)
+        logger.info "Unsubscribing from channel: #{data['identifier']}"
+        @subscriptions[data['identifier']].unsubscribe
+        @subscriptions.delete(data['identifier'])
       end
 
       def invalid_request
