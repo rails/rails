@@ -1,3 +1,7 @@
+*   Add `foreign_key_exists?` method.
+
+    *Tõnis Simo*
+
 *   Use SQL COUNT and LIMIT 1 queries for `none?` and `one?` methods if no block or limit is given,
     instead of loading the entire collection to memory.
     This applies to relations (e.g. `User.all`) as well as associations (e.g. `account.users`)

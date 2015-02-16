@@ -147,6 +147,27 @@ module ActiveRecord
         assert_equal :nullify, fk.on_update
       end
 
+      def test_foreign_key_exists
+        @connection.add_foreign_key :astronauts, :rockets
+
+        assert @connection.foreign_key_exists?(:astronauts, :rockets)
+        assert_not @connection.foreign_key_exists?(:astronauts, :stars)
+      end
+
+      def test_foreign_key_exists_by_column
+        @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id"
+
+        assert @connection.foreign_key_exists?(:astronauts, column: "rocket_id")
+        assert_not @connection.foreign_key_exists?(:astronauts, column: "star_id")
+      end
+
+      def test_foreign_key_exists_by_name
+        @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", name: "fancy_named_fk"
+
+        assert @connection.foreign_key_exists?(:astronauts, name: "fancy_named_fk")
+        assert_not @connection.foreign_key_exists?(:astronauts, name: "other_fancy_named_fk")
+      end
+
       def test_remove_foreign_key_inferes_column
         @connection.add_foreign_key :astronauts, :rockets
 

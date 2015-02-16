@@ -757,26 +757,37 @@ module ActiveRecord
       def remove_foreign_key(from_table, options_or_to_table = {})
         return unless supports_foreign_keys?
 
-        if options_or_to_table.is_a?(Hash)
-          options = options_or_to_table
-        else
-          options = { column: foreign_key_column_for(options_or_to_table) }
-        end
-
-        fk_name_to_delete = options.fetch(:name) do
-          fk_to_delete = foreign_keys(from_table).detect {|fk| fk.column == options[:column].to_s }
-
-          if fk_to_delete
-            fk_to_delete.name
-          else
-            raise ArgumentError, "Table '#{from_table}' has no foreign key on column '#{options[:column]}'"
-          end
-        end
+        fk_name_to_delete = foreign_key_for!(from_table, options_or_to_table).name
 
         at = create_alter_table from_table
         at.drop_foreign_key fk_name_to_delete
 
         execute schema_creation.accept(at)
+      end
+
+      # Checks to see if a foreign key exists on a table for a given foreign key definition.
+      #
+      #   # Check a foreign key exists
+      #   foreign_key_exists?(:accounts, :branches)
+      #
+      #   # Check a foreign key on specified column exists
+      #   foreign_key_exists?(:accounts, column: :owner_id)
+      #
+      #   # Check a foreign key with a custom name exists
+      #   foreign_key_exists?(:accounts, name: "special_fk_name")
+      #
+      def foreign_key_exists?(from_table, options_or_to_table = {})
+        foreign_key_for(from_table, options_or_to_table).present?
+      end
+
+      def foreign_key_for(from_table, options_or_to_table = {}) # :nodoc:
+        return unless supports_foreign_keys?
+        foreign_keys(from_table).detect {|fk| fk.defined_for? options_or_to_table }
+      end
+
+      def foreign_key_for!(from_table, options_or_to_table = {}) # :nodoc:
+        foreign_key_for(from_table, options_or_to_table) or \
+          raise ArgumentError, "Table '#{from_table}' has no foreign key for #{options_or_to_table}"
       end
 
       def foreign_key_column_for(table_name) # :nodoc:

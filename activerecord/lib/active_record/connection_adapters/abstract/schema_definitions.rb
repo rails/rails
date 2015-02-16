@@ -50,6 +50,14 @@ module ActiveRecord
         options[:primary_key] != default_primary_key
       end
 
+      def defined_for?(options_or_to_table = {})
+        if options_or_to_table.is_a?(Hash)
+          options_or_to_table.all? {|key, value| options[key].to_s == value.to_s }
+        else
+          to_table == options_or_to_table.to_s
+        end
+      end
+
       private
       def default_primary_key
         "id"
@@ -649,6 +657,10 @@ module ActiveRecord
 
       def foreign_key(*args) # :nodoc:
         @base.add_foreign_key(name, *args)
+      end
+
+      def foreign_key_exists?(*args) # :nodoc:
+        @base.foreign_key_exists?(name, *args)
       end
 
       private
