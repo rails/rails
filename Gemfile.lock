@@ -1,8 +1,8 @@
 PATH
   remote: .
   specs:
-    action_cable (0.0.1)
-      activesupport (~> 4.2.0)
+    action_cable (0.0.2)
+      activesupport (>= 4.2.0)
       celluloid (~> 0.16.0)
       faye-websocket (~> 0.9.2)
 
@@ -17,7 +17,7 @@ GEM
       tzinfo (~> 1.1)
     celluloid (0.16.0)
       timers (~> 4.0.0)
-    eventmachine (1.0.4)
+    eventmachine (1.0.7)
     faye-websocket (0.9.2)
       eventmachine (>= 0.12.0)
       websocket-driver (>= 0.5.1)

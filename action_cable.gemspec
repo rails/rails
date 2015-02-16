@@ -1,7 +1,7 @@
 Gem::Specification.new do |s|
   s.platform = Gem::Platform::RUBY
   s.name = 'action_cable'
-  s.version = '0.0.1'
+  s.version = '0.0.2'
   s.summary = 'Framework for websockets.'
   s.description = 'Action Cable is a framework for realtime communication over websockets.'
 
@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.email = ['pratiknaik@gmail.com']
   s.homepage = 'http://basecamp.com'
 
-  s.add_dependency('activesupport', '~> 4.2.0')
+  s.add_dependency('activesupport', '>= 4.2.0')
   s.add_dependency('faye-websocket', '~> 0.9.2')
   s.add_dependency('celluloid', '~> 0.16.0')
 
