@@ -91,10 +91,6 @@ module Rails
       Hash.new(middlewares)
     end
 
-    def log_path
-      "log/#{options[:environment]}.log"
-    end
-
     def default_options
       super.merge({
         Port:               3000,
