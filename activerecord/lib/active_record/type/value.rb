@@ -14,12 +14,12 @@ module ActiveRecord
 
       # Convert a value from database input to the appropriate ruby type. The
       # return value of this method will be returned from
-      # ActiveRecord::AttributeMethods::Read#read_attribute. See also
-      # Value#type_cast and Value#cast_value.
+      # ActiveRecord::AttributeMethods::Read#read_attribute. The default
+      # implementation just calls Value#cast.
       #
       # +value+ The raw input, as provided from the database.
       def deserialize(value)
-        type_cast(value)
+        cast(value)
       end
 
       # Type casts a value from user input (e.g. from a setter). This value may
@@ -29,11 +29,11 @@ module ActiveRecord
       #
       # The return value of this method will be returned from
       # ActiveRecord::AttributeMethods::Read#read_attribute. See also:
-      # Value#type_cast and Value#cast_value.
+      # Value#cast_value.
       #
       # +value+ The raw input, as provided to the attribute setter.
       def cast(value)
-        type_cast(value)
+        cast_value(value) unless value.nil?
       end
 
       # Cast a value from the ruby type to a type that the database knows how
@@ -93,16 +93,8 @@ module ActiveRecord
 
       private
 
-      # Convenience method. If you don't need separate behavior for
-      # Value#deserialize and Value#cast, you can override
-      # this method instead. The default behavior of both methods is to call
-      # this one. See also Value#cast_value.
-      def type_cast(value) # :doc:
-        cast_value(value) unless value.nil?
-      end
-
       # Convenience method for types which do not need separate type casting
-      # behavior for user and database inputs. Called by Value#type_cast for
+      # behavior for user and database inputs. Called by Value#cast for
       # values except +nil+.
       def cast_value(value) # :doc:
         value

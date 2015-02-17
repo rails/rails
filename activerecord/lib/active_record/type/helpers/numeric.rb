@@ -2,7 +2,7 @@ module ActiveRecord
   module Type
     module Helpers
       module Numeric # :nodoc:
-        def type_cast(value)
+        def cast(value)
           value = case value
                   when true then 1
                   when false then 0

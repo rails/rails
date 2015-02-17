@@ -9,7 +9,7 @@ module ActiveRecord
         true
       end
 
-      def type_cast(value)
+      def cast(value)
         if value.is_a?(Data)
           value.to_s
         else

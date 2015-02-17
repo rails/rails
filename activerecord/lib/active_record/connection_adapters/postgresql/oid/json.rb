@@ -13,7 +13,7 @@ module ActiveRecord
             if value.is_a?(::String)
               ::ActiveSupport::JSON.decode(value) rescue nil
             else
-              super
+              value
             end
           end
 
@@ -21,7 +21,7 @@ module ActiveRecord
             if value.is_a?(::Array) || value.is_a?(::Hash)
               ::ActiveSupport::JSON.encode(value)
             else
-              super
+              value
             end
           end
 

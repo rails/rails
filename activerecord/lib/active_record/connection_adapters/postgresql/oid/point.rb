@@ -9,13 +9,13 @@ module ActiveRecord
             :point
           end
 
-          def type_cast(value)
+          def cast(value)
             case value
             when ::String
               if value[0] == '(' && value[-1] == ')'
                 value = value[1...-1]
               end
-              type_cast(value.split(','))
+              cast(value.split(','))
             when ::Array
               value.map { |v| Float(v) }
             else

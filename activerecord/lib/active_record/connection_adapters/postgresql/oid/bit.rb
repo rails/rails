@@ -7,7 +7,7 @@ module ActiveRecord
             :bit
           end
 
-          def type_cast(value)
+          def cast(value)
             if ::String === value
               case value
               when /^0x/i

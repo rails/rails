@@ -625,7 +625,7 @@ class DirtyTest < ActiveRecord::TestCase
 
   test "defaults with type that implements `serialize`" do
     type = Class.new(ActiveRecord::Type::Value) do
-      def type_cast(value)
+      def cast(value)
         value.to_i
       end
 

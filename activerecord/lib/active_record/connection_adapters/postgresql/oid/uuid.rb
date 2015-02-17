@@ -11,7 +11,7 @@ module ActiveRecord
             :uuid
           end
 
-          def type_cast(value)
+          def cast(value)
             value.to_s[ACCEPTABLE_UUID, 0]
           end
         end

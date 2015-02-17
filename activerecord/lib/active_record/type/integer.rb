@@ -22,7 +22,7 @@ module ActiveRecord
       end
 
       def serialize(value)
-        result = type_cast(value)
+        result = cast(value)
         if result
           ensure_in_range(result)
         end

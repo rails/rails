@@ -7,7 +7,7 @@ module ActiveRecord
         :float
       end
 
-      alias serialize type_cast
+      alias serialize cast
 
       private
 
