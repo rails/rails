@@ -26,10 +26,21 @@ module ActiveRecord
 
     class << self
       attr_accessor :registry # :nodoc:
+      delegate :add_modifier, to: :registry
 
-      delegate :register, :add_modifier, to: :registry
+      # Add a new type to the registry, allowing it to be referenced as a
+      # symbol by ActiveRecord::Attributes::ClassMethods#attribute.  If your
+      # type is only meant to be used with a specific database adapter, you can
+      # do so by passing +adapter: :postgresql+. If your type has the same
+      # name as a native type for the current adapter, an exception will be
+      # raised unless you specify an +:override+ option. +override: true+ will
+      # cause your type to be used instead of the native type. +override:
+      # false+ will cause the native type to be used over yours if one exists.
+      def register(type_name, klass = nil, **options, &block)
+        registry.register(type_name, klass, **options, &block)
+      end
 
-      def lookup(*args, adapter: current_adapter_name, **kwargs)
+      def lookup(*args, adapter: current_adapter_name, **kwargs) # :nodoc:
         registry.lookup(*args, adapter: adapter, **kwargs)
       end
 

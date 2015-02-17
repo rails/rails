@@ -119,15 +119,21 @@ module ActiveRecord
       #     end
       #   end
       #
+      #   # config/initializers/types.rb
+      #   ActiveRecord::Type.register(:money, MoneyType)
+      #
+      #   # /app/models/store_listing.rb
       #   class StoreListing < ActiveRecord::Base
-      #     attribute :price_in_cents, MoneyType.new
+      #     attribute :price_in_cents, :money
       #   end
       #
       #   store_listing = StoreListing.new(price_in_cents: '$10.00')
       #   store_listing.price_in_cents # => 1000
       #
       # For more details on creating custom types, see the documentation for
-      # ActiveRecord::Type::Value.
+      # ActiveRecord::Type::Value. For more details on registering your types
+      # to be referenced by a symbol, see ActiveRecord::Type.register. You can
+      # also pass a type object directly, in place of a symbol.
       #
       # ==== Querying
       #
@@ -152,9 +158,11 @@ module ActiveRecord
       #     end
       #   end
       #
+      #   ActiveRecord::Type.register(:money, MoneyType)
+      #
       #   class Product < ActiveRecord::Base
       #     currency_converter = ConversionRatesFromTheInternet.new
-      #     attribute :price_in_bitcoins, MoneyType.new(currency_converter)
+      #     attribute :price_in_bitcoins, :money, currency_converter
       #   end
       #
       #   Product.where(price_in_bitcoins: Money.new(5, "USD"))
