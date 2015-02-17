@@ -156,11 +156,11 @@ class DurationTest < ActiveSupport::TestCase
       Time.stubs(:now).returns Time.local(2000)
       # since
       assert_instance_of ActiveSupport::TimeWithZone, 5.seconds.since
-      assert_equal Time.utc(2000,1,1,0,0,5), 5.seconds.since.time
+      assert_equal Time.local(2000) + 5.seconds, 5.seconds.since.time
       assert_equal 'Eastern Time (US & Canada)', 5.seconds.since.time_zone.name
       # ago
       assert_instance_of ActiveSupport::TimeWithZone, 5.seconds.ago
-      assert_equal Time.utc(1999,12,31,23,59,55), 5.seconds.ago.time
+      assert_equal Time.local(2000) - 5.seconds, 5.seconds.ago.time
       assert_equal 'Eastern Time (US & Canada)', 5.seconds.ago.time_zone.name
     end
   ensure

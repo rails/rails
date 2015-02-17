@@ -50,7 +50,7 @@ module ActiveSupport
 
     # Returns a Time or DateTime instance that represents the time in +time_zone+.
     def time
-      @time ||= period.to_local(@utc)
+      @time ||= localtime(period.offset.utc_total_offset)
     end
 
     # Returns a Time or DateTime instance that represents the time in UTC.
