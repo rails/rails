@@ -180,10 +180,6 @@ module ActiveRecord
         true
       end
 
-      def supports_datetime_with_precision?
-        true
-      end
-
       def index_algorithms
         { concurrently: 'CONCURRENTLY' }
       end
@@ -481,6 +477,7 @@ module ActiveRecord
           register_class_with_limit m, 'varbit', OID::BitVarying
           m.alias_type 'timestamptz', 'timestamp'
           m.register_type 'date', Type::Date.new
+          m.register_type 'time', Type::Time.new
 
           m.register_type 'money', OID::Money.new
           m.register_type 'bytea', OID::Bytea.new
@@ -506,8 +503,10 @@ module ActiveRecord
           m.alias_type 'lseg', 'varchar'
           m.alias_type 'box', 'varchar'
 
-          register_class_with_precision m, 'time', Type::Time
-          register_class_with_precision m, 'timestamp', OID::DateTime
+          m.register_type 'timestamp' do |_, _, sql_type|
+            precision = extract_precision(sql_type)
+            OID::DateTime.new(precision: precision)
+          end
 
           m.register_type 'numeric' do |_, fmod, sql_type|
             precision = extract_precision(sql_type)
