@@ -63,7 +63,7 @@ module ActiveRecord
       def ids_writer(ids)
         pk_type = reflection.primary_key_type
         ids = Array(ids).reject(&:blank?)
-        ids.map! { |i| pk_type.type_cast_from_user(i) }
+        ids.map! { |i| pk_type.cast(i) }
         replace(klass.find(ids).index_by(&:id).values_at(*ids))
       end
 

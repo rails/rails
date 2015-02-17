@@ -12,11 +12,11 @@ module ActiveRecord
         super(delegate)
       end
 
-      def type_cast_from_user(value)
+      def cast(value)
         "#{super} #{@decoration}"
       end
 
-      alias deserialize type_cast_from_user
+      alias deserialize cast
     end
 
     setup do
@@ -102,11 +102,11 @@ module ActiveRecord
     end
 
     class Multiplier < SimpleDelegator
-      def type_cast_from_user(value)
+      def cast(value)
         return if value.nil?
         value * 2
       end
-      alias deserialize type_cast_from_user
+      alias deserialize cast
     end
 
     test "decorating with a proc" do

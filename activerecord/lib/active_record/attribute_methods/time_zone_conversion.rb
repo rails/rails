@@ -6,9 +6,9 @@ module ActiveRecord
           convert_time_to_time_zone(super)
         end
 
-        def type_cast_from_user(value)
+        def cast(value)
           if value.is_a?(Array)
-            value.map { |v| type_cast_from_user(v) }
+            value.map { |v| cast(v) }
           elsif value.is_a?(Hash)
             set_time_zone_without_conversion(super)
           elsif value.respond_to?(:in_time_zone)

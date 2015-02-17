@@ -89,7 +89,7 @@ class PostgresqlCompositeWithCustomOIDTest < ActiveRecord::TestCase
       end
     end
 
-    def type_cast_from_user(value)
+    def cast(value)
       value
     end
 

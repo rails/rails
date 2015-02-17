@@ -6,39 +6,39 @@ module ActiveRecord
     class IntegerTest < ActiveRecord::TestCase
       test "simple values" do
         type = Type::Integer.new
-        assert_equal 1, type.type_cast_from_user(1)
-        assert_equal 1, type.type_cast_from_user('1')
-        assert_equal 1, type.type_cast_from_user('1ignore')
-        assert_equal 0, type.type_cast_from_user('bad1')
-        assert_equal 0, type.type_cast_from_user('bad')
-        assert_equal 1, type.type_cast_from_user(1.7)
-        assert_equal 0, type.type_cast_from_user(false)
-        assert_equal 1, type.type_cast_from_user(true)
-        assert_nil type.type_cast_from_user(nil)
+        assert_equal 1, type.cast(1)
+        assert_equal 1, type.cast('1')
+        assert_equal 1, type.cast('1ignore')
+        assert_equal 0, type.cast('bad1')
+        assert_equal 0, type.cast('bad')
+        assert_equal 1, type.cast(1.7)
+        assert_equal 0, type.cast(false)
+        assert_equal 1, type.cast(true)
+        assert_nil type.cast(nil)
       end
 
       test "random objects cast to nil" do
         type = Type::Integer.new
-        assert_nil type.type_cast_from_user([1,2])
-        assert_nil type.type_cast_from_user({1 => 2})
-        assert_nil type.type_cast_from_user((1..2))
+        assert_nil type.cast([1,2])
+        assert_nil type.cast({1 => 2})
+        assert_nil type.cast((1..2))
       end
 
       test "casting ActiveRecord models" do
         type = Type::Integer.new
         firm = Firm.create(:name => 'Apple')
-        assert_nil type.type_cast_from_user(firm)
+        assert_nil type.cast(firm)
       end
 
       test "casting objects without to_i" do
         type = Type::Integer.new
-        assert_nil type.type_cast_from_user(::Object.new)
+        assert_nil type.cast(::Object.new)
       end
 
       test "casting nan and infinity" do
         type = Type::Integer.new
-        assert_nil type.type_cast_from_user(::Float::NAN)
-        assert_nil type.type_cast_from_user(1.0/0.0)
+        assert_nil type.cast(::Float::NAN)
+        assert_nil type.cast(1.0/0.0)
       end
 
       test "casting booleans for database" do

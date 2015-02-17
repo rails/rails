@@ -93,7 +93,7 @@ module ActiveRecord
         @mapping = mapping
       end
 
-      def type_cast_from_user(value)
+      def cast(value)
         return if value.blank?
 
         if mapping.has_key?(value)

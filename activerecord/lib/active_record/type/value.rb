@@ -32,7 +32,7 @@ module ActiveRecord
       # Value#type_cast and Value#cast_value.
       #
       # +value+ The raw input, as provided to the attribute setter.
-      def type_cast_from_user(value)
+      def cast(value)
         type_cast(value)
       end
 
@@ -94,7 +94,7 @@ module ActiveRecord
       private
 
       # Convenience method. If you don't need separate behavior for
-      # Value#deserialize and Value#type_cast_from_user, you can override
+      # Value#deserialize and Value#cast, you can override
       # this method instead. The default behavior of both methods is to call
       # this one. See also Value#cast_value.
       def type_cast(value) # :doc:

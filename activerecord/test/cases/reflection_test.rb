@@ -93,7 +93,7 @@ class ReflectionTest < ActiveRecord::TestCase
     object = Object.new
 
     assert_equal object, type.deserialize(object)
-    assert_equal object, type.type_cast_from_user(object)
+    assert_equal object, type.cast(object)
     assert_equal object, type.serialize(object)
   end
 

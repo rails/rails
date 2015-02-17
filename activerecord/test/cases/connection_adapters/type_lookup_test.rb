@@ -90,7 +90,7 @@ module ActiveRecord
           cast_type = @connection.type_map.lookup(type)
 
           assert_equal :decimal, cast_type.type
-          assert_equal 2, cast_type.type_cast_from_user(2.1)
+          assert_equal 2, cast_type.cast(2.1)
         end
       end
 

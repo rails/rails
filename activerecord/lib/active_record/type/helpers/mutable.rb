@@ -2,7 +2,7 @@ module ActiveRecord
   module Type
     module Helpers
       module Mutable # :nodoc:
-        def type_cast_from_user(value)
+        def cast(value)
           deserialize(serialize(value))
         end
 

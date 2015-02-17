@@ -108,7 +108,7 @@ module ActiveRecord
 
     test "the given default value is cast from user" do
       custom_type = Class.new(Type::Value) do
-        def type_cast_from_user(*)
+        def cast(*)
           "from user"
         end
 

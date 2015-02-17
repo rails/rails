@@ -22,7 +22,7 @@ module ActiveRecord
     end
 
     test "from_user + read type casts from user" do
-      @type.expect(:type_cast_from_user, 'type cast from user', ['a value'])
+      @type.expect(:cast, 'type cast from user', ['a value'])
       attribute = Attribute.from_user(nil, 'a value', @type)
 
       type_cast_value = attribute.value
@@ -68,7 +68,7 @@ module ActiveRecord
     end
 
     test "from_user + read_for_database type casts from the user to the database" do
-      @type.expect(:type_cast_from_user, 'read from user', ['whatever'])
+      @type.expect(:cast, 'read from user', ['whatever'])
       @type.expect(:serialize, 'ready for database', ['read from user'])
       attribute = Attribute.from_user(nil, 'whatever', @type)
 
@@ -102,7 +102,7 @@ module ActiveRecord
     end
 
     class MyType
-      def type_cast_from_user(value)
+      def cast(value)
         value + " from user"
       end
 

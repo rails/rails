@@ -114,7 +114,7 @@ module ActiveRecord
 
     class FromUser < Attribute # :nodoc:
       def type_cast(value)
-        type.type_cast_from_user(value)
+        type.cast(value)
       end
 
       def came_from_user?

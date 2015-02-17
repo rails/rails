@@ -33,11 +33,11 @@ module ActiveRecord
             end
           end
 
-          def type_cast_from_user(value)
+          def cast(value)
             if value.is_a?(::String)
               value = parse_pg_array(value)
             end
-            type_cast_array(value, :type_cast_from_user)
+            type_cast_array(value, :cast)
           end
 
           def serialize(value)

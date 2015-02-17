@@ -151,7 +151,7 @@ module ActiveRecord
     end
 
     class MyType
-      def type_cast_from_user(value)
+      def cast(value)
         return if value.nil?
         value + " from user"
       end

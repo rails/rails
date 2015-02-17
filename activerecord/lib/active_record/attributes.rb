@@ -102,14 +102,14 @@ module ActiveRecord
       #
       # Users may also define their own custom types, as long as they respond
       # to the methods defined on the value type. The method
-      # +deserialize+ or +type_cast_from_user+ will be called on
+      # +deserialize+ or +cast+ will be called on
       # your type object, with raw input from the database or from your
       # controllers.  See ActiveRecord::Type::Value for the expected API. It is
       # recommended that your type objects inherit from an existing type, or
       # from ActiveRecord::Type::Value
       #
       #   class MoneyType < ActiveRecord::Type::Integer
-      #     def type_cast_from_user(value)
+      #     def cast(value)
       #       if value.include?('$')
       #         price_in_dollars = value.gsub(/\$/, '').to_f
       #         super(price_in_dollars * 100)
@@ -144,7 +144,7 @@ module ActiveRecord
       #     end
       #
       #     # value will be the result of +deserialize+ or
-      #     # +type_cast_from_user+. Assumed to be in instance of +Money+ in
+      #     # +cast+. Assumed to be in instance of +Money+ in
       #     # this case.
       #     def serialize(value)
       #       value_in_bitcoins = @currency_converter.convert_to_bitcoins(value)
@@ -195,7 +195,7 @@ module ActiveRecord
       # Otherwise, the default will be +nil+.
       #
       # +user_provided_default+ Whether the default value should be cast using
-      # +type_cast_from_user+ or +deserialize+.
+      # +cast+ or +deserialize+.
       def define_attribute(
         name,
         cast_type,
