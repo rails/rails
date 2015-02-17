@@ -7,6 +7,7 @@ require 'rake'
   log
   middleware
   misc
+  restart
   routes
   statistics
   tmp

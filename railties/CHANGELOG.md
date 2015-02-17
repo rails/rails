@@ -1,3 +1,10 @@
+*   Created rake restart task. Restarts your Rails app by touching the 
+    `tmp/restart.txt`.
+
+    Fixes #18876.
+
+    *Hyonjee Joo*
+
 *   Set Rails console to use log formatter and log level as specified for the
     given environment.
 
