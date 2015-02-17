@@ -1,3 +1,8 @@
+*   Deprecated passing of `start` value to `find_in_batches` and `find_each`
+    in favour of `begin_at` value.
+
+    *Vipul A M*
+
 *   Add `foreign_key_exists?` method.
 
     *Tõnis Simo*
