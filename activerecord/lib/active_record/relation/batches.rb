@@ -50,7 +50,7 @@ module ActiveRecord
       if start
         begin_at = start
         ActiveSupport::Deprecation.warn(<<-MSG.squish)
-            Passing `start` value to find_in_batches is deprecated, and will be removed in Rails 5.1.
+            Passing `start` value to find_each is deprecated, and will be removed in Rails 5.1.
             Please pass `begin_at` instead.
         MSG
       end
