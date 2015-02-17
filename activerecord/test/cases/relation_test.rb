@@ -259,7 +259,7 @@ module ActiveRecord
         "type cast from database"
       end
 
-      def type_cast_for_database(value)
+      def serialize(value)
         raise value unless value == "value from user"
         "type cast for database"
       end

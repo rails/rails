@@ -23,7 +23,7 @@ module ActiveRecord
             end
           end
 
-          def type_cast_for_database(value)
+          def serialize(value)
             if value.is_a?(::Array)
               "(#{number_for_point(value[0])},#{number_for_point(value[1])})"
             else

@@ -17,7 +17,7 @@ module ActiveRecord
         end
       end
 
-      def type_cast_for_database(value)
+      def serialize(value)
         return if value.nil?
         Data.new(super)
       end

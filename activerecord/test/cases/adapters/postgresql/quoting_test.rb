@@ -30,13 +30,13 @@ module ActiveRecord
         def test_quote_range
           range = "1,2]'; SELECT * FROM users; --".."a"
           type = OID::Range.new(Type::Integer.new, :int8range)
-          assert_equal "'[1,0]'", @conn.quote(type.type_cast_for_database(range))
+          assert_equal "'[1,0]'", @conn.quote(type.serialize(range))
         end
 
         def test_quote_bit_string
           value = "'); SELECT * FROM users; /*\n01\n*/--"
           type = OID::Bit.new
-          assert_equal nil, @conn.quote(type.type_cast_for_database(value))
+          assert_equal nil, @conn.quote(type.serialize(value))
         end
       end
     end

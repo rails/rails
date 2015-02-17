@@ -110,7 +110,7 @@ module ActiveRecord
         mapping.key(value.to_i)
       end
 
-      def type_cast_for_database(value)
+      def serialize(value)
         mapping.fetch(value, value)
       end
 

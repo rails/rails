@@ -40,7 +40,7 @@ module ActiveRecord
             type_cast_array(value, :type_cast_from_user)
           end
 
-          def type_cast_for_database(value)
+          def serialize(value)
             if value.is_a?(::Array)
               cast_value_for_database(value)
             else
@@ -69,7 +69,7 @@ module ActiveRecord
               casted_values = value.map { |item| cast_value_for_database(item) }
               "{#{casted_values.join(delimiter)}}"
             else
-              quote_and_escape(subtype.type_cast_for_database(value))
+              quote_and_escape(subtype.serialize(value))
             end
           end
 

@@ -93,7 +93,7 @@ class PostgresqlCompositeWithCustomOIDTest < ActiveRecord::TestCase
       value
     end
 
-    def type_cast_for_database(value)
+    def serialize(value)
       return if value.nil?
       "(#{value.city},#{value.street})"
     end

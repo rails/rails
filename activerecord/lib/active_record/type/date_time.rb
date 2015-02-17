@@ -10,7 +10,7 @@ module ActiveRecord
         :datetime
       end
 
-      def type_cast_for_database(value)
+      def serialize(value)
         if precision && value.respond_to?(:usec)
           number_of_insignificant_digits = 6 - precision
           round_power = 10 ** number_of_insignificant_digits

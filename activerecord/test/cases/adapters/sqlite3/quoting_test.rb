@@ -87,7 +87,7 @@ module ActiveRecord
           value = "hello".encode('ascii-8bit')
           type = Type::String.new
 
-          assert_equal "'hello'", @conn.quote(type.type_cast_for_database(value))
+          assert_equal "'hello'", @conn.quote(type.serialize(value))
         end
       end
     end

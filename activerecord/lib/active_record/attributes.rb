@@ -133,7 +133,7 @@ module ActiveRecord
       #
       # When ActiveRecord::QueryMethods#where is called, it will
       # use the type defined by the model class to convert the value to SQL,
-      # calling +type_cast_for_database+ on your type object. For example:
+      # calling +serialize+ on your type object. For example:
       #
       #   class Money < Struct.new(:amount, :currency)
       #   end
@@ -146,7 +146,7 @@ module ActiveRecord
       #     # value will be the result of +deserialize+ or
       #     # +type_cast_from_user+. Assumed to be in instance of +Money+ in
       #     # this case.
-      #     def type_cast_for_database(value)
+      #     def serialize(value)
       #       value_in_bitcoins = @currency_converter.convert_to_bitcoins(value)
       #       value_in_bitcoins.amount
       #     end

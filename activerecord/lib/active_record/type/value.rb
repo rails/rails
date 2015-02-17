@@ -40,7 +40,7 @@ module ActiveRecord
       # to understand. The returned value from this method should be a
       # +String+, +Numeric+, +Date+, +Time+, +Symbol+, +true+, +false+, or
       # +nil+.
-      def type_cast_for_database(value)
+      def serialize(value)
         value
       end
 
@@ -68,7 +68,7 @@ module ActiveRecord
       # which could be mutated, you should override this method. You will need
       # to either:
       #
-      # - pass +new_value+ to Value#type_cast_for_database and compare it to
+      # - pass +new_value+ to Value#serialize and compare it to
       #   +raw_old_value+
       #
       # or

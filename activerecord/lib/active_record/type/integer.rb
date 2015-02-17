@@ -21,7 +21,7 @@ module ActiveRecord
         value.to_i
       end
 
-      def type_cast_for_database(value)
+      def serialize(value)
         result = type_cast(value)
         if result
           ensure_in_range(result)

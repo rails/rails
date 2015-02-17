@@ -17,7 +17,7 @@ module ActiveRecord
             end
           end
 
-          def type_cast_for_database(value)
+          def serialize(value)
             if value.is_a?(::Array) || value.is_a?(::Hash)
               ::ActiveSupport::JSON.encode(value)
             else

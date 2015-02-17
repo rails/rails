@@ -59,22 +59,22 @@ module ActiveRecord
 
     test "from_database + read_for_database type casts to and from database" do
       @type.expect(:deserialize, 'read from database', ['whatever'])
-      @type.expect(:type_cast_for_database, 'ready for database', ['read from database'])
+      @type.expect(:serialize, 'ready for database', ['read from database'])
       attribute = Attribute.from_database(nil, 'whatever', @type)
 
-      type_cast_for_database = attribute.value_for_database
+      serialize = attribute.value_for_database
 
-      assert_equal 'ready for database', type_cast_for_database
+      assert_equal 'ready for database', serialize
     end
 
     test "from_user + read_for_database type casts from the user to the database" do
       @type.expect(:type_cast_from_user, 'read from user', ['whatever'])
-      @type.expect(:type_cast_for_database, 'ready for database', ['read from user'])
+      @type.expect(:serialize, 'ready for database', ['read from user'])
       attribute = Attribute.from_user(nil, 'whatever', @type)
 
-      type_cast_for_database = attribute.value_for_database
+      serialize = attribute.value_for_database
 
-      assert_equal 'ready for database', type_cast_for_database
+      assert_equal 'ready for database', serialize
     end
 
     test "duping dups the value" do

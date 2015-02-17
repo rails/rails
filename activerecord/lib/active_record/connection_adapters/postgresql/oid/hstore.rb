@@ -21,7 +21,7 @@ module ActiveRecord
             end
           end
 
-          def type_cast_for_database(value)
+          def serialize(value)
             if value.is_a?(::Hash)
               value.map { |k, v| "#{escape_hstore(k)}=>#{escape_hstore(v)}" }.join(', ')
             else

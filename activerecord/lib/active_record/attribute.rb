@@ -43,7 +43,7 @@ module ActiveRecord
     end
 
     def value_for_database
-      type.type_cast_for_database(value)
+      type.serialize(value)
     end
 
     def changed_from?(old_value)

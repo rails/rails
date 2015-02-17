@@ -110,7 +110,7 @@ module ActiveRecord
 
       def test_attributes_which_are_invalid_for_database_can_still_be_reassigned
         type_which_cannot_go_to_the_database = Type::Value.new
-        def type_which_cannot_go_to_the_database.type_cast_for_database(*)
+        def type_which_cannot_go_to_the_database.serialize(*)
           raise
         end
         klass = Class.new(ActiveRecord::Base) do

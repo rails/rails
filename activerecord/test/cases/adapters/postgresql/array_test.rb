@@ -206,7 +206,7 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
     x = PgArray.create!(tags: tags)
     x.reload
 
-    assert_equal x.tags_before_type_cast, PgArray.type_for_attribute('tags').type_cast_for_database(tags)
+    assert_equal x.tags_before_type_cast, PgArray.type_for_attribute('tags').serialize(tags)
   end
 
   def test_quoting_non_standard_delimiters
@@ -214,8 +214,8 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
     comma_delim = OID::Array.new(ActiveRecord::Type::String.new, ',')
     semicolon_delim = OID::Array.new(ActiveRecord::Type::String.new, ';')
 
-    assert_equal %({"hello,",world;}), comma_delim.type_cast_for_database(strings)
-    assert_equal %({hello,;"world;"}), semicolon_delim.type_cast_for_database(strings)
+    assert_equal %({"hello,",world;}), comma_delim.serialize(strings)
+    assert_equal %({hello,;"world;"}), semicolon_delim.serialize(strings)
   end
 
   def test_mutate_array

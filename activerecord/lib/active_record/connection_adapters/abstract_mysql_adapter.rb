@@ -926,7 +926,7 @@ module ActiveRecord
       end
 
       class MysqlString < Type::String # :nodoc:
-        def type_cast_for_database(value)
+        def serialize(value)
           case value
           when true then "1"
           when false then "0"

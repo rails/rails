@@ -52,7 +52,7 @@ module ActiveRecord
       def type_cast_from_column(column, value) # :nodoc:
         if column
           type = lookup_cast_type_from_column(column)
-          type.type_cast_for_database(value)
+          type.serialize(value)
         else
           value
         end
@@ -103,7 +103,7 @@ module ActiveRecord
       end
 
       def quote_default_expression(value, column) #:nodoc:
-        value = lookup_cast_type(column.sql_type).type_cast_for_database(value)
+        value = lookup_cast_type(column.sql_type).serialize(value)
         quote(value)
       end
 

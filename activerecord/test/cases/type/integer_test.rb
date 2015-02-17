@@ -43,8 +43,8 @@ module ActiveRecord
 
       test "casting booleans for database" do
         type = Type::Integer.new
-        assert_equal 1, type.type_cast_for_database(true)
-        assert_equal 0, type.type_cast_for_database(false)
+        assert_equal 1, type.serialize(true)
+        assert_equal 0, type.serialize(false)
       end
 
       test "changed?" do
@@ -60,53 +60,53 @@ module ActiveRecord
 
       test "values below int min value are out of range" do
         assert_raises(::RangeError) do
-          Integer.new.type_cast_for_database(-2147483649)
+          Integer.new.serialize(-2147483649)
         end
       end
 
       test "values above int max value are out of range" do
         assert_raises(::RangeError) do
-          Integer.new.type_cast_for_database(2147483648)
+          Integer.new.serialize(2147483648)
         end
       end
 
       test "very small numbers are out of range" do
         assert_raises(::RangeError) do
-          Integer.new.type_cast_for_database(-9999999999999999999999999999999)
+          Integer.new.serialize(-9999999999999999999999999999999)
         end
       end
 
       test "very large numbers are out of range" do
         assert_raises(::RangeError) do
-          Integer.new.type_cast_for_database(9999999999999999999999999999999)
+          Integer.new.serialize(9999999999999999999999999999999)
         end
       end
 
       test "normal numbers are in range" do
         type = Integer.new
-        assert_equal(0, type.type_cast_for_database(0))
-        assert_equal(-1, type.type_cast_for_database(-1))
-        assert_equal(1, type.type_cast_for_database(1))
+        assert_equal(0, type.serialize(0))
+        assert_equal(-1, type.serialize(-1))
+        assert_equal(1, type.serialize(1))
       end
 
       test "int max value is in range" do
-        assert_equal(2147483647, Integer.new.type_cast_for_database(2147483647))
+        assert_equal(2147483647, Integer.new.serialize(2147483647))
       end
 
       test "int min value is in range" do
-        assert_equal(-2147483648, Integer.new.type_cast_for_database(-2147483648))
+        assert_equal(-2147483648, Integer.new.serialize(-2147483648))
       end
 
       test "columns with a larger limit have larger ranges" do
         type = Integer.new(limit: 8)
 
-        assert_equal(9223372036854775807, type.type_cast_for_database(9223372036854775807))
-        assert_equal(-9223372036854775808, type.type_cast_for_database(-9223372036854775808))
+        assert_equal(9223372036854775807, type.serialize(9223372036854775807))
+        assert_equal(-9223372036854775808, type.serialize(-9223372036854775808))
         assert_raises(::RangeError) do
-          type.type_cast_for_database(-9999999999999999999999999999999)
+          type.serialize(-9999999999999999999999999999999)
         end
         assert_raises(::RangeError) do
-          type.type_cast_for_database(9999999999999999999999999999999)
+          type.serialize(9999999999999999999999999999999)
         end
       end
 

@@ -94,7 +94,7 @@ class ReflectionTest < ActiveRecord::TestCase
 
     assert_equal object, type.deserialize(object)
     assert_equal object, type.type_cast_from_user(object)
-    assert_equal object, type.type_cast_for_database(object)
+    assert_equal object, type.serialize(object)
   end
 
   def test_reflection_klass_for_nested_class_name

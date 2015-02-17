@@ -19,7 +19,7 @@ module ActiveRecord
         end
       end
 
-      def type_cast_for_database(value)
+      def serialize(value)
         return if value.nil?
         unless default_value?(value)
           super coder.dump(value)
@@ -28,7 +28,7 @@ module ActiveRecord
 
       def changed_in_place?(raw_old_value, value)
         return false if value.nil?
-        subtype.changed_in_place?(raw_old_value, type_cast_for_database(value))
+        subtype.changed_in_place?(raw_old_value, serialize(value))
       end
 
       def accessor

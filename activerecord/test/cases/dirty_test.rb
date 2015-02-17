@@ -623,13 +623,13 @@ class DirtyTest < ActiveRecord::TestCase
     end
   end
 
-  test "defaults with type that implements `type_cast_for_database`" do
+  test "defaults with type that implements `serialize`" do
     type = Class.new(ActiveRecord::Type::Value) do
       def type_cast(value)
         value.to_i
       end
 
-      def type_cast_for_database(value)
+      def serialize(value)
         value.to_s
       end
     end

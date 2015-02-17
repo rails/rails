@@ -11,7 +11,7 @@ module ActiveRecord
         end
       end
 
-      def type_cast_for_database(value)
+      def serialize(value)
         case value
         when ::Numeric, ActiveSupport::Duration then value.to_s
         when ::String then ::String.new(value)

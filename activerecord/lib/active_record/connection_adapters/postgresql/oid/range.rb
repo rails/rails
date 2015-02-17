@@ -30,7 +30,7 @@ module ActiveRecord
             ::Range.new(from, to, extracted[:exclude_end])
           end
 
-          def type_cast_for_database(value)
+          def serialize(value)
             if value.is_a?(::Range)
               from = type_cast_single_for_database(value.begin)
               to = type_cast_single_for_database(value.end)
@@ -53,7 +53,7 @@ module ActiveRecord
           end
 
           def type_cast_single_for_database(value)
-            infinity?(value) ? '' : @subtype.type_cast_for_database(value)
+            infinity?(value) ? '' : @subtype.serialize(value)
           end
 
           def extract_bounds(value)
