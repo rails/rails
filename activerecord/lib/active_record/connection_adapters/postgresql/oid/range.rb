@@ -49,7 +49,7 @@ module ActiveRecord
           private
 
           def type_cast_single(value)
-            infinity?(value) ? value : @subtype.type_cast_from_database(value)
+            infinity?(value) ? value : @subtype.deserialize(value)
           end
 
           def type_cast_single_for_database(value)

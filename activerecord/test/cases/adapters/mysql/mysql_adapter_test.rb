@@ -110,7 +110,7 @@ module ActiveRecord
 
           result = @conn.exec_query('SELECT status FROM ex')
 
-          assert_equal 2, result.column_types['status'].type_cast_from_database(result.last['status'])
+          assert_equal 2, result.column_types['status'].deserialize(result.last['status'])
         end
       end
 

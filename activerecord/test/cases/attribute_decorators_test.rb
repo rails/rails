@@ -16,7 +16,7 @@ module ActiveRecord
         "#{super} #{@decoration}"
       end
 
-      alias type_cast_from_database type_cast_from_user
+      alias deserialize type_cast_from_user
     end
 
     setup do
@@ -106,7 +106,7 @@ module ActiveRecord
         return if value.nil?
         value * 2
       end
-      alias type_cast_from_database type_cast_from_user
+      alias deserialize type_cast_from_user
     end
 
     test "decorating with a proc" do

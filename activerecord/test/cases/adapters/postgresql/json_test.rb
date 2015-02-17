@@ -80,13 +80,13 @@ module PostgresqlJSONSharedTestCases
     type = JsonDataType.type_for_attribute("payload")
 
     data = "{\"a_key\":\"a_value\"}"
-    hash = type.type_cast_from_database(data)
+    hash = type.deserialize(data)
     assert_equal({'a_key' => 'a_value'}, hash)
-    assert_equal({'a_key' => 'a_value'}, type.type_cast_from_database(data))
+    assert_equal({'a_key' => 'a_value'}, type.deserialize(data))
 
-    assert_equal({}, type.type_cast_from_database("{}"))
-    assert_equal({'key'=>nil}, type.type_cast_from_database('{"key": null}'))
-    assert_equal({'c'=>'}','"a"'=>'b "a b'}, type.type_cast_from_database(%q({"c":"}", "\"a\"":"b \"a b"})))
+    assert_equal({}, type.deserialize("{}"))
+    assert_equal({'key'=>nil}, type.deserialize('{"key": null}'))
+    assert_equal({'c'=>'}','"a"'=>'b "a b'}, type.deserialize(%q({"c":"}", "\"a\"":"b \"a b"})))
   end
 
   def test_rewrite

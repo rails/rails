@@ -13,7 +13,7 @@ module ActiveRecord
       s = "foo"
       type = Type::String.new
       assert_not_same s, type.type_cast_from_user(s)
-      assert_not_same s, type.type_cast_from_database(s)
+      assert_not_same s, type.deserialize(s)
     end
 
     test "string mutations are detected" do

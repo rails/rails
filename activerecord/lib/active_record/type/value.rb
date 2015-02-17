@@ -18,7 +18,7 @@ module ActiveRecord
       # Value#type_cast and Value#cast_value.
       #
       # +value+ The raw input, as provided from the database.
-      def type_cast_from_database(value)
+      def deserialize(value)
         type_cast(value)
       end
 
@@ -73,11 +73,11 @@ module ActiveRecord
       #
       # or
       #
-      # - pass +raw_old_value+ to Value#type_cast_from_database and compare it to
+      # - pass +raw_old_value+ to Value#deserialize and compare it to
       #   +new_value+
       #
       # +raw_old_value+ The original value, before being passed to
-      # +type_cast_from_database+.
+      # +deserialize+.
       #
       # +new_value+ The current value, after type casting.
       def changed_in_place?(raw_old_value, new_value)
@@ -94,7 +94,7 @@ module ActiveRecord
       private
 
       # Convenience method. If you don't need separate behavior for
-      # Value#type_cast_from_database and Value#type_cast_from_user, you can override
+      # Value#deserialize and Value#type_cast_from_user, you can override
       # this method instead. The default behavior of both methods is to call
       # this one. See also Value#cast_value.
       def type_cast(value) # :doc:

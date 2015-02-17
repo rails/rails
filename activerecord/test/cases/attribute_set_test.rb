@@ -156,7 +156,7 @@ module ActiveRecord
         value + " from user"
       end
 
-      def type_cast_from_database(value)
+      def deserialize(value)
         return if value.nil?
         value + " from database"
       end

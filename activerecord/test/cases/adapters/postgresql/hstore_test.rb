@@ -110,10 +110,10 @@ if ActiveRecord::Base.connection.supports_extensions?
     end
 
     def test_type_cast_hstore
-      assert_equal({'1' => '2'}, @type.type_cast_from_database("\"1\"=>\"2\""))
-      assert_equal({}, @type.type_cast_from_database(""))
-      assert_equal({'key'=>nil}, @type.type_cast_from_database('key => NULL'))
-      assert_equal({'c'=>'}','"a"'=>'b "a b'}, @type.type_cast_from_database(%q(c=>"}", "\"a\""=>"b \"a b")))
+      assert_equal({'1' => '2'}, @type.deserialize("\"1\"=>\"2\""))
+      assert_equal({}, @type.deserialize(""))
+      assert_equal({'key'=>nil}, @type.deserialize('key => NULL'))
+      assert_equal({'c'=>'}','"a"'=>'b "a b'}, @type.deserialize(%q(c=>"}", "\"a\""=>"b \"a b")))
     end
 
     def test_with_store_accessors
@@ -181,31 +181,31 @@ if ActiveRecord::Base.connection.supports_extensions?
     end
 
     def test_parse1
-      assert_equal({'a'=>nil,'b'=>nil,'c'=>'NuLl','null'=>'c'}, @type.type_cast_from_database('a=>null,b=>NuLl,c=>"NuLl",null=>c'))
+      assert_equal({'a'=>nil,'b'=>nil,'c'=>'NuLl','null'=>'c'}, @type.deserialize('a=>null,b=>NuLl,c=>"NuLl",null=>c'))
     end
 
     def test_parse2
-      assert_equal({" " => " "},  @type.type_cast_from_database("\\ =>\\ "))
+      assert_equal({" " => " "},  @type.deserialize("\\ =>\\ "))
     end
 
     def test_parse3
-      assert_equal({"=" => ">"},  @type.type_cast_from_database("==>>"))
+      assert_equal({"=" => ">"},  @type.deserialize("==>>"))
     end
 
     def test_parse4
-      assert_equal({"=a"=>"q=w"},   @type.type_cast_from_database('\=a=>q=w'))
+      assert_equal({"=a"=>"q=w"},   @type.deserialize('\=a=>q=w'))
     end
 
     def test_parse5
-      assert_equal({"=a"=>"q=w"},   @type.type_cast_from_database('"=a"=>q\=w'))
+      assert_equal({"=a"=>"q=w"},   @type.deserialize('"=a"=>q\=w'))
     end
 
     def test_parse6
-      assert_equal({"\"a"=>"q>w"},  @type.type_cast_from_database('"\"a"=>q>w'))
+      assert_equal({"\"a"=>"q>w"},  @type.deserialize('"\"a"=>q>w'))
     end
 
     def test_parse7
-      assert_equal({"\"a"=>"q\"w"}, @type.type_cast_from_database('\"a=>q"w'))
+      assert_equal({"\"a"=>"q\"w"}, @type.deserialize('\"a=>q"w'))
     end
 
     def test_rewrite

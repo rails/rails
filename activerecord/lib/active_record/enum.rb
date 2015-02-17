@@ -105,7 +105,7 @@ module ActiveRecord
         end
       end
 
-      def type_cast_from_database(value)
+      def deserialize(value)
         return if value.nil?
         mapping.key(value.to_i)
       end

@@ -40,16 +40,16 @@ class PostgresqlByteaTest < ActiveRecord::TestCase
 
     data = "\u001F\x8B"
     assert_equal('UTF-8', data.encoding.name)
-    assert_equal('ASCII-8BIT', @type.type_cast_from_database(data).encoding.name)
+    assert_equal('ASCII-8BIT', @type.deserialize(data).encoding.name)
   end
 
   def test_type_cast_binary_value
     data = "\u001F\x8B".force_encoding("BINARY")
-    assert_equal(data, @type.type_cast_from_database(data))
+    assert_equal(data, @type.deserialize(data))
   end
 
   def test_type_case_nil
-    assert_equal(nil, @type.type_cast_from_database(nil))
+    assert_equal(nil, @type.deserialize(nil))
   end
 
   def test_read_value

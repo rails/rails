@@ -16,7 +16,7 @@ module ActiveRecord
         :integer
       end
 
-      def type_cast_from_database(value)
+      def deserialize(value)
         return if value.nil?
         value.to_i
       end

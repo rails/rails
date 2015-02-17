@@ -25,9 +25,9 @@ module ActiveRecord
             @delimiter = delimiter
           end
 
-          def type_cast_from_database(value)
+          def deserialize(value)
             if value.is_a?(::String)
-              type_cast_array(parse_pg_array(value), :type_cast_from_database)
+              type_cast_array(parse_pg_array(value), :deserialize)
             else
               super
             end

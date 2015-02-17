@@ -9,7 +9,7 @@ module ActiveRecord
             :json
           end
 
-          def type_cast_from_database(value)
+          def deserialize(value)
             if value.is_a?(::String)
               ::ActiveSupport::JSON.decode(value) rescue nil
             else

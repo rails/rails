@@ -23,7 +23,7 @@ module ActiveRecord
       end
 
       def changed_in_place?(raw_old_value, value)
-        old_value = type_cast_from_database(raw_old_value)
+        old_value = deserialize(raw_old_value)
         old_value != value
       end
 

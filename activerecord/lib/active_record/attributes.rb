@@ -102,7 +102,7 @@ module ActiveRecord
       #
       # Users may also define their own custom types, as long as they respond
       # to the methods defined on the value type. The method
-      # +type_cast_from_database+ or +type_cast_from_user+ will be called on
+      # +deserialize+ or +type_cast_from_user+ will be called on
       # your type object, with raw input from the database or from your
       # controllers.  See ActiveRecord::Type::Value for the expected API. It is
       # recommended that your type objects inherit from an existing type, or
@@ -143,7 +143,7 @@ module ActiveRecord
       #       @currency_converter = currency_converter
       #     end
       #
-      #     # value will be the result of +type_cast_from_database+ or
+      #     # value will be the result of +deserialize+ or
       #     # +type_cast_from_user+. Assumed to be in instance of +Money+ in
       #     # this case.
       #     def type_cast_for_database(value)
@@ -195,7 +195,7 @@ module ActiveRecord
       # Otherwise, the default will be +nil+.
       #
       # +user_provided_default+ Whether the default value should be cast using
-      # +type_cast_from_user+ or +type_cast_from_database+.
+      # +type_cast_from_user+ or +deserialize+.
       def define_attribute(
         name,
         cast_type,

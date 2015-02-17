@@ -185,7 +185,7 @@ module ActiveRecord
     end
 
     class LockingType < DelegateClass(Type::Value) # :nodoc:
-      def type_cast_from_database(value)
+      def deserialize(value)
         # `nil` *should* be changed to 0
         super.to_i
       end

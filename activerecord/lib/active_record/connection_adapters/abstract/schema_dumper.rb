@@ -47,7 +47,7 @@ module ActiveRecord
 
       def schema_default(column)
         type = lookup_cast_type_from_column(column)
-        default = type.type_cast_from_database(column.default)
+        default = type.deserialize(column.default)
         unless default.nil?
           type.type_cast_for_schema(default)
         end

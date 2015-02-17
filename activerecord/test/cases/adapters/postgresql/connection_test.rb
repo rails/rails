@@ -131,7 +131,7 @@ module ActiveRecord
       name = @subscriber.payloads.last[:statement_name]
       assert name
       res = @connection.exec_query("EXPLAIN (FORMAT JSON) EXECUTE #{name}(1)")
-      plan = res.column_types['QUERY PLAN'].type_cast_from_database res.rows.first.first
+      plan = res.column_types['QUERY PLAN'].deserialize res.rows.first.first
       assert_operator plan.length, :>, 0
     end
 

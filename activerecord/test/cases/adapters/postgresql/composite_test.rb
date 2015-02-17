@@ -83,7 +83,7 @@ class PostgresqlCompositeWithCustomOIDTest < ActiveRecord::TestCase
   class FullAddressType < ActiveRecord::Type::Value
     def type; :full_address end
 
-    def type_cast_from_database(value)
+    def deserialize(value)
       if value =~ /\("?([^",]*)"?,"?([^",]*)"?\)/
         FullAddress.new($1, $2)
       end

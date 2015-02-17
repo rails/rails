@@ -81,7 +81,7 @@ module ActiveRecord
     def cast_values(type_overrides = {}) # :nodoc:
       types = columns.map { |name| column_type(name, type_overrides) }
       result = rows.map do |values|
-        types.zip(values).map { |type, value| type.type_cast_from_database(value) }
+        types.zip(values).map { |type, value| type.deserialize(value) }
       end
 
       columns.one? ? result.map!(&:first) : result

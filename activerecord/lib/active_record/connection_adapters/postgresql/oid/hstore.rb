@@ -9,7 +9,7 @@ module ActiveRecord
             :hstore
           end
 
-          def type_cast_from_database(value)
+          def deserialize(value)
             if value.is_a?(::String)
               ::Hash[value.scan(HstorePair).map { |k, v|
                 v = v.upcase == 'NULL' ? nil : v.gsub(/\A"(.*)"\Z/m,'\1').gsub(/\\(.)/, '\1')

@@ -13,7 +13,7 @@ module ActiveRecord
     end
 
     test "from_database + read type casts from database" do
-      @type.expect(:type_cast_from_database, 'type cast from database', ['a value'])
+      @type.expect(:deserialize, 'type cast from database', ['a value'])
       attribute = Attribute.from_database(nil, 'a value', @type)
 
       type_cast_value = attribute.value
@@ -31,7 +31,7 @@ module ActiveRecord
     end
 
     test "reading memoizes the value" do
-      @type.expect(:type_cast_from_database, 'from the database', ['whatever'])
+      @type.expect(:deserialize, 'from the database', ['whatever'])
       attribute = Attribute.from_database(nil, 'whatever', @type)
 
       type_cast_value = attribute.value
@@ -42,7 +42,7 @@ module ActiveRecord
     end
 
     test "reading memoizes falsy values" do
-      @type.expect(:type_cast_from_database, false, ['whatever'])
+      @type.expect(:deserialize, false, ['whatever'])
       attribute = Attribute.from_database(nil, 'whatever', @type)
 
       attribute.value
@@ -58,7 +58,7 @@ module ActiveRecord
     end
 
     test "from_database + read_for_database type casts to and from database" do
-      @type.expect(:type_cast_from_database, 'read from database', ['whatever'])
+      @type.expect(:deserialize, 'read from database', ['whatever'])
       @type.expect(:type_cast_for_database, 'ready for database', ['read from database'])
       attribute = Attribute.from_database(nil, 'whatever', @type)
 
@@ -78,7 +78,7 @@ module ActiveRecord
     end
 
     test "duping dups the value" do
-      @type.expect(:type_cast_from_database, 'type cast', ['a value'])
+      @type.expect(:deserialize, 'type cast', ['a value'])
       attribute = Attribute.from_database(nil, 'a value', @type)
 
       value_from_orig = attribute.value
@@ -90,7 +90,7 @@ module ActiveRecord
     end
 
     test "duping does not dup the value if it is not dupable" do
-      @type.expect(:type_cast_from_database, false, ['a value'])
+      @type.expect(:deserialize, false, ['a value'])
       attribute = Attribute.from_database(nil, 'a value', @type)
 
       assert_same attribute.value, attribute.dup.value
@@ -106,7 +106,7 @@ module ActiveRecord
         value + " from user"
       end
 
-      def type_cast_from_database(value)
+      def deserialize(value)
         value + " from database"
       end
     end

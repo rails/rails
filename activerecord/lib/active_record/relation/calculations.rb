@@ -353,9 +353,9 @@ module ActiveRecord
     def type_cast_calculated_value(value, type, operation = nil)
       case operation
         when 'count'   then value.to_i
-        when 'sum'     then type.type_cast_from_database(value || 0)
+        when 'sum'     then type.deserialize(value || 0)
         when 'average' then value.respond_to?(:to_d) ? value.to_d : value
-        else type.type_cast_from_database(value)
+        else type.deserialize(value)
       end
     end
 

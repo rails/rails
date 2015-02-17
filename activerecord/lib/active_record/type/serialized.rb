@@ -11,7 +11,7 @@ module ActiveRecord
         super(subtype)
       end
 
-      def type_cast_from_database(value)
+      def deserialize(value)
         if default_value?(value)
           value
         else

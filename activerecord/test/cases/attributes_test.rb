@@ -112,7 +112,7 @@ module ActiveRecord
           "from user"
         end
 
-        def type_cast_from_database(*)
+        def deserialize(*)
           "from database"
         end
       end

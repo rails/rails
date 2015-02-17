@@ -254,7 +254,7 @@ module ActiveRecord
         :string
       end
 
-      def type_cast_from_database(value)
+      def deserialize(value)
         raise value unless value == "type cast for database"
         "type cast from database"
       end

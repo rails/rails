@@ -108,7 +108,7 @@ module ActiveRecord
 
     class FromDatabase < Attribute # :nodoc:
       def type_cast(value)
-        type.type_cast_from_database(value)
+        type.deserialize(value)
       end
     end
 
