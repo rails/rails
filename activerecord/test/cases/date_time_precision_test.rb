@@ -1,7 +1,7 @@
 require 'cases/helper'
 require 'support/schema_dumping_helper'
 
-if current_adapter?(:Mysql2Adapter, :PostgreSQLAdapter)
+if mysql_56? || current_adapter?(:PostgreSQLAdapter)
 class DateTimePrecisionTest < ActiveRecord::TestCase
   include SchemaDumpingHelper
   self.use_transactional_fixtures = false
