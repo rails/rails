@@ -83,6 +83,21 @@ class CookiesTest < ActionController::TestCase
       head :ok
     end
 
+    def set_json_cookie
+      cookies.json[:filters] = { :id => true, :name => true }
+      head :ok
+    end
+
+    def set_json_cookie_with_options
+      cookies.json[:filters] = { :value => [:id, :name], expires: Time.utc(2005, 10, 10,5), path: '/test' }
+      head :ok
+    end
+
+    def set_json_permanent_cookie
+      cookies.permanent.json[:user_id] = 45
+      head :ok
+    end
+
     def set_signed_cookie
       cookies.signed[:user_id] = 45
       head :ok
@@ -629,6 +644,36 @@ class CookiesTest < ActionController::TestCase
     get :set_permanent_signed_cookie
     assert_match(%r(#{20.years.from_now.utc.year}), @response.headers["Set-Cookie"])
     assert_equal 100, @controller.send(:cookies).signed[:remember_me]
+  end
+
+  def test_json_cookie
+    get :set_json_cookie
+    cookie_expected = CGI.escape({ :id => true, :name => true }.to_json)
+    assert_cookie_header "filters=#{cookie_expected}; path=/"
+
+    cookies = @controller.send(:cookies)
+    assert_equal String, cookies[:filters].class
+    assert_equal Hash, cookies.json[:filters].class
+  end
+
+  def test_json_cookie_with_options
+    get :set_json_cookie_with_options
+    cookie_expected = CGI.escape([:id, :name].to_json)
+    assert_cookie_header "filters=#{cookie_expected}; path=/test; expires=Mon, 10 Oct 2005 05:00:00 -0000"
+
+    cookies = @controller.send(:cookies)
+    assert_equal String, cookies[:filters].class
+    assert_equal Array, cookies.json[:filters].class
+  end
+
+  def test_json_permanent_cookie
+    get :set_json_permanent_cookie
+    assert_match(%r(#{20.years.from_now.utc.year}), @response.headers["Set-Cookie"])
+    assert_match(%r(user_id=45), @response.headers["Set-Cookie"])
+
+    cookies = @controller.send(:cookies)
+    assert_equal String, cookies[:user_id].class
+    assert_equal Fixnum, cookies.json[:user_id].class
   end
 
   def test_delete_and_set_cookie

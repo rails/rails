@@ -118,6 +118,24 @@ module ActionDispatch
         @permanent ||= PermanentCookieJar.new(self, @key_generator, @options)
       end
 
+      # Returns a jar that'll automatically dump the assigned cookies to JSON and load it from JSON when reading again.
+      # If a hash is sent as a cookie and it contains "value" key, the value under this key will be considered as a cookie itself
+      # to support "expires" or "path" options.
+      #
+      # Example:
+      #
+      #   cookies.json[:filters] = [:id, :name]
+      #   # => Set-Cookie: filters=%5B%22id%22%2C%22name%22%5D; path=/
+      #
+      #   cookies.json[:filters]
+      #   # => ["id", "name"]
+      #
+      #   cookies.json[:filters] = { value: [:id, :name], expires: 1.day.since }
+      #   # => Set-Cookie: filters=%5B%22id%22%2C%22name%22%5D; path=/; expires=Wed, 18 Feb 2015 12:13:26 -0000
+      def json
+        @json ||= JsonCookieJar.new(self, @key_generator, @options)
+      end
+
       # Returns a jar that'll automatically generate a signed representation of cookie value and verify it when reading from
       # the cookie again. This is useful for creating cookies with values that the user is not supposed to change. If a signed
       # cookie was tampered with by the user (or a 3rd party), nil will be returned.
@@ -478,6 +496,32 @@ module ActionDispatch
         rescue ActiveSupport::MessageVerifier::InvalidSignature
           nil
         end
+    end
+
+    class JsonCookieJar #:nodoc:
+      include ChainedCookieJars
+
+      def initialize(parent_jar, key_generator, options = {})
+        @parent_jar = parent_jar
+        @key_generator = key_generator
+        @options = options
+      end
+
+      def [](name)
+        @parent_jar[name] && JsonSerializer.load(@parent_jar[name])
+      end
+
+      def []=(name, options)
+        if options.is_a?(Hash)
+          options.symbolize_keys!
+          options = { :value => options } unless options.key?(:value)
+        else
+          options = { :value => options }
+        end
+        options[:value] = JsonSerializer.dump(options[:value])
+
+        @parent_jar[name] = options
+      end
     end
 
     # UpgradeLegacySignedCookieJar is used instead of SignedCookieJar if

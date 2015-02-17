@@ -1,3 +1,14 @@
+*   Add JsonCookieJar for easy working with cookies containing objects dumped to JSON.
+
+    Example:
+
+        cookies.json[:user_ids] = [1, 2, 3]
+        cookies.json[:user_ids] # => [1, 2, 3]
+        cookies[:user_ids]      # => "[1, 2, 3]"
+        cookies.json[:user]     # => nil
+
+    *Roman Samoilov*
+
 *   Add http_cache_forever to Action Controller, so we can cache a response that never gets expired.
 
     *arthurnn*
