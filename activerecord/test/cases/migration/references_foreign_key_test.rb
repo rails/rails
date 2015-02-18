@@ -10,8 +10,8 @@ module ActiveRecord
       end
 
       teardown do
-        @connection.execute("drop table if exists testings")
-        @connection.execute("drop table if exists testing_parents")
+        @connection.drop_table("testings") if @connection.table_exists? "testings"
+        @connection.drop_table("testing_parents") if @connection.table_exists? "testing_parents"
       end
 
       test "foreign keys can be created with the table" do
