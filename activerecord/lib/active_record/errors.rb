@@ -179,7 +179,7 @@ module ActiveRecord
   end
 
   UnknownAttributeError = ActiveSupport::Deprecation::DeprecatedConstantProxy.new( # :nodoc:
-    'ActiveRecord::UnknownAttributeError', 
+    'ActiveRecord::UnknownAttributeError',
     'ActiveModel::AttributeAssignment::UnknownAttributeError'
   )
 
@@ -240,5 +240,9 @@ module ActiveRecord
   #
   # The mysql, mysql2 and postgresql adapters support setting the transaction isolation level.
   class TransactionIsolationError < ActiveRecordError
+  end
+
+  # Raised when Active Record fails to reverse an order statement.
+  class UnreversableOrderError < ActiveRecordError
   end
 end

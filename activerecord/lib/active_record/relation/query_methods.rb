@@ -1016,14 +1016,85 @@ module ActiveRecord
         when Arel::Nodes::Ordering
           o.reverse
         when String
-          o.to_s.split(',').map! do |s|
-            s.strip!
-            s.gsub!(/\sasc\Z/i, ' DESC') || s.gsub!(/\sdesc\Z/i, ' ASC') || s.concat(' DESC')
-          end
+          reverse_string_sql_order(o)
         else
           o
         end
       end
+    end
+
+    def reverse_string_sql_order(sql)
+      split_sql_statement(sql).map do |parts|
+        dir_index = -1
+        if parts[-2] =~ /^NULLS$/i
+          nulls_first = parts[-1] =~ /FIRST/
+          if nulls_first || parts[-1] =~ /^LAST$/i
+            parts[-1] = nulls_first ? 'LAST' : 'FIRST'
+            dir_index = -3
+          end
+        end
+        case parts[dir_index]
+        when /ASC/i
+          parts[dir_index] = 'DESC'
+        when /DESC/i
+          parts[dir_index] = 'ASC'
+        else
+          parts.insert dir_index, 'DESC'
+        end
+        parts.join(' ')
+      end.join(', ')
+    end
+
+    # Splits a SQL statement
+    # first separated by commas
+    # then by spaces:
+    #   split_sql_statement('name DESC, age') # =>
+    #   [
+    #      ['name', 'DESC'],
+    #      ['age']
+    #   ]
+    #
+    # Anything inside parenthesis is not split.
+    #
+    def split_sql_statement(sql)
+      unless sql.include? '('
+        result = sql.split(',').map!{ |words| words.split(' ') }
+      else
+        result = [term = [word = '']]
+        quoted = false
+        level = 0
+        sql.each_char do |c|
+          # Deal with quotes:
+          if quoted
+            quoted = false if c == quoted
+          elsif c =~ /['"]/
+            quoted = c
+          end
+
+          if quoted
+            # No more checks if inside quotes
+            word << c
+          else
+            # If outside of quotes, check if we need to split
+            if level == 0 && c =~ /\s/
+              term << word = ''
+            elsif level == 0 && c =~ /,/
+              result << term = [word = '']
+            else
+              # Otherwise keep track of the parenthesis level
+              word << c
+              if c == '('
+                level += 1
+              elsif c == ')'
+                level -= 1
+              end
+            end
+          end
+        end
+        raise UnreversableOrderError, "SQL Order appears to be invalid and can't be reversed" unless level == 0 && !quoted
+      end
+      result.each {|words| words.reject!(&:empty?) }
+      result
     end
 
     def build_order(arel)

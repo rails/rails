@@ -188,6 +188,32 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal topics(:fifth).title, topics.first.title
   end
 
+  def test_reverse_order_works_with_nulls_first_or_last
+    to_reverse = "title DESC NULLS LAST, author_name  NULLS  FIRST  "
+    expected   = "title ASC NULLS FIRST, author_name DESC NULLS LAST"
+
+    reversed = Topic.order(to_reverse).reverse_order
+    assert_equal [expected], reversed.order_values
+  end
+
+  def test_reverse_order_parses_expressions
+    expr = %q[(CONCAT(title, '"(''', author_name))] # Meaningless expression meant to test parsing of () and quotes
+    to_reverse = "#{expr} DESC , author_name  "
+    expected   = "#{expr} ASC, author_name DESC"
+
+    reversed = Topic.order(to_reverse).reverse_order
+    assert_equal [expected], reversed.order_values
+  end
+
+  def test_reverse_order_raises_on_invalid_expressions
+    assert_raise(ActiveRecord::UnreversableOrderError) do
+      Topic.order("CONCAT(title, author_name").reverse_order # missing closing parenthesis
+    end
+    assert_raise(ActiveRecord::UnreversableOrderError) do
+      Topic.order("CONCAT(title, ')").reverse_order # missing closing quote
+    end
+  end
+
   def test_order_with_hash_and_symbol_generates_the_same_sql
     assert_equal Topic.order(:id).to_sql, Topic.order(:id => :asc).to_sql
   end
