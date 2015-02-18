@@ -16,7 +16,7 @@ class PostgresqlMoneyTest < ActiveRecord::TestCase
   end
 
   teardown do
-    @connection.execute 'DROP TABLE IF EXISTS postgresql_moneys'
+    @connection.drop_table 'postgresql_moneys', if_exists: true
   end
 
   def test_column

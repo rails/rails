@@ -18,7 +18,7 @@ class PostgresqlPointTest < ActiveRecord::TestCase
   end
 
   teardown do
-    @connection.execute 'DROP TABLE IF EXISTS postgresql_points'
+    @connection.drop_table 'postgresql_points', if_exists: true
   end
 
   def test_column
@@ -84,7 +84,7 @@ class PostgresqlGeometricTest < ActiveRecord::TestCase
   end
 
   teardown do
-    @connection.execute 'DROP TABLE IF EXISTS postgresql_geometrics'
+    @connection.drop_table 'postgresql_geometrics', if_exists: true
   end
 
   def test_geometric_types

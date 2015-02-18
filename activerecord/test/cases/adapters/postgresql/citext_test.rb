@@ -19,7 +19,7 @@ if ActiveRecord::Base.connection.supports_extensions?
     end
 
     teardown do
-      @connection.execute 'DROP TABLE IF EXISTS citexts;'
+      @connection.drop_table 'citexts', if_exists: true
       disable_extension!('citext', @connection)
     end
 

@@ -20,7 +20,7 @@ class PostgresqlBitStringTest < ActiveRecord::TestCase
 
   def teardown
     return unless @connection
-    @connection.execute 'DROP TABLE IF EXISTS postgresql_bit_strings'
+    @connection.drop_table 'postgresql_bit_strings', if_exists: true
   end
 
   def test_bit_string_column

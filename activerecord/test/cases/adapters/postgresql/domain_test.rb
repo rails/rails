@@ -19,7 +19,7 @@ class PostgresqlDomainTest < ActiveRecord::TestCase
   end
 
   teardown do
-    @connection.execute 'DROP TABLE IF EXISTS postgresql_domains'
+    @connection.drop_table 'postgresql_domains', if_exists: true
     @connection.execute 'DROP DOMAIN IF EXISTS custom_money'
     reset_connection
   end

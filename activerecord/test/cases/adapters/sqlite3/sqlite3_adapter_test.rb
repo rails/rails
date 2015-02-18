@@ -191,7 +191,7 @@ module ActiveRecord
         binary.save!
         assert_equal str, binary.data
       ensure
-        DualEncoding.connection.execute('DROP TABLE IF EXISTS dual_encodings')
+        DualEncoding.connection.drop_table 'dual_encodings', if_exists: true
       end
 
       def test_type_cast_should_not_mutate_encoding

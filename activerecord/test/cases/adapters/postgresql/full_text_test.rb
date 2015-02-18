@@ -13,7 +13,7 @@ class PostgresqlFullTextTest < ActiveRecord::TestCase
   end
 
   teardown do
-    @connection.execute 'DROP TABLE IF EXISTS tsvectors;'
+    @connection.drop_table 'tsvectors', if_exists: true
   end
 
   def test_tsvector_column

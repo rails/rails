@@ -2,7 +2,7 @@ ActiveRecord::Schema.define do
 
   %w(postgresql_times postgresql_oids defaults postgresql_timestamp_with_zones
       postgresql_partitioned_table postgresql_partitioned_table_parent).each do |table_name|
-    execute "DROP TABLE IF EXISTS #{quote_table_name table_name}"
+    drop_table table_name, if_exists: true
   end
 
   execute 'DROP SEQUENCE IF EXISTS companies_nonstd_seq CASCADE'

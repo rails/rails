@@ -29,7 +29,7 @@ module PostgresqlCompositeBehavior
   def teardown
     super
 
-    @connection.execute 'DROP TABLE IF EXISTS postgresql_composites'
+    @connection.drop_table 'postgresql_composites', if_exists: true
     @connection.execute 'DROP TYPE IF EXISTS full_address'
     reset_connection
     PostgresqlComposite.reset_column_information
