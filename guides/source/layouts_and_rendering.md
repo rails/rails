@@ -1124,6 +1124,36 @@ You can also pass local variables into partials, making them even more powerful 
 
 Although the same partial will be rendered into both views, Action View's submit helper will return "Create Zone" for the new action and "Update Zone" for the edit action.
 
+To pass a local variable to a partial in only specific cases use the `local_assigns`.
+
+* `index.html.erb`
+
+  ```erb
+  <%= render user.articles %>
+  ```
+
+* `show.html.erb`
+
+  ```erb
+  <%= render article, full: true %>
+  ```
+
+* `_articles.html.erb`
+
+  ```erb
+  <%= content_tag_for :article, article do |article| %>
+    <h2><%= article.title %></h2>
+
+    <% if local_assigns[:full] %>
+      <%= simple_format article.body %>
+    <% else %>
+      <%= truncate article.body %>
+    <% end %>
+  <% end %>
+  ```
+
+This way it is possible to use the partial without the need to declare all local variables.
+
 Every partial also has a local variable with the same name as the partial (minus the underscore). You can pass an object in to this local variable via the `:object` option:
 
 ```erb
