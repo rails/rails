@@ -347,6 +347,13 @@ module ActiveModel
     #   person.errors.messages
     #   # => {:name=>["can't be empty"]}
     def add_on_empty(attributes, options = {})
+      ActiveSupport::Deprecation.warn(<<-MESSAGE.squish)
+        ActiveModel::Errors#add_on_empty is deprecated and will be removed in Rails 5.1
+
+        To achieve the same write
+        errors.add(attribute, :empty, options) if value.nil? || value.empty?
+      MESSAGE
+
       Array(attributes).each do |attribute|
         value = @base.send(:read_attribute_for_validation, attribute)
         is_empty = value.respond_to?(:empty?) ? value.empty? : false
@@ -361,6 +368,13 @@ module ActiveModel
     #   person.errors.messages
     #   # => {:name=>["can't be blank"]}
     def add_on_blank(attributes, options = {})
+      ActiveSupport::Deprecation.warn(<<-MESSAGE.squish)
+        ActiveModel::Errors#add_on_blank is deprecated and will be removed in Rails 5.1
+
+        To achieve the same write
+        errors.add(attribute, :empty, options) if value.blank?
+      MESSAGE
+
       Array(attributes).each do |attribute|
         value = @base.send(:read_attribute_for_validation, attribute)
         add(attribute, :blank, options) if value.blank?

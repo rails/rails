@@ -214,7 +214,7 @@ class Account < ActiveRecord::Base
   protected
 
   def check_empty_credit_limit
-    errors.add_on_empty "credit_limit"
+    errors.add("credit_limit", :blank) if credit_limit.blank?
   end
 
   private

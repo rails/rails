@@ -288,46 +288,60 @@ class ErrorsTest < ActiveModel::TestCase
   test "add_on_empty generates message" do
     person = Person.new
     person.errors.expects(:generate_message).with(:name, :empty, {})
-    person.errors.add_on_empty :name
+    assert_deprecated do
+      person.errors.add_on_empty :name
+    end
   end
 
   test "add_on_empty generates message for multiple attributes" do
     person = Person.new
     person.errors.expects(:generate_message).with(:name, :empty, {})
     person.errors.expects(:generate_message).with(:age, :empty, {})
-    person.errors.add_on_empty [:name, :age]
+    assert_deprecated do
+      person.errors.add_on_empty [:name, :age]
+    end
   end
 
   test "add_on_empty generates message with custom default message" do
     person = Person.new
     person.errors.expects(:generate_message).with(:name, :empty, { message: 'custom' })
-    person.errors.add_on_empty :name, message: 'custom'
+    assert_deprecated do
+      person.errors.add_on_empty :name, message: 'custom'
+    end
   end
 
   test "add_on_empty generates message with empty string value" do
     person = Person.new
     person.name = ''
     person.errors.expects(:generate_message).with(:name, :empty, {})
-    person.errors.add_on_empty :name
+    assert_deprecated do
+      person.errors.add_on_empty :name
+    end
   end
 
   test "add_on_blank generates message" do
     person = Person.new
     person.errors.expects(:generate_message).with(:name, :blank, {})
-    person.errors.add_on_blank :name
+    assert_deprecated do
+      person.errors.add_on_blank :name
+    end
   end
 
   test "add_on_blank generates message for multiple attributes" do
     person = Person.new
     person.errors.expects(:generate_message).with(:name, :blank, {})
     person.errors.expects(:generate_message).with(:age, :blank, {})
-    person.errors.add_on_blank [:name, :age]
+    assert_deprecated do
+      person.errors.add_on_blank [:name, :age]
+    end
   end
 
   test "add_on_blank generates message with custom default message" do
     person = Person.new
     person.errors.expects(:generate_message).with(:name, :blank, { message: 'custom' })
-    person.errors.add_on_blank :name, message: 'custom'
+    assert_deprecated do
+      person.errors.add_on_blank :name, message: 'custom'
+    end
   end
 
   test "details returns added error detail" do

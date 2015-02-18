@@ -1,3 +1,8 @@
+*   Deprecate `ActiveModel::Errors#add_on_empty` and `ActiveModel::Errors#add_on_blank`
+    with no replacement.
+
+    *Wojciech Wnętrzak*
+
 *   Deprecate `ActiveModel::Errors#get`, `ActiveModel::Errors#set` and
     `ActiveModel::Errors#[]=` methods that have inconsistent behaviour.
 
