@@ -35,6 +35,7 @@ module Rails
     class MiddlewareStackProxy
       def initialize
         @operations = []
+        @delete_operations = []
       end
 
       def insert_before(*args, &block)
@@ -56,7 +57,7 @@ module Rails
       end
 
       def delete(*args, &block)
-        @operations << [__method__, args, block]
+        @delete_operations << [__method__, args, block]
       end
 
       def unshift(*args, &block)
@@ -64,9 +65,10 @@ module Rails
       end
 
       def merge_into(other) #:nodoc:
-        @operations.each do |operation, args, block|
+        @operations.concat(@delete_operations).each do |operation, args, block|
           other.send(operation, *args, &block)
         end
+
         other
       end
     end

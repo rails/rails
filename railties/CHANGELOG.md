@@ -1,3 +1,11 @@
+*   `delete` operations in configurations are run last in order to eliminate
+    'No such middleware' errors when `insert_before` or `insert_after` are added
+    after the `delete` operation for the middleware being deleted.
+
+    Fixes: #16433.
+
+    *Guo Xiang Tan*
+
 *   Newly generated applications get a `README.md` in Markdown.
 
     *Xavier Noria*
