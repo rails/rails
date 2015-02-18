@@ -299,7 +299,9 @@ order. The ancestors of those elements are ignored.
 
 2. If not found, then the algorithm walks up the ancestor chain of the cref.
 
-3. If not found, `const_missing` is invoked on the cref. The default
+3. If not found and the cref is a module, the constant is looked up in `Object`.
+
+4. If not found, `const_missing` is invoked on the cref. The default
 implementation of `const_missing` raises `NameError`, but it can be overridden.
 
 Rails autoloading **does not emulate this algorithm**, but its starting point is
