@@ -22,7 +22,7 @@ module ActiveRecord
       def test_bad_connection
         assert_raise ActiveRecord::NoDatabaseError do
           connection = ActiveRecord::Base.sqlite3_connection(adapter: "sqlite3", database: "/tmp/should/_not/_exist/-cinco-dog.db")
-          connection.exec_query('drop table if exists ex')
+          connection.drop_table 'ex', if_exists: true
         end
       end
 

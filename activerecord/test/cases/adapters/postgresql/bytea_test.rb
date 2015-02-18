@@ -20,7 +20,7 @@ class PostgresqlByteaTest < ActiveRecord::TestCase
   end
 
   teardown do
-    @connection.execute 'drop table if exists bytea_data_type'
+    @connection.drop_table 'bytea_data_type', if_exists: true
   end
 
   def test_column

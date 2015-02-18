@@ -22,7 +22,7 @@ module ActiveRecord
       end
 
       teardown do
-        @connection.execute "drop table if exists mysql_doubles"
+        @connection.drop_table "mysql_doubles", if_exists: true
       end
 
       class MysqlDouble < ActiveRecord::Base

@@ -15,7 +15,7 @@ module ActiveRecord
         assert_raise ActiveRecord::NoDatabaseError do
           configuration = ActiveRecord::Base.configurations['arunit'].merge(database: 'inexistent_activerecord_unittest')
           connection = ActiveRecord::Base.mysql_connection(configuration)
-          connection.exec_query('drop table if exists ex')
+          connection.drop_table 'ex', if_exists: true
         end
       end
 

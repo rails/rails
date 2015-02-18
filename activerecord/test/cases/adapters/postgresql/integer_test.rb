@@ -16,7 +16,7 @@ class PostgresqlIntegerTest < ActiveRecord::TestCase
   end
 
   teardown do
-    @connection.execute "drop table if exists pg_integers"
+    @connection.drop_table "pg_integers", if_exists: true
   end
 
   test "schema properly respects bigint ranges" do

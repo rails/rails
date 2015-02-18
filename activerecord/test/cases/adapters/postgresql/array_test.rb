@@ -28,7 +28,7 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
   end
 
   teardown do
-    @connection.execute 'drop table if exists pg_arrays'
+    @connection.drop_table 'pg_arrays', if_exists: true
     disable_extension!('hstore', @connection)
   end
 

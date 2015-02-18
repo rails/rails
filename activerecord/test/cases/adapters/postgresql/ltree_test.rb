@@ -22,7 +22,7 @@ class PostgresqlLtreeTest < ActiveRecord::TestCase
   end
 
   teardown do
-    @connection.execute 'drop table if exists ltrees'
+    @connection.drop_table 'ltrees', if_exists: true
   end
 
   def test_column

@@ -22,7 +22,7 @@ class PostgresqlXMLTest < ActiveRecord::TestCase
   end
 
   teardown do
-    @connection.execute 'drop table if exists xml_data_type'
+    @connection.drop_table 'xml_data_type', if_exists: true
   end
 
   def test_column

@@ -32,7 +32,7 @@ if ActiveRecord::Base.connection.supports_extensions?
     end
 
     teardown do
-      @connection.execute 'drop table if exists hstores'
+      @connection.drop_table 'hstores', if_exists: true
     end
 
     def test_hstore_included_in_extensions

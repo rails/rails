@@ -7,7 +7,7 @@ module PostgresqlUUIDHelper
   end
 
   def drop_table(name)
-    connection.execute "drop table if exists #{name}"
+    connection.drop_table name, if_exists: true
   end
 end
 
