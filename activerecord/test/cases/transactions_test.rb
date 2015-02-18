@@ -668,7 +668,7 @@ class TransactionTest < ActiveRecord::TestCase
       end
     end
   ensure
-    connection.execute("DROP TABLE IF EXISTS transaction_without_primary_keys")
+    connection.drop_table "transaction_without_primary_keys", if_exists: true
   end
 
   private
