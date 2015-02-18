@@ -279,7 +279,7 @@ module ActionController #:nodoc:
 
         begin
           masked_token = Base64.strict_decode64(encoded_masked_token)
-        rescue ArgumentError # encoded_masked_token is invalid Base64
+        rescue ArgumentError, NoMethodError # encoded_masked_token is invalid Base64
           return false
         end
 

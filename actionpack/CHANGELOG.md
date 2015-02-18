@@ -1,3 +1,8 @@
+*   Non-string authenticity tokens do not raise NoMethodError when decoding
+    the masked token.
+
+    *Ville Lautanala*
+
 *   Add http_cache_forever to Action Controller, so we can cache a response that never gets expired.
 
     *arthurnn*
