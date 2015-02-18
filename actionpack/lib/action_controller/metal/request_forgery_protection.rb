@@ -274,7 +274,9 @@ module ActionController #:nodoc:
       # session token. Essentially the inverse of
       # +masked_authenticity_token+.
       def valid_authenticity_token?(session, encoded_masked_token)
-        return false if encoded_masked_token.nil? || encoded_masked_token.empty?
+        if encoded_masked_token.nil? || encoded_masked_token.empty? || !encoded_masked_token.is_a?(String)
+          return false
+        end
 
         begin
           masked_token = Base64.strict_decode64(encoded_masked_token)

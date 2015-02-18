@@ -1,3 +1,8 @@
+*   Non-string authenticity tokens do not raise NoMethodError when decoding
+    the masked token.
+
+    *Ville Lautanala*
+
 *   Explicitly ignored wildcard verbs when searching for HEAD routes before fallback
 
     Fixes an issue where a mounted rack app at root would intercept the HEAD
