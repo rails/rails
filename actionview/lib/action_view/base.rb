@@ -70,6 +70,14 @@ module ActionView #:nodoc:
   #   Headline: <%= headline %>
   #   First name: <%= person.first_name %>
   #
+  # The local variables passed to sub templates can be accessed as a hash using the <tt>local_assigns</tt> hash. This lets you access the
+  # variables as:
+  #
+  #   Headline: <%= local_assigns[:headline] %>
+  #
+  # This is useful in cases where you aren't sure if the local variable has been assigned. Alternately, you could also use
+  # <tt>defined? headline</tt> to first check if the variable has been assigned before using it.
+  #
   # === Template caching
   #
   # By default, Rails will compile each template to a method in order to render it. When you alter a template,
