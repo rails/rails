@@ -116,7 +116,7 @@ module ActionView
 
     # This finalizer is needed (and exactly with a proc inside another proc)
     # otherwise templates leak in development.
-    Finalizer = proc do |method_name, mod|
+    Finalizer = proc do |method_name, mod| # :nodoc:
       proc do
         mod.module_eval do
           remove_possible_method method_name
