@@ -361,6 +361,10 @@ A CHANGELOG entry should summarize what was changed and should end with author's
 
 Your name can be added directly after the last word if you don't provide any code examples or don't need multiple paragraphs. Otherwise, it's best to make as a new paragraph.
 
+### Updating the Gemfile.lock
+
+Some changes requires the dependencies to be upgraded. In these cases make sure you run `bundle update` to get the right version of the dependency and commit the `Gemfile.lock` file within your changes.
+
 ### Sanity Check
 
 You should not be the only person who looks at the code before you submit it.
