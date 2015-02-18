@@ -1386,7 +1386,7 @@ module ActiveRecord
       #   has_one :last_comment, -> { order 'posted_on' }, class_name: "Comment"
       #   has_one :project_manager, -> { where role: 'project_manager' }, class_name: "Person"
       #   has_one :attachment, as: :attachable
-      #   has_one :boss, readonly: :true
+      #   has_one :boss, -> { readonly }
       #   has_one :club, through: :membership
       #   has_one :primary_address, -> { where primary: true }, through: :addressables, source: :addressable
       #   has_one :credit_card, required: true
@@ -1514,7 +1514,7 @@ module ActiveRecord
       #   belongs_to :valid_coupon, ->(o) { where "discounts > ?", o.payments_count },
       #                             class_name: "Coupon", foreign_key: "coupon_id"
       #   belongs_to :attachable, polymorphic: true
-      #   belongs_to :project, readonly: true
+      #   belongs_to :project, -> { readonly }
       #   belongs_to :post, counter_cache: true
       #   belongs_to :comment, touch: true
       #   belongs_to :company, touch: :employees_last_updated_at
