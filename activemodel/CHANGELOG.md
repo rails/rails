@@ -1,3 +1,8 @@
+*   Deprecate `ActiveModel::Errors#get`, `ActiveModel::Errors#set` and
+    `ActiveModel::Errors#[]=` methods that have inconsistent behaviour.
+
+    *Wojciech Wnętrzak*
+
 *   Allow symbol as values for `tokenize` of `LengthValidator`
 
     *Kensuke Naito*
