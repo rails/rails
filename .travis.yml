@@ -3,6 +3,7 @@ sudo: false
 script: 'ci/travis.rb'
 before_install:
   - gem install bundler
+  - "rm ${BUNDLE_GEMFILE}.lock"
 before_script:
   - bundle update
 cache: bundler
