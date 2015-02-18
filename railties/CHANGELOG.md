@@ -1,3 +1,9 @@
+*   Restart task added to railties rake tasks in order to
+    address #18876 and #18874 issues without expanding spring
+    watchlist.
+
+    *Sameer Rahmani*
+    
 *   Newly generated applications get a `README.md` in Markdown.
 
     *Xavier Noria*
