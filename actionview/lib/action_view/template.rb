@@ -87,6 +87,19 @@ module ActionView
     #       expected_encoding
     #     )
 
+    ##
+    # :method: local_assigns
+    #
+    # Returns a hash with the defined local variables.
+    #
+    # Given this sub template rendering:
+    #
+    #   <%= render "shared/header", { headline: "Welcome", person: person } %>
+    #
+    # You can use +local_assigns+ in the sub templates to access the local variables:
+    #
+    #   local_assigns[:headline] # => "Welcome"
+
     eager_autoload do
       autoload :Error
       autoload :Handlers
@@ -251,13 +264,6 @@ module ActionView
           @compiled = true
         end
       end
-
-      ##
-      # :method: local_assigns
-      #
-      # Returns a hash with the defined local variables
-      #
-      #   local_assigns[:full] # => true
 
       # Among other things, this method is responsible for properly setting
       # the encoding of the compiled template.
