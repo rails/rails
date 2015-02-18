@@ -77,5 +77,11 @@ module ActionView
       format = name.split('.')[-2].to_sym
       all_formats.include?(format) ? [format] : [:html]
     end
+
+    cattr_accessor :eager_load_templates
+
+    class << self
+      alias :eager_load_templates? :eager_load_templates
+    end
   end
 end

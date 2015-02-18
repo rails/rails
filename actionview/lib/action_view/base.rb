@@ -175,6 +175,10 @@ module ActionView #:nodoc:
         ActionView::Resolver.caching = value
       end
 
+      def eager_load_templates=(value)
+        ActionView::TemplateEagerLoader.eager_load_templates = value
+      end
+
       def xss_safe? #:nodoc:
         true
       end
