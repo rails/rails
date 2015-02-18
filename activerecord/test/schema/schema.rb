@@ -468,6 +468,10 @@ ActiveRecord::Schema.define do
     t.string      :name
   end
 
+  create_table :notifications, force: true do |t|
+    t.string :message
+  end
+
   create_table :numeric_data, force: true do |t|
     t.decimal :bank_balance, precision: 10, scale: 2
     t.decimal :big_bank_balance, precision: 15, scale: 2
