@@ -73,6 +73,15 @@ class TimestampTest < ActiveRecord::TestCase
     assert_equal @previously_updated_at, @developer.updated_at
   end
 
+  def test_touching_updates_timestamp_with_given_time
+    previously_updated_at = @developer.updated_at 
+    new_time = Time.utc(2015, 2, 16, 0, 0, 0) 
+    @developer.touch(time: new_time) 
+
+    assert_not_equal previously_updated_at, @developer.updated_at 
+    assert_equal new_time, @developer.updated_at 
+  end
+
   def test_touching_an_attribute_updates_timestamp
     previously_created_at = @developer.created_at
     @developer.touch(:created_at)
@@ -89,6 +98,18 @@ class TimestampTest < ActiveRecord::TestCase
     task.touch(:ending)
     assert_not_equal previous_value, task.ending
     assert_in_delta Time.now, task.ending, 1
+  end
+
+  def test_touching_an_attribute_updates_timestamp_with_given_time
+    previously_updated_at = @developer.updated_at 
+    previously_created_at = @developer.created_at
+    new_time = Time.utc(2015, 2, 16, 4, 54, 0) 
+    @developer.touch(:created_at, time: new_time)
+
+    assert_not_equal previously_created_at, @developer.created_at
+    assert_not_equal previously_updated_at, @developer.updated_at
+    assert_equal new_time, @developer.created_at
+    assert_equal new_time, @developer.updated_at
   end
 
   def test_touching_many_attributes_updates_them

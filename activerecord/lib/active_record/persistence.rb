@@ -429,14 +429,17 @@ module ActiveRecord
       self
     end
 
-    # Saves the record with the updated_at/on attributes set to the current time.
+    # Saves the record with the updated_at/on attributes set to the current time 
+    # or the time specified.
     # Please note that no validation is performed and only the +after_touch+,
     # +after_commit+ and +after_rollback+ callbacks are executed.
     #
+    # This method can be passed attribute names and an optional time argument.
     # If attribute names are passed, they are updated along with updated_at/on
-    # attributes.
+    # attributes. If no time argument is passed, the current time is used as default.
     #
-    #   product.touch                         # updates updated_at/on
+    #   product.touch                         # updates updated_at/on with current time
+    #   product.touch(time: Time.new(2015, 2, 16, 0, 0, 0)) # updates updated_at/on with specified time
     #   product.touch(:designed_at)           # updates the designed_at attribute and updated_at/on
     #   product.touch(:started_at, :ended_at) # updates started_at, ended_at and updated_at/on attributes
     #
@@ -460,19 +463,18 @@ module ActiveRecord
     #   ball = Ball.new
     #   ball.touch(:updated_at)   # => raises ActiveRecordError
     #
-    def touch(*names)
+    def touch(*names, time: current_time_from_proper_timezone)
       raise ActiveRecordError, "cannot touch on a new record object" unless persisted?
 
       attributes = timestamp_attributes_for_update_in_model
       attributes.concat(names)
 
       unless attributes.empty?
-        current_time = current_time_from_proper_timezone
         changes = {}
 
         attributes.each do |column|
           column = column.to_s
-          changes[column] = write_attribute(column, current_time)
+          changes[column] = write_attribute(column, time)
         end
 
         changes[self.class.locking_column] = increment_lock if locking_enabled?

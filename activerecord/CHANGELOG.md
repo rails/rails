@@ -1,3 +1,8 @@
+*   `:time` option added for `#touch`
+    Fixes #18905.
+
+    *Hyonjee Joo*
+
 *   Deprecated passing of `start` value to `find_in_batches` and `find_each`
     in favour of `begin_at` value.
 
