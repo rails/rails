@@ -4,6 +4,7 @@ require 'action_view/helpers/tag_helper'
 require 'action_view/helpers/form_tag_helper'
 require 'action_view/helpers/active_model_helper'
 require 'action_view/model_naming'
+require 'action_view/record_identifier'
 require 'active_support/core_ext/module/attribute_accessors'
 require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/string/output_safety'
@@ -110,6 +111,7 @@ module ActionView
       include FormTagHelper
       include UrlHelper
       include ModelNaming
+      include RecordIdentifier
 
       # Creates a form that allows the user to create or update the attributes
       # of a specific model object.

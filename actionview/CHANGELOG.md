@@ -1,3 +1,8 @@
+*   Extracted `ActionView::Helpers::RecordTagHelper` to external gem
+    (`record_tag_helper`) and added removal notices.
+
+    *Todd Bealmear*
+
 *   Allow to pass a string value to `size` option in `image_tag` and `video_tag`.
 
     This makes the behavior more consistent with `width` or `height` options.
