@@ -173,12 +173,12 @@ $ git checkout -b my_new_branch
 
 It doesn't matter much what name you use, because this branch will only exist on your local computer and your personal repository on GitHub. It won't be part of the Rails Git repository.
 
-### Bundle Update
+### Bundle install
 
-Update and install the required gems.
+Install the required gems.
 
 ```bash
-$ bundle update
+$ bundle install
 ```
 
 ### Running an Application Against Your Local Branch
@@ -375,6 +375,10 @@ A CHANGELOG entry should summarize what was changed and should end with author's
 ```
 
 Your name can be added directly after the last word if you don't provide any code examples or don't need multiple paragraphs. Otherwise, it's best to make as a new paragraph.
+
+### Updating the Gemfile.lock
+
+Some changes requires the dependencies to be upgraded. In these cases make sure you run `bundle update` to get the right version of the dependency and commit the `Gemfile.lock` file within your changes.
 
 ### Sanity Check
 
