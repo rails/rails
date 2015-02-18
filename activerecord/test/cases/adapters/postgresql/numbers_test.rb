@@ -12,7 +12,7 @@ class PostgresqlNumberTest < ActiveRecord::TestCase
   end
 
   teardown do
-    @connection.execute 'DROP TABLE IF EXISTS postgresql_numbers'
+    @connection.drop_table 'postgresql_numbers', if_exists: true
   end
 
   def test_data_type

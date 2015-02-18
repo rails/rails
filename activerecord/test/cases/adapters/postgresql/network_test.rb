@@ -15,7 +15,7 @@ class PostgresqlNetworkTest < ActiveRecord::TestCase
   end
 
   teardown do
-    @connection.execute 'DROP TABLE IF EXISTS postgresql_network_addresses'
+    @connection.drop_table 'postgresql_network_addresses', if_exists: true
   end
 
   def test_cidr_column

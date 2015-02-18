@@ -139,7 +139,7 @@ class MysqlReservedWordTest < ActiveRecord::TestCase
   # custom drop table, uses execute on connection to drop a table if it exists. note: escapes table_name
   def drop_tables_directly(table_names, connection = @connection)
     table_names.each do |name|
-      connection.execute("DROP TABLE IF EXISTS `#{name}`")
+      connection.drop_table name, if_exists: true
     end
   end
 

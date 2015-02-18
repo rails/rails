@@ -227,8 +227,8 @@ module ActiveRecord
           "DELETE FROM pg_depend WHERE objid = 'ex2_id_seq'::regclass AND refobjid = 'ex'::regclass AND deptype = 'a'"
         )
       ensure
-        @connection.exec_query('DROP TABLE IF EXISTS ex')
-        @connection.exec_query('DROP TABLE IF EXISTS ex2')
+        @connection.drop_table 'ex', if_exists: true
+        @connection.drop_table 'ex2', if_exists: true
       end
 
       def test_exec_insert_number

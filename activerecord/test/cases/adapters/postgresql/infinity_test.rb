@@ -15,7 +15,7 @@ class PostgresqlInfinityTest < ActiveRecord::TestCase
   end
 
   teardown do
-    @connection.execute("DROP TABLE IF EXISTS postgresql_infinities")
+    @connection.drop_table 'postgresql_infinities', if_exists: true
   end
 
   test "type casting infinity on a float column" do

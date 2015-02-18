@@ -91,7 +91,7 @@ _SQL
     end
 
     teardown do
-      @connection.execute 'DROP TABLE IF EXISTS postgresql_ranges'
+      @connection.drop_table 'postgresql_ranges', if_exists: true
       @connection.execute 'DROP TYPE IF EXISTS floatrange'
       reset_connection
     end
