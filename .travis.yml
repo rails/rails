@@ -6,14 +6,11 @@ env:
   global:
     - JRUBY_OPTS='--dev -J-Xmx1024M'
 rvm:
-  - rbx
+  - rbx-2
   - jruby-head
   - 2.0.0
   - 2.1
   - ruby-head
-matrix:
-  allow_failures:
-    - rvm: rbx
 notifications:
   email: false
   irc:
