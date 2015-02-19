@@ -65,7 +65,7 @@ module Rails
       end
 
       def merge_into(other) #:nodoc:
-        @operations.concat(@delete_operations).each do |operation, args, block|
+        (@operations + @delete_operations).each do |operation, args, block|
           other.send(operation, *args, &block)
         end
 
