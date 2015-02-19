@@ -328,8 +328,8 @@ module ActiveRecord
 
       def initialize_type_map(m) # :nodoc:
         super
-        m.register_type %r(datetime)i, Fields::DateTime.new
-        m.register_type %r(time)i,     Fields::Time.new
+        register_class_with_precision m, %r(datetime)i, Fields::DateTime
+        register_class_with_precision m, %r(time)i,     Fields::Time
       end
 
       def exec_without_stmt(sql, name = 'SQL') # :nodoc:
