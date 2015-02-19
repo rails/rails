@@ -5,26 +5,26 @@ module ActiveRecord
   # For example, here's a pattern of creating notifications when new comments
   # are posted. (The notification may in turn trigger an email, a push
   # notification, or just appear in the UI somewhere):
-  # 
-  # class Comment < ActiveRecord::Base
-  #   belongs_to :commentable, polymorphic: true
-  #   after_create -> { Notification.create! comment: self,
-  #     recipients: commentable.recipients }
-  # end
-  # 
+  #
+  #   class Comment < ActiveRecord::Base
+  #     belongs_to :commentable, polymorphic: true
+  #     after_create -> { Notification.create! comment: self,
+  #       recipients: commentable.recipients }
+  #   end
+  #
   # That's what you want the bulk of the time. New comment creates a new
   # Notification. But there may well be off cases, like copying a commentable
   # and its comments, where you don't want that. So you'd have a concern
   # something like this:
-  # 
-  # module Copyable
-  #   def copy_to(destination)
-  #     Notification.suppress do
-  #       # Copy logic that creates new comments that we do not want
-  #       # triggering notifications.
+  #
+  #   module Copyable
+  #     def copy_to(destination)
+  #       Notification.suppress do
+  #         # Copy logic that creates new comments that we do not want
+  #         # triggering notifications.
+  #       end
   #     end
   #   end
-  # end
   module Suppressor
     extend ActiveSupport::Concern
 
@@ -38,7 +38,7 @@ module ActiveRecord
     end
 
     # Ignore saving events if we're in suppression mode.
-    def save!(*args)
+    def save!(*args) # :nodoc:
       SuppressorRegistry.suppressed[self.class.name] ? self : super
     end
   end
