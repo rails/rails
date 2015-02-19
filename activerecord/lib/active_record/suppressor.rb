@@ -39,7 +39,7 @@ module ActiveRecord
 
     # Ignore saving events if we're in suppression mode.
     def save!(*args) # :nodoc:
-      SuppressorRegistry.suppressed[self.class.name] ? self : super
+      SuppressorRegistry.suppressed[self.class.name] ? true : super
     end
   end
 
