@@ -313,6 +313,7 @@ module ActiveRecord #:nodoc:
     include Serialization
     include Store
     include SecureToken
+    include Suppressor
   end
 
   ActiveSupport.run_load_hooks(:active_record, Base)

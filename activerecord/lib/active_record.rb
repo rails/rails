@@ -62,6 +62,7 @@ module ActiveRecord
   autoload :Serialization
   autoload :StatementCache
   autoload :Store
+  autoload :Suppressor
   autoload :TableMetadata
   autoload :Timestamp
   autoload :Transactions
