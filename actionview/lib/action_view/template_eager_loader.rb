@@ -6,21 +6,26 @@ module ActionView
     end
 
     def eager_load
-      partial = false
-      locals = []
-
       prefixes.each do |prefix|
         path_names(prefix).each do |name|
           locales.each do |locale|
             pieces = name.split('.')
             details, key = details_and_key(locale, name, pieces)
-            @resolver.find_all(pieces.first, prefix, partial, details, key, locals)
+            action = pieces.first
+            partial, locals = partial_and_locals(action)
+            action = action[1..-1] if action[0] == '_'
+            @resolver.find_all(action, prefix, partial, details, key, locals)
           end
         end
       end
     end
 
     private
+
+    def templates(action, prefix, partial, details, key, locals)
+      templates = @resolver.find_all(action, prefix, partial, details, key, locals)
+      templates.nil? ? [] : templates
+    end
 
     def prefixes
       prefixes = view_paths.map { |name| name.split('app/views/').last }
@@ -35,6 +40,20 @@ module ActionView
         handlers: ActionView::Template::Handlers.extensions
       }
       return details, ActionView::LookupContext::DetailsKey.get(details)
+    end
+
+    def partial_and_locals(action)
+      partial = false
+      locals = []
+      if action[0] == '_'
+        partial = true
+        action = action[1..-1]
+        locals << action
+        locals << action + '_counter'
+        locals << action + '_iteration'
+      end
+      return partial, [locals] if locals == []
+      return partial, [[], locals]
     end
 
     # All possible locale combinations
