@@ -1,6 +1,6 @@
 language: ruby
 script: 
-  - "rake test"
+  - "bundle exec rake test"
   - "gem build arel.gemspec"
 env:
   global:
