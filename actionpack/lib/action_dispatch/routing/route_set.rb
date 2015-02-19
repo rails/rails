@@ -471,9 +471,11 @@ module ActionDispatch
         return if MountedHelpers.method_defined?(name)
 
         routes = self
+        helpers = routes.url_helpers
+
         MountedHelpers.class_eval do
           define_method "_#{name}" do
-            RoutesProxy.new(routes, _routes_context)
+            RoutesProxy.new(routes, _routes_context, helpers)
           end
         end
 
