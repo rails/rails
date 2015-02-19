@@ -5,8 +5,7 @@ module ActiveRecord
         private
 
         def visit_ColumnDefinition(o)
-          o.sql_type = type_to_sql(o.type, o.limit, o.precision, o.scale)
-          o.sql_type << '[]' if o.array
+          o.sql_type = type_to_sql(o.type, o.limit, o.precision, o.scale, o.array)
           super
         end
       end
@@ -407,12 +406,14 @@ module ActiveRecord
         def change_column(table_name, column_name, type, options = {})
           clear_cache!
           quoted_table_name = quote_table_name(table_name)
-          sql_type = type_to_sql(type, options[:limit], options[:precision], options[:scale])
-          sql_type << "[]" if options[:array]
-          sql = "ALTER TABLE #{quoted_table_name} ALTER COLUMN #{quote_column_name(column_name)} TYPE #{sql_type}"
-          sql << " USING #{options[:using]}" if options[:using]
-          if options[:cast_as]
-            sql << " USING CAST(#{quote_column_name(column_name)} AS #{type_to_sql(options[:cast_as], options[:limit], options[:precision], options[:scale])})"
+          quoted_column_name = quote_column_name(column_name)
+          sql_type = type_to_sql(type, options[:limit], options[:precision], options[:scale], options[:array])
+          sql = "ALTER TABLE #{quoted_table_name} ALTER COLUMN #{quoted_column_name} TYPE #{sql_type}"
+          if options[:using]
+            sql << " USING #{options[:using]}"
+          elsif options[:cast_as]
+            cast_as_type = type_to_sql(options[:cast_as], options[:limit], options[:precision], options[:scale], options[:array])
+            sql << " USING CAST(#{quoted_column_name} AS #{cast_as_type})"
           end
           execute sql
 
@@ -509,8 +510,8 @@ module ActiveRecord
         end
 
         # Maps logical Rails types to PostgreSQL-specific data types.
-        def type_to_sql(type, limit = nil, precision = nil, scale = nil)
-          case type.to_s
+        def type_to_sql(type, limit = nil, precision = nil, scale = nil, array = nil)
+          sql = case type.to_s
           when 'binary'
             # PostgreSQL doesn't support limits on binary (bytea) columns.
             # The hard limit is 1Gb, because of a 32-bit size field, and TOAST.
@@ -526,24 +527,24 @@ module ActiveRecord
             else raise(ActiveRecordError, "The limit on text can be at most 1GB - 1byte.")
             end
           when 'integer'
-            return 'integer' unless limit
-
             case limit
-              when 1, 2; 'smallint'
-              when 3, 4; 'integer'
-              when 5..8; 'bigint'
-              else raise(ActiveRecordError, "No integer type has byte size #{limit}. Use a numeric with precision 0 instead.")
+            when 1, 2; 'smallint'
+            when nil, 3, 4; 'integer'
+            when 5..8; 'bigint'
+            else raise(ActiveRecordError, "No integer type has byte size #{limit}. Use a numeric with precision 0 instead.")
             end
           when 'datetime'
-            return super unless precision
-
             case precision
-              when 0..6; "timestamp(#{precision})"
-              else raise(ActiveRecordError, "No timestamp type has precision of #{precision}. The allowed range of precision is from 0 to 6")
+            when nil; super(type, limit, precision, scale)
+            when 0..6; "timestamp(#{precision})"
+            else raise(ActiveRecordError, "No timestamp type has precision of #{precision}. The allowed range of precision is from 0 to 6")
             end
           else
-            super
+            super(type, limit, precision, scale)
           end
+
+          sql << '[]' if array && type != :primary_key
+          sql
         end
 
         # PostgreSQL requires the ORDER BY columns in the select list for distinct queries, and

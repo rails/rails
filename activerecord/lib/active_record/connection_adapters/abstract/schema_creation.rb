@@ -18,6 +18,9 @@ module ActiveRecord
           "ADD #{accept(o)}"
         end
 
+        delegate :quote_column_name, :quote_table_name, :quote_default_expression, :type_to_sql, to: :@conn
+        private :quote_column_name, :quote_table_name, :quote_default_expression, :type_to_sql
+
         private
 
           def visit_AlterTable(o)
@@ -70,18 +73,6 @@ module ActiveRecord
             column_options
           end
 
-          def quote_column_name(name)
-            @conn.quote_column_name name
-          end
-
-          def quote_table_name(name)
-            @conn.quote_table_name name
-          end
-
-          def type_to_sql(type, limit, precision, scale)
-            @conn.type_to_sql type.to_sym, limit, precision, scale
-          end
-
           def add_column_options!(sql, options)
             sql << " DEFAULT #{quote_default_expression(options[:default], options[:column])}" if options_include_default?(options)
             # must explicitly check for :null to allow change_column to work on migrations
@@ -95,10 +86,6 @@ module ActiveRecord
               sql << " PRIMARY KEY"
             end
             sql
-          end
-
-          def quote_default_expression(value, column)
-            @conn.quote_default_expression(value, column)
           end
 
           def options_include_default?(options)
