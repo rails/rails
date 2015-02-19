@@ -8,9 +8,9 @@ module ActionDispatch
       attr_accessor :scope, :routes
       alias :_routes :routes
 
-      def initialize(routes, scope, helpers=nil)
+      def initialize(routes, scope, helpers)
         @routes, @scope = routes, scope
-        @helpers = helpers || routes.url_helpers
+        @helpers = helpers
       end
 
       def url_options
