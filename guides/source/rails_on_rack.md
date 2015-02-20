@@ -254,7 +254,7 @@ Much of Action Controller's functionality is implemented as Middlewares. The fol
 
 **`ActionDispatch::RequestId`**
 
-* Makes a unique `X-Request-Id` header available to the response and enables the `ActionDispatch::Request#uuid` method.
+* Makes a unique `X-Request-Id` header available to the response and enables the `ActionDispatch::Request#request_id` method.
 
 **`Rails::Rack::Logger`**
 

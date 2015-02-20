@@ -2,19 +2,23 @@ require 'abstract_unit'
 
 class RequestIdTest < ActiveSupport::TestCase
   test "passing on the request id from the outside" do
-    assert_equal "external-uu-rid", stub_request('HTTP_X_REQUEST_ID' => 'external-uu-rid').uuid
+    assert_equal "external-uu-rid", stub_request('HTTP_X_REQUEST_ID' => 'external-uu-rid').request_id
   end
 
   test "ensure that only alphanumeric uurids are accepted" do
-    assert_equal "X-Hacked-HeaderStuff", stub_request('HTTP_X_REQUEST_ID' => '; X-Hacked-Header: Stuff').uuid
+    assert_equal "X-Hacked-HeaderStuff", stub_request('HTTP_X_REQUEST_ID' => '; X-Hacked-Header: Stuff').request_id
   end
 
   test "ensure that 255 char limit on the request id is being enforced" do
-    assert_equal "X" * 255, stub_request('HTTP_X_REQUEST_ID' => 'X' * 500).uuid
+    assert_equal "X" * 255, stub_request('HTTP_X_REQUEST_ID' => 'X' * 500).request_id
   end
 
   test "generating a request id when none is supplied" do
-    assert_match(/\w+-\w+-\w+-\w+-\w+/, stub_request.uuid)
+    assert_match(/\w+-\w+-\w+-\w+-\w+/, stub_request.request_id)
+  end
+
+  test "uuid alias" do
+    assert_equal "external-uu-rid", stub_request('HTTP_X_REQUEST_ID' => 'external-uu-rid').uuid
   end
 
   private

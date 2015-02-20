@@ -50,7 +50,7 @@ module ActionDispatch
       @original_fullpath = nil
       @fullpath          = nil
       @ip                = nil
-      @uuid              = nil
+      @request_id        = nil
     end
 
     def check_path_parameters!
@@ -249,11 +249,11 @@ module ActionDispatch
     #
     # This unique ID is useful for tracing a request from end-to-end as part of logging or debugging.
     # This relies on the rack variable set by the ActionDispatch::RequestId middleware.
-    def uuid
-      @uuid ||= env["action_dispatch.request_id"]
+    def request_id
+      @request_id ||= env["action_dispatch.request_id"]
     end
 
-    alias_method :request_id, :uuid
+    alias_method :uuid, :request_id
 
     # Returns the lowercase name of the HTTP server software.
     def server_software
