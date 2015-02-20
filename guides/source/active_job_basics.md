@@ -205,7 +205,7 @@ class ProcessVideoJob < ActiveJob::Base
   end
 
   def perform(video)
-    # do process video
+    # Do process video
   end
 end
 
@@ -238,13 +238,13 @@ class GuestsCleanupJob < ActiveJob::Base
   queue_as :default
 
   before_enqueue do |job|
-    # do something with the job instance
+    # Do something with the job instance
   end
 
   around_perform do |job, block|
-    # do something before perform
+    # Do something before perform
     block.call
-    # do something after perform
+    # Do something after perform
   end
 
   def perform
@@ -311,7 +311,7 @@ class GuestsCleanupJob < ActiveJob::Base
   queue_as :default
 
   rescue_from(ActiveRecord::RecordNotFound) do |exception|
-   # do something with the exception
+   # Do something with the exception
   end
 
   def perform
