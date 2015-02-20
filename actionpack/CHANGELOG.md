@@ -1,4 +1,4 @@
-*  Alias the `ActionDispatch::Request#uuid` method to `ActionDispatch::Request#request_id`.
+*   Alias the `ActionDispatch::Request#uuid` method to `ActionDispatch::Request#request_id`.
     Due to implementation, `config.log_tags = [:request_id]` also works in substitute
     for `config.log_tags = [:uuid]`.
 
@@ -38,7 +38,7 @@
 
 *   Explicitly ignored wildcard verbs when searching for HEAD routes before fallback
 
-    Fixes an issue where a mounted rack app at root would intercept the HEAD 
+    Fixes an issue where a mounted rack app at root would intercept the HEAD
     request causing an incorrect behavior during the fall back to GET requests.
 
     Example:
