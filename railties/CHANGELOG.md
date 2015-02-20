@@ -12,6 +12,9 @@
 
     *Rafael Mendonça França*
 
+
+## Rails 4.2.0 (December 20, 2014) ##
+
 *   Deprecate `config.serve_static_assets` in favor of `config.serve_static_files`
     to clarify that the option is unrelated to the asset pipeline.
 

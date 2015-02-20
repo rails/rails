@@ -1,3 +1,5 @@
+## Rails 4.2.0 (December 20, 2014) ##
+
 *   `MailerGenerator` now generates layouts by default. The HTML mailer layout
     now includes `<html>` and `<body>` tags which improve the spam rating in
     some spam detection engines. Mailers now inherit from `ApplicationMailer`

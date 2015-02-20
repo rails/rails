@@ -28,6 +28,9 @@
 
     *Andrey Novikov*
 
+
+## Rails 4.2.0 (December 20, 2014) ##
+
 *   The decorated `load` and `require` methods are now kept private.
 
     Fixes #17553.

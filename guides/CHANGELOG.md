@@ -1,3 +1,5 @@
+## Rails 4.2.0 (December 20, 2014) ##
+
 *   New guide about constant autoloading and reloading.
 
     *Xavier Noria*

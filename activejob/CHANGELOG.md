@@ -4,4 +4,7 @@
 
     *Sean Griffin*
 
+
+## Rails 4.2.0 (December 20, 2014) ##
+
 *  Started project.

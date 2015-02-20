@@ -200,6 +200,9 @@
 
     *Daniel Fox*
 
+
+## Rails 4.2.0 (December 20, 2014) ##
+
 *   Introduce `force: :cascade` option for `create_table`. Using this option
     will recreate tables even if they have dependent objects (like foreign keys).
     `db/schema.rb` now uses `force: :cascade`. This makes it possible to

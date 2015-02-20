@@ -79,6 +79,9 @@
 
     *Alex Robbin*
 
+
+## Rails 4.2.0 (December 20, 2014) ##
+
 *   Add `ActionController::Parameters#to_unsafe_h` to return an unfiltered
     `Hash` representation of Parameters object. This is now a preferred way to
     retrieve unfiltered parameters as we will stop inheriting `AC::Parameters`
