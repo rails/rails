@@ -27,6 +27,8 @@ require 'models/student'
 require 'models/reference'
 require 'models/job'
 require 'models/tyre'
+require 'models/zine'
+require 'models/interest'
 
 class HasManyAssociationsTestForReorderWithJoinDependency < ActiveRecord::TestCase
   fixtures :authors, :posts, :comments
@@ -44,7 +46,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :categories, :companies, :developers, :projects,
            :developers_projects, :topics, :authors, :comments,
            :people, :posts, :readers, :taggings, :cars, :essays,
-           :categorizations, :jobs
+           :categorizations, :jobs, :zines, :interests
 
   def setup
     Client.destroyed_client_ids.clear
@@ -351,6 +353,16 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::RecordNotFound) { authors(:bob).posts.take! }
     authors(:bob).posts.to_a
     assert_raise(ActiveRecord::RecordNotFound) { authors(:bob).posts.take! }
+  end
+
+  def test_taking_with_inverse_of
+    interests(:woodsmanship).destroy
+    interests(:survival).destroy
+
+    zine = zines(:going_out)
+    interest = zine.interests.take
+    assert_equal interests(:hunting), interest
+    assert_same zine, interest.zine
   end
 
   def test_cant_save_has_many_readonly_association
