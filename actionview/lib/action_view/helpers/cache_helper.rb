@@ -122,7 +122,7 @@ module ActionView
 
       # Cache fragments of a view if +condition+ is true
       #
-      #   <%= cache_if admin?, project do %>
+      #   <% cache_if admin?, project do %>
       #     <b>All the topics on this project</b>
       #     <%= render project.topics %>
       #   <% end %>
@@ -138,7 +138,7 @@ module ActionView
 
       # Cache fragments of a view unless +condition+ is true
       #
-      #   <%= cache_unless admin?, project do %>
+      #   <% cache_unless admin?, project do %>
       #     <b>All the topics on this project</b>
       #     <%= render project.topics %>
       #   <% end %>
