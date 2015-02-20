@@ -1,3 +1,9 @@
+*   Fixed ActiveRecord::Relation#becomes! and changed_attributes issues for type column
+
+    Fixes #17139.
+
+    *Miklos Fazekas*
+
 *   Format the time string according to the precision of the time column.
 
     *Ryuta Kamizono*
