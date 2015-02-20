@@ -1504,7 +1504,7 @@ module ActionDispatch
         end
 
         def using_match_shorthand?(path, options)
-          path && (options[:to] || options[:action]).nil? && path =~ %r{/[\w/]+$}
+          path && (options[:to] || options[:action]).nil? && path =~ %r{^/?[-\w]+/[-\w/]+$}
         end
 
         def decomposed_match(path, options) # :nodoc:

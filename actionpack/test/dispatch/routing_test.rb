@@ -1430,6 +1430,15 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal 'api/v3/products#list', @response.body
   end
 
+  def test_not_matching_shorthand_with_dynamic_parameters
+    draw do
+      get ':controller/:action/admin'
+    end
+
+    get '/finances/overview/admin'
+    assert_equal 'finances#overview', @response.body
+  end
+
   def test_controller_option_with_nesting_and_leading_slash
     draw do
       scope '/job', controller: 'job' do
