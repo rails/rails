@@ -1,3 +1,9 @@
+*   Fixed ActiveRecord::Relation#becomes! and changed_attributes issues for type column
+
+    Fixes #17139.
+
+    *Miklos Fazekas*
+
 *   A `NullRelation` should represent nothing. This fixes a bug where
     `Comment.where(post_id: Post.none)` returned a non-empty result.
 

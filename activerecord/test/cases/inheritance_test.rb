@@ -129,6 +129,12 @@ class InheritanceTest < ActiveRecord::TestCase
     assert_kind_of Cabbage, cabbage
   end
 
+  def test_becomes_and_change_tracking_for_inheritance_columns
+    cucumber = Vegetable.find(1)
+    cabbage = cucumber.becomes!(Cabbage)
+    assert_equal ['Cucumber', 'Cabbage'], cabbage.custom_type_change
+  end
+
   def test_alt_becomes_bang_resets_inheritance_type_column
     vegetable = Vegetable.create!(name: "Red Pepper")
     assert_nil vegetable.custom_type
