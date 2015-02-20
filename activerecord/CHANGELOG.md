@@ -1,3 +1,9 @@
+*   Fixed ActiveRecord::Relation#becomes! and changed_attributes issues for type column
+
+    Fixes #17139.
+
+    *Miklos Fazekas*
+
 *   `remove_reference` with `foreign_key: true` removes the foreign key before
     removing the column. This fixes a bug where it was not possible to remove
     the column on MySQL.
