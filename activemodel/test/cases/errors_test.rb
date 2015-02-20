@@ -212,6 +212,12 @@ class ErrorsTest < ActiveModel::TestCase
     assert_equal 1, person.errors.size
   end
 
+  test "count calculates the number of error messages" do
+    person = Person.new
+    person.errors.add(:name, "cannot be blank")
+    assert_equal 1, person.errors.count
+  end
+
   test "to_a returns the list of errors with complete messages containing the attribute names" do
     person = Person.new
     person.errors.add(:name, "cannot be blank")
