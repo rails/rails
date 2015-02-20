@@ -1,7 +1,9 @@
 require 'cases/helper'
+require 'support/schema_dumping_helper'
 
 if ActiveRecord::Base.connection.supports_datetime_with_precision?
 class TimePrecisionTest < ActiveRecord::TestCase
+  include SchemaDumpingHelper
   self.use_transactional_fixtures = false
 
   class Foo < ActiveRecord::Base; end
@@ -62,6 +64,28 @@ class TimePrecisionTest < ActiveRecord::TestCase
     assert_equal time.to_s, foo.finish.to_s
     assert_equal 000000, foo.start.usec
     assert_equal 999900, foo.finish.usec
+  end
+
+  def test_schema_dump_includes_time_precision
+    @connection.create_table(:foos, force: true) do |t|
+      t.time :start,  precision: 4
+      t.time :finish, precision: 6
+    end
+    output = dump_table_schema("foos")
+    assert_match %r{t\.time\s+"start",\s+precision: 4$}, output
+    assert_match %r{t\.time\s+"finish",\s+precision: 6$}, output
+  end
+
+  if current_adapter?(:PostgreSQLAdapter)
+    def test_time_precision_with_zero_should_be_dumped
+      @connection.create_table(:foos, force: true) do |t|
+        t.time :start,  precision: 0
+        t.time :finish, precision: 0
+      end
+      output = dump_table_schema("foos")
+      assert_match %r{t\.time\s+"start",\s+precision: 0$}, output
+      assert_match %r{t\.time\s+"finish",\s+precision: 0$}, output
+    end
   end
 
   private
