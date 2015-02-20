@@ -951,11 +951,15 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
   test 'dangerous association name raises ArgumentError' do
     [:errors, 'errors', :save, 'save'].each do |name|
-      assert_raises(ArgumentError, "Association #{name} should not be allowed") do
+      e = assert_raises(ArgumentError, "Association #{name} should not be allowed") do
         Class.new(ActiveRecord::Base) do
           belongs_to name
         end
       end
+      message  = "You tried to define an association named #{name} on the model ,"
+      message += " but this will conflict with a method #{name} already defined"
+      message += " by Active Record. Please choose a different association name."
+      assert_equal message, e.message
     end
   end
 

@@ -317,13 +317,15 @@ class NamedScopingTest < ActiveRecord::TestCase
     ]
 
     conflicts.each do |name|
-      assert_raises(ArgumentError, "scope `#{name}` should not be allowed") do
+      e = assert_raises(ArgumentError, "scope `#{name}` should not be allowed") do
         klass.class_eval { scope name, ->{ where(approved: true) } }
       end
+      assert_match /You tried to define a scope named \"#{name}\" on the model/, e.message
 
-      assert_raises(ArgumentError, "scope `#{name}` should not be allowed") do
+      e = assert_raises(ArgumentError, "scope `#{name}` should not be allowed") do
         subklass.class_eval { scope name, ->{ where(approved: true) } }
       end
+      assert_match /You tried to define a scope named \"#{name}\" on the model/, e.message
     end
 
     non_conflicts.each do |name|

@@ -229,9 +229,10 @@ class EnumTest < ActiveRecord::TestCase
     ]
 
     conflicts.each_with_index do |name, i|
-      assert_raises(ArgumentError, "enum name `#{name}` should not be allowed") do
+      e = assert_raises(ArgumentError) do
         klass.class_eval { enum name => ["value_#{i}"] }
       end
+      assert_match /You tried to define an enum named \"#{name}\" on the model/, e.message
     end
   end
 
@@ -251,9 +252,10 @@ class EnumTest < ActiveRecord::TestCase
     ]
 
     conflicts.each_with_index do |value, i|
-      assert_raises(ArgumentError, "enum value `#{value}` should not be allowed") do
+      e = assert_raises(ArgumentError, "enum value `#{value}` should not be allowed") do
         klass.class_eval { enum "status_#{i}" => [value] }
       end
+      assert_match /You tried to define an enum named .* on the model/, e.message
     end
   end
 
