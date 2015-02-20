@@ -415,9 +415,6 @@ module ActiveRecord
     #   end
     #
     def reload(options = nil)
-      clear_aggregation_cache
-      clear_association_cache
-
       fresh_object =
         if options && options[:lock]
           self.class.unscoped { self.class.lock(options[:lock]).find(id) }

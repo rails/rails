@@ -145,20 +145,14 @@ module ActiveRecord
       autoload :AliasTracker,     'active_record/associations/alias_tracker'
     end
 
-    # Clears out the association cache.
-    def clear_association_cache #:nodoc:
-      @association_cache.clear if persisted?
-    end
-
-    # :nodoc:
-    attr_reader :association_cache
-
     # Returns the association instance for the given name, instantiating it if it doesn't already exist
     def association(name) #:nodoc:
       association = association_instance_get(name)
 
       if association.nil?
-        raise AssociationNotFoundError.new(self, name) unless reflection = self.class._reflect_on_association(name)
+        unless reflection = self.class._reflect_on_association(name)
+          raise AssociationNotFoundError.new(self, name)
+        end
         association = reflection.association_class.new(self, reflection)
         association_instance_set(name, association)
       end
@@ -166,7 +160,31 @@ module ActiveRecord
       association
     end
 
+    def association_cached?(name) # :nodoc
+      @association_cache.key?(name)
+    end
+
+    def initialize_dup(*) # :nodoc:
+      @association_cache = {}
+      super
+    end
+
+    def reload(*) # :nodoc:
+      clear_association_cache
+      super
+    end
+
     private
+      # Clears out the association cache.
+      def clear_association_cache # :nodoc:
+        @association_cache.clear if persisted?
+      end
+
+      def init_internals # :nodoc:
+        @association_cache = {}
+        super
+      end
+
       # Returns the specified association instance if it responds to :loaded?, nil otherwise.
       def association_instance_get(name)
         @association_cache[name]

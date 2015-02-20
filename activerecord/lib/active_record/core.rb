@@ -345,9 +345,6 @@ module ActiveRecord
 
       _run_initialize_callbacks
 
-      @aggregation_cache = {}
-      @association_cache = {}
-
       @new_record  = true
       @destroyed   = false
 
@@ -542,8 +539,6 @@ module ActiveRecord
     end
 
     def init_internals
-      @aggregation_cache        = {}
-      @association_cache        = {}
       @readonly                 = false
       @destroyed                = false
       @marked_for_destruction   = false

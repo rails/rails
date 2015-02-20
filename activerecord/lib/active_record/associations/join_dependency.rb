@@ -239,12 +239,10 @@ module ActiveRecord
           if node.reflection.collection?
             other = ar_parent.association(node.reflection.name)
             other.loaded!
-          else
-            if ar_parent.association_cache.key?(node.reflection.name)
-              model = ar_parent.association(node.reflection.name).target
-              construct(model, node, row, rs, seen, model_cache, aliases)
-              next
-            end
+          elsif ar_parent.association_cached?(node.reflection.name)
+            model = ar_parent.association(node.reflection.name).target
+            construct(model, node, row, rs, seen, model_cache, aliases)
+            next
           end
 
           key = aliases.column_alias(node, node.primary_key)

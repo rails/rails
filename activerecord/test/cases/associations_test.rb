@@ -47,7 +47,7 @@ class AssociationsTest < ActiveRecord::TestCase
     firm = Firm.find(1)
     assert_kind_of Firm, firm
 
-    firm.clear_association_cache
+    firm.send(:clear_association_cache)
     assert_equal Firm.find(1).clients.collect(&:name).sort, firm.clients.collect(&:name).sort
   end
 
@@ -61,7 +61,7 @@ class AssociationsTest < ActiveRecord::TestCase
      firm.clients    << clients
      assert_equal clients.map(&:name).to_set, firm.clients.map(&:name).to_set
 
-     firm.clear_association_cache
+     firm.send(:clear_association_cache)
      assert_equal clients.map(&:name).to_set, firm.clients.map(&:name).to_set
   end
 
