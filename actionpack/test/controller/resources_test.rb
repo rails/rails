@@ -1047,6 +1047,28 @@ class ResourcesTest < ActionController::TestCase
     end
   end
 
+  def test_assert_routing_accepts_all_as_a_valid_method
+    with_routing do |set|
+      set.draw do
+        match "/products", to: "products#show", via: :all
+      end
+
+      assert_routing({ method: "all", path: "/products" }, { controller: "products", action: "show" })
+    end
+  end
+
+  def test_assert_routing_fails_when_not_all_http_methods_are_recognized
+    with_routing do |set|
+      set.draw do
+        match "/products", to: "products#show", via: [:get, :post, :put]
+      end
+
+      assert_raises(Minitest::Assertion) do
+        assert_routing({ method: "all", path: "/products" }, { controller: "products", action: "show" })
+      end
+    end
+  end
+
   def test_singleton_resource_name_is_not_singularized
     with_singleton_resources(:preferences) do
       assert_singleton_restful_for :preferences
