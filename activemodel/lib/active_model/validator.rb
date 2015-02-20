@@ -15,7 +15,7 @@ module ActiveModel
   #   class MyValidator < ActiveModel::Validator
   #     def validate(record)
   #       if some_complex_logic
-  #         record.errors.messages[:base] << "This record is invalid"
+  #         record.errors.add(:base, "This record is invalid")
   #       end
   #     end
   #

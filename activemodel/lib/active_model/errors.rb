@@ -114,9 +114,9 @@ module ActiveModel
     #   person.errors.get(:age)  # => []
     def get(key)
       ActiveSupport::Deprecation.warn(<<-MESSAGE.squish)
-        ActiveModel::Errors#get is deprecated and will be removed in Rails 5.1
+        ActiveModel::Errors#get is deprecated and will be removed in Rails 5.1.
 
-        To achieve the same use messages[:#{key}]
+        To achieve the same use model.errors[:#{key}].
       MESSAGE
 
       messages[key]
@@ -129,9 +129,9 @@ module ActiveModel
     #   person.errors.get(:name) # => ["can't be nil"]
     def set(key, value)
       ActiveSupport::Deprecation.warn(<<-MESSAGE.squish)
-        ActiveModel::Errors#set is deprecated and will be removed in Rails 5.1
+        ActiveModel::Errors#set is deprecated and will be removed in Rails 5.1.
 
-        To achieve the same use messages[:#{key}] = "#{value}"
+        Use model.errors.add(:#{key}, #{value.inspect}) instead.
       MESSAGE
 
       messages[key] = value
@@ -162,9 +162,9 @@ module ActiveModel
     #   person.errors[:name] # => ['must be set']
     def []=(attribute, error)
       ActiveSupport::Deprecation.warn(<<-MESSAGE.squish)
-        ActiveModel::Errors#[]= is deprecated and will be removed in Rails 5.1
+        ActiveModel::Errors#[]= is deprecated and will be removed in Rails 5.1.
 
-        To achieve the same use messages[:#{attribute}] << "#{error}"
+        Use model.errors.add(:#{attribute}, #{error.inspect}) instead.
       MESSAGE
 
       messages[attribute.to_sym] << error
