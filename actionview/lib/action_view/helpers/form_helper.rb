@@ -1226,11 +1226,11 @@ module ActionView
             object_name = model_name_from_record_or_class(object).param_key
           end
 
-          builder = options[:builder] || default_form_builder
+          builder = options[:builder] || build_default_form_builder
           builder.new(object_name, object, self, options)
         end
 
-        def default_form_builder
+        def build_default_form_builder
           builder = ActionView::Base.default_form_builder
           builder.respond_to?(:constantize) ? builder.constantize : builder
         end
