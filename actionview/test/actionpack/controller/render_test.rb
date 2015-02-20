@@ -861,12 +861,12 @@ class RenderTest < ActionController::TestCase
 
   # :ported:
   def test_attempt_to_access_object_method
-    assert_raise(AbstractController::ActionNotFound, "No action responded to [clone]") { get :clone }
+    assert_raise(AbstractController::ActionNotFound) { get :clone }
   end
 
   # :ported:
   def test_private_methods
-    assert_raise(AbstractController::ActionNotFound, "No action responded to [determine_layout]") { get :determine_layout }
+    assert_raise(AbstractController::ActionNotFound) { get :determine_layout }
   end
 
   # :ported:

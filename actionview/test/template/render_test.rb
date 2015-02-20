@@ -61,9 +61,10 @@ module RenderTestCases
 
   def test_render_template_with_a_missing_partial_of_another_format
     @view.lookup_context.formats = [:html]
-    assert_raise ActionView::Template::Error, "Missing partial /_missing with {:locale=>[:en], :formats=>[:json], :handlers=>[:erb, :builder]}" do
+    e = assert_raise ActionView::Template::Error do
       @view.render(:template => "with_format", :formats => [:json])
     end
+    assert_includes(e.message, "Missing partial /_missing with {:locale=>[:en], :formats=>[:json], :variants=>[], :handlers=>[:raw, :erb, :builder, :ruby]}.")
   end
 
   def test_render_file_with_locale
