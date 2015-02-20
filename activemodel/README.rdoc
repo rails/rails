@@ -219,7 +219,7 @@ behavior out of the box:
   
     class HasNameValidator < ActiveModel::Validator
       def validate(record)
-        record.errors[:name] = "must exist" if record.name.blank?
+        record.errors.messages[:name] << "must exist" if record.name.blank?
       end
     end
 
