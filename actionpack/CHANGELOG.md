@@ -1,3 +1,9 @@
+*  Alias the `ActionDispatch::Request#uuid` method to `ActionDispatch::Request#request_id`.
+    Due to implementation, `config.log_tags = [:request_id]` also works in substitute
+    for `config.log_tags = [:uuid]`.
+
+    *David Ilizarov*
+
 *   Non-string authenticity tokens do not raise NoMethodError when decoding
     the masked token.
 
