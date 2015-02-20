@@ -10,24 +10,6 @@ module ActiveRecord
         :datetime
       end
 
-      def serialize(value)
-        if precision && value.respond_to?(:usec)
-          number_of_insignificant_digits = 6 - precision
-          round_power = 10 ** number_of_insignificant_digits
-          value = value.change(usec: value.usec / round_power * round_power)
-        end
-
-        if value.acts_like?(:time)
-          zone_conversion_method = ActiveRecord::Base.default_timezone == :utc ? :getutc : :getlocal
-
-          if value.respond_to?(zone_conversion_method)
-            value = value.send(zone_conversion_method)
-          end
-        end
-
-        value
-      end
-
       private
 
       def cast_value(string)

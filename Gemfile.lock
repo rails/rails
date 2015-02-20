@@ -253,7 +253,7 @@ DEPENDENCIES
   minitest (< 5.3.4)
   mocha (~> 0.14)
   mysql (>= 2.9.0)
-  mysql2 (>= 0.3.13)
+  mysql2 (>= 0.3.18)
   nokogiri (>= 1.4.5)
   pg (>= 0.18.0)
   psych (~> 2.0)

@@ -1,7 +1,7 @@
 require 'cases/helper'
 require 'support/schema_dumping_helper'
 
-if mysql_56? || current_adapter?(:PostgreSQLAdapter)
+if ActiveRecord::Base.connection.supports_datetime_with_precision?
 class DateTimePrecisionTest < ActiveRecord::TestCase
   include SchemaDumpingHelper
   self.use_transactional_fixtures = false
@@ -71,9 +71,18 @@ class DateTimePrecisionTest < ActiveRecord::TestCase
     assert_equal 999900, foo.updated_at.usec
   end
 
+  def test_schema_dump_includes_datetime_precision
+    @connection.create_table(:foos, force: true) do |t|
+      t.timestamps precision: 6
+    end
+    output = dump_table_schema("foos")
+    assert_match %r{t\.datetime\s+"created_at",\s+precision: 6,\s+null: false$}, output
+    assert_match %r{t\.datetime\s+"updated_at",\s+precision: 6,\s+null: false$}, output
+  end
+
   if current_adapter?(:PostgreSQLAdapter)
     def test_datetime_precision_with_zero_should_be_dumped
-      @connection.create_table(:foos) do |t|
+      @connection.create_table(:foos, force: true) do |t|
         t.timestamps precision: 0
       end
       output = dump_table_schema("foos")

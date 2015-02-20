@@ -533,12 +533,6 @@ module ActiveRecord
             when 5..8; 'bigint'
             else raise(ActiveRecordError, "No integer type has byte size #{limit}. Use a numeric with precision 0 instead.")
             end
-          when 'datetime'
-            case precision
-            when nil; super(type, limit, precision, scale)
-            when 0..6; "timestamp(#{precision})"
-            else raise(ActiveRecordError, "No timestamp type has precision of #{precision}. The allowed range of precision is from 0 to 6")
-            end
           else
             super(type, limit, precision, scale)
           end

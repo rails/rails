@@ -1,3 +1,11 @@
+*   Format the time string according to the precision of the time column.
+
+    *Ryuta Kamizono*
+
+*   Allow `:precision` option for time type columns.
+
+    *Ryuta Kamizono*
+
 *   Add `ActiveRecord::Base.suppress` to prevent the receiver from being saved
     during the given block.
 

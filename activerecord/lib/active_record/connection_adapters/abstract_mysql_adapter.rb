@@ -75,7 +75,7 @@ module ActiveRecord
 
       def prepare_column_options(column)
         spec = super
-        spec.delete(:precision) if column.type == :datetime && column.precision == 0
+        spec.delete(:precision) if /time/ === column.sql_type && column.precision == 0
         spec
       end
 
@@ -249,6 +249,10 @@ module ActiveRecord
 
       def supports_views?
         version[0] >= 5
+      end
+
+      def supports_datetime_with_precision?
+        (version[0] == 5 && version[1] >= 6) || version[0] >= 6
       end
 
       def native_database_types
@@ -623,13 +627,6 @@ module ActiveRecord
           when 0x1000000..0xffffffff; 'longtext'
           else raise(ActiveRecordError, "No text type has character length #{limit}")
           end
-        when 'datetime'
-          return super unless precision
-
-          case precision
-            when 0..6; "datetime(#{precision})"
-            else raise(ActiveRecordError, "No datetime type has precision of #{precision}. The allowed range of precision is from 0 to 6.")
-          end
         else
           super
         end
@@ -736,7 +733,7 @@ module ActiveRecord
       end
 
       def extract_precision(sql_type)
-        if /datetime/ === sql_type
+        if /time/ === sql_type
           super || 0
         else
           super
