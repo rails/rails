@@ -812,7 +812,6 @@ class BasicsTest < ActiveRecord::TestCase
   def test_dup_does_not_copy_associations
     author = authors(:david)
     assert_not_equal [], author.posts
-    author.send(:clear_association_cache)
 
     author_dup = author.dup
     assert_equal [], author_dup.posts
