@@ -40,7 +40,7 @@ module ActiveRecord
     # Attempts to save the record just like Base#save but will raise a +RecordInvalid+
     # exception instead of returning +false+ if the record is not valid.
     def save!(options={})
-      perform_validations(options) ? super : raise_record_invalid
+      perform_validations(options) ? super : raise_validation_error
     end
 
     # Runs all the validations within the specified context. Returns +true+ if
@@ -61,21 +61,9 @@ module ActiveRecord
 
     alias_method :validate, :valid?
 
-    # Runs all the validations within the specified context. Returns +true+ if
-    # no errors are found, raises +RecordInvalid+ otherwise.
-    #
-    # If the argument is +false+ (default is +nil+), the context is set to <tt>:create</tt> if
-    # <tt>new_record?</tt> is +true+, and to <tt>:update</tt> if it is not.
-    #
-    # Validations with no <tt>:on</tt> option will run no matter the context. Validations with
-    # some <tt>:on</tt> option will only run in the specified context.
-    def validate!(context = nil)
-      valid?(context) || raise_record_invalid
-    end
-
   protected
 
-    def raise_record_invalid
+    def raise_validation_error
       raise(RecordInvalid.new(self))
     end
 
