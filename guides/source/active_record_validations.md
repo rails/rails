@@ -1078,7 +1078,7 @@ Another way to do this is using `[]=` setter
 ```ruby
   class Person < ActiveRecord::Base
     def a_method_used_for_validation_purposes
-      errors.messages.add(:name, "cannot contain the characters !@#%*()_-+=")
+      errors.add(:name, "cannot contain the characters !@#%*()_-+=")
     end
   end
 
