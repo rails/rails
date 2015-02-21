@@ -4,6 +4,12 @@ module ActiveModel
       attr_accessor :record, :attribute, :attribute_value
 
       def validate_each(record, attribute, attribute_value)
+
+        # Check for valid atribute values.
+        if !attribute_value.kind_of?(Hash) || !attribute_value.kind_of?(Array)
+          raise TypeError, "JsonValidator can be used by 'json' type only"
+        end
+
         self.record = record
         self.attribute = attribute
         self.attribute_value = attribute_value
