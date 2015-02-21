@@ -246,9 +246,9 @@ noticeable with large amounts of logging, but it's a good practice to employ.
 Debugging with the `web-console` gem
 -------------------------------------
 
-The web console allows you to create an interactive ruby session in your browser. An interactive 
-console is launched automatically in case on an error but can also be launched for debugging purposes
-by invoking `console` in a view or controller.
+The web console allows you to start an interactive Ruby session in your browser.
+An interactive console is launched automatically in case of an error but can also
+be launched for debugging purposes by invoking `console` in a view or controller.
 
 For example in a view:
 
@@ -268,30 +268,27 @@ class PostsController < ApplicationController
   end
 end
 ```
-###config.web_console.whitelisted_ips
 
-By default the web console can only be accessed from localhost. `config.web_console.whitelisted_ips` 
-lets you control which IPs have access to the console. 
+### config.web_console.whitelisted_ips
 
-For example, to allow access from both localhost and 192.168.0.100:
+By default the web console can only be accessed from localhost.
+`config.web_console.whitelisted_ips` lets you control which IPs have access to
+the console.
 
-```ruby
-# config/application.rb
-class Application < Rails::Application
-  config.web_console.whitelisted_ips = %w( 127.0.0.1 192.168.0.100 )
-end
-```
-
-To allow access from an entire network:
+For example, to allow access from both localhost and 192.168.0.100, you can put
+inside your configuration file:
 
 ```ruby
-# config/application.rb
-class Application < Rails::Application
-  config.web_console.whitelisted_ips = %w( 127.0.0.1 192.168.0.0/16 )
-end
+config.web_console.whitelisted_ips = %w( 127.0.0.1 192.168.0.100 )
 ```
 
-Web console is a powerful tool so be careful who you open access to.
+Or to allow access from an entire network:
+
+```ruby
+config.web_console.whitelisted_ips = %w( 127.0.0.1 192.168.0.0/16 )
+```
+
+The web console is a powerful tool so be careful when you give access to an IP.
 
 
 Debugging with the `byebug` gem

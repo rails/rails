@@ -1053,17 +1053,19 @@ These configuration points are then available through the configuration object:
 Search Engines Indexing
 -----------------------
 
-Sometimes, you may want to prevent some pages of your application be visible on search sites like Google,
-Bing, Yahoo or Duck Duck Go. The robots that index these sites will first analyse the
-`https://your-site.com/robots.txt` file to know what pages it is allowed to index.
+Sometimes, you may want to prevent some pages of your application to be visible
+on search sites like Google, Bing, Yahoo or Duck Duck Go. The robots that index
+these sites will first analyse the `http://your-site.com/robots.txt` file to
+know which pages it is allowed to index.
 
-Rails creates this file for you on `/public` folder. By default, it allows search engines to index all
-pages of your application. If you want to block indexing on all pages of you application, use this:
+Rails creates this file for you inside the `/public` folder. By default, it allows
+search engines to index all pages of your application. If you want to block
+indexing on all pages of you application, use this:
 
 ```
 User-agent: *
 Disallow: /
 ```
 
-To block just specific pages, it's necessary to use a more complex syntax. Learn it on the
-[official documentation](http://www.robotstxt.org/robotstxt.html).
+To block just specific pages, it's necessary to use a more complex syntax. Learn
+it on the [official documentation](http://www.robotstxt.org/robotstxt.html).
