@@ -73,8 +73,8 @@ module CallbacksTest
 
   class PersonSkipper < Person
     skip_callback :save, :before, :before_save_method, :if => :yes
-    skip_callback :save, :after, :before_save_method, :unless => :yes
-    skip_callback :save, :after, :before_save_method, :if => :no
+    skip_callback :save, :after,  :after_save_method, :unless => :yes
+    skip_callback :save, :after,  :after_save_method, :if => :no
     skip_callback :save, :before, :before_save_method, :unless => :no
     skip_callback :save, :before, CallbackClass , :if => :yes
     def yes; true; end
@@ -1021,7 +1021,7 @@ module CallbacksTest
         define_callbacks :foo
         n.times { set_callback :foo, :before, callback }
         def run; run_callbacks :foo; end
-        def self.skip(thing); skip_callback :foo, :before, thing; end
+        def self.skip(*things); skip_callback :foo, :before, *things; end
       }
     end
 
@@ -1070,11 +1070,11 @@ module CallbacksTest
       }
     end
 
-    def test_skip_lambda # removes nothing
+    def test_skip_lambda # raises error
       calls = []
       callback = ->(o) { calls << o }
       klass = build_class(callback)
-      10.times { klass.skip callback }
+      assert_raises(ArgumentError) { klass.skip callback }
       klass.new.run
       assert_equal 10, calls.length
     end
@@ -1088,11 +1088,29 @@ module CallbacksTest
       assert_equal 0, calls.length
     end
 
-    def test_skip_eval # removes nothing
+    def test_skip_string # raises error
       calls = []
       klass = build_class("bar")
       klass.class_eval { define_method(:bar) { calls << klass } }
-      klass.skip "bar"
+      assert_raises(ArgumentError) { klass.skip "bar" }
+      klass.new.run
+      assert_equal 1, calls.length
+    end
+
+    def test_skip_undefined_callback # raises error
+      calls = []
+      klass = build_class(:bar)
+      klass.class_eval { define_method(:bar) { calls << klass } }
+      assert_raises(ArgumentError) { klass.skip :qux }
+      klass.new.run
+      assert_equal 1, calls.length
+    end
+
+    def test_skip_without_raise # removes nothing
+      calls = []
+      klass = build_class(:bar)
+      klass.class_eval { define_method(:bar) { calls << klass } }
+      klass.skip :qux, raise: false
       klass.new.run
       assert_equal 1, calls.length
     end

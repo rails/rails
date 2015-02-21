@@ -1,3 +1,8 @@
+*   `ActiveSupport::Callbacks#skip_callback` now raises an `ArgumentError` if
+    an unrecognized callback is removed.
+
+    *Iain Beeston*
+
 *   Added `ActiveSupport::ArrayInquirer` and `Array#inquiry`.
 
     Wrapping an array in an `ArrayInquirer` gives a friendlier way to check its
