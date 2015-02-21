@@ -1,12 +1,12 @@
 module ActiveModel
   module Validations
-    class JsonValidator < ActiveModel::EachValidator
+    class JsonValidator < ActiveModel::EachValidator #:nodoc:
       attr_accessor :record, :attribute, :attribute_value
 
       def validate_each(record, attribute, attribute_value)
 
         # Check for valid atribute values.
-        if !attribute_value.kind_of?(Hash) || !attribute_value.kind_of?(Array)
+        if !attribute_value.kind_of?(Hash) && !attribute_value.kind_of?(Array)
           raise TypeError, "JsonValidator can be used by 'json' type only"
         end
 
@@ -22,10 +22,12 @@ module ActiveModel
       end
 
       # Check whether that record include each of given fields
-      def include_validator(fields, attr_value = attribute_value)
+      def include_validator(fields, value = attribute_value)
         if fields.respond_to? :each
           fields.each do |key|
-            if attr_value.kind_of?(Hash) && !attr_value.include?(key.to_s)
+            next unless value.kind_of?(Hash)
+
+            if !(value.include?(key.to_s) || value.include?(key.to_sym))
               add_error "'#{attribute}' does not contains '#{key}'"
             end
           end
@@ -34,18 +36,13 @@ module ActiveModel
 
       # Check for formats of a specific keys
       def format_validator(opts, attr_value = attribute_value)
-        with_hash :format, opts do
-          opts.each do |field, format_opts|
+        with_hash(:format, opts) do |field, format_opts|
 
-            regexp = format_opts[:with]
-            value  = attr_value[field].to_s
+          regexp = format_opts[:with]
+          value  = attr_value[field.to_s].to_s
 
-            unless regexp
-              raise ArgumentError, "'with' argument is missing for 'format'."
-            end
-
-            add_error "'#{field}' is not well formatted." if value !~ regexp
-          end
+          raise ArgumentError, "'with' is missing for 'format'." unless regexp
+          add_error "'#{field}' is not well formatted." if value !~ regexp
         end
       end
 
