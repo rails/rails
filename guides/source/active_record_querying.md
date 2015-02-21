@@ -1403,8 +1403,9 @@ WHERE people.name = 'John'
 LIMIT 1
 ```
 
-NOTE: Remember that, if `find_by` returns more than one registry, it will take
-just the first and ignore the others. Note the `LIMIT 1` statement above.
+NOTE: Note that if a query matches multiple records, `find_by` will
+fetch only the first one and ignore the others (see the `LIMIT 1`
+statement above).
 
 Find or Build a New Object
 --------------------------
