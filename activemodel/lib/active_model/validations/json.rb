@@ -26,6 +26,23 @@ module ActiveModel
         end
       end
 
+      # Check for formats of a specific keys
+      def format_validator(opts)
+        if opts.kind_of? Hash
+          opts.each do |field, format_opts|
+
+            regexp = format_opts[:with]
+            value  = attribute_value[field].to_s
+
+            unless regexp
+              raise ArgumentError, "'with' argument is missing for 'format'."
+            end
+
+            add_error "'#{field}' is not well formatted." if value !~ regexp
+          end
+        end
+      end
+
       private
 
       def add_error(msg)
