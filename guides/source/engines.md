@@ -888,7 +888,7 @@ engine this would be done by changing
 `app/controllers/blorgh/application_controller.rb` to look like:
 
 ```ruby
-class Blorgh::ApplicationController < ApplicationController
+class Blorgh::ApplicationController < ::ApplicationController
 end
 ```
 
