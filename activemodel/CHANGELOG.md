@@ -1,3 +1,8 @@
+*   `ActiveModel::Validations::JsonValidator` added to handle json typed fields validation.
+    Using this validator user can validates data of `json` fields
+
+    *Sameer Rahmani*
+
 *   Deprecate `ActiveModel::Errors#add_on_empty` and `ActiveModel::Errors#add_on_blank`
     with no replacement.
 
