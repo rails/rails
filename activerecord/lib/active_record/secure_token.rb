@@ -21,8 +21,8 @@ module ActiveRecord
       # SecureRandom::base58 is used to generate the 24-character unique token, so collisions are highly unlikely.
       #
       # Note that it's still possible to generate a race condition in the database in the same way that
-      # validates_presence_of can. You're encouraged to add a unique index in the database to deal with
-      # this even more unlikely scenario.
+      # <tt>validates_uniqueness_of</tt> can. You're encouraged to add a unique index in the database to deal
+      # with this even more unlikely scenario.
       def has_secure_token(attribute = :token)
         # Load securerandom only when has_secure_token is used.
         require 'active_support/core_ext/securerandom'
