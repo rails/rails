@@ -6,4 +6,4 @@ if File.exist?(git_path)
   railties_path = File.expand_path('../../lib', __FILE__)
   $LOAD_PATH.unshift(railties_path)
 end
-require "rails/cli"
+require 'rails/cli'
