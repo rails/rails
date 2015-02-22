@@ -100,6 +100,13 @@ module ActiveRecord
         end
       end
 
+      def test_primary_key_creates_primary_key_column
+        with_change_table do |t|
+          @connection.expect :add_column, nil, [:delete_me, :id, :primary_key, primary_key: true, first: true]
+          t.primary_key :id, first: true
+        end
+      end
+
       def test_integer_creates_integer_column
         with_change_table do |t|
           @connection.expect :add_column, nil, [:delete_me, :foo, :integer, {}]

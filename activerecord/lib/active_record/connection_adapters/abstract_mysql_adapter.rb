@@ -6,11 +6,19 @@ module ActiveRecord
     class AbstractMysqlAdapter < AbstractAdapter
       include Savepoints
 
-      class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
-        def primary_key(name, type = :primary_key, options = {})
-          options[:auto_increment] ||= type == :bigint
+      module ColumnMethods
+        def primary_key(name, type = :primary_key, **options)
+          options[:auto_increment] = true if type == :bigint
           super
         end
+      end
+
+      class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
+        include ColumnMethods
+      end
+
+      class Table < ActiveRecord::ConnectionAdapters::Table
+        include ColumnMethods
       end
 
       class SchemaCreation < AbstractAdapter::SchemaCreation
@@ -55,6 +63,10 @@ module ActiveRecord
           index_name, index_type, index_columns, index_options, index_algorithm, index_using = @conn.add_index_options(table_name, column_name, options)
           "#{index_type} INDEX #{quote_column_name(index_name)} #{index_using} (#{index_columns})#{index_options} #{index_algorithm}"
         end
+      end
+
+      def update_table_definition(table_name, base) # :nodoc:
+        Table.new(table_name, base)
       end
 
       def schema_creation

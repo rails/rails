@@ -142,6 +142,14 @@ module ActiveRecord
       end
     end
 
+    module ColumnMethods
+      # Appends a primary key definition to the table definition.
+      # Can be called multiple times, but this is probably not a good idea.
+      def primary_key(name, type = :primary_key, **options)
+        column(name, type, options.merge(primary_key: true))
+      end
+    end
+
     # Represents the schema of an SQL table in an abstract way. This class
     # provides methods for manipulating the schema representation.
     #
@@ -163,6 +171,8 @@ module ActiveRecord
     # The table definitions
     # The Columns are stored as a ColumnDefinition in the +columns+ attribute.
     class TableDefinition
+      include ColumnMethods
+
       # An array of ColumnDefinition objects, representing the column changes
       # that have been defined.
       attr_accessor :indexes
@@ -180,12 +190,6 @@ module ActiveRecord
       end
 
       def columns; @columns_hash.values; end
-
-      # Appends a primary key definition to the table definition.
-      # Can be called multiple times, but this is probably not a good idea.
-      def primary_key(name, type = :primary_key, options = {})
-        column(name, type, options.merge(:primary_key => true))
-      end
 
       # Returns a ColumnDefinition for the column with name +name+.
       def [](name)
@@ -462,6 +466,7 @@ module ActiveRecord
     # Available transformations are:
     #
     #   change_table :table do |t|
+    #     t.primary_key
     #     t.column
     #     t.index
     #     t.rename_index
@@ -490,6 +495,8 @@ module ActiveRecord
     #   end
     #
     class Table
+      include ColumnMethods
+
       attr_reader :name
 
       def initialize(table_name, base)
