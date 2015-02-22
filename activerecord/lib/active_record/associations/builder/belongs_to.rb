@@ -110,5 +110,8 @@ module ActiveRecord::Associations::Builder
       name = reflection.name
       model.after_destroy lambda { |o| o.association(name).handle_dependency }
     end
+
+    private_class_method :add_counter_cache_methods, :add_counter_cache_callbacks, :touch_record, :add_touch_callbacks,
+                         :add_destroy_callbacks #:nodoc:
   end
 end

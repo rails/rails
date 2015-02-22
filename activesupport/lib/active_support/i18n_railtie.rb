@@ -21,8 +21,6 @@ module I18n
       I18n::Railtie.initialize_i18n(app)
     end
 
-  protected
-
     @i18n_inited = false
 
     # Setup i18n configuration.
@@ -95,6 +93,10 @@ module I18n
       else
         raise "Unexpected fallback type #{fallbacks.inspect}"
       end
+    end
+
+    class << self
+      protected :initialize_i18n, :include_fallbacks_module, :init_fallbacks, :validate_fallbacks #:nodoc:
     end
   end
 end

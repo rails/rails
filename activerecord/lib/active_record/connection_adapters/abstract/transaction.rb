@@ -205,8 +205,9 @@ module ActiveRecord
         @stack.last || NULL_TRANSACTION
       end
 
-      private
-        NULL_TRANSACTION = NullTransaction.new
+      NULL_TRANSACTION = NullTransaction.new
+
+      private_constant :NULL_TRANSACTION #:nodoc:
     end
   end
 end
