@@ -115,6 +115,14 @@ module ActiveRecord
         end
       end
 
+      def test_bigint_creates_bigint_column
+        with_change_table do |t|
+          @connection.expect :add_column, nil, [:delete_me, :foo, :bigint, {}]
+          @connection.expect :add_column, nil, [:delete_me, :bar, :bigint, {}]
+          t.bigint :foo, :bar
+        end
+      end
+
       def test_string_creates_string_column
         with_change_table do |t|
           @connection.expect :add_column, nil, [:delete_me, :foo, :string, {}]

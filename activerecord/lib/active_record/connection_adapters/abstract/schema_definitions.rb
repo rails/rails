@@ -148,6 +148,33 @@ module ActiveRecord
       def primary_key(name, type = :primary_key, **options)
         column(name, type, options.merge(primary_key: true))
       end
+
+      # Appends a column or columns of a specified type.
+      #
+      #  t.string(:goat)
+      #  t.string(:goat, :sheep)
+      #
+      # See TableDefinition#column
+      [
+        :bigint,
+        :binary,
+        :boolean,
+        :date,
+        :datetime,
+        :decimal,
+        :float,
+        :integer,
+        :string,
+        :text,
+        :time,
+        :timestamp,
+      ].each do |column_type|
+        module_eval <<-CODE, __FILE__, __LINE__ + 1
+          def #{column_type}(*args, **options)
+            args.each { |name| column(name, :#{column_type}, options) }
+          end
+        CODE
+      end
     end
 
     # Represents the schema of an SQL table in an abstract way. This class
@@ -347,14 +374,6 @@ module ActiveRecord
         @columns_hash.delete name.to_s
       end
 
-      [:string, :text, :integer, :bigint, :float, :decimal, :datetime, :timestamp, :time, :date, :binary, :boolean].each do |column_type|
-        define_method column_type do |*args|
-          options = args.extract_options!
-          column_names = args
-          column_names.each { |name| column(name, column_type, options) }
-        end
-      end
-
       # Adds index options to the indexes hash, keyed by column name
       # This is primarily used to track indexes that need to be created after the table
       #
@@ -479,6 +498,7 @@ module ActiveRecord
     #     t.string
     #     t.text
     #     t.integer
+    #     t.bigint
     #     t.float
     #     t.decimal
     #     t.datetime
@@ -646,21 +666,6 @@ module ActiveRecord
         end
       end
       alias :remove_belongs_to :remove_references
-
-      # Adds a column or columns of a specified type.
-      #
-      #  t.string(:goat)
-      #  t.string(:goat, :sheep)
-      #
-      # See SchemaStatements#add_column
-      [:string, :text, :integer, :float, :decimal, :datetime, :timestamp, :time, :date, :binary, :boolean].each do |column_type|
-        define_method column_type do |*args|
-          options = args.extract_options!
-          args.each do |column_name|
-            @base.add_column(name, column_name, column_type, options)
-          end
-        end
-      end
 
       def foreign_key(*args) # :nodoc:
         @base.add_foreign_key(name, *args)
