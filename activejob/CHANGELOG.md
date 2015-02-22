@@ -77,4 +77,8 @@
 
     *Isaac Seymour*
 
+*   A generated job now inherents from `app/job/application_job.rb` by default.
+
+    *Jeroen van Baarsen*
+
 Please check [4-2-stable](https://github.com/rails/rails/blob/4-2-stable/activejob/CHANGELOG.md) for previous changes.
