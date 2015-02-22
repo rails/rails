@@ -35,90 +35,96 @@ module ActiveRecord
           super
         end
 
-        def xml(*args)
-          options = args.extract_options!
-          column(args[0], :xml, options)
+        def bigserial(*args, **options)
+          args.each { |name| column(name, :bigserial, options) }
         end
 
-        def tsvector(*args)
-          options = args.extract_options!
-          column(args[0], :tsvector, options)
+        def bit(*args, **options)
+          args.each { |name| column(name, :bit, options) }
         end
 
-        def int4range(name, options = {})
-          column(name, :int4range, options)
+        def bit_varying(*args, **options)
+          args.each { |name| column(name, :bit_varying, options) }
         end
 
-        def int8range(name, options = {})
-          column(name, :int8range, options)
+        def cidr(*args, **options)
+          args.each { |name| column(name, :cidr, options) }
         end
 
-        def tsrange(name, options = {})
-          column(name, :tsrange, options)
+        def citext(*args, **options)
+          args.each { |name| column(name, :citext, options) }
         end
 
-        def tstzrange(name, options = {})
-          column(name, :tstzrange, options)
+        def daterange(*args, **options)
+          args.each { |name| column(name, :daterange, options) }
         end
 
-        def numrange(name, options = {})
-          column(name, :numrange, options)
+        def hstore(*args, **options)
+          args.each { |name| column(name, :hstore, options) }
         end
 
-        def daterange(name, options = {})
-          column(name, :daterange, options)
+        def inet(*args, **options)
+          args.each { |name| column(name, :inet, options) }
         end
 
-        def hstore(name, options = {})
-          column(name, :hstore, options)
+        def int4range(*args, **options)
+          args.each { |name| column(name, :int4range, options) }
         end
 
-        def ltree(name, options = {})
-          column(name, :ltree, options)
+        def int8range(*args, **options)
+          args.each { |name| column(name, :int8range, options) }
         end
 
-        def inet(name, options = {})
-          column(name, :inet, options)
+        def json(*args, **options)
+          args.each { |name| column(name, :json, options) }
         end
 
-        def cidr(name, options = {})
-          column(name, :cidr, options)
+        def jsonb(*args, **options)
+          args.each { |name| column(name, :jsonb, options) }
         end
 
-        def macaddr(name, options = {})
-          column(name, :macaddr, options)
+        def ltree(*args, **options)
+          args.each { |name| column(name, :ltree, options) }
         end
 
-        def uuid(name, options = {})
-          column(name, :uuid, options)
+        def macaddr(*args, **options)
+          args.each { |name| column(name, :macaddr, options) }
         end
 
-        def json(name, options = {})
-          column(name, :json, options)
+        def money(*args, **options)
+          args.each { |name| column(name, :money, options) }
         end
 
-        def jsonb(name, options = {})
-          column(name, :jsonb, options)
+        def numrange(*args, **options)
+          args.each { |name| column(name, :numrange, options) }
         end
 
-        def citext(name, options = {})
-          column(name, :citext, options)
+        def point(*args, **options)
+          args.each { |name| column(name, :point, options) }
         end
 
-        def point(name, options = {})
-          column(name, :point, options)
+        def serial(*args, **options)
+          args.each { |name| column(name, :serial, options) }
         end
 
-        def bit(name, options = {})
-          column(name, :bit, options)
+        def tsrange(*args, **options)
+          args.each { |name| column(name, :tsrange, options) }
         end
 
-        def bit_varying(name, options = {})
-          column(name, :bit_varying, options)
+        def tstzrange(*args, **options)
+          args.each { |name| column(name, :tstzrange, options) }
         end
 
-        def money(name, options = {})
-          column(name, :money, options)
+        def tsvector(*args, **options)
+          args.each { |name| column(name, :tsvector, options) }
+        end
+
+        def uuid(*args, **options)
+          args.each { |name| column(name, :uuid, options) }
+        end
+
+        def xml(*args, **options)
+          args.each { |name| column(name, :xml, options) }
         end
       end
 
