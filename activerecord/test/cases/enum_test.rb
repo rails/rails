@@ -259,6 +259,20 @@ class EnumTest < ActiveRecord::TestCase
     end
   end
 
+  test "prevent conflicting value pairs" do
+    e = assert_raises(ArgumentError) do
+      Class.new(ActiveRecord::Base) do
+        self.table_name = "books"
+        enum status: {
+          proposed: 10,
+          written: 10,
+          published: 20
+        }
+      end
+    end
+    assert_match(/value \"written\" would map to 10, but it has already been used by value \"proposed\"/, e.message)
+  end
+
   test "overriding enum method should not raise" do
     assert_nothing_raised do
       Class.new(ActiveRecord::Base) do

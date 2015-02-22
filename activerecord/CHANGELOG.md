@@ -1,3 +1,8 @@
+*   Prevent `enum` of accepting duplicate mappings. When two values are mapped
+    to the same integer, raise an error.
+
+    *Vesa Vänskä*
+
 *   Fixed ActiveRecord::Relation#becomes! and changed_attributes issues for type column
 
     Fixes #17139.
