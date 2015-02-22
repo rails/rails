@@ -138,6 +138,7 @@ module ActiveRecord
         _enum_methods_module.module_eval do
           pairs = values.respond_to?(:each_pair) ? values.each_pair : values.each_with_index
           pairs.each do |value, i|
+            klass.send(:detect_duplicate_enum_mapping!, name, enum_values, value, i)
             enum_values[value] = i
 
             # def active?() status == 0 end
@@ -195,6 +196,23 @@ module ActiveRecord
             type: 'instance',
             method: method_name,
             source: 'another enum'
+          }
+        end
+      end
+
+      def detect_duplicate_enum_mapping!(enum_name, enum_values, value, i)
+        if enum_values.values.include?(i)
+          error_message = \
+            "You tried to define an enum named \"%{enum}\" on the model \"%{klass}\" " \
+            "where value \"%{value}\" would map to %{i}, but it has already been used " \
+            "by value \"%{existing_value}\"."
+
+          raise ArgumentError, error_message % {
+            enum: enum_name,
+            klass: self.name,
+            value: value,
+            i: i,
+            existing_value: enum_values.key(i)
           }
         end
       end
