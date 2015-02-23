@@ -74,10 +74,10 @@ module Arel
       end
 
       def visit_Arel_Nodes_DeleteStatement o, collector
-        collector << "DELETE FROM "
+        collector << 'DELETE FROM '
         collector = visit o.relation, collector
         if o.wheres.any?
-          collector << " WHERE "
+          collector << ' WHERE '
           collector = inject_join o.wheres, collector, AND
         end
 
