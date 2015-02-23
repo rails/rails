@@ -57,19 +57,6 @@ I18n.backend.store_translations 'pt-BR', {}
 
 FIXTURE_LOAD_PATH = File.join(File.dirname(__FILE__), 'fixtures')
 
-module RackTestUtils
-  def body_to_string(body)
-    if body.respond_to?(:each)
-      str = ""
-      body.each {|s| str << s }
-      str
-    else
-      body
-    end
-  end
-  extend self
-end
-
 SharedTestRoutes = ActionDispatch::Routing::RouteSet.new
 
 module ActionDispatch
