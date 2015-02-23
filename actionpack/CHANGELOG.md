@@ -1,3 +1,8 @@
+*   Deprecate AbstractController#skip_action_callback in favor of individual skip_callback methods
+    (which can be made to raise an error if no callback was removed).
+
+    *Iain Beeston*
+
 *   Non-string authenticity tokens do not raise NoMethodError when decoding
     the masked token.
 
