@@ -1,3 +1,18 @@
+*   Allow `:limit` option for MySQL bigint primary key support.
+
+    Example:
+
+        create_table :foos, id: :primary_key, limit: 8 do |t|
+        end
+
+        # or
+
+        create_table :foos, id: false do |t|
+          t.primary_key :id, limit: 8
+        end
+
+    *Ryuta Kamizono*
+
 *   `belongs_to` will now trigger a validation error by default if the association is not present.
     You can turn this off on a per-association basis with `optional: true`.
     (Note this new default only applies to new Rails apps that will be generated with
