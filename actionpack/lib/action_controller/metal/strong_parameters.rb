@@ -537,7 +537,10 @@ module ActionController
           params[key] = self[key]
         end
 
-        keys.grep(/\A#{Regexp.escape(key)}\(\d+[if]?\)\z/) do |k|
+        @@permitted_scalar_filter_regexps ||= ThreadSafe::Cache.new
+        @@permitted_scalar_filter_regexps[key] ||= /\A#{Regexp.escape(key)}\(\d+[if]?\)\z/
+
+        keys.grep(@@permitted_scalar_filter_regexps[key]) do |k|
           if permitted_scalar?(self[k])
             params[k] = self[k]
           end
