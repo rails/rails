@@ -395,7 +395,7 @@ module ActiveRecord
 
       def load_schema_if_pending!
         if ActiveRecord::Migrator.needs_migration? || !ActiveRecord::Migrator.any_migrations?
-          # Roundrip to Rake to allow plugins to hook into database initialization.
+          # Roundtrip to Rake to allow plugins to hook into database initialization.
           FileUtils.cd Rails.root do
             current_config = Base.connection_config
             Base.clear_all_connections!
