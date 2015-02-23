@@ -71,7 +71,7 @@ module ActionView
     end
 
     def view_paths
-      Dir.glob('app/views/**/*.*')
+      @view_paths ||= Dir.glob('app/views/**/*.*')
     end
 
     def path_names(prefix)
@@ -79,7 +79,7 @@ module ActionView
     end
 
     def view_paths_for(prefix)
-      Dir.glob("app/views/#{prefix}/*.*")
+      view_paths.select { |i| i.match(%r{\Aapp/views/#{prefix}/[^/]+\.+[^/]+\z}) }
     end
 
     def variants(pieces)
