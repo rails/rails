@@ -967,8 +967,15 @@ class ControllerWithAllTypesOfFilters < PostsController
 end
 
 class ControllerWithTwoLessFilters < ControllerWithAllTypesOfFilters
-  skip_action_callback :around_again
-  skip_action_callback :after
+  skip_around_action :around_again
+  skip_after_action :after
+end
+
+class SkipFilterUsingSkipActionCallback < ControllerWithAllTypesOfFilters
+  ActiveSupport::Deprecation.silence do
+    skip_action_callback :around_again
+    skip_action_callback :after
+  end
 end
 
 class YieldingAroundFiltersTest < ActionController::TestCase
@@ -1053,6 +1060,19 @@ class YieldingAroundFiltersTest < ActionController::TestCase
     response = test_process(controller, 'fail_3')
     assert_equal '', response.body
     assert_equal 3, controller.instance_variable_get(:@try)
+  end
+
+  def test_skipping_with_skip_action_callback
+    test_process(SkipFilterUsingSkipActionCallback,'no_raise')
+    assert_equal 'before around (before yield) around (after yield)', assigns['ran_filter'].join(' ')
+  end
+
+  def test_deprecated_skip_action_callback
+    assert_deprecated do
+      Class.new(TestController) do
+        skip_action_callback :clean_up
+      end
+    end
   end
 
   protected

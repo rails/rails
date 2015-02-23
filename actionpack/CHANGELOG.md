@@ -1,3 +1,8 @@
+*   Deprecate AbstractController#skip_action_callback in favor of individual skip_callback methods
+    (which can be made to raise an error if no callback was removed).
+
+    *Iain Beeston*
+
 *   Alias the `ActionDispatch::Request#uuid` method to `ActionDispatch::Request#request_id`.
     Due to implementation, `config.log_tags = [:request_id]` also works in substitute
     for `config.log_tags = [:uuid]`.
