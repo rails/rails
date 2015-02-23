@@ -129,22 +129,6 @@ class RoutedRackApp
   end
 end
 
-class BasicController
-  attr_accessor :request
-
-  def config
-    @config ||= ActiveSupport::InheritableOptions.new(ActionController::Base.config).tap do |config|
-      # VIEW TODO: View tests should not require a controller
-      public_dir = File.expand_path("../fixtures/public", __FILE__)
-      config.assets_dir = public_dir
-      config.javascripts_dir = "#{public_dir}/javascripts"
-      config.stylesheets_dir = "#{public_dir}/stylesheets"
-      config.assets          = ActiveSupport::InheritableOptions.new({ :prefix => "assets" })
-      config
-    end
-  end
-end
-
 class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
   include ActionDispatch::SharedRoutes
 
