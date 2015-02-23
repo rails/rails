@@ -151,6 +151,15 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_no_error_with_localtime_offset
+    offset = "+09:00"
+    assert_nothing_raised do
+      Time.now.utc.localtime(offset).end_of_day
+      Time.now.utc.localtime(offset).end_of_hour
+      Time.now.utc.localtime(offset).end_of_minute
+    end
+  end
+
   def test_end_of_hour
     assert_equal Time.local(2005,2,4,19,59,59,Rational(999999999, 1000)), Time.local(2005,2,4,19,30,10).end_of_hour
   end
