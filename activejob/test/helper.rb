@@ -5,7 +5,7 @@ require 'support/job_buffer'
 
 GlobalID.app = 'aj'
 
-@adapter  = ENV['AJADAPTER'] || 'inline'
+@adapter  = ENV['AJ_ADAPTER'] || 'inline'
 
 def sidekiq?
   @adapter == 'sidekiq'
