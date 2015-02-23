@@ -4,6 +4,14 @@
 
     *David Ilizarov*
 
+*   Change filter on /rails/info/routes to use an actual path regexp from rails
+    and not approximate javascript version. Oniguruma supports much more
+    extensive list of features than javascript regexp engine.
+
+    Fixes #18402.
+
+    *Ravil Bayramgalin*
+
 *   Non-string authenticity tokens do not raise NoMethodError when decoding
     the masked token.
 
