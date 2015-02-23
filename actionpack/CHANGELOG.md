@@ -9,11 +9,12 @@
 
     *Ville Lautanala*
 
-*   Add http_cache_forever to Action Controller, so we can cache a response that never gets expired.
+*   Add `http_cache_forever` to Action Controller, so we can cache a response
+    that never gets expired.
 
     *arthurnn*
 
-*   ActionController#translate supports symbols as shortcuts.
+*   `ActionController#translate` supports symbols as shortcuts.
     When shortcut is given it also lookups without action name.
 
     *Max Melentiev*
@@ -42,14 +43,14 @@
     request causing an incorrect behavior during the fall back to GET requests.
 
     Example:
-    ```ruby
-    draw do
-        get '/home' => 'test#index'
-        mount rack_app, at: '/'
-    end
-    head '/home'
-    assert_response :success
-    ```
+
+        draw do
+            get '/home' => 'test#index'
+            mount rack_app, at: '/'
+        end
+        head '/home'
+        assert_response :success
+
     In this case, a HEAD request runs through the routes the first time and fails
     to match anything. Then, it runs through the list with the fallback and matches
     `get '/home'`. The original behavior would match the rack app in the first pass.

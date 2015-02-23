@@ -14,7 +14,7 @@
 
 *   Assigning an unknown attribute key to an `ActiveModel` instance during initialization
     will now raise `ActiveModel::AttributeAssignment::UnknownAttributeError` instead of
-    `NoMethodError`
+    `NoMethodError`.
 
     Example:
 

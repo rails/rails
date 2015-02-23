@@ -3,27 +3,28 @@
 
     Before:
 
-       YAML.load ActiveSupport::SafeBuffer.new("Hello").to_yaml  # => "Hello"
-       YAML.load ActiveSupport::SafeBuffer.new("true").to_yaml   # => true
-       YAML.load ActiveSupport::SafeBuffer.new("false").to_yaml  # => false
-       YAML.load ActiveSupport::SafeBuffer.new("1").to_yaml      # => 1
-       YAML.load ActiveSupport::SafeBuffer.new("1.1").to_yaml    # => 1.1
+        YAML.load ActiveSupport::SafeBuffer.new("Hello").to_yaml  # => "Hello"
+        YAML.load ActiveSupport::SafeBuffer.new("true").to_yaml   # => true
+        YAML.load ActiveSupport::SafeBuffer.new("false").to_yaml  # => false
+        YAML.load ActiveSupport::SafeBuffer.new("1").to_yaml      # => 1
+        YAML.load ActiveSupport::SafeBuffer.new("1.1").to_yaml    # => 1.1
 
-     After:
+    After:
 
-       YAML.load ActiveSupport::SafeBuffer.new("Hello").to_yaml  # => "Hello"
-       YAML.load ActiveSupport::SafeBuffer.new("true").to_yaml   # => "true"
-       YAML.load ActiveSupport::SafeBuffer.new("false").to_yaml  # => "false"
-       YAML.load ActiveSupport::SafeBuffer.new("1").to_yaml      # => "1"
-       YAML.load ActiveSupport::SafeBuffer.new("1.1").to_yaml    # => "1.1"
+        YAML.load ActiveSupport::SafeBuffer.new("Hello").to_yaml  # => "Hello"
+        YAML.load ActiveSupport::SafeBuffer.new("true").to_yaml   # => "true"
+        YAML.load ActiveSupport::SafeBuffer.new("false").to_yaml  # => "false"
+        YAML.load ActiveSupport::SafeBuffer.new("1").to_yaml      # => "1"
+        YAML.load ActiveSupport::SafeBuffer.new("1.1").to_yaml    # => "1.1"
 
     *Godfrey Chan*
 
-*   Enable number_to_percentage to keep the number's precision by allowing :precision to be nil
+*   Enable `number_to_percentage` to keep the number's precision by allowing
+    `:precision` to be `nil`.
 
     *Jack Xu*
 
-*   config_accessor became a private method, as with Ruby's attr_accessor.
+*   `config_accessor` became a private method, as with Ruby's `attr_accessor`.
 
     *Akira Matsuda*
 

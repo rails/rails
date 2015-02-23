@@ -5,7 +5,8 @@
 
     *Josef Šimánek*
 
-*   Fixed ActiveRecord::Relation#becomes! and changed_attributes issues for type column
+*   Fixed ActiveRecord::Relation#becomes! and changed_attributes issues for type
+    column.
 
     Fixes #17139.
 
@@ -48,7 +49,8 @@
 
     *Michael Ryan*
 
-*   `:time` option added for `#touch`
+*   `:time` option added for `#touch`.
+
     Fixes #18905.
 
     *Hyonjee Joo*
@@ -92,9 +94,9 @@
 *   `scoping` no longer pollutes the current scope of sibling classes when using
     STI. e.x.
 
-    StiOne.none.scoping do
-      StiTwo.all
-    end
+        StiOne.none.scoping do
+          StiTwo.all
+        end
 
     Fixes #18806.
 
