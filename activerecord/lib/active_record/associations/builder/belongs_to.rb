@@ -5,7 +5,7 @@ module ActiveRecord::Associations::Builder
     end
 
     def self.valid_options(options)
-      super + [:foreign_type, :polymorphic, :touch, :counter_cache]
+      super + [:foreign_type, :polymorphic, :touch, :counter_cache, :optional]
     end
 
     def self.valid_dependent_options
@@ -109,6 +109,24 @@ module ActiveRecord::Associations::Builder
     def self.add_destroy_callbacks(model, reflection)
       name = reflection.name
       model.after_destroy lambda { |o| o.association(name).handle_dependency }
+    end
+
+    def self.define_validations(model, reflection)
+      if reflection.options.key?(:required)
+        reflection.options[:optional] = !reflection.options.delete(:required)
+      end
+
+      if reflection.options[:optional].nil?
+        required = model.belongs_to_required_by_default
+      else
+        required = !reflection.options[:optional]
+      end
+
+      super
+
+      if required
+        model.validates_presence_of reflection.name, message: :required
+      end
     end
   end
 end

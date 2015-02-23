@@ -833,6 +833,7 @@ The `belongs_to` association supports these options:
 * `:polymorphic`
 * `:touch`
 * `:validate`
+* `:optional`
 
 ##### `:autosave`
 
@@ -955,6 +956,10 @@ end
 ##### `:validate`
 
 If you set the `:validate` option to `true`, then associated objects will be validated whenever you save this object. By default, this is `false`: associated objects will not be validated when this object is saved.
+
+##### `:optional`
+
+If you set the `:optional` option to `true`, then associated object will be validated for presence. By default, this is `false`: associated objects will be validated for presence.
 
 #### Scopes for `belongs_to`
 

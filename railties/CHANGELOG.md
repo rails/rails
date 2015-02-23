@@ -1,3 +1,18 @@
+*   Add `config/initializers/active_record_belongs_to_required_by_default.rb`
+
+    Newly generated Rails apps have a new initializer called
+    `active_record_belongs_to_required_by_default.rb` which sets the value of
+    the configuration option `config.active_record.belongs_to_requred_by_default`
+    to `true` when ActiveRecord is not skipped.
+
+    As a result, new Rails apps require `belongs_to` association on model
+    to be valid.
+
+    This initializer is *not* added when running `rake rails:update`, so
+    old apps ported to Rails 5 will work without any change.
+
+    *Josef Šimánek*
+
 *   `delete` operations in configurations are run last in order to eliminate
     'No such middleware' errors when `insert_before` or `insert_after` are added
     after the `delete` operation for the middleware being deleted.
