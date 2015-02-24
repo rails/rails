@@ -533,12 +533,8 @@ module ActionController
       end
 
       def permitted_scalar_filter(params, key)
-        if has_key?(key) && permitted_scalar?(self[key])
-          params[key] = self[key]
-        end
-
         @@permitted_scalar_filter_regexps ||= ThreadSafe::Cache.new
-        @@permitted_scalar_filter_regexps[key] ||= /\A#{Regexp.escape(key)}\(\d+[if]?\)\z/
+        @@permitted_scalar_filter_regexps[key] ||= /\A#{Regexp.escape(key)}(?:\(\d+[if]?\))?\z/
 
         keys.grep(@@permitted_scalar_filter_regexps[key]) do |k|
           if permitted_scalar?(self[k])
