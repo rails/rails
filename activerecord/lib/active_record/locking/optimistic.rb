@@ -93,7 +93,7 @@ module ActiveRecord
               self.class.primary_key => id,
               lock_col => previous_lock_value,
             ).update_all(
-              Hash[attribute_names.map do |name|
+              Hash[attributes_for_update(attribute_names).map do |name|
                 [name, _read_attribute(name)]
               end]
             )
