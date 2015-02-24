@@ -109,6 +109,8 @@ module ActionController
     #   # assert that the "_customer" partial was rendered with a specific object
     #   assert_template partial: '_customer', locals: { customer: @customer }
     def assert_template(options = {}, message = nil)
+      ActiveSupport::Deprecation.warn("`assert_template` is deprecated and will be removed in Rails 5.1. Please use `assert_select` instead.")
+
       # Force body to be read in case the template is being streamed.
       response.body
 
