@@ -98,6 +98,7 @@ module ActiveRecord
       def prepare_column_options(column)
         spec = super
         spec.delete(:precision) if /time/ === column.sql_type && column.precision == 0
+        spec.delete(:limit)     if :boolean === column.type
         spec
       end
 
