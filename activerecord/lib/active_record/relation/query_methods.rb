@@ -1064,11 +1064,15 @@ module ActiveRecord
     end
 
     def arel_columns(columns)
-      columns.map do |field|
-        if (Symbol === field || String === field) && columns_hash.key?(field.to_s)
-          arel_table[field]
-        else
-          field
+      if from_value
+        columns
+      else
+        columns.map do |field|
+          if (Symbol === field || String === field) && columns_hash.key?(field.to_s)
+            arel_table[field]
+          else
+            field
+          end
         end
       end
     end
