@@ -58,6 +58,12 @@ module ActiveRecord
         SchemaCreation.new self
       end
 
+      def prepare_column_options(column, types) # :nodoc:
+        spec = super
+        spec.delete(:limit) if :boolean === column.type
+        spec
+      end
+
       class Column < ConnectionAdapters::Column # :nodoc:
         attr_reader :collation, :strict, :extra
 
