@@ -85,7 +85,7 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
   test 'allows for keyword arguments' do
     KwargsJob.perform_later(argument: 2)
 
-    assert_equal "Job with argument: 2", JobBuffer.last_value
+    assert_equal 'Job with argument: 2', JobBuffer.last_value
   end
 
   private

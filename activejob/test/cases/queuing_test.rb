@@ -10,17 +10,17 @@ class QueuingTest < ActiveSupport::TestCase
 
   test 'run queued job' do
     HelloJob.perform_later
-    assert_equal "David says hello", JobBuffer.last_value
+    assert_equal 'David says hello', JobBuffer.last_value
   end
 
   test 'run queued job with arguments' do
-    HelloJob.perform_later "Jamie"
-    assert_equal "Jamie says hello", JobBuffer.last_value
+    HelloJob.perform_later 'Jamie'
+    assert_equal 'Jamie says hello', JobBuffer.last_value
   end
 
   test 'run queued job later' do
     begin
-      result = HelloJob.set(wait_until: 1.second.ago).perform_later "Jamie"
+      result = HelloJob.set(wait_until: 1.second.ago).perform_later 'Jamie'
       assert result
     rescue NotImplementedError
       skip
@@ -28,8 +28,8 @@ class QueuingTest < ActiveSupport::TestCase
   end
 
   test 'job returned by enqueue has the arguments available' do
-    job = HelloJob.perform_later "Jamie"
-    assert_equal [ "Jamie" ], job.arguments
+    job = HelloJob.perform_later 'Jamie'
+    assert_equal [ 'Jamie' ], job.arguments
   end
 
 

@@ -28,7 +28,7 @@ module TestCaseHelpers
     end
 
     def adapter_is?(adapter)
-      ActiveJob::Base.queue_adapter.name.split("::").last.gsub(/Adapter$/, '').underscore==adapter.to_s
+      ActiveJob::Base.queue_adapter.name.split('::').last.gsub(/Adapter$/, '').underscore==adapter.to_s
     end
 
     def wait_for_jobs_to_finish_for(seconds=60)

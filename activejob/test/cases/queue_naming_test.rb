@@ -5,7 +5,7 @@ require 'jobs/nested_job'
 
 class QueueNamingTest < ActiveSupport::TestCase
   test 'name derived from base' do
-    assert_equal "default", HelloJob.queue_name
+    assert_equal 'default', HelloJob.queue_name
   end
 
   test 'uses given queue name job' do
@@ -13,7 +13,7 @@ class QueueNamingTest < ActiveSupport::TestCase
 
     begin
       HelloJob.queue_as :greetings
-      assert_equal "greetings", HelloJob.new.queue_name
+      assert_equal 'greetings', HelloJob.new.queue_name
     ensure
       HelloJob.queue_name = original_queue_name
     end
@@ -23,8 +23,8 @@ class QueueNamingTest < ActiveSupport::TestCase
     original_queue_name = HelloJob.queue_name
 
     begin
-      HelloJob.queue_as ""
-      assert_equal "", HelloJob.new.queue_name
+      HelloJob.queue_as ''
+      assert_equal '', HelloJob.new.queue_name
     ensure
       HelloJob.queue_name = original_queue_name
     end
@@ -35,7 +35,7 @@ class QueueNamingTest < ActiveSupport::TestCase
 
     begin
       HelloJob.queue_as nil
-      assert_equal "default", HelloJob.new.queue_name
+      assert_equal 'default', HelloJob.new.queue_name
     ensure
       HelloJob.queue_name = original_queue_name
     end
@@ -46,7 +46,7 @@ class QueueNamingTest < ActiveSupport::TestCase
 
     begin
       HelloJob.queue_as { :another }
-      assert_equal "another", HelloJob.new.queue_name
+      assert_equal 'another', HelloJob.new.queue_name
     ensure
       HelloJob.queue_name = original_queue_name
     end
@@ -57,8 +57,8 @@ class QueueNamingTest < ActiveSupport::TestCase
 
     begin
       HelloJob.queue_as { self.arguments.first=='1' ? :one : :two }
-      assert_equal "one", HelloJob.new('1').queue_name
-      assert_equal "two", HelloJob.new('3').queue_name
+      assert_equal 'one', HelloJob.new('1').queue_name
+      assert_equal 'two', HelloJob.new('3').queue_name
     ensure
       HelloJob.queue_name = original_queue_name
     end
@@ -97,6 +97,6 @@ class QueueNamingTest < ActiveSupport::TestCase
 
   test 'uses queue passed to #set' do
     job = HelloJob.set(queue: :some_queue).perform_later
-    assert_equal "some_queue", job.queue_name
+    assert_equal 'some_queue', job.queue_name
   end
 end

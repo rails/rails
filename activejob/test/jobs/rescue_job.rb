@@ -5,7 +5,7 @@ class RescueJob < ActiveJob::Base
 
   rescue_from(ArgumentError) do
     JobBuffer.add('rescued from ArgumentError')
-    arguments[0] = "DIFFERENT!"
+    arguments[0] = 'DIFFERENT!'
     retry_job
   end
 
@@ -14,11 +14,11 @@ class RescueJob < ActiveJob::Base
     JobBuffer.add("DeserializationError original exception was #{e.original_exception.class.name}")
   end
 
-  def perform(person = "david")
+  def perform(person = 'david')
     case person
-    when "david"
-      raise ArgumentError, "Hair too good"
-    when "other"
+    when 'david'
+      raise ArgumentError, 'Hair too good'
+    when 'other'
       raise OtherError
     else
       JobBuffer.add('performed beautifully')
