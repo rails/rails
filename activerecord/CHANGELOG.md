@@ -1,3 +1,22 @@
+*   PostgreSQL, no longer disables user triggers if system triggers can't be
+    disabled. Disabling user triggers does not fulfill what the method promises.
+    Rails currently requires superuser privileges for this method.
+
+    If you absolutely rely on this behavior, consider patching
+    `disable_referential_integrity`.
+
+    *Yves Senn*
+
+*   Restore aborted transaction state when `disable_referential_integrity` fails
+    due to missing permissions.
+
+    *Toby Ovod-Everett*, *Yves Senn*
+
+*   PostgreSQL, print warning message if `disable_referential_integrity` fails
+    due to missing permissions.
+
+    *Andrey Nering*, *Yves Senn*
+
 *   Allow `:limit` option for MySQL bigint primary key support.
 
     Example:
