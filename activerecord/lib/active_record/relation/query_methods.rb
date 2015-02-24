@@ -999,7 +999,7 @@ module ActiveRecord
     end
 
     def arel_columns(columns)
-      if from_value
+      if from_clause.value
         columns
       else
         columns.map do |field|
