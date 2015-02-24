@@ -770,7 +770,7 @@ module ActiveRecord
       #   # Check a foreign key exists
       #   foreign_key_exists?(:accounts, :branches)
       #
-      #   # Check a foreign key on specified column exists
+      #   # Check a foreign key on a specified column exists
       #   foreign_key_exists?(:accounts, column: :owner_id)
       #
       #   # Check a foreign key with a custom name exists

@@ -1019,7 +1019,7 @@ module ActiveRecord
     # can affect what it does.
     #
     # Note that <tt>:dependent</tt> option is ignored for +has_one+ <tt>:through</tt> associations.
-    # 
+    #
     # === Delete or destroy?
     #
     # +has_many+ and +has_and_belongs_to_many+ associations have the methods <tt>destroy</tt>,
@@ -1528,8 +1528,6 @@ module ActiveRecord
       #   +:inverse_of+ to avoid an extra query during validation.
       #   NOTE: <tt>required</tt> is set to <tt>true</tt> by default and is deprecated. If
       #   you don't want to have association presence validated, use <tt>optional: true</tt>.
-      #
-      #
       #
       # Option examples:
       #   belongs_to :firm, foreign_key: "client_of"

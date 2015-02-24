@@ -959,7 +959,8 @@ If you set the `:validate` option to `true`, then associated objects will be val
 
 ##### `:optional`
 
-If you set the `:optional` option to `true`, then associated object will be validated for presence. By default, this is `false`: associated objects will be validated for presence.
+If you set the `:optional` option to `true`, then the presence of the associated
+object won't be validated. By default, this option is set to `false`.
 
 #### Scopes for `belongs_to`
 
