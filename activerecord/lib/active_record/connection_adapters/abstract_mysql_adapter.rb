@@ -11,6 +11,10 @@ module ActiveRecord
           options[:auto_increment] = true if type == :bigint
           super
         end
+      end
+
+      class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
+        include ColumnMethods
 
         def new_column_definition(name, type, options) # :nodoc:
           column = super
@@ -21,10 +25,6 @@ module ActiveRecord
           end
           column
         end
-      end
-
-      class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
-        include ColumnMethods
       end
 
       class Table < ActiveRecord::ConnectionAdapters::Table
