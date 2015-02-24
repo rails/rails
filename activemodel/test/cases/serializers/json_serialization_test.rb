@@ -207,4 +207,8 @@ class JsonSerializationTest < ActiveModel::TestCase
     assert_no_match %r{"awesome":}, json
     assert_no_match %r{"preferences":}, json
   end
+
+  test "Class.model_name should be json encodable" do
+    assert_match %r{"Contact"}, Contact.model_name.to_json
+  end
 end
