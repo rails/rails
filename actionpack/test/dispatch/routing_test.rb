@@ -3489,13 +3489,19 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   def test_head_fetch_with_mount_on_root
     draw do
       get '/home' => 'test#index'
-      mount lambda { |env| [404, {"Content-Type" => "text/html"}, ["testing"]] }, at: '/'
+      mount lambda { |env| [200, {}, [env['REQUEST_METHOD']]] }, at: '/'
     end
+
+    # HEAD request matches `get /home` rather than the lower-precedence
+    # Rack app mounted at `/`
     head '/home'
     assert_response :success
+    assert_equal 'test#index', @response.body
 
-    head '/'
-    assert_response :not_found
+    # But the Rack app can still respond to its own HEAD requests.
+    head '/foobar'
+    assert_response :ok
+    assert_equal 'HEAD', @response.body
   end
 
 private
