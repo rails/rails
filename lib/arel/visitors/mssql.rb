@@ -66,6 +66,23 @@ module Arel
         end
       end
 
+      def visit_Arel_Nodes_DeleteStatement o, collector
+        collector << 'DELETE '
+        if o.limit
+          collector << 'TOP ('
+          visit o.limit.expr, collector
+          collector << ') '
+        end
+        collector << 'FROM '
+        collector = visit o.relation, collector
+        if o.wheres.any?
+          collector << ' WHERE '
+          inject_join o.wheres, collector, AND
+        else
+          collector
+        end
+      end
+
       def determine_order_by orders, x
         if orders.any?
           orders

@@ -31,6 +31,7 @@ module Arel
 
     def compile_delete
       dm = DeleteManager.new
+      dm.take @ast.limit.expr if @ast.limit
       dm.wheres = @ctx.wheres
       dm.from @ctx.froms
       dm

@@ -45,6 +45,15 @@ module Arel
         connection.verify
       end
 
+      it 'should use TOP for limited deletes' do
+        stmt = Nodes::DeleteStatement.new
+        stmt.relation = @table
+        stmt.limit = Nodes::Limit.new(10)
+        sql = compile(stmt)
+
+        sql.must_be_like "DELETE TOP (10) FROM \"users\""
+      end
+
       it 'should go over query ORDER BY if .order()' do
         stmt = Nodes::SelectStatement.new
         stmt.limit = Nodes::Limit.new(10)

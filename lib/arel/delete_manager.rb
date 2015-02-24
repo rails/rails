@@ -11,6 +11,11 @@ module Arel
       self
     end
 
+    def take limit
+      @ast.limit = Nodes::Limit.new(Nodes.build_quoted(limit)) if limit
+      self
+    end
+
     def wheres= list
       @ast.wheres = list
     end
