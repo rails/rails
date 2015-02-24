@@ -7,10 +7,12 @@ module ActiveJob
 
     included do
       def before_setup
-        @old_queue_adapter  = queue_adapter
+        @old_queue_adapter = queue_adapter
         ActiveJob::Base.queue_adapter = :test
         clear_enqueued_jobs
         clear_performed_jobs
+        queue_adapter.perform_enqueued_jobs = false
+        queue_adapter.perform_enqueued_at_jobs = false
         super
       end
 
@@ -281,7 +283,7 @@ module ActiveJob
 
         def enqueued_jobs_size(only: nil)
           if only
-            enqueued_jobs.select { |job| job[:job] == only }.size
+            enqueued_jobs.select { |job| job.fetch(:job) == only }.size
           else
             enqueued_jobs.size
           end
