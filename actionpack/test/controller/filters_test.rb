@@ -25,27 +25,27 @@ class ActionController::Base
   end
 end
 
-class FilterTest < ActionController::TestCase
+class TestController < ActionController::Base
+  before_action :ensure_login
+  after_action  :clean_up
 
-  class TestController < ActionController::Base
-    before_action :ensure_login
-    after_action  :clean_up
+  def show
+    render :inline => "ran action"
+  end
 
-    def show
-      render :inline => "ran action"
+  private
+    def ensure_login
+      @ran_filter ||= []
+      @ran_filter << "ensure_login"
     end
 
-    private
-      def ensure_login
-        @ran_filter ||= []
-        @ran_filter << "ensure_login"
-      end
+    def clean_up
+      @ran_after_action ||= []
+      @ran_after_action << "clean_up"
+    end
+end
 
-      def clean_up
-        @ran_after_action ||= []
-        @ran_after_action << "clean_up"
-      end
-  end
+class FilterTest < ActionController::TestCase
 
   class ChangingTheRequirementsController < TestController
     before_action :ensure_login, :except => [:go_wild]
