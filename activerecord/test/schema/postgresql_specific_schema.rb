@@ -88,16 +88,6 @@ _SQL
     end
   end
 
-  begin
-    execute <<_SQL
-    CREATE TABLE postgresql_xml_data_type (
-    id SERIAL PRIMARY KEY,
-    data xml
-    );
-_SQL
-  rescue #This version of PostgreSQL either has no XML support or is was not compiled with XML support: skipping table
-  end
-
   # This table is to verify if the :limit option is being ignored for text and binary columns
   create_table :limitless_fields, force: true do |t|
     t.binary :binary, limit: 100_000
