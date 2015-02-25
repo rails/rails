@@ -1,3 +1,8 @@
+*   Fixed a problem where String#truncate_words would get stuck with a complex
+    string.
+
+    *Henrik Nygren*
+
 *   Fixed a roundtrip problem with AS::SafeBuffer where primitive-like strings
     will be dumped as primitives:
 
