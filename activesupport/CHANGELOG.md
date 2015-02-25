@@ -3,6 +3,8 @@
     Parts of code and tests are taken from ISO8601 gem by Arnau Siches (@arnau) that is published
     under the conditions of MIT license: https://github.com/arnau/ISO8601/blob/b93d466840/LICENSE
 
+    Also `ActiveSupport::Duration#as_json` returns string in ISO 8601 duration format.
+
     Examples:
 
         ActiveSupport::Duration.parse('P3Y6M4DT12H30M5S')

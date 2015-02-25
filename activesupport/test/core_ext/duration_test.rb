@@ -188,11 +188,11 @@ class DurationTest < ActiveSupport::TestCase
   end
 
   def test_as_json
-    assert_equal 172800, 2.days.as_json
+    assert_equal 'P2D', 2.days.as_json
   end
 
   def test_to_json
-    assert_equal '172800', 2.days.to_json
+    assert_equal '"P2D"', 2.days.to_json
   end
 
   def test_case_when
