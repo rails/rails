@@ -37,15 +37,6 @@ module ActiveRecord
         configure_connection
       end
 
-      MAX_INDEX_LENGTH_FOR_UTF8MB4 = 191
-      def initialize_schema_migrations_table
-        if charset == 'utf8mb4'
-          ActiveRecord::SchemaMigration.create_table(MAX_INDEX_LENGTH_FOR_UTF8MB4)
-        else
-          ActiveRecord::SchemaMigration.create_table
-        end
-      end
-
       def supports_explain?
         true
       end
