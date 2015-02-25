@@ -121,6 +121,7 @@ module ActiveRecord
         @config = config
 
         @visitor = Arel::Visitors::SQLite.new self
+        @quoted_column_names = {}
 
         if self.class.type_cast_config_to_boolean(config.fetch(:prepared_statements) { true })
           @prepared_statements = true
@@ -240,7 +241,7 @@ module ActiveRecord
       end
 
       def quote_column_name(name) #:nodoc:
-        %Q("#{name.to_s.gsub('"', '""')}")
+        @quoted_column_names[name] ||= %Q("#{name.to_s.gsub('"', '""')}")
       end
 
       #--
