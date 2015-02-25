@@ -88,6 +88,20 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     assert_equal ["has already been taken"], t2.errors[:title]
   end
 
+  def test_validates_uniqueness_with_nil_scope
+    old_validators = Topic._validators.deep_dup
+    old_callbacks = Topic._validate_callbacks.deep_dup
+    Topic.validates_uniqueness_of(:title, scope: :parent_id)
+
+    Topic.create!(title: "test 1", parent_id: nil)
+    topic = Topic.new(title: "test 1", parent_id: nil)
+
+    refute topic.valid?
+  ensure
+    Topic._validators = old_validators
+    Topic._validate_callbacks = old_callbacks
+  end
+
   def test_validates_uniqueness_with_validates
     Topic.validates :title, :uniqueness => true
     Topic.create!('title' => 'abc')
