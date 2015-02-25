@@ -58,6 +58,9 @@ module ActiveRecord
       require "active_record/railties/console_sandbox" if app.sandbox?
       require "active_record/base"
       console = ActiveSupport::Logger.new(STDERR)
+      console.formatter = Rails.logger.formatter
+      console.level = Rails.logger.level
+
       Rails.logger.extend ActiveSupport::Logger.broadcast console
     end
 
