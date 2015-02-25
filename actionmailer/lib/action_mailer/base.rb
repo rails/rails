@@ -25,7 +25,7 @@ module ActionMailer
   #     layout 'mailer'
   #   end
   #
-  #   class Notifier < ApplicationMailer
+  #   class NotifierMailer < ApplicationMailer
   #     default from: 'no-reply@example.com',
   #             return_path: 'system@example.com'
   #
@@ -88,7 +88,7 @@ module ActionMailer
   #
   # To define a template to be used with a mailing, create an <tt>.erb</tt> file with the same
   # name as the method in your mailer model. For example, in the mailer defined above, the template at
-  # <tt>app/views/notifier/welcome.text.erb</tt> would be used to generate the email.
+  # <tt>app/views/notifier_mailer/welcome.text.erb</tt> would be used to generate the email.
   #
   # Variables defined in the methods of your mailer model are accessible as instance variables in their
   # corresponding view.
@@ -137,20 +137,20 @@ module ActionMailer
   # Once a mailer action and template are defined, you can deliver your message or create it and save it
   # for delivery later:
   #
-  #   Notifier.welcome(User.first).deliver_now # sends the email
-  #   mail = Notifier.welcome(User.first)      # => an ActionMailer::MessageDelivery object
+  #   NotifierMailer.welcome(User.first).deliver_now # sends the email
+  #   mail = NotifierMailer.welcome(User.first)      # => an ActionMailer::MessageDelivery object
   #   mail.deliver_now                    # sends the email
   #
   # The <tt>ActionMailer::MessageDelivery</tt> class is a wrapper around a <tt>Mail::Message</tt> object. If
   # you want direct access to the <tt>Mail::Message</tt> object you can call the <tt>message</tt> method on
   # the <tt>ActionMailer::MessageDelivery</tt> object.
   #
-  #   Notifier.welcome(User.first).message     # => a Mail::Message object
+  #   NotifierMailer.welcome(User.first).message     # => a Mail::Message object
   #
   # Action Mailer is nicely integrated with Active Job so you can send emails in the background (example: outside
   # of the request-response cycle, so the user doesn't have to wait on it):
   #
-  #   Notifier.welcome(User.first).deliver_later # enqueue the email sending to Active Job
+  #   NotifierMailer.welcome(User.first).deliver_later # enqueue the email sending to Active Job
   #
   # You never instantiate your mailer class. Rather, you just call the method you defined on the class itself.
   #
@@ -179,7 +179,7 @@ module ActionMailer
   #
   # Sending attachment in emails is easy:
   #
-  #   class Notifier < ApplicationMailer
+  #   class NotifierMailer < ApplicationMailer
   #     def welcome(recipient)
   #       attachments['free_book.pdf'] = File.read('path/to/file.pdf')
   #       mail(to: recipient, subject: "New account information")
@@ -195,7 +195,7 @@ module ActionMailer
   # If you need to send attachments with no content, you need to create an empty view for it,
   # or add an empty body parameter like this:
   #
-  #     class Notifier < ApplicationMailer
+  #     class NotifierMailer < ApplicationMailer
   #       def welcome(recipient)
   #         attachments['free_book.pdf'] = File.read('path/to/file.pdf')
   #         mail(to: recipient, subject: "New account information", body: "")
@@ -207,7 +207,7 @@ module ActionMailer
   # You can also specify that a file should be displayed inline with other HTML. This is useful
   # if you want to display a corporate logo or a photo.
   #
-  #   class Notifier < ApplicationMailer
+  #   class NotifierMailer < ApplicationMailer
   #     def welcome(recipient)
   #       attachments.inline['photo.png'] = File.read('path/to/photo.png')
   #       mail(to: recipient, subject: "Here is what we look like")
@@ -246,7 +246,7 @@ module ActionMailer
   # Action Mailer provides some intelligent defaults for your emails, these are usually specified in a
   # default method inside the class definition:
   #
-  #   class Notifier < ApplicationMailer
+  #   class NotifierMailer < ApplicationMailer
   #     default sender: 'system@example.com'
   #   end
   #
@@ -264,7 +264,7 @@ module ActionMailer
   # As you can pass in any header, you need to either quote the header as a string, or pass it in as
   # an underscored symbol, so the following will work:
   #
-  #   class Notifier < ApplicationMailer
+  #   class NotifierMailer < ApplicationMailer
   #     default 'Content-Transfer-Encoding' => '7bit',
   #             content_description: 'This is a description'
   #   end
@@ -272,7 +272,7 @@ module ActionMailer
   # Finally, Action Mailer also supports passing <tt>Proc</tt> objects into the default hash, so you
   # can define methods that evaluate as the message is being generated:
   #
-  #   class Notifier < ApplicationMailer
+  #   class NotifierMailer < ApplicationMailer
   #     default 'X-Special-Header' => Proc.new { my_method }
   #
   #     private
@@ -297,7 +297,7 @@ module ActionMailer
   # This may be useful, for example, when you want to add default inline attachments for all
   # messages sent out by a certain mailer class:
   #
-  #   class Notifier < ApplicationMailer
+  #   class NotifierMailer < ApplicationMailer
   #     before_action :add_inline_attachment!
   #
   #     def welcome
@@ -325,9 +325,9 @@ module ActionMailer
   # <tt>ActionMailer::Base.preview_path</tt>. Since most emails do something interesting
   # with database data, you'll need to write some scenarios to load messages with fake data:
   #
-  #   class NotifierPreview < ActionMailer::Preview
+  #   class NotifierMailerPreview < ActionMailer::Preview
   #     def welcome
-  #       Notifier.welcome(User.first)
+  #       NotifierMailer.welcome(User.first)
   #     end
   #   end
   #
