@@ -280,9 +280,9 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       redirect_to action_url('get')
     end
 
-    def remove_default_header
-      response.headers.except! 'X-Frame-Options'
-      head :ok
+    def remove_header
+      response.headers.delete params[:header]
+      head :ok, 'c' => '3'
     end
   end
 
@@ -511,25 +511,27 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
     end
   end
 
-  def test_removed_default_headers_on_test_response_are_not_reapplied
+  def test_respect_removal_of_default_headers_by_a_controller_action
     with_test_route_set do
-      begin
-        header_to_remove = 'X-Frame-Options'
-        original_default_headers = ActionDispatch::Response.default_headers
-        ActionDispatch::Response.default_headers = {
-          'X-Content-Type-Options' => 'nosniff',
-          header_to_remove => 'SAMEORIGIN',
-        }
-        get '/remove_default_header'
-        assert_includes headers, 'X-Content-Type-Options'
-        assert_not_includes headers, header_to_remove, "Should not contain removed default header"
-      ensure
-        ActionDispatch::Response.default_headers = original_default_headers
+      with_default_headers 'a' => '1', 'b' => '2' do
+        get '/remove_header', header: 'a'
       end
     end
+
+    assert_not_includes @response.headers, 'a', 'Response should not include default header removed by the controller action'
+    assert_includes @response.headers, 'b'
+    assert_includes @response.headers, 'c'
   end
 
   private
+    def with_default_headers(headers)
+      original = ActionDispatch::Response.default_headers
+      ActionDispatch::Response.default_headers = headers
+      yield
+    ensure
+      ActionDispatch::Response.default_headers = original
+    end
+
     def with_test_route_set
       with_routing do |set|
         controller = ::IntegrationProcessTest::IntegrationController.clone
