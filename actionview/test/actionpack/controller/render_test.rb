@@ -31,6 +31,10 @@ class Customer < Struct.new(:name, :id)
   def persisted?
     id.present?
   end
+
+  def cache_key
+    name.to_s
+  end
 end
 
 module Quiz

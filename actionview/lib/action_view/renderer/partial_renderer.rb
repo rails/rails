@@ -1,3 +1,4 @@
+require 'action_view/renderer/partial_renderer/collection_caching'
 require 'thread_safe'
 
 module ActionView
@@ -280,6 +281,8 @@ module ActionView
   #     <%- end -%>
   #   <% end %>
   class PartialRenderer < AbstractRenderer
+    include CollectionCaching
+
     PREFIXED_PARTIAL_NAMES = ThreadSafe::Cache.new do |h, k|
       h[k] = ThreadSafe::Cache.new
     end
@@ -321,8 +324,9 @@ module ActionView
         spacer = find_template(@options[:spacer_template], @locals.keys).render(@view, @locals)
       end
 
-      result = @template ? collection_with_template : collection_without_template
-      result.join(spacer).html_safe
+      cache_collection_render do
+        @template ? collection_with_template : collection_without_template
+      end.join(spacer).html_safe
     end
 
     def render_partial

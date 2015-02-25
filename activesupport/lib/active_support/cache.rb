@@ -325,19 +325,22 @@ module ActiveSupport
       def read_multi(*names)
         options = names.extract_options!
         options = merged_options(options)
-        results = {}
-        names.each do |name|
-          key = namespaced_key(name, options)
-          entry = read_entry(key, options)
-          if entry
-            if entry.expired?
-              delete_entry(key, options)
-            else
-              results[name] = entry.value
+
+        instrument_multi(:read, names, options) do |payload|
+          results = {}
+          names.each do |name|
+            key = namespaced_key(name, options)
+            entry = read_entry(key, options)
+            if entry
+              if entry.expired?
+                delete_entry(key, options)
+              else
+                results[name] = entry.value
+              end
             end
           end
+          results
         end
-        results
       end
 
       # Fetches data from the cache, using the given keys. If there is data in
@@ -527,16 +530,27 @@ module ActiveSupport
         end
 
         def instrument(operation, key, options = nil)
-          log(operation, key, options)
+          log { "Cache #{operation}: #{key}#{options.blank? ? "" : " (#{options.inspect})"}" }
 
           payload = { :key => key }
           payload.merge!(options) if options.is_a?(Hash)
           ActiveSupport::Notifications.instrument("cache_#{operation}.active_support", payload){ yield(payload) }
         end
 
-        def log(operation, key, options = nil)
+        def instrument_multi(operation, keys, options = nil)
+          log do
+            formatted_keys = keys.map { |k| "- #{k}" }.join("\n")
+            "Caches multi #{operation}:\n#{formatted_keys}#{options.blank? ? "" : " (#{options.inspect})"}"
+          end
+
+          payload = { key: keys }
+          payload.merge!(options) if options.is_a?(Hash)
+          ActiveSupport::Notifications.instrument("cache_#{operation}_multi.active_support", payload) { yield(payload) }
+        end
+
+        def log
           return unless logger && logger.debug? && !silence?
-          logger.debug("Cache #{operation}: #{key}#{options.blank? ? "" : " (#{options.inspect})"}")
+          logger.debug(yield)
         end
 
         def find_cached_entry(key, name, options)

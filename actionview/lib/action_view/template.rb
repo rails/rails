@@ -130,6 +130,7 @@ module ActionView
       @source            = source
       @identifier        = identifier
       @handler           = handler
+      @cache_name        = extract_resource_cache_call_name
       @compiled          = false
       @original_encoding = nil
       @locals            = details[:locals] || []
@@ -163,6 +164,10 @@ module ActionView
 
     def type
       @type ||= Types[@formats.first] if @formats.first
+    end
+
+    def eligible_for_collection_caching?(as: nil)
+      @cache_name == (as || inferred_cache_name).to_s
     end
 
     # Receives a view object and return a template similar to self by using @virtual_path.
@@ -344,6 +349,15 @@ module ActionView
       def instrument(action, &block)
         payload = { virtual_path: @virtual_path, identifier: @identifier }
         ActiveSupport::Notifications.instrument("#{action}.action_view", payload, &block)
+      end
+
+      def extract_resource_cache_call_name
+        $1 if @handler.respond_to?(:resource_cache_call_pattern) &&
+          @source =~ @handler.resource_cache_call_pattern
+      end
+
+      def inferred_cache_name
+        @inferred_cache_name ||= @virtual_path.split('/').last.sub('_', '')
       end
   end
 end
