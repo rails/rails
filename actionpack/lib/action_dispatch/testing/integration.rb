@@ -311,7 +311,7 @@ module ActionDispatch
           @request_count += 1
           @request  = ActionDispatch::Request.new(session.last_request.env)
           response = _mock_session.last_response
-          @response = ActionDispatch::TestResponse.new(response.status, response.headers, response.body)
+          @response = ActionDispatch::TestResponse.from_response(response)
           @html_document = nil
           @url_options = nil
 

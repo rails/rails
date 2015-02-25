@@ -898,6 +898,52 @@ XML
   end
 end
 
+class ResponseDefaultHeadersTest < ActionController::TestCase
+  class TestController < ActionController::Base
+    def remove_header
+      headers.delete params[:header]
+      head :ok, 'C' => '3'
+    end
+  end
+
+  setup do
+    @original = ActionDispatch::Response.default_headers
+    @defaults = { 'A' => '1', 'B' => '2' }
+    ActionDispatch::Response.default_headers = @defaults
+  end
+
+  teardown do
+    ActionDispatch::Response.default_headers = @original
+  end
+
+  def setup
+    super
+    @controller = TestController.new
+    @request    = ActionController::TestRequest.new
+    @response   = ActionController::TestResponse.new
+    @request.env['PATH_INFO'] = nil
+    @routes = ActionDispatch::Routing::RouteSet.new.tap do |r|
+      r.draw do
+        get ':controller(/:action(/:id))'
+      end
+    end
+  end
+
+  test "response contains default headers" do
+    # Response headers start out with the defaults
+    assert_equal @defaults, response.headers
+
+    get :remove_header, header: 'A'
+    assert_response :ok
+
+    # After a request, the response in the test case doesn't have the
+    # defaults merged on top again.
+    assert_not_includes response.headers, 'A'
+    assert_includes response.headers, 'B'
+    assert_includes response.headers, 'C'
+  end
+end
+
 class InferringClassNameTest < ActionController::TestCase
   def test_determine_controller_class
     assert_equal ContentController, determine_class("ContentControllerTest")

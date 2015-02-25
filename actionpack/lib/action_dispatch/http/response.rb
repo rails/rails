@@ -110,10 +110,11 @@ module ActionDispatch # :nodoc:
     # The underlying body, as a streamable object.
     attr_reader :stream
 
-    def initialize(status = 200, header = {}, body = [])
+    def initialize(status = 200, header = {}, body = [], options = {})
       super()
 
-      header = merge_default_headers(header, self.class.default_headers)
+      default_headers = options.fetch(:default_headers, self.class.default_headers)
+      header = merge_default_headers(header, default_headers)
 
       self.body, self.header, self.status = body, header, status
 
@@ -308,9 +309,7 @@ module ActionDispatch # :nodoc:
     end
 
     def merge_default_headers(original, default)
-      return original unless default.respond_to?(:merge)
-
-      default.merge(original)
+      default.respond_to?(:merge) ? default.merge(original) : original
     end
 
     def build_buffer(response, body)
