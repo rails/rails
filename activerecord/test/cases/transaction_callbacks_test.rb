@@ -400,3 +400,63 @@ class CallbacksOnMultipleActionsTest < ActiveRecord::TestCase
     assert_equal [:update_and_destroy, :create_and_destroy], topic.history
   end
 end
+
+
+class TransactionEnrollmentCallbacksTest < ActiveRecord::TestCase
+
+  class TopicWithoutTransactionalEnrollmentCallbacks < ActiveRecord::Base
+    self.table_name = :topics
+
+    before_commit_without_transaction_enrollment { |r| r.history << :before_commit }
+    after_commit_without_transaction_enrollment { |r| r.history << :after_commit }
+    after_rollback_without_transaction_enrollment { |r| r.history << :rollback }
+
+    def history
+      @history ||= []
+    end
+  end
+
+  def setup
+    @topic = TopicWithoutTransactionalEnrollmentCallbacks.create!
+  end
+
+  def test_commit_does_not_run_transactions_callbacks_without_enrollment
+    @topic.transaction do
+      @topic.content = 'foo'
+      @topic.save!
+    end
+    assert @topic.history.empty?
+  end
+
+  def test_commit_run_transactions_callbacks_with_explicit_enrollment
+    @topic.transaction do
+      2.times do
+        @topic.content = 'foo'
+        @topic.save!
+      end
+      @topic.class.connection.add_transaction_record(@topic)
+    end
+    assert_equal [:before_commit, :after_commit], @topic.history
+  end
+
+  def test_rollback_does_not_run_transactions_callbacks_without_enrollment
+    @topic.transaction do
+      @topic.content = 'foo'
+      @topic.save!
+      raise ActiveRecord::Rollback
+    end
+    assert @topic.history.empty?
+  end
+
+  def test_rollback_run_transactions_callbacks_with_explicit_enrollment
+    @topic.transaction do
+      2.times do
+        @topic.content = 'foo'
+        @topic.save!
+      end
+      @topic.class.connection.add_transaction_record(@topic)
+      raise ActiveRecord::Rollback
+    end
+    assert_equal [:rollback], @topic.history
+  end
+end
