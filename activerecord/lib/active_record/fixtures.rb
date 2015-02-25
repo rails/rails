@@ -703,6 +703,10 @@ module ActiveRecord
       def lhs_key
         @association.through_reflection.foreign_key
       end
+
+      def join_table
+        @association.through_reflection.table_name
+      end
     end
 
     private

@@ -273,7 +273,7 @@ class HasManyThroughFixture < ActiveSupport::TestCase
     Class.new(ActiveRecord::Base) { define_singleton_method(:name) { name } }
   end
 
-  def test_has_many_through
+  def test_has_many_through_with_default_table_name
     pt = make_model "ParrotTreasure"
     parrot = make_model "Parrot"
     treasure = make_model "Treasure"
@@ -290,6 +290,24 @@ class HasManyThroughFixture < ActiveSupport::TestCase
     fs = ActiveRecord::FixtureSet.new parrot.connection, "parrots", parrot, parrots
     rows = fs.table_rows
     assert_equal load_has_and_belongs_to_many['parrots_treasures'], rows['parrots_treasures']
+  end
+
+  def test_has_many_through_with_renamed_table
+    pt = make_model "ParrotTreasure"
+    parrot = make_model "Parrot"
+    treasure = make_model "Treasure"
+
+    pt.belongs_to :parrot, :class => parrot
+    pt.belongs_to :treasure, :class => treasure
+
+    parrot.has_many :parrot_treasures, :class => pt
+    parrot.has_many :treasures, :through => :parrot_treasures
+
+    parrots = File.join FIXTURES_ROOT, 'parrots'
+
+    fs = ActiveRecord::FixtureSet.new parrot.connection, "parrots", parrot, parrots
+    rows = fs.table_rows
+    assert_equal load_has_and_belongs_to_many['parrots_treasures'], rows['parrot_treasures']
   end
 
   def load_has_and_belongs_to_many
