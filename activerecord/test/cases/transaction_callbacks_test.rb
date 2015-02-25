@@ -420,7 +420,7 @@ class TransactionEnrollmentCallbacksTest < ActiveRecord::TestCase
     @topic = TopicWithoutTransactionalEnrollmentCallbacks.create!
   end
 
-  def test_commit_dont_enroll_transaction
+  def test_commit_does_not_run_transactions_callbacks_without_enrollment
     @topic.transaction do
       @topic.content = 'foo'
       @topic.save!
@@ -428,7 +428,7 @@ class TransactionEnrollmentCallbacksTest < ActiveRecord::TestCase
     assert @topic.history.empty?
   end
 
-  def test_commit_enrollment_transaction_when_call_add
+  def test_commit_run_transactions_callbacks_with_explicit_enrollment
     @topic.transaction do
       2.times do
         @topic.content = 'foo'
@@ -439,7 +439,7 @@ class TransactionEnrollmentCallbacksTest < ActiveRecord::TestCase
     assert_equal [:before_commit, :after_commit], @topic.history
   end
 
-  def test_rollback_dont_enroll_transaction
+  def test_rollback_does_not_run_transactions_callbacks_without_enrollment
     @topic.transaction do
       @topic.content = 'foo'
       @topic.save!
@@ -448,7 +448,7 @@ class TransactionEnrollmentCallbacksTest < ActiveRecord::TestCase
     assert @topic.history.empty?
   end
 
-  def test_rollback_enrollment_transaction_when_call_add
+  def test_rollback_run_transactions_callbacks_with_explicit_enrollment
     @topic.transaction do
       2.times do
         @topic.content = 'foo'
