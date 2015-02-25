@@ -764,14 +764,17 @@ class CookiesTest < ActionController::TestCase
     cookies.encrypted[:test1] = "test1"
 
     @request.env["action_dispatch.secret_key_base"] = "315fcfbb748b8f072e34a0db321cbafa"
-    @request.env["action_dispatch.secret_key_base"] = "315fcfbb748b8f072e34a0db321cbafa"
     @request.env["action_dispatch.key_generator"] = ActiveSupport::KeyGenerator.new("315fcfbb748b8f072e34a0db321cbafa", iterations: 2)
     key_generator = @request.env["action_dispatch.key_generator"]
     enc_salt = @request.env["action_dispatch.encrypted_cookie_salt"]
     signed_salt = @request.env["action_dispatch.encrypted_signed_cookie_salt"]
-    cookies.encrypted.set_key(key_generator, {encrypted_cookie_salt: enc_salt, encrypted_signed_cookie_salt: signed_salt})
-    cookies.encrypted[:test2] = "test2"
-    cookies.encrypted.validate_cookie_with_all_keys(cookies.encrypted[:test2])
+    cookies.encrypted.set_key(key_generator,
+      {encrypted_cookie_salt: enc_salt,
+       encrypted_signed_cookie_salt: signed_salt
+      })
+    #cookies.encrypted[:test2] = "test2"
+    get :set_signed_cookie
+    #cookies.encrypted.validate_cookie_with_all_keys("bar")
   end
 
   def test_legacy_signed_cookie_is_read_and_transparently_upgraded_by_signed_cookie_jar_if_both_secret_token_and_secret_key_base_are_set

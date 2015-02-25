@@ -123,7 +123,6 @@ module ActionDispatch
         cookie = get_cookie(env)
         cookie_jar(env).validate_cookie_with_all_keys(cookie)
       end
-
     end
   end
 end
