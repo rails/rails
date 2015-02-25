@@ -30,6 +30,7 @@ require 'models/college'
 require 'models/student'
 require 'models/pirate'
 require 'models/ship'
+require 'models/ship_part'
 require 'models/tyre'
 require 'models/subscriber'
 require 'models/subscription'
@@ -160,6 +161,30 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     Student.create(active: true, college_id: college.id, name: 'Sarah')
 
     assert_equal college.students, Student.where(active: true, college_id: college.id)
+  end
+
+  def test_add_record_to_collection_should_change_its_updated_at
+    ship = Ship.create(name: 'dauntless')
+    part = ShipPart.create(name: 'cockpit')
+    updated_at = part.updated_at
+
+    ship.parts << part
+
+    assert_equal part.ship, ship
+    assert_not_equal part.updated_at, updated_at
+  end
+
+  def test_clear_collection_should_not_change_updated_at
+    # GH#17161: .clear calls delete_all (and returns the association),
+    # which is intended to not touch associated objects's updated_at field
+    ship = Ship.create(name: 'dauntless')
+    part = ShipPart.create(name: 'cockpit', ship_id: ship.id)
+
+    ship.parts.clear
+    part.reload
+
+    assert_equal nil, part.ship
+    assert !part.updated_at_changed?
   end
 
   def test_create_from_association_should_respect_default_scope

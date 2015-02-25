@@ -680,6 +680,7 @@ ActiveRecord::Schema.define do
   create_table :ship_parts, force: true do |t|
     t.string :name
     t.integer :ship_id
+    t.datetime :updated_at
   end
 
   create_table :speedometers, force: true, id: false do |t|
