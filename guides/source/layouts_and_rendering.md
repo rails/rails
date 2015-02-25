@@ -563,6 +563,42 @@ In this application:
 * `OldArticlesController#show` will use no layout at all
 * `OldArticlesController#index` will use the `old` layout
 
+##### Template Inheritance
+
+Similarly to the Layout Inheritance logic, if a template or partial is not found in the conventional path, the controller will look for a template or partial to render in its inheritance chain. For example:
+
+```ruby
+# in app/controllers/application_controller
+class ApplicationController < ActionController::Base
+end
+
+# in app/controllers/admin_controller
+class AdminController < ApplicationController
+end
+
+# in app/controllers/admin/products_controller
+class Admin::ProductsController < AdminController
+  def index
+  end
+end
+```
+
+The lookup order for a `admin/products#index` action will be:
+
+* `app/views/admin/products/`
+* `app/views/admin/`
+* `app/views/application/`
+
+This makes `app/views/application/` a great place for your shared partials, which can then be rendered in your ERb as such:
+
+```erb
+<%# app/views/admin/products/index.html.erb %>
+<%= render @products || "empty_list" %>
+
+<%# app/views/application/_empty_list.html.erb %>
+There are no items in this list <em>yet</em>.
+```
+
 #### Avoiding Double Render Errors
 
 Sooner or later, most Rails developers will see the error message "Can only render or redirect once per action". While this is annoying, it's relatively easy to fix. Usually it happens because of a fundamental misunderstanding of the way that `render` works.
