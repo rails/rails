@@ -1,3 +1,10 @@
+*   Fix regression in functional tests. Responses should have default headers
+    assigned.
+
+    See #18423.
+
+    *Jeremy Kemper*, *Yves Senn*
+
 *   Preserve default format when generating URLs
 
     Fixes an issue that would cause the format set in default_url_options to be
