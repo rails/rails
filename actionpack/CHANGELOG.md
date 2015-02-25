@@ -1,3 +1,10 @@
+*   Fix regression in functional tests. Responses should have default headers
+    assigned.
+
+    See #18423.
+
+    *Jeremy Kemper*, *Yves Senn*
+
 *   Non-string authenticity tokens do not raise NoMethodError when decoding
     the masked token.
 
