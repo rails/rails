@@ -249,6 +249,15 @@ class StringInflectionsTest < ActiveSupport::TestCase
     assert_equal "Hello<br>Big<br>World!", "Hello<br>Big<br>World!".truncate_words(3, :omission => "[...]", :separator => '<br>')
   end
 
+  def test_truncate_words_with_complex_string
+    Timeout.timeout(10) do
+      complex_string = "aa aa aaa aa aaa aaa aaa aa aaa aaa aaa aaa aaa aaa aaa aaa aaa aaa aaaa aaaaa aaaaa aaaaaa aa aa aa aaa aa  aaa aa aa aa aa a aaa aaa \n a aaa <<s"
+      assert_equal complex_string.truncate_words(80), complex_string
+    end
+    rescue Timeout::Error
+      assert false
+  end
+
   def test_truncate_multibyte
     assert_equal "\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 ...".force_encoding(Encoding::UTF_8),
       "\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 \354\225\204\353\235\274\353\246\254\354\230\244".force_encoding(Encoding::UTF_8).truncate(10)
