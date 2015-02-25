@@ -49,7 +49,7 @@ class AttributeAssignmentTest < ActiveModel::TestCase
 
   test "assign non-existing attribute" do
     model = Model.new
-    error = assert_raises(ActiveModel::AttributeAssignment::UnknownAttributeError) do
+    error = assert_raises(ActiveModel::UnknownAttributeError) do
       model.assign_attributes(hz: 1)
     end
 
@@ -59,7 +59,7 @@ class AttributeAssignmentTest < ActiveModel::TestCase
 
   test "assign private attribute" do
     model = Model.new
-    assert_raises(ActiveModel::AttributeAssignment::UnknownAttributeError) do
+    assert_raises(ActiveModel::UnknownAttributeError) do
       model.assign_attributes(metadata: { a: 1 })
     end
   end

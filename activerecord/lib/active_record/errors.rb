@@ -178,10 +178,8 @@ module ActiveRecord
   class DangerousAttributeError < ActiveRecordError
   end
 
-  UnknownAttributeError = ActiveSupport::Deprecation::DeprecatedConstantProxy.new( # :nodoc:
-    'ActiveRecord::UnknownAttributeError', 
-    'ActiveModel::AttributeAssignment::UnknownAttributeError'
-  )
+  # Raised when unknown attributes are supplied via mass assignment.
+  UnknownAttributeError = ActiveModel::UnknownAttributeError
 
   # Raised when an error occurred while doing a mass assignment to an attribute through the
   # +attributes=+ method. The exception has an +attribute+ property that is the name of the
