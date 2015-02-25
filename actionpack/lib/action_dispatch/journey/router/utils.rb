@@ -2,6 +2,11 @@ module ActionDispatch
   module Journey # :nodoc:
     class Router # :nodoc:
       class Utils # :nodoc:
+        SLASH = '/'.freeze
+        EMPTY = ''.freeze
+        TRAILING_SLASHES = /\/+\Z/.freeze
+        URL_ENCODED_CHAR = /(%[a-f0-9]{2})/.freeze
+
         # Normalizes URI path.
         #
         # Strips off trailing slash and ensures there is a leading slash.
@@ -14,10 +19,10 @@ module ActionDispatch
         #   normalize_path("/%ab")  # => "/%AB"
         def self.normalize_path(path)
           path = "/#{path}"
-          path.squeeze!('/')
-          path.sub!(%r{/+\Z}, '')
-          path.gsub!(/(%[a-f0-9]{2})/) { $1.upcase }
-          path = '/' if path == ''
+          path.squeeze!(SLASH)
+          path.sub!(TRAILING_SLASHES, EMPTY)
+          path.gsub!(URL_ENCODED_CHAR) { $1.upcase }
+          path = '/' if path.empty?
           path
         end
 

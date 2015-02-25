@@ -31,6 +31,22 @@ module ActionDispatch
         def test_normalize_path_uppercase
           assert_equal "/foo%AAbar%AAbaz", Utils.normalize_path("/foo%aabar%aabaz")
         end
+
+        def test_normalize_path_trailing_slash
+          assert_equal "/foo/bar", Utils.normalize_path("/foo/bar/")
+        end
+
+        def test_normalize_path_multiple_slashes
+          assert_equal "/foo/bar", Utils.normalize_path("//foo//bar")
+        end
+
+        def test_normalize_path_missing_leading_slash
+          assert_equal "/foo/bar", Utils.normalize_path("foo/bar")
+        end
+
+        def test_normalize_path_empty_string
+          assert_equal "/", Utils.normalize_path("")
+        end
       end
     end
   end
