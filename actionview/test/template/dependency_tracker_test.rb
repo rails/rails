@@ -60,7 +60,6 @@ class ERBTrackerTest < Minitest::Test
   end
 
   def test_dependency_of_template_partial_with_layout
-    skip # FIXME: Needs to be fixed properly, right now we can only match one dependency per line. Need multiple!
     template = FakeTemplate.new("<%# render partial: 'messages/show', layout: 'messages/layout' %>", :erb)
     tracker = make_tracker("multiple/_dependencies", template)
 

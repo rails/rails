@@ -1,3 +1,8 @@
+*   Fixed a dependency tracker bug that caused template dependencies not
+    count layouts as dependencies for partials.
+
+    *Juho Leinonen*
+
 *   Extracted `ActionView::Helpers::RecordTagHelper` to external gem
     (`record_tag_helper`) and added removal notices.
 
