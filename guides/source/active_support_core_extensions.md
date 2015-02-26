@@ -727,7 +727,7 @@ NOTE: Defined in `active_support/core_ext/module/introspection.rb`.
 
 #### Qualified Constant Names
 
-The standard methods `const_defined?`, `const_get` , and `const_set` accept
+The standard methods `const_defined?`, `const_get`, and `const_set` accept
 bare constant names. Active Support extends this API to be able to pass
 relative qualified constant names.
 
