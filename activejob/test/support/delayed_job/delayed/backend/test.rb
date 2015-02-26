@@ -19,13 +19,13 @@ module Delayed
 
         include Delayed::Backend::Base
 
-        cattr_accessor :id
-        self.id = 0
+        cattr_accessor :local_id
+        self.local_id = 0
 
         def initialize(hash = {})
           self.attempts = 0
           self.priority = 0
-          self.id = (self.class.id += 1)
+          self.id = (self.class.local_id += 1)
           hash.each{|k,v| send(:"#{k}=", v)}
         end
 
