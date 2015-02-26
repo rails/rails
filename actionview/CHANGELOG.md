@@ -1,3 +1,23 @@
+*   Collection rendering automatically caches and fetches multiple partials.
+
+    Collections rendered as:
+
+    ```ruby
+    <%= render @notifications %>
+    <%= render partial: 'notifications/notification', collection: @notifications, as: :notification %>
+    ```
+
+    will now read several partials from cache at once, if the template starts with a cache call:
+
+    ```ruby
+    # notifications/_notification.html.erb
+    <% cache notification do %>
+      <%# ... %>
+    <% end %>
+    ```
+
+    *Kasper Timm Hansen*
+
 *   Fixed a dependency tracker bug that caused template dependencies not
     count layouts as dependencies for partials.
 
