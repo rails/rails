@@ -1226,7 +1226,7 @@ module ActionView
     #     Admin: <%= person_form.check_box :admin %>
     #   <% end %>
     #
-    # In the above block, the a +FormBuilder+ object is yielded as the
+    # In the above block, a +FormBuilder+ object is yielded as the
     # +person_form+ variable. This allows you to generate the +text_field+
     # and +check_box+ fields by specifying their eponymous methods, which
     # modify the underlying template and associates the +@person+ model object
@@ -1247,6 +1247,7 @@ module ActionView
     #         )
     #       )
     #     end
+    #   end
     #
     # The above code creates a new method +div_radio_button+ which wraps a div
     # around the new radio button. Note that when options are passed in, you
