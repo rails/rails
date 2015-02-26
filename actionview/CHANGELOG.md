@@ -1,3 +1,8 @@
+*   Fixed the translation helper method to accept different default values types
+    besides String.
+
+    *Ulisses Almeida*
+
 *   Collection rendering automatically caches and fetches multiple partials.
 
     Collections rendered as:
