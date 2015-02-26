@@ -1,3 +1,10 @@
+*   Correctly create through records when created on a has many through
+    association when using `where`.
+
+    Fixes #19073.
+
+    *Sean Griffin*
+
 *   Fixed ActiveRecord::Relation#becomes! and changed_attributes issues for type column
 
     Fixes #17139.
