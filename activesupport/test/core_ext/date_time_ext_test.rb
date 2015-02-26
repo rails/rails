@@ -72,6 +72,11 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal 86399,DateTime.civil(2005,1,1,23,59,59).seconds_since_midnight
   end
 
+  def test_midnight?
+    assert Time.now.beginning_of_day.midnight?
+    assert_not Time.now.beginning_of_day.advance(:minutes => 1).midnight?
+  end
+
   def test_seconds_until_end_of_day
     assert_equal 0, DateTime.civil(2005,1,1,23,59,59).seconds_until_end_of_day
     assert_equal 1, DateTime.civil(2005,1,1,23,59,58).seconds_until_end_of_day

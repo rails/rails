@@ -1,3 +1,7 @@
+*   Add `midnight?` predicate to check if a time is equal to midnight
+
+    *Kieran Johnson*
+
 *   Make `benchmark('something', silence: true)` actually work
 
     *DHH*
@@ -6,7 +10,7 @@
 
     `#on_weekday?` returns `true` if the receiving date/time does not fall on a Saturday
     or Sunday.
-    
+
     *Vipul A M*
 
 *   Add `Array#second_to_last` and `Array#third_to_last` methods.

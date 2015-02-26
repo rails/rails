@@ -36,6 +36,11 @@ module DateAndTime
       to_date == ::Date.current
     end
 
+    # Returns true if time is midnight
+    def midnight?
+      self == midnight
+    end
+
     # Returns true if the date/time is in the past.
     def past?
       self < self.class.current
