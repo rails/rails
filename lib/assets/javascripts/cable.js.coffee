@@ -4,7 +4,7 @@
 class @Cable
   MAX_CONNECTION_ATTEMPTS: 10
   MAX_CONNECTION_INTERVAL: 5 * 1000
-  MAX_PING_INTERVAL: 6
+  PING_STALE_INTERVAL: 6
 
   constructor: (@cableUrl) ->
     @subscribers = {}
@@ -40,6 +40,7 @@ class @Cable
       @subscribers[data.identifier]?.onReceiveData(data.message)
 
   connected: =>
+    @startWaitingForPing()
     @resetConnectionAttemptsCount()
 
     for identifier, callbacks of @subscribers
@@ -47,6 +48,7 @@ class @Cable
       callbacks['onConnect']?()
 
   reconnect: =>
+    @clearPingWaitTimeout()
     @resetPingTime()
     @disconnected()
 
@@ -71,7 +73,18 @@ class @Cable
     interval = (Math.pow(2, @connectionAttempts) - 1) * 1000
     if interval > @MAX_CONNECTION_INTERVAL then @MAX_CONNECTION_INTERVAL else interval
 
-  resetPingTime: () =>
+  startWaitingForPing: =>
+    @clearPingWaitTimeout()
+
+    @waitForPingTimeout = setTimeout =>
+      console.log "Ping took too long to arrive. Reconnecting.."
+      @connection?.close()
+    , @PING_STALE_INTERVAL * 1000
+
+  clearPingWaitTimeout: =>
+    clearTimeout(@waitForPingTimeout)
+
+  resetPingTime: =>
     @lastPingTime = null
 
   disconnected: =>
@@ -100,8 +113,9 @@ class @Cable
       @connection.send JSON.stringify { action: 'unsubscribe', identifier: identifier }
 
   pingReceived: (timestamp) =>
-    if @lastPingTime? and (timestamp - @lastPingTime) > @MAX_PING_INTERVAL
+    if @lastPingTime? and (timestamp - @lastPingTime) > @PING_STALE_INTERVAL
       console.log "Websocket connection is stale. Reconnecting.."
-      @connection.close()
+      @connection?.close()
     else
+      @startWaitingForPing()
       @lastPingTime = timestamp
