@@ -117,7 +117,7 @@ class @Cable
   pingReceived: (timestamp) =>
     if @lastPingTime? and (timestamp - @lastPingTime) > @PING_STALE_INTERVAL
       console.log "Websocket connection is stale. Reconnecting.."
-      @connection?.close()
+      @reconnect()
     else
       @startWaitingForPing()
       @lastPingTime = timestamp
