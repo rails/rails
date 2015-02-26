@@ -44,7 +44,18 @@ module ActiveRecord
 
         # Used by the migration template to determine the parent name of the model
         def parent_class_name
-          options[:parent] || "ActiveRecord::Base"
+          options[:parent] || default_parent_class_name
+        end
+
+        def default_parent_class_name
+          begin
+            # Check if Model is defined and serve as base class
+            if Model.superclass == ActiveRecord::Base && Model.abstract_class?
+              return 'Model'
+            end
+          rescue NameError
+          end
+          'ActiveRecord::Base'
         end
 
     end
