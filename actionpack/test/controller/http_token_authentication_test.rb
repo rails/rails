@@ -80,7 +80,7 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
   end
 
   test "authentication request with badly formatted header" do
-    @request.env['HTTP_AUTHORIZATION'] = "Token foobar"
+    @request.env['HTTP_AUTHORIZATION'] = 'Token token$"lifo"'
     get :index
 
     assert_response :unauthorized
