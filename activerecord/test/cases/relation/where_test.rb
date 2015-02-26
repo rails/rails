@@ -2,6 +2,7 @@ require "cases/helper"
 require "models/author"
 require "models/binary"
 require "models/cake_designer"
+require "models/category"
 require "models/chef"
 require "models/comment"
 require "models/edge"
@@ -283,6 +284,12 @@ module ActiveRecord
 
     def test_where_on_association_with_custom_primary_key_with_array_of_ids
       essay = Essay.where(writer: ["David"]).first
+
+      assert_equal essays(:david_modest_proposal), essay
+    end
+
+    def test_where_on_non_polymorphic_association_with_custom_primary_key
+      essay = Essay.where(category: [Category.new(name: "General")]).first
 
       assert_equal essays(:david_modest_proposal), essay
     end
