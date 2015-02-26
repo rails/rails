@@ -2,7 +2,6 @@
 #= require_tree .
 
 class @Cable
-  MAX_CONNECTION_ATTEMPTS: 10
   MAX_CONNECTION_INTERVAL: 5 * 1000
   PING_STALE_INTERVAL: 6
 
@@ -53,11 +52,8 @@ class @Cable
     @disconnected()
 
     setTimeout =>
-      if @isMaxConnectionAttemptsReached()
-        @giveUp()
-      else
-        @incrementConnectionAttemptsCount()
-        @connect()
+      @incrementConnectionAttemptsCount()
+      @connect()
     , @generateReconnectInterval()
 
   resetConnectionAttemptsCount: =>
@@ -65,9 +61,6 @@ class @Cable
 
   incrementConnectionAttemptsCount: =>
     @connectionAttempts += 1
-
-  isMaxConnectionAttemptsReached: =>
-    @connectionAttempts > @MAX_CONNECTION_ATTEMPTS
 
   generateReconnectInterval: () ->
     interval = (Math.pow(2, @connectionAttempts) - 1) * 1000
