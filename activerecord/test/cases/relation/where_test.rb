@@ -96,6 +96,18 @@ module ActiveRecord
       assert_equal expected.to_sql, actual.to_sql
     end
 
+    def test_polymorphic_empty_array_where
+      treasure = Treasure.new
+      treasure.id = 1
+      hidden = HiddenTreasure.new
+      hidden.id = 2
+
+      expected = PriceEstimate.where("1=0")
+      actual   = PriceEstimate.where(estimate_of: [])
+
+      assert_equal expected.to_a, actual.to_a
+    end
+
     def test_polymorphic_nested_relation_where
       expected = PriceEstimate.where(estimate_of_type: 'Treasure', estimate_of_id: Treasure.where(id: [1,2]))
       actual   = PriceEstimate.where(estimate_of: Treasure.where(id: [1,2]))
