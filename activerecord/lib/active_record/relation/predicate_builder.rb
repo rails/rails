@@ -61,8 +61,11 @@ module ActiveRecord
         end
 
         column = reflection.foreign_key
-        primary_key = reflection.association_primary_key(base_class)
-        value = convert_value_to_association_ids(value, primary_key)
+
+        if base_class
+          primary_key = reflection.association_primary_key(base_class)
+          value = convert_value_to_association_ids(value, primary_key)
+        end
       end
 
       queries << build(table[column], value)
