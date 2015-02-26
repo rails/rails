@@ -1,0 +1,4 @@
+class Model < ActiveRecord::Base
+  self.abstract_class = true
+  # A place for code shared accross all models
+end

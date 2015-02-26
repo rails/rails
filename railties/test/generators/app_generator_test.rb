@@ -1,5 +1,6 @@
 require 'generators/generators_test_helper'
 require 'rails/generators/rails/app/app_generator'
+require "rails/generators/rails/model/model_generator"
 require 'generators/shared_generator_tests'
 require 'mocha/setup' # FIXME: stop using mocha
 
@@ -65,6 +66,23 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file("app/views/layouts/application.html.erb", /javascript_include_tag\s+'application', 'data-turbolinks-track' => true/)
     assert_file("app/assets/stylesheets/application.css")
     assert_file("app/assets/javascripts/application.js")
+    assert_file("app/models/model.rb")
+  end
+
+  def test_model_inherit_model_generated_by_app
+    run_generator
+    Object.const_set(
+      "Model", 
+      Class.new(ActiveRecord::Base) do
+        self.abstract_class = true
+      end
+    )
+    capture(:stdout) do
+      Rails::Generators::ModelGenerator.start(["account"], destination_root: destination_root)
+    end
+    assert_file("app/models/account.rb", /class Account < Model/)
+  ensure
+    Object.send(:remove_const, "Model") rescue NameError
   end
 
   def test_invalid_application_name_raises_an_error
