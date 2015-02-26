@@ -28,23 +28,6 @@ module ActionDispatch
         super.to_s
       end
 
-      def regexp
-        __getobj__.path.to_regexp
-      end
-
-      def json_regexp
-        str = regexp.inspect.
-              sub('\\A' , '^').
-              sub('\\Z' , '$').
-              sub('\\z' , '$').
-              sub(/^\// , '').
-              sub(/\/[a-z]*$/ , '').
-              gsub(/\(\?#.+\)/ , '').
-              gsub(/\(\?-\w+:/ , '(').
-              gsub(/\s/ , '')
-        Regexp.new(str).source
-      end
-
       def reqs
         @reqs ||= begin
           reqs = endpoint
@@ -117,11 +100,10 @@ module ActionDispatch
         end.reject(&:internal?).collect do |route|
           collect_engine_routes(route)
 
-          { name:   route.name,
-            verb:   route.verb,
-            path:   route.path,
-            reqs:   route.reqs,
-            regexp: route.json_regexp }
+          { name: route.name,
+            verb: route.verb,
+            path: route.path,
+            reqs: route.reqs }
         end
       end
 
