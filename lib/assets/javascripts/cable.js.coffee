@@ -47,6 +47,8 @@ class @Cable
       callbacks['onConnect']?()
 
   reconnect: =>
+    @removeExistingConnection()
+
     @clearPingWaitTimeout()
     @resetPingTime()
     @disconnected()
@@ -55,6 +57,13 @@ class @Cable
       @incrementConnectionAttemptsCount()
       @connect()
     , @generateReconnectInterval()
+
+  removeExistingConnection: =>
+    if @connection?
+      @connection.onclose = -> # no-op
+      @connection.onerror = -> # no-op
+      @connection.close()
+      @connection = null
 
   resetConnectionAttemptsCount: =>
     @connectionAttempts = 1
