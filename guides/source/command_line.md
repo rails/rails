@@ -338,6 +338,12 @@ You can specify the environment in which the `runner` command should operate usi
 $ bin/rails runner -e staging "Model.long_running_method"
 ```
 
+You can even execute ruby code written in a file with runner.
+
+```bash
+$ bin/rails runner lib/code_to_be_run.rb
+```
+
 ### `rails destroy`
 
 Think of `destroy` as the opposite of `generate`. It'll figure out what generate did, and undo it.
