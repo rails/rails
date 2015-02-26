@@ -1,3 +1,10 @@
+*   Correctly create through records when created on a has many through
+    association when using `where`.
+
+    Fixes #19073.
+
+    *Sean Griffin*
+
 *   Add `SchemaMigration.create_table` support any unicode charsets for MySQL.
 
     *Ryuta Kamizono*
