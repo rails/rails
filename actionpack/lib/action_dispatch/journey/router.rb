@@ -121,7 +121,6 @@ module ActionDispatch
         end
 
         def match_head_routes(routes, req)
-          routes.delete_if { |route| route.verb == // }
           head_routes = match_routes(routes, req)
 
           if head_routes.empty?
