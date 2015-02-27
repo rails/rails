@@ -1,5 +1,3 @@
-require 'active_support/deprecation'
-
 module AbstractController
   module Callbacks
     extend ActiveSupport::Concern
