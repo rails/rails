@@ -917,8 +917,8 @@ write your own validators or validation methods as you prefer.
 
 ### Custom Validators
 
-Custom validators are classes that extend `ActiveModel::Validator`. These
-classes must implement a `validate` method which takes a record as an argument
+Custom validators are classes that inherit from `ActiveModel::Validator`. These
+classes must implement the `validate` method which takes a record as an argument
 and performs the validation on it. The custom validator is called using the
 `validates_with` method.
 
