@@ -565,7 +565,7 @@ In this application:
 
 ##### Template Inheritance
 
-Similarly to the Layout Inheritance logic, if a template or partial is not found in the conventional path, the controller will look for a template or partial to render in its inheritance chain. For example:
+Similar to the Layout Inheritance logic, if a template or partial is not found in the conventional path, the controller will look for a template or partial to render in its inheritance chain. For example:
 
 ```ruby
 # in app/controllers/application_controller
