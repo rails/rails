@@ -328,9 +328,12 @@ module ActiveRecord
     # Add the record to the current transaction so that the +after_rollback+ and +after_commit+ callbacks
     # can be called.
     def add_to_transaction
-      if self.class.connection.add_transaction_record(self)
-        remember_transaction_record_state
+      if has_transactional_callbacks?
+        self.class.connection.add_transaction_record(self)
+      else
+        set_transaction_state(self.class.connection.transaction_state)
       end
+      remember_transaction_record_state
     end
 
     # Executes +method+ within a transaction and captures its return value as a
@@ -388,7 +391,10 @@ module ActiveRecord
           thaw unless restore_state[:frozen?]
           @new_record = restore_state[:new_record]
           @destroyed  = restore_state[:destroyed]
-          write_attribute(self.class.primary_key, restore_state[:id]) if self.class.primary_key
+          pk = self.class.primary_key
+          if pk && read_attribute(pk) != restore_state[:id]
+            write_attribute(pk, restore_state[:id])
+          end
         end
       end
     end

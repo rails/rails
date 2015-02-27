@@ -1,3 +1,10 @@
+*   Dont enroll records in the transaction if they dont have commit callbacks.
+    That was causing a memory grow problem when creating a lot of records inside a transaction.
+
+    Fixes #15549.
+
+    *Will Bryant*, *Aaron Patterson*
+
 *   Correctly create through records when created on a has many through
     association when using `where`.
 
