@@ -1074,6 +1074,14 @@ class YieldingAroundFiltersTest < ActionController::TestCase
     end
   end
 
+  def test_deprecated_skip_filter
+    assert_deprecated do
+      Class.new(PostsController) do
+        skip_filter :clean_up
+      end
+    end
+  end
+
   protected
     def test_process(controller, action = "show")
       @controller = controller.is_a?(Class) ? controller.new : controller
