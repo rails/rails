@@ -129,11 +129,11 @@ module ActiveRecord
         first_nth_or_last(:last, *args)
       end
 
-      def take
+      def take(n = nil)
         if loaded?
-          target.first
+          n ? target.take(n) : target.first
         else
-          scope.take.tap do |record|
+          scope.take(n).tap do |record|
             set_inverse_instance record if record.is_a? ActiveRecord::Base
           end
         end
