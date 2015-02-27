@@ -1,3 +1,17 @@
+*   Fix `ActiveJob::Base.queue_name` for `default_queue_name` with custom `queue_name_prefix`
+
+    Example:
+
+        def test_hello_job
+          ActiveJob::Base.queue_name_prefix = 'aj'
+          assert_equal 'aj_default', HelloJob.queue_name
+        end
+
+
+    Fixes #19116.
+
+    *Kirill Mokevnin*
+
 *   Add an `:only` option to `perform_enqueued_jobs` to filter jobs based on
     type.
 

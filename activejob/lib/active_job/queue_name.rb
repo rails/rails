@@ -20,7 +20,7 @@ module ActiveJob
         if block_given?
           self.queue_name = block
         else
-          self.queue_name = queue_name_from_part(part_name)
+          self.queue_name = part_name
         end
       end
 
@@ -29,13 +29,24 @@ module ActiveJob
         name_parts = [queue_name_prefix.presence, queue_name]
         name_parts.compact.join(queue_name_delimiter)
       end
+
+      def queue_name=(v)
+        @queue_name = v
+      end
+
+      def queue_name
+        name = defined?(@queue_name) ? @queue_name : default_queue_name
+        if name.is_a? Proc
+          name
+        else
+          queue_name_from_part(name)
+        end
+      end
     end
 
     included do
-      class_attribute :queue_name, instance_accessor: false
       class_attribute :queue_name_delimiter, instance_accessor: false
 
-      self.queue_name = default_queue_name
       self.queue_name_delimiter = '_' # set default delimiter to '_'
     end
 

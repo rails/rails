@@ -78,6 +78,17 @@ class QueueNamingTest < ActiveSupport::TestCase
     end
   end
 
+  test 'queue_name_prefix prepended to the default queue name' do
+    original_queue_name_prefix = ActiveJob::Base.queue_name_prefix
+
+    begin
+      ActiveJob::Base.queue_name_prefix = 'aj'
+      assert_equal 'aj_default', HelloJob.queue_name
+    ensure
+      ActiveJob::Base.queue_name_prefix = original_queue_name_prefix
+    end
+  end
+
   test 'queue_name_prefix prepended to the queue name with custom delimiter' do
     original_queue_name_prefix = ActiveJob::Base.queue_name_prefix
     original_queue_name_delimiter = ActiveJob::Base.queue_name_delimiter
