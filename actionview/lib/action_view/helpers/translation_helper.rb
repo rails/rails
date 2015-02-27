@@ -37,8 +37,12 @@ module ActionView
       # you know what kind of output to expect when you call translate in a template.
       def translate(key, options = {})
         options = options.dup
+        has_default = options.has_key?(:default)
         remaining_defaults = Array(options.delete(:default))
-        options[:default] = remaining_defaults.shift if remaining_defaults.first.kind_of? String
+
+        if has_default && !remaining_defaults.first.kind_of?(Symbol)
+          options[:default] = remaining_defaults.shift
+        end
 
         # If the user has explicitly decided to NOT raise errors, pass that option to I18n.
         # Otherwise, tell I18n to raise an exception, which we rescue further in this method.
