@@ -254,6 +254,10 @@ class ResponseTest < ActiveSupport::TestCase
 end
 
 class ResponseIntegrationTest < ActionDispatch::IntegrationTest
+  def app
+    @app
+  end
+
   test "response cache control from railsish app" do
     @app = lambda { |env|
       ActionDispatch::Response.new.tap { |resp|
