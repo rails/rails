@@ -305,7 +305,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
 
     assert_response 500
     assert_select '#Application-Trace' do
-      assert_select 'pre code', /\(eval\):1: syntax error, unexpected/
+      assert_select 'pre code', /syntax error, unexpected/
     end
   end
 
@@ -332,7 +332,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
 
     assert_response 500
     assert_select '#Application-Trace' do
-      assert_select 'pre code', /\(eval\):1: syntax error, unexpected/
+      assert_select 'pre code', /syntax error, unexpected/
     end
   end
 
