@@ -226,8 +226,8 @@ module ActiveRecord
         @association.last(*args)
       end
 
-      def take
-        @association.take
+      def take(n = nil)
+        @association.take(n)
       end
 
       # Returns a new object of the collection type that has been instantiated
