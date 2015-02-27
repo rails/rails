@@ -176,6 +176,11 @@ class TranslationHelperTest < ActiveSupport::TestCase
     assert_equal 'A Generic String', translation
   end
 
+  def test_translate_with_object_default
+    translation = translate(:'translations.missing', default: 123)
+    assert_equal 123, translation
+  end
+
   def test_translate_with_array_of_string_defaults
     translation = translate(:'translations.missing', default: ['A Generic String', 'Second generic string'])
     assert_equal 'A Generic String', translation
