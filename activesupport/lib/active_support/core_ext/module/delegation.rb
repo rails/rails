@@ -167,7 +167,7 @@ class Module
         ''
       end
 
-    file, line = caller.first.split(':', 2)
+    file, line = caller(1, 1).first.split(':', 2)
     line = line.to_i
 
     to = to.to_s
