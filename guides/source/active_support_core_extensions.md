@@ -349,7 +349,7 @@ end
 we get:
 
 ```ruby
-current_user.to_query('user') # => user=357-john-smith
+current_user.to_query('user') # => "user=357-john-smith"
 ```
 
 This method escapes whatever is needed, both for the key and the value:
