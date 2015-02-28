@@ -3,8 +3,8 @@ require 'active_support/callbacks'
 module ActiveJob
   # = Active Job Callbacks
   #
-  # Active Job provides hooks during the lifecycle of a job. Callbacks allow you
-  # to trigger logic during the lifecycle of a job. Available callbacks are:
+  # Active Job provides hooks during the life cycle of a job. Callbacks allow you
+  # to trigger logic during the life cycle of a job. Available callbacks are:
   #
   # * <tt>before_enqueue</tt>
   # * <tt>around_enqueue</tt>
@@ -22,6 +22,8 @@ module ActiveJob
       define_callbacks :enqueue
     end
 
+    # These methods will be included into any Active Job object, adding
+    # callbacks for +perform+ and +enqueue+ methods.
     module ClassMethods
       # Defines a callback that will get called right before the
       # job's perform method is executed.

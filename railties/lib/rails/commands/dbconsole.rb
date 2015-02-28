@@ -1,7 +1,6 @@
 require 'erb'
 require 'yaml'
 require 'optparse'
-require 'rbconfig'
 
 module Rails
   class DBConsole
@@ -44,7 +43,7 @@ module Rails
 
         find_cmd_and_exec(['mysql', 'mysql5'], *args)
 
-      when "postgresql", "postgres", "postgis"
+      when /^postgres|^postgis/
         ENV['PGUSER']     = config["username"] if config["username"]
         ENV['PGHOST']     = config["host"] if config["host"]
         ENV['PGPORT']     = config["port"].to_s if config["port"]
@@ -73,6 +72,21 @@ module Rails
         end
 
         find_cmd_and_exec('sqlplus', logon)
+
+      when "sqlserver"
+        args = []
+
+        args += ["-D", "#{config['database']}"] if config['database']
+        args += ["-U", "#{config['username']}"] if config['username']
+        args += ["-P", "#{config['password']}"] if config['password']
+
+        if config['host']
+          host_arg = "#{config['host']}"
+          host_arg << ":#{config['port']}" if config['port']
+          args += ["-S", host_arg]
+        end
+
+        find_cmd_and_exec("sqsh", *args)
 
       else
         abort "Unknown command-line client for #{config['database']}. Submit a Rails patch to add support!"
@@ -157,13 +171,15 @@ module Rails
       commands = Array(commands)
 
       dirs_on_path = ENV['PATH'].to_s.split(File::PATH_SEPARATOR)
-      commands += commands.map{|cmd| "#{cmd}.exe"} if RbConfig::CONFIG['host_os'] =~ /mswin|mingw/
+      unless (ext = RbConfig::CONFIG['EXEEXT']).empty?
+        commands = commands.map{|cmd| "#{cmd}#{ext}"}
+      end
 
       full_path_command = nil
       found = commands.detect do |cmd|
         dirs_on_path.detect do |path|
           full_path_command = File.join(path, cmd)
-          File.executable? full_path_command
+          File.file?(full_path_command) && File.executable?(full_path_command)
         end
       end
 

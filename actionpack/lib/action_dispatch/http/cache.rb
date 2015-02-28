@@ -69,17 +69,17 @@ module ActionDispatch
         end
 
         def date
-          if date_header = headers['Date']
+          if date_header = headers[DATE]
             Time.httpdate(date_header)
           end
         end
 
         def date?
-          headers.include?('Date')
+          headers.include?(DATE)
         end
 
         def date=(utc_time)
-          headers['Date'] = utc_time.httpdate
+          headers[DATE] = utc_time.httpdate
         end
 
         def etag=(etag)
@@ -89,6 +89,7 @@ module ActionDispatch
 
       private
 
+        DATE          = 'Date'.freeze
         LAST_MODIFIED = "Last-Modified".freeze
         ETAG          = "ETag".freeze
         CACHE_CONTROL = "Cache-Control".freeze

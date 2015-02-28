@@ -50,7 +50,7 @@ module ActionDispatch
       @original_fullpath = nil
       @fullpath          = nil
       @ip                = nil
-      @uuid              = nil
+      @request_id        = nil
     end
 
     def check_path_parameters!
@@ -103,6 +103,18 @@ module ActionDispatch
     # value, not the original.
     def request_method
       @request_method ||= check_method(env["REQUEST_METHOD"])
+    end
+
+    def routes # :nodoc:
+      env["action_dispatch.routes".freeze]
+    end
+
+    def original_script_name # :nodoc:
+      env['ORIGINAL_SCRIPT_NAME'.freeze]
+    end
+
+    def engine_script_name(_routes) # :nodoc:
+      env["ROUTES_#{_routes.object_id}_SCRIPT_NAME"]
     end
 
     def request_method=(request_method) #:nodoc:
@@ -237,9 +249,11 @@ module ActionDispatch
     #
     # This unique ID is useful for tracing a request from end-to-end as part of logging or debugging.
     # This relies on the rack variable set by the ActionDispatch::RequestId middleware.
-    def uuid
-      @uuid ||= env["action_dispatch.request_id"]
+    def request_id
+      @request_id ||= env["action_dispatch.request_id"]
     end
+
+    alias_method :uuid, :request_id
 
     # Returns the lowercase name of the HTTP server software.
     def server_software
@@ -323,15 +337,6 @@ module ActionDispatch
     # True if the request came from localhost, 127.0.0.1.
     def local?
       LOCALHOST =~ remote_addr && LOCALHOST =~ remote_ip
-    end
-
-    # Extracted into ActionDispatch::Request::Utils.deep_munge, but kept here for backwards compatibility.
-    def deep_munge(hash)
-      ActiveSupport::Deprecation.warn(
-        "This method has been extracted into ActionDispatch::Request::Utils.deep_munge. Please start using that instead."
-      )
-
-      Utils.deep_munge(hash)
     end
 
     protected

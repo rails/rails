@@ -1,6 +1,6 @@
 # MySQL.  Versions 5.0+ are recommended.
 #
-# Install the MYSQL driver
+# Install the MySQL driver
 #   gem install mysql2
 #
 # Ensure the MySQL gem is defined in your Gemfile

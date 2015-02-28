@@ -36,8 +36,6 @@ module ActiveRecord
     config.eager_load_namespaces << ActiveRecord
 
     rake_tasks do
-      require "active_record/base"
-
       namespace :db do
         task :load_config do
           ActiveRecord::Tasks::DatabaseTasks.database_configuration = Rails.application.config.database_configuration
@@ -60,6 +58,9 @@ module ActiveRecord
       require "active_record/railties/console_sandbox" if app.sandbox?
       require "active_record/base"
       console = ActiveSupport::Logger.new(STDERR)
+      console.formatter = Rails.logger.formatter
+      console.level = Rails.logger.level
+
       Rails.logger.extend ActiveSupport::Logger.broadcast console
     end
 

@@ -10,7 +10,7 @@ class ActionController::Base
 
     def before_actions
       filters = _process_action_callbacks.select { |c| c.kind == :before }
-      filters.map! { |c| c.raw_filter }
+      filters.map!(&:raw_filter)
     end
   end
 
@@ -26,7 +26,6 @@ class ActionController::Base
 end
 
 class FilterTest < ActionController::TestCase
-
   class TestController < ActionController::Base
     before_action :ensure_login
     after_action  :clean_up
@@ -223,6 +222,30 @@ class FilterTest < ActionController::TestCase
 
     skip_before_action :ensure_login, if: -> { false }
     skip_before_action :clean_up_tmp, if: -> { true }
+  end
+
+  class SkipFilterUsingOnlyAndIf < ConditionalFilterController
+    before_action :clean_up_tmp
+    before_action :ensure_login
+
+    skip_before_action :ensure_login, only: :login, if: -> { false }
+    skip_before_action :clean_up_tmp, only: :login, if: -> { true }
+
+    def login
+      render text: 'ok'
+    end
+  end
+
+  class SkipFilterUsingIfAndExcept < ConditionalFilterController
+    before_action :clean_up_tmp
+    before_action :ensure_login
+
+    skip_before_action :ensure_login, if: -> { false }, except: :login
+    skip_before_action :clean_up_tmp, if: -> { true }, except: :login
+
+    def login
+      render text: 'ok'
+    end
   end
 
   class ClassController < ConditionalFilterController
@@ -504,7 +527,6 @@ class FilterTest < ActionController::TestCase
 
       def non_yielding_action
         @filters  << "it didn't yield"
-        @filter_return_value
       end
 
       def action_three
@@ -528,32 +550,15 @@ class FilterTest < ActionController::TestCase
     end
   end
 
-  def test_non_yielding_around_actions_not_returning_false_do_not_raise
+  def test_non_yielding_around_actions_do_not_raise
     controller = NonYieldingAroundFilterController.new
-    controller.instance_variable_set "@filter_return_value", true
     assert_nothing_raised do
       test_process(controller, "index")
     end
-  end
-
-  def test_non_yielding_around_actions_returning_false_do_not_raise
-    controller = NonYieldingAroundFilterController.new
-    controller.instance_variable_set "@filter_return_value", false
-    assert_nothing_raised do
-      test_process(controller, "index")
-    end
-  end
-
-  def test_after_actions_are_not_run_if_around_action_returns_false
-    controller = NonYieldingAroundFilterController.new
-    controller.instance_variable_set "@filter_return_value", false
-    test_process(controller, "index")
-    assert_equal ["filter_one", "it didn't yield"], controller.assigns['filters']
   end
 
   def test_after_actions_are_not_run_if_around_action_does_not_yield
     controller = NonYieldingAroundFilterController.new
-    controller.instance_variable_set "@filter_return_value", true
     test_process(controller, "index")
     assert_equal ["filter_one", "it didn't yield"], controller.assigns['filters']
   end
@@ -612,6 +617,16 @@ class FilterTest < ActionController::TestCase
   def test_running_conditional_skip_options
     test_process(ConditionalOptionsSkipFilter)
     assert_equal %w( ensure_login ), assigns["ran_filter"]
+  end
+
+  def test_if_is_ignored_when_used_with_only
+    test_process(SkipFilterUsingOnlyAndIf, 'login')
+    assert_nil assigns['ran_filter']
+  end
+
+  def test_except_is_ignored_when_used_with_if
+    test_process(SkipFilterUsingIfAndExcept, 'login')
+    assert_equal %w(ensure_login), assigns["ran_filter"]
   end
 
   def test_skipping_class_actions
@@ -951,8 +966,15 @@ class ControllerWithAllTypesOfFilters < PostsController
 end
 
 class ControllerWithTwoLessFilters < ControllerWithAllTypesOfFilters
-  skip_action_callback :around_again
-  skip_action_callback :after
+  skip_around_action :around_again
+  skip_after_action :after
+end
+
+class SkipFilterUsingSkipActionCallback < ControllerWithAllTypesOfFilters
+  ActiveSupport::Deprecation.silence do
+    skip_action_callback :around_again
+    skip_action_callback :after
+  end
 end
 
 class YieldingAroundFiltersTest < ActionController::TestCase
@@ -1021,22 +1043,43 @@ class YieldingAroundFiltersTest < ActionController::TestCase
   def test_first_action_in_multiple_before_action_chain_halts
     controller = ::FilterTest::TestMultipleFiltersController.new
     response = test_process(controller, 'fail_1')
-    assert_equal ' ', response.body
+    assert_equal '', response.body
     assert_equal 1, controller.instance_variable_get(:@try)
   end
 
   def test_second_action_in_multiple_before_action_chain_halts
     controller = ::FilterTest::TestMultipleFiltersController.new
     response = test_process(controller, 'fail_2')
-    assert_equal ' ', response.body
+    assert_equal '', response.body
     assert_equal 2, controller.instance_variable_get(:@try)
   end
 
   def test_last_action_in_multiple_before_action_chain_halts
     controller = ::FilterTest::TestMultipleFiltersController.new
     response = test_process(controller, 'fail_3')
-    assert_equal ' ', response.body
+    assert_equal '', response.body
     assert_equal 3, controller.instance_variable_get(:@try)
+  end
+
+  def test_skipping_with_skip_action_callback
+    test_process(SkipFilterUsingSkipActionCallback,'no_raise')
+    assert_equal 'before around (before yield) around (after yield)', assigns['ran_filter'].join(' ')
+  end
+
+  def test_deprecated_skip_action_callback
+    assert_deprecated do
+      Class.new(PostsController) do
+        skip_action_callback :clean_up
+      end
+    end
+  end
+
+  def test_deprecated_skip_filter
+    assert_deprecated do
+      Class.new(PostsController) do
+        skip_filter :clean_up
+      end
+    end
   end
 
   protected

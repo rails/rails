@@ -1,5 +1,6 @@
 require 'cases/helper'
 require 'models/developer'
+require 'models/computer'
 require 'models/project'
 require 'models/company'
 require 'models/topic'
@@ -57,6 +58,85 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_optional_relation
+    original_value = ActiveRecord::Base.belongs_to_required_by_default
+    ActiveRecord::Base.belongs_to_required_by_default = true
+
+    model = Class.new(ActiveRecord::Base) do
+      self.table_name = "accounts"
+      def self.name; "Temp"; end
+      belongs_to :company, optional: true
+    end
+
+    account = model.new
+    assert account.valid?
+  ensure
+    ActiveRecord::Base.belongs_to_required_by_default = original_value
+  end
+
+  def test_not_optional_relation
+    original_value = ActiveRecord::Base.belongs_to_required_by_default
+    ActiveRecord::Base.belongs_to_required_by_default = true
+
+    model = Class.new(ActiveRecord::Base) do
+      self.table_name = "accounts"
+      def self.name; "Temp"; end
+      belongs_to :company, optional: false
+    end
+
+    account = model.new
+    refute account.valid?
+    assert_equal [{error: :blank}], account.errors.details[:company]
+  ensure
+    ActiveRecord::Base.belongs_to_required_by_default = original_value
+  end
+
+  def test_required_belongs_to_config
+    original_value = ActiveRecord::Base.belongs_to_required_by_default
+    ActiveRecord::Base.belongs_to_required_by_default = true
+
+    model = Class.new(ActiveRecord::Base) do
+      self.table_name = "accounts"
+      def self.name; "Temp"; end
+      belongs_to :company
+    end
+
+    account = model.new
+    refute account.valid?
+    assert_equal [{error: :blank}], account.errors.details[:company]
+  ensure
+    ActiveRecord::Base.belongs_to_required_by_default = original_value
+  end
+
+  def test_default_scope_on_relations_is_not_cached
+    counter = 0
+
+    comments = Class.new(ActiveRecord::Base) {
+      self.table_name = 'comments'
+      self.inheritance_column = 'not_there'
+
+      posts = Class.new(ActiveRecord::Base) {
+        self.table_name = 'posts'
+        self.inheritance_column = 'not_there'
+
+        default_scope -> {
+          counter += 1
+          where("id = :inc", :inc => counter)
+        }
+
+        has_many :comments, :class => comments
+      }
+      belongs_to :post, :class => posts, :inverse_of => false
+    }
+
+    assert_equal 0, counter
+    comment = comments.first
+    assert_equal 0, counter
+    sql = capture_sql { comment.post }
+    comment.reload
+    assert_not_equal sql, capture_sql { comment.post }
+  end
+
   def test_proxy_assignment
     account = Account.find(1)
     assert_nothing_raised { account.firm = account.firm }
@@ -92,14 +172,14 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     Firm.create("name" => "Apple")
     Client.create("name" => "Citibank", :firm_name => "Apple")
     citibank_result = Client.all.merge!(:where => {:name => "Citibank"}, :includes => :firm_with_primary_key).first
-    assert citibank_result.association_cache.key?(:firm_with_primary_key)
+    assert citibank_result.association(:firm_with_primary_key).loaded?
   end
 
   def test_eager_loading_with_primary_key_as_symbol
     Firm.create("name" => "Apple")
     Client.create("name" => "Citibank", :firm_name => "Apple")
     citibank_result = Client.all.merge!(:where => {:name => "Citibank"}, :includes => :firm_with_primary_key_symbols).first
-    assert citibank_result.association_cache.key?(:firm_with_primary_key_symbols)
+    assert citibank_result.association(:firm_with_primary_key_symbols).loaded?
   end
 
   def test_creating_the_belonging_object

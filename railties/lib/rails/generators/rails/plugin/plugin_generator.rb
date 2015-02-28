@@ -18,14 +18,14 @@ module Rails
     def app
       if mountable?
         directory 'app'
-        empty_directory_with_keep_file "app/assets/images/#{name}"
+        empty_directory_with_keep_file "app/assets/images/#{namespaced_name}"
       elsif full?
         empty_directory_with_keep_file 'app/models'
         empty_directory_with_keep_file 'app/controllers'
         empty_directory_with_keep_file 'app/views'
         empty_directory_with_keep_file 'app/helpers'
         empty_directory_with_keep_file 'app/mailers'
-        empty_directory_with_keep_file "app/assets/images/#{name}"
+        empty_directory_with_keep_file "app/assets/images/#{namespaced_name}"
       end
     end
 
@@ -50,10 +50,10 @@ module Rails
     end
 
     def lib
-      template "lib/%name%.rb"
-      template "lib/tasks/%name%_tasks.rake"
-      template "lib/%name%/version.rb"
-      template "lib/%name%/engine.rb" if engine?
+      template "lib/%namespaced_name%.rb"
+      template "lib/tasks/%namespaced_name%_tasks.rake"
+      template "lib/%namespaced_name%/version.rb"
+      template "lib/%namespaced_name%/engine.rb" if engine?
     end
 
     def config
@@ -62,7 +62,7 @@ module Rails
 
     def test
       template "test/test_helper.rb"
-      template "test/%name%_test.rb"
+      template "test/%namespaced_name%_test.rb"
       append_file "Rakefile", <<-EOF
 #{rakefile_test_tasks}
 
@@ -74,7 +74,8 @@ task default: :test
     end
 
     PASSTHROUGH_OPTIONS = [
-      :skip_active_record, :skip_javascript, :database, :javascript, :quiet, :pretend, :force, :skip
+      :skip_active_record, :skip_action_mailer, :skip_javascript, :database,
+      :javascript, :quiet, :pretend, :force, :skip
     ]
 
     def generate_test_dummy(force = false)
@@ -116,9 +117,9 @@ task default: :test
     def stylesheets
       if mountable?
         copy_file "rails/stylesheets.css",
-                  "app/assets/stylesheets/#{name}/application.css"
+                  "app/assets/stylesheets/#{namespaced_name}/application.css"
       elsif full?
-        empty_directory_with_keep_file "app/assets/stylesheets/#{name}"
+        empty_directory_with_keep_file "app/assets/stylesheets/#{namespaced_name}"
       end
     end
 
@@ -127,9 +128,9 @@ task default: :test
 
       if mountable?
         template "rails/javascripts.js",
-                 "app/assets/javascripts/#{name}/application.js"
+                 "app/assets/javascripts/#{namespaced_name}/application.js"
       elsif full?
-        empty_directory_with_keep_file "app/assets/javascripts/#{name}"
+        empty_directory_with_keep_file "app/assets/javascripts/#{namespaced_name}"
       end
     end
 
@@ -225,7 +226,7 @@ task default: :test
       end
 
       def create_test_files
-        build(:test) unless options[:skip_test_unit]
+        build(:test) unless options[:skip_test]
       end
 
       def create_test_dummy_files
@@ -253,6 +254,14 @@ task default: :test
 
           underscored
         end
+      end
+
+      def underscored_name
+        @underscored_name ||= original_name.underscore
+      end
+
+      def namespaced_name
+        @namespaced_name ||= name.gsub('-', '/')
       end
 
     protected
@@ -293,7 +302,7 @@ task default: :test
       end
 
       def with_dummy_app?
-        options[:skip_test_unit].blank? || options[:dummy_path] != 'test/dummy'
+        options[:skip_test].blank? || options[:dummy_path] != 'test/dummy'
       end
 
       def self.banner
@@ -302,6 +311,27 @@ task default: :test
 
       def original_name
         @original_name ||= File.basename(destination_root)
+      end
+
+      def modules
+        @modules ||= namespaced_name.camelize.split("::")
+      end
+
+      def wrap_in_modules(unwrapped_code)
+        unwrapped_code = "#{unwrapped_code}".strip.gsub(/\W$\n/, '')
+        modules.reverse.inject(unwrapped_code) do |content, mod|
+          str = "module #{mod}\n"
+          str += content.lines.map { |line| "  #{line}" }.join
+          str += content.present? ? "\nend" : "end"
+        end
+      end
+
+      def camelized_modules
+        @camelized_modules ||= namespaced_name.camelize
+      end
+
+      def humanized
+        @humanized ||= original_name.underscore.humanize
       end
 
       def camelized
@@ -327,8 +357,10 @@ task default: :test
       end
 
       def valid_const?
-        if original_name =~ /[^0-9a-zA-Z_]+/
-          raise Error, "Invalid plugin name #{original_name}. Please give a name which use only alphabetic or numeric or \"_\" characters."
+        if original_name =~ /-\d/
+          raise Error, "Invalid plugin name #{original_name}. Please give a name which does not contain a namespace starting with numeric characters."
+        elsif original_name =~ /[^\w-]+/
+          raise Error, "Invalid plugin name #{original_name}. Please give a name which uses only alphabetic, numeric, \"_\" or \"-\" characters."
         elsif camelized =~ /^\d/
           raise Error, "Invalid plugin name #{original_name}. Please give a name which does not start with numbers."
         elsif RESERVED_NAMES.include?(name)

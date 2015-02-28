@@ -35,9 +35,9 @@ module ActionController
         :protocol => request.protocol
       }.merge!(super).freeze
 
-      if (same_origin = _routes.equal?(env["action_dispatch.routes".freeze])) ||
-         (script_name = env["ROUTES_#{_routes.object_id}_SCRIPT_NAME"]) ||
-         (original_script_name = env['ORIGINAL_SCRIPT_NAME'.freeze])
+      if (same_origin = _routes.equal?(request.routes)) ||
+         (script_name = request.engine_script_name(_routes)) ||
+         (original_script_name = request.original_script_name)
 
         options = @_url_options.dup
         if original_script_name

@@ -142,7 +142,11 @@ module Rails
       end
 
       def password_digest?
-        name == 'password' && type == :digest 
+        name == 'password' && type == :digest
+      end
+
+      def token?
+        type == :token
       end
 
       def inject_options
@@ -158,6 +162,10 @@ module Rails
           if required?
             options.delete(:required)
             options[:null] = false
+          end
+
+          if reference? && !polymorphic?
+            options[:foreign_key] = true
           end
         end
       end

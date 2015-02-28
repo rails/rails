@@ -223,7 +223,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
 
   def test_migration_with_timestamps
     run_generator
-    assert_migration "db/migrate/create_accounts.rb", /t.timestamps null: false/
+    assert_migration "db/migrate/create_accounts.rb", /t.timestamps/
   end
 
   def test_migration_timestamps_are_skipped
@@ -287,18 +287,18 @@ class ModelGeneratorTest < Rails::Generators::TestCase
   def test_fixtures_use_the_references_ids
     run_generator ["LineItem", "product:references", "cart:belongs_to"]
 
-    assert_file "test/fixtures/line_items.yml", /product_id: \n  cart_id: /
+    assert_file "test/fixtures/line_items.yml", /product: \n  cart: /
     assert_generated_fixture("test/fixtures/line_items.yml",
-                             {"one"=>{"product_id"=>nil, "cart_id"=>nil}, "two"=>{"product_id"=>nil, "cart_id"=>nil}})
+                             {"one"=>{"product"=>nil, "cart"=>nil}, "two"=>{"product"=>nil, "cart"=>nil}})
   end
 
   def test_fixtures_use_the_references_ids_and_type
     run_generator ["LineItem", "product:references{polymorphic}", "cart:belongs_to"]
 
-    assert_file "test/fixtures/line_items.yml", /product_id: \n  product_type: Product\n  cart_id: /
+    assert_file "test/fixtures/line_items.yml", /product: \n  product_type: Product\n  cart: /
     assert_generated_fixture("test/fixtures/line_items.yml",
-                             {"one"=>{"product_id"=>nil, "product_type"=>"Product", "cart_id"=>nil},
-                              "two"=>{"product_id"=>nil, "product_type"=>"Product", "cart_id"=>nil}})
+                             {"one"=>{"product"=>nil, "product_type"=>"Product", "cart"=>nil},
+                              "two"=>{"product"=>nil, "product_type"=>"Product", "cart"=>nil}})
   end
 
   def test_fixtures_respect_reserved_yml_keywords
@@ -405,6 +405,48 @@ class ModelGeneratorTest < Rails::Generators::TestCase
         assert_match(/t\.references :supplier,.*\snull: false/, up)
       end
     end
+  end
+
+  def test_foreign_key_is_not_added_for_non_references
+    run_generator ["account", "supplier:string"]
+
+    assert_migration "db/migrate/create_accounts.rb" do |m|
+      assert_method :change, m do |up|
+        assert_no_match(/foreign_key/, up)
+      end
+    end
+  end
+
+  def test_foreign_key_is_added_for_references
+    run_generator ["account", "supplier:belongs_to", "user:references"]
+
+    assert_migration "db/migrate/create_accounts.rb" do |m|
+      assert_method :change, m do |up|
+        assert_match(/t\.belongs_to :supplier,.*\sforeign_key: true/, up)
+        assert_match(/t\.references :user,.*\sforeign_key: true/, up)
+      end
+    end
+  end
+
+  def test_foreign_key_is_skipped_for_polymorphic_references
+    run_generator ["account", "supplier:belongs_to{polymorphic}"]
+
+    assert_migration "db/migrate/create_accounts.rb" do |m|
+      assert_method :change, m do |up|
+        assert_no_match(/foreign_key/, up)
+      end
+    end
+  end
+
+  def test_token_option_adds_has_secure_token
+    run_generator ["user", "token:token", "auth_token:token"]
+    expected_file = <<-FILE.strip_heredoc
+    class User < ActiveRecord::Base
+      has_secure_token
+      has_secure_token :auth_token
+    end
+    FILE
+    assert_file "app/models/user.rb", expected_file
   end
 
   private

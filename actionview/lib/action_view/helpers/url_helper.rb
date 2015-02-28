@@ -46,9 +46,9 @@ module ActionView
       end
       protected :_back_url
 
-      # Creates a link tag of the given +name+ using a URL created by the set of +options+.
+      # Creates an anchor element of the given +name+ using a URL created by the set of +options+.
       # See the valid options in the documentation for +url_for+. It's also possible to
-      # pass a String instead of an options hash, which generates a link tag that uses the
+      # pass a String instead of an options hash, which generates an anchor element that uses the
       # value of the String as the href for the link. Using a <tt>:back</tt> Symbol instead
       # of an options hash will generate a link to the referrer (a JavaScript back link
       # will be used in place of a referrer if none exists). If +nil+ is passed as the name
@@ -428,6 +428,7 @@ module ActionView
       # * <tt>:body</tt> - Preset the body of the email.
       # * <tt>:cc</tt> - Carbon Copy additional recipients on the email.
       # * <tt>:bcc</tt> - Blind Carbon Copy additional recipients on the email.
+      # * <tt>:reply_to</tt> - Preset the Reply-To field of the email.
       #
       # ==== Obfuscation
       # Prior to Rails 4.0, +mail_to+ provided options for encoding the address
@@ -457,9 +458,9 @@ module ActionView
         html_options, name = name, nil if block_given?
         html_options = (html_options || {}).stringify_keys
 
-        extras = %w{ cc bcc body subject }.map! { |item|
-          option = html_options.delete(item) || next
-          "#{item}=#{Rack::Utils.escape_path(option)}"
+        extras = %w{ cc bcc body subject reply_to }.map! { |item|
+          option = html_options.delete(item).presence || next
+          "#{item.dasherize}=#{Rack::Utils.escape_path(option)}"
         }.compact
         extras = extras.empty? ? '' : '?' + extras.join('&')
 

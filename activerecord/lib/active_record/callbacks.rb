@@ -192,14 +192,14 @@ module ActiveRecord
   #
   # == <tt>before_validation*</tt> returning statements
   #
-  # If the returning value of a +before_validation+ callback can be evaluated to +false+, the process will be
+  # If the +before_validation+ callback throws +:abort+, the process will be
   # aborted and <tt>Base#save</tt> will return +false+. If Base#save! is called it will raise a
   # ActiveRecord::RecordInvalid exception. Nothing will be appended to the errors object.
   #
   # == Canceling callbacks
   #
-  # If a <tt>before_*</tt> callback returns +false+, all the later callbacks and the associated action are
-  # cancelled. If an <tt>after_*</tt> callback returns +false+, all the later callbacks are cancelled.
+  # If a <tt>before_*</tt> callback throws +:abort+, all the later callbacks and
+  # the associated action are cancelled.
   # Callbacks are generally run in the order they are defined, with the exception of callbacks defined as
   # methods on the model, which are called last.
   #
@@ -289,25 +289,25 @@ module ActiveRecord
     end
 
     def destroy #:nodoc:
-      run_destroy_callbacks { super }
+      _run_destroy_callbacks { super }
     end
 
     def touch(*) #:nodoc:
-      run_touch_callbacks { super }
+      _run_touch_callbacks { super }
     end
 
   private
 
-    def create_or_update #:nodoc:
-      run_save_callbacks { super }
+    def create_or_update(*) #:nodoc:
+      _run_save_callbacks { super }
     end
 
     def _create_record #:nodoc:
-      run_create_callbacks { super }
+      _run_create_callbacks { super }
     end
 
     def _update_record(*) #:nodoc:
-      run_update_callbacks { super }
+      _run_update_callbacks { super }
     end
   end
 end

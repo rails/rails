@@ -8,7 +8,7 @@ module Rails
     module ResourceHelpers # :nodoc:
 
       def self.included(base) #:nodoc:
-        base.send :include, Rails::Generators::ModelHelpers
+        base.include(Rails::Generators::ModelHelpers)
         base.class_option :model_name, type: :string, desc: "ModelName to be used"
       end
 
@@ -39,7 +39,7 @@ module Rails
         def assign_controller_names!(name)
           @controller_name = name
           @controller_class_path = name.include?('/') ? name.split('/') : name.split('::')
-          @controller_class_path.map! { |m| m.underscore }
+          @controller_class_path.map!(&:underscore)
           @controller_file_name = @controller_class_path.pop
         end
 
@@ -48,7 +48,7 @@ module Rails
         end
 
         def controller_class_name
-          (controller_class_path + [controller_file_name]).map!{ |m| m.camelize }.join('::')
+          (controller_class_path + [controller_file_name]).map!(&:camelize).join('::')
         end
 
         def controller_i18n_scope

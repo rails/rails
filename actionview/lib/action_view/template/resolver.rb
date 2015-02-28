@@ -138,7 +138,7 @@ module ActionView
     # resolver is fresher before returning it.
     def cached(key, path_info, details, locals) #:nodoc:
       name, prefix, partial = path_info
-      locals = locals.map { |x| x.to_s }.sort!
+      locals = locals.map(&:to_s).sort!
 
       if key
         @cache.cache(key, name, prefix, partial, locals) do
@@ -196,24 +196,12 @@ module ActionView
       }
     end
 
-    if RUBY_VERSION >= '2.2.0'
-      def find_template_paths(query)
-        Dir[query].reject { |filename|
-          File.directory?(filename) ||
-            # deals with case-insensitive file systems.
-            !File.fnmatch(query, filename, File::FNM_EXTGLOB)
-        }
-      end
-    else
-      def find_template_paths(query)
-        # deals with case-insensitive file systems.
-        sanitizer = Hash.new { |h,dir| h[dir] = Dir["#{dir}/*"] }
-
-        Dir[query].reject { |filename|
-          File.directory?(filename) ||
-            !sanitizer[File.dirname(filename)].include?(filename)
-        }
-      end
+    def find_template_paths(query)
+      Dir[query].reject { |filename|
+        File.directory?(filename) ||
+          # deals with case-insensitive file systems.
+          !File.fnmatch(query, filename, File::FNM_EXTGLOB)
+      }
     end
 
     # Helper for building query glob string based on resolver's pattern.
@@ -250,11 +238,6 @@ module ActionView
       pieces.shift
 
       extension = pieces.pop
-      unless extension
-        message = "The file #{path} did not specify a template handler. The default is currently ERB, " \
-                  "but will change to RAW in the future."
-        ActiveSupport::Deprecation.warn message
-      end
 
       handler = Template.handler_for_extension(extension)
       format, variant = pieces.last.split(EXTENSIONS[:variants], 2) if pieces.last

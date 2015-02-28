@@ -4,6 +4,7 @@ require 'active_support/core_ext/numeric/time'
 require 'jobs/hello_job'
 require 'jobs/logging_job'
 require 'jobs/nested_job'
+require 'models/person'
 
 class AdapterTest < ActiveSupport::TestCase
   include ActiveSupport::LogSubscriber::TestHelper
@@ -33,7 +34,7 @@ class AdapterTest < ActiveSupport::TestCase
   def teardown
     super
     ActiveJob::Logging::LogSubscriber.log_subscribers.pop
-    ActiveJob::Base.logger = @old_logger
+    set_logger @old_logger
   end
 
   def set_logger(logger)
@@ -63,6 +64,14 @@ class AdapterTest < ActiveSupport::TestCase
     assert_match(/to .*?\(php_jobs\).*/, @logger.messages)
   ensure
     LoggingJob.queue_name = original_queue_name
+  end
+
+  def test_globalid_parameter_logging
+    person = Person.new(123)
+    LoggingJob.perform_later person
+    assert_match(%r{Enqueued.*gid://aj/Person/123}, @logger.messages)
+    assert_match(%r{Dummy, here is it: #<Person:.*>}, @logger.messages)
+    assert_match(%r{Performing.*gid://aj/Person/123}, @logger.messages)
   end
 
   def test_enqueue_job_logging

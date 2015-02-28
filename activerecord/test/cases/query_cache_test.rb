@@ -212,6 +212,38 @@ class QueryCacheTest < ActiveRecord::TestCase
   ensure
     ActiveRecord::Base.configurations = conf
   end
+
+  def test_query_cache_doesnt_leak_cached_results_of_rolled_back_queries
+    ActiveRecord::Base.connection.enable_query_cache!
+    post = Post.first
+
+    Post.transaction do
+      post.update_attributes(title: 'rollback')
+      assert_equal 1, Post.where(title: 'rollback').to_a.count
+      raise ActiveRecord::Rollback
+    end
+
+    assert_equal 0, Post.where(title: 'rollback').to_a.count
+
+    ActiveRecord::Base.connection.uncached do
+      assert_equal 0, Post.where(title: 'rollback').to_a.count
+    end
+
+    begin
+      Post.transaction do
+        post.update_attributes(title: 'rollback')
+        assert_equal 1, Post.where(title: 'rollback').to_a.count
+        raise 'broken'
+      end
+    rescue Exception
+    end
+
+    assert_equal 0, Post.where(title: 'rollback').to_a.count
+
+    ActiveRecord::Base.connection.uncached do
+      assert_equal 0, Post.where(title: 'rollback').to_a.count
+    end
+  end
 end
 
 class QueryCacheExpiryTest < ActiveRecord::TestCase

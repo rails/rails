@@ -5,10 +5,14 @@ module ActiveRecord
     class MergeAndResolveDefaultUrlConfigTest < ActiveRecord::TestCase
       def setup
         @previous_database_url = ENV.delete("DATABASE_URL")
+        @previous_rack_env = ENV.delete("RACK_ENV")
+        @previous_rails_env = ENV.delete("RAILS_ENV")
       end
 
       teardown do
         ENV["DATABASE_URL"] = @previous_database_url
+        ENV["RACK_ENV"] = @previous_rack_env
+        ENV["RAILS_ENV"] = @previous_rails_env
       end
 
       def resolve_config(config)
@@ -27,11 +31,23 @@ module ActiveRecord
         assert_equal expected, actual
       end
 
-      def test_resolver_with_database_uri_and_and_current_env_string_key
+      def test_resolver_with_database_uri_and_current_env_symbol_key_and_rails_env
         ENV['DATABASE_URL'] = "postgres://localhost/foo"
-        config   = { "default_env" => {  "adapter" => "not_postgres", "database" => "not_foo" } }
-        actual   = assert_deprecated { resolve_spec("default_env", config) }
-        expected = { "adapter"=>"postgresql", "database"=>"foo", "host"=>"localhost" }
+        ENV['RAILS_ENV']    = "foo"
+
+        config   = { "not_production" => { "adapter" => "not_postgres", "database" => "not_foo" } }
+        actual   = resolve_spec(:foo, config)
+        expected = { "adapter" => "postgresql", "database" => "foo", "host" => "localhost" }
+        assert_equal expected, actual
+      end
+
+      def test_resolver_with_database_uri_and_current_env_symbol_key_and_rack_env
+        ENV['DATABASE_URL'] = "postgres://localhost/foo"
+        ENV['RACK_ENV']     = "foo"
+
+        config   = { "not_production" => { "adapter" => "not_postgres", "database" => "not_foo" } }
+        actual   = resolve_spec(:foo, config)
+        expected = { "adapter" => "postgresql", "database" => "foo", "host" => "localhost" }
         assert_equal expected, actual
       end
 
@@ -48,16 +64,6 @@ module ActiveRecord
         config   = { "not_production" => {  "adapter" => "not_postgres", "database" => "not_foo" } }
         assert_raises AdapterNotSpecified do
           resolve_spec(:production, config)
-        end
-      end
-
-      def test_resolver_with_database_uri_and_unknown_string_key
-        ENV['DATABASE_URL'] = "postgres://localhost/foo"
-        config   = { "not_production" => {  "adapter" => "not_postgres", "database" => "not_foo" } }
-        assert_deprecated do
-          assert_raises AdapterNotSpecified do
-           resolve_spec("production", config)
-          end
         end
       end
 
@@ -139,6 +145,51 @@ module ActiveRecord
         assert_equal nil,      actual["production"]
         assert_equal nil,      actual["development"]
         assert_equal nil,      actual["test"]
+        assert_equal nil,      actual[:default_env]
+        assert_equal nil,      actual[:production]
+        assert_equal nil,      actual[:development]
+        assert_equal nil,      actual[:test]
+      end
+
+      def test_blank_with_database_url_with_rails_env
+        ENV['RAILS_ENV'] = "not_production"
+        ENV['DATABASE_URL'] = "postgres://localhost/foo"
+
+        config   = {}
+        actual   = resolve_config(config)
+        expected = { "adapter"  => "postgresql",
+                     "database" => "foo",
+                     "host"     => "localhost" }
+
+        assert_equal expected, actual["not_production"]
+        assert_equal nil,      actual["production"]
+        assert_equal nil,      actual["default_env"]
+        assert_equal nil,      actual["development"]
+        assert_equal nil,      actual["test"]
+        assert_equal nil,      actual[:default_env]
+        assert_equal nil,      actual[:not_production]
+        assert_equal nil,      actual[:production]
+        assert_equal nil,      actual[:development]
+        assert_equal nil,      actual[:test]
+      end
+
+      def test_blank_with_database_url_with_rack_env
+        ENV['RACK_ENV'] = "not_production"
+        ENV['DATABASE_URL'] = "postgres://localhost/foo"
+
+        config   = {}
+        actual   = resolve_config(config)
+        expected = { "adapter"  => "postgresql",
+                     "database" => "foo",
+                     "host"     => "localhost" }
+
+        assert_equal expected, actual["not_production"]
+        assert_equal nil,      actual["production"]
+        assert_equal nil,      actual["default_env"]
+        assert_equal nil,      actual["development"]
+        assert_equal nil,      actual["test"]
+        assert_equal nil,      actual[:default_env]
+        assert_equal nil,      actual[:not_production]
         assert_equal nil,      actual[:production]
         assert_equal nil,      actual[:development]
         assert_equal nil,      actual[:test]

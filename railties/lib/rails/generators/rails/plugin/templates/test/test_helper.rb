@@ -10,7 +10,9 @@ ActiveRecord::Migrator.migrations_paths << File.expand_path('../../db/migrate', 
 <% end -%>
 require "rails/test_help"
 
-Rails.backtrace_cleaner.remove_silencers!
+# Filter out Minitest backtrace while allowing backtrace from other libraries
+# to be shown.
+Minitest.backtrace_filter = Minitest::BacktraceFilter.new
 
 # Load support files
 Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].each { |f| require f }
@@ -18,4 +20,6 @@ Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].each { |f| require f }
 # Load fixtures from the engine
 if ActiveSupport::TestCase.respond_to?(:fixture_path=)
   ActiveSupport::TestCase.fixture_path = File.expand_path("../fixtures", __FILE__)
+  ActiveSupport::TestCase.file_fixture_path = ActiveSupport::TestCase.fixture_path + "files"
+  ActiveSupport::TestCase.fixtures :all
 end

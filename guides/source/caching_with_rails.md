@@ -1,3 +1,5 @@
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+
 Caching with Rails: An overview
 ===============================
 
@@ -30,7 +32,7 @@ config.action_controller.perform_caching = true
 
 Page caching is a Rails mechanism which allows the request for a generated page to be fulfilled by the webserver (i.e. Apache or NGINX), without ever having to go through the Rails stack at all. Obviously, this is super-fast. Unfortunately, it can't be applied to every situation (such as pages that need authentication) and since the webserver is literally just serving a file from the filesystem, cache expiration is an issue that needs to be dealt with.
 
-INFO: Page Caching has been removed from Rails 4. See the [actionpack-page_caching gem](https://github.com/rails/actionpack-page_caching). See [DHH's key-based cache expiration overview](http://signalvnoise.com/posts/3113-how-key-based-cache-expiration-works) for the newly-preferred method.
+INFO: Page Caching has been removed from Rails 4. See the [actionpack-page_caching gem](https://github.com/rails/actionpack-page_caching).
 
 ### Action Caching
 
@@ -105,7 +107,7 @@ This method generates a cache key that depends on all products and can be used i
 <% end %>
 ```
 
-If you want to cache a fragment under certain condition you can use `cache_if` or `cache_unless`
+If you want to cache a fragment under certain conditions, you can use `cache_if` or `cache_unless`
 
 ```erb
 <% cache_if (condition, cache_key_for_products) do %>
@@ -181,6 +183,10 @@ class ProductsController < ApplicationController
 
 end
 ```
+
+The second time the same query is run against the database, it's not actually going to hit the database. The first time the result is returned from the query it is stored in the query cache (in memory) and the second time it's pulled from memory.
+
+However, it's important to note that query caches are created at the start of an action and destroyed at the end of that action and thus persist only for the duration of the action. If you'd like to store query results in a more persistent fashion, you can in Rails by using low level caching.
 
 Cache Stores
 ------------

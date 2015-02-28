@@ -7,7 +7,7 @@ Gem::Specification.new do |s|
   s.summary     = 'Rendering framework putting the V in MVC (part of Rails).'
   s.description = 'Simple, battle-tested conventions and helpers for building web pages.'
 
-  s.required_ruby_version = '>= 1.9.3'
+  s.required_ruby_version = '>= 2.2.0'
 
   s.license     = 'MIT'
 
@@ -24,7 +24,7 @@ Gem::Specification.new do |s|
   s.add_dependency 'builder',       '~> 3.1'
   s.add_dependency 'erubis',        '~> 2.7.0'
   s.add_dependency 'rails-html-sanitizer', '~> 1.0', '>= 1.0.1'
-  s.add_dependency 'rails-dom-testing', '~> 1.0', '>= 1.0.4'
+  s.add_dependency 'rails-dom-testing', '~> 1.0', '>= 1.0.5'
 
   s.add_development_dependency 'actionpack',  version
   s.add_development_dependency 'activemodel', version

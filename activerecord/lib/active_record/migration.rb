@@ -39,7 +39,7 @@ module ActiveRecord
 
   class PendingMigrationError < MigrationError#:nodoc:
     def initialize
-      if defined?(Rails)
+      if defined?(Rails.env)
         super("Migrations are pending. To resolve this issue, run:\n\n\tbin/rake db:migrate RAILS_ENV=#{::Rails.env}")
       else
         super("Migrations are pending. To resolve this issue, run:\n\n\tbin/rake db:migrate")
@@ -168,7 +168,7 @@ module ActiveRecord
   # This will generate the file <tt>timestamp_add_fieldname_to_tablename</tt>, which will look like this:
   #   class AddFieldnameToTablename < ActiveRecord::Migration
   #     def change
-  #       add_column :tablenames, :field, :string
+  #       add_column :tablenames, :fieldname, :string
   #     end
   #   end
   #
@@ -184,8 +184,8 @@ module ActiveRecord
   # you wish to downgrade. Alternatively, you can also use the STEP option if you
   # wish to rollback last few migrations. <tt>rake db:migrate STEP=2</tt> will rollback
   # the latest two migrations.
-  # 
-  # If any of the migrations throw an <tt>ActiveRecord::IrreversibleMigration</tt> exception, 
+  #
+  # If any of the migrations throw an <tt>ActiveRecord::IrreversibleMigration</tt> exception,
   # that step will fail and you'll have some manual work to do.
   #
   # == Database support
@@ -394,8 +394,15 @@ module ActiveRecord
       end
 
       def load_schema_if_pending!
-        if ActiveRecord::Migrator.needs_migration?
-          ActiveRecord::Tasks::DatabaseTasks.load_schema_current
+        if ActiveRecord::Migrator.needs_migration? || !ActiveRecord::Migrator.any_migrations?
+          # Roundtrip to Rake to allow plugins to hook into database initialization.
+          FileUtils.cd Rails.root do
+            current_config = Base.connection_config
+            Base.clear_all_connections!
+            system("bin/rake db:test:prepare")
+            # Establish a new connection, the old database may be gone (db:test:prepare uses purge)
+            Base.establish_connection(current_config)
+          end
           check_pending!
         end
       end
@@ -640,7 +647,7 @@ module ActiveRecord
     end
 
     def method_missing(method, *arguments, &block)
-      arg_list = arguments.map{ |a| a.inspect } * ', '
+      arg_list = arguments.map(&:inspect) * ', '
 
       say_with_time "#{method}(#{arg_list})" do
         unless @connection.respond_to? :revert
@@ -846,6 +853,10 @@ module ActiveRecord
 
       def needs_migration?(connection = Base.connection)
         (migrations(migrations_paths).collect(&:version) - get_all_versions(connection)).size > 0
+      end
+
+      def any_migrations?
+        migrations(migrations_paths).any?
       end
 
       def last_version

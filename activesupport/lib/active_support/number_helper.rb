@@ -94,7 +94,7 @@ module ActiveSupport
     # * <tt>:locale</tt> - Sets the locale to be used for formatting
     #   (defaults to current locale).
     # * <tt>:precision</tt> - Sets the precision of the number
-    #   (defaults to 3).
+    #   (defaults to 3). Keeps the number's precision if nil.
     # * <tt>:significant</tt> - If +true+, precision will be the #
     #   of significant_digits. If +false+, the # of fractional
     #   digits (defaults to +false+).
@@ -116,6 +116,7 @@ module ActiveSupport
     #   number_to_percentage(1000, delimiter: '.', separator: ',') # => 1.000,000%
     #   number_to_percentage(302.24398923423, precision: 5)        # => 302.24399%
     #   number_to_percentage(1000, locale: :fr)                    # => 1 000,000%
+    #   number_to_percentage:(1000, precision: nil)                # => 1000%
     #   number_to_percentage('98a')                                # => 98a%
     #   number_to_percentage(100, format: '%n  %')                 # => 100  %
     def number_to_percentage(number, options = {})
@@ -161,7 +162,7 @@ module ActiveSupport
     # * <tt>:locale</tt> - Sets the locale to be used for formatting
     #   (defaults to current locale).
     # * <tt>:precision</tt> - Sets the precision of the number
-    #   (defaults to 3).
+    #   (defaults to 3). Keeps the number's precision if nil.
     # * <tt>:significant</tt> - If +true+, precision will be the #
     #   of significant_digits. If +false+, the # of fractional
     #   digits (defaults to +false+).
@@ -182,6 +183,7 @@ module ActiveSupport
     #   number_to_rounded(111.2345, significant: true)               # => 111
     #   number_to_rounded(111.2345, precision: 1, significant: true) # => 100
     #   number_to_rounded(13, precision: 5, significant: true)       # => 13.000
+    #   number_to_rounded(13, precision: nil)                        # => 13
     #   number_to_rounded(111.234, locale: :fr)                      # => 111,234
     #
     #   number_to_rounded(13, precision: 5, significant: true, strip_insignificant_zeros: true)
@@ -272,12 +274,12 @@ module ActiveSupport
     #   string containing an i18n scope where to find this hash. It
     #   might have the following keys:
     #   * *integers*: <tt>:unit</tt>, <tt>:ten</tt>,
-    #     *<tt>:hundred</tt>, <tt>:thousand</tt>, <tt>:million</tt>,
-    #     *<tt>:billion</tt>, <tt>:trillion</tt>,
-    #     *<tt>:quadrillion</tt>
+    #     <tt>:hundred</tt>, <tt>:thousand</tt>, <tt>:million</tt>,
+    #     <tt>:billion</tt>, <tt>:trillion</tt>,
+    #     <tt>:quadrillion</tt>
     #   * *fractionals*: <tt>:deci</tt>, <tt>:centi</tt>,
-    #     *<tt>:mili</tt>, <tt>:micro</tt>, <tt>:nano</tt>,
-    #     *<tt>:pico</tt>, <tt>:femto</tt>
+    #     <tt>:mili</tt>, <tt>:micro</tt>, <tt>:nano</tt>,
+    #     <tt>:pico</tt>, <tt>:femto</tt>
     # * <tt>:format</tt> - Sets the format of the output string
     #   (defaults to "%n %u"). The field types are:
     #   * %u - The quantifier (ex.: 'thousand')

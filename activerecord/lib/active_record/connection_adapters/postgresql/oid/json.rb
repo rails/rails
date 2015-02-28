@@ -3,25 +3,25 @@ module ActiveRecord
     module PostgreSQL
       module OID # :nodoc:
         class Json < Type::Value # :nodoc:
-          include Type::Mutable
+          include Type::Helpers::Mutable
 
           def type
             :json
           end
 
-          def type_cast_from_database(value)
+          def deserialize(value)
             if value.is_a?(::String)
-              ::ActiveSupport::JSON.decode(value)
+              ::ActiveSupport::JSON.decode(value) rescue nil
             else
-              super
+              value
             end
           end
 
-          def type_cast_for_database(value)
+          def serialize(value)
             if value.is_a?(::Array) || value.is_a?(::Hash)
               ::ActiveSupport::JSON.encode(value)
             else
-              super
+              value
             end
           end
 

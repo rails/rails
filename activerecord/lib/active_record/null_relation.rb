@@ -30,7 +30,15 @@ module ActiveRecord
       true
     end
 
+    def none?
+      true
+    end
+
     def any?
+      false
+    end
+
+    def one?
       false
     end
 
@@ -62,9 +70,7 @@ module ActiveRecord
       calculate :maximum, nil
     end
 
-    def calculate(operation, _column_name, _options = {})
-      # TODO: Remove _options argument as soon we remove support to
-      # activerecord-deprecated_finders.
+    def calculate(operation, _column_name)
       if [:count, :sum, :size].include? operation
         group_values.any? ? Hash.new : 0
       elsif [:average, :minimum, :maximum].include?(operation) && group_values.any?
@@ -76,6 +82,10 @@ module ActiveRecord
 
     def exists?(_id = false)
       false
+    end
+
+    def or(other)
+      other.spawn
     end
   end
 end

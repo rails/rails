@@ -79,6 +79,11 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     assert_equal '1999-12-31 19:00:00 EST -0500', @twz.strftime('%Y-%m-%d %H:%M:%S %Z %z')
   end
 
+  def test_strftime_with_escaping
+    assert_equal '%Z %z', @twz.strftime('%%Z %%z')
+    assert_equal '%EST %-0500', @twz.strftime('%%%Z %%%z')
+  end
+
   def test_inspect
     assert_equal 'Fri, 31 Dec 1999 19:00:00 EST -05:00', @twz.inspect
   end
@@ -807,6 +812,8 @@ class TimeWithZoneTest < ActiveSupport::TestCase
   end
 
   def test_no_method_error_has_proper_context
+    rubinius_skip "Error message inconsistency"
+
     e = assert_raises(NoMethodError) {
       @twz.this_method_does_not_exist
     }

@@ -1,5 +1,3 @@
-require 'active_support/core_ext/module/method_transplanting'
-
 module ActiveRecord
   module AttributeMethods
     module Write
@@ -25,27 +23,18 @@ module ActiveRecord
       module ClassMethods
         protected
 
-        if Module.methods_transplantable?
-          def define_method_attribute=(name)
-            method = WriterMethodCache[name]
-            generated_attribute_methods.module_eval {
-              define_method "#{name}=", method
-            }
-          end
-        else
-          def define_method_attribute=(name)
-            safe_name = name.unpack('h*').first
-            ActiveRecord::AttributeMethods::AttrNames.set_name_cache safe_name, name
+        def define_method_attribute=(name)
+          safe_name = name.unpack('h*').first
+          ActiveRecord::AttributeMethods::AttrNames.set_name_cache safe_name, name
 
-            generated_attribute_methods.module_eval <<-STR, __FILE__, __LINE__ + 1
-              def __temp__#{safe_name}=(value)
-                name = ::ActiveRecord::AttributeMethods::AttrNames::ATTR_#{safe_name}
-                write_attribute(name, value)
-              end
-              alias_method #{(name + '=').inspect}, :__temp__#{safe_name}=
-              undef_method :__temp__#{safe_name}=
-            STR
-          end
+          generated_attribute_methods.module_eval <<-STR, __FILE__, __LINE__ + 1
+            def __temp__#{safe_name}=(value)
+              name = ::ActiveRecord::AttributeMethods::AttrNames::ATTR_#{safe_name}
+              write_attribute(name, value)
+            end
+            alias_method #{(name + '=').inspect}, :__temp__#{safe_name}=
+            undef_method :__temp__#{safe_name}=
+          STR
         end
       end
 
@@ -73,7 +62,7 @@ module ActiveRecord
         if should_type_cast
           @attributes.write_from_user(attr_name, value)
         else
-          @attributes.write_from_database(attr_name, value)
+          @attributes.write_cast_value(attr_name, value)
         end
 
         value

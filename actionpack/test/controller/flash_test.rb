@@ -288,16 +288,16 @@ class FlashIntegrationTest < ActionDispatch::IntegrationTest
   def test_setting_flash_does_not_raise_in_following_requests
     with_test_route_set do
       env = { 'action_dispatch.request.flash_hash' => ActionDispatch::Flash::FlashHash.new }
-      get '/set_flash', nil, env
-      get '/set_flash', nil, env
+      get '/set_flash', env: env
+      get '/set_flash', env: env
     end
   end
 
   def test_setting_flash_now_does_not_raise_in_following_requests
     with_test_route_set do
       env = { 'action_dispatch.request.flash_hash' => ActionDispatch::Flash::FlashHash.new }
-      get '/set_flash_now', nil, env
-      get '/set_flash_now', nil, env
+      get '/set_flash_now', env: env
+      get '/set_flash_now', env: env
     end
   end
 
@@ -312,9 +312,11 @@ class FlashIntegrationTest < ActionDispatch::IntegrationTest
   private
 
     # Overwrite get to send SessionSecret in env hash
-    def get(path, parameters = nil, env = {})
-      env["action_dispatch.key_generator"] ||= Generator
-      super
+    def get(path, *args)
+      args[0] ||= {}
+      args[0][:env] ||= {}
+      args[0][:env]["action_dispatch.key_generator"] ||= Generator
+      super(path, *args)
     end
 
     def with_test_route_set

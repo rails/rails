@@ -20,7 +20,11 @@ class Array
   #   %w( a b c d ).to(-2) # => ["a", "b", "c"]
   #   %w( a b c ).to(-10)  # => []
   def to(position)
-    self[0..position]
+    if position >= 0
+      take position + 1
+    else
+      self[0..position]
+    end
   end
 
   # Equal to <tt>self[1]</tt>.

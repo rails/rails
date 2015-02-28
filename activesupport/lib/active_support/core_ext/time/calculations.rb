@@ -69,7 +69,7 @@ class Time
   # and minute is passed, then sec, usec and nsec is set to 0. The +options+
   # parameter takes a hash with any of these keys: <tt>:year</tt>, <tt>:month</tt>,
   # <tt>:day</tt>, <tt>:hour</tt>, <tt>:min</tt>, <tt>:sec</tt>, <tt>:usec</tt>
-  # <tt>:nsec</tt>. Path either <tt>:usec</tt> or <tt>:nsec</tt>, not both.
+  # <tt>:nsec</tt>. Pass either <tt>:usec</tt> or <tt>:nsec</tt>, not both.
   #
   #   Time.new(2012, 8, 29, 22, 35, 0).change(day: 1)              # => Time.new(2012, 8, 1, 22, 35, 0)
   #   Time.new(2012, 8, 29, 22, 35, 0).change(year: 1981, day: 1)  # => Time.new(1981, 8, 1, 22, 35, 0)
@@ -162,7 +162,7 @@ class Time
   alias :at_noon :middle_of_day
   alias :at_middle_of_day :middle_of_day
 
-  # Returns a new Time representing the end of the day, 23:59:59.999999 (.999999999 in ruby1.9)
+  # Returns a new Time representing the end of the day, 23:59:59.999999
   def end_of_day
     change(
       :hour => 23,
@@ -179,7 +179,7 @@ class Time
   end
   alias :at_beginning_of_hour :beginning_of_hour
 
-  # Returns a new Time representing the end of the hour, x:59:59.999999 (.999999999 in ruby1.9)
+  # Returns a new Time representing the end of the hour, x:59:59.999999
   def end_of_hour
     change(
       :min => 59,
@@ -195,7 +195,7 @@ class Time
   end
   alias :at_beginning_of_minute :beginning_of_minute
 
-  # Returns a new Time representing the end of the minute, x:xx:59.999999 (.999999999 in ruby1.9)
+  # Returns a new Time representing the end of the minute, x:xx:59.999999
   def end_of_minute
     change(
       :sec => 59,

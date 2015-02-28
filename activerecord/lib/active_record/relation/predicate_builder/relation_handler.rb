@@ -6,7 +6,7 @@ module ActiveRecord
           value = value.select(value.klass.arel_table[value.klass.primary_key])
         end
 
-        attribute.in(value.arel.ast)
+        attribute.in(value.arel)
       end
     end
   end

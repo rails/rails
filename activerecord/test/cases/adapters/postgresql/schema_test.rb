@@ -1,4 +1,5 @@
 require "cases/helper"
+require 'models/default'
 require 'support/schema_dumping_helper'
 
 class SchemaTest < ActiveRecord::TestCase
@@ -88,7 +89,7 @@ class SchemaTest < ActiveRecord::TestCase
   end
 
   def test_schema_names
-    assert_equal ["public", "schema_1", "test_schema", "test_schema2"], @connection.schema_names
+    assert_equal ["public", "test_schema", "test_schema2"], @connection.schema_names
   end
 
   def test_create_schema
@@ -150,10 +151,10 @@ class SchemaTest < ActiveRecord::TestCase
 
   def test_schema_change_with_prepared_stmt
     altered = false
-    @connection.exec_query "select * from developers where id = $1", 'sql', [[nil, 1]]
+    @connection.exec_query "select * from developers where id = $1", 'sql', [bind_param(1)]
     @connection.exec_query "alter table developers add column zomg int", 'sql', []
     altered = true
-    @connection.exec_query "select * from developers where id = $1", 'sql', [[nil, 1]]
+    @connection.exec_query "select * from developers where id = $1", 'sql', [bind_param(1)]
   ensure
     # We are not using DROP COLUMN IF EXISTS because that syntax is only
     # supported by pg 9.X
@@ -388,6 +389,14 @@ class SchemaTest < ActiveRecord::TestCase
     assert_equal "1", @connection.select_value("SELECT nextval('#{sequence_name}')")
   end
 
+  def test_set_pk_sequence
+    table_name = "#{SCHEMA_NAME}.#{PK_TABLE_NAME}"
+    _, sequence_name = @connection.pk_and_sequence_for table_name
+    @connection.set_pk_sequence! table_name, 123
+    assert_equal "124", @connection.select_value("SELECT nextval('#{sequence_name}')")
+    @connection.reset_pk_sequence! table_name
+  end
+
   private
     def columns(table_name)
       @connection.send(:column_definitions, table_name).map do |name, type, default|
@@ -404,7 +413,7 @@ class SchemaTest < ActiveRecord::TestCase
 
     def do_dump_index_tests_for_schema(this_schema_name, first_index_column_name, second_index_column_name, third_index_column_name, fourth_index_column_name)
       with_schema_search_path(this_schema_name) do
-        indexes = @connection.indexes(TABLE_NAME).sort_by {|i| i.name}
+        indexes = @connection.indexes(TABLE_NAME).sort_by(&:name)
         assert_equal 4,indexes.size
 
         do_dump_index_assertions_for_one_index(indexes[0], INDEX_A_NAME, first_index_column_name)
@@ -426,6 +435,10 @@ class SchemaTest < ActiveRecord::TestCase
       assert_equal this_index_column, this_index.columns[0]
       assert_equal this_index_name, this_index.name
     end
+
+    def bind_param(value)
+      ActiveRecord::Relation::QueryAttribute.new(nil, value, ActiveRecord::Type::Value.new)
+    end
 end
 
 class SchemaForeignKeyTest < ActiveRecord::TestCase
@@ -445,10 +458,59 @@ class SchemaForeignKeyTest < ActiveRecord::TestCase
     end
     @connection.add_foreign_key "wagons", "my_schema.trains", column: "train_id"
     output = dump_table_schema "wagons"
-    assert_match %r{\s+add_foreign_key "wagons", "my_schema.trains", column: "train_id"$}, output
+    assert_match %r{\s+add_foreign_key "wagons", "my_schema\.trains", column: "train_id"$}, output
   ensure
-    @connection.execute "DROP TABLE IF EXISTS wagons"
-    @connection.execute "DROP TABLE IF EXISTS my_schema.trains"
+    @connection.drop_table "wagons", if_exists: true
+    @connection.drop_table "my_schema.trains", if_exists: true
     @connection.execute "DROP SCHEMA IF EXISTS my_schema"
+  end
+end
+
+class DefaultsUsingMultipleSchemasAndDomainTest < ActiveSupport::TestCase
+  setup do
+    @connection = ActiveRecord::Base.connection
+    @connection.execute "DROP SCHEMA IF EXISTS schema_1 CASCADE"
+    @connection.execute "CREATE SCHEMA schema_1"
+    @connection.execute "CREATE DOMAIN schema_1.text AS text"
+    @connection.execute "CREATE DOMAIN schema_1.varchar AS varchar"
+    @connection.execute "CREATE DOMAIN schema_1.bpchar AS bpchar"
+
+    @old_search_path = @connection.schema_search_path
+    @connection.schema_search_path = "schema_1, pg_catalog"
+    @connection.create_table "defaults" do |t|
+      t.text "text_col", default: "some value"
+      t.string "string_col", default: "some value"
+    end
+    Default.reset_column_information
+  end
+
+  teardown do
+    @connection.schema_search_path = @old_search_path
+    @connection.execute "DROP SCHEMA IF EXISTS schema_1 CASCADE"
+    Default.reset_column_information
+  end
+
+  def test_text_defaults_in_new_schema_when_overriding_domain
+    assert_equal "some value", Default.new.text_col, "Default of text column was not correctly parsed"
+  end
+
+  def test_string_defaults_in_new_schema_when_overriding_domain
+    assert_equal "some value", Default.new.string_col, "Default of string column was not correctly parsed"
+  end
+
+  def test_bpchar_defaults_in_new_schema_when_overriding_domain
+    @connection.execute "ALTER TABLE defaults ADD bpchar_col bpchar DEFAULT 'some value'"
+    Default.reset_column_information
+    assert_equal "some value", Default.new.bpchar_col, "Default of bpchar column was not correctly parsed"
+  end
+
+  def test_text_defaults_after_updating_column_default
+    @connection.execute "ALTER TABLE defaults ALTER COLUMN text_col SET DEFAULT 'some text'::schema_1.text"
+    assert_equal "some text", Default.new.text_col, "Default of text column was not correctly parsed after updating default using '::text' since postgreSQL will add parens to the default in db"
+  end
+
+  def test_default_containing_quote_and_colons
+    @connection.execute "ALTER TABLE defaults ALTER COLUMN string_col SET DEFAULT 'foo''::bar'"
+    assert_equal "foo'::bar", Default.new.string_col
   end
 end

@@ -1,4 +1,3 @@
-# encoding: utf-8
 require 'isolation/abstract_unit'
 require 'rack/test'
 
@@ -203,7 +202,7 @@ module ApplicationTests
       RUBY
 
       add_to_config <<-RUBY
-        config.secret_token = "3b7cd727ee24e8444053437c36cc66c4"
+        secrets.secret_token = "3b7cd727ee24e8444053437c36cc66c4"
       RUBY
 
       require "#{app_path}/config/environment"
@@ -258,7 +257,7 @@ module ApplicationTests
       RUBY
 
       add_to_config <<-RUBY
-        config.secret_token = "3b7cd727ee24e8444053437c36cc66c4"
+        secrets.secret_token = "3b7cd727ee24e8444053437c36cc66c4"
       RUBY
 
       require "#{app_path}/config/environment"
@@ -317,7 +316,7 @@ module ApplicationTests
       RUBY
 
       add_to_config <<-RUBY
-        config.secret_token = "3b7cd727ee24e8444053437c36cc66c4"
+        secrets.secret_token = "3b7cd727ee24e8444053437c36cc66c4"
         secrets.secret_key_base = nil
       RUBY
 
@@ -334,7 +333,7 @@ module ApplicationTests
       get '/foo/read_signed_cookie'
       assert_equal '2', last_response.body
 
-      verifier = ActiveSupport::MessageVerifier.new(app.config.secret_token)
+      verifier = ActiveSupport::MessageVerifier.new(app.secrets.secret_token)
 
       get '/foo/read_raw_cookie'
       assert_equal 2, verifier.verify(last_response.body)['foo']

@@ -38,7 +38,7 @@ module ActiveModel
       end
 
       def validate_each(record, attribute, value)
-        value = tokenize(value)
+        value = tokenize(record, value)
         value_length = value.respond_to?(:length) ? value.length : value.to_s.length
         errors_options = options.except(*RESERVED_OPTIONS)
 
@@ -59,10 +59,14 @@ module ActiveModel
       end
 
       private
-
-      def tokenize(value)
-        if options[:tokenizer] && value.kind_of?(String)
-          options[:tokenizer].call(value)
+      def tokenize(record, value)
+        tokenizer = options[:tokenizer]
+        if tokenizer && value.kind_of?(String)
+          if tokenizer.kind_of?(Proc)
+            tokenizer.call(value)
+          elsif record.respond_to?(tokenizer)
+            record.send(tokenizer, value)
+          end
         end || value
       end
 
@@ -108,10 +112,12 @@ module ActiveModel
       # * <tt>:message</tt> - The error message to use for a <tt>:minimum</tt>,
       #   <tt>:maximum</tt>, or <tt>:is</tt> violation. An alias of the appropriate
       #   <tt>too_long</tt>/<tt>too_short</tt>/<tt>wrong_length</tt> message.
-      # * <tt>:tokenizer</tt> - Specifies how to split up the attribute string.
-      #   (e.g. <tt>tokenizer: ->(str) { str.scan(/\w+/) }</tt> to count words
-      #   as in above example). Defaults to <tt>->(value) { value.split(//) }</tt>
-      #   which counts individual characters.
+      # * <tt>:tokenizer</tt> - A method (as a symbol), proc or string to
+      #   specify how to split up the attribute string. (e.g.
+      #   <tt>tokenizer: :word_tokenizer</tt> to call the +word_tokenizer+ method
+      #   or <tt>tokenizer: ->(str) { str.scan(/\w+/) }</tt> to count words as in
+      #   above example). Defaults to <tt>->(value) { value.split(//) }</tt> which
+      #   counts individual characters.
       #
       # There is also a list of default options supported by every validator:
       # +:if+, +:unless+, +:on+ and +:strict+.

@@ -26,6 +26,49 @@ class EnumTest < ActiveRecord::TestCase
     assert_equal @book, Book.unread.first
   end
 
+  test "find via where with values" do
+    proposed, written = Book.statuses[:proposed], Book.statuses[:written]
+
+    assert_equal @book, Book.where(status: proposed).first
+    refute_equal @book, Book.where(status: written).first
+    assert_equal @book, Book.where(status: [proposed]).first
+    refute_equal @book, Book.where(status: [written]).first
+    refute_equal @book, Book.where("status <> ?", proposed).first
+    assert_equal @book, Book.where("status <> ?", written).first
+  end
+
+  test "find via where with symbols" do
+    assert_equal @book, Book.where(status: :proposed).first
+    refute_equal @book, Book.where(status: :written).first
+    assert_equal @book, Book.where(status: [:proposed]).first
+    refute_equal @book, Book.where(status: [:written]).first
+    refute_equal @book, Book.where.not(status: :proposed).first
+    assert_equal @book, Book.where.not(status: :written).first
+  end
+
+  test "find via where with strings" do
+    assert_equal @book, Book.where(status: "proposed").first
+    refute_equal @book, Book.where(status: "written").first
+    assert_equal @book, Book.where(status: ["proposed"]).first
+    refute_equal @book, Book.where(status: ["written"]).first
+    refute_equal @book, Book.where.not(status: "proposed").first
+    assert_equal @book, Book.where.not(status: "written").first
+  end
+
+  test "build from scope" do
+    assert Book.written.build.written?
+    refute Book.written.build.proposed?
+  end
+
+  test "build from where" do
+    assert Book.where(status: Book.statuses[:written]).build.written?
+    refute Book.where(status: Book.statuses[:written]).build.proposed?
+    assert Book.where(status: :written).build.written?
+    refute Book.where(status: :written).build.proposed?
+    assert Book.where(status: "written").build.written?
+    refute Book.where(status: "written").build.proposed?
+  end
+
   test "update by declaration" do
     @book.written!
     assert @book.written?
@@ -129,19 +172,24 @@ class EnumTest < ActiveRecord::TestCase
     assert_equal "'unknown' is not a valid status", e.message
   end
 
+  test "NULL values from database should be casted to nil" do
+    Book.where(id: @book.id).update_all("status = NULL")
+    assert_nil @book.reload.status
+  end
+
   test "assign nil value" do
     @book.status = nil
-    assert @book.status.nil?
+    assert_nil @book.status
   end
 
   test "assign empty string value" do
     @book.status = ''
-    assert @book.status.nil?
+    assert_nil @book.status
   end
 
   test "assign long empty string value" do
     @book.status = '   '
-    assert @book.status.nil?
+    assert_nil @book.status
   end
 
   test "constant to access the mapping" do
@@ -161,7 +209,11 @@ class EnumTest < ActiveRecord::TestCase
   end
 
   test "_before_type_cast returns the enum label (required for form fields)" do
-    assert_equal "proposed", @book.status_before_type_cast
+    if @book.status_came_from_user?
+      assert_equal "proposed", @book.status_before_type_cast
+    else
+      assert_equal "proposed", @book.status
+    end
   end
 
   test "reserved enum names" do
@@ -177,9 +229,10 @@ class EnumTest < ActiveRecord::TestCase
     ]
 
     conflicts.each_with_index do |name, i|
-      assert_raises(ArgumentError, "enum name `#{name}` should not be allowed") do
+      e = assert_raises(ArgumentError) do
         klass.class_eval { enum name => ["value_#{i}"] }
       end
+      assert_match(/You tried to define an enum named \"#{name}\" on the model/, e.message)
     end
   end
 
@@ -199,9 +252,10 @@ class EnumTest < ActiveRecord::TestCase
     ]
 
     conflicts.each_with_index do |value, i|
-      assert_raises(ArgumentError, "enum value `#{value}` should not be allowed") do
+      e = assert_raises(ArgumentError, "enum value `#{value}` should not be allowed") do
         klass.class_eval { enum "status_#{i}" => [value] }
       end
+      assert_match(/You tried to define an enum named .* on the model/, e.message)
     end
   end
 

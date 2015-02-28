@@ -1,6 +1,5 @@
 require 'erb'
 require 'active_support/core_ext/kernel/singleton_class'
-require 'active_support/deprecation'
 
 class ERB
   module Util
@@ -86,6 +85,11 @@ class ERB
     # automatically flag the result as HTML safe, since the raw value is unsafe to
     # use inside HTML attributes.
     #
+    # If your JSON is being used downstream for insertion into the DOM, be aware of
+    # whether or not it is being inserted via +html()+. Most JQuery plugins do this.
+    # If that is the case, be sure to +html_escape+ or +sanitize+ any user-generated
+    # content returned by your JSON.
+    #
     # If you need to output JSON elsewhere in your HTML, you can just do something
     # like this, as any unsafe characters (including quotation marks) will be
     # automatically escaped for you:
@@ -150,7 +154,11 @@ module ActiveSupport #:nodoc:
       else
         if html_safe?
           new_safe_buffer = super
-          new_safe_buffer.instance_eval { @html_safe = true }
+
+          if new_safe_buffer
+            new_safe_buffer.instance_variable_set :@html_safe, true
+          end
+
           new_safe_buffer
         else
           to_str[*args]
@@ -186,11 +194,6 @@ module ActiveSupport #:nodoc:
       super(html_escape_interpolated_argument(value))
     end
 
-    def prepend!(value)
-      ActiveSupport::Deprecation.deprecation_warning "ActiveSupport::SafeBuffer#prepend!", :prepend
-      prepend value
-    end
-
     def +(other)
       dup.concat(other)
     end
@@ -219,7 +222,7 @@ module ActiveSupport #:nodoc:
     end
 
     def encode_with(coder)
-      coder.represent_scalar nil, to_str
+      coder.represent_object nil, to_str
     end
 
     UNSAFE_STRING_METHODS.each do |unsafe_method|
@@ -247,6 +250,11 @@ module ActiveSupport #:nodoc:
 end
 
 class String
+  # Marks a string as trusted safe. It will be inserted into HTML with no
+  # additional escaping performed. It is your responsibilty to ensure that the
+  # string contains no malicious content. This method is equivalent to the
+  # `raw` helper in views. It is recommended that you use `sanitize` instead of
+  # this method. It should never be called on user input.
   def html_safe
     ActiveSupport::SafeBuffer.new(self)
   end

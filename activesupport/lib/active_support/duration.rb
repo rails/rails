@@ -1,4 +1,3 @@
-require 'active_support/proxy_object'
 require 'active_support/core_ext/array/conversions'
 require 'active_support/core_ext/object/acts_like'
 
@@ -92,16 +91,18 @@ module ActiveSupport
         reduce(::Hash.new(0)) { |h,(l,r)| h[l] += r; h }.
         sort_by {|unit,  _ | [:years, :months, :days, :minutes, :seconds].index(unit)}.
         map     {|unit, val| "#{val} #{val == 1 ? unit.to_s.chop : unit.to_s}"}.
-        to_sentence(:locale => :en)
+        to_sentence(locale: ::I18n.default_locale)
     end
 
     def as_json(options = nil) #:nodoc:
       to_i
     end
 
-    def respond_to_missing?(method, include_private=false) #:nodoc
+    def respond_to_missing?(method, include_private=false) #:nodoc:
       @value.respond_to?(method, include_private)
     end
+
+    delegate :<=>, to: :value
 
     protected
 
@@ -120,13 +121,6 @@ module ActiveSupport
       end
 
     private
-
-      # We define it as a workaround to Ruby 2.0.0-p353 bug.
-      # For more information, check rails/rails#13055.
-      # Remove it when we drop support for 2.0.0-p353.
-      def ===(other) #:nodoc:
-        value === other
-      end
 
       def method_missing(method, *args, &block) #:nodoc:
         value.send(method, *args, &block)

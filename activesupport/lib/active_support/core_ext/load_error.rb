@@ -1,3 +1,5 @@
+require 'active_support/deprecation/proxy_wrappers'
+
 class LoadError
   REGEXPS = [
     /^no such file to load -- (.+)$/i,
@@ -25,4 +27,4 @@ class LoadError
   end
 end
 
-MissingSourceFile = LoadError
+MissingSourceFile = ActiveSupport::Deprecation::DeprecatedConstantProxy.new('MissingSourceFile', 'LoadError')

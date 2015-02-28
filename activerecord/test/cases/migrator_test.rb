@@ -149,7 +149,7 @@ class MigratorTest < ActiveRecord::TestCase
   def test_up_calls_up
     migrations = [Sensor.new(nil, 0), Sensor.new(nil, 1), Sensor.new(nil, 2)]
     ActiveRecord::Migrator.new(:up, migrations).migrate
-    assert migrations.all? { |m| m.went_up }
+    assert migrations.all?(&:went_up)
     assert migrations.all? { |m| !m.went_down }
     assert_equal 2, ActiveRecord::Migrator.current_version
   end
@@ -160,7 +160,7 @@ class MigratorTest < ActiveRecord::TestCase
     migrations = [Sensor.new(nil, 0), Sensor.new(nil, 1), Sensor.new(nil, 2)]
     ActiveRecord::Migrator.new(:down, migrations).migrate
     assert migrations.all? { |m| !m.went_up }
-    assert migrations.all? { |m| m.went_down }
+    assert migrations.all?(&:went_down)
     assert_equal 0, ActiveRecord::Migrator.current_version
   end
 

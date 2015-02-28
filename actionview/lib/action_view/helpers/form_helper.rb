@@ -4,6 +4,7 @@ require 'action_view/helpers/tag_helper'
 require 'action_view/helpers/form_tag_helper'
 require 'action_view/helpers/active_model_helper'
 require 'action_view/model_naming'
+require 'action_view/record_identifier'
 require 'active_support/core_ext/module/attribute_accessors'
 require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/string/output_safety'
@@ -110,6 +111,7 @@ module ActionView
       include FormTagHelper
       include UrlHelper
       include ModelNaming
+      include RecordIdentifier
 
       # Creates a form that allows the user to create or update the attributes
       # of a specific model object.
@@ -164,6 +166,23 @@ module ActionView
       # * <tt>:namespace</tt> - A namespace for your form to ensure uniqueness of
       #   id attributes on form elements. The namespace attribute will be prefixed
       #   with underscore on the generated HTML id.
+      # * <tt>:method</tt> - The method to use when submitting the form, usually
+      #   either "get" or "post". If "patch", "put", "delete", or another verb
+      #   is used, a hidden input with name <tt>_method</tt> is added to
+      #   simulate the verb over post.
+      # * <tt>:authenticity_token</tt> - Authenticity token to use in the form.
+      #   Use only if you need to pass custom authenticity token string, or to
+      #   not add authenticity_token field at all (by passing <tt>false</tt>).
+      #   Remote forms may omit the embedded authenticity token by setting
+      #   <tt>config.action_view.embed_authenticity_token_in_remote_forms = false</tt>.
+      #   This is helpful when you're fragment-caching the form. Remote forms
+      #   get the authenticity token from the <tt>meta</tt> tag, so embedding is
+      #   unnecessary unless you support browsers without JavaScript.
+      # * <tt>:remote</tt> - If set to true, will allow the Unobtrusive
+      #   JavaScript drivers to control the submit behavior. By default this
+      #   behavior is an ajax submit.
+      # * <tt>:enforce_utf8</tt> - If set to false, a hidden input with name
+      #   utf8 is not output.
       # * <tt>:html</tt> - Optional HTML attributes for the form tag.
       #
       # Also note that +form_for+ doesn't create an exclusive scope. It's still
@@ -420,6 +439,7 @@ module ActionView
         html_options[:data]   = options.delete(:data)   if options.has_key?(:data)
         html_options[:remote] = options.delete(:remote) if options.has_key?(:remote)
         html_options[:method] = options.delete(:method) if options.has_key?(:method)
+        html_options[:enforce_utf8] = options.delete(:enforce_utf8) if options.has_key?(:enforce_utf8)
         html_options[:authenticity_token] = options.delete(:authenticity_token)
 
         builder = instantiate_builder(object_name, object, options)
@@ -836,6 +856,24 @@ module ActionView
       #
       #   file_field(:attachment, :file, class: 'file_input')
       #   # => <input type="file" id="attachment_file" name="attachment[file]" class="file_input" />
+      #
+      # ==== Gotcha
+      #
+      # The HTML specification says that when a file field is empty, web browsers
+      # do not send any value to the server. Unfortunately this introduces a
+      # gotcha: if a +User+ model has an +avatar+ field, and no file is selected,
+      # then the +avatar+ parameter is empty. Thus, any mass-assignment idiom like
+      #
+      #   @user.update(params[:user])
+      #
+      # wouldn't update the +avatar+ field.
+      #
+      # To prevent this, the helper generates an auxiliary hidden field before
+      # every file field. The hidden field has the same name as the file one and
+      # a blank value.
+      #
+      # In case you don't want the helper to generate this hidden field you can
+      # specify the <tt>include_hidden: false</tt> option.
       def file_field(object_name, method, options = {})
         Tags::FileField.new(object_name, method, self, options).render
       end
@@ -1188,11 +1226,11 @@ module ActionView
             object_name = model_name_from_record_or_class(object).param_key
           end
 
-          builder = options[:builder] || default_form_builder
+          builder = options[:builder] || default_form_builder_class
           builder.new(object_name, object, self, options)
         end
 
-        def default_form_builder
+        def default_form_builder_class
           builder = ActionView::Base.default_form_builder
           builder.respond_to?(:constantize) ? builder.constantize : builder
         end
@@ -1208,7 +1246,7 @@ module ActionView
     #     Admin: <%= person_form.check_box :admin %>
     #   <% end %>
     #
-    # In the above block, the a +FormBuilder+ object is yielded as the
+    # In the above block, a +FormBuilder+ object is yielded as the
     # +person_form+ variable. This allows you to generate the +text_field+
     # and +check_box+ fields by specifying their eponymous methods, which
     # modify the underlying template and associates the +@person+ model object
@@ -1229,10 +1267,11 @@ module ActionView
     #         )
     #       )
     #     end
+    #   end
     #
     # The above code creates a new method +div_radio_button+ which wraps a div
-    # around the a new radio button. Note that when options are passed in, you
-    # must called +objectify_options+ in order for the model object to get
+    # around the new radio button. Note that when options are passed in, you
+    # must call +objectify_options+ in order for the model object to get
     # correctly passed to the method. If +objectify_options+ is not called,
     # then the newly created helper will not be linked back to the model.
     #
@@ -1917,6 +1956,8 @@ module ActionView
   end
 
   ActiveSupport.on_load(:action_view) do
-    cattr_accessor(:default_form_builder) { ::ActionView::Helpers::FormBuilder }
+    cattr_accessor(:default_form_builder, instance_writer: false, instance_reader: false) do
+      ::ActionView::Helpers::FormBuilder
+    end
   end
 end

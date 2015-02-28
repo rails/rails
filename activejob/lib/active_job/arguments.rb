@@ -1,3 +1,5 @@
+require 'active_support/core_ext/hash'
+
 module ActiveJob
   # Raised when an exception is raised during job arguments deserialization.
   #
@@ -42,7 +44,9 @@ module ActiveJob
 
     private
       GLOBALID_KEY = '_aj_globalid'.freeze
-      private_constant :GLOBALID_KEY
+      SYMBOL_KEYS_KEY = '_aj_symbol_keys'.freeze
+      WITH_INDIFFERENT_ACCESS_KEY = '_aj_hash_with_indifferent_access'.freeze
+      private_constant :GLOBALID_KEY, :SYMBOL_KEYS_KEY, :WITH_INDIFFERENT_ACCESS_KEY
 
       def serialize_argument(argument)
         case argument
@@ -52,10 +56,15 @@ module ActiveJob
           { GLOBALID_KEY => argument.to_global_id.to_s }
         when Array
           argument.map { |arg| serialize_argument(arg) }
+        when ActiveSupport::HashWithIndifferentAccess
+          result = serialize_hash(argument)
+          result[WITH_INDIFFERENT_ACCESS_KEY] = serialize_argument(true)
+          result
         when Hash
-          argument.each_with_object({}) do |(key, value), hash|
-            hash[serialize_hash_key(key)] = serialize_argument(value)
-          end
+          symbol_keys = argument.each_key.grep(Symbol).map(&:to_s)
+          result = serialize_hash(argument)
+          result[SYMBOL_KEYS_KEY] = symbol_keys
+          result
         else
           raise SerializationError.new("Unsupported argument type: #{argument.class.name}")
         end
@@ -73,7 +82,7 @@ module ActiveJob
           if serialized_global_id?(argument)
             deserialize_global_id argument
           else
-            deserialize_hash argument
+            deserialize_hash(argument)
           end
         else
           raise ArgumentError, "Can only deserialize primitive arguments: #{argument.inspect}"
@@ -88,13 +97,27 @@ module ActiveJob
         GlobalID::Locator.locate hash[GLOBALID_KEY]
       end
 
-      def deserialize_hash(serialized_hash)
-        serialized_hash.each_with_object({}.with_indifferent_access) do |(key, value), hash|
-          hash[key] = deserialize_argument(value)
+      def serialize_hash(argument)
+        argument.each_with_object({}) do |(key, value), hash|
+          hash[serialize_hash_key(key)] = serialize_argument(value)
         end
       end
 
-      RESERVED_KEYS = [GLOBALID_KEY, GLOBALID_KEY.to_sym]
+      def deserialize_hash(serialized_hash)
+        result = serialized_hash.transform_values { |v| deserialize_argument(v) }
+        if result.delete(WITH_INDIFFERENT_ACCESS_KEY)
+          result = result.with_indifferent_access
+        elsif symbol_keys = result.delete(SYMBOL_KEYS_KEY)
+          result = transform_symbol_keys(result, symbol_keys)
+        end
+        result
+      end
+
+      RESERVED_KEYS = [
+        GLOBALID_KEY, GLOBALID_KEY.to_sym,
+        SYMBOL_KEYS_KEY, SYMBOL_KEYS_KEY.to_sym,
+        WITH_INDIFFERENT_ACCESS_KEY, WITH_INDIFFERENT_ACCESS_KEY.to_sym,
+      ]
       private_constant :RESERVED_KEYS
 
       def serialize_hash_key(key)
@@ -105,6 +128,16 @@ module ActiveJob
           key.to_s
         else
           raise SerializationError.new("Only string and symbol hash keys may be serialized as job arguments, but #{key.inspect} is a #{key.class}")
+        end
+      end
+
+      def transform_symbol_keys(hash, symbol_keys)
+        hash.transform_keys do |key|
+          if symbol_keys.include?(key)
+            key.to_sym
+          else
+            key
+          end
         end
       end
   end

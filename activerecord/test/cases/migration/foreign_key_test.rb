@@ -8,6 +8,7 @@ module ActiveRecord
     class ForeignKeyTest < ActiveRecord::TestCase
       include DdlHelper
       include SchemaDumpingHelper
+      include ActiveSupport::Testing::Stream
 
       class Rocket < ActiveRecord::Base
       end
@@ -17,11 +18,11 @@ module ActiveRecord
 
       setup do
         @connection = ActiveRecord::Base.connection
-        @connection.create_table "rockets" do |t|
+        @connection.create_table "rockets", force: true do |t|
           t.string :name
         end
 
-        @connection.create_table "astronauts" do |t|
+        @connection.create_table "astronauts", force: true do |t|
           t.string :name
           t.references :rocket
         end
@@ -29,8 +30,8 @@ module ActiveRecord
 
       teardown do
         if defined?(@connection)
-          @connection.drop_table "astronauts" if @connection.table_exists? 'astronauts' 
-          @connection.drop_table "rockets" if @connection.table_exists? 'rockets'
+          @connection.drop_table "astronauts", if_exists: true
+          @connection.drop_table "rockets", if_exists: true
         end
       end
 
@@ -57,7 +58,7 @@ module ActiveRecord
         assert_equal "rockets", fk.to_table
         assert_equal "rocket_id", fk.column
         assert_equal "id", fk.primary_key
-        assert_match(/^fk_rails_.{10}$/, fk.name)
+        assert_equal("fk_rails_78146ddd2e", fk.name)
       end
 
       def test_add_foreign_key_with_column
@@ -71,7 +72,7 @@ module ActiveRecord
         assert_equal "rockets", fk.to_table
         assert_equal "rocket_id", fk.column
         assert_equal "id", fk.primary_key
-        assert_match(/^fk_rails_.{10}$/, fk.name)
+        assert_equal("fk_rails_78146ddd2e", fk.name)
       end
 
       def test_add_foreign_key_with_non_standard_primary_key
@@ -146,6 +147,27 @@ module ActiveRecord
         assert_equal :nullify, fk.on_update
       end
 
+      def test_foreign_key_exists
+        @connection.add_foreign_key :astronauts, :rockets
+
+        assert @connection.foreign_key_exists?(:astronauts, :rockets)
+        assert_not @connection.foreign_key_exists?(:astronauts, :stars)
+      end
+
+      def test_foreign_key_exists_by_column
+        @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id"
+
+        assert @connection.foreign_key_exists?(:astronauts, column: "rocket_id")
+        assert_not @connection.foreign_key_exists?(:astronauts, column: "star_id")
+      end
+
+      def test_foreign_key_exists_by_name
+        @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", name: "fancy_named_fk"
+
+        assert @connection.foreign_key_exists?(:astronauts, name: "fancy_named_fk")
+        assert_not @connection.foreign_key_exists?(:astronauts, name: "other_fancy_named_fk")
+      end
+
       def test_remove_foreign_key_inferes_column
         @connection.add_foreign_key :astronauts, :rockets
 
@@ -159,6 +181,14 @@ module ActiveRecord
 
         assert_equal 1, @connection.foreign_keys("astronauts").size
         @connection.remove_foreign_key :astronauts, column: "rocket_id"
+        assert_equal [], @connection.foreign_keys("astronauts")
+      end
+
+      def test_remove_foreign_key_by_symbol_column
+        @connection.add_foreign_key :astronauts, :rockets, column: :rocket_id
+
+        assert_equal 1, @connection.foreign_keys("astronauts").size
+        @connection.remove_foreign_key :astronauts, column: :rocket_id
         assert_equal [], @connection.foreign_keys("astronauts")
       end
 
@@ -212,6 +242,7 @@ module ActiveRecord
       ensure
         silence_stream($stdout) { migration.migrate(:down) }
       end
+
     end
   end
 end

@@ -1,4 +1,3 @@
-# encoding: utf-8
 
 require "cases/helper"
 require 'support/ddl_helper'
@@ -16,7 +15,7 @@ module ActiveRecord
         assert_raise ActiveRecord::NoDatabaseError do
           configuration = ActiveRecord::Base.configurations['arunit'].merge(database: 'inexistent_activerecord_unittest')
           connection = ActiveRecord::Base.mysql_connection(configuration)
-          connection.exec_query('drop table if exists ex')
+          connection.drop_table 'ex', if_exists: true
         end
       end
 
@@ -99,13 +98,19 @@ module ActiveRecord
         end
       end
 
+      def test_composite_primary_key
+        with_example_table '`id` INT(11), `number` INT(11), foo INT(11), PRIMARY KEY (`id`, `number`)' do
+          assert_nil @conn.primary_key('ex')
+        end
+      end
+
       def test_tinyint_integer_typecasting
         with_example_table '`status` TINYINT(4)' do
           insert(@conn, { 'status' => 2 }, 'ex')
 
           result = @conn.exec_query('SELECT status FROM ex')
 
-          assert_equal 2, result.column_types['status'].type_cast_from_database(result.last['status'])
+          assert_equal 2, result.column_types['status'].deserialize(result.last['status'])
         end
       end
 
@@ -123,10 +128,10 @@ module ActiveRecord
 
       private
       def insert(ctx, data, table='ex')
-        binds   = data.map { |name, value|
-          [ctx.columns(table).find { |x| x.name == name }, value]
+        binds = data.map { |name, value|
+          Relation::QueryAttribute.new(name, value, Type::Value.new)
         }
-        columns = binds.map(&:first).map(&:name)
+        columns = binds.map(&:name)
 
         sql = "INSERT INTO #{table} (#{columns.join(", ")})
                VALUES (#{(['?'] * columns.length).join(', ')})"

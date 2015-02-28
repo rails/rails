@@ -12,15 +12,15 @@ module ActiveRecord
 
             # If the subnet mask is equal to /32, don't output it
             if subnet_mask == (2**32 - 1)
-              "\"#{value.to_s}\""
+              "\"#{value}\""
             else
-              "\"#{value.to_s}/#{subnet_mask.to_s(2).count('1')}\""
+              "\"#{value}/#{subnet_mask.to_s(2).count('1')}\""
             end
           end
 
-          def type_cast_for_database(value)
+          def serialize(value)
             if IPAddr === value
-              "#{value.to_s}/#{value.instance_variable_get(:@mask_addr).to_s(2).count('1')}"
+              "#{value}/#{value.instance_variable_get(:@mask_addr).to_s(2).count('1')}"
             else
               value
             end

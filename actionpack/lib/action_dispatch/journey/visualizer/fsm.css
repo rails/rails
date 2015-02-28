@@ -16,10 +16,6 @@ h2 {
   font-size: 0.5em;
 }
 
-div#chart-2 {
-  height: 350px;
-}
-
 .clearfix {display: inline-block; }
 .input { overflow: show;}
 .instruction { color: #666; padding: 0 30px 20px; font-size: 0.9em}

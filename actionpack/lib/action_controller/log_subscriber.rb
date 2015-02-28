@@ -1,4 +1,3 @@
-
 module ActionController
   class LogSubscriber < ActiveSupport::LogSubscriber
     INTERNAL_PARAMS = %w(controller action format _method only_path)
@@ -51,15 +50,6 @@ module ActionController
       debug do
         unpermitted_keys = event.payload[:keys]
         "Unpermitted parameter#{'s' if unpermitted_keys.size > 1}: #{unpermitted_keys.join(", ")}"
-      end
-    end
-
-    def deep_munge(event)
-      debug do
-        "Value for params[:#{event.payload[:keys].join('][:')}] was set "\
-        "to nil, because it was one of [], [null] or [null, null, ...]. "\
-        "Go to http://guides.rubyonrails.org/security.html#unsafe-query-generation "\
-        "for more information."\
       end
     end
 

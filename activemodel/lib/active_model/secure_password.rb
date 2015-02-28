@@ -77,13 +77,6 @@ module ActiveModel
           validates_length_of :password, maximum: ActiveModel::SecurePassword::MAX_PASSWORD_LENGTH_ALLOWED
           validates_confirmation_of :password, allow_blank: true
         end
-
-        # This code is necessary as long as the protected_attributes gem is supported.
-        if respond_to?(:attributes_protected_by_default)
-          def self.attributes_protected_by_default #:nodoc:
-            super + ['password_digest']
-          end
-        end
       end
     end
 
@@ -99,7 +92,7 @@ module ActiveModel
       #   user.authenticate('notright')      # => false
       #   user.authenticate('mUc3m00RsqyRe') # => user
       def authenticate(unencrypted_password)
-        BCrypt::Password.new(password_digest) == unencrypted_password && self
+        BCrypt::Password.new(password_digest).is_password?(unencrypted_password) && self
       end
 
       attr_reader :password

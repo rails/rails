@@ -37,10 +37,9 @@ module ActiveRecord
           reflection   = child_class._reflections.values.find { |e| e.belongs_to? && e.foreign_key.to_s == foreign_key && e.options[:counter_cache].present? }
           counter_name = reflection.counter_cache_column
 
-          stmt = unscoped.where(arel_table[primary_key].eq(object.id)).arel.compile_update({
-            arel_table[counter_name] => object.send(counter_association).count(:all)
-          }, primary_key)
-          connection.update stmt
+          unscoped.where(primary_key => object.id).update_all(
+            counter_name => object.send(counter_association).count(:all)
+          )
         end
         return true
       end
@@ -123,16 +122,6 @@ module ActiveRecord
       end
     end
 
-    protected
-
-      def actually_destroyed?
-        @_actually_destroyed
-      end
-
-      def clear_destroy_state
-        @_actually_destroyed = nil
-      end
-
     private
 
       def _create_record(*)
@@ -167,7 +156,7 @@ module ActiveRecord
 
       def each_counter_cached_associations
         _reflections.each do |name, reflection|
-          yield association(name) if reflection.belongs_to? && reflection.counter_cache_column
+          yield association(name.to_sym) if reflection.belongs_to? && reflection.counter_cache_column
         end
       end
 

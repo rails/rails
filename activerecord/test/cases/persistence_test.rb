@@ -8,6 +8,7 @@ require 'models/reply'
 require 'models/category'
 require 'models/company'
 require 'models/developer'
+require 'models/computer'
 require 'models/project'
 require 'models/minimalistic'
 require 'models/warehouse_thing'
@@ -126,7 +127,7 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_difference('Topic.count', -topics_by_mary.size) do
       destroyed = Topic.destroy_all(conditions).sort_by(&:id)
       assert_equal topics_by_mary, destroyed
-      assert destroyed.all? { |topic| topic.frozen? }, "destroyed topics should be frozen"
+      assert destroyed.all?(&:frozen?), "destroyed topics should be frozen"
     end
   end
 
@@ -136,7 +137,7 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_difference('Client.count', -2) do
       destroyed = Client.destroy([2, 3]).sort_by(&:id)
       assert_equal clients, destroyed
-      assert destroyed.all? { |client| client.frozen? }, "destroyed clients should be frozen"
+      assert destroyed.all?(&:frozen?), "destroyed clients should be frozen"
     end
   end
 
@@ -251,8 +252,10 @@ class PersistenceTest < ActiveRecord::TestCase
 
   def test_create_columns_not_equal_attributes
     topic = Topic.instantiate(
-      'title'          => 'Another New Topic',
-      'does_not_exist' => 'test'
+      'attributes' => {
+        'title'          => 'Another New Topic',
+        'does_not_exist' => 'test'
+      }
     )
     assert_nothing_raised { topic.save }
   end
@@ -351,6 +354,16 @@ class PersistenceTest < ActiveRecord::TestCase
     topic_reloaded = Topic.find(topic.id)
     assert_equal("Another New Topic", topic_reloaded.title)
     assert_equal("David", topic_reloaded.author_name)
+  end
+
+  def test_update_attribute_does_not_run_sql_if_attribute_is_not_changed
+    klass = Class.new(Topic) do
+      def self.name; 'Topic'; end
+    end
+    topic = klass.create(title: 'Another New Topic')
+    assert_queries(0) do
+      topic.update_attribute(:title, 'Another New Topic')
+    end
   end
 
   def test_delete
@@ -876,5 +889,36 @@ class PersistenceTest < ActiveRecord::TestCase
 
     assert_equal "Welcome to the weblog", post.title
     assert_not post.new_record?
+  end
+
+  class SaveTest < ActiveRecord::TestCase
+    self.use_transactional_fixtures = false
+
+    def test_save_touch_false
+      widget = Class.new(ActiveRecord::Base) do
+        connection.create_table :widgets, force: true do |t|
+          t.string :name
+          t.timestamps null: false
+        end
+
+        self.table_name = :widgets
+      end
+
+      instance  = widget.create!({
+        name: 'Bob',
+        created_at: 1.day.ago,
+        updated_at: 1.day.ago
+      })
+
+      created_at = instance.created_at
+      updated_at = instance.updated_at
+
+      instance.name = 'Barb'
+      instance.save!(touch: false)
+      assert_equal instance.created_at, created_at
+      assert_equal instance.updated_at, updated_at
+    ensure
+      ActiveRecord::Base.connection.drop_table :widgets
+    end
   end
 end

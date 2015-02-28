@@ -1,3 +1,4 @@
+require 'action_view/renderer/partial_renderer/collection_caching'
 require 'thread_safe'
 
 module ActionView
@@ -73,7 +74,7 @@ module ActionView
   #
   #   <%= render partial: "account", locals: { user: @buyer } %>
   #
-  # == Rendering a collection of partials
+  # == \Rendering a collection of partials
   #
   # The example of partial use describes a familiar pattern where a template needs to iterate over an array and
   # render a sub template for each of the elements. This pattern has been implemented as a single method that
@@ -105,7 +106,7 @@ module ActionView
   # NOTE: Due to backwards compatibility concerns, the collection can't be one of hashes. Normally you'd also
   # just keep domain objects, like Active Records, in there.
   #
-  # == Rendering shared partials
+  # == \Rendering shared partials
   #
   # Two controllers can share a set of partials and render them like this:
   #
@@ -113,7 +114,7 @@ module ActionView
   #
   # This will render the partial "advertisement/_ad.html.erb" regardless of which controller this is being called from.
   #
-  # == Rendering objects that respond to `to_partial_path`
+  # == \Rendering objects that respond to `to_partial_path`
   #
   # Instead of explicitly naming the location of a partial, you can also let PartialRenderer do the work
   # and pick the proper path by checking `to_partial_path` method.
@@ -127,7 +128,7 @@ module ActionView
   #  # <%= render partial: "posts/post", collection: @posts %>
   #  <%= render partial: @posts %>
   #
-  # == Rendering the default case
+  # == \Rendering the default case
   #
   # If you're not going to be using any of the options like collections or layouts, you can also use the short-hand
   # defaults of render to render partials. Examples:
@@ -147,7 +148,7 @@ module ActionView
   #  # <%= render partial: "posts/post", collection: @posts %>
   #  <%= render @posts %>
   #
-  # == Rendering partials with layouts
+  # == \Rendering partials with layouts
   #
   # Partials can have their own layouts applied to them. These layouts are different than the ones that are
   # specified globally for the entire action, but they work in a similar fashion. Imagine a list with two types
@@ -280,6 +281,8 @@ module ActionView
   #     <%- end -%>
   #   <% end %>
   class PartialRenderer < AbstractRenderer
+    include CollectionCaching
+
     PREFIXED_PARTIAL_NAMES = ThreadSafe::Cache.new do |h, k|
       h[k] = ThreadSafe::Cache.new
     end
@@ -321,8 +324,9 @@ module ActionView
         spacer = find_template(@options[:spacer_template], @locals.keys).render(@view, @locals)
       end
 
-      result = @template ? collection_with_template : collection_without_template
-      result.join(spacer).html_safe
+      cache_collection_render do
+        @template ? collection_with_template : collection_without_template
+      end.join(spacer).html_safe
     end
 
     def render_partial
@@ -366,10 +370,12 @@ module ActionView
       partial = options[:partial]
 
       if String === partial
+        @has_object = options.key?(:object)
         @object     = options[:object]
         @collection = collection_from_options
         @path       = partial
       else
+        @has_object = true
         @object = partial
         @collection = collection_from_object || collection_from_options
 
@@ -382,7 +388,7 @@ module ActionView
       end
 
       if as = options[:as]
-        raise_invalid_identifier(as) unless as.to_s =~ /\A[a-z_]\w*\z/
+        raise_invalid_option_as(as) unless as.to_s =~ /\A[a-z_]\w*\z/
         as = as.to_sym
       end
 
@@ -506,7 +512,7 @@ module ActionView
 
     def retrieve_template_keys
       keys = @locals.keys
-      keys << @variable if @object || @collection
+      keys << @variable if @has_object || @collection
       if @collection
         keys << @variable_counter
         keys << @variable_iteration
@@ -517,7 +523,7 @@ module ActionView
     def retrieve_variable(path, as)
       variable = as || begin
         base = path[-1] == "/" ? "" : File.basename(path)
-        raise_invalid_identifier(path) unless base =~ /\A_?([a-z]\w*)(\.\w+)*\z/
+        raise_invalid_identifier(path) unless base =~ /\A_?(.*)(?:\.\w+)*\z/
         $1.to_sym
       end
       if @collection
@@ -528,11 +534,18 @@ module ActionView
     end
 
     IDENTIFIER_ERROR_MESSAGE = "The partial name (%s) is not a valid Ruby identifier; " +
-                               "make sure your partial name starts with a lowercase letter or underscore, " +
+                               "make sure your partial name starts with underscore."
+
+    OPTION_AS_ERROR_MESSAGE  = "The value (%s) of the option `as` is not a valid Ruby identifier; " +
+                               "make sure it starts with lowercase letter, " +
                                "and is followed by any combination of letters, numbers and underscores."
 
     def raise_invalid_identifier(path)
       raise ArgumentError.new(IDENTIFIER_ERROR_MESSAGE % (path))
+    end
+
+    def raise_invalid_option_as(as)
+      raise ArgumentError.new(OPTION_AS_ERROR_MESSAGE % (as))
     end
   end
 end

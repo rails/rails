@@ -33,7 +33,7 @@
       url: active_record_querying.html
       description: This guide covers the database query interface provided by Active Record.
     -
-      name: Active Model basics
+      name: Active Model Basics
       url: active_model_basics.html
       description: This guide covers the use of model classes without Active Record.
       work_in_progress: true
@@ -85,9 +85,9 @@
       description: This guide provides you with all you need to get started in creating, enqueueing and executing background jobs.
     -
       name: Testing Rails Applications
-      url: testing.html
       work_in_progress: true
-      description: This is a rather comprehensive guide to doing both unit and functional tests in Rails. It covers everything from 'What is a test?' to the testing APIs. Enjoy.
+      url: testing.html
+      description: This is a rather comprehensive guide to the various testing facilities in Rails. It covers everything from 'What is a test?' to the testing APIs. Enjoy.
     -
       name: Securing Rails Applications
       url: security.html
@@ -113,15 +113,25 @@
       url: working_with_javascript_in_rails.html
       description: This guide covers the built-in Ajax/JavaScript functionality of Rails.
     -
-      name: Getting Started with Engines
-      url: engines.html
-      description: This guide explains how to write a mountable engine.
-      work_in_progress: true
-    -
       name: The Rails Initialization Process
       work_in_progress: true
       url: initialization.html
       description: This guide explains the internals of the Rails initialization process as of Rails 4
+    -
+      name: Autoloading and Reloading Constants
+      url: autoloading_and_reloading_constants.html
+      description: This guide documents how autoloading and reloading constants work.
+    -
+      name: Active Support Instrumentation
+      work_in_progress: true
+      url: active_support_instrumentation.html
+      description: This guide explains how to use the instrumentation API inside of Active Support to measure events inside of Rails and other Ruby code.
+    -
+      name: Profiling Rails Applications
+      work_in_progress: true
+      url: profiling.html
+      description: This guide explains how to profile your Rails applications to improve performance.
+
 -
   name: Extending Rails
   documents:
@@ -138,6 +148,11 @@
       name: Creating and Customizing Rails Generators
       url: generators.html
       description: This guide covers the process of adding a brand new generator to your extension or providing an alternative to an element of a built-in Rails generator (such as providing alternative test stubs for the scaffold generator).
+    -
+      name: Getting Started with Engines
+      url: engines.html
+      description: This guide explains how to write a mountable engine.
+      work_in_progress: true
 -
   name: Contributing to Ruby on Rails
   documents:
@@ -171,7 +186,6 @@
       name: Ruby on Rails 4.2 Release Notes
       url: 4_2_release_notes.html
       description: Release notes for Rails 4.2.
-      work_in_progress: true
     -
       name: Ruby on Rails 4.1 Release Notes
       url: 4_1_release_notes.html

@@ -1,6 +1,6 @@
 require 'active_support/core_ext/hash/indifferent_access'
 require 'active_support/core_ext/array/wrap'
-require 'active_support/deprecation'
+require 'active_support/core_ext/string/filters'
 require 'active_support/rescuable'
 require 'action_dispatch/http/upload'
 require 'stringio'
@@ -91,7 +91,11 @@ module ActionController
   #   params.permit(:c)
   #   # => ActionController::UnpermittedParameters: found unpermitted keys: a, b
   #
-  # <tt>ActionController::Parameters</tt> is inherited from
+  # Please note that these options *are not thread-safe*. In a multi-threaded
+  # environment they should only be set once at boot-time and never mutated at
+  # runtime.
+  #
+  # <tt>ActionController::Parameters</tt> inherits from
   # <tt>ActiveSupport::HashWithIndifferentAccess</tt>, this means
   # that you can fetch values using either <tt>:key</tt> or <tt>"key"</tt>.
   #
@@ -114,10 +118,12 @@ module ActionController
 
     def self.const_missing(const_name)
       super unless const_name == :NEVER_UNPERMITTED_PARAMS
-      ActiveSupport::Deprecation.warn "`ActionController::Parameters::NEVER_UNPERMITTED_PARAMS`"\
-                                      " has been deprecated. Use "\
-                                      "`ActionController::Parameters.always_permitted_parameters` instead."
-      self.always_permitted_parameters
+      ActiveSupport::Deprecation.warn(<<-MSG.squish)
+        `ActionController::Parameters::NEVER_UNPERMITTED_PARAMS` has been deprecated.
+        Use `ActionController::Parameters.always_permitted_parameters` instead.
+      MSG
+
+      always_permitted_parameters
     end
 
     # Returns a new instance of <tt>ActionController::Parameters</tt>.
@@ -159,6 +165,12 @@ module ActionController
         slice(*self.class.always_permitted_parameters).permit!.to_h
       end
     end
+
+    # Returns an unsafe, unfiltered +Hash+ representation of this parameter.
+    def to_unsafe_h
+      to_hash
+    end
+    alias_method :to_unsafe_hash, :to_unsafe_h
 
     # Convert all hashes in values into parameters, then yield each pair like
     # the same way as <tt>Hash#each_pair</tt>

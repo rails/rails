@@ -1,12 +1,5 @@
 require 'abstract_unit'
-
-begin
-  require 'openssl'
-  OpenSSL::Digest::SHA1
-rescue LoadError, NameError
-  $stderr.puts "Skipping MessageEncryptor test: broken OpenSSL install"
-else
-
+require 'openssl'
 require 'active_support/time'
 require 'active_support/json'
 
@@ -96,6 +89,4 @@ class MessageEncryptorTest < ActiveSupport::TestCase
     bits.reverse!
     ::Base64.strict_encode64(bits)
   end
-end
-
 end

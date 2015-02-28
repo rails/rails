@@ -1,3 +1,5 @@
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+
 Configuring Rails Applications
 ==============================
 
@@ -108,7 +110,7 @@ numbers. New applications filter out passwords by adding the following `config.f
 
 * `config.log_formatter` defines the formatter of the Rails logger. This option defaults to an instance of `ActiveSupport::Logger::SimpleFormatter` for all modes except production, where it defaults to `Logger::Formatter`.
 
-* `config.log_level` defines the verbosity of the Rails logger. This option defaults to `:debug` for all environments.
+* `config.log_level` defines the verbosity of the Rails logger. This option defaults to `:debug` for all environments. The available log levels are: :debug, :info, :warn, :error, :fatal, and :unknown.
 
 * `config.log_tags` accepts a list of methods that the `request` object responds to. This makes it easy to tag log lines with debug information like subdomain and request id - both very helpful in debugging multi-user production applications.
 
@@ -120,7 +122,7 @@ numbers. New applications filter out passwords by adding the following `config.f
 
 * `secrets.secret_key_base` is used for specifying a key which allows sessions for the application to be verified against a known secure key to prevent tampering. Applications get `secrets.secret_key_base` initialized to a random key present in `config/secrets.yml`.
 
-* `config.serve_static_assets` configures Rails itself to serve static assets. Defaults to true, but in the production environment is turned off as the server software (e.g. NGINX or Apache) used to run the application should serve static assets instead. Unlike the default setting set this to true when running (absolutely not recommended!) or testing your app in production mode using WEBrick. Otherwise you won't be able use page caching and requests for files that exist regularly under the public directory will anyway hit your Rails app.
+* `config.serve_static_files` configures Rails to serve static files. This option defaults to true, but in the production environment it is set to false because the server software (e.g. NGINX or Apache) used to run the application should serve static files instead. If you are running or testing your app in production mode using WEBrick (it is not recommended to use WEBrick in production) set the option to true. Otherwise, you won't be able to use page caching and request for files that exist under the public directory.
 
 * `config.session_store` is usually set up in `config/initializers/session_store.rb` and specifies what class to use to store the session. Possible values are `:cookie_store` which is the default, `:mem_cache_store`, and `:disabled`. The last one tells Rails not to deal with sessions. Custom session stores can also be specified:
 
@@ -153,7 +155,7 @@ pipeline is enabled. It is set to true by default.
 
 * `config.assets.manifest` defines the full path to be used for the asset precompiler's manifest file. Defaults to a file named `manifest-<random>.json` in the `config.assets.prefix` directory within the public folder.
 
-* `config.assets.digest` enables the use of MD5 fingerprints in asset names. Set to `true` by default in `production.rb`.
+* `config.assets.digest` enables the use of MD5 fingerprints in asset names. Set to `true` by default in `production.rb` and `development.rb`.
 
 * `config.assets.debug` disables the concatenation and compression of assets. Set to `true` by default in `development.rb`.
 
@@ -197,7 +199,7 @@ The full set of methods that can be used in this block are as follows:
 Every Rails application comes with a standard set of middleware which it uses in this order in the development environment:
 
 * `ActionDispatch::SSL` forces every request to be under HTTPS protocol. Will be available if `config.force_ssl` is set to `true`. Options passed to this can be configured by using `config.ssl_options`.
-* `ActionDispatch::Static` is used to serve static assets. Disabled if `config.serve_static_assets` is `false`.
+* `ActionDispatch::Static` is used to serve static assets. Disabled if `config.serve_static_files` is `false`.
 * `Rack::Lock` wraps the app in mutex so it can only be called by a single thread at a time. Only enabled when `config.cache_classes` is `false`.
 * `ActiveSupport::Cache::Strategy::LocalCache` serves as a basic memory backed cache. This cache is not thread safe and is intended only for serving as a temporary memory cache for a single thread.
 * `Rack::Runtime` sets an `X-Runtime` header, containing the time (in seconds) taken to execute the request.
@@ -214,7 +216,7 @@ Every Rails application comes with a standard set of middleware which it uses in
 * `ActionDispatch::Flash` sets up the `flash` keys. Only available if `config.action_controller.session_store` is set to a value.
 * `ActionDispatch::ParamsParser` parses out parameters from the request into `params`.
 * `Rack::MethodOverride` allows the method to be overridden if `params[:_method]` is set. This is the middleware which supports the PATCH, PUT, and DELETE HTTP method types.
-* `ActionDispatch::Head` converts HEAD requests to GET requests and serves them as so.
+* `Rack::Head` converts HEAD requests to GET requests and serves them as so.
 
 Besides these usual middleware, you can add your own by using the `config.middleware.use` method:
 
@@ -225,13 +227,13 @@ config.middleware.use Magical::Unicorns
 This will put the `Magical::Unicorns` middleware on the end of the stack. You can use `insert_before` if you wish to add a middleware before another.
 
 ```ruby
-config.middleware.insert_before ActionDispatch::Head, Magical::Unicorns
+config.middleware.insert_before Rack::Head, Magical::Unicorns
 ```
 
 There's also `insert_after` which will insert a middleware after another:
 
 ```ruby
-config.middleware.insert_after ActionDispatch::Head, Magical::Unicorns
+config.middleware.insert_after Rack::Head, Magical::Unicorns
 ```
 
 Middlewares can also be completely swapped out and replaced with others:
@@ -298,6 +300,8 @@ All these configuration options are delegated to the `I18n` library.
   `config/environments/production.rb` which is generated by Rails. The
   default value is true if this configuration is not set.
 
+* `config.active_record.belongs_to_required_by_default` is a boolean value and controls whether `belongs_to` association is required by default.
+
 The MySQL adapter adds one additional configuration option:
 
 * `ActiveRecord::ConnectionAdapters::MysqlAdapter.emulate_booleans` controls whether Active Record will consider all `tinyint(1)` columns in a MySQL database to be booleans and is true by default.
@@ -317,6 +321,8 @@ The schema dumper adds one additional configuration option:
 * `config.action_controller.default_static_extension` configures the extension used for cached pages. Defaults to `.html`.
 
 * `config.action_controller.default_charset` specifies the default character set for all renders. The default is "utf-8".
+
+* `config.action_controller.include_all_helpers` configures whether all view helpers are available everywhere or are scoped to the corresponding controller. If set to `false`, `UsersHelper` methods are only available for views rendered as part of `UsersController`. If `true`, `UsersHelper` methods are available everywhere. The default is `true`.
 
 * `config.action_controller.logger` accepts a logger conforming to the interface of Log4r or the default Ruby Logger class, which is then used to log information from Action Controller. Set to `nil` to disable logging.
 
@@ -503,6 +509,8 @@ There are a few configuration options available in Active Support:
 
 * `config.active_support.time_precision` sets the precision of JSON encoded time values. Defaults to `3`.
 
+* `config.active_support.halt_callback_chains_on_return_false` specifies whether ActiveRecord, ActiveModel and ActiveModel::Validations callback chains can be halted by returning `false` in a 'before' callback. Defaults to `true`.
+
 * `ActiveSupport::Logger.silencer` is set to `false` to disable the ability to silence logging in a block. The default is `true`.
 
 * `ActiveSupport::Cache::Store.logger` specifies the logger to use within cache store operations.
@@ -686,7 +694,7 @@ development:
   pool: 5
 ```
 
-Prepared Statements are enabled by default on PostgreSQL. You can be disable prepared statements by setting `prepared_statements` to `false`:
+Prepared Statements are enabled by default on PostgreSQL. You can disable prepared statements by setting `prepared_statements` to `false`:
 
 ```yaml
 production:
@@ -1043,3 +1051,23 @@ These configuration points are then available through the configuration object:
   Rails.configuration.x.super_debugger              # => true
   Rails.configuration.x.super_debugger.not_set      # => nil
   ```
+
+Search Engines Indexing
+-----------------------
+
+Sometimes, you may want to prevent some pages of your application to be visible
+on search sites like Google, Bing, Yahoo or Duck Duck Go. The robots that index
+these sites will first analyse the `http://your-site.com/robots.txt` file to
+know which pages it is allowed to index.
+
+Rails creates this file for you inside the `/public` folder. By default, it allows
+search engines to index all pages of your application. If you want to block
+indexing on all pages of you application, use this:
+
+```
+User-agent: *
+Disallow: /
+```
+
+To block just specific pages, it's necessary to use a more complex syntax. Learn
+it on the [official documentation](http://www.robotstxt.org/robotstxt.html).

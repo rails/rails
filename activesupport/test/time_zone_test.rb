@@ -395,20 +395,14 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert_raise(ArgumentError) { ActiveSupport::TimeZone[false] }
   end
 
-  def test_unknown_zone_should_have_tzinfo_but_exception_on_utc_offset
-    zone = ActiveSupport::TimeZone.create("bogus")
-    assert_instance_of TZInfo::TimezoneProxy, zone.tzinfo
-    assert_raise(TZInfo::InvalidTimezoneIdentifier) { zone.utc_offset }
-  end
-
-  def test_unknown_zone_with_utc_offset
-    zone = ActiveSupport::TimeZone.create("bogus", -21_600)
-    assert_equal(-21_600, zone.utc_offset)
+  def test_unknown_zone_raises_exception
+    assert_raise TZInfo::InvalidTimezoneIdentifier do
+      ActiveSupport::TimeZone.create("bogus")
+    end
   end
 
   def test_unknown_zones_dont_store_mapping_keys
-    ActiveSupport::TimeZone["bogus"]
-    assert !ActiveSupport::TimeZone.zones_map.key?("bogus")
+    assert_nil ActiveSupport::TimeZone["bogus"]
   end
 
   def test_new

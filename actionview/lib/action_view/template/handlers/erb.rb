@@ -35,7 +35,7 @@ module ActionView
           end
         end
 
-        BLOCK_EXPR = /\s+(do|\{)(\s*\|[^|]*\|)?\s*\Z/
+        BLOCK_EXPR = /\s*((\s+|\))do|\{)(\s*\|[^|]*\|)?\s*\Z/
 
         def add_expr_literal(src, code)
           flush_newline_if_pending(src)
@@ -121,6 +121,24 @@ module ActionView
             :escape => (self.class.escape_whitelist.include? template.type),
             :trim => (self.class.erb_trim_mode == "-")
           ).src
+        end
+
+        # Returns Regexp to extract a cached resource's name from a cache call at the
+        # first line of a template.
+        # The extracted cache name is expected in $1.
+        #
+        #   <% cache notification do %> # => notification
+        #
+        # The pattern should support templates with a beginning comment:
+        #
+        #   <%# Still extractable even though there's a comment %>
+        #   <% cache notification do %> # => notification
+        #
+        # But fail to extract a name if a resource association is cached.
+        #
+        #   <% cache notification.event do %> # => nil
+        def resource_cache_call_pattern
+          /\A(?:<%#.*%>\n?)?<% cache\(?\s*(\w+\.?)/
         end
 
       private

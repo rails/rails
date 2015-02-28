@@ -41,14 +41,7 @@ module ActionView
         end
 
         def hidden_field
-          hidden_name = @html_options[:name]
-
-          hidden_name ||= if @options.has_key?(:index)
-            "#{tag_name_with_index(@options[:index])}[]"
-          else
-            "#{tag_name}[]"
-          end
-
+          hidden_name = @html_options[:name] || "#{tag_name(false, @options[:index])}[]"
           @template_object.hidden_field_tag(hidden_name, "", id: nil)
         end
       end

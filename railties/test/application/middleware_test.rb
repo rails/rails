@@ -113,8 +113,8 @@ module ApplicationTests
       assert !middleware.include?("Rack::Lock")
     end
 
-    test "removes static asset server if serve_static_assets is disabled" do
-      add_to_config "config.serve_static_assets = false"
+    test "removes static asset server if serve_static_files is disabled" do
+      add_to_config "config.serve_static_files = false"
       boot!
       assert !middleware.include?("ActionDispatch::Static")
     end
@@ -123,6 +123,22 @@ module ApplicationTests
       add_to_config "config.middleware.delete ActionDispatch::Static"
       boot!
       assert !middleware.include?("ActionDispatch::Static")
+    end
+
+    test "can delete a middleware from the stack even if insert_before is added after delete" do
+      add_to_config "config.middleware.delete Rack::Runtime"
+      add_to_config "config.middleware.insert_before(Rack::Runtime, Rack::Config)"
+      boot!
+      assert middleware.include?("Rack::Config")
+      assert_not middleware.include?("Rack::Runtime")
+    end
+
+    test "can delete a middleware from the stack even if insert_after is added after delete" do
+      add_to_config "config.middleware.delete Rack::Runtime"
+      add_to_config "config.middleware.insert_after(Rack::Runtime, Rack::Config)"
+      boot!
+      assert middleware.include?("Rack::Config")
+      assert_not middleware.include?("Rack::Runtime")
     end
 
     test "includes exceptions middlewares even if action_dispatch.show_exceptions is disabled" do

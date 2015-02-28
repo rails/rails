@@ -1,8 +1,9 @@
-# encoding: utf-8
 require 'cases/helper'
+require 'support/schema_dumping_helper'
 
 if ActiveRecord::Base.connection.supports_extensions?
   class PostgresqlCitextTest < ActiveRecord::TestCase
+    include SchemaDumpingHelper
     class Citext < ActiveRecord::Base
       self.table_name = 'citexts'
     end
@@ -18,7 +19,7 @@ if ActiveRecord::Base.connection.supports_extensions?
     end
 
     teardown do
-      @connection.execute 'DROP TABLE IF EXISTS citexts;'
+      @connection.drop_table 'citexts', if_exists: true
       disable_extension!('citext', @connection)
     end
 
@@ -30,9 +31,10 @@ if ActiveRecord::Base.connection.supports_extensions?
       column = Citext.columns_hash['cival']
       assert_equal :citext, column.type
       assert_equal 'citext', column.sql_type
-      assert_not column.number?
-      assert_not column.binary?
-      assert_not column.array
+      assert_not column.array?
+
+      type = Citext.type_for_attribute('cival')
+      assert_not type.binary?
     end
 
     def test_change_table_supports_json
@@ -66,6 +68,11 @@ if ActiveRecord::Base.connection.supports_extensions?
       @connection.execute "insert into citexts (cival) values('Cased Text')"
       x = Citext.where(cival: 'cased text').first
       assert_equal 'Cased Text', x.cival
+    end
+
+    def test_schema_dump_with_shorthand
+      output = dump_table_schema("citexts")
+      assert_match %r[t\.citext "cival"], output
     end
   end
 end

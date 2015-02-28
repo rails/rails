@@ -1,19 +1,19 @@
-require 'active_record/connection_adapters/abstract_adapter'
-require 'active_record/connection_adapters/statement_pool'
-
-require 'active_record/connection_adapters/postgresql/utils'
-require 'active_record/connection_adapters/postgresql/column'
-require 'active_record/connection_adapters/postgresql/oid'
-require 'active_record/connection_adapters/postgresql/quoting'
-require 'active_record/connection_adapters/postgresql/referential_integrity'
-require 'active_record/connection_adapters/postgresql/schema_definitions'
-require 'active_record/connection_adapters/postgresql/schema_statements'
-require 'active_record/connection_adapters/postgresql/database_statements'
+require "active_record/connection_adapters/abstract_adapter"
+require "active_record/connection_adapters/postgresql/column"
+require "active_record/connection_adapters/postgresql/database_statements"
+require "active_record/connection_adapters/postgresql/oid"
+require "active_record/connection_adapters/postgresql/quoting"
+require "active_record/connection_adapters/postgresql/referential_integrity"
+require "active_record/connection_adapters/postgresql/schema_definitions"
+require "active_record/connection_adapters/postgresql/schema_statements"
+require "active_record/connection_adapters/postgresql/type_metadata"
+require "active_record/connection_adapters/postgresql/utils"
+require "active_record/connection_adapters/statement_pool"
 
 require 'arel/visitors/bind_visitor'
 
 # Make sure we're using pg high enough for PGResult#values
-gem 'pg', '~> 0.11'
+gem 'pg', '~> 0.15'
 require 'pg'
 
 require 'ipaddr'
@@ -64,7 +64,7 @@ module ActiveRecord
     #   <tt>SET client_min_messages TO <min_messages></tt> call on the connection.
     # * <tt>:variables</tt> - An optional hash of additional parameters that
     #   will be used in <tt>SET SESSION key = val</tt> calls on the connection.
-    # * <tt>:insert_returning</tt> - An optional boolean to control the use or <tt>RETURNING</tt> for <tt>INSERT</tt> statements
+    # * <tt>:insert_returning</tt> - An optional boolean to control the use of <tt>RETURNING</tt> for <tt>INSERT</tt> statements
     #   defaults to true.
     #
     # Any further options are used as connection parameters to libpq. See
@@ -78,6 +78,7 @@ module ActiveRecord
 
       NATIVE_DATABASE_TYPES = {
         primary_key: "serial primary key",
+        bigserial: "bigserial",
         string:      { name: "character varying" },
         text:        { name: "text" },
         integer:     { name: "integer" },
@@ -103,6 +104,7 @@ module ActiveRecord
         macaddr:     { name: "macaddr" },
         uuid:        { name: "uuid" },
         json:        { name: "json" },
+        jsonb:       { name: "jsonb" },
         ltree:       { name: "ltree" },
         citext:      { name: "citext" },
         point:       { name: "point" },
@@ -123,16 +125,31 @@ module ActiveRecord
         PostgreSQL::SchemaCreation.new self
       end
 
-      # Adds `:array` option to the default set provided by the
+      def column_spec_for_primary_key(column)
+        spec = {}
+        if column.serial?
+          return unless column.sql_type == 'bigint'
+          spec[:id] = ':bigserial'
+        elsif column.type == :uuid
+          spec[:id] = ':uuid'
+          spec[:default] = column.default_function.inspect
+        else
+          spec[:id] = column.type.inspect
+          spec.merge!(prepare_column_options(column).delete_if { |key, _| [:name, :type, :null].include?(key) })
+        end
+        spec
+      end
+
+      # Adds +:array+ option to the default set provided by the
       # AbstractAdapter
-      def prepare_column_options(column, types) # :nodoc:
+      def prepare_column_options(column) # :nodoc:
         spec = super
-        spec[:array] = 'true' if column.respond_to?(:array) && column.array
+        spec[:array] = 'true' if column.array?
         spec[:default] = "\"#{column.default_function}\"" if column.default_function
         spec
       end
 
-      # Adds `:array` as a valid migration key
+      # Adds +:array+ as a valid migration key
       def migration_keys
         super + [:array]
       end
@@ -160,6 +177,10 @@ module ActiveRecord
       end
 
       def supports_views?
+        true
+      end
+
+      def supports_datetime_with_precision?
         true
       end
 
@@ -238,6 +259,8 @@ module ActiveRecord
         @table_alias_length = nil
 
         connect
+        add_pg_decoders
+
         @statements = StatementPool.new @connection,
                                         self.class.type_cast_config_to_integer(config.fetch(:statement_limit) { 1000 })
 
@@ -392,6 +415,16 @@ module ActiveRecord
         super(oid)
       end
 
+      def column_name_for_operation(operation, node) # :nodoc:
+        OPERATION_ALIASES.fetch(operation) { operation.downcase }
+      end
+
+      OPERATION_ALIASES = { # :nodoc:
+        "maximum" => "max",
+        "minimum" => "min",
+        "average" => "avg",
+      }
+
       protected
 
         # Returns the version of the connected PostgreSQL server.
@@ -432,11 +465,11 @@ module ActiveRecord
         end
 
         def initialize_type_map(m) # :nodoc:
-          register_class_with_limit m, 'int2', OID::Integer
-          m.alias_type 'int4', 'int2'
-          m.alias_type 'int8', 'int2'
+          register_class_with_limit m, 'int2', Type::Integer
+          register_class_with_limit m, 'int4', Type::Integer
+          register_class_with_limit m, 'int8', Type::Integer
           m.alias_type 'oid', 'int2'
-          m.register_type 'float4', OID::Float.new
+          m.register_type 'float4', Type::Float.new
           m.alias_type 'float8', 'float4'
           m.register_type 'text', Type::Text.new
           register_class_with_limit m, 'varchar', Type::String
@@ -447,8 +480,7 @@ module ActiveRecord
           register_class_with_limit m, 'bit', OID::Bit
           register_class_with_limit m, 'varbit', OID::BitVarying
           m.alias_type 'timestamptz', 'timestamp'
-          m.register_type 'date', OID::Date.new
-          m.register_type 'time', OID::Time.new
+          m.register_type 'date', Type::Date.new
 
           m.register_type 'money', OID::Money.new
           m.register_type 'bytea', OID::Bytea.new
@@ -474,10 +506,8 @@ module ActiveRecord
           m.alias_type 'lseg', 'varchar'
           m.alias_type 'box', 'varchar'
 
-          m.register_type 'timestamp' do |_, _, sql_type|
-            precision = extract_precision(sql_type)
-            OID::DateTime.new(precision: precision)
-          end
+          register_class_with_precision m, 'time', Type::Time
+          register_class_with_precision m, 'timestamp', OID::DateTime
 
           m.register_type 'numeric' do |_, fmod, sql_type|
             precision = extract_precision(sql_type)
@@ -504,14 +534,17 @@ module ActiveRecord
 
         def extract_limit(sql_type) # :nodoc:
           case sql_type
-          when /^bigint/i;    8
-          when /^smallint/i;  2
-          else super
+          when /^bigint/i, /^int8/i
+            8
+          when /^smallint/i
+            2
+          else
+            super
           end
         end
 
         # Extracts the value from a PostgreSQL column default definition.
-        def extract_value_from_default(oid, default) # :nodoc:
+        def extract_value_from_default(default) # :nodoc:
           case default
             # Quoted types
             when /\A[\(B]?'(.*)'::/m
@@ -520,7 +553,7 @@ module ActiveRecord
             when 'true', 'false'
               default
             # Numeric types
-            when /\A\(?(-?\d+(\.\d*)?\)?(::bigint)?)\z/
+            when /\A\(?(-?\d+(\.\d*)?)\)?(::bigint)?\z/
               $1
             # Object identifier types
             when /\A-?\d+\z/
@@ -579,14 +612,10 @@ module ActiveRecord
 
         def exec_cache(sql, name, binds)
           stmt_key = prepare_statement(sql)
-          type_casted_binds = binds.map { |col, val|
-            [col, type_cast(val, col)]
-          }
+          type_casted_binds = binds.map { |attr| type_cast(attr.value_for_database) }
 
-          log(sql, name, type_casted_binds, stmt_key) do
-            @connection.send_query_prepared(stmt_key, type_casted_binds.map { |_, val| val })
-            @connection.block
-            @connection.get_last_result
+          log(sql, name, binds, stmt_key) do
+            @connection.exec_prepared(stmt_key, type_casted_binds)
           end
         rescue ActiveRecord::StatementInvalid => e
           pgerror = e.original_exception
@@ -678,9 +707,9 @@ module ActiveRecord
           variables.map do |k, v|
             if v == ':default' || v == :default
               # Sets the value to the global or compile default
-              execute("SET SESSION #{k.to_s} TO DEFAULT", 'SCHEMA')
+              execute("SET SESSION #{k} TO DEFAULT", 'SCHEMA')
             elsif !v.nil?
-              execute("SET SESSION #{k.to_s} TO #{quote(v)}", 'SCHEMA')
+              execute("SET SESSION #{k} TO #{quote(v)}", 'SCHEMA')
             end
           end
         end
@@ -696,12 +725,6 @@ module ActiveRecord
 
         def last_insert_id_result(sequence_name) #:nodoc:
           exec_query("SELECT currval('#{sequence_name}')", 'SQL')
-        end
-
-        # Executes a SELECT query and returns the results, performing any data type
-        # conversions that are required to be performed here instead of in PostgreSQLColumn.
-        def select(sql, name = nil, binds = [])
-          exec_query(sql, name, binds)
         end
 
         # Returns the list of a table's column names, data types, and default values.
@@ -739,9 +762,76 @@ module ActiveRecord
           $1.strip if $1
         end
 
-        def create_table_definition(name, temporary, options, as = nil) # :nodoc:
+        def create_table_definition(name, temporary = false, options = nil, as = nil) # :nodoc:
           PostgreSQL::TableDefinition.new native_database_types, name, temporary, options, as
         end
+
+        def can_perform_case_insensitive_comparison_for?(column)
+          @case_insensitive_cache ||= {}
+          @case_insensitive_cache[column.sql_type] ||= begin
+            sql = <<-end_sql
+              SELECT exists(
+                SELECT * FROM pg_proc
+                INNER JOIN pg_cast
+                  ON casttarget::text::oidvector = proargtypes
+                WHERE proname = 'lower'
+                  AND castsource = '#{column.sql_type}'::regtype::oid
+              )
+            end_sql
+            execute_and_clear(sql, "SCHEMA", []) do |result|
+              result.getvalue(0, 0) == 't'
+            end
+          end
+        end
+
+        def add_pg_decoders
+          coders_by_name = {
+            'int2' => PG::TextDecoder::Integer,
+            'int4' => PG::TextDecoder::Integer,
+            'int8' => PG::TextDecoder::Integer,
+            'oid' => PG::TextDecoder::Integer,
+            'float4' => PG::TextDecoder::Float,
+            'float8' => PG::TextDecoder::Float,
+            'bool' => PG::TextDecoder::Boolean,
+          }
+          query = <<-SQL
+            SELECT t.oid, t.typname, t.typelem, t.typdelim, t.typinput, t.typtype, t.typbasetype
+            FROM pg_type as t
+          SQL
+          coders = execute_and_clear(query, "SCHEMA", []) do |result|
+            result
+              .map { |row| construct_coder(row, coders_by_name['typname']) }
+              .compact
+          end
+
+          map = PG::TypeMapByOid.new
+          coders.each { |coder| map.add_coder(coder) }
+          @connection.type_map_for_results = map
+        end
+
+        def construct_coder(row, coder_class)
+          return unless coder_class
+          coder_class.new(oid: row['oid'], name: row['typname'])
+        end
+
+        ActiveRecord::Type.add_modifier({ array: true }, OID::Array, adapter: :postgresql)
+        ActiveRecord::Type.add_modifier({ range: true }, OID::Range, adapter: :postgresql)
+        ActiveRecord::Type.register(:bit, OID::Bit, adapter: :postgresql)
+        ActiveRecord::Type.register(:bit_varying, OID::BitVarying, adapter: :postgresql)
+        ActiveRecord::Type.register(:binary, OID::Bytea, adapter: :postgresql)
+        ActiveRecord::Type.register(:cidr, OID::Cidr, adapter: :postgresql)
+        ActiveRecord::Type.register(:date_time, OID::DateTime, adapter: :postgresql)
+        ActiveRecord::Type.register(:decimal, OID::Decimal, adapter: :postgresql)
+        ActiveRecord::Type.register(:enum, OID::Enum, adapter: :postgresql)
+        ActiveRecord::Type.register(:hstore, OID::Hstore, adapter: :postgresql)
+        ActiveRecord::Type.register(:inet, OID::Inet, adapter: :postgresql)
+        ActiveRecord::Type.register(:json, OID::Json, adapter: :postgresql)
+        ActiveRecord::Type.register(:jsonb, OID::Jsonb, adapter: :postgresql)
+        ActiveRecord::Type.register(:money, OID::Money, adapter: :postgresql)
+        ActiveRecord::Type.register(:point, OID::Point, adapter: :postgresql)
+        ActiveRecord::Type.register(:uuid, OID::Uuid, adapter: :postgresql)
+        ActiveRecord::Type.register(:vector, OID::Vector, adapter: :postgresql)
+        ActiveRecord::Type.register(:xml, OID::Xml, adapter: :postgresql)
     end
   end
 end

@@ -20,7 +20,7 @@ class SSLTest < ActionDispatch::IntegrationTest
   end
 
   def test_allows_https_proxy_header_url
-    get "http://example.org/", {}, 'HTTP_X_FORWARDED_PROTO' => "https"
+    get "http://example.org/", headers: { 'HTTP_X_FORWARDED_PROTO' => "https" }
     assert_response :success
   end
 

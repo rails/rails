@@ -2,14 +2,16 @@ require 'active_record/attribute_set/builder'
 
 module ActiveRecord
   class AttributeSet # :nodoc:
-    delegate :keys, to: :initialized_attributes
-
     def initialize(attributes)
       @attributes = attributes
     end
 
     def [](name)
       attributes[name] || Attribute.null(name)
+    end
+
+    def []=(name, value)
+      attributes[name] = value
     end
 
     def values_before_type_cast
@@ -25,8 +27,20 @@ module ActiveRecord
       attributes.key?(name) && self[name].initialized?
     end
 
-    def fetch_value(name, &block)
-      self[name].value(&block)
+    def keys
+      attributes.each_key.select { |name| self[name].initialized? }
+    end
+
+    if defined?(JRUBY_VERSION)
+      # This form is significantly faster on JRuby, and this is one of our biggest hotspots.
+      # https://github.com/jruby/jruby/pull/2562
+      def fetch_value(name, &block)
+        self[name].value(&block)
+      end
+    else
+      def fetch_value(name)
+        self[name].value { |n| yield n if block_given? }
+      end
     end
 
     def write_from_database(name, value)
@@ -37,13 +51,17 @@ module ActiveRecord
       attributes[name] = self[name].with_value_from_user(value)
     end
 
+    def write_cast_value(name, value)
+      attributes[name] = self[name].with_cast_value(value)
+    end
+
     def freeze
       @attributes.freeze
       super
     end
 
     def initialize_dup(_)
-      @attributes = attributes.transform_values(&:dup)
+      @attributes = attributes.deep_dup
       super
     end
 
@@ -58,10 +76,8 @@ module ActiveRecord
       end
     end
 
-    def ensure_initialized(key)
-      unless self[key].initialized?
-        write_from_database(key, nil)
-      end
+    def accessed
+      attributes.select { |_, attr| attr.has_been_read? }.keys
     end
 
     protected

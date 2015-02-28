@@ -1,5 +1,6 @@
 require "cases/helper"
 require 'models/developer'
+require 'models/computer'
 require 'models/project'
 require 'models/company'
 require 'models/customer'
@@ -78,9 +79,13 @@ class SubDeveloper < Developer
     :association_foreign_key => "developer_id"
 end
 
+class DeveloperWithSymbolClassName < Developer
+  has_and_belongs_to_many :projects, class_name: :ProjectWithSymbolsForKeys
+end
+
 class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :categories, :posts, :categories_posts, :developers, :projects, :developers_projects,
-           :parrots, :pirates, :parrots_pirates, :treasures, :price_estimates, :tags, :taggings
+           :parrots, :pirates, :parrots_pirates, :treasures, :price_estimates, :tags, :taggings, :computers
 
   def setup_data_for_habtm_case
     ActiveRecord::Base.connection.execute('delete from countries_treaties')
@@ -550,7 +555,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
 
   def test_dynamic_find_all_should_respect_readonly_access
     projects(:active_record).readonly_developers.each { |d| assert_raise(ActiveRecord::ReadOnlyRecord) { d.save!  } if d.valid?}
-    projects(:active_record).readonly_developers.each { |d| d.readonly? }
+    projects(:active_record).readonly_developers.each(&:readonly?)
   end
 
   def test_new_with_values_in_collection
@@ -882,5 +887,19 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     child = SubDeveloper.new("name" => "Aredridel")
     child.special_projects << SpecialProject.new("name" => "Special Project")
     assert child.save, 'child object should be saved'
+  end
+
+  def test_habtm_with_reflection_using_class_name_and_fixtures
+    assert_not_nil Developer._reflections['shared_computers']
+    # Checking the fixture for named association is important here, because it's the only way
+    # we've been able to reproduce this bug
+    assert_not_nil File.read(File.expand_path("../../../fixtures/developers.yml", __FILE__)).index("shared_computers")
+    assert_equal developers(:david).shared_computers.first, computers(:laptop)
+  end
+
+  def test_with_symbol_class_name
+    assert_nothing_raised NoMethodError do
+      DeveloperWithSymbolClassName.new
+    end
   end
 end

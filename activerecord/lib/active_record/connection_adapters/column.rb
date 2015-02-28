@@ -5,7 +5,6 @@ module ActiveRecord
   module ConnectionAdapters
     # An abstract definition of a column in a table.
     class Column
-      TRUE_VALUES = [true, 1, '1', 't', 'T', 'true', 'TRUE', 'on', 'ON'].to_set
       FALSE_VALUES = [false, 0, '0', 'f', 'F', 'false', 'FALSE', 'off', 'OFF'].to_set
 
       module Format
@@ -13,30 +12,22 @@ module ActiveRecord
         ISO_DATETIME = /\A(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d):(\d\d)(\.\d+)?\z/
       end
 
-      attr_reader :name, :cast_type, :null, :sql_type, :default, :default_function
+      attr_reader :name, :null, :sql_type_metadata, :default, :default_function
 
-      delegate :type, :precision, :scale, :limit, :klass, :accessor,
-        :number?, :binary?, :changed?,
-        :type_cast_from_user, :type_cast_from_database, :type_cast_for_database,
-        :type_cast_for_schema,
-        to: :cast_type
+      delegate :precision, :scale, :limit, :type, :sql_type, to: :sql_type_metadata, allow_nil: true
 
       # Instantiates a new column in the table.
       #
       # +name+ is the column's name, such as <tt>supplier_id</tt> in <tt>supplier_id int(11)</tt>.
       # +default+ is the type-casted default value, such as +new+ in <tt>sales_stage varchar(20) default 'new'</tt>.
-      # +cast_type+ is the object used for type casting and type information.
-      # +sql_type+ is used to extract the column's length, if necessary. For example +60+ in
-      # <tt>company_name varchar(60)</tt>.
-      # It will be mapped to one of the standard Rails SQL types in the <tt>type</tt> attribute.
+      # +sql_type_metadata+ is various information about the type of the column
       # +null+ determines if this column allows +NULL+ values.
-      def initialize(name, default, cast_type, sql_type = nil, null = true)
-        @name             = name
-        @cast_type        = cast_type
-        @sql_type         = sql_type
-        @null             = null
-        @default          = default
-        @default_function = nil
+      def initialize(name, default, sql_type_metadata = nil, null = true, default_function = nil)
+        @name = name
+        @sql_type_metadata = sql_type_metadata
+        @null = null
+        @default = default
+        @default_function = default_function
       end
 
       def has_default?
@@ -51,10 +42,26 @@ module ActiveRecord
         Base.human_attribute_name(@name)
       end
 
-      def with_type(type)
-        dup.tap do |clone|
-          clone.instance_variable_set('@cast_type', type)
-        end
+      def ==(other)
+        other.is_a?(Column) &&
+          attributes_for_hash == other.attributes_for_hash
+      end
+      alias :eql? :==
+
+      def hash
+        attributes_for_hash.hash
+      end
+
+      protected
+
+      def attributes_for_hash
+        [self.class, name, default, sql_type_metadata, null, default_function]
+      end
+    end
+
+    class NullColumn < Column
+      def initialize(name)
+        super(name, nil)
       end
     end
   end

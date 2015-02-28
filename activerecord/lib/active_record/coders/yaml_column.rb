@@ -8,6 +8,7 @@ module ActiveRecord
 
       def initialize(object_class = Object)
         @object_class = object_class
+        check_arity_of_constructor
       end
 
       def dump(obj)
@@ -32,6 +33,16 @@ module ActiveRecord
         obj ||= object_class.new if object_class != Object
 
         obj
+      end
+
+      private
+
+      def check_arity_of_constructor
+        begin
+          load(nil)
+        rescue ArgumentError
+          raise ArgumentError, "Cannot serialize #{object_class}. Classes passed to `serialize` must have a 0 argument constructor."
+        end
       end
     end
   end

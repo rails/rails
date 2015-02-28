@@ -1,3 +1,5 @@
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+
 Action View Overview
 ====================
 
@@ -7,7 +9,6 @@ After reading this guide, you will know:
 * How best to use templates, partials, and layouts.
 * What helpers are provided by Action View and how to make your own.
 * How to use localized views.
-* How to use Action View outside of Rails.
 
 --------------------------------------------------------------------------------
 
@@ -189,6 +190,22 @@ One way to use partials is to treat them as the equivalent of subroutines; a way
 
 Here, the `_ad_banner.html.erb` and `_footer.html.erb` partials could contain content that is shared among many pages in your application. You don't need to see the details of these sections when you're concentrating on a particular page.
 
+#### `render` without `partial` and `locals` options
+
+In the above example, `render` takes 2 options: `partial` and `locals`. But if
+these are the only options you want to pass, you can skip using these options.
+For example, instead of:
+
+```erb
+<%= render partial: "product", locals: {product: @product} %>
+```
+
+You can also do:
+
+```erb
+<%= render "product", product: @product %>
+```
+
 #### The `as` and `object` options
 
 By default `ActionView::Partials::PartialRenderer` has its object in a local variable with the same name as the template. So, given:
@@ -347,83 +364,6 @@ Overview of helpers provided by Action View
 WIP: Not all the helpers are listed here. For a full list see the [API documentation](http://api.rubyonrails.org/classes/ActionView/Helpers.html)
 
 The following is only a brief overview summary of the helpers available in Action View. It's recommended that you review the [API Documentation](http://api.rubyonrails.org/classes/ActionView/Helpers.html), which covers all of the helpers in more detail, but this should serve as a good starting point.
-
-### RecordTagHelper
-
-This module provides methods for generating container tags, such as `div`, for your record. This is the recommended way of creating a container for render your Active Record object, as it adds an appropriate class and id attributes to that container. You can then refer to those containers easily by following the convention, instead of having to think about which class or id attribute you should use.
-
-#### content_tag_for
-
-Renders a container tag that relates to your Active Record Object.
-
-For example, given `@article` is the object of `Article` class, you can do:
-
-```html+erb
-<%= content_tag_for(:tr, @article) do %>
-  <td><%= @article.title %></td>
-<% end %>
-```
-
-This will generate this HTML output:
-
-```html
-<tr id="article_1234" class="article">
-  <td>Hello World!</td>
-</tr>
-```
-
-You can also supply HTML attributes as an additional option hash. For example:
-
-```html+erb
-<%= content_tag_for(:tr, @article, class: "frontpage") do %>
-  <td><%= @article.title %></td>
-<% end %>
-```
-
-Will generate this HTML output:
-
-```html
-<tr id="article_1234" class="article frontpage">
-  <td>Hello World!</td>
-</tr>
-```
-
-You can pass a collection of Active Record objects. This method will loop through your objects and create a container for each of them. For example, given `@articles` is an array of two `Article` objects:
-
-```html+erb
-<%= content_tag_for(:tr, @articles) do |article| %>
-  <td><%= article.title %></td>
-<% end %>
-```
-
-Will generate this HTML output:
-
-```html
-<tr id="article_1234" class="article">
-  <td>Hello World!</td>
-</tr>
-<tr id="article_1235" class="article">
-  <td>Ruby on Rails Rocks!</td>
-</tr>
-```
-
-#### div_for
-
-This is actually a convenient method which calls `content_tag_for` internally with `:div` as the tag name. You can pass either an Active Record object or a collection of objects. For example:
-
-```html+erb
-<%= div_for(@article, class: "frontpage") do %>
-  <td><%= @article.title %></td>
-<% end %>
-```
-
-Will generate this HTML output:
-
-```html
-<div id="article_1234" class="article frontpage">
-  <td>Hello World!</td>
-</div>
-```
 
 ### AssetTagHelper
 
@@ -1600,7 +1540,7 @@ details can be found in the [Rails Security Guide](security.html#cross-site-requ
 Localized Views
 ---------------
 
-Action View has the ability render different templates depending on the current locale.
+Action View has the ability to render different templates depending on the current locale.
 
 For example, suppose you have a `ArticlesController` with a show action. By default, calling this action will render `app/views/articles/show.html.erb`. But if you set `I18n.locale = :de`, then `app/views/articles/show.de.html.erb` will be rendered instead. If the localized template isn't present, the undecorated version will be used. This means you're not required to provide localized views for all cases, but they will be preferred and used if available.
 

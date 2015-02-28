@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 require 'isolation/abstract_unit'
 require 'rack/test'
 require 'active_support/json'
@@ -225,7 +224,7 @@ module ApplicationTests
 
     test "assets do not require any assets group gem when manifest file is present" do
       app_file "app/assets/javascripts/application.js", "alert();"
-      add_to_env_config "production", "config.serve_static_assets = true"
+      add_to_env_config "production", "config.serve_static_files = true"
 
       ENV["RAILS_ENV"] = "production"
       precompile!

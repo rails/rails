@@ -8,17 +8,18 @@ module ActionDispatch
       attr_accessor :scope, :routes
       alias :_routes :routes
 
-      def initialize(routes, scope)
+      def initialize(routes, scope, helpers)
         @routes, @scope = routes, scope
         @controller = Class.new {
           attr_reader :context
-          def initialize(context, routes)
+          def initialize(context, routes, helpers)
             @context = context
             @_routes = routes
+            @helpers = helpers
           end
 
           include routes.url_helpers
-        }.new(scope_context, routes)
+        }.new(scope_context, routes, helpers)
       end
 
       def url_options
@@ -34,11 +35,11 @@ module ActionDispatch
       end
 
       def respond_to?(method, include_private = false)
-        super || routes.url_helpers.respond_to?(method)
+        super || @controller.respond_to?(method)
       end
 
       def method_missing(method, *args)
-        if routes.url_helpers.respond_to?(method)
+        if @controller.respond_to?(method)
           self.class.class_eval <<-RUBY, __FILE__, __LINE__ + 1
             def #{method}(*args)
               options = args.extract_options!

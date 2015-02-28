@@ -63,14 +63,6 @@ class LogSubscriberTest < ActiveRecord::TestCase
     assert_match(/ruby   rails/, logger.debugs.first)
   end
 
-  def test_ignore_binds_payload_with_nil_column
-    event = Struct.new(:duration, :payload)
-
-    logger = TestDebugLogSubscriber.new
-    logger.sql(event.new(0, sql: 'hi mom!', binds: [[nil, 1]]))
-    assert_equal 1, logger.debugs.length
-  end
-
   def test_basic_query_logging
     Developer.all.load
     wait
@@ -124,13 +116,6 @@ class LogSubscriberTest < ActiveRecord::TestCase
       Binary.create(data: 'some binary data')
       wait
       assert_match(/<16 bytes of binary data>/, @logger.logged(:debug).join)
-    end
-
-    def test_nil_binary_data_is_logged
-      binary = Binary.create(data: "")
-      binary.update_attributes(data: nil)
-      wait
-      assert_match(/<NULL binary data>/, @logger.logged(:debug).join)
     end
   end
 end

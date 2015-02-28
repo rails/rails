@@ -3,14 +3,11 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     module ClassMethods
-      def quote_value(value, column) #:nodoc:
-        connection.quote(value, column)
-      end
-
       # Used to sanitize objects before they're used in an SQL SELECT statement. Delegates to <tt>connection.quote</tt>.
       def sanitize(object) #:nodoc:
         connection.quote(object)
       end
+      alias_method :quote_value, :sanitize
 
       protected
 
@@ -72,38 +69,14 @@ module ActiveRecord
         expanded_attrs
       end
 
-      # Sanitizes a hash of attribute/value pairs into SQL conditions for a WHERE clause.
-      #   { name: "foo'bar", group_id: 4 }
-      #     # => "name='foo''bar' and group_id= 4"
-      #   { status: nil, group_id: [1,2,3] }
-      #     # => "status IS NULL and group_id IN (1,2,3)"
-      #   { age: 13..18 }
-      #     # => "age BETWEEN 13 AND 18"
-      #   { 'other_records.id' => 7 }
-      #     # => "`other_records`.`id` = 7"
-      #   { other_records: { id: 7 } }
-      #     # => "`other_records`.`id` = 7"
-      # And for value objects on a composed_of relationship:
-      #   { address: Address.new("123 abc st.", "chicago") }
-      #     # => "address_street='123 abc st.' and address_city='chicago'"
-      def sanitize_sql_hash_for_conditions(attrs, default_table_name = self.table_name)
-        attrs = PredicateBuilder.resolve_column_aliases self, attrs
-        attrs = expand_hash_conditions_for_aggregates(attrs)
-
-        table = Arel::Table.new(table_name, arel_engine).alias(default_table_name)
-        PredicateBuilder.build_from_hash(self, attrs, table).map { |b|
-          connection.visitor.compile b
-        }.join(' AND ')
-      end
-      alias_method :sanitize_sql_hash, :sanitize_sql_hash_for_conditions
-
       # Sanitizes a hash of attribute/value pairs into SQL conditions for a SET clause.
       #   { status: nil, group_id: 1 }
       #     # => "status = NULL , group_id = 1"
       def sanitize_sql_hash_for_assignment(attrs, table)
         c = connection
         attrs.map do |attr, value|
-          "#{c.quote_table_name_for_assignment(table, attr)} = #{quote_bound_value(value, c, columns_hash[attr.to_s])}"
+          value = type_for_attribute(attr.to_s).serialize(value)
+          "#{c.quote_table_name_for_assignment(table, attr)} = #{c.quote(value)}"
         end.join(', ')
       end
 
@@ -134,7 +107,7 @@ module ActiveRecord
         raise_if_bind_arity_mismatch(statement, statement.count('?'), values.size)
         bound = values.dup
         c = connection
-        statement.gsub('?') do
+        statement.gsub(/\?/) do
           replace_bind_variable(bound.shift, c)
         end
       end
@@ -159,10 +132,8 @@ module ActiveRecord
         end
       end
 
-      def quote_bound_value(value, c = connection, column = nil) #:nodoc:
-        if column
-          c.quote(value, column)
-        elsif value.respond_to?(:map) && !value.acts_like?(:string)
+      def quote_bound_value(value, c = connection) #:nodoc:
+        if value.respond_to?(:map) && !value.acts_like?(:string)
           if value.respond_to?(:empty?) && value.empty?
             c.quote(nil)
           else
@@ -182,7 +153,7 @@ module ActiveRecord
 
     # TODO: Deprecate this
     def quoted_id
-      self.class.quote_value(id, column_for_attribute(self.class.primary_key))
+      self.class.quote_value(@attributes[self.class.primary_key].value_for_database)
     end
   end
 end

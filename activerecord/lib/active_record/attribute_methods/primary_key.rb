@@ -17,7 +17,7 @@ module ActiveRecord
       def id
         if pk = self.class.primary_key
           sync_with_transaction_state
-          read_attribute(pk)
+          _read_attribute(pk)
         end
       end
 
@@ -120,6 +120,7 @@ module ActiveRecord
         def primary_key=(value)
           @primary_key        = value && value.to_s
           @quoted_primary_key = nil
+          @attributes_builder = nil
         end
       end
     end

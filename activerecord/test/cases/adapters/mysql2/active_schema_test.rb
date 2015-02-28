@@ -92,7 +92,7 @@ class ActiveSchemaTest < ActiveRecord::TestCase
     with_real_execute do
       begin
         ActiveRecord::Base.connection.create_table :delete_me
-        ActiveRecord::Base.connection.add_timestamps :delete_me
+        ActiveRecord::Base.connection.add_timestamps :delete_me, null: true
         assert column_present?('delete_me', 'updated_at', 'datetime')
         assert column_present?('delete_me', 'created_at', 'datetime')
       ensure
@@ -107,7 +107,7 @@ class ActiveSchemaTest < ActiveRecord::TestCase
         ActiveRecord::Base.connection.create_table :delete_me do |t|
           t.timestamps null: true
         end
-        ActiveRecord::Base.connection.remove_timestamps :delete_me
+        ActiveRecord::Base.connection.remove_timestamps :delete_me, { null: true }
         assert !column_present?('delete_me', 'updated_at', 'datetime')
         assert !column_present?('delete_me', 'created_at', 'datetime')
       ensure

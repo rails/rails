@@ -75,7 +75,7 @@ module ActiveJob
       def perform(event)
         info do
           job = event.payload[:job]
-          "Performed #{job.class.name} from #{queue_name(event)} in #{event.duration.round(2).to_s}ms"
+          "Performed #{job.class.name} from #{queue_name(event)} in #{event.duration.round(2)}ms"
         end
       end
 
@@ -85,7 +85,12 @@ module ActiveJob
         end
 
         def args_info(job)
-          job.arguments.any? ? " with arguments: #{job.arguments.map(&:inspect).join(", ")}" : ""
+          if job.arguments.any?
+            ' with arguments: ' +
+              job.arguments.map { |arg| arg.try(:to_global_id).try(:to_s) || arg.inspect }.join(', ')
+          else
+            ''
+          end
         end
 
         def scheduled_at(event)

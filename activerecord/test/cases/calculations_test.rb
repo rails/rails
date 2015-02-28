@@ -10,13 +10,14 @@ require 'models/reply'
 require 'models/minivan'
 require 'models/speedometer'
 require 'models/ship_part'
+require 'models/treasure'
 
 class NumericData < ActiveRecord::Base
   self.table_name = 'numeric_data'
 
-  attribute :world_population, Type::Integer.new
-  attribute :my_house_population, Type::Integer.new
-  attribute :atoms_in_universe, Type::Integer.new
+  attribute :world_population, :integer
+  attribute :my_house_population, :integer
+  attribute :atoms_in_universe, :integer
 end
 
 class CalculationsTest < ActiveRecord::TestCase
@@ -461,7 +462,6 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 7, Company.includes(:contracts).sum(:developer_id)
   end
 
-
   def test_from_option_with_specified_index
     if Edge.connection.adapter_name == 'MySQL' or Edge.connection.adapter_name == 'Mysql2'
       assert_equal Edge.count(:all), Edge.from('edges USE INDEX(unique_edge_index)').count(:all)
@@ -609,5 +609,31 @@ class CalculationsTest < ActiveRecord::TestCase
     actual = Topic.joins(:replies)
       .pluck('topics.title', 'replies_topics.title')
     assert_equal expected, actual
+  end
+
+  def test_calculation_with_polymorphic_relation
+    part = ShipPart.create!(name: "has trinket")
+    part.trinkets.create!
+
+    assert_equal part.id, ShipPart.joins(:trinkets).sum(:id)
+  end
+
+  def test_pluck_joined_with_polymorphic_relation
+    part = ShipPart.create!(name: "has trinket")
+    part.trinkets.create!
+
+    assert_equal [part.id], ShipPart.joins(:trinkets).pluck(:id)
+  end
+
+  def test_grouped_calculation_with_polymorphic_relation
+    part = ShipPart.create!(name: "has trinket")
+    part.trinkets.create!
+
+    assert_equal({ "has trinket" => part.id }, ShipPart.joins(:trinkets).group("ship_parts.name").sum(:id))
+  end
+
+  def test_calculation_grouped_by_association_doesnt_error_when_no_records_have_association
+    Client.update_all(client_of: nil)
+    assert_equal({ nil => Client.count }, Client.group(:firm).count)
   end
 end

@@ -6,7 +6,7 @@ require 'active_support/core_ext/string/starts_ends_with'
 module Mime
   class Mimes < Array
     def symbols
-      @symbols ||= map { |m| m.to_sym }
+      @symbols ||= map(&:to_sym)
     end
 
     %w(<< concat shift unshift push pop []= clear compact! collect!
@@ -45,7 +45,7 @@ module Mime
   #
   #       respond_to do |format|
   #         format.html
-  #         format.ics { render text: @post.to_ics, mime_type: Mime::Type["text/calendar"]  }
+  #         format.ics { render text: @post.to_ics, mime_type: Mime::Type.lookup("text/calendar")  }
   #         format.xml { render xml: @post }
   #       end
   #     end

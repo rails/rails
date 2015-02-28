@@ -3,28 +3,23 @@ require 'rails/test_unit/sub_test_task'
 
 task default: :test
 
-desc 'Runs test:units, test:functionals, test:generators, test:integration, test:jobs together'
+desc "Runs all tests in test folder"
 task :test do
   Rails::TestTask.test_creator(Rake.application.top_level_tasks).invoke_rake_task
 end
 
 namespace :test do
   task :prepare do
-    # Placeholder task for other Railtie and plugins to enhance. See Active Record for an example.
+    # Placeholder task for other Railtie and plugins to enhance.
+    # If used with Active Record, this task runs before the database schema is synchronized.
   end
 
-  task :run => ['test:units', 'test:functionals', 'test:generators', 'test:integration', 'test:jobs']
-
-  # Inspired by: http://ngauthier.com/2012/02/quick-tests-with-bash.html
-  desc "Run tests quickly by merging all types and not resetting db"
-  Rails::TestTask.new(:all) do |t|
+  Rails::TestTask.new(:run) do |t|
     t.pattern = "test/**/*_test.rb"
   end
 
-  namespace :all do
-    desc "Run tests quickly, but also reset db"
-    task :db => %w[db:test:prepare test:all]
-  end
+  desc "Run tests quickly, but also reset db"
+  task :db => %w[db:test:prepare test]
 
   Rails::TestTask.new(single: "test:prepare")
 

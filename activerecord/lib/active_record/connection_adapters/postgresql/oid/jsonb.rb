@@ -13,7 +13,7 @@ module ActiveRecord
             # the comparison here. Therefore, we need to parse and re-dump the
             # raw value here to ensure the insignificant whitespaces are
             # consistent with our encoder's output.
-            raw_old_value = type_cast_for_database(type_cast_from_database(raw_old_value))
+            raw_old_value = serialize(deserialize(raw_old_value))
             super(raw_old_value, new_value)
           end
         end

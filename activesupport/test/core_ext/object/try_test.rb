@@ -30,10 +30,6 @@ class ObjectTryTest < ActiveSupport::TestCase
     assert_raise(NoMethodError) { @string.try!(method, 'llo', 'y') }
   end
 
-  def test_try_only_block_bang
-    assert_equal @string.reverse, @string.try! { |s| s.reverse }
-  end
-
   def test_valid_method
     assert_equal 5, @string.try(:size)
   end
@@ -56,7 +52,11 @@ class ObjectTryTest < ActiveSupport::TestCase
   end
 
   def test_try_only_block
-    assert_equal @string.reverse, @string.try { |s| s.reverse }
+    assert_equal @string.reverse, @string.try(&:reverse)
+  end
+
+  def test_try_only_block_bang
+    assert_equal @string.reverse, @string.try!(&:reverse)
   end
 
   def test_try_only_block_nil
@@ -67,6 +67,10 @@ class ObjectTryTest < ActiveSupport::TestCase
 
   def test_try_with_instance_eval_block
     assert_equal @string.reverse, @string.try { reverse }
+  end
+
+  def test_try_with_instance_eval_block_bang
+    assert_equal @string.reverse, @string.try! { reverse }
   end
 
   def test_try_with_private_method_bang

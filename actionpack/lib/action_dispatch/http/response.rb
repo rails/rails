@@ -1,5 +1,4 @@
 require 'active_support/core_ext/module/attribute_accessors'
-require 'active_support/deprecation'
 require 'action_dispatch/http/filter_redirect'
 require 'monitor'
 
@@ -114,10 +113,10 @@ module ActionDispatch # :nodoc:
     # The underlying body, as a streamable object.
     attr_reader :stream
 
-    def initialize(status = 200, header = {}, body = [])
+    def initialize(status = 200, header = {}, body = [], default_headers: self.class.default_headers)
       super()
 
-      header = merge_default_headers(header, self.class.default_headers)
+      header = merge_default_headers(header, default_headers)
 
       self.body, self.header, self.status = body, header, status
 
@@ -283,15 +282,6 @@ module ActionDispatch # :nodoc:
     end
     alias prepare! to_a
 
-    # Be super clear that a response object is not an Array. Defining this
-    # would make implicit splatting work, but it also makes adding responses
-    # as arrays work, and "flattening" responses, cascading to the rack body!
-    # Not sensible behavior.
-    def to_ary
-      ActiveSupport::Deprecation.warn 'ActionDispatch::Response#to_ary no longer performs implicit conversion to an Array. Please use response.to_a instead, or a splat like `status, headers, body = *response`'
-      to_a
-    end
-
     # Returns the response cookies, converted to a Hash of (name => value) pairs
     #
     #   assert_equal 'AuthorOfNewPage', r.cookies['author']
@@ -318,9 +308,7 @@ module ActionDispatch # :nodoc:
     end
 
     def merge_default_headers(original, default)
-      return original unless default.respond_to?(:merge)
-
-      default.merge(original)
+      default.respond_to?(:merge) ? default.merge(original) : original
     end
 
     def build_buffer(response, body)

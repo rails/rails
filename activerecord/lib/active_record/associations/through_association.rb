@@ -18,7 +18,7 @@ module ActiveRecord
 
             reflection_scope = reflection.scope
             if reflection_scope && reflection_scope.arity.zero?
-              relation.merge!(reflection_scope)
+              relation = relation.merge(reflection_scope)
             end
 
             scope.merge!(
@@ -90,6 +90,17 @@ module ActiveRecord
           if reflection.nested?
             raise HasManyThroughNestedAssociationsAreReadonly.new(owner, reflection)
           end
+        end
+
+        def build_record(attributes)
+          inverse = source_reflection.inverse_of
+          target = through_association.target
+
+          if inverse && target && !target.is_a?(Array)
+            attributes[inverse.foreign_key] = target.id
+          end
+
+          super(attributes)
         end
     end
   end

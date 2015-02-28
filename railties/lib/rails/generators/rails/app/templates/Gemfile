@@ -22,25 +22,28 @@ source 'https://rubygems.org'
 # gem 'capistrano-rails', group: :development
 
 group :development, :test do
-<% unless defined?(JRUBY_VERSION) -%>
-  <%- if RUBY_VERSION < '2.0.0' -%>
-  # Call 'debugger' anywhere in the code to stop execution and get a debugger console
-  gem 'debugger'
-  <%- else -%>
+<% if RUBY_ENGINE == 'ruby' -%>
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
   gem 'byebug'
-  <%- end -%>
 
   # Access an IRB console on exception pages or by using <%%= console %> in views
-  gem 'web-console', '~> 2.0.0.beta4'
+  <%- if options.dev? || options.edge? -%>
+  gem 'web-console', github: "rails/web-console"
+  <%- else -%>
+  gem 'web-console', '~> 2.0'
+  <%- end -%>
 <%- if spring_install? %>
   # Spring speeds up development by keeping your application running in the background. Read more: https://github.com/rails/spring
   gem 'spring'
 <% end -%>
+
+  # Adds `Method#source` and `Method#comment` to get the source code of a
+  # method from the console
+  gem 'method_source'
 <% end -%>
 end
+<% if RUBY_PLATFORM.match(/bccwin|cygwin|emx|mingw|mswin|wince|java/) -%>
 
-<% if RUBY_PLATFORM.match(/bccwin|cygwin|emx|mingw|mswin|wince/) -%>
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
-gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw]
+gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]
 <% end -%>

@@ -1,4 +1,3 @@
-# encoding: utf-8
 require "cases/helper"
 require 'support/ddl_helper'
 require 'support/connection_helper'
@@ -50,6 +49,12 @@ module ActiveRecord
 
       def test_primary_key_returns_nil_for_no_pk
         with_example_table 'id integer' do
+          assert_nil @connection.primary_key('ex')
+        end
+      end
+
+      def test_composite_primary_key
+        with_example_table 'id serial, number serial, PRIMARY KEY (id, number)' do
           assert_nil @connection.primary_key('ex')
         end
       end
@@ -222,8 +227,8 @@ module ActiveRecord
           "DELETE FROM pg_depend WHERE objid = 'ex2_id_seq'::regclass AND refobjid = 'ex'::regclass AND deptype = 'a'"
         )
       ensure
-        @connection.exec_query('DROP TABLE IF EXISTS ex')
-        @connection.exec_query('DROP TABLE IF EXISTS ex2')
+        @connection.drop_table 'ex', if_exists: true
+        @connection.drop_table 'ex2', if_exists: true
       end
 
       def test_exec_insert_number
@@ -278,7 +283,7 @@ module ActiveRecord
           string = @connection.quote('foo')
           @connection.exec_query("INSERT INTO ex (id, data) VALUES (1, #{string})")
           result = @connection.exec_query(
-                                          'SELECT id, data FROM ex WHERE id = $1', nil, [[nil, 1]])
+                                          'SELECT id, data FROM ex WHERE id = $1', nil, [bind_param(1)])
 
           assert_equal 1, result.rows.length
           assert_equal 2, result.columns.length
@@ -292,9 +297,9 @@ module ActiveRecord
           string = @connection.quote('foo')
           @connection.exec_query("INSERT INTO ex (id, data) VALUES (1, #{string})")
 
-          column = @connection.columns('ex').find { |col| col.name == 'id' }
+          bind = ActiveRecord::Relation::QueryAttribute.new("id", "1-fuu", ActiveRecord::Type::Integer.new)
           result = @connection.exec_query(
-                                          'SELECT id, data FROM ex WHERE id = $1', nil, [[column, '1-fuu']])
+                                          'SELECT id, data FROM ex WHERE id = $1', nil, [bind])
 
           assert_equal 1, result.rows.length
           assert_equal 2, result.columns.length
@@ -304,11 +309,8 @@ module ActiveRecord
       end
 
       def test_substitute_at
-        bind = @connection.substitute_at(nil, 0)
-        assert_equal Arel.sql('$1'), bind
-
-        bind = @connection.substitute_at(nil, 1)
-        assert_equal Arel.sql('$2'), bind
+        bind = @connection.substitute_at(nil)
+        assert_equal Arel.sql('$1'), bind.to_sql
       end
 
       def test_partial_index
@@ -434,10 +436,10 @@ module ActiveRecord
 
       private
       def insert(ctx, data)
-        binds   = data.map { |name, value|
-          [ctx.columns('ex').find { |x| x.name == name }, value]
+        binds = data.map { |name, value|
+          bind_param(value, name)
         }
-        columns = binds.map(&:first).map(&:name)
+        columns = binds.map(&:name)
 
         bind_subs = columns.length.times.map { |x| "$#{x + 1}" }
 
@@ -453,6 +455,10 @@ module ActiveRecord
 
       def connection_without_insert_returning
         ActiveRecord::Base.postgresql_connection(ActiveRecord::Base.configurations['arunit'].merge(:insert_returning => false))
+      end
+
+      def bind_param(value, name = nil)
+        ActiveRecord::Relation::QueryAttribute.new(name, value, ActiveRecord::Type::Value.new)
       end
     end
   end

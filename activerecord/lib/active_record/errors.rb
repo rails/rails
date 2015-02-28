@@ -52,10 +52,29 @@ module ActiveRecord
   # Raised by ActiveRecord::Base.save! and ActiveRecord::Base.create! methods when record cannot be
   # saved because record is invalid.
   class RecordNotSaved < ActiveRecordError
+    attr_reader :record
+
+    def initialize(message, record = nil)
+      @record = record
+      super(message)
+    end
   end
 
   # Raised by ActiveRecord::Base.destroy! when a call to destroy would return false.
+  #
+  #   begin
+  #     complex_operation_that_internally_calls_destroy!
+  #   rescue ActiveRecord::RecordNotDestroyed => invalid
+  #     puts invalid.record.errors
+  #   end
+  #
   class RecordNotDestroyed < ActiveRecordError
+    attr_reader :record
+
+    def initialize(record)
+      @record = record
+      super()
+    end
   end
 
   # Superclass for all database execution errors.
@@ -159,24 +178,17 @@ module ActiveRecord
   class DangerousAttributeError < ActiveRecordError
   end
 
-  # Raised when unknown attributes are supplied via mass assignment.
-  class UnknownAttributeError < NoMethodError
-
-    attr_reader :record, :attribute
-
-    def initialize(record, attribute)
-      @record = record
-      @attribute = attribute.to_s
-      super("unknown attribute '#{attribute}' for #{@record.class}.")
-    end
-
-  end
+  UnknownAttributeError = ActiveSupport::Deprecation::DeprecatedConstantProxy.new( # :nodoc:
+    'ActiveRecord::UnknownAttributeError', 
+    'ActiveModel::AttributeAssignment::UnknownAttributeError'
+  )
 
   # Raised when an error occurred while doing a mass assignment to an attribute through the
   # +attributes=+ method. The exception has an +attribute+ property that is the name of the
   # offending attribute.
   class AttributeAssignmentError < ActiveRecordError
     attr_reader :exception, :attribute
+
     def initialize(message, exception, attribute)
       super(message)
       @exception = exception
@@ -189,6 +201,7 @@ module ActiveRecord
   # objects, each corresponding to the error while assigning to an attribute.
   class MultiparameterAssignmentErrors < ActiveRecordError
     attr_reader :errors
+
     def initialize(errors)
       @errors = errors
     end

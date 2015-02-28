@@ -1,27 +1,13 @@
-* Change Posts to Articles in Getting Started sample application in order to
-better align with the actual guides.
+*   New section in Active Record Association Basics: Single Table Inheritance
 
-    *John Kelly Ferguson*
+    *Andrey Nering*
 
-* Update all Rails 4.1.0 references to 4.1.1 within the guides and code.
+*   New section in Active Record Querying: Understanding The Method Chaining
 
-    *John Kelly Ferguson*
+    *Andrey Nering*
 
-* Split up rows in the Explain Queries table of the ActiveRecord Querying section
-in order to improve readability.
+*   New section in Configuring: Search Engines Indexing
 
-    *John Kelly Ferguson*
+    *Andrey Nering*
 
-*   Change all non-HTTP method 'post' references to 'article'.
-
-    *John Kelly Ferguson*
-
-*   Updates the maintenance policy to match the latest versions of Rails
-
-    *Matias Korhonen*
-
-*   Switched the order of `Applying a default scope` and `Merging of scopes` subsections so default scopes are introduced first.
-
-    *Alex Riabov*
-
-Please check [4-1-stable](https://github.com/rails/rails/blob/4-1-stable/guides/CHANGELOG.md) for previous changes.
+Please check [4-2-stable](https://github.com/rails/rails/blob/4-2-stable/guides/CHANGELOG.md) for previous changes.

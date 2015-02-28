@@ -2,6 +2,7 @@ module ActiveRecord
   # = Active Record Belongs To Has One Association
   module Associations
     class HasOneAssociation < SingularAssociation #:nodoc:
+      include ForeignAssociation
 
       def handle_dependency
         case options[:dependent]
@@ -12,7 +13,7 @@ module ActiveRecord
           if load_target
             record = klass.human_attribute_name(reflection.name).downcase
             owner.errors.add(:base, :"restrict_dependent_destroy.one", record: record)
-            false
+            throw(:abort)
           end
 
         else

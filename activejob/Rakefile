@@ -1,7 +1,7 @@
 require 'rake/testtask'
 require 'rubygems/package_task'
 
-ACTIVEJOB_ADAPTERS = %w(inline delayed_job qu que queue_classic resque sidekiq sneakers sucker_punch backburner)
+ACTIVEJOB_ADAPTERS = %w(inline delayed_job qu que queue_classic resque sidekiq sneakers sucker_punch backburner test)
 ACTIVEJOB_ADAPTERS -= %w(queue_classic) if defined?(JRUBY_VERSION)
 
 task default: :test
@@ -20,7 +20,7 @@ namespace :test do
 
   desc 'Run integration tests for all adapters'
   task :integration do
-    run_without_aborting ACTIVEJOB_ADAPTERS.map { |a| "test:integration:#{a}" }
+    run_without_aborting (ACTIVEJOB_ADAPTERS - ['test']).map { |a| "test:integration:#{a}" }
   end
 
   task 'env:integration' do
@@ -28,7 +28,7 @@ namespace :test do
   end
 
   ACTIVEJOB_ADAPTERS.each do |adapter|
-    task("env:#{adapter}") { ENV['AJADAPTER'] = adapter }
+    task("env:#{adapter}") { ENV['AJ_ADAPTER'] = adapter }
 
     Rake::TestTask.new(adapter => "test:env:#{adapter}") do |t|
       t.description = "Run adapter tests for #{adapter}"

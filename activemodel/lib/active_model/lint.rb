@@ -21,28 +21,27 @@ module ActiveModel
     # +self+.
     module Tests
 
-      # == Responds to <tt>to_key</tt>
+      # Passes if the object's model responds to <tt>to_key</tt> and if calling
+      # this method returns +nil+ when the object is not persisted.
+      # Fails otherwise.
       #
-      # Returns an Enumerable of all (primary) key attributes
-      # or nil if <tt>model.persisted?</tt> is false. This is used by
-      # <tt>dom_id</tt> to generate unique ids for the object.
+      # <tt>to_key</tt> returns an Enumerable of all (primary) key attributes
+      # of the model, and is used to a generate unique DOM id for the object.
       def test_to_key
         assert model.respond_to?(:to_key), "The model should respond to to_key"
         def model.persisted?() false end
         assert model.to_key.nil?, "to_key should return nil when `persisted?` returns false"
       end
 
-      # == Responds to <tt>to_param</tt>
+      # Passes if the object's model responds to <tt>to_param</tt> and if
+      # calling this method returns +nil+ when the object is not persisted.
+      # Fails otherwise.
       #
-      # Returns a string representing the object's key suitable for use in URLs
-      # or +nil+ if <tt>model.persisted?</tt> is +false+.
-      #
+      # <tt>to_param</tt> is used to represent the object's key in URLs.
       # Implementers can decide to either raise an exception or provide a
       # default in case the record uses a composite primary key. There are no
       # tests for this behavior in lint because it doesn't make sense to force
       # any of the possible implementation strategies on the implementer.
-      # However, if the resource is not persisted?, then <tt>to_param</tt>
-      # should always return +nil+.
       def test_to_param
         assert model.respond_to?(:to_param), "The model should respond to to_param"
         def model.to_key() [1] end
@@ -50,32 +49,34 @@ module ActiveModel
         assert model.to_param.nil?, "to_param should return nil when `persisted?` returns false"
       end
 
-      # == Responds to <tt>to_partial_path</tt>
+      # Passes if the object's model responds to <tt>to_partial_path</tt> and if
+      # calling this method returns a string. Fails otherwise.
       #
-      # Returns a string giving a relative path. This is used for looking up
-      # partials. For example, a BlogPost model might return "blog_posts/blog_post"
+      # <tt>to_partial_path</tt> is used for looking up partials. For example,
+      # a BlogPost model might return "blog_posts/blog_post".
       def test_to_partial_path
         assert model.respond_to?(:to_partial_path), "The model should respond to to_partial_path"
         assert_kind_of String, model.to_partial_path
       end
 
-      # == Responds to <tt>persisted?</tt>
+      # Passes if the object's model responds to <tt>persisted?</tt> and if
+      # calling this method returns either +true+ or +false+. Fails otherwise.
       #
-      # Returns a boolean that specifies whether the object has been persisted
-      # yet. This is used when calculating the URL for an object. If the object
-      # is not persisted, a form for that object, for instance, will route to
-      # the create action. If it is persisted, a form for the object will routes
-      # to the update action.
+      # <tt>persisted?</tt> is used when calculating the URL for an object.
+      # If the object is not persisted, a form for that object, for instance,
+      # will route to the create action. If it is persisted, a form for the
+      # object will route to the update action.
       def test_persisted?
         assert model.respond_to?(:persisted?), "The model should respond to persisted?"
         assert_boolean model.persisted?, "persisted?"
       end
 
-      # == \Naming
+      # Passes if the object's model responds to <tt>model_name</tt> both as
+      # an instance method and as a class method, and if calling this method
+      # returns a string with some convenience methods: <tt>:human</tt>,
+      # <tt>:singular</tt> and <tt>:plural</tt>.
       #
-      # Model.model_name and Model#model_name must return a string with some
-      # convenience methods: # <tt>:human</tt>, <tt>:singular</tt> and
-      # <tt>:plural</tt>. Check ActiveModel::Naming for more information.
+      # Check ActiveModel::Naming for more information.
       def test_model_naming
         assert model.class.respond_to?(:model_name), "The model class should respond to model_name"
         model_name = model.class.model_name
@@ -88,12 +89,15 @@ module ActiveModel
         assert_equal model.model_name, model.class.model_name
       end
 
-      # == \Errors Testing
+      # Passes if the object's model responds to <tt>errors</tt> and if calling
+      # <tt>[](attribute)</tt> on the result of this method returns an array.
+      # Fails otherwise.
       #
-      # Returns an object that implements [](attribute) defined which returns an
-      # Array of Strings that are the errors for the attribute in question.
-      # If localization is used, the Strings should be localized for the current
-      # locale. If no error is present, this method should return an empty Array.
+      # <tt>errors[attribute]</tt> is used to retrieve the errors of a model
+      # for a given attribute. If errors are present, the method should return
+      # an array of strings that are the errors for the attribute in question.
+      # If localization is used, the strings should be localized for the current
+      # locale. If no error is present, the method should return an empty array.
       def test_errors_aref
         assert model.respond_to?(:errors), "The model should respond to errors"
         assert model.errors[:hello].is_a?(Array), "errors#[] should return an Array"

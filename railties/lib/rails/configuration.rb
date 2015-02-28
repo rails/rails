@@ -18,11 +18,11 @@ module Rails
     # This will put the <tt>Magical::Unicorns</tt> middleware on the end of the stack.
     # You can use +insert_before+ if you wish to add a middleware before another:
     #
-    #     config.middleware.insert_before ActionDispatch::Head, Magical::Unicorns
+    #     config.middleware.insert_before Rack::Head, Magical::Unicorns
     #
     # There's also +insert_after+ which will insert a middleware after another:
     #
-    #     config.middleware.insert_after ActionDispatch::Head, Magical::Unicorns
+    #     config.middleware.insert_after Rack::Head, Magical::Unicorns
     #
     # Middlewares can also be completely swapped out and replaced with others:
     #
@@ -35,6 +35,7 @@ module Rails
     class MiddlewareStackProxy
       def initialize
         @operations = []
+        @delete_operations = []
       end
 
       def insert_before(*args, &block)
@@ -56,7 +57,7 @@ module Rails
       end
 
       def delete(*args, &block)
-        @operations << [__method__, args, block]
+        @delete_operations << [__method__, args, block]
       end
 
       def unshift(*args, &block)
@@ -64,9 +65,10 @@ module Rails
       end
 
       def merge_into(other) #:nodoc:
-        @operations.each do |operation, args, block|
+        (@operations + @delete_operations).each do |operation, args, block|
           other.send(operation, *args, &block)
         end
+
         other
       end
     end

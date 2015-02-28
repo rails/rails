@@ -47,9 +47,8 @@ module ApplicationTests
         def; end
       RUBY
 
-      error_stream = Tempfile.new('error')
-      redirect_stderr(error_stream) { run_test_command('test/models/error_test.rb') }
-      assert_match "syntax error", error_stream.read
+      error = capture(:stderr) { run_test_command('test/models/error_test.rb') }
+      assert_match "syntax error", error
     end
 
     def test_run_models
@@ -294,15 +293,6 @@ module ApplicationTests
 
       def create_schema
         app_file 'db/schema.rb', ''
-      end
-
-      def redirect_stderr(target_stream)
-        previous_stderr = STDERR.dup
-        $stderr.reopen(target_stream)
-        yield
-        target_stream.rewind
-      ensure
-        $stderr = previous_stderr
       end
 
       def create_test_file(path = :unit, name = 'test')

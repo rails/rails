@@ -47,9 +47,7 @@ class MysqlConnectionTest < ActiveRecord::TestCase
     assert !@connection.active?
 
     # Repair all fixture connections so other tests won't break.
-    @fixture_connections.each do |c|
-      c.verify!
-    end
+    @fixture_connections.each(&:verify!)
   end
 
   def test_successful_reconnection_after_timeout_with_manual_reconnect
@@ -69,8 +67,8 @@ class MysqlConnectionTest < ActiveRecord::TestCase
   end
 
   def test_bind_value_substitute
-    bind_param = @connection.substitute_at('foo', 0)
-    assert_equal Arel.sql('?'), bind_param
+    bind_param = @connection.substitute_at('foo')
+    assert_equal Arel.sql('?'), bind_param.to_sql
   end
 
   def test_exec_no_binds
@@ -96,7 +94,7 @@ class MysqlConnectionTest < ActiveRecord::TestCase
     with_example_table do
       @connection.exec_query('INSERT INTO ex (id, data) VALUES (1, "foo")')
       result = @connection.exec_query(
-        'SELECT id, data FROM ex WHERE id = ?', nil, [[nil, 1]])
+        'SELECT id, data FROM ex WHERE id = ?', nil, [ActiveRecord::Relation::QueryAttribute.new("id", 1, ActiveRecord::Type::Value.new)])
 
       assert_equal 1, result.rows.length
       assert_equal 2, result.columns.length
@@ -108,10 +106,10 @@ class MysqlConnectionTest < ActiveRecord::TestCase
   def test_exec_typecasts_bind_vals
     with_example_table do
       @connection.exec_query('INSERT INTO ex (id, data) VALUES (1, "foo")')
-      column = @connection.columns('ex').find { |col| col.name == 'id' }
+      bind = ActiveRecord::Relation::QueryAttribute.new("id", "1-fuu", ActiveRecord::Type::Integer.new)
 
       result = @connection.exec_query(
-        'SELECT id, data FROM ex WHERE id = ?', nil, [[column, '1-fuu']])
+        'SELECT id, data FROM ex WHERE id = ?', nil, [bind])
 
       assert_equal 1, result.rows.length
       assert_equal 2, result.columns.length

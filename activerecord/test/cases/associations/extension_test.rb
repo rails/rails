@@ -3,6 +3,7 @@ require 'models/post'
 require 'models/comment'
 require 'models/project'
 require 'models/developer'
+require 'models/computer'
 require 'models/company_in_module'
 
 class AssociationsExtensionsTest < ActiveRecord::TestCase
@@ -75,7 +76,6 @@ class AssociationsExtensionsTest < ActiveRecord::TestCase
   private
 
     def extend!(model)
-      builder = ActiveRecord::Associations::Builder::HasMany.new(model, :association_name, nil, {}) { }
-      builder.define_extensions(model)
+      ActiveRecord::Associations::Builder::HasMany.define_extensions(model, :association_name) { }
     end
 end

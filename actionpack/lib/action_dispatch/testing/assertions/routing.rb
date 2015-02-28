@@ -38,18 +38,24 @@ module ActionDispatch
       #   # Test a custom route
       #   assert_recognizes({controller: 'items', action: 'show', id: '1'}, 'view/item1')
       def assert_recognizes(expected_options, path, extras={}, msg=nil)
-        request = recognized_request_for(path, extras, msg)
+        if path.is_a?(Hash) && path[:method].to_s == "all"
+          [:get, :post, :put, :delete].each do |method|
+            assert_recognizes(expected_options, path.merge(method: method), extras, msg)
+          end
+        else
+          request = recognized_request_for(path, extras, msg)
 
-        expected_options = expected_options.clone
+          expected_options = expected_options.clone
 
-        expected_options.stringify_keys!
+          expected_options.stringify_keys!
 
-        msg = message(msg, "") {
-          sprintf("The recognized options <%s> did not match <%s>, difference:",
-                  request.path_parameters, expected_options)
-        }
+          msg = message(msg, "") {
+            sprintf("The recognized options <%s> did not match <%s>, difference:",
+                    request.path_parameters, expected_options)
+          }
 
-        assert_equal(expected_options, request.path_parameters, msg)
+          assert_equal(expected_options, request.path_parameters, msg)
+        end
       end
 
       # Asserts that the provided options can be used to generate the provided path. This is the inverse of +assert_recognizes+.
@@ -144,13 +150,7 @@ module ActionDispatch
           old_controller, @controller = @controller, @controller.clone
           _routes = @routes
 
-          # Unfortunately, there is currently an abstraction leak between AC::Base
-          # and AV::Base which requires having the URL helpers in both AC and AV.
-          # To do this safely at runtime for tests, we need to bump up the helper serial
-          # to that the old AV subclass isn't cached.
-          #
-          # TODO: Make this unnecessary
-          @controller.singleton_class.send(:include, _routes.url_helpers)
+          @controller.singleton_class.include(_routes.url_helpers)
           @controller.view_context_class = Class.new(@controller.view_context_class) do
             include _routes.url_helpers
           end

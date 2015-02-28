@@ -280,4 +280,10 @@ class ParametersPermitTest < ActiveSupport::TestCase
 
     assert_equal({ "controller" => "users", "action" => "create" }, params.to_h)
   end
+
+  test "to_unsafe_h returns unfiltered params" do
+    assert @params.to_h.is_a? Hash
+    assert_not @params.to_h.is_a? ActionController::Parameters
+    assert_equal @params.to_hash, @params.to_unsafe_h
+  end
 end

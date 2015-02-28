@@ -1,3 +1,5 @@
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+
 Contributing to Ruby on Rails
 =============================
 
@@ -24,7 +26,7 @@ NOTE: Bugs in the most recent released version of Ruby on Rails are likely to ge
 
 ### Creating a Bug Report
 
-If you've found a problem in Ruby on Rails which is not a security risk, do a search in GitHub under [Issues](https://github.com/rails/rails/issues) in case it has already been reported. If you do not find any issue addressing it you may proceed to [open a new one](https://github.com/rails/rails/issues/new). (See the next section for reporting security issues.)
+If you've found a problem in Ruby on Rails which is not a security risk, do a search on GitHub under [Issues](https://github.com/rails/rails/issues) in case it has already been reported. If you are unable to find any open GitHub issues addressing the problem you found, your next step will be to [open a new one](https://github.com/rails/rails/issues/new). (See the next section for reporting security issues.)
 
 Your issue report should contain a title and a clear description of the issue at the bare minimum. You should include as much relevant information as possible and should at least post a code sample that demonstrates the issue. It would be even better if you could include a unit test that shows how the expected behavior is not occurring. Your goal should be to make it easy for yourself - and others - to replicate the bug and figure out a fix.
 
@@ -171,6 +173,14 @@ $ git checkout -b my_new_branch
 
 It doesn't matter much what name you use, because this branch will only exist on your local computer and your personal repository on GitHub. It won't be part of the Rails Git repository.
 
+### Bundle install
+
+Install the required gems.
+
+```bash
+$ bundle install
+```
+
 ### Running an Application Against Your Local Branch
 
 In case you need a dummy Rails app to test changes, the `--dev` flag of `rails new` generates an application that uses your local branch:
@@ -193,7 +203,7 @@ Now get busy and add/edit code. You're on your branch now, so you can write what
 * Update the (surrounding) documentation, examples elsewhere, and the guides: whatever is affected by your contribution.
 
 
-TIP: Changes that are cosmetic in nature and do not add anything substantial to the stability, functionality, or testability of Rails will generally not be accepted.
+TIP: Changes that are cosmetic in nature and do not add anything substantial to the stability, functionality, or testability of Rails will generally not be accepted (read more about [our rationales behind this decision](https://github.com/rails/rails/pull/13771#issuecomment-32746700)).
 
 #### Follow the Coding Conventions
 
@@ -205,7 +215,7 @@ Rails follows a simple set of coding style conventions:
 * Use Ruby >= 1.9 syntax for hashes. Prefer `{ a: :b }` over `{ :a => :b }`.
 * Prefer `&&`/`||` over `and`/`or`.
 * Prefer class << self over self.method for class methods.
-* Use `MyClass.my_method(my_arg)` not `my_method( my_arg )` or `my_method my_arg`.
+* Use `my_method(my_arg)` not `my_method( my_arg )` or `my_method my_arg`.
 * Use `a = b` and not `a=b`.
 * Use assert_not methods instead of refute.
 * Prefer `method { do_stuff }` instead of `method{do_stuff}` for single-line blocks.
@@ -287,7 +297,12 @@ $ ruby -w -Itest test/mail_layout_test.rb -n test_explicit_class_layout
 The `-n` option allows you to run a single method instead of the whole
 file.
 
-##### Testing Active Record
+#### Testing Active Record
+
+First, create the databases you'll need. For MySQL and PostgreSQL,
+running the SQL statements `create database activerecord_unittest` and
+`create database activerecord_unittest2` is sufficient. This is not
+necessary for SQLite3.
 
 This is how you run the Active Record test suite only for SQLite3:
 
@@ -360,6 +375,10 @@ A CHANGELOG entry should summarize what was changed and should end with author's
 ```
 
 Your name can be added directly after the last word if you don't provide any code examples or don't need multiple paragraphs. Otherwise, it's best to make as a new paragraph.
+
+### Updating the Gemfile.lock
+
+Some changes requires the dependencies to be upgraded. In these cases make sure you run `bundle update` to get the right version of the dependency and commit the `Gemfile.lock` file within your changes.
 
 ### Sanity Check
 

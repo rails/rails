@@ -65,6 +65,16 @@ module ActiveRecord
       assert_equal({ foo: 1, bar: 2.2 }, attributes.to_h)
     end
 
+    test "to_hash maintains order" do
+      builder = AttributeSet::Builder.new(foo: Type::Integer.new, bar: Type::Float.new)
+      attributes = builder.build_from_database(foo: '2.2', bar: '3.3')
+
+      attributes[:bar]
+      hash = attributes.to_h
+
+      assert_equal [[:foo, 2], [:bar, 3.3]], hash.to_a
+    end
+
     test "values_before_type_cast" do
       builder = AttributeSet::Builder.new(foo: Type::Integer.new, bar: Type::Integer.new)
       attributes = builder.build_from_database(foo: '1.1', bar: '2.2')
@@ -109,7 +119,15 @@ module ActiveRecord
 
     test "fetch_value returns nil for unknown attributes" do
       attributes = attributes_with_uninitialized_key
-      assert_nil attributes.fetch_value(:wibble)
+      assert_nil attributes.fetch_value(:wibble) { "hello" }
+    end
+
+    test "fetch_value returns nil for unknown attributes when types has a default" do
+      types = Hash.new(Type::Value.new)
+      builder = AttributeSet::Builder.new(types)
+      attributes = builder.build_from_database
+
+      assert_nil attributes.fetch_value(:wibble) { "hello" }
     end
 
     test "fetch_value uses the given block for uninitialized attributes" do
@@ -123,13 +141,22 @@ module ActiveRecord
       assert_nil attributes.fetch_value(:bar)
     end
 
+    test "the primary_key is always initialized" do
+      builder = AttributeSet::Builder.new({ foo: Type::Integer.new }, :foo)
+      attributes = builder.build_from_database
+
+      assert attributes.key?(:foo)
+      assert_equal [:foo], attributes.keys
+      assert attributes[:foo].initialized?
+    end
+
     class MyType
-      def type_cast_from_user(value)
+      def cast(value)
         return if value.nil?
         value + " from user"
       end
 
-      def type_cast_from_database(value)
+      def deserialize(value)
         return if value.nil?
         value + " from database"
       end
@@ -160,6 +187,25 @@ module ActiveRecord
     def attributes_with_uninitialized_key
       builder = AttributeSet::Builder.new(foo: Type::Integer.new, bar: Type::Float.new)
       builder.build_from_database(foo: '1.1')
+    end
+
+    test "freezing doesn't prevent the set from materializing" do
+      builder = AttributeSet::Builder.new(foo: Type::String.new)
+      attributes = builder.build_from_database(foo: "1")
+
+      attributes.freeze
+      assert_equal({ foo: "1" }, attributes.to_hash)
+    end
+
+    test "#accessed_attributes returns only attributes which have been read" do
+      builder = AttributeSet::Builder.new(foo: Type::Value.new, bar: Type::Value.new)
+      attributes = builder.build_from_database(foo: "1", bar: "2")
+
+      assert_equal [], attributes.accessed
+
+      attributes.fetch_value(:foo)
+
+      assert_equal [:foo], attributes.accessed
     end
   end
 end

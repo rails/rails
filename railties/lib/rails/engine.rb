@@ -110,8 +110,8 @@ module Rails
   #
   # == Endpoint
   #
-  # An engine can be also a rack application. It can be useful if you have a rack application that
-  # you would like to wrap with +Engine+ and provide some of the +Engine+'s features.
+  # An engine can also be a rack application. It can be useful if you have a rack application that
+  # you would like to wrap with +Engine+ and provide with some of the +Engine+'s features.
   #
   # To do that, use the +endpoint+ method:
   #
@@ -217,7 +217,7 @@ module Rails
   # <tt>url_helpers</tt> from <tt>MyEngine::Engine.routes</tt>.
   #
   # The next thing that changes in isolated engines is the behavior of routes. Normally, when you namespace
-  # your controllers, you also need to do namespace all your routes. With an isolated engine,
+  # your controllers, you also need to namespace all your routes. With an isolated engine,
   # the namespace is applied by default, so you can ignore it in routes:
   #
   #   MyEngine::Engine.routes.draw do
@@ -296,7 +296,7 @@ module Rails
   #     helper MyEngine::SharedEngineHelper
   #   end
   #
-  # If you want to include all of the engine's helpers, you can use #helper method on an engine's
+  # If you want to include all of the engine's helpers, you can use the #helper method on an engine's
   # instance:
   #
   #   class ApplicationController < ActionController::Base
@@ -312,7 +312,7 @@ module Rails
   # Engines can have their own migrations. The default path for migrations is exactly the same
   # as in application: <tt>db/migrate</tt>
   #
-  # To use engine's migrations in application you can use rake task, which copies them to
+  # To use engine's migrations in application you can use the rake task below, which copies them to
   # application's dir:
   #
   #   rake ENGINE_NAME:install:migrations
@@ -328,7 +328,7 @@ module Rails
   #
   # == Loading priority
   #
-  # In order to change engine's priority you can use +config.railties_order+ in main application.
+  # In order to change engine's priority you can use +config.railties_order+ in the main application.
   # It will affect the priority of loading views, helpers, assets and all the other files
   # related to engine or application.
   #
@@ -351,7 +351,7 @@ module Rails
 
           base.called_from = begin
             call_stack = if Kernel.respond_to?(:caller_locations)
-              caller_locations.map(&:path)
+              caller_locations.map { |l| l.absolute_path || l.path }
             else
               # Remove the line number from backtraces making sure we don't leave anything behind
               caller.map { |p| p.sub(/:\d+.*/, '') }
@@ -362,6 +362,10 @@ module Rails
         end
 
         super
+      end
+
+      def find_root(from)
+        find_root_with_flag "lib", from
       end
 
       def endpoint(endpoint = nil)
@@ -480,7 +484,7 @@ module Rails
         helpers = Module.new
         all = ActionController::Base.all_helpers_from_path(helpers_paths)
         ActionController::Base.modules_for_helpers(all).each do |mod|
-          helpers.send(:include, mod)
+          helpers.include(mod)
         end
         helpers
       end
@@ -531,7 +535,7 @@ module Rails
 
     # Define the configuration object for the engine.
     def config
-      @config ||= Engine::Configuration.new(find_root_with_flag("lib"))
+      @config ||= Engine::Configuration.new(self.class.find_root(self.class.called_from))
     end
 
     # Load data from db/seeds.rb file. It can be used in to load engines'
@@ -567,10 +571,10 @@ module Rails
     end
 
     initializer :add_routing_paths do |app|
-      paths = self.paths["config/routes.rb"].existent
+      routing_paths = self.paths["config/routes.rb"].existent
 
-      if routes? || paths.any?
-        app.routes_reloader.paths.unshift(*paths)
+      if routes? || routing_paths.any?
+        app.routes_reloader.paths.unshift(*routing_paths)
         app.routes_reloader.route_sets << routes
       end
     end
@@ -593,12 +597,6 @@ module Rails
       paths["config/environments"].existent.each do |environment|
         require environment
       end
-    end
-
-    initializer :append_assets_path, group: :all do |app|
-      app.config.assets.paths.unshift(*paths["vendor/assets"].existent_directories)
-      app.config.assets.paths.unshift(*paths["lib/assets"].existent_directories)
-      app.config.assets.paths.unshift(*paths["app/assets"].existent_directories)
     end
 
     initializer :prepend_helpers_path do |app|
@@ -658,8 +656,7 @@ module Rails
       paths["db/migrate"].existent.any?
     end
 
-    def find_root_with_flag(flag, default=nil) #:nodoc:
-      root_path = self.class.called_from
+    def self.find_root_with_flag(flag, root_path, default=nil) #:nodoc:
 
       while root_path && File.directory?(root_path) && !File.exist?("#{root_path}/#{flag}")
         parent = File.dirname(root_path)

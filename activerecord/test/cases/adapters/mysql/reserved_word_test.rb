@@ -101,7 +101,7 @@ class MysqlReservedWordTest < ActiveRecord::TestCase
     gs = nil
     assert_nothing_raised { gs = Select.find(2).groups }
     assert_equal gs.length, 2
-    assert(gs.collect{|x| x.id}.sort == [2, 3])
+    assert(gs.collect(&:id).sort == [2, 3])
   end
 
   # has_and_belongs_to_many with reserved-word table name
@@ -110,7 +110,7 @@ class MysqlReservedWordTest < ActiveRecord::TestCase
     s = nil
     assert_nothing_raised { s = Distinct.find(1).selects }
     assert_equal s.length, 2
-    assert(s.collect{|x|x.id}.sort == [1, 2])
+    assert(s.collect(&:id).sort == [1, 2])
   end
 
   # activerecord model introspection with reserved-word table and column names
@@ -139,7 +139,7 @@ class MysqlReservedWordTest < ActiveRecord::TestCase
   # custom drop table, uses execute on connection to drop a table if it exists. note: escapes table_name
   def drop_tables_directly(table_names, connection = @connection)
     table_names.each do |name|
-      connection.execute("DROP TABLE IF EXISTS `#{name}`")
+      connection.drop_table name, if_exists: true
     end
   end
 

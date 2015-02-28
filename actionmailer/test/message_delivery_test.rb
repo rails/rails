@@ -1,4 +1,3 @@
-# encoding: utf-8
 require 'abstract_unit'
 require 'active_job'
 require 'minitest/mock'
@@ -30,25 +29,6 @@ class MessageDeliveryTest < ActiveSupport::TestCase
 
   test 'its message should be a Mail::Message' do
     assert_equal Mail::Message , @mail.message.class
-  end
-
-  test 'should respond to .deliver' do
-    assert_respond_to @mail, :deliver
-  end
-
-  test 'should respond to .deliver!' do
-    assert_respond_to @mail, :deliver!
-  end
-
-  test '.deliver is deprecated' do
-    assert_deprecated do
-      @mail.deliver
-    end
-  end
-  test '.deliver! is deprecated' do
-    assert_deprecated do
-      @mail.deliver!
-    end
   end
 
   test 'should respond to .deliver_later' do

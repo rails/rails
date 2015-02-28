@@ -193,7 +193,7 @@ module ActiveRecord
       author = Author.create!(name: 'john')
       Post.create!(author: author, title: 'foo', body: 'bar')
       query = author.posts.where(title: 'foo').select(:title)
-      assert_equal({"title" => "foo"}, @connection.select_one(query.arel, nil, query.bind_values))
+      assert_equal({"title" => "foo"}, @connection.select_one(query.arel, nil, query.bound_attributes))
       assert_equal({"title" => "foo"}, @connection.select_one(query))
       assert @connection.select_all(query).is_a?(ActiveRecord::Result)
       assert_equal "foo", @connection.select_value(query)
@@ -203,7 +203,7 @@ module ActiveRecord
     def test_select_methods_passing_a_relation
       Post.create!(title: 'foo', body: 'bar')
       query = Post.where(title: 'foo').select(:title)
-      assert_equal({"title" => "foo"}, @connection.select_one(query.arel, nil, query.bind_values))
+      assert_equal({"title" => "foo"}, @connection.select_one(query.arel, nil, query.bound_attributes))
       assert_equal({"title" => "foo"}, @connection.select_one(query))
       assert @connection.select_all(query).is_a?(ActiveRecord::Result)
       assert_equal "foo", @connection.select_value(query)
@@ -212,6 +212,16 @@ module ActiveRecord
 
     test "type_to_sql returns a String for unmapped types" do
       assert_equal "special_db_type", @connection.type_to_sql(:special_db_type)
+    end
+
+    unless current_adapter?(:PostgreSQLAdapter)
+      def test_log_invalid_encoding
+        assert_raise ActiveRecord::StatementInvalid do
+          @connection.send :log, "SELECT 'ы' FROM DUAL" do
+            raise 'ы'.force_encoding(Encoding::ASCII_8BIT)
+          end
+        end
+      end
     end
   end
 

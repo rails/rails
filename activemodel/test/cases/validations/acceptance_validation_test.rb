@@ -1,4 +1,3 @@
-# encoding: utf-8
 require 'cases/helper'
 
 require 'models/topic'
@@ -64,5 +63,11 @@ class AcceptanceValidationTest < ActiveModel::TestCase
     assert p.valid?
   ensure
     Person.clear_validators!
+  end
+
+  def test_validates_acceptance_of_true
+    Topic.validates_acceptance_of(:terms_of_service)
+
+    assert Topic.new(terms_of_service: true).valid?
   end
 end

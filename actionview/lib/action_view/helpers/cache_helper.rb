@@ -110,6 +110,29 @@ module ActionView
       #   <%= some_helper_method(person) %>
       #
       # Now all you'll have to do is change that timestamp when the helper method changes.
+      #
+      # === Automatic Collection Caching
+      #
+      # When rendering collections such as:
+      #
+      #   <%= render @notifications %>
+      #   <%= render partial: 'notifications/notification', collection: @notifications %>
+      #
+      # If the notifications/_notification partial starts with a cache call like so:
+      #
+      #   <% cache notification do %>
+      #     <%= notification.name %>
+      #   <% end %>
+      #
+      # The collection can then automatically use any cached renders for that
+      # template by reading them at once instead of one by one.
+      #
+      # See ActionView::Template::Handlers::ERB.resource_cache_call_pattern for more
+      # information on what cache calls make a template eligible for this collection caching.
+      #
+      # The automatic cache multi read can be turned off like so:
+      #
+      #   <%= render @notifications, cache: false %>
       def cache(name = {}, options = nil, &block)
         if controller.perform_caching
           safe_concat(fragment_for(cache_fragment_name(name, options), options, &block))
@@ -122,7 +145,7 @@ module ActionView
 
       # Cache fragments of a view if +condition+ is true
       #
-      #   <%= cache_if admin?, project do %>
+      #   <% cache_if admin?, project do %>
       #     <b>All the topics on this project</b>
       #     <%= render project.topics %>
       #   <% end %>
@@ -138,7 +161,7 @@ module ActionView
 
       # Cache fragments of a view unless +condition+ is true
       #
-      #   <%= cache_unless admin?, project do %>
+      #   <% cache_unless admin?, project do %>
       #     <b>All the topics on this project</b>
       #     <%= render project.topics %>
       #   <% end %>
@@ -159,6 +182,14 @@ module ActionView
         else
           fragment_name_with_digest(name)
         end
+      end
+
+      # Given a key (as described in ActionController::Caching::Fragments.expire_fragment),
+      # returns a key suitable for use in reading, writing, or expiring a
+      # cached fragment. All keys are prefixed with <tt>views/</tt> and uses
+      # ActiveSupport::Cache.expand_cache_key for the expansion.
+      def fragment_cache_key(key)
+        ActiveSupport::Cache.expand_cache_key(key.is_a?(Hash) ? url_for(key).split("://").last : key, :views)
       end
 
     private

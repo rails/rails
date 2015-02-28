@@ -15,6 +15,7 @@ require 'models/essay'
 require 'models/owner'
 require 'models/post'
 require 'models/comment'
+require 'models/categorization'
 
 class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   fixtures :member_types, :members, :clubs, :memberships, :sponsors, :organizations, :minivans,

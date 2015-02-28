@@ -3,8 +3,6 @@ unless File.exist?('Gemfile')
     source 'https://rubygems.org'
     gem 'rails', github: 'rails/rails'
     gem 'arel', github: 'rails/arel'
-    gem 'rack', github: 'rack/rack'
-    gem 'i18n', github: 'svenfuchs/i18n'
   GEMFILE
 
   system 'bundle'
@@ -19,8 +17,8 @@ require 'action_controller/railtie'
 class TestApp < Rails::Application
   config.root = File.dirname(__FILE__)
   config.session_store :cookie_store, key: 'cookie_store_key'
-  config.secret_token    = 'secret_token'
-  config.secret_key_base = 'secret_key_base'
+  secrets.secret_token    = 'secret_token'
+  secrets.secret_key_base = 'secret_key_base'
 
   config.logger = Logger.new($stdout)
   Rails.logger  = config.logger

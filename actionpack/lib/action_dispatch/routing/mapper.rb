@@ -7,7 +7,6 @@ require 'active_support/core_ext/module/remove_method'
 require 'active_support/inflector'
 require 'action_dispatch/routing/redirection'
 require 'action_dispatch/routing/endpoint'
-require 'active_support/deprecation'
 
 module ActionDispatch
   module Routing
@@ -243,12 +242,10 @@ module ActionDispatch
           def app(blocks)
             if to.respond_to?(:call)
               Constraints.new(to, blocks, false)
+            elsif blocks.any?
+              Constraints.new(dispatcher(defaults), blocks, true)
             else
-              if blocks.any?
-                Constraints.new(dispatcher(defaults), blocks, true)
-              else
-                dispatcher(defaults)
-              end
+              dispatcher(defaults)
             end
           end
 
@@ -280,14 +277,8 @@ module ActionDispatch
           end
 
           def split_to(to)
-            case to
-            when Symbol
-              ActiveSupport::Deprecation.warn "defining a route where `to` is a symbol is deprecated.  Please change \"to: :#{to}\" to \"action: :#{to}\""
-              [nil, to.to_s]
-            when /#/    then to.split('#')
-            when String
-              ActiveSupport::Deprecation.warn "defining a route where `to` is a controller without an action is deprecated.  Please change \"to: :#{to}\" to \"controller: :#{to}\""
-              [to, nil]
+            if to =~ /#/
+              to.split('#')
             else
               []
             end
@@ -382,7 +373,7 @@ module ActionDispatch
 
         # Matches a url pattern to one or more routes.
         #
-        # You should not use the `match` method in your router
+        # You should not use the +match+ method in your router
         # without specifying an HTTP method.
         #
         # If you want to expose your action to both GET and POST, use:
@@ -393,7 +384,7 @@ module ActionDispatch
         # Note that +:controller+, +:action+ and +:id+ are interpreted as url
         # query parameters and thus available through +params+ in an action.
         #
-        # If you want to expose your action to GET, use `get` in the router:
+        # If you want to expose your action to GET, use +get+ in the router:
         #
         # Instead of:
         #
@@ -448,7 +439,7 @@ module ActionDispatch
         #   The route's action.
         #
         # [:param]
-        #   Overrides the default resource identifier `:id` (name of the
+        #   Overrides the default resource identifier +:id+ (name of the
         #   dynamic segment used to generate the routes).
         #   You can access that segment from your controller using
         #   <tt>params[<:param>]</tt>.
@@ -573,13 +564,7 @@ module ActionDispatch
           raise "A rack application must be specified" unless path
 
           rails_app = rails_app? app
-
-          if rails_app
-            options[:as]  ||= app.railtie_name
-          else
-            # non rails apps can't have an :as
-            options[:as]  = nil
-          end
+          options[:as] ||= app_name(app, rails_app)
 
           target_as       = name_for_action(options[:as], path)
           options[:via] ||= :all
@@ -609,6 +594,15 @@ module ActionDispatch
         private
           def rails_app?(app)
             app.is_a?(Class) && app < Rails::Railtie
+          end
+
+          def app_name(app, rails_app)
+            if rails_app
+              app.railtie_name
+            elsif app.is_a?(Class)
+              class_name = app.name
+              ActiveSupport::Inflector.underscore(class_name).tr("/", "_")
+            end
           end
 
           def define_generate_prefix(app, name)
@@ -1498,7 +1492,7 @@ module ActionDispatch
         end
 
         def using_match_shorthand?(path, options)
-          path && (options[:to] || options[:action]).nil? && path =~ %r{/[\w/]+$}
+          path && (options[:to] || options[:action]).nil? && path =~ %r{^/?[-\w]+/[-\w/]+$}
         end
 
         def decomposed_match(path, options) # :nodoc:
@@ -1733,9 +1727,10 @@ module ActionDispatch
               member_name = parent_resource.member_name
             end
 
-            name = @scope.action_name(name_prefix, prefix, collection_name, member_name)
+            action_name = @scope.action_name(name_prefix, prefix, collection_name, member_name)
+            candidate = action_name.select(&:present?).join('_')
 
-            if candidate = name.compact.join("_").presence
+            unless candidate.empty?
               # If a name was not explicitly given, we check if it is valid
               # and return nil in case it isn't. Otherwise, we pass the invalid name
               # forward so the underlying router engine treats it and raises an exception.

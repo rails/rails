@@ -156,10 +156,6 @@ module ActiveRecord
           end
         end
 
-        def substitute_at(column, index)
-          Arel::Nodes::BindParam.new "$#{index + 1}"
-        end
-
         def exec_query(sql, name = 'SQL', binds = [])
           execute_and_clear(sql, name, binds) do |result|
             types = {}
@@ -227,7 +223,7 @@ module ActiveRecord
         end
 
         # Aborts a transaction.
-        def rollback_db_transaction
+        def exec_rollback_db_transaction
           execute "ROLLBACK"
         end
       end

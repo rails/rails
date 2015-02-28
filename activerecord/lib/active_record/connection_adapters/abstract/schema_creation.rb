@@ -15,10 +15,11 @@ module ActiveRecord
         end
 
         def visit_AddColumn(o)
-          sql_type = type_to_sql(o.type, o.limit, o.precision, o.scale)
-          sql = "ADD #{quote_column_name(o.name)} #{sql_type}"
-          add_column_options!(sql, column_options(o))
+          "ADD #{accept(o)}"
         end
+
+        delegate :quote_column_name, :quote_table_name, :quote_default_expression, :type_to_sql, to: :@conn
+        private :quote_column_name, :quote_table_name, :quote_default_expression, :type_to_sql
 
         private
 
@@ -30,9 +31,9 @@ module ActiveRecord
           end
 
           def visit_ColumnDefinition(o)
-            sql_type = type_to_sql(o.type, o.limit, o.precision, o.scale)
-            column_sql = "#{quote_column_name(o.name)} #{sql_type}"
-            add_column_options!(column_sql, column_options(o)) unless o.primary_key?
+            o.sql_type ||= type_to_sql(o.type, o.limit, o.precision, o.scale)
+            column_sql = "#{quote_column_name(o.name)} #{o.sql_type}"
+            add_column_options!(column_sql, column_options(o)) unless o.type == :primary_key
             column_sql
           end
 
@@ -67,23 +68,13 @@ module ActiveRecord
             column_options[:column] = o
             column_options[:first] = o.first
             column_options[:after] = o.after
+            column_options[:auto_increment] = o.auto_increment
+            column_options[:primary_key] = o.primary_key
             column_options
           end
 
-          def quote_column_name(name)
-            @conn.quote_column_name name
-          end
-
-          def quote_table_name(name)
-            @conn.quote_table_name name
-          end
-
-          def type_to_sql(type, limit, precision, scale)
-            @conn.type_to_sql type.to_sym, limit, precision, scale
-          end
-
           def add_column_options!(sql, options)
-            sql << " DEFAULT #{quote_value(options[:default], options[:column])}" if options_include_default?(options)
+            sql << " DEFAULT #{quote_default_expression(options[:default], options[:column])}" if options_include_default?(options)
             # must explicitly check for :null to allow change_column to work on migrations
             if options[:null] == false
               sql << " NOT NULL"
@@ -91,14 +82,10 @@ module ActiveRecord
             if options[:auto_increment] == true
               sql << " AUTO_INCREMENT"
             end
+            if options[:primary_key] == true
+              sql << " PRIMARY KEY"
+            end
             sql
-          end
-
-          def quote_value(value, column)
-            column.sql_type ||= type_to_sql(column.type, column.limit, column.precision, column.scale)
-            column.cast_type ||= type_for_column(column)
-
-            @conn.quote(value, column)
           end
 
           def options_include_default?(options)
@@ -116,10 +103,6 @@ module ActiveRecord
                 Supported values are: :nullify, :cascade, :restrict
               MSG
             end
-          end
-
-          def type_for_column(column)
-            @conn.lookup_cast_type(column.sql_type)
           end
       end
     end

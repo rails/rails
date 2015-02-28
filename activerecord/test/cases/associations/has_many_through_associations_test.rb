@@ -15,6 +15,7 @@ require 'models/toy'
 require 'models/contract'
 require 'models/company'
 require 'models/developer'
+require 'models/computer'
 require 'models/subscriber'
 require 'models/book'
 require 'models/subscription'
@@ -24,12 +25,13 @@ require 'models/categorization'
 require 'models/member'
 require 'models/membership'
 require 'models/club'
+require 'models/organization'
 
 class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   fixtures :posts, :readers, :people, :comments, :authors, :categories, :taggings, :tags,
            :owners, :pets, :toys, :jobs, :references, :companies, :members, :author_addresses,
            :subscribers, :books, :subscriptions, :developers, :categorizations, :essays,
-           :categories_posts, :clubs, :memberships
+           :categories_posts, :clubs, :memberships, :organizations
 
   # Dummies to force column loads so query counts are clean.
   def setup
@@ -40,7 +42,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   def test_preload_sti_rhs_class
     developers = Developer.includes(:firms).all.to_a
     assert_no_queries do
-      developers.each { |d| d.firms }
+      developers.each(&:firms)
     end
   end
 
@@ -593,6 +595,12 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert posts(:thinking).reload.people(true).collect(&:first_name).include?("Jeb")
   end
 
+  def test_through_record_is_built_when_created_with_where
+    assert_difference("posts(:thinking).readers.count", 1) do
+      posts(:thinking).people.where(first_name: "Jeb").create
+    end
+  end
+
   def test_associate_with_create_and_no_options
     peeps = posts(:thinking).people.count
     posts(:thinking).people.create(:first_name => 'foo')
@@ -614,8 +622,11 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   def test_create_on_new_record
     p = Post.new
 
-    assert_raises(ActiveRecord::RecordNotSaved) { p.people.create(:first_name => "mew") }
-    assert_raises(ActiveRecord::RecordNotSaved) { p.people.create!(:first_name => "snow") }
+    error = assert_raises(ActiveRecord::RecordNotSaved) { p.people.create(:first_name => "mew") }
+    assert_equal "You cannot call create unless the parent is saved", error.message
+
+    error = assert_raises(ActiveRecord::RecordNotSaved) { p.people.create!(:first_name => "snow") }
+    assert_equal "You cannot call create unless the parent is saved", error.message
   end
 
   def test_associate_with_create_and_invalid_options
@@ -1146,5 +1157,13 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
     club.members << member
     assert_equal 1, SuperMembership.where(member_id: member.id, club_id: club.id).count
+  end
+
+  def test_build_for_has_many_through_association
+    organization = organizations(:nsa)
+    author = organization.author
+    post_direct = author.posts.build
+    post_through = organization.posts.build
+    assert_equal post_direct.author_id, post_through.author_id
   end
 end

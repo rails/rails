@@ -89,7 +89,7 @@ module ActiveRecord
       #   { author: :avatar }
       #   [ :books, { author: :avatar } ]
 
-      NULL_RELATION = Struct.new(:values, :bind_values).new({}, [])
+      NULL_RELATION = Struct.new(:values, :where_clause, :joins_values).new({}, Relation::WhereClause.empty, [])
 
       def preload(records, associations, preload_scope = nil)
         records       = Array.wrap(records).compact.uniq
@@ -178,6 +178,7 @@ module ActiveRecord
       class NullPreloader
         def self.new(klass, owners, reflection, preload_scope); self; end
         def self.run(preloader); end
+        def self.preloaded_records; []; end
       end
 
       def preloader_for(reflection, owners, rhs_klass)

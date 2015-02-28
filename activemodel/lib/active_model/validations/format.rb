@@ -54,7 +54,7 @@ module ActiveModel
 
     module HelperMethods
       # Validates whether the value of the specified attribute is of the correct
-      # form, going by the regular expression provided.You can require that the
+      # form, going by the regular expression provided. You can require that the
       # attribute matches the regular expression:
       #
       #   class Person < ActiveRecord::Base
@@ -77,7 +77,7 @@ module ActiveModel
       #                         with: ->(person) { person.admin? ? /\A[a-z0-9][a-z0-9_\-]*\z/i : /\A[a-z][a-z0-9_\-]*\z/i }
       #   end
       #
-      # Note: use <tt>\A</tt> and <tt>\Z</tt> to match the start and end of the
+      # Note: use <tt>\A</tt> and <tt>\z</tt> to match the start and end of the
       # string, <tt>^</tt> and <tt>$</tt> match the start/end of a line.
       #
       # Due to frequent misuse of <tt>^</tt> and <tt>$</tt>, you need to pass

@@ -30,7 +30,6 @@ class DurationTest < ActiveSupport::TestCase
     assert ActiveSupport::Duration === 1.day
     assert !(ActiveSupport::Duration === 1.day.to_i)
     assert !(ActiveSupport::Duration === 'foo')
-    assert !(ActiveSupport::Duration === ActiveSupport::ProxyObject.new)
   end
 
   def test_equals
@@ -69,6 +68,15 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal '10 years, 2 months, and 1 day',   (1.day + 10.years + 2.months).inspect
     assert_equal '7 days',                          1.week.inspect
     assert_equal '14 days',                         1.fortnight.inspect
+  end
+
+  def test_inspect_locale
+    current_locale = I18n.default_locale
+    I18n.default_locale = :de
+    I18n.backend.store_translations(:de, { support: { array: { last_word_connector: ' und ' } } })
+    assert_equal '10 years, 1 month und 1 day', (10.years + 1.month  + 1.day).inspect
+  ensure
+    I18n.default_locale = current_locale
   end
 
   def test_minus_with_duration_does_not_break_subtraction_of_date_from_date
@@ -199,5 +207,17 @@ class DurationTest < ActiveSupport::TestCase
 
   def test_hash
     assert_equal 1.minute.hash, 60.seconds.hash
+  end
+
+  def test_comparable
+    assert_equal(-1, (0.seconds <=> 1.second))
+    assert_equal(-1, (1.second <=> 1.minute))
+    assert_equal(-1, (1 <=> 1.minute))
+    assert_equal(0, (0.seconds <=> 0.seconds))
+    assert_equal(0, (0.seconds <=> 0.minutes))
+    assert_equal(0, (1.second <=> 1.second))
+    assert_equal(1, (1.second <=> 0.second))
+    assert_equal(1, (1.minute <=> 1.second))
+    assert_equal(1, (61 <=> 1.minute))
   end
 end

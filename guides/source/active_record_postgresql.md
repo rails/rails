@@ -1,3 +1,5 @@
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+
 Active Record and PostgreSQL
 ============================
 
@@ -83,9 +85,12 @@ Book.where("array_length(ratings, 1) >= 3")
 
 * [type definition](http://www.postgresql.org/docs/9.3/static/hstore.html)
 
+NOTE: you need to enable the `hstore` extension to use hstore.
+
 ```ruby
 # db/migrate/20131009135255_create_profiles.rb
 ActiveRecord::Schema.define do
+  enable_extension 'hstore' unless extension_enabled?('hstore')
   create_table :profiles do |t|
     t.hstore 'settings'
   end
@@ -102,11 +107,6 @@ profile = Profile.first
 profile.settings # => {"color"=>"blue", "resolution"=>"800x600"}
 
 profile.settings = {"color" => "yellow", "resolution" => "1280x1024"}
-profile.save!
-
-## you need to call _will_change! if you are editing the store in place
-profile.settings["color"] = "green"
-profile.settings_will_change!
 profile.save!
 ```
 
@@ -219,7 +219,7 @@ Currently there is no special support for enumerated types. They are mapped as
 normal text columns:
 
 ```ruby
-# db/migrate/20131220144913_create_events.rb
+# db/migrate/20131220144913_create_articles.rb
 execute <<-SQL
   CREATE TYPE article_status AS ENUM ('draft', 'published');
 SQL
@@ -281,7 +281,7 @@ end
 # Usage
 User.create settings: "01010011"
 user = User.first
-user.settings # => "(Paris,Champs-Élysées)"
+user.settings # => "01010011"
 user.settings = "0xAF"
 user.settings # => 10101111
 user.save!

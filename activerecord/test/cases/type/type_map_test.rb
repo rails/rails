@@ -124,6 +124,53 @@ module ActiveRecord
         assert_equal mapping.lookup(3), 'string'
         assert_kind_of Type::Value, mapping.lookup(4)
       end
+
+      def test_fetch
+        mapping = TypeMap.new
+        mapping.register_type(1, "string")
+
+        assert_equal "string", mapping.fetch(1) { "int" }
+        assert_equal "int", mapping.fetch(2) { "int" }
+      end
+
+      def test_fetch_yields_args
+        mapping = TypeMap.new
+
+        assert_equal "foo-1-2-3", mapping.fetch("foo", 1, 2, 3) { |*args| args.join("-") }
+        assert_equal "bar-1-2-3", mapping.fetch("bar", 1, 2, 3) { |*args| args.join("-") }
+      end
+
+      def test_fetch_memoizes
+        mapping = TypeMap.new
+
+        looked_up = false
+        mapping.register_type(1) do
+          fail if looked_up
+          looked_up = true
+          "string"
+        end
+
+        assert_equal "string", mapping.fetch(1)
+        assert_equal "string", mapping.fetch(1)
+      end
+
+      def test_fetch_memoizes_on_args
+        mapping = TypeMap.new
+        mapping.register_type("foo") { |*args| args.join("-") }
+
+        assert_equal "foo-1-2-3", mapping.fetch("foo", 1, 2, 3) { |*args| args.join("-") }
+        assert_equal "foo-2-3-4", mapping.fetch("foo", 2, 3, 4) { |*args| args.join("-") }
+      end
+
+      def test_register_clears_cache
+        mapping = TypeMap.new
+
+        mapping.register_type(1, "string")
+        mapping.lookup(1)
+        mapping.register_type(1, "int")
+
+        assert_equal "int", mapping.lookup(1)
+      end
     end
   end
 end

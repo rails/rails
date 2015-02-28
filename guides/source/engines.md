@@ -1,3 +1,5 @@
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+
 Getting Started with Engines
 ============================
 
@@ -32,7 +34,7 @@ directory structure, and are both generated using the `rails plugin new`
 generator. The difference is that an engine is considered a "full plugin" by
 Rails (as indicated by the `--full` option that's passed to the generator
 command). We'll actually be using the `--mountable` option here, which includes
-all the features of `--full`, and then some. This guide will refer to these 
+all the features of `--full`, and then some. This guide will refer to these
 "full plugins" simply as "engines" throughout. An engine **can** be a plugin,
 and a plugin **can** be an engine.
 
@@ -888,7 +890,9 @@ engine this would be done by changing
 `app/controllers/blorgh/application_controller.rb` to look like:
 
 ```ruby
-class Blorgh::ApplicationController < ApplicationController
+module Blorgh
+  class ApplicationController < ::ApplicationController
+  end
 end
 ```
 
@@ -1036,31 +1040,42 @@ functionality, especially controllers. This means that if you were to make a
 typical `GET` to a controller in a controller's functional test like this:
 
 ```ruby
-get :index
+module Blorgh
+  class FooControllerTest < ActionController::TestCase
+    def test_index
+      get :index
+      ...
+    end
+  end
+end
 ```
 
 It may not function correctly. This is because the application doesn't know how
 to route these requests to the engine unless you explicitly tell it **how**. To
-do this, you must also pass the `:use_route` option as a parameter on these
-requests:
+do this, you must set the `@routes` instance variable to the engine's route set
+in your setup code:
 
 ```ruby
-get :index, use_route: :blorgh
+module Blorgh
+  class FooControllerTest < ActionController::TestCase
+    setup do
+      @routes = Engine.routes
+    end
+
+    def test_index
+      get :index
+      ...
+    end
+  end
+end
 ```
 
 This tells the application that you still want to perform a `GET` request to the
 `index` action of this controller, but you want to use the engine's route to get
 there, rather than the application's one.
 
-Another way to do this is to assign the `@routes` instance variable to `Engine.routes` in your test setup:
-
-```ruby
-setup do
-  @routes = Engine.routes
-end
-```
-
-This will also ensure url helpers for the engine will work as expected in your tests.
+This also ensures that the engine's URL helpers will work as expected in your
+tests.
 
 Improving engine functionality
 ------------------------------
@@ -1155,7 +1170,7 @@ end
 
 Using `Class#class_eval` is great for simple adjustments, but for more complex
 class modifications, you might want to consider using [`ActiveSupport::Concern`]
-(http://edgeapi.rubyonrails.org/classes/ActiveSupport/Concern.html).
+(http://api.rubyonrails.org/classes/ActiveSupport/Concern.html).
 ActiveSupport::Concern manages load order of interlinked dependent modules and
 classes at run time allowing you to significantly modularize your code.
 

@@ -87,18 +87,18 @@ module ActiveRecord::Associations::Builder
       middle_name = [lhs_model.name.downcase.pluralize,
                      association_name].join('_').gsub(/::/, '_').to_sym
       middle_options = middle_options join_model
-      hm_builder = HasMany.create_builder(lhs_model,
-                                          middle_name,
-                                          nil,
-                                          middle_options)
-      hm_builder.build lhs_model
+
+      HasMany.create_reflection(lhs_model,
+                                middle_name,
+                                nil,
+                                middle_options)
     end
 
     private
 
     def middle_options(join_model)
       middle_options = {}
-      middle_options[:class] = join_model
+      middle_options[:class_name] = "#{lhs_model.name}::#{join_model.name}"
       middle_options[:source] = join_model.left_reflection.name
       if options.key? :foreign_key
         middle_options[:foreign_key] = options[:foreign_key]
@@ -110,7 +110,7 @@ module ActiveRecord::Associations::Builder
       rhs_options = {}
 
       if options.key? :class_name
-        rhs_options[:foreign_key] = options[:class_name].foreign_key
+        rhs_options[:foreign_key] = options[:class_name].to_s.foreign_key
         rhs_options[:class_name] = options[:class_name]
       end
 

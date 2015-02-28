@@ -1,12 +1,42 @@
 require 'action_dispatch/http/request'
 require 'action_dispatch/middleware/exception_wrapper'
 require 'action_dispatch/routing/inspector'
+require 'action_view'
+require 'action_view/base'
+
+require 'pp'
 
 module ActionDispatch
   # This middleware is responsible for logging exceptions and
   # showing a debugging page in case the request is local.
   class DebugExceptions
     RESCUES_TEMPLATE_PATH = File.expand_path('../templates', __FILE__)
+
+    class DebugView < ActionView::Base
+      def debug_params(params)
+        clean_params = params.clone
+        clean_params.delete("action")
+        clean_params.delete("controller")
+
+        if clean_params.empty?
+          'None'
+        else
+          PP.pp(clean_params, "", 200)
+        end
+      end
+
+      def debug_headers(headers)
+        if headers.present?
+          headers.inspect.gsub(',', ",\n")
+        else
+          'None'
+        end
+      end
+
+      def debug_hash(object)
+        object.to_hash.sort_by { |k, _| k.to_s }.map { |k, v| "#{k}: #{v.inspect rescue $!.message}" }.join("\n")
+      end
+    end
 
     def initialize(app, routes_app = nil)
       @app        = app
@@ -35,12 +65,25 @@ module ActionDispatch
 
       if env['action_dispatch.show_detailed_exceptions']
         request = Request.new(env)
-        template = ActionView::Base.new([RESCUES_TEMPLATE_PATH],
+        traces = wrapper.traces
+
+        trace_to_show = 'Application Trace'
+        if traces[trace_to_show].empty? && wrapper.rescue_template != 'routing_error'
+          trace_to_show = 'Full Trace'
+        end
+
+        if source_to_show = traces[trace_to_show].first
+          source_to_show_id = source_to_show[:id]
+        end
+
+        template = DebugView.new([RESCUES_TEMPLATE_PATH],
           request: request,
           exception: wrapper.exception,
-          traces: traces_from_wrapper(wrapper),
+          traces: traces,
+          show_source_idx: source_to_show_id,
+          trace_to_show: trace_to_show,
           routes_inspector: routes_inspector(exception),
-          source_extract: wrapper.source_extract,
+          source_extracts: wrapper.source_extracts,
           line_number: wrapper.line_number,
           file: wrapper.file
         )
@@ -92,37 +135,6 @@ module ActionDispatch
       if @routes_app.respond_to?(:routes) && (exception.is_a?(ActionController::RoutingError) || exception.is_a?(ActionView::Template::Error))
         ActionDispatch::Routing::RoutesInspector.new(@routes_app.routes.routes)
       end
-    end
-
-    # Augment the exception traces by providing ids for all unique stack frame
-    def traces_from_wrapper(wrapper)
-      application_trace = wrapper.application_trace
-      framework_trace = wrapper.framework_trace
-      full_trace = wrapper.full_trace
-
-      if application_trace && framework_trace
-        id_counter = 0
-
-        application_trace = application_trace.map do |trace|
-          prev = id_counter
-          id_counter += 1
-          { id: prev, trace: trace }
-        end
-
-        framework_trace = framework_trace.map do |trace|
-          prev = id_counter
-          id_counter += 1
-          { id: prev, trace: trace }
-        end
-
-        full_trace = application_trace + framework_trace
-      end
-
-      {
-        "Application Trace" => application_trace,
-        "Framework Trace" => framework_trace,
-        "Full Trace" => full_trace
-      }
     end
   end
 end

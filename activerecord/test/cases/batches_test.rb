@@ -37,9 +37,9 @@ class EachTest < ActiveRecord::TestCase
 
   if Enumerator.method_defined? :size
     def test_each_should_return_a_sized_enumerator
-      assert_equal 11, Post.find_each(:batch_size => 1).size
-      assert_equal 5, Post.find_each(:batch_size => 2, :start => 7).size
-      assert_equal 11, Post.find_each(:batch_size => 10_000).size
+      assert_equal 11, Post.find_each(batch_size: 1).size
+      assert_equal 5, Post.find_each(batch_size:  2, begin_at: 7).size
+      assert_equal 11, Post.find_each(batch_size: 10_000).size
     end
   end
 
@@ -99,7 +99,16 @@ class EachTest < ActiveRecord::TestCase
 
   def test_find_in_batches_should_start_from_the_start_option
     assert_queries(@total) do
-      Post.find_in_batches(:batch_size => 1, :start => 2) do |batch|
+      Post.find_in_batches(batch_size: 1, begin_at: 2) do |batch|
+        assert_kind_of Array, batch
+        assert_kind_of Post, batch.first
+      end
+    end
+  end
+
+  def test_find_in_batches_should_end_at_the_end_option
+    assert_queries(6) do
+      Post.find_in_batches(batch_size: 1, end_at: 5) do |batch|
         assert_kind_of Array, batch
         assert_kind_of Post, batch.first
       end
@@ -163,7 +172,7 @@ class EachTest < ActiveRecord::TestCase
 
   def test_find_in_batches_should_not_modify_passed_options
     assert_nothing_raised do
-      Post.find_in_batches({ batch_size: 42, start: 1 }.freeze){}
+      Post.find_in_batches({ batch_size: 42, begin_at: 1 }.freeze){}
     end
   end
 
@@ -172,7 +181,7 @@ class EachTest < ActiveRecord::TestCase
     start_nick = nick_order_subscribers.second.nick
 
     subscribers = []
-    Subscriber.find_in_batches(:batch_size => 1, :start => start_nick) do |batch|
+    Subscriber.find_in_batches(batch_size: 1, begin_at: start_nick) do |batch|
       subscribers.concat(batch)
     end
 
@@ -200,11 +209,32 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
+  def test_find_in_batches_start_deprecated
+    assert_deprecated do
+      assert_queries(@total) do
+        Post.find_in_batches(batch_size: 1, start: 2) do |batch|
+          assert_kind_of Array, batch
+          assert_kind_of Post, batch.first
+        end
+      end
+    end
+  end
+
+  def test_find_each_start_deprecated
+    assert_deprecated do
+      assert_queries(@total) do
+        Post.find_each(batch_size: 1, start: 2) do |post|
+          assert_kind_of Post, post
+        end
+      end
+    end
+  end
+
   if Enumerator.method_defined? :size
     def test_find_in_batches_should_return_a_sized_enumerator
       assert_equal 11, Post.find_in_batches(:batch_size => 1).size
       assert_equal 6, Post.find_in_batches(:batch_size => 2).size
-      assert_equal 4, Post.find_in_batches(:batch_size => 2, :start => 4).size
+      assert_equal 4, Post.find_in_batches(batch_size: 2, begin_at: 4).size
       assert_equal 4, Post.find_in_batches(:batch_size => 3).size
       assert_equal 1, Post.find_in_batches(:batch_size => 10_000).size
     end

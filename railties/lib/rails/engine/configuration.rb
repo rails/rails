@@ -39,16 +39,13 @@ module Rails
         @paths ||= begin
           paths = Rails::Paths::Root.new(@root)
 
-          paths.add "app",                 eager_load: true, glob: "*"
+          paths.add "app",                 eager_load: true, glob: "{*,*/concerns}"
           paths.add "app/assets",          glob: "*"
           paths.add "app/controllers",     eager_load: true
           paths.add "app/helpers",         eager_load: true
           paths.add "app/models",          eager_load: true
           paths.add "app/mailers",         eager_load: true
           paths.add "app/views"
-
-          paths.add "app/controllers/concerns", eager_load: true
-          paths.add "app/models/concerns",      eager_load: true
 
           paths.add "lib",                 load_path: true
           paths.add "lib/assets",          glob: "*"

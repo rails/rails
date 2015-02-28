@@ -498,17 +498,12 @@ YAML
       boot_rails
 
       initializers = Rails.application.initializers.tsort
-      index        = initializers.index { |i| i.name == "dummy_initializer" }
-      selection    = initializers[(index-3)..(index)].map(&:name).map(&:to_s)
+      dummy_index  = initializers.index  { |i| i.name == "dummy_initializer" }
+      config_index = initializers.rindex { |i| i.name == :load_config_initializers }
+      stack_index  = initializers.index  { |i| i.name == :build_middleware_stack }
 
-      assert_equal %w(
-       load_config_initializers
-       load_config_initializers
-       engines_blank_point
-       dummy_initializer
-      ), selection
-
-      assert index < initializers.index { |i| i.name == :build_middleware_stack }
+      assert config_index < dummy_index
+      assert dummy_index < stack_index
     end
 
     class Upcaser
@@ -518,7 +513,7 @@ YAML
 
       def call(env)
         response = @app.call(env)
-        response[2].each { |b| b.upcase! }
+        response[2].each(&:upcase!)
         response
       end
     end
@@ -746,8 +741,8 @@ YAML
       assert_equal "bukkits_", Bukkits.table_name_prefix
       assert_equal "bukkits", Bukkits::Engine.engine_name
       assert_equal Bukkits.railtie_namespace, Bukkits::Engine
-      assert ::Bukkits::MyMailer.method_defined?(:foo_path)
-      assert !::Bukkits::MyMailer.method_defined?(:bar_path)
+      assert ::Bukkits::MyMailer.method_defined?(:foo_url)
+      assert !::Bukkits::MyMailer.method_defined?(:bar_url)
 
       get("/bukkits/from_app")
       assert_equal "false", last_response.body
@@ -1210,7 +1205,7 @@ YAML
 
     test "engine can be properly mounted at root" do
       add_to_config("config.action_dispatch.show_exceptions = false")
-      add_to_config("config.serve_static_assets = false")
+      add_to_config("config.serve_static_files = false")
 
       @plugin.write "lib/bukkits.rb", <<-RUBY
         module Bukkits

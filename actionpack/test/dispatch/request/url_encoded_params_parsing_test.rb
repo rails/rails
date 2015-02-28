@@ -131,7 +131,7 @@ class UrlEncodedParamsParsingTest < ActionDispatch::IntegrationTest
 
   test "ambiguous params returns a bad request" do
     with_test_routing do
-      post "/parse", "foo[]=bar&foo[4]=bar"
+      post "/parse", params: "foo[]=bar&foo[4]=bar"
       assert_response :bad_request
     end
   end
@@ -148,7 +148,7 @@ class UrlEncodedParamsParsingTest < ActionDispatch::IntegrationTest
 
     def assert_parses(expected, actual)
       with_test_routing do
-        post "/parse", actual
+        post "/parse", params: actual
         assert_response :ok
         assert_equal expected, TestController.last_request_parameters
         assert_utf8 TestController.last_request_parameters

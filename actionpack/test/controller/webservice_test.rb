@@ -35,7 +35,9 @@ class WebServiceTest < ActionDispatch::IntegrationTest
 
   def test_post_json
     with_test_route_set do
-      post "/", '{"entry":{"summary":"content..."}}', 'CONTENT_TYPE' => 'application/json'
+      post "/",
+        params: '{"entry":{"summary":"content..."}}',
+        headers: { 'CONTENT_TYPE' => 'application/json' }
 
       assert_equal 'entry', @controller.response.body
       assert @controller.params.has_key?(:entry)
@@ -45,7 +47,9 @@ class WebServiceTest < ActionDispatch::IntegrationTest
 
   def test_put_json
     with_test_route_set do
-      put "/", '{"entry":{"summary":"content..."}}', 'CONTENT_TYPE' => 'application/json'
+      put "/",
+        params: '{"entry":{"summary":"content..."}}',
+        headers: { 'CONTENT_TYPE' => 'application/json' }
 
       assert_equal 'entry', @controller.response.body
       assert @controller.params.has_key?(:entry)
@@ -56,8 +60,9 @@ class WebServiceTest < ActionDispatch::IntegrationTest
   def test_register_and_use_json_simple
     with_test_route_set do
       with_params_parsers Mime::JSON => Proc.new { |data| ActiveSupport::JSON.decode(data)['request'].with_indifferent_access } do
-        post "/", '{"request":{"summary":"content...","title":"JSON"}}',
-          'CONTENT_TYPE' => 'application/json'
+        post "/",
+          params: '{"request":{"summary":"content...","title":"JSON"}}',
+          headers: { 'CONTENT_TYPE' => 'application/json' }
 
         assert_equal 'summary, title', @controller.response.body
         assert @controller.params.has_key?(:summary)
@@ -70,16 +75,30 @@ class WebServiceTest < ActionDispatch::IntegrationTest
 
   def test_use_json_with_empty_request
     with_test_route_set do
-      assert_nothing_raised { post "/", "", 'CONTENT_TYPE' => 'application/json' }
+      assert_nothing_raised { post "/", headers: { 'CONTENT_TYPE' => 'application/json' } }
       assert_equal '', @controller.response.body
     end
   end
 
   def test_dasherized_keys_as_json
     with_test_route_set do
-      post "/?full=1", '{"first-key":{"sub-key":"..."}}', 'CONTENT_TYPE' => 'application/json'
+      post "/?full=1",
+        params: '{"first-key":{"sub-key":"..."}}',
+        headers: { 'CONTENT_TYPE' => 'application/json' }
       assert_equal 'action, controller, first-key(sub-key), full', @controller.response.body
       assert_equal "...", @controller.params['first-key']['sub-key']
+    end
+  end
+
+  def test_parsing_json_doesnot_rescue_exception
+    with_test_route_set do
+      with_params_parsers Mime::JSON => Proc.new { |data| raise Interrupt } do
+        assert_raises(Interrupt) do
+          post "/",
+            params: '{"title":"JSON"}}',
+            headers: { 'CONTENT_TYPE' => 'application/json' }
+        end
+      end
     end
   end
 

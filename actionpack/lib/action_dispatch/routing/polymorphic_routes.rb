@@ -1,5 +1,3 @@
-require 'action_controller/model_naming'
-
 module ActionDispatch
   module Routing
     # Polymorphic URL helpers are methods for smart resolution to a named route call when
@@ -55,8 +53,6 @@ module ActionDispatch
     #   form_for([blog, @post])         # => "/blog/posts/1"
     #
     module PolymorphicRoutes
-      include ActionController::ModelNaming
-
       # Constructs a call to a named RESTful route for the given record and returns the
       # resulting URL string. For example:
       #
@@ -251,7 +247,7 @@ module ActionDispatch
           args  = []
 
           model = record.to_model
-          name = if record.persisted?
+          name = if model.persisted?
                    args << model
                    model.model_name.singular_route_key
                  else
@@ -294,11 +290,12 @@ module ActionDispatch
           when Class
             @key_strategy.call record.model_name
           else
-            if record.persisted?
-              args << record.to_model
-              record.to_model.model_name.singular_route_key
+            model = record.to_model
+            if model.persisted?
+              args << model
+              model.model_name.singular_route_key
             else
-              @key_strategy.call record.to_model.model_name
+              @key_strategy.call model.model_name
             end
           end
 

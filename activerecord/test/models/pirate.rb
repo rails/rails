@@ -36,8 +36,8 @@ class Pirate < ActiveRecord::Base
 
   has_one :foo_bulb, -> { where :name => 'foo' }, :foreign_key => :car_id, :class_name => "Bulb"
 
-  accepts_nested_attributes_for :parrots, :birds, :allow_destroy => true, :reject_if => proc { |attributes| attributes.empty? }
-  accepts_nested_attributes_for :ship, :allow_destroy => true, :reject_if => proc { |attributes| attributes.empty? }
+  accepts_nested_attributes_for :parrots, :birds, :allow_destroy => true, :reject_if => proc(&:empty?)
+  accepts_nested_attributes_for :ship, :allow_destroy => true, :reject_if => proc(&:empty?)
   accepts_nested_attributes_for :update_only_ship, :update_only => true
   accepts_nested_attributes_for :parrots_with_method_callbacks, :parrots_with_proc_callbacks,
     :birds_with_method_callbacks, :birds_with_proc_callbacks, :allow_destroy => true
@@ -56,7 +56,7 @@ class Pirate < ActiveRecord::Base
   attr_accessor :cancel_save_from_callback, :parrots_limit
   before_save :cancel_save_callback_method, :if => :cancel_save_from_callback
   def cancel_save_callback_method
-    false
+    throw(:abort)
   end
 
   private

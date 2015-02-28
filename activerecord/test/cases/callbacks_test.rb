@@ -1,4 +1,6 @@
 require "cases/helper"
+require 'models/developer'
+require 'models/computer'
 
 class CallbackDeveloper < ActiveRecord::Base
   self.table_name = 'developers'
@@ -47,6 +49,11 @@ class CallbackDeveloperWithFalseValidation < CallbackDeveloper
   before_validation proc { |model| model.history << [:before_validation, :should_never_get_here] }
 end
 
+class CallbackDeveloperWithHaltedValidation < CallbackDeveloper
+  before_validation proc { |model| model.history << [:before_validation, :throwing_abort]; throw(:abort) }
+  before_validation proc { |model| model.history << [:before_validation, :should_never_get_here] }
+end
+
 class ParentDeveloper < ActiveRecord::Base
   self.table_name = 'developers'
   attr_accessor :after_save_called
@@ -57,27 +64,6 @@ class ChildDeveloper < ParentDeveloper
 
 end
 
-class RecursiveCallbackDeveloper < ActiveRecord::Base
-  self.table_name = 'developers'
-
-  before_save :on_before_save
-  after_save :on_after_save
-
-  attr_reader :on_before_save_called, :on_after_save_called
-
-  def on_before_save
-    @on_before_save_called ||= 0
-    @on_before_save_called += 1
-    save unless @on_before_save_called > 1
-  end
-
-  def on_after_save
-    @on_after_save_called ||= 0
-    @on_after_save_called += 1
-    save unless @on_after_save_called > 1
-  end
-end
-
 class ImmutableDeveloper < ActiveRecord::Base
   self.table_name = 'developers'
 
@@ -86,35 +72,24 @@ class ImmutableDeveloper < ActiveRecord::Base
   before_save :cancel
   before_destroy :cancel
 
-  def cancelled?
-    @cancelled == true
-  end
-
   private
     def cancel
-      @cancelled = true
       false
     end
 end
 
-class ImmutableMethodDeveloper < ActiveRecord::Base
+class DeveloperWithCanceledCallbacks < ActiveRecord::Base
   self.table_name = 'developers'
 
-  validates_inclusion_of :salary, :in => 50000..200000
+  validates_inclusion_of :salary, in: 50000..200000
 
-  def cancelled?
-    @cancelled == true
-  end
+  before_save :cancel
+  before_destroy :cancel
 
-  before_save do
-    @cancelled = true
-    false
-  end
-
-  before_destroy do
-    @cancelled = true
-    false
-  end
+  private
+    def cancel
+      throw(:abort)
+    end
 end
 
 class OnCallbacksDeveloper < ActiveRecord::Base
@@ -173,6 +148,23 @@ class CallbackCancellationDeveloper < ActiveRecord::Base
   before_create  { !@cancel_before_create  }
   before_update  { !@cancel_before_update  }
   before_destroy { !@cancel_before_destroy }
+
+  after_save    { @after_save_called    = true }
+  after_update  { @after_update_called  = true }
+  after_create  { @after_create_called  = true }
+  after_destroy { @after_destroy_called = true }
+end
+
+class CallbackHaltedDeveloper < ActiveRecord::Base
+  self.table_name = 'developers'
+
+  attr_reader   :after_save_called, :after_create_called, :after_update_called, :after_destroy_called
+  attr_accessor :cancel_before_save, :cancel_before_create, :cancel_before_update, :cancel_before_destroy
+
+  before_save    { throw(:abort) if defined?(@cancel_before_save) }
+  before_create  { throw(:abort) if @cancel_before_create  }
+  before_update  { throw(:abort) if @cancel_before_update  }
+  before_destroy { throw(:abort) if @cancel_before_destroy }
 
   after_save    { @after_save_called    = true }
   after_update  { @after_update_called  = true }
@@ -296,7 +288,12 @@ class CallbacksTest < ActiveRecord::TestCase
       [ :after_save,                  :string ],
       [ :after_save,                  :proc   ],
       [ :after_save,                  :object ],
-      [ :after_save,                  :block  ]
+      [ :after_save,                  :block  ],
+      [ :after_commit,                :block  ],
+      [ :after_commit,                :object ],
+      [ :after_commit,                :proc   ],
+      [ :after_commit,                :string ],
+      [ :after_commit,                :method ]
     ], david.history
   end
 
@@ -365,7 +362,12 @@ class CallbacksTest < ActiveRecord::TestCase
       [ :after_save,                  :string ],
       [ :after_save,                  :proc   ],
       [ :after_save,                  :object ],
-      [ :after_save,                  :block  ]
+      [ :after_save,                  :block  ],
+      [ :after_commit,                :block  ],
+      [ :after_commit,                :object ],
+      [ :after_commit,                :proc   ],
+      [ :after_commit,                :string ],
+      [ :after_commit,                :method ]
     ], david.history
   end
 
@@ -416,7 +418,12 @@ class CallbacksTest < ActiveRecord::TestCase
       [ :after_destroy,               :string ],
       [ :after_destroy,               :proc   ],
       [ :after_destroy,               :object ],
-      [ :after_destroy,               :block  ]
+      [ :after_destroy,               :block  ],
+      [ :after_commit,                :block  ],
+      [ :after_commit,                :object ],
+      [ :after_commit,                :proc   ],
+      [ :after_commit,                :string ],
+      [ :after_commit,                :method ]
     ], david.history
   end
 
@@ -437,11 +444,14 @@ class CallbacksTest < ActiveRecord::TestCase
     ], david.history
   end
 
-  def test_before_save_returning_false
+  def test_deprecated_before_save_returning_false
     david = ImmutableDeveloper.find(1)
-    assert david.valid?
-    assert !david.save
-    assert_raise(ActiveRecord::RecordNotSaved) { david.save! }
+    assert_deprecated do
+      assert david.valid?
+      assert !david.save
+      exc = assert_raise(ActiveRecord::RecordNotSaved) { david.save! }
+      assert_equal exc.record, david
+    end
 
     david = ImmutableDeveloper.find(1)
     david.salary = 10_000_000
@@ -451,37 +461,48 @@ class CallbacksTest < ActiveRecord::TestCase
 
     someone = CallbackCancellationDeveloper.find(1)
     someone.cancel_before_save = true
-    assert someone.valid?
-    assert !someone.save
+    assert_deprecated do
+      assert someone.valid?
+      assert !someone.save
+    end
     assert_save_callbacks_not_called(someone)
   end
 
-  def test_before_create_returning_false
+  def test_deprecated_before_create_returning_false
     someone = CallbackCancellationDeveloper.new
     someone.cancel_before_create = true
-    assert someone.valid?
-    assert !someone.save
+    assert_deprecated do
+      assert someone.valid?
+      assert !someone.save
+    end
     assert_save_callbacks_not_called(someone)
   end
 
-  def test_before_update_returning_false
+  def test_deprecated_before_update_returning_false
     someone = CallbackCancellationDeveloper.find(1)
     someone.cancel_before_update = true
-    assert someone.valid?
-    assert !someone.save
+    assert_deprecated do
+      assert someone.valid?
+      assert !someone.save
+    end
     assert_save_callbacks_not_called(someone)
   end
 
-  def test_before_destroy_returning_false
+  def test_deprecated_before_destroy_returning_false
     david = ImmutableDeveloper.find(1)
-    assert !david.destroy
-    assert_raise(ActiveRecord::RecordNotDestroyed) { david.destroy! }
+    assert_deprecated do
+      assert !david.destroy
+      exc = assert_raise(ActiveRecord::RecordNotDestroyed) { david.destroy! }
+      assert_equal exc.record, david
+    end
     assert_not_nil ImmutableDeveloper.find_by_id(1)
 
     someone = CallbackCancellationDeveloper.find(1)
     someone.cancel_before_destroy = true
-    assert !someone.destroy
-    assert_raise(ActiveRecord::RecordNotDestroyed) { someone.destroy! }
+    assert_deprecated do
+      assert !someone.destroy
+      assert_raise(ActiveRecord::RecordNotDestroyed) { someone.destroy! }
+    end
     assert !someone.after_destroy_called
   end
 
@@ -492,9 +513,59 @@ class CallbacksTest < ActiveRecord::TestCase
   end
   private :assert_save_callbacks_not_called
 
+  def test_before_create_throwing_abort
+    someone = CallbackHaltedDeveloper.new
+    someone.cancel_before_create = true
+    assert someone.valid?
+    assert !someone.save
+    assert_save_callbacks_not_called(someone)
+  end
+
+  def test_before_save_throwing_abort
+    david = DeveloperWithCanceledCallbacks.find(1)
+    assert david.valid?
+    assert !david.save
+    exc = assert_raise(ActiveRecord::RecordNotSaved) { david.save! }
+    assert_equal exc.record, david
+
+    david = DeveloperWithCanceledCallbacks.find(1)
+    david.salary = 10_000_000
+    assert !david.valid?
+    assert !david.save
+    assert_raise(ActiveRecord::RecordInvalid) { david.save! }
+
+    someone = CallbackHaltedDeveloper.find(1)
+    someone.cancel_before_save = true
+    assert someone.valid?
+    assert !someone.save
+    assert_save_callbacks_not_called(someone)
+  end
+
+  def test_before_update_throwing_abort
+    someone = CallbackHaltedDeveloper.find(1)
+    someone.cancel_before_update = true
+    assert someone.valid?
+    assert !someone.save
+    assert_save_callbacks_not_called(someone)
+  end
+
+  def test_before_destroy_throwing_abort
+    david = DeveloperWithCanceledCallbacks.find(1)
+    assert !david.destroy
+    exc = assert_raise(ActiveRecord::RecordNotDestroyed) { david.destroy! }
+    assert_equal exc.record, david
+    assert_not_nil ImmutableDeveloper.find_by_id(1)
+
+    someone = CallbackHaltedDeveloper.find(1)
+    someone.cancel_before_destroy = true
+    assert !someone.destroy
+    assert_raise(ActiveRecord::RecordNotDestroyed) { someone.destroy! }
+    assert !someone.after_destroy_called
+  end
+
   def test_callback_returning_false
     david = CallbackDeveloperWithFalseValidation.find(1)
-    david.save
+    assert_deprecated { david.save }
     assert_equal [
       [ :after_find,            :method ],
       [ :after_find,            :string ],
@@ -517,6 +588,34 @@ class CallbacksTest < ActiveRecord::TestCase
       [ :after_rollback, :proc   ],
       [ :after_rollback, :string ],
       [ :after_rollback, :method ],
+    ], david.history
+  end
+
+  def test_callback_throwing_abort
+    david = CallbackDeveloperWithHaltedValidation.find(1)
+    david.save
+    assert_equal [
+      [ :after_find,        :method ],
+      [ :after_find,        :string ],
+      [ :after_find,        :proc   ],
+      [ :after_find,        :object ],
+      [ :after_find,        :block  ],
+      [ :after_initialize,  :method ],
+      [ :after_initialize,  :string ],
+      [ :after_initialize,  :proc   ],
+      [ :after_initialize,  :object ],
+      [ :after_initialize,  :block  ],
+      [ :before_validation, :method ],
+      [ :before_validation, :string ],
+      [ :before_validation, :proc   ],
+      [ :before_validation, :object ],
+      [ :before_validation, :block  ],
+      [ :before_validation, :throwing_abort ],
+      [ :after_rollback,    :block  ],
+      [ :after_rollback,    :object ],
+      [ :after_rollback,    :proc   ],
+      [ :after_rollback,    :string ],
+      [ :after_rollback,    :method ],
     ], david.history
   end
 

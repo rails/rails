@@ -1,5 +1,6 @@
 require 'abstract_unit'
 require 'active_support/core_ext/module/remove_method'
+require 'active_support/testing/stream'
 require 'rails/generators'
 require 'rails/generators/test_case'
 
@@ -23,6 +24,8 @@ require 'action_dispatch'
 require 'action_view'
 
 module GeneratorsTestHelper
+  include ActiveSupport::Testing::Stream
+
   def self.included(base)
     base.class_eval do
       destination File.join(Rails.root, "tmp")
@@ -42,11 +45,4 @@ module GeneratorsTestHelper
     FileUtils.cp routes, destination
   end
 
-  def quietly
-    silence_stream(STDOUT) do
-      silence_stream(STDERR) do
-        yield
-      end
-    end
-  end
 end

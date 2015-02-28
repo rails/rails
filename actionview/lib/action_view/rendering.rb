@@ -35,13 +35,13 @@ module ActionView
     module ClassMethods
       def view_context_class
         @view_context_class ||= begin
-          include_path_helpers = supports_path?
+          supports_path = supports_path?
           routes  = respond_to?(:_routes)  && _routes
           helpers = respond_to?(:_helpers) && _helpers
 
           Class.new(ActionView::Base) do
             if routes
-              include routes.url_helpers(include_path_helpers)
+              include routes.url_helpers(supports_path)
               include routes.mounted_helpers
             end
 
@@ -92,12 +92,15 @@ module ActionView
       # Find and render a template based on the options given.
       # :api: private
       def _render_template(options) #:nodoc:
-        variant = options[:variant]
+        variant = options.delete(:variant)
+        assigns = options.delete(:assigns)
+        context = view_context
 
+        context.assign assigns if assigns
         lookup_context.rendered_format = nil if options[:formats]
         lookup_context.variants = variant if variant
 
-        view_renderer.render(view_context, options)
+        view_renderer.render(context, options)
       end
 
       # Assign the rendered format to lookup context.

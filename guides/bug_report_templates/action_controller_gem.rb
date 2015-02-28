@@ -1,14 +1,15 @@
 # Activate the gem you are reporting the issue against.
-gem 'rails', '4.0.0'
+gem 'rails', '4.2.0'
 
 require 'rails'
+require 'rack/test'
 require 'action_controller/railtie'
 
 class TestApp < Rails::Application
   config.root = File.dirname(__FILE__)
   config.session_store :cookie_store, key: 'cookie_store_key'
-  config.secret_token    = 'secret_token'
-  config.secret_key_base = 'secret_key_base'
+  secrets.secret_token    = 'secret_token'
+  secrets.secret_key_base = 'secret_key_base'
 
   config.logger = Logger.new($stdout)
   Rails.logger  = config.logger
@@ -27,7 +28,6 @@ class TestController < ActionController::Base
 end
 
 require 'minitest/autorun'
-require 'rack/test'
 
 # Ensure backward compatibility with Minitest 4
 Minitest::Test = MiniTest::Unit::TestCase unless defined?(Minitest::Test)

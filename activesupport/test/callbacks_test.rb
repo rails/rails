@@ -49,7 +49,7 @@ module CallbacksTest
     def self.before(model)
       model.history << [:before_save, :class]
     end
-    
+
     def self.after(model)
       model.history << [:after_save, :class]
     end
@@ -501,21 +501,18 @@ module CallbacksTest
     end
   end
 
-  class CallbackTerminator
+  class AbstractCallbackTerminator
     include ActiveSupport::Callbacks
 
-    define_callbacks :save, :terminator => ->(_,result) { result == :halt }
-
-    set_callback :save, :before, :first
-    set_callback :save, :before, :second
-    set_callback :save, :around, :around_it
-    set_callback :save, :before, :third
-    set_callback :save, :after, :first
-    set_callback :save, :around, :around_it
-    set_callback :save, :after, :second
-    set_callback :save, :around, :around_it
-    set_callback :save, :after, :third
-
+    def self.set_save_callbacks
+      set_callback :save, :before, :first
+      set_callback :save, :before, :second
+      set_callback :save, :around, :around_it
+      set_callback :save, :before, :third
+      set_callback :save, :after, :first
+      set_callback :save, :around, :around_it
+      set_callback :save, :after, :third
+    end
 
     attr_reader :history, :saved, :halted
     def initialize
@@ -550,6 +547,39 @@ module CallbacksTest
     def halted_callback_hook(filter)
       @halted = filter
     end
+  end
+
+  class CallbackTerminator < AbstractCallbackTerminator
+    define_callbacks :save, terminator: ->(_, result_lambda) { result_lambda.call == :halt }
+    set_save_callbacks
+  end
+
+  class CallbackTerminatorSkippingAfterCallbacks < AbstractCallbackTerminator
+    define_callbacks :save, terminator: ->(_, result_lambda) { result_lambda.call == :halt },
+                            skip_after_callbacks_if_terminated: true
+    set_save_callbacks
+  end
+
+  class CallbackDefaultTerminator < AbstractCallbackTerminator
+    define_callbacks :save
+
+    def second
+      @history << "second"
+      throw(:abort)
+    end
+
+    set_save_callbacks
+  end
+
+  class CallbackFalseTerminator < AbstractCallbackTerminator
+    define_callbacks :save
+
+    def second
+      @history << "second"
+      false
+    end
+
+    set_save_callbacks
   end
 
   class CallbackObject
@@ -688,10 +718,10 @@ module CallbacksTest
   end
 
   class CallbackTerminatorTest < ActiveSupport::TestCase
-    def test_termination
+    def test_termination_skips_following_before_and_around_callbacks
       terminator = CallbackTerminator.new
       terminator.save
-      assert_equal ["first", "second", "third", "second", "first"], terminator.history
+      assert_equal ["first", "second", "third", "first"], terminator.history
     end
 
     def test_termination_invokes_hook
@@ -704,6 +734,73 @@ module CallbacksTest
       obj = CallbackTerminator.new
       obj.save
       assert !obj.saved
+    end
+  end
+
+  class CallbackTerminatorSkippingAfterCallbacksTest < ActiveSupport::TestCase
+    def test_termination_skips_after_callbacks
+      terminator = CallbackTerminatorSkippingAfterCallbacks.new
+      terminator.save
+      assert_equal ["first", "second"], terminator.history
+    end
+  end
+
+  class CallbackDefaultTerminatorTest < ActiveSupport::TestCase
+    def test_default_termination
+      terminator = CallbackDefaultTerminator.new
+      terminator.save
+      assert_equal ["first", "second", "third", "first"], terminator.history
+    end
+
+    def test_default_termination_invokes_hook
+      terminator = CallbackDefaultTerminator.new
+      terminator.save
+      assert_equal :second, terminator.halted
+    end
+
+    def test_block_never_called_if_abort_is_thrown
+      obj = CallbackDefaultTerminator.new
+      obj.save
+      assert !obj.saved
+    end
+  end
+
+  class CallbackFalseTerminatorWithoutConfigTest < ActiveSupport::TestCase
+    def test_returning_false_halts_callback_if_config_variable_is_not_set
+      obj = CallbackFalseTerminator.new
+      assert_deprecated do
+        obj.save
+        assert_equal :second, obj.halted
+        assert !obj.saved
+      end
+    end
+  end
+
+  class CallbackFalseTerminatorWithConfigTrueTest < ActiveSupport::TestCase
+    def setup
+      ActiveSupport::Callbacks::CallbackChain.halt_and_display_warning_on_return_false = true
+    end
+
+    def test_returning_false_halts_callback_if_config_variable_is_true
+      obj = CallbackFalseTerminator.new
+      assert_deprecated do
+        obj.save
+        assert_equal :second, obj.halted
+        assert !obj.saved
+      end
+    end
+  end
+
+  class CallbackFalseTerminatorWithConfigFalseTest < ActiveSupport::TestCase
+    def setup
+      ActiveSupport::Callbacks::CallbackChain.halt_and_display_warning_on_return_false = false
+    end
+
+    def test_returning_false_does_not_halt_callback_if_config_variable_is_false
+      obj = CallbackFalseTerminator.new
+      obj.save
+      assert_equal nil, obj.halted
+      assert obj.saved
     end
   end
 

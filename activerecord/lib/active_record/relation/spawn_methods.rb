@@ -32,7 +32,7 @@ module ActiveRecord
       elsif other
         spawn.merge!(other)
       else
-        self
+        raise ArgumentError, "invalid argument: #{other.inspect}."
       end
     end
 
@@ -58,16 +58,13 @@ module ActiveRecord
     #   Post.order('id asc').only(:where)         # discards the order condition
     #   Post.order('id asc').only(:where, :order) # uses the specified order
     def only(*onlies)
-      if onlies.any? { |o| o == :where }
-        onlies << :bind
-      end
       relation_with values.slice(*onlies)
     end
 
     private
 
       def relation_with(values) # :nodoc:
-        result = Relation.create(klass, table, values)
+        result = Relation.create(klass, table, predicate_builder, values)
         result.extend(*extending_values) if extending_values.any?
         result
       end

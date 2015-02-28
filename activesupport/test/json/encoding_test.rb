@@ -1,4 +1,3 @@
-# encoding: utf-8
 require 'securerandom'
 require 'abstract_unit'
 require 'active_support/core_ext/string/inflections'
@@ -68,7 +67,7 @@ class TestJSONEncoding < ActiveSupport::TestCase
                    [ 1.0/0.0,   %(null) ],
                    [ -1.0/0.0,  %(null) ],
                    [ BigDecimal('0.0')/BigDecimal('0.0'),  %(null) ],
-                   [ BigDecimal('2.5'), %("#{BigDecimal('2.5').to_s}") ]]
+                   [ BigDecimal('2.5'), %("#{BigDecimal('2.5')}") ]]
 
   StringTests   = [[ 'this is the <string>',     %("this is the \\u003cstring\\u003e")],
                    [ 'a "string" with quotes & an ampersand', %("a \\"string\\" with quotes \\u0026 an ampersand") ],
@@ -174,46 +173,6 @@ class TestJSONEncoding < ActiveSupport::TestCase
     json = ActiveSupport::JSON.encode(hash)
     decoded_hash = ActiveSupport::JSON.decode(json)
     assert_equal "𐒑", decoded_hash['string']
-  end
-
-  def test_reading_encode_big_decimal_as_string_option
-    assert_deprecated do
-      assert ActiveSupport.encode_big_decimal_as_string
-    end
-  end
-
-  def test_setting_deprecated_encode_big_decimal_as_string_option
-    assert_raise(NotImplementedError) do
-      ActiveSupport.encode_big_decimal_as_string = true
-    end
-
-    assert_raise(NotImplementedError) do
-      ActiveSupport.encode_big_decimal_as_string = false
-    end
-  end
-
-  def test_exception_raised_when_encoding_circular_reference_in_array
-    a = [1]
-    a << a
-    assert_deprecated do
-      assert_raise(ActiveSupport::JSON::Encoding::CircularReferenceError) { ActiveSupport::JSON.encode(a) }
-    end
-  end
-
-  def test_exception_raised_when_encoding_circular_reference_in_hash
-    a = { :name => 'foo' }
-    a[:next] = a
-    assert_deprecated do
-      assert_raise(ActiveSupport::JSON::Encoding::CircularReferenceError) { ActiveSupport::JSON.encode(a) }
-    end
-  end
-
-  def test_exception_raised_when_encoding_circular_reference_in_hash_inside_array
-    a = { :name => 'foo', :sub => [] }
-    a[:sub] << a
-    assert_deprecated do
-      assert_raise(ActiveSupport::JSON::Encoding::CircularReferenceError) { ActiveSupport::JSON.encode(a) }
-    end
   end
 
   def test_hash_key_identifiers_are_always_quoted

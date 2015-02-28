@@ -111,9 +111,11 @@ module ActiveSupport
       "Jerusalem"                    => "Asia/Jerusalem",
       "Harare"                       => "Africa/Harare",
       "Pretoria"                     => "Africa/Johannesburg",
+      "Kaliningrad"                  => "Europe/Kaliningrad",
       "Moscow"                       => "Europe/Moscow",
       "St. Petersburg"               => "Europe/Moscow",
-      "Volgograd"                    => "Europe/Moscow",
+      "Volgograd"                    => "Europe/Volgograd",
+      "Samara"                       => "Europe/Samara",
       "Kuwait"                       => "Asia/Kuwait",
       "Riyadh"                       => "Asia/Riyadh",
       "Nairobi"                      => "Africa/Nairobi",
@@ -170,6 +172,7 @@ module ActiveSupport
       "Guam"                         => "Pacific/Guam",
       "Port Moresby"                 => "Pacific/Port_Moresby",
       "Magadan"                      => "Asia/Magadan",
+      "Srednekolymsk"                => "Asia/Srednekolymsk",
       "Solomon Is."                  => "Pacific/Guadalcanal",
       "New Caledonia"                => "Pacific/Noumea",
       "Fiji"                         => "Pacific/Fiji",
@@ -202,7 +205,7 @@ module ActiveSupport
       end
 
       def find_tzinfo(name)
-        TZInfo::TimezoneProxy.new(MAPPING[name] || name)
+        TZInfo::Timezone.new(MAPPING[name] || name)
       end
 
       alias_method :create, :new
@@ -221,13 +224,6 @@ module ActiveSupport
         @zones ||= zones_map.values.sort
       end
 
-      def zones_map
-        @zones_map ||= begin
-          MAPPING.each_key {|place| self[place]} # load all the zones
-          @lazy_zones_map
-        end
-      end
-
       # Locate a specific time zone object. If the argument is a string, it
       # is interpreted to mean the name of the timezone to locate. If it is a
       # numeric value it is either the hour offset, or the second offset, of the
@@ -237,7 +233,7 @@ module ActiveSupport
         case arg
           when String
           begin
-            @lazy_zones_map[arg] ||= create(arg).tap { |tz| tz.utc_offset }
+            @lazy_zones_map[arg] ||= create(arg)
           rescue TZInfo::InvalidTimezoneIdentifier
             nil
           end
@@ -254,6 +250,14 @@ module ActiveSupport
       def us_zones
         @us_zones ||= all.find_all { |z| z.name =~ /US|Arizona|Indiana|Hawaii|Alaska/ }
       end
+
+      private
+        def zones_map
+          @zones_map ||= begin
+            MAPPING.each_key {|place| self[place]} # load all the zones
+            @lazy_zones_map
+          end
+        end
     end
 
     include Comparable

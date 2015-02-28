@@ -3,8 +3,6 @@ unless File.exist?('Gemfile')
     source 'https://rubygems.org'
     gem 'rails', github: 'rails/rails'
     gem 'arel', github: 'rails/arel'
-    gem 'rack', github: 'rack/rack'
-    gem 'i18n', github: 'svenfuchs/i18n'
     gem 'sqlite3'
   GEMFILE
 
@@ -23,10 +21,10 @@ ActiveRecord::Base.establish_connection(adapter: 'sqlite3', database: ':memory:'
 ActiveRecord::Base.logger = Logger.new(STDOUT)
 
 ActiveRecord::Schema.define do
-  create_table :posts do |t|
+  create_table :posts, force: true  do |t|
   end
 
-  create_table :comments do |t|
+  create_table :comments, force: true  do |t|
     t.integer :post_id
   end
 end

@@ -15,7 +15,7 @@ module ActiveModel
   #   class MyValidator < ActiveModel::Validator
   #     def validate(record)
   #       if some_complex_logic
-  #         record.errors[:base] = "This record is invalid"
+  #         record.errors.add(:base, "This record is invalid")
   #       end
   #     end
   #
@@ -127,7 +127,7 @@ module ActiveModel
   # in the options hash invoking the <tt>validate_each</tt> method passing in the
   # record, attribute and value.
   #
-  # All Active Model validations are built on top of this validator.
+  # All \Active \Model validations are built on top of this validator.
   class EachValidator < Validator #:nodoc:
     attr_reader :attributes
 
@@ -162,6 +162,10 @@ module ActiveModel
     # that the arguments supplied are valid. You could for example raise an
     # +ArgumentError+ when invalid options are supplied.
     def check_validity!
+    end
+
+    def should_validate?(record) # :nodoc:
+      !record.persisted? || record.changed? || record.marked_for_destruction?
     end
   end
 

@@ -2,6 +2,7 @@ require "cases/helper"
 require 'models/post'
 require 'models/author'
 require 'models/developer'
+require 'models/computer'
 require 'models/project'
 require 'models/comment'
 require 'models/category'
@@ -183,7 +184,7 @@ class RelationScopingTest < ActiveRecord::TestCase
     rescue
     end
 
-    assert !Developer.all.where_values.include?("name = 'Jamis'")
+    assert_not Developer.all.to_sql.include?("name = 'Jamis'"), "scope was not restored"
   end
 
   def test_default_scope_filters_on_joins
@@ -206,6 +207,12 @@ class RelationScopingTest < ActiveRecord::TestCase
 
     assert_equal [], DeveloperFilteredOnJoins.all
     assert_not_equal [], Developer.all
+  end
+
+  def test_current_scope_does_not_pollute_other_subclasses
+    Post.none.scoping do
+      assert StiPost.all.any?
+    end
   end
 end
 

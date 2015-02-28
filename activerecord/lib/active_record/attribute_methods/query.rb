@@ -22,7 +22,7 @@ module ActiveRecord
               return false if ActiveRecord::ConnectionAdapters::Column::FALSE_VALUES.include?(value)
               !value.blank?
             end
-          elsif column.number?
+          elsif value.respond_to?(:zero?)
             !value.zero?
           else
             !value.blank?

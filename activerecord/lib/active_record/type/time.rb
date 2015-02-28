@@ -1,10 +1,26 @@
 module ActiveRecord
   module Type
     class Time < Value # :nodoc:
-      include TimeValue
+      include Helpers::TimeValue
+      include Helpers::AcceptsMultiparameterTime.new(
+        defaults: { 1 => 1970, 2 => 1, 3 => 1, 4 => 0, 5 => 0 }
+      )
 
       def type
         :time
+      end
+
+      def user_input_in_time_zone(value)
+        return unless value.present?
+
+        case value
+        when ::String
+          value = "2000-01-01 #{value}"
+        when ::Time
+          value = value.change(year: 2000, day: 1, month: 1)
+        end
+
+        super(value)
       end
 
       private

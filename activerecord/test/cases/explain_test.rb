@@ -28,7 +28,7 @@ if ActiveRecord::Base.connection.supports_explain?
       assert_match "SELECT", sql
       if binds.any?
         assert_equal 1, binds.length
-        assert_equal "honda", binds.flatten.last
+        assert_equal "honda", binds.last.value
       else
         assert_match 'honda', sql
       end

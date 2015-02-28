@@ -3,7 +3,7 @@ module ActiveRecord
     module PostgreSQL
       module OID # :nodoc:
         class Array < Type::Value # :nodoc:
-          include Type::Mutable
+          include Type::Helpers::Mutable
 
           # Loads pg_array_parser if available. String parsing can be
           # performed quicker by a native extension, which will not create
@@ -18,31 +18,40 @@ module ActiveRecord
           end
 
           attr_reader :subtype, :delimiter
-          delegate :type, to: :subtype
+          delegate :type, :user_input_in_time_zone, to: :subtype
 
           def initialize(subtype, delimiter = ',')
             @subtype = subtype
             @delimiter = delimiter
           end
 
-          def type_cast_from_database(value)
+          def deserialize(value)
             if value.is_a?(::String)
-              type_cast_array(parse_pg_array(value), :type_cast_from_database)
+              type_cast_array(parse_pg_array(value), :deserialize)
             else
               super
             end
           end
 
-          def type_cast_from_user(value)
-            type_cast_array(value, :type_cast_from_user)
+          def cast(value)
+            if value.is_a?(::String)
+              value = parse_pg_array(value)
+            end
+            type_cast_array(value, :cast)
           end
 
-          def type_cast_for_database(value)
+          def serialize(value)
             if value.is_a?(::Array)
               cast_value_for_database(value)
             else
               super
             end
+          end
+
+          def ==(other)
+            other.is_a?(Array) &&
+              subtype == other.subtype &&
+              delimiter == other.delimiter
           end
 
           private
@@ -60,7 +69,7 @@ module ActiveRecord
               casted_values = value.map { |item| cast_value_for_database(item) }
               "{#{casted_values.join(delimiter)}}"
             else
-              quote_and_escape(subtype.type_cast_for_database(value))
+              quote_and_escape(subtype.serialize(value))
             end
           end
 

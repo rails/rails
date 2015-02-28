@@ -6,12 +6,12 @@ require 'rails/source_annotation_extractor'
 module Rails
   class Application
     class Configuration < ::Rails::Engine::Configuration
-      attr_accessor :allow_concurrency, :asset_host, :assets, :autoflush_log,
+      attr_accessor :allow_concurrency, :asset_host, :autoflush_log,
                     :cache_classes, :cache_store, :consider_all_requests_local, :console,
                     :eager_load, :exceptions_app, :file_watcher, :filter_parameters,
                     :force_ssl, :helpers_paths, :logger, :log_formatter, :log_tags,
                     :railties_order, :relative_url_root, :secret_key_base, :secret_token,
-                    :serve_static_assets, :ssl_options, :static_cache_control, :session_options,
+                    :serve_static_files, :ssl_options, :static_cache_control, :session_options,
                     :time_zone, :reload_classes_only_on_change,
                     :beginning_of_week, :filter_redirect, :x
 
@@ -26,7 +26,7 @@ module Rails
         @filter_parameters             = []
         @filter_redirect               = []
         @helpers_paths                 = []
-        @serve_static_assets           = true
+        @serve_static_files            = true
         @static_cache_control          = nil
         @force_ssl                     = false
         @ssl_options                   = {}
@@ -49,21 +49,6 @@ module Rails
         @secret_token                  = nil
         @secret_key_base               = nil
         @x                             = Custom.new
-
-        @assets = ActiveSupport::OrderedOptions.new
-        @assets.enabled                  = true
-        @assets.paths                    = []
-        @assets.precompile               = [ Proc.new { |path, fn| fn =~ /app\/assets/ && !%w(.js .css).include?(File.extname(path)) },
-                                             /(?:\/|\\|\A)application\.(css|js)$/ ]
-        @assets.prefix                   = "/assets"
-        @assets.version                  = '1.0'
-        @assets.debug                    = false
-        @assets.compile                  = true
-        @assets.digest                   = false
-        @assets.cache_store              = [ :file_store, "#{root}/tmp/cache/assets/#{Rails.env}/" ]
-        @assets.js_compressor            = nil
-        @assets.css_compressor           = nil
-        @assets.logger                   = nil
       end
 
       def encoding=(value)
@@ -118,7 +103,7 @@ module Rails
       end
 
       def log_level
-        @log_level ||= :debug
+        @log_level ||= (Rails.env.production? ? :info : :debug)
       end
 
       def colorize_logging

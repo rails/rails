@@ -14,22 +14,6 @@ module ActiveRecord
           @connection.unescape_bytea(value) if value
         end
 
-        # Quotes PostgreSQL-specific data types for SQL input.
-        def quote(value, column = nil) #:nodoc:
-          return super unless column
-
-          case value
-          when Float
-            if value.infinite? || value.nan?
-              "'#{value.to_s}'"
-            else
-              super
-            end
-          else
-            super
-          end
-        end
-
         # Quotes strings for use in SQL input.
         def quote_string(s) #:nodoc:
           @connection.escape(s)
@@ -59,25 +43,28 @@ module ActiveRecord
         # Quote date/time values for use in SQL input. Includes microseconds
         # if the value is a Time responding to usec.
         def quoted_date(value) #:nodoc:
-          result = super
-          if value.acts_like?(:time) && value.respond_to?(:usec)
-            result = "#{result}.#{sprintf("%06d", value.usec)}"
-          end
-
           if value.year <= 0
             bce_year = format("%04d", -value.year + 1)
-            result = result.sub(/^-?\d+/, bce_year) + " BC"
+            super.sub(/^-?\d+/, bce_year) + " BC"
+          else
+            super
           end
-          result
         end
 
         # Does not quote function default values for UUID columns
-        def quote_default_value(value, column) #:nodoc:
+        def quote_default_expression(value, column) #:nodoc:
           if column.type == :uuid && value =~ /\(\)/
             value
+          elsif column.respond_to?(:array?)
+            value = type_cast_from_column(column, value)
+            quote(value)
           else
-            quote(value, column)
+            super
           end
+        end
+
+        def lookup_cast_type_from_column(column) # :nodoc:
+          type_map.lookup(column.oid, column.fmod, column.sql_type)
         end
 
         private
@@ -93,6 +80,12 @@ module ActiveRecord
               "B'#{value}'"
             elsif value.hex?
               "X'#{value}'"
+            end
+          when Float
+            if value.infinite? || value.nan?
+              "'#{value}'"
+            else
+              super
             end
           else
             super

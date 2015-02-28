@@ -18,24 +18,47 @@ class DefaultTest < ActiveRecord::TestCase
     end
   end
 
-  if current_adapter?(:PostgreSQLAdapter, :OracleAdapter)
-    def test_default_integers
-      default = Default.new
-      assert_instance_of Fixnum, default.positive_integer
-      assert_equal 1, default.positive_integer
-      assert_instance_of Fixnum, default.negative_integer
-      assert_equal(-1, default.negative_integer)
-      assert_instance_of BigDecimal, default.decimal_number
-      assert_equal BigDecimal.new("2.78"), default.decimal_number
+  if current_adapter?(:PostgreSQLAdapter)
+    def test_multiline_default_text
+      record = Default.new
+      # older postgres versions represent the default with escapes ("\\012" for a newline)
+      assert("--- []\n\n" == record.multiline_default || "--- []\\012\\012" == record.multiline_default)
+    end
+  end
+end
+
+class DefaultNumbersTest < ActiveRecord::TestCase
+  class DefaultNumber < ActiveRecord::Base; end
+
+  setup do
+    @connection = ActiveRecord::Base.connection
+    @connection.create_table :default_numbers do |t|
+      t.integer :positive_integer, default: 7
+      t.integer :negative_integer, default: -5
+      t.decimal :decimal_number, default: "2.78", precision: 5, scale: 2
     end
   end
 
-  if current_adapter?(:PostgreSQLAdapter)
-    def test_multiline_default_text
-      # older postgres versions represent the default with escapes ("\\012" for a newline)
-      assert( "--- []\n\n" == Default.columns_hash['multiline_default'].default ||
-               "--- []\\012\\012" == Default.columns_hash['multiline_default'].default)
-    end
+  teardown do
+    @connection.drop_table :default_numbers, if_exists: true
+  end
+
+  def test_default_positive_integer
+    record = DefaultNumber.new
+    assert_equal 7, record.positive_integer
+    assert_equal "7", record.positive_integer_before_type_cast
+  end
+
+  def test_default_negative_integer
+    record = DefaultNumber.new
+    assert_equal (-5), record.negative_integer
+    assert_equal "-5", record.negative_integer_before_type_cast
+  end
+
+  def test_default_decimal_number
+    record = DefaultNumber.new
+    assert_equal BigDecimal.new("2.78"), record.decimal_number
+    assert_equal "2.78", record.decimal_number_before_type_cast
   end
 end
 
@@ -99,19 +122,21 @@ if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
     def test_mysql_text_not_null_defaults_non_strict
       using_strict(false) do
         with_text_blob_not_null_table do |klass|
-          assert_equal '', klass.columns_hash['non_null_blob'].default
-          assert_equal '', klass.columns_hash['non_null_text'].default
+          record = klass.new
+          assert_equal '', record.non_null_blob
+          assert_equal '', record.non_null_text
 
-          assert_nil klass.columns_hash['null_blob'].default
-          assert_nil klass.columns_hash['null_text'].default
+          assert_nil record.null_blob
+          assert_nil record.null_text
 
-          instance = klass.create!
+          record.save!
+          record.reload
 
-          assert_equal '', instance.non_null_text
-          assert_equal '', instance.non_null_blob
+          assert_equal '', record.non_null_text
+          assert_equal '', record.non_null_blob
 
-          assert_nil instance.null_text
-          assert_nil instance.null_blob
+          assert_nil record.null_text
+          assert_nil record.null_blob
         end
       end
     end
@@ -119,10 +144,11 @@ if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
     def test_mysql_text_not_null_defaults_strict
       using_strict(true) do
         with_text_blob_not_null_table do |klass|
-          assert_nil klass.columns_hash['non_null_blob'].default
-          assert_nil klass.columns_hash['non_null_text'].default
-          assert_nil klass.columns_hash['null_blob'].default
-          assert_nil klass.columns_hash['null_text'].default
+          record = klass.new
+          assert_nil record.non_null_blob
+          assert_nil record.non_null_text
+          assert_nil record.null_blob
+          assert_nil record.null_text
 
           assert_raises(ActiveRecord::StatementInvalid) { klass.create }
         end
@@ -169,51 +195,6 @@ if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
       end
     ensure
       klass.connection.drop_table(klass.table_name) rescue nil
-    end
-  end
-end
-
-if current_adapter?(:PostgreSQLAdapter)
-  class DefaultsUsingMultipleSchemasAndDomainTest < ActiveSupport::TestCase
-    def setup
-      @connection = ActiveRecord::Base.connection
-
-      @old_search_path = @connection.schema_search_path
-      @connection.schema_search_path = "schema_1, pg_catalog"
-      @connection.create_table "defaults" do |t|
-        t.text "text_col", :default => "some value"
-        t.string "string_col", :default => "some value"
-      end
-      Default.reset_column_information
-    end
-
-    def test_text_defaults_in_new_schema_when_overriding_domain
-      assert_equal "some value", Default.new.text_col, "Default of text column was not correctly parse"
-    end
-
-    def test_string_defaults_in_new_schema_when_overriding_domain
-      assert_equal "some value", Default.new.string_col, "Default of string column was not correctly parse"
-    end
-
-    def test_bpchar_defaults_in_new_schema_when_overriding_domain
-      @connection.execute "ALTER TABLE defaults ADD bpchar_col bpchar DEFAULT 'some value'"
-      Default.reset_column_information
-      assert_equal "some value", Default.new.bpchar_col, "Default of bpchar column was not correctly parse"
-    end
-
-    def test_text_defaults_after_updating_column_default
-      @connection.execute "ALTER TABLE defaults ALTER COLUMN text_col SET DEFAULT 'some text'::schema_1.text"
-      assert_equal "some text", Default.new.text_col, "Default of text column was not correctly parse after updating default using '::text' since postgreSQL will add parens to the default in db"
-    end
-
-    def test_default_containing_quote_and_colons
-      @connection.execute "ALTER TABLE defaults ALTER COLUMN string_col SET DEFAULT 'foo''::bar'"
-      assert_equal "foo'::bar", Default.new.string_col
-    end
-
-    teardown do
-      @connection.schema_search_path = @old_search_path
-      Default.reset_column_information
     end
   end
 end

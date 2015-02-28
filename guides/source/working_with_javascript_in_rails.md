@@ -1,3 +1,5 @@
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+
 Working with JavaScript in Rails
 ================================
 
@@ -189,6 +191,34 @@ $(document).ready ->
 Obviously, you'll want to be a bit more sophisticated than that, but it's a
 start. You can see more about the events [in the jquery-ujs wiki](https://github.com/rails/jquery-ujs/wiki/ajax).
 
+Another possibility is returning javascript directly from the server side on
+remote calls:
+
+```ruby
+# articles_controller
+def create
+  respond_to do |format|
+    if @article.save
+      format.html { ... }
+      format.js do
+        render js: <<-endjs
+          alert('Article saved successfully!');
+          window.location = '#{article_path(@article)}';
+        endjs
+      end
+    else
+      format.html { ... }
+      format.js do
+        render js: "alert('There are empty fields in the form!');"
+      end
+    end
+  end
+end
+```
+
+NOTE: If javascript is disabled in the user browser, `format.html { ... }`
+block should be executed as fallback.
+
 ### form_tag
 
 [`form_tag`](http://api.rubyonrails.org/classes/ActionView/Helpers/FormTagHelper.html#method-i-form_tag)
@@ -355,7 +385,7 @@ This gem uses Ajax to speed up page rendering in most applications.
 
 Turbolinks attaches a click handler to all `<a>` on the page. If your browser
 supports
-[PushState](https://developer.mozilla.org/en-US/docs/DOM/Manipulating_the_browser_history#The_pushState(\).C2.A0method),
+[PushState](https://developer.mozilla.org/en-US/docs/Web/Guide/API/DOM/Manipulating_the_browser_history#The_pushState()_method),
 Turbolinks will make an Ajax request for the page, parse the response, and
 replace the entire `<body>` of the page with the `<body>` of the response. It
 will then use PushState to change the URL to the correct one, preserving

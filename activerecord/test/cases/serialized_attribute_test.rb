@@ -22,12 +22,6 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     end
   end
 
-  def test_list_of_serialized_attributes
-    assert_deprecated do
-      assert_equal %w(content), Topic.serialized_attributes.keys
-    end
-  end
-
   def test_serialized_attribute
     Topic.serialize("content", MyObject)
 
@@ -243,8 +237,9 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     t = Topic.create(content: "first")
     assert_equal("first", t.content)
 
-    t.update_column(:content, Topic.type_for_attribute('content').type_cast_for_database("second"))
-    assert_equal("second", t.content)
+    t.update_column(:content, ["second"])
+    assert_equal(["second"], t.content)
+    assert_equal(["second"], t.reload.content)
   end
 
   def test_serialized_column_should_unserialize_after_update_attribute
@@ -253,5 +248,20 @@ class SerializedAttributeTest < ActiveRecord::TestCase
 
     t.update_attribute(:content, "second")
     assert_equal("second", t.content)
+    assert_equal("second", t.reload.content)
+  end
+
+  def test_nil_is_not_changed_when_serialized_with_a_class
+    Topic.serialize(:content, Array)
+
+    topic = Topic.new(content: nil)
+
+    assert_not topic.content_changed?
+  end
+
+  def test_classes_without_no_arg_constructors_are_not_supported
+    assert_raises(ArgumentError) do
+      Topic.serialize(:content, Regexp)
+    end
   end
 end

@@ -69,7 +69,16 @@ module ActiveRecord
         end
       end
 
+      def attribute_changed_in_place?(attr_name)
+        old_value = original_raw_attribute(attr_name)
+        @attributes[attr_name].changed_in_place_from?(old_value)
+      end
+
       private
+
+      def changes_include?(attr_name)
+        super || attribute_changed_in_place?(attr_name)
+      end
 
       def calculate_changes_from_defaults
         @changed_attributes = nil
@@ -99,7 +108,7 @@ module ActiveRecord
       end
 
       def save_changed_attribute(attr, old_value)
-        if attribute_changed?(attr)
+        if attribute_changed_by_setter?(attr)
           clear_attribute_changes(attr) unless _field_changed?(attr, old_value)
         else
           set_attribute_was(attr, old_value) if _field_changed?(attr, old_value)
@@ -110,7 +119,7 @@ module ActiveRecord
         if attribute_changed?(attr)
           changed_attributes[attr]
         else
-          clone_attribute_value(:read_attribute, attr)
+          clone_attribute_value(:_read_attribute, attr)
         end
       end
 
@@ -122,10 +131,8 @@ module ActiveRecord
         partial_writes? ? super(keys_for_partial_write) : super
       end
 
-      # Serialized attributes should always be written in case they've been
-      # changed in place.
       def keys_for_partial_write
-        changed
+        changed & self.class.column_names
       end
 
       def _field_changed?(attr, old_value)
@@ -141,13 +148,8 @@ module ActiveRecord
 
       def changed_in_place
         self.class.attribute_names.select do |attr_name|
-          changed_in_place?(attr_name)
+          attribute_changed_in_place?(attr_name)
         end
-      end
-
-      def changed_in_place?(attr_name)
-        old_value = original_raw_attribute(attr_name)
-        @attributes[attr_name].changed_in_place_from?(old_value)
       end
 
       def original_raw_attribute(attr_name)
@@ -161,7 +163,7 @@ module ActiveRecord
       end
 
       def store_original_raw_attribute(attr_name)
-        original_raw_attributes[attr_name] = @attributes[attr_name].value_for_database
+        original_raw_attributes[attr_name] = @attributes[attr_name].value_for_database rescue nil
       end
 
       def store_original_raw_attributes

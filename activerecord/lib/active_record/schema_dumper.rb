@@ -44,7 +44,6 @@ module ActiveRecord
 
       def initialize(connection, options = {})
         @connection = connection
-        @types = @connection.native_database_types
         @version = Migrator::current_version rescue nil
         @options = options
       end
@@ -118,21 +117,24 @@ HEADER
           if pkcol
             if pk != 'id'
               tbl.print %Q(, primary_key: "#{pk}")
-            elsif pkcol.sql_type == 'uuid'
-              tbl.print ", id: :uuid"
-              tbl.print %Q(, default: "#{pkcol.default_function}") if pkcol.default_function
+            end
+            pkcolspec = @connection.column_spec_for_primary_key(pkcol)
+            if pkcolspec
+              pkcolspec.each do |key, value|
+                tbl.print ", #{key}: #{value}"
+              end
             end
           else
             tbl.print ", id: false"
           end
-          tbl.print ", force: true"
+          tbl.print ", force: :cascade"
           tbl.puts " do |t|"
 
           # then dump all non-primary key columns
           column_specs = columns.map do |column|
             raise StandardError, "Unknown type '#{column.sql_type}' for column '#{column.name}'" unless @connection.valid_type?(column.type)
             next if column.name == pk
-            @connection.column_spec(column, @types)
+            @connection.column_spec(column)
           end.compact
 
           # find all migration keys used in this table
@@ -242,12 +244,7 @@ HEADER
 
       def ignored?(table_name)
         ['schema_migrations', ignore_tables].flatten.any? do |ignored|
-          case ignored
-          when String; remove_prefix_and_suffix(table_name) == ignored
-          when Regexp; remove_prefix_and_suffix(table_name) =~ ignored
-          else
-            raise StandardError, 'ActiveRecord::SchemaDumper.ignore_tables accepts an array of String and / or Regexp values.'
-          end
+          ignored === remove_prefix_and_suffix(table_name)
         end
       end
   end

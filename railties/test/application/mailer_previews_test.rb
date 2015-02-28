@@ -40,6 +40,17 @@ module ApplicationTests
       assert_equal 404, last_response.status
     end
 
+    test "/rails/mailers is accessible with globbing route present" do
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          get '*foo', to: 'foo#index'
+        end
+      RUBY
+      app("development")
+      get "/rails/mailers"
+      assert_equal 200, last_response.status
+    end
+
     test "mailer previews are loaded from the default preview_path" do
       mailer 'notifier', <<-RUBY
         class Notifier < ActionMailer::Base
@@ -415,58 +426,6 @@ module ApplicationTests
       get "/rails/mailers/notifier/foo.txt"
       assert_equal 200, last_response.status
       assert_match '<option selected value="?part=text%2Fplain">View as plain-text email</option>', last_response.body
-    end
-
-    test "*_path helpers emit a deprecation" do
-
-      app_file "config/routes.rb", <<-RUBY
-        Rails.application.routes.draw do
-          get 'foo', to: 'foo#index'
-        end
-      RUBY
-
-      mailer 'notifier', <<-RUBY
-        class Notifier < ActionMailer::Base
-          default from: "from@example.com"
-
-          def path_in_view
-            mail to: "to@example.org"
-          end
-
-          def path_in_mailer
-            @url = foo_path
-            mail to: "to@example.org"
-          end
-        end
-      RUBY
-
-      html_template 'notifier/path_in_view', "<%= link_to 'foo', foo_path %>"
-
-      mailer_preview 'notifier', <<-RUBY
-        class NotifierPreview < ActionMailer::Preview
-          def path_in_view
-            Notifier.path_in_view
-          end
-
-          def path_in_mailer
-            Notifier.path_in_mailer
-          end
-        end
-      RUBY
-
-      app('development')
-
-      assert_deprecated do
-        get "/rails/mailers/notifier/path_in_view.html"
-        assert_equal 200, last_response.status
-      end
-
-      html_template 'notifier/path_in_mailer', "No ERB in here"
-
-      assert_deprecated do
-        get "/rails/mailers/notifier/path_in_mailer.html"
-        assert_equal 200, last_response.status
-      end
     end
 
     private

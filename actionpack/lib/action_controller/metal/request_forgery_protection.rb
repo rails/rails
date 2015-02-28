@@ -1,5 +1,6 @@
 require 'rack/session/abstract/id'
 require 'action_controller/metal/exceptions'
+require 'active_support/security_utils'
 
 module ActionController #:nodoc:
   class InvalidAuthenticityToken < ActionControllerError #:nodoc:
@@ -28,14 +29,7 @@ module ActionController #:nodoc:
   # you're building an API you'll need something like:
   #
   #   class ApplicationController < ActionController::Base
-  #     protect_from_forgery
-  #     skip_before_action :verify_authenticity_token, if: :json_request?
-  #
-  #     protected
-  #
-  #     def json_request?
-  #       request.format.json?
-  #     end
+  #     protect_from_forgery unless: -> { request.format.json? }
   #   end
   #
   # CSRF protection is turned on with the <tt>protect_from_forgery</tt> method,
@@ -86,12 +80,18 @@ module ActionController #:nodoc:
       #   class FooController < ApplicationController
       #     protect_from_forgery except: :index
       #
-      # You can disable CSRF protection on controller by skipping the verification before_action:
+      # You can disable forgery protection on controller by skipping the verification before_action:
       #   skip_before_action :verify_authenticity_token
       #
       # Valid Options:
       #
-      # * <tt>:only/:except</tt> - Passed to the <tt>before_action</tt> call. Set which actions are verified.
+      # * <tt>:only/:except</tt> - Only apply forgery protection to a subset of actions. Like <tt>only: [ :create, :create_all ]</tt>.
+      # * <tt>:if/:unless</tt> - Turn off the forgery protection entirely depending on the passed proc or method reference.
+      # * <tt>:prepend</tt> - By default, the verification of the authentication token is added to the front of the
+      #   callback chain. If you need to make the verification depend on other callbacks, like authentication methods
+      #   (say cookies vs oauth), this might not work for you. Pass <tt>prepend: false</tt> to just add the
+      #   verification callback in the position of the protect_from_forgery call. This means any callbacks added
+      #   before are run first.
       # * <tt>:with</tt> - Set the method to handle unverified request.
       #
       # Valid unverified request handling methods are:
@@ -99,9 +99,11 @@ module ActionController #:nodoc:
       # * <tt>:reset_session</tt> - Resets the session.
       # * <tt>:null_session</tt> - Provides an empty session during request but doesn't reset it completely. Used as default if <tt>:with</tt> option is not specified.
       def protect_from_forgery(options = {})
+        options = options.reverse_merge(prepend: true)
+
         self.forgery_protection_strategy = protection_method_class(options[:with] || :null_session)
         self.request_forgery_protection_token ||= :authenticity_token
-        prepend_before_action :verify_authenticity_token, options
+        before_action :verify_authenticity_token, options
         append_after_action :verify_same_origin_request
       end
 
@@ -208,6 +210,7 @@ module ActionController #:nodoc:
         forgery_protection_strategy.new(self).handle_unverified_request
       end
 
+      #:nodoc:
       CROSS_ORIGIN_JAVASCRIPT_WARNING = "Security warning: an embedded " \
         "<script> tag on another site requested protected JavaScript. " \
         "If you know what you're doing, go ahead and disable forgery " \
@@ -272,7 +275,9 @@ module ActionController #:nodoc:
       # session token. Essentially the inverse of
       # +masked_authenticity_token+.
       def valid_authenticity_token?(session, encoded_masked_token)
-        return false if encoded_masked_token.nil? || encoded_masked_token.empty?
+        if encoded_masked_token.nil? || encoded_masked_token.empty? || !encoded_masked_token.is_a?(String)
+          return false
+        end
 
         begin
           masked_token = Base64.strict_decode64(encoded_masked_token)
@@ -305,8 +310,7 @@ module ActionController #:nodoc:
       end
 
       def compare_with_real_token(token, session)
-        # Borrow a constant-time comparison from Rack
-        Rack::Utils.secure_compare(token, real_csrf_token(session))
+        ActiveSupport::SecurityUtils.secure_compare(token, real_csrf_token(session))
       end
 
       def real_csrf_token(session)

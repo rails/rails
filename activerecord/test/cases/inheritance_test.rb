@@ -22,7 +22,7 @@ class InheritanceTest < ActiveRecord::TestCase
     company = Company.first
     company = company.dup
     company.extend(Module.new {
-      def read_attribute(name)
+      def _read_attribute(name)
         return '  ' if name == 'type'
         super
       end
@@ -119,6 +119,12 @@ class InheritanceTest < ActiveRecord::TestCase
     assert_kind_of Vegetable, vegetable
     cabbage = vegetable.becomes(Cabbage)
     assert_kind_of Cabbage, cabbage
+  end
+
+  def test_becomes_and_change_tracking_for_inheritance_columns
+    cucumber = Vegetable.find(1)
+    cabbage = cucumber.becomes!(Cabbage)
+    assert_equal ['Cucumber', 'Cabbage'], cabbage.custom_type_change
   end
 
   def test_alt_becomes_bang_resets_inheritance_type_column
@@ -294,17 +300,17 @@ class InheritanceTest < ActiveRecord::TestCase
 
   def test_eager_load_belongs_to_something_inherited
     account = Account.all.merge!(:includes => :firm).find(1)
-    assert account.association_cache.key?(:firm), "nil proves eager load failed"
+    assert account.association(:firm).loaded?, "association was not eager loaded"
   end
 
   def test_alt_eager_loading
     cabbage = RedCabbage.all.merge!(:includes => :seller).find(4)
-    assert cabbage.association_cache.key?(:seller), "nil proves eager load failed"
+    assert cabbage.association(:seller).loaded?, "association was not eager loaded"
   end
 
   def test_eager_load_belongs_to_primary_key_quoting
     con = Account.connection
-    assert_sql(/#{con.quote_table_name('companies')}.#{con.quote_column_name('id')} IN \(1\)/) do
+    assert_sql(/#{con.quote_table_name('companies')}.#{con.quote_column_name('id')} = 1/) do
       Account.all.merge!(:includes => :firm).find(1)
     end
   end

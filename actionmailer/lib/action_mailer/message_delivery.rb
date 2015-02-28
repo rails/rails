@@ -84,18 +84,6 @@ module ActionMailer
       message.deliver
     end
 
-    def deliver! #:nodoc:
-      ActiveSupport::Deprecation.warn "#deliver! is deprecated and will be removed in Rails 5. " \
-        "Use #deliver_now! to deliver immediately or #deliver_later! to deliver through Active Job."
-      deliver_now!
-    end
-
-    def deliver #:nodoc:
-      ActiveSupport::Deprecation.warn "#deliver is deprecated and will be removed in Rails 5. " \
-        "Use #deliver_now to deliver immediately or #deliver_later to deliver through Active Job."
-      deliver_now
-    end
-
     private
 
       def enqueue_delivery(delivery_method, options={})

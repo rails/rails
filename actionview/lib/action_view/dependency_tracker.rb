@@ -76,6 +76,12 @@ module ActionView
         (?:#{STRING}|#{VARIABLE_OR_METHOD_CHAIN})      # finally, the dependency name of interest
       /xm
 
+      LAYOUT_DEPENDENCY = /\A
+        (?:\s*\(?\s*)                                  # optional opening paren surrounded by spaces
+        (?:.*?#{LAYOUT_HASH_KEY})                      # check if the line has layout key declaration
+        (?:#{STRING}|#{VARIABLE_OR_METHOD_CHAIN})      # finally, the dependency name of interest
+      /xm
+
       def self.call(name, template)
         new(name, template).dependencies
       end
@@ -106,13 +112,18 @@ module ActionView
           render_calls = source.split(/\brender\b/).drop(1)
 
           render_calls.each do |arguments|
-            arguments.scan(RENDER_ARGUMENTS) do
-              add_dynamic_dependency(render_dependencies, Regexp.last_match[:dynamic])
-              add_static_dependency(render_dependencies, Regexp.last_match[:static])
-            end
+            add_dependencies(render_dependencies, arguments, LAYOUT_DEPENDENCY)
+            add_dependencies(render_dependencies, arguments, RENDER_ARGUMENTS)
           end
 
           render_dependencies.uniq
+        end
+
+        def add_dependencies(render_dependencies, arguments, pattern)
+          arguments.scan(pattern) do
+            add_dynamic_dependency(render_dependencies, Regexp.last_match[:dynamic])
+            add_static_dependency(render_dependencies, Regexp.last_match[:static])
+          end
         end
 
         def add_dynamic_dependency(dependencies, dependency)

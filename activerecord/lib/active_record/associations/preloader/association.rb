@@ -33,7 +33,7 @@ module ActiveRecord
         end
 
         def query_scope(ids)
-          scope.where(association_key.in(ids))
+          scope.where(association_key_name => ids)
         end
 
         def table
@@ -131,25 +131,20 @@ module ActiveRecord
         def build_scope
           scope = klass.unscoped
 
-          values         = reflection_scope.values
-          reflection_binds = reflection_scope.bind_values
+          values = reflection_scope.values
           preload_values = preload_scope.values
-          preload_binds  = preload_scope.bind_values
 
-          scope.where_values      = Array(values[:where])      + Array(preload_values[:where])
+          scope.where_clause = reflection_scope.where_clause + preload_scope.where_clause
           scope.references_values = Array(values[:references]) + Array(preload_values[:references])
-          scope.bind_values       = (reflection_binds + preload_binds)
 
-          scope._select!   preload_values[:select] || values[:select] || table[Arel.star]
+          scope._select! preload_values[:select] || values[:select] || table[Arel.star]
           scope.includes! preload_values[:includes] || values[:includes]
-
-          if preload_values.key? :order
-            scope.order! preload_values[:order]
+          if preload_scope.joins_values.any?
+            scope.joins!(preload_scope.joins_values)
           else
-            if values.key? :order
-              scope.order! values[:order]
-            end
+            scope.joins!(reflection_scope.joins_values)
           end
+          scope.order! preload_values[:order] || values[:order]
 
           if preload_values[:readonly] || values[:readonly]
             scope.readonly!
@@ -159,6 +154,7 @@ module ActiveRecord
             scope.where!(klass.table_name => { reflection.type => model.base_class.sti_name })
           end
 
+          scope.unscope_values = Array(values[:unscope])
           klass.default_scoped.merge(scope)
         end
       end

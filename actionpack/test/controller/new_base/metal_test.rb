@@ -18,8 +18,6 @@ module MetalTest
   end
 
   class TestMiddleware < ActiveSupport::TestCase
-    include RackTestUtils
-
     def setup
       @app = Rack::Builder.new do
         use MetalTest::MetalMiddleware
@@ -31,14 +29,14 @@ module MetalTest
       env = Rack::MockRequest.env_for("/authed")
       response = @app.call(env)
 
-      assert_equal "Hello World", body_to_string(response[2])
+      assert_equal ["Hello World"], response[2]
     end
 
     test "it can return a response using the normal AC::Metal techniques" do
       env = Rack::MockRequest.env_for("/")
       response = @app.call(env)
 
-      assert_equal "Not authed!", body_to_string(response[2])
+      assert_equal ["Not authed!"], response[2]
       assert_equal 401, response[0]
     end
   end

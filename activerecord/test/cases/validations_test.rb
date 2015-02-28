@@ -1,9 +1,9 @@
-# encoding: utf-8
 require "cases/helper"
 require 'models/topic'
 require 'models/reply'
 require 'models/person'
 require 'models/developer'
+require 'models/computer'
 require 'models/parrot'
 require 'models/company'
 
@@ -148,4 +148,17 @@ class ValidationsTest < ActiveRecord::TestCase
     assert_equal 1, Company.validators_on(:name).size
   end
 
+  def test_numericality_validation_with_mutation
+    Topic.class_eval do
+      attribute :wibble, :string
+      validates_numericality_of :wibble, only_integer: true
+    end
+
+    topic = Topic.new(wibble: '123-4567')
+    topic.wibble.gsub!('-', '')
+
+    assert topic.valid?
+  ensure
+    Topic.reset_column_information
+  end
 end

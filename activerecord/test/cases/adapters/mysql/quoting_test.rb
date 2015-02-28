@@ -9,15 +9,11 @@ module ActiveRecord
         end
 
         def test_type_cast_true
-          c = Column.new(nil, 1, Type::Boolean.new)
-          assert_equal 1, @conn.type_cast(true, nil)
-          assert_equal 1, @conn.type_cast(true, c)
+          assert_equal 1, @conn.type_cast(true)
         end
 
         def test_type_cast_false
-          c = Column.new(nil, 1, Type::Boolean.new)
-          assert_equal 0, @conn.type_cast(false, nil)
-          assert_equal 0, @conn.type_cast(false, c)
+          assert_equal 0, @conn.type_cast(false)
         end
       end
     end

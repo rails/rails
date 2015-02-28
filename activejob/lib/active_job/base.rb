@@ -32,19 +32,19 @@ module ActiveJob #:nodoc:
   #   end
   #
   # Records that are passed in are serialized/deserialized using Global
-  # Id. More information can be found in Arguments.
+  # ID. More information can be found in Arguments.
   #
-  # To queue a job to be processed asynchronously immediately:
+  # To enqueue a job to be performed as soon the queueing system is free:
   #
   #   ProcessPhotoJob.perform_later(photo)
   #
-  # To queue a job to be processed at some point in the future:
+  # To enqueue a job to be processed at some point in the future:
   #
   #   ProcessPhotoJob.set(wait_until: Date.tomorrow.noon).perform_later(photo)
   #
   # More information can be found in ActiveJob::Core::ClassMethods#set
   #
-  # A job can also be processed synchronously:
+  # A job can also be processed immediately without sending to the queue:
   #
   #  ProcessPhotoJob.perform_now(photo)
   #

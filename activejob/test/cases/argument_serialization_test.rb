@@ -2,6 +2,7 @@ require 'helper'
 require 'active_job/arguments'
 require 'models/person'
 require 'active_support/core_ext/hash/indifferent_access'
+require 'jobs/kwargs_job'
 
 class ArgumentSerializationTest < ActiveSupport::TestCase
   setup do
@@ -31,16 +32,26 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
   end
 
   test 'should convert records to Global IDs' do
-    assert_arguments_roundtrip [@person], ['_aj_globalid' => @person.to_gid.to_s]
+    assert_arguments_roundtrip [@person]
   end
 
   test 'should dive deep into arrays and hashes' do
-    assert_arguments_roundtrip [3, [@person]], [3, ['_aj_globalid' => @person.to_gid.to_s]]
-    assert_arguments_roundtrip [{ 'a' => @person }], [{ 'a' => { '_aj_globalid' => @person.to_gid.to_s }}.with_indifferent_access]
+    assert_arguments_roundtrip [3, [@person]]
+    assert_arguments_roundtrip [{ 'a' => @person }]
   end
 
-  test 'should stringify symbol hash keys' do
-    assert_equal [ 'a' => 1 ], ActiveJob::Arguments.serialize([ a: 1 ])
+  test 'should maintain string and symbol keys' do
+    assert_arguments_roundtrip([a: 1, "b" => 2])
+  end
+
+  test 'should maintain hash with indifferent access' do
+    symbol_key = { a: 1 }
+    string_key = { 'a' => 1 }
+    indifferent_access = { a: 1 }.with_indifferent_access
+
+    assert_not_instance_of ActiveSupport::HashWithIndifferentAccess, perform_round_trip([symbol_key]).first
+    assert_not_instance_of ActiveSupport::HashWithIndifferentAccess, perform_round_trip([string_key]).first
+    assert_instance_of ActiveSupport::HashWithIndifferentAccess, perform_round_trip([indifferent_access]).first
   end
 
   test 'should disallow non-string/symbol hash keys' do
@@ -71,14 +82,22 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
     end
   end
 
+  test 'allows for keyword arguments' do
+    KwargsJob.perform_later(argument: 2)
+
+    assert_equal "Job with argument: 2", JobBuffer.last_value
+  end
+
   private
     def assert_arguments_unchanged(*args)
-      assert_arguments_roundtrip args, args
+      assert_arguments_roundtrip args
     end
 
-    def assert_arguments_roundtrip(args, expected_serialized_args)
-      serialized = ActiveJob::Arguments.serialize(args)
-      assert_equal expected_serialized_args, serialized
-      assert_equal args, ActiveJob::Arguments.deserialize(serialized)
+    def assert_arguments_roundtrip(args)
+      assert_equal args, perform_round_trip(args)
+    end
+
+    def perform_round_trip(args)
+      ActiveJob::Arguments.deserialize(ActiveJob::Arguments.serialize(args))
     end
 end

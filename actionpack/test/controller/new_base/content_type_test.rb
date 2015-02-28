@@ -76,7 +76,7 @@ module ContentType
     end
 
     test "sets Content-Type as application/xml when rendering *.xml.erb" do
-      get "/content_type/implied/i_am_xml_erb", "format" => "xml"
+      get "/content_type/implied/i_am_xml_erb", params: { "format" => "xml" }
 
       assert_header "Content-Type", "application/xml; charset=utf-8"
     end
@@ -88,7 +88,7 @@ module ContentType
     end
 
     test "sets Content-Type as application/xml when rendering *.xml.builder" do
-      get "/content_type/implied/i_am_xml_builder", "format" => "xml"
+      get "/content_type/implied/i_am_xml_builder", params: { "format" => "xml" }
 
       assert_header "Content-Type", "application/xml; charset=utf-8"
     end

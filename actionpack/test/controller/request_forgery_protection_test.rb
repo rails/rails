@@ -103,6 +103,31 @@ class RequestForgeryProtectionControllerUsingNullSession < ActionController::Bas
   end
 end
 
+class PrependProtectForgeryBaseController < ActionController::Base
+  before_action :custom_action
+  attr_accessor :called_callbacks
+
+  def index
+    render inline: 'OK'
+  end
+
+  protected
+
+  def add_called_callback(name)
+    @called_callbacks ||= []
+    @called_callbacks << name
+  end
+
+
+  def custom_action
+    add_called_callback("custom_action")
+  end
+
+  def verify_authenticity_token
+    add_called_callback("verify_authenticity_token")
+  end
+end
+
 class FreeCookieController < RequestForgeryProtectionControllerUsingResetSession
   self.allow_forgery_protection = false
 
@@ -237,23 +262,23 @@ module RequestForgeryProtectionTests
   end
 
   def test_should_not_allow_xhr_post_without_token
-    assert_blocked { xhr :post, :index }
+    assert_blocked { post :index, xhr: true }
   end
 
   def test_should_allow_post_with_token
-    assert_not_blocked { post :index, :custom_authenticity_token => @token }
+    assert_not_blocked { post :index, params: { custom_authenticity_token: @token } }
   end
 
   def test_should_allow_patch_with_token
-    assert_not_blocked { patch :index, :custom_authenticity_token => @token }
+    assert_not_blocked { patch :index, params: { custom_authenticity_token: @token } }
   end
 
   def test_should_allow_put_with_token
-    assert_not_blocked { put :index, :custom_authenticity_token => @token }
+    assert_not_blocked { put :index, params: { custom_authenticity_token: @token } }
   end
 
   def test_should_allow_delete_with_token
-    assert_not_blocked { delete :index, :custom_authenticity_token => @token }
+    assert_not_blocked { delete :index, params: { custom_authenticity_token: @token } }
   end
 
   def test_should_allow_post_with_token_in_header
@@ -315,21 +340,21 @@ module RequestForgeryProtectionTests
       get :negotiate_same_origin
     end
 
-    assert_cross_origin_not_blocked { xhr :get, :same_origin_js }
-    assert_cross_origin_not_blocked { xhr :get, :same_origin_js, format: 'js' }
+    assert_cross_origin_not_blocked { get :same_origin_js, xhr: true }
+    assert_cross_origin_not_blocked { get :same_origin_js, xhr: true, format: 'js'}
     assert_cross_origin_not_blocked do
       @request.accept = 'text/javascript'
-      xhr :get, :negotiate_same_origin
+      get :negotiate_same_origin, xhr: true
     end
   end
 
   # Allow non-GET requests since GET is all a remote <script> tag can muster.
   def test_should_allow_non_get_js_without_xhr_header
-    assert_cross_origin_not_blocked { post :same_origin_js, custom_authenticity_token: @token }
-    assert_cross_origin_not_blocked { post :same_origin_js, format: 'js', custom_authenticity_token: @token }
+    assert_cross_origin_not_blocked { post :same_origin_js, params: { custom_authenticity_token: @token } }
+    assert_cross_origin_not_blocked { post :same_origin_js, params: { format: 'js', custom_authenticity_token: @token } }
     assert_cross_origin_not_blocked do
       @request.accept = 'text/javascript'
-      post :negotiate_same_origin, custom_authenticity_token: @token
+      post :negotiate_same_origin, params: { custom_authenticity_token: @token}
     end
   end
 
@@ -341,11 +366,18 @@ module RequestForgeryProtectionTests
       get :negotiate_cross_origin
     end
 
-    assert_cross_origin_not_blocked { xhr :get, :cross_origin_js }
-    assert_cross_origin_not_blocked { xhr :get, :cross_origin_js, format: 'js' }
+    assert_cross_origin_not_blocked { get :cross_origin_js, xhr: true }
+    assert_cross_origin_not_blocked { get :cross_origin_js, xhr: true, format: 'js' }
     assert_cross_origin_not_blocked do
       @request.accept = 'text/javascript'
-      xhr :get, :negotiate_cross_origin
+      get :negotiate_cross_origin, xhr: true
+    end
+  end
+
+  def test_should_not_raise_error_if_token_is_not_a_string
+    @controller.unstub(:valid_authenticity_token?)
+    assert_blocked do
+      patch :index, params: { custom_authenticity_token: { foo: 'bar' } }
     end
   end
 
@@ -431,6 +463,41 @@ class RequestForgeryProtectionControllerUsingExceptionTest < ActionController::T
   end
 end
 
+class PrependProtectForgeryBaseControllerTest < ActionController::TestCase
+  PrependTrueController = Class.new(PrependProtectForgeryBaseController) do
+    protect_from_forgery prepend: true
+  end
+
+  PrependFalseController = Class.new(PrependProtectForgeryBaseController) do
+    protect_from_forgery prepend: false
+  end
+
+  PrependDefaultController = Class.new(PrependProtectForgeryBaseController) do
+    protect_from_forgery
+  end
+
+  def test_verify_authenticity_token_is_prepended
+    @controller = PrependTrueController.new
+    get :index
+    expected_callback_order = ["verify_authenticity_token", "custom_action"]
+    assert_equal(expected_callback_order, @controller.called_callbacks)
+  end
+
+  def test_verify_authenticity_token_is_not_prepended
+    @controller = PrependFalseController.new
+    get :index
+    expected_callback_order = ["custom_action", "verify_authenticity_token"]
+    assert_equal(expected_callback_order, @controller.called_callbacks)
+  end
+
+  def test_verify_authenticity_token_is_prepended_by_default
+    @controller = PrependDefaultController.new
+    get :index
+    expected_callback_order = ["verify_authenticity_token", "custom_action"]
+    assert_equal(expected_callback_order, @controller.called_callbacks)
+  end
+end
+
 class FreeCookieControllerTest < ActionController::TestCase
   def setup
     @controller = FreeCookieController.new
@@ -483,7 +550,7 @@ class CustomAuthenticityParamControllerTest < ActionController::TestCase
     @controller.stubs(:valid_authenticity_token?).returns(:true)
 
     begin
-      post :index, :custom_token_name => 'foobar'
+      post :index, params: { custom_token_name: 'foobar' }
       assert_equal 0, @logger.logged(:warn).size
     ensure
       ActionController::Base.logger = @old_logger
@@ -494,7 +561,7 @@ class CustomAuthenticityParamControllerTest < ActionController::TestCase
     ActionController::Base.logger = @logger
 
     begin
-      post :index, :custom_token_name => 'bazqux'
+      post :index, params: { custom_token_name: 'bazqux' }
       assert_equal 1, @logger.logged(:warn).size
     ensure
       ActionController::Base.logger = @old_logger

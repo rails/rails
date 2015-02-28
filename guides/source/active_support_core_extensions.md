@@ -1,3 +1,5 @@
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+
 Active Support Core Extensions
 ==============================
 
@@ -347,7 +349,7 @@ end
 we get:
 
 ```ruby
-current_user.to_query('user') # => user=357-john-smith
+current_user.to_query('user') # => "user=357-john-smith"
 ```
 
 This method escapes whatever is needed, both for the key and the value:
@@ -465,7 +467,7 @@ C.new(0, 1).instance_variable_names # => ["@x", "@y"]
 
 NOTE: Defined in `active_support/core_ext/object/instance_variables.rb`.
 
-### Silencing Warnings, Streams, and Exceptions
+### Silencing Warnings and Exceptions
 
 The methods `silence_warnings` and `enable_warnings` change the value of `$VERBOSE` accordingly for the duration of their block, and reset it afterwards:
 
@@ -473,26 +475,10 @@ The methods `silence_warnings` and `enable_warnings` change the value of `$VERBO
 silence_warnings { Object.const_set "RAILS_DEFAULT_LOGGER", logger }
 ```
 
-You can silence any stream while a block runs with `silence_stream`:
-
-```ruby
-silence_stream(STDOUT) do
-  # STDOUT is silent here
-end
-```
-
-The `quietly` method addresses the common use case where you want to silence STDOUT and STDERR, even in subprocesses:
-
-```ruby
-quietly { system 'bundle install' }
-```
-
-For example, the railties test suite uses that one in a few places to prevent command messages from being echoed intermixed with the progress status.
-
 Silencing exceptions is also possible with `suppress`. This method receives an arbitrary number of exception classes. If an exception is raised during the execution of the block and is `kind_of?` any of the arguments, `suppress` captures it and returns silently. Otherwise the exception is reraised:
 
 ```ruby
-# If the user is locked the increment is lost, no big deal.
+# If the user is locked, the increment is lost, no big deal.
 suppress(ActiveRecord::StaleObjectError) do
   current_user.increment! :visits
 end
@@ -741,7 +727,7 @@ NOTE: Defined in `active_support/core_ext/module/introspection.rb`.
 
 #### Qualified Constant Names
 
-The standard methods `const_defined?`, `const_get` , and `const_set` accept
+The standard methods `const_defined?`, `const_get`, and `const_set` accept
 bare constant names. Active Support extends this API to be able to pass
 relative qualified constant names.
 
@@ -1011,7 +997,7 @@ self.default_params = {
 }.freeze
 ```
 
-They can be also accessed and overridden at the instance level.
+They can also be accessed and overridden at the instance level.
 
 ```ruby
 A.x = 1
@@ -1251,7 +1237,7 @@ Calling `dup` or `clone` on safe strings yields safe strings.
 The method `remove` will remove all occurrences of the pattern:
 
 ```ruby
-"Hello World".remove(/Hello /) => "World"
+"Hello World".remove(/Hello /) # => "World"
 ```
 
 There's also the destructive version `String#remove!`.
@@ -1447,7 +1433,7 @@ Returns the substring of the string starting at position `position`:
 "hello".from(0)  # => "hello"
 "hello".from(2)  # => "llo"
 "hello".from(-2) # => "lo"
-"hello".from(10) # => "" if < 1.9, nil in 1.9
+"hello".from(10) # => nil
 ```
 
 NOTE: Defined in `active_support/core_ext/string/access.rb`.
@@ -1833,16 +1819,14 @@ attribute names:
 
 ```ruby
 def full_messages
-  full_messages = []
+  map { |attribute, message| full_message(attribute, message) }
+end
 
-  each do |attribute, messages|
-    ...
-    attr_name = attribute.to_s.gsub('.', '_').humanize
-    attr_name = @base.class.human_attribute_name(attribute, default: attr_name)
-    ...
-  end
-
-  full_messages
+def full_message
+  ...
+  attr_name = attribute.to_s.tr('.', '_').humanize
+  attr_name = @base.class.human_attribute_name(attribute, default: attr_name)
+  ...
 end
 ```
 
@@ -1951,24 +1935,6 @@ as well as adding or subtracting their results from a Time object. For example:
 # equivalent to Time.current.advance(months: 4, years: 5)
 (4.months + 5.years).from_now
 ```
-
-While these methods provide precise calculation when used as in the examples above, care
-should be taken to note that this is not true if the result of `months', `years', etc is
-converted before use:
-
-```ruby
-# equivalent to 30.days.to_i.from_now
-1.month.to_i.from_now
-
-# equivalent to 365.25.days.to_f.from_now
-1.year.to_f.from_now
-```
-
-In such cases, Ruby's core [Date](http://ruby-doc.org/stdlib/libdoc/date/rdoc/Date.html) and
-[Time](http://ruby-doc.org/stdlib/libdoc/time/rdoc/Time.html) should be used for precision
-date and time arithmetic.
-
-NOTE: Defined in `active_support/core_ext/numeric/time.rb`.
 
 ### Formatting
 
@@ -3831,50 +3797,6 @@ WARNING. If the argument is an `IO` it needs to respond to `rewind` to be able t
 
 NOTE: Defined in `active_support/core_ext/marshal.rb`.
 
-Extensions to `Logger`
-----------------------
-
-### `around_[level]`
-
-Takes two arguments, a `before_message` and `after_message` and calls the current level method on the `Logger` instance, passing in the `before_message`, then the specified message, then the `after_message`:
-
-```ruby
-logger = Logger.new("log/development.log")
-logger.around_info("before", "after") { |logger| logger.info("during") }
-```
-
-### `silence`
-
-Silences every log level lesser to the specified one for the duration of the given block. Log level orders are: debug, info, error and fatal.
-
-```ruby
-logger = Logger.new("log/development.log")
-logger.silence(Logger::INFO) do
-  logger.debug("In space, no one can hear you scream.")
-  logger.info("Scream all you want, small mailman!")
-end
-```
-
-### `datetime_format=`
-
-Modifies the datetime format output by the formatter class associated with this logger. If the formatter class does not have a `datetime_format` method then this is ignored.
-
-```ruby
-class Logger::FormatWithTime < Logger::Formatter
-  cattr_accessor(:datetime_format) { "%Y%m%d%H%m%S" }
-
-  def self.call(severity, timestamp, progname, msg)
-    "#{timestamp.strftime(datetime_format)} -- #{String === msg ? msg : msg.inspect}\n"
-  end
-end
-
-logger = Logger.new("log/development.log")
-logger.formatter = Logger::FormatWithTime
-logger.info("<- is the current time")
-```
-
-NOTE: Defined in `active_support/core_ext/logger.rb`.
-
 Extensions to `NameError`
 -------------------------
 
@@ -3891,7 +3813,7 @@ def default_helper_module!
   module_name = name.sub(/Controller$/, '')
   module_path = module_name.underscore
   helper module_path
-rescue MissingSourceFile => e
+rescue LoadError => e
   raise e unless e.is_missing? "helpers/#{module_path}_helper"
 rescue NameError => e
   raise e unless e.missing_name? "#{module_name}Helper"
@@ -3903,7 +3825,7 @@ NOTE: Defined in `active_support/core_ext/name_error.rb`.
 Extensions to `LoadError`
 -------------------------
 
-Active Support adds `is_missing?` to `LoadError`, and also assigns that class to the constant `MissingSourceFile` for backwards compatibility.
+Active Support adds `is_missing?` to `LoadError`.
 
 Given a path name `is_missing?` tests whether the exception was raised due to that particular file (except perhaps for the ".rb" extension).
 
@@ -3914,7 +3836,7 @@ def default_helper_module!
   module_name = name.sub(/Controller$/, '')
   module_path = module_name.underscore
   helper module_path
-rescue MissingSourceFile => e
+rescue LoadError => e
   raise e unless e.is_missing? "helpers/#{module_path}_helper"
 rescue NameError => e
   raise e unless e.missing_name? "#{module_name}Helper"

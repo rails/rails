@@ -39,33 +39,35 @@ module ActiveRecord
         end
       end
 
-      def test_rename_table
-        rename_table :test_models, :octopi
+      unless current_adapter?(:FbAdapter) # Firebird cannot rename tables
+        def test_rename_table
+          rename_table :test_models, :octopi
 
-        connection.execute "INSERT INTO octopi (#{connection.quote_column_name('id')}, #{connection.quote_column_name('url')}) VALUES (1, 'http://www.foreverflying.com/octopus-black7.jpg')"
+          connection.execute "INSERT INTO octopi (#{connection.quote_column_name('id')}, #{connection.quote_column_name('url')}) VALUES (1, 'http://www.foreverflying.com/octopus-black7.jpg')"
 
-        assert_equal 'http://www.foreverflying.com/octopus-black7.jpg', connection.select_value("SELECT url FROM octopi WHERE id=1")
-      end
+          assert_equal 'http://www.foreverflying.com/octopus-black7.jpg', connection.select_value("SELECT url FROM octopi WHERE id=1")
+        end
 
-      def test_rename_table_with_an_index
-        add_index :test_models, :url
+        def test_rename_table_with_an_index
+          add_index :test_models, :url
 
-        rename_table :test_models, :octopi
+          rename_table :test_models, :octopi
 
-        connection.execute "INSERT INTO octopi (#{connection.quote_column_name('id')}, #{connection.quote_column_name('url')}) VALUES (1, 'http://www.foreverflying.com/octopus-black7.jpg')"
+          connection.execute "INSERT INTO octopi (#{connection.quote_column_name('id')}, #{connection.quote_column_name('url')}) VALUES (1, 'http://www.foreverflying.com/octopus-black7.jpg')"
 
-        assert_equal 'http://www.foreverflying.com/octopus-black7.jpg', connection.select_value("SELECT url FROM octopi WHERE id=1")
-        index = connection.indexes(:octopi).first
-        assert index.columns.include?("url")
-        assert_equal 'index_octopi_on_url', index.name
-      end
+          assert_equal 'http://www.foreverflying.com/octopus-black7.jpg', connection.select_value("SELECT url FROM octopi WHERE id=1")
+          index = connection.indexes(:octopi).first
+          assert index.columns.include?("url")
+          assert_equal 'index_octopi_on_url', index.name
+        end
 
-      def test_rename_table_does_not_rename_custom_named_index
-        add_index :test_models, :url, name: 'special_url_idx'
+        def test_rename_table_does_not_rename_custom_named_index
+          add_index :test_models, :url, name: 'special_url_idx'
 
-        rename_table :test_models, :octopi
+          rename_table :test_models, :octopi
 
-        assert_equal ['special_url_idx'], connection.indexes(:octopi).map(&:name)
+          assert_equal ['special_url_idx'], connection.indexes(:octopi).map(&:name)
+        end
       end
 
       if current_adapter?(:PostgreSQLAdapter)
@@ -84,8 +86,8 @@ module ActiveRecord
           assert connection.table_exists? :felines
         ensure
           disable_extension!('uuid-ossp', connection)
-          connection.drop_table :cats if connection.table_exists? :cats
-          connection.drop_table :felines if connection.table_exists? :felines
+          connection.drop_table :cats, if_exists: true
+          connection.drop_table :felines, if_exists: true
         end
       end
     end

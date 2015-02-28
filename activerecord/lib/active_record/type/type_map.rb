@@ -1,24 +1,28 @@
+require 'thread_safe'
+
 module ActiveRecord
   module Type
     class TypeMap # :nodoc:
       def initialize
         @mapping = {}
+        @cache = ThreadSafe::Cache.new do |h, key|
+          h.fetch_or_store(key, ThreadSafe::Cache.new)
+        end
       end
 
       def lookup(lookup_key, *args)
-        matching_pair = @mapping.reverse_each.detect do |key, _|
-          key === lookup_key
-        end
+        fetch(lookup_key, *args) { default_value }
+      end
 
-        if matching_pair
-          matching_pair.last.call(lookup_key, *args)
-        else
-          default_value
+      def fetch(lookup_key, *args, &block)
+        @cache[lookup_key].fetch_or_store(args) do
+          perform_fetch(lookup_key, *args, &block)
         end
       end
 
       def register_type(key, value = nil, &block)
         raise ::ArgumentError unless value || block
+        @cache.clear
 
         if block
           @mapping[key] = block
@@ -39,6 +43,18 @@ module ActiveRecord
       end
 
       private
+
+      def perform_fetch(lookup_key, *args)
+        matching_pair = @mapping.reverse_each.detect do |key, _|
+          key === lookup_key
+        end
+
+        if matching_pair
+          matching_pair.last.call(lookup_key, *args)
+        else
+          yield lookup_key, *args
+        end
+      end
 
       def default_value
         @default_value ||= Value.new

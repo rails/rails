@@ -32,6 +32,12 @@ module ActiveRecord
   #   Conversation.active
   #   Conversation.archived
   #
+  # Of course, you can also query them directly if the scopes doesn't fit your
+  # needs:
+  #
+  #   Conversation.where(status: [:active, :archived])
+  #   Conversation.where.not(status: :active)
+  #
   # You can set the default value from the database declaration, like:
   #
   #   create_table :conversations do |t|
@@ -59,15 +65,17 @@ module ActiveRecord
   #
   # In rare circumstances you might need to access the mapping directly.
   # The mappings are exposed through a class method with the pluralized attribute
-  # name:
+  # name, which return the mapping in a +HashWithIndifferentAccess+:
   #
-  #   Conversation.statuses # => { "active" => 0, "archived" => 1 }
+  #   Conversation.statuses[:active]    # => 0
+  #   Conversation.statuses["archived"] # => 1
   #
-  # Use that class method when you need to know the ordinal value of an enum:
+  # Use that class method when you need to know the ordinal value of an enum.
+  # For example, you can use that when manually building SQL strings:
   #
   #   Conversation.where("status <> ?", Conversation.statuses[:archived])
   #
-  # Where conditions on an enum attribute must use the ordinal value of an enum.
+
   module Enum
     def self.extended(base) # :nodoc:
       base.class_attribute(:defined_enums)
@@ -77,6 +85,38 @@ module ActiveRecord
     def inherited(base) # :nodoc:
       base.defined_enums = defined_enums.deep_dup
       super
+    end
+
+    class EnumType < Type::Value
+      def initialize(name, mapping)
+        @name = name
+        @mapping = mapping
+      end
+
+      def cast(value)
+        return if value.blank?
+
+        if mapping.has_key?(value)
+          value.to_s
+        elsif mapping.has_value?(value)
+          mapping.key(value)
+        else
+          raise ArgumentError, "'#{value}' is not a valid #{name}"
+        end
+      end
+
+      def deserialize(value)
+        return if value.nil?
+        mapping.key(value.to_i)
+      end
+
+      def serialize(value)
+        mapping.fetch(value, value)
+      end
+
+      protected
+
+      attr_reader :name, :mapping
     end
 
     def enum(definitions)
@@ -90,37 +130,19 @@ module ActiveRecord
         detect_enum_conflict!(name, name.to_s.pluralize, true)
         klass.singleton_class.send(:define_method, name.to_s.pluralize) { enum_values }
 
+        detect_enum_conflict!(name, name)
+        detect_enum_conflict!(name, "#{name}=")
+
+        attribute name, EnumType.new(name, enum_values)
+
         _enum_methods_module.module_eval do
-          # def status=(value) self[:status] = statuses[value] end
-          klass.send(:detect_enum_conflict!, name, "#{name}=")
-          define_method("#{name}=") { |value|
-            if enum_values.has_key?(value) || value.blank?
-              self[name] = enum_values[value]
-            elsif enum_values.has_value?(value)
-              # Assigning a value directly is not a end-user feature, hence it's not documented.
-              # This is used internally to make building objects from the generated scopes work
-              # as expected, i.e. +Conversation.archived.build.archived?+ should be true.
-              self[name] = value
-            else
-              raise ArgumentError, "'#{value}' is not a valid #{name}"
-            end
-          }
-
-          # def status() statuses.key self[:status] end
-          klass.send(:detect_enum_conflict!, name, name)
-          define_method(name) { enum_values.key self[name] }
-
-          # def status_before_type_cast() statuses.key self[:status] end
-          klass.send(:detect_enum_conflict!, name, "#{name}_before_type_cast")
-          define_method("#{name}_before_type_cast") { enum_values.key self[name] }
-
           pairs = values.respond_to?(:each_pair) ? values.each_pair : values.each_with_index
           pairs.each do |value, i|
             enum_values[value] = i
 
             # def active?() status == 0 end
             klass.send(:detect_enum_conflict!, name, "#{value}?")
-            define_method("#{value}?") { self[name] == i }
+            define_method("#{value}?") { self[name] == value.to_s }
 
             # def active!() update! status: :active end
             klass.send(:detect_enum_conflict!, name, "#{value}!")
@@ -128,7 +150,7 @@ module ActiveRecord
 
             # scope :active, -> { where status: 0 }
             klass.send(:detect_enum_conflict!, name, value, true)
-            klass.scope value, -> { klass.where name => i }
+            klass.scope value, -> { klass.where name => value }
           end
         end
         defined_enums[name.to_s] = enum_values
@@ -138,25 +160,7 @@ module ActiveRecord
     private
       def _enum_methods_module
         @_enum_methods_module ||= begin
-          mod = Module.new do
-            private
-              def save_changed_attribute(attr_name, old)
-                if (mapping = self.class.defined_enums[attr_name.to_s])
-                  value = read_attribute(attr_name)
-                  if attribute_changed?(attr_name)
-                    if mapping[old] == value
-                      clear_attribute_changes([attr_name])
-                    end
-                  else
-                    if old != value
-                      set_attribute_was(attr_name, mapping.key(old))
-                    end
-                  end
-                else
-                  super
-                end
-              end
-          end
+          mod = Module.new
           include mod
           mod
         end

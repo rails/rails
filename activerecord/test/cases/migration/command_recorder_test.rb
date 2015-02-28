@@ -237,8 +237,8 @@ module ActiveRecord
       end
 
       def test_invert_remove_timestamps
-        add = @recorder.inverse_of :remove_timestamps, [:table]
-        assert_equal [:add_timestamps, [:table], nil], add
+        add = @recorder.inverse_of :remove_timestamps, [:table, { null: true }]
+        assert_equal [:add_timestamps, [:table, {null: true }], nil], add
       end
 
       def test_invert_add_reference
@@ -254,6 +254,11 @@ module ActiveRecord
       def test_invert_remove_reference
         add = @recorder.inverse_of :remove_reference, [:table, :taggable, { polymorphic: true }]
         assert_equal [:add_reference, [:table, :taggable, { polymorphic: true }], nil], add
+      end
+
+      def test_invert_remove_reference_with_index_and_foreign_key
+        add = @recorder.inverse_of :remove_reference, [:table, :taggable, { index: true, foreign_key: true }]
+        assert_equal [:add_reference, [:table, :taggable, { index: true, foreign_key: true }], nil], add
       end
 
       def test_invert_remove_belongs_to_alias

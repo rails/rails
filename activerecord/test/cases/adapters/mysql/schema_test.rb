@@ -22,7 +22,7 @@ module ActiveRecord
       end
 
       teardown do
-        @connection.execute "drop table if exists mysql_doubles"
+        @connection.drop_table "mysql_doubles", if_exists: true
       end
 
       class MysqlDouble < ActiveRecord::Base
@@ -81,7 +81,7 @@ module ActiveRecord
 
         table = 'key_tests'
 
-        indexes = @connection.indexes(table).sort_by {|i| i.name}
+        indexes = @connection.indexes(table).sort_by(&:name)
         assert_equal 3,indexes.size
 
         index_a = indexes.select{|i| i.name == index_a_name}[0]

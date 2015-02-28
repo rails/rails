@@ -2,8 +2,6 @@ require 'helper'
 require 'jobs/rescue_job'
 require 'models/person'
 
-require 'active_support/core_ext/object/inclusion'
-
 class RescueTest < ActiveSupport::TestCase
   setup do
     JobBuffer.clear

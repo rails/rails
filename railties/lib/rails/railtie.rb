@@ -93,7 +93,7 @@ module Rails
   #     end
   #   end
   #
-  # By default, Rails load generators from your load path. However, if you want to place
+  # By default, Rails loads generators from your load path. However, if you want to place
   # your generators at a different location, you can specify in your Railtie a block which
   # will load them during normal generators lookup:
   #

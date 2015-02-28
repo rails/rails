@@ -8,6 +8,7 @@ module ApplicationTests
       build_app(initializers: true)
       boot_rails
       require "#{rails_root}/config/environment"
+      Rails.application.config.some_setting = 'something_or_other'
     end
 
     def teardown
@@ -18,7 +19,7 @@ module ApplicationTests
       clone = Rails.application.clone
 
       assert_equal Rails.application.config, clone.config, "The cloned application should get a copy of the config"
-      assert_equal Rails.application.config.secret_key_base, clone.config.secret_key_base, "The base secret key on the config should be the same"
+      assert_equal Rails.application.config.some_setting, clone.config.some_setting, "The some_setting on the config should be the same"
     end
 
     def test_inheriting_multiple_times_from_application
@@ -160,13 +161,14 @@ module ApplicationTests
 
     def test_inserting_configuration_into_application
       app = AppTemplate::Application.new(config: Rails.application.config)
-      new_config = Rails::Application::Configuration.new("root_of_application")
-      new_config.secret_key_base = "some_secret_key_dude"
-      app.config.secret_key_base = "a_different_secret_key"
+      app.config.some_setting = "a_different_setting"
+      assert_equal "a_different_setting", app.config.some_setting, "The configuration's some_setting should be set."
 
-      assert_equal "a_different_secret_key", app.config.secret_key_base, "The configuration's secret key should be set."
+      new_config = Rails::Application::Configuration.new("root_of_application")
+      new_config.some_setting = "some_setting_dude"
       app.config = new_config
-      assert_equal "some_secret_key_dude", app.config.secret_key_base, "The configuration's secret key should have changed."
+
+      assert_equal "some_setting_dude", app.config.some_setting, "The configuration's some_setting should have changed."
       assert_equal "root_of_application", app.config.root, "The root should have changed to the new config's root."
       assert_equal new_config, app.config, "The application's config should have changed to the new config."
     end

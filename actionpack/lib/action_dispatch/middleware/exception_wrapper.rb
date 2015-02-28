@@ -1,5 +1,6 @@
 require 'action_controller/metal/exceptions'
 require 'active_support/core_ext/module/attribute_accessors'
+require 'rack/utils'
 
 module ActionDispatch
   class ExceptionWrapper
@@ -57,23 +58,50 @@ module ActionDispatch
       clean_backtrace(:all)
     end
 
+    def traces
+      appplication_trace_with_ids = []
+      framework_trace_with_ids = []
+      full_trace_with_ids = []
+
+      full_trace.each_with_index do |trace, idx|
+        trace_with_id = { id: idx, trace: trace }
+
+        if application_trace.include?(trace)
+          appplication_trace_with_ids << trace_with_id
+        else
+          framework_trace_with_ids << trace_with_id
+        end
+
+        full_trace_with_ids << trace_with_id
+      end
+
+      {
+        "Application Trace" => appplication_trace_with_ids,
+        "Framework Trace" => framework_trace_with_ids,
+        "Full Trace" => full_trace_with_ids
+      }
+    end
+
     def self.status_code_for_exception(class_name)
       Rack::Utils.status_code(@@rescue_responses[class_name])
     end
 
-    def source_extract
-      exception.backtrace.map do |trace|
-        file, line = trace.split(":")
-        line_number = line.to_i
+    def source_extracts
+      backtrace.map do |trace|
+        file, line_number = extract_file_and_line_number(trace)
+
         {
           code: source_fragment(file, line_number),
-          file: file,
           line_number: line_number
         }
-      end if exception.backtrace
+      end
     end
 
     private
+
+    def backtrace
+      Array(@exception.backtrace)
+    end
 
     def original_exception(exception)
       if registered_original_exception?(exception)
@@ -89,9 +117,9 @@ module ActionDispatch
 
     def clean_backtrace(*args)
       if backtrace_cleaner
-        backtrace_cleaner.clean(@exception.backtrace, *args)
+        backtrace_cleaner.clean(backtrace, *args)
       else
-        @exception.backtrace
+        backtrace
       end
     end
 
@@ -109,6 +137,13 @@ module ActionDispatch
           Hash[*(start+1..(lines.count+start)).zip(lines).flatten]
         end
       end
+    end
+
+    def extract_file_and_line_number(trace)
+      # Split by the first colon followed by some digits, which works for both
+      # Windows and Unix path styles.
+      file, line = trace.match(/^(.+?):(\d+).*$/, &:captures) || trace
+      [file, line.to_i]
     end
 
     def expand_backtrace

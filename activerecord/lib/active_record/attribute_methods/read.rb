@@ -1,5 +1,3 @@
-require 'active_support/core_ext/module/method_transplanting'
-
 module ActiveRecord
   module AttributeMethods
     module Read
@@ -27,7 +25,7 @@ module ActiveRecord
           <<-EOMETHOD
           def #{method_name}
             name = ::ActiveRecord::AttributeMethods::AttrNames::ATTR_#{const_name}
-            read_attribute(name) { |n| missing_attribute(n, caller) }
+            _read_attribute(name) { |n| missing_attribute(n, caller) }
           end
           EOMETHOD
         end
@@ -36,60 +34,56 @@ module ActiveRecord
       extend ActiveSupport::Concern
 
       module ClassMethods
-        [:cache_attributes, :cached_attributes, :cache_attribute?].each do |method_name|
-          define_method method_name do |*|
-            cached_attributes_deprecation_warning(method_name)
-            true
-          end
-        end
-
         protected
 
-        def cached_attributes_deprecation_warning(method_name)
-          ActiveSupport::Deprecation.warn "Calling `#{method_name}` is no longer necessary. All attributes are cached."
-        end
+        def define_method_attribute(name)
+          safe_name = name.unpack('h*').first
+          temp_method = "__temp__#{safe_name}"
 
-        if Module.methods_transplantable?
-          def define_method_attribute(name)
-            method = ReaderMethodCache[name]
-            generated_attribute_methods.module_eval { define_method name, method }
-          end
-        else
-          def define_method_attribute(name)
-            safe_name = name.unpack('h*').first
-            temp_method = "__temp__#{safe_name}"
+          ActiveRecord::AttributeMethods::AttrNames.set_name_cache safe_name, name
 
-            ActiveRecord::AttributeMethods::AttrNames.set_name_cache safe_name, name
-
-            generated_attribute_methods.module_eval <<-STR, __FILE__, __LINE__ + 1
-              def #{temp_method}
-                name = ::ActiveRecord::AttributeMethods::AttrNames::ATTR_#{safe_name}
-                read_attribute(name) { |n| missing_attribute(n, caller) }
-              end
-            STR
-
-            generated_attribute_methods.module_eval do
-              alias_method name, temp_method
-              undef_method temp_method
+          generated_attribute_methods.module_eval <<-STR, __FILE__, __LINE__ + 1
+            def #{temp_method}
+              name = ::ActiveRecord::AttributeMethods::AttrNames::ATTR_#{safe_name}
+              _read_attribute(name) { |n| missing_attribute(n, caller) }
             end
+          STR
+
+          generated_attribute_methods.module_eval do
+            alias_method name, temp_method
+            undef_method temp_method
           end
         end
       end
+
+      ID = 'id'.freeze
 
       # Returns the value of the attribute identified by <tt>attr_name</tt> after
       # it has been typecast (for example, "2004-12-12" in a date column is cast
       # to a date object, like Date.new(2004, 12, 12)).
       def read_attribute(attr_name, &block)
         name = attr_name.to_s
-        name = self.class.primary_key if name == 'id'
-        @attributes.fetch_value(name, &block)
+        name = self.class.primary_key if name == ID
+        _read_attribute(name, &block)
       end
 
-      private
-
-      def attribute(attribute_name)
-        read_attribute(attribute_name)
+      # This method exists to avoid the expensive primary_key check internally, without
+      # breaking compatibility with the read_attribute API
+      if defined?(JRUBY_VERSION)
+        # This form is significantly faster on JRuby, and this is one of our biggest hotspots.
+        # https://github.com/jruby/jruby/pull/2562
+        def _read_attribute(attr_name, &block) # :nodoc
+          @attributes.fetch_value(attr_name.to_s, &block)
+        end
+      else
+        def _read_attribute(attr_name) # :nodoc:
+          @attributes.fetch_value(attr_name.to_s) { |n| yield n if block_given? }
+        end
       end
+
+      alias :attribute :_read_attribute
+      private :attribute
+
     end
   end
 end

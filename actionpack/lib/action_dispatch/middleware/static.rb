@@ -23,10 +23,19 @@ module ActionDispatch
     def match?(path)
       path = URI.parser.unescape(path)
       return false unless path.valid_encoding?
+      path = Rack::Utils.clean_path_info path
 
       paths = [path, "#{path}#{ext}", "#{path}/index#{ext}"]
 
-      if match = paths.detect {|p| File.file?(File.join(@root, p)) }
+      if match = paths.detect { |p|
+        path = File.join(@root, p)
+        begin
+          File.file?(path) && File.readable?(path)
+        rescue SystemCallError
+          false
+        end
+
+      }
         return ::Rack::Utils.escape(match)
       end
     end

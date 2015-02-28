@@ -4,7 +4,7 @@ module ActiveRecord
       module OID # :nodoc:
         # This class uses the data from PostgreSQL pg_type table to build
         # the OID -> Type mapping.
-        #   - OID is and integer representing the type.
+        #   - OID is an integer representing the type.
         #   - Type is an OID::Type object.
         # This class has side effects on the +store+ passed during initialization.
         class TypeMapInitializer # :nodoc:
@@ -39,14 +39,14 @@ module ActiveRecord
           end
 
           def register_array_type(row)
-            if subtype = @store.lookup(row['typelem'].to_i)
-              register row['oid'], OID::Array.new(subtype, row['typdelim'])
+            register_with_subtype(row['oid'], row['typelem'].to_i) do |subtype|
+              OID::Array.new(subtype, row['typdelim'])
             end
           end
 
           def register_range_type(row)
-            if subtype = @store.lookup(row['rngsubtype'].to_i)
-              register row['oid'], OID::Range.new(subtype, row['typname'].to_sym)
+            register_with_subtype(row['oid'], row['rngsubtype'].to_i) do |subtype|
+              OID::Range.new(subtype, row['typname'].to_sym)
             end
           end
 
@@ -64,14 +64,26 @@ module ActiveRecord
             end
           end
 
-          def register(oid, oid_type)
-            oid = assert_valid_registration(oid, oid_type)
-            @store.register_type(oid, oid_type)
+          def register(oid, oid_type = nil, &block)
+            oid = assert_valid_registration(oid, oid_type || block)
+            if block_given?
+              @store.register_type(oid, &block)
+            else
+              @store.register_type(oid, oid_type)
+            end
           end
 
           def alias_type(oid, target)
             oid = assert_valid_registration(oid, target)
             @store.alias_type(oid, target)
+          end
+
+          def register_with_subtype(oid, target_oid)
+            if @store.key?(target_oid)
+              register(oid) do |_, *args|
+                yield @store.lookup(target_oid, *args)
+              end
+            end
           end
 
           def assert_valid_registration(oid, oid_type)

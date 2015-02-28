@@ -365,7 +365,7 @@ class HashExtTest < ActiveSupport::TestCase
       :member? => true }
 
     hashes.each do |name, hash|
-      method_map.sort_by { |m| m.to_s }.each do |meth, expected|
+      method_map.sort_by(&:to_s).each do |meth, expected|
         assert_equal(expected, hash.__send__(meth, 'a'),
                      "Calling #{name}.#{meth} 'a'")
         assert_equal(expected, hash.__send__(meth, :a),
@@ -1547,6 +1547,14 @@ class HashToXmlTest < ActiveSupport::TestCase
     hash_wia = HashWithIndifferentAccess.new
     assert_equal hash_wia, hash_wia.with_indifferent_access
     assert_not_same hash_wia, hash_wia.with_indifferent_access
+  end
+
+
+  def test_allows_setting_frozen_array_values_with_indifferent_access
+    value = [1, 2, 3].freeze
+    hash = HashWithIndifferentAccess.new
+    hash[:key] = value
+    assert_equal hash[:key], value
   end
 
   def test_should_copy_the_default_value_when_converting_to_hash_with_indifferent_access

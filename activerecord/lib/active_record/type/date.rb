@@ -1,12 +1,10 @@
 module ActiveRecord
   module Type
     class Date < Value # :nodoc:
+      include Helpers::AcceptsMultiparameterTime.new
+
       def type
         :date
-      end
-
-      def klass
-        ::Date
       end
 
       def type_cast_for_schema(value)
@@ -40,6 +38,11 @@ module ActiveRecord
         if year && year != 0
           ::Date.new(year, mon, mday) rescue nil
         end
+      end
+
+      def value_from_multiparameter_assignment(*)
+        time = super
+        time && time.to_date
       end
     end
   end

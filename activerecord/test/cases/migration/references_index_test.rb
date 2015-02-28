@@ -55,7 +55,7 @@ module ActiveRecord
             t.references :foo, :polymorphic => true, :index => true
           end
 
-          assert connection.index_exists?(table_name, [:foo_id, :foo_type], :name => :index_testings_on_foo_id_and_foo_type)
+          assert connection.index_exists?(table_name, [:foo_type, :foo_id], name: :index_testings_on_foo_type_and_foo_id)
         end
       end
 
@@ -93,7 +93,7 @@ module ActiveRecord
             t.references :foo, :polymorphic => true, :index => true
           end
 
-          assert connection.index_exists?(table_name, [:foo_id, :foo_type], :name => :index_testings_on_foo_id_and_foo_type)
+          assert connection.index_exists?(table_name, [:foo_type, :foo_id], name: :index_testings_on_foo_type_and_foo_id)
         end
       end
     end

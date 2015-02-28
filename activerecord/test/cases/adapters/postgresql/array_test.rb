@@ -1,7 +1,8 @@
-# encoding: utf-8
 require "cases/helper"
+require 'support/schema_dumping_helper'
 
 class PostgresqlArrayTest < ActiveRecord::TestCase
+  include SchemaDumpingHelper
   include InTimeZone
   OID = ActiveRecord::ConnectionAdapters::PostgreSQL::OID
 
@@ -23,24 +24,23 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
       end
     end
     @column = PgArray.columns_hash['tags']
+    @type = PgArray.type_for_attribute("tags")
   end
 
   teardown do
-    @connection.execute 'drop table if exists pg_arrays'
+    @connection.drop_table 'pg_arrays', if_exists: true
     disable_extension!('hstore', @connection)
   end
 
   def test_column
     assert_equal :string, @column.type
     assert_equal "character varying", @column.sql_type
-    assert @column.array
-    assert_not @column.number?
-    assert_not @column.binary?
+    assert @column.array?
+    assert_not @type.binary?
 
     ratings_column = PgArray.columns_hash['ratings']
     assert_equal :integer, ratings_column.type
-    assert ratings_column.array
-    assert_not ratings_column.number?
+    assert ratings_column.array?
   end
 
   def test_default
@@ -72,7 +72,7 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
 
     assert_equal :text, column.type
     assert_equal [], PgArray.column_defaults['snippets']
-    assert column.array
+    assert column.array?
   end
 
   def test_change_column_cant_make_non_array_column_to_array
@@ -92,9 +92,9 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
   end
 
   def test_type_cast_array
-    assert_equal(['1', '2', '3'], @column.type_cast_from_database('{1,2,3}'))
-    assert_equal([], @column.type_cast_from_database('{}'))
-    assert_equal([nil], @column.type_cast_from_database('{NULL}'))
+    assert_equal(['1', '2', '3'], @type.deserialize('{1,2,3}'))
+    assert_equal([], @type.deserialize('{}'))
+    assert_equal([nil], @type.deserialize('{NULL}'))
   end
 
   def test_type_cast_integers
@@ -106,6 +106,12 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
     x.reload
 
     assert_equal([1, 2], x.ratings)
+  end
+
+  def test_schema_dump_with_shorthand
+    output = dump_table_schema "pg_arrays"
+    assert_match %r[t\.string\s+"tags",\s+array: true], output
+    assert_match %r[t\.integer\s+"ratings",\s+array: true], output
   end
 
   def test_select_with_strings
@@ -200,7 +206,7 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
     x = PgArray.create!(tags: tags)
     x.reload
 
-    assert_equal x.tags_before_type_cast, PgArray.columns_hash['tags'].type_cast_for_database(tags)
+    assert_equal x.tags_before_type_cast, PgArray.type_for_attribute('tags').serialize(tags)
   end
 
   def test_quoting_non_standard_delimiters
@@ -208,8 +214,8 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
     comma_delim = OID::Array.new(ActiveRecord::Type::String.new, ',')
     semicolon_delim = OID::Array.new(ActiveRecord::Type::String.new, ';')
 
-    assert_equal %({"hello,",world;}), comma_delim.type_cast_for_database(strings)
-    assert_equal %({hello,;"world;"}), semicolon_delim.type_cast_for_database(strings)
+    assert_equal %({"hello,",world;}), comma_delim.serialize(strings)
+    assert_equal %({hello,;"world;"}), semicolon_delim.serialize(strings)
   end
 
   def test_mutate_array
@@ -256,11 +262,41 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
 
   def test_assigning_non_array_value
     record = PgArray.new(tags: "not-an-array")
-    assert_equal "not-an-array", record.tags
-    e = assert_raises(ActiveRecord::StatementInvalid) do
-      record.save!
+    assert_equal [], record.tags
+    assert_equal "not-an-array", record.tags_before_type_cast
+    assert record.save
+    assert_equal record.tags, record.reload.tags
+  end
+
+  def test_assigning_empty_string
+    record = PgArray.new(tags: "")
+    assert_equal [], record.tags
+    assert_equal "", record.tags_before_type_cast
+    assert record.save
+    assert_equal record.tags, record.reload.tags
+  end
+
+  def test_assigning_valid_pg_array_literal
+    record = PgArray.new(tags: "{1,2,3}")
+    assert_equal ["1", "2", "3"], record.tags
+    assert_equal "{1,2,3}", record.tags_before_type_cast
+    assert record.save
+    assert_equal record.tags, record.reload.tags
+  end
+
+  def test_uniqueness_validation
+    klass = Class.new(PgArray) do
+      validates_uniqueness_of :tags
+
+      def self.model_name; ActiveModel::Name.new(PgArray) end
     end
-    assert_instance_of PG::InvalidTextRepresentation, e.original_exception
+    e1 = klass.create("tags" => ["black", "blue"])
+    assert e1.persisted?, "Saving e1"
+
+    e2 = klass.create("tags" => ["black", "blue"])
+    assert !e2.persisted?, "e2 shouldn't be valid"
+    assert e2.errors[:tags].any?, "Should have errors for tags"
+    assert_equal ["has already been taken"], e2.errors[:tags], "Should have uniqueness message for tags"
   end
 
   private

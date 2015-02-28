@@ -78,7 +78,7 @@ Product = Struct.new(:name) do
 
   def type
     @type ||= begin
-      :thing_without_same_method_name_as_delegated.name
+      nil.type_name
     end
   end
 end

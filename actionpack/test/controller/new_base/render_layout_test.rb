@@ -86,7 +86,7 @@ module ControllerLayouts
     XML_INSTRUCT = %Q(<?xml version="1.0" encoding="UTF-8"?>\n)
 
     test "if XML is selected, an HTML template is not also selected" do
-      get :index, :format => "xml"
+      get :index, params: { format: "xml" }
       assert_response XML_INSTRUCT
     end
 
@@ -96,7 +96,7 @@ module ControllerLayouts
     end
 
     test "a layout for JS is ignored even if explicitly provided for HTML" do
-      get :explicit, { :format => "js" }
+      get :explicit, params: { format: "js" }
       assert_response "alert('foo');"
     end
   end
@@ -120,7 +120,7 @@ module ControllerLayouts
     testing ControllerLayouts::FalseLayoutMethodController
 
     test "access false layout returned by a method/proc" do
-      get :index, :format => "js"
+      get :index, params: { format: "js" }
       assert_response "alert('foo');"
     end
   end

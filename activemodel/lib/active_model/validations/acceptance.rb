@@ -3,12 +3,12 @@ module ActiveModel
   module Validations
     class AcceptanceValidator < EachValidator # :nodoc:
       def initialize(options)
-        super({ allow_nil: true, accept: "1" }.merge!(options))
+        super({ allow_nil: true, accept: ["1", true] }.merge!(options))
         setup!(options[:class])
       end
 
       def validate_each(record, attribute, value)
-        unless value == options[:accept]
+        unless acceptable_option?(value)
           record.errors.add(attribute, :accepted, options.except(:accept, :allow_nil))
         end
       end
@@ -19,6 +19,10 @@ module ActiveModel
         attr_writers = attributes.reject { |name| klass.attribute_method?("#{name}=") }
         klass.send(:attr_reader, *attr_readers)
         klass.send(:attr_writer, *attr_writers)
+      end
+
+      def acceptable_option?(value)
+        Array(options[:accept]).include?(value)
       end
     end
 

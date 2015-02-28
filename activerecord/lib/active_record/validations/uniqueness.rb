@@ -11,14 +11,14 @@ module ActiveRecord
       end
 
       def validate_each(record, attribute, value)
+        return unless should_validate?(record)
         finder_class = find_finder_class_for(record)
         table = finder_class.arel_table
         value = map_enum_attribute(finder_class, attribute, value)
 
         relation = build_relation(finder_class, table, attribute, value)
-        relation = relation.and(table[finder_class.primary_key.to_sym].not_eq(record.id)) if record.persisted?
+        relation = relation.where.not(finder_class.primary_key => record.id) if record.persisted?
         relation = scope_relation(record, table, relation)
-        relation = finder_class.unscoped.where(relation)
         relation = relation.merge(options[:conditions]) if options[:conditions]
 
         if relation.exists?
@@ -60,17 +60,22 @@ module ActiveRecord
         end
 
         column = klass.columns_hash[attribute_name]
-        value  = klass.connection.type_cast(value, column)
+        cast_type = klass.type_for_attribute(attribute_name)
+        value = cast_type.serialize(value)
+        value = klass.connection.type_cast(value)
         if value.is_a?(String) && column.limit
           value = value.to_s[0, column.limit]
         end
 
-        if !options[:case_sensitive] && value.is_a?(String)
+        value = Arel::Nodes::Quoted.new(value)
+
+        comparison = if !options[:case_sensitive] && !value.nil?
           # will use SQL LOWER function before comparison, unless it detects a case insensitive collation
           klass.connection.case_insensitive_comparison(table, attribute, column, value)
         else
           klass.connection.case_sensitive_comparison(table, attribute, column, value)
         end
+        klass.unscoped.where(comparison)
       end
 
       def scope_relation(record, table, relation)
@@ -79,9 +84,9 @@ module ActiveRecord
             scope_value = record.send(reflection.foreign_key)
             scope_item  = reflection.foreign_key
           else
-            scope_value = record.read_attribute(scope_item)
+            scope_value = record._read_attribute(scope_item)
           end
-          relation = relation.and(table[scope_item].eq(scope_value))
+          relation = relation.where(scope_item => scope_value)
         end
 
         relation

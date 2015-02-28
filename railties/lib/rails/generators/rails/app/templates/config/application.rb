@@ -3,15 +3,16 @@ require File.expand_path('../boot', __FILE__)
 <% if include_all_railties? -%>
 require 'rails/all'
 <% else -%>
+require "rails"
 # Pick the frameworks you want:
 require "active_model/railtie"
 require "active_job/railtie"
 <%= comment_if :skip_active_record %>require "active_record/railtie"
 require "action_controller/railtie"
-require "action_mailer/railtie"
+<%= comment_if :skip_action_mailer %>require "action_mailer/railtie"
 require "action_view/railtie"
 <%= comment_if :skip_sprockets %>require "sprockets/railtie"
-<%= comment_if :skip_test_unit %>require "rails/test_unit/railtie"
+<%= comment_if :skip_test %>require "rails/test_unit/railtie"
 <% end -%>
 
 # Require the gems listed in Gemfile, including any gems
@@ -31,10 +32,5 @@ module <%= app_const_base %>
     # The default locale is :en and all translations from config/locales/*.rb,yml are auto loaded.
     # config.i18n.load_path += Dir[Rails.root.join('my', 'locales', '*.{rb,yml}').to_s]
     # config.i18n.default_locale = :de
-    <%- unless options.skip_active_record? -%>
-
-    # Do not swallow errors in after_commit/after_rollback callbacks.
-    config.active_record.raise_in_transactional_callbacks = true
-    <%- end -%>
   end
 end

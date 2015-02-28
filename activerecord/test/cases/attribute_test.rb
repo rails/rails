@@ -5,6 +5,7 @@ module ActiveRecord
   class AttributeTest < ActiveRecord::TestCase
     setup do
       @type = Minitest::Mock.new
+      @type.expect(:==, false, [false])
     end
 
     teardown do
@@ -12,7 +13,7 @@ module ActiveRecord
     end
 
     test "from_database + read type casts from database" do
-      @type.expect(:type_cast_from_database, 'type cast from database', ['a value'])
+      @type.expect(:deserialize, 'type cast from database', ['a value'])
       attribute = Attribute.from_database(nil, 'a value', @type)
 
       type_cast_value = attribute.value
@@ -21,7 +22,7 @@ module ActiveRecord
     end
 
     test "from_user + read type casts from user" do
-      @type.expect(:type_cast_from_user, 'type cast from user', ['a value'])
+      @type.expect(:cast, 'type cast from user', ['a value'])
       attribute = Attribute.from_user(nil, 'a value', @type)
 
       type_cast_value = attribute.value
@@ -30,7 +31,7 @@ module ActiveRecord
     end
 
     test "reading memoizes the value" do
-      @type.expect(:type_cast_from_database, 'from the database', ['whatever'])
+      @type.expect(:deserialize, 'from the database', ['whatever'])
       attribute = Attribute.from_database(nil, 'whatever', @type)
 
       type_cast_value = attribute.value
@@ -41,7 +42,7 @@ module ActiveRecord
     end
 
     test "reading memoizes falsy values" do
-      @type.expect(:type_cast_from_database, false, ['whatever'])
+      @type.expect(:deserialize, false, ['whatever'])
       attribute = Attribute.from_database(nil, 'whatever', @type)
 
       attribute.value
@@ -57,27 +58,27 @@ module ActiveRecord
     end
 
     test "from_database + read_for_database type casts to and from database" do
-      @type.expect(:type_cast_from_database, 'read from database', ['whatever'])
-      @type.expect(:type_cast_for_database, 'ready for database', ['read from database'])
+      @type.expect(:deserialize, 'read from database', ['whatever'])
+      @type.expect(:serialize, 'ready for database', ['read from database'])
       attribute = Attribute.from_database(nil, 'whatever', @type)
 
-      type_cast_for_database = attribute.value_for_database
+      serialize = attribute.value_for_database
 
-      assert_equal 'ready for database', type_cast_for_database
+      assert_equal 'ready for database', serialize
     end
 
     test "from_user + read_for_database type casts from the user to the database" do
-      @type.expect(:type_cast_from_user, 'read from user', ['whatever'])
-      @type.expect(:type_cast_for_database, 'ready for database', ['read from user'])
+      @type.expect(:cast, 'read from user', ['whatever'])
+      @type.expect(:serialize, 'ready for database', ['read from user'])
       attribute = Attribute.from_user(nil, 'whatever', @type)
 
-      type_cast_for_database = attribute.value_for_database
+      serialize = attribute.value_for_database
 
-      assert_equal 'ready for database', type_cast_for_database
+      assert_equal 'ready for database', serialize
     end
 
     test "duping dups the value" do
-      @type.expect(:type_cast_from_database, 'type cast', ['a value'])
+      @type.expect(:deserialize, 'type cast', ['a value'])
       attribute = Attribute.from_database(nil, 'a value', @type)
 
       value_from_orig = attribute.value
@@ -89,7 +90,7 @@ module ActiveRecord
     end
 
     test "duping does not dup the value if it is not dupable" do
-      @type.expect(:type_cast_from_database, false, ['a value'])
+      @type.expect(:deserialize, false, ['a value'])
       attribute = Attribute.from_database(nil, 'a value', @type)
 
       assert_same attribute.value, attribute.dup.value
@@ -101,11 +102,11 @@ module ActiveRecord
     end
 
     class MyType
-      def type_cast_from_user(value)
+      def cast(value)
         value + " from user"
       end
 
-      def type_cast_from_database(value)
+      def deserialize(value)
         value + " from database"
       end
     end
@@ -167,6 +168,25 @@ module ActiveRecord
       first = Attribute.from_database(:foo, 1, Type::Integer.new)
       second = Attribute.from_user(:foo, 1, Type::Integer.new)
       assert_not_equal first, second
+    end
+
+    test "an attribute has not been read by default" do
+      attribute = Attribute.from_database(:foo, 1, Type::Value.new)
+      assert_not attribute.has_been_read?
+    end
+
+    test "an attribute has been read when its value is calculated" do
+      attribute = Attribute.from_database(:foo, 1, Type::Value.new)
+      attribute.value
+      assert attribute.has_been_read?
+    end
+
+    test "an attribute can not be mutated if it has not been read,
+      and skips expensive calculations" do
+      type_which_raises_from_all_methods = Object.new
+      attribute = Attribute.from_database(:foo, "bar", type_which_raises_from_all_methods)
+
+      assert_not attribute.changed_in_place_from?("bar")
     end
   end
 end

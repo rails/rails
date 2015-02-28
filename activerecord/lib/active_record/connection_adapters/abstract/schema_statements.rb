@@ -1,4 +1,6 @@
 require 'active_record/migration/join_table'
+require 'active_support/core_ext/string/access'
+require 'digest'
 
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
@@ -132,6 +134,7 @@ module ActiveRecord
       #   Make a temporary table.
       # [<tt>:force</tt>]
       #   Set to true to drop the table before creating it.
+      #   Set to +:cascade+ to drop dependent objects as well.
       #   Defaults to false.
       # [<tt>:as</tt>]
       #   SQL to use to generate the table. When this option is used, the block is
@@ -203,7 +206,17 @@ module ActiveRecord
         end
 
         result = execute schema_creation.accept td
-        td.indexes.each_pair { |c, o| add_index(table_name, c, o) } unless supports_indexes_in_create?
+
+        unless supports_indexes_in_create?
+          td.indexes.each_pair do |column_name, index_options|
+            add_index(table_name, column_name, index_options)
+          end
+        end
+
+        td.foreign_keys.each_pair do |other_table_name, foreign_key_options|
+          add_foreign_key(table_name, other_table_name, foreign_key_options)
+        end
+
         result
       end
 
@@ -361,11 +374,15 @@ module ActiveRecord
 
       # Drops a table from the database.
       #
-      # Although this command ignores +options+ and the block if one is given, it can be helpful
-      # to provide these in a migration's +change+ method so it can be reverted.
+      # [<tt>:force</tt>]
+      #   Set to +:cascade+ to drop dependent objects as well.
+      #   Defaults to false.
+      #
+      # Although this command ignores most +options+ and the block if one is given,
+      # it can be helpful to provide these in a migration's +change+ method so it can be reverted.
       # In that case, +options+ and the block will be used by create_table.
       def drop_table(table_name, options = {})
-        execute "DROP TABLE #{quote_table_name(table_name)}"
+        execute "DROP TABLE#{' IF EXISTS' if options[:if_exists]} #{quote_table_name(table_name)}"
       end
 
       # Adds a new column to the named table.
@@ -571,6 +588,8 @@ module ActiveRecord
       #   rename_index :people, 'index_people_on_last_name', 'index_users_on_last_name'
       #
       def rename_index(table_name, old_name, new_name)
+        validate_index_length!(table_name, new_name)
+
         # this is a naive implementation; some DBs may support this more efficiently (Postgres, for instance)
         old_index_def = indexes(table_name).detect { |i| i.name == old_name }
         return unless old_index_def
@@ -619,17 +638,16 @@ module ActiveRecord
       #
       #   add_belongs_to(:products, :supplier, polymorphic: true)
       #
-      # ====== Create a supplier_id, supplier_type columns and appropriate index
+      # ====== Create supplier_id, supplier_type columns and appropriate index
       #
       #   add_reference(:products, :supplier, polymorphic: true, index: true)
       #
-      def add_reference(table_name, ref_name, options = {})
-        polymorphic = options.delete(:polymorphic)
-        index_options = options.delete(:index)
-        type = options.delete(:type) || :integer
-        add_column(table_name, "#{ref_name}_id", type, options)
-        add_column(table_name, "#{ref_name}_type", :string, polymorphic.is_a?(Hash) ? polymorphic : options) if polymorphic
-        add_index(table_name, polymorphic ? %w[id type].map{ |t| "#{ref_name}_#{t}" } : "#{ref_name}_id", index_options.is_a?(Hash) ? index_options : {}) if index_options
+      # ====== Create a supplier_id column and appropriate foreign key
+      #
+      #   add_reference(:products, :supplier, foreign_key: true)
+      #
+      def add_reference(table_name, *args)
+        ReferenceDefinition.new(*args).add_to(update_table_definition(table_name, self))
       end
       alias :add_belongs_to :add_reference
 
@@ -644,7 +662,13 @@ module ActiveRecord
       #
       #   remove_reference(:products, :supplier, polymorphic: true)
       #
+      # ====== Remove the reference with a foreign key
+      #
+      #   remove_reference(:products, :user, index: true, foreign_key: true)
+      #
       def remove_reference(table_name, ref_name, options = {})
+        remove_foreign_key table_name, ref_name.to_s.pluralize if options[:foreign_key]
+
         remove_column(table_name, "#{ref_name}_id")
         remove_column(table_name, "#{ref_name}_type") if options[:polymorphic]
       end
@@ -733,26 +757,37 @@ module ActiveRecord
       def remove_foreign_key(from_table, options_or_to_table = {})
         return unless supports_foreign_keys?
 
-        if options_or_to_table.is_a?(Hash)
-          options = options_or_to_table
-        else
-          options = { column: foreign_key_column_for(options_or_to_table) }
-        end
-
-        fk_name_to_delete = options.fetch(:name) do
-          fk_to_delete = foreign_keys(from_table).detect {|fk| fk.column == options[:column] }
-
-          if fk_to_delete
-            fk_to_delete.name
-          else
-            raise ArgumentError, "Table '#{from_table}' has no foreign key on column '#{options[:column]}'"
-          end
-        end
+        fk_name_to_delete = foreign_key_for!(from_table, options_or_to_table).name
 
         at = create_alter_table from_table
         at.drop_foreign_key fk_name_to_delete
 
         execute schema_creation.accept(at)
+      end
+
+      # Checks to see if a foreign key exists on a table for a given foreign key definition.
+      #
+      #   # Check a foreign key exists
+      #   foreign_key_exists?(:accounts, :branches)
+      #
+      #   # Check a foreign key on a specified column exists
+      #   foreign_key_exists?(:accounts, column: :owner_id)
+      #
+      #   # Check a foreign key with a custom name exists
+      #   foreign_key_exists?(:accounts, name: "special_fk_name")
+      #
+      def foreign_key_exists?(from_table, options_or_to_table = {})
+        foreign_key_for(from_table, options_or_to_table).present?
+      end
+
+      def foreign_key_for(from_table, options_or_to_table = {}) # :nodoc:
+        return unless supports_foreign_keys?
+        foreign_keys(from_table).detect {|fk| fk.defined_for? options_or_to_table }
+      end
+
+      def foreign_key_for!(from_table, options_or_to_table = {}) # :nodoc:
+        foreign_key_for(from_table, options_or_to_table) or \
+          raise ArgumentError, "Table '#{from_table}' has no foreign key for #{options_or_to_table}"
       end
 
       def foreign_key_column_for(table_name) # :nodoc:
@@ -778,7 +813,7 @@ module ActiveRecord
         version = version.to_i
         sm_table = quote_table_name(ActiveRecord::Migrator.schema_migrations_table_name)
 
-        migrated = select_values("SELECT version FROM #{sm_table}").map { |v| v.to_i }
+        migrated = select_values("SELECT version FROM #{sm_table}").map(&:to_i)
         paths = migrations_paths.map {|p| "#{p}/[0-9]*_*.rb" }
         versions = Dir[*paths].map do |filename|
           filename.split('/').last.split('_').first.to_i
@@ -816,6 +851,12 @@ module ActiveRecord
               raise ArgumentError, "Error adding decimal column: precision cannot be empty if scale is specified"
             end
 
+          elsif [:datetime, :time].include?(type) && precision ||= native[:precision]
+            if (0..6) === precision
+              column_type_sql << "(#{precision})"
+            else
+              raise(ActiveRecordError, "No #{native[:name]} type has precision of #{precision}. The allowed range of precision is from 0 to 6")
+            end
           elsif (type != :primary_key) && (limit ||= native.is_a?(Hash) && native[:limit])
             column_type_sql << "(#{limit})"
           end
@@ -835,11 +876,14 @@ module ActiveRecord
         columns
       end
 
-      # Adds timestamps (+created_at+ and +updated_at+) columns to the named table.
+      # Adds timestamps (+created_at+ and +updated_at+) columns to +table_name+.
+      # Additional options (like <tt>null: false</tt>) are forwarded to #add_column.
       #
-      #   add_timestamps(:suppliers)
+      #   add_timestamps(:suppliers, null: false)
       #
       def add_timestamps(table_name, options = {})
+        options[:null] = false if options[:null].nil?
+
         add_column table_name, :created_at, :datetime, options
         add_column table_name, :updated_at, :datetime, options
       end
@@ -848,7 +892,7 @@ module ActiveRecord
       #
       #  remove_timestamps(:suppliers)
       #
-      def remove_timestamps(table_name)
+      def remove_timestamps(table_name, options = {})
         remove_column table_name, :updated_at
         remove_column table_name, :created_at
       end
@@ -962,17 +1006,25 @@ module ActiveRecord
         end
 
       private
-      def create_table_definition(name, temporary, options, as = nil)
+      def create_table_definition(name, temporary = false, options = nil, as = nil)
         TableDefinition.new native_database_types, name, temporary, options, as
       end
 
       def create_alter_table(name)
-        AlterTable.new create_table_definition(name, false, {})
+        AlterTable.new create_table_definition(name)
       end
 
       def foreign_key_name(table_name, options) # :nodoc:
+        identifier = "#{table_name}_#{options.fetch(:column)}_fk"
+        hashed_identifier = Digest::SHA256.hexdigest(identifier).first(10)
         options.fetch(:name) do
-          "fk_rails_#{SecureRandom.hex(5)}"
+          "fk_rails_#{hashed_identifier}"
+        end
+      end
+
+      def validate_index_length!(table_name, new_name)
+        if new_name.length > allowed_index_name_length
+          raise ArgumentError, "Index name '#{new_name}' on table '#{table_name}' is too long; the limit is #{allowed_index_name_length} characters"
         end
       end
     end

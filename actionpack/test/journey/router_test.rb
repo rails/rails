@@ -201,6 +201,16 @@ module ActionDispatch
         assert_match(/missing required keys: \[:id\]/, error.message)
       end
 
+      def test_does_not_include_missing_keys_message
+        route_name = "gorby_thunderhorse"
+
+        error = assert_raises(ActionController::UrlGenerationError) do
+          @formatter.generate(route_name, { }, { })
+        end
+
+        assert_no_match(/missing required keys: \[\]/, error.message)
+      end
+
       def test_X_Cascade
         add_routes @router, [ "/messages(.:format)" ]
         resp = @router.serve(rails_env({ 'REQUEST_METHOD' => 'GET', 'PATH_INFO' => '/lol' }))
@@ -405,7 +415,7 @@ module ActionDispatch
 
       def test_generate_with_name
         path  = Path::Pattern.from_string '/:controller(/:action)'
-        @router.routes.add_route @app, path, {}, {}, {}
+        @router.routes.add_route @app, path, {}, {}, "tasks"
 
         path, params = @formatter.generate(
           "tasks",

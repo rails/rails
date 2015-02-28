@@ -1,3 +1,5 @@
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+
 Debugging Rails Applications
 ============================
 
@@ -240,6 +242,55 @@ The contents of the block, and therefore the string interpolation, is only
 evaluated if debug is enabled. This performance savings is only really
 noticeable with large amounts of logging, but it's a good practice to employ.
 
+
+Debugging with the `web-console` gem
+-------------------------------------
+
+The web console allows you to start an interactive Ruby session in your browser.
+An interactive console is launched automatically in case of an error but can also
+be launched for debugging purposes by invoking `console` in a view or controller.
+
+For example in a view:
+
+```ruby
+# new.html.erb
+<%= console %>
+```
+
+Or in a controller:
+
+```ruby
+# posts_controller.rb
+class PostsController < ApplicationController
+  def new
+    console
+    @post = Post.new
+  end
+end
+```
+
+### config.web_console.whitelisted_ips
+
+By default the web console can only be accessed from localhost.
+`config.web_console.whitelisted_ips` lets you control which IPs have access to
+the console.
+
+For example, to allow access from both localhost and 192.168.0.100, you can put
+inside your configuration file:
+
+```ruby
+config.web_console.whitelisted_ips = %w( 127.0.0.1 192.168.0.100 )
+```
+
+Or to allow access from an entire network:
+
+```ruby
+config.web_console.whitelisted_ips = %w( 127.0.0.1 192.168.0.0/16 )
+```
+
+The web console is a powerful tool so be careful when you give access to an IP.
+
+
 Debugging with the `byebug` gem
 ---------------------------------
 
@@ -309,7 +360,7 @@ For example:
 
 ```bash
 => Booting WEBrick
-=> Rails 4.2.0 application starting in development on http://0.0.0.0:3000
+=> Rails 5.0.0 application starting in development on http://0.0.0.0:3000
 => Run `rails server -h` for more startup options
 => Notice: server is listening on all interfaces (0.0.0.0). Consider using 127.0.0.1 (--binding option)
 => Ctrl-C to shutdown server
@@ -422,11 +473,11 @@ then `backtrace` will supply the answer.
 --> #0  ArticlesController.index
       at /PathTo/project/test_app/app/controllers/articles_controller.rb:8
     #1  ActionController::ImplicitRender.send_action(method#String, *args#Array)
-      at /PathToGems/actionpack-4.2.0/lib/action_controller/metal/implicit_render.rb:4
+      at /PathToGems/actionpack-5.0.0/lib/action_controller/metal/implicit_render.rb:4
     #2  AbstractController::Base.process_action(action#NilClass, *args#Array)
-      at /PathToGems/actionpack-4.2.0/lib/abstract_controller/base.rb:189
+      at /PathToGems/actionpack-5.0.0/lib/abstract_controller/base.rb:189
     #3  ActionController::Rendering.process_action(action#NilClass, *args#NilClass)
-      at /PathToGems/actionpack-4.2.0/lib/action_controller/metal/rendering.rb:10
+      at /PathToGems/actionpack-5.0.0/lib/action_controller/metal/rendering.rb:10
 ...
 ```
 
@@ -438,7 +489,7 @@ context.
 ```
 (byebug) frame 2
 
-[184, 193] in /PathToGems/actionpack-4.2.0/lib/abstract_controller/base.rb
+[184, 193] in /PathToGems/actionpack-5.0.0/lib/abstract_controller/base.rb
    184:       # is the intended way to override action dispatching.
    185:       #
    186:       # Notice that the first argument is the method to be dispatched
@@ -542,7 +593,7 @@ This way an irb session will be started within the context you invoked it. But
 be warned: this is an experimental feature.
 
 The `var` method is the most convenient way to show variables and their values.
-Let's let `byebug` to help us with it.
+Let's let `byebug` help us with it.
 
 ```
 (byebug) help var
@@ -655,7 +706,7 @@ instruction to be executed. In this case, the activesupport's `week` method.
 ```
 (byebug) step
 
-[50, 59] in /PathToGems/activesupport-4.2.0/lib/active_support/core_ext/numeric/time.rb
+[50, 59] in /PathToGems/activesupport-5.0.0/lib/active_support/core_ext/numeric/time.rb
    50:     ActiveSupport::Duration.new(self * 24.hours, [[:days, self]])
    51:   end
    52:   alias :day :days
@@ -830,7 +881,7 @@ application. Here is a list of useful plugins for debugging:
 * [Footnotes](https://github.com/josevalim/rails-footnotes) Every Rails page has
 footnotes that give request information and link back to your source via
 TextMate.
-* [Query Trace](https://github.com/ntalbott/query_trace/tree/master) Adds query
+* [Query Trace](https://github.com/ruckus/active-record-query-trace/tree/master) Adds query
 origin tracing to your logs.
 * [Query Reviewer](https://github.com/nesquena/query_reviewer) This rails plugin
 not only runs "EXPLAIN" before each of your select queries in development, but

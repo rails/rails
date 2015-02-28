@@ -1,11 +1,11 @@
 module ActiveRecord::Associations::Builder
   class BelongsTo < SingularAssociation #:nodoc:
-    def macro
+    def self.macro
       :belongs_to
     end
 
-    def valid_options
-      super + [:foreign_type, :polymorphic, :touch, :counter_cache]
+    def self.valid_options(options)
+      super + [:foreign_type, :polymorphic, :touch, :counter_cache, :optional]
     end
 
     def self.valid_dependent_options
@@ -22,8 +22,6 @@ module ActiveRecord::Associations::Builder
       super
       add_counter_cache_methods mixin
     end
-
-    private
 
     def self.add_counter_cache_methods(mixin)
       return if mixin.method_defined? :belongs_to_counter_cache_after_update
@@ -111,6 +109,24 @@ module ActiveRecord::Associations::Builder
     def self.add_destroy_callbacks(model, reflection)
       name = reflection.name
       model.after_destroy lambda { |o| o.association(name).handle_dependency }
+    end
+
+    def self.define_validations(model, reflection)
+      if reflection.options.key?(:required)
+        reflection.options[:optional] = !reflection.options.delete(:required)
+      end
+
+      if reflection.options[:optional].nil?
+        required = model.belongs_to_required_by_default
+      else
+        required = !reflection.options[:optional]
+      end
+
+      super
+
+      if required
+        model.validates_presence_of reflection.name, message: :required
+      end
     end
   end
 end

@@ -99,7 +99,7 @@ module Rails
         end
 
         def class_name
-          (class_path + [file_name]).map!{ |m| m.camelize }.join('::')
+          (class_path + [file_name]).map!(&:camelize).join('::')
         end
 
         def human_name
@@ -145,7 +145,7 @@ module Rails
           @route_url ||= class_path.collect {|dname| "/" + dname }.join + "/" + plural_file_name
         end
 
-        # Tries to retrieve the application name or simple return application.
+        # Tries to retrieve the application name or simply return application.
         def application_name
           if defined?(Rails) && Rails.application
             Rails.application.class.name.split('::').first.underscore
@@ -156,7 +156,7 @@ module Rails
 
         def assign_names!(name) #:nodoc:
           @class_path = name.include?('/') ? name.split('/') : name.split('::')
-          @class_path.map! { |m| m.underscore }
+          @class_path.map!(&:underscore)
           @file_name = @class_path.pop
         end
 

@@ -3,9 +3,26 @@ module ActiveRecord
   module Aggregations # :nodoc:
     extend ActiveSupport::Concern
 
-    def clear_aggregation_cache #:nodoc:
-      @aggregation_cache.clear if persisted?
+    def initialize_dup(*) # :nodoc:
+      @aggregation_cache = {}
+      super
     end
+
+    def reload(*) # :nodoc:
+      clear_aggregation_cache
+      super
+    end
+
+    private
+
+      def clear_aggregation_cache # :nodoc:
+        @aggregation_cache.clear if persisted?
+      end
+
+      def init_internals # :nodoc:
+        @aggregation_cache = {}
+        super
+      end
 
     # Active Record implements aggregation through a macro-like class method called +composed_of+
     # for representing attributes  as value objects. It expresses relationships like "Account [is]
@@ -86,11 +103,6 @@ module ActiveRecord
     #   customer.address_street = "Hyancintvej"
     #   customer.address_city   = "Copenhagen"
     #   customer.address        # => Address.new("Hyancintvej", "Copenhagen")
-    #
-    #   customer.address_street = "Vesterbrogade"
-    #   customer.address        # => Address.new("Hyancintvej", "Copenhagen")
-    #   customer.clear_aggregation_cache
-    #   customer.address        # => Address.new("Vesterbrogade", "Copenhagen")
     #
     #   customer.address = Address.new("May Street", "Chicago")
     #   customer.address_street # => "May Street"
@@ -230,8 +242,8 @@ module ActiveRecord
       private
         def reader_method(name, class_name, mapping, allow_nil, constructor)
           define_method(name) do
-            if @aggregation_cache[name].nil? && (!allow_nil || mapping.any? {|key, _| !read_attribute(key).nil? })
-              attrs = mapping.collect {|key, _| read_attribute(key)}
+            if @aggregation_cache[name].nil? && (!allow_nil || mapping.any? {|key, _| !_read_attribute(key).nil? })
+              attrs = mapping.collect {|key, _| _read_attribute(key)}
               object = constructor.respond_to?(:call) ?
                 constructor.call(*attrs) :
                 class_name.constantize.send(constructor, *attrs)
@@ -245,7 +257,8 @@ module ActiveRecord
           define_method("#{name}=") do |part|
             klass = class_name.constantize
             if part.is_a?(Hash)
-              part = klass.new(*part.values)
+              raise ArgumentError unless part.size == part.keys.max
+              part = klass.new(*part.sort.map(&:last))
             end
 
             unless part.is_a?(klass) || converter.nil? || part.nil?

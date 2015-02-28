@@ -1,5 +1,3 @@
-require 'active_support/core_ext/module/attribute_accessors'
-
 # This is the parent Association class which defines the variables
 # used by all associations.
 #
@@ -15,15 +13,10 @@ module ActiveRecord::Associations::Builder
   class Association #:nodoc:
     class << self
       attr_accessor :extensions
-      # TODO: This class accessor is needed to make activerecord-deprecated_finders work.
-      # We can move it to a constant in 5.0.
-      attr_accessor :valid_options
     end
     self.extensions = []
 
-    self.valid_options = [:class_name, :class, :foreign_key, :validate]
-
-    attr_reader :name, :scope, :options
+    VALID_OPTIONS = [:class_name, :class, :foreign_key, :validate] # :nodoc:
 
     def self.build(model, name, scope, options, &block)
       if model.dangerous_attribute_method?(name)
@@ -32,57 +25,60 @@ module ActiveRecord::Associations::Builder
                              "Please choose a different association name."
       end
 
-      builder = create_builder model, name, scope, options, &block
-      reflection = builder.build(model)
+      extension = define_extensions model, name, &block
+      reflection = create_reflection model, name, scope, options, extension
       define_accessors model, reflection
       define_callbacks model, reflection
       define_validations model, reflection
-      builder.define_extensions model
       reflection
     end
 
-    def self.create_builder(model, name, scope, options, &block)
+    def self.create_reflection(model, name, scope, options, extension = nil)
       raise ArgumentError, "association names must be a Symbol" unless name.kind_of?(Symbol)
 
-      new(model, name, scope, options, &block)
-    end
-
-    def initialize(model, name, scope, options)
-      # TODO: Move this to create_builder as soon we drop support to activerecord-deprecated_finders.
       if scope.is_a?(Hash)
         options = scope
         scope   = nil
       end
 
-      # TODO: Remove this model argument as soon we drop support to activerecord-deprecated_finders.
-      @name    = name
-      @scope   = scope
-      @options = options
+      validate_options(options)
 
-      validate_options
+      scope = build_scope(scope, extension)
 
-      if scope && scope.arity == 0
-        @scope = proc { instance_exec(&scope) }
-      end
-    end
-
-    def build(model)
       ActiveRecord::Reflection.create(macro, name, scope, options, model)
     end
 
-    def macro
+    def self.build_scope(scope, extension)
+      new_scope = scope
+
+      if scope && scope.arity == 0
+        new_scope = proc { instance_exec(&scope) }
+      end
+
+      if extension
+        new_scope = wrap_scope new_scope, extension
+      end
+
+      new_scope
+    end
+
+    def self.wrap_scope(scope, extension)
+      scope
+    end
+
+    def self.macro
       raise NotImplementedError
     end
 
-    def valid_options
-      Association.valid_options + Association.extensions.flat_map(&:valid_options)
+    def self.valid_options(options)
+      VALID_OPTIONS + Association.extensions.flat_map(&:valid_options)
     end
 
-    def validate_options
-      options.assert_valid_keys(valid_options)
+    def self.validate_options(options)
+      options.assert_valid_keys(valid_options(options))
     end
 
-    def define_extensions(model)
+    def self.define_extensions(model, name)
     end
 
     def self.define_callbacks(model, reflection)
@@ -132,8 +128,6 @@ module ActiveRecord::Associations::Builder
     def self.valid_dependent_options
       raise NotImplementedError
     end
-
-    private
 
     def self.check_dependent_options(dependent)
       unless valid_dependent_options.include? dependent

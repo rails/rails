@@ -57,7 +57,7 @@ module ActiveRecord
       through_reflection      = reflection.through_reflection
       source_reflection_names = reflection.source_reflection_names
       source_associations     = reflection.through_reflection.klass._reflections.keys
-      super("Could not find the source association(s) #{source_reflection_names.collect{ |a| a.inspect }.to_sentence(:two_words_connector => ' or ', :last_word_connector => ', or ', :locale => :en)} in model #{through_reflection.klass}. Try 'has_many #{reflection.name.inspect}, :through => #{through_reflection.name.inspect}, :source => <name>'. Is it one of #{source_associations.to_sentence(:two_words_connector => ' or ', :last_word_connector => ', or ', :locale => :en)}?")
+      super("Could not find the source association(s) #{source_reflection_names.collect(&:inspect).to_sentence(:two_words_connector => ' or ', :last_word_connector => ', or ', :locale => :en)} in model #{through_reflection.klass}. Try 'has_many #{reflection.name.inspect}, :through => #{through_reflection.name.inspect}, :source => <name>'. Is it one of #{source_associations.to_sentence(:two_words_connector => ' or ', :last_word_connector => ', or ', :locale => :en)}?")
     end
   end
 
@@ -116,6 +116,7 @@ module ActiveRecord
     autoload :Association,           'active_record/associations/association'
     autoload :SingularAssociation,   'active_record/associations/singular_association'
     autoload :CollectionAssociation, 'active_record/associations/collection_association'
+    autoload :ForeignAssociation,    'active_record/associations/foreign_association'
     autoload :CollectionProxy,       'active_record/associations/collection_proxy'
 
     autoload :BelongsToAssociation,            'active_record/associations/belongs_to_association'
@@ -144,20 +145,14 @@ module ActiveRecord
       autoload :AliasTracker,     'active_record/associations/alias_tracker'
     end
 
-    # Clears out the association cache.
-    def clear_association_cache #:nodoc:
-      @association_cache.clear if persisted?
-    end
-
-    # :nodoc:
-    attr_reader :association_cache
-
     # Returns the association instance for the given name, instantiating it if it doesn't already exist
     def association(name) #:nodoc:
       association = association_instance_get(name)
 
       if association.nil?
-        raise AssociationNotFoundError.new(self, name) unless reflection = self.class._reflect_on_association(name)
+        unless reflection = self.class._reflect_on_association(name)
+          raise AssociationNotFoundError.new(self, name)
+        end
         association = reflection.association_class.new(self, reflection)
         association_instance_set(name, association)
       end
@@ -165,7 +160,31 @@ module ActiveRecord
       association
     end
 
+    def association_cached?(name) # :nodoc
+      @association_cache.key?(name)
+    end
+
+    def initialize_dup(*) # :nodoc:
+      @association_cache = {}
+      super
+    end
+
+    def reload(*) # :nodoc:
+      clear_association_cache
+      super
+    end
+
     private
+      # Clears out the association cache.
+      def clear_association_cache # :nodoc:
+        @association_cache.clear if persisted?
+      end
+
+      def init_internals # :nodoc:
+        @association_cache = {}
+        super
+      end
+
       # Returns the specified association instance if it responds to :loaded?, nil otherwise.
       def association_instance_get(name)
         @association_cache[name]
@@ -999,6 +1018,8 @@ module ActiveRecord
     # callbacks declared either before or after the <tt>:dependent</tt> option
     # can affect what it does.
     #
+    # Note that <tt>:dependent</tt> option is ignored for +has_one+ <tt>:through</tt> associations.
+    #
     # === Delete or destroy?
     #
     # +has_many+ and +has_and_belongs_to_many+ associations have the methods <tt>destroy</tt>,
@@ -1011,7 +1032,7 @@ module ActiveRecord
     # record(s) being removed so that callbacks are run. However <tt>delete</tt> and <tt>delete_all</tt> will either
     # do the deletion according to the strategy specified by the <tt>:dependent</tt> option, or
     # if no <tt>:dependent</tt> option is given, then it will follow the default strategy.
-    # The default strategy is <tt>:nullify</tt> (set the foreign keys to <tt>nil</tt>), except for
+    # The default strategy is to do nothing (leave the foreign keys with the parent ids set), except for
     # +has_many+ <tt>:through</tt>, where the default strategy is <tt>delete_all</tt> (delete
     # the join records, without running their callbacks).
     #
@@ -1176,6 +1197,12 @@ module ActiveRecord
       #   Specify the foreign key used for the association. By default this is guessed to be the name
       #   of this class in lower-case and "_id" suffixed. So a Person class that makes a +has_many+
       #   association will use "person_id" as the default <tt>:foreign_key</tt>.
+      # [:foreign_type]
+      #   Specify the column used to store the associated object's type, if this is a polymorphic
+      #   association. By default this is guessed to be the name of the polymorphic association
+      #   specified on "as" option with a "_type" suffix. So a class that defines a
+      #   <tt>has_many :tags, as: :taggable</tt> association will use "taggable_type" as the
+      #   default <tt>:foreign_type</tt>.
       # [:primary_key]
       #   Specify the name of the column to use as the primary key for the association. By default this is +id+.
       # [:dependent]
@@ -1238,6 +1265,10 @@ module ActiveRecord
       #   that is the inverse of this <tt>has_many</tt> association. Does not work in combination
       #   with <tt>:through</tt> or <tt>:as</tt> options.
       #   See ActiveRecord::Associations::ClassMethods's overview on Bi-directional associations for more detail.
+      # [:extend]
+      #   Specifies a module or array of modules that will be extended into the association object returned.
+      #   Useful for defining methods on associations, especially when they should be shared between multiple
+      #   association objects.
       #
       # Option examples:
       #   has_many :comments, -> { order "posted_on" }
@@ -1319,10 +1350,18 @@ module ActiveRecord
       #   * <tt>:nullify</tt> causes the foreign key to be set to +NULL+. Callbacks are not executed.
       #   * <tt>:restrict_with_exception</tt> causes an exception to be raised if there is an associated record
       #   * <tt>:restrict_with_error</tt> causes an error to be added to the owner if there is an associated object
+      #
+      #   Note that <tt>:dependent</tt> option is ignored when using <tt>:through</tt> option.
       # [:foreign_key]
       #   Specify the foreign key used for the association. By default this is guessed to be the name
       #   of this class in lower-case and "_id" suffixed. So a Person class that makes a +has_one+ association
       #   will use "person_id" as the default <tt>:foreign_key</tt>.
+      # [:foreign_type]
+      #   Specify the column used to store the associated object's type, if this is a polymorphic
+      #   association. By default this is guessed to be the name of the polymorphic association
+      #   specified on "as" option with a "_type" suffix. So a class that defines a
+      #   <tt>has_one :tag, as: :taggable</tt> association will use "taggable_type" as the
+      #   default <tt>:foreign_type</tt>.
       # [:primary_key]
       #   Specify the method that returns the primary key used for the association. By default this is +id+.
       # [:as]
@@ -1365,7 +1404,7 @@ module ActiveRecord
       #   has_one :last_comment, -> { order 'posted_on' }, class_name: "Comment"
       #   has_one :project_manager, -> { where role: 'project_manager' }, class_name: "Person"
       #   has_one :attachment, as: :attachable
-      #   has_one :boss, readonly: :true
+      #   has_one :boss, -> { readonly }
       #   has_one :club, through: :membership
       #   has_one :primary_address, -> { where primary: true }, through: :addressables, source: :addressable
       #   has_one :credit_card, required: true
@@ -1417,7 +1456,7 @@ module ActiveRecord
       # when you access the associated object.
       #
       # Scope examples:
-      #   belongs_to :user, -> { where(id: 2) }
+      #   belongs_to :firm, -> { where(id: 2) }
       #   belongs_to :user, -> { joins(:friends) }
       #   belongs_to :level, ->(level) { where("game_level > ?", level.current) }
       #
@@ -1481,10 +1520,14 @@ module ActiveRecord
       #   object that is the inverse of this <tt>belongs_to</tt> association. Does not work in
       #   combination with the <tt>:polymorphic</tt> options.
       #   See ActiveRecord::Associations::ClassMethods's overview on Bi-directional associations for more detail.
+      # [:optional]
+      #   When set to +true+, the association will not have its presence validated.
       # [:required]
       #   When set to +true+, the association will also have its presence validated.
       #   This will validate the association itself, not the id. You can use
       #   +:inverse_of+ to avoid an extra query during validation.
+      #   NOTE: <tt>required</tt> is set to <tt>true</tt> by default and is deprecated. If
+      #   you don't want to have association presence validated, use <tt>optional: true</tt>.
       #
       # Option examples:
       #   belongs_to :firm, foreign_key: "client_of"
@@ -1493,11 +1536,11 @@ module ActiveRecord
       #   belongs_to :valid_coupon, ->(o) { where "discounts > ?", o.payments_count },
       #                             class_name: "Coupon", foreign_key: "coupon_id"
       #   belongs_to :attachable, polymorphic: true
-      #   belongs_to :project, readonly: true
+      #   belongs_to :project, -> { readonly }
       #   belongs_to :post, counter_cache: true
-      #   belongs_to :company, touch: true
+      #   belongs_to :comment, touch: true
       #   belongs_to :company, touch: :employees_last_updated_at
-      #   belongs_to :company, required: true
+      #   belongs_to :user, optional: true
       def belongs_to(name, scope = nil, options = {})
         reflection = Builder::BelongsTo.build(self, name, scope, options)
         Reflection.add_reflection self, name, reflection
@@ -1700,7 +1743,7 @@ module ActiveRecord
         hm_options[:through] = middle_reflection.name
         hm_options[:source] = join_model.right_reflection.name
 
-        [:before_add, :after_add, :before_remove, :after_remove, :autosave, :validate, :join_table].each do |k|
+        [:before_add, :after_add, :before_remove, :after_remove, :autosave, :validate, :join_table, :class_name].each do |k|
           hm_options[k] = options[k] if options.key? k
         end
 

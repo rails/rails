@@ -38,7 +38,7 @@ module Rails
     end
 
     def readme
-      copy_file "README.rdoc", "README.rdoc"
+      copy_file "README.md", "README.md"
     end
 
     def gemfile
@@ -88,11 +88,21 @@ module Rails
 
     def config_when_updating
       cookie_serializer_config_exist = File.exist?('config/initializers/cookies_serializer.rb')
+      callback_terminator_config_exist = File.exist?('config/initializers/callback_terminator.rb')
+      active_record_belongs_to_required_by_default_config_exist = File.exist?('config/initializers/active_record_belongs_to_required_by_default.rb')
 
       config
 
+      unless callback_terminator_config_exist
+        remove_file 'config/initializers/callback_terminator.rb'
+      end
+
       unless cookie_serializer_config_exist
         gsub_file 'config/initializers/cookies_serializer.rb', /json/, 'marshal'
+      end
+
+      unless active_record_belongs_to_required_by_default_config_exist
+        remove_file 'config/initializers/active_record_belongs_to_required_by_default.rb'
       end
     end
 
@@ -120,6 +130,7 @@ module Rails
 
     def test
       empty_directory_with_keep_file 'test/fixtures'
+      empty_directory_with_keep_file 'test/fixtures/files'
       empty_directory_with_keep_file 'test/controllers'
       empty_directory_with_keep_file 'test/mailers'
       empty_directory_with_keep_file 'test/models'
@@ -229,7 +240,7 @@ module Rails
       end
 
       def create_test_files
-        build(:test) unless options[:skip_test_unit]
+        build(:test) unless options[:skip_test]
       end
 
       def create_tmp_files
@@ -252,6 +263,12 @@ module Rails
         end
       end
 
+      def delete_active_record_initializers_skipping_active_record
+        if options[:skip_active_record]
+          remove_file 'config/initializers/active_record_belongs_to_required_by_default.rb'
+        end
+      end
+
       def finish_template
         build(:leftovers)
       end
@@ -260,9 +277,7 @@ module Rails
       public_task :generate_spring_binstubs
 
       def run_after_bundle_callbacks
-        @after_bundle_callbacks.each do |callback|
-          callback.call
-        end
+        @after_bundle_callbacks.each(&:call)
       end
 
     protected
@@ -340,7 +355,7 @@ module Rails
     #
     # This class should be called before the AppGenerator is required and started
     # since it configures and mutates ARGV correctly.
-    class ARGVScrubber # :nodoc
+    class ARGVScrubber # :nodoc:
       def initialize(argv = ARGV)
         @argv = argv
       end

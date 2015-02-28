@@ -1,4 +1,3 @@
-# encoding: utf-8
 require 'abstract_unit'
 require 'controller/fake_models'
 
@@ -16,7 +15,7 @@ module RenderTestCases
     I18n.backend.store_translations 'pt-BR', {}
 
     # Ensure original are still the same since we are reindexing view paths
-    assert_equal ORIGINAL_LOCALES, I18n.available_locales.map {|l| l.to_s }.sort
+    assert_equal ORIGINAL_LOCALES, I18n.available_locales.map(&:to_s).sort
   end
 
   def test_render_without_options
@@ -62,9 +61,10 @@ module RenderTestCases
 
   def test_render_template_with_a_missing_partial_of_another_format
     @view.lookup_context.formats = [:html]
-    assert_raise ActionView::Template::Error, "Missing partial /_missing with {:locale=>[:en], :formats=>[:json], :handlers=>[:erb, :builder]}" do
+    e = assert_raise ActionView::Template::Error do
       @view.render(:template => "with_format", :formats => [:json])
     end
+    assert_includes(e.message, "Missing partial /_missing with {:locale=>[:en], :formats=>[:json], :variants=>[], :handlers=>[:raw, :erb, :builder, :ruby]}.")
   end
 
   def test_render_file_with_locale
@@ -172,18 +172,12 @@ module RenderTestCases
     assert_equal "only partial", @view.render("test/partial_only", :counter_counter => 5)
   end
 
-  def test_render_partial_with_invalid_name
-    e = assert_raises(ArgumentError) { @view.render(:partial => "test/200") }
-    assert_equal "The partial name (test/200) is not a valid Ruby identifier; " +
-      "make sure your partial name starts with a lowercase letter or underscore, " +
-      "and is followed by any combination of letters, numbers and underscores.", e.message
+  def test_render_partial_with_number
+    assert_nothing_raised { @view.render(:partial => "test/200") }
   end
 
   def test_render_partial_with_missing_filename
-    e = assert_raises(ArgumentError) { @view.render(:partial => "test/") }
-    assert_equal "The partial name (test/) is not a valid Ruby identifier; " +
-      "make sure your partial name starts with a lowercase letter or underscore, " +
-      "and is followed by any combination of letters, numbers and underscores.", e.message
+    assert_raises(ActionView::MissingTemplate) { @view.render(:partial => "test/") }
   end
 
   def test_render_partial_with_incompatible_object
@@ -191,10 +185,25 @@ module RenderTestCases
     assert_equal "'#{nil.inspect}' is not an ActiveModel-compatible object. It must implement :to_partial_path.", e.message
   end
 
+  def test_render_partial_starting_with_a_capital
+    assert_nothing_raised { @view.render(:partial => 'test/FooBar') }
+  end
+
   def test_render_partial_with_hyphen
-    e = assert_raises(ArgumentError) { @view.render(:partial => "test/a-in") }
-    assert_equal "The partial name (test/a-in) is not a valid Ruby identifier; " +
-      "make sure your partial name starts with a lowercase letter or underscore, " +
+    assert_nothing_raised { @view.render(:partial => "test/a-in") }
+  end
+
+  def test_render_partial_with_invalid_option_as
+    e = assert_raises(ArgumentError) { @view.render(:partial => "test/partial_only", :as => 'a-in') }
+    assert_equal "The value (a-in) of the option `as` is not a valid Ruby identifier; " +
+      "make sure it starts with lowercase letter, " +
+      "and is followed by any combination of letters, numbers and underscores.", e.message
+  end
+
+  def test_render_partial_with_hyphen_and_invalid_option_as
+    e = assert_raises(ArgumentError) { @view.render(:partial => "test/a-in", :as => 'a-in') }
+    assert_equal "The value (a-in) of the option `as` is not a valid Ruby identifier; " +
+      "make sure it starts with lowercase letter, " +
       "and is followed by any combination of letters, numbers and underscores.", e.message
   end
 
@@ -466,6 +475,11 @@ module RenderTestCases
       @view.render(:partial => 'test/partial_with_partial', :layout => 'test/layout_for_partial', :locals => { :name => 'Foo!'})
   end
 
+  def test_render_partial_shortcut_with_block_content
+    assert_equal %(Before (shortcut test)\nBefore\n\n  Yielded: arg1/arg2\n\nAfter\nAfter),
+      @view.render(partial: "test/partial_shortcut_with_block_content", layout: "test/layout_for_partial", locals: { name: "shortcut test" })
+  end
+
   def test_render_layout_with_a_nested_render_layout_call
     assert_equal %(Before (Foo!)\nBefore (Bar!)\npartial html\nAfter\npartial with layout\n\nAfter),
       @view.render(:partial => 'test/partial_with_layout', :layout => 'test/layout_for_partial', :locals => { :name => 'Foo!'})
@@ -582,5 +596,43 @@ class LazyViewRenderTest < ActiveSupport::TestCase
     yield
   ensure
     silence_warnings { Encoding.default_external = old }
+  end
+end
+
+class CachedCollectionViewRenderTest < CachedViewRenderTest
+  class CachedCustomer < Customer; end
+
+  teardown do
+    ActionView::PartialRenderer.collection_cache.clear
+  end
+
+  test "with custom key" do
+    customer = Customer.new("david")
+    key = ActionController::Base.new.fragment_cache_key([customer, 'key'])
+
+    ActionView::PartialRenderer.collection_cache.write(key, 'Hello')
+
+    assert_equal "Hello",
+      @view.render(partial: "test/customer", collection: [customer], cache: ->(item) { [item, 'key'] })
+  end
+
+  test "automatic caching with inferred cache name" do
+    customer = CachedCustomer.new("david")
+    key = ActionController::Base.new.fragment_cache_key(customer)
+
+    ActionView::PartialRenderer.collection_cache.write(key, 'Cached')
+
+    assert_equal "Cached",
+      @view.render(partial: "test/cached_customer", collection: [customer])
+  end
+
+  test "automatic caching with as name" do
+    customer = CachedCustomer.new("david")
+    key = ActionController::Base.new.fragment_cache_key(customer)
+
+    ActionView::PartialRenderer.collection_cache.write(key, 'Cached')
+
+    assert_equal "Cached",
+      @view.render(partial: "test/cached_customer_as", collection: [customer], as: :buyer)
   end
 end

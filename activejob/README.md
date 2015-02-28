@@ -5,7 +5,7 @@ of queueing backends. These jobs can be everything from regularly scheduled
 clean-ups, to billing charges, to mailings. Anything that can be chopped up into
 small units of work and run in parallel, really.
 
-It also serves as the backend for ActionMailer's #deliver_later functionality
+It also serves as the backend for Action Mailer's #deliver_later functionality
 that makes it easy to turn any mailing into a job for running later. That's
 one of the most common jobs in a modern web application: Sending emails outside
 of the request-response cycle, so the user doesn't have to wait on it.
@@ -26,7 +26,8 @@ Set the queue adapter for Active Job:
 ActiveJob::Base.queue_adapter = :inline # default queue adapter
 ```
 Note: To learn how to use your preferred queueing backend see its adapter
-documentation at ActiveJob::QueueAdapters.
+documentation at
+[ActiveJob::QueueAdapters](http://api.rubyonrails.org/classes/ActiveJob/QueueAdapters.html).
 
 Declare a job like so:
 
@@ -110,7 +111,7 @@ Source code can be downloaded as part of the Rails project on GitHub
 
 ## License
 
-ActiveJob is released under the MIT license:
+Active Job is released under the MIT license:
 
 * http://www.opensource.org/licenses/MIT
 
@@ -128,5 +129,3 @@ Bug reports can be filed for the Ruby on Rails project here:
 Feature requests should be discussed on the rails-core mailing list here:
 
 * https://groups.google.com/forum/?fromgroups#!forum/rubyonrails-core
-
-

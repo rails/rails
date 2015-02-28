@@ -7,7 +7,7 @@ module ActiveRecord
             :bit
           end
 
-          def type_cast(value)
+          def cast(value)
             if ::String === value
               case value
               when /^0x/i
@@ -20,7 +20,7 @@ module ActiveRecord
             end
           end
 
-          def type_cast_for_database(value)
+          def serialize(value)
             Data.new(super) if value
           end
 

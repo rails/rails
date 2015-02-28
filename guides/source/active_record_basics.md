@@ -1,3 +1,5 @@
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+
 Active Record Basics
 ====================
 
@@ -31,12 +33,12 @@ Object Relational Mapping system.
 in his book _Patterns of Enterprise Application Architecture_. In
 Active Record, objects carry both persistent data and behavior which
 operates on that data. Active Record takes the opinion that ensuring
-data access logic is part of the object will educate users of that
+data access logic as part of the object will educate users of that
 object on how to write to and read from the database.
 
 ### Object Relational Mapping
 
-Object-Relational Mapping, commonly referred to as its abbreviation ORM, is
+Object Relational Mapping, commonly referred to as its abbreviation ORM, is
 a technique that connects the rich objects of an application to tables in
 a relational database management system. Using ORM, the properties and
 relationships of the objects in an application can be easily stored and
@@ -60,7 +62,7 @@ Convention over Configuration in Active Record
 When writing applications using other programming languages or frameworks, it
 may be necessary to write a lot of configuration code. This is particularly true
 for ORM frameworks in general. However, if you follow the conventions adopted by
-Rails, you'll need to write very little configuration (in some case no
+Rails, you'll need to write very little configuration (in some cases no
 configuration at all) when creating Active Record models. The idea is that if
 you configure your applications in the very same way most of the time then this
 should be the default way. Thus, explicit configuration would be needed
@@ -358,7 +360,7 @@ class CreatePublications < ActiveRecord::Migration
       t.string :publisher_type
       t.boolean :single_issue
 
-      t.timestamps
+      t.timestamps null: false
     end
     add_index :publications, :publication_type_id
   end

@@ -33,8 +33,6 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     p1 = Person.find(1)
     assert_equal 0, p1.lock_version
 
-    Person.expects(:quote_value).with(0, Person.columns_hash[Person.locking_column]).returns('0').once
-
     p1.first_name = 'anika2'
     p1.save!
 
@@ -217,10 +215,12 @@ class OptimisticLockingTest < ActiveRecord::TestCase
   def test_lock_with_custom_column_without_default_sets_version_to_zero
     t1 = LockWithCustomColumnWithoutDefault.new
     assert_equal 0, t1.custom_lock_version
+    assert_nil t1.custom_lock_version_before_type_cast
 
-    t1.save
-    t1 = LockWithCustomColumnWithoutDefault.find(t1.id)
+    t1.save!
+    t1.reload
     assert_equal 0, t1.custom_lock_version
+    assert [0, "0"].include?(t1.custom_lock_version_before_type_cast)
   end
 
   def test_readonly_attributes

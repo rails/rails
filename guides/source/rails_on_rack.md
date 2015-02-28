@@ -1,3 +1,5 @@
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+
 Rails on Rack
 =============
 
@@ -61,7 +63,6 @@ Here's how it loads the middlewares:
 ```ruby
 def middleware
   middlewares = []
-  middlewares << [Rails::Rack::Debugger] if options[:debugger]
   middlewares << [::Rack::ContentLength]
   Hash.new(middlewares)
 end
@@ -233,7 +234,7 @@ Much of Action Controller's functionality is implemented as Middlewares. The fol
 
 **`ActionDispatch::Static`**
 
-* Used to serve static assets. Disabled if `config.serve_static_assets` is `false`.
+* Used to serve static files. Disabled if `config.serve_static_files` is `false`.
 
 **`Rack::Lock`**
 
@@ -253,7 +254,7 @@ Much of Action Controller's functionality is implemented as Middlewares. The fol
 
 **`ActionDispatch::RequestId`**
 
-* Makes a unique `X-Request-Id` header available to the response and enables the `ActionDispatch::Request#uuid` method.
+* Makes a unique `X-Request-Id` header available to the response and enables the `ActionDispatch::Request#request_id` method.
 
 **`Rails::Rack::Logger`**
 
@@ -277,7 +278,7 @@ Much of Action Controller's functionality is implemented as Middlewares. The fol
 
 **`ActionDispatch::Callbacks`**
 
-* Runs the prepare callbacks before serving the request.
+* Provides callbacks to be executed before and after dispatching the request.
 
 **`ActiveRecord::Migration::CheckPending`**
 
@@ -307,7 +308,7 @@ Much of Action Controller's functionality is implemented as Middlewares. The fol
 
 * Parses out parameters from the request into `params`.
 
-**`ActionDispatch::Head`**
+**`Rack::Head`**
 
 * Converts HEAD requests to `GET` requests and serves them as so.
 

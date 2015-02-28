@@ -1,11 +1,13 @@
+require 'rake'
+
 # Load Rails Rakefile extensions
 %w(
   annotations
-  documentation
   framework
   log
   middleware
   misc
+  restart
   routes
   statistics
   tmp

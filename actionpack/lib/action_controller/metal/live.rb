@@ -102,7 +102,7 @@ module ActionController
             end
           end
 
-          message = json.gsub("\n", "\ndata: ")
+          message = json.gsub(/\n/, "\ndata: ")
           @stream.write "data: #{message}\n\n"
         end
     end
@@ -187,12 +187,6 @@ module ActionController
       # by `ignore_disconnect`.
       def connected?
         !@aborted
-      end
-
-      def await_close
-        synchronize do
-          @cv.wait_until { @closed }
-        end
       end
 
       def on_error(&block)

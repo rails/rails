@@ -10,7 +10,13 @@ module ActiveRecord
         return value.quoted_id if value.respond_to?(:quoted_id)
 
         if column
-          value = column.cast_type.type_cast_for_database(value)
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            Passing a column to `quote` has been deprecated. It is only used
+            for type casting, which should be handled elsewhere. See
+            https://github.com/rails/arel/commit/6160bfbda1d1781c3b08a33ec4955f170e95be11
+            for more information.
+          MSG
+          value = type_cast_from_column(column, value)
         end
 
         _quote(value)
@@ -19,19 +25,53 @@ module ActiveRecord
       # Cast a +value+ to a type that the database understands. For example,
       # SQLite does not understand dates, so this method will convert a Date
       # to a String.
-      def type_cast(value, column)
+      def type_cast(value, column = nil)
         if value.respond_to?(:quoted_id) && value.respond_to?(:id)
           return value.id
         end
 
         if column
-          value = column.cast_type.type_cast_for_database(value)
+          value = type_cast_from_column(column, value)
         end
 
         _type_cast(value)
       rescue TypeError
         to_type = column ? " to #{column.type}" : ""
         raise TypeError, "can't cast #{value.class}#{to_type}"
+      end
+
+      # If you are having to call this function, you are likely doing something
+      # wrong. The column does not have sufficient type information if the user
+      # provided a custom type on the class level either explicitly (via
+      # `attribute`) or implicitly (via `serialize`,
+      # `time_zone_aware_attributes`). In almost all cases, the sql type should
+      # only be used to change quoting behavior, when the primitive to
+      # represent the type doesn't sufficiently reflect the differences
+      # (varchar vs binary) for example. The type used to get this primitive
+      # should have been provided before reaching the connection adapter.
+      def type_cast_from_column(column, value) # :nodoc:
+        if column
+          type = lookup_cast_type_from_column(column)
+          type.serialize(value)
+        else
+          value
+        end
+      end
+
+      # See docs for +type_cast_from_column+
+      def lookup_cast_type_from_column(column) # :nodoc:
+        lookup_cast_type(column.sql_type)
+      end
+
+      def fetch_type_metadata(sql_type)
+        cast_type = lookup_cast_type(sql_type)
+        SqlTypeMetadata.new(
+          sql_type: sql_type,
+          type: cast_type.type,
+          limit: cast_type.limit,
+          precision: cast_type.precision,
+          scale: cast_type.scale,
+        )
       end
 
       # Quotes a string, escaping any ' (single quote) and \ (backslash)
@@ -62,6 +102,11 @@ module ActiveRecord
         quote_table_name("#{table}.#{attr}")
       end
 
+      def quote_default_expression(value, column) #:nodoc:
+        value = lookup_cast_type(column.sql_type).serialize(value)
+        quote(value)
+      end
+
       def quoted_true
         "'t'"
       end
@@ -87,7 +132,16 @@ module ActiveRecord
           end
         end
 
-        value.to_s(:db)
+        result = value.to_s(:db)
+        if value.respond_to?(:usec) && value.usec > 0
+          "#{result}.#{sprintf("%06d", value.usec)}"
+        else
+          result
+        end
+      end
+
+      def prepare_binds_for_database(binds) # :nodoc:
+        binds.map(&:value_for_database)
       end
 
       private
@@ -108,9 +162,8 @@ module ActiveRecord
         when Numeric, ActiveSupport::Duration then value.to_s
         when Date, Time then "'#{quoted_date(value)}'"
         when Symbol     then "'#{quote_string(value.to_s)}'"
-        when Class      then "'#{value.to_s}'"
-        else
-          "'#{quote_string(YAML.dump(value))}'"
+        when Class      then "'#{value}'"
+        else raise TypeError, "can't quote #{value.class.name}"
         end
       end
 

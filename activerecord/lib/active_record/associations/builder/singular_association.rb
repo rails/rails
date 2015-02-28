@@ -2,7 +2,7 @@
 
 module ActiveRecord::Associations::Builder
   class SingularAssociation < Association #:nodoc:
-    def valid_options
+    def self.valid_options(options)
       super + [:dependent, :primary_key, :inverse_of, :required]
     end
 
@@ -26,13 +26,6 @@ module ActiveRecord::Associations::Builder
           association(:#{name}).create!(*args, &block)
         end
       CODE
-    end
-
-    def self.define_validations(model, reflection)
-      super
-      if reflection.options[:required]
-        model.validates_presence_of reflection.name
-      end
     end
   end
 end

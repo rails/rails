@@ -87,6 +87,19 @@ module ActionView
     #       expected_encoding
     #     )
 
+    ##
+    # :method: local_assigns
+    #
+    # Returns a hash with the defined local variables.
+    #
+    # Given this sub template rendering:
+    #
+    #   <%= render "shared/header", { headline: "Welcome", person: person } %>
+    #
+    # You can use +local_assigns+ in the sub templates to access the local variables:
+    #
+    #   local_assigns[:headline] # => "Welcome"
+
     eager_autoload do
       autoload :Error
       autoload :Handlers
@@ -103,7 +116,7 @@ module ActionView
 
     # This finalizer is needed (and exactly with a proc inside another proc)
     # otherwise templates leak in development.
-    Finalizer = proc do |method_name, mod|
+    Finalizer = proc do |method_name, mod| # :nodoc:
       proc do
         mod.module_eval do
           remove_possible_method method_name
@@ -117,6 +130,7 @@ module ActionView
       @source            = source
       @identifier        = identifier
       @handler           = handler
+      @cache_name        = extract_resource_cache_call_name
       @compiled          = false
       @original_encoding = nil
       @locals            = details[:locals] || []
@@ -150,6 +164,10 @@ module ActionView
 
     def type
       @type ||= Types[@formats.first] if @formats.first
+    end
+
+    def eligible_for_collection_caching?(as: nil)
+      @cache_name == (as || inferred_cache_name).to_s
     end
 
     # Receives a view object and return a template similar to self by using @virtual_path.
@@ -313,11 +331,15 @@ module ActionView
 
       def locals_code #:nodoc:
         # Double assign to suppress the dreaded 'assigned but unused variable' warning
-        @locals.map { |key| "#{key} = #{key} = local_assigns[:#{key}];" }.join
+        @locals.each_with_object('') { |key, code| code << "#{key} = #{key} = local_assigns[:#{key}];" }
       end
 
       def method_name #:nodoc:
-        @method_name ||= "_#{identifier_method_name}__#{@identifier.hash}_#{__id__}".tr('-', "_")
+        @method_name ||= begin
+          m = "_#{identifier_method_name}__#{@identifier.hash}_#{__id__}"
+          m.tr!('-', '_')
+          m
+        end
       end
 
       def identifier_method_name #:nodoc:
@@ -327,6 +349,15 @@ module ActionView
       def instrument(action, &block)
         payload = { virtual_path: @virtual_path, identifier: @identifier }
         ActiveSupport::Notifications.instrument("#{action}.action_view", payload, &block)
+      end
+
+      def extract_resource_cache_call_name
+        $1 if @handler.respond_to?(:resource_cache_call_pattern) &&
+          @source =~ @handler.resource_cache_call_pattern
+      end
+
+      def inferred_cache_name
+        @inferred_cache_name ||= @virtual_path.split('/').last.sub('_', '')
       end
   end
 end

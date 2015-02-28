@@ -1,4 +1,3 @@
-# encoding: utf-8
 require 'date'
 require 'abstract_unit'
 require 'inflector_test_cases'
@@ -250,6 +249,15 @@ class StringInflectionsTest < ActiveSupport::TestCase
     assert_equal "Hello<br>Big<br>World!", "Hello<br>Big<br>World!".truncate_words(3, :omission => "[...]", :separator => '<br>')
   end
 
+  def test_truncate_words_with_complex_string
+    Timeout.timeout(10) do
+      complex_string = "aa aa aaa aa aaa aaa aaa aa aaa aaa aaa aaa aaa aaa aaa aaa aaa aaa aaaa aaaaa aaaaa aaaaaa aa aa aa aaa aa  aaa aa aa aa aa a aaa aaa \n a aaa <<s"
+      assert_equal complex_string.truncate_words(80), complex_string
+    end
+  rescue Timeout::Error
+    assert false
+  end
+
   def test_truncate_multibyte
     assert_equal "\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 ...".force_encoding(Encoding::UTF_8),
       "\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 \354\225\204\353\235\274\353\246\254\354\230\244".force_encoding(Encoding::UTF_8).truncate(10)
@@ -260,20 +268,32 @@ class StringInflectionsTest < ActiveSupport::TestCase
   end
 
   def test_remove
-    assert_equal "Summer", "Fast Summer".remove(/Fast /)
-    assert_equal "Summer", "Fast Summer".remove!(/Fast /)
+    original = "This is a good day to die"
+    assert_equal "This is a good day", original.remove(" to die")
+    assert_equal "This is a good day", original.remove(" to ", /die/)
+    assert_equal "This is a good day to die", original
+  end
+
+  def test_remove_for_multiple_occurrences
+    original = "This is a good day to die to die"
+    assert_equal "This is a good day", original.remove(" to die")
+    assert_equal "This is a good day to die to die", original
+  end
+
+  def test_remove!
+    original = "This is a very good day to die"
+    assert_equal "This is a good day to die", original.remove!(" very")
+    assert_equal "This is a good day to die", original
+    assert_equal "This is a good day", original.remove!(" to ", /die/)
+    assert_equal "This is a good day", original
   end
 
   def test_constantize
-    run_constantize_tests_on do |string|
-      string.constantize
-    end
+    run_constantize_tests_on(&:constantize)
   end
 
   def test_safe_constantize
-    run_safe_constantize_tests_on do |string|
-      string.safe_constantize
-    end
+    run_safe_constantize_tests_on(&:safe_constantize)
   end
 end
 
@@ -404,11 +424,11 @@ class StringConversionsTest < ActiveSupport::TestCase
   end
 
   def test_partial_string_to_time
-    with_env_tz "Europe/Moscow" do
+    with_env_tz "Europe/Moscow" do # use timezone which does not observe DST.
       now = Time.now
       assert_equal Time.local(now.year, now.month, now.day, 23, 50), "23:50".to_time
       assert_equal Time.utc(now.year, now.month, now.day, 23, 50), "23:50".to_time(:utc)
-      assert_equal Time.local(now.year, now.month, now.day, 18, 50), "13:50 -0100".to_time
+      assert_equal Time.local(now.year, now.month, now.day, 17, 50), "13:50 -0100".to_time
       assert_equal Time.utc(now.year, now.month, now.day, 23, 50), "22:50 -0100".to_time(:utc)
     end
   end
@@ -652,16 +672,6 @@ class OutputSafetyTest < ActiveSupport::TestCase
     other = "other".html_safe
     other.prepend "<foo>"
     assert other.html_safe?
-    assert_equal other, "&lt;foo&gt;other"
-  end
-
-  test "Deprecated #prepend! method is still present" do
-    other = "other".html_safe
-
-    assert_deprecated do
-      other.prepend! "<foo>"
-    end
-
     assert_equal other, "&lt;foo&gt;other"
   end
 

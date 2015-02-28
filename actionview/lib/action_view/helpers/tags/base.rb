@@ -14,7 +14,7 @@ module ActionView
           @object_name.sub!(/\[\]$/,"") || @object_name.sub!(/\[\]\]$/,"]")
           @object = retrieve_object(options.delete(:object))
           @options = options
-          @auto_index = retrieve_autoindex(Regexp.last_match.pre_match) if Regexp.last_match
+          @auto_index = Regexp.last_match ? retrieve_autoindex(Regexp.last_match.pre_match) : nil
         end
 
         # This is what child classes implement.
@@ -25,17 +25,24 @@ module ActionView
         private
 
         def value(object)
-          object.send @method_name if object
+          object.public_send @method_name if object
         end
 
         def value_before_type_cast(object)
           unless object.nil?
             method_before_type_cast = @method_name + "_before_type_cast"
 
-            object.respond_to?(method_before_type_cast) ?
-              object.send(method_before_type_cast) :
+            if value_came_from_user?(object) && object.respond_to?(method_before_type_cast)
+              object.public_send(method_before_type_cast)
+            else
               value(object)
+            end
           end
+        end
+
+        def value_came_from_user?(object)
+          method_name = "#{@method_name}_came_from_user?"
+          !object.respond_to?(method_name) || object.public_send(method_name)
         end
 
         def retrieve_object(object)
@@ -72,35 +79,30 @@ module ActionView
         end
 
         def add_default_name_and_id(options)
-          if options.has_key?("index")
-            options["name"] ||= options.fetch("name"){ tag_name_with_index(options["index"], options["multiple"]) }
-            options["id"] = options.fetch("id"){ tag_id_with_index(options["index"]) }
-            options.delete("index")
-          elsif defined?(@auto_index)
-            options["name"] ||= options.fetch("name"){ tag_name_with_index(@auto_index, options["multiple"]) }
-            options["id"] = options.fetch("id"){ tag_id_with_index(@auto_index) }
-          else
-            options["name"] ||= options.fetch("name"){ tag_name(options["multiple"]) }
-            options["id"] = options.fetch("id"){ tag_id }
+          index = name_and_id_index(options)
+          options["name"] = options.fetch("name"){ tag_name(options["multiple"], index) }
+          options["id"] = options.fetch("id"){ tag_id(index) }
+          if namespace = options.delete("namespace")
+            options['id'] = options['id'] ? "#{namespace}_#{options['id']}" : namespace
           end
-
-          options["id"] = [options.delete('namespace'), options["id"]].compact.join("_").presence
         end
 
-        def tag_name(multiple = false)
-          "#{@object_name}[#{sanitized_method_name}]#{"[]" if multiple}"
+        def tag_name(multiple = false, index = nil)
+          # a little duplication to construct less strings
+          if index
+            "#{@object_name}[#{index}][#{sanitized_method_name}]#{"[]" if multiple}"
+          else
+            "#{@object_name}[#{sanitized_method_name}]#{"[]" if multiple}"
+          end
         end
 
-        def tag_name_with_index(index, multiple = false)
-          "#{@object_name}[#{index}][#{sanitized_method_name}]#{"[]" if multiple}"
-        end
-
-        def tag_id
-          "#{sanitized_object_name}_#{sanitized_method_name}"
-        end
-
-        def tag_id_with_index(index)
-          "#{sanitized_object_name}_#{index}_#{sanitized_method_name}"
+        def tag_id(index = nil)
+          # a little duplication to construct less strings
+          if index
+            "#{sanitized_object_name}_#{index}_#{sanitized_method_name}"
+          else
+            "#{sanitized_object_name}_#{sanitized_method_name}"
+          end
         end
 
         def sanitized_object_name
@@ -141,6 +143,10 @@ module ActionView
             option_tags = content_tag_string('option', prompt_text(options[:prompt]), :value => '') + "\n" + option_tags
           end
           option_tags
+        end
+
+        def name_and_id_index(options)
+          options.key?("index") ?  options.delete("index") || "" : @auto_index
         end
       end
     end

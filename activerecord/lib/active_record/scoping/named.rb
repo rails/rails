@@ -30,7 +30,13 @@ module ActiveRecord
         end
 
         def default_scoped # :nodoc:
-          relation.merge(build_default_scope)
+          scope = build_default_scope
+
+          if scope
+            relation.spawn.merge!(scope)
+          else
+            relation
+          end
         end
 
         # Collects attributes from scopes that should be applied when creating
@@ -139,6 +145,10 @@ module ActiveRecord
         #   Article.published.featured.latest_article
         #   Article.featured.titles
         def scope(name, body, &block)
+          unless body.respond_to?(:call)
+            raise ArgumentError, 'The scope body needs to be callable.'
+          end
+
           if dangerous_class_method?(name)
             raise ArgumentError, "You tried to define a scope named \"#{name}\" " \
               "on the model \"#{self.name}\", but Active Record already defined " \
@@ -147,11 +157,20 @@ module ActiveRecord
 
           extension = Module.new(&block) if block
 
-          singleton_class.send(:define_method, name) do |*args|
-            scope = all.scoping { body.call(*args) }
-            scope = scope.extending(extension) if extension
+          if body.respond_to?(:to_proc)
+            singleton_class.send(:define_method, name) do |*args|
+              scope = all.scoping { instance_exec(*args, &body) }
+              scope = scope.extending(extension) if extension
 
-            scope || all
+              scope || all
+            end
+          else
+            singleton_class.send(:define_method, name) do |*args|
+              scope = all.scoping { body.call(*args) }
+              scope = scope.extending(extension) if extension
+
+              scope || all
+            end
           end
         end
       end

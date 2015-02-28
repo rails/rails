@@ -17,7 +17,7 @@ class Module
   # ==== Options
   # * <tt>:to</tt> - Specifies the target object
   # * <tt>:prefix</tt> - Prefixes the new method with the target name or a custom prefix
-  # * <tt>:allow_nil</tt> - if set to true, prevents a +NoMethodError+ to be raised
+  # * <tt>:allow_nil</tt> - if set to true, prevents a +NoMethodError+ from being raised
   #
   # The macro receives one or more method names (specified as symbols or
   # strings) and the name of the target object via the <tt>:to</tt> option
@@ -185,19 +185,31 @@ class Module
       # On the other hand it could be that the target has side-effects,
       # whereas conceptually, from the user point of view, the delegator should
       # be doing one call.
-
-      exception = %(raise DelegationError, "#{self}##{method_prefix}#{method} delegated to #{to}.#{method}, but #{to} is nil: \#{self.inspect}")
-
-      method_def = [
-        "def #{method_prefix}#{method}(#{definition})",
-        "  _ = #{to}",
-        "  if !_.nil? || nil.respond_to?(:#{method})",
-        "    _.#{method}(#{definition})",
-        "  else",
-        "    #{exception unless allow_nil}",
-        "  end",
+      if allow_nil
+        method_def = [
+          "def #{method_prefix}#{method}(#{definition})",
+          "_ = #{to}",
+          "if !_.nil? || nil.respond_to?(:#{method})",
+          "  _.#{method}(#{definition})",
+          "end",
         "end"
-      ].join ';'
+        ].join ';'
+      else
+        exception = %(raise DelegationError, "#{self}##{method_prefix}#{method} delegated to #{to}.#{method}, but #{to} is nil: \#{self.inspect}")
+
+        method_def = [
+          "def #{method_prefix}#{method}(#{definition})",
+          " _ = #{to}",
+          "  _.#{method}(#{definition})",
+          "rescue NoMethodError => e",
+          "  if _.nil? && e.name == :#{method}",
+          "    #{exception}",
+          "  else",
+          "    raise",
+          "  end",
+          "end"
+        ].join ';'
+      end
 
       module_eval(method_def, file, line)
     end

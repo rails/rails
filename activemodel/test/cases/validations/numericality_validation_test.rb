@@ -1,4 +1,3 @@
-# encoding: utf-8
 require 'cases/helper'
 
 require 'models/topic'
@@ -59,7 +58,7 @@ class NumericalityValidationTest < ActiveModel::TestCase
 
   def test_validates_numericality_of_with_integer_only_and_proc_as_value
     Topic.send(:define_method, :allow_only_integers?, lambda { false })
-    Topic.validates_numericality_of :approved, only_integer: Proc.new {|topic| topic.allow_only_integers? }
+    Topic.validates_numericality_of :approved, only_integer: Proc.new(&:allow_only_integers?)
 
     invalid!(NIL + BLANK + JUNK)
     valid!(FLOATS + INTEGERS + BIGDECIMAL + INFINITY)
@@ -130,7 +129,7 @@ class NumericalityValidationTest < ActiveModel::TestCase
 
   def test_validates_numericality_with_proc
     Topic.send(:define_method, :min_approved, lambda { 5 })
-    Topic.validates_numericality_of :approved, greater_than_or_equal_to: Proc.new {|topic| topic.min_approved }
+    Topic.validates_numericality_of :approved, greater_than_or_equal_to: Proc.new(&:min_approved)
 
     invalid!([3, 4])
     valid!([5, 6])

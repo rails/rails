@@ -3,6 +3,7 @@ require 'models/post'
 require 'models/author'
 require 'models/project'
 require 'models/developer'
+require 'models/computer'
 require 'models/company'
 
 class AssociationCallbacksTest < ActiveRecord::TestCase

@@ -28,14 +28,6 @@ module Rails
           opts.on("-c", "--config=file", String,
                   "Uses a custom rackup configuration.") { |v| options[:config] = v }
           opts.on("-d", "--daemon", "Runs server as a Daemon.") { options[:daemonize] = true }
-          opts.on("-u", "--debugger", "Enables the debugger.") do
-            if RUBY_VERSION < '2.0.0'
-              options[:debugger] = true
-            else
-              puts "=> Notice: debugger option is ignored since Ruby 2.0 and " \
-                   "it will be removed in future versions."
-            end
-          end
           opts.on("-e", "--environment=name", String,
                   "Specifies the environment to run this server under (test/development/production).",
                   "Default: development") { |v| options[:environment] = v }
@@ -86,9 +78,6 @@ module Rails
 
     def middleware
       middlewares = []
-      if RUBY_VERSION < '2.0.0'
-        middlewares << [Rails::Rack::Debugger] if options[:debugger]
-      end
       middlewares << [::Rack::ContentLength]
 
       # FIXME: add Rack::Lock in the case people are using webrick.
@@ -102,17 +91,12 @@ module Rails
       Hash.new(middlewares)
     end
 
-    def log_path
-      "log/#{options[:environment]}.log"
-    end
-
     def default_options
       super.merge({
         Port:               3000,
         DoNotReverseLookup: true,
         environment:        (ENV['RAILS_ENV'] || ENV['RACK_ENV'] || "development").dup,
         daemonize:          false,
-        debugger:           false,
         pid:                File.expand_path("tmp/pids/server.pid"),
         config:             File.expand_path("config.ru")
       })
@@ -130,7 +114,7 @@ module Rails
       end
 
       def create_tmp_directories
-        %w(cache pids sessions sockets).each do |dir_to_make|
+        %w(cache pids sockets).each do |dir_to_make|
           FileUtils.mkdir_p(File.join(Rails.root, 'tmp', dir_to_make))
         end
       end

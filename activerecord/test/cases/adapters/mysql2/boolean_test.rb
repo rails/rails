@@ -47,8 +47,7 @@ class Mysql2BooleanTest < ActiveRecord::TestCase
     assert_equal 1, attributes["archived"]
     assert_equal "1", attributes["published"]
 
-    assert_equal 1, @connection.type_cast(true, boolean_column)
-    assert_equal "1", @connection.type_cast(true, string_column)
+    assert_equal 1, @connection.type_cast(true)
   end
 
   test "test type casting without emulated booleans" do
@@ -60,8 +59,7 @@ class Mysql2BooleanTest < ActiveRecord::TestCase
     assert_equal 1, attributes["archived"]
     assert_equal "1", attributes["published"]
 
-    assert_equal 1, @connection.type_cast(true, boolean_column)
-    assert_equal "1", @connection.type_cast(true, string_column)
+    assert_equal 1, @connection.type_cast(true)
   end
 
   test "with booleans stored as 1 and 0" do

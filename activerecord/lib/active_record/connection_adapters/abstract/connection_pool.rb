@@ -121,13 +121,13 @@ module ActiveRecord
         # greater than the number of threads currently waiting (that
         # is, don't jump ahead in line).  Otherwise, return nil.
         #
-        # If +timeout+ is given, block if it there is no element
+        # If +timeout+ is given, block if there is no element
         # available, waiting up to +timeout+ seconds for an element to
         # become available.
         #
         # Raises:
         # - ConnectionTimeoutError if +timeout+ is given and no element
-        # becomes available after +timeout+ seconds,
+        # becomes available within +timeout+ seconds,
         def poll(timeout = nil)
           synchronize do
             if timeout
@@ -150,7 +150,7 @@ module ActiveRecord
         end
 
         # A thread can remove an element from the queue without
-        # waiting if an only if the number of currently available
+        # waiting if and only if the number of currently available
         # connections is strictly greater than the number of waiting
         # threads.
         def can_remove_no_wait?
@@ -235,7 +235,7 @@ module ActiveRecord
         @spec = spec
 
         @checkout_timeout = (spec.config[:checkout_timeout] && spec.config[:checkout_timeout].to_f) || 5
-        @reaper  = Reaper.new self, spec.config[:reaping_frequency]
+        @reaper = Reaper.new(self, (spec.config[:reaping_frequency] && spec.config[:reaping_frequency].to_f))
         @reaper.run
 
         # default max pool size to 5
@@ -319,9 +319,7 @@ module ActiveRecord
             checkin conn
             conn.disconnect! if conn.requires_reloading?
           end
-          @connections.delete_if do |conn|
-            conn.requires_reloading?
-          end
+          @connections.delete_if(&:requires_reloading?)
           @available.clear
           @connections.each do |conn|
             @available.add conn
@@ -360,11 +358,11 @@ module ActiveRecord
         synchronize do
           owner = conn.owner
 
-          conn.run_checkin_callbacks do
+          conn._run_checkin_callbacks do
             conn.expire
           end
 
-          release owner
+          release conn, owner
 
           @available.add conn
         end
@@ -377,7 +375,7 @@ module ActiveRecord
           @connections.delete conn
           @available.delete conn
 
-          release conn.owner
+          release conn, conn.owner
 
           @available.add checkout_new_connection if @available.any_waiting?
         end
@@ -425,10 +423,12 @@ module ActiveRecord
         end
       end
 
-      def release(owner)
+      def release(conn, owner)
         thread_id = owner.object_id
 
-        @reserved_connections.delete thread_id
+        if @reserved_connections[thread_id] == conn
+          @reserved_connections.delete thread_id
+        end
       end
 
       def new_connection
@@ -449,10 +449,14 @@ module ActiveRecord
       end
 
       def checkout_and_verify(c)
-        c.run_checkout_callbacks do
+        c._run_checkout_callbacks do
           c.verify!
         end
         c
+      rescue
+        remove c
+        c.disconnect!
+        raise
       end
     end
 
@@ -516,14 +520,7 @@ module ActiveRecord
       def connection_pool_list
         owner_to_pool.values.compact
       end
-
-      def connection_pools
-        ActiveSupport::Deprecation.warn(
-          "In the next release, this will return the same as #connection_pool_list. " \
-          "(An array of pools, rather than a hash mapping specs to pools.)"
-        )
-        Hash[connection_pool_list.map { |pool| [pool.spec, pool] }]
-      end
+      alias :connection_pools :connection_pool_list
 
       def establish_connection(owner, spec)
         @class_to_pool.clear

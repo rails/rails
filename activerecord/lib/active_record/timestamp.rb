@@ -57,8 +57,8 @@ module ActiveRecord
       super
     end
 
-    def _update_record(*args)
-      if should_record_timestamps?
+    def _update_record(*args, touch: true, **options)
+      if touch && should_record_timestamps?
         current_time = current_time_from_proper_timezone
 
         timestamp_attributes_for_update_in_model.each do |column|
@@ -67,7 +67,7 @@ module ActiveRecord
           write_attribute(column, current_time)
         end
       end
-      super
+      super(*args)
     end
 
     def should_record_timestamps?

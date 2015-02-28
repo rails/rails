@@ -12,11 +12,11 @@ module ActiveRecord
         super(delegate)
       end
 
-      def type_cast_from_user(value)
+      def cast(value)
         "#{super} #{@decoration}"
       end
 
-      alias type_cast_from_database type_cast_from_user
+      alias deserialize cast
     end
 
     setup do
@@ -28,7 +28,7 @@ module ActiveRecord
 
     teardown do
       return unless @connection
-      @connection.drop_table 'attribute_decorators_model' if @connection.table_exists? 'attribute_decorators_model'
+      @connection.drop_table 'attribute_decorators_model', if_exists: true
       Model.attribute_type_decorations.clear
       Model.reset_column_information
     end
@@ -51,7 +51,7 @@ module ActiveRecord
     end
 
     test "undecorated columns are not touched" do
-      Model.attribute :another_string, Type::String.new, default: 'something or other'
+      Model.attribute :another_string, :string, default: 'something or other'
       Model.decorate_attribute_type(:a_string, :test) { |t| StringDecorator.new(t) }
 
       assert_equal 'something or other', Model.new.another_string
@@ -86,7 +86,7 @@ module ActiveRecord
     end
 
     test "decorating attributes does not modify parent classes" do
-      Model.attribute :another_string, Type::String.new, default: 'whatever'
+      Model.attribute :another_string, :string, default: 'whatever'
       Model.decorate_attribute_type(:a_string, :test) { |t| StringDecorator.new(t) }
       child_class = Class.new(Model)
       child_class.decorate_attribute_type(:another_string, :test) { |t| StringDecorator.new(t) }
@@ -102,15 +102,15 @@ module ActiveRecord
     end
 
     class Multiplier < SimpleDelegator
-      def type_cast_from_user(value)
+      def cast(value)
         return if value.nil?
         value * 2
       end
-      alias type_cast_from_database type_cast_from_user
+      alias deserialize cast
     end
 
     test "decorating with a proc" do
-      Model.attribute :an_int, Type::Integer.new
+      Model.attribute :an_int, :integer
       type_is_integer = proc { |_, type| type.type == :integer }
       Model.decorate_matching_attribute_types type_is_integer, :multiplier do |type|
         Multiplier.new(type)

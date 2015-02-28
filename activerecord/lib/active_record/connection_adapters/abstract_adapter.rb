@@ -4,6 +4,7 @@ require 'bigdecimal/util'
 require 'active_record/type'
 require 'active_support/core_ext/benchmark'
 require 'active_record/connection_adapters/schema_cache'
+require 'active_record/connection_adapters/sql_type_metadata'
 require 'active_record/connection_adapters/abstract/schema_dumper'
 require 'active_record/connection_adapters/abstract/schema_creation'
 require 'monitor'
@@ -14,16 +15,14 @@ module ActiveRecord
   module ConnectionAdapters # :nodoc:
     extend ActiveSupport::Autoload
 
-    autoload_at 'active_record/connection_adapters/column' do
-      autoload :Column
-      autoload :NullColumn
-    end
+    autoload :Column
     autoload :ConnectionSpecification
 
     autoload_at 'active_record/connection_adapters/abstract/schema_definitions' do
       autoload :IndexDefinition
       autoload :ColumnDefinition
       autoload :ChangeColumnDefinition
+      autoload :ForeignKeyDefinition
       autoload :TableDefinition
       autoload :Table
       autoload :AlterTable
@@ -115,7 +114,8 @@ module ActiveRecord
 
       class BindCollector < Arel::Collectors::Bind
         def compile(bvs, conn)
-          super(bvs.map { |bv| conn.quote(*bv.reverse) })
+          casted_binds = conn.prepare_binds_for_database(bvs)
+          super(casted_binds.map { |value| conn.quote(value) })
         end
       end
 
@@ -245,6 +245,11 @@ module ActiveRecord
         false
       end
 
+      # Does this adapter support datetime with precision?
+      def supports_datetime_with_precision?
+        false
+      end
+
       # This is meant to be implemented by the adapters that support extensions
       def disable_extension(name)
       end
@@ -263,12 +268,10 @@ module ActiveRecord
         {}
       end
 
-      # QUOTING ==================================================
-
-      # Returns a bind substitution value given a bind +index+ and +column+
+      # Returns a bind substitution value given a bind +column+
       # NOTE: The column param is currently being used by the sqlserver-adapter
-      def substitute_at(column, index)
-        Arel::Nodes::BindParam.new '?'
+      def substitute_at(column, _unused = 0)
+        Arel::Nodes::BindParam.new
       end
 
       # REFERENTIAL INTEGRITY ====================================
@@ -343,9 +346,6 @@ module ActiveRecord
       def create_savepoint(name = nil)
       end
 
-      def rollback_to_savepoint(name = nil)
-      end
-
       def release_savepoint(name = nil)
       end
 
@@ -360,8 +360,17 @@ module ActiveRecord
       end
 
       def case_insensitive_comparison(table, attribute, column, value)
-        table[attribute].lower.eq(table.lower(value))
+        if can_perform_case_insensitive_comparison_for?(column)
+          table[attribute].lower.eq(table.lower(value))
+        else
+          case_sensitive_comparison(table, attribute, column, value)
+        end
       end
+
+      def can_perform_case_insensitive_comparison_for?(column)
+        true
+      end
+      private :can_perform_case_insensitive_comparison_for?
 
       def current_savepoint_name
         current_transaction.savepoint_name
@@ -378,26 +387,30 @@ module ActiveRecord
         end
       end
 
-      def new_column(name, default, cast_type, sql_type = nil, null = true)
-        Column.new(name, default, cast_type, sql_type, null)
+      def new_column(name, default, sql_type_metadata = nil, null = true)
+        Column.new(name, default, sql_type_metadata, null)
       end
 
       def lookup_cast_type(sql_type) # :nodoc:
         type_map.lookup(sql_type)
       end
 
+      def column_name_for_operation(operation, node) # :nodoc:
+        visitor.accept(node, collector).value
+      end
+
       protected
 
       def initialize_type_map(m) # :nodoc:
-        register_class_with_limit m, %r(boolean)i,   Type::Boolean
-        register_class_with_limit m, %r(char)i,      Type::String
-        register_class_with_limit m, %r(binary)i,    Type::Binary
-        register_class_with_limit m, %r(text)i,      Type::Text
-        register_class_with_limit m, %r(date)i,      Type::Date
-        register_class_with_limit m, %r(time)i,      Type::Time
-        register_class_with_limit m, %r(datetime)i,  Type::DateTime
-        register_class_with_limit m, %r(float)i,     Type::Float
-        register_class_with_limit m, %r(int)i,       Type::Integer
+        register_class_with_limit m, %r(boolean)i,       Type::Boolean
+        register_class_with_limit m, %r(char)i,          Type::String
+        register_class_with_limit m, %r(binary)i,        Type::Binary
+        register_class_with_limit m, %r(text)i,          Type::Text
+        register_class_with_precision m, %r(date)i,      Type::Date
+        register_class_with_precision m, %r(time)i,      Type::Time
+        register_class_with_precision m, %r(datetime)i,  Type::DateTime
+        register_class_with_limit m, %r(float)i,         Type::Float
+        register_class_with_limit m, %r(int)i,           Type::Integer
 
         m.alias_type %r(blob)i,      'binary'
         m.alias_type %r(clob)i,      'text'
@@ -431,6 +444,13 @@ module ActiveRecord
         end
       end
 
+      def register_class_with_precision(mapping, key, klass) # :nodoc:
+        mapping.register_type(key) do |*args|
+          precision = extract_precision(args.last)
+          klass.new(precision: precision)
+        end
+      end
+
       def extract_scale(sql_type) # :nodoc:
         case sql_type
           when /\((\d+)\)/ then 0
@@ -443,12 +463,21 @@ module ActiveRecord
       end
 
       def extract_limit(sql_type) # :nodoc:
-        $1.to_i if sql_type =~ /\((.*)\)/
+        case sql_type
+        when /^bigint/i
+          8
+        when /\((.*)\)/
+          $1.to_i
+        end
       end
 
       def translate_exception_class(e, sql)
-        message = "#{e.class.name}: #{e.message}: #{sql}"
-        @logger.error message if @logger
+        begin
+          message = "#{e.class.name}: #{e.message}: #{sql}"
+        rescue Encoding::CompatibilityError
+          message = "#{e.class.name}: #{e.message.force_encoding sql.encoding}: #{sql}"
+        end
+
         exception = translate_exception(e, message)
         exception.set_backtrace e.backtrace
         exception

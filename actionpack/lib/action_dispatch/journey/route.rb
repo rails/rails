@@ -60,7 +60,7 @@ module ActionDispatch
       end
 
       def parts
-        @parts ||= segments.map { |n| n.to_sym }
+        @parts ||= segments.map(&:to_sym)
       end
       alias :segment_keys :parts
 
@@ -68,12 +68,8 @@ module ActionDispatch
         @path_formatter.evaluate path_options
       end
 
-      def optional_parts
-        path.optional_names.map { |n| n.to_sym }
-      end
-
       def required_parts
-        @required_parts ||= path.required_names.map { |n| n.to_sym }
+        @required_parts ||= path.required_names.map(&:to_sym)
       end
 
       def required_default?(key)

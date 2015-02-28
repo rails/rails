@@ -55,14 +55,20 @@ module I18n
 
       reloader = ActiveSupport::FileUpdateChecker.new(I18n.load_path.dup){ I18n.reload! }
       app.reloaders << reloader
-      ActionDispatch::Reloader.to_prepare { reloader.execute_if_updated }
+      ActionDispatch::Reloader.to_prepare do
+        reloader.execute_if_updated
+        # TODO: remove the following line as soon as the return value of
+        # callbacks is ignored, that is, returning `false` does not
+        # display a deprecation warning or halts the callback chain.
+        true
+      end
       reloader.execute
 
       @i18n_inited = true
     end
 
     def self.include_fallbacks_module
-      I18n.backend.class.send(:include, I18n::Backend::Fallbacks)
+      I18n.backend.class.include(I18n::Backend::Fallbacks)
     end
 
     def self.init_fallbacks(fallbacks)

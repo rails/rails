@@ -16,6 +16,7 @@ module ActionView
             options["incremental"] = true unless options.has_key?("incremental")
           end
 
+          @options = options
           super
         end
       end

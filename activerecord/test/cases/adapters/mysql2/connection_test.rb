@@ -22,7 +22,7 @@ class MysqlConnectionTest < ActiveRecord::TestCase
     assert_raise ActiveRecord::NoDatabaseError do
       configuration = ActiveRecord::Base.configurations['arunit'].merge(database: 'inexistent_activerecord_unittest')
       connection = ActiveRecord::Base.mysql2_connection(configuration)
-      connection.exec_query('drop table if exists ex')
+      connection.drop_table 'ex', if_exists: true
     end
   end
 
@@ -44,9 +44,7 @@ class MysqlConnectionTest < ActiveRecord::TestCase
     assert !@connection.active?
 
     # Repair all fixture connections so other tests won't break.
-    @fixture_connections.each do |c|
-      c.verify!
-    end
+    @fixture_connections.each(&:verify!)
   end
 
   def test_successful_reconnection_after_timeout_with_manual_reconnect
@@ -123,12 +121,5 @@ class MysqlConnectionTest < ActiveRecord::TestCase
     assert_equal "SCHEMA", @subscriber.logged[0][1]
   ensure
     @connection.execute "DROP TABLE `bar_baz`"
-  end
-
-  if mysql_56?
-    def test_quote_time_usec
-      assert_equal "'1970-01-01 00:00:00.000000'", @connection.quote(Time.at(0))
-      assert_equal "'1970-01-01 00:00:00.000000'", @connection.quote(Time.at(0).to_datetime)
-    end
   end
 end

@@ -165,18 +165,6 @@ class DirtyTest < ActiveRecord::TestCase
     assert_equal parrot.name_change, parrot.title_change
   end
 
-  def test_reset_attribute!
-    pirate = Pirate.create!(:catchphrase => 'Yar!')
-    pirate.catchphrase = 'Ahoy!'
-
-    assert_deprecated do
-      pirate.reset_catchphrase!
-    end
-    assert_equal "Yar!", pirate.catchphrase
-    assert_equal Hash.new, pirate.changes
-    assert !pirate.catchphrase_changed?
-  end
-
   def test_restore_attribute!
     pirate = Pirate.create!(:catchphrase => 'Yar!')
     pirate.catchphrase = 'Ahoy!'
@@ -635,13 +623,13 @@ class DirtyTest < ActiveRecord::TestCase
     end
   end
 
-  test "defaults with type that implements `type_cast_for_database`" do
+  test "defaults with type that implements `serialize`" do
     type = Class.new(ActiveRecord::Type::Value) do
-      def type_cast(value)
+      def cast(value)
         value.to_i
       end
 
-      def type_cast_for_database(value)
+      def serialize(value)
         value.to_s
       end
     end
@@ -688,7 +676,14 @@ class DirtyTest < ActiveRecord::TestCase
       serialize :data
     end
 
-    klass.create!(data: "foo")
+    binary = klass.create!(data: "\\\\foo")
+
+    assert_not binary.changed?
+
+    binary.data = binary.data.dup
+
+    assert_not binary.changed?
+
     binary = klass.last
 
     assert_not binary.changed?
@@ -696,6 +691,42 @@ class DirtyTest < ActiveRecord::TestCase
     binary.data << "bar"
 
     assert binary.changed?
+  end
+
+  test "attribute_changed? doesn't compute in-place changes for unrelated attributes" do
+    test_type_class = Class.new(ActiveRecord::Type::Value) do
+      define_method(:changed_in_place?) do |*|
+        raise
+      end
+    end
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = 'people'
+      attribute :foo, test_type_class.new
+    end
+
+    model = klass.new(first_name: "Jim")
+    assert model.first_name_changed?
+  end
+
+  test "attribute_will_change! doesn't try to save non-persistable attributes" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = 'people'
+      attribute :non_persisted_attribute, :string
+    end
+
+    record = klass.new(first_name: "Sean")
+    record.non_persisted_attribute_will_change!
+
+    assert record.non_persisted_attribute_changed?
+    assert record.save
+  end
+
+  test "mutating and then assigning doesn't remove the change" do
+    pirate = Pirate.create!(catchphrase: "arrrr")
+    pirate.catchphrase << " matey!"
+    pirate.catchphrase = "arrrr matey!"
+
+    assert pirate.catchphrase_changed?(from: "arrrr", to: "arrrr matey!")
   end
 
   private

@@ -31,6 +31,10 @@ class Customer < Struct.new(:name, :id)
   def persisted?
     id.present?
   end
+
+  def cache_key
+    name.to_s
+  end
 end
 
 module Quiz
@@ -453,6 +457,10 @@ class TestController < ApplicationController
     render :text => "foo"
   end
 
+  def render_with_assigns_option
+    render inline: '<%= @hello %>', assigns: { hello: "world" }
+  end
+
   def yield_content_for
     render :action => "content_for", :layout => "yield"
   end
@@ -857,12 +865,12 @@ class RenderTest < ActionController::TestCase
 
   # :ported:
   def test_attempt_to_access_object_method
-    assert_raise(AbstractController::ActionNotFound, "No action responded to [clone]") { get :clone }
+    assert_raise(AbstractController::ActionNotFound) { get :clone }
   end
 
   # :ported:
   def test_private_methods
-    assert_raise(AbstractController::ActionNotFound, "No action responded to [determine_layout]") { get :determine_layout }
+    assert_raise(AbstractController::ActionNotFound) { get :determine_layout }
   end
 
   # :ported:
@@ -953,23 +961,23 @@ class RenderTest < ActionController::TestCase
   end
 
   def test_accessing_params_in_template
-    get :accessing_params_in_template, :name => "David"
+    get :accessing_params_in_template, params: { name: "David" }
     assert_equal "Hello: David", @response.body
   end
 
   def test_accessing_local_assigns_in_inline_template
-    get :accessing_local_assigns_in_inline_template, :local_name => "Local David"
+    get :accessing_local_assigns_in_inline_template, params: { local_name: "Local David" }
     assert_equal "Goodbye, Local David", @response.body
     assert_equal "text/html", @response.content_type
   end
 
   def test_should_implicitly_render_html_template_from_xhr_request
-    xhr :get, :render_implicit_html_template_from_xhr_request
+    get :render_implicit_html_template_from_xhr_request, xhr: true
     assert_equal "XHR!\nHello HTML!", @response.body
   end
 
   def test_should_implicitly_render_js_template_without_layout
-    xhr :get, :render_implicit_js_template_without_layout, :format => :js
+    get :render_implicit_js_template_without_layout, format: :js, xhr: true
     assert_no_match %r{<html>}, @response.body
   end
 
@@ -1042,7 +1050,7 @@ class RenderTest < ActionController::TestCase
   end
 
   def test_accessing_params_in_template_with_layout
-    get :accessing_params_in_template_with_layout, :name => "David"
+    get :accessing_params_in_template_with_layout, params: { name: "David" }
     assert_equal "<html>Hello: David</html>", @response.body
   end
 
@@ -1100,6 +1108,11 @@ class RenderTest < ActionController::TestCase
   def test_render_text_with_assigns
     get :render_text_with_assigns
     assert_equal "world", assigns["hello"]
+  end
+
+  def test_render_text_with_assigns_option
+    get :render_with_assigns_option
+    assert_equal 'world', response.body
   end
 
   # :ported:

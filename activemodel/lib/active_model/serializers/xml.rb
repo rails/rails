@@ -6,7 +6,7 @@ require 'active_support/core_ext/time/acts_like'
 
 module ActiveModel
   module Serializers
-    # == Active Model XML Serializer
+    # == \Active \Model XML Serializer
     module Xml
       extend ActiveSupport::Concern
       include ActiveModel::Serialization

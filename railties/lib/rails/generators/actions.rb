@@ -1,5 +1,4 @@
 require 'open-uri'
-require 'rbconfig'
 
 module Rails
   module Generators
@@ -189,7 +188,7 @@ module Rails
       #   generate(:authenticated, "user session")
       def generate(what, *args)
         log :generate, what
-        argument = args.flat_map {|arg| arg.to_s }.join(" ")
+        argument = args.flat_map(&:to_s).join(" ")
 
         in_root { run_ruby_script("bin/rails generate #{what} #{argument}", verbose: false) }
       end
@@ -219,10 +218,10 @@ module Rails
       #   route "root 'welcome#index'"
       def route(routing_code)
         log :route, routing_code
-        sentinel = /\.routes\.draw do\s*$/
+        sentinel = /\.routes\.draw do\s*\n/m
 
         in_root do
-          inject_into_file 'config/routes.rb', "\n  #{routing_code}", { after: sentinel, verbose: false }
+          inject_into_file 'config/routes.rb', "  #{routing_code}", { after: sentinel, verbose: false, force: true }
         end
       end
 

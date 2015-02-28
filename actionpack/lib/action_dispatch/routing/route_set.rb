@@ -13,14 +13,15 @@ require 'action_dispatch/url_generation'
 
 module ActionDispatch
   module Routing
-    class RouteSet #:nodoc:
+    # :stopdoc:
+    class RouteSet
       # Since the router holds references to many parts of the system
       # like engines, controllers and the application itself, inspecting
       # the route set can actually be really slow, therefore we default
       # alias inspect to to_s.
       alias inspect to_s
 
-      class Dispatcher < Routing::Endpoint #:nodoc:
+      class Dispatcher < Routing::Endpoint
         def initialize(defaults)
           @defaults = defaults
           @controller_class_names = ThreadSafe::Cache.new
@@ -85,9 +86,9 @@ module ActionDispatch
       # A NamedRouteCollection instance is a collection of named routes, and also
       # maintains an anonymous module that can be used to install helpers for the
       # named routes.
-      class NamedRouteCollection #:nodoc:
+      class NamedRouteCollection
         include Enumerable
-        attr_reader :routes, :url_helpers_module
+        attr_reader :routes, :url_helpers_module, :path_helpers_module
 
         def initialize
           @routes  = {}
@@ -100,11 +101,6 @@ module ActionDispatch
         def route_defined?(name)
           key = name.to_sym
           @path_helpers.include?(key) || @url_helpers.include?(key)
-        end
-
-        def helpers
-          ActiveSupport::Deprecation.warn("`named_routes.helpers` is deprecated, please use `route_defined?(route_name)` to see if a named route was defined.")
-          @path_helpers + @url_helpers
         end
 
         def helper_names
@@ -136,7 +132,7 @@ module ActionDispatch
           end
           routes[key] = route
           define_url_helper @path_helpers_module, route, path_name, route.defaults, name, PATH
-          define_url_helper @url_helpers_module,  route, url_name,  route.defaults, name, FULL
+          define_url_helper @url_helpers_module,  route, url_name,  route.defaults, name, UNKNOWN
 
           @path_helpers << path_name
           @url_helpers << url_name
@@ -167,26 +163,7 @@ module ActionDispatch
           routes.length
         end
 
-        def path_helpers_module(warn = false)
-          if warn
-            mod = @path_helpers_module
-            helpers = @path_helpers
-            Module.new do
-              include mod
-
-              helpers.each do |meth|
-                define_method(meth) do |*args, &block|
-                  ActiveSupport::Deprecation.warn("The method `#{meth}` cannot be used here as a full URL is required. Use `#{meth.to_s.sub(/_path$/, '_url')}` instead")
-                  super(*args, &block)
-                end
-              end
-            end
-          else
-            @path_helpers_module
-          end
-        end
-
-        class UrlHelper # :nodoc:
+        class UrlHelper
           def self.create(route, options, route_name, url_strategy)
             if optimize_helper?(route)
               OptimizedUrlHelper.new(route, options, route_name, url_strategy)
@@ -201,7 +178,7 @@ module ActionDispatch
 
           attr_reader :url_strategy, :route_name
 
-          class OptimizedUrlHelper < UrlHelper # :nodoc:
+          class OptimizedUrlHelper < UrlHelper
             attr_reader :arg_size
 
             def initialize(route, options, route_name, url_strategy)
@@ -279,15 +256,22 @@ module ActionDispatch
           end
 
           def handle_positional_args(controller_options, inner_options, args, result, path_params)
-
             if args.size > 0
-              if args.size < path_params.size - 1 # take format into account
+              # take format into account
+              if path_params.include?(:format)
+                path_params_size = path_params.size - 1
+              else
+                path_params_size = path_params.size
+              end
+
+              if args.size < path_params_size
                 path_params -= controller_options.keys
                 path_params -= result.keys
               end
-              path_params.each { |param|
-                result[param] = inner_options[param] || args.shift
-              }
+              path_params -= inner_options.keys
+              path_params.take(args.size).each do |param|
+                result[param] = args.shift
+              end
             end
 
             result.merge!(inner_options)
@@ -320,7 +304,6 @@ module ActionDispatch
         end
       end
 
-      # :stopdoc:
       # strategy for building urls to send to the client
       PATH    = ->(ctx, script_name, options) {
         ActionDispatch::Http::URL.path_for(ctx, script_name, options)
@@ -347,7 +330,7 @@ module ActionDispatch
 
       SCRIPT_NAME_FINDER = ->(options) {
         if options.key? :script_name
-          options.delete(:script_name).chomp '/'
+          (options.delete(:script_name) || '').chomp '/'
         else
           ''
         end
@@ -418,7 +401,7 @@ module ActionDispatch
         Routing::RouteSet::Dispatcher.new(defaults)
       end
 
-      module MountedHelpers #:nodoc:
+      module MountedHelpers
         extend ActiveSupport::Concern
         include UrlFor
       end
@@ -435,9 +418,11 @@ module ActionDispatch
         return if MountedHelpers.method_defined?(name)
 
         routes = self
+        helpers = routes.url_helpers
+
         MountedHelpers.class_eval do
           define_method "_#{name}" do
-            RoutesProxy.new(routes, _routes_context)
+            RoutesProxy.new(routes, _routes_context, helpers)
           end
         end
 
@@ -448,7 +433,7 @@ module ActionDispatch
         RUBY
       end
 
-      def url_helpers(include_path_helpers = true)
+      def url_helpers(supports_path = true)
         routes = self
 
         Module.new do
@@ -459,7 +444,14 @@ module ActionDispatch
           # Rails.application.routes.url_helpers.url_for(args)
           @_routes = routes
           class << self
-            delegate :url_for, :optimize_routes_generation?, to: '@_routes'
+            def url_for(options)
+              @_routes.url_for(options)
+            end
+
+            def optimize_routes_generation?
+              @_routes.optimize_routes_generation?
+            end
+
             attr_reader :_routes
             def url_options; {}; end
             def context
@@ -478,14 +470,12 @@ module ActionDispatch
           # named routes...
           include url_helpers
 
-          if include_path_helpers
+          if supports_path
             path_helpers = routes.named_routes.path_helpers_module
-          else
-            path_helpers = routes.named_routes.path_helpers_module(true)
-          end
 
-          include path_helpers
-          extend path_helpers
+            include path_helpers
+            extend path_helpers
+          end
 
           # plus a singleton class method called _routes ...
           included do
@@ -496,6 +486,12 @@ module ActionDispatch
           # UrlFor (included in this module) add extra
           # conveniences for working with @_routes.
           define_method(:_routes) { @_routes || routes }
+
+          define_method(:_generate_paths_by_default) do
+            supports_path
+          end
+
+          private :_generate_paths_by_default
         end
       end
 
@@ -517,7 +513,7 @@ module ActionDispatch
         path = conditions.delete :path_info
         ast  = conditions.delete :parsed_path_info
         path = build_path(path, ast, requirements, anchor)
-        conditions = build_conditions(conditions, path.names.map { |x| x.to_sym })
+        conditions = build_conditions(conditions, path.names.map(&:to_sym))
 
         route = @set.add_route(app, path, conditions, defaults, name)
         named_routes[name] = route if name
@@ -574,12 +570,12 @@ module ActionDispatch
       end
       private :build_conditions
 
-      class Generator #:nodoc:
+      class Generator
         PARAMETERIZE = lambda do |name, value|
           if name == :controller
             value
           elsif value.is_a?(Array)
-            value.map { |v| v.to_param }.join('/')
+            value.map(&:to_param).join('/')
           elsif param = value.to_param
             param
           end
@@ -832,5 +828,6 @@ module ActionDispatch
         raise ActionController::RoutingError, "No route matches #{path.inspect}"
       end
     end
+    # :startdoc:
   end
 end

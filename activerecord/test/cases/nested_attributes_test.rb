@@ -13,7 +13,7 @@ require 'active_support/hash_with_indifferent_access'
 
 class TestNestedAttributesInGeneral < ActiveRecord::TestCase
   teardown do
-    Pirate.accepts_nested_attributes_for :ship, :allow_destroy => true, :reject_if => proc { |attributes| attributes.empty? }
+    Pirate.accepts_nested_attributes_for :ship, :allow_destroy => true, :reject_if => proc(&:empty?)
   end
 
   def test_base_should_have_an_empty_nested_attributes_options
@@ -300,13 +300,13 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
   end
 
   def test_should_not_destroy_an_existing_record_if_allow_destroy_is_false
-    Pirate.accepts_nested_attributes_for :ship, :allow_destroy => false, :reject_if => proc { |attributes| attributes.empty? }
+    Pirate.accepts_nested_attributes_for :ship, :allow_destroy => false, :reject_if => proc(&:empty?)
 
     @pirate.update(ship_attributes: { id: @pirate.ship.id, _destroy: '1' })
 
     assert_equal @ship, @pirate.reload.ship
 
-    Pirate.accepts_nested_attributes_for :ship, :allow_destroy => true, :reject_if => proc { |attributes| attributes.empty? }
+    Pirate.accepts_nested_attributes_for :ship, :allow_destroy => true, :reject_if => proc(&:empty?)
   end
 
   def test_should_also_work_with_a_HashWithIndifferentAccess
@@ -494,12 +494,12 @@ class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
   end
 
   def test_should_not_destroy_an_existing_record_if_allow_destroy_is_false
-    Ship.accepts_nested_attributes_for :pirate, :allow_destroy => false, :reject_if => proc { |attributes| attributes.empty? }
+    Ship.accepts_nested_attributes_for :pirate, :allow_destroy => false, :reject_if => proc(&:empty?)
 
     @ship.update(pirate_attributes: { id: @ship.pirate.id, _destroy: '1' })
     assert_nothing_raised(ActiveRecord::RecordNotFound) { @ship.pirate.reload }
   ensure
-    Ship.accepts_nested_attributes_for :pirate, :allow_destroy => true, :reject_if => proc { |attributes| attributes.empty? }
+    Ship.accepts_nested_attributes_for :pirate, :allow_destroy => true, :reject_if => proc(&:empty?)
   end
 
   def test_should_work_with_update_as_well
@@ -672,7 +672,7 @@ module NestedAttributesOnACollectionAssociationTests
   end
 
   def test_should_not_assign_destroy_key_to_a_record
-    assert_nothing_raised ActiveRecord::UnknownAttributeError do
+    assert_nothing_raised ActiveModel::AttributeAssignment::UnknownAttributeError do
       @pirate.send(association_setter, { 'foo' => { '_destroy' => '0' }})
     end
   end
@@ -855,7 +855,7 @@ end
 
 module NestedAttributesLimitTests
   def teardown
-    Pirate.accepts_nested_attributes_for :parrots, :allow_destroy => true, :reject_if => proc { |attributes| attributes.empty? }
+    Pirate.accepts_nested_attributes_for :parrots, :allow_destroy => true, :reject_if => proc(&:empty?)
   end
 
   def test_limit_with_less_records
@@ -1036,5 +1036,22 @@ class TestHasManyAutosaveAssociationWhichItselfHasAutosaveAssociations < ActiveR
     Ship.create!(:name => "The Black Rock")
     ShipPart.create!(:ship => @ship, :name => "Stern")
     assert_no_queries { @ship.valid? }
+  end
+
+  test "circular references do not perform unnecessary queries" do
+    ship = Ship.new(name: "The Black Rock")
+    part = ship.parts.build(name: "Stern")
+    ship.treasures.build(looter: part)
+
+    assert_queries 3 do
+      ship.save!
+    end
+  end
+
+  test "nested singular associations are validated" do
+    part = ShipPart.new(name: "Stern", ship_attributes: { name: nil })
+
+    assert_not part.valid?
+    assert_equal ["Ship name can't be blank"], part.errors.full_messages
   end
 end
