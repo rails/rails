@@ -532,11 +532,7 @@ module ActionController
       end
 
       def permitted_scalar_filter(params, key)
-        if has_key?(key) && permitted_scalar?(self[key])
-          params[key] = self[key]
-        end
-
-        keys.grep(/\A#{Regexp.escape(key)}\(\d+[if]?\)\z/) do |k|
+        keys.grep(/\A#{Regexp.escape(key)}(?:\(\d+[if]?\))?\z/) do |k|
           if permitted_scalar?(self[k])
             params[k] = self[k]
           end
