@@ -450,6 +450,7 @@ All the basic assertions such as `assert_equal` defined in `Minitest::Assertions
 * `ActionMailer::TestCase`
 * `ActionView::TestCase`
 * `ActionDispatch::IntegrationTest`
+* `ActiveJob::TestCase`
 
 Each of these classes include `Minitest::Assertions`, allowing us to use all of the basic assertions in our tests.
 
