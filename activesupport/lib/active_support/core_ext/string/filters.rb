@@ -26,6 +26,7 @@ class String
   # Returns a new string with all occurrences of the patterns removed.
   #   str = "foo bar test"
   #   str.remove(" test")                 # => "foo bar"
+  #   str.remove(" test", /bar/)          # => "foo "
   #   str                                 # => "foo bar test"
   def remove(*patterns)
     dup.remove!(*patterns)
@@ -33,8 +34,8 @@ class String
 
   # Alters the string by removing all occurrences of the patterns.
   #   str = "foo bar test"
-  #   str.remove!(" test")                 # => "foo bar"
-  #   str                                  # => "foo bar"
+  #   str.remove!(" test", /bar/)         # => "foo "
+  #   str                                 # => "foo "
   def remove!(*patterns)
     patterns.each do |pattern|
       gsub! pattern, ""
