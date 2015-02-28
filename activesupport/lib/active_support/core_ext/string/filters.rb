@@ -24,17 +24,18 @@ class String
   end
 
   # Returns a new string with all occurrences of the patterns removed.
-  #   str = "foo bar test"
-  #   str.remove(" test")                 # => "foo bar"
-  #   str                                 # => "foo bar test"
+  #   str = "foo bar test baz"
+  #   str.remove(" test baz")             # => "foo bar"
+  #   str.remove(" test ", /baz/)         # => "foo bar"
+  #   str                                 # => "foo bar test baz"
   def remove(*patterns)
     dup.remove!(*patterns)
   end
 
   # Alters the string by removing all occurrences of the patterns.
-  #   str = "foo bar test"
-  #   str.remove!(" test")                 # => "foo bar"
-  #   str                                  # => "foo bar"
+  #   str = "foo bar test baz"
+  #   str.remove!(" test ", /baz/)        # => "foo bar"
+  #   str                                 # => "foo bar"
   def remove!(*patterns)
     patterns.each do |pattern|
       gsub! pattern, ""
