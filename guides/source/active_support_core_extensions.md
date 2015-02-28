@@ -1237,7 +1237,7 @@ Calling `dup` or `clone` on safe strings yields safe strings.
 The method `remove` will remove all occurrences of the pattern:
 
 ```ruby
-"Hello World".remove(/Hello /) => "World"
+"Hello World".remove(/Hello /) # => "World"
 ```
 
 There's also the destructive version `String#remove!`.
