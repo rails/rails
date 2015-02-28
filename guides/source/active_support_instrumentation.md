@@ -307,7 +307,7 @@ Action Mailer
 }
 ```
 
-ActiveResource
+Active Resource
 --------------
 
 ### request.active_resource
