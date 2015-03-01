@@ -289,7 +289,7 @@ Providing engine functionality
 
 The engine that this guide covers provides submitting articles and commenting
 functionality and follows a similar thread to the [Getting Started
-Guide](getting_started.html), with some new twists.
+Guide](https://github.com/rails/rails/blob/master/guides/source/getting_started.md), with some new twists.
 
 ### Generating an Article Resource
 
@@ -1011,7 +1011,7 @@ engines!
 If you wish to use an initializer - code that should run before the engine is
 loaded - the place for it is the `config/initializers` folder. This directory's
 functionality is explained in the [Initializers
-section](configuring.html#initializers) of the Configuring guide, and works
+section](https://github.com/rails/rails/blob/master/guides/source/configuring.md#initializers) of the Configuring guide, and works
 precisely the same way as the `config/initializers` directory inside an
 application. The same thing goes if you want to use a standard initializer.
 
@@ -1372,7 +1372,7 @@ initializer "blorgh.assets.precompile" do |app|
 end
 ```
 
-For more information, read the [Asset Pipeline guide](asset_pipeline.html).
+For more information, read the [Asset Pipeline guide](https://github.com/rails/rails/blob/master/guides/source/asset_pipeline.md).
 
 ### Other Gem Dependencies
 
