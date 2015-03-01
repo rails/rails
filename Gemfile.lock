@@ -41,7 +41,7 @@ PATH
       actionview (= 5.0.0.alpha)
       activesupport (= 5.0.0.alpha)
       rack (~> 1.6)
-      rack-test (~> 0.6.2)
+      rack-test (~> 0.6.3)
       rails-dom-testing (~> 1.0, >= 1.0.5)
       rails-html-sanitizer (~> 1.0, >= 1.0.1)
     actionview (5.0.0.alpha)
