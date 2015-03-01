@@ -460,7 +460,7 @@ class CreatePictures < ActiveRecord::Migration
       t.timestamps null: false
     end
 
-    add_index :pictures, :imageable_id
+    add_index :pictures, [:imageable_id, :imageable_type]
   end
 end
 ```
