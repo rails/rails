@@ -5,6 +5,10 @@ require 'active_support/core_ext/object/to_param'
 require 'active_support/core_ext/object/to_query'
 
 class Array
+  ARRAY_FORMATS = {
+    :db => ->(array) { array.empty? ? 'null' : array.collect(&:id).join(',') }
+  }
+
   # Converts the array to a comma-separated sentence where the last element is
   # joined by the connector word.
   #
@@ -82,18 +86,26 @@ class Array
     end
   end
 
-  # Extends <tt>Array#to_s</tt> to convert a collection of elements into a
-  # comma separated id list if <tt>:db</tt> argument is given as the format.
+  # Convert array to a formatted string. See ARRAY_FORMATS for predefined formats.
+  # This method is aliased to <tt>to_s</tt>.
   #
-  #   Blog.all.to_formatted_s(:db) # => "1,2,3"
+  #   array = [1, 2, 3]          # => "[1, 2, 3]"
+  #   array.to_formatted_s       # => "[1, 2, 3]"
+  #   array.to_s                 # => "[1, 2, 3]"
+  #
+  #   blogs = Blog.all
+  #   blogs.to_s(:db)            # => "1,2,3"
+  #   blogs.to_formatted_s(:db)  # => "1,2,3"
+  #
+  # == Adding your own range formats to to_formatted_s
+  # You can add your own formats to the Range::RANGE_FORMATS hash.
+  # Use the format name as the hash key and a Proc instance.
+  #
+  #   # config/initializers/array_formats.rb
+  #   Array::ARRAY_FORMATS[:separated] = ->(array) { array.join ' | ' }
   def to_formatted_s(format = :default)
-    case format
-    when :db
-      if empty?
-        'null'
-      else
-        collect(&:id).join(',')
-      end
+    if formatter = ARRAY_FORMATS[format]
+      formatter.call(self)
     else
       to_default_s
     end
