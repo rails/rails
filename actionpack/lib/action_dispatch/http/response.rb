@@ -38,6 +38,9 @@ module ActionDispatch # :nodoc:
     # The HTTP status code.
     attr_reader :status
 
+    # The action that caused the response to be committed
+    attr_reader :action
+
     attr_writer :sending_file
 
     # Get and set headers for this response.
@@ -86,7 +89,7 @@ module ActionDispatch # :nodoc:
       def write(string)
         raise IOError, "closed stream" if closed?
 
-        @response.commit!
+        @response.commit! :write
         @buf.push string
       end
 
@@ -101,7 +104,7 @@ module ActionDispatch # :nodoc:
       end
 
       def close
-        @response.commit!
+        @response.commit! :close
         @closed = true
       end
 
@@ -128,6 +131,7 @@ module ActionDispatch # :nodoc:
       @sent         = false
       @content_type = nil
       @charset      = nil
+      @action       = nil
 
       if content_type = self[CONTENT_TYPE]
         type, charset = content_type.split(/;\s*charset=/)
@@ -150,9 +154,10 @@ module ActionDispatch # :nodoc:
       synchronize { @cv.wait_until { @sent } }
     end
 
-    def commit!
+    def commit!(action)
       synchronize do
         before_committed
+        @action = action
         @committed = true
         @cv.broadcast
       end

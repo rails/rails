@@ -11,9 +11,19 @@ class ResponseTest < ActiveSupport::TestCase
     t = Thread.new {
       @response.await_commit
     }
-    @response.commit!
+    @response.commit! :write
     assert @response.committed?
     assert t.join(0.5)
+  end
+
+  def commit_process_keeps_content_length
+    t = Thread.new {
+      @response.await_commit
+    }
+    @response.headers["Content-Length"] = "42"
+    @response.commit! :process
+    assert @response.committed?
+    assert_equal "1234", @response.headers["Content-Length"]
   end
 
   def test_stream_close

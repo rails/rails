@@ -132,7 +132,9 @@ module ActionController
       def write(string)
         unless @response.committed?
           @response.headers["Cache-Control"] = "no-cache"
-          @response.headers.delete "Content-Length"
+          unless @response.action == :process
+            @response.headers.delete "Content-Length"
+          end
         end
 
         super
@@ -285,7 +287,7 @@ module ActionController
             error = e
           end
         ensure
-          @_response.commit!
+          @_response.commit! :process
         end
       }
 
