@@ -729,7 +729,7 @@ The two basic structures are arrays and hashes. Hashes mirror the syntax used fo
 
 the `params` hash will contain
 
-```erb
+```ruby
 {'person' => {'name' => 'Henry'}}
 ```
 
