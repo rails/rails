@@ -128,7 +128,7 @@ module ActiveRecord
       def column_spec_for_primary_key(column)
         spec = {}
         if column.serial?
-          return unless column.sql_type == 'bigint'
+          return unless column.bigint?
           spec[:id] = ':bigserial'
         elsif column.type == :uuid
           spec[:id] = ':uuid'

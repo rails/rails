@@ -34,6 +34,10 @@ module ActiveRecord
         !default.nil?
       end
 
+      def bigint?
+        /bigint/ === sql_type
+      end
+
       # Returns the human name of the column name.
       #
       # ===== Examples
