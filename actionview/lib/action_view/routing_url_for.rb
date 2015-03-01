@@ -130,5 +130,11 @@ module ActionView
         controller.optimize_routes_generation? : super
     end
     protected :optimize_routes_generation?
+
+    private
+
+      def _generate_paths_by_default
+        true
+      end
   end
 end
