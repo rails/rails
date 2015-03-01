@@ -1,3 +1,7 @@
+*   Add ability to create custom formats for `Array#to_s`
+
+    *Anton Davydov*
+
 *   Fixed a problem where String#truncate_words would get stuck with a complex
     string.
 

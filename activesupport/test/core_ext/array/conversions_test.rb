@@ -70,11 +70,20 @@ class ToSTest < ActiveSupport::TestCase
     end
   end
 
+  Array::ARRAY_FORMATS[:separated] = ->(array) { array.join ' | ' }
+
   def test_to_s_db
     collection = [TestDB.new, TestDB.new, TestDB.new]
 
     assert_equal "null", [].to_s(:db)
     assert_equal "1,2,3", collection.to_s(:db)
+  end
+
+  def test_to_s_separated
+    collection = [1, 2, 3]
+
+    assert_equal "", [].to_s(:separated)
+    assert_equal "1 | 2 | 3", collection.to_s(:separated)
   end
 end
 
