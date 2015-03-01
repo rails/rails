@@ -254,7 +254,7 @@ module ActionDispatch
                    @key_strategy.call model.model_name
                  end
 
-          named_route = prefix + "#{name}_#{suffix}"
+          named_route = "#{prefix}#{name}_#{suffix}"
 
           [named_route, args]
         end
