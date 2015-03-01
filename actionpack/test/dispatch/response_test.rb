@@ -172,7 +172,7 @@ class ResponseTest < ActiveSupport::TestCase
     original = ActionDispatch::Response.default_charset
     begin
       ActionDispatch::Response.default_charset = 'utf-16'
-      resp = ActionDispatch::Response.new(200, { "Content-Type" => "text/xml" })
+      resp = ActionDispatch::Response.new(200, { "Content-Type" => "text/xml" }, default_headers: nil)
       assert_equal('utf-16', resp.charset)
     ensure
       ActionDispatch::Response.default_charset = original
