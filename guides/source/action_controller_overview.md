@@ -27,14 +27,14 @@ For most conventional [RESTful](http://en.wikipedia.org/wiki/Representational_st
 
 A controller can thus be thought of as a middle man between models and views. It makes the model data available to the view so it can display that data to the user, and it saves or updates data from the user to the model.
 
-NOTE: For more details on the routing process, see [Rails Routing from the Outside In](routing.html).
+NOTE: For more details on the routing process, see [Rails Routing from the Outside In](https://github.com/rails/rails/blob/master/guides/source/routing.md).
 
 Controller Naming Convention
 ----------------------------
 
 The naming convention of controllers in Rails favors pluralization of the last word in the controller's name, although it is not strictly required (e.g. `ApplicationController`). For example, `ClientsController` is preferable to `ClientController`, `SiteAdminsController` is preferable to `SiteAdminController` or `SitesAdminsController`, and so on.
 
-Following this convention will allow you to use the default route generators (e.g. `resources`, etc) without needing to qualify each `:path` or `:controller`, and keeps URL and path helpers' usage consistent throughout your application. See [Layouts & Rendering Guide](layouts_and_rendering.html) for more details.
+Following this convention will allow you to use the default route generators (e.g. `resources`, etc) without needing to qualify each `:path` or `:controller`, and keeps URL and path helpers' usage consistent throughout your application. See [Layouts & Rendering Guide](https://github.com/rails/rails/blob/master/guides/source/layouts_and_rendering.md) for more details.
 
 NOTE: The controller naming convention differs from the naming convention of models, which are expected to be named in singular form.
 
@@ -59,7 +59,7 @@ def new
 end
 ```
 
-The [Layouts & Rendering Guide](layouts_and_rendering.html) explains this in more detail.
+The [Layouts & Rendering Guide](https://github.com/rails/rails/blob/master/guides/source/layouts_and_rendering.md) explains this in more detail.
 
 `ApplicationController` inherits from `ActionController::Base`, which defines a number of helpful methods. This guide will cover some of these, but if you're curious to see what's in there, you can see all of them in the API documentation or in the source itself.
 
@@ -115,7 +115,7 @@ NOTE: The actual URL in this example will be encoded as "/clients?ids%5b%5d=1&id
 The value of `params[:ids]` will now be `["1", "2", "3"]`. Note that parameter values are always strings; Rails makes no attempt to guess or cast the type.
 
 NOTE: Values such as `[nil]` or `[nil, nil, ...]` in `params` are replaced
-with `[]` for security reasons by default. See [Security Guide](security.html#unsafe-query-generation)
+with `[]` for security reasons by default. See [Security Guide](https://github.com/rails/rails/blob/master/guides/source/security.md#unsafe-query-generation)
 for more information.
 
 To send a hash you include the key name inside the brackets:
@@ -358,7 +358,7 @@ The CookieStore can store around 4kB of data - much less than the others - but t
 
 If your user sessions don't store critical data or don't need to be around for long periods (for instance if you just use the flash for messaging), you can consider using `ActionDispatch::Session::CacheStore`. This will store sessions using the cache implementation you have configured for your application. The advantage of this is that you can use your existing cache infrastructure for storing sessions without requiring any additional setup or administration. The downside, of course, is that the sessions will be ephemeral and could disappear at any time.
 
-Read more about session storage in the [Security Guide](security.html).
+Read more about session storage in the [Security Guide](https://github.com/rails/rails/blob/master/guides/source/security.md).
 
 If you need a different session storage mechanism, you can change it in the `config/initializers/session_store.rb` file:
 
@@ -804,7 +804,7 @@ Rails adds this token to every form that's generated using the [form helpers](fo
 
 The `form_authenticity_token` generates a valid authentication token. That's useful in places where Rails does not add it automatically, like in custom Ajax calls.
 
-The [Security Guide](security.html) has more about this and a lot of other security-related issues that you should be aware of when developing a web application.
+The [Security Guide](https://github.com/rails/rails/blob/master/guides/source/security.md) has more about this and a lot of other security-related issues that you should be aware of when developing a web application.
 
 The Request and Response Objects
 --------------------------------
