@@ -264,7 +264,7 @@ users = User.where(name: 'David', occupation: 'Code Artist').order('created_at D
 ```
 
 You can learn more about querying an Active Record model in the [Active Record
-Query Interface](active_record_querying.html) guide.
+Query Interface](https://github.com/rails/rails/blob/master/guides/source/active_record_querying.md) guide.
 
 ### Update
 
