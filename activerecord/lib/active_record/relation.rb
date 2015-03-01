@@ -427,6 +427,14 @@ module ActiveRecord
     #   Person.destroy_all(status: "inactive")
     #   Person.where(age: 0..18).destroy_all
     def destroy_all(conditions = nil)
+      ActiveSupport::Deprecation.warn %Q{
+        Invoking ActiveRecord::Relation#destroy_all with 'conditions'
+        parameter is deprecated and will be removed in Rails 5.1.
+
+        You may accomplish the same results by invoking `#where`
+        with a set of conditions, before invoking `#destroy_all`.
+      } unless conditions.nil?
+
       if conditions
         where(conditions).destroy_all
       else
@@ -481,6 +489,14 @@ module ActiveRecord
     #   Post.limit(100).delete_all
     #   # => ActiveRecord::ActiveRecordError: delete_all doesn't support limit
     def delete_all(conditions = nil)
+      ActiveSupport::Deprecation.warn %Q{
+        Invoking ActiveRecord::Relation#delete_all with 'conditions'
+        parameter is deprecated and will be removed in Rails 5.1.
+
+        You may accomplish the same results by invoking `#where`
+        with a set of conditions, before invoking `#delete_all`.
+      } unless conditions.nil?
+
       invalid_methods = INVALID_METHODS_FOR_DELETE_ALL.select { |method|
         if MULTI_VALUE_METHODS.include?(method)
           send("#{method}_values").any?

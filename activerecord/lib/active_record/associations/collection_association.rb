@@ -199,6 +199,12 @@ module ActiveRecord
       #
       # See delete for more info.
       def delete_all(dependent = nil)
+        ActiveSupport::Deprecation.warn %Q{
+          Invoking ActiveRecord::Associations::CollectionAssociation#delete_all
+          with 'dependent' parameter is deprecated and will be removed in Rails 5.1
+          without replacement.
+        } unless dependent.nil?
+
         if dependent && ![:nullify, :delete_all].include?(dependent)
           raise ArgumentError, "Valid values are :nullify or :delete_all"
         end
@@ -212,6 +218,13 @@ module ActiveRecord
                     end
 
         delete_or_nullify_all_records(dependent).tap do
+          reset
+          loaded!
+        end
+      end
+
+      def delete_all_dependent
+        delete_or_nullify_all_records(:delete_all).tap do
           reset
           loaded!
         end

@@ -440,6 +440,12 @@ module ActiveRecord
       #   Pet.find(1, 2, 3)
       #   # => ActiveRecord::RecordNotFound
       def delete_all(dependent = nil)
+        ActiveSupport::Deprecation.warn %Q{
+          Invoking ActiveRecord::Associations::CollectionProxy#delete_all
+          with 'dependent' parameter is deprecated and will be removed
+          in Rails 5.1 without replacement.
+        } unless dependent.nil?
+
         @association.delete_all(dependent)
       end
 

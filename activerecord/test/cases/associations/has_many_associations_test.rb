@@ -1147,14 +1147,18 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_delete_all_with_option_delete_all
     firm = companies(:first_firm)
     client_id = firm.dependent_clients_of_firm.first.id
-    firm.dependent_clients_of_firm.delete_all(:delete_all)
+    assert_deprecated do
+      firm.dependent_clients_of_firm.delete_all(:delete_all)
+    end
     assert_nil Client.find_by_id(client_id)
   end
 
   def test_delete_all_accepts_limited_parameters
     firm = companies(:first_firm)
-    assert_raise(ArgumentError) do
-      firm.dependent_clients_of_firm.delete_all(:destroy)
+    assert_deprecated do
+      assert_raise(ArgumentError) do
+        firm.dependent_clients_of_firm.delete_all(:destroy)
+      end
     end
   end
 
