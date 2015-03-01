@@ -88,7 +88,7 @@ Example Code
 
 Choose meaningful examples that depict and cover the basics as well as interesting points or gotchas.
 
-Use two spaces to indent chunks of code--that is, for markup purposes, two spaces with respect to the left margin. The examples themselves should use [Rails coding conventions](contributing_to_ruby_on_rails.html#follow-the-coding-conventions).
+Use two spaces to indent chunks of code--that is, for markup purposes, two spaces with respect to the left margin. The examples themselves should use [Rails coding conventions](https://github.com/rails/rails/blob/master/guides/source/contributing_to_ruby_on_rails.md#follow-the-coding-conventions).
 
 Short docs do not need an explicit "Examples" label to introduce snippets; they just follow paragraphs:
 
