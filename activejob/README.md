@@ -7,7 +7,7 @@ small units of work and run in parallel, really.
 
 It also serves as the backend for Action Mailer's #deliver_later functionality
 that makes it easy to turn any mailing into a job for running later. That's
-one of the most common jobs in a modern web application: Sending emails outside
+one of the most common jobs in a modern web application: sending emails outside
 of the request-response cycle, so the user doesn't have to wait on it.
 
 The main point is to ensure that all Rails apps will have a job infrastructure
@@ -118,7 +118,7 @@ Active Job is released under the MIT license:
 
 ## Support
 
-API documentation is at
+API documentation is at:
 
 * http://api.rubyonrails.org
 
