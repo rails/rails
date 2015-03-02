@@ -453,6 +453,19 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::RecordNotFound) { authors(:bob).posts.take! }
   end
 
+  def test_taking_with_a_number
+    # taking from unloaded Relation
+    bob = Author.find(authors(:bob).id)
+    assert_equal [posts(:misc_by_bob)], bob.posts.take(1)
+    bob = Author.find(authors(:bob).id)
+    assert_equal [posts(:misc_by_bob), posts(:other_by_bob)], bob.posts.take(2)
+
+    # taking from loaded Relation
+    bob.posts.to_a
+    assert_equal [posts(:misc_by_bob)], authors(:bob).posts.take(1)
+    assert_equal [posts(:misc_by_bob), posts(:other_by_bob)], authors(:bob).posts.take(2)
+  end
+
   def test_taking_with_inverse_of
     interests(:woodsmanship).destroy
     interests(:survival).destroy
