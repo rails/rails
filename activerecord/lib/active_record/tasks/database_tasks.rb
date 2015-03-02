@@ -212,7 +212,7 @@ module ActiveRecord
         load_schema(*args)
       end
 
-      def schema_file(format = ActiveSupport::Base.schema_format)
+      def schema_file(format = ActiveRecord::Base.schema_format)
         case format
         when :ruby
           File.join(db_dir, "schema.rb")
