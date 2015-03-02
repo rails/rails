@@ -1,3 +1,18 @@
+*   Honour the order of the joining model in a `has_many :through` association when eager loading.
+
+    Example:
+
+    The below will now follow the order of `by_lines` when eager loading `authors`.
+
+        class Article < ActiveRecord::Base
+          has_many :by_lines, -> { order(:position) }
+          has_many :authors, through: :by_lines
+        end
+
+    Fixes #17864.
+
+    *Yasyf Mohamedali*, *Joel Turkel*
+
 *   Dont enroll records in the transaction if they dont have commit callbacks.
     That was causing a memory grow problem when creating a lot of records inside a transaction.
 
