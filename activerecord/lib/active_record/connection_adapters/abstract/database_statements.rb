@@ -232,10 +232,6 @@ module ActiveRecord
         current_transaction.add_record(record)
       end
 
-      def transaction_state
-        current_transaction.state
-      end
-
       # Begins the transaction (and turns off auto-committing).
       def begin_db_transaction()    end
 
