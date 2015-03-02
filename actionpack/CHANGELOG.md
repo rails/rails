@@ -1,3 +1,8 @@
+*   Partitioning of routes is now done when the routes are being drawn. This
+    helps to decrease the time spent filtering the routes during the first request.
+
+    *Guo Xiang Tan*
+
 *   Fix regression in functional tests. Responses should have default headers
     assigned.
 

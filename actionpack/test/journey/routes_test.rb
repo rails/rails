@@ -3,6 +3,10 @@ require 'abstract_unit'
 module ActionDispatch
   module Journey
     class TestRoutes < ActiveSupport::TestCase
+      setup do
+        @routes = Routes.new
+      end
+
       def test_clear
         routes = Routes.new
         exp    = Router::Strexp.build '/foo(/:id)', {}, ['/.?']
@@ -34,6 +38,23 @@ module ActionDispatch
         sim = routes.simulator
         routes.add_route nil, path, {}, {}, {}
         assert_not_equal sim, routes.simulator
+      end
+
+      def test_partition_route
+        path   = Path::Pattern.from_string '/hello'
+
+        anchored_route = @routes.add_route nil, path, {}, {}, {}
+        assert_equal [anchored_route], @routes.anchored_routes
+        assert_equal [], @routes.custom_routes
+
+        strexp = Router::Strexp.build(
+          "/hello/:who", { who: /\d/ }, ['/', '.', '?']
+        )
+        path  = Path::Pattern.new strexp
+
+        custom_route = @routes.add_route nil, path, {}, {}, {}
+        assert_equal [custom_route], @routes.custom_routes
+        assert_equal [anchored_route], @routes.anchored_routes
       end
 
       def test_first_name_wins
