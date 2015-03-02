@@ -469,18 +469,13 @@ module ActiveRecord
     # method recursively goes through the parent of the TransactionState and
     # checks if the ActiveRecord object reflects the state of the object.
     def sync_with_transaction_state
-      update_attributes_from_transaction_state(@transaction_state, 0)
+      update_attributes_from_transaction_state(@transaction_state)
     end
 
-    def update_attributes_from_transaction_state(transaction_state, depth)
-      @reflects_state = [false] if depth == 0
-
+    def update_attributes_from_transaction_state(transaction_state)
       if transaction_state && transaction_state.finalized? && !has_transactional_callbacks?
-        unless @reflects_state[depth]
-          restore_transaction_record_state if transaction_state.rolledback?
-          clear_transaction_record_state
-          @reflects_state[depth] = true
-        end
+        restore_transaction_record_state if transaction_state.rolledback?
+        clear_transaction_record_state
       end
     end
   end
