@@ -443,6 +443,8 @@ module ActiveRecord
       end
     end
 
+    private
+
     def set_transaction_state(state) # :nodoc:
       @transaction_state = state
     end
