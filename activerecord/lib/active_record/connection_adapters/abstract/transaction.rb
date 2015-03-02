@@ -1,13 +1,10 @@
 module ActiveRecord
   module ConnectionAdapters
     class TransactionState
-      attr_reader :parent
-
       VALID_STATES = Set.new([:committed, :rolledback, nil])
 
       def initialize(state = nil)
         @state = state
-        @parent = nil
       end
 
       def finalized?
