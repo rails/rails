@@ -312,7 +312,7 @@ class MigratorTest < ActiveRecord::TestCase
   def test_migrator_db_has_no_schema_migrations_table
     _, migrator = migrator_class(3)
 
-    ActiveRecord::Base.connection.execute("DROP TABLE schema_migrations")
+    ActiveRecord::Base.connection.drop_table "schema_migrations", if_exists: true
     assert_not ActiveRecord::Base.connection.table_exists?('schema_migrations')
     migrator.migrate("valid", 1)
     assert ActiveRecord::Base.connection.table_exists?('schema_migrations')

@@ -140,7 +140,7 @@ module ActiveRecord
           tables_after = connection.tables - tables_before
 
           tables_after.each do |table|
-            connection.execute "DROP TABLE #{table}"
+            connection.drop_table table
           end
         end
     end
