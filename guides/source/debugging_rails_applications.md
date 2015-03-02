@@ -782,10 +782,10 @@ will be stopped and you will have to start it again.
 
 `byebug` has a few available options to tweak its behaviour:
 
-* `set autoreload`: Reload source code when changed (default: true).
-* `set autolist`: Execute `list` command on every breakpoint (default: true).
+* `set autoreload`: Reload source code when changed (defaults: true).
+* `set autolist`: Execute `list` command on every breakpoint (defaults: true).
 * `set listsize _n_`: Set number of source lines to list by default to _n_
-(default: 10)
+(defaults: 10)
 * `set forcestep`: Make sure the `next` and `step` commands always move to a new
 line.
 
