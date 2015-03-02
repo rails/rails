@@ -2182,6 +2182,17 @@ to_visit << node if visited.exclude?(node)
 
 NOTE: Defined in `active_support/core_ext/enumerable.rb`.
 
+### `without`
+
+The method `without` returns a copy of an enumerable with the specified elements
+removed:
+
+```ruby
+people.without("Aaron", "Todd")
+```
+
+NOTE: Defined in `active_support/core_ext/enumerable.rb`.
+
 Extensions to `Array`
 ---------------------
 
