@@ -81,7 +81,7 @@ Major Features
 
 ### General
 
- * **ActiveModel::Model** ([commit](https://github.com/rails/rails/commit/3b822e91d1a6c4eab0064989bbd07aae3a6d0d08)) - `ActiveModel::Model`, a mixin to make normal Ruby objects to work with ActionPack out of box (ex. for `form_for`)
+ * **ActiveModel::Model** ([commit](https://github.com/rails/rails/commit/3b822e91d1a6c4eab0064989bbd07aae3a6d0d08)) - `ActiveModel::Model`, a mixin to make normal Ruby objects to work with ActionPack out of box (ex. for `form_for`).
  * **New scope API** ([commit](https://github.com/rails/rails/commit/50cbc03d18c5984347965a94027879623fc44cce)) - Scopes must always use callables.
  * **Schema cache dump** ([commit](https://github.com/rails/rails/commit/5ca4fc95818047108e69e22d200e7a4a22969477)) - To improve Rails boot time, instead of loading the schema directly from the database, load the schema from a dump file.
  * **Support for specifying transaction isolation level** ([commit](https://github.com/rails/rails/commit/392eeecc11a291e406db927a18b75f41b2658253)) - Choose whether repeatable reads or improved performance (less locking) is more important.
