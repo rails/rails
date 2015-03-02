@@ -1,6 +1,7 @@
 require 'abstract_unit'
 require 'active_support/core_ext/array'
 require 'active_support/core_ext/enumerable'
+require 'active_support/core_ext/object/inclusion'
 
 Payment = Struct.new(:price)
 class SummablePayment < Payment
