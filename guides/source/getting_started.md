@@ -1483,10 +1483,10 @@ second argument, and then the options as another argument. The `method: :delete`
 and `data: { confirm: 'Are you sure?' }` options are used as HTML5 attributes so
 that when the link is clicked, Rails will first show a confirm dialog to the
 user, and then submit the link with method `delete`.  This is done via the 
-JavaScript file `jquery_ujs` which is automatically included into your 
+JavaScript file `jquery_ujs` which is automatically included in your
 application's layout (`app/views/layouts/application.html.erb`) when you 
-generated the application. Without this file, the confirmation dialog box 
-wouldn't appear.
+generated the application. Without this file, the confirmation dialog box won't
+appear.
 
 ![Confirm Dialog](images/getting_started/confirm_dialog.png)
 
