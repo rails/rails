@@ -100,7 +100,7 @@ module ActiveSupport
         # a string, otherwise a NameError will be raised by the interpreter
         # itself when rescue_from CONSTANT is executed.
         klass = self.class.const_get(klass_name) rescue nil
-        klass ||= klass_name.constantize rescue nil
+        klass ||= (klass_name.constantize rescue nil)
         klass === exception if klass
       end
 

@@ -276,6 +276,8 @@ module ActionController
     end
 
     def test_async_stream
+      rubinius_skip "https://github.com/rubinius/rubinius/issues/2934"
+
       @controller.latch = ActiveSupport::Concurrency::Latch.new
       parts             = ['hello', 'world']
 

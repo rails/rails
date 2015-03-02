@@ -58,6 +58,8 @@ class AttributeAssignmentTest < ActiveModel::TestCase
   end
 
   test "assign private attribute" do
+    rubinius_skip "https://github.com/rubinius/rubinius/issues/3328"
+
     model = Model.new
     assert_raises(ActiveModel::UnknownAttributeError) do
       model.assign_attributes(metadata: { a: 1 })
