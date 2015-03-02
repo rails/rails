@@ -522,7 +522,7 @@ module ActiveRecord
           @reflects_state[depth] = true
         end
 
-        if transaction_state.parent && !@reflects_state[depth+1]
+        if transaction_state.parent
           update_attributes_from_transaction_state(transaction_state.parent, depth+1)
         end
       end
