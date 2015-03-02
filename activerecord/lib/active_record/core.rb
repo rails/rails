@@ -483,47 +483,6 @@ module ActiveRecord
 
     private
 
-    def set_transaction_state(state) # :nodoc:
-      @transaction_state = state
-    end
-
-    def has_transactional_callbacks? # :nodoc:
-      !_rollback_callbacks.empty? || !_commit_callbacks.empty? || !_before_commit_callbacks.empty?
-    end
-
-    # Updates the attributes on this particular ActiveRecord object so that
-    # if it is associated with a transaction, then the state of the AR object
-    # will be updated to reflect the current state of the transaction
-    #
-    # The @transaction_state variable stores the states of the associated
-    # transaction. This relies on the fact that a transaction can only be in
-    # one rollback or commit (otherwise a list of states would be required)
-    # Each AR object inside of a transaction carries that transaction's
-    # TransactionState.
-    #
-    # This method checks to see if the ActiveRecord object's state reflects
-    # the TransactionState, and rolls back or commits the ActiveRecord object
-    # as appropriate.
-    #
-    # Since ActiveRecord objects can be inside multiple transactions, this
-    # method recursively goes through the parent of the TransactionState and
-    # checks if the ActiveRecord object reflects the state of the object.
-    def sync_with_transaction_state
-      update_attributes_from_transaction_state(@transaction_state, 0)
-    end
-
-    def update_attributes_from_transaction_state(transaction_state, depth)
-      @reflects_state = [false] if depth == 0
-
-      if transaction_state && transaction_state.finalized? && !has_transactional_callbacks?
-        unless @reflects_state[depth]
-          restore_transaction_record_state if transaction_state.rolledback?
-          clear_transaction_record_state
-          @reflects_state[depth] = true
-        end
-      end
-    end
-
     # Under Ruby 1.9, Array#flatten will call #to_ary (recursively) on each of the elements
     # of the array, and then rescues from the possible NoMethodError. If those elements are
     # ActiveRecord::Base's, then this triggers the various method_missing's that we have,
