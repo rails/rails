@@ -69,7 +69,7 @@ module Enumerable
   #   {foo: 1, bar: 2, baz: 3}.without :bar
   #     => {foo: 1, baz: 3}
   def without(*elements)
-    reject { |element| element.in?(elements) }
+    reject { |element| elements.include?(element) }
   end
 end
 
