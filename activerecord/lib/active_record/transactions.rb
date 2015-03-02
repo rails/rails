@@ -473,7 +473,7 @@ module ActiveRecord
     end
 
     def update_attributes_from_transaction_state(transaction_state)
-      if transaction_state && transaction_state.finalized? && !has_transactional_callbacks?
+      if transaction_state && transaction_state.finalized?
         restore_transaction_record_state if transaction_state.rolledback?
         clear_transaction_record_state
       end
