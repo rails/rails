@@ -215,7 +215,7 @@ module ActionDispatch
 
             def parameterize_args(args)
               params = {}
-              @required_parts.zip(args.map(&:to_param)) { |k,v| params[k] = v }
+              @arg_size.times { |i| params[@required_parts[i]] = args[i].to_param }
               params
             end
 
