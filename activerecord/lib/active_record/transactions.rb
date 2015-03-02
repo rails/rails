@@ -356,7 +356,7 @@ module ActiveRecord
       if has_transactional_callbacks?
         self.class.connection.add_transaction_record(self)
       else
-        set_transaction(self.class.connection.current_transaction)
+        set_transaction_state(self.class.connection.transaction_state)
       end
       remember_transaction_record_state
     end
@@ -445,8 +445,8 @@ module ActiveRecord
 
     private
 
-    def set_transaction(txn) # :nodoc:
-      @transaction = txn
+    def set_transaction_state(state) # :nodoc:
+      @transaction_state = state
     end
 
     def has_transactional_callbacks? # :nodoc:
@@ -471,12 +471,12 @@ module ActiveRecord
     # method recursively goes through the parent of the TransactionState and
     # checks if the ActiveRecord object reflects the state of the object.
     def sync_with_transaction_state
-      update_attributes_from_transaction_state(@transaction)
+      update_attributes_from_transaction_state(@transaction_state)
     end
 
-    def update_attributes_from_transaction_state(transaction)
-      if transaction && transaction.finalized?
-        restore_transaction_record_state if transaction.rolledback?
+    def update_attributes_from_transaction_state(transaction_state)
+      if transaction_state && transaction_state.finalized?
+        restore_transaction_record_state if transaction_state.rolledback?
         clear_transaction_record_state
       end
     end

@@ -1,30 +1,34 @@
 module ActiveRecord
   module ConnectionAdapters
     class TransactionState
-      def finalized?;  false; end
-      def committed?;  false; end
-      def rolledback?; false; end
-      def completed?;  false; end
+      VALID_STATES = Set.new([:committed, :rolledback, nil])
 
-      class Committed < TransactionState
-        def finalized?; true; end
-        def committed?; true; end
-        def completed?; true; end
+      def initialize(state = nil)
+        @state = state
       end
 
-      class RolledBack < TransactionState
-        def finalized?;  true; end
-        def rolledback?; true; end
-        def completed?;  true; end
+      def finalized?
+        @state
       end
 
-      ROLLED_BACK = RolledBack.new
-      COMMITTED   = Committed.new
-      NULL        = TransactionState.new
+      def committed?
+        @state == :committed
+      end
 
-      def self.rolled_back; ROLLED_BACK; end
-      def self.committed;   COMMITTED; end
-      def self.null;        NULL; end
+      def rolledback?
+        @state == :rolledback
+      end
+
+      def completed?
+        committed? || rolledback?
+      end
+
+      def set_state(state)
+        unless VALID_STATES.include?(state)
+          raise ArgumentError, "Invalid transaction state: #{state}"
+        end
+        @state = state
+      end
     end
 
     class NullTransaction #:nodoc:
@@ -42,7 +46,7 @@ module ActiveRecord
 
       def initialize(connection, options)
         @connection = connection
-        @state = TransactionState.null
+        @state = TransactionState.new
         @records = []
         @joinable = options.fetch(:joinable, true)
       end
@@ -52,15 +56,7 @@ module ActiveRecord
       end
 
       def rollback
-        @state = TransactionState.rolled_back
-      end
-
-      def rolledback?
-        @state.rolledback?
-      end
-
-      def finalized?
-        @state.finalized?
+        @state.set_state(:rolledback)
       end
 
       def rollback_records
@@ -75,7 +71,7 @@ module ActiveRecord
       end
 
       def commit
-        @state = TransactionState.committed
+        @state.set_state(:committed)
       end
 
       def before_commit_records

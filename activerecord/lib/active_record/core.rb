@@ -503,7 +503,7 @@ module ActiveRecord
       @new_record               = true
       @txn                      = nil
       @_start_transaction_state = {}
-      @transaction              = nil
+      @transaction_state        = nil
     end
 
     def initialize_internals_callback
