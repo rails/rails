@@ -1,34 +1,30 @@
 module ActiveRecord
   module ConnectionAdapters
     class TransactionState
-      VALID_STATES = Set.new([:committed, :rolledback, nil])
+      def finalized?;  false; end
+      def committed?;  false; end
+      def rolledback?; false; end
+      def completed?;  false; end
 
-      def initialize(state = nil)
-        @state = state
+      class Committed < TransactionState
+        def finalized?; true; end
+        def committed?; true; end
+        def completed?; true; end
       end
 
-      def finalized?
-        @state
+      class RolledBack < TransactionState
+        def finalized?;  true; end
+        def rolledback?; true; end
+        def completed?;  true; end
       end
 
-      def committed?
-        @state == :committed
-      end
+      ROLLED_BACK = RolledBack.new
+      COMMITTED   = Committed.new
+      NULL        = TransactionState.new
 
-      def rolledback?
-        @state == :rolledback
-      end
-
-      def completed?
-        committed? || rolledback?
-      end
-
-      def set_state(state)
-        unless VALID_STATES.include?(state)
-          raise ArgumentError, "Invalid transaction state: #{state}"
-        end
-        @state = state
-      end
+      def self.rolled_back; ROLLED_BACK; end
+      def self.committed;   COMMITTED; end
+      def self.null;        NULL; end
     end
 
     class NullTransaction #:nodoc:
@@ -46,7 +42,7 @@ module ActiveRecord
 
       def initialize(connection, options)
         @connection = connection
-        @state = TransactionState.new
+        @state = TransactionState.null
         @records = []
         @joinable = options.fetch(:joinable, true)
       end
@@ -56,7 +52,7 @@ module ActiveRecord
       end
 
       def rollback
-        @state.set_state(:rolledback)
+        @state = TransactionState.rolled_back
       end
 
       def rolledback?
@@ -79,7 +75,7 @@ module ActiveRecord
       end
 
       def commit
-        @state.set_state(:committed)
+        @state = TransactionState.committed
       end
 
       def before_commit_records
