@@ -59,6 +59,14 @@ module ActiveRecord
         @state.set_state(:rolledback)
       end
 
+      def rolledback?
+        @state.rolledback?
+      end
+
+      def finalized?
+        @state.finalized?
+      end
+
       def rollback_records
         ite = records.uniq
         while record = ite.shift
