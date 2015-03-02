@@ -1028,7 +1028,7 @@ class CacheStoreLoggerTest < ActiveSupport::TestCase
 
     @cache.read_multi('hello', 'world')
 
-    assert_match "Caches multi read:\n- hello\n- world", @buffer.string.tap { |l| l }
+    assert_match "Caches multi read:\n- hello\n- world", @buffer.string
   end
 end
 
