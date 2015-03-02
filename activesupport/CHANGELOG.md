@@ -1,3 +1,8 @@
+*   Added `#without` on `Enumerable` and `Array` to return a copy of an
+    enumerable without the specified elements.
+
+    *Todd Bealmear*
+
 *   Fixed a problem where String#truncate_words would get stuck with a complex
     string.
 
