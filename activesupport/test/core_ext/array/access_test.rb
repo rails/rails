@@ -27,4 +27,8 @@ class AccessTest < ActiveSupport::TestCase
     assert_equal array[4], array.fifth
     assert_equal array[41], array.forty_two
   end
+
+  def test_without
+    assert_equal [1, 2, 4], [1, 2, 3, 4, 5].without(3, 5)
+  end
 end
