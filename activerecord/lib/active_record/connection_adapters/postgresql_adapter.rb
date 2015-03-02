@@ -8,8 +8,8 @@ require "active_record/connection_adapters/postgresql/schema_definitions"
 require "active_record/connection_adapters/postgresql/schema_statements"
 require "active_record/connection_adapters/postgresql/type_metadata"
 require "active_record/connection_adapters/postgresql/utils"
+require "active_record/connection_adapters/postgresql/relation/query_methods"
 require "active_record/connection_adapters/statement_pool"
-
 require 'arel/visitors/bind_visitor'
 
 # Make sure we're using pg high enough for PGResult#values
