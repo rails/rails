@@ -401,7 +401,7 @@ module ActiveRecord
 
       # Adds a reference. Optionally adds a +type+ column, if the
       # +:polymorphic+ option is provided. +references+ and +belongs_to+
-      # are acceptable. The reference column will be an +integer+ by default,
+      # are interchangeable. The reference column will be an +integer+ by default,
       # the +:type+ option can be used to specify a different type. A foreign
       # key will be created if the +:foreign_key+ option is passed.
       #
