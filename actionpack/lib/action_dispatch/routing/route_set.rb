@@ -308,6 +308,7 @@ module ActionDispatch
       attr_accessor :formatter, :set, :named_routes, :default_scope, :router
       attr_accessor :disable_clear_and_finalize, :resources_path_names
       attr_accessor :default_url_options, :request_class
+      attr_reader :env_key
 
       alias :routes :set
 
@@ -325,6 +326,7 @@ module ActionDispatch
         @prepend                    = []
         @disable_clear_and_finalize = false
         @finalized                  = false
+        @env_key                    = "ROUTES_#{object_id}_SCRIPT_NAME".freeze
 
         @set    = Journey::Routes.new
         @router = Journey::Router.new @set
