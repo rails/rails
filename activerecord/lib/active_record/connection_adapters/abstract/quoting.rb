@@ -123,6 +123,8 @@ module ActiveRecord
         'f'
       end
 
+      # Quote date/time values for use in SQL input. Includes microseconds
+      # if the value is a Time responding to usec.
       def quoted_date(value)
         if value.acts_like?(:time)
           zone_conversion_method = ActiveRecord::Base.default_timezone == :utc ? :getutc : :getlocal

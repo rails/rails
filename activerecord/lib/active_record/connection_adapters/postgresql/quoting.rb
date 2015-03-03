@@ -40,8 +40,7 @@ module ActiveRecord
           PGconn.quote_ident(name.to_s)
         end
 
-        # Quote date/time values for use in SQL input. Includes microseconds
-        # if the value is a Time responding to usec.
+        # Quote date/time values for use in SQL input.
         def quoted_date(value) #:nodoc:
           if value.year <= 0
             bce_year = format("%04d", -value.year + 1)
