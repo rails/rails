@@ -1,3 +1,13 @@
+*   Fallback to `ENV['RAILS_RELATIVE_URL_ROOT']` in `url_for`.
+
+    Fixed an issue where the `RAILS_RELATIVE_URL_ROOT` environment variable is not
+    prepended to the path when `url_for` is called. If `SCRIPT_NAME` (used by Rack)
+    is set, it takes precedence.
+
+    Fixes #5122.
+
+    *Yasyf Mohamedali*
+
 *   Fix regression in functional tests. Responses should have default headers
     assigned.
 
