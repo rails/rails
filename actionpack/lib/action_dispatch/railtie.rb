@@ -40,6 +40,8 @@ module ActionDispatch
       ActionDispatch::Cookies::CookieJar.always_write_cookie = config.action_dispatch.always_write_cookie
 
       ActionDispatch.test_app = app
+
+      ActionDispatch::Routing::RouteSet.relative_url_root = app.config.relative_url_root
     end
   end
 end
