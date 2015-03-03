@@ -21,7 +21,6 @@ module PostgresqlJSONSharedTestCases
     rescue ActiveRecord::StatementInvalid
       skip "do not test on PostgreSQL without #{column_type} type."
     end
-    @column = JsonDataType.columns_hash['payload']
   end
 
   def teardown
