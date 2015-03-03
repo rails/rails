@@ -257,7 +257,7 @@ application is using any of these spellings, you will need to update them:
 *   Values in attribute selectors may need to be quoted if they contain
     non-alphanumeric characters.
 
-    ```
+    ```ruby
     # before
     a[href=/]
     a[href$=/]
