@@ -31,7 +31,7 @@ module ActiveRecord
       end
 
       def has_default?
-        !default.nil?
+        !default.nil? || default_function
       end
 
       def bigint?

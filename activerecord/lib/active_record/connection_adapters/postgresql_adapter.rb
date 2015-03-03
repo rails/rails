@@ -145,7 +145,6 @@ module ActiveRecord
       def prepare_column_options(column) # :nodoc:
         spec = super
         spec[:array] = 'true' if column.array?
-        spec[:default] = "\"#{column.default_function}\"" if column.default_function
         spec
       end
 
@@ -153,6 +152,26 @@ module ActiveRecord
       def migration_keys
         super + [:array]
       end
+
+      def schema_type(column)
+        return super unless column.serial?
+
+        if column.bigint?
+          'bigserial'
+        else
+          'serial'
+        end
+      end
+      private :schema_type
+
+      def schema_default(column)
+        if column.default_function
+          column.default_function.inspect unless column.serial?
+        else
+          super
+        end
+      end
+      private :schema_default
 
       # Returns +true+, since this connection adapter supports prepared statement
       # caching.

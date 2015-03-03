@@ -1,3 +1,7 @@
+*   Correctly dump `serial` and `bigserial`.
+
+    *Ryuta Kamizono*
+
 *   Fix default `format` value in `ActiveRecord::Tasks::DatabaseTasks#schema_file`.
 
     *James Cox*
