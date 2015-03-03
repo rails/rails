@@ -975,8 +975,6 @@ Below is a comprehensive list of all the initializers found in Rails in the orde
 
 * `load_environment_config` Loads the `config/environments` file for the current environment.
 
-* `append_asset_paths` Finds asset paths for the application and all attached railties and keeps a track of the available directories in `config.static_asset_paths`.
-
 * `prepend_helpers_path` Adds the directory `app/helpers` from the application, railties and engines to the lookup path for helpers for the application.
 
 * `load_config_initializers` Loads all Ruby files from `config/initializers` in the application, railties and engines. The files in this directory can be used to hold configuration settings that should be made after all of the frameworks are loaded.
