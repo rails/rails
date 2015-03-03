@@ -1,3 +1,13 @@
+*   Take DST into account when locating TimeZone from Numeric.
+
+    When given a specific offset, use the first result found where the
+    total current offset (including any periodic deviations such as DST)
+    from UTC is equal.
+
+    Fixes #15209.
+
+    *Yasyf Mohamedali*
+
 *   Fixed a problem where String#truncate_words would get stuck with a complex
     string.
 

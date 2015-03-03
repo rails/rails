@@ -246,7 +246,7 @@ module ActiveSupport
           end
           when Numeric, ActiveSupport::Duration
             arg *= 3600 if arg.abs <= 13
-            all.find { |z| z.utc_offset == arg.to_i }
+            all.find { |z| z.utc_total_offset == arg.to_i }
           else
             raise ArgumentError, "invalid argument to TimeZone[]: #{arg.inspect}"
         end
@@ -282,6 +282,12 @@ module ActiveSupport
         @current_period ||= tzinfo.current_period if tzinfo
         @current_period.utc_offset if @current_period
       end
+    end
+
+    # Returns the offset of this time zone from UTC in seconds,
+    # taking DST into account.
+    def utc_total_offset
+      tzinfo.current_period.utc_total_offset if tzinfo
     end
 
     # Returns the offset of this time zone as a formatted string, of the
