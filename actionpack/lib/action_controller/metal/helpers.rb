@@ -93,7 +93,7 @@ module ActionController
         super(args)
       end
 
-      # Return a list of helper names in specific path.
+      # Returns a list of helper names in a given path.
       #
       #   ActionController::Base.all_helpers_from_path 'app/helpers'
       #   # => ["application", "chart", "rubygems"]
