@@ -20,6 +20,8 @@ module ActionDispatch
       # alias inspect to to_s.
       alias inspect to_s
 
+      mattr_accessor :relative_url_root
+
       class Dispatcher < Routing::Endpoint
         def initialize(defaults)
           @defaults = defaults
@@ -697,7 +699,7 @@ module ActionDispatch
       end
 
       def find_script_name(options)
-        options.delete(:script_name) || ''
+        options.delete(:script_name) || relative_url_root || ''
       end
 
       def path_for(options, route_name = nil)
