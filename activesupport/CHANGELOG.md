@@ -1,3 +1,12 @@
+*   Add `ActiveSupport::TimeZone#from_offset`
+
+    When given a specific offset, use the first result found where the
+    total current offset (including any periodic deviations such as DST)
+    from UTC is equal. Takes a time to use as context, or defaults to
+    the current local time.
+
+    *Yasyf Mohamedali*
+
 *   `Date.to_s` doesn't produce too many spaces. For example, `to_s(:short)`
     will now produce `01 Feb` instead of ` 1 Feb`.
 

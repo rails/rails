@@ -233,8 +233,9 @@ module ActiveSupport
             nil
           end
           when Numeric, ActiveSupport::Duration
-            arg *= 3600 if arg.abs <= 13
-            all.find { |z| z.utc_offset == arg.to_i }
+            offset = offset_in_minutes arg
+            # This returns inconsistent results. See #15209.
+            all.find { |z| z.utc_offset == offset }
           else
             raise ArgumentError, "invalid argument to TimeZone[]: #{arg.inspect}"
         end
@@ -257,12 +258,27 @@ module ActiveSupport
           end.compact.sort!
       end
 
+      # Finds a Timezone with the given offset, at the given time. Defaults
+      # to the current time. Tries to guess DST status, and falls back to a
+      # default of true otherwise.
+      def from_offset(offset, time = Time.current, dst: true)
+        offset = offset_in_minutes offset
+        all.find { |z| z.utc_total_offset(time, dst: dst) == offset }
+      end
+
       private
         def zones_map
           @zones_map ||= begin
             MAPPING.each_key {|place| self[place]} # load all the zones
             @lazy_zones_map
           end
+        end
+
+        def offset_in_minutes(offset)
+          if offset.abs <= 13
+            offset *= 3600
+          end
+          offset.to_i
         end
     end
 
@@ -287,6 +303,12 @@ module ActiveSupport
       else
         tzinfo.current_period.utc_offset if tzinfo && tzinfo.current_period
       end
+    end
+
+    # Returns the offset of this time zone from UTC in seconds,
+    # taking DST into account at the given time.
+    def utc_total_offset(time = Time.current, dst: true)
+      period_for_local(time, dst).utc_total_offset if tzinfo
     end
 
     # Returns a formatted string of the offset from UTC, or an alternative
