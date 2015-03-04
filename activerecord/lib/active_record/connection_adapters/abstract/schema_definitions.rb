@@ -22,6 +22,9 @@ module ActiveRecord
       end
     end
 
+    class AddColumnDefinition < Struct.new(:column) # :nodoc:
+    end
+
     class ChangeColumnDefinition < Struct.new(:column, :name) #:nodoc:
     end
 
@@ -476,7 +479,7 @@ module ActiveRecord
       def add_column(name, type, options)
         name = name.to_s
         type = type.to_sym
-        @adds << @td.new_column_definition(name, type, options)
+        @adds << AddColumnDefinition.new(@td.new_column_definition(name, type, options))
       end
     end
 

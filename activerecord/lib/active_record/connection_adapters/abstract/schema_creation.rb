@@ -14,10 +14,6 @@ module ActiveRecord
           send m, o
         end
 
-        def visit_AddColumn(o)
-          "ADD #{accept(o)}"
-        end
-
         delegate :quote_column_name, :quote_table_name, :quote_default_expression, :type_to_sql, to: :@conn
         private :quote_column_name, :quote_table_name, :quote_default_expression, :type_to_sql
 
@@ -25,7 +21,7 @@ module ActiveRecord
 
           def visit_AlterTable(o)
             sql = "ALTER TABLE #{quote_table_name(o.name)} "
-            sql << o.adds.map { |col| visit_AddColumn col }.join(' ')
+            sql << o.adds.map { |col| accept col }.join(' ')
             sql << o.foreign_key_adds.map { |fk| visit_AddForeignKey fk }.join(' ')
             sql << o.foreign_key_drops.map { |fk| visit_DropForeignKey fk }.join(' ')
           end
@@ -35,6 +31,10 @@ module ActiveRecord
             column_sql = "#{quote_column_name(o.name)} #{o.sql_type}"
             add_column_options!(column_sql, column_options(o)) unless o.type == :primary_key
             column_sql
+          end
+
+          def visit_AddColumnDefinition(o)
+            "ADD #{accept(o.column)}"
           end
 
           def visit_TableDefinition(o)
