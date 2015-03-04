@@ -1,3 +1,10 @@
+*   Drop request class from RouteSet constructor.
+ 
+    If you would like to use a custom request class, please subclass and implemet
+    the `request_class` method.
+
+    *tenderlove@ruby-lang.org*
+
 *   Fallback to `ENV['RAILS_RELATIVE_URL_ROOT']` in `url_for`.
 
     Fixed an issue where the `RAILS_RELATIVE_URL_ROOT` environment variable is not

@@ -311,7 +311,7 @@ module ActionDispatch
 
       attr_accessor :formatter, :set, :named_routes, :default_scope, :router
       attr_accessor :disable_clear_and_finalize, :resources_path_names
-      attr_accessor :default_url_options, :request_class
+      attr_accessor :default_url_options
       attr_reader :env_key
 
       alias :routes :set
@@ -320,11 +320,10 @@ module ActionDispatch
         { :new => 'new', :edit => 'edit' }
       end
 
-      def initialize(request_class = ActionDispatch::Request)
+      def initialize
         self.named_routes = NamedRouteCollection.new
         self.resources_path_names = self.class.default_resources_path_names
         self.default_url_options = {}
-        self.request_class = request_class
 
         @append                     = []
         @prepend                    = []
@@ -335,6 +334,10 @@ module ActionDispatch
         @set    = Journey::Routes.new
         @router = Journey::Router.new @set
         @formatter = Journey::Formatter.new @set
+      end
+
+      def request_class
+        ActionDispatch::Request
       end
 
       def draw(&block)
@@ -545,7 +548,7 @@ module ActionDispatch
 
         conditions.keep_if do |k, _|
           k == :action || k == :controller || k == :required_defaults ||
-            @request_class.public_method_defined?(k) || path_values.include?(k)
+            request_class.public_method_defined?(k) || path_values.include?(k)
         end
       end
       private :build_conditions
