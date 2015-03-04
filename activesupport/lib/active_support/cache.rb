@@ -353,8 +353,11 @@ module ActiveSupport
       # Returns a hash with the data for each of the names. For example:
       #
       #   cache.write("bim", "bam")
-      #   cache.fetch_multi("bim", "boom") { |key| key * 2 }
-      #   # => { "bam" => "bam", "boom" => "boomboom" }
+      #   cache.fetch_multi("bim", "unknown_key") do |key|
+      #     "Fallback value for key: #{key}"
+      #   end
+      #   # => { "bim" => "bam",
+      #   #      "unknown_key" => "Fallback value for key: unknown_key" }
       #
       def fetch_multi(*names)
         options = names.extract_options!
