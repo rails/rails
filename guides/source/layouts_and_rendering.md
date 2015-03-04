@@ -589,7 +589,7 @@ The lookup order for a `admin/products#index` action will be:
 * `app/views/admin/`
 * `app/views/application/`
 
-This makes `app/views/application/` a great place for your shared partials, which can then be rendered in your ERb as such:
+This makes `app/views/application/` a great place for your shared partials, which can then be rendered in your ERB as such:
 
 ```erb
 <%# app/views/admin/products/index.html.erb %>
