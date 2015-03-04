@@ -48,16 +48,5 @@ module ActiveModel
         raise UnknownAttributeError.new(self, k)
       end
     end
-
-    # Raised when unknown attributes are supplied via mass assignment.
-    class UnknownAttributeError < NoMethodError
-      attr_reader :record, :attribute
-
-      def initialize(record, attribute)
-        @record = record
-        @attribute = attribute
-        super("unknown attribute '#{attribute}' for #{@record.class}.")
-      end
-    end
   end
 end

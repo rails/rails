@@ -27,6 +27,18 @@ class Array
     end
   end
 
+  # Returns a copy of the Array without the specified elements.
+  #
+  #   people = ["David", "Rafael", "Aaron", "Todd"]
+  #   people.without "Aaron", "Todd"
+  #     => ["David", "Rafael"]
+  #
+  # Note: This is an optimization of `Enumerable#without` that uses `Array#-`
+  # instead of `Array#reject` for performance reasons.
+  def without(*elements)
+    self - elements
+  end
+
   # Equal to <tt>self[1]</tt>.
   #
   #   %w( a b c d e ).second # => "b"

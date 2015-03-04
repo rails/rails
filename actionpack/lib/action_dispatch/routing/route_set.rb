@@ -201,12 +201,9 @@ module ActionDispatch
             private
 
             def optimized_helper(args)
-              params = parameterize_args(args)
-              missing_keys = missing_keys(params)
-
-              unless missing_keys.empty?
-                raise_generation_error(params, missing_keys)
-              end
+              params = parameterize_args(args) { |k|
+                raise_generation_error(args)
+              }
 
               @route.format params
             end
@@ -217,16 +214,21 @@ module ActionDispatch
 
             def parameterize_args(args)
               params = {}
-              @required_parts.zip(args.map(&:to_param)) { |k,v| params[k] = v }
+              @arg_size.times { |i|
+                key = @required_parts[i]
+                value = args[i].to_param
+                yield key if value.nil? || value.empty?
+                params[key] = value
+              }
               params
             end
 
-            def missing_keys(args)
-              args.select{ |part, arg| arg.nil? || arg.empty? }.keys
-            end
-
-            def raise_generation_error(args, missing_keys)
-              constraints = Hash[@route.requirements.merge(args).sort]
+            def raise_generation_error(args)
+              missing_keys = []
+              params = parameterize_args(args) { |missing_key|
+                missing_keys << missing_key
+              }
+              constraints = Hash[@route.requirements.merge(params).sort]
               message = "No route matches #{constraints.inspect}"
               message << " missing required keys: #{missing_keys.sort.inspect}"
 
@@ -319,6 +321,7 @@ module ActionDispatch
       attr_accessor :formatter, :set, :named_routes, :default_scope, :router
       attr_accessor :disable_clear_and_finalize, :resources_path_names
       attr_accessor :default_url_options, :request_class
+      attr_reader :env_key
 
       attr_accessor :script_name_finder
 
@@ -330,7 +333,7 @@ module ActionDispatch
 
       SCRIPT_NAME_FINDER = ->(options) {
         if options.key? :script_name
-          (options.delete(:script_name) || '').chomp '/'
+          (options.delete(:script_name) || '').chomp '/'.freeze
         else
           ''
         end
@@ -348,6 +351,7 @@ module ActionDispatch
         @disable_clear_and_finalize = false
         @finalized                  = false
         @script_name_finder = SCRIPT_NAME_FINDER
+        @env_key                    = "ROUTES_#{object_id}_SCRIPT_NAME".freeze
 
         @set    = Journey::Routes.new
         @router = Journey::Router.new @set

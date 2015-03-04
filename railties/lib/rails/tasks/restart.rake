@@ -1,4 +1,4 @@
 desc "Restart app by touching tmp/restart.txt"
-task restart: :environment do
+task :restart do
   FileUtils.touch('tmp/restart.txt')
 end

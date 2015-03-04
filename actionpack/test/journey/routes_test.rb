@@ -37,7 +37,6 @@ module ActionDispatch
       end
 
       def test_first_name_wins
-        #def add_route app, path, conditions, defaults, name = nil
         routes = Routes.new
 
         one   = Path::Pattern.from_string '/hello'

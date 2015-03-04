@@ -114,7 +114,7 @@ module ActionDispatch
     end
 
     def engine_script_name(_routes) # :nodoc:
-      env["ROUTES_#{_routes.object_id}_SCRIPT_NAME"]
+      env[_routes.env_key]
     end
 
     def request_method=(request_method) #:nodoc:

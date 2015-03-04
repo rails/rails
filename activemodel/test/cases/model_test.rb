@@ -70,7 +70,7 @@ class ModelTest < ActiveModel::TestCase
   end
 
   def test_mixin_initializer_when_args_dont_exist
-    assert_raises(ActiveModel::AttributeAssignment::UnknownAttributeError) do
+    assert_raises(ActiveModel::UnknownAttributeError) do
       SimpleModel.new(hello: 'world')
     end
   end

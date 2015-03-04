@@ -242,55 +242,6 @@ The contents of the block, and therefore the string interpolation, is only
 evaluated if debug is enabled. This performance savings is only really
 noticeable with large amounts of logging, but it's a good practice to employ.
 
-
-Debugging with the `web-console` gem
--------------------------------------
-
-The web console allows you to start an interactive Ruby session in your browser.
-An interactive console is launched automatically in case of an error but can also
-be launched for debugging purposes by invoking `console` in a view or controller.
-
-For example in a view:
-
-```ruby
-# new.html.erb
-<%= console %>
-```
-
-Or in a controller:
-
-```ruby
-# posts_controller.rb
-class PostsController < ApplicationController
-  def new
-    console
-    @post = Post.new
-  end
-end
-```
-
-### config.web_console.whitelisted_ips
-
-By default the web console can only be accessed from localhost.
-`config.web_console.whitelisted_ips` lets you control which IPs have access to
-the console.
-
-For example, to allow access from both localhost and 192.168.0.100, you can put
-inside your configuration file:
-
-```ruby
-config.web_console.whitelisted_ips = %w( 127.0.0.1 192.168.0.100 )
-```
-
-Or to allow access from an entire network:
-
-```ruby
-config.web_console.whitelisted_ips = %w( 127.0.0.1 192.168.0.0/16 )
-```
-
-The web console is a powerful tool so be careful when you give access to an IP.
-
-
 Debugging with the `byebug` gem
 ---------------------------------
 
@@ -831,10 +782,10 @@ will be stopped and you will have to start it again.
 
 `byebug` has a few available options to tweak its behaviour:
 
-* `set autoreload`: Reload source code when changed (default: true).
-* `set autolist`: Execute `list` command on every breakpoint (default: true).
+* `set autoreload`: Reload source code when changed (defaults: true).
+* `set autolist`: Execute `list` command on every breakpoint (defaults: true).
 * `set listsize _n_`: Set number of source lines to list by default to _n_
-(default: 10)
+(defaults: 10)
 * `set forcestep`: Make sure the `next` and `step` commands always move to a new
 line.
 
@@ -848,6 +799,63 @@ The debugger reads these global settings when it starts. For example:
 set forcestep
 set listsize 25
 ```
+
+Debugging with the `web-console` gem
+------------------------------------
+
+Web Console is a bit like `byebug`, but it runs in the browser. In any page you
+are developing, you can request a console in the context of a view or a
+controller. The console would be rendered next to your HTML content.
+
+### Console
+
+Inside any controller action or view, you can then invoke the console by
+calling the `console` method.
+
+For example, in a controller:
+
+```ruby
+class PostController < ApplicationController
+  def new
+    console
+    @post = Post.new
+  end
+end
+```
+
+Or in a view:
+
+```html+erb
+<% console %>
+
+<h2>New Post</h2>
+```
+
+This will render a console inside your view. You don't need to care about the
+location of the `console` call; it won't be rendered on the spot of its
+invocation but next to your HTML content.
+
+The console executes pure Ruby code. You can define and instantiate
+custom classes, create new models and inspect variables.
+
+NOTE: Only one console can be rendered per request. Otherwise `web-console`
+will raise an error on the second `console` invocation.
+
+### Inspecting Variables
+
+You can invoke `instance_variables` to list all the instance variables
+available in your context. If you want to list all the local variables, you can
+do that with `local_variables`.
+
+### Settings
+
+* `config.web_console.whitelisted_ips`: Authorized list of IPv4 or IPv6
+addresses and networks (defaults: `127.0.0.1/8, ::1`).
+* `config.web_console.whiny_requests`: Log a message when a console rendering
+is prevented (defaults: `true`).
+
+Since `web-console` evaluates plain Ruby code remotely on the server, don't try
+to use it in production.
 
 Debugging Memory Leaks
 ----------------------
@@ -905,6 +913,7 @@ References
 * [ruby-debug Homepage](http://bashdb.sourceforge.net/ruby-debug/home-page.html)
 * [debugger Homepage](https://github.com/cldwalker/debugger)
 * [byebug Homepage](https://github.com/deivid-rodriguez/byebug)
+* [web-console Homepage](https://github.com/rails/web-console)
 * [Article: Debugging a Rails application with ruby-debug](http://www.sitepoint.com/debug-rails-app-ruby-debug/)
 * [Ryan Bates' debugging ruby (revised) screencast](http://railscasts.com/episodes/54-debugging-ruby-revised)
 * [Ryan Bates' stack trace screencast](http://railscasts.com/episodes/24-the-stack-trace)

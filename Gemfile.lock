@@ -12,6 +12,13 @@ GIT
       redis-namespace
 
 GIT
+  remote: git://github.com/mikel/mail.git
+  revision: b159e0a542962fdd5e292a48cfffa560d7cf412e
+  specs:
+    mail (2.6.3.edge)
+      mime-types (>= 1.16, < 3)
+
+GIT
   remote: git://github.com/rails/arel.git
   revision: aac9da257f291ad8d2d4f914528881c240848bb2
   branch: master
@@ -41,7 +48,7 @@ PATH
       actionview (= 5.0.0.alpha)
       activesupport (= 5.0.0.alpha)
       rack (~> 1.6)
-      rack-test (~> 0.6.2)
+      rack-test (~> 0.6.3)
       rails-dom-testing (~> 1.0, >= 1.0.5)
       rails-html-sanitizer (~> 1.0, >= 1.0.1)
     actionview (5.0.0.alpha)
@@ -123,8 +130,6 @@ GEM
       nokogiri
     loofah (2.0.1)
       nokogiri (>= 1.5.9)
-    mail (2.6.3)
-      mime-types (>= 1.16, < 3)
     metaclass (0.0.4)
     mime-types (2.4.3)
     mini_portile (0.6.2)
@@ -250,6 +255,7 @@ DEPENDENCIES
   jquery-rails!
   json
   kindlerb (= 0.1.1)
+  mail!
   minitest (< 5.3.4)
   mocha (~> 0.14)
   mysql (>= 2.9.0)

@@ -52,6 +52,16 @@ module ActionDispatch
     # JavaScript before upgrading.
     #
     # Note that changing the secret key will invalidate all existing sessions!
+    #
+    # Because CookieStore extends Rack::Session::Abstract::ID, many of the
+    # options described there can be used to customize the session cookie that
+    # is generated. For example:
+    #
+    #   Rails.application.config.session_store :cookie_store, expire_after: 14.days
+    #
+    # would set the session cookie to expire automatically 14 days after creation.
+    # Other useful options include <tt>:key</tt>, <tt>:secure</tt> and
+    # <tt>:httponly</tt>.
     class CookieStore < Rack::Session::Abstract::ID
       include Compatibility
       include StaleSessionCheck

@@ -14,6 +14,15 @@ require 'active_support/testing/autorun'
 
 require 'mocha/setup' # FIXME: stop using mocha
 
+# Skips the current run on Rubinius using Minitest::Assertions#skip
+def rubinius_skip(message = '')
+  skip message if RUBY_ENGINE == 'rbx'
+end
+# Skips the current run on JRuby using Minitest::Assertions#skip
+def jruby_skip(message = '')
+  skip message if defined?(JRUBY_VERSION)
+end
+
 # FIXME: we have tests that depend on run order, we should fix that and
 # remove this method call.
 require 'active_support/test_case'

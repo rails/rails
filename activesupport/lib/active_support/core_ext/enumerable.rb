@@ -60,6 +60,17 @@ module Enumerable
   def exclude?(object)
     !include?(object)
   end
+
+  # Returns a copy of the enumerable without the specified elements.
+  #
+  #   ["David", "Rafael", "Aaron", "Todd"].without "Aaron", "Todd"
+  #     => ["David", "Rafael"]
+  #
+  #   {foo: 1, bar: 2, baz: 3}.without :bar
+  #     => {foo: 1, baz: 3}
+  def without(*elements)
+    reject { |element| elements.include?(element) }
+  end
 end
 
 class Range #:nodoc:

@@ -229,7 +229,7 @@ or, for a single case:
 resources :articles, path: '/admin/articles'
 ```
 
-In each of these cases, the named routes remain the same as if you did not use `scope`. In the last case, the following paths map to `PostsController`:
+In each of these cases, the named routes remain the same as if you did not use `scope`. In the last case, the following paths map to `ArticlesController`:
 
 | HTTP Verb | Path                     | Controller#Action    | Named Helper           |
 | --------- | ------------------------ | -------------------- | ---------------------- |

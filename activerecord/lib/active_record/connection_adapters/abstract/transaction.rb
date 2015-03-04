@@ -1,13 +1,10 @@
 module ActiveRecord
   module ConnectionAdapters
     class TransactionState
-      attr_reader :parent
-
       VALID_STATES = Set.new([:committed, :rolledback, nil])
 
       def initialize(state = nil)
         @state = state
-        @parent = nil
       end
 
       def finalized?
@@ -27,7 +24,7 @@ module ActiveRecord
       end
 
       def set_state(state)
-        if !VALID_STATES.include?(state)
+        unless VALID_STATES.include?(state)
           raise ArgumentError, "Invalid transaction state: #{state}"
         end
         @state = state

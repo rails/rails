@@ -9,6 +9,9 @@ class DuplicableTest < ActiveSupport::TestCase
   ALLOW_DUP << BigDecimal.new('4.56')
 
   def test_duplicable
+    rubinius_skip "* Method#dup is allowed at the moment on Rubinius\n" \
+                  "* https://github.com/rubinius/rubinius/issues/3089"
+
     RAISE_DUP.each do |v|
       assert !v.duplicable?
       assert_raises(TypeError, v.class.name) { v.dup }

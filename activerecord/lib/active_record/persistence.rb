@@ -96,7 +96,8 @@ module ActiveRecord
     # Returns true if the record is persisted, i.e. it's not a new record and it was
     # not destroyed, otherwise returns false.
     def persisted?
-      !(new_record? || destroyed?)
+      sync_with_transaction_state
+      !(@new_record || @destroyed)
     end
 
     # Saves the model.

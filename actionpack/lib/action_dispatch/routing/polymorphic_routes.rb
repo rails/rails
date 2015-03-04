@@ -247,14 +247,12 @@ module ActionDispatch
           args  = []
 
           model = record.to_model
-          name = if model.persisted?
-                   args << model
-                   model.model_name.singular_route_key
-                 else
-                   @key_strategy.call model.model_name
-                 end
-
-          named_route = prefix + "#{name}_#{suffix}"
+          named_route = if model.persisted?
+                          args << model
+                          get_method_for_string model.model_name.singular_route_key
+                        else
+                          get_method_for_class model
+                        end
 
           [named_route, args]
         end
@@ -309,11 +307,11 @@ module ActionDispatch
 
         def get_method_for_class(klass)
           name   = @key_strategy.call klass.model_name
-          prefix + "#{name}_#{suffix}"
+          get_method_for_string name
         end
 
         def get_method_for_string(str)
-          prefix + "#{str}_#{suffix}"
+          "#{prefix}#{str}_#{suffix}"
         end
 
         [nil, 'new', 'edit'].each do |action|

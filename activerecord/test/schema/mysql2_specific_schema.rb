@@ -35,9 +35,7 @@ BEGIN
 END
 SQL
 
-  ActiveRecord::Base.connection.execute <<-SQL
-DROP TABLE IF EXISTS collation_tests;
-SQL
+  ActiveRecord::Base.connection.drop_table "collation_tests", if_exists: true
 
   ActiveRecord::Base.connection.execute <<-SQL
 CREATE TABLE collation_tests (
@@ -46,9 +44,7 @@ CREATE TABLE collation_tests (
 ) CHARACTER SET utf8 COLLATE utf8_general_ci
 SQL
 
-  ActiveRecord::Base.connection.execute <<-SQL
-DROP TABLE IF EXISTS enum_tests;
-SQL
+  ActiveRecord::Base.connection.drop_table "enum_tests", if_exists: true
 
   ActiveRecord::Base.connection.execute <<-SQL
 CREATE TABLE enum_tests (

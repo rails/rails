@@ -95,7 +95,7 @@ end
 module ActiveSupport
   class TestCase
     include ActionDispatch::DrawOnce
-    if ActiveSupport::Testing::Isolation.forking_env? && PROCESS_COUNT > 0
+    if RUBY_ENGINE == "ruby" && PROCESS_COUNT > 0
       parallelize_me!
     end
   end
@@ -480,7 +480,7 @@ class ForkingExecutor
   end
 end
 
-if ActiveSupport::Testing::Isolation.forking_env? && PROCESS_COUNT > 0
+if RUBY_ENGINE == "ruby" && PROCESS_COUNT > 0
   # Use N processes (N defaults to 4)
   Minitest.parallel_executor = ForkingExecutor.new(PROCESS_COUNT)
 end
