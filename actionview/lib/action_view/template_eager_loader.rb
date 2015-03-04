@@ -1,4 +1,5 @@
 module ActionView
+  # Does stuff.
   class TemplateEagerLoader
 
     def initialize(resolver)
@@ -6,27 +7,39 @@ module ActionView
     end
 
     def eager_load
+      each_template(&:compile!)
+    end
+
+    private
+
+    def each_template(&block)
       prefixes.each do |prefix|
         path_names(prefix).each do |name|
           locales.each do |locale|
-            pieces = name.split('.')
-            details, key = details_and_key(locale, name, pieces)
-            action = pieces.first
-            partial, locals = partial_and_locals(action)
-            action = action[1..-1] if action[0] == '_'
+            details, key, action, partial, locals = set_template_parameters(locale, name)
             locals.each do |locals_array|
-              templates(action, prefix, partial, details, key, locals_array).each(&:compile!)
+              @resolver.find_all(action, prefix, partial, details, key, locals_array).each(&block)
             end
           end
         end
       end
     end
 
-    private
+    def set_template_parameters(locale, name)
+      name_parts, partial = name_parts_and_partial(name)
+      details, key = details_and_key(locale, name, name_parts)
+      action = action_without_partial_underscore(name_parts.first, partial)
+      locals = partial ? locals(action) : [[]]
+      [details, key, action, partial, locals]
+    end
 
-    def templates(action, prefix, partial, details, key, locals)
-      templates = @resolver.find_all(action, prefix, partial, details, key, locals)
-      templates.nil? ? [] : templates
+    def action_without_partial_underscore(name, partial)
+      partial ? name[1..-1] : name
+    end
+
+    def name_parts_and_partial(name)
+      name_parts = name.split('.')
+      [name_parts, name_parts.first.start_with?('_')]
     end
 
     def prefixes
@@ -34,28 +47,22 @@ module ActionView
       prefixes.map { |prefix| prefix.split(File.basename prefix).first[0..-2] }.uniq
     end
 
-    def details_and_key(locale, name, pieces)
+    def details_and_key(locale, name, name_parts)
       details = {
         locale: locale,
         formats: formats(name),
-        variants: variants(pieces),
+        variants: variants(name_parts),
         handlers: ActionView::Template::Handlers.extensions
       }
-      return details, ActionView::LookupContext::DetailsKey.get(details)
+      [details, ActionView::LookupContext::DetailsKey.get(details)]
     end
 
-    def partial_and_locals(action)
-      partial = false
+    def locals(action)
       locals = []
-      if action[0] == '_'
-        partial = true
-        action = action[1..-1]
-        locals << action
-        locals << action + '_counter'
-        locals << action + '_iteration'
-      end
-      return partial, [locals] if locals == []
-      return partial, [[], locals]
+      locals << action
+      locals << action + '_counter'
+      locals << action + '_iteration'
+      [[], locals]
     end
 
     # All possible locale combinations
@@ -77,17 +84,21 @@ module ActionView
     end
 
     def path_names(prefix)
-      view_paths_for(prefix).map { |name| File.basename(name) }
+      view_paths_for(prefix).map { |path| File.basename(path) }
     end
 
     def view_paths_for(prefix)
       view_paths.select { |i| i.match(%r{\Aapp/views/#{prefix}/[^/]+\.+[^/]+\z}) }
     end
 
-    def variants(pieces)
+    def variants(name_parts)
       separator = ActionView::PathResolver::EXTENSIONS[:variants]
       parts = name_parts[0..-2].last.split(separator)
       parts.length > 1 ? [parts.last] : []
+    end
+
+    def variant_separator
+      Regexp.escape(ActionView::PathResolver::EXTENSIONS[:variants])
     end
 
     def all_formats
