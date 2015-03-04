@@ -30,6 +30,46 @@ class TemplateEagerLoaderTest < ActiveSupport::TestCase
       subject.eager_load
     end
 
+    def test_compile_called
+      template = mock
+      subject.stubs(:templates).returns([template])
+      template.expects(:compile!)
+      subject.eager_load
+    end
+
+    def test_multiple_templates
+      template1 = mock
+      template2 = mock
+      subject.stubs(:templates).returns([template1, template2])
+      template1.expects(:compile!)
+      template2.expects(:compile!)
+      subject.eager_load
+    end
+
+    def test_instance_method_added
+      template = ActionView::Template.new("<%= hello %>", "hello template", { format: :html }.fetch(:handler) { ActionView::Template::Handlers::ERB.new }, {:virtual_path => "hello"}.merge!({ format: :html }))
+      resolver.stubs(:find_all).returns([template])
+      subject.eager_load
+      assert ActionView::CompiledTemplates.instance_methods.any? { |m| m.to_s.split('_')[1..2] == ["hello", "template"] }
+    end
+
+    def test_multiple_instance_methods_added
+      template1 = ActionView::Template.new("<%= moi %>", "moi template", { format: :html }.fetch(:handler) { ActionView::Template::Handlers::ERB.new }, {:virtual_path => "moi"}.merge!({ format: :html }))
+      template2 = ActionView::Template.new("<%= bonjour %>", "bonjour template", { format: :html }.fetch(:handler) { ActionView::Template::Handlers::ERB.new }, {:virtual_path => "bonjour"}.merge!({ format: :html }))
+      resolver.stubs(:find_all).returns([template1, template2])
+      subject.eager_load
+      moi_found = false
+      bonjour_found = false
+      ActionView::CompiledTemplates.instance_methods.each do |m|
+        if m.to_s.split('_')[1..2] == ["moi", "template"]
+          moi_found = true
+        elsif m.to_s.split('_')[1..2] == ["bonjour", "template"]
+          bonjour_found = true
+        end
+      end
+      assert moi_found && bonjour_found
+    end
+
     class PartialTests < TemplateEagerLoaderTest
       def setup
         super
