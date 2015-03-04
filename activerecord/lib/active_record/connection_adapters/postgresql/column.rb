@@ -6,7 +6,9 @@ module ActiveRecord
       alias :array? :array
 
       def serial?
-        default_function && default_function =~ /\Anextval\(.*\)\z/
+        return unless default_function
+
+        %r{\Anextval\('(?<table_name>.+)_#{name}_seq'::regclass\)\z} === default_function
       end
     end
   end
