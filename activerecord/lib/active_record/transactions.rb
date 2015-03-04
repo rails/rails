@@ -356,6 +356,7 @@ module ActiveRecord
       if has_transactional_callbacks?
         self.class.connection.add_transaction_record(self)
       else
+        sync_with_transaction_state
         set_transaction_state(self.class.connection.transaction_state)
       end
       remember_transaction_record_state

@@ -593,6 +593,15 @@ class TransactionTest < ActiveRecord::TestCase
     assert topic.frozen?, 'frozen'
   end
 
+  def test_rollback_for_freshly_persisted_records
+    topic = Topic.create
+    Topic.transaction do
+      topic.destroy
+      raise ActiveRecord::Rollback
+    end
+    assert topic.persisted?, 'persisted'
+  end
+
   def test_sqlite_add_column_in_transaction
     return true unless current_adapter?(:SQLite3Adapter)
 
