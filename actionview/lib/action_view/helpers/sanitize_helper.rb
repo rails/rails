@@ -84,6 +84,8 @@ module ActionView
       end
 
       # Sanitizes a block of CSS code. Used by +sanitize+ when it comes across a style attribute.
+      # You can see all allowed css properties, keywords and svg properties in loofah gem. Link:
+      # https://github.com/flavorjones/loofah/blob/v2.0.1/lib/loofah/html5/whitelist.rb#L153-L155
       def sanitize_css(style)
         self.class.white_list_sanitizer.sanitize_css(style)
       end
