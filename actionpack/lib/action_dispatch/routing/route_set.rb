@@ -310,9 +310,6 @@ module ActionDispatch
       PATH    = ->(ctx, script_name, options) {
         ActionDispatch::Http::URL.path_for(ctx, script_name, options)
       }
-      FULL    = ->(ctx, script_name, options) {
-        ActionDispatch::Http::URL.full_url_for(ctx, script_name, options)
-      }
       UNKNOWN = ->(ctx, script_name, options) {
         ActionDispatch::Http::URL.context_url_for(ctx, script_name, options)
       }
