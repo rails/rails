@@ -113,9 +113,7 @@ module ActionDispatch # :nodoc:
     # The underlying body, as a streamable object.
     attr_reader :stream
 
-    # Ruby 2.2 bug https://bugs.ruby-lang.org/issues/10685 prevents
-    # default_headers from being a keyword argument.
-    def initialize(status = 200, header = {}, body = [], default_headers = self.class.default_headers)
+    def initialize(status = 200, header = {}, body = [], default_headers: self.class.default_headers)
       super()
 
       header = merge_default_headers(header, default_headers)
