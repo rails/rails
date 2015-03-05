@@ -301,23 +301,7 @@ Expected: ["id", "name"]
       end
 
       def run_test_file(name, options = {})
-        ruby '-Itest', "#{app_path}/test/#{name}", options.deep_merge(env: {"RAILS_ENV" => "test"})
-      end
-
-      def ruby(*args)
-        options = args.extract_options!
-        env = options.fetch(:env, {})
-        env["RUBYLIB"] = $:.join(':')
-
-        Dir.chdir(app_path) do
-          `#{env_string(env)} #{Gem.ruby} #{args.join(' ')} 2>&1`
-        end
-      end
-
-      def env_string(variables)
-        variables.map do |key, value|
-          "#{key}='#{value}'"
-        end.join " "
+        Dir.chdir(app_path) { `bin/rails test "#{app_path}/test/#{name}" 2>&1` }
       end
   end
 end
