@@ -103,7 +103,9 @@ module ActionView
       # Highlights one or more +phrases+ everywhere in +text+ by inserting it into
       # a <tt>:highlighter</tt> string. The highlighter can be specialized by passing <tt>:highlighter</tt>
       # as a single-quoted string with <tt>\1</tt> where the phrase is to be inserted (defaults to
-      # '<mark>\1</mark>') or passing a block that receives each matched term.
+      # '<mark>\1</mark>') or passing a block that receives each matched term. By default +text+
+      # is sanitized to prevent possible XSS attacks. If the input is trustworthy, passing false
+      # for <tt>:sanitize</tt> will turn sanitizing off.
       #
       #   highlight('You searched for: rails', 'rails')
       #   # => You searched for: <mark>rails</mark>
@@ -122,6 +124,9 @@ module ActionView
       #
       #   highlight('You searched for: rails', 'rails') { |match| link_to(search_path(q: match, match)) }
       #   # => You searched for: <a href="search?q=rails">rails</a>
+      #
+      #   highlight('<a href="javascript:alert(\'no!\')">ruby</a> on rails', 'rails', sanitize: false)
+      #   # => "<a>ruby</a> on <mark>rails</mark>"
       def highlight(text, phrases, options = {})
         text = sanitize(text) if options.fetch(:sanitize, true)
 
