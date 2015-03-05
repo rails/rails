@@ -20,8 +20,6 @@ module ActionDispatch
       # alias inspect to to_s.
       alias inspect to_s
 
-      mattr_accessor :relative_url_root
-
       class Dispatcher < Routing::Endpoint
         def initialize(defaults)
           @defaults = defaults
@@ -320,11 +318,25 @@ module ActionDispatch
         { :new => 'new', :edit => 'edit' }
       end
 
-      def initialize
+      def self.new_with_config(config)
+        if config.respond_to? :relative_url_root
+          new Config.new config.relative_url_root
+        else
+          # engines apparently don't have this set
+          new
+        end
+      end
+
+      Config = Struct.new :relative_url_root
+
+      DEFAULT_CONFIG = Config.new(nil)
+
+      def initialize(config = DEFAULT_CONFIG)
         self.named_routes = NamedRouteCollection.new
         self.resources_path_names = self.class.default_resources_path_names
         self.default_url_options = {}
 
+        @config                     = config
         @append                     = []
         @prepend                    = []
         @disable_clear_and_finalize = false
@@ -334,6 +346,10 @@ module ActionDispatch
         @set    = Journey::Routes.new
         @router = Journey::Router.new @set
         @formatter = Journey::Formatter.new @set
+      end
+
+      def relative_url_root
+        @config.relative_url_root
       end
 
       def request_class

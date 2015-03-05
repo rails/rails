@@ -30,8 +30,8 @@ module AbstractController
         assert_equal '/foo/zot', path
       end
 
-      def add_host!
-        W.default_url_options[:host] = 'www.basecamphq.com'
+      def add_host!(app = W)
+        app.default_url_options[:host] = 'www.basecamphq.com'
       end
 
       def add_port!
@@ -257,12 +257,16 @@ module AbstractController
 
       def test_relative_url_root_is_respected_with_environment_variable
         # `config.relative_url_root` is set by ENV['RAILS_RELATIVE_URL_ROOT']
-        ActionDispatch::Routing::RouteSet.relative_url_root = '/subdir'
-        add_host!
+        w = Class.new {
+          config = ActionDispatch::Routing::RouteSet::Config.new '/subdir'
+          r = ActionDispatch::Routing::RouteSet.new(config)
+          r.draw { get ':controller(/:action(/:id(.:format)))' }
+          include r.url_helpers
+        }
+        add_host!(w)
         assert_equal('https://www.basecamphq.com/subdir/c/a/i',
-          W.new.url_for(:controller => 'c', :action => 'a', :id => 'i', :protocol => 'https')
+          w.new.url_for(:controller => 'c', :action => 'a', :id => 'i', :protocol => 'https')
         )
-        ActionDispatch::Routing::RouteSet.relative_url_root = nil
       end
 
       def test_named_routes
