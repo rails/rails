@@ -2,4 +2,6 @@ gem 'minitest'
 
 require 'minitest'
 
-Minitest.autorun
+unless defined? Rails::TestRunner
+  Minitest.autorun
+end

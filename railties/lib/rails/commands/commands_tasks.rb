@@ -27,7 +27,7 @@ In addition to those, there are:
 All commands can be run with -h (or --help) for more information.
 EOT
 
-    COMMAND_WHITELIST = %w(plugin generate destroy console server dbconsole runner new version help)
+    COMMAND_WHITELIST = %w(plugin generate destroy console server dbconsole runner new version help test)
 
     def initialize(argv)
       @argv = argv
@@ -40,6 +40,13 @@ EOT
       else
         write_error_message(command)
       end
+    end
+
+    def test
+      ENV['RAILS_ENV'] ||= 'test'
+      require_application_and_environment!
+      require_command!("test")
+      Rails::TestRunner.run(argv.first)
     end
 
     def plugin
