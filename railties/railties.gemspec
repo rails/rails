@@ -28,6 +28,7 @@ Gem::Specification.new do |s|
 
   s.add_dependency 'rake', '>= 0.8.7'
   s.add_dependency 'thor', '>= 0.18.1', '< 2.0'
+  s.add_dependency 'method_source'
 
   s.add_development_dependency 'actionview', version
 end
