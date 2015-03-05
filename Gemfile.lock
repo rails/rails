@@ -117,6 +117,9 @@ GEM
     dante (0.1.5)
     delayed_job (4.0.6)
       activesupport (>= 3.0, < 5.0)
+    delayed_job_active_record (4.0.3)
+      activerecord (>= 3.0, < 5.0)
+      delayed_job (>= 3.0, < 4.1)
     erubis (2.7.0)
     execjs (2.3.0)
     globalid (0.3.3)
@@ -252,6 +255,7 @@ DEPENDENCIES
   coffee-rails (~> 4.1.0)
   dalli (>= 2.2.1)
   delayed_job
+  delayed_job_active_record
   jquery-rails!
   json
   kindlerb (= 0.1.1)
