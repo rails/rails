@@ -15,7 +15,7 @@ module ActionController
     module ClassMethods
       # Allows you to consider additional controller-wide information when generating an ETag.
       # For example, if you serve pages tailored depending on who's logged in at the moment, you
-      # may want to add the current user id to be part of the ETag to prevent authorized displaying
+      # may want to add the current user id to be part of the ETag to prevent unauthorized displaying
       # of cached pages.
       #
       #   class InvoicesController < ApplicationController
