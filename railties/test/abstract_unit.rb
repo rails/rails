@@ -30,9 +30,4 @@ end
 
 class ActiveSupport::TestCase
   include ActiveSupport::Testing::Stream
-
-  # FIXME: we have tests that depend on run order, we should fix that and
-  # remove this method call.
-  self.test_order = :sorted
-
 end

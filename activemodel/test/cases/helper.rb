@@ -22,8 +22,3 @@ end
 def jruby_skip(message = '')
   skip message if defined?(JRUBY_VERSION)
 end
-
-# FIXME: we have tests that depend on run order, we should fix that and
-# remove this method call.
-require 'active_support/test_case'
-ActiveSupport::TestCase.test_order = :sorted
