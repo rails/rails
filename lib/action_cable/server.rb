@@ -106,7 +106,7 @@ module ActionCable
 
       def process_message(message)
         if @subscriptions[message['identifier']]
-          @subscriptions[message['identifier']].receive(ActiveSupport::JSON.decode message['data'])
+          @subscriptions[message['identifier']].receive_data(ActiveSupport::JSON.decode message['data'])
         else
           logger.error "Unable to process message: #{message}"
         end

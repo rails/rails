@@ -35,8 +35,16 @@ module ActionCable
         subscribe
       end
 
-      def receive(data)
-        raise "Not implemented"
+      def receive_data(data)
+        if authorized?
+          if respond_to?(:receive)
+            receive(data)
+          else
+            logger.error "[ActionCable] #{self.class.name} received data (#{data}) but #{self.class.name}#receive callback is not defined"
+          end
+        else
+          unauthorized
+        end
       end
 
       def subscribe
@@ -52,6 +60,15 @@ module ActionCable
       end
 
       protected
+        # Override in subclasses
+        def authorized?
+          true
+        end
+
+        def unauthorized
+          logger.error "[ActionCable] Unauthorized access to #{self.class.name}"
+        end
+
         def connect
           # Override in subclasses
         end
@@ -61,7 +78,11 @@ module ActionCable
         end
 
         def broadcast(data)
-          connection.broadcast({ identifier: @channel_identifier, message: data }.to_json)
+          if authorized?
+            connection.broadcast({ identifier: @channel_identifier, message: data }.to_json)
+          else
+            unauthorized
+          end
         end
 
         def start_periodic_timers
@@ -78,6 +99,10 @@ module ActionCable
 
         def worker_pool
           connection.worker_pool
+        end
+
+        def logger
+          connection.logger
         end
 
     end
