@@ -428,12 +428,13 @@ Rails understands both numeric status codes and the corresponding symbols shown 
 |                     | 510              | :not_extended                    |
 |                     | 511              | :network_authentication_required |
 
-NOTE:  If you try to render content along with a non-content status code 
+NOTE:  If you try to render content along with a non-content status code
 (100-199, 204, 205 or 304), it will be dropped from the response.
 
 ##### The `:formats` Option
 
-Rails uses the format specified in request (or `:html` by default). You can change this adding the `:formats` option with a symbol or an array:
+Rails uses the format specified in the request (or `:html` by default). You can
+change this passing the `:formats` option with a symbol or an array:
 
 ```ruby
 render formats: :xml

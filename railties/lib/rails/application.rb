@@ -427,9 +427,9 @@ module Rails
     # Return an array of railties respecting the order they're loaded
     # and the order specified by the +railties_order+ config.
     #
-    # While when running initializers we need engines in reverse
-    # order here when copying migrations from railties we need them in the same
-    # order as given by +railties_order+.
+    # While running initializers we need engines in reverse order here when
+    # copying migrations from railties ; we need them in the order given by
+    # +railties_order+.
     def migration_railties # :nodoc:
       ordered_railties.flatten - [self]
     end

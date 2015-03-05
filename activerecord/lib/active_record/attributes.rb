@@ -28,15 +28,18 @@ module ActiveRecord
       # information about providing custom type objects.
       #
       # ==== Options
+      #
       # The following options are accepted:
       #
       # +default+ The default value to use when no value is provided. If this option
       # is not passed, the previous default value (if any) will be used.
       # Otherwise, the default will be +nil+.
       #
-      # +array+ (PG only) specifies that the type should be an array (see the examples below).
+      # +array+ (PG only) specifies that the type should be an array (see the
+      # examples below).
       #
-      # +range+ (PG only) specifies that the type should be a range (see the examples below).
+      # +range+ (PG only) specifies that the type should be a range (see the
+      # examples below).
       #
       # ==== Examples
       #
@@ -101,12 +104,11 @@ module ActiveRecord
       # ==== Creating Custom Types
       #
       # Users may also define their own custom types, as long as they respond
-      # to the methods defined on the value type. The method
-      # +deserialize+ or +cast+ will be called on
-      # your type object, with raw input from the database or from your
-      # controllers.  See ActiveRecord::Type::Value for the expected API. It is
-      # recommended that your type objects inherit from an existing type, or
-      # from ActiveRecord::Type::Value
+      # to the methods defined on the value type. The method +deserialize+ or
+      # +cast+ will be called on your type object, with raw input from the
+      # database or from your controllers. See ActiveRecord::Type::Value for the
+      # expected API. It is recommended that your type objects inherit from an
+      # existing type, or from ActiveRecord::Type::Value
       #
       #   class MoneyType < ActiveRecord::Type::Integer
       #     def cast(value)
@@ -150,7 +152,7 @@ module ActiveRecord
       #     end
       #
       #     # value will be the result of +deserialize+ or
-      #     # +cast+. Assumed to be in instance of +Money+ in
+      #     # +cast+. Assumed to be an instance of +Money+ in
       #     # this case.
       #     def serialize(value)
       #       value_in_bitcoins = @currency_converter.convert_to_bitcoins(value)

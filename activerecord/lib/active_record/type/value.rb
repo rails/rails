@@ -12,7 +12,7 @@ module ActiveRecord
       def type # :nodoc:
       end
 
-      # Convert a value from database input to the appropriate ruby type. The
+      # Converts a value from database input to the appropriate ruby type. The
       # return value of this method will be returned from
       # ActiveRecord::AttributeMethods::Read#read_attribute. The default
       # implementation just calls Value#cast.
@@ -36,7 +36,7 @@ module ActiveRecord
         cast_value(value) unless value.nil?
       end
 
-      # Cast a value from the ruby type to a type that the database knows how
+      # Casts a value from the ruby type to a type that the database knows how
       # to understand. The returned value from this method should be a
       # +String+, +Numeric+, +Date+, +Time+, +Symbol+, +true+, +false+, or
       # +nil+.
@@ -44,7 +44,7 @@ module ActiveRecord
         value
       end
 
-      # Type cast a value for schema dumping. This method is private, as we are
+      # Type casts a value for schema dumping. This method is private, as we are
       # hoping to remove it entirely.
       def type_cast_for_schema(value) # :nodoc:
         value.inspect
