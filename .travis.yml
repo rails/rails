@@ -21,7 +21,7 @@ env:
     - "GEM=ar:postgresql"
     - "GEM=aj:integration"
 rvm:
-  - 2.2
+  - 2.2.1
   - ruby-head
   - rbx-2
   - jruby-head
