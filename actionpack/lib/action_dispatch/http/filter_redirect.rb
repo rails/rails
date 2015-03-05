@@ -4,7 +4,7 @@ module ActionDispatch
 
       FILTERED = '[FILTERED]'.freeze # :nodoc:
 
-      def filtered_location
+      def filtered_location # :nodoc:
         filters = location_filter
         if !filters.empty? && location_filter_match?(filters)
           FILTERED
