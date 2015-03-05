@@ -490,17 +490,17 @@ module ActiveSupport
       end
 
       def around(&around)
-        CallbackSequence.new do |*args|
-          around.call(*args) {
-            self.call(*args)
+        CallbackSequence.new do |arg|
+          around.call(arg) {
+            self.call(arg)
           }
         end
       end
 
-      def call(*args)
-        @before.each { |b| b.call(*args) }
-        value = @call.call(*args)
-        @after.each { |a| a.call(*args) }
+      def call(arg)
+        @before.each { |b| b.call(arg) }
+        value = @call.call(arg)
+        @after.each { |a| a.call(arg) }
         value
       end
     end
