@@ -41,7 +41,7 @@ class TestUnitTestRunnerTest < ActiveSupport::TestCase
 
   test "parse the filename and line" do
     file = "test/test_unit/runner_test.rb"
-    absolute_file = __FILE__
+    absolute_file = File.expand_path __FILE__
     options = @options.parse(["#{file}:20"])
     assert_equal absolute_file, options[:filename]
     assert_equal 20, options[:line]
@@ -90,21 +90,22 @@ class TestUnitTestRunnerTest < ActiveSupport::TestCase
 
   test "run multiple files and run one file by line" do
     line = __LINE__
+    absolute_file = File.expand_path(__FILE__)
     options = @options.parse([__dir__, "#{__FILE__}:#{line}"])
 
     assert_equal ["#{__dir__}/**/*_test.rb"], options[:patterns]
-    assert_equal __FILE__, options[:filename]
+    assert_equal absolute_file, options[:filename]
     assert_equal line, options[:line]
 
     runner = Rails::TestRunner.new(options)
-    assert_equal [__FILE__], runner.test_files, 'Only returns the file that running by line'
+    assert_equal [absolute_file], runner.test_files, 'Only returns the file that running by line'
   end
 
   test "running multiple files passing line number" do
     line = __LINE__
     options = @options.parse(["foobar.rb:8", "#{__FILE__}:#{line}"])
 
-    assert_equal __FILE__, options[:filename], 'Returns the last file'
+    assert_equal File.expand_path(__FILE__), options[:filename], 'Returns the last file'
     assert_equal line, options[:line]
   end
 end
