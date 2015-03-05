@@ -10,7 +10,7 @@ def run_without_aborting(*tasks)
   tasks.each do |task|
     begin
       Rake::Task[task].invoke
-    rescue Exception
+    rescue
       errors << task
     end
   end

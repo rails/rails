@@ -235,7 +235,7 @@ class QueryCacheTest < ActiveRecord::TestCase
         assert_equal 1, Post.where(title: 'rollback').to_a.count
         raise 'broken'
       end
-    rescue Exception
+    rescue
     end
 
     assert_equal 0, Post.where(title: 'rollback').to_a.count
