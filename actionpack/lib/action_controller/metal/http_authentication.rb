@@ -314,7 +314,7 @@ module ActionController
         nonce(secret_key, t) == value && (t - Time.now.to_i).abs <= seconds_to_timeout
       end
 
-      # Opaque based on random generation - but changing each request?
+      # Opaque based on digest of secret key
       def opaque(secret_key)
         ::Digest::MD5.hexdigest(secret_key)
       end
