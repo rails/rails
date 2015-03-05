@@ -815,7 +815,7 @@ calling the `console` method.
 For example, in a controller:
 
 ```ruby
-class PostController < ApplicationController
+class PostsController < ApplicationController
   def new
     console
     @post = Post.new

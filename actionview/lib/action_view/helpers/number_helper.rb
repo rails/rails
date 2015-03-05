@@ -116,8 +116,8 @@ module ActionView
       #   (defaults to current locale).
       # * <tt>:precision</tt> - Sets the precision of the number
       #   (defaults to 3).
-      # * <tt>:significant</tt> - If +true+, precision will be the #
-      #   of significant_digits. If +false+, the # of fractional
+      # * <tt>:significant</tt> - If +true+, precision will be the number
+      #   of significant_digits. If +false+, the number of fractional
       #   digits (defaults to +false+).
       # * <tt>:separator</tt> - Sets the separator between the
       #   fractional and integer digits (defaults to ".").
@@ -191,8 +191,8 @@ module ActionView
       #   (defaults to current locale).
       # * <tt>:precision</tt> - Sets the precision of the number
       #   (defaults to 3).
-      # * <tt>:significant</tt> - If +true+, precision will be the #
-      #   of significant_digits. If +false+, the # of fractional
+      # * <tt>:significant</tt> - If +true+, precision will be the number
+      #   of significant_digits. If +false+, the number of fractional
       #   digits (defaults to +false+).
       # * <tt>:separator</tt> - Sets the separator between the
       #   fractional and integer digits (defaults to ".").
@@ -239,8 +239,8 @@ module ActionView
       #   (defaults to current locale).
       # * <tt>:precision</tt> - Sets the precision of the number
       #   (defaults to 3).
-      # * <tt>:significant</tt> - If +true+, precision will be the #
-      #   of significant_digits. If +false+, the # of fractional
+      # * <tt>:significant</tt> - If +true+, precision will be the number
+      #   of significant_digits. If +false+, the number of fractional
       #   digits (defaults to +true+)
       # * <tt>:separator</tt> - Sets the separator between the
       #   fractional and integer digits (defaults to ".").
@@ -291,8 +291,8 @@ module ActionView
       #   (defaults to current locale).
       # * <tt>:precision</tt> - Sets the precision of the number
       #   (defaults to 3).
-      # * <tt>:significant</tt> - If +true+, precision will be the #
-      #   of significant_digits. If +false+, the # of fractional
+      # * <tt>:significant</tt> - If +true+, precision will be the number
+      #   of significant_digits. If +false+, the number of fractional
       #   digits (defaults to +true+)
       # * <tt>:separator</tt> - Sets the separator between the
       #   fractional and integer digits (defaults to ".").

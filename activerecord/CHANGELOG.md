@@ -1,3 +1,11 @@
+*   Correctly dump `serial` and `bigserial`.
+
+    *Ryuta Kamizono*
+
+*   Fix default `format` value in `ActiveRecord::Tasks::DatabaseTasks#schema_file`.
+
+    *James Cox*
+
 *   Dont enroll records in the transaction if they dont have commit callbacks.
     That was causing a memory grow problem when creating a lot of records inside a transaction.
 

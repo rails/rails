@@ -252,7 +252,7 @@ module ActiveSupport
       utc.hash
     end
 
-    # Adds an interval of time to the current object's time and return that
+    # Adds an interval of time to the current object's time and returns that
     # value as a new TimeWithZone object.
     #
     #   Time.zone = 'Eastern Time (US & Canada)' # => 'Eastern Time (US & Canada)'

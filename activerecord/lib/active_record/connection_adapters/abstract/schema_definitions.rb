@@ -535,6 +535,8 @@ module ActiveRecord
 
       # Checks to see if a column exists.
       #
+      # t.string(:name) unless t.column_exists?(:name, :string)
+      #
       # See SchemaStatements#column_exists?
       def column_exists?(column_name, type = nil, options = {})
         @base.column_exists?(name, column_name, type, options)
@@ -553,6 +555,10 @@ module ActiveRecord
       end
 
       # Checks to see if an index exists.
+      #
+      # unless t.index_exists?(:branch_id)
+      #   t.index(:branch_id)
+      # end
       #
       # See SchemaStatements#index_exists?
       def index_exists?(column_name, options = {})
@@ -667,10 +673,20 @@ module ActiveRecord
       end
       alias :remove_belongs_to :remove_references
 
+      # Adds a foreign key.
+      #
+      # t.foreign_key(:authors)
+      #
+      # See SchemaStatements#add_foreign_key
       def foreign_key(*args) # :nodoc:
         @base.add_foreign_key(name, *args)
       end
 
+      # Checks to see if a foreign key exists.
+      #
+      # t.foreign_key(:authors) unless t.foreign_key_exists?(:authors)
+      #
+      # See SchemaStatements#foreign_key_exists?
       def foreign_key_exists?(*args) # :nodoc:
         @base.foreign_key_exists?(name, *args)
       end

@@ -88,7 +88,7 @@ module ActionDispatch
         end
 
         def custom_routes
-          partitioned_routes.last
+          routes.custom_routes
         end
 
         def filter_routes(path)

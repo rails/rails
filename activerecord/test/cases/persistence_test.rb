@@ -366,6 +366,12 @@ class PersistenceTest < ActiveRecord::TestCase
     end
   end
 
+  def test_update_does_not_run_sql_if_record_has_not_changed
+    topic = Topic.create(title: 'Another New Topic')
+    assert_queries(0) { topic.update(title: 'Another New Topic') }
+    assert_queries(0) { topic.update_attributes(title: 'Another New Topic') }
+  end
+
   def test_delete
     topic = Topic.find(1)
     assert_equal topic, topic.delete, 'topic.delete did not return self'

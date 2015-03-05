@@ -353,8 +353,11 @@ module ActiveSupport
       # Returns a hash with the data for each of the names. For example:
       #
       #   cache.write("bim", "bam")
-      #   cache.fetch_multi("bim", "boom") { |key| key * 2 }
-      #   # => { "bam" => "bam", "boom" => "boomboom" }
+      #   cache.fetch_multi("bim", "unknown_key") do |key|
+      #     "Fallback value for key: #{key}"
+      #   end
+      #   # => { "bim" => "bam",
+      #   #      "unknown_key" => "Fallback value for key: unknown_key" }
       #
       def fetch_multi(*names)
         options = names.extract_options!
@@ -565,7 +568,7 @@ module ActiveSupport
             race_ttl = options[:race_condition_ttl].to_i
             if race_ttl && (Time.now.to_f - entry.expires_at <= race_ttl)
               # When an entry has :race_condition_ttl defined, put the stale entry back into the cache
-              # for a brief period while the entry is begin recalculated.
+              # for a brief period while the entry is being recalculated.
               entry.expires_at = Time.now + race_ttl
               write_entry(key, entry, :expires_in => race_ttl * 2)
             else

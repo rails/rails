@@ -228,7 +228,7 @@ module ActionView
         # set by the <tt>layout</tt> method.
         #
         # ==== Returns
-        # * <tt> Boolean</tt> - True if the action has a layout definition, false otherwise.
+        # * <tt>Boolean</tt> - True if the action has a layout definition, false otherwise.
         def _conditional_layout?
           return unless super
 

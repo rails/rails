@@ -135,26 +135,6 @@ class PostgresqlUUIDTest < ActiveRecord::TestCase
   end
 end
 
-class PostgresqlLargeKeysTest < ActiveRecord::TestCase
-  include PostgresqlUUIDHelper
-  include SchemaDumpingHelper
-
-  def setup
-    connection.create_table('big_serials', id: :bigserial) do |t|
-      t.string 'name'
-    end
-  end
-
-  def test_omg
-    schema = dump_table_schema "big_serials"
-    assert_match "create_table \"big_serials\", id: :bigserial", schema
-  end
-
-  def teardown
-    drop_table "big_serials"
-  end
-end
-
 class PostgresqlUUIDGenerationTest < ActiveRecord::TestCase
   include PostgresqlUUIDHelper
   include SchemaDumpingHelper

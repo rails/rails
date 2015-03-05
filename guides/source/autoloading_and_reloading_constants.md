@@ -465,7 +465,10 @@ by adding this to `config/application.rb`:
 ```ruby
 config.autoload_paths << "#{Rails.root}/lib"
 ```
-`config.autoload_paths` is accessible from environment-specific configuration files, but any changes made to it outside `config/application.rb` don't have an effect.
+
+`config.autoload_paths` is accessible from environment-specific configuration
+files, but any changes made to it outside `config/application.rb` don't have any
+effect.
 
 The value of `autoload_paths` can be inspected. In a just generated application
 it is (edited):

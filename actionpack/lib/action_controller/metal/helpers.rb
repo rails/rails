@@ -93,6 +93,10 @@ module ActionController
         super(args)
       end
 
+      # Returns a list of helper names in a given path.
+      #
+      #   ActionController::Base.all_helpers_from_path 'app/helpers'
+      #   # => ["application", "chart", "rubygems"]
       def all_helpers_from_path(path)
         helpers = Array(path).flat_map do |_path|
           extract = /^#{Regexp.quote(_path.to_s)}\/?(.*)_helper.rb$/

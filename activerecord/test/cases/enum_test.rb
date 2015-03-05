@@ -341,4 +341,18 @@ class EnumTest < ActiveRecord::TestCase
     book2.status = :uploaded
     assert_equal ['drafted', 'uploaded'], book2.status_change
   end
+
+  test "declare multiple enums at a time" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum status: [:proposed, :written, :published],
+           nullable_status: [:single, :married]
+    end
+
+    book1 = klass.proposed.create!
+    assert book1.proposed?
+
+    book2 = klass.single.create!
+    assert book2.single?
+  end
 end

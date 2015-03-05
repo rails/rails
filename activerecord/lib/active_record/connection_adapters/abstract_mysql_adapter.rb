@@ -86,8 +86,8 @@ module ActiveRecord
       def column_spec_for_primary_key(column)
         spec = {}
         if column.auto_increment?
-          return unless column.limit == 8
-          spec[:id] = ':bigint'
+          spec[:id] = ':bigint' if column.bigint?
+          return if spec.empty?
         else
           spec[:id] = column.type.inspect
           spec.merge!(prepare_column_options(column).delete_if { |key, _| [:name, :type, :null].include?(key) })

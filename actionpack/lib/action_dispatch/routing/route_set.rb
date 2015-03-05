@@ -320,7 +320,7 @@ module ActionDispatch
 
       attr_accessor :formatter, :set, :named_routes, :default_scope, :router
       attr_accessor :disable_clear_and_finalize, :resources_path_names
-      attr_accessor :default_url_options, :request_class
+      attr_accessor :default_url_options
       attr_reader :env_key
 
       attr_accessor :script_name_finder
@@ -331,21 +331,34 @@ module ActionDispatch
         { :new => 'new', :edit => 'edit' }
       end
 
-      SCRIPT_NAME_FINDER = ->(options) {
+      SCRIPT_NAME_FINDER = ->(options, rs) {
         if options.key? :script_name
           (options.delete(:script_name) || '').chomp '/'.freeze
         else
-          ''
+          rs.relative_url_root
         end
       }
 
-      def initialize(request_class = ActionDispatch::Request)
+      def self.new_with_config(config)
+        if config.respond_to? :relative_url_root
+          new Config.new config.relative_url_root
+        else
+          # engines apparently don't have this set
+          new
+        end
+      end
+
+      Config = Struct.new :relative_url_root
+
+      DEFAULT_CONFIG = Config.new(nil)
+
+      def initialize(config = DEFAULT_CONFIG)
         self.named_routes = NamedRouteCollection.new
         self.resources_path_names = self.class.default_resources_path_names.dup
         self.default_url_options = {}
-        self.request_class = request_class
 
         @default_url_options        = nil
+        @config                     = config
         @append                     = []
         @prepend                    = []
         @disable_clear_and_finalize = false
@@ -356,6 +369,14 @@ module ActionDispatch
         @set    = Journey::Routes.new
         @router = Journey::Router.new @set
         @formatter = Journey::Formatter.new @set
+      end
+
+      def relative_url_root
+        @config.relative_url_root || ''
+      end
+
+      def request_class
+        ActionDispatch::Request
       end
 
       def draw(&block)
@@ -569,7 +590,7 @@ module ActionDispatch
 
         conditions.keep_if do |k, _|
           k == :action || k == :controller || k == :required_defaults ||
-            @request_class.public_method_defined?(k) || path_values.include?(k)
+            request_class.public_method_defined?(k) || path_values.include?(k)
         end
       end
       private :build_conditions
@@ -723,14 +744,14 @@ module ActionDispatch
       end
 
       def find_script_name(options)
-        @script_name_finder.call options
+        @script_name_finder.call options, self
       end
 
       def build_engine_script_extractor(routes, route, name)
         prev = script_name_finder
-        ->(options) {
+        ->(options, rs) {
           if options.key? :script_name
-            prev.call options
+            prev.call options, rs
           else
             prefix_options = options.slice(*route.segment_keys)
             # we must actually delete prefix segment keys to avoid passing them to next url_for
