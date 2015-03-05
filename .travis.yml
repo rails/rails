@@ -13,8 +13,7 @@ env:
   matrix:
     - "GEM=railties"
     - "GEM=ap"
-    - "GEM=aj"
-    - "GEM=am,amo,as,av"
+    - "GEM=am,amo,as,av,aj"
     - "GEM=ar:mysql"
     - "GEM=ar:mysql2"
     - "GEM=ar:sqlite3"
@@ -31,8 +30,6 @@ matrix:
     - rvm: ruby-head
     - rvm: rbx-2
     - rvm: jruby-head
-    - env: "GEM=aj"
-    - env: "GEM=aj:integration"
   fast_finish: true
 notifications:
   email: false
