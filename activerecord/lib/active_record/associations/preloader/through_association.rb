@@ -18,7 +18,8 @@ module ActiveRecord
           through_records = owners.map do |owner|
             association = owner.association through_reflection.name
 
-            [owner, Array(association.reader)]
+            center = association.loaded? ? association.target : association.reader
+            [owner, Array(center)]
           end
 
           reset_association owners, through_reflection.name
@@ -49,7 +50,7 @@ module ActiveRecord
               rhs_records = middles.flat_map { |r|
                 association = r.association source_reflection.name
 
-                association.reader
+                association.loaded? ? association.target : association.reader
               }.compact
 
               rhs_records.sort_by { |rhs| record_offset[rhs] }
