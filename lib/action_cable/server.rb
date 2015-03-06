@@ -88,14 +88,6 @@ module ActionCable
       self.class.worker_pool
     end
 
-    def request
-      @request ||= ActionDispatch::Request.new(env)
-    end
-
-    def cookies
-      request.cookie_jar
-    end
-
     private
       def broadcast_ping_timestamp
         broadcast({ identifier: '_ping', message: Time.now.to_i }.to_json)
