@@ -1021,17 +1021,20 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_clear_cash_when_setting_table_name
-    k = Class.new(Joke)
-    k.table_name = "cold_jokes"
-    before_columns = k.columns
-    before_seq = k.sequence_name
+    original_table_name = Joke.table_name
 
-    k.table_name = "funny_jokes"
-    after_columns = k.columns
-    after_seq = k.sequence_name
+    Joke.table_name = "funny_jokes"
+    before_columns = Joke.columns
+    before_seq = Joke.sequence_name
+
+    Joke.table_name = "cold_jokes"
+    after_columns = Joke.columns
+    after_seq = Joke.sequence_name
 
     assert_not_equal before_columns, after_columns
     assert_not_equal before_seq, after_seq unless before_seq.nil? && after_seq.nil?
+  ensure
+    Joke.table_name = original_table_name
   end
 
   def test_dont_clear_sequence_name_when_setting_explicitly
