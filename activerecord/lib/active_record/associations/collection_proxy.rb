@@ -976,6 +976,9 @@ module ActiveRecord
       # Equivalent to +delete_all+. The difference is that returns +self+, instead
       # of an array with the deleted objects, so methods can be chained. See
       # +delete_all+ for more information.
+      # Note that because +delete_all+ removes records by directly
+      # running an SQL query into the database, the +updated_at+ column of
+      # the object is not changed.
       def clear
         delete_all
         self
