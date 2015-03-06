@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 require "cases/helper"
 require 'active_support/concurrency/latch'
@@ -1008,54 +1009,58 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_switching_between_table_name
-    assert_difference("GoodJoke.count") do
-      Joke.table_name = "cold_jokes"
-      Joke.create
+    k = Class.new(Joke)
 
-      Joke.table_name = "funny_jokes"
-      Joke.create
+    assert_difference("GoodJoke.count") do
+      k.table_name = "cold_jokes"
+      k.create
+
+      k.table_name = "funny_jokes"
+      k.create
     end
   end
 
   def test_clear_cash_when_setting_table_name
-    Joke.table_name = "cold_jokes"
-    before_columns = Joke.columns
-    before_seq     = Joke.sequence_name
+    k = Class.new(Joke)
+    k.table_name = "cold_jokes"
+    before_columns = k.columns
+    before_seq = k.sequence_name
 
-    Joke.table_name = "funny_jokes"
-    after_columns = Joke.columns
-    after_seq     = Joke.sequence_name
+    k.table_name = "funny_jokes"
+    after_columns = k.columns
+    after_seq = k.sequence_name
 
     assert_not_equal before_columns, after_columns
     assert_not_equal before_seq, after_seq unless before_seq.nil? && after_seq.nil?
   end
 
   def test_dont_clear_sequence_name_when_setting_explicitly
-    Joke.sequence_name = "black_jokes_seq"
-    Joke.table_name    = "cold_jokes"
-    before_seq         = Joke.sequence_name
+    k = Class.new(Joke)
+    k.sequence_name = "black_jokes_seq"
+    k.table_name = "cold_jokes"
+    before_seq = k.sequence_name
 
-    Joke.table_name    = "funny_jokes"
-    after_seq          = Joke.sequence_name
+    k.table_name = "funny_jokes"
+    after_seq = k.sequence_name
 
     assert_equal before_seq, after_seq unless before_seq.nil? && after_seq.nil?
-  ensure
-    Joke.reset_sequence_name
   end
 
   def test_dont_clear_inheritance_column_when_setting_explicitly
-    Joke.inheritance_column = "my_type"
-    before_inherit = Joke.inheritance_column
+    k = Class.new(Joke)
+    k.inheritance_column = "my_type"
+    before_inherit = k.inheritance_column
 
-    Joke.reset_column_information
-    after_inherit = Joke.inheritance_column
+    k.reset_column_information
+    after_inherit = k.inheritance_column
 
     assert_equal before_inherit, after_inherit unless before_inherit.blank? && after_inherit.blank?
   end
 
   def test_set_table_name_symbol_converted_to_string
-    Joke.table_name = :cold_jokes
-    assert_equal 'cold_jokes', Joke.table_name
+    k = Class.new(Joke)
+    k.table_name = :cold_jokes
+    assert_equal 'cold_jokes', k.table_name
   end
 
   def test_quoted_table_name_after_set_table_name
