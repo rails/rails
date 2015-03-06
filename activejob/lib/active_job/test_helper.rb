@@ -13,6 +13,7 @@ module ActiveJob
         clear_performed_jobs
         queue_adapter.perform_enqueued_jobs = false
         queue_adapter.perform_enqueued_at_jobs = false
+        queue_adapter.filter = nil
         super
       end
 
@@ -253,15 +254,20 @@ module ActiveJob
       end
 
       def perform_enqueued_jobs(only: nil)
-        @old_perform_enqueued_jobs = queue_adapter.perform_enqueued_jobs
-        @old_perform_enqueued_at_jobs = queue_adapter.perform_enqueued_at_jobs
-        queue_adapter.perform_enqueued_jobs = true
-        queue_adapter.perform_enqueued_at_jobs = true
-        queue_adapter.filter = only
-        yield
-      ensure
-        queue_adapter.perform_enqueued_jobs = @old_perform_enqueued_jobs
-        queue_adapter.perform_enqueued_at_jobs = @old_perform_enqueued_at_jobs
+        old_perform_enqueued_jobs = queue_adapter.perform_enqueued_jobs
+        old_perform_enqueued_at_jobs = queue_adapter.perform_enqueued_at_jobs
+        old_filter = queue_adapter.filter
+
+        begin
+          queue_adapter.perform_enqueued_jobs = true
+          queue_adapter.perform_enqueued_at_jobs = true
+          queue_adapter.filter = only
+          yield
+        ensure
+          queue_adapter.perform_enqueued_jobs = old_perform_enqueued_jobs
+          queue_adapter.perform_enqueued_at_jobs = old_perform_enqueued_at_jobs
+          queue_adapter.filter = old_filter
+        end
       end
 
       def queue_adapter
