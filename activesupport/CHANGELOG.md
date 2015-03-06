@@ -1,3 +1,10 @@
+*   `number_to_percentage` does not crash with `Float::NAN` or `Float::INFINITY`
+    as input when `precision: 0` is used.
+
+    Fixes #19227.
+
+    *Yves Senn*
+
 *   Take DST into account when locating TimeZone from Numeric.
 
     When given a specific offset, use the first result found where the
