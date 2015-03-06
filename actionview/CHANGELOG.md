@@ -1,3 +1,10 @@
+*   `number_to_percentage` does not crash with `Float::NAN` or `Float::INFINITY`
+    as input when `precision: 0` is used.
+
+    Fixes #19227.
+
+    *Yves Senn*
+
 *   Default translations that have a lower precidence than an html safe default,
     but are not themselves safe, should not be marked as html_safe.
 
