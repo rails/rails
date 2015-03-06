@@ -180,7 +180,7 @@ class AssociationCallbacksTest < ActiveRecord::TestCase
     assert !@david.unchangable_posts.include?(@authorless)
     begin
       @david.unchangable_posts << @authorless
-    rescue
+    rescue Exception
     end
     assert @david.post_log.empty?
     assert !@david.unchangable_posts.include?(@authorless)
