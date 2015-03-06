@@ -24,6 +24,8 @@ module ActionCable
       end
     end
 
+    attr_reader :env
+
     def initialize(env)
       @env = env
     end
@@ -37,6 +39,7 @@ module ActionCable
         @websocket.on(:open) do |event|
           broadcast_ping_timestamp
           @ping_timer = EventMachine.add_periodic_timer(PING_INTERVAL) { broadcast_ping_timestamp }
+          worker_pool.async.invoke(self, :connect) if respond_to?(:connect)
         end
 
         @websocket.on(:message) do |event|
@@ -83,6 +86,14 @@ module ActionCable
 
     def worker_pool
       self.class.worker_pool
+    end
+
+    def request
+      @request ||= ActionDispatch::Request.new(env)
+    end
+
+    def cookies
+      request.cookie_jar
     end
 
     private
