@@ -1,3 +1,10 @@
+*   `number_to_percentage` does not crash with `Float::NAN` or `Float::INFINITY`
+    as input when `precision: 0` is used.
+
+    Fixes #19227.
+
+    *Yves Senn*
+
 *   Local variable in a partial is now available even if a falsy value is
     passed to `:object` when rendering a partial.
 
