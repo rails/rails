@@ -1,3 +1,10 @@
+*   `number_to_percentage` does not crash with `Float::NAN` or `Float::INFINITY`
+    as input when `precision: 0` is used.
+
+    Fixes #19227.
+
+    *Yves Senn*
+
 *   Fixed the translation helper method to accept different default values types
     besides String.
 
