@@ -21,6 +21,10 @@ module ActiveRecord
   # the accessor methods. Be aware that these columns use a string keyed hash and do not allow access
   # using a symbol.
   #
+  # You can also declare accessors which support type casting: either providing key-to-type hash along with simple keys
+  # (using +store+ or +store_accessor+) or using +store_attribute+ method (see examples below).
+  # It is especially useful when working with stores/coders like +hstore+ and +json+ which don't have full types support.
+  #
   # NOTE: The default validations with the exception of +uniqueness+ will work.
   # For example, if you want to check for +uniqueness+ with +hstore+ you will
   # need to use a custom validation to handle it.
@@ -43,6 +47,24 @@ module ActiveRecord
   #   class SuperUser < User
   #     store_accessor :settings, :privileges, :servants
   #   end
+  #
+  #   # Provide type for accessors
+  #   class MegaUser < User
+  #     store_accessor :settings, login_at: :date_time
+  #     store_attribute :settings, :ratio, :integer, limit: 1
+  #   end
+  #
+  #   u = MegaUser.new(active: false, login_at: '2015-01-01 00:01', ratio: "63.4608")
+  #
+  #   u.login_at.is_a?(DateTime) # => true
+  #   u.login_at = DateTime.new(2015,1,1,11,0,0)
+  #   u.ratio # => 63
+  #   u.reload
+  #
+  #   # After loading record from db store contains casted data
+  #   u.settings['login_at'] == DateTime.new(2015,1,1,11,0,0) # => true
+  #
+  # For more examples on using custom types, see documentation for ActiveRecord::Attributes.
   #
   # The stored attribute names can be retrieved using {.stored_attributes}[rdoc-ref:rdoc-ref:ClassMethods#stored_attributes].
   #
@@ -77,31 +99,126 @@ module ActiveRecord
     end
 
     module ClassMethods
-      def store(store_attribute, options = {})
-        serialize store_attribute, IndifferentCoder.new(options[:coder])
-        store_accessor(store_attribute, options[:accessors]) if options.has_key? :accessors
+      # Defines store on this model.
+      #
+      # +store_name+ The name of the store.
+      #
+      # ==== Options
+      # The following options are accepted:
+      #
+      # +coder+ The coder of the store.
+      #
+      # +accessors+ An array of the accessors to the store.
+      #
+      # Examples:
+      #
+      #   class User < ActiveRecord::Base
+      #     store :settings, accessors: [:color, :homepage, login_at: :datetime], coder: JSON
+      #   end
+      def store(store_name, options = {})
+        serialize store_name, IndifferentCoder.new(options[:coder])
+        store_accessor(store_name, *options[:accessors]) if options.key?(:accessors)
       end
 
-      def store_accessor(store_attribute, *keys)
+      # Adds additional accessors to an existing store on this model.
+      #
+      # +store_name+ The name of the store.
+      #
+      # +keys+ The array of the accessors to the store.
+      #
+      # +typed_keys+ The key-to-type hash of the accesors with type to the store.
+      #
+      # Examples:
+      #
+      #   class SuperUser < User
+      #     store_accessor :settings, :privileges, login_at: :datetime
+      #   end
+      def store_accessor(store_name, *keys, **typed_keys)
         keys = keys.flatten
+        typed_keys = typed_keys.except(keys)
 
-        _store_accessors_module.module_eval do
-          keys.each do |key|
-            define_method("#{key}=") do |value|
-              write_store_attribute(store_attribute, key, value)
-            end
+        _define_accessors_methods(store_name, *keys)
 
-            define_method(key) do
-              read_store_attribute(store_attribute, key)
-            end
-          end
+        _prepare_local_stored_attributes(store_name, *keys)
+
+        typed_keys.each do |key, type|
+          store_attribute(store_name, key, type)
+        end
+      end
+
+      # Adds additional accessors with a type to an existing store on this model.
+      # Type casting occurs every time you write data through accessor or update store itself
+      # and when object is loaded from database.
+      #
+      # Note that if you update store explicitly then value isn't  type casted.
+      #
+      # +store_name+ The name of the store.
+      #
+      # +name+ The name of the accessor to the store.
+      #
+      # +type+ A symbol such as +:string+ or +:integer+, or a type object
+      # to be used for the accessor.
+      #
+      # +options+ A hash of cast type options such as +precision+, +limit+, +scale+.
+      #
+      # Examples:
+      #
+      #   class MegaUser < User
+      #     store_attribute :settings, :ratio, :integer, limit: 1
+      #     store_attribute :settings, :login_at, :datetime
+      #   end
+      #
+      #   u = MegaUser.new(active: false, login_at: '2015-01-01 00:01', ratio: "63.4608")
+      #
+      #   u.login_at.is_a?(DateTime) # => true
+      #   u.login_at = DateTime.new(2015,1,1,11,0,0)
+      #   u.ratio # => 63
+      #   u.reload
+      #
+      #   # After loading record from db store contains casted data
+      #   u.settings['login_at'] == DateTime.new(2015,1,1,11,0,0) # => true
+      #
+      #   # If you update store explicitly then the value returned
+      #   # by accessor isn't type casted
+      #   u.settings['ration'] = "3.141592653"
+      #   u.ratio # => "3.141592653"
+      #
+      #   # On the other hand, writing through accessor set correct data within store
+      #   u.ratio = "3.14.1592653"
+      #   u.ratio # => 3
+      #   u.settings['ratio'] # => 3
+      #
+      # For more examples on using types, see documentation for ActiveRecord::Attributes.
+      def store_attribute(store_name, name, type, **options)
+        _define_accessors_methods(store_name, name)
+
+        decorate_attribute_type(store_name, "typed_accessor_for_#{name}") do |subtype|
+          Type::TypedStore.create_from_type(subtype, name, type, **options)
         end
 
+        _prepare_local_stored_attributes(store_name, name)
+      end
+
+      def _prepare_local_stored_attributes(store_name, *keys) # :nodoc:
         # assign new store attribute and create new hash to ensure that each class in the hierarchy
         # has its own hash of stored attributes.
         self.local_stored_attributes ||= {}
-        self.local_stored_attributes[store_attribute] ||= []
-        self.local_stored_attributes[store_attribute] |= keys
+        self.local_stored_attributes[store_name] ||= []
+        self.local_stored_attributes[store_name] |= keys
+      end
+
+      def _define_accessors_methods(store_name, *keys)
+        _store_accessors_module.module_eval do
+          keys.each do |key|
+            define_method("#{key}=") do |value|
+              write_store_attribute(store_name, key, value)
+            end
+
+            define_method(key) do
+              read_store_attribute(store_name, key)
+            end
+          end
+        end
       end
 
       def _store_accessors_module # :nodoc:
@@ -115,26 +232,26 @@ module ActiveRecord
       def stored_attributes
         parent = superclass.respond_to?(:stored_attributes) ? superclass.stored_attributes : {}
         if self.local_stored_attributes
-          parent.merge!(self.local_stored_attributes) { |k, a, b| a | b }
+          parent.merge!(self.local_stored_attributes) { |_k, a, b| a | b }
         end
         parent
       end
     end
 
     protected
-      def read_store_attribute(store_attribute, key)
-        accessor = store_accessor_for(store_attribute)
-        accessor.read(self, store_attribute, key)
+      def read_store_attribute(store_name, key)
+        accessor = store_accessor_for(store_name)
+        accessor.read(self, store_name, key)
       end
 
-      def write_store_attribute(store_attribute, key, value)
-        accessor = store_accessor_for(store_attribute)
-        accessor.write(self, store_attribute, key, value)
+      def write_store_attribute(store_name, key, value)
+        accessor = store_accessor_for(store_name)
+        accessor.write(self, store_name, key, value)
       end
 
     private
-      def store_accessor_for(store_attribute)
-        type_for_attribute(store_attribute.to_s).accessor
+      def store_accessor_for(store_name)
+        type_for_attribute(store_name.to_s).accessor
       end
 
       class HashAccessor # :nodoc:
@@ -167,11 +284,11 @@ module ActiveRecord
       end
 
       class IndifferentHashAccessor < ActiveRecord::Store::HashAccessor # :nodoc:
-        def self.prepare(object, store_attribute)
-          attribute = object.send(store_attribute)
+        def self.prepare(object, store_name)
+          attribute = object.send(store_name)
           unless attribute.is_a?(ActiveSupport::HashWithIndifferentAccess)
             attribute = IndifferentCoder.as_indifferent_hash(attribute)
-            object.send :"#{store_attribute}=", attribute
+            object.send :"#{store_name}=", attribute
           end
           attribute
         end

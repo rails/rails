@@ -191,4 +191,54 @@ class StoreTest < ActiveRecord::TestCase
     second_dump = YAML.dump(loaded)
     assert_equal @john, YAML.load(second_dump)
   end
+
+  test "setting type casted values on build" do
+    jamie = Admin::User.new(
+      name: 'Jamie',
+      active: 'true',
+      salary: 3.1999,
+      birthday: '2000-01-01'
+    )
+    assert jamie.active
+    assert_equal 3, jamie.salary
+    assert_equal Date.new(2000, 1, 1), jamie.json_data['birthday']
+    assert_equal Date.new(2000, 1, 1), jamie.birthday
+  end
+
+  test "accessor types options" do
+    assert_raises(::RangeError) do
+      Admin::User.create!(name: '2 to 10', progress: 1024)
+    end
+  end
+
+  test "setting type casted values from db" do
+    jamie = Admin::User.new(name: 'Jamie')
+    jamie.active = 't'
+    jamie.salary = 3.1999
+    jamie.birthday = '01/01/2000'
+    jamie.save!
+
+    jamie = Admin::User.where(name: 'Jamie').first
+
+    assert_equal Date.new(2000, 1, 1), jamie.json_data['birthday']
+    assert jamie.active
+    assert_equal 3, jamie.salary
+    assert_equal Date.new(2000, 1, 1), jamie.birthday
+  end
+
+  test "read and write type casted values" do
+    @john.active = 1
+    assert @john.active
+    assert @john.json_data['active']
+
+    @john.active = 0
+    assert_not @john.active
+    assert_not @john.json_data['active']
+
+    @john.json_data = { active: true, salary: '123', birthday: '01/01/2012' }
+
+    assert @john.active
+    assert_equal 123, @john.salary
+    assert_equal Date.new(2012, 1, 1), @john.birthday
+  end
 end

@@ -7,7 +7,7 @@ if ActiveRecord::Base.connection.supports_extensions?
     class Hstore < ActiveRecord::Base
       self.table_name = 'hstores'
 
-      store_accessor :settings, :language, :timezone
+      store_accessor :settings, :language, :timezone, active: :boolean, login_at: :date_time
     end
 
     def setup
@@ -118,41 +118,55 @@ if ActiveRecord::Base.connection.supports_extensions?
     end
 
     def test_with_store_accessors
-      x = Hstore.new(language: "fr", timezone: "GMT")
+      x = Hstore.new(language: "fr", timezone: "GMT", active: false, login_at: '2015-02-14 17:00')
       assert_equal "fr", x.language
       assert_equal "GMT", x.timezone
+      assert_not x.active
+      assert_equal DateTime.new(2015, 2, 14, 17, 0, 0), x.login_at
 
       x.save!
       x = Hstore.first
       assert_equal "fr", x.language
       assert_equal "GMT", x.timezone
+      assert_not x.active
+      assert_equal DateTime.new(2015, 2, 14, 17, 0, 0), x.login_at
 
       x.language = "de"
+      x.active = true
+      x.login_at = Time.new(2015, 2, 14, 18, 0, 0)
       x.save!
 
       x = Hstore.first
       assert_equal "de", x.language
       assert_equal "GMT", x.timezone
+      assert x.active
+      assert_equal DateTime.new(2015, 2, 14, 18, 0, 0), x.login_at
     end
 
     def test_duplication_with_store_accessors
-      x = Hstore.new(language: "fr", timezone: "GMT")
+      x = Hstore.new(language: "fr", timezone: "GMT", active: 't')
       assert_equal "fr", x.language
       assert_equal "GMT", x.timezone
+      assert x.active
 
       y = x.dup
       assert_equal "fr", y.language
       assert_equal "GMT", y.timezone
+      assert y.active
     end
 
     def test_yaml_round_trip_with_store_accessors
-      x = Hstore.new(language: "fr", timezone: "GMT")
+      x = Hstore.new(language: "fr", timezone: "GMT", active: 'f', login_at: '2015-02-15 10:00')
       assert_equal "fr", x.language
       assert_equal "GMT", x.timezone
+      assert_equal DateTime.new(2015, 2, 15, 10, 0, 0), x.login_at
+      assert_not x.active
 
       y = YAML.load(YAML.dump(x))
       assert_equal "fr", y.language
       assert_equal "GMT", y.timezone
+      assert_not y.active
+      assert_equal DateTime.new(2015, 2, 15, 10, 0, 0), y.login_at
     end
 
     def test_changes_in_place
