@@ -83,6 +83,10 @@ module ActiveSupport
           assert_equal("98a%", number_helper.number_to_percentage("98a"))
           assert_equal("NaN%", number_helper.number_to_percentage(Float::NAN))
           assert_equal("Inf%", number_helper.number_to_percentage(Float::INFINITY))
+          assert_equal("NaN%", number_helper.number_to_percentage(Float::NAN, precision: 0))
+          assert_equal("Inf%", number_helper.number_to_percentage(Float::INFINITY, precision: 0))
+          assert_equal("NaN%", number_helper.number_to_percentage(Float::NAN, precision: 1))
+          assert_equal("Inf%", number_helper.number_to_percentage(Float::INFINITY, precision: 1))
         end
       end
 
