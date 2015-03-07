@@ -14,7 +14,7 @@ class Hash
     result
   end
 
-  # Destructively convert all keys using the block operations.
+  # Destructively converts all keys using the block operations.
   # Same as transform_keys but modifies +self+.
   def transform_keys!
     return enum_for(:transform_keys!) unless block_given?
@@ -34,7 +34,7 @@ class Hash
     transform_keys(&:to_s)
   end
 
-  # Destructively convert all keys to strings. Same as
+  # Destructively converts all keys to strings. Same as
   # +stringify_keys+, but modifies +self+.
   def stringify_keys!
     transform_keys!(&:to_s)
@@ -52,14 +52,14 @@ class Hash
   end
   alias_method :to_options,  :symbolize_keys
 
-  # Destructively convert all keys to symbols, as long as they respond
+  # Destructively converts all keys to symbols, as long as they respond
   # to +to_sym+. Same as +symbolize_keys+, but modifies +self+.
   def symbolize_keys!
     transform_keys!{ |key| key.to_sym rescue key }
   end
   alias_method :to_options!, :symbolize_keys!
 
-  # Validate all keys in a hash match <tt>*valid_keys</tt>, raising
+  # Validates all keys in a hash match <tt>*valid_keys</tt>, raising
   # ArgumentError on a mismatch.
   #
   # Note that keys are treated differently than HashWithIndifferentAccess,
@@ -89,7 +89,7 @@ class Hash
     _deep_transform_keys_in_object(self, &block)
   end
 
-  # Destructively convert all keys by using the block operation.
+  # Destructively converts all keys by using the block operation.
   # This includes the keys from the root hash and from all
   # nested hashes and arrays.
   def deep_transform_keys!(&block)
@@ -108,7 +108,7 @@ class Hash
     deep_transform_keys(&:to_s)
   end
 
-  # Destructively convert all keys to strings.
+  # Destructively converts all keys to strings.
   # This includes the keys from the root hash and from all
   # nested hashes and arrays.
   def deep_stringify_keys!
@@ -127,7 +127,7 @@ class Hash
     deep_transform_keys{ |key| key.to_sym rescue key }
   end
 
-  # Destructively convert all keys to symbols, as long as they respond
+  # Destructively converts all keys to symbols, as long as they respond
   # to +to_sym+. This includes the keys from the root hash and from all
   # nested hashes and arrays.
   def deep_symbolize_keys!
