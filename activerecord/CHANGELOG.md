@@ -1,3 +1,20 @@
+*   Add `ActiveRecord::Enum` supports string type column. When column type is string, database values are same as enum values.
+
+	Example:
+
+		class Book < ActiveRecord::Base
+		  enum status: [:proposed, :written]
+		  enum format: [:paperback, :ebook]
+        end
+
+        # status is integer column,
+	    Book.statuses # => { :proposed => 0, :written => 1 }
+
+        # format is string column,
+		Book.formats  # => { :paperback => "paperback", :ebook => "ebook" }
+
+    *Jaehyun Shin*
+
 *   Correctly dump `serial` and `bigserial`.
 
     *Ryuta Kamizono*

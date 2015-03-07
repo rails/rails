@@ -88,9 +88,10 @@ module ActiveRecord
     end
 
     class EnumType < Type::Value
-      def initialize(name, mapping)
+      def initialize(name, mapping, column_type)
         @name = name
         @mapping = mapping
+        @column_type = column_type
       end
 
       def cast(value)
@@ -107,7 +108,7 @@ module ActiveRecord
 
       def deserialize(value)
         return if value.nil?
-        mapping.key(value.to_i)
+        mapping.key(@column_type == :string ? value.to_s : value.to_i)
       end
 
       def serialize(value)
@@ -116,7 +117,7 @@ module ActiveRecord
 
       protected
 
-      attr_reader :name, :mapping
+      attr_reader :name, :mapping, :column_type
     end
 
     def enum(definitions)
@@ -125,6 +126,7 @@ module ActiveRecord
         # statuses = { }
         enum_values = ActiveSupport::HashWithIndifferentAccess.new
         name        = name.to_sym
+        column_type = klass.columns_hash[name.to_s].type rescue nil
 
         # def self.statuses statuses end
         detect_enum_conflict!(name, name.to_s.pluralize, true)
@@ -133,10 +135,16 @@ module ActiveRecord
         detect_enum_conflict!(name, name)
         detect_enum_conflict!(name, "#{name}=")
 
-        attribute name, EnumType.new(name, enum_values)
+        attribute name, EnumType.new(name, enum_values, column_type)
 
         _enum_methods_module.module_eval do
-          pairs = values.respond_to?(:each_pair) ? values.each_pair : values.each_with_index
+          pairs = if values.respond_to?(:each_pair)
+                    values.each_pair
+                  elsif column_type == :string
+                    values.zip(values.map(&:to_s)).to_h
+                  else
+                    values.each_with_index
+                  end
           pairs.each do |value, i|
             enum_values[value] = i
 
