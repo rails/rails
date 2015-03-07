@@ -356,6 +356,7 @@ module ActiveRecord
       if has_transactional_callbacks?
         self.class.connection.add_transaction_record(self)
       else
+        sync_with_transaction_state
         set_transaction_state(self.class.connection.transaction_state)
       end
       remember_transaction_record_state
@@ -413,13 +414,14 @@ module ActiveRecord
         transaction_level = (@_start_transaction_state[:level] || 0) - 1
         if transaction_level < 1 || force
           restore_state = @_start_transaction_state
-          thaw unless restore_state[:frozen?]
+          thaw
           @new_record = restore_state[:new_record]
           @destroyed  = restore_state[:destroyed]
           pk = self.class.primary_key
           if pk && read_attribute(pk) != restore_state[:id]
             write_attribute(pk, restore_state[:id])
           end
+          freeze if restore_state[:frozen?]
         end
       end
     end
