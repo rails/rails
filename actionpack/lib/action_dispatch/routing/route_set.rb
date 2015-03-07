@@ -59,6 +59,7 @@ module ActionDispatch
             controller_reference(controller_param)
           end
         rescue NameError => e
+          raise if e.message.include?("undefined local variable or method")
           raise ActionController::RoutingError, e.message, e.backtrace if default_controller
         end
 

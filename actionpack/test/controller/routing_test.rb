@@ -562,6 +562,14 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
     assert_raise(ActionController::RoutingError) { rs.recognize_path("/not_a/show/10") }
   end
 
+  def test_no_hide_undefined_method_error
+    set = make_bad_set
+    set.draw do
+      get ':controller/:action'
+    end
+    assert_raise(NameError) { set.recognize_path("/bad/ok") }
+  end
+
   def test_should_list_options_diff_when_routing_constraints_dont_match
     rs.draw do
       get 'post/:id' => 'post#show', :constraints => { :id => /\d+/ }, :as => 'post'
