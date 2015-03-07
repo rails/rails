@@ -181,10 +181,8 @@ module ActiveRecord
 
             if through_reflection.collection?
               through_records.each { |r| through_association.target.delete(r) }
-            else
-              if through_records.include?(through_association.target)
-                through_association.target = nil
-              end
+            elsif through_records.include?(through_association.target)
+              through_association.target = nil
             end
 
             @through_records.delete(record.object_id)

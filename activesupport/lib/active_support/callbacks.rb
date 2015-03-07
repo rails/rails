@@ -211,12 +211,10 @@ module ActiveSupport
             else
               simple callback_sequence, user_callback
             end
+          elsif user_conditions.any?
+            conditional callback_sequence, user_callback, user_conditions
           else
-            if user_conditions.any?
-              conditional callback_sequence, user_callback, user_conditions
-            else
-              simple callback_sequence, user_callback
-            end
+            simple callback_sequence, user_callback
           end
         end
 

@@ -59,11 +59,9 @@ class CodeStatisticsCalculator #:nodoc:
           comment_started = false
         end
         next
-      else
-        if patterns[:begin_block_comment] && line =~ patterns[:begin_block_comment]
-          comment_started = true
-          next
-        end
+      elsif patterns[:begin_block_comment] && line =~ patterns[:begin_block_comment]
+        comment_started = true
+        next
       end
 
       @classes   += 1 if patterns[:class] && line =~ patterns[:class]

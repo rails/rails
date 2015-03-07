@@ -39,37 +39,35 @@ module ActiveRecord
               if is_escaping
                 current_item << token
                 is_escaping = false
-              else
-                if is_quoted
-                  case token
-                  when DOUBLE_QUOTE
-                    is_quoted = false
-                    was_quoted = true
-                  when BACKSLASH
-                    is_escaping = true
-                  else
-                    current_item << token
-                  end
+              elsif is_quoted
+                case token
+                when DOUBLE_QUOTE
+                  is_quoted = false
+                  was_quoted = true
+                when BACKSLASH
+                  is_escaping = true
                 else
-                  case token
-                  when BACKSLASH
-                    is_escaping = true
-                  when COMMA
-                    add_item_to_array(array, current_item, was_quoted)
-                    current_item = ''
-                    was_quoted = false
-                  when DOUBLE_QUOTE
-                    is_quoted = true
-                  when BRACKET_OPEN
-                    internal_items = []
-                    local_index,internal_items = parse_array_contents(internal_items, string, local_index + 1)
-                    array.push(internal_items)
-                  when BRACKET_CLOSE
-                    add_item_to_array(array, current_item, was_quoted)
-                    return local_index,array
-                  else
-                    current_item << token
-                  end
+                  current_item << token
+                end
+              else
+                case token
+                when BACKSLASH
+                  is_escaping = true
+                when COMMA
+                  add_item_to_array(array, current_item, was_quoted)
+                  current_item = ''
+                  was_quoted = false
+                when DOUBLE_QUOTE
+                  is_quoted = true
+                when BRACKET_OPEN
+                  internal_items = []
+                  local_index,internal_items = parse_array_contents(internal_items, string, local_index + 1)
+                  array.push(internal_items)
+                when BRACKET_CLOSE
+                  add_item_to_array(array, current_item, was_quoted)
+                  return local_index,array
+                else
+                  current_item << token
                 end
               end
 

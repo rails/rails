@@ -24,12 +24,10 @@ class Hash
 
       self[current_key] = if this_value.is_a?(Hash) && other_value.is_a?(Hash)
         this_value.deep_merge(other_value, &block)
+      elsif block_given? && key?(current_key)
+        block.call(current_key, this_value, other_value)
       else
-        if block_given? && key?(current_key)
-          block.call(current_key, this_value, other_value)
-        else
-          other_value
-        end
+        other_value
       end
     end
 

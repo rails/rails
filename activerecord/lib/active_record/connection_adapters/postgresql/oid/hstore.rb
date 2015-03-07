@@ -44,12 +44,10 @@ module ActiveRecord
           def escape_hstore(value)
             if value.nil?
               'NULL'
+            elsif value == ""
+              '""'
             else
-              if value == ""
-                '""'
-              else
-                '"%s"' % value.to_s.gsub(/(["\\])/, '\\\\\1')
-              end
+              '"%s"' % value.to_s.gsub(/(["\\])/, '\\\\\1')
             end
           end
         end
