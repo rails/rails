@@ -33,7 +33,7 @@ group :doc do
   gem 'kindlerb', '0.1.1'
 end
 
-# AS
+# ActiveSupport
 gem 'dalli', '>= 2.2.1'
 
 # ActiveJob
@@ -82,7 +82,7 @@ platforms :ruby do
   # Needed for compiling the ActionDispatch::Journey parser
   gem 'racc', '>=1.4.6', require: false
 
-  # AR
+  # ActiveRecord
   gem 'sqlite3', '~> 1.3.6'
 
   group :db do
