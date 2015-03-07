@@ -508,8 +508,8 @@ module ActionDispatch
   #       assert_equal 200, status
   #
   #       # post the login and follow through to the home page
-  #       post "/login", username: people(:jamis).username,
-  #         password: people(:jamis).password
+  #       post "/login", params: { username: people(:jamis).username,
+  #         password: people(:jamis).password }
   #       follow_redirect!
   #       assert_equal 200, status
   #       assert_equal "/home", path
@@ -548,7 +548,7 @@ module ActionDispatch
   #         end
   #
   #         def speak(room, message)
-  #           xml_http_request "/say/#{room.id}", message: message
+  #           post "/say/#{room.id}", xhr: true, params: { message: message }
   #           assert(...)
   #           ...
   #         end
@@ -558,8 +558,8 @@ module ActionDispatch
   #         open_session do |sess|
   #           sess.extend(CustomAssertions)
   #           who = people(who)
-  #           sess.post "/login", username: who.username,
-  #             password: who.password
+  #           sess.post "/login", params: { username: who.username,
+  #             password: who.password }
   #           assert(...)
   #         end
   #       end
@@ -578,7 +578,8 @@ module ActionDispatch
   #       get "/login"
   #       assert_response :success
   #
-  #       post_via_redirect "/login", username: users(:david).username, password: users(:david).password
+  #       post "/login", params: { username: users(:david).username, password: users(:david).password }
+  #       follow_redirect!
   #       assert_equal '/welcome', path
   #       assert_equal 'Welcome david!', flash[:notice]
   #
@@ -633,7 +634,7 @@ module ActionDispatch
   #           sess.extend(CustomDsl)
   #           u = users(user)
   #           sess.https!
-  #           sess.post "/login", username: u.username, password: u.password
+  #           sess.post "/login", params: { username: u.username, password: u.password }
   #           assert_equal '/welcome', sess.path
   #           sess.https!(false)
   #         end
