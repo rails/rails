@@ -73,19 +73,6 @@ module ActiveRecord
       [result, binds]
     end
 
-    def expand(column, value)
-      # Find the foreign key when using queries such as:
-      # Post.where(author: author)
-      #
-      # For polymorphic relationships, find the foreign key and type:
-      # PriceEstimate.where(estimate_of: treasure)
-      if table.associated_with?(column)
-        value = AssociationQueryValue.new(table.associated_table(column), value)
-      end
-
-      build(table.arel_attribute(column), value)
-    end
-
     def self.references(attributes)
       attributes.map do |key, value|
         if value.is_a?(Hash)
@@ -116,11 +103,22 @@ module ActiveRecord
       handler_for(value).call(attribute, value)
     end
 
-    protected
+    private
 
     attr_reader :table
 
-    private
+    def expand(column, value)
+      # Find the foreign key when using queries such as:
+      # Post.where(author: author)
+      #
+      # For polymorphic relationships, find the foreign key and type:
+      # PriceEstimate.where(estimate_of: treasure)
+      if table.associated_with?(column)
+        value = AssociationQueryValue.new(table.associated_table(column), value)
+      end
+
+      build(table.arel_attribute(column), value)
+    end
 
     def associated_predicate_builder(association_name)
       self.class.new(table.associated_table(association_name))
