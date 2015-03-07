@@ -35,6 +35,13 @@ GIT
       railties (>= 4.2.0)
       thor (>= 0.14, < 2.0)
 
+GIT
+  remote: git://github.com/rails/rails-html-sanitizer.git
+  revision: 4f0f7810fce6c8aa63de07a40d69d6027a30acaf
+  specs:
+    rails-html-sanitizer (1.0.2)
+      loofah (~> 2.0)
+
 PATH
   remote: .
   specs:
@@ -50,13 +57,13 @@ PATH
       rack (~> 1.6)
       rack-test (~> 0.6.3)
       rails-dom-testing (~> 1.0, >= 1.0.5)
-      rails-html-sanitizer (~> 1.0, >= 1.0.1)
+      rails-html-sanitizer (~> 1.0, >= 1.0.2)
     actionview (5.0.0.alpha)
       activesupport (= 5.0.0.alpha)
       builder (~> 3.1)
       erubis (~> 2.7.0)
       rails-dom-testing (~> 1.0, >= 1.0.5)
-      rails-html-sanitizer (~> 1.0, >= 1.0.1)
+      rails-html-sanitizer (~> 1.0, >= 1.0.2)
     activejob (5.0.0.alpha)
       activesupport (= 5.0.0.alpha)
       globalid (>= 0.3.0)
@@ -165,8 +172,6 @@ GEM
       activesupport (>= 4.2.0.beta, < 5.0)
       nokogiri (~> 1.6.0)
       rails-deprecated_sanitizer (>= 1.0.1)
-    rails-html-sanitizer (1.0.1)
-      loofah (~> 2.0)
     rake (10.4.2)
     rdoc (4.2.0)
     redcarpet (3.2.2)
@@ -274,6 +279,7 @@ DEPENDENCIES
   racc (>= 1.4.6)
   rack-cache (~> 1.2)
   rails!
+  rails-html-sanitizer (~> 1.0.2)!
   rake (>= 10.3)
   redcarpet (~> 3.2.2)
   resque

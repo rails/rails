@@ -99,7 +99,7 @@ module ActionView
       #   strip_tags("<div id='top-bar'>Welcome to my website!</div>")
       #   # => Welcome to my website!
       def strip_tags(html)
-        self.class.full_sanitizer.sanitize(html)
+        self.class.full_sanitizer.sanitize(html, encode_special_chars: false)
       end
 
       # Strips all link tags from +html+ leaving just the link text.
