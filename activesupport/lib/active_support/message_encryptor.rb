@@ -73,9 +73,17 @@ module ActiveSupport
 
       # Rely on OpenSSL for the initialization vector
       iv = cipher.random_iv
-
-      encrypted_data = cipher.update(@serializer.dump(value))
-      encrypted_data << cipher.final
+      
+      begin
+        encrypted_data = cipher.update(@serializer.dump(value))
+        encrypted_data << cipher.final
+      rescue OpenSSLCipherError => e
+        if RUBY_PLATFORM == 'java'
+          raise e.exception "Unlimited Strength Crypto not available on this JVM. To know more, read https://github.com/jruby/jruby/wiki/UnlimitedStrengthCrypto"
+        else
+          raise e.exception
+        end
+      end
 
       "#{::Base64.strict_encode64 encrypted_data}--#{::Base64.strict_encode64 iv}"
     end
