@@ -21,7 +21,7 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
-require 'securerandom'
+require "securerandom"
 require "active_support/dependencies/autoload"
 require "active_support/version"
 require "active_support/logger"
