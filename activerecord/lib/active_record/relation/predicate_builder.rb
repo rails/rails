@@ -24,12 +24,12 @@ module ActiveRecord
     end
 
     def build_from_hash(attributes)
-      attributes = convert_dot_notation_to_hash(attributes.stringify_keys)
+      attributes = convert_dot_notation_to_hash(attributes)
       expand_from_hash(attributes)
     end
 
     def create_binds(attributes)
-      attributes = convert_dot_notation_to_hash(attributes.stringify_keys)
+      attributes = convert_dot_notation_to_hash(attributes)
       create_binds_for_hash(attributes)
     end
 
@@ -123,6 +123,7 @@ module ActiveRecord
     end
 
     def convert_dot_notation_to_hash(attributes)
+      attributes = attributes.stringify_keys
       dot_notation = attributes.keys.select { |s| s.include?(".") }
 
       dot_notation.each do |key|
