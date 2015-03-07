@@ -908,19 +908,23 @@ module ActiveRecord
       end
 
       def uses_transaction(*methods)
+        display_deprecation_warning_for_uses_transaction
         @uses_transaction = [] unless defined?(@uses_transaction)
         @uses_transaction.concat methods.map(&:to_s)
       end
 
       def uses_transaction?(method)
+        display_deprecation_warning_for_uses_transaction
         @uses_transaction = [] unless defined?(@uses_transaction)
         @uses_transaction.include?(method.to_s)
       end
     end
 
     def run_in_transaction?
-      use_transactional_fixtures &&
-        !self.class.uses_transaction?(method_name)
+      ActiveSupport::Deprecation.warn(<<-MSG.squish)
+      `run_in_transaction?` has been deprecated and will be removed in Rails 5.0. Please use `use_transactional_fixtures` instead.
+      MSG
+      use_transactional_fixtures
     end
 
     def setup_fixtures(config = ActiveRecord::Base)
@@ -933,7 +937,7 @@ module ActiveRecord
       @@already_loaded_fixtures ||= {}
 
       # Load fixtures once and begin transaction.
-      if run_in_transaction?
+      if use_transactional_fixtures
         if @@already_loaded_fixtures[self.class]
           @loaded_fixtures = @@already_loaded_fixtures[self.class]
         else
@@ -957,7 +961,7 @@ module ActiveRecord
 
     def teardown_fixtures
       # Rollback changes if a transaction is active.
-      if run_in_transaction?
+      if use_transactional_fixtures
         @fixture_connections.each do |connection|
           connection.rollback_transaction if connection.transaction_open?
         end
@@ -993,6 +997,12 @@ module ActiveRecord
 
       def load_instances?
         use_instantiated_fixtures != :no_instances
+      end
+
+      def display_deprecation_warning_for_uses_transaction
+        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          This method has been deprecated and will be removed in Rails 5.0.
+        MSG
       end
   end
 end
