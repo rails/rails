@@ -178,7 +178,7 @@ class String
     ActiveSupport::Inflector.tableize(self)
   end
 
-  # Create a class name from a plural table name like Rails does for table names to models.
+  # Creates a class name from a plural table name like Rails does for table names to models.
   # Note that this returns a string and not a class. (To convert to an actual class
   # follow +classify+ with +constantize+.)
   #
