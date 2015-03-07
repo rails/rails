@@ -114,21 +114,19 @@ module ActiveRecord
       end
 
       def inverted_predicates
-        predicates.map { |node| invert_predicate(node) }
-      end
-
-      def invert_predicate(node)
-        case node
-        when NilClass
-          raise ArgumentError, 'Invalid argument for .where.not(), got nil.'
-        when Arel::Nodes::In
-          Arel::Nodes::NotIn.new(node.left, node.right)
-        when Arel::Nodes::Equality
-          Arel::Nodes::NotEqual.new(node.left, node.right)
-        when String
-          Arel::Nodes::Not.new(Arel::Nodes::SqlLiteral.new(node))
-        else
-          Arel::Nodes::Not.new(node)
+        predicates.map do |node|
+          case node
+          when NilClass
+            raise ArgumentError, 'Invalid argument for .where.not(), got nil.'
+          when Arel::Nodes::In
+            Arel::Nodes::NotIn.new(node.left, node.right)
+          when Arel::Nodes::Equality
+            Arel::Nodes::NotEqual.new(node.left, node.right)
+          when String
+            Arel::Nodes::Not.new(Arel.sql(node))
+          else
+            Arel::Nodes::Not.new(node)
+          end
         end
       end
 

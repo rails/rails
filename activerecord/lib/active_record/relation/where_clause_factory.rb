@@ -16,6 +16,8 @@ module ActiveRecord
           attributes = predicate_builder.resolve_column_aliases(opts)
           attributes = klass.send(:expand_hash_conditions_for_aggregates, attributes)
 
+          attributes = predicate_builder.convert_dot_notation_to_hash(attributes)
+
           attributes, binds = predicate_builder.create_binds(attributes)
 
           parts = predicate_builder.build_from_hash(attributes)

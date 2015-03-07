@@ -12,5 +12,9 @@ module ActiveRecord
     ensure
       Topic.reset_column_information
     end
+
+    def test_resolve_column_alias
+      Topic.predicate_builder.resolve_column_aliases({})
+    end
   end
 end

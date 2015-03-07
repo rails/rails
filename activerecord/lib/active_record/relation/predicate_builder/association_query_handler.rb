@@ -14,7 +14,10 @@ module ActiveRecord
         end
 
         queries[table.association_foreign_key] = value.ids
-        predicate_builder.build_from_hash(queries)
+
+        predicate_builder.build_from_hash(
+          predicate_builder.convert_dot_notation_to_hash(queries)
+        )
       end
 
       protected
