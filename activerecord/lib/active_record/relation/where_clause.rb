@@ -123,7 +123,7 @@ module ActiveRecord
           when Arel::Nodes::Equality
             Arel::Nodes::NotEqual.new(node.left, node.right)
           when String
-            Arel::Nodes::Not.new(Arel::Nodes::SqlLiteral.new(node))
+            Arel::Nodes::Not.new(Arel.sql(node))
           else
             Arel::Nodes::Not.new(node)
           end

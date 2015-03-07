@@ -90,7 +90,7 @@ class ActiveRecord::Relation
       expected = WhereClause.new([
         table["id"].not_in([1, 2, 3]),
         table["id"].not_eq(1),
-        Arel::Nodes::Not.new(Arel::Nodes::SqlLiteral.new("sql literal")),
+        Arel::Nodes::Not.new(Arel.sql("sql literal")),
         Arel::Nodes::Not.new(random_object)
       ], [])
 
