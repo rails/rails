@@ -35,7 +35,7 @@ class String
     ActiveSupport::Multibyte.proxy_class.new(self)
   end
 
-  # Return +true+ if string has utf_8 encoding.
+  # Returns +true+ if string has utf_8 encoding.
   #
   #   utf_8_str = "some string".encode "UTF-8"
   #   iso_str = "some string".encode "ISO-8859-1"

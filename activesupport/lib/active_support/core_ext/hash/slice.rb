@@ -1,5 +1,5 @@
 class Hash
-  # Slice a hash to include only the given keys. Returns a hash containing 
+  # Slices a hash to include only the given keys. Returns a hash containing 
   # the given keys.
   # 
   #   { a: 1, b: 2, c: 3, d: 4 }.slice(:a, :b)
