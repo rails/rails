@@ -1,3 +1,5 @@
+require 'rails/env'
+
 module Rails
   # This is a class which takes in a rails command and initiates the appropriate
   # initiation sequence.
@@ -59,7 +61,7 @@ EOT
       options = Rails::Console.parse_arguments(argv)
 
       # RAILS_ENV needs to be set before config/application is required
-      ENV['RAILS_ENV'] = options[:environment] if options[:environment]
+      Rails.env = options[:environment]
 
       # shift ARGV so IRB doesn't freak
       shift_argv!
