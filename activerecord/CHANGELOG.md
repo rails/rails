@@ -665,4 +665,10 @@
 
     *Yves Senn*
 
+*   Deprecate `ActiveRecord::TestFixtures.uses_transaction` and
+    `ActiveRecord::TestFixtures.uses_transaction?` and
+    `ActiveRecord::TestFixtures#run_in_transaction?`
+
+    *Islam Wazery*
+
 Please check [4-2-stable](https://github.com/rails/rails/blob/4-2-stable/activerecord/CHANGELOG.md) for previous changes.
