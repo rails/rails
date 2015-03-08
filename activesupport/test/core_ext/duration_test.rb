@@ -224,7 +224,7 @@ class DurationTest < ActiveSupport::TestCase
   def test_iso8601_parsing_wrong_patterns_with_raise
     invalid_patterns = ['', 'P', 'PT', 'P1YT', 'T', 'PW', 'P1Y1W', '~P1Y', '.P1Y', 'P1.5Y0.5M', 'P1.5Y1M', 'P1.5MT10.5S']
     invalid_patterns.each do |pattern|
-      assert_raise ActiveSupport::Duration::ISO8601DurationParser::ParsingError do
+      assert_raise ActiveSupport::Duration::ISO8601Parser::ParsingError do
         ActiveSupport::Duration.parse!(pattern)
       end
     end
@@ -268,7 +268,7 @@ class DurationTest < ActiveSupport::TestCase
         [5,   'PT1.40000S',   (1.4).seconds                     ],
     ]
     expectations.each do |precision, expected_output, duration|
-      assert_equal expected_output, duration.iso8601(precision)
+      assert_equal expected_output, duration.iso8601(precision: precision)
     end
   end
 

@@ -121,7 +121,7 @@ module ActiveSupport
     # JSON representation should be a string formatted as ISO 8601 Duration, as recommended by Google JSON Style Guide:
     # https://google-styleguide.googlecode.com/svn/trunk/jsoncstyleguide.xml?showone=Time_Duration_Property_Values#Time_Duration_Property_Values
     def as_json(options = nil) #:nodoc:
-      iso8601(options && options[:precision])
+      iso8601(precision: options && options[:precision])
     end
 
     def respond_to_missing?(method, include_private=false) #:nodoc:
@@ -134,8 +134,8 @@ module ActiveSupport
     # This method allows negative parts to be present in pattern.
     # If invalid string is provided, it will raise +ActiveSupport::Duration::ISO8601DurationParser::ParsingError+.
     def self.parse!(iso8601duration)
-      require 'active_support/duration/iso8601_duration_parser' unless defined?(ISO8601DurationParser)
-      parts = ISO8601DurationParser.new(iso8601duration).parts
+      require 'active_support/duration/iso8601_parser' unless defined?(ISO8601Parser)
+      parts = ISO8601Parser.new(iso8601duration).parts
       time  = ::Time.now
       new(time.advance(parts) - time, parts)
     end
@@ -147,13 +147,13 @@ module ActiveSupport
     # If invalid string is provided, nil will be returned.
     def self.parse(iso8601duration)
       parse!(iso8601duration)
-    rescue ISO8601DurationParser::ParsingError
+    rescue ISO8601Parser::ParsingError
       nil
     end
 
     # Build ISO 8601 Duration string for this duration.
     # The +precision+ parameter can be used to limit seconds' precision of duration.
-    def iso8601(precision=nil)
+    def iso8601(precision: nil)
       output, sign = 'P', ''
       parts = normalized_parts
       # If all parts are negative - let's output negative duration
@@ -181,12 +181,13 @@ module ActiveSupport
     # Return duration's parts summarized (as they can become repetitive due to addition, etc)
     # Also removes zero parts as not significant
     def normalized_parts
-      parts = self.parts.inject(::Hash.new(0)) do |p,(k,v)|
-        p[k] += v  unless v.zero?
+      self.parts.inject({}) do |p,(k,v)|
+        unless v.zero?
+          p[k] ||= 0
+          p[k]  += v
+        end
         p
       end
-      parts.default = nil
-      parts
     end
 
     protected
