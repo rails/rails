@@ -1,13 +1,3 @@
-*   Take DST into account when locating TimeZone from Numeric.
-
-    When given a specific offset, use the first result found where the
-    total current offset (including any periodic deviations such as DST)
-    from UTC is equal.
-
-    Fixes #15209.
-
-    *Yasyf Mohamedali*
-
 *   Added `#without` on `Enumerable` and `Array` to return a copy of an
     enumerable without the specified elements.
 
