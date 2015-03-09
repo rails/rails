@@ -60,6 +60,8 @@ class AssetTagHelperTest < ActionView::TestCase
     %(auto_discovery_link_tag(nil, {}, {:title => "No stream.. really", :type => "text/html"})) => %(<link href="http://www.example.com" rel="alternate" title="No stream.. really" type="text/html" />),
     %(auto_discovery_link_tag(:rss, {}, {:title => "My RSS", :type => "text/html"})) => %(<link href="http://www.example.com" rel="alternate" title="My RSS" type="text/html" />),
     %(auto_discovery_link_tag(:atom, {}, {:rel => "Not so alternate"})) => %(<link href="http://www.example.com" rel="Not so alternate" title="ATOM" type="application/atom+xml" />),
+    %(auto_discovery_link_tag(:atom, {}, {:data => {'turbolinks-track' => false}})) => %(<link href="http://www.example.com" rel="alternate" title="ATOM" type="application/atom+xml" data-turbolinks-track="false" />),
+    %(auto_discovery_link_tag(:atom, {}, {'rel' => "Not so alternate", :data => {'turbolinks-track' => false}})) => %(<link href="http://www.example.com" rel="Not so alternate" title="ATOM" type="application/atom+xml" data-turbolinks-track="false" />),
   }
 
   JavascriptPathToTag = {

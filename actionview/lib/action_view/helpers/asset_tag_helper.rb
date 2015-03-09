@@ -128,18 +128,23 @@ module ActionView
       #   # => <link rel="alternate" type="application/rss+xml" title="RSS" href="http://www.currenthost.com/news/feed" />
       #   auto_discovery_link_tag(:rss, "http://www.example.com/feed.rss", {title: "Example RSS"})
       #   # => <link rel="alternate" type="application/rss+xml" title="Example RSS" href="http://www.example.com/feed" />
+      #   auto_discovery_link_tag(:atom, {controller: "news", action: "feed"}, {data: {'turbolinks-track' => true}})
+      #   # => <link rel="alternate" type="application/atom+xml" title="ATOM" href="http://www.currenthost.com/news/feed" data-turbolinks-track="true" />
       def auto_discovery_link_tag(type = :rss, url_options = {}, tag_options = {})
         if !(type == :rss || type == :atom) && tag_options[:type].blank?
           raise ArgumentError.new("You should pass :type tag_option key explicitly, because you have passed #{type} type other than :rss or :atom.")
         end
 
-        tag(
-          "link",
+        tag_options = tag_options.with_indifferent_access
+        default_tag_options = {
           "rel"   => tag_options[:rel] || "alternate",
           "type"  => tag_options[:type] || Mime::Type.lookup_by_extension(type.to_s).to_s,
           "title" => tag_options[:title] || type.to_s.upcase,
           "href"  => url_options.is_a?(Hash) ? url_for(url_options.merge(:only_path => false)) : url_options
-        )
+        }
+        tag_options = default_tag_options.reverse_merge tag_options
+
+        tag("link", tag_options)
       end
 
       # Returns a link tag for a favicon managed by the asset pipeline.
