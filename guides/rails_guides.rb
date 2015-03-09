@@ -58,6 +58,5 @@ ERROR
   exit 1
 end
 
-require 'rails_guides/markdown'
 require "rails_guides/generator"
 RailsGuides::Generator.new.generate
