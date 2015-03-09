@@ -14,16 +14,20 @@ class EnumTest < ActiveRecord::TestCase
     assert_not @book.published?
 
     assert @book.unread?
+
+    assert @book.paperback?
   end
 
   test "query state with strings" do
     assert_equal "proposed", @book.status
     assert_equal "unread", @book.read_status
+    assert_equal "paperback", @book.format
   end
 
   test "find via scope" do
     assert_equal @book, Book.proposed.first
     assert_equal @book, Book.unread.first
+    assert_equal @book, Book.paperback.first
   end
 
   test "find via where with values" do
@@ -35,6 +39,12 @@ class EnumTest < ActiveRecord::TestCase
     refute_equal @book, Book.where(status: [written]).first
     refute_equal @book, Book.where("status <> ?", proposed).first
     assert_equal @book, Book.where("status <> ?", written).first
+
+    paperback, ebook = Book.formats[:paperback], Book.formats[:ebook]
+    assert_equal @book, Book.where(format: paperback).first
+    refute_equal @book, Book.where(format: ebook).first
+    refute_equal @book, Book.where("format <> ?", paperback).first
+    assert_equal @book, Book.where("format <> ?", ebook).first
   end
 
   test "find via where with symbols" do
@@ -44,6 +54,9 @@ class EnumTest < ActiveRecord::TestCase
     refute_equal @book, Book.where(status: [:written]).first
     refute_equal @book, Book.where.not(status: :proposed).first
     assert_equal @book, Book.where.not(status: :written).first
+
+    assert_equal @book, Book.where(format: :paperback).first
+    refute_equal @book, Book.where(format: :ebook).first
   end
 
   test "find via where with strings" do
@@ -53,11 +66,18 @@ class EnumTest < ActiveRecord::TestCase
     refute_equal @book, Book.where(status: ["written"]).first
     refute_equal @book, Book.where.not(status: "proposed").first
     assert_equal @book, Book.where.not(status: "written").first
+
+    assert_equal @book, Book.where(format: "paperback").first
+    refute_equal @book, Book.where(format: "ebook").first
+    refute_equal @book, Book.where.not(format: "paperback").first
   end
 
   test "build from scope" do
     assert Book.written.build.written?
     refute Book.written.build.proposed?
+
+    assert Book.paperback.build.paperback?
+    refute Book.paperback.build.ebook?
   end
 
   test "build from where" do
@@ -67,16 +87,24 @@ class EnumTest < ActiveRecord::TestCase
     refute Book.where(status: :written).build.proposed?
     assert Book.where(status: "written").build.written?
     refute Book.where(status: "written").build.proposed?
+
+    assert Book.where(format: :paperback).build.paperback?
   end
 
   test "update by declaration" do
     @book.written!
     assert @book.written?
+
+    @book.ebook!
+    assert @book.ebook?
   end
 
   test "update by setter" do
     @book.update! status: :written
     assert @book.written?
+
+    @book.update! format: :hardcover
+    assert @book.hardcover?
   end
 
   test "enum methods are overwritable" do
@@ -87,29 +115,47 @@ class EnumTest < ActiveRecord::TestCase
   test "direct assignment" do
     @book.status = :written
     assert @book.written?
+
+    @book.format = :ebook
+    assert @book.ebook?
   end
 
   test "assign string value" do
     @book.status = "written"
     assert @book.written?
+
+    @book.format = "ebook"
+    assert @book.ebook?
   end
 
   test "enum changed attributes" do
     old_status = @book.status
     @book.status = :published
     assert_equal old_status, @book.changed_attributes[:status]
+
+    old_format = @book.format
+    @book.format = :ebook
+    assert_equal old_format, @book.changed_attributes[:format]
   end
 
   test "enum changes" do
     old_status = @book.status
     @book.status = :published
     assert_equal [old_status, 'published'], @book.changes[:status]
+
+    old_format = @book.format
+    @book.format = :ebook
+    assert_equal [old_format, 'ebook'], @book.changes[:format]
   end
 
   test "enum attribute was" do
     old_status = @book.status
     @book.status = :published
     assert_equal old_status, @book.attribute_was(:status)
+
+    old_format = @book.format
+    @book.format = :ebook
+    assert_equal old_format, @book.attribute_was(:format)
   end
 
   test "enum attribute changed" do
@@ -166,46 +212,68 @@ class EnumTest < ActiveRecord::TestCase
   end
 
   test "assign non existing value raises an error" do
-    e = assert_raises(ArgumentError) do
+    e1 = assert_raises(ArgumentError) do
       @book.status = :unknown
     end
-    assert_equal "'unknown' is not a valid status", e.message
+    assert_equal "'unknown' is not a valid status", e1.message
+
+    e2 = assert_raises(ArgumentError) do
+      @book.format = :unknown
+    end
+    assert_equal "'unknown' is not a valid format", e2.message
   end
 
   test "NULL values from database should be casted to nil" do
-    Book.where(id: @book.id).update_all("status = NULL")
+    Book.where(id: @book.id).update_all("status = NULL, format = NULL")
     assert_nil @book.reload.status
+    assert_nil @book.reload.format
   end
 
   test "assign nil value" do
     @book.status = nil
     assert_nil @book.status
+
+    @book.format = nil
+    assert_nil @book.format
   end
 
   test "assign empty string value" do
     @book.status = ''
     assert_nil @book.status
+
+    @book.format = ''
+    assert_nil @book.format
   end
 
   test "assign long empty string value" do
     @book.status = '   '
     assert_nil @book.status
+
+    @book.format = '   '
+    assert_nil @book.format
   end
 
   test "constant to access the mapping" do
     assert_equal 0, Book.statuses[:proposed]
     assert_equal 1, Book.statuses["written"]
     assert_equal 2, Book.statuses[:published]
+
+    assert_equal "paperback", Book.formats[:paperback]
+    assert_equal "ebook", Book.formats["ebook"]
   end
 
   test "building new objects with enum scopes" do
     assert Book.written.build.written?
     assert Book.read.build.read?
+
+    assert Book.paperback.build.paperback?
   end
 
   test "creating new objects with enum scopes" do
     assert Book.written.create.written?
     assert Book.read.create.read?
+
+    assert Book.ebook.create.ebook?
   end
 
   test "_before_type_cast returns the enum label (required for form fields)" do
@@ -213,6 +281,12 @@ class EnumTest < ActiveRecord::TestCase
       assert_equal "proposed", @book.status_before_type_cast
     else
       assert_equal "proposed", @book.status
+    end
+
+    if @book.format_came_from_user?
+      assert_equal "paperback", @book.format_before_type_cast
+    else
+      assert_equal "paperback", @book.format
     end
   end
 
