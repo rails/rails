@@ -23,6 +23,7 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
         t.hstore :hstores, array: true
       end
     end
+    PgArray.reset_column_information
     @column = PgArray.columns_hash['tags']
     @type = PgArray.type_for_attribute("tags")
   end
