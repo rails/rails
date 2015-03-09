@@ -27,6 +27,7 @@ if ActiveRecord::Base.connection.supports_extensions?
           t.hstore 'settings'
         end
       end
+      Hstore.reset_column_information
       @column = Hstore.columns_hash['tags']
       @type = Hstore.type_for_attribute("tags")
     end
