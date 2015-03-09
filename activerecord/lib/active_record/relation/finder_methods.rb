@@ -359,14 +359,12 @@ module ActiveRecord
 
       if block_given?
         yield relation
+      elsif ActiveRecord::NullRelation === relation
+        []
       else
-        if ActiveRecord::NullRelation === relation
-          []
-        else
-          arel = relation.arel
-          rows = connection.select_all(arel, 'SQL', relation.bound_attributes)
-          join_dependency.instantiate(rows, aliases)
-        end
+        arel = relation.arel
+        rows = connection.select_all(arel, 'SQL', relation.bound_attributes)
+        join_dependency.instantiate(rows, aliases)
       end
     end
 
