@@ -865,13 +865,6 @@ class TimeWithZoneMethodsForTimeAndDateTimeTest < ActiveSupport::TestCase
     end
   end
 
-  def test_in_time_zone_with_dst
-    travel_to(Time.utc(2014, 5, 20, 4, 59, 59))
-    time = Time.now.in_time_zone(-4)
-    assert_equal (-4*3600), time.time_zone.utc_total_offset
-    travel_back
-  end
-
   def test_in_time_zone_with_invalid_argument
     assert_raise(ArgumentError) {  @t.in_time_zone("No such timezone exists") }
     assert_raise(ArgumentError) { @dt.in_time_zone("No such timezone exists") }
