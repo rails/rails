@@ -24,7 +24,8 @@ module ActiveJob
         end
 
         def enqueue_at(job, timestamp) #:nodoc:
-          raise NotImplementedError
+          delay = timestamp - Time.current.to_f
+          JobWrapper.new.async.later delay, job.serialize
         end
       end
 
@@ -33,6 +34,10 @@ module ActiveJob
 
         def perform(job_data)
           Base.execute job_data
+        end
+
+        def later(sec, data)
+          after(sec) { perform(data) }
         end
       end
     end
