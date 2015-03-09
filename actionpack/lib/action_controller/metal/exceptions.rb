@@ -46,8 +46,8 @@ module ActionController
   class SessionOverflowError < ActionControllerError #:nodoc:
     DEFAULT_MESSAGE = 'Your session data is larger than the data column in which it is to be stored. You must increase the size of your data column if you intend to store large data.'
 
-    def initialize(message = nil)
-      super(message || DEFAULT_MESSAGE)
+    def initialize(message = DEFAULT_MESSAGE)
+      super
     end
   end
 
