@@ -14,7 +14,9 @@ module ActionView
             action = pieces.first
             partial, locals = partial_and_locals(action)
             action = action[1..-1] if action[0] == '_'
-            @resolver.find_all(action, prefix, partial, details, key, locals)
+            locals.each do |locals_array|
+              templates(action, prefix, partial, details, key, locals_array).each(&:compile!)
+            end
           end
         end
       end

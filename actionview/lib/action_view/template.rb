@@ -155,7 +155,7 @@ module ActionView
     # consume this in production. This is only slow if it's being listened to.
     def render(view, locals, buffer=nil, &block)
       instrument("!render_template") do
-        compile!(view)
+        thread_safe_compile!(view)
         view.send(method_name, locals, buffer, &block)
       end
     rescue => e
@@ -237,38 +237,38 @@ module ActionView
       end
     end
 
-    protected
+    # Templates can be used concurrently in threaded environments
+    # so compilation and any instance variable modification must
+    # be synchronized
+    def thread_safe_compile!(view)
+      return if @compiled
 
-      # Compile a template. This method ensures a template is compiled
-      # just once and removes the source after it is compiled.
-      def compile!(view) #:nodoc:
+      @compile_mutex.synchronize do
+        # Any thread holding this lock will be compiling the template needed
+        # by the threads waiting. So re-check the @compiled flag to avoid
+        # re-compilation
         return if @compiled
-
-        # Templates can be used concurrently in threaded environments
-        # so compilation and any instance variable modification must
-        # be synchronized
-        @compile_mutex.synchronize do
-          # Any thread holding this lock will be compiling the template needed
-          # by the threads waiting. So re-check the @compiled flag to avoid
-          # re-compilation
-          return if @compiled
-
-          if view.is_a?(ActionView::CompiledTemplates)
-            mod = ActionView::CompiledTemplates
-          else
-            mod = view.singleton_class
-          end
-
-          instrument("!compile_template") do
-            compile(mod)
-          end
-
-          # Just discard the source if we have a virtual path. This
-          # means we can get the template back.
-          @source = nil if @virtual_path
-          @compiled = true
-        end
+        compile!(view)
       end
+    end
+
+    # Compile a template. This method ensures a template is compiled
+    # just once and removes the source after it is compiled.
+    def compile!(view = nil) #:nodoc:
+      mod = ActionView::CompiledTemplates
+      mod = view.singleton_class unless view.nil? || view.is_a?(ActionView::CompiledTemplates)
+
+      instrument('!compile_template') do
+        compile(mod)
+      end
+
+      # Just discard the source if we have a virtual path. This
+      # means we can get the template back.
+      @source = nil if @virtual_path
+      @compiled = true
+    end
+
+    protected
 
       # Among other things, this method is responsible for properly setting
       # the encoding of the compiled template.
