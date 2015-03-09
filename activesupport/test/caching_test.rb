@@ -45,6 +45,7 @@ class CacheKeyTest < ActiveSupport::TestCase
       def initialize(value, options = {})
         @value = value
         @expires_in = nil
+        @expires    = nil
         @created_at = nil
         super
       end
@@ -396,6 +397,29 @@ module CacheStoreBehavior
     assert_equal 'bar', @cache.read('foo')
 
     Time.stubs(:now).returns(time + 61)
+    assert_nil @cache.read('foo')
+  end
+
+  def test_expires
+    time = Time.local(2008, 4, 24)
+    Time.stubs(:now).returns(time)
+
+    @cache.write('foo', 'bar', :expires => :hourly)
+    assert_equal 'bar', @cache.read('foo')
+
+    Time.stubs(:now).returns(time + 3599)
+    assert_equal 'bar', @cache.read('foo')
+
+    Time.stubs(:now).returns(time + 3601)
+    assert_nil @cache.read('foo')
+
+    @cache.write('foo', 'bar', :expires => :daily)
+    assert_equal 'bar', @cache.read('foo')
+
+    Time.stubs(:now).returns(time + 86399)
+    assert_equal 'bar', @cache.read('foo')
+
+    Time.stubs(:now).returns(time + 86401)
     assert_nil @cache.read('foo')
   end
 

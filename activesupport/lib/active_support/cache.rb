@@ -3,6 +3,7 @@ require 'zlib'
 require 'active_support/core_ext/array/extract_options'
 require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/benchmark'
+require 'active_support/core_ext/date/calculations'
 require 'active_support/core_ext/module/attribute_accessors'
 require 'active_support/core_ext/numeric/bytes'
 require 'active_support/core_ext/numeric/time'
@@ -19,7 +20,7 @@ module ActiveSupport
 
     # These options mean something to all cache implementations. Individual cache
     # implementations may support additional options.
-    UNIVERSAL_OPTIONS = [:namespace, :compress, :compress_threshold, :expires_in, :race_condition_ttl]
+    UNIVERSAL_OPTIONS = [:namespace, :compress, :compress_threshold, :expires_in, :expires, :race_condition_ttl]
 
     module Strategy
       autoload :LocalCache, 'active_support/cache/strategy/local_cache'
@@ -213,6 +214,12 @@ module ActiveSupport
       #
       #   cache = ActiveSupport::Cache::MemoryStore.new(expires_in: 5.minutes)
       #   cache.write(key, value, expires_in: 1.minute) # Set a lower value for one entry
+      #
+      # Setting <tt>:expires</tt> (to either :hourly or :daily) will auto-expire
+      # the cache exactly at the rollover point when the hour or day changes.
+      #
+      #   cache = ActiveSupport::Cache::MemoryStore.new(expires: :hourly)
+      #   cache.write(key, value, expires: :daily)
       #
       # Setting <tt>:race_condition_ttl</tt> is very useful in situations where
       # a cache entry is used very frequently and is under heavy load. If a
@@ -565,6 +572,8 @@ module ActiveSupport
 
         def handle_expired_entry(entry, key, options)
           if entry && entry.expired?
+            entry.expires_at = entry.interval_expiry if entry.expires
+
             race_ttl = options[:race_condition_ttl].to_i
             if race_ttl && (Time.now.to_f - entry.expires_at <= race_ttl)
               # When an entry has :race_condition_ttl defined, put the stale entry back into the cache
@@ -602,9 +611,12 @@ module ActiveSupport
     # using short instance variable names that are lazily defined.
     class Entry # :nodoc:
       DEFAULT_COMPRESS_LIMIT = 16.kilobytes
+      EXPIRES_OPTIONS        = [:hourly, :daily]
+
+      attr_reader :expires
 
       # Create a new cache entry for the specified value. Options supported are
-      # +:compress+, +:compress_threshold+, and +:expires_in+.
+      # +:compress+, +:compress_threshold+, +:expires_in+, and +expires+.
       def initialize(value, options = {})
         if should_compress?(value, options)
           @value = compress(value)
@@ -616,6 +628,9 @@ module ActiveSupport
         @created_at = Time.now.to_f
         @expires_in = options[:expires_in]
         @expires_in = @expires_in.to_f if @expires_in
+
+        @expires    = EXPIRES_OPTIONS.include?(options[:expires]) ? options[:expires] : nil
+        @expires_in = interval_expiry if @expires
       end
 
       def value
@@ -638,6 +653,18 @@ module ActiveSupport
         else
           @expires_in = nil
         end
+      end
+
+      def interval_expiry
+        send("#{@expires}_expiry")
+      end
+
+      def hourly_expiry
+        (Time.now.at_beginning_of_hour + 1.hour - Time.now).to_f
+      end
+
+      def daily_expiry
+        (Time.now.at_beginning_of_day + 1.day - Time.now).to_f
       end
 
       # Returns the size of the cached value. This could be less than
