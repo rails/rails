@@ -2193,6 +2193,21 @@ people.without("Aaron", "Todd")
 
 NOTE: Defined in `active_support/core_ext/enumerable.rb`.
 
+### `else`
+
+The method `else` calls the given block if the enumerable is empty and returns
+the enumerable itself:
+
+```ruby
+people.each do |name|
+  puts name
+end.else do
+  puts "No person in your array"
+end
+```
+
+NOTE: Defined in `active_support/core_ext/enumerable.rb`.
+
 Extensions to `Array`
 ---------------------
 

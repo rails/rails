@@ -71,6 +71,12 @@ module Enumerable
   def without(*elements)
     reject { |element| elements.include?(element) }
   end
+
+  # Calls the given block if the enumerable does not contain any element.
+  def else
+    yield unless count > 0
+    self
+  end
 end
 
 class Range #:nodoc:

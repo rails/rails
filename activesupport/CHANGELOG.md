@@ -1,3 +1,14 @@
+*   Added `#else` on `Enumerable` as a shortcut to perform an action if the 
+    enumerable is empty:
+
+        people.each do |person|
+          puts "Hello #{person.name}"
+        end.else
+          puts "No person in your contact list"
+        end
+
+    *Francesco Boffa*
+
 *   Added `#without` on `Enumerable` and `Array` to return a copy of an
     enumerable without the specified elements.
 

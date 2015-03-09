@@ -110,4 +110,24 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_equal [1, 2, 4], (1..5).to_set.without(3, 5)
     assert_equal({foo: 1, baz: 3}, {foo: 1, bar: 2, baz: 3}.without(:bar))
   end
+
+  def test_else
+    empty = false
+    result = [1, 2, 3].else { empty = true }
+    assert_equal [1, 2, 3], result
+    assert_equal false, empty
+
+    result = [].else { empty = true }
+    assert_equal [], result
+    assert_equal true, empty
+
+    empty = false
+    result = (1..5).else { empty = true }
+    assert_equal (1..5), result
+    assert_equal false, empty
+
+    result = (0...0).else { empty = true }
+    assert_equal (0...0), result
+    assert_equal true, empty
+  end
 end
