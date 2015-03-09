@@ -1036,3 +1036,15 @@ class IntegrationRequestsWithoutSetup < ActionDispatch::IntegrationTest
     end
   end
 end
+
+# to ensure that session requirements in setup are persisted in the tests
+class IntegrationRequestsWithSessionSetup < ActionDispatch::IntegrationTest
+  setup do
+    cookies['user_name'] = 'david'
+  end
+
+  def test_cookies_set_in_setup_are_persisted_through_the_session
+    get "/foo"
+    assert_equal({"user_name"=>"david"}, cookies.to_hash)
+  end
+end

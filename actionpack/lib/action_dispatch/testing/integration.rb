@@ -391,9 +391,9 @@ module ActionDispatch
       attr_reader :app
 
       def before_setup
-        super
         @app = nil
         @integration_session = nil
+        super
       end
 
       def integration_session
