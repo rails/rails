@@ -1,3 +1,8 @@
+*   Allow deserialization of Active Record models that were YAML encoded prior
+    to Rails 4.2
+
+    *Sean Griffin*
+
 *   Correctly apply `unscope` when preloading through associations.
 
     *Jimmy Bourassa*

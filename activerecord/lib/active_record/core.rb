@@ -299,6 +299,7 @@ module ActiveRecord
     #   post.init_with(coder)
     #   post.title # => 'hello world'
     def init_with(coder)
+      coder = LegacyYamlAdapter.convert(self.class, coder)
       @attributes = coder['attributes']
 
       init_internals
@@ -372,6 +373,7 @@ module ActiveRecord
       coder['raw_attributes'] = attributes_before_type_cast
       coder['attributes'] = @attributes
       coder['new_record'] = new_record?
+      coder['active_record_yaml_version'] = 0
     end
 
     # Returns true if +comparison_object+ is the same exact object, or +comparison_object+

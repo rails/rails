@@ -83,4 +83,44 @@ class YamlSerializationTest < ActiveRecord::TestCase
     assert_equal 5, author.posts_count
     assert_equal 5, dumped.posts_count
   end
+
+  def test_a_yaml_version_is_provided_for_future_backwards_compat
+    coder = {}
+    Topic.first.encode_with(coder)
+
+    assert coder['active_record_yaml_version']
+  end
+
+  def test_deserializing_rails_41_yaml
+    yaml = <<-YAML.strip_heredoc
+      --- !ruby/object:Topic
+        attributes:
+          id: 
+          title: The First Topic
+          author_name: David
+          author_email_address: david@loudthinking.com
+          written_on: 2003-07-16 14:28:11.223300000 Z
+          bonus_time: 2000-01-01 14:28:00.000000000 Z
+          last_read: 2004-04-15
+          content: |
+            ---
+            :omg: :lol
+          important: 
+          approved: false
+          replies_count: 1
+          unique_replies_count: 0
+          parent_id: 
+          parent_title: 
+          type: 
+          group: 
+          created_at: 2015-03-10 17:05:42.000000000 Z
+          updated_at: 2015-03-10 17:05:42.000000000 Z
+    YAML
+    topic = YAML.load(yaml)
+
+    assert topic.new_record?
+    assert_equal nil, topic.id
+    assert_equal "The First Topic", topic.title
+    assert_equal({ omg: :lol }, topic.content)
+  end
 end
