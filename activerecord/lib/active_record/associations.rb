@@ -113,19 +113,19 @@ module ActiveRecord
 
     # These classes will be loaded when associations are created.
     # So there is no need to eager load them.
-    autoload :Association,           'active_record/associations/association'
-    autoload :SingularAssociation,   'active_record/associations/singular_association'
-    autoload :CollectionAssociation, 'active_record/associations/collection_association'
-    autoload :ForeignAssociation,    'active_record/associations/foreign_association'
-    autoload :CollectionProxy,       'active_record/associations/collection_proxy'
+    autoload :Association
+    autoload :SingularAssociation
+    autoload :CollectionAssociation
+    autoload :ForeignAssociation
+    autoload :CollectionProxy
 
-    autoload :BelongsToAssociation,            'active_record/associations/belongs_to_association'
-    autoload :BelongsToPolymorphicAssociation, 'active_record/associations/belongs_to_polymorphic_association'
-    autoload :HasManyAssociation,              'active_record/associations/has_many_association'
-    autoload :HasManyThroughAssociation,       'active_record/associations/has_many_through_association'
-    autoload :HasOneAssociation,               'active_record/associations/has_one_association'
-    autoload :HasOneThroughAssociation,        'active_record/associations/has_one_through_association'
-    autoload :ThroughAssociation,              'active_record/associations/through_association'
+    autoload :BelongsToAssociation
+    autoload :BelongsToPolymorphicAssociation
+    autoload :HasManyAssociation
+    autoload :HasManyThroughAssociation
+    autoload :HasOneAssociation
+    autoload :HasOneThroughAssociation
+    autoload :ThroughAssociation
 
     module Builder #:nodoc:
       autoload :Association,           'active_record/associations/builder/association'
@@ -139,10 +139,10 @@ module ActiveRecord
     end
 
     eager_autoload do
-      autoload :Preloader,        'active_record/associations/preloader'
-      autoload :JoinDependency,   'active_record/associations/join_dependency'
-      autoload :AssociationScope, 'active_record/associations/association_scope'
-      autoload :AliasTracker,     'active_record/associations/alias_tracker'
+      autoload :Preloader
+      autoload :JoinDependency
+      autoload :AssociationScope
+      autoload :AliasTracker
     end
 
     # Returns the association instance for the given name, instantiating it if it doesn't already exist
