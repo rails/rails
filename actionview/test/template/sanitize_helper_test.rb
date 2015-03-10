@@ -29,6 +29,10 @@ class SanitizeHelperTest < ActionView::TestCase
     assert_equal "", strip_tags("<script>")
   end
 
+  def test_strip_tags_will_not_encode_special_characters
+    assert_equal "test\r\n\r\ntest", strip_tags("test\r\n\r\ntest")
+  end
+
   def test_sanitize_is_marked_safe
     assert sanitize("<html><script></script></html>").html_safe?
   end
