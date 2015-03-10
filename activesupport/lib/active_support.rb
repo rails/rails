@@ -59,6 +59,7 @@ module ActiveSupport
     autoload :StringInquirer
     autoload :TaggedLogging
     autoload :XmlMini
+    autoload :ArrayInquirer
   end
 
   autoload :Rescuable
