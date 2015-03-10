@@ -17,6 +17,10 @@ class MultipartParamsParsingTest < ActionDispatch::IntegrationTest
       head :ok
     end
 
+    def parse_broken_multipart
+      render text: request.request_parameters
+    end
+
     def read
       render :text => "File: #{params[:uploaded_data].read}"
     end
@@ -154,6 +158,18 @@ class MultipartParamsParsingTest < ActionDispatch::IntegrationTest
       headers = { "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x" }
       get "/parse", headers: headers
       assert_response :ok
+    end
+  end
+
+  test "does not raise EOFError on POST request with broken content-type" do
+    with_routing do |set|
+      set.draw do
+        post ':action', controller: 'multipart_params_parsing_test/test'
+      end
+      headers = { "CONTENT_TYPE" => "multipart/form-data; boundary=---------------------------41184676334" }
+      post "/parse_broken_multipart", headers: headers
+
+      assert_equal 400, response.status
     end
   end
 
