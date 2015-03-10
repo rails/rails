@@ -85,7 +85,7 @@ module ActiveRecord
           # This is basically emulating an Arel::Nodes::Casted
           column = record.class.columns_hash[scope_item.to_s]
           quoted_value = record.class.connection.quote(scope_value, column)
-          if scope_value
+          unless scope_value.nil?
             node = Arel::Nodes::SqlLiteral.new(quoted_value)
           end
 
