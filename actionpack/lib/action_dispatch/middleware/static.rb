@@ -48,7 +48,9 @@ module ActionDispatch
         env['PATH_INFO']            = gzip_path
         status, headers, body       = @file_server.call(env)
         headers['Content-Encoding'] = 'gzip'
-        headers['Content-Type']     = content_type(path)
+        if status != 304
+          headers['Content-Type']   = content_type(path)
+        end
       else
         status, headers, body = @file_server.call(env)
       end

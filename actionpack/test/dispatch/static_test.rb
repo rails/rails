@@ -143,6 +143,15 @@ module StaticTests
     assert_equal default_response.headers['Content-Type'], response.headers['Content-Type']
   end
 
+  def test_serves_gzip_files_with_not_modified
+    file_name = "/gzip/application-a71b3024f80aea3181c09774ca17e712.js"
+    last_modified = File.mtime(File.join(@root, "#{file_name}.gz"))
+    response = get(file_name, 'HTTP_ACCEPT_ENCODING' => 'gzip', 'HTTP_IF_MODIFIED_SINCE' => last_modified.httpdate)
+    assert_equal 304, response.status
+    assert_equal nil, response.headers['Content-Type']
+    assert_equal 'gzip', response.headers['Content-Encoding']
+  end
+
   # Windows doesn't allow \ / : * ? " < > | in filenames
   unless RbConfig::CONFIG['host_os'] =~ /mswin|mingw/
     def test_serves_static_file_with_colon
