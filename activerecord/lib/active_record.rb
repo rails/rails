@@ -43,6 +43,7 @@ module ActiveRecord
   autoload :Explain
   autoload :Inheritance
   autoload :Integration
+  autoload :LegacyYamlAdapter
   autoload :Migration
   autoload :Migrator, 'active_record/migration'
   autoload :ModelSchema
