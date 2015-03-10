@@ -102,6 +102,20 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     Topic._validate_callbacks = old_callbacks
   end
 
+  def test_validates_uniqueness_with_false_scope
+    old_validators = Topic._validators.deep_dup
+    old_callbacks = Topic._validate_callbacks.deep_dup
+    Topic.validates_uniqueness_of(:title, scope: [:parent_id, :approved])
+
+    Topic.create!(title: "test 1", parent_id: nil, approved: false)
+    topic = Topic.new(title: "test 1", parent_id: nil, approved: false)
+
+    refute topic.valid?
+  ensure
+    Topic._validators = old_validators
+    Topic._validate_callbacks = old_callbacks
+  end
+
   def test_validates_uniqueness_with_validates
     Topic.validates :title, :uniqueness => true
     Topic.create!('title' => 'abc')
