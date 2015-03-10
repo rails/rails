@@ -227,8 +227,6 @@ module ActiveRecord
       #   after_commit :do_foo_bar, on: [:create, :update]
       #   after_commit :do_bar_baz, on: [:update, :destroy]
       #
-      # Note that transactional fixtures do not play well with this feature. Please
-      # use the +test_after_commit+ gem to have these hooks fired in tests.
       def after_commit(*args, &block)
         set_options_for_callbacks!(args)
         set_callback(:commit, :after, *args, &block)
@@ -456,13 +454,13 @@ module ActiveRecord
     end
 
     # Updates the attributes on this particular ActiveRecord object so that
-    # if it is associated with a transaction, then the state of the AR object
-    # will be updated to reflect the current state of the transaction
+    # if it's associated with a transaction, then the state of the ActiveRecord
+    # object will be updated to reflect the current state of the transaction
     #
     # The @transaction_state variable stores the states of the associated
     # transaction. This relies on the fact that a transaction can only be in
     # one rollback or commit (otherwise a list of states would be required)
-    # Each AR object inside of a transaction carries that transaction's
+    # Each ActiveRecord object inside of a transaction carries that transaction's
     # TransactionState.
     #
     # This method checks to see if the ActiveRecord object's state reflects
