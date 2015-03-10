@@ -1,17 +1,27 @@
 module ActionView
-  # Does stuff.
-  class TemplateEagerLoader
+  # = Action View Template Eager Loader
+  class TemplateEagerLoader # :nodoc:
+    # ActionView::TemplateEagerLoader finds and caches all
+    # view templates and then compiles them.
+    #
+    # If this is done on server startup,
+    # the first request will be faster.
 
     def initialize(resolver)
       @resolver = resolver
     end
 
+    # Compiles and caches all templates 
     def eager_load
       each_template(&:compile!)
     end
 
     private
 
+    # Determines all possible template parameters and then
+    # delegates finding and caching to the Resolver.
+    # After finding and caching the templates, it will
+    # yield them to the block.
     def each_template(&block)
       prefixes.each do |prefix|
         path_names(prefix).each do |name|

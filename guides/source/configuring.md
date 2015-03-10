@@ -68,6 +68,8 @@ These configuration methods are to be called on a `Rails::Railtie` object, such 
 
 * `config.action_view.cache_template_loading` controls whether or not templates should be reloaded on each request. Defaults to whatever is set for `config.cache_classes`.
 
+* `config.action_view.eager_load_templates` controls whether or not templates should be cached and compiled on server startup.
+
 * `config.beginning_of_week` sets the default beginning of week for the
 application. Accepts a valid week day symbol (e.g. `:monday`).
 

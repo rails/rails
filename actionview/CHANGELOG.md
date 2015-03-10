@@ -1,3 +1,12 @@
+*   Implement eager loading of view templates on server startup.
+
+    This adds an option to cache and compile all possible view templates when
+    the server starts.
+
+    Set 'config.action_view.eager_load_templates' to true to enable this.
+
+    *Juho Leinonen*, *Qian Zhou*, *Henrik Nygren*, *Jussi Mertanen*
+
 *   `translate` should accept nils as members of the `:default`
     parameter without raising a translation missing error.  Fixes a
     regression introduced 362557e.

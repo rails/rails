@@ -1,3 +1,7 @@
+*   Add documentation for `config.action_view.eager_load_templates`
+
+    *Juho Leinonen*, *Qian Zhou*, *Henrik Nygren*, *Jussi Mertanen*
+
 *   New section in Active Record Association Basics: Single Table Inheritance
 
     *Andrey Nering*
