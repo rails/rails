@@ -7,10 +7,26 @@ module ActiveRecord
       when 1 then coder
       else
         if coder["attributes"].is_a?(AttributeSet)
-          coder
+          Rails420.convert(klass, coder)
         else
           Rails41.convert(klass, coder)
         end
+      end
+    end
+
+    module Rails420
+      def self.convert(klass, coder)
+        attribute_set = coder["attributes"]
+
+        klass.attribute_names.each do |attr_name|
+          attribute = attribute_set[attr_name]
+          if attribute.type.is_a?(Delegator)
+            type_from_klass = klass.type_for_attribute(attr_name)
+            attribute_set[attr_name] = attribute.with_type(type_from_klass)
+          end
+        end
+
+        coder
       end
     end
 
