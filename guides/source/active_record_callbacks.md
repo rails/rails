@@ -68,7 +68,7 @@ class User < ActiveRecord::Base
 
   protected
     def normalize_name
-      self.name = self.name.downcase.titleize
+      self.name = name.downcase.titleize
     end
 
     def set_location
