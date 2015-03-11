@@ -409,7 +409,7 @@ module CacheStoreBehavior
     end
     assert_equal "baz", result
   end
-
+  
   def test_race_condition_protection_is_limited
     time = Time.now
     @cache.write('foo', 'bar', :expires_in => 60)
@@ -420,7 +420,7 @@ module CacheStoreBehavior
     end
     assert_equal "baz", result
   end
-
+  
   def test_race_condition_protection_is_safe
     time = Time.now
     @cache.write('foo', 'bar', :expires_in => 60)
@@ -435,6 +435,17 @@ module CacheStoreBehavior
     assert_equal "bar", @cache.read('foo')
     Time.stubs(:now).returns(time + 91)
     assert_nil @cache.read('foo')
+  end
+
+  def test_race_condition_protection_is_truly_disarmed_for_nil
+    time = Time.now
+    Time.stubs(:now).returns(time)
+    @cache.write('foo', 'bar', :expires_in => 60)
+    @cache.expects(:delete_entry)
+    Time.stubs(:now).returns(time + 60)
+    @cache.fetch('foo', :race_condition_ttl => nil) do 
+      'baz'
+    end
   end
 
   def test_crazy_key_characters
@@ -1041,6 +1052,17 @@ class CacheEntryTest < ActiveSupport::TestCase
     time = Time.now + 61
     Time.stubs(:now).returns(time)
     assert entry.expired?, 'entry is expired'
+  end
+
+  def test_time_since_expired
+    time = Time.now
+    Time.stubs(:now).returns(time)
+    entry = ActiveSupport::Cache::Entry.new("value", :expires_in => 60)
+    assert_equal nil, entry.time_since_expired
+    Time.stubs(:now).returns(time + 60)
+    assert_equal 0.0, entry.time_since_expired
+    Time.stubs(:now).returns(time + 61)
+    assert_equal 1.0, entry.time_since_expired
   end
 
   def test_compress_values
