@@ -5,13 +5,6 @@
 
     *Hyonjee Joo*
 
-*   Set Rails console to use log formatter and log level as specified for the
-    given environment.
-
-    Fixes #15470.
-
-    *Jacob Evelyn*
-
 *   Add `config/initializers/active_record_belongs_to_required_by_default.rb`
 
     Newly generated Rails apps have a new initializer called
