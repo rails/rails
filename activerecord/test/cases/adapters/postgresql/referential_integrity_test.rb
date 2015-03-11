@@ -6,11 +6,25 @@ class PostgreSQLReferentialIntegrityTest < ActiveRecord::TestCase
 
   include ConnectionHelper
 
+  IS_REFERENTIAL_INTEGRITY_SQL = lambda do |sql|
+    sql.match(/DISABLE TRIGGER ALL/) || sql.match(/ENABLE TRIGGER ALL/)
+  end
+
   module MissingSuperuserPrivileges
     def execute(sql)
-      if sql.match(/DISABLE TRIGGER ALL/) || sql.match(/ENABLE TRIGGER ALL/)
+      if IS_REFERENTIAL_INTEGRITY_SQL.call(sql)
         super "BROKEN;" rescue nil # put transaction in broken state
         raise ActiveRecord::StatementInvalid, 'PG::InsufficientPrivilege'
+      else
+        super
+      end
+    end
+  end
+
+  module ProgrammerMistake
+    def execute(sql)
+      if IS_REFERENTIAL_INTEGRITY_SQL.call(sql)
+        raise ArgumentError, 'something is not right.'
       else
         super
       end
@@ -78,6 +92,14 @@ class PostgreSQLReferentialIntegrityTest < ActiveRecord::TestCase
         end
       end
       assert_transaction_is_not_broken
+    end
+  end
+
+  def test_only_catch_active_record_errors_others_bubble_up
+    @connection.extend ProgrammerMistake
+
+    assert_raises ArgumentError do
+      @connection.disable_referential_integrity {}
     end
   end
 
