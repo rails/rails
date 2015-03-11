@@ -2,7 +2,7 @@ require 'cases/helper'
 
 unless ActiveRecord::Base.connection.supports_transaction_isolation?
   class TransactionIsolationUnsupportedTest < ActiveRecord::TestCase
-    self.use_transactional_fixtures = false
+    self.use_transactional_tests = false
 
     class Tag < ActiveRecord::Base
     end
@@ -17,7 +17,7 @@ end
 
 if ActiveRecord::Base.connection.supports_transaction_isolation?
   class TransactionIsolationTest < ActiveRecord::TestCase
-    self.use_transactional_fixtures = false
+    self.use_transactional_tests = false
 
     class Tag < ActiveRecord::Base
       self.table_name = 'tags'

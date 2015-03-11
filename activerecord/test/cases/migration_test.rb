@@ -24,7 +24,7 @@ class Reminder < ActiveRecord::Base; end
 class Thing < ActiveRecord::Base; end
 
 class MigrationTest < ActiveRecord::TestCase
-  self.use_transactional_fixtures = false
+  self.use_transactional_tests = false
 
   fixtures :people
 

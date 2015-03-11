@@ -1,3 +1,9 @@
+*   Renaming `use_transactional_fixtures` to `use_transactional_tests` for clarity.
+
+    Fixes #18864.
+
+    *Brandon Weiss*
+
 *   Increase pg gem version requirement to `~> 0.18`. Earlier versions of the
     pg gem are known to have problems with Ruby 2.2.
 

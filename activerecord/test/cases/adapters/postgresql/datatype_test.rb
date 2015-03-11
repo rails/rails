@@ -12,7 +12,7 @@ class PostgresqlLtree < ActiveRecord::Base
 end
 
 class PostgresqlDataTypeTest < ActiveRecord::TestCase
-  self.use_transactional_fixtures = false
+  self.use_transactional_tests = false
 
   def setup
     @connection = ActiveRecord::Base.connection

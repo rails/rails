@@ -4,7 +4,7 @@ class TestRecord < ActiveRecord::Base
 end
 
 class TestDisconnectedAdapter < ActiveRecord::TestCase
-  self.use_transactional_fixtures = false
+  self.use_transactional_tests = false
 
   def setup
     @connection = ActiveRecord::Base.connection

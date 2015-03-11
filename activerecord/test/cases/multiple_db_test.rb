@@ -4,7 +4,7 @@ require 'models/bird'
 require 'models/course'
 
 class MultipleDbTest < ActiveRecord::TestCase
-  self.use_transactional_fixtures = false
+  self.use_transactional_tests = false
 
   def setup
     @courses  = create_fixtures("courses") { Course.retrieve_connection }

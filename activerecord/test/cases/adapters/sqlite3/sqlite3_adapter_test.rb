@@ -8,7 +8,7 @@ module ActiveRecord
     class SQLite3AdapterTest < ActiveRecord::TestCase
       include DdlHelper
 
-      self.use_transactional_fixtures = false
+      self.use_transactional_tests = false
 
       class DualEncoding < ActiveRecord::Base
       end

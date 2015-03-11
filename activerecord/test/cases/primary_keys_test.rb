@@ -178,7 +178,7 @@ class PrimaryKeysTest < ActiveRecord::TestCase
 end
 
 class PrimaryKeyWithNoConnectionTest < ActiveRecord::TestCase
-  self.use_transactional_fixtures = false
+  self.use_transactional_tests = false
 
   unless in_memory_db?
     def test_set_primary_key_with_no_connection
@@ -199,7 +199,7 @@ end
 class PrimaryKeyAnyTypeTest < ActiveRecord::TestCase
   include SchemaDumpingHelper
 
-  self.use_transactional_fixtures = false
+  self.use_transactional_tests = false
 
   class Barcode < ActiveRecord::Base
   end
@@ -229,7 +229,7 @@ end
 
 if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
   class PrimaryKeyWithAnsiQuotesTest < ActiveRecord::TestCase
-    self.use_transactional_fixtures = false
+    self.use_transactional_tests = false
 
     def test_primary_key_method_with_ansi_quotes
       con = ActiveRecord::Base.connection
@@ -245,7 +245,7 @@ if current_adapter?(:PostgreSQLAdapter, :MysqlAdapter, :Mysql2Adapter)
   class PrimaryKeyBigSerialTest < ActiveRecord::TestCase
     include SchemaDumpingHelper
 
-    self.use_transactional_fixtures = false
+    self.use_transactional_tests = false
 
     class Widget < ActiveRecord::Base
     end

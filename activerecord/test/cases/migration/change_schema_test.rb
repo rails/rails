@@ -426,7 +426,7 @@ module ActiveRecord
 
     if ActiveRecord::Base.connection.supports_foreign_keys?
       class ChangeSchemaWithDependentObjectsTest < ActiveRecord::TestCase
-        self.use_transactional_fixtures = false
+        self.use_transactional_tests = false
 
         setup do
           @connection = ActiveRecord::Base.connection

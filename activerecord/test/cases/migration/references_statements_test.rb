@@ -5,7 +5,7 @@ module ActiveRecord
     class ReferencesStatementsTest < ActiveRecord::TestCase
       include ActiveRecord::Migration::TestHelper
 
-      self.use_transactional_fixtures = false
+      self.use_transactional_tests = false
 
       def setup
         super

@@ -898,7 +898,7 @@ class PersistenceTest < ActiveRecord::TestCase
   end
 
   class SaveTest < ActiveRecord::TestCase
-    self.use_transactional_fixtures = false
+    self.use_transactional_tests = false
 
     def test_save_touch_false
       widget = Class.new(ActiveRecord::Base) do

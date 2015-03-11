@@ -90,14 +90,14 @@ end
 if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
   class DefaultsTestWithoutTransactionalFixtures < ActiveRecord::TestCase
     # ActiveRecord::Base#create! (and #save and other related methods) will
-    # open a new transaction. When in transactional fixtures mode, this will
+    # open a new transaction. When in transactional tests mode, this will
     # cause Active Record to create a new savepoint. However, since MySQL doesn't
     # support DDL transactions, creating a table will result in any created
     # savepoints to be automatically released. This in turn causes the savepoint
     # release code in AbstractAdapter#transaction to fail.
     #
-    # We don't want that to happen, so we disable transactional fixtures here.
-    self.use_transactional_fixtures = false
+    # We don't want that to happen, so we disable transactional tests here.
+    self.use_transactional_tests = false
 
     def using_strict(strict)
       connection = ActiveRecord::Base.remove_connection

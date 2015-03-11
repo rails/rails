@@ -1,7 +1,7 @@
 require "cases/helper"
 
 class PostgresqlExtensionMigrationTest < ActiveRecord::TestCase
-  self.use_transactional_fixtures = false
+  self.use_transactional_tests = false
 
   class EnableHstore < ActiveRecord::Migration
     def change

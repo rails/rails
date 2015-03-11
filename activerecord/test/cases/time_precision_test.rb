@@ -4,7 +4,7 @@ require 'support/schema_dumping_helper'
 if ActiveRecord::Base.connection.supports_datetime_with_precision?
 class TimePrecisionTest < ActiveRecord::TestCase
   include SchemaDumpingHelper
-  self.use_transactional_fixtures = false
+  self.use_transactional_tests = false
 
   class Foo < ActiveRecord::Base; end
 

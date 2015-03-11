@@ -5,7 +5,7 @@ module TestCaseHelpers
   extend ActiveSupport::Concern
 
   included do
-    self.use_transactional_fixtures = false
+    self.use_transactional_tests = false
 
     setup do
       clear_jobs

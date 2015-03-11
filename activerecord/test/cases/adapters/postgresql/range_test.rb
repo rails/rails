@@ -7,7 +7,7 @@ if ActiveRecord::Base.connection.supports_ranges?
   end
 
   class PostgresqlRangeTest < ActiveRecord::TestCase
-    self.use_transactional_fixtures = false
+    self.use_transactional_tests = false
     include ConnectionHelper
 
     def setup

@@ -3,7 +3,7 @@ require 'support/schema_dumping_helper'
 
 class SchemaDumperTest < ActiveRecord::TestCase
   include SchemaDumpingHelper
-  self.use_transactional_fixtures = false
+  self.use_transactional_tests = false
 
   setup do
     ActiveRecord::SchemaMigration.create_table
