@@ -25,6 +25,7 @@ module PostgresqlJSONSharedTestCases
 
   def teardown
     @connection.drop_table :json_data_type, if_exists: true
+    JsonDataType.reset_column_information
   end
 
   def test_column
