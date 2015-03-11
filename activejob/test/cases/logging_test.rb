@@ -6,7 +6,7 @@ require 'jobs/logging_job'
 require 'jobs/nested_job'
 require 'models/person'
 
-class AdapterTest < ActiveSupport::TestCase
+class LoggingTest < ActiveSupport::TestCase
   include ActiveSupport::LogSubscriber::TestHelper
   include ActiveSupport::Logger::Severity
 
