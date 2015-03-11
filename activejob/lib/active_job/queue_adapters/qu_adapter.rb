@@ -16,16 +16,14 @@ module ActiveJob
     #
     #   Rails.application.config.active_job.queue_adapter = :qu
     class QuAdapter
-      class << self
-        def enqueue(job, *args) #:nodoc:
-          Qu::Payload.new(klass: JobWrapper, args: [job.serialize]).tap do |payload|
-            payload.instance_variable_set(:@queue, job.queue_name)
-          end.push
-        end
+      def enqueue(job, *args) #:nodoc:
+        Qu::Payload.new(klass: JobWrapper, args: [job.serialize]).tap do |payload|
+          payload.instance_variable_set(:@queue, job.queue_name)
+        end.push
+      end
 
-        def enqueue_at(job, timestamp, *args) #:nodoc:
-          raise NotImplementedError
-        end
+      def enqueue_at(job, timestamp, *args) #:nodoc:
+        raise NotImplementedError
       end
 
       class JobWrapper < Qu::Job #:nodoc:

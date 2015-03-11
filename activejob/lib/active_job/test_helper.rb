@@ -11,9 +11,6 @@ module ActiveJob
         ActiveJob::Base.queue_adapter = :test
         clear_enqueued_jobs
         clear_performed_jobs
-        queue_adapter.perform_enqueued_jobs = false
-        queue_adapter.perform_enqueued_at_jobs = false
-        queue_adapter.filter = nil
         super
       end
 

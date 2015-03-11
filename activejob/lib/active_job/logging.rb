@@ -81,7 +81,7 @@ module ActiveJob
 
       private
         def queue_name(event)
-          event.payload[:adapter].name.demodulize.remove('Adapter') + "(#{event.payload[:job].queue_name})"
+          event.payload[:adapter].class.name.demodulize.remove('Adapter') + "(#{event.payload[:job].queue_name})"
         end
 
         def args_info(job)
