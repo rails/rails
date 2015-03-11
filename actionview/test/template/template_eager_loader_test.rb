@@ -14,15 +14,10 @@ class TemplateEagerLoaderTest < ActiveSupport::TestCase
 
   include TemplateEagerLoaderTestHelper
 
-  def setup
-    subject.stubs(:path_names).with('people').returns(['index.html.erb'])
-    subject.stubs(:view_paths).returns(['app/views/people/index.html.erb'])
-  end
-
-  class PrefixesReturnsPeople < TemplateEagerLoaderTest
+  class BasicViewsTests < TemplateEagerLoaderTest
     def setup
       super
-      subject.stubs(:prefixes).returns(['people'])
+      subject.stubs(:views).returns([['people', 'index.html.erb']])
     end
 
     def test_cache_templates_calls_find_all
@@ -73,7 +68,7 @@ class TemplateEagerLoaderTest < ActiveSupport::TestCase
     class PartialTests < TemplateEagerLoaderTest
       def setup
         super
-        subject.stubs(:path_names).with(anything).returns(['_partial.html.erb'])
+        subject.stubs(:views).with(anything).returns([['prefix', '_partial.html.erb']])
       end
 
       def test_cache_templates_parses_partial_names
@@ -104,7 +99,7 @@ class TemplateEagerLoaderTest < ActiveSupport::TestCase
     end
 
     def test_formats_work_without_the_extension_in_filename
-      subject.stubs(:path_names).with(anything).returns(['index.haml'])
+      subject.stubs(:views).with(anything).returns([['prefix', 'index.haml']])
       resolver.expects(:find_all).with(anything, anything, anything, has_entry(formats: [:html]), anything, anything).returns([])
       subject.eager_load
     end
@@ -138,7 +133,7 @@ class TemplateEagerLoaderTest < ActiveSupport::TestCase
     end
 
     def test_details_variants_get_set_correctly
-      subject.stubs(:path_names).with(anything).returns(['index.html+variant.erb'])
+      subject.stubs(:views).with(anything).returns([['people', 'new.html+variant.erb']])
       resolver.expects(:find_all).with(anything, anything, anything, has_entry(variants: ['variant']), anything, anything).returns([])
       subject.eager_load
     end
@@ -154,17 +149,11 @@ class TemplateEagerLoaderTest < ActiveSupport::TestCase
     end
   end
 
-  class NestedPrefixes < TemplateEagerLoaderTest
+  class NestedPrefixesTests < TemplateEagerLoaderTest
     def setup
       super
-      subject.stubs(:path_names).with('people/assets').returns(['index.html.erb'])
-      subject.stubs(:view_paths).returns(['app/views/people/assets/index.html.erb'])
+      subject.stubs(:views).returns([['people/assets', 'index.html.erb']])
       resolver.stubs(:find_all).returns([])
-    end
-
-    def test_two_layer_nested_prefixes_calls_view_paths
-      subject.expects(:view_paths).returns(['app/views/people/assets/index.html.erb'])
-      subject.eager_load
     end
 
     def test_two_layer_nested_prefixes_returns_desired_results
@@ -179,20 +168,14 @@ class TemplateEagerLoaderTest < ActiveSupport::TestCase
       resolver.stubs(:find_all).returns([])
     end
 
-    def test_prefixes_calls_view_paths
-      subject.expects(:view_paths).returns(['app/views/people/index.html.erb'])
-      subject.eager_load
-    end
-
     def test_prefixes_returns_desired_results
+      subject.stubs(:view_paths).returns(['people/index.html.erb'])
       resolver.expects(:find_all).with(anything,'people', anything, anything, anything, anything).returns([])
       subject.eager_load
     end
 
     def test_cache_templates_multiple_prefixes
-      subject.stubs(:prefixes).returns(['prefix1', 'prefix2'])
-      subject.stubs(:path_names).with('prefix1').returns(['index.html.erb'])
-      subject.stubs(:path_names).with('prefix2').returns(['index.html.erb'])
+      subject.stubs(:views).returns([['prefix1', 'index.html.erb'], ['prefix2', 'index.html.erb']])
       resolver.expects(:find_all).with(anything, 'prefix1', anything, anything, anything, anything).returns([])
       resolver.expects(:find_all).with(anything, 'prefix2', anything, anything, anything, anything).returns([])
       subject.eager_load
