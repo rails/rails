@@ -909,7 +909,7 @@ The `:as` option lets you override the normal naming for the named route helpers
 resources :photos, as: 'images'
 ```
 
-will recognize incoming paths beginning with `/photos` and route the requests to `PhotosController`, but use the value of the :as option to name the helpers.
+will recognize incoming paths beginning with `/photos` and route the requests to `PhotosController`, but use the value of the `:as` option to name the helpers.
 
 | HTTP Verb | Path             | Controller#Action | Named Helper         |
 | --------- | ---------------- | ----------------- | -------------------- |
