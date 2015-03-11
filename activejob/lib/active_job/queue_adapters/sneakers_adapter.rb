@@ -16,19 +16,19 @@ module ActiveJob
     #
     #   Rails.application.config.active_job.queue_adapter = :sneakers
     class SneakersAdapter
-      @monitor = Monitor.new
+      def initialize
+        @monitor = Monitor.new
+      end
 
-      class << self
-        def enqueue(job) #:nodoc:
-          @monitor.synchronize do
-            JobWrapper.from_queue job.queue_name
-            JobWrapper.enqueue ActiveSupport::JSON.encode(job.serialize)
-          end
+      def enqueue(job) #:nodoc:
+        @monitor.synchronize do
+          JobWrapper.from_queue job.queue_name
+          JobWrapper.enqueue ActiveSupport::JSON.encode(job.serialize)
         end
+      end
 
-        def enqueue_at(job, timestamp) #:nodoc:
-          raise NotImplementedError
-        end
+      def enqueue_at(job, timestamp) #:nodoc:
+        raise NotImplementedError
       end
 
       class JobWrapper #:nodoc:

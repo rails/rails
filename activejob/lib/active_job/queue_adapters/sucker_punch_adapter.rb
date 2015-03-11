@@ -18,14 +18,12 @@ module ActiveJob
     #
     #   Rails.application.config.active_job.queue_adapter = :sucker_punch
     class SuckerPunchAdapter
-      class << self
-        def enqueue(job) #:nodoc:
-          JobWrapper.new.async.perform job.serialize
-        end
+      def enqueue(job) #:nodoc:
+        JobWrapper.new.async.perform job.serialize
+      end
 
-        def enqueue_at(job, timestamp) #:nodoc:
-          raise NotImplementedError
-        end
+      def enqueue_at(job, timestamp) #:nodoc:
+        raise NotImplementedError
       end
 
       class JobWrapper #:nodoc:
