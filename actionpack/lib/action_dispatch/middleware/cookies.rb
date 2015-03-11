@@ -213,28 +213,30 @@ module ActionDispatch
       # $& => example.local
       DOMAIN_REGEXP = /[^.]*\.([^.]*|..\...|...\...)$/
 
-      def self.options_for_env(env) #:nodoc:
-        { signed_cookie_salt: env[SIGNED_COOKIE_SALT] || '',
-          encrypted_cookie_salt: env[ENCRYPTED_COOKIE_SALT] || '',
-          encrypted_signed_cookie_salt: env[ENCRYPTED_SIGNED_COOKIE_SALT] || '',
-          secret_token: env[SECRET_TOKEN],
-          secret_key_base: env[SECRET_KEY_BASE],
-          upgrade_legacy_signed_cookies: env[SECRET_TOKEN].present? && env[SECRET_KEY_BASE].present?,
-          serializer: env[COOKIES_SERIALIZER],
-          digest: env[COOKIES_DIGEST]
-        }
-      end
+      class << self
+        def options_for_env(env) #:nodoc:
+          { signed_cookie_salt: env[SIGNED_COOKIE_SALT] || '',
+            encrypted_cookie_salt: env[ENCRYPTED_COOKIE_SALT] || '',
+            encrypted_signed_cookie_salt: env[ENCRYPTED_SIGNED_COOKIE_SALT] || '',
+            secret_token: env[SECRET_TOKEN],
+            secret_key_base: env[SECRET_KEY_BASE],
+            upgrade_legacy_signed_cookies: env[SECRET_TOKEN].present? && env[SECRET_KEY_BASE].present?,
+            serializer: env[COOKIES_SERIALIZER],
+            digest: env[COOKIES_DIGEST]
+          }
+        end
 
-      def self.build(request)
-        env = request.env
-        key_generator = env[GENERATOR_KEY]
-        options = options_for_env env
+        def build(request)
+          env = request.env
+          key_generator = env[GENERATOR_KEY]
+          options = options_for_env env
 
-        host = request.host
-        secure = request.ssl?
+          host = request.host
+          secure = request.ssl?
 
-        new(key_generator, host, secure, options).tap do |hash|
-          hash.update(request.cookies)
+          new(key_generator, host, secure, options).tap do |hash|
+            hash.update(request.cookies)
+          end
         end
       end
 
