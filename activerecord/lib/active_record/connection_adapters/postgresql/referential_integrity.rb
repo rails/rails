@@ -34,7 +34,7 @@ Rails needs superuser privileges to disable referential integrity.
             end
 
             begin
-              transaction(require_new: true) do
+              transaction(requires_new: true) do
                 execute(tables.collect { |name| "ALTER TABLE #{quote_table_name(name)} ENABLE TRIGGER ALL" }.join(";"))
               end
             rescue
