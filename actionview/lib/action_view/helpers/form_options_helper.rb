@@ -302,17 +302,17 @@ module ActionView
       #   # => <option value="DKK">Kroner</option>
       #
       #   options_for_select([ "VISA", "MasterCard" ], "MasterCard")
-      #   # => <option>VISA</option>
-      #   # => <option selected="selected">MasterCard</option>
+      #   # => <option value="VISA">VISA</option>
+      #   # => <option selected="selected" value="MasterCard">MasterCard</option>
       #
       #   options_for_select({ "Basic" => "$20", "Plus" => "$40" }, "$40")
       #   # => <option value="$20">Basic</option>
       #   # => <option value="$40" selected="selected">Plus</option>
       #
       #   options_for_select([ "VISA", "MasterCard", "Discover" ], ["VISA", "Discover"])
-      #   # => <option selected="selected">VISA</option>
-      #   # => <option>MasterCard</option>
-      #   # => <option selected="selected">Discover</option>
+      #   # => <option selected="selected" value="VISA">VISA</option>
+      #   # => <option value="MasterCard">MasterCard</option>
+      #   # => <option selected="selected" value="Discover">Discover</option>
       #
       # You can optionally provide HTML attributes as the last element of the array.
       #
