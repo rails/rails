@@ -8,7 +8,7 @@ module ActiveSupport
     MAJOR = 4
     MINOR = 2
     TINY  = 1
-    PRE   = "rc3"
+    PRE   = "rc4"
 
     STRING = [MAJOR, MINOR, TINY, PRE].compact.join(".")
   end
