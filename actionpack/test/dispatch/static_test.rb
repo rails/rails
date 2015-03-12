@@ -149,7 +149,8 @@ module StaticTests
     response = get(file_name, 'HTTP_ACCEPT_ENCODING' => 'gzip', 'HTTP_IF_MODIFIED_SINCE' => last_modified.httpdate)
     assert_equal 304, response.status
     assert_equal nil, response.headers['Content-Type']
-    assert_equal 'gzip', response.headers['Content-Encoding']
+    assert_equal nil, response.headers['Content-Encoding']
+    assert_equal nil, response.headers['Vary']
   end
 
   # Windows doesn't allow \ / : * ? " < > | in filenames

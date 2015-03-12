@@ -47,10 +47,11 @@ module ActionDispatch
       if gzip_path && gzip_encoding_accepted?(env)
         env['PATH_INFO']            = gzip_path
         status, headers, body       = @file_server.call(env)
-        headers['Content-Encoding'] = 'gzip'
-        if status != 304
-          headers['Content-Type']   = content_type(path)
+        if status == 304
+          return [status, headers, body]
         end
+        headers['Content-Encoding'] = 'gzip'
+        headers['Content-Type']     = content_type(path)
       else
         status, headers, body = @file_server.call(env)
       end
