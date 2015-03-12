@@ -33,6 +33,11 @@ module ActiveRecord
           block_given? ? relation.scoping { yield } : relation
         end
 
+        # Are there attributes associated with this scope?
+        def scope_attributes? # :nodoc:
+          super || default_scopes.any?
+        end
+
         def before_remove_const #:nodoc:
           self.current_scope = nil
         end

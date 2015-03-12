@@ -17,6 +17,17 @@ module ActiveRecord
       def current_scope=(scope) #:nodoc:
         ScopeRegistry.set_value_for(:current_scope, self.to_s, scope)
       end
+
+      # Collects attributes from scopes that should be applied when creating
+      # an AR instance for the particular class this is called on.
+      def scope_attributes # :nodoc:
+        all.scope_for_create
+      end
+
+      # Are there attributes associated with this scope?
+      def scope_attributes? # :nodoc:
+        current_scope
+      end
     end
 
     def populate_with_current_scope_attributes
