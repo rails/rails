@@ -31,7 +31,7 @@ module ActiveJob
       def interpret_adapter(name_or_adapter_or_class)
         case name_or_adapter_or_class
         when Symbol, String
-          load_adapter(name_or_adapter_or_class)
+          ActiveJob::QueueAdapters.lookup(name_or_adapter_or_class).new
         else
           if queue_adapter?(name_or_adapter_or_class)
             name_or_adapter_or_class
@@ -55,10 +55,6 @@ module ActiveJob
 
       def queue_adapter_class?(object)
         object.is_a?(Class) && QUEUE_ADAPTER_METHODS.all? { |meth| object.public_method_defined?(meth) }
-      end
-
-      def load_adapter(name)
-        ActiveJob::QueueAdapters.const_get(name.to_s.camelize + 'Adapter').new
       end
     end
   end
