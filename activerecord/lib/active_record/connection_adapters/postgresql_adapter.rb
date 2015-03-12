@@ -12,8 +12,8 @@ require "active_record/connection_adapters/statement_pool"
 
 require 'arel/visitors/bind_visitor'
 
-# Make sure we're using pg high enough for PGResult#values
-gem 'pg', '~> 0.15'
+# Make sure we're using pg high enough for Ruby 2.2+ compatibility
+gem 'pg', '~> 0.18'
 require 'pg'
 
 require 'ipaddr'

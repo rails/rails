@@ -1,3 +1,8 @@
+*   Increase pg gem version requirement to `~> 0.18`. Earlier versions of the
+    pg gem are known to have problems with Ruby 2.2.
+
+    *Matt Brictson*
+
 *   Correctly dump `serial` and `bigserial`.
 
     *Ryuta Kamizono*
