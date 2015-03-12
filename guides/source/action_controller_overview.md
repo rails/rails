@@ -9,7 +9,7 @@ After reading this guide, you will know:
 
 * How to follow the flow of a request through a controller.
 * How to restrict parameters passed to your controller.
-* Why and how to store data in the session or cookies.
+* How and why to store data in the session or cookies.
 * How to work with filters to execute code during request processing.
 * How to use Action Controller's built-in HTTP authentication.
 * How to stream data directly to the user's browser.
@@ -21,11 +21,11 @@ After reading this guide, you will know:
 What Does a Controller Do?
 --------------------------
 
-Action Controller is the C in MVC. After routing has determined which controller to use for a request, your controller is responsible for making sense of the request and producing the appropriate output. Luckily, Action Controller does most of the groundwork for you and uses smart conventions to make this as straightforward as possible.
+Action Controller is the C in MVC. After routing has determined which controller to use for a request, the controller is responsible for making sense of the request and producing the appropriate output. Luckily, Action Controller does most of the groundwork for you and uses smart conventions to make this as straightforward as possible.
 
 For most conventional [RESTful](http://en.wikipedia.org/wiki/Representational_state_transfer) applications, the controller will receive the request (this is invisible to you as the developer), fetch or save data from a model and use a view to create HTML output. If your controller needs to do things a little differently, that's not a problem, this is just the most common way for a controller to work.
 
-A controller can thus be thought of as a middle man between models and views. It makes the model data available to the view so it can display that data to the user, and it saves or updates data from the user to the model.
+A controller can thus be thought of as a middleman between models and views. It makes the model data available to the view so it can display that data to the user, and it saves or updates user data to the model.
 
 NOTE: For more details on the routing process, see [Rails Routing from the Outside In](routing.html).
 
@@ -34,7 +34,7 @@ Controller Naming Convention
 
 The naming convention of controllers in Rails favors pluralization of the last word in the controller's name, although it is not strictly required (e.g. `ApplicationController`). For example, `ClientsController` is preferable to `ClientController`, `SiteAdminsController` is preferable to `SiteAdminController` or `SitesAdminsController`, and so on.
 
-Following this convention will allow you to use the default route generators (e.g. `resources`, etc) without needing to qualify each `:path` or `:controller`, and keeps URL and path helpers' usage consistent throughout your application. See [Layouts & Rendering Guide](layouts_and_rendering.html) for more details.
+Following this convention will allow you to use the default route generators (e.g. `resources`, etc) without needing to qualify each `:path` or `:controller`, and will keep URL and path helpers' usage consistent throughout your application. See [Layouts & Rendering Guide](layouts_and_rendering.html) for more details.
 
 NOTE: The controller naming convention differs from the naming convention of models, which are expected to be named in singular form.
 
@@ -51,7 +51,7 @@ class ClientsController < ApplicationController
 end
 ```
 
-As an example, if a user goes to `/clients/new` in your application to add a new client, Rails will create an instance of `ClientsController` and run the `new` method. Note that the empty method from the example above would work just fine because Rails will by default render the `new.html.erb` view unless the action says otherwise. The `new` method could make available to the view a `@client` instance variable by creating a new `Client`:
+As an example, if a user goes to `/clients/new` in your application to add a new client, Rails will create an instance of `ClientsController` and call its `new` method. Note that the empty method from the example above would work just fine because Rails will by default render the `new.html.erb` view unless the action says otherwise. The `new` method could make available to the view a `@client` instance variable by creating a new `Client`:
 
 ```ruby
 def new
@@ -63,7 +63,7 @@ The [Layouts & Rendering Guide](layouts_and_rendering.html) explains this in mor
 
 `ApplicationController` inherits from `ActionController::Base`, which defines a number of helpful methods. This guide will cover some of these, but if you're curious to see what's in there, you can see all of them in the API documentation or in the source itself.
 
-Only public methods are callable as actions. It is a best practice to lower the visibility of methods which are not intended to be actions, like auxiliary methods or filters.
+Only public methods are callable as actions. It is a best practice to lower the visibility of methods (with `private` or `protected`) which are not intended to be actions, like auxiliary methods or filters.
 
 Parameters
 ----------
@@ -104,13 +104,13 @@ end
 
 ### Hash and Array Parameters
 
-The `params` hash is not limited to one-dimensional keys and values. It can contain arrays and (nested) hashes. To send an array of values, append an empty pair of square brackets "[]" to the key name:
+The `params` hash is not limited to one-dimensional keys and values. It can contain nested arrays and hashes. To send an array of values, append an empty pair of square brackets "[]" to the key name:
 
 ```
 GET /clients?ids[]=1&ids[]=2&ids[]=3
 ```
 
-NOTE: The actual URL in this example will be encoded as "/clients?ids%5b%5d=1&ids%5b%5d=2&ids%5b%5d=3" as "[" and "]" are not allowed in URLs. Most of the time you don't have to worry about this because the browser will take care of it for you, and Rails will decode it back when it receives it, but if you ever find yourself having to send those requests to the server manually you have to keep this in mind.
+NOTE: The actual URL in this example will be encoded as "/clients?ids%5b%5d=1&ids%5b%5d=2&ids%5b%5d=3" as the "[" and "]" characters are not allowed in URLs. Most of the time you don't have to worry about this because the browser will encode it for you, and Rails will decode it automatically, but if you ever find yourself having to send those requests to the server manually you should keep this in mind.
 
 The value of `params[:ids]` will now be `["1", "2", "3"]`. Note that parameter values are always strings; Rails makes no attempt to guess or cast the type.
 
@@ -118,7 +118,7 @@ NOTE: Values such as `[nil]` or `[nil, nil, ...]` in `params` are replaced
 with `[]` for security reasons by default. See [Security Guide](security.html#unsafe-query-generation)
 for more information.
 
-To send a hash you include the key name inside the brackets:
+To send a hash, you include the key name inside the brackets:
 
 ```html
 <form accept-charset="UTF-8" action="/clients" method="post">
@@ -131,11 +131,11 @@ To send a hash you include the key name inside the brackets:
 
 When this form is submitted, the value of `params[:client]` will be `{ "name" => "Acme", "phone" => "12345", "address" => { "postcode" => "12345", "city" => "Carrot City" } }`. Note the nested hash in `params[:client][:address]`.
 
-Note that the `params` hash is actually an instance of `ActiveSupport::HashWithIndifferentAccess`, which acts like a hash but lets you use symbols and strings interchangeably as keys.
+The `params` object acts like a Hash, but lets you use symbols and strings interchangeably as keys.
 
 ### JSON parameters
 
-If you're writing a web service application, you might find yourself more comfortable accepting parameters in JSON format. If the "Content-Type" header of your request is set to "application/json", Rails will automatically convert your parameters into the `params` hash, which you can access as you would normally.
+If you're writing a web service application, you might find yourself more comfortable accepting parameters in JSON format. If the "Content-Type" header of your request is set to "application/json", Rails will automatically load your parameters into the `params` hash, which you can access as you would normally.
 
 So for example, if you are sending this JSON content:
 
@@ -143,15 +143,15 @@ So for example, if you are sending this JSON content:
 { "company": { "name": "acme", "address": "123 Carrot Street" } }
 ```
 
-You'll get `params[:company]` as `{ "name" => "acme", "address" => "123 Carrot Street" }`.
+Your controller will receive `params[:company]` as `{ "name" => "acme", "address" => "123 Carrot Street" }`.
 
-Also, if you've turned on `config.wrap_parameters` in your initializer or calling `wrap_parameters` in your controller, you can safely omit the root element in the JSON parameter. The parameters will be cloned and wrapped in the key according to your controller's name by default. So the above parameter can be written as:
+Also, if you've turned on `config.wrap_parameters` in your initializer or called `wrap_parameters` in your controller, you can safely omit the root element in the JSON parameter. In this case, the parameters will be cloned and wrapped with a key chosen based on your controller's name. So the above JSON POST can be written as:
 
 ```json
 { "name": "acme", "address": "123 Carrot Street" }
 ```
 
-And assume that you're sending the data to `CompaniesController`, it would then be wrapped in `:company` key like this:
+And, assuming that you're sending the data to `CompaniesController`, it would then be wrapped within the `:company` key like this:
 
 ```ruby
 { name: "acme", address: "123 Carrot Street", company: { name: "acme", address: "123 Carrot Street" } }
@@ -159,17 +159,17 @@ And assume that you're sending the data to `CompaniesController`, it would then 
 
 You can customize the name of the key or specific parameters you want to wrap by consulting the [API documentation](http://api.rubyonrails.org/classes/ActionController/ParamsWrapper.html)
 
-NOTE: Support for parsing XML parameters has been extracted into a gem named `actionpack-xml_parser`
+NOTE: Support for parsing XML parameters has been extracted into a gem named `actionpack-xml_parser`.
 
 ### Routing Parameters
 
-The `params` hash will always contain the `:controller` and `:action` keys, but you should use the methods `controller_name` and `action_name` instead to access these values. Any other parameters defined by the routing, such as `:id` will also be available. As an example, consider a listing of clients where the list can show either active or inactive clients. We can add a route which captures the `:status` parameter in a "pretty" URL:
+The `params` hash will always contain the `:controller` and `:action` keys, but you should use the methods `controller_name` and `action_name` instead to access these values. Any other parameters defined by the routing, such as `:id`, will also be available. As an example, consider a listing of clients where the list can show either active or inactive clients. We can add a route which captures the `:status` parameter in a "pretty" URL:
 
 ```ruby
 get '/clients/:status' => 'clients#index', foo: 'bar'
 ```
 
-In this case, when a user opens the URL `/clients/active`, `params[:status]` will be set to "active". When this route is used, `params[:foo]` will also be set to "bar" just like it was passed in the query string. In the same way `params[:action]` will contain "index".
+In this case, when a user opens the URL `/clients/active`, `params[:status]` will be set to "active". When this route is used, `params[:foo]` will also be set to "bar", as if it were passed in the query string. Your controller will also receive `params[:action]` as "index" and `params[:controller]` as "clients".
 
 ### `default_url_options`
 
@@ -183,21 +183,21 @@ class ApplicationController < ActionController::Base
 end
 ```
 
-These options will be used as a starting point when generating URLs, so it's possible they'll be overridden by the options passed in `url_for` calls.
+These options will be used as a starting point when generating URLs, so it's possible they'll be overridden by the options passed to `url_for` calls.
 
-If you define `default_url_options` in `ApplicationController`, as in the example above, it would be used for all URL generation. The method can also be defined in one specific controller, in which case it only affects URLs generated there.
+If you define `default_url_options` in `ApplicationController`, as in the example above, it will be used for all URL generation. The method can also be defined in a specific controller, in which case it only affects URLs generated there.
 
 ### Strong Parameters
 
 With strong parameters, Action Controller parameters are forbidden to
 be used in Active Model mass assignments until they have been
-whitelisted. This means you'll have to make a conscious choice about
-which attributes to allow for mass updating and thus prevent
-accidentally exposing that which shouldn't be exposed.
+whitelisted. This means that you'll have to make a conscious decision about
+which attributes to allow for mass update. This is a better security
+practice to help prevent accidentally allowing users to update sensitive
+model attributes.
 
-In addition, parameters can be marked as required and flow through a
-predefined raise/rescue flow to end up as a 400 Bad Request with no
-effort.
+In addition, parameters can be marked as required and will flow through a
+predefined raise/rescue flow to end up as a 400 Bad Request.
 
 ```ruby
 class PeopleController < ActionController::Base
@@ -239,17 +239,17 @@ params.permit(:id)
 ```
 
 the key `:id` will pass the whitelisting if it appears in `params` and
-it has a permitted scalar value associated. Otherwise the key is going
+it has a permitted scalar value associated. Otherwise, the key is going
 to be filtered out, so arrays, hashes, or any other objects cannot be
 injected.
 
 The permitted scalar types are `String`, `Symbol`, `NilClass`,
 `Numeric`, `TrueClass`, `FalseClass`, `Date`, `Time`, `DateTime`,
-`StringIO`, `IO`, `ActionDispatch::Http::UploadedFile` and
+`StringIO`, `IO`, `ActionDispatch::Http::UploadedFile`, and
 `Rack::Test::UploadedFile`.
 
 To declare that the value in `params` must be an array of permitted
-scalar values map the key to an empty array:
+scalar values, map the key to an empty array:
 
 ```ruby
 params.permit(id: [])
@@ -262,14 +262,13 @@ used:
 params.require(:log_entry).permit!
 ```
 
-This will mark the `:log_entry` parameters hash and any sub-hash of it
-permitted. Extreme care should be taken when using `permit!` as it
-will allow all current and future model attributes to be
-mass-assigned.
+This will mark the `:log_entry` parameters hash and any sub-hash of it as
+permitted. Extreme care should be taken when using `permit!`, as it
+will allow all current and future model attributes to be mass-assigned.
 
 #### Nested Parameters
 
-You can also use permit on nested parameters, like:
+You can also use `permit` on nested parameters, like:
 
 ```ruby
 params.permit(:name, { emails: [] },
@@ -277,19 +276,19 @@ params.permit(:name, { emails: [] },
                          { family: [ :name ], hobbies: [] }])
 ```
 
-This declaration whitelists the `name`, `emails` and `friends`
+This declaration whitelists the `name`, `emails`, and `friends`
 attributes. It is expected that `emails` will be an array of permitted
-scalar values and that `friends` will be an array of resources with
-specific attributes : they should have a `name` attribute (any
+scalar values, and that `friends` will be an array of resources with
+specific attributes: they should have a `name` attribute (any
 permitted scalar values allowed), a `hobbies` attribute as an array of
 permitted scalar values, and a `family` attribute which is restricted
-to having a `name` (any permitted scalar values allowed, too).
+to having a `name` (any permitted scalar values allowed here, too).
 
 #### More Examples
 
-You want to also use the permitted attributes in the `new`
+You may want to also use the permitted attributes in your `new`
 action. This raises the problem that you can't use `require` on the
-root key because normally it does not exist when calling `new`:
+root key because, normally, it does not exist when calling `new`:
 
 ```ruby
 # using `fetch` you can supply a default and use
@@ -297,8 +296,8 @@ root key because normally it does not exist when calling `new`:
 params.fetch(:blog, {}).permit(:title, :author)
 ```
 
-`accepts_nested_attributes_for` allows you to update and destroy
-associated records. This is based on the `id` and `_destroy`
+The model class method `accepts_nested_attributes_for` allows you to
+update and destroy associated records. This is based on the `id` and `_destroy`
 parameters:
 
 ```ruby
@@ -306,7 +305,7 @@ parameters:
 params.require(:author).permit(:name, books_attributes: [:title, :id, :_destroy])
 ```
 
-Hashes with integer keys are treated differently and you can declare
+Hashes with integer keys are treated differently, and you can declare
 the attributes as if they were direct children. You get these kinds of
 parameters when you use `accepts_nested_attributes_for` in combination
 with a `has_many` association:
@@ -323,13 +322,13 @@ params.require(:book).permit(:title, chapters_attributes: [:title])
 #### Outside the Scope of Strong Parameters
 
 The strong parameter API was designed with the most common use cases
-in mind. It is not meant as a silver bullet to handle all your
-whitelisting problems. However you can easily mix the API with your
+in mind. It is not meant as a silver bullet to handle all of your
+whitelisting problems. However, you can easily mix the API with your
 own code to adapt to your situation.
 
 Imagine a scenario where you have parameters representing a product
 name and a hash of arbitrary data associated with that product, and
-you want to whitelist the product name attribute but also the whole
+you want to whitelist the product name attribute and also the whole
 data hash. The strong parameters API doesn't let you directly
 whitelist the whole of a nested hash with any keys, but you can use
 the keys of your nested hash to declare what to whitelist:
