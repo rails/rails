@@ -87,7 +87,10 @@ Major Features
  * **Support for specifying transaction isolation level** ([commit](https://github.com/rails/rails/commit/392eeecc11a291e406db927a18b75f41b2658253)) - Choose whether repeatable reads or improved performance (less locking) is more important.
  * **Dalli** ([commit](https://github.com/rails/rails/commit/82663306f428a5bbc90c511458432afb26d2f238)) - Use Dalli memcache client for the memcache store.
  * **Notifications start &amp; finish** ([commit](https://github.com/rails/rails/commit/f08f8750a512f741acb004d0cebe210c5f949f28)) - Active Support instrumentation reports start and finish notifications to subscribers.
- * **Thread safe by default** ([commit](https://github.com/rails/rails/commit/5d416b907864d99af55ebaa400fff217e17570cd)) - Rails can run in threaded app servers without additional configuration. Note: Check that the gems you are using are threadsafe.
+ * **Thread safe by default** ([commit](https://github.com/rails/rails/commit/5d416b907864d99af55ebaa400fff217e17570cd)) - Rails can run in threaded app servers without additional configuration.
+
+NOTE: Check that the gems you are using are threadsafe.
+
  * **PATCH verb** ([commit](https://github.com/rails/rails/commit/eed9f2539e3ab5a68e798802f464b8e4e95e619e)) - In Rails, PATCH replaces PUT. PATCH is used for partial updates of resources.
 
 ### Security
