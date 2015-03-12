@@ -42,12 +42,13 @@ module ActiveSupport
     # Containing helpers that helps you test passage of time.
     module TimeHelpers
       # Changes current time to the time in the future or in the past by a given time difference by
-      # stubbing +Time.now+ and +Date.today+.
+      # stubbing +Time.now+, +Date.today+, and +DateTime.now+.
       #
-      #   Time.current # => Sat, 09 Nov 2013 15:34:49 EST -05:00
+      #   Time.current     # => Sat, 09 Nov 2013 15:34:49 EST -05:00
       #   travel 1.day
-      #   Time.current # => Sun, 10 Nov 2013 15:34:49 EST -05:00
-      #   Date.current # => Sun, 10 Nov 2013
+      #   Time.current     # => Sun, 10 Nov 2013 15:34:49 EST -05:00
+      #   Date.current     # => Sun, 10 Nov 2013
+      #   DateTime.current # => Sun, 10 Nov 2013 15:34:49 -0500
       #
       # This method also accepts a block, which will return the current time back to its original
       # state at the end of the block:
@@ -61,13 +62,14 @@ module ActiveSupport
         travel_to Time.now + duration, &block
       end
 
-      # Changes current time to the given time by stubbing +Time.now+ and
-      # +Date.today+ to return the time or date passed into this method.
+      # Changes current time to the given time by stubbing +Time.now+,
+      # +Date.today+, and +DateTime.now+ to return the time or date passed into this method.
       #
-      #   Time.current # => Sat, 09 Nov 2013 15:34:49 EST -05:00
+      #   Time.current     # => Sat, 09 Nov 2013 15:34:49 EST -05:00
       #   travel_to Time.new(2004, 11, 24, 01, 04, 44)
-      #   Time.current # => Wed, 24 Nov 2004 01:04:44 EST -05:00
-      #   Date.current # => Wed, 24 Nov 2004
+      #   Time.current     # => Wed, 24 Nov 2004 01:04:44 EST -05:00
+      #   Date.current     # => Wed, 24 Nov 2004
+      #   DateTime.current # => Wed, 24 Nov 2004 01:04:44 -0500
       #
       # Dates are taken as their timestamp at the beginning of the day in the
       # application time zone. <tt>Time.current</tt> returns said timestamp,
