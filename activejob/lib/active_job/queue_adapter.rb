@@ -58,7 +58,7 @@ module ActiveJob
       end
 
       def load_adapter(name)
-        "ActiveJob::QueueAdapters::#{name.to_s.camelize}Adapter".constantize.new
+        ActiveJob::QueueAdapters.const_get(name.to_s.camelize + 'Adapter').new
       end
     end
   end
