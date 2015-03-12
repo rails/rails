@@ -204,7 +204,7 @@ Rails adds the `therubyracer` gem to the generated `Gemfile` in a
 commented line for new apps and you can uncomment if you need it.
 `therubyrhino` is the recommended runtime for JRuby users and is added by
 default to the `Gemfile` in apps generated under JRuby. You can investigate
-all the supported runtimes at [ExecJS](https://github.com/sstephenson/execjs#readme).
+all the supported runtimes at [ExecJS](https://github.com/rails/execjs#readme).
 
 This will fire up WEBrick, a web server distributed with Ruby by default. To see
 your application in action, open a browser window and navigate to
@@ -1482,9 +1482,9 @@ Here we're using `link_to` in a different way. We pass the named route as the
 second argument, and then the options as another argument. The `method: :delete`
 and `data: { confirm: 'Are you sure?' }` options are used as HTML5 attributes so
 that when the link is clicked, Rails will first show a confirm dialog to the
-user, and then submit the link with method `delete`.  This is done via the 
+user, and then submit the link with method `delete`.  This is done via the
 JavaScript file `jquery_ujs` which is automatically included in your
-application's layout (`app/views/layouts/application.html.erb`) when you 
+application's layout (`app/views/layouts/application.html.erb`) when you
 generated the application. Without this file, the confirmation dialog box won't
 appear.
 
