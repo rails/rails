@@ -38,6 +38,8 @@ module ActionController
         headers.delete('Content-Type')
         headers.delete('Content-Length')
       end
+      
+      true
     end
 
     private
