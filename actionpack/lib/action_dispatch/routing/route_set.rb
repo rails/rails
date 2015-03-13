@@ -58,16 +58,15 @@ module ActionDispatch
             controller_param = params[:controller]
             controller_reference(controller_param)
           end
-        rescue NameError => e
-          raise if e.message.include?("undefined local variable or method")
-          raise ActionController::RoutingError, e.message, e.backtrace if default_controller
+        rescue ActionController::RoutingError
+          raise if default_controller
         end
 
       private
 
         def controller_reference(controller_param)
           const_name = @controller_class_names[controller_param] ||= "#{controller_param.camelize}Controller"
-          ActiveSupport::Dependencies.constantize(const_name)
+          ActiveSupport::Dependencies.safe_constantize(const_name) || raise(ActionController::RoutingError, "uninitialized constant #{const_name}")
         end
 
         def dispatch(controller, action, env)
