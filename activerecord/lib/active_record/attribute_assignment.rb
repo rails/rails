@@ -52,7 +52,7 @@ module ActiveRecord
 
     def _assign_attribute(k, v)
       public_send("#{k}=", v)
-    rescue NoMethodError
+    rescue NoMethodError, NameError
       if respond_to?("#{k}=")
         raise
       else
