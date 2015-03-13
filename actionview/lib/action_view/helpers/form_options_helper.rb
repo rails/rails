@@ -18,10 +18,10 @@ module ActionView
     #
     #   could become:
     #
-    #     <select name="post[category]">
-    #       <option></option>
-    #       <option>joke</option>
-    #       <option>poem</option>
+    #     <select name="post[category]" id="post_category">
+    #       <option value=""></option>
+    #       <option value="joke">joke</option>
+    #       <option value="poem">poem</option>
     #     </select>
     #
     #   Another common case is a select tag for a <tt>belongs_to</tt>-associated object.
@@ -32,7 +32,7 @@ module ActionView
     #
     #   could become:
     #
-    #     <select name="post[person_id]">
+    #     <select name="post[person_id]" id="post_person_id">
     #       <option value="">None</option>
     #       <option value="1">David</option>
     #       <option value="2" selected="selected">Sam</option>
@@ -45,7 +45,7 @@ module ActionView
     #
     #   could become:
     #
-    #     <select name="post[person_id]">
+    #     <select name="post[person_id]" id="post_person_id">
     #       <option value="">Select Person</option>
     #       <option value="1">David</option>
     #       <option value="2">Sam</option>
@@ -71,11 +71,11 @@ module ActionView
     #
     #   could become:
     #
-    #     <select name="post[category]">
-    #       <option></option>
-    #       <option>joke</option>
-    #       <option>poem</option>
-    #       <option disabled="disabled">restricted</option>
+    #     <select name="post[category]" id="post_category">
+    #       <option value=""></option>
+    #       <option value="joke">joke</option>
+    #       <option value="poem">poem</option>
+    #       <option disabled="disabled" value="restricted">restricted</option>
     #     </select>
     #
     #   When used with the <tt>collection_select</tt> helper, <tt>:disabled</tt> can also be a Proc that identifies those options that should be disabled.
@@ -83,7 +83,7 @@ module ActionView
     #     collection_select(:post, :category_id, Category.all, :id, :name, {disabled: lambda{|category| category.archived? }})
     #
     #   If the categories "2008 stuff" and "Christmas" return true when the method <tt>archived?</tt> is called, this would return:
-    #     <select name="post[category_id]">
+    #     <select name="post[category_id]" id="post_category_id">
     #       <option value="1" disabled="disabled">2008 stuff</option>
     #       <option value="2" disabled="disabled">Christmas</option>
     #       <option value="3">Jokes</option>
@@ -109,7 +109,7 @@ module ActionView
       #
       # would become:
       #
-      #   <select name="post[person_id]">
+      #   <select name="post[person_id]" id="post_person_id">
       #     <option value=""></option>
       #     <option value="1" selected="selected">David</option>
       #     <option value="2">Sam</option>
@@ -192,7 +192,7 @@ module ActionView
       #   collection_select(:post, :author_id, Author.all, :id, :name_with_initial, prompt: true)
       #
       # If <tt>@post.author_id</tt> is already <tt>1</tt>, this would return:
-      #   <select name="post[author_id]">
+      #   <select name="post[author_id]" id="post_author_id">
       #     <option value="">Please select</option>
       #     <option value="1" selected="selected">D. Heinemeier Hansson</option>
       #     <option value="2">D. Thomas</option>
@@ -243,7 +243,7 @@ module ActionView
       #
       # Possible output:
       #
-      #   <select name="city[country_id]">
+      #   <select name="city[country_id]" id="city_country_id">
       #     <optgroup label="Africa">
       #       <option value="1">South Africa</option>
       #       <option value="3">Somalia</option>
