@@ -285,7 +285,7 @@ module Rails
       end
 
       def javascript_runtime_gemfile_entry
-        comment = 'See https://github.com/sstephenson/execjs#readme for more supported runtimes'
+        comment = 'See https://github.com/rails/execjs#readme for more supported runtimes'
         if defined?(JRUBY_VERSION)
           GemfileEntry.version 'therubyrhino', nil, comment
         else

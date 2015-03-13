@@ -169,7 +169,7 @@ Rails Architectural Changes
 
 The major change in Rails 3.1 is the Assets Pipeline. It makes CSS and JavaScript first-class code citizens and enables proper organization, including use in plugins and engines.
 
-The assets pipeline is powered by [Sprockets](https://github.com/sstephenson/sprockets) and is covered in the [Asset Pipeline](asset_pipeline.html) guide.
+The assets pipeline is powered by [Sprockets](https://github.com/rails/sprockets) and is covered in the [Asset Pipeline](asset_pipeline.html) guide.
 
 ### HTTP Streaming
 
