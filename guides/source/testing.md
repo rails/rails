@@ -632,7 +632,7 @@ WARNING: You must include the "layouts" directory name even if you save your lay
 If your view renders any partial, when asserting for the layout, you can to assert for the partial at the same time.
 Otherwise, assertion will fail.
 
-Remember, we added the "_form" partial to our creating Articles view? Let's write an assertion for that in the `:new` action now:
+Remember, we added the "_form" partial to our new Article view? Let's write an assertion for that in the `:new` action now:
 
 ```ruby
 test "new should render correct layout" do
