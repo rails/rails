@@ -202,7 +202,7 @@ Rails adds the `therubyracer` gem to the generated `Gemfile` in a
 commented line for new apps and you can uncomment if you need it.
 `therubyrhino` is the recommended runtime for JRuby users and is added by
 default to the `Gemfile` in apps generated under JRuby. You can investigate
-all the supported runtimes at [ExecJS](https://github.com/sstephenson/execjs#readme).
+all the supported runtimes at [ExecJS](https://github.com/rails/execjs#readme).
 
 This will fire up WEBrick, a web server distributed with Ruby by default. To see
 your application in action, open a browser window and navigate to
