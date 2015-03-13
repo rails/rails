@@ -376,6 +376,9 @@ class CallbacksOnMultipleActionsTest < ActiveRecord::TestCase
     after_commit(on: [:create, :update]) { |record| record.history << :create_and_update }
     after_commit(on: [:update, :destroy]) { |record| record.history << :update_and_destroy }
 
+    before_commit(if: :save_before_commit_history) { |record| record.history << :before_commit }
+    before_commit(if: :update_title) { |record| record.update(title: "before commit title") }
+
     def clear_history
       @history = []
     end
@@ -383,6 +386,8 @@ class CallbacksOnMultipleActionsTest < ActiveRecord::TestCase
     def history
       @history ||= []
     end
+
+    attr_accessor :save_before_commit_history, :update_title
   end
 
   def test_after_commit_on_multiple_actions
@@ -398,6 +403,23 @@ class CallbacksOnMultipleActionsTest < ActiveRecord::TestCase
     topic.clear_history
     topic.destroy
     assert_equal [:update_and_destroy, :create_and_destroy], topic.history
+  end
+
+  def test_before_commit_actions
+    topic = TopicWithCallbacksOnMultipleActions.new
+    topic.save_before_commit_history = true
+    topic.save
+
+    assert_equal [:before_commit, :create_and_update, :create_and_destroy], topic.history
+  end
+
+  def test_before_commit_update_in_same_transaction
+    topic = TopicWithCallbacksOnMultipleActions.new
+    topic.update_title = true
+    topic.save
+
+    assert_equal "before commit title", topic.title
+    assert_equal "before commit title", topic.reload.title
   end
 end
 
