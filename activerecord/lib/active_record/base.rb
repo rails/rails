@@ -309,6 +309,7 @@ module ActiveRecord #:nodoc:
     include Aggregations
     include Transactions
     include NoTouching
+    include TouchLater
     include Reflection
     include Serialization
     include Store
