@@ -728,6 +728,17 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert "unknown attribute: hello", error.message
   end
 
+  # This test is related to a bug in Ruby 2.2.1.
+  # It can be safely removed once that bug is fixed.
+  #
+  # xref: https://bugs.ruby-lang.org/issues/10969
+  def test_bulk_does_not_raise_name_error
+    nope rescue nil # necessary to trigger the bug
+    assert_raises(ActiveRecord::UnknownAttributeError) {
+      Topic.new(hello: "world")
+    }
+  end
+
   def test_methods_override_in_multi_level_subclass
     klass = Class.new(Developer) do
       def name
