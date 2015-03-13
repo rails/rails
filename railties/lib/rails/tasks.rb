@@ -4,6 +4,7 @@ require 'rake'
 %w(
   annotations
   framework
+  initializer
   log
   middleware
   misc
