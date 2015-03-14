@@ -1,6 +1,6 @@
 *   Drop request class from RouteSet constructor.
  
-    If you would like to use a custom request class, please subclass and implemet
+    If you would like to use a custom request class, please subclass and implement
     the `request_class` method.
 
     *tenderlove@ruby-lang.org*
