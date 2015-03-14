@@ -153,6 +153,22 @@ class PostgresqlHstoreTest < ActiveRecord::PostgreSQLTestCase
     assert_equal "GMT", y.timezone
   end
 
+  def test_changes_with_store_accessors
+    x = Hstore.new(language: "de")
+    assert x.language_changed?
+    assert_nil x.language_was
+    assert_equal [nil, "de"], x.language_change
+    x.save!
+
+    assert_not x.language_changed?
+    x.reload
+
+    x.settings = nil
+    assert x.language_changed?
+    assert_equal "de", x.language_was
+    assert_equal ["de", nil], x.language_change
+  end
+
   def test_changes_in_place
     hstore = Hstore.create!(settings: { "one" => "two" })
     hstore.settings["three"] = "four"

@@ -11,6 +11,10 @@ module ActiveRecord
   # of the model. This is very helpful for easily exposing store keys to a form or elsewhere that's
   # already built around just accessing attributes on the model.
   #
+  # Every accessor comes with dirty tracking methods (+key_changed?+, +key_was+ and +key_change+).
+  #
+  # NOTE: There is no +key_will_change!+ method for accessors, use +store_will_change!+ instead.
+  #
   # Make sure that you declare the database column used for the serialized store as a text, so there's
   # plenty of room.
   #
@@ -48,6 +52,12 @@ module ActiveRecord
   #   # There is no difference between strings and symbols for accessing custom attributes
   #   u.settings[:country]  # => 'Denmark'
   #   u.settings['country'] # => 'Denmark'
+  #
+  #   # Dirty tracking
+  #   u.color = 'green'
+  #   u.color_changed? # => true
+  #   u.color_was # => 'black'
+  #   u.color_change # => ['black', 'red']
   #
   #   # Add additional accessors to an existing store through store_accessor
   #   class SuperUser < User
@@ -126,6 +136,24 @@ module ActiveRecord
 
             define_method(accessor_key) do
               read_store_attribute(store_attribute, key)
+            end
+
+            define_method("#{accessor_key}_changed?") do
+              return false unless attribute_changed?(store_attribute)
+              prev_store, new_store = changes[store_attribute]
+              prev_store&.dig(key) != new_store&.dig(key)
+            end
+
+            define_method("#{accessor_key}_change") do
+              return unless attribute_changed?(store_attribute)
+              prev_store, new_store = changes[store_attribute]
+              [prev_store&.dig(key), new_store&.dig(key)]
+            end
+
+            define_method("#{accessor_key}_was") do
+              return unless attribute_changed?(store_attribute)
+              prev_store, _new_store = changes[store_attribute]
+              prev_store&.dig(key)
             end
           end
         end
