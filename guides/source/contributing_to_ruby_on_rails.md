@@ -378,7 +378,7 @@ Your name can be added directly after the last word if you don't provide any cod
 
 ### Updating the Gemfile.lock
 
-Some changes requires the dependencies to be upgraded. In these cases make sure you run `bundle update` to get the right version of the dependency and commit the `Gemfile.lock` file within your changes.
+Some changes require the dependencies to be upgraded. In these cases make sure you run `bundle update` to get the right version of the dependency and commit the `Gemfile.lock` file within your changes.
 
 ### Sanity Check
 
