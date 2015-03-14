@@ -49,20 +49,6 @@ I18n.backend.store_translations 'pt-BR', {}
 ORIGINAL_LOCALES = I18n.available_locales.map(&:to_s).sort
 
 FIXTURE_LOAD_PATH = File.join(File.dirname(__FILE__), 'fixtures')
-FIXTURES = Pathname.new(FIXTURE_LOAD_PATH)
-
-module RackTestUtils
-  def body_to_string(body)
-    if body.respond_to?(:each)
-      str = ""
-      body.each {|s| str << s }
-      str
-    else
-      body
-    end
-  end
-  extend self
-end
 
 module RenderERBUtils
   def view
@@ -222,49 +208,6 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
         ActiveSupport::Dependencies.clear
       end
     end
-  end
-end
-
-# Temporary base class
-class Rack::TestCase < ActionDispatch::IntegrationTest
-  def self.testing(klass = nil)
-    if klass
-      @testing = "/#{klass.name.underscore}".sub!(/_controller$/, '')
-    else
-      @testing
-    end
-  end
-
-  def get(thing, *args)
-    if thing.is_a?(Symbol)
-      super("#{self.class.testing}/#{thing}", *args)
-    else
-      super
-    end
-  end
-
-  def assert_body(body)
-    assert_equal body, Array(response.body).join
-  end
-
-  def assert_status(code)
-    assert_equal code, response.status
-  end
-
-  def assert_response(body, status = 200, headers = {})
-    assert_body body
-    assert_status status
-    headers.each do |header, value|
-      assert_header header, value
-    end
-  end
-
-  def assert_content_type(type)
-    assert_equal type, response.headers["Content-Type"]
-  end
-
-  def assert_header(name, value)
-    assert_equal value, response.headers[name]
   end
 end
 
