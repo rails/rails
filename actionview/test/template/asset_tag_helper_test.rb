@@ -1,4 +1,3 @@
-require 'zlib'
 require 'abstract_unit'
 require 'active_support/ordered_options'
 
