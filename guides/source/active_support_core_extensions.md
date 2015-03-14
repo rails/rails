@@ -37,7 +37,7 @@ The most lightweight way to get `blank?` is to cherry-pick the file that defines
 
 For every single method defined as a core extension this guide has a note that says where such a method is defined. In the case of `blank?` the note reads:
 
-NOTE: Defined in `active_support/core_ext/object/blank.rb`.
+NOTE: Defined in [active_support/core_ext/object/blank.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/object/blank.rb).
 
 That means that you can require it like this:
 
@@ -121,7 +121,7 @@ def set_conditional_cache_control!
 end
 ```
 
-NOTE: Defined in `active_support/core_ext/object/blank.rb`.
+NOTE: Defined in [active_support/core_ext/object/blank.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/object/blank.rb).
 
 ### `presence`
 
@@ -131,7 +131,7 @@ The `presence` method returns its receiver if `present?`, and `nil` otherwise. I
 host = config[:host].presence || 'localhost'
 ```
 
-NOTE: Defined in `active_support/core_ext/object/blank.rb`.
+NOTE: Defined in [active_support/core_ext/object/blank.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/object/blank.rb).
 
 ### `duplicable?`
 
@@ -168,7 +168,7 @@ By definition all objects are `duplicable?` except `nil`, `false`, `true`, symbo
 
 WARNING: Any class can disallow duplication by removing `dup` and `clone` or raising exceptions from them. Thus only `rescue` can tell whether a given arbitrary object is duplicable. `duplicable?` depends on the hard-coded list above, but it is much faster than `rescue`. Use it only if you know the hard-coded list is enough in your use case.
 
-NOTE: Defined in `active_support/core_ext/object/duplicable.rb`.
+NOTE: Defined in [active_support/core_ext/object/duplicable.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/object/duplicable.rb).
 
 ### `deep_dup`
 
@@ -213,7 +213,7 @@ duplicate = number.deep_dup
 number.object_id == duplicate.object_id   # => true
 ```
 
-NOTE: Defined in `active_support/core_ext/object/deep_dup.rb`.
+NOTE: Defined in [active_support/core_ext/object/deep_dup.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/object/deep_dup.rb).
 
 ### `try`
 
@@ -248,7 +248,7 @@ end
 @person.try { |p| "#{p.first_name} #{p.last_name}" }
 ```
 
-NOTE: Defined in `active_support/core_ext/object/try.rb`.
+NOTE: Defined in [active_support/core_ext/object/try.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/object/try.rb).
 
 ### `class_eval(*args, &block)`
 
@@ -269,7 +269,7 @@ class Proc
 end
 ```
 
-NOTE: Defined in `active_support/core_ext/kernel/singleton_class.rb`.
+NOTE: Defined in [active_support/core_ext/kernel/singleton_class.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/kernel/singleton_class.rb).
 
 ### `acts_like?(duck)`
 
@@ -288,7 +288,7 @@ some_klass.acts_like?(:string)
 
 Rails has classes that act like `Date` or `Time` and follow this contract.
 
-NOTE: Defined in `active_support/core_ext/object/acts_like.rb`.
+NOTE: Defined in [active_support/core_ext/object/acts_like.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/object/acts_like.rb).
 
 ### `to_param`
 
@@ -332,7 +332,7 @@ user_path(@user) # => "/users/357-john-smith"
 
 WARNING. Controllers need to be aware of any redefinition of `to_param` because when a request like that comes in "357-john-smith" is the value of `params[:id]`.
 
-NOTE: Defined in `active_support/core_ext/object/to_param.rb`.
+NOTE: Defined in [active_support/core_ext/object/to_param.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/object/to_param.rb).
 
 ### `to_query`
 
@@ -381,7 +381,7 @@ The method `Hash#to_query` accepts an optional namespace for the keys:
 # => "user%5Bid%5D=89&user%5Bname%5D=John+Smith"
 ```
 
-NOTE: Defined in `active_support/core_ext/object/to_query.rb`.
+NOTE: Defined in [active_support/core_ext/object/to_query.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/object/to_query.rb).
 
 ### `with_options`
 
@@ -422,13 +422,13 @@ end
 
 TIP: Since `with_options` forwards calls to its receiver they can be nested. Each nesting level will merge inherited defaults in addition to their own.
 
-NOTE: Defined in `active_support/core_ext/object/with_options.rb`.
+NOTE: Defined in [active_support/core_ext/object/with_options.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/object/with_options.rb).
 
 ### JSON support
 
 Active Support provides a better implementation of `to_json` than the `json` gem ordinarily provides for Ruby objects. This is because some classes, like `Hash`, `OrderedHash` and `Process::Status` need special handling in order to provide a proper JSON representation.
 
-NOTE: Defined in `active_support/core_ext/object/json.rb`.
+NOTE: Defined in [active_support/core_ext/object/json.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/object/json.rb).
 
 ### Instance Variables
 
@@ -449,7 +449,7 @@ end
 C.new(0, 1).instance_values # => {"x" => 0, "y" => 1}
 ```
 
-NOTE: Defined in `active_support/core_ext/object/instance_variables.rb`.
+NOTE: Defined in [active_support/core_ext/object/instance_variables.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/object/instance_variables.rb).
 
 #### `instance_variable_names`
 
@@ -465,7 +465,7 @@ end
 C.new(0, 1).instance_variable_names # => ["@x", "@y"]
 ```
 
-NOTE: Defined in `active_support/core_ext/object/instance_variables.rb`.
+NOTE: Defined in [active_support/core_ext/object/instance_variables.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/object/instance_variables.rb).
 
 ### Silencing Warnings and Exceptions
 
@@ -484,7 +484,7 @@ suppress(ActiveRecord::StaleObjectError) do
 end
 ```
 
-NOTE: Defined in `active_support/core_ext/kernel/reporting.rb`.
+NOTE: Defined in [active_support/core_ext/kernel/reporting.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/kernel/reporting.rb).
 
 ### `in?`
 
@@ -499,7 +499,7 @@ Examples of `in?`:
 1.in?(1)            # => ArgumentError
 ```
 
-NOTE: Defined in `active_support/core_ext/object/inclusion.rb`.
+NOTE: Defined in [active_support/core_ext/object/inclusion.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/object/inclusion.rb).
 
 Extensions to `Module`
 ----------------------
@@ -552,7 +552,7 @@ end
 
 Rails uses `alias_method_chain` all over the code base. For example validations are added to `ActiveRecord::Base#save` by wrapping the method that way in a separate module specialized in validations.
 
-NOTE: Defined in `active_support/core_ext/module/aliasing.rb`.
+NOTE: Defined in [active_support/core_ext/module/aliasing.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/module/aliasing.rb).
 
 ### Attributes
 
@@ -568,7 +568,7 @@ class User < ActiveRecord::Base
 end
 ```
 
-NOTE: Defined in `active_support/core_ext/module/aliasing.rb`.
+NOTE: Defined in [active_support/core_ext/module/aliasing.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/module/aliasing.rb).
 
 #### Internal Attributes
 
@@ -606,7 +606,7 @@ module ActionView
 end
 ```
 
-NOTE: Defined in `active_support/core_ext/module/attr_internal.rb`.
+NOTE: Defined in [active_support/core_ext/module/attr_internal.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/module/attr_internal.rb).
 
 #### Module Attributes
 
@@ -633,7 +633,7 @@ module ActiveSupport
 end
 ```
 
-NOTE: Defined in `active_support/core_ext/module/attribute_accessors.rb`.
+NOTE: Defined in [active_support/core_ext/module/attribute_accessors.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/module/attribute_accessors.rb).
 
 ### Parents
 
@@ -658,7 +658,7 @@ If the module is anonymous or belongs to the top-level, `parent` returns `Object
 
 WARNING: Note that in that case `parent_name` returns `nil`.
 
-NOTE: Defined in `active_support/core_ext/module/introspection.rb`.
+NOTE: Defined in [active_support/core_ext/module/introspection.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/module/introspection.rb).
 
 #### `parent_name`
 
@@ -681,7 +681,7 @@ For top-level or anonymous modules `parent_name` returns `nil`.
 
 WARNING: Note that in that case `parent` returns `Object`.
 
-NOTE: Defined in `active_support/core_ext/module/introspection.rb`.
+NOTE: Defined in [active_support/core_ext/module/introspection.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/module/introspection.rb).
 
 #### `parents`
 
@@ -700,7 +700,7 @@ X::Y::Z.parents # => [X::Y, X, Object]
 M.parents       # => [X::Y, X, Object]
 ```
 
-NOTE: Defined in `active_support/core_ext/module/introspection.rb`.
+NOTE: Defined in [active_support/core_ext/module/introspection.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/module/introspection.rb).
 
 ### Constants
 
@@ -723,7 +723,7 @@ X::Y.local_constants # => [:Y1, :X1]
 
 The names are returned as symbols.
 
-NOTE: Defined in `active_support/core_ext/module/introspection.rb`.
+NOTE: Defined in [active_support/core_ext/module/introspection.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/module/introspection.rb).
 
 #### Qualified Constant Names
 
@@ -781,7 +781,7 @@ as in `const_defined?`.
 For coherence with the built-in methods only relative paths are accepted.
 Absolute qualified constant names like `::Math::PI` raise `NameError`.
 
-NOTE: Defined in `active_support/core_ext/module/qualified_const.rb`.
+NOTE: Defined in [active_support/core_ext/module/qualified_const.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/module/qualified_const.rb).
 
 ### Reachable
 
@@ -819,7 +819,7 @@ end
 orphan.reachable? # => false
 ```
 
-NOTE: Defined in `active_support/core_ext/module/reachable.rb`.
+NOTE: Defined in [active_support/core_ext/module/reachable.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/module/reachable.rb).
 
 ### Anonymous
 
@@ -860,7 +860,7 @@ m.anonymous? # => false
 
 though an anonymous module is unreachable by definition.
 
-NOTE: Defined in `active_support/core_ext/module/anonymous.rb`.
+NOTE: Defined in [active_support/core_ext/module/anonymous.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/module/anonymous.rb).
 
 ### Method Delegation
 
@@ -944,7 +944,7 @@ delegate :size, to: :attachment, prefix: :avatar
 
 In the previous example the macro generates `avatar_size` rather than `size`.
 
-NOTE: Defined in `active_support/core_ext/module/delegation.rb`
+NOTE: Defined in [active_support/core_ext/module/delegation.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/module/delegation.rb)
 
 ### Redefining Methods
 
@@ -952,7 +952,7 @@ There are cases where you need to define a method with `define_method`, but don'
 
 The method `redefine_method` prevents such a potential warning, removing the existing method before if needed.
 
-NOTE: Defined in `active_support/core_ext/module/remove_method.rb`
+NOTE: Defined in [active_support/core_ext/module/remove_method.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/module/remove_method.rb)
 
 Extensions to `Class`
 ---------------------
@@ -1039,7 +1039,7 @@ When `:instance_reader` is `false`, the instance predicate returns a `NoMethodEr
 
 If you do not want the instance predicate, pass `instance_predicate: false` and it will not be defined.
 
-NOTE: Defined in `active_support/core_ext/class/attribute.rb`
+NOTE: Defined in [active_support/core_ext/class/attribute.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/class/attribute.rb)
 
 #### `cattr_reader`, `cattr_writer`, and `cattr_accessor`
 
@@ -1092,7 +1092,7 @@ end
 
 A model may find it useful to set `:instance_accessor` to `false` as a way to prevent mass-assignment from setting the attribute.
 
-NOTE: Defined in `active_support/core_ext/module/attribute_accessors.rb`.
+NOTE: Defined in [active_support/core_ext/module/attribute_accessors.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/module/attribute_accessors.rb).
 
 ### Subclasses & Descendants
 
@@ -1116,7 +1116,7 @@ C.subclasses # => [B, D]
 
 The order in which these classes are returned is unspecified.
 
-NOTE: Defined in `active_support/core_ext/class/subclasses.rb`.
+NOTE: Defined in [active_support/core_ext/class/subclasses.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/class/subclasses.rb).
 
 #### `descendants`
 
@@ -1138,7 +1138,7 @@ C.descendants # => [B, A, D]
 
 The order in which these classes are returned is unspecified.
 
-NOTE: Defined in `active_support/core_ext/class/subclasses.rb`.
+NOTE: Defined in [active_support/core_ext/class/subclasses.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/class/subclasses.rb).
 
 Extensions to `String`
 ----------------------
@@ -1214,7 +1214,7 @@ def raw(stringish)
 end
 ```
 
-NOTE: Defined in `active_support/core_ext/string/output_safety.rb`.
+NOTE: Defined in [active_support/core_ext/string/output_safety.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/string/output_safety.rb).
 
 #### Transformation
 
@@ -1242,7 +1242,7 @@ The method `remove` will remove all occurrences of the pattern:
 
 There's also the destructive version `String#remove!`.
 
-NOTE: Defined in `active_support/core_ext/string/filters.rb`.
+NOTE: Defined in [active_support/core_ext/string/filters.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/string/filters.rb).
 
 ### `squish`
 
@@ -1256,7 +1256,7 @@ There's also the destructive version `String#squish!`.
 
 Note that it handles both ASCII and Unicode whitespace.
 
-NOTE: Defined in `active_support/core_ext/string/filters.rb`.
+NOTE: Defined in [active_support/core_ext/string/filters.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/string/filters.rb).
 
 ### `truncate`
 
@@ -1294,7 +1294,7 @@ The option `:separator` can be a regexp:
 
 In above examples "dear" gets cut first, but then `:separator` prevents it.
 
-NOTE: Defined in `active_support/core_ext/string/filters.rb`.
+NOTE: Defined in [active_support/core_ext/string/filters.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/string/filters.rb).
 
 ### `truncate_words`
 
@@ -1326,7 +1326,7 @@ The option `:separator` can be a regexp:
 # => "Oh dear! Oh dear!..."
 ```
 
-NOTE: Defined in `active_support/core_ext/string/filters.rb`.
+NOTE: Defined in [active_support/core_ext/string/filters.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/string/filters.rb).
 
 ### `inquiry`
 
@@ -1346,7 +1346,7 @@ Active Support defines 3rd person aliases of `String#start_with?` and `String#en
 "foo".ends_with?("o")   # => true
 ```
 
-NOTE: Defined in `active_support/core_ext/string/starts_ends_with.rb`.
+NOTE: Defined in [active_support/core_ext/string/starts_ends_with.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/string/starts_ends_with.rb).
 
 ### `strip_heredoc`
 
@@ -1371,7 +1371,7 @@ the user would see the usage message aligned against the left margin.
 Technically, it looks for the least indented line in the whole string, and removes
 that amount of leading whitespace.
 
-NOTE: Defined in `active_support/core_ext/string/strip.rb`.
+NOTE: Defined in [active_support/core_ext/string/strip.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/string/strip.rb).
 
 ### `indent`
 
@@ -1408,7 +1408,7 @@ The third argument, `indent_empty_lines`, is a flag that says whether empty line
 
 The `indent!` method performs indentation in-place.
 
-NOTE: Defined in `active_support/core_ext/string/indent.rb`.
+NOTE: Defined in [active_support/core_ext/string/indent.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/string/indent.rb).
 
 ### Access
 
@@ -1423,7 +1423,7 @@ Returns the character of the string at position `position`:
 "hello".at(10) # => nil
 ```
 
-NOTE: Defined in `active_support/core_ext/string/access.rb`.
+NOTE: Defined in [active_support/core_ext/string/access.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/string/access.rb).
 
 #### `from(position)`
 
@@ -1436,7 +1436,7 @@ Returns the substring of the string starting at position `position`:
 "hello".from(10) # => nil
 ```
 
-NOTE: Defined in `active_support/core_ext/string/access.rb`.
+NOTE: Defined in [active_support/core_ext/string/access.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/string/access.rb).
 
 #### `to(position)`
 
@@ -1449,19 +1449,19 @@ Returns the substring of the string up to position `position`:
 "hello".to(10) # => "hello"
 ```
 
-NOTE: Defined in `active_support/core_ext/string/access.rb`.
+NOTE: Defined in [active_support/core_ext/string/access.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/string/access.rb).
 
 #### `first(limit = 1)`
 
 The call `str.first(n)` is equivalent to `str.to(n-1)` if `n` > 0, and returns an empty string for `n` == 0.
 
-NOTE: Defined in `active_support/core_ext/string/access.rb`.
+NOTE: Defined in [active_support/core_ext/string/access.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/string/access.rb).
 
 #### `last(limit = 1)`
 
 The call `str.last(n)` is equivalent to `str.from(-n)` if `n` > 0, and returns an empty string for `n` == 0.
 
-NOTE: Defined in `active_support/core_ext/string/access.rb`.
+NOTE: Defined in [active_support/core_ext/string/access.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/string/access.rb).
 
 ### Inflections
 
@@ -1495,7 +1495,7 @@ def undecorated_table_name(class_name = base_class.name)
 end
 ```
 
-NOTE: Defined in `active_support/core_ext/string/inflections.rb`.
+NOTE: Defined in [active_support/core_ext/string/inflections.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/string/inflections.rb).
 
 #### `singularize`
 
@@ -1518,7 +1518,7 @@ def derive_class_name
 end
 ```
 
-NOTE: Defined in `active_support/core_ext/string/inflections.rb`.
+NOTE: Defined in [active_support/core_ext/string/inflections.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/string/inflections.rb).
 
 #### `camelize`
 
@@ -1566,7 +1566,7 @@ end
 
 `camelize` is aliased to `camelcase`.
 
-NOTE: Defined in `active_support/core_ext/string/inflections.rb`.
+NOTE: Defined in [active_support/core_ext/string/inflections.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/string/inflections.rb).
 
 #### `underscore`
 
@@ -1605,7 +1605,7 @@ end
 
 INFO: As a rule of thumb you can think of `underscore` as the inverse of `camelize`, though there are cases where that does not hold. For example, `"SSLError".underscore.camelize` gives back `"SslError"`.
 
-NOTE: Defined in `active_support/core_ext/string/inflections.rb`.
+NOTE: Defined in [active_support/core_ext/string/inflections.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/string/inflections.rb).
 
 #### `titleize`
 
@@ -1618,7 +1618,7 @@ The method `titleize` capitalizes the words in the receiver:
 
 `titleize` is aliased to `titlecase`.
 
-NOTE: Defined in `active_support/core_ext/string/inflections.rb`.
+NOTE: Defined in [active_support/core_ext/string/inflections.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/string/inflections.rb).
 
 #### `dasherize`
 
@@ -1639,7 +1639,7 @@ def reformat_name(name)
 end
 ```
 
-NOTE: Defined in `active_support/core_ext/string/inflections.rb`.
+NOTE: Defined in [active_support/core_ext/string/inflections.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/string/inflections.rb).
 
 #### `demodulize`
 
@@ -1667,7 +1667,7 @@ def counter_cache_column
 end
 ```
 
-NOTE: Defined in `active_support/core_ext/string/inflections.rb`.
+NOTE: Defined in [active_support/core_ext/string/inflections.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/string/inflections.rb).
 
 #### `deconstantize`
 
@@ -1692,7 +1692,7 @@ def qualified_const_set(path, value)
 end
 ```
 
-NOTE: Defined in `active_support/core_ext/string/inflections.rb`.
+NOTE: Defined in [active_support/core_ext/string/inflections.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/string/inflections.rb).
 
 #### `parameterize`
 
@@ -1705,7 +1705,7 @@ The method `parameterize` normalizes its receiver in a way that can be used in p
 
 In fact, the result string is wrapped in an instance of `ActiveSupport::Multibyte::Chars`.
 
-NOTE: Defined in `active_support/core_ext/string/inflections.rb`.
+NOTE: Defined in [active_support/core_ext/string/inflections.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/string/inflections.rb).
 
 #### `tableize`
 
@@ -1719,7 +1719,7 @@ The method `tableize` is `underscore` followed by `pluralize`.
 
 As a rule of thumb, `tableize` returns the table name that corresponds to a given model for simple cases. The actual implementation in Active Record is not straight `tableize` indeed, because it also demodulizes the class name and checks a few options that may affect the returned string.
 
-NOTE: Defined in `active_support/core_ext/string/inflections.rb`.
+NOTE: Defined in [active_support/core_ext/string/inflections.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/string/inflections.rb).
 
 #### `classify`
 
@@ -1739,7 +1739,7 @@ The method understands qualified table names:
 
 Note that `classify` returns a class name as a string. You can get the actual class object invoking `constantize` on it, explained next.
 
-NOTE: Defined in `active_support/core_ext/string/inflections.rb`.
+NOTE: Defined in [active_support/core_ext/string/inflections.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/string/inflections.rb).
 
 #### `constantize`
 
@@ -1782,7 +1782,7 @@ rescue NameError => e
 end
 ```
 
-NOTE: Defined in `active_support/core_ext/string/inflections.rb`.
+NOTE: Defined in [active_support/core_ext/string/inflections.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/string/inflections.rb).
 
 #### `humanize`
 
@@ -1830,7 +1830,7 @@ def full_message
 end
 ```
 
-NOTE: Defined in `active_support/core_ext/string/inflections.rb`.
+NOTE: Defined in [active_support/core_ext/string/inflections.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/string/inflections.rb).
 
 #### `foreign_key`
 
@@ -1855,7 +1855,7 @@ Associations use this method to infer foreign keys, for example `has_one` and `h
 foreign_key = options[:foreign_key] || reflection.active_record.name.foreign_key
 ```
 
-NOTE: Defined in `active_support/core_ext/string/inflections.rb`.
+NOTE: Defined in [active_support/core_ext/string/inflections.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/string/inflections.rb).
 
 ### Conversions
 
@@ -1882,7 +1882,7 @@ Please refer to the documentation of `Date._parse` for further details.
 
 INFO: The three of them return `nil` for blank receivers.
 
-NOTE: Defined in `active_support/core_ext/string/conversions.rb`.
+NOTE: Defined in [active_support/core_ext/string/conversions.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/string/conversions.rb).
 
 Extensions to `Numeric`
 -----------------------
@@ -1916,7 +1916,7 @@ Singular forms are aliased so you are able to say:
 1.megabyte # => 1048576
 ```
 
-NOTE: Defined in `active_support/core_ext/numeric/bytes.rb`.
+NOTE: Defined in [active_support/core_ext/numeric/bytes.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/numeric/bytes.rb).
 
 ### Time
 
@@ -2021,7 +2021,7 @@ Produce a string representation of a number in human-readable words:
 1234567890123456.to_s(:human)  # => "1.23 Quadrillion"
 ```
 
-NOTE: Defined in `active_support/core_ext/numeric/conversions.rb`.
+NOTE: Defined in [active_support/core_ext/numeric/conversions.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/numeric/conversions.rb).
 
 Extensions to `Integer`
 -----------------------
@@ -2035,7 +2035,7 @@ The method `multiple_of?` tests whether an integer is multiple of the argument:
 1.multiple_of?(2) # => false
 ```
 
-NOTE: Defined in `active_support/core_ext/integer/multiple.rb`.
+NOTE: Defined in [active_support/core_ext/integer/multiple.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/integer/multiple.rb).
 
 ### `ordinal`
 
@@ -2050,7 +2050,7 @@ The method `ordinal` returns the ordinal suffix string corresponding to the rece
 -134.ordinal # => "th"
 ```
 
-NOTE: Defined in `active_support/core_ext/integer/inflections.rb`.
+NOTE: Defined in [active_support/core_ext/integer/inflections.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/integer/inflections.rb).
 
 ### `ordinalize`
 
@@ -2065,7 +2065,7 @@ The method `ordinalize` returns the ordinal string corresponding to the receiver
 -134.ordinalize # => "-134th"
 ```
 
-NOTE: Defined in `active_support/core_ext/integer/inflections.rb`.
+NOTE: Defined in [active_support/core_ext/integer/inflections.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/integer/inflections.rb).
 
 Extensions to `BigDecimal`
 --------------------------
@@ -2137,7 +2137,7 @@ The sum of an empty receiver can be customized in this form as well:
 [].sum(1) {|n| n**3} # => 1
 ```
 
-NOTE: Defined in `active_support/core_ext/enumerable.rb`.
+NOTE: Defined in [active_support/core_ext/enumerable.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/enumerable.rb).
 
 ### `index_by`
 
@@ -2152,7 +2152,7 @@ invoices.index_by(&:number)
 
 WARNING. Keys should normally be unique. If the block returns the same value for different elements no collection is built for that key. The last item will win.
 
-NOTE: Defined in `active_support/core_ext/enumerable.rb`.
+NOTE: Defined in [active_support/core_ext/enumerable.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/enumerable.rb).
 
 ### `many?`
 
@@ -2170,7 +2170,7 @@ If an optional block is given, `many?` only takes into account those elements th
 @see_more = videos.many? {|video| video.category == params[:category]}
 ```
 
-NOTE: Defined in `active_support/core_ext/enumerable.rb`.
+NOTE: Defined in [active_support/core_ext/enumerable.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/enumerable.rb).
 
 ### `exclude?`
 
@@ -2180,7 +2180,7 @@ The predicate `exclude?` tests whether a given object does **not** belong to the
 to_visit << node if visited.exclude?(node)
 ```
 
-NOTE: Defined in `active_support/core_ext/enumerable.rb`.
+NOTE: Defined in [active_support/core_ext/enumerable.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/enumerable.rb).
 
 ### `without`
 
@@ -2191,7 +2191,7 @@ removed:
 people.without("Aaron", "Todd")
 ```
 
-NOTE: Defined in `active_support/core_ext/enumerable.rb`.
+NOTE: Defined in [active_support/core_ext/enumerable.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/enumerable.rb).
 
 Extensions to `Array`
 ---------------------
@@ -2220,7 +2220,7 @@ The methods `second`, `third`, `fourth`, and `fifth` return the corresponding el
 %w(a b c d).fifth # => nil
 ```
 
-NOTE: Defined in `active_support/core_ext/array/access.rb`.
+NOTE: Defined in [active_support/core_ext/array/access.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/array/access.rb).
 
 ### Adding Elements
 
@@ -2233,7 +2233,7 @@ This method is an alias of `Array#unshift`.
 [].prepend(10)            # => [10]
 ```
 
-NOTE: Defined in `active_support/core_ext/array/prepend_and_append.rb`.
+NOTE: Defined in [active_support/core_ext/array/prepend_and_append.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/array/prepend_and_append.rb).
 
 #### `append`
 
@@ -2244,7 +2244,7 @@ This method is an alias of `Array#<<`.
 [].append([1,2])         # => [[1,2]]
 ```
 
-NOTE: Defined in `active_support/core_ext/array/prepend_and_append.rb`.
+NOTE: Defined in [active_support/core_ext/array/prepend_and_append.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/array/prepend_and_append.rb).
 
 ### Options Extraction
 
@@ -2272,7 +2272,7 @@ end
 
 This method receives an arbitrary number of action names, and an optional hash of options as last argument. With the call to `extract_options!` you obtain the options hash and remove it from `actions` in a simple and explicit way.
 
-NOTE: Defined in `active_support/core_ext/array/extract_options.rb`.
+NOTE: Defined in [active_support/core_ext/array/extract_options.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/array/extract_options.rb).
 
 ### Conversions
 
@@ -2301,7 +2301,7 @@ The defaults for these options can be localized, their keys are:
 | `:words_connector`     | `support.array.words_connector`     |
 | `:last_word_connector` | `support.array.last_word_connector` |
 
-NOTE: Defined in `active_support/core_ext/array/conversions.rb`.
+NOTE: Defined in [active_support/core_ext/array/conversions.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/array/conversions.rb).
 
 #### `to_formatted_s`
 
@@ -2319,7 +2319,7 @@ invoice.lines.to_formatted_s(:db) # => "23,567,556,12"
 
 Integers in the example above are supposed to come from the respective calls to `id`.
 
-NOTE: Defined in `active_support/core_ext/array/conversions.rb`.
+NOTE: Defined in [active_support/core_ext/array/conversions.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/array/conversions.rb).
 
 #### `to_xml`
 
@@ -2420,7 +2420,7 @@ Contributor.limit(2).order(:rank).to_xml(skip_types: true)
 # </contributors>
 ```
 
-NOTE: Defined in `active_support/core_ext/array/conversions.rb`.
+NOTE: Defined in [active_support/core_ext/array/conversions.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/array/conversions.rb).
 
 ### Wrapping
 
@@ -2461,7 +2461,7 @@ which in Ruby 1.8 returns `[nil]` for `nil`, and calls to `Array(object)` otherw
 
 Thus, in this case the behavior is different for `nil`, and the differences with `Kernel#Array` explained above apply to the rest of `object`s.
 
-NOTE: Defined in `active_support/core_ext/array/wrap.rb`.
+NOTE: Defined in [active_support/core_ext/array/wrap.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/array/wrap.rb).
 
 ### Duplicating
 
@@ -2475,7 +2475,7 @@ dup[1][2] = 4
 array[1][2] == nil   # => true
 ```
 
-NOTE: Defined in `active_support/core_ext/object/deep_dup.rb`.
+NOTE: Defined in [active_support/core_ext/object/deep_dup.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/object/deep_dup.rb).
 
 ### Grouping
 
@@ -2513,7 +2513,7 @@ And you can tell the method not to fill the last group passing `false`:
 
 As a consequence `false` can't be a used as a padding value.
 
-NOTE: Defined in `active_support/core_ext/array/grouping.rb`.
+NOTE: Defined in [active_support/core_ext/array/grouping.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/array/grouping.rb).
 
 #### `in_groups(number, fill_with = nil)`
 
@@ -2551,7 +2551,7 @@ And you can tell the method not to fill the smaller groups passing `false`:
 
 As a consequence `false` can't be a used as a padding value.
 
-NOTE: Defined in `active_support/core_ext/array/grouping.rb`.
+NOTE: Defined in [active_support/core_ext/array/grouping.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/array/grouping.rb).
 
 #### `split(value = nil)`
 
@@ -2573,7 +2573,7 @@ Otherwise, the value received as argument, which defaults to `nil`, is the separ
 
 TIP: Observe in the previous example that consecutive separators result in empty arrays.
 
-NOTE: Defined in `active_support/core_ext/array/grouping.rb`.
+NOTE: Defined in [active_support/core_ext/array/grouping.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/array/grouping.rb).
 
 Extensions to `Hash`
 --------------------
@@ -2625,7 +2625,7 @@ By default the root node is "hash", but that's configurable via the `:root` opti
 
 The default XML builder is a fresh instance of `Builder::XmlMarkup`. You can configure your own builder with the `:builder` option. The method also accepts options like `:dasherize` and friends, they are forwarded to the builder.
 
-NOTE: Defined in `active_support/core_ext/hash/conversions.rb`.
+NOTE: Defined in [active_support/core_ext/hash/conversions.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/hash/conversions.rb).
 
 ### Merging
 
@@ -2660,7 +2660,7 @@ options.reverse_merge!(length: 30, omission: "...")
 
 WARNING. Take into account that `reverse_merge!` may change the hash in the caller, which may or may not be a good idea.
 
-NOTE: Defined in `active_support/core_ext/hash/reverse_merge.rb`.
+NOTE: Defined in [active_support/core_ext/hash/reverse_merge.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/hash/reverse_merge.rb).
 
 #### `reverse_update`
 
@@ -2668,7 +2668,7 @@ The method `reverse_update` is an alias for `reverse_merge!`, explained above.
 
 WARNING. Note that `reverse_update` has no bang.
 
-NOTE: Defined in `active_support/core_ext/hash/reverse_merge.rb`.
+NOTE: Defined in [active_support/core_ext/hash/reverse_merge.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/hash/reverse_merge.rb).
 
 #### `deep_merge` and `deep_merge!`
 
@@ -2683,7 +2683,7 @@ Active Support defines `Hash#deep_merge`. In a deep merge, if a key is found in 
 
 The method `deep_merge!` performs a deep merge in place.
 
-NOTE: Defined in `active_support/core_ext/hash/deep_merge.rb`.
+NOTE: Defined in [active_support/core_ext/hash/deep_merge.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/hash/deep_merge.rb).
 
 ### Deep duplicating
 
@@ -2701,7 +2701,7 @@ hash[:b][:e] == nil      # => true
 hash[:b][:d] == [3, 4]   # => true
 ```
 
-NOTE: Defined in `active_support/core_ext/object/deep_dup.rb`.
+NOTE: Defined in [active_support/core_ext/object/deep_dup.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/object/deep_dup.rb).
 
 ### Working with Keys
 
@@ -2722,7 +2722,7 @@ If the receiver responds to `convert_key`, the method is called on each of the a
 
 There's also the bang variant `except!` that removes keys in the very receiver.
 
-NOTE: Defined in `active_support/core_ext/hash/except.rb`.
+NOTE: Defined in [active_support/core_ext/hash/except.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/hash/except.rb).
 
 #### `transform_keys` and `transform_keys!`
 
@@ -2764,7 +2764,7 @@ Besides that, one can use `deep_transform_keys` and `deep_transform_keys!` to pe
 # => {""=>nil, "1"=>1, "NESTED"=>{"A"=>3, "5"=>5}}
 ```
 
-NOTE: Defined in `active_support/core_ext/hash/keys.rb`.
+NOTE: Defined in [active_support/core_ext/hash/keys.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/hash/keys.rb).
 
 #### `stringify_keys` and `stringify_keys!`
 
@@ -2806,7 +2806,7 @@ Besides that, one can use `deep_stringify_keys` and `deep_stringify_keys!` to st
 # => {""=>nil, "1"=>1, "nested"=>{"a"=>3, "5"=>5}}
 ```
 
-NOTE: Defined in `active_support/core_ext/hash/keys.rb`.
+NOTE: Defined in [active_support/core_ext/hash/keys.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/hash/keys.rb).
 
 #### `symbolize_keys` and `symbolize_keys!`
 
@@ -2850,13 +2850,13 @@ Besides that, one can use `deep_symbolize_keys` and `deep_symbolize_keys!` to sy
 # => {nil=>nil, 1=>1, nested:{a:3, 5=>5}}
 ```
 
-NOTE: Defined in `active_support/core_ext/hash/keys.rb`.
+NOTE: Defined in [active_support/core_ext/hash/keys.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/hash/keys.rb).
 
 #### `to_options` and `to_options!`
 
 The methods `to_options` and `to_options!` are respectively aliases of `symbolize_keys` and `symbolize_keys!`.
 
-NOTE: Defined in `active_support/core_ext/hash/keys.rb`.
+NOTE: Defined in [active_support/core_ext/hash/keys.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/hash/keys.rb).
 
 #### `assert_valid_keys`
 
@@ -2869,7 +2869,7 @@ The method `assert_valid_keys` receives an arbitrary number of arguments, and ch
 
 Active Record does not accept unknown options when building associations, for example. It implements that control via `assert_valid_keys`.
 
-NOTE: Defined in `active_support/core_ext/hash/keys.rb`.
+NOTE: Defined in [active_support/core_ext/hash/keys.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/hash/keys.rb).
 
 ### Working with Values
 
@@ -2883,7 +2883,7 @@ The method `transform_values` accepts a block and returns a hash that has applie
 ```
 There's also the bang variant `transform_values!` that applies the block operations to values in the very receiver.
 
-NOTE: Defined in `active_support/core_text/hash/transform_values.rb`.
+NOTE: Defined in [active_support/core_text/hash/transform_values.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_text/hash/transform_values.rb).
 
 ### Slicing
 
@@ -2914,7 +2914,7 @@ rest = hash.slice!(:a) # => {:b=>2}
 hash                   # => {:a=>1}
 ```
 
-NOTE: Defined in `active_support/core_ext/hash/slice.rb`.
+NOTE: Defined in [active_support/core_ext/hash/slice.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/hash/slice.rb).
 
 ### Extracting
 
@@ -2934,7 +2934,7 @@ rest = hash.extract!(:a).class
 # => ActiveSupport::HashWithIndifferentAccess
 ```
 
-NOTE: Defined in `active_support/core_ext/hash/slice.rb`.
+NOTE: Defined in [active_support/core_ext/hash/slice.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/hash/slice.rb).
 
 ### Indifferent Access
 
@@ -2944,7 +2944,7 @@ The method `with_indifferent_access` returns an `ActiveSupport::HashWithIndiffer
 {a: 1}.with_indifferent_access["a"] # => 1
 ```
 
-NOTE: Defined in `active_support/core_ext/hash/indifferent_access.rb`.
+NOTE: Defined in [active_support/core_ext/hash/indifferent_access.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/hash/indifferent_access.rb).
 
 ### Compacting
 
@@ -2954,7 +2954,7 @@ The methods `compact` and `compact!` return a Hash without items with `nil` valu
 {a: 1, b: 2, c: nil}.compact # => {a: 1, b: 2}
 ```
 
-NOTE: Defined in `active_support/core_ext/hash/compact.rb`.
+NOTE: Defined in [active_support/core_ext/hash/compact.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/hash/compact.rb).
 
 Extensions to `Regexp`
 ----------------------
@@ -2983,7 +2983,7 @@ def assign_route_options(segments, defaults, requirements)
 end
 ```
 
-NOTE: Defined in `active_support/core_ext/regexp.rb`.
+NOTE: Defined in [active_support/core_ext/regexp.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/regexp.rb).
 
 Extensions to `Range`
 ---------------------
@@ -3002,7 +3002,7 @@ Active Support extends the method `Range#to_s` so that it understands an optiona
 
 As the example depicts, the `:db` format generates a `BETWEEN` SQL clause. That is used by Active Record in its support for range values in conditions.
 
-NOTE: Defined in `active_support/core_ext/range/conversions.rb`.
+NOTE: Defined in [active_support/core_ext/range/conversions.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/range/conversions.rb).
 
 ### `include?`
 
@@ -3026,7 +3026,7 @@ Active Support extends these methods so that the argument may be another range i
 (1...9) === (3..9)  # => false
 ```
 
-NOTE: Defined in `active_support/core_ext/range/include_range.rb`.
+NOTE: Defined in [active_support/core_ext/range/include_range.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/range/include_range.rb).
 
 ### `overlaps?`
 
@@ -3038,7 +3038,7 @@ The method `Range#overlaps?` says whether any two given ranges have non-void int
 (1..10).overlaps?(11..27) # => false
 ```
 
-NOTE: Defined in `active_support/core_ext/range/overlaps.rb`.
+NOTE: Defined in [active_support/core_ext/range/overlaps.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/range/overlaps.rb).
 
 Extensions to `Proc`
 --------------------
@@ -3085,7 +3085,7 @@ def handler_for_rescue(exception)
 end
 ```
 
-NOTE: Defined in `active_support/core_ext/proc.rb`.
+NOTE: Defined in [active_support/core_ext/proc.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/proc.rb).
 
 Extensions to `Date`
 --------------------
@@ -3787,7 +3787,7 @@ WARNING. Note you can't append with `atomic_write`.
 
 The auxiliary file is written in a standard directory for temporary files, but you can pass a directory of your choice as second argument.
 
-NOTE: Defined in `active_support/core_ext/file/atomic.rb`.
+NOTE: Defined in [active_support/core_ext/file/atomic.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/file/atomic.rb).
 
 Extensions to `Marshal`
 -----------------------
@@ -3806,7 +3806,7 @@ If the cached data refers to a constant that is unknown at that point, the autol
 
 WARNING. If the argument is an `IO` it needs to respond to `rewind` to be able to retry. Regular files respond to `rewind`.
 
-NOTE: Defined in `active_support/core_ext/marshal.rb`.
+NOTE: Defined in [active_support/core_ext/marshal.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/marshal.rb).
 
 Extensions to `NameError`
 -------------------------
@@ -3831,7 +3831,7 @@ rescue NameError => e
 end
 ```
 
-NOTE: Defined in `active_support/core_ext/name_error.rb`.
+NOTE: Defined in [active_support/core_ext/name_error.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/name_error.rb).
 
 Extensions to `LoadError`
 -------------------------
@@ -3854,4 +3854,4 @@ rescue NameError => e
 end
 ```
 
-NOTE: Defined in `active_support/core_ext/load_error.rb`.
+NOTE: Defined in [active_support/core_ext/load_error.rb](https://github.com/rails/rails/tree/master/activesupport/lib/active_support/core_ext/load_error.rb).
