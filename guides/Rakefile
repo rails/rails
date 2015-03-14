@@ -3,16 +3,19 @@ namespace :guides do
   desc 'Generate guides (for authors), use ONLY=foo to process just "foo.md"'
   task :generate => 'generate:html'
 
+
+  
   namespace :generate do
 
+
     desc "Generate HTML guides"
-    task :html do
+    task :html => 'md_files' do
       ENV["WARN_BROKEN_LINKS"] = "1" # authors can't disable this
       ruby "rails_guides.rb"
     end
 
     desc "Generate .mobi file. The kindlegen executable must be in your PATH. You can get it for free from http://www.amazon.com/gp/feature.html?docId=1000765211"
-    task :kindle do
+    task :kindle => 'md_files' do
       unless `kindlerb -v 2> /dev/null` =~ /kindlerb 0.1.1/
         abort "Please `gem install kindlerb` and make sure you have `kindlegen` in your PATH"
       end
@@ -22,6 +25,12 @@ namespace :guides do
       ENV['KINDLE'] = '1'
       Rake::Task['guides:generate:html'].invoke
     end
+
+    rule '.md' => '.md.erb' do |t|
+      sh "erb -T- #{t.source} > #{t.name}"
+    end
+    desc "Generate md files from md.erb files inside the source directory"
+    task 'md_files' => FileList.new('source/*.md.erb').ext('')
   end
 
   # Validate guides -------------------------------------------------------------------------
@@ -42,7 +51,7 @@ You can generate HTML, Kindle or both formats using the `guides:generate` task.
 
 All of these processes are handled via rake tasks, here's a full list of them:
 
-#{%x[rake -T]}
+    #{%x[rake -T]}
 Some arguments may be passed via environment variables:
 
   WARNINGS=1
@@ -74,6 +83,7 @@ Examples:
   $ rake guides:generate GUIDES_LANGUAGE=es
     help
   end
+
 end
 
-task :default => 'guides:help'
+task :default => [ 'guides:help' ]

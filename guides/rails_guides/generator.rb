@@ -66,7 +66,7 @@ module RailsGuides
   class Generator
     attr_reader :guides_dir, :source_dir, :output_dir, :edge, :warnings, :all
 
-    GUIDES_RE = /\.(?:erb|md)\z/
+    GUIDES_RE = /\.(?:html\.erb|md)\z/
 
     def initialize(output=nil)
       set_flags_from_environment
