@@ -56,14 +56,14 @@ module ActionDispatch
 
         # FIXME: is this a desired behavior?
         mapper.get '/one/two/', :to => 'posts#index', :as => :main
-        assert_equal '/one/two(.:format)', fakeset.conditions.first[:path_info]
+        assert_equal '/one/two(.:format(+:variant))', fakeset.conditions.first[:path_info]
       end
 
       def test_map_wildcard
         fakeset = FakeSet.new
         mapper = Mapper.new fakeset
         mapper.get '/*path', :to => 'pages#show'
-        assert_equal '/*path(.:format)', fakeset.conditions.first[:path_info]
+        assert_equal '/*path(.:format(+:variant))', fakeset.conditions.first[:path_info]
         assert_equal(/.+?/, fakeset.requirements.first[:path])
       end
 
@@ -71,7 +71,7 @@ module ActionDispatch
         fakeset = FakeSet.new
         mapper = Mapper.new fakeset
         mapper.get '/*path/foo/:bar', :to => 'pages#show'
-        assert_equal '/*path/foo/:bar(.:format)', fakeset.conditions.first[:path_info]
+        assert_equal '/*path/foo/:bar(.:format(+:variant))', fakeset.conditions.first[:path_info]
         assert_equal(/.+?/, fakeset.requirements.first[:path])
       end
 
@@ -79,7 +79,7 @@ module ActionDispatch
         fakeset = FakeSet.new
         mapper = Mapper.new fakeset
         mapper.get '/*foo/*bar', :to => 'pages#show'
-        assert_equal '/*foo/*bar(.:format)', fakeset.conditions.first[:path_info]
+        assert_equal '/*foo/*bar(.:format(+:variant))', fakeset.conditions.first[:path_info]
         assert_equal(/.+?/, fakeset.requirements.first[:foo])
         assert_equal(/.+?/, fakeset.requirements.first[:bar])
       end
@@ -96,7 +96,7 @@ module ActionDispatch
         fakeset = FakeSet.new
         mapper = Mapper.new fakeset
         mapper.get '/*path', :to => 'pages#show', :format => true
-        assert_equal '/*path.:format', fakeset.conditions.first[:path_info]
+        assert_equal '/*path.:format(+:variant)', fakeset.conditions.first[:path_info]
       end
 
       def test_raising_helpful_error_on_invalid_arguments

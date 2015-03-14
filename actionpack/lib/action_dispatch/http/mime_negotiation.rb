@@ -10,8 +10,6 @@ module ActionDispatch
         self.ignore_accept_header = false
       end
 
-      attr_reader :variant
-
       # The MIME type of the HTTP request, such as Mime::XML.
       #
       # For backward compatibility, the post \format is extracted from the
@@ -71,6 +69,10 @@ module ActionDispatch
             [Mime::HTML]
           end
         end
+      end
+
+      def variant
+        @variant ||= send(:variant=, parameters[:variant].try(:to_sym))
       end
 
       # Sets the \variant for template.
