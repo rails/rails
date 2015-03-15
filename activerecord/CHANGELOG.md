@@ -1,3 +1,9 @@
+*   In all cases where ActiveRecord would previously generate a query with
+    `WHERE 1=0`, it will instead avoid the query and return a NullRelation,
+    ala `.none`. This covers cases such as `.where('1=0')` and `.where(id: [])`.
+
+    *Ben Woosley*
+
 *   Cache `CollectionAssociation#reader` proxy separately when a different
     current_scope is active. This prevents the reader from retaining `.scoping`
     information after the `.scoping` block has been exited.

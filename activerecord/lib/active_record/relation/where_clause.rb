@@ -1,6 +1,8 @@
 module ActiveRecord
   class Relation
     class WhereClause # :nodoc:
+      NONE_PREDICATE = '1=0'
+
       attr_reader :binds
 
       delegate :any?, :empty?, to: :predicates
@@ -84,6 +86,10 @@ module ActiveRecord
         new([], [])
       end
 
+      def none?
+        predicates.any? {|predicate| none_predicate?(predicate) }
+      end
+
       protected
 
       attr_reader :predicates
@@ -96,6 +102,14 @@ module ActiveRecord
       end
 
       private
+
+      def none_predicate?(predicate)
+        predicate == NONE_PREDICATE || (
+          Arel::Nodes::In === predicate &&
+            Array === predicate.right &&
+            predicate.right.empty?
+        )
+      end
 
       def predicates_unreferenced_by(other)
         predicates.reject do |n|

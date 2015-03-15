@@ -566,7 +566,9 @@ module ActiveRecord
         references!(PredicateBuilder.references(opts))
       end
 
-      self.where_clause += where_clause_factory.build(opts, rest)
+      new_where_clause = where_clause_factory.build(opts, rest)
+      self.extending!(NullRelation) if new_where_clause.none?
+      self.where_clause += new_where_clause
       self
     end
 
@@ -704,11 +706,11 @@ module ActiveRecord
     #   end
     #
     def none
-      where("1=0").extending!(NullRelation)
+      where(Relation::WhereClause::NONE_PREDICATE)
     end
 
     def none! # :nodoc:
-      where!("1=0").extending!(NullRelation)
+      where!(Relation::WhereClause::NONE_PREDICATE)
     end
 
     # Sets readonly attributes for the returned relation. If value is
