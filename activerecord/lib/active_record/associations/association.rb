@@ -8,12 +8,12 @@ module ActiveRecord
     #
     #   Association
     #     SingularAssociation
-    #       HasOneAssociation
+    #       HasOneAssociation + ForeignAssociation
     #         HasOneThroughAssociation + ThroughAssociation
     #       BelongsToAssociation
     #         BelongsToPolymorphicAssociation
     #     CollectionAssociation
-    #       HasManyAssociation
+    #       HasManyAssociation + ForeignAssociation
     #         HasManyThroughAssociation + ThroughAssociation
     class Association #:nodoc:
       attr_reader :owner, :target, :reflection
