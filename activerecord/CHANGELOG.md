@@ -1,3 +1,8 @@
+*   Reuse the `CollectionAssociation#reader` cache when the foreign key is
+    available prior to save.
+
+    *Ben Woosley*
+
 *   Increase pg gem version requirement to `~> 0.18`. Earlier versions of the
     pg gem are known to have problems with Ruby 2.2.
 

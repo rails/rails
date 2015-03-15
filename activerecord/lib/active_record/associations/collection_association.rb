@@ -33,10 +33,10 @@ module ActiveRecord
           reload
         end
 
-        if owner.new_record?
+        if null_scope?
           # Cache the proxy separately before the owner has an id
           # or else a post-save proxy will still lack the id
-          @new_record_proxy ||= CollectionProxy.create(klass, self)
+          @null_proxy ||= CollectionProxy.create(klass, self)
         else
           @proxy ||= CollectionProxy.create(klass, self)
         end
