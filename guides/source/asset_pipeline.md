@@ -921,7 +921,7 @@ focus on serving application code as fast as possible.
 #### Set up a CDN to Serve Static Assets
 
 To set up your CDN you have to have your application running in production on
-the internet at a publically available URL, for example `example.com`. Next
+the internet at a publicly available URL, for example `example.com`. Next
 you'll need to sign up for a CDN service from a cloud hosting provider. When you
 do this you need to configure the "origin" of the CDN to point back at your
 website `example.com`, check your provider for documentation on configuring the
