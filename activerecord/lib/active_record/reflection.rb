@@ -694,7 +694,7 @@ module ActiveRecord
       def chain
         @chain ||= begin
           a = source_reflection.chain
-          b = through_reflection.chain
+          b = through_reflection.chain.map(&:dup)
 
           if options[:source_type]
             b[0] = PolymorphicReflection.new(b[0], self)

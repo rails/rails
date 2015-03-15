@@ -23,6 +23,7 @@ require 'models/chef'
 require 'models/department'
 require 'models/cake_designer'
 require 'models/drink_designer'
+require 'models/recipe'
 
 class ReflectionTest < ActiveRecord::TestCase
   include ActiveRecord::Reflection
@@ -275,6 +276,16 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal 1, @hotel.cake_designers.size
     assert_equal 1, @hotel.drink_designers.size
     assert_equal 2, @hotel.chefs.size
+  end
+
+  def test_scope_chain_of_polymorphic_association_does_not_leak_into_other_hmt_associations
+    hotel = Hotel.create!
+    department = hotel.departments.create!
+    drink = department.chefs.create!(employable: DrinkDesigner.create!)
+    recipe = Recipe.create!(chef_id: drink.id, hotel_id: hotel.id)
+
+    hotel.drink_designers.to_a
+    assert_sql(/^(?!.*employable_type).*$/) { hotel.recipes.to_a }
   end
 
   def test_nested?

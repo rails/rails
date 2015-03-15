@@ -886,6 +886,10 @@ ActiveRecord::Schema.define do
     t.string :employable_type
     t.integer :department_id
   end
+  create_table :recipes, force: true do |t|
+    t.integer :chef_id
+    t.integer :hotel_id
+  end
 
   create_table :records, force: true do |t|
   end
