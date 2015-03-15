@@ -21,7 +21,7 @@ module ActionMailer
   # the mailer views, options on the mail itself such as the <tt>:from</tt> address, and attachments.
   #
   #   class ApplicationMailer < ActionMailer::Base
-  #     default from: 'from@exmaple.com'
+  #     default from: 'from@example.com'
   #     layout 'mailer'
   #   end
   #
