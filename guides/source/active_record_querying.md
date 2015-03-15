@@ -348,7 +348,7 @@ Another example would be if you wanted multiple workers handling the same proces
 Similar to the `:begin_at` option, `:end_at` allows you to configure the last ID of the sequence whenever the highest ID is not the one you need.
 This would be useful, for example, if you wanted to run a batch process, using a subset of records based on `:begin_at` and `:end_at`
 
-For example, to send newsletters only to users with the primary key starting from 2000 upto 10000 and to retrieve them in batches of 1000:
+For example, to send newsletters only to users with the primary key starting from 2000 up to 10000 and to retrieve them in batches of 1000:
 
 ```ruby
 User.find_each(begin_at: 2000, end_at: 10000, batch_size: 5000) do |user|
