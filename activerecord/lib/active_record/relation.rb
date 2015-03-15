@@ -600,7 +600,10 @@ module ActiveRecord
     def eager_loading?
       @should_eager_load ||=
         eager_load_values.any? ||
-        includes_values.any? && (joined_includes_values.any? || references_eager_loaded_tables?)
+        includes_values.any? &&
+          (joined_includes_values.any? ||
+          references_eager_loaded_tables? ||
+          association_order_references_join_table?)
     end
 
     # Joins that are also marked for preloading. In which case we should just eager load them.
@@ -686,6 +689,20 @@ module ActiveRecord
       joined_tables = joined_tables.flatten.compact.map(&:downcase).uniq
 
       (references_values - joined_tables).any?
+    end
+
+    def association_order_references_join_table?
+      includes_values.any? do |value|
+        reflection = @klass.reflect_on_association(value)
+        if reflection && reflection.scope && reflection.scope.arity == 0
+          scope = reflection.klass.unscoped.instance_exec(&reflection.scope)
+
+          order_tables = scope.order_values.grep(String).map { |arg| tables_in_string(arg) }.flatten
+          order_tables.delete(reflection.klass.table_name)
+
+          order_tables.present?
+        end
+      end
     end
 
     def tables_in_string(string)
