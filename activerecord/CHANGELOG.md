@@ -1,3 +1,9 @@
+*   Cache `CollectionAssociation#reader` proxy separately when a different
+    current_scope is active. This prevents the reader from retaining `.scoping`
+    information after the `.scoping` block has been exited.
+
+    *Ben Woosley*
+
 *   Renaming `use_transactional_fixtures` to `use_transactional_tests` for clarity.
 
     Fixes #18864.
