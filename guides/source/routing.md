@@ -345,7 +345,7 @@ end
 There exist two options for `scope` to customize shallow routes. `:shallow_path` prefixes member paths with the specified parameter:
 
 ```ruby
-scope shallow_path: "sekret" do
+scope shallow_path: 'sekret' do
   resources :articles do
     resources :comments, shallow: true
   end
@@ -367,7 +367,7 @@ The comments resource here will have the following routes generated for it:
 The `:shallow_prefix` option adds the specified parameter to the named helpers:
 
 ```ruby
-scope shallow_prefix: "sekret" do
+scope shallow_prefix: 'sekret' do
   resources :articles do
     resources :comments, shallow: true
   end
@@ -555,7 +555,7 @@ When you set up a regular route, you supply a series of symbols that Rails maps 
 get ':controller(/:action(/:id))'
 ```
 
-If an incoming request of `/photos/show/1` is processed by this route (because it hasn't matched any previous route in the file), then the result will be to invoke the `show` action of the `PhotosController`, and to make the final parameter `"1"` available as `params[:id]`. This route will also route the incoming request of `/photos` to `PhotosController#index`, since `:action` and `:id` are optional parameters, denoted by parentheses.
+If an incoming request of `/photos/show/1` is processed by this route (because it hasn't matched any previous route in the file), then the result will be to invoke the `show` action of the `PhotosController`, and to make the final parameter `'1'` available as `params[:id]`. This route will also route the incoming request of `/photos` to `PhotosController#index`, since `:action` and `:id` are optional parameters, denoted by parentheses.
 
 ### Dynamic Segments
 
@@ -565,7 +565,7 @@ You can set up as many dynamic segments within a regular route as you like. Anyt
 get ':controller/:action/:id/:user_id'
 ```
 
-An incoming path of `/photos/show/1/2` will be dispatched to the `show` action of the `PhotosController`. `params[:id]` will be `"1"`, and `params[:user_id]` will be `"2"`.
+An incoming path of `/photos/show/1/2` will be dispatched to the `show` action of the `PhotosController`. `params[:id]` will be `'1'`, and `params[:user_id]` will be `'2'`.
 
 NOTE: You can't use `:namespace` or `:module` with a `:controller` path segment. If you need to do this then use a constraint on :controller that matches the namespace you require. e.g:
 
@@ -611,7 +611,7 @@ You can also define other defaults in a route by supplying a hash for the `:defa
 get 'photos/:id', to: 'photos#show', defaults: { format: 'jpg' }
 ```
 
-Rails would match `photos/12` to the `show` action of `PhotosController`, and set `params[:format]` to `"jpg"`.
+Rails would match `photos/12` to the `show` action of `PhotosController`, and set `params[:format]` to `'jpg'`.
 
 ### Naming Routes
 
@@ -740,7 +740,7 @@ Route globbing is a way to specify that a particular parameter should be matched
 get 'photos/*other', to: 'photos#unknown'
 ```
 
-This route would match `photos/12` or `/photos/long/path/to/12`, setting `params[:other]` to `"12"` or `"long/path/to/12"`. The fragments prefixed with a star are called "wildcard segments".
+This route would match `photos/12` or `/photos/long/path/to/12`, setting `params[:other]` to `'12'` or `'long/path/to/12'`. The fragments prefixed with a star are called "wildcard segments".
 
 Wildcard segments can occur anywhere in a route. For example:
 
@@ -824,10 +824,10 @@ You can also use root inside namespaces and scopes as well. For example:
 
 ```ruby
 namespace :admin do
-  root to: "admin#index"
+  root to: 'admin#index'
 end
 
-root to: "home#index"
+root to: 'home#index'
 ```
 
 ### Unicode character routes
