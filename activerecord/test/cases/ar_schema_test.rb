@@ -3,7 +3,7 @@ require "cases/helper"
 if ActiveRecord::Base.connection.supports_migrations?
 
   class ActiveRecordSchemaTest < ActiveRecord::TestCase
-    self.use_transactional_fixtures = false
+    self.use_transactional_tests = false
 
     setup do
       @original_verbose = ActiveRecord::Migration.verbose

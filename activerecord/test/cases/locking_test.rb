@@ -285,10 +285,10 @@ end
 class OptimisticLockingWithSchemaChangeTest < ActiveRecord::TestCase
   fixtures :people, :legacy_things, :references
 
-  # need to disable transactional fixtures, because otherwise the sqlite3
+  # need to disable transactional tests, because otherwise the sqlite3
   # adapter (at least) chokes when we try and change the schema in the middle
   # of a test (see test_increment_counter_*).
-  self.use_transactional_fixtures = false
+  self.use_transactional_tests = false
 
   { :lock_version => Person, :custom_lock_version => LegacyThing }.each do |name, model|
     define_method("test_increment_counter_updates_#{name}") do
@@ -365,7 +365,7 @@ end
 # (See exec vs. async_exec in the PostgreSQL adapter.)
 unless in_memory_db?
   class PessimisticLockingTest < ActiveRecord::TestCase
-    self.use_transactional_fixtures = false
+    self.use_transactional_tests = false
     fixtures :people, :readers
 
     def setup

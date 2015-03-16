@@ -71,7 +71,7 @@ class MysqlReservedWordTest < ActiveRecord::TestCase
 
   #fixtures
   self.use_instantiated_fixtures = true
-  self.use_transactional_fixtures = false
+  self.use_transactional_tests = false
 
   #activerecord model class with reserved-word table name
   def test_activerecord_model

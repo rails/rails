@@ -28,7 +28,7 @@ require 'tempfile'
 
 class FixturesTest < ActiveRecord::TestCase
   self.use_instantiated_fixtures = true
-  self.use_transactional_fixtures = false
+  self.use_transactional_tests = false
 
   # other_topics fixture should not be included here
   fixtures :topics, :developers, :accounts, :tasks, :categories, :funny_jokes, :binaries, :traffic_lights
@@ -419,7 +419,7 @@ end
 
 class TransactionalFixturesTest < ActiveRecord::TestCase
   self.use_instantiated_fixtures = true
-  self.use_transactional_fixtures = true
+  self.use_transactional_tests = true
 
   fixtures :topics
 
@@ -511,7 +511,7 @@ class CheckSetTableNameFixturesTest < ActiveRecord::TestCase
   fixtures :funny_jokes
   # Set to false to blow away fixtures cache and ensure our fixtures are loaded
   # and thus takes into account our set_fixture_class
-  self.use_transactional_fixtures = false
+  self.use_transactional_tests = false
 
   def test_table_method
     assert_kind_of Joke, funny_jokes(:a_joke)
@@ -523,7 +523,7 @@ class FixtureNameIsNotTableNameFixturesTest < ActiveRecord::TestCase
   fixtures :items
   # Set to false to blow away fixtures cache and ensure our fixtures are loaded
   # and thus takes into account our set_fixture_class
-  self.use_transactional_fixtures = false
+  self.use_transactional_tests = false
 
   def test_named_accessor
     assert_kind_of Book, items(:dvd)
@@ -535,7 +535,7 @@ class FixtureNameIsNotTableNameMultipleFixturesTest < ActiveRecord::TestCase
   fixtures :items, :funny_jokes
   # Set to false to blow away fixtures cache and ensure our fixtures are loaded
   # and thus takes into account our set_fixture_class
-  self.use_transactional_fixtures = false
+  self.use_transactional_tests = false
 
   def test_named_accessor_of_differently_named_fixture
     assert_kind_of Book, items(:dvd)
@@ -549,7 +549,7 @@ end
 class CustomConnectionFixturesTest < ActiveRecord::TestCase
   set_fixture_class :courses => Course
   fixtures :courses
-  self.use_transactional_fixtures = false
+  self.use_transactional_tests = false
 
   def test_leaky_destroy
     assert_nothing_raised { courses(:ruby) }
@@ -564,7 +564,7 @@ end
 class TransactionalFixturesOnCustomConnectionTest < ActiveRecord::TestCase
   set_fixture_class :courses => Course
   fixtures :courses
-  self.use_transactional_fixtures = true
+  self.use_transactional_tests = true
 
   def test_leaky_destroy
     assert_nothing_raised { courses(:ruby) }
@@ -580,7 +580,7 @@ class InvalidTableNameFixturesTest < ActiveRecord::TestCase
   fixtures :funny_jokes
   # Set to false to blow away fixtures cache and ensure our fixtures are loaded
   # and thus takes into account our lack of set_fixture_class
-  self.use_transactional_fixtures = false
+  self.use_transactional_tests = false
 
   def test_raises_error
     assert_raise ActiveRecord::FixtureClassNotFound do
@@ -594,7 +594,7 @@ class CheckEscapedYamlFixturesTest < ActiveRecord::TestCase
   fixtures :funny_jokes
   # Set to false to blow away fixtures cache and ensure our fixtures are loaded
   # and thus takes into account our set_fixture_class
-  self.use_transactional_fixtures = false
+  self.use_transactional_tests = false
 
   def test_proper_escaped_fixture
     assert_equal "The \\n Aristocrats\nAte the candy\n", funny_jokes(:another_joke).name
@@ -664,7 +664,7 @@ class LoadAllFixturesWithPathnameTest < ActiveRecord::TestCase
 end
 
 class FasterFixturesTest < ActiveRecord::TestCase
-  self.use_transactional_fixtures = false
+  self.use_transactional_tests = false
   fixtures :categories, :authors
 
   def load_extra_fixture(name)

@@ -5,7 +5,7 @@ module ActiveRecord
     class ColumnsTest < ActiveRecord::TestCase
       include ActiveRecord::Migration::TestHelper
 
-      self.use_transactional_fixtures = false
+      self.use_transactional_tests = false
 
       # FIXME: this is more of an integration test with AR::Base and the
       # schema modifications.  Maybe we should move this?

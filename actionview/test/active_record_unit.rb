@@ -76,7 +76,7 @@ class ActiveRecordTestCase < ActionController::TestCase
   # Set our fixture path
   if ActiveRecordTestConnector.able_to_connect
     self.fixture_path = [FIXTURE_LOAD_PATH]
-    self.use_transactional_fixtures = false
+    self.use_transactional_tests = false
   end
 
   def self.fixtures(*args)

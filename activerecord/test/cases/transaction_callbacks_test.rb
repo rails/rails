@@ -367,7 +367,7 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
 end
 
 class CallbacksOnMultipleActionsTest < ActiveRecord::TestCase
-  self.use_transactional_fixtures = false
+  self.use_transactional_tests = false
 
   class TopicWithCallbacksOnMultipleActions < ActiveRecord::Base
     self.table_name = :topics

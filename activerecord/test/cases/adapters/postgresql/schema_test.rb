@@ -3,7 +3,7 @@ require 'models/default'
 require 'support/schema_dumping_helper'
 
 class SchemaTest < ActiveRecord::TestCase
-  self.use_transactional_fixtures = false
+  self.use_transactional_tests = false
 
   SCHEMA_NAME = 'test_schema'
   SCHEMA2_NAME = 'test_schema2'

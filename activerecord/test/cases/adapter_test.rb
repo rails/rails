@@ -226,7 +226,7 @@ module ActiveRecord
   end
 
   class AdapterTestWithoutTransaction < ActiveRecord::TestCase
-    self.use_transactional_fixtures = false
+    self.use_transactional_tests = false
 
     class Klass < ActiveRecord::Base
     end

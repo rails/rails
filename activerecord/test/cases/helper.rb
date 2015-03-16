@@ -143,7 +143,7 @@ class ActiveSupport::TestCase
 
   self.fixture_path = FIXTURES_ROOT
   self.use_instantiated_fixtures  = false
-  self.use_transactional_fixtures = true
+  self.use_transactional_tests = true
 
   def create_fixtures(*fixture_set_names, &block)
     ActiveRecord::FixtureSet.create_fixtures(ActiveSupport::TestCase.fixture_path, fixture_set_names, fixture_class_names, &block)

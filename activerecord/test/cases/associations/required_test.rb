@@ -1,7 +1,7 @@
 require "cases/helper"
 
 class RequiredAssociationsTest < ActiveRecord::TestCase
-  self.use_transactional_fixtures = false
+  self.use_transactional_tests = false
 
   class Parent < ActiveRecord::Base
   end

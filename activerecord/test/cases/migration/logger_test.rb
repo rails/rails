@@ -4,7 +4,7 @@ module ActiveRecord
   class Migration
     class LoggerTest < ActiveRecord::TestCase
       # MySQL can't roll back ddl changes
-      self.use_transactional_fixtures = false
+      self.use_transactional_tests = false
 
       Migration = Struct.new(:name, :version) do
         def disable_ddl_transaction; false end
