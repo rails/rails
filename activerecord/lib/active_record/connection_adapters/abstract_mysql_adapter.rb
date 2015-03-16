@@ -785,7 +785,9 @@ module ActiveRecord
 
         subselect = Arel::SelectManager.new(select.engine)
         subselect.project Arel.sql(key.name)
-        subselect.from subsubselect.as('__active_record_temp')
+        # Materialized subquery by adding distinct
+        # to work with MySQL 5.7.6 which sets optimizer_switch='derived_merge=on'
+        subselect.from subsubselect.distinct.as('__active_record_temp')
       end
 
       def add_index_length(option_strings, column_names, options = {})
