@@ -526,8 +526,8 @@ end
 To pass arguments to your custom rake task:
 
 ```ruby
-task :task_name, [:arg_1] => [:pre_1, :pre_2] do |t, args|
-  # You can use args from here
+task :task_name, [:arg_1] => [:prerequisite_1, :prerequisite_2] do |task, args|
+  argument_1 = args.arg_1
 end
 ```
 
