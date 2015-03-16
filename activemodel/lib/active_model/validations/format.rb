@@ -48,7 +48,9 @@ module ActiveModel
 
         def regexp_using_multiline_anchors?(regexp)
           source = regexp.source
-          source.start_with?("^") || (source.end_with?("$") && !source.end_with?("\\$"))
+          # We cannot rely on end_with? for $, because it would also catch escaped dollars. At the same time,
+          # we need the extra check for pairs of backslashes to prevent false positives like /example\\$/
+          source.start_with?("^") || source =~ /(?<!\\)(?:\\{2})*\$\z/
         end
     end
 

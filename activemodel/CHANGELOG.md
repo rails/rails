@@ -1,3 +1,12 @@
+*   Fix that regexes in format-validation which end with an escaped backslash before a line-end anchor
+    actually raise an ArgumentError:
+
+        Topic.validates_format_of(:title, with: /Valid Title\\$/)
+        # ArgumentError: The provided regular expression is using multiline anchors (^ or $), which may present a
+        # security risk. Did you mean to use \A and \z, or forgot to add the :multiline => true option?
+
+    *Jan Lelis*
+
 *   Raise FrozenError when trying to write attributes that aren't backed by the database on an object that is frozen:
 
         class Animal
