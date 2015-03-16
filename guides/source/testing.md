@@ -551,7 +551,7 @@ To test AJAX requests, you can specify the `xhr: true` option to `get`, `post`,
 
 ```ruby
 test "ajax request responds with no layout" do
-  get :show, params: { id: articles(:first).id }, xhr: true
+  get :show, article: {id: articles(:first).id}, xhr: true
 
   assert_template :index
   assert_template layout: nil
