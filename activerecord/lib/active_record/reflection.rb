@@ -166,8 +166,8 @@ module ActiveRecord
     # AggregateReflection and AssociationReflection are returned by the Reflection::ClassMethods.
     #
     #   MacroReflection
+    #     AggregateReflection
     #     AssociationReflection
-    #       AggregateReflection
     #       HasManyReflection
     #       HasOneReflection
     #       BelongsToReflection
