@@ -436,6 +436,19 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert current_page?(controller: 'foo', action: 'category', category: 'administração', callback_url: 'http://example.com/foo')
   end
 
+  def test_current_page_with_format_not_specified
+    @request = request_for_url("/other.json")
+
+    assert current_page?(:other)
+  end
+
+  def test_current_page_with_format_specified
+    @request = request_for_url("/other.json")
+
+    assert current_page?(controller: 'foo', action: 'other', format: :json)
+    assert !current_page?(controller: 'foo', action: 'other', format: :mobile)
+  end
+
   def test_link_unless_current
     @request = request_for_url("/")
 

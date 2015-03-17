@@ -523,6 +523,20 @@ module ActionView
       #   current_page?(controller: 'product', action: 'index')
       #   # => false
       #
+      # Let's say we're in the <tt>http://www.example.com/shop/checkout.json</tt> action
+      #
+      #   current_page?(:checkout)
+      #   # => true
+      #
+      #   current_page?(controller: 'shop', action: 'checkout')
+      #   # => true
+      #
+      #   current_page?(controller: 'shop', action: 'checkout', format: json)
+      #   # => true
+      #
+      #   current_page?(controller: 'shop', action: 'checkout', format: xml)
+      #   # => false
+      #
       def current_page?(options)
         unless request
           raise "You cannot use helpers that need to determine the current " \
@@ -539,6 +553,11 @@ module ActionView
         # work with things like ?order=asc
         request_uri = url_string.index("?") ? request.fullpath : request.path
         request_uri = URI.parser.unescape(request_uri).force_encoding(Encoding::BINARY)
+
+        unless options.is_a?(Hash) && options[:format]
+          regexp = Regexp.new(request_uri.index("?") ? /[.].*(?=\?)/ : /[.].*$/)
+          request_uri.sub!(regexp, "")
+        end
 
         if url_string =~ /^\w+:\/\//
           url_string == "#{request.protocol}#{request.host_with_port}#{request_uri}"
