@@ -282,7 +282,7 @@ class ReflectionTest < ActiveRecord::TestCase
     hotel = Hotel.create!
     department = hotel.departments.create!
     drink = department.chefs.create!(employable: DrinkDesigner.create!)
-    recipe = Recipe.create!(chef_id: drink.id, hotel_id: hotel.id)
+    Recipe.create!(chef_id: drink.id, hotel_id: hotel.id)
 
     hotel.drink_designers.to_a
     assert_sql(/^(?!.*employable_type).*$/) { hotel.recipes.to_a }
