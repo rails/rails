@@ -38,7 +38,10 @@ module ActiveRecord
           # or else a post-save proxy will still lack the id
           @new_record_proxy ||= CollectionProxy.create(klass, self)
         else
-          @proxy ||= CollectionProxy.create(klass, self)
+          # Include the current_scope#object_id so that the association will
+          # not retain .scoping information after leaving a .scoping context.
+          @proxy ||= {}
+          @proxy[klass.current_scope.object_id] ||= CollectionProxy.create(klass, self)
         end
       end
 

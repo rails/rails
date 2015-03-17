@@ -319,6 +319,34 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal [2, 4, 6, 8, 10], even_ids.sort
   end
 
+  def test_in_empty_is_none
+    assert_no_queries(ignore_none: false) do
+      assert_equal [], Developer.where(id: [])
+      assert_equal [], Developer.all.where(id: [])
+    end
+  end
+
+  def test_in_empty_hash_associations_is_none
+    assert_no_queries(ignore_none: false) do
+      assert_equal [], Developer.where(comments: {})
+      assert_equal [], Developer.all.where(comments: {})
+    end
+  end
+
+  def test_not_in_empty_is_all
+    all = Developer.all.to_a
+    assert_queries(1) do
+      assert_equal all, Developer.where.not(id: [])
+    end
+  end
+
+  def test_in_empty_or_something
+    developer = Developer.first
+    assert_queries(1) do
+      assert_equal [developer], Developer.where(id: []).or(Developer.where(id: developer.id))
+    end
+  end
+
   def test_none
     assert_no_queries(ignore_none: false) do
       assert_equal [], Developer.none

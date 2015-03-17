@@ -81,7 +81,7 @@ module ActiveRecord
     attr_reader :table
 
     def expand_from_hash(attributes)
-      return ["1=0"] if attributes.empty?
+      return [Relation::WhereClause::NONE_PREDICATE] if attributes.empty?
 
       attributes.flat_map do |key, value|
         if value.is_a?(Hash)
