@@ -1,3 +1,16 @@
+*   Add `rake db:version:number` and `rake db:version:file` rake tasks.
+
+    - `rake db:version:number`
+
+      Prints the current schema version number.
+
+    - `rake db:version:file`
+
+      Prints the current schema's migration file path. If the current schema
+      version is ahead of the current branch an error will be raised.
+
+    *Juanito Fatas*
+
 *   Add `config.active_record.warn_on_records_fetched_greater_than` option
 
     When set to an integer, a warning will be logged whenever a result set
