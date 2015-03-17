@@ -228,8 +228,7 @@ module ActiveRecord
       column_alias = column_name
 
       if operation == "count" && (relation.limit_value || relation.offset_value)
-        # Shortcut when limit is zero.
-        return 0 if relation.limit_value == 0
+        return 0 if relation.null?
 
         query_builder = build_count_subquery(relation, column_name, distinct)
       else

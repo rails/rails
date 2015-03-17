@@ -248,33 +248,5 @@ module ActiveRecord
       posts_with_special_comments_with_ratings = Post.group("posts.id").joins(:special_comments).merge(special_comments_with_ratings)
       assert_equal 3, authors(:david).posts.merge(posts_with_special_comments_with_ratings).count.length
     end
-
-    class EnsureRoundTripTypeCasting < ActiveRecord::Type::Value
-      def type
-        :string
-      end
-
-      def deserialize(value)
-        raise value unless value == "type cast for database"
-        "type cast from database"
-      end
-
-      def serialize(value)
-        raise value unless value == "value from user"
-        "type cast for database"
-      end
-    end
-
-    class UpdateAllTestModel < ActiveRecord::Base
-      self.table_name = 'posts'
-
-      attribute :body, EnsureRoundTripTypeCasting.new
-    end
-
-    def test_update_all_goes_through_normal_type_casting
-      UpdateAllTestModel.update_all(body: "value from user", type: nil) # No STI
-
-      assert_equal "type cast from database", UpdateAllTestModel.first.body
-    end
   end
 end

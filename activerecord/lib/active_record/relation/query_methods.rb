@@ -63,7 +63,7 @@ module ActiveRecord
       CODE
     end
 
-    (Relation::SINGLE_VALUE_METHODS - [:create_with]).each do |name|
+    (Relation::SINGLE_VALUE_METHODS - [:create_with, :uniq]).each do |name|
       class_eval <<-CODE, __FILE__, __LINE__ + 1
         def #{name}_value                    # def readonly_value
           @values[:#{name}]                  #   @values[:readonly]
@@ -99,6 +99,26 @@ module ActiveRecord
 
     def create_with_value # :nodoc:
       @values[:create_with] || {}
+    end
+
+    # Returns a hash of where conditions.
+    #
+    #   User.where(name: 'Oscar').where_values_hash
+    #   # => {name: "Oscar"}
+    def where_values_hash(relation_table_name = table_name)
+      where_clause.to_h(relation_table_name)
+    end
+
+    def scope_for_create
+      @scope_for_create ||= where_values_hash.merge(create_with_value)
+    end
+
+    # Joins that are also marked for preloading. In which case we should just eager load them.
+    # Note that this is a naive implementation because we could have strings and symbols which
+    # represent the same association, but that aren't matched by this. Also, we could have
+    # nested hashes which partially match, e.g. { a: :b } & { a: [:b, :c] }
+    def joined_includes_values
+      includes_values & joins_values
     end
 
     alias extensions extending_values
@@ -704,11 +724,12 @@ module ActiveRecord
     #   end
     #
     def none
-      where("1=0").extending!(NullRelation)
+      spawn.none!
     end
 
     def none! # :nodoc:
-      where!("1=0").extending!(NullRelation)
+      self.where_clause = where_clause.none!
+      limit!(0)
     end
 
     # Sets readonly attributes for the returned relation. If value is
@@ -798,6 +819,12 @@ module ActiveRecord
     end
     alias uniq! distinct!
 
+    # +uniq+ and +uniq!+ are silently deprecated. +uniq_value+ delegates to +distinct_value+
+    # to maintain backwards compatibility. Use +distinct_value+ instead.
+    def uniq_value
+      distinct_value
+    end
+
     # Used to extend a scope with additional methods, either through
     # a module or through a block provided.
     #
@@ -871,7 +898,56 @@ module ActiveRecord
       @arel ||= build_arel
     end
 
+    # Returns true if relation needs eager loading.
+    def eager_loading?
+      @should_eager_load ||=
+        eager_load_values.any? ||
+        includes_values.any? && (joined_includes_values.any? || references_eager_loaded_tables?)
+    end
+
+    # Causes the records to be loaded from the database if they have not
+    # been loaded already. You can use this if for some reason you need
+    # to explicitly load some records before actually using them. The
+    # return value is the relation itself, not the records.
+    #
+    #   Post.where(published: true).load # => #<ActiveRecord::Relation>
+    def load
+      exec_queries unless loaded?
+
+      self
+    end
+
+    # Runs EXPLAIN on the query or queries triggered by this relation and
+    # returns the result as a string. The string is formatted imitating the
+    # ones printed by the database shell.
+    #
+    # Note that this method actually runs the queries, since the results of some
+    # are needed by the next ones when eager loading is going on.
+    #
+    # Please see further details in the
+    # {Active Record Query Interface guide}[http://guides.rubyonrails.org/active_record_querying.html#running-explain].
+    def explain
+      #TODO: Fix for binds.
+      exec_explain(collecting_queries_for_explain { exec_queries })
+    end
+
     private
+
+    def exec_queries
+      @records = eager_loading? ? find_with_associations : @klass.find_by_sql(arel, bound_attributes)
+
+      preload = preload_values
+      preload +=  includes_values unless eager_loading?
+      preloader = build_preloader
+      preload.each do |associations|
+        preloader.preload @records, associations
+      end
+
+      @records.each(&:readonly!) if readonly_value
+
+      @loaded = true
+      @records
+    end
 
     def assert_mutability!
       raise ImmutableRelation if @loaded

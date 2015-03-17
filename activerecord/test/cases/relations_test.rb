@@ -23,11 +23,6 @@ class RelationTest < ActiveRecord::TestCase
   fixtures :authors, :topics, :entrants, :developers, :companies, :developers_projects, :accounts, :categories, :categorizations, :posts, :comments,
     :tags, :taggings, :cars, :minivans
 
-  class TopicWithCallbacks < ActiveRecord::Base
-    self.table_name = :topics
-    before_update { |topic| topic.author_name = 'David' if topic.author_name.blank? }
-  end
-
   def test_do_not_double_quote_string_id
     van = Minivan.last
     assert van
@@ -317,123 +312,6 @@ class RelationTest < ActiveRecord::TestCase
   def test_select_with_block
     even_ids = Developer.all.select {|d| d.id % 2 == 0 }.map(&:id)
     assert_equal [2, 4, 6, 8, 10], even_ids.sort
-  end
-
-  def test_none
-    assert_no_queries(ignore_none: false) do
-      assert_equal [], Developer.none
-      assert_equal [], Developer.all.none
-    end
-  end
-
-  def test_none_chainable
-    assert_no_queries(ignore_none: false) do
-      assert_equal [], Developer.none.where(:name => 'David')
-    end
-  end
-
-  def test_none_chainable_to_existing_scope_extension_method
-    assert_no_queries(ignore_none: false) do
-      assert_equal 1, Topic.anonymous_extension.none.one
-    end
-  end
-
-  def test_none_chained_to_methods_firing_queries_straight_to_db
-    assert_no_queries(ignore_none: false) do
-      assert_equal [],    Developer.none.pluck(:id, :name)
-      assert_equal 0,     Developer.none.delete_all
-      assert_equal 0,     Developer.none.update_all(:name => 'David')
-      assert_equal 0,     Developer.none.delete(1)
-      assert_equal false, Developer.none.exists?(1)
-    end
-  end
-
-  def test_null_relation_content_size_methods
-    assert_no_queries(ignore_none: false) do
-      assert_equal 0,     Developer.none.size
-      assert_equal 0,     Developer.none.count
-      assert_equal true,  Developer.none.empty?
-      assert_equal true, Developer.none.none?
-      assert_equal false, Developer.none.any?
-      assert_equal false, Developer.none.one?
-      assert_equal false, Developer.none.many?
-    end
-  end
-
-  def test_null_relation_calculations_methods
-    assert_no_queries(ignore_none: false) do
-      assert_equal 0, Developer.none.count
-      assert_equal 0, Developer.none.calculate(:count, nil)
-      assert_equal nil, Developer.none.calculate(:average, 'salary')
-    end
-  end
-
-  def test_null_relation_metadata_methods
-    assert_equal "", Developer.none.to_sql
-    assert_equal({}, Developer.none.where_values_hash)
-  end
-
-  def test_null_relation_where_values_hash
-    assert_equal({ 'salary' => 100_000 }, Developer.none.where(salary: 100_000).where_values_hash)
-  end
-
-  def test_null_relation_sum
-    ac = Aircraft.new
-    assert_equal Hash.new, ac.engines.group(:id).sum(:id)
-    assert_equal        0, ac.engines.count
-    ac.save
-    assert_equal Hash.new, ac.engines.group(:id).sum(:id)
-    assert_equal        0, ac.engines.count
-  end
-
-  def test_null_relation_count
-    ac = Aircraft.new
-    assert_equal Hash.new, ac.engines.group(:id).count
-    assert_equal        0, ac.engines.count
-    ac.save
-    assert_equal Hash.new, ac.engines.group(:id).count
-    assert_equal        0, ac.engines.count
-  end
-
-  def test_null_relation_size
-    ac = Aircraft.new
-    assert_equal Hash.new, ac.engines.group(:id).size
-    assert_equal        0, ac.engines.size
-    ac.save
-    assert_equal Hash.new, ac.engines.group(:id).size
-    assert_equal        0, ac.engines.size
-  end
-
-  def test_null_relation_average
-    ac = Aircraft.new
-    assert_equal Hash.new, ac.engines.group(:car_id).average(:id)
-    assert_equal        nil, ac.engines.average(:id)
-    ac.save
-    assert_equal Hash.new, ac.engines.group(:car_id).average(:id)
-    assert_equal        nil, ac.engines.average(:id)
-  end
-
-  def test_null_relation_minimum
-    ac = Aircraft.new
-    assert_equal Hash.new, ac.engines.group(:car_id).minimum(:id)
-    assert_equal        nil, ac.engines.minimum(:id)
-    ac.save
-    assert_equal Hash.new, ac.engines.group(:car_id).minimum(:id)
-    assert_equal        nil, ac.engines.minimum(:id)
-  end
-
-  def test_null_relation_maximum
-    ac = Aircraft.new
-    assert_equal Hash.new, ac.engines.group(:car_id).maximum(:id)
-    assert_equal        nil, ac.engines.maximum(:id)
-    ac.save
-    assert_equal Hash.new, ac.engines.group(:car_id).maximum(:id)
-    assert_equal        nil, ac.engines.maximum(:id)
-  end
-
-  def test_null_relation_in_where_condition
-    assert_operator Comment.count, :>, 0 # precondition, make sure there are comments.
-    assert_equal 0, Comment.where(post_id: Post.none).to_a.size
   end
 
   def test_joins_with_nil_argument
@@ -975,27 +853,6 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal 11, posts.distinct(false).select(:comments_count).count
   end
 
-  def test_update_all_with_scope
-    tag = Tag.first
-    Post.tagged_with(tag.id).update_all title: "rofl"
-    list = Post.tagged_with(tag.id).all.to_a
-    assert_operator list.length, :>, 0
-    list.each { |post| assert_equal 'rofl', post.title }
-  end
-
-  def test_count_explicit_columns
-    Post.update_all(:comments_count => nil)
-    posts = Post.all
-
-    assert_equal [0], posts.select('comments_count').where('id is not null').group('id').order('id').count.values.uniq
-    assert_equal 0, posts.where('id is not null').select('comments_count').count
-
-    assert_equal 11, posts.select('comments_count').count('id')
-    assert_equal 0, posts.select('comments_count').count
-    assert_equal 0, posts.count(:comments_count)
-    assert_equal 0, posts.count('comments_count')
-  end
-
   def test_multiple_selects
     post = Post.all.select('comments_count').select('title').order("id ASC").first
     assert_equal "Welcome to the weblog", post.title
@@ -1039,13 +896,6 @@ class RelationTest < ActiveRecord::TestCase
 
     assert_no_queries { assert_equal true, posts.empty? }
     assert ! posts.loaded?
-  end
-
-  def test_count_complex_chained_relations
-    posts = Post.select('comments_count').where('id is not null').group("author_id").where("comments_count > 0")
-
-    expected = { 1 => 2 }
-    assert_equal expected, posts.count
   end
 
   def test_empty
@@ -1427,61 +1277,6 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_ordering_with_extra_spaces
     assert_equal authors(:david), Author.order('id DESC , name DESC').last
-  end
-
-  def test_update_all_with_blank_argument
-    assert_raises(ArgumentError) { Comment.update_all({}) }
-  end
-
-  def test_update_all_with_joins
-    comments = Comment.joins(:post).where('posts.id' => posts(:welcome).id)
-    count    = comments.count
-
-    assert_equal count, comments.update_all(:post_id => posts(:thinking).id)
-    assert_equal posts(:thinking), comments(:greetings).post
-  end
-
-  def test_update_all_with_joins_and_limit
-    comments = Comment.joins(:post).where('posts.id' => posts(:welcome).id).limit(1)
-    assert_equal 1, comments.update_all(:post_id => posts(:thinking).id)
-  end
-
-  def test_update_all_with_joins_and_limit_and_order
-    comments = Comment.joins(:post).where('posts.id' => posts(:welcome).id).order('comments.id').limit(1)
-    assert_equal 1, comments.update_all(:post_id => posts(:thinking).id)
-    assert_equal posts(:thinking), comments(:greetings).post
-    assert_equal posts(:welcome),  comments(:more_greetings).post
-  end
-
-  def test_update_all_with_joins_and_offset
-    all_comments = Comment.joins(:post).where('posts.id' => posts(:welcome).id)
-    count        = all_comments.count
-    comments     = all_comments.offset(1)
-
-    assert_equal count - 1, comments.update_all(:post_id => posts(:thinking).id)
-  end
-
-  def test_update_all_with_joins_and_offset_and_order
-    all_comments = Comment.joins(:post).where('posts.id' => posts(:welcome).id).order('posts.id', 'comments.id')
-    count        = all_comments.count
-    comments     = all_comments.offset(1)
-
-    assert_equal count - 1, comments.update_all(:post_id => posts(:thinking).id)
-    assert_equal posts(:thinking), comments(:more_greetings).post
-    assert_equal posts(:welcome),  comments(:greetings).post
-  end
-
-  def test_update_on_relation
-    topic1 = TopicWithCallbacks.create! title: 'arel', author_name: nil
-    topic2 = TopicWithCallbacks.create! title: 'activerecord', author_name: nil
-    topics = TopicWithCallbacks.where(id: [topic1.id, topic2.id])
-    topics.update(title: 'adequaterecord')
-
-    assert_equal 'adequaterecord', topic1.reload.title
-    assert_equal 'adequaterecord', topic2.reload.title
-    # Testing that the before_update callbacks have run
-    assert_equal 'David', topic1.reload.author_name
-    assert_equal 'David', topic2.reload.author_name
   end
 
   def test_distinct
