@@ -1,8 +1,18 @@
 require 'cases/helper'
 require 'models/post'
+require 'models/comment'
+require 'models/tag'
+require 'models/tagging'
 
 module ActiveRecord
   class RelationMutationTest < ActiveSupport::TestCase
+    fixtures :posts, :comments, :tags, :taggings
+
+    class TopicWithCallbacks < ActiveRecord::Base
+      self.table_name = :topics
+      before_update { |topic| topic.author_name = 'David' if topic.author_name.blank? }
+    end
+
     class FakeKlass < Struct.new(:table_name, :name)
       extend ActiveRecord::Delegation::DelegateCache
       inherited self
@@ -160,6 +170,97 @@ module ActiveRecord
       relation.uniq! :foo
       assert_equal :foo, relation.distinct_value
       assert_equal :foo, relation.uniq_value # deprecated access
+    end
+
+    def test_update_all_with_scope
+      tag = Tag.first
+      Post.tagged_with(tag.id).update_all title: "rofl"
+      list = Post.tagged_with(tag.id).all.to_a
+      assert_operator list.length, :>, 0
+      list.each { |post| assert_equal 'rofl', post.title }
+    end
+
+    def test_update_all_with_blank_argument
+      assert_raises(ArgumentError) { Comment.update_all({}) }
+    end
+
+    def test_update_all_with_joins
+      comments = Comment.joins(:post).where('posts.id' => posts(:welcome).id)
+      count    = comments.count
+
+      assert_equal count, comments.update_all(:post_id => posts(:thinking).id)
+      assert_equal posts(:thinking), comments(:greetings).post
+    end
+
+    def test_update_all_with_joins_and_limit
+      comments = Comment.joins(:post).where('posts.id' => posts(:welcome).id).limit(1)
+      assert_equal 1, comments.update_all(:post_id => posts(:thinking).id)
+    end
+
+    def test_update_all_with_joins_and_limit_and_order
+      comments = Comment.joins(:post).where('posts.id' => posts(:welcome).id).order('comments.id').limit(1)
+      assert_equal 1, comments.update_all(:post_id => posts(:thinking).id)
+      assert_equal posts(:thinking), comments(:greetings).post
+      assert_equal posts(:welcome),  comments(:more_greetings).post
+    end
+
+    def test_update_all_with_joins_and_offset
+      all_comments = Comment.joins(:post).where('posts.id' => posts(:welcome).id)
+      count        = all_comments.count
+      comments     = all_comments.offset(1)
+
+      assert_equal count - 1, comments.update_all(:post_id => posts(:thinking).id)
+    end
+
+    def test_update_all_with_joins_and_offset_and_order
+      all_comments = Comment.joins(:post).where('posts.id' => posts(:welcome).id).order('posts.id', 'comments.id')
+      count        = all_comments.count
+      comments     = all_comments.offset(1)
+
+      assert_equal count - 1, comments.update_all(:post_id => posts(:thinking).id)
+      assert_equal posts(:thinking), comments(:more_greetings).post
+      assert_equal posts(:welcome),  comments(:greetings).post
+    end
+
+    def test_update_on_relation
+      topic1 = TopicWithCallbacks.create! title: 'arel', author_name: nil
+      topic2 = TopicWithCallbacks.create! title: 'activerecord', author_name: nil
+      topics = TopicWithCallbacks.where(id: [topic1.id, topic2.id])
+      topics.update(title: 'adequaterecord')
+
+      assert_equal 'adequaterecord', topic1.reload.title
+      assert_equal 'adequaterecord', topic2.reload.title
+      # Testing that the before_update callbacks have run
+      assert_equal 'David', topic1.reload.author_name
+      assert_equal 'David', topic2.reload.author_name
+    end
+
+    class EnsureRoundTripTypeCasting < ActiveRecord::Type::Value
+      def type
+        :string
+      end
+
+      def deserialize(value)
+        raise value unless value == "type cast for database"
+        "type cast from database"
+      end
+
+      def serialize(value)
+        raise value unless value == "value from user"
+        "type cast for database"
+      end
+    end
+
+    class UpdateAllTestModel < ActiveRecord::Base
+      self.table_name = 'posts'
+
+      attribute :body, EnsureRoundTripTypeCasting.new
+    end
+
+    def test_update_all_goes_through_normal_type_casting
+      UpdateAllTestModel.update_all(body: "value from user", type: nil) # No STI
+
+      assert_equal "type cast from database", UpdateAllTestModel.first.body
     end
   end
 end

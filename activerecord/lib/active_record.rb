@@ -94,6 +94,9 @@ module ActiveRecord
       autoload :SpawnMethods
       autoload :Batches
       autoload :Delegation
+      autoload :Collection
+      autoload :Mutation
+      autoload :SerializationMethods
     end
 
     autoload :Result
