@@ -182,7 +182,7 @@ module ActiveRecord
     private
 
     def has_include?(column_name)
-      eager_loading? || (includes_values.present? && ((column_name && column_name != :all) || references_eager_loaded_tables?))
+      eager_loading? || (includes_values.present? && column_name && column_name != :all)
     end
 
     def perform_calculation(operation, column_name)
