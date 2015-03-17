@@ -84,7 +84,6 @@ module ActiveRecord
 
     autoload :Relation
     autoload :AssociationRelation
-    autoload :NullRelation
 
     autoload_under 'relation' do
       autoload :QueryMethods
@@ -97,6 +96,7 @@ module ActiveRecord
       autoload :Collection
       autoload :Mutation
       autoload :SerializationMethods
+      autoload :Nullification
     end
 
     autoload :Result

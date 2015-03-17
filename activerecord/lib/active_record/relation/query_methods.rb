@@ -724,11 +724,12 @@ module ActiveRecord
     #   end
     #
     def none
-      where("1=0").extending!(NullRelation)
+      spawn.none!
     end
 
     def none! # :nodoc:
-      where!("1=0").extending!(NullRelation)
+      self.where_clause = where_clause.none!
+      limit!(0)
     end
 
     # Sets readonly attributes for the returned relation. If value is

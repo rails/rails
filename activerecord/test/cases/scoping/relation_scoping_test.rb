@@ -308,6 +308,18 @@ class HasManyScopingTest < ActiveRecord::TestCase
     assert_equal 2, @welcome.comments.search_by_type('Comment').size
   end
 
+  def test_none_scoping
+    Comment.none.scoping do
+      assert_equal 0, @welcome.comments.count
+      assert_equal 'a comment...', @welcome.comments.what_are_you
+    end
+
+    Comment.where('1=1').scoping do
+      assert_equal 2, @welcome.comments.count
+      assert_equal 'a comment...', @welcome.comments.what_are_you
+    end
+  end
+
   def test_nested_scope_finder
     Comment.where('1=0').scoping do
       assert_equal 0, @welcome.comments.count
@@ -347,6 +359,18 @@ class HasAndBelongsToManyScopingTest < ActiveRecord::TestCase
   def test_forwarding_of_static_methods
     assert_equal 'a category...', Category.what_are_you
     assert_equal 'a category...', @welcome.categories.what_are_you
+  end
+
+  def test_none_scoping
+    Category.none.scoping do
+      assert_equal 0, @welcome.categories.count
+      assert_equal 'a category...', @welcome.categories.what_are_you
+    end
+
+    Category.where('1=1').scoping do
+      assert_equal 2, @welcome.categories.count
+      assert_equal 'a category...', @welcome.categories.what_are_you
+    end
   end
 
   def test_nested_scope_finder

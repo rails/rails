@@ -1,3 +1,13 @@
+*   Replace `NullRelation` with a `#null?` state for `Relation`, triggered by
+    guaranteed empty results, including `.where('1=0')`, `.where(id: [])`,
+    and `limit(0)`.
+
+    In all cases where ActiveRecord would previously generate a query with
+    `WHERE 1=0`, it will instead avoid the query and return a `#null?`
+    `Relation`, ala `.none`.
+
+    *Ben Woosley*
+
 *   Renaming `use_transactional_fixtures` to `use_transactional_tests` for clarity.
 
     Fixes #18864.

@@ -297,7 +297,7 @@ module ActiveRecord
       return false if !conditions
 
       relation = apply_join_dependency(self, construct_join_dependency)
-      return false if ActiveRecord::NullRelation === relation
+      return false if relation.null?
 
       relation = relation.except(:select, :order).select(ONE_AS_ONE).limit(1)
 
@@ -360,7 +360,7 @@ module ActiveRecord
       if block_given?
         yield relation
       else
-        if ActiveRecord::NullRelation === relation
+        if relation.null?
           []
         else
           arel = relation.arel
