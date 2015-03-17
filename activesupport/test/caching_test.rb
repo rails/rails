@@ -399,15 +399,16 @@ module CacheStoreBehavior
     assert_nil @cache.read('foo')
   end
 
-  def test_race_condition_protection
-    time = Time.now
-    @cache.write('foo', 'bar', :expires_in => 60)
-    Time.stubs(:now).returns(time + 61)
-    result = @cache.fetch('foo', :race_condition_ttl => 10) do
-      assert_equal 'bar', @cache.read('foo')
-      "baz"
+  def test_race_condition_protection_skipped_if_not_defined
+    @cache.write('foo', 'bar')
+    time = @cache.send(:read_entry, 'foo', {}).expires_at
+    Time.stubs(:now).returns(Time.at(time))
+
+    result = @cache.fetch('foo') do
+      assert_equal nil, @cache.read('foo')
+      'baz'
     end
-    assert_equal "baz", result
+    assert_equal 'baz', result
   end
 
   def test_race_condition_protection_is_limited
@@ -435,6 +436,17 @@ module CacheStoreBehavior
     assert_equal "bar", @cache.read('foo')
     Time.stubs(:now).returns(time + 91)
     assert_nil @cache.read('foo')
+  end
+
+  def test_race_condition_protection
+    time = Time.now
+    @cache.write('foo', 'bar', :expires_in => 60)
+    Time.stubs(:now).returns(time + 61)
+    result = @cache.fetch('foo', :race_condition_ttl => 10) do
+      assert_equal 'bar', @cache.read('foo')
+      "baz"
+    end
+    assert_equal "baz", result
   end
 
   def test_crazy_key_characters

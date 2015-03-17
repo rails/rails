@@ -564,7 +564,7 @@ module ActiveSupport
         def handle_expired_entry(entry, key, options)
           if entry && entry.expired?
             race_ttl = options[:race_condition_ttl].to_i
-            if race_ttl && (Time.now.to_f - entry.expires_at <= race_ttl)
+            if (race_ttl > 0) && (Time.now.to_f - entry.expires_at <= race_ttl)
               # When an entry has :race_condition_ttl defined, put the stale entry back into the cache
               # for a brief period while the entry is begin recalculated.
               entry.expires_at = Time.now + race_ttl
