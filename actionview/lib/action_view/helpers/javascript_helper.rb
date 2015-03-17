@@ -47,8 +47,8 @@ module ActionView
       # tag.
       #
       #   javascript_tag "alert('All is good')", defer: 'defer'
-      # 
-      # Returns: 
+      #
+      # Returns:
       #   <script defer="defer">
       #   //<![CDATA[
       #   alert('All is good')

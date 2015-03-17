@@ -30,7 +30,7 @@ module ApplicationTests
         end
 
         def require_environment
-          require "#{app_path}/config/environment"  
+          require "#{app_path}/config/environment"
         end
     end
   end

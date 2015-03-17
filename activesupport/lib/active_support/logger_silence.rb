@@ -2,7 +2,7 @@ require 'active_support/concern'
 
 module LoggerSilence
   extend ActiveSupport::Concern
-  
+
   included do
     cattr_accessor :silencer
     self.silencer = true
