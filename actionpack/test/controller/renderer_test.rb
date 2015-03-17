@@ -83,7 +83,7 @@ class RendererTest < ActiveSupport::TestCase
   test 'rendering with helpers' do
     assert_equal "<p>1\n<br />2</p>", render[inline: '<%= simple_format "1\n2" %>']
   end
-  
+
   test 'rendering from inherited renderer' do
     inherited = Class.new ApplicationController.renderer do
       defaults[:script_name] = 'script'

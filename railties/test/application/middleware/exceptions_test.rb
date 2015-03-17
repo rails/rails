@@ -67,7 +67,7 @@ module ApplicationTests
           end
         end
       RUBY
-      
+
       app.config.action_dispatch.show_exceptions = true
 
       get '/foo'

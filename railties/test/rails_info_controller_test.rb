@@ -61,7 +61,7 @@ class InfoControllerTest < ActionController::TestCase
 
     get :routes, path: 'rails/info/routes'
     assert exact_count.call == 1, 'should match complete routes'
-    
+
     get :routes, path: 'rails/info/routes.html'
     assert exact_count.call == 1, 'should match complete routes with optional parts'
   end
@@ -74,7 +74,7 @@ class InfoControllerTest < ActionController::TestCase
 
     get :routes, path: 'rails/info/routes'
     assert fuzzy_count.call == 1, 'should match complete routes'
-    
+
     get :routes, path: 'rails/info/routes.html'
     assert fuzzy_count.call == 0, 'should match optional parts of route literally'
   end
