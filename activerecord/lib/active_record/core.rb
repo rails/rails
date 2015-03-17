@@ -85,6 +85,15 @@ module ActiveRecord
       mattr_accessor :dump_schema_after_migration, instance_writer: false
       self.dump_schema_after_migration = true
 
+      ##
+      # :singleton-method:
+      # Specifies which database schemas to dump when calling db:structure:dump.
+      # If :schema_search_path (the default), it will dumps any schemas listed in schema_search_path.
+      # Use :all to always dumps all schemas regardless of the schema_search_path.
+      # A string of comma separated schemas can also be used to pass a custom list of schemas.
+      mattr_accessor :dump_schemas, instance_writer: false
+      self.dump_schemas = :schema_search_path
+
       mattr_accessor :maintain_test_schema, instance_accessor: false
 
       mattr_accessor :belongs_to_required_by_default, instance_accessor: false
