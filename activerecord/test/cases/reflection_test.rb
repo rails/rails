@@ -284,8 +284,14 @@ class ReflectionTest < ActiveRecord::TestCase
     drink = department.chefs.create!(employable: DrinkDesigner.create!)
     Recipe.create!(chef_id: drink.id, hotel_id: hotel.id)
 
+    expected_sql = capture_sql { hotel.recipes.to_a }
+
+    Hotel.reflect_on_association(:recipes).clear_association_scope_cache
+    hotel.reload
     hotel.drink_designers.to_a
-    assert_sql(/^(?!.*employable_type).*$/) { hotel.recipes.to_a }
+    loaded_sql = capture_sql { hotel.recipes.to_a }
+
+    assert_equal expected_sql, loaded_sql
   end
 
   def test_nested?
