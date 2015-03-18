@@ -363,6 +363,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       respond_to do |format|
         format.html { render :text => "OK", :status => 200 }
         format.js { render :text => "JS OK", :status => 200 }
+        format.xml { render :xml => "<root></root>", :status => 200 }
       end
     end
 
@@ -415,6 +416,22 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       assert_equal "OK", body
       assert_equal "OK", response.body
       assert_kind_of Nokogiri::HTML::Document, html_document
+      assert_equal 1, request_count
+    end
+  end
+
+  def test_get_xml
+    with_test_route_set do
+      get "/get", {}, {"HTTP_ACCEPT" => "application/xml"}
+      assert_equal 200, status
+      assert_equal "OK", status_message
+      assert_response 200
+      assert_response :success
+      assert_response :ok
+      assert_equal({}, cookies.to_hash)
+      assert_equal "<root></root>", body
+      assert_equal "<root></root>", response.body
+      assert_instance_of Nokogiri::XML::Document, html_document
       assert_equal 1, request_count
     end
   end
