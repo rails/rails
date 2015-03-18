@@ -173,18 +173,18 @@ name that should be used:
 
 ```ruby
 class Product < ActiveRecord::Base
-  self.table_name = "PRODUCT"
+  self.table_name = "my_products"
 end
 ```
 
 If you do so, you will have to define manually the class name that is hosting
-the fixtures (class_name.yml) using the `set_fixture_class` method in your test
+the fixtures (my_products.yml) using the `set_fixture_class` method in your test
 definition:
 
 ```ruby
-class FunnyJoke < ActiveSupport::TestCase
-  set_fixture_class funny_jokes: Joke
-  fixtures :funny_jokes
+class ProductTest < ActiveSupport::TestCase
+  set_fixture_class my_products: Product
+  fixtures :my_products
   ...
 end
 ```
