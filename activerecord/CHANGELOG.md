@@ -1,3 +1,8 @@
+*   Reuse the `CollectionAssociation#reader` cache when the foreign key is
+    available prior to save.
+
+    *Ben Woosley*
+
 *   Add `config.active_record.dump_schemas` to fix `db:structure:dump`
     when using schema_search_path and PostgreSQL extensions.
 
