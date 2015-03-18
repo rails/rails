@@ -80,33 +80,33 @@ module ActiveRecord
           [association_scope.limit_value, count].compact.min
         end
 
-        def has_cached_counter?(reflection = reflection())
-          owner.attribute_present?(cached_counter_attribute_name(reflection))
+        def has_cached_counter?(_reflection = self.reflection)
+          owner.attribute_present?(cached_counter_attribute_name(_reflection))
         end
 
-        def cached_counter_attribute_name(reflection = reflection())
-          if reflection.options[:counter_cache]
-            reflection.options[:counter_cache].to_s
+        def cached_counter_attribute_name(_reflection = self.reflection)
+          if _reflection.options[:counter_cache]
+            _reflection.options[:counter_cache].to_s
           else
-            "#{reflection.name}_count"
+            "#{_reflection.name}_count"
           end
         end
 
-        def update_counter(difference, reflection = reflection())
-          update_counter_in_database(difference, reflection)
-          update_counter_in_memory(difference, reflection)
+        def update_counter(difference, _reflection = self.reflection)
+          update_counter_in_database(difference, _reflection)
+          update_counter_in_memory(difference, _reflection)
         end
 
-        def update_counter_in_database(difference, reflection = reflection())
-          if has_cached_counter?(reflection)
-            counter = cached_counter_attribute_name(reflection)
+        def update_counter_in_database(difference, _reflection = self.reflection)
+          if has_cached_counter?(_reflection)
+            counter = cached_counter_attribute_name(_reflection)
             owner.class.update_counters(owner.id, counter => difference)
           end
         end
 
-        def update_counter_in_memory(difference, reflection = reflection())
-          if counter_must_be_updated_by_has_many?(reflection)
-            counter = cached_counter_attribute_name(reflection)
+        def update_counter_in_memory(difference, _reflection = self.reflection)
+          if counter_must_be_updated_by_has_many?(_reflection)
+            counter = cached_counter_attribute_name(_reflection)
             owner[counter] += difference
             owner.send(:clear_attribute_changes, counter) # eww
           end
@@ -122,26 +122,26 @@ module ActiveRecord
         #     it will be decremented twice.
         #
         # Hence this method.
-        def inverse_which_updates_counter_cache(reflection = reflection())
-          counter_name = cached_counter_attribute_name(reflection)
-          inverse_which_updates_counter_named(counter_name, reflection)
+        def inverse_which_updates_counter_cache(_reflection = self.reflection)
+          counter_name = cached_counter_attribute_name(_reflection)
+          inverse_which_updates_counter_named(counter_name, _reflection)
         end
         alias inverse_updates_counter_cache? inverse_which_updates_counter_cache
 
-        def inverse_which_updates_counter_named(counter_name, reflection)
-          reflection.klass._reflections.values.find { |inverse_reflection|
+        def inverse_which_updates_counter_named(counter_name, _reflection)
+          _reflection.klass._reflections.values.find { |inverse_reflection|
             inverse_reflection.belongs_to? &&
             inverse_reflection.counter_cache_column == counter_name
           }
         end
 
-        def inverse_updates_counter_in_memory?(reflection)
-          inverse = inverse_which_updates_counter_cache(reflection)
-          inverse && inverse == reflection.inverse_of
+        def inverse_updates_counter_in_memory?(_reflection)
+          inverse = inverse_which_updates_counter_cache(_reflection)
+          inverse && inverse == _reflection.inverse_of
         end
 
-        def counter_must_be_updated_by_has_many?(reflection)
-          !inverse_updates_counter_in_memory?(reflection) && has_cached_counter?(reflection)
+        def counter_must_be_updated_by_has_many?(_reflection)
+          !inverse_updates_counter_in_memory?(_reflection) && has_cached_counter?(_reflection)
         end
 
         def delete_count(method, scope)
