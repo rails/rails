@@ -9,6 +9,7 @@ require 'active_support/core_ext/module/delegation'
 require 'active_support/core_ext/array/extract_options'
 
 require 'rails/application'
+require 'rails/env'
 require 'rails/version'
 
 require 'active_support/railtie'
@@ -54,22 +55,6 @@ module Rails
 
     def root
       application && application.config.root
-    end
-
-    # Returns the current Rails environment.
-    #
-    #   Rails.env # => "development"
-    #   Rails.env.development? # => true
-    #   Rails.env.production? # => false
-    def env
-      @_env ||= ActiveSupport::StringInquirer.new(ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "development")
-    end
-
-    # Sets the Rails environment.
-    #
-    #   Rails.env = "staging" # => "staging"
-    def env=(environment)
-      @_env = ActiveSupport::StringInquirer.new(environment)
     end
 
     # Returns all rails groups for loading based on:

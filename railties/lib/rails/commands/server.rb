@@ -60,7 +60,7 @@ module Rails
     end
 
     def set_environment
-      ENV["RAILS_ENV"] ||= options[:environment]
+      Rails.env = options[:environment]
     end
 
     def start
@@ -95,7 +95,7 @@ module Rails
       super.merge({
         Port:               3000,
         DoNotReverseLookup: true,
-        environment:        (ENV['RAILS_ENV'] || ENV['RACK_ENV'] || "development").dup,
+        environment:        Rails.env.to_s,
         daemonize:          false,
         pid:                File.expand_path("tmp/pids/server.pid"),
         config:             File.expand_path("config.ru")
