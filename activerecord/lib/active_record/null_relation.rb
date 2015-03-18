@@ -14,7 +14,7 @@ module ActiveRecord
       0
     end
 
-    def update_all(_updates, _conditions = nil, _options = {})
+    def update_all(_updates)
       0
     end
 
@@ -80,7 +80,7 @@ module ActiveRecord
       end
     end
 
-    def exists?(_id = false)
+    def exists?(_conditions = :none)
       false
     end
 
