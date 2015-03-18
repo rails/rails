@@ -1,3 +1,10 @@
+*   Add a new-line to the end of route method generated code.
+
+    We need to add a `\n`, because we cannot have two routes
+    in the same line.
+
+    *arthurnn*
+
 *   Add `rake initializer`
 
     This task prints out initializers for an application. It is useful to
