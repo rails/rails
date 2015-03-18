@@ -15,11 +15,15 @@ module ActiveJob
     class DelayedJobAdapter
       class << self
         def enqueue(job) #:nodoc:
-          Delayed::Job.enqueue(JobWrapper.new(job.serialize), queue: job.queue_name)
+          enqueue_at(job, nil)
         end
 
         def enqueue_at(job, timestamp) #:nodoc:
-          Delayed::Job.enqueue(JobWrapper.new(job.serialize), queue: job.queue_name, run_at: Time.at(timestamp))
+          options = {}
+          options[:queue]    = job.queue_name
+          options[:priority] = job.priority if job.priority
+          options[:run_at]   = Time.at(timestamp) if timestamp
+          Delayed::Job.enqueue(JobWrapper.new(job.serialize), options)
         end
       end
 

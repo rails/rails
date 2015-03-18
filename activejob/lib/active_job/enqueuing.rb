@@ -31,6 +31,7 @@ module ActiveJob
     # * <tt>:wait</tt> - Enqueues the job with the specified delay
     # * <tt>:wait_until</tt> - Enqueues the job at the time specified
     # * <tt>:queue</tt> - Enqueues the job on the specified queue
+    # * <tt>:priority</tt> - Enqueues the job with the specified priority
     #
     # ==== Examples
     #
@@ -53,6 +54,7 @@ module ActiveJob
     # * <tt>:wait</tt> - Enqueues the job with the specified delay
     # * <tt>:wait_until</tt> - Enqueues the job at the time specified
     # * <tt>:queue</tt> - Enqueues the job on the specified queue
+    # * <tt>:priority</tt> - Enqueues the job with the specified priority
     #
     # ==== Examples
     #
@@ -60,10 +62,12 @@ module ActiveJob
     #    my_job_instance.enqueue wait: 5.minutes
     #    my_job_instance.enqueue queue: :important
     #    my_job_instance.enqueue wait_until: Date.tomorrow.midnight
+    #    my_job_instance.enqueue priority: 10
     def enqueue(options={})
       self.scheduled_at = options[:wait].seconds.from_now.to_f if options[:wait]
       self.scheduled_at = options[:wait_until].to_f if options[:wait_until]
       self.queue_name   = self.class.queue_name_from_part(options[:queue]) if options[:queue]
+      self.priority     = options[:priority].to_i if options[:priority]
       run_callbacks :enqueue do
         if self.scheduled_at
           self.class.queue_adapter.enqueue_at self, self.scheduled_at
