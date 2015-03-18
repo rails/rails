@@ -15,9 +15,8 @@ module Rails
     #
     #   Rails.env = 'staging' # => 'staging'
     def env=(environment)
-      if @_env != environment
-        ENV['RAILS_ENV'] = @_env = env_factory(environment)
-      end
+      @_env = env_factory(environment) if @_env != environment
+      ENV['RAILS_ENV'] ||= @_env
       @_env
     end
 
