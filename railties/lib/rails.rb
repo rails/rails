@@ -62,7 +62,7 @@ module Rails
     #   Rails.env.development? # => true
     #   Rails.env.production? # => false
     def env
-      @_env ||= ActiveSupport::StringInquirer.new(ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "development")
+      @_env ||= ActiveSupport::StringInquirer.new(ENV["RAILS_ENV"] || "development")
     end
 
     # Sets the Rails environment.

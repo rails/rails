@@ -79,11 +79,5 @@ module ApplicationTests
         assert_match "production", Dir.chdir(app_path) { `bundle exec rails runner "puts Rails.env"` }
       end
     end
-
-    def test_environment_with_rack_env
-      with_rack_env "production" do
-        assert_match "production", Dir.chdir(app_path) { `bundle exec rails runner "puts Rails.env"` }
-      end
-    end
   end
 end

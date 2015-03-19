@@ -107,7 +107,7 @@ module Rails
       if Rails.respond_to?(:env)
         Rails.env
       else
-        ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "development"
+        ENV["RAILS_ENV"] || "development"
       end
     end
 

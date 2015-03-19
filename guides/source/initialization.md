@@ -278,7 +278,7 @@ def parse_options(args)
 
   options.merge! opt_parser.parse!(args)
   options[:config] = ::File.expand_path(options[:config])
-  ENV["RACK_ENV"] = options[:environment]
+  ENV["RAILS_ENV"] = options[:environment]
   options
 end
 ```
@@ -287,7 +287,7 @@ With the `default_options` set to this:
 
 ```ruby
 def default_options
-  environment  = ENV['RACK_ENV'] || 'development'
+  environment  = ENV['RAILS_ENV'] || 'development'
   default_host = environment == 'development' ? 'localhost' : '0.0.0.0'
 
   {
@@ -669,7 +669,7 @@ def self.run(app, options = {})
   end
 
   if options[:environment]
-    ENV['RACK_ENV'] = options[:environment].to_s
+    ENV['RAILS_ENV'] = options[:environment].to_s
   end
 
   server   = ::Puma::Server.new(app)
@@ -677,7 +677,7 @@ def self.run(app, options = {})
 
   puts "Puma #{::Puma::Const::PUMA_VERSION} starting..."
   puts "* Min threads: #{min}, max threads: #{max}"
-  puts "* Environment: #{ENV['RACK_ENV']}"
+  puts "* Environment: #{ENV['RAILS_ENV']}"
   puts "* Listening on tcp://#{options[:Host]}:#{options[:Port]}"
 
   server.add_tcp_listener options[:Host], options[:Port]
