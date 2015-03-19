@@ -456,6 +456,10 @@ module ActiveRecord
           c.verify!
         end
         c
+      rescue
+        remove c
+        c.disconnect!
+        raise
       end
     end
 
