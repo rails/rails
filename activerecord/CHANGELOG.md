@@ -1,3 +1,10 @@
+*   Fix change detection problem for PostgreSQL bytea type and
+    `ArgumentError: string contains null byte` exception with pg-0.18.
+
+    Fixes #17680.
+
+    *Lars Kanis*
+
 *   Fix default `format` value in `ActiveRecord::Tasks::DatabaseTasks#schema_file`.
 
     *James Cox*
