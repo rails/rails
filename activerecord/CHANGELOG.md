@@ -1,3 +1,8 @@
+*   Extend Enum scopes to include a `not_` query which is a wrapper for the
+    `where.not` query.
+
+    *Jelmer Snoeck*
+
 *   Reuse the `CollectionAssociation#reader` cache when the foreign key is
     available prior to save.
 

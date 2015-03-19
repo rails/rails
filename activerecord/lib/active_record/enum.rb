@@ -31,6 +31,8 @@ module ActiveRecord
   #
   #   Conversation.active
   #   Conversation.archived
+  #   Conversation.not_active
+  #   Conversation.not_archived
   #
   # Of course, you can also query them directly if the scopes doesn't fit your
   # needs:
@@ -151,6 +153,10 @@ module ActiveRecord
             # scope :active, -> { where status: 0 }
             klass.send(:detect_enum_conflict!, name, value, true)
             klass.scope value, -> { klass.where name => value }
+
+            # scope :not_active, -> { where.not status: 0 }
+            klass.send(:detect_enum_conflict!, name, "not_#{value}", true)
+            klass.scope "not_#{value}", -> { klass.where.not name => value }
           end
         end
         defined_enums[name.to_s] = enum_values
