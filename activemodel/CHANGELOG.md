@@ -1,3 +1,8 @@
+## Rails 4.2.1 (March 19, 2014) ##
+
+* No changes *
+
+
 ## Rails 4.2.0 (December 20, 2014) ##
 
 *   Passwords with spaces only allowed in `ActiveModel::SecurePassword`.

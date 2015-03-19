@@ -1,3 +1,8 @@
+## Rails 4.2.1 (March 19, 2014) ##
+
+* No Changes *
+
+
 ## Rails 4.2.0 (December 20, 2014) ##
 
 *   New guide about constant autoloading and reloading.

@@ -1,3 +1,5 @@
+## Rails 4.2.1 (March 19, 2014) ##
+
 *   Fixed a problem where String#truncate_words would get stuck with a complex
     string.
 

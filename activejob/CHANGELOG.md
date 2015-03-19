@@ -1,3 +1,5 @@
+## Rails 4.2.1 (March 19, 2014) ##
+
 *   Allow keyword arguments to be used with Active Job.
 
     Fixes #18741.
