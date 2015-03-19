@@ -29,8 +29,10 @@ module Rails
           write("end", route_length - index)
         end
 
-        # route prepends two spaces onto the front of the string that is passed, this corrects that
-        route route_string[2..-1]
+        # route prepends two spaces onto the front of the string that is passed, this corrects that.
+        # Also it adds a \n to the end of each line, as route already adds that
+        # we need to correct that too.
+        route route_string[2..-2]
       end
 
       private
