@@ -15,6 +15,9 @@
 
     *Jeremy Kemper*, *Yves Senn*
 
+
+## Rails 4.2.1 (March 19, 2015) ##
+
 *   Non-string authenticity tokens do not raise NoMethodError when decoding
     the masked token.
 
@@ -95,6 +98,9 @@
 *   Fixed usage of optional scopes in URL helpers.
 
     *Alex Robbin*
+
+
+## Rails 4.2.0 (December 20, 2014) ##
 
 *   Add `ActionController::Parameters#to_unsafe_h` to return an unfiltered
     `Hash` representation of Parameters object. This is now a preferred way to

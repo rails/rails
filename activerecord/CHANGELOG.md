@@ -16,6 +16,9 @@
 
     *Sean Griffin*
 
+
+## Rails 4.2.1 (March 19, 2015) ##
+
 *   Fixed ActiveRecord::Relation#becomes! and changed_attributes issues for type column
 
     Fixes #17139.
@@ -224,6 +227,9 @@
     Fixes #18161.
 
     *Daniel Fox*
+
+
+## Rails 4.2.0 (December 20, 2014) ##
 
 *   Introduce `force: :cascade` option for `create_table`. Using this option
     will recreate tables even if they have dependent objects (like foreign keys).

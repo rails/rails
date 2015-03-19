@@ -5,6 +5,9 @@
 
     *Yves Senn*
 
+
+## Rails 4.2.1 (March 19, 2015) ##
+
 *   Default translations that have a lower precedence than an html safe default,
     but are not themselves safe, should not be marked as html_safe.
 
@@ -14,6 +17,9 @@
     for partial `rendering`, when the value of option `as` has invalid characters.
 
     *Angelo Capilleri*
+
+
+## Rails 4.2.0 (December 20, 2014) ##
 
 *   Local variable in a partial is now available even if a falsy value is
     passed to `:object` when rendering a partial.

@@ -1,3 +1,5 @@
+## Rails 4.2.1 (March 19, 2015) ##
+
 *   Add a new-line to the end of route method generated code.
 
     We need to add a `\n`, because we cannot have two routes
@@ -18,6 +20,9 @@
 *   Fix scaffold generator with `--helper=false` option.
 
     *Rafael Mendonça França*
+
+
+## Rails 4.2.0 (December 20, 2014) ##
 
 *   Deprecate `config.serve_static_assets` in favor of `config.serve_static_files`
     to clarify that the option is unrelated to the asset pipeline.
