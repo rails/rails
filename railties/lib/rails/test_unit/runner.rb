@@ -129,7 +129,7 @@ module Rails
           location = method.source_location
           start_line = location.last
           end_line = method.source.split("\n").size + start_line - 1
-          methods_map << [location.first, test_method, start_line, end_line]
+          methods_map << [File.expand_path(location.first), test_method, start_line, end_line]
         end
       end
       methods_map

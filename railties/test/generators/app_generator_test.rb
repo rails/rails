@@ -443,13 +443,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_inclusion_of_method_source
-    run_generator
-    assert_file "Gemfile" do |content|
-      assert_gem 'method_source'
-    end
-  end
-
   def test_template_from_dir_pwd
     FileUtils.cd(Rails.root)
     assert_match(/It works from file!/, run_generator([destination_root, "-m", "lib/template.rb"]))

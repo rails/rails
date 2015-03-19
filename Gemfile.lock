@@ -87,6 +87,7 @@ PATH
     railties (5.0.0.alpha)
       actionpack (= 5.0.0.alpha)
       activesupport (= 5.0.0.alpha)
+      method_source
       rake (>= 0.8.7)
       thor (>= 0.18.1, < 2.0)
 
@@ -261,7 +262,6 @@ DEPENDENCIES
   json
   kindlerb (= 0.1.1)
   mail!
-  method_source
   minitest (< 5.3.4)
   mocha (~> 0.14)
   mysql (>= 2.9.0)

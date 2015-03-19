@@ -5,8 +5,8 @@ task default: :test
 desc "Runs all tests in test folder"
 task :test do
   $: << "test"
-  ARGV.shift if ARGV[0] == "test"
-  Rails::TestRunner.run(ARGV)
+  args = ARGV[0] == "test" ? ARGV[1..-1] : []
+  Rails::TestRunner.run(args)
 end
 
 namespace :test do
