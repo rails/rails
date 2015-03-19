@@ -1,11 +1,12 @@
-require 'rake/testtask'
-require 'rails/test_unit/sub_test_task'
+require "rails/test_unit/runner"
 
 task default: :test
 
 desc "Runs all tests in test folder"
 task :test do
-  Rails::TestTask.test_creator(Rake.application.top_level_tasks).invoke_rake_task
+  $: << "test"
+  ARGV.shift if ARGV[0] == "test"
+  Rails::TestRunner.run(ARGV)
 end
 
 namespace :test do
@@ -14,30 +15,30 @@ namespace :test do
     # If used with Active Record, this task runs before the database schema is synchronized.
   end
 
-  Rails::TestTask.new(:run) do |t|
-    t.pattern = "test/**/*_test.rb"
-  end
+  task :run => %w[test]
 
   desc "Run tests quickly, but also reset db"
   task :db => %w[db:test:prepare test]
 
-  Rails::TestTask.new(single: "test:prepare")
-
   ["models", "helpers", "controllers", "mailers", "integration", "jobs"].each do |name|
-    Rails::TestTask.new(name => "test:prepare") do |t|
-      t.pattern = "test/#{name}/**/*_test.rb"
+    task name => "test:prepare" do
+      $: << "test"
+      Rails::TestRunner.run(["test/#{name}"])
     end
   end
 
-  Rails::TestTask.new(generators: "test:prepare") do |t|
-    t.pattern = "test/lib/generators/**/*_test.rb"
+  task :generators => "test:prepare" do
+    $: << "test"
+    Rails::TestRunner.run(["test/lib/generators"])
   end
 
-  Rails::TestTask.new(units: "test:prepare") do |t|
-    t.pattern = 'test/{models,helpers,unit}/**/*_test.rb'
+  task :units => "test:prepare" do
+    $: << "test"
+    Rails::TestRunner.run(["test/models", "test/helpers", "test/unit"])
   end
 
-  Rails::TestTask.new(functionals: "test:prepare") do |t|
-    t.pattern = 'test/{controllers,mailers,functional}/**/*_test.rb'
+  task :functionals => "test:prepare" do
+    $: << "test"
+    Rails::TestRunner.run(["test/controllers", "test/mailers", "test/functional"])
   end
 end
