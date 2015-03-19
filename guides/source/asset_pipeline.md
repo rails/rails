@@ -974,7 +974,7 @@ http://mycdnsubdomain.fictional-cdn.com/assets/smile.png
 
 If the CDN has a copy of `smile.png` it will serve it to the browser and your
 server doesn't even know it was requested. If the CDN does not have a copy it
-will try to find it a the "origin" `example.com/assets/smile.png` and then store
+will try to find it at the "origin" `example.com/assets/smile.png` and then store
 it for future use.
 
 If you want to serve only some assets from your CDN, you can use custom `:host`
