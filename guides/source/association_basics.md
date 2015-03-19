@@ -1496,7 +1496,7 @@ While Rails uses intelligent defaults that will work well in most situations, th
 
 ```ruby
 class Customer < ActiveRecord::Base
-  has_many :orders, dependent: :delete_all, validate: :false
+  has_many :orders, dependent: :delete_all, validate: false
 end
 ```
 
