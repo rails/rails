@@ -1,10 +1,3 @@
-*   Fix change detection problem for PostgreSQL bytea type and
-    `ArgumentError: string contains null byte` exception with pg-0.18.
-
-    Fixes #17680.
-
-    *Lars Kanis*
-
 *   Fix default `format` value in `ActiveRecord::Tasks::DatabaseTasks#schema_file`.
 
     *James Cox*
@@ -193,6 +186,13 @@
         ActiveRecord::UnknownAttributeError: unknown attribute 'foreign_key' for Model.
 
     *Rafael Mendonça França*
+
+*   Fix change detection problem for PostgreSQL bytea type and
+    `ArgumentError: string contains null byte` exception with pg-0.18.
+
+    Fixes #17680.
+
+    *Lars Kanis*
 
 *   When a table has a composite primary key, the `primary_key` method for
     SQLite3 and PostgreSQL adapters was only returning the first field of the key.
