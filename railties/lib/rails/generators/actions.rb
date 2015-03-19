@@ -221,7 +221,7 @@ module Rails
         sentinel = /\.routes\.draw do\s*\n/m
 
         in_root do
-          inject_into_file 'config/routes.rb', "  #{routing_code}", { after: sentinel, verbose: false, force: true }
+          inject_into_file 'config/routes.rb', "  #{routing_code}\n", { after: sentinel, verbose: false, force: true }
         end
       end
 
