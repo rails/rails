@@ -1,3 +1,5 @@
+## Rails 4.1.10 (March 19, 2015) ##
+
 *   Add a new-line to the end of route method generated code.
 
     We need to add a `\n`, because we cannot have two routes

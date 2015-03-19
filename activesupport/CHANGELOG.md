@@ -1,3 +1,5 @@
+## Rails 4.1.10 (March 19, 2015) ##
+
 *   Fixed a roundtrip problem with AS::SafeBuffer where primitive-like strings
     will be dumped as primitives:
 
