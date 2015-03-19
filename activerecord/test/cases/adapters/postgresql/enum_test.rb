@@ -80,4 +80,12 @@ class PostgresqlEnumTest < ActiveRecord::TestCase
 
     assert_equal "happy", enum.current_mood
   end
+
+  def test_assigning_enum_to_nil
+    model = PostgresqlEnum.new(current_mood: nil)
+
+    assert_nil model.current_mood
+    assert model.save
+    assert_nil model.reload.current_mood
+  end
 end
