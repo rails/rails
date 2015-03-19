@@ -5,6 +5,9 @@
 
     *Jeremy Kemper*, *Yves Senn*
 
+
+## Rails 4.1.10 (March 19, 2015) ##
+
 *   Preserve default format when generating URLs
 
     Fixes an issue that would cause the format set in default_url_options to be

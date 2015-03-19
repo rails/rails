@@ -1,3 +1,8 @@
+## Rails 4.1.10 (March 19, 2015) ##
+
+*   No changes.
+
+
 ## Rails 4.1.9 (January 6, 2015) ##
 
 *   No changes.

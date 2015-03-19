@@ -5,6 +5,9 @@
 
     *Yves Senn*
 
+
+## Rails 4.1.10 (March 19, 2015) ##
+
 *   Local variable in a partial is now available even if a falsy value is
     passed to `:object` when rendering a partial.
 
