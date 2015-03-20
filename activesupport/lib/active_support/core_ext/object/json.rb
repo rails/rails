@@ -27,23 +27,21 @@ require 'active_support/core_ext/date/conversions'
 # should give exactly the same results with or without active support.
 
 module ActiveSupport
-  module CoreExt
-    module ToJsonWithActiveSupportEncoder
-      def to_json(options = nil)
-        if options.is_a?(::JSON::State)
-          # Called from JSON.{generate,dump}, forward it to JSON gem's to_json
-          super(options)
-        else
-          # to_json is being invoked directly, use ActiveSupport's encoder
-          ActiveSupport::JSON.encode(self, options)
-        end
+  module ToJsonWithActiveSupportEncoder # :nodoc:
+    def to_json(options = nil)
+      if options.is_a?(::JSON::State)
+        # Called from JSON.{generate,dump}, forward it to JSON gem's to_json
+        super(options)
+      else
+        # to_json is being invoked directly, use ActiveSupport's encoder
+        ActiveSupport::JSON.encode(self, options)
       end
     end
   end
 end
 
 [Object, Array, FalseClass, Float, Hash, Integer, NilClass, String, TrueClass, Enumerable].reverse_each do |klass|
-  klass.prepend(ActiveSupport::CoreExt::ToJsonWithActiveSupportEncoder)
+  klass.prepend(ActiveSupport::ToJsonWithActiveSupportEncoder)
 end
 
 class Object

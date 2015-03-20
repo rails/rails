@@ -1,5 +1,5 @@
 module ActiveSupport
-  module MarshalWithAutoloading
+  module MarshalWithAutoloading # :nodoc:
     def load(source)
       super(source)
     rescue ArgumentError, NameError => exc
