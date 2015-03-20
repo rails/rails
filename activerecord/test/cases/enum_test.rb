@@ -26,6 +26,16 @@ class EnumTest < ActiveRecord::TestCase
     assert_equal @book, Book.unread.first
   end
 
+  test "find others via scope" do
+    proposed = Book.proposed.create!
+    written = Book.written.create!
+    published = Book.published.create!
+
+    assert_not Book.not_proposed.include?(proposed)
+    assert_not Book.not_written.include?(written)
+    assert_not Book.not_published.include?(published)
+  end
+
   test "find via where with values" do
     proposed, written = Book.statuses[:proposed], Book.statuses[:written]
 
