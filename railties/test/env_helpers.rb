@@ -6,9 +6,7 @@ module EnvHelpers
   def with_rails_env(env)
     Rails.instance_variable_set :@_env, nil
     switch_env 'RAILS_ENV', env do
-      switch_env 'RACK_ENV', nil do
-        yield
-      end
+      yield
     end
   end
 
