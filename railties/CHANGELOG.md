@@ -12,7 +12,16 @@
 
     *Naoto Kaneko*
 
-*   Created rake restart task. Restarts your Rails app by touching the 
+*   Make enabling or disabling caching in development mode possible with rake
+    dev:cache
+
+    Running rake dev:cache will create or remove tmp/caching-dev.txt. When this
+    file exists config.action_controller.perform_caching will be set to true in
+    config/environments/development.rb.
+
+    *Jussi Mertanen*
+
+*   Created rake restart task. Restarts your Rails app by touching the
     `tmp/restart.txt`.
 
     Fixes #18876.
