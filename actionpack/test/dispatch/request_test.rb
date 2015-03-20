@@ -435,6 +435,9 @@ class RequestHost < BaseRequestTest
 
     request = stub_request 'HTTP_X_FORWARDED_HOST' => "www.firsthost.org, www.secondhost.org"
     assert_equal "www.secondhost.org", request.host
+
+    request = stub_request 'HTTP_X_FORWARDED_HOST' => "", 'HTTP_HOST' => "rubyonrails.org"
+    assert_equal "rubyonrails.org", request.host
   end
 
   test "http host with default port overrides server port" do

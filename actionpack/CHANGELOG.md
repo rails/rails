@@ -1,3 +1,11 @@
+*   Fix handling of empty X_FORWARDED_HOST header in raw_host_with_port
+
+    Previously, an empty X_FORWARDED_HOST header would cause
+    Actiondispatch::Http:URL.raw_host_with_port to return nil, causing
+    Actiondispatch::Http:URL.host to raise a NoMethodError.
+
+    *Adam Forsyth*
+
 *   Fallback to `ENV['RAILS_RELATIVE_URL_ROOT']` in `url_for`.
 
     Fixed an issue where the `RAILS_RELATIVE_URL_ROOT` environment variable is not
