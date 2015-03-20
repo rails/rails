@@ -140,6 +140,7 @@ module ActionView
       # will get expanded to
       #
       #   <%= text_field :person, :first_name %>
+      #
       # which results in an HTML <tt><input></tt> tag whose +name+ attribute is
       # <tt>person[first_name]</tt>. This means that when the form is submitted,
       # the value entered by the user will be available in the controller as
