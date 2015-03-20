@@ -138,7 +138,7 @@ users(:david)
 users(:david).id
 
 # one can also access methods available on the User class
-email(david.girlfriend.email, david.location_tonight)
+email(david.partner.email, david.location_tonight)
 ```
 
 ### Rake Tasks for Running your Tests
