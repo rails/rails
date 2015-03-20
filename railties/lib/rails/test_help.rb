@@ -3,7 +3,9 @@
 abort("Abort testing: Your Rails environment is running in production mode!") if Rails.env.production?
 
 require "rails/test_unit/minitest_plugin"
-require 'active_support/testing/autorun'
+unless $rails_test_runner
+  require 'active_support/testing/autorun'
+end
 require 'active_support/test_case'
 require 'action_controller'
 require 'action_controller/test_case'
