@@ -1,3 +1,10 @@
+*   Print `bundle install` output in `rails new` as soon as it's available
+
+    Running `rails new` will now print the output of `bundle install` as
+    it is available, instead of waiting until all gems finish installing.
+
+    *Max Holder*
+
 *   Add a new-line to the end of route method generated code.
 
     We need to add a `\n`, because we cannot have two routes
