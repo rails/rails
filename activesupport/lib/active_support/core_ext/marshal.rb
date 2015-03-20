@@ -6,6 +6,9 @@ module Marshal
       load_without_autoloading(source)
     rescue ArgumentError, NameError => exc
       if exc.message.match(%r|undefined class/module (.+)|)
+        processed_names ||= {}
+        raise exc if processed_names[$1]
+        processed_names[$1] = true
         # try loading the class/module
         $1.constantize
         # if it is a IO we need to go back to read the object
