@@ -230,7 +230,7 @@ module ActionDispatch
     # (case-insensitive), which may need to be manually added depending on the
     # choice of JavaScript libraries and frameworks.
     def xml_http_request?
-      @env['HTTP_X_REQUESTED_WITH'] =~ /XMLHttpRequest/i
+      /XMLHttpRequest/i === @env['HTTP_X_REQUESTED_WITH']
     end
     alias :xhr? :xml_http_request?
 
