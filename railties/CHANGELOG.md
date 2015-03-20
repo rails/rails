@@ -5,14 +5,15 @@
 
     *arthurnn*
 
-*   Add `rake initializer`
+*   Add `rake initializers`
 
-    This task prints out initializers for an application. It is useful to
-    develop a rubygem which involves the initialization process.
+    This task prints out all defined initializers in the order they are invoked
+    by Rails. This is helpful for debugging issues related to the initialization
+    process.
 
     *Naoto Kaneko*
 
-*   Created rake restart task. Restarts your Rails app by touching the 
+*   Created rake restart task. Restarts your Rails app by touching the
     `tmp/restart.txt`.
 
     Fixes #18876.
