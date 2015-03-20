@@ -1,3 +1,8 @@
+*   Fixed a problem with ActiveSupport::SafeBuffer.titleize calling capitalize
+    on nil.
+
+    *Brian McManus*
+    
 *   Added `#without` on `Enumerable` and `Array` to return a copy of an
     enumerable without the specified elements.
 
