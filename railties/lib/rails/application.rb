@@ -505,11 +505,6 @@ module Rails
       default_stack.build_stack
     end
 
-    def build_original_fullpath(env) #:nodoc:
-      req = ActionDispatch::Request.new env
-      env["ORIGINAL_FULLPATH"] = req.fullpath
-    end
-
     def validate_secret_key_config! #:nodoc:
       if secrets.secret_key_base.blank?
         ActiveSupport::Deprecation.warn "You didn't set `secret_key_base`. " +
