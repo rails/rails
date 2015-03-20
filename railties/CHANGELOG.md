@@ -1,10 +1,3 @@
-*   Don't fallback to using `RACK_ENV` when `RAILS_ENV` is not present.
-
-    RACK_ENV does not have the same meaning as RAILS_ENV, and cannot be used as a fallback.
-    See http://www.hezmatt.org/~mpalmer/blog/2013/10/13/rack_env-its-not-for-you.html
-
-    *Damien Mathieu*
-
 *   Add a new-line to the end of route method generated code.
 
     We need to add a `\n`, because we cannot have two routes
