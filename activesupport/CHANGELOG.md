@@ -1,3 +1,7 @@
+*   Deprecate `alias_method_chain` in favour of `Module#prepend` introduced in Ruby 2.0
+
+    *Kir Shatrov*
+
 *   Added `#without` on `Enumerable` and `Array` to return a copy of an
     enumerable without the specified elements.
 
