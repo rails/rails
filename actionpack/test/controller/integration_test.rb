@@ -422,7 +422,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
 
   def test_get_xml
     with_test_route_set do
-      get "/get", {}, {"HTTP_ACCEPT" => "application/xml"}
+      get "/get", params: {}, headers: {"HTTP_ACCEPT" => "application/xml"}
       assert_equal 200, status
       assert_equal "OK", status_message
       assert_response 200
