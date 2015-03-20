@@ -3472,18 +3472,6 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal '/bar/comments/1', comment_path('1')
   end
 
-  def test_head_fetch_with_mount_on_root
-    draw do
-      get '/home' => 'test#index'
-      mount lambda { |env| [404, {"Content-Type" => "text/html"}, ["testing"]] }, at: '/'
-    end
-    head '/home'
-    assert_response :success
-
-    head '/'
-    assert_response :not_found
-  end
-
 private
 
   def draw(&block)
