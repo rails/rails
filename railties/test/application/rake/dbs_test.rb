@@ -203,7 +203,9 @@ module ApplicationTests
       test 'db:setup loads schema and seeds database' do
         begin
           @old_rails_env = ENV["RAILS_ENV"]
+          @old_rack_env = ENV["RACK_ENV"]
           ENV.delete "RAILS_ENV"
+          ENV.delete "RACK_ENV"
 
           app_file 'db/schema.rb', <<-RUBY
             ActiveRecord::Schema.define(version: "1") do
@@ -223,6 +225,7 @@ module ApplicationTests
           end
         ensure
           ENV["RAILS_ENV"] = @old_rails_env
+          ENV["RACK_ENV"] = @old_rack_env
         end
       end
     end

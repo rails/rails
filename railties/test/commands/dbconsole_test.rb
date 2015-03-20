@@ -82,15 +82,20 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
     assert_equal "test", Rails::DBConsole.new.environment
 
     ENV['RAILS_ENV'] = nil
+    ENV['RACK_ENV'] = nil
 
     Rails.stub(:respond_to?, false) do
       assert_equal "development", Rails::DBConsole.new.environment
+
+      ENV['RACK_ENV'] = "rack_env"
+      assert_equal "rack_env", Rails::DBConsole.new.environment
 
       ENV['RAILS_ENV'] = "rails_env"
       assert_equal "rails_env", Rails::DBConsole.new.environment
     end
   ensure
     ENV['RAILS_ENV'] = "test"
+    ENV['RACK_ENV'] = nil
   end
 
   def test_rails_env_is_development_when_argument_is_dev

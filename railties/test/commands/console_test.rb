@@ -70,6 +70,13 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
     end
   end
 
+  def test_default_environment_with_rack_env
+    with_rack_env 'production' do
+      start
+      assert_match(/\sproduction\s/, output)
+    end
+  end
+
   def test_e_option
     start ['-e', 'special-production']
     assert_match(/\sspecial-production\s/, output)

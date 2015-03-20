@@ -5,11 +5,13 @@ module ActiveRecord
     class MergeAndResolveDefaultUrlConfigTest < ActiveRecord::TestCase
       def setup
         @previous_database_url = ENV.delete("DATABASE_URL")
+        @previous_rack_env = ENV.delete("RACK_ENV")
         @previous_rails_env = ENV.delete("RAILS_ENV")
       end
 
       teardown do
         ENV["DATABASE_URL"] = @previous_database_url
+        ENV["RACK_ENV"] = @previous_rack_env
         ENV["RAILS_ENV"] = @previous_rails_env
       end
 
@@ -32,6 +34,16 @@ module ActiveRecord
       def test_resolver_with_database_uri_and_current_env_symbol_key_and_rails_env
         ENV['DATABASE_URL'] = "postgres://localhost/foo"
         ENV['RAILS_ENV']    = "foo"
+
+        config   = { "not_production" => { "adapter" => "not_postgres", "database" => "not_foo" } }
+        actual   = resolve_spec(:foo, config)
+        expected = { "adapter" => "postgresql", "database" => "foo", "host" => "localhost" }
+        assert_equal expected, actual
+      end
+
+      def test_resolver_with_database_uri_and_current_env_symbol_key_and_rack_env
+        ENV['DATABASE_URL'] = "postgres://localhost/foo"
+        ENV['RACK_ENV']     = "foo"
 
         config   = { "not_production" => { "adapter" => "not_postgres", "database" => "not_foo" } }
         actual   = resolve_spec(:foo, config)
@@ -141,6 +153,28 @@ module ActiveRecord
 
       def test_blank_with_database_url_with_rails_env
         ENV['RAILS_ENV'] = "not_production"
+        ENV['DATABASE_URL'] = "postgres://localhost/foo"
+
+        config   = {}
+        actual   = resolve_config(config)
+        expected = { "adapter"  => "postgresql",
+                     "database" => "foo",
+                     "host"     => "localhost" }
+
+        assert_equal expected, actual["not_production"]
+        assert_equal nil,      actual["production"]
+        assert_equal nil,      actual["default_env"]
+        assert_equal nil,      actual["development"]
+        assert_equal nil,      actual["test"]
+        assert_equal nil,      actual[:default_env]
+        assert_equal nil,      actual[:not_production]
+        assert_equal nil,      actual[:production]
+        assert_equal nil,      actual[:development]
+        assert_equal nil,      actual[:test]
+      end
+
+      def test_blank_with_database_url_with_rack_env
+        ENV['RACK_ENV'] = "not_production"
         ENV['DATABASE_URL'] = "postgres://localhost/foo"
 
         config   = {}

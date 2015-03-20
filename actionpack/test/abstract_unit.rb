@@ -36,7 +36,7 @@ require 'pp' # require 'pp' early to prevent hidden_methods from not picking up 
 module Rails
   class << self
     def env
-      @_env ||= ActiveSupport::StringInquirer.new(ENV["RAILS_ENV"] || "test")
+      @_env ||= ActiveSupport::StringInquirer.new(ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "test")
     end
   end
 end
