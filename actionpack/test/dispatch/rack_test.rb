@@ -73,6 +73,9 @@ class RackRequestTest < BaseRackTest
 
     @env['HTTP_X_FORWARDED_HOST'] = "www.firsthost.org, www.secondhost.org"
     assert_equal "www.secondhost.org", @request.host
+
+    @env['HTTP_X_FORWARDED_HOST'] = ""
+    assert_equal "rubyonrails.org", @request.host
   end
 
   test "http host with default port overrides server port" do
