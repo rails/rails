@@ -767,7 +767,7 @@ class RequestFormat < BaseRequestTest
       'HTTP_ACCEPT' => [Mime::JS, Mime::HTML, Mime::XML, "text/xml", Mime::ALL].join(",")
     )
     request.expects(:parameters).at_least_once.returns({})
-    assert request.xhr?
+    assert_equal request.xhr?, true
     assert_equal Mime::JS, request.format
   end
 
