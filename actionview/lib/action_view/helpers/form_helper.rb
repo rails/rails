@@ -67,10 +67,10 @@ module ActionView
     #
     # In particular, thanks to the conventions followed in the generated field names, the
     # controller gets a nested hash <tt>params[:person]</tt> with the person attributes
-    # set in the form. That hash is ready to be passed to <tt>Person.create</tt>:
+    # set in the form. That hash is ready to be passed to <tt>Person.new</tt>:
     #
-    #   @person = Person.create(params[:person])
-    #   if @person.valid?
+    #   @person = Person.new(params[:person])
+    #   if @person.save
     #     # success
     #   else
     #     # error handling
