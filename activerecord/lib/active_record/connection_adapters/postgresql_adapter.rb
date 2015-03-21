@@ -278,6 +278,7 @@ module ActiveRecord
         @table_alias_length = nil
 
         connect
+        add_pg_encoders
         @statements = StatementPool.new @connection,
                                         self.class.type_cast_config_to_integer(config.fetch(:statement_limit) { 1000 })
 
@@ -801,6 +802,15 @@ module ActiveRecord
               result.getvalue(0, 0)
             end
           end
+        end
+
+        def add_pg_encoders
+          map = PG::TypeMapByClass.new
+          map[Integer] = PG::TextEncoder::Integer.new
+          map[TrueClass] = PG::TextEncoder::Boolean.new
+          map[FalseClass] = PG::TextEncoder::Boolean.new
+          map[Float] = PG::TextEncoder::Float.new
+          @connection.type_map_for_queries = map
         end
 
         def add_pg_decoders
