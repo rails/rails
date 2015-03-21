@@ -1,4 +1,3 @@
-require "ostruct"
 require "optparse"
 require "rake/file_list"
 require "method_source"
