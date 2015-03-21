@@ -278,14 +278,14 @@ module ActiveRecord
         @table_alias_length = nil
 
         connect
-        add_pg_decoders
-
         @statements = StatementPool.new @connection,
                                         self.class.type_cast_config_to_integer(config.fetch(:statement_limit) { 1000 })
 
         if postgresql_version < 80200
           raise "Your version of PostgreSQL (#{postgresql_version}) is too old, please upgrade!"
         end
+
+        add_pg_decoders
 
         @type_map = Type::HashLookupTypeMap.new
         initialize_type_map(type_map)
@@ -798,7 +798,7 @@ module ActiveRecord
               )
             end_sql
             execute_and_clear(sql, "SCHEMA", []) do |result|
-              result.getvalue(0, 0) == 't'
+              result.getvalue(0, 0)
             end
           end
         end
@@ -814,12 +814,12 @@ module ActiveRecord
             'bool' => PG::TextDecoder::Boolean,
           }
           query = <<-SQL
-            SELECT t.oid, t.typname, t.typelem, t.typdelim, t.typinput, t.typtype, t.typbasetype
+            SELECT t.oid, t.typname
             FROM pg_type as t
           SQL
           coders = execute_and_clear(query, "SCHEMA", []) do |result|
             result
-              .map { |row| construct_coder(row, coders_by_name['typname']) }
+              .map { |row| construct_coder(row, coders_by_name[row['typname']]) }
               .compact
           end
 
@@ -830,7 +830,7 @@ module ActiveRecord
 
         def construct_coder(row, coder_class)
           return unless coder_class
-          coder_class.new(oid: row['oid'], name: row['typname'])
+          coder_class.new(oid: row['oid'].to_i, name: row['typname'])
         end
 
         ActiveRecord::Type.add_modifier({ array: true }, OID::Array, adapter: :postgresql)
