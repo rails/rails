@@ -77,4 +77,15 @@
 
     *Isaac Seymour*
 
+*   `ActiveJob::Logging` checks the log formatter responds to `current_tags`
+     
+    When checking to see if the ActiveJob tag should be added to the logger, we need
+    to retrieve the current list of tags. If the log formatter does not respond
+    to the method `current_tags`, then we should assume the tag has already been added
+
+    Fixes #19439
+
+    *Rob Di Marco*
+  
+
 Please check [4-2-stable](https://github.com/rails/rails/blob/4-2-stable/activejob/CHANGELOG.md) for previous changes.
