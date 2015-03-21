@@ -1,5 +1,5 @@
-require "rails/test_unit/runner"
+require "rails/test_unit/minitest_plugin"
 
 $: << File.expand_path("../../test", APP_PATH)
 
-Rails::TestRunner.run(ARGV)
+exit Minitest.run(ARGV)
