@@ -14,7 +14,7 @@ module Rails
 
           opts.separator ""
           opts.on("-e", "--environment [ENV]",
-                  "run tests in the ENV environment") do |env|
+                  "Run tests in the ENV environment") do |env|
             options[:environment] = env.strip
           end
           opts.separator ""
@@ -40,7 +40,7 @@ module Rails
           opts.separator "Output options:"
 
           opts.on("-b", "--backtrace",
-                  "show the complte backtrace") do
+                  "Show the complete backtrace") do
             options[:backtrace] = true
           end
 
