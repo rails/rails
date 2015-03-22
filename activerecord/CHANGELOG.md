@@ -1,3 +1,10 @@
+*   Fix referencing wrong table aliases while joining tables of has many through association
+    (only when calling calculation methods).
+
+    Fixes #19276
+
+    *pinglamb*
+
 *   Reuse the `CollectionAssociation#reader` cache when the foreign key is
     available prior to save.
 
