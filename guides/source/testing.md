@@ -162,7 +162,7 @@ project is created.
 
 We will cover each of types Rails tests listed above in this guide.
 
-Unit Testing your Models
+Model Testing
 ------------------------
 
 In Rails, unit tests are what you write to test your models.
