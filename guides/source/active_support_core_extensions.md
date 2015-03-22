@@ -506,6 +506,8 @@ Extensions to `Module`
 
 ### `alias_method_chain`
 
+**This method is deprecated in favour of using Module#prepend.**
+
 Using plain Ruby you can wrap methods with other methods, that's called _alias chaining_.
 
 For example, let's say you'd like params to be strings in functional tests, as they are in real requests, but still want the convenience of assigning integers and other kind of values. To accomplish that you could wrap `ActionController::TestCase#process` this way in `test/test_helper.rb`:
@@ -549,8 +551,6 @@ ActionController::TestCase.class_eval do
   alias_method_chain :process, :stringified_params
 end
 ```
-
-Rails uses `alias_method_chain` all over the code base. For example validations are added to `ActiveRecord::Base#save` by wrapping the method that way in a separate module specialized in validations.
 
 NOTE: Defined in `active_support/core_ext/module/aliasing.rb`.
 
