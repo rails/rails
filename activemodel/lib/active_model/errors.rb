@@ -34,11 +34,11 @@ module ActiveModel
   #       send(attr)
   #     end
   #
-  #     def Person.human_attribute_name(attr, options = {})
+  #     def self.human_attribute_name(attr, options = {})
   #       attr
   #     end
   #
-  #     def Person.lookup_ancestors
+  #     def self.lookup_ancestors
   #       [self]
   #     end
   #   end
@@ -124,9 +124,9 @@ module ActiveModel
 
     # Set messages for +key+ to +value+.
     #
-    #   person.errors.get(:name) # => ["cannot be nil"]
+    #   person.errors[:name] # => ["cannot be nil"]
     #   person.errors.set(:name, ["can't be nil"])
-    #   person.errors.get(:name) # => ["can't be nil"]
+    #   person.errors[:name] # => ["can't be nil"]
     def set(key, value)
       ActiveSupport::Deprecation.warn(<<-MESSAGE.squish)
         ActiveModel::Errors#set is deprecated and will be removed in Rails 5.1.
@@ -139,12 +139,12 @@ module ActiveModel
 
     # Delete messages for +key+. Returns the deleted messages.
     #
-    #   person.errors.get(:name)    # => ["cannot be nil"]
+    #   person.errors[:name]    # => ["cannot be nil"]
     #   person.errors.delete(:name) # => ["cannot be nil"]
-    #   person.errors.get(:name)    # => []
+    #   person.errors[:name]    # => []
     def delete(key)
-      messages.delete(key)
       details.delete(key)
+      messages.delete(key)
     end
 
     # When passed a symbol or a name of a method, returns an array of errors
