@@ -425,7 +425,7 @@ change_column :products, :part_number, :text
 This changes the column `part_number` on products table to be a `:text` field.
 
 Besides `change_column`, the `change_column_null` and `change_column_default`
-methods are used specifically to change the null and default values of a
+methods are used specifically to change a not null constraint and default values of a
 column.
 
 ```ruby
