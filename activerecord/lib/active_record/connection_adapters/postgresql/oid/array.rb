@@ -18,7 +18,7 @@ module ActiveRecord
           end
 
           attr_reader :subtype, :delimiter
-          delegate :type, :user_input_in_time_zone, to: :subtype
+          delegate :type, :user_input_in_time_zone, :limit, to: :subtype
 
           def initialize(subtype, delimiter = ',')
             @subtype = subtype
