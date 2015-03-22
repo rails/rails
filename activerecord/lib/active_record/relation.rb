@@ -205,7 +205,9 @@ module ActiveRecord
     # constraint an exception may be raised, just retry:
     #
     #  begin
-    #    CreditAccount.find_or_create_by(user_id: user.id)
+    #    CreditAccount.transaction(requires_new: true) do
+    #      CreditAccount.find_or_create_by(user_id: user.id)
+    #    end
     #  rescue ActiveRecord::RecordNotUnique
     #    retry
     #  end
