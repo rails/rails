@@ -482,7 +482,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_new_hash_style
     run_generator
     assert_file "config/initializers/session_store.rb" do |file|
-      assert_match(/config.session_store :cookie_store, key: '_.+_session'/, file)
+      assert_match(/config.session_store :cookie_store, {key: '_.+_session', httponly: true}/, file)
     end
   end
 
