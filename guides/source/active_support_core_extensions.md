@@ -2472,7 +2472,7 @@ recursively with Active Support method `Object#deep_dup`. It works like `Array#m
 array = [1, [2, 3]]
 dup = array.deep_dup
 dup[1][2] = 4
-array[1][2] == nil   # => true
+array[1][2].nil?   # => true
 ```
 
 NOTE: Defined in `active_support/core_ext/object/deep_dup.rb`.
@@ -2697,7 +2697,7 @@ dup = hash.deep_dup
 dup[:b][:e] = 5
 dup[:b][:d] << 5
 
-hash[:b][:e] == nil      # => true
+hash[:b][:e].nil?        # => true
 hash[:b][:d] == [3, 4]   # => true
 ```
 
