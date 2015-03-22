@@ -929,7 +929,7 @@ assert_select_email do
 end
 ```
 
-Testing helpers
+Testing Helpers
 ---------------
 
 In order to test helpers, all you need to do is check that the output of the
