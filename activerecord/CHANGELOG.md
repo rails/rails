@@ -1,3 +1,9 @@
+*   Fixes #19420. When generating schema.rb using Postgres BigInt[] data type
+    the limit: 8 was not coming through. This caused it to become Int[] data type
+    after doing a rebuild off of schema.rb.
+
+    *Jake Waller*
+
 *   Fix state being carried over from previous transaction.
 
     Considering the following example where `name` is a required attribute.

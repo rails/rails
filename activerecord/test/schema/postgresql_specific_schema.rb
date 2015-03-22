@@ -195,4 +195,8 @@ _SQL
     t.binary :binary, limit: 100_000
     t.text :text, limit: 100_000
   end
+
+  create_table :bigint_array, force: true do |t|
+    t.integer :big_int_data_points, limit: 8, array: true
+  end
 end

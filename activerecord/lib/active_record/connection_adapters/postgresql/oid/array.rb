@@ -18,7 +18,7 @@ module ActiveRecord
           end
 
           attr_reader :subtype, :delimiter
-          delegate :type, to: :subtype
+          delegate :type, :limit, to: :subtype
 
           def initialize(subtype, delimiter = ',')
             @subtype = subtype
