@@ -82,11 +82,10 @@ module ActiveRecord
       #
       def index_exists?(table_name, column_name, options = {})
         column_names = Array(column_name).map(&:to_s)
-        index_name = options.key?(:name) ? options[:name].to_s : index_name(table_name, column: column_names)
         checks = []
-        checks << lambda { |i| i.name == index_name }
         checks << lambda { |i| i.columns == column_names }
         checks << lambda { |i| i.unique } if options[:unique]
+        checks << lambda { |i| i.name == options[:name].to_s } if options[:name]
 
         indexes(table_name).any? { |i| checks.all? { |check| check[i] } }
       end

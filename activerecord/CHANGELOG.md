@@ -1,3 +1,8 @@
+*   Ignore index name in `index_exists?` and `remove_index` when not passed a
+    name to check for.
+
+    *Grey Baker*
+
 *   Version the API presented to migration classes, so we can change parameter
     defaults without breaking existing migrations, or forcing them to be
     rewritten through a deprecation cycle.
