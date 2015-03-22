@@ -35,14 +35,6 @@ class PostgresqlByteaTest < ActiveRecord::TestCase
     end
   end
 
-  def test_type_cast_binary_converts_the_encoding
-    assert @column
-
-    data = "\u001F\x8B"
-    assert_equal('UTF-8', data.encoding.name)
-    assert_equal('ASCII-8BIT', @type.deserialize(data).encoding.name)
-  end
-
   def test_type_cast_binary_value
     data = "\u001F\x8B".force_encoding("BINARY")
     assert_equal(data, @type.deserialize(data))
@@ -57,6 +49,7 @@ class PostgresqlByteaTest < ActiveRecord::TestCase
     @connection.execute "insert into bytea_data_type (payload) VALUES ('#{data}')"
     record = ByteaDataType.first
     assert_equal(data, record.payload)
+    assert_equal('ASCII-8BIT', record.payload.encoding.name)
     record.delete
   end
 

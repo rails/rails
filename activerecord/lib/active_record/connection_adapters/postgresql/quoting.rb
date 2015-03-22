@@ -94,11 +94,6 @@ module ActiveRecord
 
         def _type_cast(value)
           case value
-          when Type::Binary::Data
-            # Return a bind param hash with format as binary.
-            # See http://deveiate.org/code/pg/PGconn.html#method-i-exec_prepared-doc
-            # for more information
-            { value: value.to_s, format: 1 }
           when OID::Xml::Data, OID::Bit::Data
             value.to_s
           else

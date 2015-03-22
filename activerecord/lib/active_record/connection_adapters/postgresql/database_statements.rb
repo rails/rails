@@ -47,7 +47,7 @@ module ActiveRecord
         def select_value(arel, name = nil, binds = [])
           arel, binds = binds_from_relation arel, binds
           sql = to_sql(arel, binds)
-          execute_and_clear(sql, name, binds) do |result|
+          execute_and_clear(sql, name, binds) do |result, _|
             result.getvalue(0, 0) if result.ntuples > 0 && result.nfields > 0
           end
         end
@@ -55,7 +55,7 @@ module ActiveRecord
         def select_values(arel, name = nil)
           arel, binds = binds_from_relation arel, []
           sql = to_sql(arel, binds)
-          execute_and_clear(sql, name, binds) do |result|
+          execute_and_clear(sql, name, binds) do |result, _|
             if result.nfields > 0
               result.column_values(0)
             else
@@ -67,7 +67,7 @@ module ActiveRecord
         # Executes a SELECT query and returns an array of rows. Each row is an
         # array of field values.
         def select_rows(sql, name = nil, binds = [])
-          execute_and_clear(sql, name, binds) do |result|
+          execute_and_clear(sql, name, binds) do |result, _|
             result.values
           end
         end
@@ -157,20 +157,42 @@ module ActiveRecord
         end
 
         def exec_query(sql, name = 'SQL', binds = [])
-          execute_and_clear(sql, name, binds) do |result|
-            types = {}
-            fields = result.fields
-            fields.each_with_index do |fname, i|
-              ftype = result.ftype i
-              fmod  = result.fmod i
-              types[fname] = get_oid_type(ftype, fmod, fname)
+          execute_and_clear(sql, name, binds) do |result, pool_entry|
+
+            if pool_entry && pool_entry.dec_type_map
+              # Use values from statement cache
+              type_map = pool_entry.dec_type_map
+              types = pool_entry.types
+              field_names = pool_entry.field_names
+            else
+              types = {}
+              pg_types = []
+              field_names = result.fields
+              field_names.each_with_index do |fname, i|
+                ftype = result.ftype i
+                fmod  = result.fmod i
+                type = get_oid_type(ftype, fmod, fname)
+                types[fname] = type
+                pg_decoder = type.respond_to?(:pg_decoder) ? type.pg_decoder : nil
+                pg_types << pg_decoder
+              end
+              type_map = PG::TypeMapByColumn.new pg_types
+
+              if pool_entry
+                # store values in statement cache
+                pool_entry.dec_type_map = type_map
+                pool_entry.types = types
+                pool_entry.field_names = field_names
+              end
             end
-            ActiveRecord::Result.new(fields, result.values, types)
+
+            result.type_map = type_map
+            ActiveRecord::Result.new(field_names, result.values, types)
           end
         end
 
         def exec_delete(sql, name = 'SQL', binds = [])
-          execute_and_clear(sql, name, binds) {|result| result.cmd_tuples }
+          execute_and_clear(sql, name, binds) {|result, _| result.cmd_tuples }
         end
         alias :exec_update :exec_delete
 
