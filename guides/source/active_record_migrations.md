@@ -357,7 +357,7 @@ will append `ENGINE=BLACKHOLE` to the SQL statement used to create the table
 
 ### Creating a Join Table
 
-Migration method `create_join_table` creates a HABTM join table. A typical use
+Migration method `create_join_table` creates an HABTM join table. A typical use
 would be:
 
 ```ruby
