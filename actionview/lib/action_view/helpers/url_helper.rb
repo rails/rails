@@ -292,8 +292,9 @@ module ActionView
         form_method  = method == 'get' ? 'get' : 'post'
         form_options = html_options.delete('form') || {}
         form_options[:class] ||= html_options.delete('form_class') || 'button_to'
-        form_options.merge!(method: form_method, action: url)
-        form_options.merge!("data-remote" => "true") if remote
+        form_options[:method] = form_method
+        form_options[:action] = url
+        form_options[:'data-remote'] = true if remote
 
         request_token_tag = form_method == 'post' ? token_tag : ''
 
