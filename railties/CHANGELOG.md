@@ -24,7 +24,7 @@
 
     Newly generated Rails apps have a new initializer called
     `active_record_belongs_to_required_by_default.rb` which sets the value of
-    the configuration option `config.active_record.belongs_to_requred_by_default`
+    the configuration option `config.active_record.belongs_to_required_by_default`
     to `true` when ActiveRecord is not skipped.
 
     As a result, new Rails apps require `belongs_to` association on model
