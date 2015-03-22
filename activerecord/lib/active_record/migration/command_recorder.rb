@@ -117,7 +117,7 @@ module ActiveRecord
       include StraightReversions
 
       def invert_drop_table(args, &block)
-        if args.size == 1 && block == nil
+        if args.size == 1 && block.nil?
           raise ActiveRecord::IrreversibleMigration, "To avoid mistakes, drop_table is only reversible if given options or a block (can be empty)."
         end
         super
