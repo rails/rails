@@ -68,8 +68,7 @@ class ModulesTest < ActiveRecord::TestCase
     end
   end
 
-  # need to add an eager loading condition to force the eager loading model into
-  # the old join model, to test that. See http://dev.rubyonrails.org/ticket/9640
+  # An eager loading condition to force the eager loading model into the old join model.
   def test_eager_loading_in_modules
     clients = []
 

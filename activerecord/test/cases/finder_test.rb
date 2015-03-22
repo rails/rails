@@ -947,7 +947,6 @@ class FinderTest < ActiveRecord::TestCase
     end
   end
 
-  # http://dev.rubyonrails.org/ticket/6778
   def test_find_ignores_previously_inserted_record
     Post.create!(:title => 'test', :body => 'it out')
     assert_equal [], Post.where(id: nil)

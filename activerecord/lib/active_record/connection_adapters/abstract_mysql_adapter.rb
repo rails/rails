@@ -905,8 +905,7 @@ module ActiveRecord
       def configure_connection
         variables = @config.fetch(:variables, {}).stringify_keys
 
-        # By default, MySQL 'where id is null' selects the last inserted id.
-        # Turn this off. http://dev.rubyonrails.org/ticket/6778
+        # By default, MySQL 'where id is null' selects the last inserted id; Turn this off.
         variables['sql_auto_is_null'] = 0
 
         # Increase timeout so the server doesn't disconnect us.
