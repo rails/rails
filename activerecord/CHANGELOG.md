@@ -1,3 +1,11 @@
+*   Fix generating the schema file when using PostgreSQL `BigInt[]` data type.
+    Previously the `limit: 8` was not coming through, and this caused it to
+    become `Int[]` data type after rebuilding from the schema.
+
+    Fixes #19420.
+
+    *Jake Waller*
+
 *   Reuse the `CollectionAssociation#reader` cache when the foreign key is
     available prior to save.
 
@@ -697,11 +705,5 @@
     `connection#native_database_types` directly.
 
     *Yves Senn*
-
-*   Fixes #19420. When generating schema.rb using Postgres BigInt[] data type
-    the limit: 8 was not coming through. This caused it to become Int[] data type
-    after doing a rebuild off of schema.rb.
-
-    *Jake Waller*
 
 Please check [4-2-stable](https://github.com/rails/rails/blob/4-2-stable/activerecord/CHANGELOG.md) for previous changes.
