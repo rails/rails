@@ -1,3 +1,10 @@
+*   Correctly persist a serialized attribute that has been returned to
+    its default value by an in-place modification.
+
+    Fixes #19467.
+
+    *Matthew Draper*
+
 *   Fix generating the schema file when using PostgreSQL `BigInt[]` data type.
     Previously the `limit: 8` was not coming through, and this caused it to
     become `Int[]` data type after rebuilding from the schema.
