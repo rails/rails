@@ -56,7 +56,7 @@ module Arel
       end
 
       describe 'grouped "and" equality' do
-        it 'makes a grouping node with an or node' do
+        it 'makes a grouping node with an and node' do
           node = SqlLiteral.new('foo').eq_all([1,2])
           compile(node).must_be_like %{ (foo = 1 AND foo = 2) }
         end
