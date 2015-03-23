@@ -45,8 +45,6 @@ module ActiveSupport
 
         test_order
       end
-
-      alias :my_tests_are_order_dependent! :i_suck_and_my_tests_are_order_dependent!
     end
 
     alias_method :method_name, :name
