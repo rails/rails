@@ -915,7 +915,7 @@ module ActiveRecord
         variables['wait_timeout'] = self.class.type_cast_config_to_integer(wait_timeout)
 
         # Make MySQL reject illegal values rather than truncating or blanking them, see
-        # http://dev.mysql.com/doc/refman/5.6/en/server-sql-mode.html#sqlmode_strict_all_tables
+        # http://dev.mysql.com/doc/refman/5.6/en/sql-mode.html#sqlmode_strict_all_tables
         # If the user has provided another value for sql_mode, don't replace it.
         unless variables.has_key?('sql_mode')
           variables['sql_mode'] = strict_mode? ? 'STRICT_ALL_TABLES' : ''
