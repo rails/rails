@@ -264,4 +264,14 @@ class SerializedAttributeTest < ActiveRecord::TestCase
       Topic.serialize(:content, Regexp)
     end
   end
+
+  def test_newly_emptied_serialized_hash_is_changed
+    Topic.serialize(:content, Hash)
+    topic = Topic.create(content: { "things" => "stuff" })
+    topic.content.delete("things")
+    topic.save!
+    topic.reload
+
+    assert_equal({}, topic.content)
+  end
 end

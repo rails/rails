@@ -28,7 +28,9 @@ module ActiveRecord
 
       def changed_in_place?(raw_old_value, value)
         return false if value.nil?
-        subtype.changed_in_place?(raw_old_value, serialize(value))
+        raw_new_value = serialize(value)
+        raw_old_value.nil? != raw_new_value.nil? ||
+          subtype.changed_in_place?(raw_old_value, raw_new_value)
       end
 
       def accessor
