@@ -63,7 +63,7 @@ class RedirectController < ActionController::Base
   end
 
   def redirect_to_url_with_unescaped_query_string
-    redirect_to "http://dev.rubyonrails.org/query?status=new"
+    redirect_to "http://example.com/query?status=new"
   end
 
   def redirect_to_url_with_complex_scheme
@@ -233,7 +233,7 @@ class RedirectTest < ActionController::TestCase
   def test_redirect_to_url_with_unescaped_query_string
     get :redirect_to_url_with_unescaped_query_string
     assert_response :redirect
-    assert_redirected_to "http://dev.rubyonrails.org/query?status=new"
+    assert_redirected_to "http://example.com/query?status=new"
   end
 
   def test_redirect_to_url_with_complex_scheme
