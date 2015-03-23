@@ -1,3 +1,10 @@
+*   Correctly persist a serialized attribute that has been returned to
+    its default value by an in-place modification.
+
+    Fixes #19467.
+
+    *Matthew Draper*
+
 *   Fix default `format` value in `ActiveRecord::Tasks::DatabaseTasks#schema_file`.
 
     *James Cox*
