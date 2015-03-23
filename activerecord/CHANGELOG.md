@@ -1,3 +1,9 @@
+*   Don't attempt to update counter caches, when the column wasn't selected.
+
+    Fixes #19437.
+
+    *Sean Griffin*
+
 *   Correctly persist a serialized attribute that has been returned to
     its default value by an in-place modification.
 

@@ -68,7 +68,7 @@ module ActiveRecord
         def increment_counter(counter_cache_name)
           if foreign_key_present?
             klass.increment_counter(counter_cache_name, target_id)
-            if target && !stale_target?
+            if target && !stale_target? && counter_cache_available_in_memory?(counter_cache_name)
               target.increment(counter_cache_name)
             end
           end
@@ -109,6 +109,10 @@ module ActiveRecord
         def stale_state
           result = owner._read_attribute(reflection.foreign_key)
           result && result.to_s
+        end
+
+        def counter_cache_available_in_memory?(counter_cache_name)
+          target.respond_to?(counter_cache_name)
         end
     end
   end

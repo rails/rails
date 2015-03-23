@@ -198,4 +198,12 @@ class CounterCacheTest < ActiveRecord::TestCase
     assert_equal 2, car.engines_count
     assert_equal 2, car.reload.engines_count
   end
+
+  test "counter caches are not updated in memory when not selected" do
+    car = Car.select(:id).first
+
+    assert_nothing_raised do
+      car.engines << Engine.new
+    end
+  end
 end
