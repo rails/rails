@@ -56,6 +56,30 @@ module ActiveSupport
       @value.to_s
     end
 
+    # Returns the number of seconds that this Duration represents.
+    #
+    #   1.minute.to_i   # => 60
+    #   1.hour.to_i     # => 3600
+    #   1.day.to_i      # => 86400
+    #
+    # Note that this conversion makes some assumptions about the
+    # duration of some periods, e.g. months are always 30 days
+    # and years are 365.25 days:
+    #
+    #   # equivalent to 30.days.to_i
+    #   1.month.to_i    # => 2592000
+    #
+    #   # equivalent to 365.25.days.to_i
+    #   1.year.to_i     # => 31557600
+    #
+    # In such cases, Ruby's core
+    # Date[http://ruby-doc.org/stdlib/libdoc/date/rdoc/Date.html] and
+    # Time[http://ruby-doc.org/stdlib/libdoc/time/rdoc/Time.html] should be used for precision
+    # date and time arithmetic.
+    def to_i
+      @value.to_i
+    end
+
     # Returns +true+ if +other+ is also a Duration instance, which has the
     # same parts as this one.
     def eql?(other)
