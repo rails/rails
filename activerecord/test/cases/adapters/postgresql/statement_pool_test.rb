@@ -33,7 +33,7 @@ module ActiveRecord
         def test_dealloc_does_not_raise_on_inactive_connection
           cache = StatementPool.new InactivePGconn.new, 10
           cache['foo'] = 'bar'
-          assert_nothing_raised { cache.clear }
+          cache.clear
         end
       end
     end

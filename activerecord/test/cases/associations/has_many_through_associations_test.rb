@@ -631,7 +631,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_associate_with_create_and_invalid_options
     firm = companies(:first_firm)
-    assert_no_difference('firm.developers.count') { assert_nothing_raised { firm.developers.create(:name => '0') } }
+    assert_no_difference('firm.developers.count') { firm.developers.create(:name => '0') }
   end
 
   def test_associate_with_create_and_valid_options
@@ -787,7 +787,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_merge_join_association_with_has_many_through_association_proxy
     author = authors(:mary)
-    assert_nothing_raised { author.comments.ratings.to_sql }
+    author.comments.ratings.to_sql
   end
 
   def test_has_many_association_through_a_has_many_association_with_nonstandard_primary_keys
@@ -868,15 +868,12 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_collection_singular_ids_setter_with_string_primary_keys
-    assert_nothing_raised do
-      book = books(:awdr)
-      book.subscriber_ids = [subscribers(:second).nick]
-      assert_equal [subscribers(:second)], book.subscribers(true)
+    book = books(:awdr)
+    book.subscriber_ids = [subscribers(:second).nick]
+    assert_equal [subscribers(:second)], book.subscribers(true)
 
-      book.subscriber_ids = []
-      assert_equal [], book.subscribers(true)
-    end
-
+    book.subscriber_ids = []
+    assert_equal [], book.subscribers(true)
   end
 
   def test_collection_singular_ids_setter_raises_exception_when_invalid_ids_set
@@ -886,7 +883,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_build_a_model_from_hm_through_association_with_where_clause
-    assert_nothing_raised { books(:awdr).subscribers.where(:nick => "marklazz").build }
+    books(:awdr).subscribers.where(:nick => "marklazz").build
   end
 
   def test_attributes_are_being_set_when_initialized_from_hm_through_association_with_where_clause
@@ -920,9 +917,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_can_update_through_association
-    assert_nothing_raised do
-      people(:michael).posts.first.update!(title: "Can write")
-    end
+    people(:michael).posts.first.update!(title: "Can write")
   end
 
   def test_has_many_through_polymorphic_with_primary_key_option

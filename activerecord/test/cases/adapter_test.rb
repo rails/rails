@@ -82,15 +82,13 @@ module ActiveRecord
 
       def test_not_specifying_database_name_for_cross_database_selects
         begin
-          assert_nothing_raised do
-            ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations['arunit'].except(:database))
+          ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations['arunit'].except(:database))
 
-            config = ARTest.connection_config
-            ActiveRecord::Base.connection.execute(
-              "SELECT #{config['arunit']['database']}.pirates.*, #{config['arunit2']['database']}.courses.* " \
-              "FROM #{config['arunit']['database']}.pirates, #{config['arunit2']['database']}.courses"
-            )
-          end
+          config = ARTest.connection_config
+          ActiveRecord::Base.connection.execute(
+            "SELECT #{config['arunit']['database']}.pirates.*, #{config['arunit2']['database']}.courses.* " \
+            "FROM #{config['arunit']['database']}.pirates, #{config['arunit2']['database']}.courses"
+          )
         ensure
           ActiveRecord::Base.establish_connection :arunit
         end
@@ -130,7 +128,7 @@ module ActiveRecord
         Subscriber.connection.reset_pk_sequence! 'subscribers'
         sub = Subscriber.new(:name => 'robert drake')
         sub.id = 'bob drake'
-        assert_nothing_raised { sub.save! }
+        sub.save!
       end
     end
 
@@ -168,19 +166,17 @@ module ActiveRecord
     end
 
     def test_disable_referential_integrity
-      assert_nothing_raised do
-        @connection.disable_referential_integrity do
-          # Oracle adapter uses prefetched primary key values from sequence and passes them to connection adapter insert method
-          if @connection.prefetch_primary_key?
-            id_value = @connection.next_sequence_value(@connection.default_sequence_name("fk_test_has_fk", "id"))
-            @connection.execute "INSERT INTO fk_test_has_fk (id, fk_id) VALUES (#{id_value},0)"
-          else
-            @connection.execute "INSERT INTO fk_test_has_fk (fk_id) VALUES (0)"
-          end
-          # should delete created record as otherwise disable_referential_integrity will try to enable constraints after executed block
-          # and will fail (at least on Oracle)
-          @connection.execute "DELETE FROM fk_test_has_fk"
+      @connection.disable_referential_integrity do
+        # Oracle adapter uses prefetched primary key values from sequence and passes them to connection adapter insert method
+        if @connection.prefetch_primary_key?
+          id_value = @connection.next_sequence_value(@connection.default_sequence_name("fk_test_has_fk", "id"))
+          @connection.execute "INSERT INTO fk_test_has_fk (id, fk_id) VALUES (#{id_value},0)"
+        else
+          @connection.execute "INSERT INTO fk_test_has_fk (fk_id) VALUES (0)"
         end
+        # should delete created record as otherwise disable_referential_integrity will try to enable constraints after executed block
+        # and will fail (at least on Oracle)
+        @connection.execute "DELETE FROM fk_test_has_fk"
       end
     end
 

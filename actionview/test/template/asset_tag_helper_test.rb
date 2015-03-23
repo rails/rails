@@ -351,13 +351,8 @@ class AssetTagHelperTest < ActionView::TestCase
   end
 
   def test_javascript_include_tag_with_missing_source
-    assert_nothing_raised {
-      javascript_include_tag('missing_security_guard')
-    }
-
-    assert_nothing_raised {
-      javascript_include_tag('http://example.com/css/missing_security_guard')
-    }
+    javascript_include_tag('missing_security_guard')
+    javascript_include_tag('http://example.com/css/missing_security_guard')
   end
 
   def test_javascript_include_tag_is_html_safe
@@ -396,13 +391,8 @@ class AssetTagHelperTest < ActionView::TestCase
   end
 
   def test_stylesheet_link_tag_with_missing_source
-    assert_nothing_raised {
-      stylesheet_link_tag('missing_security_guard')
-    }
-
-    assert_nothing_raised {
-      stylesheet_link_tag('http://example.com/css/missing_security_guard')
-    }
+    stylesheet_link_tag('missing_security_guard')
+    stylesheet_link_tag('http://example.com/css/missing_security_guard')
   end
 
   def test_stylesheet_link_tag_is_html_safe

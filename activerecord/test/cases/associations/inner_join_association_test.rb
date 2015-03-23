@@ -19,10 +19,8 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
   end
 
   def test_construct_finder_sql_does_not_table_name_collide_on_duplicate_associations
-    assert_nothing_raised do
-      sql = Person.joins(:agents => {:agents => :agents}).joins(:agents => {:agents => {:primary_contact => :agents}}).to_sql
-      assert_match(/agents_people_4/i, sql)
-    end
+    sql = Person.joins(:agents => {:agents => :agents}).joins(:agents => {:agents => {:primary_contact => :agents}}).to_sql
+    assert_match(/agents_people_4/i, sql)
   end
 
   def test_construct_finder_sql_ignores_empty_joins_hash

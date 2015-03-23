@@ -192,10 +192,7 @@ en:
 
       load_app
       assert_equal false, I18n.enforce_available_locales
-
-      assert_nothing_raised do
-        I18n.locale = :es
-      end
+      I18n.locale = :es
     end
 
     test "default config.i18n.enforce_available_locales does not override I18n.enforce_available_locales" do
@@ -207,10 +204,7 @@ en:
 
       load_app
       assert_equal false, I18n.enforce_available_locales
-
-      assert_nothing_raised do
-        I18n.locale = :es
-      end
+      I18n.locale = :es
     end
   end
 end

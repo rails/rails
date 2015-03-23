@@ -21,7 +21,7 @@ class TestAutoloadModule < ActiveSupport::TestCase
       autoload :SomeClass, "fixtures/autoload/some_class"
     end
 
-    assert_nothing_raised { ::Fixtures::Autoload::SomeClass }
+    ::Fixtures::Autoload::SomeClass
   end
 
   test "when specifying an :eager constant it still works like normal autoload by default" do
@@ -32,7 +32,7 @@ class TestAutoloadModule < ActiveSupport::TestCase
     end
 
     assert !$LOADED_FEATURES.include?(@some_class_path)
-    assert_nothing_raised { ::Fixtures::Autoload::SomeClass }
+    ::Fixtures::Autoload::SomeClass
   end
 
   test "the location of autoloaded constants defaults to :name.underscore" do
@@ -41,7 +41,7 @@ class TestAutoloadModule < ActiveSupport::TestCase
     end
 
     assert !$LOADED_FEATURES.include?(@some_class_path)
-    assert_nothing_raised { ::Fixtures::Autoload::SomeClass }
+    ::Fixtures::Autoload::SomeClass
   end
 
   test "the location of :eager autoloaded constants defaults to :name.underscore" do
@@ -54,7 +54,7 @@ class TestAutoloadModule < ActiveSupport::TestCase
     assert !$LOADED_FEATURES.include?(@some_class_path)
     ::Fixtures::Autoload.eager_load!
     assert $LOADED_FEATURES.include?(@some_class_path)
-    assert_nothing_raised { ::Fixtures::Autoload::SomeClass }
+    ::Fixtures::Autoload::SomeClass
   end
 
   test "a directory for a block of autoloads can be specified" do
@@ -65,7 +65,7 @@ class TestAutoloadModule < ActiveSupport::TestCase
     end
 
     assert !$LOADED_FEATURES.include?(@another_class_path)
-    assert_nothing_raised { ::Fixtures::AnotherClass }
+    ::Fixtures::AnotherClass
   end
 
   test "a path for a block of autoloads can be specified" do
@@ -76,6 +76,6 @@ class TestAutoloadModule < ActiveSupport::TestCase
     end
 
     assert !$LOADED_FEATURES.include?(@another_class_path)
-    assert_nothing_raised { ::Fixtures::AnotherClass }
+    ::Fixtures::AnotherClass
   end
 end

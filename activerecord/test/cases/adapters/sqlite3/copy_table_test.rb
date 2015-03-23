@@ -11,7 +11,7 @@ class CopyTableTest < ActiveRecord::TestCase
   end
 
   def test_copy_table(from = 'customers', to = 'customers2', options = {})
-    assert_nothing_raised {copy_table(from, to, options)}
+    copy_table(from, to, options)
     assert_equal row_count(from), row_count(to)
 
     if block_given?

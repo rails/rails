@@ -43,30 +43,28 @@ class MysqlReservedWordTest < ActiveRecord::TestCase
 
   # create tables with reserved-word names and columns
   def test_create_tables
-    assert_nothing_raised {
-      @connection.create_table :order do |t|
-        t.column :group, :string
-      end
-    }
+    @connection.create_table :order do |t|
+      t.column :group, :string
+    end
   end
 
   # rename tables with reserved-word names
   def test_rename_tables
-    assert_nothing_raised { @connection.rename_table(:group, :order) }
+    @connection.rename_table(:group, :order)
   end
 
   # alter column with a reserved-word name in a table with a reserved-word name
   def test_change_columns
-    assert_nothing_raised { @connection.change_column_default(:group, :order, 'whatever') }
+    @connection.change_column_default(:group, :order, 'whatever')
     #the quoting here will reveal any double quoting issues in change_column's interaction with the column method in the adapter
-    assert_nothing_raised { @connection.change_column('group', 'order', :Int, :default => 0) }
-    assert_nothing_raised { @connection.rename_column(:group, :order, :values) }
+    @connection.change_column('group', 'order', :Int, :default => 0)
+    @connection.rename_column(:group, :order, :values)
   end
 
   # introspect table with reserved word name
   def test_introspect
-    assert_nothing_raised { @connection.columns(:group) }
-    assert_nothing_raised { @connection.indexes(:group) }
+    @connection.columns(:group)
+    @connection.indexes(:group)
   end
 
   #fixtures
@@ -77,13 +75,13 @@ class MysqlReservedWordTest < ActiveRecord::TestCase
   def test_activerecord_model
     create_test_fixtures :select, :distinct, :group, :values, :distinct_select
     x = nil
-    assert_nothing_raised { x = Group.new }
+    x = Group.new
     x.order = 'x'
-    assert_nothing_raised { x.save }
+    x.save
     x.order = 'y'
-    assert_nothing_raised { x.save }
-    assert_nothing_raised { Group.find_by_order('y') }
-    assert_nothing_raised { Group.find(1) }
+    x.save
+    Group.find_by_order('y')
+    Group.find(1)
     Group.find(1)
   end
 
@@ -91,7 +89,7 @@ class MysqlReservedWordTest < ActiveRecord::TestCase
   def test_has_one_associations
     create_test_fixtures :select, :distinct, :group, :values, :distinct_select
     v = nil
-    assert_nothing_raised { v = Group.find(1).values }
+    v = Group.find(1).values
     assert_equal 2, v.id
   end
 
@@ -99,7 +97,7 @@ class MysqlReservedWordTest < ActiveRecord::TestCase
   def test_belongs_to_associations
     create_test_fixtures :select, :distinct, :group, :values, :distinct_select
     gs = nil
-    assert_nothing_raised { gs = Select.find(2).groups }
+    gs = Select.find(2).groups
     assert_equal gs.length, 2
     assert(gs.collect(&:id).sort == [2, 3])
   end
@@ -108,24 +106,24 @@ class MysqlReservedWordTest < ActiveRecord::TestCase
   def test_has_and_belongs_to_many
     create_test_fixtures :select, :distinct, :group, :values, :distinct_select
     s = nil
-    assert_nothing_raised { s = Distinct.find(1).selects }
+    s = Distinct.find(1).selects
     assert_equal s.length, 2
     assert(s.collect(&:id).sort == [1, 2])
   end
 
   # activerecord model introspection with reserved-word table and column names
   def test_activerecord_introspection
-    assert_nothing_raised { Group.table_exists? }
-    assert_nothing_raised { Group.columns }
+    Group.table_exists?
+    Group.columns
   end
 
   # Calculations
   def test_calculations_work_with_reserved_words
-    assert_nothing_raised { Group.count }
+    Group.count
   end
 
   def test_associations_work_with_reserved_words
-    assert_nothing_raised { Select.all.merge!(:includes => [:groups]).to_a }
+    Select.all.merge!(:includes => [:groups]).to_a
   end
 
   #the following functions were added to DRY test cases

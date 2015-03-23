@@ -427,10 +427,8 @@ class TimeWithZoneTest < ActiveSupport::TestCase
 
   def test_freeze_preloads_instance_variables
     @twz.freeze
-    assert_nothing_raised do
-      @twz.period
-      @twz.time
-    end
+    @twz.period
+    @twz.time
   end
 
   def test_method_missing_with_non_time_return_value

@@ -757,7 +757,7 @@ class BasicsTest < ActiveRecord::TestCase
   def test_dup
     topic = Topic.find(1)
     duped_topic = nil
-    assert_nothing_raised { duped_topic = topic.dup }
+    duped_topic = topic.dup
     assert_equal topic.title, duped_topic.title
     assert !duped_topic.persisted?
 
@@ -795,7 +795,7 @@ class BasicsTest < ActiveRecord::TestCase
     assert_kind_of DeveloperSalary, dev.salary
 
     dup = nil
-    assert_nothing_raised { dup = dev.dup }
+    dup = dev.dup
     assert_kind_of DeveloperSalary, dup.salary
     assert_equal dev.salary.amount, dup.salary.amount
     assert !dup.persisted?
@@ -820,7 +820,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_clone_preserves_subtype
     clone = nil
-    assert_nothing_raised { clone = Company.find(3).clone }
+    clone = Company.find(3).clone
     assert_kind_of Client, clone
   end
 
@@ -1102,31 +1102,23 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal res, res2
 
     res3 = nil
-    assert_nothing_raised do
-      res3 = Post.where("posts.#{QUOTED_TYPE} = 'Post'").joins("LEFT JOIN comments ON posts.id=comments.post_id").count
-    end
+    res3 = Post.where("posts.#{QUOTED_TYPE} = 'Post'").joins("LEFT JOIN comments ON posts.id=comments.post_id").count
     assert_equal res, res3
 
     res4 = Post.count_by_sql "SELECT COUNT(p.id) FROM posts p, comments co WHERE p.#{QUOTED_TYPE} = 'Post' AND p.id=co.post_id"
     res5 = nil
-    assert_nothing_raised do
-      res5 = Post.where("p.#{QUOTED_TYPE} = 'Post' AND p.id=co.post_id").joins("p, comments co").select("p.id").count
-    end
+    res5 = Post.where("p.#{QUOTED_TYPE} = 'Post' AND p.id=co.post_id").joins("p, comments co").select("p.id").count
 
     assert_equal res4, res5
 
     res6 = Post.count_by_sql "SELECT COUNT(DISTINCT p.id) FROM posts p, comments co WHERE p.#{QUOTED_TYPE} = 'Post' AND p.id=co.post_id"
     res7 = nil
-    assert_nothing_raised do
-      res7 = Post.where("p.#{QUOTED_TYPE} = 'Post' AND p.id=co.post_id").joins("p, comments co").select("p.id").distinct.count
-    end
+    res7 = Post.where("p.#{QUOTED_TYPE} = 'Post' AND p.id=co.post_id").joins("p, comments co").select("p.id").distinct.count
     assert_equal res6, res7
   end
 
   def test_no_limit_offset
-    assert_nothing_raised do
-      Developer.all.merge!(:offset => 2).to_a
-    end
+    Developer.all.merge!(:offset => 2).to_a
   end
 
   def test_find_last

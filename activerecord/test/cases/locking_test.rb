@@ -244,13 +244,11 @@ class OptimisticLockingTest < ActiveRecord::TestCase
   # Useful for partial updates, don't only update the lock_version if there
   # is nothing else being updated.
   def test_update_without_attributes_does_not_only_update_lock_version
-    assert_nothing_raised do
-      p1 = Person.create!(:first_name => 'anika')
-      lock_version = p1.lock_version
-      p1.save
-      p1.reload
-      assert_equal lock_version, p1.lock_version
-    end
+    p1 = Person.create!(:first_name => 'anika')
+    lock_version = p1.lock_version
+    p1.save
+    p1.reload
+    assert_equal lock_version, p1.lock_version
   end
 
   def test_polymorphic_destroy_with_dependencies_and_lock_version
@@ -376,10 +374,8 @@ unless in_memory_db?
 
     # Test typical find.
     def test_sane_find_with_lock
-      assert_nothing_raised do
-        Person.transaction do
-          Person.lock.find(1)
-        end
+      Person.transaction do
+        Person.lock.find(1)
       end
     end
 
@@ -387,23 +383,19 @@ unless in_memory_db?
     unless current_adapter?(:PostgreSQLAdapter)
       # Test locked eager find.
       def test_eager_find_with_lock
-        assert_nothing_raised do
-          Person.transaction do
-            Person.includes(:readers).lock.find(1)
-          end
+        Person.transaction do
+          Person.includes(:readers).lock.find(1)
         end
       end
     end
 
     # Locking a record reloads it.
     def test_sane_lock_method
-      assert_nothing_raised do
-        Person.transaction do
-          person = Person.find 1
-          old, person.first_name = person.first_name, 'fooman'
-          person.lock!
-          assert_equal old, person.first_name
-        end
+      Person.transaction do
+        person = Person.find 1
+        old, person.first_name = person.first_name, 'fooman'
+        person.lock!
+        assert_equal old, person.first_name
       end
     end
 

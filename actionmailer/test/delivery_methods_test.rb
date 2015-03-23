@@ -215,9 +215,7 @@ class MailDeliveryTest < ActiveSupport::TestCase
     begin
       DeliveryMailer.delivery_method = BogusDelivery
       DeliveryMailer.raise_delivery_errors = false
-      assert_nothing_raised do
-        DeliveryMailer.welcome.deliver_now
-      end
+      DeliveryMailer.welcome.deliver_now
     ensure
       DeliveryMailer.raise_delivery_errors = old_raise_delivery_errors
     end

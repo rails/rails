@@ -280,9 +280,7 @@ class ErrorsTest < ActiveModel::TestCase
   test "generate_message works without i18n_scope" do
     person = Person.new
     assert !Person.respond_to?(:i18n_scope)
-    assert_nothing_raised {
-      person.errors.generate_message(:name, :blank)
-    }
+    person.errors.generate_message(:name, :blank)
   end
 
   test "add_on_empty generates message" do

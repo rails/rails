@@ -1044,7 +1044,7 @@ class RenderTest < ActionController::TestCase
   end
 
   def test_render_to_string_that_throws_caught_exception_doesnt_break_assigns
-    assert_nothing_raised { get :render_to_string_with_caught_exception }
+    get :render_to_string_with_caught_exception
     assert_equal "i'm before the render", assigns(:before)
     assert_equal "i'm after the render", assigns(:after)
   end

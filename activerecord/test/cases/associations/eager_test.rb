@@ -248,7 +248,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
     sponsor = sponsors(:moustache_club_sponsor_for_groucho)
     sponsor.update!(sponsorable_type: '', sponsorable_id: nil) # sponsorable_type column might be declared NOT NULL
     sponsor = assert_queries(1) do
-      assert_nothing_raised { Sponsor.all.merge!(:includes => :sponsorable).find(sponsor.id) }
+      Sponsor.all.merge!(:includes => :sponsorable).find(sponsor.id)
     end
     assert_no_queries do
       assert_equal nil, sponsor.sponsorable
@@ -261,9 +261,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_loading_from_an_association_that_has_a_hash_of_conditions
-    assert_nothing_raised do
-      Author.all.merge!(:includes => :hello_posts_with_hash_conditions).to_a
-    end
+    Author.all.merge!(:includes => :hello_posts_with_hash_conditions).to_a
     assert !Author.all.merge!(:includes => :hello_posts_with_hash_conditions).find(authors(:david).id).hello_posts.empty?
   end
 
@@ -273,17 +271,12 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   # Regression test for 21c75e5
   def test_nested_loading_does_not_raise_exception_when_association_does_not_exist
-    assert_nothing_raised do
-      Post.all.merge!(:includes => {:author => :author_addresss}).find(posts(:authorless).id)
-    end
+    Post.all.merge!(:includes => {:author => :author_addresss}).find(posts(:authorless).id)
   end
 
   def test_three_level_nested_preloading_does_not_raise_exception_when_association_does_not_exist
     post_id = Comment.where(author_id: nil).where.not(post_id: nil).first.post_id
-
-    assert_nothing_raised do
-      Post.preload(:comments => [{:author => :essays}]).find(post_id)
-    end
+    Post.preload(:comments => [{:author => :essays}]).find(post_id)
   end
 
   def test_nested_loading_through_has_one_association
@@ -374,16 +367,12 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_association_loading_with_belongs_to_and_conditions_string_with_unquoted_table_name
-    assert_nothing_raised do
-      Comment.includes(:post).references(:posts).where('posts.id = ?', 4)
-    end
+    Comment.includes(:post).references(:posts).where('posts.id = ?', 4)
   end
 
   def test_eager_association_loading_with_belongs_to_and_conditions_hash
     comments = []
-    assert_nothing_raised do
-      comments = Comment.all.merge!(:includes => :post, :where => {:posts => {:id => 4}}, :limit => 3, :order => 'comments.id').to_a
-    end
+    comments = Comment.all.merge!(:includes => :post, :where => {:posts => {:id => 4}}, :limit => 3, :order => 'comments.id').to_a    end
     assert_equal 3, comments.length
     assert_equal [5,6,7], comments.collect(&:id)
     assert_no_queries do
@@ -393,22 +382,16 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   def test_eager_association_loading_with_belongs_to_and_conditions_string_with_quoted_table_name
     quoted_posts_id= Comment.connection.quote_table_name('posts') + '.' + Comment.connection.quote_column_name('id')
-    assert_nothing_raised do
-      Comment.includes(:post).references(:posts).where("#{quoted_posts_id} = ?", 4)
-    end
+    Comment.includes(:post).references(:posts).where("#{quoted_posts_id} = ?", 4)
   end
 
   def test_eager_association_loading_with_belongs_to_and_order_string_with_unquoted_table_name
-    assert_nothing_raised do
-      Comment.all.merge!(:includes => :post, :order => 'posts.id').to_a
-    end
+    Comment.all.merge!(:includes => :post, :order => 'posts.id').to_a
   end
 
   def test_eager_association_loading_with_belongs_to_and_order_string_with_quoted_table_name
     quoted_posts_id= Comment.connection.quote_table_name('posts') + '.' + Comment.connection.quote_column_name('id')
-    assert_nothing_raised do
-      Comment.includes(:post).references(:posts).order(quoted_posts_id)
-    end
+    Comment.includes(:post).references(:posts).order(quoted_posts_id)
   end
 
   def test_eager_association_loading_with_belongs_to_and_limit_and_multiple_associations
@@ -539,9 +522,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_with_has_many_through_join_model_ignores_default_includes
-    assert_nothing_raised do
-      authors(:david).comments_on_posts_with_default_include.to_a
-    end
+    authors(:david).comments_on_posts_with_default_include.to_a
   end
 
   def test_eager_with_has_many_and_limit
@@ -888,7 +869,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
     end
   end
   def test_eager_with_valid_association_as_string_not_symbol
-    assert_nothing_raised { Post.all.merge!(:includes => 'comments').to_a }
+    Post.all.merge!(:includes => 'comments').to_a
   end
 
   def test_eager_with_floating_point_numbers
@@ -909,9 +890,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_association_with_scope_with_joins
-    assert_nothing_raised do
-      Post.includes(:very_special_comment_with_post_with_joins).to_a
-    end
+    Post.includes(:very_special_comment_with_post_with_joins).to_a
   end
 
   def test_preconfigured_includes_with_has_many
@@ -1175,15 +1154,11 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_join_eager_with_empty_order_should_generate_valid_sql
-    assert_nothing_raised(ActiveRecord::StatementInvalid) do
-      Post.includes(:comments).order("").where(:comments => {:body => "Thank you for the welcome"}).first
-    end
+    Post.includes(:comments).order("").where(:comments => {:body => "Thank you for the welcome"}).first
   end
 
   def test_join_eager_with_nil_order_should_generate_valid_sql
-    assert_nothing_raised(ActiveRecord::StatementInvalid) do
-      Post.includes(:comments).order(nil).where(:comments => {:body => "Thank you for the welcome"}).first
-    end
+    Post.includes(:comments).order(nil).where(:comments => {:body => "Thank you for the welcome"}).first
   end
 
   def test_deep_including_through_habtm
@@ -1244,10 +1219,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   test "preloading with a polymorphic association and using the existential predicate but also using a select" do
     assert_equal authors(:david), authors(:david).essays.includes(:writer).first.writer
-
-    assert_nothing_raised do
-      authors(:david).essays.includes(:writer).select(:name).any?
-    end
+    authors(:david).essays.includes(:writer).select(:name).any?
   end
 
   test "preloading the same association twice works" do
@@ -1261,10 +1233,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   test "preloading with a polymorphic association and using the existential predicate" do
     assert_equal authors(:david), authors(:david).essays.includes(:writer).first.writer
-
-    assert_nothing_raised do
-      authors(:david).essays.includes(:writer).any?
-    end
+    authors(:david).essays.includes(:writer).any?
   end
 
   test "preloading associations with string joins and order references" do

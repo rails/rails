@@ -9,52 +9,38 @@ require 'models/person'
 
 class EnqueuedJobsTest < ActiveJob::TestCase
   def test_assert_enqueued_jobs
-    assert_nothing_raised do
-      assert_enqueued_jobs 1 do
-        HelloJob.perform_later('david')
-      end
+    assert_enqueued_jobs 1 do
+      HelloJob.perform_later('david')
     end
   end
 
   def test_repeated_enqueued_jobs_calls
-    assert_nothing_raised do
-      assert_enqueued_jobs 1 do
-        HelloJob.perform_later('abdelkader')
-      end
+    assert_enqueued_jobs 1 do
+      HelloJob.perform_later('abdelkader')
     end
 
-    assert_nothing_raised do
-      assert_enqueued_jobs 2 do
-        HelloJob.perform_later('sean')
-        HelloJob.perform_later('yves')
-      end
+    assert_enqueued_jobs 2 do
+      HelloJob.perform_later('sean')
+      HelloJob.perform_later('yves')
     end
   end
 
   def test_assert_enqueued_jobs_with_no_block
-    assert_nothing_raised do
-      HelloJob.perform_later('rafael')
-      assert_enqueued_jobs 1
-    end
+    HelloJob.perform_later('rafael')
+    assert_enqueued_jobs 1
 
-    assert_nothing_raised do
-      HelloJob.perform_later('aaron')
-      HelloJob.perform_later('matthew')
-      assert_enqueued_jobs 3
-    end
+    HelloJob.perform_later('aaron')
+    HelloJob.perform_later('matthew')
+    assert_enqueued_jobs 3
   end
 
   def test_assert_no_enqueued_jobs_with_no_block
-    assert_nothing_raised do
-      assert_no_enqueued_jobs
-    end
+    assert_no_enqueued_jobs
   end
 
   def test_assert_no_enqueued_jobs
-    assert_nothing_raised do
-      assert_no_enqueued_jobs do
-        HelloJob.perform_now
-      end
+    assert_no_enqueued_jobs do
+      HelloJob.perform_now
     end
   end
 
@@ -90,11 +76,9 @@ class EnqueuedJobsTest < ActiveJob::TestCase
   end
 
   def test_assert_enqueued_jobs_with_only_option
-    assert_nothing_raised do
-      assert_enqueued_jobs 1, only: HelloJob do
-        HelloJob.perform_later('jeremy')
-        LoggingJob.perform_later
-      end
+    assert_enqueued_jobs 1, only: HelloJob do
+      HelloJob.perform_later('jeremy')
+      LoggingJob.perform_later
     end
   end
 
@@ -130,10 +114,8 @@ class EnqueuedJobsTest < ActiveJob::TestCase
   end
 
   def test_assert_no_enqueued_jobs_with_only_option
-    assert_nothing_raised do
-      assert_no_enqueued_jobs only: HelloJob do
-        LoggingJob.perform_later
-      end
+    assert_no_enqueued_jobs only: HelloJob do
+      LoggingJob.perform_later
     end
   end
 
@@ -208,56 +190,42 @@ class PerformedJobsTest < ActiveJob::TestCase
   end
 
   def test_assert_performed_jobs
-    assert_nothing_raised do
-      assert_performed_jobs 1 do
-        HelloJob.perform_later('david')
-      end
+    assert_performed_jobs 1 do
+      HelloJob.perform_later('david')
     end
   end
 
   def test_repeated_performed_jobs_calls
-    assert_nothing_raised do
-      assert_performed_jobs 1 do
-        HelloJob.perform_later('abdelkader')
-      end
+    assert_performed_jobs 1 do
+      HelloJob.perform_later('abdelkader')
     end
 
-    assert_nothing_raised do
-      assert_performed_jobs 2 do
-        HelloJob.perform_later('sean')
-        HelloJob.perform_later('yves')
-      end
+    assert_performed_jobs 2 do
+      HelloJob.perform_later('sean')
+      HelloJob.perform_later('yves')
     end
   end
 
   def test_assert_performed_jobs_with_no_block
-    assert_nothing_raised do
-      perform_enqueued_jobs do
-        HelloJob.perform_later('rafael')
-      end
-      assert_performed_jobs 1
+    perform_enqueued_jobs do
+      HelloJob.perform_later('rafael')
     end
+    assert_performed_jobs 1
 
-    assert_nothing_raised do
-      perform_enqueued_jobs do
-        HelloJob.perform_later('aaron')
-        HelloJob.perform_later('matthew')
-        assert_performed_jobs 3
-      end
+    perform_enqueued_jobs do
+      HelloJob.perform_later('aaron')
+      HelloJob.perform_later('matthew')
+      assert_performed_jobs 3
     end
   end
 
   def test_assert_no_performed_jobs_with_no_block
-    assert_nothing_raised do
-      assert_no_performed_jobs
-    end
+    assert_no_performed_jobs
   end
 
   def test_assert_no_performed_jobs
-    assert_nothing_raised do
-      assert_no_performed_jobs do
-        # empty block won't perform jobs
-      end
+    assert_no_performed_jobs do
+      # empty block won't perform jobs
     end
   end
 
@@ -293,21 +261,17 @@ class PerformedJobsTest < ActiveJob::TestCase
   end
 
   def test_assert_performed_jobs_with_only_option
-    assert_nothing_raised do
-      assert_performed_jobs 1, only: HelloJob do
-        HelloJob.perform_later('jeremy')
-        LoggingJob.perform_later
-      end
+    assert_performed_jobs 1, only: HelloJob do
+      HelloJob.perform_later('jeremy')
+      LoggingJob.perform_later
     end
   end
 
   def test_assert_performed_jobs_with_only_option_as_array
-    assert_nothing_raised do
-      assert_performed_jobs 2, only: [HelloJob, LoggingJob] do
-        HelloJob.perform_later('jeremy')
-        LoggingJob.perform_later('stewie')
-        RescueJob.perform_later('david')
-      end
+    assert_performed_jobs 2, only: [HelloJob, LoggingJob] do
+      HelloJob.perform_later('jeremy')
+      LoggingJob.perform_later('stewie')
+      RescueJob.perform_later('david')
     end
   end
 
@@ -343,18 +307,14 @@ class PerformedJobsTest < ActiveJob::TestCase
   end
 
   def test_assert_no_performed_jobs_with_only_option
-    assert_nothing_raised do
-      assert_no_performed_jobs only: HelloJob do
-        LoggingJob.perform_later
-      end
+    assert_no_performed_jobs only: HelloJob do
+      LoggingJob.perform_later
     end
   end
 
   def test_assert_no_performed_jobs_with_only_option_as_array
-    assert_nothing_raised do
-      assert_no_performed_jobs only: [HelloJob, RescueJob] do
-        LoggingJob.perform_later
-      end
+    assert_no_performed_jobs only: [HelloJob, RescueJob] do
+      LoggingJob.perform_later
     end
   end
 

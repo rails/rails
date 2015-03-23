@@ -278,9 +278,7 @@ class InflectorTest < ActiveSupport::TestCase
   end
 
   def test_classify_with_symbol
-    assert_nothing_raised do
-      assert_equal 'FooBar', ActiveSupport::Inflector.classify(:foo_bars)
-    end
+    assert_equal 'FooBar', ActiveSupport::Inflector.classify(:foo_bars)
   end
 
   def test_classify_with_leading_schema_name

@@ -382,7 +382,7 @@ module CacheStoreBehavior
   def test_original_store_objects_should_not_be_immutable
     bar = 'bar'
     @cache.write('foo', bar)
-    assert_nothing_raised { bar.gsub!(/.*/, 'baz') }
+    bar.gsub!(/.*/, 'baz')
   end
 
   def test_expires_in
@@ -741,18 +741,14 @@ class FileStoreTest < ActiveSupport::TestCase
   # If nothing has been stored in the cache, there is a chance the cache directory does not yet exist
   # Ensure delete_matched gracefully handles this case
   def test_delete_matched_when_cache_directory_does_not_exist
-    assert_nothing_raised(Exception) do
-      ActiveSupport::Cache::FileStore.new('/test/cache/directory').delete_matched(/does_not_exist/)
-    end
+    ActiveSupport::Cache::FileStore.new('/test/cache/directory').delete_matched(/does_not_exist/)
   end
 
   def test_delete_does_not_delete_empty_parent_dir
     sub_cache_dir = File.join(cache_dir, 'subdir/')
     sub_cache_store = ActiveSupport::Cache::FileStore.new(sub_cache_dir)
-    assert_nothing_raised(Exception) do
-      assert sub_cache_store.write('foo', 'bar')
-      assert sub_cache_store.delete('foo')
-    end
+    assert sub_cache_store.write('foo', 'bar')
+    assert sub_cache_store.delete('foo')
     assert File.exist?(cache_dir), "Parent of top level cache dir was deleted!"
     assert File.exist?(sub_cache_dir), "Top level cache dir was deleted!"
     assert Dir.entries(sub_cache_dir).reject {|f| ActiveSupport::Cache::FileStore::EXCLUDED_DIRS.include?(f)}.empty?

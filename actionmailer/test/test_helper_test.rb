@@ -48,46 +48,34 @@ class TestHelperMailerTest < ActionMailer::TestCase
   end
 
   def test_assert_emails
-    assert_nothing_raised do
-      assert_emails 1 do
-        TestHelperMailer.test.deliver_now
-      end
+    assert_emails 1 do
+      TestHelperMailer.test.deliver_now
     end
   end
 
   def test_repeated_assert_emails_calls
-    assert_nothing_raised do
-      assert_emails 1 do
-        TestHelperMailer.test.deliver_now
-      end
+    assert_emails 1 do
+      TestHelperMailer.test.deliver_now
     end
 
-    assert_nothing_raised do
-      assert_emails 2 do
-        TestHelperMailer.test.deliver_now
-        TestHelperMailer.test.deliver_now
-      end
+    assert_emails 2 do
+      TestHelperMailer.test.deliver_now
+      TestHelperMailer.test.deliver_now
     end
   end
 
   def test_assert_emails_with_no_block
-    assert_nothing_raised do
-      TestHelperMailer.test.deliver_now
-      assert_emails 1
-    end
+    TestHelperMailer.test.deliver_now
+    assert_emails 1
 
-    assert_nothing_raised do
-      TestHelperMailer.test.deliver_now
-      TestHelperMailer.test.deliver_now
-      assert_emails 3
-    end
+    TestHelperMailer.test.deliver_now
+    TestHelperMailer.test.deliver_now
+    assert_emails 3
   end
 
   def test_assert_no_emails
-    assert_nothing_raised do
-      assert_no_emails do
-        TestHelperMailer.test
-      end
+    assert_no_emails do
+      TestHelperMailer.test
     end
   end
 
@@ -123,11 +111,9 @@ class TestHelperMailerTest < ActionMailer::TestCase
   end
 
   def test_assert_enqueued_emails
-    assert_nothing_raised do
-      assert_enqueued_emails 1 do
-        silence_stream($stdout) do
-          TestHelperMailer.test.deliver_later
-        end
+    assert_enqueued_emails 1 do
+      silence_stream($stdout) do
+        TestHelperMailer.test.deliver_later
       end
     end
   end
@@ -158,10 +144,8 @@ class TestHelperMailerTest < ActionMailer::TestCase
   end
 
   def test_assert_no_enqueued_emails
-    assert_nothing_raised do
-      assert_no_enqueued_emails do
-        TestHelperMailer.test.deliver_now
-      end
+    assert_no_enqueued_emails do
+      TestHelperMailer.test.deliver_now
     end
   end
 

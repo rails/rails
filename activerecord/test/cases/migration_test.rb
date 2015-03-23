@@ -426,11 +426,9 @@ class MigrationTest < ActiveRecord::TestCase
   end
 
   def test_create_table_with_binary_column
-    assert_nothing_raised {
-      Person.connection.create_table :binary_testings do |t|
-        t.column "data", :binary, :null => false
-      end
-    }
+    Person.connection.create_table :binary_testings do |t|
+      t.column "data", :binary, :null => false
+    end
 
     columns = Person.connection.columns(:binary_testings)
     data_column = columns.detect { |c| c.name == "data" }
@@ -472,30 +470,26 @@ class MigrationTest < ActiveRecord::TestCase
     def test_create_table_with_custom_sequence_name
       # table name is 29 chars, the standard sequence name will
       # be 33 chars and should be shortened
-      assert_nothing_raised do
-        begin
-          Person.connection.create_table :table_with_name_thats_just_ok do |t|
-            t.column :foo, :string, :null => false
-          end
-        ensure
-          Person.connection.drop_table :table_with_name_thats_just_ok rescue nil
+      begin
+        Person.connection.create_table :table_with_name_thats_just_ok do |t|
+          t.column :foo, :string, :null => false
         end
+      ensure
+        Person.connection.drop_table :table_with_name_thats_just_ok rescue nil
       end
 
       # should be all good w/ a custom sequence name
-      assert_nothing_raised do
-        begin
-          Person.connection.create_table :table_with_name_thats_just_ok,
-            :sequence_name => 'suitably_short_seq' do |t|
-            t.column :foo, :string, :null => false
-          end
-
-          Person.connection.execute("select suitably_short_seq.nextval from dual")
-
-        ensure
-          Person.connection.drop_table :table_with_name_thats_just_ok,
-            :sequence_name => 'suitably_short_seq' rescue nil
+      begin
+        Person.connection.create_table :table_with_name_thats_just_ok,
+          :sequence_name => 'suitably_short_seq' do |t|
+          t.column :foo, :string, :null => false
         end
+
+        Person.connection.execute("select suitably_short_seq.nextval from dual")
+
+      ensure
+        Person.connection.drop_table :table_with_name_thats_just_ok,
+          :sequence_name => 'suitably_short_seq' rescue nil
       end
 
       # confirm the custom sequence got dropped
@@ -546,11 +540,8 @@ class ReservedWordsMigrationTest < ActiveRecord::TestCase
       t.integer :value
     end
 
-    assert_nothing_raised do
-      connection.add_index :values, :value
-      connection.remove_index :values, :column => :value
-    end
-
+    connection.add_index :values, :value
+    connection.remove_index :values, :column => :value
     connection.drop_table :values rescue nil
   end
 end
@@ -562,11 +553,8 @@ class ExplicitlyNamedIndexMigrationTest < ActiveRecord::TestCase
       t.integer :value
     end
 
-    assert_nothing_raised ArgumentError do
-      connection.add_index :values, :value, name: 'a_different_name'
-      connection.remove_index :values, column: :value, name: 'a_different_name'
-    end
-
+    connection.add_index :values, :value, name: 'a_different_name'
+    connection.remove_index :values, column: :value, name: 'a_different_name'
     connection.drop_table :values rescue nil
   end
 end
@@ -922,7 +910,7 @@ class CopyMigrationsTest < ActiveRecord::TestCase
   def test_check_pending_with_stdlib_logger
     old, ActiveRecord::Base.logger = ActiveRecord::Base.logger, ::Logger.new($stdout)
     quietly do
-      assert_nothing_raised { ActiveRecord::Migration::CheckPending.new(Proc.new {}).call({}) }
+      ActiveRecord::Migration::CheckPending.new(Proc.new {}).call({})
     end
   ensure
     ActiveRecord::Base.logger = old

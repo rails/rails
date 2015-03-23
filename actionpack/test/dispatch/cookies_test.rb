@@ -341,7 +341,7 @@ class CookiesTest < ActionController::TestCase
   end
 
   def test_setting_test_cookie
-    assert_nothing_raised { get :access_frozen_cookies }
+    get :access_frozen_cookies
   end
 
   def test_expiring_cookie
@@ -568,9 +568,7 @@ class CookiesTest < ActionController::TestCase
       sha1_verifier.verify(cookies[:foo])
     end
 
-    assert_nothing_raised do
-      sha256_verifier.verify(cookies[:foo])
-    end
+    sha256_verifier.verify(cookies[:foo])
   end
 
   def test_encrypted_cookie_using_hybrid_serializer_can_migrate_marshal_dumped_value_to_json
@@ -645,10 +643,8 @@ class CookiesTest < ActionController::TestCase
   end
 
   def test_tampered_cookies
-    assert_nothing_raised do
-      get :tampered_cookies
-      assert_response :success
-    end
+    get :tampered_cookies
+    assert_response :success
   end
 
   def test_raises_argument_error_if_missing_secret

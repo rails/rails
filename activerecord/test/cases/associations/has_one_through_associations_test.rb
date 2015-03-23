@@ -224,17 +224,13 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     @club = @member.club
     assert_not_nil @club.sponsored_member
 
-    assert_nothing_raised do
-      Club.find(@club.id).save!
-      Club.all.merge!(:includes => :sponsored_member).find(@club.id).save!
-    end
+    Club.find(@club.id).save!
+    Club.all.merge!(:includes => :sponsored_member).find(@club.id).save!
 
     @club.sponsor.destroy
 
-    assert_nothing_raised do
-      Club.find(@club.id).save!
-      Club.all.merge!(:includes => :sponsored_member).find(@club.id).save!
-    end
+    Club.find(@club.id).save!
+    Club.all.merge!(:includes => :sponsored_member).find(@club.id).save!
   end
 
   def test_through_belongs_to_after_destroy
@@ -256,9 +252,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_value_is_properly_quoted
     minivan = Minivan.find('m1')
-    assert_nothing_raised do
-      minivan.dashboard
-    end
+    minivan.dashboard
   end
 
   def test_has_one_through_polymorphic_with_primary_key_option

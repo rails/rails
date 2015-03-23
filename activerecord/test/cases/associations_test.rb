@@ -62,8 +62,8 @@ class AssociationsTest < ActiveRecord::TestCase
 
 
   def test_include_with_order_works
-    assert_nothing_raised {Account.all.merge!(:order => 'id', :includes => :firm).first}
-    assert_nothing_raised {Account.all.merge!(:order => :id, :includes => :firm).first}
+    Account.all.merge!(:order => 'id', :includes => :firm).first
+    Account.all.merge!(:order => :id, :includes => :firm).first
   end
 
   def test_bad_collection_keys
@@ -205,9 +205,7 @@ class AssociationProxyTest < ActiveRecord::TestCase
 
   def test_reload_returns_association
     david = developers(:david)
-    assert_nothing_raised do
-      assert_equal david.projects, david.projects.reload.reload
-    end
+    assert_equal david.projects, david.projects.reload.reload
   end
 
   def test_proxy_association_accessor

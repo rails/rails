@@ -256,9 +256,7 @@ module ActiveRecord
       end
 
       def test_table_alias_length
-        assert_nothing_raised do
-          @connection.table_alias_length
-        end
+        @connection.table_alias_length
       end
 
       def test_exec_no_binds

@@ -689,15 +689,11 @@ class HashExtTest < ActiveSupport::TestCase
   end
 
   def test_assert_valid_keys
-    assert_nothing_raised do
-      { :failure => "stuff", :funny => "business" }.assert_valid_keys([ :failure, :funny ])
-      { :failure => "stuff", :funny => "business" }.assert_valid_keys(:failure, :funny)
-    end
+    { :failure => "stuff", :funny => "business" }.assert_valid_keys([ :failure, :funny ])
+    { :failure => "stuff", :funny => "business" }.assert_valid_keys(:failure, :funny)
     # not all valid keys are required to be present
-    assert_nothing_raised do
-      { :failure => "stuff", :funny => "business" }.assert_valid_keys([ :failure, :funny, :sunny ])
-      { :failure => "stuff", :funny => "business" }.assert_valid_keys(:failure, :funny, :sunny)
-    end
+    { :failure => "stuff", :funny => "business" }.assert_valid_keys([ :failure, :funny, :sunny ])
+    { :failure => "stuff", :funny => "business" }.assert_valid_keys(:failure, :funny, :sunny)
 
     exception = assert_raise ArgumentError do
       { :failore => "stuff", :funny => "business" }.assert_valid_keys([ :failure, :funny ])
@@ -956,7 +952,7 @@ class HashExtTest < ActiveSupport::TestCase
   def test_except_with_original_frozen
     original = { :a => 'x', :b => 'y' }
     original.freeze
-    assert_nothing_raised { original.except(:a) }
+    original.except(:a)
 
     assert_raise(RuntimeError) { original.except!(:a) }
   end
@@ -1579,16 +1575,11 @@ class HashToXmlTest < ActiveSupport::TestCase
   def test_kernel_method_names_to_xml
     hash     = { :throw => { :ball => 'red' } }
     expected = '<person><throw><ball>red</ball></throw></person>'
-
-    assert_nothing_raised do
-      assert_equal expected, hash.to_xml(@xml_options)
-    end
+    assert_equal expected, hash.to_xml(@xml_options)
   end
 
   def test_empty_string_works_for_typecast_xml_value
-    assert_nothing_raised do
-      ActiveSupport::XMLConverter.new("").to_h
-    end
+    ActiveSupport::XMLConverter.new("").to_h
   end
 
   def test_escaping_to_xml

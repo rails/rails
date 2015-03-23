@@ -1073,10 +1073,8 @@ class RouteSetTest < ActiveSupport::TestCase
   end
 
   def test_route_constraints_on_request_object_with_anchors_are_valid
-    assert_nothing_raised do
-      set.draw do
-        get 'page/:id' => 'pages#show', :constraints => { :host => /^foo$/ }
-      end
+    set.draw do
+      get 'page/:id' => 'pages#show', :constraints => { :host => /^foo$/ }
     end
   end
 
@@ -1109,10 +1107,8 @@ class RouteSetTest < ActiveSupport::TestCase
   end
 
   def test_route_constraints_with_options_method_condition_is_valid
-    assert_nothing_raised do
-      set.draw do
-        match 'valid/route' => 'pages#show', :via => :options
-      end
+    set.draw do
+      match 'valid/route' => 'pages#show', :via => :options
     end
   end
 
@@ -1464,21 +1460,17 @@ class RouteSetTest < ActiveSupport::TestCase
   end
 
   def test_setting_root_in_namespace_using_symbol
-    assert_nothing_raised do
-      set.draw do
-        namespace :admin do
-          root :to => "home#index"
-        end
+    set.draw do
+      namespace :admin do
+        root :to => "home#index"
       end
     end
   end
 
   def test_setting_root_in_namespace_using_string
-    assert_nothing_raised do
-      set.draw do
-        namespace 'admin' do
-          root :to => "home#index"
-        end
+    set.draw do
+      namespace 'admin' do
+        root :to => "home#index"
       end
     end
   end
@@ -1493,22 +1485,19 @@ class RouteSetTest < ActiveSupport::TestCase
   end
 
   def test_route_constraints_with_supported_options_must_not_error
-    assert_nothing_raised do
-      set.draw do
-        get 'page/:name' => 'pages#show',
-          :constraints => { :name => /(david|jamis)/i }
-      end
+    set.draw do
+      get 'page/:name' => 'pages#show',
+        :constraints => { :name => /(david|jamis)/i }
     end
-    assert_nothing_raised do
-      set.draw do
-        get 'page/:name' => 'pages#show',
-          :constraints => { :name => / # Desperately overcommented regexp
-                                      ( #Either
-                                       david #The Creator
-                                      | #Or
-                                        jamis #The Deployer
-                                      )/x }
-      end
+
+    set.draw do
+      get 'page/:name' => 'pages#show',
+        :constraints => { :name => / # Desperately overcommented regexp
+                                    ( #Either
+                                     david #The Creator
+                                    | #Or
+                                      jamis #The Deployer
+                                    )/x }
     end
   end
 

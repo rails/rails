@@ -75,7 +75,7 @@ class WebServiceTest < ActionDispatch::IntegrationTest
 
   def test_use_json_with_empty_request
     with_test_route_set do
-      assert_nothing_raised { post "/", headers: { 'CONTENT_TYPE' => 'application/json' } }
+      post "/", headers: { 'CONTENT_TYPE' => 'application/json' }
       assert_equal '', @controller.response.body
     end
   end

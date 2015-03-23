@@ -62,20 +62,14 @@ class ModulesTest < ActiveRecord::TestCase
 
   def test_assign_ids
     firm = MyApplication::Business::Firm.first
-
-    assert_nothing_raised NameError, "Should be able to resolve all class constants via reflection" do
-      firm.client_ids = [MyApplication::Business::Client.first.id]
-    end
+    firm.client_ids = [MyApplication::Business::Client.first.id]
   end
 
   # An eager loading condition to force the eager loading model into the old join model.
   def test_eager_loading_in_modules
     clients = []
-
-    assert_nothing_raised NameError, "Should be able to resolve all class constants via reflection" do
-      clients << MyApplication::Business::Client.references(:accounts).merge!(:includes => {:firm => :account}, :where => 'accounts.id IS NOT NULL').find(3)
-      clients << MyApplication::Business::Client.includes(:firm => :account).find(3)
-    end
+    clients << MyApplication::Business::Client.references(:accounts).merge!(:includes => {:firm => :account}, :where => 'accounts.id IS NOT NULL').find(3)
+    clients << MyApplication::Business::Client.includes(:firm => :account).find(3)
 
     clients.each do |client|
       assert_no_queries do
@@ -154,7 +148,7 @@ class ModulesTest < ActiveRecord::TestCase
 
     collection = Shop::Collection.first
     assert !collection.products.empty?, "Collection should have products"
-    assert_nothing_raised { collection.destroy }
+    collection.destroy
   ensure
     ActiveRecord::Base.store_full_sti_class = old
   end
@@ -165,7 +159,7 @@ class ModulesTest < ActiveRecord::TestCase
 
     product = Shop::Product.first
     assert !product.variants.empty?, "Product should have variants"
-    assert_nothing_raised { product.destroy }
+    product.destroy
   ensure
     ActiveRecord::Base.store_full_sti_class = old
   end

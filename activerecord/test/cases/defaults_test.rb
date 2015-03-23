@@ -188,11 +188,9 @@ if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
 
       assert_raise(ActiveRecord::StatementInvalid) { klass.create! }
 
-      assert_nothing_raised do
-        instance = klass.create!(:omit => 1)
-        assert_equal 0, instance.zero
-        assert_equal 1, instance.omit
-      end
+      instance = klass.create!(:omit => 1)
+      assert_equal 0, instance.zero
+      assert_equal 1, instance.omit
     ensure
       klass.connection.drop_table(klass.table_name) rescue nil
     end

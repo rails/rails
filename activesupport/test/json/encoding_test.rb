@@ -205,15 +205,13 @@ class TestJSONEncoding < ActiveSupport::TestCase
   end
 
   def test_nested_hash_with_float
-    assert_nothing_raised do
-      hash = {
-        "CHI" => {
-          :display_name => "chicago",
-          :latitude => 123.234
-        }
+    hash = {
+      "CHI" => {
+        :display_name => "chicago",
+        :latitude => 123.234
       }
-      ActiveSupport::JSON.encode(hash)
-    end
+    }
+    ActiveSupport::JSON.encode(hash)
   end
 
   def test_hash_like_with_options
@@ -381,11 +379,9 @@ class TestJSONEncoding < ActiveSupport::TestCase
     json_string_and_date = ""
     json_custom = ""
 
-    assert_nothing_raised do
-      json_strings = user_email.to_json
-      json_string_and_date = user_birthday.to_json
-      json_custom = custom.to_json
-    end
+    json_strings = user_email.to_json
+    json_string_and_date = user_birthday.to_json
+    json_custom = custom.to_json
 
     assert_equal({"name" => "David",
                   "sub" => {

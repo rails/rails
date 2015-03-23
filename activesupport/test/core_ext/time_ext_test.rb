@@ -615,7 +615,7 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_xmlschema_is_available
-    assert_nothing_raised { Time.now.xmlschema }
+    Time.now.xmlschema
   end
 
   def test_today_with_time_local

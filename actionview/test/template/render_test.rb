@@ -173,7 +173,7 @@ module RenderTestCases
   end
 
   def test_render_partial_with_number
-    assert_nothing_raised { @view.render(:partial => "test/200") }
+    @view.render(:partial => "test/200")
   end
 
   def test_render_partial_with_missing_filename
@@ -186,11 +186,11 @@ module RenderTestCases
   end
 
   def test_render_partial_starting_with_a_capital
-    assert_nothing_raised { @view.render(:partial => 'test/FooBar') }
+    @view.render(:partial => 'test/FooBar')
   end
 
   def test_render_partial_with_hyphen
-    assert_nothing_raised { @view.render(:partial => "test/a-in") }
+    @view.render(:partial => "test/a-in")
   end
 
   def test_render_partial_with_invalid_option_as

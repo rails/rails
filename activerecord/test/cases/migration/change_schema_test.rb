@@ -246,7 +246,7 @@ module ActiveRecord
 
         con = connection
         connection.execute "insert into testings (#{con.quote_column_name('id')}, #{con.quote_column_name('foo')}) values (1, 'hello')"
-        assert_nothing_raised {connection.add_column :testings, :bar, :string, :null => false, :default => "default" }
+        connection.add_column :testings, :bar, :string, :null => false, :default => "default"
 
         assert_raises(ActiveRecord::StatementInvalid) do
           connection.execute "insert into testings (#{con.quote_column_name('id')}, #{con.quote_column_name('foo')}, #{con.quote_column_name('bar')}) values (2, 'hello', NULL)"
@@ -298,9 +298,9 @@ module ActiveRecord
         assert_equal false, person_klass.columns_hash["wealth"].null
         # Oracle needs primary key value from sequence
         if current_adapter?(:OracleAdapter)
-          assert_nothing_raised {person_klass.connection.execute("insert into testings (id, title) values (testings_seq.nextval, 'tester')")}
+          person_klass.connection.execute("insert into testings (id, title) values (testings_seq.nextval, 'tester')")
         else
-          assert_nothing_raised {person_klass.connection.execute("insert into testings (title) values ('tester')")}
+          person_klass.connection.execute("insert into testings (title) values ('tester')")
         end
 
         # change column default to see that column doesn't lose its not null definition
@@ -411,7 +411,7 @@ module ActiveRecord
       end
 
       def test_drop_table_if_exists_nothing_raised
-        assert_nothing_raised { connection.drop_table(:nonexistent, if_exists: true) }
+        connection.drop_table(:nonexistent, if_exists: true)
       end
 
       private

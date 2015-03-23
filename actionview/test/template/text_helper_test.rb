@@ -457,8 +457,8 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_current_cycle_safe_call
-    assert_nothing_raised { current_cycle }
-    assert_nothing_raised { current_cycle("colors") }
+    current_cycle
+    current_cycle("colors")
   end
 
   def test_current_cycle_with_more_than_two_names

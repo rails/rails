@@ -80,7 +80,7 @@ class DurationTest < ActiveSupport::TestCase
   end
 
   def test_minus_with_duration_does_not_break_subtraction_of_date_from_date
-    assert_nothing_raised { Date.today - Date.today }
+    Date.today - Date.today
   end
 
   def test_plus_with_time
@@ -181,9 +181,7 @@ class DurationTest < ActiveSupport::TestCase
 
   def test_delegation_with_block_works
     counter = 0
-    assert_nothing_raised do
-      1.minute.times {counter += 1}
-    end
+    1.minute.times {counter += 1}
     assert_equal counter, 60
   end
 

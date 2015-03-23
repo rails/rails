@@ -292,9 +292,7 @@ module ApplicationTests
 
     test 'reload_routes! is part of Rails.application API' do
       app("development")
-      assert_nothing_raised do
-        Rails.application.reload_routes!
-      end
+      Rails.application.reload_routes!
     end
 
     def test_root_path

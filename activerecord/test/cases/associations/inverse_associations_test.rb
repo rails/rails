@@ -127,17 +127,9 @@ end
 
 class InverseAssociationTests < ActiveRecord::TestCase
   def test_should_allow_for_inverse_of_options_in_associations
-    assert_nothing_raised(ArgumentError, 'ActiveRecord should allow the inverse_of options on has_many') do
-      Class.new(ActiveRecord::Base).has_many(:wheels, :inverse_of => :car)
-    end
-
-    assert_nothing_raised(ArgumentError, 'ActiveRecord should allow the inverse_of options on has_one') do
-      Class.new(ActiveRecord::Base).has_one(:engine, :inverse_of => :car)
-    end
-
-    assert_nothing_raised(ArgumentError, 'ActiveRecord should allow the inverse_of options on belongs_to') do
-      Class.new(ActiveRecord::Base).belongs_to(:car, :inverse_of => :driver)
-    end
+    Class.new(ActiveRecord::Base).has_many(:wheels, :inverse_of => :car)
+    Class.new(ActiveRecord::Base).has_one(:engine, :inverse_of => :car)
+    Class.new(ActiveRecord::Base).belongs_to(:car, :inverse_of => :driver)
   end
 
   def test_should_be_able_to_ask_a_reflection_if_it_has_an_inverse
@@ -653,7 +645,7 @@ class InversePolymorphicBelongsToTests < ActiveRecord::TestCase
 
   def test_trying_to_access_inverses_that_dont_exist_shouldnt_raise_an_error
     # Ideally this would, if only for symmetry's sake with other association types
-    assert_nothing_raised(ActiveRecord::InverseOfAssociationNotFoundError) { Face.first.horrible_polymorphic_man }
+    Face.first.horrible_polymorphic_man
   end
 
   def test_trying_to_set_polymorphic_inverses_that_dont_exist_at_all_should_raise_an_error
@@ -663,7 +655,7 @@ class InversePolymorphicBelongsToTests < ActiveRecord::TestCase
 
   def test_trying_to_set_polymorphic_inverses_that_dont_exist_on_the_instance_being_set_should_raise_an_error
     # passes because Man does have the correct inverse_of
-    assert_nothing_raised(ActiveRecord::InverseOfAssociationNotFoundError) { Face.first.polymorphic_man = Man.first }
+    Face.first.polymorphic_man = Man.first
     # fails because Interest does have the correct inverse_of
     assert_raise(ActiveRecord::InverseOfAssociationNotFoundError) { Face.first.polymorphic_man = Interest.first }
   end
@@ -675,19 +667,15 @@ class InverseMultipleHasManyInversesForSameModel < ActiveRecord::TestCase
   fixtures :men, :interests, :zines
 
   def test_that_we_can_load_associations_that_have_the_same_reciprocal_name_from_different_models
-    assert_nothing_raised(ActiveRecord::AssociationTypeMismatch) do
-      i = Interest.first
-      i.zine
-      i.man
-    end
+    i = Interest.first
+    i.zine
+    i.man
   end
 
   def test_that_we_can_create_associations_that_have_the_same_reciprocal_name_from_different_models
-    assert_nothing_raised(ActiveRecord::AssociationTypeMismatch) do
-      i = Interest.first
-      i.build_zine(:title => 'Get Some in Winter! 2008')
-      i.build_man(:name => 'Gordon')
-      i.save!
-    end
+    i = Interest.first
+    i.build_zine(:title => 'Get Some in Winter! 2008')
+    i.build_man(:name => 'Gordon')
+    i.save!
   end
 end

@@ -305,7 +305,7 @@ class UniquenessValidationTest < ActiveRecord::TestCase
       Guid.validates_uniqueness_of :key
       g = Guid.new
       g.key = "foo"
-      assert_nothing_raised { !g.valid? }
+      !g.valid?
     end
   end
 

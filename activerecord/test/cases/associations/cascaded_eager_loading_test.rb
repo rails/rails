@@ -34,18 +34,14 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
   end
 
   def test_eager_association_loading_with_hmt_does_not_table_name_collide_when_joining_associations
-    assert_nothing_raised do
-      Author.joins(:posts).eager_load(:comments).where(:posts => {:tags_count => 1}).to_a
-    end
+    Author.joins(:posts).eager_load(:comments).where(:posts => {:tags_count => 1}).to_a
     authors = Author.joins(:posts).eager_load(:comments).where(:posts => {:tags_count => 1}).to_a
     assert_equal 1, assert_no_queries { authors.size }
     assert_equal 10, assert_no_queries { authors[0].comments.size }
   end
 
   def test_eager_association_loading_grafts_stashed_associations_to_correct_parent
-    assert_nothing_raised do
-      Person.eager_load(:primary_contact => :primary_contact).where('primary_contacts_people_2.first_name = ?', 'Susan').order('people.id').to_a
-    end
+    Person.eager_load(:primary_contact => :primary_contact).where('primary_contacts_people_2.first_name = ?', 'Susan').order('people.id').to_a
     assert_equal people(:michael), Person.eager_load(:primary_contact => :primary_contact).where('primary_contacts_people_2.first_name = ?', 'Susan').order('people.id').first
   end
 
@@ -60,24 +56,20 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
 
   def test_cascaded_eager_association_loading_with_duplicated_includes
     categories = Category.includes(:categorizations).includes(:categorizations => :author).where("categorizations.id is not null").references(:categorizations)
-    assert_nothing_raised do
-      assert_equal 3, categories.count
-      assert_equal 3, categories.to_a.size
-    end
+    assert_equal 3, categories.count
+    assert_equal 3, categories.to_a.size
   end
 
   def test_cascaded_eager_association_loading_with_twice_includes_edge_cases
     categories = Category.includes(:categorizations => :author).includes(:categorizations => :post).where("posts.id is not null").references(:posts)
-    assert_nothing_raised do
-      assert_equal 3, categories.count
-      assert_equal 3, categories.to_a.size
-    end
+    assert_equal 3, categories.count
+    assert_equal 3, categories.to_a.size
   end
 
   def test_eager_association_loading_with_join_for_count
     authors = Author.joins(:special_posts).includes([:posts, :categorizations])
 
-    assert_nothing_raised { authors.count }
+    authors.count
     assert_queries(3) { authors.to_a }
   end
 

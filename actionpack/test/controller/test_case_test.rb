@@ -611,11 +611,10 @@ XML
   end
 
   def test_params_passing_with_frozen_values
-    assert_nothing_raised do
-      get :test_params, params: {
-        frozen: 'icy'.freeze, frozens: ['icy'.freeze].freeze, deepfreeze: { frozen: 'icy'.freeze }.freeze
-      }
-    end
+    get :test_params, params: {
+      frozen: 'icy'.freeze, frozens: ['icy'.freeze].freeze, deepfreeze: { frozen: 'icy'.freeze }.freeze
+    }
+
     parsed_params = eval(@response.body)
     assert_equal(
       {'controller' => 'test_case_test/test', 'action' => 'test_params',

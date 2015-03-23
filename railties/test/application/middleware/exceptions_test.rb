@@ -67,7 +67,7 @@ module ApplicationTests
           end
         end
       RUBY
-      
+
       app.config.action_dispatch.show_exceptions = true
 
       get '/foo'
@@ -84,21 +84,16 @@ module ApplicationTests
 
     test "unspecified route when action_dispatch.show_exceptions is set shows 404" do
       app.config.action_dispatch.show_exceptions = true
-
-      assert_nothing_raised(ActionController::RoutingError) do
-        get '/foo'
-        assert_match "The page you were looking for doesn't exist.", last_response.body
-      end
+      get '/foo'
+      assert_match "The page you were looking for doesn't exist.", last_response.body
     end
 
     test "unspecified route when action_dispatch.show_exceptions and consider_all_requests_local are set shows diagnostics" do
       app.config.action_dispatch.show_exceptions = true
       app.config.consider_all_requests_local = true
 
-      assert_nothing_raised(ActionController::RoutingError) do
-        get '/foo'
-        assert_match "No route matches", last_response.body
-      end
+      get '/foo'
+      assert_match "No route matches", last_response.body
     end
 
     test "displays diagnostics message when exception raised in template that contains UTF-8" do

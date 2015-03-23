@@ -217,9 +217,7 @@ module ApplicationTests
 
       use_frameworks []
 
-      assert_nothing_raised do
-        require "#{app_path}/config/application"
-      end
+      require "#{app_path}/config/application"
     end
 
     test "filter_parameters should be able to set via config.filter_parameters" do
@@ -229,9 +227,7 @@ module ApplicationTests
         }]
       RUBY
 
-      assert_nothing_raised do
-        require "#{app_path}/config/application"
-      end
+      require "#{app_path}/config/application"
     end
 
     test "filter_parameters should be able to set via config.filter_parameters in an initializer" do

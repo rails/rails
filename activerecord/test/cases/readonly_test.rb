@@ -18,11 +18,9 @@ class ReadOnlyTest < ActiveRecord::TestCase
     dev.readonly!
     assert dev.readonly?
 
-    assert_nothing_raised do
-      dev.name = 'Luscious forbidden fruit.'
-      assert !dev.save
-      dev.name = 'Forbidden.'
-    end
+    dev.name = 'Luscious forbidden fruit.'
+    assert !dev.save
+    dev.name = 'Forbidden.'
 
     e = assert_raise(ActiveRecord::ReadOnlyRecord) { dev.save  }
     assert_equal "Developer is marked as readonly", e.message

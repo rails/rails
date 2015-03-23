@@ -45,8 +45,8 @@ if ActiveRecord::Base.connection.supports_migrations?
         end
       end
 
-      assert_nothing_raised { @connection.select_all "SELECT * FROM fruits" }
-      assert_nothing_raised { @connection.select_all "SELECT * FROM schema_migrations" }
+      @connection.select_all "SELECT * FROM fruits"
+      @connection.select_all "SELECT * FROM schema_migrations"
       assert_equal 7, ActiveRecord::Migrator::current_version
     end
 
@@ -83,7 +83,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       Class.new(ActiveRecord::Schema).define(:version => 9) do
         create_table :fruits
       end
-      assert_nothing_raised { @connection.select_all "SELECT * FROM fruits" }
+      @connection.select_all "SELECT * FROM fruits"
     end
 
     def test_normalize_version

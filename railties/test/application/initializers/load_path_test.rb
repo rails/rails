@@ -33,9 +33,7 @@ module ApplicationTests
         raise "Expected Foo to be defined" unless defined?(Foo)
       RUBY
 
-      assert_nothing_raised do
-        require "#{app_path}/config/environment"
-      end
+      require "#{app_path}/config/environment"
 
       assert $:.include?("#{app_path}/lib")
     end

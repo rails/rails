@@ -61,8 +61,7 @@ class PresenceValidationTest < ActiveRecord::TestCase
 
     s = speedometer.new
     s.dashboard = dash
-
-    assert_nothing_raised { s.valid? }
+    s.valid?
   end
 
   def test_does_not_validate_presence_of_if_parent_record_is_validate_false

@@ -420,13 +420,10 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
 
   def test_assert_redirection_with_symbol
     process :redirect_to_controller_with_symbol
-    assert_nothing_raised {
-      assert_redirected_to :controller => "elsewhere", :action => "flash_me"
-    }
+    assert_redirected_to :controller => "elsewhere", :action => "flash_me"
+
     process :redirect_to_controller_with_symbol
-    assert_nothing_raised {
-      assert_redirected_to :controller => :elsewhere, :action => :flash_me
-    }
+    assert_redirected_to :controller => :elsewhere, :action => :flash_me
   end
 
   def test_redirected_to_with_nested_controller

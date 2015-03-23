@@ -46,12 +46,10 @@ class ModelTest < ActiveModel::TestCase
   end
 
   def test_initialize_with_nil_or_empty_hash_params_does_not_explode
-    assert_nothing_raised do
-      BasicModel.new()
-      BasicModel.new(nil)
-      BasicModel.new({})
-      SimpleModel.new(attr: 'value')
-    end
+    BasicModel.new()
+    BasicModel.new(nil)
+    BasicModel.new({})
+    SimpleModel.new(attr: 'value')
   end
 
   def test_persisted_is_always_false

@@ -251,10 +251,7 @@ _SQL
     def test_ranges_correctly_escape_input
       range = "-1,2]'; DROP TABLE postgresql_ranges; --".."a"
       PostgresqlRange.update_all(int8_range: range)
-
-      assert_nothing_raised do
-        PostgresqlRange.first
-      end
+      PostgresqlRange.first
     end
 
     private

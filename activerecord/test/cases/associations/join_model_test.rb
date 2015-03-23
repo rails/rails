@@ -88,7 +88,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
 
   def test_polymorphic_has_many_going_through_join_model_with_custom_select_and_joins
     assert_equal tags(:general), tag = posts(:welcome).tags.add_joins_and_select.first
-    assert_nothing_raised(NoMethodError) { tag.author_id }
+    tag.author_id
   end
 
   def test_polymorphic_has_many_going_through_join_model_with_custom_foreign_key
@@ -234,9 +234,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   def test_create_through_has_many_with_piggyback
     category = categories(:sti_test)
     ernie = category.authors_with_select.create(:name => 'Ernie')
-    assert_nothing_raised do
-      assert_equal ernie, category.authors_with_select.detect {|a| a.name == 'Ernie'}
-    end
+    assert_equal ernie, category.authors_with_select.detect {|a| a.name == 'Ernie'}
   end
 
   def test_include_has_many_through
@@ -301,7 +299,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
 
   def test_has_many_array_methods_called_by_method_missing
     assert authors(:david).categories.any? { |category| category.name == 'General' }
-    assert_nothing_raised { authors(:david).categories.sort }
+    authors(:david).categories.sort
   end
 
   def test_has_many_going_through_join_model_with_custom_foreign_key
@@ -424,10 +422,8 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_eager_belongs_to_and_has_one_not_singularized
-    assert_nothing_raised do
-      Author.all.merge!(:includes => :author_address).first
-      AuthorAddress.all.merge!(:includes => :author).first
-    end
+    Author.all.merge!(:includes => :author_address).first
+    AuthorAddress.all.merge!(:includes => :author).first
   end
 
   def test_self_referential_has_many_through
@@ -484,7 +480,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     count = posts(:thinking).tags.count
     push = Tag.create!(:name => 'pushme')
     post_thinking = posts(:thinking)
-    assert_nothing_raised { post_thinking.tags << push }
+    post_thinking.tags << push
     assert_nil( wrong = post_thinking.tags.detect { |t| t.class != Tag },
                 message = "Expected a Tag in tags collection, got #{wrong.class}.")
     assert_nil( wrong = post_thinking.taggings.detect { |t| t.class != Tagging },
@@ -500,7 +496,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     assert_equal(count + 2, post_thinking.reload.tags.size)
     assert_equal(count + 2, post_thinking.tags(true).size)
 
-    assert_nothing_raised { post_thinking.tags.concat(Tag.create!(:name => 'abc'), Tag.create!(:name => 'def')) }
+    post_thinking.tags.concat(Tag.create!(:name => 'abc'), Tag.create!(:name => 'def'))
     assert_nil( wrong = post_thinking.tags.detect { |t| t.class != Tag },
                 message = "Expected a Tag in tags collection, got #{wrong.class}.")
     assert_nil( wrong = post_thinking.taggings.detect { |t| t.class != Tagging },
@@ -509,11 +505,11 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     assert_equal(count + 4, post_thinking.tags(true).size)
 
     # Raises if the wrong reflection name is used to set the Edge belongs_to
-    assert_nothing_raised { vertices(:vertex_1).sinks << vertices(:vertex_5) }
+    vertices(:vertex_1).sinks << vertices(:vertex_5)
   end
 
   def test_add_to_join_table_with_no_id
-    assert_nothing_raised { vertices(:vertex_1).sinks << vertices(:vertex_5) }
+    vertices(:vertex_1).sinks << vertices(:vertex_5)
   end
 
   def test_has_many_through_collection_size_doesnt_load_target_if_not_loaded
@@ -546,7 +542,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     book_awdr.references << book
     assert_equal(count + 1, book_awdr.references(true).size)
 
-    assert_nothing_raised { book_awdr.references.delete(book) }
+    book_awdr.references.delete(book)
     assert_equal(count, book_awdr.references.size)
     assert_equal(count, book_awdr.references(true).size)
     assert_equal(references_before.sort, book_awdr.references.sort)
@@ -562,7 +558,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     assert_equal(count + 1, post_thinking.reload.tags(true).size)
     assert_not_equal(tags_before, post_thinking.tags.sort)
 
-    assert_nothing_raised { post_thinking.tags.delete(tag) }
+    post_thinking.tags.delete(tag)
     assert_equal(count, post_thinking.tags.size)
     assert_equal(count, post_thinking.tags(true).size)
     assert_equal(count, post_thinking.taggings(true).size)
@@ -579,7 +575,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     post_thinking.tags << doomed << doomed2
     assert_equal(count + 2, post_thinking.reload.tags(true).size)
 
-    assert_nothing_raised { post_thinking.tags.delete(doomed, doomed2, quaked) }
+    post_thinking.tags.delete(doomed, doomed2, quaked)
     assert_equal(count, post_thinking.tags.size)
     assert_equal(count, post_thinking.tags(true).size)
     assert_equal(tags_before, post_thinking.tags.sort)
@@ -610,15 +606,15 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_sum_uses_calculations
-    assert_nothing_raised { authors(:david).comments.sum(:post_id) }
+    authors(:david).comments.sum(:post_id)
   end
 
   def test_calculations_on_has_many_through_should_disambiguate_fields
-    assert_nothing_raised { authors(:david).categories.maximum(:id) }
+    authors(:david).categories.maximum(:id)
   end
 
   def test_calculations_on_has_many_through_should_not_disambiguate_fields_unless_necessary
-    assert_nothing_raised { authors(:david).categories.maximum("categories.id") }
+    authors(:david).categories.maximum("categories.id")
   end
 
   def test_has_many_through_has_many_with_sti
@@ -672,9 +668,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_preload_nil_polymorphic_belongs_to
-    assert_nothing_raised do
-      Tagging.all.merge!(:includes => :taggable, :where => ['taggable_type IS NULL']).to_a
-    end
+    Tagging.all.merge!(:includes => :taggable, :where => ['taggable_type IS NULL']).to_a
   end
 
   def test_preload_polymorphic_has_many

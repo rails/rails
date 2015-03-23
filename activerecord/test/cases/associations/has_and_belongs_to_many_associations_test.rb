@@ -745,10 +745,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
 
   def test_scoped_find_on_through_association_doesnt_return_read_only_records
     tag = Post.find(1).tags.find_by_name("General")
-
-    assert_nothing_raised do
-      tag.save!
-    end
+    tag.save!
   end
 
   def test_has_many_through_polymorphic_has_manys_works
@@ -898,8 +895,6 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_with_symbol_class_name
-    assert_nothing_raised NoMethodError do
-      DeveloperWithSymbolClassName.new
-    end
+    DeveloperWithSymbolClassName.new
   end
 end

@@ -97,9 +97,7 @@ class MimeTypeTest < ActiveSupport::TestCase
   test "custom type" do
     begin
       Mime::Type.register("image/foo", :foo)
-      assert_nothing_raised do
-        assert_equal Mime::FOO, Mime::SET.last
-      end
+      assert_equal Mime::FOO, Mime::SET.last
     ensure
       Mime::Type.unregister(:FOO)
     end

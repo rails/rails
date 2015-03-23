@@ -14,9 +14,7 @@ class PathsTest < ActiveSupport::TestCase
   end
 
   test "the paths object can be initialized with nil" do
-    assert_nothing_raised do
-      Rails::Paths::Root.new(nil)
-    end
+    Rails::Paths::Root.new(nil)
   end
 
   test "a paths object initialized with nil can be updated" do

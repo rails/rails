@@ -125,17 +125,17 @@ class HelperTest < ActiveSupport::TestCase
 
   def test_helper
     assert_equal expected_helper_methods, missing_methods
-    assert_nothing_raised { @controller_class.helper TestHelper }
+    @controller_class.helper TestHelper
     assert_equal [], missing_methods
   end
 
   def test_helper_method
-    assert_nothing_raised { @controller_class.helper_method :delegate_method }
+    @controller_class.helper_method :delegate_method
     assert master_helper_methods.include?(:delegate_method)
   end
 
   def test_helper_attr
-    assert_nothing_raised { @controller_class.helper_attr :delegate_attr }
+    @controller_class.helper_attr :delegate_attr
     assert master_helper_methods.include?(:delegate_attr)
     assert master_helper_methods.include?(:delegate_attr=)
   end
@@ -170,15 +170,11 @@ class HelperTest < ActiveSupport::TestCase
   end
 
   def test_base_helper_methods_after_clear_helpers
-    assert_nothing_raised do
-      call_controller(JustMeController, "flash")
-    end
+    call_controller(JustMeController, "flash")
   end
 
   def test_lib_helper_methods_after_clear_helpers
-    assert_nothing_raised do
-      call_controller(JustMeController, "lib")
-    end
+    call_controller(JustMeController, "lib")
   end
 
   def test_all_helpers

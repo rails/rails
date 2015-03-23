@@ -569,9 +569,7 @@ class DirtyTest < ActiveRecord::TestCase
       ActiveRecord::Base.connection.create_table :testings do |t|
         t.string :field
       end
-      assert_nothing_raised do
-        Testings.new.attributes
-      end
+      Testings.new.attributes
     ensure
       ActiveRecord::Base.connection.drop_table :testings rescue nil
     end
