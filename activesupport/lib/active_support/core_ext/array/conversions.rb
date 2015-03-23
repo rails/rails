@@ -74,7 +74,7 @@ class Array
     when 0
       ''
     when 1
-      self[0].to_s.dup
+      "#{self[0]}"
     when 2
       "#{self[0]}#{options[:two_words_connector]}#{self[1]}"
     else
