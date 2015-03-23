@@ -1,6 +1,17 @@
 require 'sidekiq/cli'
 require 'sidekiq/api'
 
+module Sidekiq
+  class CLI
+    def boot_system_with_rescue
+      boot_system_without_rescue
+    rescue => e
+      raise unless /Application has been already initialized./ =~ e.message
+    end
+    alias_method_chain :boot_system, :rescue
+  end
+end
+
 module SidekiqJobsManager
 
   def setup
