@@ -1,5 +1,6 @@
 require 'helper'
 require 'jobs/logging_job'
+require 'jobs/hello_job'
 require 'active_support/core_ext/numeric/time'
 
 class QueuingTest < ActiveSupport::TestCase
@@ -20,6 +21,18 @@ class QueuingTest < ActiveSupport::TestCase
       assert_not job_executed
     ensure
       TestJob.queue_name = old_queue
+    end
+  end
+
+  test 'should supply a wrapped class name to Sidekiq' do
+    skip unless adapter_is?(:sidekiq)
+    require 'sidekiq/testing'
+
+    Sidekiq::Testing.fake! do
+      ::HelloJob.perform_later
+      hash = ActiveJob::QueueAdapters::SidekiqAdapter::JobWrapper.jobs.first
+      assert_equal "ActiveJob::QueueAdapters::SidekiqAdapter::JobWrapper", hash['class']
+      assert_equal "HelloJob", hash['wrapped']
     end
   end
 
