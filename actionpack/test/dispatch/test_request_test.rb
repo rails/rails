@@ -40,10 +40,8 @@ class TestRequestTest < ActiveSupport::TestCase
     req.cookie_jar["login"] = "XJ-122"
     assert_cookies({"user_name" => "david", "login" => "XJ-122"}, req.cookie_jar)
 
-    assert_nothing_raised do
-      req.cookie_jar["login"] = nil
-      assert_cookies({"user_name" => "david", "login" => nil}, req.cookie_jar)
-    end
+    req.cookie_jar["login"] = nil
+    assert_cookies({"user_name" => "david", "login" => nil}, req.cookie_jar)
 
     req.cookie_jar.delete(:login)
     assert_cookies({"user_name" => "david"}, req.cookie_jar)

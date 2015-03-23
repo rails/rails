@@ -242,11 +242,9 @@ class ModuleTest < ActiveSupport::TestCase
       def self.parent_method; end
     end
 
-    assert_nothing_raised do
-      Class.new(parent) do
-        class << self
-          delegate :parent_method, :to => :superclass
-        end
+    Class.new(parent) do
+      class << self
+        delegate :parent_method, :to => :superclass
       end
     end
   end
@@ -453,9 +451,7 @@ class MethodAliasingTest < ActiveSupport::TestCase
         alias_method_chain :quux, :baz!
       end
 
-      assert_nothing_raised do
-        assert_equal 'quux_with_baz', @instance.quux_with_baz!
-      end
+      assert_equal 'quux_with_baz', @instance.quux_with_baz!
 
       assert_raise(NameError) do
         FooClassWithBarMethod.alias_method_chain :quux?, :baz!

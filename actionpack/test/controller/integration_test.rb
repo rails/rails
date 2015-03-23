@@ -352,7 +352,7 @@ class IntegrationTestUsesCorrectClass < ActionDispatch::IntegrationTest
     @integration_session.stubs(:process)
 
     %w( get post head patch put delete ).each do |verb|
-      assert_nothing_raised("'#{verb}' should use integration test methods") { __send__(verb, '/') }
+      __send__(verb, '/')
     end
   end
 end
@@ -987,9 +987,7 @@ class HeadWithStatusActionIntegrationTest < ActionDispatch::IntegrationTest
   end
 
   test "get /foo/status with head result does not cause stack overflow error" do
-    assert_nothing_raised do
-      get '/foo/status'
-    end
+    get '/foo/status'
     assert_response :ok
   end
 end

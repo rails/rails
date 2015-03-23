@@ -389,7 +389,7 @@ module RequestForgeryProtectionTests
   end
 
   def assert_not_blocked
-    assert_nothing_raised { yield }
+    yield
     assert_response :success
   end
 
@@ -520,7 +520,7 @@ class FreeCookieControllerTest < ActionController::TestCase
 
   def test_should_allow_all_methods_without_token
     [:post, :patch, :put, :delete].each do |method|
-      assert_nothing_raised { send(method, :index)}
+      send(method, :index)
     end
   end
 

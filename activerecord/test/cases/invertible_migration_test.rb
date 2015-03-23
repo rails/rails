@@ -270,7 +270,7 @@ module ActiveRecord
       ActiveRecord::Base.table_name_suffix = '_s'
       migration = InvertibleMigration.new
       migration.migrate(:up)
-      assert_nothing_raised { migration.migrate(:down) }
+      migration.migrate(:down)
       assert !ActiveRecord::Base.connection.table_exists?("p_horses_s"), "p_horses_s should not exist"
     ensure
       ActiveRecord::Base.table_name_prefix = ActiveRecord::Base.table_name_suffix = ''

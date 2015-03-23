@@ -611,20 +611,16 @@ class TransactionTest < ActiveRecord::TestCase
     # We go back to the connection for the column queries because
     # Topic.columns is cached and won't report changes to the DB
 
-    assert_nothing_raised do
-      Topic.reset_column_information
-      Topic.connection.add_column('topics', 'stuff', :string)
-      assert Topic.column_names.include?('stuff')
+    Topic.reset_column_information
+    Topic.connection.add_column('topics', 'stuff', :string)
+    assert Topic.column_names.include?('stuff')
 
-      Topic.reset_column_information
-      Topic.connection.remove_column('topics', 'stuff')
-      assert !Topic.column_names.include?('stuff')
-    end
+    Topic.reset_column_information
+    Topic.connection.remove_column('topics', 'stuff')
+    assert !Topic.column_names.include?('stuff')
 
     if Topic.connection.supports_ddl_transactions?
-      assert_nothing_raised do
-        Topic.transaction { Topic.connection.add_column('topics', 'stuff', :string) }
-      end
+      Topic.transaction { Topic.connection.add_column('topics', 'stuff', :string) }
     else
       Topic.transaction do
         assert_raise(ActiveRecord::StatementInvalid) { Topic.connection.add_column('topics', 'stuff', :string) }
@@ -770,48 +766,46 @@ if current_adapter?(:PostgreSQLAdapter)
       original_salary = Developer.find(1).salary
       temporary_salary = 200000
 
-      assert_nothing_raised do
-        threads = (1..3).map do
-          Thread.new do
-            Developer.transaction do
-              # Expect original salary.
-              dev = Developer.find(1)
-              assert_equal original_salary, dev.salary
+      threads = (1..3).map do
+        Thread.new do
+          Developer.transaction do
+            # Expect original salary.
+            dev = Developer.find(1)
+            assert_equal original_salary, dev.salary
 
-              dev.salary = temporary_salary
-              dev.save!
+            dev.salary = temporary_salary
+            dev.save!
 
-              # Expect temporary salary.
-              dev = Developer.find(1)
-              assert_equal temporary_salary, dev.salary
+            # Expect temporary salary.
+            dev = Developer.find(1)
+            assert_equal temporary_salary, dev.salary
 
-              dev.salary = original_salary
-              dev.save!
+            dev.salary = original_salary
+            dev.save!
 
-              # Expect original salary.
-              dev = Developer.find(1)
-              assert_equal original_salary, dev.salary
-            end
-            Developer.connection.close
-          end
-        end
-
-        # Keep our eyes peeled.
-        threads << Thread.new do
-          10.times do
-            sleep 0.05
-            Developer.transaction do
-              # Always expect original salary.
-              assert_equal original_salary, Developer.find(1).salary
-            end
+            # Expect original salary.
+            dev = Developer.find(1)
+            assert_equal original_salary, dev.salary
           end
           Developer.connection.close
         end
-
-        threads.each(&:join)
       end
 
-      assert_equal original_salary, Developer.find(1).salary
+      # Keep our eyes peeled.
+      threads << Thread.new do
+        10.times do
+          sleep 0.05
+          Developer.transaction do
+            # Always expect original salary.
+            assert_equal original_salary, Developer.find(1).salary
+          end
+        end
+        Developer.connection.close
+      end
+
+      threads.each(&:join)
     end
+
+    assert_equal original_salary, Developer.find(1).salary
   end
 end

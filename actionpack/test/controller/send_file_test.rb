@@ -41,7 +41,7 @@ class SendFileTest < ActionController::TestCase
   def test_file_nostream
     @controller.options = { :stream => false }
     response = nil
-    assert_nothing_raised { response = process('file') }
+    response = process('file')
     assert_not_nil response
     body = response.body
     assert_kind_of String, body
@@ -50,7 +50,7 @@ class SendFileTest < ActionController::TestCase
 
   def test_file_stream
     response = nil
-    assert_nothing_raised { response = process('file') }
+    response = process('file')
     assert_not_nil response
     assert_respond_to response.stream, :each
     assert_respond_to response.stream, :to_path
@@ -66,14 +66,14 @@ class SendFileTest < ActionController::TestCase
   def test_file_url_based_filename
     @controller.options = { :url_based_filename => true }
     response = nil
-    assert_nothing_raised { response = process('file') }
+    response = process('file')
     assert_not_nil response
     assert_equal "attachment", response.headers["Content-Disposition"]
   end
 
   def test_data
     response = nil
-    assert_nothing_raised { response = process('data') }
+    response = process('data')
     assert_not_nil response
 
     assert_kind_of String, response.body
@@ -181,19 +181,19 @@ class SendFileTest < ActionController::TestCase
   %w(file data).each do |method|
     define_method "test_send_#{method}_status" do
       @controller.options = { :stream => false, :status => 500 }
-      assert_nothing_raised { assert_not_nil process(method) }
+      assert_not_nil process(method)
       assert_equal 500, @response.status
     end
 
     define_method "test_send_#{method}_content_type" do
       @controller.options = { :stream => false, :content_type => "application/x-ruby" }
-      assert_nothing_raised { assert_not_nil process(method) }
+      assert_not_nil process(method)
       assert_equal "application/x-ruby", @response.content_type
     end
 
     define_method "test_default_send_#{method}_status" do
       @controller.options = { :stream => false }
-      assert_nothing_raised { assert_not_nil process(method) }
+      assert_not_nil process(method)
       assert_equal 200, @response.status
     end
   end

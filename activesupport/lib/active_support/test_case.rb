@@ -72,14 +72,5 @@ module ActiveSupport
     alias :assert_not_predicate :refute_predicate
     alias :assert_not_respond_to :refute_respond_to
     alias :assert_not_same :refute_same
-
-    # Fails if the block raises an exception.
-    #
-    #   assert_nothing_raised do
-    #     ...
-    #   end
-    def assert_nothing_raised(*args)
-      yield
-    end
   end
 end

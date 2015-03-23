@@ -17,14 +17,12 @@ module ApplicationTests
 
     # AC & AM
     test "set load paths set only if action controller or action mailer are in use" do
-      assert_nothing_raised NameError do
-        add_to_config <<-RUBY
-          config.root = "#{app_path}"
-        RUBY
+      add_to_config <<-RUBY
+        config.root = "#{app_path}"
+      RUBY
 
-        use_frameworks []
-        require "#{app_path}/config/environment"
-      end
+      use_frameworks []
+      require "#{app_path}/config/environment"
     end
 
     test "sets action_controller and action_mailer load paths" do
@@ -147,7 +145,7 @@ module ApplicationTests
     test "if there's no config.active_support.bare, all of ActiveSupport is required" do
       use_frameworks []
       require "#{app_path}/config/environment"
-      assert_nothing_raised { [1,2,3].sample }
+      [1,2,3].sample
     end
 
     test "config.active_support.bare does not require all of ActiveSupport" do

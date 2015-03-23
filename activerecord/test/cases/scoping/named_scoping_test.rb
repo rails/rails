@@ -329,15 +329,11 @@ class NamedScopingTest < ActiveRecord::TestCase
     end
 
     non_conflicts.each do |name|
-      assert_nothing_raised do
-        silence_warnings do
-          klass.class_eval { scope name, ->{ where(approved: true) } }
-        end
+      silence_warnings do
+        klass.class_eval { scope name, ->{ where(approved: true) } }
       end
 
-      assert_nothing_raised do
-        subklass.class_eval { scope name, ->{ where(approved: true) } }
-      end
+      subklass.class_eval { scope name, ->{ where(approved: true) } }
     end
   end
 
@@ -433,9 +429,7 @@ class NamedScopingTest < ActiveRecord::TestCase
   end
 
   def test_table_names_for_chaining_scopes_with_and_without_table_name_included
-    assert_nothing_raised do
-      Comment.for_first_post.for_first_author.to_a
-    end
+    Comment.for_first_post.for_first_author.to_a
   end
 
   def test_scopes_on_relations
@@ -505,9 +499,7 @@ class NamedScopingTest < ActiveRecord::TestCase
   end
 
   def test_scoped_are_lazy_loaded_if_table_still_does_not_exist
-    assert_nothing_raised do
-      require "models/without_table"
-    end
+    require "models/without_table"
   end
 
   def test_eager_default_scope_relations_are_remove

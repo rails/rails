@@ -229,13 +229,13 @@ module RailtiesTest
     test "puts its models directory on autoload path" do
       @plugin.write "app/models/my_bukkit.rb", "class MyBukkit ; end"
       boot_rails
-      assert_nothing_raised { MyBukkit }
+      MyBukkit
     end
 
     test "puts its controllers directory on autoload path" do
       @plugin.write "app/controllers/bukkit_controller.rb", "class BukkitController ; end"
       boot_rails
-      assert_nothing_raised { BukkitController }
+      BukkitController
     end
 
     test "adds its views to view paths" do

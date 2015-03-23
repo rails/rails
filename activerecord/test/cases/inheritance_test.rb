@@ -205,7 +205,7 @@ class InheritanceTest < ActiveRecord::TestCase
   end
 
   def test_new_with_complex_inheritance
-    assert_nothing_raised { Client.new(type: 'VerySpecialClient') }
+    Client.new(type: 'VerySpecialClient')
   end
 
   def test_new_with_autoload_paths
@@ -233,12 +233,12 @@ class InheritanceTest < ActiveRecord::TestCase
 
   def test_finding_incorrect_type_data
     assert_raise(ActiveRecord::RecordNotFound) { Firm.find(2) }
-    assert_nothing_raised   { Firm.find(1) }
+    Firm.find(1)
   end
 
   def test_alt_finding_incorrect_type_data
     assert_raise(ActiveRecord::RecordNotFound) { Cucumber.find(2) }
-    assert_nothing_raised   { Cucumber.find(1) }
+    Cucumber.find(1)
   end
 
   def test_update_all_within_inheritance
@@ -321,12 +321,12 @@ class InheritanceTest < ActiveRecord::TestCase
 
   def test_inheritance_without_mapping
     assert_kind_of SpecialSubscriber, SpecialSubscriber.find("webster132")
-    assert_nothing_raised { s = SpecialSubscriber.new("name" => "And breaaaaathe!"); s.id = 'roger'; s.save }
+    s = SpecialSubscriber.new("name" => "And breaaaaathe!"); s.id = 'roger'; s.save
   end
 
   def test_scope_inherited_properly
-    assert_nothing_raised { Company.of_first_firm }
-    assert_nothing_raised { Client.of_first_firm }
+    Company.of_first_firm
+    Client.of_first_firm
   end
 end
 
@@ -362,7 +362,7 @@ class InheritanceComputeTypeTest < ActiveRecord::TestCase
 
     # And instantiate will find the existing constant rather than trying
     # to require firm_on_the_fly.
-    assert_nothing_raised { assert_kind_of Firm::FirmOnTheFly, Firm.find(foo.id) }
+    assert_kind_of Firm::FirmOnTheFly, Firm.find(foo.id)
   ensure
     ActiveRecord::Base.store_full_sti_class = true
   end

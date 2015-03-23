@@ -27,9 +27,7 @@ class PersistenceTest < ActiveRecord::TestCase
   unless current_adapter?(:OracleAdapter)
     def test_update_all_ignores_order_without_limit_from_association
       author = authors(:david)
-      assert_nothing_raised do
-        assert_equal author.posts_with_comments_and_categories.length, author.posts_with_comments_and_categories.update_all([ "body = ?", "bulk update!" ])
-      end
+      assert_equal author.posts_with_comments_and_categories.length, author.posts_with_comments_and_categories.update_all([ "body = ?", "bulk update!" ])
     end
 
     def test_update_all_doesnt_ignore_order
@@ -54,13 +52,11 @@ class PersistenceTest < ActiveRecord::TestCase
 
     def test_update_all_with_order_and_limit_updates_subset_only
       author = authors(:david)
-      assert_nothing_raised do
-        assert_equal 1, author.posts_sorted_by_id_limited.size
-        assert_equal 2, author.posts_sorted_by_id_limited.limit(2).to_a.size
-        assert_equal 1, author.posts_sorted_by_id_limited.update_all([ "body = ?", "bulk update!" ])
-        assert_equal "bulk update!", posts(:welcome).body
-        assert_not_equal "bulk update!", posts(:thinking).body
-      end
+      assert_equal 1, author.posts_sorted_by_id_limited.size
+      assert_equal 2, author.posts_sorted_by_id_limited.limit(2).to_a.size
+      assert_equal 1, author.posts_sorted_by_id_limited.update_all([ "body = ?", "bulk update!" ])
+      assert_equal "bulk update!", posts(:welcome).body
+      assert_not_equal "bulk update!", posts(:thinking).body
     end
   end
 
@@ -228,11 +224,11 @@ class PersistenceTest < ActiveRecord::TestCase
 
   def test_save_for_record_with_only_primary_key
     minimalistic = Minimalistic.new
-    assert_nothing_raised { minimalistic.save }
+    minimalistic.save
   end
 
   def test_save_for_record_with_only_primary_key_that_is_provided
-    assert_nothing_raised { Minimalistic.create!(:id => 2) }
+    Minimalistic.create!(:id => 2)
   end
 
   def test_save_with_duping_of_destroyed_object
@@ -257,7 +253,7 @@ class PersistenceTest < ActiveRecord::TestCase
         'does_not_exist' => 'test'
       }
     )
-    assert_nothing_raised { topic.save }
+    topic.save
   end
 
   def test_create_through_factory_with_block
@@ -303,12 +299,12 @@ class PersistenceTest < ActiveRecord::TestCase
 
     topic_reloaded = Topic.instantiate(topic.attributes.merge('does_not_exist' => 'test'))
     topic_reloaded.title = 'A New Topic'
-    assert_nothing_raised { topic_reloaded.save }
+    topic_reloaded.save
   end
 
   def test_update_for_record_with_only_primary_key
     minimalistic = minimalistics(:first)
-    assert_nothing_raised { minimalistic.save }
+    minimalistic.save
   end
 
   def test_update_sti_type
@@ -740,15 +736,13 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_not_equal "Hm is it possible?", Topic.find(3).title
 
     topic.update_attributes(id: 1234)
-    assert_nothing_raised { topic.reload }
+    topic.reload
     assert_equal topic.title, Topic.find(1234).title
   end
 
   def test_update_attributes_parameters
     topic = Topic.find(1)
-    assert_nothing_raised do
-      topic.update_attributes({})
-    end
+    topic.update_attributes({})
 
     assert_raises(ArgumentError) do
       topic.update_attributes(nil)
@@ -841,7 +835,7 @@ class PersistenceTest < ActiveRecord::TestCase
 
     Topic.delete(1)
     assert_raise(ActiveRecord::RecordNotFound) { Topic.find(1) }
-    assert_nothing_raised { Reply.find(should_be_destroyed_reply.id) }
+    Reply.find(should_be_destroyed_reply.id)
   end
 
   def test_create_with_custom_timestamps

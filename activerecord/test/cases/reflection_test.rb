@@ -100,9 +100,7 @@ class ReflectionTest < ActiveRecord::TestCase
 
   def test_reflection_klass_for_nested_class_name
     reflection = ActiveRecord::Reflection.create(:has_many, nil, nil, { :class_name => 'MyApplication::Business::Company' }, ActiveRecord::Base)
-    assert_nothing_raised do
-      assert_equal MyApplication::Business::Company, reflection.klass
-    end
+    assert_equal MyApplication::Business::Company, reflection.klass
   end
 
   def test_irregular_reflection_class_name
@@ -445,9 +443,7 @@ class ReflectionTest < ActiveRecord::TestCase
     department = hotel.departments.create!
     department.chefs.create!
 
-    assert_nothing_raised do
-      assert_equal department.chefs, Hotel.includes([departments: :chefs]).first.chefs
-    end
+    assert_equal department.chefs, Hotel.includes([departments: :chefs]).first.chefs
   end
 
   def test_includes_accepts_strings
@@ -455,21 +451,15 @@ class ReflectionTest < ActiveRecord::TestCase
     department = hotel.departments.create!
     department.chefs.create!
 
-    assert_nothing_raised do
-      assert_equal department.chefs, Hotel.includes(['departments' => 'chefs']).first.chefs
-    end
+    assert_equal department.chefs, Hotel.includes(['departments' => 'chefs']).first.chefs
   end
 
   def test_reflect_on_association_accepts_symbols
-    assert_nothing_raised do
-      assert_equal Hotel.reflect_on_association(:departments).name, :departments
-    end
+    assert_equal Hotel.reflect_on_association(:departments).name, :departments
   end
 
   def test_reflect_on_association_accepts_strings
-    assert_nothing_raised do
-      assert_equal Hotel.reflect_on_association("departments").name, :departments
-    end
+    assert_equal Hotel.reflect_on_association("departments").name, :departments
   end
 
   private

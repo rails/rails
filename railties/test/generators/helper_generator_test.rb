@@ -27,13 +27,11 @@ class HelperGeneratorTest < Rails::Generators::TestCase
     # to make the second generator run fail
     require "#{destination_root}/app/helpers/products_helper"
 
-    assert_nothing_raised do
-      begin
-        run_generator ["admin::products"]
-      ensure
-        # cleanup
-        Object.send(:remove_const, :ProductsHelper)
-      end
+    begin
+      run_generator ["admin::products"]
+    ensure
+      # cleanup
+      Object.send(:remove_const, :ProductsHelper)
     end
   end
 end

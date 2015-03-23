@@ -96,7 +96,7 @@ module ApplicationTests
     end
 
     def test_multiple_applications_can_be_initialized
-      assert_nothing_raised { AppTemplate::Application.new }
+      AppTemplate::Application.new
     end
 
     def test_initializers_run_on_different_applications_go_to_the_same_class

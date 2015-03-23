@@ -18,9 +18,8 @@ class MultibyteCharsTest < ActiveSupport::TestCase
   def test_should_allow_method_calls_to_string
     @chars.wrapped_string.singleton_class.class_eval { def __method_for_multibyte_testing; 'result'; end }
 
-    assert_nothing_raised do
-      @chars.__method_for_multibyte_testing
-    end
+    @chars.__method_for_multibyte_testing
+
     assert_raise NoMethodError do
       @chars.__unknown_method
     end
@@ -663,7 +662,7 @@ class MultibyteCharsExtrasTest < ActiveSupport::TestCase
     byte_string = "\270\236\010\210\245"
     tidy_string = [0xb8, 0x17e, 0x8, 0x2c6, 0xa5].pack('U*')
     assert_equal_codepoints tidy_string, chars(byte_string).tidy_bytes
-    assert_nothing_raised { chars(byte_string).tidy_bytes.to_s.unpack('U*') }
+    chars(byte_string).tidy_bytes.to_s.unpack('U*')
 
     # UTF-8 leading byte followed by too few continuation bytes
     assert_equal_codepoints "\xc3\xb0\xc2\xa5\xc2\xa4\x21", chars("\xf0\xa5\xa4\x21").tidy_bytes

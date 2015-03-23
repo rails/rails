@@ -197,11 +197,9 @@ class ValidationsTest < ActiveModel::TestCase
         end
     end
 
-    assert_nothing_raised do
-      klass.validate :validator_a, if: ->{ true }
-      klass.validate :validator_b, prepend: true
-      klass.validate :validator_c, unless: ->{ true }
-    end
+    klass.validate :validator_a, if: ->{ true }
+    klass.validate :validator_b, prepend: true
+    klass.validate :validator_c, unless: ->{ true }
 
     t = klass.new
 

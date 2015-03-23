@@ -10,7 +10,7 @@ class YamlSerializationTest < ActiveRecord::TestCase
   def test_to_yaml_with_time_with_zone_should_not_raise_exception
     with_timezone_config aware_attributes: true, zone: "Pacific Time (US & Canada)" do
       topic = Topic.new(:written_on => DateTime.now)
-      assert_nothing_raised { topic.to_yaml }
+      topic.to_yaml
     end
   end
 

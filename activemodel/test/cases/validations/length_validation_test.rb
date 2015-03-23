@@ -164,13 +164,11 @@ class LengthValidationTest < ActiveModel::TestCase
     bigmin = 2 ** 30
     bigmax = 2 ** 32
     bigrange = bigmin...bigmax
-    assert_nothing_raised do
-      Topic.validates_length_of :title, is: bigmin + 5
-      Topic.validates_length_of :title, within: bigrange
-      Topic.validates_length_of :title, in: bigrange
-      Topic.validates_length_of :title, minimum: bigmin
-      Topic.validates_length_of :title, maximum: bigmax
-    end
+    Topic.validates_length_of :title, is: bigmin + 5
+    Topic.validates_length_of :title, within: bigrange
+    Topic.validates_length_of :title, in: bigrange
+    Topic.validates_length_of :title, minimum: bigmin
+    Topic.validates_length_of :title, maximum: bigmax
   end
 
   def test_validates_length_of_nasty_params

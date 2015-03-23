@@ -41,9 +41,7 @@ class DependenciesTest < ActiveSupport::TestCase
   def test_require_dependency_accepts_an_object_which_implements_to_path
     o = Object.new
     def o.to_path; 'dependencies/service_one'; end
-    assert_nothing_raised {
-      require_dependency o
-    }
+    require_dependency o
     assert defined?(ServiceOne)
   ensure
     remove_constants(:ServiceOne)
@@ -139,13 +137,13 @@ class DependenciesTest < ActiveSupport::TestCase
   def test_mutual_dependencies_dont_infinite_loop
     with_loading 'dependencies' do
       $mutual_dependencies_count = 0
-      assert_nothing_raised { require_dependency 'mutual_one' }
+      require_dependency 'mutual_one'
       assert_equal 2, $mutual_dependencies_count
 
       ActiveSupport::Dependencies.clear
 
       $mutual_dependencies_count = 0
-      assert_nothing_raised { require_dependency 'mutual_two' }
+      require_dependency 'mutual_two'
       assert_equal 2, $mutual_dependencies_count
     end
   end
@@ -1018,7 +1016,7 @@ class DependenciesTest < ActiveSupport::TestCase
     with_loading 'dependencies', 'autoloading_fixtures' do
       ActiveSupport::Dependencies.autoload_once_paths = [ActiveSupport::Dependencies.autoload_paths.last]
       assert_not defined?(CrossSiteDependency)
-      assert_nothing_raised { CrossSiteDepender.nil? }
+      CrossSiteDepender.nil?
       assert defined?(CrossSiteDependency)
       assert_not ActiveSupport::Dependencies.autoloaded?(CrossSiteDependency),
         "CrossSiteDependency shouldn't be marked as autoloaded!"
@@ -1032,7 +1030,7 @@ class DependenciesTest < ActiveSupport::TestCase
   end
 
   def test_hook_called_multiple_times
-    assert_nothing_raised { ActiveSupport::Dependencies.hook! }
+    ActiveSupport::Dependencies.hook!
   end
 
   def test_load_and_require_stay_private

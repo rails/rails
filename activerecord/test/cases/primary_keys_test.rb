@@ -45,7 +45,7 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     topic = Topic.new
     topic.title = "New Topic"
     assert_nil topic.id
-    assert_nothing_raised { topic.save! }
+    topic.save!
     id = topic.id
 
     topicReloaded = Topic.find(id)
@@ -55,19 +55,19 @@ class PrimaryKeysTest < ActiveRecord::TestCase
   def test_customized_primary_key_auto_assigns_on_save
     Keyboard.delete_all
     keyboard = Keyboard.new(:name => 'HHKB')
-    assert_nothing_raised { keyboard.save! }
+    keyboard.save!
     assert_equal keyboard.id, Keyboard.find_by_name('HHKB').id
   end
 
   def test_customized_primary_key_can_be_get_before_saving
     keyboard = Keyboard.new
     assert_nil keyboard.id
-    assert_nothing_raised { assert_nil keyboard.key_number }
+    assert_nil keyboard.key_number
   end
 
   def test_customized_string_primary_key_settable_before_save
     subscriber = Subscriber.new
-    assert_nothing_raised { subscriber.id = 'webster123' }
+    subscriber.id = 'webster123'
     assert_equal 'webster123', subscriber.id
     assert_equal 'webster123', subscriber.nick
   end
@@ -82,7 +82,7 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     subscriber.id = "jdoe"
     assert_equal("jdoe", subscriber.id)
     subscriber.name = "John Doe"
-    assert_nothing_raised { subscriber.save! }
+    subscriber.save!
     assert_equal("jdoe", subscriber.id)
 
     subscriberReloaded = Subscriber.find("jdoe")
@@ -111,28 +111,26 @@ class PrimaryKeysTest < ActiveRecord::TestCase
   end
 
   def test_delete_should_quote_pkey
-    assert_nothing_raised { MixedCaseMonkey.delete(1) }
+    MixedCaseMonkey.delete(1)
   end
   def test_update_counters_should_quote_pkey_and_quote_counter_columns
-    assert_nothing_raised { MixedCaseMonkey.update_counters(1, :fleaCount => 99) }
+    MixedCaseMonkey.update_counters(1, :fleaCount => 99)
   end
   def test_find_with_one_id_should_quote_pkey
-    assert_nothing_raised { MixedCaseMonkey.find(1) }
+    MixedCaseMonkey.find(1)
   end
   def test_find_with_multiple_ids_should_quote_pkey
-    assert_nothing_raised { MixedCaseMonkey.find([1,2]) }
+    MixedCaseMonkey.find([1,2])
   end
   def test_instance_update_should_quote_pkey
-    assert_nothing_raised { MixedCaseMonkey.find(1).save }
+    MixedCaseMonkey.find(1).save
   end
   def test_instance_destroy_should_quote_pkey
-    assert_nothing_raised { MixedCaseMonkey.find(1).destroy }
+    MixedCaseMonkey.find(1).destroy
   end
 
   def test_supports_primary_key
-    assert_nothing_raised NoMethodError do
-      ActiveRecord::Base.connection.supports_primary_key?
-    end
+    ActiveRecord::Base.connection.supports_primary_key?
   end
 
   def test_primary_key_returns_value_if_it_exists

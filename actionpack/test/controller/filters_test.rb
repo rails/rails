@@ -552,9 +552,7 @@ class FilterTest < ActionController::TestCase
 
   def test_non_yielding_around_actions_do_not_raise
     controller = NonYieldingAroundFilterController.new
-    assert_nothing_raised do
-      test_process(controller, "index")
-    end
+    test_process(controller, "index")
   end
 
   def test_after_actions_are_not_run_if_around_action_does_not_yield
@@ -753,15 +751,11 @@ class FilterTest < ActionController::TestCase
   end
 
   def test_actions_with_mixed_specialization_run_in_order
-    assert_nothing_raised do
-      response = test_process(MixedSpecializationController, 'bar')
-      assert_equal 'bar', response.body
-    end
+    response = test_process(MixedSpecializationController, 'bar')
+    assert_equal 'bar', response.body
 
-    assert_nothing_raised do
-      response = test_process(MixedSpecializationController, 'foo')
-      assert_equal 'foo', response.body
-    end
+    response = test_process(MixedSpecializationController, 'foo')
+    assert_equal 'foo', response.body
   end
 
   def test_dynamic_dispatch
@@ -825,9 +819,7 @@ class FilterTest < ActionController::TestCase
 
   def test_a_rescuing_around_action
     response = nil
-    assert_nothing_raised do
-      response = test_process(RescuedController)
-    end
+    response = test_process(RescuedController)
 
     assert response.success?
     assert_equal("I rescued this: #<FilterTest::ErrorToRescue: Something made the bad noise.>", response.body)
@@ -982,29 +974,29 @@ class YieldingAroundFiltersTest < ActionController::TestCase
 
   def test_base
     controller = PostsController
-    assert_nothing_raised { test_process(controller,'no_raise') }
-    assert_nothing_raised { test_process(controller,'raises_before') }
-    assert_nothing_raised { test_process(controller,'raises_after') }
-    assert_nothing_raised { test_process(controller,'no_action') }
+    test_process(controller,'no_raise')
+    test_process(controller,'raises_before')
+    test_process(controller,'raises_after')
+    test_process(controller,'no_action')
   end
 
   def test_with_symbol
     controller = ControllerWithSymbolAsFilter
-    assert_nothing_raised { test_process(controller,'no_raise') }
+    test_process(controller,'no_raise')
     assert_raise(Before) { test_process(controller,'raises_before') }
     assert_raise(After) { test_process(controller,'raises_after') }
-    assert_nothing_raised { test_process(controller,'no_raise') }
+    test_process(controller,'no_raise')
   end
 
   def test_with_class
     controller = ControllerWithFilterClass
-    assert_nothing_raised { test_process(controller,'no_raise') }
+    test_process(controller,'no_raise')
     assert_raise(After) { test_process(controller,'raises_after') }
   end
 
   def test_with_instance
     controller = ControllerWithFilterInstance
-    assert_nothing_raised { test_process(controller,'no_raise') }
+    test_process(controller,'no_raise')
     assert_raise(After) { test_process(controller,'raises_after') }
   end
 
@@ -1016,12 +1008,12 @@ class YieldingAroundFiltersTest < ActionController::TestCase
 
   def test_nested_actions
     controller = ControllerWithNestedFilters
-    assert_nothing_raised do
-      begin
-        test_process(controller,'raises_both')
-      rescue Before, After
-      end
+
+    begin
+      test_process(controller,'raises_both')
+    rescue Before, After
     end
+
     assert_raise Before do
       begin
         test_process(controller,'raises_both')

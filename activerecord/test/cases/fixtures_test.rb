@@ -41,7 +41,7 @@ class FixturesTest < ActiveRecord::TestCase
   def test_clean_fixtures
     FIXTURES.each do |name|
       fixtures = nil
-      assert_nothing_raised { fixtures = create_fixtures(name).first }
+      fixtures = create_fixtures(name).first
       assert_kind_of(ActiveRecord::FixtureSet, fixtures)
       fixtures.each { |_name, fixture|
         fixture.each { |key, value|
@@ -74,7 +74,7 @@ class FixturesTest < ActiveRecord::TestCase
 
   def test_multiple_clean_fixtures
     fixtures_array = nil
-    assert_nothing_raised { fixtures_array = create_fixtures(*FIXTURES) }
+    fixtures_array = create_fixtures(*FIXTURES)
     assert_kind_of(Array, fixtures_array)
     fixtures_array.each { |fixtures| assert_kind_of(ActiveRecord::FixtureSet, fixtures) }
   end
@@ -217,13 +217,11 @@ class FixturesTest < ActiveRecord::TestCase
   end
 
   def test_omap_fixtures
-    assert_nothing_raised do
-      fixtures = ActiveRecord::FixtureSet.new(Account.connection, 'categories', Category, FIXTURES_ROOT + "/categories_ordered")
+    fixtures = ActiveRecord::FixtureSet.new(Account.connection, 'categories', Category, FIXTURES_ROOT + "/categories_ordered")
 
-      fixtures.each.with_index do |(name, fixture), i|
-        assert_equal "fixture_no_#{i}", name
-        assert_equal "Category #{i}", fixture['name']
-      end
+    fixtures.each.with_index do |(name, fixture), i|
+      assert_equal "fixture_no_#{i}", name
+      assert_equal "Category #{i}", fixture['name']
     end
   end
 
@@ -552,7 +550,7 @@ class CustomConnectionFixturesTest < ActiveRecord::TestCase
   self.use_transactional_tests = false
 
   def test_leaky_destroy
-    assert_nothing_raised { courses(:ruby) }
+    courses(:ruby)
     courses(:ruby).destroy
   end
 
@@ -567,7 +565,7 @@ class TransactionalFixturesOnCustomConnectionTest < ActiveRecord::TestCase
   self.use_transactional_tests = true
 
   def test_leaky_destroy
-    assert_nothing_raised { courses(:ruby) }
+    courses(:ruby)
     courses(:ruby).destroy
   end
 
@@ -627,7 +625,7 @@ class FixturesBrokenRollbackTest < ActiveRecord::TestCase
     assert_equal 0, ActiveRecord::Base.connection.open_transactions
     assert_raise(RuntimeError) { ar_setup_fixtures }
     assert_equal 0, ActiveRecord::Base.connection.open_transactions
-    assert_nothing_raised { ar_teardown_fixtures }
+    ar_teardown_fixtures
     assert_equal 0, ActiveRecord::Base.connection.open_transactions
   end
 

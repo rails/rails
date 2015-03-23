@@ -139,7 +139,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
   def test_proxy_assignment
     account = Account.find(1)
-    assert_nothing_raised { account.firm = account.firm }
+    account.firm = account.firm
   end
 
   def test_type_mismatch
@@ -753,17 +753,13 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   def test_save_of_record_with_loaded_belongs_to
     @account = companies(:first_firm).account
 
-    assert_nothing_raised do
-      Account.find(@account.id).save!
-      Account.all.merge!(:includes => :firm).find(@account.id).save!
-    end
+    Account.find(@account.id).save!
+    Account.all.merge!(:includes => :firm).find(@account.id).save!
 
     @account.firm.delete
 
-    assert_nothing_raised do
-      Account.find(@account.id).save!
-      Account.all.merge!(:includes => :firm).find(@account.id).save!
-    end
+    Account.find(@account.id).save!
+    Account.all.merge!(:includes => :firm).find(@account.id).save!
   end
 
   def test_dependent_delete_and_destroy_with_belongs_to

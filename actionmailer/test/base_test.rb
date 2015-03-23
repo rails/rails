@@ -26,7 +26,7 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   test "method call to mail does not raise error" do
-    assert_nothing_raised { BaseMailer.welcome }
+    BaseMailer.welcome
   end
 
   # Basic mail usage without block
@@ -268,7 +268,7 @@ class BaseTest < ActiveSupport::TestCase
     end
 
     mail = LateInlineAttachmentMailer.on_render
-    assert_nothing_raised { mail.message }
+    mail.message
 
     assert_equal ["image/jpeg; filename=controller_attachments.jpg",
                   "image/jpeg; filename=attachments.jpg"], mail.attachments.inline.map {|a| a['Content-Type'].to_s }
@@ -286,7 +286,7 @@ class BaseTest < ActiveSupport::TestCase
       end
     end
 
-    assert_nothing_raised { LateAttachmentAccessorMailer.welcome.message }
+    LateAttachmentAccessorMailer.welcome.message
   end
 
   # Implicit multipart

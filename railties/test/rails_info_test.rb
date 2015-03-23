@@ -15,10 +15,8 @@ class InfoTest < ActiveSupport::TestCase
   end
 
   def test_property_with_block_swallows_exceptions_and_ignores_property
-    assert_nothing_raised do
-      Rails::Info.module_eval do
-        property('Bogus') {raise}
-      end
+    Rails::Info.module_eval do
+      property('Bogus') {raise}
     end
     assert !property_defined?('Bogus')
   end

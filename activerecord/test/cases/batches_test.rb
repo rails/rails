@@ -81,9 +81,7 @@ class EachTest < ActiveRecord::TestCase
   def test_logger_not_required
     previous_logger = ActiveRecord::Base.logger
     ActiveRecord::Base.logger = nil
-    assert_nothing_raised do
-      Post.limit(1).find_each { |post| post }
-    end
+    Post.limit(1).find_each { |post| post }
   ensure
     ActiveRecord::Base.logger = previous_logger
   end
@@ -139,13 +137,11 @@ class EachTest < ActiveRecord::TestCase
     not_a_post = "not a post"
     not_a_post.stubs(:id).raises(StandardError, "not_a_post had #id called on it")
 
-    assert_nothing_raised do
-      Post.find_in_batches(:batch_size => 1) do |batch|
-        assert_kind_of Array, batch
-        assert_kind_of Post, batch.first
+    Post.find_in_batches(:batch_size => 1) do |batch|
+      assert_kind_of Array, batch
+      assert_kind_of Post, batch.first
 
-        batch.map! { not_a_post }
-      end
+      batch.map! { not_a_post }
     end
   end
 
@@ -171,9 +167,7 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_find_in_batches_should_not_modify_passed_options
-    assert_nothing_raised do
-      Post.find_in_batches({ batch_size: 42, begin_at: 1 }.freeze){}
-    end
+    Post.find_in_batches({ batch_size: 42, begin_at: 1 }.freeze){}
   end
 
   def test_find_in_batches_should_use_any_column_as_primary_key

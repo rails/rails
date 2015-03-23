@@ -21,9 +21,7 @@ class HabtmDestroyOrderTest < ActiveRecord::TestCase
     lesson = Lesson.new(:name => "SICP")
     lesson.students << student
     lesson.save!
-    assert_nothing_raised do
-      student.destroy
-    end
+    student.destroy
   end
 
   test "not destroying a student with lessons leaves student<=>lesson association intact" do

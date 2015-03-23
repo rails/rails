@@ -88,12 +88,8 @@ class CounterCacheTest < ActiveRecord::TestCase
 
   test "reset counter with belongs_to which has class_name" do
     car = cars(:honda)
-    assert_nothing_raised do
-      Car.reset_counters(car.id, :engines)
-    end
-    assert_nothing_raised do
-      Car.reset_counters(car.id, :wheels)
-    end
+    Car.reset_counters(car.id, :engines)
+    Car.reset_counters(car.id, :wheels)
   end
 
   test "reset the right counter if two have the same class_name" do
@@ -150,9 +146,7 @@ class CounterCacheTest < ActiveRecord::TestCase
 
   test "reset the right counter if two have the same foreign key" do
     michael = people(:michael)
-    assert_nothing_raised(ActiveRecord::StatementInvalid) do
-      Person.reset_counters(michael.id, :friends_too)
-    end
+    Person.reset_counters(michael.id, :friends_too)
   end
 
   test "reset counter of has_many :through association" do

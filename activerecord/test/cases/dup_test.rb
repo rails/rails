@@ -148,10 +148,7 @@ module ActiveRecord
       end
 
       record = klass.create!
-
-      assert_nothing_raised do
-        record.dup
-      end
+      record.dup
     end
   end
 end

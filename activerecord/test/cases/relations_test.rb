@@ -68,18 +68,18 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_to_json
-    assert_nothing_raised  { Bird.all.to_json }
-    assert_nothing_raised  { Bird.all.to_a.to_json }
+    Bird.all.to_json
+    Bird.all.to_a.to_json
   end
 
   def test_to_yaml
-    assert_nothing_raised  { Bird.all.to_yaml }
-    assert_nothing_raised  { Bird.all.to_a.to_yaml }
+    Bird.all.to_yaml
+    Bird.all.to_a.to_yaml
   end
 
   def test_to_xml
-    assert_nothing_raised  { Bird.all.to_xml }
-    assert_nothing_raised  { Bird.all.to_a.to_xml }
+    Bird.all.to_xml
+    Bird.all.to_a.to_xml
   end
 
   def test_scoped_all
@@ -437,7 +437,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_joins_with_nil_argument
-    assert_nothing_raised { DependentFirm.joins(nil).first }
+    DependentFirm.joins(nil).first
   end
 
   def test_finding_with_hash_conditions_on_joined_table
@@ -478,11 +478,11 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_blank_like_arguments_to_query_methods_dont_raise_errors
-    assert_nothing_raised { Topic.references([]) }
-    assert_nothing_raised { Topic.includes([]) }
-    assert_nothing_raised { Topic.preload([]) }
-    assert_nothing_raised { Topic.group([]) }
-    assert_nothing_raised { Topic.reorder([]) }
+    Topic.references([])
+    Topic.includes([])
+    Topic.preload([])
+    Topic.group([])
+    Topic.reorder([])
   end
 
   def test_scoped_responds_to_delegated_methods

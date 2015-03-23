@@ -227,7 +227,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_do_not_call_callbacks_for_delete_all
     car = Car.create(:name => 'honda')
     car.funky_bulbs.create!
-    assert_nothing_raised { car.reload.funky_bulbs.delete_all }
+    car.reload.funky_bulbs.delete_all
     assert_equal 0, Bulb.count, "bulbs should have been deleted using :delete_all strategy"
   end
 
@@ -654,9 +654,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_find_all_with_include_and_conditions
-    assert_nothing_raised do
-      Developer.all.merge!(:joins => :audit_logs, :where => {'audit_logs.message' => nil, :name => 'Smith'}).to_a
-    end
+    Developer.all.merge!(:joins => :audit_logs, :where => {'audit_logs.message' => nil, :name => 'Smith'}).to_a
   end
 
   def test_find_in_collection
@@ -1117,9 +1115,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal [], Client.destroyed_client_ids[firm.id]
 
     # Should not be destroyed since the association is not dependent.
-    assert_nothing_raised do
-      assert_nil Client.find(client_id).firm
-    end
+    assert_nil Client.find(client_id).firm
   end
 
   def test_clearing_updates_counter_cache
@@ -1382,7 +1378,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     reply = topic.replies.create "title" => "neat and simple", "content" => "still digging it"
     reply.replies.create "title" => "neat and simple", "content" => "ain't complaining"
 
-    assert_nothing_raised { topic.destroy }
+    topic.destroy
   end
 
   def test_dependence_with_transaction_support_on_failure
@@ -1453,7 +1449,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_adding_array_and_collection
-    assert_nothing_raised { Firm.first.clients + Firm.all.last.clients }
+    Firm.first.clients + Firm.all.last.clients
   end
 
   def test_replace_with_less
@@ -2223,10 +2219,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     new_bulb = Bulb.find(bulb.id)
     raise_after_add = true
-
-    assert_nothing_raised do
-      car.bulbs = [new_bulb]
-    end
+    car.bulbs = [new_bulb]
   end
 
   test 'in memory replacements sets inverse instance' do

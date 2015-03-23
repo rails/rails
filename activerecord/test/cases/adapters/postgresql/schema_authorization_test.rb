@@ -51,49 +51,41 @@ class SchemaAuthorizationTest < ActiveRecord::TestCase
   end
 
   def test_setting_auth_clears_stmt_cache
-    assert_nothing_raised do
+    set_session_auth
+    USERS.each do |u|
+      set_session_auth u
+      assert_equal u, @connection.exec_query("SELECT name FROM #{TABLE_NAME} WHERE id = $1", 'SQL', [bind_param(1)]).first['name']
       set_session_auth
-      USERS.each do |u|
-        set_session_auth u
-        assert_equal u, @connection.exec_query("SELECT name FROM #{TABLE_NAME} WHERE id = $1", 'SQL', [bind_param(1)]).first['name']
-        set_session_auth
-      end
     end
   end
 
   def test_auth_with_bind
-    assert_nothing_raised do
+    set_session_auth
+    USERS.each do |u|
+      @connection.clear_cache!
+      set_session_auth u
+      assert_equal u, @connection.exec_query("SELECT name FROM #{TABLE_NAME} WHERE id = $1", 'SQL', [bind_param(1)]).first['name']
       set_session_auth
-      USERS.each do |u|
-        @connection.clear_cache!
-        set_session_auth u
-        assert_equal u, @connection.exec_query("SELECT name FROM #{TABLE_NAME} WHERE id = $1", 'SQL', [bind_param(1)]).first['name']
-        set_session_auth
-      end
     end
   end
 
   def test_schema_uniqueness
-    assert_nothing_raised do
+    set_session_auth
+    USERS.each do |u|
+      set_session_auth u
+      assert_equal u, @connection.select_value("SELECT name FROM #{TABLE_NAME} WHERE id = 1")
       set_session_auth
-      USERS.each do |u|
-        set_session_auth u
-        assert_equal u, @connection.select_value("SELECT name FROM #{TABLE_NAME} WHERE id = 1")
-        set_session_auth
-      end
     end
   end
 
   def test_sequence_schema_caching
-    assert_nothing_raised do
-      USERS.each do |u|
-        set_session_auth u
-        st = SchemaThing.new :name => 'TEST1'
-        st.save!
-        st = SchemaThing.new :id => 5, :name => 'TEST2'
-        st.save!
-        set_session_auth
-      end
+    USERS.each do |u|
+      set_session_auth u
+      st = SchemaThing.new :name => 'TEST1'
+      st.save!
+      st = SchemaThing.new :id => 5, :name => 'TEST2'
+      st.save!
+      set_session_auth
     end
   end
 

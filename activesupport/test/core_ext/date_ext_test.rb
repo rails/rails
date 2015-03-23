@@ -359,15 +359,11 @@ class DateExtBehaviorTest < ActiveSupport::TestCase
   end
 
   def test_freeze_doesnt_clobber_memoized_instance_methods
-    assert_nothing_raised do
-      Date.today.freeze.inspect
-    end
+    Date.today.freeze.inspect
   end
 
   def test_can_freeze_twice
-    assert_nothing_raised do
-      Date.today.freeze.freeze
-    end
+    Date.today.freeze.freeze
   end
 end
 

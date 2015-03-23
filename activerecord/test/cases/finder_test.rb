@@ -43,9 +43,7 @@ class FinderTest < ActiveRecord::TestCase
     end
     assert_equal "should happen", exception.message
 
-    assert_nothing_raised(RuntimeError) do
-      Topic.all.find(-> { raise "should not happen" }) { |e| e.title == topics(:first).title }
-    end
+    Topic.all.find(-> { raise "should not happen" }) { |e| e.title == topics(:first).title }
   end
 
   def test_find_passing_active_record_object_is_deprecated
@@ -273,9 +271,7 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_take_bang_present
-    assert_nothing_raised do
-      assert_equal topics(:second), Topic.where("title = 'The Second Topic of the day'").take!
-    end
+    assert_equal topics(:second), Topic.where("title = 'The Second Topic of the day'").take!
   end
 
   def test_take_bang_missing
@@ -293,9 +289,7 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_first_bang_present
-    assert_nothing_raised do
-      assert_equal topics(:second), Topic.where("title = 'The Second Topic of the day'").first!
-    end
+    assert_equal topics(:second), Topic.where("title = 'The Second Topic of the day'").first!
   end
 
   def test_first_bang_missing
@@ -407,9 +401,7 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_last_bang_present
-    assert_nothing_raised do
-      assert_equal topics(:second), Topic.where("title = 'The Second Topic of the day'").last!
-    end
+    assert_equal topics(:second), Topic.where("title = 'The Second Topic of the day'").last!
   end
 
   def test_last_bang_missing
@@ -700,11 +692,10 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_bind_arity
-    assert_nothing_raised                                 { bind '' }
+    bind ''
     assert_raise(ActiveRecord::PreparedStatementInvalid) { bind '', 1 }
-
     assert_raise(ActiveRecord::PreparedStatementInvalid) { bind '?' }
-    assert_nothing_raised                                 { bind '?', 1 }
+    bind '?', 1
     assert_raise(ActiveRecord::PreparedStatementInvalid) { bind '?', 1, 1  }
   end
 
@@ -712,7 +703,7 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal '1', bind(':a', :a => 1) # ' ruby-mode
     assert_equal '1 1', bind(':a :a', :a => 1)  # ' ruby-mode
 
-    assert_nothing_raised { bind("'+00:00'", :foo => "bar") }
+    bind("'+00:00'", :foo => "bar")
 
     assert_kind_of Firm, Company.where(["name = :name", { name: "37signals" }]).first
     assert_nil Company.where(["name = :name", { name: "37signals!" }]).first
@@ -779,7 +770,7 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_named_bind_with_postgresql_type_casts
     l = Proc.new { bind(":a::integer '2009-01-01'::date", :a => '10') }
-    assert_nothing_raised(&l)
+    &l
     assert_equal "#{ActiveRecord::Base.connection.quote('10')}::integer '2009-01-01'::date", l.call
   end
 
@@ -942,9 +933,7 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_find_by_id_with_conditions_with_or
-    assert_nothing_raised do
-      Post.where("posts.id <= 3 OR posts.#{QUOTED_TYPE} = 'Post'").find([1,2,3])
-    end
+    Post.where("posts.id <= 3 OR posts.#{QUOTED_TYPE} = 'Post'").find([1,2,3])
   end
 
   def test_find_ignores_previously_inserted_record
@@ -1052,7 +1041,7 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_finder_with_offset_string
-    assert_nothing_raised(ActiveRecord::StatementInvalid) { Topic.offset("3").to_a }
+    Topic.offset("3").to_a
   end
 
   test "find_by with hash conditions returns the first matching record" do

@@ -96,9 +96,7 @@ class MarshalTest < ActiveSupport::TestCase
         Marshal.load(dumped)
       end
 
-      assert_nothing_raised("E failed to load while we expect only SomeClass to fail loading") do
-        E.new
-      end
+      E.new
 
       assert_raise(NameError, "We expected SomeClass to not be loaded but it is!") do
         SomeClass.new

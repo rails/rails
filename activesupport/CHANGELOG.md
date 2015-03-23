@@ -1,3 +1,7 @@
+*   Remove `assert_nothing_raised`.
+
+    *Guo Xiang Tan*
+
 *   Deprecate `alias_method_chain` in favour of `Module#prepend` introduced in Ruby 2.0
 
     *Kir Shatrov*

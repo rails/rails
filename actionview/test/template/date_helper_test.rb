@@ -755,7 +755,7 @@ class DateHelperTest < ActionView::TestCase
   end
 
   def test_select_date_can_have_more_then_1000_years_interval_if_forced_via_parameter
-    assert_nothing_raised { select_date(Time.mktime(2003, 8, 16), :start_year => 2000, :end_year => 3100, :max_years_allowed => 2000) }
+    select_date(Time.mktime(2003, 8, 16), :start_year => 2000, :end_year => 3100, :max_years_allowed => 2000)
   end
 
   def test_select_date_with_order
@@ -1230,7 +1230,7 @@ class DateHelperTest < ActionView::TestCase
   end
 
   def test_select_datetime_should_work_with_date
-    assert_nothing_raised { select_datetime(Date.today) }
+    select_datetime(Date.today)
   end
 
   def test_select_datetime_with_default_prompt
@@ -1456,7 +1456,7 @@ class DateHelperTest < ActionView::TestCase
   end
 
   def test_select_time_should_work_with_date
-    assert_nothing_raised { select_time(Date.today) }
+    select_time(Date.today)
   end
 
   def test_select_time_with_default_prompt

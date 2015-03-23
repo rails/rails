@@ -164,7 +164,7 @@ class ViewLoadPathsTest < ActionController::TestCase
     assert_paths C, *original_load_paths
 
     C.view_paths = []
-    assert_nothing_raised { C.append_view_path 'c/path' }
+    C.append_view_path 'c/path'
     assert_paths C, "c/path"
   end
 

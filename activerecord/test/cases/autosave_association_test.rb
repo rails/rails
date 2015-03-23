@@ -1161,7 +1161,7 @@ class TestAutosaveAssociationOnAHasOneThroughAssociation < ActiveRecord::TestCas
         raise 'Oh noes!'
       end
     end
-    assert_nothing_raised { @member.save }
+    @member.save
   end
 end
 
@@ -1583,6 +1583,6 @@ end
 class TestAutosaveAssociationWithTouch < ActiveRecord::TestCase
   def test_autosave_with_touch_should_not_raise_system_stack_error
     invoice = Invoice.create
-    assert_nothing_raised { invoice.line_items.create(:amount => 10) }
+    invoice.line_items.create(:amount => 10)
   end
 end

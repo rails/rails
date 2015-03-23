@@ -58,7 +58,7 @@ class RelationScopingTest < ActiveRecord::TestCase
 
   def test_scoped_find
     Developer.where("name = 'David'").scoping do
-      assert_nothing_raised { Developer.find(1) }
+      Developer.find(1)
     end
   end
 

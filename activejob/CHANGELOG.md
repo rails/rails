@@ -18,12 +18,10 @@
     Example:
 
         def test_hello_and_logging_jobs
-          assert_nothing_raised do
-            assert_performed_jobs 2, only: [HelloJob, LoggingJob] do
-              HelloJob.perform_later('jeremy')
-              LoggingJob.perform_later('stewie')
-              RescueJob.perform_later('david')
-            end
+          assert_performed_jobs 2, only: [HelloJob, LoggingJob] do
+            HelloJob.perform_later('jeremy')
+            LoggingJob.perform_later('stewie')
+            RescueJob.perform_later('david')
           end
         end
 

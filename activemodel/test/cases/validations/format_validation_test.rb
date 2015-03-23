@@ -73,9 +73,7 @@ class PresenceValidationTest < ActiveModel::TestCase
   end
 
   def test_validate_format_of_with_multiline_regexp_and_option
-    assert_nothing_raised(ArgumentError) do
-      Topic.validates_format_of(:title, with: /^Valid Title$/, multiline: true)
-    end
+    Topic.validates_format_of(:title, with: /^Valid Title$/, multiline: true)
   end
 
   def test_validate_format_with_not_option

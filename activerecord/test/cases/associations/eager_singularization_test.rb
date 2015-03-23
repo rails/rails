@@ -109,40 +109,28 @@ class EagerSingularizationTest < ActiveRecord::TestCase
   end
 
   def test_eager_no_extra_singularization_belongs_to
-    assert_nothing_raised do
-      Virus.all.merge!(:includes => :octopus).to_a
-    end
+    Virus.all.merge!(:includes => :octopus).to_a
   end
 
   def test_eager_no_extra_singularization_has_one
-    assert_nothing_raised do
-      Octopus.all.merge!(:includes => :virus).to_a
-    end
+    Octopus.all.merge!(:includes => :virus).to_a
   end
 
   def test_eager_no_extra_singularization_has_many
-    assert_nothing_raised do
-      Bus.all.merge!(:includes => :passes).to_a
-    end
+    Bus.all.merge!(:includes => :passes).to_a
   end
 
   def test_eager_no_extra_singularization_has_and_belongs_to_many
-    assert_nothing_raised do
-      Crisis.all.merge!(:includes => :messes).to_a
-      Mess.all.merge!(:includes => :crises).to_a
-    end
+    Crisis.all.merge!(:includes => :messes).to_a
+    Mess.all.merge!(:includes => :crises).to_a
   end
 
   def test_eager_no_extra_singularization_has_many_through_belongs_to
-    assert_nothing_raised do
-      Crisis.all.merge!(:includes => :successes).to_a
-    end
+    Crisis.all.merge!(:includes => :successes).to_a
   end
 
   def test_eager_no_extra_singularization_has_many_through_has_many
-    assert_nothing_raised do
-      Crisis.all.merge!(:includes => :compresses).to_a
-    end
+    Crisis.all.merge!(:includes => :compresses).to_a
   end
 end
 end

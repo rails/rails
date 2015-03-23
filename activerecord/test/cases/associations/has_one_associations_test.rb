@@ -63,19 +63,15 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
   def test_can_marshal_has_one_association_with_nil_target
     firm = Firm.new
-    assert_nothing_raised do
-      assert_equal firm.attributes, Marshal.load(Marshal.dump(firm)).attributes
-    end
+    assert_equal firm.attributes, Marshal.load(Marshal.dump(firm)).attributes
 
     firm.account
-    assert_nothing_raised do
-      assert_equal firm.attributes, Marshal.load(Marshal.dump(firm)).attributes
-    end
+    assert_equal firm.attributes, Marshal.load(Marshal.dump(firm)).attributes
   end
 
   def test_proxy_assignment
     company = companies(:first_firm)
-    assert_nothing_raised { company.account = company.account }
+    company.account = company.account
   end
 
   def test_type_mismatch
@@ -164,7 +160,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   def test_dependence_with_nil_associate
     firm = DependentFirm.new(:name => 'nullify')
     firm.save!
-    assert_nothing_raised { firm.destroy }
+    firm.destroy
   end
 
   def test_restrict_with_exception
@@ -338,10 +334,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   def test_save_still_works_after_accessing_nil_has_one
     jp = Company.new :name => 'Jaded Pixel'
     jp.dummy_account.nil?
-
-    assert_nothing_raised do
-      jp.save!
-    end
+    jp.save!
   end
 
   def test_cant_save_readonly_association
@@ -363,17 +356,13 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     @firm = companies(:first_firm)
     assert_not_nil @firm.account
 
-    assert_nothing_raised do
-      Firm.find(@firm.id).save!
-      Firm.all.merge!(:includes => :account).find(@firm.id).save!
-    end
+    Firm.find(@firm.id).save!
+    Firm.all.merge!(:includes => :account).find(@firm.id).save!
 
     @firm.account.destroy
 
-    assert_nothing_raised do
-      Firm.find(@firm.id).save!
-      Firm.all.merge!(:includes => :account).find(@firm.id).save!
-    end
+    Firm.find(@firm.id).save!
+    Firm.all.merge!(:includes => :account).find(@firm.id).save!
   end
 
   def test_build_respects_hash_condition

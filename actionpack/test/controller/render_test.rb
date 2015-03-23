@@ -567,9 +567,7 @@ class HeadRenderTest < ActionController::TestCase
   end
 
   def test_head_returns_truthy_value
-    assert_nothing_raised do
-      get :head_and_return
-    end
+    get :head_and_return
   end
 end
 
