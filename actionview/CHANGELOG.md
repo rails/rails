@@ -1,4 +1,4 @@
-## Rails 4.2.1 (March 19, 2014) ##
+## Rails 4.2.1 (March 19, 2015) ##
 
 *   Default translations that have a lower precidence than an html safe default,
     but are not themselves safe, should not be marked as html_safe.

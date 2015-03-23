@@ -1,4 +1,4 @@
-## Rails 4.2.1 (March 19, 2014) ##
+## Rails 4.2.1 (March 19, 2015) ##
 
 *   Non-string authenticity tokens do not raise NoMethodError when decoding
     the masked token.

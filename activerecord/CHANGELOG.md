@@ -1,4 +1,4 @@
-## Rails 4.2.1 (March 19, 2014) ##
+## Rails 4.2.1 (March 19, 2015) ##
 
 *   Fixed ActiveRecord::Relation#becomes! and changed_attributes issues for type column
 
