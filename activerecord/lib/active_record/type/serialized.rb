@@ -26,6 +26,10 @@ module ActiveRecord
         end
       end
 
+      def inspect
+        Kernel.instance_method(:inspect).bind(self).call
+      end
+
       def changed_in_place?(raw_old_value, value)
         return false if value.nil?
         raw_new_value = serialize(value)
