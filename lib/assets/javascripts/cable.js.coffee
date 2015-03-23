@@ -80,7 +80,7 @@ class @Cable
 
     @waitForPingTimeout = setTimeout =>
       console.log "Ping took too long to arrive. Reconnecting.."
-      @connection?.close()
+      @reconnect()
     , @PING_STALE_INTERVAL * 1000
 
   clearPingWaitTimeout: =>
