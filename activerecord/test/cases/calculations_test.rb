@@ -11,6 +11,10 @@ require 'models/minivan'
 require 'models/speedometer'
 require 'models/ship_part'
 require 'models/treasure'
+require 'models/developer'
+require 'models/comment'
+require 'models/rating'
+require 'models/post'
 
 class NumericData < ActiveRecord::Base
   self.table_name = 'numeric_data'
@@ -630,5 +634,12 @@ class CalculationsTest < ActiveRecord::TestCase
     part.trinkets.create!
 
     assert_equal({ "has trinket" => part.id }, ShipPart.joins(:trinkets).group("ship_parts.name").sum(:id))
+  end
+
+  def test_should_reference_correct_aliases_while_joining_tables_of_has_many_through_association
+    assert_nothing_raised ActiveRecord::StatementInvalid do
+      developer = Developer.create!(name: 'developer')
+      developer.ratings.includes(comment: :post).where(posts: { id: 1 }).count
+    end
   end
 end
