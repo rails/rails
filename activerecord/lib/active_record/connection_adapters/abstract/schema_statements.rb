@@ -652,7 +652,7 @@ module ActiveRecord
       alias :add_belongs_to :add_reference
 
       # Removes the reference(s). Also removes a +type+ column if one exists.
-      # <tt>remove_reference</tt>, <tt>remove_references</tt> and <tt>remove_belongs_to</tt> are acceptable.
+      # <tt>remove_reference</tt> and <tt>remove_belongs_to</tt> are acceptable.
       #
       # ====== Remove the reference
       #
