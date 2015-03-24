@@ -73,7 +73,7 @@ module ActiveSupport
     alias :assert_not_respond_to :refute_respond_to
     alias :assert_not_same :refute_same
 
-    # Fails if the block raises an exception.
+    # Reveals the intention that the block should not raise any exception.
     #
     #   assert_nothing_raised do
     #     ...
