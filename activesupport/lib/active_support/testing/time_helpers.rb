@@ -39,7 +39,7 @@ module ActiveSupport
         end
     end
 
-    # Containing helpers that helps you test passage of time.
+    # Contain helpers that help you test passage of time.
     module TimeHelpers
       # Changes current time to the time in the future or in the past by a given time difference by
       # stubbing +Time.now+, +Date.today+, and +DateTime.now+.
