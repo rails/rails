@@ -1,3 +1,10 @@
+*   Fix referencing wrong table aliases while joining tables of has many through
+    association (only when calling calculation methods).
+
+    Fixes #19276.
+
+    *pinglamb*
+
 *   Correctly persist a serialized attribute that has been returned to
     its default value by an in-place modification.
 
