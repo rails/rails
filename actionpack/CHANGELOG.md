@@ -1,3 +1,10 @@
+*   Fix regression where a gzip file response would have a Content-type,
+    even when it was a 304 status code.
+
+    See #19271.
+
+    *Kohei Suzuki*
+
 *   Fix handling of empty X_FORWARDED_HOST header in raw_host_with_port
 
     Previously, an empty X_FORWARDED_HOST header would cause
