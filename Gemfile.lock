@@ -262,7 +262,7 @@ DEPENDENCIES
   json
   kindlerb (= 0.1.1)
   mail!
-  minitest (< 5.3.4)
+  minitest (= 5.3.3)
   mocha (~> 0.14)
   mysql (>= 2.9.0)
   mysql2 (>= 0.3.18)

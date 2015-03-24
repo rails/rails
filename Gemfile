@@ -10,6 +10,9 @@ gem 'rake', '>= 10.3'
 # ensure correct loading order
 gem 'mocha', '~> 0.14', require: false
 
+# Lock to 5.3.3 as any version greater breaks our tests.
+gem 'minitest', '5.3.3', require: false
+
 gem 'rack-cache', '~> 1.2'
 gem 'jquery-rails', github: 'rails/jquery-rails', branch: 'master'
 gem 'coffee-rails', '~> 4.1.0'
@@ -58,9 +61,6 @@ local_gemfile = File.dirname(__FILE__) + "/.Gemfile"
 instance_eval File.read local_gemfile if File.exist? local_gemfile
 
 group :test do
-  # FIX: Our test suite isn't ready to run in random order yet
-  gem 'minitest', '< 5.3.4'
-
   platforms :mri_19 do
     gem 'ruby-prof', '~> 0.11.2'
   end
