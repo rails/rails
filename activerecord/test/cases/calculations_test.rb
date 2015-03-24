@@ -10,6 +10,10 @@ require 'models/reply'
 require 'models/minivan'
 require 'models/speedometer'
 require 'models/ship_part'
+require 'models/developer'
+require 'models/comment'
+require 'models/rating'
+require 'models/post'
 
 Company.has_many :accounts
 
@@ -612,5 +616,12 @@ class CalculationsTest < ActiveRecord::TestCase
     actual = Topic.joins(:replies)
       .pluck('topics.title', 'replies_topics.title')
     assert_equal expected, actual
+  end
+
+  def test_should_reference_correct_aliases_while_joining_tables_of_has_many_through_association
+    assert_nothing_raised ActiveRecord::StatementInvalid do
+      developer = Developer.create!(name: 'developer')
+      developer.ratings.includes(comment: :post).where(posts: { id: 1 }).count
+    end
   end
 end

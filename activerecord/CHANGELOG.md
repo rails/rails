@@ -1,3 +1,10 @@
+*   Fix referencing wrong table aliases while joining tables of has many through
+    association (only when calling calculation methods).
+
+    Fixes #19276.
+
+    *pinglamb*
+
 ## Rails 4.1.10 (March 19, 2015) ##
 
 *   Fixed ActiveRecord::Relation#becomes! and changed_attributes issues for type column
