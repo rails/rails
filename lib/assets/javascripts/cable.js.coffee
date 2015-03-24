@@ -3,7 +3,7 @@
 
 class @Cable
   MAX_CONNECTION_INTERVAL: 5 * 1000
-  PING_STALE_INTERVAL: 6
+  PING_STALE_INTERVAL: 8
 
   constructor: (@cableUrl) ->
     @subscribers = {}
@@ -80,7 +80,7 @@ class @Cable
 
     @waitForPingTimeout = setTimeout =>
       console.log "Ping took too long to arrive. Reconnecting.."
-      @connection?.close()
+      @reconnect()
     , @PING_STALE_INTERVAL * 1000
 
   clearPingWaitTimeout: =>
