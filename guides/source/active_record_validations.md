@@ -1055,9 +1055,9 @@ person.errors[:name]
 
 ### `errors.add`
 
-The `add` method lets you manually add messages that are related to particular attributes. It takes as arguments the name of the attribute receiving the message, and the message itself.
+The `add` method lets you add an error message related to a particular attribute. It takes as arguments the attribute and the error message.
 
-You can use the `errors.full_messages` or `errors.to_a` methods to view the messages in the form they might be displayed to users, with the capitalized attribute name prepended to the messages.
+The `errors.full_messages` method (or its equivalent, `errors.to_a`) returns the error messages in a user-friendly format, with the capitalized attribute name prepended to each message, as shown in the examples below.
 
 ```ruby
 class Person < ActiveRecord::Base
