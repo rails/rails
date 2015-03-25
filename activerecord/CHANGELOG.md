@@ -1,3 +1,7 @@
+*   Ignore psqlrc when loading database structure.
+
+    *Jason Weathered*
+
 *   Fix referencing wrong table aliases while joining tables of has many through
     association (only when calling calculation methods).
 
