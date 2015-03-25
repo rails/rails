@@ -70,6 +70,8 @@ module ActionCable
     end
 
     def received_data(data)
+      return unless websocket_alive?
+
       data = ActiveSupport::JSON.decode data
 
       case data['action']
@@ -139,6 +141,10 @@ module ActionCable
 
       def invalid_request
         [404, {'Content-Type' => 'text/plain'}, ['Page not found']]
+      end
+
+      def websocket_alive?
+        @websocket && @websocket.ready_state == Faye::WebSocket::API::OPEN
       end
 
   end
