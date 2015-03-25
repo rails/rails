@@ -1055,7 +1055,9 @@ person.errors[:name]
 
 ### `errors.add`
 
-The `add` method lets you manually add messages that are related to particular attributes. You can use the `errors.full_messages` or `errors.to_a` methods to view the messages in the form they might be displayed to a user. Those particular messages get the attribute name prepended (and capitalized). `add` receives the name of the attribute you want to add the message to, and the message itself.
+The `add` method lets you add an error message related to a particular attribute. It takes as arguments the attribute and the error message.
+
+The `errors.full_messages` method (or its equivalent, `errors.to_a`) returns the error messages in a user-friendly format, with the capitalized attribute name prepended to each message, as shown in the examples below.
 
 ```ruby
 class Person < ActiveRecord::Base
@@ -1073,12 +1075,12 @@ person.errors.full_messages
  # => ["Name cannot contain the characters !@#%*()_-+="]
 ```
 
-Another way to do this is using `[]=` setter
+An equivalent to `errors#add` is to use `<<` to append a message to the `errors.messages` array for an attribute:
 
 ```ruby
   class Person < ActiveRecord::Base
     def a_method_used_for_validation_purposes
-      errors.add(:name, "cannot contain the characters !@#%*()_-+=")
+      errors.messages[:name] << "cannot contain the characters !@#%*()_-+="
     end
   end
 
