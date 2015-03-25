@@ -1513,7 +1513,7 @@ the `Article` model. This time we'll create a `Comment` model to hold
 reference of article comments. Run this command in your terminal:
 
 ```bash
-$ bin/rails generate model Comment commenter:string body:text article:references
+$ bin/rails generate model Comment commenter:string body:text article:belongs_to
 ```
 
 This command will generate four files:
@@ -1548,7 +1548,7 @@ class CreateComments < ActiveRecord::Migration
       t.text :body
 
       # this line adds an integer column called `article_id`.
-      t.references :article, index: true
+      t.belongs_to :article, index: true
 
       t.timestamps null: false
     end
@@ -1557,7 +1557,7 @@ class CreateComments < ActiveRecord::Migration
 end
 ```
 
-The `t.references` line sets up a foreign key column for the association between
+The `t.belongs_to` line sets up a foreign key column for the association between
 the two models. An index for this association is also created on this column.
 Go ahead and run the migration:
 
