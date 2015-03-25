@@ -256,6 +256,6 @@ module ActionDispatch
     autoload :PolymorphicRoutes
 
     SEPARATORS = %w( / . ? ) #:nodoc:
-    HTTP_METHODS = [:get, :head, :post, :patch, :put, :delete, :options] #:nodoc:
+    HTTP_METHODS = %i[get head post patch put delete options] #:nodoc:
   end
 end
