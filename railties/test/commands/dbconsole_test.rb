@@ -11,7 +11,7 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
 
   def teardown
     Rails::DBConsole.send(:remove_const, 'APP_PATH')
-    %w[PGUSER PGHOST PGPORT PGPASSWORD DATABASE_URL].each{|key| ENV.delete(key)}
+    %w[PGUSER PGHOST PGPORT PGPASSWORD DATABASE_URL].each { |key| ENV.delete(key) }
   end
 
   def test_config_with_db_config_only

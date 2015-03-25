@@ -56,7 +56,7 @@ module ActiveRecord
           ActiveRecord::Base.dump_schemas
         end
         unless search_path.blank?
-          search_path = search_path.split(",").map{|search_path_part| "--schema=#{Shellwords.escape(search_path_part.strip)}" }.join(" ")
+          search_path = search_path.split(",").map { |search_path_part| "--schema=#{Shellwords.escape(search_path_part.strip)}" }.join(" ")
         end
 
         command = "pg_dump -i -s -x -O -f #{Shellwords.escape(filename)} #{search_path} #{Shellwords.escape(configuration['database'])}"

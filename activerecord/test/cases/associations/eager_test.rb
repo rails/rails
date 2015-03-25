@@ -844,8 +844,8 @@ class EagerAssociationTest < ActiveRecord::TestCase
   def test_eager_with_multiple_associations_with_same_table_has_many_and_habtm
     # Eager includes of has many and habtm associations aren't necessarily sorted in the same way
     def assert_equal_after_sort(item1, item2, item3 = nil)
-      assert_equal(item1.sort{|a,b| a.id <=> b.id}, item2.sort{|a,b| a.id <=> b.id})
-      assert_equal(item3.sort{|a,b| a.id <=> b.id}, item2.sort{|a,b| a.id <=> b.id}) if item3
+      assert_equal(item1.sort { |a,b| a.id <=> b.id }, item2.sort { |a,b| a.id <=> b.id })
+      assert_equal(item3.sort { |a,b| a.id <=> b.id }, item2.sort { |a,b| a.id <=> b.id }) if item3
     end
     # Test regular association, association with conditions, association with
     # STI, and association with conditions assured not to be true

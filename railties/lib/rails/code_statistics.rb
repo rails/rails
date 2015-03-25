@@ -30,7 +30,7 @@ class CodeStatistics #:nodoc:
 
   private
     def calculate_statistics
-      Hash[@pairs.map{|pair| [pair.first, calculate_directory_statistics(pair.last)]}]
+      Hash[@pairs.map { |pair| [pair.first, calculate_directory_statistics(pair.last)] }]
     end
 
     def calculate_directory_statistics(directory, pattern = /.*\.(rb|js|coffee)$/)

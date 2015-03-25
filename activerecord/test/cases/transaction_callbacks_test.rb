@@ -61,12 +61,12 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
 
     def do_after_commit(on)
       blocks = @after_commit[on] if defined?(@after_commit)
-      blocks.each{|b| b.call(self)} if blocks
+      blocks.each { |b| b.call(self) } if blocks
     end
 
     def do_after_rollback(on)
       blocks = @after_rollback[on] if defined?(@after_rollback)
-      blocks.each{|b| b.call(self)} if blocks
+      blocks.each { |b| b.call(self) } if blocks
     end
   end
 

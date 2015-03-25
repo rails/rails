@@ -57,7 +57,7 @@ module ActiveRecord
           @recorder.record :create_table, [:hello]
           @recorder.record :create_table, [:world]
         end
-        tables = @recorder.commands.map{|_cmd, args, _block| args}
+        tables = @recorder.commands.map { |_cmd, args, _block| args }
         assert_equal [[:world], [:hello]], tables
       end
 

@@ -6,7 +6,7 @@
   <% names.each do |name| %>
     <%
       show = "show('#{name.gsub(/\s/, '-')}');"
-      hide = (names - [name]).collect {|hide_name| "hide('#{hide_name.gsub(/\s/, '-')}');"}
+      hide = (names - [name]).collect { |hide_name| "hide('#{hide_name.gsub(/\s/, '-')}');" }
     %>
     <a href="#" onclick="<%= hide.join %><%= show %>; return false;"><%= name %></a> <%= '|' unless names.last == name %>
   <% end %>

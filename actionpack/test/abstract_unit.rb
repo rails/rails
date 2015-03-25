@@ -177,7 +177,7 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
         ActiveSupport::Dependencies.autoload_paths << path
         yield
       ensure
-        ActiveSupport::Dependencies.autoload_paths.reject! {|p| p == path}
+        ActiveSupport::Dependencies.autoload_paths.reject! { |p| p == path }
         ActiveSupport::Dependencies.clear
       end
     end

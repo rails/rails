@@ -53,7 +53,7 @@ module ActiveSupport
           @data = addresses.first
         else
           mem_cache_options = options.dup
-          UNIVERSAL_OPTIONS.each{|name| mem_cache_options.delete(name)}
+          UNIVERSAL_OPTIONS.each { |name| mem_cache_options.delete(name) }
           @data = self.class.build_mem_cache(*(addresses + [mem_cache_options]))
         end
 
@@ -68,7 +68,7 @@ module ActiveSupport
         options = merged_options(options)
 
         instrument_multi(:read, names, options) do
-          keys_to_names = Hash[names.map{|name| [escape_key(namespaced_key(name, options)), name]}]
+          keys_to_names = Hash[names.map { |name| [escape_key(namespaced_key(name, options)), name] }]
           raw_values = @data.get_multi(keys_to_names.keys, :raw => true)
           values = {}
           raw_values.each do |key, value|
