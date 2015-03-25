@@ -539,6 +539,14 @@ definitions:
 `change_table` is also reversible, as long as the block does not call `change`,
 `change_default` or `remove`.
 
+`remove_column` is reversible if you supply the column type as the third
+argument. Provide the original column options too, otherwise Rails can't
+recreate the column exactly when rolling back:
+
+```ruby
+remove_column :posts, :slug, :string, null: false, default: '', index: true
+```
+
 If you're going to need to use any other methods, you should use `reversible`
 or write the `up` and `down` methods instead of using the `change` method.
 
