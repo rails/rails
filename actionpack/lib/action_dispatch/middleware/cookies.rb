@@ -294,7 +294,7 @@ module ActionDispatch
           end
         elsif options[:domain].is_a? Array
           # if host matches one of the supplied domains without a dot in front of it
-          options[:domain] = options[:domain].find {|domain| @host.include? domain.sub(/^\./, '') }
+          options[:domain] = options[:domain].find { |domain| @host.include? domain.sub(/^\./, '') }
         end
       end
 

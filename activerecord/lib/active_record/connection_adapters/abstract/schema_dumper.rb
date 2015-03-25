@@ -8,7 +8,7 @@ module ActiveRecord
     module ColumnDumper
       def column_spec(column)
         spec = prepare_column_options(column)
-        (spec.keys - [:name, :type]).each{ |k| spec[k].insert(0, "#{k}: ")}
+        (spec.keys - [:name, :type]).each { |k| spec[k].insert(0, "#{k}: ") }
         spec
       end
 

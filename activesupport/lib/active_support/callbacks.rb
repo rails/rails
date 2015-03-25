@@ -446,7 +446,7 @@ module ActiveSupport
           end
         else
           scopes = Array(chain_config[:scope])
-          method_to_call = scopes.map{ |s| public_send(s) }.join("_")
+          method_to_call = scopes.map { |s| public_send(s) }.join("_")
 
           lambda { |target, _, &blk|
             filter.public_send method_to_call, target, &blk

@@ -750,7 +750,7 @@ module ActiveRecord
 
         m.register_type(%r(enum)i) do |sql_type|
           limit = sql_type[/^enum\((.+)\)/i, 1]
-            .split(',').map{|enum| enum.strip.length - 2}.max
+            .split(',').map { |enum| enum.strip.length - 2 }.max
           MysqlString.new(limit: limit)
         end
       end

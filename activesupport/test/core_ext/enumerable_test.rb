@@ -16,7 +16,7 @@ class EnumerableTests < ActiveSupport::TestCase
     end
 
     def each
-      @values.each{|v| yield v}
+      @values.each { |v| yield v }
     end
   end
 

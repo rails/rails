@@ -144,7 +144,7 @@ module ActionController
           when String, Symbol
             assert_includes @_layouts.keys, expected_layout.to_s, msg
           when Regexp
-            assert(@_layouts.keys.any? {|l| l =~ expected_layout }, msg)
+            assert(@_layouts.keys.any? { |l| l =~ expected_layout }, msg)
           when nil, false
             assert(@_layouts.empty?, msg)
           else
@@ -210,9 +210,9 @@ module ActionController
       non_path_parameters = get? ? query_parameters : request_parameters
       parameters.each do |key, value|
         if value.is_a?(Array) && (value.frozen? || value.any?(&:frozen?))
-          value = value.map{ |v| v.duplicable? ? v.dup : v }
+          value = value.map { |v| v.duplicable? ? v.dup : v }
         elsif value.is_a?(Hash) && (value.frozen? || value.any?{ |k,v| v.frozen? })
-          value = Hash[value.map{ |k,v| [k, v.duplicable? ? v.dup : v] }]
+          value = Hash[value.map { |k,v| [k, v.duplicable? ? v.dup : v] }]
         elsif value.frozen? && value.duplicable?
           value = value.dup
         end
@@ -255,7 +255,7 @@ module ActionController
       @fullpath = @ip = @remote_ip = @protocol = nil
       @env['action_dispatch.request.query_parameters'] = {}
       @set_cookies ||= {}
-      @set_cookies.update(Hash[cookie_jar.instance_variable_get("@set_cookies").map{ |k,o| [k,o[:value]] }])
+      @set_cookies.update(Hash[cookie_jar.instance_variable_get("@set_cookies").map { |k,o| [k,o[:value]] }])
       deleted_cookies = cookie_jar.instance_variable_get("@delete_cookies")
       @set_cookies.reject!{ |k,v| deleted_cookies.include?(k) }
       cookie_jar.update(rack_cookies)
@@ -563,9 +563,9 @@ module ActionController
       def paramify_values(hash_or_array_or_value)
         case hash_or_array_or_value
         when Hash
-          Hash[hash_or_array_or_value.map{|key, value| [key, paramify_values(value)] }]
+          Hash[hash_or_array_or_value.map { |key, value| [key, paramify_values(value)] }]
         when Array
-          hash_or_array_or_value.map {|i| paramify_values(i)}
+          hash_or_array_or_value.map { |i| paramify_values(i) }
         when Rack::Test::UploadedFile, ActionDispatch::Http::UploadedFile
           hash_or_array_or_value
         else

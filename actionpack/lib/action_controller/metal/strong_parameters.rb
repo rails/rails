@@ -528,7 +528,7 @@ module ActionController
       ]
 
       def permitted_scalar?(value)
-        PERMITTED_SCALAR_TYPES.any? {|type| value.is_a?(type)}
+        PERMITTED_SCALAR_TYPES.any? { |type| value.is_a?(type) }
       end
 
       def permitted_scalar_filter(params, key)
@@ -545,7 +545,7 @@ module ActionController
 
       def array_of_permitted_scalars?(value)
         if value.is_a?(Array)
-          value.all? {|element| permitted_scalar?(element)}
+          value.all? { |element| permitted_scalar?(element) }
         end
       end
 
