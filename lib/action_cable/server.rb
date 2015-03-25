@@ -28,6 +28,8 @@ module ActionCable
 
     def initialize(env)
       @env = env
+      @accept_messages = false
+      @pending_messages = []
     end
 
     def process
@@ -39,12 +41,19 @@ module ActionCable
         @websocket.on(:open) do |event|
           broadcast_ping_timestamp
           @ping_timer = EventMachine.add_periodic_timer(PING_INTERVAL) { broadcast_ping_timestamp }
-          worker_pool.async.invoke(self, :connect) if respond_to?(:connect)
+          worker_pool.async.invoke(self, :initialize_client)
         end
 
         @websocket.on(:message) do |event|
           message = event.data
-          worker_pool.async.invoke(self, :received_data, message) if message.is_a?(String)
+
+          if message.is_a?(String)
+            if @accept_messages
+              worker_pool.async.invoke(self, :received_data, message)
+            else
+              @pending_messages << message
+            end
+          end
         end
 
         @websocket.on(:close) do |event|
@@ -89,6 +98,13 @@ module ActionCable
     end
 
     private
+      def initialize_client
+        connect if respond_to?(:connect)
+        @accept_messages = true
+
+        worker_pool.async.invoke(self, :received_data, @pending_messages.shift) until @pending_messages.empty?
+      end
+
       def broadcast_ping_timestamp
         broadcast({ identifier: '_ping', message: Time.now.to_i }.to_json)
       end
