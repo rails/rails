@@ -99,6 +99,12 @@ module ActionCable
       self.class.worker_pool
     end
 
+    def handle_exception
+      logger.error "[ActionCable] Closing connection"
+
+      @websocket.close
+    end
+
     private
       def initialize_client
         connect if respond_to?(:connect)

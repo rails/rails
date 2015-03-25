@@ -9,6 +9,11 @@ module ActionCable
       run_callbacks :work do
         receiver.send method, *args
       end
+    rescue Exception => e
+      logger.error "[ActionCable] There was an exception - #{e.class}(#{e.message})"
+      logger.error e.backtrace.join("\n")
+
+      receiver.handle_exception if receiver.respond_to?(:handle_exception)
     end
 
     def run_periodic_timer(channel, callback)
@@ -17,5 +22,9 @@ module ActionCable
       end
     end
 
+    private
+      def logger
+        ActionCable::Server.logger
+      end
   end
 end
