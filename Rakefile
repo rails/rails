@@ -2,14 +2,14 @@ require 'sdoc'
 require 'net/http'
 
 $:.unshift File.expand_path('..', __FILE__)
-require "tasks/release"
+require 'tasks/release'
 require 'railties/lib/rails/api/task'
 
-desc "Build gem files for all projects"
-task :build => "all:build"
+desc 'Build gem files for all projects'
+task :build => 'all:build'
 
-desc "Release all gems to rubygems and create a tag"
-task :release => "all:release"
+desc 'Release all gems to rubygems and create a tag'
+task :release => 'all:release'
 
 PROJECTS = %w(activesupport activemodel actionpack actionview actionmailer activerecord railties activejob)
 
@@ -27,7 +27,7 @@ task :default => %w(test test:isolated)
   end
 end
 
-desc "Smoke-test all projects"
+desc 'Smoke-test all projects'
 task :smoke do
   (PROJECTS - %w(activerecord)).each do |project|
     system %(cd #{project} && #{$0} test:isolated)
@@ -35,10 +35,10 @@ task :smoke do
   system %(cd activerecord && #{$0} sqlite3:isolated_test)
 end
 
-desc "Install gems for all projects."
-task :install => "all:install"
+desc 'Install gems for all projects.'
+task :install => 'all:install'
 
-desc "Generate documentation for the Rails framework"
+desc 'Generate documentation for the Rails framework'
 if ENV['EDGE']
   Rails::API::EdgeTask.new('rdoc')
 else
@@ -46,7 +46,7 @@ else
 end
 
 desc 'Bump all versions to match RAILS_VERSION'
-task :update_versions => "all:update_versions"
+task :update_versions => 'all:update_versions'
 
 # We have a webhook configured in GitHub that gets invoked after pushes.
 # This hook triggers the following tasks:
