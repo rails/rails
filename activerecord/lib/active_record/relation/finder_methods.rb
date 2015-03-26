@@ -93,6 +93,19 @@ module ActiveRecord
       raise RecordNotFound, "Couldn't find #{@klass.name} with an out of range value"
     end
 
+    # Like <tt>find</tt>, except that if a record is passed instead of an id,
+    # it returns the record.
+    #
+    #   Person.find_if_id(5) # returns record where id=5
+    #   Person.find_if_id(@person) # returns @person
+    def find_if_id(*args)
+      if ActiveRecord::Base === args[0]
+        args.size == 1 ? args[0] : args
+      else
+        find(*args)
+      end
+    end
+
     # Gives a record (or N records if a parameter is supplied) without any implied
     # order. The order will depend on the database implementation.
     # If an order is supplied it will be respected.

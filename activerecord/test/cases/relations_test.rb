@@ -701,6 +701,20 @@ class RelationTest < ActiveRecord::TestCase
     assert_raises(ActiveRecord::RecordNotFound) { authors.find(['42', 43]) }
   end
 
+  def test_find_if_id_with_id
+    authors = Author.all
+
+    david = authors.find_if_id(authors(:david).id)
+    assert_equal 'David', david.name
+  end
+
+  def test_find_if_id_with_ar_object
+    authors = Author.all
+
+    david = authors.find_if_id(authors(:david))
+    assert_equal 'David', david.name
+  end
+
   def test_find_in_empty_array
     authors = Author.all.where(:id => [])
     assert authors.to_a.blank?
