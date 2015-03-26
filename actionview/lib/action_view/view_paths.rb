@@ -64,7 +64,7 @@ module ActionView
       #   the default view path. You may also provide a custom view path
       #   (see ActionView::PathSet for more information)
       def append_view_path(path)
-        self._view_paths = view_paths + Array(path)
+        self._view_paths = ActionView::PathSet.new(view_paths + Array(path))
       end
 
       # Prepend a path to the list of view paths for this controller.
