@@ -1,3 +1,7 @@
+*   Allow setting of a demodulized class name whenusing single table inheritance.
+
+    *Alex Robbin*
+
 *   Dump indexes in `create_table` instead of `add_index`.
 
     If the adapter supports indexes in create table, generated SQL is
