@@ -28,7 +28,7 @@ module ActionDispatch
       paths = [path, "#{path}#{ext}", "#{path}/index#{ext}"]
 
       if match = paths.detect { |p|
-        path = File.join(@root, p)
+        path = File.join(@root, p.force_encoding('UTF-8'))
         begin
           File.file?(path) && File.readable?(path)
         rescue SystemCallError
