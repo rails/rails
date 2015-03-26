@@ -19,7 +19,7 @@ module ActiveRecord
             enums, nodes = nodes.partition { |row| row['typtype'] == 'e' }
             domains, nodes = nodes.partition { |row| row['typtype'] == 'd' }
             arrays, nodes = nodes.partition { |row| row['typinput'] == 'array_in' }
-            composites, nodes = nodes.partition { |row| row['typelem'] != '0' }
+            composites, nodes = nodes.partition { |row| row['typelem'].to_i != 0 }
 
             mapped.each     { |row| register_mapped_type(row)    }
             enums.each      { |row| register_enum_type(row)      }
