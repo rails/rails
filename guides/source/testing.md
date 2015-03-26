@@ -162,7 +162,7 @@ project is created.
 
 We will cover each of types Rails tests listed above in this guide.
 
-Unit Testing your Models
+Model Testing
 ------------------------
 
 In Rails, unit tests are what you write to test your models.
@@ -929,7 +929,7 @@ assert_select_email do
 end
 ```
 
-Testing helpers
+Testing Helpers
 ---------------
 
 In order to test helpers, all you need to do is check that the output of the

@@ -257,7 +257,7 @@ application is using any of these spellings, you will need to update them:
 *   Values in attribute selectors may need to be quoted if they contain
     non-alphanumeric characters.
 
-    ```
+    ```ruby
     # before
     a[href=/]
     a[href$=/]
@@ -272,7 +272,7 @@ application is using any of these spellings, you will need to update them:
 
     For example:
 
-    ``` ruby
+    ```ruby
     # content: <div><i><p></i></div>
 
     # before:
@@ -290,7 +290,7 @@ application is using any of these spellings, you will need to update them:
     used to be raw (e.g. `AT&amp;T`), and now is evaluated
     (e.g. `AT&T`).
 
-    ``` ruby
+    ```ruby
     # content: <p>AT&amp;T</p>
 
     # before:

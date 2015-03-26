@@ -402,7 +402,7 @@ INFO: You can also use `rake -T`  to get the list of tasks.
 $ bin/rake about
 About your application's environment
 Rails version             5.0.0
-Ruby version              2.2.0 (x86_64-linux)
+Ruby version              2.2.1 (x86_64-linux)
 RubyGems version          2.4.5
 Rack version              1.6
 JavaScript Runtime        Node.js (V8)
