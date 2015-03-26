@@ -1,3 +1,7 @@
+# Make sure we're using pg high enough for type casts and Ruby 2.2+ compatibility
+gem 'pg', '~> 0.18'
+require 'pg'
+
 require "active_record/connection_adapters/abstract_adapter"
 require "active_record/connection_adapters/postgresql/column"
 require "active_record/connection_adapters/postgresql/database_statements"
@@ -11,10 +15,6 @@ require "active_record/connection_adapters/postgresql/utils"
 require "active_record/connection_adapters/statement_pool"
 
 require 'arel/visitors/bind_visitor'
-
-# Make sure we're using pg high enough for Ruby 2.2+ compatibility
-gem 'pg', '~> 0.18'
-require 'pg'
 
 require 'ipaddr'
 
@@ -278,6 +278,7 @@ module ActiveRecord
         @table_alias_length = nil
 
         connect
+        add_pg_encoders
         @statements = StatementPool.new @connection,
                                         self.class.type_cast_config_to_integer(config.fetch(:statement_limit) { 1000 })
 
@@ -801,6 +802,15 @@ module ActiveRecord
               result.getvalue(0, 0)
             end
           end
+        end
+
+        def add_pg_encoders
+          map = PG::TypeMapByClass.new
+          map[Integer] = PG::TextEncoder::Integer.new
+          map[TrueClass] = PG::TextEncoder::Boolean.new
+          map[FalseClass] = PG::TextEncoder::Boolean.new
+          map[Float] = PG::TextEncoder::Float.new
+          @connection.type_map_for_queries = map
         end
 
         def add_pg_decoders
