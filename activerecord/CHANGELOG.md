@@ -1,3 +1,13 @@
+*   Add `find_if_id` method to find a record if given an ID or
+    if given an AR object return the object.
+
+    Example:
+
+        Person.find_if_id(3) # return Person.find(3)
+        Person.find_if_id(@person) # returns @person
+
+    *Benjamin Sullivan*
+
 *   Add `config.active_record.warn_on_records_fetched_greater_than` option
 
     When set to an integer, a warning will be logged whenever a result set
