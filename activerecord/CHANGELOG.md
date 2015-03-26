@@ -1,3 +1,10 @@
+*   Add `config.active_record.warn_on_records_fetched_greater_than` option
+
+    When set to an integer, a warning will be logged whenever a result set
+    larger than the specified size is returned by a query. Fixes #16463
+
+    *Jason Nochlin*
+
 *   Ignore psqlrc when loading database structure.
 
     *Jason Weathered*
