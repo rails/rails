@@ -319,6 +319,16 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     assert_no_file "test/fixtures/accounts.yml"
   end
 
+  def test_fixture_without_pluralization
+    original_pluralize_table_name = ActiveRecord::Base.pluralize_table_names
+    ActiveRecord::Base.pluralize_table_names = false
+    run_generator
+    assert_generated_fixture("test/fixtures/account.yml",
+                             {"one"=>{"name"=>"MyString", "age"=>1}, "two"=>{"name"=>"MyString", "age"=>1}})
+  ensure
+    ActiveRecord::Base.pluralize_table_names = original_pluralize_table_name
+  end
+
   def test_check_class_collision
     content = capture(:stderr){ run_generator ["object"] }
     assert_match(/The name 'Object' is either already used in your application or reserved/, content)

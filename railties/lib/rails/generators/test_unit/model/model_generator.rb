@@ -19,7 +19,7 @@ module TestUnit # :nodoc:
 
       def create_fixture_file
         if options[:fixture] && options[:fixture_replacement].nil?
-          template 'fixtures.yml', File.join('test/fixtures', class_path, "#{plural_file_name}.yml")
+          template 'fixtures.yml', File.join('test/fixtures', class_path, "#{fixture_file_name}.yml")
         end
       end
 
