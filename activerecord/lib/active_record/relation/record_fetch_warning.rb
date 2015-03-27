@@ -5,9 +5,8 @@ module ActiveRecord
       # `config.active_record.warn_on_records_fetched_greater_than` is
       # set to an integer, if the number of records a query returns is
       # greater than the value of `warn_on_records_fetched_greater_than`,
-      # a warning is logged. This allows for the dection of queries that
-      # return a large number of records, which could cause memory
-      # bloat.
+      # a warning is logged. This allows for the detection of queries that
+      # return a large number of records, which could cause memory bloat.
       #
       # In most cases, fetching large number of records can be performed
       # efficiently using the ActiveRecord::Batches methods.
