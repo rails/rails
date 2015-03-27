@@ -309,6 +309,11 @@ All these configuration options are delegated to the `I18n` library.
 
 * `config.active_record.belongs_to_required_by_default` is a boolean value and controls whether `belongs_to` association is required by default.
 
+* `config.active_record.warn_on_records_fetched_greater_than` allows setting a
+  warning threshold for query result size. If the number of records returned
+  by a query exceeds the threshold, a warning is logged. This can be used to
+  identify queries which might be causing memory bloat.
+
 The MySQL adapter adds one additional configuration option:
 
 * `ActiveRecord::ConnectionAdapters::MysqlAdapter.emulate_booleans` controls whether Active Record will consider all `tinyint(1)` columns in a MySQL database to be booleans and is true by default.
