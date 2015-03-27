@@ -1,5 +1,3 @@
-require 'active_support/deprecation'
-
 class Module
   # Encapsulates the common pattern of:
   #

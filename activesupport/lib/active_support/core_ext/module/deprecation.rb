@@ -1,5 +1,3 @@
-require 'active_support/deprecation'
-
 class Module
   #   deprecate :foo
   #   deprecate bar: 'message'
