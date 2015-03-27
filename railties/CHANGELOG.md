@@ -1,4 +1,4 @@
-*   Respect `pluralize_table_names` when generate fixture file.
+*   Respect `pluralize_table_names` when generating fixture file.
 
     Fixes #19519.
 
