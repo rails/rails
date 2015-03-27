@@ -1128,7 +1128,8 @@ class RequestEtag < BaseRequestTest
 end
 
 class RequestVariant < BaseRequestTest
-  setup do
+  def setup
+    super
     @request = stub_request
   end
 
