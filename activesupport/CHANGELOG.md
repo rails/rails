@@ -1,3 +1,8 @@
+*   Add some missing `require 'active_support/deprecation'`
+
+    *Akira Matsuda*
+
+
 ## Rails 4.2.1 (March 19, 2015) ##
 
 *   Fixed a problem where String#truncate_words would get stuck with a complex

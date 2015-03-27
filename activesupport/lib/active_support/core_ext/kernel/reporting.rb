@@ -1,5 +1,6 @@
 require 'rbconfig'
 require 'tempfile'
+require 'active_support/deprecation'
 
 module Kernel
   # Sets $VERBOSE to nil for the duration of the block and back to its original
