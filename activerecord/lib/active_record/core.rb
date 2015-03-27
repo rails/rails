@@ -96,10 +96,10 @@ module ActiveRecord
 
       ##
       # :singleton-method:
-      # Specify a threshold for the size of query result sets. If the
-      # number of records in the set exceeds threshold, a warning is
-      # logged. This should be used to identify queries which pull
-      # thousands of records, which may cause memory bloat.
+      # Specify a threshold for the size of query result sets. If the number of
+      # records in the set exceeds the threshold, a warning is logged. This can
+      # be used to identify queries which load thousands of records and
+      # potentially cause memory bloat.
       mattr_accessor :warn_on_records_fetched_greater_than, instance_writer: false
       self.warn_on_records_fetched_greater_than = nil
 
