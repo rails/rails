@@ -68,7 +68,7 @@ For severe security issues we will provide new versions as above, and also the
 last major release series will receive patches and new versions. The
 classification of the security issue is judged by the core team.
 
-**Currently included series:** `4.2.Z`, `4.1.Z`, `3.2.Z`.
+**Currently included series:** `4.2.Z`, `4.1.Z`, `4.0.Z`.
 
 Unsupported Release Series
 --------------------------
