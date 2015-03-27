@@ -25,11 +25,4 @@ class ArrayInquirerTest < ActiveSupport::TestCase
   def test_respond_to
     assert_respond_to @array_inquirer, :development?
   end
-
-  def test_inquiry
-    result = [:mobile, :tablet].inquiry
-
-    assert_instance_of ActiveSupport::ArrayInquirer, result
-    assert_equal @array_inquirer, result
-  end
 end
