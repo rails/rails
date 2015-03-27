@@ -1,3 +1,23 @@
+*   Added `ActiveSupport::ArrayInquirer` and `Array#inquiry`.
+
+    Wrapping an array in an `ArrayInquirer` gives a friendlier way to check its
+    contents:
+
+        variants = ActiveSupport::ArrayInquirer.new([:phone, :tablet])
+
+        variants.phone?    # => true
+        variants.tablet?   # => true
+        variants.desktop?  # => false
+
+        variants.any?(:phone, :tablet)   # => true
+        variants.any?(:phone, :desktop)  # => true
+        variants.any?(:desktop, :watch)  # => false
+
+    `Array#inquiry` is a shortcut for wrapping the receiving array in an
+    `ArrayInquirer`.
+
+    *George Claghorn*
+
 *   Deprecate `alias_method_chain` in favour of `Module#prepend` introduced in Ruby 2.0
 
     *Kir Shatrov*

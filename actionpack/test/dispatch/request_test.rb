@@ -1128,35 +1128,46 @@ class RequestEtag < BaseRequestTest
 end
 
 class RequestVariant < BaseRequestTest
-  test "setting variant" do
-    request = stub_request
+  setup do
+    @request = stub_request
+  end
 
-    request.variant = :mobile
-    assert_equal [:mobile], request.variant
+  test 'setting variant to a symbol' do
+    @request.variant = :phone
 
-    request.variant = [:phone, :tablet]
-    assert_equal [:phone, :tablet], request.variant
+    assert @request.variant.phone?
+    assert_not @request.variant.tablet?
+    assert @request.variant.any?(:phone, :tablet)
+    assert_not @request.variant.any?(:tablet, :desktop)
+  end
 
+  test 'setting variant to an array of symbols' do
+    @request.variant = [:phone, :tablet]
+
+    assert @request.variant.phone?
+    assert @request.variant.tablet?
+    assert_not @request.variant.desktop?
+    assert @request.variant.any?(:tablet, :desktop)
+    assert_not @request.variant.any?(:desktop, :watch)
+  end
+
+  test 'clearing variant' do
+    @request.variant = nil
+
+    assert @request.variant.empty?
+    assert_not @request.variant.phone?
+    assert_not @request.variant.any?(:phone, :tablet)
+  end
+
+  test 'setting variant to a non-symbol value' do
     assert_raise ArgumentError do
-      request.variant = [:phone, "tablet"]
-    end
-
-    assert_raise ArgumentError do
-      request.variant = "yolo"
+      @request.variant = 'phone'
     end
   end
 
-  test "reset variant" do
-    request = stub_request
-
-    request.variant = nil
-    assert_equal nil, request.variant
-  end
-
-  test "setting variant with non symbol value" do
-    request = stub_request
+  test 'setting variant to an array containing a non-symbol value' do
     assert_raise ArgumentError do
-      request.variant = "mobile"
+      @request.variant = [:phone, 'tablet']
     end
   end
 end

@@ -1,3 +1,17 @@
+*   Provide friendlier access to request variants.
+
+        request.variant = :phone
+        request.variant.phone?  # true
+        request.variant.tablet? # false
+
+        request.variant = [:phone, :tablet]
+        request.variant.phone?                  # true
+        request.variant.desktop?                # false
+        request.variant.any?(:phone, :desktop)  # true
+        request.variant.any?(:desktop, :watch)  # false
+
+    *George Claghorn*
+
 *   Fix regression where a gzip file response would have a Content-type,
     even when it was a 304 status code.
 
@@ -14,7 +28,7 @@
     *Adam Forsyth*
 
 *   Drop request class from RouteSet constructor.
- 
+
     If you would like to use a custom request class, please subclass and implement
     the `request_class` method.
 
