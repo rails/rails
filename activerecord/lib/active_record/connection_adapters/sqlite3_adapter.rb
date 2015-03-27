@@ -372,9 +372,10 @@ module ActiveRecord
             field["dflt_value"] = $1.gsub('""', '"')
           end
 
+          collation = field['collation']
           sql_type = field['type']
           type_metadata = fetch_type_metadata(sql_type)
-          new_column(field['name'], field['dflt_value'], type_metadata, field['notnull'].to_i == 0)
+          new_column(field['name'], field['dflt_value'], type_metadata, field['notnull'].to_i == 0, collation)
         end
       end
 
@@ -469,6 +470,7 @@ module ActiveRecord
             self.null    = options[:null] if options.include?(:null)
             self.precision = options[:precision] if options.include?(:precision)
             self.scale   = options[:scale] if options.include?(:scale)
+            self.collation = options[:collation] if options.include?(:collation)
           end
         end
       end
@@ -482,9 +484,9 @@ module ActiveRecord
       protected
 
         def table_structure(table_name)
-          structure = exec_query("PRAGMA table_info(#{quote_table_name(table_name)})", 'SCHEMA').to_hash
+          structure = exec_query("PRAGMA table_info(#{quote_table_name(table_name)})", 'SCHEMA')
           raise(ActiveRecord::StatementInvalid, "Could not find table '#{table_name}'") if structure.empty?
-          structure
+          table_structure_with_collation(table_name, structure)
         end
 
         def alter_table(table_name, options = {}) #:nodoc:
@@ -519,7 +521,7 @@ module ActiveRecord
               @definition.column(column_name, column.type,
                 :limit => column.limit, :default => column.default,
                 :precision => column.precision, :scale => column.scale,
-                :null => column.null)
+                :null => column.null, collation: column.collation)
             end
             yield @definition if block_given?
           end
@@ -579,6 +581,46 @@ module ActiveRecord
             RecordNotUnique.new(message, exception)
           else
             super
+          end
+        end
+
+      private
+        def table_structure_with_collation(table_name, basic_structure)
+          collation_hash = {}
+          sql            = "SELECT sql FROM
+                              (SELECT * FROM sqlite_master UNION ALL
+                               SELECT * FROM sqlite_temp_master)
+                            WHERE type='table' and name='#{ table_name }' \;"
+
+          # Result will have following sample string
+          # CREATE TABLE "users" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+          #                       "password_digest" varchar COLLATE "NOCASE");
+          result         = execute(sql).first
+
+          if result
+            # Splitting with left parantheses and picking up last will return all
+            # columns separated with comma(,).
+            columns_string = result["sql"].split('(').last
+
+            columns_string.split(',').each do |column_string|
+              # This regex will match the column name and collation type and will save
+              # the value in $1 and $2 respectively.
+              regex = /.*\"(\w+)\".*collate\s+\"(\w+)\".*/i
+
+              collation_hash[$1] = $2 if (regex =~ column_string)
+            end
+
+            basic_structure.map! do |column|
+              column_name = column['name']
+
+              if collation_hash.has_key? column_name
+                column['collation'] = collation_hash[column_name]
+              end
+
+              column
+            end
+          else
+            basic_structure.to_hash
           end
         end
     end

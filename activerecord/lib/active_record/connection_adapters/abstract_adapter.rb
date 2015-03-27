@@ -387,8 +387,8 @@ module ActiveRecord
         end
       end
 
-      def new_column(name, default, sql_type_metadata = nil, null = true)
-        Column.new(name, default, sql_type_metadata, null)
+      def new_column(name, default, sql_type_metadata = nil, null = true, collation = nil)
+        Column.new(name, default, sql_type_metadata, null, nil, collation)
       end
 
       def lookup_cast_type(sql_type) # :nodoc:

@@ -342,8 +342,8 @@ module ActiveRecord
         raise NotImplementedError
       end
 
-      def new_column(field, default, sql_type_metadata = nil, null = true) # :nodoc:
-        Column.new(field, default, sql_type_metadata, null)
+      def new_column(field, default, sql_type_metadata = nil, null = true, default_function = nil, collation = nil) # :nodoc:
+        Column.new(field, default, sql_type_metadata, null, default_function, collation)
       end
 
       # Must return the MySQL error number from the exception, if the exception has an
@@ -567,7 +567,7 @@ module ActiveRecord
             field_name = set_field_encoding(field[:Field])
             sql_type = field[:Type]
             type_metadata = fetch_type_metadata(sql_type, field[:Collation], field[:Extra])
-            new_column(field_name, field[:Default], type_metadata, field[:Null] == "YES")
+            new_column(field_name, field[:Default], type_metadata, field[:Null] == "YES", nil, field[:Collation])
           end
         end
       end
