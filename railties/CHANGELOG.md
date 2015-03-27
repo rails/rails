@@ -1,3 +1,9 @@
+*   Respect `pluralize_table_names` when generate fixture file.
+
+    Fixes #19519.
+
+    *Yuji Yaginuma*
+
 *   Add a new-line to the end of route method generated code.
 
     We need to add a `\n`, because we cannot have two routes
