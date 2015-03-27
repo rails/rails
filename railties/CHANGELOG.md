@@ -1,3 +1,11 @@
+*   For rake test tasks, call `Minitest.run` explicitly instead of using
+    the `at_exit` hook. This executes test tasks at their specified
+    position and not only at the end of the rake run.
+
+    Fixes #17708.
+
+    *Pascal Zumkehr*
+
 *   Add a new-line to the end of route method generated code.
 
     We need to add a `\n`, because we cannot have two routes

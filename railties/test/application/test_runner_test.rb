@@ -249,9 +249,63 @@ module ApplicationTests
       assert_match "0 failures, 0 errors, 0 skips", run_test_command('')
     end
 
+    def test_run_test_task_before_others
+      create_test_file :models, 'foo'
+      app_file 'lib/tasks/dummy.rake', <<-RUBY
+        task :dummy do
+          puts 'Dummy'
+        end
+      RUBY
+      run_tasks('test', 'dummy').tap do |output|
+        assert_match /FooTest.+Dummy/m, output
+        assert_match "1 runs, 1 assertions, 0 failures", output
+      end
+    end
+
+    def test_run_multiple_test_tasks_amongst_others
+      create_test_file :models, 'foo'
+      create_test_file :controllers, 'bar'
+      app_file 'lib/tasks/dummy.rake', <<-RUBY
+        task :dummy do
+          puts 'Dummy'
+        end
+      RUBY
+      run_tasks('test:models', 'dummy', 'test:controllers').tap do |output|
+        assert_match /FooTest.+Dummy.+BarTest/m, output
+        assert_match /(1 runs, 1 assertions, 0 failures.+){2}/m, output
+      end
+    end
+
+    def test_run_failing_test_task_omits_others
+      app_file "test/models/foo_test.rb", <<-RUBY
+        require 'test_helper'
+
+        class FooTest < ActiveSupport::TestCase
+          def test_falsity
+            puts "FooTest"
+            assert false
+          end
+        end
+      RUBY
+      app_file 'lib/tasks/dummy.rake', <<-RUBY
+        task :dummy do
+          puts 'Dummy'
+        end
+      RUBY
+      run_tasks('test', 'dummy').tap do |output|
+        assert_match "FooTest", output
+        assert_no_match "Dummy", output
+        assert_match "1 runs, 1 assertions, 1 failures", output
+      end
+    end
+
     private
       def run_test_command(arguments = 'test/unit/test_test.rb')
         Dir.chdir(app_path) { `bin/rails t #{arguments}` }
+      end
+
+      def run_tasks(*tasks)
+        Dir.chdir(app_path) { `bundle exec rake #{tasks.join ' '}` }
       end
 
       def create_model_with_fixture
