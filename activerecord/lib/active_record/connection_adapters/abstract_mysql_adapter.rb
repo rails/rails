@@ -237,12 +237,29 @@ module ActiveRecord
 
       MAX_INDEX_LENGTH_FOR_CHARSETS_OF_4BYTES_MAXLEN = 191
       CHARSETS_OF_4BYTES_MAXLEN = ['utf8mb4', 'utf16', 'utf16le', 'utf32']
-      def initialize_schema_migrations_table
+      def max_indexable_string_limit
+        # The default max index target length is 767 bytes in MySQL.
+        #
+        # If we use utf8 character set, one character uses 3 bytes. The
+        # default string limit is 255. We can create an index for the
+        # string column because 3 * 255 (= 765) is less than 767.
+        #
+        # If we use utf8mb4 character set, one character uses 4 bytes. We
+        # can't create an index for the string column because 4 * 255 (=
+        # 1020) is greater than 767.
+        #
+        # If we limit the max number of characters for the string column
+        # to 191 (4 * 191 = 764 <= 767), we can create an index for the
+        # string column.
         if CHARSETS_OF_4BYTES_MAXLEN.include?(charset)
-          ActiveRecord::SchemaMigration.create_table(MAX_INDEX_LENGTH_FOR_CHARSETS_OF_4BYTES_MAXLEN)
+          MAX_INDEX_LENGTH_FOR_CHARSETS_OF_4BYTES_MAXLEN
         else
-          ActiveRecord::SchemaMigration.create_table
+          255
         end
+      end
+
+      def initialize_schema_migrations_table
+        ActiveRecord::SchemaMigration.create_table(max_indexable_string_limit)
       end
 
       # Returns true, since this connection adapter supports migrations.

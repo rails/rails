@@ -128,7 +128,14 @@ module ActiveRecord
       def columns
         result = [["#{name}_id", type, options]]
         if polymorphic
-          result.unshift(["#{name}_type", :string, polymorphic_options])
+          options = polymorphic_options
+          if index
+            indexable_string_limit = Base.connection.max_indexable_string_limit
+            if indexable_string_limit
+              options = options.merge(limit: indexable_string_limit)
+            end
+          end
+          result.unshift(["#{name}_type", :string, options])
         end
         result
       end

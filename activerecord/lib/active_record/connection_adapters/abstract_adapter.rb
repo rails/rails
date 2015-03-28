@@ -171,6 +171,13 @@ module ActiveRecord
         self.class::ADAPTER_NAME
       end
 
+      # Returns the max indexable limit for string type column if the
+      # backend has limitation. Returns nil if the backend doesn't have
+      # limitation.
+      def max_indexable_string_limit
+        nil
+      end
+
       # Does this adapter support migrations?
       def supports_migrations?
         false
