@@ -117,7 +117,7 @@ module ActionController
     self.always_permitted_parameters = %w( controller action )
 
     def self.const_missing(const_name)
-      super unless const_name == :NEVER_UNPERMITTED_PARAMS
+      return super unless const_name == :NEVER_UNPERMITTED_PARAMS
       ActiveSupport::Deprecation.warn(<<-MSG.squish)
         `ActionController::Parameters::NEVER_UNPERMITTED_PARAMS` has been deprecated.
         Use `ActionController::Parameters.always_permitted_parameters` instead.
