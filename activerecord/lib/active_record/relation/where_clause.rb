@@ -67,7 +67,7 @@ module ActiveRecord
       end
 
       def ast
-        Arel::Nodes::And.new(predicates_with_wrapped_sql_literals)
+        Arel::Nodes::And.new(predicates_with_wrapped_sql_literals.uniq)
       end
 
       def ==(other)
