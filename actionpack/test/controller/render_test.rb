@@ -261,12 +261,12 @@ class ExpiresInRenderTest < ActionController::TestCase
 
   def test_expires_now
     get :conditional_hello_with_expires_now
-    assert_equal "no-cache", @response.headers["Cache-Control"]
+    assert_match(/max-age=0/, @response.headers["Cache-Control"])
   end
 
   def test_expires_now_with_cache_control_headers
     get :conditional_hello_with_cache_control_headers
-    assert_match(/no-cache/, @response.headers["Cache-Control"])
+    assert_match(/max-age=0/, @response.headers["Cache-Control"])
     assert_match(/no-transform/, @response.headers["Cache-Control"])
   end
 
