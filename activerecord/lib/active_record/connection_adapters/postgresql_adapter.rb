@@ -108,6 +108,7 @@ module ActiveRecord
         ltree:       { name: "ltree" },
         citext:      { name: "citext" },
         point:       { name: "point" },
+        box:         { name: "box" },
         bit:         { name: "bit" },
         bit_varying: { name: "bit varying" },
         money:       { name: "money" },
@@ -505,6 +506,7 @@ module ActiveRecord
           m.register_type 'money', OID::Money.new
           m.register_type 'bytea', OID::Bytea.new
           m.register_type 'point', OID::Point.new
+          m.register_type 'box', OID::Box.new
           m.register_type 'hstore', OID::Hstore.new
           m.register_type 'json', OID::Json.new
           m.register_type 'jsonb', OID::Jsonb.new
@@ -524,7 +526,6 @@ module ActiveRecord
           m.alias_type 'polygon', 'varchar'
           m.alias_type 'circle', 'varchar'
           m.alias_type 'lseg', 'varchar'
-          m.alias_type 'box', 'varchar'
 
           register_class_with_precision m, 'time', Type::Time
           register_class_with_precision m, 'timestamp', OID::DateTime
@@ -848,6 +849,7 @@ module ActiveRecord
         ActiveRecord::Type.register(:bit, OID::Bit, adapter: :postgresql)
         ActiveRecord::Type.register(:bit_varying, OID::BitVarying, adapter: :postgresql)
         ActiveRecord::Type.register(:binary, OID::Bytea, adapter: :postgresql)
+        ActiveRecord::Type.register(:box, OID::Box, adapter: :postgresql)
         ActiveRecord::Type.register(:cidr, OID::Cidr, adapter: :postgresql)
         ActiveRecord::Type.register(:date_time, OID::DateTime, adapter: :postgresql)
         ActiveRecord::Type.register(:decimal, OID::Decimal, adapter: :postgresql)

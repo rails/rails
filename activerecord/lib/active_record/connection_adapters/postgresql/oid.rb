@@ -1,6 +1,7 @@
 require 'active_record/connection_adapters/postgresql/oid/array'
 require 'active_record/connection_adapters/postgresql/oid/bit'
 require 'active_record/connection_adapters/postgresql/oid/bit_varying'
+require 'active_record/connection_adapters/postgresql/oid/box'
 require 'active_record/connection_adapters/postgresql/oid/bytea'
 require 'active_record/connection_adapters/postgresql/oid/cidr'
 require 'active_record/connection_adapters/postgresql/oid/date_time'
