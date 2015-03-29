@@ -86,11 +86,22 @@ module ApplicationTests
       end
     end
 
-    def test_run_controllers
+    def test_run_controllers_dir
       create_test_file :controllers, 'foo_controller'
       create_test_file :controllers, 'bar_controller'
       create_test_file :models, 'foo'
       run_test_command("test/controllers").tap do |output|
+        assert_match "FooControllerTest", output
+        assert_match "BarControllerTest", output
+        assert_match "2 runs, 2 assertions, 0 failures", output
+      end
+    end
+
+    def test_run_controllers
+      create_test_file :controllers, 'foo_controller'
+      create_test_file :controllers, 'bar_controller'
+      create_test_file :models, 'foo'
+      run_test_command("controllers").tap do |output|
         assert_match "FooControllerTest", output
         assert_match "BarControllerTest", output
         assert_match "2 runs, 2 assertions, 0 failures", output

@@ -64,6 +64,8 @@ module Rails
             arg = arg.gsub(':', '')
             if Dir.exist?("#{arg}")
               options[:patterns] << File.expand_path("#{arg}/**/*_test.rb")
+            elsif Dir.exist?("test/#{arg}")
+              options[:patterns] << File.expand_path("test/#{arg}/**/*_test.rb")
             elsif File.file?(arg)
               options[:patterns] << File.expand_path(arg)
             end
