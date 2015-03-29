@@ -1510,7 +1510,7 @@ comments on articles.
 
 We're going to see the same generator that we used before when creating
 the `Article` model. This time we'll create a `Comment` model to hold
-reference of article comments. Run this command in your terminal:
+reference to an article. Run this command in your terminal:
 
 ```bash
 $ bin/rails generate model Comment commenter:string body:text article:references
