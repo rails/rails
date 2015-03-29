@@ -109,4 +109,16 @@ class CoreTest < ActiveRecord::TestCase
     PP.pp(subtopic.new, StringIO.new(actual))
     assert_equal "inspecting topic\n", actual
   end
+
+  def test_init_with
+    title = "hello world"
+    old_topic = Topic.new(title: title)
+    coder = {}
+    old_topic.encode_with(coder)
+
+    topic = Topic.allocate
+    topic.init_with(coder)
+
+    assert_equal title, topic.title
+  end
 end
