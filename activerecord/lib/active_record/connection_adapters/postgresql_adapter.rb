@@ -594,6 +594,8 @@ module ActiveRecord
         end
 
         def load_additional_types(type_map, oids = nil) # :nodoc:
+          initializer = OID::TypeMapInitializer.new(type_map)
+
           if supports_ranges?
             query = <<-SQL
               SELECT t.oid, t.typname, t.typelem, t.typdelim, t.typinput, r.rngsubtype, t.typtype, t.typbasetype
@@ -609,11 +611,13 @@ module ActiveRecord
 
           if oids
             query += "WHERE t.oid::integer IN (%s)" % oids.join(", ")
+          else
+            query += initializer.query_conditions_for_initial_load(type_map)
           end
 
-          initializer = OID::TypeMapInitializer.new(type_map)
-          records = execute(query, 'SCHEMA')
-          initializer.run(records)
+          execute_and_clear(query, 'SCHEMA', []) do |records|
+            initializer.run(records)
+          end
         end
 
         FEATURE_NOT_SUPPORTED = "0A000" #:nodoc:
@@ -823,9 +827,11 @@ module ActiveRecord
             'float8' => PG::TextDecoder::Float,
             'bool' => PG::TextDecoder::Boolean,
           }
-          query = <<-SQL
+          known_coder_types = coders_by_name.keys.map { |n| quote(n) }
+          query = <<-SQL % known_coder_types.join(", ")
             SELECT t.oid, t.typname
             FROM pg_type as t
+            WHERE t.typname IN (%s)
           SQL
           coders = execute_and_clear(query, "SCHEMA", []) do |result|
             result
