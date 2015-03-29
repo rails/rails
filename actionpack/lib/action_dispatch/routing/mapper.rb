@@ -232,7 +232,8 @@ module ActionDispatch
                     "If you want to expose your action to both GET and POST, add `via: [:get, :post]` option.\n" \
                     "If you want to expose your action to GET, use `get` in the router:\n" \
                     "  Instead of: match \"controller#action\"\n" \
-                    "  Do: get \"controller#action\""
+                    "  Do: get \"controller#action\"\n" \
+                    "  Used conditions: #{conditions.inspect}"
               raise ArgumentError, msg
             end
 
