@@ -190,8 +190,9 @@ class EachTest < ActiveRecord::TestCase
 
   def test_find_in_batches_should_use_any_column_as_primary_key_when_start_is_not_specified
     assert_queries(Subscriber.count + 1) do
-      Subscriber.find_each(:batch_size => 1) do |subscriber|
-        assert_kind_of Subscriber, subscriber
+      Subscriber.find_in_batches(batch_size: 1) do |batch|
+        assert_kind_of Array, batch
+        assert_kind_of Subscriber, batch.first
       end
     end
   end
