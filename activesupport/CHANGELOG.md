@@ -1,3 +1,7 @@
+*   Fixed requiring `active_support/core_ext` by itself.
+
+    *David Verhasselt*
+
 *   Added `ActiveSupport::ArrayInquirer`.
 
     Wrapping an array in an `ArrayInquirer` gives a friendlier way to check its
