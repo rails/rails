@@ -1,3 +1,5 @@
+require "active_support/core_ext/string/strip"
+
 module ActiveModel
 
   # == Active \Model Length Validator
@@ -16,6 +18,27 @@ module ActiveModel
 
         if options[:allow_blank] == false && options[:minimum].nil? && options[:is].nil?
           options[:minimum] = 1
+        end
+
+        if options[:tokenizer]
+          ActiveSupport::Deprecation.warn(<<-EOS.strip_heredoc)
+            The `:tokenizer` option is deprecated, and will be removed in Rails 5.1.
+            You can achieve the same functionality be defining an instance method
+            with the value that you want to validate the length of. For example,
+
+                validates_length_of :essay, minimum: 100,
+                  tokenizer: ->(str) { str.scan(/\w+/) }
+
+            should be written as
+
+                validates_length_of :words_in_essay, minimum: 100
+
+                private
+
+                def words_in_essay
+                  essay.scan(/\w+/)
+                end
+          EOS
         end
 
         super
@@ -88,8 +111,13 @@ module ActiveModel
       #     validates_length_of :user_name, within: 6..20, too_long: 'pick a shorter name', too_short: 'pick a longer name'
       #     validates_length_of :zip_code, minimum: 5, too_short: 'please enter at least 5 characters'
       #     validates_length_of :smurf_leader, is: 4, message: "papa is spelled with 4 characters... don't play me."
-      #     validates_length_of :essay, minimum: 100, too_short: 'Your essay must be at least 100 words.',
-      #                         tokenizer: ->(str) { str.scan(/\w+/) }
+      #     validates_length_of :words_in_essay, minimum: 100, too_short: 'Your essay must be at least 100 words.'
+      #
+      #     private
+      #
+      #     def words_in_essay
+      #       essay.scan(/\w+/)
+      #     end
       #   end
       #
       # Configuration options:
@@ -112,12 +140,6 @@ module ActiveModel
       # * <tt>:message</tt> - The error message to use for a <tt>:minimum</tt>,
       #   <tt>:maximum</tt>, or <tt>:is</tt> violation. An alias of the appropriate
       #   <tt>too_long</tt>/<tt>too_short</tt>/<tt>wrong_length</tt> message.
-      # * <tt>:tokenizer</tt> - A method (as a symbol), proc or string to
-      #   specify how to split up the attribute string. (e.g.
-      #   <tt>tokenizer: :word_tokenizer</tt> to call the +word_tokenizer+ method
-      #   or <tt>tokenizer: ->(str) { str.scan(/\w+/) }</tt> to count words as in
-      #   above example). Defaults to <tt>->(value) { value.split(//) }</tt> which
-      #   counts individual characters.
       #
       # There is also a list of default options supported by every validator:
       # +:if+, +:unless+, +:on+ and +:strict+.
