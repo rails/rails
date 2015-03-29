@@ -1,3 +1,9 @@
+*   Reduce memory usage from loading types on pg.
+
+    Fixes #19578.
+
+    *Sean Griffin*
+
 *   Fix referencing wrong table aliases while joining tables of has many through
     association (only when calling calculation methods).
 
