@@ -36,6 +36,18 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_migration_with_invalid_attributes_name
+    migration = "add_something_to_posts"
+    assert_raise ActiveRecord::IllegalAttributeNameError do
+      run_generator [migration, "type_$$#^***:string"]
+    end
+
+    migration = "add_type_to_posts"
+    assert_raise ActiveRecord::IllegalAttributeNameError do
+      run_generator [migration, "type:string"]
+    end
+  end
+
   def test_add_migration_with_attributes
     migration = "add_title_body_to_posts"
     run_generator [migration, "title:string", "body:text"]

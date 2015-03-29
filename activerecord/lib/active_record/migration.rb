@@ -37,6 +37,12 @@ module ActiveRecord
     end
   end
 
+  class IllegalAttributeNameError < MigrationError#:nodoc:
+    def initialize(name)
+      super("Illegal name for attribute: #{name}\n\t(only lower case letters, numbers, and '_' allowed)")
+    end
+  end
+
   class PendingMigrationError < MigrationError#:nodoc:
     def initialize
       if defined?(Rails.env)
