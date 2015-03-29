@@ -35,7 +35,7 @@ module ActiveRecord
 
         # Are there attributes associated with this scope?
         def scope_attributes? # :nodoc:
-          super || default_scopes.any?
+          super || default_scopes.any? || respond_to?(:default_scope)
         end
 
         def before_remove_const #:nodoc:
