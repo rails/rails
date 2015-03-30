@@ -64,6 +64,7 @@ require 'rails_guides/levenshtein'
 
 module RailsGuides
   class Generator
+    include RailsGuides::Helpers
     attr_reader :guides_dir, :source_dir, :output_dir, :edge, :warnings, :all
 
     GUIDES_RE = /\.(?:erb|md)\z/
@@ -197,13 +198,15 @@ module RailsGuides
         view = ActionView::Base.new(source_dir, :edge => @edge, :version => @version, :mobi => "kindle/#{mobi}")
         view.extend(Helpers)
 
+        result = ""
+        result << "<div class='note'><b>Work in progress</b></div>" if guide_work_in_progress?(output_file)
         if guide =~ /\.(\w+)\.erb$/
           # Generate the special pages like the home.
           # Passing a template handler in the template name is deprecated. So pass the file name without the extension.
-          result = view.render(:layout => layout, :formats => [$1], :file => $`)
+          result += view.render(:layout => layout, :formats => [$1], :file => $`)
         else
           body = File.read(File.join(source_dir, guide))
-          result = RailsGuides::Markdown.new(view, layout).render(body)
+          result += RailsGuides::Markdown.new(view, layout).render(body)
 
           warn_about_broken_links(result) if @warnings
         end
@@ -244,6 +247,10 @@ module RailsGuides
           puts "*** BROKEN LINK: ##{fragment_identifier}, perhaps you meant ##{guess}."
         end
       end
+    end
+
+    def guide_work_in_progress?(file)
+      work_in_progress_guides.include?(file)
     end
   end
 end

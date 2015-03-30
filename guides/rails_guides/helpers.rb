@@ -49,5 +49,19 @@ module RailsGuides
       c = capture(&block)
       content_tag(:code, c)
     end
+
+    def work_in_progress_guides
+      @work_in_progress_guides ||= find_work_in_progress_guides
+    end
+
+    def find_work_in_progress_guides
+      wip_guides = []
+      documents_by_section.each do |section|
+        section['documents'].each do |document|
+          wip_guides << document['url'] if document['work_in_progress']
+        end
+      end
+      wip_guides
+    end
   end
 end
