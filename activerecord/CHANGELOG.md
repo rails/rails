@@ -1,4 +1,4 @@
-*   Display warning when generate model with invalids attributes
+*   Display warning when generating model with invalid attributes
 
     *Paulo Moura*
 
