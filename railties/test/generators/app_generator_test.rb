@@ -18,6 +18,7 @@ DEFAULT_APP_FILES = %w(
   app/mailers
   app/models
   app/models/concerns
+  app/jobs
   app/views/layouts
   bin/bundle
   bin/rails
@@ -65,6 +66,11 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file("app/views/layouts/application.html.erb", /javascript_include_tag\s+'application', 'data-turbolinks-track' => true/)
     assert_file("app/assets/stylesheets/application.css")
     assert_file("app/assets/javascripts/application.js")
+  end
+
+  def test_application_job_file_present
+    run_generator
+    assert_file("app/jobs/application_job.rb")
   end
 
   def test_invalid_application_name_raises_an_error
