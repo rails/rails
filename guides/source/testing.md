@@ -144,7 +144,7 @@ email(david.partner.email, david.location_tonight)
 ### Console Tasks for Running your Tests
 
 Rails comes with a CLI command to run tests.
-Here are some examples how to use it:
+Here are some examples of how to use it:
 
 ```bash
 $ bin/rails test # run all tests in the `test` directory
