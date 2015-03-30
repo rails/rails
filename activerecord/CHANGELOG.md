@@ -2,6 +2,12 @@
 
     *Paulo Moura*
 
+*   Reduce memory usage from loading types on pg.
+
+    Fixes #19578.
+
+    *Sean Griffin*
+
 *   Add `config.active_record.warn_on_records_fetched_greater_than` option
 
     When set to an integer, a warning will be logged whenever a result set

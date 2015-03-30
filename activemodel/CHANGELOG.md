@@ -1,3 +1,8 @@
+*   Deprecate the `:tokenizer` option for `validates_length_of`, in favor of
+    plain Ruby.
+
+    *Sean Griffin*
+
 *   Deprecate `ActiveModel::Errors#add_on_empty` and `ActiveModel::Errors#add_on_blank`
     with no replacement.
 

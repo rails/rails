@@ -319,8 +319,14 @@ class LengthValidationTest < ActiveModel::TestCase
   end
 
   def test_validates_length_of_with_block
-    Topic.validates_length_of :content, minimum: 5, too_short: "Your essay must be at least %{count} words.",
-                                        tokenizer: lambda {|str| str.scan(/\w+/) }
+    assert_deprecated do
+      Topic.validates_length_of(
+        :content,
+        minimum: 5,
+        too_short: "Your essay must be at least %{count} words.",
+        tokenizer: lambda {|str| str.scan(/\w+/) },
+      )
+    end
     t = Topic.new(content: "this content should be long enough")
     assert t.valid?
 
@@ -332,8 +338,14 @@ class LengthValidationTest < ActiveModel::TestCase
 
 
   def test_validates_length_of_with_symbol
-    Topic.validates_length_of :content, minimum: 5, too_short: "Your essay must be at least %{count} words.",
-                                        tokenizer: :my_word_tokenizer
+    assert_deprecated do
+      Topic.validates_length_of(
+        :content,
+        minimum: 5,
+        too_short: "Your essay must be at least %{count} words.",
+        tokenizer: :my_word_tokenizer,
+      )
+    end
     t = Topic.new(content: "this content should be long enough")
     assert t.valid?
 
