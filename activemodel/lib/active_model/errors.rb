@@ -102,9 +102,7 @@ module ActiveModel
     def include?(attribute)
       messages[attribute].present?
     end
-    # aliases include?
     alias :has_key? :include?
-    # aliases include?
     alias :key? :include?
 
     # Get messages for +key+.
@@ -199,6 +197,7 @@ module ActiveModel
     def size
       values.flatten.size
     end
+    alias :count :size
 
     # Returns all message values.
     #
@@ -216,35 +215,15 @@ module ActiveModel
       messages.keys
     end
 
-    # Returns an array of error messages, with the attribute name included.
-    #
-    #   person.errors.add(:name, :blank, message: "can't be blank")
-    #   person.errors.add(:name, :not_specified, message: "must be specified")
-    #   person.errors.to_a # => ["name can't be blank", "name must be specified"]
-    def to_a
-      full_messages
-    end
-
-    # Returns the number of error messages.
-    #
-    #   person.errors.add(:name, :blank, message: "can't be blank")
-    #   person.errors.count # => 1
-    #   person.errors.add(:name, :not_specified, message: "must be specified")
-    #   person.errors.count # => 2
-    def count
-      to_a.size
-    end
-
     # Returns +true+ if no errors are found, +false+ otherwise.
     # If the error message is a string it can be empty.
     #
     #   person.errors.full_messages # => ["name cannot be nil"]
     #   person.errors.empty?        # => false
     def empty?
-      all? { |k, v| v && v.empty? && !v.is_a?(String) }
+      size.zero?
     end
-    # aliases empty?
-    alias_method :blank?, :empty?
+    alias :blank? :empty?
 
     # Returns an xml formatted representation of the Errors hash.
     #
@@ -407,6 +386,7 @@ module ActiveModel
     def full_messages
       map { |attribute, message| full_message(attribute, message) }
     end
+    alias :to_a :full_messages
 
     # Returns all the full error messages for a given attribute in an array.
     #
