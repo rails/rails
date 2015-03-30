@@ -204,7 +204,7 @@ module ApplicationTests
       app_file "app/assets/javascripts/application.js", "alert();"
 
       precompile!
-      manifest = Dir["#{app_path}/public/assets/manifest-*.json"].first
+      manifest = Dir["#{app_path}/public/assets/.sprockets-manifest-*.json"].first
 
       assets = ActiveSupport::JSON.decode(File.read(manifest))
       assert_match(/application-([0-z]+)\.js/, assets["assets"]["application.js"])
@@ -217,7 +217,7 @@ module ApplicationTests
 
       precompile!
 
-      manifest = Dir["#{app_path}/public/x/manifest-*.json"].first
+      manifest = Dir["#{app_path}/public/x/.sprockets-manifest-*.json"].first
       assets = ActiveSupport::JSON.decode(File.read(manifest))
       assert_match(/application-([0-z]+)\.js/, assets["assets"]["application.js"])
     end
@@ -229,7 +229,7 @@ module ApplicationTests
       ENV["RAILS_ENV"] = "production"
       precompile!
 
-      manifest = Dir["#{app_path}/public/assets/manifest-*.json"].first
+      manifest = Dir["#{app_path}/public/assets/.sprockets-manifest-*.json"].first
       assets = ActiveSupport::JSON.decode(File.read(manifest))
       asset_path = assets["assets"]["application.js"]
 
@@ -261,7 +261,7 @@ module ApplicationTests
       ENV["RAILS_ENV"] = "production"
       precompile!
 
-      manifest = Dir["#{app_path}/public/assets/manifest-*.json"].first
+      manifest = Dir["#{app_path}/public/assets/.sprockets-manifest-*.json"].first
       assets = ActiveSupport::JSON.decode(File.read(manifest))
       asset_path = assets["assets"]["application.css"]
 
@@ -291,7 +291,7 @@ module ApplicationTests
 
       precompile!
 
-      manifest = Dir["#{app_path}/public/assets/manifest-*.json"].first
+      manifest = Dir["#{app_path}/public/assets/.sprockets-manifest-*.json"].first
       assets = ActiveSupport::JSON.decode(File.read(manifest))
       assert asset_path = assets["assets"].find { |(k, _)| k && k =~ /.png/ }[1]
 
@@ -437,9 +437,9 @@ module ApplicationTests
       class ::PostsController < ActionController::Base; end
 
       get '/posts', {}, {'HTTPS'=>'off'}
-      assert_match('src="http://example.com/assets/application.js', last_response.body)
+      assert_match('src="http://example.com/assets/application.self.js', last_response.body)
       get '/posts', {}, {'HTTPS'=>'on'}
-      assert_match('src="https://example.com/assets/application.js', last_response.body)
+      assert_match('src="https://example.com/assets/application.self.js', last_response.body)
     end
 
     test "asset urls should be protocol-relative if no request is in scope" do
