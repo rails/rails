@@ -1,3 +1,7 @@
+*   Display warning when generating model with invalid attributes
+
+    *Paulo Moura*
+
 *   Reduce memory usage from loading types on pg.
 
     Fixes #19578.
