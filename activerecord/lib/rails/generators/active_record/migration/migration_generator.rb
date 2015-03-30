@@ -65,8 +65,20 @@ module ActiveRecord
 
         def validate_attribute_name!
           attributes.each do |attribute|
-            if attribute.name == "type" || !(attribute.name =~ /^[_a-z0-9]+$/)
+            unless attribute.name =~ /^[_a-z0-9]+$/
               raise IllegalAttributeNameError.new(attribute.name)
+            end
+            
+            if attribute.name == "type"
+              Kernel.puts <<-DESC.strip_heredoc
+                The default inheritance column name is type, 
+                which means it's a reserved word inside Active Record. 
+                To be able to use single-table inheritance with another column name, 
+                or to use the column type in your own model for something else, 
+                you can set inheritance_column:
+                
+                self.inheritance_column = 'zoink'
+              DESC
             end
           end
         end

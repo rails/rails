@@ -1,5 +1,6 @@
 require 'generators/generators_test_helper'
 require 'rails/generators/rails/migration/migration_generator'
+require 'mocha/setup' # FIXME: stop using mocha
 
 class MigrationGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
@@ -41,11 +42,21 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     assert_raise ActiveRecord::IllegalAttributeNameError do
       run_generator [migration, "type_$$#^***:string"]
     end
+  end
 
+  def test_migration_with_type_like_attribute_name
     migration = "add_type_to_posts"
-    assert_raise ActiveRecord::IllegalAttributeNameError do
-      run_generator [migration, "type:string"]
-    end
+    warning = <<-DESC.strip_heredoc
+                The default inheritance column name is type, 
+                which means it's a reserved word inside Active Record. 
+                To be able to use single-table inheritance with another column name, 
+                or to use the column type in your own model for something else, 
+                you can set inheritance_column:
+                
+                self.inheritance_column = 'zoink'
+              DESC
+    Kernel.expects(:puts).with(warning)
+    run_generator [migration, "type:string"]
   end
 
   def test_add_migration_with_attributes
