@@ -1,4 +1,5 @@
 require 'fileutils'
+require 'yaml'
 require 'active_support/core_ext/hash/keys'
 require 'active_support/core_ext/object/blank'
 require 'active_support/key_generator'
@@ -228,7 +229,6 @@ module Rails
       yaml = Pathname.new("#{paths["config"].existent.first}/#{name}.yml")
 
       if yaml.exist?
-        require "yaml"
         require "erb"
         (YAML.load(ERB.new(yaml.read).result) || {})[Rails.env] || {}
       else
