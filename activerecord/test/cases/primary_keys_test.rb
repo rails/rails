@@ -260,7 +260,8 @@ if current_adapter?(:PostgreSQLAdapter, :MysqlAdapter, :Mysql2Adapter)
     end
 
     teardown do
-      @connection.drop_table 'widgets', if_exists: true
+      @connection.drop_table :widgets, if_exists: true
+      Widget.reset_column_information
     end
 
     test "primary key column type with bigserial" do

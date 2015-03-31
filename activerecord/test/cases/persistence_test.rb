@@ -924,7 +924,8 @@ class PersistenceTest < ActiveRecord::TestCase
       assert_equal instance.created_at, created_at
       assert_equal instance.updated_at, updated_at
     ensure
-      ActiveRecord::Base.connection.drop_table :widgets
+      ActiveRecord::Base.connection.drop_table widget.table_name
+      widget.reset_column_information
     end
   end
 end
