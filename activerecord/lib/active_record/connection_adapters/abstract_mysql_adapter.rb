@@ -576,7 +576,13 @@ module ActiveRecord
         end
       end
 
-      def change_column_default(table_name, column_name, default) #:nodoc:
+      # Changes the value saved for an attribute on a record
+      # when that record is saved to the database with a nil value
+      # for that column.
+      #
+      # Example:
+      #   change_column_default(:books, :ghostwritten, false)
+      def change_column_default(table_name, column_name, default)
         column = column_for(table_name, column_name)
         change_column table_name, column_name, column.sql_type, :default => default
       end
