@@ -496,13 +496,13 @@ All the keyword arguments are optional.
 Example: Calling the `:show` action, passing an `id` of 12 as the `params` and setting a `user_id` of 5 in the session:
 
 ```ruby
-get(:show, params: { 'id' => "12" }, session: { 'user_id' => 5 })
+get(:show, params: { id: 12 }, session: { user_id: 5 })
 ```
 
 Another example: Calling the `:view` action, passing an `id` of 12 as the `params`, this time with no session, but with a flash message.
 
 ```ruby
-get(:view, params: { 'id' => '12' }, flash: { 'message' => 'booya!' })
+get(:view, params: { id: 12 }, flash: { message: 'booya!' })
 ```
 
 NOTE: If you try running `test_should_create_article` test from `articles_controller_test.rb` it will fail on account of the newly added model level validation and rightly so.
