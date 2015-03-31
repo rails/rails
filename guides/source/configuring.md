@@ -831,15 +831,6 @@ server {
 
 Be sure to read the [NGINX documentation](http://nginx.org/en/docs/) for the most up-to-date information.
 
-#### Considerations when deploying to a subdirectory
-
-Deploying to a subdirectory in production has implications on various parts of
-Rails.
-
-* development environment:
-* testing environment:
-* serving static assets:
-* asset pipeline:
 
 Rails Environment Settings
 --------------------------
