@@ -422,7 +422,7 @@ module ActiveRecord
         end
 
         # Changes the default value of a table column.
-        def change_column_default(table_name, column_name, default)
+        def change_column_default(table_name, column_name, default) # :nodoc:
           clear_cache!
           column = column_for(table_name, column_name)
           return unless column
