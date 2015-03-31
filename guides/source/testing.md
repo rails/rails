@@ -289,10 +289,10 @@ test "should not save article without title" do
 end
 ```
 
-Let us run this newly added test.
+Let us run this newly added test (where `6` is the number of line where the test is defined).
 
 ```bash
-$ bin/rails test test/models/article_test.rb test_should_not_save_article_without_title
+$ bin/rails test test/models/article_test.rb:6
 F
 
 Finished tests in 0.044632s, 22.4054 tests/s, 22.4054 assertions/s.
@@ -332,7 +332,7 @@ end
 Now the test should pass. Let us verify by running the test again:
 
 ```bash
-$ bin/rails test test/models/article_test.rb test_should_not_save_article_without_title
+$ bin/rails test test/models/article_test.rb:6
 .
 
 Finished tests in 0.047721s, 20.9551 tests/s, 20.9551 assertions/s.
@@ -361,7 +361,7 @@ end
 Now you can see even more output in the console from running the tests:
 
 ```bash
-$ bin/rails test test/models/article_test.rb test_should_report_error
+$ bin/rails test test/models/article_test.rb
 E
 
 Finished tests in 0.030974s, 32.2851 tests/s, 0.0000 assertions/s.
