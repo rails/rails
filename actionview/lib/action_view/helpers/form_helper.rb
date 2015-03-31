@@ -1753,21 +1753,6 @@ module ActionView
         @template.radio_button(@object_name, method, tag_value, objectify_options(options))
       end
 
-      # Returns a hidden input tag tailored for accessing a specified attribute (identified by +method+) on an object
-      # assigned to the template (identified by +object+). Additional options on the input tag can be passed as a
-      # hash with +options+. These options will be tagged onto the HTML as an HTML element attribute as in the example
-      # shown.
-      #
-      # ==== Examples
-      #   hidden_field(:signup, :pass_confirm)
-      #   # => <input type="hidden" id="signup_pass_confirm" name="signup[pass_confirm]" value="#{@signup.pass_confirm}" />
-      #
-      #   hidden_field(:post, :tag_list)
-      #   # => <input type="hidden" id="post_tag_list" name="post[tag_list]" value="#{@post.tag_list}" />
-      #
-      #   hidden_field(:user, :token)
-      #   # => <input type="hidden" id="user_token" name="user[token]" value="#{@user.token}" />
-      #
       def hidden_field(method, options = {})
         @emitted_hidden_id = true if method == :id
         @template.hidden_field(@object_name, method, objectify_options(options))
