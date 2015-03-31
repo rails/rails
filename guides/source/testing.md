@@ -158,8 +158,6 @@ We will cover each of types Rails tests listed above in this guide.
 Model Testing
 ------------------------
 
-In Rails, unit tests are what you write to test your models.
-
 For this guide we will be using the application we built in the [Getting Started with Rails](getting_started.html) guide.
 
 If you remember when you used the `rails generate scaffold` command from earlier. We created our first resource among other things it created a test stub in the `test/models` directory:
