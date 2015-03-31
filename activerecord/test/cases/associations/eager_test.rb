@@ -759,6 +759,23 @@ class EagerAssociationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_eager_with_default_scope_as_class_method_using_find_method
+    david = developers(:david)
+    developer = EagerDeveloperWithClassMethodDefaultScope.find(david.id)
+    projects = Project.order(:id).to_a
+    assert_no_queries do
+      assert_equal(projects, developer.projects)
+    end
+  end
+
+  def test_eager_with_default_scope_as_class_method_using_find_by_method
+    developer = EagerDeveloperWithClassMethodDefaultScope.find_by(name: 'David')
+    projects = Project.order(:id).to_a
+    assert_no_queries do
+      assert_equal(projects, developer.projects)
+    end
+  end
+
   def test_eager_with_default_scope_as_lambda
     developer = EagerDeveloperWithLambdaDefaultScope.where(:name => 'David').first
     projects = Project.order(:id).to_a
