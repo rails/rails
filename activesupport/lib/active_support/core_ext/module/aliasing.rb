@@ -45,7 +45,7 @@ class Module
   end
 
   # Allows you to make aliases for attributes, which includes
-  # getter, setter, and query methods.
+  # getter, setter, and a predicate.
   #
   #   class Content < ActiveRecord::Base
   #     # has a title attribute
