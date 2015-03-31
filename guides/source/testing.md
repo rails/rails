@@ -148,7 +148,6 @@ Here are some examples of how to use it:
 
 ```bash
 $ bin/rails test # run all tests in the `test` directory
-$ bin/rails test controllers # run all controller tests in the `test/controllers` directory
 $ bin/rails test test/controllers # run all tests from specific directory
 $ bin/rails test test/models/post_test.rb # run specific test
 $ bin/rails test test/models/post_test.rb:44 # run specific test and line
