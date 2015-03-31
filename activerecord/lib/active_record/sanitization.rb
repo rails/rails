@@ -3,7 +3,7 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     module ClassMethods
-      def quote_value(value, column) #:nodoc:
+      def quote_value(value, column = nil) #:nodoc:
         connection.quote(value, column)
       end
 
