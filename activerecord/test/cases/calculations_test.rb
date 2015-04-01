@@ -114,18 +114,18 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_limit_calculation
-    c = Account.where("firm_id IS NOT NULL").group(:firm_id).order("firm_id").limit(2).sum(:credit_limit)
+    c = Account.where.not(firm_id: nil).group(:firm_id).order("firm_id").limit(2).sum(:credit_limit)
     assert_equal [1, 2], c.keys.compact
   end
 
   def test_should_limit_calculation_with_offset
-    c = Account.where("firm_id IS NOT NULL").group(:firm_id).order("firm_id").
+    c = Account.where.not(firm_id: nil).group(:firm_id).order("firm_id").
      limit(2).offset(1).sum(:credit_limit)
     assert_equal [2, 6], c.keys.compact
   end
 
   def test_limit_should_apply_before_count
-    accounts = Account.limit(3).where('firm_id IS NOT NULL')
+    accounts = Account.limit(3).where.not(firm_id: nil)
 
     assert_equal 3, accounts.count(:firm_id)
     assert_equal 3, accounts.select(:firm_id).count
@@ -367,7 +367,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_count_with_column_and_options_parameter
-    assert_equal 2, Account.where("credit_limit = 50 AND firm_id IS NOT NULL").count(:firm_id)
+    assert_equal 2, Account.where(credit_limit: 50).where.not(firm_id: nil).count(:firm_id)
   end
 
   def test_should_count_field_in_joined_table

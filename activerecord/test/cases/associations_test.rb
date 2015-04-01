@@ -32,7 +32,7 @@ class AssociationsTest < ActiveRecord::TestCase
     molecule.electrons.create(:name => 'electron_1')
     molecule.electrons.create(:name => 'electron_2')
 
-    liquids = Liquid.includes(:molecules => :electrons).references(:molecules).where('molecules.id is not null')
+    liquids = Liquid.includes(:molecules => :electrons).references(:molecules).where.not('molecules.id' => nil)
     assert_equal 1, liquids[0].molecules.length
   end
 
