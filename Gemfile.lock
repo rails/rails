@@ -99,6 +99,7 @@ GEM
       beaneater (~> 0.3.1)
       dante (~> 0.1.5)
     bcrypt (3.1.10)
+    bcrypt (3.1.10-x86-mingw32)
     beaneater (0.3.3)
     benchmark-ips (2.1.1)
     builder (3.2.2)
@@ -126,6 +127,7 @@ GEM
     globalid (0.3.3)
       activesupport (>= 4.1.0)
     hitimes (1.2.2)
+    hitimes (1.2.2-x86-mingw32)
     i18n (0.7.0)
     json (1.8.2)
     kindlerb (0.1.1)
@@ -240,6 +242,7 @@ GEM
 
 PLATFORMS
   ruby
+  x86-mingw32
 
 DEPENDENCIES
   activerecord-jdbcmysql-adapter (>= 1.3.0)
