@@ -102,7 +102,7 @@ module ActionController
             end
           end
 
-          message = json.gsub(/\n/, "\ndata: ")
+          message = json.gsub("\n", "\ndata: ")
           @stream.write "data: #{message}\n\n"
         end
     end
