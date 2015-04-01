@@ -475,7 +475,7 @@ The methods `silence_warnings` and `enable_warnings` change the value of `$VERBO
 silence_warnings { Object.const_set "RAILS_DEFAULT_LOGGER", logger }
 ```
 
-Silencing exceptions is also possible with `suppress`. This method receives an arbitrary number of exception classes. If an exception is raised during the execution of the block and is `kind_of?` any of the arguments, `suppress` captures it and returns silently. Otherwise the exception is reraised:
+Silencing exceptions is also possible with `suppress`. This method receives an arbitrary number of exception classes. If an exception is raised during the execution of the block and is `kind_of?` any of the arguments, `suppress` captures it and returns silently. Otherwise the exception is not captured:
 
 ```ruby
 # If the user is locked, the increment is lost, no big deal.
