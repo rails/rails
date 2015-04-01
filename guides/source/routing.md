@@ -807,6 +807,18 @@ As long as `Sprockets` responds to `call` and returns a `[status, headers, body]
 
 NOTE: For the curious, `'articles#index'` actually expands out to `ArticlesController.action(:index)`, which returns a valid Rack application.
 
+If you specify a rack application as the endpoint for a matcher remember that the route will be unchanged in the receiving application. With the following route your rack application should expect the route to be '/admin':
+
+```ruby
+match '/admin', to: AdminApp, via: :all
+```
+
+If you would prefer to have your rack application receive requests at the root path instead use mount:
+
+```ruby
+mount AdminApp, at: '/admin'
+```
+
 ### Using `root`
 
 You can specify what Rails should route `'/'` to with the `root` method:
