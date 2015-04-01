@@ -1,5 +1,9 @@
 source 'https://rubygems.org'
 
+if Gem::Version.new(Bundler::VERSION) < Gem::Version.new('1.7.11')
+  abort "Rails requires Bundler 1.7.11 or higher (you're using #{Bundler::VERSION}).\nPlease update with 'gem update bundler'." 
+end
+
 gemspec
 
 # We need a newish Rake since Active Job sets its test tasks' descriptions.
