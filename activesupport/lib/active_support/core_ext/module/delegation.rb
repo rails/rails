@@ -165,7 +165,9 @@ class Module
     methods.each do |method|
       # Attribute writer methods only accept one argument. Makes sure []=
       # methods still accept two arguments.
-      definition = (method =~ /[^\]]=$/) ? 'arg' : '*args, &block'
+      definition = method =~ /[^\]]=$/ ? 'arg' : '*args, &block'
+      method_name = [ prefix, method ].join
+      method_signature = "#{method_name}(#{definition})"
 
       # The following generated method calls the target exactly once, storing
       # the returned value in a dummy variable.
@@ -175,32 +177,30 @@ class Module
       # whereas conceptually, from the user point of view, the delegator should
       # be doing one call.
       if allow_nil
-        method_def = [
-          "def #{prefix}#{method}(#{definition})",
-          "_ = #{to}",
-          "if !_.nil? || nil.respond_to?(:#{method})",
-          "  _.#{method}(#{definition})",
-          "end",
-        "end"
-        ].join ';'
+        method_body = <<-RUBY
+          def #{method_signature}
+            target = #{to}
+            if !target.nil? || nil.respond_to?(:#{method})
+              target.#{method}(#{definition})
+            end
+          end
+        RUBY
       else
-        exception = %(raise DelegationError, "#{self}##{prefix}#{method} delegated to #{to}.#{method}, but #{to} is nil: \#{self.inspect}")
-
-        method_def = [
-          "def #{prefix}#{method}(#{definition})",
-          " _ = #{to}",
-          "  _.#{method}(#{definition})",
-          "rescue NoMethodError => e",
-          "  if _.nil? && e.name == :#{method}",
-          "    #{exception}",
-          "  else",
-          "    raise",
-          "  end",
-          "end"
-        ].join ';'
+        method_body = <<-RUBY
+          def #{method_signature}
+            target = #{to}
+            target.#{method}(#{definition})
+          rescue NoMethodError => error
+            if target.nil? && error.name == :#{method}
+              raise DelegationError, "#{self}##{method_name} delegated to #{to}.#{method}, but #{to} is nil: \#{inspect}"
+            else
+              raise
+            end
+          end
+        RUBY
       end
 
-      module_eval(method_def, file, line)
+      module_eval method_body.gsub(?\n, ?;), file, line
     end
   end
 end
