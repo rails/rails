@@ -30,6 +30,9 @@ class Someone < Struct.new(:name, :place)
   delegate :upcase, :to => "place.city"
   delegate :table_name, :to => :class
   delegate :table_name, :to => :class, :prefix => true
+  delegate :downcase, :paulina?, to: :street, suffix: :street
+  delegate :upcase!, to: :street, suffix: true
+  delegate :name=, to: :place, suffix: :of_the_place
 
   def self.table_name
     'some_table'
@@ -191,6 +194,37 @@ class ModuleTest < ActiveSupport::TestCase
         delegate :name, :address, :to => :@client, :prefix => true
       end
     end
+  end
+
+  def test_delegation_suffix_with_instance_variable
+    assert_raise ArgumentError do
+      Class.new do
+        def initialize(client)
+          @client = client
+        end
+        delegate :name, :address, to: :@client, suffix: true
+      end
+    end
+  end
+
+  def test_delegation_suffix
+    assert_equal "paulina", @david.downcase_street
+  end
+
+  def test_delegation_suffix_predicate
+    street = @david.street
+    def street.paulina?; true; end
+    assert @david.paulina_street?
+  end
+
+  def test_delegation_suffix_bang
+    @david.upcase_street!
+    assert_equal "PAULINA", @david.street
+  end
+
+  def test_delegation_suffix_setter
+    @david.name_of_the_place = "David's Home"
+    assert_equal "David's Home", @david.place.name
   end
 
   def test_delegation_with_allow_nil

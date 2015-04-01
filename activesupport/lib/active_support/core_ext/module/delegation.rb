@@ -83,30 +83,39 @@ class Module
   #
   #   Foo.new.hello # => "world"
   #
-  # Delegates can optionally be prefixed using the <tt>:prefix</tt> option. If the value
-  # is <tt>true</tt>, the delegate methods are prefixed with the name of the object being
-  # delegated to.
+  # Delegates can optionally be prefixed or suffexed using <tt>:prefix</tt> and
+  # <tt>:suffix</tt> options. If the value is <tt>true</tt>, the delegate
+  # methods are prefixed/suffixed with the name of the object being delegated
+  # to.
   #
   #   Person = Struct.new(:name, :address)
+  #   Payment = Struct.new(:processed) do
+  #     alias_method :processed?, :processed
+  #   end
   #
-  #   class Invoice < Struct.new(:client)
+  #   class Invoice < Struct.new(:client, :payment)
   #     delegate :name, :address, to: :client, prefix: true
+  #     delegate :processed?, to: :payment, suffix: true
   #   end
   #
   #   john_doe = Person.new('John Doe', 'Vimmersvej 13')
-  #   invoice = Invoice.new(john_doe)
-  #   invoice.client_name    # => "John Doe"
-  #   invoice.client_address # => "Vimmersvej 13"
+  #   payment = Payment.new(true)
+  #   invoice = Invoice.new(john_doe, payment)
+  #   invoice.client_name        # => "John Doe"
+  #   invoice.client_address     # => "Vimmersvej 13"
+  #   invoice.processed_payment? # => true
   #
-  # It is also possible to supply a custom prefix.
+  # It is also possible to supply a custom prefix or suffix.
   #
   #   class Invoice < Struct.new(:client)
   #     delegate :name, :address, to: :client, prefix: :customer
+  #     delegate :processed?, to: :payment, suffix: :bank_transfer
   #   end
   #
-  #   invoice = Invoice.new(john_doe)
-  #   invoice.customer_name    # => 'John Doe'
-  #   invoice.customer_address # => 'Vimmersvej 13'
+  #   invoice = Invoice.new(john_doe, payment)
+  #   invoice.customer_name            # => 'John Doe'
+  #   invoice.customer_address         # => 'Vimmersvej 13'
+  #   invoice.processed_bank_transfer? # => true
   #
   # If the target is +nil+ and does not respond to the delegated method a
   # +NoMethodError+ is raised, as with any other value. Sometimes, however, it
@@ -148,13 +157,18 @@ class Module
   #
   # The target method must be public, otherwise it will raise +NoMethodError+.
   #
-  def delegate(*methods, to:, prefix: nil, allow_nil: false)
-    if prefix == true && to =~ /^[^a-z_]/
-      raise ArgumentError, 'Can only automatically set the delegation prefix when delegating to a method.'
+  def delegate(*methods, to:, prefix: nil, suffix: nil, allow_nil: false)
+    { prefix: prefix, suffix: suffix }.each do |morpheme, value|
+      if value == true && to =~ /^[^a-z_]/
+        raise ArgumentError, "Can only automatically set the delegation #{morpheme} when delegating to a method."
+      end
     end
 
     prefix = to if prefix == true
     prefix = prefix ? "#{prefix}_" : ""
+
+    suffix = to if suffix == true
+    suffix = suffix ? "_#{suffix}" : ""
 
     file, line = caller(1, 1).first.split(':', 2)
     line = line.to_i
@@ -166,7 +180,7 @@ class Module
       # Attribute writer methods only accept one argument. Makes sure []=
       # methods still accept two arguments.
       definition = method =~ /[^\]]=$/ ? 'arg' : '*args, &block'
-      method_name = [ prefix, method ].join
+      method_name = [ prefix, method ].join.sub(/(?=\W*\z)/, suffix)
       method_signature = "#{method_name}(#{definition})"
 
       # The following generated method calls the target exactly once, storing
