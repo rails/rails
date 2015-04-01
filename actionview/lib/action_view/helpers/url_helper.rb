@@ -172,6 +172,12 @@ module ActionView
       #
       #   link_to "Visit Other Site", "http://www.rubyonrails.org/", data: { confirm: "Are you sure?" }
       #   # => <a href="http://www.rubyonrails.org/" data-confirm="Are you sure?">Visit Other Site</a>
+      #
+      # Also you can set target attribute with <tt>target</tt> options:
+      #
+      #   link_to "External link", "http://www.rubyonrails.org/", target: "_blank"
+      #   # => <a href="http://www.rubyonrails.org/" target="_blank">External link</a>
+      #
       def link_to(name = nil, options = nil, html_options = nil, &block)
         html_options, options, name = options, name, block if block_given?
         options ||= {}
