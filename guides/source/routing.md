@@ -819,8 +819,6 @@ If you would prefer to have your rack application receive requests at the root p
 mount AdminApp, at: '/admin'
 ```
 
-
-
 ### Using `root`
 
 You can specify what Rails should route `'/'` to with the `root` method:
