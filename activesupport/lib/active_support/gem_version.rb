@@ -7,8 +7,8 @@ module ActiveSupport
   module VERSION
     MAJOR = 4
     MINOR = 2
-    TINY  = 1
-    PRE   = nil
+    TINY  = 2
+    PRE   = "beta"
 
     STRING = [MAJOR, MINOR, TINY, PRE].compact.join(".")
   end
