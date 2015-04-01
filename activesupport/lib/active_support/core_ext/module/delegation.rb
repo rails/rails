@@ -153,12 +153,8 @@ class Module
       raise ArgumentError, 'Can only automatically set the delegation prefix when delegating to a method.'
     end
 
-    method_prefix = \
-      if prefix
-        "#{prefix == true ? to : prefix}_"
-      else
-        ''
-      end
+    prefix = to if prefix == true
+    prefix = prefix ? "#{prefix}_" : ""
 
     file, line = caller(1, 1).first.split(':', 2)
     line = line.to_i
@@ -180,7 +176,7 @@ class Module
       # be doing one call.
       if allow_nil
         method_def = [
-          "def #{method_prefix}#{method}(#{definition})",
+          "def #{prefix}#{method}(#{definition})",
           "_ = #{to}",
           "if !_.nil? || nil.respond_to?(:#{method})",
           "  _.#{method}(#{definition})",
@@ -188,10 +184,10 @@ class Module
         "end"
         ].join ';'
       else
-        exception = %(raise DelegationError, "#{self}##{method_prefix}#{method} delegated to #{to}.#{method}, but #{to} is nil: \#{self.inspect}")
+        exception = %(raise DelegationError, "#{self}##{prefix}#{method} delegated to #{to}.#{method}, but #{to} is nil: \#{self.inspect}")
 
         method_def = [
-          "def #{method_prefix}#{method}(#{definition})",
+          "def #{prefix}#{method}(#{definition})",
           " _ = #{to}",
           "  _.#{method}(#{definition})",
           "rescue NoMethodError => e",
