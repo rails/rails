@@ -810,7 +810,7 @@ NOTE: For the curious, `'articles#index'` actually expands out to `ArticlesContr
 If you specify a rack application as the endpoint for a matcher remember that the route will be unchanged in the receiving application. With the following route your rack application should expect the route to be '/admin':
 
 ```ruby
-match '/admin', to: AdminApp, via: all
+match '/admin', to: AdminApp, via: :all
 ```
 
 If you would prefer to have your rack application receive requests at the root path instead use mount:
