@@ -185,7 +185,6 @@ GEM
       redis (~> 3.0)
       resque (~> 1.25)
       rufus-scheduler (~> 3.0)
-    ruby-prof (0.11.3)
     rufus-scheduler (3.0.9)
       tzinfo
     sdoc (0.4.1)
@@ -276,7 +275,6 @@ DEPENDENCIES
   redcarpet (~> 3.2.2)
   resque
   resque-scheduler
-  ruby-prof (~> 0.11.2)
   sdoc (~> 0.4.0)
   sequel
   sidekiq

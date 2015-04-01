@@ -63,17 +63,10 @@ group :test do
   # FIX: Our test suite isn't ready to run in random order yet
   gem 'minitest', '< 5.3.4'
 
-  platforms :mri_19 do
-    gem 'ruby-prof', '~> 0.11.2'
-  end
-
-  platforms :mri_21, :mri_22 do
+  platforms :mri do
     gem 'stackprof'
+    # gem 'byebug'
   end
-
-  # platforms :mri do
-  #   gem 'byebug'
-  # end
 
   gem 'benchmark-ips'
 end
