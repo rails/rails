@@ -1,3 +1,8 @@
+* Added `ActiveSupport::TimeZone#strptime` to allow parsing times as if from
+  a given timezone.
+
+    *Paul A Jungwirth*
+
 *   Added `ActiveSupport::ArrayInquirer`.
 
     Wrapping an array in an `ArrayInquirer` gives a friendlier way to check its
