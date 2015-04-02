@@ -568,9 +568,9 @@ module ActiveRecord
           case default
             # Quoted types
             when /\A[\(B]?'(.*)'::/m
-              $1.gsub(/''/, "'")
+              $1.gsub("''".freeze, "'".freeze)
             # Boolean types
-            when 'true', 'false'
+            when 'true'.freeze, 'false'.freeze
               default
             # Numeric types
             when /\A\(?(-?\d+(\.\d*)?)\)?(::bigint)?\z/

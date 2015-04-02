@@ -77,7 +77,7 @@ module ActiveRecord
       # Quotes a string, escaping any ' (single quote) and \ (backslash)
       # characters.
       def quote_string(s)
-        s.gsub(/\\/, '\&\&').gsub(/'/, "''") # ' (for ruby-mode)
+        s.gsub('\\'.freeze, '\&\&'.freeze).gsub("'".freeze, "''".freeze) # ' (for ruby-mode)
       end
 
       # Quotes the column name. Defaults to no quoting.
