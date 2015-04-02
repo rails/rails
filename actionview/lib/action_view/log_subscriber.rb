@@ -26,18 +26,18 @@ module ActionView
       ActionView::Base.logger
     end
 
-  protected
+    protected
 
-    EMPTY = ''
-    def from_rails_root(string)
-      string = string.sub(rails_root, EMPTY)
-      string.sub!(VIEWS_PATTERN, EMPTY)
-      string
-    end
+      EMPTY = ''
+      def from_rails_root(string)
+        string = string.sub(rails_root, EMPTY)
+        string.sub!(VIEWS_PATTERN, EMPTY)
+        string
+      end
 
-    def rails_root
-      @root ||= "#{Rails.root}/"
-    end
+      def rails_root
+        @root ||= "#{Rails.root}/"
+      end
   end
 end
 

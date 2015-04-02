@@ -329,14 +329,14 @@ module ActionView
 
       private
 
-      # If no layout is supplied, look for a template named the return
-      # value of this method.
-      #
-      # ==== Returns
-      # * <tt>String</tt> - A template name
-      def _implied_layout_name # :nodoc:
-        controller_path
-      end
+        # If no layout is supplied, look for a template named the return
+        # value of this method.
+        #
+        # ==== Returns
+        # * <tt>String</tt> - A template name
+        def _implied_layout_name # :nodoc:
+          controller_path
+        end
     end
 
     def _normalize_options(options) # :nodoc:
@@ -365,62 +365,62 @@ module ActionView
       @_action_has_layout
     end
 
-  private
+    private
 
-    def _conditional_layout?
-      true
-    end
-
-    # This will be overwritten by _write_layout_method
-    def _layout; end
-
-    # Determine the layout for a given name, taking into account the name type.
-    #
-    # ==== Parameters
-    # * <tt>name</tt> - The name of the template
-    def _layout_for_option(name)
-      case name
-      when String     then _normalize_layout(name)
-      when Proc       then name
-      when true       then Proc.new { _default_layout(true)  }
-      when :default   then Proc.new { _default_layout(false) }
-      when false, nil then nil
-      else
-        raise ArgumentError,
-          "String, Proc, :default, true, or false, expected for `layout'; you passed #{name.inspect}"
-      end
-    end
-
-    def _normalize_layout(value)
-      value.is_a?(String) && value !~ /\blayouts/ ? "layouts/#{value}" : value
-    end
-
-    # Returns the default layout for this controller.
-    # Optionally raises an exception if the layout could not be found.
-    #
-    # ==== Parameters
-    # * <tt>require_layout</tt> - If set to true and layout is not found,
-    #   an ArgumentError exception is raised (defaults to false)
-    #
-    # ==== Returns
-    # * <tt>template</tt> - The template object for the default layout (or nil)
-    def _default_layout(require_layout = false)
-      begin
-        value = _layout if action_has_layout?
-      rescue NameError => e
-        raise e, "Could not render layout: #{e.message}"
+      def _conditional_layout?
+        true
       end
 
-      if require_layout && action_has_layout? && !value
-        raise ArgumentError,
-          "There was no default layout for #{self.class} in #{view_paths.inspect}"
+      # This will be overwritten by _write_layout_method
+      def _layout; end
+
+      # Determine the layout for a given name, taking into account the name type.
+      #
+      # ==== Parameters
+      # * <tt>name</tt> - The name of the template
+      def _layout_for_option(name)
+        case name
+        when String     then _normalize_layout(name)
+        when Proc       then name
+        when true       then Proc.new { _default_layout(true)  }
+        when :default   then Proc.new { _default_layout(false) }
+        when false, nil then nil
+        else
+          raise ArgumentError,
+            "String, Proc, :default, true, or false, expected for `layout'; you passed #{name.inspect}"
+        end
       end
 
-      _normalize_layout(value)
-    end
+      def _normalize_layout(value)
+        value.is_a?(String) && value !~ /\blayouts/ ? "layouts/#{value}" : value
+      end
 
-    def _include_layout?(options)
-      (options.keys & [:body, :text, :plain, :html, :inline, :partial]).empty? || options.key?(:layout)
-    end
+      # Returns the default layout for this controller.
+      # Optionally raises an exception if the layout could not be found.
+      #
+      # ==== Parameters
+      # * <tt>require_layout</tt> - If set to true and layout is not found,
+      #   an ArgumentError exception is raised (defaults to false)
+      #
+      # ==== Returns
+      # * <tt>template</tt> - The template object for the default layout (or nil)
+      def _default_layout(require_layout = false)
+        begin
+          value = _layout if action_has_layout?
+        rescue NameError => e
+          raise e, "Could not render layout: #{e.message}"
+        end
+
+        if require_layout && action_has_layout? && !value
+          raise ArgumentError,
+            "There was no default layout for #{self.class} in #{view_paths.inspect}"
+        end
+
+        _normalize_layout(value)
+      end
+
+      def _include_layout?(options)
+        (options.keys & [:body, :text, :plain, :html, :inline, :partial]).empty? || options.key?(:layout)
+      end
   end
 end

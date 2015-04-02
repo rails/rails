@@ -22,9 +22,9 @@ module ActionView
 
         private
 
-        def checked?(value)
-          value.to_s == @tag_value.to_s
-        end
+          def checked?(value)
+            value.to_s == @tag_value.to_s
+          end
       end
     end
   end

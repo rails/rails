@@ -63,15 +63,15 @@ module ActionView #:nodoc:
 
     private
 
-    def typecast(paths)
-      paths.map do |path|
-        case path
-        when Pathname, String
-          OptimizedFileSystemResolver.new path.to_s
-        else
-          path
+      def typecast(paths)
+        paths.map do |path|
+          case path
+          when Pathname, String
+            OptimizedFileSystemResolver.new path.to_s
+          else
+            path
+          end
         end
       end
-    end
   end
 end
