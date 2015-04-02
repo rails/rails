@@ -160,7 +160,7 @@ class DependenciesTest < ActiveSupport::TestCase
   def test_ensures_the_expected_constant_is_defined
     with_autoloading_fixtures do
       e = assert_raise(LoadError) { Typo }
-      assert_match %r{Unable to autoload constant Typo, expected .*activesupport/test/autoloading_fixtures/typo.rb to define it}, e.message
+      assert_match %r{Unable to autoload constant Typo, expected .*/test/autoloading_fixtures/typo.rb to define it}, e.message
     end
   end
 
@@ -178,7 +178,7 @@ class DependenciesTest < ActiveSupport::TestCase
       assert_equal 1, TypO
 
       e = assert_raise(LoadError) { Typo }
-      assert_match %r{Unable to autoload constant Typo, expected .*activesupport/test/autoloading_fixtures/typo.rb to define it}, e.message
+      assert_match %r{Unable to autoload constant Typo, expected .*/test/autoloading_fixtures/typo.rb to define it}, e.message
     end
   end
 
