@@ -149,13 +149,13 @@ module ActionDispatch
 
       private
 
-      def polymorphic_url_for_action(action, record_or_hash, options)
-        polymorphic_url(record_or_hash, options.merge(:action => action))
-      end
+        def polymorphic_url_for_action(action, record_or_hash, options)
+          polymorphic_url(record_or_hash, options.merge(:action => action))
+        end
 
-      def polymorphic_path_for_action(action, record_or_hash, options)
-        polymorphic_path(record_or_hash, options.merge(:action => action))
-      end
+        def polymorphic_path_for_action(action, record_or_hash, options)
+          polymorphic_path(record_or_hash, options.merge(:action => action))
+        end
 
       class HelperMethodBuilder # :nodoc:
         CACHE = { 'path' => {}, 'url' => {} }
@@ -305,19 +305,19 @@ module ActionDispatch
 
         private
 
-        def get_method_for_class(klass)
-          name   = @key_strategy.call klass.model_name
-          get_method_for_string name
-        end
+          def get_method_for_class(klass)
+            name   = @key_strategy.call klass.model_name
+            get_method_for_string name
+          end
 
-        def get_method_for_string(str)
-          "#{prefix}#{str}_#{suffix}"
-        end
+          def get_method_for_string(str)
+            "#{prefix}#{str}_#{suffix}"
+          end
 
-        [nil, 'new', 'edit'].each do |action|
-          CACHE['url'][action]  = build action, 'url'
-          CACHE['path'][action] = build action, 'path'
-        end
+          [nil, 'new', 'edit'].each do |action|
+            CACHE['url'][action]  = build action, 'url'
+            CACHE['path'][action] = build action, 'path'
+          end
       end
     end
   end

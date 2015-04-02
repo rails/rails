@@ -91,8 +91,8 @@ module ActionDispatch
 
     private
 
-    def validated? #:nodoc:
-      @validated
-    end
+      def validated? #:nodoc:
+        @validated
+      end
   end
 end

@@ -99,57 +99,57 @@ module ActionDispatch
 
     private
 
-    def backtrace
-      Array(@exception.backtrace)
-    end
-
-    def original_exception(exception)
-      if registered_original_exception?(exception)
-        exception.original_exception
-      else
-        exception
+      def backtrace
+        Array(@exception.backtrace)
       end
-    end
 
-    def registered_original_exception?(exception)
-      exception.respond_to?(:original_exception) && @@rescue_responses.has_key?(exception.original_exception.class.name)
-    end
-
-    def clean_backtrace(*args)
-      if backtrace_cleaner
-        backtrace_cleaner.clean(backtrace, *args)
-      else
-        backtrace
-      end
-    end
-
-    def backtrace_cleaner
-      @backtrace_cleaner ||= @env['action_dispatch.backtrace_cleaner']
-    end
-
-    def source_fragment(path, line)
-      return unless Rails.respond_to?(:root) && Rails.root
-      full_path = Rails.root.join(path)
-      if File.exist?(full_path)
-        File.open(full_path, "r") do |file|
-          start = [line - 3, 0].max
-          lines = file.each_line.drop(start).take(6)
-          Hash[*(start+1..(lines.count+start)).zip(lines).flatten]
+      def original_exception(exception)
+        if registered_original_exception?(exception)
+          exception.original_exception
+        else
+          exception
         end
       end
-    end
 
-    def extract_file_and_line_number(trace)
-      # Split by the first colon followed by some digits, which works for both
-      # Windows and Unix path styles.
-      file, line = trace.match(/^(.+?):(\d+).*$/, &:captures) || trace
-      [file, line.to_i]
-    end
+      def registered_original_exception?(exception)
+        exception.respond_to?(:original_exception) && @@rescue_responses.has_key?(exception.original_exception.class.name)
+      end
 
-    def expand_backtrace
-      @exception.backtrace.unshift(
-        @exception.to_s.split("\n")
-      ).flatten!
-    end
+      def clean_backtrace(*args)
+        if backtrace_cleaner
+          backtrace_cleaner.clean(backtrace, *args)
+        else
+          backtrace
+        end
+      end
+
+      def backtrace_cleaner
+        @backtrace_cleaner ||= @env['action_dispatch.backtrace_cleaner']
+      end
+
+      def source_fragment(path, line)
+        return unless Rails.respond_to?(:root) && Rails.root
+        full_path = Rails.root.join(path)
+        if File.exist?(full_path)
+          File.open(full_path, "r") do |file|
+            start = [line - 3, 0].max
+            lines = file.each_line.drop(start).take(6)
+            Hash[*(start+1..(lines.count+start)).zip(lines).flatten]
+          end
+        end
+      end
+
+      def extract_file_and_line_number(trace)
+        # Split by the first colon followed by some digits, which works for both
+        # Windows and Unix path styles.
+        file, line = trace.match(/^(.+?):(\d+).*$/, &:captures) || trace
+        [file, line.to_i]
+      end
+
+      def expand_backtrace
+        @exception.backtrace.unshift(
+          @exception.to_s.split("\n")
+        ).flatten!
+      end
   end
 end

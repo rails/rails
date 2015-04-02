@@ -33,18 +33,18 @@ module ActionController
     end
 
     private
-    def determine_template_etag(options)
-      if template = pick_template_for_etag(options)
-        lookup_and_digest_template(template)
+      def determine_template_etag(options)
+        if template = pick_template_for_etag(options)
+          lookup_and_digest_template(template)
+        end
       end
-    end
 
-    def pick_template_for_etag(options)
-      options.fetch(:template) { "#{controller_name}/#{action_name}" }
-    end
+      def pick_template_for_etag(options)
+        options.fetch(:template) { "#{controller_name}/#{action_name}" }
+      end
 
-    def lookup_and_digest_template(template)
-      ActionView::Digestor.digest name: template, finder: lookup_context
-    end
+      def lookup_and_digest_template(template)
+        ActionView::Digestor.digest name: template, finder: lookup_context
+      end
   end
 end

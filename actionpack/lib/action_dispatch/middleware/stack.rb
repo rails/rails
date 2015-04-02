@@ -43,11 +43,11 @@ module ActionDispatch
         klass.new(app, *args, &block)
       end
 
-    private
+      private
 
-      def normalize(object)
-        object.to_s.strip.sub(/^::/, '')
-      end
+        def normalize(object)
+          object.to_s.strip.sub(/^::/, '')
+        end
     end
 
     include Enumerable
@@ -118,12 +118,12 @@ module ActionDispatch
       middlewares.freeze.reverse.inject(app) { |a, e| e.build(a) }
     end
 
-  protected
+    protected
 
-    def assert_index(index, where)
-      i = index.is_a?(Integer) ? index : middlewares.index(index)
-      raise "No such middleware to insert #{where}: #{index.inspect}" unless i
-      i
-    end
+      def assert_index(index, where)
+        i = index.is_a?(Integer) ? index : middlewares.index(index)
+        raise "No such middleware to insert #{where}: #{index.inspect}" unless i
+        i
+      end
   end
 end

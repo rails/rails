@@ -29,10 +29,9 @@ module ActionController
     end
 
     private
-
-    def set_response!(request)
-      @_response         = ActionDispatch::Response.new
-      @_response.request = request
-    end
+      def set_response!(request)
+        @_response         = ActionDispatch::Response.new
+        @_response.request = request
+      end
   end
 end
