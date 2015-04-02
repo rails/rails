@@ -130,9 +130,9 @@ module ActiveRecord
     # the plucked column names, if they can be deduced. Plucking an SQL fragment
     # returns String values by default.
     #
-    #   Person.pluck(:id)
-    #   # SELECT people.id FROM people
-    #   # => [1, 2, 3]
+    #   Person.pluck(:name)
+    #   # SELECT people.name FROM people
+    #   # => ['David', 'Jeremy', 'Jose']
     #
     #   Person.pluck(:id, :name)
     #   # SELECT people.id, people.name FROM people
@@ -149,6 +149,8 @@ module ActiveRecord
     #   Person.pluck('DATEDIFF(updated_at, created_at)')
     #   # SELECT DATEDIFF(updated_at, created_at) FROM people
     #   # => ['0', '27761', '173']
+    #
+    # See also +ids+.
     #
     def pluck(*column_names)
       column_names.map! do |column_name|
