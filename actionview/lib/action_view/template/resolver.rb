@@ -116,49 +116,49 @@ module ActionView
       end
     end
 
-  private
+    private
 
-    delegate :caching?, to: :class
+      delegate :caching?, to: :class
 
-    # This is what child classes implement. No defaults are needed
-    # because Resolver guarantees that the arguments are present and
-    # normalized.
-    def find_templates(name, prefix, partial, details)
-      raise NotImplementedError, "Subclasses must implement a find_templates(name, prefix, partial, details) method"
-    end
+      # This is what child classes implement. No defaults are needed
+      # because Resolver guarantees that the arguments are present and
+      # normalized.
+      def find_templates(name, prefix, partial, details)
+        raise NotImplementedError, "Subclasses must implement a find_templates(name, prefix, partial, details) method"
+      end
 
-    # Helpers that builds a path. Useful for building virtual paths.
-    def build_path(name, prefix, partial)
-      Path.build(name, prefix, partial)
-    end
+      # Helpers that builds a path. Useful for building virtual paths.
+      def build_path(name, prefix, partial)
+        Path.build(name, prefix, partial)
+      end
 
-    # Handles templates caching. If a key is given and caching is on
-    # always check the cache before hitting the resolver. Otherwise,
-    # it always hits the resolver but if the key is present, check if the
-    # resolver is fresher before returning it.
-    def cached(key, path_info, details, locals) #:nodoc:
-      name, prefix, partial = path_info
-      locals = locals.map(&:to_s).sort!
+      # Handles templates caching. If a key is given and caching is on
+      # always check the cache before hitting the resolver. Otherwise,
+      # it always hits the resolver but if the key is present, check if the
+      # resolver is fresher before returning it.
+      def cached(key, path_info, details, locals) #:nodoc:
+        name, prefix, partial = path_info
+        locals = locals.map(&:to_s).sort!
 
-      if key
-        @cache.cache(key, name, prefix, partial, locals) do
+        if key
+          @cache.cache(key, name, prefix, partial, locals) do
+            decorate(yield, path_info, details, locals)
+          end
+        else
           decorate(yield, path_info, details, locals)
         end
-      else
-        decorate(yield, path_info, details, locals)
       end
-    end
 
-    # Ensures all the resolver information is set in the template.
-    def decorate(templates, path_info, details, locals) #:nodoc:
-      cached = nil
-      templates.each do |t|
-        t.locals         = locals
-        t.formats        = details[:formats]  || [:html] if t.formats.empty?
-        t.variants       = details[:variants] || []      if t.variants.empty?
-        t.virtual_path ||= (cached ||= build_path(*path_info))
+      # Ensures all the resolver information is set in the template.
+      def decorate(templates, path_info, details, locals) #:nodoc:
+        cached = nil
+        templates.each do |t|
+          t.locals         = locals
+          t.formats        = details[:formats]  || [:html] if t.formats.empty?
+          t.variants       = details[:variants] || []      if t.variants.empty?
+          t.virtual_path ||= (cached ||= build_path(*path_info))
+        end
       end
-    end
   end
 
   # An abstract class that implements a Resolver with path semantics.
@@ -173,78 +173,78 @@ module ActionView
 
     private
 
-    def find_templates(name, prefix, partial, details)
-      path = Path.build(name, prefix, partial)
-      query(path, details, details[:formats])
-    end
-
-    def query(path, details, formats)
-      query = build_query(path, details)
-
-      template_paths = find_template_paths query
-
-      template_paths.map { |template|
-        handler, format, variant = extract_handler_and_format_and_variant(template, formats)
-        contents = File.binread(template)
-
-        Template.new(contents, File.expand_path(template), handler,
-          :virtual_path => path.virtual,
-          :format       => format,
-          :variant      => variant,
-          :updated_at   => mtime(template)
-        )
-      }
-    end
-
-    def find_template_paths(query)
-      Dir[query].reject { |filename|
-        File.directory?(filename) ||
-          # deals with case-insensitive file systems.
-          !File.fnmatch(query, filename, File::FNM_EXTGLOB)
-      }
-    end
-
-    # Helper for building query glob string based on resolver's pattern.
-    def build_query(path, details)
-      query = @pattern.dup
-
-      prefix = path.prefix.empty? ? "" : "#{escape_entry(path.prefix)}\\1"
-      query.gsub!(/\:prefix(\/)?/, prefix)
-
-      partial = escape_entry(path.partial? ? "_#{path.name}" : path.name)
-      query.gsub!(/\:action/, partial)
-
-      details.each do |ext, variants|
-        query.gsub!(/\:#{ext}/, "{#{variants.compact.uniq.join(',')}}")
+      def find_templates(name, prefix, partial, details)
+        path = Path.build(name, prefix, partial)
+        query(path, details, details[:formats])
       end
 
-      File.expand_path(query, @path)
-    end
+      def query(path, details, formats)
+        query = build_query(path, details)
 
-    def escape_entry(entry)
-      entry.gsub(/[*?{}\[\]]/, '\\\\\\&')
-    end
+        template_paths = find_template_paths query
 
-    # Returns the file mtime from the filesystem.
-    def mtime(p)
-      File.mtime(p)
-    end
+        template_paths.map { |template|
+          handler, format, variant = extract_handler_and_format_and_variant(template, formats)
+          contents = File.binread(template)
 
-    # Extract handler, formats and variant from path. If a format cannot be found neither
-    # from the path, or the handler, we should return the array of formats given
-    # to the resolver.
-    def extract_handler_and_format_and_variant(path, default_formats)
-      pieces = File.basename(path).split(".")
-      pieces.shift
+          Template.new(contents, File.expand_path(template), handler,
+            :virtual_path => path.virtual,
+            :format       => format,
+            :variant      => variant,
+            :updated_at   => mtime(template)
+          )
+        }
+      end
 
-      extension = pieces.pop
+      def find_template_paths(query)
+        Dir[query].reject { |filename|
+          File.directory?(filename) ||
+            # deals with case-insensitive file systems.
+            !File.fnmatch(query, filename, File::FNM_EXTGLOB)
+        }
+      end
 
-      handler = Template.handler_for_extension(extension)
-      format, variant = pieces.last.split(EXTENSIONS[:variants], 2) if pieces.last
-      format  &&= Template::Types[format]
+      # Helper for building query glob string based on resolver's pattern.
+      def build_query(path, details)
+        query = @pattern.dup
 
-      [handler, format, variant]
-    end
+        prefix = path.prefix.empty? ? "" : "#{escape_entry(path.prefix)}\\1"
+        query.gsub!(/\:prefix(\/)?/, prefix)
+
+        partial = escape_entry(path.partial? ? "_#{path.name}" : path.name)
+        query.gsub!(/\:action/, partial)
+
+        details.each do |ext, variants|
+          query.gsub!(/\:#{ext}/, "{#{variants.compact.uniq.join(',')}}")
+        end
+
+        File.expand_path(query, @path)
+      end
+
+      def escape_entry(entry)
+        entry.gsub(/[*?{}\[\]]/, '\\\\\\&')
+      end
+
+      # Returns the file mtime from the filesystem.
+      def mtime(p)
+        File.mtime(p)
+      end
+
+      # Extract handler, formats and variant from path. If a format cannot be found neither
+      # from the path, or the handler, we should return the array of formats given
+      # to the resolver.
+      def extract_handler_and_format_and_variant(path, default_formats)
+        pieces = File.basename(path).split(".")
+        pieces.shift
+
+        extension = pieces.pop
+
+        handler = Template.handler_for_extension(extension)
+        format, variant = pieces.last.split(EXTENSIONS[:variants], 2) if pieces.last
+        format  &&= Template::Types[format]
+
+        [handler, format, variant]
+      end
   end
 
   # A resolver that loads files from the filesystem. It allows setting your own

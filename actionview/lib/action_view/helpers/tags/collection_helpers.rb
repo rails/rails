@@ -34,51 +34,51 @@ module ActionView
 
         private
 
-        def instantiate_builder(builder_class, item, value, text, html_options)
-          builder_class.new(@template_object, @object_name, @method_name, item,
-                            sanitize_attribute_name(value), text, value, html_options)
-        end
-
-        # Generate default options for collection helpers, such as :checked and
-        # :disabled.
-        def default_html_options_for_collection(item, value) #:nodoc:
-          html_options = @html_options.dup
-
-          [:checked, :selected, :disabled, :readonly].each do |option|
-            current_value = @options[option]
-            next if current_value.nil?
-
-            accept = if current_value.respond_to?(:call)
-              current_value.call(item)
-            else
-              Array(current_value).map(&:to_s).include?(value.to_s)
-            end
-
-            if accept
-              html_options[option] = true
-            elsif option == :checked
-              html_options[option] = false
-            end
+          def instantiate_builder(builder_class, item, value, text, html_options)
+            builder_class.new(@template_object, @object_name, @method_name, item,
+                              sanitize_attribute_name(value), text, value, html_options)
           end
 
-          html_options[:object] = @object
-          html_options
-        end
+          # Generate default options for collection helpers, such as :checked and
+          # :disabled.
+          def default_html_options_for_collection(item, value) #:nodoc:
+            html_options = @html_options.dup
 
-        def sanitize_attribute_name(value) #:nodoc:
-          "#{sanitized_method_name}_#{sanitized_value(value)}"
-        end
+            [:checked, :selected, :disabled, :readonly].each do |option|
+              current_value = @options[option]
+              next if current_value.nil?
 
-        def render_collection #:nodoc:
-          @collection.map do |item|
-            value = value_for_collection(item, @value_method)
-            text  = value_for_collection(item, @text_method)
-            default_html_options = default_html_options_for_collection(item, value)
-            additional_html_options = option_html_attributes(item)
+              accept = if current_value.respond_to?(:call)
+                current_value.call(item)
+              else
+                Array(current_value).map(&:to_s).include?(value.to_s)
+              end
 
-            yield item, value, text, default_html_options.merge(additional_html_options)
-          end.join.html_safe
-        end
+              if accept
+                html_options[option] = true
+              elsif option == :checked
+                html_options[option] = false
+              end
+            end
+
+            html_options[:object] = @object
+            html_options
+          end
+
+          def sanitize_attribute_name(value) #:nodoc:
+            "#{sanitized_method_name}_#{sanitized_value(value)}"
+          end
+
+          def render_collection #:nodoc:
+            @collection.map do |item|
+              value = value_for_collection(item, @value_method)
+              text  = value_for_collection(item, @text_method)
+              default_html_options = default_html_options_for_collection(item, value)
+              additional_html_options = option_html_attributes(item)
+
+              yield item, value, text, default_html_options.merge(additional_html_options)
+            end.join.html_safe
+          end
       end
     end
   end

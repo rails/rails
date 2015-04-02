@@ -192,40 +192,40 @@ module ActionView
         ActiveSupport::Cache.expand_cache_key(key.is_a?(Hash) ? url_for(key).split("://").last : key, :views)
       end
 
-    private
+      private
 
-      def fragment_name_with_digest(name) #:nodoc:
-        if @virtual_path
-          names  = Array(name.is_a?(Hash) ? controller.url_for(name).split("://").last : name)
-          digest = Digestor.digest name: @virtual_path, finder: lookup_context, dependencies: view_cache_dependencies
+        def fragment_name_with_digest(name) #:nodoc:
+          if @virtual_path
+            names  = Array(name.is_a?(Hash) ? controller.url_for(name).split("://").last : name)
+            digest = Digestor.digest name: @virtual_path, finder: lookup_context, dependencies: view_cache_dependencies
 
-          [ *names, digest ]
-        else
-          name
+            [ *names, digest ]
+          else
+            name
+          end
         end
-      end
 
-      # TODO: Create an object that has caching read/write on it
-      def fragment_for(name = {}, options = nil, &block) #:nodoc:
-        read_fragment_for(name, options) || write_fragment_for(name, options, &block)
-      end
-
-      def read_fragment_for(name, options) #:nodoc:
-        controller.read_fragment(name, options)
-      end
-
-      def write_fragment_for(name, options) #:nodoc:
-        # VIEW TODO: Make #capture usable outside of ERB
-        # This dance is needed because Builder can't use capture
-        pos = output_buffer.length
-        yield
-        output_safe = output_buffer.html_safe?
-        fragment = output_buffer.slice!(pos..-1)
-        if output_safe
-          self.output_buffer = output_buffer.class.new(output_buffer)
+        # TODO: Create an object that has caching read/write on it
+        def fragment_for(name = {}, options = nil, &block) #:nodoc:
+          read_fragment_for(name, options) || write_fragment_for(name, options, &block)
         end
-        controller.write_fragment(name, fragment, options)
-      end
+
+        def read_fragment_for(name, options) #:nodoc:
+          controller.read_fragment(name, options)
+        end
+
+        def write_fragment_for(name, options) #:nodoc:
+          # VIEW TODO: Make #capture usable outside of ERB
+          # This dance is needed because Builder can't use capture
+          pos = output_buffer.length
+          yield
+          output_safe = output_buffer.html_safe?
+          fragment = output_buffer.slice!(pos..-1)
+          if output_safe
+            self.output_buffer = output_buffer.class.new(output_buffer)
+          end
+          controller.write_fragment(name, fragment, options)
+        end
     end
   end
 end

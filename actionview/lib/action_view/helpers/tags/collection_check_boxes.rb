@@ -36,14 +36,14 @@ module ActionView
 
         private
 
-        def render_component(builder)
-          builder.check_box + builder.label
-        end
+          def render_component(builder)
+            builder.check_box + builder.label
+          end
 
-        def hidden_field
-          hidden_name = @html_options[:name] || "#{tag_name(false, @options[:index])}[]"
-          @template_object.hidden_field_tag(hidden_name, "", id: nil)
-        end
+          def hidden_field
+            hidden_name = @html_options[:name] || "#{tag_name(false, @options[:index])}[]"
+            @template_object.hidden_field_tag(hidden_name, "", id: nil)
+          end
       end
     end
   end

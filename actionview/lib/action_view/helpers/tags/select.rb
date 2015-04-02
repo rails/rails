@@ -28,13 +28,13 @@ module ActionView
 
         private
 
-        # Grouped choices look like this:
-        #
-        #   [nil, []]
-        #   { nil => [] }
-        def grouped_choices?
-          !@choices.empty? && @choices.first.respond_to?(:last) && Array === @choices.first.last
-        end
+          # Grouped choices look like this:
+          #
+          #   [nil, []]
+          #   { nil => [] }
+          def grouped_choices?
+            !@choices.empty? && @choices.first.respond_to?(:last) && Array === @choices.first.last
+          end
       end
     end
   end
