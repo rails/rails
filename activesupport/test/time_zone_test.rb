@@ -311,6 +311,71 @@ class TimeZoneTest < ActiveSupport::TestCase
     end
   end
 
+  def test_strptime
+    zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
+    twz = zone.strptime('1999-12-31 12:00:00', '%Y-%m-%d %H:%M:%S')
+    assert_equal Time.utc(1999,12,31,17), twz
+    assert_equal Time.utc(1999,12,31,12), twz.time
+    assert_equal Time.utc(1999,12,31,17), twz.utc
+    assert_equal zone, twz.time_zone
+  end
+
+  def test_strptime_with_nondefault_time_zone
+    with_tz_default ActiveSupport::TimeZone['Pacific Time (US & Canada)'] do
+      zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
+      twz = zone.strptime('1999-12-31 12:00:00', '%Y-%m-%d %H:%M:%S')
+      assert_equal Time.utc(1999,12,31,17), twz
+      assert_equal Time.utc(1999,12,31,12), twz.time
+      assert_equal Time.utc(1999,12,31,17), twz.utc
+      assert_equal zone, twz.time_zone
+    end
+  end
+
+  def test_strptime_with_explicit_time_zone_as_abbrev
+    zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
+    twz = zone.strptime('1999-12-31 12:00:00 PST', '%Y-%m-%d %H:%M:%S %Z')
+    assert_equal Time.utc(1999,12,31,20), twz
+    assert_equal Time.utc(1999,12,31,15), twz.time
+    assert_equal Time.utc(1999,12,31,20), twz.utc
+    assert_equal zone, twz.time_zone
+  end
+
+  def test_strptime_with_explicit_time_zone_as_h_offset
+    zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
+    twz = zone.strptime('1999-12-31 12:00:00 -08', '%Y-%m-%d %H:%M:%S %:::z')
+    assert_equal Time.utc(1999,12,31,20), twz
+    assert_equal Time.utc(1999,12,31,15), twz.time
+    assert_equal Time.utc(1999,12,31,20), twz.utc
+    assert_equal zone, twz.time_zone
+  end
+
+  def test_strptime_with_explicit_time_zone_as_hm_offset
+    zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
+    twz = zone.strptime('1999-12-31 12:00:00 -08:00', '%Y-%m-%d %H:%M:%S %:z')
+    assert_equal Time.utc(1999,12,31,20), twz
+    assert_equal Time.utc(1999,12,31,15), twz.time
+    assert_equal Time.utc(1999,12,31,20), twz.utc
+    assert_equal zone, twz.time_zone
+  end
+
+  def test_strptime_with_explicit_time_zone_as_hms_offset
+    zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
+    twz = zone.strptime('1999-12-31 12:00:00 -08:00:00', '%Y-%m-%d %H:%M:%S %::z')
+    assert_equal Time.utc(1999,12,31,20), twz
+    assert_equal Time.utc(1999,12,31,15), twz.time
+    assert_equal Time.utc(1999,12,31,20), twz.utc
+    assert_equal zone, twz.time_zone
+  end
+
+  def test_strptime_with_almost_explicit_time_zone
+    zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
+    twz = zone.strptime('1999-12-31 12:00:00 %Z', '%Y-%m-%d %H:%M:%S %%Z')
+    assert_equal Time.utc(1999,12,31,17), twz
+    assert_equal Time.utc(1999,12,31,12), twz.time
+    assert_equal Time.utc(1999,12,31,17), twz.utc
+    assert_equal zone, twz.time_zone
+  end
+
   def test_utc_offset_lazy_loaded_from_tzinfo_when_not_passed_in_to_initialize
     tzinfo = TZInfo::Timezone.get('America/New_York')
     zone = ActiveSupport::TimeZone.create(tzinfo.name, nil, tzinfo)

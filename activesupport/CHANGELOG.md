@@ -1,3 +1,8 @@
+*   Added `ActiveSupport::TimeZone#strptime` to allow parsing times as if
+    from a given timezone.
+
+    *Paul A Jungwirth*
+
 *   `ActiveSupport::Callbacks#skip_callback` now raises an `ArgumentError` if
     an unrecognized callback is removed.
 
