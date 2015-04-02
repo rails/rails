@@ -368,6 +368,26 @@ module ActiveSupport
       end
     end
 
+    # Parses +str+ according to +spec+ and returns an ActiveSupport::TimeWithZone.
+    #
+    # Assumes that +str+ is a time in the time zone +self+,
+    # unless +spec+ includes an explicit time zone.
+    # (This is the same behavior as +parse+.)
+    # In either case, the returned TimeWithZone has the timezone of +self+.
+    # 
+    #   Time.zone = 'Hawaii'                   # => "Hawaii"
+    #   Time.zone.strptime('1999-12-31 14:00:00', '%Y-%m-%d %H:%M:%S') # => Fri, 31 Dec 1999 14:00:00 HST -10:00
+    # 
+    def strptime(str, spec)
+      case spec
+      when /(^|[^%](%%)*)%(Z|:{0,3}z)/
+        DateTime.strptime(str, spec).in_time_zone(self)
+      else
+        t = DateTime.strptime(str, spec)
+        local(t.year, t.month, t.mday, t.hour, t.min, t.sec, t.usec)
+      end
+    end
+
     # Returns an ActiveSupport::TimeWithZone instance representing the current
     # time in the time zone represented by +self+.
     #
