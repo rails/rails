@@ -1,3 +1,9 @@
+*   Adds`Rack::Utils::ParameterTypeError` and `Rack::Utils::InvalidParameterError`
+    to the rescue_responses hash in `ExceptionWrapper` (Rack recommends
+    integrators serve 400s for both of these).
+
+    *Grey Baker*
+
 *   Add support for API only apps.
     ActionController::API is added as a replacement of
     ActionController::Base for this kind of applications.
