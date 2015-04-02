@@ -148,26 +148,26 @@ module ActiveModel
         validates(*(attributes << options))
       end
 
-    protected
+      protected
 
-      # When creating custom validators, it might be useful to be able to specify
-      # additional default keys. This can be done by overwriting this method.
-      def _validates_default_keys # :nodoc:
-        [:if, :unless, :on, :allow_blank, :allow_nil , :strict]
-      end
-
-      def _parse_validates_options(options) # :nodoc:
-        case options
-        when TrueClass
-          {}
-        when Hash
-          options
-        when Range, Array
-          { in: options }
-        else
-          { with: options }
+        # When creating custom validators, it might be useful to be able to specify
+        # additional default keys. This can be done by overwriting this method.
+        def _validates_default_keys # :nodoc:
+          [:if, :unless, :on, :allow_blank, :allow_nil , :strict]
         end
-      end
+
+        def _parse_validates_options(options) # :nodoc:
+          case options
+          when TrueClass
+            {}
+          when Hash
+            options
+          when Range, Array
+            { in: options }
+          else
+            { with: options }
+          end
+        end
     end
   end
 end

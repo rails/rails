@@ -15,15 +15,15 @@ module ActiveModel
       end
 
       private
-      def setup!(klass)
-        klass.send(:attr_reader, *attributes.map do |attribute|
-          :"#{attribute}_confirmation" unless klass.method_defined?(:"#{attribute}_confirmation")
-        end.compact)
+        def setup!(klass)
+          klass.send(:attr_reader, *attributes.map do |attribute|
+            :"#{attribute}_confirmation" unless klass.method_defined?(:"#{attribute}_confirmation")
+          end.compact)
 
-        klass.send(:attr_writer, *attributes.map do |attribute|
-          :"#{attribute}_confirmation" unless klass.method_defined?(:"#{attribute}_confirmation=")
-        end.compact)
-      end
+          klass.send(:attr_writer, *attributes.map do |attribute|
+            :"#{attribute}_confirmation" unless klass.method_defined?(:"#{attribute}_confirmation=")
+          end.compact)
+        end
     end
 
     module HelperMethods

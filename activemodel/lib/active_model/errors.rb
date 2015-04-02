@@ -473,19 +473,19 @@ module ActiveModel
       I18n.translate(key, options)
     end
 
-  private
-    def normalize_message(attribute, message, options)
-      case message
-      when Symbol
-        generate_message(attribute, message, options.except(*CALLBACKS_OPTIONS))
-      else
-        message
+    private
+      def normalize_message(attribute, message, options)
+        case message
+        when Symbol
+          generate_message(attribute, message, options.except(*CALLBACKS_OPTIONS))
+        else
+          message
+        end
       end
-    end
 
-    def normalize_detail(attribute, message, options)
-      { error: message }.merge(options.except(*CALLBACKS_OPTIONS + MESSAGE_OPTIONS))
-    end
+      def normalize_detail(attribute, message, options)
+        { error: message }.merge(options.except(*CALLBACKS_OPTIONS + MESSAGE_OPTIONS))
+      end
   end
 
   # Raised when a validation cannot be corrected by end users and are considered

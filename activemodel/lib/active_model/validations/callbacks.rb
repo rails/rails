@@ -105,12 +105,12 @@ module ActiveModel
         end
       end
 
-    protected
+      protected
 
-      # Overwrite run validations to include callbacks.
-      def run_validations! #:nodoc:
-        _run_validation_callbacks { super }
-      end
+        # Overwrite run validations to include callbacks.
+        def run_validations! #:nodoc:
+          _run_validation_callbacks { super }
+        end
     end
   end
 end
