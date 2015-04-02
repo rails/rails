@@ -14,16 +14,16 @@ module ActiveModel
       end
 
       private
-      def setup!(klass)
-        attr_readers = attributes.reject { |name| klass.attribute_method?(name) }
-        attr_writers = attributes.reject { |name| klass.attribute_method?("#{name}=") }
-        klass.send(:attr_reader, *attr_readers)
-        klass.send(:attr_writer, *attr_writers)
-      end
+        def setup!(klass)
+          attr_readers = attributes.reject { |name| klass.attribute_method?(name) }
+          attr_writers = attributes.reject { |name| klass.attribute_method?("#{name}=") }
+          klass.send(:attr_reader, *attr_readers)
+          klass.send(:attr_writer, *attr_writers)
+        end
 
-      def acceptable_option?(value)
-        Array(options[:accept]).include?(value)
-      end
+        def acceptable_option?(value)
+          Array(options[:accept]).include?(value)
+        end
     end
 
     module HelperMethods

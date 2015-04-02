@@ -191,9 +191,9 @@ module ActiveModel
 
     private
 
-    def _singularize(string)
-      ActiveSupport::Inflector.underscore(string).tr('/', '_')
-    end
+      def _singularize(string)
+        ActiveSupport::Inflector.underscore(string).tr('/', '_')
+      end
   end
 
   # == Active \Model \Naming

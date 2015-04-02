@@ -398,16 +398,16 @@ module ActiveModel
     #   end
     alias :read_attribute_for_validation :send
 
-  protected
+    protected
 
-    def run_validations! #:nodoc:
-      _run_validate_callbacks
-      errors.empty?
-    end
+      def run_validations! #:nodoc:
+        _run_validate_callbacks
+        errors.empty?
+      end
 
-    def raise_validation_error
-      raise(ValidationError.new(self))
-    end
+      def raise_validation_error
+        raise(ValidationError.new(self))
+      end
   end
 
   # = Active Model ValidationError
