@@ -266,9 +266,9 @@ module ActionController
 
     private
 
-    def default_env
-      DEFAULT_ENV
-    end
+      def default_env
+        DEFAULT_ENV
+      end
   end
 
   class TestResponse < ActionDispatch::TestResponse
@@ -744,74 +744,74 @@ module ActionController
 
       private
 
-      def process_with_kwargs(http_method, action, *args)
-        if kwarg_request?(*args)
-          args.first.merge!(method: http_method)
-          process(action, *args)
-        else
-          non_kwarg_request_warning if args.present?
+        def process_with_kwargs(http_method, action, *args)
+          if kwarg_request?(*args)
+            args.first.merge!(method: http_method)
+            process(action, *args)
+          else
+            non_kwarg_request_warning if args.present?
 
-          args = args.unshift(http_method)
-          process(action, *args)
-        end
-      end
-
-      REQUEST_KWARGS = %i(params session flash method body xhr)
-      def kwarg_request?(*args)
-        args[0].respond_to?(:keys) && (
-          (args[0].key?(:format) && args[0].keys.size == 1) ||
-          args[0].keys.any? { |k| REQUEST_KWARGS.include?(k) }
-        )
-      end
-
-      def non_kwarg_request_warning
-        ActiveSupport::Deprecation.warn(<<-MSG.strip_heredoc)
-          ActionController::TestCase HTTP request methods will accept only
-          keyword arguments in future Rails versions.
-
-          Examples:
-
-          get :show, params: { id: 1 }, session: { user_id: 1 }
-          process :update, method: :post, params: { id: 1 }
-        MSG
-      end
-
-      def document_root_element
-        html_document.root
-      end
-
-      def check_required_ivars
-        # Sanity check for required instance variables so we can give an
-        # understandable error message.
-        [:@routes, :@controller, :@request, :@response].each do |iv_name|
-          if !instance_variable_defined?(iv_name) || instance_variable_get(iv_name).nil?
-            raise "#{iv_name} is nil: make sure you set it in your test's setup method."
+            args = args.unshift(http_method)
+            process(action, *args)
           end
         end
-      end
 
-      def build_request_uri(action, parameters)
-        unless @request.env["PATH_INFO"]
-          options = @controller.respond_to?(:url_options) ? @controller.__send__(:url_options).merge(parameters) : parameters
-          options.update(
-            :action => action,
-            :relative_url_root => nil,
-            :_recall => @request.path_parameters)
-
-          url, query_string = @routes.path_for(options).split("?", 2)
-
-          @request.env["SCRIPT_NAME"] = @controller.config.relative_url_root
-          @request.env["PATH_INFO"] = url
-          @request.env["QUERY_STRING"] = query_string || ""
+        REQUEST_KWARGS = %i(params session flash method body xhr)
+        def kwarg_request?(*args)
+          args[0].respond_to?(:keys) && (
+            (args[0].key?(:format) && args[0].keys.size == 1) ||
+            args[0].keys.any? { |k| REQUEST_KWARGS.include?(k) }
+          )
         end
-      end
 
-      def html_format?(parameters)
-        return true unless parameters.key?(:format)
-        Mime.fetch(parameters[:format]) { Mime['html'] }.html?
-      end
+        def non_kwarg_request_warning
+          ActiveSupport::Deprecation.warn(<<-MSG.strip_heredoc)
+            ActionController::TestCase HTTP request methods will accept only
+            keyword arguments in future Rails versions.
+
+            Examples:
+
+            get :show, params: { id: 1 }, session: { user_id: 1 }
+            process :update, method: :post, params: { id: 1 }
+          MSG
+        end
+
+        def document_root_element
+          html_document.root
+        end
+
+        def check_required_ivars
+          # Sanity check for required instance variables so we can give an
+          # understandable error message.
+          [:@routes, :@controller, :@request, :@response].each do |iv_name|
+            if !instance_variable_defined?(iv_name) || instance_variable_get(iv_name).nil?
+              raise "#{iv_name} is nil: make sure you set it in your test's setup method."
+            end
+          end
+        end
+
+        def build_request_uri(action, parameters)
+          unless @request.env["PATH_INFO"]
+            options = @controller.respond_to?(:url_options) ? @controller.__send__(:url_options).merge(parameters) : parameters
+            options.update(
+              :action => action,
+              :relative_url_root => nil,
+              :_recall => @request.path_parameters)
+
+            url, query_string = @routes.path_for(options).split("?", 2)
+
+            @request.env["SCRIPT_NAME"] = @controller.config.relative_url_root
+            @request.env["PATH_INFO"] = url
+            @request.env["QUERY_STRING"] = query_string || ""
+          end
+        end
+
+        def html_format?(parameters)
+          return true unless parameters.key?(:format)
+          Mime.fetch(parameters[:format]) { Mime['html'] }.html?
+        end
     end
 
-    include Behavior
+      include Behavior
   end
 end

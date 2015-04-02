@@ -30,12 +30,12 @@ module ActionDispatch
         sid
       end
 
-    protected
+      protected
 
-      def initialize_sid
-        @default_options.delete(:sidbits)
-        @default_options.delete(:secure_random)
-      end
+        def initialize_sid
+          @default_options.delete(:sidbits)
+          @default_options.delete(:secure_random)
+        end
     end
 
     module StaleSessionCheck
@@ -81,10 +81,10 @@ module ActionDispatch
 
       private
 
-      def set_cookie(env, session_id, cookie)
-        request = ActionDispatch::Request.new(env)
-        request.cookie_jar[key] = cookie
-      end
+        def set_cookie(env, session_id, cookie)
+          request = ActionDispatch::Request.new(env)
+          request.cookie_jar[key] = cookie
+        end
     end
   end
 end

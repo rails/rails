@@ -86,37 +86,37 @@ module ActionDispatch
 
       private
 
-      def filter_routes(filter)
-        if filter
-          @routes.select { |route| route.defaults[:controller] == filter }
-        else
-          @routes
+        def filter_routes(filter)
+          if filter
+            @routes.select { |route| route.defaults[:controller] == filter }
+          else
+            @routes
+          end
         end
-      end
 
-      def collect_routes(routes)
-        routes.collect do |route|
-          RouteWrapper.new(route)
-        end.reject(&:internal?).collect do |route|
-          collect_engine_routes(route)
+        def collect_routes(routes)
+          routes.collect do |route|
+            RouteWrapper.new(route)
+          end.reject(&:internal?).collect do |route|
+            collect_engine_routes(route)
 
-          { name: route.name,
-            verb: route.verb,
-            path: route.path,
-            reqs: route.reqs }
+            { name: route.name,
+              verb: route.verb,
+              path: route.path,
+              reqs: route.reqs }
+          end
         end
-      end
 
-      def collect_engine_routes(route)
-        name = route.endpoint
-        return unless route.engine?
-        return if @engines[name]
+        def collect_engine_routes(route)
+          name = route.endpoint
+          return unless route.engine?
+          return if @engines[name]
 
-        routes = route.rack_app.routes
-        if routes.is_a?(ActionDispatch::Routing::RouteSet)
-          @engines[name] = collect_routes(routes.routes)
+          routes = route.rack_app.routes
+          if routes.is_a?(ActionDispatch::Routing::RouteSet)
+            @engines[name] = collect_routes(routes.routes)
+          end
         end
-      end
     end
 
     class ConsoleFormatter

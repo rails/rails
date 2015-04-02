@@ -71,8 +71,8 @@ module ActionDispatch
 
     private
 
-    def default_env
-      DEFAULT_ENV
-    end
+      def default_env
+        DEFAULT_ENV
+      end
   end
 end
