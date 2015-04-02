@@ -133,6 +133,7 @@ module ActiveRecord
     #   Person.pluck(:id)
     #   # SELECT people.id FROM people
     #   # => [1, 2, 3]
+    #   # Use Person.ids if only ids needed.
     #
     #   Person.pluck(:id, :name)
     #   # SELECT people.id, people.name FROM people
