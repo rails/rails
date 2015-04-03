@@ -1,3 +1,10 @@
+*   Print `bundle install` output in `rails new` as soon as it's available
+
+    Running `rails new` will now print the output of `bundle install` as
+    it is available, instead of waiting until all gems finish installing.
+
+    *Max Holder*
+
 *   Respect `pluralize_table_names` when generating fixture file.
 
     Fixes #19519.
