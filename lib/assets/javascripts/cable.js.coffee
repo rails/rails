@@ -49,7 +49,6 @@ class @Cable
   reconnect: =>
     @removeExistingConnection()
 
-    @clearPingWaitTimeout()
     @resetPingTime()
     @disconnected()
 
@@ -60,6 +59,8 @@ class @Cable
 
   removeExistingConnection: =>
     if @connection?
+      @clearPingWaitTimeout()
+
       @connection.onclose = -> # no-op
       @connection.onerror = -> # no-op
       @connection.close()
