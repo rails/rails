@@ -130,10 +130,9 @@ module ActiveRecord
     # the plucked column names, if they can be deduced. Plucking an SQL fragment
     # returns String values by default.
     #
-    #   Person.pluck(:id)
-    #   # SELECT people.id FROM people
-    #   # => [1, 2, 3]
-    #   # Use Person.ids if only ids needed.
+    #   Person.pluck(:name)
+    #   # SELECT people.name FROM people
+    #   # => ['David', 'Jeremy', 'Jose']
     #
     #   Person.pluck(:id, :name)
     #   # SELECT people.id, people.name FROM people
