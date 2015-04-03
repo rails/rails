@@ -328,12 +328,8 @@ module ActiveRecord
         @default_attributes = nil
         @inheritance_column = nil unless defined?(@explicit_inheritance_column) && @explicit_inheritance_column
         @attributes_builder = nil
-        @column_names = nil
-        @attribute_types = nil
         @columns = nil
         @columns_hash = nil
-        @content_columns = nil
-        @default_attributes = nil
         @attribute_names = nil
       end
 
