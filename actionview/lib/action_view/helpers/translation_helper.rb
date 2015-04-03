@@ -41,7 +41,7 @@ module ActionView
         remaining_defaults = Array(options.delete(:default)).compact
 
         if has_default && !remaining_defaults.first.kind_of?(Symbol)
-          options[:default] = remaining_defaults.shift
+          options[:default] = remaining_defaults
         end
 
         # If the user has explicitly decided to NOT raise errors, pass that option to I18n.
