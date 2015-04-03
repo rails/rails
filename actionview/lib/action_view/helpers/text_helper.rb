@@ -262,6 +262,7 @@ module ActionView
       # ==== Options
       # * <tt>:sanitize</tt> - If +false+, does not sanitize +text+.
       # * <tt>:wrapper_tag</tt> - String representing the wrapper tag, defaults to <tt>"p"</tt>
+      # * <tt>:spare_tags</tt> - If +true+, does not wrap html tag, defaults to <tt>"false"</tt>
       #
       # ==== Examples
       #   my_text = "Here is some basic text...\n...with a line break."
@@ -285,6 +286,9 @@ module ActionView
       #
       #   simple_format("<blink>Blinkable!</blink> It's true.", {}, sanitize: false)
       #   # => "<p><blink>Blinkable!</blink> It's true.</p>"
+      #
+      #   simple_format("<blink>Blinkable!</blink> It's true.", {}, sanitize: false, spare_tags: true)
+      #   # => "<blink>Blinkable!</blink><p>It's true.</p>"
       def simple_format(text, html_options = {}, options = {})
         wrapper_tag = options.fetch(:wrapper_tag, :p)
 
