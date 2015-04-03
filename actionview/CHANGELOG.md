@@ -1,5 +1,5 @@
 *   Added `spare_tags` option to `simple_format` helper method.
-    This option prevents wrapping block level elements (like `<h1></h1>`) 
+    This option prevents wrapping html elements (like `<h1></h1>`) 
     in your text, which could lead to empty `<p></p>` tags.
 
     *Noémien Kocher*
