@@ -289,13 +289,18 @@ module ActionView
         wrapper_tag = options.fetch(:wrapper_tag, :p)
 
         text = sanitize(text) if options.fetch(:sanitize, true)
+        text.gsub!(/[\r\n]*(<([A-Z][A-Z0-9]*)\b[^>]*>.*<\/\2>)[\r\n]*/i, "\n\n#{'\1'}\n\n") if options.fetch(:spare_tags, false)
         paragraphs = split_paragraphs(text)
 
         if paragraphs.empty?
           content_tag(wrapper_tag, nil, html_options)
         else
           paragraphs.map! { |paragraph|
-            content_tag(wrapper_tag, raw(paragraph), html_options)
+            if options.fetch(:spare_tags, false) && paragraph.match(/<([A-Z][A-Z0-9]*)\b[^>]*>.*<\/\1>/i)
+              paragraph
+            else
+              content_tag(wrapper_tag, raw(paragraph), html_options)
+            end
           }.join("\n\n").html_safe
         end
       end
