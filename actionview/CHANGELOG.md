@@ -1,3 +1,9 @@
+*   Added `spare_tags` option to `simple_format` helper method.
+    This option prevents wrapping html elements (like `<h1></h1>`) 
+    in your text, which could lead to empty `<p></p>` tags.
+
+    *Noémien Kocher*
+
 *   `translate` should accept nils as members of the `:default`
     parameter without raising a translation missing error.  Fixes a
     regression introduced 362557e.

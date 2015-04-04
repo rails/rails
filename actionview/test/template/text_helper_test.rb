@@ -55,6 +55,14 @@ class TextHelperTest < ActionView::TestCase
     assert_equal "<p><b> test with unsafe string </b><script>code!</script></p>", simple_format("<b> test with unsafe string </b><script>code!</script>", {}, :sanitize => false)
   end
 
+  def test_simple_format_should_not_spare_tag_when_spare_tag_option_is_false
+    assert_equal "<p>This is a classy test</p>\n\n<p><h3>Title</h3></p>", simple_format("This is a classy test\n\n<h3>Title</h3>", {}, spare_tags: false)
+  end
+
+  def test_simple_format_should_spare_tag_when_spare_tag_option_is_true
+    assert_equal "<p>This is a classy test</p>\n\n<h3>Title</h3>", simple_format("This is a classy test\n\n<h3>Title</h3>", {}, spare_tags: true)
+  end
+
   def test_simple_format_with_custom_wrapper
     assert_equal "<div></div>", simple_format(nil, {}, :wrapper_tag => "div")
   end
