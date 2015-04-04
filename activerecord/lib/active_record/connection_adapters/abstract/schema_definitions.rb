@@ -329,7 +329,7 @@ module ActiveRecord
           column("#{col}_id", type, options)
           column("#{col}_type", :string, polymorphic.is_a?(Hash) ? polymorphic : options) if polymorphic
           index(polymorphic ? %w(type id).map { |t| "#{col}_#{t}" } : "#{col}_id", index_options.is_a?(Hash) ? index_options : {}) if index_options
-          foreign_key(col.to_s.pluralize, foreign_key_options.is_a?(Hash) ? foreign_key_options : {}) if foreign_key_options
+          foreign_key(Base.pluralize_table_names ? col.to_s.pluralize : col, foreign_key_options.is_a?(Hash) ? foreign_key_options : {}) if foreign_key_options
         end
       end
       alias :belongs_to :references
