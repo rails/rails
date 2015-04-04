@@ -24,7 +24,9 @@ module ActiveRecord
 
       def test_lease_twice
         assert @adapter.lease, 'should lease adapter'
-        assert_not @adapter.lease, 'should not lease adapter'
+        assert_raises(ActiveRecordError) do
+          @adapter.lease
+        end
       end
 
       def test_expire_mutates_in_use

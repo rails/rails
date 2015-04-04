@@ -258,9 +258,7 @@ module ActiveRecord
       def connection
         # this is correctly done double-checked locking
         # (ThreadSafe::Cache's lookups have volatile semantics)
-        @reserved_connections[current_connection_id] || synchronize do
-          @reserved_connections[current_connection_id] ||= checkout
-        end
+        @reserved_connections[current_connection_id] || synchronized_connection_retrieval
       end
 
       # Is there an open connection that is being used for the current thread?
@@ -342,11 +340,8 @@ module ActiveRecord
       # Raises:
       # - ConnectionTimeoutError: no connection can be obtained from the pool.
       def checkout
-        synchronize do
-          conn = acquire_connection
-          conn.lease
-          checkout_and_verify(conn)
-        end
+        conn = synchronize { acquire_connection.tap(&:lease) }
+        checkout_and_verify(conn)
       end
 
       # Check-in a database connection back into the pool, indicating that you
@@ -377,6 +372,15 @@ module ActiveRecord
 
           release conn, conn.owner
 
+          # @available.any_waiting? => true means that prior to removing this
+          # conn, the pool was at its max size (@connections.size == @size)
+          # this would mean that any threads stuck waiting in the queue wouldn't
+          # know they could checkout_new_connection, so let's do it for them.
+          # Because condition-wait loop is encapsulated in the Queue class
+          # (that in turn is oblivious to ConnectionPool implementation), threads
+          # that are "stuck" there are helpless, they have no way of creating
+          # new connections and are completely reliant on us feeding available
+          # connections into the Queue.
           @available.add checkout_new_connection if @available.any_waiting?
         end
       end
@@ -404,6 +408,17 @@ module ActiveRecord
       end
 
       private
+      def synchronized_connection_retrieval
+        conn = synchronize do
+          # re-checking under lock for correct DCL semantics
+          @reserved_connections[current_connection_id] ||= acquire_connection.tap(&:lease)
+        end
+        begin
+          checkout_and_verify(conn)
+        rescue Exception # clean up if something goes wrong in post_checkout
+          synchronize { @reserved_connections.delete_pair(current_connection_id, conn) }
+        end
+      end
 
       # Acquire a connection by one of 1) immediately removing one
       # from the queue of available connections, 2) creating a new
