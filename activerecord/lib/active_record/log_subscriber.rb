@@ -31,8 +31,9 @@ module ActiveRecord
     end
 
     def sql(event)
-      self.class.runtime += event.duration
       return unless logger.debug?
+
+      self.class.runtime += event.duration
 
       payload = event.payload
 
