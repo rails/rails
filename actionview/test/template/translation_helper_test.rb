@@ -195,6 +195,11 @@ class TranslationHelperTest < ActiveSupport::TestCase
     assert_equal 'A Generic String', translation
   end
 
+  def test_translate_with_array_of_array_default
+    translation = translate(:'translations.missing', default: [[]])
+    assert_equal [], translation
+  end
+
   def test_translate_does_not_change_options
     options = {}
     translate(:'translations.missing', options)
