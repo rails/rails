@@ -5,9 +5,9 @@ module ActionController
   # In addition to <tt>AbstractController::UrlFor</tt>, this module accesses the HTTP layer to define
   # url options like the +host+. In order to do so, this module requires the host class
   # to implement +env+ which needs to be Rack-compatible and +request+
-  # which is either instance of +ActionDispatch::Request+ or an object
-  # that responds to <tt>host</tt>, <tt>optional_port</tt>, <tt>protocol</tt> and
-  # <tt>symbolized_path_parameter</tt> methods.
+  # which is either an instance of +ActionDispatch::Request+ or an object
+  # that responds to the +host+, +optional_port+, +protocol+ and
+  # +symbolized_path_parameter+ methods.
   #
   #   class RootUrl
   #     include ActionController::UrlFor

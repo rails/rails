@@ -77,18 +77,20 @@ See [#17227](https://github.com/rails/rails/pull/17227) for more details.
 
 ### ActiveJob jobs now inherent from ApplicationJob by default
 
-In Rails 4.2 an ActiveJob inherents from `ActiveJob::Base`. In Rails 5.0 this
-behaviour has changed to now inherent from `ApplicationJob`.
+In Rails 4.2 an ActiveJob inherits from `ActiveJob::Base`. In Rails 5.0 this
+behavior has changed to now inherit from `ApplicationJob`.
 
-When upgrading from Rails 4.2 to Rails 5.0 you need to create a file
-`application_job.rb` in `app/jobs/` and add the following content:
+When upgrading from Rails 4.2 to Rails 5.0 you need to create an
+`application_job.rb` file in `app/jobs/` and add the following content:
 
 ```
 class ApplicationJob < ActiveJob::Base
 end
 ```
 
-See [#19034](https://github.com/rails/rails/pull/19034) for more details
+Then make sure that all your job classes inherit from it.
+
+See [#19034](https://github.com/rails/rails/pull/19034) for more details.
 
 Upgrading from Rails 4.1 to Rails 4.2
 -------------------------------------

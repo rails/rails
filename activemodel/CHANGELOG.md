@@ -40,11 +40,11 @@
 
         cat = Cat.new
         cat.assign_attributes(name: "Gorby", status: "yawning")
-        cat.name # => 'Gorby'
-        cat.status => 'yawning'
+        cat.name   # => 'Gorby'
+        cat.status # => 'yawning'
         cat.assign_attributes(status: "sleeping")
-        cat.name # => 'Gorby'
-        cat.status => 'sleeping'
+        cat.name   # => 'Gorby'
+        cat.status # => 'sleeping'
 
     *Bogdan Gusiev*
 
