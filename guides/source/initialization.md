@@ -161,7 +161,7 @@ throwing an error message. If the command is valid, a method of the same name
 is called.
 
 ```ruby
-COMMAND_WHITELIST = %(plugin generate destroy console server dbconsole application runner new version help)
+COMMAND_WHITELIST = %w(plugin generate destroy console server dbconsole application runner new version help)
 
 def run_command!(command)
   command = parse_command(command)
