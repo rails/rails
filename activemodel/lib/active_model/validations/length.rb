@@ -23,7 +23,7 @@ module ActiveModel
         if options[:tokenizer]
           ActiveSupport::Deprecation.warn(<<-EOS.strip_heredoc)
             The `:tokenizer` option is deprecated, and will be removed in Rails 5.1.
-            You can achieve the same functionality be defining an instance method
+            You can achieve the same functionality by defining an instance method
             with the value that you want to validate the length of. For example,
 
                 validates_length_of :essay, minimum: 100,
