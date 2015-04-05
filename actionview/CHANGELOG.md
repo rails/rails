@@ -1,3 +1,7 @@
+*   Accept lambda as `child_index` option in `fields_for` method.
+
+    *Karol Galanciak*
+
 *   `translate` allows `default: [[]]` again for a default value of `[]`.
 
     Fixes #19640.

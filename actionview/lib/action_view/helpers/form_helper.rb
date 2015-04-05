@@ -1928,7 +1928,11 @@ module ActionView
             explicit_child_index = options[:child_index]
             output = ActiveSupport::SafeBuffer.new
             association.each do |child|
-              options[:child_index] = nested_child_index(name) unless explicit_child_index
+              if explicit_child_index
+                options[:child_index] = explicit_child_index.call if explicit_child_index.respond_to?(:call)
+              else
+                options[:child_index] = nested_child_index(name)
+              end
               output << fields_for_nested_model("#{name}[#{options[:child_index]}]", child, options, block)
             end
             output
