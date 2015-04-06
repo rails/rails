@@ -24,4 +24,5 @@ module ActionCable
   autoload :Server, 'action_cable/server'
   autoload :Connection, 'action_cable/connection'
   autoload :RemoteConnection, 'action_cable/remote_connection'
+  autoload :RemoteConnections, 'action_cable/remote_connections'
 end

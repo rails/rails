@@ -23,6 +23,10 @@ module ActionCable
       @pubsub ||= EM::Hiredis.connect(@redis_config['url']).pubsub
     end
 
+    def remote_connections
+      @remote_connections ||= RemoteConnections.new(self)
+    end
+
     def connection_identifiers
       @connection_class.identifiers
     end
