@@ -148,14 +148,7 @@ class Module
   #
   # The target method must be public, otherwise it will raise +NoMethodError+.
   #
-  def delegate(*methods)
-    options = methods.pop
-    unless options.is_a?(Hash) && to = options[:to]
-      raise ArgumentError, 'Delegation needs a target. Supply an options hash with a :to key as the last argument (e.g. delegate :hello, to: :greeter).'
-    end
-
-    prefix, allow_nil = options.values_at(:prefix, :allow_nil)
-
+  def delegate(*methods, to:, prefix: false, allow_nil: false)
     if prefix == true && to =~ /^[^a-z_]/
       raise ArgumentError, 'Can only automatically set the delegation prefix when delegating to a method.'
     end
