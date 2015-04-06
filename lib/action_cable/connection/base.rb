@@ -105,23 +105,29 @@ module ActionCable
           subscription_klass = server.registered_channels.detect { |channel_klass| channel_klass.find_name == id_options[:channel] }
 
           if subscription_klass
-            logger.info "Subscribing to channel: #{id_key}"
+            logger.info "[ActionCable] Subscribing to channel: #{id_key}"
             @subscriptions[id_key] = subscription_klass.new(self, id_key, id_options)
           else
-            logger.error "Unable to subscribe to channel: #{id_key}"
+            logger.error "[ActionCable] Subscription class not found (#{data.inspect})"
           end
+        rescue Exception => e
+          logger.error "[ActionCable] Could not subscribe to channel (#{data.inspect})"
+          logger.error e.backtrace.join("\n")
         end
 
         def process_message(message)
           if @subscriptions[message['identifier']]
             @subscriptions[message['identifier']].receive_data(ActiveSupport::JSON.decode message['data'])
           else
-            logger.error "Unable to process message: #{message}"
+            logger.error "[ActionCable] Unable to process message because no subscription found (#{message.inspect})"
           end
+        rescue Exception => e
+          logger.error "[ActionCable] Could not process message (#{data.inspect})"
+          logger.error e.backtrace.join("\n")
         end
 
         def unsubscribe_channel(data)
-          logger.info "Unsubscribing from channel: #{data['identifier']}"
+          logger.info "[ActionCable] Unsubscribing from channel: #{data['identifier']}"
           @subscriptions[data['identifier']].unsubscribe
           @subscriptions.delete(data['identifier'])
         end
