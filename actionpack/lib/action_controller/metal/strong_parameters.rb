@@ -268,7 +268,7 @@ module ActionController
     #
     #   params.permit(:name)
     #
-    # +:name+ passes it is a key of +params+ whose associated value is of type
+    # +:name+ passes if it is a key of +params+ whose associated value is of type
     # +String+, +Symbol+, +NilClass+, +Numeric+, +TrueClass+, +FalseClass+,
     # +Date+, +Time+, +DateTime+, +StringIO+, +IO+,
     # +ActionDispatch::Http::UploadedFile+ or +Rack::Test::UploadedFile+.
