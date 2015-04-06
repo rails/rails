@@ -10,7 +10,7 @@ module ActionController
       if template_exists?(action_name.to_s, _prefixes, variants: request.variant)
         render(*args)
       else
-        logger.info "No template found for #{self.class.name}\##{action_name}, rendering head :no_content"
+        logger.info "No template found for #{self.class.name}\##{action_name}, rendering head :no_content" if logger
         head :no_content
       end
     end
