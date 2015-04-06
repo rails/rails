@@ -315,10 +315,6 @@ module Rails
         # its own vendored Thor, which could be a different version. Running both
         # things in the same process is a recipe for a night with paracetamol.
         #
-        # We use backticks and #print here instead of vanilla #system because it
-        # is easier to silence stdout in the existing test suite this way. The
-        # end-user gets the bundler commands called anyway, so no big deal.
-        #
         # We unset temporary bundler variables to load proper bundler and Gemfile.
         #
         # Thanks to James Tucker for the Gem tricks involved in this call.
@@ -326,8 +322,12 @@ module Rails
 
         require 'bundler'
         Bundler.with_clean_env do
-          output = `"#{Gem.ruby}" "#{_bundle_command}" #{command}`
-          print output unless options[:quiet]
+          full_command = %Q["#{Gem.ruby}" "#{_bundle_command}" #{command}]
+          if options[:quiet]
+            system(full_command, out: File::NULL)
+          else
+            system(full_command)
+          end
         end
       end
 

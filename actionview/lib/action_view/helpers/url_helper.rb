@@ -172,6 +172,11 @@ module ActionView
       #
       #   link_to "Visit Other Site", "http://www.rubyonrails.org/", data: { confirm: "Are you sure?" }
       #   # => <a href="http://www.rubyonrails.org/" data-confirm="Are you sure?">Visit Other Site</a>
+      #
+      # Also you can set any link attributes such as <tt>target</tt>, <tt>rel</tt>, <tt>type</tt>:
+      #
+      #   link_to "External link", "http://www.rubyonrails.org/", target: "_blank", rel: "nofollow"
+      #   # => <a href="http://www.rubyonrails.org/" target="_blank" rel="nofollow">External link</a>
       def link_to(name = nil, options = nil, html_options = nil, &block)
         html_options, options, name = options, name, block if block_given?
         options ||= {}
@@ -280,9 +285,7 @@ module ActionView
         html_options, options = options, name if block_given?
         options      ||= {}
         html_options ||= {}
-
         html_options = html_options.stringify_keys
-        convert_boolean_attributes!(html_options, %w(disabled))
 
         url    = options.is_a?(String) ? options : url_for(options)
         remote = html_options.delete('remote')
@@ -294,8 +297,9 @@ module ActionView
         form_method  = method == 'get' ? 'get' : 'post'
         form_options = html_options.delete('form') || {}
         form_options[:class] ||= html_options.delete('form_class') || 'button_to'
-        form_options.merge!(method: form_method, action: url)
-        form_options.merge!("data-remote" => "true") if remote
+        form_options[:method] = form_method
+        form_options[:action] = url
+        form_options[:'data-remote'] = true if remote
 
         request_token_tag = form_method == 'post' ? token_tag : ''
 
@@ -574,34 +578,6 @@ module ActionView
             html_options["rel"] = "#{html_options["rel"]} nofollow".lstrip
           end
           html_options["data-method"] = method
-        end
-
-        # Processes the +html_options+ hash, converting the boolean
-        # attributes from true/false form into the form required by
-        # HTML/XHTML. (An attribute is considered to be boolean if
-        # its name is listed in the given +bool_attrs+ array.)
-        #
-        # More specifically, for each boolean attribute in +html_options+
-        # given as:
-        #
-        #   "attr" => bool_value
-        #
-        # if the associated +bool_value+ evaluates to true, it is
-        # replaced with the attribute's name; otherwise the attribute is
-        # removed from the +html_options+ hash. (See the XHTML 1.0 spec,
-        # section 4.5 "Attribute Minimization" for more:
-        # http://www.w3.org/TR/xhtml1/#h-4.5)
-        #
-        # Returns the updated +html_options+ hash, which is also modified
-        # in place.
-        #
-        # Example:
-        #
-        #   convert_boolean_attributes!( html_options,
-        #                                %w( checked disabled readonly ) )
-        def convert_boolean_attributes!(html_options, bool_attrs)
-          bool_attrs.each { |x| html_options[x] = x if html_options.delete(x) }
-          html_options
         end
 
         def token_tag(token=nil)

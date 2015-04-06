@@ -186,21 +186,21 @@ module RenderTemplate
       end
     end
 
-    test "rendering with layout => :true" do
+    test "rendering with layout => true" do
       get "/render_template/with_layout/with_layout"
 
       assert_body "Hello from basic.html.erb, I'm here!"
       assert_status 200
     end
 
-    test "rendering with layout => :false" do
+    test "rendering with layout => false" do
       get "/render_template/with_layout/with_layout_false"
 
       assert_body "Hello from basic.html.erb"
       assert_status 200
     end
 
-    test "rendering with layout => :nil" do
+    test "rendering with layout => nil" do
       get "/render_template/with_layout/with_layout_nil"
 
       assert_body "Hello from basic.html.erb"

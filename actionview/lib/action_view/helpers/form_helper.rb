@@ -67,9 +67,10 @@ module ActionView
     #
     # In particular, thanks to the conventions followed in the generated field names, the
     # controller gets a nested hash <tt>params[:person]</tt> with the person attributes
-    # set in the form. That hash is ready to be passed to <tt>Person.create</tt>:
+    # set in the form. That hash is ready to be passed to <tt>Person.new</tt>:
     #
-    #   if @person = Person.create(params[:person])
+    #   @person = Person.new(params[:person])
+    #   if @person.save
     #     # success
     #   else
     #     # error handling
@@ -140,6 +141,7 @@ module ActionView
       # will get expanded to
       #
       #   <%= text_field :person, :first_name %>
+      #
       # which results in an HTML <tt><input></tt> tag whose +name+ attribute is
       # <tt>person[first_name]</tt>. This means that when the form is submitted,
       # the value entered by the user will be available in the controller as

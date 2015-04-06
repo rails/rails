@@ -1,3 +1,7 @@
+# Make sure we're using pg high enough for type casts and Ruby 2.2+ compatibility
+gem 'pg', '~> 0.18'
+require 'pg'
+
 require "active_record/connection_adapters/abstract_adapter"
 require "active_record/connection_adapters/postgresql/column"
 require "active_record/connection_adapters/postgresql/database_statements"
@@ -11,10 +15,6 @@ require "active_record/connection_adapters/postgresql/utils"
 require "active_record/connection_adapters/statement_pool"
 
 require 'arel/visitors/bind_visitor'
-
-# Make sure we're using pg high enough for Ruby 2.2+ compatibility
-gem 'pg', '~> 0.18'
-require 'pg'
 
 require 'ipaddr'
 
@@ -278,14 +278,15 @@ module ActiveRecord
         @table_alias_length = nil
 
         connect
-        add_pg_decoders
-
+        add_pg_encoders
         @statements = StatementPool.new @connection,
                                         self.class.type_cast_config_to_integer(config.fetch(:statement_limit) { 1000 })
 
         if postgresql_version < 80200
           raise "Your version of PostgreSQL (#{postgresql_version}) is too old, please upgrade!"
         end
+
+        add_pg_decoders
 
         @type_map = Type::HashLookupTypeMap.new
         initialize_type_map(type_map)
@@ -567,9 +568,9 @@ module ActiveRecord
           case default
             # Quoted types
             when /\A[\(B]?'(.*)'::/m
-              $1.gsub(/''/, "'")
+              $1.gsub("''".freeze, "'".freeze)
             # Boolean types
-            when 'true', 'false'
+            when 'true'.freeze, 'false'.freeze
               default
             # Numeric types
             when /\A\(?(-?\d+(\.\d*)?)\)?(::bigint)?\z/
@@ -593,6 +594,8 @@ module ActiveRecord
         end
 
         def load_additional_types(type_map, oids = nil) # :nodoc:
+          initializer = OID::TypeMapInitializer.new(type_map)
+
           if supports_ranges?
             query = <<-SQL
               SELECT t.oid, t.typname, t.typelem, t.typdelim, t.typinput, r.rngsubtype, t.typtype, t.typbasetype
@@ -608,11 +611,13 @@ module ActiveRecord
 
           if oids
             query += "WHERE t.oid::integer IN (%s)" % oids.join(", ")
+          else
+            query += initializer.query_conditions_for_initial_load(type_map)
           end
 
-          initializer = OID::TypeMapInitializer.new(type_map)
-          records = execute(query, 'SCHEMA')
-          initializer.run(records)
+          execute_and_clear(query, 'SCHEMA', []) do |records|
+            initializer.run(records)
+          end
         end
 
         FEATURE_NOT_SUPPORTED = "0A000" #:nodoc:
@@ -798,9 +803,18 @@ module ActiveRecord
               )
             end_sql
             execute_and_clear(sql, "SCHEMA", []) do |result|
-              result.getvalue(0, 0) == 't'
+              result.getvalue(0, 0)
             end
           end
+        end
+
+        def add_pg_encoders
+          map = PG::TypeMapByClass.new
+          map[Integer] = PG::TextEncoder::Integer.new
+          map[TrueClass] = PG::TextEncoder::Boolean.new
+          map[FalseClass] = PG::TextEncoder::Boolean.new
+          map[Float] = PG::TextEncoder::Float.new
+          @connection.type_map_for_queries = map
         end
 
         def add_pg_decoders
@@ -813,13 +827,15 @@ module ActiveRecord
             'float8' => PG::TextDecoder::Float,
             'bool' => PG::TextDecoder::Boolean,
           }
-          query = <<-SQL
-            SELECT t.oid, t.typname, t.typelem, t.typdelim, t.typinput, t.typtype, t.typbasetype
+          known_coder_types = coders_by_name.keys.map { |n| quote(n) }
+          query = <<-SQL % known_coder_types.join(", ")
+            SELECT t.oid, t.typname
             FROM pg_type as t
+            WHERE t.typname IN (%s)
           SQL
           coders = execute_and_clear(query, "SCHEMA", []) do |result|
             result
-              .map { |row| construct_coder(row, coders_by_name['typname']) }
+              .map { |row| construct_coder(row, coders_by_name[row['typname']]) }
               .compact
           end
 
@@ -830,7 +846,7 @@ module ActiveRecord
 
         def construct_coder(row, coder_class)
           return unless coder_class
-          coder_class.new(oid: row['oid'], name: row['typname'])
+          coder_class.new(oid: row['oid'].to_i, name: row['typname'])
         end
 
         ActiveRecord::Type.add_modifier({ array: true }, OID::Array, adapter: :postgresql)

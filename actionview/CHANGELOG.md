@@ -1,3 +1,17 @@
+*   `translate` allows `default: [[]]` again for a default value of `[]`.
+
+    Fixes #19640.
+
+    *Adam Prescott*
+
+*   `translate` should accept nils as members of the `:default`
+    parameter without raising a translation missing error.  Fixes a
+    regression introduced 362557e.
+
+    Fixes #19419
+
+    *Justin Coyne*
+
 *   `number_to_percentage` does not crash with `Float::NAN` or `Float::INFINITY`
     as input when `precision: 0` is used.
 

@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require "active_support/log_subscriber/test_helper"
 
 class RespondToController < ActionController::Base
   layout :set_layout
@@ -608,19 +609,29 @@ class RespondToControllerTest < ActionController::TestCase
   end
 
   def test_invalid_variant
+    logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
+    old_logger, ActionController::Base.logger = ActionController::Base.logger, logger
+
     @request.variant = :invalid
-    assert_raises(ActionView::MissingTemplate) do
-      get :variant_with_implicit_rendering
-    end
+    get :variant_with_implicit_rendering
+    assert_response :no_content
+    assert_equal 1, logger.logged(:info).select{ |s| s =~ /No template found/ }.size, "Implicit head :no_content not logged"
+  ensure
+    ActionController::Base.logger = old_logger
   end
 
   def test_variant_not_set_regular_template_missing
-    assert_raises(ActionView::MissingTemplate) do
-      get :variant_with_implicit_rendering
-    end
+    get :variant_with_implicit_rendering
+    assert_response :no_content
   end
 
   def test_variant_with_implicit_rendering
+    @request.variant = :implicit
+    get :variant_with_implicit_rendering
+    assert_response :no_content
+  end
+
+  def test_variant_with_implicit_template_rendering
     @request.variant = :mobile
     get :variant_with_implicit_rendering
     assert_equal "text/html", @response.content_type

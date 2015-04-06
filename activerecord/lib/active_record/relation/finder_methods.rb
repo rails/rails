@@ -5,7 +5,7 @@ module ActiveRecord
     ONE_AS_ONE = '1 AS one'
 
     # Find by id - This can either be a specific id (1), a list of ids (1, 5, 6), or an array of ids ([5, 6, 10]).
-    # If no record can be found for all of the listed ids, then RecordNotFound will be raised. If the primary key
+    # If one or more records can not be found for the requested ids, then RecordNotFound will be raised. If the primary key
     # is an integer, find by id coerces its arguments using +to_i+.
     #
     #   Person.find(1)          # returns the object for ID = 1
@@ -15,8 +15,6 @@ module ActiveRecord
     #   Person.find([7, 17])    # returns an array for objects with IDs in (7, 17)
     #   Person.find([1])        # returns an array for the object with ID = 1
     #   Person.where("administrator = 1").order("created_on DESC").find(1)
-    #
-    # <tt>ActiveRecord::RecordNotFound</tt> will be raised if one or more ids are not found.
     #
     # NOTE: The returned records may not be in the same order as the ids you
     # provide since database rows are unordered. You'd need to provide an explicit <tt>order</tt>
@@ -378,7 +376,7 @@ module ActiveRecord
     def construct_relation_for_association_calculations
       from = arel.froms.first
       if Arel::Table === from
-        apply_join_dependency(self, construct_join_dependency)
+        apply_join_dependency(self, construct_join_dependency(joins_values))
       else
         # FIXME: as far as I can tell, `from` will always be an Arel::Table.
         # There are no tests that test this branch, but presumably it's

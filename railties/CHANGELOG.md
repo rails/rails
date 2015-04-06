@@ -1,11 +1,32 @@
-*   Add `rake initializer`
+*   Print `bundle install` output in `rails new` as soon as it's available
 
-    This task prints out initializers for an application. It is useful to
-    develop a rubygem which involves the initialization process.
+    Running `rails new` will now print the output of `bundle install` as
+    it is available, instead of waiting until all gems finish installing.
+
+    *Max Holder*
+
+*   Respect `pluralize_table_names` when generating fixture file.
+
+    Fixes #19519.
+
+    *Yuji Yaginuma*
+
+*   Add a new-line to the end of route method generated code.
+
+    We need to add a `\n`, because we cannot have two routes
+    in the same line.
+
+    *arthurnn*
+
+*   Add `rake initializers`
+
+    This task prints out all defined initializers in the order they are invoked
+    by Rails. This is helpful for debugging issues related to the initialization
+    process.
 
     *Naoto Kaneko*
 
-*   Created rake restart task. Restarts your Rails app by touching the 
+*   Created rake restart task. Restarts your Rails app by touching the
     `tmp/restart.txt`.
 
     Fixes #18876.
@@ -16,7 +37,7 @@
 
     Newly generated Rails apps have a new initializer called
     `active_record_belongs_to_required_by_default.rb` which sets the value of
-    the configuration option `config.active_record.belongs_to_requred_by_default`
+    the configuration option `config.active_record.belongs_to_required_by_default`
     to `true` when ActiveRecord is not skipped.
 
     As a result, new Rails apps require `belongs_to` association on model

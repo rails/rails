@@ -1,3 +1,54 @@
+*   Foreign key related methods in the migration DSL respect
+    `ActiveRecord::Base.pluralize_table_names = false`.
+
+    Fixes #19643.
+
+    *Mehmet Emin İNAÇ*
+
+*   Reduce memory usage from loading types on pg.
+
+    Fixes #19578.
+
+    *Sean Griffin*
+
+*   Add `config.active_record.warn_on_records_fetched_greater_than` option
+
+    When set to an integer, a warning will be logged whenever a result set
+    larger than the specified size is returned by a query. Fixes #16463
+
+    *Jason Nochlin*
+
+*   Ignore psqlrc when loading database structure.
+
+    *Jason Weathered*
+
+*   Fix referencing wrong table aliases while joining tables of has many through
+    association (only when calling calculation methods).
+
+    Fixes #19276.
+
+    *pinglamb*
+
+*   Correctly persist a serialized attribute that has been returned to
+    its default value by an in-place modification.
+
+    Fixes #19467.
+
+    *Matthew Draper*
+
+*   Fix generating the schema file when using PostgreSQL `BigInt[]` data type.
+    Previously the `limit: 8` was not coming through, and this caused it to
+    become `Int[]` data type after rebuilding from the schema.
+
+    Fixes #19420.
+
+    *Jake Waller*
+
+*   Reuse the `CollectionAssociation#reader` cache when the foreign key is
+    available prior to save.
+
+    *Ben Woosley*
+
 *   Add `config.active_record.dump_schemas` to fix `db:structure:dump`
     when using schema_search_path and PostgreSQL extensions.
 
@@ -24,8 +75,8 @@
 
     *James Cox*
 
-*   Dont enroll records in the transaction if they dont have commit callbacks.
-    That was causing a memory grow problem when creating a lot of records inside a transaction.
+*   Don't enroll records in the transaction if they don't have commit callbacks.
+    This was causing a memory leak when creating many records inside a transaction.
 
     Fixes #15549.
 
@@ -38,11 +89,11 @@
 
     *Sean Griffin*
 
-*   Add `SchemaMigration.create_table` support any unicode charsets for MySQL.
+*   Add `SchemaMigration.create_table` support for any unicode charsets with MySQL.
 
     *Ryuta Kamizono*
 
-*   PostgreSQL, no longer disables user triggers if system triggers can't be
+*   PostgreSQL no longer disables user triggers if system triggers can't be
     disabled. Disabling user triggers does not fulfill what the method promises.
     Rails currently requires superuser privileges for this method.
 
@@ -56,12 +107,12 @@
 
     *Toby Ovod-Everett*, *Yves Senn*
 
-*   PostgreSQL, print warning message if `disable_referential_integrity` fails
-    due to missing permissions.
+*   In PostgreSQL, print a warning message if `disable_referential_integrity`
+    fails due to missing permissions.
 
     *Andrey Nering*, *Yves Senn*
 
-*   Allow `:limit` option for MySQL bigint primary key support.
+*   Allow a `:limit` option for MySQL bigint primary key support.
 
     Example:
 
@@ -84,7 +135,7 @@
     *Josef Šimánek*
 
 *   Fixed ActiveRecord::Relation#becomes! and changed_attributes issues for type
-    column.
+    columns.
 
     Fixes #17139.
 
@@ -94,7 +145,7 @@
 
     *Ryuta Kamizono*
 
-*   Allow `:precision` option for time type columns.
+*   Allow a `:precision` option for time type columns.
 
     *Ryuta Kamizono*
 
@@ -111,10 +162,10 @@
             recipients: commentable.recipients }
         end
 
-    That's what you want the bulk of the time. New comment creates a new
-    Notification. But there may well be off cases, like copying a commentable
-    and its comments, where you don't want that. So you'd have a concern
-    something like this:
+    That's what you want the bulk of the time. A new comment creates a new
+    Notification. There may be edge cases where you don't want that, like
+    when copying a commentable and its comments, in which case write a
+    concern with something like this:
 
         module Copyable
           def copy_to(destination)
@@ -133,7 +184,7 @@
 
     *Hyonjee Joo*
 
-*   Deprecated passing of `start` value to `find_in_batches` and `find_each`
+*   Deprecate passing of `start` value to `find_in_batches` and `find_each`
     in favour of `begin_at` value.
 
     *Vipul A M*
@@ -142,9 +193,10 @@
 
     *Tõnis Simo*
 
-*   Use SQL COUNT and LIMIT 1 queries for `none?` and `one?` methods if no block or limit is given,
-    instead of loading the entire collection to memory.
-    This applies to relations (e.g. `User.all`) as well as associations (e.g. `account.users`)
+*   Use SQL COUNT and LIMIT 1 queries for `none?` and `one?` methods
+    if no block or limit is given, instead of loading the entire
+    collection into memory. This applies to relations (e.g. `User.all`)
+    as well as associations (e.g. `account.users`)
 
         # Before:
 
@@ -193,16 +245,16 @@
 
     *Vipul A M*
 
-*   Fix rounding problem for PostgreSQL timestamp column.
+*   Fix a rounding problem for PostgreSQL timestamp columns.
 
-    If timestamp column have the precision, it need to format according to
-    the precision of timestamp column.
+    If a timestamp column has a precision specified, it needs to
+    format according to that.
 
     *Ryuta Kamizono*
 
 *   Respect the database default charset for `schema_migrations` table.
 
-    The charset of `version` column in `schema_migrations` table is depend
+    The charset of `version` column in `schema_migrations` table depends
     on the database default charset and collation rather than the encoding
     of the connection.
 
@@ -210,12 +262,12 @@
 
 *   Raise `ArgumentError` when passing `nil` or `false` to `Relation#merge`.
 
-    These are not valid values to merge in a relation so it should warn the users
+    These are not valid values to merge in a relation, so it should warn users
     early.
 
     *Rafael Mendonça França*
 
-*   Use `SCHEMA` instead of `DB_STRUCTURE` for specifying structure file.
+*   Use `SCHEMA` instead of `DB_STRUCTURE` for specifying a structure file.
 
     This makes the db:structure tasks consistent with test:load_structure.
 
@@ -227,7 +279,7 @@
 
     *Sean Griffin*
 
-*   Fixed several edge cases which could result in a counter cache updating
+*   Fix several edge cases which could result in a counter cache updating
     twice or not updating at all for `has_many` and `has_many :through`.
 
     Fixes #10865.
@@ -260,11 +312,13 @@
     *Sammy Larbi*
 
 *   Change the default error message from `can't be blank` to `must exist` for
-    the presence validator of the `:required` option on `belongs_to`/`has_one` associations.
+    the presence validator of the `:required` option on `belongs_to`/`has_one`
+    associations.
 
     *Henrik Nygren*
 
-*   Fixed ActiveRecord::Relation#group method when argument is SQL reserved key word:
+*   Fixed ActiveRecord::Relation#group method when an argument is an SQL
+    reserved key word:
 
     Example:
 
@@ -395,7 +449,7 @@
 
     *Yves Senn*
 
-*   Remove deprecation when modifying a relation with cached arel.
+*   Remove deprecation when modifying a relation with cached Arel.
     This raises an `ImmutableRelation` error instead.
 
     *Yves Senn*
@@ -485,13 +539,13 @@
 
     *Florian Weingarten*
 
-*   Fixed setting of foreign_key for through associations while building of new record.
+*   Fix setting of foreign_key for through associations when building a new record.
 
     Fixes #12698.
 
     *Ivan Antropov*
 
-*   Improve a dump of the primary key support. If it is not a default primary key,
+*   Improve dumping of the primary key. If it is not a default primary key,
     correctly dump the type and options.
 
     Fixes #14169, #16599.
@@ -509,18 +563,18 @@
 
     *Ryuta Kamizono*
 
-*   Allow precision option for MySQL datetimes.
+*   Allow a precision option for MySQL datetimes.
 
     *Ryuta Kamizono*
 
-*   Fixed automatic inverse_of for models nested in module.
+*   Fixed automatic `inverse_of` for models nested in a module.
 
     *Andrew McCloud*
 
 *   Change `ActiveRecord::Relation#update` behavior so that it can
     be called without passing ids of the records to be updated.
 
-    This change allows to update multiple records returned by
+    This change allows updating multiple records returned by
     `ActiveRecord::Relation` with callbacks and validations.
 
         # Before
@@ -552,6 +606,13 @@
 
     *Rafael Mendonça França*
 
+*   Fix change detection problem for PostgreSQL bytea type and
+    `ArgumentError: string contains null byte` exception with pg-0.18.
+
+    Fixes #17680.
+
+    *Lars Kanis*
+
 *   When a table has a composite primary key, the `primary_key` method for
     SQLite3 and PostgreSQL adapters was only returning the first field of the key.
     Ensures that it will return nil instead, as Active Record doesn't support
@@ -561,7 +622,7 @@
 
     *arthurnn*
 
-*   `validates_size_of` / `validates_length_of` do not count records,
+*   `validates_size_of` / `validates_length_of` do not count records
     which are `marked_for_destruction?`.
 
     Fixes #7247.
@@ -603,7 +664,7 @@
 
     *Ryuta Kamizono*
 
-*   Support for any type primary key.
+*   Support for any type of primary key.
 
     Fixes #14194.
 
@@ -629,7 +690,7 @@
 
     *Yves Senn*
 
-*   Fixes bug with 'ActiveRecord::Type::Numeric' that causes negative values to
+*   Fix bug with 'ActiveRecord::Type::Numeric' that caused negative values to
     be marked as having changed when set to the same negative value.
 
     Closes #18161.

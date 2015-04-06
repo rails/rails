@@ -321,9 +321,9 @@ root 'welcome#index'
 application to the welcome controller's index action and `get 'welcome/index'`
 tells Rails to map requests to <http://localhost:3000/welcome/index> to the
 welcome controller's index action. This was created earlier when you ran the
-controller generator (`rails generate controller welcome index`).
+controller generator (`bin/rails generate controller welcome index`).
 
-Launch the web server again if you stopped it to generate the controller (`rails
+Launch the web server again if you stopped it to generate the controller (`bin/rails
 server`) and navigate to <http://localhost:3000> in your browser. You'll see the
 "Hello, Rails!" message you put into `app/views/welcome/index.html.erb`,
 indicating that this new route is indeed going to `WelcomeController`'s `index`
@@ -356,7 +356,7 @@ Rails.application.routes.draw do
 end
 ```
 
-If you run `rake routes`, you'll see that it has defined routes for all the
+If you run `bin/rake routes`, you'll see that it has defined routes for all the
 standard RESTful actions.  The meaning of the prefix column (and other columns)
 will be seen later, but for now notice that Rails has inferred the
 singular form `article` and makes meaningful use of the distinction.
@@ -556,7 +556,7 @@ this:
 
 In this example, the `articles_path` helper is passed to the `:url` option.
 To see what Rails will do with this, we look back at the output of
-`rake routes`:
+`bin/rake routes`:
 
 ```bash
 $ bin/rake routes
@@ -666,7 +666,7 @@ models, as that will be done automatically by Active Record.
 
 ### Running a Migration
 
-As we've just seen, `rails generate model` created a _database migration_ file
+As we've just seen, `bin/rails generate model` created a _database migration_ file
 inside the `db/migrate` directory. Migrations are Ruby classes that are
 designed to make it simple to create and modify database tables. Rails uses
 rake commands to run migrations, and it's possible to undo a migration after
@@ -719,7 +719,7 @@ NOTE. Because you're working in the development environment by default, this
 command will apply to the database defined in the `development` section of your
 `config/database.yml` file. If you would like to execute migrations in another
 environment, for instance in production, you must explicitly pass it when
-invoking the command: `rake db:migrate RAILS_ENV=production`.
+invoking the command: `bin/rake db:migrate RAILS_ENV=production`.
 
 ### Saving data in the controller
 
@@ -806,7 +806,7 @@ If you submit the form again now, Rails will complain about not finding the
 `show` action. That's not very useful though, so let's add the `show` action
 before proceeding.
 
-As we have seen in the output of `rake routes`, the route for `show` action is
+As we have seen in the output of `bin/rake routes`, the route for `show` action is
 as follows:
 
 ```
@@ -868,7 +868,7 @@ Visit <http://localhost:3000/articles/new> and give it a try!
 ### Listing all articles
 
 We still need a way to list all our articles, so let's do that.
-The route for this as per output of `rake routes` is:
+The route for this as per output of `bin/rake routes` is:
 
 ```
 articles GET    /articles(.:format)          articles#index
@@ -1363,7 +1363,7 @@ Then do the same for the `app/views/articles/edit.html.erb` view:
 
 We're now ready to cover the "D" part of CRUD, deleting articles from the
 database. Following the REST convention, the route for
-deleting articles as per output of `rake routes` is:
+deleting articles as per output of `bin/rake routes` is:
 
 ```ruby
 DELETE /articles/:id(.:format)      articles#destroy
@@ -1510,7 +1510,7 @@ comments on articles.
 
 We're going to see the same generator that we used before when creating
 the `Article` model. This time we'll create a `Comment` model to hold
-reference of article comments. Run this command in your terminal:
+reference to an article. Run this command in your terminal:
 
 ```bash
 $ bin/rails generate model Comment commenter:string body:text article:references
@@ -1522,7 +1522,7 @@ This command will generate four files:
 | -------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
 | db/migrate/20140120201010_create_comments.rb | Migration to create the comments table in your database (your name will include a different timestamp) |
 | app/models/comment.rb                        | The Comment model                                                                                      |
-| test/models/comment_test.rb                  | Testing harness for the comments model                                                                 |
+| test/models/comment_test.rb                  | Testing harness for the comment model                                                                 |
 | test/fixtures/comments.yml                   | Sample comments for use in testing                                                                     |
 
 First, take a look at `app/models/comment.rb`:

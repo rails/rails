@@ -182,7 +182,7 @@ One way to use partials is to treat them as the equivalent of subroutines; a way
 
 <p>Here are a few of our fine products:</p>
 <% @products.each do |product| %>
-  <%= render partial: "product", locals: {product: product} %>
+  <%= render partial: "product", locals: { product: product } %>
 <% end %>
 
 <%= render "shared/footer" %>
@@ -197,7 +197,7 @@ these are the only options you want to pass, you can skip using these options.
 For example, instead of:
 
 ```erb
-<%= render partial: "product", locals: {product: @product} %>
+<%= render partial: "product", locals: { product: @product } %>
 ```
 
 You can also do:
@@ -217,7 +217,7 @@ By default `ActionView::Partials::PartialRenderer` has its object in a local var
 within product we'll get `@product` in the local variable `product`, as if we had written:
 
 ```erb
-<%= render partial: "product", locals: {product: @product} %>
+<%= render partial: "product", locals: { product: @product } %>
 ```
 
 With the `as` option we can specify a different name for the local variable. For example, if we wanted it to be `item` instead of `product` we would do:
@@ -231,7 +231,7 @@ The `object` option can be used to directly specify which object is rendered int
 For example, instead of:
 
 ```erb
-<%= render partial: "product", locals: {product: @item} %>
+<%= render partial: "product", locals: { product: @item } %>
 ```
 
 we would do:
@@ -304,7 +304,7 @@ In the `show` template, we'll render the `_article` partial wrapped in the `box`
 **articles/show.html.erb**
 
 ```erb
-<%= render partial: 'article', layout: 'box', locals: {article: @article} %>
+<%= render partial: 'article', layout: 'box', locals: { article: @article } %>
 ```
 
 The `box` layout simply wraps the `_article` partial in a `div`:
@@ -344,7 +344,7 @@ You can also render a block of code within a partial layout instead of calling `
 **articles/show.html.erb**
 
 ```html+erb
-<% render(layout: 'box', locals: {article: @article}) do %>
+<% render(layout: 'box', locals: { article: @article }) do %>
   <%= div_for(article) do %>
     <p><%= article.body %></p>
   <% end %>
@@ -407,8 +407,8 @@ stylesheet_link_tag :monkey # =>
 Returns a link tag that browsers and feed readers can use to auto-detect an RSS or Atom feed.
 
 ```ruby
-auto_discovery_link_tag(:rss, "http://www.example.com/feed.rss", {title: "RSS Feed"}) # =>
-  <link rel="alternate" type="application/rss+xml" title="RSS Feed" href="http://www.example.com/feed" />
+auto_discovery_link_tag(:rss, "http://www.example.com/feed.rss", { title: "RSS Feed" }) # =>
+  <link rel="alternate" type="application/rss+xml" title="RSS Feed" href="http://www.example.com/feed.rss" />
 ```
 
 #### image_path
@@ -789,7 +789,7 @@ time_select("order", "submitted")
 Returns a `pre` tag that has object dumped by YAML. This creates a very readable way to inspect an object.
 
 ```ruby
-my_hash = {'first' => 1, 'second' => 'two', 'third' => [1,2,3]}
+my_hash = { 'first' => 1, 'second' => 'two', 'third' => [1,2,3] }
 debug(my_hash)
 ```
 
@@ -814,7 +814,7 @@ The core method of this helper, form_for, gives you the ability to create a form
 
 ```html+erb
 # Note: a @person variable will have been created in the controller (e.g. @person = Person.new)
-<%= form_for @person, url: {action: "create"} do |f| %>
+<%= form_for @person, url: { action: "create" } do |f| %>
   <%= f.text_field :first_name %>
   <%= f.text_field :last_name %>
   <%= submit_tag 'Create' %>
@@ -834,7 +834,7 @@ The HTML generated for this would be:
 The params object created when this form is submitted would look like:
 
 ```ruby
-{"action" => "create", "controller" => "people", "person" => {"first_name" => "William", "last_name" => "Smith"}}
+{ "action" => "create", "controller" => "people", "person" => { "first_name" => "William", "last_name" => "Smith" } }
 ```
 
 The params hash has a nested person value, which can therefore be accessed with params[:person] in the controller.
@@ -855,7 +855,7 @@ check_box("article", "validated")
 Creates a scope around a specific model object like form_for, but doesn't create the form tags themselves. This makes fields_for suitable for specifying additional model objects in the same form:
 
 ```html+erb
-<%= form_for @person, url: {action: "update"} do |person_form| %>
+<%= form_for @person, url: { action: "update" } do |person_form| %>
   First name: <%= person_form.text_field :first_name %>
   Last name : <%= person_form.text_field :last_name %>
 
@@ -990,7 +990,7 @@ end
 Sample usage (selecting the associated Author for an instance of Article, `@article`):
 
 ```ruby
-collection_select(:article, :author_id, Author.all, :id, :name_with_initial, {prompt: true})
+collection_select(:article, :author_id, Author.all, :id, :name_with_initial, { prompt: true })
 ```
 
 If `@article.author_id` is 1, this would return:
@@ -1162,7 +1162,7 @@ Create a select tag and a series of contained option tags for the provided objec
 Example:
 
 ```ruby
-select("article", "person_id", Person.all.collect {|p| [ p.name, p.id ] }, {include_blank: true})
+select("article", "person_id", Person.all.collect { |p| [ p.name, p.id ] }, { include_blank: true })
 ```
 
 If `@article.person_id` is 1, this would become:
@@ -1225,7 +1225,7 @@ Creates a field set for grouping HTML form elements.
 Creates a file upload field.
 
 ```html+erb
-<%= form_tag({action:"post"}, multipart: true) do %>
+<%= form_tag({ action: "post" }, multipart: true) do %>
   <label for="file">File to Upload</label> <%= file_field_tag "file" %>
   <%= submit_tag %>
 <% end %>

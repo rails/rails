@@ -68,7 +68,7 @@ module ActiveRecord
       def test_insert_sql_with_proprietary_returning_clause
         with_example_table do
           id = @connection.insert_sql("insert into ex (number) values(5150)", nil, "number")
-          assert_equal "5150", id
+          assert_equal 5150, id
         end
       end
 
@@ -106,21 +106,21 @@ module ActiveRecord
         connection = connection_without_insert_returning
         id = connection.insert_sql("insert into postgresql_partitioned_table_parent (number) VALUES (1)")
         expect = connection.query('select max(id) from postgresql_partitioned_table_parent').first.first
-        assert_equal expect, id
+        assert_equal expect.to_i, id
       end
 
       def test_exec_insert_with_returning_disabled
         connection = connection_without_insert_returning
         result = connection.exec_insert("insert into postgresql_partitioned_table_parent (number) VALUES (1)", nil, [], 'id', 'postgresql_partitioned_table_parent_id_seq')
         expect = connection.query('select max(id) from postgresql_partitioned_table_parent').first.first
-        assert_equal expect, result.rows.first.first
+        assert_equal expect.to_i, result.rows.first.first
       end
 
       def test_exec_insert_with_returning_disabled_and_no_sequence_name_given
         connection = connection_without_insert_returning
         result = connection.exec_insert("insert into postgresql_partitioned_table_parent (number) VALUES (1)", nil, [], 'id')
         expect = connection.query('select max(id) from postgresql_partitioned_table_parent').first.first
-        assert_equal expect, result.rows.first.first
+        assert_equal expect.to_i, result.rows.first.first
       end
 
       def test_sql_for_insert_with_returning_disabled
@@ -238,7 +238,7 @@ module ActiveRecord
           result = @connection.exec_query('SELECT number FROM ex WHERE number = 10')
 
           assert_equal 1, result.rows.length
-          assert_equal "10", result.rows.last.last
+          assert_equal 10, result.rows.last.last
         end
       end
 
@@ -274,7 +274,7 @@ module ActiveRecord
           assert_equal 1, result.rows.length
           assert_equal 2, result.columns.length
 
-          assert_equal [['1', 'foo']], result.rows
+          assert_equal [[1, 'foo']], result.rows
         end
       end
 
@@ -288,7 +288,7 @@ module ActiveRecord
           assert_equal 1, result.rows.length
           assert_equal 2, result.columns.length
 
-          assert_equal [['1', 'foo']], result.rows
+          assert_equal [[1, 'foo']], result.rows
         end
       end
 
@@ -304,7 +304,7 @@ module ActiveRecord
           assert_equal 1, result.rows.length
           assert_equal 2, result.columns.length
 
-          assert_equal [['1', 'foo']], result.rows
+          assert_equal [[1, 'foo']], result.rows
         end
       end
 

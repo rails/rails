@@ -60,6 +60,12 @@ class ToSentenceTest < ActiveSupport::TestCase
 
     assert_equal exception.message, "Unknown key: :passing. Valid keys are: :words_connector, :two_words_connector, :last_word_connector, :locale"
   end
+
+  def test_always_returns_string
+    assert_instance_of String, [ActiveSupport::SafeBuffer.new('one')].to_sentence
+    assert_instance_of String, [ActiveSupport::SafeBuffer.new('one'), 'two'].to_sentence
+    assert_instance_of String, [ActiveSupport::SafeBuffer.new('one'), 'two', 'three'].to_sentence
+  end
 end
 
 class ToSTest < ActiveSupport::TestCase

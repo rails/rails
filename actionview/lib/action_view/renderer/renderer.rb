@@ -37,7 +37,7 @@ module ActionView
       end
     end
 
-    # Direct accessor to template rendering.
+    # Direct access to template rendering.
     def render_template(context, options) #:nodoc:
       TemplateRenderer.new(@lookup_context).render(context, options)
     end

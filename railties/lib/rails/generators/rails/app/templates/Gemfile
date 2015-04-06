@@ -36,10 +36,6 @@ group :development, :test do
   # Spring speeds up development by keeping your application running in the background. Read more: https://github.com/rails/spring
   gem 'spring'
 <% end -%>
-
-  # Adds `Method#source` and `Method#comment` to get the source code of a
-  # method from the console
-  gem 'method_source'
 <% end -%>
 end
 <% if RUBY_PLATFORM.match(/bccwin|cygwin|emx|mingw|mswin|wince|java/) -%>

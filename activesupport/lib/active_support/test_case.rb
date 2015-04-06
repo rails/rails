@@ -45,8 +45,6 @@ module ActiveSupport
 
         test_order
       end
-
-      alias :my_tests_are_order_dependent! :i_suck_and_my_tests_are_order_dependent!
     end
 
     alias_method :method_name, :name
@@ -75,7 +73,7 @@ module ActiveSupport
     alias :assert_not_respond_to :refute_respond_to
     alias :assert_not_same :refute_same
 
-    # Fails if the block raises an exception.
+    # Reveals the intention that the block should not raise any exception.
     #
     #   assert_nothing_raised do
     #     ...

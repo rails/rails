@@ -205,15 +205,4 @@ class TestOrderTest < ActiveSupport::TestCase
     assert_equal :random, self.class.test_order
     assert_equal :random, Class.new(ActiveSupport::TestCase).test_order
   end
-
-  def test_i_suck_and_my_tests_are_order_dependent!
-    ActiveSupport::TestCase.test_order = :random
-
-    klass = Class.new(ActiveSupport::TestCase) do
-      i_suck_and_my_tests_are_order_dependent!
-    end
-
-    assert_equal :alpha, klass.test_order
-    assert_equal :random, ActiveSupport::TestCase.test_order
-  end
 end

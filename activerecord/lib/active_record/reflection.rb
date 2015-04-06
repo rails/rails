@@ -370,6 +370,12 @@ module ActiveRecord
         [self]
       end
 
+      # This is for clearing cache on the reflection. Useful for tests that need to compare
+      # SQL queries on associations.
+      def clear_association_scope_cache # :nodoc:
+        @association_scope_cache.clear
+      end
+
       def nested?
         false
       end
@@ -704,6 +710,15 @@ module ActiveRecord
           chain[0] = self # Use self so we don't lose the information from :source_type
           chain
         end
+      end
+
+      # This is for clearing cache on the reflection. Useful for tests that need to compare
+      # SQL queries on associations.
+      def clear_association_scope_cache # :nodoc:
+        @chain = nil
+        delegate_reflection.clear_association_scope_cache
+        source_reflection.clear_association_scope_cache
+        through_reflection.clear_association_scope_cache
       end
 
       # Consider the following example:

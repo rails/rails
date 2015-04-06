@@ -652,7 +652,7 @@ module ActiveRecord
       alias :add_belongs_to :add_reference
 
       # Removes the reference(s). Also removes a +type+ column if one exists.
-      # <tt>remove_reference</tt>, <tt>remove_references</tt> and <tt>remove_belongs_to</tt> are acceptable.
+      # <tt>remove_reference</tt> and <tt>remove_belongs_to</tt> are acceptable.
       #
       # ====== Remove the reference
       #
@@ -667,7 +667,10 @@ module ActiveRecord
       #   remove_reference(:products, :user, index: true, foreign_key: true)
       #
       def remove_reference(table_name, ref_name, options = {})
-        remove_foreign_key table_name, ref_name.to_s.pluralize if options[:foreign_key]
+        if options[:foreign_key]
+          reference_name = Base.pluralize_table_names ? ref_name.to_s.pluralize : ref_name
+          remove_foreign_key(table_name, reference_name)
+        end
 
         remove_column(table_name, "#{ref_name}_id")
         remove_column(table_name, "#{ref_name}_type") if options[:polymorphic]

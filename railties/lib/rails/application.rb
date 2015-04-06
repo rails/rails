@@ -159,8 +159,9 @@ module Rails
     # Implements call according to the Rack API. It simply
     # dispatches the request to the underlying middleware stack.
     def call(env)
-      env["ORIGINAL_FULLPATH"] = build_original_fullpath(env)
-      env["ORIGINAL_SCRIPT_NAME"] = env["SCRIPT_NAME"]
+      req = ActionDispatch::Request.new env
+      env["ORIGINAL_FULLPATH"] = req.fullpath
+      env["ORIGINAL_SCRIPT_NAME"] = req.script_name
       super(env)
     end
 
@@ -502,18 +503,6 @@ module Rails
     def default_middleware_stack #:nodoc:
       default_stack = DefaultMiddlewareStack.new(self, config, paths)
       default_stack.build_stack
-    end
-
-    def build_original_fullpath(env) #:nodoc:
-      path_info    = env["PATH_INFO"]
-      query_string = env["QUERY_STRING"]
-      script_name  = env["SCRIPT_NAME"]
-
-      if query_string.present?
-        "#{script_name}#{path_info}?#{query_string}"
-      else
-        "#{script_name}#{path_info}"
-      end
     end
 
     def validate_secret_key_config! #:nodoc:

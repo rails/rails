@@ -17,6 +17,8 @@ gem 'turbolinks'
 gem 'arel', github: 'rails/arel', branch: 'master'
 gem 'mail', github: 'mikel/mail'
 
+gem 'sprockets', '~> 3.0.0.rc.1'
+
 # require: false so bcrypt is loaded only when has_secure_password is used.
 # This is to avoid ActiveModel (and by extension the entire framework)
 # being dependent on a binary library.
@@ -61,17 +63,10 @@ group :test do
   # FIX: Our test suite isn't ready to run in random order yet
   gem 'minitest', '< 5.3.4'
 
-  platforms :mri_19 do
-    gem 'ruby-prof', '~> 0.11.2'
-  end
-
-  platforms :mri_21, :mri_22 do
+  platforms :mri do
     gem 'stackprof'
+    # gem 'byebug'
   end
-
-  # platforms :mri do
-  #   gem 'byebug'
-  # end
 
   gem 'benchmark-ips'
 end

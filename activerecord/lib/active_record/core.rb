@@ -94,6 +94,15 @@ module ActiveRecord
       mattr_accessor :dump_schemas, instance_writer: false
       self.dump_schemas = :schema_search_path
 
+      ##
+      # :singleton-method:
+      # Specify a threshold for the size of query result sets. If the number of
+      # records in the set exceeds the threshold, a warning is logged. This can
+      # be used to identify queries which load thousands of records and
+      # potentially cause memory bloat.
+      mattr_accessor :warn_on_records_fetched_greater_than, instance_writer: false
+      self.warn_on_records_fetched_greater_than = nil
+
       mattr_accessor :maintain_test_schema, instance_accessor: false
 
       mattr_accessor :belongs_to_required_by_default, instance_accessor: false
@@ -296,15 +305,19 @@ module ActiveRecord
       _run_initialize_callbacks
     end
 
-    # Initialize an empty model object from +coder+. +coder+ must contain
-    # the attributes necessary for initializing an empty model object. For
-    # example:
+    # Initialize an empty model object from +coder+. +coder+ should be
+    # the result of previously encoding an Active Record model, using
+    # `encode_with`
     #
     #   class Post < ActiveRecord::Base
     #   end
     #
+    #   old_post = Post.new(title: "hello world")
+    #   coder = {}
+    #   old_post.encode_with(coder)
+    #
     #   post = Post.allocate
-    #   post.init_with('attributes' => { 'title' => 'hello world' })
+    #   post.init_with(coder)
     #   post.title # => 'hello world'
     def init_with(coder)
       coder = LegacyYamlAdapter.convert(self.class, coder)

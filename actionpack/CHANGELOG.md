@@ -1,5 +1,42 @@
+*   For actions with no corresponding templates, render `head :no_content`
+    instead of raising an error. This allows for slimmer API controller
+    methods that simply work, without needing further instructions.
+
+    See #19036.
+
+    *Stephen Bussey*
+
+*   Provide friendlier access to request variants.
+
+        request.variant = :phone
+        request.variant.phone?  # true
+        request.variant.tablet? # false
+
+        request.variant = [:phone, :tablet]
+        request.variant.phone?                  # true
+        request.variant.desktop?                # false
+        request.variant.any?(:phone, :desktop)  # true
+        request.variant.any?(:desktop, :watch)  # false
+
+    *George Claghorn*
+
+*   Fix regression where a gzip file response would have a Content-type,
+    even when it was a 304 status code.
+
+    See #19271.
+
+    *Kohei Suzuki*
+
+*   Fix handling of empty X_FORWARDED_HOST header in raw_host_with_port
+
+    Previously, an empty X_FORWARDED_HOST header would cause
+    Actiondispatch::Http:URL.raw_host_with_port to return nil, causing
+    Actiondispatch::Http:URL.host to raise a NoMethodError.
+
+    *Adam Forsyth*
+
 *   Drop request class from RouteSet constructor.
- 
+
     If you would like to use a custom request class, please subclass and implement
     the `request_class` method.
 

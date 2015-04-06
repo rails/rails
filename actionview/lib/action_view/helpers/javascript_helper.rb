@@ -21,7 +21,7 @@ module ActionView
       # Also available through the alias j(). This is particularly helpful in JavaScript
       # responses, like:
       #
-      #   $('some_element').replaceWith('<%=j render 'some/element_template' %>');
+      #   $('some_element').replaceWith('<%= j render 'some/element_template' %>');
       def escape_javascript(javascript)
         if javascript
           result = javascript.gsub(/(\\|<\/|\r\n|\342\200\250|\342\200\251|[\n\r"'])/u) {|match| JS_ESCAPE_MAP[match] }

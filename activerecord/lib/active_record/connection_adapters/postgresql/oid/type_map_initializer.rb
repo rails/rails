@@ -15,11 +15,11 @@ module ActiveRecord
           def run(records)
             nodes = records.reject { |row| @store.key? row['oid'].to_i }
             mapped, nodes = nodes.partition { |row| @store.key? row['typname'] }
-            ranges, nodes = nodes.partition { |row| row['typtype'] == 'r' }
-            enums, nodes = nodes.partition { |row| row['typtype'] == 'e' }
-            domains, nodes = nodes.partition { |row| row['typtype'] == 'd' }
-            arrays, nodes = nodes.partition { |row| row['typinput'] == 'array_in' }
-            composites, nodes = nodes.partition { |row| row['typelem'] != '0' }
+            ranges, nodes = nodes.partition { |row| row['typtype'] == 'r'.freeze }
+            enums, nodes = nodes.partition { |row| row['typtype'] == 'e'.freeze }
+            domains, nodes = nodes.partition { |row| row['typtype'] == 'd'.freeze }
+            arrays, nodes = nodes.partition { |row| row['typinput'] == 'array_in'.freeze }
+            composites, nodes = nodes.partition { |row| row['typelem'].to_i != 0 }
 
             mapped.each     { |row| register_mapped_type(row)    }
             enums.each      { |row| register_enum_type(row)      }
@@ -27,6 +27,18 @@ module ActiveRecord
             arrays.each     { |row| register_array_type(row)     }
             ranges.each     { |row| register_range_type(row)     }
             composites.each { |row| register_composite_type(row) }
+          end
+
+          def query_conditions_for_initial_load(type_map)
+            known_type_names = type_map.keys.map { |n| "'#{n}'" }
+            known_type_types = %w('r' 'e' 'd')
+            <<-SQL % [known_type_names.join(", "), known_type_types.join(", ")]
+              WHERE
+                t.typname IN (%s)
+                OR t.typtype IN (%s)
+                OR t.typinput::varchar = 'array_in'
+                OR t.typelem != 0
+            SQL
           end
 
           private

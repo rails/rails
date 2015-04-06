@@ -1,3 +1,8 @@
+*   Deprecate the `:tokenizer` option for `validates_length_of`, in favor of
+    plain Ruby.
+
+    *Sean Griffin*
+
 *   Deprecate `ActiveModel::Errors#add_on_empty` and `ActiveModel::Errors#add_on_blank`
     with no replacement.
 
@@ -35,11 +40,11 @@
 
         cat = Cat.new
         cat.assign_attributes(name: "Gorby", status: "yawning")
-        cat.name # => 'Gorby'
-        cat.status => 'yawning'
+        cat.name   # => 'Gorby'
+        cat.status # => 'yawning'
         cat.assign_attributes(status: "sleeping")
-        cat.name # => 'Gorby'
-        cat.status => 'sleeping'
+        cat.name   # => 'Gorby'
+        cat.status # => 'sleeping'
 
     *Bogdan Gusiev*
 

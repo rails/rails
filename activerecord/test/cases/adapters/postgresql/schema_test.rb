@@ -384,16 +384,16 @@ class SchemaTest < ActiveRecord::TestCase
   def test_reset_pk_sequence
     sequence_name = "#{SCHEMA_NAME}.#{UNMATCHED_SEQUENCE_NAME}"
     @connection.execute "SELECT setval('#{sequence_name}', 123)"
-    assert_equal "124", @connection.select_value("SELECT nextval('#{sequence_name}')")
+    assert_equal 124, @connection.select_value("SELECT nextval('#{sequence_name}')")
     @connection.reset_pk_sequence!("#{SCHEMA_NAME}.#{UNMATCHED_PK_TABLE_NAME}")
-    assert_equal "1", @connection.select_value("SELECT nextval('#{sequence_name}')")
+    assert_equal 1, @connection.select_value("SELECT nextval('#{sequence_name}')")
   end
 
   def test_set_pk_sequence
     table_name = "#{SCHEMA_NAME}.#{PK_TABLE_NAME}"
     _, sequence_name = @connection.pk_and_sequence_for table_name
     @connection.set_pk_sequence! table_name, 123
-    assert_equal "124", @connection.select_value("SELECT nextval('#{sequence_name}')")
+    assert_equal 124, @connection.select_value("SELECT nextval('#{sequence_name}')")
     @connection.reset_pk_sequence! table_name
   end
 

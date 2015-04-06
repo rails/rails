@@ -59,9 +59,9 @@ You can find comprehensive documentation in the [Fixtures API documentation](htt
 
 #### What Are Fixtures?
 
-_Fixtures_ is a fancy word for sample data. Fixtures allow you to populate your testing database with predefined data before your tests run. Fixtures are database independent written in YAML. There is one file per model.
+_Fixtures_ is a fancy word for sample data. Fixtures allow you to populate your testing database with predefined data before your tests run. Fixtures are database independent and written in YAML. There is one file per model.
 
-You'll find fixtures under your `test/fixtures` directory. When you run `rails generate model` to create a new model fixture stubs will be automatically created and placed in this directory.
+You'll find fixtures under your `test/fixtures` directory. When you run `rails generate model` to create a new model, Rails automatically creates fixture stubs in this directory.
 
 #### YAML
 
@@ -138,7 +138,7 @@ users(:david)
 users(:david).id
 
 # one can also access methods available on the User class
-email(david.girlfriend.email, david.location_tonight)
+email(david.partner.email, david.location_tonight)
 ```
 
 ### Rake Tasks for Running your Tests
@@ -162,7 +162,7 @@ project is created.
 
 We will cover each of types Rails tests listed above in this guide.
 
-Unit Testing your Models
+Model Testing
 ------------------------
 
 In Rails, unit tests are what you write to test your models.
@@ -929,7 +929,7 @@ assert_select_email do
 end
 ```
 
-Testing helpers
+Testing Helpers
 ---------------
 
 In order to test helpers, all you need to do is check that the output of the

@@ -562,6 +562,17 @@ module ActiveRecord
         rename_table_indexes(table_name, new_name)
       end
 
+      # Drops a table from the database.
+      #
+      # [<tt>:force</tt>]
+      #   Set to +:cascade+ to drop dependent objects as well.
+      #   Defaults to false.
+      # [<tt>:if_exists</tt>]
+      #   Set to +true+ to only drop the table if it exists.
+      #   Defaults to false.
+      # [<tt>:temporary</tt>]
+      #   Set to +true+ to drop temporary table.
+      #   Defaults to false.
       def drop_table(table_name, options = {})
         execute "DROP#{' TEMPORARY' if options[:temporary]} TABLE#{' IF EXISTS' if options[:if_exists]} #{quote_table_name(table_name)}#{' CASCADE' if options[:force] == :cascade}"
       end
@@ -905,8 +916,7 @@ module ActiveRecord
       def configure_connection
         variables = @config.fetch(:variables, {}).stringify_keys
 
-        # By default, MySQL 'where id is null' selects the last inserted id.
-        # Turn this off. http://dev.rubyonrails.org/ticket/6778
+        # By default, MySQL 'where id is null' selects the last inserted id; Turn this off.
         variables['sql_auto_is_null'] = 0
 
         # Increase timeout so the server doesn't disconnect us.
@@ -915,14 +925,14 @@ module ActiveRecord
         variables['wait_timeout'] = self.class.type_cast_config_to_integer(wait_timeout)
 
         # Make MySQL reject illegal values rather than truncating or blanking them, see
-        # http://dev.mysql.com/doc/refman/5.0/en/server-sql-mode.html#sqlmode_strict_all_tables
+        # http://dev.mysql.com/doc/refman/5.6/en/sql-mode.html#sqlmode_strict_all_tables
         # If the user has provided another value for sql_mode, don't replace it.
         unless variables.has_key?('sql_mode')
           variables['sql_mode'] = strict_mode? ? 'STRICT_ALL_TABLES' : ''
         end
 
         # NAMES does not have an equals sign, see
-        # http://dev.mysql.com/doc/refman/5.0/en/set-statement.html#id944430
+        # http://dev.mysql.com/doc/refman/5.6/en/set-statement.html#id944430
         # (trailing comma because variable_assignments will always have content)
         if @config[:encoding]
           encoding = "NAMES #{@config[:encoding]}"

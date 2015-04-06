@@ -241,7 +241,7 @@ Upon form submission the value entered by the user will be stored in `params[:pe
 
 WARNING: You must pass the name of an instance variable, i.e. `:person` or `"person"`, not an actual instance of your model object.
 
-Rails provides helpers for displaying the validation errors associated with a model object. These are covered in detail by the [Active Record Validations](./active_record_validations.html#displaying-validation-errors-in-views) guide.
+Rails provides helpers for displaying the validation errors associated with a model object. These are covered in detail by the [Active Record Validations](active_record_validations.html#displaying-validation-errors-in-views) guide.
 
 ### Binding a Form to an Object
 
@@ -282,7 +282,7 @@ The resulting HTML is:
 </form>
 ```
 
-The name passed to `form_for` controls the key used in `params` to access the form's values. Here the name is `article` and so all the inputs have names of the form `article[attribute_name]`. Accordingly, in the `create` action `params[:article]` will be a hash with keys `:title` and `:body`. You can read more about the significance of input names in the parameter_names section.
+The name passed to `form_for` controls the key used in `params` to access the form's values. Here the name is `article` and so all the inputs have names of the form `article[attribute_name]`. Accordingly, in the `create` action `params[:article]` will be a hash with keys `:title` and `:body`. You can read more about the significance of input names in the [parameter_names section](#understanding-parameter-naming-conventions).
 
 The helper methods called on the form builder are identical to the model object helpers except that it is not necessary to specify which object is being edited since this is already managed by the form builder.
 

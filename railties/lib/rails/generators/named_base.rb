@@ -141,6 +141,10 @@ module Rails
           @plural_file_name ||= file_name.pluralize
         end
 
+        def fixture_file_name
+          @fixture_file_name ||= (pluralize_table_names? ? plural_file_name : file_name)
+        end
+
         def route_url
           @route_url ||= class_path.collect {|dname| "/" + dname }.join + "/" + plural_file_name
         end

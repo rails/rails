@@ -1,5 +1,3 @@
-require 'active_support/core_ext/module/aliasing'
-
 class Range
   # Extends the default Range#include? to support range comparisons.
   #  (1..5).include?(1..5) # => true
@@ -18,6 +16,8 @@ class Range
       include_without_range?(value)
     end
   end
-
-  alias_method_chain :include?, :range
+  # TODO: change to Module#prepend as soon as the fix is backported to MRI 2.2:
+  # https://bugs.ruby-lang.org/issues/10847
+  alias_method :include_without_range?, :include?
+  alias_method :include?, :include_with_range?
 end

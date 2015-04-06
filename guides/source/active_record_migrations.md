@@ -241,7 +241,7 @@ generates
 ```ruby
 class AddUserRefToProducts < ActiveRecord::Migration
   def change
-    add_reference :products, :user, index: true
+    add_reference :products, :user, index: true, foreign_key: true
   end
 end
 ```
@@ -357,7 +357,7 @@ will append `ENGINE=BLACKHOLE` to the SQL statement used to create the table
 
 ### Creating a Join Table
 
-Migration method `create_join_table` creates a HABTM join table. A typical use
+Migration method `create_join_table` creates an HABTM join table. A typical use
 would be:
 
 ```ruby
@@ -425,7 +425,7 @@ change_column :products, :part_number, :text
 This changes the column `part_number` on products table to be a `:text` field.
 
 Besides `change_column`, the `change_column_null` and `change_column_default`
-methods are used specifically to change the null and default values of a
+methods are used specifically to change a not null constraint and default values of a
 column.
 
 ```ruby
@@ -501,7 +501,7 @@ If the helpers provided by Active Record aren't enough you can use the `execute`
 method to execute arbitrary SQL:
 
 ```ruby
-Product.connection.execute('UPDATE `products` SET `price`=`free` WHERE 1')
+Product.connection.execute("UPDATE products SET price = 'free' WHERE 1=1")
 ```
 
 For more details and examples of individual methods, check the API documentation.
@@ -538,6 +538,14 @@ definitions:
 
 `change_table` is also reversible, as long as the block does not call `change`,
 `change_default` or `remove`.
+
+`remove_column` is reversible if you supply the column type as the third
+argument. Provide the original column options too, otherwise Rails can't
+recreate the column exactly when rolling back:
+
+```ruby
+remove_column :posts, :slug, :string, null: false, default: '', index: true
+```
 
 If you're going to need to use any other methods, you should use `reversible`
 or write the `up` and `down` methods instead of using the `change` method.

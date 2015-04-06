@@ -154,23 +154,23 @@ module ActionView
   # specified globally for the entire action, but they work in a similar fashion. Imagine a list with two types
   # of users:
   #
-  #   <%# app/views/users/index.html.erb &>
+  #   <%# app/views/users/index.html.erb %>
   #   Here's the administrator:
   #   <%= render partial: "user", layout: "administrator", locals: { user: administrator } %>
   #
   #   Here's the editor:
   #   <%= render partial: "user", layout: "editor", locals: { user: editor } %>
   #
-  #   <%# app/views/users/_user.html.erb &>
+  #   <%# app/views/users/_user.html.erb %>
   #   Name: <%= user.name %>
   #
-  #   <%# app/views/users/_administrator.html.erb &>
+  #   <%# app/views/users/_administrator.html.erb %>
   #   <div id="administrator">
   #     Budget: $<%= user.budget %>
   #     <%= yield %>
   #   </div>
   #
-  #   <%# app/views/users/_editor.html.erb &>
+  #   <%# app/views/users/_editor.html.erb %>
   #   <div id="editor">
   #     Deadline: <%= user.deadline %>
   #     <%= yield %>
@@ -233,7 +233,7 @@ module ActionView
   #
   # You can also apply a layout to a block within any template:
   #
-  #   <%# app/views/users/_chief.html.erb &>
+  #   <%# app/views/users/_chief.html.erb %>
   #   <%= render(layout: "administrator", locals: { user: chief }) do %>
   #     Title: <%= chief.title %>
   #   <% end %>
@@ -250,13 +250,13 @@ module ActionView
   # If you pass arguments to "yield" then this will be passed to the block. One way to use this is to pass
   # an array to layout and treat it as an enumerable.
   #
-  #   <%# app/views/users/_user.html.erb &>
+  #   <%# app/views/users/_user.html.erb %>
   #   <div class="user">
   #     Budget: $<%= user.budget %>
   #     <%= yield user %>
   #   </div>
   #
-  #   <%# app/views/users/index.html.erb &>
+  #   <%# app/views/users/index.html.erb %>
   #   <%= render layout: @users do |user| %>
   #     Title: <%= user.title %>
   #   <% end %>
@@ -265,14 +265,14 @@ module ActionView
   #
   # You can also yield multiple times in one layout and use block arguments to differentiate the sections.
   #
-  #   <%# app/views/users/_user.html.erb &>
+  #   <%# app/views/users/_user.html.erb %>
   #   <div class="user">
   #     <%= yield user, :header %>
   #     Budget: $<%= user.budget %>
   #     <%= yield user, :footer %>
   #   </div>
   #
-  #   <%# app/views/users/index.html.erb &>
+  #   <%# app/views/users/index.html.erb %>
   #   <%= render layout: @users do |user, section| %>
   #     <%- case section when :header -%>
   #       Title: <%= user.title %>

@@ -117,7 +117,7 @@ module ActionController
     self.always_permitted_parameters = %w( controller action )
 
     def self.const_missing(const_name)
-      super unless const_name == :NEVER_UNPERMITTED_PARAMS
+      return super unless const_name == :NEVER_UNPERMITTED_PARAMS
       ActiveSupport::Deprecation.warn(<<-MSG.squish)
         `ActionController::Parameters::NEVER_UNPERMITTED_PARAMS` has been deprecated.
         Use `ActionController::Parameters.always_permitted_parameters` instead.
@@ -268,7 +268,7 @@ module ActionController
     #
     #   params.permit(:name)
     #
-    # +:name+ passes it is a key of +params+ whose associated value is of type
+    # +:name+ passes if it is a key of +params+ whose associated value is of type
     # +String+, +Symbol+, +NilClass+, +Numeric+, +TrueClass+, +FalseClass+,
     # +Date+, +Time+, +DateTime+, +StringIO+, +IO+,
     # +ActionDispatch::Http::UploadedFile+ or +Rack::Test::UploadedFile+.

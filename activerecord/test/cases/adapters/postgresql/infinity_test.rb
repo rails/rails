@@ -24,6 +24,15 @@ class PostgresqlInfinityTest < ActiveRecord::TestCase
     assert_equal Float::INFINITY, record.float
   end
 
+  test "type casting string on a float column" do
+    record = PostgresqlInfinity.new(float: 'Infinity')
+    assert_equal Float::INFINITY, record.float
+    record = PostgresqlInfinity.new(float: '-Infinity')
+    assert_equal(-Float::INFINITY, record.float)
+    record = PostgresqlInfinity.new(float: 'NaN')
+    assert_send [record.float, :nan?]
+  end
+
   test "update_all with infinity on a float column" do
     record = PostgresqlInfinity.create!
     PostgresqlInfinity.update_all(float: Float::INFINITY)

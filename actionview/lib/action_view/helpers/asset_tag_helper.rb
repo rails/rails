@@ -127,7 +127,7 @@ module ActionView
       #   auto_discovery_link_tag(:rss, {controller: "news", action: "feed"})
       #   # => <link rel="alternate" type="application/rss+xml" title="RSS" href="http://www.currenthost.com/news/feed" />
       #   auto_discovery_link_tag(:rss, "http://www.example.com/feed.rss", {title: "Example RSS"})
-      #   # => <link rel="alternate" type="application/rss+xml" title="Example RSS" href="http://www.example.com/feed" />
+      #   # => <link rel="alternate" type="application/rss+xml" title="Example RSS" href="http://www.example.com/feed.rss" />
       def auto_discovery_link_tag(type = :rss, url_options = {}, tag_options = {})
         if !(type == :rss || type == :atom) && tag_options[:type].blank?
           raise ArgumentError.new("You should pass :type tag_option key explicitly, because you have passed #{type} type other than :rss or :atom.")

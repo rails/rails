@@ -87,6 +87,14 @@ module ActiveRecord
           SQL
         end
 
+        # Drops a table from the database.
+        #
+        # [<tt>:force</tt>]
+        #   Set to +:cascade+ to drop dependent objects as well.
+        #   Defaults to false.
+        # [<tt>:if_exists</tt>]
+        #   Set to +true+ to only drop the table if it exists.
+        #   Defaults to false.
         def drop_table(table_name, options = {})
           execute "DROP TABLE#{' IF EXISTS' if options[:if_exists]} #{quote_table_name(table_name)}#{' CASCADE' if options[:force] == :cascade}"
         end
@@ -129,8 +137,8 @@ module ActiveRecord
 
           result.map do |row|
             index_name = row[0]
-            unique = row[1] == 't'
-            indkey = row[2].split(" ")
+            unique = row[1]
+            indkey = row[2].split(" ").map(&:to_i)
             inddef = row[3]
             oid = row[4]
 
@@ -164,7 +172,7 @@ module ActiveRecord
             type_metadata = fetch_type_metadata(column_name, type, oid, fmod)
             default_value = extract_value_from_default(default)
             default_function = extract_default_function(default_value, default)
-            new_column(column_name, default_value, type_metadata, notnull == 'f', default_function)
+            new_column(column_name, default_value, type_metadata, !notnull, default_function)
           end
         end
 
@@ -422,7 +430,7 @@ module ActiveRecord
         end
 
         # Changes the default value of a table column.
-        def change_column_default(table_name, column_name, default)
+        def change_column_default(table_name, column_name, default) # :nodoc:
           clear_cache!
           column = column_for(table_name, column_name)
           return unless column

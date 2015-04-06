@@ -475,7 +475,7 @@ The methods `silence_warnings` and `enable_warnings` change the value of `$VERBO
 silence_warnings { Object.const_set "RAILS_DEFAULT_LOGGER", logger }
 ```
 
-Silencing exceptions is also possible with `suppress`. This method receives an arbitrary number of exception classes. If an exception is raised during the execution of the block and is `kind_of?` any of the arguments, `suppress` captures it and returns silently. Otherwise the exception is reraised:
+Silencing exceptions is also possible with `suppress`. This method receives an arbitrary number of exception classes. If an exception is raised during the execution of the block and is `kind_of?` any of the arguments, `suppress` captures it and returns silently. Otherwise the exception is not captured:
 
 ```ruby
 # If the user is locked, the increment is lost, no big deal.
@@ -505,6 +505,8 @@ Extensions to `Module`
 ----------------------
 
 ### `alias_method_chain`
+
+**This method is deprecated in favour of using Module#prepend.**
 
 Using plain Ruby you can wrap methods with other methods, that's called _alias chaining_.
 
@@ -549,8 +551,6 @@ ActionController::TestCase.class_eval do
   alias_method_chain :process, :stringified_params
 end
 ```
-
-Rails uses `alias_method_chain` all over the code base. For example validations are added to `ActiveRecord::Base#save` by wrapping the method that way in a separate module specialized in validations.
 
 NOTE: Defined in `active_support/core_ext/module/aliasing.rb`.
 
@@ -3039,53 +3039,6 @@ The method `Range#overlaps?` says whether any two given ranges have non-void int
 ```
 
 NOTE: Defined in `active_support/core_ext/range/overlaps.rb`.
-
-Extensions to `Proc`
---------------------
-
-### `bind`
-
-As you surely know Ruby has an `UnboundMethod` class whose instances are methods that belong to the limbo of methods without a self. The method `Module#instance_method` returns an unbound method for example:
-
-```ruby
-Hash.instance_method(:delete) # => #<UnboundMethod: Hash#delete>
-```
-
-An unbound method is not callable as is, you need to bind it first to an object with `bind`:
-
-```ruby
-clear = Hash.instance_method(:clear)
-clear.bind({a: 1}).call # => {}
-```
-
-Active Support defines `Proc#bind` with an analogous purpose:
-
-```ruby
-Proc.new { size }.bind([]).call # => 0
-```
-
-As you see that's callable and bound to the argument, the return value is indeed a `Method`.
-
-NOTE: To do so `Proc#bind` actually creates a method under the hood. If you ever see a method with a weird name like `__bind_1256598120_237302` in a stack trace you know now where it comes from.
-
-Action Pack uses this trick in `rescue_from` for example, which accepts the name of a method and also a proc as callbacks for a given rescued exception. It has to call them in either case, so a bound method is returned by `handler_for_rescue`, thus simplifying the code in the caller:
-
-```ruby
-def handler_for_rescue(exception)
-  _, rescuer = Array(rescue_handlers).reverse.detect do |klass_name, handler|
-    ...
-  end
-
-  case rescuer
-  when Symbol
-    method(rescuer)
-  when Proc
-    rescuer.bind(self)
-  end
-end
-```
-
-NOTE: Defined in `active_support/core_ext/proc.rb`.
 
 Extensions to `Date`
 --------------------

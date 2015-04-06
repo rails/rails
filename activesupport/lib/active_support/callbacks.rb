@@ -5,6 +5,7 @@ require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/kernel/reporting'
 require 'active_support/core_ext/kernel/singleton_class'
 require 'active_support/core_ext/string/filters'
+require 'active_support/deprecation'
 require 'thread'
 
 module ActiveSupport
@@ -662,10 +663,12 @@ module ActiveSupport
       #
       # ===== Options
       #
-      # * <tt>:if</tt> - A symbol naming an instance method or a proc; the
-      #   callback will be called only when it returns a +true+ value.
-      # * <tt>:unless</tt> - A symbol naming an instance method or a proc; the
-      #   callback will be called only when it returns a +false+ value.
+      # * <tt>:if</tt> - A symbol, a string or an array of symbols and strings,
+      #   each naming an instance method or a proc; the callback will be called
+      #   only when they all return a true value.
+      # * <tt>:unless</tt> - A symbol, a string or an array of symbols and
+      #   strings, each naming an instance method or a proc; the callback will
+      #   be called only when they all return a false value.
       # * <tt>:prepend</tt> - If +true+, the callback will be prepended to the
       #   existing chain rather than appended.
       def set_callback(name, *filter_list, &block)

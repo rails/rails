@@ -1,3 +1,7 @@
+*   A generated job now inherents from `app/jobs/application_job.rb` by default.
+
+    *Jeroen van Baarsen*
+
 *   Add an `:only` option to `perform_enqueued_jobs` to filter jobs based on
     type.
 

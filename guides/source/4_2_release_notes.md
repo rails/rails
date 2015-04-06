@@ -257,7 +257,7 @@ application is using any of these spellings, you will need to update them:
 *   Values in attribute selectors may need to be quoted if they contain
     non-alphanumeric characters.
 
-    ```
+    ```ruby
     # before
     a[href=/]
     a[href$=/]
@@ -272,7 +272,7 @@ application is using any of these spellings, you will need to update them:
 
     For example:
 
-    ``` ruby
+    ```ruby
     # content: <div><i><p></i></div>
 
     # before:
@@ -290,7 +290,7 @@ application is using any of these spellings, you will need to update them:
     used to be raw (e.g. `AT&amp;T`), and now is evaluated
     (e.g. `AT&T`).
 
-    ``` ruby
+    ```ruby
     # content: <p>AT&amp;T</p>
 
     # before:
@@ -301,6 +301,30 @@ application is using any of these spellings, you will need to update them:
     assert_select('p', 'AT&T')      # => true
     assert_select('p', 'AT&amp;T')  # => false
     ```
+
+Furthermore substitutions have changed syntax.
+
+Now you have to use a `:match` CSS-like selector:
+
+```ruby
+assert_select ":match('id', ?)", 'comment_1'
+```
+
+Additionally Regexp substitutions look different when the assertion fails.
+Notice how `/hello/` here:
+
+```ruby
+assert_select(":match('id', ?)", /hello/)
+```
+
+becomes `"(?-mix:hello)"`:
+
+```
+Expected at least 1 element matching "div:match('id', "(?-mix:hello)")", found 0..
+Expected 0 to be >= 1.
+```
+
+See the [Rails Dom Testing](https://github.com/rails/rails-dom-testing/tree/8798b9349fb9540ad8cb9a0ce6cb88d1384a210b) documentation for more on `assert_select`.
 
 
 Railties
