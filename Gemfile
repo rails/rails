@@ -24,7 +24,7 @@ gem 'sprockets', '~> 3.0.0.rc.1'
 # require: false so bcrypt is loaded only when has_secure_password is used.
 # This is to avoid ActiveModel (and by extension the entire framework)
 # being dependent on a binary library.
-gem 'bcrypt', '~> 3.1.7', require: false
+gem 'bcrypt', '3.1.9', require: false
 
 # This needs to be with require false to avoid
 # it being automatically loaded by sprockets
