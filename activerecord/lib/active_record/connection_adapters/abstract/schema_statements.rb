@@ -655,7 +655,10 @@ module ActiveRecord
         add_column(table_name, "#{ref_name}_id", type, options)
         add_column(table_name, "#{ref_name}_type", :string, polymorphic.is_a?(Hash) ? polymorphic : options) if polymorphic
         add_index(table_name, polymorphic ? %w[type id].map{ |t| "#{ref_name}_#{t}" } : "#{ref_name}_id", index_options.is_a?(Hash) ? index_options : {}) if index_options
-        add_foreign_key(table_name, ref_name.to_s.pluralize, foreign_key_options.is_a?(Hash) ? foreign_key_options : {}) if foreign_key_options
+        if foreign_key_options
+          to_table = Base.pluralize_table_names ? ref_name.to_s.pluralize : ref_name
+          add_foreign_key(table_name, to_table, foreign_key_options.is_a?(Hash) ? foreign_key_options : {})
+        end
       end
       alias :add_belongs_to :add_reference
 
@@ -675,7 +678,10 @@ module ActiveRecord
       #   remove_reference(:products, :user, index: true, foreign_key: true)
       #
       def remove_reference(table_name, ref_name, options = {})
-        remove_foreign_key table_name, ref_name.to_s.pluralize if options[:foreign_key]
+        if options[:foreign_key]
+          to_table = Base.pluralize_table_names ? ref_name.to_s.pluralize : ref_name
+          remove_foreign_key(table_name, to_table)
+        end
 
         remove_column(table_name, "#{ref_name}_id")
         remove_column(table_name, "#{ref_name}_type") if options[:polymorphic]

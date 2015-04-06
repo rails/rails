@@ -1,3 +1,10 @@
+*   Foreign key related methods in the migration DSL respect
+    `ActiveRecord::Base.pluralize_table_names = false`.
+
+    Fixes #19643.
+
+    *Mehmet Emin İNAÇ*
+
 *   Reduce memory usage from loading types on pg.
 
     Fixes #19578.
