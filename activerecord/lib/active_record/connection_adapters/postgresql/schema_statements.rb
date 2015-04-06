@@ -87,6 +87,14 @@ module ActiveRecord
           SQL
         end
 
+        # Drops a table from the database.
+        #
+        # [<tt>:force</tt>]
+        #   Set to +:cascade+ to drop dependent objects as well.
+        #   Defaults to false.
+        # [<tt>:if_exists</tt>]
+        #   Set to +true+ to make drop table command fail safe when table does not exists.
+        #   Defaults to false.
         def drop_table(table_name, options = {})
           execute "DROP TABLE#{' IF EXISTS' if options[:if_exists]} #{quote_table_name(table_name)}#{' CASCADE' if options[:force] == :cascade}"
         end
