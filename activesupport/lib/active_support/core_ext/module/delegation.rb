@@ -83,30 +83,39 @@ class Module
   #
   #   Foo.new.hello # => "world"
   #
-  # Delegates can optionally be prefixed using the <tt>:prefix</tt> option. If the value
-  # is <tt>true</tt>, the delegate methods are prefixed with the name of the object being
-  # delegated to.
+  # Delegates can optionally be prefixed or suffexed using <tt>:prefix</tt> and
+  # <tt>:suffix</tt> options. If the value is <tt>true</tt>, the delegate
+  # methods are prefixed/suffixed with the name of the object being delegated
+  # to.
   #
   #   Person = Struct.new(:name, :address)
+  #   Payment = Struct.new(:processed) do
+  #     alias_method :processed?, :processed
+  #   end
   #
-  #   class Invoice < Struct.new(:client)
+  #   class Invoice < Struct.new(:client, :payment)
   #     delegate :name, :address, to: :client, prefix: true
+  #     delegate :processed?, to: :payment, suffix: true
   #   end
   #
   #   john_doe = Person.new('John Doe', 'Vimmersvej 13')
-  #   invoice = Invoice.new(john_doe)
-  #   invoice.client_name    # => "John Doe"
-  #   invoice.client_address # => "Vimmersvej 13"
+  #   payment = Payment.new(true)
+  #   invoice = Invoice.new(john_doe, payment)
+  #   invoice.client_name        # => "John Doe"
+  #   invoice.client_address     # => "Vimmersvej 13"
+  #   invoice.processed_payment? # => true
   #
-  # It is also possible to supply a custom prefix.
+  # It is also possible to supply a custom prefix or suffix.
   #
   #   class Invoice < Struct.new(:client)
   #     delegate :name, :address, to: :client, prefix: :customer
+  #     delegate :processed?, to: :payment, suffix: :bank_transfer
   #   end
   #
-  #   invoice = Invoice.new(john_doe)
-  #   invoice.customer_name    # => 'John Doe'
-  #   invoice.customer_address # => 'Vimmersvej 13'
+  #   invoice = Invoice.new(john_doe, payment)
+  #   invoice.customer_name            # => 'John Doe'
+  #   invoice.customer_address         # => 'Vimmersvej 13'
+  #   invoice.processed_bank_transfer? # => true
   #
   # If the target is +nil+ and does not respond to the delegated method a
   # +NoMethodError+ is raised, as with any other value. Sometimes, however, it
@@ -148,24 +157,18 @@ class Module
   #
   # The target method must be public, otherwise it will raise +NoMethodError+.
   #
-  def delegate(*methods)
-    options = methods.pop
-    unless options.is_a?(Hash) && to = options[:to]
-      raise ArgumentError, 'Delegation needs a target. Supply an options hash with a :to key as the last argument (e.g. delegate :hello, to: :greeter).'
-    end
-
-    prefix, allow_nil = options.values_at(:prefix, :allow_nil)
-
-    if prefix == true && to =~ /^[^a-z_]/
-      raise ArgumentError, 'Can only automatically set the delegation prefix when delegating to a method.'
-    end
-
-    method_prefix = \
-      if prefix
-        "#{prefix == true ? to : prefix}_"
-      else
-        ''
+  def delegate(*methods, to:, prefix: nil, suffix: nil, allow_nil: false)
+    { prefix: prefix, suffix: suffix }.each do |morpheme, value|
+      if value == true && to =~ /^[^a-z_]/
+        raise ArgumentError, "Can only automatically set the delegation #{morpheme} when delegating to a method."
       end
+    end
+
+    prefix = to if prefix == true
+    prefix = prefix ? "#{prefix}_" : ""
+
+    suffix = to if suffix == true
+    suffix = suffix ? "_#{suffix}" : ""
 
     file, line = caller(1, 1).first.split(':', 2)
     line = line.to_i
@@ -176,7 +179,9 @@ class Module
     methods.each do |method|
       # Attribute writer methods only accept one argument. Makes sure []=
       # methods still accept two arguments.
-      definition = (method =~ /[^\]]=$/) ? 'arg' : '*args, &block'
+      definition = method =~ /[^\]]=$/ ? 'arg' : '*args, &block'
+      method_name = [ prefix, method ].join.sub(/(?=\W*\z)/, suffix)
+      method_signature = "#{method_name}(#{definition})"
 
       # The following generated method calls the target exactly once, storing
       # the returned value in a dummy variable.
@@ -186,32 +191,30 @@ class Module
       # whereas conceptually, from the user point of view, the delegator should
       # be doing one call.
       if allow_nil
-        method_def = [
-          "def #{method_prefix}#{method}(#{definition})",
-          "_ = #{to}",
-          "if !_.nil? || nil.respond_to?(:#{method})",
-          "  _.#{method}(#{definition})",
-          "end",
-        "end"
-        ].join ';'
+        method_body = <<-RUBY
+          def #{method_signature}
+            target = #{to}
+            if !target.nil? || nil.respond_to?(:#{method})
+              target.#{method}(#{definition})
+            end
+          end
+        RUBY
       else
-        exception = %(raise DelegationError, "#{self}##{method_prefix}#{method} delegated to #{to}.#{method}, but #{to} is nil: \#{self.inspect}")
-
-        method_def = [
-          "def #{method_prefix}#{method}(#{definition})",
-          " _ = #{to}",
-          "  _.#{method}(#{definition})",
-          "rescue NoMethodError => e",
-          "  if _.nil? && e.name == :#{method}",
-          "    #{exception}",
-          "  else",
-          "    raise",
-          "  end",
-          "end"
-        ].join ';'
+        method_body = <<-RUBY
+          def #{method_signature}
+            target = #{to}
+            target.#{method}(#{definition})
+          rescue NoMethodError => error
+            if target.nil? && error.name == :#{method}
+              raise DelegationError, "#{self}##{method_name} delegated to #{to}.#{method}, but #{to} is nil: \#{inspect}"
+            else
+              raise
+            end
+          end
+        RUBY
       end
 
-      module_eval(method_def, file, line)
+      module_eval method_body.gsub(?\n, ?;), file, line
     end
   end
 end

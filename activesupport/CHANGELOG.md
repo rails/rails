@@ -1,3 +1,7 @@
+*   Added `suffix` option support to `Module#delegate`.
+
+    * Pavel Pravosud *
+
 *   Added `ActiveSupport::ArrayInquirer` and `Array#inquiry`.
 
     Wrapping an array in an `ArrayInquirer` gives a friendlier way to check its
