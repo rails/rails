@@ -13,6 +13,7 @@ Gem::Specification.new do |s|
   s.add_dependency('faye-websocket', '~> 0.9.2')
   s.add_dependency('celluloid', '~> 0.16.0')
   s.add_dependency('em-hiredis', '~> 0.3.0')
+  s.add_dependency('redis', '~> 3.0')
 
   s.files = Dir['README', 'lib/**/*']
   s.has_rdoc = false
