@@ -1,5 +1,5 @@
 module ActionCable
-  module Connections
+  module ConnectionProxy
     class << self
       def active
       end
@@ -9,9 +9,6 @@ module ActionCable
     end
 
     def disconnect
-    end
-
-    def reconnect
     end
   end
 end

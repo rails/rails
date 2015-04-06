@@ -23,5 +23,5 @@ module ActionCable
   autoload :Worker, 'action_cable/worker'
   autoload :Server, 'action_cable/server'
   autoload :Connection, 'action_cable/connection'
-  autoload :Connections, 'action_cable/connections'
+  autoload :ConnectionProxy, 'action_cable/connection_proxy'
 end
