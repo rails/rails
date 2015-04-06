@@ -1503,6 +1503,8 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_queries(0, ignore_none: true) do
       firm.clients = []
     end
+
+    assert_equal [], firm.send('clients=', [])
   end
 
   def test_transactions_when_replacing_on_persisted

@@ -370,6 +370,8 @@ module ActiveRecord
           replace_common_records_in_memory(other_array, original_target)
           if other_array != original_target
             transaction { replace_records(other_array, original_target) }
+          else
+            other_array
           end
         end
       end
