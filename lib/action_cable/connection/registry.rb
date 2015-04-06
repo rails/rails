@@ -22,7 +22,6 @@ module ActionCable
 
           pubsub.subscribe(internal_redis_channel, &callback)
           logger.info "[ActionCable] Registered connection (#{connection_identifier})"
-          puts "[ActionCable] Registered connection: #{connection_identifier}(#{internal_redis_channel})"
         end
       end
 
