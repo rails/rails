@@ -568,7 +568,7 @@ module ActiveRecord
       #   Set to +:cascade+ to drop dependent objects as well.
       #   Defaults to false.
       # [<tt>:if_exists</tt>]
-      #   Set to +true+ to make drop table command fail safe when table does not exists.
+      #   Set to +true+ to only drop the table if it exists.
       #   Defaults to false.
       # [<tt>:temporary</tt>]
       #   Set to +true+ to drop temporary table.
