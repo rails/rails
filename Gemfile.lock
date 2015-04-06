@@ -98,8 +98,8 @@ GEM
     backburner (0.4.6)
       beaneater (~> 0.3.1)
       dante (~> 0.1.5)
-    bcrypt (3.1.9)
-    bcrypt (3.1.9-x86-mingw32)
+    bcrypt (3.1.10)
+    bcrypt (3.1.10-x86-mingw32)
     beaneater (0.3.3)
     benchmark-ips (2.1.1)
     builder (3.2.2)
@@ -147,6 +147,8 @@ GEM
     mysql (2.9.1)
     mysql2 (0.3.18)
     nokogiri (1.6.6.2)
+      mini_portile (~> 0.6.0)
+    nokogiri (1.6.6.2-x86-mingw32)
       mini_portile (~> 0.6.0)
     pg (0.18.1)
     psych (2.0.13)
@@ -249,7 +251,7 @@ DEPENDENCIES
   activerecord-jdbcsqlite3-adapter (>= 1.3.0)
   arel!
   backburner
-  bcrypt (= 3.1.9)
+  bcrypt (~> 3.1.10)
   benchmark-ips
   coffee-rails (~> 4.1.0)
   dalli (>= 2.2.1)
