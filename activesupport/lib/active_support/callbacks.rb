@@ -689,19 +689,27 @@ module ActiveSupport
       #   class Writer < Person
       #      skip_callback :validate, :before, :check_membership, if: -> { self.age > 18 }
       #   end
+      #
+      # An <tt>ArgumentError</tt> will be raised if the callback has not
+      # already been set (unless the <tt>:raise</tt> option is set to <tt>false</tt>).
       def skip_callback(name, *filter_list, &block)
         type, filters, options = normalize_callback_params(filter_list, block)
+        options[:raise] = true unless options.key?(:raise)
 
         __update_callbacks(name) do |target, chain|
           filters.each do |filter|
-            filter = chain.find {|c| c.matches?(type, filter) }
+            callback = chain.find {|c| c.matches?(type, filter) }
 
-            if filter && options.any?
-              new_filter = filter.merge_conditional_options(chain, if_option: options[:if], unless_option: options[:unless])
-              chain.insert(chain.index(filter), new_filter)
+            if !callback && options[:raise]
+              raise ArgumentError, "#{type.to_s.capitalize} #{name} callback #{filter.inspect} has not been defined"
             end
 
-            chain.delete(filter)
+            if callback && (options.key?(:if) || options.key?(:unless))
+              new_callback = callback.merge_conditional_options(chain, if_option: options[:if], unless_option: options[:unless])
+              chain.insert(chain.index(callback), new_callback)
+            end
+
+            chain.delete(callback)
           end
           target.set_callbacks name, chain
         end
