@@ -29,6 +29,22 @@ module ActiveJob
   #   | Active Job Inline | No    | Yes    | N/A       | N/A        | N/A     | N/A     |
   #   | Active Job        | Yes   | Yes    | Yes       | No         | No      | No      |
   #
+  # ==== Priorities
+  #
+  # The order in which jobs are processed can be configured differently depending on the adapter.
+  #
+  # Job: Any class inheriting from the adapter may set it's own priority relative to other jobs. Set on the class object.
+  #
+  # Queue: The adapter configures priority per queue, not on the class object.
+  #
+  # Yes: Allows the priority of a job to be set on the job object, at the queue level or as a default during configuration. 
+  #
+  # No: Does not allow the priority of jobs to be configured.
+  #
+  # N/A: This adapter is configured in such a way that priority does not apply.
+  #
+  #
+  #
   # NOTE:
   # queue_classic does not support Job scheduling. However you can implement this
   # yourself or you can use the queue_classic-later gem. See the documentation for
