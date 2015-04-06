@@ -319,8 +319,8 @@ module ActiveRecord
     end
 
     def before_committed! # :nodoc:
-      _run_before_commit_without_transaction_enrollment_callbacks
-      _run_before_commit_callbacks
+      run_callbacks :before_commit_without_transaction_enrollment
+      run_callbacks :before_commit
     end
 
     # Call the +after_commit+ callbacks.
@@ -329,8 +329,8 @@ module ActiveRecord
     # but call it after the commit of a destroyed object.
     def committed!(should_run_callbacks: true) #:nodoc:
       if should_run_callbacks && destroyed? || persisted?
-        _run_commit_without_transaction_enrollment_callbacks
-        _run_commit_callbacks
+        run_callbacks :commit_without_transaction_enrollment
+        run_callbacks :commit
       end
     ensure
       force_clear_transaction_record_state
@@ -340,8 +340,8 @@ module ActiveRecord
     # state should be rolled back to the beginning or just to the last savepoint.
     def rolledback!(force_restore_state: false, should_run_callbacks: true) #:nodoc:
       if should_run_callbacks
-        _run_rollback_without_transaction_enrollment_callbacks
-        _run_rollback_callbacks
+        run_callbacks :rollback
+        run_callbacks :rollback_without_transaction_enrollment
       end
     ensure
       restore_transaction_record_state(force_restore_state)

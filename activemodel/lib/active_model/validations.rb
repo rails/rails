@@ -401,7 +401,7 @@ module ActiveModel
   protected
 
     def run_validations! #:nodoc:
-      _run_validate_callbacks
+      run_callbacks :validate
       errors.empty?
     end
 
