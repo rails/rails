@@ -125,7 +125,7 @@ GEM
     execjs (2.3.0)
     globalid (0.3.3)
       activesupport (>= 4.1.0)
-    hitimes (1.2.2)
+    hitimes (1.2.1)
     i18n (0.7.0)
     json (1.8.2)
     kindlerb (0.1.1)
@@ -253,6 +253,7 @@ DEPENDENCIES
   dalli (>= 2.2.1)
   delayed_job
   delayed_job_active_record
+  hitimes (= 1.2.1)
   jquery-rails!
   json
   kindlerb (= 0.1.1)
