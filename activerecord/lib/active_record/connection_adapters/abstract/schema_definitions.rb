@@ -138,7 +138,7 @@ module ActiveRecord
       end
 
       def foreign_table_name
-        name.to_s.pluralize
+        Base.pluralize_table_names ? name.to_s.pluralize : name
       end
     end
 
