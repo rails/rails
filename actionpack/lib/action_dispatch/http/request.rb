@@ -340,7 +340,7 @@ module ActionDispatch
     end
 
     protected
-      def parse_query(qs)
+      def parse_query(*)
         Utils.deep_munge(super)
       end
 
