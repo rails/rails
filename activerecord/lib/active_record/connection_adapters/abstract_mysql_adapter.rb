@@ -573,6 +573,10 @@ module ActiveRecord
       # [<tt>:temporary</tt>]
       #   Set to +true+ to drop temporary table.
       #   Defaults to false.
+      #
+      # Although this command ignores most +options+ and the block if one is given,
+      # it can be helpful to provide these in a migration's +change+ method so it can be reverted.
+      # In that case, +options+ and the block will be used by create_table.
       def drop_table(table_name, options = {})
         execute "DROP#{' TEMPORARY' if options[:temporary]} TABLE#{' IF EXISTS' if options[:if_exists]} #{quote_table_name(table_name)}#{' CASCADE' if options[:force] == :cascade}"
       end

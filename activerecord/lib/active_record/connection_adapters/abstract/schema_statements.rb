@@ -377,6 +377,9 @@ module ActiveRecord
       # [<tt>:force</tt>]
       #   Set to +:cascade+ to drop dependent objects as well.
       #   Defaults to false.
+      # [<tt>:if_exists</tt>]
+      #   Set to +true+ to only drop the table if it exists.
+      #   Defaults to false.
       #
       # Although this command ignores most +options+ and the block if one is given,
       # it can be helpful to provide these in a migration's +change+ method so it can be reverted.
