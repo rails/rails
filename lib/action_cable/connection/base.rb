@@ -119,7 +119,7 @@ module ActionCable
           if @subscriptions[message['identifier']]
             @subscriptions[message['identifier']].receive_data(ActiveSupport::JSON.decode message['data'])
           else
-            logger.error "[ActionCable] Unable to process message because no subscription found (#{message.inspect})"
+            logger.error "[ActionCable] Unable to process message because no subscription was found (#{message.inspect})"
           end
         rescue Exception => e
           logger.error "[ActionCable] Could not process message (#{data.inspect})"
