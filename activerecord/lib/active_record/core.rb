@@ -281,7 +281,7 @@ module ActiveRecord
       init_attributes(attributes, options) if attributes
 
       yield self if block_given?
-      _run_initialize_callbacks
+      run_callbacks :initialize
     end
 
     # Initialize an empty model object from +coder+. +coder+ should be
@@ -307,8 +307,8 @@ module ActiveRecord
 
       self.class.define_attribute_methods
 
-      _run_find_callbacks
-      _run_initialize_callbacks
+      run_callbacks :find
+      run_callbacks :initialize
 
       self
     end
@@ -344,7 +344,7 @@ module ActiveRecord
       @attributes = @attributes.dup
       @attributes.reset(self.class.primary_key)
 
-      _run_initialize_callbacks
+      run_callbacks(:initialize)
 
       @aggregation_cache = {}
       @association_cache = {}

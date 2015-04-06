@@ -78,20 +78,18 @@ module ActiveSupport
     #     save
     #   end
     def run_callbacks(kind, &block)
-      send "_run_#{kind}_callbacks", &block
-    end
+      callbacks = send("_#{kind}_callbacks")
 
-    private
-
-    def _run_callbacks(callbacks, &block)
       if callbacks.empty?
-        block.call if block
+        yield if block_given?
       else
         runner = callbacks.compile
         e = Filters::Environment.new(self, false, nil, block)
         runner.call(e).value
       end
     end
+
+    private
 
     # A hook invoked every time a before callback is halted.
     # This can be overridden in AS::Callback implementors in order
@@ -772,12 +770,6 @@ module ActiveSupport
         names.each do |name|
           class_attribute "_#{name}_callbacks"
           set_callbacks name, CallbackChain.new(name, options)
-
-          module_eval <<-RUBY, __FILE__, __LINE__ + 1
-            def _run_#{name}_callbacks(&block)
-              _run_callbacks(_#{name}_callbacks, &block)
-            end
-          RUBY
         end
       end
 

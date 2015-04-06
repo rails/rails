@@ -162,7 +162,7 @@ module ActiveRecord
               count = scope.destroy_all.length
             else
               scope.each do |record|
-                record._run_destroy_callbacks
+                record.run_callbacks :destroy
               end
 
               arel = scope.arel
