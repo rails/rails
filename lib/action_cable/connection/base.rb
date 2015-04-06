@@ -41,7 +41,7 @@ module ActionCable
 
           @websocket.on(:close) do |event|
             worker_pool.async.invoke(self, :cleanup_subscriptions)
-            worker_pool.async.invoke(self, :cleanup_subscriptions)
+            worker_pool.async.invoke(self, :cleanup_internal_redis_subscriptions)
             worker_pool.async.invoke(self, :disconnect) if respond_to?(:disconnect)
 
             EventMachine.cancel_timer(@ping_timer) if @ping_timer
