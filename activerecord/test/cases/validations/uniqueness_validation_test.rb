@@ -34,6 +34,13 @@ class TopicWithUniqEvent < Topic
   validates :event, uniqueness: true
 end
 
+class ModelWithoutPrimaryKey < ActiveRecord::Base
+  # 'mateys' table has nil primary_key
+  self.table_name = 'mateys'
+
+  validates :pirate_id, uniqueness: true
+end
+
 class UniquenessValidationTest < ActiveRecord::TestCase
   fixtures :topics, 'warehouse-things'
 
@@ -401,5 +408,15 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     assert_equal topic.replies.size, 1
     assert reply.valid?
     assert topic.valid?
+  end
+
+  def test_validate_uniqueness_on_model_without_primary_key
+    first_record = ModelWithoutPrimaryKey.create!(pirate_id: 1)
+    assert first_record.valid?, 'saved record should be valid if it succeeded'
+
+    record = ModelWithoutPrimaryKey.create(pirate_id: 2)
+    record.decrement(:pirate_id)
+    assert_not record.valid?
+    assert_equal ['has already been taken'], record.errors[:pirate_id]
   end
 end
