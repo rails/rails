@@ -24,6 +24,11 @@ ActiveRecord::Schema.define do
   add_index :key_tests, :pizza, :using => :btree, :name => 'index_key_tests_on_pizza'
   add_index :key_tests, :snacks, :name => 'index_key_tests_on_snack'
 
+  create_table :collation_tests, id: false, force: true do |t|
+    t.string :string_cs_column, limit: 1, collation: 'utf8_bin'
+    t.string :string_ci_column, limit: 1, collation: 'utf8_general_ci'
+  end
+
   ActiveRecord::Base.connection.execute <<-SQL
 DROP PROCEDURE IF EXISTS ten;
 SQL
@@ -33,15 +38,6 @@ CREATE PROCEDURE ten() SQL SECURITY INVOKER
 BEGIN
 	select 10;
 END
-SQL
-
-  ActiveRecord::Base.connection.drop_table "collation_tests", if_exists: true
-
-  ActiveRecord::Base.connection.execute <<-SQL
-CREATE TABLE collation_tests (
-  string_cs_column VARCHAR(1) COLLATE utf8_bin,
-  string_ci_column VARCHAR(1) COLLATE utf8_general_ci
-) CHARACTER SET utf8 COLLATE utf8_general_ci
 SQL
 
   ActiveRecord::Base.connection.drop_table "enum_tests", if_exists: true

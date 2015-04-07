@@ -1,3 +1,14 @@
+*   MySQL: `:charset` and `:collation` support for string and text columns.
+
+    Example:
+
+        create_table :foos do |t|
+          t.string :string_utf8_bin, charset: 'utf8', collation: 'utf8_bin'
+          t.text   :text_ascii,      charset: 'ascii'
+        end
+
+    *Ryuta Kamizono*
+
 *   Foreign key related methods in the migration DSL respect
     `ActiveRecord::Base.pluralize_table_names = false`.
 
