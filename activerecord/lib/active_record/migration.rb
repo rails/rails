@@ -868,7 +868,7 @@ module ActiveRecord
       end
 
       def migrations_paths
-        @migrations_paths ||= ['db/migrate']
+        @migrations_paths ||= [File.join(Rails.root, 'db', 'migrate')]
         # just to not break things if someone uses: migration_path = some_string
         Array(@migrations_paths)
       end
