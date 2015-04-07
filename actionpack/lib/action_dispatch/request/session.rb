@@ -11,7 +11,6 @@ module ActionDispatch
       Unspecified = Object.new
       
       # Creates a session hash, merging the properties of the previous session if any
-      
       def self.create(store, env, default_options)
         session_was = find env
         session     = Request::Session.new(store, env)
