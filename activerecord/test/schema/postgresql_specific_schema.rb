@@ -1,6 +1,6 @@
 ActiveRecord::Schema.define do
 
-  %w(postgresql_tsvectors postgresql_hstores postgresql_arrays postgresql_moneys postgresql_numbers postgresql_times
+  %w(postgresql_tsvectors postgresql_hstores postgresql_arrays postgresql_4byte_ints postgresql_moneys postgresql_numbers postgresql_times
       postgresql_network_addresses postgresql_uuids postgresql_ltrees postgresql_oids postgresql_xml_data_type defaults
       geometrics postgresql_timestamp_with_zones postgresql_partitioned_table postgresql_partitioned_table_parent
       postgresql_citext).each do |table_name|
@@ -65,6 +65,13 @@ _SQL
     id SERIAL PRIMARY KEY,
     commission_by_quarter INTEGER[],
     nicknames TEXT[]
+  );
+_SQL
+
+  execute <<_SQL
+  CREATE TABLE postgresql_4byte_ints (
+    id SERIAL PRIMARY KEY,
+    number integer
   );
 _SQL
 
