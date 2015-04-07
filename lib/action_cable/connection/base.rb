@@ -16,7 +16,9 @@ module ActionCable
       end
 
       def process
-        if Faye::WebSocket.websocket?(@env)
+        logger.info "[ActionCable] #{started_request_message}"
+
+        if websocket?
           @subscriptions = {}
 
           @websocket = Faye::WebSocket.new(@env)
@@ -40,6 +42,8 @@ module ActionCable
           end
 
           @websocket.on(:close) do |event|
+            logger.info "[ActionCable] #{finished_request_message}"
+
             worker_pool.async.invoke(self, :cleanup_subscriptions)
             worker_pool.async.invoke(self, :cleanup_internal_redis_subscriptions)
             worker_pool.async.invoke(self, :disconnect) if respond_to?(:disconnect)
@@ -75,7 +79,7 @@ module ActionCable
       end
 
       def broadcast(data)
-        logger.info "Sending data: #{data}"
+        logger.info "[ActionCable] Sending data: #{data}"
         @websocket.send data
       end
 
@@ -133,11 +137,37 @@ module ActionCable
         end
 
         def invalid_request
+          logger.info "[ActionCable] #{finished_request_message}"
           [404, {'Content-Type' => 'text/plain'}, ['Page not found']]
         end
 
         def websocket_alive?
           @websocket && @websocket.ready_state == Faye::WebSocket::API::OPEN
+        end
+
+        def request
+          @request ||= ActionDispatch::Request.new(env)
+        end
+
+        def websocket?
+          @is_websocket ||= Faye::WebSocket.websocket?(@env)
+        end
+
+        def started_request_message
+          'Started %s "%s"%s for %s at %s' % [
+            request.request_method,
+            request.filtered_path,
+            websocket? ? ' [Websocket]' : '',
+            request.ip,
+            Time.now.to_default_s ]
+        end
+
+        def finished_request_message
+          'Finished "%s"%s for %s at %s' % [
+            request.filtered_path,
+            websocket? ? ' [Websocket]' : '',
+            request.ip,
+            Time.now.to_default_s ]
         end
 
     end
