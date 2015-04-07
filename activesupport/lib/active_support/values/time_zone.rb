@@ -347,14 +347,14 @@ module ActiveSupport
     # components are supplied, then the day of the month defaults to 1:
     #
     #   Time.zone.parse('Mar 2000') # => Wed, 01 Mar 2000 00:00:00 HST -10:00
-    def parse(str, now=now())
+    def parse(str, present=now())
       parts = Date._parse(str, false)
       return if parts.empty?
 
       time = Time.new(
-        parts.fetch(:year, now.year),
-        parts.fetch(:mon, now.month),
-        parts.fetch(:mday, parts[:year] || parts[:mon] ? 1 : now.day),
+        parts.fetch(:year, present.year),
+        parts.fetch(:mon, present.month),
+        parts.fetch(:mday, parts[:year] || parts[:mon] ? 1 : present.day),
         parts.fetch(:hour, 0),
         parts.fetch(:min, 0),
         parts.fetch(:sec, 0) + parts.fetch(:sec_fraction, 0),
