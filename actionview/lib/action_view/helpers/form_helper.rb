@@ -114,6 +114,8 @@ module ActionView
       include ModelNaming
       include RecordIdentifier
 
+      attr_internal :default_form_builder
+
       # Creates a form that allows the user to create or update the attributes
       # of a specific model object.
       #
@@ -1233,7 +1235,7 @@ module ActionView
         end
 
         def default_form_builder_class
-          builder = ActionView::Base.default_form_builder
+          builder = default_form_builder || ActionView::Base.default_form_builder
           builder.respond_to?(:constantize) ? builder.constantize : builder
         end
     end

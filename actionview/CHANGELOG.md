@@ -1,3 +1,8 @@
+*   Load the `default_form_builder` from the controller on initialization, which overrides
+    the global config if it is present.
+
+    *Kevin McPhillips*
+
 *   Accept lambda as `child_index` option in `fields_for` method.
 
     *Karol Galanciak*
