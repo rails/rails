@@ -1,3 +1,7 @@
+*   Uniqueness validation with out of range value fixed
+
+    *Andrey Voronkov*
+
 *   Foreign key related methods in the migration DSL respect
     `ActiveRecord::Base.pluralize_table_names = false`.
 

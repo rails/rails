@@ -35,6 +35,12 @@ class Employee < ActiveRecord::Base
   validates_uniqueness_of :nicknames
 end
 
+class BigIntTest < ActiveRecord::Base
+  PG_MAX_INTEGER = 2147483647
+  self.table_name = 'postgresql_4byte_ints'
+  validates :number, uniqueness: true, inclusion: { in: 0..PG_MAX_INTEGER }
+end
+
 class TopicWithUniqEvent < Topic
   belongs_to :event, foreign_key: :parent_id
   validates :event, uniqueness: true
@@ -388,6 +394,12 @@ class UniquenessValidationTest < ActiveRecord::TestCase
       assert e2.errors[:nicknames].any?, "Should have errors for nicknames"
       assert_equal ["has already been taken"], e2.errors[:nicknames], "Should have uniqueness message for nicknames"
     end
+
+    def test_validate_uniqueness_integer_out_of_range
+      entry = BigIntTest.create(number: (BigIntTest::PG_MAX_INTEGER + 1))
+      assert entry.errors[:number] , ['is not included in the list']
+    end
+
   end
 
   def test_validate_uniqueness_on_existing_relation
