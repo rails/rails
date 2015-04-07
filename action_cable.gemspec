@@ -1,7 +1,7 @@
 Gem::Specification.new do |s|
   s.platform = Gem::Platform::RUBY
   s.name = 'action_cable'
-  s.version = '0.0.2'
+  s.version = '0.0.3'
   s.summary = 'Framework for websockets.'
   s.description = 'Action Cable is a framework for realtime communication over websockets.'
 

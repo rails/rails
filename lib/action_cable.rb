@@ -17,7 +17,7 @@ require 'em-hiredis'
 require 'action_cable/engine' if defined?(Rails)
 
 module ActionCable
-  VERSION = '0.0.1'
+  VERSION = '0.0.3'
 
   autoload :Channel, 'action_cable/channel'
   autoload :Worker, 'action_cable/worker'
