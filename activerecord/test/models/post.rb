@@ -98,11 +98,11 @@ class Post < ActiveRecord::Base
     end
   end
 
-  has_many :taggings_with_delete_all, :class_name => 'Tagging', :as => :taggable, :dependent => :delete_all
-  has_many :taggings_with_destroy, :class_name => 'Tagging', :as => :taggable, :dependent => :destroy
+  has_many :taggings_with_delete_all, :class_name => 'Tagging', :as => :taggable, :dependent => :delete_all, counter_cache: :taggings_with_delete_all_count
+  has_many :taggings_with_destroy, :class_name => 'Tagging', :as => :taggable, :dependent => :destroy, counter_cache: :taggings_with_destroy_count
 
-  has_many :tags_with_destroy, :through => :taggings, :source => :tag, :dependent => :destroy
-  has_many :tags_with_nullify, :through => :taggings, :source => :tag, :dependent => :nullify
+  has_many :tags_with_destroy, :through => :taggings, :source => :tag, :dependent => :destroy, counter_cache: :tags_with_destroy_count
+  has_many :tags_with_nullify, :through => :taggings, :source => :tag, :dependent => :nullify, counter_cache: :tags_with_nullify_count
 
   has_many :misc_tags, -> { where :tags => { :name => 'Misc' } }, :through => :taggings, :source => :tag
   has_many :funky_tags, :through => :taggings, :source => :tag
