@@ -21,7 +21,10 @@ module ActionCable
       protected
         def unsubscribe_from_redis_channels
           if @_redis_channels
-            @_redis_channels.each { |channel, callback| pubsub.unsubscribe_proc(channel, callback) }
+            @_redis_channels.each do |channel, callback|
+              logger.info "[ActionCable] Unsubscribing from the redis channel: #{channel}"
+              pubsub.unsubscribe_proc(channel, callback)
+            end
           end
         end
     end
