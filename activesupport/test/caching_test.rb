@@ -684,6 +684,7 @@ class FileStoreTest < ActiveSupport::TestCase
 
   def teardown
     FileUtils.rm_r(cache_dir)
+  rescue Errno::ENOENT
   end
 
   def cache_dir
@@ -701,6 +702,11 @@ class FileStoreTest < ActiveSupport::TestCase
     FileUtils.touch(filepath)
     @cache.clear
     assert File.exist?(filepath)
+  end
+
+  def test_clear_without_cache_dir
+    FileUtils.rm_r(cache_dir)
+    @cache.clear
   end
 
   def test_long_keys
