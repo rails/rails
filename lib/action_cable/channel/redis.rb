@@ -10,7 +10,7 @@ module ActionCable
       end
 
       def subscribe_to(redis_channel, callback = nil)
-        callback ||= -> (message) { broadcast ActiveSupport::JSON.decode(message) }
+        callback ||= default_subscription_callback(redis_channel)
         @_redis_channels ||= []
         @_redis_channels << [ redis_channel, callback ]
 
@@ -27,6 +27,14 @@ module ActionCable
             end
           end
         end
+
+        def default_subscription_callback(channel)
+          -> (message) do
+            logger.info "[ActionCable] Received a message over the redis channel: #{channel} (#{message})"
+            broadcast ActiveSupport::JSON.decode(message)
+          end
+        end
+
     end
 
   end
