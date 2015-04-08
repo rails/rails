@@ -690,8 +690,8 @@ module ActiveRecord
       # +to_table+ contains the referenced primary key.
       #
       # The foreign key will be named after the following pattern: <tt>fk_rails_<identifier></tt>.
-      # +identifier+ is a 10 character long random string. A custom name can be specified with
-      # the <tt>:name</tt> option.
+      # +identifier+ is a 10 character long string which is deterministically generated from the
+      # +from_table+ and +column+. A custom name can be specified with the <tt>:name</tt> option.
       #
       # ====== Creating a simple foreign key
       #
