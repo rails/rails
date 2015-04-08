@@ -1678,7 +1678,7 @@ module ActionDispatch
           end
 
           def shallow_nesting_depth #:nodoc:
-            @nesting.select(&:shallow?).size
+            @nesting.count(&:shallow?)
           end
 
           def param_constraint? #:nodoc:
