@@ -116,7 +116,7 @@ module ActionCable
           end
         rescue Exception => e
           logger.error "[ActionCable] Could not subscribe to channel (#{data.inspect})"
-          logger.error e.backtrace.join("\n")
+          log_exception(e)
         end
 
         def process_message(message)
@@ -127,7 +127,7 @@ module ActionCable
           end
         rescue Exception => e
           logger.error "[ActionCable] Could not process message (#{message.inspect})"
-          logger.error e.backtrace.join("\n")
+          log_exception(e)
         end
 
         def unsubscribe_channel(data)
@@ -170,6 +170,10 @@ module ActionCable
             Time.now.to_default_s ]
         end
 
+        def log_exception(e)
+          logger.error "[ActionCable] There was an exception - #{e.class}(#{e.message})"
+          logger.error e.backtrace.join("\n")
+        end
     end
   end
 end
