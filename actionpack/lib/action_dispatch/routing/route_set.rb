@@ -254,7 +254,7 @@ module ActionDispatch
             end
 
             def raise_generation_error(args, missing_keys)
-              constraints = Hash[@route.requirements.merge(params).sort_by{|k,v| k.to_s}]
+              constraints = Hash[@route.requirements.merge(args).sort_by{|k,v| k.to_s}]
               message = "No route matches #{constraints.inspect}"
               message << " missing required keys: #{missing_keys.sort.inspect}"
 
