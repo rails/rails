@@ -80,7 +80,7 @@ module ActionView
       # associated records. <tt>option_tags</tt> is a string containing the option tags for the select box.
       #
       # ==== Options
-      # * <tt>:multiple</tt> - If set to true the selection will allow multiple choices.
+      # * <tt>:multiple</tt> - If set to true, the selection will allow multiple choices.
       # * <tt>:disabled</tt> - If set to true, the user will not be able to use this input.
       # * <tt>:include_blank</tt> - If set to true, an empty option will be created. If set to a string, the string will be used as the option's content and the value will be empty.
       # * <tt>:prompt</tt> - Create a prompt option with blank value and the text asking user to select something.
