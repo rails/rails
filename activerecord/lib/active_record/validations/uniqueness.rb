@@ -15,11 +15,15 @@ module ActiveRecord
         table = finder_class.arel_table
         value = map_enum_attribute(finder_class, attribute, value)
 
-        relation = build_relation(finder_class, table, attribute, value)
-        relation = relation.and(table[finder_class.primary_key.to_sym].not_eq(record.id)) if record.persisted?
-        relation = scope_relation(record, table, relation)
-        relation = finder_class.unscoped.where(relation)
-        relation = relation.merge(options[:conditions]) if options[:conditions]
+        begin
+          relation = build_relation(finder_class, table, attribute, value)
+          relation = relation.and(table[finder_class.primary_key.to_sym].not_eq(record.id)) if record.persisted?
+          relation = scope_relation(record, table, relation)
+          relation = finder_class.unscoped.where(relation)
+          relation = relation.merge(options[:conditions]) if options[:conditions]
+        rescue RangeError
+          relation = finder_class.none
+        end
 
         if relation.exists?
           error_options = options.except(:case_sensitive, :scope, :conditions)
@@ -71,8 +75,6 @@ module ActiveRecord
         else
           klass.connection.case_sensitive_comparison(table, attribute, column, value)
         end
-      rescue RangeError
-        klass.none
       end
 
       def scope_relation(record, table, relation)
