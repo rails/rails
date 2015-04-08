@@ -9,6 +9,8 @@ module ActionCable
       @registered_channels = Set.new(channels)
       @worker_pool_size = worker_pool_size
       @connection_class = connection
+
+      logger.info "[ActionCable] Initialized server (redis_config: #{@redis_config.inspect}, worker_pool_size: #{@worker_pool_size})"
     end
 
     def call(env)
