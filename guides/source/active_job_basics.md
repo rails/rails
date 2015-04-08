@@ -127,6 +127,18 @@ end
 Queues
 ------
 
+The default queue jobs are added to is named `:default`. You can change the 
+default queue using `config.active_job.default_queue_name` in `application.rb`:
+
+```ruby
+# config/application.rb
+module YourApp
+  class Application < Rails::Application
+    config.active_job.default_queue_name = :medium_priority
+  end
+end
+```
+
 Most of the adapters support multiple queues. With Active Job you can schedule
 the job to run on a specific queue:
 
