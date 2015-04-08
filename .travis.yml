@@ -27,6 +27,7 @@ rvm:
 matrix:
   allow_failures:
     - env: "GEM=ar:mysql"
+    - env: "GEM=aj:integration"
     - rvm: ruby-head
     - rvm: rbx-2
     - rvm: jruby-head
