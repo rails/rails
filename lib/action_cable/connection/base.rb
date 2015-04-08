@@ -126,7 +126,7 @@ module ActionCable
             logger.error "[ActionCable] Unable to process message because no subscription was found (#{message.inspect})"
           end
         rescue Exception => e
-          logger.error "[ActionCable] Could not process message (#{data.inspect})"
+          logger.error "[ActionCable] Could not process message (#{message.inspect})"
           logger.error e.backtrace.join("\n")
         end
 
