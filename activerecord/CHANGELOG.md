@@ -1,3 +1,8 @@
+*   Fixed a bug where uniqueness validations would error on out of range values,
+    even if an validation should have prevented it from hitting the database.
+
+    *Andrey Voronkov*
+
 *   MySQL: `:charset` and `:collation` support for string and text columns.
 
     Example:
