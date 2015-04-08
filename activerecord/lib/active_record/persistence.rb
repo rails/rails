@@ -462,9 +462,10 @@ module ActiveRecord
     #   ball = Ball.new
     #   ball.touch(:updated_at)   # => raises ActiveRecordError
     #
-    def touch(*names, time: current_time_from_proper_timezone)
+    def touch(*names, time: nil)
       raise ActiveRecordError, "cannot touch on a new record object" unless persisted?
 
+      time ||= current_time_from_proper_timezone
       attributes = timestamp_attributes_for_update_in_model
       attributes.concat(names)
 

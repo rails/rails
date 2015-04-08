@@ -49,6 +49,7 @@ module ActiveRecord
   autoload :ModelSchema
   autoload :NestedAttributes
   autoload :NoTouching
+  autoload :TouchLater
   autoload :Persistence
   autoload :QueryCache
   autoload :Querying
