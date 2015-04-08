@@ -71,6 +71,8 @@ module ActiveRecord
         else
           klass.connection.case_sensitive_comparison(table, attribute, column, value)
         end
+      rescue RangeError
+        klass.none
       end
 
       def scope_relation(record, table, relation)

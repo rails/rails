@@ -40,7 +40,22 @@ class TopicWithUniqEvent < Topic
   validates :event, uniqueness: true
 end
 
+class BigIntTest < ActiveRecord::Base
+  INT_MAX_VALUE = 2147483647
+  self.table_name = 'cars'
+  validates :engines_count, uniqueness: true, inclusion: { in: 0..INT_MAX_VALUE }
+end
+
+class BigIntReverseTest < ActiveRecord::Base
+  INT_MAX_VALUE = 2147483647
+  self.table_name = 'cars'
+  validates :engines_count, inclusion: { in: 0..INT_MAX_VALUE }
+  validates :engines_count, uniqueness: true
+end
+
 class UniquenessValidationTest < ActiveRecord::TestCase
+  INT_MAX_VALUE = 2147483647
+
   fixtures :topics, 'warehouse-things'
 
   repair_validations(Topic, Reply)
@@ -90,6 +105,16 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     t2 = Topic.new('title' => 'abc')
     assert !t2.valid?
     assert t2.errors[:title]
+  end
+
+  def test_validate_uniqueness_when_integer_out_of_range
+    entry = BigIntTest.create(engines_count: INT_MAX_VALUE + 1)
+    assert_equal entry.errors[:engines_count], ['is not included in the list']
+  end
+
+  def test_validate_uniqueness_when_integer_out_of_range_show_order_does_not_matter
+    entry = BigIntReverseTest.create(engines_count: INT_MAX_VALUE + 1)
+    assert_equal entry.errors[:engines_count], ['is not included in the list']
   end
 
   def test_validates_uniqueness_with_newline_chars
