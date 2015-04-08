@@ -1,3 +1,7 @@
+*   Uniqueness validation with out of range value fixed
+
+    *Andrey Voronkov*
+
 *   MySQL: `:charset` and `:collation` support for string and text columns.
 
     Example:
