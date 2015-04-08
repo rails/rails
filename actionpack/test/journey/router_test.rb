@@ -401,6 +401,33 @@ module ActionDispatch
         assert_equal({:id => 1, :relative_url_root => nil}, params)
       end
 
+      def test_generate_missing_keys_no_matches_different_format_keys
+        path  = Path::Pattern.from_string '/:controller/:action/:name'
+        @router.routes.add_route @app, path, {}, {}, {}
+        primarty_parameters = {
+          :id                => 1,
+          :controller        => "tasks",
+          :action            => "show",
+          :relative_url_root => nil
+        }
+        redirection_parameters = {
+          'action'=>'show',
+        }
+        missing_key = 'name'
+        missing_parameters ={
+          missing_key => "task_1"
+        }
+        request_parameters = primarty_parameters.merge(redirection_parameters).merge(missing_parameters)
+
+        message = "No route matches #{Hash[request_parameters.sort_by{|k,v|k.to_s}].inspect} missing required keys: #{[missing_key.to_sym].inspect}"
+
+        error = assert_raises(ActionController::UrlGenerationError) do
+          @formatter.generate(
+            nil, request_parameters, request_parameters)
+        end
+        assert_equal message, error.message
+      end
+
       def test_generate_uses_recall_if_needed
         path  = Path::Pattern.from_string '/:controller(/:action(/:id))'
         @router.routes.add_route @app, path, {}, {}, {}
