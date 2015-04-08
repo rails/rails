@@ -14,6 +14,7 @@ module ActionCable
         @_redis_channels ||= []
         @_redis_channels << [ redis_channel, callback ]
 
+        logger.info "[ActionCable] Subscribing to the redis channel: #{redis_channel}"
         pubsub.subscribe(redis_channel, &callback)
       end
 
