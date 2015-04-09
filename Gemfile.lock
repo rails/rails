@@ -98,7 +98,7 @@ GEM
       activerecord (>= 3.0, < 5.0)
       delayed_job (>= 3.0, < 4.1)
     erubis (2.7.0)
-    execjs (2.3.0)
+    execjs (2.4.0)
     globalid (0.3.3)
       activesupport (>= 4.1.0)
     hitimes (1.2.2)
@@ -234,6 +234,7 @@ DEPENDENCIES
   dalli (>= 2.2.1)
   delayed_job
   delayed_job_active_record
+  execjs (< 2.5)
   jquery-rails (~> 4.0)
   json
   kindlerb (= 0.1.1)
