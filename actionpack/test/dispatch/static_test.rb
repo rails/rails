@@ -4,12 +4,32 @@ require 'rbconfig'
 require 'zlib'
 
 module StaticTests
+  def setup
+    @default_internal_encoding = Encoding.default_internal
+    @default_external_encoding = Encoding.default_external
+  end
+
+  def teardown
+    Encoding.default_internal = @default_internal_encoding
+    Encoding.default_external = @default_external_encoding
+  end
+
   def test_serves_dynamic_content
     assert_equal "Hello, World!", get("/nofile").body
   end
 
   def test_handles_urls_with_bad_encoding
     assert_equal "Hello, World!", get("/doorkeeper%E3E4").body
+  end
+
+  def test_handles_urls_with_ascii_8bit
+    assert_equal "Hello, World!", get("/doorkeeper%E3E4".force_encoding('ASCII-8BIT')).body
+  end
+
+  def test_handles_urls_with_ascii_8bit_on_win_31j
+    Encoding.default_internal = "Windows-31J"
+    Encoding.default_external = "Windows-31J"
+    assert_equal "Hello, World!", get("/doorkeeper%E3E4".force_encoding('ASCII-8BIT')).body
   end
 
   def test_sets_cache_control
@@ -210,6 +230,7 @@ class StaticTest < ActiveSupport::TestCase
   }
 
   def setup
+    super
     @root = "#{FIXTURE_LOAD_PATH}/public"
     @app = ActionDispatch::Static.new(DummyApp, @root, "public, max-age=60")
   end
@@ -239,6 +260,7 @@ end
 
 class StaticEncodingTest < StaticTest
   def setup
+    super
     @root = "#{FIXTURE_LOAD_PATH}/公共"
     @app = ActionDispatch::Static.new(DummyApp, @root, "public, max-age=60")
   end
