@@ -16,18 +16,19 @@ module ActionCable
       delegate :worker_pool, :pubsub, :logger, to: :server
 
       def initialize(server, env)
+        @started_at = Time.now
+
         @server = server
         @env = env
         @accept_messages = false
         @pending_messages = []
+        @subscriptions = {}
       end
 
       def process
         logger.info "[ActionCable] #{started_request_message}"
 
         if websocket?
-          @subscriptions = {}
-
           @websocket = Faye::WebSocket.new(@env)
 
           @websocket.on(:open) do |event|
@@ -93,8 +94,18 @@ module ActionCable
         @websocket.close
       end
 
+      def statistics
+        {
+          identifier: connection_identifier,
+          started_at: @started_at,
+          subscriptions: @subscriptions.keys
+        }
+      end
+
       private
         def initialize_connection
+          server.add_connection(self)
+
           connect if respond_to?(:connect)
           subscribe_to_internal_channel
 
@@ -103,6 +114,8 @@ module ActionCable
         end
 
         def on_connection_closed
+          server.remove_connection(self)
+
           cleanup_subscriptions
           unsubscribe_from_internal_channel
           disconnect if respond_to?(:disconnect)

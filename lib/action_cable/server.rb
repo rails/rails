@@ -10,6 +10,8 @@ module ActionCable
       @worker_pool_size = worker_pool_size
       @connection_class = connection
 
+      @connections = []
+
       logger.info "[ActionCable] Initialized server (redis_config: #{@redis_config.inspect}, worker_pool_size: #{@worker_pool_size})"
     end
 
@@ -31,6 +33,18 @@ module ActionCable
 
     def connection_identifiers
       @connection_class.identifiers
+    end
+
+    def add_connection(connection)
+      @connections << connection
+    end
+
+    def remove_connection(connection)
+      @connections.delete connection
+    end
+
+    def open_connections_statistics
+      @connections.map(&:statistics)
     end
 
   end
