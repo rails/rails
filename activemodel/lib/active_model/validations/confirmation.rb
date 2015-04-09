@@ -8,22 +8,23 @@ module ActiveModel
       end
 
       def validate_each(record, attribute, value)
-        if (confirmed = record.send("#{attribute}_confirmation")) && (value != confirmed)
+        if (confirmed = record.public_send("#{attribute}_confirmation")) && (value != confirmed)
           human_attribute_name = record.class.human_attribute_name(attribute)
-          record.errors.add(:"#{attribute}_confirmation", :confirmation, options.merge(attribute: human_attribute_name))
+          record.errors.add(attribute.to_sym, :confirmation, options.merge(attribute: human_attribute_name))
         end
       end
 
       private
-      def setup!(klass)
-        klass.send(:attr_reader, *attributes.map do |attribute|
-          :"#{attribute}_confirmation" unless klass.method_defined?(:"#{attribute}_confirmation")
-        end.compact)
 
-        klass.send(:attr_writer, *attributes.map do |attribute|
-          :"#{attribute}_confirmation" unless klass.method_defined?(:"#{attribute}_confirmation=")
-        end.compact)
-      end
+        def setup!(klass)
+          klass.send(:attr_reader, *attributes.map do |attribute|
+            :"#{attribute}_confirmation" unless klass.method_defined?(:"#{attribute}_confirmation")
+          end.compact)
+
+          klass.send(:attr_writer, *attributes.map do |attribute|
+            :"#{attribute}_confirmation" unless klass.method_defined?(:"#{attribute}_confirmation=")
+          end.compact)
+        end
     end
 
     module HelperMethods
