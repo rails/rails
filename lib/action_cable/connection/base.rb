@@ -1,9 +1,16 @@
 module ActionCable
   module Connection
     class Base
-      include Registry
+      include InternalChannel, Identifier
 
       PING_INTERVAL = 3
+
+      class_attribute :identifiers
+      self.identifiers = Set.new
+
+      def self.identified_by(*identifiers)
+        self.identifiers += identifiers
+      end
 
       attr_reader :env, :server
       delegate :worker_pool, :pubsub, :logger, to: :server
@@ -89,7 +96,7 @@ module ActionCable
       private
         def initialize_connection
           connect if respond_to?(:connect)
-          register_connection
+          subscribe_to_internal_channel
 
           @accept_messages = true
           worker_pool.async.invoke(self, :received_data, @pending_messages.shift) until @pending_messages.empty?
@@ -97,7 +104,7 @@ module ActionCable
 
         def on_connection_closed
           cleanup_subscriptions
-          cleanup_internal_redis_subscriptions
+          unsubscribe_from_internal_channel
           disconnect if respond_to?(:disconnect)
         end
 

@@ -1,22 +1,11 @@
 module ActionCable
   module Connection
-    module Registry
+    module InternalChannel
       extend ActiveSupport::Concern
 
-      included do
-        class_attribute :identifiers
-        self.identifiers = Set.new
-      end
-
-      module ClassMethods
-        def identified_by(*identifiers)
-          self.identifiers += identifiers
-        end
-      end
-
-      def register_connection
+      def subscribe_to_internal_channel
         if connection_identifier.present?
-          callback = -> (message) { process_registry_message(message) }
+          callback = -> (message) { process_internal_message(message) }
           @_internal_redis_subscriptions ||= []
           @_internal_redis_subscriptions << [ internal_redis_channel, callback ]
 
@@ -25,26 +14,14 @@ module ActionCable
         end
       end
 
-      def internal_redis_channel
-        "action_cable/#{connection_identifier}"
-      end
-
-      def connection_identifier
-        @connection_identifier ||= connection_gid identifiers.map { |id| instance_variable_get("@#{id}")}
-      end
-
-      def connection_gid(ids)
-        ids.map {|o| o.to_global_id.to_s }.sort.join(":")
-      end
-
-      def cleanup_internal_redis_subscriptions
+      def unsubscribe_from_internal_channel
         if @_internal_redis_subscriptions.present?
           @_internal_redis_subscriptions.each { |channel, callback| pubsub.unsubscribe_proc(channel, callback) }
         end
       end
 
       private
-        def process_registry_message(message)
+        def process_internal_message(message)
           message = ActiveSupport::JSON.decode(message)
 
           case message['type']
