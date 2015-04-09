@@ -5,7 +5,7 @@ module ActionCable
     attr_accessor :registered_channels, :redis_config
 
     def initialize(redis_config:, channels:, worker_pool_size: 100, connection: Connection)
-      @redis_config = redis_config
+      @redis_config = redis_config.with_indifferent_access
       @registered_channels = Set.new(channels)
       @worker_pool_size = worker_pool_size
       @connection_class = connection
@@ -22,7 +22,7 @@ module ActionCable
     end
 
     def pubsub
-      @pubsub ||= EM::Hiredis.connect(@redis_config['url']).pubsub
+      @pubsub ||= EM::Hiredis.connect(@redis_config[:url]).pubsub
     end
 
     def remote_connections
