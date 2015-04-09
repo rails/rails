@@ -1,109 +1,70 @@
-require "cases/helper"
-require "active_support/hash_with_indifferent_access"
+require 'cases/helper'
 
 class AttributeAssignmentTest < ActiveModel::TestCase
-  class Model
+  class Address < Struct.new(:street, :city, :country);end
+
+  class Person
+    include ActiveModel::Model
     include ActiveModel::AttributeAssignment
+    attr_accessor :name, :address
 
-    attr_accessor :name, :description
+    typecast_attribute :address, Address
+  end
 
-    def initialize(attributes = {})
-      assign_attributes(attributes)
+  def test_initialize_with_complete_multiparameter_value
+    person = Person.new(
+      'name' => 'John Doe',
+      'address' => Address.new('123 Some Street', 'The City', 'The Country')
+    )
+
+    assert_equal 'John Doe', person.name
+    assert_equal '123 Some Street', person.address.street
+    assert_equal 'The City', person.address.city
+    assert_equal 'The Country', person.address.country
+  end
+
+  def test_initialize_with_parts_of_multiparameter_value
+    person = Person.new(
+      'name' => 'John Doe',
+      'address(1)' => '123 Some Street',
+      'address(2)' => 'The City',
+      'address(3)' => 'The Country'
+    )
+
+    assert_equal 'John Doe', person.name
+    assert_equal '123 Some Street', person.address.street
+    assert_equal 'The City', person.address.city
+    assert_equal 'The Country', person.address.country
+  end
+
+  def test_multiparameter_value_for_single_parameter_attribute
+    errors = assert_raise(ActiveModel::MultiparameterAssignmentErrors) do
+      person = Person.new(
+        'name(1)' => 'John',
+        'name(2)' => 'Doe'
+      )
     end
 
-    def broken_attribute=(value)
-      raise ErrorFromAttributeWriter
+    original_error = unpack_multiparameter_assignment_errors(errors)
+    assert original_error.is_a?(ActiveModel::UnexpectedMultiparameterValueError)
+  end
+
+  def test_unknown_multiparameter_attribute
+    errors = assert_raise(ActiveModel::MultiparameterAssignmentErrors) do
+      person = Person.new(
+        'name' => 'John Doe',
+        'unknown(1i)' => '2015',
+        'unknown(2i)' => '10',
+        'unknown(3i)' => '21'
+      )
     end
 
-    protected
-
-    attr_writer :metadata
+    original_error = unpack_multiparameter_assignment_errors(errors)
+    assert original_error.is_a?(ActiveModel::UnknownAttributeError)
   end
 
-  class ErrorFromAttributeWriter < StandardError
-  end
-
-  class ProtectedParams < ActiveSupport::HashWithIndifferentAccess
-    def permit!
-      @permitted = true
-    end
-
-    def permitted?
-      @permitted ||= false
-    end
-
-    def dup
-      super.tap do |duplicate|
-        duplicate.instance_variable_set :@permitted, permitted?
-      end
-    end
-  end
-
-  test "simple assignment" do
-    model = Model.new
-
-    model.assign_attributes(name: "hello", description: "world")
-    assert_equal "hello", model.name
-    assert_equal "world", model.description
-  end
-
-  test "assign non-existing attribute" do
-    model = Model.new
-    error = assert_raises(ActiveModel::UnknownAttributeError) do
-      model.assign_attributes(hz: 1)
-    end
-
-    assert_equal model, error.record
-    assert_equal "hz", error.attribute
-  end
-
-  test "assign private attribute" do
-    rubinius_skip "https://github.com/rubinius/rubinius/issues/3328"
-
-    model = Model.new
-    assert_raises(ActiveModel::UnknownAttributeError) do
-      model.assign_attributes(metadata: { a: 1 })
-    end
-  end
-
-  test "does not swallow errors raised in an attribute writer" do
-    assert_raises(ErrorFromAttributeWriter) do
-      Model.new(broken_attribute: 1)
-    end
-  end
-
-  test "an ArgumentError is raised if a non-hash-like obejct is passed" do
-    assert_raises(ArgumentError) do
-      Model.new(1)
-    end
-  end
-
-  test "forbidden attributes cannot be used for mass assignment" do
-    params = ProtectedParams.new(name: "Guille", description: "m")
-
-    assert_raises(ActiveModel::ForbiddenAttributesError) do
-      Model.new(params)
-    end
-  end
-
-  test "permitted attributes can be used for mass assignment" do
-    params = ProtectedParams.new(name: "Guille", description: "desc")
-    params.permit!
-    model = Model.new(params)
-
-    assert_equal "Guille", model.name
-    assert_equal "desc", model.description
-  end
-
-  test "regular hash should still be used for mass assignment" do
-    model = Model.new(name: "Guille", description: "m")
-
-    assert_equal "Guille", model.name
-    assert_equal "m", model.description
-  end
-
-  test "assigning no attributes should not raise, even if the hash is un-permitted" do
-    model = Model.new
-    assert_nil model.assign_attributes(ProtectedParams.new({}))
+  def unpack_multiparameter_assignment_errors(errors)
+    attribute_assignment_error = errors.errors.first
+    attribute_assignment_error.exception
   end
 end
