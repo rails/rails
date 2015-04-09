@@ -152,6 +152,6 @@ class ValidatesTest < ActiveModel::TestCase
     topic.title = "What's happening"
     topic.title_confirmation = "Not this"
     assert !topic.valid?
-    assert_equal ['Y U NO CONFIRM'], topic.errors[:title_confirmation]
+    assert_equal ['Y U NO CONFIRM'], topic.errors[:title]
   end
 end
