@@ -1,3 +1,9 @@
+*   Confirmation validation error is now attached to the attribute itself - not to it's #{attribute}_confirmation twin.
+    For example in case of "Password Confirmation" the error message looks foolish (and semantically untrue):
+    Password Confirmation doesn't match confirmation.
+
+    *Andrey Voronkov*
+
 *   Deprecate the `:tokenizer` option for `validates_length_of`, in favor of
     plain Ruby.
 
