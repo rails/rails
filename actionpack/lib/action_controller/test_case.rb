@@ -619,7 +619,9 @@ module ActionController
         @request.assign_parameters(@routes, controller_class_name, action.to_s, parameters)
 
         @request.session.update(session) if session
-        @request.flash.update(flash || {})
+
+        is_request_flash_enabled = @request.respond_to?(:flash)
+        @request.flash.update(flash || {}) if is_request_flash_enabled
 
         @controller.request  = @request
         @controller.response = @response
@@ -640,7 +642,8 @@ module ActionController
 
         @assigns = @controller.respond_to?(:view_assigns) ? @controller.view_assigns : {}
 
-        if flash_value = @request.flash.to_session_value
+        flash_value = is_request_flash_enabled ? @request.flash.to_session_value : nil
+        if flash_value
           @request.session['flash'] = flash_value
         end
 
