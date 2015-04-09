@@ -1,3 +1,7 @@
+*   New section in Configuring: Configuring Active Job
+
+    *Eliot Sykes*
+
 *   New section in Active Record Association Basics: Single Table Inheritance
 
     *Andrey Nering*
