@@ -671,6 +671,8 @@ ActiveRecord::Schema.define do
     t.string :name
     t.integer :pirate_id
     t.integer :update_only_pirate_id
+    # Conventionally named column for counter_cache
+    t.integer :treasures_count, default: 0
     t.datetime :created_at
     t.datetime :created_on
     t.datetime :updated_at

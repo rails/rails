@@ -31,6 +31,8 @@ require 'models/student'
 require 'models/pirate'
 require 'models/ship'
 require 'models/ship_part'
+require 'models/treasure'
+require 'models/parrot'
 require 'models/tyre'
 require 'models/subscriber'
 require 'models/subscription'
@@ -930,6 +932,25 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 1, new_firm.clients_of_firm.size
     new_firm.clients_of_firm.delete(new_client)
     assert_equal 0, new_firm.clients_of_firm.size
+  end
+
+  def test_has_many_without_counter_cache_option
+    # Ship has a conventionally named `treasures_count` column, but the counter_cache
+    # option is not given on the association.
+    ship = Ship.create(name: 'Countless', treasures_count: 10)
+
+    assert_not ship.treasures.instance_variable_get('@association').send(:has_cached_counter?)
+
+    # Count should come from sql count() of treasures rather than treasures_count attribute
+    assert_equal ship.treasures.size, 0
+
+    assert_no_difference lambda { ship.reload.treasures_count }, "treasures_count should not be changed" do
+      ship.treasures.create(name: 'Gold')
+    end
+
+    assert_no_difference lambda { ship.reload.treasures_count }, "treasures_count should not be changed" do
+      ship.treasures.destroy_all
+    end
   end
 
   def test_deleting_updates_counter_cache
