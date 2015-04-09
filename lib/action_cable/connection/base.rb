@@ -44,10 +44,7 @@ module ActionCable
           @websocket.on(:close) do |event|
             logger.info "[ActionCable] #{finished_request_message}"
 
-            worker_pool.async.invoke(self, :cleanup_subscriptions)
-            worker_pool.async.invoke(self, :cleanup_internal_redis_subscriptions)
-            worker_pool.async.invoke(self, :disconnect) if respond_to?(:disconnect)
-
+            worker_pool.async.invoke(self, :close_client_connection)
             EventMachine.cancel_timer(@ping_timer) if @ping_timer
           end
 
@@ -96,6 +93,12 @@ module ActionCable
 
           @accept_messages = true
           worker_pool.async.invoke(self, :received_data, @pending_messages.shift) until @pending_messages.empty?
+        end
+
+        def close_client_connection
+          cleanup_subscriptions
+          cleanup_internal_redis_subscriptions
+          disconnect if respond_to?(:disconnect)
         end
 
         def broadcast_ping_timestamp
