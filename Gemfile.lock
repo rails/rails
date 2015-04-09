@@ -170,7 +170,7 @@ GEM
       loofah (~> 2.0)
     rake (10.4.2)
     rdoc (4.2.0)
-    redcarpet (3.2.2)
+    redcarpet (3.2.3)
     redis (3.2.1)
     redis-namespace (1.5.1)
       redis (~> 3.0, >= 3.0.4)
@@ -272,7 +272,7 @@ DEPENDENCIES
   rack-cache (~> 1.2)
   rails!
   rake (>= 10.3)
-  redcarpet (~> 3.2.2)
+  redcarpet (~> 3.2.3)
   resque
   resque-scheduler
   sdoc (~> 0.4.0)
