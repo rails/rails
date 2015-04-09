@@ -533,6 +533,58 @@ There are a few configuration options available in Active Support:
 
 * `ActiveSupport::Deprecation.silenced` sets whether or not to display deprecation warnings.
 
+### Configuring Active Job
+
+`config.active_job` provides the following configuration options:
+
+* `config.active_job.queue_adapter` sets the adapter for the queueing backend. The default adapter is `:inline` which will perform jobs immediately. For an up-to-date list of built-in adapters see the [ActiveJob::QueueAdapters API documentation](http://api.rubyonrails.org/classes/ActiveJob/QueueAdapters.html).
+
+    ```ruby
+    # Be sure to have the adapter's gem in your Gemfile
+    # and follow the adapter's specific installation
+    # and deployment instructions.
+    config.active_job.queue_adapter = :sidekiq
+    ```
+
+* `config.active_job.default_queue_name` can be used to change the default queue name. By default this is `"default"`.
+
+    ```ruby
+    config.active_job.default_queue_name = :medium_priority
+    ```
+
+* `config.active_job.queue_name_prefix` allows you to set an optional, non-blank, queue name prefix for all jobs. By default it is blank and not used.
+
+    The following configuration would queue the given job on the `production_high_priority` queue when run in production:
+    
+    ```ruby
+    config.active_job.queue_name_prefix = Rails.env
+    ```
+
+    ```ruby
+    class GuestsCleanupJob < ActiveJob::Base
+      queue_as :high_priority
+      #....
+    end
+    ```
+
+* `config.active_job.queue_name_delimiter` has a default value of `'_'`. If `queue_name_prefix` is set, then `queue_name_delimiter` joins the prefix and the non-prefixed queue name.
+
+    The following configuration would queue the provided job on the `video_server.low_priority` queue:
+
+    ```ruby
+    # prefix must be set for delimiter to be used
+    config.active_job.queue_name_prefix = 'video_server'
+    config.active_job.queue_name_delimiter = '.'
+    ```
+
+    ```ruby
+    class EncoderJob < ActiveJob::Base
+      queue_as :low_priority
+      #....
+    end
+    ```
+
+* `config.active_job.logger` accepts a logger conforming to the interface of Log4r or the default Ruby Logger class, which is then used to log information from Active Job. You can retrieve this logger by calling `logger` on either an Active Job class or an Active Job instance. Set to `nil` to disable logging.
 
 ### Configuring a Database
 
@@ -959,6 +1011,10 @@ Below is a comprehensive list of all the initializers found in Rails in the orde
 * `active_record.log_runtime` Includes `ActiveRecord::Railties::ControllerRuntime` which is responsible for reporting the time taken by Active Record calls for the request back to the logger.
 
 * `active_record.set_dispatch_hooks` Resets all reloadable connections to the database if `config.cache_classes` is set to `false`.
+
+* `active_job.logger` Sets `ActiveJob::Base.logger` - if it's not already set - to `Rails.logger`
+
+* `active_job.set_configs` Sets up Active Job by using the settings in `config.active_job` by `send`'ing the method names as setters to `ActiveJob::Base` and passing the values through.
 
 * `action_mailer.logger` Sets `ActionMailer::Base.logger` - if it's not already set - to `Rails.logger`.
 
