@@ -30,10 +30,10 @@ module ApplicationTests
         "Rack::Runtime",
         "Rack::MethodOverride",
         "ActionDispatch::RequestId",
+        "ActionDispatch::RemoteIp", # Must come before Rails::Rack::Logger to properly log request_id
         "Rails::Rack::Logger", # must come after Rack::MethodOverride to properly log overridden methods
         "ActionDispatch::ShowExceptions",
         "ActionDispatch::DebugExceptions",
-        "ActionDispatch::RemoteIp",
         "ActionDispatch::Reloader",
         "ActionDispatch::Callbacks",
         "ActiveRecord::Migration::CheckPending",
