@@ -200,7 +200,7 @@ module ActiveSupport
     #   ActiveSupport::Inflector.inflections(:en) do |inflect|
     #     inflect.uncountable 'rails'
     #   end
-    def inflections(locale = :en)
+    def inflections(locale = I18n.locale)
       if block_given?
         yield Inflections.instance(locale)
       else

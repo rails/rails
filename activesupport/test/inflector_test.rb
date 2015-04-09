@@ -404,6 +404,32 @@ class InflectorTest < ActiveSupport::TestCase
     assert !ActiveSupport::Inflector.inflections.singulars.empty?
   end
 
+  def test_inflector_for_default_locale
+    ActiveSupport::Inflector.inflections(:es) do |inflect|
+      inflect.plural(/$/, 's')
+      inflect.plural(/z$/i, 'ces')
+
+      inflect.singular(/s$/, '')
+      inflect.singular(/es$/, '')
+
+      inflect.irregular('el', 'los')
+    end
+
+    I18n.available_locales << [:es]
+    I18n.locale = :es
+
+    assert_equal('hijos', 'hijo'.pluralize)
+    assert_equal('luces', 'luz'.pluralize)
+    assert_equal('sociedad', 'sociedades'.singularize)
+    assert_equal('los', 'el'.pluralize)
+
+    I18n.available_locales = [:en]
+  end
+
+  def teardown
+    I18n.locale = :en
+  end
+
   def test_clear_all
     with_dup do
       ActiveSupport::Inflector.inflections do |inflect|

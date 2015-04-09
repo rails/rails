@@ -28,7 +28,7 @@ module ActiveSupport
     #   pluralize('words')            # => "words"
     #   pluralize('CamelOctopus')     # => "CamelOctopi"
     #   pluralize('ley', :es)         # => "leyes"
-    def pluralize(word, locale = :en)
+    def pluralize(word, locale = I18n.locale)
       apply_inflections(word, inflections(locale).plurals)
     end
 
@@ -45,7 +45,7 @@ module ActiveSupport
     #   singularize('word')             # => "word"
     #   singularize('CamelOctopi')      # => "CamelOctopus"
     #   singularize('leyes', :es)       # => "ley"
-    def singularize(word, locale = :en)
+    def singularize(word, locale = I18n.locale)
       apply_inflections(word, inflections(locale).singulars)
     end
 
