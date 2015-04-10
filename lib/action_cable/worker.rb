@@ -10,7 +10,7 @@ module ActionCable
         receiver.send method, *args
       end
     rescue Exception => e
-      logger.error "[ActionCable] There was an exception - #{e.class}(#{e.message})"
+      logger.error "There was an exception - #{e.class}(#{e.message})"
       logger.error e.backtrace.join("\n")
 
       receiver.handle_exception if receiver.respond_to?(:handle_exception)

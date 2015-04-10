@@ -13,7 +13,8 @@ module ActionCable
       end
 
       attr_reader :env, :server
-      delegate :worker_pool, :pubsub, :logger, to: :server
+      attr_accessor :log_tags
+      delegate :worker_pool, :pubsub, to: :server
 
       def initialize(server, env)
         @started_at = Time.now
@@ -23,10 +24,11 @@ module ActionCable
         @accept_messages = false
         @pending_messages = []
         @subscriptions = {}
+        @log_tags = [ 'ActionCable' ]
       end
 
       def process
-        logger.info "[ActionCable] #{started_request_message}"
+        log_info started_request_message
 
         if websocket?
           @websocket = Faye::WebSocket.new(@env)
@@ -50,7 +52,7 @@ module ActionCable
           end
 
           @websocket.on(:close) do |event|
-            logger.info "[ActionCable] #{finished_request_message}"
+            log_info finished_request_message
 
             worker_pool.async.invoke(self, :on_connection_closed)
             EventMachine.cancel_timer(@ping_timer) if @ping_timer
@@ -84,14 +86,8 @@ module ActionCable
       end
 
       def broadcast(data)
-        logger.info "[ActionCable] Sending data: #{data}"
+        log_info "Sending data: #{data}"
         @websocket.send data
-      end
-
-      def handle_exception
-        logger.error "[ActionCable] Closing connection"
-
-        @websocket.close
       end
 
       def statistics
@@ -102,7 +98,21 @@ module ActionCable
         }
       end
 
-      private
+      def handle_exception
+        log_error "Closing connection"
+
+        @websocket.close
+      end
+
+      def log_info(message)
+        log :info, message
+      end
+
+      def log_error(message)
+        log :error, message
+      end
+
+      protected
         def initialize_connection
           server.add_connection(self)
 
@@ -132,13 +142,13 @@ module ActionCable
           subscription_klass = server.registered_channels.detect { |channel_klass| channel_klass.find_name == id_options[:channel] }
 
           if subscription_klass
-            logger.info "[ActionCable] Subscribing to channel: #{id_key}"
+            log_info "Subscribing to channel: #{id_key}"
             @subscriptions[id_key] = subscription_klass.new(self, id_key, id_options)
           else
-            logger.error "[ActionCable] Subscription class not found (#{data.inspect})"
+            log_error "Subscription class not found (#{data.inspect})"
           end
         rescue Exception => e
-          logger.error "[ActionCable] Could not subscribe to channel (#{data.inspect})"
+          log_error "Could not subscribe to channel (#{data.inspect})"
           log_exception(e)
         end
 
@@ -146,21 +156,21 @@ module ActionCable
           if @subscriptions[message['identifier']]
             @subscriptions[message['identifier']].receive_data(ActiveSupport::JSON.decode message['data'])
           else
-            logger.error "[ActionCable] Unable to process message because no subscription was found (#{message.inspect})"
+            log_exception "Unable to process message because no subscription was found (#{message.inspect})"
           end
         rescue Exception => e
-          logger.error "[ActionCable] Could not process message (#{message.inspect})"
+          log_error "Could not process message (#{message.inspect})"
           log_exception(e)
         end
 
         def unsubscribe_channel(data)
-          logger.info "[ActionCable] Unsubscribing from channel: #{data['identifier']}"
+          log_info "Unsubscribing from channel: #{data['identifier']}"
           @subscriptions[data['identifier']].unsubscribe
           @subscriptions.delete(data['identifier'])
         end
 
         def invalid_request
-          logger.info "[ActionCable] #{finished_request_message}"
+          log_info "#{finished_request_message}"
           [404, {'Content-Type' => 'text/plain'}, ['Page not found']]
         end
 
@@ -194,8 +204,12 @@ module ActionCable
         end
 
         def log_exception(e)
-          logger.error "[ActionCable] There was an exception - #{e.class}(#{e.message})"
-          logger.error e.backtrace.join("\n")
+          log_error "There was an exception - #{e.class}(#{e.message})"
+          log_error e.backtrace.join("\n")
+        end
+
+        def log(type, message)
+          server.logger.tagged(*log_tags) { server.logger.send type, message }
         end
     end
   end
