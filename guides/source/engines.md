@@ -368,7 +368,7 @@ called `Blorgh::ArticlesController` (at
 `app/controllers/blorgh/articles_controller.rb`) and its related views at
 `app/views/blorgh/articles`. This generator also generates a test for the
 controller (`test/controllers/blorgh/articles_controller_test.rb`) and a helper
-(`app/helpers/blorgh/articles_controller.rb`).
+(`app/helpers/blorgh/articles_helper.rb`).
 
 Everything this generator has created is neatly namespaced. The controller's
 class is defined within the `Blorgh` module:
