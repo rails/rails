@@ -1199,7 +1199,7 @@ end
 ```
 
 ```ruby
-# Blorgh/lib/concerns/models/article
+# Blorgh/lib/concerns/models/article.rb
 
 module Blorgh::Concerns::Models::Article
   extend ActiveSupport::Concern
