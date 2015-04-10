@@ -47,6 +47,10 @@ module ActiveRecord
       assert_equal [chef], chefs.to_a
     end
 
+    def test_where_with_out_of_range_integer
+      assert_nothing_raised { Post.where(id: 2147483648).to_sql }  # ActiveRecord::Type::Integer#max_value
+    end
+
     def test_rewhere_on_root
       assert_equal posts(:welcome), Post.rewhere(title: 'Welcome to the weblog').first
     end

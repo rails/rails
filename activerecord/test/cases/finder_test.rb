@@ -81,6 +81,7 @@ class FinderTest < ActiveRecord::TestCase
 
     assert_equal false, Topic.exists?(45)
     assert_equal false, Topic.exists?(Topic.new.id)
+    assert_equal false, Topic.exists?(2147483648)  # ActiveRecord::Type::Integer#max_value
 
     assert_raise(NoMethodError) { Topic.exists?([1,2]) }
   end
