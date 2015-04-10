@@ -51,6 +51,8 @@ module ActiveModel
     autoload :Errors
     autoload :StrictValidationFailed, 'active_model/errors'
     autoload :UnknownAttributeError, 'active_model/errors'
+    autoload :AttributeAssignmentError, 'active_model/attribute_assignment'
+    autoload :MultiparameterAssignmentErrors, 'active_model/attribute_assignment'
   end
 
   module Serializers
