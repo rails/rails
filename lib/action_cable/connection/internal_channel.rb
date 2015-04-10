@@ -10,7 +10,7 @@ module ActionCable
           @_internal_redis_subscriptions << [ internal_redis_channel, callback ]
 
           pubsub.subscribe(internal_redis_channel, &callback)
-          log_info "Registered connection (#{connection_identifier})"
+          logger.info "Registered connection (#{connection_identifier})"
         end
       end
 
@@ -26,12 +26,12 @@ module ActionCable
 
           case message['type']
           when 'disconnect'
-            log_info "Removing connection (#{connection_identifier})"
+            logger.info "Removing connection (#{connection_identifier})"
             @websocket.close
           end
         rescue Exception => e
-          log_error "There was an exception - #{e.class}(#{e.message})"
-          log_error e.backtrace.join("\n")
+          logger.error "There was an exception - #{e.class}(#{e.message})"
+          logger.error e.backtrace.join("\n")
 
           handle_exception
         end

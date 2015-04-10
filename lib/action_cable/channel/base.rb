@@ -11,7 +11,7 @@ module ActionCable
       on_unsubscribe :disconnect
 
       attr_reader :params, :connection
-      delegate :log_info, :log_error, to: :connection
+      delegate :logger, to: :connection
 
       class_attribute :channel_name
 
@@ -41,7 +41,7 @@ module ActionCable
           if respond_to?(:receive)
             receive(data)
           else
-            log_error "#{self.class.name} received data (#{data}) but #{self.class.name}#receive callback is not defined"
+            logger.error "#{self.class.name} received data (#{data}) but #{self.class.name}#receive callback is not defined"
           end
         else
           unauthorized
@@ -67,7 +67,7 @@ module ActionCable
         end
 
         def unauthorized
-          log_error "Unauthorized access to #{self.class.name}"
+          logger.error "Unauthorized access to #{self.class.name}"
         end
 
         def connect

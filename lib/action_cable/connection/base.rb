@@ -12,8 +12,7 @@ module ActionCable
         self.identifiers += identifiers
       end
 
-      attr_reader :env, :server
-      attr_accessor :log_tags
+      attr_reader :env, :server, :logger
       delegate :worker_pool, :pubsub, to: :server
 
       def initialize(server, env)
@@ -24,11 +23,13 @@ module ActionCable
         @accept_messages = false
         @pending_messages = []
         @subscriptions = {}
-        @log_tags = [ 'ActionCable' ]
+
+        @logger = TaggedLoggerProxy.new(server.logger, tags: [ 'ActionCable' ])
+        @logger.add_tags(*logger_tags)
       end
 
       def process
-        log_info started_request_message
+        logger.info started_request_message
 
         if websocket?
           @websocket = Faye::WebSocket.new(@env)
@@ -52,7 +53,7 @@ module ActionCable
           end
 
           @websocket.on(:close) do |event|
-            log_info finished_request_message
+            logger.info finished_request_message
 
             worker_pool.async.invoke(self, :on_connection_closed)
             EventMachine.cancel_timer(@ping_timer) if @ping_timer
@@ -86,7 +87,7 @@ module ActionCable
       end
 
       def broadcast(data)
-        log_info "Sending data: #{data}"
+        logger.info "Sending data: #{data}"
         @websocket.send data
       end
 
@@ -99,17 +100,9 @@ module ActionCable
       end
 
       def handle_exception
-        log_error "Closing connection"
+        logger.error "Closing connection"
 
         @websocket.close
-      end
-
-      def log_info(message)
-        log :info, message
-      end
-
-      def log_error(message)
-        log :error, message
       end
 
       protected
@@ -142,13 +135,13 @@ module ActionCable
           subscription_klass = server.registered_channels.detect { |channel_klass| channel_klass.find_name == id_options[:channel] }
 
           if subscription_klass
-            log_info "Subscribing to channel: #{id_key}"
+            logger.info "Subscribing to channel: #{id_key}"
             @subscriptions[id_key] = subscription_klass.new(self, id_key, id_options)
           else
-            log_error "Subscription class not found (#{data.inspect})"
+            logger.error "Subscription class not found (#{data.inspect})"
           end
         rescue Exception => e
-          log_error "Could not subscribe to channel (#{data.inspect})"
+          logger.error "Could not subscribe to channel (#{data.inspect})"
           log_exception(e)
         end
 
@@ -159,18 +152,18 @@ module ActionCable
             log_exception "Unable to process message because no subscription was found (#{message.inspect})"
           end
         rescue Exception => e
-          log_error "Could not process message (#{message.inspect})"
+          logger.error "Could not process message (#{message.inspect})"
           log_exception(e)
         end
 
         def unsubscribe_channel(data)
-          log_info "Unsubscribing from channel: #{data['identifier']}"
+          logger.info "Unsubscribing from channel: #{data['identifier']}"
           @subscriptions[data['identifier']].unsubscribe
           @subscriptions.delete(data['identifier'])
         end
 
         def invalid_request
-          log_info "#{finished_request_message}"
+          logger.info "#{finished_request_message}"
           [404, {'Content-Type' => 'text/plain'}, ['Page not found']]
         end
 
@@ -204,12 +197,12 @@ module ActionCable
         end
 
         def log_exception(e)
-          log_error "There was an exception - #{e.class}(#{e.message})"
-          log_error e.backtrace.join("\n")
+          logger.error "There was an exception - #{e.class}(#{e.message})"
+          logger.error e.backtrace.join("\n")
         end
 
-        def log(type, message)
-          server.logger.tagged(*log_tags) { server.logger.send type, message }
+        def logger_tags
+          []
         end
     end
   end
