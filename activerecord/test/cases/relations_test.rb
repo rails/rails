@@ -1657,6 +1657,10 @@ class RelationTest < ActiveRecord::TestCase
     assert_sql(/^((?!ORDER).)*$/) { Post.all.find_by(author_id: 2) }
   end
 
+  test "find_by requires at least one argument" do
+    assert_raises(ArgumentError) { Post.all.find_by }
+  end
+
   test "find_by! with hash conditions returns the first matching record" do
     assert_equal posts(:eager_other), Post.order(:id).find_by!(author_id: 2)
   end
@@ -1677,6 +1681,10 @@ class RelationTest < ActiveRecord::TestCase
     assert_raises(ActiveRecord::RecordNotFound) do
       Post.all.find_by!("1 = 0")
     end
+  end
+
+  test "find_by! requires at least one argument" do
+    assert_raises(ArgumentError) { Post.all.find_by! }
   end
 
   test "loaded relations cannot be mutated by multi value methods" do

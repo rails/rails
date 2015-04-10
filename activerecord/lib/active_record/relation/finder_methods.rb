@@ -77,16 +77,16 @@ module ActiveRecord
     #
     #   Post.find_by name: 'Spartacus', rating: 4
     #   Post.find_by "published_at < ?", 2.weeks.ago
-    def find_by(*args)
-      where(*args).take
+    def find_by(arg, *args)
+      where(arg, *args).take
     rescue RangeError
       nil
     end
 
     # Like <tt>find_by</tt>, except that if no record is found, raises
     # an <tt>ActiveRecord::RecordNotFound</tt> error.
-    def find_by!(*args)
-      where(*args).take!
+    def find_by!(arg, *args)
+      where(arg, *args).take!
     rescue RangeError
       raise RecordNotFound, "Couldn't find #{@klass.name} with an out of range value"
     end
