@@ -1361,18 +1361,6 @@ date_field_tag "dob"
 
 Provides functionality for working with JavaScript in your views.
 
-#### button_to_function
-
-Returns a button that'll trigger a JavaScript function using the onclick handler. Examples:
-
-```ruby
-button_to_function "Greeting", "alert('Hello world!')"
-button_to_function "Delete", "if (confirm('Really?')) do_delete()"
-button_to_function "Details" do |page|
-  page[:details].visual_effect :toggle_slide
-end
-```
-
 #### define_javascript_functions
 
 Includes the Action Pack JavaScript libraries inside a single `script` tag.
@@ -1395,15 +1383,6 @@ javascript_tag "alert('All is good')"
 alert('All is good')
 //]]>
 </script>
-```
-
-#### link_to_function
-
-Returns a link that will trigger a JavaScript function using the onclick handler and return false after the fact.
-
-```ruby
-link_to_function "Greeting", "alert('Hello world!')"
-# => <a onclick="alert('Hello world!'); return false;" href="#">Greeting</a>
 ```
 
 ### NumberHelper
