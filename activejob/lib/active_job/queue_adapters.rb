@@ -41,55 +41,55 @@ module ActiveJob
   #
   # ==== Delayed
   #
-  # Yes: The adapter lets jobs run in the future through perform_later.
+  # Yes: The adapter will run the job in the future through perform_later.
   #
   # (Gem): An additional gem is required to use perform_later with this adapter.
   #
-  # No: The adapter will run jobs at the next opportunity and can not use perform_later.
+  # No: The adapter will run jobs at the next opportunity and cannot use perform_later.
   #
-  # N/A: The adapter does not run in a separate process.
+  # N/A: The adapter does not support queueing.
   #
   # NOTE:
-  # queue_classic does not support Job scheduling. However you can implement this
-  # yourself or you can use the queue_classic-later gem. See the documentation for
-  # ActiveJob::QueueAdapters::QueueClassicAdapter.
+  # queue_classic does not support job scheduling.
+  # However, you can use the queue_classic-later gem.
+  # See the documentation for ActiveJob::QueueAdapters::QueueClassicAdapter.
   #
   # ==== Priorities
   #
   # The order in which jobs are processed can be configured differently depending on the adapter.
   #
-  # Job: Any class inheriting from the adapter may set it's own priority relative to other jobs. Set on the job object.
+  # Job: Any class inheriting from the adapter may set the priority on the job object relative to other jobs.
   #
-  # Queue: The adapter can set the priority of it's queues, when setting a queue with Active Job this will be respected.
+  # Queue: The adapter can set the priority for job queues, when setting a queue with Active Job this will be respected.
   #
-  # Yes: Allows the priority of a job to be set on the job object, at the queue level or as a default during configuration. 
+  # Yes: Allows the priority to be set on the job object, at the queue level or as default configuration option.
   #
   # No: Does not allow the priority of jobs to be configured.
   #
-  # N/A: The adapter does not run in a separate process.
+  # N/A: The adapter does not support queueing, and therefore sorting them.
   #
   # ==== Timeout
   #
-  # Whether a job will stop after a maximum allotted time.
+  # When a job will stop after the allotted time.
   #
-  # Job: The timeout for each job is set per instance of the adapter class.
+  # Job: The timeout can be set for each instance of the job class.
   #
-  # Queue: The adapter allows all jobs on a queue to timeout after a set time.
+  # Queue: The timeout is set for all jobs on the queue.
   #
   # Global: The adapter is configured that all jobs have a maximum run time.
   #
-  # N/A: This adapter does not run in a separate process.
+  # N/A: This adapter does not run in a separate process, and therefore timeout is unsupported.
   #
   # ==== Retries
   #
   # Job: The number of retries can be set per instance of the job class.
   #
-  # Yes: The Number of retries can be configured at a global, instance or on the queue.
-  # Or the adapter may present failed jobs as objects that can be restarted.
+  # Yes: The Number of retries can be configured globally, for each instance or on the queue.
+  # This adapter may also present failed instances of the job class that can be restarted.
   #
   # Global: The adapter has a global number of retries.
-  # N/A: The adapter does not run in a separate process.
-  
+  #
+  # N/A: The adapter does not run in a separate process, and therefore doesn't support retries.
   module QueueAdapters
     extend ActiveSupport::Autoload
 
