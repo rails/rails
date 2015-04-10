@@ -1,4 +1,3 @@
-require 'sidekiq/cli'
 require 'sidekiq/api'
 
 module SidekiqJobsManager
@@ -18,23 +17,45 @@ module SidekiqJobsManager
 
   def start_workers
     fork do
-      sidekiq = Sidekiq::CLI.instance
       logfile = Rails.root.join("log/sidekiq.log").to_s
       pidfile = Rails.root.join("tmp/sidekiq.pid").to_s
-      sidekiq.parse([ "--require", Rails.root.to_s,
-                      "--queue",   "integration_tests",
-                      "--logfile", logfile,
-                      "--pidfile", pidfile,
-                      "--environment", "test",
-                      "--concurrency", "1",
-                      "--timeout", "1",
-                      "--daemon",
-                      ])
+      ::Process.daemon(true, true)
+      [$stdout, $stderr].each do |io|
+        File.open(logfile, 'ab') do |f|
+          io.reopen(f)
+        end
+        io.sync = true
+      end
+      $stdin.reopen('/dev/null')
+      Sidekiq::Logging.initialize_logger(logfile)
+      File.open(File.expand_path(pidfile), 'w') do |f|
+        f.puts ::Process.pid
+      end
+
+      self_read, self_write = IO.pipe
+      trap "TERM" do
+        self_write.puts("TERM")
+      end
+
       require 'celluloid'
-      require 'sidekiq/scheduled'
+      require 'sidekiq/launcher'
+      sidekiq = Sidekiq::Launcher.new({queues: ["integration_tests"],
+                                       environment: "test",
+                                       concurrency: 1,
+                                       timeout: 1,
+                                      })
       Sidekiq.poll_interval = 0.5
       Sidekiq::Scheduled.const_set :INITIAL_WAIT, 1
-      sidekiq.run
+      begin
+        sidekiq.run
+        while readable_io = IO.select([self_read])
+          signal = readable_io.first[0].gets.strip
+          raise Interrupt if signal == "TERM"
+        end
+      rescue Interrupt
+        sidekiq.stop
+        exit(0)
+      end
     end
     sleep 1
   end
