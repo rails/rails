@@ -29,11 +29,67 @@ module ActiveJob
   #   | Active Job Inline | No    | Yes    | N/A       | N/A        | N/A     | N/A     |
   #   | Active Job        | Yes   | Yes    | Yes       | No         | No      | No      |
   #
+  # ==== Async
+  #
+  # Yes: The Queue Adapter runs the jobs in a separate or forked process.
+  #
+  # No: The job is run in the same process.
+  #
+  # ==== Queues
+  #
+  # Yes: Jobs may set which queue they are run in with queue_as or by using the set method.
+  #
+  # ==== Delayed
+  #
+  # Yes: The adapter lets jobs run in the future through perform_later.
+  #
+  # (Gem): An additional gem is required to use perform_later with this adapter.
+  #
+  # No: The adapter will run jobs at the next opportunity and can not use perform_later.
+  #
+  # N/A: The adapter does not run in a separate process.
+  #
   # NOTE:
   # queue_classic does not support Job scheduling. However you can implement this
   # yourself or you can use the queue_classic-later gem. See the documentation for
   # ActiveJob::QueueAdapters::QueueClassicAdapter.
   #
+  # ==== Priorities
+  #
+  # The order in which jobs are processed can be configured differently depending on the adapter.
+  #
+  # Job: Any class inheriting from the adapter may set it's own priority relative to other jobs. Set on the job object.
+  #
+  # Queue: The adapter can set the priority of it's queues, when setting a queue with Active Job this will be respected.
+  #
+  # Yes: Allows the priority of a job to be set on the job object, at the queue level or as a default during configuration. 
+  #
+  # No: Does not allow the priority of jobs to be configured.
+  #
+  # N/A: The adapter does not run in a separate process.
+  #
+  # ==== Timeout
+  #
+  # Whether a job will stop after a maximum allotted time.
+  #
+  # Job: The timeout for each job is set per instance of the adapter class.
+  #
+  # Queue: The adapter allows all jobs on a queue to timeout after a set time.
+  #
+  # Global: The adapter is configured that all jobs have a maximum run time.
+  #
+  # N/A: This adapter does not run in a separate process.
+  #
+  # ==== Retries
+  #
+  # Job: The number of retries can be set per instance of the job class.
+  #
+  # Yes: The Number of retries can be configured at a global, instance or on the queue.
+  # Or the adapter may present failed jobs as objects that can be restarted.
+  #
+  # Global: The adapter has a global number of retries.
+  # N/A: The adapter does not run in a separate process.
+  
   module QueueAdapters
     extend ActiveSupport::Autoload
 
