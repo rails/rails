@@ -3,7 +3,7 @@ require 'support/schema_dumping_helper'
 
 class CharsetCollationTest < ActiveRecord::TestCase
   include SchemaDumpingHelper
-  self.use_transactional_fixtures = false
+  self.use_transactional_tests = false
 
   setup do
     @connection = ActiveRecord::Base.connection
