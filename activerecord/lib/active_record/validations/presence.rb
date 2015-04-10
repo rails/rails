@@ -43,6 +43,10 @@ module ActiveRecord
       # deletes the associated object, thus putting the parent object into an invalid
       # state.
       #
+      # NOTE: This validation will not fail while using it with an association
+      # if the latter was assigned but not valid. If you want to ensure that
+      # it is both present and valid, you also need to use +validates_associated+.
+      #
       # Configuration options:
       # * <tt>:message</tt> - A custom error message (default is: "can't be blank").
       # * <tt>:on</tt> - Specifies the contexts where this validation is active.
