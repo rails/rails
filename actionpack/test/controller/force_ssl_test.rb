@@ -315,7 +315,7 @@ class RedirectToSSLTest < ActionController::TestCase
     assert_equal "https://secure.cheeseburger.host/redirect_to_ssl/cheeseburger", redirect_to_url
   end
 
-  def test_banana_does_not_redirect_if_already_https
+  def test_cheeseburgers_does_not_redirect_if_already_https
     request.env['HTTPS'] = 'on'
     get :cheeseburger
     assert_response 200
