@@ -39,7 +39,7 @@ module Enumerable
     end
   end
 
-  # Convert an enumerable to a hash.
+  # Converts an enumerable into grouped counts.
   #
   #   people.count_by(&:last_name)
   #     => { "Fowler" => 20, "Hansson" => 1, ...}
