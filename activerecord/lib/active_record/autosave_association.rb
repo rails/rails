@@ -348,6 +348,17 @@ module ActiveRecord
         true
       end
 
+      def bind_associations
+        @association_cache.each do |assoc, hmassoc|
+          next unless hmassoc.instance_of?(ActiveRecord::Associations::HasManyAssociation)
+          foreign_key = hmassoc.reflection.foreign_key
+          primary_key = hmassoc.reflection.active_record_primary_key
+          hmassoc.target.each do |target|
+            target.send("#{foreign_key}=", send(primary_key)) if target.respond_to?("#{foreign_key}=")
+          end
+        end
+      end
+
       # Saves any new associated records, or all loaded autosave associations if
       # <tt>:autosave</tt> is enabled on the association.
       #
@@ -357,6 +368,7 @@ module ActiveRecord
       # This all happens inside a transaction, _if_ the Transactions module is included into
       # ActiveRecord::Base after the AutosaveAssociation module, which it does by default.
       def save_collection_association(reflection)
+        bind_associations
         if association = association_instance_get(reflection.name)
           autosave = reflection.options[:autosave]
 
