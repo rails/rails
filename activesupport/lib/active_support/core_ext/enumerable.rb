@@ -39,6 +39,20 @@ module Enumerable
     end
   end
 
+  # Convert an enumerable to a hash.
+  #
+  #   people.count_by(&:last_name)
+  #     => { "Fowler" => 20, "Hansson" => 1, ...}
+  #   people.count_by { |person| "#{person.age} #{person.gender}" }
+  #     => { "20 F" => 999, "20 M" => 999, ...}
+  def count_by
+    if block_given?
+      Hash[group_by { |elem| yield(elem) }.map { |group, elems| [group, elems.length] }]
+    else
+      to_enum(:count_by) { size if respond_to?(:size) }
+    end
+  end
+
   # Returns +true+ if the enumerable has more than 1 element. Functionally
   # equivalent to <tt>enum.to_a.size > 1</tt>. Can be called with a block too,
   # much like any?, so <tt>people.many? { |p| p.age > 26 }</tt> returns +true+
