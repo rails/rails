@@ -923,7 +923,7 @@ For example, given we have a `users` table with `guid` as the primary key. If we
 
 ```ruby
 class User < ActiveRecord::Base
-  self.primay_key = 'guid' # primary key is guid and not id
+  self.primary_key = 'guid' # primary key is guid and not id
 end
 
 class Todo < ActiveRecord::Base
