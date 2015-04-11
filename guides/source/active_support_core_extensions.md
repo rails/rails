@@ -906,7 +906,7 @@ The `delegate` macro accepts several methods:
 delegate :name, :age, :address, :twitter, to: :profile
 ```
 
-When interpolated into a string, the `:to` option should become an expression that evaluates to the object the method is delegated to. Typically a string or symbol. Such an expression is evaluated in the context of the receiver:
+When interpolated into a string, the `:to` option should become an expression that is evaluated to the object the method is delegated to. Typically a string or symbol. Such an expression is evaluated in the context of the receiver:
 
 ```ruby
 # delegates to the Rails constant
@@ -1754,7 +1754,7 @@ end
 "M::X".constantize # => 1
 ```
 
-If the string evaluates to no known constant, or its content is not even a valid constant name, `constantize` raises `NameError`.
+If the string is evaluated to no known constant, or its content is not even a valid constant name, `constantize` raises `NameError`.
 
 Constant name resolution by `constantize` starts always at the top-level `Object` even if there is no leading "::".
 
