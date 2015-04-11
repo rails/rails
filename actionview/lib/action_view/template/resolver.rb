@@ -270,7 +270,7 @@ module ActionView
   #
   #   ActionController::Base.view_paths = FileSystemResolver.new(
   #     Rails.root.join("app/views"),
-  #     ":prefix{/:locale}/:action{.:formats,}{+:variants,}{.:handlers,}"
+  #     ":prefix/:action{.:locale,}{.:formats,}{+:variants,}{.:handlers,}",
   #   )
   #
   # ==== Pattern format and variables
