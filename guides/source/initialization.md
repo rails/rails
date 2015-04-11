@@ -34,7 +34,7 @@ Launch!
 Let's start to boot and initialize the app. A Rails application is usually
 started by running `rails console` or `rails server`.
 
-### `railties/bin/rails`
+### `railties/exe/rails`
 
 The `rails` in the command `rails server` is a ruby executable in your load
 path. This executable contains the following lines:
@@ -45,7 +45,7 @@ load Gem.bin_path('railties', 'rails', version)
 ```
 
 If you try out this command in a Rails console, you would see that this loads
-`railties/bin/rails`. A part of the file `railties/bin/rails.rb` has the
+`railties/exe/rails`. A part of the file `railties/exe/rails.rb` has the
 following code:
 
 ```ruby

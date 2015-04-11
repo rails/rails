@@ -1,3 +1,7 @@
+*   Rename `railties/bin` to `railties/exe` to match the new Bundler executables convention.
+    
+    *Islam Wazery*
+ 
 *   Print `bundle install` output in `rails new` as soon as it's available
 
     Running `rails new` will now print the output of `bundle install` as
