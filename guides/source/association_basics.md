@@ -829,6 +829,7 @@ The `belongs_to` association supports these options:
 * `:counter_cache`
 * `:dependent`
 * `:foreign_key`
+* `:primary_key`
 * `:inverse_of`
 * `:polymorphic`
 * `:touch`
@@ -912,6 +913,24 @@ end
 ```
 
 TIP: In any case, Rails will not create foreign key columns for you. You need to explicitly define them as part of your migrations.
+
+##### `:primary_key`
+
+By convention, Rails assumes that the column used to hold the primary key of it's table is `id`, and `:primary_key` allows you to specify a different column.
+
+Let's say that `users` table has `guid` as the primary key. And the requirement is that `todos` table should hold `guid` column value in the foreign key `user_id`. This can be achieved like this
+
+```ruby
+class User < ActiveRecord::Base
+  self.primay_key = 'guid' # primary key is guid and not id
+end
+
+class Todo < ActiveRecord::Base
+  belongs_to :user, primary_key: 'guid'
+end
+```
+
+Now if we execute `@user.todos.create` then `@todo` record will have `user_id` value as the `guid` value of `@user`.
 
 ##### `:inverse_of`
 
