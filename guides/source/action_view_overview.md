@@ -1361,10 +1361,6 @@ date_field_tag "dob"
 
 Provides functionality for working with JavaScript in your views.
 
-#### define_javascript_functions
-
-Includes the Action Pack JavaScript libraries inside a single `script` tag.
-
 #### escape_javascript
 
 Escape carrier returns and single and double quotes for JavaScript segments.
