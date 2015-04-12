@@ -1,3 +1,9 @@
+*   Add note that partial indexes are only supported by Postgres and SQLite.
+
+    Fixes #18106
+
+    *Grey Baker*
+
 *   Fixed a bug where uniqueness validations would error on out of range values,
     even if an validation should have prevented it from hitting the database.
 
