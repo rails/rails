@@ -356,23 +356,39 @@ Supposing we use the same `_box` partial from above, this would produce the same
 View Paths
 ----------
 
-In case, you want to modify the default view path of a controller, you could either prepend or append to the view path, based on the need of looking it up before or after.
+When rendering the view for a request, the controller needs to resolve where to find each of the directories are located.
+
+We are able to modify the order these locations are resolved by using `prepend_view_path` and `append_view_path`.
+
+This allows us to add new paths to the beginning or end of the list used to resolve these paths.
 
 ### Prepend view path
 
-Example: Change view paths for different sub-domains. Prepend to the view path by doing
+This can be helpful for example, when we want to prepend a different directory for subdomains.
+
+We can do this by using:
 
 ```prepend_view_path "app/views/#{request.subdomain}"```
 
-After this, views will be looked up in this order ```[~/rails_app/app/views/<subdomain>, ~/rails_app/app/views]```  
+Then our list becomes something like:
+
+```
+[
+  ~/rails_app/app/views/<subdomain>,
+  ~/rails_app/app/views,
+  # ...
+]
+```
+
+This will put the subdomain path at the beginning of the list.
 
 ### Append view path
 
-Similarly, to append to the view paths you would do it with
+Similarly, we can append paths:
 
 ```append_view_path "app/views/direct"```.
 
-This would add ```app/views/direct``` and the end of lookup paths for views.
+This will add ```app/views/direct``` and the end of lookup paths for views.
 
 Overview of helpers provided by Action View
 -------------------------------------------
