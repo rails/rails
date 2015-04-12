@@ -430,10 +430,16 @@ module ActionView
         case record
         when String, Symbol
           object_name = record
-          object      = nil
+          if object = retrive_object(record)
+            record = object
+            object = record.last if record.is_a?(Array)
+          end
         else
-          object      = record.is_a?(Array) ? record.last : record
+          object = record.is_a?(Array) ? record.last : record
           raise ArgumentError, "First argument in form cannot contain nil or be empty" unless object
+        end
+
+        if object
           object_name = options[:as] || model_name_from_record_or_class(object).param_key
           apply_form_for_options!(record, object, options)
         end
@@ -1217,6 +1223,13 @@ module ActionView
       end
 
       private
+        def retrive_object(object_name)
+          if instance_variable_defined?("@#{object_name}")
+            instance_variable_get("@#{object_name}")
+          end
+        rescue NameError
+          nil
+        end
 
         def instantiate_builder(record_name, record_object, options)
           case record_name

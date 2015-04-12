@@ -136,6 +136,8 @@ class FormHelperTest < ActionView::TestCase
       resources :comments
     end
 
+    resources :entries
+
     namespace :admin do
       resources :posts do
         resources :comments
@@ -1961,24 +1963,24 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_form_for_enforce_utf8_true
-    form_for(:post, enforce_utf8: true) do |f|
+    form_for(:entry, enforce_utf8: true) do |f|
       concat f.text_field(:title)
     end
 
     expected = whole_form("/", nil, nil, enforce_utf8: true) do
-      "<input name='post[title]' type='text' id='post_title' value='Hello World' />"
+      "<input type='text' name='entry[title]' id='entry_title' />"
     end
 
     assert_dom_equal expected, output_buffer
   end
 
   def test_form_for_enforce_utf8_false
-    form_for(:post, enforce_utf8: false) do |f|
+    form_for(:entry, enforce_utf8: false) do |f|
       concat f.text_field(:title)
     end
 
     expected = whole_form("/", nil, nil, enforce_utf8: false) do
-      "<input name='post[title]' type='text' id='post_title' value='Hello World' />"
+      "<input type='text' name='entry[title]' id='entry_title' />"
     end
 
     assert_dom_equal expected, output_buffer
@@ -2021,17 +2023,17 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_form_for_without_object
-    form_for(:post, html: { id: 'create-post' }) do |f|
+    form_for(:entry, html: { id: 'create-entry' }) do |f|
       concat f.text_field(:title)
       concat f.text_area(:body)
       concat f.check_box(:secret)
     end
 
-    expected = whole_form("/", "create-post") do
-      "<input name='post[title]' type='text' id='post_title' value='Hello World' />" +
-      "<textarea name='post[body]' id='post_body'>\nBack to the hill and over it again!</textarea>" +
-      "<input name='post[secret]' type='hidden' value='0' />" +
-      "<input name='post[secret]' checked='checked' type='checkbox' id='post_secret' value='1' />"
+    expected = whole_form("/", "create-entry") do
+      "<input type='text' name='entry[title]' id='entry_title' />" +
+      "<textarea name='entry[body]' id='entry_body'>\n</textarea>" +
+      "<input name='entry[secret]' type='hidden' value='0' />" +
+      "<input type='checkbox' value='1' name='entry[secret]' id='entry_secret' />"
     end
 
     assert_dom_equal expected, output_buffer
@@ -2249,7 +2251,7 @@ class FormHelperTest < ActionView::TestCase
 
   def test_submit_without_object_and_locale_strings
     with_locale :submit do
-      form_for(:post) do |f|
+      form_for(:entry) do |f|
         concat f.submit class: "extra"
       end
 
@@ -3467,11 +3469,12 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def form_text(action = "/", id = nil, html_class = nil, remote = nil, multipart = nil, method = nil)
-    txt =  %{<form accept-charset="UTF-8" action="#{action}"}
+    txt =  %{<form}
+    txt << %{ id="#{id}"} if id
+    txt << %{ action="#{action}" accept-charset="UTF-8"}
     txt << %{ enctype="multipart/form-data"} if multipart
     txt << %{ data-remote="true"} if remote
     txt << %{ class="#{html_class}"} if html_class
-    txt << %{ id="#{id}"} if id
     method = method.to_s == "get" ? "get" : "post"
     txt << %{ method="#{method}">}
   end
