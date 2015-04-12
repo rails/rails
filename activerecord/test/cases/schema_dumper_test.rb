@@ -73,7 +73,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
       next if column_set.empty?
 
       lengths = column_set.map do |column|
-        if match = column.match(/t\.(?:integer|decimal|float|datetime|timestamp|time|date|text|binary|string|boolean|xml|uuid|point)\s+"/)
+        if match = column.match(/\bt\.\w+\s+"/)
           match[0].length
         end
       end.compact
