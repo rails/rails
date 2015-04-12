@@ -348,9 +348,21 @@ module ActiveRecord
     def update_all(updates)
       raise ArgumentError, "Empty list of attributes to change" if updates.blank?
 
+      case updates
+      when Hash
+        values = {}
+        updates.each do |attr, value|
+          value = type_for_attribute(attr.to_s).cast(value)
+          values[table[attr.to_s]] = value
+        end
+        assigns, binds = substitute_values values
+      else
+        assigns, binds = Arel.sql(@klass.send(:sanitize_sql_for_assignment, updates)), []
+      end
+
       stmt = Arel::UpdateManager.new
 
-      stmt.set Arel.sql(@klass.send(:sanitize_sql_for_assignment, updates))
+      stmt.set assigns
       stmt.table(table)
       stmt.key = table[primary_key]
 
@@ -362,7 +374,7 @@ module ActiveRecord
         stmt.wheres = arel.constraints
       end
 
-      @klass.connection.update stmt, 'SQL', bound_attributes
+      @klass.connection.update stmt, 'SQL', binds + bound_attributes
     end
 
     # Updates an object (or multiple objects) and saves it to the database, if validations pass.
