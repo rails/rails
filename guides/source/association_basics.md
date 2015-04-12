@@ -916,8 +916,8 @@ TIP: In any case, Rails will not create foreign key columns for you. You need to
 
 ##### `:primary_key`
 
-By convention, Rails assumes that the `id` column is used to hold the primary key of it's table.
-The `:primary_key` option allows you to specify a different column.
+By convention, Rails assumes that the `id` column is used to hold the primary key
+of its tables. The `:primary_key` option allows you to specify a different column.
 
 For example, given we have a `users` table with `guid` as the primary key. If we want a separate `todos` table to hold the foreign key `user_id` in the `guid` column, then we can use `primary_key` to achieve this like so:
 
@@ -931,7 +931,8 @@ class Todo < ActiveRecord::Base
 end
 ```
 
-When we execute `@user.todos.create` then the `@todo` record will have `user_id` value as the `guid` value of `@user`.
+When we execute `@user.todos.create` then the `@todo` record will have its
+`user_id` value as the `guid` value of `@user`.
 
 ##### `:inverse_of`
 

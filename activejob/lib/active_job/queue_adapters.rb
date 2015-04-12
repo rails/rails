@@ -37,7 +37,8 @@ module ActiveJob
   #
   # ==== Queues
   #
-  # Yes: Jobs may set which queue they are run in with queue_as or by using the set method.
+  # Yes: Jobs may set which queue they are run in with queue_as or by using the set
+  # method.
   #
   # ==== Delayed
   #
@@ -56,13 +57,17 @@ module ActiveJob
   #
   # ==== Priorities
   #
-  # The order in which jobs are processed can be configured differently depending on the adapter.
+  # The order in which jobs are processed can be configured differently depending
+  # on the adapter.
   #
-  # Job: Any class inheriting from the adapter may set the priority on the job object relative to other jobs.
+  # Job: Any class inheriting from the adapter may set the priority on the job
+  # object relative to other jobs.
   #
-  # Queue: The adapter can set the priority for job queues, when setting a queue with Active Job this will be respected.
+  # Queue: The adapter can set the priority for job queues, when setting a queue
+  # with Active Job this will be respected.
   #
-  # Yes: Allows the priority to be set on the job object, at the queue level or as default configuration option.
+  # Yes: Allows the priority to be set on the job object, at the queue level or
+  # as default configuration option.
   #
   # No: Does not allow the priority of jobs to be configured.
   #
@@ -78,18 +83,21 @@ module ActiveJob
   #
   # Global: The adapter is configured that all jobs have a maximum run time.
   #
-  # N/A: This adapter does not run in a separate process, and therefore timeout is unsupported.
+  # N/A: This adapter does not run in a separate process, and therefore timeout
+  # is unsupported.
   #
   # ==== Retries
   #
   # Job: The number of retries can be set per instance of the job class.
   #
-  # Yes: The Number of retries can be configured globally, for each instance or on the queue.
-  # This adapter may also present failed instances of the job class that can be restarted.
+  # Yes: The Number of retries can be configured globally, for each instance or
+  # on the queue. This adapter may also present failed instances of the job class
+  # that can be restarted.
   #
   # Global: The adapter has a global number of retries.
   #
-  # N/A: The adapter does not run in a separate process, and therefore doesn't support retries.
+  # N/A: The adapter does not run in a separate process, and therefore doesn't
+  # support retries.
   module QueueAdapters
     extend ActiveSupport::Autoload
 
