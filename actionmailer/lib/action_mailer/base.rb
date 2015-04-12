@@ -142,8 +142,8 @@ module ActionMailer
   #   mail.deliver_now                               # generates and sends the email now
   #
   # The <tt>ActionMailer::MessageDelivery</tt> class is a wrapper around a delegate that will call
-  # your method to generate the mail. If you want direct access to <tt>Mail::Message</tt> you can
-  # call the <tt>message</tt> method on the <tt>ActionMailer::MessageDelivery</tt> object.
+  # your method to generate the mail. If you want direct access to delegator, or <tt>Mail::Message</tt>,
+  # you can call the <tt>message</tt> method on the <tt>ActionMailer::MessageDelivery</tt> object.
   #
   #   NotifierMailer.welcome(User.first).message     # => a Mail::Message object
   #
