@@ -17,9 +17,8 @@ class String
   #   str.squish!                         # => "foo bar boo"
   #   str                                 # => "foo bar boo"
   def squish!
-    gsub!(/\A[[:space:]]+/, '')
-    gsub!(/[[:space:]]+\z/, '')
     gsub!(/[[:space:]]+/, ' ')
+    strip!
     self
   end
 
