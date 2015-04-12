@@ -876,18 +876,26 @@ end
 
 With this declaration, Rails will keep the cache value up to date, and then return that value in response to the `size` method.
 
-Although the `:counter_cache` option is specified on the model that includes the `belongs_to` declaration, the actual column must be added to the _associated_ model. In the case above, you would need to add a column named `orders_count` to the `Customer` model. You can override the default column name if you need to:
+Although the `:counter_cache` option is specified on the model that includes
+the `belongs_to` declaration, the actual column must be added to the
+_associated_ (`has_many`) model. In the case above, you would need to add a
+column named `orders_count` to the `Customer` model.
+
+You can override the default column name by specifying a custom column name in
+the `counter_cache` declaration instead of `true`. For example, to use
+`count_of_orders` instead of `orders_count`:
 
 ```ruby
 class Order < ActiveRecord::Base
   belongs_to :customer, counter_cache: :count_of_orders
 end
 class Customer < ActiveRecord::Base
-  has_many :orders, counter_cache: :count_of_orders
+  has_many :orders
 end
 ```
 
-NOTE: You only need to specify the :counter_cache option on the "has_many side" of the association when using a custom name for the counter cache.
+NOTE: You only need to specify the :counter_cache option on the `belongs_to`
+side of the association.
 
 Counter cache columns are added to the containing model's list of read-only attributes through `attr_readonly`.
 
