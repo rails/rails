@@ -74,14 +74,16 @@ module ActiveRecord
       #   column_exists?(:suppliers, :tax, :decimal, precision: 8, scale: 2)
       #
       def column_exists?(table_name, column_name, type = nil, options = {})
-        column_name = column_name.to_s
-        columns(table_name).any?{ |c| c.name == column_name &&
-                                      (!type                     || c.type == type) &&
-                                      (!options.key?(:limit)     || c.limit == options[:limit]) &&
-                                      (!options.key?(:precision) || c.precision == options[:precision]) &&
-                                      (!options.key?(:scale)     || c.scale == options[:scale]) &&
-                                      (!options.key?(:default)   || c.default == options[:default]) &&
-                                      (!options.key?(:null)      || c.null == options[:null]) }
+        checks = []
+        checks << lambda { |c| c.name      == column_name.to_s }
+        checks << lambda { |c| c.type      == type } if type
+        checks << lambda { |c| c.limit     == options[:limit] } if options[:limit]
+        checks << lambda { |c| c.precision == options[:precision] } if options[:precision]
+        checks << lambda { |c| c.scale     == options[:scale] } if options[:scale]
+        checks << lambda { |c| c.default   == options[:default] } if options[:default]
+        checks << lambda { |c| c.null      == options[:null] } if options[:null]
+
+        columns(table_name).any? { |c| checks.all? { |check| check[c] } }
       end
 
       # Creates a new table with the name +table_name+. +table_name+ may either
