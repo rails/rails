@@ -60,6 +60,77 @@ module ActiveRecord
         assert_equal("fk_rails_78146ddd2e", fk.name)
       end
 
+      class CreateCitiesAndHousesWithoutColumnMigration < ActiveRecord::Migration
+        def change
+          create_table("cities") { |t| }
+
+          create_table("houses") do |t|
+            t.column :city_id, :integer
+          end
+        end
+      end
+
+      class AddForeignKeyMigration < ActiveRecord::Migration
+        def change
+          add_foreign_key :houses, :cities
+        end
+      end
+
+      def test_remove_foreign_key_with_prefix_and_suffix
+        ActiveRecord::Base.table_name_prefix = 'prefix_'
+        ActiveRecord::Base.table_name_suffix = '_suffix'
+
+        migration = CreateCitiesAndHousesWithoutColumnMigration.new
+        add_key_migration = AddForeignKeyMigration.new
+
+        silence_stream($stdout) do
+          migration.migrate(:up)
+          add_key_migration.migrate(:up)
+        end
+ 
+        assert_equal 1, @connection.foreign_keys('prefix_houses_suffix').size 
+
+        silence_stream($stdout) { add_key_migration.migrate(:down) }
+
+        assert_equal [], @connection.foreign_keys('prefix_houses_suffix')
+      ensure
+        silence_stream($stdout) { migration.migrate(:down) } 
+        ActiveRecord::Base.table_name_prefix = ''
+        ActiveRecord::Base.table_name_suffix = ''
+      end
+
+      def test_add_foreign_key_with_prefix_and_suffix
+        ActiveRecord::Base.table_name_prefix = 'prefix_'
+        ActiveRecord::Base.table_name_suffix = '_suffix'
+
+        migration = CreateCitiesAndHousesWithoutColumnMigration.new
+        add_key_migration = AddForeignKeyMigration.new
+
+        silence_stream($stdout) do
+          migration.migrate(:up)
+          add_key_migration.migrate(:up)
+        end
+
+        foreign_keys = @connection.foreign_keys('prefix_houses_suffix')
+        
+        assert_equal 1, foreign_keys.size
+
+        fk = foreign_keys.first
+        assert_equal "prefix_houses_suffix", fk.from_table
+        assert_equal "prefix_cities_suffix", fk.to_table
+        assert_equal "city_id", fk.column
+        assert_equal "id", fk.primary_key
+
+      ensure
+        silence_stream($stdout) do
+          add_key_migration.migrate(:down)
+          migration.migrate(:down)
+        end
+
+        ActiveRecord::Base.table_name_prefix = ''
+        ActiveRecord::Base.table_name_suffix = ''
+      end
+
       def test_add_foreign_key_with_column
         @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id"
 

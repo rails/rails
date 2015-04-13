@@ -1,3 +1,7 @@
+*   Fixed a bug when adding a foreign key and having a prefix or suffix set
+
+    *Brian Malinconico*
+
 *   Rename `:class` to `:anonymous_class` in association options.
 
     Fixes #19659.

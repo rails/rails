@@ -385,6 +385,28 @@ module ActiveRecord
         visitor.accept(node, collector).value
       end
 
+      def table_name_options(config = ActiveRecord::Base)
+        {
+          table_name_prefix: config.table_name_prefix,
+          table_name_suffix: config.table_name_suffix
+        }
+      end
+
+      # Finds the correct table name given an Active Record object.
+      # Uses the Active Record object's own table_name, or pre/suffix from the
+      # options passed in.
+      def proper_table_name(name, options = table_name_options)
+        if name.respond_to?(:table_name)
+          name.table_name
+        else
+          "#{options[:table_name_prefix]}#{name}#{options[:table_name_suffix]}"
+        end
+      end
+
+      def remove_prefix_and_suffix(table)
+        table.to_s.gsub(/^(#{table_name_options[:table_name_prefix]})(.+)(#{table_name_options[:table_name_suffix]})$/,  "\\2")
+      end
+
       protected
 
       def initialize_type_map(m) # :nodoc:
