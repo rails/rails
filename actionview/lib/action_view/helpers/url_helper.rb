@@ -529,7 +529,7 @@ module ActionView
         # We ignore any extra parameters in the request_uri if the
         # submitted url doesn't have any either. This lets the function
         # work with things like ?order=asc
-        request_uri = url_string.index("?") ? request.fullpath : request.path
+        request_uri = url_string.index("?") ? request.original_fullpath : request.original_path
         request_uri = URI.parser.unescape(request_uri).force_encoding(Encoding::BINARY)
 
         if url_string =~ /^\w+:\/\//

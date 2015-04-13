@@ -423,11 +423,9 @@ class UrlHelperTest < ActiveSupport::TestCase
   end
 
   def test_current_page_with_escaped_params_with_different_encoding
-    @request = request_for_url("/")
-    @request.stub(:path, "/category/administra%c3%a7%c3%a3o".force_encoding(Encoding::ASCII_8BIT)) do
-      assert current_page?(:controller => 'foo', :action => 'category', category: 'administração')
-      assert current_page?("http://www.example.com/category/administra%c3%a7%c3%a3o")
-    end
+    @request = request_for_url("/category/administra%c3%a7%c3%a3o".force_encoding(Encoding::ASCII_8BIT))
+    assert current_page?(:controller => 'foo', :action => 'category', category: 'administração')
+    assert current_page?("http://www.example.com/category/administra%c3%a7%c3%a3o")
   end
 
   def test_current_page_with_double_escaped_params
