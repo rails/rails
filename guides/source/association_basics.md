@@ -146,14 +146,15 @@ class CreateSuppliers < ActiveRecord::Migration
 end
 ```
 
-If you happen to want to create a unique index with foreign key constraint...
-Then I would suggest using this for creating the accounts table instead:
+Depending on the use case, you might also need to create a unique index and/or
+a foreign key constraint on the supplier column for the accounts table. In this
+case, the column definition might look like this:
 
 ```ruby
-  create_table :accounts do |t|
-    t.belongs_to :supplier, index: true, unique: true, foreign_key: true
-    # ...
-  end
+create_table :accounts do |t|
+  t.belongs_to :supplier, index: true, unique: true, foreign_key: true
+  # ...
+end
 ```
 
 ### The `has_many` Association
