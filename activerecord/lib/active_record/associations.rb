@@ -1565,10 +1565,7 @@ module ActiveRecord
       #
       #   class CreateDevelopersProjectsJoinTable < ActiveRecord::Migration
       #     def change
-      #       create_table :developers_projects, id: false do |t|
-      #         t.integer :developer_id
-      #         t.integer :project_id
-      #       end
+      #       create_join_table :developers, :projects
       #     end
       #   end
       #
