@@ -895,6 +895,75 @@ The `revert` method can be helpful when writing a new migration to undo
 previous migrations in whole or in part
 (see [Reverting Previous Migrations](#reverting-previous-migrations) above).
 
+Using Models in Your Migrations
+-------------------------------
+
+When creating or updating data in a migration it is often tempting to use one
+of your models. After all, they exist to provide easy access to the underlying
+data. This can be done, but some caution should be observed.
+
+The simplest situation which creates problems is when you've used a model in a
+migration, and then later you decide to remove that model from your project. Any
+migration that uses that model will now fail, because the class is no longer
+defined.
+
+You can also get into trouble if you use a method or association that is later
+removed from your project, or if you rely on a callback, or generally rely on
+any code in your model because later that code may be removed and therefore your
+migration will fail.
+
+The best appraoch here is to create your own model class within your migration
+namespace (so it won't be affected by the existing model in your project).  Eg.
+
+```ruby
+# db/migrate/20150413100010_add_flag_to_product.rb
+
+class AddFlagToProduct < ActiveRecord::Migration
+  class Product < ActiveRecord::Base; end
+
+  def change
+    add_column :products, :flag, :boolean
+    reversible do |dir|
+      dir.up { Product.update_all flag: false }
+    end
+  end
+end
+```
+
+The `Product` within your migration will refer to the local `Product` class
+within your migration class, and therefore it will be immune to any changes in
+the `app/models/product.rb` and your migration is entirely self-contained.
+
+If you were relying on any code within your model then you should include that
+in the local class that you create. For example, here's a migration where we've
+realized that the `status` column in our `categories` table should have been in
+our `products` table:
+
+```ruby
+# db/migrate/20150413121132_move_status_to_product.rb
+
+class MoveStatusToProduct < ActiveRecord::Migration
+  class Product < ActiveRecord::Base
+    belongs_to :category
+  end
+
+  class Category < ActiveRecord::Base
+    has_many :products
+  end
+
+  def change
+    add_column :products, :status, :string
+    reversible do |dir|
+      Category.all.each do |cat|
+        dir.up   { cat.products.update_all status: cat.status }
+        dir.down { cat.update status: cat.products.first.status }
+      end
+    end
+    remove_column :categories, :status, :string
+  end
+end
+```
+
 Schema Dumping and You
 ----------------------
 
