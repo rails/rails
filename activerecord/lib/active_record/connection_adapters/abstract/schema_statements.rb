@@ -390,6 +390,10 @@ module ActiveRecord
 
       # Adds a new column to the named table.
       # See TableDefinition#column for details of the options you can use.
+      #
+      # Note: Not all options will be available, generally this command should
+      # ignore most of them. In favor of doing a low-level call to simply
+      # create a column.
       def add_column(table_name, column_name, type, options = {})
         at = create_alter_table table_name
         at.add_column(column_name, type, options)
