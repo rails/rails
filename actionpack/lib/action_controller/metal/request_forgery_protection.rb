@@ -42,6 +42,10 @@ module ActionController #:nodoc:
   # By default <tt>protect_from_forgery</tt> protects your session with
   # <tt>:null_session</tt> method, which provides an empty session during request
   #
+  # We may want to disable CSRF protection for APIs since they are typically
+  # designed to be state-less. That is, the requestion API client will handle
+  # the session for you instead of Rails.
+  #
   # The token parameter is named <tt>authenticity_token</tt> by default. The name and
   # value of this token must be added to every layout that renders forms by including
   # <tt>csrf_meta_tags</tt> in the HTML +head+.
