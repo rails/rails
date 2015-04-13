@@ -4,8 +4,6 @@ module ActionCable
 
     include Connection::Identifier
 
-    delegate :redis, to: :server
-
     def initialize(server, ids)
       @server = server
       set_identifier_instance_vars(ids)
