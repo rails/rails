@@ -389,7 +389,23 @@ module ActiveRecord
       end
 
       # Adds a new column to the named table.
-      # See TableDefinition#column for details of the options you can use.
+      # Available options are (none of these exists by default):
+      # * <tt>:limit</tt> -
+      #   Requests a maximum column length. This is number of characters for <tt>:string</tt> and
+      #   <tt>:text</tt> columns and number of bytes for <tt>:binary</tt> and <tt>:integer</tt> columns.
+      # * <tt>:default</tt> -
+      #   The column's default value. Use nil for NULL.
+      # * <tt>:null</tt> -
+      #   Allows or disallows +NULL+ values in the column. This option could
+      #   have been named <tt>:null_allowed</tt>.
+      # * <tt>:precision</tt> -
+      #   Specifies the precision for a <tt>:decimal</tt> column.
+      # * <tt>:scale</tt> -
+      #   Specifies the scale for a <tt>:decimal</tt> column.
+      #
+      # Note: <tt>:index</tt> option is not supported.
+      #
+      # See TableDefinition#column for details of the options and types.
       def add_column(table_name, column_name, type, options = {})
         at = create_alter_table table_name
         at.add_column(column_name, type, options)
