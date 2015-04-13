@@ -659,9 +659,7 @@ module ActionController
         @request.assign_parameters(@routes, controller_class_name, action.to_s, parameters)
 
         @request.session.update(session) if session
-
-        is_request_flash_enabled = @request.respond_to?(:flash)
-        @request.flash.update(flash || {}) if is_request_flash_enabled
+        @request.flash.update(flash || {})
 
         if xhr
           @request.env['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest'
@@ -687,8 +685,7 @@ module ActionController
 
         @assigns = @controller.respond_to?(:view_assigns) ? @controller.view_assigns : {}
 
-        flash_value = is_request_flash_enabled ? @request.flash.to_session_value : nil
-        if flash_value
+        if flash_value = @request.flash.to_session_value
           @request.session['flash'] = flash_value
         else
           @request.session.delete('flash')

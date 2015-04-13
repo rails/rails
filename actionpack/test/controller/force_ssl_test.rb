@@ -321,29 +321,4 @@ class RedirectToSSLTest < ActionController::TestCase
     assert_response 200
     assert_equal 'ihaz', response.body
   end
-
-  def test_banana_redirects_to_https_if_not_https_and_flash_middleware_is_disabled
-    disable_flash
-    get :banana
-    assert_response 301
-    assert_equal 'https://test.host/redirect_to_ssl/banana', redirect_to_url
-  ensure
-    enable_flash
-  end
-
-  private
-
-  def disable_flash
-    ActionDispatch::TestRequest.class_eval do
-      alias_method :flash_origin, :flash
-      undef_method :flash
-    end
-  end
-
-  def enable_flash
-    ActionDispatch::TestRequest.class_eval do
-      alias_method :flash, :flash_origin
-      undef_method :flash_origin
-    end
-  end
 end
