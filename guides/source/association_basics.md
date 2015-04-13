@@ -146,6 +146,16 @@ class CreateSuppliers < ActiveRecord::Migration
 end
 ```
 
+If you happen to want to create a unique index with foreign key constraint...
+Then I would suggest using this for creating the accounts table instead:
+
+```ruby
+  create_table :accounts do |t|
+    t.belongs_to :supplier, index: true, unique: true, foreign_key: true
+    # ...
+  end
+```
+
 ### The `has_many` Association
 
 A `has_many` association indicates a one-to-many connection with another model. You'll often find this association on the "other side" of a `belongs_to` association. This association indicates that each instance of the model has zero or more instances of another model. For example, in an application containing customers and orders, the customer model could be declared like this:
