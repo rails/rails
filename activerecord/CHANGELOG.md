@@ -1,3 +1,10 @@
+*   Improved partial writes with HABTM and has many through associations
+    to fire database query only if relation has been changed.
+
+    Fixes #19663.
+
+    *Mehmet Emin İNAÇ*
+
 *   Rework `ActiveRecord::Relation#last` 
     
     1. Never perform additional SQL on loaded relation
@@ -17,7 +24,6 @@
           # after:  Deprecation Warning for irreversible order
 
     *Bogdan Gusiev*
-
 
 *   Allow `joins` to be unscoped.
 
