@@ -912,7 +912,7 @@ removed from your project, or if you rely on a callback, or generally rely on
 any code in your model because later that code may be removed and therefore your
 migration will fail.
 
-The best appraoch here is to create your own model class within your migration
+The best approach here is to create your own model class within your migration
 namespace (so it won't be affected by the existing model in your project).  Eg.
 
 ```ruby
