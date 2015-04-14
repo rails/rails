@@ -24,18 +24,7 @@ module ActionCable
     end
 
     def pubsub
-      @pubsub ||= redis.pubsub
-    end
-
-    def redis
-      @redis ||= begin
-        redis = EM::Hiredis.connect(@redis_config[:url])
-        redis.on(:reconnected) do
-          logger.info "[ActionCable] Redis reconnected. Closing all the open connections."
-          @connections.map &:close_connection
-        end
-        redis
-      end
+      @pubsub ||= EM::Hiredis.connect(@redis_config[:url]).pubsub
     end
 
     def threaded_redis
