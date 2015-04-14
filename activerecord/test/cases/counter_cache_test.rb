@@ -28,6 +28,7 @@ class CounterCacheTest < ActiveRecord::TestCase
 
   setup do
     @topic = Topic.find(1)
+    @topic2 = Topic.find(2)
   end
 
   test "increment counter" do
@@ -66,6 +67,15 @@ class CounterCacheTest < ActiveRecord::TestCase
     Topic.update_counters @topic.id, replies_count: 1, unique_replies_count: 1
     assert_difference ['@topic.reload.replies_count', '@topic.reload.unique_replies_count'], -1 do
       Topic.reset_counters(@topic.id, :replies, :unique_replies)
+    end
+  end
+
+  test 'reset counters on multiple items' do
+    Topic.increment_counter('replies_count', @topic.id)
+    Topic.increment_counter('replies_count', @topic2.id)
+
+    assert_difference ['@topic.reload.replies_count', '@topic2.reload.replies_count'], -1 do
+      Topic.reset_counters([@topic.id, @topic2.id], 'replies')
     end
   end
 
@@ -199,3 +209,6 @@ class CounterCacheTest < ActiveRecord::TestCase
     assert_equal 2, car.reload.engines_count
   end
 end
+
+
+
