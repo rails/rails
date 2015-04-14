@@ -5,7 +5,9 @@ end
 
 initializer 'activejob.rb', <<-CODE
 require "#{File.expand_path("../jobs_manager.rb",  __FILE__)}"
-JobsManager.current_manager.setup
+Rails.application.config.after_initialize do
+  JobsManager.current_manager.setup
+end
 CODE
 
 file 'app/jobs/test_job.rb', <<-CODE
