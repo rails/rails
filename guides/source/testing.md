@@ -141,31 +141,22 @@ users(:david).id
 email(david.partner.email, david.location_tonight)
 ```
 
-### Rake Tasks for Running your Tests
+### Console Tasks for Running your Tests
 
-Rails comes with a number of built-in rake tasks to help with testing. The
-table below lists the commands included in the default Rakefile when a Rails
-project is created.
+Rails comes with a CLI command to run tests.
+Here are some examples of how to use it:
 
-| Tasks                   | Description |
-| ----------------------- | ----------- |
-| `rake test`             | Runs all tests in the `test` directory. You can also run `rake` and Rails will run all tests by default |
-| `rake test:controllers` | Runs all the controller tests from `test/controllers` |
-| `rake test:functionals` | Runs all the functional tests from `test/controllers`, `test/mailers`, and `test/functional` |
-| `rake test:helpers`     | Runs all the helper tests from `test/helpers` |
-| `rake test:integration` | Runs all the integration tests from `test/integration` |
-| `rake test:jobs`        | Runs all the job tests from `test/jobs` |
-| `rake test:mailers`     | Runs all the mailer tests from `test/mailers` |
-| `rake test:models`      | Runs all the model tests from `test/models` |
-| `rake test:units`       | Runs all the unit tests from `test/models`, `test/helpers`, and `test/unit` |
-| `rake test:db`          | Runs all tests in the `test` directory and resets the db |
+```bash
+$ bin/rails test # run all tests in the `test` directory
+$ bin/rails test test/controllers # run all tests from specific directory
+$ bin/rails test test/models/post_test.rb # run specific test
+$ bin/rails test test/models/post_test.rb:44 # run specific test and line
+```
 
 We will cover each of types Rails tests listed above in this guide.
 
 Model Testing
 ------------------------
-
-In Rails, unit tests are what you write to test your models.
 
 For this guide we will be using the application we built in the [Getting Started with Rails](getting_started.html) guide.
 
@@ -259,10 +250,10 @@ be rebuilt. This can be done by executing `bin/rake db:test:prepare`.
 
 ### Running Tests
 
-Running a test is as simple as invoking the file containing the test cases through `rake test` command.
+Running a test is as simple as invoking the file containing the test cases through `rails test` command.
 
 ```bash
-$ bin/rake test test/models/article_test.rb
+$ bin/rails test test/models/article_test.rb
 .
 
 Finished tests in 0.009262s, 107.9680 tests/s, 107.9680 assertions/s.
@@ -275,7 +266,7 @@ This will run all test methods from the test case.
 You can also run a particular test method from the test case by running the test and providing the `test method name`.
 
 ```bash
-$ bin/rake test test/models/article_test.rb test_the_truth
+$ bin/rails test test/models/article_test.rb test_the_truth
 .
 
 Finished tests in 0.009064s, 110.3266 tests/s, 110.3266 assertions/s.
@@ -296,10 +287,10 @@ test "should not save article without title" do
 end
 ```
 
-Let us run this newly added test.
+Let us run this newly added test (where `6` is the number of line where the test is defined).
 
 ```bash
-$ bin/rake test test/models/article_test.rb test_should_not_save_article_without_title
+$ bin/rails test test/models/article_test.rb:6
 F
 
 Finished tests in 0.044632s, 22.4054 tests/s, 22.4054 assertions/s.
@@ -339,7 +330,7 @@ end
 Now the test should pass. Let us verify by running the test again:
 
 ```bash
-$ bin/rake test test/models/article_test.rb test_should_not_save_article_without_title
+$ bin/rails test test/models/article_test.rb:6
 .
 
 Finished tests in 0.047721s, 20.9551 tests/s, 20.9551 assertions/s.
@@ -368,7 +359,7 @@ end
 Now you can see even more output in the console from running the tests:
 
 ```bash
-$ bin/rake test test/models/article_test.rb test_should_report_error
+$ bin/rails test test/models/article_test.rb
 E
 
 Finished tests in 0.030974s, 32.2851 tests/s, 0.0000 assertions/s.
@@ -393,11 +384,10 @@ When a test fails you are presented with the corresponding backtrace. By default
 Rails filters that backtrace and will only print lines relevant to your
 application. This eliminates the framework noise and helps to focus on your
 code. However there are situations when you want to see the full
-backtrace. simply set the `BACKTRACE` environment variable to enable this
-behavior:
+backtrace. Simply set the `-b` (or `--backtrace`) argument to enable this behavior:
 
 ```bash
-$ BACKTRACE=1 bin/rake test test/models/article_test.rb
+$ bin/rails test -b test/models/article_test.rb
 ```
 
 If we want this test to pass we can modify it to use `assert_raises` like so:
@@ -504,13 +494,13 @@ All the keyword arguments are optional.
 Example: Calling the `:show` action, passing an `id` of 12 as the `params` and setting a `user_id` of 5 in the session:
 
 ```ruby
-get(:show, params: { 'id' => "12" }, session: { 'user_id' => 5 })
+get(:show, params: { id: 12 }, session: { user_id: 5 })
 ```
 
 Another example: Calling the `:view` action, passing an `id` of 12 as the `params`, this time with no session, but with a flash message.
 
 ```ruby
-get(:view, params: { 'id' => '12' }, flash: { 'message' => 'booya!' })
+get(:view, params: { id: 12 }, flash: { message: 'booya!' })
 ```
 
 NOTE: If you try running `test_should_create_article` test from `articles_controller_test.rb` it will fail on account of the newly added model level validation and rightly so.
@@ -666,7 +656,7 @@ end
 If we run our test now, we should see a failure:
 
 ```bash
-$ bin/rake test test/controllers/articles_controller_test.rb test_should_create_article
+$ bin/rails test test/controllers/articles_controller_test.rb test_should_create_article
 Run options: -n test_should_create_article --seed 32266
 
 # Running:
@@ -704,7 +694,7 @@ end
 Now if we run our tests, we should see it pass:
 
 ```bash
-$ bin/rake test test/controllers/articles_controller_test.rb test_should_create_article
+$ bin/rails test test/controllers/articles_controller_test.rb test_should_create_article
 Run options: -n test_should_create_article --seed 18981
 
 # Running:
@@ -852,7 +842,7 @@ end
 I've added this file here `test/controllers/articles_routes_test.rb` and if we run the test we should see:
 
 ```bash
-$ bin/rake test test/controllers/articles_routes_test.rb
+$ bin/rails test test/controllers/articles_routes_test.rb
 
 # Running:
 

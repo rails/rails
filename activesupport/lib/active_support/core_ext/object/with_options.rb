@@ -7,7 +7,7 @@ class Object
   # provided. Each method called on the block variable must take an options
   # hash as its final argument.
   #
-  # Without <tt>with_options></tt>, this code contains duplication:
+  # Without <tt>with_options</tt>, this code contains duplication:
   #
   #   class Account < ActiveRecord::Base
   #     has_many :customers, dependent: :destroy

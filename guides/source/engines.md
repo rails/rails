@@ -368,7 +368,7 @@ called `Blorgh::ArticlesController` (at
 `app/controllers/blorgh/articles_controller.rb`) and its related views at
 `app/views/blorgh/articles`. This generator also generates a test for the
 controller (`test/controllers/blorgh/articles_controller_test.rb`) and a helper
-(`app/helpers/blorgh/articles_controller.rb`).
+(`app/helpers/blorgh/articles_helper.rb`).
 
 Everything this generator has created is neatly namespaced. The controller's
 class is defined within the `Blorgh` module:
@@ -822,11 +822,9 @@ Notice that only _one_ migration was copied over here. This is because the first
 two migrations were copied over the first time this command was run.
 
 ```
-NOTE Migration [timestamp]_create_blorgh_articles.rb from blorgh has been
-skipped. Migration with the same name already exists. NOTE Migration
-[timestamp]_create_blorgh_comments.rb from blorgh has been skipped. Migration
-with the same name already exists. Copied migration
-[timestamp]_add_author_id_to_blorgh_articles.rb from blorgh
+NOTE Migration [timestamp]_create_blorgh_articles.rb from blorgh has been skipped. Migration with the same name already exists. 
+NOTE Migration [timestamp]_create_blorgh_comments.rb from blorgh has been skipped. Migration with the same name already exists. 
+Copied migration [timestamp]_add_author_id_to_blorgh_articles.rb from blorgh
 ```
 
 Run the migration using:
@@ -1192,7 +1190,7 @@ end
 ```
 
 ```ruby
-# Blorgh/lib/concerns/models/article
+# Blorgh/lib/concerns/models/article.rb
 
 module Blorgh::Concerns::Models::Article
   extend ActiveSupport::Concern

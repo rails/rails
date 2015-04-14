@@ -667,7 +667,7 @@ You may notice in the above code that we're using `render xml: @users`, not `ren
 Filters
 -------
 
-Filters are methods that are run before, after or "around" a controller action.
+Filters are methods that are run "before", "after" or "around" a controller action.
 
 Filters are inherited, so if you set a filter on `ApplicationController`, it will be run on every controller in your application.
 

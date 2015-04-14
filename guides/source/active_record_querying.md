@@ -529,7 +529,7 @@ Client.order("orders_count ASC, created_at DESC")
 Client.order("orders_count ASC", "created_at DESC")
 ```
 
-If you want to call `order` multiple times e.g. in different context, new order will append previous one
+If you want to call `order` multiple times e.g. in different context, new order will append previous one:
 
 ```ruby
 Client.order("orders_count ASC").order("created_at DESC")
