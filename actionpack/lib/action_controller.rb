@@ -12,6 +12,7 @@ module ActionController
   autoload :Metal
   autoload :Middleware
   autoload :Renderer
+  autoload :FormBuilder
 
   autoload_under "metal" do
     autoload :Compatibility

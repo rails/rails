@@ -221,6 +221,7 @@ module ActionController
 
       Cookies,
       Flash,
+      FormBuilder,
       RequestForgeryProtection,
       ForceSSL,
       Streaming,

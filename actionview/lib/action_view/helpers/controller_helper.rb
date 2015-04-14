@@ -14,6 +14,7 @@ module ActionView
         if @_controller = controller
           @_request = controller.request if controller.respond_to?(:request)
           @_config  = controller.config.inheritable_copy if controller.respond_to?(:config)
+          @_default_form_builder = controller.default_form_builder if controller.respond_to?(:default_form_builder)
         end
       end
 

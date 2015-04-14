@@ -1,3 +1,11 @@
+*   Add ability to override default form builder for a controller.
+
+        class AdminController < ApplicationController
+          default_form_builder AdminFormBuilder
+        end
+
+    *Kevin McPhillips*
+
 *   For actions with no corresponding templates, render `head :no_content`
     instead of raising an error. This allows for slimmer API controller
     methods that simply work, without needing further instructions.
