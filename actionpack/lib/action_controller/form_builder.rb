@@ -1,6 +1,6 @@
 module ActionController
   # Override the default form builder for all views rendered by this
-  # controller and any of its descendents. Accepts a sublcass of
+  # controller and any of its descendants. Accepts a subclass of
   # +ActionView::Helpers::FormBuilder+.
   #
   # For example, given a form builder:
