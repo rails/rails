@@ -38,8 +38,20 @@ module ActionCable
       end
     end
 
+    def threaded_redis
+      @threaded_redis ||= Redis.new(redis_config)
+    end
+
     def remote_connections
       @remote_connections ||= RemoteConnections.new(self)
+    end
+
+    def broadcaster_for(channel)
+      Broadcaster.new(self, channel)
+    end
+
+    def broadcast(channel, message)
+      broadcaster_for(channel).broadcast(message)
     end
 
     def connection_identifiers
