@@ -848,6 +848,16 @@ class RelationTest < ActiveRecord::TestCase
     }
   end
 
+  def test_find_all_using_where_with_a_set
+    david = authors(:david)
+    mary  = authors(:mary)
+    set   = Set.new([david.id, mary.id])
+
+    assert_queries(1) {
+      assert_equal [david, mary], Author.where(id: set).to_a
+    }
+  end
+
   def test_exists
     davids = Author.where(:name => 'David')
     assert davids.exists?
