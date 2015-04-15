@@ -291,7 +291,7 @@ module ActionDispatch
             when String
               ActiveSupport::Deprecation.warn(<<-MSG.squish)
                 Defining a route where `to` is a controller without an action is deprecated.
-                Please change `to: :#{to}` to `controller: :#{to}`.
+                Please change `to: '#{to}'` to `controller: '#{to}'`.
               MSG
 
               [to, nil]
