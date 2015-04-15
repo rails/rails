@@ -1,7 +1,3 @@
-*   Add support for `Set` to `Relation#where`.
-
-    *Yuki Nishijima*
-
 *   Fixed a bug where uniqueness validations would error on out of range values,
     even if an validation should have prevented it from hitting the database.
 
