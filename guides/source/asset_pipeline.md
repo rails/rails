@@ -643,7 +643,7 @@ above. By default Rails assumes assets have been precompiled and will be
 served as static assets by your web server.
 
 During the precompilation phase an MD5 is generated from the contents of the
-compiled files, and inserted into the filenames as they are written to disc.
+compiled files, and inserted into the filenames as they are written to disk.
 These fingerprinted names are used by the Rails helpers in place of the manifest
 name.
 
