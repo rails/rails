@@ -110,7 +110,7 @@ module ActiveRecord
         assert ActiveRecord::Base.connection_handler.active_connections?
       end
 
-      test "proxy is polite to it's body and responds to it" do
+      test "proxy is polite to its body and responds to it" do
         body = Class.new(String) { def to_path; "/path"; end }.new
         app = lambda { |_| [200, {}, body] }
         response_body = ConnectionManagement.new(app).call(@env)[2]

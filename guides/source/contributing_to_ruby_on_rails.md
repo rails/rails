@@ -374,7 +374,8 @@ A CHANGELOG entry should summarize what was changed and should end with the auth
     *Your Name*
 ```
 
-Your name can be added directly after the last word if you don't provide any code examples or don't need multiple paragraphs. Otherwise, it's best to make as a new paragraph.
+Your name can be added directly after the last word if there are no code
+examples or multiple paragraphs. Otherwise, it's best to make a new paragraph.
 
 ### Updating the Gemfile.lock
 
@@ -406,13 +407,13 @@ Good commit message should be formatted according to the following example:
 Short summary (ideally 50 characters or less)
 
 More detailed description, if necessary. It should be wrapped to 72
-characters. Try to be as descriptive as you can, even if you think that
-the commit content is obvious, it may not be obvious to others. You
-should add such description also if it's already present in bug tracker,
-it should not be necessary to visit a webpage to check the history.
+characters. Try to be as descriptive as you can; even if you think that the
+commit content is obvious, it may not be obvious to others. Add any description
+that is already present in relevant issues - it should not be necessary to visit
+a webpage to check the history.
 
-Description can have multiple paragraphs and you can use code examples
-inside, just indent it with 4 spaces:
+The description section can have multiple paragraphs. Code examples can be
+embedded by indenting them with 4 spaces:
 
     class ArticlesController
       def index
@@ -428,7 +429,8 @@ You can also add bullet points:
   long to fit in 72 characters
 ```
 
-TIP. Please squash your commits into a single commit when appropriate. This simplifies future cherry picks, and also keeps the git log clean.
+TIP. Please squash your commits into a single commit when appropriate. This
+simplifies future cherry picks and also keeps the git log clean.
 
 ### Update Your Branch
 

@@ -298,7 +298,7 @@ end
 The migration DSL has been expanded to support foreign key definitions. If
 you've been using the Foreigner gem, you might want to consider removing it.
 Note that the foreign key support of Rails is a subset of Foreigner. This means
-that not every Foreigner definition can be fully replaced by it's Rails
+that not every Foreigner definition can be fully replaced by its Rails
 migration DSL counterpart.
 
 The migration procedure is as follows:

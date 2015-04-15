@@ -2,7 +2,7 @@
 
     *Islam Wazery*
 
-*   Print `bundle install` output in `rails new` as soon as it's available
+*   Print `bundle install` output in `rails new` as soon as it's available.
 
     Running `rails new` will now print the output of `bundle install` as
     it is available, instead of waiting until all gems finish installing.
