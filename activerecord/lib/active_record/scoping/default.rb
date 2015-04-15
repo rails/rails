@@ -100,6 +100,7 @@ module ActiveRecord
         end
 
         def build_default_scope(base_rel = relation) # :nodoc:
+          return if abstract_class?
           if !Base.is_a?(method(:default_scope).owner)
             # The user has defined their own default scope method, so call that
             evaluate_default_scope { default_scope }
