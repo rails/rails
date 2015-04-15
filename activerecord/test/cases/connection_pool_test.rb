@@ -204,13 +204,13 @@ module ActiveRecord
       end
 
       # The connection pool is "fair" if threads waiting for
-      # connections receive them the order in which they began
+      # connections receive them in the order in which they began
       # waiting.  This ensures that we don't timeout one HTTP request
       # even while well under capacity in a multi-threaded environment
       # such as a Java servlet container.
       #
       # We don't need strict fairness: if two connections become
-      # available at the same time, it's fine of two threads that were
+      # available at the same time, it's fine if two threads that were
       # waiting acquire the connections out of order.
       #
       # Thus this test prepares waiting threads and then trickles in

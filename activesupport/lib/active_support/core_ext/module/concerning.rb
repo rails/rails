@@ -63,10 +63,10 @@ class Module
   #
   # == Mix-in noise exiled to its own file:
   #
-  # Once our chunk of behavior starts pushing the scroll-to-understand it's
+  # Once our chunk of behavior starts pushing the scroll-to-understand-it
   # boundary, we give in and move it to a separate file. At this size, the
-  # overhead feels in good proportion to the size of our extraction, despite
-  # diluting our at-a-glance sense of how things really work.
+  # increased overhead can be a reasonable tradeoff even if it reduces our
+  # at-a-glance perception of how things work.
   #
   #   class Todo
   #     # Other todo implementation

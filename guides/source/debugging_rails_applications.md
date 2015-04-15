@@ -129,9 +129,14 @@ TIP: By default, each log is created under `Rails.root/log/` and the log file is
 
 ### Log Levels
 
-When something is logged it's printed into the corresponding log if the log level of the message is equal or higher than the configured log level. If you want to know the current log level you can call the `Rails.logger.level` method.
+When something is logged, it's printed into the corresponding log if the log
+level of the message is equal or higher than the configured log level. If you
+want to know the current log level, you can call the `Rails.logger.level`
+method.
 
-The available log levels are: `:debug`, `:info`, `:warn`, `:error`, `:fatal`, and `:unknown`, corresponding to the log level numbers from 0 up to 5 respectively. To change the default log level, use
+The available log levels are: `:debug`, `:info`, `:warn`, `:error`, `:fatal`,
+and `:unknown`, corresponding to the log level numbers from 0 up to 5,
+respectively. To change the default log level, use
 
 ```ruby
 config.log_level = :warn # In any environment initializer, or

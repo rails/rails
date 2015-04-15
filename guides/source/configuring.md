@@ -424,13 +424,23 @@ encrypted cookies salt value. Defaults to `'signed encrypted cookie'`.
     end
     ```
 
-* `config.action_view.default_form_builder` tells Rails which form builder to use by default. The default is `ActionView::Helpers::FormBuilder`. If you want your form builder class to be loaded after initialization (so it's reloaded on each request in development), you can pass it as a `String`
+* `config.action_view.default_form_builder` tells Rails which form builder to
+  use by default. The default is `ActionView::Helpers::FormBuilder`. If you
+  want your form builder class to be loaded after initialization (so it's
+  reloaded on each request in development), you can pass it as a `String`.
 
 * `config.action_view.logger` accepts a logger conforming to the interface of Log4r or the default Ruby Logger class, which is then used to log information from Action View. Set to `nil` to disable logging.
 
 * `config.action_view.erb_trim_mode` gives the trim mode to be used by ERB. It defaults to `'-'`, which turns on trimming of tail spaces and newline when using `<%= -%>` or `<%= =%>`. See the [Erubis documentation](http://www.kuwata-lab.com/erubis/users-guide.06.html#topics-trimspaces) for more information.
 
-* `config.action_view.embed_authenticity_token_in_remote_forms` allows you to set the default behavior for `authenticity_token` in forms with `:remote => true`. By default it's set to false, which means that remote forms will not include `authenticity_token`, which is helpful when you're fragment-caching the form. Remote forms get the authenticity from the `meta` tag, so embedding is unnecessary unless you support browsers without JavaScript. In such case you can either pass `:authenticity_token => true` as a form option or set this config setting to `true`
+* `config.action_view.embed_authenticity_token_in_remote_forms` allows you to
+  set the default behavior for `authenticity_token` in forms with `remote:
+  true`. By default it's set to false, which means that remote forms will not
+  include `authenticity_token`, which is helpful when you're fragment-caching
+  the form. Remote forms get the authenticity from the `meta` tag, so embedding
+  is unnecessary unless you support browsers without JavaScript. In such case
+  you can either pass `authenticity_token: true` as a form option or set this
+  config setting to `true`.
 
 * `config.action_view.prefix_partial_path_with_controller_namespace` determines whether or not partials are looked up from a subdirectory in templates rendered from namespaced controllers. For example, consider a controller named `Admin::ArticlesController` which renders this template:
 
@@ -440,7 +450,8 @@ encrypted cookies salt value. Defaults to `'signed encrypted cookie'`.
 
     The default setting is `true`, which uses the partial at `/admin/articles/_article.erb`. Setting the value to `false` would render `/articles/_article.erb`, which is the same behavior as rendering from a non-namespaced controller such as `ArticlesController`.
 
-* `config.action_view.raise_on_missing_translations` determines whether an error should be raised for missing translations
+* `config.action_view.raise_on_missing_translations` determines whether an
+  error should be raised for missing translations.
 
 ### Configuring Action Mailer
 
@@ -555,7 +566,7 @@ There are a few configuration options available in Active Support:
 * `config.active_job.queue_name_prefix` allows you to set an optional, non-blank, queue name prefix for all jobs. By default it is blank and not used.
 
     The following configuration would queue the given job on the `production_high_priority` queue when run in production:
-    
+
     ```ruby
     config.active_job.queue_name_prefix = Rails.env
     ```
@@ -1012,7 +1023,8 @@ Below is a comprehensive list of all the initializers found in Rails in the orde
 
 * `active_record.set_dispatch_hooks` Resets all reloadable connections to the database if `config.cache_classes` is set to `false`.
 
-* `active_job.logger` Sets `ActiveJob::Base.logger` - if it's not already set - to `Rails.logger`
+* `active_job.logger` Sets `ActiveJob::Base.logger` - if it's not already set -
+  to `Rails.logger`.
 
 * `active_job.set_configs` Sets up Active Job by using the settings in `config.active_job` by `send`'ing the method names as setters to `ActiveJob::Base` and passing the values through.
 
