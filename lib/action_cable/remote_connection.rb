@@ -19,7 +19,7 @@ module ActionCable
     end
 
     def redis
-      @redis ||= Redis.new(@server.redis_config)
+      @server.threaded_redis
     end
 
     private
