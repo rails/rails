@@ -21,7 +21,7 @@ module ActionController
   #
   #   <%= form_for(@instance) do |builder| %>
   #     <%= builder.special_field(:name) %>
-  #   <%= end %>
+  #   <% end %>
   module FormBuilder
     extend ActiveSupport::Concern
 
