@@ -7,6 +7,7 @@ require 'action_controller/metal/strong_parameters'
 module ActionController
   extend ActiveSupport::Autoload
 
+  autoload :API
   autoload :Base
   autoload :Caching
   autoload :Metal
@@ -39,6 +40,10 @@ module ActionController
     autoload :StrongParameters
     autoload :Testing
     autoload :UrlFor
+  end
+
+  autoload_under "api" do
+    autoload :ApiRendering
   end
 
   autoload :TestCase,           'action_controller/test_case'
