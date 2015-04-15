@@ -1,17 +1,17 @@
 require 'abstract_unit'
 require 'active_support/core_ext/hash/conversions'
 
-class Model
-  def to_json(options = {})
-    { :a => 'b' }.to_json(options)
-  end
-
-  def to_xml(options = {})
-    { :a => 'b' }.to_xml(options)
-  end
-end
-
 class RenderersApiController < ActionController::API
+  class Model
+    def to_json(options = {})
+      { :a => 'b' }.to_json(options)
+    end
+
+    def to_xml(options = {})
+      { :a => 'b' }.to_xml(options)
+    end
+  end
+
   def one
     render :json => Model.new
   end
