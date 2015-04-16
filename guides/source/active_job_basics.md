@@ -319,3 +319,10 @@ class GuestsCleanupJob < ActiveJob::Base
   end
 end
 ```
+
+
+Job Testing
+--------------
+
+You can find detailed instructions on how to test your jobs in the
+[testing guide](testing.html#testing-jobs).
