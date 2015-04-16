@@ -50,6 +50,33 @@ module ApplicationTests
       ], middleware
     end
 
+    test "api middleware stack" do
+      add_to_config "config.api_only = true"
+
+      boot!
+
+      assert_equal [
+        "Rack::Sendfile",
+        "ActionDispatch::Static",
+        "Rack::Lock",
+        "ActiveSupport::Cache::Strategy::LocalCache",
+        "Rack::Runtime",
+        "ActionDispatch::RequestId",
+        "Rails::Rack::Logger", # must come after Rack::MethodOverride to properly log overridden methods
+        "ActionDispatch::ShowExceptions",
+        "ActionDispatch::DebugExceptions",
+        "ActionDispatch::RemoteIp",
+        "ActionDispatch::Reloader",
+        "ActionDispatch::Callbacks",
+        "ActiveRecord::ConnectionAdapters::ConnectionManagement",
+        "ActiveRecord::QueryCache",
+        "ActionDispatch::ParamsParser",
+        "Rack::Head",
+        "Rack::ConditionalGet",
+        "Rack::ETag"
+      ], middleware
+    end
+
     test "Rack::Cache is not included by default" do
       boot!
 

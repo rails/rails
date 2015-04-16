@@ -28,7 +28,7 @@ module Rails
 
           middleware.use ::Rack::Lock unless allow_concurrency?
           middleware.use ::Rack::Runtime
-          middleware.use ::Rack::MethodOverride
+          middleware.use ::Rack::MethodOverride unless config.api_only
           middleware.use ::ActionDispatch::RequestId
 
           # Must come after Rack::MethodOverride to properly log overridden methods
@@ -42,9 +42,9 @@ module Rails
           end
 
           middleware.use ::ActionDispatch::Callbacks
-          middleware.use ::ActionDispatch::Cookies
+          middleware.use ::ActionDispatch::Cookies unless config.api_only
 
-          if config.session_store
+          if !config.api_only && config.session_store
             if config.force_ssl && !config.session_options.key?(:secure)
               config.session_options[:secure] = true
             end

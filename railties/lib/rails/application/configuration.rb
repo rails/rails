@@ -13,7 +13,7 @@ module Rails
                     :railties_order, :relative_url_root, :secret_key_base, :secret_token,
                     :serve_static_files, :ssl_options, :static_cache_control, :static_index,
                     :session_options, :time_zone, :reload_classes_only_on_change,
-                    :beginning_of_week, :filter_redirect, :x
+                    :beginning_of_week, :filter_redirect, :api_only, :x
 
       attr_writer :log_level
       attr_reader :encoding
@@ -49,6 +49,7 @@ module Rails
         @eager_load                    = nil
         @secret_token                  = nil
         @secret_key_base               = nil
+        @api_only                      = false
         @x                             = Custom.new
       end
 
