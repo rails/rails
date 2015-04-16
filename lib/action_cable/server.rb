@@ -1,7 +1,5 @@
 module ActionCable
   class Server
-    PUBSUB_PING_TIMEOUT = 120
-
     cattr_accessor(:logger, instance_reader: true) { Rails.logger }
 
     attr_accessor :registered_channels, :redis_config
@@ -26,7 +24,7 @@ module ActionCable
     end
 
     def pubsub
-      @pubsub ||= redis.pubsub.tap { |pb| add_pubsub_periodic_timer(pb) }
+      @pubsub ||= redis.pubsub
     end
 
     def redis
@@ -73,12 +71,5 @@ module ActionCable
       @connections.map(&:statistics)
     end
 
-    protected
-      def add_pubsub_periodic_timer(ps)
-        @pubsub_periodic_timer ||= EventMachine.add_periodic_timer(PUBSUB_PING_TIMEOUT) do
-          logger.info "[ActionCable] Pubsub ping"
-          ps.ping
-        end
-      end
   end
 end
