@@ -67,7 +67,7 @@ module ActiveRecord
 
       def structure_load(filename)
         set_psql_env
-        Kernel.system("psql -X -q -f #{Shellwords.escape(filename)} #{configuration['database']}")
+        raise 'Error loading database' unless Kernel.system("psql -X -q -f #{Shellwords.escape(filename)} #{configuration['database']}")
       end
 
       private
