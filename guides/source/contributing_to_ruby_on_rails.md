@@ -399,21 +399,27 @@ When you're happy with the code on your computer, you need to commit the changes
 $ git commit -a
 ```
 
-At this point, your editor should be fired up and you can write a message for this commit. Well formatted and descriptive commit messages are extremely helpful for the others, especially when figuring out why given change was made, so please take the time to write it.
+This should fire up your editor to write a commit message. When you have
+finished, save and close to continue.
 
-Good commit message should be formatted according to the following example:
+A well-formatted and descriptive commit message is very helpful to others for
+understanding why the change was made, so please take the time to write it.
+
+A good commit message looks like this:
 
 ```
 Short summary (ideally 50 characters or less)
 
-More detailed description, if necessary. It should be wrapped to 72
-characters. Try to be as descriptive as you can; even if you think that the
-commit content is obvious, it may not be obvious to others. Add any description
-that is already present in relevant issues - it should not be necessary to visit
-a webpage to check the history.
+More detailed description, if necessary. It should be wrapped to
+72 characters. Try to be as descriptive as you can. Even if you
+think that the commit content is obvious, it may not be obvious
+to others. Add any description that is already present in the
+relevant issues; it should not be necessary to visit a webpage
+to check the history.
 
-The description section can have multiple paragraphs. Code examples can be
-embedded by indenting them with 4 spaces:
+The description section can have multiple paragraphs.
+
+Code examples can be embedded by indenting them with 4 spaces:
 
     class ArticlesController
       def index
@@ -423,14 +429,15 @@ embedded by indenting them with 4 spaces:
 
 You can also add bullet points:
 
-- you can use dashes or asterisks
+- make a bullet point by starting a line with either a dash (-)
+  or an asterisk (*)
 
-- also, try to indent next line of a point for readability, if it's too
-  long to fit in 72 characters
+- wrap lines at 72 characters, and indent any additional lines
+  with 2 spaces for readability
 ```
 
 TIP. Please squash your commits into a single commit when appropriate. This
-simplifies future cherry picks and also keeps the git log clean.
+simplifies future cherry picks and keeps the git log clean.
 
 ### Update Your Branch
 
