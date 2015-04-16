@@ -30,8 +30,8 @@ module ActionCable
     def redis
       @redis ||= begin
         redis = EM::Hiredis.connect(@redis_config[:url])
-        redis.on(:reconnected) do
-          logger.info "[ActionCable] Redis reconnected."
+        redis.on(:reconnect_failed) do
+          logger.info "[ActionCable] Redis reconnect failed."
           # logger.info "[ActionCable] Redis reconnected. Closing all the open connections."
           # @connections.map &:close_connection
         end
