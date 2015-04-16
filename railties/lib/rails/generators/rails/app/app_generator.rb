@@ -175,6 +175,9 @@ module Rails
       class_option :version, type: :boolean, aliases: "-v", group: :rails,
                              desc: "Show Rails version number and quit"
 
+      class_option :api, type: :boolean,
+                         desc: "Preconfigure smaller stack for API only apps"
+
       def initialize(*args)
         super
 
@@ -245,11 +248,11 @@ module Rails
       end
 
       def create_tmp_files
-        build(:tmp)
+        build(:tmp) unless options[:api]
       end
 
       def create_vendor_files
-        build(:vendor)
+        build(:vendor) unless options[:api]
       end
 
       def delete_js_folder_skipping_javascript

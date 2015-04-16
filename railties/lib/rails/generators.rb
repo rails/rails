@@ -45,6 +45,7 @@ module Rails
 
     DEFAULT_OPTIONS = {
       rails: {
+        api: false,
         assets: true,
         force_plural: false,
         helper: true,
