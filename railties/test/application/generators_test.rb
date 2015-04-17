@@ -125,5 +125,20 @@ module ApplicationTests
         assert_equal expected, c.generators.options
       end
     end
+
+    test "api only generators hide assets, helper, js and css namespaces" do
+      add_to_config <<-RUBY
+        config.generators.api_only = true
+      RUBY
+
+      # Initialize the application
+      require "#{app_path}/config/environment"
+      Rails.application.load_generators
+
+      assert Rails::Generators.hidden_namespaces.include?("assets")
+      assert Rails::Generators.hidden_namespaces.include?("helper")
+      assert Rails::Generators.hidden_namespaces.include?("js")
+      assert Rails::Generators.hidden_namespaces.include?("css")
+    end
   end
 end
