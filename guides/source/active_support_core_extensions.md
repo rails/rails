@@ -2188,7 +2188,7 @@ The method `without` returns a copy of an enumerable with the specified elements
 removed:
 
 ```ruby
-people.without("Aaron", "Todd")
+["David", "Rafael", "Aaron", "Todd"].without("Aaron", "Todd") # => ["David", "Rafael"]
 ```
 
 NOTE: Defined in `active_support/core_ext/enumerable.rb`.
