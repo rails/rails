@@ -76,6 +76,7 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
   def skipped_files
     %w(app/assets
        app/helpers
+       app/views
        config/initializers/assets.rb
        config/initializers/cookies_serializer.rb
        config/initializers/session_store.rb
