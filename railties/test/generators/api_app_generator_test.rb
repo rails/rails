@@ -38,6 +38,10 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
       assert_no_match(/gem 'jquery-rails'/, content)
       assert_no_match(/gem 'sass-rails'/, content)
     end
+
+    assert_file "config/initializers/wrap_parameters.rb" do |content|
+      assert_no_match(/wrap_parameters/, content)
+    end
     assert_file "app/controllers/application_controller.rb", /ActionController::API/
   end
 
@@ -70,7 +74,10 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
   end
 
   def skipped_files
-    %w(vendor/assets
+    %w(config/initializers/assets.rb
+       config/initializers/cookies_serializer.rb
+       config/initializers/session_store.rb
+       vendor/assets
        tmp/cache/assets)
   end
 end
