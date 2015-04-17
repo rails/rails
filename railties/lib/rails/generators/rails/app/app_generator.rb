@@ -191,7 +191,7 @@ module Rails
 
         # Force sprockets to be skipped when generating http only app.
         # Can't modify options hash as it's frozen by default.
-        self.options = options.merge(skip_sprockets: true).freeze if options[:api]
+        self.options = options.merge(skip_sprockets: true, skip_javascript: true).freeze if options[:api]
       end
 
       public_task :set_default_accessors!
