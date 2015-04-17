@@ -265,6 +265,12 @@ module Rails
         end
       end
 
+      def delete_app_helpers_if_api_option
+        if options[:api]
+          remove_dir 'app/helpers'
+        end
+      end
+
       def delete_js_folder_skipping_javascript
         if options[:skip_javascript]
           remove_dir 'app/assets/javascripts'
