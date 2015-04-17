@@ -268,6 +268,7 @@ module Rails
       def delete_app_helpers_if_api_option
         if options[:api]
           remove_dir 'app/helpers'
+          remove_dir 'test/helpers'
         end
       end
 

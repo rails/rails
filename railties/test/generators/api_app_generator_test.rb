@@ -81,6 +81,7 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
        config/initializers/cookies_serializer.rb
        config/initializers/session_store.rb
        vendor/assets
+       test/helpers
        tmp/cache/assets)
   end
 end
