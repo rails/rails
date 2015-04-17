@@ -2428,7 +2428,7 @@ The method `Array.wrap` wraps its argument in an array unless it is already an a
 
 Specifically:
 
-* If the argument is `nil` an empty list is returned.
+* If the argument is `nil` an empty array is returned.
 * Otherwise, if the argument responds to `to_ary` it is invoked, and if the value of `to_ary` is not `nil`, it is returned.
 * Otherwise, an array with the argument as its single element is returned.
 

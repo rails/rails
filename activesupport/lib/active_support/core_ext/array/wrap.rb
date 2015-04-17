@@ -3,7 +3,7 @@ class Array
   #
   # Specifically:
   #
-  # * If the argument is +nil+ an empty list is returned.
+  # * If the argument is +nil+ an empty array is returned.
   # * Otherwise, if the argument responds to +to_ary+ it is invoked, and its result returned.
   # * Otherwise, returns an array with the argument as its single element.
   #
