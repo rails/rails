@@ -2440,7 +2440,7 @@ Array.wrap(0)         # => [0]
 
 This method is similar in purpose to `Kernel#Array`, but there are some differences:
 
-* If the argument responds to `to_ary` the method is invoked. `Kernel#Array` moves on to try `to_a` if the returned value is `nil`, but `Array.wrap` returns `nil` right away.
+* If the argument responds to `to_ary` the method is invoked. `Kernel#Array` moves on to try `to_a` if the returned value is `nil`, but `Array.wrap` returns an array with the argument as its single element right away.
 * If the returned value from `to_ary` is neither `nil` nor an `Array` object, `Kernel#Array` raises an exception, while `Array.wrap` does not, it just returns the value.
 * It does not call `to_a` on the argument, though special-cases `nil` to return an empty array.
 
