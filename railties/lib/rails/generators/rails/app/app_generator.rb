@@ -259,6 +259,12 @@ module Rails
         build(:vendor) unless options[:api]
       end
 
+      def delete_app_assets_if_api_option
+        if options[:api]
+          remove_dir 'app/assets'
+        end
+      end
+
       def delete_js_folder_skipping_javascript
         if options[:skip_javascript]
           remove_dir 'app/assets/javascripts'
