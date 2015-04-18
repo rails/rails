@@ -1278,6 +1278,16 @@ module AutosaveAssociationOnACollectionAssociationTests
     assert_equal new_names, @pirate.reload.send(@association_name).map(&:name)
   end
 
+  def test_should_update_children_when_autosave_is_true_and_parent_is_new_but_child_is_not
+    parrot = Parrot.create!(name: "Polly")
+    parrot.name = "Squawky"
+    pirate = Pirate.new(parrots: [parrot], catchphrase: "Arrrr")
+
+    pirate.save!
+
+    assert_equal "Squawky", parrot.reload.name
+  end
+
   def test_should_automatically_validate_the_associated_models
     @pirate.send(@association_name).each { |child| child.name = '' }
 

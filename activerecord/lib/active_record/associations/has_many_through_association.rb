@@ -38,12 +38,10 @@ module ActiveRecord
       def insert_record(record, validate = true, raise = false)
         ensure_not_nested
 
-        if record.new_record?
-          if raise
-            record.save!(:validate => validate)
-          else
-            return unless record.save(:validate => validate)
-          end
+        if raise
+          record.save!(:validate => validate)
+        else
+          return unless record.save(:validate => validate)
         end
 
         save_through_record(record)

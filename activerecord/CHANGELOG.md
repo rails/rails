@@ -1,3 +1,10 @@
+*   Autosave existing records on a has many through association when the parent
+    is new.
+
+    Fixes #19782.
+
+    *Sean Griffin*
+
 *   Fixed a bug where uniqueness validations would error on out of range values,
     even if an validation should have prevented it from hitting the database.
 
