@@ -245,6 +245,7 @@ article.save!
 * [type definition](http://www.postgresql.org/docs/9.3/static/datatype-uuid.html)
 * [generator functions](http://www.postgresql.org/docs/9.3/static/uuid-ossp.html)
 
+NOTE: you need to enable the `uuid-ossp` extension to use uuid.
 
 ```ruby
 # db/migrate/20131220144913_create_revisions.rb
@@ -261,6 +262,28 @@ Revision.create identifier: "A0EEBC99-9C0B-4EF8-BB6D-6BB9BD380A11"
 
 revision = Revision.first
 revision.identifier # => "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
+```
+
+You can use `uuid` type to define references in migrations
+
+```ruby
+# db/migrate/20150418012400_create_blog.rb
+create_table :posts, id: :uuid
+
+create_table :comments, id: :uuid do |t|
+  # t.belongs_to :post, type: :uuid
+  t.references :post, type: :uuid
+end
+
+# app/models/post.rb
+class Post < ActiveRecord::Base
+  has_many :comments
+end
+
+# app/models/comment.rb
+class Comment < ActiveRecord::Base
+  belongs_to :post
+end
 ```
 
 ### Bit String Types
