@@ -48,6 +48,14 @@ class TestCaseTest < ActionController::TestCase
       render text: params.inspect
     end
 
+    def test_query_parameters
+      render text: request.query_parameters.inspect
+    end
+
+    def test_request_parameters
+      render text: request.request_parameters.inspect
+    end
+
     def test_uri
       render text: request.fullpath
     end
@@ -545,6 +553,18 @@ XML
       },
       parsed_params
     )
+  end
+
+  def test_query_param_named_action
+    get :test_query_parameters, params: {action: 'foobar'}
+    parsed_params = eval(@response.body)
+    assert_equal({action: 'foobar'}, parsed_params)
+  end
+
+  def test_request_param_named_action
+    post :test_request_parameters, params: {action: 'foobar'}
+    parsed_params = eval(@response.body)
+    assert_equal({'action' => 'foobar'}, parsed_params)
   end
 
   def test_kwarg_params_passing_with_session_and_flash
