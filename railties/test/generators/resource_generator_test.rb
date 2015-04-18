@@ -85,4 +85,10 @@ class ResourceGeneratorTest < Rails::Generators::TestCase
       assert_no_match(/resources :accounts$/, route)
     end
   end
+
+  def test_api_only_does_not_generate_edit_route
+    run_generator ["Account", "--api"]
+
+    assert_file "config/routes.rb", /resources :accounts, except: \[:new, :edit\]$/
+  end
 end

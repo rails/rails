@@ -1,6 +1,8 @@
 module Rails
   module Generators
     class ResourceRouteGenerator < NamedBase # :nodoc:
+      class_option :api, type: :boolean,
+                         desc: "Preconfigure smaller stack for API only apps"
 
       # Properly nests namespaces passed into a generator
       #
@@ -22,7 +24,9 @@ module Rails
         end
 
         # inserts the primary resource
-        write("resources :#{file_name.pluralize}", route_length + 1)
+        resources = "resources :#{file_name.pluralize}"
+        resources << ", except: [:new, :edit]" if options.api?
+        write(resources, route_length + 1)
 
         # ends blocks
         regular_class_path.each_index do |index|
