@@ -105,6 +105,10 @@ module Rails
 
     def self.api_only!
       hide_namespaces "assets", "helper", "css", "js"
+
+      options[:rails].merge!(
+        api: true
+      )
     end
 
     # Remove the color from output.
