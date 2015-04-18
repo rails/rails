@@ -120,23 +120,22 @@ module ActiveRecord #:nodoc:
   # All column values are automatically available through basic accessors on the Active Record
   # object, but sometimes you want to specialize this behavior. This can be done by overwriting
   # the default accessors (using the same name as the attribute) and calling
-  # <tt>read_attribute(attr_name)</tt> and <tt>write_attribute(attr_name, value)</tt> to actually
-  # change things.
+  # +super+ to actually change things.
   #
   #   class Song < ActiveRecord::Base
   #     # Uses an integer of seconds to hold the length of the song
   #
   #     def length=(minutes)
-  #       write_attribute(:length, minutes.to_i * 60)
+  #       super(minutes.to_i * 60)
   #     end
   #
   #     def length
-  #       read_attribute(:length) / 60
+  #       super / 60
   #     end
   #   end
   #
   # You can alternatively use <tt>self[:attribute]=(value)</tt> and <tt>self[:attribute]</tt>
-  # instead of <tt>write_attribute(:attribute, value)</tt> and <tt>read_attribute(:attribute)</tt>.
+  # or <tt>write_attribute(:attribute, value)</tt> and <tt>read_attribute(:attribute)</tt>.
   #
   # == Attribute query methods
   #
