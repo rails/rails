@@ -1,3 +1,7 @@
+*   Add common secret names to filter parameters defaults.
+
+    *Xavier Shay*
+
 *   Rename `railties/bin` to `railties/exe` to match the new Bundler executables convention.
 
     *Islam Wazery*

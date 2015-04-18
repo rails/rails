@@ -23,7 +23,7 @@ module Rails
         self.encoding = "utf-8"
         @allow_concurrency             = nil
         @consider_all_requests_local   = false
-        @filter_parameters             = []
+        @filter_parameters             = [:session, :secret, :salt, :cookie, :csrf]
         @filter_redirect               = []
         @helpers_paths                 = []
         @serve_static_files            = true

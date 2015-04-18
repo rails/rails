@@ -241,7 +241,11 @@ module ApplicationTests
 
       require "#{app_path}/config/environment"
 
-      assert_equal [:password, :foo, 'bar'], Rails.application.env_config['action_dispatch.parameter_filter']
+      filters = Rails.application.env_config['action_dispatch.parameter_filter']
+
+      assert_includes filters, :password
+      assert_includes filters, :foo
+      assert_includes filters, 'bar'
     end
 
     test "config.to_prepare is forwarded to ActionDispatch" do
