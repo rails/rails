@@ -479,7 +479,7 @@ module ActiveRecord
 
         clear_attribute_changes(changes.keys)
         primary_key = self.class.primary_key
-        scope = self.class.unscoped.where(primary_key => id)
+        scope = self.class.unscoped.where(primary_key => _read_attribute(primary_key))
 
         if locking_enabled?
           locking_column = self.class.locking_column
