@@ -214,9 +214,8 @@ end
 
 Due to a [change in Rack](https://github.com/rack/rack/commit/28b014484a8ac0bbb388e7eaeeef159598ec64fc),
 `rails server` now listens on `localhost` instead of `0.0.0.0` by default. This
-should have minimal impact on the standard development workflow as both
-http://127.0.0.1:3000 and http://localhost:3000 will continue to work as before
-on your own machine.
+should have minimal impact on the standard development workflow as http://localhost:3000
+will continue to work as before on your own machine.
 
 However, with this change you will no longer be able to access the Rails
 server from a different machine, for example if your development environment
