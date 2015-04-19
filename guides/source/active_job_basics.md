@@ -11,7 +11,7 @@ After reading this guide, you will know:
 * How to create jobs.
 * How to enqueue jobs.
 * How to run jobs in the background.
-* How to send emails from your application async.
+* How to send emails from your application asynchronously.
 
 --------------------------------------------------------------------------------
 
