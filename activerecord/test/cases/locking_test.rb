@@ -177,6 +177,16 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_equal 1, p1.lock_version
   end
 
+  def test_touch_stale_object
+    person = Person.create!(first_name: 'Mehmet Emin')
+    stale_person = Person.find(person.id)
+    person.update_attribute(:gender, 'M')
+
+    assert_raises(ActiveRecord::StaleObjectError) do
+      stale_person.touch
+    end
+  end
+
   def test_lock_column_name_existing
     t1 = LegacyThing.find(1)
     t2 = LegacyThing.find(1)
