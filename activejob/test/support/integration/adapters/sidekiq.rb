@@ -19,28 +19,38 @@ module SidekiqJobsManager
   end
 
   def start_workers
-    fork do
-      logfile = Rails.root.join("log/sidekiq.log").to_s
-      pidfile = Rails.root.join("tmp/sidekiq.pid").to_s
-      ::Process.daemon(true, true)
-      [$stdout, $stderr].each do |io|
-        File.open(logfile, 'ab') do |f|
-          io.reopen(f)
-        end
-        io.sync = true
-      end
+    continue_read, continue_write = IO.pipe
+    death_read, death_write = IO.pipe
+
+    @pid = fork do
+      continue_read.close
+      death_write.close
+
+      # Celluloid & Sidekiq are not warning-clean :(
+      $VERBOSE = false
+
       $stdin.reopen('/dev/null')
+      $stdout.sync = true
+      $stderr.sync = true
+
+      logfile = Rails.root.join("log/sidekiq.log").to_s
       Sidekiq::Logging.initialize_logger(logfile)
-      File.open(File.expand_path(pidfile), 'w') do |f|
-        f.puts ::Process.pid
-      end
 
       self_read, self_write = IO.pipe
       trap "TERM" do
         self_write.puts("TERM")
       end
 
+      Thread.new do
+        begin
+          death_read.read
+        rescue Exception
+        end
+        self_write.puts("TERM")
+      end
+
       require 'celluloid'
+      Celluloid.logger = nil
       require 'sidekiq/launcher'
       sidekiq = Sidekiq::Launcher.new({queues: ["integration_tests"],
                                        environment: "test",
@@ -51,23 +61,29 @@ module SidekiqJobsManager
       Sidekiq::Scheduled.const_set :INITIAL_WAIT, 1
       begin
         sidekiq.run
+        continue_write.puts "started"
         while readable_io = IO.select([self_read])
           signal = readable_io.first[0].gets.strip
           raise Interrupt if signal == "TERM"
         end
       rescue Interrupt
-        sidekiq.stop
-        exit(0)
       end
+
+      sidekiq.stop
+      exit!
     end
-    sleep 1
+    continue_write.close
+    death_read.close
+    @worker_lifeline = death_write
+
+    raise "Failed to start worker" unless continue_read.gets == "started\n"
   end
 
   def stop_workers
-    pidfile = Rails.root.join("tmp/sidekiq.pid").to_s
-    Process.kill 'TERM', File.open(pidfile).read.to_i
-    FileUtils.rm_f pidfile
-  rescue
+    if @pid
+      Process.kill 'TERM', @pid
+      Process.wait @pid
+    end
   end
 
   def can_run?
