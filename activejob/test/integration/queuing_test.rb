@@ -26,8 +26,6 @@ class QueuingTest < ActiveSupport::TestCase
 
   test 'should supply a wrapped class name to Sidekiq' do
     skip unless adapter_is?(:sidekiq)
-    require 'sidekiq/testing'
-
     Sidekiq::Testing.fake! do
       ::HelloJob.perform_later
       hash = ActiveJob::QueueAdapters::SidekiqAdapter::JobWrapper.jobs.first
