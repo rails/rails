@@ -194,6 +194,26 @@ module ApplicationTests
       assert_no_match(/Errors running/, output)
     end
 
+    def test_api_scaffold_tests_pass_by_default
+      add_to_config <<-RUBY
+        config.api_only = true
+        config.generators.api_only = true
+      RUBY
+
+      app_file "app/controllers/application_controller.rb", <<-RUBY
+        class ApplicationController < ActionController::API
+        end
+      RUBY
+
+      output = Dir.chdir(app_path) do
+        `rails generate scaffold user username:string password:string;
+         bundle exec rake db:migrate test`
+      end
+
+      assert_match(/5 runs, 8 assertions, 0 failures, 0 errors/, output)
+      assert_no_match(/Errors running/, output)
+    end
+
     def test_scaffold_with_references_columns_tests_pass_when_belongs_to_is_optional
       app_file "config/initializers/active_record_belongs_to_required_by_default.rb",
         "Rails.application.config.active_record.belongs_to_required_by_default = false"
