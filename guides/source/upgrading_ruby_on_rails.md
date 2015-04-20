@@ -826,7 +826,7 @@ file (in `config/application.rb`):
 
 ```ruby
 # Require the gems listed in Gemfile, including any gems
-# you've limited to :test, :development, or :production.
+# you can establish it for :test, :development, or :production.
 Bundler.require(*Rails.groups)
 ```
 
