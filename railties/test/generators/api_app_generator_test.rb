@@ -39,6 +39,10 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
       assert_no_match(/gem 'sass-rails'/, content)
     end
 
+    assert_file "config/application.rb" do |content|
+      assert_match(/config.api_only = true/, content)
+    end
+
     assert_file "config/initializers/wrap_parameters.rb" do |content|
       assert_no_match(/wrap_parameters/, content)
     end
