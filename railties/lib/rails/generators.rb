@@ -107,7 +107,8 @@ module Rails
       hide_namespaces "assets", "helper", "css", "js"
 
       options[:rails].merge!(
-        api: true
+        api: true,
+        template_engine: nil
       )
     end
 

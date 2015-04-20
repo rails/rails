@@ -140,6 +140,7 @@ module ApplicationTests
       assert Rails::Generators.hidden_namespaces.include?("js")
       assert Rails::Generators.hidden_namespaces.include?("css")
       assert Rails::Generators.options[:rails][:api]
+      assert_nil Rails::Generators.options[:rails][:template_engine]
     end
   end
 end

@@ -88,7 +88,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_api_scaffold_on_invoke
-    run_generator %w(product_line title:string product:belongs_to user:references --api)
+    run_generator %w(product_line title:string product:belongs_to user:references --api --no-template-engine)
 
     # Model
     assert_file "app/models/product_line.rb", /class ProductLine < ActiveRecord::Base/
@@ -139,6 +139,13 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
       assert_match(/post :create, params: \{ product_line: \{ product_id: @product_line\.product_id, title: @product_line\.title, user_id: @product_line\.user_id \} \}/, test)
       assert_match(/patch :update, params: \{ id: @product_line, product_line: \{ product_id: @product_line\.product_id, title: @product_line\.title, user_id: @product_line\.user_id \} \}/, test)
       assert_no_match(/assert_redirected_to/, test)
+    end
+
+    # Views
+    assert_no_file "app/views/layouts/product_lines.html.erb"
+
+    %w(index show new edit _form).each do |view|
+      assert_no_file "app/views/product_lines/#{view}.html.erb"
     end
   end
 
