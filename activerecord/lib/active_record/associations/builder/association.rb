@@ -16,7 +16,7 @@ module ActiveRecord::Associations::Builder
     end
     self.extensions = []
 
-    VALID_OPTIONS = [:class_name, :class, :foreign_key, :validate] # :nodoc:
+    VALID_OPTIONS = [:class_name, :anonymous_class, :foreign_key, :validate] # :nodoc:
 
     def self.build(model, name, scope, options, &block)
       if model.dangerous_attribute_method?(name)

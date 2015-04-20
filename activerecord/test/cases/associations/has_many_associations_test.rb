@@ -119,9 +119,9 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
       developer_project = Class.new(ActiveRecord::Base) {
         self.table_name = 'developers_projects'
-        belongs_to :developer, :class => dev
+        belongs_to :developer, :anonymous_class => dev
       }
-      has_many :developer_projects, :class => developer_project, :foreign_key => 'developer_id'
+      has_many :developer_projects, :anonymous_class => developer_project, :foreign_key => 'developer_id'
     }
     dev = developer.first
     named = Developer.find(dev.id)
@@ -140,13 +140,13 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
       comments = Class.new(ActiveRecord::Base) {
         self.table_name = 'comments'
         self.inheritance_column = 'not_there'
-        belongs_to :post, :class => post
+        belongs_to :post, :anonymous_class => post
         default_scope -> {
           counter += 1
           where("id = :inc", :inc => counter)
         }
       }
-      has_many :comments, :class => comments, :foreign_key => 'post_id'
+      has_many :comments, :anonymous_class => comments, :foreign_key => 'post_id'
     }
     assert_equal 0, counter
     post = posts.first

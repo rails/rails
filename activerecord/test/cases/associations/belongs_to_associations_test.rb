@@ -124,9 +124,9 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
           where("id = :inc", :inc => counter)
         }
 
-        has_many :comments, :class => comments
+        has_many :comments, :anonymous_class => comments
       }
-      belongs_to :post, :class => posts, :inverse_of => false
+      belongs_to :post, :anonymous_class => posts, :inverse_of => false
     }
 
     assert_equal 0, counter

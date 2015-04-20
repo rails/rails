@@ -1,3 +1,9 @@
+*   Rename `:class` to `:anonymous_class` in association options.
+
+    Fixes #19659.
+
+    *Andrew White*
+
 *   Autosave existing records on a has many through association when the parent
     is new.
 
