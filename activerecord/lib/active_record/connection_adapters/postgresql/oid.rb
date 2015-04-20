@@ -357,6 +357,7 @@ module ActiveRecord
         register_type 'timestamptz', OID::Timestamp.new
         register_type 'date', OID::Date.new
         register_type 'time', OID::Time.new
+        register_type 'timetz', OID::Time.new
 
         register_type 'path', OID::Identity.new
         register_type 'point', OID::Point.new
