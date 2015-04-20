@@ -128,7 +128,7 @@ module ApplicationTests
 
     test "api only generators hide assets, helper, js and css namespaces and set api option" do
       add_to_config <<-RUBY
-        config.generators.api_only = true
+        config.api_only = true
       RUBY
 
       # Initialize the application

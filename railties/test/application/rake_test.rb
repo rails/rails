@@ -197,7 +197,6 @@ module ApplicationTests
     def test_api_scaffold_tests_pass_by_default
       add_to_config <<-RUBY
         config.api_only = true
-        config.generators.api_only = true
       RUBY
 
       app_file "app/controllers/application_controller.rb", <<-RUBY
