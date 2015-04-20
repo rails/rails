@@ -180,7 +180,7 @@ module ActionDispatch
 
       def verify_and_upgrade_legacy_signed_message(name, signed_message)
         @legacy_verifier.verify(signed_message).tap do |value|
-          self[name] = value
+          self[name] = { value: value }
         end
       rescue ActiveSupport::MessageVerifier::InvalidSignature
         nil

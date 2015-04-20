@@ -504,17 +504,18 @@ class CookiesTest < ActionController::TestCase
     @request.env["action_dispatch.secret_token"] = "b3c631c314c0bbca50c1b2843150fe33"
     @request.env["action_dispatch.secret_key_base"] = "c3b95688f35581fad38df788add315ff"
 
-    legacy_value = ActiveSupport::MessageVerifier.new("b3c631c314c0bbca50c1b2843150fe33").generate(45)
+    value = { nr: 45 }
+    legacy_value = ActiveSupport::MessageVerifier.new("b3c631c314c0bbca50c1b2843150fe33").generate(value)
 
     @request.headers["Cookie"] = "user_id=#{legacy_value}"
     get :get_signed_cookie
 
-    assert_equal 45, @controller.send(:cookies).signed[:user_id]
+    assert_equal(value, @controller.send(:cookies).signed[:user_id])
 
     key_generator = @request.env["action_dispatch.key_generator"]
     secret = key_generator.generate_key(@request.env["action_dispatch.signed_cookie_salt"])
     verifier = ActiveSupport::MessageVerifier.new(secret)
-    assert_equal 45, verifier.verify(@response.cookies["user_id"])
+    assert_equal(value, verifier.verify(@response.cookies["user_id"]))
   end
 
   def test_legacy_signed_cookie_is_read_and_transparently_encrypted_by_encrypted_cookie_jar_if_both_secret_token_and_secret_key_base_are_set
