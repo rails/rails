@@ -291,7 +291,7 @@ module ActionDispatch
           # (ip confirms to domain regexp so we explicitly check for ip)
           options[:domain] = if (@host !~ /^[\d.]+$/) && (@host =~ domain_regexp)
             ".#{$&}"
-          end
+        end
         elsif options[:domain].is_a? Array
           # if host matches one of the supplied domains without a dot in front of it
           options[:domain] = options[:domain].find {|domain| @host.include? domain.sub(/^\./, '') }
@@ -345,7 +345,7 @@ module ActionDispatch
 
       # Removes all cookies on the client machine by calling <tt>delete</tt> for each cookie
       def clear(options = {})
-        @cookies.each_key{ |k| delete(k, options) }
+        @cookies.each_key { |k| delete(k, options) }
       end
 
       def write(headers)
