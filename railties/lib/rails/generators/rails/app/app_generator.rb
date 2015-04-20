@@ -262,6 +262,7 @@ module Rails
       def delete_app_assets_if_api_option
         if options[:api]
           remove_dir 'app/assets'
+          remove_dir 'lib/assets'
         end
       end
 

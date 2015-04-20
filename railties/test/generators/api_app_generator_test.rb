@@ -62,7 +62,6 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
       db
       lib
       lib/tasks
-      lib/assets
       log
       test/fixtures
       test/controllers
@@ -80,6 +79,7 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
        config/initializers/assets.rb
        config/initializers/cookies_serializer.rb
        config/initializers/session_store.rb
+       lib/assets
        vendor/assets
        test/helpers
        tmp/cache/assets)
