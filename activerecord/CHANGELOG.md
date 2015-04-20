@@ -1,3 +1,9 @@
+*   Rename `:class` to `:anonymous_class` in association options.
+
+    Fixes #19659.
+
+    *Andrew White*
+
 *   Fixed a bug where uniqueness validations would error on out of range values,
     even if an validation should have prevented it from hitting the database.
 

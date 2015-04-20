@@ -279,10 +279,10 @@ class HasManyThroughFixture < ActiveSupport::TestCase
     treasure = make_model "Treasure"
 
     pt.table_name = "parrots_treasures"
-    pt.belongs_to :parrot, :class => parrot
-    pt.belongs_to :treasure, :class => treasure
+    pt.belongs_to :parrot, :anonymous_class => parrot
+    pt.belongs_to :treasure, :anonymous_class => treasure
 
-    parrot.has_many :parrot_treasures, :class => pt
+    parrot.has_many :parrot_treasures, :anonymous_class => pt
     parrot.has_many :treasures, :through => :parrot_treasures
 
     parrots = File.join FIXTURES_ROOT, 'parrots'
@@ -297,10 +297,10 @@ class HasManyThroughFixture < ActiveSupport::TestCase
     parrot = make_model "Parrot"
     treasure = make_model "Treasure"
 
-    pt.belongs_to :parrot, :class => parrot
-    pt.belongs_to :treasure, :class => treasure
+    pt.belongs_to :parrot, :anonymous_class => parrot
+    pt.belongs_to :treasure, :anonymous_class => treasure
 
-    parrot.has_many :parrot_treasures, :class => pt
+    parrot.has_many :parrot_treasures, :anonymous_class => pt
     parrot.has_many :treasures, :through => :parrot_treasures
 
     parrots = File.join FIXTURES_ROOT, 'parrots'

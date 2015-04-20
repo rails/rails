@@ -78,7 +78,7 @@ module ActiveRecord::Associations::Builder
       join_model.table_name_resolver = habtm
       join_model.class_resolver      = lhs_model
 
-      join_model.add_left_association :left_side, class: lhs_model
+      join_model.add_left_association :left_side, anonymous_class: lhs_model
       join_model.add_right_association association_name, belongs_to_options(options)
       join_model
     end
