@@ -153,6 +153,13 @@ class FormOptionsHelperTest < ActionView::TestCase
       )
   end
 
+  def test_array_options_for_select_with_selection_proc
+      assert_dom_equal(
+        "<option value=\"Denmark\">Denmark</option>\n<option value=\"&lt;USA&gt;\" selected=\"selected\">&lt;USA&gt;</option>\n<option value=\"Sweden\" selected=\"selected\">Sweden</option>",
+        options_for_select([ "Denmark", "<USA>", "Sweden" ], ->(value) { [ "<USA>", "Sweden" ].include? value })
+      )
+  end
+
   def test_array_options_for_select_with_disabled_value
     assert_dom_equal(
       "<option value=\"Denmark\">Denmark</option>\n<option value=\"&lt;USA&gt;\" disabled=\"disabled\">&lt;USA&gt;</option>\n<option value=\"Sweden\">Sweden</option>",
@@ -164,6 +171,13 @@ class FormOptionsHelperTest < ActionView::TestCase
     assert_dom_equal(
       "<option value=\"Denmark\">Denmark</option>\n<option value=\"&lt;USA&gt;\" disabled=\"disabled\">&lt;USA&gt;</option>\n<option value=\"Sweden\" disabled=\"disabled\">Sweden</option>",
       options_for_select([ "Denmark", "<USA>", "Sweden" ], :disabled => ["<USA>", "Sweden"])
+    )
+  end
+
+  def test_array_options_for_select_with_disabled_proc
+    assert_dom_equal(
+      "<option value=\"Denmark\">Denmark</option>\n<option value=\"&lt;USA&gt;\" disabled=\"disabled\">&lt;USA&gt;</option>\n<option value=\"Sweden\" disabled=\"disabled\">Sweden</option>",
+      options_for_select([ "Denmark", "<USA>", "Sweden" ], :disabled => ->(value) { ["<USA>", "Sweden"].include? value })
     )
   end
 

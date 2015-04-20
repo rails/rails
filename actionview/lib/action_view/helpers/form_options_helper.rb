@@ -351,18 +351,19 @@ module ActionView
         return container if String === container
 
         selected, disabled = extract_selected_and_disabled(selected).map do |r|
+          next r if r.is_a?(Proc)
           Array(r).map(&:to_s)
         end
 
         container.map do |element|
           html_attributes = option_html_attributes(element)
-          text, value = option_text_and_value(element).map(&:to_s)
+          text, value = option_text_and_value(element)
 
           html_attributes[:selected] ||= option_value_selected?(value, selected)
           html_attributes[:disabled] ||= disabled && option_value_selected?(value, disabled)
-          html_attributes[:value] = value
+          html_attributes[:value] = value.to_s
 
-          content_tag_string(:option, text, html_attributes)
+          content_tag_string(:option, text.to_s, html_attributes)
         end.join("\n").html_safe
       end
 
@@ -731,7 +732,11 @@ module ActionView
         end
 
         def option_value_selected?(value, selected)
-          Array(selected).include? value
+          if selected.is_a?(Proc)
+            selected.call(value)
+          else
+            Array(selected).include? value.to_s
+          end
         end
 
         def extract_selected_and_disabled(selected)
