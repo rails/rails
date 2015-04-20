@@ -86,7 +86,7 @@ module ActiveSupport
       def increment(name, amount = 1, options = nil) # :nodoc:
         options = merged_options(options)
         instrument(:increment, name, :amount => amount) do
-          @data.incr(escape_key(namespaced_key(name, options)), amount)
+          @data.incr(escape_key(namespaced_key(name, options)), amount, nil, 0)
         end
       rescue Dalli::DalliError => e
         logger.error("DalliError (#{e}): #{e.message}") if logger
@@ -100,7 +100,7 @@ module ActiveSupport
       def decrement(name, amount = 1, options = nil) # :nodoc:
         options = merged_options(options)
         instrument(:decrement, name, :amount => amount) do
-          @data.decr(escape_key(namespaced_key(name, options)), amount)
+          @data.decr(escape_key(namespaced_key(name, options)), amount, nil, 0)
         end
       rescue Dalli::DalliError => e
         logger.error("DalliError (#{e}): #{e.message}") if logger
