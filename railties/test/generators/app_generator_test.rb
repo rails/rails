@@ -560,6 +560,14 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_spring_with_dev_option
+    run_generator [destination_root, "--dev"]
+
+    assert_file "Gemfile" do |content|
+      assert_no_match(/spring/, content)
+    end
+  end
+
   def test_generator_if_skip_turbolinks_is_given
     run_generator [destination_root, "--skip-turbolinks"]
 
