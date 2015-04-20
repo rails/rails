@@ -24,18 +24,22 @@ module ActiveJob
         end
       end
 
+      def queue_name
+        class_variable_get(:@@queue_name) || queue_name_from_part(nil)
+      end
+
       def queue_name_from_part(part_name) #:nodoc:
         queue_name = part_name || default_queue_name
         name_parts = [queue_name_prefix.presence, queue_name]
         name_parts.compact.join(queue_name_delimiter)
       end
+
     end
 
     included do
-      class_attribute :queue_name, instance_accessor: false
+      cattr_writer :queue_name, instance_writer: false
       class_attribute :queue_name_delimiter, instance_accessor: false
 
-      self.queue_name = default_queue_name
       self.queue_name_delimiter = '_' # set default delimiter to '_'
     end
 

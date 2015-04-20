@@ -4,6 +4,11 @@ require 'jobs/logging_job'
 require 'jobs/nested_job'
 
 class QueueNamingTest < ActiveSupport::TestCase
+
+  setup do
+    HelloJob.queue_name = nil
+  end
+
   test 'name derived from base' do
     assert_equal "default", HelloJob.queue_name
   end
@@ -92,6 +97,30 @@ class QueueNamingTest < ActiveSupport::TestCase
       ActiveJob::Base.queue_name_prefix = original_queue_name_prefix
       ActiveJob::Base.queue_name_delimiter = original_queue_name_delimiter
       HelloJob.queue_name = original_queue_name
+    end
+  end
+
+  test 'queue_name_prefix prepended to default_queue_name' do
+    original_queue_name_prefix = ActiveJob::Base.queue_name_prefix
+
+    begin
+      ActiveJob::Base.queue_name_prefix = "aj"
+      assert_equal "aj_default", HelloJob.queue_name
+      assert_equal "aj_default", HelloJob.new.queue_name
+    ensure
+      ActiveJob::Base.queue_name_prefix = original_queue_name_prefix
+    end
+  end
+
+  test 'default_queue_name is configurable' do
+    original_default_queue_name = ActiveJob::Base.default_queue_name
+
+    begin
+      ActiveJob::Base.default_queue_name = "odd_jobs"
+      assert_equal "odd_jobs", HelloJob.queue_name
+      assert_equal "odd_jobs", HelloJob.new.queue_name
+    ensure
+      ActiveJob::Base.default_queue_name = original_default_queue_name
     end
   end
 
