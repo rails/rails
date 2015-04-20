@@ -144,5 +144,21 @@ module ApplicationTests
       assert_equal false, Rails::Generators.options[:rails][:helper]
       assert_nil Rails::Generators.options[:rails][:template_engine]
     end
+
+    test "api only generators allow overriding generator options" do
+      add_to_config <<-RUBY
+      config.generators.helper = true
+      config.api_only = true
+      config.generators.template_engine = :my_template
+      RUBY
+
+      # Initialize the application
+      require "#{app_path}/config/environment"
+      Rails.application.load_generators
+
+      assert Rails::Generators.options[:rails][:api]
+      assert Rails::Generators.options[:rails][:helper]
+      assert_equal :my_template, Rails::Generators.options[:rails][:template_engine]
+    end
   end
 end
