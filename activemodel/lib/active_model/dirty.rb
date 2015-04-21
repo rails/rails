@@ -76,9 +76,11 @@ module ActiveModel
   #
   # Reset the changes:
   #
-  #   person.previous_changes # => {"name" => ["Uncle Bob", "Bill"]}
+  #   person.previous_changes         # => {"name" => ["Uncle Bob", "Bill"]}
+  #   person.name_previously_changed? # => true
+  #   person.name_previous_change     # => ["Uncle Bob", "Bill"]
   #   person.reload!
-  #   person.previous_changes # => {}
+  #   person.previous_changes         # => {}
   #
   # Rollback the changes:
   #
@@ -115,6 +117,7 @@ module ActiveModel
 
     included do
       attribute_method_suffix '_changed?', '_change', '_will_change!', '_was'
+      attribute_method_suffix '_previously_changed?', '_previous_change'
       attribute_method_affix prefix: 'restore_', suffix: '!'
     end
 
@@ -179,6 +182,11 @@ module ActiveModel
       attribute_changed?(attr) ? changed_attributes[attr] : __send__(attr)
     end
 
+    # Handles <tt>*_previously_changed?</tt> for +method_missing+.
+    def attribute_previously_changed?(attr, options = {}) #:nodoc:
+      previous_changes_include?(attr)
+    end
+
     # Restore all previous data of the provided attributes.
     def restore_attributes(attributes = changed)
       attributes.each { |attr| restore_attribute! attr }
@@ -191,6 +199,12 @@ module ActiveModel
         attributes_changed_by_setter.include?(attr_name)
       end
       alias attribute_changed_by_setter? changes_include?
+
+      # Returns +true+ if attr_name were changed before the model was saved,
+      # +false+ otherwise.
+      def previous_changes_include?(attr_name)
+        @previously_changed.include?(attr_name)
+      end
 
       # Removes current changes and makes them accessible through +previous_changes+.
       def changes_applied # :doc:
@@ -207,6 +221,11 @@ module ActiveModel
       # Handles <tt>*_change</tt> for +method_missing+.
       def attribute_change(attr)
         [changed_attributes[attr], __send__(attr)] if attribute_changed?(attr)
+      end
+
+      # Handles <tt>*_previous_change</tt> for +method_missing+.
+      def attribute_previous_change(attr)
+        @previously_changed[attr] if attribute_previously_changed?(attr)
       end
 
       # Handles <tt>*_will_change!</tt> for +method_missing+.
