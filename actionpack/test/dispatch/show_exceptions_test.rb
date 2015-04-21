@@ -23,7 +23,6 @@ class ShowExceptionsTest < ActionDispatch::IntegrationTest
   end
 
   ProductionApp    = ActionDispatch::ShowExceptions.new(Boomer.new, ActionDispatch::PublicExceptions.new("#{FIXTURE_LOAD_PATH}/public"))
-  ProductionApiApp = ActionDispatch::ShowExceptions.new(Boomer.new, ActionDispatch::ApiPublicExceptions.new("#{FIXTURE_LOAD_PATH}/public"))
 
   test "skip exceptions app if not showing exceptions" do
     @app = ProductionApp
@@ -54,42 +53,6 @@ class ShowExceptionsTest < ActionDispatch::IntegrationTest
     get "/unknown_http_method", headers: { 'action_dispatch.show_exceptions' => true }
     assert_response 405
     assert_equal "", body
-  end
-
-  test "rescue api apps with json response" do
-    @app = ProductionApiApp
-
-    get "/", headers: { 'HTTP_ACCEPT' => 'application/json', 'action_dispatch.show_exceptions' => true }
-    assert_response 500
-    assert_equal({ :status => '500', :error => 'puke!' }.to_json, body)
-
-    get "/method_not_allowed", headers: { 'HTTP_ACCEPT' => 'application/json', 'action_dispatch.show_exceptions' => true }
-    assert_response 405
-    assert_equal({ :status => '405', :error => 'Only PUT requests are allowed.' }.to_json, body)
-
-    get "/unknown_http_method", headers: { 'HTTP_ACCEPT' => 'application/json', 'action_dispatch.show_exceptions' => true }
-    assert_response 405
-    assert_equal({ :status => '405', :error => 'ActionController::UnknownHttpMethod' }.to_json, body)
-  end
-
-  test "rescue api apps unknown content-type requests with html response" do
-    @app = ProductionApiApp
-
-    get "/", headers: { 'HTTP_ACCEPT' => 'application/x-custom', 'action_dispatch.show_exceptions' => true }
-    assert_response 500
-    assert_equal "500 error fixture\n", body
-
-    get "/bad_params", headers: { 'HTTP_ACCEPT' => 'application/x-custom', 'action_dispatch.show_exceptions' => true }
-    assert_response 400
-    assert_equal "400 error fixture\n", body
-
-    get "/not_found", headers: { 'HTTP_ACCEPT' => 'application/x-custom', 'action_dispatch.show_exceptions' => true }
-    assert_response 404
-    assert_equal "404 error fixture\n", body
-
-    get "/unknown_http_method", headers: { 'HTTP_ACCEPT' => 'application/x-custom', 'action_dispatch.show_exceptions' => true }
-    assert_response 405
-    assert_equal("", body)
   end
 
   test "localize rescue error page" do

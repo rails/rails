@@ -53,7 +53,6 @@ module ActionDispatch
     autoload :ExceptionWrapper
     autoload :Flash
     autoload :ParamsParser
-    autoload :ApiPublicExceptions
     autoload :PublicExceptions
     autoload :Reloader
     autoload :RemoteIp
