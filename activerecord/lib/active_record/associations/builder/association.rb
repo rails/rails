@@ -21,7 +21,7 @@ module ActiveRecord::Associations::Builder
     end
     self.extensions = []
 
-    self.valid_options = [:class_name, :class, :foreign_key, :validate]
+    self.valid_options = [:class_name, :anonymous_class, :foreign_key, :validate]
 
     attr_reader :name, :scope, :options
 

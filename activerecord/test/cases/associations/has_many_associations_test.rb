@@ -59,9 +59,9 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
       developer_project = Class.new(ActiveRecord::Base) {
         self.table_name = 'developers_projects'
-        belongs_to :developer, :class => dev
+        belongs_to :developer, :anonymous_class => dev
       }
-      has_many :developer_projects, :class => developer_project, :foreign_key => 'developer_id'
+      has_many :developer_projects, :anonymous_class => developer_project, :foreign_key => 'developer_id'
     }
     dev = developer.first
     named = Developer.find(dev.id)

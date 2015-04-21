@@ -1,3 +1,9 @@
+*   Rename `:class` to `:anonymous_class` in association options.
+
+    Fixes #19659.
+
+    *Andrew White*
+
 *   Fix referencing wrong table aliases while joining tables of has many through
     association (only when calling calculation methods).
 

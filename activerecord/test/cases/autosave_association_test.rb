@@ -38,7 +38,7 @@ class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
     reference = Class.new(ActiveRecord::Base) {
       self.table_name = "references"
       def self.name; 'Reference'; end
-      belongs_to :person, autosave: true, class: person
+      belongs_to :person, autosave: true, anonymous_class: person
     }
 
     u = person.create!(first_name: 'cool')
