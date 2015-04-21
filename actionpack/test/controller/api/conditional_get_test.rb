@@ -3,22 +3,22 @@ require 'active_support/core_ext/integer/time'
 require 'active_support/core_ext/numeric/time'
 
 class ConditionalGetApiController < ActionController::API
-  before_action :handle_last_modified_and_etags, :only => :two
+  before_action :handle_last_modified_and_etags, only: :two
 
   def one
-    if stale?(:last_modified => Time.now.utc.beginning_of_day, :etag => [:foo, 123])
-      render :text => "Hi!"
+    if stale?(last_modified: Time.now.utc.beginning_of_day, etag: [:foo, 123])
+      render text: "Hi!"
     end
   end
 
   def two
-    render :text => "Hi!"
+    render text: "Hi!"
   end
 
   private
 
   def handle_last_modified_and_etags
-    fresh_when(:last_modified => Time.now.utc.beginning_of_day, :etag => [ :foo, 123 ])
+    fresh_when(last_modified: Time.now.utc.beginning_of_day, etag: [ :foo, 123 ])
   end
 end
 
