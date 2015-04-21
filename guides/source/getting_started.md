@@ -97,7 +97,7 @@ For more installation methods for most Operating Systems take a look at
 
 ```bash
 $ ruby -v
-ruby 2.0.0p353
+ruby 2.2.2p95
 ```
 
 Many popular UNIX-like OSes ship with an acceptable version of SQLite3.
