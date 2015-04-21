@@ -43,7 +43,7 @@ module Rails
 
         find_cmd_and_exec(['mysql', 'mysql5'], *args)
 
-      when /^postgres|^postgis/
+      when /^postgres|^postgis|^redshift/
         ENV['PGUSER']     = config["username"] if config["username"]
         ENV['PGHOST']     = config["host"] if config["host"]
         ENV['PGPORT']     = config["port"].to_s if config["port"]
