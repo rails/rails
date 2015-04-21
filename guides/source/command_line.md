@@ -423,7 +423,7 @@ If you want to clear `public/assets` completely, you can use `rake assets:clobbe
 
 The most common tasks of the `db:` Rake namespace are `migrate` and `create`, and it will pay off to try out all of the migration rake tasks (`up`, `down`, `redo`, `reset`). `rake db:version` is useful when troubleshooting, telling you the current version of the database.
 
-More information about migrations can be found in the [Migrations](migrations.html) guide.
+More information about migrations can be found in the [Migrations](active_record_migrations.html) guide.
 
 ### `notes`
 
