@@ -1,3 +1,7 @@
+*   Let CTE queries (`WITH ...`) be explainable.
+
+    *Vladimir Kochnev*
+
 *   SQLite: `:collation` support for string and text columns.
 
     Example:
