@@ -1,3 +1,7 @@
+*   Let CTE queries (`WITH ...`) be explainable.
+
+    *Vladimir Kochnev*
+
 *   Deprecate `Relation#uniq` use `Relation#distinct` instead.
 
     See #9683.
