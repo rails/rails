@@ -266,6 +266,8 @@ module Rails
       end
 
       def jbuilder_gemfile_entry
+        return [] if options[:api]
+
         comment = 'Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder'
         GemfileEntry.version('jbuilder', '~> 2.0', comment)
       end
