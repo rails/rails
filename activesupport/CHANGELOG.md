@@ -1,3 +1,9 @@
+*   Encoding ActiveSupport::TimeWithZone to YAML now preserves the timezone information.
+
+    Fixes #9183.
+
+    *Andrew White*
+
 *   Added `ActiveSupport::TimeZone#strptime` to allow parsing times as if
     from a given timezone.
 

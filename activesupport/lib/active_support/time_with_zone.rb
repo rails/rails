@@ -169,12 +169,13 @@ module ActiveSupport
       end
     end
 
-    def encode_with(coder)
-      if coder.respond_to?(:represent_object)
-        coder.represent_object(nil, utc)
-      else
-        coder.represent_scalar(nil, utc.strftime("%Y-%m-%d %H:%M:%S.%9NZ"))
-      end
+    def init_with(coder) #:nodoc:
+      initialize(coder['utc'], coder['zone'], coder['time'])
+    end
+
+    def encode_with(coder) #:nodoc:
+      coder.tag = '!ruby/object:ActiveSupport::TimeWithZone'
+      coder.map = { 'utc' => utc, 'zone' => time_zone, 'time' => time }
     end
 
     # Returns a string of the object's date and time in the format used by
