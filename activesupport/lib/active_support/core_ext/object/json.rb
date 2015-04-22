@@ -28,7 +28,7 @@ require 'active_support/core_ext/module/aliasing'
 # should give exactly the same results with or without active support.
 [Object, Array, FalseClass, Float, Hash, Integer, NilClass, String, TrueClass, Enumerable].each do |klass|
   klass.class_eval do
-    def to_json_with_active_support_encoder(options = nil)
+    def to_json_with_active_support_encoder(options = nil) # :nodoc:
       if options.is_a?(::JSON::State)
         # Called from JSON.{generate,dump}, forward it to JSON gem's to_json
         self.to_json_without_active_support_encoder(options)
