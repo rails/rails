@@ -14,8 +14,7 @@
     *Adam Prescott*
 
 *   `translate` should accept nils as members of the `:default`
-    parameter without raising a translation missing error.  Fixes a
-    regression introduced 362557e.
+    parameter without raising a translation missing error.
 
     Fixes #19419
 

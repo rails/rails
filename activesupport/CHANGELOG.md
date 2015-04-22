@@ -23,7 +23,8 @@
 
     *George Claghorn*
 
-*   Deprecate `alias_method_chain` in favour of `Module#prepend` introduced in Ruby 2.0
+*   Deprecate `alias_method_chain` in favour of `Module#prepend` introduced in
+    Ruby 2.0.
 
     *Kir Shatrov*
 

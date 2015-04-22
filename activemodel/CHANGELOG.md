@@ -22,7 +22,7 @@
 
     *Wojciech Wnętrzak*
 
-*   Allow symbol as values for `tokenize` of `LengthValidator`
+*   Allow symbol as values for `tokenize` of `LengthValidator`.
 
     *Kensuke Naito*
 

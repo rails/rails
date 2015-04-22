@@ -35,11 +35,11 @@
 
     *Kohei Suzuki*
 
-*   Fix handling of empty X_FORWARDED_HOST header in raw_host_with_port
+*   Fix handling of empty `X_FORWARDED_HOST` header in `raw_host_with_port`.
 
-    Previously, an empty X_FORWARDED_HOST header would cause
-    Actiondispatch::Http:URL.raw_host_with_port to return nil, causing
-    Actiondispatch::Http:URL.host to raise a NoMethodError.
+    Previously, an empty `X_FORWARDED_HOST` header would cause
+    `Actiondispatch::Http:URL.raw_host_with_port` to return `nil`, causing
+    `Actiondispatch::Http:URL.host` to raise a `NoMethodError`.
 
     *Adam Forsyth*
 

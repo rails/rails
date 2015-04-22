@@ -1,4 +1,5 @@
-*   Rename `railties/bin` to `railties/exe` to match the new Bundler executables convention.
+*   Rename `railties/bin` to `railties/exe` to match the new Bundler executables
+    convention.
 
     *Islam Wazery*
 
@@ -22,7 +23,7 @@
 
     *arthurnn*
 
-*   Add `rake initializers`
+*   Add `rake initializers`.
 
     This task prints out all defined initializers in the order they are invoked
     by Rails. This is helpful for debugging issues related to the initialization
@@ -37,7 +38,7 @@
 
     *Hyonjee Joo*
 
-*   Add `config/initializers/active_record_belongs_to_required_by_default.rb`
+*   Add `config/initializers/active_record_belongs_to_required_by_default.rb`.
 
     Newly generated Rails apps have a new initializer called
     `active_record_belongs_to_required_by_default.rb` which sets the value of
@@ -56,7 +57,7 @@
     'No such middleware' errors when `insert_before` or `insert_after` are added
     after the `delete` operation for the middleware being deleted.
 
-    Fixes: #16433.
+    Fixes #16433.
 
     *Guo Xiang Tan*
 
@@ -68,7 +69,7 @@
 
     *Xavier Noria*
 
-*   Force generated routes to be inserted into routes.rb
+*   Force generated routes to be inserted into `config/routes.rb`.
 
     *Andrew White*
 
@@ -82,11 +83,12 @@
 
     *Melanie Gilman*
 
-*   Add the `method_source` gem to the default Gemfile for apps
+*   Add the `method_source` gem to the default Gemfile for apps.
 
     *Sean Griffin*
 
-*   Drop old test locations from `rake stats`
+*   Drop old test locations from `rake stats`:
+
     - test/functional
     - test/unit
 
@@ -117,7 +119,7 @@
 
     *Andrew Kozlov*
 
-*   Add `config/initializers/callback_terminator.rb`
+*   Add `config/initializers/callback_terminator.rb`.
 
     Newly generated Rails apps have a new initializer called
     `callback_terminator.rb` which sets the value of the configuration option
