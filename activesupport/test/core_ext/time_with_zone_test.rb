@@ -123,11 +123,14 @@ class TimeWithZoneTest < ActiveSupport::TestCase
   end
 
   def test_to_yaml
-    assert_match(/^--- 2000-01-01 00:00:00(\.0+)?\s*Z\n/, @twz.to_yaml)
+    assert_match(/\A--- 1999-12-31 19:00:00(\.0+)?\s*-05:00\n/, @twz.to_yaml)
+
+    utc_twz = ActiveSupport::TimeWithZone.new(@utc, ActiveSupport::TimeZone['UTC'])
+    assert_match(/\A--- 2000-01-01 00:00:00.000000000 Z\n/, utc_twz.to_yaml)
   end
 
   def test_ruby_to_yaml
-    assert_match(/---\s*\n:twz: 2000-01-01 00:00:00(\.0+)?\s*Z\n/, {:twz => @twz}.to_yaml)
+    assert_match(/---\s*\n:twz: 1999-12-31 19:00:00(\.0+)?\s*-05:00\n/, {:twz => @twz}.to_yaml)
   end
 
   def test_httpdate
