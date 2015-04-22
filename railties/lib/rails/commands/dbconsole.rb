@@ -50,9 +50,6 @@ module Rails
         ENV['PGPASSWORD'] = config["password"].to_s if config["password"] && options['include_password']
         find_cmd_and_exec('psql', config["database"])
 
-      when "sqlite"
-        find_cmd_and_exec('sqlite', config["database"])
-
       when "sqlite3"
         args = []
 

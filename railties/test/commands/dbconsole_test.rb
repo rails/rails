@@ -158,12 +158,6 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
     assert_equal 'q1w2e3', ENV['PGPASSWORD']
   end
 
-  def test_sqlite
-    start(adapter: 'sqlite', database: 'db')
-    assert !aborted
-    assert_equal ['sqlite', 'db'], dbconsole.find_cmd_and_exec_args
-  end
-
   def test_sqlite3
     start(adapter: 'sqlite3', database: 'db.sqlite3')
     assert !aborted

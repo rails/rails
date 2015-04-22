@@ -1,3 +1,7 @@
+*   Remove sqlite support from `rails dbconsole`.
+
+    *Andrew White*
+
 *   Rename `railties/bin` to `railties/exe` to match the new Bundler executables
     convention.
 
