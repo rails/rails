@@ -140,7 +140,7 @@ module ApplicationTests
       app_file "app/controllers/omg_controller.rb", <<-RUBY
         class OmgController < ApplicationController
           def show
-            render :json => { :omg => 'omg' }
+            render json: { omg: 'omg' }
           end
         end
       RUBY
