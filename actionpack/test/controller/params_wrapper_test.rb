@@ -26,6 +26,11 @@ class ParamsWrapperTest < ActionController::TestCase
       self.class.last_parameters = request.params.except(:controller, :action)
       head :ok
     end
+
+    def nested_parse
+      self.class.last_parameters = request.params.except(:controller, :action)
+      head :ok
+    end
   end
 
   class User
@@ -46,15 +51,40 @@ class ParamsWrapperTest < ActionController::TestCase
 
   tests UsersController
 
+  def setup
+    @routes = ActionDispatch::Routing::RouteSet.new.tap do |r|
+      r.draw do
+        post 'users' => 'params_wrapper_test/users#parse'
+        post 'comments/:comment_id/users/:id' => 'params_wrapper_test/users#nested_parse'
+      end
+    end
+  end
+
   def teardown
     UsersController.last_parameters = nil
   end
 
   def test_filtered_parameters
     with_default_wrapper_options do
-      @request.env["CONTENT_TYPE"] = "application/json"
-      post :parse, params: { "username" => "sikachu" }
-      assert_equal({ "controller" => "params_wrapper_test/users", "action" => "parse", "username" => "sikachu", "user" => { "username" => "sikachu" } }, @request.filtered_parameters)
+      @request.env['CONTENT_TYPE'] = 'application/json'
+      post :parse, params: { 'username' => 'sikachu' }
+      assert_equal({ 'controller' => 'params_wrapper_test/users', 'action' => 'parse', 'username' => 'sikachu', 'user' => { 'username' => 'sikachu' } }, @request.filtered_parameters)
+    end
+  end
+
+  def test_parameters_wrap_path_parameters
+    with_default_wrapper_options do
+      @request.env['CONTENT_TYPE'] = 'application/json'
+      post :nested_parse, params: { 'username' => 'sonots', 'comment_id' => 10, 'id' => 1 }
+      assert_equal({ 'username' => 'sonots', 'comment_id' => '10', 'id' => '1', 'controller' => 'params_wrapper_test/users', 'action' => 'nested_parse', 'user' => { 'username' => 'sonots', 'comment_id' => '10', 'id' => '1' } }, @request.parameters)
+    end
+  end
+
+  def test_request_parameters_do_not_wrap_path_parameters
+    with_default_wrapper_options do
+      @request.env['CONTENT_TYPE'] = 'application/json'
+      post :nested_parse, params: { 'username' => 'sonots', 'comment_id' => 10, 'id' => 1 }
+      assert_equal({ 'username' => 'sonots', 'user' => { 'username' => 'sonots' } }, @request.request_parameters)
     end
   end
 

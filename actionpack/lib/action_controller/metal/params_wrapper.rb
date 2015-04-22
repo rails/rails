@@ -69,7 +69,7 @@ module ActionController
   module ParamsWrapper
     extend ActiveSupport::Concern
 
-    EXCLUDE_PARAMETERS = %w(authenticity_token _method utf8)
+    EXCLUDE_PARAMETERS = %w(authenticity_token _method utf8 controller action)
 
     require "mutex_m"
 
@@ -234,16 +234,17 @@ module ActionController
       if _wrapper_enabled?
         if request.parameters[_wrapper_key].present?
           wrapped_hash = _extract_parameters(request.parameters)
+          wrapped_request_hash = _extract_parameters(request.request_parameters)
         else
-          wrapped_hash = _wrap_parameters request.request_parameters
+          wrapped_hash = _wrap_parameters request.parameters
+          wrapped_request_hash = _wrap_parameters request.request_parameters
         end
 
-        wrapped_keys = request.request_parameters.keys
-        wrapped_filtered_hash = _wrap_parameters request.filtered_parameters.slice(*wrapped_keys)
+        wrapped_filtered_hash = _wrap_parameters request.filtered_parameters
 
         # This will make the wrapped hash accessible from controller and view.
         request.parameters.merge! wrapped_hash
-        request.request_parameters.merge! wrapped_hash
+        request.request_parameters.merge! wrapped_request_hash
 
         # This will display the wrapped hash in the log file.
         request.filtered_parameters.merge! wrapped_filtered_hash
