@@ -17,6 +17,7 @@
     <%%= f.label :password %><br>
     <%%= f.password_field :password %>
   </div>
+
   <div class="field">
     <%%= f.label :password_confirmation %><br>
     <%%= f.password_field :password_confirmation %>
@@ -25,6 +26,7 @@
     <%%= f.<%= attribute.field_type %> :<%= attribute.column_name %> %>
 <% end -%>
   </div>
+
 <% end -%>
   <div class="actions">
     <%%= f.submit %>
