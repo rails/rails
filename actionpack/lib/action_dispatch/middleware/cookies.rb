@@ -482,8 +482,8 @@ module ActionDispatch
 
     # UpgradeLegacySignedCookieJar is used instead of SignedCookieJar if
     # secrets.secret_token and secrets.secret_key_base are both set. It reads
-    # legacy cookies signed with the old dummy key generator and re-saves
-    # them using the new key generator to provide a smooth upgrade path.
+    # legacy cookies signed with the old dummy key generator and signs and
+    # re-saves them using the new key generator to provide a smooth upgrade path.
     class UpgradeLegacySignedCookieJar < SignedCookieJar #:nodoc:
       include VerifyAndUpgradeLegacySignedMessage
 
