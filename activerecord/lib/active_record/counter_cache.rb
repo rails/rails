@@ -19,7 +19,7 @@ module ActiveRecord
       #   Post.reset_counters(1, :comments)
       def reset_counters(id, *counters)
         object = find(id)
-        raise ArgumentError, "Must specify at least one association" unless counters.any?
+        raise ArgumentError, "Must specify at least one association" unless counters && counters.any?
         counters.each do |counter_association|
           has_many_association = _reflect_on_association(counter_association)
           unless has_many_association
