@@ -376,6 +376,15 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert_equal zone, twz.time_zone
   end
 
+  def test_strptime_with_day_omitted
+    with_env_tz 'US/Eastern' do
+      zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
+      assert_equal Time.local(2000, 2, 1), zone.strptime('Feb', '%b', Time.local(2000, 1, 1))
+      assert_equal Time.local(2005, 2, 1), zone.strptime('Feb 2005', '%b %Y', Time.local(2000, 1, 1))
+      assert_equal Time.local(2005, 2, 2), zone.strptime('2 Feb 2005', '%e %b %Y', Time.local(2000, 1, 1))
+    end
+  end
+
   def test_utc_offset_lazy_loaded_from_tzinfo_when_not_passed_in_to_initialize
     tzinfo = TZInfo::Timezone.get('America/New_York')
     zone = ActiveSupport::TimeZone.create(tzinfo.name, nil, tzinfo)

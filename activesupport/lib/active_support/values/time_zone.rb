@@ -348,44 +348,31 @@ module ActiveSupport
     #
     #   Time.zone.parse('Mar 2000') # => Wed, 01 Mar 2000 00:00:00 HST -10:00
     def parse(str, now=now())
-      parts = Date._parse(str, false)
-      return if parts.empty?
-
-      time = Time.new(
-        parts.fetch(:year, now.year),
-        parts.fetch(:mon, now.month),
-        parts.fetch(:mday, parts[:year] || parts[:mon] ? 1 : now.day),
-        parts.fetch(:hour, 0),
-        parts.fetch(:min, 0),
-        parts.fetch(:sec, 0) + parts.fetch(:sec_fraction, 0),
-        parts.fetch(:offset, 0)
-      )
-
-      if parts[:offset]
-        TimeWithZone.new(time.utc, self)
-      else
-        TimeWithZone.new(nil, self, time)
-      end
+      parts_to_time(Date._parse(str, false), now)
     end
 
-    # Parses +str+ according to +spec+ and returns an ActiveSupport::TimeWithZone.
+    # Parses +str+ according to +format+ and returns an ActiveSupport::TimeWithZone.
     #
     # Assumes that +str+ is a time in the time zone +self+,
-    # unless +spec+ includes an explicit time zone.
+    # unless +format+ includes an explicit time zone.
     # (This is the same behavior as +parse+.)
     # In either case, the returned TimeWithZone has the timezone of +self+.
     #
     #   Time.zone = 'Hawaii'                   # => "Hawaii"
     #   Time.zone.strptime('1999-12-31 14:00:00', '%Y-%m-%d %H:%M:%S') # => Fri, 31 Dec 1999 14:00:00 HST -10:00
     #
-    def strptime(str, spec)
-      case spec
-      when /(^|[^%](%%)*)%(Z|:{0,3}z)/
-        DateTime.strptime(str, spec).in_time_zone(self)
-      else
-        t = DateTime.strptime(str, spec)
-        local(t.year, t.month, t.mday, t.hour, t.min, t.sec, t.usec)
-      end
+    # If upper components are missing from the string, they are supplied from
+    # TimeZone#now:
+    #
+    #   Time.zone.now                              # => Fri, 31 Dec 1999 14:00:00 HST -10:00
+    #   Time.zone.strptime('22:30:00', '%H:%M:%S') # => Fri, 31 Dec 1999 22:30:00 HST -10:00
+    #
+    # However, if the date component is not provided, but any other upper
+    # components are supplied, then the day of the month defaults to 1:
+    #
+    #   Time.zone.strptime('Mar 2000', '%b %Y') # => Wed, 01 Mar 2000 00:00:00 HST -10:00
+    def strptime(str, format, now=now())
+      parts_to_time(DateTime._strptime(str, format), now)
     end
 
     # Returns an ActiveSupport::TimeWithZone instance representing the current
@@ -442,6 +429,26 @@ module ActiveSupport
     end
 
     private
+      def parts_to_time(parts, now)
+        return if parts.empty?
+
+        time = Time.new(
+          parts.fetch(:year, now.year),
+          parts.fetch(:mon, now.month),
+          parts.fetch(:mday, parts[:year] || parts[:mon] ? 1 : now.day),
+          parts.fetch(:hour, 0),
+          parts.fetch(:min, 0),
+          parts.fetch(:sec, 0) + parts.fetch(:sec_fraction, 0),
+          parts.fetch(:offset, 0)
+        )
+
+        if parts[:offset]
+          TimeWithZone.new(time.utc, self)
+        else
+          TimeWithZone.new(nil, self, time)
+        end
+      end
+
       def time_now
         Time.now
       end
