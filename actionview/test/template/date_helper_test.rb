@@ -130,7 +130,7 @@ class DateHelperTest < ActionView::TestCase
 
   def test_distance_in_words_with_mathn_required
     # test we avoid Integer#/ (redefined by mathn)
-    require 'mathn'
+    silence_warnings { require "mathn" }
     from = Time.utc(2004, 6, 6, 21, 45, 0)
     assert_distance_of_time_in_words(from)
   end
