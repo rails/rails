@@ -46,7 +46,7 @@ class QueuingTest < ActiveSupport::TestCase
 
   test 'should run job enqueued in the future at the specified time' do
     begin
-      TestJob.set(wait: 3.seconds).perform_later @id
+      TestJob.set(wait: 5.seconds).perform_later @id
       wait_for_jobs_to_finish_for(2.seconds)
       assert_not job_executed
       wait_for_jobs_to_finish_for(10.seconds)
