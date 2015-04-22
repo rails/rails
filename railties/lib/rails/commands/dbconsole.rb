@@ -89,7 +89,7 @@ module Rails
         find_cmd_and_exec("sqsh", *args)
 
       else
-        abort "Unknown command-line client for #{config['database']}. Submit a Rails patch to add support!"
+        abort "Unknown command-line client for #{config['database']}."
       end
     end
 
