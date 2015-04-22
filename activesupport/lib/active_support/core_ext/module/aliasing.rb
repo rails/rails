@@ -1,4 +1,7 @@
 class Module
+  # NOTE: This method is deprecated. Please use <tt>Module#prepend</tt> that
+  # comes with Ruby 2.0 or newer instead.
+  #
   # Encapsulates the common pattern of:
   #
   #   alias_method :foo_without_feature, :foo
