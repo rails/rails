@@ -713,7 +713,7 @@ module ActiveRecord
       #
       # ====== Creating a foreign key on a specific column
       #
-      #   add_foreign_key :articles, :users, column: :author_id, primary_key: "lng_id"
+      #   add_foreign_key :articles, :users, column: :author_id, primary_key: :lng_id
       #
       # generates:
       #
