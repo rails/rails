@@ -242,10 +242,12 @@ article.save!
 
 ### UUID
 
-* [type definition](http://www.postgresql.org/docs/9.3/static/datatype-uuid.html)
-* [generator functions](http://www.postgresql.org/docs/9.3/static/uuid-ossp.html)
+* [type definition](http://www.postgresql.org/docs/9.4/static/datatype-uuid.html)
+* [pgcrypto generator function](http://www.postgresql.org/docs/9.4/static/pgcrypto.html#AEN159361)
+* [uuid-ossp generator functions](http://www.postgresql.org/docs/9.4/static/uuid-ossp.html)
 
-NOTE: you need to enable the `uuid-ossp` extension to use uuid.
+NOTE: you need to enable the `pgcrypto` (PostgreSQL >= 9.4) or `uuid-ossp`
+extension to use uuid.
 
 ```ruby
 # db/migrate/20131220144913_create_revisions.rb
@@ -356,12 +358,13 @@ A point is casted to an array containing `x` and `y` coordinates.
 UUID Primary Keys
 -----------------
 
-NOTE: you need to enable the `uuid-ossp` extension to generate UUIDs.
+NOTE: you need to enable the `pgcrypto` (PostgreSQL >= 9.4) or `uuid-ossp`
+extension to generate random UUIDs.
 
 ```ruby
 # db/migrate/20131220144913_create_devices.rb
-enable_extension 'uuid-ossp' unless extension_enabled?('uuid-ossp')
-create_table :devices, id: :uuid, default: 'uuid_generate_v4()' do |t|
+enable_extension 'pgcrypto' unless extension_enabled?('pgcrypto')
+create_table :devices, id: :uuid, default: 'gen_random_uuid()' do |t|
   t.string :kind
 end
 
