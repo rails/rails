@@ -796,7 +796,7 @@ module ActiveRecord
       end
 
       def foreign_key_column_for(table_name) # :nodoc:
-        "#{table_name.to_s.singularize}_id"
+        "#{remove_prefix_and_suffix(table_name).to_s.singularize}_id"
       end
 
       def dump_schema_information #:nodoc:

@@ -652,12 +652,13 @@ module ActiveRecord
       say_with_time "#{method}(#{arg_list})" do
         unless @connection.respond_to? :revert
           unless arguments.empty? || [:execute, :enable_extension, :disable_extension].include?(method)
-            arguments[0] = proper_table_name(arguments.first, table_name_options)
+            arguments[0] = connection.proper_table_name(arguments.first, connection.table_name_options)
             if [:rename_table, :add_foreign_key].include?(method)
-              arguments[1] = proper_table_name(arguments.second, table_name_options)
+              arguments[1] = connection.proper_table_name(arguments.second, connection.table_name_options)
             end
           end
         end
+
         return super unless connection.respond_to?(method)
         connection.send(method, *arguments, &block)
       end
@@ -708,17 +709,6 @@ module ActiveRecord
       copied
     end
 
-    # Finds the correct table name given an Active Record object.
-    # Uses the Active Record object's own table_name, or pre/suffix from the
-    # options passed in.
-    def proper_table_name(name, options = {})
-      if name.respond_to? :table_name
-        name.table_name
-      else
-        "#{options[:table_name_prefix]}#{name}#{options[:table_name_suffix]}"
-      end
-    end
-
     # Determines the version number of the next migration.
     def next_migration_number(number)
       if ActiveRecord::Base.timestamped_migrations
@@ -726,13 +716,6 @@ module ActiveRecord
       else
         SchemaMigration.normalize_migration_number(number)
       end
-    end
-
-    def table_name_options(config = ActiveRecord::Base)
-      {
-        table_name_prefix: config.table_name_prefix,
-        table_name_suffix: config.table_name_suffix
-      }
     end
 
     private

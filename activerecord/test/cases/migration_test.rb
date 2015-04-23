@@ -11,7 +11,6 @@ require MIGRATIONS_ROOT + "/valid/2_we_need_reminders"
 require MIGRATIONS_ROOT + "/rename/1_we_need_things"
 require MIGRATIONS_ROOT + "/rename/2_rename_things"
 require MIGRATIONS_ROOT + "/decimal/1_give_me_big_numbers"
-
 class BigNumber < ActiveRecord::Base
   unless current_adapter?(:PostgreSQLAdapter, :SQLite3Adapter)
     attribute :value_of_e, Type::Integer.new
@@ -360,34 +359,6 @@ class MigrationTest < ActiveRecord::TestCase
   ensure
     ActiveRecord::Base.schema_migrations_table_name = original_schema_migrations_table_name
     Reminder.reset_table_name
-  end
-
-  def test_proper_table_name_on_migration
-    reminder_class = new_isolated_reminder_class
-    migration = ActiveRecord::Migration.new
-    assert_equal "table", migration.proper_table_name('table')
-    assert_equal "table", migration.proper_table_name(:table)
-    assert_equal "reminders", migration.proper_table_name(reminder_class)
-    reminder_class.reset_table_name
-    assert_equal reminder_class.table_name, migration.proper_table_name(reminder_class)
-
-    # Use the model's own prefix/suffix if a model is given
-    ActiveRecord::Base.table_name_prefix = "ARprefix_"
-    ActiveRecord::Base.table_name_suffix = "_ARsuffix"
-    reminder_class.table_name_prefix = 'prefix_'
-    reminder_class.table_name_suffix = '_suffix'
-    reminder_class.reset_table_name
-    assert_equal "prefix_reminders_suffix", migration.proper_table_name(reminder_class)
-    reminder_class.table_name_prefix = ''
-    reminder_class.table_name_suffix = ''
-    reminder_class.reset_table_name
-
-    # Use AR::Base's prefix/suffix if string or symbol is given
-    ActiveRecord::Base.table_name_prefix = "prefix_"
-    ActiveRecord::Base.table_name_suffix = "_suffix"
-    reminder_class.reset_table_name
-    assert_equal "prefix_table_suffix", migration.proper_table_name('table', migration.table_name_options)
-    assert_equal "prefix_table_suffix", migration.proper_table_name(:table, migration.table_name_options)
   end
 
   def test_rename_table_with_prefix_and_suffix
