@@ -454,12 +454,16 @@ module ActionDispatch
         @verifier = ActiveSupport::MessageVerifier.new(secret, digest: digest, serializer: ActiveSupport::MessageEncryptor::NullSerializer)
       end
 
+      # Returns the value of the cookie by +name+ if it is untampered,
+      # returns +nil+ otherwise or if no such cookie exists.
       def [](name)
         if signed_message = @parent_jar[name]
           deserialize name, verify(signed_message)
         end
       end
 
+      # Signs and Sets the cookie named +name+. The second argument may be the cookie's
+      # value or a hash of options as documented above.
       def []=(name, options)
         if options.is_a?(Hash)
           options.symbolize_keys!
@@ -511,12 +515,16 @@ module ActionDispatch
         @encryptor = ActiveSupport::MessageEncryptor.new(secret, sign_secret, digest: digest, serializer: ActiveSupport::MessageEncryptor::NullSerializer)
       end
 
+      # Returns the value of the cookie by +name+ if it is untampered,
+      # returns +nil+ otherwise or if no such cookie exists.
       def [](name)
         if encrypted_message = @parent_jar[name]
           deserialize name, decrypt_and_verify(encrypted_message)
         end
       end
 
+      # Encrypts and Sets the cookie named +name+. The second argument may be the cookie's
+      # value or a hash of options as documented above.
       def []=(name, options)
         if options.is_a?(Hash)
           options.symbolize_keys!
