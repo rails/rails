@@ -32,7 +32,7 @@ module ActiveRecord
   #   Conversation.active
   #   Conversation.archived
   #
-  # Of course, you can also query them directly if the scopes doesn't fit your
+  # Of course, you can also query them directly if the scopes don't fit your
   # needs:
   #
   #   Conversation.where(status: [:active, :archived])
