@@ -27,7 +27,6 @@ module ActiveJob
   #   | Sneakers          | Yes   | Yes    | No        | Queue      | Queue   | No      |
   #   | Sucker Punch      | Yes   | Yes    | No        | No         | No      | No      |
   #   | Active Job Inline | No    | Yes    | N/A       | N/A        | N/A     | N/A     |
-  #   | Active Job        | Yes   | Yes    | Yes       | No         | No      | No      |
   #
   # ==== Async
   #
