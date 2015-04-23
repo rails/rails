@@ -9,7 +9,7 @@ module AbstractController
 
     included do
       define_callbacks :process_action,
-                       terminator: ->(controller, result_lambda) { result_lambda.call if result_lambda.is_a?(Proc); controller.response_body },
+                       terminator: _callback_terminator,
                        skip_after_callbacks_if_terminated: true
     end
 
@@ -17,7 +17,9 @@ module AbstractController
     # process_action callbacks around the normal behavior.
     def process_action(*args)
       run_callbacks(:process_action) do
-        super
+        action_return = nil
+        catch(:halt_action) { action_return = super }
+        action_return
       end
     end
 
@@ -90,6 +92,18 @@ module AbstractController
         callbacks.push(block) if block
         callbacks.each do |callback|
           yield callback, options
+        end
+      end
+
+      # Return a proc that is used to determine if callbacks should continue
+      # executing. The condition for aborting execution is based on whether
+      # or not the controller response has a body.
+      def _callback_terminator
+        Proc.new do |controller, result_lambda|
+          catch(:halt_action) do
+            result_lambda.call if result_lambda.is_a?(Proc)
+          end
+          controller.response_body
         end
       end
 

@@ -115,6 +115,16 @@ class RedirectController < ActionController::Base
     redirect_to "\000/lol\r\nwat"
   end
 
+  def execute_after_redirect
+    redirect_to action: "hello_world"
+    raise 'test_failure'
+  end
+
+  def execute_after_redirect_handle_in_controller
+    catch(:halt_action) { redirect_to action: "hello_world" }
+    raise 'expected_error'
+  end
+
   def rescue_errors(e) raise e end
 
   protected
@@ -313,6 +323,18 @@ class RedirectTest < ActionController::TestCase
 
       assert_response :redirect
       assert_redirected_to "http://test.host/redirect/hello_world"
+    end
+  end
+
+  def test_execute_after_redirect
+    get :execute_after_redirect
+    assert_response :redirect
+    assert_equal "http://test.host/redirect/hello_world", redirect_to_url
+  end
+
+  def test_execute_after_redirect_handle_in_controller
+    assert_raise RuntimeError do
+      get :execute_after_redirect_handle_in_controller
     end
   end
 end

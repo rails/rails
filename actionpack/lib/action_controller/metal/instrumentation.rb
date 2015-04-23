@@ -61,9 +61,15 @@ module ActionController
 
     def redirect_to(*args)
       ActiveSupport::Notifications.instrument("redirect_to.action_controller") do |payload|
-        result = super
+        caught = true
+        result = nil
+        catch(:halt_action) do
+          result = super
+          caught = false
+        end
         payload[:status]   = response.status
         payload[:location] = response.filtered_location
+        throw :halt_action if caught
         result
       end
     end

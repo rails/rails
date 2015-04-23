@@ -66,8 +66,8 @@ class FlashTest < ActionController::TestCase
 
     def halt_and_redir
       flash["foo"] = "bar"
-      redirect_to :action => "std_action"
       @flash_copy = {}.update(flash)
+      redirect_to :action => "std_action"
     end
 
     def redirect_with_alert

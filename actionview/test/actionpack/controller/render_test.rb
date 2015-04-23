@@ -414,7 +414,7 @@ class TestController < ApplicationController
   end
 
   def double_redirect
-    redirect_to :action => "double_render"
+    catch(:halt_action) { redirect_to :action => "double_render" }
     redirect_to :action => "double_render"
   end
 
