@@ -181,7 +181,7 @@ module ActionDispatch
     # to the Message{Encryptor,Verifier} allows us to handle the
     # (de)serialization step within the cookie jar, which gives us the
     # opportunity to detect and migrate legacy cookies.
-    module VerifyAndUpgradeLegacySignedMessage
+    module VerifyAndUpgradeLegacySignedMessage # :nodoc:
       def initialize(*args)
         super
         @legacy_verifier = ActiveSupport::MessageVerifier.new(@options[:secret_token], serializer: ActiveSupport::MessageEncryptor::NullSerializer)
@@ -392,7 +392,7 @@ module ActionDispatch
       end
     end
 
-    class JsonSerializer
+    class JsonSerializer # :nodoc:
       def self.load(value)
         ActiveSupport::JSON.decode(value)
       end
@@ -402,7 +402,7 @@ module ActionDispatch
       end
     end
 
-    module SerializedCookieJars
+    module SerializedCookieJars # :nodoc:
       MARSHAL_SIGNATURE = "\x04\x08".freeze
 
       protected
