@@ -179,7 +179,15 @@ module ActionView
         return name, prefixes || [""] if parts.empty?
 
         parts    = parts.join('/')
-        prefixes = prefixes ? prefixes.map { |p| "#{p}/#{parts}" } : [parts]
+
+        if prefixes
+          prefixes = prefixes.map do |p|
+            p.blank? ? parts : "#{p}/#{parts}"
+          end
+        else
+          prefixes = [parts]
+        end
+
 
         return name, prefixes
       end
