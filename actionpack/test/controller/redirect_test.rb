@@ -1,8 +1,5 @@
 require 'abstract_unit'
 
-class WorkshopsController < ActionController::Base
-end
-
 class RedirectController < ActionController::Base
   # empty method not used anywhere to ensure methods like
   # `status` and `location` aren't called on `redirect_to` calls
