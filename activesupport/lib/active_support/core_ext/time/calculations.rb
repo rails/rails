@@ -1,11 +1,12 @@
-require 'active_support/duration'
 require 'active_support/core_ext/time/conversions'
 require 'active_support/time_with_zone'
 require 'active_support/core_ext/time/zones'
+require 'active_support/core_ext/time/operators'
 require 'active_support/core_ext/date_and_time/calculations'
 
 class Time
   include DateAndTime::Calculations
+  prepend ActiveSupport::TimeOperators
 
   COMMON_YEAR_DAYS_IN_MONTH = [nil, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
 
@@ -212,60 +213,4 @@ class Time
   def all_day
     beginning_of_day..end_of_day
   end
-
-  def plus_with_duration(other) #:nodoc:
-    if ActiveSupport::Duration === other
-      other.since(self)
-    else
-      plus_without_duration(other)
-    end
-  end
-  alias_method :plus_without_duration, :+
-  alias_method :+, :plus_with_duration
-
-  def minus_with_duration(other) #:nodoc:
-    if ActiveSupport::Duration === other
-      other.until(self)
-    else
-      minus_without_duration(other)
-    end
-  end
-  alias_method :minus_without_duration, :-
-  alias_method :-, :minus_with_duration
-
-  # Time#- can also be used to determine the number of seconds between two Time instances.
-  # We're layering on additional behavior so that ActiveSupport::TimeWithZone instances
-  # are coerced into values that Time#- will recognize
-  def minus_with_coercion(other)
-    other = other.comparable_time if other.respond_to?(:comparable_time)
-    other.is_a?(DateTime) ? to_f - other.to_f : minus_without_coercion(other)
-  end
-  alias_method :minus_without_coercion, :-
-  alias_method :-, :minus_with_coercion
-
-  # Layers additional behavior on Time#<=> so that DateTime and ActiveSupport::TimeWithZone instances
-  # can be chronologically compared with a Time
-  def compare_with_coercion(other)
-    # we're avoiding Time#to_datetime and Time#to_time because they're expensive
-    if other.class == Time
-      compare_without_coercion(other)
-    elsif other.is_a?(Time)
-      compare_without_coercion(other.to_time)
-    else
-      to_datetime <=> other
-    end
-  end
-  alias_method :compare_without_coercion, :<=>
-  alias_method :<=>, :compare_with_coercion
-
-  # Layers additional behavior on Time#eql? so that ActiveSupport::TimeWithZone instances
-  # can be eql? to an equivalent Time
-  def eql_with_coercion(other)
-    # if other is an ActiveSupport::TimeWithZone, coerce a Time instance from it so we can do eql? comparison
-    other = other.comparable_time if other.respond_to?(:comparable_time)
-    eql_without_coercion(other)
-  end
-  alias_method :eql_without_coercion, :eql?
-  alias_method :eql?, :eql_with_coercion
-
 end
