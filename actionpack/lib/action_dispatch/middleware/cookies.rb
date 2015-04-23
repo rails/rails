@@ -392,7 +392,7 @@ module ActionDispatch
       end
     end
 
-    class JsonSerializer
+    class JsonSerializer # :nodoc:
       def self.load(value)
         ActiveSupport::JSON.decode(value)
       end
@@ -402,7 +402,7 @@ module ActionDispatch
       end
     end
 
-    module SerializedCookieJars
+    module SerializedCookieJars # :nodoc:
       MARSHAL_SIGNATURE = "\x04\x08".freeze
 
       protected
