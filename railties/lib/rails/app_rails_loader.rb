@@ -1,7 +1,7 @@
 require 'pathname'
 
 module Rails
-  module AppRailsLoader
+  module AppRailsLoader # :nodoc:
     extend self
 
     RUBY = Gem.ruby
