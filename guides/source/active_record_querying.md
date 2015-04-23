@@ -317,7 +317,7 @@ end
 
 The `find_each` method accepts most of the options allowed by the regular `find` method, except for `:order` and `:limit`, which are reserved for internal use by `find_each`.
 
-Two additional options, `:batch_size` and `:begin_at`, are available as well.
+Three additional options, `:batch_size`, `:begin_at` and `:end_at`, are available as well.
 
 **`:batch_size`**
 
