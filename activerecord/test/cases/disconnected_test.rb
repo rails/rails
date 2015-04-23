@@ -21,7 +21,9 @@ class TestDisconnectedAdapter < ActiveRecord::TestCase
       @connection.execute "SELECT count(*) from products"
       @connection.disconnect!
       assert_raises(ActiveRecord::StatementInvalid) do
-        @connection.execute "SELECT count(*) from products"
+        silence_warnings do
+          @connection.execute "SELECT count(*) from products"
+        end
       end
     end
   end
