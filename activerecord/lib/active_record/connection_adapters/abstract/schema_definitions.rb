@@ -256,6 +256,7 @@ module ActiveRecord
       def column(name, type, options = {})
         name = name.to_s
         type = type.to_sym
+        options = options.dup
 
         if @columns_hash[name] && @columns_hash[name].primary_key?
           raise ArgumentError, "you can't redefine the primary key column '#{name}'. To define a custom primary key, pass { id: false } to create_table."
