@@ -2,7 +2,7 @@ require 'pathname'
 require 'rails/version'
 
 module Rails
-  module AppRailsLoader
+  module AppLoader # :nodoc:
     extend self
 
     RUBY = Gem.ruby
@@ -29,7 +29,7 @@ generate it and add it to source control:
 
 EOS
 
-    def exec_app_rails
+    def exec_app
       original_cwd = Dir.pwd
 
       loop do
