@@ -119,11 +119,12 @@ module ActiveSupport
 
         # Translate a key into a file path.
         def key_file_path(key)
-          if key.size > FILEPATH_MAX_SIZE
-            key = Digest::MD5.hexdigest(key)
+          fname = URI.encode_www_form_component(key)
+
+          if fname.size > FILEPATH_MAX_SIZE
+            fname = Digest::MD5.hexdigest(key)
           end
 
-          fname = URI.encode_www_form_component(key)
           hash = Zlib.adler32(fname)
           hash, dir_1 = hash.divmod(0x1000)
           dir_2 = hash.modulo(0x1000)
