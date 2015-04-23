@@ -1,3 +1,11 @@
+*   Fix missing index when using `timestamps` with the `index` option.
+
+    The `index` option used with `timestamps` should be passed to both
+    `column` definitions for `created_at` and `updated_at` rather than just
+    the first.
+
+    *Paul Mucur*
+
 *   Rename `:class` to `:anonymous_class` in association options.
 
     Fixes #19659.
