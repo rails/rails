@@ -40,4 +40,38 @@ module ApplicationTests
       assert_equal 'UTC', Rails.application.config.time_zone
     end
   end
+
+  class CaseInsensitiveRackupTest < ActiveSupport::TestCase
+    include ActiveSupport::Testing::Isolation
+
+    def app_path(*args)
+      tmp_path(*%w[OtherApp] + args)
+    end
+
+    def rackup
+      require "rack"
+      app, _ = Rack::Builder.parse_file("#{app_path.downcase}/config.ru")
+      app
+    end
+
+    def setup
+      build_app
+      boot_rails
+    end
+
+    def teardown
+      teardown_app
+    end
+
+    test "rails app is present" do
+      assert File.exist?(app_path("config"))
+    end
+
+    test "config.ru can be racked up" do
+      Dir.chdir app_path do
+        @app = rackup
+        assert_welcome get("/")
+      end
+    end
+  end
 end

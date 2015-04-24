@@ -663,16 +663,20 @@ module Rails
     end
 
     def self.find_root_with_flag(flag, root_path, default=nil) #:nodoc:
+      root_paths = [File.join(root_path, flag)]
 
-      while root_path && File.directory?(root_path) && !File.exist?("#{root_path}/#{flag}")
-        parent = File.dirname(root_path)
-        root_path = parent != root_path && parent
+      while root_path != (root_path = File.dirname(root_path))
+        root_paths << File.join(root_path, flag)
       end
 
-      root = File.exist?("#{root_path}/#{flag}") ? root_path : default
+      matches = Dir.glob(root_paths, File::FNM_CASEFOLD)
+      matches.sort_by!(&:size)
+      match = matches.last
+
+      root = match ? File.dirname(match) : default
       raise "Could not find root path for #{self}" unless root
 
-      Pathname.new File.realpath root
+      Pathname.new(File.realpath(root))
     end
 
     def default_middleware_stack #:nodoc:

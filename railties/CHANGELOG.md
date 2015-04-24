@@ -1,3 +1,10 @@
+*   Use Dir.glob in `find_root_with_flag` so that correct case is used on Mac OS X.
+
+    Fixes #18660.
+
+    *Andrew White*
+
+
 ## Rails 4.2.1 (March 19, 2015) ##
 
 *   Add a new-line to the end of route method generated code.
