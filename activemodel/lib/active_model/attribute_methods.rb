@@ -23,7 +23,7 @@ module ActiveModel
   # The requirements to implement <tt>ActiveModel::AttributeMethods</tt> are to:
   #
   # * <tt>include ActiveModel::AttributeMethods</tt> in your class.
-  # * Call each of its method you want to add, such as +attribute_method_suffix+
+  # * Call each of its methods you want to add, such as +attribute_method_suffix+
   #   or +attribute_method_prefix+.
   # * Call +define_attribute_methods+ after the other methods are called.
   # * Define the various generic +_attribute+ methods that you have declared.
@@ -227,7 +227,7 @@ module ActiveModel
       # Declares the attributes that should be prefixed and suffixed by
       # ActiveModel::AttributeMethods.
       #
-      # To use, pass attribute names (as strings or symbols), be sure to declare
+      # To use, pass attribute names (as strings or symbols). Be sure to declare
       # +define_attribute_methods+ after you define any prefix, suffix or affix
       # methods, or they will not hook in.
       #
@@ -239,7 +239,7 @@ module ActiveModel
       #
       #     # Call to define_attribute_methods must appear after the
       #     # attribute_method_prefix, attribute_method_suffix or
-      #     # attribute_method_affix declares.
+      #     # attribute_method_affix declarations.
       #     define_attribute_methods :name, :age, :address
       #
       #     private
@@ -255,7 +255,7 @@ module ActiveModel
       # Declares an attribute that should be prefixed and suffixed by
       # ActiveModel::AttributeMethods.
       #
-      # To use, pass an attribute name (as string or symbol), be sure to declare
+      # To use, pass an attribute name (as string or symbol). Be sure to declare
       # +define_attribute_method+ after you define any prefix, suffix or affix
       # method, or they will not hook in.
       #
@@ -267,7 +267,7 @@ module ActiveModel
       #
       #     # Call to define_attribute_method must appear after the
       #     # attribute_method_prefix, attribute_method_suffix or
-      #     # attribute_method_affix declares.
+      #     # attribute_method_affix declarations.
       #     define_attribute_method :name
       #
       #     private
@@ -363,7 +363,7 @@ module ActiveModel
         end
 
         # Define a method `name` in `mod` that dispatches to `send`
-        # using the given `extra` args. This fallbacks `define_method`
+        # using the given `extra` args. This falls back on `define_method`
         # and `send` if the given names cannot be compiled.
         def define_proxy_call(include_private, mod, name, send, *extra) #:nodoc:
           defn = if name =~ NAME_COMPILABLE_REGEXP
@@ -419,7 +419,7 @@ module ActiveModel
     # returned by <tt>attributes</tt>, as though they were first-class
     # methods. So a +Person+ class with a +name+ attribute can for example use
     # <tt>Person#name</tt> and <tt>Person#name=</tt> and never directly use
-    # the attributes hash -- except for multiple assigns with
+    # the attributes hash -- except for multiple assignments with
     # <tt>ActiveRecord::Base#attributes=</tt>.
     #
     # It's also possible to instantiate related objects, so a <tt>Client</tt>
