@@ -437,7 +437,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_joins_with_nil_argument
-    assert_nothing_raised { DependentFirm.joins(nil).first }
+    assert_raise(ArgumentError) { DependentFirm.joins(nil).first }
   end
 
   def test_finding_with_hash_conditions_on_joined_table

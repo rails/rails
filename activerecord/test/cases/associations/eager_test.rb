@@ -1199,7 +1199,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   def test_join_eager_with_nil_order_should_generate_valid_sql
     assert_nothing_raised(ActiveRecord::StatementInvalid) do
-      Post.includes(:comments).order(nil).where(:comments => {:body => "Thank you for the welcome"}).first
+      Post.includes(:comments).where(:comments => {:body => "Thank you for the welcome"}).first
     end
   end
 

@@ -84,7 +84,9 @@ module ActiveRecord
             end
 
             scope.references! reflection_scope.values[:references]
-            scope = scope.order reflection_scope.values[:order] if scope.eager_loading?
+            if scope.eager_loading? && reflection_scope.values[:order]
+              scope = scope.order(reflection_scope.values[:order])
+            end
           end
 
           scope

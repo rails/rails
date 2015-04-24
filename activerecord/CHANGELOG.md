@@ -1,3 +1,9 @@
+*   Raise argument error if user tries to pass nil as argument to query methods.
+
+    Fixes #19873.
+
+    *Mehmet Emin İNAÇ*
+
 *   Properly allow uniqueness validations on primary keys.
 
     Fixes #20966.
