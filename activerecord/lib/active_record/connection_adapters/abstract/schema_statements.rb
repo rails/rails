@@ -167,17 +167,15 @@ module ActiveRecord
       #
       # ====== Change the primary key column type
       #
-      #   create_table(:categories_suppliers, id: :string) do |t|
-      #     t.column :category_id, :integer
-      #     t.column :supplier_id, :integer
+      #   create_table(:tags, id: :string) do |t|
+      #     t.column :label, :string
       #   end
       #
       # generates:
       #
-      #   CREATE TABLE categories_suppliers (
+      #   CREATE TABLE tags (
       #     id varchar PRIMARY KEY,
-      #     category_id int,
-      #     supplier_id int
+      #     label varchar
       #   )
       #
       # ====== Do not add a primary key column
