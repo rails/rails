@@ -19,7 +19,8 @@ module Rails
         end
       end
 
-      hook_for :template_engine, :test_framework, :helper, :assets
+      hook_for :template_engine, :test_framework
+      hook_for :helper, :assets, hide: true
 
       private
 
