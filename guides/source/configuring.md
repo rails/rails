@@ -114,7 +114,7 @@ numbers. New applications filter out passwords by adding the following `config.f
 defaults to `:debug` for all environments. The available log levels are: `:debug`,
 `:info`, `:warn`, `:error`, `:fatal`, and `:unknown`.
 
-* `config.log_tags` accepts a list of methods that the `request` object responds to. This makes it easy to tag log lines with debug information like subdomain and request id - both very helpful in debugging multi-user production applications.
+* `config.log_tags` accepts a list of: methods that the `request` object responds to, a `Proc` that accepts the `request` object, or something that responds to `to_s`. This makes it easy to tag log lines with debug information like subdomain and request id - both very helpful in debugging multi-user production applications.
 
 * `config.logger` accepts a logger conforming to the interface of Log4r or the default Ruby `Logger` class. Defaults to an instance of `ActiveSupport::Logger`.
 
