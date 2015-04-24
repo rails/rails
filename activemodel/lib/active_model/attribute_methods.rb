@@ -23,7 +23,7 @@ module ActiveModel
   # The requirements to implement <tt>ActiveModel::AttributeMethods</tt> are to:
   #
   # * <tt>include ActiveModel::AttributeMethods</tt> in your class.
-  # * Call each of its method you want to add, such as +attribute_method_suffix+
+  # * Call each of its methods you want to add, such as +attribute_method_suffix+
   #   or +attribute_method_prefix+.
   # * Call +define_attribute_methods+ after the other methods are called.
   # * Define the various generic +_attribute+ methods that you have declared.
