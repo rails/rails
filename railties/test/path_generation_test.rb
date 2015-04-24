@@ -4,18 +4,16 @@ require 'active_support/core_ext/object/json'
 require 'rails'
 require 'rails/application'
 
-ROUTING = ActionDispatch::Routing
-
 class PathGenerationTest < ActiveSupport::TestCase
   attr_reader :app
 
-  class TestSet < ROUTING::RouteSet
+  class TestSet < ActionDispatch::Routing::RouteSet
     def initialize(block)
       @block = block
       super()
     end
 
-    class Dispatcher < ROUTING::RouteSet::Dispatcher
+    class Dispatcher < ActionDispatch::Routing::RouteSet::Dispatcher
       def initialize(defaults, set, block)
         super(defaults)
         @block = block
