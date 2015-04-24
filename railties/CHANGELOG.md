@@ -1,3 +1,7 @@
+*   Move mailer configuration to an initializer.
+
+    *Lucas Caton*
+
 *   Remove sqlite support from `rails dbconsole`.
 
     *Andrew White*

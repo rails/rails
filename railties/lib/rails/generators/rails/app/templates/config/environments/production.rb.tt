@@ -61,9 +61,7 @@ Rails.application.configure do
   # config.active_job.queue_name_prefix = "<%= app_name %>_#{Rails.env}"
   <%- unless options.skip_action_mailer? -%>
 
-  # Ignore bad email addresses and do not raise email delivery errors.
-  # Set this to true and configure the email server for immediate delivery to raise delivery errors.
-  # config.action_mailer.raise_delivery_errors = false
+  # `config.action_mailer` options have moved to config/initializers/action_mailer.
   <%- end -%>
 
   # Enable locale fallbacks for I18n (makes lookups for any locale fall back to

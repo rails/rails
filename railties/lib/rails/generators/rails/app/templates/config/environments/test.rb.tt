@@ -27,10 +27,7 @@ Rails.application.configure do
   config.action_controller.allow_forgery_protection = false
   <%- unless options.skip_action_mailer? -%>
 
-  # Tell Action Mailer not to deliver emails to the real world.
-  # The :test delivery method accumulates sent emails in the
-  # ActionMailer::Base.deliveries array.
-  config.action_mailer.delivery_method = :test
+  # `config.action_mailer` options have moved to config/initializers/action_mailer.
   <%- end -%>
 
   # Randomize the order test cases are executed.

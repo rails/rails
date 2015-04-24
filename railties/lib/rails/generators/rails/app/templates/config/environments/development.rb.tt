@@ -14,8 +14,7 @@ Rails.application.configure do
   config.action_controller.perform_caching = false
   <%- unless options.skip_action_mailer? -%>
 
-  # Don't care if the mailer can't send.
-  config.action_mailer.raise_delivery_errors = false
+  # `config.action_mailer` options have moved to config/initializers/action_mailer.rb
   <%- end -%>
 
   # Print deprecation notices to the Rails logger.
