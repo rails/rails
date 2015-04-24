@@ -239,7 +239,7 @@ module ActiveModel
       #
       #     # Call to define_attribute_methods must appear after the
       #     # attribute_method_prefix, attribute_method_suffix or
-      #     # attribute_method_affix declares.
+      #     # attribute_method_affix declarations.
       #     define_attribute_methods :name, :age, :address
       #
       #     private
@@ -267,7 +267,7 @@ module ActiveModel
       #
       #     # Call to define_attribute_method must appear after the
       #     # attribute_method_prefix, attribute_method_suffix or
-      #     # attribute_method_affix declares.
+      #     # attribute_method_affix declarations.
       #     define_attribute_method :name
       #
       #     private
@@ -419,7 +419,7 @@ module ActiveModel
     # returned by <tt>attributes</tt>, as though they were first-class
     # methods. So a +Person+ class with a +name+ attribute can for example use
     # <tt>Person#name</tt> and <tt>Person#name=</tt> and never directly use
-    # the attributes hash -- except for multiple assigns with
+    # the attributes hash -- except for multiple assignments with
     # <tt>ActiveRecord::Base#attributes=</tt>.
     #
     # It's also possible to instantiate related objects, so a <tt>Client</tt>
