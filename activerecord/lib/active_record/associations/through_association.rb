@@ -18,7 +18,7 @@ module ActiveRecord
 
             reflection_scope = reflection.scope
             if reflection_scope && reflection_scope.arity.zero?
-              relation.merge!(reflection_scope)
+              relation = relation.merge(reflection_scope)
             end
 
             scope.merge!(

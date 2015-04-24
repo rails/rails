@@ -111,5 +111,26 @@ module ActiveRecord
       assert klass.column_names.include?('wibble')
       assert_equal 6, klass.content_columns.length
     end
+
+    test "non string/integers use custom types for queries" do
+      klass = Class.new(OverloadedType)
+      type = Type::Value.new
+      def type.cast_value(value)
+        !!value
+      end
+
+      def type.type_cast_for_database(value)
+        if value
+          "Y"
+        else
+          "N"
+        end
+      end
+
+      klass.attribute(:string_with_default, type, default: false)
+      klass.create!(string_with_default: true)
+
+      assert_equal 1, klass.where(string_with_default: true).count
+    end
   end
 end

@@ -965,12 +965,9 @@ module ActiveRecord
 
     def create_binds(opts)
       bindable, non_binds = opts.partition do |column, value|
-        case value
-        when String, Integer, ActiveRecord::StatementCache::Substitute
-          @klass.columns_hash.include? column.to_s
-        else
-          false
-        end
+        PredicateBuilder.can_be_bound?(value) &&
+          @klass.columns_hash.include?(column.to_s) &&
+          !@klass.reflect_on_aggregation(column)
       end
 
       association_binds, non_binds = non_binds.partition do |column, value|

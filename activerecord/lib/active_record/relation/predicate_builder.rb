@@ -112,7 +112,8 @@ module ActiveRecord
       @handlers.unshift([klass, handler])
     end
 
-    register_handler(BasicObject, ->(attribute, value) { attribute.eq(value) })
+    BASIC_OBJECT_HANDLER = ->(attribute, value) { attribute.eq(value) } # :nodoc:
+    register_handler(BasicObject, BASIC_OBJECT_HANDLER)
     # FIXME: I think we need to deprecate this behavior
     register_handler(Class, ->(attribute, value) { attribute.eq(value.name) })
     register_handler(Base, ->(attribute, value) { attribute.eq(value.id) })
@@ -141,6 +142,12 @@ module ActiveRecord
       else
         value
       end
+    end
+
+    def self.can_be_bound?(value) # :nodoc:
+      !value.nil? &&
+        !value.is_a?(Hash) &&
+        handler_for(value) == BASIC_OBJECT_HANDLER
     end
   end
 end
