@@ -363,7 +363,7 @@ module ActiveModel
         end
 
         # Define a method `name` in `mod` that dispatches to `send`
-        # using the given `extra` args. This fallbacks `define_method`
+        # using the given `extra` args. This falls back on `define_method`
         # and `send` if the given names cannot be compiled.
         def define_proxy_call(include_private, mod, name, send, *extra) #:nodoc:
           defn = if name =~ NAME_COMPILABLE_REGEXP
