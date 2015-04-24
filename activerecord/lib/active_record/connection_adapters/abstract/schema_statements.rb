@@ -120,6 +120,8 @@ module ActiveRecord
       # [<tt>:id</tt>]
       #   Whether to automatically add a primary key column. Defaults to true.
       #   Join tables for +has_and_belongs_to_many+ should set it to false.
+      #
+      #   A Symbol can be used to specify the type of the generated primary key column.
       # [<tt>:primary_key</tt>]
       #   The name of the primary key, if one is to be added automatically.
       #   Defaults to +id+. If <tt>:id</tt> is false this option is ignored.
@@ -161,6 +163,21 @@ module ActiveRecord
       #   CREATE TABLE objects (
       #     guid int(11) DEFAULT NULL auto_increment PRIMARY KEY,
       #     name varchar(80)
+      #   )
+      #
+      # ====== Change the primary key column type
+      #
+      #   create_table(:categories_suppliers, id: :string) do |t|
+      #     t.column :category_id, :integer
+      #     t.column :supplier_id, :integer
+      #   end
+      #
+      # generates:
+      #
+      #   CREATE TABLE categories_suppliers (
+      #     id varchar PRIMARY KEY,
+      #     category_id int,
+      #     supplier_id int
       #   )
       #
       # ====== Do not add a primary key column
