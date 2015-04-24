@@ -263,6 +263,12 @@ module Rails
         end
       end
 
+      def delete_mailer_initializer_skipping_action_mailer
+        if options[:skip_action_mailer]
+          remove_file 'config/initializers/action_mailer.rb'
+        end
+      end
+
       def delete_active_record_initializers_skipping_active_record
         if options[:skip_active_record]
           remove_file 'config/initializers/active_record_belongs_to_required_by_default.rb'

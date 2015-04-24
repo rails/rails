@@ -147,15 +147,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   def test_app_generator_without_skips
     run_generator
     assert_file "test/dummy/config/application.rb", /\s+require\s+["']rails\/all["']/
-    assert_file "test/dummy/config/environments/development.rb" do |content|
-      assert_match(/config\.action_mailer\.raise_delivery_errors = false/, content)
-    end
-    assert_file "test/dummy/config/environments/test.rb" do |content|
-      assert_match(/config\.action_mailer\.delivery_method = :test/, content)
-    end
-    assert_file "test/dummy/config/environments/production.rb" do |content|
-      assert_match(/# config\.action_mailer\.raise_delivery_errors = false/, content)
-    end
+    assert_file "test/dummy/config/initializers/action_mailer.rb"
   end
 
   def test_active_record_is_removed_from_frameworks_if_skip_active_record_is_given
@@ -174,15 +166,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   def test_action_mailer_is_removed_from_frameworks_if_skip_action_mailer_is_given
     run_generator [destination_root, "--skip-action-mailer"]
     assert_file "test/dummy/config/application.rb", /#\s+require\s+["']action_mailer\/railtie["']/
-    assert_file "test/dummy/config/environments/development.rb" do |content|
-      assert_no_match(/config\.action_mailer/, content)
-    end
-    assert_file "test/dummy/config/environments/test.rb" do |content|
-      assert_no_match(/config\.action_mailer/, content)
-    end
-    assert_file "test/dummy/config/environments/production.rb" do |content|
-      assert_no_match(/config\.action_mailer/, content)
-    end
+    assert_no_file "test/dummy/config/initializers/action_mailer.rb"
   end
 
   def test_ensure_that_database_option_is_passed_to_app_generator

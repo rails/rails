@@ -1,0 +1,36 @@
+# Be sure to restart your server when you modify this file.
+
+# Tell Action Mailer not to deliver emails to the real world.
+# The :test delivery method accumulates sent emails in the ActionMailer::Base.deliveries array.
+# Possible values are :smtp (default), :sendmail, :test, and :file.
+ActionMailer::Base.delivery_method = :test if Rails.env.test?
+
+ActionMailer::Base.smtp_settings = {
+  address:              'smtp.yourserver.com', # Default is 'localhost'
+  port:                 587,                   # Default is 25
+  domain:               'yourserver.com',      # Specify a HELO domain if needed
+  user_name:            'user_name',
+  password:             'password',
+  authentication:       :plain                 # :plain, :login or :cram_md5
+  # enable_starttls_auto: true                 # false if there is a server certificate problem
+}
+
+# Ignore bad email addresses and do not raise email delivery errors.
+# Set this to true and configure the email server for immediate delivery to raise delivery
+# errors or set false if you don't care if the mailer can't send. Default is true.
+# ActionMailer::Base.raise_delivery_errors = !Rails.env.development?
+
+# Generates information on the mailing run if available. Can be set to nil for no logging.
+# Compatible with both Ruby's own Logger and Log4r loggers.
+# ActionMailer::Base.logger = CustomLogger.logger
+
+# Allows you to override options for the :sendmail delivery method.
+# ActionMailer::Base.delivery_method = :sendmail
+# ActionMailer::Base.sendmail_settings = {
+#   location: '/usr/sbin/sendmail', # Sendmail executable
+#   arguments: '-i -t'              # Command line arguments
+# }
+
+# Determines whether emails are actually sent from Action Mailer when you `.deliver` on an email
+# message or on an Action Mailer method. Default is true.
+# ActionMailer::Base.perform_deliveries = true

@@ -687,8 +687,8 @@ the same generic helpers as you do in Action Controller.
 Action Mailer Configuration
 ---------------------------
 
-The following configuration options are best made in one of the environment
-files (environment.rb, production.rb, etc...)
+The following configuration options are best made in the file
+`config/initializers/action_mailer.rb`.
 
 | Configuration | Description |
 |---------------|-------------|
@@ -707,36 +707,23 @@ our Configuring Rails Applications guide.
 
 ### Example Action Mailer Configuration
 
-An example would be adding the following to your appropriate
-`config/environments/$RAILS_ENV.rb` file:
-
-```ruby
-config.action_mailer.delivery_method = :sendmail
-# Defaults to:
-# config.action_mailer.sendmail_settings = {
-#   location: '/usr/sbin/sendmail',
-#   arguments: '-i -t'
-# }
-config.action_mailer.perform_deliveries = true
-config.action_mailer.raise_delivery_errors = true
-config.action_mailer.default_options = {from: 'no-reply@example.com'}
-```
+An example can be found in `config/initializers/action_mailer.rb`.
 
 ### Action Mailer Configuration for Gmail
 
-As Action Mailer now uses the [Mail gem](https://github.com/mikel/mail), this
-becomes as simple as adding to your `config/environments/$RAILS_ENV.rb` file:
+As Action Mailer uses the [Mail gem](https://github.com/mikel/mail), this
+becomes as simple as editing your `config/initializers/action_mailer.rb` file:
 
 ```ruby
-config.action_mailer.delivery_method = :smtp
-config.action_mailer.smtp_settings = {
+ActionMailer::Base.delivery_method = :smtp
+ActionMailer::Base.smtp_settings = {
   address:              'smtp.gmail.com',
   port:                 587,
-  domain:               'example.com',
   user_name:            '<username>',
   password:             '<password>',
-  authentication:       'plain',
-  enable_starttls_auto: true  }
+  authentication:       :plain,
+  enable_starttls_auto: true
+}
 ```
 
 Mailer Testing
