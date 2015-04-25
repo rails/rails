@@ -462,7 +462,7 @@ module ActionDispatch
         end
       end
 
-      # Signs and Sets the cookie named +name+. The second argument may be the cookie's
+      # Signs and sets the cookie named +name+. The second argument may be the cookie's
       # value or a hash of options as documented above.
       def []=(name, options)
         if options.is_a?(Hash)
@@ -523,7 +523,7 @@ module ActionDispatch
         end
       end
 
-      # Encrypts and Sets the cookie named +name+. The second argument may be the cookie's
+      # Encrypts and sets the cookie named +name+. The second argument may be the cookie's
       # value or a hash of options as documented above.
       def []=(name, options)
         if options.is_a?(Hash)
