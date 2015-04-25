@@ -356,39 +356,34 @@ Supposing we use the same `_box` partial from above, this would produce the same
 View Paths
 ----------
 
-When rendering the view for a request, the controller needs to resolve where to find each of the directories are located.
+When rendering a response, the controller needs to resolve where the different
+views are located. By default it only looks inside the `app/views` directory.
 
-We are able to modify the order these locations are resolved by using `prepend_view_path` and `append_view_path`.
-
-This allows us to add new paths to the beginning or end of the list used to resolve these paths.
+We can add other locations and give them a certain precedence when resolving
+paths using the `prepend_view_path` and `append_view_path` methods.
 
 ### Prepend view path
 
-This can be helpful for example, when we want to prepend a different directory for subdomains.
+This can be helpful for example, when we want to put views inside a different
+directory for subdomains.
 
 We can do this by using:
 
-```prepend_view_path "app/views/#{request.subdomain}"```
-
-Then our list becomes something like:
-
-```
-[
-  ~/rails_app/app/views/<subdomain>,
-  ~/rails_app/app/views,
-  # ...
-]
+```ruby
+prepend_view_path "app/views/#{request.subdomain}"
 ```
 
-This will put the subdomain path at the beginning of the list.
+Then Action View will look first in this directory when resolving views.
 
 ### Append view path
 
 Similarly, we can append paths:
 
-```append_view_path "app/views/direct"```.
+```ruby
+append_view_path "app/views/direct"
+```
 
-This will add ```app/views/direct``` and the end of lookup paths for views.
+This will add `app/views/direct` to the end of the lookup paths.
 
 Overview of helpers provided by Action View
 -------------------------------------------
