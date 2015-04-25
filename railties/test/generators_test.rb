@@ -37,7 +37,7 @@ class GeneratorsTest < Rails::Generators::TestCase
   def test_generator_multiple_suggestions
     name = :tas
     output = capture(:stdout){ Rails::Generators.invoke name }
-    assert_match "Maybe you meant 'task', 'job' or 'assets'", output
+    assert_match "Maybe you meant 'task', 'job' or 'mailer'", output
   end
 
   def test_help_when_a_generator_with_required_arguments_is_invoked_without_arguments
