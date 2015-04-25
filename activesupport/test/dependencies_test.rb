@@ -378,7 +378,7 @@ class DependenciesTest < ActiveSupport::TestCase
     with_autoloading_fixtures do
       assert_not defined?(ModuleFolder)
       assert_raise(NameError) { ModuleFolder::Object }
-      assert_raise(NameError) { ModuleFolder::NestedClass::Object }
+      assert_raise(NameError) { ModuleFolder::NestedClass::DoesNotExist }
     end
   ensure
     remove_constants(:ModuleFolder)
