@@ -210,10 +210,4 @@ class CaptureHelperTest < ActionView::TestCase
   def alt_encoding(output_buffer)
     output_buffer.encoding == Encoding::US_ASCII ? Encoding::UTF_8 : Encoding::US_ASCII
   end
-
-  def view_with_controller
-    TestController.new.view_context.tap do |view|
-      view.output_buffer = ActionView::OutputBuffer.new
-    end
-  end
 end
