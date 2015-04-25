@@ -279,6 +279,16 @@ module ActiveRecord
 
     module ClassMethods
       include ActiveModel::Callbacks
+
+      # == Registering a custom callback object
+      #
+      # Define a callback object that will handle multiple callbacks
+      # Any public instance methods defined in this object will become separate callbacks
+      def define_callback_object(object)
+        (object.methods & CALLBACKS).each do |callback_method|
+          send(callback_method, object.dup)
+        end
+      end
     end
 
     included do

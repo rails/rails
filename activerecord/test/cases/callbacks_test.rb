@@ -172,6 +172,34 @@ class CallbackHaltedDeveloper < ActiveRecord::Base
   after_destroy { @after_destroy_called = true }
 end
 
+class CallbackMultiDeveloper < ActiveRecord::Base
+  self.table_name = 'developers'
+
+  validates :name, presence: true
+
+  def self.multi_callback_object
+    klass = Class.new
+    ActiveRecord::Callbacks::CALLBACKS.each do |callback_method|
+      next if callback_method.to_s =~ /^around_/
+      klass.send(:define_method, callback_method) do |model|
+        model.history << callback_method
+      end
+    end
+    klass.new
+  end
+
+  define_callback_object multi_callback_object
+
+  def history
+    @history ||= []
+  end
+
+  def history_list
+    history.uniq.sort
+  end
+
+end
+
 class CallbacksTest < ActiveRecord::TestCase
   fixtures :developers
 
@@ -629,6 +657,33 @@ class CallbacksTest < ActiveRecord::TestCase
     assert !child.after_save_called
     child.save
     assert child.after_save_called
+  end
+
+  def test_multi_callback
+    david = CallbackMultiDeveloper.create(name: 'David', salary: 1000000)
+    david.update_attributes(name: 'David2')
+    assert_equal [
+      :after_commit,
+      :after_create,
+      :after_initialize,
+      :after_save,
+      :after_update,
+      :after_validation,
+      :before_create,
+      :before_save,
+      :before_update,
+      :before_validation
+    ], david.history_list
+
+    david = CallbackMultiDeveloper.find(1)
+    david.destroy
+    assert_equal [
+      :after_commit,
+      :after_destroy,
+      :after_find,
+      :after_initialize,
+      :before_destroy
+    ], david.history_list
   end
 
 end

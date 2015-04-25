@@ -381,6 +381,14 @@ end
 
 You can declare as many callbacks as you want inside your callback classes.
 
+You can also declare multiple callbacks with one object by using `define_callback_object`. This will define a callback for every allowed callback that is defined inside the given object:
+
+```ruby
+class PictureFile < ActiveRecord::Base
+  define_callback_object PictureFileCallbacks
+end
+```
+
 Transaction Callbacks
 ---------------------
 

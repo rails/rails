@@ -783,4 +783,8 @@
 
     *Yves Senn*
 
+*   Add support for define_callback_object to handle multiple callbacks with one declaration.
+
+    *Kevin Deisz*
+
 Please check [4-2-stable](https://github.com/rails/rails/blob/4-2-stable/activerecord/CHANGELOG.md) for previous changes.
