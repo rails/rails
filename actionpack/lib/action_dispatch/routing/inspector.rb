@@ -45,11 +45,7 @@ module ActionDispatch
       end
 
       def internal?
-        internal_controller = controller.to_s =~ %r{\arails/(info|mailers|welcome)}
-        internal_asset = Rails.application.config.respond_to?(:assets) &&
-          path =~ %r{\a#{Rails.application.config.assets.prefix}\z}
-
-        internal_controller || internal_asset
+        controller.to_s =~ %r{\Arails/(info|mailers|welcome)}
       end
 
       def engine?
