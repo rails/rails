@@ -1631,7 +1631,13 @@ module ActionView
       # target labels for radio_button tags (where the value is used in the ID of the input tag).
       #
       # ==== Examples
-      #   label(:post, :title)
+      #   # You pass @post to +form_for+:
+      #
+      #   <%= form_for @post do |f| %>
+      #     ...
+      #   <% end %>
+      #
+      #   f.label(:title)
       #   # => <label for="post_title">Title</label>
       #
       # You can localize your labels based on model and attribute names.
@@ -1644,7 +1650,7 @@ module ActionView
       #
       # Which then will result in
       #
-      #   label(:post, :body)
+      #   f.label(:body)
       #   # => <label for="post_body">Write your entire text here</label>
       #
       # Localization can also be based purely on the translation of the attribute-name
@@ -1655,19 +1661,19 @@ module ActionView
       #       post:
       #         cost: "Total cost"
       #
-      #   label(:post, :cost)
+      #   f.label(:cost)
       #   # => <label for="post_cost">Total cost</label>
       #
-      #   label(:post, :title, "A short title")
+      #   f.label(:title, "A short title")
       #   # => <label for="post_title">A short title</label>
       #
-      #   label(:post, :title, "A short title", class: "title_label")
+      #   f.label(:title, "A short title", class: "title_label")
       #   # => <label for="post_title" class="title_label">A short title</label>
       #
-      #   label(:post, :privacy, "Public Post", value: "public")
+      #   f.label(:privacy, "Public Post", value: "public")
       #   # => <label for="post_privacy_public">Public Post</label>
       #
-      #   label(:post, :terms) do
+      #   f.label(:terms) do
       #     'Accept <a href="/terms">Terms</a>.'.html_safe
       #   end
       def label(method, text = nil, options = {}, &block)
@@ -1718,16 +1724,17 @@ module ActionView
       # hashes instead of arrays.
       #
       #   # Let's say that @post.validated? is 1:
-      #   check_box("post", "validated")
+      #   f.check_box("validated")
       #   # => <input name="post[validated]" type="hidden" value="0" />
       #   #    <input checked="checked" type="checkbox" id="post_validated" name="post[validated]" value="1" />
       #
       #   # Let's say that @puppy.gooddog is "no":
-      #   check_box("puppy", "gooddog", {}, "yes", "no")
+      #   f.check_box("gooddog", {}, "yes", "no")
       #   # => <input name="puppy[gooddog]" type="hidden" value="no" />
       #   #    <input type="checkbox" id="puppy_gooddog" name="puppy[gooddog]" value="yes" />
       #
-      #   check_box("eula", "accepted", { class: 'eula_check' }, "yes", "no")
+      #   # Let's say that @eula.accepted is "no":
+      #   f.check_box("accepted", { class: 'eula_check' }, "yes", "no")
       #   # => <input name="eula[accepted]" type="hidden" value="no" />
       #   #    <input type="checkbox" class="eula_check" id="eula_accepted" name="eula[accepted]" value="yes" />
       def check_box(method, options = {}, checked_value = "1", unchecked_value = "0")
@@ -1742,13 +1749,14 @@ module ActionView
       # +options+ hash. You may pass HTML options there as well.
       #
       #   # Let's say that @post.category returns "rails":
-      #   radio_button("post", "category", "rails")
-      #   radio_button("post", "category", "java")
+      #   f.radio_button("category", "rails")
+      #   f.radio_button("category", "java")
       #   # => <input type="radio" id="post_category_rails" name="post[category]" value="rails" checked="checked" />
       #   #    <input type="radio" id="post_category_java" name="post[category]" value="java" />
       #
-      #   radio_button("user", "receive_newsletter", "yes")
-      #   radio_button("user", "receive_newsletter", "no")
+      #   # Let's say that @user.category returns "no":
+      #   f.radio_button("receive_newsletter", "yes")
+      #   f.radio_button("receive_newsletter", "no")
       #   # => <input type="radio" id="user_receive_newsletter_yes" name="user[receive_newsletter]" value="yes" />
       #   #    <input type="radio" id="user_receive_newsletter_no" name="user[receive_newsletter]" value="no" checked="checked" />
       def radio_button(method, tag_value, options = {})
@@ -1761,14 +1769,17 @@ module ActionView
       # shown.
       #
       # ==== Examples
-      #   hidden_field(:signup, :pass_confirm)
-      #   # => <input type="hidden" id="signup_pass_confirm" name="signup[pass_confirm]" value="#{@signup.pass_confirm}" />
+      #   # Let's say that @signup.pass_confirm returns true:
+      #   f.hidden_field(:pass_confirm)
+      #   # => <input type="hidden" id="signup_pass_confirm" name="signup[pass_confirm]" value="true" />
       #
-      #   hidden_field(:post, :tag_list)
-      #   # => <input type="hidden" id="post_tag_list" name="post[tag_list]" value="#{@post.tag_list}" />
+      #   # Let's say that @post.tag_list returns "blog, ruby":
+      #   f.hidden_field(:tag_list)
+      #   # => <input type="hidden" id="post_tag_list" name="post[tag_list]" value="blog, ruby" />
       #
-      #   hidden_field(:user, :token)
-      #   # => <input type="hidden" id="user_token" name="user[token]" value="#{@user.token}" />
+      #   # Let's say that @user.token returns "abcde":
+      #   f.hidden_field(:token)
+      #   # => <input type="hidden" id="user_token" name="user[token]" value="abcde" />
       #
       def hidden_field(method, options = {})
         @emitted_hidden_id = true if method == :id
@@ -1789,19 +1800,24 @@ module ActionView
       # * <tt>:accept</tt> - If set to one or multiple mime-types, the user will be suggested a filter when choosing a file. You still need to set up model validations.
       #
       # ==== Examples
-      #   file_field(:user, :avatar)
+      #   # Let's say that @user has avatar:
+      #   f.file_field(:avatar)
       #   # => <input type="file" id="user_avatar" name="user[avatar]" />
       #
-      #   file_field(:post, :image, :multiple => true)
-      #   # => <input type="file" id="post_image" name="post[image]" multiple="true" />
+      #   # Let's say that @post has image:
+      #   f.file_field(:image, :multiple => true)
+      #   # => <input type="file" id="post_image" name="post[image][]" multiple="multiple" />
       #
-      #   file_field(:post, :attached, accept: 'text/html')
+      #   # Let's say that @post has attached:
+      #   f.file_field(:attached, accept: 'text/html')
       #   # => <input accept="text/html" type="file" id="post_attached" name="post[attached]" />
       #
-      #   file_field(:post, :image, accept: 'image/png,image/gif,image/jpeg')
+      #   # Let's say that @post has image:
+      #   f.file_field(:image, accept: 'image/png,image/gif,image/jpeg')
       #   # => <input type="file" id="post_image" name="post[image]" accept="image/png,image/gif,image/jpeg" />
       #
-      #   file_field(:attachment, :file, class: 'file_input')
+      #   # Let's say that @attachment has file:
+      #   f.file_field(:file, class: 'file_input')
       #   # => <input type="file" id="attachment_file" name="attachment[file]" class="file_input" />
       def file_field(method, options = {})
         self.multipart = true
