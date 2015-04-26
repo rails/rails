@@ -55,4 +55,10 @@ class QueuingTest < ActiveSupport::TestCase
       skip
     end
   end
+
+  test 'should supply a provider_job_id to DelayedJob' do
+    skip unless adapter_is?(:delayed_job)
+    test_job = TestJob.perform_later @id
+    assert_kind_of Fixnum, test_job.provider_job_id
+  end
 end

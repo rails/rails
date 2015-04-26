@@ -17,6 +17,9 @@ module ActiveJob
 
       # Queue in which the job will reside.
       attr_writer :queue_name
+
+      # ID optionally provided by adapter
+      attr_accessor :provider_job_id
     end
 
     # These methods will be included into any Active Job object, adding
