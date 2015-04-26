@@ -5,7 +5,7 @@ module ActiveSupport
   # ActiveSupport::Notifications. The subscriber dispatches notifications to
   # a registered object based on its given namespace.
   #
-  # An example would be Active Record subscriber responsible for collecting
+  # An example would be an Active Record subscriber responsible for collecting
   # statistics about queries:
   #
   #   module ActiveRecord
@@ -66,7 +66,7 @@ module ActiveSupport
 
         pattern = "#{event}.#{namespace}"
 
-        # don't add multiple subscribers (eg. if methods are redefined)
+        # Don't add multiple subscribers (eg. if methods are redefined).
         return if subscriber.patterns.include?(pattern)
 
         subscriber.patterns << pattern
