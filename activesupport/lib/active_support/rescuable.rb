@@ -68,7 +68,7 @@ module ActiveSupport
             raise ArgumentError, "#{klass} is neither an Exception nor a String"
           end
 
-          # put the new handler at the end because the list is read in reverse
+          # Put the new handler at the end because the list is read in reverse.
           self.rescue_handlers += [[key, options[:with]]]
         end
       end
