@@ -106,6 +106,7 @@
       description: This guide covers the command line tools and rake tasks provided by Rails.
     -
       name: Asset Pipeline
+      work_in_progress: true
       url: asset_pipeline.html
       description: This guide documents the asset pipeline.
     -
