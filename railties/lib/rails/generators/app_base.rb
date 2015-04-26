@@ -340,7 +340,15 @@ module Rails
       end
 
       def run_bundle
-        bundle_command('install') if bundle_install?
+        # Most of us have the CPUs; so let's parallelize `bundle install`
+        parse_n_cpus = ->(val) { val.match(/^\d+/) || 1 }
+        n_cpus = case RbConfig::CONFIG['host_os']
+                 when /linux/i  then parse_n_cpus[`nproc`]
+                 when /darwin/i then parse_n_cpus[`sysctl -n hw.ncpu`]
+                 else           1
+                 end
+
+        bundle_command("install -j#{n_cpus}") if bundle_install?
       end
 
       def generate_spring_binstubs

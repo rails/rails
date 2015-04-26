@@ -537,7 +537,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_spring_binstubs
     jruby_skip "spring doesn't run on JRuby"
-    generator.stubs(:bundle_command).with('install')
+    generator.stubs(:bundle_command).with { |val| val.match(/^install -j\d+/) }
     generator.expects(:bundle_command).with('exec spring binstub --all').once
     quietly { generator.invoke_all }
   end
@@ -627,7 +627,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     generator([destination_root], template: path).expects(:open).with(path, 'Accept' => 'application/x-thor-template').returns(template)
 
     bundler_first = sequence('bundle, binstubs, after_bundle')
-    generator.expects(:bundle_command).with('install').once.in_sequence(bundler_first)
+    generator.expects(:bundle_command).with { |val| val.match(/^install -j\d+/) }.once.in_sequence(bundler_first)
     generator.expects(:bundle_command).with('exec spring binstub --all').in_sequence(bundler_first)
     generator.expects(:run).with('echo ran after_bundle').in_sequence(bundler_first)
 
