@@ -191,6 +191,7 @@ module ApplicationTests
 
     test "asset pipeline should use a Sprockets::Index when config.assets.digest is true" do
       add_to_config "config.action_controller.perform_caching = false"
+      add_to_env_config "production", "config.assets.compile = true"
 
       ENV["RAILS_ENV"] = "production"
       require "#{app_path}/config/environment"
