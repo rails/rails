@@ -5,8 +5,10 @@ require 'active_support/core_ext/hash/keys'
 gem 'mysql', '~> 2.9'
 require 'mysql'
 
-class Mysql
+class Mysql # :nodoc: all
   class Time
+    # Used for casting DateTime fields to a MySQL friendly Time.
+    # This was documented in 48498da0dfed5239ea1eafb243ce47d7e3ce9e8e
     def to_date
       Date.new(year, month, day)
     end
