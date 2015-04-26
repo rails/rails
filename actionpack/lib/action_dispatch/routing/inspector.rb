@@ -45,7 +45,7 @@ module ActionDispatch
       end
 
       def internal?
-        controller.to_s =~ %r{\Arails/(info|mailers|welcome)} || path =~ %r{\A#{Rails.application.config.assets.prefix}\z}
+        controller.to_s =~ %r{\Arails/(info|mailers|welcome)}
       end
 
       def engine?
