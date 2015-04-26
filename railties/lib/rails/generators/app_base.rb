@@ -203,7 +203,7 @@ module Rails
       def rails_gemfile_entry
         if options.dev?
           [
-            GemfileEntry.path('rails', Rails::Generators::RAILS_DEV_PATH),
+            GemfileEntry.path('rails', File.expand_path("../../../../..", __FILE__)),
             GemfileEntry.github('arel', 'rails/arel')
           ]
         elsif options.edge?
