@@ -28,7 +28,7 @@ module SharedGeneratorTests
 
   def assert_generates_with_bundler(options = {})
     generator([destination_root], options)
-    generator.expects(:bundle_command).with('install').once
+    generator.expects(:bundle_command).with { |val| val.match(/^install -j\d+/) }.once
     generator.stubs(:bundle_command).with('exec spring binstub --all')
     quietly { generator.invoke_all }
   end
