@@ -12,28 +12,12 @@ module RequestForgeryProtectionActions
     render :inline => "<%= button_to('New', '/') %>"
   end
 
-  def external_form
-    render :inline => "<%= form_tag('http://farfar.away/form', :authenticity_token => 'external_token') {} %>"
-  end
-
-  def external_form_without_protection
-    render :inline => "<%= form_tag('http://farfar.away/form', :authenticity_token => false) {} %>"
-  end
-
   def unsafe
     render :text => 'pwn'
   end
 
   def meta
     render :inline => "<%= csrf_meta_tags %>"
-  end
-
-  def external_form_for
-    render :inline => "<%= form_for(:some_resource, :authenticity_token => 'external_token') {} %>"
-  end
-
-  def form_for_without_protection
-    render :inline => "<%= form_for(:some_resource, :authenticity_token => false ) {} %>"
   end
 
   def form_for_remote
@@ -70,7 +54,6 @@ module RequestForgeryProtectionActions
     negotiate_same_origin
   end
 
-  def rescue_action(e) raise e end
 end
 
 # sample controllers
