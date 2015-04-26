@@ -114,6 +114,10 @@ module ActiveRecord
 
     class FromUser < Attribute # :nodoc:
       def type_cast(value)
+        if value.is_a?(Proc)
+          value = value.call
+        end
+
         type.cast(value)
       end
 

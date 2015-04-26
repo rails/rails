@@ -5,6 +5,7 @@ class OverloadedType < ActiveRecord::Base
   attribute :overloaded_string_with_limit, :string, limit: 50
   attribute :non_existent_decimal, :decimal
   attribute :string_with_default, :string, default: 'the overloaded default'
+  attribute :string_with_default_proc, :string, default: -> { "Today is #{Time.now.year}" }
 end
 
 class ChildOfOverloadedType < OverloadedType
@@ -41,6 +42,16 @@ module ActiveRecord
       assert_kind_of Fixnum, OverloadedType.last.overloaded_float
       assert_equal 2.0, UnoverloadedType.last.overloaded_float
       assert_kind_of Float, UnoverloadedType.last.overloaded_float
+    end
+
+    test "default with proc" do
+      data = OverloadedType.new
+      assert_equal "Today is #{Time.now.year}", data.string_with_default_proc
+    end
+
+    test "default with proc doesn't override passed value" do
+      data = OverloadedType.new(string_with_default_proc: "not overridden")
+      assert_equal "not overridden", data.string_with_default_proc
     end
 
     test "properties assigned in constructor" do
@@ -89,20 +100,20 @@ module ActiveRecord
 
     test "overloading properties does not attribute method order" do
       attribute_names = OverloadedType.attribute_names
-      assert_equal %w(id overloaded_float unoverloaded_float overloaded_string_with_limit string_with_default non_existent_decimal), attribute_names
+      assert_equal %w(id overloaded_float unoverloaded_float overloaded_string_with_limit string_with_default string_with_default_proc non_existent_decimal), attribute_names
     end
 
     test "caches are cleared" do
       klass = Class.new(OverloadedType)
 
-      assert_equal 6, klass.attribute_types.length
-      assert_equal 6, klass.column_defaults.length
+      assert_equal 7, klass.attribute_types.length
+      assert_equal 7, klass.column_defaults.length
       assert_not klass.attribute_types.include?('wibble')
 
       klass.attribute :wibble, Type::Value.new
 
-      assert_equal 7, klass.attribute_types.length
-      assert_equal 7, klass.column_defaults.length
+      assert_equal 8, klass.attribute_types.length
+      assert_equal 8, klass.column_defaults.length
       assert klass.attribute_types.include?('wibble')
     end
 
