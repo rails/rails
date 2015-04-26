@@ -464,17 +464,6 @@ module ApplicationTests
       assert_match "src='/sub/uri/assets/rails.png'", File.read(Dir["#{app_path}/public/assets/app-*.js"].first)
     end
 
-    test "assets:cache:clean should clean cache" do
-      ENV["RAILS_ENV"] = "production"
-      precompile!
-
-      quietly do
-        Dir.chdir(app_path){ `bundle exec rake assets:clobber` }
-      end
-
-      assert !File.exist?("#{app_path}/tmp/cache/assets")
-    end
-
     private
 
     def app_with_assets_in_view
