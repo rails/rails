@@ -106,6 +106,8 @@ GEM
     builder (3.2.2)
     bunny (1.1.9)
       amq-protocol (>= 1.9.2)
+    byebug (4.0.5)
+      columnize (= 0.9.0)
     celluloid (0.16.0)
       timers (~> 4.0.0)
     coffee-rails (4.1.0)
@@ -115,6 +117,7 @@ GEM
       coffee-script-source
       execjs
     coffee-script-source (1.9.0)
+    columnize (0.9.0)
     connection_pool (2.1.1)
     dalli (2.7.2)
     dante (0.1.5)
@@ -258,6 +261,7 @@ DEPENDENCIES
   backburner
   bcrypt (~> 3.1.10)
   benchmark-ips
+  byebug
   coffee-rails (~> 4.1.0)
   dalli (>= 2.2.1)
   delayed_job

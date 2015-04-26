@@ -65,7 +65,7 @@ group :test do
 
   platforms :mri do
     gem 'stackprof'
-    # gem 'byebug'
+    gem 'byebug'
   end
 
   gem 'benchmark-ips'
