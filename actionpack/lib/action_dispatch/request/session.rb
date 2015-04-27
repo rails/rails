@@ -21,6 +21,7 @@ module ActionDispatch
         session
       end
 
+      # Find existing env from previous session
       def self.find(env)
         env[ENV_SESSION_KEY]
       end
