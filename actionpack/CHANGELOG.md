@@ -1,3 +1,10 @@
+*   Fix rake routes not showing the right format when
+    nesting multiple routes.
+
+    See #18373.
+
+    *Ravil Bayramgalin*
+
 *   Fix regression where a gzip file response would have a Content-type,
     even when it was a 304 status code.
 
