@@ -1,3 +1,7 @@
+*   Make sure labels and values line up in mailer previews.
+
+    *Yves Senn*
+
 *   Add `assert_enqueued_emails` and `assert_no_enqueued_emails`.
 
     Example:

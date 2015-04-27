@@ -39,6 +39,10 @@
     padding: 1px;
   }
 
+  dd:empty:before {
+    content: "\00a0"; // &nbsp;
+  }
+
   iframe {
     border: 0;
     width: 100%;
