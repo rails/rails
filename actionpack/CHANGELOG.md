@@ -1,3 +1,10 @@
+*   Fix rake routes not showing the right format when
+    nesting multiple routes.
+
+    See #18373.
+
+    *Ravil Bayramgalin*
+
 *   Add ability to override default form builder for a controller.
 
         class AdminController < ApplicationController
