@@ -205,7 +205,9 @@ module ActiveRecord
     # instance using the companies/company partial instead of clients/client.
     #
     # Note: The new instance will share a link to the same attributes as the original class.
-    # So any change to the attributes in either instance will affect the other.
+    # Therefore the sti column value will still be the same.
+    # Any change to the attributes on either instance will affect both instances.
+    # If you want to change the sti column as well, use +becomes!+ instead.
     def becomes(klass)
       became = klass.new
       became.instance_variable_set("@attributes", @attributes)
