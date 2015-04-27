@@ -60,7 +60,7 @@ module ActiveRecord
       $stderr.expects(:puts).
         with("Couldn't create database for #{@configuration.inspect}")
 
-      ActiveRecord::Tasks::DatabaseTasks.create @configuration
+      assert_raises(Exception) { ActiveRecord::Tasks::DatabaseTasks.create @configuration }
     end
 
     def test_create_when_database_exists_outputs_info_to_stderr

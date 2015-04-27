@@ -94,8 +94,9 @@ module ActiveRecord
       rescue DatabaseAlreadyExists
         $stderr.puts "#{configuration['database']} already exists"
       rescue Exception => error
-        $stderr.puts error, *(error.backtrace)
+        $stderr.puts error
         $stderr.puts "Couldn't create database for #{configuration.inspect}"
+        raise
       end
 
       def create_all
