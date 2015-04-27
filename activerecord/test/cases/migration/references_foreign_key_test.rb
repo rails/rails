@@ -130,4 +130,24 @@ module ActiveRecord
     end
   end
 end
+else
+class ReferencesWithoutForeignKeySupportTest < ActiveRecord::TestCase
+  setup do
+    @connection = ActiveRecord::Base.connection
+    @connection.create_table(:testing_parents, force: true)
+  end
+
+  teardown do
+    @connection.drop_table("testings", if_exists: true)
+    @connection.drop_table("testing_parents", if_exists: true)
+  end
+
+  test "ignores foreign keys defined with the table" do
+    @connection.create_table :testings do |t|
+      t.references :testing_parent, foreign_key: true
+    end
+
+    assert_includes @connection.tables, "testings"
+  end
+end
 end
