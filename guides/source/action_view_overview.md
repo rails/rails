@@ -493,7 +493,7 @@ Returns a stylesheet link tag for the sources specified as arguments. If you don
 stylesheet_link_tag "application" # => <link href="/assets/application.css" media="screen" rel="stylesheet" />
 ```
 
-You can also include all styles in the stylesheet directory using :all as the source:
+You can also include all styles in the stylesheet directory using `:all` as the source:
 
 ```ruby
 stylesheet_link_tag :all
@@ -508,7 +508,7 @@ stylesheet_link_tag :all, cache: true
 
 #### stylesheet_path
 
-Computes the path to a stylesheet asset in the `app/assets/stylesheets` directory. If the source filename has no extension, .css will be appended. Full paths from the document root will be passed through. Used internally by stylesheet_link_tag to build the stylesheet path.
+Computes the path to a stylesheet asset in the `app/assets/stylesheets` directory. If the source filename has no extension, `.css` will be appended. Full paths from the document root will be passed through. Used internally by stylesheet_link_tag to build the stylesheet path.
 
 ```ruby
 stylesheet_path "application" # => /assets/application.css
@@ -809,9 +809,9 @@ third:
 
 Form helpers are designed to make working with models much easier compared to using just standard HTML elements by providing a set of methods for creating forms based on your models. This helper generates the HTML for forms, providing a method for each sort of input (e.g., text, password, select, and so on). When the form is submitted (i.e., when the user hits the submit button or form.submit is called via JavaScript), the form inputs will be bundled into the params object and passed back to the controller.
 
-There are two types of form helpers: those that specifically work with model attributes and those that don't. This helper deals with those that work with model attributes; to see an example of form helpers that don't work with model attributes, check the ActionView::Helpers::FormTagHelper documentation.
+There are two types of form helpers: those that specifically work with model attributes and those that don't. This helper deals with those that work with model attributes; to see an example of form helpers that don't work with model attributes, check the `ActionView::Helpers::FormTagHelper` documentation.
 
-The core method of this helper, form_for, gives you the ability to create a form for a model instance; for example, let's say that you have a model Person and want to create a new instance of it:
+The core method of this helper, `form_for`, gives you the ability to create a form for a model instance; for example, let's say that you have a model Person and want to create a new instance of it:
 
 ```html+erb
 # Note: a @person variable will have been created in the controller (e.g. @person = Person.new)
@@ -853,7 +853,7 @@ check_box("article", "validated")
 
 #### fields_for
 
-Creates a scope around a specific model object like form_for, but doesn't create the form tags themselves. This makes fields_for suitable for specifying additional model objects in the same form:
+Creates a scope around a specific model object like `form_for`, but doesn't create the form tags themselves. This makes `fields_for` suitable for specifying additional model objects in the same form:
 
 ```html+erb
 <%= form_for @person, url: { action: "update" } do |person_form| %>
@@ -1147,7 +1147,7 @@ Returns a string of option tags that have been compiled by iterating over the `c
 # options_from_collection_for_select(collection, value_method, text_method, selected = nil)
 ```
 
-For example, imagine a loop iterating over each person in @project.people to generate an input tag:
+For example, imagine a loop iterating over each person in `@project.people` to generate an input tag:
 
 ```ruby
 options_from_collection_for_select(@project.people, "id", "name")
@@ -1448,7 +1448,7 @@ This sanitize helper will HTML encode all tags and strip all attributes that are
 sanitize @article.body
 ```
 
-If either the :attributes or :tags options are passed, only the mentioned tags and attributes are allowed and nothing else.
+If either the `:attributes` or `:tags` options are passed, only the mentioned tags and attributes are allowed and nothing else.
 
 ```ruby
 sanitize @article.body, tags: %w(table tr td), attributes: %w(id class style)
