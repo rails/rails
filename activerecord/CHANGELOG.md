@@ -1,3 +1,10 @@
+*   Revert behavior of `db:schema:load` back to loading the full
+    environment. This ensures that initializers are run.
+
+    Fixes #19545.
+
+    *Yves Senn*
+
 *   Rename `:class` to `:anonymous_class` in association options.
 
     Fixes #19659.
