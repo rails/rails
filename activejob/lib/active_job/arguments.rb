@@ -24,6 +24,7 @@ module ActiveJob
 
   module Arguments
     extend self
+    # :nodoc:
     TYPE_WHITELIST = [ NilClass, Fixnum, Float, String, TrueClass, FalseClass, Bignum ]
 
     # Serializes a set of arguments. Whitelisted types are returned
@@ -43,8 +44,11 @@ module ActiveJob
     end
 
     private
+      # :nodoc:
       GLOBALID_KEY = '_aj_globalid'.freeze
+      # :nodoc:
       SYMBOL_KEYS_KEY = '_aj_symbol_keys'.freeze
+      # :nodoc:
       WITH_INDIFFERENT_ACCESS_KEY = '_aj_hash_with_indifferent_access'.freeze
       private_constant :GLOBALID_KEY, :SYMBOL_KEYS_KEY, :WITH_INDIFFERENT_ACCESS_KEY
 
@@ -113,6 +117,7 @@ module ActiveJob
         result
       end
 
+      # :nodoc:
       RESERVED_KEYS = [
         GLOBALID_KEY, GLOBALID_KEY.to_sym,
         SYMBOL_KEYS_KEY, SYMBOL_KEYS_KEY.to_sym,
