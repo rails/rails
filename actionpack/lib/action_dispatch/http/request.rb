@@ -313,7 +313,11 @@ module ActionDispatch
     def GET
       @env["action_dispatch.request.query_parameters"] ||= Utils.deep_munge(normalize_encode_params(super || {}))
     rescue Rack::Utils::ParameterTypeError, Rack::Utils::InvalidParameterError => e
-      raise ActionController::BadRequest.new(:query, e)
+      if @env["action_dispatch.exception"].present?
+        @env["action_dispatch.request.query_parameters"] = {}
+      else
+        raise ActionController::BadRequest.new(:query, e)
+      end
     end
     alias :query_parameters :GET
 

@@ -951,6 +951,14 @@ class RequestParameters < BaseRequestTest
     end
   end
 
+  test "does not re-raise rack parse error of invalid UTF8 character when rendering the exception" do
+    request = stub_request("QUERY_STRING" => "foo%81E=1", "action_dispatch.exception" => ActionController::BadRequest.new)
+
+    2.times do
+      request.parameters
+    end
+  end
+
   test "parameters not accessible after rack parse error 1" do
     request = stub_request(
       'REQUEST_METHOD' => 'POST',
