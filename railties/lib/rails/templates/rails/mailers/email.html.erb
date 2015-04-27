@@ -96,10 +96,22 @@
     <% end %>
 
     <% if @email.multipart? %>
+      <dt>Format:</dt>
       <dd>
-        <select onchange="formatChanged(this);">
-          <option <%= request.format == Mime[:html] ? 'selected' : '' %> value="?<%= part_query('text/html') %>">View as HTML email</option>
-          <option <%= request.format == Mime[:text] ? 'selected' : '' %> value="?<%= part_query('text/plain') %>">View as plain-text email</option>
+        <select id="part" onchange="refreshBody();">
+          <option <%= request.format == Mime[:html] ? 'selected' : '' %> value="<%= part_query('text/html') %>">View as HTML email</option>
+          <option <%= request.format == Mime[:text] ? 'selected' : '' %> value="<%= part_query('text/plain') %>">View as plain-text email</option>
+        </select>
+      </dd>
+    <% end %>
+
+    <% if I18n.available_locales.count > 1 %>
+      <dt>Locale:</dt>
+      <dd>
+        <select id="locale" onchange="refreshBody();">
+          <% I18n.available_locales.each do |locale| %>
+            <option <%= I18n.locale == locale ? 'selected' : '' %> value="<%= locale_query(locale) %>"><%= locale %></option>
+          <% end %>
         </select>
       </dd>
     <% end %>
@@ -116,15 +128,18 @@
 <% end %>
 
 <script>
-  function formatChanged(form) {
-    var part_name = form.options[form.selectedIndex].value
-    var iframe =document.getElementsByName('messageBody')[0];
-    iframe.contentWindow.location.replace(part_name);
+  function refreshBody() {
+    var part_select = document.querySelector('select#part');
+    var locale_select = document.querySelector('select#locale');
+    var part_param = part_select.options[part_select.selectedIndex].value;
+    var locale_param = locale_select.options[locale_select.selectedIndex].value;
+    var iframe = document.getElementsByName('messageBody')[0];
+    iframe.contentWindow.location = '?' + part_param + '&' + locale_param;
 
     if (history.replaceState) {
-      var url    = location.pathname.replace(/\.(txt|html)$/, '');
-      var format = /html/.test(part_name) ? '.html' : '.txt';
-      window.history.replaceState({}, '', url + format);
+      var url = location.pathname.replace(/\.(txt|html)$/, '');
+      var format = /html/.test(part_param) ? '.html' : '.txt';
+      window.history.replaceState({}, '', url + format + '?' + locale_param);
     }
   }
 </script>

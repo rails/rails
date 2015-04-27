@@ -450,11 +450,67 @@ module ApplicationTests
 
       get "/rails/mailers/notifier/foo.html"
       assert_equal 200, last_response.status
-      assert_match '<option selected value="?part=text%2Fhtml">View as HTML email</option>', last_response.body
+      assert_match '<option selected value="part=text%2Fhtml">View as HTML email</option>', last_response.body
 
       get "/rails/mailers/notifier/foo.txt"
       assert_equal 200, last_response.status
-      assert_match '<option selected value="?part=text%2Fplain">View as plain-text email</option>', last_response.body
+      assert_match '<option selected value="part=text%2Fplain">View as plain-text email</option>', last_response.body
+    end
+
+    test "locale menu selects correct option" do
+      app_file "config/initializers/available_locales.rb", <<-RUBY
+        Rails.application.configure do
+          config.i18n.available_locales = %i[en ja]
+        end
+      RUBY
+
+      mailer "notifier", <<-RUBY
+        class Notifier < ActionMailer::Base
+          default from: "from@example.com"
+
+          def foo
+            mail to: "to@example.org"
+          end
+        end
+      RUBY
+
+      html_template "notifier/foo", <<-RUBY
+        <p>Hello, World!</p>
+      RUBY
+
+      text_template "notifier/foo", <<-RUBY
+        Hello, World!
+      RUBY
+
+      mailer_preview "notifier", <<-RUBY
+        class NotifierPreview < ActionMailer::Preview
+          def foo
+            Notifier.foo
+          end
+        end
+      RUBY
+
+      app("development")
+
+      get "/rails/mailers/notifier/foo.html"
+      assert_equal 200, last_response.status
+      assert_match '<option selected value="locale=en">en', last_response.body
+      assert_match '<option  value="locale=ja">ja', last_response.body
+
+      get "/rails/mailers/notifier/foo.html?locale=ja"
+      assert_equal 200, last_response.status
+      assert_match '<option  value="locale=en">en', last_response.body
+      assert_match '<option selected value="locale=ja">ja', last_response.body
+
+      get "/rails/mailers/notifier/foo.txt"
+      assert_equal 200, last_response.status
+      assert_match '<option selected value="locale=en">en', last_response.body
+      assert_match '<option  value="locale=ja">ja', last_response.body
+
+      get "/rails/mailers/notifier/foo.txt?locale=ja"
+      assert_equal 200, last_response.status
+      assert_match '<option  value="locale=en">en', last_response.body
+      assert_match '<option selected value="locale=ja">ja', last_response.body
     end
 
     test "mailer previews create correct links when loaded on a subdirectory" do
@@ -520,8 +576,8 @@ module ApplicationTests
       get "/rails/mailers/notifier/foo.txt"
       assert_equal 200, last_response.status
       assert_match '<iframe seamless name="messageBody" src="?part=text%2Fplain">', last_response.body
-      assert_match '<option selected value="?part=text%2Fplain">', last_response.body
-      assert_match '<option  value="?part=text%2Fhtml">', last_response.body
+      assert_match '<option selected value="part=text%2Fplain">', last_response.body
+      assert_match '<option  value="part=text%2Fhtml">', last_response.body
 
       get "/rails/mailers/notifier/foo?part=text%2Fplain"
       assert_equal 200, last_response.status
@@ -530,8 +586,8 @@ module ApplicationTests
       get "/rails/mailers/notifier/foo.html?name=Ruby"
       assert_equal 200, last_response.status
       assert_match '<iframe seamless name="messageBody" src="?name=Ruby&amp;part=text%2Fhtml">', last_response.body
-      assert_match '<option selected value="?name=Ruby&amp;part=text%2Fhtml">', last_response.body
-      assert_match '<option  value="?name=Ruby&amp;part=text%2Fplain">', last_response.body
+      assert_match '<option selected value="name=Ruby&amp;part=text%2Fhtml">', last_response.body
+      assert_match '<option  value="name=Ruby&amp;part=text%2Fplain">', last_response.body
 
       get "/rails/mailers/notifier/foo?name=Ruby&part=text%2Fhtml"
       assert_equal 200, last_response.status
