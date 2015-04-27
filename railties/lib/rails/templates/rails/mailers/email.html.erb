@@ -44,6 +44,17 @@
     width: 100%;
   }
 </style>
+<script type="text/javascript">
+  function refreshMailBody() {
+    part_select = document.querySelectorAll('select#part')[0];
+    locale_select = document.querySelectorAll('select#locale')[0];
+
+    part_param = 'part=' + part_select.options[part_select.selectedIndex].value;
+    locale_param = 'locale=' + locale_select.options[locale_select.selectedIndex].value;
+
+    document.getElementsByName('mailBody')[0].src = '?' + part_param + '&' + locale_param;
+  }
+</script>
 </head>
 
 <body>
@@ -90,16 +101,27 @@
 
     <% if @email.multipart? %>
       <dd>
-        <select onchange="document.getElementsByName('messageBody')[0].src=this.options[this.selectedIndex].value;">
-          <option <%= request.format == Mime::HTML ? 'selected' : '' %> value="?part=text%2Fhtml">View as HTML email</option>
-          <option <%= request.format == Mime::TEXT ? 'selected' : '' %> value="?part=text%2Fplain">View as plain-text email</option>
+        <select id="part" onchange="refreshMailBody();">
+          <option <%= request.format == Mime::HTML ? 'selected' : '' %> value="text%2Fhtml">View as HTML email</option>
+          <option <%= request.format == Mime::TEXT ? 'selected' : '' %> value="text%2Fplain">View as plain-text email</option>
+        </select>
+      </dd>
+    <% end %>
+
+    <% if I18n.available_locales.count > 1 %>
+      <dt>Locale:</dt>
+      <dd>
+        <select id="locale" onchange="refreshMailBody();">
+          <% I18n.available_locales.each do |locale| %>
+            <option <%= I18n.locale == locale ? 'selected' : '' %> value="<%= locale %>"><%= locale %></option>
+          <% end %>
         </select>
       </dd>
     <% end %>
   </dl>
 </header>
 
-<iframe seamless name="messageBody" src="?part=<%= Rack::Utils.escape(@part.mime_type) %>"></iframe>
+<iframe seamless name="mailBody" src="?part=<%= Rack::Utils.escape(@part.mime_type) %>&locale=<%= I18n.locale %>"></iframe>
 
 </body>
 </html>
