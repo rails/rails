@@ -116,8 +116,9 @@ module ActiveRecord
       rescue ActiveRecord::NoDatabaseError
         $stderr.puts "Database '#{configuration['database']}' does not exist"
       rescue Exception => error
-        $stderr.puts error, *(error.backtrace)
+        $stderr.puts error
         $stderr.puts "Couldn't drop #{configuration['database']}"
+        raise
       end
 
       def drop_all
