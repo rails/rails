@@ -1,3 +1,10 @@
+*   Revert behavior of `db:schema:load` back to loading the full
+    environment. This ensures that initializers are run.
+
+    Fixes #19545.
+
+    *Yves Senn*
+
 *   Fix missing index when using `timestamps` with the `index` option.
 
     The `index` option used with `timestamps` should be passed to both
