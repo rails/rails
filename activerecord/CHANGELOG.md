@@ -1,3 +1,7 @@
+*   Make `unscope` aware of "less than" and "greater than" conditions.
+
+    *TAKAHASHI Kazuaki*
+
 *   Revert behavior of `db:schema:load` back to loading the full
     environment. This ensures that initializers are run.
 
