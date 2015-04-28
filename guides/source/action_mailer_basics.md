@@ -530,6 +530,9 @@ url helper.
 <%= user_url(@user, host: 'example.com') %>
 ```
 
+NOTE: `non-GET` links require [jQuery UJS](https://github.com/rails/jquery-ujs)
+and won't work in mailer templates. They will result in normal `GET` requests.
+
 ### Sending Multipart Emails
 
 Action Mailer will automatically send multipart emails if you have different
