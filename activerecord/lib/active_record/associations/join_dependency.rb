@@ -131,9 +131,9 @@ module ActiveRecord
       def instantiate(result_set, aliases)
         primary_key = aliases.column_alias(join_root, join_root.primary_key)
 
-        seen = Hash.new { |h,parent_klass|
-          h[parent_klass] = Hash.new { |i,parent_id|
-            i[parent_id] = Hash.new { |j,child_klass| j[child_klass] = {} }
+        seen = Hash.new { |i, object_id|
+          i[object_id] = Hash.new { |j, child_class|
+            j[child_class] = {}
           }
         }
 
@@ -233,7 +233,6 @@ module ActiveRecord
 
       def construct(ar_parent, parent, row, rs, seen, model_cache, aliases)
         return if ar_parent.nil?
-        primary_id  = ar_parent.id
 
         parent.children.each do |node|
           if node.reflection.collection?
@@ -253,14 +252,14 @@ module ActiveRecord
             next
           end
 
-          model = seen[parent.base_klass][primary_id][node.base_klass][id]
+          model = seen[ar_parent.object_id][node.base_klass][id]
 
           if model
             construct(model, node, row, rs, seen, model_cache, aliases)
           else
             model = construct_model(ar_parent, node, row, model_cache, id, aliases)
             model.readonly!
-            seen[parent.base_klass][primary_id][node.base_klass][id] = model
+            seen[ar_parent.object_id][node.base_klass][id] = model
             construct(model, node, row, rs, seen, model_cache, aliases)
           end
         end

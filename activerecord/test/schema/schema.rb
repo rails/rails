@@ -258,6 +258,7 @@ ActiveRecord::Schema.define do
     t.datetime :updated_at
     t.datetime :created_on
     t.datetime :updated_on
+    t.integer :mentor_id
   end
 
   create_table :developers_projects, force: true, id: false do |t|
@@ -434,6 +435,10 @@ ActiveRecord::Schema.define do
   end
 
   create_table :member_types, force: true do |t|
+    t.string :name
+  end
+
+  create_table :mentors, force: true do |t|
     t.string :name
   end
 
@@ -624,6 +629,7 @@ ActiveRecord::Schema.define do
   create_table :projects, force: true do |t|
     t.string :name
     t.string :type
+    t.integer :mentor_id
   end
 
   create_table :randomly_named_table1, force: true do |t|
