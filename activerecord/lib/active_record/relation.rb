@@ -219,12 +219,23 @@ module ActiveRecord
     # Like <tt>find_or_create_by</tt>, but calls <tt>create!</tt> so an exception
     # is raised if the created record is invalid.
     def find_or_create_by!(attributes, &block)
-      find_by(attributes) || create!(attributes, &block)
+      find_by_with_block(attributes, &block) || create!(attributes, &block)
     end
 
     # Like <tt>find_or_create_by</tt>, but calls <tt>new</tt> instead of <tt>create</tt>.
     def find_or_initialize_by(attributes, &block)
-      find_by(attributes) || new(attributes, &block)
+      find_by_with_block(attributes, &block) || new(attributes, &block)
+    end
+
+    # Like <tt>find_by</tt>, but takes a block
+    def find_by_with_block(attributes, &block)
+      found = find_by(attributes)
+
+      if found && block_given?
+        found.tap(&block)
+      else
+        found
+      end
     end
 
     # Runs EXPLAIN on the query or queries triggered by this relation and

@@ -1,3 +1,8 @@
+*   `find_or_initialize_by` and `find_or_create_by` now yield to a block
+    regardlesss of whether or not the record is new or not.
+
+    *Logan Hasson*
+
 *   Make `unscope` aware of "less than" and "greater than" conditions.
 
     *TAKAHASHI Kazuaki*
