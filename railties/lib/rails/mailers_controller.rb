@@ -16,10 +16,10 @@ class Rails::MailersController < Rails::ApplicationController # :nodoc:
       @page_title = "Mailer Previews for #{@preview.preview_name}"
       render action: 'mailer'
     else
-      email = File.basename(params[:path])
+      @email_action = File.basename(params[:path])
 
-      if @preview.email_exists?(email)
-        @email = @preview.call(email)
+      if @preview.email_exists?(@email_action)
+        @email = @preview.call(@email_action)
 
         if params[:part]
           part_type = Mime::Type.lookup(params[:part])
@@ -28,14 +28,14 @@ class Rails::MailersController < Rails::ApplicationController # :nodoc:
             response.content_type = part_type
             render text: part.respond_to?(:decoded) ? part.decoded : part
           else
-            raise AbstractController::ActionNotFound, "Email part '#{part_type}' not found in #{@preview.name}##{email}"
+            raise AbstractController::ActionNotFound, "Email part '#{part_type}' not found in #{@preview.name}##{@email_action}"
           end
         else
           @part = find_preferred_part(request.format, Mime::HTML, Mime::TEXT)
           render action: 'email', layout: false, formats: %w[html]
         end
       else
-        raise AbstractController::ActionNotFound, "Email '#{email}' not found in #{@preview.name}"
+        raise AbstractController::ActionNotFound, "Email '#{@email_action}' not found in #{@preview.name}"
       end
     end
   end
