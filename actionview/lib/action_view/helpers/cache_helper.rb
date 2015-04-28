@@ -134,7 +134,7 @@ module ActionView
       #
       #   <%= render @notifications, cache: false %>
       def cache(name = {}, options = nil, &block)
-        if controller.perform_caching
+        if controller.respond_to?(:perform_caching) && controller.perform_caching
           safe_concat(fragment_for(cache_fragment_name(name, options), options, &block))
         else
           yield

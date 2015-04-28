@@ -59,6 +59,12 @@ The second
     end
   end
 
+  def use_cache
+    mail_with_defaults do |format|
+      format.html { render(inline: "<% cache(:foo) do %>Greetings from a cache helper block<% end %>") }
+    end
+  end
+
   protected
 
   def mail_with_defaults(&block)
@@ -107,5 +113,11 @@ class MailerHelperTest < ActionMailer::TestCase
     TEXT
     assert_equal expected.gsub("\n", "\r\n"), mail.body.encoded
   end
-end
 
+  def test_use_cache
+    assert_nothing_raised do
+      mail = HelperMailer.use_cache
+      assert_equal "Greetings from a cache helper block", mail.body.encoded
+    end
+  end
+end
