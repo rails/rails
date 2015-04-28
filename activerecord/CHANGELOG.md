@@ -1,3 +1,7 @@
+*   Make `unscope` aware of "less than" and "greater than" conditions.
+
+    *TAKAHASHI Kazuaki*
+
 *   `find_by` and `find_by!` raise `ArgumentError` when called without
     arguments.
 

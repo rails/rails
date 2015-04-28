@@ -153,6 +153,18 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal expected_7, received_7
   end
 
+  def test_unscope_comparison_where_clauses
+    # unscoped for WHERE (`developers`.`id` <= 2)
+    expected = Developer.order('salary DESC').collect(&:name)
+    received = DeveloperOrderedBySalary.where(id: -Float::INFINITY..2).unscope(where: :id).collect { |dev| dev.name }
+    assert_equal expected, received
+
+    # unscoped for WHERE (`developers`.`id` < 2)
+    expected = Developer.order('salary DESC').collect(&:name)
+    received = DeveloperOrderedBySalary.where(id: -Float::INFINITY...2).unscope(where: :id).collect { |dev| dev.name }
+    assert_equal expected, received
+  end
+
   def test_unscope_multiple_where_clauses
     expected = Developer.order('salary DESC').collect(&:name)
     received = DeveloperOrderedBySalary.where(name: 'Jamis').where(id: 1).unscope(where: [:name, :id]).collect(&:name)
