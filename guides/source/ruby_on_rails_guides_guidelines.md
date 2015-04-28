@@ -82,6 +82,8 @@ or
 bundle exec rake guides:generate:html
 ```
 
+Resulting HTML files can be found in the `./output` directory.
+
 To process `my_guide.md` and nothing else use the `ONLY` environment variable:
 
 ```
