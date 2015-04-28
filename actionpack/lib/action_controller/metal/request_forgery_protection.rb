@@ -15,9 +15,9 @@ module ActionController #:nodoc:
   # access. When a request reaches your application, \Rails verifies the received
   # token with the token in the session. All requests are checked except GET requests
   # as these should be idempotent. Keep in mind that all session-oriented requests
-  # should be CSRF protected, including Javascript and HTML requests.
+  # should be CSRF protected, including JavaScript and HTML requests.
   #
-  # Since HTML and Javascript requests are typically made from the browser, we
+  # Since HTML and JavaScript requests are typically made from the browser, we
   # need to ensure to verify request authenticity for the web browser. We can
   # use session-oriented authentication for these types requests, by using
   # the `protect_form_forgery` method in our controllers.
@@ -40,7 +40,8 @@ module ActionController #:nodoc:
   #
   # CSRF protection is turned on with the <tt>protect_from_forgery</tt> method.
   # By default <tt>protect_from_forgery</tt> protects your session with
-  # <tt>:null_session</tt> method, which provides an empty session during request
+  # <tt>:null_session</tt> method, which provides an empty session
+  # during request.
   #
   # We may want to disable CSRF protection for APIs since they are typically
   # designed to be state-less. That is, the requestion API client will handle
@@ -96,10 +97,10 @@ module ActionController #:nodoc:
       # Valid Options:
       #
       # * <tt>:only/:except</tt> - Only apply forgery protection to a subset of actions. Like <tt>only: [ :create, :create_all ]</tt>.
-      # * <tt>:if/:unless</tt> - Turn off the forgery protection entirely depending on the passed proc or method reference.
+      # * <tt>:if/:unless</tt> - Turn off the forgery protection entirely depending on the passed Proc or method reference.
       # * <tt>:prepend</tt> - By default, the verification of the authentication token is added to the front of the
       #   callback chain. If you need to make the verification depend on other callbacks, like authentication methods
-      #   (say cookies vs oauth), this might not work for you. Pass <tt>prepend: false</tt> to just add the
+      #   (say cookies vs OAuth), this might not work for you. Pass <tt>prepend: false</tt> to just add the
       #   verification callback in the position of the protect_from_forgery call. This means any callbacks added
       #   before are run first.
       # * <tt>:with</tt> - Set the method to handle unverified request.
