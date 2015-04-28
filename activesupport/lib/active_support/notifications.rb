@@ -136,7 +136,7 @@ module ActiveSupport
   #     ...
   #   end
   #
-  # To prevent that block from being called anymore, just unsubscribe passing
+  # To prevent that block from being called anymore, just unsubscribe by passing
   # that reference:
   #
   #   ActiveSupport::Notifications.unsubscribe(subscriber)

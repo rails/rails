@@ -71,7 +71,7 @@ module ActiveSupport
       cipher.encrypt
       cipher.key = @secret
 
-      # Rely on OpenSSL for the initialization vector
+      # Rely on OpenSSL for the initialization vector.
       iv = cipher.random_iv
 
       encrypted_data = cipher.update(@serializer.dump(value))
