@@ -79,6 +79,8 @@ module ActionDispatch
   #     domain: %w(.example.com .example.org) # Allow the cookie
   #                                           # for concrete domain names.
   #
+  # * <tt>:tld_length</tt> - When using <tt>:domain => :all</tt>, set this to the appropriate value.
+  #   For example, to share cookies between user1.example.com and user2.example.com set <tt>:tld_length</tt> to 2.
   # * <tt>:expires</tt> - The time at which this cookie expires, as a \Time object.
   # * <tt>:secure</tt> - Whether this cookie is only transmitted to HTTPS servers.
   #   Default is +false+.
