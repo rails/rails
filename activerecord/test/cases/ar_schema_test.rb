@@ -126,5 +126,22 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert !@connection.columns(:has_timestamps).find { |c| c.name == 'created_at' }.null
       assert !@connection.columns(:has_timestamps).find { |c| c.name == 'updated_at' }.null
     end
+
+    def test_schema_loads_migrations_from_subdirectories
+      previous_migrations_path = ActiveRecord::Migrator.migrations_path
+      ActiveRecord::Migrator.migrations_path =
+        MIGRATIONS_ROOT + "/valid_with_subdirectories"
+
+      ActiveRecord::Schema.define(:version => 3) do
+        # No need to create columns
+        # Testing version numbers only
+      end
+
+      migrations = @connection.select_all "SELECT version FROM schema_migrations"
+      assert_equal 3, ActiveRecord::Migrator::current_version
+      assert migrations.all? { |m| %w(1 2 3).include?(m["version"]) }
+
+      ActiveRecord::Migrator.migrations_path = previous_migrations_path
+    end
   end
 end

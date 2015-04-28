@@ -1,3 +1,22 @@
+*   Insert all the migrations' versions into schema_migrations table when
+    running db:schema:load.
+
+    Load all the migrations' versions from db/migrate directory and its
+    subdirectories to avoid pending migrations errors.
+
+    Fix ActiveRecord::ConnectionAdapters::SchemaStatements
+      .assume_migrated_upto_version method
+
+    Before:
+
+        paths = migrations_paths.map {|p| "#{p}/[0-9]*_*.rb" }
+
+    After:
+
+        paths = migrations_paths.map {|p| "#{p}/**/[0-9]*_*.rb" }
+
+    *Dmitry Gritsay*
+
 *   Revert behavior of `db:schema:load` back to loading the full
     environment. This ensures that initializers are run.
 
