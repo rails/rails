@@ -220,7 +220,11 @@ module ActiveSupport
 
     # Use the time in UTC for comparisons.
     def <=>(other)
-      utc <=> other
+      if other.class == self.class
+        to_i <=> other.to_i
+      else
+        utc <=> other
+      end
     end
 
     # Returns true if the current object's time is within the specified
