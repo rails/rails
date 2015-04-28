@@ -1,3 +1,14 @@
+*   Mailer previews no longer crash when the `mail` method wasn't called
+    (`NullMail`).
+
+    Fixes #19849.
+
+    *Yves Senn*
+
+*   Make sure labels and values line up in mailer previews.
+
+    *Yves Senn*
+
 *   Add `assert_enqueued_emails` and `assert_no_enqueued_emails`.
 
     Example:

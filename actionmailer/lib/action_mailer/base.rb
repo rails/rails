@@ -596,6 +596,7 @@ module ActionMailer
 
     class NullMail #:nodoc:
       def body; '' end
+      def header; {} end
 
       def respond_to?(string, include_all=false)
         true
