@@ -1,3 +1,8 @@
+*   `find_by` and `find_by!` raise `ArgumentError` when called without
+    arguments.
+
+    *Kohei Suzuki*
+
 *   Revert behavior of `db:schema:load` back to loading the full
     environment. This ensures that initializers are run.
 
