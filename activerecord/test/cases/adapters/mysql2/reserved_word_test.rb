@@ -145,6 +145,7 @@ class MysqlReservedWordTest < ActiveRecord::TestCase
   # custom create table, uses execute on connection to create a table, note: escapes table_name, does NOT escape columns
   def create_tables_directly (tables, connection = @connection)
     tables.each do |table_name, column_properties|
+      connection.drop_table(table_name, if_exists: true)
       connection.execute("CREATE TABLE `#{table_name}` ( #{column_properties} )")
     end
   end
