@@ -302,6 +302,32 @@ module ApplicationTests
       assert_match "Email &#39;bar&#39; not found in NotifierPreview", last_response.body
     end
 
+    test "mailer preview NullMail" do
+      mailer 'notifier', <<-RUBY
+        class Notifier < ActionMailer::Base
+          default from: "from@example.com"
+
+          def foo
+            # does not call +mail+
+          end
+        end
+      RUBY
+
+      mailer_preview 'notifier', <<-RUBY
+        class NotifierPreview < ActionMailer::Preview
+          def foo
+            Notifier.foo
+          end
+        end
+      RUBY
+
+      app('development')
+
+      get "/rails/mailers/notifier/foo"
+      assert_match "You are trying to preview an email that does not have any content.", last_response.body
+      assert_match "notifier#foo", last_response.body
+    end
+
     test "mailer preview email part not found" do
       mailer 'notifier', <<-RUBY
         class Notifier < ActionMailer::Base

@@ -584,6 +584,7 @@ module ActionMailer
 
     class NullMail #:nodoc:
       def body; '' end
+      def header; {} end
 
       def method_missing(*args)
         nil
