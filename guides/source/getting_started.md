@@ -1240,10 +1240,7 @@ article we want to show the form back to the user.
 We reuse the `article_params` method that we defined earlier for the create
 action.
 
-TIP: You don't need to pass all attributes to `update`. For
-example, if you'd call `@article.update(title: 'A new title')`
-Rails would only update the `title` attribute, leaving all other
-attributes untouched.
+TIP: It is not necessary to pass all the attributes to `update`. For example, if `@article.update(title: 'A new title')` were called, Rails would only update the `title` attribute, leaving all other attributes untouched.
 
 Finally, we want to show a link to the `edit` action in the list of all the
 articles, so let's add that now to `app/views/articles/index.html.erb` to make
