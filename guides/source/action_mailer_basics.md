@@ -503,7 +503,7 @@ You will need to use:
 
 By using the full URL, your links will now work in your emails.
 
-#### generating URLs with `url_for`
+#### Generating URLs with `url_for`
 
 `url_for` generate full URL by default in templates.
 
@@ -517,7 +517,7 @@ If you did not configure the `:host` option globally make sure to pass it to
             action: 'greeting') %>
 ```
 
-#### generating URLs with named routes
+#### Generating URLs with Named Routes
 
 Email clients have no web context and so paths have no base URL to form complete
 web addresses. Thus, you should always use the "_url" variant of named route
