@@ -147,8 +147,8 @@ module ActiveRecord
     #     has_many :posts
     #     accepts_nested_attributes_for :posts, reject_if: :reject_posts
     #
-    #     def reject_posts(attributed)
-    #       attributed['title'].blank?
+    #     def reject_posts(attributes)
+    #       attributes['title'].blank?
     #     end
     #   end
     #
