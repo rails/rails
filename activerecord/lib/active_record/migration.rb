@@ -394,6 +394,8 @@ module ActiveRecord
       end
 
       def load_schema_if_pending!
+        ActiveRecord::Migrator.migrations_paths = Rails.application.config.paths['db/migrate']
+
         if ActiveRecord::Migrator.needs_migration? || !ActiveRecord::Migrator.any_migrations?
           # Roundtrip to Rake to allow plugins to hook into database initialization.
           FileUtils.cd Rails.root do
