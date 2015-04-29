@@ -220,7 +220,7 @@ module ActiveRecord
 
       include MonitorMixin
 
-      attr_accessor :automatic_reconnect, :checkout_timeout
+      attr_accessor :automatic_reconnect, :checkout_timeout, :schema_cache
       attr_reader :spec, :connections, :size, :reaper
 
       # Creates a new ConnectionPool object. +spec+ is a ConnectionSpecification
@@ -432,7 +432,9 @@ module ActiveRecord
       end
 
       def new_connection
-        Base.send(spec.adapter_method, spec.config)
+        Base.send(spec.adapter_method, spec.config).tap do |conn|
+          conn.schema_cache = schema_cache.dup if schema_cache
+        end
       end
 
       def current_connection_id #:nodoc:

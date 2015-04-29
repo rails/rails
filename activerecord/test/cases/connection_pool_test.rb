@@ -341,6 +341,21 @@ module ActiveRecord
           handler.establish_connection anonymous, nil
         }
       end
+
+      def test_pool_sets_connection_schema_cache
+        connection = pool.checkout
+        schema_cache = SchemaCache.new connection
+        schema_cache.add(:posts)
+        pool.schema_cache = schema_cache
+
+        pool.with_connection do |conn|
+          assert_not_same pool.schema_cache, conn.schema_cache
+          assert_equal pool.schema_cache.size, conn.schema_cache.size
+          assert_same pool.schema_cache.columns(:posts), conn.schema_cache.columns(:posts)
+        end
+
+        pool.checkin connection
+      end
     end
   end
 end
