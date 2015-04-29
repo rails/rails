@@ -16,6 +16,7 @@ module ActiveRecord
           if !ConnectionAdapters::Column::FALSE_VALUES.include?(value)
             ActiveSupport::Deprecation.warn(<<-MSG.squish)
               You attempted to assign a value which is not explicitly `true` or `false`
+              (#{value.inspect})
               to a boolean column. Currently this value casts to `false`. This will
               change to match Ruby's semantics, and will cast to `true` in Rails 5.
               If you would like to maintain the current behavior, you should
