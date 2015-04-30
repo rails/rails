@@ -242,7 +242,7 @@ class RedirectTest < ActionController::TestCase
   def test_redirect_to_url_with_network_path_reference
     get :redirect_to_url_with_network_path_reference
     assert_response :redirect
-    assert_equal "//www.rubyonrails.org/", redirect_to_url
+    assert_equal "http://www.rubyonrails.org/", redirect_to_url
   end
 
   def test_redirect_to_back
