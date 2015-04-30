@@ -5,6 +5,8 @@ module ActiveJob
   #
   # Wraps the original exception raised as +original_exception+.
   class DeserializationError < StandardError
+    # The original exception that was raised during deserialization of job
+    # arguments.
     attr_reader :original_exception
 
     def initialize(e) #:nodoc:
