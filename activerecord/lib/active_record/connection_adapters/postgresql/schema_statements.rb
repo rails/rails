@@ -100,6 +100,7 @@ module ActiveRecord
           SQL
         end
 
+        # Verifies existence of an index with a given name.
         def index_name_exists?(table_name, index_name, default)
           exec_query(<<-SQL, 'SCHEMA').rows.first[0].to_i > 0
             SELECT COUNT(*)
@@ -462,6 +463,8 @@ module ActiveRecord
           execute "DROP INDEX #{quote_table_name(index_name)}"
         end
 
+        # Renames an index of a table. Raises error if length of new
+        # index name is greater than allowed limit.
         def rename_index(table_name, old_name, new_name)
           validate_index_length!(table_name, new_name)
 
