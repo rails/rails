@@ -22,7 +22,7 @@ fragment caching. Rails provides by default fragment caching. In order to use
 page and action caching, you will need to add `actionpack-page_caching` and
 `actionpack-action_caching` to your Gemfile.
 
-To start playing with caching you'll want to ensure that `config.action_controller.perform_caching` is set to `true`, if you're running in development mode. This flag is normally set in the corresponding `config/environments/*.rb` and caching is disabled by default for development and test, and enabled for production.
+To start playing with caching you'll want to ensure that `config.action_controller.perform_caching` is set to `true` if you're running in development mode. This flag is normally set in the corresponding `config/environments/*.rb` and caching is disabled by default for development and test, and enabled for production.
 
 ```ruby
 config.action_controller.perform_caching = true
@@ -144,7 +144,7 @@ It's called "Russian Doll Caching" because it nests multiple fragments. The adva
 
 ### Low-Level Caching
 
-Sometimes you need to cache a particular value or query result, instead of caching view fragments. Rails caching mechanism works great for storing __any__ kind of information.
+Sometimes you need to cache a particular value or query result instead of caching view fragments. Rails' caching mechanism works great for storing __any__ kind of information.
 
 The most efficient way to implement low-level caching is using the `Rails.cache.fetch` method. This method does both reading and writing to the cache. When passed only a single argument, the key is fetched and value from the cache is returned. If a block is passed, the result of the block will be cached to the given key and the result is returned.
 
@@ -160,7 +160,7 @@ class Product < ActiveRecord::Base
 end
 ```
 
-NOTE: Notice that in this example we used `cache_key` method, so the resulting cache-key will be something like `products/233-20140225082222765838000/competing_price`. `cache_key` generates a string based on the model’s `id` and `updated_at` attributes. This is a common convention and has the benefit of invalidating the cache whenever the product is updated. In general, when you use low-level caching for instance level information, you need to generate a cache key.
+NOTE: Notice that in this example we used the `cache_key` method, so the resulting cache-key will be something like `products/233-20140225082222765838000/competing_price`. `cache_key` generates a string based on the model’s `id` and `updated_at` attributes. This is a common convention and has the benefit of invalidating the cache whenever the product is updated. In general, when you use low-level caching for instance level information, you need to generate a cache key.
 
 ### SQL Caching
 
@@ -219,7 +219,7 @@ There are some common options used by all cache implementations. These can be pa
 
 * `:compress` - This option can be used to indicate that compression should be used in the cache. This can be useful for transferring large cache entries over a slow network.
 
-* `:compress_threshold` - This options is used in conjunction with the `:compress` option to indicate a threshold under which cache entries should not be compressed. This defaults to 16 kilobytes.
+* `:compress_threshold` - This option is used in conjunction with the `:compress` option to indicate a threshold under which cache entries should not be compressed. This defaults to 16 kilobytes.
 
 * `:expires_in` - This option sets an expiration time in seconds for the cache entry when it will be automatically removed from the cache.
 
@@ -227,7 +227,7 @@ There are some common options used by all cache implementations. These can be pa
 
 ### ActiveSupport::Cache::MemoryStore
 
-This cache store keeps entries in memory in the same Ruby process. The cache store has a bounded size specified by the `:size` options to the initializer (default is 32Mb). When the cache exceeds the allotted size, a cleanup will occur and the least recently used entries will be removed.
+This cache store keeps entries in memory in the same Ruby process. The cache store has a bounded size specified by the `:size` option to the initializer (default is 32Mb). When the cache exceeds the allotted size, a cleanup will occur and the least recently used entries will be removed.
 
 ```ruby
 config.cache_store = :memory_store, { size: 64.megabytes }
@@ -243,7 +243,7 @@ This cache store uses the file system to store entries. The path to the director
 config.cache_store = :file_store, "/path/to/cache/directory"
 ```
 
-With this cache store, multiple server processes on the same host can share a cache. Servers processes running on different hosts could share a cache by using a shared file system, but that set up would not be ideal and is not recommended. The cache store is appropriate for low to medium traffic sites that are served off one or two hosts.
+With this cache store, multiple server processes on the same host can share a cache. Server processes running on different hosts could share a cache by using a shared file system, but that set up would not be ideal and is not recommended. The cache store is appropriate for low to medium traffic sites that are served off one or two hosts.
 
 Note that the cache will grow until the disk is full unless you periodically clear out old entries.
 
@@ -255,7 +255,7 @@ This cache store uses Danga's `memcached` server to provide a centralized cache 
 
 When initializing the cache, you need to specify the addresses for all memcached servers in your cluster. If none is specified, it will assume memcached is running on the local host on the default port, but this is not an ideal set up for larger sites.
 
-The `write` and `fetch` methods on this cache accept two additional options that take advantage of features specific to memcached. You can specify `:raw` to send a value directly to the server with no serialization. The value must be a string or number. You can use memcached direct operation like `increment` and `decrement` only on raw values. You can also specify `:unless_exist` if you don't want memcached to overwrite an existing entry.
+The `write` and `fetch` methods on this cache accept two additional options that take advantage of features specific to memcached. You can specify `:raw` to send a value directly to the server with no serialization. The value must be a string or number. You can use memcached direct operations like `increment` and `decrement` only on raw values. You can also specify `:unless_exist` if you don't want memcached to overwrite an existing entry.
 
 ```ruby
 config.cache_store = :mem_cache_store, "cache-1.example.com", "cache-2.example.com"
@@ -293,7 +293,7 @@ For more information about Ehcache for JRuby and Rails, see [http://ehcache.org/
 
 ### ActiveSupport::Cache::NullStore
 
-This cache store implementation is meant to be used only in development or test environments and it never stores anything. This can be very useful in development when you have code that interacts directly with `Rails.cache`, but caching may interfere with being able to see the results of code changes. With this cache store, all `fetch` and `read` operations will result in a miss.
+This cache store implementation is meant to be used only in development or test environments and it never stores anything. This can be very useful in development when you have code that interacts directly with `Rails.cache` but caching may interfere with being able to see the results of code changes. With this cache store, all `fetch` and `read` operations will result in a miss.
 
 ```ruby
 config.cache_store = :null_store
@@ -303,7 +303,7 @@ config.cache_store = :null_store
 
 You can create your own custom cache store by simply extending `ActiveSupport::Cache::Store` and implementing the appropriate methods. In this way, you can swap in any number of caching technologies into your Rails application.
 
-To use a custom cache store, simple set the cache store to a new instance of the class.
+To use a custom cache store, simply set the cache store to a new instance of the class.
 
 ```ruby
 config.cache_store = MyCacheStore.new
@@ -311,7 +311,7 @@ config.cache_store = MyCacheStore.new
 
 ### Cache Keys
 
-The keys used in a cache can be any object that responds to either `:cache_key` or to `:to_param`. You can implement the `:cache_key` method on your classes if you need to generate custom keys. Active Record will generate keys based on the class name and record id.
+The keys used in a cache can be any object that responds to either `:cache_key` or `:to_param`. You can implement the `:cache_key` method on your classes if you need to generate custom keys. Active Record will generate keys based on the class name and record id.
 
 You can use Hashes and Arrays of values as cache keys.
 
@@ -353,7 +353,7 @@ class ProductsController < ApplicationController
 end
 ```
 
-Instead of an options hash, you can also simply pass in a model, Rails will use the `updated_at` and `cache_key` methods for setting `last_modified` and `etag`:
+Instead of an options hash, you can also simply pass in a model. Rails will use the `updated_at` and `cache_key` methods for setting `last_modified` and `etag`:
 
 ```ruby
 class ProductsController < ApplicationController
