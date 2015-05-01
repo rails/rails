@@ -47,7 +47,7 @@ module ActiveJob
           original_count = enqueued_jobs.size
           yield
           new_count = enqueued_jobs.size
-          assert_equal original_count + number, new_count,
+          assert_equal number, new_count - original_count,
                        "#{number} jobs expected, but #{new_count - original_count} were enqueued"
         else
           enqueued_jobs_size = enqueued_jobs.size
@@ -114,7 +114,7 @@ module ActiveJob
           original_count = performed_jobs.size
           perform_enqueued_jobs { yield }
           new_count = performed_jobs.size
-          assert_equal original_count + number, new_count,
+          assert_equal number, new_count - original_count,
                        "#{number} jobs expected, but #{new_count - original_count} were performed"
         else
           performed_jobs_size = performed_jobs.size
