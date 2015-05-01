@@ -13,7 +13,7 @@ module ActiveRecord
       #
       #   user = User.new
       #   user.save
-      #   user.token # => "4kUgL2pdQMSCQtjE"
+      #   user.token # => "pX27zsMN2ViQKta1bGfLmVJE"
       #   user.auth_token # => "77TMHrHJFvFDwodq8w7Ev2m7"
       #   user.regenerate_token # => true
       #   user.regenerate_auth_token # => true
