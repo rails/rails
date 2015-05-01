@@ -31,6 +31,17 @@ class EnqueuedJobsTest < ActiveJob::TestCase
     end
   end
 
+  def test_assert_enqueued_jobs_message
+    HelloJob.perform_later('sean')
+    e = assert_raises Minitest::Assertion do
+      assert_enqueued_jobs 2 do
+        HelloJob.perform_later('sean')
+      end
+    end
+    assert_match "Expected: 2", e.message
+    assert_match "Actual: 1", e.message
+  end
+
   def test_assert_enqueued_jobs_with_no_block
     assert_nothing_raised do
       HelloJob.perform_later('rafael')
@@ -228,6 +239,17 @@ class PerformedJobsTest < ActiveJob::TestCase
         HelloJob.perform_later('yves')
       end
     end
+  end
+
+  def test_assert_performed_jobs_message
+    HelloJob.perform_later('sean')
+    e = assert_raises Minitest::Assertion do
+      assert_performed_jobs 2 do
+        HelloJob.perform_later('sean')
+      end
+    end
+    assert_match "Expected: 2", e.message
+    assert_match "Actual: 1", e.message
   end
 
   def test_assert_performed_jobs_with_no_block

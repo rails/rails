@@ -1,3 +1,9 @@
+*   `assert_enqueued_jobs` and `assert_performed_jobs` in block form use the
+    given number as expected value. This makes the error message much easier to
+    understand.
+
+    *y-yagi*
+
 *   A generated job now inherents from `app/jobs/application_job.rb` by default.
 
     *Jeroen van Baarsen*
