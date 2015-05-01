@@ -745,7 +745,7 @@
 
     *Yves Senn*
 
-*   Fix bug with 'ActiveRecord::Type::Numeric' that caused negative values to
+*   Fix bug with `ActiveRecord::Type::Numeric` that caused negative values to
     be marked as having changed when set to the same negative value.
 
     Closes #18161.
