@@ -1,3 +1,7 @@
+*   `link_to_if` passes the block along.
+
+    *Steven Spiel*
+
 *   `translate` allows `default: [[]]` again for a default value of `[]`.
 
     Fixes #19640.
