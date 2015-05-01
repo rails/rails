@@ -36,7 +36,7 @@ class HttpBasicAuthenticationTest < ActionController::TestCase
       if authenticate_with_http_basic { |username, password| username == 'pretty' && password == 'please' }
         @logged_in = true
       else
-        request_http_basic_authentication("SuperSecret")
+        request_http_basic_authentication("SuperSecret", "Authentication Failed\n")
       end
     end
 
@@ -104,7 +104,7 @@ class HttpBasicAuthenticationTest < ActionController::TestCase
     get :display
 
     assert_response :unauthorized
-    assert_equal "HTTP Basic: Access denied.\n", @response.body
+    assert_equal "Authentication Failed\n", @response.body
     assert_equal 'Basic realm="SuperSecret"', @response.headers['WWW-Authenticate']
   end
 
@@ -113,7 +113,7 @@ class HttpBasicAuthenticationTest < ActionController::TestCase
     get :display
 
     assert_response :unauthorized
-    assert_equal "HTTP Basic: Access denied.\n", @response.body
+    assert_equal "Authentication Failed\n", @response.body
     assert_equal 'Basic realm="SuperSecret"', @response.headers['WWW-Authenticate']
   end
 
