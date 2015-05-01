@@ -379,6 +379,11 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert_dom_equal %{<a href="/">Listing</a>}, link_to_if(true, "Listing", url_hash)
   end
 
+  def test_link_to_if_with_block
+    assert_equal "Fallback", link_to_if(false, "Showing", url_hash) { "Fallback" }
+    assert_dom_equal %{<a href="/">Listing</a>}, link_to_if(true, "Listing", url_hash) { "Fallback" }
+  end
+
   def request_for_url(url, opts = {})
     env = Rack::MockRequest.env_for("http://www.example.com#{url}", opts)
     ActionDispatch::Request.new(env)
@@ -477,6 +482,11 @@ class UrlHelperTest < ActiveSupport::TestCase
       link_to_unless_current("Listing", url_hash)
     assert_equal %{<a href="http://www.example.com/">Listing</a>},
       link_to_unless_current("Listing", "http://www.example.com/")
+  end
+
+  def test_link_to_unless_with_block
+    assert_equal %{<a href="/">Showing</a>}, link_to_unless(false, "Showing", url_hash) { "Fallback" }
+    assert_dom_equal "Fallback", link_to_unless(true, "Listing", url_hash) { "Fallback" }
   end
 
   def test_mail_to
