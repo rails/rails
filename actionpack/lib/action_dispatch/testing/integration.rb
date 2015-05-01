@@ -81,7 +81,7 @@ module ActionDispatch
       #
       #   xhr :get, '/feed', params: { since: 201501011400 }
       def xml_http_request(request_method, path, *args)
-        if kwarg_request?(*args)
+        if kwarg_request?(args)
           params, headers, env = args.first.values_at(:params, :headers, :env)
         else
           params = args[0]
@@ -291,7 +291,7 @@ module ActionDispatch
         end
 
         def process_with_kwargs(http_method, path, *args)
-          if kwarg_request?(*args)
+          if kwarg_request?(args)
             process(http_method, path, *args)
           else
             non_kwarg_request_warning if args.present?
@@ -300,7 +300,7 @@ module ActionDispatch
         end
 
         REQUEST_KWARGS = %i(params headers env xhr)
-        def kwarg_request?(*args)
+        def kwarg_request?(args)
           args[0].respond_to?(:keys) && args[0].keys.any? { |k| REQUEST_KWARGS.include?(k) }
         end
 

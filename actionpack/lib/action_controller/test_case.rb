@@ -604,7 +604,7 @@ module ActionController
       def process(action, *args)
         check_required_ivars
 
-        if kwarg_request?(*args)
+        if kwarg_request?(args)
           parameters, session, body, flash, http_method, format, xhr = args[0].values_at(:params, :session, :body, :flash, :method, :format, :xhr)
         else
           http_method, parameters, session, flash = args
@@ -745,7 +745,7 @@ module ActionController
       private
 
       def process_with_kwargs(http_method, action, *args)
-        if kwarg_request?(*args)
+        if kwarg_request?(args)
           args.first.merge!(method: http_method)
           process(action, *args)
         else
@@ -757,7 +757,7 @@ module ActionController
       end
 
       REQUEST_KWARGS = %i(params session flash method body xhr)
-      def kwarg_request?(*args)
+      def kwarg_request?(args)
         args[0].respond_to?(:keys) && (
           (args[0].key?(:format) && args[0].keys.size == 1) ||
           args[0].keys.any? { |k| REQUEST_KWARGS.include?(k) }
