@@ -1,3 +1,7 @@
+*   `link_to_if` passes the block along.
+
+    *Steven Spiel*
+
 *   Load the `default_form_builder` from the controller on initialization, which overrides
     the global config if it is present.
 

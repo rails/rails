@@ -379,6 +379,11 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert_dom_equal %{<a href="/">Listing</a>}, link_to_if(true, "Listing", url_hash)
   end
 
+  def test_link_to_if_with_block
+    assert_equal "Block Showing", link_to_if(false, url_hash) { "Block Showing" }
+    assert_dom_equal %{<a href="/">Block Listing</a>}, link_to_if(true, url_hash) { "Block Listing" }
+  end
+
   def request_for_url(url, opts = {})
     env = Rack::MockRequest.env_for("http://www.example.com#{url}", opts)
     ActionDispatch::Request.new(env)
