@@ -27,13 +27,15 @@ if defined?(ActiveRecord::Base)
 end
 
 class ActionController::TestCase
-  setup do
+  def before_setup
     @routes = Rails.application.routes
+    super
   end
 end
 
 class ActionDispatch::IntegrationTest
-  setup do
+  def before_setup
     @routes = Rails.application.routes
+    super
   end
 end
