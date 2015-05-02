@@ -54,7 +54,7 @@ Title: Rails debugging guide
 
 ### `to_yaml`
 
-Alternatively, calling `to_yaml` on any object converts it to YAML. You can pass this converted object into the `simple format` helper method to format the output. This is how `debug` does its magic.
+Alternatively, calling `to_yaml` on any object converts it to YAML. You can pass this converted object into the `simple_format` helper method to format the output. This is how `debug` does its magic.
 
 ```html+erb
 <%= simple_format @article.to_yaml %>
