@@ -190,7 +190,7 @@ module ApplicationTests
          bundle exec rake db:migrate test`
       end
 
-      assert_match(/7 runs, 13 assertions, 0 failures, 0 errors/, output)
+      assert_match(/7 runs, 12 assertions, 0 failures, 0 errors/, output)
       assert_no_match(/Errors running/, output)
     end
 
@@ -203,7 +203,7 @@ module ApplicationTests
          bundle exec rake db:migrate test`
       end
 
-      assert_match(/7 runs, 13 assertions, 0 failures, 0 errors/, output)
+      assert_match(/7 runs, 12 assertions, 0 failures, 0 errors/, output)
       assert_no_match(/Errors running/, output)
     end
 
