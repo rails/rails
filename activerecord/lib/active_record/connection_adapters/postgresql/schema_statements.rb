@@ -169,8 +169,8 @@ module ActiveRecord
           end
         end
 
-        def new_column(name, default, sql_type_metadata = nil, null = true, default_function = nil) # :nodoc:
-          PostgreSQLColumn.new(name, default, sql_type_metadata, null, default_function)
+        def new_column(name, default, sql_type_metadata = nil, null = true, default_function = nil, collation = nil) # :nodoc:
+          PostgreSQLColumn.new(name, default, sql_type_metadata, null, default_function, collation)
         end
 
         # Returns the current database name.

@@ -14,7 +14,7 @@ module ActiveRecord
       end
 
       class ColumnDefinition < ActiveRecord::ConnectionAdapters::ColumnDefinition
-        attr_accessor :charset, :collation
+        attr_accessor :charset
       end
 
       class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
@@ -28,7 +28,6 @@ module ActiveRecord
             column.auto_increment = true
           end
           column.charset = options[:charset]
-          column.collation = options[:collation]
           column
         end
 
@@ -75,7 +74,6 @@ module ActiveRecord
         def column_options(o)
           column_options = super
           column_options[:charset] = o.charset
-          column_options[:collation] = o.collation
           column_options
         end
 
@@ -128,20 +126,20 @@ module ActiveRecord
         spec = super
         spec.delete(:precision) if /time/ === column.sql_type && column.precision == 0
         spec.delete(:limit)     if :boolean === column.type
-        if column.collation && table_name = column.instance_variable_get(:@table_name)
-          @collation_cache ||= {}
-          @collation_cache[table_name] ||= select_one("SHOW TABLE STATUS LIKE '#{table_name}'")["Collation"]
-          spec[:collation] = column.collation.inspect if column.collation != @collation_cache[table_name]
-        end
         spec
       end
 
-      def migration_keys
-        super + [:collation]
+      def schema_collation(column)
+        if column.collation && table_name = column.instance_variable_get(:@table_name)
+          @collation_cache ||= {}
+          @collation_cache[table_name] ||= select_one("SHOW TABLE STATUS LIKE '#{table_name}'")["Collation"]
+          column.collation.inspect if column.collation != @collation_cache[table_name]
+        end
       end
+      private :schema_collation
 
       class Column < ConnectionAdapters::Column # :nodoc:
-        delegate :strict, :collation, :extra, to: :sql_type_metadata, allow_nil: true
+        delegate :strict, :extra, to: :sql_type_metadata, allow_nil: true
 
         def initialize(*)
           super
@@ -195,12 +193,11 @@ module ActiveRecord
       end
 
       class MysqlTypeMetadata < DelegateClass(SqlTypeMetadata) # :nodoc:
-        attr_reader :collation, :extra, :strict
+        attr_reader :extra, :strict
 
-        def initialize(type_metadata, collation: "", extra: "", strict: false)
+        def initialize(type_metadata, extra: "", strict: false)
           super(type_metadata)
           @type_metadata = type_metadata
-          @collation = collation
           @extra = extra
           @strict = strict
         end
@@ -218,7 +215,7 @@ module ActiveRecord
         protected
 
         def attributes_for_hash
-          [self.class, @type_metadata, collation, extra, strict]
+          [self.class, @type_metadata, extra, strict]
         end
       end
 
@@ -342,8 +339,8 @@ module ActiveRecord
         raise NotImplementedError
       end
 
-      def new_column(field, default, sql_type_metadata = nil, null = true) # :nodoc:
-        Column.new(field, default, sql_type_metadata, null)
+      def new_column(field, default, sql_type_metadata = nil, null = true, default_function = nil, collation = nil) # :nodoc:
+        Column.new(field, default, sql_type_metadata, null, default_function, collation)
       end
 
       # Must return the MySQL error number from the exception, if the exception has an
@@ -566,8 +563,8 @@ module ActiveRecord
           each_hash(result).map do |field|
             field_name = set_field_encoding(field[:Field])
             sql_type = field[:Type]
-            type_metadata = fetch_type_metadata(sql_type, field[:Collation], field[:Extra])
-            new_column(field_name, field[:Default], type_metadata, field[:Null] == "YES")
+            type_metadata = fetch_type_metadata(sql_type, field[:Extra])
+            new_column(field_name, field[:Default], type_metadata, field[:Null] == "YES", nil, field[:Collation])
           end
         end
       end
@@ -826,8 +823,8 @@ module ActiveRecord
         end
       end
 
-      def fetch_type_metadata(sql_type, collation = "", extra = "")
-        MysqlTypeMetadata.new(super(sql_type), collation: collation, extra: extra, strict: strict_mode?)
+      def fetch_type_metadata(sql_type, extra = "")
+        MysqlTypeMetadata.new(super(sql_type), extra: extra, strict: strict_mode?)
       end
 
       # MySQL is too stupid to create a temporary table for use subquery, so we have
