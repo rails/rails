@@ -11,9 +11,9 @@ module ActionDispatch
   # the response body. This is important for streaming responses such as the
   # following:
   #
-  #     self.response_body = lambda { |response, output|
+  #     self.response_body = -> (response, output) do
   #       # code here which refers to application models
-  #     }
+  #     end
   #
   # Cleanup callbacks will not be called until after the response_body lambda
   # is evaluated, ensuring that it can refer to application models and other
