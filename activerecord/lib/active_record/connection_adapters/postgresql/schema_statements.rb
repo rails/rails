@@ -8,6 +8,13 @@ module ActiveRecord
           o.sql_type = type_to_sql(o.type, o.limit, o.precision, o.scale, o.array)
           super
         end
+
+        def add_column_options!(sql, options)
+          if options[:collation]
+            sql << " COLLATE \"#{options[:collation]}\""
+          end
+          super
+        end
       end
 
       module SchemaStatements
@@ -159,13 +166,13 @@ module ActiveRecord
         # Returns the list of all column definitions for a table.
         def columns(table_name)
           # Limit, precision, and scale are all handled by the superclass.
-          column_definitions(table_name).map do |column_name, type, default, notnull, oid, fmod|
+          column_definitions(table_name).map do |column_name, type, default, notnull, oid, fmod, collation|
             oid = oid.to_i
             fmod = fmod.to_i
             type_metadata = fetch_type_metadata(column_name, type, oid, fmod)
             default_value = extract_value_from_default(default)
             default_function = extract_default_function(default_value, default)
-            new_column(column_name, default_value, type_metadata, !notnull, default_function)
+            new_column(column_name, default_value, type_metadata, !notnull, default_function, collation)
           end
         end
 
@@ -409,6 +416,9 @@ module ActiveRecord
           quoted_column_name = quote_column_name(column_name)
           sql_type = type_to_sql(type, options[:limit], options[:precision], options[:scale], options[:array])
           sql = "ALTER TABLE #{quoted_table_name} ALTER COLUMN #{quoted_column_name} TYPE #{sql_type}"
+          if options[:collation]
+            sql << " COLLATE \"#{options[:collation]}\""
+          end
           if options[:using]
             sql << " USING #{options[:using]}"
           elsif options[:cast_as]
