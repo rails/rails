@@ -227,7 +227,7 @@ module ActiveRecord
       # The +type+ parameter is normally one of the migrations native types,
       # which is one of the following:
       # <tt>:primary_key</tt>, <tt>:string</tt>, <tt>:text</tt>,
-      # <tt>:integer</tt>, <tt>:float</tt>, <tt>:decimal</tt>,
+      # <tt>:integer</tt>, <tt>:bigint</tt>, <tt>:float</tt>, <tt>:decimal</tt>,
       # <tt>:datetime</tt>, <tt>:time</tt>, <tt>:date</tt>,
       # <tt>:binary</tt>, <tt>:boolean</tt>.
       #
