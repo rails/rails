@@ -1,4 +1,5 @@
 require "cases/helper"
+require 'support/schema_dumping_helper'
 require 'models/default'
 require 'models/entrant'
 
@@ -77,6 +78,20 @@ class DefaultStringsTest < ActiveRecord::TestCase
 
   teardown do
     @connection.drop_table :default_strings
+  end
+end
+
+if current_adapter?(:PostgreSQLAdapter)
+  class PostgresqlDefaultExpressionTest < ActiveRecord::TestCase
+    include SchemaDumpingHelper
+
+    test "schema dump includes default expression" do
+      output = dump_table_schema("defaults")
+      assert_match %r/t\.date\s+"modified_date",\s+default: -> { "\('now'::text\)::date" }/, output
+      assert_match %r/t\.date\s+"modified_date_function",\s+default: -> { "now\(\)" }/, output
+      assert_match %r/t\.datetime\s+"modified_time",\s+default: -> { "now\(\)" }/, output
+      assert_match %r/t\.datetime\s+"modified_time_function",\s+default: -> { "now\(\)" }/, output
+    end
   end
 end
 

@@ -1,3 +1,13 @@
+*   Add expression support on the schema default.
+
+    Example:
+
+        create_table :posts do |t|
+          t.datetime :published_at, default: -> { 'NOW()' }
+        end
+
+    *Ryuta Kamizono*
+
 *   Fix regression when loading fixture files with symbol keys.
 
     Fixes #22584.
