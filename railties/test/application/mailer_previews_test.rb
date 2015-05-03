@@ -444,7 +444,6 @@ module ApplicationTests
     end
 
     test "*_path helpers emit a deprecation" do
-
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
           get 'foo', to: 'foo#index'
@@ -493,6 +492,36 @@ module ApplicationTests
         get "/rails/mailers/notifier/path_in_mailer.html"
         assert_equal 200, last_response.status
       end
+    end
+
+    test "mailer previews create correct links when loaded on a subdirectory" do
+      mailer 'notifier', <<-RUBY
+        class Notifier < ActionMailer::Base
+          default from: "from@example.com"
+
+          def foo
+            mail to: "to@example.org"
+          end
+        end
+      RUBY
+
+      text_template 'notifier/foo', <<-RUBY
+        Hello, World!
+      RUBY
+
+      mailer_preview 'notifier', <<-RUBY
+        class NotifierPreview < ActionMailer::Preview
+          def foo
+            Notifier.foo
+          end
+        end
+      RUBY
+
+      app('development')
+
+      get "/rails/mailers", {}, 'SCRIPT_NAME' => '/my_app'
+      assert_match '<h3><a href="/my_app/rails/mailers/notifier">Notifier</a></h3>', last_response.body
+      assert_match '<li><a href="/my_app/rails/mailers/notifier/foo">foo</a></li>', last_response.body
     end
 
     private
