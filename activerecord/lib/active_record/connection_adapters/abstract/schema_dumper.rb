@@ -35,12 +35,16 @@ module ActiveRecord
         default = schema_default(column) if column.has_default?
         spec[:default]   = default unless default.nil?
 
+        if collation = schema_collation(column)
+          spec[:collation] = collation
+        end
+
         spec
       end
 
       # Lists the valid migration options
       def migration_keys
-        [:name, :limit, :precision, :scale, :default, :null]
+        [:name, :limit, :precision, :scale, :default, :null, :collation]
       end
 
       private
@@ -55,6 +59,10 @@ module ActiveRecord
         unless default.nil?
           type.type_cast_for_schema(default)
         end
+      end
+
+      def schema_collation(column)
+        column.collation.inspect if column.collation
       end
     end
   end

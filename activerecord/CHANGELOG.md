@@ -1,3 +1,14 @@
+*   PostgreSQL: `:collation` support for string and text columns.
+
+    Example:
+
+        create_table :foos do |t|
+          t.string :string_en, collation: 'en_US.UTF-8'
+          t.text   :text_ja,   collation: 'ja_JP.UTF-8'
+        end
+
+    *Ryuta Kamizono*
+
 *   Make `unscope` aware of "less than" and "greater than" conditions.
 
     *TAKAHASHI Kazuaki*
