@@ -44,10 +44,6 @@ module ActiveRecord
       end
 
       class SchemaCreation < AbstractAdapter::SchemaCreation
-        def visit_AddColumn(o)
-          add_column_position!(super, column_options(o))
-        end
-
         private
 
         def visit_DropForeignKey(name)
@@ -65,6 +61,10 @@ module ActiveRecord
           create_sql << "#{o.options}"
           create_sql << " AS #{@conn.to_sql(o.as)}" if o.as
           create_sql
+        end
+
+        def visit_AddColumnDefinition(o)
+          add_column_position!(super, column_options(o.column))
         end
 
         def visit_ChangeColumnDefinition(o)
@@ -882,7 +882,7 @@ module ActiveRecord
       def add_column_sql(table_name, column_name, type, options = {})
         td = create_table_definition(table_name)
         cd = td.new_column_definition(column_name, type, options)
-        schema_creation.visit_AddColumn cd
+        schema_creation.accept(AddColumnDefinition.new(cd))
       end
 
       def change_column_sql(table_name, column_name, type, options = {})
