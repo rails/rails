@@ -1,3 +1,8 @@
+*   Mailer preview now uses `url_for` to fix links to emails for apps running on
+    a subdirectory.
+
+    *Remo Mueller*
+
 *   Mailer previews no longer crash when the `mail` method wasn't called
     (`NullMail`).
 
