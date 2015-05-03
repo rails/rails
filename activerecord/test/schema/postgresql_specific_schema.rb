@@ -1,5 +1,16 @@
 ActiveRecord::Schema.define do
 
+  enable_extension!('uuid-ossp', ActiveRecord::Base.connection)
+
+  create_table :uuid_parents, id: :uuid, force: true do |t|
+    t.string :name
+  end
+
+  create_table :uuid_children, id: :uuid, force: true do |t|
+    t.string :name
+    t.uuid :uuid_parent_id
+  end
+
   %w(postgresql_times postgresql_oids defaults postgresql_timestamp_with_zones
       postgresql_partitioned_table postgresql_partitioned_table_parent).each do |table_name|
     drop_table table_name, if_exists: true
