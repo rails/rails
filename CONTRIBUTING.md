@@ -8,7 +8,7 @@ Ruby on Rails is a volunteer effort. We encourage you to pitch in. [Join the tea
 
 *We only accept bug reports and pull requests on GitHub*.
 
-* If you have a question about how to use Ruby on Rails, please [ask the rubyonrails-talk mailing list](https://groups.google.com/forum/?fromgroups#!forum/rubyonrails-talk).
+* If you have a question about how to use Ruby on Rails, please [ask it on the rubyonrails-talk mailing list](https://groups.google.com/forum/?fromgroups#!forum/rubyonrails-talk).
 
 * If you have a change or new feature in mind, please [suggest it on the rubyonrails-core mailing list](https://groups.google.com/forum/?fromgroups#!forum/rubyonrails-core) and start writing code.
 
