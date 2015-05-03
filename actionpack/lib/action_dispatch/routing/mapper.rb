@@ -418,7 +418,7 @@ module ActionDispatch
         # A pattern can also point to a +Rack+ endpoint i.e. anything that
         # responds to +call+:
         #
-        #   match 'photos/:id', to: lambda {|hash| [200, {}, ["Coming soon"]] }, via: :get
+        #   match 'photos/:id', to: -> (hash) { [200, {}, ["Coming soon"]] }, via: :get
         #   match 'photos/:id', to: PhotoRackApp, via: :get
         #   # Yes, controller actions are just rack endpoints
         #   match 'photos/:id', to: PhotosController.action(:show), via: :get
@@ -470,7 +470,7 @@ module ActionDispatch
         #   +call+ or a string representing a controller's action.
         #
         #      match 'path', to: 'controller#action', via: :get
-        #      match 'path', to: lambda { |env| [200, {}, ["Success!"]] }, via: :get
+        #      match 'path', to: -> (env) { [200, {}, ["Success!"]] }, via: :get
         #      match 'path', to: RackApp, via: :get
         #
         # [:on]
@@ -899,7 +899,7 @@ module ActionDispatch
         #
         # Requests to routes can be constrained based on specific criteria:
         #
-        #    constraints(lambda { |req| req.env["HTTP_USER_AGENT"] =~ /iPhone/ }) do
+        #    constraints(-> (req) { req.env["HTTP_USER_AGENT"] =~ /iPhone/ }) do
         #      resources :iphones
         #    end
         #
