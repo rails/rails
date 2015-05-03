@@ -634,7 +634,7 @@ module ActiveRecord
         change_column table_name, column_name, column.sql_type, :default => default
       end
 
-      def change_column_null(table_name, column_name, null, default = nil)
+      def change_column_null(table_name, column_name, null, default = nil) #:nodoc:
         column = column_for(table_name, column_name)
 
         unless null || default.nil?

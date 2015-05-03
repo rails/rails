@@ -438,7 +438,7 @@ module ActiveRecord
           end
         end
 
-        def change_column_null(table_name, column_name, null, default = nil)
+        def change_column_null(table_name, column_name, null, default = nil) #:nodoc:
           clear_cache!
           unless null || default.nil?
             column = column_for(table_name, column_name)
