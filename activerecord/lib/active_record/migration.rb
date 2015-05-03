@@ -622,10 +622,12 @@ module ActiveRecord
       write "== %s %s" % [text, "=" * length]
     end
 
-    def say(message, subitem=false)
+    def say(message, subitem=false) # :nodoc:
       write "#{subitem ? "   ->" : "--"} #{message}"
     end
 
+    # Prints customized +message+ to the console along with benchmarks
+    # describing how long each step in migration took.
     def say_with_time(message)
       say(message)
       result = nil
