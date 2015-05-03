@@ -172,10 +172,10 @@ HEADER
             tbl.puts
           end
 
+          indexes(table, tbl)
+
           tbl.puts "  end"
           tbl.puts
-
-          indexes(table, tbl)
 
           tbl.rewind
           stream.print tbl.read
@@ -192,8 +192,7 @@ HEADER
         if (indexes = @connection.indexes(table)).any?
           add_index_statements = indexes.map do |index|
             statement_parts = [
-              "add_index #{remove_prefix_and_suffix(index.table).inspect}",
-              index.columns.inspect,
+              "t.index #{index.columns.inspect}",
               "name: #{index.name.inspect}",
             ]
             statement_parts << 'unique: true' if index.unique
@@ -207,11 +206,10 @@ HEADER
             statement_parts << "using: #{index.using.inspect}" if index.using
             statement_parts << "type: #{index.type.inspect}" if index.type
 
-            "  #{statement_parts.join(', ')}"
+            "    #{statement_parts.join(', ')}"
           end
 
           stream.puts add_index_statements.sort.join("\n")
-          stream.puts
         end
       end
 
