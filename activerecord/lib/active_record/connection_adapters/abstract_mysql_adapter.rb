@@ -97,8 +97,8 @@ module ActiveRecord
         end
 
         def index_in_create(table_name, column_name, options)
-          index_name, index_type, index_columns, index_options, index_algorithm, index_using = @conn.add_index_options(table_name, column_name, options)
-          "#{index_type} INDEX #{quote_column_name(index_name)} #{index_using} (#{index_columns})#{index_options} #{index_algorithm}"
+          index_name, index_type, index_columns, _, _, index_using = @conn.add_index_options(table_name, column_name, options)
+          "#{index_type} INDEX #{quote_column_name(index_name)} #{index_using} (#{index_columns}) "
         end
       end
 
@@ -651,8 +651,8 @@ module ActiveRecord
       end
 
       def add_index(table_name, column_name, options = {}) #:nodoc:
-        index_name, index_type, index_columns, index_options, index_algorithm, index_using = add_index_options(table_name, column_name, options)
-        execute "CREATE #{index_type} INDEX #{quote_column_name(index_name)} #{index_using} ON #{quote_table_name(table_name)} (#{index_columns})#{index_options} #{index_algorithm}"
+        index_name, index_type, index_columns, _, index_algorithm, index_using = add_index_options(table_name, column_name, options)
+        execute "CREATE #{index_type} INDEX #{quote_column_name(index_name)} #{index_using} ON #{quote_table_name(table_name)} (#{index_columns}) #{index_algorithm}"
       end
 
       def foreign_keys(table_name)
