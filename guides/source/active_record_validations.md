@@ -617,7 +617,7 @@ end
 The validation happens by performing an SQL query into the model's table,
 searching for an existing record with the same value in that attribute.
 
-There is a `:scope` option that you can use to specify other attributes that
+There is a `:scope` option that you can use to specify one or more attributes that
 are used to limit the uniqueness check:
 
 ```ruby
