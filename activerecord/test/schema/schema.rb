@@ -6,20 +6,6 @@ ActiveRecord::Schema.define do
     end
   end
 
-  #put adapter specific setup here
-  case adapter_name
-  when "PostgreSQL"
-    enable_extension!('uuid-ossp', ActiveRecord::Base.connection)
-    create_table :uuid_parents, id: :uuid, force: true do |t|
-      t.string :name
-    end
-    create_table :uuid_children, id: :uuid, force: true do |t|
-      t.string :name
-      t.uuid :uuid_parent_id
-    end
-  end
-
-
   # ------------------------------------------------------------------- #
   #                                                                     #
   #   Please keep these create table statements in alphabetical order   #
