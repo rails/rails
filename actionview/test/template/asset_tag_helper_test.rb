@@ -464,6 +464,14 @@ class AssetTagHelperTest < ActionView::TestCase
     assert_equal({:size => '16x10'}, options)
   end
 
+  def test_image_tag_raises_an_error_for_competing_size_arguments
+    exception = assert_raise(ArgumentError) do
+      image_tag("gold.png", :height => "100", :width => "200", :size => "45x70")
+    end
+
+    assert_equal("Cannot pass a :size option with a :height or :width option", exception.message)
+  end
+
   def test_favicon_link_tag
     FaviconLinkToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
