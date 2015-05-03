@@ -24,7 +24,7 @@ class Rails::MailersController < Rails::ApplicationController # :nodoc:
         if params[:part]
           part_type = Mime::Type.lookup(params[:part])
 
-          if part = find_part(part_type)
+          if part = find_part(@email, part_type)
             response.content_type = part_type
             render text: part.respond_to?(:decoded) ? part.decoded : part
           else
@@ -56,18 +56,21 @@ class Rails::MailersController < Rails::ApplicationController # :nodoc:
     def find_preferred_part(*formats)
       if @email.multipart?
         formats.each do |format|
-          return find_part(format) if @email.parts.any?{ |p| p.mime_type == format }
+          part = find_part(@email, format)
+          return part if part
         end
       else
         @email
       end
     end
 
-    def find_part(format)
-      if @email.multipart?
-        @email.parts.find{ |p| p.mime_type == format }
-      elsif @email.mime_type == format
-        @email
+    def find_part(mail, format)
+      if mail.multipart?
+        found = nil
+        mail.parts.find { |part| found = find_part(part, format) }
+        found
+      elsif mail.mime_type == format
+        mail
       end
     end
 end

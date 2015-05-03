@@ -454,6 +454,43 @@ module ApplicationTests
       assert_match '<option selected value="?part=text%2Fplain">View as plain-text email</option>', last_response.body
     end
 
+    test "mailers preview worked normally when use attachments" do
+      mailer 'notifier', <<-RUBY
+        class Notifier < ActionMailer::Base
+          default from: "from@example.com"
+
+          def foo
+            attachments['text.csv'] = ''
+            mail to: "to@example.org"
+          end
+        end
+      RUBY
+
+      html_template 'notifier/foo', <<-RUBY
+        <p>Hello, World!</p>
+      RUBY
+
+      text_template 'notifier/foo', <<-RUBY
+        Hello, World!
+      RUBY
+
+      mailer_preview 'notifier', <<-RUBY
+        class NotifierPreview < ActionMailer::Preview
+          def foo
+            Notifier.foo
+          end
+        end
+      RUBY
+
+      app('development')
+
+      get "/rails/mailers/notifier/foo.html"
+      assert_equal 200, last_response.status
+
+      get "/rails/mailers/notifier/foo.txt"
+      assert_equal 200, last_response.status
+    end
+
     private
       def build_app
         super
