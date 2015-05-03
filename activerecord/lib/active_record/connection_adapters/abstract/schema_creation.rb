@@ -70,6 +70,7 @@ module ActiveRecord
             column_options[:after] = o.after
             column_options[:auto_increment] = o.auto_increment
             column_options[:primary_key] = o.primary_key
+            column_options[:collation] = o.collation if o.collation
             column_options
           end
 
@@ -85,6 +86,8 @@ module ActiveRecord
             if options[:primary_key] == true
               sql << " PRIMARY KEY"
             end
+
+            sql << collation_sql(options[:collation])
             sql
           end
 
@@ -103,6 +106,10 @@ module ActiveRecord
                 Supported values are: :nullify, :cascade, :restrict
               MSG
             end
+          end
+
+          def collation_sql(collation)
+            collation.present? ? " COLLATE \"#{ collation }\"" : ''
           end
       end
     end

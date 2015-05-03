@@ -35,15 +35,21 @@ module ActiveRecord
         default = schema_default(column) if column.has_default?
         spec[:default]   = default unless default.nil?
 
+        spec[:collation] = quoted_collation(column.collation) if column.collation.present?
+
         spec
       end
 
       # Lists the valid migration options
       def migration_keys
-        [:name, :limit, :precision, :scale, :default, :null]
+        [:name, :limit, :precision, :scale, :default, :null, :collation]
       end
 
       private
+
+      def quoted_collation(collation)
+        "\"#{ collation }\""
+      end
 
       def schema_type(column)
         column.type.to_s
