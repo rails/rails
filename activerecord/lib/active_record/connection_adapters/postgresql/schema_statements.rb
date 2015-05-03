@@ -403,8 +403,7 @@ module ActiveRecord
           super
         end
 
-        # Changes the column of a table.
-        def change_column(table_name, column_name, type, options = {})
+        def change_column(table_name, column_name, type, options = {}) #:nodoc:
           clear_cache!
           quoted_table_name = quote_table_name(table_name)
           quoted_column_name = quote_column_name(column_name)
