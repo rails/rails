@@ -131,6 +131,10 @@ HEADER
             tbl.print ", id: false"
           end
           tbl.print ", force: :cascade"
+
+          table_options = @connection.table_options(table)
+          tbl.print ", options: #{table_options.inspect}" unless table_options.blank?
+
           tbl.puts " do |t|"
 
           # then dump all non-primary key columns

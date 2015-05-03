@@ -14,6 +14,10 @@ module ActiveRecord
         {}
       end
 
+      def table_options(table_name)
+        nil
+      end
+
       # Truncates a table alias according to the limits of the current adapter.
       def table_alias_for(table_name)
         table_name[0...table_alias_length].tr('.', '_')

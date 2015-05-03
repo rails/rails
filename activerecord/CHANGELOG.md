@@ -1,3 +1,7 @@
+*   Correctly dump `:options` on `create_table` for MySQL.
+
+    *Ryuta Kamizono*
+
 *   PostgreSQL: `:collation` support for string and text columns.
 
     Example:
