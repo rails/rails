@@ -931,8 +931,9 @@ module ActiveRecord
       end
 
       def add_index_sql(table_name, column_name, options = {})
-        index_name, index_type, index_columns = add_index_options(table_name, column_name, options)
-        "ADD #{index_type} INDEX #{index_name} (#{index_columns})"
+        index_name, index_type, index_columns, _, index_algorithm, index_using = add_index_options(table_name, column_name, options)
+        index_algorithm[0, 0] = ", " if index_algorithm.present?
+        "ADD #{index_type} INDEX #{quote_column_name(index_name)} #{index_using} (#{index_columns})#{index_algorithm}"
       end
 
       def remove_index_sql(table_name, options = {})

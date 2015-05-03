@@ -934,13 +934,13 @@ module ActiveRecord
 
       def add_index_options(table_name, column_name, options = {}) #:nodoc:
         column_names = Array(column_name)
-        index_name   = index_name(table_name, column: column_names)
 
         options.assert_valid_keys(:unique, :order, :name, :where, :length, :internal, :using, :algorithm, :type)
 
-        index_type = options[:unique] ? "UNIQUE" : ""
         index_type = options[:type].to_s if options.key?(:type)
+        index_type ||= options[:unique] ? "UNIQUE" : ""
         index_name = options[:name].to_s if options.key?(:name)
+        index_name ||= index_name(table_name, column: column_names)
         max_index_length = options.fetch(:internal, false) ? index_name_length : allowed_index_name_length
 
         if options.key?(:algorithm)
