@@ -53,7 +53,7 @@ class DeepDupTest < ActiveSupport::TestCase
   def test_deep_dup_with_hash_class_key
     hash = { Fixnum => 1 }
     dup = hash.deep_dup
-    assert_equal dup.keys.length, 1
+    assert_equal 1, dup.keys.length
   end
 
 end
