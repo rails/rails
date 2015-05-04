@@ -50,4 +50,8 @@ class DeepDupTest < ActiveSupport::TestCase
     assert dup.instance_variable_defined?(:@a)
   end
 
+  def test_class_deep_dup
+    assert_equal Fixnum.deep_dup, Fixnum
+  end
+
 end
