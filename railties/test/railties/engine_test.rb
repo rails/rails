@@ -1304,6 +1304,50 @@ YAML
       assert_equal '/foo/bukkits/bukkit', last_response.body
     end
 
+    test "maintaining test scheme with engine migrations" do
+      app_file "db/migrate/1_create_sessions.rb", <<-RUBY
+        class CreateSessions < ActiveRecord::Migration
+        end
+      RUBY
+
+      add_to_config "ActiveRecord::Base.timestamped_migrations = false"
+
+      Dir.chdir(app_path) do
+        `RAILS_ENV=development bundle exec rake db:migrate` # generate db/schema.rb
+        `RAILS_ENV=test bundle exec rake db:test:prepare`
+      end
+
+      @blog = engine "blog" do |plugin|
+        plugin.write "lib/blog.rb", <<-RUBY
+          module Blog
+            class Engine < ::Rails::Engine
+              initializer :migrations_paths do |app|
+                config.paths['db/migrate'].expanded.each do |expanded_path|
+                  app.config.paths['db/migrate'] << expanded_path
+                end
+              end
+            end
+          end
+        RUBY
+      end
+
+      @blog.write "db/migrate/2_create_users.rb", <<-RUBY
+        class CreateUsers < ActiveRecord::Migration
+        end
+      RUBY
+
+      add_to_config "ActiveRecord::Base.maintain_test_schema = true"
+      File.open("#{app_path}/test/test_helper.rb", 'a') {|f| f.puts 'ActiveRecord::Migration.maintain_test_schema!'}
+
+      Dir.chdir(app_path) do
+        `RAILS_ENV=development bundle exec rake db:migrate` # generate db/schema.rb
+        `RAILS_ENV=test bundle exec ruby test/test_helper.rb`
+
+        output = `RAILS_ENV=test bundle exec rake db:migrate`
+        assert_equal '', output
+      end
+    end
+
   private
     def app
       Rails.application
