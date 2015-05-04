@@ -452,7 +452,6 @@ module ActiveModel
         defaults = []
       end
 
-      defaults << options.delete(:message)
       defaults << :"#{@base.class.i18n_scope}.errors.messages.#{type}" if @base.class.respond_to?(:i18n_scope)
       defaults << :"errors.attributes.#{attribute}.#{type}"
       defaults << :"errors.messages.#{type}"
@@ -461,6 +460,7 @@ module ActiveModel
       defaults.flatten!
 
       key = defaults.shift
+      defaults = options.delete(:message) if options[:message]
       value = (attribute != :base ? @base.send(:read_attribute_for_validation, attribute) : nil)
 
       options = {
