@@ -26,5 +26,26 @@ module ApplicationTests
 
       assert_not last_response.headers.has_key?('Cache-Control'), "Cache-Control should not be set"
     end
+
+    test "static_index defaults to 'index'" do
+      app_file "public/index.html", "/index.html"
+      
+      require "#{app_path}/config/environment"
+
+      get '/'
+      
+      assert_equal "/index.html\n", last_response.body
+    end
+
+    test "static_index configurable" do
+      app_file "public/other-index.html", "/other-index.html"
+      add_to_config "config.static_index = 'other-index'"
+      
+      require "#{app_path}/config/environment"
+
+      get '/'
+
+      assert_equal "/other-index.html\n", last_response.body
+    end
   end
 end
