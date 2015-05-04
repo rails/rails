@@ -25,17 +25,17 @@ module ActiveSupport
         end
     end
 
-    # DeprecatedObjectProxy transforms an object into a deprecated object. It takes an object,
-    # a deprecation message, and optionally a deprecator. The deprecator defaults to
-    # <tt>ActiveSupport::Deprecator</tt> if none is specified.
+    # DeprecatedObjectProxy transforms an object into a deprecated one. It
+    # takes an object, a deprecation message and optionally a deprecator. The
+    # deprecator defaults to +ActiveSupport::Deprecator+ if none is specified.
     #
     #   deprecated_object = ActiveSupport::Deprecation::DeprecatedObjectProxy.new(Object.new, "This object is now deprecated")
-    #   # => <Object:0x007fb9b34c34b0>
+    #   # => #<Object:0x007fb9b34c34b0>
     #
     #   deprecated_object.to_s
     #   DEPRECATION WARNING: This object is now deprecated.
     #   (Backtrace)
-    #   # => "<Object:0x007fb9b34c34b0>"
+    #   # => "#<Object:0x007fb9b34c34b0>"
     class DeprecatedObjectProxy < DeprecationProxy
       def initialize(object, message, deprecator = ActiveSupport::Deprecation.instance)
         @object = object
@@ -53,14 +53,15 @@ module ActiveSupport
         end
     end
 
-    # DeprecatedInstanceVariableProxy transforms an instance variable into a deprecated
-    # instance variable. It takes an instance of a class, a method on that class, and an
-    # instance variable. It optionally takes a deprecator as the last argument. The deprecator
-    # defaults to <tt>ActiveSupport::Deprecator</tt> if none is specified.
+    # DeprecatedInstanceVariableProxy transforms an instance variable into a
+    # deprecated one. It takes an instance of a class, a method on that class
+    # and an instance variable. It optionally takes a deprecator as the last
+    # argument. The deprecator defaults to +ActiveSupport::Deprecator+ if none
+    # is specified.
     #
     #   class Example
     #     def initialize
-    #       @request = ActiveSupport::Deprecation::DeprecatedInstanceVariableProxy.new(self, :request, :@request, deprecator)
+    #       @request = ActiveSupport::Deprecation::DeprecatedInstanceVariableProxy.new(self, :request, :@request)
     #       @_request = :special_request
     #     end
     #
@@ -102,10 +103,11 @@ module ActiveSupport
         end
     end
 
-    # DeprecatedConstantProxy transforms a constant into a deprecated constant. It takes the names of an old
-    # (deprecated) constant and a new contstant (both in string form), and optionally a deprecator. The
-    # deprecator defaults to <tt>ActiveSupport::Deprecator</tt> if none is specified. The deprecated constant
-    # now returns the return value of the new constant.
+    # DeprecatedConstantProxy transforms a constant into a deprecated one. It
+    # takes the names of an old (deprecated) constant and of a new contstant
+    # (both in string form) and optionally a deprecator. The deprecator defaults
+    # to +ActiveSupport::Deprecator+ if none is specified. The deprecated constant
+    # now returns the value of the new one.
     #
     #   PLANETS = %w(mercury venus earth mars jupiter saturn uranus neptune pluto)
     #

@@ -8,8 +8,9 @@ module Rails
   module Rack
     # Sets log tags, logs the request, calls the app, and flushes the logs.
     #
-    # Log tags (+taggers+) can be an Array containing: methods that the <tt>request</tt> object responds to, a Proc
-    # that accepts an instance of the <tt>request</tt> object, or something that responds to <tt>to_s</tt>.
+    # Log tags (+taggers+) can be an Array containing: methods that the +request+
+    # object responds to, objects that respond to +to_s+ or Proc objects that accept
+    # an instance of the +request+ object.
     class Logger < ActiveSupport::LogSubscriber
       def initialize(app, taggers = nil)
         @app          = app

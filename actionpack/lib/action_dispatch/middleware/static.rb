@@ -26,7 +26,7 @@ module ActionDispatch
     # representing the filename. Otherwise, false is returned.
     #
     # Used by the `Static` class to check the existence of a valid file
-    # in the server's `public/` directory. (See Static#call)
+    # in the server's `public/` directory (see Static#call).
     def match?(path)
       path = URI.parser.unescape(path)
       return false unless path.valid_encoding?
