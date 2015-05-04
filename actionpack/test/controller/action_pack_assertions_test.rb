@@ -269,13 +269,15 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
 
   def test_template_objects_exist
     process :assign_this
-    assert !@controller.instance_variable_defined?(:"@hi")
-    assert @controller.instance_variable_get(:"@howdy")
+    assert @controller.instance_variable_get(:@howdy)
   end
 
   def test_template_objects_missing
     process :nothing
     assert !@controller.instance_variable_defined?(:@howdy)
+
+    process :assign_this
+    assert !@controller.instance_variable_defined?(:@hi)
   end
 
   def test_empty_flash
