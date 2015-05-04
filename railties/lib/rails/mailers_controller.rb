@@ -54,18 +54,20 @@ class Rails::MailersController < Rails::ApplicationController # :nodoc:
     end
 
     def find_preferred_part(*formats)
-      if @email.multipart?
-        formats.each do |format|
-          return find_part(format) if @email.parts.any?{ |p| p.mime_type == format }
+      formats.each do |format|
+        if part = @email.find_first_mime_type(format)
+          return part
         end
-      else
+      end
+
+      if formats.any?{ |f| @email.mime_type == f }
         @email
       end
     end
 
     def find_part(format)
-      if @email.multipart?
-        @email.parts.find{ |p| p.mime_type == format }
+      if part = @email.find_first_mime_type(format)
+        part
       elsif @email.mime_type == format
         @email
       end

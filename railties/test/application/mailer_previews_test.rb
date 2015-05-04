@@ -1,5 +1,7 @@
 require 'isolation/abstract_unit'
 require 'rack/test'
+require 'base64'
+
 module ApplicationTests
   class MailerPreviewsTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
@@ -459,6 +461,190 @@ module ApplicationTests
       assert_match '<li><a href="/my_app/rails/mailers/notifier/foo">foo</a></li>', last_response.body
     end
 
+    test "plain text mailer preview with attachment" do
+      image_file "pixel.png", "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEWzIioc\na/JlAAAACklEQVQI12NgAAAAAgAB4iG8MwAAAABJRU5ErkJggg=="
+
+      mailer 'notifier', <<-RUBY
+        class Notifier < ActionMailer::Base
+          default from: "from@example.com"
+
+          def foo
+            mail to: "to@example.org"
+          end
+        end
+      RUBY
+
+      text_template 'notifier/foo', <<-RUBY
+        Hello, World!
+      RUBY
+
+      mailer_preview 'notifier', <<-RUBY
+        class NotifierPreview < ActionMailer::Preview
+          def foo
+            Notifier.foo
+          end
+        end
+      RUBY
+
+      app('development')
+
+      get "/rails/mailers/notifier/foo"
+      assert_equal 200, last_response.status
+      assert_match %r[<iframe seamless name="messageBody"], last_response.body
+
+      get "/rails/mailers/notifier/foo?part=text/plain"
+      assert_equal 200, last_response.status
+      assert_match %r[Hello, World!], last_response.body
+    end
+
+    test "multipart mailer preview with attachment" do
+      image_file "pixel.png", "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEWzIioc\na/JlAAAACklEQVQI12NgAAAAAgAB4iG8MwAAAABJRU5ErkJggg=="
+
+      mailer 'notifier', <<-RUBY
+        class Notifier < ActionMailer::Base
+          default from: "from@example.com"
+
+          def foo
+            attachments['pixel.png'] = File.read("#{app_path}/public/images/pixel.png")
+            mail to: "to@example.org"
+          end
+        end
+      RUBY
+
+      text_template 'notifier/foo', <<-RUBY
+        Hello, World!
+      RUBY
+
+      html_template 'notifier/foo', <<-RUBY
+        <p>Hello, World!</p>
+      RUBY
+
+      mailer_preview 'notifier', <<-RUBY
+        class NotifierPreview < ActionMailer::Preview
+          def foo
+            Notifier.foo
+          end
+        end
+      RUBY
+
+      app('development')
+
+      get "/rails/mailers/notifier/foo"
+      assert_equal 200, last_response.status
+      assert_match %r[<iframe seamless name="messageBody"], last_response.body
+
+      get "/rails/mailers/notifier/foo?part=text/plain"
+      assert_equal 200, last_response.status
+      assert_match %r[Hello, World!], last_response.body
+
+      get "/rails/mailers/notifier/foo?part=text/html"
+      assert_equal 200, last_response.status
+      assert_match %r[<p>Hello, World!</p>], last_response.body
+    end
+
+    test "multipart mailer preview with inline attachment" do
+      image_file "pixel.png", "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEWzIioc\na/JlAAAACklEQVQI12NgAAAAAgAB4iG8MwAAAABJRU5ErkJggg=="
+
+      mailer 'notifier', <<-RUBY
+        class Notifier < ActionMailer::Base
+          default from: "from@example.com"
+
+          def foo
+            attachments['pixel.png'] = File.read("#{app_path}/public/images/pixel.png")
+            mail to: "to@example.org"
+          end
+        end
+      RUBY
+
+      text_template 'notifier/foo', <<-RUBY
+        Hello, World!
+      RUBY
+
+      html_template 'notifier/foo', <<-RUBY
+        <p>Hello, World!</p>
+        <%= image_tag attachments['pixel.png'].url %>
+      RUBY
+
+      mailer_preview 'notifier', <<-RUBY
+        class NotifierPreview < ActionMailer::Preview
+          def foo
+            Notifier.foo
+          end
+        end
+      RUBY
+
+      app('development')
+
+      get "/rails/mailers/notifier/foo"
+      assert_equal 200, last_response.status
+      assert_match %r[<iframe seamless name="messageBody"], last_response.body
+
+      get "/rails/mailers/notifier/foo?part=text/plain"
+      assert_equal 200, last_response.status
+      assert_match %r[Hello, World!], last_response.body
+
+      get "/rails/mailers/notifier/foo?part=text/html"
+      assert_equal 200, last_response.status
+      assert_match %r[<p>Hello, World!</p>], last_response.body
+    end
+
+    test "multipart mailer preview with attached email" do
+      mailer 'notifier', <<-RUBY
+        class Notifier < ActionMailer::Base
+          default from: "from@example.com"
+
+          def foo
+            message = ::Mail.new do
+              from    'foo@example.com'
+              to      'bar@example.com'
+              subject 'Important Message'
+
+              text_part do
+                body 'Goodbye, World!'
+              end
+
+              html_part do
+                body '<p>Goodbye, World!</p>'
+              end
+            end
+
+            attachments['message.eml'] = message.to_s
+            mail to: "to@example.org"
+          end
+        end
+      RUBY
+
+      text_template 'notifier/foo', <<-RUBY
+        Hello, World!
+      RUBY
+
+      html_template 'notifier/foo', <<-RUBY
+        <p>Hello, World!</p>
+      RUBY
+
+      mailer_preview 'notifier', <<-RUBY
+        class NotifierPreview < ActionMailer::Preview
+          def foo
+            Notifier.foo
+          end
+        end
+      RUBY
+
+      app('development')
+
+      get "/rails/mailers/notifier/foo"
+      assert_equal 200, last_response.status
+      assert_match %r[<iframe seamless name="messageBody"], last_response.body
+
+      get "/rails/mailers/notifier/foo?part=text/plain"
+      assert_equal 200, last_response.status
+      assert_match %r[Hello, World!], last_response.body
+
+      get "/rails/mailers/notifier/foo?part=text/html"
+      assert_equal 200, last_response.status
+      assert_match %r[<p>Hello, World!</p>], last_response.body
+    end
+
     private
       def build_app
         super
@@ -479,6 +665,10 @@ module ApplicationTests
 
       def text_template(name, contents)
         app_file("app/views/#{name}.text.erb", contents)
+      end
+
+      def image_file(name, contents)
+        app_file("public/images/#{name}", Base64.decode64(contents))
       end
   end
 end

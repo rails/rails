@@ -96,7 +96,7 @@
   </dl>
 </header>
 
-<% if @part.mime_type %>
+<% if @part && @part.mime_type %>
   <iframe seamless name="messageBody" src="?part=<%= Rack::Utils.escape(@part.mime_type) %>"></iframe>
 <% else %>
   <p>
