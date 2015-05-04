@@ -422,7 +422,9 @@ module ActiveRecord
         end
       end
 
-      def change_column_default(table_name, column_name, default) #:nodoc:
+      def change_column_default(table_name, column_name, default_or_changes) #:nodoc:
+        default = extract_new_default_value(default_or_changes)
+
         alter_table(table_name) do |definition|
           definition[column_name].default = default
         end

@@ -169,6 +169,16 @@ module ActiveRecord
         end
       end
 
+      def test_invert_change_column_default_with_from_and_to
+        change = @recorder.inverse_of :change_column_default, [:table, :column, from: "old_value", to: "new_value"]
+        assert_equal [:change_column_default, [:table, :column, from: "new_value", to: "old_value"]], change
+      end
+
+      def test_invert_change_column_default_with_from_and_to_with_boolean
+        change = @recorder.inverse_of :change_column_default, [:table, :column, from: true, to: false]
+        assert_equal [:change_column_default, [:table, :column, from: false, to: true]], change
+      end
+
       def test_invert_change_column_null
         add = @recorder.inverse_of :change_column_null, [:table, :column, true]
         assert_equal [:change_column_null, [:table, :column, false]], add

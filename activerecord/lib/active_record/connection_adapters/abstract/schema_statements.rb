@@ -460,7 +460,12 @@ module ActiveRecord
       #
       #   change_column_default(:users, :email, nil)
       #
-      def change_column_default(table_name, column_name, default)
+      # Passing a hash containing +:from+ and +:to+ will make this change
+      # reversible in migration:
+      #
+      #   change_column_default(:posts, :state, from: nil, to: "draft")
+      #
+      def change_column_default(table_name, column_name, default_or_changes)
         raise NotImplementedError, "change_column_default is not implemented"
       end
 
@@ -1066,6 +1071,14 @@ module ActiveRecord
       def validate_index_length!(table_name, new_name) # :nodoc:
         if new_name.length > allowed_index_name_length
           raise ArgumentError, "Index name '#{new_name}' on table '#{table_name}' is too long; the limit is #{allowed_index_name_length} characters"
+        end
+      end
+
+      def extract_new_default_value(default_or_changes)
+        if default_or_changes.is_a?(Hash) && default_or_changes.has_key?(:from) && default_or_changes.has_key?(:to)
+          default_or_changes[:to]
+        else
+          default_or_changes
         end
       end
     end

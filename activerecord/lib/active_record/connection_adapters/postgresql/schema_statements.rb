@@ -410,11 +410,12 @@ module ActiveRecord
         end
 
         # Changes the default value of a table column.
-        def change_column_default(table_name, column_name, default) # :nodoc:
+        def change_column_default(table_name, column_name, default_or_changes) # :nodoc:
           clear_cache!
           column = column_for(table_name, column_name)
           return unless column
 
+          default = extract_new_default_value(default_or_changes)
           alter_column_query = "ALTER TABLE #{quote_table_name(table_name)} ALTER COLUMN #{quote_column_name(column_name)} %s"
           if default.nil?
             # <tt>DEFAULT NULL</tt> results in the same behavior as <tt>DROP DEFAULT</tt>. However, PostgreSQL will

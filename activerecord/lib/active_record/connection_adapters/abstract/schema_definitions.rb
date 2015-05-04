@@ -592,10 +592,11 @@ module ActiveRecord
       #
       #  t.change_default(:qualification, 'new')
       #  t.change_default(:authorized, 1)
+      #  t.change_default(:status, from: nil, to: "draft")
       #
       # See SchemaStatements#change_column_default
-      def change_default(column_name, default)
-        @base.change_column_default(name, column_name, default)
+      def change_default(column_name, default_or_changes)
+        @base.change_column_default(name, column_name, default_or_changes)
       end
 
       # Removes the column(s) from the table definition.

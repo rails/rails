@@ -1,3 +1,15 @@
+*   Add alternate syntax to make `change_column_default` reversible.
+
+    User can pass in `:from` and `:to` to make `change_column_default` command
+    become reversible.
+
+    Example:
+
+        change_column_default :posts, :status, from: nil, to: "draft"
+        change_column_default :users, authorized, from: true, to: false
+
+    *Prem Sichanugrist*
+
 *   Prevent error when using `force_reload: true` on an unassigned polymorphic
     belongs_to association.
 
