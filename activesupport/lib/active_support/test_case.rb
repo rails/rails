@@ -36,14 +36,7 @@ module ActiveSupport
       # Possible values are +:random+, +:parallel+, +:alpha+, +:sorted+.
       # Defaults to +:random+.
       def test_order
-        test_order = ActiveSupport.test_order
-
-        if test_order.nil?
-          test_order = :random
-          self.test_order = test_order
-        end
-
-        test_order
+        ActiveSupport.test_order ||= :random
       end
     end
 
