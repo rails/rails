@@ -94,6 +94,37 @@ module ActiveModel
     #   person.serializable_hash(except: :name) # => {"age"=>22}
     #   person.serializable_hash(methods: :capitalized_name)
     #   # => {"name"=>"bob", "age"=>22, "capitalized_name"=>"Bob"}
+    #
+    # Example with <tt>:include</tt> option
+    #
+    #   class User
+    #     include ActiveModel::Serializers::JSON
+    #     attr_accessor :name, :notes # Emulate has_many :notes
+    #     def attributes
+    #       {'name' => nil}
+    #     end
+    #   end
+    #
+    #   class Note
+    #     include ActiveModel::Serializers::JSON
+    #     attr_accessor :title, :text
+    #     def attributes
+    #       {'title' => nil, 'text' => nil}
+    #     end
+    #   end
+    #
+    #   note = Note.new
+    #   note.title = 'Battle of Austerlitz'
+    #   note.text = 'Some text here'
+    #
+    #   user = User.new
+    #   user.name = 'Napoleon'
+    #   user.notes = [note]
+    #
+    #   user.serializable_hash
+    #   #=> {"name" => "Napoleon"} 
+    #   user.serializable_hash(include: { notes: { only: 'title' }})
+    #   #=> {"name" => "Napoleon", "notes" => [{"title"=>"Battle of Austerlitz"}]}
     def serializable_hash(options = nil)
       options ||= {}
 
