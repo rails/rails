@@ -149,6 +149,12 @@ class ErrorsTest < ActiveModel::TestCase
     assert_equal ["cannot be blank"], person.errors[:name]
   end
 
+  test "add an error message on a specific attribute with a defined type" do
+    person = Person.new
+    person.errors.add(:name, :blank, message: "cannot be blank")
+    assert_equal ["cannot be blank"], person.errors[:name]
+  end
+
   test "add an error with a symbol" do
     person = Person.new
     person.errors.add(:name, :blank)
