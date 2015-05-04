@@ -1,3 +1,10 @@
+*   `translate` should handle `raise` flag correctly in case of both main and default
+    translation is missing.
+
+    Fixes #19967
+
+    *Bernard Potocki*
+
 *   `translate` allows `default: [[]]` again for a default value of `[]`.
 
     Fixes #19640.
