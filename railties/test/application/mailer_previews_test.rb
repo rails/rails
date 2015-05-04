@@ -487,7 +487,7 @@ module ApplicationTests
     end
 
     test "plain text mailer preview with attachment" do
-      image_file "pixel.png", "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEWzIioca_JlAAAACklEQVQI12NgAAAAAgAB4iG8MwAAAABJRU5ErkJgggo="
+      image_file "pixel.png", "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEWzIioca/JlAAAACklEQVQI12NgAAAAAgAB4iG8MwAAAABJRU5ErkJgggo="
 
       mailer 'notifier', <<-RUBY
         class Notifier < ActionMailer::Base
@@ -524,7 +524,7 @@ module ApplicationTests
     end
 
     test "multipart mailer preview with attachment" do
-      image_file "pixel.png", "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEWzIioca_JlAAAACklEQVQI12NgAAAAAgAB4iG8MwAAAABJRU5ErkJgggo="
+      image_file "pixel.png", "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEWzIioca/JlAAAACklEQVQI12NgAAAAAgAB4iG8MwAAAABJRU5ErkJgggo="
 
       mailer 'notifier', <<-RUBY
         class Notifier < ActionMailer::Base
@@ -569,7 +569,7 @@ module ApplicationTests
     end
 
     test "multipart mailer preview with inline attachment" do
-      image_file "pixel.png", "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEWzIioca_JlAAAACklEQVQI12NgAAAAAgAB4iG8MwAAAABJRU5ErkJgggo="
+      image_file "pixel.png", "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEWzIioca/JlAAAACklEQVQI12NgAAAAAgAB4iG8MwAAAABJRU5ErkJgggo="
 
       mailer 'notifier', <<-RUBY
         class Notifier < ActionMailer::Base
@@ -612,7 +612,7 @@ module ApplicationTests
       get "/rails/mailers/notifier/foo?part=text/html"
       assert_equal 200, last_response.status
       assert_match %r[<p>Hello, World!</p>], last_response.body
-      assert_match %r[src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEWzIioca_JlAAAACklEQVQI12NgAAAAAgAB4iG8MwAAAABJRU5ErkJgggo="], last_response.body
+      assert_match %r[src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEWzIioca/JlAAAACklEQVQI12NgAAAAAgAB4iG8MwAAAABJRU5ErkJgggo="], last_response.body
     end
 
     test "multipart mailer preview with attached email" do
@@ -695,7 +695,7 @@ module ApplicationTests
       end
 
       def image_file(name, contents)
-        app_file("public/images/#{name}", Base64.urlsafe_decode64(contents), 'wb')
+        app_file("public/images/#{name}", Base64.strict_decode64(contents), 'wb')
       end
   end
 end

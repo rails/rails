@@ -690,7 +690,7 @@ module ApplicationTests
 
       _ = ActionMailer::Base
 
-      assert_equal [ActionMailer::Previews::InlineAttachments, ::MyPreviewMailInterceptor], ActionMailer::Base.preview_interceptors
+      assert_equal [ActionMailer::InlinePreviewInterceptor, ::MyPreviewMailInterceptor], ActionMailer::Base.preview_interceptors
     end
 
     test "registers multiple preview interceptors with ActionMailer" do
@@ -703,7 +703,20 @@ module ApplicationTests
 
       _ = ActionMailer::Base
 
-      assert_equal [ActionMailer::Previews::InlineAttachments, MyPreviewMailInterceptor, MyOtherPreviewMailInterceptor], ActionMailer::Base.preview_interceptors
+      assert_equal [ActionMailer::InlinePreviewInterceptor, MyPreviewMailInterceptor, MyOtherPreviewMailInterceptor], ActionMailer::Base.preview_interceptors
+    end
+
+    test "default preview interceptor can be removed" do
+      app_file 'config/initializers/preview_interceptors.rb', <<-RUBY
+        ActionMailer::Base.preview_interceptors.delete(ActionMailer::InlinePreviewInterceptor)
+      RUBY
+
+      require "#{app_path}/config/environment"
+      require "mail"
+
+      _ = ActionMailer::Base
+
+      assert_equal [], ActionMailer::Base.preview_interceptors
     end
 
     test "registers observers with ActionMailer" do
