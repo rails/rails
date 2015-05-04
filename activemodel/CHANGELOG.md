@@ -1,3 +1,8 @@
+*   Ensure `method_missing` is called for methods passed to
+    `ActiveModel::Serialization#serializable_hash` that don't exist.
+
+    *Jay Elaraj*
+
 *   Add `ActiveModel::Dirty#[attr_name]_previously_changed?` and
     `ActiveModel::Dirty#[attr_name]_previous_change` to improve access
     to recorded changes after the model has been saved.
