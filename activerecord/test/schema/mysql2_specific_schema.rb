@@ -1,4 +1,11 @@
 ActiveRecord::Schema.define do
+
+  if ActiveRecord::Base.connection.version >= '5.6.0'
+    create_table :datetime_defaults, force: true do |t|
+      t.datetime :modified_datetime, default: -> { 'CURRENT_TIMESTAMP' }
+    end
+  end
+
   create_table :binary_fields, force: true do |t|
     t.binary :var_binary, limit: 255
     t.binary :var_binary_large, limit: 4095

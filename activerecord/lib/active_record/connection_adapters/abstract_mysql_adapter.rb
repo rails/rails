@@ -495,12 +495,16 @@ module ActiveRecord
       end
 
       # Returns an array of +Column+ objects for the table specified by +table_name+.
-      def columns(table_name)#:nodoc:
+      def columns(table_name) # :nodoc:
         sql = "SHOW FULL FIELDS FROM #{quote_table_name(table_name)}"
         execute_and_free(sql, 'SCHEMA') do |result|
           each_hash(result).map do |field|
             type_metadata = fetch_type_metadata(field[:Type], field[:Extra])
-            new_column(field[:Field], field[:Default], type_metadata, field[:Null] == "YES", nil, field[:Collation])
+            if type_metadata.type == :datetime && field[:Default] == "CURRENT_TIMESTAMP"
+              new_column(field[:Field], nil, type_metadata, field[:Null] == "YES", field[:Default], field[:Collation])
+            else
+              new_column(field[:Field], field[:Default], type_metadata, field[:Null] == "YES", nil, field[:Collation])
+            end
           end
         end
       end
