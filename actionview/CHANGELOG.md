@@ -1,3 +1,10 @@
+*   `translate` should handle `raise` flag correctly in case of both main and default
+    translation is missing.
+
+    Fixes #19967
+
+    *Bernard Potocki*
+
 *   Load the `default_form_builder` from the controller on initialization, which overrides
     the global config if it is present.
 
