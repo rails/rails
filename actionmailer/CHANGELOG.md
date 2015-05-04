@@ -1,3 +1,8 @@
+*   Add support for inline images in mailer previews by using an interceptor
+    class to convert cid: urls in image src attributes to data urls.
+
+    *Andrew White*
+
 *   Mailer preview now uses `url_for` to fix links to emails for apps running on
     a subdirectory.
 
