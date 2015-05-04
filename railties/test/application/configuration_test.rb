@@ -690,7 +690,7 @@ module ApplicationTests
 
       _ = ActionMailer::Base
 
-      assert_equal [::MyPreviewMailInterceptor], ActionMailer::Base.preview_interceptors
+      assert_equal [ActionMailer::Previews::InlineAttachments, ::MyPreviewMailInterceptor], ActionMailer::Base.preview_interceptors
     end
 
     test "registers multiple preview interceptors with ActionMailer" do
@@ -703,7 +703,7 @@ module ApplicationTests
 
       _ = ActionMailer::Base
 
-      assert_equal [MyPreviewMailInterceptor, MyOtherPreviewMailInterceptor], ActionMailer::Base.preview_interceptors
+      assert_equal [ActionMailer::Previews::InlineAttachments, MyPreviewMailInterceptor, MyOtherPreviewMailInterceptor], ActionMailer::Base.preview_interceptors
     end
 
     test "registers observers with ActionMailer" do
