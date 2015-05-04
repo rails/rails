@@ -1042,7 +1042,7 @@ module ActionDispatch
         class Resource #:nodoc:
           attr_reader :controller, :path, :options, :param
 
-          def initialize(entities, options = {})
+          def initialize(entities, api_only = false, options = {})
             @name       = entities.to_s
             @path       = (options[:path] || @name).to_s
             @controller = (options[:controller] || @name).to_s
@@ -1050,10 +1050,15 @@ module ActionDispatch
             @param      = (options[:param] || :id).to_sym
             @options    = options
             @shallow    = false
+            @api_only   = api_only
           end
 
           def default_actions
-            [:index, :create, :new, :show, :update, :destroy, :edit]
+            if @api_only
+              [:index, :create, :show, :update, :destroy]
+            else
+              [:index, :create, :new, :show, :update, :destroy, :edit]
+            end
           end
 
           def actions
@@ -1120,7 +1125,7 @@ module ActionDispatch
         end
 
         class SingletonResource < Resource #:nodoc:
-          def initialize(entities, options)
+          def initialize(entities, api_only, options)
             super
             @as         = nil
             @controller = (options[:controller] || plural).to_s
@@ -1128,7 +1133,11 @@ module ActionDispatch
           end
 
           def default_actions
-            [:show, :create, :update, :destroy, :new, :edit]
+            if @api_only
+              [:show, :create, :update, :destroy]
+            else
+              [:show, :create, :update, :destroy, :new, :edit]
+            end
           end
 
           def plural
@@ -1178,7 +1187,7 @@ module ActionDispatch
             return self
           end
 
-          resource_scope(:resource, SingletonResource.new(resources.pop, options)) do
+          resource_scope(:resource, SingletonResource.new(resources.pop, api_only?, options)) do
             yield if block_given?
 
             concerns(options[:concerns]) if options[:concerns]
@@ -1336,7 +1345,7 @@ module ActionDispatch
             return self
           end
 
-          resource_scope(:resources, Resource.new(resources.pop, options)) do
+          resource_scope(:resources, Resource.new(resources.pop, api_only?, options)) do
             yield if block_given?
 
             concerns(options[:concerns]) if options[:concerns]
@@ -1767,6 +1776,10 @@ module ActionDispatch
               end
               delete :destroy if parent_resource.actions.include?(:destroy)
             end
+          end
+
+          def api_only?
+            @set.api_only?
           end
       end
 

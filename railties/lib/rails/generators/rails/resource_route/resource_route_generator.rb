@@ -24,9 +24,7 @@ module Rails
         end
 
         # inserts the primary resource
-        resources = "resources :#{file_name.pluralize}"
-        resources << ", except: [:new, :edit]" if options.api?
-        write(resources, route_length + 1)
+        write("resources :#{file_name.pluralize}", route_length + 1)
 
         # ends blocks
         regular_class_path.each_index do |index|

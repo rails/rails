@@ -167,6 +167,46 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal '/session/reset', reset_session_path
   end
 
+  def test_session_singleton_resource_for_api_app
+    self.class.stub_controllers do |_|
+      config = ActionDispatch::Routing::RouteSet::Config.new
+      config.api_only = true
+
+      routes = ActionDispatch::Routing::RouteSet.new(config)
+
+      routes.draw do
+        resource :session do
+          get :create
+          post :reset
+        end
+      end
+      @app = RoutedRackApp.new routes
+    end
+
+    get '/session'
+    assert_equal 'sessions#create', @response.body
+    assert_equal '/session', session_path
+
+    post '/session'
+    assert_equal 'sessions#create', @response.body
+
+    put '/session'
+    assert_equal 'sessions#update', @response.body
+
+    delete '/session'
+    assert_equal 'sessions#destroy', @response.body
+
+    post '/session/reset'
+    assert_equal 'sessions#reset', @response.body
+    assert_equal '/session/reset', reset_session_path
+
+    get '/session/new'
+    assert_equal 'Not Found', @response.body
+
+    get '/session/edit'
+    assert_equal 'Not Found', @response.body
+  end
+
   def test_session_info_nested_singleton_resource
     draw do
       resource :session do
@@ -507,6 +547,41 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     get '/projects/1/edit'
     assert_equal 'project#edit', @response.body
     assert_equal '/projects/1/edit', edit_project_path(:id => '1')
+  end
+
+  def test_projects_for_api_app
+    self.class.stub_controllers do |_|
+      config = ActionDispatch::Routing::RouteSet::Config.new
+      config.api_only = true
+
+      routes = ActionDispatch::Routing::RouteSet.new(config)
+      routes.draw do
+        resources :projects, controller: :project
+      end
+      @app = RoutedRackApp.new routes
+    end
+
+    get '/projects'
+    assert_equal 'project#index', @response.body
+    assert_equal '/projects', projects_path
+
+    post '/projects'
+    assert_equal 'project#create', @response.body
+
+    get '/projects.xml'
+    assert_equal 'project#index', @response.body
+    assert_equal '/projects.xml', projects_path(format: 'xml')
+
+    get '/projects/1'
+    assert_equal 'project#show', @response.body
+    assert_equal '/projects/1', project_path(id: '1')
+
+    get '/projects/1.xml'
+    assert_equal 'project#show', @response.body
+    assert_equal '/projects/1.xml', project_path(id: '1', format: 'xml')
+
+    get '/projects/1/edit'
+    assert_equal 'Not Found', @response.body
   end
 
   def test_projects_with_post_action_and_new_path_on_collection
