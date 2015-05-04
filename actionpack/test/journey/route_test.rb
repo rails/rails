@@ -30,7 +30,7 @@ module ActionDispatch
         path      = Path::Pattern.new strexp
         defaults  = { name: 'tender' }
         route     = Route.new('name', nil, path, nil, defaults)
-        assert_equal /love/, route.requirements[:name]
+        assert_equal(/love/, route.requirements[:name])
       end
 
       def test_ip_address
