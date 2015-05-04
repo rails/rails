@@ -1,3 +1,10 @@
+*   Fix mailer previews with attachments by using the mail gem's own API to
+    locate the first part of the correct mime type.
+
+    Fixes #14435.
+
+    *Andrew White*
+
 *   Remove sqlite support from `rails dbconsole`.
 
     *Andrew White*
