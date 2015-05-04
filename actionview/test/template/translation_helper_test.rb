@@ -64,6 +64,13 @@ class TranslationHelperTest < ActiveSupport::TestCase
     assert_equal false, translate(:"translations.missing", :rescue_format => nil).html_safe?
   end
 
+  # I don't know whether this is intended behavior.
+  def test_rescue_format_non_nil
+    assert_raise(I18n::MissingTranslationData) do
+      translate(:"translations.missing", :rescue_format => :something)
+    end
+  end
+
   def test_raises_missing_translation_message_with_raise_config_option
     ActionView::Base.raise_on_missing_translations = true
 
@@ -154,6 +161,13 @@ class TranslationHelperTest < ActiveSupport::TestCase
   def test_translate_with_default_named_html
     translation = translate(:'translations.missing', :default => :'translations.hello_html')
     assert_equal '<a>Hello World</a>', translation
+    assert_equal true, translation.html_safe?
+  end
+
+  def test_translate_with_missing_default
+    translation = translate(:'translations.missing', :default => :'translations.missing_html')
+    expected = '<span class="translation_missing" title="translation missing: en.translations.missing_html">Missing Html</span>'
+    assert_equal expected, translation
     assert_equal true, translation.html_safe?
   end
 
