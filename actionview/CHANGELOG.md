@@ -1,3 +1,8 @@
+*   Remove `:rescue_format` option for `translate` helper since it's no longer
+    supported by I18n.
+
+    *Bernard Potocki*
+
 *   `translate` should handle `raise` flag correctly in case of both main and default
     translation is missing.
 
