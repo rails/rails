@@ -11,7 +11,7 @@ class Object
   #   object.instance_variable_defined?(:@a) # => false
   #   dup.instance_variable_defined?(:@a)    # => true
   def deep_dup
-    duplicable? ? dup : self
+    duplicable? && !is_a?(Class) ? dup : self
   end
 end
 
