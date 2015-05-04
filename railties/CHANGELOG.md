@@ -1,3 +1,12 @@
+*   Add support for inline images in mailer previews by using an interceptor
+    class to convert cid: urls in image src attributes to data urls. The
+    interceptor is not enabled by default but can be done in an initializer:
+
+        # config/initializer/preview_interceptors.rb
+        ActionMailer::Base.register_preview_interceptor(ActionMailer::InlinePreviewInterceptor)
+
+    *Andrew White*
+
 *   Fix mailer previews with attachments by using the mail gem's own API to
     locate the first part of the correct mime type.
 

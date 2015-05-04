@@ -462,7 +462,7 @@ module ApplicationTests
     end
 
     test "plain text mailer preview with attachment" do
-      image_file "pixel.png", "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEWzIioc\na/JlAAAACklEQVQI12NgAAAAAgAB4iG8MwAAAABJRU5ErkJggg=="
+      image_file "pixel.png", "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEWzIioca/JlAAAACklEQVQI12NgAAAAAgAB4iG8MwAAAABJRU5ErkJgggo="
 
       mailer 'notifier', <<-RUBY
         class Notifier < ActionMailer::Base
@@ -498,14 +498,14 @@ module ApplicationTests
     end
 
     test "multipart mailer preview with attachment" do
-      image_file "pixel.png", "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEWzIioc\na/JlAAAACklEQVQI12NgAAAAAgAB4iG8MwAAAABJRU5ErkJggg=="
+      image_file "pixel.png", "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEWzIioca/JlAAAACklEQVQI12NgAAAAAgAB4iG8MwAAAABJRU5ErkJgggo="
 
       mailer 'notifier', <<-RUBY
         class Notifier < ActionMailer::Base
           default from: "from@example.com"
 
           def foo
-            attachments['pixel.png'] = File.read("#{app_path}/public/images/pixel.png")
+            attachments['pixel.png'] = File.read("#{app_path}/public/images/pixel.png", mode: 'rb')
             mail to: "to@example.org"
           end
         end
@@ -543,14 +543,18 @@ module ApplicationTests
     end
 
     test "multipart mailer preview with inline attachment" do
-      image_file "pixel.png", "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEWzIioc\na/JlAAAACklEQVQI12NgAAAAAgAB4iG8MwAAAABJRU5ErkJggg=="
+      image_file "pixel.png", "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEWzIioca/JlAAAACklEQVQI12NgAAAAAgAB4iG8MwAAAABJRU5ErkJgggo="
+
+      app_file 'config/initializers/preview_interceptors.rb', <<-RUBY
+        ActionMailer::Base.register_preview_interceptor(ActionMailer::InlinePreviewInterceptor)
+      RUBY
 
       mailer 'notifier', <<-RUBY
         class Notifier < ActionMailer::Base
           default from: "from@example.com"
 
           def foo
-            attachments['pixel.png'] = File.read("#{app_path}/public/images/pixel.png")
+            attachments['pixel.png'] = File.read("#{app_path}/public/images/pixel.png", mode: 'rb')
             mail to: "to@example.org"
           end
         end
@@ -586,6 +590,7 @@ module ApplicationTests
       get "/rails/mailers/notifier/foo?part=text/html"
       assert_equal 200, last_response.status
       assert_match %r[<p>Hello, World!</p>], last_response.body
+      assert_match %r[src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEWzIioca/JlAAAACklEQVQI12NgAAAAAgAB4iG8MwAAAABJRU5ErkJgggo="], last_response.body
     end
 
     test "multipart mailer preview with attached email" do
@@ -668,7 +673,7 @@ module ApplicationTests
       end
 
       def image_file(name, contents)
-        app_file("public/images/#{name}", Base64.decode64(contents))
+        app_file("public/images/#{name}", Base64.strict_decode64(contents), 'wb')
       end
   end
 end
