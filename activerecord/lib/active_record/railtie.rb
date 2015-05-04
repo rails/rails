@@ -93,6 +93,7 @@ module ActiveRecord
               cache = Marshal.load File.binread filename
               if cache.version == ActiveRecord::Migrator.current_version
                 self.connection.schema_cache = cache
+                self.connection_pool.schema_cache = cache.dup
               else
                 warn "Ignoring db/schema_cache.dump because it has expired. The current schema version is #{ActiveRecord::Migrator.current_version}, but the one in the cache is #{cache.version}."
               end
