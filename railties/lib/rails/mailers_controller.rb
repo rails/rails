@@ -56,7 +56,7 @@ class Rails::MailersController < Rails::ApplicationController # :nodoc:
     def find_preferred_part(*formats)
       if @email.multipart?
         formats.each do |format|
-          return find_part(format) if @email.parts.any?{ |p| p.mime_type == format }
+          return find_part(format) if parts_enumerator.any?{ |p| p.mime_type == format }
         end
       else
         @email
@@ -65,9 +65,19 @@ class Rails::MailersController < Rails::ApplicationController # :nodoc:
 
     def find_part(format)
       if @email.multipart?
-        @email.parts.find{ |p| p.mime_type == format }
+        parts_enumerator.find{ |p| p.mime_type == format }
       elsif @email.mime_type == format
         @email
+      end
+    end
+
+    # Recursively enumerates the email parts.
+    def parts_enumerator(root=@email)
+      Enumerator.new do |out|
+        root.parts.each do |part|
+          out << part
+          parts_enumerator(part).each { |p| out << p }
+        end
       end
     end
 end
