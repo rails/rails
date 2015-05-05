@@ -15,6 +15,7 @@ require "active_record/connection_adapters/postgresql/utils"
 require "active_record/connection_adapters/statement_pool"
 
 require 'arel/visitors/bind_visitor'
+require 'active_support/core_ext/string/strip'
 
 require 'ipaddr'
 
@@ -597,13 +598,13 @@ module ActiveRecord
           initializer = OID::TypeMapInitializer.new(type_map)
 
           if supports_ranges?
-            query = <<-SQL
+            query = <<-SQL.strip_heredoc
               SELECT t.oid, t.typname, t.typelem, t.typdelim, t.typinput, r.rngsubtype, t.typtype, t.typbasetype
               FROM pg_type as t
               LEFT JOIN pg_range as r ON oid = rngtypid
             SQL
           else
-            query = <<-SQL
+            query = <<-SQL.strip_heredoc
               SELECT t.oid, t.typname, t.typelem, t.typdelim, t.typinput, t.typtype, t.typbasetype
               FROM pg_type as t
             SQL
@@ -770,7 +771,7 @@ module ActiveRecord
         #  - format_type includes the column size constraint, e.g. varchar(50)
         #  - ::regclass is a function that gives the id for a table name
         def column_definitions(table_name) # :nodoc:
-          query(<<-end_sql, 'SCHEMA')
+          query(<<-end_sql.strip_heredoc, 'SCHEMA')
               SELECT a.attname, format_type(a.atttypid, a.atttypmod),
                      pg_get_expr(d.adbin, d.adrelid), a.attnotnull, a.atttypid, a.atttypmod,
              (SELECT c.collname FROM pg_collation c, pg_type t
@@ -795,7 +796,7 @@ module ActiveRecord
         def can_perform_case_insensitive_comparison_for?(column)
           @case_insensitive_cache ||= {}
           @case_insensitive_cache[column.sql_type] ||= begin
-            sql = <<-end_sql
+            sql = <<-end_sql.strip_heredoc
               SELECT exists(
                 SELECT * FROM pg_proc
                 INNER JOIN pg_cast
@@ -830,7 +831,7 @@ module ActiveRecord
             'bool' => PG::TextDecoder::Boolean,
           }
           known_coder_types = coders_by_name.keys.map { |n| quote(n) }
-          query = <<-SQL % known_coder_types.join(", ")
+          query = <<-SQL.strip_heredoc % known_coder_types.join(", ")
             SELECT t.oid, t.typname
             FROM pg_type as t
             WHERE t.typname IN (%s)

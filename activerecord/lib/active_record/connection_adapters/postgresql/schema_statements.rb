@@ -1,3 +1,5 @@
+require 'active_support/core_ext/string/strip'
+
 module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
@@ -70,7 +72,7 @@ module ActiveRecord
 
         # Returns the list of all tables in the schema search path or a specified schema.
         def tables(name = nil)
-          select_values(<<-SQL, 'SCHEMA')
+          select_values(<<-SQL.strip_heredoc, 'SCHEMA')
             SELECT tablename
             FROM pg_tables
             WHERE schemaname = ANY (current_schemas(false))
@@ -84,7 +86,7 @@ module ActiveRecord
           name = Utils.extract_schema_qualified_name(name.to_s)
           return false unless name.identifier
 
-          select_value(<<-SQL, 'SCHEMA').to_i > 0
+          select_value(<<-SQL.strip_heredoc, 'SCHEMA').to_i > 0
               SELECT COUNT(*)
               FROM pg_class c
               LEFT JOIN pg_namespace n ON n.oid = c.relnamespace
@@ -100,7 +102,7 @@ module ActiveRecord
 
         # Returns true if schema exists.
         def schema_exists?(name)
-          select_value(<<-SQL, 'SCHEMA').to_i > 0
+          select_value(<<-SQL.strip_heredoc, 'SCHEMA').to_i > 0
             SELECT COUNT(*)
             FROM pg_namespace
             WHERE nspname = '#{name}'
@@ -109,7 +111,7 @@ module ActiveRecord
 
         # Verifies existence of an index with a given name.
         def index_name_exists?(table_name, index_name, default)
-          select_value(<<-SQL, 'SCHEMA').to_i > 0
+          select_value(<<-SQL.strip_heredoc, 'SCHEMA').to_i > 0
             SELECT COUNT(*)
             FROM pg_class t
             INNER JOIN pg_index d ON t.oid = d.indrelid
@@ -123,7 +125,7 @@ module ActiveRecord
 
         # Returns an array of indexes for the given table.
         def indexes(table_name, name = nil)
-           result = query(<<-SQL, 'SCHEMA')
+           result = query(<<-SQL.strip_heredoc, 'SCHEMA')
              SELECT distinct i.relname, d.indisunique, d.indkey, pg_get_indexdef(d.indexrelid), t.oid
              FROM pg_class t
              INNER JOIN pg_index d ON t.oid = d.indrelid
@@ -142,7 +144,7 @@ module ActiveRecord
             inddef = row[3]
             oid = row[4]
 
-            columns = Hash[query(<<-SQL, "SCHEMA")]
+            columns = Hash[query(<<-SQL.strip_heredoc, "SCHEMA")]
             SELECT a.attnum, a.attname
             FROM pg_attribute a
             WHERE a.attrelid = #{oid}
@@ -192,7 +194,7 @@ module ActiveRecord
 
         # Returns the current database encoding format.
         def encoding
-          select_value(<<-end_sql, 'SCHEMA')
+          select_value(<<-end_sql.strip_heredoc, 'SCHEMA')
             SELECT pg_encoding_to_char(pg_database.encoding) FROM pg_database
             WHERE pg_database.datname LIKE '#{current_database}'
           end_sql
@@ -200,21 +202,21 @@ module ActiveRecord
 
         # Returns the current database collation.
         def collation
-          select_value(<<-end_sql, 'SCHEMA')
+          select_value(<<-end_sql.strip_heredoc, 'SCHEMA')
             SELECT pg_database.datcollate FROM pg_database WHERE pg_database.datname LIKE '#{current_database}'
           end_sql
         end
 
         # Returns the current database ctype.
         def ctype
-          select_value(<<-end_sql, 'SCHEMA')
+          select_value(<<-end_sql.strip_heredoc, 'SCHEMA')
             SELECT pg_database.datctype FROM pg_database WHERE pg_database.datname LIKE '#{current_database}'
           end_sql
         end
 
         # Returns an array of schema names.
         def schema_names
-          select_values(<<-SQL, 'SCHEMA')
+          select_values(<<-SQL.strip_heredoc, 'SCHEMA')
             SELECT nspname
               FROM pg_namespace
              WHERE nspname !~ '^pg_.*'
@@ -304,7 +306,7 @@ module ActiveRecord
           if pk && sequence
             quoted_sequence = quote_table_name(sequence)
 
-            select_value(<<-end_sql, 'SCHEMA')
+            select_value(<<-end_sql.strip_heredoc, 'SCHEMA')
               SELECT setval('#{quoted_sequence}', (SELECT COALESCE(MAX(#{quote_column_name pk})+(SELECT increment_by FROM #{quoted_sequence}), (SELECT min_value FROM #{quoted_sequence})) FROM #{quote_table_name(table)}), false)
             end_sql
           end
@@ -314,7 +316,7 @@ module ActiveRecord
         def pk_and_sequence_for(table) #:nodoc:
           # First try looking for a sequence with a dependency on the
           # given table's primary key.
-          result = query(<<-end_sql, 'SCHEMA')[0]
+          result = query(<<-end_sql.strip_heredoc, 'SCHEMA')[0]
             SELECT attr.attname, nsp.nspname, seq.relname
             FROM pg_class      seq,
                  pg_attribute  attr,
@@ -334,7 +336,7 @@ module ActiveRecord
           end_sql
 
           if result.nil? or result.empty?
-            result = query(<<-end_sql, 'SCHEMA')[0]
+            result = query(<<-end_sql.strip_heredoc, 'SCHEMA')[0]
               SELECT attr.attname, nsp.nspname,
                 CASE
                   WHEN pg_get_expr(def.adbin, def.adrelid) !~* 'nextval' THEN NULL
@@ -366,7 +368,7 @@ module ActiveRecord
 
         # Returns just a table's primary key
         def primary_key(table)
-          pks = query(<<-end_sql, 'SCHEMA')
+          pks = query(<<-end_sql.strip_heredoc, 'SCHEMA')
             SELECT attr.attname
             FROM pg_attribute attr
             INNER JOIN pg_constraint cons ON attr.attrelid = cons.conrelid AND attr.attnum = any(cons.conkey)
