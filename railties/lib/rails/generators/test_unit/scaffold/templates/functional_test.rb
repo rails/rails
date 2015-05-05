@@ -4,6 +4,9 @@ require 'test_helper'
 class <%= controller_class_name %>ControllerTest < ActionController::TestCase
   setup do
     @<%= singular_table_name %> = <%= table_name %>(:one)
+<% if defined?(ENGINE_ROOT) -%>
+    @routes = Engine.routes
+<% end -%>
   end
 
   test "should get index" do

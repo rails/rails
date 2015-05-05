@@ -508,6 +508,21 @@ class PluginGeneratorTest < Rails::Generators::TestCase
       assert_match(/namespace :admin/, contents)
       assert_no_match(/namespace :bukkit/, contents)
     end
+    assert_file "test/controllers/bukkits/admin/dashboard_controller_test.rb" do |contents|
+      assert_match(/@routes = Engine.routes/, contents)
+    end
+  end
+
+  def test_generating_scaffold_controller_inside_mountable_engine
+    run_generator [destination_root, "--mountable"]
+
+    capture(:stdout) do
+      `#{destination_root}/bin/rails g scaffold User name:string age:integer`
+    end
+
+    assert_file "test/controllers/bukkits/users_controller_test.rb" do |contents|
+      assert_match(/@routes = Engine.routes/, contents)
+    end
   end
 
   def test_git_name_and_email_in_gemspec_file
