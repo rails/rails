@@ -177,6 +177,8 @@ WARNING: A [long-standing bug](https://github.com/rails/rails/issues/1769) preve
 
 ```ruby
 form_for @geocoder, url: geocoder_path do |f|
+
+# snipped for brevity
 ```
 
 ### Controller Namespaces and Routing
