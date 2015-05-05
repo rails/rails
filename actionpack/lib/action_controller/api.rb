@@ -5,14 +5,14 @@ require 'action_controller/log_subscriber'
 module ActionController
   # API Controller is a lightweight version of <tt>ActionController::Base</tt>,
   # created for applications that don't require all functionality that a complete
-  # \Rails controller provides, allowing you to create faster controllers for
-  # example for API only applications.
+  # \Rails controller provides, allowing you to create controllers with just the
+  # features that you need for API only applications.
   #
   # An API Controller is different from a normal controller in the sense that
   # by default it doesn't include a number of features that are usually required
   # by browser access only: layouts and templates rendering, cookies, sessions,
-  # flash, assets, and so on. This makes the entire controller stack thinner and
-  # faster, suitable for API applications. It doesn't mean you won't have such
+  # flash, assets, and so on. This makes the entire controller stack thinner,
+  # suitable for API applications. It doesn't mean you won't have such
   # features if you need them: they're all available for you to include in
   # your application, they're just not part of the default API Controller stack.
   #
