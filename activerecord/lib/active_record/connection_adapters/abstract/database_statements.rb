@@ -40,8 +40,9 @@ module ActiveRecord
 
       # Returns a single value from a record
       def select_value(arel, name = nil, binds = [])
-        if result = select_one(arel, name, binds)
-          result.values.first
+        arel, binds = binds_from_relation arel, binds
+        if result = select_rows(to_sql(arel, binds), name, binds).first
+          result.first
         end
       end
 
