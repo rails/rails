@@ -29,13 +29,13 @@ class ConditionalGetApiTest < ActionController::TestCase
     @last_modified = Time.now.utc.beginning_of_day.httpdate
   end
 
-  def test_request_with_bang_gets_last_modified
+  def test_request_gets_last_modified
     get :two
     assert_equal @last_modified, @response.headers['Last-Modified']
     assert_response :success
   end
 
-  def test_request_with_bang_obeys_last_modified
+  def test_request_obeys_last_modified
     @request.if_modified_since = @last_modified
     get :two
     assert_response :not_modified
