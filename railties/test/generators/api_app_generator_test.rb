@@ -72,6 +72,8 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
       test/controllers
       test/integration
       test/models
+      tmp
+      vendor
     )
     files.concat %w(bin/bundle bin/rails bin/rake)
     files

@@ -252,17 +252,19 @@ module Rails
       end
 
       def create_tmp_files
-        build(:tmp) unless options[:api]
+        build(:tmp)
       end
 
       def create_vendor_files
-        build(:vendor) unless options[:api]
+        build(:vendor)
       end
 
       def delete_app_assets_if_api_option
         if options[:api]
           remove_dir 'app/assets'
           remove_dir 'lib/assets'
+          remove_dir 'tmp/cache/assets'
+          remove_dir 'vendor/assets'
         end
       end
 
