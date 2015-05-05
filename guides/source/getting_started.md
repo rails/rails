@@ -377,7 +377,7 @@ edit_article GET    /articles/:id/edit(.:format) articles#edit
 
 In the next section, you will add the ability to create new articles in your
 application and be able to view them. This is the "C" and the "R" from CRUD:
-creation and reading. The form for doing this will look like this:
+create and read. The form for doing this will look like this:
 
 ![The new article form](images/getting_started/new_article.png)
 
