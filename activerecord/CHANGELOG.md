@@ -345,6 +345,10 @@
 
     *Ryuta Kamizono*
 
+*   Remove `ActiveRecord::Serialization::XmlSerializer` from core.
+
+    *Zachary Scott*
+
 *   Make `unscope` aware of "less than" and "greater than" conditions.
 
     *TAKAHASHI Kazuaki*

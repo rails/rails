@@ -18,5 +18,3 @@ module ActiveRecord #:nodoc:
     end
   end
 end
-
-require 'active_record/serializers/xml_serializer'
