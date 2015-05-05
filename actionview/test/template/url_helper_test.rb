@@ -485,8 +485,8 @@ class UrlHelperTest < ActiveSupport::TestCase
   end
 
   def test_link_to_unless_with_block
-    assert_equal %{<a href="/">Showing</a>}, link_to_unless(false, "Showing", url_hash) { "Fallback" }
-    assert_dom_equal "Fallback", link_to_unless(true, "Listing", url_hash) { "Fallback" }
+    assert_dom_equal %{<a href="/">Showing</a>}, link_to_unless(false, "Showing", url_hash) { "Fallback" }
+    assert_equal "Fallback", link_to_unless(true, "Listing", url_hash) { "Fallback" }
   end
 
   def test_mail_to
