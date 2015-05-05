@@ -16,7 +16,6 @@ module ActionController
   autoload :FormBuilder
 
   autoload_under "metal" do
-    autoload :Compatibility
     autoload :ConditionalGet
     autoload :Cookies
     autoload :DataStreaming
