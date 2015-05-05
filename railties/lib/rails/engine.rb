@@ -206,42 +206,51 @@ module Rails
   # With such an engine, everything that is inside the +MyEngine+ module will be isolated from
   # the application.
   #
-  # Consider such controller:
+  # Consider this controller:
   #
   #   module MyEngine
   #     class FooController < ActionController::Base
   #     end
   #   end
   #
-  # If an engine is marked as isolated, +FooController+ has access only to helpers from +Engine+ and
-  # <tt>url_helpers</tt> from <tt>MyEngine::Engine.routes</tt>.
+  # If the +MyEngine+ engine is marked as isolated, +FooController+ only has
+  # access to helpers from +MyEngine+, and <tt>url_helpers</tt> from
+  # <tt>MyEngine::Engine.routes</tt>.
   #
-  # The next thing that changes in isolated engines is the behavior of routes. Normally, when you namespace
-  # your controllers, you also need to namespace all your routes. With an isolated engine,
-  # the namespace is applied by default, so you can ignore it in routes:
+  # The next thing that changes in isolated engines is the behavior of routes.
+  # Normally, when you namespace your controllers, you also need to namespace
+  # the related routes. With an isolated engine, the engine's namespace is
+  # automatically applied, so you don't need to specify it explicity in your
+  # routes:
   #
   #   MyEngine::Engine.routes.draw do
   #     resources :articles
   #   end
   #
-  # The routes above will automatically point to <tt>MyEngine::ArticlesController</tt>. Furthermore, you don't
-  # need to use longer url helpers like <tt>my_engine_articles_path</tt>. Instead, you should simply use
-  # <tt>articles_path</tt> as you would do with your application.
+  # If +MyEngine+ is isolated, The routes above will point to
+  # <tt>MyEngine::ArticlesController</tt>. You also don't need to use longer
+  # url helpers like +my_engine_articles_path+. Instead, you should simply use
+  # +articles_path+, like you would do with your main application.
   #
-  # To make that behavior consistent with other parts of the framework, an isolated engine also has influence on
-  # <tt>ActiveModel::Naming</tt>. When you use a namespaced model, like <tt>MyEngine::Article</tt>, it will normally
-  # use the prefix "my_engine". In an isolated engine, the prefix will be omitted in url helpers and
-  # form fields for convenience.
+  # To make this behavior consistent with other parts of the framework,
+  # isolated engines also have an effect on <tt>ActiveModel::Naming</tt>. In a
+  # normal Rails app, when you use a namespaced model such as
+  # <tt>Namespace::Article</tt>, <tt>ActiveModel::Naming</tt> will generate
+  # names with the prefix "namespace". In an isolated engine, the prefix will
+  # be omitted in url helpers and form fields, for convenience.
   #
-  #   polymorphic_url(MyEngine::Article.new) # => "articles_path"
+  #   polymorphic_url(MyEngine::Article.new)
+  #   # => "articles_path" # not "my_engine_articles_path"
   #
   #   form_for(MyEngine::Article.new) do
   #     text_field :title # => <input type="text" name="article[title]" id="article_title" />
   #   end
   #
-  # Additionally, an isolated engine will set its name according to namespace, so
-  # MyEngine::Engine.engine_name will be "my_engine". It will also set MyEngine.table_name_prefix
-  # to "my_engine_", changing the MyEngine::Article model to use the my_engine_articles table.
+  # Additionally, an isolated engine will set its own name according to its
+  # namespace, so <tt>MyEngine::Engine.engine_name</tt> will return
+  # "my_engine". It will also set +MyEngine.table_name_prefix+ to "my_engine_",
+  # meaning for example that <tt>MyEngine::Article</tt> will use the
+  # +my_engine_articles+ database table by default.
   #
   # == Using Engine's routes outside Engine
   #
