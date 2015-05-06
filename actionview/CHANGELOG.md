@@ -1,3 +1,9 @@
+*   Create a new `ActiveSupport::SafeBuffer` instance when `content_for` is flushed.
+
+    Fixes #19890
+
+    *Yoong Kang Lim*
+    
 *   Do not put partial name to `local_assigns` when rendering without
     an object or a collection.
 
