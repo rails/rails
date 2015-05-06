@@ -830,19 +830,6 @@ module ActiveRecord
         MysqlTypeMetadata.new(super(sql_type), collation: collation, extra: extra, strict: strict_mode?)
       end
 
-      # MySQL is too stupid to create a temporary table for use subquery, so we have
-      # to give it some prompting in the form of a subsubquery. Ugh!
-      def subquery_for(key, select)
-        subsubselect = select.clone
-        subsubselect.projections = [key]
-
-        subselect = Arel::SelectManager.new(select.engine)
-        subselect.project Arel.sql(key.name)
-        # Materialized subquery by adding distinct
-        # to work with MySQL 5.7.6 which sets optimizer_switch='derived_merge=on'
-        subselect.from subsubselect.distinct.as('__active_record_temp')
-      end
-
       def add_index_length(option_strings, column_names, options = {})
         if options.is_a?(Hash) && length = options[:length]
           case length
@@ -942,6 +929,19 @@ module ActiveRecord
       end
 
       private
+
+      # MySQL is too stupid to create a temporary table for use subquery, so we have
+      # to give it some prompting in the form of a subsubquery. Ugh!
+      def subquery_for(key, select)
+        subsubselect = select.clone
+        subsubselect.projections = [key]
+
+        subselect = Arel::SelectManager.new(select.engine)
+        subselect.project Arel.sql(key.name)
+        # Materialized subquery by adding distinct
+        # to work with MySQL 5.7.6 which sets optimizer_switch='derived_merge=on'
+        subselect.from subsubselect.distinct.as('__active_record_temp')
+      end
 
       def version
         @version ||= full_version.scan(/^(\d+)\.(\d+)\.(\d+)/).flatten.map(&:to_i)
