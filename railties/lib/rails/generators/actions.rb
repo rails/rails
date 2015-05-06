@@ -6,6 +6,7 @@ module Rails
       def initialize(*) # :nodoc:
         super
         @in_group = nil
+        @prepend = nil
         @after_bundle_callbacks = []
       end
 
@@ -37,7 +38,12 @@ module Rails
           str = "gem #{parts.join(", ")}"
           str = "  " + str if @in_group
           str = "\n" + str
-          append_file "Gemfile", str, verbose: false
+
+          if @prepend
+            prepend_file "Gemfile", str, verbose: false
+          else
+            append_file "Gemfile", str, verbose: false
+          end
         end
       end
 
@@ -64,11 +70,25 @@ module Rails
       # Add the given source to +Gemfile+
       #
       #   add_source "http://gems.github.com/"
-      def add_source(source, options={})
+      def add_source(source, options={}, &block)
         log :source, source
 
         in_root do
-          prepend_file "Gemfile", "source #{quote(source)}\n", verbose: false
+          if block_given?
+            prepend_file "Gemfile", "\nend\n", force: true, verbose: false
+
+            @in_group = true
+            @prepend = true
+            instance_eval(&block)
+            @in_group = false
+            @prepend = false
+
+            source_string = "source #{quote(source)} do"
+          else
+            source_string = "source #{quote(source)}\n"
+          end
+
+          prepend_file "Gemfile", source_string, verbose: false
         end
       end
 
