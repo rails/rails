@@ -10,7 +10,7 @@ module ActiveRecord
         end
 
         def accept(o)
-          m = @cache[o.class] ||= "visit_#{o.class.name.split('::').last}"
+          m = @cache[o.class] ||= "visit_#{o.class.name.split('::').last.underscore}"
           send m, o
         end
 
@@ -19,25 +19,25 @@ module ActiveRecord
 
         private
 
-          def visit_AlterTable(o)
+          def visit_alter_table(o)
             sql = "ALTER TABLE #{quote_table_name(o.name)} "
             sql << o.adds.map { |col| accept col }.join(' ')
-            sql << o.foreign_key_adds.map { |fk| visit_AddForeignKey fk }.join(' ')
-            sql << o.foreign_key_drops.map { |fk| visit_DropForeignKey fk }.join(' ')
+            sql << o.foreign_key_adds.map { |fk| visit_add_foreign_key fk }.join(' ')
+            sql << o.foreign_key_drops.map { |fk| visit_drop_foreign_key fk }.join(' ')
           end
 
-          def visit_ColumnDefinition(o)
+          def visit_column_definition(o)
             o.sql_type ||= type_to_sql(o.type, o.limit, o.precision, o.scale)
             column_sql = "#{quote_column_name(o.name)} #{o.sql_type}"
             add_column_options!(column_sql, column_options(o)) unless o.type == :primary_key
             column_sql
           end
 
-          def visit_AddColumnDefinition(o)
+          def visit_add_column_definition(o)
             "ADD #{accept(o.column)}"
           end
 
-          def visit_TableDefinition(o)
+          def visit_table_definition(o)
             create_sql = "CREATE#{' TEMPORARY' if o.temporary} TABLE "
             create_sql << "#{quote_table_name(o.name)} "
             create_sql << "(#{o.columns.map { |c| accept c }.join(', ')}) " unless o.as
@@ -46,7 +46,7 @@ module ActiveRecord
             create_sql
           end
 
-          def visit_AddForeignKey(o)
+          def visit_add_foreign_key(o)
             sql = <<-SQL.strip_heredoc
               ADD CONSTRAINT #{quote_column_name(o.name)}
               FOREIGN KEY (#{quote_column_name(o.column)})
@@ -57,7 +57,7 @@ module ActiveRecord
             sql
           end
 
-          def visit_DropForeignKey(name)
+          def visit_drop_foreign_key(name)
             "DROP CONSTRAINT #{quote_column_name(name)}"
           end
 

@@ -4,7 +4,7 @@ module ActiveRecord
       class SchemaCreation < AbstractAdapter::SchemaCreation
         private
 
-        def visit_ColumnDefinition(o)
+        def visit_column_definition(o)
           o.sql_type = type_to_sql(o.type, o.limit, o.precision, o.scale, o.array)
           super
         end
