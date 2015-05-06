@@ -22,8 +22,7 @@ chdir APP_ROOT do
   system 'ruby bin/rake db:setup'
 
   puts "\n== Removing old logs and tempfiles =="
-  rm_f Dir.glob('log/*')
-  rm_rf 'tmp/cache'
+  system 'ruby bin/rake log:clear tmp:clear'
 
   puts "\n== Restarting application server =="
   touch 'tmp/restart.txt'

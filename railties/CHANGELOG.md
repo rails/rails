@@ -1,3 +1,7 @@
+*   `bin/setup` uses built-in rake tasks (`log:clear`, `tmp:clear`).
+
+    *Mohnish Thallavajhula*
+
 *   Fix mailer previews with attachments by using the mail gem's own API to
     locate the first part of the correct mime type.
 
