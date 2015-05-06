@@ -831,7 +831,7 @@ class ArticlesController < ApplicationController
   def new
   end
 
-  # snipped for brevity
+  # snippet for brevity
 ```
 
 A couple of things to note. We use `Article.find` to find the article we're
@@ -887,7 +887,7 @@ class ArticlesController < ApplicationController
   def new
   end
 
-  # snipped for brevity
+  # snippet for brevity
 ```
 
 And then finally, add the view for this action, located at
@@ -1993,7 +1993,7 @@ class ArticlesController < ApplicationController
     @articles = Article.all
   end
 
-  # snipped for brevity
+  # snippet for brevity
 ```
 
 We also want to allow only authenticated users to delete comments, so in the
@@ -2009,7 +2009,7 @@ class CommentsController < ApplicationController
     # ...
   end
 
-  # snipped for brevity
+  # snippet for brevity
 ```
 
 Now if you try to create a new article, you will be greeted with a basic HTTP
