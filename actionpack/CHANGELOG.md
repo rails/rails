@@ -281,7 +281,7 @@
 
 *   Ensure `append_info_to_payload` is called even if an exception is raised.
 
-    Fixes an issue where when an exception is raised in the request the additonal
+    Fixes an issue where when an exception is raised in the request the additional
     payload data is not available.
 
     See:
