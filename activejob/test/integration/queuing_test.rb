@@ -56,9 +56,13 @@ class QueuingTest < ActiveSupport::TestCase
     end
   end
 
-  test 'should supply a provider_job_id to DelayedJob' do
-    skip unless adapter_is?(:delayed_job)
+  test 'should supply a provider_job_id when available' do
+    skip unless adapter_is?(:sidekiq) || adapter_is?(:que) || adapter_is?(:delayed_job)
     test_job = TestJob.perform_later @id
-    assert_kind_of Fixnum, test_job.provider_job_id
+    refute test_job.provider_job_id.nil?, "Provider job id should be set by provider"
+
+    delayed_test_job = TestJob.set(wait: 1.minute).perform_later @id
+    refute delayed_test_job.provider_job_id.nil?,
+      "Provider job id should by set for delayed jobs by provider"
   end
 end
