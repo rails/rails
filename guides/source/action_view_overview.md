@@ -552,7 +552,7 @@ end
 ```ruby
 atom_feed do |feed|
   feed.title("Articles Index")
-  feed.updated((@articles.first.created_at))
+  feed.updated(@articles.first.created_at)
 
   @articles.each do |article|
     feed.entry(article) do |entry|
