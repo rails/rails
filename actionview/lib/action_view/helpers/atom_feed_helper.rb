@@ -16,7 +16,7 @@ module ActionView
       #     end
       #
       #   app/controllers/posts_controller.rb:
-      #     class PostsController < ApplicationController::Base
+      #     class PostsController < ApplicationController
       #       # GET /posts.html
       #       # GET /posts.atom
       #       def index
