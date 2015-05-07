@@ -14,7 +14,7 @@ module Rails
 
     class Base < Thor::Group
       include Thor::Actions
-      include Rails::Generators::Actions
+      include Actions
 
       add_runtime_options!
       strict_args_position!
