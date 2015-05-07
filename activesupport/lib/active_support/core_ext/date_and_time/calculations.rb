@@ -125,9 +125,21 @@ module DateAndTime
     alias :at_beginning_of_year :beginning_of_year
 
     # Returns a new date/time representing the given day in the next week.
+    #
+    #   today = Date.today # => Thu, 07 May 2015
+    #   today.next_week    # => Mon, 11 May 2015
+    #
     # The +given_day_in_next_week+ defaults to the beginning of the week
     # which is determined by +Date.beginning_of_week+ or +config.beginning_of_week+
-    # when set. +DateTime+ objects have their time set to 0:00 unless +same_time+ is true.
+    # when set.
+    #
+    #   today = Date.today       # => Thu, 07 May 2015
+    #   today.next_week(:friday) # => Fri, 15 May 2015
+    #
+    # +DateTime+ objects have their time set to 0:00 unless +same_time+ is true.
+    #
+    #   now = Time.current # => Thu, 07 May 2015 13:31:16 UTC +00:00
+    #   now.next_week      # => Mon, 11 May 2015 00:00:00 UTC +00:00
     def next_week(given_day_in_next_week = Date.beginning_of_week, same_time: false)
       result = first_hour(weeks_since(1).beginning_of_week.days_since(days_span(given_day_in_next_week)))
       same_time ? copy_time_to(result) : result
