@@ -7,15 +7,32 @@ require 'models/subscriber'
 require 'models/vegetables'
 require 'models/shop'
 
+module InheritanceTestHelper
+  def with_store_full_sti_class(&block)
+    assign_store_full_sti_class true, &block
+  end
+
+  def without_store_full_sti_class(&block)
+    assign_store_full_sti_class false, &block
+  end
+
+  def assign_store_full_sti_class(flag)
+    old_store_full_sti_class = ActiveRecord::Base.store_full_sti_class
+    ActiveRecord::Base.store_full_sti_class = flag
+    yield
+  ensure
+    ActiveRecord::Base.store_full_sti_class = old_store_full_sti_class
+  end
+end
+
 class InheritanceTest < ActiveRecord::TestCase
+  include InheritanceTestHelper
   fixtures :companies, :projects, :subscribers, :accounts, :vegetables
 
   def test_class_with_store_full_sti_class_returns_full_name
-    old = ActiveRecord::Base.store_full_sti_class
-    ActiveRecord::Base.store_full_sti_class = true
-    assert_equal 'Namespaced::Company', Namespaced::Company.sti_name
-  ensure
-    ActiveRecord::Base.store_full_sti_class = old
+    with_store_full_sti_class do
+      assert_equal 'Namespaced::Company', Namespaced::Company.sti_name
+    end
   end
 
   def test_class_with_blank_sti_name
@@ -33,39 +50,31 @@ class InheritanceTest < ActiveRecord::TestCase
   end
 
   def test_class_without_store_full_sti_class_returns_demodulized_name
-    old = ActiveRecord::Base.store_full_sti_class
-    ActiveRecord::Base.store_full_sti_class = false
-    assert_equal 'Company', Namespaced::Company.sti_name
-  ensure
-    ActiveRecord::Base.store_full_sti_class = old
+    without_store_full_sti_class do
+      assert_equal 'Company', Namespaced::Company.sti_name
+    end
   end
 
   def test_should_store_demodulized_class_name_with_store_full_sti_class_option_disabled
-    old = ActiveRecord::Base.store_full_sti_class
-    ActiveRecord::Base.store_full_sti_class = false
-    item = Namespaced::Company.new
-    assert_equal 'Company', item[:type]
-  ensure
-    ActiveRecord::Base.store_full_sti_class = old
+    without_store_full_sti_class do
+      item = Namespaced::Company.new
+      assert_equal 'Company', item[:type]
+    end
   end
 
   def test_should_store_full_class_name_with_store_full_sti_class_option_enabled
-    old = ActiveRecord::Base.store_full_sti_class
-    ActiveRecord::Base.store_full_sti_class = true
-    item = Namespaced::Company.new
-    assert_equal 'Namespaced::Company', item[:type]
-  ensure
-    ActiveRecord::Base.store_full_sti_class = old
+    with_store_full_sti_class do
+      item = Namespaced::Company.new
+      assert_equal 'Namespaced::Company', item[:type]
+    end
   end
 
   def test_different_namespace_subclass_should_load_correctly_with_store_full_sti_class_option
-    old = ActiveRecord::Base.store_full_sti_class
-    ActiveRecord::Base.store_full_sti_class = true
-    item = Namespaced::Company.create :name => "Wolverine 2"
-    assert_not_nil Company.find(item.id)
-    assert_not_nil Namespaced::Company.find(item.id)
-  ensure
-    ActiveRecord::Base.store_full_sti_class = old
+    with_store_full_sti_class do
+      item = Namespaced::Company.create name: "Wolverine 2"
+      assert_not_nil Company.find(item.id)
+      assert_not_nil Namespaced::Company.find(item.id)
+    end
   end
 
   def test_company_descends_from_active_record
@@ -331,6 +340,7 @@ class InheritanceTest < ActiveRecord::TestCase
 end
 
 class InheritanceComputeTypeTest < ActiveRecord::TestCase
+  include InheritanceTestHelper
   fixtures :companies
 
   def setup
@@ -344,27 +354,26 @@ class InheritanceComputeTypeTest < ActiveRecord::TestCase
   end
 
   def test_instantiation_doesnt_try_to_require_corresponding_file
-    ActiveRecord::Base.store_full_sti_class = false
-    foo = Firm.first.clone
-    foo.type = 'FirmOnTheFly'
-    foo.save!
+    without_store_full_sti_class do
+      foo = Firm.first.clone
+      foo.type = 'FirmOnTheFly'
+      foo.save!
 
-    # Should fail without FirmOnTheFly in the type condition.
-    assert_raise(ActiveRecord::RecordNotFound) { Firm.find(foo.id) }
+      # Should fail without FirmOnTheFly in the type condition.
+      assert_raise(ActiveRecord::RecordNotFound) { Firm.find(foo.id) }
 
-    # Nest FirmOnTheFly in the test case where Dependencies won't see it.
-    self.class.const_set :FirmOnTheFly, Class.new(Firm)
-    assert_raise(ActiveRecord::SubclassNotFound) { Firm.find(foo.id) }
+      # Nest FirmOnTheFly in the test case where Dependencies won't see it.
+      self.class.const_set :FirmOnTheFly, Class.new(Firm)
+      assert_raise(ActiveRecord::SubclassNotFound) { Firm.find(foo.id) }
 
-    # Nest FirmOnTheFly in Firm where Dependencies will see it.
-    # This is analogous to nesting models in a migration.
-    Firm.const_set :FirmOnTheFly, Class.new(Firm)
+      # Nest FirmOnTheFly in Firm where Dependencies will see it.
+      # This is analogous to nesting models in a migration.
+      Firm.const_set :FirmOnTheFly, Class.new(Firm)
 
-    # And instantiate will find the existing constant rather than trying
-    # to require firm_on_the_fly.
-    assert_nothing_raised { assert_kind_of Firm::FirmOnTheFly, Firm.find(foo.id) }
-  ensure
-    ActiveRecord::Base.store_full_sti_class = true
+      # And instantiate will find the existing constant rather than trying
+      # to require firm_on_the_fly.
+      assert_nothing_raised { assert_kind_of Firm::FirmOnTheFly, Firm.find(foo.id) }
+    end
   end
 
   def test_sti_type_from_attributes_disabled_in_non_sti_class
