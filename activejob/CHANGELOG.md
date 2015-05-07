@@ -1,3 +1,10 @@
+*   Allow `DelayedJob` to report id back to `ActiveJob::Base` as
+    `provider_job_id`.
+
+    Fixes #18821.
+
+    *Kevin Deisz*
+
 *   `assert_enqueued_jobs` and `assert_performed_jobs` in block form use the
     given number as expected value. This makes the error message much easier to
     understand.
