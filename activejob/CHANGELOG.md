@@ -1,3 +1,8 @@
+*   Allow `Sidekiq` to report the job id back to `ActiveJob::Base` as
+    `provider_job_id`
+
+    *Jeroen van Baarsen*
+
 *   Allow `DelayedJob` to report id back to `ActiveJob::Base` as
     `provider_job_id`.
 
