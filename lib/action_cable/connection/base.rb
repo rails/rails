@@ -24,8 +24,7 @@ module ActionCable
         @pending_messages = []
         @subscriptions = {}
 
-        @logger = TaggedLoggerProxy.new(server.logger, tags: [ 'ActionCable' ])
-        @logger.add_tags(*logger_tags)
+        @logger = TaggedLoggerProxy.new(server.logger, tags: log_tags)
       end
 
       def process
@@ -205,9 +204,10 @@ module ActionCable
           logger.error e.backtrace.join("\n")
         end
 
-        def logger_tags
-          []
+        def log_tags
+          server.log_tags.map { |tag| tag.respond_to?(:call) ? tag.call(request) : tag.to_s.camelize }
         end
+
     end
   end
 end
