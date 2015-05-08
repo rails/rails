@@ -21,6 +21,7 @@ module ActiveJob
           'class'   => JobWrapper,
           'wrapped' => job.class.to_s,
           'queue'   => job.queue_name,
+          'retry'   => job.max_retry || true,
           'args'    => [ job.serialize ]
       end
 
@@ -29,6 +30,7 @@ module ActiveJob
           'class'   => JobWrapper,
           'wrapped' => job.class.to_s,
           'queue'   => job.queue_name,
+          'retry'   => job.max_retry || true,
           'args'    => [ job.serialize ],
           'at'      => timestamp
       end

@@ -18,6 +18,9 @@ module ActiveJob
       # Queue in which the job will reside.
       attr_writer :queue_name
 
+      # max retry for adapters that have supports retry
+      attr_writer :max_retry
+
       # ID optionally provided by adapter
       attr_accessor :provider_job_id
     end
@@ -25,6 +28,7 @@ module ActiveJob
     # These methods will be included into any Active Job object, adding
     # helpers for de/serialization and creation of job instances.
     module ClassMethods
+
       # Creates a new job instance from a hash created with +serialize+
       def deserialize(job_data)
         job = job_data['job_class'].constantize.new
@@ -59,6 +63,7 @@ module ActiveJob
       @arguments  = arguments
       @job_id     = SecureRandom.uuid
       @queue_name = self.class.queue_name
+      @max_retry  = self.class.max_retry
     end
 
     # Returns a hash with the job data that can safely be passed to the
@@ -68,6 +73,7 @@ module ActiveJob
         'job_class'  => self.class.name,
         'job_id'     => job_id,
         'queue_name' => queue_name,
+        'max_retry'  => max_retry,
         'arguments'  => serialize_arguments(arguments)
       }
     end
@@ -95,6 +101,7 @@ module ActiveJob
     def deserialize(job_data)
       self.job_id               = job_data['job_id']
       self.queue_name           = job_data['queue_name']
+      self.max_retry            = job_data['max_retry']
       self.serialized_arguments = job_data['arguments']
     end
 

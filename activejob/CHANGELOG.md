@@ -1,3 +1,20 @@
+*   Add `max_retry` to change default adapter max retry on failures.
+    For now only Sidekiq and DelayedJob get max_retry working but
+    if max_retry is not set, adapters get default value
+
+    Example:
+
+        class HelloJob < ActiveJob::Base
+
+            max_retry 3
+
+            def perform(greeter = "David")
+                JobBuffer.add("#{greeter} says hello")
+            end
+        end
+
+    *Claudio Fiorini*
+
 *   Allow `DelayedJob`, `Sidekiq`, `qu`, and `que` to report the job id back to
     `ActiveJob::Base` as `provider_job_id`.
 
