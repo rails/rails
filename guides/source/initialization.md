@@ -533,6 +533,7 @@ require "rails"
   action_controller
   action_view
   action_mailer
+  active_job
   rails/test_unit
   sprockets
 ).each do |framework|
