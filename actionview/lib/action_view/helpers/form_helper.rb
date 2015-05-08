@@ -1668,6 +1668,7 @@ module ActionView
       #   label(:post, :terms) do
       #     'Accept <a href="/terms">Terms</a>.'.html_safe
       #   end
+      #   # => <label for="post_terms">Accept <a href="/terms">Terms</a>.</label>
       def label(method, text = nil, options = {}, &block)
         @template.label(@object_name, method, text, objectify_options(options), &block)
       end
