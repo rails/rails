@@ -16,7 +16,7 @@ module ActiveRecord
 
       if match && match.valid?
         match.define
-        send(name, *arguments, &block)
+        generated_association_methods.send(name, *arguments, &block)
       else
         super
       end
@@ -60,7 +60,7 @@ module ActiveRecord
       end
 
       def define
-        model.class_eval <<-CODE, __FILE__, __LINE__ + 1
+        model.generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
           def self.#{name}(#{signature})
             #{body}
           end
@@ -70,7 +70,7 @@ module ActiveRecord
       private
 
       def body
-        "#{finder}(#{attributes_hash})"
+        "#{model}.#{finder}(#{attributes_hash})"
       end
 
       # The parameters in the signature may have reserved Ruby words, in order
