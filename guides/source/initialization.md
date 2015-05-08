@@ -106,6 +106,7 @@ A standard Rails application depends on several gems, specifically:
 * activemodel
 * activerecord
 * activesupport
+* activejob
 * arel
 * builder
 * bundler
