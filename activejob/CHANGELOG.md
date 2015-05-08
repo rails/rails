@@ -1,4 +1,4 @@
-*   Allow `DelayedJob`, `Sidekiq` and `que` to report the job id back to
+*   Allow `DelayedJob`, `Sidekiq`, `qu`, and `que` to report the job id back to
     `ActiveJob::Base` as `provider_job_id`.
 
     Fixes #18821.

@@ -11,7 +11,7 @@ class QueuingTest < ActiveSupport::TestCase
   end
 
   test 'should not run jobs queued on a non-listening queue' do
-    skip if adapter_is?(:inline) || adapter_is?(:sucker_punch) || adapter_is?(:que)
+    skip if adapter_is?(:inline, :sucker_punch, :que)
     old_queue = TestJob.queue_name
 
     begin
@@ -56,13 +56,16 @@ class QueuingTest < ActiveSupport::TestCase
     end
   end
 
-  test 'should supply a provider_job_id when available' do
-    skip unless adapter_is?(:sidekiq) || adapter_is?(:que) || adapter_is?(:delayed_job)
+  test 'should supply a provider_job_id when available for immediate jobs' do
+    skip unless adapter_is?(:delayed_job, :sidekiq, :qu, :que)
     test_job = TestJob.perform_later @id
-    refute test_job.provider_job_id.nil?, "Provider job id should be set by provider"
+    refute test_job.provider_job_id.nil?, 'Provider job id should be set by provider'
+  end
 
+  test 'should supply a provider_job_id when available for delayed jobs' do
+    skip unless adapter_is?(:delayed_job, :sidekiq, :que)
     delayed_test_job = TestJob.set(wait: 1.minute).perform_later @id
     refute delayed_test_job.provider_job_id.nil?,
-      "Provider job id should by set for delayed jobs by provider"
+      'Provider job id should by set for delayed jobs by provider'
   end
 end
