@@ -54,7 +54,7 @@ module ActiveJob
       def enqueue(event)
         info do
           job = event.payload[:job]
-          "Enqueued #{job.class.name} (Job ID: #{job.job_id}) to #{queue_name(event)}" + args_info(job)
+          "Enqueued #{job.class.name} (Job ID: #{job.job_id}) to #{queue_name(event)} #{args_info(job)}"
         end
       end
 
@@ -81,7 +81,8 @@ module ActiveJob
 
       private
         def queue_name(event)
-          event.payload[:adapter].class.name.demodulize.remove('Adapter') + "(#{event.payload[:job].queue_name})"
+          adapter = event.payload[:adapter].class.name.demodulize.tr('Adapter'.freeze, ''.freeze)
+          "#{adapter}(#{event.payload[:job].queue_name})"
         end
 
         def args_info(job)
