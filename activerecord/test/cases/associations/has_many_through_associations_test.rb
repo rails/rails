@@ -1040,14 +1040,6 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     end
   end
 
-  def test_save_should_not_raise_exception_when_join_record_has_errors
-    repair_validations(Categorization) do
-      Categorization.validate { |r| r.errors[:base] << 'Invalid Categorization' }
-      c = Category.create(:name => 'Fishing', :authors => [Author.first])
-      c.save
-    end
-  end
-
   def test_assign_array_to_new_record_builds_join_records
     c = Category.new(:name => 'Fishing', :authors => [Author.first])
     assert_equal 1, c.categorizations.size
@@ -1072,11 +1064,11 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     end
   end
 
-  def test_create_bang_returns_falsy_when_join_record_has_errors
+  def test_save_returns_falsy_when_join_record_has_errors
     repair_validations(Categorization) do
       Categorization.validate { |r| r.errors[:base] << 'Invalid Categorization' }
       c = Category.new(:name => 'Fishing', :authors => [Author.first])
-      assert !c.save
+      assert_not c.save
     end
   end
 
