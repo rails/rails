@@ -585,19 +585,18 @@ module ActiveRecord
 
       # Removes the given index from the table.
       #
-      # Removes the +index_accounts_on_column+ in the +accounts+ table.
-      #
+      #   # Removes the +index_accounts_on_column+ in the +accounts+ table.
       #   remove_index :accounts, :column
       #
-      # Removes the index named +index_accounts_on_branch_id+ in the +accounts+ table.
+      #   # Removes the index named +index_accounts_on_branch_id+ in the +accounts+ table.
       #
       #   remove_index :accounts, column: :branch_id
       #
-      # Removes the index named +index_accounts_on_branch_id_and_party_id+ in the +accounts+ table.
+      #   # Removes the index named +index_accounts_on_branch_id_and_party_id+ in the +accounts+ table.
       #
       #   remove_index :accounts, column: [:branch_id, :party_id]
       #
-      # Removes the index named +by_branch_party+ in the +accounts+ table.
+      #   # Removes the index named +by_branch_party+ in the +accounts+ table.
       #
       #   remove_index :accounts, name: :by_branch_party
       #
@@ -611,7 +610,7 @@ module ActiveRecord
 
       # Renames an index.
       #
-      # Rename the +index_people_on_last_name+ index to +index_users_on_last_name+:
+      #   # Rename the +index_people_on_last_name+ index to +index_users_on_last_name+:
       #
       #   rename_index :people, 'index_people_on_last_name', 'index_users_on_last_name'
       #
@@ -654,23 +653,23 @@ module ActiveRecord
       # a different type.
       # <tt>add_reference</tt> and <tt>add_belongs_to</tt> are acceptable.
       #
-      # ====== Create a user_id integer column
+      #   # Create a user_id integer column
       #
       #   add_reference(:products, :user)
       #
-      # ====== Create a user_id string column
+      #   # Create a user_id string column
       #
       #   add_reference(:products, :user, type: :string)
       #
-      # ====== Create a supplier_id and supplier_type columns
+      #   # Create a supplier_id and supplier_type columns
       #
       #   add_belongs_to(:products, :supplier, polymorphic: true)
       #
-      # ====== Create supplier_id, supplier_type columns and appropriate index
+      #   # Create supplier_id, supplier_type columns and appropriate index
       #
       #   add_reference(:products, :supplier, polymorphic: true, index: true)
       #
-      # ====== Create a supplier_id column and appropriate foreign key
+      #   # Create a supplier_id column and appropriate foreign key
       #
       #   add_reference(:products, :supplier, foreign_key: true)
       #
@@ -682,16 +681,13 @@ module ActiveRecord
       # Removes the reference(s). Also removes a +type+ column if one exists.
       # <tt>remove_reference</tt> and <tt>remove_belongs_to</tt> are acceptable.
       #
-      # ====== Remove the reference
-      #
+      #   # Remove the reference
       #   remove_reference(:products, :user, index: true)
       #
-      # ====== Remove polymorphic reference
-      #
+      #   # Remove polymorphic reference
       #   remove_reference(:products, :supplier, polymorphic: true)
       #
-      # ====== Remove the reference with a foreign key
-      #
+      #   # Remove the reference with a foreign key
       #   remove_reference(:products, :user, index: true, foreign_key: true)
       #
       def remove_reference(table_name, ref_name, options = {})
@@ -773,16 +769,13 @@ module ActiveRecord
 
       # Removes the given foreign key from the table.
       #
-      # Removes the foreign key on +accounts.branch_id+.
-      #
+      #   # Removes the foreign key on +accounts.branch_id+.
       #   remove_foreign_key :accounts, :branches
       #
-      # Removes the foreign key on +accounts.owner_id+.
-      #
+      #   # Removes the foreign key on +accounts.owner_id+.
       #   remove_foreign_key :accounts, column: :owner_id
       #
-      # Removes the foreign key named +special_fk_name+ on the +accounts+ table.
-      #
+      #   # Removes the foreign key named +special_fk_name+ on the +accounts+ table.
       #   remove_foreign_key :accounts, name: :special_fk_name
       #
       def remove_foreign_key(from_table, options_or_to_table = {})
