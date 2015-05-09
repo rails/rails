@@ -9,10 +9,6 @@ class Numeric
 		self < 0.0
 	end
 
-	def zero?
-		self == 0.0
-	end
-
 	def major? value
 		self > value
 	end
