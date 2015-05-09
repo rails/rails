@@ -15,6 +15,8 @@ class ActionController::Base
   end
 
   def assigns(key = nil)
+    ActiveSupport::Deprecation.warn("`assigns` is deprecated and will be removed in Rails 5.1 without replacement.")
+
     assigns = {}
     instance_variables.each do |ivar|
       next if ActionController::Base.protected_instance_variables.include?(ivar)
