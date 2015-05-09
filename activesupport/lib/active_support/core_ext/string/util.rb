@@ -4,7 +4,7 @@ class String
 	#string equal one item in args
 	def in? *args 
 		args.each do |a|
-			retrun true if self == a.to_s
+			return true if self == a.to_s
 		end
 		retrun false
 	end
