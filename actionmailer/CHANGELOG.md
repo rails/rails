@@ -1,3 +1,8 @@
+*   `assert_emails` in block form use the given number as expected value.
+    This makes the error message much easier to understand.
+
+    *Yuji Yaginuma*
+
 *   Mailer preview now uses `url_for` to fix links to emails for apps running on
     a subdirectory.
 
