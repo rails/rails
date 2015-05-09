@@ -22,13 +22,13 @@ class String
 		self.envelop('{' , '}')
 	end
 
-	#this string between slashs
-	def slashs 
+	#this string between slashses
+	def slashes 
 		self.envelop('/' , '/')
 	end
 
-	#this string between blackslashs
-	def backslashs
+	#this string between blackslashes
+	def backslashes
 		self.envelop('\\' , '\\')
 	end
 
@@ -36,6 +36,5 @@ class String
 	def apostrophes
 		self.envelop('\'' , '\'')
 	end
-
 
 end
