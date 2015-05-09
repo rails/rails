@@ -161,7 +161,7 @@ module ActiveRecord
         }
         record = statement.execute([id], self, connection).first
         unless record
-          raise RecordNotFound, "Couldn't find #{name} with '#{primary_key}'=#{id}"
+          raise RecordNotFound, "Couldn't find #{name} with '#{primary_key}' = #{id}"
         end
         record
       rescue RangeError

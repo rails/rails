@@ -1031,7 +1031,7 @@ class FinderTest < ActiveRecord::TestCase
       e = assert_raises(ActiveRecord::RecordNotFound) do
         model.find 'Hello World!'
       end
-      assert_equal %Q{Couldn't find MercedesCar with 'name'=Hello World!}, e.message
+      assert_equal %Q{Couldn't find MercedesCar with 'name' = Hello World!}, e.message
     end
   end
 
