@@ -273,8 +273,9 @@ module RenderTestCases
     assert_nil @view.render(:partial => "test/customer", :collection => [])
   end
 
-  def test_render_partial_with_nil_collection_should_return_nil
-    assert_nil @view.render(:partial => "test/customer", :collection => nil)
+  def test_render_partial_with_nil_collection_should_raise_argument_error
+    e = assert_raises(ArgumentError) { @view.render(:partial => "test/customer", :collection => nil) }
+    assert_equal "'#{nil.inspect}' is not an ActiveModel-compatible object. It must implement :to_ary.", e.message
   end
 
   def test_render_partial_with_nil_values_in_collection

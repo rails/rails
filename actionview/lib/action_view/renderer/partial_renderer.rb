@@ -405,7 +405,11 @@ module ActionView
     def collection_from_options
       if @options.key?(:collection)
         collection = @options[:collection]
-        collection.respond_to?(:to_ary) ? collection.to_ary : []
+        if collection.respond_to?(:to_ary)
+          collection = collection.to_ary
+        else
+          raise ArgumentError.new("'#{collection.inspect}' is not an ActiveModel-compatible object. It must implement :to_ary.")
+        end
       end
     end
 
