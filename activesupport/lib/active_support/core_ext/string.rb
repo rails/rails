@@ -11,3 +11,6 @@ require 'active_support/core_ext/string/strip'
 require 'active_support/core_ext/string/inquiry'
 require 'active_support/core_ext/string/indent'
 require 'active_support/core_ext/string/zones'
+require 'active_support/core_ext/string/envelop'
+require 'active_support/core_ext/string/util'
+
