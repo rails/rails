@@ -112,6 +112,17 @@ class TestHelperMailerTest < ActionMailer::TestCase
     assert_match(/1 .* but 2/, error.message)
   end
 
+  def test_assert_emails_message
+    TestHelperMailer.test.deliver_now
+    error = assert_raise ActiveSupport::TestCase::Assertion do
+      assert_emails 2 do
+        TestHelperMailer.test.deliver_now
+      end
+    end
+    assert_match "Expected: 2", error.message
+    assert_match "Actual: 1", error.message
+  end
+
   def test_assert_no_emails_failure
     error = assert_raise ActiveSupport::TestCase::Assertion do
       assert_no_emails do

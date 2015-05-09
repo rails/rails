@@ -34,7 +34,7 @@ module ActionMailer
         original_count = ActionMailer::Base.deliveries.size
         yield
         new_count = ActionMailer::Base.deliveries.size
-        assert_equal original_count + number, new_count, "#{number} emails expected, but #{new_count - original_count} were sent"
+        assert_equal number, new_count - original_count, "#{number} emails expected, but #{new_count - original_count} were sent"
       else
         assert_equal number, ActionMailer::Base.deliveries.size
       end
