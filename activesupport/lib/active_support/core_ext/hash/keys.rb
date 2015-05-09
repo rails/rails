@@ -7,21 +7,20 @@ class Hash
   #  # => {"NAME"=>"Rob", "AGE"=>"28"}
   def transform_keys
     return enum_for(:transform_keys) unless block_given?
-    result = self.class.new
-    each_key do |key|
-      result[yield(key)] = self[key]
+
+    each_with_object(self.class.new) do |(key, value), result|
+      result[yield(key)] = value
     end
-    result
   end
 
   # Destructively converts all keys using the block operations.
   # Same as transform_keys but modifies +self+.
   def transform_keys!
     return enum_for(:transform_keys!) unless block_given?
-    keys.each do |key|
-      self[yield(key)] = delete(key)
+
+    keys.each_with_object(self) do |key, result|
+      result[yield(key)] = delete(key)
     end
-    self
   end
 
   # Returns a new hash with all keys converted to strings.
@@ -152,11 +151,10 @@ class Hash
     def _deep_transform_keys_in_object!(object, &block)
       case object
       when Hash
-        object.keys.each do |key|
-          value = object.delete(key)
-          object[yield(key)] = _deep_transform_keys_in_object!(value, &block)
+        object.keys.each_with_object(object) do |key, result|
+          value = result.delete(key)
+          result[yield(key)] = _deep_transform_keys_in_object!(value, &block)
         end
-        object
       when Array
         object.map! {|e| _deep_transform_keys_in_object!(e, &block)}
       else
