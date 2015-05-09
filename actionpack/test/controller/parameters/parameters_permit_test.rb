@@ -1,12 +1,9 @@
 require 'abstract_unit'
+require 'custom_assertions'
 require 'action_dispatch/http/upload'
 require 'action_controller/metal/strong_parameters'
 
 class ParametersPermitTest < ActiveSupport::TestCase
-  def assert_filtered_out(params, key)
-    assert !params.has_key?(key), "key #{key.inspect} has not been filtered out"
-  end
-
   setup do
     @params = ActionController::Parameters.new(
       person: {

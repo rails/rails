@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'custom_assertions'
 require 'action_controller/metal/strong_parameters'
 
 class MultiParameterAttributesTest < ActiveSupport::TestCase
@@ -34,5 +35,7 @@ class MultiParameterAttributesTest < ActiveSupport::TestCase
     assert_nil permitted[:book]["published_at(1i)"]
     assert_nil permitted[:book]["published_at(2i)"]
     assert_nil permitted[:book]["published_at(3i)"]
+
+    assert_filtered_out permitted,:published_at
   end
 end

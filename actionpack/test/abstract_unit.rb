@@ -1,6 +1,7 @@
 require File.expand_path('../../../load_paths', __FILE__)
 
 $:.unshift(File.dirname(__FILE__) + '/lib')
+$:.unshift(File.dirname(__FILE__) + '/controller/support')
 $:.unshift(File.dirname(__FILE__) + '/fixtures/helpers')
 $:.unshift(File.dirname(__FILE__) + '/fixtures/alternate_helpers')
 
@@ -229,6 +230,7 @@ class Rack::TestCase < ActionDispatch::IntegrationTest
   def assert_header(name, value)
     assert_equal value, response.headers[name]
   end
+
 end
 
 module ActionController
