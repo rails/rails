@@ -170,7 +170,7 @@ Bug reports can be filed for the Ruby on Rails project here:
 
 * https://github.com/rails/rails/issues
 
-Feature requests should be discussed inn the rails-core mailing list here:
+Feature requests should be discussed in the rails-core mailing list here:
 
 * https://groups.google.com/forum/?fromgroups#!forum/rubyonrails-core
 
