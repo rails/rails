@@ -111,23 +111,11 @@ module ActiveRecord
     # Find the first record (or first N records if a parameter is supplied).
     # If no order is defined it will order by primary key.
     #
-    #   Person.first # returns the first object fetched by SELECT * FROM people
+    #   Person.first # returns the first object fetched by SELECT * FROM people ORDER BY people.id LIMIT 1
     #   Person.where(["user_name = ?", user_name]).first
     #   Person.where(["user_name = :u", { u: user_name }]).first
     #   Person.order("created_on DESC").offset(5).first
-    #   Person.first(3) # returns the first three objects fetched by SELECT * FROM people LIMIT 3
-    #
-    # ==== Rails 3
-    #
-    #   Person.first # SELECT "people".* FROM "people" LIMIT 1
-    #
-    # NOTE: Rails 3 may not order this query by the primary key and the order
-    # will depend on the database implementation. In order to ensure that behavior,
-    # use <tt>User.order(:id).first</tt> instead.
-    #
-    # ==== Rails 4
-    #
-    #   Person.first # SELECT "people".* FROM "people" ORDER BY "people"."id" ASC LIMIT 1
+    #   Person.first(3) # returns the first three objects fetched by SELECT * FROM people ORDER BY people.id LIMIT 3
     #
     def first(limit = nil)
       if limit
