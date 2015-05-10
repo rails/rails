@@ -163,7 +163,9 @@ make it easier for users to click the inputs.
 Other form controls worth mentioning are textareas, password fields,
 hidden fields, search fields, telephone fields, date fields, time fields,
 color fields, datetime fields, datetime-local fields, month fields, week fields,
-URL fields, email fields, number fields and range fields:
+URL fields, email fields, number fields and range fields.
+
+Please visit [the Rails Form Helpers documentation](http://api.rubyonrails.org/classes/ActionView/Helpers/FormTagHelper.html) for complete reference.
 
 ```erb
 <%= text_area_tag(:message, "Hi, nice site", size: "24x6") %>
