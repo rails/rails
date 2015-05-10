@@ -7,7 +7,7 @@ a written notification to either a person or another system.
 
 Action Mailer is in essence a wrapper around Action Controller and the
 Mail gem.  It provides a way to make emails using templates in the same
-way that Action Controller renders views using templates.
+way that Action Controller render views using templates.
 
 Additionally, an Action Mailer class can be used to process incoming email,
 such as allowing a blog to accept new posts from an email (which could even
@@ -170,7 +170,7 @@ Bug reports can be filed for the Ruby on Rails project here:
 
 * https://github.com/rails/rails/issues
 
-Feature requests should be discussed on the rails-core mailing list here:
+Feature requests should be discussed inn the rails-core mailing list here:
 
 * https://groups.google.com/forum/?fromgroups#!forum/rubyonrails-core
 
