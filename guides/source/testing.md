@@ -435,7 +435,7 @@ specify to make your test failure messages clearer. It's not required.
 | `assert_nothing_raised( exception1, exception2, ... ) { block }` | Ensures that the given block doesn't raise one of the given exceptions.|
 | `assert_instance_of( class, obj, [msg] )`                        | Ensures that `obj` is an instance of `class`.|
 | `assert_not_instance_of( class, obj, [msg] )`                    | Ensures that `obj` is not an instance of `class`.|
-| `assert_kind_of( class, obj, [msg] )`                            | Ensures that `obj` is or descends from `class`.|
+| `assert_kind_of( class, obj, [msg] )`                            | Ensures that `obj` is an instance of `class` or is descending from it.|
 | `assert_not_kind_of( class, obj, [msg] )`                        | Ensures that `obj` is not an instance of `class` and is not descending from it.|
 | `assert_respond_to( obj, symbol, [msg] )`                        | Ensures that `obj` responds to `symbol`.|
 | `assert_not_respond_to( obj, symbol, [msg] )`                    | Ensures that `obj` does not respond to `symbol`.|
