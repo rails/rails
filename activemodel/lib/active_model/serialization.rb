@@ -121,7 +121,7 @@ module ActiveModel
     end
 
     # Hook method for defining the set of available attribute names. Override
-    # this method in subclasses where, e.g., it is possible to know the names
+    # this method in subclasses where, e.g., it's possible to know the names
     # without having to make an attributes hash.
     def attribute_names
       attributes.keys
