@@ -20,7 +20,9 @@ module ActionDispatch
       status       = env["PATH_INFO"][1..-1].to_i
       request      = ActionDispatch::Request.new(env)
       content_type = request.formats.first
-      body         = { :status => status, :error => Rack::Utils::HTTP_STATUS_CODES.fetch(status, Rack::Utils::HTTP_STATUS_CODES[500]) }
+      body         = { :status => status,
+                       :error  => Rack::Utils::HTTP_STATUS_CODES
+                                    .fetch(status, Rack::Utils::HTTP_STATUS_CODES[500]) }
 
       render(status, content_type, body)
     end
