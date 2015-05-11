@@ -307,9 +307,8 @@ module ActiveRecord
   #
   # == Reversible Migrations
   #
-  # Starting with Rails 3.1, you will be able to define reversible migrations.
   # Reversible migrations are migrations that know how to go +down+ for you.
-  # You simply supply the +up+ logic, and the Migration system will figure out
+  # You simply supply the +up+ logic, and the Migration system figures out
   # how to execute the down commands for you.
   #
   # To define a reversible migration, define the +change+ method in your
