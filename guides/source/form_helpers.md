@@ -163,7 +163,7 @@ make it easier for users to click the inputs.
 Other form controls worth mentioning are textareas, password fields,
 hidden fields, search fields, telephone fields, date fields, time fields,
 color fields, datetime fields, datetime-local fields, month fields, week fields,
-URL fields, email fields, number fields and range fields:
+URL fields, email fields, number fields and range fields.
 
 ```erb
 <%= text_area_tag(:message, "Hi, nice site", size: "24x6") %>
@@ -204,6 +204,7 @@ Output:
 <input id="product_price" max="20.0" min="1.0" name="product[price]" step="0.5" type="number" />
 <input id="product_discount" max="100" min="1" name="product[discount]" type="range" />
 ```
+Please visit [the Rails Form Helpers documentation](http://api.rubyonrails.org/classes/ActionView/Helpers/FormTagHelper.html) for complete reference.
 
 Hidden inputs are not shown to the user but instead hold data like any textual input. Values inside them can be changed with JavaScript.
 
