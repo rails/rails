@@ -6,7 +6,7 @@ require 'pathname'
 module Rails
   # <tt>Rails::Engine</tt> allows you to wrap a specific Rails application or subset of
   # functionality and share it with other applications or within a larger packaged application.
-  # Since Rails 3.0, every <tt>Rails::Application</tt> is just an engine, which allows for simple
+  # Every <tt>Rails::Application</tt> is just an engine, which allows for simple
   # feature and application sharing.
   #
   # Any <tt>Rails::Engine</tt> is also a <tt>Rails::Railtie</tt>, so the same
@@ -15,10 +15,9 @@ module Rails
   #
   # == Creating an Engine
   #
-  # In Rails versions prior to 3.0, your gems automatically behaved as engines, however,
-  # this coupled Rails to Rubygems. Since Rails 3.0, if you want a gem to automatically
-  # behave as an engine, you have to specify an +Engine+ for it somewhere inside
-  # your plugin's +lib+ folder (similar to how we specify a +Railtie+):
+  # If you want a gem to behave as an engine, you have to specify an +Engine+
+  # for it somewhere inside your plugin's +lib+ folder (similar to how we
+  # specify a +Railtie+):
   #
   #   # lib/my_engine.rb
   #   module MyEngine
@@ -69,10 +68,9 @@ module Rails
   #
   # == Paths
   #
-  # Since Rails 3.0, applications and engines have more flexible path configuration (as
-  # opposed to the previous hardcoded path configuration). This means that you are not
-  # required to place your controllers at <tt>app/controllers</tt>, but in any place
-  # which you find convenient.
+  # Applications and engines have flexible path configuration, meaning that you
+  # are not required to place your controllers at <tt>app/controllers</tt>, but
+  # in any place which you find convenient.
   #
   # For example, let's suppose you want to place your controllers in <tt>lib/controllers</tt>.
   # You can set that as an option:
