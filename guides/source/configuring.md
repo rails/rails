@@ -526,7 +526,7 @@ There are a few configuration options available in Active Support:
 
 * `config.active_support.test_order` sets the order that test cases are executed. Possible values are `:random` and `:sorted`. This option is set to `:random` in `config/environments/test.rb` in newly-generated applications. If you have an application that does not specify a `test_order`, it will default to `:sorted`, *until* Rails 5.0, when the default will become `:random`.
 
-* `config.active_support.escape_html_entities_in_json` enables or disables the escaping of HTML entities in JSON serialization. Defaults to `false`.
+* `config.active_support.escape_html_entities_in_json` enables or disables the escaping of HTML entities in JSON serialization. Defaults to `true`.
 
 * `config.active_support.use_standard_json_time_format` enables or disables serializing dates to ISO 8601 format. Defaults to `true`.
 
