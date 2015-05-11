@@ -165,6 +165,7 @@ hidden fields, search fields, telephone fields, date fields, time fields,
 color fields, datetime fields, datetime-local fields, month fields, week fields,
 URL fields, email fields, number fields and range fields.
 
+
 ```erb
 <%= text_area_tag(:message, "Hi, nice site", size: "24x6") %>
 <%= password_field_tag(:password) %>
