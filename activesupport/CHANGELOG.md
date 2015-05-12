@@ -1,3 +1,10 @@
+*   ActiveSupport::HashWithIndifferentAccess `select` and `reject` will now return
+    enumerator if called without block.
+
+    Fixes #20095
+
+    *Bernard Potocki*
+
 *   Removed `ActiveSupport::Concurrency::Latch`, superseded by `Concurrent::CountDownLatch`
     from the concurrent-ruby gem.
 
