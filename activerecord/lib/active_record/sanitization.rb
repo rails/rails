@@ -21,7 +21,6 @@ module ActiveRecord
 
         case condition
         when Array; sanitize_sql_array(condition)
-        when Hash;  sanitize_sql_hash_for_conditions(condition, table_name)
         else        condition
         end
       end
