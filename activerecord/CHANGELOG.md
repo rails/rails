@@ -1,3 +1,9 @@
+*   Correctly pass MySQL options when using structure_dump or structure_load
+
+    Specifically, it fixes an issue when using SSL authentication.
+
+    *Alex Coomans*
+
 *   Dump indexes in `create_table` instead of `add_index`.
 
     If the adapter supports indexes in create table, generated SQL is
