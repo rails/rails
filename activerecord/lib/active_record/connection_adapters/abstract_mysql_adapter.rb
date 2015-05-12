@@ -697,29 +697,11 @@ module ActiveRecord
       def type_to_sql(type, limit = nil, precision = nil, scale = nil)
         case type.to_s
         when 'binary'
-          case limit
-          when 0..0xfff;           "varbinary(#{limit})"
-          when nil;                "blob"
-          when 0x1000..0xffffffff; "blob(#{limit})"
-          else raise(ActiveRecordError, "No binary type has character length #{limit}")
-          end
+          binary_to_sql(limit)
         when 'integer'
-          case limit
-          when 1; 'tinyint'
-          when 2; 'smallint'
-          when 3; 'mediumint'
-          when nil, 4, 11; 'int(11)'  # compatibility with MySQL default
-          when 5..8; 'bigint'
-          else raise(ActiveRecordError, "No integer type has byte size #{limit}")
-          end
+          integer_to_sql(limit)
         when 'text'
-          case limit
-          when 0..0xff;               'tinytext'
-          when nil, 0x100..0xffff;    'text'
-          when 0x10000..0xffffff;     'mediumtext'
-          when 0x1000000..0xffffffff; 'longtext'
-          else raise(ActiveRecordError, "No text type has character length #{limit}")
-          end
+          text_to_sql(limit)
         else
           super
         end
@@ -1015,6 +997,36 @@ module ActiveRecord
 
       def create_table_definition(name, temporary = false, options = nil, as = nil) # :nodoc:
         TableDefinition.new(native_database_types, name, temporary, options, as)
+      end
+
+      def binary_to_sql(limit) # :nodoc:
+        case limit
+        when 0..0xfff;           "varbinary(#{limit})"
+        when nil;                "blob"
+        when 0x1000..0xffffffff; "blob(#{limit})"
+        else raise(ActiveRecordError, "No binary type has character length #{limit}")
+        end
+      end
+
+      def integer_to_sql(limit) # :nodoc:
+        case limit
+        when 1; 'tinyint'
+        when 2; 'smallint'
+        when 3; 'mediumint'
+        when nil, 4, 11; 'int(11)'  # compatibility with MySQL default
+        when 5..8; 'bigint'
+        else raise(ActiveRecordError, "No integer type has byte size #{limit}")
+        end
+      end
+
+      def text_to_sql(limit) # :nodoc:
+        case limit
+        when 0..0xff;               'tinytext'
+        when nil, 0x100..0xffff;    'text'
+        when 0x10000..0xffffff;     'mediumtext'
+        when 0x1000000..0xffffffff; 'longtext'
+        else raise(ActiveRecordError, "No text type has character length #{limit}")
+        end
       end
 
       class MysqlString < Type::String # :nodoc:
