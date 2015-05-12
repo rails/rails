@@ -238,10 +238,12 @@ module ActiveSupport
     def to_options!; self end
 
     def select(*args, &block)
+      return to_enum(:select) unless block_given?
       dup.tap { |hash| hash.select!(*args, &block) }
     end
 
     def reject(*args, &block)
+      return to_enum(:reject) unless block_given?
       dup.tap { |hash| hash.reject!(*args, &block) }
     end
 

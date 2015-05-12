@@ -1,3 +1,10 @@
+*   ActiveSupport::HashWithIndifferentAccess `select` and `reject` will now return
+    enumerator if called without block.
+
+    Fixes #20095
+
+    *Bernard Potocki*
+
 *   Add a bang version to `ActiveSupport::OrderedOptions` get methods which will raise
     an `KeyError` if the value is `.blank?`
 
