@@ -5,6 +5,7 @@ class Rails::MailersController < Rails::ApplicationController # :nodoc:
 
   before_action :require_local!
   before_action :find_preview, only: :preview
+  before_action :set_locale
 
   def index
     @previews = ActionMailer::Preview.all
@@ -71,5 +72,9 @@ class Rails::MailersController < Rails::ApplicationController # :nodoc:
       elsif @email.mime_type == format
         @email
       end
+    end
+
+    def set_locale
+      I18n.locale = params[:locale] || I18n.default_locale
     end
 end
