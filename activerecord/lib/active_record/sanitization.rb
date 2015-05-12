@@ -11,10 +11,9 @@ module ActiveRecord
 
       protected
 
-      # Accepts an array, hash, or string of SQL conditions and sanitizes
+      # Accepts an array or string of SQL conditions and sanitizes
       # them into a valid SQL fragment for a WHERE clause.
       #   ["name='%s' and group_id='%s'", "foo'bar", 4]  returns  "name='foo''bar' and group_id='4'"
-      #   { name: "foo'bar", group_id: 4 }  returns "name='foo''bar' and group_id='4'"
       #   "name='foo''bar' and group_id='4'" returns "name='foo''bar' and group_id='4'"
       def sanitize_sql_for_conditions(condition, table_name = self.table_name)
         return nil if condition.blank?
