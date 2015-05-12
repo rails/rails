@@ -188,7 +188,7 @@ Admit the Database:
 
 The latest version of Active Record can be installed with RubyGems:
 
-  % [sudo] gem install activerecord
+  % gem install activerecord
 
 Source code can be downloaded as part of the Rails project on GitHub:
 
