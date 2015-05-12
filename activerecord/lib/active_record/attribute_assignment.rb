@@ -29,7 +29,8 @@ module ActiveRecord
       assign_multiparameter_attributes(multi_parameter_attributes) unless multi_parameter_attributes.empty?
     end
 
-    # Re-raise with the ActiveRecord constant in case of an error
+    # Tries to assign given value to given attribute.
+    # In case of an error, re-raises with the ActiveRecord constant.
     def _assign_attribute(k, v) # :nodoc:
       super
     rescue ActiveModel::UnknownAttributeError
