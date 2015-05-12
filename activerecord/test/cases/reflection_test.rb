@@ -113,6 +113,14 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal 'PluralIrregular', reflection.class_name
   end
 
+  def test_irregular_reflection_class_name_with_camel
+    ActiveSupport::Inflector.inflections do |inflect|
+      inflect.irregular 'ProtocolSpecies', 'ProtocolSpecies'
+    end
+    reflection = ActiveRecord::Reflection.create(:has_many, 'protocol_species', nil, {}, ActiveRecord::Base)
+    assert_equal 'ProtocolSpecies', reflection.class_name
+  end
+
   def test_aggregation_reflection
     reflection_for_address = AggregateReflection.new(
       :address, nil, { :mapping => [ %w(address_street street), %w(address_city city), %w(address_country country) ] }, Customer

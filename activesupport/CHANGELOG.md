@@ -1,3 +1,11 @@
+*   `ActiveSupport::Inflector::Inflection#irregular` is now done for both camel
+    and snake case. This is to address a previous problem with irregular nouns 
+    in camel case when used by `AR::Reflection`. 
+
+    Fixes #17546.
+
+    *Yoong Kang Lim*
+
 *   Patch `Delegator` to work with `#try`.
 
     Fixes #5790.
