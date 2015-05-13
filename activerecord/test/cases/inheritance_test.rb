@@ -213,6 +213,17 @@ class InheritanceTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::SubclassNotFound) { Company.new(:type => 'Account') }
   end
 
+  def test_new_with_unrelated_namespaced_type
+    without_store_full_sti_class do
+      e = assert_raises ActiveRecord::SubclassNotFound do
+        Namespaced::Company.new(type: 'Firm')
+      end
+
+      assert_equal "Invalid single-table inheritance type: Namespaced::Firm is not a subclass of Namespaced::Company", e.message
+    end
+  end
+
+
   def test_new_with_complex_inheritance
     assert_nothing_raised { Client.new(type: 'VerySpecialClient') }
   end
