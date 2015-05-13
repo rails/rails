@@ -247,7 +247,7 @@ module ActiveRecord
       end
 
       def _default_attributes # :nodoc:
-        @default_attributes ||= AttributeSet.new({})
+        @default_attributes ||= AttributeSet.new
       end
 
       # Returns an array of column names as strings.

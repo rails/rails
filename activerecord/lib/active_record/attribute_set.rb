@@ -2,7 +2,7 @@ require 'active_record/attribute_set/builder'
 
 module ActiveRecord
   class AttributeSet # :nodoc:
-    def initialize(attributes)
+    def initialize(attributes={})
       @attributes = attributes
     end
 
