@@ -71,11 +71,13 @@ module ActionController
   #   end
   #
   #   class PostsController < ApplicationController
-  #     respond_to :json, :xml
-  #
   #     def index
   #       @posts = Post.all
-  #       respond_with @posts
+  #
+  #       respond_to do |format|
+  #         format.json { render json: @posts }
+  #         format.xml  { render xml: @posts }
+  #       end
   #     end
   #   end
   #
