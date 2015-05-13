@@ -30,7 +30,7 @@ module ActionCable
 
         def default_subscription_callback(channel)
           -> (message) do
-            logger.info "Received a message over the redis channel: #{channel} (#{message})"
+            logger.info "Received a message over the redis channel: #{channel}"
             broadcast ActiveSupport::JSON.decode(message)
           end
         end
