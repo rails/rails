@@ -44,7 +44,7 @@ module ApplicationTests
           def test_index
             get '/posts'
             assert_response :success
-            assert_template "index"
+            assert_includes @response.body, 'Posts#index'
           end
         end
       RUBY

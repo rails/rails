@@ -13,7 +13,7 @@ class HttpBasicAuthenticationTest < ActionController::TestCase
     end
 
     def display
-      render :text => 'Definitely Maybe'
+      render :text => 'Definitely Maybe' if @logged_in
     end
 
     def show
@@ -122,7 +122,6 @@ class HttpBasicAuthenticationTest < ActionController::TestCase
     get :display
 
     assert_response :success
-    assert assigns(:logged_in)
     assert_equal 'Definitely Maybe', @response.body
   end
 

@@ -692,20 +692,19 @@ class RenderTest < ActionController::TestCase
     get :hello_world
     assert_response 200
     assert_response :success
-    assert_template "test/hello_world"
     assert_equal "<html>Hello world!</html>", @response.body
   end
 
   # :ported:
   def test_renders_default_template_for_missing_action
     get :'hyphen-ated'
-    assert_template 'test/hyphen-ated'
+    assert_equal "hyphen-ated.erb", @response.body
   end
 
   # :ported:
   def test_render
     get :render_hello_world
-    assert_template "test/hello_world"
+    assert_equal "Hello world!", @response.body
   end
 
   def test_line_offset
@@ -721,20 +720,18 @@ class RenderTest < ActionController::TestCase
   # :ported: compatibility
   def test_render_with_forward_slash
     get :render_hello_world_with_forward_slash
-    assert_template "test/hello_world"
+    assert_equal "Hello world!", @response.body
   end
 
   # :ported:
   def test_render_in_top_directory
     get :render_template_in_top_directory
-    assert_template "shared"
     assert_equal "Elastica", @response.body
   end
 
   # :ported:
   def test_render_in_top_directory_with_slash
     get :render_template_in_top_directory_with_slash
-    assert_template "shared"
     assert_equal "Elastica", @response.body
   end
 
@@ -752,7 +749,7 @@ class RenderTest < ActionController::TestCase
   # :ported:
   def test_render_action
     get :render_action_hello_world
-    assert_template "test/hello_world"
+    assert_equal "Hello world!", @response.body
   end
 
   def test_render_action_upcased
@@ -764,7 +761,7 @@ class RenderTest < ActionController::TestCase
       end
     else
       get action
-      assert_template 'test/Hello_world'
+      assert_equal 'Hello world!', @response.body
     end
   end
 
@@ -772,13 +769,12 @@ class RenderTest < ActionController::TestCase
   def test_render_action_hello_world_as_string
     get :render_action_hello_world_as_string
     assert_equal "Hello world!", @response.body
-    assert_template "test/hello_world"
   end
 
   # :ported:
   def test_render_action_with_symbol
     get :render_action_hello_world_with_symbol
-    assert_template "test/hello_world"
+    assert_equal "Hello world!", @response.body
   end
 
   # :ported:
@@ -966,7 +962,7 @@ class RenderTest < ActionController::TestCase
 
   def test_render_to_string_inline
     get :render_to_string_with_inline_and_render
-    assert_template "test/hello_world"
+    assert_equal 'Hello world!', @response.body
   end
 
   # :ported:
@@ -1051,8 +1047,8 @@ class RenderTest < ActionController::TestCase
 
   def test_render_to_string_doesnt_break_assigns
     get :render_to_string_with_assigns
-    assert_equal "i'm before the render", assigns(:before)
-    assert_equal "i'm after the render", assigns(:after)
+    assert_equal "i'm before the render", @controller.instance_variable_get(:@before)
+    assert_equal "i'm after the render", @controller.instance_variable_get(:@after)
   end
 
   def test_bad_render_to_string_still_throws_exception
@@ -1061,8 +1057,8 @@ class RenderTest < ActionController::TestCase
 
   def test_render_to_string_that_throws_caught_exception_doesnt_break_assigns
     assert_nothing_raised { get :render_to_string_with_caught_exception }
-    assert_equal "i'm before the render", assigns(:before)
-    assert_equal "i'm after the render", assigns(:after)
+    assert_equal "i'm before the render", @controller.instance_variable_get(:@before)
+    assert_equal "i'm after the render", @controller.instance_variable_get(:@after)
   end
 
   def test_accessing_params_in_template_with_layout
@@ -1123,7 +1119,7 @@ class RenderTest < ActionController::TestCase
   # :addressed:
   def test_render_text_with_assigns
     get :render_text_with_assigns
-    assert_equal "world", assigns["hello"]
+    assert_equal "world", @controller.instance_variable_get(:@hello)
   end
 
   def test_render_text_with_assigns_option
@@ -1189,22 +1185,22 @@ class RenderTest < ActionController::TestCase
 
   def test_render_to_string_partial
     get :render_to_string_with_partial
-    assert_equal "only partial", assigns(:partial_only)
-    assert_equal "Hello: david", assigns(:partial_with_locals)
+    assert_equal "only partial", @controller.instance_variable_get(:@partial_only)
+    assert_equal "Hello: david", @controller.instance_variable_get(:@partial_with_locals)
     assert_equal "text/html", @response.content_type
   end
 
   def test_render_to_string_with_template_and_html_partial
     get :render_to_string_with_template_and_html_partial
-    assert_equal "**only partial**\n", assigns(:text)
-    assert_equal "<strong>only partial</strong>\n", assigns(:html)
+    assert_equal "**only partial**\n", @controller.instance_variable_get(:@text)
+    assert_equal "<strong>only partial</strong>\n", @controller.instance_variable_get(:@html)
     assert_equal "<strong>only html partial</strong>\n", @response.body
     assert_equal "text/html", @response.content_type
   end
 
   def test_render_to_string_and_render_with_different_formats
     get :render_to_string_and_render_with_different_formats
-    assert_equal "<strong>only partial</strong>\n", assigns(:html)
+    assert_equal "<strong>only partial</strong>\n", @controller.instance_variable_get(:@html)
     assert_equal "**only partial**\n", @response.body
     assert_equal "text/plain", @response.content_type
   end
@@ -1228,21 +1224,18 @@ class RenderTest < ActionController::TestCase
 
   def test_partial_with_form_builder
     get :partial_with_form_builder
-    assert_match(/<label/, @response.body)
-    assert_template('test/_form')
+    assert_equal "<label for=\"post_title\">Title</label>\n", @response.body
   end
 
   def test_partial_with_form_builder_subclass
     get :partial_with_form_builder_subclass
-    assert_match(/<label/, @response.body)
-    assert_template('test/_labelling_form')
+    assert_equal "<label for=\"post_title\">Title</label>\n", @response.body
   end
 
   def test_nested_partial_with_form_builder
     @controller = Fun::GamesController.new
     get :nested_partial_with_form_builder
-    assert_match(/<label/, @response.body)
-    assert_template('fun/games/_form')
+    assert_equal "<label for=\"post_title\">Title</label>\n", @response.body
   end
 
   def test_namespaced_object_partial
@@ -1286,48 +1279,29 @@ class RenderTest < ActionController::TestCase
     assert_equal "Bonjour: davidBonjour: mary", @response.body
   end
 
-  def test_locals_option_to_assert_template_is_not_supported
-    get :partial_collection_with_locals
-
-    warning_buffer = StringIO.new
-    $stderr = warning_buffer
-
-    assert_template partial: 'customer_greeting', locals: { greeting: 'Bonjour' }
-    assert_equal "the :locals option to #assert_template is only supported in a ActionView::TestCase\n", warning_buffer.string
-  ensure
-    $stderr = STDERR
-  end
-
   def test_partial_collection_with_spacer
     get :partial_collection_with_spacer
     assert_equal "Hello: davidonly partialHello: mary", @response.body
-    assert_template :partial => '_customer'
   end
 
   def test_partial_collection_with_spacer_which_uses_render
     get :partial_collection_with_spacer_which_uses_render
     assert_equal "Hello: davidpartial html\npartial with partial\nHello: mary", @response.body
-    assert_template :partial => '_customer'
   end
 
   def test_partial_collection_shorthand_with_locals
     get :partial_collection_shorthand_with_locals
     assert_equal "Bonjour: davidBonjour: mary", @response.body
-    assert_template :partial => 'customers/_customer', :count => 2
-    assert_template :partial => '_completely_fake_and_made_up_template_that_cannot_possibly_be_rendered', :count => 0
   end
 
   def test_partial_collection_shorthand_with_different_types_of_records
     get :partial_collection_shorthand_with_different_types_of_records
     assert_equal "Bonjour bad customer: mark0Bonjour good customer: craig1Bonjour bad customer: john2Bonjour good customer: zach3Bonjour good customer: brandon4Bonjour bad customer: dan5", @response.body
-    assert_template :partial => 'good_customers/_good_customer', :count => 3
-    assert_template :partial => 'bad_customers/_bad_customer', :count => 3
   end
 
   def test_empty_partial_collection
     get :empty_partial_collection
     assert_equal " ", @response.body
-    assert_template :partial => false
   end
 
   def test_partial_with_hash_object

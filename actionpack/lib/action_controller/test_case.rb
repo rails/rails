@@ -218,20 +218,14 @@ module ActionController
   # In addition to these specific assertions, you also have easy access to various collections that the regular test/unit assertions
   # can be used against. These collections are:
   #
-  # * assigns: Instance variables assigned in the action that are available for the view.
   # * session: Objects being saved in the session.
   # * flash: The flash objects currently in the session.
   # * cookies: \Cookies being sent to the user on this request.
   #
   # These collections can be used just like any other hash:
   #
-  #   assert_not_nil assigns(:person) # makes sure that a @person instance variable was set
   #   assert_equal "Dave", cookies[:name] # makes sure that a cookie called :name was set as "Dave"
   #   assert flash.empty? # makes sure that there's nothing in the flash
-  #
-  # For historic reasons, the assigns hash uses string-based keys. So <tt>assigns[:person]</tt> won't work, but <tt>assigns["person"]</tt> will. To
-  # appease our yearning for symbols, though, an alternative accessor has been devised using a method call instead of index referencing.
-  # So <tt>assigns(:person)</tt> will work just like <tt>assigns["person"]</tt>, but again, <tt>assigns[:person]</tt> will not work.
   #
   # On top of the collections, you have the complete url that a given action redirected to available in <tt>redirect_to_url</tt>.
   #
