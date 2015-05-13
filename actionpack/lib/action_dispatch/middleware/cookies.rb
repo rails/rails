@@ -397,7 +397,7 @@ module ActionDispatch
 
     class JsonSerializer # :nodoc:
       def self.load(value)
-        ActiveSupport::JSON.decode(value)
+        ActiveSupport::JSON.decode_loose(value)
       end
 
       def self.dump(value)

@@ -23,6 +23,24 @@ module ActiveSupport
             "and has been removed."
         end
 
+        data = ::JSON.parse(json)
+
+        if ActiveSupport.parse_json_times
+          convert_dates_from(data)
+        else
+          data
+        end
+      end
+
+      # Parses a JSON string (JavaScript Object Notation) into a hash, with quirks mode enabled.
+      # Makes it possible to generate single JSON values in addition to documents.
+      def decode_loose(json, options = {})
+        if options.present?
+          raise ArgumentError, "In Rails 4.1, ActiveSupport::JSON.decode no longer " \
+            "accepts an options hash for MultiJSON. MultiJSON reached its end of life " \
+            "and has been removed."
+        end
+
         data = ::JSON.parse(json, quirks_mode: true)
 
         if ActiveSupport.parse_json_times
