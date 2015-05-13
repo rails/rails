@@ -81,6 +81,14 @@ class EnumerableTests < ActiveSupport::TestCase
                  payments.index_by.each(&:price))
   end
 
+  def test_map_with
+    original = ('a'..'c')
+    hash = original.map_with { |i| "#{i}!".to_sym }
+
+    assert_equal(('a'..'c'), original)
+    assert_equal({'a' => :a!, 'b' => :b!, 'c' => :c!}, hash)
+  end
+
   def test_many
     assert_equal false, GenericEnumerable.new([]         ).many?
     assert_equal false, GenericEnumerable.new([ 1 ]      ).many?

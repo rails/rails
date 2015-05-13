@@ -1,3 +1,8 @@
+*   Added `Enumerable#map_with` to simplify pattern of creating a hash from an
+    enumerable with the original entries as keys and some mapping as values
+
+    *Matt Larraz*
+
 *   Patch `Delegator` to work with `#try`.
 
     Fixes #5790.
