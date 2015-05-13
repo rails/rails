@@ -11,7 +11,7 @@ module Rails
       class_option :orm, banner: "NAME", type: :string, required: true,
                          desc: "ORM to generate the controller for"
       class_option :api, type: :boolean,
-                         desc: "Preconfigure smaller stack for API only apps"
+                         desc: "Generates API controller"
 
       argument :attributes, type: :array, default: [], banner: "field:type field:type"
 

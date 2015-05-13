@@ -9,7 +9,7 @@ module TestUnit # :nodoc:
       check_class_collision suffix: "ControllerTest"
 
       class_option :api, type: :boolean,
-                         desc: "Preconfigure smaller stack for API only apps"
+                         desc: "Generates API functional tests"
 
       argument :attributes, type: :array, default: [], banner: "field:type field:type"
 
