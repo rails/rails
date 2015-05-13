@@ -21,7 +21,7 @@ module ActiveRecord
         type = Type::Integer.new
         assert_nil type.cast([1,2])
         assert_nil type.cast({1 => 2})
-        assert_nil type.cast((1..2))
+        assert_nil type.cast(1..2)
       end
 
       test "casting ActiveRecord models" do
