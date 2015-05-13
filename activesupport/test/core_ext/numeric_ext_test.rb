@@ -389,4 +389,16 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
   def test_in_milliseconds
     assert_equal 10_000, 10.seconds.in_milliseconds
   end
+
+  def test_positive
+    assert 1.positive?
+    assert_not 0.positive?
+    assert_not -1.positive?
+  end
+
+  def test_negative
+    assert -1.negative?
+    assert_not 0.negative?
+    assert_not 1.negative?
+  end
 end

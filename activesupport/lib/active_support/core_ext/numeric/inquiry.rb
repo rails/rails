@@ -1,4 +1,4 @@
-class Integer
+class Numeric
   # Returns true if the number is positive.
   #
   #   1.positive?  # => true

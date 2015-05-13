@@ -27,16 +27,4 @@ class IntegerExtTest < ActiveSupport::TestCase
     assert_equal 'st', 1.ordinal
     assert_equal 'th', 8.ordinal
   end
-
-  def test_positive
-    assert 1.positive?
-    assert_not 0.positive?
-    assert_not -1.positive?
-  end
-
-  def test_negative
-    assert -1.negative?
-    assert_not 0.negative?
-    assert_not 1.negative?
-  end
 end

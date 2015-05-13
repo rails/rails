@@ -1,3 +1,7 @@
+*   Move Integer#positive? and Integer#negative? query methods to Numeric class
+
+    *Mehmet Emin İNAÇ*
+
 *   Add Integer#positive? and Integer#negative? query methods in the vein of Fixnum#zero?
     This makes it nicer to do things like bunch_of_numbers.select(&:positive?).
 
