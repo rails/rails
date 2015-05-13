@@ -1,3 +1,8 @@
+*   Allow single table inheritance instantiation to work when storing
+    demodulized class names.
+
+    *Alex Robbin*
+
 *   Correctly pass MySQL options when using structure_dump or structure_load
 
     Specifically, it fixes an issue when using SSL authentication.

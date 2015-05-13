@@ -26,6 +26,9 @@ class Company < AbstractCompany
   def private_method
     "I am Jack's innermost fears and aspirations"
   end
+
+  class SpecialCo < Company
+  end
 end
 
 module Namespaced
