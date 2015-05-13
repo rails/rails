@@ -723,6 +723,8 @@ Rails.application.routes.draw do
 end
 ```
 
+This BlacklistConstraint class can be defined under lib folder. It can also be defined under constraints folder
+inside app directory.
 You can also specify constraints as a lambda:
 
 ```ruby
