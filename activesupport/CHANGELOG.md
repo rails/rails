@@ -1,3 +1,8 @@
+*   Add Integer#positive? and Integer#negative? query methods in the vein of Fixnum#zero?
+    This makes it nicer to do things like bunch_of_numbers.select(&:positive?).
+
+    *DHH*
+
 *   Encoding ActiveSupport::TimeWithZone to YAML now preserves the timezone information.
 
     Fixes #9183.
