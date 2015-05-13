@@ -130,15 +130,21 @@ IDENTIFIED BY '#{configuration['password']}' WITH GRANT OPTION;
       end
 
       def prepare_command_options(command)
-        args = [command]
-        args.concat(['--user', configuration['username']]) if configuration['username']
-        args << "--password=#{configuration['password']}"  if configuration['password']
-        args.concat(['--default-character-set', configuration['encoding']]) if configuration['encoding']
-        configuration.slice('host', 'port', 'socket').each do |k, v|
-          args.concat([ "--#{k}", v.to_s ]) if v
-        end
+        args = {
+          'host'      => '--host',
+          'port'      => '--port',
+          'socket'    => '--socket',
+          'username'  => '--user',
+          'password'  => '--password',
+          'encoding'  => '--default-character-set',
+          'sslca'     => '--ssl-ca',
+          'sslcert'   => '--ssl-cert',
+          'sslcapath' => '--ssl-capath',
+          'sslcipher' => '--ssh-cipher',
+          'sslkey'    => '--ssl-key'
+        }.map { |opt, arg| "#{arg}=#{configuration[opt]}" if configuration[opt] }.compact
 
-        args
+        [command, *args]
       end
     end
   end
