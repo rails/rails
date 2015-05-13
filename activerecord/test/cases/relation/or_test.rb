@@ -20,9 +20,19 @@ module ActiveRecord
       assert_equal expected, Post.none.or(Post.where('id = 1')).to_a
     end
 
+    def test_or_with_null_left_mutated
+      expected = Post.where('id = 1').to_a
+      assert_equal expected, Post.none.or!(Post.where('id = 1')).to_a
+    end
+
     def test_or_with_null_right
       expected = Post.where('id = 1').to_a
       assert_equal expected, Post.where('id = 1').or(Post.none).to_a
+    end
+
+    def test_or_with_null_right_mutated
+      expected = Post.where('id = 1').to_a
+      assert_equal expected, Post.where('id = 1').or!(Post.none).to_a
     end
 
     def test_or_with_bind_params
