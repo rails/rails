@@ -108,6 +108,12 @@ class NumericExtSizeTest < ActiveSupport::TestCase
     assert_equal 256.megabytes * 20 + 5.gigabytes, 10.gigabytes
     assert_equal 1.kilobyte ** 5, 1.petabyte
     assert_equal 1.kilobyte ** 6, 1.exabyte
+    assert_equal 1.kilobyte ** 7, 1.zettabytes
+    assert_equal 1.kilobyte ** 8, 1.yottabytes
+    assert_equal 1.kilobyte ** 9, 1.xenottabytes
+    assert_equal 1.kilobyte ** 10, 1.shilentnobytes
+    assert_equal 1.kilobyte ** 11, 1.domegemegrottebytes
+    assert_equal 1.kilobyte ** 12, 1.icosebytes
   end
 
   def test_units_as_bytes_independently
@@ -123,6 +129,12 @@ class NumericExtSizeTest < ActiveSupport::TestCase
     assert_equal 3377699720527872, 3.petabyte
     assert_equal 3458764513820540928, 3.exabytes
     assert_equal 3458764513820540928, 3.exabyte
+    assert_equal 3541774862152233910272, 3.zettabytes
+    assert_equal 3626777458843887524118528, 3.yottabytes
+    assert_equal 3713820117856140824697372672, 3.xenottabytes
+    assert_equal 3802951800684688204490109616128, 3.shilentnobytes
+    assert_equal 3894222643901120721397872246915072, 3.domegemegrottebytes
+    assert_equal 3987683987354747618711421180841033728, 3.icosebytes
   end
 end
 
