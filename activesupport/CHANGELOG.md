@@ -1,3 +1,7 @@
+*   Speed-up comparison of 2 ActiveSupport::TimeWithZone objects.
+
+    *Ivan Schneider*
+
 *   Encoding ActiveSupport::TimeWithZone to YAML now preserves the timezone information.
 
     Fixes #9183.
