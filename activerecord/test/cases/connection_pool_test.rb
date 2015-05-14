@@ -356,6 +356,40 @@ module ActiveRecord
 
         pool.checkin connection
       end
+
+      def test_concurrent_connection_establishment
+        all_threads_in_new_connection = ActiveSupport::Concurrency::Latch.new(@pool.size)
+        all_go                        = ActiveSupport::Concurrency::Latch.new
+
+        @pool.singleton_class.class_eval do
+          define_method(:new_connection) do
+            all_threads_in_new_connection.release
+            all_go.await
+            super()
+          end
+        end
+
+        connecting_threads = []
+        @pool.size.times do
+          connecting_threads << Thread.new { @pool.checkout }
+        end
+
+        begin
+          Timeout.timeout(5) do
+            # the kernel of the whole test is here, everything else is just scaffolding,
+            # this latch will not be released unless conn. pool allows for concurrent
+            # connection creation
+            all_threads_in_new_connection.await
+          end
+        rescue Timeout::Error
+          flunk 'pool unable to establish connections concurrently or implementation has ' <<
+                'changed, this test then needs to patch a different :new_connection method'
+        ensure
+          # clean up the threads
+          all_go.release
+          connecting_threads.map(&:join)
+        end
+      end
     end
   end
 end

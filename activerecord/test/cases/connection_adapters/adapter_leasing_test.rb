@@ -6,7 +6,7 @@ module ActiveRecord
       class Pool < ConnectionPool
         def insert_connection_for_test!(c)
           synchronize do
-            @connections << c
+            adopt_connection(c)
             @available.add c
           end
         end
