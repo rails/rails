@@ -1,3 +1,9 @@
+*   Patch `Delegator` to work with `#try`
+
+    Fixes #5790
+
+    *Nate Smith*
+
 *   Add `Integer#positive?` and `Integer#negative?` query methods
     in the vein of `Fixnum#zero?`.
 
