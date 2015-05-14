@@ -1,5 +1,4 @@
 require 'date'
-require 'set'
 require 'bigdecimal'
 require 'bigdecimal/util'
 

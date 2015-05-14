@@ -1,5 +1,4 @@
 require 'active_support/core_ext/hash/keys'
-require "set"
 
 module ActiveRecord
   class Relation

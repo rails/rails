@@ -1,7 +1,6 @@
 require 'thread'
 require 'thread_safe'
 require 'monitor'
-require 'set'
 
 module ActiveRecord
   # Raised when a connection could not be obtained within the connection
