@@ -46,7 +46,7 @@ module ActiveRecord
     #   # returns the first item or returns a new instance (requires you call .save to persist against the database).
     #
     #   Person.where(name: 'Spartacus', rating: 4).first_or_create
-    #   # returns the first item or creates it and returns it, available since Rails 3.2.1.
+    #   # returns the first item or creates it and returns it.
     #
     # ==== Alternatives for +find+
     #
@@ -57,10 +57,10 @@ module ActiveRecord
     #   # returns a chainable list of instances with only the mentioned fields.
     #
     #   Person.where(name: 'Spartacus', rating: 4).ids
-    #   # returns an Array of ids, available since Rails 3.2.1.
+    #   # returns an Array of ids.
     #
     #   Person.where(name: 'Spartacus', rating: 4).pluck(:field1, :field2)
-    #   # returns an Array of the required fields, available since Rails 3.1.
+    #   # returns an Array of the required fields.
     def find(*args)
       if block_given?
         to_a.find(*args) { |*block_args| yield(*block_args) }
