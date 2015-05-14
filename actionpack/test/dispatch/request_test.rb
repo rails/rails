@@ -570,6 +570,22 @@ class RequestParamsParsing < BaseRequestTest
   end
 end
 
+class RequestStingIO < BaseRequestTest
+  test "request body returns StringIO with raw post data" do
+    env = {'RAW_POST_DATA' => 'text1 text2'}
+    request = stub_request(env)
+    assert_equal "text1 text2", request.body.read
+  end
+
+  test "request body always returns same StringIO object" do
+    env = {'RAW_POST_DATA' => 'text1 text2'}
+    request = stub_request(env)
+    b1 = request.body
+    b2 = request.body
+    assert_equal b1, b2
+  end
+end
+
 class RequestRewind < BaseRequestTest
   test "body should be rewound" do
     data = 'rewind'
