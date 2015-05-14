@@ -103,6 +103,10 @@ module Rails
       @fallbacks ||= {}
     end
 
+    # Configure generators for API only applications. It basically hides
+    # everything that is usually browser related, such as assets and session
+    # migration generators, and completely disable views, helpers and assets
+    # so generators such as scaffold won't create them.
     def self.api_only!
       hide_namespaces "assets", "helper", "css", "js"
 
