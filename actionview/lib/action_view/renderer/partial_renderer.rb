@@ -338,7 +338,7 @@ module ActionView
       end
 
       object ||= locals[as]
-      locals[as] = object
+      locals[as] = object if @has_object
 
       content = @template.render(view, locals) do |*name|
         view._layout_for(*name, &block)

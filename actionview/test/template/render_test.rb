@@ -277,6 +277,14 @@ module RenderTestCases
     assert_nil @view.render(:partial => "test/customer", :collection => nil)
   end
 
+  def test_render_partial_without_object_does_not_put_partial_name_to_local_assigns
+    assert_equal 'false', @view.render(partial: 'test/partial_name_in_local_assigns')
+  end
+
+  def test_render_partial_with_nil_object_puts_partial_name_to_local_assigns
+    assert_equal 'true', @view.render(partial: 'test/partial_name_in_local_assigns', object: nil)
+  end
+
   def test_render_partial_with_nil_values_in_collection
     assert_equal "Hello: davidHello: Anonymous", @view.render(:partial => "test/customer", :collection => [ Customer.new("david"), nil ])
   end
