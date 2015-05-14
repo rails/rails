@@ -99,7 +99,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     # Route
     assert_file "config/routes.rb" do |route|
-      assert_match(/resources :product_lines, except: \[:new, :edit\]$/, route)
+      assert_match(/resources :product_lines$/, route)
     end
 
     # Controller
