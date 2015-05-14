@@ -189,7 +189,7 @@ module Rails
           raise Error, "Invalid value for --database option. Supported for preconfiguration are: #{DATABASES.join(", ")}."
         end
 
-        # Force sprockets to be skipped when generating http only app.
+        # Force sprockets to be skipped when generating API only apps.
         # Can't modify options hash as it's frozen by default.
         self.options = options.merge(skip_sprockets: true, skip_javascript: true).freeze if options[:api]
       end
