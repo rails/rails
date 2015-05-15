@@ -141,7 +141,7 @@ in features as needed.
 You can generate a new api Rails app:
 
 <shell>\
-\$ rails new my\_api —api\
+\$ rails new my\_api --api\
 </shell>
 
 This will do three main things for you:
