@@ -695,13 +695,8 @@ module ActiveRecord
 
       # Maps logical Rails types to MySQL-specific data types.
       def type_to_sql(type, limit = nil, precision = nil, scale = nil)
-        case type.to_s
-        when 'binary'
-          binary_to_sql(limit)
-        when 'integer'
-          integer_to_sql(limit)
-        when 'text'
-          text_to_sql(limit)
+        if (["binary", "integer", "text"].include?(type.to_s))
+          send("#{type.to_s}_to_sql", limit)
         else
           super
         end
