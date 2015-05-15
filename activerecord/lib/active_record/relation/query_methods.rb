@@ -50,16 +50,17 @@ module ActiveRecord
       end
     end
 
+    FROZEN_EMPTY_ARRAY = [].freeze
     Relation::MULTI_VALUE_METHODS.each do |name|
       class_eval <<-CODE, __FILE__, __LINE__ + 1
-        def #{name}_values                    # def select_values
-          @values[:#{name}] ||= []            #   @values[:select] ||= []
-        end                                   # end
-                                              #
-        def #{name}_values=(values)           # def select_values=(values)
-          assert_mutability!                  #   assert_mutability!
-          @values[:#{name}] = values          #   @values[:select] = values
-        end                                   # end
+        def #{name}_values                        # def select_values
+          @values[:#{name}] || FROZEN_EMPTY_ARRAY #   @values[:select] || []
+        end                                       # end
+                                                  #
+        def #{name}_values=(values)               # def select_values=(values)
+          assert_mutability!                      #   assert_mutability!
+          @values[:#{name}] = values              #   @values[:select] = values
+        end                                       # end
       CODE
     end
 
@@ -83,7 +84,7 @@ module ActiveRecord
     Relation::CLAUSE_METHODS.each do |name|
       class_eval <<-CODE, __FILE__, __LINE__ + 1
         def #{name}_clause                           # def where_clause
-          @values[:#{name}] ||= new_#{name}_clause   #   @values[:where] ||= new_where_clause
+          @values[:#{name}] || new_#{name}_clause    #   @values[:where] || new_where_clause
         end                                          # end
                                                      #
         def #{name}_clause=(value)                   # def where_clause=(value)
@@ -97,8 +98,9 @@ module ActiveRecord
       from_clause.binds + arel.bind_values + where_clause.binds + having_clause.binds
     end
 
+    FROZEN_EMPTY_HASH = {}.freeze
     def create_with_value # :nodoc:
-      @values[:create_with] ||= {}
+      @values[:create_with] || FROZEN_EMPTY_HASH
     end
 
     alias extensions extending_values
@@ -606,8 +608,7 @@ module ActiveRecord
 
     private def structurally_compatible_for_or?(other) # :nodoc:
       Relation::SINGLE_VALUE_METHODS.all? { |m| send("#{m}_value") == other.send("#{m}_value") } &&
-        (Relation::MULTI_VALUE_METHODS - [:extending]).all? { |m| send("#{m}_values") == other.send("#{m}_values") } &&
-        (Relation::CLAUSE_METHODS - [:having, :where]).all? { |m| send("#{m}_clause") != other.send("#{m}_clause") }
+        (Relation::MULTI_VALUE_METHODS - [:extending]).all? { |m| send("#{m}_values") == other.send("#{m}_values") }
     end
 
     # Allows to specify a HAVING clause. Note that you can't use HAVING

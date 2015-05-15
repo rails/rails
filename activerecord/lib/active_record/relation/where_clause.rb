@@ -81,7 +81,12 @@ module ActiveRecord
       end
 
       def self.empty
-        new([], [])
+        @empty ||= begin
+          empty = new([], [])
+          # This method memoizes, which will blow up on a frozen object
+          empty.send(:referenced_columns)
+          empty.freeze
+        end
       end
 
       protected
