@@ -34,6 +34,8 @@ module ActionMailer
       options.asset_host          ||= app.config.asset_host
       options.relative_url_root   ||= app.config.relative_url_root
 
+      options.delivery_job = ActiveSupport::OrderedOptions.new
+
       ActiveSupport.on_load(:action_mailer) do
         include AbstractController::UrlFor
         extend ::AbstractController::Railties::RoutesHelpers.with(app.routes, false)
@@ -42,6 +44,8 @@ module ActionMailer
         register_interceptors(options.delete(:interceptors))
         register_preview_interceptors(options.delete(:preview_interceptors))
         register_observers(options.delete(:observers))
+
+        options.delete(:delivery_job).each { |k,v| DeliveryJob.send("#{k}=", v) }
 
         options.each { |k,v| send("#{k}=", v) }
 

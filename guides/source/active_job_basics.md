@@ -297,6 +297,12 @@ UserMailer.welcome(@user).deliver_now
 UserMailer.welcome(@user).deliver_later
 ```
 
+You can also configure `ActionMailer::DeliveryJob` to use a specific queue
+adapter, distinct from the one set on `ActiveJob::Base`:
+
+```ruby
+Rails.application.config.action_mailer.delivery_job.queue_adapter = :sneakers
+```
 
 Internationalization
 --------------------
