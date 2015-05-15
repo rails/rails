@@ -43,13 +43,17 @@ module ActiveRecord
       (Relation::SINGLE_VALUE_METHODS - [:create_with]).each do |method|
         assert_nil relation.send("#{method}_value"), method.to_s
       end
-      assert_equal({}, relation.create_with_value)
+      value = relation.create_with_value
+      assert_equal({}, value)
+      assert_predicate value, :frozen?
     end
 
     def test_multi_value_initialize
       relation = Relation.new(FakeKlass, :b, nil)
       Relation::MULTI_VALUE_METHODS.each do |method|
-        assert_equal [], relation.send("#{method}_values"), method.to_s
+        values = relation.send("#{method}_values")
+        assert_equal [], values, method.to_s
+        assert_predicate values, :frozen?, method.to_s
       end
     end
 
