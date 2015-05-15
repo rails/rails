@@ -83,7 +83,7 @@ module ActiveRecord
     Relation::CLAUSE_METHODS.each do |name|
       class_eval <<-CODE, __FILE__, __LINE__ + 1
         def #{name}_clause                           # def where_clause
-          @values[:#{name}] || new_#{name}_clause    #   @values[:where] || new_where_clause
+          @values[:#{name}] ||= new_#{name}_clause   #   @values[:where] ||= new_where_clause
         end                                          # end
                                                      #
         def #{name}_clause=(value)                   # def where_clause=(value)
