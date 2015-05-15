@@ -27,7 +27,7 @@ class <%= controller_class_name %>ControllerTest < ActionController::TestCase
 
   test "should update <%= singular_table_name %>" do
     patch :update, params: { id: <%= "@#{singular_table_name}" %>, <%= "#{singular_table_name}: { #{attributes_hash} }" %> }
-    assert_response 204
+    assert_response 200
   end
 
   test "should destroy <%= singular_table_name %>" do

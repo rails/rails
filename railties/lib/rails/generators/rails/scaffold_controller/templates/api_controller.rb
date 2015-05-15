@@ -32,7 +32,7 @@ class <%= controller_class_name %>Controller < ApplicationController
   # PATCH/PUT <%= route_url %>/1
   def update
     if @<%= orm_instance.update("#{singular_table_name}_params") %>
-      head :no_content
+      render json: <%= "@#{singular_table_name}" %>
     else
       render json: <%= "@#{orm_instance.errors}" %>, status: :unprocessable_entity
     end
