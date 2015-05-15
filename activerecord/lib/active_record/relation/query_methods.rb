@@ -53,7 +53,7 @@ module ActiveRecord
     Relation::MULTI_VALUE_METHODS.each do |name|
       class_eval <<-CODE, __FILE__, __LINE__ + 1
         def #{name}_values                    # def select_values
-          @values[:#{name}] || []             #   @values[:select] || []
+          @values[:#{name}] ||= []            #   @values[:select] ||= []
         end                                   # end
                                               #
         def #{name}_values=(values)           # def select_values=(values)
