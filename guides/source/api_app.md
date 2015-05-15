@@ -1,5 +1,5 @@
 Using Rails for API-only Apps
------------------------------
+=============================
 
 In this guide you will learn:
 
