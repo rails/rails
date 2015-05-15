@@ -1,3 +1,9 @@
+*   Fix redirect location for protocol relative URL by always including the current
+    protocol. An absolute URI is required by RFC 2616 and some user agents fails
+    to follow protocol relative URL.
+
+    *Timothée Alby*
+
 *   Fix rake routes not showing the right format when
     nesting multiple routes.
 

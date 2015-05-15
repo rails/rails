@@ -320,7 +320,7 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
     assert_equal 'http://www.rubyonrails.org', @response.redirect_url
 
     process :redirect_external_protocol_relative
-    assert_equal '//www.rubyonrails.org', @response.redirect_url
+    assert_equal 'http://www.rubyonrails.org', @response.redirect_url
   end
 
   def test_no_redirect_url
