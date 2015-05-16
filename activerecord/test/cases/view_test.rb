@@ -102,7 +102,7 @@ class ViewWithoutPrimaryKeyTest < ActiveRecord::TestCase
   end
 
   def test_attributes
-    assert_equal({"name" => "Agile Web Development with Rails", "status" => 0},
+    assert_equal({"name" => "Agile Web Development with Rails", "status" => 2},
                  Paperback.first.attributes)
   end
 

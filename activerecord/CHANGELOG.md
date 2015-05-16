@@ -1,3 +1,12 @@
+*   Allow the use of symbols or strings to specify enum values in test
+    fixtures:
+
+        awdr:
+          title: "Agile Web Development with Rails"
+          status: :proposed
+
+    *George Claghorn*
+
 *   Include stored procedures and function on the MySQL structure dump.
 
     *Jonathan Worek*
