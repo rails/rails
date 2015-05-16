@@ -47,7 +47,7 @@ built-in helpers for common needs, and allows you to create your own validation
 methods as well.
 
 There are several other ways to validate data before it is saved into your
-database, including native database constraints, client-side validations,
+database, including native database constraints, client-side validations and
 controller-level validations. Here's a summary of the pros and cons:
 
 * Database constraints and/or stored procedures make the validation mechanisms
@@ -122,7 +122,7 @@ database only if the object is valid:
 * `update!`
 
 The bang versions (e.g. `save!`) raise an exception if the record is invalid.
-The non-bang versions don't, `save` and `update` return `false`,
+The non-bang versions don't: `save` and `update` return `false`, and
 `create` just returns the object.
 
 ### Skipping Validations
@@ -143,7 +143,7 @@ database regardless of its validity. They should be used with caution.
 * `update_counters`
 
 Note that `save` also has the ability to skip validations if passed `validate:
-false` as argument. This technique should be used with caution.
+false` as an argument. This technique should be used with caution.
 
 * `save(validate: false)`
 
@@ -272,7 +272,7 @@ available helpers.
 
 This method validates that a checkbox on the user interface was checked when a
 form was submitted. This is typically used when the user needs to agree to your
-application's terms of service, confirm reading some text, or any similar
+application's terms of service, confirm that some text is read, or any similar
 concept. This validation is very specific to web applications and this
 'acceptance' does not need to be recorded anywhere in your database (if you
 don't have a field for it, the helper will just create a virtual attribute).
@@ -338,7 +338,7 @@ In your view template you could use something like
 
 This check is performed only if `email_confirmation` is not `nil`. To require
 confirmation, make sure to add a presence check for the confirmation attribute
-(we'll take a look at `presence` later on this guide):
+(we'll take a look at `presence` later on in this guide):
 
 ```ruby
 class Person < ActiveRecord::Base
@@ -499,9 +499,9 @@ constraints to acceptable values:
   default error message for this option is _"must be equal to %{count}"_.
 * `:less_than` - Specifies the value must be less than the supplied value. The
   default error message for this option is _"must be less than %{count}"_.
-* `:less_than_or_equal_to` - Specifies the value must be less than or equal the
-  supplied value. The default error message for this option is _"must be less
-  than or equal to %{count}"_.
+* `:less_than_or_equal_to` - Specifies the value must be less than or equal to
+  the supplied value. The default error message for this option is _"must be
+  less than or equal to %{count}"_.
 * `:odd` - Specifies the value must be an odd number if set to true. The
   default error message for this option is _"must be odd"_.
 * `:even` - Specifies the value must be an even number if set to true. The
@@ -813,7 +813,7 @@ end
 Person.new.valid?  # => ActiveModel::StrictValidationFailed: Name can't be blank
 ```
 
-There is also an ability to pass custom exception to `:strict` option.
+There is also the ability to pass a custom exception to the `:strict` option.
 
 ```ruby
 class Person < ActiveRecord::Base
@@ -877,7 +877,7 @@ end
 
 ### Grouping Conditional validations
 
-Sometimes it is useful to have multiple validations use one condition, it can
+Sometimes it is useful to have multiple validations use one condition. It can
 be easily achieved using `with_options`.
 
 ```ruby
@@ -889,8 +889,8 @@ class User < ActiveRecord::Base
 end
 ```
 
-All validations inside of `with_options` block will have automatically passed
-the condition `if: :is_admin?`
+All validations inside of the `with_options` block will have automatically
+passed the condition `if: :is_admin?`
 
 ### Combining Validation Conditions
 
