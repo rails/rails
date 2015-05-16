@@ -933,7 +933,9 @@ module ActiveRecord
             # A connection was established in an ancestor process that must have
             # subsequently forked. We can't reuse the connection, but we can copy
             # the specification and establish a new connection with it.
-            establish_connection owner, ancestor_pool.spec
+            establish_connection(owner, ancestor_pool.spec).tap do |pool|
+              pool.schema_cache = ancestor_pool.schema_cache if ancestor_pool.schema_cache
+            end
           else
             owner_to_pool[owner.name] = nil
           end
