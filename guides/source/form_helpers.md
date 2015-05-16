@@ -291,8 +291,8 @@ You can create a similar binding without actually creating `<form>` tags with th
 ```erb
 <%= form_for @person, url: {action: "create"} do |person_form| %>
   <%= person_form.text_field :name %>
-  <%= fields_for @person.contact_detail do |contact_details_form| %>
-    <%= contact_details_form.text_field :phone_number %>
+  <%= fields_for @person.contact_detail do |contact_detail_form| %>
+    <%= contact_detail_form.text_field :phone_number %>
   <% end %>
 <% end %>
 ```
