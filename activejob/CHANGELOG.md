@@ -11,7 +11,7 @@
 
     *y-yagi*
 
-*   A generated job now inherents from `app/jobs/application_job.rb` by default.
+*   A generated job now inherits from `app/jobs/application_job.rb` by default.
 
     *Jeroen van Baarsen*
 

@@ -1,4 +1,4 @@
-*   Fix rake routes not showing the right format when
+*   Fix `rake routes` not showing the right format when
     nesting multiple routes.
 
     See #18373.
