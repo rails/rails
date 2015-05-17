@@ -5,6 +5,7 @@ debug.log
 .Gemfile
 /.bundle
 /.ruby-version
+/.ruby-gemset
 pkg
 /dist
 /doc/rdoc
