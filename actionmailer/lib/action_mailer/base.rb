@@ -257,8 +257,8 @@ module ActionMailer
   # <tt>ActionMailer::Base</tt> sets the following:
   #
   # * <tt>mime_version: "1.0"</tt>
-  # * <tt>charset:      "UTF-8",</tt>
-  # * <tt>content_type: "text/plain",</tt>
+  # * <tt>charset:      "UTF-8"</tt>
+  # * <tt>content_type: "text/plain"</tt>
   # * <tt>parts_order:  [ "text/plain", "text/enriched", "text/html" ]</tt>
   #
   # <tt>parts_order</tt> and <tt>charset</tt> are not actually valid <tt>Mail::Message</tt> header fields,
@@ -286,7 +286,7 @@ module ActionMailer
   #   end
   #
   # Note that the proc is evaluated right at the start of the mail message generation, so if you
-  # set something in the defaults using a proc, and then set the same thing inside of your
+  # set something in the default using a proc, and then set the same thing inside of your
   # mailer method, it will get over written by the mailer method.
   #
   # It is also possible to set these default options that will be used in all mailers through
@@ -319,8 +319,9 @@ module ActionMailer
   # callbacks in the same manner that you would use callbacks in classes that
   # inherit from <tt>ActionController::Base</tt>.
   #
-  # Note that unless you have a specific reason to do so, you should prefer using before_action
-  # rather than after_action in your Action Mailer classes so that headers are parsed properly.
+  # Note that unless you have a specific reason to do so, you should prefer
+  # using <tt>before_action</tt> rather than <tt>after_action</tt> in your
+  # Action Mailer classes so that headers are parsed properly.
   #
   # = Previewing emails
   #
