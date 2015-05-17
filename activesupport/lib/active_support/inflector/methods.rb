@@ -231,8 +231,8 @@ module ActiveSupport
 
     # Tries to find a constant with the name specified in the argument string.
     #
-    #   'Module'.constantize     # => Module
-    #   'Test::Unit'.constantize # => Test::Unit
+    #   'Module'.constantize   # => Module
+    #   'Foo::Bar'.constantize # => Foo::Bar
     #
     # The name is assumed to be the one of a top-level constant, no matter
     # whether it starts with "::" or not. No lexical context is taken into
@@ -280,8 +280,8 @@ module ActiveSupport
 
     # Tries to find a constant with the name specified in the argument string.
     #
-    #   safe_constantize('Module')     # => Module
-    #   safe_constantize('Test::Unit') # => Test::Unit
+    #   safe_constantize('Module')   # => Module
+    #   safe_constantize('Foo::Bar') # => Foo::Bar
     #
     # The name is assumed to be the one of a top-level constant, no matter
     # whether it starts with "::" or not. No lexical context is taken into
