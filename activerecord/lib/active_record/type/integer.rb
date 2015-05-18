@@ -46,17 +46,20 @@ module ActiveRecord
 
       def ensure_in_range(value)
         unless range.cover?(value)
-          raise RangeError, "#{value} is out of range for #{self.class} with limit #{limit || DEFAULT_LIMIT}"
+          raise RangeError, "#{value} is out of range for #{self.class} with limit #{_limit}"
         end
       end
 
       def max_value
-        limit = self.limit || DEFAULT_LIMIT
-        1 << (limit * 8 - 1) # 8 bits per byte with one bit for sign
+        1 << (_limit * 8 - 1) # 8 bits per byte with one bit for sign
       end
 
       def min_value
         -max_value
+      end
+
+      def _limit
+        self.limit || DEFAULT_LIMIT
       end
     end
   end
