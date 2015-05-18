@@ -175,6 +175,14 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     dashboard = Dashboard.first
     assert_equal '2', dashboard.id
   end
+
+  if current_adapter?(:PostgreSQLAdapter)
+    def test_serial_with_quoted_sequence_name
+      column = MixedCaseMonkey.columns_hash[MixedCaseMonkey.primary_key]
+      assert_equal "nextval('\"mixed_case_monkeys_monkeyID_seq\"'::regclass)", column.default_function
+      assert column.serial?
+    end
+  end
 end
 
 class PrimaryKeyWithNoConnectionTest < ActiveRecord::TestCase
