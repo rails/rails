@@ -8,4 +8,13 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
     assert_equal :old_value, hash[:key]
   end
 
+  def test_select_with_block
+    hash = HashWithIndifferentAccess.new({ a: 1, b: 2, c: 3 })
+    assert_equal hash.select { |k, v| true }, hash
+  end
+
+  def test_select_without_block
+    hash = HashWithIndifferentAccess.new({ a: 1, b: 2, c: 3 })
+    assert_instance_of Enumerator, hash.select
+  end
 end
