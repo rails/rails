@@ -15,7 +15,7 @@ module ActionDispatch
         @custom_routes      = []
         @simulator          = nil
       end
-      
+
       def empty?
         routes.empty?
       end
