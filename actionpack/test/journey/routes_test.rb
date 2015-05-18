@@ -10,9 +10,11 @@ module ActionDispatch
         requirements = { :hello => /world/ }
 
         routes.add_route nil, path, requirements, {:id => nil}, {}
+        assert_not routes.empty?
         assert_equal 1, routes.length
 
         routes.clear
+        assert routes.empty?
         assert_equal 0, routes.length
       end
 
