@@ -16,6 +16,10 @@ module ActionDispatch
         @simulator          = nil
       end
 
+      def empty?
+        routes.empty?
+      end
+
       def length
         routes.length
       end

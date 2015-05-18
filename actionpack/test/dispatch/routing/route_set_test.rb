@@ -17,6 +17,16 @@ module ActionDispatch
         @set = RouteSet.new
       end
 
+      test "not being empty when route is added" do
+        assert empty?
+
+        draw do
+          get 'foo', to: SimpleApp.new('foo#index')
+        end
+
+        refute empty?
+      end
+
       test "url helpers are added when route is added" do
         draw do
           get 'foo', to: SimpleApp.new('foo#index')
@@ -135,6 +145,10 @@ module ActionDispatch
 
         def url_helpers
           @set.url_helpers
+        end
+
+        def empty?
+          @set.empty?
         end
     end
   end
