@@ -122,11 +122,14 @@ module ActiveRecord
         spec
       end
 
-      def prepare_column_options(column)
-        spec = super
-        spec.delete(:precision) if /time/ === column.sql_type && column.precision == 0
-        spec.delete(:limit)     if :boolean === column.type
-        spec
+      private
+
+      def schema_limit(column)
+        super unless column.type == :boolean
+      end
+
+      def schema_precision(column)
+        super unless /time/ === column.sql_type && column.precision == 0
       end
 
       def schema_collation(column)
@@ -136,7 +139,8 @@ module ActiveRecord
           column.collation.inspect if column.collation != @collation_cache[table_name]
         end
       end
-      private :schema_collation
+
+      public
 
       class Column < ConnectionAdapters::Column # :nodoc:
         delegate :strict, :extra, to: :sql_type_metadata, allow_nil: true
