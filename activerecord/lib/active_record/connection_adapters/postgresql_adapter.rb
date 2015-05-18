@@ -211,43 +211,17 @@ module ActiveRecord
         def initialize(connection, max)
           super
           @counter = 0
-          @cache   = Hash.new { |h,pid| h[pid] = {} }
         end
-
-        def each(&block); cache.each(&block); end
-        def key?(key);    cache.key?(key); end
-        def [](key);      cache[key]; end
-        def length;       cache.length; end
 
         def next_key
           "a#{@counter + 1}"
         end
 
         def []=(sql, key)
-          while @max <= cache.size
-            dealloc(cache.shift.last)
-          end
-          @counter += 1
-          cache[sql] = key
-        end
-
-        def clear
-          cache.each_value do |stmt_key|
-            dealloc stmt_key
-          end
-          cache.clear
-        end
-
-        def delete(sql_key)
-          dealloc cache[sql_key]
-          cache.delete sql_key
+          super.tap { @counter += 1 }
         end
 
         private
-
-          def cache
-            @cache[Process.pid]
-          end
 
           def dealloc(key)
             @connection.query "DEALLOCATE #{key}" if connection_active?
