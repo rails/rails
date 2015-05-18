@@ -358,7 +358,9 @@ module ActiveRecord
       end
 
       def test_concurrent_connection_establishment
-        all_threads_in_new_connection = ActiveSupport::Concurrency::Latch.new(@pool.size)
+        assert_operator @pool.connections.size, :<=, 1
+
+        all_threads_in_new_connection = ActiveSupport::Concurrency::Latch.new(@pool.size - @pool.connections.size)
         all_go                        = ActiveSupport::Concurrency::Latch.new
 
         @pool.singleton_class.class_eval do
