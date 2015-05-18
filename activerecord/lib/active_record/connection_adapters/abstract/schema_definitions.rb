@@ -303,18 +303,12 @@ module ActiveRecord
         column(:updated_at, :datetime, options)
       end
 
-      # Adds a reference. Optionally adds a +type+ column, if
-      # <tt>:polymorphic</tt> option is provided.  <tt>references</tt> and
-      # <tt>belongs_to</tt> are acceptable. The reference column will be an
-      # +integer+ by default, the <tt>:type</tt> option can be used to specify
-      # a different type. A foreign key will be created if a +foreign_key+
-      # option is passed.
+      # Adds a reference.
       #
       #  t.references(:user)
-      #  t.references(:user, type: "string")
-      #  t.belongs_to(:supplier, polymorphic: true)
+      #  t.belongs_to(:supplier, foreign_key: true)
       #
-      # See SchemaStatements#add_reference
+      # See SchemaStatements#add_reference for details of the options you can use.
       def references(*args)
         options = args.extract_options!
         polymorphic = options.delete(:polymorphic)
@@ -539,18 +533,12 @@ module ActiveRecord
         @base.rename_column(name, column_name, new_column_name)
       end
 
-      # Adds a reference. Optionally adds a +type+ column, if
-      # <tt>:polymorphic</tt> option is provided.  <tt>references</tt> and
-      # <tt>belongs_to</tt> are acceptable. The reference column will be an
-      # +integer+ by default, the <tt>:type</tt> option can be used to specify
-      # a different type. A foreign key will be created if a +foreign_key+
-      # option is passed.
+      # Adds a reference.
       #
       #  t.references(:user)
-      #  t.references(:user, type: "string")
-      #  t.belongs_to(:supplier, polymorphic: true)
+      #  t.belongs_to(:supplier, foreign_key: true)
       #
-      # See SchemaStatements#add_reference
+      # See SchemaStatements#add_reference for details of the options you can use.
       def references(*args)
         options = args.extract_options!
         args.each do |ref_name|
