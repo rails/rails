@@ -412,6 +412,7 @@ module ActiveRecord
       #  t.references(:user)
       #  t.references(:user, type: "string")
       #  t.belongs_to(:supplier, polymorphic: true)
+      #  t.belongs_to(:supplier, index: true)
       #
       # See SchemaStatements#add_reference
       def references(*args, **options)
