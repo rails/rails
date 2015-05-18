@@ -584,7 +584,7 @@ module ActionDispatch
   #       https!(false)
   #       get "/articles/all"
   #       assert_response :success
-  #       assert assigns(:articles)
+  #       assert_select 'h1', 'Articles'
   #     end
   #   end
   #
@@ -623,7 +623,7 @@ module ActionDispatch
   #         def browses_site
   #           get "/products/all"
   #           assert_response :success
-  #           assert assigns(:products)
+  #           assert_select 'h1', 'Products'
   #         end
   #       end
   #
