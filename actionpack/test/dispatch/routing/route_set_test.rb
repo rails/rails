@@ -24,7 +24,7 @@ module ActionDispatch
           get 'foo', to: SimpleApp.new('foo#index')
         end
 
-        refute empty?
+        assert_not empty?
       end
 
       test "url helpers are added when route is added" do
