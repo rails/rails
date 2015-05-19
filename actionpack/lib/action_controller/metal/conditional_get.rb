@@ -13,26 +13,29 @@ module ActionController
     end
 
     module ClassMethods
-      # Allows you to consider additional controller-wide information when generating an ETag.
-      # For example, if you serve pages tailored depending on who's logged in at the moment, you
-      # may want to add the current user id to be part of the ETag to prevent unauthorized displaying
-      # of cached pages.
+      # Allows you to consider additional controller-wide information when
+      # generating an ETag.
+      # For example, if you serve pages tailored depending on who's logged in
+      # at the moment, you may want to add the current user id to be part of
+      # the ETag to prevent unauthorized displaying of cached pages.
       #
       #   class InvoicesController < ApplicationController
       #     etag { current_user.try :id }
       #
       #     def show
-      #       # Etag will differ even for the same invoice when it's viewed by a different current_user
+      #       # Etag will differ even for the same invoice when it's viewed
+      #       # by a different current_user
       #       @invoice = Invoice.find(params[:id])
       #       fresh_when(@invoice)
       #     end
       #   end
+      #
       def etag(&etagger)
         self.etaggers += [etagger]
       end
     end
 
-    # Sets the +etag+, +last_modified+, or both on the response and renders a
+    # Sets the +etag+ and/or +last_modified+ on the response and renders a
     # <tt>304 Not Modified</tt> response if the request is already fresh.
     #
     # === Parameters:
@@ -101,17 +104,19 @@ module ActionController
       head :not_modified if request.fresh?(response)
     end
 
-    # Sets the +etag+ and/or +last_modified+ on the response and checks it against
-    # the client request. If the request doesn't match the options provided, the
-    # request is considered stale and should be generated from scratch. Otherwise,
-    # it's fresh and we don't need to generate anything and a reply of <tt>304 Not Modified</tt> is sent.
+    # Sets the +etag+ and/or +last_modified+ on the response and checks it
+    # against the client request. If the request doesn't match the options
+    # provided, the request is considered stale and should be generated from
+    # scratch. Otherwise, it's fresh and we don't need to generate anything
+    # and a reply of <tt>304 Not Modified</tt> is sent.
     #
     # === Parameters:
     #
     # * <tt>:etag</tt>.
     # * <tt>:last_modified</tt>.
-    # * <tt>:public</tt> By default the Cache-Control header is private, set this to
-    #   +true+ if you want your application to be cachable by other devices (proxy caches).
+    # * <tt>:public</tt> By default the Cache-Control header is private. Set
+    #   this to +true+ if you want your application to be cachable by other
+    #   devices (proxy caches).
     # * <tt>:template</tt> By default, the template digest for the current
     #   controller/action is included in ETags. If the action renders a
     #   different template, you can include its digest instead. If the action
@@ -197,6 +202,7 @@ module ActionController
     # See http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html for more possibilities.
     #
     # The method will also ensure a HTTP Date header for client compatibility.
+    #
     def expires_in(seconds, options = {})
       response.cache_control.merge!(
         :max_age         => seconds,
@@ -217,7 +223,7 @@ module ActionController
 
     # Cache or yield the block. The cache is supposed to never expire.
     #
-    # You can use this method when you have a HTTP response that never changes,
+    # You can use this method when you have a HTTP response that never changes
     # and the browser and proxies should cache it indefinitely.
     #
     # * +public+: By default, HTTP responses are private, cached only on the
