@@ -510,6 +510,13 @@ class FormTagHelperTest < ActionView::TestCase
     )
   end
 
+  def test_button_tag_with_data_disable_with_option
+    assert_dom_equal(
+      %(<button name="button" type="submit" data-disable-with="Please wait...">Checkout</button>),
+      button_tag("Checkout", data: { disable_with: "Please wait..." })
+    )
+  end
+
   def test_image_submit_tag_with_confirmation
     assert_dom_equal(
       %(<input alt="Save" type="image" src="/images/save.gif" data-confirm="Are you sure?" />),
