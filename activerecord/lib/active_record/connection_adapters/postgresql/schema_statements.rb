@@ -70,11 +70,7 @@ module ActiveRecord
 
         # Returns the list of all tables in the schema search path or a specified schema.
         def tables(name = nil)
-          select_values(<<-SQL, 'SCHEMA')
-            SELECT tablename
-            FROM pg_tables
-            WHERE schemaname = ANY (current_schemas(false))
-          SQL
+          select_values("SELECT tablename FROM pg_tables WHERE schemaname = ANY(current_schemas(false))", 'SCHEMA')
         end
 
         # Returns true if table exists.
@@ -100,11 +96,7 @@ module ActiveRecord
 
         # Returns true if schema exists.
         def schema_exists?(name)
-          select_value(<<-SQL, 'SCHEMA').to_i > 0
-            SELECT COUNT(*)
-            FROM pg_namespace
-            WHERE nspname = '#{name}'
-          SQL
+          select_value("SELECT COUNT(*) FROM pg_namespace WHERE nspname = '#{name}'", 'SCHEMA').to_i > 0
         end
 
         # Verifies existence of an index with a given name.
@@ -192,24 +184,17 @@ module ActiveRecord
 
         # Returns the current database encoding format.
         def encoding
-          select_value(<<-end_sql, 'SCHEMA')
-            SELECT pg_encoding_to_char(pg_database.encoding) FROM pg_database
-            WHERE pg_database.datname LIKE '#{current_database}'
-          end_sql
+          select_value("SELECT pg_encoding_to_char(encoding) FROM pg_database WHERE datname LIKE '#{current_database}'", 'SCHEMA')
         end
 
         # Returns the current database collation.
         def collation
-          select_value(<<-end_sql, 'SCHEMA')
-            SELECT pg_database.datcollate FROM pg_database WHERE pg_database.datname LIKE '#{current_database}'
-          end_sql
+          select_value("SELECT datcollate FROM pg_database WHERE datname LIKE '#{current_database}'", 'SCHEMA')
         end
 
         # Returns the current database ctype.
         def ctype
-          select_value(<<-end_sql, 'SCHEMA')
-            SELECT pg_database.datctype FROM pg_database WHERE pg_database.datname LIKE '#{current_database}'
-          end_sql
+          select_value("SELECT datctype FROM pg_database WHERE datname LIKE '#{current_database}'", 'SCHEMA')
         end
 
         # Returns an array of schema names.
