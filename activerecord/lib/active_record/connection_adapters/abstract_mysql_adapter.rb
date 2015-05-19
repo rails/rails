@@ -1,4 +1,3 @@
-require 'arel/visitors/bind_visitor'
 require 'active_support/core_ext/string/strip'
 
 module ActiveRecord
