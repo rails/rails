@@ -192,7 +192,7 @@ module ActionMailer
   # Which will (if it had both a <tt>welcome.text.erb</tt> and <tt>welcome.html.erb</tt>
   # template in the view directory), send a complete <tt>multipart/mixed</tt> email with two parts,
   # the first part being a <tt>multipart/alternative</tt> with the text and HTML email parts inside,
-  # and the second being a <tt>application/pdf</tt> with a Base64 encoded copy of the file.pdf book
+  # and the second being a <tt>application/pdf</tt> with a <tt>Base64</tt> encoded copy of the file.pdf book
   # with the filename +free_book.pdf+.
   #
   # If you need to send attachments with no content, you need to create an empty view for it,
@@ -285,8 +285,8 @@ module ActionMailer
   #       end
   #   end
   #
-  # Note that the proc is evaluated right at the start of the mail message generation, so if you
-  # set something in the default using a proc, and then set the same thing inside of your
+  # Note that the <tt>Proc</tt> is evaluated right at the start of the mail message generation, so if you
+  # set something in the default using a <tt>Proc</tt>, and then set the same thing inside of your
   # mailer method, it will get over written by the mailer method.
   #
   # It is also possible to set these default options that will be used in all mailers through
@@ -380,8 +380,8 @@ module ActionMailer
   #   * <tt>:password</tt> - If your mail server requires authentication, set the password in this setting.
   #   * <tt>:authentication</tt> - If your mail server requires authentication, you need to specify the
   #     authentication type here.
-  #     This is a symbol and one of <tt>:plain</tt> (will send the password Base64 encoded), <tt>:login</tt> (will
-  #     send the password Base64 encoded) or <tt>:cram_md5</tt> (combines a Challenge/Response mechanism to exchange
+  #     This is a symbol and one of <tt>:plain</tt> (will send the password <tt>Base64</tt> encoded), <tt>:login</tt> (will
+  #     send the password <tt>Base64</tt> encoded) or <tt>:cram_md5</tt> (combines a Challenge/Response mechanism to exchange
   #     information and a cryptographic Message Digest 5 algorithm to hash important information)
   #   * <tt>:enable_starttls_auto</tt> - Detects if STARTTLS is enabled in your SMTP server and starts
   #     to use it. Defaults to <tt>true</tt>.
@@ -661,14 +661,14 @@ module ActionMailer
     #
     # If you do this, then Mail will take the file name and work out the mime type
     # set the Content-Type, Content-Disposition, Content-Transfer-Encoding and
-    # base64 encode the contents of the attachment all for you.
+    # <tt>Base64</tt> encode the contents of the attachment all for you.
     #
     # You can also specify overrides if you want by passing a hash instead of a string:
     #
     #  mail.attachments['filename.jpg'] = {mime_type: 'application/x-gzip',
     #                                      content: File.read('/path/to/filename.jpg')}
     #
-    # If you want to use a different encoding than Base64, you can pass an encoding in,
+    # If you want to use a different encoding than <tt>Base64</tt>, you can pass an encoding in,
     # but then it is up to you to pass in the content pre-encoded, and don't expect
     # Mail to know how to decode this data:
     #
