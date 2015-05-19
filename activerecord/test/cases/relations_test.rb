@@ -1503,6 +1503,11 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal ['Foo', 'Foo'], query.uniq(true).uniq(false).map(&:name)
   end
 
+  def test_distinct_with_block
+    distinct_ids = Developer.all.distinct {|d| d.salary }.map(&:id)
+    assert_equal [1, 2, 3, 11], distinct_ids.sort
+  end
+
   def test_doesnt_add_having_values_if_options_are_blank
     scope = Post.having('')
     assert scope.having_clause.empty?
