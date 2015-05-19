@@ -1,3 +1,8 @@
+*   Allow passing of block to `distinct` or `uniq` which builds an array of objects
+    that are iterated through using `Array#uniq`.
+
+    *Harry Whelchel*
+
 *   Allow single table inheritance instantiation to work when storing
     demodulized class names.
 
