@@ -14,8 +14,6 @@ require "active_record/connection_adapters/postgresql/type_metadata"
 require "active_record/connection_adapters/postgresql/utils"
 require "active_record/connection_adapters/statement_pool"
 
-require 'arel/visitors/bind_visitor'
-
 require 'ipaddr'
 
 module ActiveRecord

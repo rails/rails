@@ -1,6 +1,3 @@
-require 'date'
-require 'bigdecimal'
-require 'bigdecimal/util'
 require 'active_record/type'
 require 'active_support/core_ext/benchmark'
 require 'active_record/connection_adapters/schema_cache'

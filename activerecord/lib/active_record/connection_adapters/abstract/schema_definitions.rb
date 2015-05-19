@@ -1,7 +1,3 @@
-require 'date'
-require 'bigdecimal'
-require 'bigdecimal/util'
-
 module ActiveRecord
   module ConnectionAdapters #:nodoc:
     # Abstract representation of an index definition on a table. Instances of
