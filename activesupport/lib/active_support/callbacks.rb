@@ -638,7 +638,7 @@ module ActiveSupport
       #   set_callback :save, :after,  :after_meth, if: :condition
       #   set_callback :save, :around, ->(r, block) { stuff; result = block.call; stuff }
       #
-      # The second arguments indicates whether the callback is to be run +:before+,
+      # The second argument indicates whether the callback is to be run +:before+,
       # +:after+, or +:around+ the event. If omitted, +:before+ is assumed. This
       # means the first example above can also be written as:
       #
