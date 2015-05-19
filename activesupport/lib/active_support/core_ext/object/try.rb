@@ -1,7 +1,7 @@
 require 'delegate'
 
 module ActiveSupport
-  module Try #:nodoc:
+  module Tryable #:nodoc:
     def try(*a, &b)
       try!(*a, &b) if a.empty? || respond_to?(a.first)
     end
@@ -20,11 +20,9 @@ module ActiveSupport
   end
 end
 
-[Object, Delegator].each do |klass|
-  klass.include(ActiveSupport::Try)
-end
-
 class Object
+  include ActiveSupport::Tryable
+
   ##
   # :method: try
   #
@@ -105,6 +103,8 @@ class Object
 end
 
 class Delegator
+  include ActiveSupport::Tryable
+
   ##
   # :method: try
   #

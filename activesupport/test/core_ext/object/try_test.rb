@@ -77,9 +77,9 @@ class ObjectTryTest < ActiveSupport::TestCase
     klass = Class.new do
       private
 
-      def private_method
-        'private method'
-      end
+        def private_method
+          'private method'
+        end
     end
 
     assert_raise(NoMethodError) { klass.new.try!(:private_method) }
@@ -89,9 +89,9 @@ class ObjectTryTest < ActiveSupport::TestCase
     klass = Class.new do
       private
 
-      def private_method
-        'private method'
-      end
+        def private_method
+          'private method'
+        end
     end
 
     assert_nil klass.new.try(:private_method)
@@ -108,9 +108,9 @@ class ObjectTryTest < ActiveSupport::TestCase
 
     private
 
-    def private_delegator_method
-      'private delegator method'
-    end
+      def private_delegator_method
+        'private delegator method'
+      end
   end
 
   def test_try_with_method_on_delegator
@@ -139,9 +139,9 @@ class ObjectTryTest < ActiveSupport::TestCase
     klass = Class.new do
       private
 
-      def private_method
-        'private method'
-      end
+        def private_method
+          'private method'
+        end
     end
 
     assert_nil Decorator.new(klass.new).try(:private_method)
@@ -151,9 +151,9 @@ class ObjectTryTest < ActiveSupport::TestCase
     klass = Class.new do
       private
 
-      def private_method
-        'private method'
-      end
+        def private_method
+          'private method'
+        end
     end
 
     assert_raise(NoMethodError) do
