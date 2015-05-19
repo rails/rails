@@ -6,7 +6,7 @@ module ActionView
 
     included do
       # Fallback cache store if Action View is used without Rails.
-      # Otherwise overriden in Railtie to use Rails.cache.
+      # Otherwise overridden in Railtie to use Rails.cache.
       mattr_accessor(:collection_cache) { ActiveSupport::Cache::MemoryStore.new }
     end
 
