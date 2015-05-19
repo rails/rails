@@ -898,7 +898,7 @@ For more information on routing assertions available in Rails, see the API docum
 Testing Views
 -------------
 
-Testing the response to your request by asserting the presence of key HTML elements and their content is a common way to test the views of your application. The `assert_select` method allows you to query HTML elements of the response by using a simple yet powerful syntax.
+Testing the response to your request by asserting the presence of key HTML elements and their content is a common way to test the views of your application. Like route tests, view tests reside in `test/controllers/` or are part of controller tests. The `assert_select` method allows you to query HTML elements of the response by using a simple yet powerful syntax.
 
 There are two forms of `assert_select`:
 
