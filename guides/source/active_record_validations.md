@@ -1236,3 +1236,26 @@ Rails generates, for example, adds this CSS rule:
 ```
 
 This means that any field with an error ends up with a 2 pixel red border.
+
+### Inline Errors
+
+It is becoming popular these days to show errors inline along with the field instead
+of showing them at a single place. This is hugely popular in bigger forms where
+there are a number of fields.
+
+In order to accomplish the displaying of errors inline, simply put the following code
+in the `initializers` directory.
+
+```ruby
+ActionView::Base.field_error_proc = Proc.new do |html_tag, instance|
+  if html_tag !~ /^\<label/
+    %(#{ html_tag }
+      <span class="error-msg red">
+        #{ instance.error_message.join(',') }
+      </span>
+    ).html_safe
+  else
+    html_tag
+  end
+end
+```
