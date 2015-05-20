@@ -410,7 +410,7 @@ module ActionView
       # * +collection+ - An array of objects representing the <tt><optgroup></tt> tags.
       # * +group_method+ - The name of a method which, when called on a member of +collection+, returns an
       #   array of child objects representing the <tt><option></tt> tags.
-      # * group_label_method+ - The name of a method which, when called on a member of +collection+, returns a
+      # * +group_label_method+ - The name of a method which, when called on a member of +collection+, returns a
       #   string to be used as the +label+ attribute for its <tt><optgroup></tt> tag.
       # * +option_key_method+ - The name of a method which, when called on a child object of a member of
       #   +collection+, returns a value to be used as the +value+ attribute for its <tt><option></tt> tag.
