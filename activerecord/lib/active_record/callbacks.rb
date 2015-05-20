@@ -194,7 +194,7 @@ module ActiveRecord
   #
   # If the +before_validation+ callback throws +:abort+, the process will be
   # aborted and <tt>Base#save</tt> will return +false+. If Base#save! is called it will raise a
-  # ActiveRecord::RecordInvalid exception. Nothing will be appended to the errors object.
+  # <tt>ActiveRecord::RecordInvalid</tt> exception. Nothing will be appended to the errors object.
   #
   # == Canceling callbacks
   #
