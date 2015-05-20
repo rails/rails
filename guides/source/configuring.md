@@ -1127,7 +1127,7 @@ Search Engines Indexing
 
 Sometimes, you may want to prevent some pages of your application to be visible
 on search sites like Google, Bing, Yahoo or Duck Duck Go. The robots that index
-these sites will first analyse the `http://your-site.com/robots.txt` file to
+these sites will first analyze the `http://your-site.com/robots.txt` file to
 know which pages it is allowed to index.
 
 Rails creates this file for you inside the `/public` folder. By default, it allows
