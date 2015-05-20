@@ -29,8 +29,8 @@ that are supported by the PostgreSQL adapter.
 
 ### Bytea
 
-* [type definition](http://www.postgresql.org/docs/9.3/static/datatype-binary.html)
-* [functions and operators](http://www.postgresql.org/docs/9.3/static/functions-binarystring.html)
+* [type definition](http://www.postgresql.org/docs/current/static/datatype-binary.html)
+* [functions and operators](http://www.postgresql.org/docs/current/static/functions-binarystring.html)
 
 ```ruby
 # db/migrate/20140207133952_create_documents.rb
@@ -49,8 +49,8 @@ Document.create payload: data
 
 ### Array
 
-* [type definition](http://www.postgresql.org/docs/9.3/static/arrays.html)
-* [functions and operators](http://www.postgresql.org/docs/9.3/static/functions-array.html)
+* [type definition](http://www.postgresql.org/docs/current/static/arrays.html)
+* [functions and operators](http://www.postgresql.org/docs/current/static/functions-array.html)
 
 ```ruby
 # db/migrate/20140207133952_create_books.rb
@@ -83,7 +83,7 @@ Book.where("array_length(ratings, 1) >= 3")
 
 ### Hstore
 
-* [type definition](http://www.postgresql.org/docs/9.3/static/hstore.html)
+* [type definition](http://www.postgresql.org/docs/current/static/hstore.html)
 
 NOTE: you need to enable the `hstore` extension to use hstore.
 
@@ -112,8 +112,8 @@ profile.save!
 
 ### JSON
 
-* [type definition](http://www.postgresql.org/docs/9.3/static/datatype-json.html)
-* [functions and operators](http://www.postgresql.org/docs/9.3/static/functions-json.html)
+* [type definition](http://www.postgresql.org/docs/current/static/datatype-json.html)
+* [functions and operators](http://www.postgresql.org/docs/current/static/functions-json.html)
 
 ```ruby
 # db/migrate/20131220144913_create_events.rb
@@ -138,8 +138,8 @@ Event.where("payload->>'kind' = ?", "user_renamed")
 
 ### Range Types
 
-* [type definition](http://www.postgresql.org/docs/9.3/static/rangetypes.html)
-* [functions and operators](http://www.postgresql.org/docs/9.3/static/functions-range.html)
+* [type definition](http://www.postgresql.org/docs/current/static/rangetypes.html)
+* [functions and operators](http://www.postgresql.org/docs/current/static/functions-range.html)
 
 This type is mapped to Ruby [`Range`](http://www.ruby-doc.org/core-2.1.1/Range.html) objects.
 
@@ -173,7 +173,7 @@ event.ends_at # => Thu, 13 Feb 2014
 
 ### Composite Types
 
-* [type definition](http://www.postgresql.org/docs/9.3/static/rowtypes.html)
+* [type definition](http://www.postgresql.org/docs/current/static/rowtypes.html)
 
 Currently there is no special support for composite types. They are mapped to
 normal text columns:
@@ -213,7 +213,7 @@ contact.save!
 
 ### Enumerated Types
 
-* [type definition](http://www.postgresql.org/docs/9.3/static/datatype-enum.html)
+* [type definition](http://www.postgresql.org/docs/current/static/datatype-enum.html)
 
 Currently there is no special support for enumerated types. They are mapped as
 normal text columns:
@@ -242,9 +242,9 @@ article.save!
 
 ### UUID
 
-* [type definition](http://www.postgresql.org/docs/9.4/static/datatype-uuid.html)
-* [pgcrypto generator function](http://www.postgresql.org/docs/9.4/static/pgcrypto.html#AEN159361)
-* [uuid-ossp generator functions](http://www.postgresql.org/docs/9.4/static/uuid-ossp.html)
+* [type definition](http://www.postgresql.org/docs/current/static/datatype-uuid.html)
+* [pgcrypto generator function](http://www.postgresql.org/docs/current/static/pgcrypto.html#AEN159361)
+* [uuid-ossp generator functions](http://www.postgresql.org/docs/current/static/uuid-ossp.html)
 
 NOTE: you need to enable the `pgcrypto` (only PostgreSQL >= 9.4) or `uuid-ossp`
 extension to use uuid.
@@ -290,8 +290,8 @@ end
 
 ### Bit String Types
 
-* [type definition](http://www.postgresql.org/docs/9.3/static/datatype-bit.html)
-* [functions and operators](http://www.postgresql.org/docs/9.3/static/functions-bitstring.html)
+* [type definition](http://www.postgresql.org/docs/current/static/datatype-bit.html)
+* [functions and operators](http://www.postgresql.org/docs/current/static/functions-bitstring.html)
 
 ```ruby
 # db/migrate/20131220144913_create_users.rb
@@ -314,7 +314,7 @@ user.save!
 
 ### Network Address Types
 
-* [type definition](http://www.postgresql.org/docs/9.3/static/datatype-net-types.html)
+* [type definition](http://www.postgresql.org/docs/current/static/datatype-net-types.html)
 
 The types `inet` and `cidr` are mapped to Ruby
 [`IPAddr`](http://www.ruby-doc.org/stdlib-2.1.1/libdoc/ipaddr/rdoc/IPAddr.html)
@@ -349,7 +349,7 @@ macbook.address
 
 ### Geometric Types
 
-* [type definition](http://www.postgresql.org/docs/9.3/static/datatype-geometric.html)
+* [type definition](http://www.postgresql.org/docs/current/static/datatype-geometric.html)
 
 All geometric types, with the exception of `points` are mapped to normal text.
 A point is casted to an array containing `x` and `y` coordinates.
@@ -404,7 +404,7 @@ Document.where("to_tsvector('english', title || ' ' || body) @@ to_tsquery(?)",
 Database Views
 --------------
 
-* [view creation](http://www.postgresql.org/docs/9.3/static/sql-createview.html)
+* [view creation](http://www.postgresql.org/docs/current/static/sql-createview.html)
 
 Imagine you need to work with a legacy database containing the following table:
 
