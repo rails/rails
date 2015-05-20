@@ -484,7 +484,7 @@ All the basic assertions such as `assert_equal` defined in `Minitest::Assertions
 
 Each of these classes include `Minitest::Assertions`, allowing us to use all of the basic assertions in our tests.
 
-NOTE: For more information on `Minitest`, refer to [Minitest](http://ruby-doc.org/stdlib-2.2.2/libdoc/minitest/rdoc/MiniTest.html)
+NOTE: For more information on `Minitest`, refer to [Minitest](http://docs.seattlerb.org/minitest)
 
 Functional Tests for Your Controllers
 -------------------------------------
