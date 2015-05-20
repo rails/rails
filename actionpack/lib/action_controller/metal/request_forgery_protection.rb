@@ -44,7 +44,7 @@ module ActionController #:nodoc:
   # during request.
   #
   # We may want to disable CSRF protection for APIs since they are typically
-  # designed to be state-less. That is, the requestion API client will handle
+  # designed to be state-less. That is, the request API client will handle
   # the session for you instead of Rails.
   #
   # The token parameter is named <tt>authenticity_token</tt> by default. The name and
