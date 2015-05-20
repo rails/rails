@@ -1,3 +1,8 @@
+*   Make remove_foreign_key invertible. Any foreign key options must be
+    specified, similar to remove_column.
+
+    *Aster Ryan*
+
 *   Correctly handle decimal arrays with defaults in the schema dumper.
 
     Fixes #20515.

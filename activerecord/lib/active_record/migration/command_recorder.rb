@@ -184,6 +184,16 @@ module ActiveRecord
         [:remove_foreign_key, [from_table, options]]
       end
 
+      def invert_remove_foreign_key(args)
+        from_table, to_table, remove_options = args
+        raise ActiveRecord::IrreversibleMigration, "remove_foreign_key is only reversible if given a second table" if to_table.nil? || to_table.is_a?(Hash)
+
+        reversed_args = [from_table, to_table]
+        reversed_args << remove_options if remove_options
+
+        [:add_foreign_key, reversed_args]
+      end
+
       # Forwards any missing method call to the \target.
       def method_missing(method, *args, &block)
         if @delegate.respond_to?(method)

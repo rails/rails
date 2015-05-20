@@ -777,7 +777,10 @@ module ActiveRecord
         execute schema_creation.accept(at)
       end
 
-      # Removes the given foreign key from the table.
+      # Removes the given foreign key from the table. Any options parameters provided
+      # will be used to re-add the foreign key in case of a migration reversion.
+      # It is recommended that you provide any options used when creating the foreign
+      # key so that the migration can be reverted properly.
       #
       # Removes the foreign key on +accounts.branch_id+.
       #
@@ -791,6 +794,8 @@ module ActiveRecord
       #
       #   remove_foreign_key :accounts, name: :special_fk_name
       #
+      # The +options+ hash can include all keys that can be used in add_foreign_key.
+      # Please refer to the add_foreign_key documentation for a full list
       def remove_foreign_key(from_table, options_or_to_table = {})
         return unless supports_foreign_keys?
 
