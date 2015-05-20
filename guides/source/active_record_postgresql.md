@@ -141,7 +141,7 @@ Event.where("payload->>'kind' = ?", "user_renamed")
 * [type definition](http://www.postgresql.org/docs/current/static/rangetypes.html)
 * [functions and operators](http://www.postgresql.org/docs/current/static/functions-range.html)
 
-This type is mapped to Ruby [`Range`](http://www.ruby-doc.org/core-2.1.1/Range.html) objects.
+This type is mapped to Ruby [`Range`](http://www.ruby-doc.org/core-2.2.2/Range.html) objects.
 
 ```ruby
 # db/migrate/20130923065404_create_events.rb
@@ -317,7 +317,7 @@ user.save!
 * [type definition](http://www.postgresql.org/docs/current/static/datatype-net-types.html)
 
 The types `inet` and `cidr` are mapped to Ruby
-[`IPAddr`](http://www.ruby-doc.org/stdlib-2.1.1/libdoc/ipaddr/rdoc/IPAddr.html)
+[`IPAddr`](http://www.ruby-doc.org/stdlib-2.2.2/libdoc/ipaddr/rdoc/IPAddr.html)
 objects. The `macaddr` type is mapped to normal text.
 
 ```ruby
