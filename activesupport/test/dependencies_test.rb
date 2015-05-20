@@ -187,7 +187,7 @@ class DependenciesTest < ActiveSupport::TestCase
       assert_kind_of Module, A
       assert_kind_of Class, A::B
       assert_kind_of Class, A::C::D
-      assert_kind_of Class, A::C::E::F
+      assert_kind_of Class, A::C::EM::F
     end
   end
 
@@ -552,24 +552,24 @@ class DependenciesTest < ActiveSupport::TestCase
   def test_const_missing_in_anonymous_modules_loads_top_level_constants
     with_autoloading_fixtures do
       # class_eval STRING pushes the class to the nesting of the eval'ed code.
-      klass = Class.new.class_eval "E"
-      assert_equal E, klass
+      klass = Class.new.class_eval "EM"
+      assert_equal EM, klass
     end
   ensure
-    remove_constants(:E)
+    remove_constants(:EM)
   end
 
   def test_const_missing_in_anonymous_modules_raises_if_the_constant_belongs_to_Object
     with_autoloading_fixtures do
-      require_dependency 'e'
+      require_dependency 'em'
 
       mod = Module.new
-      e = assert_raise(NameError) { mod::E }
-      assert_equal 'E cannot be autoloaded from an anonymous class or module', e.message
-      assert_equal :E, e.name
+      e = assert_raise(NameError) { mod::EM }
+      assert_equal 'EM cannot be autoloaded from an anonymous class or module', e.message
+      assert_equal :EM, e.name
     end
   ensure
-    remove_constants(:E)
+    remove_constants(:EM)
   end
 
   def test_removal_from_tree_should_be_detected
@@ -664,19 +664,19 @@ class DependenciesTest < ActiveSupport::TestCase
 
   def test_preexisting_constants_are_not_marked_as_autoloaded
     with_autoloading_fixtures do
-      require_dependency 'e'
-      assert ActiveSupport::Dependencies.autoloaded?(:E)
+      require_dependency 'em'
+      assert ActiveSupport::Dependencies.autoloaded?(:EM)
       ActiveSupport::Dependencies.clear
     end
 
-    Object.const_set :E, Class.new
+    Object.const_set :EM, Class.new
     with_autoloading_fixtures do
-      require_dependency 'e'
-      assert ! ActiveSupport::Dependencies.autoloaded?(:E), "E shouldn't be marked autoloaded!"
+      require_dependency 'em'
+      assert ! ActiveSupport::Dependencies.autoloaded?(:EM), "EM shouldn't be marked autoloaded!"
       ActiveSupport::Dependencies.clear
     end
   ensure
-    remove_constants(:E)
+    remove_constants(:EM)
   end
 
   def test_constants_in_capitalized_nesting_marked_as_autoloaded
