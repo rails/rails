@@ -122,7 +122,7 @@ namespace :db do
 
       # prepare hstore
       if %x( createdb --version ).strip.gsub(/(.*)(\d\.\d\.\d)$/, "\\2") < "9.1.0"
-        puts "Please prepare hstore data type. See http://www.postgresql.org/docs/9.0/static/hstore.html"
+        puts "Please prepare hstore data type. See http://www.postgresql.org/docs/current/static/hstore.html"
       end
     end
 

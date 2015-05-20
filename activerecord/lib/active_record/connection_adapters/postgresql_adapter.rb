@@ -66,11 +66,11 @@ module ActiveRecord
     #   defaults to true.
     #
     # Any further options are used as connection parameters to libpq. See
-    # http://www.postgresql.org/docs/9.1/static/libpq-connect.html for the
+    # http://www.postgresql.org/docs/current/static/libpq-connect.html for the
     # list of parameters.
     #
     # In addition, default connection parameters of libpq can be set per environment variables.
-    # See http://www.postgresql.org/docs/9.1/static/libpq-envars.html .
+    # See http://www.postgresql.org/docs/current/static/libpq-envars.html .
     class PostgreSQLAdapter < AbstractAdapter
       ADAPTER_NAME = 'PostgreSQL'.freeze
 
@@ -424,7 +424,7 @@ module ActiveRecord
           @connection.server_version
         end
 
-        # See http://www.postgresql.org/docs/9.1/static/errcodes-appendix.html
+        # See http://www.postgresql.org/docs/current/static/errcodes-appendix.html
         FOREIGN_KEY_VIOLATION = "23503"
         UNIQUE_VIOLATION      = "23505"
 
@@ -698,7 +698,7 @@ module ActiveRecord
           end
 
           # SET statements from :variables config hash
-          # http://www.postgresql.org/docs/8.3/static/sql-set.html
+          # http://www.postgresql.org/docs/current/static/sql-set.html
           variables = @config[:variables] || {}
           variables.map do |k, v|
             if v == ':default' || v == :default
