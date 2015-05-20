@@ -35,7 +35,7 @@ views.
 #### Create the Mailer
 
 ```bash
-$ bin/rails generate mailer UserMailer
+$ rails generate mailer UserMailer
 create  app/mailers/user_mailer.rb
 create  app/mailers/application_mailer.rb
 invoke  erb
