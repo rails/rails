@@ -971,7 +971,7 @@ request:
 | `{ "person": [null, null, ...] }` | `{ :person => [] }`     |
 | `{ "person": ["foo", null] }`     | `{ :person => ["foo"] }` |
 
-It is possible to return to old behaviour and disable `deep_munge` configuring
+It is possible to return to old behavior and disable `deep_munge` configuring
 your application if you are aware of the risk and know how to handle it:
 
 ```ruby
