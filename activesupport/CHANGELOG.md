@@ -1,6 +1,6 @@
 *   Patch `Delegator` to work with `#try`.
 
-    Fixes #5790.
+    [Fixes #5790](https://github.com/rails/rails/issues/5790).
 
     *Nate Smith*
 
@@ -13,7 +13,7 @@
 
 *   Encoding `ActiveSupport::TimeWithZone` to YAML now preserves the timezone information.
 
-    Fixes #9183.
+    [Fixes #9183](https://github.com/rails/rails/issues/9183).
 
     *Andrew White*
 
@@ -112,7 +112,7 @@
 *   Duplicate frozen array when assigning it to a `HashWithIndifferentAccess` so
     that it doesn't raise a `RuntimeError` when calling `map!` on it in `convert_value`.
 
-    Fixes #18550.
+    [Fixes #18550](https://github.com/rails/rails/issues/18550).
 
     *Aditya Kapoor*
 
