@@ -1,6 +1,6 @@
-*   Patch `Delegator` to work with `#try`
+*   Patch `Delegator` to work with `#try`.
 
-    Fixes #5790
+    Fixes #5790.
 
     *Nate Smith*
 
