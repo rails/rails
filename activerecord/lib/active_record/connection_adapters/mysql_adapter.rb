@@ -58,9 +58,9 @@ module ActiveRecord
     # * <tt>:password</tt> - Defaults to nothing.
     # * <tt>:database</tt> - The name of the database. No default, must be provided.
     # * <tt>:encoding</tt> - (Optional) Sets the client encoding by executing "SET NAMES <encoding>" after connection.
-    # * <tt>:reconnect</tt> - Defaults to false (See MySQL documentation: http://dev.mysql.com/doc/refman/5.6/en/auto-reconnect.html).
-    # * <tt>:strict</tt> - Defaults to true. Enable STRICT_ALL_TABLES. (See MySQL documentation: http://dev.mysql.com/doc/refman/5.6/en/sql-mode.html)
-    # * <tt>:variables</tt> - (Optional) A hash session variables to send as <tt>SET @@SESSION.key = value</tt> on each database connection. Use the value +:default+ to set a variable to its DEFAULT value. (See MySQL documentation: http://dev.mysql.com/doc/refman/5.6/en/set-statement.html).
+    # * <tt>:reconnect</tt> - Defaults to false (See MySQL documentation: http://dev.mysql.com/doc/refman/5.7/en/auto-reconnect.html).
+    # * <tt>:strict</tt> - Defaults to true. Enable STRICT_ALL_TABLES. (See MySQL documentation: http://dev.mysql.com/doc/refman/5.7/en/sql-mode.html)
+    # * <tt>:variables</tt> - (Optional) A hash session variables to send as <tt>SET @@SESSION.key = value</tt> on each database connection. Use the value +:default+ to set a variable to its DEFAULT value. (See MySQL documentation: http://dev.mysql.com/doc/refman/5.7/en/set-statement.html).
     # * <tt>:sslca</tt> - Necessary to use MySQL with an SSL connection.
     # * <tt>:sslkey</tt> - Necessary to use MySQL with an SSL connection.
     # * <tt>:sslcert</tt> - Necessary to use MySQL with an SSL connection.
