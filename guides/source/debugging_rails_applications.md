@@ -317,7 +317,7 @@ For example:
 => Notice: server is listening on all interfaces (0.0.0.0). Consider using 127.0.0.1 (--binding option)
 => Ctrl-C to shutdown server
 [2014-04-11 13:11:47] INFO  WEBrick 1.3.1
-[2014-04-11 13:11:47] INFO  ruby 2.1.1 (2014-02-24) [i686-linux]
+[2014-04-11 13:11:47] INFO  ruby 2.2.2 (2015-04-13) [i686-linux]
 [2014-04-11 13:11:47] INFO  WEBrick::HTTPServer#start: pid=6370 port=3000
 
 
