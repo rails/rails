@@ -210,12 +210,12 @@ module ActiveRecord
     # If you want to change the sti column as well, use +becomes!+ instead.
     def becomes(klass)
       became = klass.new
-      became.instance_variable_set("@attributes", @attributes)
+      became.instance_variable_set(:@attributes, @attributes)
       changed_attributes = @changed_attributes if defined?(@changed_attributes)
-      became.instance_variable_set("@changed_attributes", changed_attributes || {})
-      became.instance_variable_set("@new_record", new_record?)
-      became.instance_variable_set("@destroyed", destroyed?)
-      became.instance_variable_set("@errors", errors)
+      became.instance_variable_set(:@changed_attributes, changed_attributes || {})
+      became.instance_variable_set(:@new_record, new_record?)
+      became.instance_variable_set(:@destroyed, destroyed?)
+      became.instance_variable_set(:@errors, errors)
       became
     end
 
@@ -425,7 +425,7 @@ module ActiveRecord
           self.class.unscoped { self.class.find(id) }
         end
 
-      @attributes = fresh_object.instance_variable_get('@attributes')
+      @attributes = fresh_object.instance_variable_get(:@attributes)
       @new_record = false
       self
     end
