@@ -13,7 +13,7 @@ class Module
   #   end
   #
   #   HairColors.hair_colors # => nil
-  #   HairColors.class_variable_set("@@hair_colors", [:brown, :black])
+  #   HairColors.class_variable_set(:@@hair_colors, [:brown, :black])
   #   HairColors.hair_colors # => [:brown, :black]
   #
   # The attribute name must be a valid method name in Ruby.
@@ -86,9 +86,9 @@ class Module
   #   end
   #
   #   HairColors.hair_colors = [:brown, :black]
-  #   Person.class_variable_get("@@hair_colors") # => [:brown, :black]
+  #   Person.class_variable_get(:@@hair_colors) # => [:brown, :black]
   #   Person.new.hair_colors = [:blonde, :red]
-  #   HairColors.class_variable_get("@@hair_colors") # => [:blonde, :red]
+  #   HairColors.class_variable_get(:@@hair_colors) # => [:blonde, :red]
   #
   # If you want to opt out the instance writer method, pass
   # <tt>instance_writer: false</tt> or <tt>instance_accessor: false</tt>.
@@ -115,7 +115,7 @@ class Module
   #     include HairColors
   #   end
   #
-  #   Person.class_variable_get("@@hair_colors") # => [:brown, :black, :blonde, :red]
+  #   Person.class_variable_get(:@@hair_colors) # => [:brown, :black, :blonde, :red]
   def mattr_writer(*syms)
     options = syms.extract_options!
     syms.each do |sym|
@@ -203,7 +203,7 @@ class Module
   #     include HairColors
   #   end
   #
-  #   Person.class_variable_get("@@hair_colors") # => [:brown, :black, :blonde, :red]
+  #   Person.class_variable_get(:@@hair_colors) # => [:brown, :black, :blonde, :red]
   def mattr_accessor(*syms, &blk)
     mattr_reader(*syms, &blk)
     mattr_writer(*syms, &blk)
