@@ -7,11 +7,17 @@ module ActiveSupport
   #   variants.phone?    # => true
   #   variants.tablet?   # => true
   #   variants.desktop?  # => false
-  #
-  #   variants.any?(:phone, :tablet)   # => true
-  #   variants.any?(:phone, :desktop)  # => true
-  #   variants.any?(:desktop, :watch)  # => false
   class ArrayInquirer < Array
+    # Passes each element of +candidates+ collection to ArrayInquirer collection.
+    # The method returns true if at least one element is the same. If +candidates+
+    # collection is not given, method returns true.
+    #
+    #   variants = ActiveSupport::ArrayInquirer.new([:phone, :tablet])
+    #
+    #   variants.any?                      # => true
+    #   variants.any?(:phone, :tablet)     # => true
+    #   variants.any?('phone', 'desktop')  # => true
+    #   variants.any?(:desktop, :watch)    # => false
     def any?(*candidates, &block)
       if candidates.none?
         super
