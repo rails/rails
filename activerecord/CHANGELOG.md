@@ -1,3 +1,8 @@
+*   Raises the right exception when declares a has many through
+    association with missing source.
+
+    *Mauro George*
+
 *   Revert behavior of `db:schema:load` back to loading the full
     environment. This ensures that initializers are run.
 

@@ -63,6 +63,7 @@ class Post < ActiveRecord::Base
   has_many :comments_with_extend_2, extend: [NamedExtension, NamedExtension2], class_name: "Comment", foreign_key: "post_id"
 
   has_many :author_favorites, :through => :author
+  has_many :author_toys, :through => :author
   has_many :author_categorizations, :through => :author, :source => :categorizations
   has_many :author_addresses, :through => :author
   has_many :author_address_extra_with_address,
