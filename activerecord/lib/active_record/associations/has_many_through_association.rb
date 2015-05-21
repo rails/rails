@@ -65,7 +65,7 @@ module ActiveRecord
             ensure_mutable
 
             through_record = through_association.build(*options_for_through_record)
-            through_record.send("#{source_reflection.name}=", record)
+            through_record.send(:"#{source_reflection.name}=", record)
             through_record
           end
         end
@@ -96,7 +96,7 @@ module ActiveRecord
             if inverse.collection?
               record.send(inverse.name) << build_through_record(record)
             elsif inverse.has_one?
-              record.send("#{inverse.name}=", build_through_record(record))
+              record.send(:"#{inverse.name}=", build_through_record(record))
             end
           end
 

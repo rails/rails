@@ -24,7 +24,7 @@ module ActionDispatch
 
         if Symbol === type
           if [:success, :missing, :redirect, :error].include?(type)
-            assert @response.send("#{type}?"), message
+            assert @response.send(:"#{type}?"), message
           else
             code = Rack::Utils::SYMBOL_TO_STATUS_CODE[type]
             if code.nil?

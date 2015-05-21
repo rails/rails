@@ -54,11 +54,11 @@ module ActiveModel
   #     end
   #
   #     def clear_attribute(attr)
-  #       send("#{attr}=", nil)
+  #       send(:"#{attr}=", nil)
   #     end
   #
   #     def reset_attribute_to_default!(attr)
-  #       send("#{attr}=", 'Default Name')
+  #       send(:"#{attr}=", 'Default Name')
   #     end
   #   end
   module AttributeMethods
@@ -96,7 +96,7 @@ module ActiveModel
       #     private
       #
       #     def clear_attribute(attr)
-      #       send("#{attr}=", nil)
+      #       send(:"#{attr}=", nil)
       #     end
       #   end
       #
@@ -168,7 +168,7 @@ module ActiveModel
       #     private
       #
       #     def reset_attribute_to_default!(attr)
-      #       send("#{attr}=", 'Default Name')
+      #       send(:"#{attr}=", 'Default Name')
       #     end
       #   end
       #
@@ -245,7 +245,7 @@ module ActiveModel
       #     private
       #
       #     def clear_attribute(attr)
-      #       send("#{attr}=", nil)
+      #       send(:"#{attr}=", nil)
       #     end
       #   end
       def define_attribute_methods(*attr_names)

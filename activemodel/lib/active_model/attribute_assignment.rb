@@ -42,8 +42,8 @@ module ActiveModel
     end
 
     def _assign_attribute(k, v)
-      if respond_to?("#{k}=")
-        public_send("#{k}=", v)
+      if respond_to?(:"#{k}=")
+        public_send(:"#{k}=", v)
       else
         raise UnknownAttributeError.new(self, k)
       end

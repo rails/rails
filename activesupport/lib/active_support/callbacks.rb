@@ -80,7 +80,7 @@ module ActiveSupport
     #     save
     #   end
     def run_callbacks(kind, &block)
-      callbacks = send("_#{kind}_callbacks")
+      callbacks = send(:"_#{kind}_callbacks")
 
       if callbacks.empty?
         yield if block_given?

@@ -485,11 +485,11 @@ module ActiveRecord
     def delete_all(conditions = nil)
       invalid_methods = INVALID_METHODS_FOR_DELETE_ALL.select { |method|
         if MULTI_VALUE_METHODS.include?(method)
-          send("#{method}_values").any?
+          send(:"#{method}_values").any?
         elsif SINGLE_VALUE_METHODS.include?(method)
-          send("#{method}_value")
+          send(:"#{method}_value")
         elsif CLAUSE_METHODS.include?(method)
-          send("#{method}_clause").any?
+          send(:"#{method}_clause").any?
         end
       }
       if invalid_methods.any?

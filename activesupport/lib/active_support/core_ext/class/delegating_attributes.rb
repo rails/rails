@@ -12,14 +12,14 @@ class Class
     # Generate the public methods name, name=, and name?.
     # These methods dispatch to the private _name, and _name= methods, making them
     # overridable.
-    singleton_class.send(:define_method, name) { send("_#{name}") }
-    singleton_class.send(:define_method, "#{name}?") { !!send("_#{name}") }
-    singleton_class.send(:define_method, "#{name}=") { |value| send("_#{name}=", value) }
+    singleton_class.send(:define_method, name) { send(:"_#{name}") }
+    singleton_class.send(:define_method, "#{name}?") { !!send(:"_#{name}") }
+    singleton_class.send(:define_method, "#{name}=") { |value| send(:"_#{name}=", value) }
 
     # If an instance_reader is needed, generate public instance methods name and name?.
     if options[:instance_reader] != false
-      define_method(name) { send("_#{name}") }
-      define_method("#{name}?") { !!send("#{name}") }
+      define_method(name) { send(:"_#{name}") }
+      define_method("#{name}?") { !!send(:"#{name}") }
     end
   end
 
@@ -40,6 +40,6 @@ class Class
       singleton_class.send(:define_method, "#{name}=") do |value|
         _stash_object_in_method(value, name, options[:instance_reader] != false)
       end
-      send("#{name}=", nil)
+      send(:"#{name}=", nil)
     end
 end

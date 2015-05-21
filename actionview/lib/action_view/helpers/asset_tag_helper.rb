@@ -310,10 +310,10 @@ module ActionView
 
           if sources.size > 1
             content_tag(type, options) do
-              safe_join sources.map { |source| tag("source", :src => send("path_to_#{type}", source)) }
+              safe_join sources.map { |source| tag("source", src: send(:"path_to_#{type}", source)) }
             end
           else
-            options[:src] = send("path_to_#{type}", sources.first)
+            options[:src] = send(:"path_to_#{type}", sources.first)
             content_tag(type, nil, options)
           end
         end

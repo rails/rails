@@ -37,7 +37,7 @@ different rails applications using RubyGems and Bundler if desired.
 
 Rails ships with a `rails plugin new` command which creates a
 skeleton for developing any kind of Rails extension with the ability
-to run integration tests using a dummy Rails application. Create your 
+to run integration tests using a dummy Rails application. Create your
 plugin with the command:
 
 ```bash
@@ -394,7 +394,7 @@ Run `rake` one final time and you should see:
 NOTE: The use of `write_attribute` to write to the field in model is just one example of how a plugin can interact with the model, and will not always be the right method to use. For example, you could also use:
 
 ```ruby
-send("#{self.class.yaffle_text_field}=", string.to_squawk)
+send(:"#{self.class.yaffle_text_field}=", string.to_squawk)
 ```
 
 Generators

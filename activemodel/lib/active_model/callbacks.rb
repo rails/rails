@@ -114,7 +114,7 @@ module ActiveModel
         define_callbacks(callback, options)
 
         types.each do |type|
-          send("_define_#{type}_model_callback", self, callback)
+          send(:"_define_#{type}_model_callback", self, callback)
         end
       end
     end

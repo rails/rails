@@ -188,7 +188,7 @@ module AbstractController
 
         define_method "#{callback}_filter" do |*names, &blk|
           ActiveSupport::Deprecation.warn("#{callback}_filter is deprecated and will be removed in Rails 5.1. Use #{callback}_action instead.")
-          send("#{callback}_action", *names, &blk)
+          send(:"#{callback}_action", *names, &blk)
         end
 
         define_method "prepend_#{callback}_action" do |*names, &blk|
@@ -199,7 +199,7 @@ module AbstractController
 
         define_method "prepend_#{callback}_filter" do |*names, &blk|
           ActiveSupport::Deprecation.warn("prepend_#{callback}_filter is deprecated and will be removed in Rails 5.1. Use prepend_#{callback}_action instead.")
-          send("prepend_#{callback}_action", *names, &blk)
+          send(:"prepend_#{callback}_action", *names, &blk)
         end
 
         # Skip a before, after or around callback. See _insert_callbacks
@@ -212,7 +212,7 @@ module AbstractController
 
         define_method "skip_#{callback}_filter" do |*names, &blk|
           ActiveSupport::Deprecation.warn("skip_#{callback}_filter is deprecated and will be removed in Rails 5.1. Use skip_#{callback}_action instead.")
-          send("skip_#{callback}_action", *names, &blk)
+          send(:"skip_#{callback}_action", *names, &blk)
         end
 
         # *_action is the same as append_*_action
@@ -220,7 +220,7 @@ module AbstractController
 
         define_method "append_#{callback}_filter" do |*names, &blk|
           ActiveSupport::Deprecation.warn("append_#{callback}_filter is deprecated and will be removed in Rails 5.1. Use append_#{callback}_action instead.")
-          send("append_#{callback}_action", *names, &blk)
+          send(:"append_#{callback}_action", *names, &blk)
         end
       end
     end
