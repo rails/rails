@@ -1924,7 +1924,7 @@ module ActionView
         end
 
         def nested_attributes_association?(association_name)
-          @object.respond_to?("#{association_name}_attributes=")
+          @object.respond_to?(:"#{association_name}_attributes=")
         end
 
         def fields_for_with_nested_attributes(association_name, association, options, block)

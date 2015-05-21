@@ -119,7 +119,7 @@ module ActiveSupport
             class_eval reader, __FILE__, reader_line unless options[:instance_reader] == false
             class_eval writer, __FILE__, writer_line unless options[:instance_writer] == false
           end
-          send("#{name}=", yield) if block_given?
+          send(:"#{name}=", yield) if block_given?
         end
       end
       private :config_accessor
@@ -145,4 +145,3 @@ module ActiveSupport
     end
   end
 end
-

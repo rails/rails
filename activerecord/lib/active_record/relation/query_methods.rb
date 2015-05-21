@@ -608,9 +608,9 @@ module ActiveRecord
     end
 
     private def structurally_compatible_for_or?(other) # :nodoc:
-      Relation::SINGLE_VALUE_METHODS.all? { |m| send("#{m}_value") == other.send("#{m}_value") } &&
-        (Relation::MULTI_VALUE_METHODS - [:extending]).all? { |m| send("#{m}_values") == other.send("#{m}_values") } &&
-        (Relation::CLAUSE_METHODS - [:having, :where]).all? { |m| send("#{m}_clause") != other.send("#{m}_clause") }
+      Relation::SINGLE_VALUE_METHODS.all? { |m| send(:"#{m}_value") == other.send(:"#{m}_value") } &&
+        (Relation::MULTI_VALUE_METHODS - [:extending]).all? { |m| send(:"#{m}_values") == other.send(:"#{m}_values") } &&
+        (Relation::CLAUSE_METHODS - [:having, :where]).all? { |m| send(:"#{m}_clause") != other.send(:"#{m}_clause") }
     end
 
     # Allows to specify a HAVING clause. Note that you can't use HAVING

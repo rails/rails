@@ -44,7 +44,7 @@ module I18n
         when :load_path
           I18n.load_path += value
         else
-          I18n.send("#{setting}=", value)
+          I18n.send(:"#{setting}=", value)
         end
       end
 

@@ -618,7 +618,7 @@ module ActionDispatch
                   prefix_options = options.slice(*_route.segment_keys)
                   # we must actually delete prefix segment keys to avoid passing them to next url_for
                   _route.segment_keys.each { |k| options.delete(k) }
-                  _routes.url_helpers.send("#{name}_path", prefix_options)
+                  _routes.url_helpers.send(:"#{name}_path", prefix_options)
                 end
               end
             }
@@ -792,7 +792,7 @@ module ActionDispatch
             end
 
             if value
-              scope[option] = send("merge_#{option}_scope", @scope[option], value)
+              scope[option] = send(:"merge_#{option}_scope", @scope[option], value)
             end
           end
 

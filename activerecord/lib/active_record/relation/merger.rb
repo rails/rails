@@ -32,7 +32,7 @@ module ActiveRecord
           elsif k == :select
             other._select!(v)
           else
-            other.send("#{k}!", v)
+            other.send(:"#{k}!", v)
           end
         }
         other
@@ -67,7 +67,7 @@ module ActiveRecord
             if name == :select
               relation._select!(*value)
             else
-              relation.send("#{name}!", *value)
+              relation.send(:"#{name}!", *value)
             end
           end
         end
@@ -128,9 +128,9 @@ module ActiveRecord
 
       def merge_clauses
         CLAUSE_METHODS.each do |name|
-          clause = relation.send("#{name}_clause")
-          other_clause = other.send("#{name}_clause")
-          relation.send("#{name}_clause=", clause.merge(other_clause))
+          clause = relation.send(:"#{name}_clause")
+          other_clause = other.send(:"#{name}_clause")
+          relation.send(:"#{name}_clause=", clause.merge(other_clause))
         end
       end
     end

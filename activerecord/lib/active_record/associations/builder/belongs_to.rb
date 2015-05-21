@@ -67,7 +67,7 @@ module ActiveRecord::Associations::Builder
         association = o.association(name)
         reflection = association.reflection
         if reflection.polymorphic?
-          klass = o.public_send("#{reflection.foreign_type}_was").constantize
+          klass = o.public_send(:"#{reflection.foreign_type}_was").constantize
         else
           klass = association.klass
         end

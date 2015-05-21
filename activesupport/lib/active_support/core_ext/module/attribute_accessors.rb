@@ -135,7 +135,7 @@ class Module
           end
         EOS
       end
-      send("#{sym}=", yield) if block_given?
+      send(:"#{sym}=", yield) if block_given?
     end
   end
   alias :cattr_writer :mattr_writer

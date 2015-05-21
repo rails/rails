@@ -42,7 +42,7 @@ class Person
 
   private
     def reset_attribute(attribute)
-      send("#{attribute}=", 0)
+      send(:"#{attribute}=", 0)
     end
 
     def attribute_highest?(attribute)
@@ -360,7 +360,7 @@ class Person
 
   def attributes=(hash)
     hash.each do |key, value|
-      send("#{key}=", value)
+      send(:"#{key}=", value)
     end
   end
 
@@ -416,7 +416,7 @@ class Person
 
   def attributes=(hash)
     hash.each do |key, value|
-      send("#{key}=", value)
+      send(:"#{key}=", value)
     end
   end
 

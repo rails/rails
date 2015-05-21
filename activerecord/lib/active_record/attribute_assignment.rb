@@ -63,7 +63,7 @@ module ActiveRecord
           else
             values = values_with_empty_parameters
           end
-          send("#{name}=", values)
+          send(:"#{name}=", values)
         rescue => ex
           errors << AttributeAssignmentError.new("error on assignment #{values_with_empty_parameters.values.inspect} to #{name} (#{ex.message})", ex, name)
         end
@@ -89,7 +89,7 @@ module ActiveRecord
     end
 
     def type_cast_attribute_value(multiparameter_name, value)
-      multiparameter_name =~ /\([0-9]*([if])\)/ ? value.send("to_" + $1) : value
+      multiparameter_name =~ /\([0-9]*([if])\)/ ? value.send(:"to_#{$1}") : value
     end
 
     def find_parameter_position(multiparameter_name)
