@@ -13,21 +13,20 @@ module ActionDispatch
   # from multiple pieces of the stack.
   class RequestId
     X_REQUEST_ID = "X-Request-Id".freeze # :nodoc:
-    ACTION_DISPATCH_REQUEST_ID = "action_dispatch.request_id".freeze # :nodoc:
-    HTTP_X_REQUEST_ID = "HTTP_X_REQUEST_ID".freeze # :nodoc:
 
     def initialize(app)
       @app = app
     end
 
     def call(env)
-      env[ACTION_DISPATCH_REQUEST_ID] = external_request_id(env) || internal_request_id
-      @app.call(env).tap { |_status, headers, _body| headers[X_REQUEST_ID] = env[ACTION_DISPATCH_REQUEST_ID] }
+      req = ActionDispatch::Request.new env
+      req.request_id = external_request_id(req) || internal_request_id
+      @app.call(env).tap { |_status, headers, _body| headers[X_REQUEST_ID] = req.request_id }
     end
 
     private
-      def external_request_id(env)
-        if request_id = env[HTTP_X_REQUEST_ID].presence
+      def external_request_id(req)
+        if request_id = req.x_request_id.presence
           request_id.gsub(/[^\w\-]/, "".freeze).first(255)
         end
       end
