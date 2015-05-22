@@ -1538,6 +1538,12 @@ class RelationTest < ActiveRecord::TestCase
     assert scope.references(:comments).eager_loading?
   end
 
+  def test_references_does_not_trigger_eager_loading
+    scope = Post.includes(:comments)
+    assert !scope.eager_loading?
+    assert !scope.references(:foo).eager_loading?
+  end
+
   def test_references_doesnt_trigger_eager_loading_if_reference_not_included
     scope = Post.references(:comments)
     assert !scope.eager_loading?
