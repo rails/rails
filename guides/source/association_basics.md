@@ -1456,7 +1456,9 @@ The `collection.where` method finds objects within the collection based on the c
 
 ##### `collection.exists?(...)`
 
-The `collection.exists?` method checks whether an object meeting the supplied conditions exists in the collection. It uses the same syntax and options as `ActiveRecord::Base.exists?`.
+The `collection.exists?` method checks whether an object meeting the supplied 
+conditions exists in the collection. It uses the same syntax and options as
+[`ActiveRecord::Base.exists?`](http://api.rubyonrails.org/classes/ActiveRecord/FinderMethods.html#method-i-exists-3F).
 
 ##### `collection.build(attributes = {}, ...)`
 
@@ -1949,7 +1951,9 @@ The `collection.where` method finds objects within the collection based on the c
 
 ##### `collection.exists?(...)`
 
-The `collection.exists?` method checks whether an object meeting the supplied conditions exists in the collection. It uses the same syntax and options as `ActiveRecord::Base.exists?`.
+The `collection.exists?` method checks whether an object meeting the supplied
+conditions exists in the collection. It uses the same syntax and options as
+[`ActiveRecord::Base.exists?`](http://api.rubyonrails.org/classes/ActiveRecord/FinderMethods.html#method-i-exists-3F).
 
 ##### `collection.build(attributes = {})`
 
