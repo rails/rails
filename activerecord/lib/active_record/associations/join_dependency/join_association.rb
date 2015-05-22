@@ -46,7 +46,11 @@ module ActiveRecord
             predicate_builder = PredicateBuilder.new(TableMetadata.new(klass, table))
             scope_chain_items = scope_chain[scope_chain_index].map do |item|
               if item.is_a?(Relation)
-                item
+                if table.kind_of?(Arel::Nodes::TableAlias) && table.left.name == item.table.name
+                  ActiveRecord::Relation.create(klass, table).where(node.reflection.foreign_type => node.reflection.options[:source_type])
+                else
+                  item
+                end
               else
                 ActiveRecord::Relation.create(klass, table, predicate_builder)
                   .instance_exec(node, &item)

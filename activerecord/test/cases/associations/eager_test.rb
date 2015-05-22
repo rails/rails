@@ -24,6 +24,11 @@ require 'models/membership'
 require 'models/club'
 require 'models/categorization'
 require 'models/sponsor'
+require 'models/hotel'
+require 'models/department'
+require 'models/chef'
+require 'models/cake_designer'
+require 'models/drink_designer'
 
 class EagerAssociationTest < ActiveRecord::TestCase
   fixtures :posts, :comments, :authors, :essays, :author_addresses, :categories, :categories_posts,
@@ -1181,6 +1186,19 @@ class EagerAssociationTest < ActiveRecord::TestCase
       Sponsor.includes(:thing).where(:id => sponsor.id).first
     }
     assert_no_queries { assert_equal groucho, sponsor.thing }
+  end
+
+  def test_eager_loading_polymorphic_associations
+    hotel = Hotel.create!
+    department = hotel.departments.create!
+    department.chefs.create!(employable: CakeDesigner.create!)
+    department.chefs.create!(employable: DrinkDesigner.create!)
+
+    @hotel = Hotel.eager_load(:cake_designers, :drink_designers).first
+
+    assert_equal 1, @hotel.cake_designers.size
+    assert_equal 1, @hotel.drink_designers.size
+    assert_equal 2, @hotel.chefs.size
   end
 
   def test_joins_with_includes_should_preload_via_joins
