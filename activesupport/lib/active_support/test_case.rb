@@ -26,7 +26,7 @@ module ActiveSupport
       # * +:sorted+   (to run tests alphabetically by method name)
       # * +:alpha+    (equivalent to +:sorted+)
       def test_order=(new_order)
-        ActiveSupport.test_order = new_order
+        @test_order = new_order
       end
 
       # Returns the order in which test cases are run.
@@ -36,7 +36,7 @@ module ActiveSupport
       # Possible values are +:random+, +:parallel+, +:alpha+, +:sorted+.
       # Defaults to +:random+.
       def test_order
-        ActiveSupport.test_order ||= :random
+        @test_order ||= :random
       end
     end
 
