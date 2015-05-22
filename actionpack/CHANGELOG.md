@@ -312,7 +312,7 @@
 
 *   Stop converting empty arrays in `params` to `nil`.
 
-    This behaviour was introduced in response to CVE-2012-2660, CVE-2012-2694
+    This behavior was introduced in response to CVE-2012-2660, CVE-2012-2694
     and CVE-2013-0155
 
     ActiveRecord now issues a safe query when passing an empty array into

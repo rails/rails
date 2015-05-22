@@ -778,7 +778,7 @@ will be stopped and you will have to start it again.
 
 ### Settings
 
-`byebug` has a few available options to tweak its behaviour:
+`byebug` has a few available options to tweak its behavior:
 
 * `set autoreload`: Reload source code when changed (defaults: true).
 * `set autolist`: Execute `list` command on every breakpoint (defaults: true).

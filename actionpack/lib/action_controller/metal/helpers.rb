@@ -44,7 +44,7 @@ module ActionController
   # the output might look like this:
   #
   #   23 Aug 11:30 | Carolina Railhawks Soccer Match
-  #   N/A | Carolina Railhaws Training Workshop
+  #   N/A | Carolina Railhawks Training Workshop
   #
   module Helpers
     extend ActiveSupport::Concern
