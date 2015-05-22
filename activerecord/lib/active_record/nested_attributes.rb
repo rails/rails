@@ -213,7 +213,7 @@ module ActiveRecord
     #
     # Passing attributes for an associated collection in the form of a hash
     # of hashes can be used with hashes generated from HTTP/HTML parameters,
-    # where there maybe no natural way to submit an array of hashes.
+    # where there may be no natural way to submit an array of hashes.
     #
     # === Saving
     #
