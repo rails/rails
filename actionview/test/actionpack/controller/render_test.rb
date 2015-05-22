@@ -682,7 +682,7 @@ class RenderTest < ActionController::TestCase
   def case_sensitive_file_system?
     fname = '.case_sensitive_file_system_test'
     FileUtils.touch(fname)
-    !File.exists?(fname.upcase)
+    !File.exist?(fname.upcase)
   ensure
     FileUtils.rm_f(fname)
   end
