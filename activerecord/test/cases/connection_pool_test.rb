@@ -182,7 +182,7 @@ module ActiveRecord
         assert !@pool.active_connection?
       end
 
-      def test_checkout_behaviour
+      def test_checkout_behavior
         pool = ConnectionPool.new ActiveRecord::Base.connection_pool.spec
         connection = pool.connection
         assert_not_nil connection
