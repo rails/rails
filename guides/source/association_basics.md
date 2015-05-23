@@ -620,7 +620,7 @@ class CreateAssembliesPartsJoinTable < ActiveRecord::Migration
 end
 ```
 
-We pass `id: false` to `create_table` because that table does not represent a model. That's required for the association to work properly. If you observe any strange behavior in a `has_and_belongs_to_many` association like mangled models IDs, or exceptions about conflicting IDs, chances are you forgot that bit.
+We pass `id: false` to `create_table` because that table does not represent a model. That's required for the association to work properly. If you observe any strange behavior in a `has_and_belongs_to_many` association like mangled model IDs, or exceptions about conflicting IDs, chances are you forgot that bit.
 
 ### Controlling Association Scope
 
@@ -793,7 +793,7 @@ If the associated object has already been retrieved from the database for this o
 
 ##### `association=(associate)`
 
-The `association=` method assigns an associated object to this object. Behind the scenes, this means extracting the primary key from the associate object and setting this object's foreign key to the same value.
+The `association=` method assigns an associated object to this object. Behind the scenes, this means extracting the primary key from the associated object and setting this object's foreign key to the same value.
 
 ```ruby
 @order.customer = @customer
@@ -1138,7 +1138,7 @@ If the associated object has already been retrieved from the database for this o
 
 ##### `association=(associate)`
 
-The `association=` method assigns an associated object to this object. Behind the scenes, this means extracting the primary key from this object and setting the associate object's foreign key to the same value.
+The `association=` method assigns an associated object to this object. Behind the scenes, this means extracting the primary key from this object and setting the associated object's foreign key to the same value.
 
 ```ruby
 @supplier.account = @account
@@ -1219,8 +1219,8 @@ Controls what happens to the associated object when its owner is destroyed:
 It's necessary not to set or leave `:nullify` option for those associations
 that have `NOT NULL` database constraints. If you don't set `dependent` to
 destroy such associations you won't be able to change the associated object
-because initial associated object foreign key will be set to unallowed `NULL`
-value.
+because the initial associated object's foreign key will be set to the
+unallowed `NULL` value.
 
 ##### `:foreign_key`
 
@@ -1617,9 +1617,10 @@ end
 
 By convention, Rails assumes that the column used to hold the primary key of the association is `id`. You can override this and explicitly specify the primary key with the `:primary_key` option.
 
-Let's say that `users` table has `id` as the primary_key but it also has
-`guid` column. And the requirement is that `todos` table should hold
-`guid` column value and not `id` value. This can be achieved like this
+Let's say the `users` table has `id` as the primary_key but it also
+has a `guid` column. The requirement is that the `todos` table should
+hold the `guid` column value as the foreign key and not `id`
+value. This can be achieved like this:
 
 ```ruby
 class User < ActiveRecord::Base
@@ -1627,8 +1628,8 @@ class User < ActiveRecord::Base
 end
 ```
 
-Now if we execute `@user.todos.create` then `@todo` record will have
-`user_id` value as the `guid` value of `@user`.
+Now if we execute `@todo = @user.todos.create` then the `@todo`
+record's `user_id` value will be the `guid` value of `@user`.
 
 
 ##### `:source`
