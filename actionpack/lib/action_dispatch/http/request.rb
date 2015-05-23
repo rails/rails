@@ -52,7 +52,6 @@ module ActionDispatch
       @original_fullpath = nil
       @fullpath          = nil
       @ip                = nil
-      @request_id        = nil
     end
 
     def check_path_parameters!
