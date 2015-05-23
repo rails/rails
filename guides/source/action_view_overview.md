@@ -325,9 +325,9 @@ You can also render a block of code within a partial layout instead of calling `
 
 ```html+erb
 <% render(layout: 'box', locals: { article: @article }) do %>
-  <%= div_for(article) do %>
+  <div>
     <p><%= article.body %></p>
-  <% end %>
+  </div>
 <% end %>
 ```
 
