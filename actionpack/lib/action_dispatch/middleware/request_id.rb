@@ -20,14 +20,16 @@ module ActionDispatch
 
     def call(env)
       req = ActionDispatch::Request.new env
-      req.request_id = external_request_id(req) || internal_request_id
+      req.request_id = make_request_id(req.x_request_id)
       @app.call(env).tap { |_status, headers, _body| headers[X_REQUEST_ID] = req.request_id }
     end
 
     private
-      def external_request_id(req)
-        if request_id = req.x_request_id.presence
+      def make_request_id(request_id)
+        if request_id.presence
           request_id.gsub(/[^\w\-]/, "".freeze).first(255)
+        else
+          internal_request_id
         end
       end
 
