@@ -48,10 +48,10 @@ module ActionView
         # Note: `raise_error` refers to us re-raising the error in this method. I18n is forced to raise by default.
         if options[:raise] == false || (options.key?(:rescue_format) && options[:rescue_format].nil?)
           raise_error = false
-          options[:raise] = false
+          i18n_raise = false
         else
           raise_error = options[:raise] || options[:rescue_format] || ActionView::Base.raise_on_missing_translations
-          options[:raise] = true
+          i18n_raise = true
         end
 
         if html_safe_translation_key?(key)
@@ -61,11 +61,11 @@ module ActionView
               html_safe_options[name] = ERB::Util.html_escape(value.to_s)
             end
           end
-          translation = I18n.translate(scope_key_by_partial(key), html_safe_options)
+          translation = I18n.translate(scope_key_by_partial(key), html_safe_options.merge(raise: i18n_raise))
 
           translation.respond_to?(:html_safe) ? translation.html_safe : translation
         else
-          I18n.translate(scope_key_by_partial(key), options)
+          I18n.translate(scope_key_by_partial(key), options.merge(raise: i18n_raise))
         end
       rescue I18n::MissingTranslationData => e
         if remaining_defaults.present?
