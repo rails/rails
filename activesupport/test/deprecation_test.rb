@@ -101,7 +101,7 @@ class DeprecationTest < ActiveSupport::TestCase
     assert_match(/foo=nil/, @b)
   end
 
-  def test_raise_behaviour
+  def test_raise_behavior
     ActiveSupport::Deprecation.behavior = :raise
 
     message   = 'Revise this deprecated stuff now!'
