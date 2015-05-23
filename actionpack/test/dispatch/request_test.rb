@@ -410,6 +410,13 @@ class RequestPath < BaseRequestTest
     path = request.original_fullpath
     assert_equal "/foo?bar", path
   end
+
+  test "original_path returns path using ORIGINAL_PATH_INFO" do
+    request = stub_request('ORIGINAL_PATH_INFO' => '/posts/',
+                           'PATH_INFO' => '/posts')
+
+    assert_equal '/posts/', request.original_path
+  end
 end
 
 class RequestHost < BaseRequestTest

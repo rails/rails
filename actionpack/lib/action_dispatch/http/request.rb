@@ -46,13 +46,14 @@ module ActionDispatch
 
     def initialize(env)
       super
-      @method            = nil
-      @request_method    = nil
-      @remote_ip         = nil
-      @original_fullpath = nil
-      @fullpath          = nil
-      @ip                = nil
-      @request_id        = nil
+      @method             = nil
+      @request_method     = nil
+      @remote_ip          = nil
+      @original_fullpath  = nil
+      @original_path_info = nil
+      @fullpath           = nil
+      @ip                 = nil
+      @request_id         = nil
     end
 
     def check_path_parameters!
@@ -113,6 +114,10 @@ module ActionDispatch
 
     def original_script_name # :nodoc:
       env['ORIGINAL_SCRIPT_NAME'.freeze]
+    end
+
+    def original_path # :nodoc:
+      @original_path_info ||= "#{script_name}#{(env['ORIGINAL_PATH_INFO'] || path_info)}"
     end
 
     def engine_script_name(_routes) # :nodoc:

@@ -161,6 +161,7 @@ module Rails
     def call(env)
       req = ActionDispatch::Request.new env
       env["ORIGINAL_FULLPATH"] = req.fullpath
+      env["ORIGINAL_PATH_INFO"] = req.path_info
       env["ORIGINAL_SCRIPT_NAME"] = req.script_name
       super(env)
     end
