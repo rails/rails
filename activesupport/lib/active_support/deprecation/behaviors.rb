@@ -38,6 +38,18 @@ module ActiveSupport
       silence: ->(message, callstack) {},
     }
 
+    # Behavior module allows to determine how to display deprecation messages.
+    # You can set any behaviors from +DEFAULT_BEHAVIORS+ constant or create
+    # custom behavior. Available behaviors:
+    #
+    # [+raise+]   Raise <tt>ActiveSupport::DeprecationException</tt>.
+    # [+stderr+]  Log all deprecation warnings to +$stderr+.
+    # [+log+]     Log all deprecation warnings to +Rails.logger+.
+    # [+notify+]  Use +ActiveSupport::Notifications+ to notify +deprecation.rails+.
+    # [+silence+] Do nothing.
+    #
+    # Setting behaviors only affects deprecations that happen after boot time.
+    # For more information you can read documentation for +behavior=+ method.
     module Behavior
       # Whether to print a backtrace along with the warning.
       attr_accessor :debug
