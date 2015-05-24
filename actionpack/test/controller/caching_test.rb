@@ -352,6 +352,8 @@ class ViewCacheDependencyTest < ActionController::TestCase
 end
 
 class CollectionCacheController < ActionController::Base
+  attr_accessor :partial_rendered_times
+
   def index
     @customers = [Customer.new('david', params[:id] || 1)]
   end
@@ -377,14 +379,15 @@ class AutomaticCollectionCacheTest < ActionController::TestCase
     super
     @controller = CollectionCacheController.new
     @controller.perform_caching = true
-    @controller.cache_store = ActiveSupport::Cache::MemoryStore.new
+    @controller.partial_rendered_times = 0
   end
 
   def test_collection_fetches_cached_views
     get :index
+    assert_equal 1, @controller.partial_rendered_times
 
-    ActionView::PartialRenderer.expects(:collection_with_template).never
     get :index
+    assert_equal 1, @controller.partial_rendered_times
   end
 
   def test_preserves_order_when_reading_from_cache_plus_rendering
@@ -402,8 +405,9 @@ class AutomaticCollectionCacheTest < ActionController::TestCase
 
   def test_caching_works_with_beginning_comment
     get :index_with_comment
+    assert_equal 1, @controller.partial_rendered_times
 
-    ActionView::PartialRenderer.expects(:collection_with_template).never
     get :index_with_comment
+    assert_equal 1, @controller.partial_rendered_times
   end
 end
