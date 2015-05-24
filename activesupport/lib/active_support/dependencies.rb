@@ -75,7 +75,7 @@ module ActiveSupport #:nodoc:
     # handles the new constants.
     #
     # If child.rb is being autoloaded, its constants will be added to
-    # autoloaded_constants. If it was being `require`d, they will be discarded.
+    # autoloaded_constants. If it was being `require`, they will be discarded.
     #
     # This is handled by walking back up the watch stack and adding the constants
     # found by child.rb to the list of original constants in parent.rb.
@@ -92,10 +92,17 @@ module ActiveSupport #:nodoc:
         @stack = Hash.new { |h,k| h[k] = [] }
       end
 
+      # Calls the given block once for each element in stack, passing that
+      # element as a parameter. An Enumerator is returned if no block is given.
+      #
+      #   new_constants = ActiveSupport::Dependencies::WatchStack.new.new_constants
+      #   new_constants.each { |c| puts c }
+      #   # => RaisesNoMethodError
       def each(&block)
         @stack.each(&block)
       end
 
+      # Returns true if @watching stack is not empty
       def watching?
         !@watching.empty?
       end
