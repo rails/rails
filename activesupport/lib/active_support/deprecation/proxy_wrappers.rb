@@ -104,7 +104,7 @@ module ActiveSupport
     end
 
     # DeprecatedConstantProxy transforms a constant into a deprecated one. It
-    # takes the names of an old (deprecated) constant and of a new contstant
+    # takes the names of an old (deprecated) constant and of a new constant
     # (both in string form) and optionally a deprecator. The deprecator defaults
     # to +ActiveSupport::Deprecator+ if none is specified. The deprecated constant
     # now returns the value of the new one.
@@ -127,7 +127,7 @@ module ActiveSupport
         @deprecator = deprecator
       end
 
-      # Returns class of a new contstant.
+      # Returns class of a new constant.
       #
       #   PLANETS_POST_2006 = %w(mercury venus earth mars jupiter saturn uranus neptune)
       #   PLANETS = ActiveSupport::Deprecation::DeprecatedConstantProxy.new('PLANETS', 'PLANETS_POST_2006')
