@@ -39,6 +39,21 @@ module Enumerable
     end
   end
 
+  # Convert an enumerable to a hash with its elements as keys and the results
+  # of the given block as values
+  #
+  #   (1..10).map_with { |i| i ** 2 }
+  #     => { 1 => 1, 2 => 4, 3 => 9, 4 => 16, 5 => 25, 6 => 36, ...}
+  #   person.instance_variables.map_with { |ivar| person.instance_variable_get(ivar) }
+  #     => { :@first_name => "David", :@last_name => "Heinemeier Hansson", ...}
+  def map_with
+    if block_given?
+      Hash[map { |elem| [elem, yield(elem)] }]
+    else
+      to_enum(:map_to) { size if respond_to?(:size) }
+    end
+  end
+
   # Returns +true+ if the enumerable has more than 1 element. Functionally
   # equivalent to <tt>enum.to_a.size > 1</tt>. Can be called with a block too,
   # much like any?, so <tt>people.many? { |p| p.age > 26 }</tt> returns +true+
