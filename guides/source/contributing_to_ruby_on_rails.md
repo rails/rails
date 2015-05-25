@@ -66,7 +66,7 @@ the core team will have to make a judgement call. That said, the distinction
 generally just affects which release your patch will get in to; we love feature
 submissions! They just won't get backported to maintenance branches.
 
-If you'd like feedback on an idea for a feature before doing the work for make
+If you'd like feedback on an idea for a feature before doing the work to make
 a patch, please send an email to the [rails-core mailing
 list](https://groups.google.com/forum/?fromgroups#!forum/rubyonrails-core). You
 might get no response, which means that everyone is indifferent. You might find
