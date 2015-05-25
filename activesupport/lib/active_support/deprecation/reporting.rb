@@ -36,6 +36,20 @@ module ActiveSupport
         @silenced = old_silenced
       end
 
+
+      # Outputs a deprecation warning for a named method. Useful to deprecate
+      # old method in rails engine or plugin. For example:
+      #
+      #   class RailsPluginClass
+      #     def action_item(name = nil, options = {}, &block)
+      #       ActiveSupport::Deprecation.deprecation_warning(__method__, "action_item(:edit)")
+      #       config.add_action_item(name, options, &block)
+      #     end
+      #   end
+      #
+      # And when +action_item+ method will called +deprecation_warning+ add to
+      # log this line:
+      #   "action_item is deprecated and will be removed in from Rails 5.0 (use action_item(:edit) instead)."
       def deprecation_warning(deprecated_method_name, message = nil, caller_backtrace = nil)
         caller_backtrace ||= caller(2)
         deprecated_method_warning(deprecated_method_name, message).tap do |msg|
