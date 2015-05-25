@@ -65,7 +65,7 @@ module PostgresqlJSONSharedTestCases
 
   def test_schema_dumping
     output = dump_table_schema("json_data_type")
-    assert_match(/t\.#{column_type.to_s}\s+"payload",\s+default: {}/, output)
+    assert_match(/t\.#{column_type}\s+"payload",\s+default: {}/, output)
   end
 
   def test_cast_value_on_write
