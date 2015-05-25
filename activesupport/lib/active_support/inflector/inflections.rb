@@ -126,32 +126,59 @@ module ActiveSupport
       #   irregular 'octopus', 'octopi'
       #   irregular 'person', 'people'
       def irregular(singular, plural)
-        @uncountables.delete(singular)
-        @uncountables.delete(plural)
+        register_irregular(underscore(singular), underscore(plural))
+        register_irregular(camelize(singular), camelize(plural))
+      end
 
-        s0 = singular[0]
-        srest = singular[1..-1]
 
-        p0 = plural[0]
-        prest = plural[1..-1]
-
-        if s0.upcase == p0.upcase
-          plural(/(#{s0})#{srest}$/i, '\1' + prest)
-          plural(/(#{p0})#{prest}$/i, '\1' + prest)
-
-          singular(/(#{s0})#{srest}$/i, '\1' + srest)
-          singular(/(#{p0})#{prest}$/i, '\1' + srest)
+      # Converts strings to UpperCamelCase.
+      # If the +uppercase_first_letter+ parameter is set to false, then produces
+      # lowerCamelCase.
+      #
+      # Also converts '/' to '::' which is useful for converting
+      # paths to namespaces.
+      #
+      #   camelize('active_model')                # => "ActiveModel"
+      #   camelize('active_model', false)         # => "activeModel"
+      #   camelize('active_model/errors')         # => "ActiveModel::Errors"
+      #   camelize('active_model/errors', false)  # => "activeModel::Errors"
+      #
+      # As a rule of thumb you can think of +camelize+ as the inverse of
+      # #underscore, though there are cases where that does not hold:
+      #
+      #   camelize(underscore('SSLError'))        # => "SslError"
+      def camelize(term, uppercase_first_letter = true)
+        string = term.to_s
+        if uppercase_first_letter
+          string = string.sub(/^[a-z\d]*/) { self.acronyms[$&] || $&.capitalize }
         else
-          plural(/#{s0.upcase}(?i)#{srest}$/,   p0.upcase   + prest)
-          plural(/#{s0.downcase}(?i)#{srest}$/, p0.downcase + prest)
-          plural(/#{p0.upcase}(?i)#{prest}$/,   p0.upcase   + prest)
-          plural(/#{p0.downcase}(?i)#{prest}$/, p0.downcase + prest)
-
-          singular(/#{s0.upcase}(?i)#{srest}$/,   s0.upcase   + srest)
-          singular(/#{s0.downcase}(?i)#{srest}$/, s0.downcase + srest)
-          singular(/#{p0.upcase}(?i)#{prest}$/,   s0.upcase   + srest)
-          singular(/#{p0.downcase}(?i)#{prest}$/, s0.downcase + srest)
+          string = string.sub(/^(?:#{self.acronym_regex}(?=\b|[A-Z_])|\w)/) { $&.downcase }
         end
+        string.gsub!(/(?:_|(\/))([a-z\d]*)/i) { "#{$1}#{self.acronyms[$2] || $2.capitalize}" }
+        string.gsub!('/'.freeze, '::'.freeze)
+        string
+      end
+
+      # Makes an underscored, lowercase form from the expression in the string.
+      #
+      # Changes '::' to '/' to convert namespaces to paths.
+      #
+      #   underscore('ActiveModel')         # => "active_model"
+      #   underscore('ActiveModel::Errors') # => "active_model/errors"
+      #
+      # As a rule of thumb you can think of +underscore+ as the inverse of
+      # #camelize, though there are cases where that does not hold:
+      #
+      #   camelize(underscore('SSLError'))  # => "SslError"
+      def underscore(camel_cased_word)
+        return camel_cased_word unless camel_cased_word =~ /[A-Z-]|::/
+        word = camel_cased_word.to_s.gsub('::'.freeze, '/'.freeze)
+        word.gsub!(/(?:(?<=([A-Za-z\d]))|\b)(#{self.acronym_regex})(?=\b|[^a-z])/) { "#{$1 && '_'}#{$2.downcase}" }
+        word.gsub!(/([A-Z\d]+)([A-Z][a-z])/,'\1_\2')
+        word.gsub!(/([a-z\d])([A-Z])/,'\1_\2')
+        word.tr!("-", "_")
+        word.downcase!
+        word
       end
 
       # Specifies words that are uncountable and should not be inflected.
@@ -188,6 +215,37 @@ module ActiveSupport
             @plurals, @singulars, @uncountables, @humans = [], [], [], []
           else
             instance_variable_set "@#{scope}", []
+        end
+      end
+
+      private
+
+      def register_irregular(singular, plural)
+        @uncountables.delete(singular)
+        @uncountables.delete(plural)
+
+        s0 = singular[0]
+        srest = singular[1..-1]
+
+        p0 = plural[0]
+        prest = plural[1..-1]
+
+        if s0.upcase == p0.upcase
+          plural(/(#{s0})#{srest}$/i, '\1' + prest)
+          plural(/(#{p0})#{prest}$/i, '\1' + prest)
+
+          singular(/(#{s0})#{srest}$/i, '\1' + srest)
+          singular(/(#{p0})#{prest}$/i, '\1' + srest)
+        else
+          plural(/#{s0.upcase}(?i)#{srest}$/,   p0.upcase   + prest)
+          plural(/#{s0.downcase}(?i)#{srest}$/, p0.downcase + prest)
+          plural(/#{p0.upcase}(?i)#{prest}$/,   p0.upcase   + prest)
+          plural(/#{p0.downcase}(?i)#{prest}$/, p0.downcase + prest)
+
+          singular(/#{s0.upcase}(?i)#{srest}$/,   s0.upcase   + srest)
+          singular(/#{s0.downcase}(?i)#{srest}$/, s0.downcase + srest)
+          singular(/#{p0.upcase}(?i)#{prest}$/,   s0.upcase   + srest)
+          singular(/#{p0.downcase}(?i)#{prest}$/, s0.downcase + srest)
         end
       end
     end
