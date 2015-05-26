@@ -344,7 +344,7 @@ The same format can be used to set carbon copy (Cc:) and blind carbon copy
 
 Sometimes you wish to show the name of the person instead of just their email
 address when they receive the email. The trick to doing that is to format the
-email address in the format `"Full Name <email>"`.
+email address in the format `"Full Name" <email>`.
 
 ```ruby
 def welcome_email(user)
