@@ -285,5 +285,12 @@ module ApplicationTests
 
       assert_match(/Hello, World!/, output)
     end
+
+    def test_tmp_clear_should_work_if_folder_missing
+      FileUtils.remove_dir("#{app_path}/tmp")
+      assert_not File.directory?("#{app_path}/tmp")
+      errormsg = Dir.chdir(app_path) { `bundle exec rake tmp:clear` }
+      assert $?.success?, errormsg
+    end
   end
 end
