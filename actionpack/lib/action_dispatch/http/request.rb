@@ -177,6 +177,18 @@ module ActionDispatch
       HTTP_METHOD_LOOKUP[request_method] == :head
     end
 
+    # Is this a TRACE request?
+    # Equivalent to <tt>request.request_method_symbol == :trace</tt>.
+    def trace?
+      HTTP_METHOD_LOOKUP[request_method] == :trace
+    end
+
+    # Is this a CONNECT request?
+    # Equivalent to <tt>request.request_method_symbol == :connect</tt>.
+    def connect?
+      HTTP_METHOD_LOOKUP[request_method] == :connect
+    end
+
     # Provides access to the request's HTTP headers, for example:
     #
     #   request.headers["Content-Type"] # => "text/plain"
