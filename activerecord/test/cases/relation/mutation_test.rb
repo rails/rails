@@ -164,7 +164,7 @@ module ActiveRecord
         relation.uniq! :foo
       end
 
-      e = assert_deprecated(/use distinct_value instead/) do
+      assert_deprecated(/use distinct_value instead/) do
         assert_equal :foo, relation.uniq_value # deprecated access
       end
 
