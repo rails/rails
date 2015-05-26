@@ -83,6 +83,16 @@ class DeveloperWithSymbolClassName < Developer
   has_and_belongs_to_many :projects, class_name: :ProjectWithSymbolsForKeys
 end
 
+class DeveloperWithExtendOption < Developer
+  module NamedExtension
+    def category
+      'sns'
+    end
+  end
+
+  has_and_belongs_to_many :projects, extend: NamedExtension
+end
+
 class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :categories, :posts, :categories_posts, :developers, :projects, :developers_projects,
            :parrots, :pirates, :parrots_pirates, :treasures, :price_estimates, :tags, :taggings, :computers
@@ -575,6 +585,11 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 3, developers.size
 
     assert_equal developers(:poor_jamis), projects(:active_record).developers.where("salary < 10000").first
+  end
+
+  def test_association_with_extend_option
+    eponine = DeveloperWithExtendOption.create(name: 'Eponine')
+    assert_equal 'sns', eponine.projects.category
   end
 
   def test_replace_with_less
