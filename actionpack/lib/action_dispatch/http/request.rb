@@ -235,11 +235,13 @@ module ActionDispatch
     end
     alias :xhr? :xml_http_request?
 
+    # Returns the IP address of client as a +String+.
     def ip
       @ip ||= super
     end
 
-    # Originating IP address, usually set by the RemoteIp middleware.
+    # Returns the IP address of client as a +String+,
+    # usually set by the RemoteIp middleware.
     def remote_ip
       @remote_ip ||= (@env["action_dispatch.remote_ip"] || ip).to_s
     end
@@ -256,13 +258,13 @@ module ActionDispatch
       env[ACTION_DISPATCH_REQUEST_ID]
     end
 
-    def request_id=(id)
+    def request_id=(id) # :nodoc:
       env[ACTION_DISPATCH_REQUEST_ID] = id
     end
 
     alias_method :uuid, :request_id
 
-    def x_request_id
+    def x_request_id # :nodoc
       @env[HTTP_X_REQUEST_ID]
     end
 
