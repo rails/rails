@@ -1,3 +1,8 @@
+*   Remove deprecated `Class#superclass_delegating_accessor`.
+    Use `Class#class_attribute` instead.
+
+    *Akshay Vishnoi*
+
 *   Patch `Delegator` to work with `#try`.
 
     Fixes #5790.
