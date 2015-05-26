@@ -1,3 +1,10 @@
+*   Generator a `.keep` file in the `tmp` folder by default as many scripts
+    assume the existence of this folder and most would fail if it is absent.
+
+    See #20299.
+
+    *Yoong Kang Lim*, *Sunny Juneja*
+
 *   `config.static_index` configures directory `index.html` filename
 
     Set `config.static_index` to serve a static directory index file not named
