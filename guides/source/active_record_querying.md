@@ -563,7 +563,10 @@ ActiveModel::MissingAttributeError: missing attribute: <attribute>
 
 Where `<attribute>` is the attribute you asked for. The `id` method will not raise the `ActiveRecord::MissingAttributeError`, so just be careful when working with associations because they need the `id` method to function properly.
 
-If you would like to only grab a single record per unique value in a certain field, you can use `distinct`:
+Selecting Distinct Records
+--------------------------
+
+If you would like to grab a single record per unique value in a field, you can use `distinct`:
 
 ```ruby
 Client.select(:name).distinct
@@ -575,11 +578,21 @@ This would generate SQL like:
 SELECT DISTINCT name FROM clients
 ```
 
-You can also remove the uniqueness constraint:
+You can remove the uniqueness constraint:
 
 ```ruby
 query = Client.select(:name).distinct
 # => Returns unique names
+
+query.distinct(false)
+# => Returns all names, even if there are duplicates
+```
+
+You also can pass distinct a block, whose return value is used to determine uniqueness:
+
+```ruby
+query = Client.all.distinct { |client| "#{client.name}:#{client.city}" }
+# => Returns clients whose name and city combination are unique.
 
 query.distinct(false)
 # => Returns all names, even if there are duplicates
@@ -998,7 +1011,7 @@ SELECT categories.* FROM categories
   INNER JOIN articles ON articles.category_id = categories.id
 ```
 
-Or, in English: "return a Category object for all categories with articles". Note that you will see duplicate categories if more than one article has the same category. If you want unique categories, you can use `Category.joins(:articles).uniq`.
+Or, in English: "return a Category object for all categories with articles". Note that you will see duplicate categories if more than one article has the same category. If you want unique categories, you can use `Category.joins(:articles).distinct`.
 
 #### Joining Multiple Associations
 

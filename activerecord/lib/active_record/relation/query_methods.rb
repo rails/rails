@@ -776,7 +776,16 @@ module ActiveRecord
       self
     end
 
-    # Specifies whether the records should be unique or not. For example:
+    # Works in two unique ways.
+    #
+    # First: takes a block so it can be used like Array#uniq.
+    #
+    #   Model.all.distinct { |m| m.field == value }
+    #
+    # This will build an array of objects from the database for the scope,
+    # convert them into an array and iterate through them using Array#uniq.
+    #
+    # Second: Specifies whether the records should be unique or not. For example:
     #
     #   User.select(:name)
     #   # => Might return two records with the same name
@@ -787,7 +796,11 @@ module ActiveRecord
     #   User.select(:name).distinct.distinct(false)
     #   # => You can also remove the uniqueness
     def distinct(value = true)
-      spawn.distinct!(value)
+      if block_given?
+        spawn.to_a.uniq { |*block_args| yield(*block_args) }
+      else
+        spawn.distinct!(value)
+      end
     end
     alias uniq distinct
 
