@@ -1,3 +1,9 @@
+*   Deprecate `Relation#uniq` use `Relation#distinct` instead.
+
+    See #9683.
+
+    *Yves Senn*
+
 *   Allow single table inheritance instantiation to work when storing
     demodulized class names.
 

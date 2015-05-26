@@ -960,7 +960,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal 1, category.categorizations.where(:special => true).count
   end
 
-  def test_joining_has_many_through_with_uniq
+  def test_joining_has_many_through_with_distinct
     mary = Author.joins(:unique_categorized_posts).where(:id => authors(:mary).id).first
     assert_equal 1, mary.unique_categorized_posts.length
     assert_equal 1, mary.unique_categorized_post_ids.length

@@ -908,7 +908,7 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_delete_all_with_unpermitted_relation_raises_error
     assert_raises(ActiveRecord::ActiveRecordError) { Author.limit(10).delete_all }
-    assert_raises(ActiveRecord::ActiveRecordError) { Author.uniq.delete_all }
+    assert_raises(ActiveRecord::ActiveRecordError) { Author.distinct.delete_all }
     assert_raises(ActiveRecord::ActiveRecordError) { Author.group(:name).delete_all }
     assert_raises(ActiveRecord::ActiveRecordError) { Author.having('SUM(id) < 3').delete_all }
     assert_raises(ActiveRecord::ActiveRecordError) { Author.offset(10).delete_all }
@@ -1493,14 +1493,17 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal ['Foo', 'Foo'], query.map(&:name)
     assert_sql(/DISTINCT/) do
       assert_equal ['Foo'], query.distinct.map(&:name)
-      assert_equal ['Foo'], query.uniq.map(&:name)
+      assert_deprecated { assert_equal ['Foo'], query.uniq.map(&:name) }
     end
     assert_sql(/DISTINCT/) do
       assert_equal ['Foo'], query.distinct(true).map(&:name)
-      assert_equal ['Foo'], query.uniq(true).map(&:name)
+      assert_deprecated { assert_equal ['Foo'], query.uniq(true).map(&:name) }
     end
     assert_equal ['Foo', 'Foo'], query.distinct(true).distinct(false).map(&:name)
-    assert_equal ['Foo', 'Foo'], query.uniq(true).uniq(false).map(&:name)
+
+    assert_deprecated do
+      assert_equal ['Foo', 'Foo'], query.uniq(true).uniq(false).map(&:name)
+    end
   end
 
   def test_doesnt_add_having_values_if_options_are_blank

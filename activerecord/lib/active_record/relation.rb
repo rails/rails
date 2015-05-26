@@ -9,7 +9,7 @@ module ActiveRecord
                             :extending, :unscope]
 
     SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :reordering,
-                            :reverse_order, :distinct, :create_with, :uniq]
+                            :reverse_order, :distinct, :create_with]
     CLAUSE_METHODS = [:where, :having, :from]
     INVALID_METHODS_FOR_DELETE_ALL = [:limit, :distinct, :offset, :group, :having]
 
@@ -618,6 +618,7 @@ module ActiveRecord
     def uniq_value
       distinct_value
     end
+    deprecate uniq_value: :distinct_value
 
     # Compares two relations for equality.
     def ==(other)
