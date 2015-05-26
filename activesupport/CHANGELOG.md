@@ -1,3 +1,20 @@
+*   Add a bang version to `ActiveSupport::OrderedOptions` get methods which will raise
+    an `KeyError` if the value is `.blank?`
+
+    Before:
+
+        if (slack_url = Rails.application.secrets.slack_url).present?)
+          # Do something worthwhile
+        else
+          # Raise as important secret password is not specified
+        end
+
+    After:
+
+        slack_url = Rails.application.secrets.slack_url!
+
+    *Aditya Sanghi*, *Gaurish Sharma*
+
 *   Remove deprecated `Class#superclass_delegating_accessor`.
     Use `Class#class_attribute` instead.
 

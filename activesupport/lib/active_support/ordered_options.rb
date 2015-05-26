@@ -31,7 +31,13 @@ module ActiveSupport
       if name_string.chomp!('=')
         self[name_string] = args.first
       else
-        self[name]
+        bangs = name_string.chomp!('!')
+
+        if bangs
+          fetch(name_string.to_sym).presence || raise(KeyError.new("#{name_string} is blank."))
+        else
+          self[name_string]
+       end
       end
     end
 
