@@ -1,3 +1,8 @@
+*   Pass `:extend` option for `has_and_belongs_to_many` associations to the
+    underlying `has_many :through`.
+
+    *Jaehyun Shin*
+
 *   Make `unscope` aware of "less than" and "greater than" conditions.
 
     *TAKAHASHI Kazuaki*
