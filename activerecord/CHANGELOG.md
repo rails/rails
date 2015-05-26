@@ -1,3 +1,7 @@
+*   Pass `:extend` option for `has_and_belongs_to_many` associations to the underlying `has_many :through`.
+
+    *Jaehyun Shin*
+
 *   Deprecate `Relation#uniq` use `Relation#distinct` instead.
 
     See #9683.
