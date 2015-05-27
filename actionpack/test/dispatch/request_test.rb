@@ -663,6 +663,7 @@ class RequestMethod < BaseRequestTest
 
     assert_equal 'GET', request.request_method
     assert_equal 'GET', request.env["REQUEST_METHOD"]
+    assert request.get?
   end
 
   test "invalid http method raises exception" do
