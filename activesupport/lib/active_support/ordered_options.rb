@@ -37,7 +37,7 @@ module ActiveSupport
           fetch(name_string.to_sym).presence || raise(KeyError.new("#{name_string} is blank."))
         else
           self[name_string]
-       end
+        end
       end
     end
 
