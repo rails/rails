@@ -78,12 +78,12 @@ module ActionController
         options[:html] = ERB::Util.html_escape(options[:html])
       end
 
-      if options.delete(:nothing)
-        options[:body] = nil
-      end
-
       if options[:status]
         options[:status] = Rack::Utils.status_code(options[:status])
+      end
+
+      if options.delete(:nothing) || options[:status] == 204
+        options[:body] = nil
       end
 
       super
