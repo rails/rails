@@ -30,13 +30,6 @@ Gem::PackageTask.new(spec) do |p|
   p.gem_spec = spec
 end
 
-desc "Release to rubygems"
-task :release => :package do
-  require 'rake/gemcutter'
-  Rake::Gemcutter::Tasks.new(spec).define
-  Rake::Task['gem:push'].invoke
-end
-
 task :lines do
   load File.expand_path('..', File.dirname(__FILE__)) + '/tools/line_statistics'
   files = FileList["lib/**/*.rb"]
