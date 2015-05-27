@@ -295,6 +295,8 @@ module ActionDispatch
       end
     end
 
+    # returns true if request content mime type is
+    # +application/x-www-form-urlencoded+ or +multipart/form-data+.
     def form_data?
       FORM_DATA_MEDIA_TYPES.include?(content_mime_type.to_s)
     end
