@@ -1,3 +1,10 @@
+*   Change generator to create a `.keep` file in the `tmp` folder 
+    by default. This change was introduced as `rake restart` now creates
+    `tmp/restart.txt`. This ensures that `rake restart` does not error
+    out if the `tmp` folder does not exist.
+
+    *Yoong Kang Lim*, *Sunny Juneja*
+
 *   `bin/setup` uses built-in rake tasks (`log:clear`, `tmp:clear`).
 
     *Mohnish Thallavajhula*

@@ -26,6 +26,21 @@ module ApplicationTests
           assert_not_equal prev_mtime, curr_mtime
         end
       end
+
+      test 'rake restart creates tmp folder if it does not exist' do
+        Dir.chdir(app_path) do
+          FileUtils.remove_dir('tmp')
+          assert ! File.directory?('tmp')
+          `rake restart`
+          assert File.directory?('tmp')
+          assert File.exist?('tmp/restart.txt')
+
+          FileUtils.remove_file('tmp/restart.txt')
+          assert ! File.exist?('tmp/restart.txt')
+          `rake restart`
+          assert File.exist?('tmp/restart.txt')
+        end
+      end
     end
   end
 end
