@@ -2,7 +2,8 @@
 
     *Shane Hender*
 
-*   Include stored procedures and function on the MySQL structure dump.
+*   Pass `:extend` option for `has_and_belongs_to_many` associations to the
+    underlying `has_many :through`.
 
     *Jaehyun Shin*
 
