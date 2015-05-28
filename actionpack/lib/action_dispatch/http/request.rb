@@ -282,7 +282,7 @@ module ActionDispatch
           if chunked?
             raw_post_body.read
           else
-            raw_post_body.read( content_length)
+            raw_post_body.read(content_length)
           end
         raw_post_body.rewind if raw_post_body.respond_to?(:rewind)
       end
@@ -290,7 +290,7 @@ module ActionDispatch
     end
 
     def chunked?
-      headers['Transfer-Encoding'].downcase == 'chunked'
+      headers['Transfer-Encoding'].try(:downcase) == 'chunked'
     end
 
     # The request body is an IO input stream. If the RAW_POST_DATA environment
