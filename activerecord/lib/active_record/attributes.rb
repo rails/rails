@@ -242,6 +242,7 @@ module ActiveRecord
             name,
             value,
             type,
+            _default_attributes[name],
           )
         else
           default_attribute = Attribute.from_database(name, value, type)

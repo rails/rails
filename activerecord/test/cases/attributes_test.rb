@@ -135,6 +135,12 @@ module ActiveRecord
       assert_equal 2, klass.new.counter
     end
 
+    test "user provided defaults are persisted even if unchanged" do
+      model = OverloadedType.create!
+
+      assert_equal "the overloaded default", model.reload.string_with_default
+    end
+
     if current_adapter?(:PostgreSQLAdapter)
       test "arrays types can be specified" do
         klass = Class.new(OverloadedType) do
