@@ -1,3 +1,5 @@
+require 'active_record/attribute/user_provided_default'
+
 module ActiveRecord
   # See ActiveRecord::Attributes::ClassMethods for documentation
   module Attributes
@@ -236,7 +238,11 @@ module ActiveRecord
         if value == NO_DEFAULT_PROVIDED
           default_attribute = _default_attributes[name].with_type(type)
         elsif from_user
-          default_attribute = Attribute.from_user(name, value, type)
+          default_attribute = Attribute::UserProvidedDefault.new(
+            name,
+            value,
+            type,
+          )
         else
           default_attribute = Attribute.from_database(name, value, type)
         end

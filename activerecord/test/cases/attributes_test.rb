@@ -125,6 +125,16 @@ module ActiveRecord
       assert_equal "from user", model.wibble
     end
 
+    test "procs for default values" do
+      klass = Class.new(OverloadedType) do
+        @@counter = 0
+        attribute :counter, :integer, default: -> { @@counter += 1 }
+      end
+
+      assert_equal 1, klass.new.counter
+      assert_equal 2, klass.new.counter
+    end
+
     if current_adapter?(:PostgreSQLAdapter)
       test "arrays types can be specified" do
         klass = Class.new(OverloadedType) do
