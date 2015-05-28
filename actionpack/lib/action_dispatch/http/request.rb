@@ -290,7 +290,7 @@ module ActionDispatch
     end
 
     def chunked?
-      headers['Transfer-Encoding'].try(:downcase) == 'chunked'
+      headers['Trasfer-Encoding'] =~ /chunked/i
     end
 
     # The request body is an IO input stream. If the RAW_POST_DATA environment
