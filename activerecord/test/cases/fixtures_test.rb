@@ -691,7 +691,7 @@ end
 
 class FoxyFixturesTest < ActiveRecord::TestCase
   fixtures :parrots, :parrots_pirates, :pirates, :treasures, :mateys, :ships, :computers,
-           :developers, :"admin/accounts", :"admin/users", :live_parrots, :dead_parrots
+           :developers, :"admin/accounts", :"admin/users", :live_parrots, :dead_parrots, :books
 
   if ActiveRecord::Base.connection.adapter_name == 'PostgreSQL'
     require 'models/uuid_parent'
@@ -840,6 +840,13 @@ class FoxyFixturesTest < ActiveRecord::TestCase
   def test_namespaced_models
     assert admin_accounts(:signals37).users.include?(admin_users(:david))
     assert_equal 2, admin_accounts(:signals37).users.size
+  end
+
+  def test_resolves_enums
+    assert books(:awdr).published?
+    assert books(:awdr).read?
+    assert books(:rfr).proposed?
+    assert books(:ddd).published?
   end
 end
 
