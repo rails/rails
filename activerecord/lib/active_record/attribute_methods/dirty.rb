@@ -135,6 +135,18 @@ module ActiveRecord
         changed & self.class.column_names
       end
 
+      def attributes_for_create(attributes)
+        if new_record?
+          attributes.push(*keys_with_default_values)
+        end
+
+        attributes
+      end
+
+      def keys_with_default_values
+        self.class._default_attributes.values_before_type_cast.delete_if { |k, v| v.blank? }.keys
+      end
+
       def _field_changed?(attr, old_value)
         @attributes[attr].changed_from?(old_value)
       end
