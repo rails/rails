@@ -1,5 +1,4 @@
 require 'rake/testtask'
-require 'rubygems/package_task'
 
 ACTIVEJOB_ADAPTERS = %w(inline delayed_job qu que queue_classic resque sidekiq sneakers sucker_punch backburner test)
 ACTIVEJOB_ADAPTERS -= %w(queue_classic) if defined?(JRUBY_VERSION)
@@ -73,11 +72,4 @@ def run_without_aborting(tasks)
   end
 
   abort "Errors running #{errors.join(', ')}" if errors.any?
-end
-
-
-spec = eval(File.read('activejob.gemspec'))
-
-Gem::PackageTask.new(spec) do |p|
-  p.gem_spec = spec
 end

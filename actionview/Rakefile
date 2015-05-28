@@ -1,5 +1,4 @@
 require 'rake/testtask'
-require 'rubygems/package_task'
 
 desc "Default Task"
 task :default => :test
@@ -43,12 +42,6 @@ namespace :test do
       t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
     end
   end
-end
-
-spec = eval(File.read('actionview.gemspec'))
-
-Gem::PackageTask.new(spec) do |p|
-  p.gem_spec = spec
 end
 
 task :lines do

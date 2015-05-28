@@ -1,5 +1,4 @@
 require 'rake/testtask'
-require 'rubygems/package_task'
 
 require File.expand_path(File.dirname(__FILE__)) + "/test/config"
 require File.expand_path(File.dirname(__FILE__)) + "/test/support/config"
@@ -150,10 +149,4 @@ task :lines do
   load File.expand_path('..', File.dirname(__FILE__)) + '/tools/line_statistics'
   files = FileList["lib/active_record/**/*.rb"]
   CodeTools::LineStatistics.new(files).print_loc
-end
-
-spec = eval(File.read('activerecord.gemspec'))
-
-Gem::PackageTask.new(spec) do |p|
-  p.gem_spec = spec
 end
