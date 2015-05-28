@@ -50,7 +50,7 @@ module ActiveRecord
 
       NORMAL_VALUES = Relation::VALUE_METHODS -
                       Relation::CLAUSE_METHODS -
-                      [:joins, :order, :reverse_order, :lock, :create_with, :reordering] # :nodoc:
+                      [:includes, :preload, :joins, :order, :reverse_order, :lock, :create_with, :reordering] # :nodoc:
 
       def normal_values
         NORMAL_VALUES
@@ -75,12 +75,34 @@ module ActiveRecord
         merge_multi_values
         merge_single_values
         merge_clauses
+        merge_preloads
         merge_joins
 
         relation
       end
 
       private
+
+      def merge_preloads
+        return if other.preload_values.empty? && other.includes_values.empty?
+
+        if other.klass == relation.klass
+          relation.preload! other.preload_values unless other.preload_values.empty?
+          relation.includes! other.includes_values unless other.includes_values.empty?
+        else
+          reflection = relation.klass.reflect_on_all_associations.find do |reflection|
+            reflection.class_name == other.klass.name
+          end || return
+
+          unless other.preload_values.empty?
+            relation.preload! reflection.name => other.preload_values
+          end
+
+          unless other.includes_values.empty?
+            relation.includes! reflection.name => other.includes_values
+          end
+        end
+      end
 
       def merge_joins
         return if other.joins_values.blank?
