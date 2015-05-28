@@ -427,8 +427,18 @@ module ActiveRecord
     def joins!(*args) # :nodoc:
       args.compact!
       args.flatten!
-      self.joins_values += args
+      self.joins_values += build_join(args)
       self
+    end
+
+    def build_join(args)
+      first, *rest = args
+
+      if first.is_a?(String) && !rest.empty?
+        [@klass.send(:sanitize_sql, args)]
+      else
+        args
+      end
     end
 
     # Returns a new relation, which is the result of filtering the current relation
