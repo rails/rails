@@ -72,17 +72,17 @@ class RequestForgeryProtectionControllerUsingNullSession < ActionController::Bas
 
   def signed
     cookies.signed[:foo] = 'bar'
-    render :nothing => true
+    head :ok
   end
 
   def encrypted
     cookies.encrypted[:foo] = 'bar'
-    render :nothing => true
+    head :ok
   end
 
   def try_to_reset_session
     reset_session
-    render :nothing => true
+    head :ok
   end
 end
 

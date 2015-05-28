@@ -137,13 +137,13 @@ XML
 
     def delete_cookie
       cookies.delete("foo")
-      render nothing: true
+      head :ok
     end
 
     def test_assigns
       @foo = "foo"
       @foo_hash = { foo: :bar }
-      render nothing: true
+      head :ok
     end
 
     def test_without_body
@@ -177,7 +177,7 @@ XML
   class ViewAssignsController < ActionController::Base
     def test_assigns
       @foo = "foo"
-      render nothing: true
+      head :ok
     end
 
     def view_assigns

@@ -103,32 +103,6 @@ In most cases, the `ActionController::Base#render` method does the heavy lifting
 
 TIP: If you want to see the exact results of a call to `render` without needing to inspect it in a browser, you can call `render_to_string`. This method takes exactly the same options as `render`, but it returns a string instead of sending a response back to the browser.
 
-#### Rendering Nothing
-
-Perhaps the simplest thing you can do with `render` is to render nothing at all:
-
-```ruby
-render nothing: true
-```
-
-If you look at the response for this using cURL, you will see the following:
-
-```bash
-$ curl -i 127.0.0.1:3000/books
-HTTP/1.1 200 OK
-Connection: close
-Date: Sun, 24 Jan 2010 09:25:18 GMT
-Transfer-Encoding: chunked
-Content-Type: */*; charset=utf-8
-X-Runtime: 0.014297
-Set-Cookie: _blog_session=...snip...; path=/; HttpOnly
-Cache-Control: no-cache
-```
-
-We see there is an empty response (no data after the `Cache-Control` line), but the request was successful because Rails has set the response to 200 OK. You can set the `:status` option on render to change this response. Rendering nothing can be useful for Ajax requests where all you want to send back to the browser is an acknowledgment that the request was completed.
-
-TIP: You should probably be using the `head` method, discussed later in this guide, instead of `render :nothing`. This provides additional flexibility and makes it explicit that you're only generating HTTP headers.
-
 #### Rendering an Action's View
 
 If you want to render the view that corresponds to a different template within the same controller, you can use `render` with the name of the view:

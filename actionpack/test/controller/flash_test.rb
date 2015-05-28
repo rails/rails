@@ -57,7 +57,7 @@ class FlashTest < ActionController::TestCase
 
     def std_action
       @flash_copy = {}.update(flash)
-      render :nothing => true
+      head :ok
     end
 
     def filter_halting_action

@@ -79,6 +79,7 @@ module ActionController
       end
 
       if options.delete(:nothing)
+        ActiveSupport::Deprecation.warn("`:nothing` option is deprecated and will be removed in Rails 5.1. Use `head` method to respond with empty response body.")
         options[:body] = nil
       end
 

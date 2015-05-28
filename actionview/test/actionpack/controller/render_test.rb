@@ -358,7 +358,7 @@ class TestController < ApplicationController
   end
 
   def rendering_nothing_on_layout
-    render :nothing => true
+    head :ok
   end
 
   def render_to_string_with_assigns
