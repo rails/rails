@@ -57,6 +57,7 @@ module StaticTests
 
   def test_serves_static_index_file_in_directory
     assert_html "/foo/index.html", get("/foo/index.html")
+    assert_html "/foo/index.html", get("/foo/index")
     assert_html "/foo/index.html", get("/foo/")
     assert_html "/foo/index.html", get("/foo")
   end
@@ -260,6 +261,19 @@ class StaticTest < ActiveSupport::TestCase
     }
     assert_equal(DummyApp.call(nil), @app.call(env))
   end
+
+  def test_non_default_static_index
+    @app = ActionDispatch::Static.new(DummyApp, @root, "public, max-age=60", "other-index")
+    assert_html "/other-index.html", get("/other-index.html")
+    assert_html "/other-index.html", get("/other-index")
+    assert_html "/other-index.html", get("/")
+    assert_html "/other-index.html", get("")
+    assert_html "/foo/other-index.html", get("/foo/other-index.html")
+    assert_html "/foo/other-index.html", get("/foo/other-index")
+    assert_html "/foo/other-index.html", get("/foo/")
+    assert_html "/foo/other-index.html", get("/foo")
+  end
+
 end
 
 class StaticEncodingTest < StaticTest

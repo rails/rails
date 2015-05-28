@@ -1,3 +1,11 @@
+*   `FileHandler` and `Static` middleware initializers accept `index` argument
+    to configure the directory index file name. Defaults to `index` (as in
+    `index.html`).
+
+    See #20017.
+
+    *Eliot Sykes*
+
 *   Deprecate `:nothing` option for `render` method.
 
     *Mehmet Emin İNAÇ*

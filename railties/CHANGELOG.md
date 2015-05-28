@@ -1,3 +1,11 @@
+*   `config.static_index` configures directory `index.html` filename
+
+    Set `config.static_index` to serve a static directory index file not named
+    `index`. E.g. to serve `main.html` instead of `index.html` for directory
+    requests, set `config.static_index` to `"main"`.
+
+    *Eliot Sykes*
+
 *   `bin/setup` uses built-in rake tasks (`log:clear`, `tmp:clear`).
 
     *Mohnish Thallavajhula*
