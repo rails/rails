@@ -31,7 +31,7 @@ module ActionDispatch
       def parse_formatted_parameters(env)
         request = Request.new(env)
 
-        return false if request.content_length.zero?
+        return false if request.content_length.zero? && !request.chunked?
 
         strategy = @parsers[request.content_mime_type]
 
