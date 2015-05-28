@@ -45,9 +45,12 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
       assert_match(/config.api_only = true/, content)
     end
 
+    assert_file "config/initializers/cors.rb"
+
     assert_file "config/initializers/wrap_parameters.rb" do |content|
       assert_no_match(/wrap_parameters/, content)
     end
+
     assert_file "app/controllers/application_controller.rb", /ActionController::API/
   end
 
