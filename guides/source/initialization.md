@@ -53,11 +53,11 @@ require "rails/cli"
 ```
 
 The file `railties/lib/rails/cli` in turn calls
-`Rails::AppRailsLoader.exec_app_rails`.
+`Rails::AppLoader.exec_app`.
 
-### `railties/lib/rails/app_rails_loader.rb`
+### `railties/lib/rails/app_loader.rb`
 
-The primary goal of the function `exec_app_rails` is to execute your app's
+The primary goal of the function `exec_app` is to execute your app's
 `bin/rails`. If the current directory does not have a `bin/rails`, it will
 navigate upwards until it finds a `bin/rails` executable. Thus one can invoke a
 `rails` command from anywhere inside a rails application.

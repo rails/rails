@@ -2,10 +2,10 @@ require 'tmpdir'
 require 'abstract_unit'
 require 'rails/app_rails_loader'
 
-class AppRailsLoaderTest < ActiveSupport::TestCase
+class AppLoaderTest < ActiveSupport::TestCase
   def loader
     @loader ||= Class.new do
-      extend Rails::AppRailsLoader
+      extend Rails::AppLoader
 
       def self.exec_arguments
         @exec_arguments
@@ -23,7 +23,7 @@ class AppRailsLoaderTest < ActiveSupport::TestCase
   end
 
   def expects_exec(exe)
-    assert_equal [Rails::AppRailsLoader::RUBY, exe], loader.exec_arguments
+    assert_equal [Rails::AppLoader::RUBY, exe], loader.exec_arguments
   end
 
   setup do
@@ -38,20 +38,20 @@ class AppRailsLoaderTest < ActiveSupport::TestCase
     test "is not in a Rails application if #{exe} is not found in the current or parent directories" do
       def loader.find_executables; end
 
-      assert !loader.exec_app_rails
+      assert !loader.exec_app
     end
 
     test "is not in a Rails application if #{exe} exists but is a folder" do
       FileUtils.mkdir_p(exe)
 
-      assert !loader.exec_app_rails
+      assert !loader.exec_app
     end
 
     ['APP_PATH', 'ENGINE_PATH'].each do |keyword|
       test "is in a Rails application if #{exe} exists and contains #{keyword}" do
         write exe, keyword
 
-        loader.exec_app_rails
+        loader.exec_app
 
         expects_exec exe
       end
@@ -59,7 +59,7 @@ class AppRailsLoaderTest < ActiveSupport::TestCase
       test "is not in a Rails application if #{exe} exists but doesn't contain #{keyword}" do
         write exe
 
-        assert !loader.exec_app_rails
+        assert !loader.exec_app
       end
 
       test "is in a Rails application if parent directory has #{exe} containing #{keyword} and chdirs to the root directory" do
@@ -68,7 +68,7 @@ class AppRailsLoaderTest < ActiveSupport::TestCase
 
         Dir.chdir('foo/bar')
 
-        loader.exec_app_rails
+        loader.exec_app
 
         expects_exec exe
 
