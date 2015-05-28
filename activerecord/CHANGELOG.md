@@ -22,9 +22,9 @@
 
     *George Claghorn*
 
-*   Clear query cache when `ActiveRecord::Base#relaod` is called.
+*   Clear query cache when `ActiveRecord::Base#reload` is called.
 
-    *Shane Hender*
+    *Shane Hender, Pierre Nespo*
 
 *   Include stored procedures and function on the MySQL structure dump.
 
