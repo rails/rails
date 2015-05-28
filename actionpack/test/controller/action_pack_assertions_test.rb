@@ -123,7 +123,7 @@ end
 module Admin
   class InnerModuleController < ActionController::Base
     def index
-      render :nothing => true
+      head :ok
     end
 
     def redirect_to_index

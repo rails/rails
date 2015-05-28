@@ -1,3 +1,7 @@
+*   Deprecate `:nothing` option for `render` method.
+
+    *Mehmet Emin İNAÇ*
+
 *   Fix `rake routes` not showing the right format when
     nesting multiple routes.
 
