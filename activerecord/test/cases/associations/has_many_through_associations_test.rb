@@ -386,6 +386,12 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_should_raise_exception_for_association_not_found
+    assert_raise(ActiveRecord::HasManyThroughSourceAssociationNotFoundError) do
+      posts(:welcome).author_toys
+    end
+  end
+
   def test_delete_through_belongs_to_with_dependent_nullify
     Reference.make_comments = true
 

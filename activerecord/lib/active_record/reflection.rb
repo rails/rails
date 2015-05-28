@@ -534,7 +534,9 @@ module ActiveRecord
       #   # => <ActiveRecord::Reflection::AssociationReflection: @macro=:belongs_to, @name=:tag, @active_record=Tagging, @plural_name="tags">
       #
       def source_reflection
-        through_reflection.klass._reflect_on_association(source_reflection_name)
+        if source_reflection_name
+          through_reflection.klass._reflect_on_association(source_reflection_name)
+        end
       end
 
       # Returns the AssociationReflection object specified in the <tt>:through</tt> option
