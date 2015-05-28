@@ -1,3 +1,14 @@
+*   Render no content without explicitly setting `:nothing` to true
+    this works like calling `head` method with 204.
+
+        class FooController < ApplicationController
+          def bar
+            render status: 204
+          end
+        end
+
+    *Mehmet Emin İNAÇ*
+
 *   Fix `rake routes` not showing the right format when
     nesting multiple routes.
 

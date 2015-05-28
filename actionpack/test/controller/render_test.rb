@@ -120,6 +120,10 @@ class TestController < ActionController::Base
     render :action => 'hello_world'
   end
 
+  def render_no_content
+    render status: 204
+  end
+
   def conditional_hello_with_bangs
     render :action => 'hello_world'
   end
@@ -369,6 +373,12 @@ class LastModifiedRenderTest < ActionController::TestCase
     assert_equal 200, @response.status.to_i
     assert @response.body.present?
     assert_equal @last_modified, @response.headers['Last-Modified']
+  end
+
+  def test_render_status_204_renders_no_content
+    get :render_no_content
+    assert_response 204
+    assert @response.body.blank?
   end
 
   def test_request_with_bang_gets_last_modified
