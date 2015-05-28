@@ -282,7 +282,7 @@ module ActionDispatch
           if chunked?
             raw_post_body.read
           else
-            raw_post_body.read(content_length)
+            raw_post_body.read( content_length)
           end
         raw_post_body.rewind if raw_post_body.respond_to?(:rewind)
       end
