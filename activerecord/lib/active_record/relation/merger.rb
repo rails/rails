@@ -90,8 +90,8 @@ module ActiveRecord
           relation.preload! other.preload_values unless other.preload_values.empty?
           relation.includes! other.includes_values unless other.includes_values.empty?
         else
-          reflection = relation.klass.reflect_on_all_associations.find do |reflection|
-            reflection.class_name == other.klass.name
+          reflection = relation.klass.reflect_on_all_associations.find do |r|
+            r.class_name == other.klass.name
           end || return
 
           unless other.preload_values.empty?
