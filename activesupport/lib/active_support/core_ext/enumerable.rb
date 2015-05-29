@@ -76,8 +76,15 @@ module Enumerable
   #
   #   [{ name: "David" }, { name: "Rafael" }, { name: "Aaron" }].pluck(:name)
   #     => ["David", "Rafael", "Aaron"]
-  def pluck(key)
-    map { |element| element[key] }
+  #
+  #   [{ id: 1, name: "David" }, { id: 2, name: "Rafael" }].pluck(:id, :name)
+  #     => [[1, "David"], [2, "Rafael"]]
+  def pluck(*keys)
+    if keys.many?
+      map { |element| keys.map { |key| element[key] } }
+    else
+      map { |element| element[keys.first] }
+    end
   end
 end
 
