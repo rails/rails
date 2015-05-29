@@ -793,3 +793,24 @@ class RespondToControllerTest < ActionController::TestCase
     assert_equal "phone", @response.body
   end
 end
+
+class RespondToWithBlockOnDefaultRenderController < ActionController::Base
+  def show
+    default_render do
+      render text: 'default_render yielded'
+    end
+  end
+end
+
+class RespondToWithBlockOnDefaultRenderControllerTest < ActionController::TestCase
+  def setup
+    super
+    @request.host = "www.example.com"
+  end
+
+  def test_default_render_uses_block_when_no_template_exists
+    get :show
+    assert_equal "default_render yielded", @response.body
+    assert_equal "text/html", @response.content_type
+  end
+end
