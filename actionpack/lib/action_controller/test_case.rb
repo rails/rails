@@ -492,8 +492,6 @@ module ActionController
         end
         @response.prepare!
 
-        @assigns = @controller.respond_to?(:view_assigns) ? @controller.view_assigns : {}
-
         if flash_value = @request.flash.to_session_value
           @request.session['flash'] = flash_value
         else
