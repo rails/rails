@@ -2,6 +2,7 @@ language: ruby
 sudo: false
 script: 'ci/travis.rb'
 before_install:
+  - gem uninstall bundler
   - gem install bundler --version "< 1.10"
   - "rm ${BUNDLE_GEMFILE}.lock"
 before_script:
