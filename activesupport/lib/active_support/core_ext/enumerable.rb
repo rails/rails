@@ -71,6 +71,14 @@ module Enumerable
   def without(*elements)
     reject { |element| elements.include?(element) }
   end
+
+  # Convert an enumerable to an array based on the given key.
+  #
+  #   [{ name: "David" }, { name: "Rafael" }, { name: "Aaron" }].pluck(:name)
+  #     => ["David", "Rafael", "Aaron"]
+  def pluck(key)
+    map { |element| element[key] }
+  end
 end
 
 class Range #:nodoc:

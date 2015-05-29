@@ -1,3 +1,10 @@
+*   Add `Enumerable#pluck` to get the same values from arrays as from ActiveRecord
+    associations.
+
+    Fixes #20339.
+
+    *Kevin Deisz*
+
 *   Add a bang version to `ActiveSupport::OrderedOptions` get methods which will raise
     an `KeyError` if the value is `.blank?`
 
