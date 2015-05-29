@@ -1530,6 +1530,8 @@ module ActionDispatch
 
           if action =~ /^[\w\-\/]+$/
             options[:action] ||= action.tr('-', '_') unless action.include?("/")
+          elsif action =~ /^[\w\-\/]+\/:[\w\-]+/
+            action.gsub!(/\/:[\w\-]+|\(|\)|\*/, '')
           else
             action = nil
           end
