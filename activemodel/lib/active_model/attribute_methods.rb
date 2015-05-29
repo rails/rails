@@ -225,7 +225,7 @@ module ActiveModel
       end
 
       # Declares the attributes that should be prefixed and suffixed by
-      # ActiveModel::AttributeMethods.
+      # <tt>ActiveModel::AttributeMethods</tt>.
       #
       # To use, pass attribute names (as strings or symbols). Be sure to declare
       # +define_attribute_methods+ after you define any prefix, suffix or affix
@@ -253,7 +253,7 @@ module ActiveModel
       end
 
       # Declares an attribute that should be prefixed and suffixed by
-      # ActiveModel::AttributeMethods.
+      # <tt>ActiveModel::AttributeMethods</tt>.
       #
       # To use, pass an attribute name (as string or symbol). Be sure to declare
       # +define_attribute_method+ after you define any prefix, suffix or affix
