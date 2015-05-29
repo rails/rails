@@ -3037,6 +3037,14 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert !respond_to?(:routes_no_collision_path)
   end
 
+  def test_url_helper_should_be_created_for_route_with_parameter
+    draw do
+      get '/foo/:id' => 'foo#show'
+    end
+
+    assert respond_to?(:foo_path)
+  end
+
   def test_controller_name_with_leading_slash_raise_error
     assert_raise(ArgumentError) do
       draw { get '/feeds/:service', :to => '/feeds#show' }
