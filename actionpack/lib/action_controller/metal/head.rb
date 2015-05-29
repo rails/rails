@@ -16,9 +16,9 @@ module ActionController
     #   render
     #
     # See Rack::Utils::SYMBOL_TO_STATUS_CODE for a full list of valid +status+ symbols.
-    def head(status, options = {})
+    def head(status = :no_content, options = {})
       options, status = status, nil if status.is_a?(Hash)
-      status ||= options.delete(:status) || :ok
+      status ||= options.delete(:status) || :no_content
       location = options.delete(:location)
       content_type = options.delete(:content_type)
 

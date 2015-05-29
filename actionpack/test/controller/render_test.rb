@@ -494,7 +494,7 @@ class HeadRenderTest < ActionController::TestCase
     get :head_with_location_header
     assert @response.body.blank?
     assert_equal "/foo", @response.headers["Location"]
-    assert_response :ok
+    assert_response :no_content
   end
 
   def test_head_with_location_object
@@ -507,7 +507,7 @@ class HeadRenderTest < ActionController::TestCase
       get :head_with_location_object
       assert @response.body.blank?
       assert_equal "http://www.nextangle.com/customers/1", @response.headers["Location"]
-      assert_response :ok
+      assert_response :no_content
     end
   end
 
@@ -515,14 +515,14 @@ class HeadRenderTest < ActionController::TestCase
     get :head_with_custom_header
     assert @response.body.blank?
     assert_equal "something", @response.headers["X-Custom-Header"]
-    assert_response :ok
+    assert_response :no_content
   end
 
   def test_head_with_www_authenticate_header
     get :head_with_www_authenticate_header
     assert @response.body.blank?
     assert_equal "something", @response.headers["WWW-Authenticate"]
-    assert_response :ok
+    assert_response :no_content
   end
 
   def test_head_with_symbolic_status
