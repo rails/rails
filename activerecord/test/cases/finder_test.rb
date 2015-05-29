@@ -48,6 +48,18 @@ class FinderTest < ActiveRecord::TestCase
     end
   end
 
+  def test_find_with_ids_returning_ordered
+    records = Topic.find([4,2,5])
+    assert_equal 'The Fourth Topic of the day', records[0].title
+    assert_equal 'The Second Topic of the day', records[1].title
+    assert_equal 'The Fifth Topic of the day', records[2].title
+
+    records = Topic.find(4,2,5)
+    assert_equal 'The Fourth Topic of the day', records[0].title
+    assert_equal 'The Second Topic of the day', records[1].title
+    assert_equal 'The Fifth Topic of the day', records[2].title
+  end
+
   def test_find_passing_active_record_object_is_deprecated
     assert_deprecated do
       Topic.find(Topic.last)
