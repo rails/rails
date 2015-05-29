@@ -36,26 +36,19 @@ views.
 
 ```bash
 $ bin/rails generate mailer UserMailer
-create  app/mailers/user_mailer.rb
-create  app/mailers/application_mailer.rb
-invoke  erb
-create    app/views/user_mailer
-create    app/views/layouts/mailer.text.erb
-create    app/views/layouts/mailer.html.erb
-invoke  test_unit
-create    test/mailers/user_mailer_test.rb
-create    test/mailers/previews/user_mailer_preview.rb
+  create  app/mailers/user_mailer.rb
+  invoke  haml
+  create    app/views/user_mailer
+  invoke  minitest
+  create    test/mailers/user_mailer_test.rb
+  create    test/mailers/previews/user_mailer_preview.rb
 ```
 
 ```ruby
-# app/mailers/application_mailer.rb
-class ApplicationMailer < ActionMailer::Base
-  default from: "from@example.com"
-  layout 'mailer'
-end
 
 # app/mailers/user_mailer.rb
-class UserMailer < ApplicationMailer
+class UserMailer < ActionMailer::Base
+  default from: "from@example.com"
 end
 ```
 
@@ -63,11 +56,11 @@ As you can see, you can generate mailers just like you use other generators with
 Rails. Mailers are conceptually similar to controllers, and so we get a mailer,
 a directory for views, and a test.
 
-If you didn't want to use a generator, you could create your own file inside of
-app/mailers, just make sure that it inherits from `ActionMailer::Base`:
+If you didn't want to use a generator, you could create and name your own file inside of
+app/mailers, just make sure that it inherits from `ActionMailer::Base` just like below:
 
 ```ruby
-class MyMailer < ActionMailer::Base
+class AnyGenericMailer < ActionMailer::Base
 end
 ```
 
@@ -81,7 +74,7 @@ delivered via email.
 `app/mailers/user_mailer.rb` contains an empty mailer:
 
 ```ruby
-class UserMailer < ApplicationMailer
+class UserMailer < ActionMailer::Base
 end
 ```
 
@@ -89,7 +82,7 @@ Let's add a method called `welcome_email`, that will send an email to the user's
 registered email address:
 
 ```ruby
-class UserMailer < ApplicationMailer
+class UserMailer < ActionMailer::Base
   default from: 'notifications@example.com'
 
   def welcome_email(user)
@@ -182,7 +175,7 @@ Action Mailer is nicely integrated with Active Job so you can send emails outsid
 of the request-response cycle, so the user doesn't have to wait on it:
 
 ```ruby
-class UsersController < ApplicationController
+class UsersController < ActionMailer::Base
   # POST /users
   # POST /users.json
   def create
@@ -365,7 +358,7 @@ for the HTML version and `welcome_email.text.erb` for the plain text version.
 To change the default mailer view for your action you do something like:
 
 ```ruby
-class UserMailer < ApplicationMailer
+class UserMailer < ActionMailer::Base
   default from: 'notifications@example.com'
 
   def welcome_email(user)
@@ -417,7 +410,7 @@ layout.
 In order to use a different file, call `layout` in your mailer:
 
 ```ruby
-class UserMailer < ApplicationMailer
+class UserMailer < ActionMailer::Base
   layout 'awesome' # use awesome.(html|text).erb as the layout
 end
 ```
@@ -429,7 +422,7 @@ You can also pass in a `layout: 'layout_name'` option to the render call inside
 the format block to specify different layouts for different formats:
 
 ```ruby
-class UserMailer < ApplicationMailer
+class UserMailer < ActionMailer::Base
   def welcome_email(user)
     mail(to: user.email) do |format|
       format.html { render layout: 'my_layout' }
@@ -551,7 +544,7 @@ while delivering emails, you can do this using `delivery_method_options` in the
 mailer action.
 
 ```ruby
-class UserMailer < ApplicationMailer
+class UserMailer < ActionMailer::Base
   def welcome_email(user, company)
     @user = user
     @url  = user_url(@user)
@@ -573,7 +566,7 @@ option. In such cases don't forget to add the `:content_type` option. Rails
 will default to `text/plain` otherwise.
 
 ```ruby
-class UserMailer < ApplicationMailer
+class UserMailer < ActionMailer::Base
   def welcome_email(user, email_body)
     mail(to: user.email,
          body: email_body,
@@ -603,7 +596,7 @@ mailer, and pass the email object to the mailer `receive` instance
 method. Here's an example:
 
 ```ruby
-class UserMailer < ApplicationMailer
+class UserMailer < ActionMailer::Base
   def receive(email)
     page = Page.find_by(address: email.to.first)
     page.emails.create(
@@ -639,7 +632,7 @@ Action Mailer allows for you to specify a `before_action`, `after_action` and
   using instance variables set in your mailer action.
 
 ```ruby
-class UserMailer < ApplicationMailer
+class UserMailer < ActionMailer::Base
   after_action :set_delivery_options,
                :prevent_delivery_to_guests,
                :set_business_headers
