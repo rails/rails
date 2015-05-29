@@ -11,6 +11,15 @@ module ActiveRecord
         # serialized object must be of that class on assignment and retrieval.
         # Otherwise <tt>SerializationTypeMismatch</tt> will be raised.
         #
+        # Keep in mind that database adapters handle certain serialization tasks
+        # for you. For instance: +json+ and +jsonb+ types in PostgreSQL will be
+        # converted between JSON object/array syntax and Ruby +Hash+ or +Array+
+        # objects transparently. There is no need to use +serialize+ in this
+        # case.
+        #
+        # For more complex cases, such as conversion to or from your application
+        # domain objects, consider using the ActiveRecord::Attributes API.
+        #
         # ==== Parameters
         #
         # * +attr_name+ - The field name that should be serialized.
