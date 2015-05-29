@@ -5,7 +5,7 @@ module ActionMailer
   # that use inline cid: style urls to data: style urls so that they are visible
   # when previewing a HTML email in a web browser.
   #
-  # This interceptor is enabled by default, to remove it delete it from the
+  # This interceptor is enabled by default, to remove it from the
   # <tt>ActionMailer::Base.preview_interceptors</tt> array:
   #
   #   ActionMailer::Base.preview_interceptors.delete(ActionMailer::InlinePreviewInterceptor)
