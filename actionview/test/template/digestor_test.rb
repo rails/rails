@@ -239,16 +239,6 @@ class TemplateDigestorTest < ActionView::TestCase
     assert_not_equal digest_phone, digest_fridge_phone
   end
 
-  def test_cache_template_loading
-    resolver_before = ActionView::Resolver.caching
-    ActionView::Resolver.caching = false
-    assert_digest_difference("messages/edit", true) do
-      change_template("comments/_comment")
-    end
-  ensure
-    ActionView::Resolver.caching = resolver_before
-  end
-
   def test_digest_cache_cleanup_with_recursion
     first_digest = digest("level/_recursion")
     second_digest = digest("level/_recursion")
