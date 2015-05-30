@@ -11,6 +11,11 @@
 
     *Ryuta Kamizono*
 
+*   Allow proc defaults to be passed to the attributes API. See documentation
+    for examples.
+
+    *Sean Griffin, Kir Shatrov*
+
 *   SQLite: `:collation` support for string and text columns.
 
     Example:
