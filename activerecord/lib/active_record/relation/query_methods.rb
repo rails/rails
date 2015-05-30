@@ -1001,15 +1001,13 @@ module ActiveRecord
     end
 
     def arel_columns(columns)
-      if from_clause.value
-        columns
-      else
-        columns.map do |field|
-          if (Symbol === field || String === field) && columns_hash.key?(field.to_s)
-            arel_table[field]
-          else
-            field
-          end
+      columns.map do |field|
+        if (Symbol === field || String === field) && columns_hash.key?(field.to_s) && !from_clause.value
+          arel_table[field]
+        elsif Symbol === field
+          connection.quote_table_name(field.to_s)
+        else
+          field
         end
       end
     end

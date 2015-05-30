@@ -1,3 +1,10 @@
+*   Ensure symbols passed to `ActiveRecord::Relation#select` are always treated
+    as columns.
+
+    Fixes #20360.
+
+    *Sean Griffin*
+
 *   Do not set `sql_mode` if `strict: :default` is specified.
 
         ```
