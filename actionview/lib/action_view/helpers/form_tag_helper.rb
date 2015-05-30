@@ -7,7 +7,7 @@ module ActionView
   # = Action View Form Tag Helpers
   module Helpers
     # Provides a number of methods for creating form tags that don't rely on an Active Record object assigned to the template like
-    # FormHelper does. Instead, you provide the names and values manually.
+    # +FormHelper+ does. Instead, you provide the names and values manually.
     #
     # NOTE: The HTML options <tt>disabled</tt>, <tt>readonly</tt>, and <tt>multiple</tt> can all be treated as booleans. So specifying
     # <tt>disabled: true</tt> will give <tt>disabled="disabled"</tt>.
@@ -21,7 +21,7 @@ module ActionView
       self.embed_authenticity_token_in_remote_forms = false
 
       # Starts a form tag that points the action to an url configured with <tt>url_for_options</tt> just like
-      # ActionController::Base#url_for. The method for the form defaults to POST.
+      # <tt>ActionController::Base#url_for</tt>. The method for the form defaults to POST.
       #
       # ==== Options
       # * <tt>:multipart</tt> - If set to true, the enctype is set to "multipart/form-data".
@@ -563,7 +563,7 @@ module ActionView
       # Creates a text field of type "color".
       #
       # ==== Options
-      # * Accepts the same options as text_field_tag.
+      # * Accepts the same options as +text_field_tag+.
       #
       # ==== Examples
       #   color_field_tag 'name'
@@ -584,7 +584,7 @@ module ActionView
       # Creates a text field of type "search".
       #
       # ==== Options
-      # * Accepts the same options as text_field_tag.
+      # * Accepts the same options as +text_field_tag+.
       #
       # ==== Examples
       #   search_field_tag 'name'
@@ -605,7 +605,7 @@ module ActionView
       # Creates a text field of type "tel".
       #
       # ==== Options
-      # * Accepts the same options as text_field_tag.
+      # * Accepts the same options as +text_field_tag+.
       #
       # ==== Examples
       #   telephone_field_tag 'name'
@@ -627,7 +627,7 @@ module ActionView
       # Creates a text field of type "date".
       #
       # ==== Options
-      # * Accepts the same options as text_field_tag.
+      # * Accepts the same options as +text_field_tag+.
       #
       # ==== Examples
       #   date_field_tag 'name'
@@ -703,7 +703,7 @@ module ActionView
       # Creates a text field of type "url".
       #
       # ==== Options
-      # * Accepts the same options as text_field_tag.
+      # * Accepts the same options as +text_field_tag+.
       #
       # ==== Examples
       #   url_field_tag 'name'
@@ -724,7 +724,7 @@ module ActionView
       # Creates a text field of type "email".
       #
       # ==== Options
-      # * Accepts the same options as text_field_tag.
+      # * Accepts the same options as +text_field_tag+.
       #
       # ==== Examples
       #   email_field_tag 'name'
@@ -795,7 +795,7 @@ module ActionView
       # Creates a range form element.
       #
       # ==== Options
-      # * Accepts the same options as number_field_tag.
+      # * Accepts the same options as +number_field_tag+.
       def range_field_tag(name, value = nil, options = {})
         number_field_tag(name, value, options.merge(type: :range))
       end

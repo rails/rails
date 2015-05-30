@@ -4,7 +4,7 @@ require 'rails-html-sanitizer'
 module ActionView
   # = Action View Sanitize Helpers
   module Helpers
-    # The SanitizeHelper module provides a set of methods for scrubbing text of undesired HTML elements.
+    # The +SanitizeHelper+ module provides a set of methods for scrubbing text of undesired HTML elements.
     # These helper methods extend Action View making them callable within your template files.
     module SanitizeHelper
       extend ActiveSupport::Concern
@@ -14,7 +14,7 @@ module ActionView
       # <tt>javascript:</tt>, while also protecting against attempts to use Unicode,
       # ASCII, and hex character references to work around these protocol filters.
       #
-      # The default sanitizer is Rails::Html::WhiteListSanitizer. See {Rails HTML
+      # The default sanitizer is <tt>Rails::Html::WhiteListSanitizer</tt>. See {Rails HTML
       # Sanitizers}[https://github.com/rails/rails-html-sanitizer] for more information.
       #
       # Custom sanitization rules can also be provided.
@@ -42,7 +42,7 @@ module ActionView
       #
       #   <%= sanitize @comment.body, tags: %w(strong em a), attributes: %w(href) %>
       #
-      # Providing a custom Rails::Html scrubber:
+      # Providing a custom +Rails::Html+ scrubber:
       #
       #   class CommentScrubber < Rails::Html::PermitScrubber
       #     def allowed_node?(node)
@@ -61,9 +61,9 @@ module ActionView
       #   <%= sanitize @comment.body, scrubber: CommentScrubber.new %>
       #
       # See {Rails HTML Sanitizer}[https://github.com/rails/rails-html-sanitizer] for
-      # documentation about Rails::Html scrubbers.
+      # documentation about <tt>Rails::Html</tt> scrubbers.
       #
-      # Providing a custom Loofah::Scrubber:
+      # Providing a custom <tt>Loofah::Scrubber</tt>:
       #
       #   scrubber = Loofah::Scrubber.new do |node|
       #     node.remove if node.name == 'script'
@@ -72,7 +72,7 @@ module ActionView
       #   <%= sanitize @comment.body, scrubber: scrubber %>
       #
       # See {Loofah's documentation}[https://github.com/flavorjones/loofah] for more
-      # information about defining custom Loofah::Scrubber objects.
+      # information about defining custom +Loofah::Scrubber+ objects.
       #
       # To set the default allowed tags or attributes across your application:
       #
@@ -133,7 +133,7 @@ module ActionView
           sanitizer_vendor.white_list_sanitizer.allowed_attributes
         end
 
-        # Gets the Rails::Html::FullSanitizer instance used by +strip_tags+. Replace with
+        # Gets the <tt>Rails::Html::FullSanitizer</tt> instance used by +strip_tags+. Replace with
         # any object that responds to +sanitize+.
         #
         #   class Application < Rails::Application
@@ -144,7 +144,7 @@ module ActionView
           @full_sanitizer ||= sanitizer_vendor.full_sanitizer.new
         end
 
-        # Gets the Rails::Html::LinkSanitizer instance used by +strip_links+.
+        # Gets the <tt>Rails::Html::LinkSanitizer</tt> instance used by +strip_links+.
         # Replace with any object that responds to +sanitize+.
         #
         #   class Application < Rails::Application
@@ -155,7 +155,7 @@ module ActionView
           @link_sanitizer ||= sanitizer_vendor.link_sanitizer.new
         end
 
-        # Gets the Rails::Html::WhiteListSanitizer instance used by sanitize and +sanitize_css+.
+        # Gets the <tt>Rails::Html::WhiteListSanitizer</tt> instance used by sanitize and +sanitize_css+.
         # Replace with any object that responds to +sanitize+.
         #
         #   class Application < Rails::Application
