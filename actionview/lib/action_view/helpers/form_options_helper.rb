@@ -91,7 +91,7 @@ module ActionView
     #     </select>
     #
     module FormOptionsHelper
-      # ERB::Util can mask some helpers like textilize. Make sure to include them.
+      # +ERB::Util+ can mask some helpers like textilize. Make sure to include them.
       include TextHelper
 
       # Create a select tag and a series of contained option tags for the provided object and method.
@@ -548,17 +548,17 @@ module ActionView
       end
 
       # Returns a string of option tags for pretty much any time zone in the
-      # world. Supply a ActiveSupport::TimeZone name as +selected+ to have it
+      # world. Supply a <tt>ActiveSupport::TimeZone</tt> name as +selected+ to have it
       # marked as the selected option tag. You can also supply an array of
-      # ActiveSupport::TimeZone objects as +priority_zones+, so that they will
+      # <tt>ActiveSupport::TimeZone</tt> objects as +priority_zones+, so that they will
       # be listed above the rest of the (long) list. (You can use
-      # ActiveSupport::TimeZone.us_zones as a convenience for obtaining a list
+      # <tt>ActiveSupport::TimeZone.us_zones</tt> as a convenience for obtaining a list
       # of the US time zones, or a Regexp to select the zones of your choice)
       #
       # The +selected+ parameter must be either +nil+, or a string that names
-      # a ActiveSupport::TimeZone.
+      # a <tt>ActiveSupport::TimeZone</tt>.
       #
-      # By default, +model+ is the ActiveSupport::TimeZone constant (which can
+      # By default, +model+ is the <tt>ActiveSupport::TimeZone</tt> constant (which can
       # be obtained in Active Record as a value object). The only requirement
       # is that the +model+ parameter be an object that responds to +all+, and
       # returns an array of objects that represent time zones.
@@ -765,7 +765,7 @@ module ActionView
     end
 
     class FormBuilder
-      # Wraps ActionView::Helpers::FormOptionsHelper#select for form builders:
+      # Wraps <tt>ActionView::Helpers::FormOptionsHelper#select</tt> for form builders:
       #
       #   <%= form_for @post do |f| %>
       #     <%= f.select :person_id, Person.all.collect { |p| [ p.name, p.id ] }, include_blank: true %>
@@ -777,7 +777,7 @@ module ActionView
         @template.select(@object_name, method, choices, objectify_options(options), @default_options.merge(html_options), &block)
       end
 
-      # Wraps ActionView::Helpers::FormOptionsHelper#collection_select for form builders:
+      # Wraps <tt>ActionView::Helpers::FormOptionsHelper#collection_select</tt> for form builders:
       #
       #   <%= form_for @post do |f| %>
       #     <%= f.collection_select :person_id, Author.all, :id, :name_with_initial, prompt: true %>
@@ -789,7 +789,7 @@ module ActionView
         @template.collection_select(@object_name, method, collection, value_method, text_method, objectify_options(options), @default_options.merge(html_options))
       end
 
-      # Wraps ActionView::Helpers::FormOptionsHelper#grouped_collection_select for form builders:
+      # Wraps <tt>ActionView::Helpers::FormOptionsHelper#grouped_collection_select</tt> for form builders:
       #
       #   <%= form_for @city do |f| %>
       #     <%= f.grouped_collection_select :country_id, @continents, :countries, :name, :id, :name %>
@@ -801,7 +801,7 @@ module ActionView
         @template.grouped_collection_select(@object_name, method, collection, group_method, group_label_method, option_key_method, option_value_method, objectify_options(options), @default_options.merge(html_options))
       end
 
-      # Wraps ActionView::Helpers::FormOptionsHelper#time_zone_select for form builders:
+      # Wraps <tt>ActionView::Helpers::FormOptionsHelper#time_zone_select</tt> for form builders:
       #
       #   <%= form_for @user do |f| %>
       #     <%= f.time_zone_select :time_zone, nil, include_blank: true %>
@@ -813,7 +813,7 @@ module ActionView
         @template.time_zone_select(@object_name, method, priority_zones, objectify_options(options), @default_options.merge(html_options))
       end
 
-      # Wraps ActionView::Helpers::FormOptionsHelper#collection_check_boxes for form builders:
+      # Wraps <tt>ActionView::Helpers::FormOptionsHelper#collection_check_boxes</tt> for form builders:
       #
       #   <%= form_for @post do |f| %>
       #     <%= f.collection_check_boxes :author_ids, Author.all, :id, :name_with_initial %>
@@ -825,7 +825,7 @@ module ActionView
         @template.collection_check_boxes(@object_name, method, collection, value_method, text_method, objectify_options(options), @default_options.merge(html_options), &block)
       end
 
-      # Wraps ActionView::Helpers::FormOptionsHelper#collection_radio_buttons for form builders:
+      # Wraps <tt>ActionView::Helpers::FormOptionsHelper#collection_radio_buttons</tt> for form builders:
       #
       #   <%= form_for @post do |f| %>
       #     <%= f.collection_radio_buttons :author_id, Author.all, :id, :name_with_initial %>
