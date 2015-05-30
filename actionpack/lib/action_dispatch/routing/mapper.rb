@@ -806,7 +806,7 @@ module ActionDispatch
         # Scopes routes to a specific controller
         #
         #   controller "food" do
-        #     match "bacon", action: "bacon"
+        #     match "bacon", action: :bacon, via: :get
         #   end
         def controller(controller, options={})
           options[:controller] = controller
