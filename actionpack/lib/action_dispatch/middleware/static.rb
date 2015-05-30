@@ -13,7 +13,7 @@ module ActionDispatch
   # located at `public/assets/application.js` if the file exists. If the file
   # does not exist, a 404 "File not Found" response will be returned.
   class FileHandler
-    def initialize(root, cache_control, index)
+    def initialize(root, cache_control, index = 'index')
       @root          = root.chomp('/')
       @compiled_root = /^#{Regexp.escape(root)}/
       headers        = cache_control && { 'Cache-Control' => cache_control }
@@ -105,7 +105,7 @@ module ActionDispatch
   # produce a directory traversal using this middleware. Only 'GET' and 'HEAD'
   # requests will result in a file being returned.
   class Static
-    def initialize(app, path, cache_control=nil, index="index")
+    def initialize(app, path, cache_control = nil, index = 'index')
       @app = app
       @file_handler = FileHandler.new(path, cache_control, index)
     end
@@ -115,7 +115,7 @@ module ActionDispatch
       when 'GET', 'HEAD'
         path = env['PATH_INFO'].chomp('/')
         if match = @file_handler.match?(path)
-          env["PATH_INFO"] = match
+          env['PATH_INFO'] = match
           return @file_handler.call(env)
         end
       end
