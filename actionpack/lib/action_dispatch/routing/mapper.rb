@@ -1450,9 +1450,12 @@ module ActionDispatch
           parent_resource.instance_of?(Resource) && @scope[:shallow]
         end
 
-        # match 'path' => 'controller#action'
-        # match 'path', to: 'controller#action'
-        # match 'path', 'otherpath', on: :member, via: :get
+        # Matches a url pattern to one or more routes.
+        # For more information, see match[rdoc-ref:Base#match].
+        #
+        #   match 'path' => 'controller#action', via: patch
+        #   match 'path', to: 'controller#action', via: :post
+        #   match 'path', 'otherpath', on: :member, via: :get
         def match(path, *rest)
           if rest.empty? && Hash === path
             options  = path
