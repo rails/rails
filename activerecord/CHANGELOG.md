@@ -1,3 +1,10 @@
+*   Ensure symbols passed to `ActiveRecord::Relation#select` are always treated
+    as columns.
+
+    Fixes #20360.
+
+    *Sean Griffin*
+
 *   Clear query cache when `ActiveRecord::Base#relaod` is called.
 
     *Shane Hender*
