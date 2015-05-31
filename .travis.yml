@@ -52,4 +52,4 @@ addons:
   postgresql: "9.3"
   apt:
     packages:
-      - sqlite3
+      - sqlite3=3.8.8.3
