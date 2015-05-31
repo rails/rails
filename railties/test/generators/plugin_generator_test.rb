@@ -521,6 +521,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_file "test/controllers/bukkits/users_controller_test.rb" do |contents|
+      assert_match(/@user = bukkits_users\(:one\)/, contents)
       assert_match(/@routes = Engine.routes/, contents)
     end
   end

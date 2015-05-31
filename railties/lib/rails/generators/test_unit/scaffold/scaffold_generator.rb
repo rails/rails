@@ -15,6 +15,15 @@ module TestUnit # :nodoc:
                  File.join("test/controllers", controller_class_path, "#{controller_file_name}_controller_test.rb")
       end
 
+      def fixture_name
+        @fixture_name ||=
+          if defined?(ENGINE_ROOT)
+            namespaced_path + "_" + table_name
+          else
+            table_name
+          end
+      end
+
       private
 
         def attributes_hash
