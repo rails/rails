@@ -393,4 +393,18 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
       assert_match(/password_digest: <%= BCrypt::Password.create\('secret'\) %>/, content)
     end
   end
+
+  def test_scaffold_tests_pass_by_default_inside_mountable_engine
+    Dir.chdir(destination_root) { `bundle exec rails plugin new bukkits --mountable` }
+
+    engine_path = File.join(destination_root, "bukkits")
+
+    Dir.chdir(engine_path) do
+      quietly do
+        `bin/rails g scaffold User name:string age:integer;
+        bundle exec rake db:migrate`
+      end
+      assert_match(/8 runs, 13 assertions, 0 failures, 0 errors/, `bundle exec rake test 2>&1`)
+    end
+  end
 end
