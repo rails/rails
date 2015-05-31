@@ -137,7 +137,8 @@ module ActiveRecord
     end
 
     def handler_for(object)
-      @handlers.detect { |klass, _| klass === object }.last
+      target_object = object.is_a?(Delegator) ? object.__getobj__ : object
+      @handlers.detect { |klass, _| klass === target_object }.last
     end
 
     def can_be_bound?(column_name, value)
