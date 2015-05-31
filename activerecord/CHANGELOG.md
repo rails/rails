@@ -21,7 +21,7 @@
 *   Allow proc defaults to be passed to the attributes API. See documentation
     for examples.
 
-    *Sean Griffin, Kir Shatrov*
+    *Sean Griffin*, *Kir Shatrov*
 
 *   SQLite: `:collation` support for string and text columns.
 
@@ -290,7 +290,7 @@
 
     *Josef Šimánek*
 
-*   Fixed ActiveRecord::Relation#becomes! and changed_attributes issues for type
+*   Fixed `ActiveRecord::Relation#becomes!` and `changed_attributes` issues for type
     columns.
 
     Fixes #17139.
@@ -473,8 +473,8 @@
 
     *Henrik Nygren*
 
-*   Fixed ActiveRecord::Relation#group method when an argument is an SQL
-    reserved key word:
+*   Fixed `ActiveRecord::Relation#group` method when an argument is an SQL
+    reserved keyword:
 
     Example:
 
@@ -483,7 +483,7 @@
 
     *Bogdan Gusiev*
 
-*   Added the `#or` method on ActiveRecord::Relation, allowing use of the OR
+*   Added the `#or` method on `ActiveRecord::Relation`, allowing use of the OR
     operator to combine WHERE or HAVING clauses.
 
     Example:
@@ -683,7 +683,7 @@
 
     The preferred method to halt a callback chain from now on is to explicitly
     `throw(:abort)`.
-    In the past, returning `false` in an ActiveRecord `before_` callback had the
+    In the past, returning `false` in an Active Record `before_` callback had the
     side effect of halting the callback chain.
     This is not recommended anymore and, depending on the value of the
     `config.active_support.halt_callback_chains_on_return_false` option, will
