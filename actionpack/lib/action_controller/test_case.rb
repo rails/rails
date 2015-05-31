@@ -556,7 +556,7 @@ module ActionController
           args.first.merge!(method: http_method)
           process(action, *args)
         else
-          non_kwarg_request_warning if args.present?
+          non_kwarg_request_warning if args.any?
 
           args = args.unshift(http_method)
           process(action, *args)

@@ -294,7 +294,7 @@ module ActionDispatch
           if kwarg_request?(args)
             process(http_method, path, *args)
           else
-            non_kwarg_request_warning if args.present?
+            non_kwarg_request_warning if args.any?
             process(http_method, path, { params: args[0], headers: args[1] })
           end
         end
