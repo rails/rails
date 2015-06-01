@@ -69,6 +69,16 @@
 
     *Adam Forsyth*
 
+*   Allow `Bearer` as token-keyword in `Authorization-Header`.
+
+    Aditionally to `Token`, the keyword `Bearer` is acceptable as a keyword
+    for the auth-token. The `Bearer` keyword is described in the original
+    OAuth RFC and used in libraries like Angular-JWT.
+
+    See #19094.
+
+    *Peter Schröder*
+
 *   Drop request class from RouteSet constructor.
 
     If you would like to use a custom request class, please subclass and implement
