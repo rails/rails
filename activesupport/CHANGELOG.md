@@ -1,3 +1,7 @@
+*   Fix a range of values for parameters of the Time#change
+
+    *Nikolay Kondratyev*
+
 *   Add some missing `require 'active_support/deprecation'`
 
     *Akira Matsuda*
