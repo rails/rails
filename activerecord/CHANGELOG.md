@@ -1,3 +1,11 @@
+*   Calls proper predicate builders when `Delegator` instances passed in.
+
+    Example: `Topic.where(id: SimpleDelegator.new([1, 2]))` will delegate to `Array` handler
+
+    Fixes #20388.
+
+    *Anand Mohanaveeramani*
+
 *   Ensure symbols passed to `ActiveRecord::Relation#select` are always treated
     as columns.
 

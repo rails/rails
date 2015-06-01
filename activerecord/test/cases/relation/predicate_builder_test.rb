@@ -12,5 +12,11 @@ module ActiveRecord
     ensure
       Topic.reset_column_information
     end
+
+    def test_delegating_to_proper_handler
+      assert_equal Topic.where(id: [1, 2]).to_sql, Topic.where(id: SimpleDelegator.new([1, 2])).to_sql
+    ensure
+      Topic.reset_column_information
+    end
   end
 end
