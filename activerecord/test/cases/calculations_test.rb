@@ -632,6 +632,27 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal [part.id], ShipPart.joins(:trinkets).pluck(:id)
   end
 
+  def test_pluck_loaded_relation
+    companies = Company.order(:id).limit(3).load
+    assert_no_queries do
+      assert_equal ['37signals', 'Summit', 'Microsoft'], companies.pluck(:name)
+    end
+  end
+
+  def test_pluck_loaded_relation_multiple_columns
+    companies = Company.order(:id).limit(3).load
+    assert_no_queries do
+      assert_equal [[1, '37signals'], [2, 'Summit'], [3, 'Microsoft']], companies.pluck(:id, :name)
+    end
+  end
+
+  def test_pluck_loaded_relation_sql_fragment
+    companies = Company.order(:id).limit(3).load
+    assert_queries 1 do
+      assert_equal ['37signals', 'Summit', 'Microsoft'], companies.pluck('DISTINCT name')
+    end
+  end
+
   def test_grouped_calculation_with_polymorphic_relation
     part = ShipPart.create!(name: "has trinket")
     part.trinkets.create!

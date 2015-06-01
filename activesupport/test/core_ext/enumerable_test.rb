@@ -3,6 +3,8 @@ require 'active_support/core_ext/array'
 require 'active_support/core_ext/enumerable'
 
 Payment = Struct.new(:price)
+ExpandedPayment = Struct.new(:dollars, :cents)
+
 class SummablePayment < Payment
   def +(p) self.class.new(price + p.price) end
 end
@@ -114,5 +116,12 @@ class EnumerableTests < ActiveSupport::TestCase
   def test_pluck
     payments = GenericEnumerable.new([ Payment.new(5), Payment.new(15), Payment.new(10) ])
     assert_equal [5, 15, 10], payments.pluck(:price)
+
+    payments = GenericEnumerable.new([
+      ExpandedPayment.new(5, 99),
+      ExpandedPayment.new(15, 0),
+      ExpandedPayment.new(10, 50)
+    ])
+    assert_equal [[5, 99], [15, 0], [10, 50]], payments.pluck(:dollars, :cents)
   end
 end
