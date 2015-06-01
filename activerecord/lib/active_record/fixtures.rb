@@ -644,6 +644,11 @@ module ActiveRecord
             row[primary_key_name] = ActiveRecord::FixtureSet.identify(label, primary_key_type)
           end
 
+          # Resolve enums
+          model_class.defined_enums.each do |name, values|
+            row[name] = values.fetch(row[name], row[name])
+          end
+
           # If STI is used, find the correct subclass for association reflection
           reflection_class =
             if row.include?(inheritance_column_name)

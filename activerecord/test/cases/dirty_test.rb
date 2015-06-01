@@ -623,32 +623,6 @@ class DirtyTest < ActiveRecord::TestCase
     end
   end
 
-  test "defaults with type that implements `serialize`" do
-    type = Class.new(ActiveRecord::Type::Value) do
-      def cast(value)
-        value.to_i
-      end
-
-      def serialize(value)
-        value.to_s
-      end
-    end
-
-    model_class = Class.new(ActiveRecord::Base) do
-      self.table_name = 'numeric_data'
-      attribute :foo, type.new, default: 1
-    end
-
-    model = model_class.new
-    assert_not model.foo_changed?
-
-    model = model_class.new(foo: 1)
-    assert_not model.foo_changed?
-
-    model = model_class.new(foo: '1')
-    assert_not model.foo_changed?
-  end
-
   test "in place mutation detection" do
     pirate = Pirate.create!(catchphrase: "arrrr")
     pirate.catchphrase << " matey!"

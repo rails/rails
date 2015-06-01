@@ -1,10 +1,17 @@
+*   Allow `DelayedJob`, `Sidekiq`, `qu`, and `que` to report the job id back to
+    `ActiveJob::Base` as `provider_job_id`.
+
+    Fixes #18821.
+
+    *Kevin Deisz*, *Jeroen van Baarsen*
+
 *   `assert_enqueued_jobs` and `assert_performed_jobs` in block form use the
     given number as expected value. This makes the error message much easier to
     understand.
 
     *y-yagi*
 
-*   A generated job now inherents from `app/jobs/application_job.rb` by default.
+*   A generated job now inherits from `app/jobs/application_job.rb` by default.
 
     *Jeroen van Baarsen*
 

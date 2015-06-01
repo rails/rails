@@ -377,7 +377,7 @@ edit_article GET    /articles/:id/edit(.:format) articles#edit
 
 In the next section, you will add the ability to create new articles in your
 application and be able to view them. This is the "C" and the "R" from CRUD:
-creation and reading. The form for doing this will look like this:
+create and read. The form for doing this will look like this:
 
 ![The new article form](images/getting_started/new_article.png)
 
@@ -400,7 +400,7 @@ a controller called `ArticlesController`. You can do this by running this
 command:
 
 ```bash
-$ bin/rails g controller articles
+$ bin/rails generate controller articles
 ```
 
 If you open up the newly generated `app/controllers/articles_controller.rb`
@@ -836,7 +836,7 @@ class ArticlesController < ApplicationController
   def new
   end
 
-  # snipped for brevity
+  # snippet for brevity
 ```
 
 A couple of things to note. We use `Article.find` to find the article we're
@@ -892,7 +892,7 @@ class ArticlesController < ApplicationController
   def new
   end
 
-  # snipped for brevity
+  # snippet for brevity
 ```
 
 And then finally, add the view for this action, located at
@@ -1488,7 +1488,7 @@ appear.
 ![Confirm Dialog](images/getting_started/confirm_dialog.png)
 
 TIP: Learn more about jQuery Unobtrusive Adapter (jQuery UJS) on
-[Working With Javascript in Rails](working_with_javascript_in_rails.html) guide.
+[Working With JavaScript in Rails](working_with_javascript_in_rails.html) guide.
 
 Congratulations, you can now create, show, list, update and destroy
 articles.
@@ -2000,7 +2000,7 @@ class ArticlesController < ApplicationController
     @articles = Article.all
   end
 
-  # snipped for brevity
+  # snippet for brevity
 ```
 
 We also want to allow only authenticated users to delete comments, so in the
@@ -2016,7 +2016,7 @@ class CommentsController < ApplicationController
     # ...
   end
 
-  # snipped for brevity
+  # snippet for brevity
 ```
 
 Now if you try to create a new article, you will be greeted with a basic HTTP

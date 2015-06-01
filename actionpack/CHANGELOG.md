@@ -1,4 +1,23 @@
-*   Fix rake routes not showing the right format when
+*   Remove `assigns` and `assert_template`. Both methods have been extracted
+    into a gem at https://github.com/rails/rails-controller-testing.
+
+    See #18950.
+
+    *Alan Guo Xiang Tan*
+
+*   `FileHandler` and `Static` middleware initializers accept `index` argument
+    to configure the directory index file name. Defaults to `index` (as in
+    `index.html`).
+
+    See #20017.
+
+    *Eliot Sykes*
+
+*   Deprecate `:nothing` option for `render` method.
+
+    *Mehmet Emin İNAÇ*
+
+*   Fix `rake routes` not showing the right format when
     nesting multiple routes.
 
     See #18373.
@@ -49,6 +68,16 @@
     `Actiondispatch::Http:URL.host` to raise a `NoMethodError`.
 
     *Adam Forsyth*
+
+*   Allow `Bearer` as token-keyword in `Authorization-Header`.
+
+    Aditionally to `Token`, the keyword `Bearer` is acceptable as a keyword
+    for the auth-token. The `Bearer` keyword is described in the original
+    OAuth RFC and used in libraries like Angular-JWT.
+
+    See #19094.
+
+    *Peter Schröder*
 
 *   Drop request class from RouteSet constructor.
 
@@ -281,7 +310,7 @@
 
 *   Ensure `append_info_to_payload` is called even if an exception is raised.
 
-    Fixes an issue where when an exception is raised in the request the additonal
+    Fixes an issue where when an exception is raised in the request the additional
     payload data is not available.
 
     See:
@@ -312,7 +341,7 @@
 
 *   Stop converting empty arrays in `params` to `nil`.
 
-    This behaviour was introduced in response to CVE-2012-2660, CVE-2012-2694
+    This behavior was introduced in response to CVE-2012-2660, CVE-2012-2694
     and CVE-2013-0155
 
     ActiveRecord now issues a safe query when passing an empty array into

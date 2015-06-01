@@ -649,10 +649,20 @@ module ActiveRecord
         indexes(table_name).detect { |i| i.name == index_name }
       end
 
-      # Adds a reference. Optionally adds a +type+ column, if <tt>:polymorphic</tt> option is provided.
-      # The reference column is an +integer+ by default, the <tt>:type</tt> option can be used to specify
-      # a different type.
+      # Adds a reference. The reference column is an integer by default,
+      # the <tt>:type</tt> option can be used to specify a different type.
+      # Optionally adds a +_type+ column, if <tt>:polymorphic</tt> option is provided.
       # <tt>add_reference</tt> and <tt>add_belongs_to</tt> are acceptable.
+      #
+      # The +options+ hash can include the following keys:
+      # [<tt>:type</tt>]
+      #   The reference column type. Defaults to +:integer+.
+      # [<tt>:index</tt>]
+      #   Add an appropriate index. Defaults to false.
+      # [<tt>:foreign_key</tt>]
+      #   Add an appropriate foreign key. Defaults to false.
+      # [<tt>:polymorphic</tt>]
+      #   Wether an additional +_type+ column should be added. Defaults to false.
       #
       # ====== Create a user_id integer column
       #
@@ -661,10 +671,6 @@ module ActiveRecord
       # ====== Create a user_id string column
       #
       #   add_reference(:products, :user, type: :string)
-      #
-      # ====== Create a supplier_id and supplier_type columns
-      #
-      #   add_belongs_to(:products, :supplier, polymorphic: true)
       #
       # ====== Create supplier_id, supplier_type columns and appropriate index
       #

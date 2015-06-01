@@ -35,6 +35,7 @@ class Date
   #   date.to_s(:db)                      # => "2007-11-10"
   #
   #   date.to_formatted_s(:short)         # => "10 Nov"
+  #   date.to_formatted_s(:number)        # => "20071110"
   #   date.to_formatted_s(:long)          # => "November 10, 2007"
   #   date.to_formatted_s(:long_ordinal)  # => "November 10th, 2007"
   #   date.to_formatted_s(:rfc822)        # => "10 Nov 2007"
@@ -82,6 +83,11 @@ class Date
     ::Time.send(form, year, month, day)
   end
 
+  # Returns a string which represents the time in used time zone as DateTime
+  # defined by XML Schema:
+  #
+  #   date = Date.new(2015, 05, 23)  # => Sat, 23 May 2015
+  #   date.xmlschema                 # => "2015-05-23T00:00:00+04:00"
   def xmlschema
     in_time_zone.xmlschema
   end

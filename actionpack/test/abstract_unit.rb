@@ -380,7 +380,7 @@ module RoutingTestHelpers
 end
 
 class ResourcesController < ActionController::Base
-  def index() render :nothing => true end
+  def index() head :ok end
   alias_method :show, :index
 end
 

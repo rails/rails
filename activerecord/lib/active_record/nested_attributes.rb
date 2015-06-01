@@ -166,6 +166,11 @@ module ActiveRecord
     #   member.posts.first.title # => '[UPDATED] An, as of yet, undisclosed awesome Ruby documentation browser!'
     #   member.posts.second.title # => '[UPDATED] other post'
     #
+    # However, the above applies if the parent model is being updated as well.
+    # For example, If you wanted to create a +member+ named _joe_ and wanted to
+    # update the +posts+ at the same time, that would give an
+    # ActiveRecord::RecordNotFound error.
+    #
     # By default the associated records are protected from being destroyed. If
     # you want to destroy any of the associated records through the attributes
     # hash, you have to enable it first using the <tt>:allow_destroy</tt>
@@ -208,7 +213,7 @@ module ActiveRecord
     #
     # Passing attributes for an associated collection in the form of a hash
     # of hashes can be used with hashes generated from HTTP/HTML parameters,
-    # where there maybe no natural way to submit an array of hashes.
+    # where there may be no natural way to submit an array of hashes.
     #
     # === Saving
     #

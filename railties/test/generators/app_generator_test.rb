@@ -44,6 +44,7 @@ DEFAULT_APP_FILES = %w(
   vendor/assets
   vendor/assets/stylesheets
   vendor/assets/javascripts
+  tmp
   tmp/cache
   tmp/cache/assets
 )
@@ -603,6 +604,32 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_file '.gitignore' do |content|
       assert_no_match(/sqlite/i, content)
+    end
+  end
+
+  def test_create_keeps
+    run_generator
+    folders_with_keep = %w(
+      app/assets/images
+      app/mailers
+      app/models
+      app/controllers/concerns
+      app/models/concerns
+      lib/tasks
+      lib/assets
+      log
+      test/fixtures
+      test/fixtures/files
+      test/controllers
+      test/mailers
+      test/models
+      test/helpers
+      test/integration
+      tmp
+      vendor/assets/stylesheets
+    )
+    folders_with_keep.each do |folder|
+      assert_file("#{folder}/.keep")
     end
   end
 

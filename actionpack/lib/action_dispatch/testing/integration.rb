@@ -294,7 +294,7 @@ module ActionDispatch
           if kwarg_request?(args)
             process(http_method, path, *args)
           else
-            non_kwarg_request_warning if args.present?
+            non_kwarg_request_warning if args.any?
             process(http_method, path, { params: args[0], headers: args[1] })
           end
         end
@@ -429,7 +429,6 @@ module ActionDispatch
           # reset the html_document variable, except for cookies/assigns calls
           unless method == 'cookies' || method == 'assigns'
             @html_document = nil
-            reset_template_assertion
           end
 
           integration_session.__send__(method, *args).tap do
@@ -584,7 +583,7 @@ module ActionDispatch
   #       https!(false)
   #       get "/articles/all"
   #       assert_response :success
-  #       assert assigns(:articles)
+  #       assert_select 'h1', 'Articles'
   #     end
   #   end
   #
@@ -623,7 +622,7 @@ module ActionDispatch
   #         def browses_site
   #           get "/products/all"
   #           assert_response :success
-  #           assert assigns(:products)
+  #           assert_select 'h1', 'Products'
   #         end
   #       end
   #

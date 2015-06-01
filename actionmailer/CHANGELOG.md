@@ -1,3 +1,8 @@
+*   `assert_emails` in block form use the given number as expected value.
+    This makes the error message much easier to understand.
+
+    *Yuji Yaginuma*
+
 *   Add support for inline images in mailer previews by using an interceptor
     class to convert cid: urls in image src attributes to data urls.
 

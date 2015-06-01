@@ -47,7 +47,7 @@ built-in helpers for common needs, and allows you to create your own validation
 methods as well.
 
 There are several other ways to validate data before it is saved into your
-database, including native database constraints, client-side validations,
+database, including native database constraints, client-side validations and
 controller-level validations. Here's a summary of the pros and cons:
 
 * Database constraints and/or stored procedures make the validation mechanisms
@@ -122,7 +122,7 @@ database only if the object is valid:
 * `update!`
 
 The bang versions (e.g. `save!`) raise an exception if the record is invalid.
-The non-bang versions don't, `save` and `update` return `false`,
+The non-bang versions don't: `save` and `update` return `false`, and
 `create` just returns the object.
 
 ### Skipping Validations
@@ -143,7 +143,7 @@ database regardless of its validity. They should be used with caution.
 * `update_counters`
 
 Note that `save` also has the ability to skip validations if passed `validate:
-false` as argument. This technique should be used with caution.
+false` as an argument. This technique should be used with caution.
 
 * `save(validate: false)`
 
@@ -272,7 +272,7 @@ available helpers.
 
 This method validates that a checkbox on the user interface was checked when a
 form was submitted. This is typically used when the user needs to agree to your
-application's terms of service, confirm reading some text, or any similar
+application's terms of service, confirm that some text is read, or any similar
 concept. This validation is very specific to web applications and this
 'acceptance' does not need to be recorded anywhere in your database (if you
 don't have a field for it, the helper will just create a virtual attribute).
@@ -283,6 +283,7 @@ class Person < ActiveRecord::Base
 end
 ```
 
+This check is performed only if `terms_of_service` is not `nil`.
 The default error message for this helper is _"must be accepted"_.
 
 It can receive an `:accept` option, which determines the value that will be
@@ -338,7 +339,7 @@ In your view template you could use something like
 
 This check is performed only if `email_confirmation` is not `nil`. To require
 confirmation, make sure to add a presence check for the confirmation attribute
-(we'll take a look at `presence` later on this guide):
+(we'll take a look at `presence` later on in this guide):
 
 ```ruby
 class Person < ActiveRecord::Base
@@ -499,9 +500,9 @@ constraints to acceptable values:
   default error message for this option is _"must be equal to %{count}"_.
 * `:less_than` - Specifies the value must be less than the supplied value. The
   default error message for this option is _"must be less than %{count}"_.
-* `:less_than_or_equal_to` - Specifies the value must be less than or equal the
-  supplied value. The default error message for this option is _"must be less
-  than or equal to %{count}"_.
+* `:less_than_or_equal_to` - Specifies the value must be less than or equal to
+  the supplied value. The default error message for this option is _"must be
+  less than or equal to %{count}"_.
 * `:odd` - Specifies the value must be an odd number if set to true. The
   default error message for this option is _"must be odd"_.
 * `:even` - Specifies the value must be an even number if set to true. The
@@ -551,7 +552,6 @@ Since `false.blank?` is true, if you want to validate the presence of a boolean
 field you should use one of the following validations:
 
 ```ruby
-validates :boolean_field_name, presence: true
 validates :boolean_field_name, inclusion: { in: [true, false] }
 validates :boolean_field_name, exclusion: { in: [nil] }
 ```
@@ -626,7 +626,7 @@ class Holiday < ActiveRecord::Base
     message: "should happen once per year" }
 end
 ```
-Should you wish to create a database constraint to prevent possible violations of a uniqueness validation using the `:scope` option, you must create a unique index on both columns in your database. See [the MySQL manual](http://dev.mysql.com/doc/refman/5.6/en/multiple-column-indexes.html) for more details about multiple column indexes or [the PostgreSQL manual](http://www.postgresql.org/docs/9.4/static/ddl-constraints.html) for examples of unique constraints that refer to a group of columns.
+Should you wish to create a database constraint to prevent possible violations of a uniqueness validation using the `:scope` option, you must create a unique index on both columns in your database. See [the MySQL manual](http://dev.mysql.com/doc/refman/5.6/en/multiple-column-indexes.html) for more details about multiple column indexes or [the PostgreSQL manual](http://www.postgresql.org/docs/current/static/ddl-constraints.html) for examples of unique constraints that refer to a group of columns.
 
 There is also a `:case_sensitive` option that you can use to define whether the
 uniqueness constraint will be case sensitive or not. This option defaults to
@@ -813,7 +813,7 @@ end
 Person.new.valid?  # => ActiveModel::StrictValidationFailed: Name can't be blank
 ```
 
-There is also an ability to pass custom exception to `:strict` option.
+There is also the ability to pass a custom exception to the `:strict` option.
 
 ```ruby
 class Person < ActiveRecord::Base
@@ -877,7 +877,7 @@ end
 
 ### Grouping Conditional validations
 
-Sometimes it is useful to have multiple validations use one condition, it can
+Sometimes it is useful to have multiple validations use one condition. It can
 be easily achieved using `with_options`.
 
 ```ruby
@@ -889,8 +889,8 @@ class User < ActiveRecord::Base
 end
 ```
 
-All validations inside of `with_options` block will have automatically passed
-the condition `if: :is_admin?`
+All validations inside of the `with_options` block will have automatically
+passed the condition `if: :is_admin?`
 
 ### Combining Validation Conditions
 

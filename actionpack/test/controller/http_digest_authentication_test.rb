@@ -14,7 +14,7 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
     end
 
     def display
-      render :text => 'Definitely Maybe'
+      render :text => 'Definitely Maybe' if @logged_in
     end
 
     private
@@ -124,7 +124,6 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
     get :display
 
     assert_response :success
-    assert assigns(:logged_in)
     assert_equal 'Definitely Maybe', @response.body
   end
 
@@ -134,7 +133,6 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
     get :display
 
     assert_response :success
-    assert assigns(:logged_in)
     assert_equal 'Definitely Maybe', @response.body
   end
 
@@ -144,7 +142,6 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
     get :display
 
     assert_response :success
-    assert assigns(:logged_in)
     assert_equal 'Definitely Maybe', @response.body
   end
 
@@ -156,7 +153,6 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
     get :display
 
     assert_response :success
-    assert assigns(:logged_in)
     assert_equal 'Definitely Maybe', @response.body
   end
 
@@ -167,7 +163,6 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
     get :display
 
     assert_response :success
-    assert assigns(:logged_in)
     assert_equal 'Definitely Maybe', @response.body
   end
 
@@ -180,7 +175,6 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
     get :display
 
     assert_response :success
-    assert assigns(:logged_in)
     assert_equal 'Definitely Maybe', @response.body
   end
 
@@ -191,7 +185,6 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
     get :display
 
     assert_response :success
-    assert assigns(:logged_in)
     assert_equal 'Definitely Maybe', @response.body
   end
 
@@ -201,7 +194,6 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
     put :display
 
     assert_response :success
-    assert assigns(:logged_in)
     assert_equal 'Definitely Maybe', @response.body
   end
 
@@ -244,7 +236,6 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
     get :display
 
     assert_response :success
-    assert assigns(:logged_in)
     assert_equal 'Definitely Maybe', @response.body
   end
 

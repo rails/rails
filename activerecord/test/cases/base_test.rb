@@ -1411,15 +1411,13 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_uniq_delegates_to_scoped
-    scope = stub
-    Bird.stubs(:all).returns(mock(:uniq => scope))
-    assert_equal scope, Bird.uniq
+    assert_deprecated do
+      assert_equal Bird.all.distinct, Bird.uniq
+    end
   end
 
   def test_distinct_delegates_to_scoped
-    scope = stub
-    Bird.stubs(:all).returns(mock(:distinct => scope))
-    assert_equal scope, Bird.distinct
+    assert_equal Bird.all.distinct, Bird.distinct
   end
 
   def test_table_name_with_2_abstract_subclasses

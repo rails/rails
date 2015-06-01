@@ -242,6 +242,13 @@ module ActiveRecord
       assert_equal false, post.respond_to?(:title), "post should not respond_to?(:body) since invoking it raises exception"
     end
 
+    def test_select_quotes_when_using_from_clause
+      ensure_sqlite3_version_doesnt_include_bug
+      quoted_join = ActiveRecord::Base.connection.quote_table_name("join")
+      selected = Post.select(:join).from(Post.select("id as #{quoted_join}")).map(&:join)
+      assert_equal Post.pluck(:id), selected
+    end
+
     def test_relation_merging_with_merged_joins_as_strings
       join_string = "LEFT OUTER JOIN #{Rating.quoted_table_name} ON #{SpecialComment.quoted_table_name}.id = #{Rating.quoted_table_name}.comment_id"
       special_comments_with_ratings = SpecialComment.joins join_string
@@ -275,6 +282,21 @@ module ActiveRecord
       UpdateAllTestModel.update_all(body: "value from user", type: nil) # No STI
 
       assert_equal "type cast from database", UpdateAllTestModel.first.body
+    end
+
+    private
+
+    def ensure_sqlite3_version_doesnt_include_bug
+      if current_adapter?(:SQLite3Adapter)
+        selected_quoted_column_names = ActiveRecord::Base.connection.exec_query(
+          'SELECT "join" FROM (SELECT id AS "join" FROM posts) subquery'
+        ).columns
+        assert_equal ["join"], selected_quoted_column_names, <<-ERROR.squish
+          You are using an outdated version of SQLite3 which has a bug in
+          quoted column names. Please update SQLite3 and rebuild the sqlite3
+          ruby gem
+        ERROR
+      end
     end
   end
 end

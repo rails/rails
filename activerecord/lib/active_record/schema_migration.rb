@@ -1,6 +1,5 @@
 require 'active_record/scoping/default'
 require 'active_record/scoping/named'
-require 'active_record/base'
 
 module ActiveRecord
   class SchemaMigration < ActiveRecord::Base

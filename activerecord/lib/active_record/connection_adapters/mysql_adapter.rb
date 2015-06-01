@@ -71,34 +71,10 @@ module ActiveRecord
       ADAPTER_NAME = 'MySQL'.freeze
 
       class StatementPool < ConnectionAdapters::StatementPool
-        def initialize(connection, max = 1000)
-          super
-          @cache = Hash.new { |h,pid| h[pid] = {} }
-        end
-
-        def each(&block); cache.each(&block); end
-        def key?(key);    cache.key?(key); end
-        def [](key);      cache[key]; end
-        def length;       cache.length; end
-        def delete(key);  cache.delete(key); end
-
-        def []=(sql, key)
-          while @max <= cache.size
-            cache.shift.last[:stmt].close
-          end
-          cache[sql] = key
-        end
-
-        def clear
-          cache.each_value do |hash|
-            hash[:stmt].close
-          end
-          cache.clear
-        end
-
         private
-        def cache
-          @cache[Process.pid]
+
+        def dealloc(stmt)
+          stmt[:stmt].close
         end
       end
 
@@ -416,8 +392,11 @@ module ActiveRecord
             # place when an error occurs. To support older MySQL versions, we
             # need to close the statement and delete the statement from the
             # cache.
-            stmt.close
-            @statements.delete sql
+            if binds.empty?
+              stmt.close
+            else
+              @statements.delete sql
+            end
             raise e
           end
 

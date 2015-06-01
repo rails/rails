@@ -105,7 +105,7 @@ module ActiveRecord
         eight   = columns.detect { |c| c.name == "eight_int"   }
 
         if current_adapter?(:OracleAdapter)
-          assert_equal 'NUMBER(8)', eight.sql_type
+          assert_equal 'NUMBER(19)', eight.sql_type
         elsif current_adapter?(:SQLite3Adapter)
           assert_equal 'bigint', eight.sql_type
         else

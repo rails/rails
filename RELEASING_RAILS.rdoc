@@ -96,7 +96,7 @@ Run `rake install` to generate the gems and install them locally. Then try
 generating a new app and ensure that nothing explodes.
 
 This will stop you from looking silly when you push an RC to rubygems.org and
-then realise it is broken.
+then realize it is broken.
 
 === Release the gem.
 

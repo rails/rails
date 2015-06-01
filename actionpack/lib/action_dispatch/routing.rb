@@ -232,7 +232,6 @@ module ActionDispatch
   #   def send_to_jail
   #     get '/jail'
   #     assert_response :success
-  #     assert_template "jail/front"
   #   end
   #
   #   def goes_to_login

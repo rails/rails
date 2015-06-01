@@ -23,7 +23,7 @@
     *Wojciech Wnętrzak*
 
 *   Deprecate `ActiveModel::Errors#get`, `ActiveModel::Errors#set` and
-    `ActiveModel::Errors#[]=` methods that have inconsistent behaviour.
+    `ActiveModel::Errors#[]=` methods that have inconsistent behavior.
 
     *Wojciech Wnętrzak*
 

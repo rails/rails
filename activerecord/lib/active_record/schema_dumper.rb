@@ -1,5 +1,4 @@
 require 'stringio'
-require 'active_support/core_ext/big_decimal'
 
 module ActiveRecord
   # = Active Record Schema Dumper

@@ -35,12 +35,12 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     assert categories(:sti_test).authors.include?(authors(:mary))
   end
 
-  def test_has_many_uniq_through_join_model
+  def test_has_many_distinct_through_join_model
     assert_equal 2, authors(:mary).categorized_posts.size
     assert_equal 1, authors(:mary).unique_categorized_posts.size
   end
 
-  def test_has_many_uniq_through_count
+  def test_has_many_distinct_through_count
     author = authors(:mary)
     assert !authors(:mary).unique_categorized_posts.loaded?
     assert_queries(1) { assert_equal 1, author.unique_categorized_posts.count }
@@ -49,7 +49,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     assert !authors(:mary).unique_categorized_posts.loaded?
   end
 
-  def test_has_many_uniq_through_find
+  def test_has_many_distinct_through_find
     assert_equal 1, authors(:mary).unique_categorized_posts.to_a.size
   end
 
@@ -625,7 +625,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     assert_equal [comments(:does_it_hurt)], authors(:david).special_post_comments
   end
 
-  def test_uniq_has_many_through_should_retain_order
+  def test_distinct_has_many_through_should_retain_order
     comment_ids = authors(:david).comments.map(&:id)
     assert_equal comment_ids.sort, authors(:david).ordered_uniq_comments.map(&:id)
     assert_equal comment_ids.sort.reverse, authors(:david).ordered_uniq_comments_desc.map(&:id)

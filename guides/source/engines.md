@@ -582,7 +582,7 @@ the comments, however, is not quite right yet. If you were to create a comment
 right now, you would see this error:
 
 ```
-Missing partial blorgh/comments/comment with {:handlers=>[:erb, :builder],
+Missing partial blorgh/comments/_comment with {:handlers=>[:erb, :builder],
 :formats=>[:html], :locale=>[:en, :en]}. Searched in:   *
 "/Users/ryan/Sites/side_projects/blorgh/test/dummy/app/views"   *
 "/Users/ryan/Sites/side_projects/blorgh/app/views"
@@ -591,7 +591,7 @@ Missing partial blorgh/comments/comment with {:handlers=>[:erb, :builder],
 The engine is unable to find the partial required for rendering the comments.
 Rails looks first in the application's (`test/dummy`) `app/views` directory and
 then in the engine's `app/views` directory. When it can't find it, it will throw
-this error. The engine knows to look for `blorgh/comments/comment` because the
+this error. The engine knows to look for `blorgh/comments/_comment` because the
 model object it is receiving is from the `Blorgh::Comment` class.
 
 This partial will be responsible for rendering just the comment text, for now.

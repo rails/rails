@@ -185,7 +185,7 @@ module ActiveRecord
         super
       end
 
-      # Returns the specified association instance if it responds to :loaded?, nil otherwise.
+      # Returns the specified association instance if it exists, nil otherwise.
       def association_instance_get(name)
         @association_cache[name]
       end
@@ -266,7 +266,6 @@ module ActiveRecord
     #   others.find(*args)                |   X   |    X     |    X
     #   others.exists?                    |   X   |    X     |    X
     #   others.distinct                   |   X   |    X     |    X
-    #   others.uniq                       |   X   |    X     |    X
     #   others.reset                      |   X   |    X     |    X
     #
     # === Overriding generated methods
@@ -285,7 +284,7 @@ module ActiveRecord
     #   end
     #
     # If your model class is <tt>Project</tt>, the module is
-    # named <tt>Project::GeneratedFeatureMethods</tt>. The GeneratedFeatureMethods module is
+    # named <tt>Project::GeneratedAssociationMethods</tt>. The GeneratedAssociationMethods module is
     # included in the model class immediately after the (anonymous) generated attributes methods
     # module, meaning an association will override the methods for an attribute with the same name.
     #
@@ -1722,7 +1721,7 @@ module ActiveRecord
 
         Builder::HasMany.define_callbacks self, middle_reflection
         Reflection.add_reflection self, middle_reflection.name, middle_reflection
-        middle_reflection.parent_reflection = [name.to_s, habtm_reflection]
+        middle_reflection.parent_reflection = habtm_reflection
 
         include Module.new {
           class_eval <<-RUBY, __FILE__, __LINE__ + 1
@@ -1738,12 +1737,12 @@ module ActiveRecord
         hm_options[:through] = middle_reflection.name
         hm_options[:source] = join_model.right_reflection.name
 
-        [:before_add, :after_add, :before_remove, :after_remove, :autosave, :validate, :join_table, :class_name].each do |k|
+        [:before_add, :after_add, :before_remove, :after_remove, :autosave, :validate, :join_table, :class_name, :extend].each do |k|
           hm_options[k] = options[k] if options.key? k
         end
 
         has_many name, scope, hm_options, &extension
-        self._reflections[name.to_s].parent_reflection = [name.to_s, habtm_reflection]
+        self._reflections[name.to_s].parent_reflection = habtm_reflection
       end
     end
   end

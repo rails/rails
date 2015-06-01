@@ -435,7 +435,7 @@ end
 
 The simplest rule of thumb is that you should set up a `has_many :through` relationship if you need to work with the relationship model as an independent entity. If you don't need to do anything with the relationship model, it may be simpler to set up a `has_and_belongs_to_many` relationship (though you'll need to remember to create the joining table in the database).
 
-You should use `has_many :through` if you need validations, callbacks, or extra attributes on the join model.
+You should use `has_many :through` if you need validations, callbacks or extra attributes on the join model.
 
 ### Polymorphic Associations
 
@@ -590,7 +590,7 @@ If you create an association some time after you build the underlying model, you
 
 If you create a `has_and_belongs_to_many` association, you need to explicitly create the joining table. Unless the name of the join table is explicitly specified by using the `:join_table` option, Active Record creates the name by using the lexical order of the class names. So a join between customer and order models will give the default join table name of "customers_orders" because "c" outranks "o" in lexical ordering.
 
-WARNING: The precedence between model names is calculated using the `<` operator for `String`. This means that if the strings are of different lengths, and the strings are equal when compared up to the shortest length, then the longer string is considered of higher lexical precedence than the shorter one. For example, one would expect the tables "paper_boxes" and "papers" to generate a join table name of "papers_paper_boxes" because of the length of the name "paper_boxes", but it in fact generates a join table name of "paper_boxes_papers" (because the underscore '_' is lexicographically _less_ than 's' in common encodings).
+WARNING: The precedence between model names is calculated using the `<=>` operator for `String`. This means that if the strings are of different lengths, and the strings are equal when compared up to the shortest length, then the longer string is considered of higher lexical precedence than the shorter one. For example, one would expect the tables "paper_boxes" and "papers" to generate a join table name of "papers_paper_boxes" because of the length of the name "paper_boxes", but it in fact generates a join table name of "paper_boxes_papers" (because the underscore '\_' is lexicographically _less_ than 's' in common encodings).
 
 Whatever the name, you must manually generate the join table with an appropriate migration. For example, consider these associations:
 
@@ -620,7 +620,7 @@ class CreateAssembliesPartsJoinTable < ActiveRecord::Migration
 end
 ```
 
-We pass `id: false` to `create_table` because that table does not represent a model. That's required for the association to work properly. If you observe any strange behavior in a `has_and_belongs_to_many` association like mangled models IDs, or exceptions about conflicting IDs, chances are you forgot that bit.
+We pass `id: false` to `create_table` because that table does not represent a model. That's required for the association to work properly. If you observe any strange behavior in a `has_and_belongs_to_many` association like mangled model IDs, or exceptions about conflicting IDs, chances are you forgot that bit.
 
 ### Controlling Association Scope
 
@@ -793,7 +793,7 @@ If the associated object has already been retrieved from the database for this o
 
 ##### `association=(associate)`
 
-The `association=` method assigns an associated object to this object. Behind the scenes, this means extracting the primary key from the associate object and setting this object's foreign key to the same value.
+The `association=` method assigns an associated object to this object. Behind the scenes, this means extracting the primary key from the associated object and setting this object's foreign key to the same value.
 
 ```ruby
 @order.customer = @customer
@@ -1138,7 +1138,7 @@ If the associated object has already been retrieved from the database for this o
 
 ##### `association=(associate)`
 
-The `association=` method assigns an associated object to this object. Behind the scenes, this means extracting the primary key from this object and setting the associate object's foreign key to the same value.
+The `association=` method assigns an associated object to this object. Behind the scenes, this means extracting the primary key from this object and setting the associated object's foreign key to the same value.
 
 ```ruby
 @supplier.account = @account
@@ -1219,8 +1219,8 @@ Controls what happens to the associated object when its owner is destroyed:
 It's necessary not to set or leave `:nullify` option for those associations
 that have `NOT NULL` database constraints. If you don't set `dependent` to
 destroy such associations you won't be able to change the associated object
-because initial associated object foreign key will be set to unallowed `NULL`
-value.
+because the initial associated object's foreign key will be set to the
+unallowed `NULL` value.
 
 ##### `:foreign_key`
 
@@ -1506,7 +1506,9 @@ The `collection.where` method finds objects within the collection based on the c
 
 ##### `collection.exists?(...)`
 
-The `collection.exists?` method checks whether an object meeting the supplied conditions exists in the collection. It uses the same syntax and options as `ActiveRecord::Base.exists?`.
+The `collection.exists?` method checks whether an object meeting the supplied 
+conditions exists in the collection. It uses the same syntax and options as
+[`ActiveRecord::Base.exists?`](http://api.rubyonrails.org/classes/ActiveRecord/FinderMethods.html#method-i-exists-3F).
 
 ##### `collection.build(attributes = {}, ...)`
 
@@ -1617,9 +1619,10 @@ end
 
 By convention, Rails assumes that the column used to hold the primary key of the association is `id`. You can override this and explicitly specify the primary key with the `:primary_key` option.
 
-Let's say that `users` table has `id` as the primary_key but it also has
-`guid` column. And the requirement is that `todos` table should hold
-`guid` column value and not `id` value. This can be achieved like this
+Let's say the `users` table has `id` as the primary_key but it also
+has a `guid` column. The requirement is that the `todos` table should
+hold the `guid` column value as the foreign key and not `id`
+value. This can be achieved like this:
 
 ```ruby
 class User < ActiveRecord::Base
@@ -1627,8 +1630,8 @@ class User < ActiveRecord::Base
 end
 ```
 
-Now if we execute `@user.todos.create` then `@todo` record will have
-`user_id` value as the `guid` value of `@user`.
+Now if we execute `@todo = @user.todos.create` then the `@todo`
+record's `user_id` value will be the `guid` value of `@user`.
 
 
 ##### `:source`
@@ -2004,7 +2007,9 @@ The `collection.where` method finds objects within the collection based on the c
 
 ##### `collection.exists?(...)`
 
-The `collection.exists?` method checks whether an object meeting the supplied conditions exists in the collection. It uses the same syntax and options as `ActiveRecord::Base.exists?`.
+The `collection.exists?` method checks whether an object meeting the supplied
+conditions exists in the collection. It uses the same syntax and options as
+[`ActiveRecord::Base.exists?`](http://api.rubyonrails.org/classes/ActiveRecord/FinderMethods.html#method-i-exists-3F).
 
 ##### `collection.build(attributes = {})`
 

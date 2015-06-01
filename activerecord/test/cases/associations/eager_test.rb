@@ -1167,7 +1167,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_no_queries { assert client.accounts.empty? }
   end
 
-  def test_preloading_has_many_through_with_uniq
+  def test_preloading_has_many_through_with_distinct
     mary = Author.includes(:unique_categorized_posts).where(:id => authors(:mary).id).first
     assert_equal 1, mary.unique_categorized_posts.length
     assert_equal 1, mary.unique_categorized_post_ids.length

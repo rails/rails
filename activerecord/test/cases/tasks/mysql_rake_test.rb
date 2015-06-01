@@ -265,14 +265,14 @@ module ActiveRecord
 
     def test_structure_dump
       filename = "awesome-file.sql"
-      Kernel.expects(:system).with("mysqldump", "--result-file", filename, "--no-data", "test-db").returns(true)
+      Kernel.expects(:system).with("mysqldump", "--result-file", filename, "--no-data", "--routines", "test-db").returns(true)
 
       ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
     end
 
     def test_warn_when_external_structure_dump_fails
       filename = "awesome-file.sql"
-      Kernel.expects(:system).with("mysqldump", "--result-file", filename, "--no-data", "test-db").returns(false)
+      Kernel.expects(:system).with("mysqldump", "--result-file", filename, "--no-data", "--routines", "test-db").returns(false)
 
       warnings = capture(:stderr) do
         ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
@@ -283,10 +283,19 @@ module ActiveRecord
 
     def test_structure_dump_with_port_number
       filename = "awesome-file.sql"
-      Kernel.expects(:system).with("mysqldump", "--port", "10000", "--result-file", filename, "--no-data", "test-db").returns(true)
+      Kernel.expects(:system).with("mysqldump", "--port=10000", "--result-file", filename, "--no-data", "--routines", "test-db").returns(true)
 
       ActiveRecord::Tasks::DatabaseTasks.structure_dump(
         @configuration.merge('port' => 10000),
+        filename)
+    end
+
+    def test_structure_dump_with_ssl
+      filename = "awesome-file.sql"
+      Kernel.expects(:system).with("mysqldump", "--ssl-ca=ca.crt", "--result-file", filename, "--no-data", "--routines", "test-db").returns(true)
+
+      ActiveRecord::Tasks::DatabaseTasks.structure_dump(
+        @configuration.merge("sslca" => "ca.crt"),
         filename)
     end
   end

@@ -31,8 +31,8 @@ which might look like this:
      PRIMARY KEY  (id)
    );
 
-This would also define the following accessors: `Product#name` and
-`Product#name=(new_name)`.
+This would also define the following accessors: <tt>Product#name</tt> and
+<tt>Product#name=(new_name)</tt>.
 
 
 * Associations between objects defined by simple class methods.
@@ -188,7 +188,7 @@ Admit the Database:
 
 The latest version of Active Record can be installed with RubyGems:
 
-  % [sudo] gem install activerecord
+  % gem install activerecord
 
 Source code can be downloaded as part of the Rails project on GitHub:
 

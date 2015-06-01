@@ -40,7 +40,7 @@ module ActionController
     # * <tt>:etag</tt>.
     # * <tt>:last_modified</tt>.
     # * <tt>:public</tt> By default the Cache-Control header is private, set this to
-    #   +true+ if you want your application to be cachable by other devices (proxy caches).
+    #   +true+ if you want your application to be cacheable by other devices (proxy caches).
     # * <tt>:template</tt> By default, the template digest for the current
     #   controller/action is included in ETags. If the action renders a
     #   different template, you can include its digest instead. If the action
@@ -111,7 +111,7 @@ module ActionController
     # * <tt>:etag</tt>.
     # * <tt>:last_modified</tt>.
     # * <tt>:public</tt> By default the Cache-Control header is private, set this to
-    #   +true+ if you want your application to be cachable by other devices (proxy caches).
+    #   +true+ if you want your application to be cacheable by other devices (proxy caches).
     # * <tt>:template</tt> By default, the template digest for the current
     #   controller/action is included in ETags. If the action renders a
     #   different template, you can include its digest instead. If the action

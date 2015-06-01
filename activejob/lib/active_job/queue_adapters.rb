@@ -116,6 +116,10 @@ module ActiveJob
     private_constant :ADAPTER
 
     class << self
+      # Returns adapter for specified name.
+      #
+      #   ActiveJob::QueueAdapters.lookup(:sidekiq)
+      #   # => ActiveJob::QueueAdapters::SidekiqAdapter
       def lookup(name)
         const_get(name.to_s.camelize << ADAPTER)
       end

@@ -5,11 +5,11 @@ require 'jobs/nested_job'
 
 class ActiveJobTestCaseTest < ActiveJob::TestCase
   # this tests that this job class doesn't get its adapter set.
-  # that's the correct behaviour since we don't want to break
-  # the `class_attribute` inheritence
-  class TestClassAttributeInheritenceJob < ActiveJob::Base
+  # that's the correct behavior since we don't want to break
+  # the `class_attribute` inheritance
+  class TestClassAttributeInheritanceJob < ActiveJob::Base
     def self.queue_adapter=(*)
-      raise 'Attemping to break `class_attribute` inheritence, bad!'
+      raise 'Attemping to break `class_attribute` inheritance, bad!'
     end
   end
 

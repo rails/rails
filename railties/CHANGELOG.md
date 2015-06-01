@@ -1,3 +1,22 @@
+*   Generator a `.keep` file in the `tmp` folder by default as many scripts
+    assume the existence of this folder and most would fail if it is absent.
+
+    See #20299.
+
+    *Yoong Kang Lim*, *Sunny Juneja*
+
+*   `config.static_index` configures directory `index.html` filename
+
+    Set `config.static_index` to serve a static directory index file not named
+    `index`. E.g. to serve `main.html` instead of `index.html` for directory
+    requests, set `config.static_index` to `"main"`.
+
+    *Eliot Sykes*
+
+*   `bin/setup` uses built-in rake tasks (`log:clear`, `tmp:clear`).
+
+    *Mohnish Thallavajhula*
+
 *   Fix mailer previews with attachments by using the mail gem's own API to
     locate the first part of the correct mime type.
 

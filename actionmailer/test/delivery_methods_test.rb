@@ -1,5 +1,4 @@
 require 'abstract_unit'
-require 'mail'
 
 class MyCustomDelivery
 end

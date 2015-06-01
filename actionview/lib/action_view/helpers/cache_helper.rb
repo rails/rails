@@ -75,7 +75,8 @@ module ActionView
       #   render(topics)         => render("topics/topic")
       #   render(message.topics) => render("topics/topic")
       #
-      # It's not possible to derive all render calls like that, though. Here are a few examples of things that can't be derived:
+      # It's not possible to derive all render calls like that, though. 
+      # Here are a few examples of things that can't be derived:
       #
       #   render group_of_attachments
       #   render @project.documents.where(published: true).order('created_at')
@@ -97,19 +98,21 @@ module ActionView
       #   <%# Template Dependency: todolists/todolist %>
       #   <%= render_sortable_todolists @project.todolists %>
       #
-      # The pattern used to match these is /# Template Dependency: ([^ ]+)/, so it's important that you type it out just so.
+      # The pattern used to match these is /# Template Dependency: ([^ ]+)/, 
+      # so it's important that you type it out just so.
       # You can only declare one template dependency per line.
       #
       # === External dependencies
       #
-      # If you use a helper method, for example, inside of a cached block and you then update that helper,
-      # you'll have to bump the cache as well. It doesn't really matter how you do it, but the md5 of the template file
+      # If you use a helper method, for example, inside a cached block and 
+      # you then update that helper, you'll have to bump the cache as well. 
+      # It doesn't really matter how you do it, but the md5 of the template file
       # must change. One recommendation is to simply be explicit in a comment, like:
       #
       #   <%# Helper Dependency Updated: May 6, 2012 at 6pm %>
       #   <%= some_helper_method(person) %>
       #
-      # Now all you'll have to do is change that timestamp when the helper method changes.
+      # Now all you have to do is change that timestamp when the helper method changes.
       #
       # === Automatic Collection Caching
       #
@@ -118,7 +121,7 @@ module ActionView
       #   <%= render @notifications %>
       #   <%= render partial: 'notifications/notification', collection: @notifications %>
       #
-      # If the notifications/_notification partial starts with a cache call like so:
+      # If the notifications/_notification partial starts with a cache call as:
       #
       #   <% cache notification do %>
       #     <%= notification.name %>
@@ -127,8 +130,9 @@ module ActionView
       # The collection can then automatically use any cached renders for that
       # template by reading them at once instead of one by one.
       #
-      # See ActionView::Template::Handlers::ERB.resource_cache_call_pattern for more
-      # information on what cache calls make a template eligible for this collection caching.
+      # See ActionView::Template::Handlers::ERB.resource_cache_call_pattern for 
+      # more information on what cache calls make a template eligible for this 
+      # collection caching.
       #
       # The automatic cache multi read can be turned off like so:
       #

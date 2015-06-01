@@ -126,7 +126,7 @@ module ActiveSupport
 
         PER_ENTRY_OVERHEAD = 240
 
-        def cached_size(key, entry)
+        def cached_size(key, entry) # :nodoc:
           key.to_s.bytesize + entry.size + PER_ENTRY_OVERHEAD
         end
 

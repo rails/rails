@@ -71,6 +71,21 @@ module Enumerable
   def without(*elements)
     reject { |element| elements.include?(element) }
   end
+
+  # Convert an enumerable to an array based on the given key.
+  #
+  #   [{ name: "David" }, { name: "Rafael" }, { name: "Aaron" }].pluck(:name)
+  #     => ["David", "Rafael", "Aaron"]
+  #
+  #   [{ id: 1, name: "David" }, { id: 2, name: "Rafael" }].pluck(:id, :name)
+  #     => [[1, "David"], [2, "Rafael"]]
+  def pluck(*keys)
+    if keys.many?
+      map { |element| keys.map { |key| element[key] } }
+    else
+      map { |element| element[keys.first] }
+    end
+  end
 end
 
 class Range #:nodoc:

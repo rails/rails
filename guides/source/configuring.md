@@ -88,8 +88,6 @@ application. Accepts a valid week day symbol (e.g. `:monday`).
     end
     ```
 
-* `config.dependency_loading` is a flag that allows you to disable constant autoloading setting it to false. It only has effect if `config.cache_classes` is true, which it is by default in production mode.
-
 * `config.eager_load` when true, eager loads all registered `config.eager_load_namespaces`. This includes your application, engines, Rails frameworks and any other registered namespace.
 
 * `config.eager_load_namespaces` registers namespaces that are eager loaded when `config.eager_load` is true. All namespaces in the list must respond to the `eager_load!` method.
@@ -187,13 +185,14 @@ The full set of methods that can be used in this block are as follows:
 * `helper` defines whether or not to generate helpers. Defaults to `true`.
 * `integration_tool` defines which integration tool to use. Defaults to `nil`.
 * `javascripts` turns on the hook for JavaScript files in generators. Used in Rails for when the `scaffold` generator is run. Defaults to `true`.
-* `javascript_engine` configures the engine to be used (for eg. coffee) when generating assets. Defaults to `nil`.
+* `javascript_engine` configures the engine to be used (for eg. coffee) when generating assets. Defaults to `:js`.
 * `orm` defines which orm to use. Defaults to `false` and will use Active Record by default.
 * `resource_controller` defines which generator to use for generating a controller when using `rails generate resource`. Defaults to `:controller`.
+* `resource_route` defines whether inject resource route definition in routes or not. Defaults to `true`.
 * `scaffold_controller` different from `resource_controller`, defines which generator to use for generating a _scaffolded_ controller when using `rails generate scaffold`. Defaults to `:scaffold_controller`.
 * `stylesheets` turns on the hook for stylesheets in generators. Used in Rails for when the `scaffold` generator is run, but this hook can be used in other generates as well. Defaults to `true`.
 * `stylesheet_engine` configures the stylesheet engine (for eg. sass) to be used when generating assets. Defaults to `:css`.
-* `test_framework` defines which test framework to use. Defaults to `false` and will use Test::Unit by default.
+* `test_framework` defines which test framework to use. Defaults to `false` and will use Minitest by default.
 * `template_engine` defines which template engine to use, such as ERB or Haml. Defaults to `:erb`.
 
 ### Configuring Middleware
@@ -201,7 +200,7 @@ The full set of methods that can be used in this block are as follows:
 Every Rails application comes with a standard set of middleware which it uses in this order in the development environment:
 
 * `ActionDispatch::SSL` forces every request to be under HTTPS protocol. Will be available if `config.force_ssl` is set to `true`. Options passed to this can be configured by using `config.ssl_options`.
-* `ActionDispatch::Static` is used to serve static assets. Disabled if `config.serve_static_files` is `false`.
+* `ActionDispatch::Static` is used to serve static assets. Disabled if `config.serve_static_files` is `false`. Set `config.static_index` if you need to serve a static directory index file that is not named `index`. For example, to serve `main.html` instead of `index.html` for directory requests, set `config.static_index` to `"main"`.
 * `Rack::Lock` wraps the app in mutex so it can only be called by a single thread at a time. Only enabled when `config.cache_classes` is `false`.
 * `ActiveSupport::Cache::Strategy::LocalCache` serves as a basic memory backed cache. This cache is not thread safe and is intended only for serving as a temporary memory cache for a single thread.
 * `Rack::Runtime` sets an `X-Runtime` header, containing the time (in seconds) taken to execute the request.
@@ -526,7 +525,7 @@ There are a few configuration options available in Active Support:
 
 * `config.active_support.test_order` sets the order that test cases are executed. Possible values are `:random` and `:sorted`. This option is set to `:random` in `config/environments/test.rb` in newly-generated applications. If you have an application that does not specify a `test_order`, it will default to `:sorted`, *until* Rails 5.0, when the default will become `:random`.
 
-* `config.active_support.escape_html_entities_in_json` enables or disables the escaping of HTML entities in JSON serialization. Defaults to `false`.
+* `config.active_support.escape_html_entities_in_json` enables or disables the escaping of HTML entities in JSON serialization. Defaults to `true`.
 
 * `config.active_support.use_standard_json_time_format` enables or disables serializing dates to ISO 8601 format. Defaults to `true`.
 
@@ -1126,7 +1125,7 @@ Search Engines Indexing
 
 Sometimes, you may want to prevent some pages of your application to be visible
 on search sites like Google, Bing, Yahoo or Duck Duck Go. The robots that index
-these sites will first analyse the `http://your-site.com/robots.txt` file to
+these sites will first analyze the `http://your-site.com/robots.txt` file to
 know which pages it is allowed to index.
 
 Rails creates this file for you inside the `/public` folder. By default, it allows

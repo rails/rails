@@ -26,7 +26,14 @@ module ActiveSupport
     class MemCacheStore < Store
       ESCAPE_KEY_CHARS = /[\x00-\x20%\x7F-\xFF]/n
 
-      def self.build_mem_cache(*addresses)
+      # Creates a new Dalli::Client instance with specified addresses and options.
+      # By default address is equal localhost:11211.
+      #
+      #   ActiveSupport::Cache::MemCacheStore.build_mem_cache
+      #     # => #<Dalli::Client:0x007f98a47d2028 @servers=["localhost:11211"], @options={}, @ring=nil>
+      #   ActiveSupport::Cache::MemCacheStore.build_mem_cache('localhost:10290')
+      #     # => #<Dalli::Client:0x007f98a47b3a60 @servers=["localhost:10290"], @options={}, @ring=nil>
+      def self.build_mem_cache(*addresses) # :nodoc:
         addresses = addresses.flatten
         options = addresses.extract_options!
         addresses = ["localhost:11211"] if addresses.empty?

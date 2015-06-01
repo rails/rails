@@ -69,9 +69,11 @@ module ActiveRecord
       def reflections
         ref = {}
         _reflections.each do |name, reflection|
-          parent_name, parent_reflection = reflection.parent_reflection
-          if parent_name
-            ref[parent_name] = parent_reflection
+          parent_reflection = reflection.parent_reflection
+
+          if parent_reflection
+            parent_name = parent_reflection.name
+            ref[parent_name.to_s] = parent_reflection
           else
             ref[name] = reflection
           end
@@ -204,7 +206,7 @@ module ActiveRecord
       def autosave=(autosave)
         @automatic_inverse_of = false
         @options[:autosave] = autosave
-        _, parent_reflection = self.parent_reflection
+        parent_reflection = self.parent_reflection
         if parent_reflection
           parent_reflection.autosave = autosave
         end
@@ -272,7 +274,7 @@ module ActiveRecord
       end
 
       attr_reader :type, :foreign_type
-      attr_accessor :parent_reflection # [:name, Reflection]
+      attr_accessor :parent_reflection # Reflection
 
       def initialize(name, scope, options, active_record)
         super

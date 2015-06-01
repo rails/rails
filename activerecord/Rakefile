@@ -1,5 +1,4 @@
 require 'rake/testtask'
-require 'rubygems/package_task'
 
 require File.expand_path(File.dirname(__FILE__)) + "/test/config"
 require File.expand_path(File.dirname(__FILE__)) + "/test/support/config"
@@ -122,7 +121,7 @@ namespace :db do
 
       # prepare hstore
       if %x( createdb --version ).strip.gsub(/(.*)(\d\.\d\.\d)$/, "\\2") < "9.1.0"
-        puts "Please prepare hstore data type. See http://www.postgresql.org/docs/9.0/static/hstore.html"
+        puts "Please prepare hstore data type. See http://www.postgresql.org/docs/current/static/hstore.html"
       end
     end
 
@@ -150,19 +149,4 @@ task :lines do
   load File.expand_path('..', File.dirname(__FILE__)) + '/tools/line_statistics'
   files = FileList["lib/active_record/**/*.rb"]
   CodeTools::LineStatistics.new(files).print_loc
-end
-
-spec = eval(File.read('activerecord.gemspec'))
-
-Gem::PackageTask.new(spec) do |p|
-  p.gem_spec = spec
-end
-
-# Publishing ------------------------------------------------------
-
-desc "Release to rubygems"
-task :release => :package do
-  require 'rake/gemcutter'
-  Rake::Gemcutter::Tasks.new(spec).define
-  Rake::Task['gem:push'].invoke
 end

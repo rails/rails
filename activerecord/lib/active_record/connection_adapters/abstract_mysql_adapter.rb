@@ -1,4 +1,3 @@
-require 'arel/visitors/bind_visitor'
 require 'active_support/core_ext/string/strip'
 
 module ActiveRecord
@@ -122,11 +121,14 @@ module ActiveRecord
         spec
       end
 
-      def prepare_column_options(column)
-        spec = super
-        spec.delete(:precision) if /time/ === column.sql_type && column.precision == 0
-        spec.delete(:limit)     if :boolean === column.type
-        spec
+      private
+
+      def schema_limit(column)
+        super unless column.type == :boolean
+      end
+
+      def schema_precision(column)
+        super unless /time/ === column.sql_type && column.precision == 0
       end
 
       def schema_collation(column)
@@ -136,7 +138,8 @@ module ActiveRecord
           column.collation.inspect if column.collation != @collation_cache[table_name]
         end
       end
-      private :schema_collation
+
+      public
 
       class Column < ConnectionAdapters::Column # :nodoc:
         delegate :strict, :extra, to: :sql_type_metadata, allow_nil: true
@@ -697,29 +700,11 @@ module ActiveRecord
       def type_to_sql(type, limit = nil, precision = nil, scale = nil)
         case type.to_s
         when 'binary'
-          case limit
-          when 0..0xfff;           "varbinary(#{limit})"
-          when nil;                "blob"
-          when 0x1000..0xffffffff; "blob(#{limit})"
-          else raise(ActiveRecordError, "No binary type has character length #{limit}")
-          end
+          binary_to_sql(limit)
         when 'integer'
-          case limit
-          when 1; 'tinyint'
-          when 2; 'smallint'
-          when 3; 'mediumint'
-          when nil, 4, 11; 'int(11)'  # compatibility with MySQL default
-          when 5..8; 'bigint'
-          else raise(ActiveRecordError, "No integer type has byte size #{limit}")
-          end
+          integer_to_sql(limit)
         when 'text'
-          case limit
-          when 0..0xff;               'tinytext'
-          when nil, 0x100..0xffff;    'text'
-          when 0x10000..0xffffff;     'mediumtext'
-          when 0x1000000..0xffffffff; 'longtext'
-          else raise(ActiveRecordError, "No text type has character length #{limit}")
-          end
+          text_to_sql(limit)
         else
           super
         end
@@ -837,19 +822,6 @@ module ActiveRecord
         MysqlTypeMetadata.new(super(sql_type), extra: extra, strict: strict_mode?)
       end
 
-      # MySQL is too stupid to create a temporary table for use subquery, so we have
-      # to give it some prompting in the form of a subsubquery. Ugh!
-      def subquery_for(key, select)
-        subsubselect = select.clone
-        subsubselect.projections = [key]
-
-        subselect = Arel::SelectManager.new(select.engine)
-        subselect.project Arel.sql(key.name)
-        # Materialized subquery by adding distinct
-        # to work with MySQL 5.7.6 which sets optimizer_switch='derived_merge=on'
-        subselect.from subsubselect.distinct.as('__active_record_temp')
-      end
-
       def add_index_length(option_strings, column_names, options = {})
         if options.is_a?(Hash) && length = options[:length]
           case length
@@ -951,6 +923,19 @@ module ActiveRecord
 
       private
 
+      # MySQL is too stupid to create a temporary table for use subquery, so we have
+      # to give it some prompting in the form of a subsubquery. Ugh!
+      def subquery_for(key, select)
+        subsubselect = select.clone
+        subsubselect.projections = [key]
+
+        subselect = Arel::SelectManager.new(select.engine)
+        subselect.project Arel.sql(key.name)
+        # Materialized subquery by adding distinct
+        # to work with MySQL 5.7.6 which sets optimizer_switch='derived_merge=on'
+        subselect.from subsubselect.distinct.as('__active_record_temp')
+      end
+
       def version
         @version ||= full_version.scan(/^(\d+)\.(\d+)\.(\d+)/).flatten.map(&:to_i)
       end
@@ -974,10 +959,12 @@ module ActiveRecord
         wait_timeout = 2147483 unless wait_timeout.is_a?(Fixnum)
         variables['wait_timeout'] = self.class.type_cast_config_to_integer(wait_timeout)
 
+        defaults = [':default', :default].to_set
+
         # Make MySQL reject illegal values rather than truncating or blanking them, see
         # http://dev.mysql.com/doc/refman/5.6/en/sql-mode.html#sqlmode_strict_all_tables
         # If the user has provided another value for sql_mode, don't replace it.
-        unless variables.has_key?('sql_mode')
+        unless variables.has_key?('sql_mode') || defaults.include?(@config[:strict])
           variables['sql_mode'] = strict_mode? ? 'STRICT_ALL_TABLES' : ''
         end
 
@@ -992,7 +979,7 @@ module ActiveRecord
 
         # Gather up all of the SET variables...
         variable_assignments = variables.map do |k, v|
-          if v == ':default' || v == :default
+          if defaults.include?(v)
             "@@SESSION.#{k} = DEFAULT" # Sets the value to the global or compile default
           elsif !v.nil?
             "@@SESSION.#{k} = #{quote(v)}"
@@ -1015,6 +1002,36 @@ module ActiveRecord
 
       def create_table_definition(name, temporary = false, options = nil, as = nil) # :nodoc:
         TableDefinition.new(native_database_types, name, temporary, options, as)
+      end
+
+      def binary_to_sql(limit) # :nodoc:
+        case limit
+        when 0..0xfff;           "varbinary(#{limit})"
+        when nil;                "blob"
+        when 0x1000..0xffffffff; "blob(#{limit})"
+        else raise(ActiveRecordError, "No binary type has character length #{limit}")
+        end
+      end
+
+      def integer_to_sql(limit) # :nodoc:
+        case limit
+        when 1; 'tinyint'
+        when 2; 'smallint'
+        when 3; 'mediumint'
+        when nil, 4, 11; 'int(11)'  # compatibility with MySQL default
+        when 5..8; 'bigint'
+        else raise(ActiveRecordError, "No integer type has byte size #{limit}")
+        end
+      end
+
+      def text_to_sql(limit) # :nodoc:
+        case limit
+        when 0..0xff;               'tinytext'
+        when nil, 0x100..0xffff;    'text'
+        when 0x10000..0xffffff;     'mediumtext'
+        when 0x1000000..0xffffffff; 'longtext'
+        else raise(ActiveRecordError, "No text type has character length #{limit}")
+        end
       end
 
       class MysqlString < Type::String # :nodoc:

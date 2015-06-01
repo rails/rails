@@ -11,7 +11,7 @@
     -
       name: Active Record Basics
       url: active_record_basics.html
-      description: This guide will get you started with models, persistence to database and the Active Record pattern and library.
+      description: This guide will get you started with models, persistence to database, and the Active Record pattern and library.
     -
       name: Active Record Migrations
       url: active_record_migrations.html
@@ -19,7 +19,7 @@
     -
       name: Active Record Validations
       url: active_record_validations.html
-      description: This guide covers how you can use Active Record validations
+      description: This guide covers how you can use Active Record validations.
     -
       name: Active Record Callbacks
       url: active_record_callbacks.html
@@ -74,7 +74,7 @@
     -
       name: Rails Internationalization API
       url: i18n.html
-      description: This guide covers how to add internationalization to your applications. Your application will be able to translate content to different languages, change pluralization rules, use correct date formats for each country and so on.
+      description: This guide covers how to add internationalization to your applications. Your application will be able to translate content to different languages, change pluralization rules, use correct date formats for each country, and so on.
     -
       name: Action Mailer Basics
       url: action_mailer_basics.html
@@ -82,7 +82,7 @@
     -
       name: Active Job Basics
       url: active_job_basics.html
-      description: This guide provides you with all you need to get started in creating, enqueueing and executing background jobs.
+      description: This guide provides you with all you need to get started creating, enqueuing, and executing background jobs.
     -
       name: Testing Rails Applications
       work_in_progress: true
@@ -116,7 +116,7 @@
       name: The Rails Initialization Process
       work_in_progress: true
       url: initialization.html
-      description: This guide explains the internals of the Rails initialization process as of Rails 4
+      description: This guide explains the internals of the Rails initialization process as of Rails 4.
     -
       name: Autoloading and Reloading Constants
       url: autoloading_and_reloading_constants.html
