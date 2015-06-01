@@ -531,8 +531,11 @@ command later in this guide).
 And then ask again for the instance_variables:
 
 ```
-(byebug) instance_variables.include? "@articles"
-true
+(byebug) instance_variables
+[:@_action_has_layout, :@_routes, :@_headers, :@_status, :@_request,
+ :@_response, :@_env, :@_prefixes, :@_lookup_context, :@_action_name,
+ :@_response_body, :@marked_for_same_origin_verification, :@_config,
+ :@articles]
 ```
 
 Now `@articles` is included in the instance variables, because the line defining it
