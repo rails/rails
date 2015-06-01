@@ -103,54 +103,55 @@ class FlashTest < ActionController::TestCase
     get :set_flash
 
     get :use_flash
-    assert_equal "hello", assigns["flash_copy"]["that"]
-    assert_equal "hello", assigns["flashy"]
+    assert_equal "hello", @controller.instance_variable_get(:@flash_copy)["that"]
+    assert_equal "hello", @controller.instance_variable_get(:@flashy)
 
     get :use_flash
-    assert_nil assigns["flash_copy"]["that"], "On second flash"
+    assert_nil @controller.instance_variable_get(:@flash_copy)["that"], "On second flash"
   end
 
   def test_keep_flash
     get :set_flash
 
     get :use_flash_and_keep_it
-    assert_equal "hello", assigns["flash_copy"]["that"]
-    assert_equal "hello", assigns["flashy"]
+    assert_equal "hello", @controller.instance_variable_get(:@flash_copy)["that"]
+    assert_equal "hello", @controller.instance_variable_get(:@flashy)
 
     get :use_flash
-    assert_equal "hello", assigns["flash_copy"]["that"], "On second flash"
+    assert_equal "hello", @controller.instance_variable_get(:@flash_copy)["that"], "On second flash"
 
     get :use_flash
-    assert_nil assigns["flash_copy"]["that"], "On third flash"
+    assert_nil @controller.instance_variable_get(:@flash_copy)["that"], "On third flash"
   end
 
   def test_flash_now
     get :set_flash_now
-    assert_equal "hello", assigns["flash_copy"]["that"]
-    assert_equal "bar"  , assigns["flash_copy"]["foo"]
-    assert_equal "hello", assigns["flashy"]
+    assert_equal "hello", @controller.instance_variable_get(:@flash_copy)["that"]
+    assert_equal "bar", @controller.instance_variable_get(:@flash_copy)["foo"]
+    assert_equal "hello", @controller.instance_variable_get(:@flashy)
 
     get :attempt_to_use_flash_now
-    assert_nil assigns["flash_copy"]["that"]
-    assert_nil assigns["flash_copy"]["foo"]
-    assert_nil assigns["flashy"]
+    assert_nil @controller.instance_variable_get(:@flash_copy)["that"]
+    assert_nil @controller.instance_variable_get(:@flash_copy)["foo"]
+    assert_nil @controller.instance_variable_get(:@flashy)
   end
 
   def test_update_flash
     get :set_flash
     get :use_flash_and_update_it
-    assert_equal "hello",       assigns["flash_copy"]["that"]
-    assert_equal "hello again", assigns["flash_copy"]["this"]
+    assert_equal "hello", @controller.instance_variable_get(:@flash_copy)["that"]
+    assert_equal "hello again", @controller.instance_variable_get(:@flash_copy)["this"]
     get :use_flash
-    assert_nil                  assigns["flash_copy"]["that"], "On second flash"
-    assert_equal "hello again", assigns["flash_copy"]["this"], "On second flash"
+    assert_nil @controller.instance_variable_get(:@flash_copy)["that"], "On second flash"
+    assert_equal "hello again",
+      @controller.instance_variable_get(:@flash_copy)["this"], "On second flash"
   end
 
   def test_flash_after_reset_session
     get :use_flash_after_reset_session
-    assert_equal "hello",    assigns["flashy_that"]
-    assert_equal "good-bye", assigns["flashy_this"]
-    assert_nil   assigns["flashy_that_reset"]
+    assert_equal "hello", @controller.instance_variable_get(:@flashy_that)
+    assert_equal "good-bye", @controller.instance_variable_get(:@flashy_this)
+    assert_nil @controller.instance_variable_get(:@flashy_that_reset)
   end
 
   def test_does_not_set_the_session_if_the_flash_is_empty
@@ -160,13 +161,13 @@ class FlashTest < ActionController::TestCase
 
   def test_sweep_after_halted_action_chain
     get :std_action
-    assert_nil assigns["flash_copy"]["foo"]
+    assert_nil @controller.instance_variable_get(:@flash_copy)["foo"]
     get :filter_halting_action
-    assert_equal "bar", assigns["flash_copy"]["foo"]
+    assert_equal "bar", @controller.instance_variable_get(:@flash_copy)["foo"]
     get :std_action # follow redirection
-    assert_equal "bar", assigns["flash_copy"]["foo"]
+    assert_equal "bar", @controller.instance_variable_get(:@flash_copy)["foo"]
     get :std_action
-    assert_nil assigns["flash_copy"]["foo"]
+    assert_nil @controller.instance_variable_get(:@flash_copy)["foo"]
   end
 
   def test_keep_and_discard_return_values

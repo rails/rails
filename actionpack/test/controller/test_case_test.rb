@@ -140,12 +140,6 @@ XML
       head :ok
     end
 
-    def test_assigns
-      @foo = "foo"
-      @foo_hash = { foo: :bar }
-      head :ok
-    end
-
     def test_without_body
       render html: '<div class="foo"></div>'.html_safe
     end
@@ -171,17 +165,6 @@ XML
       r.draw do
         get ':controller(/:action(/:id))'
       end
-    end
-  end
-
-  class ViewAssignsController < ActionController::Base
-    def test_assigns
-      @foo = "foo"
-      head :ok
-    end
-
-    def view_assigns
-      { "bar" => "bar" }
     end
   end
 
@@ -444,30 +427,6 @@ XML
     assert_equal "OK", @response.body
     process :test_only_one_param, method: "GET", params: { right: true }
     assert_equal "OK", @response.body
-  end
-
-  def test_assigns
-    process :test_assigns
-    # assigns can be accessed using assigns(key)
-    # or assigns[key], where key is a string or
-    # a symbol
-    assert_equal "foo", assigns(:foo)
-    assert_equal "foo", assigns("foo")
-    assert_equal "foo", assigns[:foo]
-    assert_equal "foo", assigns["foo"]
-
-    # but the assigned variable should not have its own keys stringified
-    expected_hash = { foo: :bar }
-    assert_equal expected_hash, assigns(:foo_hash)
-  end
-
-  def test_view_assigns
-    @controller = ViewAssignsController.new
-    process :test_assigns
-    assert_equal nil, assigns(:foo)
-    assert_equal nil, assigns[:foo]
-    assert_equal "bar", assigns(:bar)
-    assert_equal "bar", assigns[:bar]
   end
 
   def test_should_not_impose_childless_html_tags_in_xml

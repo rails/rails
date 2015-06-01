@@ -1,3 +1,10 @@
+*   Remove `assigns` and `assert_template`. Both methods have been extracted
+    into a gem at https://github.com/rails/rails-controller-testing.
+
+    See #18950.
+
+    *Alan Guo Xiang Tan*
+
 *   `FileHandler` and `Static` middleware initializers accept `index` argument
     to configure the directory index file name. Defaults to `index` (as in
     `index.html`).

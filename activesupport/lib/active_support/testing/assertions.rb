@@ -28,7 +28,7 @@ module ActiveSupport
       #
       # An arbitrary expression is passed in and evaluated.
       #
-      #   assert_difference 'assigns(:article).comments(:reload).size' do
+      #   assert_difference 'Article.last.comments(:reload).size' do
       #     post :create, params: { comment: {...} }
       #   end
       #
