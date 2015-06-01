@@ -199,7 +199,7 @@ Railties
 
 * jQuery is the new default JavaScript library.
 
-* jQuery and Prototype are no longer vendored and is provided from now on by the jquery-rails and prototype-rails gems.
+* jQuery and Prototype are no longer vendored and is provided from now on by the `jquery-rails` and `prototype-rails` gems.
 
 * The application generator accepts an option `-j` which can be an arbitrary string. If passed "foo", the gem "foo-rails" is added to the `Gemfile`, and the application JavaScript manifest requires "foo" and "foo_ujs". Currently only "prototype-rails" and "jquery-rails" exist and provide those files via the asset pipeline.
 
