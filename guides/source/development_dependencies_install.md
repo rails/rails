@@ -21,7 +21,7 @@ The easiest and recommended way to get a development environment ready to hack i
 The Hard Way
 ------------
 
-In case you can't use the Rails development box, see section above, these are the steps to manually build a development box for Ruby on Rails core development.
+In case you can't use the Rails development box, see section below, these are the steps to manually build a development box for Ruby on Rails core development.
 
 ### Install Git
 
