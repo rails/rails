@@ -7,7 +7,7 @@ module ActionCable
       end
 
       def connection_identifier
-        @connection_identifier ||= connection_gid identifiers.map { |id| instance_variable_get("@#{id}")}
+        @connection_identifier ||= connection_gid identifiers.map { |id| instance_variable_get("@#{id}")}.compact
       end
 
       def connection_gid(ids)
