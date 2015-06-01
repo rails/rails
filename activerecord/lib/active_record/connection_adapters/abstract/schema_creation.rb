@@ -14,8 +14,10 @@ module ActiveRecord
           send m, o
         end
 
-        delegate :quote_column_name, :quote_table_name, :quote_default_expression, :type_to_sql, to: :@conn
-        private :quote_column_name, :quote_table_name, :quote_default_expression, :type_to_sql
+        delegate :quote_column_name, :quote_table_name, :quote_default_expression, :type_to_sql,
+          :supports_indexes_in_create?, to: :@conn
+        private :quote_column_name, :quote_table_name, :quote_default_expression, :type_to_sql,
+          :supports_indexes_in_create?
 
         private
 
@@ -38,9 +40,15 @@ module ActiveRecord
           end
 
           def visit_TableDefinition(o)
-            create_sql = "CREATE#{' TEMPORARY' if o.temporary} TABLE "
-            create_sql << "#{quote_table_name(o.name)} "
-            create_sql << "(#{o.columns.map { |c| accept c }.join(', ')}) " unless o.as
+            create_sql = "CREATE#{' TEMPORARY' if o.temporary} TABLE #{quote_table_name(o.name)} "
+
+            statements = o.columns.map { |c| accept c }
+
+            if supports_indexes_in_create?
+              statements.concat(o.indexes.map { |column_name, options| index_in_create(o.name, column_name, options) })
+            end
+
+            create_sql << "(#{statements.join(', ')}) " if statements.present?
             create_sql << "#{o.options}"
             create_sql << " AS #{@conn.to_sql(o.as)}" if o.as
             create_sql
