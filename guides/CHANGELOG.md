@@ -1,7 +1,3 @@
-*   Replaced Latch usage with CountDownLatch in concurrent-ruby gem
-
-    *Qingwen Pi*
-
 *   New section in Configuring: Configuring Active Job
 
     *Eliot Sykes*
