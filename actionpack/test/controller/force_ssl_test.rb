@@ -240,8 +240,8 @@ class ForceSSLFlashTest < ActionController::TestCase
     @request.env.delete('PATH_INFO')
 
     get :use_flash
-    assert_equal "hello", assigns["flash_copy"]["that"]
-    assert_equal "hello", assigns["flashy"]
+    assert_equal "hello", @controller.instance_variable_get("@flash_copy")["that"]
+    assert_equal "hello", @controller.instance_variable_get("@flashy")
   end
 end
 

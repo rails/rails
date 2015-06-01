@@ -26,29 +26,6 @@ module ActiveRecord
         assert ActiveRecord::Base.connection_handler.active_connections?
       end
 
-      if Process.respond_to?(:fork)
-        def test_connection_pool_per_pid
-          object_id = ActiveRecord::Base.connection.object_id
-
-          rd, wr = IO.pipe
-          rd.binmode
-          wr.binmode
-
-          pid = fork {
-            rd.close
-            wr.write Marshal.dump ActiveRecord::Base.connection.object_id
-            wr.close
-            exit!
-          }
-
-          wr.close
-
-          Process.waitpid pid
-          assert_not_equal object_id, Marshal.load(rd.read)
-          rd.close
-        end
-      end
-
       def test_app_delegation
         manager = ConnectionManagement.new(@app)
 

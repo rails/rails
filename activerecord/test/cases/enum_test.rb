@@ -9,49 +9,49 @@ class EnumTest < ActiveRecord::TestCase
   end
 
   test "query state by predicate" do
-    assert @book.proposed?
+    assert @book.published?
     assert_not @book.written?
-    assert_not @book.published?
+    assert_not @book.proposed?
 
-    assert @book.unread?
+    assert @book.read?
   end
 
   test "query state with strings" do
-    assert_equal "proposed", @book.status
-    assert_equal "unread", @book.read_status
+    assert_equal "published", @book.status
+    assert_equal "read", @book.read_status
   end
 
   test "find via scope" do
-    assert_equal @book, Book.proposed.first
-    assert_equal @book, Book.unread.first
+    assert_equal @book, Book.published.first
+    assert_equal @book, Book.read.first
   end
 
   test "find via where with values" do
-    proposed, written = Book.statuses[:proposed], Book.statuses[:written]
+    published, written = Book.statuses[:published], Book.statuses[:written]
 
-    assert_equal @book, Book.where(status: proposed).first
+    assert_equal @book, Book.where(status: published).first
     refute_equal @book, Book.where(status: written).first
-    assert_equal @book, Book.where(status: [proposed]).first
+    assert_equal @book, Book.where(status: [published]).first
     refute_equal @book, Book.where(status: [written]).first
-    refute_equal @book, Book.where("status <> ?", proposed).first
+    refute_equal @book, Book.where("status <> ?", published).first
     assert_equal @book, Book.where("status <> ?", written).first
   end
 
   test "find via where with symbols" do
-    assert_equal @book, Book.where(status: :proposed).first
+    assert_equal @book, Book.where(status: :published).first
     refute_equal @book, Book.where(status: :written).first
-    assert_equal @book, Book.where(status: [:proposed]).first
+    assert_equal @book, Book.where(status: [:published]).first
     refute_equal @book, Book.where(status: [:written]).first
-    refute_equal @book, Book.where.not(status: :proposed).first
+    refute_equal @book, Book.where.not(status: :published).first
     assert_equal @book, Book.where.not(status: :written).first
   end
 
   test "find via where with strings" do
-    assert_equal @book, Book.where(status: "proposed").first
+    assert_equal @book, Book.where(status: "published").first
     refute_equal @book, Book.where(status: "written").first
-    assert_equal @book, Book.where(status: ["proposed"]).first
+    assert_equal @book, Book.where(status: ["published"]).first
     refute_equal @book, Book.where(status: ["written"]).first
-    refute_equal @book, Book.where.not(status: "proposed").first
+    refute_equal @book, Book.where.not(status: "published").first
     assert_equal @book, Book.where.not(status: "written").first
   end
 
@@ -96,14 +96,14 @@ class EnumTest < ActiveRecord::TestCase
 
   test "enum changed attributes" do
     old_status = @book.status
-    @book.status = :published
+    @book.status = :proposed
     assert_equal old_status, @book.changed_attributes[:status]
   end
 
   test "enum changes" do
     old_status = @book.status
-    @book.status = :published
-    assert_equal [old_status, 'published'], @book.changes[:status]
+    @book.status = :proposed
+    assert_equal [old_status, 'proposed'], @book.changes[:status]
   end
 
   test "enum attribute was" do
@@ -113,25 +113,25 @@ class EnumTest < ActiveRecord::TestCase
   end
 
   test "enum attribute changed" do
-    @book.status = :published
+    @book.status = :proposed
     assert @book.attribute_changed?(:status)
   end
 
   test "enum attribute changed to" do
-    @book.status = :published
-    assert @book.attribute_changed?(:status, to: 'published')
+    @book.status = :proposed
+    assert @book.attribute_changed?(:status, to: 'proposed')
   end
 
   test "enum attribute changed from" do
     old_status = @book.status
-    @book.status = :published
+    @book.status = :proposed
     assert @book.attribute_changed?(:status, from: old_status)
   end
 
   test "enum attribute changed from old status to new status" do
     old_status = @book.status
-    @book.status = :published
-    assert @book.attribute_changed?(:status, from: old_status, to: 'published')
+    @book.status = :proposed
+    assert @book.attribute_changed?(:status, from: old_status, to: 'proposed')
   end
 
   test "enum didn't change" do
@@ -141,7 +141,7 @@ class EnumTest < ActiveRecord::TestCase
   end
 
   test "persist changes that are dirty" do
-    @book.status = :published
+    @book.status = :proposed
     assert @book.attribute_changed?(:status)
     @book.status = :written
     assert @book.attribute_changed?(:status)
@@ -149,7 +149,7 @@ class EnumTest < ActiveRecord::TestCase
 
   test "reverted changes that are not dirty" do
     old_status = @book.status
-    @book.status = :published
+    @book.status = :proposed
     assert @book.attribute_changed?(:status)
     @book.status = old_status
     assert_not @book.attribute_changed?(:status)
@@ -210,9 +210,9 @@ class EnumTest < ActiveRecord::TestCase
 
   test "_before_type_cast returns the enum label (required for form fields)" do
     if @book.status_came_from_user?
-      assert_equal "proposed", @book.status_before_type_cast
+      assert_equal "published", @book.status_before_type_cast
     else
-      assert_equal "proposed", @book.status
+      assert_equal "published", @book.status
     end
   end
 

@@ -274,7 +274,7 @@ module ActionDispatch # :nodoc:
     end
 
     # Turns the Response into a Rack-compatible array of the status, headers,
-    # and body. Allows explict splatting:
+    # and body. Allows explicit splatting:
     #
     #   status, headers, body = *response
     def to_a

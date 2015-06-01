@@ -1,10 +1,9 @@
 require 'abstract_unit'
 require 'rails/paths'
-require 'mocha/setup' # FIXME: stop using mocha
+require 'minitest/mock'
 
 class PathsTest < ActiveSupport::TestCase
   def setup
-    File.stubs(:exist?).returns(true)
     @root = Rails::Paths::Root.new("/foo/bar")
   end
 
@@ -93,10 +92,12 @@ class PathsTest < ActiveSupport::TestCase
   end
 
   test "it is possible to add a path that should be autoloaded only once" do
-    @root.add "app", with: "/app"
-    @root["app"].autoload_once!
-    assert @root["app"].autoload_once?
-    assert @root.autoload_once.include?(@root["app"].expanded.first)
+    File.stub(:exist?, true) do
+      @root.add "app", with: "/app"
+      @root["app"].autoload_once!
+      assert @root["app"].autoload_once?
+      assert @root.autoload_once.include?(@root["app"].expanded.first)
+    end
   end
 
   test "it is possible to remove a path that should be autoloaded only once" do
@@ -110,37 +111,47 @@ class PathsTest < ActiveSupport::TestCase
   end
 
   test "it is possible to add a path without assignment and specify it should be loaded only once" do
-    @root.add "app", with: "/app", autoload_once: true
-    assert @root["app"].autoload_once?
-    assert @root.autoload_once.include?("/app")
+    File.stub(:exist?, true) do
+      @root.add "app", with: "/app", autoload_once: true
+      assert @root["app"].autoload_once?
+      assert @root.autoload_once.include?("/app")
+    end
   end
 
   test "it is possible to add multiple paths without assignment and specify it should be loaded only once" do
-    @root.add "app", with: ["/app", "/app2"], autoload_once: true
-    assert @root["app"].autoload_once?
-    assert @root.autoload_once.include?("/app")
-    assert @root.autoload_once.include?("/app2")
+    File.stub(:exist?, true) do
+      @root.add "app", with: ["/app", "/app2"], autoload_once: true
+      assert @root["app"].autoload_once?
+      assert @root.autoload_once.include?("/app")
+      assert @root.autoload_once.include?("/app2")
+    end
   end
 
   test "making a path autoload_once more than once only includes it once in @root.load_once" do
-    @root["app"] = "/app"
-    @root["app"].autoload_once!
-    @root["app"].autoload_once!
-    assert_equal 1, @root.autoload_once.select {|p| p == @root["app"].expanded.first }.size
+    File.stub(:exist?, true) do
+      @root["app"] = "/app"
+      @root["app"].autoload_once!
+      @root["app"].autoload_once!
+      assert_equal 1, @root.autoload_once.select {|p| p == @root["app"].expanded.first }.size
+    end
   end
 
   test "paths added to a load_once path should be added to the autoload_once collection" do
-    @root["app"] = "/app"
-    @root["app"].autoload_once!
-    @root["app"] << "/app2"
-    assert_equal 2, @root.autoload_once.size
+    File.stub(:exist?, true) do
+      @root["app"] = "/app"
+      @root["app"].autoload_once!
+      @root["app"] << "/app2"
+      assert_equal 2, @root.autoload_once.size
+    end
   end
 
   test "it is possible to mark a path as eager loaded" do
-    @root["app"] = "/app"
-    @root["app"].eager_load!
-    assert @root["app"].eager_load?
-    assert @root.eager_load.include?(@root["app"].to_a.first)
+    File.stub(:exist?, true) do
+      @root["app"] = "/app"
+      @root["app"].eager_load!
+      assert @root["app"].eager_load?
+      assert @root.eager_load.include?(@root["app"].to_a.first)
+    end
   end
 
   test "it is possible to skip a path from eager loading" do
@@ -154,38 +165,48 @@ class PathsTest < ActiveSupport::TestCase
   end
 
   test "it is possible to add a path without assignment and mark it as eager" do
-    @root.add "app", with: "/app", eager_load: true
-    assert @root["app"].eager_load?
-    assert @root.eager_load.include?("/app")
+    File.stub(:exist?, true) do
+      @root.add "app", with: "/app", eager_load: true
+      assert @root["app"].eager_load?
+      assert @root.eager_load.include?("/app")
+    end
   end
 
   test "it is possible to add multiple paths without assignment and mark them as eager" do
-    @root.add "app", with: ["/app", "/app2"], eager_load: true
-    assert @root["app"].eager_load?
-    assert @root.eager_load.include?("/app")
-    assert @root.eager_load.include?("/app2")
+    File.stub(:exist?, true) do
+      @root.add "app", with: ["/app", "/app2"], eager_load: true
+      assert @root["app"].eager_load?
+      assert @root.eager_load.include?("/app")
+      assert @root.eager_load.include?("/app2")
+    end
   end
 
   test "it is possible to create a path without assignment and mark it both as eager and load once" do
-    @root.add "app", with: "/app", eager_load: true, autoload_once: true
-    assert @root["app"].eager_load?
-    assert @root["app"].autoload_once?
-    assert @root.eager_load.include?("/app")
-    assert @root.autoload_once.include?("/app")
+    File.stub(:exist?, true) do
+      @root.add "app", with: "/app", eager_load: true, autoload_once: true
+      assert @root["app"].eager_load?
+      assert @root["app"].autoload_once?
+      assert @root.eager_load.include?("/app")
+      assert @root.autoload_once.include?("/app")
+    end
   end
 
   test "making a path eager more than once only includes it once in @root.eager_paths" do
-    @root["app"] = "/app"
-    @root["app"].eager_load!
-    @root["app"].eager_load!
-    assert_equal 1, @root.eager_load.select {|p| p == @root["app"].expanded.first }.size
+    File.stub(:exist?, true) do
+      @root["app"] = "/app"
+      @root["app"].eager_load!
+      @root["app"].eager_load!
+      assert_equal 1, @root.eager_load.select {|p| p == @root["app"].expanded.first }.size
+    end
   end
 
   test "paths added to an eager_load path should be added to the eager_load collection" do
-    @root["app"] = "/app"
-    @root["app"].eager_load!
-    @root["app"] << "/app2"
-    assert_equal 2, @root.eager_load.size
+    File.stub(:exist?, true) do
+      @root["app"] = "/app"
+      @root["app"].eager_load!
+      @root["app"] << "/app2"
+      assert_equal 2, @root.eager_load.size
+    end
   end
 
   test "it should be possible to add a path's default glob" do
@@ -207,28 +228,36 @@ class PathsTest < ActiveSupport::TestCase
   end
 
   test "a path can be added to the load path" do
-    @root["app"] = "app"
-    @root["app"].load_path!
-    @root["app/models"] = "app/models"
-    assert_equal ["/foo/bar/app"], @root.load_paths
+    File.stub(:exist?, true) do
+      @root["app"] = "app"
+      @root["app"].load_path!
+      @root["app/models"] = "app/models"
+      assert_equal ["/foo/bar/app"], @root.load_paths
+    end
   end
 
   test "a path can be added to the load path on creation" do
-    @root.add "app", with: "/app", load_path: true
-    assert @root["app"].load_path?
-    assert_equal ["/app"], @root.load_paths
+    File.stub(:exist?, true) do
+      @root.add "app", with: "/app", load_path: true
+      assert @root["app"].load_path?
+      assert_equal ["/app"], @root.load_paths
+    end
   end
 
   test "a path can be marked as autoload path" do
-    @root["app"] = "app"
-    @root["app"].autoload!
-    @root["app/models"] = "app/models"
-    assert_equal ["/foo/bar/app"], @root.autoload_paths
+    File.stub(:exist?, true) do
+      @root["app"] = "app"
+      @root["app"].autoload!
+      @root["app/models"] = "app/models"
+      assert_equal ["/foo/bar/app"], @root.autoload_paths
+    end
   end
 
   test "a path can be marked as autoload on creation" do
-    @root.add "app", with: "/app", autoload: true
-    assert @root["app"].autoload?
-    assert_equal ["/app"], @root.autoload_paths
+    File.stub(:exist?, true) do
+      @root.add "app", with: "/app", autoload: true
+      assert @root["app"].autoload?
+      assert_equal ["/app"], @root.autoload_paths
+    end
   end
 end

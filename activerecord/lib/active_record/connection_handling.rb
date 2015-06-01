@@ -88,7 +88,7 @@ module ActiveRecord
     end
 
     def connection_id
-      ActiveRecord::RuntimeRegistry.connection_id
+      ActiveRecord::RuntimeRegistry.connection_id ||= Thread.current.object_id
     end
 
     def connection_id=(connection_id)

@@ -377,7 +377,7 @@ Notice the 'E' in the output. It denotes a test with error.
 NOTE: The execution of each test method stops as soon as any error or an
 assertion failure is encountered, and the test suite continues with the next
 method. All test methods are executed in random order. The
-[`config.active_support.test_order` option](http://edgeguides.rubyonrails.org/configuring.html#configuring-active-support)
+[`config.active_support.test_order` option](configuring.html#configuring-active-support)
 can be used to configure test order.
 
 When a test fails you are presented with the corresponding backtrace. By default
@@ -435,7 +435,7 @@ specify to make your test failure messages clearer. It's not required.
 | `assert_nothing_raised( exception1, exception2, ... ) { block }` | Ensures that the given block doesn't raise one of the given exceptions.|
 | `assert_instance_of( class, obj, [msg] )`                        | Ensures that `obj` is an instance of `class`.|
 | `assert_not_instance_of( class, obj, [msg] )`                    | Ensures that `obj` is not an instance of `class`.|
-| `assert_kind_of( class, obj, [msg] )`                            | Ensures that `obj` is or descends from `class`.|
+| `assert_kind_of( class, obj, [msg] )`                            | Ensures that `obj` is an instance of `class` or is descending from it.|
 | `assert_not_kind_of( class, obj, [msg] )`                        | Ensures that `obj` is not an instance of `class` and is not descending from it.|
 | `assert_respond_to( obj, symbol, [msg] )`                        | Ensures that `obj` responds to `symbol`.|
 | `assert_not_respond_to( obj, symbol, [msg] )`                    | Ensures that `obj` does not respond to `symbol`.|
@@ -462,12 +462,11 @@ Rails adds some custom assertions of its own to the `minitest` framework:
 | Assertion                                                                         | Purpose |
 | --------------------------------------------------------------------------------- | ------- |
 | `assert_difference(expressions, difference = 1, message = nil) {...}`             | Test numeric difference between the return value of an expression as a result of what is evaluated in the yielded block.|
-| `assert_no_difference(expressions, message = nil, &amp;block)`                    | Asserts that the numeric result of evaluating an expression is not changed before and after invoking the passed in block.|
+| `assert_no_difference(expressions, message = nil, &block)`                        | Asserts that the numeric result of evaluating an expression is not changed before and after invoking the passed in block.|
 | `assert_recognizes(expected_options, path, extras={}, message=nil)`               | Asserts that the routing of the given path was handled correctly and that the parsed options (given in the expected_options hash) match path. Basically, it asserts that Rails recognizes the route given by expected_options.|
 | `assert_generates(expected_path, options, defaults={}, extras = {}, message=nil)` | Asserts that the provided options can be used to generate the provided path. This is the inverse of assert_recognizes. The extras parameter is used to tell the request the names and values of additional request parameters that would be in a query string. The message parameter allows you to specify a custom error message for assertion failures.|
 | `assert_response(type, message = nil)`                                            | Asserts that the response comes with a specific status code. You can specify `:success` to indicate 200-299, `:redirect` to indicate 300-399, `:missing` to indicate 404, or `:error` to match the 500-599 range. You can also pass an explicit status number or its symbolic equivalent. For more information, see [full list of status codes](http://rubydoc.info/github/rack/rack/master/Rack/Utils#HTTP_STATUS_CODES-constant) and how their [mapping](http://rubydoc.info/github/rack/rack/master/Rack/Utils#SYMBOL_TO_STATUS_CODE-constant) works.|
 | `assert_redirected_to(options = {}, message=nil)`                                 | Assert that the redirection options passed in match those of the redirect called in the latest action. This match can be partial, such that `assert_redirected_to(controller: "weblog")` will also match the redirection of `redirect_to(controller: "weblog", action: "show")` and so on. You can also pass named routes such as `assert_redirected_to root_path` and Active Record objects such as `assert_redirected_to @article`.|
-| `assert_template(expected = nil, message=nil)`                                    | Asserts that the request was rendered with the appropriate template file.|
 
 You'll see the usage of some of these assertions in the next chapter.
 
@@ -484,7 +483,7 @@ All the basic assertions such as `assert_equal` defined in `Minitest::Assertions
 
 Each of these classes include `Minitest::Assertions`, allowing us to use all of the basic assertions in our tests.
 
-NOTE: For more information on `Minitest`, refer to [Minitest](http://ruby-doc.org/stdlib-2.1.0/libdoc/minitest/rdoc/MiniTest.html)
+NOTE: For more information on `Minitest`, refer to [Minitest](http://docs.seattlerb.org/minitest)
 
 Functional Tests for Your Controllers
 -------------------------------------
@@ -506,16 +505,18 @@ Now that we have used Rails scaffold generator for our `Article` resource, it ha
 Let me take you through one such test, `test_should_get_index` from the file `articles_controller_test.rb`.
 
 ```ruby
+# articles_controller_test.rb
 class ArticlesControllerTest < ActionController::TestCase
   test "should get index" do
     get :index
     assert_response :success
-    assert_not_nil assigns(:articles)
+    assert_includes @response.body, 'Articles'
   end
 end
 ```
 
-In the `test_should_get_index` test, Rails simulates a request on the action called `index`, making sure the request was successful and also ensuring that it assigns a valid `articles` instance variable.
+In the `test_should_get_index` test, Rails simulates a request on the action called `index`, making sure the request was successful
+and also ensuring that the right response body has been generated.
 
 The `get` method kicks off the web request and populates the results into the response. It accepts 4 arguments:
 
@@ -553,7 +554,7 @@ test "should create article" do
     post :create, params: { article: { title: 'Some title' } }
   end
 
-  assert_redirected_to article_path(assigns(:article))
+  assert_redirected_to article_path(Article.last)
 end
 ```
 
@@ -580,11 +581,11 @@ To test AJAX requests, you can specify the `xhr: true` option to `get`, `post`,
 `patch`, `put`, and `delete` methods:
 
 ```ruby
-test "ajax request responds with no layout" do
+test "ajax request" do
   get :show, params: { id: articles(:first).id }, xhr: true
 
-  assert_template :index
-  assert_template layout: nil
+  assert_equal 'hello world', @response.body
+  assert_equal "text/javascript", @response.content_type
 end
 ```
 
@@ -592,20 +593,16 @@ end
 
 After a request has been made and processed, you will have 4 Hash objects ready for use:
 
-* `assigns` - Any objects that are stored as instance variables in actions for use in views.
 * `cookies` - Any cookies that are set.
 * `flash` - Any objects living in the flash.
 * `session` - Any object living in session variables.
 
-As is the case with normal Hash objects, you can access the values by referencing the keys by string. You can also reference them by symbol name, except for `assigns`. For example:
+As is the case with normal Hash objects, you can access the values by referencing the keys by string. You can also reference them by symbol name. For example:
 
 ```ruby
 flash["gordon"]               flash[:gordon]
 session["shmession"]          session[:shmession]
 cookies["are_good_for_u"]     cookies[:are_good_for_u]
-
-# Because you can't use assigns[:something] for historical reasons:
-assigns["something"]          assigns(:something)
 ```
 
 ### Instance Variables Available
@@ -633,46 +630,6 @@ get :index # simulate the request with custom header
 post :create # simulate the request with custom env variable
 ```
 
-### Testing Templates and Layouts
-
-Eventually, you may want to test whether a specific layout is rendered in the view of a response.
-
-#### Asserting Templates
-
-If you want to make sure that the response rendered the correct template and layout, you can use the `assert_template`
-method:
-
-```ruby
-test "index should render correct template and layout" do
-  get :index
-  assert_template :index
-  assert_template layout: "layouts/application"
-
-  # You can also pass a regular expression.
-  assert_template layout: /layouts\/application/
-end
-```
-
-NOTE: You cannot test for template and layout at the same time, with a single call to `assert_template`.
-
-WARNING: You must include the "layouts" directory name even if you save your layout file in this standard layout directory. Hence, `assert_template layout: "application"` will not work.
-
-#### Asserting Partials
-
-If your view renders any partial, when asserting for the layout, you can to assert for the partial at the same time.
-Otherwise, assertion will fail.
-
-Remember, we added the "_form" partial to our new Article view? Let's write an assertion for that in the `:new` action now:
-
-```ruby
-test "new should render correct layout" do
-  get :new
-  assert_template layout: "layouts/application", partial: "_form"
-end
-```
-
-This is the correct way to assert for when the view renders a partial with a given name. As identified by the `:partial` key passed to the `assert_template` call.
-
 ### Testing `flash` notices
 
 If you remember from earlier one of the Four Hashes of the Apocalypse was `flash`.
@@ -688,7 +645,7 @@ test "should create article" do
     post :create, params: { article: { title: 'Some title' } }
   end
 
-  assert_redirected_to article_path(assigns(:article))
+  assert_redirected_to article_path(Article.last)
   assert_equal 'Article was successfully created.', flash[:notice]
 end
 ```
@@ -781,7 +738,7 @@ We can also add a test for updating an existing Article.
 test "should update article" do
   article = articles(:one)
   patch :update, params: { id: article.id, article: { title: "updated" } }
-  assert_redirected_to article_path(assigns(:article))
+  assert_redirected_to article_path(article)
 end
 ```
 
@@ -820,7 +777,7 @@ class ArticlesControllerTest < ActionController::TestCase
 
   test "should update article" do
     patch :update, params: { id: @article.id, article: { title: "updated" } }
-    assert_redirected_to article_path(assigns(:article))
+    assert_redirected_to article_path(@article)
   end
 end
 ```
@@ -857,7 +814,6 @@ class ProfileControllerTest < ActionController::TestCase
 
     get :show
     assert_response :success
-    assert_equal users(:david), assigns(:user)
   end
 end
 ```
@@ -898,7 +854,7 @@ For more information on routing assertions available in Rails, see the API docum
 Testing Views
 -------------
 
-Testing the response to your request by asserting the presence of key HTML elements and their content is a common way to test the views of your application. The `assert_select` method allows you to query HTML elements of the response by using a simple yet powerful syntax.
+Testing the response to your request by asserting the presence of key HTML elements and their content is a common way to test the views of your application. Like route tests, view tests reside in `test/controllers/` or are part of controller tests. The `assert_select` method allows you to query HTML elements of the response by using a simple yet powerful syntax.
 
 There are two forms of `assert_select`:
 
@@ -1071,14 +1027,12 @@ How about testing our ability to create a new article in our blog and see the re
 test "can create an article" do
   get "/articles/new"
   assert_response :success
-  assert_template "articles/new", partial: "articles/_form"
 
   post "/articles",
     params: { article: { title: "can create", body: "article successfully." } }
   assert_response :redirect
   follow_redirect!
   assert_response :success
-  assert_template "articles/show"
   assert_select "p", "Title:\n  can create"
 end
 ```

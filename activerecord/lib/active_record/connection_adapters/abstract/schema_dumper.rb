@@ -27,10 +27,17 @@ module ActiveRecord
         spec[:type]      = schema_type(column)
         spec[:null]      = 'false' unless column.null
 
-        limit = column.limit || native_database_types[column.type][:limit]
-        spec[:limit]     = limit.inspect if limit
-        spec[:precision] = column.precision.inspect if column.precision
-        spec[:scale]     = column.scale.inspect if column.scale
+        if limit = schema_limit(column)
+          spec[:limit] = limit
+        end
+
+        if precision = schema_precision(column)
+          spec[:precision] = precision
+        end
+
+        if scale = schema_scale(column)
+          spec[:scale] = scale
+        end
 
         default = schema_default(column) if column.has_default?
         spec[:default]   = default unless default.nil?
@@ -51,6 +58,19 @@ module ActiveRecord
 
       def schema_type(column)
         column.type.to_s
+      end
+
+      def schema_limit(column)
+        limit = column.limit || native_database_types[column.type][:limit]
+        limit.inspect if limit
+      end
+
+      def schema_precision(column)
+        column.precision.inspect if column.precision
+      end
+
+      def schema_scale(column)
+        column.scale.inspect if column.scale
       end
 
       def schema_default(column)

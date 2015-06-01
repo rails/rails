@@ -317,7 +317,7 @@ For example:
 => Notice: server is listening on all interfaces (0.0.0.0). Consider using 127.0.0.1 (--binding option)
 => Ctrl-C to shutdown server
 [2014-04-11 13:11:47] INFO  WEBrick 1.3.1
-[2014-04-11 13:11:47] INFO  ruby 2.1.1 (2014-02-24) [i686-linux]
+[2014-04-11 13:11:47] INFO  ruby 2.2.2 (2015-04-13) [i686-linux]
 [2014-04-11 13:11:47] INFO  WEBrick::HTTPServer#start: pid=6370 port=3000
 
 
@@ -531,8 +531,11 @@ command later in this guide).
 And then ask again for the instance_variables:
 
 ```
-(byebug) instance_variables.include? "@articles"
-true
+(byebug) instance_variables
+[:@_action_has_layout, :@_routes, :@_headers, :@_status, :@_request,
+ :@_response, :@_env, :@_prefixes, :@_lookup_context, :@_action_name,
+ :@_response_body, :@marked_for_same_origin_verification, :@_config,
+ :@articles]
 ```
 
 Now `@articles` is included in the instance variables, because the line defining it
@@ -778,7 +781,7 @@ will be stopped and you will have to start it again.
 
 ### Settings
 
-`byebug` has a few available options to tweak its behaviour:
+`byebug` has a few available options to tweak its behavior:
 
 * `set autoreload`: Reload source code when changed (defaults: true).
 * `set autolist`: Execute `list` command on every breakpoint (defaults: true).

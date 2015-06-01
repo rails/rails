@@ -38,7 +38,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_equal "Invalid plugin name 43things. Please give a name which does not start with numbers.\n", content
 
     content = capture(:stderr){ run_generator [File.join(destination_root, "plugin")] }
-    assert_equal "Invalid plugin name plugin. Please give a name which does not match one of the reserved rails words.\n", content
+    assert_equal "Invalid plugin name plugin. Please give a name which does not match one of the reserved rails words: [\"application\", \"destroy\", \"plugin\", \"runner\", \"test\"]\n", content
 
     content = capture(:stderr){ run_generator [File.join(destination_root, "Digest")] }
     assert_equal "Invalid plugin name Digest, constant Digest is already in use. Please choose another plugin name.\n", content

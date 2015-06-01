@@ -56,7 +56,7 @@ module SharedGeneratorTests
     reserved_words = %w[application destroy plugin runner test]
     reserved_words.each do |reserved|
       content = capture(:stderr){ run_generator [File.join(destination_root, reserved)] }
-      assert_match(/Invalid \w+ name #{reserved}. Please give a name which does not match one of the reserved rails words.\n/, content)
+      assert_match(/Invalid \w+ name #{reserved}. Please give a name which does not match one of the reserved rails words: \["application", "destroy", "plugin", "runner", "test"\]\n/, content)
     end
   end
 
@@ -138,7 +138,11 @@ module SharedGeneratorTests
 
   def test_skip_keeps
     run_generator [destination_root, '--skip-keeps', '--full']
-    assert_file('.gitignore')
+
+    assert_file '.gitignore' do |content|
+      assert_no_match(/\.keep/, content)
+    end
+
     assert_no_file('app/mailers/.keep')
   end
 end

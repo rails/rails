@@ -14,7 +14,7 @@ class ScrollsController < ActionController::Base
   FEEDS["defaults"] = <<-EOT
         atom_feed(:schema_date => '2008') do |feed|
           feed.title("My great blog!")
-          feed.updated((@scrolls.first.created_at))
+          feed.updated(@scrolls.first.created_at)
 
           @scrolls.each do |scroll|
             feed.entry(scroll) do |entry|
@@ -31,7 +31,7 @@ class ScrollsController < ActionController::Base
     FEEDS["entry_options"] = <<-EOT
         atom_feed do |feed|
           feed.title("My great blog!")
-          feed.updated((@scrolls.first.created_at))
+          feed.updated(@scrolls.first.created_at)
 
           @scrolls.each do |scroll|
             feed.entry(scroll, :url => "/otherstuff/" + scroll.to_param.to_s, :updated => Time.utc(2007, 1, scroll.id)) do |entry|
@@ -48,7 +48,7 @@ class ScrollsController < ActionController::Base
     FEEDS["entry_type_options"] = <<-EOT
         atom_feed(:schema_date => '2008') do |feed|
           feed.title("My great blog!")
-          feed.updated((@scrolls.first.created_at))
+          feed.updated(@scrolls.first.created_at)
 
           @scrolls.each do |scroll|
             feed.entry(scroll, :type => 'text/xml') do |entry|
@@ -65,7 +65,7 @@ class ScrollsController < ActionController::Base
     FEEDS["entry_url_false_option"] = <<-EOT
         atom_feed do |feed|
           feed.title("My great blog!")
-          feed.updated((@scrolls.first.created_at))
+          feed.updated(@scrolls.first.created_at)
 
           @scrolls.each do |scroll|
             feed.entry(scroll, :url => false) do |entry|
@@ -82,7 +82,7 @@ class ScrollsController < ActionController::Base
     FEEDS["xml_block"] = <<-EOT
         atom_feed do |feed|
           feed.title("My great blog!")
-          feed.updated((@scrolls.first.created_at))
+          feed.updated(@scrolls.first.created_at)
 
           feed.author do |author|
             author.name("DHH")
@@ -100,7 +100,7 @@ class ScrollsController < ActionController::Base
         atom_feed({'xmlns:app' => 'http://www.w3.org/2007/app',
                  'xmlns:openSearch' => 'http://a9.com/-/spec/opensearch/1.1/'}) do |feed|
           feed.title("My great blog!")
-          feed.updated((@scrolls.first.created_at))
+          feed.updated(@scrolls.first.created_at)
 
           @scrolls.each do |scroll|
             feed.entry(scroll) do |entry|
@@ -118,7 +118,7 @@ class ScrollsController < ActionController::Base
     FEEDS["feed_with_overridden_ids"] = <<-EOT
         atom_feed({:id => 'tag:test.rubyonrails.org,2008:test/'}) do |feed|
           feed.title("My great blog!")
-          feed.updated((@scrolls.first.created_at))
+          feed.updated(@scrolls.first.created_at)
 
           @scrolls.each do |scroll|
             feed.entry(scroll, :id => "tag:test.rubyonrails.org,2008:"+scroll.id.to_s) do |entry|
@@ -137,7 +137,7 @@ class ScrollsController < ActionController::Base
         atom_feed(:schema_date => '2008',
           :instruct => {'xml-stylesheet' => { :href=> 't.css', :type => 'text/css' }}) do |feed|
           feed.title("My great blog!")
-          feed.updated((@scrolls.first.created_at))
+          feed.updated(@scrolls.first.created_at)
 
           @scrolls.each do |scroll|
             feed.entry(scroll) do |entry|
@@ -155,7 +155,7 @@ class ScrollsController < ActionController::Base
         atom_feed(:schema_date => '2008',
           :instruct => {'target1' => [{ :a => '1', :b => '2' }, { :c => '3', :d => '4' }]}) do |feed|
           feed.title("My great blog!")
-          feed.updated((@scrolls.first.created_at))
+          feed.updated(@scrolls.first.created_at)
 
           @scrolls.each do |scroll|
             feed.entry(scroll) do |entry|
@@ -172,7 +172,7 @@ class ScrollsController < ActionController::Base
     FEEDS["feed_with_xhtml_content"] = <<-'EOT'
         atom_feed do |feed|
           feed.title("My great blog!")
-          feed.updated((@scrolls.first.created_at))
+          feed.updated(@scrolls.first.created_at)
 
           @scrolls.each do |scroll|
             feed.entry(scroll) do |entry|
@@ -197,7 +197,7 @@ class ScrollsController < ActionController::Base
           new_xml = Builder::XmlMarkup.new(:target=>'')
           atom_feed(:xml => new_xml) do |feed|
             feed.title("My great blog!")
-            feed.updated((@scrolls.first.created_at))
+            feed.updated(@scrolls.first.created_at)
 
             @scrolls.each do |scroll|
               feed.entry(scroll) do |entry|

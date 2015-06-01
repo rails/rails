@@ -174,6 +174,10 @@ module Rails
         options[value] ? '# ' : ''
       end
 
+      def keeps?
+        !options[:skip_keeps]
+      end
+
       def sqlite3?
         !options[:skip_active_record] && options[:database] == 'sqlite3'
       end
@@ -204,11 +208,13 @@ module Rails
         if options.dev?
           [
             GemfileEntry.path('rails', Rails::Generators::RAILS_DEV_PATH),
+            GemfileEntry.github('sprockets-rails', 'rails/sprockets-rails'),
             GemfileEntry.github('arel', 'rails/arel')
           ]
         elsif options.edge?
           [
             GemfileEntry.github('rails', 'rails/rails'),
+            GemfileEntry.github('sprockets-rails', 'rails/sprockets-rails'),
             GemfileEntry.github('arel', 'rails/arel')
           ]
         else
@@ -355,7 +361,7 @@ module Rails
       end
 
       def keep_file(destination)
-        create_file("#{destination}/.keep") unless options[:skip_keeps]
+        create_file("#{destination}/.keep") if keeps?
       end
     end
   end

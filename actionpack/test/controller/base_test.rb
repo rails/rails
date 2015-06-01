@@ -13,7 +13,7 @@ end
 
 class NonEmptyController < ActionController::Base
   def public_action
-    render :nothing => true
+    head :ok
   end
 end
 
@@ -29,7 +29,7 @@ end
 
 class OptionalDefaultUrlOptionsController < ActionController::Base
   def show
-    render nothing: true
+    head :ok
   end
 
   def default_url_options

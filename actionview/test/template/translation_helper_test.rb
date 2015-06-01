@@ -41,8 +41,8 @@ class TranslationHelperTest < ActiveSupport::TestCase
     I18n.backend.reload!
   end
 
-  def test_delegates_to_i18n_setting_the_rescue_format_option_to_html
-    I18n.expects(:translate).with(:foo, :locale => 'en', :raise=>true).returns("")
+  def test_delegates_setting_to_i18n
+    I18n.expects(:translate).with(:foo, :locale => 'en', :raise => true).returns("")
     translate :foo, :locale => 'en'
   end
 
@@ -56,12 +56,6 @@ class TranslationHelperTest < ActiveSupport::TestCase
     expected = '<span class="translation_missing" title="translation missing: en.translations.missing">Missing</span>'
     assert_equal expected, translate(:"translations.missing")
     assert_equal true, translate(:"translations.missing").html_safe?
-  end
-
-  def test_returns_missing_translation_message_using_nil_as_rescue_format
-    expected = 'translation missing: en.translations.missing'
-    assert_equal expected, translate(:"translations.missing", :rescue_format => nil)
-    assert_equal false, translate(:"translations.missing", :rescue_format => nil).html_safe?
   end
 
   def test_raises_missing_translation_message_with_raise_config_option
@@ -94,12 +88,6 @@ class TranslationHelperTest < ActiveSupport::TestCase
     assert_equal 'from CustomExceptionHandler', translate(:"translations.missing_html", raise: false)
   ensure
     I18n.exception_handler = old_exception_handler
-  end
-
-  def test_i18n_translate_defaults_to_nil_rescue_format
-    expected = 'translation missing: en.translations.missing'
-    assert_equal expected, I18n.translate(:"translations.missing")
-    assert_equal false, I18n.translate(:"translations.missing").html_safe?
   end
 
   def test_translation_returning_an_array

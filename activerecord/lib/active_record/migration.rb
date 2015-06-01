@@ -275,21 +275,6 @@ module ActiveRecord
   # The phrase "Updating salaries..." would then be printed, along with the
   # benchmark for the block when the block completes.
   #
-  # == About the schema_migrations table
-  #
-  # Rails versions 2.0 and prior used to create a table called
-  # <tt>schema_info</tt> when using migrations. This table contained the
-  # version of the schema as of the last applied migration.
-  #
-  # Starting with Rails 2.1, the <tt>schema_info</tt> table is
-  # (automatically) replaced by the <tt>schema_migrations</tt> table, which
-  # contains the version numbers of all the migrations applied.
-  #
-  # As a result, it is now possible to add migration files that are numbered
-  # lower than the current schema version: when migrating up, those
-  # never-applied "interleaved" migrations will be automatically applied, and
-  # when migrating down, never-applied "interleaved" migrations will be skipped.
-  #
   # == Timestamped Migrations
   #
   # By default, Rails generates migrations that look like:
@@ -307,9 +292,8 @@ module ActiveRecord
   #
   # == Reversible Migrations
   #
-  # Starting with Rails 3.1, you will be able to define reversible migrations.
   # Reversible migrations are migrations that know how to go +down+ for you.
-  # You simply supply the +up+ logic, and the Migration system will figure out
+  # You simply supply the +up+ logic, and the Migration system figures out
   # how to execute the down commands for you.
   #
   # To define a reversible migration, define the +change+ method in your

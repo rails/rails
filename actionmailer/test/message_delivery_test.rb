@@ -2,7 +2,6 @@ require 'abstract_unit'
 require 'active_job'
 require 'minitest/mock'
 require 'mailers/delayed_mailer'
-require 'active_support/core_ext/numeric/time'
 
 class MessageDeliveryTest < ActiveSupport::TestCase
   include ActiveJob::TestHelper

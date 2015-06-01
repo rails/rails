@@ -242,7 +242,7 @@ behavior out of the box:
 
 The latest version of Active Model can be installed with RubyGems:
 
-  % [sudo] gem install activemodel
+  % gem install activemodel
 
 Source code can be downloaded as part of the Rails project on GitHub
 

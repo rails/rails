@@ -1,3 +1,5 @@
+require 'active_record/attribute/user_provided_default'
+
 module ActiveRecord
   # See ActiveRecord::Attributes::ClassMethods for documentation
   module Attributes
@@ -79,6 +81,14 @@ module ActiveRecord
       #   end
       #
       #   StoreListing.new.my_string # => "new default"
+      #
+      #   class Product < ActiveRecord::Base
+      #     attribute :my_default_proc, :datetime, default: -> { Time.now }
+      #   end
+      #
+      #   Product.new.my_default_proc # => 2015-05-30 11:04:48 -0600
+      #   sleep 1
+      #   Product.new.my_default_proc # => 2015-05-30 11:04:49 -0600
       #
       # Attributes do not need to be backed by a database column.
       #
@@ -202,7 +212,8 @@ module ActiveRecord
       #
       # +default+ The default value to use when no value is provided. If this option
       # is not passed, the previous default value (if any) will be used.
-      # Otherwise, the default will be +nil+.
+      # Otherwise, the default will be +nil+. A proc can also be passed, and
+      # will be called once each time a new value is needed.
       #
       # +user_provided_default+ Whether the default value should be cast using
       # +cast+ or +deserialize+.
@@ -236,7 +247,12 @@ module ActiveRecord
         if value == NO_DEFAULT_PROVIDED
           default_attribute = _default_attributes[name].with_type(type)
         elsif from_user
-          default_attribute = Attribute.from_user(name, value, type)
+          default_attribute = Attribute::UserProvidedDefault.new(
+            name,
+            value,
+            type,
+            _default_attributes[name],
+          )
         else
           default_attribute = Attribute.from_database(name, value, type)
         end

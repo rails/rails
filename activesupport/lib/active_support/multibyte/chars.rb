@@ -86,8 +86,14 @@ module ActiveSupport #:nodoc:
         @wrapped_string.split(*args).map { |i| self.class.new(i) }
       end
 
-      # Works like like <tt>String#slice!</tt>, but returns an instance of
+      # Works like <tt>String#slice!</tt>, but returns an instance of
       # Chars, or nil if the string was not modified.
+      #
+      #   string = 'Welcome'
+      #   string.mb_chars.slice!(3)    # => #<ActiveSupport::Multibyte::Chars:0x000000038109b8 @wrapped_string="c">
+      #   string # => 'Welome'
+      #   string.mb_chars.slice!(0..3) # => #<ActiveSupport::Multibyte::Chars:0x00000002eb80a0 @wrapped_string="Welo">
+      #   string # => 'me'
       def slice!(*args)
         chars(@wrapped_string.slice!(*args))
       end

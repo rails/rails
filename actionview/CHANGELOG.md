@@ -1,3 +1,13 @@
+*   Do not put partial name to `local_assigns` when rendering without
+    an object or a collection.
+
+    *Henrik Nygren*
+
+*   Remove `:rescue_format` option for `translate` helper since it's no longer
+    supported by I18n.
+
+    *Bernard Potocki*
+
 *   `translate` should handle `raise` flag correctly in case of both main and default
     translation is missing.
 
@@ -115,7 +125,7 @@
 
     *Angelo Capilleri*
 
-*   Allow entries without a link tag in AtomFeedHelper.
+*   Allow entries without a link tag in `AtomFeedHelper`.
 
     *Daniel Gomez de Souza*
 

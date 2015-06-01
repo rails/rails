@@ -48,6 +48,14 @@ class TestCaseTest < ActionController::TestCase
       render text: params.inspect
     end
 
+    def test_query_parameters
+      render text: request.query_parameters.inspect
+    end
+
+    def test_request_parameters
+      render text: request.request_parameters.inspect
+    end
+
     def test_uri
       render text: request.fullpath
     end
@@ -129,13 +137,7 @@ XML
 
     def delete_cookie
       cookies.delete("foo")
-      render nothing: true
-    end
-
-    def test_assigns
-      @foo = "foo"
-      @foo_hash = { foo: :bar }
-      render nothing: true
+      head :ok
     end
 
     def test_without_body
@@ -163,17 +165,6 @@ XML
       r.draw do
         get ':controller(/:action(/:id))'
       end
-    end
-  end
-
-  class ViewAssignsController < ActionController::Base
-    def test_assigns
-      @foo = "foo"
-      render nothing: true
-    end
-
-    def view_assigns
-      { "bar" => "bar" }
     end
   end
 
@@ -438,30 +429,6 @@ XML
     assert_equal "OK", @response.body
   end
 
-  def test_assigns
-    process :test_assigns
-    # assigns can be accessed using assigns(key)
-    # or assigns[key], where key is a string or
-    # a symbol
-    assert_equal "foo", assigns(:foo)
-    assert_equal "foo", assigns("foo")
-    assert_equal "foo", assigns[:foo]
-    assert_equal "foo", assigns["foo"]
-
-    # but the assigned variable should not have its own keys stringified
-    expected_hash = { foo: :bar }
-    assert_equal expected_hash, assigns(:foo_hash)
-  end
-
-  def test_view_assigns
-    @controller = ViewAssignsController.new
-    process :test_assigns
-    assert_equal nil, assigns(:foo)
-    assert_equal nil, assigns[:foo]
-    assert_equal "bar", assigns(:bar)
-    assert_equal "bar", assigns[:bar]
-  end
-
   def test_should_not_impose_childless_html_tags_in_xml
     process :test_xml_output
 
@@ -545,6 +512,18 @@ XML
       },
       parsed_params
     )
+  end
+
+  def test_query_param_named_action
+    get :test_query_parameters, params: {action: 'foobar'}
+    parsed_params = eval(@response.body)
+    assert_equal({action: 'foobar'}, parsed_params)
+  end
+
+  def test_request_param_named_action
+    post :test_request_parameters, params: {action: 'foobar'}
+    parsed_params = eval(@response.body)
+    assert_equal({'action' => 'foobar'}, parsed_params)
   end
 
   def test_kwarg_params_passing_with_session_and_flash
@@ -906,6 +885,11 @@ XML
 
     plain_file_upload = fixture_file_upload(path, content_type)
     assert_equal File.open(path, READ_PLAIN).read, plain_file_upload.read
+  end
+
+  def test_fixture_file_upload_should_be_able_access_to_tempfile
+    file = fixture_file_upload(FILES_DIR + "/mona_lisa.jpg", "image/jpg")
+    assert file.respond_to?(:tempfile), "expected tempfile should respond on fixture file object, got nothing"
   end
 
   def test_fixture_file_upload

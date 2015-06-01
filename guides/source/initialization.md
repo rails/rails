@@ -53,11 +53,11 @@ require "rails/cli"
 ```
 
 The file `railties/lib/rails/cli` in turn calls
-`Rails::AppRailsLoader.exec_app_rails`.
+`Rails::AppLoader.exec_app`.
 
-### `railties/lib/rails/app_rails_loader.rb`
+### `railties/lib/rails/app_loader.rb`
 
-The primary goal of the function `exec_app_rails` is to execute your app's
+The primary goal of the function `exec_app` is to execute your app's
 `bin/rails`. If the current directory does not have a `bin/rails`, it will
 navigate upwards until it finds a `bin/rails` executable. Thus one can invoke a
 `rails` command from anywhere inside a rails application.
@@ -106,6 +106,7 @@ A standard Rails application depends on several gems, specifically:
 * activemodel
 * activerecord
 * activesupport
+* activejob
 * arel
 * builder
 * bundler
@@ -532,6 +533,7 @@ require "rails"
   action_controller
   action_view
   action_mailer
+  active_job
   rails/test_unit
   sprockets
 ).each do |framework|
@@ -555,9 +557,8 @@ I18n and Rails configuration are all being defined here.
 The rest of `config/application.rb` defines the configuration for the
 `Rails::Application` which will be used once the application is fully
 initialized. When `config/application.rb` has finished loading Rails and defined
-the application namespace, we go back to `config/environment.rb`,
-where the application is initialized. For example, if the application was called
-`Blog`, here we would find `Rails.application.initialize!`, which is
+the application namespace, we go back to `config/environment.rb`. Here, the
+application is initialized with `Rails.application.initialize!`, which is
 defined in `rails/application.rb`.
 
 ### `railties/lib/rails/application.rb`

@@ -11,7 +11,6 @@ end
 require 'active_support/testing/autorun'
 require 'action_mailer'
 require 'action_mailer/test_case'
-require 'mail'
 
 # Emulate AV railtie
 require 'action_view'

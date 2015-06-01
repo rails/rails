@@ -19,7 +19,7 @@ module ActionController #:nodoc:
   #
   # Since HTML and JavaScript requests are typically made from the browser, we
   # need to ensure to verify request authenticity for the web browser. We can
-  # use session-oriented authentication for these types requests, by using
+  # use session-oriented authentication for these types of requests, by using
   # the `protect_form_forgery` method in our controllers.
   #
   # GET requests are not protected since they don't have side effects like writing
@@ -44,7 +44,7 @@ module ActionController #:nodoc:
   # during request.
   #
   # We may want to disable CSRF protection for APIs since they are typically
-  # designed to be state-less. That is, the requestion API client will handle
+  # designed to be state-less. That is, the request API client will handle
   # the session for you instead of Rails.
   #
   # The token parameter is named <tt>authenticity_token</tt> by default. The name and

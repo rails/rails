@@ -161,6 +161,10 @@ module ActiveRecord
         end
       end
 
+      if loaded? && (column_names - @klass.column_names).empty?
+        return @records.pluck(*column_names)
+      end
+
       if has_include?(column_names.first)
         construct_relation_for_association_calculations.pluck(*column_names)
       else

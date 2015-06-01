@@ -317,26 +317,6 @@ The `box` layout simply wraps the `_article` partial in a `div`:
 </div>
 ```
 
-The `_article` partial wraps the article's `body` in a `div` with the `id` of the article using the `div_for` helper:
-
-**articles/_article.html.erb**
-
-```html+erb
-<%= div_for(article) do %>
-  <p><%= article.body %></p>
-<% end %>
-```
-
-this would output the following:
-
-```html
-<div class='box'>
-  <div id='article_1'>
-    <p>Partial Layouts are cool!</p>
-  </div>
-</div>
-```
-
 Note that the partial layout has access to the local `article` variable that was passed into the `render` call. However, unlike application-wide layouts, partial layouts still have the underscore prefix.
 
 You can also render a block of code within a partial layout instead of calling `yield`. For example, if we didn't have the `_article` partial, we could do this instead:
@@ -345,9 +325,9 @@ You can also render a block of code within a partial layout instead of calling `
 
 ```html+erb
 <% render(layout: 'box', locals: { article: @article }) do %>
-  <%= div_for(article) do %>
+  <div>
     <p><%= article.body %></p>
-  <% end %>
+  </div>
 <% end %>
 ```
 
@@ -552,7 +532,7 @@ end
 ```ruby
 atom_feed do |feed|
   feed.title("Articles Index")
-  feed.updated((@articles.first.created_at))
+  feed.updated(@articles.first.created_at)
 
   @articles.each do |article|
     feed.entry(article) do |entry|

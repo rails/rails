@@ -14,8 +14,6 @@ require "active_record/connection_adapters/postgresql/type_metadata"
 require "active_record/connection_adapters/postgresql/utils"
 require "active_record/connection_adapters/statement_pool"
 
-require 'arel/visitors/bind_visitor'
-
 require 'ipaddr'
 
 module ActiveRecord
@@ -68,11 +66,11 @@ module ActiveRecord
     #   defaults to true.
     #
     # Any further options are used as connection parameters to libpq. See
-    # http://www.postgresql.org/docs/9.1/static/libpq-connect.html for the
+    # http://www.postgresql.org/docs/current/static/libpq-connect.html for the
     # list of parameters.
     #
     # In addition, default connection parameters of libpq can be set per environment variables.
-    # See http://www.postgresql.org/docs/9.1/static/libpq-envars.html .
+    # See http://www.postgresql.org/docs/current/static/libpq-envars.html .
     class PostgreSQLAdapter < AbstractAdapter
       ADAPTER_NAME = 'PostgreSQL'.freeze
 
@@ -211,43 +209,17 @@ module ActiveRecord
         def initialize(connection, max)
           super
           @counter = 0
-          @cache   = Hash.new { |h,pid| h[pid] = {} }
         end
-
-        def each(&block); cache.each(&block); end
-        def key?(key);    cache.key?(key); end
-        def [](key);      cache[key]; end
-        def length;       cache.length; end
 
         def next_key
           "a#{@counter + 1}"
         end
 
         def []=(sql, key)
-          while @max <= cache.size
-            dealloc(cache.shift.last)
-          end
-          @counter += 1
-          cache[sql] = key
-        end
-
-        def clear
-          cache.each_value do |stmt_key|
-            dealloc stmt_key
-          end
-          cache.clear
-        end
-
-        def delete(sql_key)
-          dealloc cache[sql_key]
-          cache.delete sql_key
+          super.tap { @counter += 1 }
         end
 
         private
-
-          def cache
-            @cache[Process.pid]
-          end
 
           def dealloc(key)
             @connection.query "DEALLOCATE #{key}" if connection_active?
@@ -452,7 +424,7 @@ module ActiveRecord
           @connection.server_version
         end
 
-        # See http://www.postgresql.org/docs/9.1/static/errcodes-appendix.html
+        # See http://www.postgresql.org/docs/current/static/errcodes-appendix.html
         FOREIGN_KEY_VIOLATION = "23503"
         UNIQUE_VIOLATION      = "23505"
 
@@ -726,7 +698,7 @@ module ActiveRecord
           end
 
           # SET statements from :variables config hash
-          # http://www.postgresql.org/docs/8.3/static/sql-set.html
+          # http://www.postgresql.org/docs/current/static/sql-set.html
           variables = @config[:variables] || {}
           variables.map do |k, v|
             if v == ':default' || v == :default
@@ -770,7 +742,7 @@ module ActiveRecord
         #  - format_type includes the column size constraint, e.g. varchar(50)
         #  - ::regclass is a function that gives the id for a table name
         def column_definitions(table_name) # :nodoc:
-          exec_query(<<-end_sql, 'SCHEMA').rows
+          query(<<-end_sql, 'SCHEMA')
               SELECT a.attname, format_type(a.atttypid, a.atttypmod),
                      pg_get_expr(d.adbin, d.adrelid), a.attnotnull, a.atttypid, a.atttypmod,
              (SELECT c.collname FROM pg_collation c, pg_type t

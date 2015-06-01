@@ -1,7 +1,7 @@
 require 'generators/generators_test_helper'
 require 'rails/generators/rails/model/model_generator'
 require 'rails/generators/test_unit/model/model_generator'
-require 'mocha/setup' # FIXME: stop using mocha
+require 'minitest/mock'
 
 class GeneratorsTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
@@ -9,16 +9,20 @@ class GeneratorsTest < Rails::Generators::TestCase
   def setup
     @path = File.expand_path("lib", Rails.root)
     $LOAD_PATH.unshift(@path)
+    @mock_generator = MiniTest::Mock.new
   end
 
   def teardown
     $LOAD_PATH.delete(@path)
+    @mock_generator.verify
   end
 
   def test_simple_invoke
     assert File.exist?(File.join(@path, 'generators', 'model_generator.rb'))
-    TestUnit::Generators::ModelGenerator.expects(:start).with(["Account"], {})
-    Rails::Generators.invoke("test_unit:model", ["Account"])
+    @mock_generator.expect(:call, nil, [["Account"],{}])
+    TestUnit::Generators::ModelGenerator.stub(:start, @mock_generator) do
+      Rails::Generators.invoke("test_unit:model", ["Account"])
+    end
   end
 
   def test_invoke_when_generator_is_not_found
@@ -47,19 +51,25 @@ class GeneratorsTest < Rails::Generators::TestCase
 
   def test_should_give_higher_preference_to_rails_generators
     assert File.exist?(File.join(@path, 'generators', 'model_generator.rb'))
-    Rails::Generators::ModelGenerator.expects(:start).with(["Account"], {})
-    warnings = capture(:stderr){ Rails::Generators.invoke :model, ["Account"] }
-    assert warnings.empty?
+    @mock_generator.expect(:call, nil, [["Account"],{}])
+    Rails::Generators::ModelGenerator.stub(:start, @mock_generator) do
+      warnings = capture(:stderr){ Rails::Generators.invoke :model, ["Account"] }
+      assert warnings.empty?
+    end
   end
 
   def test_invoke_with_default_values
-    Rails::Generators::ModelGenerator.expects(:start).with(["Account"], {})
-    Rails::Generators.invoke :model, ["Account"]
+    @mock_generator.expect(:call, nil, [["Account"],{}])
+    Rails::Generators::ModelGenerator.stub(:start, @mock_generator) do
+      Rails::Generators.invoke :model, ["Account"]
+    end
   end
 
   def test_invoke_with_config_values
-    Rails::Generators::ModelGenerator.expects(:start).with(["Account"], behavior: :skip)
-    Rails::Generators.invoke :model, ["Account"], behavior: :skip
+    @mock_generator.expect(:call, nil, [["Account"],{behavior: :skip}])
+    Rails::Generators::ModelGenerator.stub(:start, @mock_generator) do
+      Rails::Generators.invoke :model, ["Account"], behavior: :skip
+    end
   end
 
   def test_find_by_namespace
@@ -103,11 +113,13 @@ class GeneratorsTest < Rails::Generators::TestCase
   end
 
   def test_invoke_with_nested_namespaces
-    model_generator = mock('ModelGenerator') do
-      expects(:start).with(["Account"], {})
+    model_generator = Minitest::Mock.new
+    model_generator.expect(:start, nil, [["Account"], {}])
+    @mock_generator.expect(:call, model_generator, ['namespace', 'my:awesome'])
+    Rails::Generators.stub(:find_by_namespace, @mock_generator) do
+      Rails::Generators.invoke 'my:awesome:namespace', ["Account"]
     end
-    Rails::Generators.expects(:find_by_namespace).with('namespace', 'my:awesome').returns(model_generator)
-    Rails::Generators.invoke 'my:awesome:namespace', ["Account"]
+    model_generator.verify
   end
 
   def test_rails_generators_help_with_builtin_information
@@ -173,8 +185,10 @@ class GeneratorsTest < Rails::Generators::TestCase
 
   def test_fallbacks_for_generators_on_invoke
     Rails::Generators.fallbacks[:shoulda] = :test_unit
-    TestUnit::Generators::ModelGenerator.expects(:start).with(["Account"], {})
-    Rails::Generators.invoke "shoulda:model", ["Account"]
+    @mock_generator.expect(:call, nil, [["Account"],{}])
+    TestUnit::Generators::ModelGenerator.stub(:start, @mock_generator) do
+      Rails::Generators.invoke "shoulda:model", ["Account"]
+    end
   ensure
     Rails::Generators.fallbacks.delete(:shoulda)
   end
@@ -182,8 +196,10 @@ class GeneratorsTest < Rails::Generators::TestCase
   def test_nested_fallbacks_for_generators
     Rails::Generators.fallbacks[:shoulda] = :test_unit
     Rails::Generators.fallbacks[:super_shoulda] = :shoulda
-    TestUnit::Generators::ModelGenerator.expects(:start).with(["Account"], {})
-    Rails::Generators.invoke "super_shoulda:model", ["Account"]
+    @mock_generator.expect(:call, nil, [["Account"],{}])
+    TestUnit::Generators::ModelGenerator.stub(:start, @mock_generator) do
+      Rails::Generators.invoke "super_shoulda:model", ["Account"]
+    end
   ensure
     Rails::Generators.fallbacks.delete(:shoulda)
     Rails::Generators.fallbacks.delete(:super_shoulda)

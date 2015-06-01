@@ -1,6 +1,85 @@
+*   Ensure symbols passed to `ActiveRecord::Relation#select` are always treated
+    as columns.
+
+    Fixes #20360.
+
+    *Sean Griffin*
+
+*   Do not set `sql_mode` if `strict: :default` is specified.
+
+        ```
+        # database.yml
+        production:
+          adapter: mysql2
+          database: foo_prod
+          user: foo
+          strict: :default
+        ```
+
+    *Ryuta Kamizono*
+
+*   Allow proc defaults to be passed to the attributes API. See documentation
+    for examples.
+
+    *Sean Griffin*, *Kir Shatrov*
+
+*   SQLite: `:collation` support for string and text columns.
+
+    Example:
+
+        create_table :foo do |t|
+          t.string :string_nocase, collation: 'NOCASE'
+          t.text :text_rtrim, collation: 'RTRIM'
+        end
+
+        add_column :foo, :title, :string, collation: 'RTRIM'
+
+        change_column :foo, :title, :string, collation: 'NOCASE'
+
+    *Akshay Vishnoi*
+
+*   Allow the use of symbols or strings to specify enum values in test
+    fixtures:
+
+        awdr:
+          title: "Agile Web Development with Rails"
+          status: :proposed
+
+    *George Claghorn*
+
+*   Clear query cache when `ActiveRecord::Base#reload` is called.
+
+    *Shane Hender, Pierre Nespo*
+
+*   Include stored procedures and function on the MySQL structure dump.
+
+    *Jonathan Worek*
+
+*   Pass `:extend` option for `has_and_belongs_to_many` associations to the underlying `has_many :through`.
+
+    *Jaehyun Shin*
+
+*   Deprecate `Relation#uniq` use `Relation#distinct` instead.
+
+    See #9683.
+
+    *Yves Senn*
+
+*   Allow single table inheritance instantiation to work when storing
+    demodulized class names.
+
+    *Alex Robbin*
+
+*   Correctly pass MySQL options when using `structure_dump` or
+    `structure_load`.
+
+    Specifically, it fixes an issue when using SSL authentication.
+
+    *Alex Coomans*
+
 *   Dump indexes in `create_table` instead of `add_index`.
 
-    If the adapter supports indexes in create table, generated SQL is
+    If the adapter supports indexes in `create_table`, generated SQL is
     slightly more efficient.
 
     *Ryuta Kamizono*
@@ -211,7 +290,7 @@
 
     *Josef Šimánek*
 
-*   Fixed ActiveRecord::Relation#becomes! and changed_attributes issues for type
+*   Fixed `ActiveRecord::Relation#becomes!` and `changed_attributes` issues for type
     columns.
 
     Fixes #17139.
@@ -394,8 +473,8 @@
 
     *Henrik Nygren*
 
-*   Fixed ActiveRecord::Relation#group method when an argument is an SQL
-    reserved key word:
+*   Fixed `ActiveRecord::Relation#group` method when an argument is an SQL
+    reserved keyword:
 
     Example:
 
@@ -404,7 +483,7 @@
 
     *Bogdan Gusiev*
 
-*   Added the `#or` method on ActiveRecord::Relation, allowing use of the OR
+*   Added the `#or` method on `ActiveRecord::Relation`, allowing use of the OR
     operator to combine WHERE or HAVING clauses.
 
     Example:
@@ -604,7 +683,7 @@
 
     The preferred method to halt a callback chain from now on is to explicitly
     `throw(:abort)`.
-    In the past, returning `false` in an ActiveRecord `before_` callback had the
+    In the past, returning `false` in an Active Record `before_` callback had the
     side effect of halting the callback chain.
     This is not recommended anymore and, depending on the value of the
     `config.active_support.halt_callback_chains_on_return_false` option, will

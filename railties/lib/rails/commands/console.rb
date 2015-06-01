@@ -1,14 +1,13 @@
 require 'optparse'
 require 'irb'
 require 'irb/completion'
+require 'rails/commands/console_helper'
 
 module Rails
   class Console
-    class << self
-      def start(*args)
-        new(*args).start
-      end
+    include ConsoleHelper
 
+    class << self
       def parse_arguments(arguments)
         options = {}
 
@@ -21,23 +20,8 @@ module Rails
           opt.parse!(arguments)
         end
 
-        if arguments.first && arguments.first[0] != '-'
-          env = arguments.first
-          if available_environments.include? env
-            options[:environment] = env
-          else
-            options[:environment] = %w(production development test).detect {|e| e =~ /^#{env}/} || env
-          end
-        end
-
-        options
+        set_options_env(arguments, options)
       end
-
-      private
-
-        def available_environments
-          Dir['config/environments/*.rb'].map { |fname| File.basename(fname, '.*') }
-        end
     end
 
     attr_reader :options, :app, :console
@@ -57,12 +41,9 @@ module Rails
     end
 
     def environment
-      options[:environment] ||= ENV['RAILS_ENV'] || ENV['RACK_ENV'] || 'development'
+      options[:environment] ||= super
     end
-
-    def environment?
-      environment
-    end
+    alias_method :environment?, :environment
 
     def set_environment!
       Rails.env = environment

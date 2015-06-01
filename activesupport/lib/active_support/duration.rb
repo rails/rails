@@ -52,6 +52,10 @@ module ActiveSupport
       end
     end
 
+    # Returns the amount of seconds a duration covers as a string.
+    # For more information check to_i method.
+    #
+    #   1.day.to_s # => "86400"
     def to_s
       @value.to_s
     end

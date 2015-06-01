@@ -554,7 +554,7 @@ or write the `up` and `down` methods instead of using the `change` method.
 
 Complex migrations may require processing that Active Record doesn't know how
 to reverse. You can use `reversible` to specify what to do when running a
-migration what else to do when reverting it. For example:
+migration and what else to do when reverting it. For example:
 
 ```ruby
 class ExampleMigration < ActiveRecord::Migration
@@ -606,7 +606,7 @@ schema, and the `down` method of your migration should revert the
 transformations done by the `up` method. In other words, the database schema
 should be unchanged if you do an `up` followed by a `down`. For example, if you
 create a table in the `up` method, you should drop it in the `down` method. It
-is wise to reverse the transformations in precisely the reverse order they were
+is wise to perform the transformations in precisely the reverse order they were
 made in the `up` method. The example in the `reversible` section is equivalent to:
 
 ```ruby

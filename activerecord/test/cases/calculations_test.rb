@@ -359,7 +359,10 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_count_with_distinct
     assert_equal 4, Account.select(:credit_limit).distinct.count
-    assert_equal 4, Account.select(:credit_limit).uniq.count
+
+    assert_deprecated do
+      assert_equal 4, Account.select(:credit_limit).uniq.count
+    end
   end
 
   def test_count_with_aliased_attribute
@@ -504,8 +507,8 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal [ topic.written_on ], relation.pluck(:written_on)
   end
 
-  def test_pluck_and_uniq
-    assert_equal [50, 53, 55, 60], Account.order(:credit_limit).uniq.pluck(:credit_limit)
+  def test_pluck_and_distinct
+    assert_equal [50, 53, 55, 60], Account.order(:credit_limit).distinct.pluck(:credit_limit)
   end
 
   def test_pluck_in_relation
@@ -627,6 +630,27 @@ class CalculationsTest < ActiveRecord::TestCase
     part.trinkets.create!
 
     assert_equal [part.id], ShipPart.joins(:trinkets).pluck(:id)
+  end
+
+  def test_pluck_loaded_relation
+    companies = Company.order(:id).limit(3).load
+    assert_no_queries do
+      assert_equal ['37signals', 'Summit', 'Microsoft'], companies.pluck(:name)
+    end
+  end
+
+  def test_pluck_loaded_relation_multiple_columns
+    companies = Company.order(:id).limit(3).load
+    assert_no_queries do
+      assert_equal [[1, '37signals'], [2, 'Summit'], [3, 'Microsoft']], companies.pluck(:id, :name)
+    end
+  end
+
+  def test_pluck_loaded_relation_sql_fragment
+    companies = Company.order(:id).limit(3).load
+    assert_queries 1 do
+      assert_equal ['37signals', 'Summit', 'Microsoft'], companies.pluck('DISTINCT name')
+    end
   end
 
   def test_grouped_calculation_with_polymorphic_relation
