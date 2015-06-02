@@ -55,7 +55,7 @@ module ActionDispatch
 
           def unescape_uri(uri)
             encoding = uri.encoding == US_ASCII ? UTF_8 : uri.encoding
-            uri.gsub(ESCAPED) { [$&[1, 2].hex].pack('C') }.force_encoding(encoding)
+            uri.gsub(ESCAPED) { |match| [match[1, 2].hex].pack('C') }.force_encoding(encoding)
           end
 
           protected
