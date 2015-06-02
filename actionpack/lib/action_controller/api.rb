@@ -114,6 +114,7 @@ module ActionController
       Renderers::All,
       ConditionalGet,
       RackDelegation,
+      BasicImplicitRender,
       StrongParameters,
 
       ForceSSL,

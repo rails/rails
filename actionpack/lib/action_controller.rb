@@ -25,6 +25,7 @@ module ActionController
     autoload :Head
     autoload :Helpers
     autoload :HttpAuthentication
+    autoload :BasicImplicitRender
     autoload :ImplicitRender
     autoload :Instrumentation
     autoload :MimeResponds
