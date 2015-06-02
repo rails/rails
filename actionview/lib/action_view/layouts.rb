@@ -315,25 +315,16 @@ module ActionView
             name_clause
         end
 
-        if self._layout_conditions.empty?
-          self.class_eval <<-RUBY, __FILE__, __LINE__ + 1
-            def _layout
+        self.class_eval <<-RUBY, __FILE__, __LINE__ + 1
+          def _layout
+            if _conditional_layout?
               #{layout_definition}
+            else
+              #{name_clause}
             end
-            private :_layout
-          RUBY
-        else
-          self.class_eval <<-RUBY, __FILE__, __LINE__ + 1
-            def _layout
-              if _conditional_layout?
-                #{layout_definition}
-              else
-                #{name_clause}
-              end
-            end
-            private :_layout
-          RUBY
-        end
+          end
+          private :_layout
+        RUBY
       end
 
       private
