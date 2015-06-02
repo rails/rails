@@ -1,3 +1,7 @@
+*   Make generated scaffold functional tests work inside engines.
+
+    *Yuji Yaginuma*
+
 *   Add support for inline images in mailer previews by using an interceptor
     class to convert cid: urls in image src attributes to data urls. The
     interceptor is not enabled by default but can be done in an initializer:
