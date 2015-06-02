@@ -122,14 +122,6 @@ class PrependsViewPathController < LayoutTest
   end
 end
 
-class ParentController < LayoutTest
-  layout 'item'
-end
-
-class ChildController < ParentController
-  layout 'layout_test', only: :hello
-end
-
 class OnlyLayoutController < LayoutTest
   layout 'item', :only => "hello"
 end
@@ -232,12 +224,6 @@ class LayoutSetInResponseTest < ActionController::TestCase
     @controller = AbsolutePathLayoutController.new
     get :hello
     assert_equal "layout_test.erb hello.erb", @response.body.strip
-  end
-
-  def test_respect_to_parent_layout
-    @controller = ChildController.new
-    get :goodbye
-    assert_includes @response.body, 'item.erb'
   end
 end
 
