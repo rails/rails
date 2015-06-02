@@ -32,7 +32,7 @@ module ActiveRecord
           @alias_cache[node][column]
         end
 
-        class Table < Struct.new(:node, :columns)
+        Table = Struct.new(:node, :columns) do
           def table
             Arel::Nodes::TableAlias.new node.table, node.aliased_table_name
           end
