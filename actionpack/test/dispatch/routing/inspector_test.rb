@@ -17,7 +17,7 @@ module ActionDispatch
       def draw(options = {}, &block)
         @set.draw(&block)
         inspector = ActionDispatch::Routing::RoutesInspector.new(@set.routes)
-        inspector.format(ActionDispatch::Routing::ConsoleFormatter.new, options[:filter]).split("\n")
+        inspector.format(ActionDispatch::Routing::ConsoleFormatter.new, options).split("\n")
       end
 
       def test_displaying_routes_for_engines

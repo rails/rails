@@ -1,3 +1,13 @@
+*   Add `-g` and `-c` (shorts for _grep_ and _controller_ respectively) options
+    for `bin/rake routes` task. This options returns the url `name`, `verb` and
+    `path` field that match the pattern or returns match for specific controller.
+
+    Deprecate `CONTROLLER` env variable in `bin/rake routes`.
+
+    See #18902.
+
+    *Anton Davydov*
+
 *   Catch invalid UTF-8 querystring values and respond with BadRequest
 
     Check querystring params for invalid UTF-8 characters, and raise an

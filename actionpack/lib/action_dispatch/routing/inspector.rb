@@ -59,9 +59,8 @@ module ActionDispatch
         @routes = routes
       end
 
-      def format(formatter, filter = nil)
-        routes_to_display = filter_routes(filter)
-
+      def format(formatter, **options)
+        routes_to_display = filter_routes(options)
         routes = collect_routes(routes_to_display)
 
         if routes.none?
@@ -82,12 +81,16 @@ module ActionDispatch
 
       private
 
-      def filter_routes(filter)
-        if filter
+      def filter_routes(options)
+        filter = options[:filter]
+        filtered_routes = if filter
           @routes.select { |route| route.defaults[:controller] == filter }
         else
           @routes
         end
+
+        pattern = /#{options[:pattern]}/
+        filtered_routes.select { |r| r.defaults.values.join(' '.freeze) =~ pattern }
       end
 
       def collect_routes(routes)
