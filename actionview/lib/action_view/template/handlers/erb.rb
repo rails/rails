@@ -138,7 +138,7 @@ module ActionView
         #
         #   <% cache notification.event do %> # => nil
         def resource_cache_call_pattern
-          /\A(?:<%#.*%>\n?)?<% cache\(?\s*(\w+\.?)/
+          /\A(?:<%#.*%>)*\s*<%\s*cache\(?\s*(\w+)[\s\)]/m
         end
 
       private

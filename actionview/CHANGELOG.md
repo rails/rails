@@ -1,3 +1,8 @@
+*   Improve detection of partial templates eligible for collection caching,
+    now allowing multi-line comments at the beginning of the template file.
+
+    *Dov Murik*
+
 *   Raise an ArgumentError when a false value for `include_blank` is passed to a
     required select field (to comply with the HTML5 spec).
 
