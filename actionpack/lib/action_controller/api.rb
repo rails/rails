@@ -128,7 +128,11 @@ module ActionController
 
       # Add instrumentations hooks at the bottom, to ensure they instrument
       # all the methods properly.
-      Instrumentation
+      Instrumentation,
+
+      # Params wrapper should come before instrumentation so they are
+      # properly showed in logs
+      ParamsWrapper
     ]
 
     MODULES.each do |mod|
