@@ -97,6 +97,14 @@ module ActiveRecord
 
       ##
       # :singleton-method:
+      # Specifies the class the ActiveRecord will use to dump the schema. If
+      # the value is :default, it will use the built-in dumper. Otherwise it will
+      # use the class specified.
+      mattr_accessor :schema_dumper, instance_writer: false
+      self.schema_dumper = :default
+
+      ##
+      # :singleton-method:
       # Specify a threshold for the size of query result sets. If the number of
       # records in the set exceeds the threshold, a warning is logged. This can
       # be used to identify queries which load thousands of records and

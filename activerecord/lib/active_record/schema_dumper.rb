@@ -3,10 +3,8 @@ require 'stringio'
 module ActiveRecord
   # = Active Record Schema Dumper
   #
-  # This class is used to dump the database schema for some connection to some
-  # output format (i.e., ActiveRecord::Schema).
+  # This class is used as the default schema dumper for ActiveRecord.
   class SchemaDumper #:nodoc:
-    private_class_method :new
 
     ##
     # :singleton-method:
@@ -16,19 +14,10 @@ module ActiveRecord
     cattr_accessor :ignore_tables
     @@ignore_tables = []
 
-    class << self
-      def dump(connection=ActiveRecord::Base.connection, stream=STDOUT, config = ActiveRecord::Base)
-        new(connection, generate_options(config)).dump(stream)
-        stream
-      end
-
-      private
-        def generate_options(config)
-          {
-            table_name_prefix: config.table_name_prefix,
-            table_name_suffix: config.table_name_suffix
-          }
-        end
+    def initialize(connection, options = {})
+      @connection = connection
+      @version = Migrator::current_version rescue nil
+      @options = options
     end
 
     def dump(stream)
@@ -40,12 +29,6 @@ module ActiveRecord
     end
 
     private
-
-      def initialize(connection, options = {})
-        @connection = connection
-        @version = Migrator::current_version rescue nil
-        @options = options
-      end
 
       def header(stream)
         define_params = @version ? "version: #{@version}" : ""

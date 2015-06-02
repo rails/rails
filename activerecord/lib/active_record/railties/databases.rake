@@ -234,7 +234,7 @@ db_namespace = namespace :db do
       require 'active_record/schema_dumper'
       filename = ENV['SCHEMA'] || File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, 'schema.rb')
       File.open(filename, "w:utf-8") do |file|
-        ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, file)
+        ActiveRecord::SchemaManager.dump(ActiveRecord::Base.connection, file)
       end
       db_namespace['schema:dump'].reenable
     end
