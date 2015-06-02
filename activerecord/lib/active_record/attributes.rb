@@ -153,8 +153,7 @@ module ActiveRecord
       # use the type defined by the model class to convert the value to SQL,
       # calling +serialize+ on your type object. For example:
       #
-      #   class Money < Struct.new(:amount, :currency)
-      #   end
+      #   Money = Struct.new(:amount, :currency)
       #
       #   class MoneyType < Type::Value
       #     def initialize(currency_converter)

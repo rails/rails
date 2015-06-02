@@ -89,7 +89,7 @@ class Module
   #
   #   Person = Struct.new(:name, :address)
   #
-  #   class Invoice < Struct.new(:client)
+  #   Invoice = Struct.new(:client) do
   #     delegate :name, :address, to: :client, prefix: true
   #   end
   #
@@ -100,7 +100,7 @@ class Module
   #
   # It is also possible to supply a custom prefix.
   #
-  #   class Invoice < Struct.new(:client)
+  #   Invoice = Struct.new(:client) do
   #     delegate :name, :address, to: :client, prefix: :customer
   #   end
   #

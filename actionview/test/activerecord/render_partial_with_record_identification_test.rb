@@ -87,7 +87,7 @@ class RenderPartialWithRecordIdentificationTest < ActiveRecordTestCase
   end
 end
 
-class Game < Struct.new(:name, :id)
+Game = Struct.new(:name, :id) do
   extend ActiveModel::Naming
   include ActiveModel::Conversion
   def to_param

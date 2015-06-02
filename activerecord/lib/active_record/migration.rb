@@ -488,7 +488,7 @@ module ActiveRecord
       @connection.respond_to?(:reverting) && @connection.reverting
     end
 
-    class ReversibleBlockHelper < Struct.new(:reverting) # :nodoc:
+    ReversibleBlockHelper = Struct.new(:reverting) do # :nodoc:
       def up
         yield unless reverting
       end
@@ -731,8 +731,7 @@ module ActiveRecord
 
   # MigrationProxy is used to defer loading of the actual migration classes
   # until they are needed
-  class MigrationProxy < Struct.new(:name, :version, :filename, :scope)
-
+  MigrationProxy = Struct.new(:name, :version, :filename, :scope) do
     def initialize(name, version, filename, scope)
       super
       @migration = nil
@@ -758,7 +757,6 @@ module ActiveRecord
         require(File.expand_path(filename))
         name.constantize.new(name, version)
       end
-
   end
 
   class NullMigration < MigrationProxy #:nodoc:
