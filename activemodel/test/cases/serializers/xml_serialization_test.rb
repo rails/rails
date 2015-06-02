@@ -9,8 +9,7 @@ module Admin
   end
 end
 
-class Customer < Struct.new(:name)
-end
+Customer = Struct.new(:name)
 
 class Address
   include ActiveModel::Serializers::Xml
