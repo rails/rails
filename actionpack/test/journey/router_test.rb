@@ -1,4 +1,4 @@
-# encoding: UTF-8
+# encoding: utf-8
 require 'abstract_unit'
 
 module ActionDispatch
@@ -13,7 +13,7 @@ module ActionDispatch
         @formatter = Formatter.new(@routes)
       end
 
-      class FakeRequestFeeler < Struct.new(:env, :called)
+      FakeRequestFeeler = Struct.new(:env, :called) do
         def new env
           self.env = env
           self

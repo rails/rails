@@ -8,7 +8,7 @@ module ActiveRecord
   class RelationTest < ActiveRecord::TestCase
     fixtures :posts, :comments, :authors
 
-    class FakeKlass < Struct.new(:table_name, :name)
+    FakeKlass = Struct.new(:table_name, :name) do
       extend ActiveRecord::Delegation::DelegateCache
 
       inherited self

@@ -4,7 +4,7 @@ class ActiveModelHelperTest < ActionView::TestCase
   tests ActionView::Helpers::ActiveModelHelper
 
   silence_warnings do
-    class Post < Struct.new(:author_name, :body, :updated_at)
+    Post = Struct.new(:author_name, :body, :updated_at) do
       include ActiveModel::Conversion
       include ActiveModel::Validations
 
