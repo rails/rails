@@ -459,11 +459,8 @@ module ActiveRecord
       end
 
       if result.size == expected_size
-        # result
-        records_by_id = result.each_with_object(Hash.new) do |record, by_id|
-          by_id[record.id] = record
-        end
-        ids.first(expected_size).collect { |id| records_by_id[id] }
+        records_by_id = result.index_by(&:id)
+        ids.first(expected_size).collect { |id| records_by_id[id.to_i] }
       else
         raise_record_not_found_exception!(ids, result.size, expected_size)
       end
