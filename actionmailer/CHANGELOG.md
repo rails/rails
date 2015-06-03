@@ -1,3 +1,8 @@
+*   Add `config.action_mailer.deliver_later_queue_name` configuration to set the
+    mailer queue name.
+
+    *Chris McGrath*
+
 *   `assert_emails` in block form use the given number as expected value.
     This makes the error message much easier to understand.
 
