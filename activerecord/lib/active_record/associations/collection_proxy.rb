@@ -470,15 +470,16 @@ module ActiveRecord
         @association.destroy_all
       end
 
-      # Deletes the +records+ supplied and removes them from the collection. For
-      # +has_many+ associations, the deletion is done according to the strategy
-      # specified by the <tt>:dependent</tt> option. Returns an array with the
+      # Deletes the +records+ supplied from the collection according to the strategy
+      # specified by the +:dependent+ option. If no +:dependent+ option is given,
+      # then it will follow the default strategy. Returns an array with the
       # deleted records.
       #
-      # If no <tt>:dependent</tt> option is given, then it will follow the default
-      # strategy. The default strategy is <tt>:nullify</tt>. This sets the foreign
-      # keys to <tt>NULL</tt>. For, +has_many+ <tt>:through</tt>, the default
-      # strategy is +delete_all+.
+      # For +has_many :through+ associations, the default deletion strategy is
+      # +:delete_all+.
+      #
+      # For +has_many+ associations, the default deletion strategy is +:nullify+.
+      # This sets the foreign keys to +NULL+.
       #
       #   class Person < ActiveRecord::Base
       #     has_many :pets # dependent: :nullify option by default
