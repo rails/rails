@@ -50,6 +50,10 @@ group :test do
   #   gem 'debugger'
   # end
 
+  platforms :mri do
+    gem 'stackprof'
+  end
+
   gem 'benchmark-ips'
 end
 
