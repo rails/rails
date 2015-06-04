@@ -58,6 +58,24 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal 'The Fourth Topic of the day', records[0].title
     assert_equal 'The Second Topic of the day', records[1].title
     assert_equal 'The Fifth Topic of the day', records[2].title
+
+    records = Topic.find(['4','2','5'])
+    assert_equal 'The Fourth Topic of the day', records[0].title
+    assert_equal 'The Second Topic of the day', records[1].title
+    assert_equal 'The Fifth Topic of the day', records[2].title
+
+    records = Topic.find('4','2','5')
+    assert_equal 'The Fourth Topic of the day', records[0].title
+    assert_equal 'The Second Topic of the day', records[1].title
+    assert_equal 'The Fifth Topic of the day', records[2].title
+  end
+
+  def test_find_with_ids_and_order_clause
+    # The order clause takes precedence over the informed ids
+    records = Topic.order(:author_name).find([5,3,1])
+    assert_equal 'The Third Topic of the day', records[0].title
+    assert_equal 'The First Topic',            records[1].title
+    assert_equal 'The Fifth Topic of the day', records[2].title
   end
 
   def test_find_passing_active_record_object_is_deprecated
