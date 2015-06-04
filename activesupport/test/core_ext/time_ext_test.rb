@@ -605,13 +605,15 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_days_in_month_feb_in_common_year_without_year_arg
-    Time.stubs(:now).returns(Time.utc(2007))
-    assert_equal 28, Time.days_in_month(2)
+    Time.stub(:now, Time.utc(2007)) do
+      assert_equal 28, Time.days_in_month(2)
+    end
   end
 
   def test_days_in_month_feb_in_leap_year_without_year_arg
-    Time.stubs(:now).returns(Time.utc(2008))
-    assert_equal 29, Time.days_in_month(2)
+    Time.stub(:now, Time.utc(2008)) do
+      assert_equal 29, Time.days_in_month(2)
+    end
   end
 
   def test_last_month_on_31st
@@ -623,68 +625,74 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_today_with_time_local
-    Date.stubs(:current).returns(Date.new(2000, 1, 1))
-    assert_equal false, Time.local(1999,12,31,23,59,59).today?
-    assert_equal true,  Time.local(2000,1,1,0).today?
-    assert_equal true,  Time.local(2000,1,1,23,59,59).today?
-    assert_equal false, Time.local(2000,1,2,0).today?
+    Date.stub(:current, Date.new(2000, 1, 1)) do
+      assert_equal false, Time.local(1999,12,31,23,59,59).today?
+      assert_equal true,  Time.local(2000,1,1,0).today?
+      assert_equal true,  Time.local(2000,1,1,23,59,59).today?
+      assert_equal false, Time.local(2000,1,2,0).today?
+    end
   end
 
   def test_today_with_time_utc
-    Date.stubs(:current).returns(Date.new(2000, 1, 1))
-    assert_equal false, Time.utc(1999,12,31,23,59,59).today?
-    assert_equal true,  Time.utc(2000,1,1,0).today?
-    assert_equal true,  Time.utc(2000,1,1,23,59,59).today?
-    assert_equal false, Time.utc(2000,1,2,0).today?
+    Date.stub(:current, Date.new(2000, 1, 1)) do
+      assert_equal false, Time.utc(1999,12,31,23,59,59).today?
+      assert_equal true,  Time.utc(2000,1,1,0).today?
+      assert_equal true,  Time.utc(2000,1,1,23,59,59).today?
+      assert_equal false, Time.utc(2000,1,2,0).today?
+    end
   end
 
   def test_past_with_time_current_as_time_local
     with_env_tz 'US/Eastern' do
-      Time.stubs(:current).returns(Time.local(2005,2,10,15,30,45))
-      assert_equal true,  Time.local(2005,2,10,15,30,44).past?
-      assert_equal false,  Time.local(2005,2,10,15,30,45).past?
-      assert_equal false,  Time.local(2005,2,10,15,30,46).past?
-      assert_equal true,  Time.utc(2005,2,10,20,30,44).past?
-      assert_equal false,  Time.utc(2005,2,10,20,30,45).past?
-      assert_equal false,  Time.utc(2005,2,10,20,30,46).past?
+      Time.stub(:current, Time.local(2005,2,10,15,30,45)) do
+        assert_equal true,  Time.local(2005,2,10,15,30,44).past?
+        assert_equal false,  Time.local(2005,2,10,15,30,45).past?
+        assert_equal false,  Time.local(2005,2,10,15,30,46).past?
+        assert_equal true,  Time.utc(2005,2,10,20,30,44).past?
+        assert_equal false,  Time.utc(2005,2,10,20,30,45).past?
+        assert_equal false,  Time.utc(2005,2,10,20,30,46).past?
+      end
     end
   end
 
   def test_past_with_time_current_as_time_with_zone
     with_env_tz 'US/Eastern' do
       twz = Time.utc(2005,2,10,15,30,45).in_time_zone('Central Time (US & Canada)')
-      Time.stubs(:current).returns(twz)
-      assert_equal true,  Time.local(2005,2,10,10,30,44).past?
-      assert_equal false,  Time.local(2005,2,10,10,30,45).past?
-      assert_equal false,  Time.local(2005,2,10,10,30,46).past?
-      assert_equal true,  Time.utc(2005,2,10,15,30,44).past?
-      assert_equal false,  Time.utc(2005,2,10,15,30,45).past?
-      assert_equal false,  Time.utc(2005,2,10,15,30,46).past?
+      Time.stub(:current, twz) do
+        assert_equal true,  Time.local(2005,2,10,10,30,44).past?
+        assert_equal false,  Time.local(2005,2,10,10,30,45).past?
+        assert_equal false,  Time.local(2005,2,10,10,30,46).past?
+        assert_equal true,  Time.utc(2005,2,10,15,30,44).past?
+        assert_equal false,  Time.utc(2005,2,10,15,30,45).past?
+        assert_equal false,  Time.utc(2005,2,10,15,30,46).past?
+      end
     end
   end
 
   def test_future_with_time_current_as_time_local
     with_env_tz 'US/Eastern' do
-      Time.stubs(:current).returns(Time.local(2005,2,10,15,30,45))
-      assert_equal false,  Time.local(2005,2,10,15,30,44).future?
-      assert_equal false,  Time.local(2005,2,10,15,30,45).future?
-      assert_equal true,  Time.local(2005,2,10,15,30,46).future?
-      assert_equal false,  Time.utc(2005,2,10,20,30,44).future?
-      assert_equal false,  Time.utc(2005,2,10,20,30,45).future?
-      assert_equal true,  Time.utc(2005,2,10,20,30,46).future?
+      Time.stub(:current, Time.local(2005,2,10,15,30,45)) do
+        assert_equal false,  Time.local(2005,2,10,15,30,44).future?
+        assert_equal false,  Time.local(2005,2,10,15,30,45).future?
+        assert_equal true,  Time.local(2005,2,10,15,30,46).future?
+        assert_equal false,  Time.utc(2005,2,10,20,30,44).future?
+        assert_equal false,  Time.utc(2005,2,10,20,30,45).future?
+        assert_equal true,  Time.utc(2005,2,10,20,30,46).future?
+      end
     end
   end
 
   def test_future_with_time_current_as_time_with_zone
     with_env_tz 'US/Eastern' do
       twz = Time.utc(2005,2,10,15,30,45).in_time_zone('Central Time (US & Canada)')
-      Time.stubs(:current).returns(twz)
-      assert_equal false,  Time.local(2005,2,10,10,30,44).future?
-      assert_equal false,  Time.local(2005,2,10,10,30,45).future?
-      assert_equal true,  Time.local(2005,2,10,10,30,46).future?
-      assert_equal false,  Time.utc(2005,2,10,15,30,44).future?
-      assert_equal false,  Time.utc(2005,2,10,15,30,45).future?
-      assert_equal true,  Time.utc(2005,2,10,15,30,46).future?
+      Time.stub(:current, twz) do
+        assert_equal false,  Time.local(2005,2,10,10,30,44).future?
+        assert_equal false,  Time.local(2005,2,10,10,30,45).future?
+        assert_equal true,  Time.local(2005,2,10,10,30,46).future?
+        assert_equal false,  Time.utc(2005,2,10,15,30,44).future?
+        assert_equal false,  Time.utc(2005,2,10,15,30,45).future?
+        assert_equal true,  Time.utc(2005,2,10,15,30,46).future?
+      end
     end
   end
 
