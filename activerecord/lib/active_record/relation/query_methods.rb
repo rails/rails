@@ -977,6 +977,8 @@ module ActiveRecord
       new_opts = {}
       binds = []
 
+      connection = self.connection
+
       bindable.each do |(column,value)|
         binds.push [@klass.columns_hash[column.to_s], value]
         new_opts[column] = connection.substitute_at(column)
