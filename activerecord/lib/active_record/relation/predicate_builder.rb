@@ -6,7 +6,9 @@ module ActiveRecord
     autoload :ArrayHandler, 'active_record/relation/predicate_builder/array_handler'
 
     def self.resolve_column_aliases(klass, hash)
-      hash = hash.dup
+      # This method is a hot spot, so for now, use Hash[] to dup the hash.
+      #   https://bugs.ruby-lang.org/issues/7166
+      hash = Hash[hash]
       hash.keys.grep(Symbol) do |key|
         if klass.attribute_alias? key
           hash[klass.attribute_alias(key)] = hash.delete key
