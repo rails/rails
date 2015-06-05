@@ -38,7 +38,7 @@ module ActionController
   # can use <tt>render :json</tt> and brothers freely in your controllers. Keep
   # in mind that templates are not going to be rendered, so you need to ensure
   # your controller is calling either <tt>render</tt> or <tt>redirect</tt> in
-  # all actions.
+  # all actions, otherwise it will return 204 No Content response.
   #
   #   def show
   #     @post = Post.find(params[:id])
