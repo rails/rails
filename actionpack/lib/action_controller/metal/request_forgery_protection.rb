@@ -258,7 +258,7 @@ module ActionController #:nodoc:
 
       # Returns true or false if a request is verified. Checks:
       #
-      # * is it a GET or HEAD request?  Gets should be safe and idempotent
+      # * Is it a GET or HEAD request?  Gets should be safe and idempotent
       # * Does the form_authenticity_token match the given token value from the params?
       # * Does the X-CSRF-Token header match the form_authenticity_token
       def verified_request?

@@ -196,9 +196,9 @@ module ActiveRecord
     # automatically released. The following example demonstrates the problem:
     #
     #   Model.connection.transaction do                           # BEGIN
-    #     Model.connection.transaction(requires_new: true) do  # CREATE SAVEPOINT active_record_1
+    #     Model.connection.transaction(requires_new: true) do     # CREATE SAVEPOINT active_record_1
     #       Model.connection.create_table(...)                    # active_record_1 now automatically released
-    #     end                                                     # RELEASE savepoint active_record_1
+    #     end                                                     # RELEASE SAVEPOINT active_record_1
     #                                                             # ^^^^ BOOM! database error!
     #   end
     #

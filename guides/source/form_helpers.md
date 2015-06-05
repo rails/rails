@@ -291,8 +291,8 @@ You can create a similar binding without actually creating `<form>` tags with th
 ```erb
 <%= form_for @person, url: {action: "create"} do |person_form| %>
   <%= person_form.text_field :name %>
-  <%= fields_for @person.contact_detail do |contact_details_form| %>
-    <%= contact_details_form.text_field :phone_number %>
+  <%= fields_for @person.contact_detail do |contact_detail_form| %>
+    <%= contact_detail_form.text_field :phone_number %>
   <% end %>
 <% end %>
 ```
@@ -441,7 +441,7 @@ Whenever Rails sees that the internal value of an option being generated matches
 
 TIP: The second argument to `options_for_select` must be exactly equal to the desired internal value. In particular if the value is the integer `2` you cannot pass `"2"` to `options_for_select` - you must pass `2`. Be aware of values extracted from the `params` hash as they are all strings.
 
-WARNING: when `:include_blank` or `:prompt` are not present, `:include_blank` is forced true if the select attribute `required` is true, display `size` is one and `multiple` is not true.
+WARNING: When `:include_blank` or `:prompt` are not present, `:include_blank` is forced true if the select attribute `required` is true, display `size` is one and `multiple` is not true.
 
 You can add arbitrary attributes to the options using hashes:
 
