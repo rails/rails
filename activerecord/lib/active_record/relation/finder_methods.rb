@@ -459,6 +459,7 @@ module ActiveRecord
       end
 
       if result.size == expected_size
+        return result if self.values[:order]
         records_by_id = result.index_by(&:id)
         ids.first(expected_size).collect { |id| records_by_id[id.to_i] }
       else

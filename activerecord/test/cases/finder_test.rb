@@ -76,6 +76,11 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal 'The Third Topic of the day', records[0].title
     assert_equal 'The First Topic',            records[1].title
     assert_equal 'The Fifth Topic of the day', records[2].title
+
+    records = Topic.order(:id).find([5,3,1])
+    assert_equal 'The First Topic',            records[0].title
+    assert_equal 'The Third Topic of the day', records[1].title
+    assert_equal 'The Fifth Topic of the day', records[2].title
   end
 
   def test_find_with_ids_and_limit
