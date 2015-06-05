@@ -1,16 +1,11 @@
-unless File.exist?('Gemfile')
-  File.write('Gemfile', <<-GEMFILE)
-    source 'https://rubygems.org'
-    gem 'rails', github: 'rails/rails'
-    gem 'arel', github: 'rails/arel'
-    gem 'sqlite3'
-  GEMFILE
+require 'bundler/inline'
 
-  system 'bundle'
+gemfile(true) do
+  source 'https://rubygems.org'
+  gem 'rails', github: 'rails/rails'
+  gem 'arel', github: 'rails/arel'
+  gem 'sqlite3'
 end
-
-require 'bundler'
-Bundler.setup(:default)
 
 require 'active_record'
 require 'minitest/autorun'
