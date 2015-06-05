@@ -1,7 +1,11 @@
-# Activate the gem you are reporting the issue against.
-gem 'rails', '4.2.0'
+require 'bundler/inline'
 
-require 'rails'
+gemfile(true) do
+  source 'https://rubygems.org'
+  # Activate the gem you are reporting the issue against.
+  gem 'rails', '4.2.0'
+end
+
 require 'rack/test'
 require 'action_controller/railtie'
 

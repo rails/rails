@@ -19,6 +19,7 @@ env:
     - "GEM=ar:sqlite3"
     - "GEM=ar:postgresql"
     - "GEM=aj:integration"
+    - "GEM=guides"
 rvm:
   - 2.2.2
   - ruby-head
