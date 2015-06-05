@@ -211,12 +211,7 @@ module ActionDispatch
             method, args = builder.handle_model record_or_hash_or_array
           end
 
-
-          if options.empty?
-            recipient.send(method, *args)
-          else
-            recipient.send(method, *args, options)
-          end
+          recipient.send(method, *args, options)
         end
 
         attr_reader :suffix, :prefix
