@@ -6,7 +6,15 @@ class PostgresqlPointTest < ActiveRecord::TestCase
   include ConnectionHelper
   include SchemaDumpingHelper
 
-  class PostgresqlPoint < ActiveRecord::Base; end
+  class PostgresqlPoint < ActiveRecord::Base
+    attribute :x, :rails_5_1_point
+    attribute :y, :rails_5_1_point
+    attribute :z, :rails_5_1_point
+    attribute :array_of_points, :rails_5_1_point, array: true
+    attribute :legacy_x, :legacy_point
+    attribute :legacy_y, :legacy_point
+    attribute :legacy_z, :legacy_point
+  end
 
   def setup
     @connection = ActiveRecord::Base.connection
@@ -14,11 +22,27 @@ class PostgresqlPointTest < ActiveRecord::TestCase
       t.point :x
       t.point :y, default: [12.2, 13.3]
       t.point :z, default: "(14.4,15.5)"
+      t.point :array_of_points, array: true
+      t.point :legacy_x
+      t.point :legacy_y, default: [12.2, 13.3]
+      t.point :legacy_z, default: "(14.4,15.5)"
+    end
+    @connection.create_table('deprecated_points') do |t|
+      t.point :x
     end
   end
 
   teardown do
     @connection.drop_table 'postgresql_points', if_exists: true
+    @connection.drop_table 'deprecated_points', if_exists: true
+  end
+
+  class DeprecatedPoint < ActiveRecord::Base; end
+
+  def test_deprecated_legacy_type
+    assert_deprecated do
+      DeprecatedPoint.new
+    end
   end
 
   def test_column
@@ -32,11 +56,11 @@ class PostgresqlPointTest < ActiveRecord::TestCase
   end
 
   def test_default
-    assert_equal [12.2, 13.3], PostgresqlPoint.column_defaults['y']
-    assert_equal [12.2, 13.3], PostgresqlPoint.new.y
+    assert_equal ActiveRecord::Point.new(12.2, 13.3), PostgresqlPoint.column_defaults['y']
+    assert_equal ActiveRecord::Point.new(12.2, 13.3), PostgresqlPoint.new.y
 
-    assert_equal [14.4, 15.5], PostgresqlPoint.column_defaults['z']
-    assert_equal [14.4, 15.5], PostgresqlPoint.new.z
+    assert_equal ActiveRecord::Point.new(14.4, 15.5), PostgresqlPoint.column_defaults['z']
+    assert_equal ActiveRecord::Point.new(14.4, 15.5), PostgresqlPoint.new.z
   end
 
   def test_schema_dumping
@@ -49,22 +73,95 @@ class PostgresqlPointTest < ActiveRecord::TestCase
   def test_roundtrip
     PostgresqlPoint.create! x: [10, 25.2]
     record = PostgresqlPoint.first
-    assert_equal [10, 25.2], record.x
+    assert_equal ActiveRecord::Point.new(10, 25.2), record.x
 
-    record.x = [1.1, 2.2]
+    record.x = ActiveRecord::Point.new(1.1, 2.2)
     record.save!
     assert record.reload
-    assert_equal [1.1, 2.2], record.x
+    assert_equal ActiveRecord::Point.new(1.1, 2.2), record.x
   end
 
   def test_mutation
-    p = PostgresqlPoint.create! x: [10, 20]
+    p = PostgresqlPoint.create! x: ActiveRecord::Point.new(10, 20)
 
-    p.x[1] = 25
+    p.x.y = 25
     p.save!
     p.reload
 
-    assert_equal [10.0, 25.0], p.x
+    assert_equal ActiveRecord::Point.new(10.0, 25.0), p.x
+    assert_not p.changed?
+  end
+
+  def test_array_assignment
+    p = PostgresqlPoint.new(x: [1, 2])
+
+    assert_equal ActiveRecord::Point.new(1, 2), p.x
+  end
+
+  def test_string_assignment
+    p = PostgresqlPoint.new(x: "(1, 2)")
+
+    assert_equal ActiveRecord::Point.new(1, 2), p.x
+  end
+
+  def test_array_of_points_round_trip
+    expected_value = [
+      ActiveRecord::Point.new(1, 2),
+      ActiveRecord::Point.new(2, 3),
+      ActiveRecord::Point.new(3, 4),
+    ]
+    p = PostgresqlPoint.new(array_of_points: expected_value)
+
+    assert_equal expected_value, p.array_of_points
+    p.save!
+    p.reload
+    assert_equal expected_value, p.array_of_points
+  end
+
+  def test_legacy_column
+    column = PostgresqlPoint.columns_hash["legacy_x"]
+    assert_equal :point, column.type
+    assert_equal "point", column.sql_type
+    assert_not column.array?
+
+    type = PostgresqlPoint.type_for_attribute("legacy_x")
+    assert_not type.binary?
+  end
+
+  def test_legacy_default
+    assert_equal [12.2, 13.3], PostgresqlPoint.column_defaults['legacy_y']
+    assert_equal [12.2, 13.3], PostgresqlPoint.new.legacy_y
+
+    assert_equal [14.4, 15.5], PostgresqlPoint.column_defaults['legacy_z']
+    assert_equal [14.4, 15.5], PostgresqlPoint.new.legacy_z
+  end
+
+  def test_legacy_schema_dumping
+    output = dump_table_schema("postgresql_points")
+    assert_match %r{t\.point\s+"legacy_x"$}, output
+    assert_match %r{t\.point\s+"legacy_y",\s+default: \[12\.2, 13\.3\]$}, output
+    assert_match %r{t\.point\s+"legacy_z",\s+default: \[14\.4, 15\.5\]$}, output
+  end
+
+  def test_legacy_roundtrip
+    PostgresqlPoint.create! legacy_x: [10, 25.2]
+    record = PostgresqlPoint.first
+    assert_equal [10, 25.2], record.legacy_x
+
+    record.legacy_x = [1.1, 2.2]
+    record.save!
+    assert record.reload
+    assert_equal [1.1, 2.2], record.legacy_x
+  end
+
+  def test_legacy_mutation
+    p = PostgresqlPoint.create! legacy_x: [10, 20]
+
+    p.legacy_x[1] = 25
+    p.save!
+    p.reload
+
+    assert_equal [10.0, 25.0], p.legacy_x
     assert_not p.changed?
   end
 end
