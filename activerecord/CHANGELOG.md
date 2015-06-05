@@ -1,3 +1,11 @@
+*   ActiveRecord::Relation#count: raise an ArgumentError when finder options
+    are specified or an ActiveRecord::StatementInvalid when an invalid type
+    is provided for a column name (e.g. a Hash).
+
+    Fixes #20434
+
+    *Konstantinos Rousis*
+
 *   Fix regression when loading fixture files with symbol keys.
 
     Closes #22584.
