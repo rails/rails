@@ -29,6 +29,18 @@ class ConsoleTest < ActiveSupport::TestCase
     assert_instance_of ActionDispatch::Integration::Session, console_session
   end
 
+  def test_app_can_access_path_helper_method
+    app_file 'config/routes.rb', <<-RUBY
+      Rails.application.routes.draw do
+        get 'foo', to: 'foo#index'
+      end
+    RUBY
+
+    load_environment
+    console_session = irb_context.app
+    assert_equal '/foo', console_session.foo_path
+  end
+
   def test_new_session_should_return_integration_session
     load_environment
     session = irb_context.new_session
