@@ -6,7 +6,6 @@ gemfile(true) do
   gem 'arel', github: 'rails/arel'
 end
 
-require 'rails'
 require 'action_controller/railtie'
 
 class TestApp < Rails::Application

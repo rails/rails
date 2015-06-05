@@ -1,5 +1,12 @@
-# Activate the gem you are reporting the issue against.
-gem 'activerecord', '4.2.0'
+require 'bundler/inline'
+
+gemfile(true) do
+  source 'https://rubygems.org'
+  # Activate the gem you are reporting the issue against.
+  gem 'activerecord', '4.2.0'
+  gem 'sqlite3'
+end
+
 require 'active_record'
 require 'minitest/autorun'
 require 'logger'

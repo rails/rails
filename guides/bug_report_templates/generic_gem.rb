@@ -1,6 +1,11 @@
-# Activate the gems you are reporting the issue against.
-gem 'activesupport', '4.2.0'
-require 'active_support'
+require 'bundler/inline'
+
+gemfile(true) do
+  source 'https://rubygems.org'
+  # Activate the gem you are reporting the issue against.
+  gem 'activesupport', '4.2.0'
+end
+
 require 'active_support/core_ext/object/blank'
 require 'minitest/autorun'
 
