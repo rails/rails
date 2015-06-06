@@ -167,6 +167,36 @@ class DurationTest < ActiveSupport::TestCase
     Time.zone = nil
   end
 
+  def test_range_from_with_now
+    now = Time.current
+    assert_equal 1.month.range_from(now), now..1.month.since(now)
+  end
+
+  def test_range_from_with_future_date
+    date = Date.tomorrow
+    assert_equal 3.weeks.range_from(date), date..3.weeks.since(date)
+  end
+
+  def test_range_from_with_past_time
+    time = 1.hour.ago
+    assert_equal 2.hours.range_from(time), time..2.hours.since(time)
+  end
+
+  def test_range_until_with_now
+    now = Time.current
+    assert_equal 1.month.range_until(now), 1.month.until(now)..now
+  end
+
+  def test_range_until_with_future_date
+    date = 3.days.from_now
+    assert_equal 1.day.range_until(date), 1.day.until(date)..date
+  end
+
+  def test_range_until_with_past_date
+    date = 3.days.ago
+    assert_equal 1.day.range_until(date), 1.day.until(date)..date
+  end
+
   def test_adding_hours_across_dst_boundary
     with_env_tz 'CET' do
       assert_equal Time.local(2009,3,29,0,0,0) + 24.hours, Time.local(2009,3,30,1,0,0)

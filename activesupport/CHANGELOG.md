@@ -1,3 +1,15 @@
+*   Add methods `ActiveSupport::Duration#range_from` and 
+    `ActiveSupport::Duration#range_until` with corresponding aliases
+    ending in `_now`. 
+    
+        User.where(created_at: 1.week.range_until_now)
+        User.where(created_at: 1.week.range_until(3.days.ago))
+        
+        User.where(birthday: 3.months.range_from_now)
+        User.where(birthday: 3.months.range_from(1.month.ago))
+        
+    *Volodymyr Shatsky*
+    
 *   Fix a range of values for parameters of the Time#change
 
     *Nikolay Kondratyev*

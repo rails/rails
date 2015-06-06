@@ -457,7 +457,7 @@ NOTE: The values cannot be symbols. For example, you cannot do `Client.where(sta
 #### Range Conditions
 
 ```ruby
-Client.where(created_at: (Time.now.midnight - 1.day)..Time.now.midnight)
+Client.where(created_at: 1.day.range_until(Time.now.midnight))
 ```
 
 This will find all clients created yesterday by using a `BETWEEN` SQL statement:
@@ -1053,15 +1053,13 @@ SELECT categories.* FROM categories
 You can specify conditions on the joined tables using the regular [Array](#array-conditions) and [String](#pure-string-conditions) conditions. [Hash conditions](#hash-conditions) provides a special syntax for specifying conditions for the joined tables:
 
 ```ruby
-time_range = (Time.now.midnight - 1.day)..Time.now.midnight
-Client.joins(:orders).where('orders.created_at' => time_range)
+Client.joins(:orders).where('orders.created_at' => 1.day.range_until(Time.now.midnight))
 ```
 
 An alternative and cleaner syntax is to nest the hash conditions:
 
 ```ruby
-time_range = (Time.now.midnight - 1.day)..Time.now.midnight
-Client.joins(:orders).where(orders: { created_at: time_range })
+Client.joins(:orders).where(orders: { created_at: 1.day.range_until(Time.now.midnight) })
 ```
 
 This will find all clients who have orders that were created yesterday, again using a `BETWEEN` SQL expression.
