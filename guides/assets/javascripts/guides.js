@@ -52,8 +52,44 @@ var guidesIndex = {
   }
 };
 
-// Disable autolink inside example code blocks of guides.
-$(document).ready(function() {
-  SyntaxHighlighter.defaults['auto-links'] = false;
-  SyntaxHighlighter.all();
-});
+(function(){
+      'use strict';
+
+      var Linkifier = function(){
+        var MAPPINGS =  {
+            "active_support" : "activesupport",
+            "action_view" : "actionview",
+            "action_controller" : "actionpack",
+            "abstract_controller" : "actionpack",
+            "action_pack" : "actionpack",
+            "action_dispatch" : "actionpack",
+            "active_job" : "activejob",
+            "active_model" : "activemodel",
+            "action_mailer" : "actionmailer",
+            "active_record" : "activerecord",
+          }, ret = {};
+
+        //get a github address for a source address
+        //uses document.RAILS_VERSION or master as the github branch to resolve relatively to
+        ret.src_url = function(path){
+          var prefix = "https://github.com/rails/rails/tree/" + (document.RAILS_VERSION || 'master');
+          var root = path.split("/")[0];
+          return prefix + '/' + MAPPINGS[root] + '/lib/' + path;
+        };
+        ret.linkify = function(path) {
+          return "<a href='" + this.src_url(path) + "'>" + path + "</a>";
+        };
+        return ret;
+      }();
+
+
+  // Disable autolink inside example code blocks of guides.
+  $(document).ready(function() {
+    $(".src_ref code").each(function(){
+      this.innerHTML = Linkifier.linkify(this.innerHTML);
+    });
+    SyntaxHighlighter.defaults['auto-links'] = false;
+    SyntaxHighlighter.all();
+  });
+
+})();

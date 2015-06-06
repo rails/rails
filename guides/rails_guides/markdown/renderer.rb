@@ -23,7 +23,7 @@ HTML
       end
 
       def paragraph(text)
-        if text =~ /^(TIP|IMPORTANT|CAUTION|WARNING|NOTE|INFO|TODO)[.:]/
+        if text =~ /^(TIP|IMPORTANT|CAUTION|WARNING|NOTE|SRC_REF|INFO|TODO)[.:]/
           convert_notes(text)
         elsif text.include?('DO NOT READ THIS FILE ON GITHUB')
         elsif text =~ /^\[<sup>(\d+)\]:<\/sup> (.+)$/
@@ -66,16 +66,19 @@ HTML
           # if a bulleted list follows the first item is not rendered
           # as a list item, but as a paragraph starting with a plain
           # asterisk.
-          body.gsub(/^(TIP|IMPORTANT|CAUTION|WARNING|NOTE|INFO|TODO)[.:](.*?)(\n(?=\n)|\Z)/m) do
-            css_class = case $1
+          body.gsub(/^(TIP|IMPORTANT|CAUTION|WARNING|NOTE|SRC_REF|INFO|TODO)[.:](.*?)(\n(?=\n)|\Z)/m) do
+            tag, contents = $1, $2.strip
+            css_class = case tag
                         when 'CAUTION', 'IMPORTANT'
                           'warning'
                         when 'TIP'
                           'info'
+                        when 'SRC_REF'
+                          'note src_ref'
                         else
-                          $1.downcase
+                          tag.downcase
                         end
-            %(<div class="#{css_class}"><p>#{$2.strip}</p></div>)
+            %(<div class="#{css_class}"><p>#{contents}</p></div>)
           end
         end
     end
