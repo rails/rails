@@ -1473,7 +1473,8 @@ The `collection.clear` method removes all objects from the collection according 
 @customer.orders.clear
 ```
 
-WARNING: Objects will be delete if they're associated with `dependent: :destroy`, just like `dependent: :delete_all`.
+WARNING: Objects will be deleted if they're associated with `dependent: :destroy`,
+just like `dependent: :delete_all`.
 
 ##### `collection.empty?`
 
@@ -1512,7 +1513,7 @@ The `collection.where` method finds objects within the collection based on the c
 
 ##### `collection.exists?(...)`
 
-The `collection.exists?` method checks whether an object meeting the supplied 
+The `collection.exists?` method checks whether an object meeting the supplied
 conditions exists in the collection. It uses the same syntax and options as
 [`ActiveRecord::Base.exists?`](http://api.rubyonrails.org/classes/ActiveRecord/FinderMethods.html#method-i-exists-3F).
 

@@ -662,7 +662,7 @@ module ActiveRecord
       # [<tt>:foreign_key</tt>]
       #   Add an appropriate foreign key. Defaults to false.
       # [<tt>:polymorphic</tt>]
-      #   Wether an additional +_type+ column should be added. Defaults to false.
+      #   Whether an additional +_type+ column should be added. Defaults to false.
       #
       # ====== Create a user_id integer column
       #

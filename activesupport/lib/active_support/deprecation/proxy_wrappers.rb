@@ -127,7 +127,7 @@ module ActiveSupport
         @deprecator = deprecator
       end
 
-      # Returns class of a new constant.
+      # Returns the class of the new constant.
       #
       #   PLANETS_POST_2006 = %w(mercury venus earth mars jupiter saturn uranus neptune)
       #   PLANETS = ActiveSupport::Deprecation::DeprecatedConstantProxy.new('PLANETS', 'PLANETS_POST_2006')

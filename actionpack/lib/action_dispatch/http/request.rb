@@ -228,7 +228,7 @@ module ActionDispatch
 
     alias_method :uuid, :request_id
 
-    def x_request_id # :nodoc
+    def x_request_id # :nodoc:
       @env[HTTP_X_REQUEST_ID]
     end
 
@@ -259,7 +259,7 @@ module ActionDispatch
       end
     end
 
-    # returns true if request content mime type is
+    # Returns true if the request's content MIME type is
     # +application/x-www-form-urlencoded+ or +multipart/form-data+.
     def form_data?
       FORM_DATA_MEDIA_TYPES.include?(content_mime_type.to_s)
