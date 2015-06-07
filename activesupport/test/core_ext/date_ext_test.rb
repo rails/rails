@@ -191,8 +191,9 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
   def test_yesterday_constructor_when_zone_is_set
     with_env_tz 'UTC' do
       with_tz_default ActiveSupport::TimeZone['Eastern Time (US & Canada)'] do # UTC -5
-        Time.stubs(:now).returns Time.local(2000, 1, 1)
-        assert_equal Date.new(1999, 12, 30), Date.yesterday
+        Time.stub(:now, Time.local(2000, 1, 1)) do
+          assert_equal Date.new(1999, 12, 30), Date.yesterday
+        end
       end
     end
   end
@@ -212,8 +213,9 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
   def test_tomorrow_constructor_when_zone_is_set
     with_env_tz 'UTC' do
       with_tz_default ActiveSupport::TimeZone['Europe/Paris'] do # UTC +1
-        Time.stubs(:now).returns Time.local(1999, 12, 31, 23)
-        assert_equal Date.new(2000, 1, 2), Date.tomorrow
+        Time.stub(:now, Time.local(1999, 12, 31, 23)) do
+          assert_equal Date.new(2000, 1, 2), Date.tomorrow
+        end
       end
     end
   end
@@ -317,23 +319,26 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_past
-    Date.stubs(:current).returns(Date.new(2000, 1, 1))
-    assert_equal true, Date.new(1999, 12, 31).past?
-    assert_equal false, Date.new(2000,1,1).past?
-    assert_equal false, Date.new(2000,1,2).past?
+    Date.stub(:current, Date.new(2000, 1, 1)) do
+      assert_equal true, Date.new(1999, 12, 31).past?
+      assert_equal false, Date.new(2000,1,1).past?
+      assert_equal false, Date.new(2000,1,2).past?
+    end
   end
 
   def test_future
-    Date.stubs(:current).returns(Date.new(2000, 1, 1))
-    assert_equal false, Date.new(1999, 12, 31).future?
-    assert_equal false, Date.new(2000,1,1).future?
-    assert_equal true, Date.new(2000,1,2).future?
+    Date.stub(:current, Date.new(2000, 1, 1)) do
+      assert_equal false, Date.new(1999, 12, 31).future?
+      assert_equal false, Date.new(2000,1,1).future?
+      assert_equal true, Date.new(2000,1,2).future?
+    end
   end
 
   def test_current_returns_date_today_when_zone_not_set
     with_env_tz 'US/Central' do
-      Time.stubs(:now).returns Time.local(1999, 12, 31, 23)
-      assert_equal Date.today, Date.current
+      Time.stub(:now, Time.local(1999, 12, 31, 23)) do
+        assert_equal Date.today, Date.current
+      end
     end
   end
 

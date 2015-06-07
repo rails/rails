@@ -252,9 +252,10 @@ class TimeZoneTest < ActiveSupport::TestCase
 
   def test_parse_with_incomplete_date
     zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
-    zone.stubs(:now).returns zone.local(1999,12,31)
-    twz = zone.parse('19:00:00')
-    assert_equal Time.utc(1999,12,31,19), twz.time
+    zone.stub(:now, zone.local(1999,12,31)) do
+      twz = zone.parse('19:00:00')
+      assert_equal Time.utc(1999,12,31,19), twz.time
+    end
   end
 
   def test_parse_with_day_omitted
@@ -284,9 +285,10 @@ class TimeZoneTest < ActiveSupport::TestCase
 
   def test_parse_with_missing_time_components
     zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
-    zone.stubs(:now).returns zone.local(1999, 12, 31, 12, 59, 59)
-    twz = zone.parse('2012-12-01')
-    assert_equal Time.utc(2012, 12, 1), twz.time
+    zone.stub(:now, zone.local(1999, 12, 31, 12, 59, 59)) do
+      twz = zone.parse('2012-12-01')
+      assert_equal Time.utc(2012, 12, 1), twz.time
+    end
   end
 
   def test_parse_with_javascript_date
