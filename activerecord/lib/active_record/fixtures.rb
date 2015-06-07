@@ -615,7 +615,6 @@ module ActiveRecord
     # a list of rows to insert to that table.
     def table_rows
       now = config.default_timezone == :utc ? Time.now.utc : Time.now
-      now = now.to_s(:db)
 
       # allow a standard key to be used for doing defaults in YAML
       fixtures.delete('DEFAULTS')
