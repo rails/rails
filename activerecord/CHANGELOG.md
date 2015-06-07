@@ -1,3 +1,8 @@
+*   Deprecate the PG `:point` type in favor of a new one which will return
+    `Point` objects instead of an `Array`
+
+    *Sean Griffin*
+
 *   Ensure symbols passed to `ActiveRecord::Relation#select` are always treated
     as columns.
 
