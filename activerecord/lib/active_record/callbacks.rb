@@ -199,7 +199,7 @@ module ActiveRecord
   # == Canceling callbacks
   #
   # If a <tt>before_*</tt> callback returns +false+, all the later callbacks and the associated action are
-  # cancelled. If an <tt>after_*</tt> callback returns +false+, all the later callbacks are cancelled.
+  # cancelled.
   # Callbacks are generally run in the order they are defined, with the exception of callbacks defined as
   # methods on the model, which are called last.
   #
