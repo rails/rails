@@ -488,7 +488,7 @@ module ActionView
       # selected. The <tt>datetime</tt> can be either a +Time+ or +DateTime+ object or an integer.
       # Override the field name using the <tt>:field_name</tt> option, 'minute' by default.
       #
-      #   my_time = Time.now + 6.hours
+      #   my_time = Time.now + 10.minutes
       #
       #   # Generates a select field for minutes that defaults to the minutes for the time in my_time.
       #   select_minute(my_time)
