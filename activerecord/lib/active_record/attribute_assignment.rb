@@ -5,11 +5,6 @@ module ActiveRecord
     extend ActiveSupport::Concern
     include ActiveModel::AttributeAssignment
 
-    # Alias for `assign_attributes`. See +ActiveModel::AttributeAssignment+.
-    def attributes=(attributes)
-      assign_attributes(attributes)
-    end
-
     private
 
     def _assign_attributes(attributes) # :nodoc:

@@ -33,6 +33,9 @@ module ActiveModel
       _assign_attributes(sanitize_for_mass_assignment(attributes))
     end
 
+    # Aliased to <tt>assign_attributes</tt>.
+    alias attributes= assign_attributes
+
     private
 
     def _assign_attributes(attributes)
