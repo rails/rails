@@ -86,11 +86,14 @@ module ActionDispatch
         load_for_write!
       end
 
+      # Returns value of the key stored in the session or
+      # nil if the given key is not found in the session.
       def [](key)
         load_for_read!
         @delegate[key.to_s]
       end
 
+      # Returns true if the session has the given key or false.
       def has_key?(key)
         load_for_read!
         @delegate.key?(key.to_s)
@@ -98,39 +101,69 @@ module ActionDispatch
       alias :key? :has_key?
       alias :include? :has_key?
 
+      # Returns keys of the session as Array.
       def keys
         @delegate.keys
       end
 
+      # Returns values of the session as Array.
       def values
         @delegate.values
       end
 
+      # Writes given value to given key of the session.
       def []=(key, value)
         load_for_write!
         @delegate[key.to_s] = value
       end
 
+      # Clears the session.
       def clear
         load_for_write!
         @delegate.clear
       end
 
+      # Returns the session as Hash.
       def to_hash
         load_for_read!
         @delegate.dup.delete_if { |_,v| v.nil? }
       end
 
+      # Updates the session with given Hash.
+      #
+      #   session.to_hash
+      #   # => {"session_id"=>"e29b9ea315edf98aad94cc78c34cc9b2"}
+      #
+      #   session.update({ "foo" => "bar" })
+      #   # => {"session_id"=>"e29b9ea315edf98aad94cc78c34cc9b2", "foo" => "bar"}
+      #
+      #   session.to_hash
+      #   # => {"session_id"=>"e29b9ea315edf98aad94cc78c34cc9b2", "foo" => "bar"}
       def update(hash)
         load_for_write!
         @delegate.update stringify_keys(hash)
       end
 
+      # Deletes given key from the session.
       def delete(key)
         load_for_write!
         @delegate.delete key.to_s
       end
 
+      # Returns value of given key from the session, or raises +KeyError+
+      # if can't find given key in case of not setted dafault value.
+      # Returns default value if specified.
+      #
+      #   session.fetch(:foo)
+      #   # => KeyError: key not found: "foo"
+      #
+      #   session.fetch(:foo, :bar)
+      #   # => :bar
+      #
+      #   session.fetch(:foo) do
+      #     :bar
+      #   end
+      #   # => :bar
       def fetch(key, default=Unspecified, &block)
         load_for_read!
         if default == Unspecified
