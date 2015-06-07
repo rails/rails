@@ -122,9 +122,9 @@ module ActiveModel
     #   user.notes = [note]
     #
     #   user.serializable_hash
-    #   #=> {"name" => "Napoleon"} 
+    #   # => {"name" => "Napoleon"}
     #   user.serializable_hash(include: { notes: { only: 'title' }})
-    #   #=> {"name" => "Napoleon", "notes" => [{"title"=>"Battle of Austerlitz"}]}
+    #   # => {"name" => "Napoleon", "notes" => [{"title"=>"Battle of Austerlitz"}]}
     def serializable_hash(options = nil)
       options ||= {}
 

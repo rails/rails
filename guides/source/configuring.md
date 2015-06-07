@@ -516,7 +516,8 @@ There are a number of settings available on `config.action_mailer`:
     config.action_mailer.show_previews = false
     ```
 
-* `config.action_mailer.deliver_later_queue_name`. specifies the queue name for mailers. By default this is `mailers`.
+* `config.action_mailer.deliver_later_queue_name` specifies the queue name for
+  mailers. By default this is `mailers`.
 
 ### Configuring Active Support
 
