@@ -252,6 +252,20 @@ INFO. The adapters will add their own data as well.
 | `:name`          | Record's class                            |
 | `:connection_id` | `self.object_id`                          |
 
+### instantiation.active_record
+
+| Key              | Value                                     |
+| ---------------- | ----------------------------------------- |
+| `:record_count`  | Number of records that instantiated       |
+| `:class_name`    | Record's class                            |
+
+```ruby
+{
+  record_count: 1,
+  class_name: "User"
+}
+```
+
 Action Mailer
 -------------
 
