@@ -214,7 +214,8 @@ By default `ActionView::Partials::PartialRenderer` has its object in a local var
 <%= render partial: "product" %>
 ```
 
-within product we'll get `@product` in the local variable `product`, as if we had written:
+within `_product` partial we'll get `@product` in the local variable `product`,
+as if we had written:
 
 ```erb
 <%= render partial: "product", locals: { product: @product } %>
