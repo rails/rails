@@ -188,7 +188,7 @@ If you define `default_url_options` in `ApplicationController`, as in the exampl
 ### Strong Parameters
 
 With strong parameters, Action Controller parameters are forbidden to
-be used in Active Model mass assignments until they have been
+be used in Active Record mass assignments until they have been
 whitelisted. This means you'll have to make a conscious choice about
 which attributes to allow for mass updating and thus prevent
 accidentally exposing that which shouldn't be exposed.
