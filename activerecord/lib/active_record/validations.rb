@@ -55,8 +55,7 @@ module ActiveRecord
     # some <tt>:on</tt> option will only run in the specified context.
     def valid?(context = nil)
       context ||= (new_record? ? :create : :update)
-      output = super(context)
-      errors.empty? && output
+      super(context) && errors.empty?
     end
 
     alias_method :validate, :valid?
