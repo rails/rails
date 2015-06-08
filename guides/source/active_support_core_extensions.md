@@ -1936,6 +1936,8 @@ as well as adding or subtracting their results from a Time object. For example:
 (4.months + 5.years).from_now
 ```
 
+NOTE: Defined in `active_support/core_ext/numeric/time.rb`
+
 ### Formatting
 
 Enables the formatting of numbers in a variety of ways.
