@@ -306,6 +306,17 @@ class FormCollectionsHelperTest < ActionView::TestCase
     assert_select 'input[type=checkbox][value="2"].bar'
   end
 
+  test 'collection check boxes propagates input id to the label for attribute' do
+    collection = [[1, 'Category 1', {id: 'foo'}], [2, 'Category 2', {id: 'bar'}]]
+    with_collection_check_boxes :user, :active, collection, :first, :second
+
+    assert_select 'input[type=checkbox][value="1"]#foo'
+    assert_select 'input[type=checkbox][value="2"]#bar'
+
+    assert_select 'label[for=foo]'
+    assert_select 'label[for=bar]'
+  end
+
   test 'collection check boxes sets the label class defined inside the block' do
     collection = [[1, 'Category 1', {class: 'foo'}], [2, 'Category 2', {class: 'bar'}]]
     with_collection_check_boxes :user, :active, collection, :second, :first do |b|

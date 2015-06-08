@@ -1,3 +1,8 @@
+*   Collection input propagates input's `id` to the label's `for` attribute when
+    using html options as the last element of collection.
+
+    *Vasiliy Ermolovich*
+
 *   Add a `hidden_field` on the `collection_radio_buttons` to avoid raising a error
     when the only input on the form is the `collection_radio_buttons`.
 
