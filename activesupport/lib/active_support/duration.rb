@@ -114,6 +114,28 @@ module ActiveSupport
     end
     alias :until :ago
 
+    # Creates a new Time or Date range
+    # that starts at +time+
+    # and has a duration specified in the method receiver.
+    #
+    #   1.month.range_from(3.months.ago) # equivalent to 3.months.ago..2.months.ago
+    #   1.month.range_from_now # equivalent to Time.current..1.month.from_now
+    def range_from(time = ::Time.current)
+      time..since(time)
+    end
+    alias :range_from_now :range_from
+
+    # Creates a new Time or Date range
+    # that has a duration specified in the method receiver
+    # and ends at +time+.
+    #
+    #   3.months.range_until(1.month.ago) # equivalent to 4.months.ago..1.month.ago
+    #   1.month.range_until_now # equivalent to 1.month.ago..Time.current
+    def range_until(time = ::Time.current)
+      ago(time)..time
+    end
+    alias :range_until_now :range_until
+
     def inspect #:nodoc:
       parts.
         reduce(::Hash.new(0)) { |h,(l,r)| h[l] += r; h }.
