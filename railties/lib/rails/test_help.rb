@@ -9,10 +9,7 @@ require 'action_controller/test_case'
 require 'action_dispatch/testing/integration'
 require 'rails/generators/test_case'
 
-unless Minitest.run_with_rails_extension
-  Minitest.run_with_autorun = true
-  require 'active_support/testing/autorun'
-end
+require 'active_support/testing/autorun'
 
 if defined?(ActiveRecord::Base)
   ActiveRecord::Migration.maintain_test_schema!
