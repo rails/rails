@@ -98,7 +98,7 @@ class I18nValidationTest < ActiveModel::TestCase
   # validates_length_of :within too short w/ mocha
 
   COMMON_CASES.each do |name, validation_options, generate_message_options|
-    test "validates_length_of for :withing on generated message when too short #{name}" do
+    test "validates_length_of for :within on generated message when too short #{name}" do
       Person.validates_length_of :title, validation_options.merge(within: 3..5)
       @mock_generator.expect(:call, nil, [:title, :too_short, generate_message_options.merge(count: 3)])
       @person.errors.stub(:generate_message, @mock_generator) do
