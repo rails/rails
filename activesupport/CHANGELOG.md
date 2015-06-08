@@ -14,7 +14,7 @@
 
     Before:
 
-        if (slack_url = Rails.application.secrets.slack_url).present?)
+        if (slack_url = Rails.application.secrets.slack_url).present?
           # Do something worthwhile
         else
           # Raise as important secret password is not specified
