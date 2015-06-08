@@ -5,7 +5,7 @@ module ActiveRecord
   # but can be queried by name. Example:
   #
   #   class Conversation < ActiveRecord::Base
-  #     enum status: [:active, :archived]
+  #     enum status: [ :active, :archived ]
   #   end
   #
   #   # conversation.update! status: 0
@@ -50,7 +50,7 @@ module ActiveRecord
   #   # book.update! author_visibility: 0
   #   book.visible_for_author!
   #   book.visible_for_author? # => true
-  #   book.author_visibility  # => "visisble"
+  #   book.author_visibility  # => "visible"
   #
   # Note that :enum_prefix/:enum_postfix are reserved keywords and can not be used as an enum name.
   #

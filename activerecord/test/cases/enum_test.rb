@@ -383,13 +383,13 @@ class EnumTest < ActiveRecord::TestCase
     refute book.available_in_small_font?
   end
 
-  test "scopes for enum with prefixes/postfixes" do
+  test "scopes for enum with prefix and postfix" do
     assert_equal 2, Book.available_in_small_font.size
     assert_equal 1, Book.available_in_medium_font.size
     assert_equal 0, Book.available_in_large_font.size
   end
 
-  test "multiple enum can share values if the are prefixed/postfixed" do
+  test "multiple enums can share values if they have a prefix and/or postfix" do
     assert_equal Book.author_visibilities, {'visible' => 0, 'invisible' => 1}
     assert_equal Book.illustrator_visibilities, {'visible' => 0, 'invisible' => 1}
   end
