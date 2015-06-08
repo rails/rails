@@ -2895,7 +2895,7 @@ The method `transform_values` accepts a block and returns a hash that has applie
 ```
 There's also the bang variant `transform_values!` that applies the block operations to values in the very receiver.
 
-NOTE: Defined in `active_support/core_text/hash/transform_values.rb`.
+NOTE: Defined in `active_support/core_ext/hash/transform_values.rb`.
 
 ### Slicing
 
