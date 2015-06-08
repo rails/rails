@@ -5,6 +5,7 @@ awdr:
   format: "paperback"
   status: :published
   read_status: :read
+  font_size: small
 
 rfr:
   author_id: 1
@@ -13,6 +14,7 @@ rfr:
   format: "ebook"
   status: "proposed"
   read_status: "reading"
+  font_size: small
 
 ddd:
   author_id: 1
@@ -20,3 +22,4 @@ ddd:
   name: "Domain-Driven Design"
   format: "hardcover"
   status: 2
+  font_size: medium

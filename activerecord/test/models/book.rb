@@ -11,6 +11,11 @@ class Book < ActiveRecord::Base
   enum read_status: {unread: 0, reading: 2, read: 3}
   enum nullable_status: [:single, :married]
 
+  enum(font_size: [:small, :medium, :large], enum_prefix: 'available_in', enum_postfix: 'font')
+  enum(topic: [:ruby, :rails], enum_prefix: 'about')
+  enum(author_visibility: [:visible, :invisible], enum_postfix: 'for_author')
+  enum(illustrator_visibility: [:visible, :invisible], enum_postfix: 'for_illustrator')
+
   def published!
     super
     "do publish work..."

@@ -1,3 +1,16 @@
+*   Added :enum_prefix, :enum_postfix option to `ActiveRecord::Base.enum`
+
+    Fixes: #17511
+
+    Example:
+
+        class Book < ActiveRecord::Base
+          enum author_visibility: [:visible, :invisible], enum_prefix: 'for_author'
+          enum illustrator_visibility: [:visible, :invisible], enum_prefix: 'for_illustrator'
+        end
+
+    *Pascal Betz*
+
 *   Deprecate the PG `:point` type in favor of a new one which will return
     `Point` objects instead of an `Array`
 

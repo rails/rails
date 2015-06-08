@@ -355,4 +355,44 @@ class EnumTest < ActiveRecord::TestCase
     book2 = klass.single.create!
     assert book2.single?
   end
+
+  test "enum with prefix" do
+    book = Book.new
+    assert book.about_ruby?
+    assert_equal 'ruby', book.topic
+    book.about_rails!
+    assert book.about_rails?
+    refute book.about_ruby?
+  end
+
+  test "enum with postfix" do
+    book = Book.new
+    assert book.visible_for_author?
+    assert_equal 'visible', book.author_visibility
+    book.invisible_for_author!
+    assert book.invisible_for_author?
+    refute book.visible_for_author?
+  end
+
+  test "enum with prefix and postfix" do
+    book = Book.new
+    assert book.available_in_small_font?
+    assert_equal 'small', book.font_size
+    book.available_in_large_font!
+    assert book.available_in_large_font?
+    refute book.available_in_small_font?
+  end
+
+  test "scopes for enum with prefixes/postfixes" do
+    assert_equal 2, Book.available_in_small_font.size
+    assert_equal 1, Book.available_in_medium_font.size
+    assert_equal 0, Book.available_in_large_font.size
+  end
+
+  test "multiple enum can share values if the are prefixed/postfixed" do
+    assert_equal Book.author_visibilities, {'visible' => 0, 'invisible' => 1}
+    assert_equal Book.illustrator_visibilities, {'visible' => 0, 'invisible' => 1}
+  end
+
+
 end
