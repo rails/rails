@@ -1,0 +1,3 @@
+#!/usr/bin/env ruby
+COMPONENT_ROOT = File.expand_path("../../", __FILE__)
+require File.expand_path("../tools/test", COMPONENT_ROOT)
