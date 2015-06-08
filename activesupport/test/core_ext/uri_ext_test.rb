@@ -9,4 +9,9 @@ class URIExtTest < ActiveSupport::TestCase
     parser = URI.parser
     assert_equal str, parser.unescape(parser.escape(str))
   end
+
+  def test_uri_decode_partially_decoded
+    parser = URI.parser
+    assert_equal "\u4F60\u597D, \u518D\u89C1", parser.unescape("%E4%BD%A0%E5%A5%BD, \u518D\u89C1")
+  end
 end
