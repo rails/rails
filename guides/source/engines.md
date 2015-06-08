@@ -689,8 +689,8 @@ haven't been copied over already. The first run for this command will output
 something such as this:
 
 ```bash
-Copied migration [timestamp_1]_create_blorgh_articles.rb from blorgh
-Copied migration [timestamp_2]_create_blorgh_comments.rb from blorgh
+Copied migration [timestamp_1]_create_blorgh_articles.blorgh.rb from blorgh
+Copied migration [timestamp_2]_create_blorgh_comments.blorgh.rb from blorgh
 ```
 
 The first timestamp (`[timestamp_1]`) will be the current time, and the second
@@ -822,9 +822,9 @@ Notice that only _one_ migration was copied over here. This is because the first
 two migrations were copied over the first time this command was run.
 
 ```
-NOTE Migration [timestamp]_create_blorgh_articles.rb from blorgh has been skipped. Migration with the same name already exists. 
-NOTE Migration [timestamp]_create_blorgh_comments.rb from blorgh has been skipped. Migration with the same name already exists. 
-Copied migration [timestamp]_add_author_id_to_blorgh_articles.rb from blorgh
+NOTE Migration [timestamp]_create_blorgh_articles.blorgh.rb from blorgh has been skipped. Migration with the same name already exists.
+NOTE Migration [timestamp]_create_blorgh_comments.blorgh.rb from blorgh has been skipped. Migration with the same name already exists.
+Copied migration [timestamp]_add_author_id_to_blorgh_articles.blorgh.rb from blorgh
 ```
 
 Run the migration using:
