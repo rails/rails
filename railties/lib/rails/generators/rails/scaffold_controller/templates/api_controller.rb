@@ -41,8 +41,6 @@ class <%= controller_class_name %>Controller < ApplicationController
   # DELETE <%= route_url %>/1
   def destroy
     @<%= orm_instance.destroy %>
-
-    head :no_content
   end
 
   private
