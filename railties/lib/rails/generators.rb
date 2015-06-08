@@ -33,6 +33,7 @@ module Rails
         scaffold_controller: '-c',
         stylesheets: '-y',
         stylesheet_engine: '-se',
+        scaffold_stylesheet: '-ss',
         template_engine: '-e',
         test_framework: '-t'
       },
@@ -56,6 +57,7 @@ module Rails
         scaffold_controller: :scaffold_controller,
         stylesheets: true,
         stylesheet_engine: :css,
+        scaffold_stylesheet: true,
         test_framework: false,
         template_engine: :erb
       }
