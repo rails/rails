@@ -282,6 +282,20 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     assert_no_file "app/assets/stylesheets/posts.css"
   end
 
+  def test_scaffold_generator_no_scaffold_stylesheet_with_switch_no_scaffold_stylesheet
+    run_generator [ "posts", "--no-scaffold-stylesheet" ]
+    assert_no_file "app/assets/stylesheets/scaffold.css"
+    assert_file "app/assets/javascripts/posts.js"
+    assert_file "app/assets/stylesheets/posts.css"
+  end
+
+  def test_scaffold_generator_no_scaffold_stylesheet_with_switch_scaffold_stylesheet_false
+    run_generator [ "posts", "--scaffold-stylesheet=false" ]
+    assert_no_file "app/assets/stylesheets/scaffold.css"
+    assert_file "app/assets/javascripts/posts.js"
+    assert_file "app/assets/stylesheets/posts.css"
+  end
+
   def test_scaffold_generator_with_switch_resource_route_false
     run_generator [ "posts", "--resource-route=false" ]
     assert_file "config/routes.rb" do |route|
