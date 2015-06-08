@@ -707,7 +707,7 @@ Returns a select tag with options for each of the minutes 0 through 59 with the 
 
 ```ruby
 # Generates a select field for minutes that defaults to the minutes for the time provided.
-select_minute(Time.now + 6.hours)
+select_minute(Time.now + 10.minutes)
 ```
 
 #### select_month
