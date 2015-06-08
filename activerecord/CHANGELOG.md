@@ -1,3 +1,18 @@
+*   Added methods for PostgreSQL geometric data types to use in migrations
+
+    Example:
+
+        create_table :foo do |t|
+          t.line :foo_line
+          t.lseg :foo_lseg
+          t.box :foo_box
+          t.path :foo_path
+          t.polygon :foo_polygon
+          t.circle :foo_circle
+        end
+
+    *Mehmet Emin İNAÇ*
+
 *   Deprecate the PG `:point` type in favor of a new one which will return
     `Point` objects instead of an `Array`
 
