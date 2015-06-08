@@ -1,3 +1,8 @@
+*   Raise an ArgumentError when a false value for `include_blank` is passed to a
+    required select field (to comply with the HTML5 spec).
+
+    *Grey Baker*
+
 *   Do not put partial name to `local_assigns` when rendering without
     an object or a collection.
 

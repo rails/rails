@@ -645,6 +645,13 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
+  def test_select_with_include_blank_false_and_required
+    @post = Post.new
+    @post.category = "<mus>"
+    e = assert_raises(ArgumentError) { select("post", "category", %w( abe <mus> hest), { include_blank: false }, required: 'required') }
+    assert_match(/include_blank cannot be false for a required field./, e.message)
+  end
+
   def test_select_with_blank_as_string
     @post = Post.new
     @post.category = "<mus>"
