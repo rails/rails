@@ -64,8 +64,8 @@ module ApplicationTests
       RUBY
 
       output = run_test_file('unit/failing_test.rb', env: { "BACKTRACE" => "1" })
-      assert_match %r{/app/test/unit/failing_test\.rb}, output
-      assert_match %r{/app/test/unit/failing_test\.rb:4}, output
+      assert_match %r{test/unit/failing_test\.rb}, output
+      assert_match %r{test/unit/failing_test\.rb:4}, output
     end
 
     test "ruby schema migrations" do

@@ -15,8 +15,12 @@ module Rails
       filtered_results.reject!(&:skipped?) unless options[:verbose]
       filtered_results.map do |result|
         location, line = result.method(result.name).source_location
-        "bin/rails test #{location}:#{line}"
+        "bin/rails test #{relative_path_for(location)}:#{line}"
       end.join "\n"
+    end
+
+    def relative_path_for(file)
+      file.sub(/^#{Rails.root}\/?/, '')
     end
   end
 end
