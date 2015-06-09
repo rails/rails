@@ -64,10 +64,10 @@ $ cd commandsapp
 $ bin/rails server
 => Booting WEBrick
 => Rails 5.0.0 application starting in development on http://localhost:3000
-=> Call with -d to detach
+=> Run `rails server -h` for more startup options
 => Ctrl-C to shutdown server
 [2013-08-07 02:00:01] INFO  WEBrick 1.3.1
-[2013-08-07 02:00:01] INFO  ruby 2.0.0 (2013-06-27) [x86_64-darwin11.2.0]
+[2013-08-07 02:00:01] INFO  ruby 2.2.2 (2015-06-27) [x86_64-darwin11.2.0]
 [2013-08-07 02:00:01] INFO  WEBrick::HTTPServer#start: pid=69680 port=3000
 ```
 
