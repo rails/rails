@@ -191,10 +191,6 @@ $(document).ready ->
 Obviously, you'll want to be a bit more sophisticated than that, but it's a
 start. You can see more about the events [in the jquery-ujs wiki](https://github.com/rails/jquery-ujs/wiki/ajax).
 
-
-NOTE: If javascript is disabled in the user browser, `format.html { ... }`
-block should be executed as fallback.
-
 ### form_tag
 
 [`form_tag`](http://api.rubyonrails.org/classes/ActionView/Helpers/FormTagHelper.html#method-i-form_tag)
