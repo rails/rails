@@ -12,7 +12,7 @@ unless str == parser.unescape(parser.escape(str))
       # YK: My initial experiments say yes, but let's be sure please
       enc = str.encoding
       enc = Encoding::UTF_8 if enc == Encoding::US_ASCII
-      str.gsub(escaped) { [$&[1, 2].hex].pack('C') }.force_encoding(enc)
+      str.gsub(escaped) { |match| [match[1, 2].hex].pack('C') }.force_encoding(enc)
     end
   end
 end
