@@ -511,10 +511,11 @@ module ActionDispatch
 
         path = conditions.delete :path_info
         ast  = conditions.delete :parsed_path_info
+        required_defaults  = conditions.delete :required_defaults
         path = build_path(path, ast, requirements, anchor)
         conditions = build_conditions(conditions, path.names.map(&:to_sym))
 
-        route = @set.add_route(app, path, conditions, defaults, name)
+        route = @set.add_route(app, path, conditions, required_defaults, defaults, name)
         named_routes[name] = route if name
         route
       end
@@ -563,7 +564,7 @@ module ActionDispatch
         end
 
         conditions.keep_if do |k, _|
-          k == :action || k == :controller || k == :required_defaults ||
+          k == :action || k == :controller ||
             request_class.public_method_defined?(k) || path_values.include?(k)
         end
       end

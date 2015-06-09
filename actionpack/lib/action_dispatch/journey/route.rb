@@ -11,7 +11,7 @@ module ActionDispatch
       ##
       # +path+ is a path constraint.
       # +constraints+ is a hash of constraints to be applied to this route.
-      def initialize(name, app, path, constraints, defaults = {})
+      def initialize(name, app, path, constraints, required_defaults, defaults)
         @name        = name
         @app         = app
         @path        = path
@@ -19,6 +19,7 @@ module ActionDispatch
         @constraints = constraints
         @defaults    = defaults
         @required_defaults = nil
+        @_required_defaults = required_defaults || []
         @required_parts    = nil
         @parts             = nil
         @decorated_ast     = nil
@@ -73,7 +74,7 @@ module ActionDispatch
       end
 
       def required_default?(key)
-        (constraints[:required_defaults] || []).include?(key)
+        @_required_defaults.include?(key)
       end
 
       def required_defaults
@@ -92,8 +93,6 @@ module ActionDispatch
 
       def matches?(request)
         constraints.all? do |method, value|
-          next true unless request.respond_to?(method)
-
           case value
           when Regexp, String
             value === request.send(method).to_s

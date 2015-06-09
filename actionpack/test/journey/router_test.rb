@@ -35,7 +35,7 @@ module ActionDispatch
         exp = Router::Strexp.build '/foo-bar-baz', {}, ['/.?']
         path  = Path::Pattern.new exp
 
-        routes.add_route nil, path, {}, {:id => nil}, {}
+        routes.add_route nil, path, {}, [], {:id => nil}, {}
 
         env = rails_env 'PATH_INFO' => '/foo-bar-baz'
         called = false
@@ -52,7 +52,7 @@ module ActionDispatch
         exp = Router::Strexp.build '/%E3%81%BB%E3%81%92', {}, ['/.?']
         path  = Path::Pattern.new exp
 
-        routes.add_route nil, path, {}, {:id => nil}, {}
+        routes.add_route nil, path, {}, [], {:id => nil}, {}
 
         env = rails_env 'PATH_INFO' => '/%E3%81%BB%E3%81%92'
         called = false
@@ -71,7 +71,7 @@ module ActionDispatch
         exp = Router::Strexp.build '/foo(/:id)', {}, ['/.?']
         path  = Path::Pattern.new exp
 
-        routes.add_route nil, path, requirements, {:id => nil}, {}
+        routes.add_route nil, path, requirements, [], {:id => nil}, {}
 
         env = rails_env({'PATH_INFO' => '/foo/10'}, klass)
         router.recognize(env) do |r, params|
@@ -91,7 +91,7 @@ module ActionDispatch
         exp = Router::Strexp.build '/foo(/:id)', {}, ['/.?']
         path  = Path::Pattern.new exp
 
-        router.routes.add_route nil, path, requirements, {:id => nil}, {}
+        router.routes.add_route nil, path, requirements, [], {:id => nil}, {}
 
         env = rails_env({'PATH_INFO' => '/foo/10'}, klass)
         router.recognize(env) do |r, params|
@@ -118,7 +118,7 @@ module ActionDispatch
         exp = Router::Strexp.build '/bar', {}, ['/.?']
         path = Path::Pattern.new exp
 
-        routes.add_route nil, path, {}, {}, {}
+        routes.add_route nil, path, {}, [], {}, {}
 
         env = rails_env({'PATH_INFO' => '/foo',
                          'custom.path_info' => '/bar'}, CustomPathRequest)
@@ -192,7 +192,7 @@ module ActionDispatch
         route_name = "gorby_thunderhorse"
         pattern = Router::Strexp.build("/foo/:id", { :id => /\d+/ }, ['/', '.', '?'], false)
         path = Path::Pattern.new pattern
-        @router.routes.add_route nil, path, {}, {}, route_name
+        @router.routes.add_route nil, path, {}, [], {}, route_name
 
         error = assert_raises(ActionController::UrlGenerationError) do
           @formatter.generate(route_name, { }, { })
@@ -234,7 +234,7 @@ module ActionDispatch
 
       def test_defaults_merge_correctly
         path  = Path::Pattern.from_string '/foo(/:id)'
-        @router.routes.add_route nil, path, {}, {:id => nil}, {}
+        @router.routes.add_route nil, path, {}, [], {:id => nil}, {}
 
         env = rails_env 'PATH_INFO' => '/foo/10'
         @router.recognize(env) do |r, params|
@@ -317,7 +317,7 @@ module ActionDispatch
 
       def test_nil_path_parts_are_ignored
         path  = Path::Pattern.from_string "/:controller(/:action(.:format))"
-        @router.routes.add_route @app, path, {}, {}, {}
+        @router.routes.add_route @app, path, {}, [], {}, {}
 
         params = { :controller => "tasks", :format => nil }
         extras = { :action => 'lol' }
@@ -332,7 +332,7 @@ module ActionDispatch
         str = Router::Strexp.build("/", Hash[params], ['/', '.', '?'], true)
         path  = Path::Pattern.new str
 
-        @router.routes.add_route @app, path, {}, {}, {}
+        @router.routes.add_route @app, path, {}, [], {}, {}
 
         path, _ = @formatter.generate(nil, Hash[params], {})
         assert_equal '/', path
@@ -340,7 +340,7 @@ module ActionDispatch
 
       def test_generate_calls_param_proc
         path  = Path::Pattern.from_string '/:controller(/:action)'
-        @router.routes.add_route @app, path, {}, {}, {}
+        @router.routes.add_route @app, path, {}, [], {}, {}
 
         parameterized = []
         params = [ [:controller, "tasks"],
@@ -357,7 +357,7 @@ module ActionDispatch
 
       def test_generate_id
         path  = Path::Pattern.from_string '/:controller(/:action)'
-        @router.routes.add_route @app, path, {}, {}, {}
+        @router.routes.add_route @app, path, {}, [], {}, {}
 
         path, params = @formatter.generate(
           nil, {:id=>1, :controller=>"tasks", :action=>"show"}, {})
@@ -367,7 +367,7 @@ module ActionDispatch
 
       def test_generate_escapes
         path  = Path::Pattern.from_string '/:controller(/:action)'
-        @router.routes.add_route @app, path, {}, {}, {}
+        @router.routes.add_route @app, path, {}, [], {}, {}
 
         path, _ = @formatter.generate(nil,
           { :controller        => "tasks",
@@ -378,7 +378,7 @@ module ActionDispatch
 
       def test_generate_escapes_with_namespaced_controller
         path  = Path::Pattern.from_string '/:controller(/:action)'
-        @router.routes.add_route @app, path, {}, {}, {}
+        @router.routes.add_route @app, path, {}, [], {}, {}
 
         path, _ = @formatter.generate(
           nil, { :controller        => "admin/tasks",
@@ -389,7 +389,7 @@ module ActionDispatch
 
       def test_generate_extra_params
         path  = Path::Pattern.from_string '/:controller(/:action)'
-        @router.routes.add_route @app, path, {}, {}, {}
+        @router.routes.add_route @app, path, {}, [], {}, {}
 
         path, params = @formatter.generate(
           nil, { :id                => 1,
@@ -403,7 +403,7 @@ module ActionDispatch
 
       def test_generate_missing_keys_no_matches_different_format_keys
         path  = Path::Pattern.from_string '/:controller/:action/:name'
-        @router.routes.add_route @app, path, {}, {}, {}
+        @router.routes.add_route @app, path, {}, [], {}, {}
         primarty_parameters = {
           :id                => 1,
           :controller        => "tasks",
@@ -430,7 +430,7 @@ module ActionDispatch
 
       def test_generate_uses_recall_if_needed
         path  = Path::Pattern.from_string '/:controller(/:action(/:id))'
-        @router.routes.add_route @app, path, {}, {}, {}
+        @router.routes.add_route @app, path, {}, [], {}, {}
 
         path, params = @formatter.generate(
           nil,
@@ -442,7 +442,7 @@ module ActionDispatch
 
       def test_generate_with_name
         path  = Path::Pattern.from_string '/:controller(/:action)'
-        @router.routes.add_route @app, path, {}, {}, "tasks"
+        @router.routes.add_route @app, path, {}, [], {}, "tasks"
 
         path, params = @formatter.generate(
           "tasks",
@@ -460,7 +460,7 @@ module ActionDispatch
         define_method("test_recognize_#{expected.keys.map(&:to_s).join('_')}") do
           path  = Path::Pattern.from_string "/:controller(/:action(/:id))"
           app   = Object.new
-          route = @router.routes.add_route(app, path, {}, {}, {})
+          route = @router.routes.add_route(app, path, {}, [], {}, {})
 
           env = rails_env 'PATH_INFO' => request_path
           called   = false
@@ -482,7 +482,7 @@ module ActionDispatch
         define_method("test_recognize_#{name}") do
           path  = Path::Pattern.from_string '/:segment/*splat'
           app   = Object.new
-          route = @router.routes.add_route(app, path, {}, {}, {})
+          route = @router.routes.add_route(app, path, {}, [], {}, {})
 
           env = rails_env 'PATH_INFO' => request_path
           called   = false
@@ -505,7 +505,7 @@ module ActionDispatch
         )
         path  = Path::Pattern.new strexp
         app   = Object.new
-        route = @router.routes.add_route(app, path, {}, {}, {})
+        route = @router.routes.add_route(app, path, {}, [], {}, {})
 
         env = rails_env 'PATH_INFO' => '/admin/users/show/10'
         called   = false
@@ -526,7 +526,7 @@ module ActionDispatch
       def test_recognize_literal
         path   = Path::Pattern.from_string "/books(/:action(.:format))"
         app    = Object.new
-        route  = @router.routes.add_route(app, path, {}, {:controller => 'books'})
+        route  = @router.routes.add_route(app, path, {}, [], {:controller => 'books'})
 
         env    = rails_env 'PATH_INFO' => '/books/list.rss'
         expected = { :controller => 'books', :action => 'list', :format => 'rss' }
@@ -544,7 +544,7 @@ module ActionDispatch
         path   = Path::Pattern.from_string "/books(/:action(.:format))"
         app    = Object.new
         conditions = { request_method: 'HEAD' }
-        @router.routes.add_route(app, path, conditions, {})
+        @router.routes.add_route(app, path, conditions, [], {})
 
         env = rails_env(
           'PATH_INFO' => '/books/list.rss',
@@ -565,7 +565,7 @@ module ActionDispatch
         conditions = {
           :request_method => 'GET'
         }
-        @router.routes.add_route(app, path, conditions, {})
+        @router.routes.add_route(app, path, conditions, [], {})
 
         env = rails_env 'PATH_INFO' => '/books/list.rss',
                         "REQUEST_METHOD"    => "HEAD"
@@ -582,7 +582,7 @@ module ActionDispatch
         path   = Path::Pattern.from_string "/books(/:action(.:format))"
         app    = Object.new
         conditions = { request_method: 'GET' }
-        @router.routes.add_route(app, path, conditions, {})
+        @router.routes.add_route(app, path, conditions, [], {})
 
         env = rails_env 'PATH_INFO' => '/books/list.rss',
                         "REQUEST_METHOD" => "POST"
@@ -597,7 +597,7 @@ module ActionDispatch
         conditions = conditions.dup
         conditions[:request_method] = 'POST'
 
-        post = @router.routes.add_route(app, path, conditions, {})
+        post = @router.routes.add_route(app, path, conditions, [], {})
 
         called = false
         @router.recognize(env) do |r, params|
@@ -617,7 +617,7 @@ module ActionDispatch
           else
             path  = Path::Pattern.new path
           end
-          router.routes.add_route @app, path, {}, {}, {}
+          router.routes.add_route @app, path, {}, [], {}, {}
         end
       end
 
