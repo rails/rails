@@ -155,7 +155,7 @@ module ActionMailer
   # Note that <tt>deliver_later</tt> will execute your method from the background job.
   #
   # You never instantiate your mailer class. Rather, you just call the method you defined on the class itself.
-  # All instance method are expected to return a message object to be sent.
+  # All instance methods are expected to return a message object to be sent.
   #
   # = Multipart Emails
   #
