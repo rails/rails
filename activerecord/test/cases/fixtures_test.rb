@@ -16,6 +16,7 @@ require 'models/joke'
 require 'models/matey'
 require 'models/parrot'
 require 'models/pirate'
+require 'models/doubloon'
 require 'models/post'
 require 'models/randomly_named_c1'
 require 'models/reply'
@@ -901,5 +902,14 @@ class FixturesWithDefaultScopeTest < ActiveRecord::TestCase
 
   test "allows access to fixtures excluded by a default scope" do
     assert_equal "special", bulbs(:special).name
+  end
+end
+
+class FixturesWithAbstractBelongsTo < ActiveRecord::TestCase
+  fixtures :pirates, :doubloons
+
+  test "creates fixtures with belongs_to associations defined in abstract base classes" do
+    assert_not_nil doubloons(:blackbeards_doubloon)
+    assert_equal pirates(:blackbeard), doubloons(:blackbeards_doubloon).pirate
   end
 end

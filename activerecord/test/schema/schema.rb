@@ -266,6 +266,11 @@ ActiveRecord::Schema.define do
     t.string  :alias
   end
 
+  create_table :doubloons, force: true do |t|
+    t.integer :pirate_id
+    t.integer :weight
+  end
+
   create_table :edges, force: true, id: false do |t|
     t.column :source_id, :integer, null: false
     t.column :sink_id,   :integer, null: false
