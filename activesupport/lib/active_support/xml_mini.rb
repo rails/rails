@@ -77,6 +77,9 @@ module ActiveSupport
     end
 
     attr_reader :backend
+    attr_accessor :depth
+    self.depth = 100
+
     delegate :parse, :to => :backend
 
     def backend=(name)
