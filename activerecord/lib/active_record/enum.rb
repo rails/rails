@@ -38,6 +38,22 @@ module ActiveRecord
   #   Conversation.where(status: [:active, :archived])
   #   Conversation.where.not(status: :active)
   #
+  # If you have multiple enums and they share values then you can use
+  # <tt>:enum_prefix</tt> and <tt>:enum_postfix</tt> to avoid naming clashes for the generated
+  # methods. Example:
+  #
+  #   class Book < ActiveRecord::Base
+  #     enum(author_visibility: [:visible, :invisible], enum_postfix: 'for_author')
+  #     enum(illustrator_visibility: [:visible, :invisible], enum_postfix: 'for_illustrator')
+  #   end
+  #
+  #   # book.update! author_visibility: 0
+  #   book.visible_for_author!
+  #   book.visible_for_author? # => true
+  #   book.author_visibility  # => "visible"
+  #
+  # Note that :enum_prefix/:enum_postfix are reserved keywords and can not be used as an enum name.
+  #
   # You can set the default value from the database declaration, like:
   #
   #   create_table :conversations do |t|
@@ -62,6 +78,7 @@ module ActiveRecord
   # Therefore, once a value is added to the enum array, its position in the array must
   # be maintained, and new values should only be added to the end of the array. To
   # remove unused values, the explicit +Hash+ syntax should be used.
+  #
   #
   # In rare circumstances you might need to access the mapping directly.
   # The mappings are exposed through a class method with the pluralized attribute
@@ -120,7 +137,11 @@ module ActiveRecord
     end
 
     def enum(definitions)
+      enum_prefix = definitions.delete(:enum_prefix)
+      enum_postfix = definitions.delete(:enum_postfix)
+
       klass = self
+
       definitions.each do |name, values|
         # statuses = { }
         enum_values = ActiveSupport::HashWithIndifferentAccess.new
@@ -139,18 +160,19 @@ module ActiveRecord
           pairs = values.respond_to?(:each_pair) ? values.each_pair : values.each_with_index
           pairs.each do |value, i|
             enum_values[value] = i
-
+            # base name for generated methods including pre and postfix
+            pre_postfixed_value = [enum_prefix, value, enum_postfix].compact.join('_')
             # def active?() status == 0 end
-            klass.send(:detect_enum_conflict!, name, "#{value}?")
-            define_method("#{value}?") { self[name] == value.to_s }
+            klass.send(:detect_enum_conflict!, name, "#{pre_postfixed_value}?")
+            define_method("#{pre_postfixed_value}?") { self[name] == value.to_s }
 
             # def active!() update! status: :active end
-            klass.send(:detect_enum_conflict!, name, "#{value}!")
-            define_method("#{value}!") { update! name => value }
+            klass.send(:detect_enum_conflict!, name, "#{pre_postfixed_value}!")
+            define_method("#{pre_postfixed_value}!") { update! name => value }
 
             # scope :active, -> { where status: 0 }
-            klass.send(:detect_enum_conflict!, name, value, true)
-            klass.scope value, -> { klass.where name => value }
+            klass.send(:detect_enum_conflict!, name, pre_postfixed_value, true)
+            klass.scope pre_postfixed_value, -> { klass.where name => value }
           end
         end
         defined_enums[name.to_s] = enum_values
