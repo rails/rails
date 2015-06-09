@@ -513,7 +513,7 @@ module ActionDispatch
         ast  = conditions.delete :parsed_path_info
         required_defaults  = conditions.delete :required_defaults
         path = build_path(path, ast, requirements, anchor)
-        conditions = build_conditions(conditions, path.names.map(&:to_sym))
+        conditions = build_conditions(conditions)
 
         route = @set.add_route(app, path, conditions, required_defaults, defaults, name)
         named_routes[name] = route if name
@@ -551,7 +551,7 @@ module ActionDispatch
       end
       private :build_path
 
-      def build_conditions(current_conditions, path_values)
+      def build_conditions(current_conditions)
         conditions = current_conditions.dup
 
         # Rack-Mount requires that :request_method be a regular expression.
