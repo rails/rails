@@ -564,8 +564,7 @@ module ActionDispatch
         end
 
         conditions.keep_if do |k, _|
-          k == :action || k == :controller ||
-            request_class.public_method_defined?(k) || path_values.include?(k)
+          request_class.public_method_defined?(k)
         end
       end
       private :build_conditions
