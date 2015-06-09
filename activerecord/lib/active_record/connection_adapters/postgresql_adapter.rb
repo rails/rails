@@ -28,7 +28,7 @@ module ActiveRecord
     def postgresql_connection(config)
       conn_params = config.symbolize_keys
 
-      conn_params.delete_if { |_, v| v.nil? }
+      conn_params.values.delete_if(&:nil?)
 
       # Map ActiveRecords param names to PGs.
       conn_params[:user] = conn_params.delete(:username) if conn_params[:username]
