@@ -539,9 +539,9 @@ class ReadOnlyModel < ActiveRecord::Base
   before_save :before_save_callback # GOOD
 
   private
-    def before_save_callback
-      return false
-    end
+  def before_save_callback
+    return false
+  end
 end
 ```
 
