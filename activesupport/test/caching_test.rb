@@ -472,6 +472,88 @@ module CacheStoreBehavior
   end
 end
 
+module CacheStoreInstrumentation
+  def setup
+    super
+    @events = []
+    @subscriber = ActiveSupport::Notifications.subscribe("cache_read.active_support") do |name, start, finish, id, payload|
+      @events << {
+        name: name,
+        payload: payload
+      }
+    end
+  end
+
+  def teardown
+    super
+    if @subscriber
+      ActiveSupport::Notifications.unsubscribe(@subscriber)
+    end
+  end
+
+  def test_cache_read_instrumentation_miss
+    @cache.read("key")
+    assert_equal 1, @events.count
+    event = @events.first
+    assert_equal "cache_read.active_support", event[:name]
+    assert_equal "key", event[:payload][:key]
+    assert_equal false, event[:payload][:hit]
+  end
+
+  def test_cache_read_instrumentation_hit
+    @cache.write("key", "foo")
+    @cache.read("key")
+    assert_equal 1, @events.count
+    event = @events.first
+    assert_equal "cache_read.active_support", event[:name]
+    assert_equal "key", event[:payload][:key]
+    assert_equal true, event[:payload][:hit]
+  end
+
+  def test_cache_read_instrumentation_hit_expired
+    @cache.write("key", "foo", expires_in: 60)
+    time = Time.now + 61
+    Time.stubs(:now).returns(time)
+    @cache.read("key")
+    assert_equal 1, @events.count
+    event = @events.first
+    assert_equal "cache_read.active_support", event[:name]
+    assert_equal "key", event[:payload][:key]
+    assert_equal false, event[:payload][:hit]
+  end
+
+  def test_cache_fetch_instrumentation_miss
+    @cache.fetch("key")
+    assert_equal 1, @events.count
+    event = @events.first
+    assert_equal "cache_read.active_support", event[:name]
+    assert_equal "key", event[:payload][:key]
+    assert_equal false, event[:payload][:hit]
+  end
+
+  def test_cache_fetch_instrumentation_hit
+    @cache.write("key", "foo")
+    @cache.fetch("key")
+    assert_equal 1, @events.count
+    event = @events.first
+    assert_equal "cache_read.active_support", event[:name]
+    assert_equal "key", event[:payload][:key]
+    assert_equal true, event[:payload][:hit]
+  end
+
+  def test_cache_fetch_instrumentation_hit_expired
+    @cache.write("key", "foo", expires_in: 60)
+    time = Time.now + 61
+    Time.stubs(:now).returns(time)
+    @cache.fetch("key")
+    assert_equal 1, @events.count
+    event = @events.first
+    assert_equal "cache_read.active_support", event[:name]
+    assert_equal "key", event[:payload][:key]
+    assert_equal false, event[:payload][:hit]
+  end
+end
+
 # https://rails.lighthouseapp.com/projects/8994/tickets/6225-memcachestore-cant-deal-with-umlauts-and-special-characters
 # The error is caused by character encodings that can't be compared with ASCII-8BIT regular expressions and by special
 # characters like the umlaut in UTF-8.
@@ -673,6 +755,7 @@ end
 
 class FileStoreTest < ActiveSupport::TestCase
   def setup
+    super
     Dir.mkdir(cache_dir) unless File.exist?(cache_dir)
     @cache = ActiveSupport::Cache.lookup_store(:file_store, cache_dir, :expires_in => 60)
     @peek = ActiveSupport::Cache.lookup_store(:file_store, cache_dir, :expires_in => 60)
@@ -695,6 +778,7 @@ class FileStoreTest < ActiveSupport::TestCase
   include CacheDeleteMatchedBehavior
   include CacheIncrementDecrementBehavior
   include AutoloadingCacheBehavior
+  include CacheStoreInstrumentation
 
   def test_clear
     filepath = File.join(cache_dir, ".gitkeep")
@@ -786,6 +870,7 @@ end
 
 class MemoryStoreTest < ActiveSupport::TestCase
   def setup
+    super
     @record_size = ActiveSupport::Cache.lookup_store(:memory_store).send(:cached_size, 1, ActiveSupport::Cache::Entry.new("aaaaaaaaaa"))
     @cache = ActiveSupport::Cache.lookup_store(:memory_store, :expires_in => 60, :size => @record_size * 10 + 1)
   end
@@ -793,6 +878,7 @@ class MemoryStoreTest < ActiveSupport::TestCase
   include CacheStoreBehavior
   include CacheDeleteMatchedBehavior
   include CacheIncrementDecrementBehavior
+  include CacheStoreInstrumentation
 
   def test_prune_size
     @cache.write(1, "aaaaaaaaaa") && sleep(0.001)
@@ -901,6 +987,7 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   end
 
   def setup
+    super
     skip "memcache server is not up" unless MEMCACHE_UP
 
     @cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, :expires_in => 60)
@@ -916,6 +1003,7 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   include CacheIncrementDecrementBehavior
   include EncodedKeyCacheBehavior
   include AutoloadingCacheBehavior
+  include CacheStoreInstrumentation
 
   def test_raw_values
     cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, :raw => true)
