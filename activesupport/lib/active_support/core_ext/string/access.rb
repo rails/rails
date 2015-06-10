@@ -101,4 +101,19 @@ class String
       from(-limit)
     end
   end
+
+  # Returns the middle of the string.
+  # If a string size is odd number, then returns only one character
+  # If a string size is even number, then returns middle two characters
+  # If string is empty, then returns nil
+
+  #    str = "hello"
+  #    str.middle  # => "l"
+  #    str = "even"
+  #    str.middle  # => "ve"
+  #    str = ""
+  #    str.middle  # => nil
+  def middle
+    size.odd? ? self.at(size/2) : self.at((size - 1)/2..size/2)
+  end
 end
