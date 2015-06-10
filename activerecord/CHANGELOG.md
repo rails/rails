@@ -1,3 +1,10 @@
+*   Add `config.active_record.dump_schemas` to fix `db:structure:dump`
+    when using schema_search_path and PostgreSQL extensions.
+
+    Fixes #17157.
+
+    *Ryan Wallace*
+
 *   Ensure symbols passed to `ActiveRecord::Relation#select` are always treated
     as columns.
 
