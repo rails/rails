@@ -46,6 +46,20 @@ module ActiveSupport
       super
       @formatter = SimpleFormatter.new
       @broadcast_messages = true
+      after_initialize if respond_to? :after_initialize
+    end
+
+    def add(severity, message = nil, progname = nil, &block)
+      return true if @logdev.nil? || (severity || UNKNOWN) < level
+      super
+    end
+
+    Logger::Severity.constants.each do |severity|
+      class_eval(<<-EOT, __FILE__, __LINE__ + 1)
+        def #{severity.downcase}?                # def debug?
+          Logger::#{severity} >= level           #   DEBUG >= level
+        end                                      # end
+      EOT
     end
 
     # Simple formatter which only displays the message.
