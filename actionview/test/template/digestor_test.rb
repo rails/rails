@@ -111,6 +111,18 @@ class TemplateDigestorTest < ActionView::TestCase
     end
   end
 
+  def test_logging_of_missing_template_for_dependencies
+    assert_logged "'messages/something_missing' file doesn't exist, so no dependencies" do
+      dependencies("messages/something_missing")
+    end
+  end
+
+  def test_logging_of_missing_template_for_nested_dependencies
+    assert_logged "'messages/something_missing' file doesn't exist, so no dependencies" do
+      nested_dependencies("messages/something_missing")
+    end
+  end
+
   def test_nested_template_directory
     assert_digest_difference("messages/show") do
       change_template("messages/actions/_move")
@@ -296,6 +308,14 @@ class TemplateDigestorTest < ActionView::TestCase
       finder.variants = options.delete(:variants) || []
 
       ActionView::Digestor.digest({ name: template_name, finder: finder }.merge(options))
+    end
+
+    def dependencies(template_name)
+      ActionView::Digestor.new({ name: template_name, finder: finder }).dependencies
+    end
+
+    def nested_dependencies(template_name)
+      ActionView::Digestor.new({ name: template_name, finder: finder }).nested_dependencies
     end
 
     def finder

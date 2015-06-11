@@ -70,7 +70,8 @@ module ActionView
     def dependencies
       DependencyTracker.find_dependencies(name, template)
     rescue ActionView::MissingTemplate
-      [] # File doesn't exist, so no dependencies
+      logger.try :error, "  '#{name}' file doesn't exist, so no dependencies"
+      []
     end
 
     def nested_dependencies
