@@ -319,17 +319,23 @@ module ActionDispatch
       end
 
       def self.new_with_config(config)
+        route_set_config = DEFAULT_CONFIG
+
+        # engines apparently don't have this set
         if config.respond_to? :relative_url_root
-          new Config.new config.relative_url_root
-        else
-          # engines apparently don't have this set
-          new
+          route_set_config.relative_url_root = config.relative_url_root
         end
+
+        if config.respond_to? :api_only
+          route_set_config.api_only = config.api_only
+        end
+
+        new route_set_config
       end
 
-      Config = Struct.new :relative_url_root
+      Config = Struct.new :relative_url_root, :api_only
 
-      DEFAULT_CONFIG = Config.new(nil)
+      DEFAULT_CONFIG = Config.new(nil, false)
 
       def initialize(config = DEFAULT_CONFIG)
         self.named_routes = NamedRouteCollection.new
@@ -350,6 +356,10 @@ module ActionDispatch
 
       def relative_url_root
         @config.relative_url_root
+      end
+
+      def api_only?
+        @config.api_only
       end
 
       def request_class

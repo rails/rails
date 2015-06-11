@@ -185,4 +185,51 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
       assert_match(/2 runs, 2 assertions, 0 failures, 0 errors/, `bundle exec rake test 2>&1`)
     end
   end
+
+  def test_api_only_generates_a_proper_api_controller
+    run_generator ["User", "--api"]
+
+    assert_file "app/controllers/users_controller.rb" do |content|
+      assert_match(/class UsersController < ApplicationController/, content)
+      assert_no_match(/respond_to/, content)
+
+      assert_match(/before_action :set_user, only: \[:show, :update, :destroy\]/, content)
+
+      assert_instance_method :index, content do |m|
+        assert_match(/@users = User\.all/, m)
+        assert_match(/render json: @users/, m)
+      end
+
+      assert_instance_method :show, content do |m|
+        assert_match(/render json: @user/, m)
+      end
+
+      assert_instance_method :create, content do |m|
+        assert_match(/@user = User\.new\(user_params\)/, m)
+        assert_match(/@user\.save/, m)
+        assert_match(/@user\.errors/, m)
+      end
+
+      assert_instance_method :update, content do |m|
+        assert_match(/@user\.update\(user_params\)/, m)
+        assert_match(/@user\.errors/, m)
+      end
+
+      assert_instance_method :destroy, content do |m|
+        assert_match(/@user\.destroy/, m)
+      end
+    end
+  end
+
+  def test_api_controller_tests
+    run_generator ["User", "name:string", "age:integer", "organization:references{polymorphic}", "--api"]
+
+    assert_file "test/controllers/users_controller_test.rb" do |content|
+      assert_match(/class UsersControllerTest < ActionController::TestCase/, content)
+      assert_match(/test "should get index"/, content)
+      assert_match(/post :create, params: \{ user: \{ age: @user\.age, name: @user\.name, organization_id: @user\.organization_id, organization_type: @user\.organization_type \} \}/, content)
+      assert_match(/patch :update, params: \{ id: @user, user: \{ age: @user\.age, name: @user\.name, organization_id: @user\.organization_id, organization_type: @user\.organization_type \} \}/, content)
+      assert_no_match(/assert_redirected_to/, content)
+    end
+  end
 end

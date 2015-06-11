@@ -11,7 +11,7 @@ class ShowExceptionsTest < ActionDispatch::IntegrationTest
       when "/bad_params"
         raise ActionDispatch::ParamsParser::ParseError.new("", StandardError.new)
       when "/method_not_allowed"
-        raise ActionController::MethodNotAllowed
+        raise ActionController::MethodNotAllowed, 'PUT'
       when "/unknown_http_method"
         raise ActionController::UnknownHttpMethod
       when "/not_found_original_exception"

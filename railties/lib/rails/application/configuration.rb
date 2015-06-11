@@ -16,7 +16,7 @@ module Rails
                     :beginning_of_week, :filter_redirect, :x
 
       attr_writer :log_level
-      attr_reader :encoding
+      attr_reader :encoding, :api_only
 
       def initialize(*)
         super
@@ -49,6 +49,7 @@ module Rails
         @eager_load                    = nil
         @secret_token                  = nil
         @secret_key_base               = nil
+        @api_only                      = false
         @x                             = Custom.new
       end
 
@@ -58,6 +59,11 @@ module Rails
           Encoding.default_external = value
           Encoding.default_internal = value
         end
+      end
+
+      def api_only=(value)
+        @api_only = value
+        generators.api_only = value
       end
 
       def paths

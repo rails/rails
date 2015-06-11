@@ -1,3 +1,10 @@
+*   Add support for API only apps.
+    Middleware stack was slimmed down and it has only the needed
+    middleware for API apps & generators generates the right files,
+    folders and configurations.
+
+    *Santiago Pastorino & Jorge Bejar*
+
 *   Make generated scaffold functional tests work inside engines.
 
     *Yuji Yaginuma*

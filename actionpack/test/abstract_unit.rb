@@ -232,6 +232,10 @@ class Rack::TestCase < ActionDispatch::IntegrationTest
 end
 
 module ActionController
+  class API
+    extend AbstractController::Railties::RoutesHelpers.with(SharedTestRoutes)
+  end
+
   class Base
     # This stub emulates the Railtie including the URL helpers from a Rails application
     extend AbstractController::Railties::RoutesHelpers.with(SharedTestRoutes)

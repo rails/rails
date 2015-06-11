@@ -1,3 +1,9 @@
+*   Add support for API only apps.
+    ActionController::API is added as a replacement of
+    ActionController::Base for this kind of applications.
+
+    *Santiago Pastorino & Jorge Bejar*
+
 *   Remove `assigns` and `assert_template`. Both methods have been extracted
     into a gem at https://github.com/rails/rails-controller-testing.
 

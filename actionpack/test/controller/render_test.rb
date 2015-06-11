@@ -24,6 +24,11 @@ class TestControllerWithExtraEtags < ActionController::Base
   end
 end
 
+class ImplicitRenderTestController < ActionController::Base
+  def empty_action
+  end
+end
+
 class TestController < ActionController::Base
   protect_from_forgery
 
@@ -460,6 +465,15 @@ class MetalRenderTest < ActionController::TestCase
   def test_access_to_logger_in_view
     get :accessing_logger_in_template
     assert_equal "NilClass", @response.body
+  end
+end
+
+class ImplicitRenderTest < ActionController::TestCase
+  tests ImplicitRenderTestController
+
+  def test_implicit_no_content_response
+    get :empty_action
+    assert_response :no_content
   end
 end
 

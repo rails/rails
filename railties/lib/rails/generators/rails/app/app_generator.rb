@@ -175,6 +175,9 @@ module Rails
       class_option :version, type: :boolean, aliases: "-v", group: :rails,
                              desc: "Show Rails version number and quit"
 
+      class_option :api, type: :boolean,
+                         desc: "Preconfigure smaller stack for API only apps"
+
       def initialize(*args)
         super
 
@@ -185,6 +188,10 @@ module Rails
         if !options[:skip_active_record] && !DATABASES.include?(options[:database])
           raise Error, "Invalid value for --database option. Supported for preconfiguration are: #{DATABASES.join(", ")}."
         end
+
+        # Force sprockets to be skipped when generating API only apps.
+        # Can't modify options hash as it's frozen by default.
+        self.options = options.merge(skip_sprockets: true, skip_javascript: true).freeze if options[:api]
       end
 
       public_task :set_default_accessors!
@@ -252,6 +259,28 @@ module Rails
         build(:vendor)
       end
 
+      def delete_app_assets_if_api_option
+        if options[:api]
+          remove_dir 'app/assets'
+          remove_dir 'lib/assets'
+          remove_dir 'tmp/cache/assets'
+          remove_dir 'vendor/assets'
+        end
+      end
+
+      def delete_app_helpers_if_api_option
+        if options[:api]
+          remove_dir 'app/helpers'
+          remove_dir 'test/helpers'
+        end
+      end
+
+      def delete_app_views_if_api_option
+        if options[:api]
+          remove_dir 'app/views'
+        end
+      end
+
       def delete_js_folder_skipping_javascript
         if options[:skip_javascript]
           remove_dir 'app/assets/javascripts'
@@ -267,6 +296,13 @@ module Rails
       def delete_active_record_initializers_skipping_active_record
         if options[:skip_active_record]
           remove_file 'config/initializers/active_record_belongs_to_required_by_default.rb'
+        end
+      end
+
+      def delete_non_api_initializers_if_api_option
+        if options[:api]
+          remove_file 'config/initializers/session_store.rb'
+          remove_file 'config/initializers/cookies_serializer.rb'
         end
       end
 

@@ -48,8 +48,10 @@ module ActionView
       end
     end
 
-    rake_tasks do
-      load "action_view/tasks/dependencies.rake"
+    rake_tasks do |app|
+      unless app.config.api_only
+        load "action_view/tasks/dependencies.rake"
+      end
     end
   end
 end
