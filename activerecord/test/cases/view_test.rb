@@ -33,7 +33,7 @@ module ViewBehavior
 
   def test_table_exists
     view_name = Ebook.table_name
-    assert @connection.table_exists?(view_name), "'#{view_name}' table should exist"
+    assert @connection.table_exists?(view_name), message: "'#{view_name}' table should exist"
   end
 
   def test_column_definitions
@@ -93,7 +93,7 @@ class ViewWithoutPrimaryKeyTest < ActiveRecord::TestCase
 
   def test_table_exists
     view_name = Paperback.table_name
-    assert @connection.table_exists?(view_name), "'#{view_name}' table should exist"
+    assert @connection.table_exists?(view_name), message: "'#{view_name}' table should exist"
   end
 
   def test_column_definitions

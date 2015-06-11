@@ -54,11 +54,11 @@ class TimestampTest < ActiveRecord::TestCase
 
   def test_load_infinity_and_beyond
     d = Developer.find_by_sql("select 'infinity'::timestamp as updated_at")
-    assert d.first.updated_at.infinite?, 'timestamp should be infinite'
+    assert d.first.updated_at.infinite?, message: 'timestamp should be infinite'
 
     d = Developer.find_by_sql("select '-infinity'::timestamp as updated_at")
     time = d.first.updated_at
-    assert time.infinite?, 'timestamp should be infinite'
+    assert time.infinite?, message: 'timestamp should be infinite'
     assert_operator time, :<, 0
   end
 

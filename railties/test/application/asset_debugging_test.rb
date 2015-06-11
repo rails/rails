@@ -37,7 +37,7 @@ module ApplicationTests
       # config.assets.debug and config.assets.compile are false for production environment
       ENV["RAILS_ENV"] = "production"
       output = Dir.chdir(app_path){ `bundle exec rake assets:precompile --trace 2>&1` }
-      assert $?.success?, output
+      assert $?.success?, message: output
       require "#{app_path}/config/environment"
 
       class ::PostsController < ActionController::Base ; end

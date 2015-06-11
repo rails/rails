@@ -101,7 +101,7 @@ class NamedScopingTest < ActiveRecord::TestCase
   def test_scope_with_object
     objects = Topic.with_object
     assert_operator objects.length, :>, 0
-    assert objects.all?(&:approved?), 'all objects should be approved'
+    assert objects.all?(&:approved?), message: 'all objects should be approved'
   end
 
   def test_has_many_associations_have_access_to_scopes
@@ -500,7 +500,7 @@ class NamedScopingTest < ActiveRecord::TestCase
     [:destroy_all, :reset, :delete_all].each do |method|
       before = post.comments.containing_the_letter_e
       post.association(:comments).send(method)
-      assert before.object_id != post.comments.containing_the_letter_e.object_id, "CollectionAssociation##{method} should reset the named scopes cache"
+      assert before.object_id != post.comments.containing_the_letter_e.object_id, message: "CollectionAssociation##{method} should reset the named scopes cache"
     end
   end
 

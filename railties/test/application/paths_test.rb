@@ -32,11 +32,11 @@ module ApplicationTests
     end
 
     def assert_in_load_path(*path)
-      assert $:.any? { |p| File.expand_path(p) == root(*path) }, "Load path does not include '#{root(*path)}'. They are:\n-----\n #{$:.join("\n")}\n-----"
+      assert $:.any? { |p| File.expand_path(p) == root(*path) }, message: "Load path does not include '#{root(*path)}'. They are:\n-----\n #{$:.join("\n")}\n-----"
     end
 
     def assert_not_in_load_path(*path)
-      assert !$:.any? { |p| File.expand_path(p) == root(*path) }, "Load path includes '#{root(*path)}'. They are:\n-----\n #{$:.join("\n")}\n-----"
+      assert !$:.any? { |p| File.expand_path(p) == root(*path) }, message: "Load path includes '#{root(*path)}'. They are:\n-----\n #{$:.join("\n")}\n-----"
     end
 
     test "booting up Rails yields a valid paths object" do

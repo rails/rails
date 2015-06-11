@@ -22,7 +22,7 @@ class PresenceValidationTest < ActiveRecord::TestCase
   def test_validates_presence_of_has_one
     Boy.validates_presence_of(:face)
     b = Boy.new
-    assert b.invalid?, "should not be valid if has_one association missing"
+    assert b.invalid?, message: "should not be valid if has_one association missing"
     assert_equal 1, b.errors[:face].size, "validates_presence_of should only add one error"
   end
 

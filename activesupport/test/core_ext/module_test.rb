@@ -268,7 +268,7 @@ class ModuleTest < ActiveSupport::TestCase
     file_and_line = "#{__FILE__}:#{Someone::FAILED_DELEGATE_LINE}"
     # We can't simply check the first line of the backtrace, because JRuby reports the call to __send__ in the backtrace.
     assert e.backtrace.any?{|a| a.include?(file_and_line)},
-           "[#{e.backtrace.inspect}] did not include [#{file_and_line}]"
+           message: "[#{e.backtrace.inspect}] did not include [#{file_and_line}]"
   end
 
   def test_delegation_exception_backtrace_with_allow_nil
@@ -278,7 +278,7 @@ class ModuleTest < ActiveSupport::TestCase
     file_and_line = "#{__FILE__}:#{Someone::FAILED_DELEGATE_LINE_2}"
     # We can't simply check the first line of the backtrace, because JRuby reports the call to __send__ in the backtrace.
     assert e.backtrace.any?{|a| a.include?(file_and_line)},
-           "[#{e.backtrace.inspect}] did not include [#{file_and_line}]"
+           message: "[#{e.backtrace.inspect}] did not include [#{file_and_line}]"
   end
 
   def test_delegation_invokes_the_target_exactly_once

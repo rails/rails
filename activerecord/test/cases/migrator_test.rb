@@ -111,7 +111,7 @@ class MigratorTest < ActiveRecord::TestCase
     migration_proxy = list.find { |item|
       item.name == 'ValidPeopleHaveLastNames'
     }
-    assert migration_proxy, 'should find pending migration'
+    assert migration_proxy, message: 'should find pending migration'
   end
 
   def test_finds_pending_migrations

@@ -30,7 +30,7 @@ class ModulesTest < ActiveRecord::TestCase
 
   def test_module_spanning_associations
     firm = MyApplication::Business::Firm.first
-    assert !firm.clients.empty?, "Firm should have clients"
+    assert !firm.clients.empty?, message: "Firm should have clients"
     assert_nil firm.class.table_name.match('::'), "Firm shouldn't have the module appear in its table name"
   end
 
@@ -153,7 +153,7 @@ class ModulesTest < ActiveRecord::TestCase
     ActiveRecord::Base.store_full_sti_class = true
 
     collection = Shop::Collection.first
-    assert !collection.products.empty?, "Collection should have products"
+    assert !collection.products.empty?, message: "Collection should have products"
     assert_nothing_raised { collection.destroy }
   ensure
     ActiveRecord::Base.store_full_sti_class = old
@@ -164,7 +164,7 @@ class ModulesTest < ActiveRecord::TestCase
     ActiveRecord::Base.store_full_sti_class = true
 
     product = Shop::Product.first
-    assert !product.variants.empty?, "Product should have variants"
+    assert !product.variants.empty?, message: "Product should have variants"
     assert_nothing_raised { product.destroy }
   ensure
     ActiveRecord::Base.store_full_sti_class = old

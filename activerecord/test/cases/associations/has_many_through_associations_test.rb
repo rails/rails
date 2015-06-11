@@ -144,7 +144,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
     sicp.students.reload
     sicp.students.destroy(*student.all.to_a)
-    assert after_destroy_called, "after destroy should be called"
+    assert after_destroy_called, message: "after destroy should be called"
   end
 
   def make_no_pk_hm_t
@@ -1076,7 +1076,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     person = Person.create!(:first_name => "Gaga")
     person = Person.where(:id => person.id).where('readers.id = 1 or 1=1').references(:readers).includes(:posts).to_a.first
 
-    assert person.posts.loaded?, 'person.posts should be loaded'
+    assert person.posts.loaded?, message: 'person.posts should be loaded'
     assert_equal [], person.posts
   end
 

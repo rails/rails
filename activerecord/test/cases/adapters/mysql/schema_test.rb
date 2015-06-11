@@ -67,7 +67,7 @@ module ActiveRecord
 
       def test_table_exists?
         name = @omgpost.table_name
-        assert @connection.table_exists?(name), "#{name} table should exist"
+        assert @connection.table_exists?(name), message: "#{name} table should exist"
       end
 
       def test_table_exists_wrong_schema

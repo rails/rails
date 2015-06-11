@@ -167,7 +167,7 @@ module ActiveRecord
 
       def test_change_column_nullability
         add_column "test_models", "funny", :boolean
-        assert TestModel.columns_hash["funny"].null, "Column 'funny' must initially allow nulls"
+        assert TestModel.columns_hash["funny"].null, message: "Column 'funny' must initially allow nulls"
 
         change_column "test_models", "funny", :boolean, :null => false, :default => true
 
@@ -176,7 +176,7 @@ module ActiveRecord
 
         change_column "test_models", "funny", :boolean, :null => true
         TestModel.reset_column_information
-        assert TestModel.columns_hash["funny"].null, "Column 'funny' must allow nulls again at this point"
+        assert TestModel.columns_hash["funny"].null, message: "Column 'funny' must allow nulls again at this point"
       end
 
       def test_change_column

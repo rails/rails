@@ -251,22 +251,22 @@ class MigrationTest < ActiveRecord::TestCase
 
   def test_instance_based_migration_up
     migration = MockMigration.new
-    assert !migration.went_up, 'have not gone up'
-    assert !migration.went_down, 'have not gone down'
+    assert !migration.went_up, message: 'have not gone up'
+    assert !migration.went_down, message: 'have not gone down'
 
     migration.migrate :up
-    assert migration.went_up, 'have gone up'
-    assert !migration.went_down, 'have not gone down'
+    assert migration.went_up, message: 'have gone up'
+    assert !migration.went_down, message: 'have not gone down'
   end
 
   def test_instance_based_migration_down
     migration = MockMigration.new
-    assert !migration.went_up, 'have not gone up'
-    assert !migration.went_down, 'have not gone down'
+    assert !migration.went_up, message: 'have not gone up'
+    assert !migration.went_down, message: 'have not gone down'
 
     migration.migrate :down
-    assert !migration.went_up, 'have gone up'
-    assert migration.went_down, 'have not gone down'
+    assert !migration.went_up, message: 'have gone up'
+    assert migration.went_down, message: 'have not gone down'
   end
 
   if ActiveRecord::Base.connection.supports_ddl_transactions?

@@ -68,7 +68,7 @@ class PostgreSQLReferentialIntegrityTest < ActiveRecord::TestCase
       end
       assert_equal 'Should be re-raised', e.message
     end
-    assert warning.blank?, "expected no warnings but got:\n#{warning}"
+    assert warning.blank?, message: "expected no warnings but got:\n#{warning}"
   end
 
   def test_does_not_break_transactions

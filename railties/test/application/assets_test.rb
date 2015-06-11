@@ -32,11 +32,11 @@ module ApplicationTests
     end
 
     def assert_file_exists(filename)
-      assert Dir[filename].first, "missing #{filename}"
+      assert Dir[filename].first, message: "missing #{filename}"
     end
 
     def assert_no_file_exists(filename)
-      assert !File.exist?(filename), "#{filename} does exist"
+      assert !File.exist?(filename), message: "#{filename} does exist"
     end
 
     test "assets routes have higher priority" do

@@ -898,8 +898,8 @@ class TimeWithZoneMethodsForTimeAndDateTimeTest < ActiveSupport::TestCase
 
   def test_nil_time_zone
     Time.use_zone nil do
-      assert !@t.in_time_zone.respond_to?(:period), 'no period method'
-      assert !@dt.in_time_zone.respond_to?(:period), 'no period method'
+      assert !@t.in_time_zone.respond_to?(:period), message: 'no period method'
+      assert !@dt.in_time_zone.respond_to?(:period), message: 'no period method'
     end
   end
 
@@ -987,8 +987,8 @@ class TimeWithZoneMethodsForTimeAndDateTimeTest < ActiveSupport::TestCase
     Time.use_zone 'Paris' do
       t1 = Thread.new { Time.zone = 'Alaska' }.join
       t2 = Thread.new { Time.zone = 'Hawaii' }.join
-      assert t1.stop?, "Thread 1 did not finish running"
-      assert t2.stop?, "Thread 2 did not finish running"
+      assert t1.stop?, message: "Thread 1 did not finish running"
+      assert t2.stop?, message: "Thread 2 did not finish running"
       assert_equal ActiveSupport::TimeZone['Paris'], Time.zone
       assert_equal ActiveSupport::TimeZone['Alaska'], t1[:time_zone]
       assert_equal ActiveSupport::TimeZone['Hawaii'], t2[:time_zone]
@@ -1087,7 +1087,7 @@ class TimeWithZoneMethodsForDate < ActiveSupport::TestCase
 
   def test_nil_time_zone
     with_tz_default nil do
-      assert !@d.in_time_zone.respond_to?(:period), 'no period method'
+      assert !@d.in_time_zone.respond_to?(:period), message: 'no period method'
     end
   end
 
@@ -1136,9 +1136,9 @@ class TimeWithZoneMethodsForString < ActiveSupport::TestCase
 
   def test_nil_time_zone
     with_tz_default nil do
-      assert !@s.in_time_zone.respond_to?(:period), 'no period method'
-      assert !@u.in_time_zone.respond_to?(:period), 'no period method'
-      assert !@z.in_time_zone.respond_to?(:period), 'no period method'
+      assert !@s.in_time_zone.respond_to?(:period), message: 'no period method'
+      assert !@u.in_time_zone.respond_to?(:period), message: 'no period method'
+      assert !@z.in_time_zone.respond_to?(:period), message: 'no period method'
     end
   end
 

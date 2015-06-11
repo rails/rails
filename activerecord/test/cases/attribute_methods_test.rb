@@ -320,32 +320,32 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   def test_read_attribute_when_false
     topic = topics(:first)
     topic.approved = false
-    assert !topic.approved?, "approved should be false"
+    assert !topic.approved?, message: "approved should be false"
     topic.approved = "false"
-    assert !topic.approved?, "approved should be false"
+    assert !topic.approved?, message: "approved should be false"
   end
 
   def test_read_attribute_when_true
     topic = topics(:first)
     topic.approved = true
-    assert topic.approved?, "approved should be true"
+    assert topic.approved?, message: "approved should be true"
     topic.approved = "true"
-    assert topic.approved?, "approved should be true"
+    assert topic.approved?, message: "approved should be true"
   end
 
   def test_read_write_boolean_attribute
     topic = Topic.new
     topic.approved = "false"
-    assert !topic.approved?, "approved should be false"
+    assert !topic.approved?, message: "approved should be false"
 
     topic.approved = "false"
-    assert !topic.approved?, "approved should be false"
+    assert !topic.approved?, message: "approved should be false"
 
     topic.approved = "true"
-    assert topic.approved?, "approved should be true"
+    assert topic.approved?, message: "approved should be true"
 
     topic.approved = "true"
-    assert topic.approved?, "approved should be true"
+    assert topic.approved?, message: "approved should be true"
   end
 
   def test_overridden_write_attribute
@@ -815,12 +815,12 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     instance = subklass.new
     instance.id = 5
     assert_equal 5, instance.id
-    assert subklass.method_defined?(:id), "subklass is missing id method"
+    assert subklass.method_defined?(:id), message: "subklass is missing id method"
 
     Topic.undefine_attribute_methods
 
     assert_equal 5, instance.id
-    assert subklass.method_defined?(:id), "subklass is missing id method"
+    assert subklass.method_defined?(:id), message: "subklass is missing id method"
   end
 
   def test_read_attribute_with_nil_should_not_asplode

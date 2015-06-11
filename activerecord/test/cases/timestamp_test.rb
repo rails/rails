@@ -38,8 +38,8 @@ class TimestampTest < ActiveRecord::TestCase
 
     assert_not_equal @previously_updated_at, @developer.updated_at
     assert_equal previous_salary + 10000, @developer.salary
-    assert @developer.salary_changed?, 'developer salary should have changed'
-    assert @developer.changed?, 'developer should be marked as changed'
+    assert @developer.salary_changed?, message: 'developer salary should have changed'
+    assert @developer.changed?, message: 'developer should be marked as changed'
     @developer.reload
     assert_equal previous_salary, @developer.salary
   end
@@ -74,20 +74,20 @@ class TimestampTest < ActiveRecord::TestCase
   end
 
   def test_touching_updates_timestamp_with_given_time
-    previously_updated_at = @developer.updated_at 
-    new_time = Time.utc(2015, 2, 16, 0, 0, 0) 
-    @developer.touch(time: new_time) 
+    previously_updated_at = @developer.updated_at
+    new_time = Time.utc(2015, 2, 16, 0, 0, 0)
+    @developer.touch(time: new_time)
 
-    assert_not_equal previously_updated_at, @developer.updated_at 
-    assert_equal new_time, @developer.updated_at 
+    assert_not_equal previously_updated_at, @developer.updated_at
+    assert_equal new_time, @developer.updated_at
   end
 
   def test_touching_an_attribute_updates_timestamp
     previously_created_at = @developer.created_at
     @developer.touch(:created_at)
 
-    assert !@developer.created_at_changed? , 'created_at should not be changed'
-    assert !@developer.changed?, 'record should not be changed'
+    assert !@developer.created_at_changed? , message: 'created_at should not be changed'
+    assert !@developer.changed?, message: 'record should not be changed'
     assert_not_equal previously_created_at, @developer.created_at
     assert_not_equal @previously_updated_at, @developer.updated_at
   end
@@ -101,9 +101,9 @@ class TimestampTest < ActiveRecord::TestCase
   end
 
   def test_touching_an_attribute_updates_timestamp_with_given_time
-    previously_updated_at = @developer.updated_at 
+    previously_updated_at = @developer.updated_at
     previously_created_at = @developer.created_at
-    new_time = Time.utc(2015, 2, 16, 4, 54, 0) 
+    new_time = Time.utc(2015, 2, 16, 4, 54, 0)
     @developer.touch(:created_at, time: new_time)
 
     assert_not_equal previously_created_at, @developer.created_at
