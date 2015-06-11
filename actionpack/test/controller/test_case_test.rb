@@ -822,11 +822,11 @@ XML
         remove_instance_variable "@#{variable}"
         begin
           send(method, :test_remote_addr)
-          assert false, "expected RuntimeError, got nothing"
+          assert false, message: "expected RuntimeError, got nothing"
         rescue RuntimeError => error
           assert_match(%r{@#{variable} is nil}, error.message)
         rescue => error
-          assert false, "expected RuntimeError, got #{error.class}"
+          assert false, message: "expected RuntimeError, got #{error.class}"
         end
       end
     end
@@ -889,7 +889,7 @@ XML
 
   def test_fixture_file_upload_should_be_able_access_to_tempfile
     file = fixture_file_upload(FILES_DIR + "/mona_lisa.jpg", "image/jpg")
-    assert file.respond_to?(:tempfile), "expected tempfile should respond on fixture file object, got nothing"
+    assert file.respond_to?(:tempfile), message: "expected tempfile should respond on fixture file object, got nothing"
   end
 
   def test_fixture_file_upload

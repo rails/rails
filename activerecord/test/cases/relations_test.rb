@@ -53,7 +53,7 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_dynamic_finder
     x = Post.where('author_id = ?', 1)
-    assert x.klass.respond_to?(:find_by_id), '@klass should handle dynamic finders'
+    assert x.klass.respond_to?(:find_by_id), message: '@klass should handle dynamic finders'
   end
 
   def test_multivalue_where

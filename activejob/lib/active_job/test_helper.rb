@@ -236,7 +236,7 @@ module ActiveJob
         matching_job = enqueued_jobs.any? do |job|
           serialized_args.all? { |key, value| value == job[key] }
         end
-        assert matching_job, "No enqueued job found with #{args}"
+        assert matching_job, message: "No enqueued job found with #{args}"
       ensure
         queue_adapter.enqueued_jobs = original_enqueued_jobs + enqueued_jobs
       end
@@ -257,7 +257,7 @@ module ActiveJob
         matching_job = performed_jobs.any? do |job|
           serialized_args.all? { |key, value| value == job[key] }
         end
-        assert matching_job, "No performed job found with #{args}"
+        assert matching_job, message: "No performed job found with #{args}"
       ensure
         queue_adapter.performed_jobs = original_performed_jobs + performed_jobs
       end

@@ -35,7 +35,7 @@ module ActionDispatch
         assert_operator mw, :==, k
 
         result = mw != Class.new
-        assert result, 'middleware should not equal other anon class'
+        assert result, message: 'middleware should not equal other anon class'
       end
 
       def test_double_equal_works_with_strings

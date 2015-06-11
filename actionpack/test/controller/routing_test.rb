@@ -250,7 +250,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
     end
 
     assert_equal 'default', get(URI('http://www.example.org/foo/'))
-    assert scope_called, "scope constraint should be called"
+    assert scope_called, message: "scope constraint should be called"
   end
 
   def test_scoped_lambda_with_get_lambda
@@ -264,7 +264,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
     end
 
     assert_equal 'default', get(URI('http://www.example.org/foo/'))
-    assert inner_called, "inner constraint should be called"
+    assert inner_called, message: "inner constraint should be called"
   end
 
   def test_empty_string_match
@@ -535,12 +535,12 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
 
     # No + to space in URI escaping, only for query params.
     results = rs.recognize_path "/file/hello+world/how+are+you%3F"
-    assert results, "Recognition should have succeeded"
+    assert results, message: "Recognition should have succeeded"
     assert_equal 'hello+world/how+are+you?', results[:path]
 
     # Use %20 for space instead.
     results = rs.recognize_path "/file/hello%20world/how%20are%20you%3F"
-    assert results, "Recognition should have succeeded"
+    assert results, message: "Recognition should have succeeded"
     assert_equal 'hello world/how are you?', results[:path]
   end
 
@@ -1208,14 +1208,14 @@ class RouteSetTest < ActiveSupport::TestCase
   end
 
   def test_routing_traversal_does_not_load_extra_classes
-    assert !Object.const_defined?("Profiler__"), "Profiler should not be loaded"
+    assert !Object.const_defined?("Profiler__"), message: "Profiler should not be loaded"
     set.draw do
       get '/profile' => 'profile#index'
     end
 
     request_path_params("/profile") rescue nil
 
-    assert !Object.const_defined?("Profiler__"), "Profiler should not be loaded"
+    assert !Object.const_defined?("Profiler__"), message: "Profiler should not be loaded"
   end
 
   def test_recognize_with_conditions_and_format

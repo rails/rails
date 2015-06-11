@@ -122,17 +122,17 @@ class ConditionalValidationTest < ActiveModel::TestCase
     Topic.validates_presence_of(:author_name, if: "title.to_s.match('important')")
 
     t = Topic.new
-    assert t.invalid?, "A topic without a title should not be valid"
+    assert t.invalid?, message: "A topic without a title should not be valid"
     assert_empty t.errors[:author_name], "A topic without an 'important' title should not require an author"
 
     t.title = "Just a title"
-    assert t.valid?, "A topic with a basic title should be valid"
+    assert t.valid?, message: "A topic with a basic title should be valid"
 
     t.title = "A very important title"
-    assert t.invalid?, "A topic with an important title, but without an author, should not be valid"
-    assert t.errors[:author_name].any?, "A topic with an 'important' title should require an author"
+    assert t.invalid?, message: "A topic with an important title, but without an author, should not be valid"
+    assert t.errors[:author_name].any?, message: "A topic with an 'important' title should require an author"
 
     t.author_name = "Hubert J. Farnsworth"
-    assert t.valid?, "A topic with an important title and author should be valid"
+    assert t.valid?, message: "A topic with an important title and author should be valid"
   end
 end

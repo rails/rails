@@ -44,8 +44,8 @@ class TransactionTest < ActiveRecord::TestCase
       @second.save
     end
 
-    assert Topic.find(1).approved?, "First should have been approved"
-    assert !Topic.find(2).approved?, "Second should have been unapproved"
+    assert Topic.find(1).approved?, message: "First should have been approved"
+    assert !Topic.find(2).approved?, message: "Second should have been unapproved"
   end
 
   def transaction_with_return
@@ -72,8 +72,8 @@ class TransactionTest < ActiveRecord::TestCase
     transaction_with_return
     assert committed
 
-    assert Topic.find(1).approved?, "First should have been approved"
-    assert !Topic.find(2).approved?, "Second should have been unapproved"
+    assert Topic.find(1).approved?, message: "First should have been approved"
+    assert !Topic.find(2).approved?, message: "Second should have been unapproved"
   ensure
     Topic.connection.class_eval do
       remove_method :commit_db_transaction
@@ -113,8 +113,8 @@ class TransactionTest < ActiveRecord::TestCase
       @second.save
     end
 
-    assert Topic.find(1).approved?, "First should have been approved"
-    assert !Topic.find(2).approved?, "Second should have been unapproved"
+    assert Topic.find(1).approved?, message: "First should have been approved"
+    assert !Topic.find(2).approved?, message: "Second should have been unapproved"
   end
 
   def test_failing_on_exception
@@ -130,11 +130,11 @@ class TransactionTest < ActiveRecord::TestCase
       # caught it
     end
 
-    assert @first.approved?, "First should still be changed in the objects"
-    assert !@second.approved?, "Second should still be changed in the objects"
+    assert @first.approved?, message: "First should still be changed in the objects"
+    assert !@second.approved?, message: "Second should still be changed in the objects"
 
-    assert !Topic.find(1).approved?, "First shouldn't have been approved"
-    assert Topic.find(2).approved?, "Second should still be approved"
+    assert !Topic.find(1).approved?, message: "First shouldn't have been approved"
+    assert Topic.find(2).approved?, message: "Second should still be approved"
   end
 
   def test_raising_exception_in_callback_rollbacks_in_save
@@ -158,7 +158,7 @@ class TransactionTest < ActiveRecord::TestCase
       @first.approved  = true
       @first.save!
     end
-    assert !Topic.find(@first.id).approved?, "Should not commit the approved flag"
+    assert !Topic.find(@first.id).approved?, message: "Should not commit the approved flag"
   end
 
   def test_raising_exception_in_nested_transaction_restore_state_in_save
@@ -172,7 +172,7 @@ class TransactionTest < ActiveRecord::TestCase
       Topic.transaction { topic.save }
     end
 
-    assert topic.new_record?, "#{topic.inspect} should be new record"
+    assert topic.new_record?, message: "#{topic.inspect} should be new record"
   end
 
   def test_update_should_rollback_on_failure
@@ -280,7 +280,7 @@ class TransactionTest < ActiveRecord::TestCase
     }
 
     new_topic = topic.create(:title => "A new topic")
-    assert !new_topic.persisted?, "The topic should not be persisted"
+    assert !new_topic.persisted?, message: "The topic should not be persisted"
     assert_nil new_topic.id, "The topic should not have an ID"
   end
 
@@ -294,8 +294,8 @@ class TransactionTest < ActiveRecord::TestCase
       end
     end
 
-    assert Topic.find(1).approved?, "First should have been approved"
-    assert !Topic.find(2).approved?, "Second should have been unapproved"
+    assert Topic.find(1).approved?, message: "First should have been approved"
+    assert !Topic.find(2).approved?, message: "Second should have been unapproved"
   end
 
   def test_manually_rolling_back_a_transaction
@@ -308,11 +308,11 @@ class TransactionTest < ActiveRecord::TestCase
       raise ActiveRecord::Rollback
     end
 
-    assert @first.approved?, "First should still be changed in the objects"
-    assert !@second.approved?, "Second should still be changed in the objects"
+    assert @first.approved?, message: "First should still be changed in the objects"
+    assert !@second.approved?, message: "Second should still be changed in the objects"
 
-    assert !Topic.find(1).approved?, "First shouldn't have been approved"
-    assert Topic.find(2).approved?, "Second should still be approved"
+    assert !Topic.find(1).approved?, message: "First shouldn't have been approved"
+    assert Topic.find(2).approved?, message: "Second should still be approved"
   end
 
   def test_invalid_keys_for_transaction
@@ -498,9 +498,9 @@ class TransactionTest < ActiveRecord::TestCase
     assert_match(/frozen/i, e.message) # Not good enough, but we can't do much
                                        # about it since there is no specific error
                                        # for frozen objects.
-    assert !topic.persisted?, 'not persisted'
+    assert !topic.persisted?, message: 'not persisted'
     assert_nil topic.id
-    assert topic.frozen?, 'not frozen'
+    assert topic.frozen?, message: 'not frozen'
   end
 
   def test_rollback_when_thread_killed
@@ -524,11 +524,11 @@ class TransactionTest < ActiveRecord::TestCase
     thread.kill
     thread.join
 
-    assert @first.approved?, "First should still be changed in the objects"
-    assert !@second.approved?, "Second should still be changed in the objects"
+    assert @first.approved?, message: "First should still be changed in the objects"
+    assert !@second.approved?, message: "Second should still be changed in the objects"
 
-    assert !Topic.find(1).approved?, "First shouldn't have been approved"
-    assert Topic.find(2).approved?, "Second should still be approved"
+    assert !Topic.find(1).approved?, message: "First shouldn't have been approved"
+    assert Topic.find(2).approved?, message: "Second should still be approved"
   end
 
   def test_restore_active_record_state_for_all_records_in_a_transaction
@@ -546,27 +546,27 @@ class TransactionTest < ActiveRecord::TestCase
       assert topic_3.save
       @first.save
       @second.destroy
-      assert topic_1.persisted?, 'persisted'
+      assert topic_1.persisted?, message: 'persisted'
       assert_not_nil topic_1.id
-      assert topic_2.persisted?, 'persisted'
+      assert topic_2.persisted?, message: 'persisted'
       assert_not_nil topic_2.id
-      assert topic_3.persisted?, 'persisted'
+      assert topic_3.persisted?, message: 'persisted'
       assert_not_nil topic_3.id
-      assert @first.persisted?, 'persisted'
+      assert @first.persisted?, message: 'persisted'
       assert_not_nil @first.id
-      assert @second.destroyed?, 'destroyed'
+      assert @second.destroyed?, message: 'destroyed'
       raise ActiveRecord::Rollback
     end
 
-    assert !topic_1.persisted?, 'not persisted'
+    assert !topic_1.persisted?, message: 'not persisted'
     assert_nil topic_1.id
-    assert !topic_2.persisted?, 'not persisted'
+    assert !topic_2.persisted?, message: 'not persisted'
     assert_nil topic_2.id
-    assert !topic_3.persisted?, 'not persisted'
+    assert !topic_3.persisted?, message: 'not persisted'
     assert_nil topic_3.id
-    assert @first.persisted?, 'persisted'
+    assert @first.persisted?, message: 'persisted'
     assert_not_nil @first.id
-    assert !@second.destroyed?, 'not destroyed'
+    assert !@second.destroyed?, message: 'not destroyed'
   end
 
   def test_restore_frozen_state_after_double_destroy
@@ -590,7 +590,7 @@ class TransactionTest < ActiveRecord::TestCase
       topic.destroy
       raise ActiveRecord::Rollback
     end
-    assert topic.frozen?, 'frozen'
+    assert topic.frozen?, message: 'frozen'
   end
 
   def test_rollback_for_freshly_persisted_records
@@ -599,7 +599,7 @@ class TransactionTest < ActiveRecord::TestCase
       topic.destroy
       raise ActiveRecord::Rollback
     end
-    assert topic.persisted?, 'persisted'
+    assert topic.persisted?, message: 'persisted'
   end
 
   def test_sqlite_add_column_in_transaction

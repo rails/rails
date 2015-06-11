@@ -84,16 +84,16 @@ class AssociationsTest < ActiveRecord::TestCase
     firm = Firm.new("name" => "A New Firm, Inc")
     firm.save
     firm.clients.each {} # forcing to load all clients
-    assert firm.clients.empty?, "New firm shouldn't have client objects"
+    assert firm.clients.empty?, message: "New firm shouldn't have client objects"
     assert_equal 0, firm.clients.size, "New firm should have 0 clients"
 
     client = Client.new("name" => "TheClient.com", "firm_id" => firm.id)
     client.save
 
-    assert firm.clients.empty?, "New firm should have cached no client objects"
+    assert firm.clients.empty?, message: "New firm should have cached no client objects"
     assert_equal 0, firm.clients.size, "New firm should have cached 0 clients count"
 
-    assert !firm.clients(true).empty?, "New firm should have reloaded client objects"
+    assert !firm.clients(true).empty?, message: "New firm should have reloaded client objects"
     assert_equal 1, firm.clients(true).size, "New firm should have reloaded clients count"
   end
 
@@ -102,9 +102,9 @@ class AssociationsTest < ActiveRecord::TestCase
     belongs_to_reflections = [Tagging.reflect_on_association(:tag), Tagging.reflect_on_association(:super_tag)]
     has_many_reflections = [Tag.reflect_on_association(:taggings), Developer.reflect_on_association(:projects)]
     mixed_reflections = (belongs_to_reflections + has_many_reflections).uniq
-    assert using_limitable_reflections.call(belongs_to_reflections), "Belong to associations are limitable"
-    assert !using_limitable_reflections.call(has_many_reflections), "All has many style associations are not limitable"
-    assert !using_limitable_reflections.call(mixed_reflections), "No collection associations (has many style) should pass"
+    assert using_limitable_reflections.call(belongs_to_reflections), message: "Belong to associations are limitable"
+    assert !using_limitable_reflections.call(has_many_reflections), message: "All has many style associations are not limitable"
+    assert !using_limitable_reflections.call(mixed_reflections), message: "No collection associations (has many style) should pass"
   end
 
   def test_force_reload_is_uncached

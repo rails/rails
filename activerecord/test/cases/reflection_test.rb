@@ -222,7 +222,7 @@ class ReflectionTest < ActiveRecord::TestCase
   end
 
   def test_reflections_should_return_keys_as_strings
-    assert Category.reflections.keys.all? { |key| key.is_a? String }, "Model.reflections is expected to return string for keys"
+    assert Category.reflections.keys.all? { |key| key.is_a? String }, message: "Model.reflections is expected to return string for keys"
   end
 
   def test_has_and_belongs_to_many_reflection

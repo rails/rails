@@ -110,7 +110,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert_raise ActionController::RoutingError do
       get "/pass", headers: { 'action_dispatch.show_exceptions' => true }
     end
-    assert boomer.closed, "Expected to close the response body"
+    assert boomer.closed, message: "Expected to close the response body"
   end
 
   test 'displays routes in a table when a RoutingError occurs' do

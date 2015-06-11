@@ -8,9 +8,9 @@ module ActiveRecord
     def test_persisted
       topic = Topic.first
       cloned = topic.clone
-      assert topic.persisted?, 'topic persisted'
-      assert cloned.persisted?, 'topic persisted'
-      assert !cloned.new_record?, 'topic is not new'
+      assert topic.persisted?, message: 'topic persisted'
+      assert cloned.persisted?, message: 'topic persisted'
+      assert !cloned.new_record?, message: 'topic is not new'
     end
 
     def test_stays_frozen
@@ -18,9 +18,9 @@ module ActiveRecord
       topic.freeze
 
       cloned = topic.clone
-      assert cloned.persisted?, 'topic persisted'
-      assert !cloned.new_record?, 'topic is not new'
-      assert cloned.frozen?, 'topic should be frozen'
+      assert cloned.persisted?, message: 'topic persisted'
+      assert !cloned.new_record?, message: 'topic is not new'
+      assert cloned.frozen?, message: 'topic should be frozen'
     end
 
     def test_shallow

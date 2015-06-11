@@ -118,11 +118,11 @@ module ActiveRecord
         conn = Base.sqlite3_connection database: ':memory:',
                                        adapter: 'sqlite3',
                                        timeout: nil
-        assert conn, 'made a connection'
+        assert conn, message: 'made a connection'
       end
 
       def test_connect
-        assert @conn, 'should have connection'
+        assert @conn, message: 'should have connection'
       end
 
       # sqlite3 defaults to UTF-8 encoding
@@ -366,7 +366,7 @@ module ActiveRecord
           index = @conn.indexes('ex').find { |idx| idx.name == 'fun' }
 
           assert_equal 'ex', index.table
-          assert index.unique, 'index is unique'
+          assert index.unique, message: 'index is unique'
           assert_equal ['id'], index.columns
         end
       end

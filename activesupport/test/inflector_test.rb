@@ -369,7 +369,7 @@ class InflectorTest < ActiveSupport::TestCase
       def test_clear_#{inflection_type}
         with_dup do
           ActiveSupport::Inflector.inflections.clear :#{inflection_type}
-          assert ActiveSupport::Inflector.inflections.#{inflection_type}.empty?, \"#{inflection_type} inflections should be empty after clear :#{inflection_type}\"
+          assert ActiveSupport::Inflector.inflections.#{inflection_type}.empty?, message: \"#{inflection_type} inflections should be empty after clear :#{inflection_type}\"
         end
       end
     RUBY

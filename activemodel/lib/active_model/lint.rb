@@ -28,9 +28,9 @@ module ActiveModel
       # <tt>to_key</tt> returns an Enumerable of all (primary) key attributes
       # of the model, and is used to a generate unique DOM id for the object.
       def test_to_key
-        assert model.respond_to?(:to_key), "The model should respond to to_key"
+        assert model.respond_to?(:to_key), message: "The model should respond to to_key"
         def model.persisted?() false end
-        assert model.to_key.nil?, "to_key should return nil when `persisted?` returns false"
+        assert model.to_key.nil?, message: "to_key should return nil when `persisted?` returns false"
       end
 
       # Passes if the object's model responds to <tt>to_param</tt> and if
@@ -43,10 +43,10 @@ module ActiveModel
       # tests for this behavior in lint because it doesn't make sense to force
       # any of the possible implementation strategies on the implementer.
       def test_to_param
-        assert model.respond_to?(:to_param), "The model should respond to to_param"
+        assert model.respond_to?(:to_param), message: "The model should respond to to_param"
         def model.to_key() [1] end
         def model.persisted?() false end
-        assert model.to_param.nil?, "to_param should return nil when `persisted?` returns false"
+        assert model.to_param.nil?, message: "to_param should return nil when `persisted?` returns false"
       end
 
       # Passes if the object's model responds to <tt>to_partial_path</tt> and if
@@ -55,7 +55,7 @@ module ActiveModel
       # <tt>to_partial_path</tt> is used for looking up partials. For example,
       # a BlogPost model might return "blog_posts/blog_post".
       def test_to_partial_path
-        assert model.respond_to?(:to_partial_path), "The model should respond to to_partial_path"
+        assert model.respond_to?(:to_partial_path), message: "The model should respond to to_partial_path"
         assert_kind_of String, model.to_partial_path
       end
 
@@ -67,7 +67,7 @@ module ActiveModel
       # will route to the create action. If it is persisted, a form for the
       # object will route to the update action.
       def test_persisted?
-        assert model.respond_to?(:persisted?), "The model should respond to persisted?"
+        assert model.respond_to?(:persisted?), message: "The model should respond to persisted?"
         assert_boolean model.persisted?, "persisted?"
       end
 
@@ -78,14 +78,14 @@ module ActiveModel
       #
       # Check ActiveModel::Naming for more information.
       def test_model_naming
-        assert model.class.respond_to?(:model_name), "The model class should respond to model_name"
+        assert model.class.respond_to?(:model_name), message: "The model class should respond to model_name"
         model_name = model.class.model_name
         assert model_name.respond_to?(:to_str)
         assert model_name.human.respond_to?(:to_str)
         assert model_name.singular.respond_to?(:to_str)
         assert model_name.plural.respond_to?(:to_str)
 
-        assert model.respond_to?(:model_name), "The model instance should respond to model_name"
+        assert model.respond_to?(:model_name), message: "The model instance should respond to model_name"
         assert_equal model.model_name, model.class.model_name
       end
 
@@ -99,18 +99,18 @@ module ActiveModel
       # If localization is used, the strings should be localized for the current
       # locale. If no error is present, the method should return an empty array.
       def test_errors_aref
-        assert model.respond_to?(:errors), "The model should respond to errors"
-        assert model.errors[:hello].is_a?(Array), "errors#[] should return an Array"
+        assert model.respond_to?(:errors), message: "The model should respond to errors"
+        assert model.errors[:hello].is_a?(Array), message: "errors#[] should return an Array"
       end
 
       private
         def model
-          assert @model.respond_to?(:to_model), "The object should respond to to_model"
+          assert @model.respond_to?(:to_model), message: "The object should respond to to_model"
           @model.to_model
         end
 
         def assert_boolean(result, name)
-          assert result == true || result == false, "#{name} should be a boolean"
+          assert result == true || result == false, message: "#{name} should be a boolean"
         end
     end
   end

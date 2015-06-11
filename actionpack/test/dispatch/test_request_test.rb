@@ -25,7 +25,7 @@ class TestRequestTest < ActiveSupport::TestCase
     assert_equal true, env.delete("rack.multiprocess")
     assert_equal false, env.delete("rack.run_once")
 
-    assert env.empty?, env.inspect
+    assert env.empty?, message: env.inspect
   end
 
   test "cookie jar" do

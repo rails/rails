@@ -23,7 +23,7 @@ module ApplicationTests
     test "config.force_ssl sets cookie to secure only" do
       add_to_config "config.force_ssl = true"
       require "#{app_path}/config/environment"
-      assert app.config.session_options[:secure], "Expected session to be marked as secure"
+      assert app.config.session_options[:secure], message: "Expected session to be marked as secure"
     end
 
     test "session is not loaded if it's not used" do

@@ -92,28 +92,28 @@ class ToXmlTest < ActiveSupport::TestCase
     ].to_xml(skip_instruct: true, indent: 0)
 
     assert_equal '<objects type="array"><object>', xml.first(30)
-    assert xml.include?(%(<age type="integer">26</age>)), xml
-    assert xml.include?(%(<age-in-millis type="integer">820497600000</age-in-millis>)), xml
-    assert xml.include?(%(<name>David</name>)), xml
-    assert xml.include?(%(<age type="integer">31</age>)), xml
-    assert xml.include?(%(<age-in-millis type="decimal">1.0</age-in-millis>)), xml
-    assert xml.include?(%(<name>Jason</name>)), xml
+    assert xml.include?(%(<age type="integer">26</age>)), message: xml
+    assert xml.include?(%(<age-in-millis type="integer">820497600000</age-in-millis>)), message: xml
+    assert xml.include?(%(<name>David</name>)), message: xml
+    assert xml.include?(%(<age type="integer">31</age>)), message: xml
+    assert xml.include?(%(<age-in-millis type="decimal">1.0</age-in-millis>)), message: xml
+    assert xml.include?(%(<name>Jason</name>)), message: xml
   end
 
   def test_to_xml_with_non_hash_elements
     xml = [1, 2, 3].to_xml(skip_instruct: true, indent: 0)
 
     assert_equal '<fixnums type="array"><fixnum', xml.first(29)
-    assert xml.include?(%(<fixnum type="integer">2</fixnum>)), xml
+    assert xml.include?(%(<fixnum type="integer">2</fixnum>)), message: xml
   end
 
   def test_to_xml_with_non_hash_different_type_elements
     xml = [1, 2.0, '3'].to_xml(skip_instruct: true, indent: 0)
 
     assert_equal '<objects type="array"><object', xml.first(29)
-    assert xml.include?(%(<object type="integer">1</object>)), xml
-    assert xml.include?(%(<object type="float">2.0</object>)), xml
-    assert xml.include?(%(object>3</object>)), xml
+    assert xml.include?(%(<object type="integer">1</object>)), message: xml
+    assert xml.include?(%(<object type="float">2.0</object>)), message: xml
+    assert xml.include?(%(object>3</object>)), message: xml
   end
 
   def test_to_xml_with_dedicated_name
@@ -186,7 +186,7 @@ class ToXmlTest < ActiveSupport::TestCase
       builder.count 2
     end
 
-    assert xml.include?(%(<count>2</count>)), xml
+    assert xml.include?(%(<count>2</count>)), message: xml
   end
 
   def test_to_xml_with_empty

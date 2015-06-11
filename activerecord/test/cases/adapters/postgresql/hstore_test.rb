@@ -37,8 +37,8 @@ if ActiveRecord::Base.connection.supports_extensions?
     end
 
     def test_hstore_included_in_extensions
-      assert @connection.respond_to?(:extensions), "connection should have a list of extensions"
-      assert @connection.extensions.include?('hstore'), "extension list should include hstore"
+      assert @connection.respond_to?(:extensions), message: "connection should have a list of extensions"
+      assert @connection.extensions.include?('hstore'), message: "extension list should include hstore"
     end
 
     def test_disable_enable_hstore

@@ -128,7 +128,7 @@ class FullStackConsoleTest < ActiveSupport::TestCase
       end
     end
 
-    assert output.include?(expected), "#{expected.inspect} expected, but got:\n\n#{output}"
+    assert output.include?(expected), message: "#{expected.inspect} expected, but got:\n\n#{output}"
   end
 
   def write_prompt(command, expected_output = nil)

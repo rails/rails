@@ -15,7 +15,7 @@ module ActiveRecord
           called = true
           assert_equal 6, fh.to_a.length
         end
-        assert called, 'block called'
+        assert called, message: 'block called'
       end
 
       def test_names

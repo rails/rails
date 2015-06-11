@@ -57,25 +57,25 @@ class InfoControllerTest < ActionController::TestCase
     exact_count = -> { JSON(response.body)['exact'].size }
 
     get :routes, params: { path: 'rails/info/route' }
-    assert exact_count.call == 0, 'should not match incomplete routes'
+    assert exact_count.call == 0, message: 'should not match incomplete routes'
 
     get :routes, params: { path: 'rails/info/routes' }
-    assert exact_count.call == 1, 'should match complete routes'
+    assert exact_count.call == 1, message: 'should match complete routes'
 
     get :routes, params: { path: 'rails/info/routes.html' }
-    assert exact_count.call == 1, 'should match complete routes with optional parts'
+    assert exact_count.call == 1, message: 'should match complete routes with optional parts'
   end
 
   test "info controller returns fuzzy matches" do
     fuzzy_count = -> { JSON(response.body)['fuzzy'].size }
 
     get :routes, params: { path: 'rails/info' }
-    assert fuzzy_count.call == 2, 'should match incomplete routes'
+    assert fuzzy_count.call == 2, message: 'should match incomplete routes'
 
     get :routes, params: { path: 'rails/info/routes' }
-    assert fuzzy_count.call == 1, 'should match complete routes'
+    assert fuzzy_count.call == 1, message: 'should match complete routes'
 
     get :routes, params: { path: 'rails/info/routes.html' }
-    assert fuzzy_count.call == 0, 'should match optional parts of route literally'
+    assert fuzzy_count.call == 0, message: 'should match optional parts of route literally'
   end
 end

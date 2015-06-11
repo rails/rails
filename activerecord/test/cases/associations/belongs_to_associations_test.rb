@@ -35,7 +35,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     ActiveRecord::SQLCounter.clear_log
     Client.find(3).firm
   ensure
-    assert ActiveRecord::SQLCounter.log_all.all? { |sql| /order by/i !~ sql }, 'ORDER BY was used in the query'
+    assert ActiveRecord::SQLCounter.log_all.all? { |sql| /order by/i !~ sql }, message: 'ORDER BY was used in the query'
   end
 
   def test_belongs_to_with_primary_key

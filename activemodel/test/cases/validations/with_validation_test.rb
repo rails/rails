@@ -51,14 +51,14 @@ class ValidatesWithTest < ActiveModel::TestCase
   test "validation with class that adds errors" do
     Topic.validates_with(ValidatorThatAddsErrors)
     topic = Topic.new
-    assert topic.invalid?, "A class that adds errors causes the record to be invalid"
+    assert topic.invalid?, message: "A class that adds errors causes the record to be invalid"
     assert topic.errors[:base].include?(ERROR_MESSAGE)
   end
 
   test "with a class that returns valid" do
     Topic.validates_with(ValidatorThatDoesNotAddErrors)
     topic = Topic.new
-    assert topic.valid?, "A class that does not add errors does not cause the record to be invalid"
+    assert topic.valid?, message: "A class that does not add errors does not cause the record to be invalid"
   end
 
   test "with multiple classes" do

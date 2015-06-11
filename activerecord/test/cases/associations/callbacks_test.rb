@@ -119,7 +119,7 @@ class AssociationCallbacksTest < ActiveRecord::TestCase
     rec.developers_with_callbacks << alice
     assert_equal alice, dev
     assert_not_nil new_dev
-    assert new_dev, "record should not have been saved"
+    assert new_dev, message: "record should not have been saved"
     assert_not alice.new_record?
   end
 

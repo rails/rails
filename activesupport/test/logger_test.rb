@@ -108,7 +108,7 @@ class LoggerTest < ActiveSupport::TestCase
     Logger::Severity.constants.each do |level|
       next if level.to_s == 'UNKNOWN'
       @logger.level = Logger::Severity.const_get(level) - 1
-      assert @logger.send("#{level.downcase}?"), "didn't know if it was #{level.downcase}? or below"
+      assert @logger.send("#{level.downcase}?"), message: "didn't know if it was #{level.downcase}? or below"
     end
   end
 
@@ -120,13 +120,13 @@ class LoggerTest < ActiveSupport::TestCase
     byte_string.force_encoding("ASCII-8BIT")
     assert byte_string.include?(BYTE_STRING)
   end
-  
+
   def test_silencing_everything_but_errors
     @logger.silence do
       @logger.debug "NOT THERE"
       @logger.error "THIS IS HERE"
     end
-    
+
     assert !@output.string.include?("NOT THERE")
     assert @output.string.include?("THIS IS HERE")
   end
