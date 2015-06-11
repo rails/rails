@@ -9,6 +9,11 @@ module ActiveRecord
       assert_equal "123", type.cast(123)
     end
 
+    test "type_cast_for_schema" do
+      type = Type::String.new
+      assert_equal "\"value\"", type.type_cast_for_schema("value")
+    end
+
     test "values are duped coming out" do
       s = "foo"
       type = Type::String.new

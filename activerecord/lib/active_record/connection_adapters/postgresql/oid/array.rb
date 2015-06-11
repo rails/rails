@@ -45,6 +45,10 @@ module ActiveRecord
               delimiter == other.delimiter
           end
 
+          def type_cast_for_schema(value)
+            value.map { |val| BigDecimal === val ? val.to_s : val }.inspect
+          end
+
           private
 
           def type_cast_array(value, method)

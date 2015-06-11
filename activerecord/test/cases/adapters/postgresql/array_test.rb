@@ -98,6 +98,12 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
     assert_equal([nil], @type.deserialize('{NULL}'))
   end
 
+  def test_type_cast_for_schema_with_decimals
+    type = OID::Array.new(ActiveRecord::Type::Decimal.new)
+    assert_equal "[\"0.33\"]", type.type_cast_for_schema([BigDecimal.new("0.33")])
+    assert_equal "[\"0.123456789123456789\"]", type.type_cast_for_schema([BigDecimal.new("0.123456789123456789")])
+  end
+
   def test_type_cast_integers
     x = PgArray.new(ratings: ['1', '2'])
 
