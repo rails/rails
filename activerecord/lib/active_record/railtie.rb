@@ -147,8 +147,8 @@ end_warning
       ActiveSupport.on_load(:active_record) do
         ActionDispatch::Reloader.send(hook) do
           if ActiveRecord::Base.connected?
-            ActiveRecord::Base.clear_reloadable_connections!
             ActiveRecord::Base.clear_cache!
+            ActiveRecord::Base.clear_reloadable_connections!
           end
         end
       end
