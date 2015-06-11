@@ -263,7 +263,7 @@ class StaticTest < ActiveSupport::TestCase
   end
 
   def test_non_default_static_index
-    @app = ActionDispatch::Static.new(DummyApp, @root, "public, max-age=60", "other-index")
+    @app = ActionDispatch::Static.new(DummyApp, @root, "public, max-age=60", index: "other-index")
     assert_html "/other-index.html", get("/other-index.html")
     assert_html "/other-index.html", get("/other-index")
     assert_html "/other-index.html", get("/")
