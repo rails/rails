@@ -209,7 +209,7 @@ module ApplicationTests
          bundle exec rake db:migrate test`
       end
 
-      assert_match(/5 runs, 8 assertions, 0 failures, 0 errors/, output)
+      assert_match(/5 runs, 7 assertions, 0 failures, 0 errors/, output)
       assert_no_match(/Errors running/, output)
     end
 
