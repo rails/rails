@@ -8,5 +8,3 @@ module Rails
     @root ||= Pathname.new(COMPONENT_ROOT)
   end
 end
-
-exit Minitest.run(ARGV)
