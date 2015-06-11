@@ -2,7 +2,7 @@
 
     Fixes #20515.
 
-    *Sean Griffin*
+    *Sean Griffin & jmondo*
 
 *   Deprecate the PG `:point` type in favor of a new one which will return
     `Point` objects instead of an `Array`
