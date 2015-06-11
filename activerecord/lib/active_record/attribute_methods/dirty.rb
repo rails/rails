@@ -118,6 +118,8 @@ module ActiveRecord
       def old_attribute_value(attr)
         if attribute_changed?(attr)
           changed_attributes[attr]
+        elsif @attributes[attr].value_before_type_cast.nil?
+          nil
         else
           clone_attribute_value(:_read_attribute, attr)
         end

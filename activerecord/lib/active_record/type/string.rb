@@ -21,6 +21,10 @@ module ActiveRecord
         end
       end
 
+      def changed?(old_value, new_value, _new_value_before_type_cast)
+        old_value != _new_value_before_type_cast
+      end
+
       private
 
       def cast_value(value)
