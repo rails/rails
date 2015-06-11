@@ -18,7 +18,7 @@ class ValidationsTest < ActiveRecord::TestCase
     r = WrongReply.new
     r.title = "Wrong Create"
     assert_not r.valid?
-    assert r.errors[:title].any?, "A reply with a bad title should mark that attribute as invalid"
+    assert r.errors[:title].any?, message: "A reply with a bad title should mark that attribute as invalid"
     assert_equal ["is Wrong Create"], r.errors[:title], "A reply with a bad content should contain an error"
   end
 
@@ -26,12 +26,12 @@ class ValidationsTest < ActiveRecord::TestCase
     r = WrongReply.new
     r.title = "Bad"
     r.content = "Good"
-    assert r.save, "First validation should be successful"
+    assert r.save, message: "First validation should be successful"
 
     r.title = "Wrong Update"
     assert_not r.valid?, "Second validation should fail"
 
-    assert r.errors[:title].any?, "A reply with a bad title should mark that attribute as invalid"
+    assert r.errors[:title].any?, message: "A reply with a bad title should mark that attribute as invalid"
     assert_equal ["is Wrong Update"], r.errors[:title], "A reply with a bad content should contain an error"
   end
 

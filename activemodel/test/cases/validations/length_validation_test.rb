@@ -297,13 +297,13 @@ class LengthValidationTest < ActiveModel::TestCase
     Topic.validates_length_of :title, within: 3..5, allow_nil: true
 
     t = Topic.new(title: "一二三四五")
-    assert t.valid?, t.errors.inspect
+    assert t.valid?, message: t.errors.inspect
 
     t = Topic.new(title: "一二三")
-    assert t.valid?, t.errors.inspect
+    assert t.valid?, message: t.errors.inspect
 
     t.title = nil
-    assert t.valid?, t.errors.inspect
+    assert t.valid?, message: t.errors.inspect
   end
 
   def test_validates_length_of_using_is_utf8

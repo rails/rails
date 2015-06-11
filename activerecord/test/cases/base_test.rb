@@ -553,8 +553,8 @@ class BasicsTest < ActiveRecord::TestCase
     car.bulbs.build
     car.save
 
-    assert car.bulbs == Bulb.where(car_id: car.id), 'CollectionProxy should be comparable with Relation'
-    assert Bulb.where(car_id: car.id) == car.bulbs, 'Relation should be comparable with CollectionProxy'
+    assert car.bulbs == Bulb.where(car_id: car.id), message: 'CollectionProxy should be comparable with Relation'
+    assert Bulb.where(car_id: car.id) == car.bulbs, message: 'Relation should be comparable with CollectionProxy'
   end
 
   def test_equality_of_relation_and_array
@@ -562,7 +562,7 @@ class BasicsTest < ActiveRecord::TestCase
     car.bulbs.build
     car.save
 
-    assert Bulb.where(car_id: car.id) == car.bulbs.to_a, 'Relation should be comparable with Array'
+    assert Bulb.where(car_id: car.id) == car.bulbs.to_a, message: 'Relation should be comparable with Array'
   end
 
   def test_equality_of_relation_and_association_relation
@@ -1337,7 +1337,7 @@ class BasicsTest < ActiveRecord::TestCase
     marshalled = Marshal.dump(Post.new)
     post       = Marshal.load(marshalled)
 
-    assert post.new_record?, "should be a new record"
+    assert post.new_record?, message: "should be a new record"
   end
 
   def test_marshalling_with_associations
@@ -1387,7 +1387,7 @@ class BasicsTest < ActiveRecord::TestCase
 
     post = Marshal.load(Marshal.dump(post))
 
-    assert post.new_record?, "should be a new record"
+    assert post.new_record?, message: "should be a new record"
   end
 
   def test_attribute_names

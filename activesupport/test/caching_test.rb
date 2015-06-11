@@ -12,13 +12,13 @@ module ActiveSupport
             key = "super awesome key"
             assert_nil LocalCacheRegistry.cache_for key
             middleware = Middleware.new('<3', key).new(->(env) {
-              assert LocalCacheRegistry.cache_for(key), 'should have a cache'
+              assert LocalCacheRegistry.cache_for(key), message: 'should have a cache'
               [200, {}, []]
             })
             _, _, body = middleware.call({})
-            assert LocalCacheRegistry.cache_for(key), 'should still have a cache'
+            assert LocalCacheRegistry.cache_for(key), message: 'should still have a cache'
             body.each { }
-            assert LocalCacheRegistry.cache_for(key), 'should still have a cache'
+            assert LocalCacheRegistry.cache_for(key), message: 'should still have a cache'
             body.close
             assert_nil LocalCacheRegistry.cache_for(key)
           end
@@ -27,7 +27,7 @@ module ActiveSupport
             key = "super awesome key"
             assert_nil LocalCacheRegistry.cache_for key
             middleware = Middleware.new('<3', key).new(->(env) {
-              assert LocalCacheRegistry.cache_for(key), 'should have a cache'
+              assert LocalCacheRegistry.cache_for(key), message: 'should have a cache'
               raise
             })
             assert_raises(RuntimeError) { middleware.call({}) }
@@ -740,7 +740,7 @@ class FileStoreTest < ActiveSupport::TestCase
     key = "#{'A' * ActiveSupport::Cache::FileStore::FILENAME_MAX_SIZE}"
     path = @cache.send(:key_file_path, key)
     Dir::Tmpname.create(path) do |tmpname, n, opts|
-      assert File.basename(tmpname+'.lock').length <= 255, "Temp filename too long: #{File.basename(tmpname+'.lock').length}"
+      assert File.basename(tmpname+'.lock').length <= 255, message: "Temp filename too long: #{File.basename(tmpname+'.lock').length}"
     end
   end
 
@@ -768,8 +768,8 @@ class FileStoreTest < ActiveSupport::TestCase
       assert sub_cache_store.write('foo', 'bar')
       assert sub_cache_store.delete('foo')
     end
-    assert File.exist?(cache_dir), "Parent of top level cache dir was deleted!"
-    assert File.exist?(sub_cache_dir), "Top level cache dir was deleted!"
+    assert File.exist?(cache_dir), message: "Parent of top level cache dir was deleted!"
+    assert File.exist?(sub_cache_dir), message: "Top level cache dir was deleted!"
     assert Dir.entries(sub_cache_dir).reject {|f| ActiveSupport::Cache::FileStore::EXCLUDED_DIRS.include?(f)}.empty?
   end
 
@@ -821,9 +821,9 @@ class MemoryStoreTest < ActiveSupport::TestCase
     @cache.prune(@record_size * 3)
     assert @cache.exist?(5)
     assert @cache.exist?(4)
-    assert !@cache.exist?(3), "no entry"
+    assert !@cache.exist?(3), message: "no entry"
     assert @cache.exist?(2)
-    assert !@cache.exist?(1), "no entry"
+    assert !@cache.exist?(1), message: "no entry"
   end
 
   def test_prune_size_on_write
@@ -845,12 +845,12 @@ class MemoryStoreTest < ActiveSupport::TestCase
     assert @cache.exist?(9)
     assert @cache.exist?(8)
     assert @cache.exist?(7)
-    assert !@cache.exist?(6), "no entry"
-    assert !@cache.exist?(5), "no entry"
+    assert !@cache.exist?(6), message: "no entry"
+    assert !@cache.exist?(5), message: "no entry"
     assert @cache.exist?(4)
-    assert !@cache.exist?(3), "no entry"
+    assert !@cache.exist?(3), message: "no entry"
     assert @cache.exist?(2)
-    assert !@cache.exist?(1), "no entry"
+    assert !@cache.exist?(1), message: "no entry"
   end
 
   def test_prune_size_on_write_based_on_key_length
@@ -870,11 +870,11 @@ class MemoryStoreTest < ActiveSupport::TestCase
     assert @cache.exist?(8)
     assert @cache.exist?(7)
     assert @cache.exist?(6)
-    assert !@cache.exist?(5), "no entry"
-    assert !@cache.exist?(4), "no entry"
-    assert !@cache.exist?(3), "no entry"
-    assert !@cache.exist?(2), "no entry"
-    assert !@cache.exist?(1), "no entry"
+    assert !@cache.exist?(5), message: "no entry"
+    assert !@cache.exist?(4), message: "no entry"
+    assert !@cache.exist?(3), message: "no entry"
+    assert !@cache.exist?(2), message: "no entry"
+    assert !@cache.exist?(1), message: "no entry"
   end
 
   def test_pruning_is_capped_at_a_max_time
@@ -1028,6 +1028,7 @@ class NullStoreTest < ActiveSupport::TestCase
   end
 
   def test_setting_nil_cache_store
+    binding.pry
     assert ActiveSupport::Cache.lookup_store.class.name, ActiveSupport::Cache::NullStore.name
   end
 end
@@ -1063,11 +1064,11 @@ end
 class CacheEntryTest < ActiveSupport::TestCase
   def test_expired
     entry = ActiveSupport::Cache::Entry.new("value")
-    assert !entry.expired?, 'entry not expired'
+    assert !entry.expired?, message: 'entry not expired'
     entry = ActiveSupport::Cache::Entry.new("value", :expires_in => 60)
-    assert !entry.expired?, 'entry not expired'
+    assert !entry.expired?, message: 'entry not expired'
     Time.stub(:now, Time.now + 61) do
-      assert entry.expired?, 'entry is expired'
+      assert entry.expired?, message: 'entry is expired'
     end
   end
 
@@ -1075,7 +1076,7 @@ class CacheEntryTest < ActiveSupport::TestCase
     value = "value" * 100
     entry = ActiveSupport::Cache::Entry.new(value, :compress => true, :compress_threshold => 1)
     assert_equal value, entry.value
-    assert(value.bytesize > entry.size, "value is compressed")
+    assert(value.bytesize > entry.size, message: "value is compressed")
   end
 
   def test_non_compress_values

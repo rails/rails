@@ -18,8 +18,8 @@ module ActiveSupport
 
     def test_close
       logger.close
-      assert log1.closed, 'should be closed'
-      assert log2.closed, 'should be closed'
+      assert log1.closed, message: 'should be closed'
+      assert log2.closed, message: 'should be closed'
     end
 
     def test_chevrons

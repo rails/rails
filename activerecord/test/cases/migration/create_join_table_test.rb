@@ -126,7 +126,7 @@ module ActiveRecord
           assert_includes connection.tables, 'audio_artists_musics'
 
           connection.drop_join_table 'audio_artists', 'audio_musics'
-          assert !connection.tables.include?('audio_artists_musics'), "Should have dropped join table, but didn't"
+          assert !connection.tables.include?('audio_artists_musics'), message: "Should have dropped join table, but didn't"
         end
       end
 

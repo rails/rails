@@ -24,7 +24,7 @@ module Rails
         #   end
         def assert_file(relative, *contents)
           absolute = File.expand_path(relative, destination_root).shellescape
-          assert File.exist?(absolute), "Expected file #{relative.inspect} to exist, but does not"
+          assert File.exist?(absolute), message: "Expected file #{relative.inspect} to exist, but does not"
 
           read = File.read(absolute) if block_given? || !contents.empty?
           yield read if block_given?
@@ -46,7 +46,7 @@ module Rails
         #   assert_no_file "config/random.rb"
         def assert_no_file(relative)
           absolute = File.expand_path(relative, destination_root)
-          assert !File.exist?(absolute), "Expected file #{relative.inspect} to not exist, but does"
+          assert !File.exist?(absolute), message: "Expected file #{relative.inspect} to not exist, but does"
         end
         alias :assert_no_directory :assert_no_file
 
@@ -98,7 +98,7 @@ module Rails
         #     end
         #   end
         def assert_instance_method(method, content)
-          assert content =~ /(\s+)def #{method}(\(.+\))?(.*?)\n\1end/m, "Expected to have method #{method}"
+          assert content =~ /(\s+)def #{method}(\(.+\))?(.*?)\n\1end/m, message: "Expected to have method #{method}"
           yield $3.strip if block_given?
         end
         alias :assert_method :assert_instance_method

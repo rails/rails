@@ -52,7 +52,7 @@ module ActiveRecord
       def test_find_one_uses_binds
         Topic.find(1)
         message = @subscriber.calls.find { |args| args[4][:binds].any? { |attr| attr.value == 1 } }
-        assert message, 'expected a message with binds'
+        assert message, message: 'expected a message with binds'
       end
 
       def test_logs_bind_vars_after_type_cast

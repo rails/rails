@@ -188,15 +188,15 @@ class NumericalityValidationTest < ActiveModel::TestCase
 
   def invalid!(values, error = nil)
     with_each_topic_approved_value(values) do |topic, value|
-      assert topic.invalid?, "#{value.inspect} not rejected as a number"
-      assert topic.errors[:approved].any?, "FAILED for #{value.inspect}"
+      assert topic.invalid?, message: "#{value.inspect} not rejected as a number"
+      assert topic.errors[:approved].any?, message: "FAILED for #{value.inspect}"
       assert_equal error, topic.errors[:approved].first if error
     end
   end
 
   def valid!(values)
     with_each_topic_approved_value(values) do |topic, value|
-      assert topic.valid?, "#{value.inspect} not accepted as a number"
+      assert topic.valid?, message: "#{value.inspect} not accepted as a number"
     end
   end
 

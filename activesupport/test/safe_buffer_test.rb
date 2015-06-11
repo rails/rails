@@ -132,20 +132,20 @@ class SafeBufferTest < ActiveSupport::TestCase
   test "Should be safe when sliced if original value was safe" do
     new_buffer = @buffer[0,0]
     assert_not_nil new_buffer
-    assert new_buffer.html_safe?, "should be safe"
+    assert new_buffer.html_safe?, message: "should be safe"
   end
 
   test "Should continue unsafe on slice" do
     x = 'foo'.html_safe.gsub!('f', '<script>alert("lolpwnd");</script>')
 
     # calling gsub! makes the dirty flag true
-    assert !x.html_safe?, "should not be safe"
+    assert !x.html_safe?, message: "should not be safe"
 
     # getting a slice of it
     y = x[0..-1]
 
     # should still be unsafe
-    assert !y.html_safe?, "should not be safe"
+    assert !y.html_safe?, message: "should not be safe"
   end
 
   test 'Should work with interpolation (array argument)' do
@@ -170,7 +170,7 @@ class SafeBufferTest < ActiveSupport::TestCase
 
   test 'Should interpolate to a safe string' do
     x = 'foo %{x} bar'.html_safe % { x: 'qux' }
-    assert x.html_safe?, 'should be safe'
+    assert x.html_safe?, message: 'should be safe'
   end
 
   test 'Should not affect frozen objects when accessing characters' do

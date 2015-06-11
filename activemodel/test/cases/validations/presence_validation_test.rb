@@ -74,33 +74,33 @@ class PresenceValidationTest < ActiveModel::TestCase
     Topic.validates_presence_of(:title, allow_nil: true)
 
     t = Topic.new(title: "something")
-    assert t.valid?, t.errors.full_messages
+    assert t.valid?, message: t.errors.full_messages
 
     t.title = ""
     assert t.invalid?
     assert_equal ["can't be blank"], t.errors[:title]
 
     t.title = "  "
-    assert t.invalid?, t.errors.full_messages
+    assert t.invalid?, message: t.errors.full_messages
     assert_equal ["can't be blank"], t.errors[:title]
 
     t.title = nil
-    assert t.valid?, t.errors.full_messages
+    assert t.valid?, message: t.errors.full_messages
   end
 
   def test_validates_presence_of_with_allow_blank_option
     Topic.validates_presence_of(:title, allow_blank: true)
 
     t = Topic.new(title: "something")
-    assert t.valid?, t.errors.full_messages
+    assert t.valid?, message: t.errors.full_messages
 
     t.title = ""
-    assert t.valid?, t.errors.full_messages
+    assert t.valid?, message: t.errors.full_messages
 
     t.title = "  "
-    assert t.valid?, t.errors.full_messages
+    assert t.valid?, message: t.errors.full_messages
 
     t.title = nil
-    assert t.valid?, t.errors.full_messages
+    assert t.valid?, message: t.errors.full_messages
   end
 end

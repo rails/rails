@@ -98,8 +98,8 @@ module ActionDispatch
     def test_respond_to?
       tf = Class.new { def read; yield end }
       uf = Http::UploadedFile.new(:tempfile => tf.new)
-      assert uf.respond_to?(:headers), 'responds to headers'
-      assert uf.respond_to?(:read), 'responds to read'
+      assert uf.respond_to?(:headers), message: 'responds to headers'
+      assert uf.respond_to?(:read), message: 'responds to read'
     end
   end
 end

@@ -25,7 +25,7 @@ module ActiveRecord
         recorder = CommandRecorder.new(Class.new {
           def create_table(name); end
         }.new)
-        assert recorder.respond_to?(:create_table), 'respond_to? create_table'
+        assert recorder.respond_to?(:create_table), message: 'respond_to? create_table'
         recorder.send(:create_table, :horses)
         assert_equal [[:create_table, [:horses], nil]], recorder.commands
       end

@@ -46,7 +46,7 @@ module ActiveRecord
         @klass.define_attribute_methods
 
         @klass.attribute_names.each do |name|
-          assert instance.methods.map(&:to_s).include?(name), "#{name} is not defined"
+          assert instance.methods.map(&:to_s).include?(name), message: "#{name} is not defined"
         end
       end
 

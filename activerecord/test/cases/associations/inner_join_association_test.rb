@@ -54,25 +54,25 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
   def test_find_with_implicit_inner_joins_without_select_does_not_imply_readonly
     authors = Author.joins(:posts)
     assert_not authors.empty?, "expected authors to be non-empty"
-    assert authors.none?(&:readonly?), "expected no authors to be readonly"
+    assert authors.none?(&:readonly?), message: "expected no authors to be readonly"
   end
 
   def test_find_with_implicit_inner_joins_honors_readonly_with_select
     authors = Author.joins(:posts).select('authors.*').to_a
-    assert !authors.empty?, "expected authors to be non-empty"
-    assert authors.all? {|a| !a.readonly? }, "expected no authors to be readonly"
+    assert !authors.empty?, message: "expected authors to be non-empty"
+    assert authors.all? {|a| !a.readonly? }, message: "expected no authors to be readonly"
   end
 
   def test_find_with_implicit_inner_joins_honors_readonly_false
     authors = Author.joins(:posts).readonly(false).to_a
-    assert !authors.empty?, "expected authors to be non-empty"
-    assert authors.all? {|a| !a.readonly? }, "expected no authors to be readonly"
+    assert !authors.empty?, message: "expected authors to be non-empty"
+    assert authors.all? {|a| !a.readonly? }, message: "expected no authors to be readonly"
   end
 
   def test_find_with_implicit_inner_joins_does_not_set_associations
     authors = Author.joins(:posts).select('authors.*').to_a
-    assert !authors.empty?, "expected authors to be non-empty"
-    assert authors.all? { |a| !a.instance_variable_defined?(:@posts) }, "expected no authors to have the @posts association loaded"
+    assert !authors.empty?, message: "expected authors to be non-empty"
+    assert authors.all? { |a| !a.instance_variable_defined?(:@posts) }, message: "expected no authors to have the @posts association loaded"
   end
 
   def test_count_honors_implicit_inner_joins

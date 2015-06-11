@@ -127,7 +127,7 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_difference('Topic.count', -topics_by_mary.size) do
       destroyed = Topic.destroy_all(conditions).sort_by(&:id)
       assert_equal topics_by_mary, destroyed
-      assert destroyed.all?(&:frozen?), "destroyed topics should be frozen"
+      assert destroyed.all?(&:frozen?), message: "destroyed topics should be frozen"
     end
   end
 
@@ -137,7 +137,7 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_difference('Client.count', -2) do
       destroyed = Client.destroy([2, 3]).sort_by(&:id)
       assert_equal clients, destroyed
-      assert destroyed.all?(&:frozen?), "destroyed clients should be frozen"
+      assert destroyed.all?(&:frozen?), message: "destroyed clients should be frozen"
     end
   end
 
@@ -375,7 +375,7 @@ class PersistenceTest < ActiveRecord::TestCase
   def test_delete
     topic = Topic.find(1)
     assert_equal topic, topic.delete, 'topic.delete did not return self'
-    assert topic.frozen?, 'topic not frozen after delete'
+    assert topic.frozen?, message: 'topic not frozen after delete'
     assert_raise(ActiveRecord::RecordNotFound) { Topic.find(topic.id) }
   end
 
@@ -387,14 +387,14 @@ class PersistenceTest < ActiveRecord::TestCase
   def test_destroy
     topic = Topic.find(1)
     assert_equal topic, topic.destroy, 'topic.destroy did not return self'
-    assert topic.frozen?, 'topic not frozen after destroy'
+    assert topic.frozen?, message: 'topic not frozen after destroy'
     assert_raise(ActiveRecord::RecordNotFound) { Topic.find(topic.id) }
   end
 
   def test_destroy!
     topic = Topic.find(1)
     assert_equal topic, topic.destroy!, 'topic.destroy! did not return self'
-    assert topic.frozen?, 'topic not frozen after destroy!'
+    assert topic.frozen?, message: 'topic not frozen after destroy!'
     assert_raise(ActiveRecord::RecordNotFound) { Topic.find(topic.id) }
   end
 
@@ -475,8 +475,8 @@ class PersistenceTest < ActiveRecord::TestCase
     t = Topic.first
     t.update_attribute(:title, 'super_title')
     assert_equal 'super_title', t.title
-    assert !t.changed?, "topic should not have changed"
-    assert !t.title_changed?, "title should not have changed"
+    assert !t.changed?, message: "topic should not have changed"
+    assert !t.title_changed?, message: "title should not have changed"
     assert_nil t.title_change, 'title change should be nil'
 
     t.reload
@@ -575,8 +575,8 @@ class PersistenceTest < ActiveRecord::TestCase
     t.update_column(:title, 'super_title')
     assert_equal 'John', t.author_name
     assert_equal 'super_title', t.title
-    assert t.changed?, "topic should have changed"
-    assert t.author_name_changed?, "author_name should have changed"
+    assert t.changed?, message: "topic should have changed"
+    assert t.author_name_changed?, message: "author_name should have changed"
 
     t.reload
     assert_equal author_name, t.author_name
@@ -588,7 +588,7 @@ class PersistenceTest < ActiveRecord::TestCase
     developer.name = 'John'
     developer.save!
 
-    assert developer.update_column(:name, 'Will'), 'did not update record due to default scope'
+    assert developer.update_column(:name, 'Will'), message: 'did not update record due to default scope'
   end
 
   def test_update_columns
@@ -674,8 +674,8 @@ class PersistenceTest < ActiveRecord::TestCase
     t.update_columns(title: 'super_title')
     assert_equal 'John', t.author_name
     assert_equal 'super_title', t.title
-    assert t.changed?, "topic should have changed"
-    assert t.author_name_changed?, "author_name should have changed"
+    assert t.changed?, message: "topic should have changed"
+    assert t.author_name_changed?, message: "author_name should have changed"
 
     t.reload
     assert_equal author_name, t.author_name
@@ -700,7 +700,7 @@ class PersistenceTest < ActiveRecord::TestCase
     developer.name = 'John'
     developer.save!
 
-    assert developer.update_columns(name: 'Will'), 'did not update record due to default scope'
+    assert developer.update_columns(name: 'Will'), message: 'did not update record due to default scope'
   end
 
   def test_update
@@ -900,7 +900,7 @@ class PersistenceTest < ActiveRecord::TestCase
   def test_reload_via_querycache
     ActiveRecord::Base.connection.enable_query_cache!
     ActiveRecord::Base.connection.clear_query_cache
-    assert ActiveRecord::Base.connection.query_cache_enabled, 'cache should be on'
+    assert ActiveRecord::Base.connection.query_cache_enabled, message: 'cache should be on'
     parrot = Parrot.create(:name => 'Shane')
 
     # populate the cache with the SELECT result

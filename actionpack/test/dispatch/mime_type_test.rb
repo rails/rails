@@ -18,9 +18,9 @@ class MimeTypeTest < ActiveSupport::TestCase
       assert_equal Mime::MOBILE, Mime::EXTENSION_LOOKUP['mobile']
 
       Mime::Type.unregister(:mobile)
-      assert !defined?(Mime::MOBILE), "Mime::MOBILE should not be defined"
-      assert !Mime::LOOKUP.has_key?('text/x-mobile'), "Mime::LOOKUP should not have key ['text/x-mobile]"
-      assert !Mime::EXTENSION_LOOKUP.has_key?('mobile'), "Mime::EXTENSION_LOOKUP should not have key ['mobile]"
+      assert !defined?(Mime::MOBILE), message: "Mime::MOBILE should not be defined"
+      assert !Mime::LOOKUP.has_key?('text/x-mobile'), message: "Mime::LOOKUP should not have key ['text/x-mobile]"
+      assert !Mime::EXTENSION_LOOKUP.has_key?('mobile'), message: "Mime::EXTENSION_LOOKUP should not have key ['mobile]"
     ensure
       Mime.module_eval { remove_const :MOBILE if const_defined?(:MOBILE) }
       Mime::LOOKUP.reject!{|key,_| key == 'text/x-mobile'}
@@ -165,17 +165,17 @@ class MimeTypeTest < ActiveSupport::TestCase
 
     types.each do |type|
       mime = Mime.const_get(type.upcase)
-      assert mime.respond_to?("#{type}?"), "#{mime.inspect} does not respond to #{type}?"
+      assert mime.respond_to?("#{type}?"), message: "#{mime.inspect} does not respond to #{type}?"
       assert mime.send("#{type}?"), "#{mime.inspect} is not #{type}?"
       invalid_types = types - [type]
       invalid_types.delete(:html) if Mime::Type.html_types.include?(type)
-      invalid_types.each { |other_type| assert !mime.send("#{other_type}?"), "#{mime.inspect} is #{other_type}?" }
+      invalid_types.each { |other_type| assert !mime.send("#{other_type}?"), message: "#{mime.inspect} is #{other_type}?" }
     end
   end
 
   test "mime all is html" do
-    assert Mime::ALL.all?,  "Mime::ALL is not all?"
-    assert Mime::ALL.html?, "Mime::ALL is not html?"
+    assert Mime::ALL.all?, message:  "Mime::ALL is not all?"
+    assert Mime::ALL.html?, message: "Mime::ALL is not html?"
   end
 
   test "verifiable mime types" do

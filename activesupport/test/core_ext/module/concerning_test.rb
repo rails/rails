@@ -4,7 +4,7 @@ require 'active_support/core_ext/module/concerning'
 class ModuleConcerningTest < ActiveSupport::TestCase
   def test_concerning_declares_a_concern_and_includes_it_immediately
     klass = Class.new { concerning(:Foo) { } }
-    assert klass.ancestors.include?(klass::Foo), klass.ancestors.inspect
+    assert klass.ancestors.include?(klass::Foo), message: klass.ancestors.inspect
   end
 end
 
@@ -21,7 +21,7 @@ class ModuleConcernTest < ActiveSupport::TestCase
     assert klass.const_defined?(:Baz, false)
     assert !ModuleConcernTest.const_defined?(:Baz)
     assert_kind_of ActiveSupport::Concern, klass::Baz
-    assert !klass.ancestors.include?(klass::Baz), klass.ancestors.inspect
+    assert !klass.ancestors.include?(klass::Baz), message: klass.ancestors.inspect
 
     # Public method visibility by default
     assert klass::Baz.public_instance_methods.map(&:to_s).include?('should_be_public')

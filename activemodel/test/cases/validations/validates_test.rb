@@ -17,7 +17,7 @@ class ValidatesTest < ActiveModel::TestCase
   def test_validates_with_messages_empty
     Person.validates :title, presence: { message: "" }
     person = Person.new
-    assert !person.valid?, 'person should not be valid.'
+    assert !person.valid?, message: 'person should not be valid.'
   end
 
   def test_validates_with_built_in_validation

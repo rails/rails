@@ -50,7 +50,7 @@ class PostgresqlExtensionMigrationTest < ActiveRecord::TestCase
 
     migrations = [EnableHstore.new(nil, 1)]
     ActiveRecord::Migrator.new(:up, migrations).migrate
-    assert @connection.extension_enabled?("hstore"), "extension hstore should be enabled"
+    assert @connection.extension_enabled?("hstore"), message: "extension hstore should be enabled"
   end
 
   def test_disable_extension_migration_ignores_prefix_and_suffix
