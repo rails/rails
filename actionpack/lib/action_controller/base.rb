@@ -50,7 +50,7 @@ module ActionController
   #
   # == Parameters
   #
-  # All request parameters, whether they come from a query sring in the URL or form data submitted through a POST request are
+  # All request parameters, whether they come from a query string in the URL or form data submitted through a POST request are
   # available through the params method which returns a hash. For example, an action that was performed through
   # <tt>/posts?category=All&limit=5</tt> will include <tt>{ "category" => "All", "limit" => "5" }</tt> in params.
   #
