@@ -50,9 +50,9 @@ module ActionController
   #
   # == Parameters
   #
-  # All request parameters, whether they come from a GET or POST request, or from the URL, are available through the params method
-  # which returns a hash. For example, an action that was performed through <tt>/posts?category=All&limit=5</tt> will include
-  # <tt>{ "category" => "All", "limit" => "5" }</tt> in params.
+  # All request parameters, whether they come from a query sring in the URL or form data submitted through a POST request are
+  # available through the params method which returns a hash. For example, an action that was performed through
+  # <tt>/posts?category=All&limit=5</tt> will include <tt>{ "category" => "All", "limit" => "5" }</tt> in params.
   #
   # It's also possible to construct multi-dimensional parameter hashes by specifying keys using brackets, such as:
   #
