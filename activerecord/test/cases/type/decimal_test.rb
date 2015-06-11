@@ -30,6 +30,12 @@ module ActiveRecord
         assert_equal BigDecimal("0.333333333333333333E0"), type.cast(Rational(1, 3))
       end
 
+      def test_type_cast_for_schema
+        type = Decimal.new
+        assert_equal "\"0.33\"", type.type_cast_for_schema(BigDecimal.new("0.33"))
+        assert_equal "\"0.123456789123456789\"", type.type_cast_for_schema(BigDecimal.new("0.123456789123456789"))
+      end
+
       def test_type_cast_decimal_from_object_responding_to_d
         value = Object.new
         def value.to_d

@@ -8,7 +8,7 @@ module ActiveRecord
       end
 
       def type_cast_for_schema(value)
-        value.to_s
+        value.to_s.inspect
       end
 
       private
