@@ -4,7 +4,7 @@ require 'models/topic'
 module ActiveRecord
   module ConnectionAdapters
     class Mysql2Adapter
-      class BindParameterTest < ActiveRecord::TestCase
+      class BindParameterTest < ActiveRecord::Mysql2TestCase
         fixtures :topics
 
         def test_update_question_marks

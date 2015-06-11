@@ -2,7 +2,7 @@ require "cases/helper"
 require 'support/connection_helper'
 require 'support/schema_dumping_helper'
 
-class PostgresqlBitStringTest < ActiveRecord::TestCase
+class PostgresqlBitStringTest < ActiveRecord::PostgreSQLTestCase
   include ConnectionHelper
   include SchemaDumpingHelper
 

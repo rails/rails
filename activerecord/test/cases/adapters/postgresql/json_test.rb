@@ -188,7 +188,7 @@ module PostgresqlJSONSharedTestCases
   end
 end
 
-class PostgresqlJSONTest < ActiveRecord::TestCase
+class PostgresqlJSONTest < ActiveRecord::PostgreSQLTestCase
   include PostgresqlJSONSharedTestCases
 
   def column_type
@@ -196,7 +196,7 @@ class PostgresqlJSONTest < ActiveRecord::TestCase
   end
 end
 
-class PostgresqlJSONBTest < ActiveRecord::TestCase
+class PostgresqlJSONBTest < ActiveRecord::PostgreSQLTestCase
   include PostgresqlJSONSharedTestCases
 
   def column_type

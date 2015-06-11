@@ -1,12 +1,12 @@
 require "cases/helper"
 require 'support/connection_helper'
 
-if ActiveRecord::Base.connection.supports_ranges?
+if ActiveRecord::Base.connection.respond_to?(:supports_ranges?) && ActiveRecord::Base.connection.supports_ranges?
   class PostgresqlRange < ActiveRecord::Base
     self.table_name = "postgresql_ranges"
   end
 
-  class PostgresqlRangeTest < ActiveRecord::TestCase
+  class PostgresqlRangeTest < ActiveRecord::PostgreSQLTestCase
     self.use_transactional_tests = false
     include ConnectionHelper
 

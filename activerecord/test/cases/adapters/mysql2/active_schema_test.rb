@@ -1,7 +1,7 @@
 require "cases/helper"
 require 'support/connection_helper'
 
-class ActiveSchemaTest < ActiveRecord::TestCase
+class Mysql2ActiveSchemaTest < ActiveRecord::Mysql2TestCase
   include ConnectionHelper
 
   def setup

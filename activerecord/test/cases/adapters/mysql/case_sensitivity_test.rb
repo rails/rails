@@ -1,6 +1,6 @@
 require "cases/helper"
 
-class MysqlCaseSensitivityTest < ActiveRecord::TestCase
+class MysqlCaseSensitivityTest < ActiveRecord::MysqlTestCase
   class CollationTest < ActiveRecord::Base
   end
 

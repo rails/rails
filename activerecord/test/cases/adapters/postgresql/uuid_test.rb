@@ -11,7 +11,7 @@ module PostgresqlUUIDHelper
   end
 end
 
-class PostgresqlUUIDTest < ActiveRecord::TestCase
+class PostgresqlUUIDTest < ActiveRecord::PostgreSQLTestCase
   include PostgresqlUUIDHelper
   include SchemaDumpingHelper
 
@@ -135,7 +135,7 @@ class PostgresqlUUIDTest < ActiveRecord::TestCase
   end
 end
 
-class PostgresqlUUIDGenerationTest < ActiveRecord::TestCase
+class PostgresqlUUIDGenerationTest < ActiveRecord::PostgreSQLTestCase
   include PostgresqlUUIDHelper
   include SchemaDumpingHelper
 
@@ -210,7 +210,7 @@ class PostgresqlUUIDGenerationTest < ActiveRecord::TestCase
   end
 end
 
-class PostgresqlUUIDTestNilDefault < ActiveRecord::TestCase
+class PostgresqlUUIDTestNilDefault < ActiveRecord::PostgreSQLTestCase
   include PostgresqlUUIDHelper
   include SchemaDumpingHelper
 
@@ -244,7 +244,7 @@ class PostgresqlUUIDTestNilDefault < ActiveRecord::TestCase
   end
 end
 
-class PostgresqlUUIDTestInverseOf < ActiveRecord::TestCase
+class PostgresqlUUIDTestInverseOf < ActiveRecord::PostgreSQLTestCase
   include PostgresqlUUIDHelper
 
   class UuidPost < ActiveRecord::Base

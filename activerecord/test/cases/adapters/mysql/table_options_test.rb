@@ -1,7 +1,7 @@
 require "cases/helper"
 require 'support/schema_dumping_helper'
 
-class MysqlTableOptionsTest < ActiveRecord::TestCase
+class MysqlTableOptionsTest < ActiveRecord::MysqlTestCase
   include SchemaDumpingHelper
 
   def setup

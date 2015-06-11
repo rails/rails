@@ -2,7 +2,7 @@ require "cases/helper"
 require 'support/schema_dumping_helper'
 
 if ActiveRecord::Base.connection.supports_extensions?
-  class PostgresqlHstoreTest < ActiveRecord::TestCase
+  class PostgresqlHstoreTest < ActiveRecord::PostgreSQLTestCase
     include SchemaDumpingHelper
     class Hstore < ActiveRecord::Base
       self.table_name = 'hstores'

@@ -2,7 +2,7 @@ require "cases/helper"
 require 'models/default'
 require 'support/schema_dumping_helper'
 
-class SchemaTest < ActiveRecord::TestCase
+class SchemaTest < ActiveRecord::PostgreSQLTestCase
   self.use_transactional_tests = false
 
   SCHEMA_NAME = 'test_schema'
@@ -441,7 +441,7 @@ class SchemaTest < ActiveRecord::TestCase
     end
 end
 
-class SchemaForeignKeyTest < ActiveRecord::TestCase
+class SchemaForeignKeyTest < ActiveRecord::PostgreSQLTestCase
   include SchemaDumpingHelper
 
   setup do
@@ -466,7 +466,7 @@ class SchemaForeignKeyTest < ActiveRecord::TestCase
   end
 end
 
-class DefaultsUsingMultipleSchemasAndDomainTest < ActiveSupport::TestCase
+class DefaultsUsingMultipleSchemasAndDomainTest < ActiveRecord::PostgreSQLTestCase
   setup do
     @connection = ActiveRecord::Base.connection
     @connection.execute "DROP SCHEMA IF EXISTS schema_1 CASCADE"

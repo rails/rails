@@ -1,7 +1,7 @@
 require "cases/helper"
 require 'support/schema_dumping_helper'
 
-class PostgresqlMoneyTest < ActiveRecord::TestCase
+class PostgresqlMoneyTest < ActiveRecord::PostgreSQLTestCase
   include SchemaDumpingHelper
 
   class PostgresqlMoney < ActiveRecord::Base; end

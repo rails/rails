@@ -1,7 +1,7 @@
 require "cases/helper"
 require 'support/schema_dumping_helper'
 
-class PostgresqlSerialTest < ActiveRecord::TestCase
+class PostgresqlSerialTest < ActiveRecord::PostgreSQLTestCase
   include SchemaDumpingHelper
 
   class PostgresqlSerial < ActiveRecord::Base; end
@@ -30,7 +30,7 @@ class PostgresqlSerialTest < ActiveRecord::TestCase
   end
 end
 
-class PostgresqlBigSerialTest < ActiveRecord::TestCase
+class PostgresqlBigSerialTest < ActiveRecord::PostgreSQLTestCase
   include SchemaDumpingHelper
 
   class PostgresqlBigSerial < ActiveRecord::Base; end

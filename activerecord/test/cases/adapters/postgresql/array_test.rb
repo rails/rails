@@ -1,10 +1,9 @@
 require "cases/helper"
 require 'support/schema_dumping_helper'
 
-class PostgresqlArrayTest < ActiveRecord::TestCase
+class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
   include SchemaDumpingHelper
   include InTimeZone
-  OID = ActiveRecord::ConnectionAdapters::PostgreSQL::OID
 
   class PgArray < ActiveRecord::Base
     self.table_name = 'pg_arrays'
@@ -212,8 +211,9 @@ class PostgresqlArrayTest < ActiveRecord::TestCase
 
   def test_quoting_non_standard_delimiters
     strings = ["hello,", "world;"]
-    comma_delim = OID::Array.new(ActiveRecord::Type::String.new, ',')
-    semicolon_delim = OID::Array.new(ActiveRecord::Type::String.new, ';')
+    oid = ActiveRecord::ConnectionAdapters::PostgreSQL::OID
+    comma_delim = oid::Array.new(ActiveRecord::Type::String.new, ',')
+    semicolon_delim = oid::Array.new(ActiveRecord::Type::String.new, ';')
 
     assert_equal %({"hello,",world;}), comma_delim.serialize(strings)
     assert_equal %({hello,;"world;"}), semicolon_delim.serialize(strings)
