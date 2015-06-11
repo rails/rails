@@ -1,3 +1,9 @@
+*   Correctly handle decimal arrays with defaults in the schema dumper.
+
+    Fixes #20515.
+
+    *Sean Griffin*
+
 *   Deprecate the PG `:point` type in favor of a new one which will return
     `Point` objects instead of an `Array`
 

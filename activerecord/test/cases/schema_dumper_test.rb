@@ -253,6 +253,11 @@ class SchemaDumperTest < ActiveRecord::TestCase
       assert_match %r{t\.integer\s+"big_int_data_points\",\s+limit: 8,\s+array: true}, output
     end
 
+    def test_schema_dump_allows_array_of_decimal_defaults
+      output = standard_dump
+      assert_match %r{t\.decimal\s+"decimal_array_default",\s+default: \[1.23, 3.45\],\s+array: true}, output
+    end
+
     if ActiveRecord::Base.connection.supports_extensions?
       def test_schema_dump_includes_extensions
         connection = ActiveRecord::Base.connection
