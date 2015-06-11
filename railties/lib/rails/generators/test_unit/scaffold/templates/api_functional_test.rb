@@ -9,7 +9,6 @@ class <%= controller_class_name %>ControllerTest < ActionController::TestCase
   test "should get index" do
     get :index
     assert_response :success
-    assert_not_nil assigns(:<%= table_name %>)
   end
 
   test "should create <%= singular_table_name %>" do
