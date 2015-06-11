@@ -20,10 +20,7 @@ module ActiveRecord
       end
 
       def serialize(value)
-        return if value.nil?
-        unless default_value?(value)
-          super coder.dump(value)
-        end
+        super(coder.dump(value)) unless value.nil?
       end
 
       def inspect
