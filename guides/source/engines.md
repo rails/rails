@@ -29,7 +29,7 @@ Therefore, engines and applications can be thought of almost the same thing,
 just with subtle differences, as you'll see throughout this guide. Engines and
 applications also share a common structure.
 
-Engines are also closely related to plugins. These two share a common `lib`
+Engines are also closely related to plugins. The two share a common `lib`
 directory structure, and are both generated using the `rails plugin new`
 generator. The difference is that an engine is considered a "full plugin" by
 Rails (as indicated by the `--full` option that's passed to the generator
