@@ -1,4 +1,5 @@
 require "cases/helper"
+require 'support/schema_dumping_helper'
 require 'models/topic'
 require 'models/reply'
 require 'models/subscriber'
@@ -195,6 +196,37 @@ class PrimaryKeyWithNoConnectionTest < ActiveRecord::TestCase
   end
 end
 
+class PrimaryKeyAnyTypeTest < ActiveRecord::TestCase
+  include SchemaDumpingHelper
+
+  self.use_transactional_fixtures = false
+
+  class Barcode < ActiveRecord::Base
+  end
+
+  setup do
+    @connection = ActiveRecord::Base.connection
+    @connection.create_table(:barcodes, primary_key: "code", id: :string, limit: 42, force: true)
+  end
+
+  teardown do
+    @connection.execute("DROP TABLE IF EXISTS barcodes")
+  end
+
+  def test_any_type_primary_key
+    assert_equal "code", Barcode.primary_key
+
+    column_type = Barcode.type_for_attribute(Barcode.primary_key)
+    assert_equal :string, column_type.type
+    assert_equal 42, column_type.limit
+  end
+
+  test "schema dump primary key includes type and options" do
+    schema = dump_table_schema "barcodes"
+    assert_match %r{create_table "barcodes", primary_key: "code", id: :string, limit: 42}, schema
+  end
+end
+
 if current_adapter?(:MysqlAdapter, :Mysql2Adapter)
   class PrimaryKeyWithAnsiQuotesTest < ActiveRecord::TestCase
     self.use_transactional_fixtures = false
@@ -211,6 +243,8 @@ end
 
 if current_adapter?(:PostgreSQLAdapter)
   class PrimaryKeyBigSerialTest < ActiveRecord::TestCase
+    include SchemaDumpingHelper
+
     self.use_transactional_fixtures = false
 
     class Widget < ActiveRecord::Base
@@ -231,6 +265,15 @@ if current_adapter?(:PostgreSQLAdapter)
 
       widget = Widget.create!
       assert_not_nil widget.id
+    end
+
+    test "schema dump primary key with bigserial" do
+      schema = dump_table_schema "widgets"
+      if current_adapter?(:PostgreSQLAdapter)
+        assert_match %r{create_table "widgets", id: :bigserial}, schema
+      else
+        assert_match %r{create_table "widgets", id: :bigint}, schema
+      end
     end
   end
 end
