@@ -469,12 +469,12 @@ While it's not required you might want to add foreign key constraints to
 add_foreign_key :articles, :authors
 ```
 
-This adds a new foreign key to the `author_id` column of the `articles`
+This adds a new foreign key constraint to the `author_id` column of the `articles`
 table. The key references the `id` column of the `authors` table. If the
 column names can not be derived from the table names, you can use the
 `:column` and `:primary_key` options.
 
-Rails will generate a name for every foreign key starting with
+Rails will generate a name for every foreign key constraint starting with
 `fk_rails_` followed by 10 random characters.
 There is a `:name` option to specify a different name if needed.
 
@@ -482,7 +482,7 @@ NOTE: Active Record only supports single column foreign keys. `execute` and
 `structure.sql` are required to use composite foreign keys. See
 [Schema Dumping and You](#schema-dumping-and-you).
 
-Removing a foreign key is easy as well:
+Removing a constraint is easy as well:
 
 ```ruby
 # let Active Record figure out the column name
