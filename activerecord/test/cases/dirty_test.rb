@@ -587,7 +587,7 @@ class DirtyTest < ActiveRecord::TestCase
       topic = target.create(:written_on => written_on)
       topic.written_on += 0.3
 
-      assert topic.written_on_changed?, 'Fractional second update not detected'
+      assert topic.written_on_changed?, message: 'Fractional second update not detected'
     end
   end
 

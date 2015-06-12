@@ -164,7 +164,7 @@ class SchemaTest < ActiveRecord::TestCase
   def test_table_exists?
     [Thing1, Thing2, Thing3, Thing4].each do |klass|
       name = klass.table_name
-      assert @connection.table_exists?(name), "'#{name}' table should exist"
+      assert @connection.table_exists?(name), message: "'#{name}' table should exist"
     end
   end
 

@@ -18,7 +18,7 @@ class DuplicableTest < ActiveSupport::TestCase
     end
 
     ALLOW_DUP.each do |v|
-      assert v.duplicable?, "#{ v.class } should be duplicable"
+      assert v.duplicable?, message: "#{ v.class } should be duplicable"
       assert_nothing_raised { v.dup }
     end
   end

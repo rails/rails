@@ -154,8 +154,8 @@ module ActionView
 
     test "view_assigns excludes internal ivars" do
       INTERNAL_IVARS.each do |ivar|
-        assert defined?(ivar), "expected #{ivar} to be defined"
-        assert !view_assigns.keys.include?(ivar.to_s.tr('@', '').to_sym), "expected #{ivar} to be excluded from view_assigns"
+        assert defined?(ivar), message: "expected #{ivar} to be defined"
+        assert !view_assigns.keys.include?(ivar.to_s.tr('@', '').to_sym), message: "expected #{ivar} to be excluded from view_assigns"
       end
     end
   end

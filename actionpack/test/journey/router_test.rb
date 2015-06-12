@@ -78,7 +78,7 @@ module ActionDispatch
           assert_equal({:id => '10'}, params)
         end
 
-        assert klass.called, 'hello should have been called'
+        assert klass.called, message: 'hello should have been called'
         assert_equal env.env, klass.env
       end
 
@@ -98,7 +98,7 @@ module ActionDispatch
           flunk 'route should not be found'
         end
 
-        assert klass.called, 'hello should have been called'
+        assert klass.called, message: 'hello should have been called'
         assert_equal env.env, klass.env
       end
 
@@ -128,7 +128,7 @@ module ActionDispatch
           recognized = true
         end
 
-        assert recognized, "route should have been recognized"
+        assert recognized, message: "route should have been recognized"
       end
 
       def test_regexp_first_precedence

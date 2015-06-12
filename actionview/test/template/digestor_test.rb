@@ -297,7 +297,7 @@ class TemplateDigestorTest < ActionView::TestCase
 
       yield
 
-      assert previous_digest != digest(template_name, options), "digest didn't change"
+      assert previous_digest != digest(template_name, options), message: "digest didn't change"
       ActionView::Digestor.cache.clear
     end
 

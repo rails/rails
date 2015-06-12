@@ -15,7 +15,7 @@ module ActiveRecord::ConnectionAdapters
           }
 
           Process.waitpid pid
-          assert $?.success?, 'process should exit successfully'
+          assert $?.success?, message: 'process should exit successfully'
         end
       end
     end

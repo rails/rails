@@ -26,7 +26,7 @@ module ActiveRecord
       relation = Relation.new(FakeKlass, :b, nil)
       assert_equal FakeKlass, relation.klass
       assert_equal :b, relation.table
-      assert !relation.loaded, 'relation is not loaded'
+      assert !relation.loaded, message: 'relation is not loaded'
     end
 
     def test_responds_to_model_and_returns_klass

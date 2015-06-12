@@ -16,12 +16,12 @@ module BareMetalTest
       string = ""
 
       body.each do |part|
-        assert part.is_a?(String), "Each part of the body must be a String"
+        assert part.is_a?(String), message: "Each part of the body must be a String"
         string << part
       end
 
       assert_kind_of Hash, headers, "Headers must be a Hash"
-      assert headers["Content-Type"], "Content-Type must exist"
+      assert headers["Content-Type"], message: "Content-Type must exist"
 
       assert_equal "Hello world", string
     end

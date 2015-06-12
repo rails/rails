@@ -3096,8 +3096,8 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       after = has_named_route?(:hello)
     end
 
-    assert !before, "expected to not have named route :hello before route definition"
-    assert after, "expected to have named route :hello after route definition"
+    assert !before, message: "expected to not have named route :hello before route definition"
+    assert after, message: "expected to have named route :hello after route definition"
   end
 
   def test_explicitly_avoiding_the_named_route
@@ -3313,16 +3313,16 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
 
     get '/streams'
-    assert @response.ok?, 'route without trailing slash should work'
+    assert @response.ok?, message: 'route without trailing slash should work'
 
     get '/streams/'
-    assert @response.ok?, 'route with trailing slash should work'
+    assert @response.ok?, message: 'route with trailing slash should work'
 
     get '/streams?foobar'
-    assert @response.ok?, 'route without trailing slash and with QUERY_STRING should work'
+    assert @response.ok?, message: 'route without trailing slash and with QUERY_STRING should work'
 
     get '/streams/?foobar'
-    assert @response.ok?, 'route with trailing slash and with QUERY_STRING should work'
+    assert @response.ok?, message: 'route with trailing slash and with QUERY_STRING should work'
   end
 
   def test_route_with_dashes_in_path

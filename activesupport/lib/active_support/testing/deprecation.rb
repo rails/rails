@@ -5,17 +5,17 @@ module ActiveSupport
     module Deprecation #:nodoc:
       def assert_deprecated(match = nil, &block)
         result, warnings = collect_deprecations(&block)
-        assert !warnings.empty?, "Expected a deprecation warning within the block but received none"
+        assert !warnings.empty?, message: "Expected a deprecation warning within the block but received none"
         if match
           match = Regexp.new(Regexp.escape(match)) unless match.is_a?(Regexp)
-          assert warnings.any? { |w| w =~ match }, "No deprecation warning matched #{match}: #{warnings.join(', ')}"
+          assert warnings.any? { |w| w =~ match }, message: "No deprecation warning matched #{match}: #{warnings.join(', ')}"
         end
         result
       end
 
       def assert_not_deprecated(&block)
         result, deprecations = collect_deprecations(&block)
-        assert deprecations.empty?, "Expected no deprecation warning within the block but received #{deprecations.size}: \n  #{deprecations * "\n  "}"
+        assert deprecations.empty?, message: "Expected no deprecation warning within the block but received #{deprecations.size}: \n  #{deprecations * "\n  "}"
         result
       end
 

@@ -45,7 +45,7 @@ class ErrorsTest < ActiveModel::TestCase
   def test_include?
     errors = ActiveModel::Errors.new(self)
     errors[:foo] << 'omg'
-    assert errors.include?(:foo), 'errors should include :foo'
+    assert errors.include?(:foo), message: 'errors should include :foo'
   end
 
   def test_dup

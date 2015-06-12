@@ -13,7 +13,7 @@ class PresenceValidationTest < ActiveModel::TestCase
     Topic.validates_format_of(:title, :content, with: /\AValidation\smacros \w+!\z/, message: "is bad data")
 
     t = Topic.new("title" => "i'm incorrect", "content" => "Validation macros rule!")
-    assert t.invalid?, "Shouldn't be valid"
+    assert t.invalid?, message: "Shouldn't be valid"
     assert_equal ["is bad data"], t.errors[:title]
     assert t.errors[:content].empty?
 
@@ -38,22 +38,22 @@ class PresenceValidationTest < ActiveModel::TestCase
     Topic.validates_format_of(:title, :content, with: /\A[1-9][0-9]*\z/, message: "is bad data")
 
     t = Topic.new("title" => "72x", "content" => "6789")
-    assert t.invalid?, "Shouldn't be valid"
+    assert t.invalid?, message: "Shouldn't be valid"
 
     assert_equal ["is bad data"], t.errors[:title]
     assert t.errors[:content].empty?
 
     t.title = "-11"
-    assert t.invalid?, "Shouldn't be valid"
+    assert t.invalid?, message: "Shouldn't be valid"
 
     t.title = "03"
-    assert t.invalid?, "Shouldn't be valid"
+    assert t.invalid?, message: "Shouldn't be valid"
 
     t.title = "z44"
-    assert t.invalid?, "Shouldn't be valid"
+    assert t.invalid?, message: "Shouldn't be valid"
 
     t.title = "5v7"
-    assert t.invalid?, "Shouldn't be valid"
+    assert t.invalid?, message: "Shouldn't be valid"
 
     t.title = "1"
 

@@ -417,7 +417,7 @@ class DatabaseConnectedXmlSerializationTest < ActiveRecord::TestCase
   def test_should_support_aliased_attributes
     xml = Author.select("name as firstname").to_xml
     Author.all.each do |author|
-      assert xml.include?(%(<firstname>#{author.name}</firstname>)), xml
+      assert xml.include?(%(<firstname>#{author.name}</firstname>)), message: xml
     end
   end
 
@@ -428,8 +428,8 @@ class DatabaseConnectedXmlSerializationTest < ActiveRecord::TestCase
 
   def test_array_to_xml_including_methods
     xml = [ topics(:first), topics(:second) ].to_xml(:indent => 0, :skip_instruct => true, :methods => [ :topic_id ])
-    assert xml.include?(%(<topic-id type="integer">#{topics(:first).topic_id}</topic-id>)), xml
-    assert xml.include?(%(<topic-id type="integer">#{topics(:second).topic_id}</topic-id>)), xml
+    assert xml.include?(%(<topic-id type="integer">#{topics(:first).topic_id}</topic-id>)), message: xml
+    assert xml.include?(%(<topic-id type="integer">#{topics(:second).topic_id}</topic-id>)), message: xml
   end
 
   def test_array_to_xml_including_has_one_association

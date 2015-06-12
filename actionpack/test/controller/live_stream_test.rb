@@ -240,8 +240,8 @@ module ActionController
     tests TestController
 
     def assert_stream_closed
-      assert response.stream.closed?, 'stream should be closed'
-      assert response.sent?, 'stream should be sent'
+      assert response.stream.closed?, message: 'stream should be closed'
+      assert response.sent?, message: 'stream should be sent'
     end
 
     def capture_log_output
@@ -296,7 +296,7 @@ module ActionController
 
       @controller.process :blocking_stream
 
-      assert t.join(3), 'timeout expired before the thread terminated'
+      assert t.join(3), message: 'timeout expired before the thread terminated'
     end
 
     def test_abort_with_full_buffer

@@ -1344,12 +1344,12 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_destroy_all
     force_signal37_to_load_all_clients_of_firm
     clients = companies(:first_firm).clients_of_firm.to_a
-    assert !clients.empty?, "37signals has clients after load"
+    assert !clients.empty?, message: "37signals has clients after load"
     destroyed = companies(:first_firm).clients_of_firm.destroy_all
     assert_equal clients.sort_by(&:id), destroyed.sort_by(&:id)
-    assert destroyed.all?(&:frozen?), "destroyed clients should be frozen"
-    assert companies(:first_firm).clients_of_firm.empty?, "37signals has no clients after destroy all"
-    assert companies(:first_firm).clients_of_firm(true).empty?, "37signals has no clients after destroy all and refresh"
+    assert destroyed.all?(&:frozen?), message: "destroyed clients should be frozen"
+    assert companies(:first_firm).clients_of_firm.empty?, message: "37signals has no clients after destroy all"
+    assert companies(:first_firm).clients_of_firm(true).empty?, message: "37signals has no clients after destroy all and refresh"
   end
 
   def test_dependence
@@ -1459,7 +1459,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_replace_with_less
     firm = Firm.all.merge!(:order => "id").first
     firm.clients = [companies(:first_client)]
-    assert firm.save, "Could not save firm"
+    assert firm.save, message: "Could not save firm"
     firm.reload
     assert_equal 1, firm.clients.length
   end

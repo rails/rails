@@ -16,7 +16,7 @@ module ActiveSupport
       #   assert_not foo, 'foo should be false'
       def assert_not(object, message = nil)
         message ||= "Expected #{mu_pp(object)} to be nil or false"
-        assert !object, message
+        assert !object, message: message
       end
 
       # Test numeric difference between the return value of an expression as a

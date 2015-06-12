@@ -84,5 +84,12 @@ module ActiveSupport
     def assert_nothing_raised(*args)
       yield
     end
+
+    def assert(predicate, message_or_equal = nil, message: nil)
+      if message_or_equal.present? && !caller_locations.first.base_label.match(/^(assert|refute|flunk)/)
+        raise ArgumentError, "Use the kwarg message instead of the positional one, unless you meant assert_equal?"
+      end
+      super(predicate, message || message_or_equal)
+    end
   end
 end

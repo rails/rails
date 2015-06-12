@@ -69,8 +69,8 @@ class FixturesTest < ActiveRecord::TestCase
 
   def test_create_fixtures
     fixtures = ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, "parrots")
-    assert Parrot.find_by_name('Curious George'), 'George is not in the database'
-    assert fixtures.detect { |f| f.name == 'parrots' }, "no fixtures named 'parrots' in #{fixtures.map(&:name).inspect}"
+    assert Parrot.find_by_name('Curious George'), message: 'George is not in the database'
+    assert fixtures.detect { |f| f.name == 'parrots' }, message: "no fixtures named 'parrots' in #{fixtures.map(&:name).inspect}"
   end
 
   def test_multiple_clean_fixtures
@@ -83,8 +83,8 @@ class FixturesTest < ActiveRecord::TestCase
   def test_create_symbol_fixtures
     fixtures = ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, :collections, :collections => Course) { Course.connection }
 
-    assert Course.find_by_name('Collection'), 'course is not in the database'
-    assert fixtures.detect { |f| f.name == 'collections' }, "no fixtures named 'collections' in #{fixtures.map(&:name).inspect}"
+    assert Course.find_by_name('Collection'), message: 'course is not in the database'
+    assert fixtures.detect { |f| f.name == 'collections' }, message: "no fixtures named 'collections' in #{fixtures.map(&:name).inspect}"
   end
 
   def test_attributes
@@ -263,7 +263,7 @@ class FixturesTest < ActiveRecord::TestCase
 
     result = test_case.new(:test_fixtures).run
 
-    assert result.passed?, "Expected #{result.name} to pass:\n#{result}"
+    assert result.passed?, message: "Expected #{result.name} to pass:\n#{result}"
   ensure
     ENV['DATABASE_URL'] = db_url_tmp
   end
@@ -414,7 +414,7 @@ class FixturesWithoutInstanceInstantiationTest < ActiveRecord::TestCase
   fixtures :topics, :developers, :accounts
 
   def test_without_instance_instantiation
-    assert !defined?(@first), "@first is not defined"
+    assert !defined?(@first), message: "@first is not defined"
   end
 end
 

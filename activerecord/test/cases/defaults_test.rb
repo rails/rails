@@ -13,7 +13,7 @@ class DefaultTest < ActiveRecord::TestCase
 
     column_defaults.each do |name, default|
       column = Entrant.columns_hash[name]
-      assert !column.null, "#{name} column should be NOT NULL"
+      assert !column.null, message: "#{name} column should be NOT NULL"
       assert_equal default, column.default, "#{name} column should be DEFAULT #{default.inspect}"
     end
   end
