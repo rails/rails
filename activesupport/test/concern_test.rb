@@ -88,7 +88,7 @@ class ConcernTest < ActiveSupport::TestCase
         end
       end
     end
-    @klass.include test_module
+    @klass.send(:include, test_module)
     assert_equal false, Object.respond_to?(:test)
     Qux.class_eval do
       remove_const :ClassMethods
