@@ -165,7 +165,7 @@ module ActionController
   #   class BooksControllerTest < ActionController::TestCase
   #     def test_create
   #       # Simulate a POST response with the given HTTP parameters.
-  #       post(:create, book: { title: "Love Hina" })
+  #       post(:create, params: { book: { title: "Love Hina" }})
   #
   #       # Assert that the controller tried to redirect us to
   #       # the created book's URI.
