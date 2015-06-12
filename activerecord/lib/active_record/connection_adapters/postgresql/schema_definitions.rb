@@ -47,6 +47,10 @@ module ActiveRecord
           args.each { |name| column(name, :bit_varying, options) }
         end
 
+        def box(*args, **options)
+          args.each { |name| column(name, :box, options) }
+        end
+
         def cidr(*args, **options)
           args.each { |name| column(name, :cidr, options) }
         end
