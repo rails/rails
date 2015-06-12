@@ -475,7 +475,8 @@ column names can not be derived from the table names, you can use the
 `:column` and `:primary_key` options.
 
 Rails will generate a name for every foreign key starting with
-`fk_rails_` followed by 10 random characters.
+`fk_rails_` followed by 10 character which is deterministically
+generated from the `from_table` and `column`.
 There is a `:name` option to specify a different name if needed.
 
 NOTE: Active Record only supports single column foreign keys. `execute` and
